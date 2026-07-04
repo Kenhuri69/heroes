@@ -51,6 +51,7 @@ docs/
   08-ui-ux.md                    Écrans principaux, wireframes, adaptation mobile
   09-roadmap.md                  Phases MVP → Alpha → Beta → Live
   10-plan-phase-2-implementation.md  Plan Phase 2 : structure, architecture, build Vite, déploiement GitHub Pages, code prioritaire
+  11-plan-mvp-implementation.md  Plan Phase MVP : découpage en sous-phases 3.x (villes, héros, factions, scénarios)
   templates/faction-template.md  Gabarit pour spécifier une nouvelle maison
 .github/workflows/
   ci.yml                         PR : typecheck, lint, tests, build, smoke headless

@@ -1,47 +1,54 @@
 import type { Command, CommandError } from '../core/commands';
 import type { GameEvent } from '../core/events';
 import type { GameState } from '../core/state';
-import type { OffsetPos } from './hex';
+import { applyAction, canShoot, reachableHexes, validateCombatAction as validateAction } from './actions';
+import { runAiIfNeeded, runAutoCombat } from './ai';
+import { estimateDamage as estimateDamageCore } from './damage';
+import {
+  beginGuardianCombat as beginGuardianCombatImpl,
+  handleStartCombat as handleStartCombatImpl,
+  validateStartCombat as validateStartCombatImpl,
+} from './setup';
 
 /**
  * Points d'entrée du combat appelés par `core/engine.ts` — signatures FIGÉES
- * en cadrage (plan phase-2.4). Lot A : implémentation des règles ici (fichiers
- * frères dans `combat/`), sans toucher à `core/` ni aux signatures.
+ * en cadrage (plan phase-2.4). Implémentation (lot A) déléguée aux fichiers
+ * frères : `setup.ts` (mise en place), `actions.ts` (déplacement/attaque/
+ * attendre/défendre, reachableHexes/canShoot), `damage.ts` (dégâts,
+ * estimateDamage), `turns.ts` (ordre de jeu, fin de combat), `ai.ts` (IA de
+ * base + auto-combat), `state-helpers.ts` (moral, vitesse, bilan de pertes).
  */
 
 type Draft = GameState;
 type StartCombatCmd = Extract<Command, { type: 'StartCombat' }>;
 type CombatActionCmd = Extract<Command, { type: 'CombatAction' }>;
 
-const NOT_IMPLEMENTED: CommandError = {
-  code: 'invalidAction',
-  message: 'combat non implémenté (lot A en cours)',
-};
-
-/* eslint-disable @typescript-eslint/no-unused-vars -- stubs lot A */
-
 export function validateStartCombat(state: GameState, cmd: StartCombatCmd): CommandError | null {
-  return NOT_IMPLEMENTED;
+  return validateStartCombatImpl(state, cmd);
 }
 
 export function validateCombatAction(state: GameState, cmd: CombatActionCmd): CommandError | null {
-  return NOT_IMPLEMENTED;
+  return validateAction(state, cmd);
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- signature figée (plan phase-2.4)
 export function validateAutoCombat(state: GameState): CommandError | null {
-  return NOT_IMPLEMENTED;
+  return null; // `core/engine.ts` a déjà vérifié qu'un combat est en cours
 }
 
 export function handleStartCombat(draft: Draft, cmd: StartCombatCmd, events: GameEvent[]): void {
-  throw new Error('combat non implémenté (lot A)');
+  handleStartCombatImpl(draft, cmd, events);
 }
 
 export function handleCombatAction(draft: Draft, cmd: CombatActionCmd, events: GameEvent[]): void {
-  throw new Error('combat non implémenté (lot A)');
+  const combat = draft.combat;
+  if (!combat || !combat.activeStackId) return; // exclu par validate
+  applyAction(draft, events, combat.activeStackId, cmd.action);
+  runAiIfNeeded(draft, events);
 }
 
 export function handleAutoCombat(draft: Draft, events: GameEvent[]): void {
-  throw new Error('combat non implémenté (lot A)');
+  runAutoCombat(draft, events);
 }
 
 /** Estimation min–max pour la prévisualisation OBLIGATOIRE (doc 08 §2.4) — sans RNG. */
@@ -59,18 +66,14 @@ export function estimateDamage(
   attackerId: string,
   targetId: string,
 ): DamageEstimate {
-  throw new Error('combat non implémenté (lot A)');
+  return estimateDamageCore(state, attackerId, targetId);
 }
 
 /** Hexes atteignables par la pile (déplacement seul) — surbrillances UI. */
-export function reachableHexes(state: GameState, stackId: string): OffsetPos[] {
-  throw new Error('combat non implémenté (lot A)');
-}
+export { reachableHexes };
 
 /** La pile peut-elle tirer (shooter, munitions > 0, pas d'ennemi adjacent) ? */
-export function canShoot(state: GameState, stackId: string): boolean {
-  throw new Error('combat non implémenté (lot A)');
-}
+export { canShoot };
 
 /**
  * Ouvre un combat d'interception héros ↔ gardien — appelé par le handler
@@ -82,7 +85,5 @@ export function beginGuardianCombat(
   guardianObjectId: string,
   events: GameEvent[],
 ): void {
-  throw new Error('combat non implémenté (lot A)');
+  beginGuardianCombatImpl(draft, heroId, guardianObjectId, events);
 }
-
-/* eslint-enable @typescript-eslint/no-unused-vars */

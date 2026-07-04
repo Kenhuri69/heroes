@@ -30,6 +30,8 @@ docs/
   09-roadmap.md                  Phases MVP → Alpha → Beta → Live
   10-plan-phase-2-implementation.md  Plan Phase 2 : structure, architecture, build Vite, déploiement GitHub Pages, code prioritaire
   templates/faction-template.md  Gabarit pour spécifier une nouvelle maison
+.github/workflows/deploy.yml     Déploiement GitHub Pages (bootstrap — remplacé par le build Vite en Phase 2.0)
+site/index.html                  Page d'attente publiée sur Pages tant que le client n'existe pas
 .claude/
   guidelines.md                  Règles de travail (incluses ci-dessus)
   plans/                         Plans vivants par changement (règle §5 des guidelines)

@@ -23,7 +23,15 @@ Phase 1 (docs 01–09).
       → vérif : le nouveau doc est référencé.
 - [x] Commit + push sur `claude/mm-heroes-phase-2-plan-rht00n`, PR draft
       → vérif : PR ouverte (guideline §6 : pas de PR existante sur cette branche —
-      vérifié avant push).
+      vérifié avant push) — PR #2.
+- [x] (Demande utilisateur post-PR) Ajouter le workflow de déploiement Pages
+      **bootstrap** (`.github/workflows/deploy.yml` + `site/index.html`) : la
+      version cible du doc 10 §4.2 build `packages/client` qui n'existe pas
+      encore → on publie une page d'attente pour valider la chaîne Pages sans
+      CI rouge. Doc 10 §4.2 annoté en conséquence (invariant « docs = source
+      de vérité »). → vérif : run `deploy.yml` vert sur `main` après merge.
+- [ ] Merger la PR #2 sur `main` (demande utilisateur) puis vérifier le run
+      de déploiement et l'URL `https://kenhuri69.github.io/heroes/`.
 
 ## Écarts constatés / décisions
 

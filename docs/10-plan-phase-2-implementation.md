@@ -345,6 +345,11 @@ export default defineConfig(({ command }) => ({
 Déploiement **officiel GitHub Pages via Actions** (pas de branche `gh-pages` :
 moins d'écritures git, permissions minimales, URL visible sur chaque run).
 
+> **État actuel** : une version **bootstrap** de ce workflow est déjà en place
+> (livrée avec ce plan) : elle publie la page d'attente statique `site/` pour
+> valider la chaîne Pages de bout en bout avant tout code. La Phase 2.0
+> remplace son job `build` par la version cible ci-dessous et supprime `site/`.
+
 ```yaml
 name: Deploy to GitHub Pages
 

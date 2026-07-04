@@ -1,7 +1,7 @@
 {
   "id": "haven",
   "schemaVersion": 1,
-  "name": "@loc:faction.name",
+  "name": "@loc:faction.haven.name",
   "nativeTerrain": "grass",
   "keyResources": ["crystal", "gems"],
   "factionResources": [],

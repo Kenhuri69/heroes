@@ -95,9 +95,11 @@ describe('faction data-driven à 7 tiers (plan phase-3.3) — chargement & recru
     expect(pack).toBeDefined();
     expect(pack?.units).toHaveLength(7);
     // Nom de faction présent dans les deux langues (valeur non assertée en dur
-    // pour ne pas réintroduire de littéral de nom de faction).
-    expect(pack?.locales.fr['faction.name']).toBeTruthy();
-    expect(pack?.locales.en['faction.name']).toBeTruthy();
+    // pour ne pas réintroduire de littéral de nom de faction). Clé propre au
+    // paquet (`@loc:faction.<id>.name`), lue depuis le manifeste.
+    const nameKey = pack?.manifest.name.slice('@loc:'.length) ?? '';
+    expect(pack?.locales.fr[nameKey]).toBeTruthy();
+    expect(pack?.locales.en[nameKey]).toBeTruthy();
   });
 
   it('résout les stats et capacités attendues pour chaque tier (doc 03 §3)', async () => {
@@ -235,8 +237,9 @@ describe('faction morte-vivante (plan phase-3.4) — effet de faction & recrutem
     for (const unit of pack?.units ?? []) {
       expect(unit.abilities.some((a) => a.id === 'undead')).toBe(true);
     }
-    expect(pack?.locales.fr['faction.name']).toBeTruthy();
-    expect(pack?.locales.en['faction.name']).toBeTruthy();
+    const nameKey = pack?.manifest.name.slice('@loc:'.length) ?? '';
+    expect(pack?.locales.fr[nameKey]).toBeTruthy();
+    expect(pack?.locales.en[nameKey]).toBeTruthy();
   });
 
   it('résout le bonus raiseUndeadOnVictory vers une unité undead du paquet', async () => {

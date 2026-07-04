@@ -1,5 +1,5 @@
 {
-  "faction.name": "Necropolis",
+  "faction.necropolis.name": "Necropolis",
   "unit.t1-squelette.name": "Skeleton",
   "unit.t2-zombie.name": "Rotting Zombie",
   "unit.t3-spectre.name": "Spectre",

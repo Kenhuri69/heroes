@@ -1,0 +1,10 @@
+{
+  "faction.name": "Necropolis",
+  "unit.t1-squelette.name": "Skeleton",
+  "unit.t2-zombie.name": "Rotting Zombie",
+  "unit.t3-spectre.name": "Spectre",
+  "unit.t4-vampire.name": "Vampire",
+  "unit.t5-liche.name": "Lich",
+  "unit.t6-cavalier-funeste.name": "Doom Knight",
+  "unit.t7-dragon-os.name": "Bone Dragon"
+}

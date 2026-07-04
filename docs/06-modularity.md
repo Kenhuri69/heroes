@@ -120,6 +120,16 @@ interface AdventureHook {
 }
 ```
 
+> 🚧 **État 3.4** : le premier point d'extension **déclaratif** est ouvert —
+> `manifest.factionBonuses` accepte désormais l'effet `raiseUndeadOnVictory`
+> (Nécromancie), interprété par le moteur à la fin d'un combat gagné via un
+> `factionCatalog` résolu par le contenu, **sans aucun nom de faction dans le
+> moteur** (comme prévu ici : « la Nécromancie est en fait déclarative »). Les
+> `AbilityModule`/`AdventureHook` en **code** restent fermés (`abilityModules`/
+> `hooks` refusés non vides) jusqu'à ce qu'une mécanique l'exige vraiment. Le
+> critère CI (§5.8) est respecté : le seul diff moteur est l'ouverture de ce
+> point générique.
+
 **Règles imposées aux modules** (vérifiées par lint + revue) :
 1. Pas d'accès au rendu, au réseau, à `Date`/`Math.random` — le contexte fournit `ctx.rng` (seedé) et `ctx.now` (temps de jeu).
 2. Tout état passe par `ctx.state` (sérialisable) : les sauvegardes et le multi en dépendent.

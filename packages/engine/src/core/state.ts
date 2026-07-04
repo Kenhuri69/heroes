@@ -3,6 +3,7 @@ import type { AdventureMapDef, GridPos } from '../adventure/map';
 import type { ArmyStack, CombatState, CombatUnitDef } from '../combat/types';
 import type { BuildingDef, TownState } from '../town/types';
 import type { ArtifactDef, HeroSkillDef, SpellDef } from '../hero/types';
+import type { FactionBonus } from '../faction/types';
 import type { RngState } from './rng';
 
 /** Les 7 ressources du jeu (doc 02 §3). Les montants vivent dans les données. */
@@ -57,6 +58,8 @@ export interface HeroState {
   artifacts: (string | null)[];
   /** Propositions de compétence en attente d'un `ChooseSkill` (doc 02 §1.2). */
   pendingSkillChoices: string[];
+  /** Maison du héros (doc 06 §4) — id opaque pour le moteur, '' = aucune. */
+  factionId: string;
 }
 
 export interface Calendar {
@@ -94,6 +97,12 @@ export interface GameState {
   towns: TownState[];
   /** Combat en cours (doc 02 §5) — null hors combat. */
   combat: CombatState | null;
+  /**
+   * Effets de faction déclaratifs résolus par le contenu (doc 06 §4), indexés
+   * par `factionId` — le moteur applique le `type` générique sans jamais
+   * connaître de nom de faction.
+   */
+  factionCatalog: Record<string, { bonuses: FactionBonus[] }>;
 }
 
 export function createEmptyState(): GameState {
@@ -114,6 +123,7 @@ export function createEmptyState(): GameState {
     artifactCatalog: {},
     towns: [],
     combat: null,
+    factionCatalog: {},
   };
 }
 

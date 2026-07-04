@@ -55,6 +55,15 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > un test de recrutement). Capacités spéciales / bonus de faction / héros
 > nommés différés (moteur MVP à 6 capacités ; points d'extension ouverts plus
 > tard, cf. doc 03 « État 3.3 »).
+> Phase 3.4 livrée : faction **Necropolis** + **Nécromancie** — le **test de
+> modularité n°1**. Faction 100 % données (`data/factions/necropolis/`, lineup
+> T1–T7 toutes `undead`) ET ouverture d'**UN** point d'extension moteur
+> **générique** : l'effet de faction déclaratif `raiseUndeadOnVictory`
+> (`engine/faction`), interprété à la fin d'un combat gagné (relève un % des PV
+> vivants ennemis tués en squelettes, plafonné), piloté par le manifeste via
+> `factionCatalog`/`hero.factionId` — **zéro `if (faction === …)` dans le
+> moteur**. Scaling par compétence/bâtiment, capacités spéciales et héros
+> nommés différés (cf. doc 04 « État 3.4 »).
 > Les docs `docs/0X-*.md` restent la source de
 > vérité du design ; le code doit s'y conformer.
 
@@ -93,7 +102,7 @@ data/
   core/skills.json               Compétences secondaires + effets par rang (doc 02 §1.3)
   core/artifacts.json            Artefacts à bonus cumulés sur 10 slots (doc 02 §1.1, doc 08 §2.3)
   core/locales/                  Locales FR/EN de l'UI générique (menu, options, toasts, ville)
-  factions/                      Paquets de faction (index.json + haven, arcane-hunters, test-faction)
+  factions/                      Paquets de faction (index.json + haven, arcane-hunters, test-faction, necropolis)
   maps/proto-01.map.json         Carte prototype 32×32 (légende, tuiles, routes, objets, départs)
 tests/smoke.spec.ts              Smoke Playwright/Chromium headless (guideline §7) sur le build de prod
 playwright.config.ts             Config smoke (desktop + mobile, vite preview)

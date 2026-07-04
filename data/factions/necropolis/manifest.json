@@ -1,0 +1,56 @@
+{
+  "id": "necropolis",
+  "schemaVersion": 1,
+  "name": "@loc:faction.name",
+  "nativeTerrain": "swamp",
+  "keyResources": ["sulfur", "gems"],
+  "factionResources": [],
+  "factionBonuses": [
+    {
+      "type": "raiseUndeadOnVictory",
+      "unitId": "t1-squelette",
+      "percentHpRaised": 15,
+      "capBase": 20,
+      "capPerExisting": 2
+    }
+  ],
+  "spellSchool": null,
+  "heroSkills": [],
+  "tiers": 7,
+  "sharedGrowthGroups": {},
+  "units": [
+    "t1-squelette",
+    "t2-zombie",
+    "t3-spectre",
+    "t4-vampire",
+    "t5-liche",
+    "t6-cavalier-funeste",
+    "t7-dragon-os"
+  ],
+  "abilityModules": [],
+  "hooks": [],
+  "aiProfile": { "aggression": 0.6, "focusFire": 0.7, "preferredTargets": "weakest" },
+  "town": {
+    "buildings": [
+      "townHall",
+      "fort",
+      "mageGuild",
+      "necropolis-dwelling-t1",
+      "necropolis-dwelling-t2",
+      "necropolis-dwelling-t3",
+      "necropolis-dwelling-t4",
+      "necropolis-dwelling-t5",
+      "necropolis-dwelling-t6",
+      "necropolis-dwelling-t7"
+    ],
+    "dwellings": [
+      { "tier": 1, "unitId": "t1-squelette", "buildingId": "necropolis-dwelling-t1" },
+      { "tier": 2, "unitId": "t2-zombie", "buildingId": "necropolis-dwelling-t2" },
+      { "tier": 3, "unitId": "t3-spectre", "buildingId": "necropolis-dwelling-t3" },
+      { "tier": 4, "unitId": "t4-vampire", "buildingId": "necropolis-dwelling-t4" },
+      { "tier": 5, "unitId": "t5-liche", "buildingId": "necropolis-dwelling-t5" },
+      { "tier": 6, "unitId": "t6-cavalier-funeste", "buildingId": "necropolis-dwelling-t6" },
+      { "tier": 7, "unitId": "t7-dragon-os", "buildingId": "necropolis-dwelling-t7" }
+    ]
+  }
+}

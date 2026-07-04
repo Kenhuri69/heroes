@@ -1,6 +1,7 @@
 export {
   buildArtifactCatalog,
   buildBuildingCatalog,
+  buildFactionCatalog,
   buildSkillCatalog,
   buildSpellCatalog,
   knownUnitIds,
@@ -24,6 +25,7 @@ export {
   artifactSchema,
   buildingCatalogSchema,
   buildingSchema,
+  factionBonusSchema,
   factionIndexSchema,
   gameConfigSchema,
   localeSchema,
@@ -40,6 +42,7 @@ export {
   type ArtifactCatalogFile,
   type Building,
   type BuildingCatalogFile,
+  type FactionBonus,
   type FactionIndex,
   type GameConfig,
   type Locale,

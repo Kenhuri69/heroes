@@ -30,6 +30,9 @@ function toastMessage(event: AppEvent): string | null {
       return t('toast.weekStarted', { week: event.week });
     case 'CombatEnded':
       return event.winner === 'attacker' ? t('toast.combatWon') : t('toast.combatLost');
+    // Nécromancie (doc 04 §2, plan phase-3.4) : relève post-victoire (effet de faction).
+    case 'UndeadRaised':
+      return t('toast.undeadRaised', { count: event.count, unit: resolveUnitName(event.unitId) });
     case 'HeroLevelUp':
       return t('toast.heroLevelUp', { level: event.level });
     // Sorts & compétences du héros (doc 02 §1.2–§1.4, plan phase-3.2 lot M).

@@ -3,6 +3,7 @@ import type { AdventureMapDef, GridPos } from '../adventure/map';
 import type { ArmyStack, CombatActionInput, CombatUnitDef } from '../combat/types';
 import type { BuildingDef, TownState } from '../town/types';
 import type { ArtifactDef, HeroSkillDef, SpellDef } from '../hero/types';
+import type { FactionBonus } from '../faction/types';
 import type { HeroAttributes, Resources } from './state';
 
 export interface PlayerSetup {
@@ -15,6 +16,8 @@ export interface PlayerSetup {
   startingAttributes?: HeroAttributes;
   /** Sorts connus d'emblée (ids) — résolus par le contenu (cercle ≤ Guilde MVP, décision 3.2 #7). */
   startingSpells?: string[];
+  /** Maison du héros (doc 06 §4) — id opaque pour le moteur ; défaut ''. */
+  startingFactionId?: string;
 }
 
 /**
@@ -43,6 +46,8 @@ export type Command =
       artifactCatalog?: Record<string, ArtifactDef>;
       /** Artefacts de départ du héros (ids) — données de scénario. */
       startingArtifacts?: string[];
+      /** Catalogue d'effets de faction déclaratifs résolu par le contenu (doc 06 §4). */
+      factionCatalog?: Record<string, { bonuses: FactionBonus[] }>;
     }
   | {
       /** Chemin calculé par A* côté client ; le moteur revalide chaque pas. */

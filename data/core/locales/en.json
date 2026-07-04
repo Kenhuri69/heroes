@@ -91,6 +91,7 @@
   "toast.weekStarted": "Week {week} started",
   "toast.combatWon": "Victory!",
   "toast.combatLost": "Defeat…",
+  "toast.undeadRaised": "+{count} {unit} raised (Necromancy)",
   "toast.heroLevelUp": "Level {level} reached!",
   "toast.gameLoaded": "Game loaded",
   "toast.spellCast": "{hero} casts {spell}",

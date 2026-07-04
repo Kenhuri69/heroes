@@ -183,7 +183,12 @@ const GOLDEN_JOURNAL: Command[] = [
   ),
 ];
 
-const GOLDEN_HASH = 'f85c9e64';
+// Hash mis à jour au lot O du plan de faction déclarative (doc 06 §4) :
+// `HeroState.factionId` et `GameState.factionCatalog` s'ajoutent à la forme
+// sérialisée. Aucun effet de faction n'est exercé ici (factionId '' par
+// défaut, factionCatalog absent ⇒ {}) : seule la FORME de l'état change,
+// pas la simulation — hash relevé après vérification.
+const GOLDEN_HASH = '211e3cfd';
 
 describe('golden replay', () => {
   it('le journal scripté produit toujours le même état final', () => {

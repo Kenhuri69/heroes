@@ -3,7 +3,13 @@ import type { Command, GameState } from '@heroes/engine';
 import { Camera } from './render/camera';
 import { TILE_SIZE } from './render/tilemap';
 import { loadGameContent, loadDefaultMap } from './app/content';
-import { buildHeroSetup, buildTownSetup, buildUnitCatalog, newGameCommand } from './app/game';
+import {
+  buildFactionSetup,
+  buildHeroSetup,
+  buildTownSetup,
+  buildUnitCatalog,
+  newGameCommand,
+} from './app/game';
 import { dispatch } from './app/dispatch';
 import { appStore } from './app/store';
 import { exportSave, importSave, saveGame, restoreSavedGame } from './app/save';
@@ -91,6 +97,7 @@ async function bootstrap(): Promise<void> {
         buildUnitCatalog(report),
         buildTownSetup(report),
         buildHeroSetup(report),
+        buildFactionSetup(report),
       ),
     );
     appStore.setState({ screen: 'game' });

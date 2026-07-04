@@ -71,17 +71,21 @@ est un **test de recrutement** (packages/content/test ou packages/engine/test).
 
 ## Lots
 
-- [ ] **Cadrage (principal)** : ce plan + vérif des contraintes moteur
-      (capacités, effets, manifeste) — **fait**.
-- [ ] **Lot N (sonnet) — contenu Haven** : `data/factions/haven/`
+- [x] **Cadrage (principal)** : ce plan + vérif des contraintes moteur
+      (capacités, effets, manifeste) — fait.
+- [x] **Lot N (sonnet) — contenu Haven** : `data/factions/haven/`
       (`manifest.json`, `units/t1..t7.json`, `buildings.json`, `locales/{fr,
       en}.json`), enregistrement dans `data/factions/index.json`, test
-      « recruter une unité Haven de chaque tier » (ville avec les 7 dwellings
-      niveau 1 + stock, `RecruitUnits` par tier). Vérif : `content:check`
-      liste haven (7 unités, locales OK), tests verts, `pnpm lint`/`typecheck`,
-      **`git diff --stat` ne touche que `data/` + le fichier de test**.
-- [ ] **Intégration (principal)** : doc 03 « État 3.3 » (livré vs différé),
-      CLAUDE.md, smoke/vérif globale, PR draft, merge.
+      `packages/content/test/haven.test.ts` (charge le contenu réel, résout les
+      7 unités, recrute une unité de chaque tier depuis une ville aux 7
+      habitations). Vérif : `content:check` « haven — 7 unité(s), locales fr/en
+      OK », 38 tests contenu, 150 moteur (non-régression), typecheck/lint verts,
+      **`git diff --stat` = `data/` + `packages/content/test/haven.test.ts`
+      uniquement** (aucun `packages/*/src`). Import test = référence relative au
+      point d'entrée public du moteur (`../../engine/src/index`, = cible de
+      l'`exports` `@heroes/engine`) — pas de devDep pour garder le diff net.
+- [x] **Intégration (principal)** : doc 03 « État 3.3 » (livré vs différé),
+      CLAUDE.md, structure de fichiers, vérif globale, PR draft #12, merge.
 
 ## Écarts assumés
 

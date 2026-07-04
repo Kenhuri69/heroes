@@ -1,5 +1,21 @@
 # 03 — Faction : Haven (Havre)
 
+> 🚧 **État 3.3 (implémentation)** : la faction Haven est livrée **100 % en
+> données** (`data/factions/haven/`, zéro diff moteur/client — critère de
+> modularité doc 11). **Livré** : lineup T1–T7 (stats §3 exactes), arbre
+> d'habitations (7 dwellings + prérequis, §4), manifeste, ressources clés
+> (Cristal/Gemmes), locales FR/EN, recrutement validé par test. **Différé**
+> (points d'extension moteur non encore ouverts — le loader refuse toute
+> donnée non interprétée) : capacités spéciales `taunt`/`shieldWall`/`charge`/
+> `firstStrike`/`resurrectAlly`/`spellcaster`/`unlimitedRetaliation` + immunité
+> au moral (moteur MVP à 6 capacités : `flying`/`shooter` seuls conservés ici) ;
+> bonus de faction Ferveur/Formation (§2) ; compétence Prière de bataille ;
+> bâtiments spéciaux Statue/Cloître/Écuries (§4, effets non supportés) ; école
+> Lumière (variante Eau au MVP, `spellSchool: null`) ; classes et héros nommés
+> Aldric/Séraphine (§5, pas de pipeline de héros par faction). Certaines
+> capacités s'ouvriront en 3.4 via le point d'extension `AbilityModule`. Ce
+> document reste la cible de design.
+
 ## 1. Identité
 
 | | |

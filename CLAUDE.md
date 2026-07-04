@@ -48,6 +48,13 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > 2 propositions, cap rang 3) ; 4 artefacts à bonus cumulés sur 10 slots ;
 > UI livre de sorts combat + tiroir héros (compétences/inventaire) + modale
 > de choix ; héros de départ doté en données (`config.newGame.startingHero`).
+> Phase 3.3 livrée : faction **Haven** 100 % données (`data/factions/haven/` —
+> lineup T1–T7 aux stats doc 03, arbre d'habitations 7 dwellings + prérequis,
+> manifeste, ressources Cristal/Gemmes, locales FR/EN), **zéro diff moteur/
+> client** (critère de modularité doc 11 prouvé : une faction = données pures +
+> un test de recrutement). Capacités spéciales / bonus de faction / héros
+> nommés différés (moteur MVP à 6 capacités ; points d'extension ouverts plus
+> tard, cf. doc 03 « État 3.3 »).
 > Les docs `docs/0X-*.md` restent la source de
 > vérité du design ; le code doit s'y conformer.
 
@@ -86,7 +93,7 @@ data/
   core/skills.json               Compétences secondaires + effets par rang (doc 02 §1.3)
   core/artifacts.json            Artefacts à bonus cumulés sur 10 slots (doc 02 §1.1, doc 08 §2.3)
   core/locales/                  Locales FR/EN de l'UI générique (menu, options, toasts, ville)
-  factions/                      Paquets de faction (index.json + arcane-hunters, test-faction)
+  factions/                      Paquets de faction (index.json + haven, arcane-hunters, test-faction)
   maps/proto-01.map.json         Carte prototype 32×32 (légende, tuiles, routes, objets, départs)
 tests/smoke.spec.ts              Smoke Playwright/Chromium headless (guideline §7) sur le build de prod
 playwright.config.ts             Config smoke (desktop + mobile, vite preview)

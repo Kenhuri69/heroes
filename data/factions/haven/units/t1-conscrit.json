@@ -1,0 +1,9 @@
+{
+  "id": "t1-conscrit",
+  "tier": 1,
+  "name": "@loc:unit.t1-conscrit.name",
+  "stats": { "hp": 6, "attack": 2, "defense": 3, "damage": [1, 2], "speed": 4 },
+  "growthPerWeek": 14,
+  "cost": { "gold": 30 },
+  "abilities": []
+}

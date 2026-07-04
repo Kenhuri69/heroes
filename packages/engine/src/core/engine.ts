@@ -12,6 +12,19 @@ import {
   validateCombatAction,
   validateStartCombat,
 } from '../combat';
+import {
+  applyDailyIncome,
+  applyWeeklyGrowth,
+  handleBuildStructure,
+  handleCaptureTown,
+  handleGarrisonTransfer,
+  handleRecruitUnits,
+  resetBuiltToday,
+  validateBuildStructure,
+  validateCaptureTown,
+  validateGarrisonTransfer,
+  validateRecruitUnits,
+} from '../town';
 import { EngineError, type Command, type CommandError } from './commands';
 import type { GameEvent } from './events';
 import { seedRng } from './rng';
@@ -99,6 +112,25 @@ export function validate(state: GameState, cmd: Command): CommandError | null {
       if (!state.combat) return { code: 'noCombat', message: 'aucun combat en cours' };
       return validateAutoCombat(state);
     }
+    case 'BuildStructure': {
+      if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
+      if (state.combat) return { code: 'combatActive', message: 'un combat est en cours' };
+      return validateBuildStructure(state, cmd);
+    }
+    case 'RecruitUnits': {
+      if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
+      if (state.combat) return { code: 'combatActive', message: 'un combat est en cours' };
+      return validateRecruitUnits(state, cmd);
+    }
+    case 'GarrisonTransfer': {
+      if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
+      if (state.combat) return { code: 'combatActive', message: 'un combat est en cours' };
+      return validateGarrisonTransfer(state, cmd);
+    }
+    case 'CaptureTown': {
+      if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
+      return validateCaptureTown(state, cmd);
+    }
   }
 }
 
@@ -178,6 +210,13 @@ const handlers: Handlers = {
     draft.config = cmd.config;
     draft.map = cmd.map;
     draft.unitCatalog = cmd.unitCatalog;
+    draft.buildingCatalog = cmd.buildingCatalog ?? {};
+    draft.towns = (cmd.towns ?? []).map((t) => ({
+      ...t,
+      buildings: { ...t.buildings },
+      garrison: t.garrison.map((s) => ({ ...s })),
+      stock: { ...t.stock },
+    }));
     draft.players = cmd.players.map((p) => ({
       id: p.id,
       resources: { ...p.startingResources },
@@ -270,6 +309,22 @@ const handlers: Handlers = {
     handleAutoCombat(draft, events);
   },
 
+  BuildStructure(draft, cmd, events) {
+    handleBuildStructure(draft, cmd, events);
+  },
+
+  RecruitUnits(draft, cmd, events) {
+    handleRecruitUnits(draft, cmd, events);
+  },
+
+  GarrisonTransfer(draft, cmd, events) {
+    handleGarrisonTransfer(draft, cmd, events);
+  },
+
+  CaptureTown(draft, cmd, events) {
+    handleCaptureTown(draft, cmd, events);
+  },
+
   EndTurn(draft, cmd, events) {
     events.push({ type: 'TurnEnded', playerId: cmd.playerId });
     draft.currentPlayer += 1;
@@ -284,9 +339,13 @@ const handlers: Handlers = {
       }
     }
     events.push({ type: 'DayStarted', day: draft.calendar.day });
+    // Économie des villes : 1 build/jour réarmé, revenu quotidien (doc 02 §4.1).
+    resetBuiltToday(draft);
+    applyDailyIncome(draft, events);
     const week = weekOf(draft.calendar.day);
     if (week !== weekOf(draft.calendar.day - 1)) {
       events.push({ type: 'WeekStarted', week });
+      applyWeeklyGrowth(draft, events); // croissance hebdo des habitations
     }
   },
 };

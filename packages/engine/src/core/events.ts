@@ -61,4 +61,10 @@ export type GameEvent =
       heroId: string;
       level: number;
       attribute: 'attack' | 'defense' | 'power' | 'knowledge';
-    };
+    }
+  // ——— Villes (doc 02 §4) — surface figée en cadrage 3.1 ———
+  | { type: 'TownBuilt'; townId: string; buildingId: string; level: number }
+  | { type: 'UnitsRecruited'; townId: string; unitId: string; count: number }
+  | { type: 'TownIncome'; playerId: string; resource: string; amount: number }
+  | { type: 'TownGrowth'; townId: string; unitId: string; added: number }
+  | { type: 'TownCaptured'; townId: string; playerId: string };

@@ -27,6 +27,8 @@ describe('sérialisation', () => {
       map: testMap(),
       config: testConfig(),
       unitCatalog: {},
+      buildingCatalog: {},
+      towns: [],
     }).state;
     state = apply(state, {
       type: 'MoveHero',

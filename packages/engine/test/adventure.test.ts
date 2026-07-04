@@ -17,6 +17,8 @@ function started(playerIds: string[] = ['p1']): GameState {
     map: testMap(),
     config: testConfig(),
     unitCatalog: {},
+    buildingCatalog: {},
+    towns: [],
   }).state;
 }
 
@@ -111,6 +113,8 @@ describe('StartGame (aventure)', () => {
         map: badTerrain,
         config: testConfig(),
         unitCatalog: {},
+        buildingCatalog: {},
+        towns: [],
       })?.code,
     ).toBe('invalidMap');
 
@@ -126,6 +130,8 @@ describe('StartGame (aventure)', () => {
         map: badObject,
         config: testConfig(),
         unitCatalog: {},
+        buildingCatalog: {},
+        towns: [],
       })?.code,
     ).toBe('invalidMap');
   });

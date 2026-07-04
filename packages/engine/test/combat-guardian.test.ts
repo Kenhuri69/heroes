@@ -34,6 +34,8 @@ function startedGameWithGuardian(guardianUnitId: string, guardianCount: number, 
     map: mapWithGuardian(guardianUnitId, guardianCount),
     config: testConfig(),
     unitCatalog: testCatalog(),
+    buildingCatalog: {},
+    towns: [],
   }).state;
 }
 

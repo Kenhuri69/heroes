@@ -185,6 +185,8 @@ describe('intégration combat (via apply)', () => {
       map: mapWithGuardian(),
       config: testConfig(),
       unitCatalog: testCatalog(),
+      buildingCatalog: {},
+      towns: [],
     }).state;
   }
 

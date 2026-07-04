@@ -1,4 +1,11 @@
-import { emptyResources, type Command, type CombatUnitDef, type Resources } from '@heroes/engine';
+import {
+  emptyResources,
+  type BuildingDef,
+  type Command,
+  type CombatUnitDef,
+  type Resources,
+  type TownState,
+} from '@heroes/engine';
 import type { GameConfig, LoadReport, ResolvedMap } from '@heroes/content';
 
 export const PLAYER_ID = 'player-1';
@@ -23,12 +30,23 @@ export function buildUnitCatalog(report: LoadReport): Record<string, CombatUnitD
   return catalog;
 }
 
+/**
+ * Catalogue de bâtiments et villes initiales : résolus par le contenu (lot I) ;
+ * en attendant le schéma `building`, vides (aucune ville). L'intégration 3.1
+ * remplace ces défauts par la résolution réelle.
+ */
+export interface TownSetup {
+  buildingCatalog: Record<string, BuildingDef>;
+  towns: TownState[];
+}
+
 /** Construit la commande `StartGame` depuis les données validées — rien en dur. */
 export function newGameCommand(
   seed: number,
   config: GameConfig,
   map: ResolvedMap,
   unitCatalog: Record<string, CombatUnitDef>,
+  townSetup: TownSetup = { buildingCatalog: {}, towns: [] },
 ): Command {
   const startingResources: Resources = { ...emptyResources() };
   for (const [id, amount] of Object.entries(config.newGame.startingResources)) {
@@ -47,5 +65,7 @@ export function newGameCommand(
     map,
     config: config.adventure,
     unitCatalog,
+    buildingCatalog: townSetup.buildingCatalog,
+    towns: townSetup.towns,
   };
 }

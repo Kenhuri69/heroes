@@ -1,4 +1,4 @@
 {
-  "faction.name": "Faction test-faction",
+  "faction.test-faction.name": "Faction test-faction",
   "unit.t1-recruit.name": "Recrue"
 }

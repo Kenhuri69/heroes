@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { apply } from '../src/core/engine';
-import { createEmptyState, emptyResources } from '../src/core/state';
+import { createEmptyState, emptyResources, type GameState } from '../src/core/state';
+import type { Command } from '../src/core/commands';
+import type { TownState } from '../src/town/types';
 import {
   deserializeState,
   hashState,
@@ -51,5 +53,82 @@ describe('sérialisation', () => {
     const a = apply(state, { type: 'EndTurn', playerId: 'p2' });
     const b = apply(loaded, { type: 'EndTurn', playerId: 'p2' });
     expect(hashState(a.state)).toBe(hashState(b.state));
+  });
+
+  /**
+   * Régression (plan phase-3.7) : les champs d'état introduits en 3.4/3.5
+   * (`scenario`, `outcome`, `factionCatalog`, `factionId` héros/ville,
+   * `controller`, `eliminated`) doivent survivre au round-trip de sauvegarde.
+   * La couverture existante ne portait que sur une partie libre — ces champs
+   * y valent leur défaut (null/''/{}), donc le round-trip ne les exerçait pas.
+   */
+  it('save → load → hash identique pour un état de scénario (champs 3.4/3.5)', () => {
+    const town: TownState = {
+      id: 'town-1',
+      ownerPlayerId: 'p1',
+      pos: { x: 0, y: 0 },
+      factionId: 'faction-a',
+      buildings: {},
+      builtToday: false,
+      garrison: [],
+      stock: {},
+    };
+    const start: Command = {
+      type: 'StartGame',
+      seed: 7,
+      players: [
+        { id: 'p1', startingResources: emptyResources(), startingFactionId: 'faction-a' },
+        {
+          id: 'p2',
+          startingResources: emptyResources(),
+          startingFactionId: 'faction-b',
+          controller: 'ai',
+        },
+      ],
+      map: testMap(),
+      config: testConfig(),
+      unitCatalog: {},
+      buildingCatalog: {},
+      towns: [town],
+      factionCatalog: {
+        'faction-b': {
+          bonuses: [
+            {
+              type: 'raiseUndeadOnVictory',
+              unitId: 'skeleton',
+              percentHpRaised: 20,
+              capBase: 10,
+              capPerExisting: 1,
+            },
+          ],
+        },
+      },
+      scenario: {
+        objectives: {
+          p1: {
+            victory: { type: 'surviveDays', days: 1 },
+            defeat: { type: 'defeatHero', heroId: 'hero-p1' },
+          },
+        },
+      },
+    };
+
+    let state: GameState = apply(createEmptyState(), start).state;
+    // Fin de tour du joueur local : `surviveDays: 1` est satisfait (jour 1) —
+    // pose `outcome` et exerce le champ de bout en bout.
+    state = apply(state, { type: 'EndTurn', playerId: 'p1' }).state;
+
+    // Pré-conditions : les champs ciblés sont réellement peuplés (sinon le
+    // test ne prouverait rien).
+    expect(state.scenario).not.toBeNull();
+    expect(state.outcome).not.toBeNull();
+    expect(state.factionCatalog['faction-b']).toBeDefined();
+    expect(state.towns[0]?.factionId).toBe('faction-a');
+    expect(state.heroes.find((h) => h.id === 'hero-p1')?.factionId).toBe('faction-a');
+    expect(state.players.find((p) => p.id === 'p2')?.controller).toBe('ai');
+
+    const loaded = deserializeState(serializeState(state));
+    expect(loaded).toEqual(state);
+    expect(hashState(loaded)).toBe(hashState(state));
   });
 });

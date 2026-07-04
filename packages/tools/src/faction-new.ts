@@ -19,7 +19,7 @@ const unitId = 't1-recruit';
 const manifest = {
   id,
   schemaVersion: 1,
-  name: '@loc:faction.name',
+  name: `@loc:faction.${id}.name`,
   nativeTerrain: 'plains',
   keyResources: ['crystal', 'gems'],
   factionResources: [],
@@ -45,8 +45,8 @@ const unit = {
 };
 
 const locales = {
-  fr: { 'faction.name': `Faction ${id}`, [`unit.${unitId}.name`]: 'Recrue' },
-  en: { 'faction.name': `Faction ${id}`, [`unit.${unitId}.name`]: 'Recruit' },
+  fr: { [`faction.${id}.name`]: `Faction ${id}`, [`unit.${unitId}.name`]: 'Recrue' },
+  en: { [`faction.${id}.name`]: `Faction ${id}`, [`unit.${unitId}.name`]: 'Recruit' },
 };
 
 await mkdir(join(dir, 'units'), { recursive: true });

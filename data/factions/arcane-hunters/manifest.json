@@ -1,7 +1,7 @@
 {
   "id": "arcane-hunters",
   "schemaVersion": 1,
-  "name": "@loc:faction.name",
+  "name": "@loc:faction.arcane-hunters.name",
   "nativeTerrain": "mistmoor",
   "keyResources": ["mercury", "gems"],
   "factionResources": [{ "id": "essence", "icon": "icons/essence.png", "cap": 999 }],

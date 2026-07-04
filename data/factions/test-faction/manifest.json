@@ -1,7 +1,7 @@
 {
   "id": "test-faction",
   "schemaVersion": 1,
-  "name": "@loc:faction.name",
+  "name": "@loc:faction.test-faction.name",
   "nativeTerrain": "plains",
   "keyResources": [
     "crystal",

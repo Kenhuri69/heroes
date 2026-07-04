@@ -1,8 +1,10 @@
 export {
+  buildBuildingCatalog,
   knownUnitIds,
   loadContent,
   loadFactionPack,
   loadMap,
+  resolveStartingTowns,
   PackError,
   LOCALE_LANGS,
   type FactionPack,
@@ -11,9 +13,12 @@ export {
   type ReadJson,
   type ResolvedMap,
   type ResolvedMapObject,
+  type ResolvedStartingTown,
 } from './loader';
 export {
   abilityCatalogSchema,
+  buildingCatalogSchema,
+  buildingSchema,
   factionIndexSchema,
   gameConfigSchema,
   localeSchema,
@@ -22,10 +27,13 @@ export {
   unitSchema,
   COMMON_RESOURCE_IDS,
   type AbilityCatalog,
+  type Building,
+  type BuildingCatalogFile,
   type FactionIndex,
   type GameConfig,
   type Locale,
   type Manifest,
   type MapFile,
+  type ResolvedBuilding,
   type Unit,
 } from './schemas';

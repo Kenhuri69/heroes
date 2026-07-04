@@ -26,6 +26,8 @@ function start(seed: number, ids: string[]): GameState {
     map: testMap(),
     config: testConfig(),
     unitCatalog: {},
+    buildingCatalog: {},
+    towns: [],
   }).state;
 }
 

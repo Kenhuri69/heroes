@@ -1,6 +1,7 @@
 import type { AdventureConfig } from '../adventure/config';
 import type { AdventureMapDef, GridPos } from '../adventure/map';
 import type { ArmyStack, CombatState, CombatUnitDef } from '../combat/types';
+import type { BuildingDef, TownState } from '../town/types';
 import type { RngState } from './rng';
 
 /** Les 7 ressources du jeu (doc 02 §3). Les montants vivent dans les données. */
@@ -71,6 +72,10 @@ export interface GameState {
   heroes: HeroState[];
   /** Catalogue d'unités résolu par le contenu (doc 06) — le moteur ne voit que des IDs. */
   unitCatalog: Record<string, CombatUnitDef>;
+  /** Catalogue de bâtiments résolu par le contenu (doc 06). */
+  buildingCatalog: Record<string, BuildingDef>;
+  /** Villes de la partie (doc 02 §4) — vide tant qu'aucune n'est placée. */
+  towns: TownState[];
   /** Combat en cours (doc 02 §5) — null hors combat. */
   combat: CombatState | null;
 }
@@ -87,6 +92,8 @@ export function createEmptyState(): GameState {
     map: null,
     heroes: [],
     unitCatalog: {},
+    buildingCatalog: {},
+    towns: [],
     combat: null,
   };
 }

@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { loadContent, loadMap, PackError, type ReadJson } from '../src/loader';
-import type { GameConfig } from '../src/schemas';
+import {
+  buildBuildingCatalog,
+  loadContent,
+  loadMap,
+  PackError,
+  resolveStartingTowns,
+  type ReadJson,
+} from '../src/loader';
+import { buildingSchema, type GameConfig } from '../src/schemas';
 
 /** Fixture : arborescence data/ en mémoire, clonable et corruptible par test. */
 function makeData(): Record<string, unknown> {
@@ -9,6 +16,17 @@ function makeData(): Record<string, unknown> {
     'core/config.json': makeConfig(),
     'core/locales/fr.json': { 'menu.continue': 'Continuer' },
     'core/locales/en.json': { 'menu.continue': 'Continue' },
+    'core/buildings.json': {
+      buildings: [
+        {
+          id: 'townHall',
+          maxLevel: 1,
+          levels: [
+            { cost: {}, requires: [], effect: { type: 'income', resource: 'gold', amount: 500 } },
+          ],
+        },
+      ],
+    },
     'maps/mini.map.json': makeMap(),
     'factions/index.json': { factions: ['proto'] },
     'factions/proto/manifest.json': {
@@ -269,5 +287,158 @@ describe('loadMap', () => {
     const all = (err as PackError).errors.join('\n');
     expect(all).toContain("objet 'gold-1' sur tuile infranchissable (2,1)");
     expect(all).toContain('startPositions[1] hors carte');
+  });
+});
+
+/** Bâtiment valide minimal, réutilisé pour les cas schéma (doc 02 §4.1). */
+function makeBuilding(): unknown {
+  return {
+    id: 'townhall',
+    maxLevel: 1,
+    levels: [{ cost: {}, requires: [], effect: { type: 'income', resource: 'gold', amount: 500 } }],
+  };
+}
+
+/** Ajoute une ville (manifest.town + buildings.json) au paquet `proto` de `makeData()`. */
+function withTown(data: Record<string, unknown>, dwellingRequires: unknown[] = [], unitId = 't1-grunt'): void {
+  (data['factions/proto/manifest.json'] as { town?: unknown }).town = {
+    buildings: ['proto-dwelling-t1'],
+    dwellings: [{ tier: 1, unitId, buildingId: 'proto-dwelling-t1' }],
+  };
+  data['factions/proto/buildings.json'] = {
+    buildings: [
+      {
+        id: 'proto-dwelling-t1',
+        maxLevel: 1,
+        levels: [
+          {
+            cost: { gold: 300 },
+            requires: dwellingRequires,
+            effect: { type: 'dwelling', tier: 1, unitId },
+          },
+        ],
+      },
+    ],
+  };
+}
+
+describe('buildingSchema', () => {
+  it('charge un bâtiment valide', () => {
+    expect(buildingSchema.safeParse(makeBuilding()).success).toBe(true);
+  });
+
+  it('rejette levels.length ≠ maxLevel', () => {
+    const building = makeBuilding() as { maxLevel: number };
+    building.maxLevel = 2;
+    const result = buildingSchema.safeParse(building);
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues.map((i) => i.message).join()).toContain(
+        'levels.length doit être égal à maxLevel',
+      );
+    }
+  });
+
+  it('rejette un revenu en ressource inconnue', () => {
+    const building = makeBuilding() as { levels: { effect: { resource: string } }[] };
+    building.levels[0]!.effect.resource = 'mana';
+    expect(buildingSchema.safeParse(building).success).toBe(false);
+  });
+});
+
+describe('ville de faction (manifest.town / buildings.json)', () => {
+  it('charge un paquet avec une ville valide', async () => {
+    const data = makeData();
+    withTown(data);
+    const report = await loadContent(reader(data));
+    expect(report.rejected).toEqual([]);
+    const pack = report.content.packs[0];
+    expect(pack?.buildings.map((b) => b.id)).toEqual(['proto-dwelling-t1']);
+  });
+
+  it('rejette un prérequis vers un bâtiment inconnu', async () => {
+    const data = makeData();
+    withTown(data, [{ building: 'donjon-fantome', level: 1 }]);
+    const report = await loadContent(reader(data));
+    expect(report.rejected[0]?.errors.join()).toContain(
+      "prérequis vers bâtiment inconnu 'donjon-fantome'",
+    );
+  });
+
+  it('rejette un dwelling vers une unité inconnue', async () => {
+    const data = makeData();
+    withTown(data, [], 't9-fantome');
+    const report = await loadContent(reader(data));
+    expect(report.rejected[0]?.errors.join()).toContain(
+      "dwelling vers unité inconnue 't9-fantome'",
+    );
+  });
+
+  it('buildBuildingCatalog agrège core + faction sans collision', async () => {
+    const data = makeData();
+    withTown(data);
+    const report = await loadContent(reader(data));
+    const catalog = buildBuildingCatalog(report);
+    expect(Object.keys(catalog).sort()).toEqual(['proto-dwelling-t1', 'townHall']);
+    expect(catalog['townHall']?.maxLevel).toBe(1);
+    expect(catalog['proto-dwelling-t1']?.levels[0]?.effect).toEqual({
+      type: 'dwelling',
+      tier: 1,
+      unitId: 't1-grunt',
+    });
+  });
+
+  it('résout la ville de départ (owner, prebuilt appliqués)', async () => {
+    const data = makeData();
+    withTown(data);
+    const report = await loadContent(reader(data));
+    const config: GameConfig = {
+      ...makeConfig(),
+      newGame: {
+        ...makeConfig().newGame,
+        startingTown: {
+          id: 'town-1',
+          factionId: 'proto',
+          x: 0,
+          y: 0,
+          prebuilt: [
+            { building: 'townHall', level: 1 },
+            { building: 'proto-dwelling-t1', level: 1 },
+          ],
+        },
+      },
+    };
+    const towns = resolveStartingTowns(config, report);
+    expect(towns).toEqual([
+      {
+        id: 'town-1',
+        ownerPlayerId: 'player-1',
+        pos: { x: 0, y: 0 },
+        factionId: 'proto',
+        buildings: { townHall: 1, 'proto-dwelling-t1': 1 },
+        builtToday: false,
+        garrison: [],
+        stock: {},
+      },
+    ]);
+  });
+
+  it('rejette une ville de départ vers une faction inconnue', async () => {
+    const data = makeData();
+    const report = await loadContent(reader(data));
+    const config: GameConfig = {
+      ...makeConfig(),
+      newGame: {
+        ...makeConfig().newGame,
+        startingTown: {
+          id: 'town-1',
+          factionId: 'fantome',
+          x: 0,
+          y: 0,
+          prebuilt: [{ building: 'townHall', level: 1 }],
+        },
+      },
+    };
+    expect(() => resolveStartingTowns(config, report)).toThrow(/faction inconnue 'fantome'/);
   });
 });

@@ -115,6 +115,8 @@ const GOLDEN_JOURNAL: Command[] = [
     map: GOLDEN_MAP,
     config: GOLDEN_CONFIG,
     unitCatalog: GOLDEN_CATALOG,
+    buildingCatalog: {},
+    towns: [],
   },
   // Jour 1 : red ramasse le bois (arrêt dessus), blue descend vers la route.
   {
@@ -181,7 +183,7 @@ const GOLDEN_JOURNAL: Command[] = [
   ),
 ];
 
-const GOLDEN_HASH = '692c827e';
+const GOLDEN_HASH = '1dadf3da';
 
 describe('golden replay', () => {
   it('le journal scripté produit toujours le même état final', () => {

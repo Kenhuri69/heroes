@@ -18,6 +18,8 @@ function startedGame(): GameState {
     map: testMap(),
     config: testConfig(),
     unitCatalog: testCatalog(),
+    buildingCatalog: {},
+    towns: [],
   }).state;
 }
 

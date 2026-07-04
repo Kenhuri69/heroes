@@ -16,6 +16,8 @@ function startCmd(ids: string[], seed = 42): Command {
     map: testMap(),
     config: testConfig(),
     unitCatalog: {},
+    buildingCatalog: {},
+    towns: [],
   };
 }
 

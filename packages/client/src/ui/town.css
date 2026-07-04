@@ -1,0 +1,242 @@
+/* Écran de ville (doc 08 §2.2) — réutilise .modal-backdrop/.modal/.modal-header/
+   .modal-close (options.css) ; ce fichier ne couvre que le contenu propre à
+   l'écran de ville. Cibles tactiles ≥ 44 px (doc 08 §1). */
+.modal.town-screen {
+  width: min(94vw, 640px);
+  max-height: 88vh;
+  overflow-y: auto;
+  padding: 16px 18px;
+  border: 1px solid #3a3d47;
+  border-radius: 10px;
+  background: #1c1e25;
+  color: #e8e2d0;
+  font: 14px/1.4 system-ui, sans-serif;
+}
+
+.town-empty,
+.town-no-hero {
+  opacity: 0.8;
+  padding: 8px 0;
+}
+
+.town-error {
+  margin: 8px 0;
+  padding: 8px 10px;
+  border: 1px solid #a0503f;
+  border-radius: 8px;
+  background: rgba(122, 45, 34, 0.35);
+  font-size: 13px;
+}
+
+.town-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.town-tabs button {
+  min-height: 44px;
+  flex: 1;
+  padding: 6px 10px;
+  border: 1px solid #3a3d47;
+  border-radius: 8px;
+  background: #262a33;
+  color: #e8e2d0;
+  font: 600 14px system-ui, sans-serif;
+  cursor: pointer;
+}
+
+.town-tabs button.active {
+  background: #7a2d22;
+  border-color: #a0503f;
+}
+
+.town-built-today {
+  margin: 0 0 10px;
+  padding: 8px 10px;
+  border: 1px solid #a0503f;
+  border-radius: 8px;
+  background: rgba(122, 45, 34, 0.35);
+  font-weight: 600;
+}
+
+.town-building-list,
+.town-dwelling-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.town-building,
+.town-dwelling {
+  padding: 8px 10px;
+  border: 1px solid #3a3d47;
+  border-radius: 8px;
+  background: #262a33;
+}
+
+.town-building-header,
+.town-dwelling-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.town-building-name,
+.town-dwelling-name {
+  font-weight: 600;
+}
+
+.town-building-level {
+  opacity: 0.75;
+  font-size: 12px;
+}
+
+.town-building-status {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.town-building-status-built {
+  background: rgba(90, 140, 90, 0.3);
+}
+
+.town-building-status-available {
+  background: rgba(90, 120, 160, 0.3);
+}
+
+.town-building-status-locked {
+  background: rgba(160, 80, 63, 0.3);
+  color: #ff9d8a;
+}
+
+.town-requirements {
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.town-requirement-missing {
+  color: #ff9d8a;
+  font-size: 12px;
+}
+
+.town-building-action {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.town-building-action button,
+.town-dwelling-controls button,
+.town-dwelling > button {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 6px 14px;
+  border: 1px solid #3a3d47;
+  border-radius: 8px;
+  background: #7a2d22;
+  border-color: #a0503f;
+  color: #e8e2d0;
+  font: 600 14px system-ui, sans-serif;
+  cursor: pointer;
+}
+
+.town-building-action button:disabled,
+.town-dwelling-controls button:disabled,
+.town-dwelling > button:disabled {
+  background: #262a33;
+  border-color: #3a3d47;
+  opacity: 0.5;
+  cursor: default;
+}
+
+.town-cost {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 13px;
+  opacity: 0.9;
+}
+
+.town-dwelling-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
+}
+
+.town-dwelling-controls input[type='range'] {
+  flex: 1;
+  min-height: 44px;
+}
+
+.town-dwelling-qty {
+  min-width: 2em;
+  text-align: center;
+  font-weight: 600;
+}
+
+.town-garrison-columns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.town-garrison-column {
+  flex: 1;
+  min-width: 220px;
+}
+
+.town-garrison-column h3 {
+  margin: 0 0 8px;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.75;
+}
+
+.town-garrison-slots {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.town-garrison-slot {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border: 1px solid #3a3d47;
+  border-radius: 6px;
+  background: #262a33;
+  font-size: 13px;
+}
+
+.town-garrison-slot.empty {
+  opacity: 0.4;
+}
+
+.town-garrison-slot button {
+  margin-left: auto;
+  min-height: 32px;
+  padding: 4px 10px;
+  border: 1px solid #3a3d47;
+  border-radius: 6px;
+  background: #1c1e25;
+  color: #e8e2d0;
+  font: 600 12px system-ui, sans-serif;
+  cursor: pointer;
+}

@@ -64,6 +64,12 @@ export {
   type TerrainRule,
 } from './adventure/config';
 export type { HeroAttributes } from './core/state';
+export type {
+  BuildingDef,
+  BuildingEffect,
+  BuildingLevel,
+  TownState,
+} from './town/types';
 export { findPath, isPassable, stepCost } from './adventure/path';
 export { createFog, revealAround } from './adventure/fog';
 export { xpForLevel } from './adventure/experience';

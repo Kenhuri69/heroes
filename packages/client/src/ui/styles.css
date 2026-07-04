@@ -49,7 +49,10 @@
   bottom: 12px;
   display: flex;
   align-items: flex-end;
+  justify-content: flex-end;
+  flex-wrap: wrap; /* mobile étroit : la barre passe à la ligne au lieu de déborder */
   gap: 8px;
+  max-width: calc(100vw - 24px);
   pointer-events: auto;
 }
 

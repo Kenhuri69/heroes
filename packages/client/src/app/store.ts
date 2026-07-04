@@ -25,6 +25,8 @@ export interface AppState {
   toasts: { id: number; message: string }[];
   /** L'écran de menu est affiché (aucune partie en cours à l'écran). */
   screen: 'menu' | 'game';
+  /** Écran de ville ouvert sur cet id (doc 02 §4.2) — null = fermé. */
+  townScreenOpen: string | null;
 }
 
 export const appStore = createStore<AppState>(() => ({
@@ -37,6 +39,7 @@ export const appStore = createStore<AppState>(() => ({
   fontScale: 1,
   toasts: [],
   screen: 'menu',
+  townScreenOpen: null,
 }));
 
 /** Hook Preact : re-rend quand la valeur sélectionnée change (égalité stricte). */

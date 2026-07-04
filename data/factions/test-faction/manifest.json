@@ -22,5 +22,11 @@
     "aggression": 0.5,
     "focusFire": 0.5,
     "preferredTargets": "nearest"
+  },
+  "town": {
+    "buildings": ["townHall", "fort", "mageGuild", "test-faction-dwelling-t1"],
+    "dwellings": [
+      { "tier": 1, "unitId": "t1-recruit", "buildingId": "test-faction-dwelling-t1" }
+    ]
   }
 }

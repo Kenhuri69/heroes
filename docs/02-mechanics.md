@@ -125,7 +125,7 @@ Chaque faction consomme surtout **une paire de ressources rares** (Haven : crist
 | Habitations T1–T7 | 1 + amélioration | débloque recrutement du tier ; version améliorée débloque l'unité upgradée (post-MVP pour les upgrades) |
 | Bâtiments spéciaux ×2–3 | 1 | uniques à la faction (définis dans son manifeste) |
 
-- **Recrutement** : chaque habitation a une croissance hebdo (ex. T1 : 14/sem, T7 : 1/sem) ; le stock s'accumule s'il n'est pas recruté (plafond : 2 semaines).
+- **Recrutement** : chaque habitation a une croissance hebdo (ex. T1 : 14/sem, T7 : 1/sem) ; le stock s'accumule s'il n'est pas recruté (plafond : 2 semaines). Valeurs de départ (Phase 3.1) : coûts des bâtiments communs dans `data/core/buildings.json` (hôtel de ville gratuit→2500/5000/10000 or ; fort 5000 or + 20 minerai, ×2 par niveau ; guilde des mages 2000 or + 5 bois) ; croissance/coût de recrutement dans les données d'unité ; le stock d'une habitation ne se remplit qu'au **passage de semaine** (état de départ vide).
 - **File de garnison** : une ville stocke une armée de défense ; siège si un héros ennemi attaque une ville avec Fort+ (au MVP : combat normal sur décor de ville, sans murs ; murs/catapulte en Alpha).
 - **Capture** : ville sans garnison = capture immédiate ; le joueur qui perd sa dernière ville a 7 jours pour en reprendre une, sinon défaite.
 

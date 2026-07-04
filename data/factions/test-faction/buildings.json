@@ -1,0 +1,15 @@
+{
+  "buildings": [
+    {
+      "id": "test-faction-dwelling-t1",
+      "maxLevel": 1,
+      "levels": [
+        {
+          "cost": { "gold": 500 },
+          "requires": [],
+          "effect": { "type": "dwelling", "tier": 1, "unitId": "t1-recruit" }
+        }
+      ]
+    }
+  ]
+}

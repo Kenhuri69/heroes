@@ -1,0 +1,20 @@
+{
+  "id": "t1-recruit",
+  "tier": 1,
+  "name": "@loc:unit.t1-recruit.name",
+  "stats": {
+    "hp": 6,
+    "attack": 3,
+    "defense": 2,
+    "damage": [
+      1,
+      2
+    ],
+    "speed": 4
+  },
+  "growthPerWeek": 14,
+  "cost": {
+    "gold": 30
+  },
+  "abilities": []
+}

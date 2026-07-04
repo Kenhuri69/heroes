@@ -13,5 +13,12 @@ test('le client démarre sans erreur', async ({ page }) => {
   await page.waitForFunction(() => window.__HEROES_READY__ === true);
 
   await expect(page.locator('#canvas-root canvas')).toBeVisible();
+
+  // Pipeline de contenu : les paquets du dépôt chargent et se valident dans
+  // le navigateur (doc 06 §1) — aucun rejet toléré sur notre propre contenu.
+  const content = await page.evaluate(() => window.__HEROES_CONTENT__);
+  expect(content?.rejected).toEqual([]);
+  expect(content?.factions).toEqual(['arcane-hunters', 'test-faction']);
+
   expect(errors).toEqual([]);
 });

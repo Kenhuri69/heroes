@@ -82,6 +82,11 @@ data/factions/arcane-hunters/
 }
 ```
 
+> Note d'implémentation (Phase 2.2) : le manifeste liste aussi explicitement
+> ses unités (`"units": ["t1-eleve", …]`, convention `units/<id>.json` vérifiée
+> par le validateur) — un navigateur ne peut pas lister un dossier, le contenu
+> est donc entièrement déclaré.
+
 ## 4. Points d'extension en code (et leurs limites)
 
 Le déclaratif couvre ~90 % des besoins (stats, coûts, arbres, effets composables du catalogue de capacités — doc 02 §5.4). Pour le reste, **2 interfaces TypeScript et uniquement elles** :

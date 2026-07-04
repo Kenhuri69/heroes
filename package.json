@@ -15,7 +15,10 @@
     "test": "pnpm -r --if-present test",
     "build": "pnpm --filter @heroes/client build",
     "dev": "pnpm --filter @heroes/client dev",
-    "smoke": "playwright test"
+    "smoke": "playwright test",
+    "content:check": "pnpm --filter @heroes/tools content:check",
+    "faction:new": "pnpm --filter @heroes/tools faction:new",
+    "faction:validate": "pnpm --filter @heroes/tools faction:validate"
   },
   "devDependencies": {
     "@eslint/js": "^9.30.0",

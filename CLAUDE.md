@@ -12,8 +12,11 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > livrée : monorepo pnpm + TS strict, client PixiJS 8 (damier pan/zoom
 > touch-first), smoke test Playwright, CI + déploiement continu sur
 > https://kenhuri69.github.io/heroes/ . Phase 2.1 livrée : cœur du moteur pur
-> (`GameState`, commandes, RNG PCG32, golden replay). Les docs `docs/0X-*.md`
-> restent la source de vérité du design ; le code doit s'y conformer.
+> (`GameState`, commandes, RNG PCG32, golden replay). Phase 2.2 livrée :
+> pipeline de contenu data-driven (schémas Zod, loader, CLI faction:new /
+> faction:validate / content:check, paquets arcane-hunters + test-faction
+> chargés dans le navigateur). Les docs `docs/0X-*.md` restent la source de
+> vérité du design ; le code doit s'y conformer.
 
 ---
 
@@ -38,7 +41,12 @@ docs/
   deploy.yml                     main : build Vite + smoke sur build de prod + déploiement Pages
 packages/
   engine/                        Moteur de règles pur (état, commandes, RNG PCG32) — @heroes/engine
+  content/                       Schémas Zod + loader/validateur de paquets de faction — @heroes/content
   client/                        Client Vite + PixiJS 8 (rendu, caméra, scènes) — @heroes/client
+  tools/                         CLI : faction:new, faction:validate, content:check — @heroes/tools
+data/
+  core/abilities.json            Catalogue générique de capacités (doc 02 §5.4)
+  factions/                      Paquets de faction (index.json + arcane-hunters, test-faction)
 tests/smoke.spec.ts              Smoke Playwright/Chromium headless (guideline §7) sur le build de prod
 playwright.config.ts             Config smoke (desktop + mobile, vite preview)
 .claude/

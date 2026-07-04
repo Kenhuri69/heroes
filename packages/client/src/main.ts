@@ -1,14 +1,23 @@
 import { Application } from 'pixi.js';
 import { Camera } from './render/camera';
 import { buildCheckerboard, BOARD_SIZE_PX } from './render/checkerboard';
+import { loadGameContent } from './app/content';
 
 declare global {
   interface Window {
     __HEROES_READY__?: boolean;
+    /** Résumé du contenu chargé — inspecté par le smoke test. */
+    __HEROES_CONTENT__?: { factions: string[]; rejected: string[] };
   }
 }
 
 async function bootstrap(): Promise<void> {
+  const content = await loadGameContent();
+  window.__HEROES_CONTENT__ = {
+    factions: content.content.packs.map((p) => p.manifest.id),
+    rejected: content.rejected.map((r) => r.id),
+  };
+
   const app = new Application();
   await app.init({
     resizeTo: window,

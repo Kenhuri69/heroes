@@ -181,7 +181,7 @@ const GOLDEN_JOURNAL: Command[] = [
   ),
 ];
 
-const GOLDEN_HASH = 'e4227d3b';
+const GOLDEN_HASH = '692c827e';
 
 describe('golden replay', () => {
   it('le journal scripté produit toujours le même état final', () => {

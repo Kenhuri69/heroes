@@ -66,3 +66,4 @@ export {
 export type { HeroAttributes } from './core/state';
 export { findPath, isPassable, stepCost } from './adventure/path';
 export { createFog, revealAround } from './adventure/fog';
+export { xpForLevel } from './adventure/experience';

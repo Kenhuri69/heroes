@@ -1,3 +1,4 @@
+import { grantXp } from '../adventure/experience';
 import type { GameEvent } from '../core/events';
 import { rollRange } from '../core/rng';
 import type { Draft } from './draft';
@@ -88,8 +89,30 @@ export function checkCombatEnd(draft: Draft, events: GameEvent[]): boolean {
   applyConsequences(draft, combat, winner);
   const casualties = collectCasualties(combat);
   events.push({ type: 'CombatEnded', winner, casualties });
+  grantHeroCombatXp(draft, combat, winner, casualties, events);
   draft.combat = null;
   return true;
+}
+
+/**
+ * XP d'aventure (doc 02 §1.2, décision plan #2) : victoire du héros (toujours
+ * attaquant en interception, cf. `beginGuardianCombat`) uniquement — arène
+ * (`heroId` null) et défaite n'accordent rien. `XP = Σ(PV unitaire × pertes
+ * infligées au camp adverse) × xpPerHpKilled`, arrondi entier au total.
+ */
+function grantHeroCombatXp(
+  draft: Draft,
+  combat: CombatState,
+  winner: CombatSideId,
+  casualties: { side: CombatSideId; unitId: string; lost: number }[],
+  events: GameEvent[],
+): void {
+  if (!combat.heroId || winner !== 'attacker') return;
+  const xpPerHpKilled = draft.config?.hero.xpPerHpKilled ?? 0;
+  const hpLost = casualties
+    .filter((c) => c.side === 'defender')
+    .reduce((sum, c) => sum + (draft.unitCatalog[c.unitId]?.stats.hp ?? 0) * c.lost, 0);
+  grantXp(draft, events, combat.heroId, Math.round(hpLost * xpPerHpKilled));
 }
 
 function applyConsequences(draft: Draft, combat: CombatState, winner: CombatSideId): void {

@@ -1,0 +1,140 @@
+{
+  "id": "proto-01",
+  "schemaVersion": 1,
+  "width": 32,
+  "height": 32,
+  "legend": {
+    "g": "grass",
+    "s": "swamp",
+    "w": "water",
+    "m": "mountain"
+  },
+  "tiles": [
+    "gggggggggggggggggggggggggggggggg",
+    "gggggggggggggggggggggggggggggggg",
+    "gggggggggggggggggggggggggggggggg",
+    "gggggggggggggggggggggggggggggggg",
+    "ggggggggggggggmmmggggggggggggggg",
+    "ggggggggggggggmmmgggggwggggggggg",
+    "ggggggggggggggmmmggwwwwwwwgggggg",
+    "ggggggggggggggmmmgwwwwwwwwwggggg",
+    "ggggggggggggggmmmgwwwwwwwwwggggg",
+    "ggggggggggggggmmmgwwwwwwwwwggggg",
+    "ggggggggggggggmmmggwwwwwwwgggggg",
+    "ggggggggggggggmmmgggggwggggggggg",
+    "gggggggggggggggggggggggggggggggg",
+    "gggggggggggggggggggggggggggggggg",
+    "ggggggggggggggmmmggggggggggggggg",
+    "ggggggggggggggmmmggggggggggggggg",
+    "ggggggggggggggmmmggggggggggggggg",
+    "ggggggggggggggmmmggggggggggggggg",
+    "gggggggsssggggmmmggggggggggggggg",
+    "ggggggsssssgggmmmggggggggggggggg",
+    "gggggsssssssggmmmggggggggggggggg",
+    "ggggsssssssssggggggggggggggggggg",
+    "ggggsssssssssggggggggggggggggggg",
+    "ggggsssssssssggggggggggggggggggg",
+    "gggggsssssssgggggggggggggggggggg",
+    "ggggggsssssggggggggggggggggggggg",
+    "gggggggsssgggggggggggggggggggggg",
+    "gggggggggggggggggggggggggggggggg",
+    "gggggggggggggggggggggggggggggggg",
+    "gggggggggggggggggggggggggggggggg",
+    "gggggggggggggggggggggggggggggggg",
+    "gggggggggggggggggggggggggggggggg"
+  ],
+  "roads": [
+    "00000000000000000000000000000000",
+    "00000000000000000000000000000000",
+    "00000000000000000000000000000000",
+    "00000000000000000000000000000000",
+    "00000000000000000000000000000000",
+    "00000000000000000000000000000000",
+    "00000000000000000000000000000000",
+    "00000000000000000000000000000000",
+    "00000000000000000000000000000000",
+    "00000000000000000000000000000000",
+    "00000000000000000000000000000000",
+    "00000000000000000000000000000000",
+    "00111111111111111111111111111100",
+    "00000000000000000000000010000000",
+    "00000000000000000000000010000000",
+    "00000000000000000000000010000000",
+    "00000000000000000000000010000000",
+    "00000000000000000000000010000000",
+    "00000000000000000000000010000000",
+    "00000000000000000000000010000000",
+    "00000000000000000000000010000000",
+    "00000000000000000000000010000000",
+    "00000000000000000000000010000000",
+    "00000000000000000000000010000000",
+    "00000000000000000000000010000000",
+    "00000000000000000000000010000000",
+    "00000000000000000000000010000000",
+    "00000000000000000000000010000000",
+    "00000000000000000000000010000000",
+    "00000000000000000000000000000000",
+    "00000000000000000000000000000000",
+    "00000000000000000000000000000000"
+  ],
+  "objects": [
+    {
+      "id": "gold-1",
+      "type": "resource",
+      "x": 6,
+      "y": 3,
+      "resource": "gold",
+      "amount": 500
+    },
+    {
+      "id": "wood-1",
+      "type": "resource",
+      "x": 10,
+      "y": 6,
+      "resource": "wood",
+      "amount": 4
+    },
+    {
+      "id": "ore-1",
+      "type": "resource",
+      "x": 5,
+      "y": 12,
+      "resource": "ore",
+      "amount": 4
+    },
+    {
+      "id": "gems-1",
+      "type": "resource",
+      "x": 20,
+      "y": 14,
+      "resource": "gems",
+      "amount": 2
+    },
+    {
+      "id": "mercury-1",
+      "type": "resource",
+      "x": 26,
+      "y": 20,
+      "resource": "mercury",
+      "amount": 3
+    },
+    {
+      "id": "gold-2",
+      "type": "resource",
+      "x": 12,
+      "y": 28,
+      "resource": "gold",
+      "amount": 700
+    }
+  ],
+  "startPositions": [
+    {
+      "x": 3,
+      "y": 3
+    },
+    {
+      "x": 28,
+      "y": 28
+    }
+  ]
+}

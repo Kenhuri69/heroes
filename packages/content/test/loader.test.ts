@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { loadContent, type ReadJson } from '../src/loader';
+import { loadContent, loadMap, PackError, type ReadJson } from '../src/loader';
+import type { GameConfig } from '../src/schemas';
 
 /** Fixture : arborescence data/ en mémoire, clonable et corruptible par test. */
 function makeData(): Record<string, unknown> {
   return {
     'core/abilities.json': { abilities: ['flying', 'shooter', 'mark'] },
+    'core/config.json': makeConfig(),
+    'maps/mini.map.json': makeMap(),
     'factions/index.json': { factions: ['proto'] },
     'factions/proto/manifest.json': {
       id: 'proto',
@@ -47,6 +50,31 @@ function makeData(): Record<string, unknown> {
       'unit.t1-grunt.name': 'Recruit',
       'unit.t2-archer.name': 'Archer',
     },
+  };
+}
+
+function makeConfig(): GameConfig {
+  return {
+    adventure: {
+      movement: { base: 1500, perSpeed: 50, roadMultiplier: 0.75, diagonalMultiplier: 1.41 },
+      visionRadius: 5,
+      terrains: { grass: { moveCost: 100 }, water: { moveCost: null } },
+    },
+    newGame: { map: 'mini', startingResources: { gold: 2000 } },
+  };
+}
+
+function makeMap(): Record<string, unknown> {
+  return {
+    id: 'mini',
+    schemaVersion: 1,
+    width: 4,
+    height: 3,
+    legend: { g: 'grass', w: 'water' },
+    tiles: ['gggg', 'ggwg', 'gggg'],
+    roads: ['0000', '1100', '0000'],
+    objects: [{ id: 'gold-1', type: 'resource', x: 3, y: 0, resource: 'gold', amount: 100 }],
+    startPositions: [{ x: 0, y: 0 }],
   };
 }
 
@@ -132,5 +160,63 @@ describe('loadContent', () => {
     ];
     const report = await loadContent(reader(data));
     expect(report.rejected[0]?.errors.join()).toContain('abilityModules');
+  });
+
+  it('charge et valide la config (config.json corrompue = erreur précise)', async () => {
+    const report = await loadContent(reader(makeData()));
+    expect(report.content.config.adventure.terrains['grass']?.moveCost).toBe(100);
+
+    const data = makeData();
+    (data['core/config.json'] as { adventure: { visionRadius: unknown } }).adventure.visionRadius =
+      -1;
+    await expect(loadContent(reader(data))).rejects.toThrow(/config\.json.*visionRadius/s);
+  });
+});
+
+describe('loadMap', () => {
+  it('résout légende, routes et objets vers la forme moteur', async () => {
+    const map = await loadMap(reader(makeData()), 'mini', makeConfig());
+    expect(map.width).toBe(4);
+    expect(map.terrain[1 * 4 + 2]).toBe('water');
+    expect(map.road[1 * 4 + 0]).toBe(true);
+    expect(map.road[0]).toBe(false);
+    expect(map.objects[0]).toEqual({
+      id: 'gold-1',
+      type: 'resource',
+      pos: { x: 3, y: 0 },
+      resource: 'gold',
+      amount: 100,
+    });
+    expect(map.startPositions).toEqual([{ x: 0, y: 0 }]);
+  });
+
+  it('rejette avec un rapport précis : dimensions, char inconnu, terrain hors config', async () => {
+    const data = makeData();
+    const map = data['maps/mini.map.json'] as {
+      tiles: string[];
+      legend: Record<string, string>;
+    };
+    map.tiles = ['gggg', 'ggxg', 'ggg'];
+    map.legend['z'] = 'lava';
+    const err = await loadMap(reader(data), 'mini', makeConfig()).catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(PackError);
+    const all = (err as PackError).errors.join('\n');
+    expect(all).toContain("tiles[1][2] — char inconnu 'x'");
+    expect(all).toContain('tiles[2] — 3 char(s) pour width=4');
+    expect(all).toContain("terrain inconnu de la config 'lava'");
+  });
+
+  it('rejette objet ou départ infranchissable / hors carte', async () => {
+    const data = makeData();
+    const map = data['maps/mini.map.json'] as {
+      objects: { x: number; y: number }[];
+      startPositions: { x: number; y: number }[];
+    };
+    map.objects[0] = { ...map.objects[0], x: 2, y: 1 } as (typeof map.objects)[0]; // eau
+    map.startPositions.push({ x: 9, y: 0 }); // hors carte
+    const err = await loadMap(reader(data), 'mini', makeConfig()).catch((e: unknown) => e);
+    const all = (err as PackError).errors.join('\n');
+    expect(all).toContain("objet 'gold-1' sur tuile infranchissable (2,1)");
+    expect(all).toContain('startPositions[1] hors carte');
   });
 });

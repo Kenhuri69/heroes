@@ -1,10 +1,12 @@
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
-import { apply } from '../src/core/engine';
+import { apply, validate } from '../src/core/engine';
+import { findPath, isPassable } from '../src/adventure/path';
 import type { Command, PlayerSetup } from '../src/core/commands';
 import { createEmptyState, emptyResources, weekOf, type GameState } from '../src/core/state';
 import { nextU32, seedRng } from '../src/core/rng';
 import { hashState } from '../src/core/serialize';
+import { testConfig, testMap } from './fixtures';
 
 const arbSeed = fc.integer({ min: 0, max: 2 ** 31 - 1 });
 const arbPlayerIds = fc.uniqueArray(fc.string({ minLength: 1, maxLength: 8 }), {
@@ -17,7 +19,13 @@ function start(seed: number, ids: string[]): GameState {
     id,
     startingResources: emptyResources(),
   }));
-  return apply(createEmptyState(), { type: 'StartGame', seed, players }).state;
+  return apply(createEmptyState(), {
+    type: 'StartGame',
+    seed,
+    players,
+    map: testMap(),
+    config: testConfig(),
+  }).state;
 }
 
 /** Joue N tours dans l'ordre légal et retourne l'état final. */
@@ -65,6 +73,38 @@ describe('propriétés du moteur', () => {
           const next = apply(s, { type: 'EndTurn', playerId: current.id }).state;
           expect(JSON.stringify(s)).toBe(before);
           s = next;
+        }
+      }),
+    );
+  });
+
+  it('mouvement : parcours aléatoires ⇒ points ≥ 0, héros sur tuile franchissable, or ≥ 0', () => {
+    const config = testConfig();
+    const map = testMap();
+    const arbTargets = fc.array(
+      fc.record({
+        x: fc.integer({ min: 0, max: map.width - 1 }),
+        y: fc.integer({ min: 0, max: map.height - 1 }),
+      }),
+      { minLength: 1, maxLength: 20 },
+    );
+    fc.assert(
+      fc.property(arbSeed, arbTargets, (seed, targets) => {
+        let s = start(seed, ['p1']);
+        for (const target of targets) {
+          const hero = s.heroes[0];
+          if (!hero) throw new Error('héros absent');
+          const path = findPath(config, map, hero.pos, target);
+          const cmd: Command =
+            path && validate(s, { type: 'MoveHero', heroId: hero.id, path }) === null
+              ? { type: 'MoveHero', heroId: hero.id, path }
+              : { type: 'EndTurn', playerId: 'p1' };
+          s = apply(s, cmd).state;
+          const h = s.heroes[0];
+          if (!h) throw new Error('héros absent');
+          expect(h.movementPoints).toBeGreaterThanOrEqual(0);
+          expect(isPassable(config, map, h.pos)).toBe(true);
+          for (const p of s.players) expect(p.resources.gold).toBeGreaterThanOrEqual(0);
         }
       }),
     );

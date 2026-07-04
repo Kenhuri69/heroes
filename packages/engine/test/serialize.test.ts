@@ -7,6 +7,7 @@ import {
   serializeState,
   stableStringify,
 } from '../src/core/serialize';
+import { testConfig, testMap } from './fixtures';
 
 describe('sérialisation', () => {
   it('stableStringify est insensible à l’ordre des clés', () => {
@@ -22,6 +23,17 @@ describe('sérialisation', () => {
       players: [
         { id: 'p1', startingResources: { ...emptyResources(), gold: 2500, wood: 10 } },
         { id: 'p2', startingResources: { ...emptyResources(), gold: 2500, ore: 10 } },
+      ],
+      map: testMap(),
+      config: testConfig(),
+    }).state;
+    state = apply(state, {
+      type: 'MoveHero',
+      heroId: 'hero-p1',
+      path: [
+        { x: 1, y: 0 },
+        { x: 2, y: 0 },
+        { x: 3, y: 0 },
       ],
     }).state;
     for (const playerId of ['p1', 'p2', 'p1']) {

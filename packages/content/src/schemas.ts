@@ -83,8 +83,66 @@ export const manifestSchema = z.object({
 /** locales/<lang>.json — clé de contenu → texte. */
 export const localeSchema = z.record(z.string(), z.string());
 
+/**
+ * data/core/config.json — constantes d'équilibrage (doc 02 : jamais en dur).
+ * `adventure` a la même forme que l'`AdventureConfig` du moteur (duplication
+ * structurelle à dessein, comme les ressources : `content` valide des données,
+ * il n'importe pas les internals du moteur).
+ */
+export const gameConfigSchema = z.object({
+  adventure: z.object({
+    movement: z.object({
+      base: z.number().int().positive(),
+      perSpeed: z.number().int().nonnegative(),
+      roadMultiplier: z.number().positive().max(1),
+      diagonalMultiplier: z.number().min(1),
+    }),
+    visionRadius: z.number().int().positive(),
+    terrains: z
+      .record(idSchema, z.object({ moveCost: z.number().int().positive().nullable() }))
+      .refine(
+        (t) => Object.values(t).some((r) => r.moveCost !== null),
+        'au moins un terrain franchissable',
+      ),
+  }),
+  newGame: z.object({
+    map: idSchema,
+    startingResources: z.record(z.enum(COMMON_RESOURCE_IDS), z.number().int().nonnegative()),
+  }),
+});
+
+/**
+ * data/maps/<id>.map.json (doc 02 §2.1) : couches en chaînes par rangée —
+ * `tiles` via une légende char → terrain, `roads` en '0'/'1'. Les règles
+ * croisées (dimensions, chars connus, franchissabilité) vivent dans `loadMap`.
+ */
+export const mapFileSchema = z.object({
+  id: idSchema,
+  schemaVersion: z.literal(1),
+  width: z.number().int().min(1).max(256),
+  height: z.number().int().min(1).max(256),
+  legend: z.record(z.string().length(1), idSchema),
+  tiles: z.array(z.string()).min(1),
+  roads: z.array(z.string()).min(1),
+  objects: z.array(
+    z.object({
+      id: idSchema,
+      type: z.literal('resource'),
+      x: z.number().int().nonnegative(),
+      y: z.number().int().nonnegative(),
+      resource: z.enum(COMMON_RESOURCE_IDS),
+      amount: z.number().int().positive(),
+    }),
+  ),
+  startPositions: z
+    .array(z.object({ x: z.number().int().nonnegative(), y: z.number().int().nonnegative() }))
+    .min(1),
+});
+
 export type AbilityCatalog = z.infer<typeof abilityCatalogSchema>;
 export type FactionIndex = z.infer<typeof factionIndexSchema>;
 export type Manifest = z.infer<typeof manifestSchema>;
 export type Unit = z.infer<typeof unitSchema>;
 export type Locale = z.infer<typeof localeSchema>;
+export type GameConfig = z.infer<typeof gameConfigSchema>;
+export type MapFile = z.infer<typeof mapFileSchema>;

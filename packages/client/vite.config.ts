@@ -1,4 +1,5 @@
 import { defineConfig } from 'vite';
+import preact from '@preact/preset-vite';
 import path from 'node:path';
 
 export default defineConfig({
@@ -6,8 +7,10 @@ export default defineConfig({
   // au build) : `vite preview` résout `command === 'serve'`, une base
   // conditionnelle casserait le smoke test sur le build de prod.
   base: '/heroes/',
+  plugins: [preact()],
   resolve: {
     alias: {
+      '@heroes/engine': path.resolve(__dirname, '../engine/src'),
       '@heroes/content': path.resolve(__dirname, '../content/src'),
     },
   },

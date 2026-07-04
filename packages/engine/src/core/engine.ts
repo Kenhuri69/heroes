@@ -1,8 +1,12 @@
 import { produce } from 'immer';
+import { dailyMovementPoints } from '../adventure/config';
+import { createFog, revealAround } from '../adventure/fog';
+import { inBounds, isAdjacent, samePos, type GridPos } from '../adventure/map';
+import { isPassable, stepCost } from '../adventure/path';
 import { EngineError, type Command, type CommandError } from './commands';
 import type { GameEvent } from './events';
 import { seedRng } from './rng';
-import { weekOf, type GameState } from './state';
+import { RESOURCE_IDS, weekOf, type GameState, type ResourceId } from './state';
 
 export interface EngineResult {
   state: GameState;
@@ -38,7 +42,17 @@ export function validate(state: GameState, cmd: Command): CommandError | null {
         return { code: 'noPlayers', message: 'au moins un joueur est requis' };
       if (new Set(cmd.players.map((p) => p.id)).size !== cmd.players.length)
         return { code: 'duplicatePlayerId', message: 'IDs de joueurs en double' };
-      return null;
+      return validateMap(cmd);
+    }
+    case 'MoveHero': {
+      if (!state.started)
+        return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
+      const hero = state.heroes.find((h) => h.id === cmd.heroId);
+      if (!hero) return { code: 'unknownHero', message: `héros inconnu '${cmd.heroId}'` };
+      const current = state.players[state.currentPlayer];
+      if (!current || hero.playerId !== current.id)
+        return { code: 'notYourHero', message: `'${cmd.heroId}' n’appartient pas au joueur actif` };
+      return validatePath(state, hero.pos, cmd.path, hero.movementPoints, cmd.heroId);
     }
     case 'EndTurn': {
       if (!state.started)
@@ -51,19 +65,132 @@ export function validate(state: GameState, cmd: Command): CommandError | null {
   }
 }
 
+/** Cohérence de la carte embarquée — le contenu a déjà validé, le moteur re-vérifie le minimum. */
+function validateMap(cmd: Extract<Command, { type: 'StartGame' }>): CommandError | null {
+  const { map, config, players } = cmd;
+  const bad = (message: string): CommandError => ({ code: 'invalidMap', message });
+  const size = map.width * map.height;
+  if (map.width <= 0 || map.height <= 0 || map.terrain.length !== size || map.road.length !== size)
+    return bad(`dimensions incohérentes (${map.width}×${map.height})`);
+  for (const id of map.terrain) {
+    if (!(id in config.terrains)) return bad(`terrain inconnu de la config '${id}'`);
+  }
+  if (map.startPositions.length < players.length)
+    return bad(`${players.length} joueurs pour ${map.startPositions.length} positions de départ`);
+  for (const pos of map.startPositions) {
+    if (!isPassable(config, map, pos))
+      return bad(`position de départ infranchissable (${pos.x},${pos.y})`);
+  }
+  const objectIds = new Set<string>();
+  for (const obj of map.objects) {
+    if (!inBounds(map, obj.pos)) return bad(`objet '${obj.id}' hors carte`);
+    if (!(RESOURCE_IDS as readonly string[]).includes(obj.resource))
+      return bad(`objet '${obj.id}' : ressource inconnue '${obj.resource}'`);
+    if (obj.amount <= 0) return bad(`objet '${obj.id}' : montant non positif`);
+    if (objectIds.has(obj.id)) return bad(`ID d'objet en double '${obj.id}'`);
+    objectIds.add(obj.id);
+  }
+  return null;
+}
+
+/** Chaque pas doit être adjacent (8 dir), franchissable et libre — le moteur ne fait pas confiance au client. */
+function validatePath(
+  state: GameState,
+  start: GridPos,
+  path: GridPos[],
+  movementPoints: number,
+  heroId: string,
+): CommandError | null {
+  const { map, config } = state;
+  if (!map || !config) return { code: 'gameNotStarted', message: 'carte absente de l’état' };
+  if (path.length === 0) return { code: 'invalidPath', message: 'chemin vide' };
+  let prev = start;
+  for (const step of path) {
+    if (!isAdjacent(prev, step))
+      return { code: 'invalidPath', message: `pas non adjacent (${step.x},${step.y})` };
+    if (!isPassable(config, map, step))
+      return { code: 'invalidPath', message: `tuile infranchissable (${step.x},${step.y})` };
+    if (state.heroes.some((h) => h.id !== heroId && samePos(h.pos, step)))
+      return { code: 'invalidPath', message: `tuile occupée (${step.x},${step.y})` };
+    prev = step;
+  }
+  const first = path[0];
+  if (first && stepCost(config, map, start, first) > movementPoints)
+    return { code: 'noMovementPoints', message: 'points de mouvement insuffisants' };
+  return null;
+}
+
 const handlers: Handlers = {
   StartGame(draft, cmd, events) {
     draft.started = true;
     draft.rng = seedRng(cmd.seed);
     draft.calendar.day = 1;
     draft.currentPlayer = 0;
+    draft.config = cmd.config;
+    draft.map = cmd.map;
     draft.players = cmd.players.map((p) => ({
       id: p.id,
       resources: { ...p.startingResources },
+      explored: createFog(cmd.map),
     }));
+    // Un héros par joueur à sa position de départ (doc 02 §1.5) — l'armée arrive en 2.4.
+    draft.heroes = cmd.players.map((p, i) => ({
+      id: `hero-${p.id}`,
+      playerId: p.id,
+      pos: cmd.map.startPositions[i] as GridPos,
+      movementPoints: dailyMovementPoints(cmd.config),
+    }));
+    for (const hero of draft.heroes) {
+      const player = draft.players.find((p) => p.id === hero.playerId);
+      if (player) revealAround(player.explored, cmd.map, hero.pos, cmd.config.visionRadius);
+    }
     events.push({ type: 'GameStarted', seed: cmd.seed, playerIds: cmd.players.map((p) => p.id) });
     events.push({ type: 'DayStarted', day: 1 });
     events.push({ type: 'WeekStarted', week: 1 });
+  },
+
+  MoveHero(draft, cmd, events) {
+    const hero = draft.heroes.find((h) => h.id === cmd.heroId);
+    const map = draft.map;
+    const config = draft.config;
+    const player = draft.players.find((p) => hero && p.id === hero.playerId);
+    if (!hero || !map || !config || !player) return; // exclu par validate
+    for (const step of cmd.path) {
+      const cost = stepCost(config, map, hero.pos, step);
+      // Le chemin peut couvrir plusieurs jours (prévisualisation) : on
+      // s'arrête quand les points du jour ne suffisent plus (doc 02 §1.5).
+      if (cost > hero.movementPoints) break;
+      const from = { ...hero.pos };
+      hero.movementPoints -= cost;
+      hero.pos = { ...step };
+      revealAround(player.explored, map, hero.pos, config.visionRadius);
+      events.push({
+        type: 'MoveStepped',
+        heroId: hero.id,
+        from,
+        to: { ...step },
+        movementPointsLeft: hero.movementPoints,
+      });
+      // Interception = arrêt standard HoMM (doc 08 §2.1) — ramassage instantané (doc 02 §2.2).
+      const objIndex = map.objects.findIndex((o) => samePos(o.pos, hero.pos));
+      if (objIndex !== -1) {
+        const obj = map.objects[objIndex];
+        if (obj) {
+          player.resources[obj.resource as ResourceId] += obj.amount;
+          map.objects.splice(objIndex, 1);
+          events.push({
+            type: 'ResourcePicked',
+            heroId: hero.id,
+            playerId: player.id,
+            objectId: obj.id,
+            resource: obj.resource,
+            amount: obj.amount,
+            pos: { ...hero.pos },
+          });
+        }
+        break;
+      }
+    }
   },
 
   EndTurn(draft, cmd, events) {
@@ -73,6 +200,10 @@ const handlers: Handlers = {
     // Un jour = un tour de chaque joueur (doc 02 §2.3).
     draft.currentPlayer = 0;
     draft.calendar.day += 1;
+    if (draft.config) {
+      // Points de mouvement quotidiens restaurés (doc 02 §1.5).
+      for (const hero of draft.heroes) hero.movementPoints = dailyMovementPoints(draft.config);
+    }
     events.push({ type: 'DayStarted', day: draft.calendar.day });
     const week = weekOf(draft.calendar.day);
     if (week !== weekOf(draft.calendar.day - 1)) {

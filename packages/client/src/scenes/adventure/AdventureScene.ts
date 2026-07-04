@@ -1,0 +1,173 @@
+import { Application, Container, Point, type Graphics } from 'pixi.js';
+import {
+  findPath,
+  samePos,
+  stepCost,
+  type EngineResult,
+  type GridPos,
+} from '@heroes/engine';
+import { appStore } from '../../app/store';
+import { dispatch } from '../../app/dispatch';
+import { PLAYER_ID } from '../../app/game';
+import type { Camera } from '../../render/camera';
+import { Tilemap, TILE_SIZE } from '../../render/tilemap';
+import { MapObjectsLayer } from '../../render/mapObjects';
+import { FogOverlay } from '../../render/fog';
+import { buildHeroSprite } from '../../render/heroSprite';
+import { PathPreview, type PreviewStep } from '../../render/pathPreview';
+import { onTap } from '../../input/pointer';
+
+const PLAYER_COLOR = 0xc0392b;
+const STEP_ANIMATION_MS = 110;
+
+/**
+ * Scène carte d'aventure : rendu depuis l'état moteur, animations depuis les
+ * événements (doc 07 §3), interaction tap-tap (doc 08 §2.1) — 1er tap =
+ * prévisualisation du chemin avec jours, 2ᵉ tap sur la même tuile = exécution.
+ */
+export class AdventureScene {
+  readonly container = new Container();
+  private readonly objects = new MapObjectsLayer();
+  private readonly fog: FogOverlay;
+  private readonly preview = new PathPreview();
+  private readonly heroSprite: Graphics;
+  private previewTarget: { target: GridPos; path: GridPos[] } | null = null;
+  private animating = false;
+
+  constructor(
+    app: Application,
+    private readonly camera: Camera,
+  ) {
+    const { map } = appStore.getState().game;
+    if (!map) throw new Error('AdventureScene requiert une partie démarrée');
+
+    const tilemap = new Tilemap(app.renderer, map);
+    this.fog = new FogOverlay(map);
+    this.heroSprite = buildHeroSprite(PLAYER_COLOR);
+    this.container.addChild(
+      tilemap.container,
+      this.objects.container,
+      this.preview.graphics,
+      this.heroSprite,
+      this.fog.sprite,
+    );
+
+    appStore.subscribe(() => this.sync());
+    onTap(app, (global) => void this.handleTap(global));
+    this.sync();
+  }
+
+  /** Resynchronise le scène-graphe sur l'état (réconciliation simple, doc 10 §2.2). */
+  private sync(): void {
+    const { game } = appStore.getState();
+    const { map, config } = game;
+    const player = game.players.find((p) => p.id === PLAYER_ID);
+    if (!map || !config || !player) return;
+    this.objects.sync(map.objects);
+    const positions = game.heroes.filter((h) => h.playerId === PLAYER_ID).map((h) => h.pos);
+    this.fog.update(player.explored, positions, config.visionRadius);
+    if (!this.animating) {
+      const hero = this.myHero();
+      if (hero) this.heroSprite.position.set(hero.pos.x * TILE_SIZE, hero.pos.y * TILE_SIZE);
+    }
+  }
+
+  private myHero(): { id: string; pos: GridPos; movementPoints: number } | undefined {
+    return appStore.getState().game.heroes.find((h) => h.playerId === PLAYER_ID);
+  }
+
+  private async handleTap(global: Point): Promise<void> {
+    if (this.animating) return;
+    const { game } = appStore.getState();
+    const { map, config } = game;
+    const hero = this.myHero();
+    if (!map || !config || !hero) return;
+
+    const local = this.container.toLocal(global);
+    const tile: GridPos = { x: Math.floor(local.x / TILE_SIZE), y: Math.floor(local.y / TILE_SIZE) };
+    if (tile.x < 0 || tile.y < 0 || tile.x >= map.width || tile.y >= map.height) {
+      this.clearPreview();
+      return;
+    }
+
+    if (samePos(tile, hero.pos)) {
+      appStore.setState({ selectedHeroId: hero.id });
+      this.clearPreview();
+      return;
+    }
+
+    // 2ᵉ tap sur la même destination = confirmation (doc 08 §2.1).
+    if (this.previewTarget && samePos(this.previewTarget.target, tile)) {
+      const path = this.previewTarget.path;
+      this.clearPreview();
+      const result = await dispatch({ type: 'MoveHero', heroId: hero.id, path });
+      await this.animateMove(result);
+      return;
+    }
+
+    const blocked = game.heroes.filter((h) => h.id !== hero.id).map((h) => h.pos);
+    const path = findPath(config, map, hero.pos, tile, blocked);
+    if (!path) {
+      this.clearPreview();
+      return;
+    }
+    // Points verts = atteignable aujourd'hui, jaunes = jours suivants (doc 02 §1.5).
+    const steps: PreviewStep[] = [];
+    let remaining = hero.movementPoints;
+    let prev = hero.pos;
+    for (const step of path) {
+      remaining -= stepCost(config, map, prev, step);
+      steps.push({ x: step.x, y: step.y, today: remaining >= 0 });
+      prev = step;
+    }
+    this.previewTarget = { target: tile, path };
+    this.preview.show(steps);
+  }
+
+  private clearPreview(): void {
+    this.previewTarget = null;
+    this.preview.clear();
+  }
+
+  /** Anime les `MoveStepped` tuile par tuile — l'état a déjà « sauté » (doc 07 §3). */
+  private async animateMove(result: EngineResult): Promise<void> {
+    const steps = result.events.filter((e) => e.type === 'MoveStepped');
+    if (steps.length === 0) return;
+    this.animating = true;
+    try {
+      for (const step of steps) {
+        await this.tweenTo(step.from, step.to);
+      }
+    } finally {
+      this.animating = false;
+      this.sync();
+    }
+  }
+
+  private tweenTo(from: GridPos, to: GridPos): Promise<void> {
+    return new Promise((resolve) => {
+      const start = performance.now();
+      const animate = (): void => {
+        const t = Math.min(1, (performance.now() - start) / STEP_ANIMATION_MS);
+        this.heroSprite.position.set(
+          (from.x + (to.x - from.x) * t) * TILE_SIZE,
+          (from.y + (to.y - from.y) * t) * TILE_SIZE,
+        );
+        if (t < 1) requestAnimationFrame(animate);
+        else resolve();
+      };
+      animate();
+    });
+  }
+
+  /** Centre la caméra sur le héros du joueur (appelé au démarrage). */
+  centerOnHero(app: Application): void {
+    const hero = this.myHero();
+    if (!hero) return;
+    const scale = this.camera.world.scale.x;
+    this.camera.world.position.set(
+      app.screen.width / 2 - (hero.pos.x + 0.5) * TILE_SIZE * scale,
+      app.screen.height / 2 - (hero.pos.y + 0.5) * TILE_SIZE * scale,
+    );
+  }
+}

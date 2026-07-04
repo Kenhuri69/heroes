@@ -2,22 +2,23 @@ import { describe, expect, it } from 'vitest';
 import { apply, validate } from '../src/core/engine';
 import { EngineError, type Command, type PlayerSetup } from '../src/core/commands';
 import { createEmptyState, emptyResources, type GameState } from '../src/core/state';
+import { testConfig, testMap } from './fixtures';
 
 function setup(ids: string[]): PlayerSetup[] {
   return ids.map((id) => ({ id, startingResources: { ...emptyResources(), gold: 1000 } }));
 }
 
+function startCmd(ids: string[], seed = 42): Command {
+  return { type: 'StartGame', seed, players: setup(ids), map: testMap(), config: testConfig() };
+}
+
 function startedGame(ids: string[] = ['p1', 'p2']): GameState {
-  return apply(createEmptyState(), { type: 'StartGame', seed: 42, players: setup(ids) }).state;
+  return apply(createEmptyState(), startCmd(ids)).state;
 }
 
 describe('StartGame', () => {
   it('initialise joueurs, RNG seedé, jour 1', () => {
-    const { state, events } = apply(createEmptyState(), {
-      type: 'StartGame',
-      seed: 42,
-      players: setup(['p1', 'p2']),
-    });
+    const { state, events } = apply(createEmptyState(), startCmd(['p1', 'p2']));
     expect(state.started).toBe(true);
     expect(state.players.map((p) => p.id)).toEqual(['p1', 'p2']);
     expect(state.players[0]?.resources.gold).toBe(1000);
@@ -28,16 +29,9 @@ describe('StartGame', () => {
 
   it('refuse un double démarrage et les setups invalides', () => {
     const started = startedGame();
-    expect(validate(started, { type: 'StartGame', seed: 1, players: setup(['x']) })?.code).toBe(
-      'gameAlreadyStarted',
-    );
-    expect(validate(createEmptyState(), { type: 'StartGame', seed: 1, players: [] })?.code).toBe(
-      'noPlayers',
-    );
-    expect(
-      validate(createEmptyState(), { type: 'StartGame', seed: 1, players: setup(['a', 'a']) })
-        ?.code,
-    ).toBe('duplicatePlayerId');
+    expect(validate(started, startCmd(['x'], 1))?.code).toBe('gameAlreadyStarted');
+    expect(validate(createEmptyState(), startCmd([], 1))?.code).toBe('noPlayers');
+    expect(validate(createEmptyState(), startCmd(['a', 'a'], 1))?.code).toBe('duplicatePlayerId');
   });
 });
 

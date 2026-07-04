@@ -17,6 +17,7 @@ Cible : **navigateur desktop + mobile** (responsive, touch-friendly), architectu
 | 07 | [Architecture technique](docs/07-architecture.md) | Frontend TS/PixiJS, state management, backend Node.js, sauvegardes, réseau |
 | 08 | [UI / UX](docs/08-ui-ux.md) | Écrans principaux, wireframes, adaptation mobile |
 | 09 | [Roadmap](docs/09-roadmap.md) | Phases MVP → Alpha → Beta → Live |
+| 10 | [Plan d'implémentation Phase 2](docs/10-plan-phase-2-implementation.md) | Structure projet, architecture, sous-phases, build Vite, déploiement GitHub Pages, code de base prioritaire |
 
 ## Stack pressentie (résumé)
 

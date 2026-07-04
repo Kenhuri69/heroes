@@ -78,4 +78,7 @@ export type GameEvent =
       amount: number;
       kills: number;
     }
-  | { type: 'SkillLearned'; heroId: string; skillId: string; rank: number };
+  | { type: 'SkillLearned'; heroId: string; skillId: string; rank: number }
+  // ——— Effets de faction déclaratifs (doc 06 §4) — surface figée lot O 3.4 ———
+  /** Nécromancie et effets de faction analogues (raiseUndeadOnVictory). */
+  | { type: 'UndeadRaised'; heroId: string; unitId: string; count: number };

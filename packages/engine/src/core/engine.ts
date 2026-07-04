@@ -241,6 +241,7 @@ const handlers: Handlers = {
     draft.spellCatalog = cmd.spellCatalog ?? {};
     draft.skillCatalog = cmd.skillCatalog ?? {};
     draft.artifactCatalog = cmd.artifactCatalog ?? {};
+    draft.factionCatalog = cmd.factionCatalog ?? {};
     draft.towns = (cmd.towns ?? []).map((t) => ({
       ...t,
       buildings: { ...t.buildings },
@@ -274,6 +275,7 @@ const handlers: Handlers = {
       spells: p.startingSpells ? [...p.startingSpells] : [],
       artifacts: Array.from({ length: 10 }, (_, i) => (cmd.startingArtifacts ?? [])[i] ?? null),
       pendingSkillChoices: [],
+      factionId: p.startingFactionId ?? '',
     }));
     for (const hero of draft.heroes) {
       hero.manaMax = heroManaMax(hero, draft.artifactCatalog);

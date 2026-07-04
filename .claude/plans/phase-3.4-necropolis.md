@@ -85,23 +85,31 @@ dans l'armée)` ; ajouter/fusionner dans l'armée du héros (respecte ≤ 7 pile
 ## Lots
 
 - [x] **Cadrage (principal)** : ce plan + specs + point d'accroche identifié.
-- [ ] **Lot O (sonnet) — moteur** : `HeroState.factionId`, `factionCatalog`,
+- [x] **Lot O (sonnet) — moteur** : `HeroState.factionId`, `factionCatalog`,
       type `FactionBonus`, interpréteur post-victoire `raiseUndeadOnVictory`
-      (comptage vivants, plafond, fusion armée ≤ 7), événement `UndeadRaised`,
-      tests tabulaires + property « le combat + relève se termine, armée ≤ 7 »,
-      golden refixé si besoin. **Aucun nom de faction dans le moteur.**
-- [ ] **Lot P (sonnet) — contenu** : `factionBonusSchema` + règles croisées,
-      `buildFactionCatalog`, `data/factions/necropolis/` (7 unités undead aux
-      stats doc 04, manifeste avec `raiseUndeadOnVictory`, arbre habitations,
-      locales), `content:check` étendu, test « le paquet charge + recrute » +
-      « effet de faction résolu ». Reste **data-only** (aucun `packages/*/src`).
-- [ ] **Lot Q (sonnet) — client** : toast `UndeadRaised`, i18n FR/EN,
-      `buildFactionCatalog` dans `game.ts`, `hero.factionId` depuis la ville.
-- [ ] **Intégration (principal)** : câblage catalogue faction→moteur, smoke/
-      test « combat gagné par un héros Necropolis ⇒ squelettes ajoutés à
-      l'armée », golden, docs (doc 04 « État 3.4 », doc 06 « point d'extension
-      ouvert », CLAUDE.md), garde-fou modularité (le diff hors data = seulement
-      l'ouverture du point d'extension générique), PR, merge.
+      (`faction/effects.ts` : comptage vivants via `hasAbility`, plafond, fusion
+      armée ≤ 7, no-op si armée pleine ou unité absente), événement
+      `UndeadRaised`, `casualties` calculées avant `applyConsequences`. 8 tests
+      tabulaires + property (armée ≤ 7) dans `faction-effects.test.ts` (ids
+      synthétiques, aucun nom de faction). **Golden refixé** `f85c9e64` →
+      `211e3cfd` (2 nouveaux champs d'état `factionId`/`factionCatalog`).
+      158 tests moteur verts.
+- [x] **Lot P (sonnet) — contenu** : `factionBonusSchema` (union) + règle
+      croisée (unitId existe + `undead`), `buildFactionCatalog`,
+      `data/factions/necropolis/` (7 unités undead stats doc 04, manifeste avec
+      `raiseUndeadOnVictory`, arbre habitations, locales), `content:check`
+      étendu (« N effet(s) de faction »), test faction identifiée par sa
+      propriété. 42 tests contenu, `content:check` 4 paquets valides.
+- [x] **Lot Q (principal) — client** : toast `UndeadRaised` + i18n FR/EN,
+      `buildFactionSetup`/`FactionCatalog` dans `game.ts`, `hero.factionId`
+      depuis `config.newGame.startingTown.factionId`, câblé dans `main.ts`.
+- [x] **Intégration (principal)** : catalogue faction→moteur câblé ; test
+      end-to-end **données réelles** « héros mort-vivant gagne un combat de
+      vivants ⇒ `UndeadRaised` + squelettes dans l'armée » (API publique
+      `MoveHero`→interception→`AutoCombat`) ; smoke liste de factions mise à
+      jour (+necropolis) ; docs 04 « État 3.4 » + 06 « point d'extension ouvert »
+      + CLAUDE.md. Vérif : 158 moteur, 42 contenu, 15 smokes desktop / 14
+      mobile, typecheck/lint verts, garde-fou (0 nom de faction dans le moteur).
 
 ## Écarts assumés
 

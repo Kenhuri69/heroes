@@ -4,6 +4,7 @@ import {
   type BuildingDef,
   type Command,
   type CombatUnitDef,
+  type FactionBonus,
   type HeroAttributes,
   type HeroSkillDef,
   type Resources,
@@ -13,6 +14,7 @@ import {
 import {
   buildArtifactCatalog,
   buildBuildingCatalog,
+  buildFactionCatalog,
   buildSkillCatalog,
   buildSpellCatalog,
   resolveStartingTowns,
@@ -20,6 +22,13 @@ import {
   type LoadReport,
   type ResolvedMap,
 } from '@heroes/content';
+
+/** Catalogue d'effets de faction résolu contenu → moteur (doc 06, plan phase-3.4). */
+export type FactionCatalog = Record<string, { bonuses: FactionBonus[] }>;
+
+export function buildFactionSetup(report: LoadReport): FactionCatalog {
+  return buildFactionCatalog(report) as FactionCatalog;
+}
 
 export const PLAYER_ID = 'player-1';
 
@@ -118,11 +127,15 @@ export function newGameCommand(
   unitCatalog: Record<string, CombatUnitDef>,
   townSetup: TownSetup = { buildingCatalog: {}, towns: [] },
   heroSetup: HeroSetup = NO_HERO_SETUP,
+  factionCatalog: FactionCatalog = {},
 ): Command {
   const startingResources: Resources = { ...emptyResources() };
   for (const [id, amount] of Object.entries(config.newGame.startingResources)) {
     startingResources[id as keyof Resources] = amount ?? 0;
   }
+  // Le héros joue la faction de sa ville de départ (doc 06) — ses bonus de
+  // faction (ex. Nécromancie) s'appliquent alors post-victoire. Défaut ''.
+  const startingFactionId = config.newGame.startingTown?.factionId ?? '';
   // Les objets `town` de la carte de contenu vivent dans `GameState.towns`,
   // pas dans les objets d'aventure du moteur (resource/guardian) — on les retire.
   const adventureMap = {
@@ -139,6 +152,7 @@ export function newGameCommand(
         startingArmy: config.newGame.startingArmy.map((s) => ({ ...s })),
         startingAttributes: { ...heroSetup.startingAttributes },
         startingSpells: [...heroSetup.startingSpells],
+        startingFactionId,
       },
     ],
     map: adventureMap,
@@ -150,5 +164,6 @@ export function newGameCommand(
     skillCatalog: heroSetup.skillCatalog,
     artifactCatalog: heroSetup.artifactCatalog,
     startingArtifacts: heroSetup.startingArtifacts,
+    factionCatalog,
   };
 }

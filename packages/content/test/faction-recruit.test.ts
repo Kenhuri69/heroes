@@ -13,7 +13,7 @@ import {
   type PlayerSetup,
   type TownState,
 } from '../../engine/src/index';
-import { buildBuildingCatalog, loadContent, type ReadJson } from '../src/loader';
+import { buildBuildingCatalog, buildFactionCatalog, loadContent, type ReadJson } from '../src/loader';
 
 /**
  * Recrutement d'une faction complète à 7 tiers, chargée depuis le contenu réel
@@ -34,6 +34,15 @@ const readJsonFromDisk: ReadJson = async (path) => {
 /** La faction cible : native de l'herbe, lineup complet de 7 tiers (doc 03 §3). */
 function findSevenTierGrassFaction(packs: Awaited<ReturnType<typeof loadContent>>['content']['packs']) {
   return packs.find((p) => p.manifest.nativeTerrain === 'grass' && p.units.length === 7);
+}
+
+/**
+ * La faction morte-vivante : identifiée par son effet de faction déclaratif
+ * (plan phase-3.4), pas par son id littéral — le garde-fou de modularité
+ * interdit tout nom de faction en dur dans `packages/`.
+ */
+function findUndeadFaction(packs: Awaited<ReturnType<typeof loadContent>>['content']['packs']) {
+  return packs.find((p) => p.manifest.factionBonuses.some((b) => b.type === 'raiseUndeadOnVictory'));
 }
 
 /** Carte minimale 3×3, tout en herbe — seule une ville y est posée (doc 02 §4). */
@@ -207,5 +216,222 @@ describe('faction data-driven à 7 tiers (plan phase-3.3) — chargement & recru
     // Coût total débité (or uniquement, pour ne pas dépendre de l'ordre de recrutement).
     const totalGoldCost = pack.units.reduce((sum, u) => sum + (u.cost['gold'] ?? 0), 0);
     expect(state.players[0]?.resources.gold).toBe(100_000 - totalGoldCost);
+  });
+});
+
+/**
+ * Faction morte-vivante (plan phase-3.4, doc 04) : test de modularité n°1 —
+ * l'effet de faction `raiseUndeadOnVictory` est un pur point de données,
+ * identifié par sa PROPRIÉTÉ déclarative (jamais par un id littéral, cf.
+ * garde-fou de modularité ci.yml).
+ */
+describe('faction morte-vivante (plan phase-3.4) — effet de faction & recrutement', () => {
+  it('charge le paquet (7 unités toutes undead, locales fr/en) sans rejet', async () => {
+    const report = await loadContent(readJsonFromDisk);
+    expect(report.rejected).toEqual([]);
+    const pack = findUndeadFaction(report.content.packs);
+    expect(pack).toBeDefined();
+    expect(pack?.units).toHaveLength(7);
+    for (const unit of pack?.units ?? []) {
+      expect(unit.abilities.some((a) => a.id === 'undead')).toBe(true);
+    }
+    expect(pack?.locales.fr['faction.name']).toBeTruthy();
+    expect(pack?.locales.en['faction.name']).toBeTruthy();
+  });
+
+  it('résout le bonus raiseUndeadOnVictory vers une unité undead du paquet', async () => {
+    const report = await loadContent(readJsonFromDisk);
+    const pack = findUndeadFaction(report.content.packs);
+    if (!pack) throw new Error('faction morte-vivante absente — content:check devrait échouer');
+
+    const factionCatalog = buildFactionCatalog(report);
+    const bonuses = factionCatalog[pack.manifest.id]?.bonuses ?? [];
+    const raiseBonus = bonuses.find((b) => b.type === 'raiseUndeadOnVictory');
+    expect(raiseBonus).toBeDefined();
+    if (raiseBonus?.type !== 'raiseUndeadOnVictory') throw new Error('type inattendu');
+
+    const raisedUnit = pack.units.find((u) => u.id === raiseBonus.unitId);
+    expect(raisedUnit).toBeDefined();
+    expect(raisedUnit?.abilities.some((a) => a.id === 'undead')).toBe(true);
+    expect(raiseBonus.percentHpRaised).toBeGreaterThan(0);
+    expect(raiseBonus.capBase).toBeGreaterThanOrEqual(0);
+    expect(raiseBonus.capPerExisting).toBeGreaterThanOrEqual(0);
+  });
+
+  it('recrute une unité de chacun des 7 tiers depuis une ville aux habitations construites', async () => {
+    const report = await loadContent(readJsonFromDisk);
+    expect(report.rejected).toEqual([]);
+    const pack = findUndeadFaction(report.content.packs);
+    if (!pack) throw new Error('faction morte-vivante absente — content:check devrait échouer');
+
+    const unitCatalog: Record<string, CombatUnitDef> = {};
+    for (const unit of pack.units) {
+      unitCatalog[unit.id] = {
+        id: unit.id,
+        groupId: pack.manifest.id,
+        nativeTerrain: pack.manifest.nativeTerrain,
+        stats: unit.stats,
+        abilities: unit.abilities,
+        recruitCost: unit.cost,
+        growthPerWeek: unit.growthPerWeek,
+      };
+    }
+
+    const buildingCatalog = buildBuildingCatalog(report);
+
+    const buildings: Record<string, number> = { townHall: 1, fort: 1, mageGuild: 1 };
+    for (const dwelling of pack.manifest.town?.dwellings ?? []) buildings[dwelling.buildingId] = 1;
+
+    const stock: Record<string, number> = {};
+    for (const unit of pack.units) stock[unit.id] = 5;
+
+    const town: TownState = {
+      id: 'town-1',
+      ownerPlayerId: 'p1',
+      pos: { x: 0, y: 0 },
+      factionId: pack.manifest.id,
+      buildings,
+      builtToday: false,
+      garrison: [],
+      stock,
+    };
+
+    const players: PlayerSetup[] = [
+      {
+        id: 'p1',
+        startingResources: {
+          ...emptyResources(),
+          gold: 100_000,
+          sulfur: 100,
+          gems: 100,
+        },
+      },
+    ];
+
+    const startCmd: Command = {
+      type: 'StartGame',
+      seed: 1,
+      players,
+      map: testMap(),
+      config: testConfig(),
+      unitCatalog,
+      buildingCatalog,
+      towns: [town],
+    };
+
+    let state = apply(createEmptyState(), startCmd).state;
+
+    for (const unit of pack.units) {
+      const { state: next, events } = apply(state, {
+        type: 'RecruitUnits',
+        townId: 'town-1',
+        unitId: unit.id,
+        count: 1,
+      });
+      expect(events).toContainEqual({
+        type: 'UnitsRecruited',
+        townId: 'town-1',
+        unitId: unit.id,
+        count: 1,
+      });
+      state = next;
+    }
+
+    const garrison = state.towns[0]?.garrison ?? [];
+    expect(garrison).toHaveLength(7);
+    for (const unit of pack.units) {
+      expect(garrison).toContainEqual({ unitId: unit.id, count: 1 });
+    }
+  });
+});
+
+/** Catalogue moteur de TOUTES les unités chargées (le moteur ne voit que des ids). */
+function buildFullUnitCatalog(
+  report: Awaited<ReturnType<typeof loadContent>>,
+): Record<string, CombatUnitDef> {
+  const catalog: Record<string, CombatUnitDef> = {};
+  for (const pack of report.content.packs) {
+    for (const unit of pack.units) {
+      catalog[unit.id] = {
+        id: unit.id,
+        groupId: pack.manifest.id,
+        nativeTerrain: pack.manifest.nativeTerrain,
+        stats: unit.stats,
+        abilities: unit.abilities,
+        recruitCost: unit.cost,
+        growthPerWeek: unit.growthPerWeek,
+      };
+    }
+  }
+  return catalog;
+}
+
+describe('Nécromancie (plan phase-3.4) — effet de faction post-victoire, données réelles', () => {
+  it('un héros mort-vivant qui gagne un combat contre des vivants relève des squelettes', async () => {
+    const report = await loadContent(readJsonFromDisk);
+    const undead = findUndeadFaction(report.content.packs);
+    if (!undead) throw new Error('faction morte-vivante absente — content:check devrait échouer');
+    const bonus = undead.manifest.factionBonuses.find((b) => b.type === 'raiseUndeadOnVictory');
+    if (!bonus || bonus.type !== 'raiseUndeadOnVictory') throw new Error('bonus raiseUndeadOnVictory absent');
+    const skeletonId = bonus.unitId;
+
+    const unitCatalog = buildFullUnitCatalog(report);
+    const factionCatalog = buildFactionCatalog(report);
+
+    // Un gardien VIVANT (non-`undead`) : seules ses pertes alimentent la relève.
+    const living = report.content.packs
+      .flatMap((p) => p.units)
+      .find((u) => !u.abilities.some((a) => a.id === 'undead'));
+    if (!living) throw new Error('aucune unité vivante dans le contenu');
+
+    // Carte 3×3 herbe, héros en (0,0), gardien vivant adjacent en (1,0).
+    const map: AdventureMapDef = {
+      ...testMap(),
+      objects: [{ id: 'guardian-1', type: 'guardian', pos: { x: 1, y: 0 }, unitId: living.id, count: 50 }],
+    };
+
+    // Armée écrasante de squelettes ⇒ victoire déterministe ; le héros joue la
+    // faction morte-vivante ⇒ son bonus de faction s'applique post-victoire.
+    const players: PlayerSetup[] = [
+      {
+        id: 'p1',
+        startingResources: emptyResources(),
+        startingArmy: [{ unitId: skeletonId, count: 500 }],
+        startingFactionId: undead.manifest.id,
+      },
+    ];
+
+    const startCmd: Command = {
+      type: 'StartGame',
+      seed: 3,
+      players,
+      map,
+      config: testConfig(),
+      unitCatalog,
+      factionCatalog,
+    };
+    let state = apply(createEmptyState(), startCmd).state;
+    const skeletonsBefore =
+      state.heroes[0]?.army.find((s) => s.unitId === skeletonId)?.count ?? 0;
+
+    // Interception du gardien (MoveHero sur sa tuile) puis auto-résolution.
+    state = apply(state, { type: 'MoveHero', heroId: 'hero-p1', path: [{ x: 1, y: 0 }] }).state;
+    expect(state.combat).not.toBeNull(); // combat ouvert par interception
+    const { state: after, events } = apply(state, { type: 'AutoCombat' });
+
+    // Victoire + relève : événement UndeadRaised émis pour le squelette du bonus.
+    expect(events.some((e) => e.type === 'CombatEnded' && e.winner === 'attacker')).toBe(true);
+    const raised = events.find((e) => e.type === 'UndeadRaised');
+    expect(raised).toBeDefined();
+    if (raised && raised.type === 'UndeadRaised') {
+      expect(raised.unitId).toBe(skeletonId);
+      expect(raised.count).toBeGreaterThan(0);
+    }
+    // L'armée du héros contient toujours des squelettes, augmentés de la relève
+    // (survivants + relevés) — au moins un squelette de plus que les survivants seuls.
+    const hero = after.heroes.find((h) => h.id === 'hero-p1');
+    const skeletonsAfter = hero?.army.find((s) => s.unitId === skeletonId)?.count ?? 0;
+    expect(skeletonsAfter).toBeGreaterThan(0);
+    expect(skeletonsBefore).toBe(500);
   });
 });

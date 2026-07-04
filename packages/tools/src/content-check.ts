@@ -15,7 +15,11 @@ import { DATA_DIR, readJsonFromDisk } from './data-dir';
 const report = await loadContent(readJsonFromDisk);
 
 for (const pack of report.content.packs) {
-  console.log(`✓ ${pack.manifest.id} — ${pack.units.length} unité(s), locales fr/en OK`);
+  const bonusSuffix =
+    pack.manifest.factionBonuses.length > 0
+      ? `, ${pack.manifest.factionBonuses.length} effet(s) de faction`
+      : '';
+  console.log(`✓ ${pack.manifest.id} — ${pack.units.length} unité(s), locales fr/en OK${bonusSuffix}`);
 }
 for (const rejected of report.rejected) {
   console.error(`✗ ${rejected.id}`);

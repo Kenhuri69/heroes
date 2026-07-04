@@ -80,6 +80,7 @@ export type {
   ArtifactDef,
 } from './hero/types';
 export { estimateSpell, type SpellEstimate } from './hero';
+export type { FactionBonus } from './faction/types';
 export { findPath, isPassable, stepCost } from './adventure/path';
 export { createFog, revealAround } from './adventure/fog';
 export { xpForLevel } from './adventure/experience';

@@ -58,11 +58,28 @@ export const unitSchema = z.object({
 });
 
 /**
+ * Effets de faction déclaratifs interprétés par le moteur (plan phase-3.4,
+ * doc 06 §4 : « la Nécromancie est en fait déclarative »). Union discriminée
+ * — un seul type ouvert au MVP. Forme figée, partagée avec le moteur
+ * (`FactionBonus`) : ne pas modifier sans coordonner les deux côtés.
+ */
+export const factionBonusSchema = z.discriminatedUnion('type', [
+  z.object({
+    type: z.literal('raiseUndeadOnVictory'),
+    unitId: idSchema,
+    percentHpRaised: z.number().int().positive(),
+    capBase: z.number().int().nonnegative(),
+    capPerExisting: z.number().int().nonnegative(),
+  }),
+]);
+
+/**
  * manifest.json (doc 06 §3, doc 10 §5.4). `schemaVersion: 1` — les migrations
  * arrivent avec la première évolution de schéma (doc 06 §7).
- * `factionBonuses`/`abilityModules`/`hooks` sont refusés non vides tant que le
- * moteur ne les interprète pas : du contenu silencieusement ignoré serait un
- * mensonge de validation.
+ * `abilityModules`/`hooks` restent refusés non vides tant que le moteur ne
+ * les interprète pas : du contenu silencieusement ignoré serait un mensonge
+ * de validation. `factionBonuses` est validé (plan phase-3.4) — règles
+ * croisées (unitId existe, capacité `undead`) dans le loader.
  */
 export const manifestSchema = z.object({
   id: idSchema,
@@ -73,7 +90,7 @@ export const manifestSchema = z.object({
   factionResources: z
     .array(z.object({ id: idSchema, icon: z.string(), cap: z.number().int().positive() }))
     .default([]),
-  factionBonuses: z.array(z.unknown()).max(0).default([]),
+  factionBonuses: z.array(factionBonusSchema).default([]),
   spellSchool: idSchema.nullable(),
   heroSkills: z.array(idSchema).default([]),
   tiers: z.number().int().min(7).max(8),
@@ -391,6 +408,7 @@ export const mapFileSchema = z.object({
 export type AbilityCatalog = z.infer<typeof abilityCatalogSchema>;
 export type FactionIndex = z.infer<typeof factionIndexSchema>;
 export type Manifest = z.infer<typeof manifestSchema>;
+export type FactionBonus = z.infer<typeof factionBonusSchema>;
 export type Unit = z.infer<typeof unitSchema>;
 export type Locale = z.infer<typeof localeSchema>;
 export type GameConfig = z.infer<typeof gameConfigSchema>;

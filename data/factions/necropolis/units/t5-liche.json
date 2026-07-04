@@ -1,0 +1,9 @@
+{
+  "id": "t5-liche",
+  "tier": 5,
+  "name": "@loc:unit.t5-liche.name",
+  "stats": { "hp": 34, "attack": 9, "defense": 10, "damage": [7, 11], "speed": 5 },
+  "growthPerWeek": 4,
+  "cost": { "gold": 550, "sulfur": 1 },
+  "abilities": [{ "id": "undead" }, { "id": "shooter", "params": { "ammo": 10 } }]
+}

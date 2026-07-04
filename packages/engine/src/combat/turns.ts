@@ -1,4 +1,5 @@
 import { grantXp } from '../adventure/experience';
+import { applyFactionVictoryEffects } from '../faction/effects';
 import type { GameEvent } from '../core/events';
 import { rollRange } from '../core/rng';
 import type { Draft } from './draft';
@@ -99,8 +100,8 @@ export function checkCombatEnd(draft: Draft, events: GameEvent[]): boolean {
   combat.finished = true;
   combat.winner = winner;
   combat.activeStackId = null;
-  applyConsequences(draft, combat, winner);
   const casualties = collectCasualties(combat);
+  applyConsequences(draft, combat, winner, casualties, events);
   events.push({ type: 'CombatEnded', winner, casualties });
   grantHeroCombatXp(draft, combat, winner, casualties, events);
   draft.combat = null;
@@ -128,7 +129,13 @@ function grantHeroCombatXp(
   grantXp(draft, events, combat.heroId, Math.round(hpLost * xpPerHpKilled));
 }
 
-function applyConsequences(draft: Draft, combat: CombatState, winner: CombatSideId): void {
+function applyConsequences(
+  draft: Draft,
+  combat: CombatState,
+  winner: CombatSideId,
+  casualties: { side: CombatSideId; unitId: string; lost: number }[],
+  events: GameEvent[],
+): void {
   if (!combat.heroId) return; // arène : rien à appliquer
   const hero = draft.heroes.find((h) => h.id === combat.heroId);
   if (winner === 'attacker') {
@@ -136,6 +143,9 @@ function applyConsequences(draft: Draft, combat: CombatState, winner: CombatSide
       hero.army = combat.stacks
         .filter((s) => s.side === 'attacker' && s.count > 0)
         .map((s) => ({ unitId: s.unitId, count: s.count }));
+      // Effets de faction déclaratifs post-victoire (doc 06 §4) — après la
+      // reconstruction de l'armée, jamais un nom de faction dans le moteur.
+      applyFactionVictoryEffects(draft, combat, hero, casualties, events);
     }
     if (draft.map && combat.guardianObjectId) {
       const idx = draft.map.objects.findIndex((o) => o.id === combat.guardianObjectId);

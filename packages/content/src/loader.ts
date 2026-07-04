@@ -15,6 +15,7 @@ import {
   type AbilityCatalog,
   type Artifact,
   type Building,
+  type FactionBonus,
   type GameConfig,
   type Locale,
   type Manifest,
@@ -212,6 +213,23 @@ export async function loadFactionPack(
     }
   }
 
+  // Effets de faction (plan phase-3.4) : unitId doit exister dans le paquet et
+  // porter la capacité requise par l'effet (ex. `undead` pour la relève).
+  for (const bonus of manifest.factionBonuses) {
+    if (bonus.type === 'raiseUndeadOnVictory') {
+      const unit = units.find((u) => u.id === bonus.unitId);
+      if (!unit) {
+        errors.push(
+          `manifest.json: factionBonuses(raiseUndeadOnVictory) — unité inconnue '${bonus.unitId}'`,
+        );
+      } else if (!unit.abilities.some((a) => a.id === 'undead')) {
+        errors.push(
+          `manifest.json: factionBonuses(raiseUndeadOnVictory) — unité '${bonus.unitId}' sans capacité 'undead'`,
+        );
+      }
+    }
+  }
+
   const locales = {} as FactionPack['locales'];
   for (const lang of LOCALE_LANGS) {
     const path = `locales/${lang}.json`;
@@ -395,6 +413,20 @@ export function buildArtifactCatalog(report: LoadReport): Record<string, Resolve
     if (catalog[a.id])
       throw new PackError([`buildArtifactCatalog: id d'artefact en double '${a.id}'`]);
     catalog[a.id] = { id: a.id, bonus: a.bonus };
+  }
+  return catalog;
+}
+
+/**
+ * Catalogue des effets de faction, prêt pour `StartGame.factionCatalog` /
+ * `GameState.factionCatalog` (plan phase-3.4) — indexé par `factionId`, lu
+ * par l'interpréteur générique du moteur post-victoire. `factionBonuses` est
+ * déjà sous forme résolue (`FactionBonus`), aucune traduction nécessaire.
+ */
+export function buildFactionCatalog(report: LoadReport): Record<string, { bonuses: FactionBonus[] }> {
+  const catalog: Record<string, { bonuses: FactionBonus[] }> = {};
+  for (const pack of report.content.packs) {
+    catalog[pack.manifest.id] = { bonuses: pack.manifest.factionBonuses };
   }
   return catalog;
 }

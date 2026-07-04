@@ -1,5 +1,23 @@
 # 04 — Faction : Necropolis (Nécropole)
 
+> 🚧 **État 3.4 (implémentation)** : faction livrée en données
+> (`data/factions/necropolis/`) + **ouverture d'UN point d'extension moteur
+> générique** (test de modularité n°1, doc 11 §3.4). **Livré** : lineup T1–T7
+> (stats §3, toutes `undead`), arbre d'habitations, locales, et surtout la
+> **Nécromancie déclarative** — effet de faction `raiseUndeadOnVictory`
+> interprété par le moteur à la fin d'un combat gagné (relève un % des PV
+> **vivants** ennemis tués en `t1-squelette`, plafonné `capBase +
+> capPerExisting × effectif`), **sans que le moteur connaisse la faction**
+> (piloté par le manifeste, appliqué via `factionCatalog`/`hero.factionId`).
+> **Différé** : scaling de la Nécromancie par la compétence (Novice/Expert/
+> Maître 10/15/20 %) + bâtiment Amplificateur (§2/§4) — effet **plat** en
+> données au MVP (15 %) ; capacités spéciales `curseOnHit`/`incorporeal`/
+> `lifeDrain`/`areaAttack`/`charge`/`aura`/`breathAttack`, bâtiments spéciaux,
+> « Fléau persistant », école Prime, héros nommés (Vhalen/Mère Corbeau).
+> Terrain natif : `swamp` (« terre morte » n'existe pas dans les terrains du
+> MVP). `raiseUndeadOnVictory` est le SEUL point d'extension ouvert. Ce
+> document reste la cible de design.
+
 ## 1. Identité
 
 | | |

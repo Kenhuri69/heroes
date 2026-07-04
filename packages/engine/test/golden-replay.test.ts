@@ -183,12 +183,12 @@ const GOLDEN_JOURNAL: Command[] = [
   ),
 ];
 
-// Hash mis à jour au lot O du plan de faction déclarative (doc 06 §4) :
-// `HeroState.factionId` et `GameState.factionCatalog` s'ajoutent à la forme
-// sérialisée. Aucun effet de faction n'est exercé ici (factionId '' par
-// défaut, factionCatalog absent ⇒ {}) : seule la FORME de l'état change,
-// pas la simulation — hash relevé après vérification.
-const GOLDEN_HASH = '211e3cfd';
+// Hash mis à jour au cadrage phase-3.5 (scénarios & IA) : `PlayerState.
+// controller`/`eliminated` et `GameState.scenario`/`outcome` s'ajoutent à la
+// forme sérialisée. Partie libre (scenario null) ⇒ aucune évaluation de fin de
+// partie : la simulation est inchangée, seule la FORME de l'état change — hash
+// relevé après vérification. (Précédents : f85c9e64 en 3.2, 211e3cfd au lot O.)
+const GOLDEN_HASH = '48073225';
 
 describe('golden replay', () => {
   it('le journal scripté produit toujours le même état final', () => {

@@ -4,6 +4,7 @@ import type { ArmyStack, CombatActionInput, CombatUnitDef } from '../combat/type
 import type { BuildingDef, TownState } from '../town/types';
 import type { ArtifactDef, HeroSkillDef, SpellDef } from '../hero/types';
 import type { FactionBonus } from '../faction/types';
+import type { ScenarioState } from '../scenario/types';
 import type { HeroAttributes, Resources } from './state';
 
 export interface PlayerSetup {
@@ -18,6 +19,8 @@ export interface PlayerSetup {
   startingSpells?: string[];
   /** Maison du héros (doc 06 §4) — id opaque pour le moteur ; défaut ''. */
   startingFactionId?: string;
+  /** Contrôleur (doc 02 §6, plan phase-3.5) — `'ai'` pour un adversaire ; défaut `'human'`. */
+  controller?: 'human' | 'ai';
 }
 
 /**
@@ -48,6 +51,8 @@ export type Command =
       startingArtifacts?: string[];
       /** Catalogue d'effets de faction déclaratifs résolu par le contenu (doc 06 §4). */
       factionCatalog?: Record<string, { bonuses: FactionBonus[] }>;
+      /** Objectifs de scénario par joueur (doc 02 §6, plan phase-3.5) — absent = partie libre. */
+      scenario?: ScenarioState;
     }
   | {
       /** Chemin calculé par A* côté client ; le moteur revalide chaque pas. */

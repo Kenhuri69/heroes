@@ -81,6 +81,14 @@ export type {
 } from './hero/types';
 export { estimateSpell, type SpellEstimate } from './hero';
 export type { FactionBonus } from './faction/types';
+export type {
+  VictoryCondition,
+  ScenarioObjectives,
+  ScenarioState,
+  GameOutcome,
+} from './scenario/types';
+export { evaluateOutcome } from './scenario/outcome';
+export { runAiTurn } from './ai/adventure';
 export { findPath, isPassable, stepCost } from './adventure/path';
 export { createFog, revealAround } from './adventure/fog';
 export { xpForLevel } from './adventure/experience';

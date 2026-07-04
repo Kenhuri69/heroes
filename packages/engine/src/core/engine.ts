@@ -242,6 +242,8 @@ const handlers: Handlers = {
     draft.skillCatalog = cmd.skillCatalog ?? {};
     draft.artifactCatalog = cmd.artifactCatalog ?? {};
     draft.factionCatalog = cmd.factionCatalog ?? {};
+    draft.scenario = cmd.scenario ?? null;
+    draft.outcome = null;
     draft.towns = (cmd.towns ?? []).map((t) => ({
       ...t,
       buildings: { ...t.buildings },
@@ -252,6 +254,8 @@ const handlers: Handlers = {
       id: p.id,
       resources: { ...p.startingResources },
       explored: createFog(cmd.map),
+      controller: p.controller ?? 'human',
+      eliminated: false,
     }));
     // Un héros par joueur à sa position de départ, armée de scénario (doc 02 §1.5, §5.1).
     draft.heroes = cmd.players.map((p, i) => ({

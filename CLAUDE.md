@@ -11,8 +11,9 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > `docs/10-plan-phase-2-implementation.md`). La Phase 2.0 (bootstrap) est
 > livrée : monorepo pnpm + TS strict, client PixiJS 8 (damier pan/zoom
 > touch-first), smoke test Playwright, CI + déploiement continu sur
-> https://kenhuri69.github.io/heroes/ . Les docs `docs/0X-*.md` restent la
-> source de vérité du design ; le code doit s'y conformer.
+> https://kenhuri69.github.io/heroes/ . Phase 2.1 livrée : cœur du moteur pur
+> (`GameState`, commandes, RNG PCG32, golden replay). Les docs `docs/0X-*.md`
+> restent la source de vérité du design ; le code doit s'y conformer.
 
 ---
 
@@ -36,6 +37,7 @@ docs/
   ci.yml                         PR : typecheck, lint, tests, build, smoke headless
   deploy.yml                     main : build Vite + smoke sur build de prod + déploiement Pages
 packages/
+  engine/                        Moteur de règles pur (état, commandes, RNG PCG32) — @heroes/engine
   client/                        Client Vite + PixiJS 8 (rendu, caméra, scènes) — @heroes/client
 tests/smoke.spec.ts              Smoke Playwright/Chromium headless (guideline §7) sur le build de prod
 playwright.config.ts             Config smoke (desktop + mobile, vite preview)

@@ -104,6 +104,18 @@ export const gameConfigSchema = z.object({
         (t) => Object.values(t).some((r) => r.moveCost !== null),
         'au moins un terrain franchissable',
       ),
+    /** Progression du héros (doc 02 §1.2 + plan phase-2.5) — même forme que le moteur. */
+    hero: z.object({
+      xpPerHpKilled: z.number().nonnegative(),
+      levelCurve: z.object({ base: z.number().positive(), exponent: z.number().positive() }),
+      maxLevel: z.number().int().positive(),
+      attributeWeights: z.object({
+        attack: z.number().nonnegative(),
+        defense: z.number().nonnegative(),
+        power: z.number().nonnegative(),
+        knowledge: z.number().nonnegative(),
+      }),
+    }),
     /** Règles de combat (doc 02 §5 + plan phase-2.4) — même forme que le moteur. */
     combat: z.object({
       attackDefenseStep: z.number().positive().max(1),

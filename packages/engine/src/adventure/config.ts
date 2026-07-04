@@ -47,6 +47,18 @@ export interface AdventureConfig {
   visionRadius: number;
   terrains: Record<string, TerrainRule>;
   combat: CombatRulesConfig;
+  hero: HeroProgressionConfig;
+}
+
+/** Progression du héros (doc 02 §1.2 + décisions plan phase-2.5). */
+export interface HeroProgressionConfig {
+  /** XP par PV d'unité ennemie tuée en combat (coefficient du doc 02 §1.2). */
+  xpPerHpKilled: number;
+  /** Courbe : xp(niveau) = base × niveau^exponent (1000 × n^1.9). */
+  levelCurve: { base: number; exponent: number };
+  maxLevel: number;
+  /** Pondérations du +1 attribut/niveau (profil unique en Phase 2, classes au MVP). */
+  attributeWeights: { attack: number; defense: number; power: number; knowledge: number };
 }
 
 /**

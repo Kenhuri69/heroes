@@ -53,4 +53,12 @@ export type GameEvent =
       winner: CombatSideId;
       /** Pertes par camp et unité — l'UI affiche le bilan. */
       casualties: { side: CombatSideId; unitId: string; lost: number }[];
+    }
+  // ——— Progression du héros (doc 02 §1.2) — surface figée en cadrage 2.5 ———
+  | { type: 'XpGained'; heroId: string; amount: number; xp: number }
+  | {
+      type: 'HeroLevelUp';
+      heroId: string;
+      level: number;
+      attribute: 'attack' | 'defense' | 'power' | 'knowledge';
     };

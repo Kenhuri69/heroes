@@ -41,6 +41,12 @@ export function testConfig(): AdventureConfig {
       mountain: { moveCost: null },
     },
     combat: testCombatRules(),
+    hero: {
+      xpPerHpKilled: 1,
+      levelCurve: { base: 1000, exponent: 1.9 },
+      maxLevel: 30,
+      attributeWeights: { attack: 30, defense: 30, power: 20, knowledge: 20 },
+    },
   };
 }
 

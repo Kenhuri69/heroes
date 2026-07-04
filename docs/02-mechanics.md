@@ -21,7 +21,7 @@ Chaque classe de héros a des **probabilités de gain** par niveau (data-driven)
 
 ### 1.2 Progression
 
-- **XP** : combats (XP = somme des PV des unités ennemies tuées × coefficient), coffres, lieux de savoir.
+- **XP** : combats (XP = somme des PV des unités ennemies tuées × coefficient — valeur de départ **1**, dans `data/core/config.json`), coffres, lieux de savoir.
 - Courbe : `xp(niveau) = 1000 × niveau^1.9` (héros max niveau 30 au MVP).
 - À chaque niveau : +1 attribut primaire (tirage pondéré par classe) + **choix entre 2 propositions de compétence** (nouvelle compétence ou montée d'une existante).
 

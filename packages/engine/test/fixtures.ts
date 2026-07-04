@@ -1,5 +1,33 @@
 import type { AdventureConfig } from '../src/adventure/config';
 import type { AdventureMapDef } from '../src/adventure/map';
+import type { CombatUnitDef } from '../src/combat/types';
+
+/** Catalogue d'unités de test — deux groupes pour couvrir le malus multi-groupes. */
+export function testCatalog(): Record<string, CombatUnitDef> {
+  return {
+    'red-grunt': {
+      id: 'red-grunt',
+      groupId: 'red-pack',
+      nativeTerrain: 'grass',
+      stats: { hp: 6, attack: 3, defense: 2, damage: [1, 2], speed: 4 },
+      abilities: [],
+    },
+    'red-archer': {
+      id: 'red-archer',
+      groupId: 'red-pack',
+      nativeTerrain: 'grass',
+      stats: { hp: 8, attack: 5, defense: 2, damage: [2, 4], speed: 5 },
+      abilities: [{ id: 'shooter', params: { ammo: 10 } }],
+    },
+    'blue-wolf': {
+      id: 'blue-wolf',
+      groupId: 'blue-pack',
+      nativeTerrain: 'swamp',
+      stats: { hp: 10, attack: 4, defense: 3, damage: [2, 3], speed: 6 },
+      abilities: [],
+    },
+  };
+}
 
 /** Config d'équilibrage de test — mêmes valeurs de départ que data/core/config.json. */
 export function testConfig(): AdventureConfig {
@@ -12,6 +40,23 @@ export function testConfig(): AdventureConfig {
       water: { moveCost: null },
       mountain: { moveCost: null },
     },
+    combat: testCombatRules(),
+  };
+}
+
+export function testCombatRules(): AdventureConfig['combat'] {
+  return {
+    attackDefenseStep: 0.05,
+    damageBonusMax: 0.6,
+    damageReductionMax: 0.7,
+    defendDefenseMultiplier: 1.3,
+    rangedMeleePenalty: 0.5,
+    moraleChancePerPoint: 0.04,
+    luckChancePerPoint: 0.04,
+    markBonusPerStack: 0.08,
+    marksMax: 3,
+    obstaclesMin: 2,
+    obstaclesMax: 5,
   };
 }
 

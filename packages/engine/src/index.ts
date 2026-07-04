@@ -25,11 +25,41 @@ export {
   tileIndex,
   type AdventureMapDef,
   type GridPos,
+  type GuardianObjectDef,
   type MapObjectDef,
+  type ResourceObjectDef,
 } from './adventure/map';
+export {
+  COMBAT_COLS,
+  COMBAT_ROWS,
+  axialToOffset,
+  hexDistance,
+  hexNeighbors,
+  hexRound,
+  inCombatBounds,
+  offsetToAxial,
+  sameHex,
+  type AxialPos,
+  type OffsetPos,
+} from './combat/hex';
+export type {
+  ArmyStack,
+  CombatActionInput,
+  CombatSideId,
+  CombatStack,
+  CombatState,
+  CombatUnitDef,
+} from './combat/types';
+export {
+  canShoot,
+  estimateDamage,
+  reachableHexes,
+  type DamageEstimate,
+} from './combat';
 export {
   dailyMovementPoints,
   type AdventureConfig,
+  type CombatRulesConfig,
   type TerrainRule,
 } from './adventure/config';
 export { findPath, isPassable, stepCost } from './adventure/path';

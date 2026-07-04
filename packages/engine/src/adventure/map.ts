@@ -10,8 +10,8 @@ export interface GridPos {
   y: number;
 }
 
-/** Objet interactif posé sur la carte — Phase 2.3 : ressources au sol (doc 02 §2.2). */
-export interface MapObjectDef {
+/** Objets interactifs posés sur la carte (doc 02 §2.2) : ressources, gardiens neutres. */
+export interface ResourceObjectDef {
   id: string;
   type: 'resource';
   pos: GridPos;
@@ -19,6 +19,17 @@ export interface MapObjectDef {
   resource: string;
   amount: number;
 }
+
+/** Gardien neutre : pile unique, déclenche un combat à l'interception (doc 02 §2.2, §5). */
+export interface GuardianObjectDef {
+  id: string;
+  type: 'guardian';
+  pos: GridPos;
+  unitId: string;
+  count: number;
+}
+
+export type MapObjectDef = ResourceObjectDef | GuardianObjectDef;
 
 /** Forme résolue de la carte, telle qu'embarquée dans `StartGame` puis l'état. */
 export interface AdventureMapDef {

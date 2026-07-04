@@ -6,6 +6,7 @@ import { PLAYER_ID } from '../app/game';
 import { saveGame, restoreSavedGame } from '../app/save';
 import { appStore } from '../app/store';
 import { RESOURCE_COLORS } from '../render/mapObjects';
+import { CombatUi } from './combat';
 import './styles.css';
 
 export function mountUi(root: HTMLElement): void {
@@ -14,7 +15,9 @@ export function mountUi(root: HTMLElement): void {
 
 function Shell() {
   const started = useApp((s) => s.game.started);
+  const inCombat = useApp((s) => s.game.combat !== null);
   if (!started) return null;
+  if (inCombat) return <CombatUi />;
   return (
     <>
       <ResourceBar />

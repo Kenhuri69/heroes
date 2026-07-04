@@ -59,8 +59,22 @@ function makeConfig(): GameConfig {
       movement: { base: 1500, perSpeed: 50, roadMultiplier: 0.75, diagonalMultiplier: 1.41 },
       visionRadius: 5,
       terrains: { grass: { moveCost: 100 }, water: { moveCost: null } },
+      combat: {
+        attackDefenseStep: 0.05,
+        damageBonusMax: 0.6,
+        damageReductionMax: 0.7,
+        defendDefenseMultiplier: 1.3,
+        rangedMeleePenalty: 0.5,
+        moraleChancePerPoint: 0.04,
+        luckChancePerPoint: 0.04,
+        markBonusPerStack: 0.08,
+        marksMax: 3,
+        obstaclesMin: 2,
+        obstaclesMax: 5,
+      },
     },
-    newGame: { map: 'mini', startingResources: { gold: 2000 } },
+    newGame: { map: 'mini', startingResources: { gold: 2000 }, startingArmy: [] },
+    display: { strengthBands: [{ max: null, key: 'legion' }] },
   };
 }
 

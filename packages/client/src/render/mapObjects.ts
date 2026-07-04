@@ -28,6 +28,7 @@ export class MapObjectsLayer {
     }
     for (const obj of objects) {
       if (this.byId.has(obj.id)) continue;
+      if (obj.type !== 'resource') continue; // gardiens : rendu au lot D (phase 2.4)
       const g = new Graphics();
       const color = RESOURCE_COLORS[obj.resource] ?? 0xffffff;
       // Petit tas : losange teinté, lisible à 64 px (doc 08 §5).

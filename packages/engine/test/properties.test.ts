@@ -25,6 +25,7 @@ function start(seed: number, ids: string[]): GameState {
     players,
     map: testMap(),
     config: testConfig(),
+    unitCatalog: {},
   }).state;
 }
 

@@ -3,7 +3,7 @@ import type { Command, GameState } from '@heroes/engine';
 import { Camera } from './render/camera';
 import { TILE_SIZE } from './render/tilemap';
 import { loadGameContent, loadDefaultMap } from './app/content';
-import { newGameCommand } from './app/game';
+import { buildUnitCatalog, newGameCommand } from './app/game';
 import { dispatch } from './app/dispatch';
 import { appStore } from './app/store';
 import { saveGame, restoreSavedGame } from './app/save';
@@ -51,7 +51,7 @@ async function bootstrap(): Promise<void> {
   // Seed injectable (`?seed=42`) : parties reproductibles pour le smoke test.
   const seedParam = Number(new URLSearchParams(location.search).get('seed'));
   const seed = Number.isInteger(seedParam) && seedParam > 0 ? seedParam : Date.now();
-  await dispatch(newGameCommand(seed, report.content.config, map));
+  await dispatch(newGameCommand(seed, report.content.config, map, buildUnitCatalog(report)));
 
   const camera = new Camera(app);
   const scene = new AdventureScene(app, camera);

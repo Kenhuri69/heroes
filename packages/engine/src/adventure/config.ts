@@ -9,6 +9,30 @@ export interface TerrainRule {
   moveCost: number | null;
 }
 
+/** Constantes des règles de combat (doc 02 §5 + décisions plan phase-2.4). */
+export interface CombatRulesConfig {
+  /** ±0,05 × (AttTotale − DéfTotale) (doc 02 §5.3). */
+  attackDefenseStep: number;
+  /** Borne haute du bonus de dégâts (+0,60). */
+  damageBonusMax: number;
+  /** Borne basse de la réduction (−0,70). */
+  damageReductionMax: number;
+  /** Défendre : Défense ×1,3 (doc 02 §5.2). */
+  defendDefenseMultiplier: number;
+  /** Tireur au contact : mêlée à ½ dégâts (doc 02 §5.2). */
+  rangedMeleePenalty: number;
+  /** Moral : 4 %/point de tour bonus (ou sauté, symétrique — décision n°8). */
+  moraleChancePerPoint: number;
+  /** Chance : 4 %/point de dégâts doublés (doc 02 §5.3). */
+  luckChancePerPoint: number;
+  /** `mark` : +8 % de dégâts subis par charge (doc 05 §3.1, générique). */
+  markBonusPerStack: number;
+  marksMax: number;
+  /** Obstacles générés au RNG du combat : 2–5 hexes (doc 02 §5.1). */
+  obstaclesMin: number;
+  obstaclesMax: number;
+}
+
 export interface AdventureConfig {
   /** Points de mouvement quotidiens : base + perSpeed × vitesse la plus lente (doc 02 §1.5). */
   movement: {
@@ -22,13 +46,23 @@ export interface AdventureConfig {
   /** Portée de vision du héros en tuiles, distance de Tchebychev (doc 02 §1.5). */
   visionRadius: number;
   terrains: Record<string, TerrainRule>;
+  combat: CombatRulesConfig;
 }
 
 /**
- * Points de mouvement quotidiens du héros. Sans armée (Phase 2.3, le combat
- * arrive en 2.4), seule la base compte — le terme `perSpeed × vitesse la plus
- * lente` s'activera avec les armées.
+ * Points de mouvement quotidiens du héros : `base + perSpeed × vitesse de la
+ * créature la plus lente de l'armée` (doc 02 §1.5). Armée vide ⇒ base seule.
  */
-export function dailyMovementPoints(config: AdventureConfig): number {
-  return config.movement.base;
+export function dailyMovementPoints(
+  config: AdventureConfig,
+  army: readonly { unitId: string }[] = [],
+  unitCatalog: Record<string, { stats: { speed: number } }> = {},
+): number {
+  let slowest = Infinity;
+  for (const stack of army) {
+    const speed = unitCatalog[stack.unitId]?.stats.speed;
+    if (speed !== undefined) slowest = Math.min(slowest, speed);
+  }
+  if (!Number.isFinite(slowest)) return config.movement.base;
+  return config.movement.base + config.movement.perSpeed * slowest;
 }

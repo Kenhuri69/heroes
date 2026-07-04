@@ -25,6 +25,19 @@ const GOLDEN_CONFIG: AdventureConfig = {
     swamp: { moveCost: 150 },
     water: { moveCost: null },
   },
+  combat: {
+    attackDefenseStep: 0.05,
+    damageBonusMax: 0.6,
+    damageReductionMax: 0.7,
+    defendDefenseMultiplier: 1.3,
+    rangedMeleePenalty: 0.5,
+    moraleChancePerPoint: 0.04,
+    luckChancePerPoint: 0.04,
+    markBonusPerStack: 0.08,
+    marksMax: 3,
+    obstaclesMin: 2,
+    obstaclesMax: 5,
+  },
 };
 
 const GOLDEN_ROWS = [
@@ -72,6 +85,7 @@ const GOLDEN_JOURNAL: Command[] = [
     ],
     map: GOLDEN_MAP,
     config: GOLDEN_CONFIG,
+    unitCatalog: {},
   },
   // Jour 1 : red ramasse le bois (arrêt dessus), blue descend vers la route.
   {
@@ -125,7 +139,7 @@ const GOLDEN_JOURNAL: Command[] = [
   ),
 ];
 
-const GOLDEN_HASH = '2a1ccdfd';
+const GOLDEN_HASH = 'a84c80fd';
 
 describe('golden replay', () => {
   it('le journal scripté produit toujours le même état final', () => {

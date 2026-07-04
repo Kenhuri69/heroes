@@ -3,6 +3,7 @@ import type { Draft } from '../combat/draft';
 import type { GameEvent } from '../core/events';
 import { rollRange } from '../core/rng';
 import type { HeroAttributes } from '../core/state';
+import { rollSkillChoices } from '../hero/level-up';
 
 /**
  * Progression du héros (doc 02 §1.2 + décisions plan phase-2.5) : XP gagnée
@@ -64,6 +65,11 @@ export function grantXp(
     hero.level += 1;
     const attribute = rollAttribute(draft, config.attributeWeights);
     hero.attributes[attribute] += 1;
+    // Choix de compétence (décision plan phase-3.2 #6) : 2 propositions au RNG
+    // de l'état, REMPLACENT les propositions en attente (un seul choix visible
+    // à la fois — un niveau supplémentaire dans la même chaîne écrase le
+    // précédent plutôt que d'accumuler plusieurs paires en attente).
+    hero.pendingSkillChoices = rollSkillChoices(draft, hero);
     events.push({ type: 'HeroLevelUp', heroId, level: hero.level, attribute });
   }
 }

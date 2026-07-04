@@ -1,5 +1,6 @@
 import type { OffsetPos } from './hex';
 import type { ResourceId } from '../core/state';
+import type { SpellStatus } from '../hero/types';
 
 /**
  * Types du combat hex — SURFACE FIGÉE en cadrage (plan phase-2.4) : les lots
@@ -59,6 +60,8 @@ export interface CombatStack {
   marks: number;
   /** A déjà agi ce round (vagues par vitesse décroissante — doc 02 §5.2). */
   acted: boolean;
+  /** Statuts temporaires de sorts (buff/debuff, doc 02 §1.4) — vide par défaut. */
+  statuses: SpellStatus[];
 }
 
 export interface CombatState {
@@ -74,6 +77,11 @@ export interface CombatState {
   /** Contexte aventure — null en arène `/#arena`. */
   heroId: string | null;
   guardianObjectId: string | null;
+  /** Héros liés aux camps (attributs + sorts, doc 02 §5) — null si sans héros. */
+  attackerHeroId: string | null;
+  defenderHeroId: string | null;
+  /** Le héros du camp joueur a déjà lancé un sort ce round (1/round, doc 02 §5.2). */
+  heroCastThisRound: boolean;
   finished: boolean;
   winner: CombatSideId | null;
 }

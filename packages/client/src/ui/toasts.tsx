@@ -1,7 +1,7 @@
 import { useEffect } from 'preact/hooks';
 import { appStore, useApp } from '../app/store';
 import { eventBus, type AppEvent } from '../app/events';
-import { t, resolveUnitName } from '../app/i18n';
+import { t, resolveUnitName, resolveSpellName, resolveSkillName } from '../app/i18n';
 import './toasts.css';
 
 const TOAST_DURATION_MS = 4000;
@@ -32,6 +32,14 @@ function toastMessage(event: AppEvent): string | null {
       return event.winner === 'attacker' ? t('toast.combatWon') : t('toast.combatLost');
     case 'HeroLevelUp':
       return t('toast.heroLevelUp', { level: event.level });
+    // Sorts & compétences du héros (doc 02 §1.2–§1.4, plan phase-3.2 lot M).
+    case 'SpellCast':
+      return t('toast.spellCast', { hero: t('hero.genericName'), spell: resolveSpellName(event.spellId) });
+    case 'SkillLearned':
+      return t('toast.skillLearned', {
+        skill: resolveSkillName(event.skillId),
+        rank: t(`skill.rank.${event.rank}`),
+      });
     case 'GameLoaded':
       return t('toast.gameLoaded');
     // Villes (doc 02 §4) — revenu/croissance/construction/recrutement.

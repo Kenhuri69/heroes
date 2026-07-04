@@ -1,0 +1,49 @@
+/* Section Compétences du tiroir héros (doc 08 §2.3). `.hero-section-title`
+   et `.hero-mana` sont partagés avec HeroInventory.tsx et le tiroir
+   (shell.tsx) — chargés globalement une fois ce module importé. */
+.hero-mana {
+  margin: 2px 0 12px;
+  text-align: center;
+}
+
+.hero-skills {
+  margin: 12px 0;
+}
+
+.hero-section-title {
+  margin: 0 0 6px;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.75;
+}
+
+.hero-skills-empty {
+  margin: 0;
+  font-size: 13px;
+  opacity: 0.6;
+}
+
+.hero-skill-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hero-skill {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 6px;
+  border: 1px solid #3a3d47;
+  border-radius: 6px;
+  background: #1c1e25;
+  font-size: 12px;
+}
+
+.hero-skill-rank {
+  opacity: 0.8;
+}

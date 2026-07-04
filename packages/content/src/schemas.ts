@@ -159,6 +159,102 @@ export const buildingCatalogSchema = z.object({
 });
 
 /**
+ * data/core/spells.json (doc 02 §1.4, plan phase-3.2 décision 8) — forme
+ * résolue = `SpellDef` de `engine/src/hero/types.ts` (surface figée, lot K).
+ * Règles croisées : `damage`/`heal` doivent avoir un effet réel (`base` > 0) ;
+ * `buff`/`debuff` doivent porter au moins un modificateur temporaire.
+ */
+export const spellSchema = z
+  .object({
+    id: idSchema,
+    name: locRef.optional(),
+    school: z.enum(['fire', 'water', 'earth', 'air', 'neutral']),
+    circle: z.number().int().min(1).max(5),
+    manaCost: z.number().int().positive(),
+    kind: z.enum(['damage', 'heal', 'buff', 'debuff']),
+    base: z.number().nonnegative(),
+    perPower: z.number().nonnegative(),
+    attackMod: z.number().optional(),
+    defenseMod: z.number().optional(),
+    speedMod: z.number().optional(),
+  })
+  .refine((s) => (s.kind === 'damage' || s.kind === 'heal' ? s.base > 0 : true), {
+    message: 'damage/heal: base doit être > 0',
+    path: ['base'],
+  })
+  .refine(
+    (s) =>
+      s.kind === 'buff' || s.kind === 'debuff'
+        ? s.attackMod !== undefined || s.defenseMod !== undefined || s.speedMod !== undefined
+        : true,
+    {
+      message: 'buff/debuff: au moins un modificateur (attackMod/defenseMod/speedMod)',
+      path: ['kind'],
+    },
+  );
+
+/** data/core/spells.json — un fichier = une liste (comme buildingCatalogSchema). */
+export const spellCatalogSchema = z.object({
+  spells: z.array(spellSchema).min(1),
+});
+
+/**
+ * Rang d'effet d'une compétence (doc 02 §1.3) — sous-ensemble de
+ * `SkillRankEffect` (engine/src/hero/types.ts) ; au moins un champ par rang,
+ * sinon un rang « no-op » serait un mensonge de contenu.
+ */
+const skillRankEffectSchema = z
+  .object({
+    movementBonusPct: z.number().optional(),
+    visionBonus: z.number().optional(),
+    goldPerDay: z.number().optional(),
+    meleeDamagePct: z.number().optional(),
+    rangedDamagePct: z.number().optional(),
+    armorReductionPct: z.number().optional(),
+    luckBonus: z.number().optional(),
+    moraleBonus: z.number().optional(),
+    manaCostReductionPct: z.number().optional(),
+    spellCircleUnlock: z.number().int().min(1).max(5).optional(),
+    learnCircle: z.number().int().min(1).max(5).optional(),
+  })
+  .refine((e) => Object.values(e).some((v) => v !== undefined), 'au moins un effet par rang');
+
+/** data/core/skills.json (doc 02 §1.3) — exactement 3 rangs (Novice/Expert/Maître). */
+export const skillSchema = z.object({
+  id: idSchema,
+  name: locRef.optional(),
+  ranks: z.tuple([skillRankEffectSchema, skillRankEffectSchema, skillRankEffectSchema]),
+});
+
+export const skillCatalogSchema = z.object({
+  skills: z.array(skillSchema).min(1),
+});
+
+/** Bonus déclaratifs d'un artefact (doc 02 §1.1, doc 08 §2.3) — au moins un champ. */
+const artifactBonusSchema = z
+  .object({
+    attack: z.number().optional(),
+    defense: z.number().optional(),
+    power: z.number().optional(),
+    knowledge: z.number().optional(),
+    luck: z.number().optional(),
+    morale: z.number().optional(),
+    manaMax: z.number().optional(),
+  })
+  .refine((b) => Object.values(b).some((v) => v !== undefined), 'bonus vide');
+
+/** data/core/artifacts.json — forme résolue = `ArtifactDef` (engine/src/hero/types.ts). */
+export const artifactSchema = z.object({
+  id: idSchema,
+  name: locRef.optional(),
+  bonus: artifactBonusSchema,
+});
+
+export const artifactCatalogSchema = z.object({
+  artifacts: z.array(artifactSchema).min(1),
+});
+
+/**
  * data/core/config.json — constantes d'équilibrage (doc 02 : jamais en dur).
  * `adventure` a la même forme que l'`AdventureConfig` du moteur (duplication
  * structurelle à dessein, comme les ressources : `content` valide des données,
@@ -214,6 +310,17 @@ export const gameConfigSchema = z.object({
       .array(z.object({ unitId: idSchema, count: z.number().int().positive() }))
       .max(7)
       .default([]),
+    /** Artefacts de départ du héros (plan phase-3.2 décision 9) — IDs vérifiés contre `data/core/artifacts.json`. */
+    startingArtifacts: z.array(idSchema).optional(),
+    /** Attributs de base du héros (doc 02 §1.1) — le Savoir fixe la mana (× 10). Défaut 0. */
+    startingHero: z
+      .object({
+        attack: z.number().int().nonnegative(),
+        defense: z.number().int().nonnegative(),
+        power: z.number().int().nonnegative(),
+        knowledge: z.number().int().nonnegative(),
+      })
+      .optional(),
     /** Ville de départ (doc 02 §4, plan phase-3.1) — optionnelle, mono-ville en 3.1. */
     startingTown: z
       .object({
@@ -292,3 +399,15 @@ export type Building = z.infer<typeof buildingSchema>;
 export type BuildingCatalogFile = z.infer<typeof buildingCatalogSchema>;
 /** Forme moteur — `Building` sans `name` (locale, hors `BuildingDef` figé). */
 export type ResolvedBuilding = Omit<Building, 'name'>;
+export type Spell = z.infer<typeof spellSchema>;
+export type SpellCatalogFile = z.infer<typeof spellCatalogSchema>;
+/** Forme moteur — `Spell` sans `name` (locale, hors `SpellDef` figé). */
+export type ResolvedSpell = Omit<Spell, 'name'>;
+export type Skill = z.infer<typeof skillSchema>;
+export type SkillCatalogFile = z.infer<typeof skillCatalogSchema>;
+/** Forme moteur — `Skill` sans `name` (locale, hors `HeroSkillDef` figé). */
+export type ResolvedSkill = Omit<Skill, 'name'>;
+export type Artifact = z.infer<typeof artifactSchema>;
+export type ArtifactCatalogFile = z.infer<typeof artifactCatalogSchema>;
+/** Forme moteur — `Artifact` sans `name` (locale, hors `ArtifactDef` figé). */
+export type ResolvedArtifact = Omit<Artifact, 'name'>;

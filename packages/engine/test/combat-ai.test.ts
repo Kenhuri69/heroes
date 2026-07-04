@@ -48,7 +48,10 @@ function makeCombatState(
       heroId: null,
       guardianObjectId: null,
       finished: false,
-      winner: null,
+      attackerHeroId: null,
+    defenderHeroId: null,
+    heroCastThisRound: false,
+    winner: null,
     },
   };
 }
@@ -62,6 +65,7 @@ function makeStack(overrides: Partial<CombatStack> & Pick<CombatStack, 'id' | 's
     ammo: null,
     marks: 0,
     acted: false,
+    statuses: [],
     ...overrides,
   };
 }

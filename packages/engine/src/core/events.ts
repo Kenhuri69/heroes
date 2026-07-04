@@ -67,4 +67,15 @@ export type GameEvent =
   | { type: 'UnitsRecruited'; townId: string; unitId: string; count: number }
   | { type: 'TownIncome'; playerId: string; resource: string; amount: number }
   | { type: 'TownGrowth'; townId: string; unitId: string; added: number }
-  | { type: 'TownCaptured'; townId: string; playerId: string };
+  | { type: 'TownCaptured'; townId: string; playerId: string }
+  // ——— Héros : sorts & compétences (doc 02 §1.2–§1.4) — surface figée 3.2 ———
+  | {
+      type: 'SpellCast';
+      heroId: string;
+      spellId: string;
+      targetId: string;
+      /** Dégâts infligés / PV soignés (0 pour un buff/debuff pur). */
+      amount: number;
+      kills: number;
+    }
+  | { type: 'SkillLearned'; heroId: string; skillId: string; rank: number };

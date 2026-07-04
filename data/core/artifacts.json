@@ -1,0 +1,8 @@
+{
+  "artifacts": [
+    { "id": "lame-aiguisee", "bonus": { "attack": 2 } },
+    { "id": "egide-de-pierre", "bonus": { "defense": 2 } },
+    { "id": "orbe-de-savoir", "bonus": { "knowledge": 2 } },
+    { "id": "trefle-chance", "bonus": { "luck": 1 } }
+  ]
+}

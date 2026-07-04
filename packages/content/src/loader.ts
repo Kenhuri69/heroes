@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import {
   abilityCatalogSchema,
+  artifactCatalogSchema,
   buildingCatalogSchema,
   COMMON_RESOURCE_IDS,
   factionIndexSchema,
@@ -8,14 +9,22 @@ import {
   localeSchema,
   manifestSchema,
   mapFileSchema,
+  skillCatalogSchema,
+  spellCatalogSchema,
   unitSchema,
   type AbilityCatalog,
+  type Artifact,
   type Building,
   type GameConfig,
   type Locale,
   type Manifest,
   type MapFile,
+  type ResolvedArtifact,
   type ResolvedBuilding,
+  type ResolvedSkill,
+  type ResolvedSpell,
+  type Skill,
+  type Spell,
   type Unit,
 } from './schemas';
 
@@ -43,6 +52,12 @@ export interface LoadedContent {
   coreLocales: Record<(typeof LOCALE_LANGS)[number], Locale>;
   /** Bâtiments communs à toutes les villes — data/core/buildings.json (doc 02 §4.1). */
   coreBuildings: Building[];
+  /** Sorts communs (4 écoles + neutre) — data/core/spells.json (doc 02 §1.4, plan phase-3.2). */
+  coreSpells: Spell[];
+  /** Compétences secondaires du pool commun — data/core/skills.json (doc 02 §1.3). */
+  coreSkills: Skill[];
+  /** Artefacts communs — data/core/artifacts.json (doc 02 §1.1, plan phase-3.2). */
+  coreArtifacts: Artifact[];
   packs: FactionPack[];
 }
 
@@ -80,8 +95,40 @@ export async function loadContent(readJson: ReadJson): Promise<LoadReport> {
     );
     if (errors.length > 0) throw new PackError(errors);
   }
+  const coreSpells = parseFile(
+    spellCatalogSchema,
+    await readJson('core/spells.json'),
+    'core/spells.json',
+  ).spells;
+  const coreSkills = parseFile(
+    skillCatalogSchema,
+    await readJson('core/skills.json'),
+    'core/skills.json',
+  ).skills;
+  const coreArtifacts = parseFile(
+    artifactCatalogSchema,
+    await readJson('core/artifacts.json'),
+    'core/artifacts.json',
+  ).artifacts;
+  {
+    // Sorts/compétences/artefacts communs : erreur bloquante directe (comme bâtiments), pas de rejet partiel.
+    const errors: string[] = [];
+    checkUniqueIds(errors, 'core/spells.json', coreSpells.map((s) => s.id), 'sort');
+    checkUniqueIds(errors, 'core/skills.json', coreSkills.map((s) => s.id), 'compétence');
+    checkUniqueIds(errors, 'core/artifacts.json', coreArtifacts.map((a) => a.id), 'artefact');
+    if (errors.length > 0) throw new PackError(errors);
+  }
   const report: LoadReport = {
-    content: { abilityCatalog: catalog, config, coreLocales, coreBuildings, packs: [] },
+    content: {
+      abilityCatalog: catalog,
+      config,
+      coreLocales,
+      coreBuildings,
+      coreSpells,
+      coreSkills,
+      coreArtifacts,
+      packs: [],
+    },
     rejected: [],
   };
   for (const id of index.factions) {
@@ -97,6 +144,15 @@ export async function loadContent(readJson: ReadJson): Promise<LoadReport> {
     if (!known.has(stack.unitId)) {
       throw new PackError([
         `config.json: newGame.startingArmy — unité inconnue des paquets '${stack.unitId}'`,
+      ]);
+    }
+  }
+  // Règle croisée : les artefacts de départ ne référencent que des artefacts chargés.
+  const knownArtifacts = new Set(coreArtifacts.map((a) => a.id));
+  for (const artifactId of config.newGame.startingArtifacts ?? []) {
+    if (!knownArtifacts.has(artifactId)) {
+      throw new PackError([
+        `config.json: newGame.startingArtifacts — artefact inconnu '${artifactId}'`,
       ]);
     }
   }
@@ -236,6 +292,15 @@ function checkUniqueBuildingIds(errors: string[], path: string, ids: string[]): 
   }
 }
 
+/** Un `id` (de `noun`) ne doit apparaître qu'une fois dans la liste donnée. */
+function checkUniqueIds(errors: string[], path: string, ids: string[], noun: string): void {
+  const seen = new Set<string>();
+  for (const id of ids) {
+    if (seen.has(id)) errors.push(`${path}: id de ${noun} en double '${id}'`);
+    seen.add(id);
+  }
+}
+
 /** Prérequis résolubles vers un bâtiment visible, à un niveau ≤ son maxLevel (doc 02 §4.1). */
 function checkBuildingRequires(
   errors: string[],
@@ -275,6 +340,62 @@ export function buildBuildingCatalog(report: LoadReport): Record<string, Resolve
   };
   add(report.content.coreBuildings, 'core');
   for (const pack of report.content.packs) add(pack.buildings, pack.manifest.id);
+  return catalog;
+}
+
+/**
+ * Catalogue des sorts, prêt pour `GameState.spellCatalog` (doc 02 §1.4, plan
+ * phase-3.2 lot K). `name` (locale) est retiré : hors de la forme `SpellDef`
+ * figée du moteur. Core seul en 3.2 — l'extension par faction (écoles
+ * propres, doc 05) rejoindra cet agrégat comme `buildBuildingCatalog`.
+ */
+export function buildSpellCatalog(report: LoadReport): Record<string, ResolvedSpell> {
+  const catalog: Record<string, ResolvedSpell> = {};
+  for (const s of report.content.coreSpells) {
+    if (catalog[s.id]) throw new PackError([`buildSpellCatalog: id de sort en double '${s.id}'`]);
+    catalog[s.id] = {
+      id: s.id,
+      school: s.school,
+      circle: s.circle,
+      manaCost: s.manaCost,
+      kind: s.kind,
+      base: s.base,
+      perPower: s.perPower,
+      ...(s.attackMod !== undefined && { attackMod: s.attackMod }),
+      ...(s.defenseMod !== undefined && { defenseMod: s.defenseMod }),
+      ...(s.speedMod !== undefined && { speedMod: s.speedMod }),
+    };
+  }
+  return catalog;
+}
+
+/**
+ * Catalogue des compétences secondaires, prêt pour `GameState.skillCatalog`
+ * (doc 02 §1.3, plan phase-3.2 lot K). `name` (locale) est retiré : hors de
+ * la forme `HeroSkillDef` figée du moteur.
+ */
+export function buildSkillCatalog(report: LoadReport): Record<string, ResolvedSkill> {
+  const catalog: Record<string, ResolvedSkill> = {};
+  for (const s of report.content.coreSkills) {
+    if (catalog[s.id])
+      throw new PackError([`buildSkillCatalog: id de compétence en double '${s.id}'`]);
+    catalog[s.id] = { id: s.id, ranks: s.ranks };
+  }
+  return catalog;
+}
+
+/**
+ * Catalogue des artefacts, prêt pour `GameState.artifactCatalog` (doc 02
+ * §1.1, doc 08 §2.3, plan phase-3.2 lot K). `name` (locale) est retiré : hors
+ * de la forme `ArtifactDef` figée du moteur.
+ */
+export function buildArtifactCatalog(report: LoadReport): Record<string, ResolvedArtifact> {
+  const catalog: Record<string, ResolvedArtifact> = {};
+  for (const a of report.content.coreArtifacts) {
+    if (catalog[a.id])
+      throw new PackError([`buildArtifactCatalog: id d'artefact en double '${a.id}'`]);
+    catalog[a.id] = { id: a.id, bonus: a.bonus };
+  }
   return catalog;
 }
 

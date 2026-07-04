@@ -1,0 +1,108 @@
+{
+  "skills": [
+    {
+      "id": "logistics",
+      "ranks": [
+        { "movementBonusPct": 10 },
+        { "movementBonusPct": 20 },
+        { "movementBonusPct": 30 }
+      ]
+    },
+    {
+      "id": "scouting",
+      "ranks": [
+        { "visionBonus": 2 },
+        { "visionBonus": 4 },
+        { "visionBonus": 6 }
+      ]
+    },
+    {
+      "id": "luck",
+      "ranks": [
+        { "luckBonus": 1 },
+        { "luckBonus": 2 },
+        { "luckBonus": 3 }
+      ]
+    },
+    {
+      "id": "leadership",
+      "ranks": [
+        { "moraleBonus": 1 },
+        { "moraleBonus": 2 },
+        { "moraleBonus": 3 }
+      ]
+    },
+    {
+      "id": "melee",
+      "ranks": [
+        { "meleeDamagePct": 10 },
+        { "meleeDamagePct": 20 },
+        { "meleeDamagePct": 30 }
+      ]
+    },
+    {
+      "id": "archery",
+      "ranks": [
+        { "rangedDamagePct": 10 },
+        { "rangedDamagePct": 20 },
+        { "rangedDamagePct": 30 }
+      ]
+    },
+    {
+      "id": "armor",
+      "ranks": [
+        { "armorReductionPct": 5 },
+        { "armorReductionPct": 10 },
+        { "armorReductionPct": 15 }
+      ]
+    },
+    {
+      "id": "economy",
+      "ranks": [
+        { "goldPerDay": 250 },
+        { "goldPerDay": 500 },
+        { "goldPerDay": 1000 }
+      ]
+    },
+    {
+      "id": "wisdom",
+      "ranks": [
+        { "learnCircle": 3 },
+        { "learnCircle": 4 },
+        { "learnCircle": 5 }
+      ]
+    },
+    {
+      "id": "magic-fire",
+      "ranks": [
+        { "spellCircleUnlock": 2 },
+        { "spellCircleUnlock": 3, "manaCostReductionPct": 10 },
+        { "spellCircleUnlock": 3, "manaCostReductionPct": 20 }
+      ]
+    },
+    {
+      "id": "magic-water",
+      "ranks": [
+        { "spellCircleUnlock": 2 },
+        { "spellCircleUnlock": 3, "manaCostReductionPct": 10 },
+        { "spellCircleUnlock": 3, "manaCostReductionPct": 20 }
+      ]
+    },
+    {
+      "id": "magic-earth",
+      "ranks": [
+        { "spellCircleUnlock": 2 },
+        { "spellCircleUnlock": 3, "manaCostReductionPct": 10 },
+        { "spellCircleUnlock": 3, "manaCostReductionPct": 20 }
+      ]
+    },
+    {
+      "id": "magic-air",
+      "ranks": [
+        { "spellCircleUnlock": 2 },
+        { "spellCircleUnlock": 3, "manaCostReductionPct": 10 },
+        { "spellCircleUnlock": 3, "manaCostReductionPct": 20 }
+      ]
+    }
+  ]
+}

@@ -3,12 +3,13 @@ import type { CommandError } from '../core/commands';
 import type { GameEvent } from '../core/events';
 import { rollRange } from '../core/rng';
 import type { GameState } from '../core/state';
+import { heroManaMax } from '../hero/artifacts';
 import { runAiIfNeeded } from './ai';
 import type { Draft } from './draft';
 import { COMBAT_COLS, COMBAT_ROWS, sameHex, type OffsetPos } from './hex';
 import { advanceTurn } from './turns';
 import { initLedger, shooterAmmo } from './state-helpers';
-import type { ArmyStack, CombatSideId, CombatStack, CombatUnitDef } from './types';
+import type { ArmyStack, CombatSideId, CombatState, CombatStack, CombatUnitDef } from './types';
 
 /**
  * Mise en place du combat (doc 02 §5.1, décisions plan #6/#7) : placement
@@ -39,6 +40,7 @@ function placeSide(
       ammo: def ? shooterAmmo(def) : null,
       marks: 0,
       acted: false,
+      statuses: [],
     };
   });
 }
@@ -56,6 +58,18 @@ function drawObstacles(draft: Draft, min: number, max: number): OffsetPos[] {
     if (!obstacles.some((o) => sameHex(o, pos))) obstacles.push(pos);
   }
   return obstacles;
+}
+
+/** Remplit la mana des héros liés au combat à leur `manaMax` effectif (décision plan phase-3.2 #1). */
+function initHeroMana(draft: Draft, combat: CombatState): void {
+  for (const heroId of [combat.attackerHeroId, combat.defenderHeroId]) {
+    if (!heroId) continue;
+    const hero = draft.heroes.find((h) => h.id === heroId);
+    if (!hero) continue;
+    const manaMax = heroManaMax(hero, draft.artifactCatalog);
+    hero.manaMax = manaMax;
+    hero.mana = manaMax;
+  }
 }
 
 function checkArmy(
@@ -109,10 +123,14 @@ export function handleStartCombat(
     playerSide: 'attacker',
     heroId: null,
     guardianObjectId: null,
+    attackerHeroId: null,
+    defenderHeroId: null,
+    heroCastThisRound: false,
     finished: false,
     winner: null,
   };
   initLedger(draft.combat);
+  initHeroMana(draft, draft.combat);
   events.push({ type: 'CombatStarted', terrain: cmd.terrain, heroId: null, guardianObjectId: null });
   events.push({ type: 'CombatRoundStarted', round: 1 });
   advanceTurn(draft, events);
@@ -150,10 +168,15 @@ export function beginGuardianCombat(
     playerSide: 'attacker',
     heroId,
     guardianObjectId,
+    // L'attaquant est le héros joueur ; le gardien neutre n'a pas de héros.
+    attackerHeroId: heroId,
+    defenderHeroId: null,
+    heroCastThisRound: false,
     finished: false,
     winner: null,
   };
   initLedger(draft.combat);
+  initHeroMana(draft, draft.combat);
   events.push({ type: 'CombatStarted', terrain, heroId, guardianObjectId });
   events.push({ type: 'CombatRoundStarted', round: 1 });
   advanceTurn(draft, events);

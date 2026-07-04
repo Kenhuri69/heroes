@@ -99,7 +99,12 @@ export function OptionsPanel({ onClose }: { onClose: () => void }) {
           <h3>{t('options.fontScale')}</h3>
           <div class="segmented" role="group">
             {FONT_SCALES.map((scale) => (
-              <button key={scale} class={fontScale === scale ? 'active' : ''} onClick={() => applyFontScale(scale)}>
+              <button
+                key={scale}
+                class={fontScale === scale ? 'active' : ''}
+                data-testid={`options-fontscale-${scale}`}
+                onClick={() => applyFontScale(scale)}
+              >
                 {FONT_SCALE_PERCENT[scale]}
               </button>
             ))}

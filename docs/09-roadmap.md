@@ -12,6 +12,13 @@ Estimations pour une petite équipe (2–3 dev + 1 artiste temps partiel). Chaqu
 
 ## Phase 1 — MVP (10–14 semaines)
 
+> ✅ **MVP livré** (sous-phases 3.1→3.6, cf. `docs/11-plan-mvp-implementation.md`
+> et le journal de phases dans `CLAUDE.md`) : les items ci-dessous sont
+> implémentés et vérifiés (unitaires + smoke Playwright desktop/mobile). Restent
+> pour l'Alpha les items explicitement différés (upgrades d'unités, capacités
+> spéciales de faction avancées, `faction:sim` d'équilibrage fin, sorts
+> d'aventure, hot-seat/PvP, assets peints).
+
 - **Combat hex complet** (grille 12×10, vagues d'initiative, riposte, moral/chance, catalogue de ~20 capacités, sorts en combat, IA de combat, auto-combat, prévisualisation de dégâts).
 - **Carte d'aventure** : brouillard 2 états, ~25 objets, mines, gardiens neutres, pathfinding multi-jours.
 - **Villes** : arbre complet, 1 bâtiment/jour, recrutement, croissance hebdo, capture, écran de ville (liste d'abord, vue peinte simple).

@@ -30,7 +30,7 @@
   border-radius: 8px;
   background: #262a33;
   color: #e8e2d0;
-  font: 600 14px system-ui, sans-serif;
+  font: 600 0.875rem system-ui, sans-serif;
   text-align: left;
   cursor: pointer;
 }

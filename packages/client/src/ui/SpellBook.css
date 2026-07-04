@@ -21,7 +21,7 @@
 
 .spellbook-school h3 {
   margin: 0 0 4px;
-  font-size: 13px;
+  font-size: 0.8125rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   opacity: 0.75;
@@ -33,7 +33,7 @@
 
 .spellbook-circle h4 {
   margin: 0 0 6px;
-  font-size: 12px;
+  font-size: 0.75rem;
   opacity: 0.6;
 }
 
@@ -57,7 +57,7 @@
   border-radius: 8px;
   background: #262a33;
   color: #e8e2d0;
-  font: 600 14px system-ui, sans-serif;
+  font: 600 0.875rem system-ui, sans-serif;
   text-align: left;
   cursor: pointer;
 }
@@ -75,7 +75,7 @@
 }
 
 .spell-reason {
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 400;
   opacity: 0.7;
 }
@@ -132,7 +132,7 @@
   border-radius: 8px;
   background: #7a2d22;
   color: #e8e2d0;
-  font: 700 14px system-ui, sans-serif;
+  font: 700 0.875rem system-ui, sans-serif;
   cursor: pointer;
 }
 

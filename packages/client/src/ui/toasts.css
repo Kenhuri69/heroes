@@ -18,7 +18,7 @@
   border-radius: 8px;
   background: rgba(16, 18, 24, 0.92);
   color: #e8e2d0;
-  font: 14px/1.4 system-ui, sans-serif;
+  font: 0.875rem/1.4 system-ui, sans-serif;
   text-align: center;
   max-width: min(90vw, 420px);
 }

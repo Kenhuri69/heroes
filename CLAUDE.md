@@ -7,7 +7,16 @@ exploration par héros sur carte d'aventure, gestion de villes, armées et
 combats tactiques tour par tour sur grille hexagonale.
 Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 
-> 🚧 **Phase actuelle : Phase 2 — implémentation** (plan :
+> ✅ **Jalon MVP atteint** (doc 01 §5) : partie complète jouable de bout en bout
+> (desktop + mobile) — carte, villes, combat hex, héros (sorts/compétences/
+> artefacts), **2 factions** (Haven, Necropolis) + une faction de test, 3
+> scénarios solo avec **IA d'aventure**, conditions de victoire/défaite,
+> sauvegarde IndexedDB. Critères de sortie tenus : 3ᵉ faction sans diff moteur
+> (garde-fou CI), budget bundle < 800 Ko gzip, anti-gel throttling ×4
+> (arène + carte), accessibilité (3 crans de police, motifs de bannières,
+> cibles ≥ 44px), i18n FR/EN complète. Détail des sous-phases 3.x ci-dessous.
+>
+> 🚧 **Historique : Phase 2 — implémentation** (plan :
 > `docs/10-plan-phase-2-implementation.md`). La Phase 2.0 (bootstrap) est
 > livrée : monorepo pnpm + TS strict, client PixiJS 8 (damier pan/zoom
 > touch-first), smoke test Playwright, CI + déploiement continu sur
@@ -64,6 +73,12 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > scénarios solo data-driven (`data/scenarios/`) ; client : sélection de
 > scénario, boucle de pilotage des tours IA, overlay victoire/défaite ; smoke
 > « gagner un scénario contre l'IA ». Triggers de carte + scaling différés.
+> Phase 3.6 livrée : **finitions & jalon MVP** — accessibilité (3 crans de
+> police propagés partout via `rem`, composant `FactionBadge` à motifs
+> déterministes non chromatiques, cibles tactiles ≥ 44px), audit i18n (0
+> chaîne en dur, parité FR/EN), smoke anti-gel étendu à la carte d'aventure,
+> test d'équilibrage grossier Haven/Necropolis (pas de déséquilibre béant à
+> valeur égale). Vue de ville peinte + assets finaux = Beta. **Sortie MVP.**
 > Phase 3.4 livrée : faction **Necropolis** + **Nécromancie** — le **test de
 > modularité n°1**. Faction 100 % données (`data/factions/necropolis/`, lineup
 > T1–T7 toutes `undead`) ET ouverture d'**UN** point d'extension moteur

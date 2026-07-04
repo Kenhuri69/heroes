@@ -10,7 +10,13 @@
   border-radius: 10px;
   background: #1c1e25;
   color: #e8e2d0;
-  font: 14px/1.4 system-ui, sans-serif;
+  font: 0.875rem/1.4 system-ui, sans-serif;
+}
+
+.town-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .town-empty,
@@ -25,7 +31,7 @@
   border: 1px solid #a0503f;
   border-radius: 8px;
   background: rgba(122, 45, 34, 0.35);
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 
 .town-tabs {
@@ -42,7 +48,7 @@
   border-radius: 8px;
   background: #262a33;
   color: #e8e2d0;
-  font: 600 14px system-ui, sans-serif;
+  font: 600 0.875rem system-ui, sans-serif;
   cursor: pointer;
 }
 
@@ -94,13 +100,13 @@
 
 .town-building-level {
   opacity: 0.75;
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 
 .town-building-status {
   padding: 2px 8px;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 600;
 }
 
@@ -125,7 +131,7 @@
 
 .town-requirement-missing {
   color: #ff9d8a;
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 
 .town-building-action {
@@ -146,7 +152,7 @@
   background: #7a2d22;
   border-color: #a0503f;
   color: #e8e2d0;
-  font: 600 14px system-ui, sans-serif;
+  font: 600 0.875rem system-ui, sans-serif;
   cursor: pointer;
 }
 
@@ -163,7 +169,7 @@
   display: inline-flex;
   flex-wrap: wrap;
   gap: 10px;
-  font-size: 13px;
+  font-size: 0.8125rem;
   opacity: 0.9;
 }
 
@@ -198,7 +204,7 @@
 
 .town-garrison-column h3 {
   margin: 0 0 8px;
-  font-size: 13px;
+  font-size: 0.8125rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   opacity: 0.75;
@@ -222,7 +228,7 @@
   border: 1px solid #3a3d47;
   border-radius: 6px;
   background: #262a33;
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 
 .town-garrison-slot.empty {
@@ -231,12 +237,12 @@
 
 .town-garrison-slot button {
   margin-left: auto;
-  min-height: 32px;
+  min-height: 44px;
   padding: 4px 10px;
   border: 1px solid #3a3d47;
   border-radius: 6px;
   background: #1c1e25;
   color: #e8e2d0;
-  font: 600 12px system-ui, sans-serif;
+  font: 600 0.75rem system-ui, sans-serif;
   cursor: pointer;
 }

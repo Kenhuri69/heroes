@@ -12,7 +12,7 @@
   padding: 6px 8px;
   background: rgba(16, 18, 24, 0.85);
   color: #e8e2d0;
-  font: 14px/1.4 system-ui, sans-serif;
+  font: 0.875rem/1.4 system-ui, sans-serif;
   pointer-events: auto;
 }
 
@@ -38,7 +38,7 @@
   flex-direction: column;
   gap: 2px;
   color: #e8e2d0;
-  font: 14px/1.5 system-ui, sans-serif;
+  font: 0.875rem/1.5 system-ui, sans-serif;
   text-shadow: 0 1px 2px #000;
   pointer-events: none;
 }
@@ -64,7 +64,7 @@
   border-radius: 8px;
   background: #262a33;
   color: #e8e2d0;
-  font: 600 14px system-ui, sans-serif;
+  font: 600 0.875rem system-ui, sans-serif;
   cursor: pointer;
 }
 
@@ -73,11 +73,11 @@
   padding: 8px 22px;
   background: #7a2d22;
   border-color: #a0503f;
-  font-size: 16px;
+  font-size: 1rem;
 }
 
 .options-toggle {
-  font-size: 18px;
+  font-size: 1.125rem;
 }
 
 /* Tiroir latéral héros (doc 08 §2.1) : mobile = gauche, replié par défaut ;
@@ -92,7 +92,7 @@
   border-radius: 8px;
   background: #262a33;
   color: #e8e2d0;
-  font-size: 18px;
+  font-size: 1.125rem;
   cursor: pointer;
   pointer-events: auto;
   z-index: 15;
@@ -108,7 +108,7 @@
   overflow-y: auto;
   background: rgba(16, 18, 24, 0.95);
   color: #e8e2d0;
-  font: 14px/1.4 system-ui, sans-serif;
+  font: 0.875rem/1.4 system-ui, sans-serif;
   pointer-events: auto;
   transform: translateX(-100%);
   transition: transform 0.2s ease;
@@ -152,7 +152,7 @@
 
 .hero-army-title {
   margin: 12px 0 6px;
-  font-size: 13px;
+  font-size: 0.8125rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   opacity: 0.75;
@@ -179,7 +179,7 @@
   border: 1px solid #3a3d47;
   border-radius: 6px;
   background: #1c1e25;
-  font-size: 12px;
+  font-size: 0.75rem;
   text-align: center;
 }
 
@@ -210,13 +210,13 @@
 
 .army-band-toggle {
   align-self: flex-start;
-  min-height: 32px;
+  min-height: 44px;
   padding: 4px 10px;
   border: 1px solid #3a3d47;
   border-radius: 6px;
   background: #262a33;
   color: #e8e2d0;
-  font: 600 13px system-ui, sans-serif;
+  font: 600 0.8125rem system-ui, sans-serif;
   cursor: pointer;
 }
 

@@ -10,13 +10,13 @@
   gap: 32px;
   background: #14161c;
   color: #e8e2d0;
-  font: 16px/1.4 system-ui, sans-serif;
+  font: 1rem/1.4 system-ui, sans-serif;
   pointer-events: auto;
 }
 
 .menu-title {
   margin: 0;
-  font-size: clamp(32px, 8vw, 56px);
+  font-size: clamp(2rem, 8vw, 3.5rem);
   letter-spacing: 0.04em;
 }
 
@@ -34,7 +34,7 @@
   border-radius: 8px;
   background: #262a33;
   color: #e8e2d0;
-  font: 600 16px system-ui, sans-serif;
+  font: 600 1rem system-ui, sans-serif;
   cursor: pointer;
 }
 
@@ -45,7 +45,7 @@
 
 .menu-section-title {
   margin: 0;
-  font-size: 13px;
+  font-size: 0.8125rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   opacity: 0.75;

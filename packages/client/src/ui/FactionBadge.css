@@ -1,0 +1,14 @@
+/* Badge de faction (doc 08 §4) — motif + couleur, taille liée à l'échelle de
+   police ambiante (em) pour rester cohérente avec les 3 crans de `fontScale`. */
+.faction-badge {
+  display: inline-flex;
+  flex: none;
+  width: 1.8em;
+  height: 1.8em;
+  vertical-align: middle;
+}
+
+.faction-badge svg {
+  width: 100%;
+  height: 100%;
+}

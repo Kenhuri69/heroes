@@ -1,6 +1,6 @@
 import { readdir } from 'node:fs/promises';
 import { join } from 'node:path';
-import { knownUnitIds, loadContent, loadMap, PackError } from '@heroes/content';
+import { buildBuildingCatalog, knownUnitIds, loadContent, loadMap, PackError } from '@heroes/content';
 import { DATA_DIR, readJsonFromDisk } from './data-dir';
 
 const report = await loadContent(readJsonFromDisk);
@@ -11,6 +11,18 @@ for (const pack of report.content.packs) {
 for (const rejected of report.rejected) {
   console.error(`✗ ${rejected.id}`);
   for (const err of rejected.errors) console.error(`    ${err}`);
+}
+
+// Arbre de bâtiments : agrège core + paquets valides, détecte les collisions d'id.
+let badBuildingCatalog = false;
+try {
+  const catalog = buildBuildingCatalog(report);
+  console.log(`✓ arbre de bâtiments — ${Object.keys(catalog).length} bâtiment(s) résolu(s)`);
+} catch (e) {
+  badBuildingCatalog = true;
+  console.error(`✗ arbre de bâtiments`);
+  const errors = e instanceof PackError ? e.errors : [String(e)];
+  for (const err of errors) console.error(`    ${err}`);
 }
 
 // Cartes : tout data/maps/*.map.json est validé contre la config (doc 02 §2.1).
@@ -33,9 +45,10 @@ if (!mapFiles.includes(`${report.content.config.newGame.map}.map.json`)) {
   console.error(`✗ config.json: carte par défaut introuvable '${report.content.config.newGame.map}'`);
 }
 
-if (report.rejected.length > 0 || badMaps > 0) {
+if (report.rejected.length > 0 || badMaps > 0 || badBuildingCatalog) {
   console.error(
-    `\ncontent:check — ${report.rejected.length} paquet(s) et ${badMaps} carte(s) invalide(s).`,
+    `\ncontent:check — ${report.rejected.length} paquet(s), ${badMaps} carte(s)` +
+      `${badBuildingCatalog ? ' et un arbre de bâtiments' : ''} invalide(s).`,
   );
   process.exit(1);
 }

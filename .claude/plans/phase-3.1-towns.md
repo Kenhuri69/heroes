@@ -106,25 +106,105 @@ interprétés** en 3.1.
 
 ## Lots
 
-- [ ] **Cadrage (principal)** : ce plan + surfaces figées (état/commandes/
+- [x] **Cadrage (principal)** : ce plan + surfaces figées (état/commandes/
       événements/schéma/stubs), golden refigé, vert.
-- [ ] **Lot H (sonnet) — moteur town** : `engine/src/town/` (build 1/jour,
+- [x] **Lot H (sonnet) — moteur town** : `engine/src/town/` (build 1/jour,
       recruit, croissance `WeekStarted`, revenu `DayStarted`, garrison
       transfer, capture) + tests (1 build/jour rejeté au 2ᵉ, recrutement
       plafonné/débité, revenu au bon palier/jour, croissance plafonnée,
-      capture sans garnison, property « ressources ≥ 0 »).
-- [ ] **Lot I (sonnet) — contenu** : `buildingSchema` + règles croisées
+      capture sans garnison, property « ressources ≥ 0 »). Livré :
+      `town/{build,recruit,transfer,capture,economy,helpers,resources,
+      unit-economy}.ts` (règles), `town/index.ts` réécrit en façade qui
+      ré-exporte ces fonctions sous les noms figés (signatures inchangées) ;
+      `test/town-{build,recruit,transfer,capture,economy,property}.test.ts`
+      (29 tests) + `test/town-fixtures.ts` (catalogue de bâtiments/unités et
+      ville de test propres au lot — n'a pas touché `test/fixtures.ts`
+      partagé). 119/119 tests verts, golden hash inchangé (`1dadf3da`),
+      typecheck/lint verts.
+      **Écart de surface signalé** : `CombatUnitDef` (figé, phase 2.4) n'a ni
+      `recruitCost` ni `growthPerWeek` — nécessaires pour le coût de
+      recrutement et la croissance hebdo. Lus de façon optionnelle via un
+      cast local (`town/unit-economy.ts`, `UnitEconomyFields`) : absents ⇒
+      coût nul / pas de croissance (no-op), jamais d'erreur. À figer sur
+      `CombatUnitDef` par la session principale (ou le lot I côté contenu)
+      pour que recrutement/croissance produisent un effet réel avec des
+      unités de faction.
+      **Décision non spécifiée tranchée** : le rejet « garnison/armée pleine
+      (7 piles) » en recrutement et en transfert utilise le code
+      `invalidAction` (pas `insufficientStock`, réservé au dépassement du
+      stock de créatures) — à documenter si un autre lot s'y réfère.
+- [x] **Lot I (sonnet) — contenu** : `buildingSchema` + règles croisées
       (prérequis résolubles, coûts en ressources/unités connues, dwellings→
       unités du paquet), `data/core/buildings.json`, `town` dans les manifestes
       test-faction + arcane-hunters (townHall/fort/mageGuild + 1 dwelling),
       `config.newGame.startingTown`, objet `town` sur `proto-01`,
-      `content:check` étendu, tests loader.
-- [ ] **Lot J (sonnet) — écran de ville** : `client/src/ui/TownScreen.tsx`
+      `content:check` étendu, tests loader. Livré : `schemas.ts`
+      (`buildingSchema`/`buildingCatalogSchema`, `manifestSchema.town`,
+      `gameConfigSchema.newGame.startingTown`, variant `town` dans
+      `mapFileSchema.objects` — `id de bâtiment` accepte camelCase ET
+      kebab-case car `data/core/locales/*.json` référençait déjà
+      `building.townHall`/`building.mageGuild` avant ce lot, cf. écart
+      ci-dessous) ; `loader.ts` (`buildBuildingCatalog`, `resolveStartingTowns`,
+      règles croisées prérequis/dwelling dans `loadFactionPack`, cross-check
+      ville↔objet carte dans `loadMap`) ; `data/core/buildings.json`
+      (townHall 1-4, fort 1-3, mageGuild 1-3, market/tavern/forge `none`) ;
+      `data/factions/{test-faction,arcane-hunters}/buildings.json` (1 dwelling
+      T1 chacun, 500 or) + `manifest.json` `town` ; `config.newGame.startingTown`
+      (ville `test-faction` en (2,4), prebuilt townHall 1 + dwelling T1) ;
+      objet `town` sur `proto-01`. 23 tests loader verts, `content:check`
+      vert (2 paquets, 8 bâtiments résolus, 1 carte), typecheck/lint verts.
+      **Écart constaté** : deux autres lots (H, J) tournaient en parallèle sur
+      le même arbre de travail. `data/core/locales/fr.json`/`en.json`
+      contenaient déjà des clés `building.townHall`/`building.mageGuild`
+      (camelCase) avant que ce lot ne touche `data/core/buildings.json` — la
+      consigne initiale du lot suggérait un `idSchema` kebab-case générique
+      pour les ids de bâtiment, ce qui aurait cassé cet alignement. Décision
+      pragmatique : `buildingIdSchema` dédié acceptant camelCase (communs :
+      `townHall`, `fort`, `mageGuild`, `market`, `tavern`, `forge`) ET
+      kebab-case (dwellings/spéciaux de faction : `test-faction-dwelling-t1`).
+      **Point d'intégration confirmé (rejoint la note du lot H)** : le
+      recrutement/croissance a besoin de `unit.cost`/`unit.growthPerWeek` (déjà
+      dans `unitSchema`) côté moteur — le lot H lit ces champs en optionnel sur
+      `CombatUnitDef` (absent aujourd'hui) via un cast local dans
+      `town/unit-economy.ts`. La session principale doit enrichir la
+      résolution du `unitCatalog` (contenu → moteur) pour y injecter
+      `recruitCost`/`growthPerWeek` depuis `Unit.cost`/`Unit.growthPerWeek`.
+      **Nouveau point d'intégration détecté** : `packages/client/src/app/
+      game.ts` assigne `ResolvedMap` (contenu) directement au champ `map` de
+      `StartGame`, typé `AdventureMapDef` (moteur, `adventure/map.ts`). Le
+      variant `town` ajouté à `ResolvedMapObject` par ce lot n'existe pas côté
+      `MapObjectDef` (moteur) → `pnpm --filter @heroes/client typecheck`
+      échoue (`ResolvedMapObject` non assignable à `MapObjectDef`, propriétés
+      `unitId`/`count` manquantes sur le variant `town`). Deux résolutions
+      possibles pour l'intégration : (a) ajouter un variant `town` à
+      `MapObjectDef` côté moteur (mais l'objet carte n'est pas consommé par le
+      pathfinding/fog, seulement par `resolveStartingTowns`/l'écran de ville —
+      un variant moteur serait probablement mort) ; (b) filtrer les objets
+      `type: 'town'` hors de la liste passée à `StartGame.map.objects` dans
+      `game.ts` (les villes vivent dans `GameState.towns`, pas dans les objets
+      d'aventure). (b) semble plus propre — à trancher par la session
+      principale. Non corrigé ici (`packages/engine` et `packages/client` hors
+      périmètre exclusif du lot).
+- [x] **Lot J (sonnet) — écran de ville** : `client/src/ui/TownScreen.tsx`
       (+ css) onglets Construire (arbre : construit/disponible/verrouillé, « 1
       bâtiment/jour utilisée »)/Recruter (slider + coût live)/Garnison
       (transfert vers héros), bouton `[Ville]`, toasts revenu/croissance,
-      i18n (clés core), hooks de test.
-- [ ] **Intégration (principal)** : résolution du `buildingCatalog`
+      i18n (clés core), hooks de test. Livré : `TownScreen.tsx` + `town.css`,
+      bouton `[Ville]` dans `TurnBar` (shell.tsx), 31 clés de locale FR/EN.
+      Toasts revenu/croissance/construction/recrutement NON branchés (le
+      composant `ToastHost` qui gère l'abonnement eventBus vit dans
+      `toasts.tsx`, hors périmètre du lot) — seules les clés `toast.*` sont
+      ajoutées, à câbler par l'intégration ou un lot ultérieur. Vérification
+      finale bloquée en aval : `typecheck`/`build`/`content:check` échouent
+      pour des raisons antérieures au lot (Lot I en cours : `data/core/
+      buildings.json` absent, `content/src/loader.ts` référence des fonctions
+      non définies `checkUniqueBuildingIds`/`checkBuildingRequires`/
+      `resolveStartingTowns`, `FactionPack`/`ResolvedMap` incomplets pour
+      `buildings`/objets `town`) — confirmé pré-existant (git status montrait
+      déjà ces fichiers modifiés avant le lot J) et hors du périmètre exclusif
+      du lot (packages/content, packages/engine interdits). `TownScreen.tsx`
+      et `shell.tsx` ne remontent aucune erreur TS/ESLint isolément.
+- [x] **Intégration (principal)** : résolution du `buildingCatalog`
       contenu→moteur, ville de départ dans `newGameCommand`, montage écran
       ville, smoke « construire un bâtiment + recruter + transférer → l'armée
       du héros augmente », golden, docs (doc 02 §4 écarts, doc 06 §2 note
@@ -141,4 +221,22 @@ interprétés** en 3.1.
 
 ## Écarts constatés en cours de route
 
-(à compléter)
+- **Intégration** : `CombatUnitDef` enrichi de `recruitCost?`/`growthPerWeek?`
+  (surface figée étendue) — le client les peuple depuis `unit.cost`/
+  `unit.growthPerWeek` ; le moteur (lot H) les lit pour le débit et la
+  croissance. Les objets `town` de la carte de contenu sont filtrés dans
+  `newGameCommand` (les villes vivent dans `GameState.towns`). Toasts villes
+  branchés dans `ToastHost`.
+- **Croissance au démarrage abandonnée** : l'appliquer au `StartGame` cassait
+  le modèle pur des tests lot H (double application au jour 8). Le stock ne se
+  remplit qu'au passage de semaine ; le smoke avance 7 tours avant de recruter.
+- **Lot I** : `buildingIdSchema` accepte camelCase (communs `townHall`/
+  `mageGuild`) **et** kebab-case (dwellings de faction) — cohérent avec les
+  clés de locale du lot J.
+- **Lot H** : `recruitCost`/`growthPerWeek` lus optionnellement (no-op si
+  absents) ; garnison/armée pleine rejetée en `invalidAction` ;
+  `GarrisonTransfer` sans événement dédié (surface figée).
+- **Barre d'actions mobile** : le bouton `[Ville]` faisait déborder la barre
+  hors du viewport Pixel 7 (attrapé par le smoke) → `.actions` en `flex-wrap`.
+- **Ville non dessinée sur la carte** en 3.1 (accès par `[Ville]`) ; sprite +
+  visite = finitions 3.6.

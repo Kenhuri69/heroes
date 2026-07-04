@@ -39,7 +39,17 @@
     "startingArmy": [
       { "unitId": "t1-recruit", "count": 20 },
       { "unitId": "t1-eleve", "count": 12 }
-    ]
+    ],
+    "startingTown": {
+      "id": "start-town",
+      "factionId": "test-faction",
+      "x": 2,
+      "y": 4,
+      "prebuilt": [
+        { "building": "townHall", "level": 1 },
+        { "building": "test-faction-dwelling-t1", "level": 1 }
+      ]
+    }
   },
   "display": {
     "strengthBands": [

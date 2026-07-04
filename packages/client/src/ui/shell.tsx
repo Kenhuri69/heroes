@@ -11,6 +11,7 @@ import { MenuScreen } from './MenuScreen';
 import { OptionsPanel } from './OptionsPanel';
 import { ToastHost } from './toasts';
 import { CombatUi } from './combat';
+import { TownScreen } from './TownScreen';
 import './styles.css';
 
 export function mountUi(root: HTMLElement): void {
@@ -22,6 +23,7 @@ function Shell() {
   const screen = useApp((s) => s.screen);
   const started = useApp((s) => s.game.started);
   const inCombat = useApp((s) => s.game.combat !== null);
+  const townScreenOpen = useApp((s) => s.townScreenOpen);
   const [optionsOpen, setOptionsOpen] = useState(false);
 
   return (
@@ -41,6 +43,7 @@ function Shell() {
         )
       ) : null}
       {optionsOpen && <OptionsPanel onClose={() => setOptionsOpen(false)} />}
+      {townScreenOpen !== null && <TownScreen />}
       <ToastHost />
     </>
   );
@@ -161,6 +164,7 @@ function TurnBar({ onOpenOptions }: { onOpenOptions: () => void }) {
   const hero = useApp((s) => s.game.heroes.find((h) => h.playerId === PLAYER_ID));
   const hint = useApp((s) => s.guardianHint);
   const bands = useApp((s) => s.strengthBands);
+  const firstOwnedTown = useApp((s) => s.game.towns.find((town) => town.ownerPlayerId === PLAYER_ID));
   return (
     <>
       <div class="status-bar">
@@ -191,6 +195,14 @@ function TurnBar({ onOpenOptions }: { onOpenOptions: () => void }) {
         <button data-testid="load" onClick={() => void restoreSavedGame('manual')}>
           {t('turnBar.load')}
         </button>
+        {firstOwnedTown && (
+          <button
+            data-testid="town-open"
+            onClick={() => appStore.setState({ townScreenOpen: firstOwnedTown.id })}
+          >
+            {t('town.open')}
+          </button>
+        )}
         <button
           class="end-turn"
           data-testid="end-turn"

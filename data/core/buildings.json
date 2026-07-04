@@ -1,0 +1,93 @@
+{
+  "buildings": [
+    {
+      "id": "townHall",
+      "maxLevel": 4,
+      "levels": [
+        {
+          "cost": {},
+          "requires": [],
+          "effect": { "type": "income", "resource": "gold", "amount": 500 }
+        },
+        {
+          "cost": { "gold": 2500 },
+          "requires": [],
+          "effect": { "type": "income", "resource": "gold", "amount": 1000 }
+        },
+        {
+          "cost": { "gold": 5000, "gems": 5 },
+          "requires": [],
+          "effect": { "type": "income", "resource": "gold", "amount": 2000 }
+        },
+        {
+          "cost": { "gold": 10000, "gems": 10, "crystal": 10 },
+          "requires": [],
+          "effect": { "type": "income", "resource": "gold", "amount": 4000 }
+        }
+      ]
+    },
+    {
+      "id": "fort",
+      "maxLevel": 3,
+      "levels": [
+        {
+          "cost": { "gold": 5000, "ore": 20 },
+          "requires": [],
+          "effect": { "type": "growthBonus", "percent": 0 }
+        },
+        {
+          "cost": { "gold": 10000, "ore": 40 },
+          "requires": [],
+          "effect": { "type": "growthBonus", "percent": 50 }
+        },
+        {
+          "cost": { "gold": 20000, "ore": 80 },
+          "requires": [],
+          "effect": { "type": "growthBonus", "percent": 100 }
+        }
+      ]
+    },
+    {
+      "id": "mageGuild",
+      "maxLevel": 3,
+      "levels": [
+        {
+          "cost": { "gold": 2000, "wood": 5 },
+          "requires": [],
+          "effect": { "type": "mageGuild", "level": 1 }
+        },
+        {
+          "cost": { "gold": 4000, "wood": 10 },
+          "requires": [],
+          "effect": { "type": "mageGuild", "level": 2 }
+        },
+        {
+          "cost": { "gold": 8000, "wood": 20 },
+          "requires": [],
+          "effect": { "type": "mageGuild", "level": 3 }
+        }
+      ]
+    },
+    {
+      "id": "market",
+      "maxLevel": 1,
+      "levels": [
+        { "cost": { "gold": 1000, "wood": 5 }, "requires": [], "effect": { "type": "none" } }
+      ]
+    },
+    {
+      "id": "tavern",
+      "maxLevel": 1,
+      "levels": [
+        { "cost": { "gold": 500, "wood": 5 }, "requires": [], "effect": { "type": "none" } }
+      ]
+    },
+    {
+      "id": "forge",
+      "maxLevel": 1,
+      "levels": [
+        { "cost": { "gold": 2000, "ore": 10 }, "requires": [], "effect": { "type": "none" } }
+      ]
+    }
+  ]
+}

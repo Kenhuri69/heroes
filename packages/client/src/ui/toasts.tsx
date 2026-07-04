@@ -1,7 +1,7 @@
 import { useEffect } from 'preact/hooks';
 import { appStore, useApp } from '../app/store';
 import { eventBus, type AppEvent } from '../app/events';
-import { t } from '../app/i18n';
+import { t, resolveUnitName } from '../app/i18n';
 import './toasts.css';
 
 const TOAST_DURATION_MS = 4000;
@@ -34,6 +34,15 @@ function toastMessage(event: AppEvent): string | null {
       return t('toast.heroLevelUp', { level: event.level });
     case 'GameLoaded':
       return t('toast.gameLoaded');
+    // Villes (doc 02 §4) — revenu/croissance/construction/recrutement.
+    case 'TownIncome':
+      return t('toast.townIncome', { amount: event.amount, resource: t(`resource.${event.resource}`) });
+    case 'TownGrowth':
+      return t('toast.townGrowth', { added: event.added, unit: resolveUnitName(event.unitId) });
+    case 'TownBuilt':
+      return t('toast.townBuilt', { building: t(`building.${event.buildingId}`) });
+    case 'UnitsRecruited':
+      return t('toast.unitsRecruited', { count: event.count, unit: resolveUnitName(event.unitId) });
     default:
       return null;
   }

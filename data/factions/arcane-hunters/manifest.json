@@ -13,5 +13,11 @@
   "units": ["t1-eleve"],
   "abilityModules": [],
   "hooks": [],
-  "aiProfile": { "aggression": 0.7, "focusFire": 0.9, "preferredTargets": "marked" }
+  "aiProfile": { "aggression": 0.7, "focusFire": 0.9, "preferredTargets": "marked" },
+  "town": {
+    "buildings": ["townHall", "fort", "mageGuild", "arcane-hunters-dwelling-t1"],
+    "dwellings": [
+      { "tier": 1, "unitId": "t1-eleve", "buildingId": "arcane-hunters-dwelling-t1" }
+    ]
+  }
 }

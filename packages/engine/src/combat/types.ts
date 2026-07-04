@@ -1,4 +1,5 @@
 import type { OffsetPos } from './hex';
+import type { ResourceId } from '../core/state';
 
 /**
  * Types du combat hex — SURFACE FIGÉE en cadrage (plan phase-2.4) : les lots
@@ -29,6 +30,10 @@ export interface CombatUnitDef {
     speed: number;
   };
   abilities: { id: string; params?: Record<string, unknown> | undefined }[];
+  /** Coût de recrutement en ville (doc 02 §4) — absent ⇒ gratuit (unités hors habitation). */
+  recruitCost?: Partial<Record<ResourceId, number>>;
+  /** Croissance hebdomadaire de l'habitation (doc 02 §4.1) — absent ⇒ pas de stock généré. */
+  growthPerWeek?: number;
 }
 
 export type CombatSideId = 'attacker' | 'defender';

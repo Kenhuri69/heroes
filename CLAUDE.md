@@ -29,8 +29,14 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > paquets), sauvegarde IndexedDB gzip avec autosave fin de tour et
 > export/import `.heroes`, XP/niveau du héros (attributs), passe mobile
 > (tiroir héros, bandeau armée, overlay paysage), toasts, budget bundle
-> < 800 Ko gzip vérifié en CI. **Sortie de Phase 2 atteinte** — la suite
-> est la Phase MVP de la roadmap (doc 09).
+> < 800 Ko gzip vérifié en CI. **Sortie de Phase 2 atteinte.**
+>
+> 🚧 **Phase MVP en cours** (plan : `docs/11-plan-mvp-implementation.md`,
+> découpage 3.x). Phase 3.1 livrée : villes & town building (moteur
+> `engine/town` — construire 1/jour, recruter, croissance hebdo, revenu
+> quotidien, garnison, capture ; schéma `building` data-driven + ville de
+> départ sur proto-01 ; écran de ville liste avec onglets Construire/
+> Recruter/Garnison ; l'armée du héros grossit depuis la ville).
 > Les docs `docs/0X-*.md` restent la source de
 > vérité du design ; le code doit s'y conformer.
 
@@ -63,8 +69,9 @@ packages/
   tools/                         CLI : faction:new, faction:validate, content:check — @heroes/tools
 data/
   core/abilities.json            Catalogue générique de capacités (doc 02 §5.4)
-  core/config.json               Constantes d'équilibrage (mouvement, terrains, vision, combat, héros, nouvelle partie)
-  core/locales/                  Locales FR/EN de l'UI générique (menu, options, toasts)
+  core/config.json               Constantes d'équilibrage (mouvement, terrains, vision, combat, héros, ville de départ)
+  core/buildings.json            Bâtiments communs des villes (doc 02 §4.1 : hôtel de ville, fort, guilde…)
+  core/locales/                  Locales FR/EN de l'UI générique (menu, options, toasts, ville)
   factions/                      Paquets de faction (index.json + arcane-hunters, test-faction)
   maps/proto-01.map.json         Carte prototype 32×32 (légende, tuiles, routes, objets, départs)
 tests/smoke.spec.ts              Smoke Playwright/Chromium headless (guideline §7) sur le build de prod

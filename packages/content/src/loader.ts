@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import {
   abilityCatalogSchema,
+  buildingCatalogSchema,
   COMMON_RESOURCE_IDS,
   factionIndexSchema,
   gameConfigSchema,
@@ -9,10 +10,12 @@ import {
   mapFileSchema,
   unitSchema,
   type AbilityCatalog,
+  type Building,
   type GameConfig,
   type Locale,
   type Manifest,
   type MapFile,
+  type ResolvedBuilding,
   type Unit,
 } from './schemas';
 
@@ -29,6 +32,8 @@ export interface FactionPack {
   manifest: Manifest;
   units: Unit[];
   locales: Record<(typeof LOCALE_LANGS)[number], Locale>;
+  /** Bâtiments propres au paquet (dwellings + spéciaux) — vide si pas de `manifest.town`. */
+  buildings: Building[];
 }
 
 export interface LoadedContent {
@@ -36,6 +41,8 @@ export interface LoadedContent {
   config: GameConfig;
   /** Locales de l'UI générique (menu, options, toasts) — data/core/locales/. */
   coreLocales: Record<(typeof LOCALE_LANGS)[number], Locale>;
+  /** Bâtiments communs à toutes les villes — data/core/buildings.json (doc 02 §4.1). */
+  coreBuildings: Building[];
   packs: FactionPack[];
 }
 
@@ -55,13 +62,31 @@ export async function loadContent(readJson: ReadJson): Promise<LoadReport> {
     const path = `core/locales/${lang}.json`;
     coreLocales[lang] = parseFile(localeSchema, await readJson(path), path);
   }
+  const coreBuildingsFile = parseFile(
+    buildingCatalogSchema,
+    await readJson('core/buildings.json'),
+    'core/buildings.json',
+  );
+  const coreBuildings = coreBuildingsFile.buildings;
+  {
+    // Bâtiments communs : erreur bloquante directe (comme config/abilities), pas de rejet partiel.
+    const errors: string[] = [];
+    checkUniqueBuildingIds(errors, 'core/buildings.json', coreBuildings.map((b) => b.id));
+    checkBuildingRequires(
+      errors,
+      'core/buildings.json',
+      coreBuildings,
+      new Map(coreBuildings.map((b) => [b.id, b.maxLevel])),
+    );
+    if (errors.length > 0) throw new PackError(errors);
+  }
   const report: LoadReport = {
-    content: { abilityCatalog: catalog, config, coreLocales, packs: [] },
+    content: { abilityCatalog: catalog, config, coreLocales, coreBuildings, packs: [] },
     rejected: [],
   };
   for (const id of index.factions) {
     try {
-      report.content.packs.push(await loadFactionPack(readJson, id, catalog));
+      report.content.packs.push(await loadFactionPack(readJson, id, catalog, coreBuildings));
     } catch (e) {
       report.rejected.push({ id, errors: describeError(e) });
     }
@@ -75,6 +100,8 @@ export async function loadContent(readJson: ReadJson): Promise<LoadReport> {
       ]);
     }
   }
+  // Règle croisée : la ville de départ résout (faction connue, bâtiments/niveaux valides).
+  resolveStartingTowns(config, report);
   return report;
 }
 
@@ -88,6 +115,8 @@ export async function loadFactionPack(
   readJson: ReadJson,
   id: string,
   catalog: AbilityCatalog,
+  /** Bâtiments communs (data/core/buildings.json) — résolus par `manifest.town.buildings`. */
+  coreBuildings: Building[] = [],
 ): Promise<FactionPack> {
   const base = `factions/${id}`;
   const manifest = parseFile(manifestSchema, await readJson(`${base}/manifest.json`), 'manifest.json');
@@ -138,8 +167,165 @@ export async function loadFactionPack(
     }
   }
 
+  // Ville de faction (doc 02 §4, plan phase-3.1) — bâtiments propres (dwellings/spéciaux).
+  const buildings: Building[] = [];
+  if (manifest.town) {
+    const path = 'buildings.json';
+    const file = parseFile(buildingCatalogSchema, await readJson(`${base}/${path}`), path);
+    buildings.push(...file.buildings);
+
+    const coreBuildingIds = new Set(coreBuildings.map((b) => b.id));
+    const ownIds = buildings.map((b) => b.id);
+    checkUniqueBuildingIds(errors, path, ownIds);
+    for (const id of ownIds) {
+      if (coreBuildingIds.has(id))
+        errors.push(`${path}: id de bâtiment '${id}' entre en collision avec un bâtiment commun`);
+    }
+
+    const visibleMaxLevel = new Map<string, number>([
+      ...coreBuildings.map((b): [string, number] => [b.id, b.maxLevel]),
+      ...buildings.map((b): [string, number] => [b.id, b.maxLevel]),
+    ]);
+    checkBuildingRequires(errors, path, buildings, visibleMaxLevel);
+    for (const b of buildings) {
+      b.levels.forEach((level, i) => {
+        if (level.effect.type === 'dwelling' && !unitIds.has(level.effect.unitId))
+          errors.push(
+            `${path}: ${b.id} niveau ${i + 1} — dwelling vers unité inconnue '${level.effect.unitId}'`,
+          );
+      });
+    }
+
+    const knownBuildingIds = new Set([...coreBuildingIds, ...ownIds]);
+    for (const bId of manifest.town.buildings) {
+      if (!knownBuildingIds.has(bId))
+        errors.push(`manifest.json: town.buildings — bâtiment inconnu '${bId}'`);
+    }
+    const byId = new Map(buildings.map((b) => [b.id, b]));
+    for (const d of manifest.town.dwellings) {
+      if (!unitIds.has(d.unitId))
+        errors.push(`manifest.json: town.dwellings — unité inconnue '${d.unitId}'`);
+      if (!manifest.town.buildings.includes(d.buildingId))
+        errors.push(
+          `manifest.json: town.dwellings — bâtiment '${d.buildingId}' absent de town.buildings`,
+        );
+      const def = byId.get(d.buildingId);
+      if (
+        def &&
+        !def.levels.some(
+          (l) => l.effect.type === 'dwelling' && l.effect.tier === d.tier && l.effect.unitId === d.unitId,
+        )
+      ) {
+        errors.push(
+          `manifest.json: town.dwellings — '${d.buildingId}' ne définit pas l'effet dwelling(tier=${d.tier}, unitId='${d.unitId}')`,
+        );
+      }
+    }
+  }
+
   if (errors.length > 0) throw new PackError(errors);
-  return { manifest, units, locales };
+  return { manifest, units, locales, buildings };
+}
+
+/** Un `id` de bâtiment ne doit apparaître qu'une fois dans la liste donnée. */
+function checkUniqueBuildingIds(errors: string[], path: string, ids: string[]): void {
+  const seen = new Set<string>();
+  for (const id of ids) {
+    if (seen.has(id)) errors.push(`${path}: id de bâtiment en double '${id}'`);
+    seen.add(id);
+  }
+}
+
+/** Prérequis résolubles vers un bâtiment visible, à un niveau ≤ son maxLevel (doc 02 §4.1). */
+function checkBuildingRequires(
+  errors: string[],
+  path: string,
+  buildings: Building[],
+  visibleMaxLevel: ReadonlyMap<string, number>,
+): void {
+  for (const b of buildings) {
+    b.levels.forEach((level, i) => {
+      for (const req of level.requires) {
+        const max = visibleMaxLevel.get(req.building);
+        if (max === undefined) {
+          errors.push(`${path}: ${b.id} niveau ${i + 1} — prérequis vers bâtiment inconnu '${req.building}'`);
+        } else if (req.level > max) {
+          errors.push(
+            `${path}: ${b.id} niveau ${i + 1} — prérequis '${req.building}' niveau ${req.level} > maxLevel (${max})`,
+          );
+        }
+      }
+    });
+  }
+}
+
+/**
+ * Agrège les bâtiments communs (core) et de faction en un catalogue unique,
+ * prêt pour `GameState.buildingCatalog` (doc 02 §4.1, plan phase-3.1). `name`
+ * (locale) est retiré : hors de la forme `BuildingDef` figée du moteur.
+ */
+export function buildBuildingCatalog(report: LoadReport): Record<string, ResolvedBuilding> {
+  const catalog: Record<string, ResolvedBuilding> = {};
+  const add = (list: Building[], origin: string): void => {
+    for (const b of list) {
+      if (catalog[b.id])
+        throw new PackError([`buildBuildingCatalog: id de bâtiment en double '${b.id}' (${origin})`]);
+      catalog[b.id] = { id: b.id, maxLevel: b.maxLevel, levels: b.levels };
+    }
+  };
+  add(report.content.coreBuildings, 'core');
+  for (const pack of report.content.packs) add(pack.buildings, pack.manifest.id);
+  return catalog;
+}
+
+/** Ville de départ résolue — même forme que le `TownState` initial du moteur. */
+export interface ResolvedStartingTown {
+  id: string;
+  ownerPlayerId: string;
+  pos: { x: number; y: number };
+  factionId: string;
+  buildings: Record<string, number>;
+  builtToday: boolean;
+  garrison: never[];
+  stock: Record<string, number>;
+}
+
+/**
+ * Résout `config.newGame.startingTown` en `TownState`-like (owner `player-1`,
+ * garnison vide — le héros a `startingArmy`, doc 02 §4). Vérifie que la
+ * faction et les bâtiments préconstruits sont connus (règle croisée).
+ */
+export function resolveStartingTowns(config: GameConfig, report: LoadReport): ResolvedStartingTown[] {
+  const start = config.newGame.startingTown;
+  if (!start) return [];
+  if (!report.content.packs.some((p) => p.manifest.id === start.factionId)) {
+    throw new PackError([`config.json: newGame.startingTown — faction inconnue '${start.factionId}'`]);
+  }
+  const catalog = buildBuildingCatalog(report);
+  const buildings: Record<string, number> = {};
+  for (const pb of start.prebuilt) {
+    const def = catalog[pb.building];
+    if (!def)
+      throw new PackError([`config.json: newGame.startingTown.prebuilt — bâtiment inconnu '${pb.building}'`]);
+    if (pb.level > def.maxLevel) {
+      throw new PackError([
+        `config.json: newGame.startingTown.prebuilt — niveau ${pb.level} > maxLevel (${def.maxLevel}) pour '${pb.building}'`,
+      ]);
+    }
+    buildings[pb.building] = pb.level;
+  }
+  return [
+    {
+      id: start.id,
+      ownerPlayerId: 'player-1',
+      pos: { x: start.x, y: start.y },
+      factionId: start.factionId,
+      buildings,
+      builtToday: false,
+      garrison: [],
+      stock: {},
+    },
+  ];
 }
 
 /** Carte résolue, prête pour `StartGame` — même forme que l'`AdventureMapDef` du moteur. */
@@ -157,6 +343,11 @@ export type ResolvedMapObject =
       pos: { x: number; y: number };
       unitId: string;
       count: number;
+    }
+  | {
+      id: string;
+      type: 'town';
+      pos: { x: number; y: number };
     };
 
 export interface ResolvedMap {
@@ -230,6 +421,19 @@ export async function loadMap(
       errors.push(`${path}: startPositions[${i}] occupée par un objet`);
   }
 
+  // Règle croisée : la ville de départ (config) référence un objet `town` de cette carte.
+  if (config.newGame.startingTown && config.newGame.map === id) {
+    const start = config.newGame.startingTown;
+    const townObj = file.objects.find((o) => o.type === 'town' && o.id === start.id);
+    if (!townObj) {
+      errors.push(`${path}: ville de départ '${start.id}' absente des objets de la carte`);
+    } else if (townObj.x !== start.x || townObj.y !== start.y) {
+      errors.push(
+        `${path}: ville de départ '${start.id}' — position carte (${townObj.x},${townObj.y}) ≠ config (${start.x},${start.y})`,
+      );
+    }
+  }
+
   if (errors.length > 0) throw new PackError(errors);
   return resolveMap(file);
 }
@@ -244,9 +448,11 @@ function resolveMap(file: MapFile): ResolvedMap {
     road: file.roads.flatMap((row) => [...row].map((c) => c === '1')),
     objects: file.objects.map((obj): ResolvedMapObject => {
       const pos = { x: obj.x, y: obj.y };
-      return obj.type === 'resource'
-        ? { id: obj.id, type: obj.type, pos, resource: obj.resource, amount: obj.amount }
-        : { id: obj.id, type: obj.type, pos, unitId: obj.unitId, count: obj.count };
+      if (obj.type === 'resource')
+        return { id: obj.id, type: obj.type, pos, resource: obj.resource, amount: obj.amount };
+      if (obj.type === 'guardian')
+        return { id: obj.id, type: obj.type, pos, unitId: obj.unitId, count: obj.count };
+      return { id: obj.id, type: obj.type, pos };
     }),
     startPositions: file.startPositions.map(({ x, y }) => ({ x, y })),
   };

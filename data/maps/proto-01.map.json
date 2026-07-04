@@ -141,6 +141,12 @@
       "y": 28,
       "unitId": "t1-recruit",
       "count": 15
+    },
+    {
+      "id": "start-town",
+      "type": "town",
+      "x": 2,
+      "y": 4
     }
   ],
   "startPositions": [

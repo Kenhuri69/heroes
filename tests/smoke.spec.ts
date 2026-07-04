@@ -7,6 +7,8 @@ import { expect, test, type Page } from '@playwright/test';
 // Phase 2.4 : victoire contre le gardien, arène /#arena, fluidité throttlée.
 // Phase 2.5 : menu (Nouvelle partie/Continuer), autosave, i18n EN, XP,
 // aller-retour export/import .heroes.
+// Phase 3.1 : écran de ville, construire + croissance hebdo + recruter +
+// transfert garnison → l'armée du héros augmente.
 // Non couvert ici (dit explicitement, guideline §7) : le tap-tap DANS le
 // combat (sélection d'hex/cible au canvas) — couvert indirectement par
 // AutoCombat ; à outiller quand la scène exposera ses coordonnées.
@@ -337,6 +339,80 @@ test('export puis import .heroes : aller-retour valide (gzip)', async ({ page })
   const ok = await page.evaluate(() => window.__HEROES_TEST__!.saveRoundtrip());
   expect(ok).toBe(true);
   await expect.poll(() => heroPos(page)).toEqual({ x: 6, y: 3 }); // état rechargé intact
+
+  expect(errors).toEqual([]);
+});
+
+test('ville : construire + croissance + recruter + transférer → armée du héros', async ({ page }) => {
+  const errors = await openGame(page);
+
+  // La ville de départ est chargée (doc 02 §4) : bouton [Ville] + écran.
+  const town = await page.evaluate(() => window.__HEROES_TEST__!.getState().towns[0]);
+  expect(town?.id).toBe('start-town');
+  expect(town?.ownerPlayerId).toBe('player-1');
+  await expect(page.getByTestId('town-open')).toBeVisible();
+  await page.getByTestId('town-open').click();
+  await expect(page.getByTestId('town-tab-build')).toBeVisible();
+  await page.getByTestId('town-close').click();
+
+  const armyTotal = (): Promise<number> =>
+    page.evaluate(
+      () =>
+        window.__HEROES_TEST__!.getState().heroes[0]?.army.reduce((s, st) => s + st.count, 0) ?? 0,
+    );
+  const before = await armyTotal();
+
+  // Construire un bâtiment (1/jour, doc 02 §4.1) : le marché (1000 or, 5 bois).
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({
+      type: 'BuildStructure',
+      townId: 'start-town',
+      buildingId: 'market',
+    }),
+  );
+  expect(
+    await page.evaluate(() => window.__HEROES_TEST__!.getState().towns[0]?.buildings['market']),
+  ).toBe(1);
+
+  // Passage de semaine (jour 8) : l'habitation T1 génère son stock (croissance 14).
+  for (let i = 0; i < 7; i++) {
+    await page.evaluate(() => window.__HEROES_TEST__!.dispatch({ type: 'EndTurn', playerId: 'player-1' }));
+  }
+  expect(
+    await page.evaluate(() => window.__HEROES_TEST__!.getState().towns[0]?.stock['t1-recruit'] ?? 0),
+  ).toBe(14);
+
+  // Recruter 10 recrues dans la garnison de la ville (débit d'or).
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({
+      type: 'RecruitUnits',
+      townId: 'start-town',
+      unitId: 't1-recruit',
+      count: 10,
+    }),
+  );
+
+  // Amener le héros sur la tuile de la ville (2,4) puis transférer la garnison.
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({
+      type: 'MoveHero',
+      heroId: 'hero-player-1',
+      path: [{ x: 2, y: 4 }],
+    }),
+  );
+  await expect.poll(() => heroPos(page)).toEqual({ x: 2, y: 4 });
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({
+      type: 'GarrisonTransfer',
+      townId: 'start-town',
+      heroId: 'hero-player-1',
+      from: 'town',
+      slot: 0,
+    }),
+  );
+
+  // L'armée du héros a augmenté de 10 (fusion avec la pile t1-recruit existante).
+  expect(await armyTotal()).toBe(before + 10);
 
   expect(errors).toEqual([]);
 });

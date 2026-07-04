@@ -241,6 +241,8 @@ const handlers: Handlers = {
     events.push({ type: 'GameStarted', seed: cmd.seed, playerIds: cmd.players.map((p) => p.id) });
     events.push({ type: 'DayStarted', day: 1 });
     events.push({ type: 'WeekStarted', week: 1 });
+    // Stock des habitations et revenu ne s'appliquent qu'aux transitions
+    // (WeekStarted / DayStarted) via EndTurn — l'état de départ est « vide ».
   },
 
   MoveHero(draft, cmd, events) {

@@ -8,6 +8,7 @@ import { dispatch } from './app/dispatch';
 import { appStore } from './app/store';
 import { saveGame, restoreSavedGame } from './app/save';
 import { AdventureScene } from './scenes/adventure/AdventureScene';
+import { CombatScene } from './scenes/combat/CombatScene';
 import { mountUi } from './ui/shell';
 
 declare global {
@@ -59,6 +60,31 @@ async function bootstrap(): Promise<void> {
   camera.world.addChild(scene.container);
   app.stage.addChild(camera.world);
   scene.centerOnHero(app);
+
+  // Bascule aventure ↔ combat : la scène de combat se monte quand l'état
+  // moteur ouvre un combat, se démonte à sa résolution (doc 07 §3).
+  let combatScene: CombatScene | null = null;
+  const syncScenes = (): void => {
+    const inCombat = appStore.getState().game.combat !== null;
+    if (inCombat && !combatScene) {
+      combatScene = new CombatScene(app);
+      app.stage.addChild(combatScene.container);
+      camera.world.visible = false;
+    } else if (!inCombat && combatScene) {
+      combatScene.destroy();
+      combatScene = null;
+      camera.world.visible = true;
+    }
+  };
+  appStore.subscribe(syncScenes);
+  syncScenes();
+
+  // Mode arène `/#arena` (doc 10 §3) : combat immédiat, armées des données
+  // (miroir de l'armée de départ) — testable sans jouer l'aventure.
+  if (location.hash === '#arena') {
+    const army = report.content.config.newGame.startingArmy.map((s) => ({ ...s }));
+    await dispatch({ type: 'StartCombat', attacker: army, defender: army, terrain: 'grass' });
+  }
 
   const uiRoot = document.getElementById('ui-root');
   if (!uiRoot) throw new Error('missing #ui-root');

@@ -1,0 +1,137 @@
+/* Écran de combat (doc 08 §2.4) — DOM par-dessus le canvas hex.
+   #ui-root est en pointer-events: none : chaque bloc interactif ré-active
+   les siens (même convention que styles.css). */
+.combat-ui {
+  position: fixed;
+  inset: 0;
+  font: 14px/1.4 system-ui, sans-serif;
+  color: #e8e2d0;
+}
+
+.combat-armies {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(16, 18, 24, 0.85);
+  pointer-events: auto;
+}
+
+.combat-side {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.combat-side-defender {
+  justify-content: flex-end;
+}
+
+.combat-round {
+  flex: none;
+  padding: 4px 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.stack-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 4px 8px;
+  border: 1px solid #3a3d47;
+  border-radius: 6px;
+  background: #1c1e25;
+}
+
+.stack-chip-active {
+  border-color: #f1c40f;
+  box-shadow: 0 0 0 1px #f1c40f inset;
+}
+
+.stack-chip-count {
+  font-weight: 700;
+}
+
+.stack-chip-unit {
+  max-width: 9em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  opacity: 0.85;
+}
+
+.damage-preview {
+  position: fixed;
+  left: 50%;
+  bottom: 76px;
+  transform: translateX(-50%);
+  max-width: min(92vw, 480px);
+  padding: 8px 14px;
+  border: 1px solid #3a3d47;
+  border-radius: 8px;
+  background: rgba(16, 18, 24, 0.9);
+  text-align: center;
+  pointer-events: none;
+}
+
+.combat-actions {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 12px;
+  background: rgba(16, 18, 24, 0.85);
+  pointer-events: auto;
+}
+
+.combat-actions button {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 8px 14px;
+  border: 1px solid #3a3d47;
+  border-radius: 8px;
+  background: #262a33;
+  color: #e8e2d0;
+  font: 600 14px system-ui, sans-serif;
+  cursor: pointer;
+}
+
+.combat-actions button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.combat-speeds {
+  display: flex;
+  gap: 4px;
+}
+
+.combat-speeds button {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 8px 10px;
+  border: 1px solid #3a3d47;
+  border-radius: 8px;
+  background: #262a33;
+  color: #e8e2d0;
+  font: 600 14px system-ui, sans-serif;
+  cursor: pointer;
+}
+
+.combat-speeds button.active {
+  background: #7a2d22;
+  border-color: #a0503f;
+}

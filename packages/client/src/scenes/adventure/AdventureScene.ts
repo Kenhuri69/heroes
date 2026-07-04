@@ -80,6 +80,8 @@ export class AdventureScene {
   private async handleTap(global: Point): Promise<void> {
     if (this.animating) return;
     const { game } = appStore.getState();
+    // En combat, la scène de combat a la main — la carte ignore les taps.
+    if (game.combat) return;
     const { map, config } = game;
     const hero = this.myHero();
     if (!map || !config || !hero) return;

@@ -84,12 +84,19 @@ dans `data/core/config.json` (`combat`), jamais en dur.
       §5.3, moral/chance, 6 capacités, fin + application des pertes) +
       `engine/test/combat-*.test.ts` (cas tabulaires de dégâts, property
       « un combat se termine toujours »). Ne touche PAS core/ ni types figés.
-- [ ] **Lot C (sonnet) — scène combat client** : `client/src/render/hexgrid.ts`
+- [x] **Lot C (sonnet) — scène combat client** : `client/src/render/hexgrid.ts`
       (doc 10 §5.5), `client/src/scenes/combat/`, `client/src/ui/combat*.tsx`
       + `combat.css` (bandeau armées + round, surbrillances, prévisualisation
       de dégâts OBLIGATOIRE, tap-tap, vitesses ×1/×2/×4, bouton Auto).
       Rend un `CombatState` construit à la main en dev ; branchement réel en
       intégration. Ne touche pas aux fichiers existants hors imports.
+      Livré : `CombatScene` (constructor(app), pas de dépendance à `Camera`,
+      auto-layout centré/mis à l'échelle via `ResizeObserver` sur
+      `app.canvas`) + `scenes/combat/preview.ts` (mini-store) + `ui/combat.tsx`
+      réécrit + `ui/combat.css`. Tous les appels moteur (estimateDamage/
+      reachableHexes/canShoot) sont encapsulés try/catch (stubs lot A
+      lèvent actuellement). typecheck/lint/build verts. Pas de test live
+      possible (stubs + pas de branchement main.ts) — voir écart ci-dessous.
 - [ ] **Lot B (sonnet, après A) — IA + auto-combat** :
       `engine/src/combat/ai.ts` (heuristique §5.6 : score = dégâts espérés ×
       valeur cible − riposte − exposition ; tireurs kitent, lents défendent)
@@ -116,4 +123,15 @@ dans `data/core/config.json` (`combat`), jamais en dur.
 
 ## Écarts constatés en cours de route
 
-(à compléter)
+- **Lot C** : le survol souris (`hovered` de `drawBoard`) est câblé côté API
+  (`render/hexgrid.ts`) mais pas encore alimenté par `CombatScene` — seul le
+  tap-tap (`onTap`) pilote la sélection/prévisualisation, conformément au
+  périmètre demandé au lot. Le hover souris (doc 08 §1 "hover = prévisualisation
+  à la souris") reste à ajouter si voulu, hors scope du lot C tel que cadré.
+- **Lot C** : `onTap` (existant, hors périmètre du lot) attache ses listeners
+  à `app.stage` sans mécanisme de retrait — `CombatScene.destroy()` ne peut
+  donc pas désinscrire son propre handler ; un drapeau interne `destroyed`
+  neutralise les taps après destruction, mais la session principale doit
+  s'assurer qu'une seule scène (aventure OU combat) est active à la fois lors
+  du branchement (lot D), sans quoi les deux gestionnaires de tap coexistent
+  sur le même stage.

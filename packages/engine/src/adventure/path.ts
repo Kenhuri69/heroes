@@ -44,10 +44,12 @@ export function findPath(
   from: GridPos,
   to: GridPos,
   blocked: readonly GridPos[] = [],
+  /** true : autorise une destination occupée (attaque d'un gardien — doc 02 §5). */
+  allowBlockedGoal = false,
 ): GridPos[] | null {
   if (!inBounds(map, from) || !isPassable(config, map, to) || samePos(from, to)) return null;
   const blockedSet = new Set(blocked.map((p) => p.y * map.width + p.x));
-  if (blockedSet.has(to.y * map.width + to.x)) return null;
+  if (!allowBlockedGoal && blockedSet.has(to.y * map.width + to.x)) return null;
 
   // Heuristique octile admissible : distance × coût de pas minimal possible.
   let minCost = Infinity;

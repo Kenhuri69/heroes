@@ -1,4 +1,11 @@
-import { loadContent, loadMap, type LoadReport, type ReadJson, type ResolvedMap } from '@heroes/content';
+import {
+  knownUnitIds,
+  loadContent,
+  loadMap,
+  type LoadReport,
+  type ReadJson,
+  type ResolvedMap,
+} from '@heroes/content';
 
 /** Lecteur navigateur : data/ est copié à la racine du site par Vite (publicDir). */
 const readJsonFromSite: ReadJson = async (path) => {
@@ -23,5 +30,5 @@ export async function loadGameContent(): Promise<LoadReport> {
 /** Charge la carte par défaut de la config, validée contre elle (doc 02 §2.1). */
 export async function loadDefaultMap(report: LoadReport): Promise<ResolvedMap> {
   const config = report.content.config;
-  return loadMap(readJsonFromSite, config.newGame.map, config);
+  return loadMap(readJsonFromSite, config.newGame.map, config, knownUnitIds(report));
 }

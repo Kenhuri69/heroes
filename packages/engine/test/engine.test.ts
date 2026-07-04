@@ -9,7 +9,14 @@ function setup(ids: string[]): PlayerSetup[] {
 }
 
 function startCmd(ids: string[], seed = 42): Command {
-  return { type: 'StartGame', seed, players: setup(ids), map: testMap(), config: testConfig() };
+  return {
+    type: 'StartGame',
+    seed,
+    players: setup(ids),
+    map: testMap(),
+    config: testConfig(),
+    unitCatalog: {},
+  };
 }
 
 function startedGame(ids: string[] = ['p1', 'p2']): GameState {

@@ -29,12 +29,20 @@ export class MapObjectsLayer {
     for (const obj of objects) {
       if (this.byId.has(obj.id)) continue;
       const g = new Graphics();
-      const color = RESOURCE_COLORS[obj.resource] ?? 0xffffff;
-      // Petit tas : losange teinté, lisible à 64 px (doc 08 §5).
       const c = TILE_SIZE / 2;
-      g.poly([c, c - 14, c + 16, c, c, c + 14, c - 16, c])
-        .fill(color)
-        .stroke({ width: 2, color: 0x1a1c22 });
+      if (obj.type === 'resource') {
+        // Petit tas : losange teinté, lisible à 64 px (doc 08 §5).
+        const color = RESOURCE_COLORS[obj.resource] ?? 0xffffff;
+        g.poly([c, c - 14, c + 16, c, c, c + 14, c - 16, c])
+          .fill(color)
+          .stroke({ width: 2, color: 0x1a1c22 });
+      } else {
+        // Gardien neutre : fanion sombre, force en fourchette côté UI (doc 02 §2.2).
+        g.poly([c - 4, c + 18, c - 4, c - 18, c + 16, c - 10, c - 4, c - 2])
+          .fill(0x8a8f98)
+          .stroke({ width: 2, color: 0x1a1c22 });
+        g.circle(c - 4, c + 18, 4).fill(0x1a1c22);
+      }
       g.position.set(obj.pos.x * TILE_SIZE, obj.pos.y * TILE_SIZE);
       this.byId.set(obj.id, g);
       this.container.addChild(g);

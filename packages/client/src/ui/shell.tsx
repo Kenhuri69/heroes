@@ -6,6 +6,7 @@ import { PLAYER_ID } from '../app/game';
 import { saveGame, restoreSavedGame } from '../app/save';
 import { appStore } from '../app/store';
 import { RESOURCE_COLORS } from '../render/mapObjects';
+import { CombatUi } from './combat';
 import './styles.css';
 
 export function mountUi(root: HTMLElement): void {
@@ -14,7 +15,9 @@ export function mountUi(root: HTMLElement): void {
 
 function Shell() {
   const started = useApp((s) => s.game.started);
+  const inCombat = useApp((s) => s.game.combat !== null);
   if (!started) return null;
+  if (inCombat) return <CombatUi />;
   return (
     <>
       <ResourceBar />
@@ -39,10 +42,28 @@ function ResourceBar() {
   );
 }
 
+/** Fourchette de force du gardien visé (doc 02 §2.2) — libellés FR (i18n : 2.5). */
+const BAND_LABELS: Record<string, string> = {
+  few: 'Quelques défenseurs',
+  several: 'Plusieurs défenseurs',
+  pack: 'Un groupe',
+  lots: 'Une troupe',
+  horde: 'Une horde',
+  throng: 'Une foule',
+  legion: 'Une légion',
+};
+
+function guardianBand(count: number, bands: { max: number | null; key: string }[]): string {
+  const band = bands.find((b) => b.max === null || count <= b.max);
+  return (band && BAND_LABELS[band.key]) ?? '';
+}
+
 /** Jour/semaine, points de mouvement, sauvegarde et gros bouton fin de tour (doc 08 §2.1). */
 function TurnBar() {
   const day = useApp((s) => s.game.calendar.day);
   const hero = useApp((s) => s.game.heroes.find((h) => h.playerId === PLAYER_ID));
+  const hint = useApp((s) => s.guardianHint);
+  const bands = useApp((s) => s.strengthBands);
   return (
     <>
       <div class="status-bar">
@@ -50,6 +71,11 @@ function TurnBar() {
           Jour {day} · Semaine {weekOf(day)}
         </span>
         {hero && <span data-testid="movement-points">PM {hero.movementPoints}</span>}
+        {hint && (
+          <span class="guardian-hint" data-testid="guardian-hint">
+            ⚔ {guardianBand(hint.count, bands)}
+          </span>
+        )}
       </div>
       <div class="actions">
         <button data-testid="save" onClick={() => void saveGame(appStore.getState().game)}>

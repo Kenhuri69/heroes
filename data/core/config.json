@@ -12,10 +12,38 @@
       "swamp": { "moveCost": 150 },
       "water": { "moveCost": null },
       "mountain": { "moveCost": null }
+    },
+    "combat": {
+      "attackDefenseStep": 0.05,
+      "damageBonusMax": 0.6,
+      "damageReductionMax": 0.7,
+      "defendDefenseMultiplier": 1.3,
+      "rangedMeleePenalty": 0.5,
+      "moraleChancePerPoint": 0.04,
+      "luckChancePerPoint": 0.04,
+      "markBonusPerStack": 0.08,
+      "marksMax": 3,
+      "obstaclesMin": 2,
+      "obstaclesMax": 5
     }
   },
   "newGame": {
     "map": "proto-01",
-    "startingResources": { "gold": 2000, "wood": 10, "ore": 10 }
+    "startingResources": { "gold": 2000, "wood": 10, "ore": 10 },
+    "startingArmy": [
+      { "unitId": "t1-recruit", "count": 20 },
+      { "unitId": "t1-eleve", "count": 12 }
+    ]
+  },
+  "display": {
+    "strengthBands": [
+      { "max": 4, "key": "few" },
+      { "max": 9, "key": "several" },
+      { "max": 19, "key": "pack" },
+      { "max": 49, "key": "lots" },
+      { "max": 99, "key": "horde" },
+      { "max": 249, "key": "throng" },
+      { "max": null, "key": "legion" }
+    ]
   }
 }

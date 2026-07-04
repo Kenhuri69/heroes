@@ -3,6 +3,15 @@ import { dailyMovementPoints } from '../adventure/config';
 import { createFog, revealAround } from '../adventure/fog';
 import { inBounds, isAdjacent, samePos, type GridPos } from '../adventure/map';
 import { isPassable, stepCost } from '../adventure/path';
+import {
+  beginGuardianCombat,
+  handleAutoCombat,
+  handleCombatAction,
+  handleStartCombat,
+  validateAutoCombat,
+  validateCombatAction,
+  validateStartCombat,
+} from '../combat';
 import { EngineError, type Command, type CommandError } from './commands';
 import type { GameEvent } from './events';
 import { seedRng } from './rng';
@@ -42,11 +51,22 @@ export function validate(state: GameState, cmd: Command): CommandError | null {
         return { code: 'noPlayers', message: 'au moins un joueur est requis' };
       if (new Set(cmd.players.map((p) => p.id)).size !== cmd.players.length)
         return { code: 'duplicatePlayerId', message: 'IDs de joueurs en double' };
+      for (const p of cmd.players) {
+        const army = p.startingArmy ?? [];
+        if (army.length > 7)
+          return { code: 'invalidArmy', message: `armée de ${p.id} : plus de 7 piles` };
+        for (const stack of army) {
+          if (!(stack.unitId in cmd.unitCatalog) || stack.count <= 0)
+            return { code: 'invalidArmy', message: `armée de ${p.id} : pile invalide '${stack.unitId}'` };
+        }
+      }
       return validateMap(cmd);
     }
     case 'MoveHero': {
       if (!state.started)
         return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
+      if (state.combat)
+        return { code: 'combatActive', message: 'un combat est en cours' };
       const hero = state.heroes.find((h) => h.id === cmd.heroId);
       if (!hero) return { code: 'unknownHero', message: `héros inconnu '${cmd.heroId}'` };
       const current = state.players[state.currentPlayer];
@@ -57,10 +77,27 @@ export function validate(state: GameState, cmd: Command): CommandError | null {
     case 'EndTurn': {
       if (!state.started)
         return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
+      if (state.combat)
+        return { code: 'combatActive', message: 'un combat est en cours' };
       const current = state.players[state.currentPlayer];
       if (!current || current.id !== cmd.playerId)
         return { code: 'notYourTurn', message: `ce n’est pas le tour de ${cmd.playerId}` };
       return null;
+    }
+    case 'StartCombat': {
+      if (!state.started)
+        return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
+      if (state.combat)
+        return { code: 'combatActive', message: 'un combat est déjà en cours' };
+      return validateStartCombat(state, cmd);
+    }
+    case 'CombatAction': {
+      if (!state.combat) return { code: 'noCombat', message: 'aucun combat en cours' };
+      return validateCombatAction(state, cmd);
+    }
+    case 'AutoCombat': {
+      if (!state.combat) return { code: 'noCombat', message: 'aucun combat en cours' };
+      return validateAutoCombat(state);
     }
   }
 }
@@ -84,11 +121,17 @@ function validateMap(cmd: Extract<Command, { type: 'StartGame' }>): CommandError
   const objectIds = new Set<string>();
   for (const obj of map.objects) {
     if (!inBounds(map, obj.pos)) return bad(`objet '${obj.id}' hors carte`);
-    if (!(RESOURCE_IDS as readonly string[]).includes(obj.resource))
-      return bad(`objet '${obj.id}' : ressource inconnue '${obj.resource}'`);
-    if (obj.amount <= 0) return bad(`objet '${obj.id}' : montant non positif`);
     if (objectIds.has(obj.id)) return bad(`ID d'objet en double '${obj.id}'`);
     objectIds.add(obj.id);
+    if (obj.type === 'resource') {
+      if (!(RESOURCE_IDS as readonly string[]).includes(obj.resource))
+        return bad(`objet '${obj.id}' : ressource inconnue '${obj.resource}'`);
+      if (obj.amount <= 0) return bad(`objet '${obj.id}' : montant non positif`);
+    } else {
+      if (!(obj.unitId in cmd.unitCatalog))
+        return bad(`gardien '${obj.id}' : unité inconnue du catalogue '${obj.unitId}'`);
+      if (obj.count <= 0) return bad(`gardien '${obj.id}' : effectif non positif`);
+    }
   }
   return null;
 }
@@ -112,6 +155,12 @@ function validatePath(
       return { code: 'invalidPath', message: `tuile infranchissable (${step.x},${step.y})` };
     if (state.heroes.some((h) => h.id !== heroId && samePos(h.pos, step)))
       return { code: 'invalidPath', message: `tuile occupée (${step.x},${step.y})` };
+    // Gardien : uniquement en DERNIER pas (attaque ⇒ interception, doc 02 §5).
+    if (
+      map.objects.some((o) => o.type === 'guardian' && samePos(o.pos, step)) &&
+      step !== path[path.length - 1]
+    )
+      return { code: 'invalidPath', message: `tuile gardée (${step.x},${step.y})` };
     prev = step;
   }
   const first = path[0];
@@ -128,17 +177,19 @@ const handlers: Handlers = {
     draft.currentPlayer = 0;
     draft.config = cmd.config;
     draft.map = cmd.map;
+    draft.unitCatalog = cmd.unitCatalog;
     draft.players = cmd.players.map((p) => ({
       id: p.id,
       resources: { ...p.startingResources },
       explored: createFog(cmd.map),
     }));
-    // Un héros par joueur à sa position de départ (doc 02 §1.5) — l'armée arrive en 2.4.
+    // Un héros par joueur à sa position de départ, armée de scénario (doc 02 §1.5, §5.1).
     draft.heroes = cmd.players.map((p, i) => ({
       id: `hero-${p.id}`,
       playerId: p.id,
       pos: cmd.map.startPositions[i] as GridPos,
-      movementPoints: dailyMovementPoints(cmd.config),
+      movementPoints: dailyMovementPoints(cmd.config, p.startingArmy ?? [], cmd.unitCatalog),
+      army: (p.startingArmy ?? []).map((s) => ({ ...s })),
     }));
     for (const hero of draft.heroes) {
       const player = draft.players.find((p) => p.id === hero.playerId);
@@ -160,6 +211,14 @@ const handlers: Handlers = {
       // Le chemin peut couvrir plusieurs jours (prévisualisation) : on
       // s'arrête quand les points du jour ne suffisent plus (doc 02 §1.5).
       if (cost > hero.movementPoints) break;
+      // Gardien sur le pas : interception ⇒ combat, le héros n'entre PAS sur
+      // la tuile (décision plan phase-2.4) mais paie le pas d'engagement.
+      const guardian = map.objects.find((o) => o.type === 'guardian' && samePos(o.pos, step));
+      if (guardian) {
+        hero.movementPoints -= cost;
+        beginGuardianCombat(draft, hero.id, guardian.id, events);
+        return;
+      }
       const from = { ...hero.pos };
       hero.movementPoints -= cost;
       hero.pos = { ...step };
@@ -172,10 +231,12 @@ const handlers: Handlers = {
         movementPointsLeft: hero.movementPoints,
       });
       // Interception = arrêt standard HoMM (doc 08 §2.1) — ramassage instantané (doc 02 §2.2).
-      const objIndex = map.objects.findIndex((o) => samePos(o.pos, hero.pos));
+      const objIndex = map.objects.findIndex(
+        (o) => o.type === 'resource' && samePos(o.pos, hero.pos),
+      );
       if (objIndex !== -1) {
         const obj = map.objects[objIndex];
-        if (obj) {
+        if (obj && obj.type === 'resource') {
           player.resources[obj.resource as ResourceId] += obj.amount;
           map.objects.splice(objIndex, 1);
           events.push({
@@ -193,6 +254,18 @@ const handlers: Handlers = {
     }
   },
 
+  StartCombat(draft, cmd, events) {
+    handleStartCombat(draft, cmd, events);
+  },
+
+  CombatAction(draft, cmd, events) {
+    handleCombatAction(draft, cmd, events);
+  },
+
+  AutoCombat(draft, _cmd, events) {
+    handleAutoCombat(draft, events);
+  },
+
   EndTurn(draft, cmd, events) {
     events.push({ type: 'TurnEnded', playerId: cmd.playerId });
     draft.currentPlayer += 1;
@@ -202,7 +275,9 @@ const handlers: Handlers = {
     draft.calendar.day += 1;
     if (draft.config) {
       // Points de mouvement quotidiens restaurés (doc 02 §1.5).
-      for (const hero of draft.heroes) hero.movementPoints = dailyMovementPoints(draft.config);
+      for (const hero of draft.heroes) {
+        hero.movementPoints = dailyMovementPoints(draft.config, hero.army, draft.unitCatalog);
+      }
     }
     events.push({ type: 'DayStarted', day: draft.calendar.day });
     const week = weekOf(draft.calendar.day);

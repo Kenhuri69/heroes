@@ -59,8 +59,22 @@ function makeConfig(): GameConfig {
       movement: { base: 1500, perSpeed: 50, roadMultiplier: 0.75, diagonalMultiplier: 1.41 },
       visionRadius: 5,
       terrains: { grass: { moveCost: 100 }, water: { moveCost: null } },
+      combat: {
+        attackDefenseStep: 0.05,
+        damageBonusMax: 0.6,
+        damageReductionMax: 0.7,
+        defendDefenseMultiplier: 1.3,
+        rangedMeleePenalty: 0.5,
+        moraleChancePerPoint: 0.04,
+        luckChancePerPoint: 0.04,
+        markBonusPerStack: 0.08,
+        marksMax: 3,
+        obstaclesMin: 2,
+        obstaclesMax: 5,
+      },
     },
-    newGame: { map: 'mini', startingResources: { gold: 2000 } },
+    newGame: { map: 'mini', startingResources: { gold: 2000 }, startingArmy: [] },
+    display: { strengthBands: [{ max: null, key: 'legion' }] },
   };
 }
 
@@ -73,7 +87,10 @@ function makeMap(): Record<string, unknown> {
     legend: { g: 'grass', w: 'water' },
     tiles: ['gggg', 'ggwg', 'gggg'],
     roads: ['0000', '1100', '0000'],
-    objects: [{ id: 'gold-1', type: 'resource', x: 3, y: 0, resource: 'gold', amount: 100 }],
+    objects: [
+      { id: 'gold-1', type: 'resource', x: 3, y: 0, resource: 'gold', amount: 100 },
+      { id: 'guard-1', type: 'guardian', x: 3, y: 2, unitId: 't1-grunt', count: 5 },
+    ],
     startPositions: [{ x: 0, y: 0 }],
   };
 }
@@ -187,7 +204,33 @@ describe('loadMap', () => {
       resource: 'gold',
       amount: 100,
     });
+    expect(map.objects[1]).toEqual({
+      id: 'guard-1',
+      type: 'guardian',
+      pos: { x: 3, y: 2 },
+      unitId: 't1-grunt',
+      count: 5,
+    });
     expect(map.startPositions).toEqual([{ x: 0, y: 0 }]);
+  });
+
+  it('vérifie les unités des gardiens quand les paquets sont fournis', async () => {
+    const known = new Set(['t1-grunt']);
+    await expect(loadMap(reader(makeData()), 'mini', makeConfig(), known)).resolves.toBeTruthy();
+    const err = await loadMap(reader(makeData()), 'mini', makeConfig(), new Set()).catch(
+      (e: unknown) => e,
+    );
+    expect((err as PackError).errors.join()).toContain(
+      "gardien 'guard-1' — unité inconnue des paquets 't1-grunt'",
+    );
+  });
+
+  it("rejette une armée de départ référençant une unité inconnue", async () => {
+    const data = makeData();
+    (data['core/config.json'] as GameConfig).newGame.startingArmy = [
+      { unitId: 't9-dragon', count: 1 },
+    ];
+    await expect(loadContent(reader(data))).rejects.toThrow(/startingArmy.*t9-dragon/s);
   });
 
   it('rejette avec un rapport précis : dimensions, char inconnu, terrain hors config', async () => {

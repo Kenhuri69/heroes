@@ -1,5 +1,6 @@
 import type { AdventureConfig } from '../adventure/config';
 import type { AdventureMapDef, GridPos } from '../adventure/map';
+import type { ArmyStack, CombatState, CombatUnitDef } from '../combat/types';
 import type { RngState } from './rng';
 
 /** Les 7 ressources du jeu (doc 02 §3). Les montants vivent dans les données. */
@@ -29,6 +30,8 @@ export interface HeroState {
   pos: GridPos;
   /** Points de mouvement restants aujourd'hui (doc 02 §1.5), restaurés chaque jour. */
   movementPoints: number;
+  /** Armée du héros, ≤ 7 piles (doc 02 §5.1) — vide tant que rien n'est recruté. */
+  army: ArmyStack[];
 }
 
 export interface Calendar {
@@ -54,6 +57,10 @@ export interface GameState {
   config: AdventureConfig | null;
   map: AdventureMapDef | null;
   heroes: HeroState[];
+  /** Catalogue d'unités résolu par le contenu (doc 06) — le moteur ne voit que des IDs. */
+  unitCatalog: Record<string, CombatUnitDef>;
+  /** Combat en cours (doc 02 §5) — null hors combat. */
+  combat: CombatState | null;
 }
 
 export function createEmptyState(): GameState {
@@ -67,6 +74,8 @@ export function createEmptyState(): GameState {
     config: null,
     map: null,
     heroes: [],
+    unitCatalog: {},
+    combat: null,
   };
 }
 

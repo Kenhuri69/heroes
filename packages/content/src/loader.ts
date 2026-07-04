@@ -59,7 +59,21 @@ export async function loadContent(readJson: ReadJson): Promise<LoadReport> {
       report.rejected.push({ id, errors: describeError(e) });
     }
   }
+  // Règle croisée : l'armée de départ ne référence que des unités chargées.
+  const known = knownUnitIds(report);
+  for (const stack of config.newGame.startingArmy) {
+    if (!known.has(stack.unitId)) {
+      throw new PackError([
+        `config.json: newGame.startingArmy — unité inconnue des paquets '${stack.unitId}'`,
+      ]);
+    }
+  }
   return report;
+}
+
+/** IDs d'unités de tous les paquets valides — pour les règles croisées (armée, gardiens). */
+export function knownUnitIds(report: LoadReport): Set<string> {
+  return new Set(report.content.packs.flatMap((p) => p.units.map((u) => u.id)));
 }
 
 /** Charge un paquet et applique les règles croisées (doc 06 §5.3). */
@@ -122,19 +136,29 @@ export async function loadFactionPack(
 }
 
 /** Carte résolue, prête pour `StartGame` — même forme que l'`AdventureMapDef` du moteur. */
+export type ResolvedMapObject =
+  | {
+      id: string;
+      type: 'resource';
+      pos: { x: number; y: number };
+      resource: string;
+      amount: number;
+    }
+  | {
+      id: string;
+      type: 'guardian';
+      pos: { x: number; y: number };
+      unitId: string;
+      count: number;
+    };
+
 export interface ResolvedMap {
   id: string;
   width: number;
   height: number;
   terrain: string[];
   road: boolean[];
-  objects: {
-    id: string;
-    type: 'resource';
-    pos: { x: number; y: number };
-    resource: string;
-    amount: number;
-  }[];
+  objects: ResolvedMapObject[];
   startPositions: { x: number; y: number }[];
 }
 
@@ -147,6 +171,8 @@ export async function loadMap(
   readJson: ReadJson,
   id: string,
   config: GameConfig,
+  /** Unités connues des paquets chargés — vérifie les gardiens si fourni. */
+  knownUnitIds?: ReadonlySet<string>,
 ): Promise<ResolvedMap> {
   const path = `maps/${id}.map.json`;
   const file = parseFile(mapFileSchema, await readJson(path), path);
@@ -186,6 +212,8 @@ export async function loadMap(
     if (!inBounds(obj.x, obj.y)) errors.push(`${path}: objet '${obj.id}' hors carte`);
     else if (!passable(obj.x, obj.y))
       errors.push(`${path}: objet '${obj.id}' sur tuile infranchissable (${obj.x},${obj.y})`);
+    if (obj.type === 'guardian' && knownUnitIds && !knownUnitIds.has(obj.unitId))
+      errors.push(`${path}: gardien '${obj.id}' — unité inconnue des paquets '${obj.unitId}'`);
   }
   for (const [i, pos] of file.startPositions.entries()) {
     if (!inBounds(pos.x, pos.y)) errors.push(`${path}: startPositions[${i}] hors carte`);
@@ -207,13 +235,12 @@ function resolveMap(file: MapFile): ResolvedMap {
     height: file.height,
     terrain: file.tiles.flatMap((row) => [...row].map((c) => file.legend[c] as string)),
     road: file.roads.flatMap((row) => [...row].map((c) => c === '1')),
-    objects: file.objects.map(({ id, type, x, y, resource, amount }) => ({
-      id,
-      type,
-      pos: { x, y },
-      resource,
-      amount,
-    })),
+    objects: file.objects.map((obj): ResolvedMapObject => {
+      const pos = { x: obj.x, y: obj.y };
+      return obj.type === 'resource'
+        ? { id: obj.id, type: obj.type, pos, resource: obj.resource, amount: obj.amount }
+        : { id: obj.id, type: obj.type, pos, unitId: obj.unitId, count: obj.count };
+    }),
     startPositions: file.startPositions.map(({ x, y }) => ({ x, y })),
   };
 }

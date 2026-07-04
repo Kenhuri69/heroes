@@ -104,10 +104,35 @@ export const gameConfigSchema = z.object({
         (t) => Object.values(t).some((r) => r.moveCost !== null),
         'au moins un terrain franchissable',
       ),
+    /** Règles de combat (doc 02 §5 + plan phase-2.4) — même forme que le moteur. */
+    combat: z.object({
+      attackDefenseStep: z.number().positive().max(1),
+      damageBonusMax: z.number().positive().max(5),
+      damageReductionMax: z.number().positive().max(1),
+      defendDefenseMultiplier: z.number().min(1),
+      rangedMeleePenalty: z.number().positive().max(1),
+      moraleChancePerPoint: z.number().nonnegative().max(1),
+      luckChancePerPoint: z.number().nonnegative().max(1),
+      markBonusPerStack: z.number().nonnegative().max(1),
+      marksMax: z.number().int().positive(),
+      obstaclesMin: z.number().int().nonnegative(),
+      obstaclesMax: z.number().int().nonnegative(),
+    }).refine((c) => c.obstaclesMin <= c.obstaclesMax, 'obstaclesMin ≤ obstaclesMax'),
   }),
   newGame: z.object({
     map: idSchema,
     startingResources: z.record(z.enum(COMMON_RESOURCE_IDS), z.number().int().nonnegative()),
+    /** Armée de départ du héros (≤ 7 piles) — IDs vérifiés contre les paquets chargés. */
+    startingArmy: z
+      .array(z.object({ unitId: idSchema, count: z.number().int().positive() }))
+      .max(7)
+      .default([]),
+  }),
+  /** Affichage client (fourchettes de force des gardiens — doc 02 §2.2). */
+  display: z.object({
+    strengthBands: z
+      .array(z.object({ max: z.number().int().positive().nullable(), key: idSchema }))
+      .min(1),
   }),
 });
 
@@ -125,14 +150,25 @@ export const mapFileSchema = z.object({
   tiles: z.array(z.string()).min(1),
   roads: z.array(z.string()).min(1),
   objects: z.array(
-    z.object({
-      id: idSchema,
-      type: z.literal('resource'),
-      x: z.number().int().nonnegative(),
-      y: z.number().int().nonnegative(),
-      resource: z.enum(COMMON_RESOURCE_IDS),
-      amount: z.number().int().positive(),
-    }),
+    z.discriminatedUnion('type', [
+      z.object({
+        id: idSchema,
+        type: z.literal('resource'),
+        x: z.number().int().nonnegative(),
+        y: z.number().int().nonnegative(),
+        resource: z.enum(COMMON_RESOURCE_IDS),
+        amount: z.number().int().positive(),
+      }),
+      /** Gardien neutre : pile unique, combat à l'interception (doc 02 §2.2). */
+      z.object({
+        id: idSchema,
+        type: z.literal('guardian'),
+        x: z.number().int().nonnegative(),
+        y: z.number().int().nonnegative(),
+        unitId: idSchema,
+        count: z.number().int().positive(),
+      }),
+    ]),
   ),
   startPositions: z
     .array(z.object({ x: z.number().int().nonnegative(), y: z.number().int().nonnegative() }))

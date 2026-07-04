@@ -34,6 +34,27 @@ function heroPos(page: Page): Promise<{ x: number; y: number } | undefined> {
   });
 }
 
+/**
+ * Déplacement déterministe via le hook moteur — pour les tests dont le tap-tap
+ * n'est PAS le sujet (autosave, save/load, export). Le tap-tap réel garde son
+ * test dédié ; l'utiliser pour préparer un état le rend flaky sous charge CI
+ * (deux clics chronométrés). Chemin en ligne droite depuis (3,3) jusqu'au tas
+ * d'or (6,3), qui arrête le héros (ramassage — doc 02 §2.2).
+ */
+async function moveHeroToGold(page: Page): Promise<void> {
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({
+      type: 'MoveHero',
+      heroId: 'hero-player-1',
+      path: [
+        { x: 4, y: 3 },
+        { x: 5, y: 3 },
+        { x: 6, y: 3 },
+      ],
+    }),
+  );
+}
+
 /** Tap-tap (doc 08 §2.1) : 1er tap = prévisualisation, 2ᵉ tap = exécution. */
 async function tapTapTile(page: Page, x: number, y: number): Promise<void> {
   const screen = await page.evaluate(
@@ -219,7 +240,7 @@ test('menu : Nouvelle partie démarre, Continuer grisé sans sauvegarde', async 
 test('autosave à la fin de tour puis « Continuer » depuis le menu', async ({ page }) => {
   const errors = await openGame(page);
 
-  await tapTapTile(page, 6, 3);
+  await moveHeroToGold(page);
   await expect.poll(() => heroPos(page)).toEqual({ x: 6, y: 3 });
   await page.getByTestId('end-turn').click(); // ⇒ autosave (doc 07 §4)
   await expect(page.getByTestId('calendar')).toContainText('2');
@@ -311,7 +332,7 @@ test('XP : la victoire contre le gardien crédite le héros', async ({ page }) =
 test('export puis import .heroes : aller-retour valide (gzip)', async ({ page }) => {
   const errors = await openGame(page);
 
-  await tapTapTile(page, 6, 3);
+  await moveHeroToGold(page);
   await expect.poll(() => heroPos(page)).toEqual({ x: 6, y: 3 });
   const ok = await page.evaluate(() => window.__HEROES_TEST__!.saveRoundtrip());
   expect(ok).toBe(true);
@@ -323,13 +344,22 @@ test('export puis import .heroes : aller-retour valide (gzip)', async ({ page })
 test('sauvegarde puis rechargement IndexedDB : position restaurée', async ({ page }) => {
   const errors = await openGame(page);
 
-  await tapTapTile(page, 6, 3);
+  await moveHeroToGold(page);
   await expect.poll(() => heroPos(page)).toEqual({ x: 6, y: 3 });
 
   await page.getByTestId('save').click();
 
-  // Déplacement après sauvegarde… ((5,5) reste dans le viewport mobile)
-  await tapTapTile(page, 5, 5);
+  // Déplacement après sauvegarde (déterministe, à réverter par le chargement).
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({
+      type: 'MoveHero',
+      heroId: 'hero-player-1',
+      path: [
+        { x: 5, y: 4 },
+        { x: 5, y: 5 },
+      ],
+    }),
+  );
   await expect.poll(() => heroPos(page)).toEqual({ x: 5, y: 5 });
 
   // …annulé par le rechargement du slot.

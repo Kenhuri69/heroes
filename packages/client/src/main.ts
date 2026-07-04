@@ -2,13 +2,14 @@ import { Application, Point } from 'pixi.js';
 import type { Command, GameState } from '@heroes/engine';
 import { Camera } from './render/camera';
 import { TILE_SIZE } from './render/tilemap';
-import { loadGameContent, loadDefaultMap } from './app/content';
+import { loadGameContent, loadDefaultMap, loadScenarioMap } from './app/content';
 import {
   buildFactionSetup,
   buildHeroSetup,
   buildTownSetup,
   buildUnitCatalog,
   newGameCommand,
+  scenarioStartCommand,
 } from './app/game';
 import { dispatch } from './app/dispatch';
 import { appStore } from './app/store';
@@ -33,9 +34,14 @@ declare global {
       load: () => Promise<boolean>;
       /** Aller-retour export → import `.heroes` (couverture smoke du lot F). */
       saveRoundtrip: () => Promise<boolean>;
+      /** Démarre un scénario par id, seed fixe (couverture smoke du lot U). */
+      startScenario: (scenarioId: string) => Promise<void>;
     };
   }
 }
+
+/** Seed fixe pour un démarrage de scénario reproductible (hook de test). */
+const TEST_SCENARIO_SEED = 42;
 
 async function bootstrap(): Promise<void> {
   const report = await loadGameContent();
@@ -103,10 +109,32 @@ async function bootstrap(): Promise<void> {
     appStore.setState({ screen: 'game' });
   };
 
+  /**
+   * Démarre un scénario par id (doc 02 §6, plan phase-3.5 lot U) : résout sa
+   * carte (même chemin que `loadDefaultMap`, différé jusqu'ici car async) puis
+   * construit et joue le `StartGame` multi-joueurs correspondant.
+   */
+  const startScenario = async (scenarioId: string, seed: number): Promise<void> => {
+    const scenario = report.content.scenarios.find((s) => s.id === scenarioId);
+    if (!scenario) throw new Error(`scénario inconnu '${scenarioId}'`);
+    const scenarioMap = await loadScenarioMap(report, scenario);
+    await dispatch(scenarioStartCommand(report, scenario, seed, scenarioMap));
+    appStore.setState({ screen: 'game' });
+  };
+
   installAutosave(); // autosave à chaque fin de tour (doc 07 §4)
-  appStore.setState({ strengthBands: report.content.config.display.strengthBands });
+  appStore.setState({
+    strengthBands: report.content.config.display.strengthBands,
+    scenarios: report.content.scenarios,
+  });
   // « Nouvelle partie » du menu (contrat lot G) — seed horloge côté client.
   window.addEventListener('heroes:new-game', () => void startNewGame(Date.now()));
+  // Sélection de scénario au menu (doc 08, plan phase-3.5 lot U) — même
+  // découplage que « Nouvelle partie » : le menu émet, l'intégration écoute.
+  window.addEventListener('heroes:start-scenario', (e) => {
+    const { scenarioId } = (e as CustomEvent<{ scenarioId: string }>).detail;
+    void startScenario(scenarioId, Date.now());
+  });
 
   const uiRoot = document.getElementById('ui-root');
   if (!uiRoot) throw new Error('missing #ui-root');
@@ -133,6 +161,7 @@ async function bootstrap(): Promise<void> {
     save: () => saveGame(appStore.getState().game, 'manual'),
     load: () => restoreSavedGame('manual'),
     saveRoundtrip: async () => importSave(await exportSave(appStore.getState().game)),
+    startScenario: (scenarioId) => startScenario(scenarioId, TEST_SCENARIO_SEED),
   };
   window.__HEROES_READY__ = true; // signal pour le smoke test headless
 }

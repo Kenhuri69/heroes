@@ -15,6 +15,7 @@ import { TownScreen } from './TownScreen';
 import { HeroSkills } from './HeroSkills';
 import { HeroInventory } from './HeroInventory';
 import { SkillChoice } from './SkillChoice';
+import { OutcomeOverlay } from './OutcomeOverlay';
 import './styles.css';
 
 export function mountUi(root: HTMLElement): void {
@@ -51,6 +52,7 @@ function Shell() {
       {pendingSkillHero && pendingSkillHero.pendingSkillChoices.length > 0 && (
         <SkillChoice hero={pendingSkillHero} />
       )}
+      <OutcomeOverlay />
       <ToastHost />
     </>
   );

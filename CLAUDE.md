@@ -55,6 +55,15 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > un test de recrutement). Capacités spéciales / bonus de faction / héros
 > nommés différés (moteur MVP à 6 capacités ; points d'extension ouverts plus
 > tard, cf. doc 03 « État 3.3 »).
+> Phase 3.5 livrée : **scénarios & IA d'aventure** — conditions de victoire/
+> défaite déclaratives (`engine/scenario` : eliminateAllEnemies/captureTown/
+> defeatHero/surviveDays, élimination de joueur, `GameState.outcome` +
+> `GameEnded`, no-op hors scénario) ; **IA d'aventure** déterministe
+> (`engine/ai` + commande `AiTurn` : explore/ramasse/attaque/capture/construit/
+> recrute, heuristique gloutonne, property « IA vs IA se termine ») ; 3
+> scénarios solo data-driven (`data/scenarios/`) ; client : sélection de
+> scénario, boucle de pilotage des tours IA, overlay victoire/défaite ; smoke
+> « gagner un scénario contre l'IA ». Triggers de carte + scaling différés.
 > Phase 3.4 livrée : faction **Necropolis** + **Nécromancie** — le **test de
 > modularité n°1**. Faction 100 % données (`data/factions/necropolis/`, lineup
 > T1–T7 toutes `undead`) ET ouverture d'**UN** point d'extension moteur
@@ -104,6 +113,7 @@ data/
   core/locales/                  Locales FR/EN de l'UI générique (menu, options, toasts, ville)
   factions/                      Paquets de faction (index.json + haven, arcane-hunters, test-faction, necropolis)
   maps/proto-01.map.json         Carte prototype 32×32 (légende, tuiles, routes, objets, départs)
+  scenarios/                     Scénarios solo (index.json + tutorial/survival/conquest : joueurs, IA, objectifs)
 tests/smoke.spec.ts              Smoke Playwright/Chromium headless (guideline §7) sur le build de prod
 playwright.config.ts             Config smoke (desktop + mobile, vite preview)
 .claude/

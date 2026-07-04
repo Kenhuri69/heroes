@@ -1,0 +1,16 @@
+/* Overlay victoire/défaite (doc 02 §6, plan phase-3.5) — réutilise
+   .modal-backdrop / .modal (options.css, chargé globalement) et .menu-button
+   (menu.css, idem) pour le bouton de retour. */
+.modal.outcome-overlay {
+  width: min(92vw, 360px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+}
+
+.modal.outcome-overlay h2 {
+  margin: 0;
+  font-size: 28px;
+}

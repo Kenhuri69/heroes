@@ -87,7 +87,9 @@ export type Command =
   | { type: 'CaptureTown'; townId: string; playerId: string }
   // ——— Héros : sorts & compétences (doc 02 §1.2–§1.4) — surface figée 3.2 ———
   | { type: 'CastSpell'; spellId: string; targetStackId: string }
-  | { type: 'ChooseSkill'; heroId: string; skillId: string };
+  | { type: 'ChooseSkill'; heroId: string; skillId: string }
+  // ——— IA d'aventure (doc 11 §3.5) : joue le tour complet du joueur IA actif + fin de tour ———
+  | { type: 'AiTurn'; playerId: string };
 
 export interface CommandError {
   code:
@@ -121,7 +123,8 @@ export interface CommandError {
     | 'heroAlreadyCast'
     | 'invalidTarget'
     | 'unknownSkill'
-    | 'noPendingChoice';
+    | 'noPendingChoice'
+    | 'gameOver';
   message: string;
 }
 

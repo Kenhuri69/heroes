@@ -90,6 +90,16 @@ export function resolveArtifactName(artifactId: string): string {
   return resolveGenericName('artifact', artifactId);
 }
 
+/**
+ * Nom localisé d'un scénario (`scenario.name` = référence `@loc:` vers les
+ * locales CORE — data/core/locales/, plan phase-3.5, pas les locales de
+ * paquet comme `resolveLoc`). Repli sur la clé brute si absente.
+ */
+export function resolveScenarioName(nameRef: string): string {
+  const key = nameRef.startsWith('@loc:') ? nameRef.slice('@loc:'.length) : nameRef;
+  return t(key);
+}
+
 /** Change la langue courante — store + persistance (doc 08 §2.5). */
 export function setLocale(locale: Lang): void {
   appStore.setState({ locale });

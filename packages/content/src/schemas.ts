@@ -405,6 +405,78 @@ export const mapFileSchema = z.object({
     .min(1),
 });
 
+/** data/scenarios/index.json — registre des scénarios à charger (comme `factionIndexSchema`). */
+export const scenarioIndexSchema = z.object({
+  scenarios: z.array(idSchema).min(1),
+});
+
+/**
+ * Condition de victoire/défaite déclarative — forme figée, identique à
+ * `VictoryCondition` de `engine/src/scenario/types.ts` (plan phase-3.5). Le
+ * contenu ne fait qu'y référencer des ids opaques (ville, héros) ; leur
+ * résolution en jeu appartient au moteur.
+ */
+export const victoryConditionSchema = z.discriminatedUnion('type', [
+  z.object({ type: z.literal('eliminateAllEnemies') }),
+  z.object({ type: z.literal('captureTown'), townId: idSchema }),
+  z.object({ type: z.literal('defeatHero'), heroId: idSchema }),
+  z.object({ type: z.literal('surviveDays'), days: z.number().int().positive() }),
+]);
+
+/** Objectifs d'un joueur — identique à `ScenarioObjectives` du moteur. */
+export const scenarioObjectivesSchema = z.object({
+  victory: victoryConditionSchema,
+  defeat: victoryConditionSchema,
+});
+
+/**
+ * data/scenarios/<id>.scenario.json (plan phase-3.5) — une carte + des joueurs
+ * (contrôleur, faction, dotation de départ) + des objectifs par joueur. Les
+ * règles croisées (carte connue, faction chargée, index de départ valide,
+ * unités d'armée connues) vivent dans `loadScenarios`.
+ */
+export const scenarioSchema = z
+  .object({
+    id: idSchema,
+    schemaVersion: z.literal(1),
+    name: locRef,
+    /** Référence `data/maps/<id>.map.json`. */
+    map: idSchema,
+    players: z
+      .array(
+        z.object({
+          id: idSchema,
+          controller: z.enum(['human', 'ai']),
+          /** Référence un paquet de faction chargé (`data/factions/<id>/`). */
+          factionId: idSchema,
+          /** Index dans `map.startPositions`. */
+          startPositionIndex: z.number().int().nonnegative(),
+          startingResources: z
+            .record(z.enum(COMMON_RESOURCE_IDS), z.number().int().nonnegative())
+            .default({}),
+          /** Armée de départ du héros (≤ 7 piles). */
+          startingArmy: z
+            .array(z.object({ unitId: idSchema, count: z.number().int().positive() }))
+            .max(7)
+            .default([]),
+          /** Ville de départ du joueur (doc 02 §4) — optionnelle (scénario sans ville). */
+          startingTown: z
+            .object({
+              id: idSchema,
+              x: z.number().int().nonnegative(),
+              y: z.number().int().nonnegative(),
+              prebuilt: z
+                .array(z.object({ building: buildingIdSchema, level: z.number().int().positive() }))
+                .min(1),
+            })
+            .optional(),
+        }),
+      )
+      .min(2),
+    objectives: z.record(idSchema, scenarioObjectivesSchema),
+  })
+  .refine((s) => s.players.every((p) => s.objectives[p.id]), 'chaque joueur doit avoir des objectifs');
+
 export type AbilityCatalog = z.infer<typeof abilityCatalogSchema>;
 export type FactionIndex = z.infer<typeof factionIndexSchema>;
 export type Manifest = z.infer<typeof manifestSchema>;
@@ -429,3 +501,9 @@ export type Artifact = z.infer<typeof artifactSchema>;
 export type ArtifactCatalogFile = z.infer<typeof artifactCatalogSchema>;
 /** Forme moteur — `Artifact` sans `name` (locale, hors `ArtifactDef` figé). */
 export type ResolvedArtifact = Omit<Artifact, 'name'>;
+export type ScenarioIndex = z.infer<typeof scenarioIndexSchema>;
+/** Forme moteur — identique à `VictoryCondition` de `engine/src/scenario/types.ts`. */
+export type VictoryCondition = z.infer<typeof victoryConditionSchema>;
+/** Forme moteur — identique à `ScenarioObjectives` de `engine/src/scenario/types.ts`. */
+export type ScenarioObjectives = z.infer<typeof scenarioObjectivesSchema>;
+export type Scenario = z.infer<typeof scenarioSchema>;

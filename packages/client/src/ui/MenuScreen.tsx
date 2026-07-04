@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'preact/hooks';
 import { hasAnySave, restoreLatestSave } from '../app/save';
-import { t } from '../app/i18n';
+import { t, resolveScenarioName } from '../app/i18n';
 import { useApp } from '../app/store';
 import { OptionsPanel } from './OptionsPanel';
 import './menu.css';
@@ -13,9 +13,15 @@ import './menu.css';
  * - « Nouvelle partie » émet un CustomEvent DOM `heroes:new-game` sur
  *   `window` : c'est `main.ts` (intégration) qui l'écoute pour construire et
  *   lancer une commande `StartGame`, ce composant ne connaît pas la config.
+ * - Un scénario (plan phase-3.5, lot U) émet `heroes:start-scenario` avec
+ *   `{ scenarioId }` en detail — même découplage, `main.ts` résout la carte
+ *   (async) et construit la commande. La liste vient de `appStore.scenarios`
+ *   (peuplé par `main.ts` au chargement) : ce composant ne connaît aucun id
+ *   de scénario en dur.
  */
 export function MenuScreen() {
   useApp((s) => s.locale); // réactivité i18n (t() lit le store hors hook)
+  const scenarios = useApp((s) => s.scenarios);
   const [canContinue, setCanContinue] = useState(false);
   const [optionsOpen, setOptionsOpen] = useState(false);
 
@@ -52,6 +58,25 @@ export function MenuScreen() {
           {t('menu.options')}
         </button>
       </nav>
+      {scenarios.length > 0 && (
+        <nav class="menu-actions menu-scenarios" data-testid="menu-scenarios">
+          <h2 class="menu-section-title">{t('menu.scenarios')}</h2>
+          {scenarios.map((scenario) => (
+            <button
+              class="menu-button"
+              key={scenario.id}
+              data-testid={`menu-scenario-${scenario.id}`}
+              onClick={() =>
+                window.dispatchEvent(
+                  new CustomEvent('heroes:start-scenario', { detail: { scenarioId: scenario.id } }),
+                )
+              }
+            >
+              {resolveScenarioName(scenario.name)}
+            </button>
+          ))}
+        </nav>
+      )}
       {optionsOpen && <OptionsPanel onClose={() => setOptionsOpen(false)} />}
     </div>
   );

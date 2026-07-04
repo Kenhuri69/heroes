@@ -66,22 +66,40 @@ tutoriel gagnable contre l'IA. Déterministe, moteur pur (RNG seedé, sans rendu
 
 ## Lots
 
-- [ ] **Cadrage (principal)** : ce plan + surfaces figées (state/commands/
-      events/types + stubs) + golden refixé, vert.
-- [ ] **Lot R (sonnet) — moteur conditions** : `evaluateOutcome`
+- [x] **Cadrage (principal)** : plan + surfaces figées (state/commands/events/
+      types + stubs `evaluateOutcome`/`runAiTurn`), golden refixé
+      `211e3cfd`→`48073225` (nouveaux champs, simulation inchangée). Vert.
+- [x] **Lot R (sonnet) — moteur conditions** : `evaluateOutcome`
       (4 conditions + élimination + dernier debout), câblage EndTurn/combat/
-      capture, refus de commande si partie finie, `GameEnded`, tests tabulaires.
-- [ ] **Lot S (sonnet) — moteur IA d'aventure** : `runAiTurn` (héros :
-      objectif A* + ramassage/gardien/capture ; ville : build+recruit ; puis
-      fin de tour), property « IA vs IA se termine (< N jours) » + déterminisme,
-      golden d'un scénario scripté.
-- [ ] **Lot T (sonnet) — contenu scénarios** : `scenarioSchema`, loader,
-      3 scénarios (`data/scenarios/`), `content:check` étendu, tests.
-- [ ] **Lot U (sonnet) — client** : menu de sélection de scénario, overlay
-      victoire/défaite (i18n), boucle de pilotage des tours IA, toasts.
-- [ ] **Intégration (principal)** : câblage scénario→StartGame (joueur IA),
-      smoke « gagner le scénario tutoriel contre l'IA », golden scripté, docs
-      (doc 02 conditions/§6, doc 09), CLAUDE.md, garde-fou, PR, merge.
+      capture, refus de commande `gameOver` si partie finie, `GameEnded`/
+      `PlayerEliminated`, 12 tests. Golden intact.
+- [x] **Lot S (sonnet) — moteur IA d'aventure** : `runAiTurn` + `town-ai.ts`
+      (héros : objectif A* + ramassage/gardien battable/capture ; ville :
+      build+recruit ; ne pousse pas EndTurn — driver s'en charge), 5 tests dont
+      property « IA vs IA se termine (< 200 jours) » + déterminisme. 175 tests.
+- [x] **Lot T (sonnet) — contenu scénarios** : `scenarioSchema` +
+      `victoryConditionSchema`, loader `loadScenarios`/`buildScenarioObjectives`,
+      3 scénarios (`tutorial`/`survival`/`conquest` sur proto-01), locales,
+      `content:check` étendu, 53 tests contenu.
+- [x] **Intégration moteur (principal)** : commande `AiTurn` (runAiTurn + fin
+      de tour), pilotable par le client ; golden intact `48073225`.
+- [x] **Lot U (sonnet) — client** : `scenarioStartCommand(report, scenario,
+      seed, map)` (multi-joueurs, joueurs ordonnés par `startPositionIndex` ;
+      `map` pré-résolue — écart de signature assumé, cf. note ci-dessous) +
+      `startScenario` (main.ts) ; boucle de pilotage des tours IA dans
+      `app/dispatch.ts` (après tout dispatch réussi, garde-fou 200 tours) ;
+      overlay victoire/défaite (`OutcomeOverlay.tsx`, i18n `outcome.won/lost/
+      backToMenu`) + toast `GameEnded` optionnel ; menu → section « Scénarios »
+      (`appStore.scenarios`, aucun id en dur) ; hook `__HEROES_TEST__.
+      startScenario` ; 2 tests smoke (« l'IA joue son tour » sur `tutorial` via
+      clic menu, « gagner » sur `survival` via hook + boucle `EndTurn`).
+      Vérif complète verte (typecheck/lint/build/smoke desktop+mobile 34/34).
+      Écart de signature : `scenarioStartCommand` prend `map: ResolvedMap` déjà
+      résolue (comme `newGameCommand`) plutôt que de fetcher elle-même — la
+      résolution async (`loadScenarioMap`, `app/content.ts`) reste hors de
+      `game.ts` (builders purs, aucun I/O), cohérent avec le pattern existant.
+- [ ] **Intégration finale (principal)** : docs (02 §6 État 3.5, CLAUDE.md),
+      garde-fou, vérif globale, PR, merge.
 
 ## Écarts assumés
 

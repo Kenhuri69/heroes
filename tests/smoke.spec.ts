@@ -12,6 +12,11 @@ import { expect, test, type Page } from '@playwright/test';
 // Phase 3.2 : lancer un sort en combat (livre → cible → prévisualisation →
 // CastSpell) réduit une pile ennemie ; gating de la modale de choix de
 // compétence.
+// Phase 3.5 (lot U) : menu → bouton scénario → boucle IA automatique (doc 02
+// §6) → jour suivant avec l'IA ayant agi ; scénario « survival » gagné par
+// surviveDays (15 jours) — la seule condition atteignable par la simple
+// survie/attente, aucun combat héros-vs-héros n'existant côté moteur (écart
+// assumé du plan phase-3.5) ; overlay victoire affiché.
 // Non couvert ici (dit explicitement, guideline §7) : le tap-tap DANS le
 // combat (sélection d'hex/cible au canvas) — couvert indirectement par
 // AutoCombat ; à outiller quand la scène exposera ses coordonnées. La montée
@@ -32,6 +37,14 @@ function collectErrors(page: Page): string[] {
 async function openGame(page: Page): Promise<string[]> {
   const errors = collectErrors(page);
   await page.goto('./?seed=42'); // seed fixe : partie reproductible
+  await page.waitForFunction(() => window.__HEROES_READY__ === true);
+  return errors;
+}
+
+/** Menu principal, sans partie démarrée (doc 08 §2.5) — point de départ des scénarios. */
+async function openMenu(page: Page): Promise<string[]> {
+  const errors = collectErrors(page);
+  await page.goto('./');
   await page.waitForFunction(() => window.__HEROES_READY__ === true);
   return errors;
 }
@@ -529,6 +542,70 @@ test('sauvegarde puis rechargement IndexedDB : position restaurée', async ({ pa
   const state = await page.evaluate(() => window.__HEROES_TEST__!.getState());
   expect(state.heroes[0]?.movementPoints).toBe(1400);
   await expect(page.getByTestId('resource-gold')).toHaveText('2500');
+
+  expect(errors).toEqual([]);
+});
+
+test('scénario : le menu démarre le tutoriel, l’IA joue son tour', async ({ page }) => {
+  const errors = await openMenu(page);
+
+  await expect(page.getByTestId('menu-scenario-tutorial')).toBeVisible();
+  await page.getByTestId('menu-scenario-tutorial').click();
+  await expect(page.getByTestId('end-turn')).toBeVisible();
+
+  const before = await page.evaluate(() => window.__HEROES_TEST__!.getState());
+  expect(before.calendar.day).toBe(1);
+  expect(before.heroes).toHaveLength(2);
+  expect(before.players.map((p) => p.controller)).toEqual(['human', 'ai']);
+
+  // Fin de tour humain : la boucle IA (app/dispatch.ts) joue automatiquement
+  // le tour de l'IA (déplacement/ramassage/ville — doc 11 §3.5) puis termine
+  // son tour à son tour — le jour avance donc d'un cran, sans intervention.
+  await page.getByTestId('end-turn').click();
+  await expect(page.getByTestId('calendar')).toHaveText('Jour 2 · Semaine 1');
+
+  const after = await page.evaluate(() => window.__HEROES_TEST__!.getState());
+  expect(after.calendar.day).toBe(2);
+  expect(after.currentPlayer).toBe(0); // revenu au joueur humain
+  expect(after.combat).toBeNull(); // un combat déclenché par l'IA aurait été auto-résolu
+  expect(after.heroes).toHaveLength(2); // aucun gardien accessible au jour 1 (héros distants)
+
+  expect(errors).toEqual([]);
+});
+
+test('scénario : gagner « survie » contre l’IA (surviveDays)', async ({ page }) => {
+  const errors = await openMenu(page);
+
+  await page.evaluate(() => window.__HEROES_TEST__!.startScenario('survival'));
+  await expect(page.getByTestId('end-turn')).toBeVisible();
+
+  const state0 = await page.evaluate(() => window.__HEROES_TEST__!.getState());
+  expect(state0.scenario).not.toBeNull();
+  expect(state0.outcome).toBeNull();
+
+  // Le joueur humain se contente de finir son tour ; la boucle IA joue
+  // automatiquement le tour adverse (aucun combat héros-vs-héros au moteur —
+  // écart assumé plan phase-3.5, cf. commentaire d'en-tête) jusqu'à ce que
+  // `surviveDays: 15` soit atteint. Plafond largement au-delà du nécessaire.
+  const MAX_TURNS = 30;
+  for (let i = 0; i < MAX_TURNS; i++) {
+    const outcome = await page.evaluate(() => window.__HEROES_TEST__!.getState().outcome);
+    if (outcome) break;
+    await page.evaluate(() =>
+      window.__HEROES_TEST__!.dispatch({ type: 'EndTurn', playerId: 'player-1' }),
+    );
+  }
+
+  const state = await page.evaluate(() => window.__HEROES_TEST__!.getState());
+  expect(state.outcome).not.toBeNull();
+  expect(state.outcome?.status).toBe('won');
+  expect(state.calendar.day).toBeGreaterThanOrEqual(15);
+  await expect(page.getByTestId('outcome-overlay')).toBeVisible();
+  await expect(page.getByTestId('outcome-status')).toHaveText('Victoire !');
+
+  // Retour au menu depuis l'overlay (bouton, doc 08).
+  await page.getByTestId('outcome-back-to-menu').click();
+  await expect(page.getByTestId('menu-new-game')).toBeVisible();
 
   expect(errors).toEqual([]);
 });

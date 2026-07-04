@@ -9,6 +9,8 @@ import {
   localeSchema,
   manifestSchema,
   mapFileSchema,
+  scenarioIndexSchema,
+  scenarioSchema,
   skillCatalogSchema,
   spellCatalogSchema,
   unitSchema,
@@ -20,6 +22,8 @@ import {
   type Locale,
   type Manifest,
   type MapFile,
+  type Scenario,
+  type ScenarioObjectives,
   type ResolvedArtifact,
   type ResolvedBuilding,
   type ResolvedSkill,
@@ -60,12 +64,21 @@ export interface LoadedContent {
   /** Artefacts communs — data/core/artifacts.json (doc 02 §1.1, plan phase-3.2). */
   coreArtifacts: Artifact[];
   packs: FactionPack[];
+  /**
+   * Scénarios solo résolus — data/scenarios/ (plan phase-3.5, lot T). Vide tant
+   * que `loadScenarios` n'a pas été appelé sur ce rapport : une étape
+   * distincte de `loadContent`, car elle a besoin du contenu déjà chargé
+   * (factions, unités, bâtiments) pour résoudre ses propres règles croisées.
+   */
+  scenarios: Scenario[];
 }
 
 export interface LoadReport {
   content: LoadedContent;
   /** Paquets rejetés — jamais de crash en jeu, un rapport précis (doc 06 §1). */
   rejected: { id: string; errors: string[] }[];
+  /** Scénarios rejetés (plan phase-3.5) — même forme que `rejected`. */
+  rejectedScenarios: { id: string; errors: string[] }[];
 }
 
 /** Charge et valide tout le contenu déclaré dans data/factions/index.json. */
@@ -129,8 +142,10 @@ export async function loadContent(readJson: ReadJson): Promise<LoadReport> {
       coreSkills,
       coreArtifacts,
       packs: [],
+      scenarios: [],
     },
     rejected: [],
+    rejectedScenarios: [],
   };
   for (const id of index.factions) {
     try {
@@ -589,6 +604,102 @@ export async function loadMap(
 
   if (errors.length > 0) throw new PackError(errors);
   return resolveMap(file);
+}
+
+/**
+ * Charge et valide `data/scenarios/index.json` + chaque `<id>.scenario.json`
+ * (plan phase-3.5, lot T). Étape distincte de `loadContent` : elle a besoin du
+ * contenu déjà chargé (factions, unités, bâtiments) pour ses règles croisées
+ * (carte connue, faction chargée, index de départ valide, unités d'armée
+ * connues). Rejet propre par scénario — jamais de crash, comme les paquets de
+ * faction. Retourne `report` augmenté de `content.scenarios`/`rejectedScenarios`.
+ */
+export async function loadScenarios(readJson: ReadJson, report: LoadReport): Promise<LoadReport> {
+  const index = parseFile(
+    scenarioIndexSchema,
+    await readJson('scenarios/index.json'),
+    'scenarios/index.json',
+  );
+  const knownFactionIds = new Set(report.content.packs.map((p) => p.manifest.id));
+  const knownUnits = knownUnitIds(report);
+  const buildingCatalog = buildBuildingCatalog(report);
+
+  const scenarios: Scenario[] = [];
+  const rejectedScenarios: { id: string; errors: string[] }[] = [];
+  for (const id of index.scenarios) {
+    try {
+      scenarios.push(
+        await loadScenario(readJson, id, report.content.config, knownFactionIds, knownUnits, buildingCatalog),
+      );
+    } catch (e) {
+      rejectedScenarios.push({ id, errors: describeError(e) });
+    }
+  }
+  return {
+    ...report,
+    content: { ...report.content, scenarios },
+    rejectedScenarios,
+  };
+}
+
+/** Charge et valide un scénario (règles croisées doc 02 §6, plan phase-3.5). */
+async function loadScenario(
+  readJson: ReadJson,
+  id: string,
+  config: GameConfig,
+  knownFactionIds: ReadonlySet<string>,
+  knownUnits: ReadonlySet<string>,
+  buildingCatalog: Record<string, ResolvedBuilding>,
+): Promise<Scenario> {
+  const path = `scenarios/${id}.scenario.json`;
+  const scenario = parseFile(scenarioSchema, await readJson(path), path);
+  const errors: string[] = [];
+  if (scenario.id !== id) errors.push(`${path}: id '${scenario.id}' ≠ fichier '${id}'`);
+
+  let map: ResolvedMap | undefined;
+  try {
+    map = await loadMap(readJson, scenario.map, config, knownUnits);
+  } catch (e) {
+    errors.push(
+      `${path}: carte '${scenario.map}' invalide — ${describeError(e).join('; ')}`,
+    );
+  }
+
+  for (const player of scenario.players) {
+    if (!knownFactionIds.has(player.factionId))
+      errors.push(`${path}: joueur '${player.id}' — faction inconnue '${player.factionId}'`);
+    if (map && player.startPositionIndex >= map.startPositions.length)
+      errors.push(
+        `${path}: joueur '${player.id}' — startPositionIndex ${player.startPositionIndex} ≥ ` +
+          `${map.startPositions.length} position(s) de départ de la carte`,
+      );
+    for (const stack of player.startingArmy) {
+      if (!knownUnits.has(stack.unitId))
+        errors.push(`${path}: joueur '${player.id}' — unité d'armée inconnue '${stack.unitId}'`);
+    }
+    if (player.startingTown) {
+      for (const pb of player.startingTown.prebuilt) {
+        const def = buildingCatalog[pb.building];
+        if (!def) errors.push(`${path}: joueur '${player.id}' — bâtiment inconnu '${pb.building}'`);
+        else if (pb.level > def.maxLevel)
+          errors.push(
+            `${path}: joueur '${player.id}' — niveau ${pb.level} > maxLevel (${def.maxLevel}) pour '${pb.building}'`,
+          );
+      }
+    }
+  }
+
+  if (errors.length > 0) throw new PackError(errors);
+  return scenario;
+}
+
+/**
+ * Objectifs de scénario prêts pour `StartGame.scenario`/`GameState.scenario`
+ * (plan phase-3.5) — `scenario.objectives` est déjà dans la forme résolue
+ * (`ScenarioObjectives` par joueur), aucune traduction nécessaire.
+ */
+export function buildScenarioObjectives(scenario: Scenario): Record<string, ScenarioObjectives> {
+  return scenario.objectives;
 }
 
 /** Déplie légende et rangées vers la forme row-major consommée par le moteur. */

@@ -206,3 +206,16 @@ Heuristique par pile : score = dégâts espérés × valeur de la cible − risq
 ## 6. Conditions de victoire/défaite (par scénario)
 
 `eliminateAllEnemies` (défaut), `captureTown(id)`, `defeatHero(id)`, `surviveDays(n)`, `collectArtifact(id)`, `accumulateResource(type, n)`. Défaite : perte de tous héros **et** villes (ou objectif du scénario).
+
+> 🚧 **État 3.5** : 4 conditions déclaratives implémentées (`eliminateAllEnemies`,
+> `captureTown`, `defeatHero`, `surviveDays` — `collectArtifact`/
+> `accumulateResource` différées). Le moteur (`engine/scenario`) évalue
+> `GameState.scenario.objectives` (par joueur) après chaque transition (fin de
+> tour, combat, capture) et pose `GameState.outcome` + émet `GameEnded` ; un
+> joueur sans ville ni héros est **éliminé** (grâce des 7 jours différée →
+> immédiate au MVP) ; hors scénario (partie libre) = **aucune** évaluation.
+> **IA d'aventure** déterministe (`engine/ai`, commande `AiTurn`) : chaque
+> joueur `controller:'ai'` explore / ramasse / attaque un gardien battable /
+> capture / construit / recrute puis passe son tour ; heuristique gloutonne de
+> tutoriel (pas de magie ni de planif multi-tours — écart assumé). 3 scénarios
+> solo en données (`data/scenarios/`).

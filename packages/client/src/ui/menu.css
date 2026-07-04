@@ -42,3 +42,12 @@
   opacity: 0.45;
   cursor: default;
 }
+
+.menu-section-title {
+  margin: 0;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.75;
+  text-align: center;
+}

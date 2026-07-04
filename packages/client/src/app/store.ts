@@ -2,6 +2,7 @@ import { createStore } from 'zustand/vanilla';
 import { useSyncExternalStore } from 'preact/compat';
 import type { GameState } from '@heroes/engine';
 import { createEmptyState } from '@heroes/engine';
+import type { Scenario } from '@heroes/content';
 
 /**
  * Store applicatif (doc 07 §3) : l'état moteur + un état d'UI léger.
@@ -27,6 +28,8 @@ export interface AppState {
   screen: 'menu' | 'game';
   /** Écran de ville ouvert sur cet id (doc 02 §4.2) — null = fermé. */
   townScreenOpen: string | null;
+  /** Scénarios chargés (doc 02 §6, plan phase-3.5) — liste affichée au menu. */
+  scenarios: Scenario[];
 }
 
 export const appStore = createStore<AppState>(() => ({
@@ -40,6 +43,7 @@ export const appStore = createStore<AppState>(() => ({
   toasts: [],
   screen: 'menu',
   townScreenOpen: null,
+  scenarios: [],
 }));
 
 /** Hook Preact : re-rend quand la valeur sélectionnée change (égalité stricte). */

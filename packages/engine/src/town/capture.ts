@@ -1,6 +1,7 @@
 import type { Command, CommandError } from '../core/commands';
 import type { GameEvent } from '../core/events';
 import type { GameState } from '../core/state';
+import { evaluateOutcome } from '../scenario/outcome';
 
 type CaptureCmd = Extract<Command, { type: 'CaptureTown' }>;
 
@@ -25,4 +26,7 @@ export function handleCaptureTown(draft: GameState, cmd: CaptureCmd, events: Gam
   if (!town) return; // exclu par validate
   town.ownerPlayerId = cmd.playerId;
   events.push({ type: 'TownCaptured', townId: town.id, playerId: cmd.playerId });
+  // Une ville peut changer de main (élimination de l'ancien propriétaire) :
+  // conditions de victoire/défaite (doc 02 §6, plan phase-3.5) — no-op hors scénario.
+  evaluateOutcome(draft, events);
 }

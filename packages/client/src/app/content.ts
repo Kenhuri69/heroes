@@ -2,9 +2,11 @@ import {
   knownUnitIds,
   loadContent,
   loadMap,
+  loadScenarios,
   type LoadReport,
   type ReadJson,
   type ResolvedMap,
+  type Scenario,
 } from '@heroes/content';
 
 /** Lecteur navigateur : data/ est copié à la racine du site par Vite (publicDir). */
@@ -15,14 +17,20 @@ const readJsonFromSite: ReadJson = async (path) => {
 };
 
 /**
- * Charge tout le contenu au démarrage. Un paquet invalide est rejeté avec un
- * rapport en console.error (jamais de crash — doc 06 §1) ; le smoke test
- * échoue donc si les paquets du dépôt cassent.
+ * Charge tout le contenu au démarrage : paquets de faction puis scénarios
+ * (plan phase-3.5, lot U — `loadScenarios` a besoin des paquets/unités/
+ * bâtiments déjà chargés pour ses règles croisées). Un paquet ou un scénario
+ * invalide est rejeté avec un rapport en console.error (jamais de crash —
+ * doc 06 §1) ; le smoke test échoue donc si le contenu du dépôt casse.
  */
 export async function loadGameContent(): Promise<LoadReport> {
-  const report = await loadContent(readJsonFromSite);
+  let report = await loadContent(readJsonFromSite);
+  report = await loadScenarios(readJsonFromSite, report);
   for (const rejected of report.rejected) {
     console.error(`paquet de faction rejeté : ${rejected.id}\n${rejected.errors.join('\n')}`);
+  }
+  for (const rejected of report.rejectedScenarios) {
+    console.error(`scénario rejeté : ${rejected.id}\n${rejected.errors.join('\n')}`);
   }
   return report;
 }
@@ -31,4 +39,10 @@ export async function loadGameContent(): Promise<LoadReport> {
 export async function loadDefaultMap(report: LoadReport): Promise<ResolvedMap> {
   const config = report.content.config;
   return loadMap(readJsonFromSite, config.newGame.map, config, knownUnitIds(report));
+}
+
+/** Charge la carte d'un scénario (même chemin de résolution que `loadDefaultMap`). */
+export async function loadScenarioMap(report: LoadReport, scenario: Scenario): Promise<ResolvedMap> {
+  const config = report.content.config;
+  return loadMap(readJsonFromSite, scenario.map, config, knownUnitIds(report));
 }

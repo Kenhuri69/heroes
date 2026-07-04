@@ -54,6 +54,10 @@ function toastMessage(event: AppEvent): string | null {
       return t('toast.townBuilt', { building: t(`building.${event.buildingId}`) });
     case 'UnitsRecruited':
       return t('toast.unitsRecruited', { count: event.count, unit: resolveUnitName(event.unitId) });
+    // Fin de partie (doc 02 §6, plan phase-3.5) — l'overlay victoire/défaite
+    // porte le message principal, ce toast n'est qu'un signal immédiat.
+    case 'GameEnded':
+      return event.status === 'won' ? t('toast.gameWon') : t('toast.gameLost');
     default:
       return null;
   }

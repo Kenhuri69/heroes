@@ -13,5 +13,44 @@ export async function dispatch(cmd: Command): Promise<EngineResult> {
   const result = apply(appStore.getState().game, cmd);
   appStore.setState({ game: result.state });
   eventBus.emit(result.events);
+  runAiLoop();
   return Promise.resolve(result);
+}
+
+/**
+ * Garde-fou anti-boucle infinie (plan phase-3.5 §5) : un tour = un `AiTurn`
+ * par joueur IA actif, largement suffisant même pour un enchaînement de
+ * plusieurs joueurs IA d'affilée.
+ */
+const MAX_AI_TURNS_PER_DISPATCH = 200;
+
+/**
+ * Boucle de pilotage des tours IA (doc 02 §6, plan phase-3.5 lot U) : après
+ * tout dispatch réussi (`EndTurn`, fin de combat, capture, `StartGame`…),
+ * tant que c'est au tour d'un joueur `'ai'`, la partie n'est pas finie et
+ * aucun combat n'est en cours, joue son tour (`AiTurn` fait le tour complet +
+ * `EndTurn`, doc 11 §3.5) et ré-évalue — jusqu'à retomber sur un joueur
+ * humain ou une fin de partie.
+ *
+ * Placé ici plutôt qu'en abonnement `appStore.subscribe` (option laissée
+ * ouverte par le plan) : `dispatch` est déjà le point d'entrée UNIQUE
+ * commande → moteur (doc 07 §3), donc le seul endroit où « l'état vient de
+ * changer » sans ambiguïté. Un abonnement au store se redéclencherait à
+ * chaque `setState` — y compris ceux de cette boucle elle-même — et
+ * demanderait une garde de réentrance équivalente pour un gain nul.
+ */
+function runAiLoop(): void {
+  let iterations = 0;
+  for (;;) {
+    const game = appStore.getState().game;
+    if (game.outcome || game.combat) return;
+    const current = game.players[game.currentPlayer];
+    if (!current || current.controller !== 'ai') return;
+    if (++iterations > MAX_AI_TURNS_PER_DISPATCH) {
+      throw new Error('runAiLoop : trop de tours IA d’affilée, boucle infinie suspectée');
+    }
+    const result = apply(game, { type: 'AiTurn', playerId: current.id });
+    appStore.setState({ game: result.state });
+    eventBus.emit(result.events);
+  }
 }

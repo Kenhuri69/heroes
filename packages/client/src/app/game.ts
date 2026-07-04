@@ -15,12 +15,14 @@ import {
   buildArtifactCatalog,
   buildBuildingCatalog,
   buildFactionCatalog,
+  buildScenarioObjectives,
   buildSkillCatalog,
   buildSpellCatalog,
   resolveStartingTowns,
   type GameConfig,
   type LoadReport,
   type ResolvedMap,
+  type Scenario,
 } from '@heroes/content';
 
 /** Catalogue d'effets de faction résolu contenu → moteur (doc 06, plan phase-3.4). */
@@ -165,5 +167,98 @@ export function newGameCommand(
     artifactCatalog: heroSetup.artifactCatalog,
     startingArtifacts: heroSetup.startingArtifacts,
     factionCatalog,
+  };
+}
+
+/**
+ * Construit la commande `StartGame` multi-joueurs d'un scénario résolu (doc
+ * 02 §6, plan phase-3.5 lot U). `map` est déjà résolue par le contenu — même
+ * chemin que `newGameCommand`/`loadDefaultMap` (le scénario ne porte que l'id
+ * `scenario.map` ; sa résolution async vit dans `app/content.ts`, hors de ce
+ * module qui ne fait que construire des données, jamais de fetch).
+ *
+ * Les joueurs sont ordonnés par `startPositionIndex` croissant : le moteur
+ * assigne le héros du joueur à l'index i de `players` à `map.startPositions[i]`
+ * (`StartGame` handler, `core/engine.ts`).
+ *
+ * Dotation héros (attributs/sorts) : celle par défaut du contenu
+ * (`buildHeroSetup`), identique pour tous les joueurs humains et IA — garde
+ * simple (décision de portée du lot U), le scénario ne surcharge que
+ * ressources/armée/ville/faction/contrôleur.
+ */
+export function scenarioStartCommand(
+  report: LoadReport,
+  scenario: Scenario,
+  seed: number,
+  map: ResolvedMap,
+): Command {
+  const heroSetup = buildHeroSetup(report);
+  const buildingCatalog = buildBuildingCatalog(report) as Record<string, BuildingDef>;
+  const orderedPlayers = [...scenario.players].sort(
+    (a, b) => a.startPositionIndex - b.startPositionIndex,
+  );
+  if (map.startPositions.length < orderedPlayers.length) {
+    throw new Error(
+      `scenarioStartCommand: ${orderedPlayers.length} joueur(s) pour ${map.startPositions.length} ` +
+        `position(s) de départ sur la carte '${map.id}'`,
+    );
+  }
+
+  const players = orderedPlayers.map((p) => {
+    const startingResources: Resources = { ...emptyResources() };
+    for (const [id, amount] of Object.entries(p.startingResources)) {
+      startingResources[id as keyof Resources] = amount ?? 0;
+    }
+    return {
+      id: p.id,
+      startingResources,
+      startingArmy: p.startingArmy.map((s) => ({ ...s })),
+      startingAttributes: { ...heroSetup.startingAttributes },
+      startingSpells: [...heroSetup.startingSpells],
+      startingFactionId: p.factionId,
+      controller: p.controller,
+    };
+  });
+
+  const towns: TownState[] = orderedPlayers.flatMap((p) => {
+    if (!p.startingTown) return [];
+    const buildings: Record<string, number> = {};
+    for (const pb of p.startingTown.prebuilt) buildings[pb.building] = pb.level;
+    return [
+      {
+        id: p.startingTown.id,
+        ownerPlayerId: p.id,
+        pos: { x: p.startingTown.x, y: p.startingTown.y },
+        factionId: p.factionId,
+        buildings,
+        builtToday: false,
+        garrison: [],
+        stock: {},
+      },
+    ];
+  });
+
+  // Les objets `town` de la carte vivent dans `GameState.towns`, jamais dans
+  // les objets d'aventure du moteur (resource/guardian) — voir `newGameCommand`.
+  const adventureMap = {
+    ...map,
+    objects: map.objects.filter((o) => o.type !== 'town'),
+  };
+
+  return {
+    type: 'StartGame',
+    seed,
+    players,
+    map: adventureMap,
+    config: report.content.config.adventure,
+    unitCatalog: buildUnitCatalog(report),
+    buildingCatalog,
+    towns,
+    spellCatalog: heroSetup.spellCatalog,
+    skillCatalog: heroSetup.skillCatalog,
+    artifactCatalog: heroSetup.artifactCatalog,
+    startingArtifacts: heroSetup.startingArtifacts,
+    factionCatalog: buildFactionSetup(report),
+    scenario: { objectives: buildScenarioObjectives(scenario) },
   };
 }

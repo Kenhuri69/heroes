@@ -2,6 +2,7 @@ import { grantXp } from '../adventure/experience';
 import { applyFactionVictoryEffects } from '../faction/effects';
 import type { GameEvent } from '../core/events';
 import { rollRange } from '../core/rng';
+import { evaluateOutcome } from '../scenario/outcome';
 import type { Draft } from './draft';
 import { collectCasualties, combatRules, effectiveSpeed, moraleOf } from './state-helpers';
 import type { CombatSideId, CombatStack, CombatState } from './types';
@@ -102,6 +103,9 @@ export function checkCombatEnd(draft: Draft, events: GameEvent[]): boolean {
   combat.activeStackId = null;
   const casualties = collectCasualties(combat);
   applyConsequences(draft, combat, winner, casualties, events);
+  // Un héros peut disparaître (défaite) : conditions de victoire/défaite
+  // (doc 02 §6, plan phase-3.5) — no-op hors scénario.
+  evaluateOutcome(draft, events);
   events.push({ type: 'CombatEnded', winner, casualties });
   grantHeroCombatXp(draft, combat, winner, casualties, events);
   draft.combat = null;

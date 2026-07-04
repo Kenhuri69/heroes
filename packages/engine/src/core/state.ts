@@ -4,6 +4,7 @@ import type { ArmyStack, CombatState, CombatUnitDef } from '../combat/types';
 import type { BuildingDef, TownState } from '../town/types';
 import type { ArtifactDef, HeroSkillDef, SpellDef } from '../hero/types';
 import type { FactionBonus } from '../faction/types';
+import type { GameOutcome, ScenarioState } from '../scenario/types';
 import type { RngState } from './rng';
 
 /** Les 7 ressources du jeu (doc 02 §3). Les montants vivent dans les données. */
@@ -25,6 +26,10 @@ export interface PlayerState {
   resources: Resources;
   /** Brouillard exploré, 0/1 par tuile row-major (doc 02 §2.1) — par joueur. */
   explored: number[];
+  /** Qui joue ce joueur (doc 02 §6, plan phase-3.5) — l'IA ne joue que `'ai'`. */
+  controller: 'human' | 'ai';
+  /** Éliminé (sans ville ni héros) — ne joue plus, exclu des vivants. */
+  eliminated: boolean;
 }
 
 /** Attributs primaires du héros (doc 02 §1.1) — effets câblés au MVP. */
@@ -103,6 +108,13 @@ export interface GameState {
    * connaître de nom de faction.
    */
   factionCatalog: Record<string, { bonuses: FactionBonus[] }>;
+  /**
+   * Objectifs du scénario par joueur (doc 02 §6, plan phase-3.5) — `null` en
+   * partie libre : aucune évaluation de fin de partie.
+   */
+  scenario: ScenarioState | null;
+  /** Issue de la partie (doc 02 §6) — `null` tant qu'elle est en cours. */
+  outcome: GameOutcome | null;
 }
 
 export function createEmptyState(): GameState {
@@ -124,6 +136,8 @@ export function createEmptyState(): GameState {
     towns: [],
     combat: null,
     factionCatalog: {},
+    scenario: null,
+    outcome: null,
   };
 }
 

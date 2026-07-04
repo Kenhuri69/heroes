@@ -33,6 +33,8 @@ import {
 } from '../hero';
 import { heroManaMax } from '../hero/artifacts';
 import { heroGoldPerDay, heroMovementBonus, heroVisionBonus } from '../hero/skills';
+import { evaluateOutcome } from '../scenario/outcome';
+import { runAiTurn } from '../ai/adventure';
 import { EngineError, type Command, type CommandError } from './commands';
 import type { GameEvent } from './events';
 import { seedRng } from './rng';
@@ -74,7 +76,25 @@ export function apply(state: GameState, cmd: Command): EngineResult {
   return { state: next, events };
 }
 
+/** Commandes de jeu bloquées une fois `outcome` posé (doc 02 §6) — `StartGame` reste autorisé. */
+const GAME_OVER_BLOCKED = new Set<Command['type']>([
+  'MoveHero',
+  'EndTurn',
+  'StartCombat',
+  'CombatAction',
+  'AutoCombat',
+  'BuildStructure',
+  'RecruitUnits',
+  'GarrisonTransfer',
+  'CaptureTown',
+  'CastSpell',
+  'ChooseSkill',
+  'AiTurn',
+]);
+
 export function validate(state: GameState, cmd: Command): CommandError | null {
+  if (state.outcome !== null && GAME_OVER_BLOCKED.has(cmd.type))
+    return { code: 'gameOver', message: 'la partie est terminée' };
   switch (cmd.type) {
     case 'StartGame': {
       if (state.started)
@@ -157,6 +177,16 @@ export function validate(state: GameState, cmd: Command): CommandError | null {
     case 'ChooseSkill': {
       if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
       return validateChooseSkill(state, cmd);
+    }
+    case 'AiTurn': {
+      if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
+      if (state.combat) return { code: 'combatActive', message: 'un combat est en cours' };
+      const current = state.players[state.currentPlayer];
+      if (!current || current.id !== cmd.playerId)
+        return { code: 'notYourTurn', message: `ce n’est pas le tour de ${cmd.playerId}` };
+      if (current.controller !== 'ai')
+        return { code: 'invalidAction', message: `'${cmd.playerId}' n’est pas un joueur IA` };
+      return null;
     }
   }
 }
@@ -242,6 +272,8 @@ const handlers: Handlers = {
     draft.skillCatalog = cmd.skillCatalog ?? {};
     draft.artifactCatalog = cmd.artifactCatalog ?? {};
     draft.factionCatalog = cmd.factionCatalog ?? {};
+    draft.scenario = cmd.scenario ?? null;
+    draft.outcome = null;
     draft.towns = (cmd.towns ?? []).map((t) => ({
       ...t,
       buildings: { ...t.buildings },
@@ -252,6 +284,8 @@ const handlers: Handlers = {
       id: p.id,
       resources: { ...p.startingResources },
       explored: createFog(cmd.map),
+      controller: p.controller ?? 'human',
+      eliminated: false,
     }));
     // Un héros par joueur à sa position de départ, armée de scénario (doc 02 §1.5, §5.1).
     draft.heroes = cmd.players.map((p, i) => ({
@@ -390,33 +424,45 @@ const handlers: Handlers = {
   EndTurn(draft, cmd, events) {
     events.push({ type: 'TurnEnded', playerId: cmd.playerId });
     draft.currentPlayer += 1;
-    if (draft.currentPlayer < draft.players.length) return;
-    // Un jour = un tour de chaque joueur (doc 02 §2.3).
-    draft.currentPlayer = 0;
-    draft.calendar.day += 1;
-    if (draft.config) {
-      // Points de mouvement quotidiens restaurés (doc 02 §1.5), modulés Logistique.
+    if (draft.currentPlayer >= draft.players.length) {
+      // Un jour = un tour de chaque joueur (doc 02 §2.3).
+      draft.currentPlayer = 0;
+      draft.calendar.day += 1;
+      if (draft.config) {
+        // Points de mouvement quotidiens restaurés (doc 02 §1.5), modulés Logistique.
+        for (const hero of draft.heroes) {
+          hero.movementPoints = heroDailyMovement(draft, hero);
+        }
+      }
+      events.push({ type: 'DayStarted', day: draft.calendar.day });
+      // Économie des villes : 1 build/jour réarmé, revenu quotidien (doc 02 §4.1).
+      resetBuiltToday(draft);
+      applyDailyIncome(draft, events);
+      // Économie (compétence héros, décision plan phase-3.2 #5) : or/jour supplémentaire.
       for (const hero of draft.heroes) {
-        hero.movementPoints = heroDailyMovement(draft, hero);
+        const gold = heroGoldPerDay(hero, draft.skillCatalog);
+        if (gold <= 0) continue;
+        const player = draft.players.find((p) => p.id === hero.playerId);
+        if (!player) continue;
+        player.resources.gold += gold;
+        events.push({ type: 'TownIncome', playerId: player.id, resource: 'gold', amount: gold });
+      }
+      const week = weekOf(draft.calendar.day);
+      if (week !== weekOf(draft.calendar.day - 1)) {
+        events.push({ type: 'WeekStarted', week });
+        applyWeeklyGrowth(draft, events); // croissance hebdo des habitations
       }
     }
-    events.push({ type: 'DayStarted', day: draft.calendar.day });
-    // Économie des villes : 1 build/jour réarmé, revenu quotidien (doc 02 §4.1).
-    resetBuiltToday(draft);
-    applyDailyIncome(draft, events);
-    // Économie (compétence héros, décision plan phase-3.2 #5) : or/jour supplémentaire.
-    for (const hero of draft.heroes) {
-      const gold = heroGoldPerDay(hero, draft.skillCatalog);
-      if (gold <= 0) continue;
-      const player = draft.players.find((p) => p.id === hero.playerId);
-      if (!player) continue;
-      player.resources.gold += gold;
-      events.push({ type: 'TownIncome', playerId: player.id, resource: 'gold', amount: gold });
-    }
-    const week = weekOf(draft.calendar.day);
-    if (week !== weekOf(draft.calendar.day - 1)) {
-      events.push({ type: 'WeekStarted', week });
-      applyWeeklyGrowth(draft, events); // croissance hebdo des habitations
-    }
+    // Conditions de victoire/défaite (doc 02 §6, plan phase-3.5) — no-op hors scénario.
+    evaluateOutcome(draft, events);
+  },
+
+  AiTurn(draft, cmd, events) {
+    // L'IA joue toutes ses actions (héros + villes, combats résolus en auto),
+    // puis le tour est passé comme un EndTurn normal (doc 11 §3.5). Le driver
+    // (client / test) reboucle tant que le joueur courant est une IA.
+    runAiTurn(draft, cmd.playerId, events);
+    if (draft.combat || draft.outcome) return; // sécurité : combat resté ouvert / partie finie
+    handlers.EndTurn(draft, { type: 'EndTurn', playerId: cmd.playerId }, events);
   },
 };

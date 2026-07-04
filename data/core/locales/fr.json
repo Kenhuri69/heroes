@@ -3,6 +3,7 @@
   "menu.continue": "Continuer",
   "menu.newGame": "Nouvelle partie",
   "menu.options": "Options",
+  "menu.scenarios": "Scénarios",
 
   "options.title": "Options",
   "options.close": "Fermer",
@@ -137,5 +138,15 @@
   "building.market": "Marché",
   "building.tavern": "Taverne",
   "building.forge": "Forge",
-  "building.special": "Bâtiment spécial"
+  "building.special": "Bâtiment spécial",
+
+  "scenario.tutorial.name": "Tutoriel",
+  "scenario.survival.name": "Survie",
+  "scenario.conquest.name": "Conquête",
+
+  "outcome.won": "Victoire !",
+  "outcome.lost": "Défaite",
+  "outcome.backToMenu": "Retour au menu",
+  "toast.gameWon": "Victoire !",
+  "toast.gameLost": "Défaite…"
 }

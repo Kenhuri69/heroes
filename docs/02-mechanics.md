@@ -141,13 +141,15 @@ Vue peinte de la ville où les bâtiments construits apparaissent (grande satisf
 
 - **Grille hexagonale pointy-top de 12 colonnes × 10 rangées** (proche Heroes Online, plus compacte que HoMM III — combats plus courts, meilleur pour mobile).
 - Attaquant à gauche, défenseur à droite ; jusqu'à **7 piles** par armée, placement initial automatique + phase de placement tactique si compétence Tactique.
-- Obstacles générés selon le terrain d'aventure (2–5 hexes bloqués) ; le terrain natif donne +1 vitesse/+1 moral aux unités natives.
+- Placement automatique (valeur de départ, Phase 2) : attaquant colonne 0, défenseur colonne 11 ; pour n piles, rangée du slot i = `floor((i + 0,5) × 10 / n)`.
+- Obstacles générés selon le terrain d'aventure (2–5 hexes bloqués, tirés au RNG du combat dans les colonnes 3–8) ; le terrain natif donne +1 vitesse/+1 moral aux unités natives.
+- La **vitesse** d'une unité est sa portée de déplacement en hexes par round.
 
 ### 5.2 Tour par tour
 
 - **Rounds par vagues** : à chaque round, toutes les piles agissent par ordre de **vitesse décroissante** (égalité : attaquant d'abord, puis ordre de slot). Choix « vagues » plutôt que barre ATB : plus prévisible et lisible sur petit écran.
-- Actions d'une pile : **déplacer**, **attaquer** (mêlée : déplacement+attaque ; distance : tir si pas d'ennemi adjacent, sinon mêlée à ½ dégâts), **attendre** (rejoue en fin de round), **défendre** (+30 % défense), **capacité active** (si l'unité en a une).
-- **Riposte** : 1 riposte/round par pile (des capacités la modifient : `noRetaliation`, `unlimitedRetaliation`).
+- Actions d'une pile : **déplacer**, **attaquer** (mêlée : déplacement+attaque ; distance : tir si pas d'ennemi adjacent, sinon mêlée à ½ dégâts), **attendre** (rejoue en fin de round, par vitesse **croissante** ; une attente par round), **défendre** (+30 % défense, soit Défense ×1,3 arrondie à l'entier inférieur, jusqu'au prochain tour de la pile).
+- **Riposte** : 1 riposte/round par pile, après application des pertes de la frappe — une pile détruite ne riposte pas, le tir ne déclenche jamais de riposte (des capacités la modifient : `noRetaliation`, `unlimitedRetaliation`).
 - **Le héros** : 1 action/round (sort OU attaque héroïque mineure), ne peut pas être ciblé.
 
 ### 5.3 Dégâts
@@ -159,8 +161,13 @@ dégâts = Σ(dmg aléatoire min–max par créature de la pile)
 ```
 
 - Les pertes retirent des créatures entières + PV entamés sur la première.
-- **Moral** (−3..+3) : proba d'un **tour bonus** (moral positif : 4 %/point) ou d'un **tour sauté** (négatif). Armée multi-factions : −1 moral par faction supplémentaire (les morts-vivants ne subissent/ne donnent pas de moral).
+- **Moral** (−3..+3) : proba d'un **tour bonus** (moral positif : 4 %/point) ou d'un **tour sauté** (négatif : 4 %/point, symétrique). Armée multi-factions : −1 moral par faction supplémentaire (les morts-vivants ne subissent/ne donnent pas de moral).
 - **Chance** (0..+3) : proba de dégâts doublés (4 %/point).
+- Note (Phase 2.4) : en combat, la formule symétrique ±0,05/point s'applique
+  telle quelle aux stats des unités ; la pente défensive −2,5 %/point de §1.1
+  concerne l'attribut **Défense du héros**, qui s'ajoutera au MVP (les bornes
+  −70 %/+60 % sont communes). Toutes ces constantes vivent dans
+  `data/core/config.json` (`adventure.combat`).
 
 ### 5.4 Capacités d'unités (bibliothèque moteur)
 
@@ -169,6 +176,17 @@ Le moteur expose un **catalogue de capacités génériques paramétrables** ; le
 `flying`, `shooter(ammo, noMeleePenalty?)`, `noRetaliation`, `unlimitedRetaliation`, `strikeAndReturn`, `doubleAttack`, `areaAttack(pattern)`, `breathAttack`, `undead`, `lifeDrain(pct)`, `resurrectOnKill`, `curseOnHit(spell, chance)`, `aura(effect, radius)`, `charge(bonusPerHex)`, `enrage(onAllyDeath)`, `magicResistance(pct)`, `spellcaster(spells, charges)`, `firstStrike`, `taunt`, `stealth(untilFirstAction)`, `mark(target)` …
 
 Une faction qui a besoin d'une capacité **réellement nouvelle** l'ajoute comme module JS enregistré dans le registre de capacités (cf. doc 06 §4) — c'est le seul point d'extension en code autorisé.
+
+Sémantique des 6 capacités de la Phase 2.4 (valeurs de départ) :
+
+| Capacité | Effet implémenté |
+|---|---|
+| `flying` | le déplacement ignore obstacles et unités (survol), portée = vitesse, atterrissage sur hex libre |
+| `shooter(ammo, noMeleePenalty?)` | tir sans riposte, portée illimitée, 1 munition/tir ; à 0 munition ou ennemi adjacent : mêlée à ½ dégâts sauf `noMeleePenalty` |
+| `noRetaliation` | la cible ne riposte jamais aux attaques de cette unité |
+| `doubleAttack` | deux frappes ; la riposte éventuelle s'intercale après la 1ʳᵉ |
+| `undead` | moral figé à 0 (ne subit ni ne donne), ne compte pas dans le malus multi-factions |
+| `mark` | chaque frappe applique 1 charge à la cible (max 3, persistantes) ; +8 %/charge de dégâts subis |
 
 ### 5.5 Fin de combat & auto-résolution
 

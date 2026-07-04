@@ -4,6 +4,10 @@ import { expect, test, type Page } from '@playwright/test';
 // aucune erreur console. Étendu à chaque nouveau scénario livré (doc 10 §3) —
 // Phase 2.3 : carte, déplacement tap-tap scripté (seed fixe), fin de tour,
 // sauvegarde/rechargement IndexedDB (jalon Phase 0 roadmap).
+// Phase 2.4 : victoire contre le gardien, arène /#arena, fluidité throttlée.
+// Non couvert ici (dit explicitement, guideline §7) : le tap-tap DANS le
+// combat (sélection d'hex/cible au canvas) — couvert indirectement par
+// AutoCombat ; à outiller quand la scène exposera ses coordonnées.
 
 function collectErrors(page: Page): string[] {
   const errors: string[] = [];
@@ -89,6 +93,105 @@ test('fin de tour : jour suivant, points de mouvement restaurés', async ({ page
   await expect(page.getByTestId('movement-points')).toHaveText('PM 1700');
 
   expect(errors).toEqual([]);
+});
+
+test('combat : victoire contre le gardien, retour carte avec pertes appliquées', async ({ page }) => {
+  const errors = await openGame(page);
+
+  // Chemin scripté vers le gardien (9,3) par la rangée 2 (évite le tas d'or
+  // en (6,3) qui arrêterait le héros) — le dernier pas déclenche l'interception.
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({
+      type: 'MoveHero',
+      heroId: 'hero-player-1',
+      path: [
+        { x: 4, y: 2 },
+        { x: 5, y: 2 },
+        { x: 6, y: 2 },
+        { x: 7, y: 2 },
+        { x: 8, y: 2 },
+        { x: 9, y: 3 },
+      ],
+    }),
+  );
+
+  // Le combat est ouvert : le héros n'est PAS entré sur la tuile du gardien.
+  await expect(page.getByTestId('combat-round')).toBeVisible();
+  await expect.poll(() => heroPos(page)).toEqual({ x: 8, y: 2 });
+  const combat = await page.evaluate(() => window.__HEROES_TEST__!.getState().combat);
+  expect(combat?.playerSide).toBe('attacker');
+  expect(combat?.stacks.filter((s) => s.side === 'defender')).toHaveLength(1);
+
+  // Auto-résolution : 32 unités contre 4 — victoire, gardien retiré, pertes ≤ effectif.
+  await page.evaluate(() => window.__HEROES_TEST__!.dispatch({ type: 'AutoCombat' }));
+  await expect
+    .poll(() => page.evaluate(() => window.__HEROES_TEST__!.getState().combat))
+    .toBeNull();
+  const state = await page.evaluate(() => window.__HEROES_TEST__!.getState());
+  expect(state.heroes[0]?.id).toBe('hero-player-1'); // victoire : le héros survit
+  expect(state.map?.objects.some((o) => o.id === 'guard-camp')).toBe(false);
+  const total = state.heroes[0]?.army.reduce((sum, s) => sum + s.count, 0) ?? 0;
+  expect(total).toBeGreaterThan(0);
+  expect(total).toBeLessThanOrEqual(32);
+  await expect(page.getByTestId('end-turn')).toBeVisible(); // retour à l'aventure
+
+  expect(errors).toEqual([]);
+});
+
+test("l'arène /#arena ouvre un combat immédiat et se résout en auto", async ({ page }) => {
+  const errors = collectErrors(page);
+  await page.goto('./?seed=42#arena');
+  await page.waitForFunction(() => window.__HEROES_READY__ === true);
+
+  await expect(page.getByTestId('combat-round')).toHaveText('Round 1');
+  await expect(page.getByTestId('damage-preview')).toBeVisible();
+  const stacks = await page.evaluate(
+    () => window.__HEROES_TEST__!.getState().combat?.stacks.length,
+  );
+  expect(stacks).toBe(4); // armées miroir : 2 piles par camp
+
+  await page.getByTestId('combat-auto').click();
+  await expect
+    .poll(() => page.evaluate(() => window.__HEROES_TEST__!.getState().combat))
+    .toBeNull();
+  await expect(page.getByTestId('end-turn')).toBeVisible();
+
+  expect(errors).toEqual([]);
+});
+
+test('arène : fluidité sous throttling CPU ×4 (doc 10 §6)', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'desktop', 'mesure unique, desktop');
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+  await page.goto('./?seed=42#arena');
+  await page.waitForFunction(() => window.__HEROES_READY__ === true);
+
+  // Garde-fou anti-régression : le rendu CI est LOGICIEL (SwiftShader, pas de
+  // GPU) et throttlé ×4 — le seuil (15 fps après 1 s d'échauffement) attrape
+  // un effondrement, pas le budget 60 fps réel (mesure device : 2.5).
+  const fps = await page.evaluate(
+    () =>
+      new Promise<number>((resolve) => {
+        let frames = 0;
+        let start = 0;
+        const loop = (): void => {
+          const now = performance.now();
+          if (start === 0) {
+            if (now > 1000) start = now; // échauffement : on ignore le démarrage
+          } else {
+            frames += 1;
+            if (now - start >= 2000) {
+              resolve(frames / ((now - start) / 1000));
+              return;
+            }
+          }
+          requestAnimationFrame(loop);
+        };
+        requestAnimationFrame(loop);
+      }),
+  );
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
+  expect(fps).toBeGreaterThanOrEqual(15);
 });
 
 test('sauvegarde puis rechargement IndexedDB : position restaurée', async ({ page }) => {

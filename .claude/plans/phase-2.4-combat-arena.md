@@ -75,11 +75,11 @@ dans `data/core/config.json` (`combat`), jamais en dur.
 
 ## Lots
 
-- [ ] **Cadrage (principal)** : ce plan ; types figés
+- [x] **Cadrage (principal)** : ce plan ; types figés
       (`engine/src/combat/types.ts`, `hex.ts`, extensions `commands.ts`/
       `events.ts`/`state.ts`) ; `engine.ts` câblé vers des stubs
       `combat/index.ts` ; typecheck vert avec stubs.
-- [ ] **Lot A (sonnet) — règles de combat** : `engine/src/combat/`
+- [x] **Lot A (sonnet) — règles de combat** : `engine/src/combat/`
       (placement, obstacles, vagues d'initiative, actions, riposte, dégâts
       §5.3, moral/chance, 6 capacités, fin + application des pertes) +
       `engine/test/combat-*.test.ts` (cas tabulaires de dégâts, property
@@ -101,7 +101,7 @@ dans `data/core/config.json` (`combat`), jamais en dur.
       `engine/src/combat/ai.ts` (heuristique §5.6 : score = dégâts espérés ×
       valeur cible − riposte − exposition ; tireurs kitent, lents défendent)
       + test « même seed ⇒ même résultat » répété.
-- [ ] **Lot D (principal, après A+C) — intégration aventure & contenu** :
+- [x] **Lot D (principal, après A+C) — intégration aventure & contenu** :
       schéma map `guardian` + gardiens sur proto-01, `startingArmy`
       + `config.combat` (schémas + données), résolution du catalogue
       d'unités content→engine, interception ⇒ combat ⇒ retour carte avec
@@ -122,6 +122,25 @@ dans `data/core/config.json` (`combat`), jamais en dur.
   herbe par défaut.
 
 ## Écarts constatés en cours de route
+
+- **Lot A** : bilan de pertes (`CombatEnded.casualties`) porté par une
+  extension runtime privée du `CombatState` (`_losses`, non déclarée dans le
+  type public figé) — vivante uniquement pendant le combat ; à promouvoir en
+  champ typé si un besoin UI durable apparaît (2.5). Tour bonus de moral
+  encodé via la sémantique de `acted` (pas de nouveau champ).
+- **Lot A** : tirage de chance conservé dans la séquence RNG avec luck = 0
+  (stabilité du golden quand la chance arrivera avec les artefacts).
+- **`mark` simplifié** : +8 %/charge sur TOUS les dégâts subis par la cible
+  (équivalent à « du camp du marqueur » en combat à 2 camps) — à raffiner si
+  un 3ᵉ camp apparaît.
+- **Smoke fluidité** : rendu CI logiciel (SwiftShader) ⇒ seuil anti-
+  effondrement 15 fps après échauffement, pas le budget 60 fps réel (device
+  en 2.5). Tap-tap DANS le combat non couvert par le smoke (AutoCombat le
+  couvre indirectement) — dit explicitement, guideline §7.
+- **Interception** : le pas d'engagement vers le gardien est payé en PM mais
+  le héros reste sur sa tuile ; l'armée vide n'est pas bloquée à la
+  validation de `MoveHero` (impossible avec l'armée de départ des données —
+  garde-fou à ajouter avec le recrutement, MVP).
 
 - **Lot C** : le survol souris (`hovered` de `drawBoard`) est câblé côté API
   (`render/hexgrid.ts`) mais pas encore alimenté par `CombatScene` — seul le

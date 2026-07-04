@@ -1,0 +1,81 @@
+{
+  "buildings": [
+    {
+      "id": "haven-dwelling-t1",
+      "maxLevel": 1,
+      "levels": [
+        {
+          "cost": { "gold": 500 },
+          "requires": [{ "building": "fort", "level": 1 }],
+          "effect": { "type": "dwelling", "tier": 1, "unitId": "t1-conscrit" }
+        }
+      ]
+    },
+    {
+      "id": "haven-dwelling-t2",
+      "maxLevel": 1,
+      "levels": [
+        {
+          "cost": { "gold": 1000, "wood": 5 },
+          "requires": [{ "building": "haven-dwelling-t1", "level": 1 }],
+          "effect": { "type": "dwelling", "tier": 2, "unitId": "t2-archer" }
+        }
+      ]
+    },
+    {
+      "id": "haven-dwelling-t3",
+      "maxLevel": 1,
+      "levels": [
+        {
+          "cost": { "gold": 2000, "ore": 5 },
+          "requires": [{ "building": "haven-dwelling-t2", "level": 1 }],
+          "effect": { "type": "dwelling", "tier": 3, "unitId": "t3-frere-lame" }
+        }
+      ]
+    },
+    {
+      "id": "haven-dwelling-t4",
+      "maxLevel": 1,
+      "levels": [
+        {
+          "cost": { "gold": 3000, "wood": 10 },
+          "requires": [{ "building": "haven-dwelling-t3", "level": 1 }],
+          "effect": { "type": "dwelling", "tier": 4, "unitId": "t4-griffon" }
+        }
+      ]
+    },
+    {
+      "id": "haven-dwelling-t5",
+      "maxLevel": 1,
+      "levels": [
+        {
+          "cost": { "gold": 3500, "gems": 2 },
+          "requires": [{ "building": "mageGuild", "level": 1 }],
+          "effect": { "type": "dwelling", "tier": 5, "unitId": "t5-pretresse" }
+        }
+      ]
+    },
+    {
+      "id": "haven-dwelling-t6",
+      "maxLevel": 1,
+      "levels": [
+        {
+          "cost": { "gold": 4500, "crystal": 2 },
+          "requires": [{ "building": "haven-dwelling-t5", "level": 1 }],
+          "effect": { "type": "dwelling", "tier": 6, "unitId": "t6-chevalier-griffon" }
+        }
+      ]
+    },
+    {
+      "id": "haven-dwelling-t7",
+      "maxLevel": 1,
+      "levels": [
+        {
+          "cost": { "gold": 6000, "crystal": 3, "gems": 3 },
+          "requires": [{ "building": "haven-dwelling-t6", "level": 1 }],
+          "effect": { "type": "dwelling", "tier": 7, "unitId": "t7-ange" }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "id": "haven",
+  "schemaVersion": 1,
+  "name": "@loc:faction.name",
+  "nativeTerrain": "grass",
+  "keyResources": ["crystal", "gems"],
+  "factionResources": [],
+  "factionBonuses": [],
+  "spellSchool": null,
+  "heroSkills": [],
+  "tiers": 7,
+  "sharedGrowthGroups": {},
+  "units": [
+    "t1-conscrit",
+    "t2-archer",
+    "t3-frere-lame",
+    "t4-griffon",
+    "t5-pretresse",
+    "t6-chevalier-griffon",
+    "t7-ange"
+  ],
+  "abilityModules": [],
+  "hooks": [],
+  "aiProfile": { "aggression": 0.5, "focusFire": 0.6, "preferredTargets": "weakest" },
+  "town": {
+    "buildings": [
+      "townHall",
+      "fort",
+      "mageGuild",
+      "haven-dwelling-t1",
+      "haven-dwelling-t2",
+      "haven-dwelling-t3",
+      "haven-dwelling-t4",
+      "haven-dwelling-t5",
+      "haven-dwelling-t6",
+      "haven-dwelling-t7"
+    ],
+    "dwellings": [
+      { "tier": 1, "unitId": "t1-conscrit", "buildingId": "haven-dwelling-t1" },
+      { "tier": 2, "unitId": "t2-archer", "buildingId": "haven-dwelling-t2" },
+      { "tier": 3, "unitId": "t3-frere-lame", "buildingId": "haven-dwelling-t3" },
+      { "tier": 4, "unitId": "t4-griffon", "buildingId": "haven-dwelling-t4" },
+      { "tier": 5, "unitId": "t5-pretresse", "buildingId": "haven-dwelling-t5" },
+      { "tier": 6, "unitId": "t6-chevalier-griffon", "buildingId": "haven-dwelling-t6" },
+      { "tier": 7, "unitId": "t7-ange", "buildingId": "haven-dwelling-t7" }
+    ]
+  }
+}

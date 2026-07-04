@@ -1,0 +1,10 @@
+{
+  "faction.name": "Haven",
+  "unit.t1-conscrit.name": "Conscript",
+  "unit.t2-archer.name": "Archer",
+  "unit.t3-frere-lame.name": "Blade Brother",
+  "unit.t4-griffon.name": "Griffin",
+  "unit.t5-pretresse.name": "Priestess",
+  "unit.t6-chevalier-griffon.name": "Griffin Knight",
+  "unit.t7-ange.name": "Angel"
+}

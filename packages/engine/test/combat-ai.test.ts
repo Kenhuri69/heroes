@@ -87,7 +87,11 @@ describe('IA de combat — déterminisme (doc 02 §5.6)', () => {
     for (let i = 0; i < 1000; i++) {
       expect(hashState(run())).toBe(reference);
     }
-  });
+    // Timeout explicite : 1000 AutoCombats complets est intrinsèquement lourd
+    // (~4–5 s en local, davantage sur les runners CI plus lents) — le défaut
+    // vitest de 5 s le rendait flaky. Déterminisme conservé, pas de réduction
+    // du nombre de répétitions.
+  }, 20000);
 });
 
 describe('IA de combat — comportements imposés', () => {

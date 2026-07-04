@@ -7,6 +7,7 @@ export default defineConfig({
   timeout: 30_000,
   use: {
     baseURL: 'http://127.0.0.1:4173/heroes/',
+    locale: 'fr-FR', // langue UI déterministe (l'i18n suit la langue navigateur)
     // Environnements sans les révisions Playwright (sandbox, conteneurs) :
     // pointer PW_CHROMIUM_PATH sur un Chromium local. La CI n'en a pas besoin.
     ...(process.env.PW_CHROMIUM_PATH

@@ -1,5 +1,69 @@
 {
+  "menu.title": "Heroes",
   "menu.continue": "Continue",
   "menu.newGame": "New game",
-  "menu.options": "Options"
+  "menu.options": "Options",
+
+  "options.title": "Options",
+  "options.close": "Close",
+  "options.language": "Language",
+  "options.fontScale": "Text size",
+  "options.combatSpeed": "Combat speed",
+  "options.dataSection": "Save game",
+  "options.export": "Export game",
+  "options.import": "Import game",
+  "options.exportError": "Export failed.",
+  "options.importError": "Invalid save file.",
+
+  "turnBar.calendar": "Day {day} · Week {week}",
+  "turnBar.movementPoints": "MP {points}",
+  "turnBar.save": "Save",
+  "turnBar.load": "Load",
+  "turnBar.endTurn": "End turn",
+
+  "guardianBand.few": "A few defenders",
+  "guardianBand.several": "Several defenders",
+  "guardianBand.pack": "A pack",
+  "guardianBand.lots": "A troop",
+  "guardianBand.horde": "A horde",
+  "guardianBand.throng": "A throng",
+  "guardianBand.legion": "A legion",
+
+  "hero.drawerToggle": "Open hero panel",
+  "hero.level": "Level {level}",
+  "hero.xp": "XP {xp}",
+
+  "attribute.attack": "Attack",
+  "attribute.defense": "Defense",
+  "attribute.power": "Power",
+  "attribute.knowledge": "Knowledge",
+
+  "army.title": "Army",
+
+  "combat.round": "Round {round}",
+  "combat.wait": "Wait",
+  "combat.defend": "Defend",
+  "combat.auto": "Auto ▶▶",
+  "combat.damagePreviewPlaceholder": "Select a target to preview damage.",
+  "combat.damage": "{min}–{max} damage",
+  "combat.retaliationEstimate": "estimated retaliation: {min}–{max}",
+  "combat.noRetaliation": "no retaliation",
+  "combat.previewSummary": "{damage}, ~{kills} killed · {retal}",
+  "combat.landscapeHint": "Rotate to landscape for a more comfortable fight.",
+  "combat.landscapeHintDismiss": "Got it",
+
+  "toast.resourcePicked": "+{amount} {resource}",
+  "toast.weekStarted": "Week {week} started",
+  "toast.combatWon": "Victory!",
+  "toast.combatLost": "Defeat…",
+  "toast.heroLevelUp": "Level {level} reached!",
+  "toast.gameLoaded": "Game loaded",
+
+  "resource.gold": "Gold",
+  "resource.wood": "Wood",
+  "resource.ore": "Ore",
+  "resource.crystal": "Crystal",
+  "resource.gems": "Gems",
+  "resource.sulfur": "Sulfur",
+  "resource.mercury": "Mercury"
 }

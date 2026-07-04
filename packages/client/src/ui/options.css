@@ -1,0 +1,117 @@
+/* Modale Options (doc 08 §3) — pile de modales ≤ 2 niveaux, fermeture par
+   bouton ou Échap. #ui-root est en pointer-events: none, ce bloc ré-active
+   les siens. */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 11, 14, 0.6);
+  pointer-events: auto;
+  z-index: 20;
+}
+
+.modal.options-panel {
+  width: min(92vw, 420px);
+  max-height: 86vh;
+  overflow-y: auto;
+  padding: 16px 18px;
+  border: 1px solid #3a3d47;
+  border-radius: 10px;
+  background: #1c1e25;
+  color: #e8e2d0;
+  font: 14px/1.4 system-ui, sans-serif;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.modal-close {
+  min-height: 44px;
+  min-width: 44px;
+  border: 1px solid #3a3d47;
+  border-radius: 8px;
+  background: #262a33;
+  color: #e8e2d0;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.options-section {
+  margin: 14px 0;
+}
+
+.options-section h3 {
+  margin: 0 0 6px;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.75;
+}
+
+.segmented {
+  display: flex;
+  gap: 6px;
+}
+
+.segmented button {
+  min-height: 44px;
+  flex: 1;
+  padding: 6px 10px;
+  border: 1px solid #3a3d47;
+  border-radius: 8px;
+  background: #262a33;
+  color: #e8e2d0;
+  font: 600 14px system-ui, sans-serif;
+  cursor: pointer;
+}
+
+.segmented button.active {
+  background: #7a2d22;
+  border-color: #a0503f;
+}
+
+.options-save-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.options-save-actions button,
+.options-import-label {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 14px;
+  border: 1px solid #3a3d47;
+  border-radius: 8px;
+  background: #262a33;
+  color: #e8e2d0;
+  font: 600 14px system-ui, sans-serif;
+  cursor: pointer;
+  position: relative;
+}
+
+.options-import-label input[type='file'] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.options-message {
+  margin: 8px 0 0;
+  font-size: 13px;
+  opacity: 0.85;
+}

@@ -1,0 +1,44 @@
+/* Menu principal (doc 08 §2.5) — #ui-root est en pointer-events: none,
+   ce bloc ré-active les siens (même convention que styles.css). */
+.menu-screen {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  background: #14161c;
+  color: #e8e2d0;
+  font: 16px/1.4 system-ui, sans-serif;
+  pointer-events: auto;
+}
+
+.menu-title {
+  margin: 0;
+  font-size: clamp(32px, 8vw, 56px);
+  letter-spacing: 0.04em;
+}
+
+.menu-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: min(80vw, 320px);
+}
+
+.menu-button {
+  min-height: 48px;
+  padding: 10px 18px;
+  border: 1px solid #3a3d47;
+  border-radius: 8px;
+  background: #262a33;
+  color: #e8e2d0;
+  font: 600 16px system-ui, sans-serif;
+  cursor: pointer;
+}
+
+.menu-button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}

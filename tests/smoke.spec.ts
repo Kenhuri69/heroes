@@ -5,6 +5,8 @@ import { expect, test, type Page } from '@playwright/test';
 // Phase 2.3 : carte, déplacement tap-tap scripté (seed fixe), fin de tour,
 // sauvegarde/rechargement IndexedDB (jalon Phase 0 roadmap).
 // Phase 2.4 : victoire contre le gardien, arène /#arena, fluidité throttlée.
+// Phase 2.5 : menu (Nouvelle partie/Continuer), autosave, i18n EN, XP,
+// aller-retour export/import .heroes.
 // Non couvert ici (dit explicitement, guideline §7) : le tap-tap DANS le
 // combat (sélection d'hex/cible au canvas) — couvert indirectement par
 // AutoCombat ; à outiller quand la scène exposera ses coordonnées.
@@ -196,6 +198,126 @@ test('arène : fluidité sous throttling CPU ×4 (doc 10 §6)', async ({ page },
   testInfo.annotations.push({ type: 'fps-throttled-x4', description: fps.toFixed(1) });
   console.log(`[smoke] arène throttlée ×4 : ${fps.toFixed(1)} fps (rendu logiciel CI)`);
   expect(fps).toBeGreaterThanOrEqual(5);
+});
+
+test('menu : Nouvelle partie démarre, Continuer grisé sans sauvegarde', async ({ page }) => {
+  const errors = collectErrors(page);
+  await page.goto('./'); // sans ?seed : le menu s'affiche (doc 08 §2.5)
+  await page.waitForFunction(() => window.__HEROES_READY__ === true);
+
+  await expect(page.getByTestId('menu-new-game')).toBeVisible();
+  await expect(page.getByTestId('menu-continue')).toBeDisabled(); // IndexedDB vierge
+
+  await page.getByTestId('menu-new-game').click();
+  await expect(page.getByTestId('end-turn')).toBeVisible();
+  const state = await page.evaluate(() => window.__HEROES_TEST__!.getState());
+  expect(state.started).toBe(true);
+
+  expect(errors).toEqual([]);
+});
+
+test('autosave à la fin de tour puis « Continuer » depuis le menu', async ({ page }) => {
+  const errors = await openGame(page);
+
+  await tapTapTile(page, 6, 3);
+  await expect.poll(() => heroPos(page)).toEqual({ x: 6, y: 3 });
+  await page.getByTestId('end-turn').click(); // ⇒ autosave (doc 07 §4)
+  await expect(page.getByTestId('calendar')).toContainText('2');
+  // L'écriture IndexedDB est asynchrone : attendre qu'elle soit durable
+  // avant de naviguer (sinon la sauvegarde serait interrompue).
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          new Promise<boolean>((resolve) => {
+            const req = indexedDB.open('heroes');
+            req.onsuccess = () => {
+              const db = req.result;
+              try {
+                const get = db.transaction('saves', 'readonly').objectStore('saves').get('auto');
+                get.onsuccess = () => {
+                  db.close();
+                  resolve(get.result !== undefined);
+                };
+                get.onerror = () => {
+                  db.close();
+                  resolve(false);
+                };
+              } catch {
+                db.close();
+                resolve(false);
+              }
+            };
+            req.onerror = () => resolve(false);
+          }),
+      ),
+    )
+    .toBe(true);
+
+  // Recharger SANS seed : menu, « Continuer » actif, partie restaurée.
+  await page.goto('./');
+  await page.waitForFunction(() => window.__HEROES_READY__ === true);
+  await expect(page.getByTestId('menu-continue')).toBeEnabled();
+  await page.getByTestId('menu-continue').click();
+  await expect.poll(() => heroPos(page)).toEqual({ x: 6, y: 3 });
+  const state = await page.evaluate(() => window.__HEROES_TEST__!.getState());
+  expect(state.calendar.day).toBe(2);
+
+  expect(errors).toEqual([]);
+});
+
+test('options : bascule de langue FR → EN appliquée à l’UI', async ({ page }) => {
+  const errors = await openGame(page);
+
+  await expect(page.getByTestId('calendar')).toHaveText('Jour 1 · Semaine 1');
+  await page.getByTestId('options-open').click();
+  await page.getByTestId('options-locale-en').click();
+  await page.getByTestId('options-close').click();
+  await expect(page.getByTestId('calendar')).toHaveText('Day 1 · Week 1');
+
+  expect(errors).toEqual([]);
+});
+
+test('XP : la victoire contre le gardien crédite le héros', async ({ page }) => {
+  const errors = await openGame(page);
+
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({
+      type: 'MoveHero',
+      heroId: 'hero-player-1',
+      path: [
+        { x: 4, y: 2 },
+        { x: 5, y: 2 },
+        { x: 6, y: 2 },
+        { x: 7, y: 2 },
+        { x: 8, y: 2 },
+        { x: 9, y: 3 },
+      ],
+    }),
+  );
+  await expect(page.getByTestId('combat-round')).toBeVisible();
+  await page.evaluate(() => window.__HEROES_TEST__!.dispatch({ type: 'AutoCombat' }));
+  await expect
+    .poll(() => page.evaluate(() => window.__HEROES_TEST__!.getState().combat))
+    .toBeNull();
+  // Gardien : 4 élèves à 5 PV ⇒ 20 XP (coefficient 1, doc 02 §1.2).
+  const hero = await page.evaluate(() => window.__HEROES_TEST__!.getState().heroes[0]);
+  expect(hero?.xp).toBe(20);
+  expect(hero?.level).toBe(1);
+
+  expect(errors).toEqual([]);
+});
+
+test('export puis import .heroes : aller-retour valide (gzip)', async ({ page }) => {
+  const errors = await openGame(page);
+
+  await tapTapTile(page, 6, 3);
+  await expect.poll(() => heroPos(page)).toEqual({ x: 6, y: 3 });
+  const ok = await page.evaluate(() => window.__HEROES_TEST__!.saveRoundtrip());
+  expect(ok).toBe(true);
+  await expect.poll(() => heroPos(page)).toEqual({ x: 6, y: 3 }); // état rechargé intact
+
+  expect(errors).toEqual([]);
 });
 
 test('sauvegarde puis rechargement IndexedDB : position restaurée', async ({ page }) => {

@@ -24,6 +24,13 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > heuristique + auto-combat déterministe ; scène Pixi + UI avec
 > prévisualisation de dégâts ; gardiens neutres sur la carte, interception ⇒
 > combat ⇒ pertes appliquées ; testable seule via `/#arena`).
+> Phase 2.5 livrée : boucle jouable complète — menu principal
+> (Continuer/Nouvelle partie/Options), i18n FR/EN (locales core +
+> paquets), sauvegarde IndexedDB gzip avec autosave fin de tour et
+> export/import `.heroes`, XP/niveau du héros (attributs), passe mobile
+> (tiroir héros, bandeau armée, overlay paysage), toasts, budget bundle
+> < 800 Ko gzip vérifié en CI. **Sortie de Phase 2 atteinte** — la suite
+> est la Phase MVP de la roadmap (doc 09).
 > Les docs `docs/0X-*.md` restent la source de
 > vérité du design ; le code doit s'y conformer.
 
@@ -55,7 +62,8 @@ packages/
   tools/                         CLI : faction:new, faction:validate, content:check — @heroes/tools
 data/
   core/abilities.json            Catalogue générique de capacités (doc 02 §5.4)
-  core/config.json               Constantes d'équilibrage (mouvement, terrains, vision, nouvelle partie)
+  core/config.json               Constantes d'équilibrage (mouvement, terrains, vision, combat, héros, nouvelle partie)
+  core/locales/                  Locales FR/EN de l'UI générique (menu, options, toasts)
   factions/                      Paquets de faction (index.json + arcane-hunters, test-faction)
   maps/proto-01.map.json         Carte prototype 32×32 (légende, tuiles, routes, objets, départs)
 tests/smoke.spec.ts              Smoke Playwright/Chromium headless (guideline §7) sur le build de prod

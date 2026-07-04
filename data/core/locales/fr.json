@@ -1,5 +1,69 @@
 {
+  "menu.title": "Heroes",
   "menu.continue": "Continuer",
   "menu.newGame": "Nouvelle partie",
-  "menu.options": "Options"
+  "menu.options": "Options",
+
+  "options.title": "Options",
+  "options.close": "Fermer",
+  "options.language": "Langue",
+  "options.fontScale": "Taille du texte",
+  "options.combatSpeed": "Vitesse de combat",
+  "options.dataSection": "Sauvegarde",
+  "options.export": "Exporter la partie",
+  "options.import": "Importer une partie",
+  "options.exportError": "Échec de l'export.",
+  "options.importError": "Fichier de sauvegarde invalide.",
+
+  "turnBar.calendar": "Jour {day} · Semaine {week}",
+  "turnBar.movementPoints": "PM {points}",
+  "turnBar.save": "Sauvegarder",
+  "turnBar.load": "Charger",
+  "turnBar.endTurn": "Fin de tour",
+
+  "guardianBand.few": "Quelques défenseurs",
+  "guardianBand.several": "Plusieurs défenseurs",
+  "guardianBand.pack": "Un groupe",
+  "guardianBand.lots": "Une troupe",
+  "guardianBand.horde": "Une horde",
+  "guardianBand.throng": "Une foule",
+  "guardianBand.legion": "Une légion",
+
+  "hero.drawerToggle": "Ouvrir le panneau du héros",
+  "hero.level": "Niveau {level}",
+  "hero.xp": "XP {xp}",
+
+  "attribute.attack": "Attaque",
+  "attribute.defense": "Défense",
+  "attribute.power": "Pouvoir",
+  "attribute.knowledge": "Savoir",
+
+  "army.title": "Armée",
+
+  "combat.round": "Round {round}",
+  "combat.wait": "Attendre",
+  "combat.defend": "Défendre",
+  "combat.auto": "Auto ▶▶",
+  "combat.damagePreviewPlaceholder": "Sélectionnez une cible pour prévisualiser les dégâts.",
+  "combat.damage": "{min}–{max} dégâts",
+  "combat.retaliationEstimate": "riposte estimée : {min}–{max}",
+  "combat.noRetaliation": "pas de riposte",
+  "combat.previewSummary": "{damage}, ~{kills} morts · {retal}",
+  "combat.landscapeHint": "Rotation en paysage recommandée pour combattre plus confortablement.",
+  "combat.landscapeHintDismiss": "Compris",
+
+  "toast.resourcePicked": "+{amount} {resource}",
+  "toast.weekStarted": "Semaine {week} commencée",
+  "toast.combatWon": "Victoire !",
+  "toast.combatLost": "Défaite…",
+  "toast.heroLevelUp": "Niveau {level} atteint !",
+  "toast.gameLoaded": "Partie chargée",
+
+  "resource.gold": "Or",
+  "resource.wood": "Bois",
+  "resource.ore": "Minerai",
+  "resource.crystal": "Cristal",
+  "resource.gems": "Gemmes",
+  "resource.sulfur": "Soufre",
+  "resource.mercury": "Mercure"
 }

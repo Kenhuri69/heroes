@@ -35,6 +35,13 @@ jobs:
 
       - run: pnpm build
 
+      # Budget perf (doc 07 §6) : bundle initial JS+CSS < 800 Ko gzip.
+      - name: Budget bundle < 800 Ko gzip
+        run: |
+          total=$(find packages/client/dist/assets \( -name '*.js' -o -name '*.css' \) -exec sh -c 'gzip -c "$1" | wc -c' _ {} \; | awk '{s+=$1} END {print s}')
+          echo "bundle gzip: ${total} octets"
+          [ "$total" -le 819200 ]
+
       # Smoke headless sur le build de prod (guideline §7)
       - run: pnpm exec playwright install chromium --with-deps
       - run: pnpm smoke

@@ -4,6 +4,7 @@ import { useApp, appStore } from '../app/store';
 import { dispatch } from '../app/dispatch';
 import { PLAYER_ID } from '../app/game';
 import { t, resolveUnitName } from '../app/i18n';
+import { FactionBadge } from './FactionBadge';
 import './town.css';
 
 /**
@@ -109,7 +110,10 @@ export function TownScreen() {
         onClick={(e) => e.stopPropagation()}
       >
         <header class="modal-header">
-          <h2>{t('town.title')}</h2>
+          <h2 class="town-title">
+            {town && <FactionBadge factionId={town.factionId} />}
+            {t('town.title')}
+          </h2>
           <button class="modal-close" data-testid="town-close" aria-label={t('town.close')} onClick={close}>
             ×
           </button>

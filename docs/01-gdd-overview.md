@@ -103,6 +103,15 @@ Le MVP est **sans monétisation**. Si le jeu passe en live-service, le modèle e
 3. 60 fps sur carte d'aventure et en combat sur un mobile milieu de gamme (test : throttling CPU ×4).
 4. Temps de chargement initial < 5 s sur 4G (budget bundle : cf. doc 07).
 
+> ✅ **État (fin Phase 3.6)** : jalon MVP atteint. (1) partie complète jouable
+> desktop + mobile (émulation Pixel 7 en CI ; Safari iOS réel = vérification
+> manuelle hors CI headless). (2) prouvé : Haven (data-only, 3.3) et Necropolis
+> (3.4, via **un** point d'extension générique) + `test-faction` chargées sans
+> `if (faction === …)` dans le moteur — garde-fou CI actif. (3) smoke anti-gel
+> sous throttling ×4 sur arène **et** carte d'aventure (≥ 5 fps en rendu logiciel
+> CI ; cible 60 fps sur matériel réel). (4) budget bundle < 800 Ko gzip tenu en
+> CI. Assets peints, `faction:sim` d'équilibrage fin et PvP = Alpha/Beta.
+
 ## 6. Références & différenciation
 
 | Référence | Ce qu'on garde | Ce qu'on change |

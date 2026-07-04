@@ -21,7 +21,7 @@
   border-radius: 10px;
   background: #1c1e25;
   color: #e8e2d0;
-  font: 14px/1.4 system-ui, sans-serif;
+  font: 0.875rem/1.4 system-ui, sans-serif;
 }
 
 .modal-header {
@@ -33,7 +33,7 @@
 
 .modal-header h2 {
   margin: 0;
-  font-size: 18px;
+  font-size: 1.125rem;
 }
 
 .modal-close {
@@ -43,7 +43,7 @@
   border-radius: 8px;
   background: #262a33;
   color: #e8e2d0;
-  font-size: 18px;
+  font-size: 1.125rem;
   cursor: pointer;
 }
 
@@ -53,7 +53,7 @@
 
 .options-section h3 {
   margin: 0 0 6px;
-  font-size: 13px;
+  font-size: 0.8125rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   opacity: 0.75;
@@ -72,7 +72,7 @@
   border-radius: 8px;
   background: #262a33;
   color: #e8e2d0;
-  font: 600 14px system-ui, sans-serif;
+  font: 600 0.875rem system-ui, sans-serif;
   cursor: pointer;
 }
 
@@ -98,7 +98,7 @@
   border-radius: 8px;
   background: #262a33;
   color: #e8e2d0;
-  font: 600 14px system-ui, sans-serif;
+  font: 600 0.875rem system-ui, sans-serif;
   cursor: pointer;
   position: relative;
 }
@@ -112,6 +112,6 @@
 
 .options-message {
   margin: 8px 0 0;
-  font-size: 13px;
+  font-size: 0.8125rem;
   opacity: 0.85;
 }

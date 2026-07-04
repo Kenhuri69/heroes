@@ -4,7 +4,7 @@
 .combat-ui {
   position: fixed;
   inset: 0;
-  font: 14px/1.4 system-ui, sans-serif;
+  font: 0.875rem/1.4 system-ui, sans-serif;
   color: #e8e2d0;
 }
 
@@ -105,7 +105,7 @@
   border-radius: 8px;
   background: #262a33;
   color: #e8e2d0;
-  font: 600 14px system-ui, sans-serif;
+  font: 600 0.875rem system-ui, sans-serif;
   cursor: pointer;
 }
 
@@ -127,7 +127,7 @@
   border-radius: 8px;
   background: #262a33;
   color: #e8e2d0;
-  font: 600 14px system-ui, sans-serif;
+  font: 600 0.875rem system-ui, sans-serif;
   cursor: pointer;
 }
 
@@ -172,7 +172,7 @@
     border-radius: 8px;
     background: #262a33;
     color: #e8e2d0;
-    font: 600 13px system-ui, sans-serif;
+    font: 600 0.8125rem system-ui, sans-serif;
     cursor: pointer;
   }
 }

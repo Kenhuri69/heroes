@@ -204,19 +204,14 @@ test("l'arène /#arena ouvre un combat immédiat et se résout en auto", async (
   expect(errors).toEqual([]);
 });
 
-test('arène : fluidité sous throttling CPU ×4 (doc 10 §6)', async ({ page }, testInfo) => {
-  test.skip(testInfo.project.name !== 'desktop', 'mesure unique, desktop');
-  const cdp = await page.context().newCDPSession(page);
-  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
-  await page.goto('./?seed=42#arena');
-  await page.waitForFunction(() => window.__HEROES_READY__ === true);
-
-  // Garde-fou ANTI-GEL, pas budget de perf : le runner CI partagé rend en
-  // LOGICIEL (SwiftShader) sous throttling ×4 — mesuré ~10 fps, variable avec
-  // la charge du runner. On logge la mesure et on n'asserte qu'un plancher
-  // (≥ 5 fps ⇒ la boucle de rendu vit) ; le budget 60 fps se mesurera sur
-  // device en 2.5 (écart tracé au plan phase-2.4).
-  const fps = await page.evaluate(
+/**
+ * Mesure de fluidité anti-gel (doc 10 §6, doc 01 §5 critère 3) : compte les
+ * frames `requestAnimationFrame` sur une fenêtre de 2 s après 1 s d'échauffement
+ * (ignore le démarrage). Partagé par l'arène et la carte d'aventure — même
+ * protocole de mesure, seule la scène ouverte avant l'appel diffère.
+ */
+async function measureFpsUnderThrottle(page: Page): Promise<number> {
+  return page.evaluate(
     () =>
       new Promise<number>((resolve) => {
         let frames = 0;
@@ -237,9 +232,41 @@ test('arène : fluidité sous throttling CPU ×4 (doc 10 §6)', async ({ page },
         requestAnimationFrame(loop);
       }),
   );
+}
+
+test('arène : fluidité sous throttling CPU ×4 (doc 10 §6)', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'desktop', 'mesure unique, desktop');
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+  await page.goto('./?seed=42#arena');
+  await page.waitForFunction(() => window.__HEROES_READY__ === true);
+
+  // Garde-fou ANTI-GEL, pas budget de perf : le runner CI partagé rend en
+  // LOGICIEL (SwiftShader) sous throttling ×4 — mesuré ~10 fps, variable avec
+  // la charge du runner. On logge la mesure et on n'asserte qu'un plancher
+  // (≥ 5 fps ⇒ la boucle de rendu vit) ; le budget 60 fps se mesurera sur
+  // device en 2.5 (écart tracé au plan phase-2.4).
+  const fps = await measureFpsUnderThrottle(page);
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
   testInfo.annotations.push({ type: 'fps-throttled-x4', description: fps.toFixed(1) });
   console.log(`[smoke] arène throttlée ×4 : ${fps.toFixed(1)} fps (rendu logiciel CI)`);
+  expect(fps).toBeGreaterThanOrEqual(5);
+});
+
+test('carte d’aventure : fluidité sous throttling CPU ×4 (doc 01 §5 critère 3)', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'desktop', 'mesure unique, desktop');
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+  await page.goto('./?seed=42'); // carte d'aventure (pas #arena) — même seed fixe
+  await page.waitForFunction(() => window.__HEROES_READY__ === true);
+
+  // Même garde-fou anti-gel que l'arène (≥ 5 fps), étendu à la scène d'aventure
+  // (pan/zoom + brouillard) — critère de sortie MVP « 60 fps carte + combat
+  // sous throttling ×4 » (doc 01 §5), plancher CI logiciel identique.
+  const fps = await measureFpsUnderThrottle(page);
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
+  testInfo.annotations.push({ type: 'fps-throttled-x4-adventure', description: fps.toFixed(1) });
+  console.log(`[smoke] carte d'aventure throttlée ×4 : ${fps.toFixed(1)} fps (rendu logiciel CI)`);
   expect(fps).toBeGreaterThanOrEqual(5);
 });
 
@@ -321,6 +348,36 @@ test('options : bascule de langue FR → EN appliquée à l’UI', async ({ page
   expect(errors).toEqual([]);
 });
 
+test('accessibilité : les 3 crans de police changent la taille du texte (doc 08 §4)', async ({ page }) => {
+  const errors = await openGame(page);
+
+  const calendarFontSizePx = (): Promise<number> =>
+    page.evaluate(() => {
+      const el = document.querySelector('[data-testid="calendar"]');
+      return el ? parseFloat(getComputedStyle(el).fontSize) : 0;
+    });
+
+  const small = await calendarFontSizePx(); // cran 1 (100%) par défaut
+
+  await page.getByTestId('options-open').click();
+  await page.getByTestId('options-fontscale-3').click(); // cran 3 (125%)
+  await page.getByTestId('options-close').click();
+  const large = await calendarFontSizePx();
+
+  // La police en dur (px) ne suivrait pas ce changement — la conversion en
+  // unités relatives (rem, héritées du fontSize racine) doit faire varier la
+  // taille calculée d'un élément de texte visible sur l'écran de la carte.
+  expect(large).toBeGreaterThan(small);
+  expect(large / small).toBeCloseTo(1.25, 1);
+
+  // Revenir au cran 1 pour ne pas affecter les tests suivants du même worker.
+  await page.getByTestId('options-open').click();
+  await page.getByTestId('options-fontscale-1').click();
+  await page.getByTestId('options-close').click();
+
+  expect(errors).toEqual([]);
+});
+
 test('XP : la victoire contre le gardien crédite le héros', async ({ page }) => {
   const errors = await openGame(page);
 
@@ -373,6 +430,9 @@ test('ville : construire + croissance + recruter + transférer → armée du hé
   await expect(page.getByTestId('town-open')).toBeVisible();
   await page.getByTestId('town-open').click();
   await expect(page.getByTestId('town-tab-build')).toBeVisible();
+  // Motif de bannière de faction (doc 08 §4, accessibilité non chromatique) —
+  // présent dans l'en-tête, dérivé de `town.factionId` (aucun nom en dur).
+  await expect(page.getByTestId('faction-badge')).toBeVisible();
   await page.getByTestId('town-close').click();
 
   const armyTotal = (): Promise<number> =>

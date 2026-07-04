@@ -106,6 +106,8 @@
   "resource.sulfur": "Sulfur",
   "resource.mercury": "Mercury",
 
+  "faction.badge": "Faction {id} banner",
+
   "town.open": "Town",
   "town.title": "Town",
   "town.close": "Close",

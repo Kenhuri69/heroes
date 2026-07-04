@@ -54,6 +54,8 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 ### 1.5 Mouvement sur carte d'aventure
 
 - Points de mouvement quotidiens : `base 1500 + 50 × vitesse de la créature la plus lente de l'armée` (encourage les armées homogènes), modifiés par Logistique, artefacts, routes (coût tuile ×0,75), terrains (marais ×1,5 ; le terrain « natif » de la faction coûte ×1,0 pour elle).
+- Coût d'entrée d'une tuile : **100 points** en terrain de base (herbe), pas en **diagonale ×1,41** (≈ √2), multiplicateurs cumulés puis arrondis à l'entier — ex. route en diagonale : `round(100 × 0,75 × 1,41) = 106`. Valeurs de départ pour l'équilibrage, stockées dans `data/core/config.json`.
+- Portée de vision de base du héros : **5 tuiles** (distance de Tchebychev), avant bonus (Recherche +2/4/6).
 - Pathfinding A* avec préviualisation du chemin et des jours nécessaires (points verts/jaunes comme HoMM).
 - Un joueur possède jusqu'à **8 héros** actifs ; échanges d'armée/artefacts quand deux héros alliés se rencontrent.
 

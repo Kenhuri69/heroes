@@ -1,3 +1,5 @@
+import type { AdventureConfig } from '../adventure/config';
+import type { AdventureMapDef, GridPos } from '../adventure/map';
 import type { Resources } from './state';
 
 export interface PlayerSetup {
@@ -9,10 +11,23 @@ export interface PlayerSetup {
 /**
  * Union des commandes — petites et sérialisables : c'est le format de replay
  * et le futur protocole réseau (doc 07 §3). S'étend par phase :
- * `MoveHero`/`PickChoice` en 2.3, `CombatAction` en 2.4.
+ * `CombatAction` en 2.4. `StartGame` embarque carte et constantes résolues
+ * (validées par le pipeline de contenu) : le moteur ne fetch jamais rien.
  */
 export type Command =
-  | { type: 'StartGame'; seed: number; players: PlayerSetup[] }
+  | {
+      type: 'StartGame';
+      seed: number;
+      players: PlayerSetup[];
+      map: AdventureMapDef;
+      config: AdventureConfig;
+    }
+  | {
+      /** Chemin calculé par A* côté client ; le moteur revalide chaque pas. */
+      type: 'MoveHero';
+      heroId: string;
+      path: GridPos[];
+    }
   | { type: 'EndTurn'; playerId: string };
 
 export interface CommandError {
@@ -21,7 +36,12 @@ export interface CommandError {
     | 'gameNotStarted'
     | 'noPlayers'
     | 'duplicatePlayerId'
-    | 'notYourTurn';
+    | 'notYourTurn'
+    | 'invalidMap'
+    | 'unknownHero'
+    | 'notYourHero'
+    | 'invalidPath'
+    | 'noMovementPoints';
   message: string;
 }
 

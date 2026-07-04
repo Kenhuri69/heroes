@@ -1,0 +1,74 @@
+/* UI DOM par-dessus le canvas (doc 07 §1) — cibles tactiles ≥ 44 px (doc 08 §1).
+   #ui-root est en pointer-events: none (index.html) : chaque bloc interactif
+   ré-active explicitement les siens. */
+.resource-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  padding: 6px 8px;
+  background: rgba(16, 18, 24, 0.85);
+  color: #e8e2d0;
+  font: 14px/1.4 system-ui, sans-serif;
+  pointer-events: auto;
+}
+
+.resource {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 24px;
+}
+
+.resource i {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  display: inline-block;
+}
+
+.status-bar {
+  position: fixed;
+  left: 12px;
+  bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: #e8e2d0;
+  font: 14px/1.5 system-ui, sans-serif;
+  text-shadow: 0 1px 2px #000;
+  pointer-events: none;
+}
+
+.actions {
+  position: fixed;
+  right: 12px;
+  bottom: 12px;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  pointer-events: auto;
+}
+
+.actions button {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 8px 14px;
+  border: 1px solid #3a3d47;
+  border-radius: 8px;
+  background: #262a33;
+  color: #e8e2d0;
+  font: 600 14px system-ui, sans-serif;
+  cursor: pointer;
+}
+
+.actions .end-turn {
+  min-height: 56px;
+  padding: 8px 22px;
+  background: #7a2d22;
+  border-color: #a0503f;
+  font-size: 16px;
+}

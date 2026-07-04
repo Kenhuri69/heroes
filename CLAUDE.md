@@ -15,7 +15,11 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > (`GameState`, commandes, RNG PCG32, golden replay). Phase 2.2 livrée :
 > pipeline de contenu data-driven (schémas Zod, loader, CLI faction:new /
 > faction:validate / content:check, paquets arcane-hunters + test-faction
-> chargés dans le navigateur). Les docs `docs/0X-*.md` restent la source de
+> chargés dans le navigateur). Phase 2.3 livrée : carte d'aventure jouable
+> (carte JSON proto-01 32×32, A* 8 directions avec coûts terrain/route/
+> diagonale, tap-tap + prévisualisation chemin avec jours, brouillard 2 états,
+> ramassage de ressources, fin de tour, sauvegarde/rechargement IndexedDB).
+> Les docs `docs/0X-*.md` restent la source de
 > vérité du design ; le code doit s'y conformer.
 
 ---
@@ -46,7 +50,9 @@ packages/
   tools/                         CLI : faction:new, faction:validate, content:check — @heroes/tools
 data/
   core/abilities.json            Catalogue générique de capacités (doc 02 §5.4)
+  core/config.json               Constantes d'équilibrage (mouvement, terrains, vision, nouvelle partie)
   factions/                      Paquets de faction (index.json + arcane-hunters, test-faction)
+  maps/proto-01.map.json         Carte prototype 32×32 (légende, tuiles, routes, objets, départs)
 tests/smoke.spec.ts              Smoke Playwright/Chromium headless (guideline §7) sur le build de prod
 playwright.config.ts             Config smoke (desktop + mobile, vite preview)
 .claude/

@@ -1,0 +1,21 @@
+{
+  "adventure": {
+    "movement": {
+      "base": 1500,
+      "perSpeed": 50,
+      "roadMultiplier": 0.75,
+      "diagonalMultiplier": 1.41
+    },
+    "visionRadius": 5,
+    "terrains": {
+      "grass": { "moveCost": 100 },
+      "swamp": { "moveCost": 150 },
+      "water": { "moveCost": null },
+      "mountain": { "moveCost": null }
+    }
+  },
+  "newGame": {
+    "map": "proto-01",
+    "startingResources": { "gold": 2000, "wood": 10, "ore": 10 }
+  }
+}

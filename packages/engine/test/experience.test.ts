@@ -42,6 +42,12 @@ function baseHero(overrides: Partial<HeroState> = {}): HeroState {
     xp: 0,
     level: 1,
     attributes: { attack: 0, defense: 0, power: 0, knowledge: 0 },
+    mana: 0,
+    manaMax: 0,
+    skills: {},
+    spells: [],
+    artifacts: Array.from({ length: 10 }, () => null),
+    pendingSkillChoices: [],
     ...overrides,
   };
 }

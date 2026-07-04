@@ -109,6 +109,7 @@ function stack(partial: Pick<CombatStack, 'id' | 'side' | 'slot' | 'unitId' | 'c
     ammo: null,
     marks: 0,
     acted: false,
+    statuses: [],
     ...partial,
   };
 }
@@ -128,6 +129,9 @@ function manualState(stacks: CombatStack[], activeStackId: string | null): GameS
     heroId: null,
     guardianObjectId: null,
     finished: false,
+    attackerHeroId: null,
+    defenderHeroId: null,
+    heroCastThisRound: false,
     winner: null,
   };
   return { ...createEmptyState(), started: true, rng: seedRng(1), config: testConfig(), unitCatalog: catalog, combat };

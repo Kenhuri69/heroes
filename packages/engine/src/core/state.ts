@@ -2,6 +2,7 @@ import type { AdventureConfig } from '../adventure/config';
 import type { AdventureMapDef, GridPos } from '../adventure/map';
 import type { ArmyStack, CombatState, CombatUnitDef } from '../combat/types';
 import type { BuildingDef, TownState } from '../town/types';
+import type { ArtifactDef, HeroSkillDef, SpellDef } from '../hero/types';
 import type { RngState } from './rng';
 
 /** Les 7 ressources du jeu (doc 02 §3). Les montants vivent dans les données. */
@@ -45,6 +46,17 @@ export interface HeroState {
   xp: number;
   level: number;
   attributes: HeroAttributes;
+  /** Magie (doc 02 §1.1) : mana courant / max = Savoir × 10. */
+  mana: number;
+  manaMax: number;
+  /** Compétences secondaires (doc 02 §1.3) : id → rang 1..3, ≤ 6. */
+  skills: Record<string, number>;
+  /** Sorts connus (ids du catalogue) — lançables selon cercle/mana. */
+  spells: string[];
+  /** Équipement d'artefacts, 10 slots (doc 08 §2.3) — null = vide. */
+  artifacts: (string | null)[];
+  /** Propositions de compétence en attente d'un `ChooseSkill` (doc 02 §1.2). */
+  pendingSkillChoices: string[];
 }
 
 export interface Calendar {
@@ -74,6 +86,10 @@ export interface GameState {
   unitCatalog: Record<string, CombatUnitDef>;
   /** Catalogue de bâtiments résolu par le contenu (doc 06). */
   buildingCatalog: Record<string, BuildingDef>;
+  /** Catalogues héros résolus par le contenu (doc 06). */
+  spellCatalog: Record<string, SpellDef>;
+  skillCatalog: Record<string, HeroSkillDef>;
+  artifactCatalog: Record<string, ArtifactDef>;
   /** Villes de la partie (doc 02 §4) — vide tant qu'aucune n'est placée. */
   towns: TownState[];
   /** Combat en cours (doc 02 §5) — null hors combat. */
@@ -93,6 +109,9 @@ export function createEmptyState(): GameState {
     heroes: [],
     unitCatalog: {},
     buildingCatalog: {},
+    spellCatalog: {},
+    skillCatalog: {},
+    artifactCatalog: {},
     towns: [],
     combat: null,
   };

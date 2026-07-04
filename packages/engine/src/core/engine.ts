@@ -25,6 +25,12 @@ import {
   validateGarrisonTransfer,
   validateRecruitUnits,
 } from '../town';
+import {
+  handleCastSpell,
+  handleChooseSkill,
+  validateCastSpell,
+  validateChooseSkill,
+} from '../hero';
 import { EngineError, type Command, type CommandError } from './commands';
 import type { GameEvent } from './events';
 import { seedRng } from './rng';
@@ -131,6 +137,14 @@ export function validate(state: GameState, cmd: Command): CommandError | null {
       if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
       return validateCaptureTown(state, cmd);
     }
+    case 'CastSpell': {
+      if (!state.combat) return { code: 'noCombat', message: 'aucun combat en cours' };
+      return validateCastSpell(state, cmd);
+    }
+    case 'ChooseSkill': {
+      if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
+      return validateChooseSkill(state, cmd);
+    }
   }
 }
 
@@ -211,6 +225,9 @@ const handlers: Handlers = {
     draft.map = cmd.map;
     draft.unitCatalog = cmd.unitCatalog;
     draft.buildingCatalog = cmd.buildingCatalog ?? {};
+    draft.spellCatalog = cmd.spellCatalog ?? {};
+    draft.skillCatalog = cmd.skillCatalog ?? {};
+    draft.artifactCatalog = cmd.artifactCatalog ?? {};
     draft.towns = (cmd.towns ?? []).map((t) => ({
       ...t,
       buildings: { ...t.buildings },
@@ -233,6 +250,13 @@ const handlers: Handlers = {
       xp: 0,
       level: 1,
       attributes: { attack: 0, defense: 0, power: 0, knowledge: 0 },
+      // Magie/compétences/artefacts (doc 02 §1.1–§1.4) — mana = Savoir × 10.
+      mana: 0,
+      manaMax: 0,
+      skills: {},
+      spells: [],
+      artifacts: Array.from({ length: 10 }, (_, i) => (cmd.startingArtifacts ?? [])[i] ?? null),
+      pendingSkillChoices: [],
     }));
     for (const hero of draft.heroes) {
       const player = draft.players.find((p) => p.id === hero.playerId);
@@ -325,6 +349,14 @@ const handlers: Handlers = {
 
   CaptureTown(draft, cmd, events) {
     handleCaptureTown(draft, cmd, events);
+  },
+
+  CastSpell(draft, cmd, events) {
+    handleCastSpell(draft, cmd, events);
+  },
+
+  ChooseSkill(draft, cmd, events) {
+    handleChooseSkill(draft, cmd, events);
   },
 
   EndTurn(draft, cmd, events) {

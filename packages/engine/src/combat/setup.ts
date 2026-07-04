@@ -39,6 +39,7 @@ function placeSide(
       ammo: def ? shooterAmmo(def) : null,
       marks: 0,
       acted: false,
+      statuses: [],
     };
   });
 }
@@ -109,6 +110,9 @@ export function handleStartCombat(
     playerSide: 'attacker',
     heroId: null,
     guardianObjectId: null,
+    attackerHeroId: null,
+    defenderHeroId: null,
+    heroCastThisRound: false,
     finished: false,
     winner: null,
   };
@@ -150,6 +154,10 @@ export function beginGuardianCombat(
     playerSide: 'attacker',
     heroId,
     guardianObjectId,
+    // L'attaquant est le héros joueur ; le gardien neutre n'a pas de héros.
+    attackerHeroId: heroId,
+    defenderHeroId: null,
+    heroCastThisRound: false,
     finished: false,
     winner: null,
   };

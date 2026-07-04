@@ -2,6 +2,7 @@ import type { AdventureConfig } from '../adventure/config';
 import type { AdventureMapDef, GridPos } from '../adventure/map';
 import type { ArmyStack, CombatActionInput, CombatUnitDef } from '../combat/types';
 import type { BuildingDef, TownState } from '../town/types';
+import type { ArtifactDef, HeroSkillDef, SpellDef } from '../hero/types';
 import type { Resources } from './state';
 
 export interface PlayerSetup {
@@ -32,6 +33,12 @@ export type Command =
       buildingCatalog?: Record<string, BuildingDef>;
       /** Villes initiales résolues (ville de départ du joueur, villes neutres). */
       towns?: TownState[];
+      /** Catalogues héros résolus (optionnels : sorts/compétences/artefacts). */
+      spellCatalog?: Record<string, SpellDef>;
+      skillCatalog?: Record<string, HeroSkillDef>;
+      artifactCatalog?: Record<string, ArtifactDef>;
+      /** Artefacts de départ du héros (ids) — données de scénario. */
+      startingArtifacts?: string[];
     }
   | {
       /** Chemin calculé par A* côté client ; le moteur revalide chaque pas. */
@@ -63,7 +70,10 @@ export type Command =
       from: 'town' | 'hero';
       slot: number;
     }
-  | { type: 'CaptureTown'; townId: string; playerId: string };
+  | { type: 'CaptureTown'; townId: string; playerId: string }
+  // ——— Héros : sorts & compétences (doc 02 §1.2–§1.4) — surface figée 3.2 ———
+  | { type: 'CastSpell'; spellId: string; targetStackId: string }
+  | { type: 'ChooseSkill'; heroId: string; skillId: string };
 
 export interface CommandError {
   code:
@@ -90,7 +100,14 @@ export interface CommandError {
     | 'cannotAfford'
     | 'notRecruitable'
     | 'insufficientStock'
-    | 'invalidTransfer';
+    | 'invalidTransfer'
+    | 'unknownSpell'
+    | 'spellNotKnown'
+    | 'notEnoughMana'
+    | 'heroAlreadyCast'
+    | 'invalidTarget'
+    | 'unknownSkill'
+    | 'noPendingChoice';
   message: string;
 }
 

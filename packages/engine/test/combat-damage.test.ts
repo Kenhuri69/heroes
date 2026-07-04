@@ -151,6 +151,7 @@ function stack(partial: Pick<CombatStack, 'id' | 'side' | 'slot' | 'unitId' | 'c
     ammo: null,
     marks: 0,
     acted: false,
+    statuses: [],
     ...partial,
   };
 }
@@ -166,6 +167,9 @@ function combatState(stacks: CombatStack[], terrain = 'grass'): CombatState {
     heroId: null,
     guardianObjectId: null,
     finished: false,
+    attackerHeroId: null,
+    defenderHeroId: null,
+    heroCastThisRound: false,
     winner: null,
   };
 }

@@ -1,7 +1,6 @@
-# Déploiement GitHub Pages — version BOOTSTRAP.
-# Publie la page d'attente statique `site/` pour valider la chaîne Pages de bout en bout.
-# En Phase 2.0, ce job `build` sera remplacé par le build pnpm/Vite du client
-# (version cible : docs/10-plan-phase-2-implementation.md §4.2).
+# Déploiement GitHub Pages — build Vite du client (doc 10 §4.2).
+# Qualité + smoke headless sur le build de prod avant toute publication :
+# on ne déploie jamais un build rouge.
 
 name: Deploy to GitHub Pages
 
@@ -25,13 +24,32 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm typecheck
+      - run: pnpm lint
+      - run: pnpm test          # --if-present : les tests moteur arrivent en Phase 2.1
+
+      - run: pnpm build
+
+      # Smoke headless sur le build de prod (guideline §7)
+      - run: pnpm exec playwright install chromium --with-deps
+      - run: pnpm smoke
+
       - uses: actions/configure-pages@v5
         with:
-          enablement: true   # active Pages (source: GitHub Actions) si pas déjà fait
+          enablement: true   # no-op une fois Pages activé
 
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: site
+          path: packages/client/dist
 
   deploy:
     needs: build

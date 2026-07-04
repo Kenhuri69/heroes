@@ -1,13 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import {
+  buildArtifactCatalog,
   buildBuildingCatalog,
+  buildSkillCatalog,
+  buildSpellCatalog,
   loadContent,
   loadMap,
   PackError,
   resolveStartingTowns,
   type ReadJson,
 } from '../src/loader';
-import { buildingSchema, type GameConfig } from '../src/schemas';
+import { artifactSchema, buildingSchema, skillSchema, spellSchema, type GameConfig } from '../src/schemas';
 
 /** Fixture : arborescence data/ en mémoire, clonable et corruptible par test. */
 function makeData(): Record<string, unknown> {
@@ -27,6 +30,9 @@ function makeData(): Record<string, unknown> {
         },
       ],
     },
+    'core/spells.json': { spells: [makeSpell()] },
+    'core/skills.json': { skills: [makeSkill()] },
+    'core/artifacts.json': { artifacts: [makeArtifact()] },
     'maps/mini.map.json': makeMap(),
     'factions/index.json': { factions: ['proto'] },
     'factions/proto/manifest.json': {
@@ -119,6 +125,32 @@ function makeMap(): Record<string, unknown> {
     ],
     startPositions: [{ x: 0, y: 0 }],
   };
+}
+
+/** Sort valide minimal, réutilisé pour les cas schéma (doc 02 §1.4). */
+function makeSpell(): unknown {
+  return {
+    id: 'boule-de-feu',
+    school: 'fire',
+    circle: 1,
+    manaCost: 5,
+    kind: 'damage',
+    base: 6,
+    perPower: 2,
+  };
+}
+
+/** Compétence valide minimale, réutilisée pour les cas schéma (doc 02 §1.3). */
+function makeSkill(): unknown {
+  return {
+    id: 'logistics',
+    ranks: [{ movementBonusPct: 10 }, { movementBonusPct: 20 }, { movementBonusPct: 30 }],
+  };
+}
+
+/** Artefact valide minimal, réutilisé pour les cas schéma (doc 02 §1.1). */
+function makeArtifact(): unknown {
+  return { id: 'lame-aiguisee', bonus: { attack: 2 } };
 }
 
 function reader(data: Record<string, unknown>): ReadJson {
@@ -440,5 +472,115 @@ describe('ville de faction (manifest.town / buildings.json)', () => {
       },
     };
     expect(() => resolveStartingTowns(config, report)).toThrow(/faction inconnue 'fantome'/);
+  });
+});
+
+describe('spellSchema', () => {
+  it('charge un sort valide', () => {
+    expect(spellSchema.safeParse(makeSpell()).success).toBe(true);
+  });
+
+  it('rejette un buff sans modificateur', () => {
+    const spell = { ...(makeSpell() as Record<string, unknown>), kind: 'buff', base: 0 };
+    const result = spellSchema.safeParse(spell);
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues.map((i) => i.message).join()).toContain(
+        'buff/debuff: au moins un modificateur',
+      );
+    }
+  });
+
+  it('rejette un sort de dégâts avec base = 0', () => {
+    const spell = { ...(makeSpell() as Record<string, unknown>), base: 0 };
+    const result = spellSchema.safeParse(spell);
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues.map((i) => i.message).join()).toContain(
+        'damage/heal: base doit être > 0',
+      );
+    }
+  });
+
+  it('rejette un cercle hors 1..5', () => {
+    const spell = { ...(makeSpell() as Record<string, unknown>), circle: 6 };
+    expect(spellSchema.safeParse(spell).success).toBe(false);
+  });
+
+  it('rejette une école inconnue', () => {
+    const spell = { ...(makeSpell() as Record<string, unknown>), school: 'lumiere' };
+    expect(spellSchema.safeParse(spell).success).toBe(false);
+  });
+});
+
+describe('skillSchema', () => {
+  it('charge une compétence valide', () => {
+    expect(skillSchema.safeParse(makeSkill()).success).toBe(true);
+  });
+
+  it('rejette un nombre de rangs ≠ 3', () => {
+    const skill = { ...(makeSkill() as Record<string, unknown>), ranks: [{ movementBonusPct: 10 }] };
+    expect(skillSchema.safeParse(skill).success).toBe(false);
+  });
+
+  it('rejette un rang vide', () => {
+    const skill = {
+      ...(makeSkill() as Record<string, unknown>),
+      ranks: [{}, { movementBonusPct: 20 }, { movementBonusPct: 30 }],
+    };
+    const result = skillSchema.safeParse(skill);
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues.map((i) => i.message).join()).toContain(
+        'au moins un effet par rang',
+      );
+    }
+  });
+});
+
+describe('artifactSchema', () => {
+  it('charge un artefact valide', () => {
+    expect(artifactSchema.safeParse(makeArtifact()).success).toBe(true);
+  });
+
+  it('rejette un bonus vide', () => {
+    const artifact = { ...(makeArtifact() as Record<string, unknown>), bonus: {} };
+    const result = artifactSchema.safeParse(artifact);
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues.map((i) => i.message).join()).toContain('bonus vide');
+    }
+  });
+});
+
+describe('catalogues sorts/compétences/artefacts (plan phase-3.2 lot L)', () => {
+  it('buildSpellCatalog/buildSkillCatalog/buildArtifactCatalog agrègent le contenu core', async () => {
+    const report = await loadContent(reader(makeData()));
+    expect(buildSpellCatalog(report)).toEqual({
+      'boule-de-feu': {
+        id: 'boule-de-feu',
+        school: 'fire',
+        circle: 1,
+        manaCost: 5,
+        kind: 'damage',
+        base: 6,
+        perPower: 2,
+      },
+    });
+    expect(buildSkillCatalog(report)).toEqual({
+      logistics: {
+        id: 'logistics',
+        ranks: [{ movementBonusPct: 10 }, { movementBonusPct: 20 }, { movementBonusPct: 30 }],
+      },
+    });
+    expect(buildArtifactCatalog(report)).toEqual({
+      'lame-aiguisee': { id: 'lame-aiguisee', bonus: { attack: 2 } },
+    });
+  });
+
+  it("rejette des artefacts de départ référençant un artefact inconnu", async () => {
+    const data = makeData();
+    (data['core/config.json'] as GameConfig).newGame.startingArtifacts = ['fantome'];
+    await expect(loadContent(reader(data))).rejects.toThrow(/startingArtifacts.*fantome/s);
   });
 });

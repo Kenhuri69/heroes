@@ -66,6 +66,30 @@ export function resolveUnitName(unitId: string): string {
   return ref ? resolveLoc(ref) : unitId;
 }
 
+/**
+ * Nom localisé d'un sort/compétence/artefact via une clé générique
+ * `<prefix>.<id>` des locales core — repli sur l'id brut (les catalogues
+ * `SpellDef`/`HeroSkillDef`/`ArtifactDef` n'ont pas de champ `name`, doc
+ * 08 §2.3/§2.4, lot M phase 3.2).
+ */
+function resolveGenericName(prefix: string, id: string): string {
+  const key = `${prefix}.${id}`;
+  const value = t(key);
+  return value === key ? id : value;
+}
+
+export function resolveSpellName(spellId: string): string {
+  return resolveGenericName('spell', spellId);
+}
+
+export function resolveSkillName(skillId: string): string {
+  return resolveGenericName('skill', skillId);
+}
+
+export function resolveArtifactName(artifactId: string): string {
+  return resolveGenericName('artifact', artifactId);
+}
+
 /** Change la langue courante — store + persistance (doc 08 §2.5). */
 export function setLocale(locale: Lang): void {
   appStore.setState({ locale });

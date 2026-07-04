@@ -1,13 +1,20 @@
 import {
   emptyResources,
+  type ArtifactDef,
   type BuildingDef,
   type Command,
   type CombatUnitDef,
+  type HeroAttributes,
+  type HeroSkillDef,
   type Resources,
+  type SpellDef,
   type TownState,
 } from '@heroes/engine';
 import {
+  buildArtifactCatalog,
   buildBuildingCatalog,
+  buildSkillCatalog,
+  buildSpellCatalog,
   resolveStartingTowns,
   type GameConfig,
   type LoadReport,
@@ -58,6 +65,51 @@ export interface TownSetup {
   towns: TownState[];
 }
 
+/**
+ * Catalogues héros (sorts/compétences/artefacts) + dotation de départ, résolus
+ * contenu → moteur (doc 06, plan phase-3.2). Le moteur ne reçoit que des
+ * données ; le gating MVP (sorts de cercle ≤ 3, décision 3.2 #7) est appliqué
+ * ici, hors du moteur.
+ */
+export interface HeroSetup {
+  spellCatalog: Record<string, SpellDef>;
+  skillCatalog: Record<string, HeroSkillDef>;
+  artifactCatalog: Record<string, ArtifactDef>;
+  startingSpells: string[];
+  startingArtifacts: string[];
+  startingAttributes: HeroAttributes;
+}
+
+const NO_HERO_SETUP: HeroSetup = {
+  spellCatalog: {},
+  skillCatalog: {},
+  artifactCatalog: {},
+  startingSpells: [],
+  startingArtifacts: [],
+  startingAttributes: { attack: 0, defense: 0, power: 0, knowledge: 0 },
+};
+
+/** Résout les catalogues héros et la dotation de départ depuis le contenu chargé. */
+export function buildHeroSetup(report: LoadReport): HeroSetup {
+  const spellCatalog = buildSpellCatalog(report) as Record<string, SpellDef>;
+  const skillCatalog = buildSkillCatalog(report) as Record<string, HeroSkillDef>;
+  const artifactCatalog = buildArtifactCatalog(report) as Record<string, ArtifactDef>;
+  const newGame = report.content.config.newGame;
+  // Guilde des mages MVP (décision plan phase-3.2 #7) : le héros connaît d'emblée
+  // tous les sorts de cercle ≤ 3. Sagesse/Magie (cercles 4/5) = raffinement 3.3+.
+  const startingSpells = Object.values(spellCatalog)
+    .filter((s) => s.circle <= 3)
+    .map((s) => s.id);
+  return {
+    spellCatalog,
+    skillCatalog,
+    artifactCatalog,
+    startingSpells,
+    startingArtifacts: newGame.startingArtifacts ?? [],
+    startingAttributes: newGame.startingHero ?? { attack: 0, defense: 0, power: 0, knowledge: 0 },
+  };
+}
+
 /** Construit la commande `StartGame` depuis les données validées — rien en dur. */
 export function newGameCommand(
   seed: number,
@@ -65,6 +117,7 @@ export function newGameCommand(
   map: ResolvedMap,
   unitCatalog: Record<string, CombatUnitDef>,
   townSetup: TownSetup = { buildingCatalog: {}, towns: [] },
+  heroSetup: HeroSetup = NO_HERO_SETUP,
 ): Command {
   const startingResources: Resources = { ...emptyResources() };
   for (const [id, amount] of Object.entries(config.newGame.startingResources)) {
@@ -84,6 +137,8 @@ export function newGameCommand(
         id: PLAYER_ID,
         startingResources,
         startingArmy: config.newGame.startingArmy.map((s) => ({ ...s })),
+        startingAttributes: { ...heroSetup.startingAttributes },
+        startingSpells: [...heroSetup.startingSpells],
       },
     ],
     map: adventureMap,
@@ -91,5 +146,9 @@ export function newGameCommand(
     unitCatalog,
     buildingCatalog: townSetup.buildingCatalog,
     towns: townSetup.towns,
+    spellCatalog: heroSetup.spellCatalog,
+    skillCatalog: heroSetup.skillCatalog,
+    artifactCatalog: heroSetup.artifactCatalog,
+    startingArtifacts: heroSetup.startingArtifacts,
   };
 }

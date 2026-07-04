@@ -3,7 +3,7 @@ import type { AdventureMapDef, GridPos } from '../adventure/map';
 import type { ArmyStack, CombatActionInput, CombatUnitDef } from '../combat/types';
 import type { BuildingDef, TownState } from '../town/types';
 import type { ArtifactDef, HeroSkillDef, SpellDef } from '../hero/types';
-import type { Resources } from './state';
+import type { HeroAttributes, Resources } from './state';
 
 export interface PlayerSetup {
   id: string;
@@ -11,6 +11,10 @@ export interface PlayerSetup {
   startingResources: Resources;
   /** Armée de départ du héros (≤ 7 piles) — données de scénario. */
   startingArmy?: ArmyStack[];
+  /** Attributs de base du héros (doc 02 §1.1) — données de scénario ; défaut 0. */
+  startingAttributes?: HeroAttributes;
+  /** Sorts connus d'emblée (ids) — résolus par le contenu (cercle ≤ Guilde MVP, décision 3.2 #7). */
+  startingSpells?: string[];
 }
 
 /**

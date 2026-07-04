@@ -40,6 +40,8 @@
 - Portrait, attributs, XP ; **poupée d'équipement** 10 slots + sac ; compétences (6 slots, rangs) ; grimoire (filtré par école/cercle, coût mana visible, sorts indisponibles grisés avec raison).
 - Transfert d'armée/artefacts entre 2 héros : écran double-colonne, drag & drop (souris) / tap-tap (mobile), boutons « équilibrer » et « tout donner ».
 
+> 🚧 **État 3.2** : l'« écran héros » est réconcilié avec le **tiroir héros** existant (`shell.tsx`) plutôt qu'un écran plein séparé — sections Compétences (`HeroSkills`) et Inventaire 10 slots (`HeroInventory`) ajoutées, mana affichée. Le **grimoire** est le livre de sorts **en combat** (`SpellBook`, bouton `[Sort héros]`) : sélection sort → cible → prévisualisation obligatoire → `CastSpell`. La modale de **choix de compétence** à la montée de niveau (`SkillChoice`, non annulable comme HoMM) se monte sur `pendingSkillChoices`. Poupée d'équipement **typée par slot** et transfert d'artefacts entre héros = raffinements ultérieurs (10 slots génériques en 3.2).
+
 ### 2.4 Écran de combat
 
 ```

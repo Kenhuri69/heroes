@@ -1,0 +1,143 @@
+/* Livre de sorts en combat (doc 08 §2.3/§2.4) — réutilise .modal-backdrop /
+   .modal / .modal-header / .modal-close (options.css, chargé globalement). */
+.modal.spellbook {
+  width: min(92vw, 520px);
+  max-height: 86vh;
+  overflow-y: auto;
+}
+
+.spellbook-mana {
+  margin: 0 0 10px;
+  opacity: 0.85;
+}
+
+.spellbook-empty {
+  opacity: 0.75;
+}
+
+.spellbook-school {
+  margin: 14px 0;
+}
+
+.spellbook-school h3 {
+  margin: 0 0 4px;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.75;
+}
+
+.spellbook-circle {
+  margin: 6px 0 10px;
+}
+
+.spellbook-circle h4 {
+  margin: 0 0 6px;
+  font-size: 12px;
+  opacity: 0.6;
+}
+
+.spell-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.spell-item {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #3a3d47;
+  border-radius: 8px;
+  background: #262a33;
+  color: #e8e2d0;
+  font: 600 14px system-ui, sans-serif;
+  text-align: left;
+  cursor: pointer;
+}
+
+.spell-item-disabled,
+.spell-item:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.spell-cost {
+  margin-left: auto;
+  font-weight: 400;
+  opacity: 0.8;
+}
+
+.spell-reason {
+  font-size: 12px;
+  font-weight: 400;
+  opacity: 0.7;
+}
+
+.spellbook-back {
+  min-height: 44px;
+  margin-bottom: 10px;
+  padding: 6px 12px;
+  border: 1px solid #3a3d47;
+  border-radius: 8px;
+  background: #262a33;
+  color: #e8e2d0;
+  cursor: pointer;
+}
+
+.spell-target-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.spell-target {
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid #3a3d47;
+  border-radius: 8px;
+  background: #262a33;
+  color: #e8e2d0;
+  cursor: pointer;
+}
+
+.spell-target.selected {
+  border-color: #f1c40f;
+  box-shadow: 0 0 0 1px #f1c40f inset;
+}
+
+.spell-preview {
+  margin: 10px 0;
+  padding: 8px 12px;
+  border: 1px solid #3a3d47;
+  border-radius: 8px;
+  background: rgba(16, 18, 24, 0.6);
+  text-align: center;
+}
+
+.spellbook-cast {
+  min-height: 44px;
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #3a3d47;
+  border-radius: 8px;
+  background: #7a2d22;
+  color: #e8e2d0;
+  font: 700 14px system-ui, sans-serif;
+  cursor: pointer;
+}
+
+.spellbook-cast:disabled {
+  cursor: default;
+  opacity: 0.45;
+  background: #262a33;
+}

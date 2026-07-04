@@ -37,6 +37,17 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > quotidien, garnison, capture ; schéma `building` data-driven + ville de
 > départ sur proto-01 ; écran de ville liste avec onglets Construire/
 > Recruter/Garnison ; l'armée du héros grossit depuis la ville).
+> Phase 3.2 livrée : héros — sorts, compétences & artefacts (moteur
+> `engine/hero` — 10 sorts cercles 1–3 lançables en combat via `CastSpell`
+> (dégâts/soin/buff/debuff, statuts temporaires, mana = Savoir × 10 +
+> artefacts, 1 sort/round, prévisualisation sans RNG) ; attributs héros
+> Attaque/Défense + Chance/Moral enfin branchés dans les dégâts ; 13
+> compétences data-driven à effets déclaratifs (Logistique = PM, Recherche
+> = vision, Économie = or/jour, Chance/mêlée/tir/armure/coût mana en combat ;
+> Commandement/moral reporté) avec choix à la montée de niveau (`ChooseSkill`,
+> 2 propositions, cap rang 3) ; 4 artefacts à bonus cumulés sur 10 slots ;
+> UI livre de sorts combat + tiroir héros (compétences/inventaire) + modale
+> de choix ; héros de départ doté en données (`config.newGame.startingHero`).
 > Les docs `docs/0X-*.md` restent la source de
 > vérité du design ; le code doit s'y conformer.
 
@@ -71,6 +82,9 @@ data/
   core/abilities.json            Catalogue générique de capacités (doc 02 §5.4)
   core/config.json               Constantes d'équilibrage (mouvement, terrains, vision, combat, héros, ville de départ)
   core/buildings.json            Bâtiments communs des villes (doc 02 §4.1 : hôtel de ville, fort, guilde…)
+  core/spells.json               Sorts génériques cercles 1–3 (doc 02 §1.4 : école/cercle/coût/effet)
+  core/skills.json               Compétences secondaires + effets par rang (doc 02 §1.3)
+  core/artifacts.json            Artefacts à bonus cumulés sur 10 slots (doc 02 §1.1, doc 08 §2.3)
   core/locales/                  Locales FR/EN de l'UI générique (menu, options, toasts, ville)
   factions/                      Paquets de faction (index.json + arcane-hunters, test-faction)
   maps/proto-01.map.json         Carte prototype 32×32 (légende, tuiles, routes, objets, départs)

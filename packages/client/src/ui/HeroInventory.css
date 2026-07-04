@@ -1,0 +1,30 @@
+/* Section Inventaire du tiroir héros (doc 08 §2.3) — 10 slots, lecture seule. */
+.hero-inventory {
+  margin: 12px 0;
+}
+
+.hero-inventory-slots {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hero-inventory-slot {
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 6px;
+  border: 1px solid #3a3d47;
+  border-radius: 6px;
+  background: #1c1e25;
+  font-size: 11px;
+  text-align: center;
+}
+
+.hero-inventory-slot.empty {
+  opacity: 0.4;
+}

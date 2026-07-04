@@ -1,0 +1,41 @@
+/* Modale de choix de compétence (doc 02 §1.2, doc 08 §2.3) — réutilise
+   .modal-backdrop / .modal / .modal-header (options.css, chargé globalement). */
+.modal.skill-choice {
+  width: min(92vw, 420px);
+}
+
+.skill-choice-subtitle {
+  margin: 0 0 12px;
+  opacity: 0.8;
+}
+
+.skill-choice-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.skill-choice-option {
+  min-height: 44px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 14px;
+  border: 1px solid #3a3d47;
+  border-radius: 8px;
+  background: #262a33;
+  color: #e8e2d0;
+  font: 600 14px system-ui, sans-serif;
+  text-align: left;
+  cursor: pointer;
+}
+
+.skill-choice-rank {
+  font-weight: 400;
+  opacity: 0.8;
+}

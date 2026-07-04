@@ -12,6 +12,9 @@ import { OptionsPanel } from './OptionsPanel';
 import { ToastHost } from './toasts';
 import { CombatUi } from './combat';
 import { TownScreen } from './TownScreen';
+import { HeroSkills } from './HeroSkills';
+import { HeroInventory } from './HeroInventory';
+import { SkillChoice } from './SkillChoice';
 import './styles.css';
 
 export function mountUi(root: HTMLElement): void {
@@ -24,6 +27,7 @@ function Shell() {
   const started = useApp((s) => s.game.started);
   const inCombat = useApp((s) => s.game.combat !== null);
   const townScreenOpen = useApp((s) => s.townScreenOpen);
+  const pendingSkillHero = useApp((s) => s.game.heroes[0]);
   const [optionsOpen, setOptionsOpen] = useState(false);
 
   return (
@@ -44,6 +48,9 @@ function Shell() {
       ) : null}
       {optionsOpen && <OptionsPanel onClose={() => setOptionsOpen(false)} />}
       {townScreenOpen !== null && <TownScreen />}
+      {pendingSkillHero && pendingSkillHero.pendingSkillChoices.length > 0 && (
+        <SkillChoice hero={pendingSkillHero} />
+      )}
       <ToastHost />
     </>
   );
@@ -116,6 +123,9 @@ function HeroDrawer() {
         <div class="hero-xp" data-testid="hero-xp">
           {t('hero.xp', { xp: hero.xp })}
         </div>
+        <div class="hero-mana" data-testid="hero-mana">
+          {t('hero.mana', { mana: hero.mana, manaMax: hero.manaMax })}
+        </div>
         <dl class="hero-attributes">
           <div>
             <dt>{t('attribute.attack')}</dt>
@@ -136,6 +146,8 @@ function HeroDrawer() {
         </dl>
         <h3 class="hero-army-title">{t('army.title')}</h3>
         <ArmySlots army={hero.army} />
+        <HeroSkills hero={hero} />
+        <HeroInventory hero={hero} />
       </aside>
     </>
   );

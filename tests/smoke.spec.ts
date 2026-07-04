@@ -9,9 +9,16 @@ import { expect, test, type Page } from '@playwright/test';
 // aller-retour export/import .heroes.
 // Phase 3.1 : écran de ville, construire + croissance hebdo + recruter +
 // transfert garnison → l'armée du héros augmente.
+// Phase 3.2 : lancer un sort en combat (livre → cible → prévisualisation →
+// CastSpell) réduit une pile ennemie ; gating de la modale de choix de
+// compétence.
 // Non couvert ici (dit explicitement, guideline §7) : le tap-tap DANS le
 // combat (sélection d'hex/cible au canvas) — couvert indirectement par
-// AutoCombat ; à outiller quand la scène exposera ses coordonnées.
+// AutoCombat ; à outiller quand la scène exposera ses coordonnées. La montée
+// de niveau → choix de compétence (modale + ChooseSkill) n'est PAS jouable en
+// smoke (niveau 2 ≈ 3732 XP, un gardien ≈ 20 XP) : le flux moteur (level-up →
+// pendingSkillChoices → ChooseSkill) est couvert par `hero-level-up.test.ts` ;
+// seul le gating d'affichage de la modale est vérifié ici.
 
 function collectErrors(page: Page): string[] {
   const errors: string[] = [];
@@ -413,6 +420,84 @@ test('ville : construire + croissance + recruter + transférer → armée du hé
 
   // L'armée du héros a augmenté de 10 (fusion avec la pile t1-recruit existante).
   expect(await armyTotal()).toBe(before + 10);
+
+  expect(errors).toEqual([]);
+});
+
+test('sort : le héros lance un sort en combat et réduit une pile ennemie', async ({ page }) => {
+  const errors = await openGame(page);
+
+  // Interception du gardien (9,3) : le héros est lié au camp attaquant (doc 02
+  // §5.2) → habilité à lancer un sort. Chemin identique au test de combat.
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({
+      type: 'MoveHero',
+      heroId: 'hero-player-1',
+      path: [
+        { x: 4, y: 2 },
+        { x: 5, y: 2 },
+        { x: 6, y: 2 },
+        { x: 7, y: 2 },
+        { x: 8, y: 2 },
+        { x: 9, y: 3 },
+      ],
+    }),
+  );
+  await expect(page.getByTestId('combat-round')).toBeVisible();
+
+  // Dotation de départ (config.newGame.startingHero) : Savoir 4 ⇒ 40 mana,
+  // sorts de cercle ≤ 3 connus d'emblée (décision 3.2 #7).
+  const setup = await page.evaluate(() => {
+    const g = window.__HEROES_TEST__!.getState();
+    const target = g.combat!.stacks.find((s) => s.side === 'defender')!;
+    return {
+      mana: g.heroes[0]!.mana,
+      spells: g.heroes[0]!.spells.length,
+      targetId: target.id,
+      count: target.count,
+    };
+  });
+  expect(setup.spells).toBeGreaterThan(0);
+  expect(setup.mana).toBe(40);
+
+  // Tour du joueur : le bouton [Sort héros] s'active (canCastSpell) — l'IA
+  // adverse a déjà joué son tour le cas échéant (runAiIfNeeded).
+  await expect(page.getByTestId('combat-spell')).toBeEnabled();
+  await page.getByTestId('combat-spell').click();
+
+  // Livre → « éclair magique » (cercle 1, 4 mana) → pile ennemie →
+  // prévisualisation OBLIGATOIRE (doc 08 §2.4) → confirmation.
+  await page.getByTestId('spell-eclair-magique').click();
+  await page.getByTestId(`spell-target-${setup.targetId}`).click();
+  await expect(page.getByTestId('spell-preview')).toContainText(/\d/);
+  await page.getByTestId('spell-cast').click();
+
+  // Pile ennemie réduite (ou détruite), mana débitée, 1 sort/round consommé.
+  const after = await page.evaluate((targetId) => {
+    const g = window.__HEROES_TEST__!.getState();
+    const target = g.combat?.stacks.find((s) => s.id === targetId);
+    return {
+      mana: g.heroes[0]!.mana,
+      remaining: target?.count ?? 0,
+      cast: g.combat?.heroCastThisRound ?? false,
+    };
+  }, setup.targetId);
+  expect(after.mana).toBeLessThan(setup.mana);
+  expect(after.remaining).toBeLessThan(setup.count);
+  expect(after.cast).toBe(true);
+
+  expect(errors).toEqual([]);
+});
+
+test('compétence : aucune modale de choix sans montée de niveau (gating)', async ({ page }) => {
+  const errors = await openGame(page);
+
+  // Héros niveau 1, aucune proposition en attente ⇒ la modale de choix
+  // (montée `shell.tsx` sur `pendingSkillChoices.length > 0`) reste absente.
+  const hero = await page.evaluate(() => window.__HEROES_TEST__!.getState().heroes[0]);
+  expect(hero?.level).toBe(1);
+  expect(hero?.pendingSkillChoices).toHaveLength(0);
+  await expect(page.getByTestId('skill-choice')).toHaveCount(0);
 
   expect(errors).toEqual([]);
 });

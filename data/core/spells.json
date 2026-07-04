@@ -1,0 +1,101 @@
+{
+  "spells": [
+    {
+      "id": "trait-de-feu",
+      "school": "fire",
+      "circle": 1,
+      "manaCost": 5,
+      "kind": "damage",
+      "base": 6,
+      "perPower": 2
+    },
+    {
+      "id": "boule-de-feu",
+      "school": "fire",
+      "circle": 3,
+      "manaCost": 15,
+      "kind": "damage",
+      "base": 15,
+      "perPower": 4
+    },
+    {
+      "id": "soin",
+      "school": "water",
+      "circle": 1,
+      "manaCost": 5,
+      "kind": "heal",
+      "base": 10,
+      "perPower": 3
+    },
+    {
+      "id": "benediction",
+      "school": "water",
+      "circle": 2,
+      "manaCost": 8,
+      "kind": "buff",
+      "base": 0,
+      "perPower": 0,
+      "attackMod": 3
+    },
+    {
+      "id": "bouclier-de-pierre",
+      "school": "earth",
+      "circle": 1,
+      "manaCost": 5,
+      "kind": "buff",
+      "base": 0,
+      "perPower": 0,
+      "defenseMod": 3
+    },
+    {
+      "id": "affaiblissement",
+      "school": "earth",
+      "circle": 2,
+      "manaCost": 8,
+      "kind": "debuff",
+      "base": 0,
+      "perPower": 0,
+      "defenseMod": -3
+    },
+    {
+      "id": "hate",
+      "school": "air",
+      "circle": 2,
+      "manaCost": 8,
+      "kind": "buff",
+      "base": 0,
+      "perPower": 0,
+      "speedMod": 3
+    },
+    {
+      "id": "lenteur",
+      "school": "air",
+      "circle": 1,
+      "manaCost": 5,
+      "kind": "debuff",
+      "base": 0,
+      "perPower": 0,
+      "speedMod": -3
+    },
+    {
+      "id": "eclair-magique",
+      "school": "neutral",
+      "circle": 1,
+      "manaCost": 4,
+      "kind": "damage",
+      "base": 5,
+      "perPower": 2
+    },
+    {
+      "id": "dissipation",
+      "school": "neutral",
+      "circle": 3,
+      "manaCost": 12,
+      "kind": "debuff",
+      "base": 0,
+      "perPower": 0,
+      "attackMod": -2,
+      "defenseMod": -2
+    }
+  ]
+}

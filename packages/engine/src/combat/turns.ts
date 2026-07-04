@@ -11,6 +11,11 @@ import type { CombatSideId, CombatStack, CombatState } from './types';
  * moment où il arrive. Fin de combat : victoire/conséquences/CombatEnded.
  */
 
+/** Vitesse effective + `speedMod` des statuts actifs (buff/debuff de vitesse, doc 02 §1.4). */
+function speedWithStatus(stack: CombatStack, combat: CombatState, catalog: Draft['unitCatalog']): number {
+  return effectiveSpeed(stack, combat, catalog) + stack.statuses.reduce((sum, s) => sum + s.speedMod, 0);
+}
+
 function pickNext(
   candidates: CombatStack[],
   combat: CombatState,
@@ -18,8 +23,8 @@ function pickNext(
   direction: 'asc' | 'desc',
 ): CombatStack | undefined {
   const sorted = [...candidates].sort((a, b) => {
-    const sa = effectiveSpeed(a, combat, catalog);
-    const sb = effectiveSpeed(b, combat, catalog);
+    const sa = speedWithStatus(a, combat, catalog);
+    const sb = speedWithStatus(b, combat, catalog);
     if (sa !== sb) return direction === 'desc' ? sb - sa : sa - sb;
     if (a.side !== b.side) return a.side === 'attacker' ? -1 : 1;
     return a.slot - b.slot;
@@ -43,12 +48,20 @@ export function advanceTurn(draft: Draft, events: GameEvent[]): void {
     let next = mainPhase.length > 0 ? pickNext(mainPhase, combat, draft.unitCatalog, 'desc') : undefined;
     if (!next) next = waitPhase.length > 0 ? pickNext(waitPhase, combat, draft.unitCatalog, 'asc') : undefined;
     if (!next) {
-      // Round terminé : personne à faire jouer — round suivant.
+      // Round terminé : personne à faire jouer — round suivant. Le héros
+      // regagne son sort (décision plan phase-3.2 #2) et les statuts de
+      // sort expirent (roundsLeft décrémenté, retirés à 0 — doc 02 §1.4).
       combat.round += 1;
+      combat.heroCastThisRound = false;
       for (const s of alive) {
         s.acted = false;
         s.waited = false;
         s.retaliationsLeft = 1;
+        if (s.statuses.length > 0) {
+          s.statuses = s.statuses
+            .map((st) => ({ ...st, roundsLeft: st.roundsLeft - 1 }))
+            .filter((st) => st.roundsLeft > 0);
+        }
       }
       events.push({ type: 'CombatRoundStarted', round: combat.round });
       continue;

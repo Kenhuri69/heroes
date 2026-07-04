@@ -40,6 +40,8 @@
       { "unitId": "t1-recruit", "count": 20 },
       { "unitId": "t1-eleve", "count": 12 }
     ],
+    "startingArtifacts": ["lame-aiguisee"],
+    "startingHero": { "attack": 1, "defense": 1, "power": 3, "knowledge": 4 },
     "startingTown": {
       "id": "start-town",
       "factionId": "test-faction",

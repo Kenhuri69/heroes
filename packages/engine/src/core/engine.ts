@@ -31,6 +31,8 @@ import {
   validateCastSpell,
   validateChooseSkill,
 } from '../hero';
+import { heroManaMax } from '../hero/artifacts';
+import { heroGoldPerDay, heroMovementBonus, heroVisionBonus } from '../hero/skills';
 import { EngineError, type Command, type CommandError } from './commands';
 import type { GameEvent } from './events';
 import { seedRng } from './rng';
@@ -49,6 +51,17 @@ type Handlers = {
     events: GameEvent[],
   ) => void;
 };
+
+/**
+ * PM quotidiens du héros : base (doc 02 §1.5) modulés par la Logistique
+ * (`movementBonusPct`, compétence — décision plan phase-3.2 #5). Sans
+ * compétence : bonus 0 ⇒ valeur de base inchangée (golden intact).
+ */
+function heroDailyMovement(draft: Draft, hero: GameState['heroes'][number]): number {
+  if (!draft.config) return 0;
+  const base = dailyMovementPoints(draft.config, hero.army, draft.unitCatalog);
+  return Math.round(base * (1 + heroMovementBonus(hero, draft.skillCatalog) / 100));
+}
 
 /** Règle d'or (doc 07 §2) : fonction pure (état, commande) → état + événements. */
 export function apply(state: GameState, cmd: Command): EngineResult {
@@ -244,23 +257,36 @@ const handlers: Handlers = {
       id: `hero-${p.id}`,
       playerId: p.id,
       pos: cmd.map.startPositions[i] as GridPos,
-      movementPoints: dailyMovementPoints(cmd.config, p.startingArmy ?? [], cmd.unitCatalog),
+      // PM/mana posés dans la boucle suivante (nécessitent l'objet héros complet).
+      movementPoints: 0,
       army: (p.startingArmy ?? []).map((s) => ({ ...s })),
-      // Progression (doc 02 §1.2) — attributs de base par classe : MVP.
+      // Progression (doc 02 §1.2) — attributs de base fournis par le scénario (défaut 0).
       xp: 0,
       level: 1,
-      attributes: { attack: 0, defense: 0, power: 0, knowledge: 0 },
-      // Magie/compétences/artefacts (doc 02 §1.1–§1.4) — mana = Savoir × 10.
+      attributes: p.startingAttributes
+        ? { ...p.startingAttributes }
+        : { attack: 0, defense: 0, power: 0, knowledge: 0 },
+      // Magie/compétences/artefacts (doc 02 §1.1–§1.4) — mana = Savoir × 10 + artefacts.
       mana: 0,
       manaMax: 0,
       skills: {},
-      spells: [],
+      // Sorts connus d'emblée (cercle ≤ Guilde MVP), résolus par le contenu (décision 3.2 #7).
+      spells: p.startingSpells ? [...p.startingSpells] : [],
       artifacts: Array.from({ length: 10 }, (_, i) => (cmd.startingArtifacts ?? [])[i] ?? null),
       pendingSkillChoices: [],
     }));
     for (const hero of draft.heroes) {
+      hero.manaMax = heroManaMax(hero, draft.artifactCatalog);
+      hero.mana = hero.manaMax;
+      hero.movementPoints = heroDailyMovement(draft, hero);
       const player = draft.players.find((p) => p.id === hero.playerId);
-      if (player) revealAround(player.explored, cmd.map, hero.pos, cmd.config.visionRadius);
+      if (player)
+        revealAround(
+          player.explored,
+          cmd.map,
+          hero.pos,
+          cmd.config.visionRadius + heroVisionBonus(hero, draft.skillCatalog),
+        );
     }
     events.push({ type: 'GameStarted', seed: cmd.seed, playerIds: cmd.players.map((p) => p.id) });
     events.push({ type: 'DayStarted', day: 1 });
@@ -291,7 +317,7 @@ const handlers: Handlers = {
       const from = { ...hero.pos };
       hero.movementPoints -= cost;
       hero.pos = { ...step };
-      revealAround(player.explored, map, hero.pos, config.visionRadius);
+      revealAround(player.explored, map, hero.pos, config.visionRadius + heroVisionBonus(hero, draft.skillCatalog));
       events.push({
         type: 'MoveStepped',
         heroId: hero.id,
@@ -367,15 +393,24 @@ const handlers: Handlers = {
     draft.currentPlayer = 0;
     draft.calendar.day += 1;
     if (draft.config) {
-      // Points de mouvement quotidiens restaurés (doc 02 §1.5).
+      // Points de mouvement quotidiens restaurés (doc 02 §1.5), modulés Logistique.
       for (const hero of draft.heroes) {
-        hero.movementPoints = dailyMovementPoints(draft.config, hero.army, draft.unitCatalog);
+        hero.movementPoints = heroDailyMovement(draft, hero);
       }
     }
     events.push({ type: 'DayStarted', day: draft.calendar.day });
     // Économie des villes : 1 build/jour réarmé, revenu quotidien (doc 02 §4.1).
     resetBuiltToday(draft);
     applyDailyIncome(draft, events);
+    // Économie (compétence héros, décision plan phase-3.2 #5) : or/jour supplémentaire.
+    for (const hero of draft.heroes) {
+      const gold = heroGoldPerDay(hero, draft.skillCatalog);
+      if (gold <= 0) continue;
+      const player = draft.players.find((p) => p.id === hero.playerId);
+      if (!player) continue;
+      player.resources.gold += gold;
+      events.push({ type: 'TownIncome', playerId: player.id, resource: 'gold', amount: gold });
+    }
     const week = weekOf(draft.calendar.day);
     if (week !== weekOf(draft.calendar.day - 1)) {
       events.push({ type: 'WeekStarted', week });

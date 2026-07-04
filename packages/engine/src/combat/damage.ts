@@ -1,5 +1,8 @@
 import { rollRange } from '../core/rng';
 import type { GameState } from '../core/state';
+import { heroArtifactBonus } from '../hero/artifacts';
+import { heroArmorPct, heroLuck, heroMeleePct, heroRangedPct } from '../hero/skills';
+import type { SpellStatus } from '../hero/types';
 import { canShoot } from './actions';
 import { hexDistance } from './hex';
 import { clamp, isShooterMeleePenalized, recordLoss } from './state-helpers';
@@ -12,6 +15,14 @@ import type { Draft } from './draft';
  * Dégâts (doc 02 §5.3) : formule commune à la résolution réelle (avec RNG,
  * `performStrike`) et à la prévisualisation (`estimateDamage`, sans RNG) —
  * même code, seule la source des dégâts de base diffère.
+ *
+ * Attribut héros (décision plan phase-3.2 #4) : l'attaque/défense effectives
+ * injectent `heroAttackOf`/`heroDefenseOf` (attribut + artefacts) et la somme
+ * des `attackMod`/`defenseMod` des statuts actifs de la pile (buffs/debuffs de
+ * sort) ; `heroDamagePct`/`heroArmorPct` portent les compétences combat
+ * (Attaque au corps/Tir, Armure). Tout reste à 0 hors héros lié — comportement
+ * d'arène inchangé. Le moral du héros (Commandement) n'est PAS branché ici :
+ * `moraleOf` vit dans `state-helpers.ts`, hors périmètre du lot K.
  */
 
 interface MultiplierInput {
@@ -21,12 +32,24 @@ interface MultiplierInput {
   targetMarks: number;
   meleePenalized: boolean;
   rules: CombatRulesConfig;
+  /** Bonus % de dégâts (compétence Attaque au corps/Tir du héros attaquant) — 0 hors héros. */
+  heroDamagePct?: number;
+  /** Réduction % d'armure du héros défenseur (compétence Armure) — 0 hors héros. */
+  heroArmorPct?: number;
 }
 
-/** Multiplicateur global (diff attaque/défense, pénalité mêlée forcée, marques) — sans chance. */
+/** Multiplicateur global (diff attaque/défense, pénalité mêlée forcée, marques, héros) — sans chance. */
 export function computeMultiplier(input: MultiplierInput): number {
-  const { strikerAttack, targetDefense, targetDefending, targetMarks, meleePenalized, rules } =
-    input;
+  const {
+    strikerAttack,
+    targetDefense,
+    targetDefending,
+    targetMarks,
+    meleePenalized,
+    rules,
+    heroDamagePct,
+    heroArmorPct: armorPct,
+  } = input;
   const effectiveDefense = targetDefending
     ? Math.floor(targetDefense * rules.defendDefenseMultiplier)
     : targetDefense;
@@ -35,7 +58,60 @@ export function computeMultiplier(input: MultiplierInput): number {
   let mult = 1 + factor;
   if (meleePenalized) mult *= rules.rangedMeleePenalty;
   mult *= 1 + rules.markBonusPerStack * targetMarks;
+  mult *= 1 + (heroDamagePct ?? 0);
+  mult *= 1 - (armorPct ?? 0);
   return mult;
+}
+
+/** Héros lié au camp `side` du combat (`attackerHeroId`/`defenderHeroId`), ou aucun. */
+function heroForSide(state: GameState, combat: CombatState, side: CombatSideId) {
+  const heroId = side === 'attacker' ? combat.attackerHeroId : combat.defenderHeroId;
+  return heroId ? state.heroes.find((h) => h.id === heroId) : undefined;
+}
+
+/** Attaque additionnelle du héros lié au camp (attribut + artefacts) — 0 si aucun héros. */
+export function heroAttackOf(state: GameState, combat: CombatState, side: CombatSideId): number {
+  const hero = heroForSide(state, combat, side);
+  if (!hero) return 0;
+  return hero.attributes.attack + heroArtifactBonus(hero, state.artifactCatalog).attack;
+}
+
+/** Défense additionnelle du héros lié au camp (attribut + artefacts) — 0 si aucun héros. */
+export function heroDefenseOf(state: GameState, combat: CombatState, side: CombatSideId): number {
+  const hero = heroForSide(state, combat, side);
+  if (!hero) return 0;
+  return hero.attributes.defense + heroArtifactBonus(hero, state.artifactCatalog).defense;
+}
+
+/** Chance du héros (compétence + artefacts), bornée [0,3] — 0 si aucun héros. */
+export function heroLuckOf(state: GameState, combat: CombatState, side: CombatSideId): number {
+  const hero = heroForSide(state, combat, side);
+  if (!hero) return 0;
+  const total = heroLuck(hero, state.skillCatalog) + heroArtifactBonus(hero, state.artifactCatalog).luck;
+  return clamp(total, 0, 3);
+}
+
+/** Bonus % de dégâts mêlée du héros lié au camp (compétence Attaque au corps) — fraction (0,10 = +10 %). */
+function heroMeleePctOf(state: GameState, combat: CombatState, side: CombatSideId): number {
+  const hero = heroForSide(state, combat, side);
+  return hero ? heroMeleePct(hero, state.skillCatalog) / 100 : 0;
+}
+
+/** Bonus % de dégâts à distance du héros lié au camp (compétence Tir) — fraction. */
+function heroRangedPctOf(state: GameState, combat: CombatState, side: CombatSideId): number {
+  const hero = heroForSide(state, combat, side);
+  return hero ? heroRangedPct(hero, state.skillCatalog) / 100 : 0;
+}
+
+/** Réduction % d'armure du héros lié au camp défenseur (compétence Armure) — fraction. */
+function heroArmorPctOf(state: GameState, combat: CombatState, side: CombatSideId): number {
+  const hero = heroForSide(state, combat, side);
+  return hero ? heroArmorPct(hero, state.skillCatalog) / 100 : 0;
+}
+
+/** Somme d'un modificateur de statut temporaire (buff/debuff de sort) sur une pile. */
+function statusModSum(statuses: SpellStatus[], key: 'attackMod' | 'defenseMod'): number {
+  return statuses.reduce((sum, s) => sum + s[key], 0);
 }
 
 /** Pertes entières (créatures + PV entamés) infligées par un total de dégâts. */
@@ -68,18 +144,35 @@ export function performStrike(
     draft.rng = r.state;
     base += r.value;
   }
+  const combat = draft.combat;
+  const strikerAttack =
+    strikerDef.stats.attack +
+    (combat ? heroAttackOf(draft, combat, striker.side) : 0) +
+    statusModSum(striker.statuses, 'attackMod');
+  const targetDefense =
+    victimDef.stats.defense +
+    (combat ? heroDefenseOf(draft, combat, victim.side) : 0) +
+    statusModSum(victim.statuses, 'defenseMod');
+  // Une riposte est toujours une frappe de mêlée (la pile riposte au contact) ;
+  // sinon on approxime « tir » par tireur (ammo non nul) sans pénalité mêlée forcée.
+  const ranged = !retaliation && striker.ammo !== null && !meleePenalized;
+  const heroDamagePct = combat
+    ? ranged
+      ? heroRangedPctOf(draft, combat, striker.side)
+      : heroMeleePctOf(draft, combat, striker.side)
+    : 0;
+  const heroArmor = combat ? heroArmorPctOf(draft, combat, victim.side) : 0;
   const mult = computeMultiplier({
-    strikerAttack: strikerDef.stats.attack,
-    targetDefense: victimDef.stats.defense,
+    strikerAttack,
+    targetDefense,
     targetDefending: victim.defending,
     targetMarks: victim.marks,
     meleePenalized,
     rules,
+    heroDamagePct,
+    heroArmorPct: heroArmor,
   });
-  // Chance : luck = 0 en 2.4 (décision plan #4, pas d'artefacts) — le tirage
-  // est conservé pour garder une séquence RNG stable même si le trait luck
-  // apparaît plus tard (héros/artefacts).
-  const luck = 0;
+  const luck = combat ? heroLuckOf(draft, combat, striker.side) : 0;
   const luckRoll = rollRange(draft.rng, 0, 99);
   draft.rng = luckRoll.state;
   const lucky = luckRoll.value < Math.round(rules.luckChancePerPoint * luck * 100);
@@ -92,7 +185,6 @@ export function performStrike(
   victim.count = newCount;
   victim.firstHp = newCount > 0 ? remaining - (newCount - 1) * victimDef.stats.hp : 0;
 
-  const combat = draft.combat;
   if (combat) recordLoss(combat, victim.side, victim.unitId, kills);
 
   if (strikerDef.abilities.some((a) => a.id === 'mark') && victim.count > 0) {
@@ -148,13 +240,27 @@ export function estimateDamage(
 
   const ranged = canShoot(state, attackerId);
   const meleePenalized = !ranged && isShooterMeleePenalized(attackerDef);
+  const strikerAttack =
+    attackerDef.stats.attack +
+    heroAttackOf(state, combat, attacker.side) +
+    statusModSum(attacker.statuses, 'attackMod');
+  const targetDefenseVal =
+    targetDef.stats.defense +
+    heroDefenseOf(state, combat, target.side) +
+    statusModSum(target.statuses, 'defenseMod');
+  const heroDamagePct = ranged
+    ? heroRangedPctOf(state, combat, attacker.side)
+    : heroMeleePctOf(state, combat, attacker.side);
+  const heroArmor = heroArmorPctOf(state, combat, target.side);
   const mult = computeMultiplier({
-    strikerAttack: attackerDef.stats.attack,
-    targetDefense: targetDef.stats.defense,
+    strikerAttack,
+    targetDefense: targetDefenseVal,
     targetDefending: target.defending,
     targetMarks: target.marks,
     meleePenalized,
     rules,
+    heroDamagePct,
+    heroArmorPct: heroArmor,
   });
   const [dmgMin, dmgMax] = attackerDef.stats.damage;
   const baseMin = attacker.count * dmgMin;
@@ -173,13 +279,24 @@ export function estimateDamage(
     const survivorsAfterMaxDamage = target.count - killsMax;
     const survivorsAfterMinDamage = target.count - killsMin;
     const retMeleePenalized = isShooterMeleePenalized(targetDef);
+    // Riposte : toujours une frappe de mêlée (compétence Attaque au corps du défenseur).
+    const retStrikerAttack =
+      targetDef.stats.attack +
+      heroAttackOf(state, combat, target.side) +
+      statusModSum(target.statuses, 'attackMod');
+    const retTargetDefense =
+      attackerDef.stats.defense +
+      heroDefenseOf(state, combat, attacker.side) +
+      statusModSum(attacker.statuses, 'defenseMod');
     const retMult = computeMultiplier({
-      strikerAttack: targetDef.stats.attack,
-      targetDefense: attackerDef.stats.defense,
+      strikerAttack: retStrikerAttack,
+      targetDefense: retTargetDefense,
       targetDefending: attacker.defending,
       targetMarks: attacker.marks,
       meleePenalized: retMeleePenalized,
       rules,
+      heroDamagePct: heroMeleePctOf(state, combat, target.side),
+      heroArmorPct: heroArmorPctOf(state, combat, attacker.side),
     });
     const [retDmgMin, retDmgMax] = targetDef.stats.damage;
     retaliation = {

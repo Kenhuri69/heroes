@@ -2,8 +2,10 @@ import { useSyncExternalStore } from 'preact/compat';
 import { useState } from 'preact/hooks';
 import { useApp, appStore } from '../app/store';
 import { dispatch } from '../app/dispatch';
+import { PLAYER_ID } from '../app/game';
 import { t, resolveUnitName } from '../app/i18n';
 import { combatPreview, type DamagePreview } from '../scenes/combat/preview';
+import { SpellBook } from './SpellBook';
 import './combat.css';
 
 const SPEEDS = [1, 2, 4] as const;
@@ -21,11 +23,14 @@ export function CombatUi() {
   useApp((s) => s.locale); // réactivité i18n
   const combat = useApp((s) => s.game.combat);
   const combatSpeed = useApp((s) => s.combatSpeed);
+  const hero = useApp((s) => s.game.heroes.find((h) => h.playerId === PLAYER_ID));
   const preview = useSyncExternalStore(combatPreview.subscribe, combatPreview.get);
+  const [spellBookOpen, setSpellBookOpen] = useState(false);
   if (!combat) return null;
 
   const active = combat.stacks.find((s) => s.id === combat.activeStackId);
   const isPlayerTurn = !combat.finished && active?.side === combat.playerSide;
+  const canCastSpell = isPlayerTurn && !combat.heroCastThisRound && !!hero && hero.spells.length > 0;
 
   const attackers = combat.stacks.filter((s) => s.side === 'attacker').sort((a, b) => a.slot - b.slot);
   const defenders = combat.stacks.filter((s) => s.side === 'defender').sort((a, b) => a.slot - b.slot);
@@ -72,6 +77,9 @@ export function CombatUi() {
         <button data-testid="combat-defend" disabled={!isPlayerTurn} onClick={() => act('defend')}>
           {t('combat.defend')}
         </button>
+        <button data-testid="combat-spell" disabled={!canCastSpell} onClick={() => setSpellBookOpen(true)}>
+          {t('combat.spell')}
+        </button>
         <button data-testid="combat-auto" disabled={!isPlayerTurn} onClick={auto}>
           {t('combat.auto')}
         </button>
@@ -87,6 +95,8 @@ export function CombatUi() {
           ))}
         </div>
       </footer>
+
+      {spellBookOpen && hero && <SpellBook hero={hero} onClose={() => setSpellBookOpen(false)} />}
     </div>
   );
 }

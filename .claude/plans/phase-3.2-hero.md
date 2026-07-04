@@ -97,23 +97,58 @@ schémas `spell`/`skill`/`artifact` sont assez expressifs pour les factions.
 
 - [ ] **Cadrage (principal)** : ce plan + surfaces figées + stubs, golden
       refigé, vert.
-- [ ] **Lot K (sonnet) — moteur** : sorts en combat (`CastSpell`, dégâts/soin/
+- [x] **Lot K (sonnet) — moteur** : sorts en combat (`CastSpell`, dégâts/soin/
       buff/debuff, statuts, mana, `heroCastThisRound`), attributs héros +
       luck/moral branchés dans `damage.ts`, compétences (effets aux points
       existants), choix de compétence (`ChooseSkill` + propositions au
       level-up), artefacts (bonus cumulés). `estimateSpell` sans RNG. Tests
       tabulaires + property « le combat se termine toujours » avec sorts +
-      golden.
-- [ ] **Lot L (sonnet) — contenu** : schémas spell/skill/artifact + règles
+      golden. Livré : `hero/{spells,skills,artifacts,level-up}.ts` (règles
+      pures) + `hero/index.ts` (validate/handle CastSpell & ChooseSkill,
+      estimateSpell) ; `combat/damage.ts` (attaque/défense/luck du héros +
+      statuts attackMod/defenseMod + %mêlée/tir/armure injectés dans
+      `computeMultiplier`, sans régression arène) ; `combat/turns.ts`
+      (reset `heroCastThisRound` + décrément/expiration des statuts +
+      `speedMod` dans l'ordre de jeu) ; `combat/setup.ts` (mana du héros
+      lié = `manaMax` à l'ouverture) ; `adventure/experience.ts` (tirage de
+      2 propositions de compétence à chaque niveau franchi, RNG de l'état).
+      31 tests ajoutés (150 au total) dans `test/hero-{spells,skills,
+      level-up,property}.test.ts`. Golden **inchangé** (hash `f85c9e64`) :
+      le héros du journal golden reste niveau 1/attributs à 0/sans
+      artefact ni compétence au moment du combat, donc tous les bonus
+      héros valent 0 — `pnpm --filter @heroes/engine test/typecheck`,
+      `pnpm lint` verts.
+- [x] **Lot L (sonnet) — contenu** : schémas spell/skill/artifact + règles
       croisées, `data/core/spells/*` (~10), `skills.json` (12), `artifacts.json`,
-      `startingArtifacts`, catalogues, `content:check` étendu, tests.
-- [ ] **Lot M (sonnet) — UI** : livre de sorts combat (prévisualisation),
+      `startingArtifacts`, catalogues, `content:check` étendu, tests. Livré :
+      `spellSchema`/`skillSchema`/`artifactSchema` + catalogues fichiers,
+      `data/core/spells.json` (10), `skills.json` (13 — voir écart),
+      `artifacts.json` (4), `config.newGame.startingArtifacts`,
+      `buildSpellCatalog`/`buildSkillCatalog`/`buildArtifactCatalog`,
+      `content:check` étendu (3 catalogues), 16 tests ajoutés (35 au total),
+      `pnpm --filter @heroes/content test/typecheck`, `content:check`, `lint`
+      verts.
+- [x] **Lot M (sonnet) — UI** : livre de sorts combat (prévisualisation),
       tiroir héros étendu (compétences + inventaire 10 slots), modale de choix
       de compétence, i18n. Bouton `[Sort héros]` dans la barre de combat.
-- [ ] **Intégration (principal)** : résolution des catalogues contenu→moteur,
-      héros liés aux camps de combat, smoke « lancer un sort en combat réduit
-      une pile » + « montée de niveau → choix de compétence », golden, docs
-      (doc 02 §1.3/§1.4, doc 08 §2.3), CLAUDE.md, PR.
+      Livré : `SpellBook`/`HeroSkills`/`HeroInventory`/`SkillChoice`, bouton
+      `combat-spell`, `resolveSpellName`/`resolveSkillName`/`resolveArtifactName`
+      dans `i18n.ts` (repli sur l'id — les `SpellDef`/`HeroSkillDef`/`ArtifactDef`
+      figés n'ont pas de `name`), 33 clés locales ×2 langues, 13/13 smokes
+      desktop verts, bundle client 55 Ko gzip.
+- [x] **Intégration (principal)** : catalogues sorts/compétences/artefacts
+      résolus contenu→moteur (`buildHeroSetup` dans `game.ts` ; gating MVP
+      « cercle ≤ 3 » appliqué côté contenu, hors moteur). Héros de départ doté :
+      attributs `config.newGame.startingHero` (Savoir 4 ⇒ 40 mana), sorts
+      connus d'emblée, artefacts ; `PlayerSetup` gagne `startingAttributes`/
+      `startingSpells` (défaut 0/[] ⇒ golden intact). Mana initialisée à
+      l'ouverture de combat (lot K) ET à `StartGame` (affichage tiroir). Effets
+      de compétence hors combat branchés dans `engine.ts` : Logistique = PM
+      (`heroDailyMovement`), Recherche = vision (`revealAround`), Économie =
+      or/jour (EndTurn). Smoke « lancer un sort réduit une pile » (E2E UI
+      complet) + gating modale de choix. Golden **inchangé** (`f85c9e64`).
+      Docs 02 §1.3/§1.4 + 08 §2.3 + CLAUDE.md. Vérif : 150 tests moteur, 35
+      contenu, 15 smokes desktop / 14 mobile, lint, bundle < 800 Ko — tous verts.
 
 ## Écarts assumés
 
@@ -124,4 +159,63 @@ schémas `spell`/`skill`/`artifact` sont assez expressifs pour les factions.
 
 ## Écarts constatés en cours de route
 
-(à compléter)
+- **Lot L** : le pool de compétences du doc 02 §1.3 énumère « Magie (par
+  école ×4) » comme une ligne unique mais représente en réalité 4 skills
+  (`magic-fire/water/earth/air`) — le pool livré compte donc **13** entrées
+  (7 skills « simples » + 4 écoles de magie + Sagesse + Économie), pas 12
+  pile (le doc lui-même dit « ~12 »). Décision : livrer les 13, cadrage
+  explicite du lot listant chaque id de magie séparément.
+- **Lot L** : `spell`/`skill`/`artifact` n'ont pas reçu de champ `name`
+  (`@loc:` optionnel dans le schéma) faute de besoin d'affichage en 3.2 — pas
+  de clé de locale ajoutée à `data/core/locales/`. Lot M (UI) devra soit
+  ajouter les `name`/locales, soit dériver l'affichage autrement.
+- **Lot L** : le sort neutre « dissipation » (dispel) est modélisé en
+  `debuff` (`attackMod`/`defenseMod` négatifs) faute de `SpellKind` dédié
+  dans la surface figée — pas de vrai retrait de statut en 3.2, cohérent
+  avec le lot K qui n'implémente que damage/heal/buff/debuff.
+- **Lot K** : moral du héros (Commandement, `heroMorale` dans
+  `hero/skills.ts`) **NON branché** au moral de pile — `moraleOf` vit dans
+  `combat/state-helpers.ts`, hors périmètre exclusif du lot (seuls
+  `damage.ts`/`turns.ts`/`setup.ts` étaient modifiables côté combat).
+  Point d'intégration à traiter par la session principale ou un lot dédié.
+- **Lot K** : PM quotidiens (Logistique), rayon de vision (Recherche), or/jour
+  (Économie) et réduction de coût de mana par école (Magie) restent des
+  fonctions pures exposées (`hero/skills.ts` : `heroMovementBonus`,
+  `heroVisionBonus`, `heroGoldPerDay`) mais **NON branchées** à
+  `adventure/config.ts` (`dailyMovementPoints`), `adventure/fog.ts`
+  (`revealAround`) ni au revenu de ville — hors périmètre exclusif du lot
+  (« NE modifie pas dailyMovementPoints/town/economy toi-même »).
+  `heroManaCostReduction` EST branché (dans `hero/spells.ts`, coût de sort).
+- **Lot K** : plafond de soin — `CombatStack` (types.ts figé) ne porte pas
+  l'effectif initial de la pile. Approximé par `effectif courant + pertes
+  déjà enregistrées pour cette unité/ce camp` (bilan interne du combat via
+  `collectCasualties`) ; les dégâts sur PV entamés sans mort (frappes
+  partielles) ne sont pas comptés dans ce plafond, ce qui peut sous-estimer
+  légèrement l'effectif maximal réel dans de rares cas. Documenté dans
+  `hero/index.ts`.
+- **Lot K** : distinction mêlée/tir du bonus de compétence (Attaque au
+  corps vs Tir) approximée dans `combat/damage.ts` par `striker.ammo !==
+  null && !meleePenalized` (riposte toujours traitée comme mêlée). Un
+  tireur doté d'une capacité `noMeleePenalty` combattant au contact (aucune
+  unité de ce type dans les données actuelles) serait classé « tir » par
+  erreur — edge case non couvert, `actions.ts` étant hors périmètre du lot.
+- **Lot K** : `hero.pendingSkillChoices` est **remplacé** (pas accumulé) à
+  chaque niveau franchi dans `grantXp` — une chaîne de montées multiples en
+  un seul appel ne laisse en attente que les 2 propositions du dernier
+  niveau atteint (décision documentée dans `adventure/experience.ts`).
+- **Intégration** : effets de compétence hors combat désormais **branchés**
+  (Logistique/Recherche/Économie via `engine.ts`) ; en revanche le **moral du
+  héros** (Commandement, `heroMorale`) reste **NON branché** au moral de pile
+  (`combat/state-helpers.ts` `moraleOf`) — reporté (raffinement 3.3+), car il
+  faut décider comment le moral du héros lié à un camp module chaque pile.
+- **Intégration** : smoke « montée de niveau → choix de compétence » **non
+  jouable** dans une partie fraîche (niveau 2 ≈ 3732 XP, un gardien ≈ 20 XP).
+  Le flux moteur (level-up → `pendingSkillChoices` → `ChooseSkill`) est couvert
+  par `hero-level-up.test.ts` (11 tests) ; le smoke navigateur ne vérifie que
+  le **gating** de la modale (absente au niveau 1). L'E2E complet du sort
+  (livre → cible → prévisualisation → `CastSpell` → pile réduite) est, lui,
+  couvert en navigateur.
+- **Intégration** : le héros de départ reçoit des attributs de base
+  (`config.newGame.startingHero`, Savoir 4) — sans quoi `manaMax = Savoir × 10`
+  vaudrait 0 et le système de sorts serait inerte en partie réelle. Choix
+  data-driven (pas de valeur en dur), défaut 0 si le champ est absent.

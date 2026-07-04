@@ -26,6 +26,24 @@ export function deserializeState(snapshot: string): GameState {
 }
 
 /**
+ * Lit la version de forme d'un snapshot **sans** faire confiance à sa structure
+ * (doc 07 §4) : renvoie le nombre `saveVersion`, ou `null` si le JSON est
+ * invalide ou le champ absent/non numérique. Sert de garde au chargement avant
+ * d'adopter l'état — une sauvegarde d'une autre version est rejetée.
+ */
+export function readSaveVersion(snapshot: string): number | null {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(snapshot);
+  } catch {
+    return null;
+  }
+  if (typeof parsed !== 'object' || parsed === null) return null;
+  const version = (parsed as { saveVersion?: unknown }).saveVersion;
+  return typeof version === 'number' && Number.isFinite(version) ? version : null;
+}
+
+/**
  * Empreinte FNV-1a 32 bits du JSON canonique — suffisant pour les golden
  * tests de replay et la détection de divergence de simulation (doc 07 §7).
  */

@@ -1,5 +1,6 @@
 import { Application, Point } from 'pixi.js';
 import type { Command, GameState } from '@heroes/engine';
+import { CURRENT_SAVE_VERSION, serializeState } from '@heroes/engine';
 import { Camera } from './render/camera';
 import { TILE_SIZE } from './render/tilemap';
 import { loadGameContent, loadDefaultMap, loadScenarioMap } from './app/content';
@@ -13,7 +14,7 @@ import {
 } from './app/game';
 import { dispatch } from './app/dispatch';
 import { appStore } from './app/store';
-import { exportSave, importSave, saveGame, restoreSavedGame } from './app/save';
+import { exportSave, importSave, saveGame, restoreSavedGame, encodeHeroesFile } from './app/save';
 import { installAutosave } from './app/autosave';
 import { initI18n } from './app/i18n';
 import { AdventureScene } from './scenes/adventure/AdventureScene';
@@ -34,6 +35,8 @@ declare global {
       load: () => Promise<boolean>;
       /** Aller-retour export → import `.heroes` (couverture smoke du lot F). */
       saveRoundtrip: () => Promise<boolean>;
+      /** Import d'une sauvegarde à version de forme incompatible (lot 3.8) — doit échouer. */
+      importIncompatibleSave: () => Promise<boolean>;
       /** Démarre un scénario par id, seed fixe (couverture smoke du lot U). */
       startScenario: (scenarioId: string) => Promise<void>;
     };
@@ -161,6 +164,11 @@ async function bootstrap(): Promise<void> {
     save: () => saveGame(appStore.getState().game, 'manual'),
     load: () => restoreSavedGame('manual'),
     saveRoundtrip: async () => importSave(await exportSave(appStore.getState().game)),
+    importIncompatibleSave: async () => {
+      const parsed = JSON.parse(serializeState(appStore.getState().game)) as { saveVersion: number };
+      parsed.saveVersion = CURRENT_SAVE_VERSION + 1; // version future non supportée
+      return importSave(await encodeHeroesFile(JSON.stringify(parsed), []));
+    },
     startScenario: (scenarioId) => startScenario(scenarioId, TEST_SCENARIO_SEED),
   };
   window.__HEROES_READY__ = true; // signal pour le smoke test headless

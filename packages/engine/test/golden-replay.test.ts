@@ -183,12 +183,12 @@ const GOLDEN_JOURNAL: Command[] = [
   ),
 ];
 
-// Hash mis à jour au cadrage phase-3.5 (scénarios & IA) : `PlayerState.
-// controller`/`eliminated` et `GameState.scenario`/`outcome` s'ajoutent à la
-// forme sérialisée. Partie libre (scenario null) ⇒ aucune évaluation de fin de
-// partie : la simulation est inchangée, seule la FORME de l'état change — hash
-// relevé après vérification. (Précédents : f85c9e64 en 3.2, 211e3cfd au lot O.)
-const GOLDEN_HASH = '48073225';
+// Hash mis à jour au lot 3.8 (garde de version de sauvegarde) : `saveVersion`
+// passe de 1 à `CURRENT_SAVE_VERSION` (2) — champ inclus dans l'état haché, donc
+// seule la FORME/valeur constante change, la simulation est inchangée. Hash
+// relevé après vérification. (Précédents : f85c9e64 en 3.2, 211e3cfd au lot O,
+// 48073225 au cadrage 3.5 — controller/eliminated/scenario/outcome.)
+const GOLDEN_HASH = '3568ea04';
 
 describe('golden replay', () => {
   it('le journal scripté produit toujours le même état final', () => {

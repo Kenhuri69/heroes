@@ -1,11 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import { apply } from '../src/core/engine';
-import { createEmptyState, emptyResources, type GameState } from '../src/core/state';
+import {
+  createEmptyState,
+  emptyResources,
+  CURRENT_SAVE_VERSION,
+  type GameState,
+} from '../src/core/state';
 import type { Command } from '../src/core/commands';
 import type { TownState } from '../src/town/types';
 import {
   deserializeState,
   hashState,
+  readSaveVersion,
   serializeState,
   stableStringify,
 } from '../src/core/serialize';
@@ -130,5 +136,26 @@ describe('sérialisation', () => {
     const loaded = deserializeState(serializeState(state));
     expect(loaded).toEqual(state);
     expect(hashState(loaded)).toBe(hashState(state));
+  });
+});
+
+describe('garde de version de sauvegarde (plan phase-3.8)', () => {
+  it('un état neuf porte CURRENT_SAVE_VERSION', () => {
+    expect(createEmptyState().saveVersion).toBe(CURRENT_SAVE_VERSION);
+    expect(readSaveVersion(serializeState(createEmptyState()))).toBe(CURRENT_SAVE_VERSION);
+  });
+
+  it('readSaveVersion lit la version d’un snapshot arbitraire', () => {
+    expect(readSaveVersion('{"saveVersion":1,"started":false}')).toBe(1);
+    expect(readSaveVersion('{"saveVersion":99}')).toBe(99);
+  });
+
+  it('readSaveVersion rend null sur JSON invalide ou version absente/non numérique', () => {
+    expect(readSaveVersion('pas du json')).toBeNull();
+    expect(readSaveVersion('null')).toBeNull();
+    expect(readSaveVersion('42')).toBeNull();
+    expect(readSaveVersion('{"started":true}')).toBeNull();
+    expect(readSaveVersion('{"saveVersion":"2"}')).toBeNull();
+    expect(readSaveVersion('{"saveVersion":null}')).toBeNull();
   });
 });

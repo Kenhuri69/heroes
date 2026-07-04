@@ -88,6 +88,17 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > `factionCatalog`/`hero.factionId` — **zéro `if (faction === …)` dans le
 > moteur**. Scaling par compétence/bâtiment, capacités spéciales et héros
 > nommés différés (cf. doc 04 « État 3.4 »).
+>
+> 🔧 **Durcissement post-MVP** (choix utilisateur ; plans `.claude/plans/
+> phase-3.7-*` et `-3.8-*`). 3.7 livrée : correction du nom de faction (clé
+> locale unique `@loc:faction.<id>.name` par paquet — évite la collision à la
+> fusion des locales ; scaffolder `faction:new` corrigé) + couverture save/load
+> d'un état de scénario (champs 3.4/3.5). 3.8 livrée : **garde de version de
+> sauvegarde** — `CURRENT_SAVE_VERSION` (source de vérité moteur, bump 1→2 pour
+> la forme 3.4/3.5) + `readSaveVersion` ; le chargement (IndexedDB + import
+> `.heroes`) rejette proprement une sauvegarde d'une autre version au lieu
+> d'adopter un état malformé (doc 07 §4). Zéro faction dans le moteur (garde-fou
+> vert), golden re-fixé.
 > Les docs `docs/0X-*.md` restent la source de
 > vérité du design ; le code doit s'y conformer.
 

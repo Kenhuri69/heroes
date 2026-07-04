@@ -78,8 +78,18 @@ export interface Calendar {
  * Carte et constantes d'équilibrage sont EMBARQUÉES par `StartGame` : le
  * journal de commandes reste re-simulable même si les données évoluent.
  */
+/**
+ * Version de forme de la sauvegarde — source unique de vérité (doc 07 §4).
+ * À **incrémenter** dès que la forme de `GameState` change de façon incompatible
+ * (nouveaux champs requis, renommage…). Le chargement rejette proprement toute
+ * sauvegarde d'une autre version plutôt que d'adopter un état malformé.
+ * (v2 : couvre les champs `factionCatalog`/`scenario`/`outcome`/`controller`/
+ * `eliminated` introduits en 3.4/3.5.)
+ */
+export const CURRENT_SAVE_VERSION = 2;
+
 export interface GameState {
-  saveVersion: 1;
+  saveVersion: number;
   /** Partie non démarrée tant que `StartGame` n'a pas été appliquée. */
   started: boolean;
   rng: RngState;
@@ -119,7 +129,7 @@ export interface GameState {
 
 export function createEmptyState(): GameState {
   return {
-    saveVersion: 1,
+    saveVersion: CURRENT_SAVE_VERSION,
     started: false,
     rng: { hi: 0, lo: 0, incHi: 0, incLo: 0 },
     calendar: { day: 1 },

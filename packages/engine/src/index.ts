@@ -5,6 +5,7 @@ export {
   createEmptyState,
   emptyResources,
   weekOf,
+  CURRENT_SAVE_VERSION,
   RESOURCE_IDS,
   type Calendar,
   type GameState,
@@ -14,7 +15,13 @@ export {
   type Resources,
 } from './core/state';
 export { seedRng, nextU32, rollRange, type RngState } from './core/rng';
-export { serializeState, deserializeState, hashState, stableStringify } from './core/serialize';
+export {
+  serializeState,
+  deserializeState,
+  readSaveVersion,
+  hashState,
+  stableStringify,
+} from './core/serialize';
 export {
   DIRECTIONS,
   inBounds,

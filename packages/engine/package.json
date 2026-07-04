@@ -1,0 +1,21 @@
+{
+  "name": "@heroes/engine",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "immer": "^10.1.0"
+  },
+  "devDependencies": {
+    "fast-check": "^4.1.0",
+    "typescript": "^5.8.0",
+    "vitest": "^3.2.0"
+  }
+}

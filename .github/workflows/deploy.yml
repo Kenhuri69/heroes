@@ -35,7 +35,7 @@ jobs:
 
       - run: pnpm typecheck
       - run: pnpm lint
-      - run: pnpm test          # --if-present : les tests moteur arrivent en Phase 2.1
+      - run: pnpm test          # moteur : unitaires + property-based + golden replay
 
       - run: pnpm build
 

@@ -305,9 +305,12 @@ import { defineConfig } from 'vite';
 import preact from '@preact/preset-vite';
 import path from 'node:path';
 
-export default defineConfig(({ command }) => ({
+export default defineConfig({
   // GitHub Pages sert le site sous /<repo>/ — crucial pour tous les assets.
-  base: command === 'build' ? '/heroes/' : '/',
+  // Base FIXE (et non conditionnelle au build) : `vite preview` résout
+  // `command === 'serve'`, une base conditionnelle casserait le smoke test
+  // sur le build de prod. Même comportement en dev/preview/prod.
+  base: '/heroes/',
   plugins: [preact()],
   resolve: {
     alias: {
@@ -333,7 +336,7 @@ export default defineConfig(({ command }) => ({
     },
   },
   server: { host: true },              // test tactile sur device du LAN en dev
-}));
+});
 ```
 
 > Note : `publicDir` pointé sur `data/` copie le contenu à la racine du site
@@ -345,10 +348,10 @@ export default defineConfig(({ command }) => ({
 Déploiement **officiel GitHub Pages via Actions** (pas de branche `gh-pages` :
 moins d'écritures git, permissions minimales, URL visible sur chaque run).
 
-> **État actuel** : une version **bootstrap** de ce workflow est déjà en place
-> (livrée avec ce plan) : elle publie la page d'attente statique `site/` pour
-> valider la chaîne Pages de bout en bout avant tout code. La Phase 2.0
-> remplace son job `build` par la version cible ci-dessous et supprime `site/`.
+> **État actuel** : depuis la Phase 2.0, ce workflow build réellement le
+> client (la version bootstrap qui publiait `site/` a été remplacée et
+> `site/` supprimé). Les étapes `pnpm test` (tests moteur) et
+> `pnpm content:check` s'activent avec les Phases 2.1 et 2.2.
 
 ```yaml
 name: Deploy to GitHub Pages

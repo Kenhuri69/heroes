@@ -7,10 +7,12 @@ exploration par héros sur carte d'aventure, gestion de villes, armées et
 combats tactiques tour par tour sur grille hexagonale.
 Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 
-> 📐 **Phase actuelle : Phase 1 — spécification.** Le dépôt ne contient que
-> la documentation de design (`docs/`). Aucun code exécutable pour l'instant ;
-> la stack pressentie est TypeScript strict + PixiJS 8 (voir
-> `docs/07-architecture.md`).
+> 🚧 **Phase actuelle : Phase 2 — implémentation** (plan :
+> `docs/10-plan-phase-2-implementation.md`). La Phase 2.0 (bootstrap) est
+> livrée : monorepo pnpm + TS strict, client PixiJS 8 (damier pan/zoom
+> touch-first), smoke test Playwright, CI + déploiement continu sur
+> https://kenhuri69.github.io/heroes/ . Les docs `docs/0X-*.md` restent la
+> source de vérité du design ; le code doit s'y conformer.
 
 ---
 
@@ -30,8 +32,13 @@ docs/
   09-roadmap.md                  Phases MVP → Alpha → Beta → Live
   10-plan-phase-2-implementation.md  Plan Phase 2 : structure, architecture, build Vite, déploiement GitHub Pages, code prioritaire
   templates/faction-template.md  Gabarit pour spécifier une nouvelle maison
-.github/workflows/deploy.yml     Déploiement GitHub Pages (bootstrap — remplacé par le build Vite en Phase 2.0)
-site/index.html                  Page d'attente publiée sur Pages tant que le client n'existe pas
+.github/workflows/
+  ci.yml                         PR : typecheck, lint, tests, build, smoke headless
+  deploy.yml                     main : build Vite + smoke sur build de prod + déploiement Pages
+packages/
+  client/                        Client Vite + PixiJS 8 (rendu, caméra, scènes) — @heroes/client
+tests/smoke.spec.ts              Smoke Playwright/Chromium headless (guideline §7) sur le build de prod
+playwright.config.ts             Config smoke (desktop + mobile, vite preview)
 .claude/
   guidelines.md                  Règles de travail (incluses ci-dessus)
   plans/                         Plans vivants par changement (règle §5 des guidelines)

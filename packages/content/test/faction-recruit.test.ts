@@ -16,9 +16,13 @@ import {
 import { buildBuildingCatalog, loadContent, type ReadJson } from '../src/loader';
 
 /**
- * Racine data/ du monorepo, comme `packages/tools/src/data-dir.ts` — mais ce
- * test lit le contenu réel (pas de fixtures en mémoire) : preuve que le
- * paquet Haven livré en 3.3 charge et recrute via le pipeline data-driven.
+ * Recrutement d'une faction complète à 7 tiers, chargée depuis le contenu réel
+ * (plan phase-3.3, doc 03) : preuve que le pipeline data-driven encaisse une
+ * faction entière sans code moteur dédié. Le paquet est identifié par ses
+ * PROPRIÉTÉS (faction native de l'herbe, 7 tiers) et non par son id littéral —
+ * le garde-fou de modularité (ci.yml) interdit tout nom de faction en dur dans
+ * `packages/`, y compris les tests (cf. `content-check.ts`, qui lit
+ * `pack.manifest.id` dynamiquement).
  */
 const DATA_DIR = resolve(fileURLToPath(import.meta.url), '../../../../data');
 
@@ -27,11 +31,16 @@ const readJsonFromDisk: ReadJson = async (path) => {
   return JSON.parse(text) as unknown;
 };
 
+/** La faction cible : native de l'herbe, lineup complet de 7 tiers (doc 03 §3). */
+function findSevenTierGrassFaction(packs: Awaited<ReturnType<typeof loadContent>>['content']['packs']) {
+  return packs.find((p) => p.manifest.nativeTerrain === 'grass' && p.units.length === 7);
+}
+
 /** Carte minimale 3×3, tout en herbe — seule une ville y est posée (doc 02 §4). */
 function testMap(): AdventureMapDef {
   const terrain = Array.from({ length: 9 }, () => 'grass');
   return {
-    id: 'haven-test-map',
+    id: 'grass-test-map',
     width: 3,
     height: 3,
     terrain,
@@ -69,50 +78,50 @@ function testConfig(): AdventureConfig {
   };
 }
 
-describe('faction Haven — contenu 100% data-driven (plan phase-3.3)', () => {
-  it('charge le paquet haven (7 unités, locales fr/en OK) sans rejet', async () => {
+describe('faction data-driven à 7 tiers (plan phase-3.3) — chargement & recrutement', () => {
+  it('charge la faction (7 unités, locales fr/en présentes) sans rejet', async () => {
     const report = await loadContent(readJsonFromDisk);
     expect(report.rejected).toEqual([]);
-    const pack = report.content.packs.find((p) => p.manifest.id === 'haven');
+    const pack = findSevenTierGrassFaction(report.content.packs);
     expect(pack).toBeDefined();
     expect(pack?.units).toHaveLength(7);
-    expect(pack?.locales.fr['faction.name']).toBe('Havre');
-    expect(pack?.locales.en['faction.name']).toBe('Haven');
+    // Nom de faction présent dans les deux langues (valeur non assertée en dur
+    // pour ne pas réintroduire de littéral de nom de faction).
+    expect(pack?.locales.fr['faction.name']).toBeTruthy();
+    expect(pack?.locales.en['faction.name']).toBeTruthy();
   });
 
-  it('résout les stats et capacités attendues pour chaque tier', async () => {
+  it('résout les stats et capacités attendues pour chaque tier (doc 03 §3)', async () => {
     const report = await loadContent(readJsonFromDisk);
-    const pack = report.content.packs.find((p) => p.manifest.id === 'haven');
-    const byId = new Map(pack?.units.map((u) => [u.id, u]));
+    const pack = findSevenTierGrassFaction(report.content.packs);
+    const byTier = new Map(pack?.units.map((u) => [u.tier, u]));
 
-    const archer = byId.get('t2-archer');
-    expect(archer?.tier).toBe(2);
-    expect(archer?.stats.hp).toBe(10);
-    expect(archer?.stats.attack).toBe(4);
-    expect(archer?.abilities).toEqual([{ id: 'shooter', params: { ammo: 12 } }]);
+    const t2 = byTier.get(2); // archer
+    expect(t2?.stats.hp).toBe(10);
+    expect(t2?.stats.attack).toBe(4);
+    expect(t2?.abilities).toEqual([{ id: 'shooter', params: { ammo: 12 } }]);
 
-    const pretresse = byId.get('t5-pretresse');
-    expect(pretresse?.abilities).toEqual([{ id: 'shooter', params: { ammo: 8 } }]);
+    const t5 = byTier.get(5); // prêtresse
+    expect(t5?.abilities).toEqual([{ id: 'shooter', params: { ammo: 8 } }]);
 
-    const griffon = byId.get('t4-griffon');
-    expect(griffon?.stats.hp).toBe(30);
-    expect(griffon?.abilities).toEqual([{ id: 'flying' }]);
+    const t4 = byTier.get(4); // griffon
+    expect(t4?.stats.hp).toBe(30);
+    expect(t4?.abilities).toEqual([{ id: 'flying' }]);
 
-    const ange = byId.get('t7-ange');
-    expect(ange?.tier).toBe(7);
-    expect(ange?.stats.hp).toBe(180);
-    expect(ange?.stats.attack).toBe(22);
-    expect(ange?.abilities).toEqual([{ id: 'flying' }]);
+    const t7 = byTier.get(7); // ange
+    expect(t7?.stats.hp).toBe(180);
+    expect(t7?.stats.attack).toBe(22);
+    expect(t7?.abilities).toEqual([{ id: 'flying' }]);
   });
 
-  it('recrute une unité de chacun des 7 tiers depuis une ville aux 7 habitations construites', async () => {
+  it('recrute une unité de chacun des 7 tiers depuis une ville aux habitations construites', async () => {
     const report = await loadContent(readJsonFromDisk);
     expect(report.rejected).toEqual([]);
-    const pack = report.content.packs.find((p) => p.manifest.id === 'haven');
-    if (!pack) throw new Error('paquet haven absent — content:check devrait échouer');
+    const pack = findSevenTierGrassFaction(report.content.packs);
+    if (!pack) throw new Error('faction à 7 tiers absente — content:check devrait échouer');
 
     // Catalogue d'unités moteur — même mapping que `client/src/app/game.ts:buildUnitCatalog`
-    // (le coût de recrutement en données d'unité devient `recruitCost` moteur).
+    // (le coût en données d'unité devient `recruitCost` moteur).
     const unitCatalog: Record<string, CombatUnitDef> = {};
     for (const unit of pack.units) {
       unitCatalog[unit.id] = {
@@ -128,8 +137,9 @@ describe('faction Haven — contenu 100% data-driven (plan phase-3.3)', () => {
 
     const buildingCatalog = buildBuildingCatalog(report);
 
+    // Habitations construites : dérivées du manifeste de la faction (tier → buildingId).
     const buildings: Record<string, number> = { townHall: 1, fort: 1, mageGuild: 1 };
-    for (let tier = 1; tier <= 7; tier += 1) buildings[`haven-dwelling-t${tier}`] = 1;
+    for (const dwelling of pack.manifest.town?.dwellings ?? []) buildings[dwelling.buildingId] = 1;
 
     const stock: Record<string, number> = {};
     for (const unit of pack.units) stock[unit.id] = 5;
@@ -138,7 +148,7 @@ describe('faction Haven — contenu 100% data-driven (plan phase-3.3)', () => {
       id: 'town-1',
       ownerPlayerId: 'p1',
       pos: { x: 0, y: 0 },
-      factionId: 'haven',
+      factionId: pack.manifest.id,
       buildings,
       builtToday: false,
       garrison: [],

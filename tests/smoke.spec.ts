@@ -420,6 +420,24 @@ test('export puis import .heroes : aller-retour valide (gzip)', async ({ page })
   expect(errors).toEqual([]);
 });
 
+test('sauvegarde à version de forme incompatible : import rejeté proprement (lot 3.8)', async ({
+  page,
+}) => {
+  const errors = await openGame(page);
+
+  await moveHeroToGold(page);
+  await expect.poll(() => heroPos(page)).toEqual({ x: 6, y: 3 });
+  // Une sauvegarde d'une autre version de forme est refusée (garde doc 07 §4) —
+  // aucun état malformé n'est adopté, la partie en cours reste intacte.
+  const rejected = await page.evaluate(() =>
+    window.__HEROES_TEST__!.importIncompatibleSave(),
+  );
+  expect(rejected).toBe(false);
+  await expect.poll(() => heroPos(page)).toEqual({ x: 6, y: 3 }); // partie inchangée
+
+  expect(errors).toEqual([]);
+});
+
 test('ville : construire + croissance + recruter + transférer → armée du héros', async ({ page }) => {
   const errors = await openGame(page);
 

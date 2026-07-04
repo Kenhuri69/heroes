@@ -1,4 +1,10 @@
-import { deserializeState, serializeState, type GameState } from '@heroes/engine';
+import {
+  CURRENT_SAVE_VERSION,
+  deserializeState,
+  readSaveVersion,
+  serializeState,
+  type GameState,
+} from '@heroes/engine';
 import { appStore } from './store';
 import { eventBus } from './events';
 
@@ -117,15 +123,25 @@ export async function hasAnySave(): Promise<boolean> {
   return (await latestSlot()) !== null;
 }
 
-/** Export `.heroes` (doc 07 §4) : JSON gzip `{ saveVersion, packs, snapshot }`. */
-export async function exportSave(state: GameState): Promise<Blob> {
-  const payload = {
-    saveVersion: 1,
-    packs: packsOf(state),
-    snapshot: serializeState(state),
-  };
+/**
+ * Une sauvegarde n'est chargeable que si la version de forme de son snapshot
+ * correspond à la version courante du moteur (doc 07 §4). Sinon on la rejette
+ * proprement plutôt que d'adopter un état malformé (champs manquants).
+ */
+function isCompatible(snapshot: string): boolean {
+  return readSaveVersion(snapshot) === CURRENT_SAVE_VERSION;
+}
+
+/** Emballe un snapshot en fichier `.heroes` gzip (format d'export, doc 07 §4). */
+export async function encodeHeroesFile(snapshot: string, packs: string[]): Promise<Blob> {
+  const payload = { saveVersion: 1, packs, snapshot };
   const data = await gzipCompress(JSON.stringify(payload));
   return new Blob([data], { type: 'application/gzip' });
+}
+
+/** Export `.heroes` (doc 07 §4) : JSON gzip `{ saveVersion, packs, snapshot }`. */
+export async function exportSave(state: GameState): Promise<Blob> {
+  return encodeHeroesFile(serializeState(state), packsOf(state));
 }
 
 /** Import `.heroes` — validation + chargement dans le store ; false si invalide. */
@@ -134,6 +150,8 @@ export async function importSave(file: Blob): Promise<boolean> {
     const json = await gzipDecompress(file);
     const payload: unknown = JSON.parse(json);
     if (!isExportPayload(payload)) return false;
+    // Rejet propre d'une sauvegarde d'une autre version de forme (doc 07 §4).
+    if (!isCompatible(payload.snapshot)) return false;
     const state = deserializeState(payload.snapshot);
     if (!state.started) return false;
     appStore.setState({ game: state, screen: 'game' });
@@ -180,6 +198,14 @@ async function readSlot(slot: SaveSlot): Promise<DecodedSave | null> {
 }
 
 async function decodeStoredValue(raw: unknown): Promise<DecodedSave | null> {
+  const decoded = await decodeFormat(raw);
+  // Une sauvegarde d'une autre version de forme est traitée comme absente
+  // (doc 07 §4) : « Continuer » se grise au lieu de charger un état malformé.
+  if (decoded && !isCompatible(decoded.snapshot)) return null;
+  return decoded;
+}
+
+async function decodeFormat(raw: unknown): Promise<DecodedSave | null> {
   if (isSaveRecord(raw)) return { savedAt: raw.savedAt, snapshot: await gzipDecompress(raw.data) };
   if (isLegacySaveRecord(raw)) return { savedAt: raw.savedAt, snapshot: raw.snapshot };
   // Très ancien format (compat) : string brute, pas d'horodatage connu.

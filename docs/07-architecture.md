@@ -68,6 +68,14 @@ UI/IA ──commande──► [validation] ──► engine.apply(state, cmd)
 | Beta | Cloud saves : mêmes blobs poussés sur le serveur, résolution de conflit « le plus récent gagne + copie de sécurité ». |
 
 - Format versionné (`saveVersion`) + migrations, comme le contenu (doc 06 §7).
+  - **État (lot 3.8)** : `CURRENT_SAVE_VERSION` (moteur) est l'unique source de
+    vérité de la forme sérialisée ; à incrémenter à chaque changement de forme
+    incompatible de `GameState`. Le chargement (IndexedDB « Continuer » **et**
+    import `.heroes`) lit la version du snapshot (`readSaveVersion`, tolérant au
+    JSON invalide) et **rejette proprement** toute sauvegarde d'une autre
+    version — « Continuer » se grise, l'import échoue — au lieu d'adopter un
+    état malformé. La **migration ascendante** d'anciennes sauvegardes reste
+    différée (post-MVP) : au MVP on rejette, on ne migre pas.
 - Une sauvegarde référence les paquets de faction et leurs versions.
 
 ## 5. Backend multijoueur (Beta — architecturé dès le MVP)

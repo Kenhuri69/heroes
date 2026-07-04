@@ -97,7 +97,7 @@ dans `data/core/config.json` (`combat`), jamais en dur.
       reachableHexes/canShoot) sont encapsulés try/catch (stubs lot A
       lèvent actuellement). typecheck/lint/build verts. Pas de test live
       possible (stubs + pas de branchement main.ts) — voir écart ci-dessous.
-- [ ] **Lot B (sonnet, après A) — IA + auto-combat** :
+- [x] **Lot B (sonnet, après A) — IA + auto-combat** :
       `engine/src/combat/ai.ts` (heuristique §5.6 : score = dégâts espérés ×
       valeur cible − riposte − exposition ; tireurs kitent, lents défendent)
       + test « même seed ⇒ même résultat » répété.
@@ -106,10 +106,11 @@ dans `data/core/config.json` (`combat`), jamais en dur.
       + `config.combat` (schémas + données), résolution du catalogue
       d'unités content→engine, interception ⇒ combat ⇒ retour carte avec
       pertes, route `/#arena`, fourchettes de force.
-- [ ] **Intégration finale (principal)** : relecture des diffs, golden replay
-      étendu/refigé, smoke « victoire contre le gardien » + arène, vérif
-      complète (typecheck/lint/test/content:check/build/smoke), docs même lot
-      (doc 02 §5.3/§5.4 précisions, CLAUDE.md), guideline §6, push, PR draft.
+- [x] **Intégration finale (principal)** : relecture des diffs, golden replay
+      étendu (interception gardien + AutoCombat inline, hash `80e09415`),
+      smoke « victoire contre le gardien » + arène + anti-gel, vérif complète
+      verte (93 tests, typecheck/lint/content:check/build/smoke 13/13),
+      docs même lot (doc 02 §5.1–§5.4, CLAUDE.md), PR #7 draft mise à jour.
 
 ## Écarts assumés
 
@@ -140,6 +141,11 @@ dans `data/core/config.json` (`combat`), jamais en dur.
   anti-gel de 5 fps ; budget 60 fps réel = mesure device en 2.5. Tap-tap DANS
   le combat non couvert par le smoke (AutoCombat le couvre indirectement) —
   dit explicitement, guideline §7.
+- **Lot B** : bonus de kill intégré AVANT la multiplication par la valeur de
+  cible (évite de survaloriser une cible « blindée » increvable) ; kite/
+  défense/progression en règles impératives prioritaires (lecture littérale
+  du §5.6) ; constantes d'heuristique (menace tireur ×1,5, exposition 40/15)
+  en dur dans `ai.ts` — comportement d'IA, pas règle de jeu (assumé).
 - **Interception** : le pas d'engagement vers le gardien est payé en PM mais
   le héros reste sur sa tuile ; l'armée vide n'est pas bloquée à la
   validation de `MoveHero` (impossible avec l'armée de départ des données —

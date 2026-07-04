@@ -19,6 +19,11 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > (carte JSON proto-01 32×32, A* 8 directions avec coûts terrain/route/
 > diagonale, tap-tap + prévisualisation chemin avec jours, brouillard 2 états,
 > ramassage de ressources, fin de tour, sauvegarde/rechargement IndexedDB).
+> Phase 2.4 livrée : arène de combat hex (moteur `engine/combat` — vagues
+> d'initiative, riposte, dégâts doc 02 §5.3, moral/chance, 6 capacités, IA
+> heuristique + auto-combat déterministe ; scène Pixi + UI avec
+> prévisualisation de dégâts ; gardiens neutres sur la carte, interception ⇒
+> combat ⇒ pertes appliquées ; testable seule via `/#arena`).
 > Les docs `docs/0X-*.md` restent la source de
 > vérité du design ; le code doit s'y conformer.
 

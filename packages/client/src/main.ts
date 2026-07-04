@@ -51,6 +51,7 @@ async function bootstrap(): Promise<void> {
   // Seed injectable (`?seed=42`) : parties reproductibles pour le smoke test.
   const seedParam = Number(new URLSearchParams(location.search).get('seed'));
   const seed = Number.isInteger(seedParam) && seedParam > 0 ? seedParam : Date.now();
+  appStore.setState({ strengthBands: report.content.config.display.strengthBands });
   await dispatch(newGameCommand(seed, report.content.config, map, buildUnitCatalog(report)));
 
   const camera = new Camera(app);

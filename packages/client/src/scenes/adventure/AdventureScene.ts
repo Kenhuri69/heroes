@@ -5,6 +5,7 @@ import {
   stepCost,
   type EngineResult,
   type GridPos,
+  type GuardianObjectDef,
 } from '@heroes/engine';
 import { appStore } from '../../app/store';
 import { dispatch } from '../../app/dispatch';
@@ -105,8 +106,19 @@ export class AdventureScene {
       return;
     }
 
-    const blocked = game.heroes.filter((h) => h.id !== hero.id).map((h) => h.pos);
-    const path = findPath(config, map, hero.pos, tile, blocked);
+    // Tuiles occupées : héros et gardiens bloquent ; un gardien est ciblable
+    // en DESTINATION (attaque ⇒ interception, doc 02 §5 — force en fourchette §2.2).
+    const guardian = map.objects.find(
+      (o): o is GuardianObjectDef => o.type === 'guardian' && samePos(o.pos, tile),
+    );
+    const blocked = [
+      ...game.heroes.filter((h) => h.id !== hero.id).map((h) => h.pos),
+      ...map.objects.filter((o) => o.type === 'guardian').map((o) => o.pos),
+    ];
+    const path = findPath(config, map, hero.pos, tile, blocked, guardian !== undefined);
+    appStore.setState({
+      guardianHint: guardian && path ? { count: guardian.count } : null,
+    });
     if (!path) {
       this.clearPreview();
       return;
@@ -127,6 +139,7 @@ export class AdventureScene {
   private clearPreview(): void {
     this.previewTarget = null;
     this.preview.clear();
+    if (appStore.getState().guardianHint) appStore.setState({ guardianHint: null });
   }
 
   /** Anime les `MoveStepped` tuile par tuile — l'état a déjà « sauté » (doc 07 §3). */

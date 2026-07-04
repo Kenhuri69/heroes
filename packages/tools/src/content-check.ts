@@ -1,6 +1,6 @@
 import { readdir } from 'node:fs/promises';
 import { join } from 'node:path';
-import { loadContent, loadMap, PackError } from '@heroes/content';
+import { knownUnitIds, loadContent, loadMap, PackError } from '@heroes/content';
 import { DATA_DIR, readJsonFromDisk } from './data-dir';
 
 const report = await loadContent(readJsonFromDisk);
@@ -19,7 +19,7 @@ let badMaps = 0;
 for (const file of mapFiles.sort()) {
   const id = file.slice(0, -'.map.json'.length);
   try {
-    const map = await loadMap(readJsonFromDisk, id, report.content.config);
+    const map = await loadMap(readJsonFromDisk, id, report.content.config, knownUnitIds(report));
     console.log(`✓ carte ${id} — ${map.width}×${map.height}, ${map.objects.length} objet(s)`);
   } catch (e) {
     badMaps += 1;

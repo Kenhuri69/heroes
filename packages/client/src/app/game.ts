@@ -37,7 +37,13 @@ export function newGameCommand(
   return {
     type: 'StartGame',
     seed,
-    players: [{ id: PLAYER_ID, startingResources }],
+    players: [
+      {
+        id: PLAYER_ID,
+        startingResources,
+        startingArmy: config.newGame.startingArmy.map((s) => ({ ...s })),
+      },
+    ],
     map,
     config: config.adventure,
     unitCatalog,

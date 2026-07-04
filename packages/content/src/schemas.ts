@@ -150,14 +150,25 @@ export const mapFileSchema = z.object({
   tiles: z.array(z.string()).min(1),
   roads: z.array(z.string()).min(1),
   objects: z.array(
-    z.object({
-      id: idSchema,
-      type: z.literal('resource'),
-      x: z.number().int().nonnegative(),
-      y: z.number().int().nonnegative(),
-      resource: z.enum(COMMON_RESOURCE_IDS),
-      amount: z.number().int().positive(),
-    }),
+    z.discriminatedUnion('type', [
+      z.object({
+        id: idSchema,
+        type: z.literal('resource'),
+        x: z.number().int().nonnegative(),
+        y: z.number().int().nonnegative(),
+        resource: z.enum(COMMON_RESOURCE_IDS),
+        amount: z.number().int().positive(),
+      }),
+      /** Gardien neutre : pile unique, combat à l'interception (doc 02 §2.2). */
+      z.object({
+        id: idSchema,
+        type: z.literal('guardian'),
+        x: z.number().int().nonnegative(),
+        y: z.number().int().nonnegative(),
+        unitId: idSchema,
+        count: z.number().int().positive(),
+      }),
+    ]),
   ),
   startPositions: z
     .array(z.object({ x: z.number().int().nonnegative(), y: z.number().int().nonnegative() }))

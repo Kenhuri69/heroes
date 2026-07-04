@@ -125,6 +125,22 @@
       "y": 28,
       "resource": "gold",
       "amount": 700
+    },
+    {
+      "id": "guard-camp",
+      "type": "guardian",
+      "x": 9,
+      "y": 3,
+      "unitId": "t1-eleve",
+      "count": 4
+    },
+    {
+      "id": "guard-gold",
+      "type": "guardian",
+      "x": 11,
+      "y": 28,
+      "unitId": "t1-recruit",
+      "count": 15
     }
   ],
   "startPositions": [

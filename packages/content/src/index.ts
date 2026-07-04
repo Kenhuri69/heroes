@@ -1,4 +1,5 @@
 export {
+  knownUnitIds,
   loadContent,
   loadFactionPack,
   loadMap,
@@ -9,6 +10,7 @@ export {
   type LoadReport,
   type ReadJson,
   type ResolvedMap,
+  type ResolvedMapObject,
 } from './loader';
 export {
   abilityCatalogSchema,

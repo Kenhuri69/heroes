@@ -4,6 +4,7 @@ import { createFog, revealAround } from '../adventure/fog';
 import { inBounds, isAdjacent, samePos, type GridPos } from '../adventure/map';
 import { isPassable, stepCost } from '../adventure/path';
 import {
+  beginGuardianCombat,
   handleAutoCombat,
   handleCombatAction,
   handleStartCombat,
@@ -154,8 +155,11 @@ function validatePath(
       return { code: 'invalidPath', message: `tuile infranchissable (${step.x},${step.y})` };
     if (state.heroes.some((h) => h.id !== heroId && samePos(h.pos, step)))
       return { code: 'invalidPath', message: `tuile occupée (${step.x},${step.y})` };
-    // Gardien : tuile bloquante — l'interception (combat) est câblée au lot D.
-    if (map.objects.some((o) => o.type === 'guardian' && samePos(o.pos, step)))
+    // Gardien : uniquement en DERNIER pas (attaque ⇒ interception, doc 02 §5).
+    if (
+      map.objects.some((o) => o.type === 'guardian' && samePos(o.pos, step)) &&
+      step !== path[path.length - 1]
+    )
       return { code: 'invalidPath', message: `tuile gardée (${step.x},${step.y})` };
     prev = step;
   }
@@ -207,6 +211,14 @@ const handlers: Handlers = {
       // Le chemin peut couvrir plusieurs jours (prévisualisation) : on
       // s'arrête quand les points du jour ne suffisent plus (doc 02 §1.5).
       if (cost > hero.movementPoints) break;
+      // Gardien sur le pas : interception ⇒ combat, le héros n'entre PAS sur
+      // la tuile (décision plan phase-2.4) mais paie le pas d'engagement.
+      const guardian = map.objects.find((o) => o.type === 'guardian' && samePos(o.pos, step));
+      if (guardian) {
+        hero.movementPoints -= cost;
+        beginGuardianCombat(draft, hero.id, guardian.id, events);
+        return;
+      }
       const from = { ...hero.pos };
       hero.movementPoints -= cost;
       hero.pos = { ...step };

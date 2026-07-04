@@ -55,7 +55,7 @@ test('le client démarre sans erreur et charge le contenu', async ({ page }) => 
   expect(state.started).toBe(true);
   expect(state.map?.id).toBe('proto-01');
   expect(state.heroes[0]?.pos).toEqual({ x: 3, y: 3 });
-  expect(state.heroes[0]?.movementPoints).toBe(1500);
+  expect(state.heroes[0]?.movementPoints).toBe(1700); // 1500 + 50 × vitesse 4 (armée de départ)
   await expect(page.getByTestId('resource-gold')).toHaveText('2000');
 
   expect(errors).toEqual([]);
@@ -69,11 +69,11 @@ test('tap-tap : déplacement scripté, ramassage, points décomptés', async ({ 
   await expect.poll(() => heroPos(page)).toEqual({ x: 6, y: 3 });
 
   const state = await page.evaluate(() => window.__HEROES_TEST__!.getState());
-  expect(state.heroes[0]?.movementPoints).toBe(1200);
+  expect(state.heroes[0]?.movementPoints).toBe(1400);
   expect(state.players[0]?.resources.gold).toBe(2500); // 2000 + 500 ramassés
   expect(state.map?.objects.some((o) => o.id === 'gold-1')).toBe(false);
   await expect(page.getByTestId('resource-gold')).toHaveText('2500');
-  await expect(page.getByTestId('movement-points')).toHaveText('PM 1200');
+  await expect(page.getByTestId('movement-points')).toHaveText('PM 1400');
 
   expect(errors).toEqual([]);
 });
@@ -86,7 +86,7 @@ test('fin de tour : jour suivant, points de mouvement restaurés', async ({ page
 
   await page.getByTestId('end-turn').click();
   await expect(page.getByTestId('calendar')).toHaveText('Jour 2 · Semaine 1');
-  await expect(page.getByTestId('movement-points')).toHaveText('PM 1500');
+  await expect(page.getByTestId('movement-points')).toHaveText('PM 1700');
 
   expect(errors).toEqual([]);
 });
@@ -107,7 +107,7 @@ test('sauvegarde puis rechargement IndexedDB : position restaurée', async ({ pa
   await page.getByTestId('load').click();
   await expect.poll(() => heroPos(page)).toEqual({ x: 6, y: 3 });
   const state = await page.evaluate(() => window.__HEROES_TEST__!.getState());
-  expect(state.heroes[0]?.movementPoints).toBe(1200);
+  expect(state.heroes[0]?.movementPoints).toBe(1400);
   await expect(page.getByTestId('resource-gold')).toHaveText('2500');
 
   expect(errors).toEqual([]);

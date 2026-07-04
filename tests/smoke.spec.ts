@@ -84,7 +84,7 @@ test('le client démarre sans erreur et charge le contenu', async ({ page }) => 
   // le navigateur (doc 06 §1) — aucun rejet toléré sur notre propre contenu.
   const content = await page.evaluate(() => window.__HEROES_CONTENT__);
   expect(content?.rejected).toEqual([]);
-  expect(content?.factions).toEqual(['arcane-hunters', 'test-faction']);
+  expect(content?.factions).toEqual(['haven', 'arcane-hunters', 'test-faction']);
 
   // La partie démarre sur la carte proto : héros à sa position de départ.
   const state = await page.evaluate(() => window.__HEROES_TEST__!.getState());

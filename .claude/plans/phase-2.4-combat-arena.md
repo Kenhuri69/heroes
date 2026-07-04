@@ -133,10 +133,13 @@ dans `data/core/config.json` (`combat`), jamais en dur.
 - **`mark` simplifié** : +8 %/charge sur TOUS les dégâts subis par la cible
   (équivalent à « du camp du marqueur » en combat à 2 camps) — à raffiner si
   un 3ᵉ camp apparaît.
-- **Smoke fluidité** : rendu CI logiciel (SwiftShader) ⇒ seuil anti-
-  effondrement 15 fps après échauffement, pas le budget 60 fps réel (device
-  en 2.5). Tap-tap DANS le combat non couvert par le smoke (AutoCombat le
-  couvre indirectement) — dit explicitement, guideline §7.
+- **Smoke fluidité** : runner CI partagé + rendu logiciel (SwiftShader) ⇒
+  ~10 fps mesurés sous ×4, variables avec la charge — tout seuil de perf y
+  serait flaky (attrapé par la CI : 22 fps local, 10 fps runner). Le test
+  logge la mesure (annotation `fps-throttled-x4`) et n'asserte qu'un plancher
+  anti-gel de 5 fps ; budget 60 fps réel = mesure device en 2.5. Tap-tap DANS
+  le combat non couvert par le smoke (AutoCombat le couvre indirectement) —
+  dit explicitement, guideline §7.
 - **Interception** : le pas d'engagement vers le gardien est payé en PM mais
   le héros reste sur sa tuile ; l'armée vide n'est pas bloquée à la
   validation de `MoveHero` (impossible avec l'armée de départ des données —

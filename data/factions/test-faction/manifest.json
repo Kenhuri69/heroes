@@ -1,0 +1,26 @@
+{
+  "id": "test-faction",
+  "schemaVersion": 1,
+  "name": "@loc:faction.name",
+  "nativeTerrain": "plains",
+  "keyResources": [
+    "crystal",
+    "gems"
+  ],
+  "factionResources": [],
+  "factionBonuses": [],
+  "spellSchool": null,
+  "heroSkills": [],
+  "tiers": 7,
+  "sharedGrowthGroups": {},
+  "units": [
+    "t1-recruit"
+  ],
+  "abilityModules": [],
+  "hooks": [],
+  "aiProfile": {
+    "aggression": 0.5,
+    "focusFire": 0.5,
+    "preferredTargets": "nearest"
+  }
+}

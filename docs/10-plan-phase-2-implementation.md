@@ -637,12 +637,17 @@ export function registerPacks(registry: ContentRegistry, packs: FactionPack[]): 
 
 ```jsonc
 // data/factions/index.json
-{ "factions": ["test-faction", "arcane-hunters"] }
+{ "factions": ["arcane-hunters", "test-faction"] }
 ```
 
 ```jsonc
 // data/factions/arcane-hunters/manifest.json — extrait du manifeste doc 06 §3,
-// réduit au squelette Phase 2 (schemaVersion 1 : pas encore de bonus/hook codés)
+// réduit au squelette Phase 2 (schemaVersion 1 : pas encore de bonus/hook codés).
+// `units` liste explicitement les unités (le navigateur ne liste pas les
+// dossiers ; convention vérifiée : units/<id>.json). `sharedGrowthGroups`
+// reste vide tant que T7/T8 n'existent pas — la règle croisée du validateur
+// exige que les groupes référencent des unités présentes ; le groupe « apex »
+// revient avec le lineup complet (Alpha).
 {
   "id": "arcane-hunters",
   "schemaVersion": 1,
@@ -654,7 +659,8 @@ export function registerPacks(registry: ContentRegistry, packs: FactionPack[]): 
   "spellSchool": null,
   "heroSkills": [],
   "tiers": 8,
-  "sharedGrowthGroups": { "apex": ["t7-manticore", "t8-penitent"] },
+  "sharedGrowthGroups": {},
+  "units": ["t1-eleve"],
   "abilityModules": [],
   "hooks": [],
   "aiProfile": { "aggression": 0.7, "focusFire": 0.9, "preferredTargets": "marked" }

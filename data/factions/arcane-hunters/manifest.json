@@ -1,0 +1,17 @@
+{
+  "id": "arcane-hunters",
+  "schemaVersion": 1,
+  "name": "@loc:faction.name",
+  "nativeTerrain": "mistmoor",
+  "keyResources": ["mercury", "gems"],
+  "factionResources": [{ "id": "essence", "icon": "icons/essence.png", "cap": 999 }],
+  "factionBonuses": [],
+  "spellSchool": null,
+  "heroSkills": [],
+  "tiers": 8,
+  "sharedGrowthGroups": {},
+  "units": ["t1-eleve"],
+  "abilityModules": [],
+  "hooks": [],
+  "aiProfile": { "aggression": 0.7, "focusFire": 0.9, "preferredTargets": "marked" }
+}

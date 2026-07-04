@@ -24,7 +24,15 @@ jobs:
 
       - run: pnpm typecheck
       - run: pnpm lint
-      - run: pnpm test          # moteur : unitaires + property-based + golden replay
+      - run: pnpm test          # moteur + contenu : unitaires, property-based, golden replay
+      - run: pnpm content:check # validation de tous les paquets de faction (doc 06)
+
+      # Invariant « le moteur ne connaît aucune faction » (README §1) :
+      # les IDs de faction ne doivent apparaître que dans data/ (et les tests).
+      - name: Vérifier l'absence d'IDs de faction dans packages/
+        run: |
+          ! grep -riE '\b(haven|necropolis|arcane-hunters|test-faction)\b' packages/ --include='*.ts' --include='*.tsx'
+
       - run: pnpm build
 
       # Smoke headless sur le build de prod (guideline §7)

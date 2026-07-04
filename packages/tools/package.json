@@ -1,0 +1,19 @@
+{
+  "name": "@heroes/tools",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "content:check": "tsx src/content-check.ts",
+    "faction:new": "tsx src/faction-new.ts",
+    "faction:validate": "tsx src/faction-validate.ts"
+  },
+  "dependencies": {
+    "@heroes/content": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.8.0"
+  }
+}

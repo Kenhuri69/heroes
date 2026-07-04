@@ -18,11 +18,11 @@ const GOLDEN_JOURNAL: Command[] = [
     seed: 20260704,
     players: [
       {
-        id: 'haven-player',
+        id: 'player-red',
         startingResources: { ...emptyResources(), gold: 2500, wood: 5, ore: 5 },
       },
       {
-        id: 'necro-player',
+        id: 'player-blue',
         startingResources: { ...emptyResources(), gold: 2500, wood: 5, ore: 5 },
       },
     ],
@@ -32,12 +32,12 @@ const GOLDEN_JOURNAL: Command[] = [
     { length: 20 },
     (_, i): Command => ({
       type: 'EndTurn',
-      playerId: i % 2 === 0 ? 'haven-player' : 'necro-player',
+      playerId: i % 2 === 0 ? 'player-red' : 'player-blue',
     }),
   ),
 ];
 
-const GOLDEN_HASH = 'a3da94d9';
+const GOLDEN_HASH = 'bb81d9db';
 
 describe('golden replay', () => {
   it('le journal scripté produit toujours le même état final', () => {

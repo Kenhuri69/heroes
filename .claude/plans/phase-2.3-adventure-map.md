@@ -84,9 +84,10 @@ dans le même lot (guidelines §8.6), tous stockés dans `data/core/config.json`
       → vérif : `pnpm build && pnpm smoke` vert en local et en CI.
 - [x] **Docs même lot** : doc 02 §1.5 (coût de base 100, diagonale ×1,41,
       vision 5 — valeurs de départ) ; CLAUDE.md (Phase 2.3 livrée).
-- [ ] **Livraison** : typecheck + lint + test + content:check + build +
-      smoke verts en local ; guideline §6 (état PR) avant push ; push
-      `claude/implementation-phase-2-3-w5clgx` ; PR draft.
+- [x] **Livraison** : typecheck + lint + test (38 moteur + 12 contenu) +
+      content:check + build (~170 Ko gzip) + smoke 8/8 verts en local ;
+      guideline §6 vérifiée (aucune PR existante sur la branche) ; push
+      `claude/implementation-phase-2-3-w5clgx` ; PR draft #6.
 
 ## Écarts constatés en cours de route
 

@@ -190,6 +190,10 @@ const handlers: Handlers = {
       pos: cmd.map.startPositions[i] as GridPos,
       movementPoints: dailyMovementPoints(cmd.config, p.startingArmy ?? [], cmd.unitCatalog),
       army: (p.startingArmy ?? []).map((s) => ({ ...s })),
+      // Progression (doc 02 §1.2) — attributs de base par classe : MVP.
+      xp: 0,
+      level: 1,
+      attributes: { attack: 0, defense: 0, power: 0, knowledge: 0 },
     }));
     for (const hero of draft.heroes) {
       const player = draft.players.find((p) => p.id === hero.playerId);

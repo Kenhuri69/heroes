@@ -34,6 +34,8 @@ export interface FactionPack {
 export interface LoadedContent {
   abilityCatalog: AbilityCatalog;
   config: GameConfig;
+  /** Locales de l'UI générique (menu, options, toasts) — data/core/locales/. */
+  coreLocales: Record<(typeof LOCALE_LANGS)[number], Locale>;
   packs: FactionPack[];
 }
 
@@ -48,8 +50,13 @@ export async function loadContent(readJson: ReadJson): Promise<LoadReport> {
   const catalog = abilityCatalogSchema.parse(await readJson('core/abilities.json'));
   const config = parseFile(gameConfigSchema, await readJson('core/config.json'), 'config.json');
   const index = factionIndexSchema.parse(await readJson('factions/index.json'));
+  const coreLocales = {} as LoadedContent['coreLocales'];
+  for (const lang of LOCALE_LANGS) {
+    const path = `core/locales/${lang}.json`;
+    coreLocales[lang] = parseFile(localeSchema, await readJson(path), path);
+  }
   const report: LoadReport = {
-    content: { abilityCatalog: catalog, config, packs: [] },
+    content: { abilityCatalog: catalog, config, coreLocales, packs: [] },
     rejected: [],
   };
   for (const id of index.factions) {

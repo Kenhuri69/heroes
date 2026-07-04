@@ -17,6 +17,14 @@ export interface AppState {
   strengthBands: { max: number | null; key: string }[];
   /** Gardien visé par la prévisualisation de chemin (fourchette affichée par l'UI). */
   guardianHint: { count: number } | null;
+  /** Langue de l'UI (doc 08 §2.5) — persistée en localStorage par app/i18n. */
+  locale: 'fr' | 'en';
+  /** Taille de police, 3 crans (doc 08 §4) : 1 = normal. */
+  fontScale: 1 | 2 | 3;
+  /** File de toasts d'événements (doc 08 §3) — journal consultable : MVP. */
+  toasts: { id: number; message: string }[];
+  /** L'écran de menu est affiché (aucune partie en cours à l'écran). */
+  screen: 'menu' | 'game';
 }
 
 export const appStore = createStore<AppState>(() => ({
@@ -25,6 +33,10 @@ export const appStore = createStore<AppState>(() => ({
   combatSpeed: 1,
   strengthBands: [],
   guardianHint: null,
+  locale: 'fr',
+  fontScale: 1,
+  toasts: [],
+  screen: 'menu',
 }));
 
 /** Hook Preact : re-rend quand la valeur sélectionnée change (égalité stricte). */

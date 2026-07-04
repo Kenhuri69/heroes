@@ -60,7 +60,9 @@ export {
   dailyMovementPoints,
   type AdventureConfig,
   type CombatRulesConfig,
+  type HeroProgressionConfig,
   type TerrainRule,
 } from './adventure/config';
+export type { HeroAttributes } from './core/state';
 export { findPath, isPassable, stepCost } from './adventure/path';
 export { createFog, revealAround } from './adventure/fog';

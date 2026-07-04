@@ -24,6 +24,14 @@ export interface PlayerState {
   explored: number[];
 }
 
+/** Attributs primaires du héros (doc 02 §1.1) — effets câblés au MVP. */
+export interface HeroAttributes {
+  attack: number;
+  defense: number;
+  power: number;
+  knowledge: number;
+}
+
 export interface HeroState {
   id: string;
   playerId: string;
@@ -32,6 +40,10 @@ export interface HeroState {
   movementPoints: number;
   /** Armée du héros, ≤ 7 piles (doc 02 §5.1) — vide tant que rien n'est recruté. */
   army: ArmyStack[];
+  /** Progression (doc 02 §1.2) : XP cumulée, niveau (cap en config), attributs. */
+  xp: number;
+  level: number;
+  attributes: HeroAttributes;
 }
 
 export interface Calendar {

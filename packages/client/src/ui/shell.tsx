@@ -78,10 +78,10 @@ function TurnBar() {
         )}
       </div>
       <div class="actions">
-        <button data-testid="save" onClick={() => void saveGame(appStore.getState().game)}>
+        <button data-testid="save" onClick={() => void saveGame(appStore.getState().game, 'manual')}>
           Sauvegarder
         </button>
-        <button data-testid="load" onClick={() => void restoreSavedGame()}>
+        <button data-testid="load" onClick={() => void restoreSavedGame('manual')}>
           Charger
         </button>
         <button

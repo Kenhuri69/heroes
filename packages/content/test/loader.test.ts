@@ -7,6 +7,8 @@ function makeData(): Record<string, unknown> {
   return {
     'core/abilities.json': { abilities: ['flying', 'shooter', 'mark'] },
     'core/config.json': makeConfig(),
+    'core/locales/fr.json': { 'menu.continue': 'Continuer' },
+    'core/locales/en.json': { 'menu.continue': 'Continue' },
     'maps/mini.map.json': makeMap(),
     'factions/index.json': { factions: ['proto'] },
     'factions/proto/manifest.json': {
@@ -59,6 +61,12 @@ function makeConfig(): GameConfig {
       movement: { base: 1500, perSpeed: 50, roadMultiplier: 0.75, diagonalMultiplier: 1.41 },
       visionRadius: 5,
       terrains: { grass: { moveCost: 100 }, water: { moveCost: null } },
+      hero: {
+        xpPerHpKilled: 1,
+        levelCurve: { base: 1000, exponent: 1.9 },
+        maxLevel: 30,
+        attributeWeights: { attack: 30, defense: 30, power: 20, knowledge: 20 },
+      },
       combat: {
         attackDefenseStep: 0.05,
         damageBonusMax: 0.6,

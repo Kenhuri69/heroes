@@ -54,6 +54,8 @@ async function bootstrap(): Promise<void> {
   const seed = Number.isInteger(seedParam) && seedParam > 0 ? seedParam : Date.now();
   appStore.setState({ strengthBands: report.content.config.display.strengthBands });
   await dispatch(newGameCommand(seed, report.content.config, map, buildUnitCatalog(report)));
+  // Flux menu (doc 08 §2.5) branché en intégration 2.5 — partie directe pour l'instant.
+  appStore.setState({ screen: 'game' });
 
   const camera = new Camera(app);
   const scene = new AdventureScene(app, camera);
@@ -97,8 +99,8 @@ async function bootstrap(): Promise<void> {
       const p = camera.world.toGlobal(new Point((x + 0.5) * TILE_SIZE, (y + 0.5) * TILE_SIZE));
       return { x: p.x, y: p.y };
     },
-    save: () => saveGame(appStore.getState().game),
-    load: restoreSavedGame,
+    save: () => saveGame(appStore.getState().game, 'manual'),
+    load: () => restoreSavedGame('manual'),
   };
   window.__HEROES_READY__ = true; // signal pour le smoke test headless
 }

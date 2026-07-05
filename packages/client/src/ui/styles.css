@@ -144,6 +144,18 @@
   background: #3a3d47;
 }
 
+/* Avatar réel du héros sélectionné (lot UX U5-D) : mêmes dimensions/coins
+   arrondis que le repli ci-dessus pour éviter tout saut de mise en page.
+   Classe distincte de `.hero-portrait` (boutons du bandeau HeroStrip). */
+.hero-avatar {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 10px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+
 /* Bandeau de portraits (doc 08 §2.1, lot UX U4) : sélection du héros humain
    actif parmi plusieurs. Scroll horizontal si trop de héros pour la largeur. */
 .hero-strip {

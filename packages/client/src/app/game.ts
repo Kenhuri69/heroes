@@ -74,6 +74,17 @@ export function humanTowns(game: GameState): TownState[] {
 }
 
 /**
+ * Archétype d'avatar d'un héros (doc 08 §5, lot U5-D) — dérivé des attributs
+ * (présentation client) : `might` si attaque+défense ≥ pouvoir+savoir, `magic`
+ * sinon. Sert à choisir l'avatar `heroes/<faction>-<archetype>`.
+ */
+export function heroArchetype(attributes: HeroAttributes): 'might' | 'magic' {
+  return attributes.attack + attributes.defense >= attributes.power + attributes.knowledge
+    ? 'might'
+    : 'magic';
+}
+
+/**
  * Catalogue d'unités résolu contenu → moteur (doc 06) : le moteur ne reçoit
  * que des données ; `groupId` = id du paquet, opaque pour lui.
  */

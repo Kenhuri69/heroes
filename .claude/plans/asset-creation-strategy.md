@@ -58,7 +58,11 @@ les planches ; absente des pièces uniques bg/logo). Prompts regénérés.
 - [x] **Haven** (T1→T7) : planche regénérée avec marge → extraction **7/7 PASS**
       (0 FAIL), rangée dans `assets/units/haven/` (512² RGBA). Texte/grille
       parasites Gemini retirés comme specks.
-- [ ] Necropolis, Arcane Hunters, test-faction (unités)
+- [x] **Necropolis** (T1→T7) : extraction 7/7 PASS. Le Dragon d'os (t7)
+      débordait cellule 7→8 (aile droite coupée à la découpe grille) → repris
+      via crop manuel bas-droite + `sheet_extract --cols 1 --rows 1` (dragon
+      complet). Rangé dans `assets/units/necropolis/`.
+- [ ] Arcane Hunters, test-faction (unités)
 - [ ] Avatars de héros
 - [ ] Fonds, logo (L2)
 

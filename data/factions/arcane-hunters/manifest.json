@@ -10,14 +10,39 @@
   "heroSkills": [],
   "tiers": 8,
   "sharedGrowthGroups": {},
-  "units": ["t1-eleve"],
+  "units": [
+    "t1-eleve",
+    "t2-familier",
+    "t3-prefet",
+    "t4-bibliothecaire",
+    "t5-lame",
+    "t6-chasseresse",
+    "t7-manticore"
+  ],
   "abilityModules": [],
   "hooks": [],
   "aiProfile": { "aggression": 0.7, "focusFire": 0.9, "preferredTargets": "marked" },
   "town": {
-    "buildings": ["townHall", "fort", "mageGuild", "arcane-hunters-dwelling-t1"],
+    "buildings": [
+      "townHall",
+      "fort",
+      "mageGuild",
+      "arcane-hunters-dwelling-t1",
+      "arcane-hunters-dwelling-t2",
+      "arcane-hunters-dwelling-t3",
+      "arcane-hunters-dwelling-t4",
+      "arcane-hunters-dwelling-t5",
+      "arcane-hunters-dwelling-t6",
+      "arcane-hunters-dwelling-t7"
+    ],
     "dwellings": [
-      { "tier": 1, "unitId": "t1-eleve", "buildingId": "arcane-hunters-dwelling-t1" }
+      { "tier": 1, "unitId": "t1-eleve", "buildingId": "arcane-hunters-dwelling-t1" },
+      { "tier": 2, "unitId": "t2-familier", "buildingId": "arcane-hunters-dwelling-t2" },
+      { "tier": 3, "unitId": "t3-prefet", "buildingId": "arcane-hunters-dwelling-t3" },
+      { "tier": 4, "unitId": "t4-bibliothecaire", "buildingId": "arcane-hunters-dwelling-t4" },
+      { "tier": 5, "unitId": "t5-lame", "buildingId": "arcane-hunters-dwelling-t5" },
+      { "tier": 6, "unitId": "t6-chasseresse", "buildingId": "arcane-hunters-dwelling-t6" },
+      { "tier": 7, "unitId": "t7-manticore", "buildingId": "arcane-hunters-dwelling-t7" }
     ]
   }
 }

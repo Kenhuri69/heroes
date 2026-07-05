@@ -15,6 +15,21 @@ Faction inédite, produite en **Alpha** — elle sert de validation grandeur nat
 > lineup) d'abord** (4.2), mécaniques lourdes ensuite ; comportement dégradé
 > documenté tant qu'un effet n'est pas livré (jamais de crash). Assets peints =
 > Beta.
+>
+> 🚧 **État 4.2 (Marque + lineup, data-only)** : la **signature Marque n'a
+> demandé AUCUN diff moteur** — la capacité générique `mark` et le bonus
+> `markBonusPerStack` existent au moteur depuis le lot combat 2.4 (cf.
+> `combat-damage.test.ts`). La faction est donc du **pur contenu**, comme la
+> première faction data-only : lineup **T1–T7** livré (`units/`, `buildings.json`
+> dwellings T1–T7, manifeste, locales fr/en), toutes porteuses de `mark` ;
+> recrutement complet prouvé par un test faction-agnostique. **T8 Pénitent**
+> (coût en Essence, `demonform`, croissance partagée `apex`) reporté en **4.6** ;
+> capacités exotiques (swarm, expose, executioner, pinningShot, poisonSting,
+> strikeAndReturn, spellcaster, magicResistance, areaAttack) différées en 4.3+
+> (les unités combattent sans en attendant, jamais de crash). Écart assumé vs
+> §3.1 : le bonus de Marque est **universel** (tout attaquant vs cible marquée),
+> pas réservé aux Hunters/sorts de Traque — simplification générique déjà en
+> place au moteur.
 
 ## 1. Lore
 

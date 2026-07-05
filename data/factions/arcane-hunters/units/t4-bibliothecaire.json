@@ -1,0 +1,9 @@
+{
+  "id": "t4-bibliothecaire",
+  "tier": 4,
+  "name": "@loc:unit.t4-bibliothecaire.name",
+  "stats": { "hp": 34, "attack": 7, "defense": 10, "damage": [5, 8], "speed": 4 },
+  "growthPerWeek": 5,
+  "cost": { "gold": 340 },
+  "abilities": [{ "id": "mark" }]
+}

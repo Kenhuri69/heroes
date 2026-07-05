@@ -4,6 +4,7 @@ import {
   buildBuildingCatalog,
   buildSkillCatalog,
   buildSpellCatalog,
+  checkCoreNameKeys,
   loadContent,
   loadFactionPack,
   loadMap,
@@ -208,6 +209,26 @@ describe('loadContent', () => {
     data['factions/proto2/locales/fr.json'] = { 'faction.name': 'P2', 'unit.t1-grunt.name': 'Recrue2' };
     data['factions/proto2/locales/en.json'] = { 'faction.name': 'P2', 'unit.t1-grunt.name': 'Recruit2' };
     await expect(loadContent(reader(data))).rejects.toThrow(/globalement uniques/);
+  });
+
+  it('R4 CO5 — checkCoreNameKeys détecte les noms fr/en manquants', async () => {
+    const report = await loadContent(reader(makeData()));
+    const errors = checkCoreNameKeys(report).join();
+    expect(errors).toMatch(/spell\.boule-de-feu/);
+    expect(errors).toMatch(/skill\.logistics/);
+    expect(errors).toMatch(/artifact\.lame-aiguisee/);
+  });
+
+  it('R4 CO5 — checkCoreNameKeys vide quand fr ET en portent la clé', async () => {
+    const data = makeData();
+    for (const lang of ['fr', 'en'] as const) {
+      const loc = data[`core/locales/${lang}.json`] as Record<string, string>;
+      loc['spell.boule-de-feu'] = 'x';
+      loc['skill.logistics'] = 'x';
+      loc['artifact.lame-aiguisee'] = 'x';
+    }
+    const report = await loadContent(reader(data));
+    expect(checkCoreNameKeys(report)).toEqual([]);
   });
 
   it('R5 CO3 — rejette un terrain natif absent de la config', async () => {

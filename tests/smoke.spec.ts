@@ -581,6 +581,8 @@ test('sort : le héros lance un sort en combat et réduit une pile ennemie', asy
 
   // Livre → « éclair magique » (cercle 1, 4 mana) → pile ennemie →
   // prévisualisation OBLIGATOIRE (doc 08 §2.4) → confirmation.
+  // Remédiation R4 (CO5) : le sort porte son NOM localisé, plus l'id brut.
+  await expect(page.getByTestId('spell-eclair-magique')).toContainText('Éclair magique');
   await page.getByTestId('spell-eclair-magique').click();
   await page.getByTestId(`spell-target-${setup.targetId}`).click();
   await expect(page.getByTestId('spell-preview')).toContainText(/\d/);

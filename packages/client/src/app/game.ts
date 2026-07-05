@@ -1,10 +1,12 @@
 import {
   emptyResources,
+  humanPlayerId,
   type ArtifactDef,
   type BuildingDef,
   type Command,
   type CombatUnitDef,
   type FactionBonus,
+  type GameState,
   type HeroAttributes,
   type HeroSkillDef,
   type Resources,
@@ -32,7 +34,18 @@ export function buildFactionSetup(report: LoadReport): FactionCatalog {
   return buildFactionCatalog(report) as FactionCatalog;
 }
 
+/** Id du joueur humain en NOUVELLE PARTIE (convention du client, cf. `newGameCommand`). */
 export const PLAYER_ID = 'player-1';
+
+/**
+ * Id du joueur humain de la partie EN COURS — dérivé du contrôleur `'human'`
+ * (remédiation R3/CL5). Repli `PLAYER_ID` hors partie / partie IA-vs-IA, pour
+ * que le HUD reste défini. Un scénario nommant autrement son humain est ainsi
+ * correctement suivi (avant : `'player-1'` en dur ⇒ HUD vide).
+ */
+export function humanId(game: GameState): string {
+  return humanPlayerId(game) ?? PLAYER_ID;
+}
 
 /**
  * Catalogue d'unités résolu contenu → moteur (doc 06) : le moteur ne reçoit

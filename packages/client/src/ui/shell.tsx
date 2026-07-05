@@ -3,7 +3,7 @@ import { useState } from 'preact/hooks';
 import { RESOURCE_IDS, weekOf, type ArmyStack } from '@heroes/engine';
 import { useApp, appStore } from '../app/store';
 import { dispatch } from '../app/dispatch';
-import { PLAYER_ID } from '../app/game';
+import { humanId } from '../app/game';
 import { saveGame, restoreSavedGame } from '../app/save';
 import { eventBus } from '../app/events';
 import { RESOURCE_COLORS } from '../render/mapObjects';
@@ -29,7 +29,12 @@ function Shell() {
   const started = useApp((s) => s.game.started);
   const inCombat = useApp((s) => s.game.combat !== null);
   const townScreenOpen = useApp((s) => s.townScreenOpen);
-  const pendingSkillHero = useApp((s) => s.game.heroes[0]);
+  // Remédiation CL4 : la montée de niveau vise le héros du JOUEUR HUMAIN avec
+  // un choix en attente (avant : `heroes[0]`, qui pouvait être un héros IA).
+  const pendingSkillHero = useApp((s) => {
+    const id = humanId(s.game);
+    return s.game.heroes.find((h) => h.playerId === id && h.pendingSkillChoices.length > 0) ?? null;
+  });
   const [optionsOpen, setOptionsOpen] = useState(false);
 
   return (
@@ -50,9 +55,7 @@ function Shell() {
       ) : null}
       {optionsOpen && <OptionsPanel onClose={() => setOptionsOpen(false)} />}
       {townScreenOpen !== null && <TownScreen />}
-      {pendingSkillHero && pendingSkillHero.pendingSkillChoices.length > 0 && (
-        <SkillChoice hero={pendingSkillHero} />
-      )}
+      {pendingSkillHero && <SkillChoice hero={pendingSkillHero} />}
       <OutcomeOverlay />
       <ToastHost />
     </>
@@ -61,7 +64,7 @@ function Shell() {
 
 /** Bandeau haut compact, tap = détail plus tard (doc 08 §2.1 mobile). */
 function ResourceBar() {
-  const player = useApp((s) => s.game.players.find((p) => p.id === PLAYER_ID));
+  const player = useApp((s) => s.game.players.find((p) => p.id === humanId(s.game)));
   if (!player) return null;
   // Ressources de faction (doc 05 §3.3) : affichées après les 7 communes, seulement
   // celles que le joueur possède (Essence pour Arcane Hunters ; rien sinon).
@@ -114,7 +117,7 @@ function ArmySlots({ army }: { army: ArmyStack[] }) {
  */
 function HeroDrawer() {
   useApp((s) => s.locale);
-  const hero = useApp((s) => s.game.heroes.find((h) => h.playerId === PLAYER_ID));
+  const hero = useApp((s) => s.game.heroes.find((h) => h.playerId === humanId(s.game)));
   const [open, setOpen] = useState(false);
   if (!hero) return null;
   return (
@@ -168,7 +171,7 @@ function HeroDrawer() {
 /** Bandeau bas repliable (portrait, doc 08 §2.1) — accès rapide à l'armée. */
 function ArmyBand() {
   useApp((s) => s.locale);
-  const hero = useApp((s) => s.game.heroes.find((h) => h.playerId === PLAYER_ID));
+  const hero = useApp((s) => s.game.heroes.find((h) => h.playerId === humanId(s.game)));
   const [collapsed, setCollapsed] = useState(false);
   if (!hero) return null;
   return (
@@ -185,10 +188,11 @@ function ArmyBand() {
 function TurnBar({ onOpenOptions }: { onOpenOptions: () => void }) {
   useApp((s) => s.locale);
   const day = useApp((s) => s.game.calendar.day);
-  const hero = useApp((s) => s.game.heroes.find((h) => h.playerId === PLAYER_ID));
+  const humanPlayerId = useApp((s) => humanId(s.game));
+  const hero = useApp((s) => s.game.heroes.find((h) => h.playerId === humanPlayerId));
   const hint = useApp((s) => s.guardianHint);
   const bands = useApp((s) => s.strengthBands);
-  const firstOwnedTown = useApp((s) => s.game.towns.find((town) => town.ownerPlayerId === PLAYER_ID));
+  const firstOwnedTown = useApp((s) => s.game.towns.find((town) => town.ownerPlayerId === humanId(s.game)));
   return (
     <>
       <div class="status-bar">
@@ -237,7 +241,7 @@ function TurnBar({ onOpenOptions }: { onOpenOptions: () => void }) {
         <button
           class="end-turn"
           data-testid="end-turn"
-          onClick={() => void dispatch({ type: 'EndTurn', playerId: PLAYER_ID })}
+          onClick={() => void dispatch({ type: 'EndTurn', playerId: humanPlayerId })}
         >
           {t('turnBar.endTurn')}
         </button>

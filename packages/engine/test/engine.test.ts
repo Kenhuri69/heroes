@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { apply, validate } from '../src/core/engine';
 import { EngineError, type Command, type PlayerSetup } from '../src/core/commands';
-import { createEmptyState, emptyResources, type GameState } from '../src/core/state';
+import { createEmptyState, emptyResources, humanPlayerId, type GameState } from '../src/core/state';
 import { testConfig, testMap } from './fixtures';
 
 function setup(ids: string[]): PlayerSetup[] {
@@ -41,6 +41,29 @@ describe('StartGame', () => {
     expect(validate(started, startCmd(['x'], 1))?.code).toBe('gameAlreadyStarted');
     expect(validate(createEmptyState(), startCmd([], 1))?.code).toBe('noPlayers');
     expect(validate(createEmptyState(), startCmd(['a', 'a'], 1))?.code).toBe('duplicatePlayerId');
+  });
+});
+
+describe('humanPlayerId (remédiation R3/CL5)', () => {
+  it('dérive du contrôleur, pas d’une convention « player-1 »', () => {
+    const cmd = startCmd(['red', 'blue']);
+    if (cmd.type !== 'StartGame') throw new Error('unreachable');
+    // Ordre inversé + humain nommé 'blue' (≠ player-1, ≠ premier joueur).
+    cmd.players = [
+      { id: 'red', startingResources: emptyResources(), controller: 'ai' },
+      { id: 'blue', startingResources: emptyResources(), controller: 'human' },
+    ];
+    const state = apply(createEmptyState(), cmd).state;
+    expect(humanPlayerId(state)).toBe('blue');
+    expect(state.heroes.find((h) => h.playerId === 'blue')).toBeDefined();
+  });
+
+  it('renvoie null si aucun joueur humain (partie IA vs IA)', () => {
+    const cmd = startCmd(['a', 'b']);
+    if (cmd.type !== 'StartGame') throw new Error('unreachable');
+    cmd.players = cmd.players.map((p) => ({ ...p, controller: 'ai' as const }));
+    const state = apply(createEmptyState(), cmd).state;
+    expect(humanPlayerId(state)).toBeNull();
   });
 });
 

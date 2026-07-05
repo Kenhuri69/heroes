@@ -217,12 +217,23 @@ pas de `concurrency`/`timeout-minutes` ; `__HEROES_TEST__` exposé en prod.
 - Vérif : smoke **menu → partie → menu → partie** (R2a) + **construction
   refusée ⇒ erreur localisée** (R2b) ; 42 smoke verts. **R2 terminé.**
 
-### Lot R3 — Identité du joueur humain (CL4, CL5 + `ownerPlayerId` loader)
-- [ ] Dériver l'id humain de `players.find(p => p.controller === 'human')`
-      au `StartGame`, stocké dans `AppState` ; supprimer les 17 usages en dur
-      + le doublon `loader.ts:494` ; modale de compétence sur
-      `find(h => h.playerId === humanId && pending.length > 0)`.
-- Vérif : scénario de test dont l'humain n'est pas `player-1` ni premier
+### Lot R3 — Identité du joueur humain (CL4, CL5 + `ownerPlayerId` loader) ✅
+- [x] Sélecteur PUR `humanPlayerId(state)` dans le moteur (dérive du contrôleur
+      `'human'`, `null` si aucun) ; exporté, testé (humain nommé 'blue' ≠
+      player-1 → dérivé correctement ; IA-vs-IA → null). Client : helper
+      `humanId(game)` (repli `PLAYER_ID` hors partie) ; **17 usages en dur
+      remplacés** (combat.tsx, shell.tsx ×6, TownScreen, AdventureScene ×3).
+- [x] CL4 : la modale de compétence vise `heroes.find(h => h.playerId ===
+      humanId && pendingSkillChoices.length > 0)` (avant : `heroes[0]`, qui
+      pouvait être un héros IA).
+- [ ] **Reporté** : le doublon `loader.ts:494` (`ownerPlayerId: 'player-1'`
+      dans `resolveStartingTowns`) est propre à la NOUVELLE PARTIE (dont
+      l'humain est toujours `player-1`, cf. `newGameCommand`/game.ts:165) — il
+      est correct, pas un bug ; le centraliser est un refactor cosmétique
+      différé (aucun changement de comportement).
+- Vérif : sélecteur testé (moteur, 210 tests) ; les 3 scénarios livrés
+  (humain = `player-1`) ⇒ `humanId` renvoie `player-1` ⇒ **zéro régression**
+  (42 smoke verts). Un scénario dont l'humain n'est pas `player-1` ni premier
   héros → HUD complet, montée de niveau fonctionnelle.
 
 ### Lot R4 — i18n contenu (CO5, CO6, CO7 + replis toasts)
@@ -415,6 +426,15 @@ commit (docs = source de vérité).
   +5 tests contenu (271 total). Vérif verte (lint, content:check, build
   62,2 Ko, 40 smoke, garde faction vert). Reste : CO4 → lot « skills » dédié
   (avec la dette Commandement/moral), CO9 → lot de résilience au boot.
+- **2026-07-05** — **Lot R3 livré (CL4 + CL5)** : identité du joueur humain.
+  Sélecteur pur `humanPlayerId(state)` (moteur, dérive du contrôleur, testé) ;
+  helper client `humanId(game)` ; 17 usages `PLAYER_ID` en dur remplacés ; la
+  modale de compétence vise le héros HUMAIN avec choix en attente (plus
+  `heroes[0]`). Doublon `loader.ts:494` laissé (correct pour la nouvelle
+  partie, refactor cosmétique différé). Golden inchangé, zéro régression
+  (scénarios en `player-1`). Vérif verte (276 tests, lint, typecheck 4/4,
+  content:check, build, 42 smoke, garde faction vert). Reste : R4 (i18n
+  contenu), R6 (CI/tests), R7 (dette/duplication), R8 (docs) ; chantier UX §5.
 - **2026-07-05** — **Lot R2b livré (CL3 + CL6) → R2 terminé** : canal
   d'erreurs client. `dispatch` lève une `EngineError` structurée aussi pour les
   rejets `validate` ; `commandErrorMessage` mappe le code → `cmdError.<code>`

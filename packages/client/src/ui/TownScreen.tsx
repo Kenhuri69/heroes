@@ -3,7 +3,7 @@ import { RESOURCE_IDS } from '@heroes/engine';
 import type { BuildingDef, CombatUnitDef, TownState } from '@heroes/engine';
 import { useApp, appStore } from '../app/store';
 import { dispatch } from '../app/dispatch';
-import { PLAYER_ID } from '../app/game';
+import { humanId } from '../app/game';
 import { t, resolveUnitName, commandErrorMessage } from '../app/i18n';
 import { FactionBadge } from './FactionBadge';
 import './town.css';
@@ -348,7 +348,7 @@ function RecruitTab({
 
 function GarrisonTab({ town, onError }: { town: TownState; onError: (msg: string | null) => void }) {
   const hero = useApp((s) =>
-    s.game.heroes.find((h) => h.playerId === PLAYER_ID && h.pos.x === town.pos.x && h.pos.y === town.pos.y),
+    s.game.heroes.find((h) => h.playerId === humanId(s.game) && h.pos.x === town.pos.x && h.pos.y === town.pos.y),
   );
 
   const transfer = (from: 'town' | 'hero', slot: number): void => {

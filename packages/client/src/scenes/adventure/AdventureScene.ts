@@ -9,7 +9,7 @@ import {
 } from '@heroes/engine';
 import { appStore } from '../../app/store';
 import { dispatch } from '../../app/dispatch';
-import { PLAYER_ID } from '../../app/game';
+import { humanId } from '../../app/game';
 import type { Camera } from '../../render/camera';
 import { Tilemap, TILE_SIZE } from '../../render/tilemap';
 import { MapObjectsLayer } from '../../render/mapObjects';
@@ -79,10 +79,10 @@ export class AdventureScene {
     if (this.destroyed) return;
     const { game } = appStore.getState();
     const { map, config } = game;
-    const player = game.players.find((p) => p.id === PLAYER_ID);
+    const player = game.players.find((p) => p.id === humanId(game));
     if (!map || !config || !player) return;
     this.objects.sync(map.objects);
-    const positions = game.heroes.filter((h) => h.playerId === PLAYER_ID).map((h) => h.pos);
+    const positions = game.heroes.filter((h) => h.playerId === humanId(game)).map((h) => h.pos);
     this.fog.update(player.explored, positions, config.visionRadius);
     if (!this.animating) {
       const hero = this.myHero();
@@ -91,7 +91,8 @@ export class AdventureScene {
   }
 
   private myHero(): { id: string; pos: GridPos; movementPoints: number } | undefined {
-    return appStore.getState().game.heroes.find((h) => h.playerId === PLAYER_ID);
+    const game = appStore.getState().game;
+    return game.heroes.find((h) => h.playerId === humanId(game));
   }
 
   private async handleTap(global: Point): Promise<void> {

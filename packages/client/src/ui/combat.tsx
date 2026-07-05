@@ -2,7 +2,7 @@ import { useSyncExternalStore } from 'preact/compat';
 import { useState } from 'preact/hooks';
 import { useApp, appStore } from '../app/store';
 import { dispatch } from '../app/dispatch';
-import { PLAYER_ID } from '../app/game';
+import { humanId } from '../app/game';
 import { t, resolveUnitName, commandErrorMessage } from '../app/i18n';
 import { combatPreview, type DamagePreview } from '../scenes/combat/preview';
 import { pushToast } from './toasts';
@@ -24,7 +24,7 @@ export function CombatUi() {
   useApp((s) => s.locale); // réactivité i18n
   const combat = useApp((s) => s.game.combat);
   const combatSpeed = useApp((s) => s.combatSpeed);
-  const hero = useApp((s) => s.game.heroes.find((h) => h.playerId === PLAYER_ID));
+  const hero = useApp((s) => s.game.heroes.find((h) => h.playerId === humanId(s.game)));
   const preview = useSyncExternalStore(combatPreview.subscribe, combatPreview.get);
   const [spellBookOpen, setSpellBookOpen] = useState(false);
   if (!combat) return null;

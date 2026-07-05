@@ -5,12 +5,21 @@ import {
   buildSkillCatalog,
   buildSpellCatalog,
   loadContent,
+  loadFactionPack,
   loadMap,
   PackError,
   resolveStartingTowns,
   type ReadJson,
 } from '../src/loader';
-import { artifactSchema, buildingSchema, skillSchema, spellSchema, type GameConfig } from '../src/schemas';
+import {
+  abilityCatalogSchema,
+  artifactSchema,
+  buildingCatalogSchema,
+  buildingSchema,
+  skillSchema,
+  spellSchema,
+  type GameConfig,
+} from '../src/schemas';
 
 /** Fixture : arborescence data/ en mémoire, clonable et corruptible par test. */
 function makeData(): Record<string, unknown> {
@@ -168,6 +177,37 @@ describe('loadContent', () => {
     expect(pack?.manifest.id).toBe('proto');
     expect(pack?.units.map((u) => u.id)).toEqual(['t1-grunt', 't2-archer']);
     expect(pack?.locales.fr['unit.t2-archer.name']).toBe('Archère');
+  });
+
+  it('R5 CO2 — rejette une collision d’id d’unité entre deux paquets', async () => {
+    const data = makeData();
+    // Second paquet valide qui réutilise l’id d’unité 't1-grunt' du premier.
+    data['factions/index.json'] = { factions: ['proto', 'proto2'] };
+    data['factions/proto2/manifest.json'] = {
+      id: 'proto2',
+      schemaVersion: 1,
+      name: '@loc:faction.name',
+      nativeTerrain: 'plains',
+      keyResources: ['crystal', 'gems'],
+      factionResources: [],
+      spellSchool: null,
+      tiers: 7,
+      sharedGrowthGroups: {},
+      units: ['t1-grunt'],
+      aiProfile: { aggression: 0.5, focusFire: 0.5, preferredTargets: 'nearest' },
+    };
+    data['factions/proto2/units/t1-grunt.json'] = {
+      id: 't1-grunt',
+      tier: 1,
+      name: '@loc:unit.t1-grunt.name',
+      stats: { hp: 6, attack: 3, defense: 2, damage: [1, 2], speed: 4 },
+      growthPerWeek: 14,
+      cost: { gold: 30 },
+      abilities: [],
+    };
+    data['factions/proto2/locales/fr.json'] = { 'faction.name': 'P2', 'unit.t1-grunt.name': 'Recrue2' };
+    data['factions/proto2/locales/en.json'] = { 'faction.name': 'P2', 'unit.t1-grunt.name': 'Recruit2' };
+    await expect(loadContent(reader(data))).rejects.toThrow(/globalement uniques/);
   });
 
   it('rejette une stat invalide avec le fichier et le champ en cause', async () => {
@@ -472,6 +512,20 @@ describe('ville de faction (manifest.town / buildings.json)', () => {
       },
     };
     expect(() => resolveStartingTowns(config, report)).toThrow(/faction inconnue 'fantome'/);
+  });
+
+  it('R5 CO1 — loadFactionPack sans bâtiments communs échoue sur un prérequis core, réussit avec', async () => {
+    const data = makeData();
+    withTown(data, [{ building: 'townHall', level: 1 }]); // la ville requiert un bâtiment commun
+    const catalog = abilityCatalogSchema.parse(data['core/abilities.json']);
+    const read = reader(data);
+    // Sans les bâtiments communs (le bug historique de `faction:validate`) :
+    // le prérequis vers 'townHall' est irrésoluble.
+    await expect(loadFactionPack(read, 'proto', catalog, [])).rejects.toThrow(/townHall/);
+    // Avec les bâtiments communs : la ville résout.
+    const coreBuildings = buildingCatalogSchema.parse(data['core/buildings.json']).buildings;
+    const pack = await loadFactionPack(read, 'proto', catalog, coreBuildings);
+    expect(pack.buildings.map((b) => b.id)).toEqual(['proto-dwelling-t1']);
   });
 });
 

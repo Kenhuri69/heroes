@@ -14,7 +14,10 @@ if (!id || !/^[a-z][a-z0-9-]*$/.test(id)) {
 }
 
 const dir = join(DATA_DIR, 'factions', id);
-const unitId = 't1-recruit';
+// Id d'unité préfixé par la faction (remédiation R5 CO2) : un `t1-recruit` en
+// dur entrait en collision avec l'unité du paquet de test ; les ids d'unités
+// doivent être globalement uniques entre paquets.
+const unitId = `t1-${id}-recruit`;
 
 const manifest = {
   id,

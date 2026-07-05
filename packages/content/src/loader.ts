@@ -154,6 +154,27 @@ export async function loadContent(readJson: ReadJson): Promise<LoadReport> {
       report.rejected.push({ id, errors: describeError(e) });
     }
   }
+  // Règle croisée (remédiation R5 CO2) : unicité GLOBALE des ids d'unités entre
+  // paquets acceptés — sinon la fusion des catalogues (client `buildUnitCatalog`)
+  // et des locales écrase silencieusement l'une des définitions (même classe de
+  // bug que la collision de nom de faction corrigée en 3.7).
+  {
+    const seen = new Set<string>();
+    const duplicates = new Set<string>();
+    for (const pack of report.content.packs) {
+      for (const unit of pack.units) {
+        if (seen.has(unit.id)) duplicates.add(unit.id);
+        seen.add(unit.id);
+      }
+    }
+    if (duplicates.size > 0)
+      throw new PackError(
+        [...duplicates].map(
+          (uid) =>
+            `unité '${uid}' définie dans plusieurs paquets — les ids d'unités doivent être globalement uniques`,
+        ),
+      );
+  }
   // Règle croisée : l'armée de départ ne référence que des unités chargées.
   const known = knownUnitIds(report);
   for (const stack of config.newGame.startingArmy) {

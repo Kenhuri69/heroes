@@ -10,7 +10,8 @@ import {
 } from '@heroes/engine';
 import { useApp, appStore } from '../app/store';
 import { dispatch } from '../app/dispatch';
-import { t, resolveUnitName, resolveSpellName } from '../app/i18n';
+import { t, resolveUnitName, resolveSpellName, commandErrorMessage } from '../app/i18n';
+import { pushToast } from './toasts';
 import './SpellBook.css';
 
 const SCHOOL_ORDER: SpellSchool[] = ['fire', 'water', 'earth', 'air', 'neutral'];
@@ -54,7 +55,8 @@ export function SpellBook({ hero, onClose }: { hero: HeroState; onClose: () => v
       setPreview(estimateSpell(appStore.getState().game, selectedSpellId, stackId));
       setPreviewFailed(false);
     } catch {
-      // estimateSpell non implémenté (lot K en cours) : prévisualisation indisponible, pas de crash.
+      // Prévisualisation indisponible pour cette cible (dégradation d'affichage,
+      // pas une action) — on l'indique dans l'UI sans lever d'exception.
       setPreview(null);
       setPreviewFailed(true);
     }
@@ -63,9 +65,11 @@ export function SpellBook({ hero, onClose }: { hero: HeroState; onClose: () => v
   const cast = (selectedSpellId: string, selectedTargetId: string): void => {
     dispatch({ type: 'CastSpell', spellId: selectedSpellId, targetStackId: selectedTargetId })
       .then(() => onClose())
-      .catch(() => {
-        // sorts non implémentés (lot K en cours) : pas de crash côté UI.
-        onClose();
+      .catch((err: unknown) => {
+        // Remédiation CL3 : le sort a été REJETÉ (mana, cible, déjà lancé…) — on
+        // surface l'erreur et on GARDE le livre ouvert (avant : fermé comme si le
+        // sort était parti, perte silencieuse de l'action du joueur).
+        pushToast(commandErrorMessage(err));
       });
   };
 

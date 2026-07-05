@@ -205,10 +205,17 @@ pas de `concurrency`/`timeout-minutes` ; `__HEROES_TEST__` exposé en prod.
       absente) ; `startNewGame`/`startScenario` → toast i18n
       (`toast.newGameFailed`/`toast.scenarioFailed`) au lieu d'une promesse
       rejetée perdue (page muette).
-- [ ] **R2b** : purge des `catch {}` périmés (CL3) ; mapping `err.code` →
-      `t('townError.<code>')` (CL6) ; canal d'erreur unifié store→toast.
-- Vérif R2a : smoke étendu **menu → partie → menu → partie** (scène fraîche,
-  `tileToScreen` valide, zéro erreur console) ; 40 smoke verts.
+- [x] **R2b** (CL3 + CL6) : `dispatch` lève une `EngineError` structurée aussi
+      pour les rejets de `validate` ; helper `commandErrorMessage(err)` (i18n)
+      mappe `err.detail.code` → `cmdError.<code>` (repli générique). Les `catch
+      {}` périmés (combat.tsx, SpellBook, SkillChoice, CombatScene move/attack)
+      surfacent désormais un toast localisé — **SpellBook garde le livre ouvert**
+      sur rejet (avant : fermé comme si le sort était parti). `TownScreen`
+      affiche le message localisé (CL6) au lieu de `${err.code}: ${err.message}`.
+      Clés `cmdError.*` fr/en. Smoke : « fort » inabordable ⇒ bandeau ville
+      localisé (« Ressources insuffisantes »).
+- Vérif : smoke **menu → partie → menu → partie** (R2a) + **construction
+  refusée ⇒ erreur localisée** (R2b) ; 42 smoke verts. **R2 terminé.**
 
 ### Lot R3 — Identité du joueur humain (CL4, CL5 + `ownerPlayerId` loader)
 - [ ] Dériver l'id humain de `players.find(p => p.controller === 'human')`
@@ -408,6 +415,16 @@ commit (docs = source de vérité).
   +5 tests contenu (271 total). Vérif verte (lint, content:check, build
   62,2 Ko, 40 smoke, garde faction vert). Reste : CO4 → lot « skills » dédié
   (avec la dette Commandement/moral), CO9 → lot de résilience au boot.
+- **2026-07-05** — **Lot R2b livré (CL3 + CL6) → R2 terminé** : canal
+  d'erreurs client. `dispatch` lève une `EngineError` structurée aussi pour les
+  rejets `validate` ; `commandErrorMessage` mappe le code → `cmdError.<code>`
+  (fr/en). Les `catch {}` périmés (combat.tsx, SpellBook, SkillChoice,
+  CombatScene) surfacent un toast localisé au lieu d'avaler l'erreur (SpellBook
+  garde le livre ouvert sur rejet) ; `TownScreen` affiche le message localisé.
+  Smoke « construction refusée ⇒ erreur localisée ». Vérif verte (274 tests,
+  lint, typecheck 4/4, content:check, build, 42 smoke, garde faction vert).
+  **R2 complet.** Reste : R3 (identité joueur), R4 (i18n contenu), R6 (CI/
+  tests), R7 (dette/duplication), R8 (docs) ; chantier UX §5.
 - **2026-07-05** — **Lot R2a livré (CL1 + CL2 + CL8)** : cycle de vie des
   scènes client. `AdventureScene`/`Camera`/`CombatScene` ont un `destroy()`
   complet (désabonnements store + tap, textures libérées) ; `main.ts` détruit

@@ -1,4 +1,5 @@
 import { LOCALE_LANGS, type LoadReport } from '@heroes/content';
+import { EngineError } from '@heroes/engine';
 import { appStore } from './store';
 
 /** Langue UI (doc 08 §2.5) — même union que `AppState.locale`. */
@@ -48,6 +49,21 @@ export function t(key: string, params?: Record<string, string | number>): string
   const locale = appStore.getState().locale;
   const raw = coreLocales[locale][key] ?? coreLocales.fr[key] ?? key;
   return interpolate(raw, params);
+}
+
+/**
+ * Message localisé d'une erreur de commande moteur (remédiation R2b) : mappe le
+ * `code` structuré d'une `EngineError` vers `cmdError.<code>`, avec repli sur un
+ * message générique. Utilisé partout où une commande rejetée doit être surfacée
+ * (toast de combat, bandeau de ville) plutôt qu'avalée en silence.
+ */
+export function commandErrorMessage(err: unknown): string {
+  if (err instanceof EngineError) {
+    const key = `cmdError.${err.detail.code}`;
+    const msg = t(key);
+    if (msg !== key) return msg;
+  }
+  return t('cmdError.default');
 }
 
 /**

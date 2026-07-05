@@ -3,8 +3,9 @@ import { useState } from 'preact/hooks';
 import { useApp, appStore } from '../app/store';
 import { dispatch } from '../app/dispatch';
 import { PLAYER_ID } from '../app/game';
-import { t, resolveUnitName } from '../app/i18n';
+import { t, resolveUnitName, commandErrorMessage } from '../app/i18n';
 import { combatPreview, type DamagePreview } from '../scenes/combat/preview';
+import { pushToast } from './toasts';
 import { SpellBook } from './SpellBook';
 import './combat.css';
 
@@ -36,13 +37,13 @@ export function CombatUi() {
   const defenders = combat.stacks.filter((s) => s.side === 'defender').sort((a, b) => a.slot - b.slot);
 
   const act = (action: 'wait' | 'defend'): void => {
-    dispatch({ type: 'CombatAction', action: { type: action } }).catch(() => {
-      /* moteur non implémenté (lot A en cours) : pas de crash côté UI */
+    dispatch({ type: 'CombatAction', action: { type: action } }).catch((err: unknown) => {
+      pushToast(commandErrorMessage(err)); // remédiation CL3 : plus d'erreur avalée en silence
     });
   };
   const auto = (): void => {
-    dispatch({ type: 'AutoCombat' }).catch(() => {
-      /* moteur non implémenté (lot A en cours) : pas de crash côté UI */
+    dispatch({ type: 'AutoCombat' }).catch((err: unknown) => {
+      pushToast(commandErrorMessage(err));
     });
   };
 

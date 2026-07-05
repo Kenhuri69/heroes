@@ -17,6 +17,8 @@ import {
 import { appStore } from '../../app/store';
 import { dispatch } from '../../app/dispatch';
 import { eventBus, type AppEvent } from '../../app/events';
+import { commandErrorMessage } from '../../app/i18n';
+import { pushToast } from '../../ui/toasts';
 import { onTap } from '../../input/pointer';
 import { HEX_SIZE, computeBoardBounds, drawBoard, hexKey, offsetToPixel, pixelToOffset } from '../../render/hexgrid';
 import { combatPreview } from './preview';
@@ -44,10 +46,11 @@ type Selection =
 /**
  * Scène de combat hex (doc 08 §2.4, doc 10 §5.5) : rend l'état
  * `appStore.getState().game.combat`, anime depuis `eventBus`, gère
- * l'interaction tap-tap de la pile active du camp joueur. Les appels au
- * moteur (estimateDamage/reachableHexes/canShoot) sont encapsulés en
- * try/catch : le lot A (règles) livre son implémentation en parallèle, les
- * stubs actuels lèvent — ça ne doit jamais faire planter la scène.
+ * l'interaction tap-tap de la pile active du camp joueur. Les appels de LECTURE
+ * au moteur (estimateDamage/reachableHexes/canShoot) sont encapsulés en
+ * try/catch défensif : un échec de calcul d'aperçu/surbrillance dégrade
+ * l'affichage sans planter la frame, jamais un toast par image. En revanche un
+ * `dispatch` d'ACTION rejeté est surfacé en toast (remédiation CL3).
  */
 export class CombatScene {
   readonly container = new Container();
@@ -255,8 +258,8 @@ export class CombatScene {
       this.clearSelection();
       try {
         await dispatch({ type: 'CombatAction', action: { type: 'move', to: hex } });
-      } catch {
-        /* moteur non implémenté (lot A en cours) : pas de crash côté scène */
+      } catch (err) {
+        pushToast(commandErrorMessage(err)); // action rejetée (CL3) — surfacée, plus avalée
       }
       return;
     }
@@ -279,8 +282,8 @@ export class CombatScene {
         : { type: 'attack', targetStackId: target.id };
       try {
         await dispatch({ type: 'CombatAction', action });
-      } catch {
-        /* moteur non implémenté (lot A en cours) : pas de crash côté scène */
+      } catch (err) {
+        pushToast(commandErrorMessage(err)); // action rejetée (CL3) — surfacée, plus avalée
       }
       return;
     }
@@ -300,7 +303,7 @@ export class CombatScene {
       const estimate = estimateDamage(game, active.id, target.id);
       combatPreview.set({ attackerId: active.id, targetId: target.id, ...estimate });
     } catch {
-      combatPreview.set(null); // pas de préview possible (lot A en cours) — pas de crash
+      combatPreview.set(null); // aperçu de dégâts indisponible — dégradation d'affichage, pas de crash
     }
     this.redrawBoard();
   }

@@ -1,19 +1,20 @@
 import type { HeroState } from '@heroes/engine';
 import { dispatch } from '../app/dispatch';
-import { t, resolveSkillName } from '../app/i18n';
+import { t, resolveSkillName, commandErrorMessage } from '../app/i18n';
+import { pushToast } from './toasts';
 import './SkillChoice.css';
 
 /**
  * Modale de choix de compétence à la montée de niveau (doc 02 §1.2, doc 08
  * §2.3) : montée quand `hero.pendingSkillChoices.length > 0`, non annulable
  * (pas de bouton fermer/clic-extérieur — un choix doit être fait, comme en
- * HoMM). `ChooseSkill` est un stub tant que le lot K n'a pas livré : la
- * modale reste ouverte si le moteur rejette la commande (pas de crash).
+ * HoMM). Si le moteur rejette le choix, la modale reste ouverte et l'erreur
+ * est surfacée (remédiation CL3) — plus d'échec avalé en silence.
  */
 export function SkillChoice({ hero }: { hero: HeroState }) {
   const choose = (skillId: string): void => {
-    dispatch({ type: 'ChooseSkill', heroId: hero.id, skillId }).catch(() => {
-      // compétences non implémentées (lot K en cours) : pas de crash côté UI.
+    dispatch({ type: 'ChooseSkill', heroId: hero.id, skillId }).catch((err: unknown) => {
+      pushToast(commandErrorMessage(err));
     });
   };
 

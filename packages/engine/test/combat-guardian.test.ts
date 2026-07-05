@@ -56,6 +56,11 @@ describe('beginGuardianCombat', () => {
     expect(hero?.army[0]?.count).toBeGreaterThan(0);
     expect(hero?.army[0]?.count).toBeLessThanOrEqual(100);
     expect(events.some((e) => e.type === 'CombatEnded' && e.winner === 'attacker')).toBe(true);
+    // R7c : l'événement porte le camp du joueur (ici le héros attaque le gardien)
+    // → l'UI en déduit victoire/défaite sans supposer « joueur = attaquant ».
+    expect(
+      events.some((e) => e.type === 'CombatEnded' && e.playerSide === 'attacker'),
+    ).toBe(true);
   });
 
   it('défaite du héros : héros retiré, effectif survivant écrit sur le gardien', () => {

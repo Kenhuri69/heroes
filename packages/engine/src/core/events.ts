@@ -59,6 +59,8 @@ export type GameEvent =
   | {
       type: 'CombatEnded';
       winner: CombatSideId;
+      /** Camp joué par le joueur (doc 02 §5) — l'UI en déduit victoire/défaite (R7c). */
+      playerSide: CombatSideId;
       /** Pertes par camp et unité — l'UI affiche le bilan. */
       casualties: { side: CombatSideId; unitId: string; lost: number }[];
     }

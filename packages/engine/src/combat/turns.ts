@@ -117,7 +117,7 @@ export function checkCombatEnd(draft: Draft, events: GameEvent[]): boolean {
   // Un héros peut disparaître (défaite) : conditions de victoire/défaite
   // (doc 02 §6, plan phase-3.5) — no-op hors scénario.
   evaluateOutcome(draft, events);
-  events.push({ type: 'CombatEnded', winner, casualties });
+  events.push({ type: 'CombatEnded', winner, playerSide: combat.playerSide, casualties });
   grantHeroCombatXp(draft, combat, winner, casualties, events);
   draft.combat = null;
   return true;

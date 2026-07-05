@@ -1,11 +1,12 @@
 import { Application, Container, Graphics, Point } from 'pixi.js';
 import {
   hexDistance,
-  hexNeighbors,
   inCombatBounds,
   sameHex,
+  attackableTargets,
   canShoot,
   estimateDamage,
+  meleeOriginsFor,
   reachableHexes,
   type CombatActionInput,
   type CombatSideId,
@@ -182,22 +183,11 @@ export class CombatScene {
     if (isPlayerTurn && active) {
       try {
         reachable = reachableHexes(game, active.id);
+        // Cibles attaquables : helper moteur partagé (remédiation CL9) au lieu
+        // d'une réimplémentation de la géométrie hex côté client.
+        for (const target of attackableTargets(game, active.id)) attackableIds.add(target.id);
       } catch {
         reachable = [];
-      }
-      let ranged = false;
-      try {
-        ranged = canShoot(game, active.id);
-      } catch {
-        ranged = false;
-      }
-      const reachSet = new Set(reachable.map(hexKey));
-      for (const s of combat.stacks) {
-        if (s.side === active.side) continue;
-        const adjacent =
-          hexDistance(active.pos, s.pos) === 1 ||
-          hexNeighbors(s.pos).some((p) => reachSet.has(hexKey(p)));
-        if (ranged || adjacent) attackableIds.add(s.id);
       }
     }
     const attackableHexes = new Set(
@@ -314,15 +304,14 @@ export class CombatScene {
     active: CombatStack,
     target: CombatStack,
   ): OffsetPos | undefined {
-    if (hexDistance(active.pos, target.pos) === 1) return active.pos;
-    let reachable: OffsetPos[] = [];
+    // Énumération des origines candidates : helper moteur partagé (CL9). La
+    // *politique* de choix (le plus proche) reste ici, propre au client.
+    let candidates: OffsetPos[] = [];
     try {
-      reachable = reachableHexes(game, active.id);
+      candidates = meleeOriginsFor(game, active.id, target.id);
     } catch {
-      reachable = [];
+      candidates = [];
     }
-    const reachSet = new Set(reachable.map(hexKey));
-    const candidates = hexNeighbors(target.pos).filter((p) => reachSet.has(hexKey(p)));
     if (candidates.length === 0) return undefined;
     return candidates.reduce((best, c) =>
       hexDistance(active.pos, c) < hexDistance(active.pos, best) ? c : best,

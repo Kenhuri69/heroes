@@ -81,6 +81,44 @@ export function canShoot(state: GameState, stackId: string): boolean {
   return !adjacent;
 }
 
+/**
+ * Piles ennemies que la pile active peut attaquer ce tour-ci (remédiation
+ * CL9) : tireur non entravé ⇒ toutes les cibles vivantes ; sinon les cibles
+ * adjacentes ou dont un hex adjacent est atteignable. Helper pur consommé par
+ * le client (surbrillances) à la place d'une réimplémentation. L'IA
+ * (`ai.ts`) garde son propre parcours scoré `{target, from}` (déterminisme).
+ */
+export function attackableTargets(state: GameState, stackId: string): CombatStack[] {
+  const combat = state.combat;
+  if (!combat) return [];
+  const stack = combat.stacks.find((s) => s.id === stackId);
+  if (!stack) return [];
+  const ranged = canShoot(state, stackId);
+  const reachSet = new Set((ranged ? [] : reachableHexes(state, stackId)).map(hexKey));
+  return combat.stacks.filter((s) => {
+    if (s.side === stack.side || s.count <= 0) return false;
+    if (ranged) return true;
+    return hexDistance(stack.pos, s.pos) === 1 || hexNeighbors(s.pos).some((p) => reachSet.has(hexKey(p)));
+  });
+}
+
+/**
+ * Hex d'origine candidats pour attaquer `targetId` en mêlée : la pile active
+ * elle-même si déjà adjacente, sinon les hex atteignables adjacents à la
+ * cible. Renvoie l'ENSEMBLE (non ordonné) — la *politique* de choix reste au
+ * consommateur (le client prend le plus proche, l'IA le mieux scoré).
+ */
+export function meleeOriginsFor(state: GameState, stackId: string, targetId: string): OffsetPos[] {
+  const combat = state.combat;
+  if (!combat) return [];
+  const stack = combat.stacks.find((s) => s.id === stackId);
+  const target = combat.stacks.find((s) => s.id === targetId);
+  if (!stack || !target) return [];
+  if (hexDistance(stack.pos, target.pos) === 1) return [stack.pos];
+  const reachSet = new Set(reachableHexes(state, stackId).map(hexKey));
+  return hexNeighbors(target.pos).filter((p) => reachSet.has(hexKey(p)));
+}
+
 export function validateCombatAction(state: GameState, cmd: { action: CombatActionInput }): CommandError | null {
   const combat = state.combat;
   if (!combat) return { code: 'noCombat', message: 'aucun combat en cours' };

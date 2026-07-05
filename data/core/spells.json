@@ -96,6 +96,26 @@
       "perPower": 0,
       "attackMod": -2,
       "defenseMod": -2
+    },
+    {
+      "id": "marque-du-guetteur",
+      "school": "traque",
+      "circle": 1,
+      "manaCost": 4,
+      "kind": "applyMarks",
+      "base": 0,
+      "perPower": 0,
+      "marks": 2
+    },
+    {
+      "id": "entraves-runiques",
+      "school": "traque",
+      "circle": 2,
+      "manaCost": 8,
+      "kind": "debuff",
+      "base": 0,
+      "perPower": 0,
+      "speedMod": -3
     }
   ]
 }

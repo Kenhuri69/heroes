@@ -23,6 +23,7 @@ const SPELLS: Record<string, SpellDef> = {
   bolt: { id: 'bolt', school: 'fire', circle: 1, manaCost: 5, kind: 'damage', base: 10, perPower: 2 },
   heal: { id: 'heal', school: 'water', circle: 1, manaCost: 5, kind: 'heal', base: 10, perPower: 3 },
   haste: { id: 'haste', school: 'air', circle: 1, manaCost: 4, kind: 'buff', base: 0, perPower: 0, speedMod: 3 },
+  markspell: { id: 'markspell', school: 'traque', circle: 1, manaCost: 4, kind: 'applyMarks', base: 0, perPower: 0, marks: 2 },
 };
 
 function unit(over: Partial<CombatUnitDef> & { id: string }): CombatUnitDef {
@@ -204,6 +205,31 @@ describe('CastSpell — soin', () => {
     const target = result.state.combat?.stacks.find((s) => s.id === 'attacker-1');
     expect(target?.count).toBe(5);
     expect(target?.firstHp).toBe(4);
+  });
+});
+
+describe('CastSpell — applyMarks (école Traque, doc 05 §6)', () => {
+  const catalog = { def: unit({ id: 'def', stats: { hp: 10, attack: 5, defense: 5, damage: [4, 4], speed: 5 } }) };
+
+  it('pose des charges de Marque sur la cible (event MarkApplied)', () => {
+    const h = hero({ spells: ['markspell'] });
+    const attacker = stack({ id: 'attacker-0', side: 'attacker', slot: 0, unitId: 'def', count: 1, pos: { col: 0, row: 0 } });
+    const enemy = stack({ id: 'defender-0', side: 'defender', slot: 0, unitId: 'def', count: 1, pos: { col: 5, row: 5 } });
+    const combat = combatState([attacker, enemy], { attackerHeroId: h.id, activeStackId: 'attacker-0' });
+    const state: GameState = { ...baseState(catalog), spellCatalog: SPELLS, heroes: [h], combat };
+    const result = apply(state, { type: 'CastSpell', spellId: 'markspell', targetStackId: 'defender-0' });
+    expect(result.state.combat?.stacks.find((s) => s.id === 'defender-0')?.marks).toBe(2);
+    expect(result.events).toContainEqual({ type: 'MarkApplied', targetId: 'defender-0', marks: 2 });
+  });
+
+  it('plafonne au maximum de charges (marksMax)', () => {
+    const h = hero({ spells: ['markspell'] });
+    const attacker = stack({ id: 'attacker-0', side: 'attacker', slot: 0, unitId: 'def', count: 1, pos: { col: 0, row: 0 } });
+    const enemy = stack({ id: 'defender-0', side: 'defender', slot: 0, unitId: 'def', count: 1, pos: { col: 5, row: 5 }, marks: 2 });
+    const combat = combatState([attacker, enemy], { attackerHeroId: h.id, activeStackId: 'attacker-0' });
+    const state: GameState = { ...baseState(catalog), spellCatalog: SPELLS, heroes: [h], combat };
+    const result = apply(state, { type: 'CastSpell', spellId: 'markspell', targetStackId: 'defender-0' });
+    expect(result.state.combat?.stacks.find((s) => s.id === 'defender-0')?.marks).toBe(3); // plafond marksMax
   });
 });
 

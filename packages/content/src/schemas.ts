@@ -192,15 +192,17 @@ export const spellSchema = z
   .object({
     id: idSchema,
     name: locRef.optional(),
-    school: z.enum(['fire', 'water', 'earth', 'air', 'neutral']),
+    school: z.enum(['fire', 'water', 'earth', 'air', 'neutral', 'traque']),
     circle: z.number().int().min(1).max(5),
     manaCost: z.number().int().positive(),
-    kind: z.enum(['damage', 'heal', 'buff', 'debuff']),
+    kind: z.enum(['damage', 'heal', 'buff', 'debuff', 'applyMarks']),
     base: z.number().nonnegative(),
     perPower: z.number().nonnegative(),
     attackMod: z.number().optional(),
     defenseMod: z.number().optional(),
     speedMod: z.number().optional(),
+    /** Charges posées par un sort `applyMarks` (doc 05 §6). */
+    marks: z.number().int().positive().optional(),
   })
   .refine((s) => (s.kind === 'damage' || s.kind === 'heal' ? s.base > 0 : true), {
     message: 'damage/heal: base doit être > 0',
@@ -215,7 +217,11 @@ export const spellSchema = z
       message: 'buff/debuff: au moins un modificateur (attackMod/defenseMod/speedMod)',
       path: ['kind'],
     },
-  );
+  )
+  .refine((s) => (s.kind === 'applyMarks' ? s.marks !== undefined : true), {
+    message: 'applyMarks: le champ `marks` (> 0) est requis',
+    path: ['marks'],
+  });
 
 /** data/core/spells.json — un fichier = une liste (comme buildingCatalogSchema). */
 export const spellCatalogSchema = z.object({

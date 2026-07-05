@@ -44,9 +44,18 @@ Vigile » → « Cercle du Vigile ») → rafraîchir.
       (hash run1 == run2 ✅).
 - [x] Rafraîchir les prompts (`gen_prompts.py`) → drift limité aux noms
       localisés (artifacts + buildings hors core), cohérent.
-- [ ] Commit + push + PR draft. Aucun code client touché → smoke inchangé.
-- [ ] Reporter l'inventaire L1/L2 et demander à l'utilisateur comment produire
-      les pixels (Gemini manuel vs autre).
+- [x] Commit + push + PR draft #56. Aucun code client touché → smoke inchangé.
+- [x] Reporter l'inventaire L1/L2 et demander à l'utilisateur comment produire
+      les pixels → **décision : l'utilisateur génère les planches dans Gemini**,
+      j'extrais au retour (sheet_extract.py + QC + rangement staging).
+
+## 5. Suite (en attente des planches utilisateur)
+Prompts prêts à coller (chacun avec sa commande d'extraction dans le .md) :
+`assets/prompts/units-{haven,necropolis,arcane-hunters,test-faction}.md`,
+`hero-avatars.md`. Pièces L2 : `backgrounds.md`, `logo.md` (détourage/placement
+direct via process_sprite.py au retour). Au retour d'une planche : lancer la
+commande `sheet_extract.py` inscrite, contrôler le QC (vert=PASS), ranger dans
+`assets/units/<faction>/` ou `assets/heroes/`. Jamais committer un FAIL.
 
 ## 4. Écarts / décisions
 - Les familles L1/L2 (unités, avatars, fonds, logo) ne sont pas productibles

@@ -140,9 +140,28 @@ tools/assets/              ← outillage Python (indépendant de packages/tools 
       sulfur) → vérif : `assets/prompts/mines.md` généré avec la commande
       d'extraction exacte.
 - [x] Guide (docs/12 §4) + README staging + plan mis à jour.
-- [ ] **Production** (nouvelle session dédiée) : générer les planches dans
+- [x] **Production** (session dédiée) : générer les planches dans
       Gemini, extraire (QC verte), ranger dans `assets/`, une PR par lot de
       planches validées → vérif : `sheet_extract` exit 0 sur chaque planche.
+      **Lot villes/mines/artefacts complet : 7 planches, 44 assets, 0 FAIL.**
+  - [x] `buildings-core` → 6/6 PASS, `assets/buildings/core/`.
+  - [x] `buildings-haven` → 7/7 PASS, `assets/buildings/haven/` (Gemini a
+        rempli 8 cellules avec un doublon sacré en cellule 6 : remap
+        row-major avec id jetable pour la cellule 6, t6→cellule 7 griffon,
+        t7→cellule 8 ange).
+  - [x] `buildings-necropolis` → 7/7 PASS, `assets/buildings/necropolis/`
+        (légendes texte parasites ajoutées par Gemini retirées comme specks
+        via `--min-area`).
+  - [x] `buildings-arcane-hunters-p1` → 8/8 PASS (T1-T8),
+        `assets/buildings/arcane-hunters/` (légendes texte retirées via
+        `--min-area`).
+  - [x] `buildings-arcane-hunters-p2` → 4/4 PASS (Cercles Vigile/Traque/
+        Sceau/Abîme), `assets/buildings/arcane-hunters/` (Gemini a rendu une
+        grille 4×2 dupliquée : extraction 4×2, rangée du haut retenue).
+  - [x] `mines` → 8/8 PASS (gold/wood/ore/crystal/gems/mercury/essence/
+        sulfur), `assets/mines/`.
+  - [x] `artifacts` → 4/4 PASS (lame/égide/orbe/trèfle), `assets/artifacts/`
+        (légendes texte retirées via `--min-area`).
 
 ## 6. Écarts / décisions notées en cours de route
 

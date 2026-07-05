@@ -298,18 +298,33 @@ pas de `concurrency`/`timeout-minutes` ; `__HEROES_TEST__` exposé en prod.
 - Vérif : `content:check` + tests loader/scénario couvrant chaque nouveau rejet.
 - **R5 terminé.**
 
-### Lot R6 — Durcissement CI & tests (T1, T2, T3)
-- [ ] Garde-fou faction : motif dérivé de `data/factions/index.json`
-      (`jq -r '.factions | join("|")'`), extensions élargies, test explicite
-      du code retour grep (`exit 1` seulement).
-- [ ] Remplacer `--if-present` par la liste explicite des packages testés ;
-      décider d'un socle de tests client (au minimum les helpers purs
-      extraits au lot R7).
-- [ ] Smoke : parcours **défaite** (overlay + retour menu) ; écran de ville
-      piloté **par les boutons** (Construire/Recruter via l'UI) ;
-      `forbidOnly: !!process.env.CI` + `retries` CI dans Playwright.
-- Vérif : CI rouge si on introduit volontairement (branche jetable) un id de
-  5ᵉ faction dans le moteur / un `test.only` / une régression bouton ville.
+### Lot R6 — Durcissement CI & tests (T1, T2, T3) ✅
+- [x] Garde-fou faction : motif dérivé de `data/factions/index.json`
+      (`jq -r '.factions | map("\b"+.+"\b") | join("|")'`), extensions
+      élargies (`.js/.cjs/.mjs/.json` en plus de `.ts(x)`,
+      `--exclude-dir=dist,node_modules`), et **gestion explicite du code retour
+      grep** : 0 = id trouvé ⇒ `exit 1`, 1 = propre ⇒ succès, >1 = erreur
+      d'exécution ⇒ `exit 1` (le `! grep` d'origine passait au vert sur erreur).
+- [x] Remplacer `--if-present` par la liste explicite
+      (`--filter @heroes/engine --filter @heroes/content`) : un package testé
+      qui perd son script `test` fait désormais échouer la CI au lieu d'être
+      sauté silencieusement. Socle de tests client **différé au lot R7** (il
+      dépend des helpers purs à extraire ; le client n'a pas encore de logique
+      pure isolée à tester unitairement).
+- [x] `forbidOnly: !!process.env.CI` + `retries: process.env.CI ? 2 : 0` dans
+      `playwright.config.ts`.
+- **Différé** : smoke **défaite** (overlay + retour menu) — nécessite un
+  scénario perdant dédié ; l'overlay est le composant partagé victoire/défaite
+  déjà couvert côté victoire (`smoke.spec.ts:699`), le gain de couverture ne
+  justifie pas un scénario bespoke dans ce lot d'outillage. Reporté au chantier
+  UX/scénarios. Écran de ville **par les boutons** : déjà couvert depuis R2b
+  (clic « Construire » → toast d'erreur, `smoke.spec.ts:521`) et R4b (assertion
+  sur `town-panel-build`) — la préoccupation T3 « piloté sans cliquer » ne tient
+  plus.
+- Vérif : garde faction testée localement (arbre propre ⇒ statut 1/succès ;
+  `const x='haven'` injecté dans `packages/engine/` ⇒ statut 0/échec, puis
+  nettoyé) ; `pnpm test` explicite lance bien engine (210) + content (70) ;
+  typecheck/lint/content:check/42 smoke verts.
 
 ### Lot R7 — Dette & duplication (E6, CL9 + mineurs)
 - [ ] Helper moteur partagé `advanceHeroAlongPath` (humain + IA).
@@ -499,3 +514,17 @@ commit (docs = source de vérité).
   faction vert). Reste du plan : CO9 (résilience boot) ; R2 (cycle de vie
   client), R3 (identité joueur), R4 (i18n contenu), R6 (CI/tests), R7 (dette/
   duplication), R8 (docs) ; chantier UX §5.
+- **2026-07-05** — **R6 livré (durcissement CI & tests, T1/T2/T3)** : garde-fou
+  faction dérivé de `data/factions/index.json` (`jq`, motif `\b…\b`), scan
+  élargi (`.js/.cjs/.mjs/.json`, exclusions `dist`/`node_modules`) et surtout
+  **statut grep géré explicitement** (0 ⇒ échec, 1 ⇒ succès, >1 ⇒ échec ; le
+  `! grep` d'origine masquait les erreurs d'exécution) ; script `test` racine
+  passé de `--if-present` à la liste explicite engine+content (un package qui
+  perd son `test` casse désormais la CI) ; `forbidOnly`/`retries` CI dans
+  Playwright. Différés avec justification : smoke défaite (scénario perdant
+  dédié, overlay déjà couvert côté victoire) ; ville « par les boutons » (déjà
+  couverte par les smokes R2b/R4b) ; socle de tests client (dépend des helpers
+  purs R7). Vérif verte : garde faction OK sur arbre propre + rouge sur id
+  injecté (nettoyé), `pnpm test` = 210 engine + 70 content, lint, typecheck 4/4,
+  content:check, build, 42 smoke. Golden inchangé (aucun code moteur touché).
+  Reste : R7 (dette/duplication), R8 (docs) ; chantier UX §5.

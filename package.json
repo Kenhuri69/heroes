@@ -12,7 +12,7 @@
   "scripts": {
     "typecheck": "pnpm -r --if-present typecheck",
     "lint": "eslint .",
-    "test": "pnpm -r --if-present test",
+    "test": "pnpm --filter @heroes/engine --filter @heroes/content test",
     "build": "pnpm --filter @heroes/client build",
     "dev": "pnpm --filter @heroes/client dev",
     "smoke": "playwright test",

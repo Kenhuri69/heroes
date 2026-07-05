@@ -29,9 +29,30 @@ jobs:
 
       # Invariant « le moteur ne connaît aucune faction » (README §1) :
       # les IDs de faction ne doivent apparaître que dans data/ (et les tests).
+      # Le motif est dérivé de data/factions/index.json (source de vérité) pour
+      # rester exhaustif quand une faction est ajoutée. On distingue explicitement
+      # les 3 statuts de grep : 0 = un ID trouvé (échec), 1 = aucun (succès),
+      # >1 = erreur d'exécution (échec) — sans quoi un grep cassé passerait pour vert.
       - name: Vérifier l'absence d'IDs de faction dans packages/
         run: |
-          ! grep -riE '\b(haven|necropolis|arcane-hunters|test-faction)\b' packages/ --include='*.ts' --include='*.tsx'
+          pattern=$(jq -r '.factions | map("\\b" + . + "\\b") | join("|")' data/factions/index.json)
+          echo "motif faction : ${pattern}"
+          set +e
+          hits=$(grep -rInE "$pattern" packages/ \
+            --include='*.ts' --include='*.tsx' --include='*.js' \
+            --include='*.cjs' --include='*.mjs' --include='*.json' \
+            --exclude-dir=dist --exclude-dir=node_modules)
+          status=$?
+          set -e
+          if [ "$status" -eq 0 ]; then
+            echo "::error::ID(s) de faction trouvé(s) dans packages/ :"
+            echo "$hits"
+            exit 1
+          elif [ "$status" -ne 1 ]; then
+            echo "::error::échec de l'exécution de grep (statut ${status})"
+            exit 1
+          fi
+          echo "aucun ID de faction dans packages/ ✓"
 
       - run: pnpm build
 

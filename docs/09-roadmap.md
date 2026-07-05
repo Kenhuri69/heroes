@@ -30,6 +30,13 @@ Estimations pour une petite équipe (2–3 dev + 1 artiste temps partiel). Chaqu
 
 ## Phase 2 — Alpha (8–10 semaines)
 
+> 🚧 **Alpha démarrée (4.1)** : cadrage Arcane Hunters livré
+> (`.claude/plans/phase-4.1-arcane-hunters-cadrage.md`, doc 05 « État 4.1 »).
+> Décomposition en sous-lots 4.2→4.7, chacun ouvrant **un** point d'extension
+> moteur générique (Marque, consommation de charges, Essence, choix de Cercle,
+> contrats hebdo, `demonform`) + les données qui l'exercent — garde-fou
+> « zéro faction dans le moteur » maintenu.
+
 - **Arcane Hunters** produite intégralement via le pipeline de faction (validation grandeur nature de la doc 06 — aucun diff moteur hors ouverture de points d'extension génériques).
 - Unités améliorées (upgrades) pour les 3 factions ; machines de guerre basiques ; sièges v1 (murs, tour, catapulte).
 - Escarmouche vs IA (config de carte, difficulté), hot-seat, sorts d'aventure (Ville-portail…).

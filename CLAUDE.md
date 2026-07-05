@@ -98,7 +98,19 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > la forme 3.4/3.5) + `readSaveVersion` ; le chargement (IndexedDB + import
 > `.heroes`) rejette proprement une sauvegarde d'une autre version au lieu
 > d'adopter un état malformé (doc 07 §4). Zéro faction dans le moteur (garde-fou
-> vert), golden re-fixé.
+> vert), golden re-fixé. 3.9 livrée : **échecs de sauvegarde surfacés** — signal
+> `SaveFailed` (autosave + save manuel) → toast d'erreur i18n, plus de perte de
+> données silencieuse (navigation privée/quota).
+>
+> 🚀 **Alpha démarrée** (roadmap doc 09 ; plan `.claude/plans/phase-4.1-arcane-
+> hunters-cadrage.md`). 4.1 livrée : **cadrage Arcane Hunters** (doc 05 « État
+> 4.1 ») — 3ᵉ faction complète (doc 05), le **test de modularité #3**.
+> Décomposition en sous-lots 4.2→4.7, chacun ouvrant **un** point d'extension
+> moteur **générique** (Marque déclarative, consommation de charges, ressource
+> de faction Essence branchée au gameplay, choix de bâtiment exclusif/Cercles,
+> hook d'aventure hebdomadaire/contrats, module de capacité stateful
+> `demonform`) + les données qui l'exercent ; garde-fou « zéro faction dans le
+> moteur » maintenu. Périmètre : signature (Marque + lineup) jouable d'abord.
 > Les docs `docs/0X-*.md` restent la source de
 > vérité du design ; le code doit s'y conformer.
 

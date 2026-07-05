@@ -131,11 +131,10 @@ Menu principal (Continuer / Scénarios / Escarmouche / Options), fiche de scéna
 > (logo + fond de titre), **vue de ville** (fond peint par faction, dégradé en
 > repli), **fin de partie** (victoire/défaite, voile de lisibilité) — tous en
 > **DOM** (composés une fois par le navigateur, coût de rendu par-frame nul). La
-> **toile de combat** est **différée** : rendue en sprite Pixi plein écran, elle
-> faisait passer l'arène sous le plancher anti-gel ×4 (doc 01 §5) ; à refaire via
-> une couche DOM derrière un canvas transparent (coût par-frame nul). Restent
-> aussi (jalon Beta) : spritesheets d'unités animées, avatars de héros, fonds
-> bespoke des factions/terrains encore sans asset.
+> **toile de combat** est d'abord restée **différée** (le sprite Pixi plein écran
+> faisait passer l'arène sous le plancher anti-gel ×4, doc 01 §5) puis livrée en
+> U5-E via la couche DOM (cf. ci-dessous). Restent (jalon Beta) : spritesheets
+> d'unités animées, fonds bespoke des factions/terrains encore sans asset.
 
 > 🚧 **État U5-C (sprites d'unités en combat)** : les piles de combat affichent
 > le **sprite statique de leur unité** (`assets/units/<faction>/<unitId>`, chargé
@@ -145,3 +144,13 @@ Menu principal (Continuer / Scénarios / Escarmouche / Options), fiche de scéna
 > absent/en cours de chargement. L'**animation frame-par-frame** (idle/move/
 > attack/hit/death) reste différée : le pipeline `asset-sheet` produit des sprites
 > statiques, pas des planches d'animation.
+
+> 🚧 **État U5-E (toile de combat peinte, coût par-frame nul)** : le canvas Pixi
+> passe en **transparent** (`backgroundAlpha: 0`) ; pendant un combat, le fond
+> peint du terrain (`combatBackgroundUrl(terrain)`, repli gracieux) est posé en
+> **`background-image` DOM de `#canvas-root`** — composé une fois par le
+> navigateur, donc **coût de rendu par-frame nul**, contrairement au sprite plein
+> écran retiré en U5-B qui cassait l'anti-gel ×4. Le champ de bataille peint
+> apparaît autour du plateau (hexes semi-opaques) ; retiré à la sortie du combat
+> et au retour menu. Anti-gel ×4 re-vérifié (arène ~23 fps, carte ~14 fps, rendu
+> logiciel CI, plancher ≥ 5).

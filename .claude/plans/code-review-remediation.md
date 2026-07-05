@@ -506,11 +506,15 @@ commit (docs = source de vérité).
 
 **Skill projet à créer** (dans `.claude/skills/`, versionnée avec le dépôt) :
 
-- [ ] `ux-audit` : checklist exécutable dérivée du doc 08 (cibles ≥ 44 px,
-      parité appui long/hover, pile de modales ≤ 2, jamais couleur seule,
-      prévisualisation avant action irréversible, 3 crans de police) +
-      procédure de captures Playwright par écran/viewport. Elle rend l'audit
-      répétable à chaque lot UX au lieu d'un one-shot.
+- [x] `ux-audit` **livrée** (`.claude/skills/ux-audit/`, SKILL.md +
+      `capture.mjs`) : checklist A1–A8 dérivée du doc 08 (cibles ≥ 44 px, parité
+      appui long/hover, pile de modales ≤ 2, jamais couleur seule,
+      prévisualisation avant action irréversible, 3 crans de police) + captures
+      Playwright par écran/viewport/cran (build de prod, Chromium préinstallé),
+      avec mesure automatique des cibles DOM < 44 px. Première passe de référence
+      exécutée (24 captures) → `.claude/plans/ux-audit-baseline.md` : A1/A5 OK,
+      A6 défaut mineur (onglets ville tronqués en mobile×font3), **A7/CL7
+      confirmé** (combat portrait, hexes < 44 px + pile coupée) = cible U1.
 
 ### 5.3 Ordre suggéré du chantier UX (après R2/R3)
 

@@ -1,5 +1,5 @@
 import { heroLuckOf, killsFromDamage, magicResistanceOf } from '../combat/damage';
-import { combatRules, collectCasualties } from '../combat/state-helpers';
+import { combatRules, collectCasualties, recordLoss } from '../combat/state-helpers';
 import { checkCombatEnd } from '../combat/turns';
 import type { CombatState } from '../combat/types';
 import type { Command, CommandError } from '../core/commands';
@@ -50,6 +50,13 @@ export function validateCastSpell(state: GameState, cmd: CastSpellCmd): CommandE
   const target = combat.stacks.find((s) => s.id === cmd.targetStackId);
   if (!target || target.count <= 0)
     return { code: 'invalidTarget', message: `cible invalide '${cmd.targetStackId}'` };
+  // Remédiation R1 : contrainte de camp selon la nature du sort — dégâts,
+  // debuff et marque visent l'adverse ; soin et buff le camp du lanceur
+  // (`combat.playerSide`). Interdit un dégât sur soi ou un buff sur l'ennemi.
+  const targetsEnemy =
+    spell.kind === 'damage' || spell.kind === 'debuff' || spell.kind === 'applyMarks';
+  if (targetsEnemy !== (target.side !== combat.playerSide))
+    return { code: 'invalidTarget', message: 'cible du mauvais camp pour ce sort' };
   return null;
 }
 
@@ -95,6 +102,10 @@ export function handleCastSpell(draft: Draft, cmd: CastSpellCmd, events: GameEve
       const newCount = target.count - kills;
       target.count = newCount;
       target.firstHp = newCount > 0 ? remaining - (newCount - 1) * targetDef.stats.hp : 0;
+      // Remédiation R1 (E2) : les créatures tuées par un sort alimentent le
+      // bilan de pertes, comme une frappe — sinon XP, Nécromancie et bilan
+      // `CombatEnded` sous-évaluent les kills par magie.
+      recordLoss(combat, target.side, target.unitId, kills);
       if (target.count <= 0) {
         events.push({ type: 'StackDied', stackId: target.id });
         const idx = combat.stacks.findIndex((s) => s.id === target.id);

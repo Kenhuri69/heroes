@@ -178,6 +178,13 @@ interface StrikeParams {
   victimDef: CombatUnitDef;
   meleePenalized: boolean;
   retaliation: boolean;
+  /**
+   * Frappe à distance (compétence Tir) vs mêlée (compétence Attaque au corps) —
+   * décidé par l'appelant (`canShoot`), pas ré-approximé ici : la résolution et
+   * la prévisualisation (`estimateDamage`) partagent ainsi le même critère
+   * (remédiation R1 E5). Une riposte est toujours une mêlée (`false`).
+   */
+  ranged: boolean;
   rules: CombatRulesConfig;
 }
 
@@ -187,7 +194,7 @@ export function performStrike(
   events: GameEvent[],
   params: StrikeParams,
 ): { targetDied: boolean } {
-  const { striker, victim, strikerDef, victimDef, meleePenalized, retaliation, rules } = params;
+  const { striker, victim, strikerDef, victimDef, meleePenalized, retaliation, ranged, rules } = params;
   let base = 0;
   for (let i = 0; i < striker.count; i++) {
     const r = rollRange(draft.rng, strikerDef.stats.damage[0], strikerDef.stats.damage[1]);
@@ -203,9 +210,6 @@ export function performStrike(
     victimDef.stats.defense +
     (combat ? heroDefenseOf(draft, combat, victim.side) : 0) +
     statusModSum(victim.statuses, 'defenseMod');
-  // Une riposte est toujours une frappe de mêlée (la pile riposte au contact) ;
-  // sinon on approxime « tir » par tireur (ammo non nul) sans pénalité mêlée forcée.
-  const ranged = !retaliation && striker.ammo !== null && !meleePenalized;
   const heroDamagePct = combat
     ? ranged
       ? heroRangedPctOf(draft, combat, striker.side)

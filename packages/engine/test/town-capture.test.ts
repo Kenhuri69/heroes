@@ -17,7 +17,12 @@ function startedGame(townOverrides: Partial<ReturnType<typeof testTown>> = {}): 
     buildingCatalog: testBuildingCatalog(),
     towns: [{ ...testTown(), ownerPlayerId: null, ...townOverrides }],
   };
-  return apply(createEmptyState(), cmd).state;
+  const state = apply(createEmptyState(), cmd).state;
+  // E3 : la capture exige un héros du joueur sur/adjacent à la ville (5,5).
+  return {
+    ...state,
+    heroes: state.heroes.map((h) => (h.playerId === 'p1' ? { ...h, pos: { x: 5, y: 4 } } : h)),
+  };
 }
 
 describe('CaptureTown', () => {
@@ -44,5 +49,17 @@ describe('CaptureTown', () => {
     expect(
       validate(state, { type: 'CaptureTown', townId: 'nope', playerId: 'p1' })?.code,
     ).toBe('unknownTown');
+  });
+
+  it('rejette la capture sans héros sur ou adjacent à la ville (E3, non confiance au client)', () => {
+    const base = startedGame({ garrison: [] });
+    // Éloigne le héros de la ville (5,5) : plus aucun héros de p1 à proximité.
+    const state: GameState = {
+      ...base,
+      heroes: base.heroes.map((h) => (h.playerId === 'p1' ? { ...h, pos: { x: 0, y: 0 } } : h)),
+    };
+    expect(
+      validate(state, { type: 'CaptureTown', townId: 'town-1', playerId: 'p1' })?.code,
+    ).toBe('invalidAction');
   });
 });

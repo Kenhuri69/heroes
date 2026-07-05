@@ -68,7 +68,6 @@ export function advanceTurn(draft: Draft, events: GameEvent[]): void {
       events.push({ type: 'CombatRoundStarted', round: combat.round });
       continue;
     }
-    next.defending = false; // levé quand le tour de la pile revient (doc 02 §5.2)
     // Immobilisation (doc 05 §3.1 `pinningShot`) : la pile saute son tour, la
     // charge d'immobilisation baisse d'un cran (même patron que le malus moral).
     if (next.immobilizedRounds > 0) {
@@ -87,6 +86,10 @@ export function advanceTurn(draft: Draft, events: GameEvent[]): void {
         continue;
       }
     }
+    // Le bonus de défense n'est levé que lorsque la pile prend RÉELLEMENT son
+    // tour (remédiation R1) : une pile sautée (immobilisation/moral négatif)
+    // n'a pas agi, elle conserve sa posture défensive (doc 02 §5.2).
+    next.defending = false;
     combat.activeStackId = next.id;
     events.push({ type: 'CombatTurnStarted', stackId: next.id });
     return;

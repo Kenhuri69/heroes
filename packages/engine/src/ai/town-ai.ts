@@ -49,7 +49,13 @@ function tryBuild(draft: GameState, town: TownState, events: GameEvent[]): void 
 function tryRecruit(draft: GameState, town: TownState, player: PlayerState, events: GameEvent[]): void {
   const candidates = Object.keys(town.stock)
     .filter((unitId) => (town.stock[unitId] ?? 0) > 0)
-    .sort((a, b) => unitTier(draft.buildingCatalog, b) - unitTier(draft.buildingCatalog, a) || a.localeCompare(b));
+    // Départage par unités de code (remédiation R1) : déterministe et
+    // indépendant de l'ICU hôte, contrairement à `localeCompare`.
+    .sort(
+      (a, b) =>
+        unitTier(draft.buildingCatalog, b) - unitTier(draft.buildingCatalog, a) ||
+        (a < b ? -1 : a > b ? 1 : 0),
+    );
   for (const unitId of candidates) {
     const recruitCost = unitWithEconomy(draft.unitCatalog, unitId)?.recruitCost;
     const count = maxAffordableCount(player.resources, recruitCost, town.stock[unitId] ?? 0);

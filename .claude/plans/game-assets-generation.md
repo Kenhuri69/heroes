@@ -144,7 +144,10 @@ tools/assets/              ← outillage Python (indépendant de packages/tools 
       Gemini, extraire (QC verte), ranger dans `assets/`, une PR par lot de
       planches validées → vérif : `sheet_extract` exit 0 sur chaque planche.
   - [x] `buildings-core` → 6/6 PASS, `assets/buildings/core/`.
-  - [ ] `buildings-haven`
+  - [x] `buildings-haven` → 7/7 PASS, `assets/buildings/haven/` (Gemini a
+        rempli 8 cellules avec un doublon sacré en cellule 6 : remap
+        row-major avec id jetable pour la cellule 6, t6→cellule 7 griffon,
+        t7→cellule 8 ange).
   - [ ] `buildings-necropolis`
   - [ ] `buildings-arcane-hunters-p1`
   - [ ] `buildings-arcane-hunters-p2`

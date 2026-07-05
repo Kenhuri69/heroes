@@ -47,7 +47,10 @@ export function applyWeeklyGrowth(draft: GameState, events: GameEvent[]): void {
       if (added <= 0) continue;
       const cap = 2 * added;
       const current = town.stock[unitId] ?? 0;
-      town.stock[unitId] = Math.min(current + added, cap);
+      // Le plafond (2× la croissance) borne l'ACCUMULATION, il ne doit jamais
+      // RÉDUIRE un stock déjà supérieur (pré-seedé par un scénario) — remédiation
+      // R1 : on n'ajoute rien si le stock dépasse déjà le plafond.
+      town.stock[unitId] = Math.max(current, Math.min(current + added, cap));
       events.push({ type: 'TownGrowth', townId: town.id, unitId, added });
     }
   }

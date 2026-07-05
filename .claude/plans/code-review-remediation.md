@@ -161,24 +161,34 @@ pas de `concurrency`/`timeout-minutes` ; `__HEROES_TEST__` exposé en prod.
 > le même commit** (guideline §7) ; les lots touchant le client passent le
 > smoke headless. Cocher ici au fil de l'eau (plan vivant, §5).
 
-### Lot R1 — Correctifs moteur (E1–E5 + mineurs moteur associés)
-- [ ] E1 : refuser l'engagement d'un gardien avec armée vide (validation
-      `MoveHero`/`beginGuardianCombat`) → test : commande refusée en
-      `EngineError`, property « jamais de crash brut ».
-- [ ] E2 : `recordLoss` dans la branche `damage` de `handleCastSpell` → test :
-      XP et `raiseUndeadOnVictory` comptent les kills par sort.
-- [ ] E3 : valider `CaptureTown` (joueur actif, héros sur la tuile, hors
-      combat) → tests de rejet.
-- [ ] E4 : remplacer `localeCompare` par comparaison par code units → golden
-      replay inchangé.
-- [ ] E5 : propager le `ranged` calculé par `applyAttack` à `performStrike` →
-      test comparant `estimateDamage`/résolution pour tireur `noMeleePenalty`
-      au contact.
-- [ ] Mineurs : skip des joueurs éliminés, plafond de croissance
-      non-réducteur, `defending` après le test de skip, contrainte de camp
-      des sorts, tirage RNG agrégé O(1).
-- Vérif : `pnpm -r test` vert, golden replay re-fixé si besoin (bump
-  justifié dans la PR), garde-fou faction vert.
+### Lot R1 — Correctifs moteur (E1–E5 + mineurs moteur associés) ✅
+- [x] E1 : refuser l'engagement d'un gardien avec armée vide (validation
+      `MoveHero`) → test : commande refusée en `EngineError`, jamais de crash
+      brut (`r1-remediation.test.ts`).
+- [x] E2 : `recordLoss` dans la branche `damage` de `handleCastSpell` → test :
+      les kills par sort alimentent `collectCasualties` (XP / Nécromancie).
+- [x] E3 : valider `CaptureTown` (hors combat, joueur actif, héros sur ou
+      adjacent à la ville) → tests de rejet (`town-capture.test.ts`).
+- [x] E4 : remplacer `localeCompare` (combat/ai.ts + ai/town-ai.ts) par une
+      comparaison par unités de code → golden replay inchangé.
+- [x] E5 : propager le `ranged` calculé par `applyAttack` à `performStrike`
+      (champ `StrikeParams.ranged`) → test : pour un tireur `noMeleePenalty` au
+      contact, résolution == `estimateDamage` (bonus mêlée, pas tir).
+- [x] Mineurs traités : plafond de croissance non-réducteur, `defending` levé
+      seulement quand la pile prend réellement son tour, contrainte de camp
+      des sorts (dégâts/debuff/marque → adverse ; soin/buff → allié).
+- [ ] **Reportés hors R1** (décision de périmètre, pas des correctifs purs) :
+  - *skip des joueurs éliminés* dans la rotation `EndTurn` — interagit avec la
+    bascule jour/semaine et l'économie ; mérite son propre lot + test à 3+
+    joueurs (aujourd'hui sans impact : un scénario 2 joueurs se termine à
+    l'élimination via `evaluateOutcome`).
+  - *tirage RNG agrégé O(1)* — remplacer N tirages par créature par un seul
+    change la DISTRIBUTION des dégâts (somme de N dés ≠ 1 dé) et donc
+    l'équilibrage + le golden : c'est un choix de design, pas une optimisation
+    neutre. Le modèle « 1 dé par créature » est le modèle HoMM fidèle ; conservé.
+- Vérif : `pnpm -r test` vert (264), golden replay **inchangé** (aucun sort ni
+  compétence dans son combat, branches de skip jamais atteintes), garde-fou
+  faction vert, lint + build + 40 smoke verts.
 
 ### Lot R2 — Cycle de vie & canal d'erreurs client (CL1, CL2, CL3, CL6, CL8)
 - [ ] `AdventureScene.destroy()` (unsubscribe + `destroy({children,texture})`)
@@ -349,3 +359,9 @@ commit (docs = source de vérité).
 - **2026-07-05** — Création : revue 4 volets terminée, constats consolidés,
   lots R1–R8 définis, volet UX cadré. Aucune correction appliquée (demande
   explicite : plan seul).
+- **2026-07-05** — **Lot R1 livré** : E1–E5 + 3 mineurs corrigés, chacun avec
+  son test (`r1-remediation.test.ts`, +`town-capture.test.ts`). 2 mineurs
+  reportés avec justification (skip éliminés = interaction rotation/économie ;
+  RNG agrégé = changement d'équilibrage, non neutre). Golden inchangé
+  (`be72de4b`). Vérif complète verte (264 tests, lint, content:check, build
+  61,8 Ko gzip, 40 smoke). Prochain : R5 (CO1/CO2 — outillage faction) puis R2.

@@ -124,7 +124,18 @@ export function validate(state: GameState, cmd: Command): CommandError | null {
       const current = state.players[state.currentPlayer];
       if (!current || hero.playerId !== current.id)
         return { code: 'notYourHero', message: `'${cmd.heroId}' n’appartient pas au joueur actif` };
-      return validatePath(state, hero.pos, cmd.path, hero.movementPoints, cmd.heroId);
+      const pathErr = validatePath(state, hero.pos, cmd.path, hero.movementPoints, cmd.heroId);
+      if (pathErr) return pathErr;
+      // Remédiation R1 (E1) : engager un gardien avec une armée vide fait
+      // boucler puis planter l'IA de combat (`beginGuardianCombat` n'a pas le
+      // garde-fou de `validateStartCombat`). Refus explicite en amont — le pas
+      // gardé n'est autorisé qu'en dernière position (cf. `validatePath`).
+      const last = cmd.path[cmd.path.length - 1];
+      const engagesGuardian =
+        !!last && (state.map?.objects.some((o) => o.type === 'guardian' && samePos(o.pos, last)) ?? false);
+      if (engagesGuardian && hero.army.reduce((n, s) => n + s.count, 0) === 0)
+        return { code: 'invalidArmy', message: 'armée vide : impossible d’engager un gardien' };
+      return null;
     }
     case 'EndTurn': {
       if (!state.started)

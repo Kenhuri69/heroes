@@ -69,6 +69,15 @@ function compareHex(a: OffsetPos, b: OffsetPos): number {
   return a.col - b.col || a.row - b.row;
 }
 
+/**
+ * Comparaison de chaînes par unités de code (remédiation R1) — déterministe et
+ * indépendante de l'ICU de l'hôte, contrairement à `localeCompare` : garantit
+ * le même départage IA sur toute machine (replays, futur serveur).
+ */
+function compareCodeUnits(a: string, b: string): number {
+  return a < b ? -1 : a > b ? 1 : 0;
+}
+
 /** Meilleur élément par score décroissant ; égalité tranchée par `compareTie` (jamais de RNG). */
 function pickBestBy<T>(items: T[], score: (item: T) => number, compareTie: (a: T, b: T) => number): T | null {
   let best: T | null = null;
@@ -216,7 +225,7 @@ export function chooseAction(state: GameState, stackId: string): CombatActionInp
     const best = pickBestBy(
       candidates,
       (c) => scoreCandidate(state, stackId, c, enemies, combat, catalog, stack.pos),
-      (a, b) => a.target.id.localeCompare(b.target.id) || compareHex(a.from ?? stack.pos, b.from ?? stack.pos),
+      (a, b) => compareCodeUnits(a.target.id, b.target.id) || compareHex(a.from ?? stack.pos, b.from ?? stack.pos),
     ) as AttackCandidate;
     return best.from
       ? { type: 'attack', targetStackId: best.target.id, from: best.from }

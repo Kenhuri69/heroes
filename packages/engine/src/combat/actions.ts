@@ -239,6 +239,7 @@ function applyAttack(
         victimDef: targetDef,
         meleePenalized: false,
         retaliation: false,
+        ranged: true,
         rules,
       });
       if (checkCombatEnd(draft, events)) return;
@@ -258,6 +259,7 @@ function applyAttack(
       victimDef: targetDef,
       meleePenalized,
       retaliation: false,
+      ranged: false,
       rules,
     });
     if (checkCombatEnd(draft, events)) return;
@@ -275,6 +277,7 @@ function applyAttack(
           victimDef: attackerDef,
           meleePenalized: retMeleePenalized,
           retaliation: true,
+          ranged: false,
           rules,
         });
         if (checkCombatEnd(draft, events)) return;
@@ -290,6 +293,7 @@ function applyAttack(
         victimDef: targetDef,
         meleePenalized,
         retaliation: false,
+        ranged: false,
         rules,
       });
       if (checkCombatEnd(draft, events)) return;

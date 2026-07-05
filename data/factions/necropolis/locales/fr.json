@@ -6,5 +6,12 @@
   "unit.t4-vampire.name": "Vampire",
   "unit.t5-liche.name": "Liche",
   "unit.t6-cavalier-funeste.name": "Cavalier funeste",
-  "unit.t7-dragon-os.name": "Dragon d'os"
+  "unit.t7-dragon-os.name": "Dragon d'os",
+  "building.necropolis-dwelling-t1": "Habitation : Squelette",
+  "building.necropolis-dwelling-t2": "Habitation : Zombie putride",
+  "building.necropolis-dwelling-t3": "Habitation : Spectre",
+  "building.necropolis-dwelling-t4": "Habitation : Vampire",
+  "building.necropolis-dwelling-t5": "Habitation : Liche",
+  "building.necropolis-dwelling-t6": "Habitation : Cavalier funeste",
+  "building.necropolis-dwelling-t7": "Habitation : Dragon d'os"
 }

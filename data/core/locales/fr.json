@@ -94,7 +94,6 @@
   "toast.combatLost": "Défaite…",
   "toast.undeadRaised": "+{count} {unit} relevé(s) (Nécromancie)",
   "toast.factionResourceGained": "+{amount} {resource} (chasse)",
-  "factionResource.essence": "Essence",
   "toast.heroLevelUp": "Niveau {level} atteint !",
   "toast.gameLoaded": "Partie chargée",
   "toast.saveFailed": "Échec de la sauvegarde — stockage indisponible",
@@ -153,6 +152,13 @@
   "artifact.egide-de-pierre": "Égide de pierre",
   "artifact.orbe-de-savoir": "Orbe de savoir",
   "artifact.trefle-chance": "Trèfle de chance",
+
+  "building.townHall": "Hôtel de ville",
+  "building.fort": "Fort",
+  "building.mageGuild": "Guilde des mages",
+  "building.market": "Marché",
+  "building.tavern": "Taverne",
+  "building.forge": "Forge",
 
   "resource.gold": "Or",
   "resource.wood": "Bois",

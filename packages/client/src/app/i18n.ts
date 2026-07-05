@@ -107,6 +107,30 @@ export function resolveArtifactName(artifactId: string): string {
 }
 
 /**
+ * Cherche une clé de nom dans les locales CORE puis, à défaut, dans les locales
+ * de PAQUET (remédiation R4b) — les noms de bâtiments de faction (dwellings) et
+ * de ressources de faction vivent dans le paquet, pas dans le core (doc 06).
+ * Repli sur l'id brut si la clé est absente partout.
+ */
+function resolveCoreOrPack(prefix: string, id: string): string {
+  const key = `${prefix}.${id}`;
+  const core = t(key);
+  if (core !== key) return core;
+  const pack = resolveLoc(key);
+  return pack === key ? id : pack;
+}
+
+/** Nom localisé d'un bâtiment : core (`townHall`, `fort`…) ou dwelling de paquet. */
+export function resolveBuildingName(id: string): string {
+  return resolveCoreOrPack('building', id);
+}
+
+/** Nom localisé d'une ressource de faction (`essence`…) — vit dans le paquet (CO7). */
+export function resolveFactionResourceName(id: string): string {
+  return resolveCoreOrPack('factionResource', id);
+}
+
+/**
  * Nom localisé d'un scénario (`scenario.name` = référence `@loc:` vers les
  * locales CORE — data/core/locales/, plan phase-3.5, pas les locales de
  * paquet comme `resolveLoc`). Repli sur la clé brute si absente.

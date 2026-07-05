@@ -6,6 +6,7 @@ export {
   buildSkillCatalog,
   buildSpellCatalog,
   checkCoreNameKeys,
+  checkPackNameKeys,
   knownUnitIds,
   loadContent,
   loadFactionPack,

@@ -6,5 +6,12 @@
   "unit.t4-griffon.name": "Griffon",
   "unit.t5-pretresse.name": "Prêtresse",
   "unit.t6-chevalier-griffon.name": "Chevalier du Griffon",
-  "unit.t7-ange.name": "Ange"
+  "unit.t7-ange.name": "Ange",
+  "building.haven-dwelling-t1": "Habitation : Conscrit",
+  "building.haven-dwelling-t2": "Habitation : Archer",
+  "building.haven-dwelling-t3": "Habitation : Frère-Lame",
+  "building.haven-dwelling-t4": "Habitation : Griffon",
+  "building.haven-dwelling-t5": "Habitation : Prêtresse",
+  "building.haven-dwelling-t6": "Habitation : Chevalier du Griffon",
+  "building.haven-dwelling-t7": "Habitation : Ange"
 }

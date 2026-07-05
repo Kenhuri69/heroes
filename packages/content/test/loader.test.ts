@@ -5,6 +5,7 @@ import {
   buildSkillCatalog,
   buildSpellCatalog,
   checkCoreNameKeys,
+  checkPackNameKeys,
   loadContent,
   loadFactionPack,
   loadMap,
@@ -226,9 +227,31 @@ describe('loadContent', () => {
       loc['spell.boule-de-feu'] = 'x';
       loc['skill.logistics'] = 'x';
       loc['artifact.lame-aiguisee'] = 'x';
+      loc['building.townHall'] = 'x'; // bâtiment commun (CO6)
     }
     const report = await loadContent(reader(data));
     expect(checkCoreNameKeys(report)).toEqual([]);
+  });
+
+  it('R4b CO6/CO7 — checkPackNameKeys détecte les noms de paquet manquants', async () => {
+    const data = makeData();
+    withTown(data); // ajoute le bâtiment de faction 'proto-dwelling-t1'
+    const report = await loadContent(reader(data));
+    const errors = checkPackNameKeys(report).join();
+    expect(errors).toMatch(/building\.proto-dwelling-t1/); // dwelling (CO6)
+    expect(errors).toMatch(/factionResource\.essence/); // ressource de faction (CO7)
+  });
+
+  it('R4b CO6/CO7 — checkPackNameKeys vide quand le paquet porte les clés fr+en', async () => {
+    const data = makeData();
+    withTown(data);
+    for (const lang of ['fr', 'en'] as const) {
+      const loc = data[`factions/proto/locales/${lang}.json`] as Record<string, string>;
+      loc['building.proto-dwelling-t1'] = 'x';
+      loc['factionResource.essence'] = 'x';
+    }
+    const report = await loadContent(reader(data));
+    expect(checkPackNameKeys(report)).toEqual([]);
   });
 
   it('R5 CO3 — rejette un terrain natif absent de la config', async () => {

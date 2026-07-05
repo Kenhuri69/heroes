@@ -1,4 +1,4 @@
-import { apply, validate, type Command, type EngineResult } from '@heroes/engine';
+import { apply, validate, EngineError, type Command, type EngineResult } from '@heroes/engine';
 import { appStore } from './store';
 import { eventBus } from './events';
 
@@ -6,10 +6,14 @@ import { eventBus } from './events';
  * Point d'entrée unique UI/input → moteur (doc 07 §3). Synchrone en Phase 2
  * mais d'interface asynchrone : le passage en Web Worker sera un changement
  * d'implémentation, pas d'API.
+ *
+ * Un rejet de `validate` lève une `EngineError` (comme `apply`) — l'UI récupère
+ * ainsi le `code` structuré (`err.detail.code`) pour un message localisé
+ * (remédiation R2b CL6), au lieu d'une `Error` opaque « code: message ».
  */
 export async function dispatch(cmd: Command): Promise<EngineResult> {
   const err = validate(appStore.getState().game, cmd);
-  if (err) throw new Error(`${err.code}: ${err.message}`);
+  if (err) throw new EngineError(err);
   const result = apply(appStore.getState().game, cmd);
   appStore.setState({ game: result.state });
   eventBus.emit(result.events);

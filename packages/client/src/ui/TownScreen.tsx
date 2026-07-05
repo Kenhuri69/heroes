@@ -4,7 +4,7 @@ import type { BuildingDef, CombatUnitDef, TownState } from '@heroes/engine';
 import { useApp, appStore } from '../app/store';
 import { dispatch } from '../app/dispatch';
 import { PLAYER_ID } from '../app/game';
-import { t, resolveUnitName } from '../app/i18n';
+import { t, resolveUnitName, commandErrorMessage } from '../app/i18n';
 import { FactionBadge } from './FactionBadge';
 import './town.css';
 
@@ -207,7 +207,7 @@ function BuildTab({
   const build = (buildingId: string): void => {
     onError(null);
     dispatch({ type: 'BuildStructure', townId: town.id, buildingId }).catch((err: unknown) => {
-      onError(err instanceof Error ? err.message : String(err));
+      onError(commandErrorMessage(err)); // remédiation CL6 : message localisé, plus « code: message » brut
     });
   };
 
@@ -291,7 +291,7 @@ function RecruitTab({
   const recruit = (unitId: string, count: number): void => {
     onError(null);
     dispatch({ type: 'RecruitUnits', townId: town.id, unitId, count }).catch((err: unknown) => {
-      onError(err instanceof Error ? err.message : String(err));
+      onError(commandErrorMessage(err)); // remédiation CL6 : message localisé, plus « code: message » brut
     });
   };
 
@@ -355,7 +355,7 @@ function GarrisonTab({ town, onError }: { town: TownState; onError: (msg: string
     if (!hero) return;
     onError(null);
     dispatch({ type: 'GarrisonTransfer', townId: town.id, heroId: hero.id, from, slot }).catch((err: unknown) => {
-      onError(err instanceof Error ? err.message : String(err));
+      onError(commandErrorMessage(err)); // remédiation CL6 : message localisé, plus « code: message » brut
     });
   };
 

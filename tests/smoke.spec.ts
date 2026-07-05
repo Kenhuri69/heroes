@@ -518,6 +518,26 @@ test('ville : construire + croissance + recruter + transférer → armée du hé
   expect(errors).toEqual([]);
 });
 
+test('ville : une construction refusée affiche une erreur localisée (remédiation CL6)', async ({ page }) => {
+  const errors = await openGame(page);
+
+  await expect(page.getByTestId('town-open')).toBeVisible();
+  await page.getByTestId('town-open').click();
+  await page.getByTestId('town-tab-build').click();
+
+  // Le fort coûte 5000 or + 20 minerai ; le joueur démarre avec 2000/10/10 :
+  // la construction est refusée (`cannotAfford`) — clic via l'UI (pas dispatch).
+  await page.getByTestId('town-build-fort').click();
+
+  const townError = page.getByTestId('town-error');
+  await expect(townError).toBeVisible();
+  // Message LOCALISÉ (CL6) : le libellé de `cmdError.cannotAfford`, plus le
+  // format brut « code: message » qui fuyait auparavant.
+  await expect(townError).toHaveText('Ressources insuffisantes');
+
+  expect(errors).toEqual([]);
+});
+
 test('sort : le héros lance un sort en combat et réduit une pile ennemie', async ({ page }) => {
   const errors = await openGame(page);
 

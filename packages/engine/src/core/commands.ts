@@ -5,7 +5,7 @@ import type { BuildingDef, TownState } from '../town/types';
 import type { ArtifactDef, HeroSkillDef, SpellDef } from '../hero/types';
 import type { FactionBonus } from '../faction/types';
 import type { ScenarioState } from '../scenario/types';
-import type { HeroAttributes, Resources } from './state';
+import type { HeroAttributes, ResourceId, Resources } from './state';
 
 export interface PlayerSetup {
   id: string;
@@ -85,6 +85,18 @@ export type Command =
       slot: number;
     }
   | { type: 'CaptureTown'; townId: string; playerId: string }
+  | {
+      /**
+       * Échange ressource ↔ or au bâtiment marché (doc 02 §4.1, lot UX U6a).
+       * Exactement un côté est `'gold'` : vendre (give = ressource) ou acheter
+       * (give = or). Taux `config.market`, déterministe (aucun RNG).
+       */
+      type: 'TradeResources';
+      townId: string;
+      give: ResourceId;
+      receive: ResourceId;
+      giveAmount: number;
+    }
   // ——— Héros : sorts & compétences (doc 02 §1.2–§1.4) — surface figée 3.2 ———
   | { type: 'CastSpell'; spellId: string; targetStackId: string }
   | { type: 'ChooseSkill'; heroId: string; skillId: string }
@@ -118,6 +130,7 @@ export interface CommandError {
     | 'notRecruitable'
     | 'insufficientStock'
     | 'invalidTransfer'
+    | 'invalidTrade'
     | 'unknownSpell'
     | 'spellNotKnown'
     | 'notEnoughMana'

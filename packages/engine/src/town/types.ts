@@ -15,7 +15,9 @@ export type BuildingEffect =
   | { type: 'growthBonus'; percent: number }
   | { type: 'dwelling'; tier: number; unitId: string }
   | { type: 'mageGuild'; level: number }
-  /** Bâtiment sans effet mécanique en 3.1 (market/tavern/forge/spécial) — arbre seul. */
+  /** Active l'échange ressource ↔ or dans la ville (doc 02 §4.1, lot UX U6a). */
+  | { type: 'market' }
+  /** Bâtiment sans effet mécanique en 3.1 (tavern/forge/spécial) — arbre seul. */
   | { type: 'none' };
 
 export interface BuildingLevel {

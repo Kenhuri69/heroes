@@ -1,6 +1,6 @@
 import { useState } from 'preact/hooks';
-import { RESOURCE_IDS, buildStatus, builtDwellings, missingRequirements, scaleCost } from '@heroes/engine';
-import type { BuildingDef, CombatUnitDef, TownState } from '@heroes/engine';
+import { RESOURCE_IDS, buildStatus, builtDwellings, missingRequirements, scaleCost, tradeQuote } from '@heroes/engine';
+import type { BuildingDef, CombatUnitDef, ResourceId, TownState } from '@heroes/engine';
 import { useApp } from '../app/store';
 import { dispatch } from '../app/dispatch';
 import { humanId } from '../app/game';
@@ -58,7 +58,7 @@ function CostList({ cost }: { cost: Record<string, number> }) {
 export function TownScreen({ townId, onClose }: { townId: string; onClose: () => void }) {
   useApp((s) => s.locale); // réactivité i18n
   const game = useApp((s) => s.game);
-  const [tab, setTab] = useState<'build' | 'recruit' | 'garrison'>('build');
+  const [tab, setTab] = useState<'build' | 'recruit' | 'garrison' | 'market'>('build');
   const [error, setError] = useState<string | null>(null);
 
   const close = onClose;
@@ -112,6 +112,13 @@ export function TownScreen({ townId, onClose }: { townId: string; onClose: () =>
               >
                 {t('town.garrison')}
               </button>
+              <button
+                class={tab === 'market' ? 'active' : ''}
+                data-testid="town-tab-market"
+                onClick={() => setTab('market')}
+              >
+                {t('town.market')}
+              </button>
             </nav>
 
             {error && (
@@ -127,6 +134,7 @@ export function TownScreen({ townId, onClose }: { townId: string; onClose: () =>
               <RecruitTab town={town} catalog={game.buildingCatalog} unitCatalog={game.unitCatalog} onError={setError} />
             )}
             {tab === 'garrison' && <GarrisonTab town={town} onError={setError} />}
+            {tab === 'market' && <MarketTab town={town} onError={setError} />}
           </>
         )}
       </div>
@@ -352,6 +360,81 @@ function GarrisonTab({ town, onError }: { town: TownState; onError: (msg: string
           </ol>
         </div>
       </div>
+    </div>
+  );
+}
+
+const TRADABLE_RESOURCE_IDS = RESOURCE_IDS.filter((r): r is Exclude<ResourceId, 'gold'> => r !== 'gold');
+
+/**
+ * Onglet Marché (lot UX U6a) : échange ressource ↔ or via `TradeResources`.
+ * L'aperçu réutilise `tradeQuote` (helper pur du moteur) — pas de
+ * réimplémentation du taux côté client (leçon CL9).
+ */
+function MarketTab({ town, onError }: { town: TownState; onError: (msg: string | null) => void }) {
+  const game = useApp((s) => s.game);
+  const [mode, setMode] = useState<'sell' | 'buy'>('sell');
+  const [resource, setResource] = useState<Exclude<ResourceId, 'gold'>>('wood');
+  const [amount, setAmount] = useState(1);
+
+  const give: ResourceId = mode === 'sell' ? resource : 'gold';
+  const receive: ResourceId = mode === 'sell' ? 'gold' : resource;
+  const market = game.config?.market;
+  const received = market ? tradeQuote(market, give, receive, amount) : 0;
+
+  const trade = (): void => {
+    onError(null);
+    dispatch({ type: 'TradeResources', townId: town.id, give, receive, giveAmount: amount }).catch(
+      (err: unknown) => {
+        onError(commandErrorMessage(err)); // même gestion d'erreur que build/recruit/garrison (CL6)
+      },
+    );
+  };
+
+  return (
+    <div class="town-tab-panel" data-testid="town-panel-market">
+      <div class="town-market-mode">
+        <button
+          class={mode === 'sell' ? 'active' : ''}
+          data-testid="market-mode-sell"
+          onClick={() => setMode('sell')}
+        >
+          {t('town.marketSell')}
+        </button>
+        <button class={mode === 'buy' ? 'active' : ''} data-testid="market-mode-buy" onClick={() => setMode('buy')}>
+          {t('town.marketBuy')}
+        </button>
+      </div>
+      <label class="town-market-field">
+        {t('town.marketResource')}
+        <select
+          data-testid="market-resource"
+          value={resource}
+          onChange={(e) => setResource((e.currentTarget as HTMLSelectElement).value as Exclude<ResourceId, 'gold'>)}
+        >
+          {TRADABLE_RESOURCE_IDS.map((id) => (
+            <option key={id} value={id}>
+              {t(`resource.${id}`)}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label class="town-market-field">
+        {t('town.marketAmount')}
+        <input
+          type="number"
+          min={1}
+          data-testid="market-amount"
+          value={amount}
+          onInput={(e) => setAmount(Math.max(1, Number((e.currentTarget as HTMLInputElement).value) || 1))}
+        />
+      </label>
+      <p class="town-market-preview" data-testid="market-received">
+        {t('town.marketReceive', { amount: received })}
+      </p>
+      <button data-testid="market-trade" onClick={trade}>
+        {t('town.marketConfirm')}
+      </button>
     </div>
   );
 }

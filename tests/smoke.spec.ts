@@ -515,6 +515,10 @@ test('ville : construire + croissance + recruter + transférer → armée du hé
   // Scopé à l'écran de ville : depuis U4, la liste de villes du HUD porte aussi
   // un `faction-badge` par bouton (plusieurs villes possibles).
   await expect(page.locator('.town-screen').getByTestId('faction-badge')).toBeVisible();
+  // Vue de ville peinte (doc 08 §2.2/§5, lot U5) : les bâtiments construits
+  // apparaissent en vignettes (la ville de départ a townHall + habitation T1).
+  await expect(page.getByTestId('town-view')).toBeVisible();
+  expect(await page.getByTestId('town-view-building').count()).toBeGreaterThanOrEqual(2);
   await page.getByTestId('town-close').click();
 
   const armyTotal = (): Promise<number> =>

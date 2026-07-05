@@ -90,6 +90,7 @@ export function TownScreen({ townId, onClose }: { townId: string; onClose: () =>
           </p>
         ) : (
           <>
+            <TownView town={town} catalog={game.buildingCatalog} onSelect={() => setTab('build')} />
             <nav class="town-tabs" role="tablist">
               <button
                 class={tab === 'build' ? 'active' : ''}
@@ -136,6 +137,56 @@ export function TownScreen({ townId, onClose }: { townId: string; onClose: () =>
             {tab === 'garrison' && <GarrisonTab town={town} onError={setError} />}
             {tab === 'market' && <MarketTab town={town} onError={setError} />}
           </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Vue de ville « peinte » (doc 08 §2.2/§5, lot UX U5) : les bâtiments CONSTRUITS
+ * apparaissent en vignettes sur un décor peint (dégradé gouache), en bande à
+ * défilement horizontal (touch-first, mobile). Tap sur un bâtiment = bascule
+ * vers l'onglet Construire. Réutilise les vignettes existantes (`buildingUrl`) —
+ * les fonds bespoke par faction sont un raffinement ultérieur (repli gracieux).
+ */
+function TownView({
+  town,
+  catalog,
+  onSelect,
+}: {
+  town: TownState;
+  catalog: Record<string, BuildingDef>;
+  onSelect: () => void;
+}) {
+  const built = Object.keys(town.buildings)
+    .filter((id) => (town.buildings[id] ?? 0) >= 1 && catalog[id])
+    .sort();
+  return (
+    <div class="town-view" data-testid="town-view">
+      <div class="town-view-scene">
+        {built.length === 0 ? (
+          <p class="town-view-empty" data-testid="town-view-empty">
+            {t('town.viewEmpty')}
+          </p>
+        ) : (
+          built.map((id) => (
+            <button
+              key={id}
+              class="town-view-building"
+              data-testid="town-view-building"
+              onClick={onSelect}
+              title={buildingName(id)}
+            >
+              <AssetImg
+                src={buildingUrl(id, town.factionId)}
+                alt={buildingName(id)}
+                class="town-view-vignette"
+                fallback={<i class="town-view-vignette-fallback" aria-hidden="true" />}
+              />
+              <span class="town-view-label">{buildingName(id)}</span>
+            </button>
+          ))
         )}
       </div>
     </div>

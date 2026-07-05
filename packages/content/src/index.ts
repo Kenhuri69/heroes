@@ -5,6 +5,7 @@ export {
   buildScenarioObjectives,
   buildSkillCatalog,
   buildSpellCatalog,
+  checkCoreNameKeys,
   knownUnitIds,
   loadContent,
   loadFactionPack,

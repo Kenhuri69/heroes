@@ -237,14 +237,20 @@ pas de `concurrency`/`timeout-minutes` ; `__HEROES_TEST__` exposé en prod.
   héros → HUD complet, montée de niveau fonctionnelle.
 
 ### Lot R4 — i18n contenu (CO5, CO6, CO7 + replis toasts)
-- [ ] Ajouter les ~27 clés `spell.*`/`skill.*`/`artifact.*` FR/EN dans les
-      locales core ; clés `building.<id>` pour les 22 dwellings via locales
-      de paquet (ou champ `name` branché — trancher et supprimer l'autre) ;
-      déplacer `factionResource.essence` dans le paquet arcane-hunters ;
-      repli commun `buildingName` dans `i18n.ts`.
-- [ ] Étendre `content:check` : présence obligatoire des clés de nom pour
-      tout sort/compétence/artefact/bâtiment chargé, parité FR/EN.
-- Vérif : audit « 0 id brut à l'écran » rejoué (grep + smoke FR/EN).
+> **R4a livré** (CO5 — noms sort/compétence/artefact). Restent CO6 (noms de
+> bâtiments/dwellings via locales de paquet) et CO7 (`factionResource.essence`
+> à déplacer dans le paquet) → **R4b**.
+- [x] CO5 : 28 clés `spell.*`/`skill.*`/`artifact.*` fr **et** en dans les
+      locales core (sorts/compétences/artefacts affichaient leur id brut).
+      `content:check` étendu : `checkCoreNameKeys(report)` exige la présence
+      fr+en pour tout sort/compétence/artefact chargé (testé). Smoke : le livre
+      de sorts affiche « Éclair magique » (pas `eclair-magique`).
+- [ ] **R4b** : clés `building.<id>` pour les dwellings **via locales de
+      paquet** (résolveur `resolveBuildingName` à faire retomber sur les
+      locales de paquet ; champ `name` du schéma bâtiment = l'autre option,
+      trancher) ; déplacer `factionResource.essence` core → paquet
+      arcane-hunters ; étendre `content:check`/audit aux bâtiments.
+- Vérif R4a : audit spell/skill/artifact « 0 id brut » (content:check + smoke).
 
 ### Lot R5 — Pipeline contenu & CLI (CO1, CO2, CO3, CO4, CO8, CO9)
 > **R5a livré** (CO1 + CO2, outillage faction cassé). **R5b livré** (CO3 + CO8,
@@ -426,6 +432,13 @@ commit (docs = source de vérité).
   +5 tests contenu (271 total). Vérif verte (lint, content:check, build
   62,2 Ko, 40 smoke, garde faction vert). Reste : CO4 → lot « skills » dédié
   (avec la dette Commandement/moral), CO9 → lot de résilience au boot.
+- **2026-07-05** — **Lot R4a livré (CO5)** : noms localisés de contenu. 28 clés
+  `spell.*`/`skill.*`/`artifact.*` fr+en (l'UI affichait les ids bruts) ;
+  validateur exporté `checkCoreNameKeys` branché dans `content:check` (exige la
+  parité fr+en, testé). Smoke : livre de sorts « Éclair magique ». Vérif verte
+  (278 tests, lint, content:check, build, 42 smoke, garde faction vert). Reste
+  R4b : CO6 (noms de bâtiments via locales de paquet) + CO7 (déplacer
+  `factionResource.essence` dans le paquet).
 - **2026-07-05** — **Lot R3 livré (CL4 + CL5)** : identité du joueur humain.
   Sélecteur pur `humanPlayerId(state)` (moteur, dérive du contrôleur, testé) ;
   helper client `humanId(game)` ; 17 usages `PLAYER_ID` en dur remplacés ; la

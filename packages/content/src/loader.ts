@@ -224,6 +224,28 @@ export async function loadContent(readJson: ReadJson): Promise<LoadReport> {
   return report;
 }
 
+/**
+ * Remédiation R4 (CO5) : tout sort / compétence / artefact chargé doit avoir
+ * une clé de nom `<prefix>.<id>` dans les DEUX locales core (fr + en) — sinon
+ * l'UI affiche l'id brut (« trait-de-feu », « logistics »…). Retourne la liste
+ * des clés manquantes (vide = OK). Enforced par `content:check`.
+ */
+export function checkCoreNameKeys(report: LoadReport): string[] {
+  const errors: string[] = [];
+  const { fr, en } = report.content.coreLocales;
+  const check = (prefix: string, ids: string[]): void => {
+    for (const id of ids) {
+      const key = `${prefix}.${id}`;
+      if (!(key in fr)) errors.push(`core/locales/fr.json: clé de nom manquante '${key}'`);
+      if (!(key in en)) errors.push(`core/locales/en.json: clé de nom manquante '${key}'`);
+    }
+  };
+  check('spell', report.content.coreSpells.map((s) => s.id));
+  check('skill', report.content.coreSkills.map((s) => s.id));
+  check('artifact', report.content.coreArtifacts.map((a) => a.id));
+  return errors;
+}
+
 /** IDs d'unités de tous les paquets valides — pour les règles croisées (armée, gardiens). */
 export function knownUnitIds(report: LoadReport): Set<string> {
   return new Set(report.content.packs.flatMap((p) => p.units.map((u) => u.id)));

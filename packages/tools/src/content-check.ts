@@ -5,6 +5,7 @@ import {
   buildBuildingCatalog,
   buildSkillCatalog,
   buildSpellCatalog,
+  checkCoreNameKeys,
   knownUnitIds,
   loadContent,
   loadMap,
@@ -29,6 +30,13 @@ for (const rejected of report.rejected) {
 // Erreurs de `config.newGame` (armée/artefacts/ville de départ) — rapportées et
 // non bloquantes au boot (remédiation CO9), mais échec de `content:check` (CI).
 for (const err of report.configErrors) console.error(`✗ config.newGame — ${err}`);
+
+// Noms localisés obligatoires (remédiation R4 CO5) : sort/compétence/artefact.
+const nameKeyErrors = checkCoreNameKeys(report);
+for (const err of nameKeyErrors) console.error(`✗ locales — ${err}`);
+if (nameKeyErrors.length === 0) {
+  console.log('✓ noms localisés — sorts/compétences/artefacts fr/en complets');
+}
 
 // Arbre de bâtiments : agrège core + paquets valides, détecte les collisions d'id.
 let badBuildingCatalog = false;
@@ -120,6 +128,7 @@ try {
 if (
   report.rejected.length > 0 ||
   report.configErrors.length > 0 ||
+  nameKeyErrors.length > 0 ||
   badMaps > 0 ||
   badBuildingCatalog ||
   badSpellCatalog ||

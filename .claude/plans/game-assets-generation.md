@@ -154,7 +154,9 @@ tools/assets/              ← outillage Python (indépendant de packages/tools 
   - [x] `buildings-arcane-hunters-p1` → 8/8 PASS (T1-T8),
         `assets/buildings/arcane-hunters/` (légendes texte retirées via
         `--min-area`).
-  - [ ] `buildings-arcane-hunters-p2`
+  - [x] `buildings-arcane-hunters-p2` → 4/4 PASS (Cercles Vigile/Traque/
+        Sceau/Abîme), `assets/buildings/arcane-hunters/` (Gemini a rendu une
+        grille 4×2 dupliquée : extraction 4×2, rangée du haut retenue).
   - [ ] `mines`
   - [ ] `artifacts`
 

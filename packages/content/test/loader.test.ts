@@ -331,12 +331,16 @@ describe('loadMap', () => {
     );
   });
 
-  it("rejette une armée de départ référençant une unité inconnue", async () => {
+  it("R5 CO9 — rapporte (sans throw) une armée de départ référençant une unité inconnue", async () => {
     const data = makeData();
     (data['core/config.json'] as GameConfig).newGame.startingArmy = [
       { unitId: 't9-dragon', count: 1 },
     ];
-    await expect(loadContent(reader(data))).rejects.toThrow(/startingArmy.*t9-dragon/s);
+    // Boot résilient : pas d'exception, l'erreur est rapportée et le contenu
+    // valide reste chargé (le menu fonctionne, « Nouvelle partie » échouera au moteur).
+    const report = await loadContent(reader(data));
+    expect(report.configErrors.join()).toMatch(/startingArmy.*t9-dragon/s);
+    expect(report.content.packs.map((p) => p.manifest.id)).toEqual(['proto']);
   });
 
   it('rejette avec un rapport précis : dimensions, char inconnu, terrain hors config', async () => {
@@ -640,9 +644,23 @@ describe('catalogues sorts/compétences/artefacts (plan phase-3.2 lot L)', () =>
     });
   });
 
-  it("rejette des artefacts de départ référençant un artefact inconnu", async () => {
+  it("R5 CO9 — rapporte (sans throw) des artefacts de départ inconnus", async () => {
     const data = makeData();
     (data['core/config.json'] as GameConfig).newGame.startingArtifacts = ['fantome'];
-    await expect(loadContent(reader(data))).rejects.toThrow(/startingArtifacts.*fantome/s);
+    const report = await loadContent(reader(data));
+    expect(report.configErrors.join()).toMatch(/startingArtifacts.*fantome/s);
+  });
+
+  it("R5 CO9 — un paquet rejeté dont l'unité est en startingArmy ne casse pas le boot", async () => {
+    const data = makeData();
+    // Le paquet devient invalide (stat négative) ⇒ rejeté gracieusement…
+    (data['factions/proto/units/t1-grunt.json'] as { stats: { hp: number } }).stats.hp = -1;
+    // …mais config.newGame.startingArmy le référence encore.
+    (data['core/config.json'] as GameConfig).newGame.startingArmy = [{ unitId: 't1-grunt', count: 1 }];
+    const report = await loadContent(reader(data));
+    expect(report.rejected.map((r) => r.id)).toEqual(['proto']); // pack rejeté
+    expect(report.configErrors.join()).toMatch(/startingArmy.*t1-grunt/s); // erreur rapportée
+    // Boot survit : la fonction n'a pas levé, le rapport est exploitable.
+    expect(report.content.config.newGame.map).toBe('mini');
   });
 });

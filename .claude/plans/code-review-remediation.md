@@ -250,9 +250,13 @@ pas de `concurrency`/`timeout-minutes` ; `__HEROES_TEST__` exposé en prod.
 - [x] CO8 : `loadScenario` valide la ville de départ (bounds + tuile
       franchissable) et les objectifs opaques (`captureTown.townId` ∈ villes du
       scénario, `defeatHero.heroId` ∈ `hero-<playerId>`). 4 tests de rejet.
-- [ ] CO9 : les refs de `config.newGame` vers un paquet rejeté deviennent des
-      erreurs rapportées, pas un throw. → lot de résilience au boot.
+- [x] CO9 : les règles croisées de `config.newGame` (armée/artefacts/ville de
+      départ) sont **rapportées** dans `LoadReport.configErrors`, plus levées —
+      un paquet rejeté gracieusement ne casse plus tout le boot (menu + contenu
+      valide restent chargeables ; « Nouvelle partie » échoue proprement au
+      moteur). `content:check` échoue toujours dessus (CI). 3 tests loader.
 - Vérif : `content:check` + tests loader/scénario couvrant chaque nouveau rejet.
+- **R5 terminé.**
 
 ### Lot R6 — Durcissement CI & tests (T1, T2, T3)
 - [ ] Garde-fou faction : motif dérivé de `data/factions/index.json`
@@ -396,6 +400,13 @@ commit (docs = source de vérité).
   +5 tests contenu (271 total). Vérif verte (lint, content:check, build
   62,2 Ko, 40 smoke, garde faction vert). Reste : CO4 → lot « skills » dédié
   (avec la dette Commandement/moral), CO9 → lot de résilience au boot.
+- **2026-07-05** — **CO9 livré → R5 terminé** : les règles croisées
+  `config.newGame` sont rapportées (`LoadReport.configErrors`) au lieu d'être
+  levées ; un paquet rejeté ne casse plus le boot ; `content:check` échoue
+  toujours dessus (CI). 3 tests loader. Vérif verte (274 tests, lint,
+  content:check, build, 40 smoke, garde faction vert). **R5 (pipeline contenu
+  & CLI) complet** : CO1–CO4, CO8, CO9. Prochain : R2 (cycle de vie & erreurs
+  client).
 - **2026-07-05** — **Lot « skills » livré (CO4 + dette Commandement)** :
   Commandement enfin branché au moral de pile (`moraleOf` prend l'état complet
   et ajoute `heroMorale` du héros du camp) ; `wisdom` retirée du pool (effet

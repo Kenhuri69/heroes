@@ -64,7 +64,7 @@ UI/IA ──commande──► [validation] ──► engine.apply(state, cmd)
 
 | Phase | Mécanisme |
 |-------|-----------|
-| MVP | **IndexedDB** (via `idb`) : snapshot `GameState` compressé (gzip via CompressionStream) + journal de commandes depuis le dernier snapshot. Autosave à chaque fin de tour + slots manuels. Export/import fichier `.heroes` (JSON gzip) pour partage/backup. |
+| MVP | **IndexedDB** (API brute, `client/app/save.ts` — pas de dépendance `idb`) : snapshot `GameState` compressé (gzip via CompressionStream). Autosave à chaque fin de tour + slots manuels. Export/import fichier `.heroes` (JSON gzip) pour partage/backup. *État MVP : snapshot seul ; le journal de commandes incrémental depuis le dernier snapshot est différé (le moteur reste re-simulable, cf. §3).* |
 | Beta | Cloud saves : mêmes blobs poussés sur le serveur, résolution de conflit « le plus récent gagne + copie de sécurité ». |
 
 - Format versionné (`saveVersion`) + migrations, comme le contenu (doc 06 §7).

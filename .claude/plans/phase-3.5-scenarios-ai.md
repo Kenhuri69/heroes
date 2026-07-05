@@ -98,7 +98,7 @@ tutoriel gagnable contre l'IA. Déterministe, moteur pur (RNG seedé, sans rendu
       résolue (comme `newGameCommand`) plutôt que de fetcher elle-même — la
       résolution async (`loadScenarioMap`, `app/content.ts`) reste hors de
       `game.ts` (builders purs, aucun I/O), cohérent avec le pattern existant.
-- [ ] **Intégration finale (principal)** : docs (02 §6 État 3.5, CLAUDE.md),
+- [x] **Intégration finale (principal)** : docs (02 §6 État 3.5, CLAUDE.md),
       garde-fou, vérif globale, PR, merge.
 
 ## Écarts assumés

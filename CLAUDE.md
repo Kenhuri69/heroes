@@ -102,17 +102,38 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > `SaveFailed` (autosave + save manuel) → toast d'erreur i18n, plus de perte de
 > données silencieuse (navigation privée/quota).
 >
-> 🚀 **Alpha démarrée** (roadmap doc 09 ; plan `.claude/plans/phase-4.1-arcane-
-> hunters-cadrage.md`). 4.1 livrée : **cadrage Arcane Hunters** (doc 05 « État
-> 4.1 ») — 3ᵉ faction complète (doc 05), le **test de modularité #3**.
-> Décomposition en sous-lots 4.2→4.7, chacun ouvrant **un** point d'extension
-> moteur **générique** (Marque déclarative, consommation de charges, ressource
-> de faction Essence branchée au gameplay, choix de bâtiment exclusif/Cercles,
-> hook d'aventure hebdomadaire/contrats, module de capacité stateful
-> `demonform`) + les données qui l'exercent ; garde-fou « zéro faction dans le
-> moteur » maintenu. Périmètre : signature (Marque + lineup) jouable d'abord.
-> Les docs `docs/0X-*.md` restent la source de
-> vérité du design ; le code doit s'y conformer.
+> 🚀 **Alpha — faction Arcane Hunters** (roadmap doc 09 ; plans `.claude/plans/
+> phase-4.*`). 4.1 : cadrage (doc 05) — 3ᵉ faction complète, **test de
+> modularité #3**. Sous-lots **4.2→4.10 livrés**, chacun ouvrant **un** point
+> d'extension moteur **générique** + les données qui l'exercent, garde-fou
+> « zéro faction dans le moteur » maintenu : 4.2 lineup T1–T7 + Marque ;
+> 4.3/4.5/4.8 capacité générique `consumeMarks` (executioner / `expose`
+> suppression de riposte / `pinningShot` immobilisation) ; 4.4/4.6 ressource de
+> faction **Essence** (gain post-victoire puis dépense) + T8 Pénitent
+> recrutable ; 4.7 **Cercles** (choix de bâtiment exclusif `exclusiveGroup`) ;
+> 4.9 **École de la Traque** (school `traque`, sort `applyMarks`, Entraves) ;
+> 4.10 **demonform** (T8, transformation stateful + `magicResistance`). La forme
+> de sauvegarde a évolué avec les ressources de faction : `CURRENT_SAVE_VERSION`
+> vaut désormais **3** (source de vérité `engine/core/state.ts`).
+>
+> 🩹 **Remédiation revue de code** (plan `.claude/plans/code-review-remediation.md`,
+> lots R1–R8). Livrés : R1 (garde-fous de crash moteur), R5 (résilience du
+> pipeline de contenu + CLI de faction), R2 (cycle de vie des scènes client +
+> erreurs surfacées, plus de page muette), R3 (identité du joueur humain via
+> `humanPlayerId`, plus de `'player-1'` en dur), R4 (noms localisés du contenu),
+> R6 (durcissement CI : garde-fou faction dérivé de `data/factions/index.json`,
+> tests explicites, `forbidOnly`/`retries` Playwright), R7 (dette & duplication :
+> `advanceHeroAlongPath` partagé humain/IA ; helpers purs `@heroes/engine`
+> consommés par le client — coût/prérequis/dwellings de ville, `attackableTargets`/
+> `meleeOriginsFor` de combat ; mineurs). R8 : cette mise à jour docs.
+>
+> 🎨 **Intégration des assets** (doc 12 §10) : le client consomme les PNG du
+> staging `assets/` via un registre auto-découvert (`import.meta.glob ?url`,
+> `assetsInlineLimit: 0` → hors bundle JS, budget < 800 Ko gzip tenu), avec repli
+> procédural gracieux. Surfaces branchées : tuiles de terrain, mines/objets de
+> carte, vignettes de bâtiments, icônes d'artefacts, icônes de ressources.
+> Les docs `docs/0X-*.md` restent la source de vérité du design ; le code doit
+> s'y conformer.
 
 ---
 

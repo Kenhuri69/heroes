@@ -79,6 +79,14 @@ export interface LoadReport {
   rejected: { id: string; errors: string[] }[];
   /** Scénarios rejetés (plan phase-3.5) — même forme que `rejected`. */
   rejectedScenarios: { id: string; errors: string[] }[];
+  /**
+   * Erreurs des règles croisées de `config.newGame` (armée/artefacts/ville de
+   * départ) — rapportées, PAS levées (remédiation R5 CO9) : une régression dans
+   * un seul paquet (rejeté gracieusement) ne doit pas casser tout le boot. La
+   * partie « Nouvelle partie » échouera proprement à la validation moteur ; le
+   * menu et le contenu valide restent chargeables. `content:check` les signale.
+   */
+  configErrors: string[];
 }
 
 /** Charge et valide tout le contenu déclaré dans data/factions/index.json. */
@@ -146,6 +154,7 @@ export async function loadContent(readJson: ReadJson): Promise<LoadReport> {
     },
     rejected: [],
     rejectedScenarios: [],
+    configErrors: [],
   };
   for (const id of index.factions) {
     try {
@@ -189,26 +198,29 @@ export async function loadContent(readJson: ReadJson): Promise<LoadReport> {
     }
     if (errors.length > 0) throw new PackError(errors);
   }
-  // Règle croisée : l'armée de départ ne référence que des unités chargées.
+  // Règles croisées de `config.newGame` (remédiation R5 CO9) : RAPPORTÉES, pas
+  // levées — une régression dans un seul paquet rejeté ne casse pas tout le boot.
   const known = knownUnitIds(report);
   for (const stack of config.newGame.startingArmy) {
-    if (!known.has(stack.unitId)) {
-      throw new PackError([
+    if (!known.has(stack.unitId))
+      report.configErrors.push(
         `config.json: newGame.startingArmy — unité inconnue des paquets '${stack.unitId}'`,
-      ]);
-    }
+      );
   }
-  // Règle croisée : les artefacts de départ ne référencent que des artefacts chargés.
   const knownArtifacts = new Set(coreArtifacts.map((a) => a.id));
   for (const artifactId of config.newGame.startingArtifacts ?? []) {
-    if (!knownArtifacts.has(artifactId)) {
-      throw new PackError([
+    if (!knownArtifacts.has(artifactId))
+      report.configErrors.push(
         `config.json: newGame.startingArtifacts — artefact inconnu '${artifactId}'`,
-      ]);
-    }
+      );
   }
-  // Règle croisée : la ville de départ résout (faction connue, bâtiments/niveaux valides).
-  resolveStartingTowns(config, report);
+  // La ville de départ résout (faction connue, bâtiments/niveaux valides) — même
+  // dégradation : un échec est rapporté, pas propagé au boot.
+  try {
+    resolveStartingTowns(config, report);
+  } catch (e) {
+    report.configErrors.push(...describeError(e));
+  }
   return report;
 }
 

@@ -26,6 +26,9 @@ for (const rejected of report.rejected) {
   console.error(`✗ ${rejected.id}`);
   for (const err of rejected.errors) console.error(`    ${err}`);
 }
+// Erreurs de `config.newGame` (armée/artefacts/ville de départ) — rapportées et
+// non bloquantes au boot (remédiation CO9), mais échec de `content:check` (CI).
+for (const err of report.configErrors) console.error(`✗ config.newGame — ${err}`);
 
 // Arbre de bâtiments : agrège core + paquets valides, détecte les collisions d'id.
 let badBuildingCatalog = false;
@@ -116,6 +119,7 @@ try {
 
 if (
   report.rejected.length > 0 ||
+  report.configErrors.length > 0 ||
   badMaps > 0 ||
   badBuildingCatalog ||
   badSpellCatalog ||
@@ -125,6 +129,7 @@ if (
 ) {
   console.error(
     `\ncontent:check — ${report.rejected.length} paquet(s), ${badMaps} carte(s)` +
+      `${report.configErrors.length > 0 ? ` et ${report.configErrors.length} erreur(s) config.newGame` : ''}` +
       `${badBuildingCatalog ? ' et un arbre de bâtiments' : ''}` +
       `${badSpellCatalog ? ' et un catalogue de sorts' : ''}` +
       `${badSkillCatalog ? ' et un catalogue de compétences' : ''}` +

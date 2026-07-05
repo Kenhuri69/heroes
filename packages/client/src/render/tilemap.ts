@@ -1,5 +1,6 @@
-import { Container, Graphics, RenderTexture, Sprite, type Renderer } from 'pixi.js';
+import { Container, Graphics, RenderTexture, Sprite, type Renderer, type Texture } from 'pixi.js';
 import type { AdventureMapDef } from '@heroes/engine';
+import { getTexture, roadUrl, tileUrl, tileVariant } from './assets';
 
 // Tuiles 64 px logiques (doc 02 §2.1).
 export const TILE_SIZE = 64;
@@ -35,28 +36,48 @@ export class Tilemap {
 function buildChunk(renderer: Renderer, map: AdventureMapDef, cx: number, cy: number): Sprite {
   const w = Math.min(CHUNK_TILES, map.width - cx);
   const h = Math.min(CHUNK_TILES, map.height - cy);
-  const g = new Graphics();
+  // Composite : textures de tuiles quand elles sont préchargées, repli sur des
+  // aplats teintés sinon (lot intégration — décision « repli gracieux »).
+  const chunk = new Container();
+  const g = new Graphics(); // aplats de repli (terrain + route sans texture)
+  chunk.addChild(g);
   for (let y = 0; y < h; y++) {
     for (let x = 0; x < w; x++) {
       const tx = cx + x;
       const ty = cy + y;
+      const px = x * TILE_SIZE;
+      const py = y * TILE_SIZE;
       const terrain = map.terrain[ty * map.width + tx] ?? '';
-      const shades = TERRAIN_COLORS[terrain] ?? UNKNOWN_TERRAIN;
-      g.rect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE).fill(
-        shades[(tx + ty) % 2] as number,
-      );
+      const tileTex = getTexture(tileUrl(terrain, tileVariant(tx, ty)));
+      if (tileTex) {
+        chunk.addChild(placeTile(tileTex, px, py));
+      } else {
+        const shades = TERRAIN_COLORS[terrain] ?? UNKNOWN_TERRAIN;
+        g.rect(px, py, TILE_SIZE, TILE_SIZE).fill(shades[(tx + ty) % 2] as number);
+      }
       if (map.road[ty * map.width + tx]) {
-        // Bande de route centrée — coût ×0,75 rendu visible (doc 02 §1.5).
-        g.rect(x * TILE_SIZE, y * TILE_SIZE + TILE_SIZE * 0.35, TILE_SIZE, TILE_SIZE * 0.3).fill(
-          ROAD_COLOR,
-        );
+        const roadTex = getTexture(roadUrl());
+        if (roadTex) {
+          chunk.addChild(placeTile(roadTex, px, py));
+        } else {
+          // Bande de route centrée — coût ×0,75 rendu visible (doc 02 §1.5).
+          g.rect(px, py + TILE_SIZE * 0.35, TILE_SIZE, TILE_SIZE * 0.3).fill(ROAD_COLOR);
+        }
       }
     }
   }
   const texture = RenderTexture.create({ width: w * TILE_SIZE, height: h * TILE_SIZE });
-  renderer.render({ container: g, target: texture });
-  g.destroy();
+  renderer.render({ container: chunk, target: texture });
+  chunk.destroy({ children: true });
   const sprite = new Sprite(texture);
   sprite.position.set(cx * TILE_SIZE, cy * TILE_SIZE);
   return sprite;
+}
+
+/** Sprite d'une tuile 64² texturée, mise à l'échelle exacte de `TILE_SIZE`. */
+function placeTile(texture: Texture, px: number, py: number): Sprite {
+  const s = new Sprite(texture);
+  s.position.set(px, py);
+  s.setSize(TILE_SIZE, TILE_SIZE);
+  return s;
 }

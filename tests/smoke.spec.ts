@@ -88,6 +88,30 @@ async function tapTapTile(page: Page, x: number, y: number): Promise<void> {
   await page.mouse.click(screen.x, screen.y);
 }
 
+/**
+ * Trace les réponses d'images (lot intégration des assets) : `failed` = tout
+ * PNG/JPG servi en ≥ 400 (le registre ne doit référencer que des fichiers
+ * présents), `loaded` = URLs servies en < 400. À brancher AVANT `openGame`.
+ */
+function trackAssets(page: Page): { failed: string[]; loaded: string[] } {
+  const tracked = { failed: [] as string[], loaded: [] as string[] };
+  page.on('response', (res) => {
+    const url = res.url();
+    if (!/\.(png|jpe?g|webp)(\?|$)/.test(url)) return;
+    if (res.status() >= 400) tracked.failed.push(`${res.status()} ${url}`);
+    else tracked.loaded.push(url);
+  });
+  return tracked;
+}
+
+/** `naturalWidth` d'une `<img>` — > 0 ⇒ l'image est réellement décodée/affichée. */
+function imgNaturalWidth(page: Page, selector: string): Promise<number> {
+  return page
+    .locator(selector)
+    .first()
+    .evaluate((el) => (el as HTMLImageElement).naturalWidth);
+}
+
 test('le client démarre sans erreur et charge le contenu', async ({ page }) => {
   const errors = await openGame(page);
 
@@ -748,5 +772,36 @@ test('scénario : gagner « survie » contre l’IA (surviveDays)', async ({ pag
   expect(sp.x).toBeGreaterThan(0);
   expect(sp.y).toBeGreaterThan(0);
 
+  expect(errors).toEqual([]);
+});
+
+test('assets : PNG servis sans 404, icônes de ressources et vignettes de bâtiments affichées (lot intégration)', async ({
+  page,
+}) => {
+  const assets = trackAssets(page);
+  const errors = await openGame(page);
+
+  // Barre de ressources : l'icône <img> est réellement décodée (repli sur le
+  // pastille CSS sinon — on vérifie ici le cas nominal, asset présent).
+  await expect(page.locator('.resource-bar .resource-icon').first()).toBeVisible();
+  await expect
+    .poll(() => imgNaturalWidth(page, '.resource-bar .resource-icon'))
+    .toBeGreaterThan(0);
+
+  // Écran de ville : vignette de bâtiment (au moins un bâtiment commun a un
+  // asset `buildings/core/<id>` quelle que soit la faction de départ).
+  await page.getByTestId('town-open').click();
+  await expect(page.locator('.town-building-vignette').first()).toBeVisible();
+  await expect.poll(() => imgNaturalWidth(page, '.town-building-vignette')).toBeGreaterThan(0);
+  await page.getByTestId('town-close').click();
+
+  // Préchargement PixiJS (tuiles + mines) et barre UI : au moins un PNG de
+  // chaque famille a été servi (200), preuve du chargement hors bundle.
+  expect(assets.loaded.some((u) => /(grass|water|mountain|swamp)-\d/.test(u))).toBe(true);
+  expect(assets.loaded.some((u) => /mine-/.test(u))).toBe(true);
+  expect(assets.loaded.some((u) => /res-/.test(u))).toBe(true);
+
+  // Le registre ne référence que des fichiers présents : aucun asset en 404.
+  expect(assets.failed).toEqual([]);
   expect(errors).toEqual([]);
 });

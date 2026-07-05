@@ -222,9 +222,48 @@ no text, no watermark, no signature, no border frame
 - Ombre portée au sol → bavure dans l'alpha.
 - Committer un FAIL de QC « en attendant mieux ».
 
-## 10. Rappel de périmètre
+## 10. Intégration dans le client (lot ouvert)
 
-Tant que le lot intégration n'est pas ouvert : **rien dans `packages/client`
-ne référence `assets/`**. Le budget bundle < 800 Ko gzip est incompatible avec
-l'embarquement naïf des PNG — l'intégration passera par du chargement différé
-et une révision explicite du garde-fou CI (décision à prendre à ce moment-là).
+> **État** : lot d'intégration **ouvert**. Le client référence désormais
+> `assets/` via un registre (`packages/client/src/render/assets.ts`).
+
+### 10.1 Stratégie de service retenue
+
+Registre **auto-découvert** par Vite : `import.meta.glob(['…/assets/**/*.png',
+'!**/_preview.png'], { eager, query:'?url' })` construit une map
+`clé → URL hashée`. **Ajouter un asset = déposer le PNG nommé par convention**
+(§10.2) ; il est repris sans câblage manuel.
+
+- **Hors bundle JS** : `build.assetsInlineLimit: 0` (vite.config.ts) force
+  l'émission de **chaque** PNG en fichier séparé hashé (`dist/assets/*.png`).
+  Le garde-fou budget CI ne mesure que `*.js`/`*.css` → les PNG en sont exclus.
+  Sans ce réglage, les petites icônes UI (< 4 Ko) seraient inlinées en base64
+  dans le JS et compteraient dans le budget. **Le garde-fou n'est pas
+  contourné ni révisé** : budget mesuré à ~225 Ko gzip après intégration.
+- **Lazy** (doc 07 §6) : les octets PNG ne sont fetchés qu'à l'affichage —
+  `<img loading="lazy">` (DOM) ou `Assets.load` (PixiJS, préchargé une fois au
+  bootstrap pour les tuiles + objets de carte, lecture synchrone du cache
+  ensuite). L'atlasing (spritesheets @1x/@2x) reste une optimisation ultérieure.
+- **Repli gracieux** : si un asset est absent/renommé ou échoue au chargement,
+  le rendu retombe sur le placeholder procédural existant (`<AssetImg fallback>`
+  côté DOM, `getTexture(...) ?? Graphics` côté PixiJS) — jamais d'image cassée.
+
+### 10.2 Convention de nommage `assets/` → runtime
+
+Les résolveurs de `render/assets.ts` sont **faction-agnostiques** (aucun nom de
+faction en dur) et dérivent le chemin de la donnée :
+
+| Famille | Chemin | Clé de résolution |
+|---|---|---|
+| Tuiles | `tiles/<terrain>-<1..3>.png`, `tiles/road-dirt.png` | terrain + variante déterministe |
+| Objets de carte | `mines/mine-<resource>.png` | `obj.resource` |
+| Artefacts | `artifacts/<artifactId>.png` | id d'artefact |
+| Bâtiments communs | `buildings/core/<buildingId>.png` | id de bâtiment |
+| Bâtiments de faction | `buildings/<factionId>/<buildingId>.png` | id de bâtiment (fichier nommé exactement par l'id) |
+| Icônes UI | `ui/res-<id>_<size>.png`, `ui/stat-<id>_<size>.png`, `ui/ui-day_<size>.png` | id + mipmap ≥ taille voulue (16/24/32/48/64) |
+
+Surfaces branchées : `render/tilemap.ts` (terrain), `render/mapObjects.ts`
+(mines), `ui/TownScreen.tsx` (vignettes de bâtiments), `ui/HeroInventory.tsx`
+(icônes d'artefacts), `ui/shell.tsx` (icônes de la barre de ressources).
+Preuve de non-régression : smoke « assets : PNG servis sans 404… » (desktop +
+mobile) + budget vérifié vert en CI.

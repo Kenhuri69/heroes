@@ -30,6 +30,14 @@
   display: inline-block;
 }
 
+/* Icône d'asset de la barre de ressources (lot intégration) — repli sur `i`. */
+.resource-icon {
+  width: 20px;
+  height: 20px;
+  display: inline-block;
+  image-rendering: auto;
+}
+
 .status-bar {
   position: fixed;
   left: 12px;

@@ -5,6 +5,8 @@ import { useApp, appStore } from '../app/store';
 import { dispatch } from '../app/dispatch';
 import { humanId } from '../app/game';
 import { t, resolveUnitName, commandErrorMessage, resolveBuildingName, resolveFactionResourceName } from '../app/i18n';
+import { buildingUrl } from '../render/assets';
+import { AssetImg } from './AssetImg';
 import { FactionBadge } from './FactionBadge';
 import './town.css';
 
@@ -225,6 +227,11 @@ function BuildTab({
           return (
             <li key={buildingId} class={`town-building town-building-${status}`}>
               <div class="town-building-header">
+                <AssetImg
+                  src={buildingUrl(buildingId, town.factionId)}
+                  alt=""
+                  class="town-building-vignette"
+                />
                 <span class="town-building-name">{buildingName(buildingId)}</span>
                 <span class="town-building-level">
                   {t('town.level', { level: currentLevel, max: def.maxLevel })}

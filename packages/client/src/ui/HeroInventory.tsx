@@ -1,5 +1,7 @@
 import type { HeroState } from '@heroes/engine';
 import { t, resolveArtifactName } from '../app/i18n';
+import { artifactUrl } from '../render/assets';
+import { AssetImg } from './AssetImg';
 import './HeroInventory.css';
 
 const ARTIFACT_SLOTS = 10;
@@ -17,7 +19,19 @@ export function HeroInventory({ hero }: { hero: HeroState }) {
       <ul class="hero-inventory-slots">
         {slots.map((artifactId, i) => (
           <li key={i} class={artifactId ? 'hero-inventory-slot filled' : 'hero-inventory-slot empty'}>
-            {artifactId ? resolveArtifactName(artifactId) : t('hero.inventoryEmptySlot')}
+            {artifactId ? (
+              <>
+                <AssetImg
+                  src={artifactUrl(artifactId)}
+                  alt=""
+                  class="hero-inventory-icon"
+                  fallback={null}
+                />
+                <span class="hero-inventory-name">{resolveArtifactName(artifactId)}</span>
+              </>
+            ) : (
+              t('hero.inventoryEmptySlot')
+            )}
           </li>
         ))}
       </ul>

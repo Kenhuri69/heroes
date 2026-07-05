@@ -68,6 +68,11 @@ export function logoUrl(): string | undefined {
   return registry.get('logo/heroes-master');
 }
 
+/** Sprite d'unité de combat (`units/<factionId>/<unitId>`, doc 08 §5, lot U5-C). */
+export function unitSpriteUrl(unitId: string, factionId?: string): string | undefined {
+  return factionId ? registry.get(`units/${factionId}/${unitId}`) : undefined;
+}
+
 // --- Résolveurs par famille (faction-agnostiques, convention de nommage) ---
 
 const TILE_VARIANTS = 3;

@@ -1,4 +1,4 @@
-import { Application, Container, Graphics, Point } from 'pixi.js';
+import { Application, Assets, Container, Graphics, Point, Sprite } from 'pixi.js';
 import {
   hexDistance,
   inCombatBounds,
@@ -22,6 +22,7 @@ import { commandErrorMessage } from '../../app/i18n';
 import { pushToast } from '../../ui/toasts';
 import { onTap } from '../../input/pointer';
 import { Camera } from '../../render/camera';
+import { unitSpriteUrl } from '../../render/assets';
 import { HEX_SIZE, computeBoardBounds, drawBoard, hexKey, offsetToPixel, pixelToOffset } from '../../render/hexgrid';
 import { combatPreview } from './preview';
 
@@ -64,7 +65,7 @@ export class CombatScene {
   private readonly boardGfx = new Graphics();
   private readonly stacksLayer = new Container();
   private readonly activeRing: Graphics;
-  private readonly stackTokens = new Map<string, Graphics>();
+  private readonly stackTokens = new Map<string, Container>();
   private readonly animatingIds = new Set<string>();
 
   private selection: Selection | null = null;
@@ -159,7 +160,7 @@ export class CombatScene {
     for (const stack of combat.stacks) {
       let token = this.stackTokens.get(stack.id);
       if (!token) {
-        token = buildStackToken(stack.side);
+        token = this.buildStackToken(stack);
         this.stacksLayer.addChild(token);
         this.stackTokens.set(stack.id, token);
       }
@@ -180,6 +181,44 @@ export class CombatScene {
     } else {
       this.activeRing.visible = false;
     }
+  }
+
+  /**
+   * Jeton d'une pile (doc 08 §5, lot U5-C) : une base de camp colorée (second
+   * canal, avec la position sur le plateau + les bandeaux DOM) + le SPRITE de
+   * l'unité (`assets/units/…`, chargé async, hors bundle). Repli gracieux : tant
+   * que le sprite n'est pas chargé — ou s'il est absent — un polygone procédural
+   * distinct par camp est affiché. Garde `destroyed`/`destroyed` du conteneur :
+   * un combat peut finir avant la fin du chargement.
+   */
+  private buildStackToken(stack: CombatStack): Container {
+    const token = new Container();
+    const side = stack.side;
+    // Base de camp (ellipse au sol) : distingue attaquant/défenseur.
+    token.addChild(
+      new Graphics()
+        .ellipse(0, TOKEN_RADIUS * 0.7, TOKEN_RADIUS * 0.85, TOKEN_RADIUS * 0.35)
+        .fill({ color: side === 'attacker' ? ATTACKER_COLOR : DEFENDER_COLOR, alpha: 0.85 })
+        .stroke({ width: 2, color: 0x1a1c22 }),
+    );
+    const fallback = buildStackTokenGraphic(side);
+    token.addChild(fallback);
+
+    const catalog = appStore.getState().game.unitCatalog;
+    const url = unitSpriteUrl(stack.unitId, catalog[stack.unitId]?.groupId);
+    if (url) {
+      void Assets.load(url).then((texture) => {
+        if (this.destroyed || token.destroyed) return;
+        token.removeChild(fallback);
+        fallback.destroy();
+        const sprite = new Sprite(texture);
+        sprite.anchor.set(0.5, 0.72); // pieds posés sur la base de camp
+        const scale = (TOKEN_RADIUS * 2.4) / Math.max(texture.width, texture.height);
+        sprite.scale.set(scale);
+        token.addChildAt(sprite, 1); // au-dessus de la base, sous l'anneau actif
+      });
+    }
+    return token;
   }
 
   private redrawBoard(): void {
@@ -422,8 +461,8 @@ export class CombatScene {
   }
 }
 
-/** Vignette placeholder par pile — forme distincte par camp, jamais de texte (doc 08 §5). */
-function buildStackToken(side: CombatSideId): Graphics {
+/** Polygone de repli par pile — forme distincte par camp (sprite d'unité absent/en cours). */
+function buildStackTokenGraphic(side: CombatSideId): Graphics {
   const g = new Graphics();
   if (side === 'attacker') {
     g.poly([

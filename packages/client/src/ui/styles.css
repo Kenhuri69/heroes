@@ -88,6 +88,15 @@
   font-size: 1.125rem;
 }
 
+/* Bouton d'ouverture de ville (doc 08 §2.1, lot UX U4) : un par ville
+   possédée, badge de faction + libellé alignés (2ᵉ ville capturée ⇒ 2
+   badges distincts). */
+.town-open {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
 /* Tiroir latéral héros (doc 08 §2.1) : mobile = gauche, replié par défaut ;
    desktop (≥ 900px) = ancré à droite via la media query plus bas. */
 .drawer-toggle {
@@ -133,6 +142,60 @@
   margin: 0 auto 10px;
   border-radius: 50%;
   background: #3a3d47;
+}
+
+/* Bandeau de portraits (doc 08 §2.1, lot UX U4) : sélection du héros humain
+   actif parmi plusieurs. Scroll horizontal si trop de héros pour la largeur. */
+.hero-strip {
+  display: flex;
+  gap: 8px;
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+  overflow-x: auto;
+}
+
+.hero-portrait {
+  position: relative;
+  flex: none;
+  min-width: 44px;
+  min-height: 44px;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #3a3d47;
+  border-radius: 8px;
+  background: #1c1e25;
+  cursor: pointer;
+}
+
+/* Sélection : jamais la couleur seule (doc 08 §4) — contour épais + fond
+   distinct servent de second canal non chromatique. */
+.hero-portrait.selected {
+  border: 3px solid #e8e2d0;
+  background: #3a3d47;
+}
+
+.hero-portrait-mini {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #55596a;
+}
+
+.hero-portrait-level {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  min-width: 1.4em;
+  padding: 0 3px;
+  border-radius: 999px;
+  background: #7a2d22;
+  color: #e8e2d0;
+  font: 700 0.6875rem/1.4em system-ui, sans-serif;
+  text-align: center;
 }
 
 .hero-level,

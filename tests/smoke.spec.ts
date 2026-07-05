@@ -377,7 +377,7 @@ test('routeur : Échap ferme la modale ouverte (pile de modales, doc 08 §3, U2)
 
   // En partie, la modale de ville se ferme à Échap via le handler GLOBAL du
   // routeur (U2) — remplace l'ancien `useEscapeKey` par écran.
-  await page.getByTestId('town-open').click();
+  await page.getByTestId('town-open-start-town').click();
   await expect(page.getByTestId('town-close')).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(page.getByTestId('town-close')).toHaveCount(0);
@@ -507,12 +507,14 @@ test('ville : construire + croissance + recruter + transférer → armée du hé
   const town = await page.evaluate(() => window.__HEROES_TEST__!.getState().towns[0]);
   expect(town?.id).toBe('start-town');
   expect(town?.ownerPlayerId).toBe('player-1');
-  await expect(page.getByTestId('town-open')).toBeVisible();
-  await page.getByTestId('town-open').click();
+  await expect(page.getByTestId('town-open-start-town')).toBeVisible();
+  await page.getByTestId('town-open-start-town').click();
   await expect(page.getByTestId('town-tab-build')).toBeVisible();
   // Motif de bannière de faction (doc 08 §4, accessibilité non chromatique) —
   // présent dans l'en-tête, dérivé de `town.factionId` (aucun nom en dur).
-  await expect(page.getByTestId('faction-badge')).toBeVisible();
+  // Scopé à l'écran de ville : depuis U4, la liste de villes du HUD porte aussi
+  // un `faction-badge` par bouton (plusieurs villes possibles).
+  await expect(page.locator('.town-screen').getByTestId('faction-badge')).toBeVisible();
   await page.getByTestId('town-close').click();
 
   const armyTotal = (): Promise<number> =>
@@ -580,8 +582,8 @@ test('ville : construire + croissance + recruter + transférer → armée du hé
 test('ville : une construction refusée affiche une erreur localisée (remédiation CL6)', async ({ page }) => {
   const errors = await openGame(page);
 
-  await expect(page.getByTestId('town-open')).toBeVisible();
-  await page.getByTestId('town-open').click();
+  await expect(page.getByTestId('town-open-start-town')).toBeVisible();
+  await page.getByTestId('town-open-start-town').click();
   await page.getByTestId('town-tab-build').click();
 
   // Remédiation R4b (CO6) : les bâtiments portent leur NOM localisé, pas leur id.
@@ -755,6 +757,29 @@ test('journal & feedback : un événement humain alimente le journal + toast de 
   expect(errors).toEqual([]);
 });
 
+test('multi-héros / multi-villes : bandeau de portraits + liste de villes (U4)', async ({ page }) => {
+  const errors = await openGame(page);
+
+  // Bandeau de portraits (dans le tiroir héros, doc 08 §2.1) : le héros humain
+  // est listé et sélectionné par défaut (repli 1er héros). `toBeAttached` plutôt
+  // que `toBeVisible` : le tiroir est hors écran tant qu'il n'est pas ouvert en
+  // mobile, et le toggle est masqué en desktop (tiroir toujours ouvert) — mais le
+  // portrait est bien rendu dans le DOM sur les deux viewports.
+  const portrait = page.getByTestId('hero-select-hero-player-1');
+  await expect(portrait).toBeAttached();
+  await expect(portrait).toHaveAttribute('aria-pressed', 'true');
+
+  // Liste de villes (barre d'actions, toujours visible) : une entrée par ville
+  // possédée — même chemin `humanTowns.map` pour N villes (2ᵉ ville capturée accessible).
+  const townButtons = page.getByTestId(/^town-open-/);
+  await expect(townButtons).toHaveCount(1);
+  await page.getByTestId('town-open-start-town').click();
+  await expect(page.getByTestId('town-tab-build')).toBeVisible();
+  await page.getByTestId('town-close').click();
+
+  expect(errors).toEqual([]);
+});
+
 test('scénario : le menu démarre le tutoriel, l’IA joue son tour', async ({ page }) => {
   const errors = await openMenu(page);
 
@@ -852,7 +877,7 @@ test('assets : PNG servis sans 404, icônes de ressources et vignettes de bâtim
 
   // Écran de ville : vignette de bâtiment (au moins un bâtiment commun a un
   // asset `buildings/core/<id>` quelle que soit la faction de départ).
-  await page.getByTestId('town-open').click();
+  await page.getByTestId('town-open-start-town').click();
   await expect(page.locator('.town-building-vignette').first()).toBeVisible();
   await expect.poll(() => imgNaturalWidth(page, '.town-building-vignette')).toBeGreaterThan(0);
   await page.getByTestId('town-close').click();

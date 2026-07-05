@@ -9,6 +9,7 @@ import {
   type GameState,
   type HeroAttributes,
   type HeroSkillDef,
+  type HeroState,
   type Resources,
   type SpellDef,
   type TownState,
@@ -45,6 +46,31 @@ export const PLAYER_ID = 'player-1';
  */
 export function humanId(game: GameState): string {
   return humanPlayerId(game) ?? PLAYER_ID;
+}
+
+/** Héros du joueur humain (doc 08 §2.1, lot UX U4) — dans l'ordre du tableau moteur. */
+export function humanHeroes(game: GameState): HeroState[] {
+  const id = humanId(game);
+  return game.heroes.filter((h) => h.playerId === id);
+}
+
+/**
+ * Héros humain « sélectionné » (doc 08 §2.1) : celui dont l'id est
+ * `selectedHeroId`, sinon le premier héros humain (repli robuste — le contenu MVP
+ * n'en donne qu'un ; la sélection se généralise à N sans changement moteur).
+ */
+export function resolveSelectedHero(
+  game: GameState,
+  selectedHeroId: string | null,
+): HeroState | undefined {
+  const mine = humanHeroes(game);
+  return mine.find((h) => h.id === selectedHeroId) ?? mine[0];
+}
+
+/** Villes du joueur humain (doc 08 §2.1) — plusieurs possibles par capture. */
+export function humanTowns(game: GameState): TownState[] {
+  const id = humanId(game);
+  return game.towns.filter((t) => t.ownerPlayerId === id);
 }
 
 /**

@@ -37,6 +37,7 @@
   "guardianBand.legion": "A legion",
 
   "hero.drawerToggle": "Open hero panel",
+  "hero.select": "Select level {level} hero",
   "hero.level": "Level {level}",
   "hero.xp": "XP {xp}",
   "hero.mana": "Mana {mana}/{manaMax}",

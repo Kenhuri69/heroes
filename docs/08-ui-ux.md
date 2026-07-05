@@ -29,6 +29,17 @@
 - Sélection héros → tap destination : trace le chemin avec jours nécessaires ; 2ᵉ tap : exécute. Interception d'événements en chemin = arrêt standard HoMM.
 - Appui long sur tout objet de carte = fiche (tooltip riche).
 
+> 🚧 **État U4** : **multi-héros / multi-villes** implémentés (lot UX U4). Le
+> tiroir héros ouvre un **bandeau de portraits** (un par héros du joueur ; tap =
+> sélectionner) — le héros **sélectionné** (`selectedHeroId`, repli 1er héros)
+> pilote le tiroir, le bandeau d'armée, les points de mouvement et
+> l'interaction carte ; la carte rend **un sprite par héros** avec un anneau sur
+> le sélectionné. La barre d'actions liste **toutes les villes possédées** (une
+> entrée par ville, badge de faction) — la 2ᵉ ville capturée est donc
+> accessible. Le contenu MVP ne donne qu'un héros par joueur (pas de recrutement
+> de héros au moteur) ; l'UI se généralise à N sans diff moteur. Le **transfert
+> d'armée/artefacts** entre héros (doc §2.3) reste différé à U6.
+
 ### 2.2 Écran de ville
 
 - Vue peinte interactive (les bâtiments construits apparaissent) + **onglet liste** : `Construire · Recruter · Marché · Guilde · Garnison`. Sur mobile, la liste est l'entrée principale (la vue peinte reste, en scroll horizontal).

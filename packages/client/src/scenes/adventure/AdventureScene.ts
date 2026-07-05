@@ -1,4 +1,4 @@
-import { Application, Container, Point, type Graphics } from 'pixi.js';
+import { Application, Container, Graphics, Point } from 'pixi.js';
 import {
   findPath,
   samePos,
@@ -9,7 +9,7 @@ import {
 } from '@heroes/engine';
 import { appStore } from '../../app/store';
 import { dispatch } from '../../app/dispatch';
-import { humanId } from '../../app/game';
+import { humanId, humanHeroes, resolveSelectedHero } from '../../app/game';
 import type { Camera } from '../../render/camera';
 import { Tilemap, TILE_SIZE } from '../../render/tilemap';
 import { MapObjectsLayer } from '../../render/mapObjects';
@@ -31,9 +31,14 @@ export class AdventureScene {
   private readonly objects = new MapObjectsLayer();
   private readonly fog: FogOverlay;
   private readonly preview = new PathPreview();
-  private readonly heroSprite: Graphics;
+  private readonly heroesLayer = new Container();
+  private readonly heroSprites = new Map<string, Graphics>();
+  /** Anneau de sélection (doc 08 §2.1, accessibilité A5 — pas la couleur seule). */
+  private readonly selectionRing = new Graphics()
+    .circle(TILE_SIZE / 2, TILE_SIZE / 2, TILE_SIZE * 0.6)
+    .stroke({ width: 3, color: 0xf1c40f });
   private previewTarget: { target: GridPos; path: GridPos[] } | null = null;
-  private animating = false;
+  private animatingHeroId: string | null = null;
   private destroyed = false;
   private readonly unsubscribeStore: () => void;
   private readonly unsubscribeTap: () => void;
@@ -47,12 +52,13 @@ export class AdventureScene {
 
     const tilemap = new Tilemap(app.renderer, map);
     this.fog = new FogOverlay(map);
-    this.heroSprite = buildHeroSprite(PLAYER_COLOR);
+    this.selectionRing.visible = false;
+    this.heroesLayer.addChild(this.selectionRing);
     this.container.addChild(
       tilemap.container,
       this.objects.container,
       this.preview.graphics,
-      this.heroSprite,
+      this.heroesLayer,
       this.fog.sprite,
     );
 
@@ -82,26 +88,45 @@ export class AdventureScene {
     const player = game.players.find((p) => p.id === humanId(game));
     if (!map || !config || !player) return;
     this.objects.sync(map.objects);
-    const positions = game.heroes.filter((h) => h.playerId === humanId(game)).map((h) => h.pos);
+    const heroes = humanHeroes(game);
+    const positions = heroes.map((h) => h.pos);
     this.fog.update(player.explored, positions, config.visionRadius);
-    if (!this.animating) {
-      const hero = this.myHero();
-      if (hero) this.heroSprite.position.set(hero.pos.x * TILE_SIZE, hero.pos.y * TILE_SIZE);
+
+    // Réconciliation des sprites de héros : supprime ceux disparus, crée ceux
+    // manquants, repositionne tous sauf celui en cours d'animation.
+    const heroIds = new Set(heroes.map((h) => h.id));
+    for (const [id, sprite] of this.heroSprites) {
+      if (!heroIds.has(id)) {
+        sprite.destroy();
+        this.heroSprites.delete(id);
+      }
+    }
+    for (const hero of heroes) {
+      let sprite = this.heroSprites.get(hero.id);
+      if (!sprite) {
+        sprite = buildHeroSprite(PLAYER_COLOR);
+        this.heroesLayer.addChild(sprite);
+        this.heroSprites.set(hero.id, sprite);
+      }
+      if (hero.id !== this.animatingHeroId) {
+        sprite.position.set(hero.pos.x * TILE_SIZE, hero.pos.y * TILE_SIZE);
+      }
+    }
+
+    const selected = resolveSelectedHero(game, appStore.getState().selectedHeroId);
+    this.selectionRing.visible = selected !== undefined;
+    if (selected) {
+      this.selectionRing.position.set(selected.pos.x * TILE_SIZE, selected.pos.y * TILE_SIZE);
     }
   }
 
-  private myHero(): { id: string; pos: GridPos; movementPoints: number } | undefined {
-    const game = appStore.getState().game;
-    return game.heroes.find((h) => h.playerId === humanId(game));
-  }
-
   private async handleTap(global: Point): Promise<void> {
-    if (this.destroyed || this.animating) return;
+    if (this.destroyed || this.animatingHeroId !== null) return;
     const { game } = appStore.getState();
     // En combat, la scène de combat a la main — la carte ignore les taps.
     if (game.combat) return;
     const { map, config } = game;
-    const hero = this.myHero();
+    const hero = resolveSelectedHero(game, appStore.getState().selectedHeroId);
     if (!map || !config || !hero) return;
 
     const local = this.container.toLocal(global);
@@ -164,25 +189,29 @@ export class AdventureScene {
   /** Anime les `MoveStepped` tuile par tuile — l'état a déjà « sauté » (doc 07 §3). */
   private async animateMove(result: EngineResult): Promise<void> {
     const steps = result.events.filter((e) => e.type === 'MoveStepped');
-    if (steps.length === 0) return;
-    this.animating = true;
+    const [first] = steps;
+    if (!first) return;
+    const heroId = first.heroId;
+    const sprite = this.heroSprites.get(heroId);
+    if (!sprite) return;
+    this.animatingHeroId = heroId;
     try {
       for (const step of steps) {
-        await this.tweenTo(step.from, step.to);
+        await this.tweenTo(sprite, step.from, step.to);
       }
     } finally {
-      this.animating = false;
+      this.animatingHeroId = null;
       this.sync();
     }
   }
 
-  private tweenTo(from: GridPos, to: GridPos): Promise<void> {
+  private tweenTo(sprite: Graphics, from: GridPos, to: GridPos): Promise<void> {
     return new Promise((resolve) => {
       const start = performance.now();
       const animate = (): void => {
         if (this.destroyed) return resolve(); // scène détruite en cours d'animation
         const t = Math.min(1, (performance.now() - start) / STEP_ANIMATION_MS);
-        this.heroSprite.position.set(
+        sprite.position.set(
           (from.x + (to.x - from.x) * t) * TILE_SIZE,
           (from.y + (to.y - from.y) * t) * TILE_SIZE,
         );
@@ -193,9 +222,10 @@ export class AdventureScene {
     });
   }
 
-  /** Centre la caméra sur le héros du joueur (appelé au démarrage). */
+  /** Centre la caméra sur le héros sélectionné (appelé au démarrage). */
   centerOnHero(app: Application): void {
-    const hero = this.myHero();
+    const { game } = appStore.getState();
+    const hero = resolveSelectedHero(game, appStore.getState().selectedHeroId);
     if (!hero) return;
     const scale = this.camera.world.scale.x;
     this.camera.world.position.set(

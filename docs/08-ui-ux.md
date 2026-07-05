@@ -136,3 +136,12 @@ Menu principal (Continuer / Scénarios / Escarmouche / Options), fiche de scéna
 > une couche DOM derrière un canvas transparent (coût par-frame nul). Restent
 > aussi (jalon Beta) : spritesheets d'unités animées, avatars de héros, fonds
 > bespoke des factions/terrains encore sans asset.
+
+> 🚧 **État U5-C (sprites d'unités en combat)** : les piles de combat affichent
+> le **sprite statique de leur unité** (`assets/units/<faction>/<unitId>`, chargé
+> hors bundle) sur une **base de camp colorée** (second canal, avec la position
+> plateau + les bandeaux d'armée), animé par les tweens existants
+> (déplacement/attaque/mort) ; **repli procédural** (polygone) si le sprite est
+> absent/en cours de chargement. L'**animation frame-par-frame** (idle/move/
+> attack/hit/death) reste différée : le pipeline `asset-sheet` produit des sprites
+> statiques, pas des planches d'animation.

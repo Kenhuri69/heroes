@@ -1,6 +1,7 @@
 import { produce } from 'immer';
 import { describe, expect, it } from 'vitest';
 import { applyAction } from '../src/combat/actions';
+import { advanceTurn } from '../src/combat/turns';
 import { computeMultiplier, killsFromDamage } from '../src/combat/damage';
 import { seedRng } from '../src/core/rng';
 import type { GameEvent } from '../src/core/events';
@@ -150,6 +151,7 @@ function stack(partial: Pick<CombatStack, 'id' | 'side' | 'slot' | 'unitId' | 'c
     defending: false,
     ammo: null,
     marks: 0,
+    immobilizedRounds: 0,
     acted: false,
     statuses: [],
     ...partial,
@@ -346,6 +348,51 @@ describe('performStrike / applyAction — intégration dégâts', () => {
     // 2 frappes : attaque + riposte (aucune charge à consommer).
     expect(events.filter((e) => e.type === 'StackAttacked')).toHaveLength(2);
     expect(events.some((e) => e.type === 'MarksConsumed')).toBe(false);
+  });
+
+  it('consumeMarks/pinningShot : consomme les charges et immobilise la cible', () => {
+    const catalog = {
+      atk: unit({
+        id: 'atk',
+        stats: { hp: 10, attack: 5, defense: 5, damage: [3, 3], speed: 8 },
+        abilities: [{ id: 'consumeMarks', params: { cost: 2, immobilizeRounds: 1 } }],
+      }),
+      def: unit({ id: 'def', stats: { hp: 1000, attack: 5, defense: 5, damage: [3, 3], speed: 4 } }),
+    };
+    const attacker = stack({ id: 'attacker-0', side: 'attacker', slot: 0, unitId: 'atk', count: 1, pos: { col: 0, row: 0 }, firstHp: 10 });
+    const defender = stack({ id: 'defender-0', side: 'defender', slot: 0, unitId: 'def', count: 1, pos: { col: 1, row: 0 }, firstHp: 1000, marks: 2 });
+    const state = { ...baseState(catalog), combat: combatState([attacker, defender]) };
+    const events: GameEvent[] = [];
+    const next = produce(state, (draft) => {
+      applyAction(draft, events, 'attacker-0', { type: 'attack', targetStackId: 'defender-0' });
+    });
+    const defenderAfter = next.combat?.stacks.find((s) => s.id === 'defender-0');
+    expect(defenderAfter?.marks).toBe(0); // 2 charges consommées
+    expect(events).toContainEqual({ type: 'MarksConsumed', strikerId: 'attacker-0', targetId: 'defender-0', consumed: 2 });
+    // L'immobilisation prend effet : `applyAction` avance le tour et la cible,
+    // dont c'est le tour suivant, est sautée (charge décrémentée à 0).
+    expect(events).toContainEqual({ type: 'StackImmobilized', stackId: 'defender-0' });
+    expect(defenderAfter?.immobilizedRounds).toBe(0);
+  });
+
+  it('advanceTurn : une pile immobilisée saute son tour (StackImmobilized)', () => {
+    const catalog = {
+      fast: unit({ id: 'fast', stats: { hp: 10, attack: 5, defense: 5, damage: [3, 3], speed: 10 } }),
+      slow: unit({ id: 'slow', stats: { hp: 10, attack: 5, defense: 5, damage: [3, 3], speed: 1 } }),
+    };
+    // La pile la plus rapide (jouerait en premier) est immobilisée : elle est sautée.
+    const immob = stack({ id: 'attacker-0', side: 'attacker', slot: 0, unitId: 'fast', count: 1, pos: { col: 0, row: 0 }, immobilizedRounds: 1 });
+    const other = stack({ id: 'defender-0', side: 'defender', slot: 0, unitId: 'slow', count: 1, pos: { col: 1, row: 0 } });
+    const state = { ...baseState(catalog), combat: combatState([immob, other]) };
+    const events: GameEvent[] = [];
+    const next = produce(state, (draft) => {
+      advanceTurn(draft, events);
+    });
+    const immobAfter = next.combat?.stacks.find((s) => s.id === 'attacker-0');
+    expect(immobAfter?.immobilizedRounds).toBe(0); // charge décrémentée
+    expect(immobAfter?.acted).toBe(true); // tour sauté
+    expect(events).toContainEqual({ type: 'StackImmobilized', stackId: 'attacker-0' });
+    expect(next.combat?.activeStackId).toBe('defender-0'); // c'est l'autre pile qui joue
   });
 
   it('doubleAttack : 2 frappes, riposte intercalée une seule fois', () => {

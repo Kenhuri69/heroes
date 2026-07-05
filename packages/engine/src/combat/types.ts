@@ -58,6 +58,8 @@ export interface CombatStack {
   ammo: number | null;
   /** Charges de Marque subies, 0–3 (doc 05 §3.1, générique). */
   marks: number;
+  /** Tours d'immobilisation restants (doc 05 §3.1 `pinningShot`) : saute son tour tant que > 0. */
+  immobilizedRounds: number;
   /** A déjà agi ce round (vagues par vitesse décroissante — doc 02 §5.2). */
   acted: boolean;
   /** Statuts temporaires de sorts (buff/debuff, doc 02 §1.4) — vide par défaut. */

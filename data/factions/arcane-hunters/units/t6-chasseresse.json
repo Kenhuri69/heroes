@@ -5,5 +5,9 @@
   "stats": { "hp": 62, "attack": 15, "defense": 11, "damage": [11, 17], "speed": 9 },
   "growthPerWeek": 2,
   "cost": { "gold": 1200, "mercury": 2 },
-  "abilities": [{ "id": "shooter", "params": { "ammo": 8 } }, { "id": "mark" }]
+  "abilities": [
+    { "id": "shooter", "params": { "ammo": 8 } },
+    { "id": "mark" },
+    { "id": "consumeMarks", "params": { "cost": 2, "immobilizeRounds": 1 } }
+  ]
 }

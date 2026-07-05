@@ -39,6 +39,7 @@ function placeSide(
       defending: false,
       ammo: def ? shooterAmmo(def) : null,
       marks: 0,
+      immobilizedRounds: 0,
       acted: false,
       statuses: [],
     };

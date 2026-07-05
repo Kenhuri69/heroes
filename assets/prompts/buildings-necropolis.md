@@ -14,13 +14,13 @@ architectural identity: bone white, ash grey and black, necrotic green glow, tat
 soft directional light from upper-left,
 each subject centered in its own cell, not touching cell edges,
 clear spacing between cells,
-cell 1: "necropolis dwelling t1" — the dwelling where "Skeleton (fr: Squelette)" creatures are recruited
-cell 2: "necropolis dwelling t2" — the dwelling where "Rotting Zombie (fr: Zombie putride)" creatures are recruited
-cell 3: "necropolis dwelling t3" — the dwelling where "Spectre" creatures are recruited
-cell 4: "necropolis dwelling t4" — the dwelling where "Vampire" creatures are recruited
-cell 5: "necropolis dwelling t5" — the dwelling where "Lich (fr: Liche)" creatures are recruited
-cell 6: "necropolis dwelling t6" — the dwelling where "Doom Knight (fr: Cavalier funeste)" creatures are recruited
-cell 7: "necropolis dwelling t7" — the dwelling where "Bone Dragon (fr: Dragon d'os)" creatures are recruited
+cell 1: "Skeleton dwelling (fr: Habitation : Squelette)" — the dwelling where "Skeleton (fr: Squelette)" creatures are recruited
+cell 2: "Rotting Zombie dwelling (fr: Habitation : Zombie putride)" — the dwelling where "Rotting Zombie (fr: Zombie putride)" creatures are recruited
+cell 3: "Spectre dwelling (fr: Habitation : Spectre)" — the dwelling where "Spectre" creatures are recruited
+cell 4: "Vampire dwelling (fr: Habitation : Vampire)" — the dwelling where "Vampire" creatures are recruited
+cell 5: "Lich dwelling (fr: Habitation : Liche)" — the dwelling where "Lich (fr: Liche)" creatures are recruited
+cell 6: "Doom Knight dwelling (fr: Habitation : Cavalier funeste)" — the dwelling where "Doom Knight (fr: Cavalier funeste)" creatures are recruited
+cell 7: "Bone Dragon dwelling (fr: Habitation : Dragon d'os)" — the dwelling where "Bone Dragon (fr: Dragon d'os)" creatures are recruited
 flat uniform light grey background (#c8c8c8), no ground shadow,
 no text, no watermark, no signature, no border frame, no ground line
 ```

@@ -14,10 +14,10 @@ architectural identity: midnight blue and arcane violet, silver trim, glowing cy
 soft directional light from upper-left,
 each subject centered in its own cell, not touching cell edges,
 clear spacing between cells,
-cell 1: "Circle of the Watch (fr: Cercle de la Vigile)" — a faction-specific town building
+cell 1: "Circle of the Watcher (fr: Cercle du Vigile)" — a faction-specific town building
 cell 2: "Circle of the Hunt (fr: Cercle de la Traque)" — a faction-specific town building
 cell 3: "Circle of the Seal (fr: Cercle du Sceau)" — a faction-specific town building
-cell 4: "Circle of the Abyss (fr: Cercle de l'Abîme)" — a faction-specific town building
+cell 4: "Circle of the Abyss (fr: Cercle de l’Abîme)" — a faction-specific town building
 flat uniform light grey background (#c8c8c8), no ground shadow,
 no text, no watermark, no signature, no border frame, no ground line
 ```

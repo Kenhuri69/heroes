@@ -14,7 +14,7 @@ architectural identity: plain neutral grey with orange accents (placeholder fact
 soft directional light from upper-left,
 each subject centered in its own cell, not touching cell edges,
 clear spacing between cells,
-cell 1: "test faction dwelling t1" — the dwelling where "Recruit (fr: Recrue)" creatures are recruited
+cell 1: "Recruit dwelling (fr: Habitation : Recrue)" — the dwelling where "Recruit (fr: Recrue)" creatures are recruited
 flat uniform light grey background (#c8c8c8), no ground shadow,
 no text, no watermark, no signature, no border frame, no ground line
 ```

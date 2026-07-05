@@ -13,10 +13,10 @@ rich material detail (metal, leather, gem, parchment),
 soft directional light from upper-left,
 each subject centered in its own cell, not touching cell edges,
 clear spacing between cells,
-cell 1: "lame aiguisee" — an offensive weapon-like relic (+2 attack)
-cell 2: "egide de pierre" — a protective relic (shield, aegis, bracer) (+2 defense)
-cell 3: "orbe de savoir" — a scholarly relic (orb, tome, circlet) (+2 knowledge)
-cell 4: "trefle chance" — a lucky charm relic (+1 luck)
+cell 1: "Sharpened Blade (fr: Lame aiguisée)" — an offensive weapon-like relic (+2 attack)
+cell 2: "Stone Aegis (fr: Égide de pierre)" — a protective relic (shield, aegis, bracer) (+2 defense)
+cell 3: "Orb of Knowledge (fr: Orbe de savoir)" — a scholarly relic (orb, tome, circlet) (+2 knowledge)
+cell 4: "Lucky Clover (fr: Trèfle de chance)" — a lucky charm relic (+1 luck)
 flat uniform light grey background (#c8c8c8), no ground shadow,
 no text, no watermark, no signature, no border frame, no ground line
 ```

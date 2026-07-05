@@ -76,7 +76,7 @@ Menu principal (Continuer / Scénarios / Escarmouche / Options), fiche de scéna
 - Pile de modales max 2 niveaux ; bouton retour Android/geste (et Échap au
   clavier) = ferme la modale du dessus.
 - Toutes les actions du tour sont annulables **tant qu'aucune information n'a été révélée** (déplacement sans découverte ni combat) — bouton « Annuler le déplacement » ; construction/recrutement non annulables (simplicité économique).
-- Notifications de début de tour : file de toasts (croissance hebdo, revenus, événements) consultable dans un journal.
+- Notifications de jeu : file de **toasts** éphémères (croissance hebdo, revenus, ramassage, construction/recrutement, niveau, fin de combat…) **filtrées au joueur humain** (les actions des IA ne notifient pas), doublées d'un **journal consultable** (bouton cloche du HUD avec badge de non-lus) — modale de la pile listant l'historique daté, la plus récente en tête. Le feedback positif inclut la **sauvegarde manuelle réussie**.
 
 ## 4. Accessibilité
 

@@ -13,7 +13,8 @@ import { t, resolveUnitName } from '../app/i18n';
 import { AssetImg } from './AssetImg';
 import { MenuScreen } from './MenuScreen';
 import { OptionsPanel } from './OptionsPanel';
-import { ToastHost } from './toasts';
+import { Journal } from './Journal';
+import { ToastHost, pushToast } from './toasts';
 import { CombatUi } from './combat';
 import { TownScreen } from './TownScreen';
 import { HeroSkills } from './HeroSkills';
@@ -64,6 +65,7 @@ function Shell() {
 
   const optionsModal = modals.some((m) => m.kind === 'options');
   const townModal = modals.find((m): m is { kind: 'town'; townId: string } => m.kind === 'town');
+  const journalModal = modals.some((m) => m.kind === 'journal');
 
   return (
     <>
@@ -83,6 +85,7 @@ function Shell() {
       ) : null}
       {optionsModal && <OptionsPanel onClose={() => closeModalKind('options')} />}
       {townModal && <TownScreen townId={townModal.townId} onClose={() => closeModalKind('town')} />}
+      {journalModal && <Journal onClose={() => closeModalKind('journal')} />}
       {pendingSkillHero && <SkillChoice hero={pendingSkillHero} />}
       <OutcomeOverlay />
       <ToastHost />
@@ -228,6 +231,7 @@ function TurnBar({ onOpenOptions }: { onOpenOptions: () => void }) {
   const hint = useApp((s) => s.guardianHint);
   const bands = useApp((s) => s.strengthBands);
   const firstOwnedTown = useApp((s) => s.game.towns.find((town) => town.ownerPlayerId === humanId(s.game)));
+  const unread = useApp((s) => s.journalUnread);
   return (
     <>
       <div class="status-bar">
@@ -253,11 +257,24 @@ function TurnBar({ onOpenOptions }: { onOpenOptions: () => void }) {
           ⚙
         </button>
         <button
+          class="journal-toggle"
+          data-testid="journal-open"
+          aria-label={t('journal.open')}
+          onClick={() => openModal({ kind: 'journal' })}
+        >
+          🔔
+          {unread > 0 && (
+            <span class="journal-badge" data-testid="journal-unread">
+              {unread}
+            </span>
+          )}
+        </button>
+        <button
           data-testid="save"
           onClick={() =>
-            void saveGame(appStore.getState().game, 'manual').catch(() =>
-              eventBus.emit([{ type: 'SaveFailed' }]),
-            )
+            void saveGame(appStore.getState().game, 'manual')
+              .then(() => pushToast(t('toast.saved')))
+              .catch(() => eventBus.emit([{ type: 'SaveFailed' }]))
           }
         >
           {t('turnBar.save')}

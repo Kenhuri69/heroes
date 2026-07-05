@@ -16,6 +16,12 @@
   "options.exportError": "Échec de l'export.",
   "options.importError": "Fichier de sauvegarde invalide.",
 
+  "journal.title": "Journal",
+  "journal.empty": "Aucun événement pour l'instant.",
+  "journal.open": "Ouvrir le journal",
+  "journal.close": "Fermer le journal",
+  "journal.entryDay": "Jour {day}",
+
   "turnBar.calendar": "Jour {day} · Semaine {week}",
   "turnBar.movementPoints": "PM {points}",
   "turnBar.save": "Sauvegarder",
@@ -99,6 +105,8 @@
   "toast.scenarioFailed": "Impossible de démarrer le scénario",
   "toast.spellCast": "{hero} lance {spell}",
   "toast.skillLearned": "{skill} niveau {rank} apprise",
+  "toast.saved": "Partie sauvegardée.",
+  "toast.townCaptured": "Ville capturée !",
 
   "cmdError.default": "Action impossible",
   "cmdError.cannotAfford": "Ressources insuffisantes",

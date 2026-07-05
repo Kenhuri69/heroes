@@ -5,6 +5,13 @@ import { createEmptyState } from '@heroes/engine';
 import type { Scenario } from '@heroes/content';
 import type { Modal, Screen } from './router';
 
+/** Une entrée du journal d'événements (doc 08 §3), datée du jour de jeu. */
+export interface JournalEntry {
+  id: number;
+  day: number;
+  message: string;
+}
+
 /**
  * Store applicatif (doc 07 §3) : l'état moteur + un état d'UI léger.
  * `zustand/vanilla` + `useSyncExternalStore` : pas de dépendance React,
@@ -22,8 +29,12 @@ export interface AppState {
   locale: 'fr' | 'en';
   /** Taille de police, 3 crans (doc 08 §4) : 1 = normal. */
   fontScale: 1 | 2 | 3;
-  /** File de toasts d'événements (doc 08 §3) — journal consultable : MVP. */
+  /** File de toasts éphémères (doc 08 §3) — disparaissent ~4 s. */
   toasts: { id: number; message: string }[];
+  /** Journal consultable des notifications de jeu (doc 08 §3), le plus récent en dernier. */
+  journal: JournalEntry[];
+  /** Nombre d'entrées de journal non lues (badge cloche) — remis à 0 à l'ouverture. */
+  journalUnread: number;
   /**
    * Route de base (doc 08 §3, lot UX U2) — `menu` ou `adventure` ; le combat
    * est dérivé de `game.combat`, pas une route. Piloté par `app/router.ts`.
@@ -43,6 +54,8 @@ export const appStore = createStore<AppState>(() => ({
   locale: 'fr',
   fontScale: 1,
   toasts: [],
+  journal: [],
+  journalUnread: 0,
   screen: 'menu',
   modals: [],
   scenarios: [],

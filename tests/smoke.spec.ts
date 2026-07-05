@@ -728,6 +728,33 @@ test('sauvegarde en échec de stockage : toast d’erreur visible (lot 3.9)', as
   await expect(toast).toContainText(/sauvegarde|save/i);
 });
 
+test('journal & feedback : un événement humain alimente le journal + toast de sauvegarde (U3)', async ({
+  page,
+}) => {
+  const errors = await openGame(page);
+
+  // Démarrage silencieux : aucune notification ⇒ pas de badge de non-lus.
+  await expect(page.getByTestId('journal-unread')).toHaveCount(0);
+
+  // Ramassage de ressource par le héros HUMAIN : notifié (doc 08 §3) ⇒ badge + entrée.
+  await moveHeroToGold(page);
+  await expect(page.getByTestId('journal-unread')).toBeVisible();
+
+  // Ouvrir le journal : la liste contient l'entrée, le compteur de non-lus se remet à 0.
+  await page.getByTestId('journal-open').click();
+  await expect(page.getByTestId('journal-panel')).toBeVisible();
+  await expect(page.getByTestId('journal-entry').first()).toBeVisible();
+  await expect(page.getByTestId('journal-unread')).toHaveCount(0);
+  await page.getByTestId('journal-close').click();
+  await expect(page.getByTestId('journal-panel')).toHaveCount(0);
+
+  // Feedback de sauvegarde manuelle RÉUSSIE (nouveau U3) : toast « sauvegardée ».
+  await page.getByTestId('save').click();
+  await expect(page.getByTestId('toast').filter({ hasText: /sauvegard|saved/i })).toBeVisible();
+
+  expect(errors).toEqual([]);
+});
+
 test('scénario : le menu démarre le tutoriel, l’IA joue son tour', async ({ page }) => {
   const errors = await openMenu(page);
 

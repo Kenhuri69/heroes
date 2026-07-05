@@ -18,8 +18,11 @@ import { appStore, useApp } from './store';
 
 export type Screen = 'menu' | 'adventure';
 
-/** Modale empilable (doc 08 §3). Seules les 2 modales existantes au MVP. */
-export type Modal = { kind: 'town'; townId: string } | { kind: 'options' };
+/** Modale empilable (doc 08 §3). */
+export type Modal =
+  | { kind: 'town'; townId: string }
+  | { kind: 'options' }
+  | { kind: 'journal' };
 
 /** Plafond de profondeur de la pile de modales (doc 08 §3). */
 export const MAX_MODAL_DEPTH = 2;

@@ -344,17 +344,33 @@ pas de `concurrency`/`timeout-minutes` ; `__HEROES_TEST__` exposé en prod.
   Pas de nouveau test : la boucle est déjà couverte de bout en bout par
   `golden-replay` (déplacement humain + gardien) et `ai-adventure` (pas IA).
 
-#### R7b — CL9 : helpers purs `@heroes/engine` (à faire)
-- [ ] Exposer/extraire en helpers purs : coût scalé (`scaleCost` — réconcilier
-      le skip `if (amount)` du moteur vs client), statut de prérequis
-      (`buildStatus`/`missingRequirements` factorisés de `validateBuildStructure`),
-      dwellings→unités (`builtDwellings` liste — réconcilier multi-niveaux vs
-      `builtLevelOf` top-level), `attackableTargets` (écrit 3× : validateur, IA,
-      client), candidats de mêlée (`meleeOriginsFor` — garder la *politique* de
-      sélection séparée : client = plus proche, IA = scoré) — consommés par
-      `TownScreen`/`CombatScene`. Élargir `engine/src/index.ts` + `town/index.ts`.
-- [ ] Tests unitaires directs des helpers + couverture de `combat/hex.ts`
-      (aucun test dédié aujourd'hui).
+#### R7b — CL9 : helpers purs `@heroes/engine` — scindé en ville / combat
+
+##### R7b (ville) ✅
+- [x] Helpers purs de ville exposés (`engine/src/index.ts` + `town/index.ts`) :
+      `scaleCost` (ré-exporté de `town/resources.ts` ; **réconcilié** — le client
+      dupliquait sans le skip `if (amount)`, adopte la version moteur),
+      `buildStatus` + `missingRequirements` + `exclusiveRivalId` (nouveaux, dans
+      `town/helpers.ts`), `builtDwellings` (liste multi-niveaux — commentée vs
+      `builtLevelOf` top-level, coïncident sur données actuelles `maxLevel: 1`).
+- [x] `validateBuildStructure` **refactoré** pour consommer `missingRequirements`
+      + `exclusiveRivalId` (source unique, mêmes codes/messages d'erreur) —
+      golden inchangé (`be72de4b`).
+- [x] `TownScreen.tsx` : suppression des copies locales `scaleCost`,
+      `nextBuildStatus`, `builtDwellings` → helpers moteur ; liste de prérequis
+      via `missingRequirements`.
+- [x] Tests directs `town-helpers.test.ts` (12) — buildStatus (built/available/
+      locked/inconnu/exclusif), missingRequirements, builtDwellings, scaleCost.
+- Vérif : golden inchangé, 222 tests moteur, lint, typecheck, 44 smoke (flux
+  ville pilotés par l'UI couverts).
+
+##### R7b (combat) — à faire
+- [ ] `attackableTargets(state, stackId)` (écrit 3× : `validateCombatAction`,
+      IA `chooseAction`, client `CombatScene.redrawBoard`) + `meleeOriginsFor`
+      (ensemble des origines candidates ; garder séparée la *politique* : client
+      = plus proche, IA = scoré) — exposés, consommés par `CombatScene`.
+- [ ] Tests unitaires directs de `combat/hex.ts` (aucun aujourd'hui) + des
+      nouveaux helpers.
 - Vérif : `pnpm test` + smoke verts, golden inchangé.
 
 #### R7c — Mineurs (à faire)
@@ -570,3 +586,14 @@ commit (docs = source de vérité).
   (`be72de4b`), déterminisme IA vs IA vert, 210 tests, lint/typecheck/42 smoke.
   R7 scindé en a (E6, fait) / b (CL9 helpers) / c (mineurs). Reste : R7b, R7c,
   R8 (docs) ; chantier UX §5.
+- **2026-07-05** — **R7b (ville) livré (CL9, volet ville)** : le client cesse de
+  réimplémenter les règles de coût/prérequis/dwellings du moteur. Helpers purs
+  exposés depuis `@heroes/engine` : `scaleCost` (réconcilié avec la version
+  moteur), `buildStatus`/`missingRequirements`/`exclusiveRivalId` (nouveaux dans
+  `town/helpers.ts`), `builtDwellings`. `validateBuildStructure` refactoré pour
+  partager `missingRequirements`/`exclusiveRivalId` (mêmes codes d'erreur, golden
+  `be72de4b` intact). `TownScreen.tsx` : 3 copies locales supprimées.
+  `town-helpers.test.ts` (12 tests). Vérif : 222 tests, lint, typecheck, 44
+  smoke. R7b scindé ville (fait) / combat (attackableTargets/meleeOriginsFor +
+  tests hex, à faire). Reste : R7b-combat, R7c (mineurs), R8 (docs) ; chantier
+  UX §5.

@@ -78,6 +78,16 @@ export type {
   BuildingLevel,
   TownState,
 } from './town/types';
+// Helpers purs de ville consommés par le client (remédiation CL9).
+export {
+  buildStatus,
+  builtDwellings,
+  missingRequirements,
+  scaleCost,
+  unitIsRecruitable,
+  type BuildRequirement,
+  type BuildStatus,
+} from './town';
 export type {
   SpellDef,
   SpellSchool,

@@ -12,6 +12,19 @@ export { validateRecruitUnits, handleRecruitUnits } from './recruit';
 export { validateGarrisonTransfer, handleGarrisonTransfer } from './transfer';
 export { validateCaptureTown, handleCaptureTown } from './capture';
 export { applyDailyIncome, applyWeeklyGrowth } from './economy';
+// Helpers purs consommés par le client (remédiation CL9) — le client cesse de
+// réimplémenter les règles de coût / prérequis / dwellings du moteur.
+export {
+  builtDwellings,
+  builtLevelOf,
+  buildStatus,
+  exclusiveRivalId,
+  missingRequirements,
+  unitIsRecruitable,
+  type BuildRequirement,
+  type BuildStatus,
+} from './helpers';
+export { scaleCost } from './resources';
 
 type Draft = GameState;
 

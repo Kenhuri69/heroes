@@ -102,6 +102,7 @@ function stack(
     ammo: null,
     marks: 0,
     immobilizedRounds: 0,
+    transformed: false,
     acted: false,
     statuses: [],
     ...partial,

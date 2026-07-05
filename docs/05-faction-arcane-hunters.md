@@ -117,6 +117,20 @@ Faction inédite, produite en **Alpha** — elle sert de validation grandeur nat
 > Curée) et **accès des héros AH** aux sorts Traque (avec les héros nommés,
 > doc 05 §7) : différés — les sorts vivent au catalogue, apprenables via guilde/
 > `startingSpells`.
+>
+> 🚧 **État 4.10 (demonform — T8)** : dernière grande capacité de signature —
+> `demonform` (doc 05 §4), capacité **stateful** générique (état par pile
+> sérialisable `CombatStack.transformed`), inline dans le moteur comme
+> `mark`/`consumeMarks`. La pile démarre en **forme humaine**
+> (`magicResistance` : dégâts de sort subis réduits) et **bascule en forme
+> démon à sa 1ʳᵉ attaque** (event `StackTransformed`, perd la résistance, gagne
+> `+damageBonus` — threadé dans `computeMultiplier` et la prévisualisation). Le
+> `magicResistance` est câblé dans `handleCastSpell`/`estimateSpell`. Données :
+> `t8-penitent` gagne `demonform { damageBonus: 0.5, magicResistance: 0.5 }`.
+> Golden inchangé (combat null en fin de golden), garde-fou vert. **Écarts
+> assumés** : la bascule est **automatique** (choix de timing actif +
+> action/UI/IA différés), l'**`areaAttack(cône)`** et `devourMarks` restent
+> différés (attaque multi-cibles = nouvelle surface).
 
 ## 1. Lore
 

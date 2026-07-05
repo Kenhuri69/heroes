@@ -38,6 +38,29 @@ interface MultiplierInput {
   heroArmorPct?: number;
   /** Burst de la capacité `consumeMarks` (doc 05 §3.1) : ×(1+bonus) cette frappe — 0 si inactif. */
   markConsumeBonus?: number;
+  /** Bonus de la forme démon (`demonform`, doc 05 §4) : ×(1+bonus) tant que transformé — 0 sinon. */
+  demonBonus?: number;
+}
+
+/** Paramètres de la capacité `demonform` (doc 05 §4) d'une unité, ou `null`. */
+export function demonformParams(
+  def: CombatUnitDef,
+): { damageBonus: number; magicResistance: number } | null {
+  const ability = def.abilities.find((a) => a.id === 'demonform');
+  if (!ability) return null;
+  return {
+    damageBonus: Number(ability.params?.['damageBonus'] ?? 0),
+    magicResistance: Number(ability.params?.['magicResistance'] ?? 0),
+  };
+}
+
+/**
+ * Résistance à la magie d'une pile (doc 05 §4) : la forme humaine d'une unité
+ * `demonform` réduit les dégâts de sort ; la forme démon (transformée) non.
+ */
+export function magicResistanceOf(def: CombatUnitDef, transformed: boolean): number {
+  const demon = demonformParams(def);
+  return demon && !transformed ? demon.magicResistance : 0;
 }
 
 /**
@@ -73,6 +96,7 @@ export function computeMultiplier(input: MultiplierInput): number {
     heroDamagePct,
     heroArmorPct: armorPct,
     markConsumeBonus,
+    demonBonus,
   } = input;
   const effectiveDefense = targetDefending
     ? Math.floor(targetDefense * rules.defendDefenseMultiplier)
@@ -83,6 +107,7 @@ export function computeMultiplier(input: MultiplierInput): number {
   if (meleePenalized) mult *= rules.rangedMeleePenalty;
   mult *= 1 + rules.markBonusPerStack * targetMarks;
   mult *= 1 + (markConsumeBonus ?? 0);
+  mult *= 1 + (demonBonus ?? 0);
   mult *= 1 + (heroDamagePct ?? 0);
   mult *= 1 - (armorPct ?? 0);
   return mult;
@@ -188,6 +213,13 @@ export function performStrike(
     : 0;
   const heroArmor = combat ? heroArmorPctOf(draft, combat, victim.side) : 0;
   const consume = consumeMarksPlan(strikerDef, victim.marks);
+  // `demonform` (doc 05 §4) : bascule en forme démon à la 1ʳᵉ attaque, puis
+  // toutes ses frappes gagnent le bonus (et la résistance à la magie est perdue).
+  const demon = demonformParams(strikerDef);
+  if (demon && !striker.transformed) {
+    striker.transformed = true;
+    events.push({ type: 'StackTransformed', stackId: striker.id });
+  }
   const mult = computeMultiplier({
     strikerAttack,
     targetDefense,
@@ -198,6 +230,7 @@ export function performStrike(
     heroDamagePct,
     heroArmorPct: heroArmor,
     markConsumeBonus: consume?.damageBonus ?? 0,
+    demonBonus: demon && striker.transformed ? demon.damageBonus : 0,
   });
   const luck = combat ? heroLuckOf(draft, combat, striker.side) : 0;
   const luckRoll = rollRange(draft.rng, 0, 99);
@@ -308,6 +341,9 @@ export function estimateDamage(
     heroDamagePct,
     heroArmorPct: heroArmor,
     markConsumeBonus: consumeMarksPlan(attackerDef, target.marks)?.damageBonus ?? 0,
+    // `demonform` : la frappe transforme l'attaquant s'il ne l'est pas déjà, donc
+    // la prévisualisation reflète toujours le bonus de la forme démon.
+    demonBonus: demonformParams(attackerDef)?.damageBonus ?? 0,
   });
   const [dmgMin, dmgMax] = attackerDef.stats.damage;
   const baseMin = attacker.count * dmgMin;

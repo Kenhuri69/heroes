@@ -5,5 +5,8 @@
   "stats": { "hp": 210, "attack": 24, "defense": 18, "damage": [40, 60], "speed": 7 },
   "growthPerWeek": 1,
   "cost": { "gold": 3800, "gems": 3, "essence": 40 },
-  "abilities": [{ "id": "mark" }]
+  "abilities": [
+    { "id": "mark" },
+    { "id": "demonform", "params": { "damageBonus": 0.5, "magicResistance": 0.5 } }
+  ]
 }

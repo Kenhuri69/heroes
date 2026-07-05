@@ -47,6 +47,7 @@ function stack(
     ammo: null,
     marks: 0,
     immobilizedRounds: 0,
+    transformed: false,
     acted: false,
     statuses: [],
     ...partial,
@@ -301,5 +302,39 @@ describe('CastSpell — buff/debuff', () => {
       advanceTurn(draft, events);
     });
     expect(afterRound2.combat?.stacks.find((s) => s.id === 'attacker-0')?.statuses).toEqual([]);
+  });
+});
+
+describe('CastSpell — magicResistance (demonform, doc 05 §4)', () => {
+  const catalog = {
+    grunt: unit({ id: 'grunt', stats: { hp: 10, attack: 5, defense: 5, damage: [4, 4], speed: 5 } }),
+    demon: unit({
+      id: 'demon',
+      stats: { hp: 210, attack: 5, defense: 5, damage: [10, 10], speed: 7 },
+      abilities: [{ id: 'demonform', params: { damageBonus: 0.5, magicResistance: 0.5 } }],
+    }),
+  };
+
+  function castBoltOn(transformed: boolean): number {
+    const h = hero({ spells: ['bolt'], attributes: { attack: 0, defense: 0, power: 3, knowledge: 0 } });
+    const attacker = stack({ id: 'attacker-0', side: 'attacker', slot: 0, unitId: 'grunt', count: 1, pos: { col: 0, row: 0 } });
+    const target = stack({ id: 'defender-0', side: 'defender', slot: 0, unitId: 'demon', count: 1, pos: { col: 5, row: 5 }, firstHp: 210, transformed });
+    const state: GameState = {
+      ...baseState(catalog),
+      spellCatalog: SPELLS,
+      heroes: [h],
+      combat: combatState([attacker, target], { attackerHeroId: h.id, activeStackId: 'attacker-0' }),
+    };
+    const result = apply(state, { type: 'CastSpell', spellId: 'bolt', targetStackId: 'defender-0' });
+    const cast = result.events.find((e) => e.type === 'SpellCast') as Extract<GameEvent, { type: 'SpellCast' }>;
+    return cast.amount;
+  }
+
+  it('forme humaine : dégâts de sort réduits de moitié', () => {
+    expect(castBoltOn(false)).toBe(8); // round((10 + 2×3) × 0,5) = 8
+  });
+
+  it('forme démon (transformée) : dégâts pleins', () => {
+    expect(castBoltOn(true)).toBe(16); // 10 + 2×3, sans résistance
   });
 });

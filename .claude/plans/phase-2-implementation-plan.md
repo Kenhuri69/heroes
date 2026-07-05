@@ -30,7 +30,7 @@ Phase 1 (docs 01–09).
       encore → on publie une page d'attente pour valider la chaîne Pages sans
       CI rouge. Doc 10 §4.2 annoté en conséquence (invariant « docs = source
       de vérité »). → vérif : run `deploy.yml` vert sur `main` après merge.
-- [ ] Merger la PR #2 sur `main` (demande utilisateur) puis vérifier le run
+- [x] Merger la PR #2 sur `main` (demande utilisateur) puis vérifier le run
       de déploiement et l'URL `https://kenhuri69.github.io/heroes/`.
 
 ## Écarts constatés / décisions

@@ -408,14 +408,23 @@ pas de `concurrency`/`timeout-minutes` ; `__HEROES_TEST__` exposé en prod.
 - Vérif : golden inchangé (`be72de4b`), 233 tests, lint, typecheck, 44 smoke.
 - Vérif : smoke verts, golden inchangé.
 
-### Lot R8 — Documentation & mémoire projet (T4)
-- [ ] CLAUDE.md : état 4.2→4.6, save v3.
-- [ ] doc 06 : retirer/mettre au futur `asset-conventions.md` et
-      `faction:sim` ; reformuler la promesse §5.8 au niveau de ce que la CI
-      fait réellement (post-R6).
-- [ ] doc 07 : annoter IndexedDB brut + journal de commandes différé.
-- [ ] Cocher les 4 cases méta des anciens plans.
-- Vérif : relecture croisée docs ↔ code des affirmations modifiées.
+### Lot R8 — Documentation & mémoire projet (T4) ✅
+- [x] CLAUDE.md : en-tête — Alpha 4.2→**4.10** livrés (détail par sous-lot),
+      `CURRENT_SAVE_VERSION` = **3** (vérifié `engine/core/state.ts`), + section
+      remédiation R1–R8 + section intégration des assets (doc 12 §10).
+- [x] doc 06 : `asset-conventions.md` → `docs/12-assets-style-guide.md` (existe) ;
+      `pnpm faction:sim` (inexistant) → test réel `balance.test.ts` lancé par
+      `pnpm test`, simulateur CLI noté « reste à écrire » ; note « État 3.4 » →
+      « État 4.x » (points d'extension génériques ouverts 3.4→4.10) avec le
+      garde-fou faction dérivé de `data/factions/index.json` (R6).
+- [x] doc 07 §4 : « via `idb` » → **API IndexedDB brute** (`client/app/save.ts`,
+      aucune dépendance `idb` vérifiée) ; « journal de commandes » annoté
+      **différé** (snapshot seul au MVP).
+- [x] Cases méta cochées : `phase-2-implementation-plan`, `phase-3.2-hero`,
+      `phase-3.5-scenarios-ai`, `phase-3.6-mvp-finitions` (travaux livrés).
+- Vérif : relecture croisée docs ↔ code — chaque affirmation modifiée vérifiée
+      (save version, absence de dép `idb`, absence de `faction:sim`/`asset-
+      conventions.md`, `balance.test.ts` présent).
 
 **Priorités** : R1 et R5 (CO1/CO2) d'abord — crash moteur atteignable et
 outillage de faction cassé ; puis R2 (fuites + erreurs silencieuses),
@@ -640,3 +649,11 @@ commit (docs = source de vérité).
   couvert, §7). Vérif : golden `be72de4b`, 233 tests, lint, typecheck, 44 smoke.
   **R7 (dette & duplication) complet.** Reste au plan : R8 (docs) ; chantier
   UX §5.
+- **2026-07-05** — **R8 livré (docs & mémoire) → R1–R8 COMPLET** : CLAUDE.md
+  rattrapé (Alpha 4.2→4.10, save v3, sections remédiation + assets) ; doc 06
+  (`asset-conventions.md`→doc 12, `faction:sim`→`balance.test.ts`, note points
+  d'extension « État 4.x » + garde-fou R6) ; doc 07 (IndexedDB brut, journal
+  différé) ; 4 cases méta d'anciens plans cochées. Affirmations vérifiées
+  contre le code. Lot documentaire (smoke omis, guideline §7) — typecheck/lint/
+  test/build restent verts. **Plan de remédiation R1–R8 terminé.** Ne reste que
+  le chantier UX §5 (U1–U6), distinct, à démarrer sur feu vert utilisateur.

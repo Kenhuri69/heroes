@@ -95,7 +95,7 @@ schémas `spell`/`skill`/`artifact` sont assez expressifs pour les factions.
 
 ## Lots
 
-- [ ] **Cadrage (principal)** : ce plan + surfaces figées + stubs, golden
+- [x] **Cadrage (principal)** : ce plan + surfaces figées + stubs, golden
       refigé, vert.
 - [x] **Lot K (sonnet) — moteur** : sorts en combat (`CastSpell`, dégâts/soin/
       buff/debuff, statuts, mana, `heroCastThisRound`), attributs héros +

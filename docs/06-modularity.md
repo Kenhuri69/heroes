@@ -120,15 +120,17 @@ interface AdventureHook {
 }
 ```
 
-> 🚧 **État 3.4** : le premier point d'extension **déclaratif** est ouvert —
-> `manifest.factionBonuses` accepte désormais l'effet `raiseUndeadOnVictory`
-> (Nécromancie), interprété par le moteur à la fin d'un combat gagné via un
-> `factionCatalog` résolu par le contenu, **sans aucun nom de faction dans le
-> moteur** (comme prévu ici : « la Nécromancie est en fait déclarative »). Les
-> `AbilityModule`/`AdventureHook` en **code** restent fermés (`abilityModules`/
-> `hooks` refusés non vides) jusqu'à ce qu'une mécanique l'exige vraiment. Le
-> critère CI (§5.8) est respecté : le seul diff moteur est l'ouverture de ce
-> point générique.
+> 🚧 **État 4.x** : plusieurs points d'extension **génériques** sont ouverts, un
+> par sous-lot, **tous sans nom de faction dans le moteur** — chacun interprété
+> depuis les données (manifeste / catalogues résolus par le contenu) :
+> `factionBonuses` déclaratifs (`raiseUndeadOnVictory` Nécropolis 3.4, gain de
+> ressource de faction post-victoire 4.4) ; capacité générique `consumeMarks`
+> et ses effets (`executioner`/`expose`/`pinningShot`, 4.3/4.5/4.8) ; choix de
+> bâtiment exclusif `exclusiveGroup` (Cercles, 4.7) ; sort `applyMarks` (4.9) ;
+> module de capacité stateful `demonform` (4.10). Le garde-fou CI « zéro faction
+> dans le moteur » **dérive désormais les IDs interdits de
+> `data/factions/index.json`** (remédiation R6) : le seul diff moteur admis par
+> lot est l'ouverture d'**un** point générique, jamais un `if (faction === …)`.
 
 **Règles imposées aux modules** (vérifiées par lint + revue) :
 1. Pas d'accès au rendu, au réseau, à `Date`/`Math.random` — le contexte fournit `ctx.rng` (seedé) et `ctx.now` (temps de jeu).
@@ -141,8 +143,8 @@ interface AdventureHook {
 2. `pnpm faction:new <id>` → génère le squelette de paquet + données d'exemple valides.
 3. Remplir `units/`, `buildings/`, `heroes/`, `locales/` ; `pnpm faction:validate <id>` doit passer (schémas + règles croisées : prérequis atteignables, coûts définis, IDs de capacités existants, textes localisés complets).
 4. Capacités : d'abord chercher dans le **catalogue générique** ; ne créer un module que si la composition déclarative ne suffit pas (règle : ≤ 3 modules par faction).
-5. Assets : suivre `docs/asset-conventions.md` (tailles, ancres, noms) ; placeholders générés autorisés jusqu'à la Beta.
-6. **Équilibrage** : `pnpm faction:sim <id>` lance N×1000 combats auto contre chaque faction existante (armées de valeur égale, semaine 1/4/8) et sort un rapport de winrate ; cible : 45–55 % par matchup et par palier.
+5. Assets : suivre `docs/12-assets-style-guide.md` (familles P/A/B/C/D/E, tailles, nommage) ; l'intégration client (registre, hors bundle) est décrite en §10. Placeholders procéduraux autorisés jusqu'à la Beta (repli gracieux en place).
+6. **Équilibrage** : le test `balance.test.ts` (paquet `@heroes/content`, lancé par `pnpm test`) rejoue des combats auto à valeur d'or égale et vérifie qu'aucune faction ne domine ; un simulateur CLI dédié (`faction:sim`, rapport de winrate par palier) reste à écrire.
 7. Jouabilité : 1 scénario de test dédié + passe IA (le profil `aiProfile` suffit-il ?).
 8. PR unique portant le paquet ; la CI rejoue validation + simulation. **Aucun diff hors de `data/factions/<id>/` n'est accepté**, sauf ajout au registre `index.json` — c'est le test automatique de la promesse de modularité.
 

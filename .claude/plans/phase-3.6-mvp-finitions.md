@@ -53,7 +53,7 @@ MVP**. Petite phase diffuse — vérification + accessibilité + i18n + perf +
 
 ## Lots
 
-- [ ] **Cadrage (principal)** : ce plan.
+- [x] **Cadrage (principal)** : ce plan.
 - [x] **Lot V (sonnet) — client accessibilité + i18n** : audit `fontScale`
       (relatif partout), motifs de bannières de faction (déterministes, par id),
       audit i18n (0 chaîne en dur, clés fr+en complètes), cibles tactiles.

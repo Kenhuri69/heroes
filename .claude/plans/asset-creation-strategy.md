@@ -62,7 +62,9 @@ les planches ; absente des pièces uniques bg/logo). Prompts regénérés.
       débordait cellule 7→8 (aile droite coupée à la découpe grille) → repris
       via crop manuel bas-droite + `sheet_extract --cols 1 --rows 1` (dragon
       complet). Rangé dans `assets/units/necropolis/`.
-- [ ] Arcane Hunters, test-faction (unités)
+- [x] **Arcane Hunters** (T1→T8) : extraction 8/8 PASS (garde-fou marge OK,
+      bleed_removed 0, ailés t2/t7/t8 complets). `assets/units/arcane-hunters/`.
+- [ ] test-faction (unités)
 - [ ] Avatars de héros
 - [ ] Fonds, logo (L2)
 

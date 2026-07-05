@@ -357,6 +357,9 @@ test('accessibilité : les 3 crans de police changent la taille du texte (doc 08
       return el ? parseFloat(getComputedStyle(el).fontSize) : 0;
     });
 
+  // Attendre que le bandeau de tour (calendrier) soit rendu : sinon la mesure
+  // « cran 1 » peut tomber à 0 (élément absent) → ratio Infinity (flake CI).
+  await expect(page.getByTestId('calendar')).toBeVisible();
   const small = await calendarFontSizePx(); // cran 1 (100%) par défaut
 
   await page.getByTestId('options-open').click();

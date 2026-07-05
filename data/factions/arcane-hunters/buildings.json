@@ -87,6 +87,54 @@
           "effect": { "type": "dwelling", "tier": 8, "unitId": "t8-penitent" }
         }
       ]
+    },
+    {
+      "id": "arcane-hunters-circle-vigile",
+      "maxLevel": 1,
+      "exclusiveGroup": "arcane-circle",
+      "levels": [
+        {
+          "cost": { "gold": 2000, "ore": 10 },
+          "requires": [{ "building": "mageGuild", "level": 1 }],
+          "effect": { "type": "income", "resource": "gold", "amount": 250 }
+        }
+      ]
+    },
+    {
+      "id": "arcane-hunters-circle-traque",
+      "maxLevel": 1,
+      "exclusiveGroup": "arcane-circle",
+      "levels": [
+        {
+          "cost": { "gold": 2000, "ore": 10 },
+          "requires": [{ "building": "mageGuild", "level": 1 }],
+          "effect": { "type": "growthBonus", "percent": 20 }
+        }
+      ]
+    },
+    {
+      "id": "arcane-hunters-circle-sceau",
+      "maxLevel": 1,
+      "exclusiveGroup": "arcane-circle",
+      "levels": [
+        {
+          "cost": { "gold": 2000, "mercury": 3 },
+          "requires": [{ "building": "mageGuild", "level": 1 }],
+          "effect": { "type": "income", "resource": "gold", "amount": 400 }
+        }
+      ]
+    },
+    {
+      "id": "arcane-hunters-circle-abime",
+      "maxLevel": 1,
+      "exclusiveGroup": "arcane-circle",
+      "levels": [
+        {
+          "cost": { "gold": 2000, "gems": 3 },
+          "requires": [{ "building": "mageGuild", "level": 1 }],
+          "effect": { "type": "growthBonus", "percent": 40 }
+        }
+      ]
     }
   ]
 }

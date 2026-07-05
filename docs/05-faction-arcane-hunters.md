@@ -79,6 +79,20 @@ Faction inédite, produite en **Alpha** — elle sert de validation grandeur nat
 > faction). **Croissance partagée `apex`** (T7/T8) et **`demonform`** différés
 > (T8 : croissance 1/sem indépendante, combat en unité forte à `mark`) ; coûts de
 > **bâtiment** en Essence différés (schéma core-only).
+>
+> 🚧 **État 4.7 (Cercles : choix de bâtiment exclusif)** : point d'extension
+> **générique** `exclusiveGroup` sur `BuildingDef` — au plus un bâtiment par
+> groupe et par ville (irréversible ; garde `exclusiveChoiceLocked` dans
+> `validateBuildStructure`). Utile à toute faction (branches de ville
+> alternatives), le moteur ne connaît que l'égalité de chaîne du groupe.
+> Données : 4 **Cercles** AH (`arcane-hunters-circle-{vigile,traque,sceau,
+> abime}`, groupe `arcane-circle`, prérequis Guilde des mages) à effets
+> **existants** distincts (revenu/croissance) — choix économique différencié.
+> Client : bâtiment de Cercle verrouillé si un frère est bâti. Golden inchangé
+> (aucun bâtiment du golden n'a d'`exclusiveGroup`), garde-fou vert. Les
+> **passifs fidèles** des Cercles (vision/vitesse/coût mana/dégâts T7-T8) et le
+> **Grand Amphithéâtre** dédié + bâtiments débloqués par Cercle : lots ultérieurs
+> (nouveaux effets de bâtiment).
 
 ## 1. Lore
 

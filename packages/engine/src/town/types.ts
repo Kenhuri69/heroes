@@ -31,6 +31,12 @@ export interface BuildingDef {
   maxLevel: number;
   /** Un entrée par niveau (index 0 = niveau 1). */
   levels: BuildingLevel[];
+  /**
+   * Choix exclusif (doc 05 §3.2, les Cercles) : au plus un bâtiment par groupe
+   * peut être construit dans une ville (irréversible). Générique — le moteur ne
+   * connaît pas les noms de groupes, seulement l'égalité de chaîne.
+   */
+  exclusiveGroup?: string | undefined;
 }
 
 export interface TownState {

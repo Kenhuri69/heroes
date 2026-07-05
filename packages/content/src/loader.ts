@@ -374,7 +374,12 @@ export function buildBuildingCatalog(report: LoadReport): Record<string, Resolve
     for (const b of list) {
       if (catalog[b.id])
         throw new PackError([`buildBuildingCatalog: id de bâtiment en double '${b.id}' (${origin})`]);
-      catalog[b.id] = { id: b.id, maxLevel: b.maxLevel, levels: b.levels };
+      catalog[b.id] = {
+        id: b.id,
+        maxLevel: b.maxLevel,
+        levels: b.levels,
+        ...(b.exclusiveGroup !== undefined ? { exclusiveGroup: b.exclusiveGroup } : {}),
+      };
     }
   };
   add(report.content.coreBuildings, 'core');

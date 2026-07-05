@@ -144,6 +144,10 @@
   "building.tavern": "Tavern",
   "building.forge": "Forge",
   "building.special": "Special building",
+  "building.arcane-hunters-circle-vigile": "Circle of the Watch",
+  "building.arcane-hunters-circle-traque": "Circle of the Hunt",
+  "building.arcane-hunters-circle-sceau": "Circle of the Seal",
+  "building.arcane-hunters-circle-abime": "Circle of the Abyss",
 
   "scenario.tutorial.name": "Tutorial",
   "scenario.survival.name": "Survival",

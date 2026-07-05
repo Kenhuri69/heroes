@@ -35,7 +35,11 @@
       "arcane-hunters-dwelling-t5",
       "arcane-hunters-dwelling-t6",
       "arcane-hunters-dwelling-t7",
-      "arcane-hunters-dwelling-t8"
+      "arcane-hunters-dwelling-t8",
+      "arcane-hunters-circle-vigile",
+      "arcane-hunters-circle-traque",
+      "arcane-hunters-circle-sceau",
+      "arcane-hunters-circle-abime"
     ],
     "dwellings": [
       { "tier": 1, "unitId": "t1-eleve", "buildingId": "arcane-hunters-dwelling-t1" },

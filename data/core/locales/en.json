@@ -198,6 +198,7 @@
   "town.min": "Min",
   "town.max": "Max",
   "town.requirementMissing": "{building} level {level} required",
+  "town.viewEmpty": "No building built yet.",
   "town.market": "Market",
   "town.marketSell": "Sell",
   "town.marketBuy": "Buy",

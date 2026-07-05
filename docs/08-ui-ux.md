@@ -54,6 +54,13 @@
 > (`tradeQuote`, pas de réimplémentation du taux). La **Guilde** (apprentissage
 > de sort) reste différée (pas de commande moteur au MVP).
 
+> 🚧 **État U5 (tranche A)** : **vue de ville peinte** — les bâtiments construits
+> apparaissent en vignettes sur un décor gouache (dégradé placeholder), en bande
+> à défilement horizontal (touch-first), au-dessus des onglets ; tap sur un
+> bâtiment ⇒ onglet Construire. Réutilise les vignettes existantes (repli
+> procédural). Décors bespoke par faction + spritesheets d'unités = tranches
+> ultérieures du jalon Beta.
+
 ### 2.3 Écran héros
 
 - Portrait, attributs, XP ; **poupée d'équipement** 10 slots + sac ; compétences (6 slots, rangs) ; grimoire (filtré par école/cercle, coût mana visible, sorts indisponibles grisés avec raison).

@@ -162,6 +162,16 @@ export function weekOf(day: number): number {
   return Math.floor((day - 1) / 7) + 1;
 }
 
+/**
+ * Id du joueur humain (contrôleur `'human'`) de la partie — la vérité est le
+ * champ `controller`, pas une convention `'player-1'` (remédiation R3/CL5 : un
+ * scénario peut nommer autrement son joueur humain). `null` hors partie ou si
+ * aucun joueur humain (partie IA-vs-IA). Le premier humain trouvé en MVP solo.
+ */
+export function humanPlayerId(state: GameState): string | null {
+  return state.players.find((p) => p.controller === 'human')?.id ?? null;
+}
+
 export function emptyResources(): Resources {
   return { gold: 0, wood: 0, ore: 0, crystal: 0, gems: 0, sulfur: 0, mercury: 0 };
 }

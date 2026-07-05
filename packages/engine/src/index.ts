@@ -5,6 +5,7 @@ export {
   createEmptyState,
   emptyResources,
   weekOf,
+  humanPlayerId,
   CURRENT_SAVE_VERSION,
   RESOURCE_IDS,
   type Calendar,

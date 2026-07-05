@@ -4,7 +4,7 @@ import { RESOURCE_IDS, weekOf, type ArmyStack } from '@heroes/engine';
 import { useApp, appStore } from '../app/store';
 import { back, closeModalKind, openModal, useModals, useScreen } from '../app/router';
 import { dispatch } from '../app/dispatch';
-import { humanId } from '../app/game';
+import { humanHeroes, humanId, humanTowns, resolveSelectedHero } from '../app/game';
 import { saveGame, restoreSavedGame } from '../app/save';
 import { eventBus } from '../app/events';
 import { RESOURCE_COLORS } from '../render/mapObjects';
@@ -21,6 +21,7 @@ import { HeroSkills } from './HeroSkills';
 import { HeroInventory } from './HeroInventory';
 import { SkillChoice } from './SkillChoice';
 import { OutcomeOverlay } from './OutcomeOverlay';
+import { FactionBadge } from './FactionBadge';
 import './styles.css';
 
 export function mountUi(root: HTMLElement): void {
@@ -149,13 +150,47 @@ function ArmySlots({ army }: { army: ArmyStack[] }) {
 }
 
 /**
+ * Bandeau de portraits (doc 08 §2.1, lot UX U4) : sélectionne le héros humain
+ * actif parmi tous ceux du joueur. Avec un seul héros, un unique bouton déjà
+ * sélectionné — comportement identique à avant U4.
+ */
+function HeroStrip() {
+  useApp((s) => s.locale);
+  // Sélectionne `s.game` (réf stable) puis dérive la liste dans le corps : un
+  // sélecteur renvoyant `game.heroes.filter(...)` créerait un NOUVEAU tableau à
+  // chaque appel → `useSyncExternalStore` boucle à l'infini (renderer tué).
+  const game = useApp((s) => s.game);
+  const heroes = humanHeroes(game);
+  const selectedId = useApp((s) => resolveSelectedHero(s.game, s.selectedHeroId)?.id);
+  return (
+    <ol class="hero-strip" data-testid="hero-strip">
+      {heroes.map((h) => (
+        <li key={h.id}>
+          <button
+            class={`hero-portrait${h.id === selectedId ? ' selected' : ''}`}
+            data-testid={`hero-select-${h.id}`}
+            aria-pressed={h.id === selectedId}
+            aria-label={t('hero.select', { level: h.level })}
+            onClick={() => appStore.setState({ selectedHeroId: h.id })}
+          >
+            <span class="hero-portrait-mini" aria-hidden="true" />
+            <span class="hero-portrait-level">{h.level}</span>
+          </button>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+/**
  * Tiroir latéral (doc 08 §2.1) : portrait placeholder, niveau/XP, attributs,
- * armée 7 slots lecture seule. Mobile : ancré à gauche, replié par défaut
+ * armée 7 slots lecture seule, pour le héros SÉLECTIONNÉ (bandeau `HeroStrip`
+ * en tête, lot UX U4). Mobile : ancré à gauche, replié par défaut
  * (hamburger ≥ 44 px) ; desktop : ancré à droite via media query CSS.
  */
 function HeroDrawer() {
   useApp((s) => s.locale);
-  const hero = useApp((s) => s.game.heroes.find((h) => h.playerId === humanId(s.game)));
+  const hero = useApp((s) => resolveSelectedHero(s.game, s.selectedHeroId));
   const [open, setOpen] = useState(false);
   if (!hero) return null;
   return (
@@ -169,6 +204,7 @@ function HeroDrawer() {
         ☰
       </button>
       <aside class={`hero-drawer${open ? ' open' : ''}`} data-testid="hero-drawer">
+        <HeroStrip />
         <div class="hero-portrait-placeholder" aria-hidden="true" />
         <div class="hero-level" data-testid="hero-level">
           {t('hero.level', { level: hero.level })}
@@ -206,10 +242,10 @@ function HeroDrawer() {
   );
 }
 
-/** Bandeau bas repliable (portrait, doc 08 §2.1) — accès rapide à l'armée. */
+/** Bandeau bas repliable (portrait, doc 08 §2.1) — accès rapide à l'armée du héros sélectionné. */
 function ArmyBand() {
   useApp((s) => s.locale);
-  const hero = useApp((s) => s.game.heroes.find((h) => h.playerId === humanId(s.game)));
+  const hero = useApp((s) => resolveSelectedHero(s.game, s.selectedHeroId));
   const [collapsed, setCollapsed] = useState(false);
   if (!hero) return null;
   return (
@@ -227,10 +263,12 @@ function TurnBar({ onOpenOptions }: { onOpenOptions: () => void }) {
   useApp((s) => s.locale);
   const day = useApp((s) => s.game.calendar.day);
   const humanPlayerId = useApp((s) => humanId(s.game));
-  const hero = useApp((s) => s.game.heroes.find((h) => h.playerId === humanPlayerId));
+  const hero = useApp((s) => resolveSelectedHero(s.game, s.selectedHeroId));
   const hint = useApp((s) => s.guardianHint);
   const bands = useApp((s) => s.strengthBands);
-  const firstOwnedTown = useApp((s) => s.game.towns.find((town) => town.ownerPlayerId === humanId(s.game)));
+  // Réf `s.game` stable puis dérivation dans le corps (cf. HeroStrip) : un
+  // sélecteur `humanTowns(s.game)` renverrait un nouveau tableau → boucle infinie.
+  const towns = humanTowns(useApp((s) => s.game));
   const unread = useApp((s) => s.journalUnread);
   return (
     <>
@@ -282,14 +320,17 @@ function TurnBar({ onOpenOptions }: { onOpenOptions: () => void }) {
         <button data-testid="load" onClick={() => void restoreSavedGame('manual')}>
           {t('turnBar.load')}
         </button>
-        {firstOwnedTown && (
+        {towns.map((town) => (
           <button
-            data-testid="town-open"
-            onClick={() => openModal({ kind: 'town', townId: firstOwnedTown.id })}
+            key={town.id}
+            class="town-open"
+            data-testid={`town-open-${town.id}`}
+            onClick={() => openModal({ kind: 'town', townId: town.id })}
           >
+            <FactionBadge factionId={town.factionId} />
             {t('town.open')}
           </button>
-        )}
+        ))}
         <button
           class="end-turn"
           data-testid="end-turn"

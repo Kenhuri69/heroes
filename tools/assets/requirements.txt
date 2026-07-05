@@ -1,0 +1,7 @@
+# Outillage assets (tools/assets/*) — Python 3.10+
+pillow>=10
+numpy>=1.26
+scipy>=1.11
+# Optionnel, LOURD (modèle ~176 Mo au 1er run) — n'installer que pour le
+# détourage d'images à fond chargé (process_sprite.py / sheet_extract --method rembg) :
+# rembg[cpu]>=2.0

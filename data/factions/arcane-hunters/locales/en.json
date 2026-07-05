@@ -7,5 +7,18 @@
   "unit.t5-lame.name": "Oathbound Blade",
   "unit.t6-chasseresse.name": "Abyss Huntress",
   "unit.t7-manticore.name": "Trained Manticore",
-  "unit.t8-penitent.name": "Demonic Penitent"
+  "unit.t8-penitent.name": "Demonic Penitent",
+  "building.arcane-hunters-dwelling-t1": "Duskwatch Pupil dwelling",
+  "building.arcane-hunters-dwelling-t2": "Bound Familiar dwelling",
+  "building.arcane-hunters-dwelling-t3": "Circle Prefect dwelling",
+  "building.arcane-hunters-dwelling-t4": "Wandering Librarian dwelling",
+  "building.arcane-hunters-dwelling-t5": "Oathbound Blade dwelling",
+  "building.arcane-hunters-dwelling-t6": "Abyss Huntress dwelling",
+  "building.arcane-hunters-dwelling-t7": "Trained Manticore dwelling",
+  "building.arcane-hunters-dwelling-t8": "Demonic Penitent dwelling",
+  "building.arcane-hunters-circle-vigile": "Circle of the Watcher",
+  "building.arcane-hunters-circle-traque": "Circle of the Hunt",
+  "building.arcane-hunters-circle-sceau": "Circle of the Seal",
+  "building.arcane-hunters-circle-abime": "Circle of the Abyss",
+  "factionResource.essence": "Essence"
 }

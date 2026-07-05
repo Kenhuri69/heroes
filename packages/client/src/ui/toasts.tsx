@@ -1,7 +1,7 @@
 import { useEffect } from 'preact/hooks';
 import { appStore, useApp } from '../app/store';
 import { eventBus, type AppEvent } from '../app/events';
-import { t, resolveUnitName, resolveSpellName, resolveSkillName } from '../app/i18n';
+import { t, resolveUnitName, resolveSpellName, resolveSkillName, resolveBuildingName, resolveFactionResourceName } from '../app/i18n';
 import './toasts.css';
 
 const TOAST_DURATION_MS = 4000;
@@ -38,7 +38,7 @@ function toastMessage(event: AppEvent): string | null {
     case 'FactionResourceGained':
       return t('toast.factionResourceGained', {
         amount: event.amount,
-        resource: t(`factionResource.${event.resource}`),
+        resource: resolveFactionResourceName(event.resource),
       });
     case 'HeroLevelUp':
       return t('toast.heroLevelUp', { level: event.level });
@@ -62,7 +62,7 @@ function toastMessage(event: AppEvent): string | null {
     case 'TownGrowth':
       return t('toast.townGrowth', { added: event.added, unit: resolveUnitName(event.unitId) });
     case 'TownBuilt':
-      return t('toast.townBuilt', { building: t(`building.${event.buildingId}`) });
+      return t('toast.townBuilt', { building: resolveBuildingName(event.buildingId) });
     case 'UnitsRecruited':
       return t('toast.unitsRecruited', { count: event.count, unit: resolveUnitName(event.unitId) });
     // Fin de partie (doc 02 §6, plan phase-3.5) — l'overlay victoire/défaite

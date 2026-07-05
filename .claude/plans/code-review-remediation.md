@@ -245,12 +245,20 @@ pas de `concurrency`/`timeout-minutes` ; `__HEROES_TEST__` exposé en prod.
       `content:check` étendu : `checkCoreNameKeys(report)` exige la présence
       fr+en pour tout sort/compétence/artefact chargé (testé). Smoke : le livre
       de sorts affiche « Éclair magique » (pas `eclair-magique`).
-- [ ] **R4b** : clés `building.<id>` pour les dwellings **via locales de
-      paquet** (résolveur `resolveBuildingName` à faire retomber sur les
-      locales de paquet ; champ `name` du schéma bâtiment = l'autre option,
-      trancher) ; déplacer `factionResource.essence` core → paquet
-      arcane-hunters ; étendre `content:check`/audit aux bâtiments.
-- Vérif R4a : audit spell/skill/artifact « 0 id brut » (content:check + smoke).
+- [x] **R4b** (CO6 + CO7) : résolveurs `resolveBuildingName`/
+      `resolveFactionResourceName` (i18n.ts) qui retombent sur les locales de
+      PAQUET après le core (`resolveCoreOrPack`) ; 6 bâtiments communs nommés
+      (core), 27 dwellings/Cercles nommés dans les locales de paquet (dérivés
+      du nom d'unité + noms de Cercles) ; `factionResource.essence` déplacé
+      core → paquet arcane-hunters (découplage doc 06). `content:check` étendu :
+      `checkCoreNameKeys` couvre les bâtiments communs, nouveau
+      `checkPackNameKeys` exige `building.<id>` + `factionResource.<id>` fr+en
+      par paquet (2 tests). **Décision** : clés `building.<id>` (pas le champ
+      `name` du schéma, laissé optionnel inutilisé — l'`Omit` moteur l'empêche
+      d'atteindre le client). Smoke : l'onglet Construire affiche « Guilde des
+      mages ».
+- Vérif : audit « 0 id brut à l'écran » (content:check exhaustif + smoke sort
+  « Éclair magique » + smoke ville « Guilde des mages »). **R4 terminé.**
 
 ### Lot R5 — Pipeline contenu & CLI (CO1, CO2, CO3, CO4, CO8, CO9)
 > **R5a livré** (CO1 + CO2, outillage faction cassé). **R5b livré** (CO3 + CO8,
@@ -432,6 +440,14 @@ commit (docs = source de vérité).
   +5 tests contenu (271 total). Vérif verte (lint, content:check, build
   62,2 Ko, 40 smoke, garde faction vert). Reste : CO4 → lot « skills » dédié
   (avec la dette Commandement/moral), CO9 → lot de résilience au boot.
+- **2026-07-05** — **Lot R4b livré (CO6 + CO7) → R4 terminé** : noms de
+  bâtiments et de ressources de faction. Résolveurs client retombant sur les
+  locales de paquet ; 6 bâtiments communs + 27 dwellings/Cercles nommés ;
+  `factionResource.essence` déplacé dans le paquet arcane-hunters ;
+  `content:check` étendu (`checkPackNameKeys`, +2 tests). Smoke ville « Guilde
+  des mages ». Vérif verte (280 tests, lint, content:check exhaustif, build,
+  42 smoke, garde faction vert). **R4 complet.** Reste : R6 (CI/tests), R7
+  (dette/duplication), R8 (docs) ; chantier UX §5.
 - **2026-07-05** — **Lot R4a livré (CO5)** : noms localisés de contenu. 28 clés
   `spell.*`/`skill.*`/`artifact.*` fr+en (l'UI affichait les ids bruts) ;
   validateur exporté `checkCoreNameKeys` branché dans `content:check` (exige la

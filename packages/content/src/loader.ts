@@ -243,6 +243,28 @@ export function checkCoreNameKeys(report: LoadReport): string[] {
   check('spell', report.content.coreSpells.map((s) => s.id));
   check('skill', report.content.coreSkills.map((s) => s.id));
   check('artifact', report.content.coreArtifacts.map((a) => a.id));
+  // R4b (CO6) : bâtiments COMMUNS (townHall/fort/guilde…) — nommés au niveau core.
+  check('building', report.content.coreBuildings.map((b) => b.id));
+  return errors;
+}
+
+/**
+ * Remédiation R4b (CO6/CO7) : les noms de bâtiments de faction (dwellings,
+ * Cercles) et de ressources de faction vivent dans les locales de PAQUET (doc
+ * 06 : le core ne connaît aucune faction). Exige `building.<id>` et
+ * `factionResource.<id>` en fr + en pour chaque paquet chargé.
+ */
+export function checkPackNameKeys(report: LoadReport): string[] {
+  const errors: string[] = [];
+  for (const pack of report.content.packs) {
+    const { fr, en } = pack.locales;
+    const need = (key: string): void => {
+      if (!(key in fr)) errors.push(`factions/${pack.manifest.id}/locales/fr.json: clé de nom manquante '${key}'`);
+      if (!(key in en)) errors.push(`factions/${pack.manifest.id}/locales/en.json: clé de nom manquante '${key}'`);
+    };
+    for (const b of pack.buildings) need(`building.${b.id}`);
+    for (const r of pack.manifest.factionResources) need(`factionResource.${r.id}`);
+  }
   return errors;
 }
 

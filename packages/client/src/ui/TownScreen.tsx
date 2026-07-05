@@ -4,7 +4,7 @@ import type { BuildingDef, CombatUnitDef, TownState } from '@heroes/engine';
 import { useApp, appStore } from '../app/store';
 import { dispatch } from '../app/dispatch';
 import { humanId } from '../app/game';
-import { t, resolveUnitName, commandErrorMessage } from '../app/i18n';
+import { t, resolveUnitName, commandErrorMessage, resolveBuildingName, resolveFactionResourceName } from '../app/i18n';
 import { FactionBadge } from './FactionBadge';
 import './town.css';
 
@@ -21,9 +21,9 @@ interface UnitEconomyFields {
 
 const CORE_RESOURCE_IDS: ReadonlySet<string> = new Set<string>(RESOURCE_IDS);
 
-/** Nom localisé d'une ressource de coût — commune (`resource.<id>`) ou de faction. */
+/** Nom localisé d'une ressource de coût — commune (`resource.<id>`) ou de faction (paquet, CO7). */
 function resourceLabel(id: string): string {
-  return CORE_RESOURCE_IDS.has(id) ? t(`resource.${id}`) : t(`factionResource.${id}`);
+  return CORE_RESOURCE_IDS.has(id) ? t(`resource.${id}`) : resolveFactionResourceName(id);
 }
 
 type BuildStatus = 'built' | 'available' | 'locked';
@@ -39,12 +39,9 @@ function scaleCost(cost: Record<string, number>, factor: number): Record<string,
   return scaled;
 }
 
-/** Nom localisé d'un bâtiment via `building.<id>` (clés core communes) ; repli sur l'id brut
- * (bâtiments spécifiques de faction, non nommés au niveau core). */
+/** Nom localisé d'un bâtiment — core (`townHall`…) ou dwelling de paquet (CO6), repli id. */
 function buildingName(id: string): string {
-  const key = `building.${id}`;
-  const translated = t(key);
-  return translated === key ? id : translated;
+  return resolveBuildingName(id);
 }
 
 function nextBuildStatus(

@@ -7,5 +7,18 @@
   "unit.t5-lame.name": "Lame du Serment",
   "unit.t6-chasseresse.name": "Chasseresse de l'Abîme",
   "unit.t7-manticore.name": "Manticore de Dressage",
-  "unit.t8-penitent.name": "Pénitent Démonique"
+  "unit.t8-penitent.name": "Pénitent Démonique",
+  "building.arcane-hunters-dwelling-t1": "Habitation : Élève de Sombreveille",
+  "building.arcane-hunters-dwelling-t2": "Habitation : Familier lié",
+  "building.arcane-hunters-dwelling-t3": "Habitation : Préfet de Cercle",
+  "building.arcane-hunters-dwelling-t4": "Habitation : Bibliothécaire Errant",
+  "building.arcane-hunters-dwelling-t5": "Habitation : Lame du Serment",
+  "building.arcane-hunters-dwelling-t6": "Habitation : Chasseresse de l'Abîme",
+  "building.arcane-hunters-dwelling-t7": "Habitation : Manticore de Dressage",
+  "building.arcane-hunters-dwelling-t8": "Habitation : Pénitent Démonique",
+  "building.arcane-hunters-circle-vigile": "Cercle du Vigile",
+  "building.arcane-hunters-circle-traque": "Cercle de la Traque",
+  "building.arcane-hunters-circle-sceau": "Cercle du Sceau",
+  "building.arcane-hunters-circle-abime": "Cercle de l’Abîme",
+  "factionResource.essence": "Essence"
 }

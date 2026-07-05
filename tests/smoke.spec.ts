@@ -525,6 +525,9 @@ test('ville : une construction refusée affiche une erreur localisée (remédiat
   await page.getByTestId('town-open').click();
   await page.getByTestId('town-tab-build').click();
 
+  // Remédiation R4b (CO6) : les bâtiments portent leur NOM localisé, pas leur id.
+  await expect(page.getByTestId('town-panel-build')).toContainText('Guilde des mages');
+
   // Le fort coûte 5000 or + 20 minerai ; le joueur démarre avec 2000/10/10 :
   // la construction est refusée (`cannotAfford`) — clic via l'UI (pas dispatch).
   await page.getByTestId('town-build-fort').click();

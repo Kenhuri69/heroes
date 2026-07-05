@@ -94,7 +94,6 @@
   "toast.combatLost": "Defeat…",
   "toast.undeadRaised": "+{count} {unit} raised (Necromancy)",
   "toast.factionResourceGained": "+{amount} {resource} (hunt)",
-  "factionResource.essence": "Essence",
   "toast.heroLevelUp": "Level {level} reached!",
   "toast.gameLoaded": "Game loaded",
   "toast.saveFailed": "Save failed — storage unavailable",
@@ -153,6 +152,13 @@
   "artifact.egide-de-pierre": "Stone Aegis",
   "artifact.orbe-de-savoir": "Orb of Knowledge",
   "artifact.trefle-chance": "Lucky Clover",
+
+  "building.townHall": "Town Hall",
+  "building.fort": "Fort",
+  "building.mageGuild": "Mage Guild",
+  "building.market": "Market",
+  "building.tavern": "Tavern",
+  "building.forge": "Forge",
 
   "resource.gold": "Gold",
   "resource.wood": "Wood",

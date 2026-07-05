@@ -6,5 +6,12 @@
   "unit.t4-vampire.name": "Vampire",
   "unit.t5-liche.name": "Lich",
   "unit.t6-cavalier-funeste.name": "Doom Knight",
-  "unit.t7-dragon-os.name": "Bone Dragon"
+  "unit.t7-dragon-os.name": "Bone Dragon",
+  "building.necropolis-dwelling-t1": "Skeleton dwelling",
+  "building.necropolis-dwelling-t2": "Rotting Zombie dwelling",
+  "building.necropolis-dwelling-t3": "Spectre dwelling",
+  "building.necropolis-dwelling-t4": "Vampire dwelling",
+  "building.necropolis-dwelling-t5": "Lich dwelling",
+  "building.necropolis-dwelling-t6": "Doom Knight dwelling",
+  "building.necropolis-dwelling-t7": "Bone Dragon dwelling"
 }

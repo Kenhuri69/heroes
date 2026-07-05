@@ -6,5 +6,12 @@
   "unit.t4-griffon.name": "Griffin",
   "unit.t5-pretresse.name": "Priestess",
   "unit.t6-chevalier-griffon.name": "Griffin Knight",
-  "unit.t7-ange.name": "Angel"
+  "unit.t7-ange.name": "Angel",
+  "building.haven-dwelling-t1": "Conscript dwelling",
+  "building.haven-dwelling-t2": "Archer dwelling",
+  "building.haven-dwelling-t3": "Blade Brother dwelling",
+  "building.haven-dwelling-t4": "Griffin dwelling",
+  "building.haven-dwelling-t5": "Priestess dwelling",
+  "building.haven-dwelling-t6": "Griffin Knight dwelling",
+  "building.haven-dwelling-t7": "Angel dwelling"
 }

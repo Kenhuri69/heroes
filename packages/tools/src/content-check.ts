@@ -6,6 +6,7 @@ import {
   buildSkillCatalog,
   buildSpellCatalog,
   checkCoreNameKeys,
+  checkPackNameKeys,
   knownUnitIds,
   loadContent,
   loadMap,
@@ -31,11 +32,13 @@ for (const rejected of report.rejected) {
 // non bloquantes au boot (remédiation CO9), mais échec de `content:check` (CI).
 for (const err of report.configErrors) console.error(`✗ config.newGame — ${err}`);
 
-// Noms localisés obligatoires (remédiation R4 CO5) : sort/compétence/artefact.
-const nameKeyErrors = checkCoreNameKeys(report);
+// Noms localisés obligatoires (remédiation R4) : sort/compétence/artefact +
+// bâtiments communs (CO5, locales core) ; dwellings/Cercles + ressources de
+// faction (CO6/CO7, locales de paquet).
+const nameKeyErrors = [...checkCoreNameKeys(report), ...checkPackNameKeys(report)];
 for (const err of nameKeyErrors) console.error(`✗ locales — ${err}`);
 if (nameKeyErrors.length === 0) {
-  console.log('✓ noms localisés — sorts/compétences/artefacts fr/en complets');
+  console.log('✓ noms localisés — sorts/compétences/artefacts/bâtiments/ressources fr/en complets');
 }
 
 // Arbre de bâtiments : agrège core + paquets valides, détecte les collisions d'id.

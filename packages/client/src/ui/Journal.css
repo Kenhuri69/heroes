@@ -1,0 +1,73 @@
+/* Journal d'événements (doc 08 §3) — réutilise .modal-backdrop/.modal/
+   .modal-header/.modal-close (options.css) ; ce fichier ne couvre que le
+   contenu propre au journal + le bouton cloche du HUD. */
+.modal.journal-panel {
+  width: min(92vw, 480px);
+  max-height: 86vh;
+  overflow-y: auto;
+  padding: 16px 18px;
+  border: 1px solid #3a3d47;
+  border-radius: 10px;
+  background: #1c1e25;
+  color: #e8e2d0;
+  font: 0.875rem/1.4 system-ui, sans-serif;
+}
+
+.journal-empty {
+  opacity: 0.8;
+  padding: 8px 0;
+}
+
+.journal-entries {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.journal-entry {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  border: 1px solid #3a3d47;
+  border-radius: 8px;
+  background: #262a33;
+  font-size: 0.8125rem;
+}
+
+.journal-entry-day {
+  opacity: 0.75;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Bouton cloche du HUD (barre d'actions, doc 08 §2.1) — cible ≥ 44 px comme
+   .options-toggle, badge de non-lus en pastille de coin. */
+.journal-toggle {
+  position: relative;
+  font-size: 1.125rem;
+}
+
+.journal-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #7a2d22;
+  border: 1px solid #a0503f;
+  color: #e8e2d0;
+  font: 700 0.6875rem system-ui, sans-serif;
+  line-height: 1;
+}

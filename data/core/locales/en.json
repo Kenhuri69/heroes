@@ -16,6 +16,12 @@
   "options.exportError": "Export failed.",
   "options.importError": "Invalid save file.",
 
+  "journal.title": "Event log",
+  "journal.empty": "No events yet.",
+  "journal.open": "Open the event log",
+  "journal.close": "Close the event log",
+  "journal.entryDay": "Day {day}",
+
   "turnBar.calendar": "Day {day} · Week {week}",
   "turnBar.movementPoints": "MP {points}",
   "turnBar.save": "Save",
@@ -99,6 +105,8 @@
   "toast.scenarioFailed": "Could not start the scenario",
   "toast.spellCast": "{hero} casts {spell}",
   "toast.skillLearned": "{skill} rank {rank} learned",
+  "toast.saved": "Game saved.",
+  "toast.townCaptured": "Town captured!",
 
   "cmdError.default": "Action not allowed",
   "cmdError.cannotAfford": "Not enough resources",

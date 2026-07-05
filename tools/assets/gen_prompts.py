@@ -371,7 +371,7 @@ def hero_avatars_sheet() -> dict[str, str]:
             "painterly digital painting (Heroes of Might and Magic style), NOT photorealistic,",
             "bust shot, 3/4 face turn, determined expression,",
             "warm key light upper-left, cool rim light,",
-            "each bust over a soft dark faction-themed backdrop kept INSIDE its cell,",
+            "each bust fully isolated with clear empty space around head and shoulders (for clean cut-out),",
         ],
         dest="assets/heroes/",
         side=256,

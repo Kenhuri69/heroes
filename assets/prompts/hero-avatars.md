@@ -4,7 +4,7 @@
 > Règle B (bustes painterly 256²) de `docs/12-assets-style-guide.md`. Grille **4×2**,
 > ordre row-major. Planche cible ≥ 2048×1024 px.
 
-## Prompt (à coller dans le LLM image)
+## Prompt (à coller dans Gemini — Nano Banana/Copilot en repli)
 
 ```
 Portrait sheet, 6 heroic fantasy bust portraits in a 4x2 grid,

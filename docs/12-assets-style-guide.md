@@ -18,7 +18,7 @@
 | **P** | Tuiles terrain, icônes UI, déclinaisons logo | Procédural (Pillow, seed fixe) | 64² (tuiles), 256→16 (icônes) | Opaque (tuiles) / transparent (icônes) |
 | **A** | Sprites d'unités (combat + carte) | Planche LLM + détourage | **512×512** RGBA | **Transparent strict** |
 | **B** | Avatars de héros | Planche LLM + détourage léger | **256×256** | Décor sombre flou accepté |
-| **C** | Icônes d'artefacts, vignettes de bâtiments | Planche LLM + `sheet_extract` | 512² par sujet | Planche gris clair plat → transparent |
+| **C** | Icônes d'artefacts, vignettes de bâtiments, mines de ressources | Planche LLM + `sheet_extract` | 512² par sujet | Planche gris clair plat → transparent |
 | **D** | Fonds d'ambiance (menu, ville, combat) | Pièce unique LLM | **1920×1080** | Opaque |
 | **E** | Logo du jeu | Pièce unique LLM | ≥ 1024² | Transparent |
 
@@ -102,6 +102,9 @@
 ## 4. Règle C — planches d'icônes (artefacts, bâtiments)
 
 Contraintes de planche **non négociables** (sinon le découpage souffre) :
+- **8 sujets max par planche** (grille 4×2) — cible Gemini : au-delà, la
+  qualité par cellule chute et la découpe souffre. `gen_prompts.py` éclate
+  automatiquement une famille plus grande en planches `-p1`, `-p2`, …
 - Fond **plat et CLAIR** — `flat uniform LIGHT GREY background (#c8c8c8)`,
   identique partout. ⚠️ Un fond sombre rend les objets sombres (cuir, bois,
   fer) iso-couleur au fond → **indétourables**. Erreur historique Hogwarth,
@@ -122,6 +125,9 @@ Vérifier la planche QC à l'œil : cadre vert = PASS, rouge = FAIL → regéné
   (équivalent `icon_factory.py --raster`) sera porté au lot intégration.
 - Bâtiments → `assets/buildings/<faction>/<buildingId>.png` (vignettes de
   l'écran de ville ; la vue de ville peinte est un chantier Beta séparé).
+- Mines → `assets/mines/mine-<ressource>.png` (objets de carte : une mine par
+  ressource du jeu, dérivées des manifestes par `gen_prompts.py` ; silhouette
+  lisible à 64 px = taille de tuile).
 
 ## 5. Règle D — fonds d'ambiance
 

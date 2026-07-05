@@ -4,7 +4,7 @@
 > Règle C (planche d'icônes, fond gris clair plat) de `docs/12-assets-style-guide.md`. Grille **4×1**,
 > ordre row-major. Planche cible ≥ 2048×512 px.
 
-## Prompt (à coller dans le LLM image)
+## Prompt (à coller dans Gemini — Nano Banana/Copilot en repli)
 
 ```
 Item sheet, 4 magical fantasy artifacts in a 4x1 grid,

@@ -152,6 +152,7 @@ function stack(partial: Pick<CombatStack, 'id' | 'side' | 'slot' | 'unitId' | 'c
     ammo: null,
     marks: 0,
     immobilizedRounds: 0,
+    transformed: false,
     acted: false,
     statuses: [],
     ...partial,
@@ -393,6 +394,29 @@ describe('performStrike / applyAction — intégration dégâts', () => {
     expect(immobAfter?.acted).toBe(true); // tour sauté
     expect(events).toContainEqual({ type: 'StackImmobilized', stackId: 'attacker-0' });
     expect(next.combat?.activeStackId).toBe('defender-0'); // c'est l'autre pile qui joue
+  });
+
+  it('demonform : bascule à la 1ʳᵉ attaque (StackTransformed) et gagne +50 % de dégâts', () => {
+    const catalog = {
+      atk: unit({
+        id: 'atk',
+        stats: { hp: 210, attack: 5, defense: 5, damage: [10, 10], speed: 7 },
+        abilities: [{ id: 'demonform', params: { damageBonus: 0.5, magicResistance: 0.5 } }],
+      }),
+      def: unit({ id: 'def', stats: { hp: 1000, attack: 5, defense: 5, damage: [1, 1], speed: 1 } }),
+    };
+    const attacker = stack({ id: 'attacker-0', side: 'attacker', slot: 0, unitId: 'atk', count: 1, pos: { col: 0, row: 0 }, firstHp: 210 });
+    const defender = stack({ id: 'defender-0', side: 'defender', slot: 0, unitId: 'def', count: 1, pos: { col: 1, row: 0 }, firstHp: 1000 });
+    const state = { ...baseState(catalog), combat: combatState([attacker, defender]) };
+    const events: GameEvent[] = [];
+    const next = produce(state, (draft) => {
+      applyAction(draft, events, 'attacker-0', { type: 'attack', targetStackId: 'defender-0' });
+    });
+    // diff 0 → mult 1 × forme démon 1,5 → dégâts round(10 × 1,5) = 15.
+    const strike = events.find((e) => e.type === 'StackAttacked') as Extract<GameEvent, { type: 'StackAttacked' }>;
+    expect(strike.damage).toBe(15);
+    expect(next.combat?.stacks.find((s) => s.id === 'attacker-0')?.transformed).toBe(true);
+    expect(events).toContainEqual({ type: 'StackTransformed', stackId: 'attacker-0' });
   });
 
   it('doubleAttack : 2 frappes, riposte intercalée une seule fois', () => {

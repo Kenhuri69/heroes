@@ -1,4 +1,4 @@
-import { heroLuckOf, killsFromDamage } from '../combat/damage';
+import { heroLuckOf, killsFromDamage, magicResistanceOf } from '../combat/damage';
 import { combatRules, collectCasualties } from '../combat/state-helpers';
 import { checkCombatEnd } from '../combat/turns';
 import type { CombatState } from '../combat/types';
@@ -86,7 +86,9 @@ export function handleCastSpell(draft: Draft, cmd: CastSpellCmd, events: GameEve
       const luckRoll = rollRange(draft.rng, 0, 99);
       draft.rng = luckRoll.state;
       const lucky = luckRoll.value < Math.round(rules.luckChancePerPoint * luck * 100);
-      amount = spellDamageAmount(spell, power, lucky);
+      // Résistance à la magie (doc 05 §4) : la forme humaine d'un `demonform`
+      // encaisse moins ; la forme démon (transformée) subit les dégâts pleins.
+      amount = spellDamageAmount(spell, power, lucky, magicResistanceOf(targetDef, target.transformed));
       const pool = (target.count - 1) * targetDef.stats.hp + target.firstHp;
       kills = killsFromDamage(pool, targetDef.stats.hp, target.count, amount);
       const remaining = Math.max(0, pool - amount);
@@ -187,7 +189,7 @@ export function estimateSpell(
   if (spell.kind === 'damage') {
     const targetDef = state.unitCatalog[target.unitId];
     if (!targetDef) throw new Error(`estimateSpell: unité inconnue '${target.unitId}'`);
-    const amount = spellDamageAmount(spell, power, false);
+    const amount = spellDamageAmount(spell, power, false, magicResistanceOf(targetDef, target.transformed));
     const pool = (target.count - 1) * targetDef.stats.hp + target.firstHp;
     const kills = killsFromDamage(pool, targetDef.stats.hp, target.count, amount);
     return { amount, kills, kind: 'damage' };

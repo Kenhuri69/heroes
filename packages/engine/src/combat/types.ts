@@ -60,6 +60,8 @@ export interface CombatStack {
   marks: number;
   /** Tours d'immobilisation restants (doc 05 §3.1 `pinningShot`) : saute son tour tant que > 0. */
   immobilizedRounds: number;
+  /** Forme démon activée (capacité `demonform`, doc 05 §4) : bascule à la 1ʳᵉ attaque. */
+  transformed: boolean;
   /** A déjà agi ce round (vagues par vitesse décroissante — doc 02 §5.2). */
   acted: boolean;
   /** Statuts temporaires de sorts (buff/debuff, doc 02 §1.4) — vide par défaut. */

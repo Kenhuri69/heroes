@@ -11,9 +11,10 @@ Portrait sheet, 6 heroic fantasy bust portraits in a 4x2 grid,
 painterly digital painting (Heroes of Might and Magic style), NOT photorealistic,
 bust shot, 3/4 face turn, determined expression,
 warm key light upper-left, cool rim light,
-each bust over a soft dark faction-themed backdrop kept INSIDE its cell,
+each bust fully isolated with clear empty space around head and shoulders (for clean cut-out),
 each subject centered in its own cell, not touching cell edges,
 clear spacing between cells,
+IMPORTANT: keep every subject fully inside its cell with generous empty margin all around — fully spread wings, weapons, staves and all extremities must NOT be cropped or touch any edge; zoom each subject out enough that nothing is clipped,
 cell 1: a battle-hardened might hero, armored commander of the haven faction — off-white and light steel armor, sky-blue cloth, gold accents, holy light ambiance
 cell 2: a wise magic hero, robed spellcaster of the haven faction — off-white and light steel armor, sky-blue cloth, gold accents, holy light ambiance
 cell 3: a battle-hardened might hero, armored commander of the arcane-hunters faction — midnight blue and arcane violet, silver trim, glowing cyan runes, hunter gear
@@ -21,7 +22,7 @@ cell 4: a wise magic hero, robed spellcaster of the arcane-hunters faction — m
 cell 5: a battle-hardened might hero, armored commander of the necropolis faction — bone white, ash grey and black, necrotic green glow, tattered cloth, spectral mist
 cell 6: a wise magic hero, robed spellcaster of the necropolis faction — bone white, ash grey and black, necrotic green glow, tattered cloth, spectral mist
 flat uniform light grey background (#c8c8c8), no ground shadow,
-no text, no watermark, no signature, no border frame, no ground line
+no text, no watermark, no signature, no border frame, no ground line, no decorative sparkles, no star glints, no lens flare
 ```
 
 ## Extraction au retour (QC verte obligatoire — jamais committer un FAIL)

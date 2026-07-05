@@ -14,6 +14,7 @@ bold readable silhouette at 64 pixels (adventure map tile size),
 soft directional light from upper-left,
 each subject centered in its own cell, not touching cell edges,
 clear spacing between cells,
+IMPORTANT: keep every subject fully inside its cell with generous empty margin all around — fully spread wings, weapons, staves and all extremities must NOT be cropped or touch any edge; zoom each subject out enough that nothing is clipped,
 cell 1: "gold mine" — a gold mine entrance with cart rails and nuggets
 cell 2: "wood mine" — a sawmill with a water wheel and stacked logs
 cell 3: "ore mine" — an open ore pit with wooden scaffolding
@@ -23,7 +24,7 @@ cell 6: "mercury mine" — an alchemist's lab with bubbling silver vats
 cell 7: "essence mine" — an arcane essence extractor with a levitating orb
 cell 8: "sulfur mine" — a smoking sulfur pit with yellow deposits
 flat uniform light grey background (#c8c8c8), no ground shadow,
-no text, no watermark, no signature, no border frame, no ground line
+no text, no watermark, no signature, no border frame, no ground line, no decorative sparkles, no star glints, no lens flare
 ```
 
 ## Extraction au retour (QC verte obligatoire — jamais committer un FAIL)

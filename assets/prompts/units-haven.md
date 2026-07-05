@@ -15,6 +15,7 @@ army visual identity: off-white and light steel armor, sky-blue cloth, gold acce
 clear power progression from cell 1 (weakest) to the last cell (mightiest),
 each subject centered in its own cell, not touching cell edges,
 clear spacing between cells,
+IMPORTANT: keep every subject fully inside its cell with generous empty margin all around — fully spread wings, weapons, staves and all extremities must NOT be cropped or touch any edge; zoom each subject out enough that nothing is clipped,
 cell 1: tier 1 unit "Conscript (fr: Conscrit)" — slow and massive
 cell 2: tier 2 unit "Archer" — aiming a ranged weapon, slow and massive
 cell 3: tier 3 unit "Blade Brother (fr: Frère-Lame)" — steady stance
@@ -23,7 +24,7 @@ cell 5: tier 5 unit "Priestess (fr: Prêtresse)" — aiming a ranged weapon, ste
 cell 6: tier 6 unit "Griffin Knight (fr: Chevalier du Griffon)" — swift and agile
 cell 7: tier 7 unit "Angel (fr: Ange)" — large spread wings, airborne pose, swift and agile
 flat uniform light grey background (#c8c8c8), no ground shadow,
-no text, no watermark, no signature, no border frame, no ground line
+no text, no watermark, no signature, no border frame, no ground line, no decorative sparkles, no star glints, no lens flare
 ```
 
 ## Extraction au retour (QC verte obligatoire — jamais committer un FAIL)

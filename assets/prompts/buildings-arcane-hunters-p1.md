@@ -14,16 +14,17 @@ architectural identity: midnight blue and arcane violet, silver trim, glowing cy
 soft directional light from upper-left,
 each subject centered in its own cell, not touching cell edges,
 clear spacing between cells,
-cell 1: "arcane hunters dwelling t1" — the dwelling where "Duskwatch Pupil (fr: Élève de Sombreveille)" creatures are recruited
-cell 2: "arcane hunters dwelling t2" — the dwelling where "Bound Familiar (fr: Familier lié)" creatures are recruited
-cell 3: "arcane hunters dwelling t3" — the dwelling where "Circle Prefect (fr: Préfet de Cercle)" creatures are recruited
-cell 4: "arcane hunters dwelling t4" — the dwelling where "Wandering Librarian (fr: Bibliothécaire Errant)" creatures are recruited
-cell 5: "arcane hunters dwelling t5" — the dwelling where "Oathbound Blade (fr: Lame du Serment)" creatures are recruited
-cell 6: "arcane hunters dwelling t6" — the dwelling where "Abyss Huntress (fr: Chasseresse de l'Abîme)" creatures are recruited
-cell 7: "arcane hunters dwelling t7" — the dwelling where "Trained Manticore (fr: Manticore de Dressage)" creatures are recruited
-cell 8: "arcane hunters dwelling t8" — the dwelling where "Demonic Penitent (fr: Pénitent Démonique)" creatures are recruited
+IMPORTANT: keep every subject fully inside its cell with generous empty margin all around — fully spread wings, weapons, staves and all extremities must NOT be cropped or touch any edge; zoom each subject out enough that nothing is clipped,
+cell 1: "Duskwatch Pupil dwelling (fr: Habitation : Élève de Sombreveille)" — the dwelling where "Duskwatch Pupil (fr: Élève de Sombreveille)" creatures are recruited
+cell 2: "Bound Familiar dwelling (fr: Habitation : Familier lié)" — the dwelling where "Bound Familiar (fr: Familier lié)" creatures are recruited
+cell 3: "Circle Prefect dwelling (fr: Habitation : Préfet de Cercle)" — the dwelling where "Circle Prefect (fr: Préfet de Cercle)" creatures are recruited
+cell 4: "Wandering Librarian dwelling (fr: Habitation : Bibliothécaire Errant)" — the dwelling where "Wandering Librarian (fr: Bibliothécaire Errant)" creatures are recruited
+cell 5: "Oathbound Blade dwelling (fr: Habitation : Lame du Serment)" — the dwelling where "Oathbound Blade (fr: Lame du Serment)" creatures are recruited
+cell 6: "Abyss Huntress dwelling (fr: Habitation : Chasseresse de l'Abîme)" — the dwelling where "Abyss Huntress (fr: Chasseresse de l'Abîme)" creatures are recruited
+cell 7: "Trained Manticore dwelling (fr: Habitation : Manticore de Dressage)" — the dwelling where "Trained Manticore (fr: Manticore de Dressage)" creatures are recruited
+cell 8: "Demonic Penitent dwelling (fr: Habitation : Pénitent Démonique)" — the dwelling where "Demonic Penitent (fr: Pénitent Démonique)" creatures are recruited
 flat uniform light grey background (#c8c8c8), no ground shadow,
-no text, no watermark, no signature, no border frame, no ground line
+no text, no watermark, no signature, no border frame, no ground line, no decorative sparkles, no star glints, no lens flare
 ```
 
 ## Extraction au retour (QC verte obligatoire — jamais committer un FAIL)

@@ -13,6 +13,7 @@ each building isolated on its plot, slight 3/4 aerial view,
 soft directional light from upper-left,
 each subject centered in its own cell, not touching cell edges,
 clear spacing between cells,
+IMPORTANT: keep every subject fully inside its cell with generous empty margin all around — fully spread wings, weapons, staves and all extremities must NOT be cropped or touch any edge; zoom each subject out enough that nothing is clipped,
 cell 1: "Town Hall (fr: Hôtel de ville)" — a stately town hall with a clock tower
 cell 2: "Fort" — a fortified keep with battlements
 cell 3: "Mage Guild (fr: Guilde des mages)" — a wizard tower with a glowing observatory
@@ -20,7 +21,7 @@ cell 4: "Market (fr: Marché)" — a bustling covered market stall
 cell 5: "Tavern (fr: Taverne)" — a cosy timber tavern with a hanging sign
 cell 6: "Forge" — a smithy with a glowing furnace and anvil
 flat uniform light grey background (#c8c8c8), no ground shadow,
-no text, no watermark, no signature, no border frame, no ground line
+no text, no watermark, no signature, no border frame, no ground line, no decorative sparkles, no star glints, no lens flare
 ```
 
 ## Extraction au retour (QC verte obligatoire — jamais committer un FAIL)

@@ -94,6 +94,40 @@ def essence(d):
     d.ellipse([88, 82, 122, 108], fill=HILITE)
 
 
+def sulfur(d):
+    # tas de cristaux de soufre : amas jaune-orangé anguleux, halo chaud
+    base = [(40, 208), (72, 128), (128, 96), (188, 132), (216, 208)]
+    d.polygon(base, fill=OUTLINE)
+    d.polygon([(52, 200), (80, 138), (128, 112), (180, 140), (204, 200)],
+              fill=(214, 176, 40, 255))
+    # facette sombre droite + facette claire gauche pour le volume
+    d.polygon([(128, 112), (180, 140), (204, 200), (128, 200)],
+              fill=(184, 138, 26, 255))
+    d.polygon([(128, 112), (80, 138), (52, 200), (128, 200)],
+              fill=(238, 206, 78, 255))
+    # cristal saillant central
+    d.polygon([(112, 40), (146, 40), (156, 118), (102, 118)], fill=OUTLINE)
+    d.polygon([(118, 52), (140, 52), (148, 114), (110, 114)],
+              fill=(244, 214, 88, 255))
+    d.polygon([(118, 52), (129, 52), (129, 114), (110, 114)], fill=HILITE)
+
+
+def mercury(d):
+    # vif-argent : fiole trapue au liquide métallique brillant
+    d.rectangle([112, 30, 144, 58], fill=OUTLINE)              # bouchon
+    d.rectangle([118, 34, 138, 56], fill=(150, 112, 44, 255))
+    d.polygon([(96, 60), (160, 60), (196, 150), (196, 206),
+               (60, 206), (60, 150)], fill=OUTLINE)            # corps verre
+    d.polygon([(104, 70), (152, 70), (184, 152), (184, 198),
+               (72, 198), (72, 152)], fill=(70, 82, 96, 255))  # verre teinté
+    # liquide métallique (rempli aux 2/3)
+    d.polygon([(80, 128), (176, 128), (184, 152), (184, 198),
+               (72, 198), (72, 152)], fill=(176, 184, 196, 255))
+    d.ellipse([80, 118, 176, 140], fill=(210, 218, 228, 255))  # ménisque
+    d.ellipse([96, 158, 128, 186], fill=(232, 238, 246, 220))  # reflet
+    d.line([112, 78, 100, 150], fill=HILITE, width=8)          # reflet verre
+
+
 # ── stats héros / combat ───────────────────────────────────────────────────
 
 def attack(d):
@@ -210,6 +244,8 @@ ICONS = {
     "res-ore": ore,
     "res-crystal": crystal,
     "res-gems": gems,
+    "res-sulfur": sulfur,
+    "res-mercury": mercury,
     "res-essence": essence,
     # stats héros / combat (doc 02 §1)
     "stat-attack": attack,

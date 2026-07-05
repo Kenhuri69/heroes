@@ -28,8 +28,18 @@ REPO = Path(__file__).resolve().parent.parent.parent
 DATA = REPO / "data"
 OUT = REPO / "assets" / "prompts"
 
-SUFFIX = ("no text, no watermark, no signature, no border frame, no ground line")
+SUFFIX = ("no text, no watermark, no signature, no border frame, no ground line, "
+          "no decorative sparkles, no star glints, no lens flare")
 SHEET_BG = "flat uniform light grey background (#c8c8c8)"
+# Garde-fou marge (docs/12 §4) : le LLM cadre souvent trop serré et les
+# extrémités (ailes déployées, armes, bâtons, bannières) débordent → la porte
+# anti-bave de sheet_extract.py les supprime. On force un zoom arrière suffisant.
+MARGIN_GUARD = (
+    "IMPORTANT: keep every subject fully inside its cell with generous empty "
+    "margin all around — fully spread wings, weapons, staves and all "
+    "extremities must NOT be cropped or touch any edge; zoom each subject out "
+    "enough that nothing is clipped,"
+)
 
 # Palettes par faction — docs/12 §2.3 (fallback générique pour toute nouvelle
 # faction tant que sa palette n'est pas ajoutée ici ET dans le guide).
@@ -114,6 +124,7 @@ def _sheet_file(slug: str, title: str, rule: str, ids: list[str], cells: list[st
         *style_lines,
         "each subject centered in its own cell, not touching cell edges,",
         "clear spacing between cells,",
+        MARGIN_GUARD,
         cell_lines,
         f"{SHEET_BG}, no ground shadow,",
         SUFFIX,
@@ -361,7 +372,7 @@ def hero_avatars_sheet() -> dict[str, str]:
             "painterly digital painting (Heroes of Might and Magic style), NOT photorealistic,",
             "bust shot, 3/4 face turn, determined expression,",
             "warm key light upper-left, cool rim light,",
-            "each bust over a soft dark faction-themed backdrop kept INSIDE its cell,",
+            "each bust fully isolated with clear empty space around head and shoulders (for clean cut-out),",
         ],
         dest="assets/heroes/",
         side=256,
@@ -382,7 +393,8 @@ def singles_files() -> dict[str, str]:
             "wide 16:9 composition (1920x1080), focal point upper-center,",
             "darker vignetted edges, lower third kept simple for UI overlay,",
             "atmospheric depth, volumetric light,",
-            "no text, no watermark, no signature, no border frame",
+            "no text, no watermark, no signature, no border frame, "
+            "no decorative sparkles, no star glints, no lens flare",
         ])
 
     scenes = [("title", "landscape with a lone hero on horseback overlooking "

@@ -15,6 +15,7 @@ army visual identity: bone white, ash grey and black, necrotic green glow, tatte
 clear power progression from cell 1 (weakest) to the last cell (mightiest),
 each subject centered in its own cell, not touching cell edges,
 clear spacing between cells,
+IMPORTANT: keep every subject fully inside its cell with generous empty margin all around — fully spread wings, weapons, staves and all extremities must NOT be cropped or touch any edge; zoom each subject out enough that nothing is clipped,
 cell 1: tier 1 unit "Skeleton (fr: Squelette)" — unmistakably undead, slow and massive
 cell 2: tier 2 unit "Rotting Zombie (fr: Zombie putride)" — unmistakably undead, slow and massive
 cell 3: tier 3 unit "Spectre" — unmistakably undead, large spread wings, airborne pose, swift and agile
@@ -23,7 +24,7 @@ cell 5: tier 5 unit "Lich (fr: Liche)" — unmistakably undead, aiming a ranged 
 cell 6: tier 6 unit "Doom Knight (fr: Cavalier funeste)" — unmistakably undead, swift and agile
 cell 7: tier 7 unit "Bone Dragon (fr: Dragon d'os)" — unmistakably undead, large spread wings, airborne pose, swift and agile
 flat uniform light grey background (#c8c8c8), no ground shadow,
-no text, no watermark, no signature, no border frame, no ground line
+no text, no watermark, no signature, no border frame, no ground line, no decorative sparkles, no star glints, no lens flare
 ```
 
 ## Extraction au retour (QC verte obligatoire — jamais committer un FAIL)

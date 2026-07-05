@@ -2,7 +2,7 @@
   "id": "test-faction",
   "schemaVersion": 1,
   "name": "@loc:faction.test-faction.name",
-  "nativeTerrain": "plains",
+  "nativeTerrain": "grass",
   "keyResources": [
     "crystal",
     "gems"

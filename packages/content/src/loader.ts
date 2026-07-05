@@ -175,6 +175,20 @@ export async function loadContent(readJson: ReadJson): Promise<LoadReport> {
         ),
       );
   }
+  // Règle croisée (remédiation R5 CO3) : le terrain natif d'un paquet doit
+  // exister dans la config — sinon le bonus de terrain natif (vitesse/moral,
+  // doc 02 §5.1/§5.3) est mort, aucune tuile ne pouvant jamais correspondre.
+  {
+    const errors: string[] = [];
+    for (const pack of report.content.packs) {
+      const nt = pack.manifest.nativeTerrain;
+      if (!(nt in config.adventure.terrains))
+        errors.push(
+          `factions/${pack.manifest.id}/manifest.json: nativeTerrain '${nt}' inconnu de config.terrains`,
+        );
+    }
+    if (errors.length > 0) throw new PackError(errors);
+  }
   // Règle croisée : l'armée de départ ne référence que des unités chargées.
   const known = knownUnitIds(report);
   for (const stack of config.newGame.startingArmy) {
@@ -718,6 +732,37 @@ async function loadScenario(
             `${path}: joueur '${player.id}' — niveau ${pb.level} > maxLevel (${def.maxLevel}) pour '${pb.building}'`,
           );
       }
+      // Remédiation R5 (CO8) : la position de la ville de départ doit être dans
+      // la carte et sur une tuile franchissable — sinon la ville est plantée
+      // hors carte ou dans l'eau.
+      const st = player.startingTown;
+      if (map) {
+        if (st.x >= map.width || st.y >= map.height) {
+          errors.push(`${path}: joueur '${player.id}' — ville de départ hors carte (${st.x},${st.y})`);
+        } else {
+          const terrain = map.terrain[st.y * map.width + st.x];
+          const rule = terrain !== undefined ? config.adventure.terrains[terrain] : undefined;
+          if (!rule || rule.moveCost === null)
+            errors.push(
+              `${path}: joueur '${player.id}' — ville de départ sur tuile infranchissable (${st.x},${st.y})`,
+            );
+        }
+      }
+    }
+  }
+
+  // Remédiation R5 (CO8) : les objectifs opaques doivent référencer une entité
+  // réelle du scénario — une ville de départ (captureTown) ou un héros de joueur
+  // (`hero-<playerId>`, cf. `core/engine.ts` StartGame ; defeatHero) — sinon
+  // l'objectif n'est jamais satisfiable et le typo passe `content:check`.
+  const townIds = new Set(scenario.players.flatMap((p) => (p.startingTown ? [p.startingTown.id] : [])));
+  const heroIds = new Set(scenario.players.map((p) => `hero-${p.id}`));
+  for (const [playerId, obj] of Object.entries(scenario.objectives)) {
+    for (const cond of [obj.victory, obj.defeat]) {
+      if (cond.type === 'captureTown' && !townIds.has(cond.townId))
+        errors.push(`${path}: objectifs['${playerId}'] — captureTown vers ville inconnue '${cond.townId}'`);
+      if (cond.type === 'defeatHero' && !heroIds.has(cond.heroId))
+        errors.push(`${path}: objectifs['${playerId}'] — defeatHero vers héros inconnu '${cond.heroId}'`);
     }
   }
 

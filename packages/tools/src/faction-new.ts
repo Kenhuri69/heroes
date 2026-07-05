@@ -22,8 +22,10 @@ const unitId = `t1-${id}-recruit`;
 const manifest = {
   id,
   schemaVersion: 1,
+  // Terrain natif par défaut : un terrain réel de la config (remédiation R5 CO3)
+  // — `plains` n'existe pas, le bonus de terrain natif aurait été mort.
   name: `@loc:faction.${id}.name`,
-  nativeTerrain: 'plains',
+  nativeTerrain: 'grass',
   keyResources: ['crystal', 'gems'],
   factionResources: [],
   factionBonuses: [],

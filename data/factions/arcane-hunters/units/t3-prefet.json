@@ -1,0 +1,9 @@
+{
+  "id": "t3-prefet",
+  "tier": 3,
+  "name": "@loc:unit.t3-prefet.name",
+  "stats": { "hp": 17, "attack": 6, "defense": 6, "damage": [3, 6], "speed": 5 },
+  "growthPerWeek": 7,
+  "cost": { "gold": 170, "mercury": 1 },
+  "abilities": [{ "id": "shooter", "params": { "ammo": 10 } }, { "id": "mark" }]
+}

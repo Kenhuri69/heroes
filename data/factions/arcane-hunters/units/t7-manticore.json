@@ -1,0 +1,9 @@
+{
+  "id": "t7-manticore",
+  "tier": 7,
+  "name": "@loc:unit.t7-manticore.name",
+  "stats": { "hp": 130, "attack": 18, "defense": 16, "damage": [24, 36], "speed": 11 },
+  "growthPerWeek": 1,
+  "cost": { "gold": 2600, "mercury": 2, "gems": 1 },
+  "abilities": [{ "id": "flying" }, { "id": "noRetaliation" }, { "id": "mark" }]
+}

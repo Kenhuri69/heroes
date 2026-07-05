@@ -1,4 +1,10 @@
 {
   "faction.arcane-hunters.name": "Arcane Hunters",
-  "unit.t1-eleve.name": "Duskwatch Pupil"
+  "unit.t1-eleve.name": "Duskwatch Pupil",
+  "unit.t2-familier.name": "Bound Familiar",
+  "unit.t3-prefet.name": "Circle Prefect",
+  "unit.t4-bibliothecaire.name": "Wandering Librarian",
+  "unit.t5-lame.name": "Oathbound Blade",
+  "unit.t6-chasseresse.name": "Abyss Huntress",
+  "unit.t7-manticore.name": "Trained Manticore"
 }

@@ -1,4 +1,10 @@
 {
   "faction.arcane-hunters.name": "Chasseurs Arcanes",
-  "unit.t1-eleve.name": "Élève de Sombreveille"
+  "unit.t1-eleve.name": "Élève de Sombreveille",
+  "unit.t2-familier.name": "Familier lié",
+  "unit.t3-prefet.name": "Préfet de Cercle",
+  "unit.t4-bibliothecaire.name": "Bibliothécaire Errant",
+  "unit.t5-lame.name": "Lame du Serment",
+  "unit.t6-chasseresse.name": "Chasseresse de l'Abîme",
+  "unit.t7-manticore.name": "Manticore de Dressage"
 }

@@ -68,7 +68,10 @@ les planches ; absente des pièces uniques bg/logo). Prompts regénérés.
 - [x] **Avatars de héros** (6 bustes 256²) : haven/arcane-hunters/necropolis ×
       might/magic, extraction 6/6 PASS. Prompt corrigé (fond #c8c8c8 cohérent).
       `assets/heroes/`.
-- [ ] Fonds, logo (L2)
+- [~] **Fonds** (L2, 8 scènes) : title ✅ (`assets/backgrounds/title.jpg`,
+      étincelle Gemini retirée). Reste : town-haven/arcane-hunters/necropolis,
+      combat-grass/swamp, victory, defeat.
+- [ ] Logo (L2)
 
 ## 5. Suite (en attente des planches utilisateur)
 Prompts prêts à coller (chacun avec sa commande d'extraction dans le .md) :

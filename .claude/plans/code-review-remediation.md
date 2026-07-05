@@ -239,10 +239,14 @@ pas de `concurrency`/`timeout-minutes` ; `__HEROES_TEST__` exposé en prod.
       les unités arcane-hunters gagnent enfin +1 vitesse / +1 moral sur tuile
       `swamp` (comme Necropolis) ; test-faction sur `grass` — bonus auparavant
       morts. Test loader du rejet.
-- [ ] CO4 : retirer `wisdom`/`leadership` du pool ou les brancher ; donner un
-      effet réel au rang 1 des `magic-*` (mise à jour doc 02 §1.3 dans le
-      même commit — docs source de vérité). → **lot « skills » dédié** (absorbe
-      aussi la dette Commandement/moral non branché, `hero/skills.ts`).
+- [x] CO4 (lot « skills » dédié) : **Commandement/`leadership` branché** au
+      moral de pile (`moraleOf` prend l'état, ajoute `heroMorale` du héros du
+      camp) — dette de la session résorbée ; **`wisdom` retirée du pool** (effet
+      `learnCircle` sans consommateur, apprentissage de sorts différé) ; les 4
+      `magic-*` donnent un effet réel **dès le rang 1** (−5/10/20 % coût mana ;
+      `spellCircleUnlock` no-op retiré des données) ; doc 02 §1.3 mise à jour
+      (même commit). Golden inchangé (héros du golden sans compétence). Tests :
+      Commandement rang 2 → +2 moral de pile.
 - [x] CO8 : `loadScenario` valide la ville de départ (bounds + tuile
       franchissable) et les objectifs opaques (`captureTown.townId` ∈ villes du
       scénario, `defeatHero.heroId` ∈ `hero-<playerId>`). 4 tests de rejet.
@@ -392,3 +396,12 @@ commit (docs = source de vérité).
   +5 tests contenu (271 total). Vérif verte (lint, content:check, build
   62,2 Ko, 40 smoke, garde faction vert). Reste : CO4 → lot « skills » dédié
   (avec la dette Commandement/moral), CO9 → lot de résilience au boot.
+- **2026-07-05** — **Lot « skills » livré (CO4 + dette Commandement)** :
+  Commandement enfin branché au moral de pile (`moraleOf` prend l'état complet
+  et ajoute `heroMorale` du héros du camp) ; `wisdom` retirée du pool (effet
+  mort) ; `magic-*` utiles dès le rang 1 (−5/10/20 % mana, no-op de cercle
+  retiré) ; doc 02 §1.3 à jour. Golden inchangé (`be72de4b`). Vérif verte
+  (273 tests dont +2 Commandement, lint, content:check, build, 40 smoke, garde
+  faction vert). Reste du plan : CO9 (résilience boot) ; R2 (cycle de vie
+  client), R3 (identité joueur), R4 (i18n contenu), R6 (CI/tests), R7 (dette/
+  duplication), R8 (docs) ; chantier UX §5.

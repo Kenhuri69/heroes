@@ -4,7 +4,7 @@ import { createEmptyState, type GameState, type HeroState } from '../src/core/st
 import { seedRng } from '../src/core/rng';
 import { applyAction } from '../src/combat/actions';
 import { computeMultiplier } from '../src/combat/damage';
-import { initLedger } from '../src/combat/state-helpers';
+import { initLedger, moraleOf } from '../src/combat/state-helpers';
 import type { CombatStack, CombatState, CombatUnitDef } from '../src/combat/types';
 import type { GameEvent } from '../src/core/events';
 import type { HeroSkillDef } from '../src/hero/types';
@@ -22,8 +22,8 @@ import { testCombatRules, testConfig } from './fixtures';
 /**
  * Compétences secondaires (doc 02 §1.3, décision plan phase-3.2 #5) : effets
  * purs par rang (`hero/skills.ts`) + branchement combat dans `damage.ts`
- * (Chance/Armure/Attaque au corps/Tir — Commandement/PM/vision/or/mana NON
- * branchés, points d'intégration signalés dans le rapport).
+ * (Chance/Armure/Attaque au corps/Tir) et `state-helpers.ts` (Commandement →
+ * moral de pile, remédiation R5 CO4). PM/vision/or/mana restent des effets purs.
  */
 
 const RULES = testCombatRules();
@@ -139,6 +139,30 @@ function baseState(catalog: Record<string, CombatUnitDef>): GameState {
     unitCatalog: catalog,
   };
 }
+
+describe('Commandement branché au moral de pile (remédiation R5 CO4)', () => {
+  const catalog = { def: unit({ id: 'def', nativeTerrain: 'grass' }) };
+  const skillCatalog: Record<string, HeroSkillDef> = {
+    leadership: { id: 'leadership', ranks: [{ moraleBonus: 1 }, { moraleBonus: 2 }, { moraleBonus: 3 }] },
+  };
+
+  function moralWithLeadership(rank?: number): number {
+    const hero = rank !== undefined ? baseHero({ id: 'hero-atk', skills: { leadership: rank } }) : undefined;
+    const s = stack({ id: 'attacker-0', side: 'attacker', slot: 0, unitId: 'def', count: 3, pos: { col: 0, row: 0 } });
+    // Terrain swamp ≠ nativeTerrain grass, un seul groupe ⇒ moral de base 0.
+    const combat = combatState([s], { terrain: 'swamp', attackerHeroId: hero?.id ?? null });
+    const state: GameState = { ...baseState(catalog), skillCatalog, heroes: hero ? [hero] : [], combat };
+    return moraleOf(s, combat, state);
+  }
+
+  it('sans Commandement : moral de base inchangé', () => {
+    expect(moralWithLeadership()).toBe(0);
+  });
+
+  it('Commandement rang 2 ajoute +2 au moral de la pile du camp du héros', () => {
+    expect(moralWithLeadership(2)).toBe(2);
+  });
+});
 
 describe('computeMultiplier — bonus héros (heroDamagePct/heroArmorPct)', () => {
   it('heroDamagePct augmente les dégâts (Attaque au corps/Tir)', () => {

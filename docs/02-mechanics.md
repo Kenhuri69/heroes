@@ -38,13 +38,14 @@ Chaque classe de héros a des **probabilités de gain** par niveau (data-driven)
 | Attaque au corps | +10/20/30 % dégâts mêlée |
 | Tir | +10/20/30 % dégâts distance |
 | Armure | −5/10/15 % dégâts subis |
-| Magie (par école ×4) | Débloque les sorts de cercle 2/3, −10/20 % coût mana |
-| Sagesse | Peut apprendre les sorts de cercle 3/4/5 |
+| Magie (par école ×4) | −5/10/20 % coût mana |
 | Économie | +250/500/1000 or/jour |
 
 Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex. Nécromancie, cf. doc 04 ; Chasse rituelle, cf. doc 05).
 
 > 🚧 **État 3.2** : pool livré = **13** compétences en données (`data/core/skills.json`) — « Magie (par école ×4) » compte pour 4 entrées (`magic-fire/water/earth/air`). Effets branchés au moteur : Logistique (PM), Recherche (vision), Économie (or/jour), Chance, Attaque au corps / Tir / Armure et réduction de coût de mana (combat). **Commandement (moral) reste à brancher** au moral de pile (raffinement 3.3+). Choix à la montée de niveau (`ChooseSkill`) opérationnel ; cap 3 rangs.
+>
+> 🔧 **État R5 (remédiation)** : pool réduit à **12** — **Commandement enfin branché** au moral de pile (`moraleOf`, `combat/state-helpers.ts`) ; **Sagesse retirée du pool MVP** (son effet `learnCircle`/apprentissage de sorts et les cercles 4–5 sont différés — plus de choix mort à la montée de niveau) ; les 4 compétences **Magie** donnent désormais un effet réel **dès le rang 1** (−5/10/20 % coût mana ; le déblocage de cercle `spellCircleUnlock`, no-op tant que tous les sorts ≤ cercle 3 sont connus, est retiré des données). Champs de schéma `learnCircle`/`spellCircleUnlock` conservés (réservés post-MVP).
 
 ### 1.4 Magie
 

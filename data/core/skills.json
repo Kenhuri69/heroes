@@ -65,43 +65,35 @@
       ]
     },
     {
-      "id": "wisdom",
-      "ranks": [
-        { "learnCircle": 3 },
-        { "learnCircle": 4 },
-        { "learnCircle": 5 }
-      ]
-    },
-    {
       "id": "magic-fire",
       "ranks": [
-        { "spellCircleUnlock": 2 },
-        { "spellCircleUnlock": 3, "manaCostReductionPct": 10 },
-        { "spellCircleUnlock": 3, "manaCostReductionPct": 20 }
+        { "manaCostReductionPct": 5 },
+        { "manaCostReductionPct": 10 },
+        { "manaCostReductionPct": 20 }
       ]
     },
     {
       "id": "magic-water",
       "ranks": [
-        { "spellCircleUnlock": 2 },
-        { "spellCircleUnlock": 3, "manaCostReductionPct": 10 },
-        { "spellCircleUnlock": 3, "manaCostReductionPct": 20 }
+        { "manaCostReductionPct": 5 },
+        { "manaCostReductionPct": 10 },
+        { "manaCostReductionPct": 20 }
       ]
     },
     {
       "id": "magic-earth",
       "ranks": [
-        { "spellCircleUnlock": 2 },
-        { "spellCircleUnlock": 3, "manaCostReductionPct": 10 },
-        { "spellCircleUnlock": 3, "manaCostReductionPct": 20 }
+        { "manaCostReductionPct": 5 },
+        { "manaCostReductionPct": 10 },
+        { "manaCostReductionPct": 20 }
       ]
     },
     {
       "id": "magic-air",
       "ranks": [
-        { "spellCircleUnlock": 2 },
-        { "spellCircleUnlock": 3, "manaCostReductionPct": 10 },
-        { "spellCircleUnlock": 3, "manaCostReductionPct": 20 }
+        { "manaCostReductionPct": 5 },
+        { "manaCostReductionPct": 10 },
+        { "manaCostReductionPct": 20 }
       ]
     }
   ]

@@ -76,7 +76,7 @@ export function advanceTurn(draft: Draft, events: GameEvent[]): void {
       events.push({ type: 'StackImmobilized', stackId: next.id });
       continue;
     }
-    const moral = moraleOf(next, combat, draft.unitCatalog);
+    const moral = moraleOf(next, combat, draft);
     if (moral < 0) {
       const roll = rollRange(draft.rng, 0, 99);
       draft.rng = roll.state;

@@ -4,12 +4,11 @@ import { useApp, appStore } from '../app/store';
 import { dispatch } from '../app/dispatch';
 import { humanId } from '../app/game';
 import { t, resolveUnitName, commandErrorMessage } from '../app/i18n';
+import { COMBAT_SPEEDS } from '../app/ui-constants';
 import { combatPreview, type DamagePreview } from '../scenes/combat/preview';
 import { pushToast } from './toasts';
 import { SpellBook } from './SpellBook';
 import './combat.css';
-
-const SPEEDS = [1, 2, 4] as const;
 
 /** Rappel dismissible mémorisé pour la session (doc 08 §2.4 : pas d'API Screen Orientation). */
 let landscapeHintDismissed = false;
@@ -85,7 +84,7 @@ export function CombatUi() {
           {t('combat.auto')}
         </button>
         <div class="combat-speeds" data-testid="combat-speed">
-          {SPEEDS.map((speed) => (
+          {COMBAT_SPEEDS.map((speed) => (
             <button
               key={speed}
               class={combatSpeed === speed ? 'active' : ''}

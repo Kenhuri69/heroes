@@ -20,8 +20,13 @@ export function pushToast(message: string): void {
  * Traduit un événement moteur/app en message de toast, ou `null` s'il n'est
  * pas notifié (doc 08 §3 : ressource ramassée, jour/semaine, fin de combat,
  * niveau, chargement — le journal consultable reste MVP, écart assumé).
- * NB : `playerSide` vaut toujours `'attacker'` en 2.5 (combat/setup.ts) —
- * simplification assumée pour distinguer victoire/défaite du joueur.
+ * NB victoire/défaite : `event.winner` est un CAMP (`'attacker'`/`'defender'`).
+ * Le joueur est toujours l'attaquant (`combat.playerSide === 'attacker'`,
+ * combat/setup.ts) — d'où le test en dur. Le rendre générique demanderait de
+ * porter `playerSide` (ou un booléen `won`) DANS l'événement `CombatEnded` :
+ * `draft.combat` est mis à `null` dans le même `apply` juste après l'émission
+ * (turns.ts), donc l'état n'est plus lisible au moment du toast. Reporté (R7c)
+ * — changement de forme d'événement moteur, hors périmètre des mineurs client.
  */
 function toastMessage(event: AppEvent): string | null {
   switch (event.type) {

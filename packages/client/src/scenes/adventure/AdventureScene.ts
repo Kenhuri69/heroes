@@ -112,7 +112,6 @@ export class AdventureScene {
     }
 
     if (samePos(tile, hero.pos)) {
-      appStore.setState({ selectedHeroId: hero.id });
       this.clearPreview();
       return;
     }

@@ -221,11 +221,15 @@ pas de `concurrency`/`timeout-minutes` ; `__HEROES_TEST__` exposé en prod.
 - Vérif : audit « 0 id brut à l'écran » rejoué (grep + smoke FR/EN).
 
 ### Lot R5 — Pipeline contenu & CLI (CO1, CO2, CO3, CO4, CO8, CO9)
-- [ ] CO1 : `faction:validate` charge `core/buildings.json` → les 4 factions
-      passent ; test CLI.
-- [ ] CO2 : unicité globale des `unit.id` dans `loadContent` (rejet du paquet
-      en collision) ; scaffolder → `t1-<factionId>-…` ; renommer l'unité de
-      test-faction si besoin.
+> **R5a livré** (CO1 + CO2, outillage faction cassé — priorité). CO3/CO4/CO8/CO9
+> restent (R5b, lot suivant).
+- [x] CO1 : `faction:validate` charge `core/buildings.json` → les 4 factions
+      passent (vérifié CLI) ; régression au niveau `loadFactionPack`
+      (avec/sans `coreBuildings`) dans `loader.test.ts`.
+- [x] CO2 : unicité GLOBALE des `unit.id` entre paquets dans `loadContent`
+      (throw `PackError` listant les doublons) ; scaffolder `faction:new` →
+      `t1-<id>-recruit` (plus de collision avec le paquet de test) ; test de
+      collision inter-paquets + scaffold→validate vérifié.
 - [ ] CO3 : cross-check `nativeTerrain ∈ config.adventure.terrains` ;
       corriger test-faction (`plains`) et arcane-hunters (`mistmoor`) — noter
       l'impact équilibrage dans la PR.
@@ -365,3 +369,11 @@ commit (docs = source de vérité).
   RNG agrégé = changement d'équilibrage, non neutre). Golden inchangé
   (`be72de4b`). Vérif complète verte (264 tests, lint, content:check, build
   61,8 Ko gzip, 40 smoke). Prochain : R5 (CO1/CO2 — outillage faction) puis R2.
+- **2026-07-05** — **Lot R5a livré** (CO1 + CO2, outillage faction cassé) :
+  `faction:validate` charge désormais les bâtiments communs (les 4 factions
+  passent, échouaient toutes), unicité globale des ids d'unités entre paquets
+  (throw sur collision, même classe de bug que 3.7), scaffolder préfixe l'id
+  d'unité par la faction. Tests loader CO1 + CO2 ; scaffold→validate vérifié.
+  Vérif verte (266 tests, lint, content:check, build 61,9 Ko, 40 smoke, garde
+  faction vert). Reste R5b : CO3 (nativeTerrain), CO4 (compétences sans effet),
+  CO8 (validation scénario/startingTown), CO9 (refs vers paquet rejeté).

@@ -1,4 +1,4 @@
-import { abilityCatalogSchema, loadFactionPack, PackError } from '@heroes/content';
+import { abilityCatalogSchema, buildingCatalogSchema, loadFactionPack, PackError } from '@heroes/content';
 import { readJsonFromDisk } from './data-dir';
 
 const id = process.argv[2];
@@ -8,8 +8,13 @@ if (!id) {
 }
 
 const catalog = abilityCatalogSchema.parse(await readJsonFromDisk('core/abilities.json'));
+// Bâtiments communs (townHall/fort/guilde…) : requis pour résoudre
+// `manifest.town.buildings` et détecter les collisions d'ids avec le core —
+// sans eux, `faction:validate` échouait faussement (« bâtiment inconnu 'fort' »)
+// pour toute faction dotée d'une ville (remédiation R5 CO1).
+const coreBuildings = buildingCatalogSchema.parse(await readJsonFromDisk('core/buildings.json')).buildings;
 try {
-  const pack = await loadFactionPack(readJsonFromDisk, id, catalog);
+  const pack = await loadFactionPack(readJsonFromDisk, id, catalog, coreBuildings);
   console.log(`✓ ${id} — ${pack.units.length} unité(s), locales fr/en OK`);
 } catch (e) {
   console.error(`✗ ${id}`);

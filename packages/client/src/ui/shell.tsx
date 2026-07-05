@@ -1,7 +1,8 @@
 import { render } from 'preact';
-import { useState } from 'preact/hooks';
+import { useEffect, useState } from 'preact/hooks';
 import { RESOURCE_IDS, weekOf, type ArmyStack } from '@heroes/engine';
 import { useApp, appStore } from '../app/store';
+import { back, closeModalKind, openModal, useModals, useScreen } from '../app/router';
 import { dispatch } from '../app/dispatch';
 import { humanId } from '../app/game';
 import { saveGame, restoreSavedGame } from '../app/save';
@@ -27,17 +28,42 @@ export function mountUi(root: HTMLElement): void {
 
 function Shell() {
   useApp((s) => s.locale); // réactivité i18n
-  const screen = useApp((s) => s.screen);
+  const screen = useScreen();
   const started = useApp((s) => s.game.started);
   const inCombat = useApp((s) => s.game.combat !== null);
-  const townScreenOpen = useApp((s) => s.townScreenOpen);
+  const modals = useModals();
   // Remédiation CL4 : la montée de niveau vise le héros du JOUEUR HUMAIN avec
   // un choix en attente (avant : `heroes[0]`, qui pouvait être un héros IA).
   const pendingSkillHero = useApp((s) => {
     const id = humanId(s.game);
     return s.game.heroes.find((h) => h.playerId === id && h.pendingSkillChoices.length > 0) ?? null;
   });
-  const [optionsOpen, setOptionsOpen] = useState(false);
+
+  // Bouton retour Android / geste / Échap (doc 08 §3) : ferme la modale du
+  // dessus. Les overlays forcés (choix de compétence, fin de partie) ne sont
+  // pas dans la pile ⇒ `back()` renvoie false et les laisse intacts.
+  const modalDepth = modals.length;
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent): void => {
+      if (e.key === 'Escape') back();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+  useEffect(() => {
+    if (modalDepth === 0) return;
+    // Une entrée d'historique tant qu'une modale est ouverte : le retour
+    // matériel Android dépile au lieu de quitter la page.
+    history.pushState(null, '');
+    const onPop = (): void => {
+      back();
+    };
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, [modalDepth === 0]);
+
+  const optionsModal = modals.some((m) => m.kind === 'options');
+  const townModal = modals.find((m): m is { kind: 'town'; townId: string } => m.kind === 'town');
 
   return (
     <>
@@ -51,12 +77,12 @@ function Shell() {
             <ResourceBar />
             <HeroDrawer />
             <ArmyBand />
-            <TurnBar onOpenOptions={() => setOptionsOpen(true)} />
+            <TurnBar onOpenOptions={() => openModal({ kind: 'options' })} />
           </>
         )
       ) : null}
-      {optionsOpen && <OptionsPanel onClose={() => setOptionsOpen(false)} />}
-      {townScreenOpen !== null && <TownScreen />}
+      {optionsModal && <OptionsPanel onClose={() => closeModalKind('options')} />}
+      {townModal && <TownScreen townId={townModal.townId} onClose={() => closeModalKind('town')} />}
       {pendingSkillHero && <SkillChoice hero={pendingSkillHero} />}
       <OutcomeOverlay />
       <ToastHost />
@@ -242,7 +268,7 @@ function TurnBar({ onOpenOptions }: { onOpenOptions: () => void }) {
         {firstOwnedTown && (
           <button
             data-testid="town-open"
-            onClick={() => appStore.setState({ townScreenOpen: firstOwnedTown.id })}
+            onClick={() => openModal({ kind: 'town', townId: firstOwnedTown.id })}
           >
             {t('town.open')}
           </button>

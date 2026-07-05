@@ -3,6 +3,7 @@ import { useSyncExternalStore } from 'preact/compat';
 import type { GameState } from '@heroes/engine';
 import { createEmptyState } from '@heroes/engine';
 import type { Scenario } from '@heroes/content';
+import type { Modal, Screen } from './router';
 
 /**
  * Store applicatif (doc 07 §3) : l'état moteur + un état d'UI léger.
@@ -23,10 +24,13 @@ export interface AppState {
   fontScale: 1 | 2 | 3;
   /** File de toasts d'événements (doc 08 §3) — journal consultable : MVP. */
   toasts: { id: number; message: string }[];
-  /** L'écran de menu est affiché (aucune partie en cours à l'écran). */
-  screen: 'menu' | 'game';
-  /** Écran de ville ouvert sur cet id (doc 02 §4.2) — null = fermé. */
-  townScreenOpen: string | null;
+  /**
+   * Route de base (doc 08 §3, lot UX U2) — `menu` ou `adventure` ; le combat
+   * est dérivé de `game.combat`, pas une route. Piloté par `app/router.ts`.
+   */
+  screen: Screen;
+  /** Pile de modales typée (doc 08 §3, plafond `MAX_MODAL_DEPTH`). */
+  modals: Modal[];
   /** Scénarios chargés (doc 02 §6, plan phase-3.5) — liste affichée au menu. */
   scenarios: Scenario[];
 }
@@ -40,7 +44,7 @@ export const appStore = createStore<AppState>(() => ({
   fontScale: 1,
   toasts: [],
   screen: 'menu',
-  townScreenOpen: null,
+  modals: [],
   scenarios: [],
 }));
 

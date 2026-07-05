@@ -107,7 +107,8 @@ export async function loadGame(slot: SaveSlot): Promise<GameState | null> {
 export async function restoreSavedGame(slot: SaveSlot): Promise<boolean> {
   const state = await loadGame(slot);
   if (!state) return false;
-  appStore.setState({ game: state, screen: 'game' });
+  // Chargement d'une partie : route aventure + pile de modales vidée (U2).
+  appStore.setState({ game: state, screen: 'adventure', modals: [] });
   eventBus.emit([{ type: 'GameLoaded' }]);
   return true;
 }
@@ -154,7 +155,8 @@ export async function importSave(file: Blob): Promise<boolean> {
     if (!isCompatible(payload.snapshot)) return false;
     const state = deserializeState(payload.snapshot);
     if (!state.started) return false;
-    appStore.setState({ game: state, screen: 'game' });
+    // Import d'une partie : route aventure + pile de modales vidée (U2).
+    appStore.setState({ game: state, screen: 'adventure', modals: [] });
     eventBus.emit([{ type: 'GameLoaded' }]);
     return true;
   } catch {

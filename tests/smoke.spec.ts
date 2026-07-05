@@ -372,6 +372,41 @@ test('options : bascule de langue FR → EN appliquée à l’UI', async ({ page
   expect(errors).toEqual([]);
 });
 
+test('routeur : Échap ferme la modale ouverte (pile de modales, doc 08 §3, U2)', async ({ page }) => {
+  const errors = await openGame(page);
+
+  // En partie, la modale de ville se ferme à Échap via le handler GLOBAL du
+  // routeur (U2) — remplace l'ancien `useEscapeKey` par écran.
+  await page.getByTestId('town-open').click();
+  await expect(page.getByTestId('town-close')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByTestId('town-close')).toHaveCount(0);
+
+  // Idem pour les options en partie (même pile, même handler).
+  await page.getByTestId('options-open').click();
+  await expect(page.getByTestId('options-close')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByTestId('options-close')).toHaveCount(0);
+
+  expect(errors).toEqual([]);
+});
+
+test('routeur : options du MENU passent par la pile de modales (doc 08 §3, U2)', async ({ page }) => {
+  const errors = collectErrors(page);
+  await page.goto('./'); // menu (sans ?seed)
+  await page.waitForFunction(() => window.__HEROES_READY__ === true);
+
+  // Depuis le menu, le bouton options ouvre le panneau rendu par le SHELL via le
+  // routeur (avant U2 : `useState` local à MenuScreen). Échap le referme.
+  await page.getByTestId('menu-options').click();
+  await expect(page.getByTestId('options-close')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByTestId('options-close')).toHaveCount(0);
+  await expect(page.getByTestId('menu-new-game')).toBeVisible(); // toujours au menu
+
+  expect(errors).toEqual([]);
+});
+
 test('accessibilité : les 3 crans de police changent la taille du texte (doc 08 §4)', async ({ page }) => {
   const errors = await openGame(page);
 

@@ -18,7 +18,7 @@ export function OutcomeOverlay() {
     appStore.setState({
       game: createEmptyState(),
       screen: 'menu',
-      townScreenOpen: null,
+      modals: [],
     });
   };
 

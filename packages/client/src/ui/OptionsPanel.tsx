@@ -3,7 +3,6 @@ import { appStore, useApp } from '../app/store';
 import { t, setLocale } from '../app/i18n';
 import { exportSave, importSave } from '../app/save';
 import { COMBAT_SPEEDS } from '../app/ui-constants';
-import { useEscapeKey } from './useEscapeKey';
 import './options.css';
 
 const FONT_SCALE_PERCENT: Record<1 | 2 | 3, string> = { 1: '100%', 2: '112.5%', 3: '125%' };
@@ -11,10 +10,11 @@ const FONT_SCALES = [1, 2, 3] as const;
 
 /**
  * Modale Options (doc 08 §3, ≤ 2 niveaux) : langue FR/EN, taille de texte
- * (3 crans, doc 08 §4), vitesse de combat par défaut. En jeu (écran 'game'),
- * ajoute export/import `.heroes` — sauvegarde/chargement manuels restent
- * dans la barre principale (`shell.tsx`), pas dupliqués ici. Fermeture par
- * bouton ou touche Échap.
+ * (3 crans, doc 08 §4), vitesse de combat par défaut. En jeu (écran
+ * 'adventure'), ajoute export/import `.heroes` — sauvegarde/chargement
+ * manuels restent dans la barre principale (`shell.tsx`), pas dupliqués ici.
+ * Fermeture par bouton ou touche Échap (gérée par le handler global de
+ * `shell.tsx`).
  */
 export function OptionsPanel({ onClose }: { onClose: () => void }) {
   useApp((s) => s.locale); // réactivité i18n
@@ -23,8 +23,6 @@ export function OptionsPanel({ onClose }: { onClose: () => void }) {
   const combatSpeed = useApp((s) => s.combatSpeed);
   const screen = useApp((s) => s.screen);
   const [message, setMessage] = useState<string | null>(null);
-
-  useEscapeKey(onClose);
 
   const applyFontScale = (scale: 1 | 2 | 3): void => {
     appStore.setState({ fontScale: scale });
@@ -121,7 +119,7 @@ export function OptionsPanel({ onClose }: { onClose: () => void }) {
           </div>
         </section>
 
-        {screen === 'game' && (
+        {screen === 'adventure' && (
           <section class="options-section">
             <h3>{t('options.dataSection')}</h3>
             <div class="options-save-actions">

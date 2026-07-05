@@ -1,14 +1,13 @@
 import { useState } from 'preact/hooks';
 import { RESOURCE_IDS, buildStatus, builtDwellings, missingRequirements, scaleCost } from '@heroes/engine';
 import type { BuildingDef, CombatUnitDef, TownState } from '@heroes/engine';
-import { useApp, appStore } from '../app/store';
+import { useApp } from '../app/store';
 import { dispatch } from '../app/dispatch';
 import { humanId } from '../app/game';
 import { t, resolveUnitName, commandErrorMessage, resolveBuildingName, resolveFactionResourceName } from '../app/i18n';
 import { buildingUrl } from '../render/assets';
 import { AssetImg } from './AssetImg';
 import { FactionBadge } from './FactionBadge';
-import { useEscapeKey } from './useEscapeKey';
 import './town.css';
 
 /**
@@ -56,15 +55,13 @@ function CostList({ cost }: { cost: Record<string, number> }) {
  * (peuvent être vides tant que l'intégration ne les remplit pas — affiche
  * « aucune ville » proprement plutôt que de crasher).
  */
-export function TownScreen() {
+export function TownScreen({ townId, onClose }: { townId: string; onClose: () => void }) {
   useApp((s) => s.locale); // réactivité i18n
-  const townId = useApp((s) => s.townScreenOpen);
   const game = useApp((s) => s.game);
   const [tab, setTab] = useState<'build' | 'recruit' | 'garrison'>('build');
   const [error, setError] = useState<string | null>(null);
 
-  const close = (): void => appStore.setState({ townScreenOpen: null });
-  useEscapeKey(close);
+  const close = onClose;
 
   const town = game.towns.find((tw) => tw.id === townId);
 

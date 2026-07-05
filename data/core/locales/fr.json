@@ -93,6 +93,8 @@
   "toast.combatWon": "Victoire !",
   "toast.combatLost": "Défaite…",
   "toast.undeadRaised": "+{count} {unit} relevé(s) (Nécromancie)",
+  "toast.factionResourceGained": "+{amount} {resource} (chasse)",
+  "factionResource.essence": "Essence",
   "toast.heroLevelUp": "Niveau {level} atteint !",
   "toast.gameLoaded": "Partie chargée",
   "toast.saveFailed": "Échec de la sauvegarde — stockage indisponible",

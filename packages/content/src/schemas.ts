@@ -71,6 +71,11 @@ export const factionBonusSchema = z.discriminatedUnion('type', [
     capBase: z.number().int().nonnegative(),
     capPerExisting: z.number().int().nonnegative(),
   }),
+  z.object({
+    type: z.literal('gainFactionResourceOnVictory'),
+    resource: idSchema,
+    amount: z.number().int().positive(),
+  }),
 ]);
 
 /**

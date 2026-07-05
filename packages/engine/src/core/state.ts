@@ -24,6 +24,12 @@ export type Resources = Record<ResourceId, number>;
 export interface PlayerState {
   id: string;
   resources: Resources;
+  /**
+   * Ressources de faction (doc 05 §3.3, doc 06 §3 `factionResources`) — carte
+   * générique id→montant, le moteur ne connaît aucun nom de ressource de
+   * faction. `{}` pour les factions sans ressource de faction déclarée.
+   */
+  factionResources: Record<string, number>;
   /** Brouillard exploré, 0/1 par tuile row-major (doc 02 §2.1) — par joueur. */
   explored: number[];
   /** Qui joue ce joueur (doc 02 §6, plan phase-3.5) — l'IA ne joue que `'ai'`. */
@@ -84,9 +90,10 @@ export interface Calendar {
  * (nouveaux champs requis, renommage…). Le chargement rejette proprement toute
  * sauvegarde d'une autre version plutôt que d'adopter un état malformé.
  * (v2 : couvre les champs `factionCatalog`/`scenario`/`outcome`/`controller`/
- * `eliminated` introduits en 3.4/3.5.)
+ * `eliminated` introduits en 3.4/3.5. v3 : `PlayerState.factionResources`
+ * introduit en 4.4.)
  */
-export const CURRENT_SAVE_VERSION = 2;
+export const CURRENT_SAVE_VERSION = 3;
 
 export interface GameState {
   saveVersion: number;

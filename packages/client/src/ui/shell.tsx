@@ -61,14 +61,23 @@ function Shell() {
 
 /** Bandeau haut compact, tap = détail plus tard (doc 08 §2.1 mobile). */
 function ResourceBar() {
-  const resources = useApp((s) => s.game.players.find((p) => p.id === PLAYER_ID)?.resources);
-  if (!resources) return null;
+  const player = useApp((s) => s.game.players.find((p) => p.id === PLAYER_ID));
+  if (!player) return null;
+  // Ressources de faction (doc 05 §3.3) : affichées après les 7 communes, seulement
+  // celles que le joueur possède (Essence pour Arcane Hunters ; rien sinon).
+  const factionResources = Object.entries(player.factionResources);
   return (
     <header class="resource-bar">
       {RESOURCE_IDS.map((id) => (
         <span class="resource" key={id} data-resource={id}>
           <i style={{ background: `#${(RESOURCE_COLORS[id] ?? 0xffffff).toString(16).padStart(6, '0')}` }} />
-          <span data-testid={`resource-${id}`}>{resources[id]}</span>
+          <span data-testid={`resource-${id}`}>{player.resources[id]}</span>
+        </span>
+      ))}
+      {factionResources.map(([id, amount]) => (
+        <span class="resource resource--faction" key={id} data-resource={id}>
+          <i />
+          <span data-testid={`faction-resource-${id}`}>{amount}</span>
         </span>
       ))}
     </header>

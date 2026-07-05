@@ -5,7 +5,7 @@
   "nativeTerrain": "mistmoor",
   "keyResources": ["mercury", "gems"],
   "factionResources": [{ "id": "essence", "icon": "icons/essence.png", "cap": 999 }],
-  "factionBonuses": [],
+  "factionBonuses": [{ "type": "gainFactionResourceOnVictory", "resource": "essence", "amount": 10 }],
   "spellSchool": null,
   "heroSkills": [],
   "tiers": 8,

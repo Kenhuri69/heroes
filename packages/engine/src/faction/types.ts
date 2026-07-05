@@ -17,4 +17,15 @@ export interface RaiseUndeadOnVictoryBonus {
   capPerExisting: number;
 }
 
-export type FactionBonus = RaiseUndeadOnVictoryBonus;
+/**
+ * Gain d'une ressource de faction (doc 05 §3.3) à chaque combat gagné en tant
+ * qu'attaquant. `resource` est un id opaque (déclaré dans
+ * `manifest.factionResources`) — le moteur ne connaît aucun nom de ressource.
+ */
+export interface GainFactionResourceOnVictoryBonus {
+  type: 'gainFactionResourceOnVictory';
+  resource: string;
+  amount: number;
+}
+
+export type FactionBonus = RaiseUndeadOnVictoryBonus | GainFactionResourceOnVictoryBonus;

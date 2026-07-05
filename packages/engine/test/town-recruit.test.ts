@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { apply, validate } from '../src/core/engine';
 import type { Command, PlayerSetup } from '../src/core/commands';
 import { createEmptyState, emptyResources, type GameState } from '../src/core/state';
+import type { CombatUnitDef } from '../src/combat/types';
 import { testConfig, testMap } from './fixtures';
 import { testBuildingCatalog, testTown, testUnitCatalogWithEconomy } from './town-fixtures';
 
@@ -120,5 +121,64 @@ describe('RecruitUnits', () => {
         count: 1,
       })?.code,
     ).toBe('invalidAction');
+  });
+});
+
+/**
+ * Dépense d'une ressource de faction au recrutement (plan phase-4.6, doc 05
+ * §3.3) — un coût peut mêler ressources communes et de faction ; chaque clé est
+ * débitée du bon stock. La ressource 'essence' est un id de test arbitraire ici
+ * (aucun nom de faction), routé vers `player.factionResources`.
+ */
+describe('RecruitUnits — coût en ressource de faction', () => {
+  function startedWithFactionCost(essence: number): GameState {
+    const base = testUnitCatalogWithEconomy();
+    const grunt = base['red-grunt'];
+    if (!grunt) throw new Error('fixture red-grunt absente');
+    const unitCatalog: Record<string, CombatUnitDef> = {
+      ...base,
+      'red-grunt': { ...grunt, recruitCost: { gold: 50, essence: 5 } } as CombatUnitDef,
+    };
+    const cmd: Command = {
+      type: 'StartGame',
+      seed: 1,
+      players: [{ id: 'p1', startingResources: { ...emptyResources(), gold: 1000 } }],
+      map: testMap(),
+      config: testConfig(),
+      unitCatalog,
+      buildingCatalog: testBuildingCatalog(),
+      towns: [testTown()],
+    };
+    const state = apply(createEmptyState(), cmd).state;
+    return {
+      ...state,
+      players: state.players.map((p) =>
+        p.id === 'p1' ? { ...p, factionResources: { essence } } : p,
+      ),
+    };
+  }
+
+  it('débite l’Essence et l’or, chacun de son stock', () => {
+    const state = startedWithFactionCost(100);
+    const next = apply(state, {
+      type: 'RecruitUnits',
+      townId: 'town-1',
+      unitId: 'red-grunt',
+      count: 4,
+    }).state;
+    expect(next.players[0]?.resources.gold).toBe(1000 - 4 * 50);
+    expect(next.players[0]?.factionResources['essence']).toBe(100 - 4 * 5);
+  });
+
+  it('rejette (cannotAfford) si l’Essence manque, même avec assez d’or', () => {
+    const state = startedWithFactionCost(3); // < 4 × 5
+    expect(
+      validate(state, {
+        type: 'RecruitUnits',
+        townId: 'town-1',
+        unitId: 'red-grunt',
+        count: 4,
+      })?.code,
+    ).toBe('cannotAfford');
   });
 });

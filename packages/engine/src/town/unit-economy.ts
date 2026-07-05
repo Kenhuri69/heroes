@@ -1,5 +1,4 @@
 import type { CombatUnitDef } from '../combat/types';
-import type { Resources } from '../core/state';
 
 /**
  * Champs d'économie de ville lus sur le catalogue d'unités mais ABSENTS de
@@ -10,7 +9,8 @@ import type { Resources } from '../core/state';
  * croissance (no-op), jamais d'erreur.
  */
 export interface UnitEconomyFields {
-  recruitCost?: Partial<Resources>;
+  /** Coût de recrutement — clés communes (7 ressources) ou de faction (ex. `essence`). */
+  recruitCost?: Record<string, number>;
   growthPerWeek?: number;
 }
 

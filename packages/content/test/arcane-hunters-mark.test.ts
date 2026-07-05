@@ -154,8 +154,18 @@ describe('Arcane Hunters (plan phase-4.2) — signature Marque & lineup data-onl
     };
 
     let state = apply(createEmptyState(), startCmd).state;
+    // Le T8 se paie en Essence (ressource de faction) : on en dote le joueur
+    // (le gain en jeu vient des combats, doc 05 §3.3 — hors périmètre ici).
+    state = {
+      ...state,
+      players: state.players.map((p) =>
+        p.id === 'p1' ? { ...p, factionResources: { ...p.factionResources, essence: 10_000 } } : p,
+      ),
+    };
+    // Chaque tier est recrutable indépendamment (8 tiers > 7 piles de garnison :
+    // on ne les cumule pas, on prouve que chacun passe depuis l'état de base).
     for (const unit of pack.units) {
-      const { state: next, events } = apply(state, {
+      const { events } = apply(state, {
         type: 'RecruitUnits',
         townId: 'town-1',
         unitId: unit.id,
@@ -167,8 +177,6 @@ describe('Arcane Hunters (plan phase-4.2) — signature Marque & lineup data-onl
         unitId: unit.id,
         count: 1,
       });
-      state = next;
     }
-    expect(state.towns[0]?.garrison).toHaveLength(pack.units.length);
   });
 });

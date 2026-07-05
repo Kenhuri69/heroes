@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'preact/hooks';
-import type { BuildingDef, CombatUnitDef, Resources, ResourceId, TownState } from '@heroes/engine';
+import { RESOURCE_IDS } from '@heroes/engine';
+import type { BuildingDef, CombatUnitDef, TownState } from '@heroes/engine';
 import { useApp, appStore } from '../app/store';
 import { dispatch } from '../app/dispatch';
 import { PLAYER_ID } from '../app/game';
@@ -14,7 +15,15 @@ import './town.css';
  * absent ⇒ pas de coût affiché (no-op, jamais d'erreur).
  */
 interface UnitEconomyFields {
-  recruitCost?: Partial<Resources>;
+  /** Clés communes (7 ressources) ou de faction (ex. `essence`). */
+  recruitCost?: Record<string, number>;
+}
+
+const CORE_RESOURCE_IDS: ReadonlySet<string> = new Set<string>(RESOURCE_IDS);
+
+/** Nom localisé d'une ressource de coût — commune (`resource.<id>`) ou de faction. */
+function resourceLabel(id: string): string {
+  return CORE_RESOURCE_IDS.has(id) ? t(`resource.${id}`) : t(`factionResource.${id}`);
 }
 
 type BuildStatus = 'built' | 'available' | 'locked';
@@ -22,9 +31,9 @@ type BuildStatus = 'built' | 'available' | 'locked';
 const GARRISON_SLOTS = 7;
 
 /** Multiplie un coût par un effectif (mêmes règles que `town/resources.ts` côté moteur). */
-function scaleCost(cost: Partial<Resources>, factor: number): Partial<Resources> {
-  const scaled: Partial<Resources> = {};
-  for (const [id, amount] of Object.entries(cost) as [ResourceId, number][]) {
+function scaleCost(cost: Record<string, number>, factor: number): Record<string, number> {
+  const scaled: Record<string, number> = {};
+  for (const [id, amount] of Object.entries(cost)) {
     scaled[id] = amount * factor;
   }
   return scaled;
@@ -61,14 +70,14 @@ function builtDwellings(town: TownState, catalog: Record<string, BuildingDef>): 
   return unitIds;
 }
 
-function CostList({ cost }: { cost: Partial<Resources> }) {
-  const entries = Object.entries(cost) as [ResourceId, number][];
+function CostList({ cost }: { cost: Record<string, number> }) {
+  const entries = Object.entries(cost);
   if (entries.length === 0) return null;
   return (
     <span class="town-cost">
       {entries.map(([id, amount]) => (
         <span key={id} class="town-cost-entry">
-          {amount} {t(`resource.${id}`)}
+          {amount} {resourceLabel(id)}
         </span>
       ))}
     </span>

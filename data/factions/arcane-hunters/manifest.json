@@ -17,7 +17,8 @@
     "t4-bibliothecaire",
     "t5-lame",
     "t6-chasseresse",
-    "t7-manticore"
+    "t7-manticore",
+    "t8-penitent"
   ],
   "abilityModules": [],
   "hooks": [],
@@ -33,7 +34,8 @@
       "arcane-hunters-dwelling-t4",
       "arcane-hunters-dwelling-t5",
       "arcane-hunters-dwelling-t6",
-      "arcane-hunters-dwelling-t7"
+      "arcane-hunters-dwelling-t7",
+      "arcane-hunters-dwelling-t8"
     ],
     "dwellings": [
       { "tier": 1, "unitId": "t1-eleve", "buildingId": "arcane-hunters-dwelling-t1" },
@@ -42,7 +44,8 @@
       { "tier": 4, "unitId": "t4-bibliothecaire", "buildingId": "arcane-hunters-dwelling-t4" },
       { "tier": 5, "unitId": "t5-lame", "buildingId": "arcane-hunters-dwelling-t5" },
       { "tier": 6, "unitId": "t6-chasseresse", "buildingId": "arcane-hunters-dwelling-t6" },
-      { "tier": 7, "unitId": "t7-manticore", "buildingId": "arcane-hunters-dwelling-t7" }
+      { "tier": 7, "unitId": "t7-manticore", "buildingId": "arcane-hunters-dwelling-t7" },
+      { "tier": 8, "unitId": "t8-penitent", "buildingId": "arcane-hunters-dwelling-t8" }
     ]
   }
 }

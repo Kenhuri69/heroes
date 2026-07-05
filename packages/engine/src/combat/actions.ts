@@ -160,7 +160,7 @@ function afterAction(
     actor.acted = true;
     if (wasFirstAction) {
       const rules = combatRules(draft);
-      const moral = moraleOf(actor, combat, draft.unitCatalog);
+      const moral = moraleOf(actor, combat, draft);
       if (moral > 0) {
         const roll = rollRange(draft.rng, 0, 99);
         draft.rng = roll.state;

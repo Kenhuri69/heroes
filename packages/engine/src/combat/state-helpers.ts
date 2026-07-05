@@ -1,5 +1,6 @@
 import type { CombatRulesConfig } from '../adventure/config';
 import type { GameState } from '../core/state';
+import { heroMorale } from '../hero/skills';
 import type { CombatSideId, CombatStack, CombatState, CombatUnitDef } from './types';
 
 /**
@@ -41,16 +42,21 @@ export function effectiveSpeed(
   return def.stats.speed + (def.nativeTerrain === combat.terrain ? 1 : 0);
 }
 
+/** Bonus de moral du héros lié au camp `side` (compétence Commandement) — 0 si aucun héros. */
+function heroMoraleForSide(state: GameState, combat: CombatState, side: CombatSideId): number {
+  const heroId = side === 'attacker' ? combat.attackerHeroId : combat.defenderHeroId;
+  const hero = heroId ? state.heroes.find((h) => h.id === heroId) : undefined;
+  return hero ? heroMorale(hero, state.skillCatalog) : 0;
+}
+
 /**
  * Moral d'une pile (doc 02 §5.3, décisions plan #4/#17) : +1 si terrain natif,
- * −1 par groupId distinct au-delà du premier (morts-vivants exclus du calcul
- * et toujours à moral 0), borné [−3, +3].
+ * −1 par groupId distinct au-delà du premier, + Commandement du héros lié au
+ * camp (compétence, remédiation R5 CO4 — enfin branché) ; morts-vivants exclus
+ * du calcul et toujours à moral 0. Borné [−3, +3].
  */
-export function moraleOf(
-  stack: CombatStack,
-  combat: CombatState,
-  catalog: Record<string, CombatUnitDef>,
-): number {
+export function moraleOf(stack: CombatStack, combat: CombatState, state: GameState): number {
+  const catalog = state.unitCatalog;
   const def = catalog[stack.unitId];
   if (!def) return 0;
   if (hasAbility(def, 'undead')) return 0;
@@ -62,7 +68,7 @@ export function moraleOf(
     if (d && !hasAbility(d, 'undead')) groups.add(d.groupId);
   }
   const malus = Math.max(0, groups.size - 1);
-  return clamp(terrainBonus - malus, -3, 3);
+  return clamp(terrainBonus - malus + heroMoraleForSide(state, combat, stack.side), -3, 3);
 }
 
 export function otherSide(side: CombatSideId): CombatSideId {

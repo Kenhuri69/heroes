@@ -34,6 +34,9 @@ export class AdventureScene {
   private readonly heroSprite: Graphics;
   private previewTarget: { target: GridPos; path: GridPos[] } | null = null;
   private animating = false;
+  private destroyed = false;
+  private readonly unsubscribeStore: () => void;
+  private readonly unsubscribeTap: () => void;
 
   constructor(
     app: Application,
@@ -53,13 +56,27 @@ export class AdventureScene {
       this.fog.sprite,
     );
 
-    appStore.subscribe(() => this.sync());
-    onTap(app, (global) => void this.handleTap(global));
+    this.unsubscribeStore = appStore.subscribe(() => this.sync());
+    this.unsubscribeTap = onTap(app, (global) => void this.handleTap(global));
     this.sync();
+  }
+
+  /**
+   * Détruit la scène (remédiation CL1) : coupe l'abonnement au store et le
+   * listener de tap, puis libère le scène-graphe et ses textures (chunks de
+   * `Tilemap`, texture de brouillard). À appeler au retour menu / changement de
+   * carte, sinon la scène capture la carte du premier lancement et fuit.
+   */
+  destroy(): void {
+    this.destroyed = true;
+    this.unsubscribeStore();
+    this.unsubscribeTap();
+    this.container.destroy({ children: true, texture: true });
   }
 
   /** Resynchronise le scène-graphe sur l'état (réconciliation simple, doc 10 §2.2). */
   private sync(): void {
+    if (this.destroyed) return;
     const { game } = appStore.getState();
     const { map, config } = game;
     const player = game.players.find((p) => p.id === PLAYER_ID);
@@ -78,7 +95,7 @@ export class AdventureScene {
   }
 
   private async handleTap(global: Point): Promise<void> {
-    if (this.animating) return;
+    if (this.destroyed || this.animating) return;
     const { game } = appStore.getState();
     // En combat, la scène de combat a la main — la carte ignore les taps.
     if (game.combat) return;
@@ -163,6 +180,7 @@ export class AdventureScene {
     return new Promise((resolve) => {
       const start = performance.now();
       const animate = (): void => {
+        if (this.destroyed) return resolve(); // scène détruite en cours d'animation
         const t = Math.min(1, (performance.now() - start) / STEP_ANIMATION_MS);
         this.heroSprite.position.set(
           (from.x + (to.x - from.x) * t) * TILE_SIZE,

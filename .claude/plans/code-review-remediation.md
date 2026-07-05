@@ -191,16 +191,24 @@ pas de `concurrency`/`timeout-minutes` ; `__HEROES_TEST__` exposé en prod.
   faction vert, lint + build + 40 smoke verts.
 
 ### Lot R2 — Cycle de vie & canal d'erreurs client (CL1, CL2, CL3, CL6, CL8)
-- [ ] `AdventureScene.destroy()` (unsubscribe + `destroy({children,texture})`)
-      et recréation scène+caméra au retour menu / changement de carte.
-- [ ] `onTap` retourne un unsubscribe (symétrie `eventBus.on`) ; appel dans
-      `CombatScene.destroy()` ; garde `destroyed` dans le tween.
-- [ ] Canal d'erreur unifié store→toast i18n (pattern `SaveFailed`) ; purge
-      des `catch {}` périmés ; mapping `err.code` → `t('townError.<code>')` ;
-      catch de bootstrap/startScenario → écran/toast d'erreur.
-- Vérif : smoke étendu — une action invalide affiche un toast (pas de
-  silence) ; enchaîner menu → partie → menu → partie sans erreur console ;
-  test manuel fuite (2 combats, listeners stables).
+> **R2a livré** (CL1 + CL2 + CL8 — cycle de vie & sûreté au crash). Restent
+> CL3 (`catch {}` périmés qui avalent les erreurs de validation) et CL6
+> (erreurs moteur brutes/non localisées) → **R2b (canal d'erreurs)**.
+- [x] `AdventureScene.destroy()` (unsubscribe store + tap, `destroy({children,
+      texture})`) + `Camera.destroy()` ; `teardownScenes()` au retour menu /
+      changement de carte dans `main.ts` (scène+caméra recréées à la partie
+      suivante) ; gardes `destroyed` dans `sync`/`handleTap`/tween.
+- [x] `onTap` retourne un unsubscribe (symétrie `eventBus.on`) ; stocké et
+      appelé dans `CombatScene.destroy()` **et** `AdventureScene.destroy()` —
+      plus de listeners `app.stage` fuités par scène recréée.
+- [x] CL8 : `bootstrap().catch()` → bandeau d'erreur bilingue (i18n peut être
+      absente) ; `startNewGame`/`startScenario` → toast i18n
+      (`toast.newGameFailed`/`toast.scenarioFailed`) au lieu d'une promesse
+      rejetée perdue (page muette).
+- [ ] **R2b** : purge des `catch {}` périmés (CL3) ; mapping `err.code` →
+      `t('townError.<code>')` (CL6) ; canal d'erreur unifié store→toast.
+- Vérif R2a : smoke étendu **menu → partie → menu → partie** (scène fraîche,
+  `tileToScreen` valide, zéro erreur console) ; 40 smoke verts.
 
 ### Lot R3 — Identité du joueur humain (CL4, CL5 + `ownerPlayerId` loader)
 - [ ] Dériver l'id humain de `players.find(p => p.controller === 'human')`
@@ -400,6 +408,15 @@ commit (docs = source de vérité).
   +5 tests contenu (271 total). Vérif verte (lint, content:check, build
   62,2 Ko, 40 smoke, garde faction vert). Reste : CO4 → lot « skills » dédié
   (avec la dette Commandement/moral), CO9 → lot de résilience au boot.
+- **2026-07-05** — **Lot R2a livré (CL1 + CL2 + CL8)** : cycle de vie des
+  scènes client. `AdventureScene`/`Camera`/`CombatScene` ont un `destroy()`
+  complet (désabonnements store + tap, textures libérées) ; `main.ts` détruit
+  et recrée scène+caméra au retour menu (fin de la scène « collée » à la 1ʳᵉ
+  carte + fuites de listeners/RenderTexture) ; `onTap` renvoie un unsubscribe ;
+  échecs bootstrap/nouvelle-partie/scénario surfacés (bandeau + toasts i18n) au
+  lieu d'une page muette. Smoke étendu menu→partie→menu→partie. Vérif verte
+  (274 tests, lint, typecheck 4/4, content:check, build 62 Ko, 40 smoke, garde
+  faction vert). Reste R2b : CL3 (`catch{}` périmés) + CL6 (erreurs localisées).
 - **2026-07-05** — **CO9 livré → R5 terminé** : les règles croisées
   `config.newGame` sont rapportées (`LoadReport.configErrors`) au lieu d'être
   levées ; un paquet rejeté ne casse plus le boot ; `content:check` échoue

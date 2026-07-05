@@ -98,6 +98,8 @@
   "toast.heroLevelUp": "Level {level} reached!",
   "toast.gameLoaded": "Game loaded",
   "toast.saveFailed": "Save failed — storage unavailable",
+  "toast.newGameFailed": "Could not start the game",
+  "toast.scenarioFailed": "Could not start the scenario",
   "toast.spellCast": "{hero} casts {spell}",
   "toast.skillLearned": "{skill} rank {rank} learned",
 

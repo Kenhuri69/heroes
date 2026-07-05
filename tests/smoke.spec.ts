@@ -357,6 +357,9 @@ test('accessibilité : les 3 crans de police changent la taille du texte (doc 08
       return el ? parseFloat(getComputedStyle(el).fontSize) : 0;
     });
 
+  // Attendre que le bandeau de tour (calendrier) soit rendu : sinon la mesure
+  // « cran 1 » peut tomber à 0 (élément absent) → ratio Infinity (flake CI).
+  await expect(page.getByTestId('calendar')).toBeVisible();
   const small = await calendarFontSizePx(); // cran 1 (100%) par défaut
 
   await page.getByTestId('options-open').click();
@@ -701,6 +704,24 @@ test('scénario : gagner « survie » contre l’IA (surviveDays)', async ({ pag
   // Retour au menu depuis l'overlay (bouton, doc 08).
   await page.getByTestId('outcome-back-to-menu').click();
   await expect(page.getByTestId('menu-new-game')).toBeVisible();
+
+  // Remédiation CL1 : relancer une partie après retour au menu doit
+  // reconstruire une scène FRAÎCHE (auparavant l'ancienne carte était rejouée,
+  // textures et listeners fuités). On enchaîne menu → partie → menu → partie.
+  await page.getByTestId('menu-new-game').click();
+  await expect(page.getByTestId('end-turn')).toBeVisible();
+  const restarted = await page.evaluate(() => window.__HEROES_TEST__!.getState());
+  expect(restarted.started).toBe(true);
+  expect(restarted.combat).toBeNull();
+  // La scène et la caméra reconstruites répondent : coordonnées écran valides
+  // (`tileToScreen` renvoie {-1,-1} tant que la caméra n'existe pas).
+  const hero = restarted.heroes[0]!;
+  const sp = await page.evaluate(
+    ([x, y]) => window.__HEROES_TEST__!.tileToScreen(x!, y!),
+    [hero.pos.x, hero.pos.y],
+  );
+  expect(sp.x).toBeGreaterThan(0);
+  expect(sp.y).toBeGreaterThan(0);
 
   expect(errors).toEqual([]);
 });

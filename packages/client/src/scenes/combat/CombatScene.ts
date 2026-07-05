@@ -65,6 +65,7 @@ export class CombatScene {
   private readonly resizeObserver: ResizeObserver;
   private readonly unsubscribeStore: () => void;
   private readonly unsubscribeEvents: () => void;
+  private readonly unsubscribeTap: () => void;
 
   constructor(private readonly app: Application) {
     this.boardLayer.addChild(this.boardGfx, this.stacksLayer);
@@ -81,8 +82,7 @@ export class CombatScene {
 
     this.unsubscribeStore = appStore.subscribe(() => this.sync());
     this.unsubscribeEvents = eventBus.on((event) => this.onEvent(event));
-
-    onTap(app, (global) => void this.handleTap(global));
+    this.unsubscribeTap = onTap(app, (global) => void this.handleTap(global));
 
     this.layout();
     this.sync();
@@ -92,6 +92,7 @@ export class CombatScene {
     this.destroyed = true;
     this.unsubscribeStore();
     this.unsubscribeEvents();
+    this.unsubscribeTap(); // remédiation CL2 : les 3 listeners de tap ne fuient plus
     this.resizeObserver.disconnect();
     this.container.destroy({ children: true });
   }

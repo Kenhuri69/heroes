@@ -13,7 +13,7 @@ export class Camera {
   private readonly pointers = new Map<number, Point>();
   private pinchDist = 0;
 
-  constructor(app: Application) {
+  constructor(private readonly app: Application) {
     const stage = app.stage;
     stage.eventMode = 'static';
     stage.hitArea = app.screen;
@@ -22,6 +22,17 @@ export class Camera {
     stage.on('pointerup', this.onUp);
     stage.on('pointerupoutside', this.onUp);
     app.canvas.addEventListener('wheel', this.onWheel, { passive: false });
+  }
+
+  /** Retire les listeners (stage + molette) et détruit le monde — remédiation CL1. */
+  destroy(): void {
+    const stage = this.app.stage;
+    stage.off('pointerdown', this.onDown);
+    stage.off('pointermove', this.onMove);
+    stage.off('pointerup', this.onUp);
+    stage.off('pointerupoutside', this.onUp);
+    this.app.canvas.removeEventListener('wheel', this.onWheel);
+    this.world.destroy({ children: true });
   }
 
   private onDown = (e: FederatedPointerEvent): void => {

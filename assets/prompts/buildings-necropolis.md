@@ -4,7 +4,7 @@
 > Règle C (planche de vignettes, fond gris clair plat) de `docs/12-assets-style-guide.md`. Grille **4×2**,
 > ordre row-major. Planche cible ≥ 2048×1024 px.
 
-## Prompt (à coller dans le LLM image)
+## Prompt (à coller dans Gemini — Nano Banana/Copilot en repli)
 
 ```
 Building sheet, 7 fantasy dwellings of the same town in a 4x2 grid,

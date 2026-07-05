@@ -81,6 +81,29 @@ def _grid(n: int, cols: int = 4) -> tuple[int, int]:
     return cols, math.ceil(n / cols)
 
 
+# Planches « à découper par 8 » : 8 sujets max par planche (grille 4×2) —
+# taille fiable pour Gemini (au-delà, la qualité par cellule chute et la
+# découpe souffre). Une famille plus grande est éclatée en -p1, -p2, …
+MAX_PER_SHEET = 8
+
+
+def _sheets(slug: str, title: str, rule: str, ids: list[str], cells: list[str],
+            subject_fmt: str, style_lines: list[str], dest: str,
+            side: int = 512) -> dict[str, str]:
+    """Éclate la famille en planches de MAX_PER_SHEET sujets max."""
+    chunks = [(ids[i:i + MAX_PER_SHEET], cells[i:i + MAX_PER_SHEET])
+              for i in range(0, len(ids), MAX_PER_SHEET)]
+    out = {}
+    for n, (cids, ccells) in enumerate(chunks, 1):
+        s = slug if len(chunks) == 1 else f"{slug}-p{n}"
+        t = title if len(chunks) == 1 else f"{title} — planche {n}/{len(chunks)}"
+        out[f"{s}.md"] = _sheet_file(
+            slug=s, title=t, rule=rule, ids=cids, cells=ccells,
+            subject=subject_fmt.format(n=len(cids)),
+            style_lines=style_lines, dest=dest, side=side)
+    return out
+
+
 def _sheet_file(slug: str, title: str, rule: str, ids: list[str], cells: list[str],
                 subject: str, style_lines: list[str], dest: str,
                 side: int = 512) -> str:
@@ -107,7 +130,7 @@ def _sheet_file(slug: str, title: str, rule: str, ids: list[str], cells: list[st
 > Règle {rule} de `docs/12-assets-style-guide.md`. Grille **{cols}×{rows}**,
 > ordre row-major. Planche cible ≥ {cols * 512}×{rows * 512} px.
 
-## Prompt (à coller dans le LLM image)
+## Prompt (à coller dans Gemini — Nano Banana/Copilot en repli)
 
 ```
 {prompt}
@@ -142,13 +165,13 @@ def units_sheets() -> dict[str, str]:
             ids.append(uid)
             cells.append(f"tier {u['tier']} unit \"{name}\" — {', '.join(hints)}")
         palette = PALETTES.get(fid, DEFAULT_PALETTE)
-        files[f"units-{fid}.md"] = _sheet_file(
+        files.update(_sheets(
             slug=f"units-{fid}",
             title=f"unités {fid} (T1→T{manifest['tiers']})",
             rule="A (sprites 512² painterly, alpha strict après extraction)",
             ids=ids,
             cells=cells,
-            subject=f"Character sheet, {len(ids)} fantasy creatures of the same army",
+            subject_fmt="Character sheet, {n} fantasy creatures of the same army",
             style_lines=[
                 "digital painting, heroic fantasy concept art style",
                 "(Heroes of Might and Magic, MTG illustration quality), painterly brush strokes,",
@@ -157,7 +180,7 @@ def units_sheets() -> dict[str, str]:
                 "clear power progression from cell 1 (weakest) to the last cell (mightiest),",
             ],
             dest=f"assets/units/{fid}/",
-        )
+        ))
         # locales de faction utilisées uniquement pour les noms — rien d'autre
         _ = core_en, core_fr
     return files
@@ -180,20 +203,20 @@ def artifacts_sheet() -> dict[str, str]:
         cues = [f"{bonus_cue.get(k, k)} (+{v} {k})" for k, v in a.get("bonus", {}).items()]
         ids.append(a["id"])
         cells.append(f"\"{name}\" — {', '.join(cues)}")
-    return {"artifacts.md": _sheet_file(
+    return _sheets(
         slug="artifacts",
         title="icônes d'artefacts",
         rule="C (planche d'icônes, fond gris clair plat)",
         ids=ids,
         cells=cells,
-        subject=f"Item sheet, {len(ids)} magical fantasy artifacts",
+        subject_fmt="Item sheet, {n} magical fantasy artifacts",
         style_lines=[
             "digital painting, painterly MTG illustration quality,",
             "rich material detail (metal, leather, gem, parchment),",
             "soft directional light from upper-left,",
         ],
         dest="assets/artifacts/",
-    )}
+    )
 
 
 def buildings_sheets() -> dict[str, str]:
@@ -215,20 +238,20 @@ def buildings_sheets() -> dict[str, str]:
         name = _name(loc_en, loc_fr, f"building.{bid}", bid)
         ids.append(bid)
         cells.append(f"\"{name}\" — {core_cue.get(bid, 'a medieval fantasy town building')}")
-    files["buildings-core.md"] = _sheet_file(
+    files.update(_sheets(
         slug="buildings-core",
         title="bâtiments communs de ville",
         rule="C (planche de vignettes, fond gris clair plat)",
         ids=ids,
         cells=cells,
-        subject=f"Building sheet, {len(ids)} medieval fantasy town buildings",
+        subject_fmt="Building sheet, {n} medieval fantasy town buildings",
         style_lines=[
             "digital painting, painterly HoMM town-screen style,",
             "each building isolated on its plot, slight 3/4 aerial view,",
             "soft directional light from upper-left,",
         ],
         dest="assets/buildings/core/",
-    )
+    ))
 
     for fid in _load(DATA / "factions" / "index.json")["factions"]:
         fdir = DATA / "factions" / fid
@@ -256,13 +279,13 @@ def buildings_sheets() -> dict[str, str]:
                 cue = "a faction-specific town building"
             ids.append(bid)
             cells.append(f"\"{name}\" — {cue}")
-        files[f"buildings-{fid}.md"] = _sheet_file(
+        files.update(_sheets(
             slug=f"buildings-{fid}",
             title=f"bâtiments {fid}",
             rule="C (planche de vignettes, fond gris clair plat)",
             ids=ids,
             cells=cells,
-            subject=f"Building sheet, {len(ids)} fantasy dwellings of the same town",
+            subject_fmt="Building sheet, {n} fantasy dwellings of the same town",
             style_lines=[
                 "digital painting, painterly HoMM town-screen style,",
                 "each building isolated on its plot, slight 3/4 aerial view,",
@@ -270,8 +293,49 @@ def buildings_sheets() -> dict[str, str]:
                 "soft directional light from upper-left,",
             ],
             dest=f"assets/buildings/{fid}/",
-        )
+        ))
     return files
+
+
+def mines_sheets() -> dict[str, str]:
+    """Mines de ressources (objets de la carte d'aventure). Dérivées de
+    l'union des ressources du jeu : startingResources + keyResources +
+    factionResources des manifestes — une mine par ressource."""
+    resources = list(_load(DATA / "core" / "config.json")["newGame"]["startingResources"])
+    for fid in _load(DATA / "factions" / "index.json")["factions"]:
+        m = _load(DATA / "factions" / fid / "manifest.json")
+        extra = list(m.get("keyResources", []))
+        extra += [r["id"] if isinstance(r, dict) else r
+                  for r in m.get("factionResources", [])]
+        resources += [r for r in extra if r not in resources]
+    cues = {
+        "gold": "a gold mine entrance with cart rails and nuggets",
+        "wood": "a sawmill with a water wheel and stacked logs",
+        "ore": "an open ore pit with wooden scaffolding",
+        "crystal": "a crystal cavern with glowing crystal clusters",
+        "gems": "a gem pond glittering with cut jewels",
+        "mercury": "an alchemist's lab with bubbling silver vats",
+        "sulfur": "a smoking sulfur pit with yellow deposits",
+        "essence": "an arcane essence extractor with a levitating orb",
+    }
+    ids = [f"mine-{r}" for r in resources]
+    cells = [f"\"{r} mine\" — {cues.get(r, f'a fantasy mine producing {r}')}"
+             for r in resources]
+    return _sheets(
+        slug="mines",
+        title="mines de ressources (objets de carte)",
+        rule="C (planche de vignettes, fond gris clair plat)",
+        ids=ids,
+        cells=cells,
+        subject_fmt="Building sheet, {n} small fantasy resource mines",
+        style_lines=[
+            "digital painting, painterly HoMM adventure-map style,",
+            "each mine isolated on its plot, slight 3/4 aerial view,",
+            "bold readable silhouette at 64 pixels (adventure map tile size),",
+            "soft directional light from upper-left,",
+        ],
+        dest="assets/mines/",
+    )
 
 
 def hero_avatars_sheet() -> dict[str, str]:
@@ -286,13 +350,13 @@ def hero_avatars_sheet() -> dict[str, str]:
         for slug, desc in archetypes:
             ids.append(f"{fid}-{slug}")
             cells.append(f"{desc} of the {fid} faction — {palette}")
-    return {"hero-avatars.md": _sheet_file(
+    return _sheets(
         slug="hero-avatars",
         title="avatars de héros (archétypes par faction)",
         rule="B (bustes painterly 256²)",
         ids=ids,
         cells=cells,
-        subject=f"Portrait sheet, {len(ids)} heroic fantasy bust portraits",
+        subject_fmt="Portrait sheet, {n} heroic fantasy bust portraits",
         style_lines=[
             "painterly digital painting (Heroes of Might and Magic style), NOT photorealistic,",
             "bust shot, 3/4 face turn, determined expression,",
@@ -301,7 +365,7 @@ def hero_avatars_sheet() -> dict[str, str]:
         ],
         dest="assets/heroes/",
         side=256,
-    )}
+    )
 
 
 def singles_files() -> dict[str, str]:
@@ -363,6 +427,7 @@ def main() -> None:
     files.update(units_sheets())
     files.update(artifacts_sheet())
     files.update(buildings_sheets())
+    files.update(mines_sheets())
     files.update(hero_avatars_sheet())
     files.update(singles_files())
     for name, content in sorted(files.items()):

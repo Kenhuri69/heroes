@@ -16,6 +16,7 @@ voir `docs/12-assets-style-guide.md` §10 et
 | `heroes/` | Avatars de héros 256² | idem |
 | `artifacts/` | Icônes d'artefacts détourées | idem |
 | `buildings/<faction>/` | Vignettes de bâtiments | idem |
+| `mines/` | Mines de ressources (objets de carte) | idem |
 | `backgrounds/` | Fonds d'ambiance 1920×1080 | pièces uniques LLM |
 | `logo/` | Logo master + déclinaisons | pièce unique LLM |
 

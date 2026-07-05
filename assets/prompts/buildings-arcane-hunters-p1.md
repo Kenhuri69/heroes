@@ -1,13 +1,13 @@
-# Planche — bâtiments arcane-hunters
+# Planche — bâtiments arcane-hunters — planche 1/2
 
 > Générée par `tools/assets/gen_prompts.py` — ne pas éditer à la main.
-> Règle C (planche de vignettes, fond gris clair plat) de `docs/12-assets-style-guide.md`. Grille **4×3**,
-> ordre row-major. Planche cible ≥ 2048×1536 px.
+> Règle C (planche de vignettes, fond gris clair plat) de `docs/12-assets-style-guide.md`. Grille **4×2**,
+> ordre row-major. Planche cible ≥ 2048×1024 px.
 
-## Prompt (à coller dans le LLM image)
+## Prompt (à coller dans Gemini — Nano Banana/Copilot en repli)
 
 ```
-Building sheet, 12 fantasy dwellings of the same town in a 4x3 grid,
+Building sheet, 8 fantasy dwellings of the same town in a 4x2 grid,
 digital painting, painterly HoMM town-screen style,
 each building isolated on its plot, slight 3/4 aerial view,
 architectural identity: midnight blue and arcane violet, silver trim, glowing cyan runes, hunter gear,
@@ -22,10 +22,6 @@ cell 5: "arcane hunters dwelling t5" — the dwelling where "Oathbound Blade (fr
 cell 6: "arcane hunters dwelling t6" — the dwelling where "Abyss Huntress (fr: Chasseresse de l'Abîme)" creatures are recruited
 cell 7: "arcane hunters dwelling t7" — the dwelling where "Trained Manticore (fr: Manticore de Dressage)" creatures are recruited
 cell 8: "arcane hunters dwelling t8" — the dwelling where "Demonic Penitent (fr: Pénitent Démonique)" creatures are recruited
-cell 9: "Circle of the Watch (fr: Cercle de la Vigile)" — a faction-specific town building
-cell 10: "Circle of the Hunt (fr: Cercle de la Traque)" — a faction-specific town building
-cell 11: "Circle of the Seal (fr: Cercle du Sceau)" — a faction-specific town building
-cell 12: "Circle of the Abyss (fr: Cercle de l'Abîme)" — a faction-specific town building
 flat uniform light grey background (#c8c8c8), no ground shadow,
 no text, no watermark, no signature, no border frame, no ground line
 ```
@@ -34,9 +30,9 @@ no text, no watermark, no signature, no border frame, no ground line
 
 ```bash
 python3 tools/assets/sheet_extract.py <planche.png> \
-  --cols 4 --rows 3 --side 512 \
-  --ids arcane-hunters-dwelling-t1,arcane-hunters-dwelling-t2,arcane-hunters-dwelling-t3,arcane-hunters-dwelling-t4,arcane-hunters-dwelling-t5,arcane-hunters-dwelling-t6,arcane-hunters-dwelling-t7,arcane-hunters-dwelling-t8,arcane-hunters-circle-vigile,arcane-hunters-circle-traque,arcane-hunters-circle-sceau,arcane-hunters-circle-abime \
-  --out assets/raster_src --qc /tmp/qc-buildings-arcane-hunters.png
+  --cols 4 --rows 2 --side 512 \
+  --ids arcane-hunters-dwelling-t1,arcane-hunters-dwelling-t2,arcane-hunters-dwelling-t3,arcane-hunters-dwelling-t4,arcane-hunters-dwelling-t5,arcane-hunters-dwelling-t6,arcane-hunters-dwelling-t7,arcane-hunters-dwelling-t8 \
+  --out assets/raster_src --qc /tmp/qc-buildings-arcane-hunters-p1.png
 ```
 
 Puis copier les PNG validés de `assets/raster_src/` vers `assets/buildings/arcane-hunters/`.

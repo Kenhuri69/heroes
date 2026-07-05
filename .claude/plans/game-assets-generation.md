@@ -38,6 +38,7 @@ Trois modes, hérités de Hogwarth :
 | **Bâtiments de ville** (6 communs + 7-8/faction) | ~30 | **L1** | Une planche par faction + une planche « communs ». Vignettes pour l'écran de ville (liste), pas encore la vue de ville peinte (Beta). |
 | **Fonds d'ambiance** (menu, écran de ville par faction, toile de fond combat par terrain) | ~8-10 | **L2** | Pièces uniques 1920×1080, zones sûres UI définies dans le guide. |
 | **Logo du jeu** | 1 + déclinaisons | **L2** + P | Pièce unique LLM ; déclinaisons favicon/PWA par script (différé au lot intégration). |
+| **Mines de ressources** (objets de carte) | 8 (une par ressource des manifestes) | **L1** | Planche `mines.md` dérivée de l'union startingResources + keyResources + factionResources ; silhouette lisible à 64 px. |
 | **Objets de carte** (tas de ressources, gardiens, ville sur carte) | ~10 | P d'abord, L1 ensuite | Les pictos actuels du client suffisent pour l'instant ; planche L1 quand les tuiles seront intégrées. |
 
 **Pont données → prompts** : `gen_prompts.py` lit `data/` (manifestes de
@@ -127,7 +128,21 @@ tools/assets/              ← outillage Python (indépendant de packages/tools 
 - [x] Créer les skills `asset-sheet` et `asset-procedural` → vérif : format
       SKILL.md conforme (frontmatter name/description).
 - [x] Commit + push + PR draft → vérif : CI verte (aucun code du jeu touché,
-      le smoke existant ne doit pas bouger).
+      le smoke existant ne doit pas bouger). **Fait — PR #31 mergée.**
+
+## 5bis. Lot 2 — planches Gemini « à découper par 8 » (villes / mines / artefacts)
+
+- [x] `gen_prompts.py` : 8 sujets max par planche (grille 4×2, éclatement
+      `-p1/-p2` au-delà — cible Gemini) → vérif : buildings-arcane-hunters
+      éclaté en 2 planches, familles ≤ 8 inchangées.
+- [x] Nouvelle famille **mines** : planche dérivée de l'union des ressources
+      des manifestes (8 mines : gold/wood/ore/crystal/gems/mercury/essence/
+      sulfur) → vérif : `assets/prompts/mines.md` généré avec la commande
+      d'extraction exacte.
+- [x] Guide (docs/12 §4) + README staging + plan mis à jour.
+- [ ] **Production** (nouvelle session dédiée) : générer les planches dans
+      Gemini, extraire (QC verte), ranger dans `assets/`, une PR par lot de
+      planches validées → vérif : `sheet_extract` exit 0 sur chaque planche.
 
 ## 6. Écarts / décisions notées en cours de route
 

@@ -4,7 +4,7 @@
 > Règle A (sprites 512² painterly, alpha strict après extraction) de `docs/12-assets-style-guide.md`. Grille **1×1**,
 > ordre row-major. Planche cible ≥ 512×512 px.
 
-## Prompt (à coller dans le LLM image)
+## Prompt (à coller dans Gemini — Nano Banana/Copilot en repli)
 
 ```
 Character sheet, 1 fantasy creatures of the same army in a 1x1 grid,

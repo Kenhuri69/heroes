@@ -25,7 +25,7 @@ cell 6: tier 6 unit "Abyss Huntress (fr: Chasseresse de l'Abîme)" — aiming a 
 cell 7: tier 7 unit "Trained Manticore (fr: Manticore de Dressage)" — large spread wings, airborne pose, swift and agile
 cell 8: tier 8 unit "Demonic Penitent (fr: Pénitent Démonique)" — swift and agile
 flat uniform light grey background (#c8c8c8), no ground shadow,
-no text, no watermark, no signature, no border frame, no ground line
+no text, no watermark, no signature, no border frame, no ground line, no decorative sparkles, no star glints, no lens flare
 ```
 
 ## Extraction au retour (QC verte obligatoire — jamais committer un FAIL)

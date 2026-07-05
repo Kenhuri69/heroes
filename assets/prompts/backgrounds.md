@@ -10,7 +10,7 @@ Epic painterly fantasy landscape with a lone hero on horseback overlooking a kin
 wide 16:9 composition (1920x1080), focal point upper-center,
 darker vignetted edges, lower third kept simple for UI overlay,
 atmospheric depth, volumetric light,
-no text, no watermark, no signature, no border frame
+no text, no watermark, no signature, no border frame, no decorative sparkles, no star glints, no lens flare
 ```
 
 ## town-haven
@@ -20,7 +20,7 @@ Epic painterly fantasy cityscape of a haven faction stronghold, off-white and li
 wide 16:9 composition (1920x1080), focal point upper-center,
 darker vignetted edges, lower third kept simple for UI overlay,
 atmospheric depth, volumetric light,
-no text, no watermark, no signature, no border frame
+no text, no watermark, no signature, no border frame, no decorative sparkles, no star glints, no lens flare
 ```
 
 ## town-arcane-hunters
@@ -30,7 +30,7 @@ Epic painterly fantasy cityscape of a arcane-hunters faction stronghold, midnigh
 wide 16:9 composition (1920x1080), focal point upper-center,
 darker vignetted edges, lower third kept simple for UI overlay,
 atmospheric depth, volumetric light,
-no text, no watermark, no signature, no border frame
+no text, no watermark, no signature, no border frame, no decorative sparkles, no star glints, no lens flare
 ```
 
 ## town-necropolis
@@ -40,7 +40,7 @@ Epic painterly fantasy cityscape of a necropolis faction stronghold, bone white,
 wide 16:9 composition (1920x1080), focal point upper-center,
 darker vignetted edges, lower third kept simple for UI overlay,
 atmospheric depth, volumetric light,
-no text, no watermark, no signature, no border frame
+no text, no watermark, no signature, no border frame, no decorative sparkles, no star glints, no lens flare
 ```
 
 ## combat-grass
@@ -50,7 +50,7 @@ Epic painterly fantasy battlefield clearing on grass terrain seen from a slight 
 wide 16:9 composition (1920x1080), focal point upper-center,
 darker vignetted edges, lower third kept simple for UI overlay,
 atmospheric depth, volumetric light,
-no text, no watermark, no signature, no border frame
+no text, no watermark, no signature, no border frame, no decorative sparkles, no star glints, no lens flare
 ```
 
 ## combat-swamp
@@ -60,7 +60,7 @@ Epic painterly fantasy battlefield clearing on swamp terrain seen from a slight 
 wide 16:9 composition (1920x1080), focal point upper-center,
 darker vignetted edges, lower third kept simple for UI overlay,
 atmospheric depth, volumetric light,
-no text, no watermark, no signature, no border frame
+no text, no watermark, no signature, no border frame, no decorative sparkles, no star glints, no lens flare
 ```
 
 ## victory
@@ -70,7 +70,7 @@ Epic painterly fantasy triumphant army banners raised at sunset, Heroes of Might
 wide 16:9 composition (1920x1080), focal point upper-center,
 darker vignetted edges, lower third kept simple for UI overlay,
 atmospheric depth, volumetric light,
-no text, no watermark, no signature, no border frame
+no text, no watermark, no signature, no border frame, no decorative sparkles, no star glints, no lens flare
 ```
 
 ## defeat
@@ -80,5 +80,5 @@ Epic painterly fantasy abandoned battlefield at dusk, broken banners, rain, Hero
 wide 16:9 composition (1920x1080), focal point upper-center,
 darker vignetted edges, lower third kept simple for UI overlay,
 atmospheric depth, volumetric light,
-no text, no watermark, no signature, no border frame
+no text, no watermark, no signature, no border frame, no decorative sparkles, no star glints, no lens flare
 ```

@@ -24,7 +24,7 @@ cell 6: "mercury mine" — an alchemist's lab with bubbling silver vats
 cell 7: "essence mine" — an arcane essence extractor with a levitating orb
 cell 8: "sulfur mine" — a smoking sulfur pit with yellow deposits
 flat uniform light grey background (#c8c8c8), no ground shadow,
-no text, no watermark, no signature, no border frame, no ground line
+no text, no watermark, no signature, no border frame, no ground line, no decorative sparkles, no star glints, no lens flare
 ```
 
 ## Extraction au retour (QC verte obligatoire — jamais committer un FAIL)

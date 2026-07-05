@@ -24,7 +24,7 @@ cell 6: "Abyss Huntress dwelling (fr: Habitation : Chasseresse de l'Abîme)" —
 cell 7: "Trained Manticore dwelling (fr: Habitation : Manticore de Dressage)" — the dwelling where "Trained Manticore (fr: Manticore de Dressage)" creatures are recruited
 cell 8: "Demonic Penitent dwelling (fr: Habitation : Pénitent Démonique)" — the dwelling where "Demonic Penitent (fr: Pénitent Démonique)" creatures are recruited
 flat uniform light grey background (#c8c8c8), no ground shadow,
-no text, no watermark, no signature, no border frame, no ground line
+no text, no watermark, no signature, no border frame, no ground line, no decorative sparkles, no star glints, no lens flare
 ```
 
 ## Extraction au retour (QC verte obligatoire — jamais committer un FAIL)

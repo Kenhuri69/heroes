@@ -28,7 +28,8 @@ REPO = Path(__file__).resolve().parent.parent.parent
 DATA = REPO / "data"
 OUT = REPO / "assets" / "prompts"
 
-SUFFIX = ("no text, no watermark, no signature, no border frame, no ground line")
+SUFFIX = ("no text, no watermark, no signature, no border frame, no ground line, "
+          "no decorative sparkles, no star glints, no lens flare")
 SHEET_BG = "flat uniform light grey background (#c8c8c8)"
 # Garde-fou marge (docs/12 §4) : le LLM cadre souvent trop serré et les
 # extrémités (ailes déployées, armes, bâtons, bannières) débordent → la porte
@@ -392,7 +393,8 @@ def singles_files() -> dict[str, str]:
             "wide 16:9 composition (1920x1080), focal point upper-center,",
             "darker vignetted edges, lower third kept simple for UI overlay,",
             "atmospheric depth, volumetric light,",
-            "no text, no watermark, no signature, no border frame",
+            "no text, no watermark, no signature, no border frame, "
+            "no decorative sparkles, no star glints, no lens flare",
         ])
 
     scenes = [("title", "landscape with a lone hero on horseback overlooking "

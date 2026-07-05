@@ -19,7 +19,7 @@ cell 2: "Stone Aegis (fr: Égide de pierre)" — a protective relic (shield, aeg
 cell 3: "Orb of Knowledge (fr: Orbe de savoir)" — a scholarly relic (orb, tome, circlet) (+2 knowledge)
 cell 4: "Lucky Clover (fr: Trèfle de chance)" — a lucky charm relic (+1 luck)
 flat uniform light grey background (#c8c8c8), no ground shadow,
-no text, no watermark, no signature, no border frame, no ground line
+no text, no watermark, no signature, no border frame, no ground line, no decorative sparkles, no star glints, no lens flare
 ```
 
 ## Extraction au retour (QC verte obligatoire — jamais committer un FAIL)

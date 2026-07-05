@@ -23,7 +23,7 @@ cell 5: "Lich dwelling (fr: Habitation : Liche)" — the dwelling where "Lich (f
 cell 6: "Doom Knight dwelling (fr: Habitation : Cavalier funeste)" — the dwelling where "Doom Knight (fr: Cavalier funeste)" creatures are recruited
 cell 7: "Bone Dragon dwelling (fr: Habitation : Dragon d'os)" — the dwelling where "Bone Dragon (fr: Dragon d'os)" creatures are recruited
 flat uniform light grey background (#c8c8c8), no ground shadow,
-no text, no watermark, no signature, no border frame, no ground line
+no text, no watermark, no signature, no border frame, no ground line, no decorative sparkles, no star glints, no lens flare
 ```
 
 ## Extraction au retour (QC verte obligatoire — jamais committer un FAIL)

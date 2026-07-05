@@ -20,7 +20,7 @@ cell 2: "Circle of the Hunt (fr: Cercle de la Traque)" — a faction-specific to
 cell 3: "Circle of the Seal (fr: Cercle du Sceau)" — a faction-specific town building
 cell 4: "Circle of the Abyss (fr: Cercle de l’Abîme)" — a faction-specific town building
 flat uniform light grey background (#c8c8c8), no ground shadow,
-no text, no watermark, no signature, no border frame, no ground line
+no text, no watermark, no signature, no border frame, no ground line, no decorative sparkles, no star glints, no lens flare
 ```
 
 ## Extraction au retour (QC verte obligatoire — jamais committer un FAIL)

@@ -21,7 +21,7 @@ cell 4: "Market (fr: Marché)" — a bustling covered market stall
 cell 5: "Tavern (fr: Taverne)" — a cosy timber tavern with a hanging sign
 cell 6: "Forge" — a smithy with a glowing furnace and anvil
 flat uniform light grey background (#c8c8c8), no ground shadow,
-no text, no watermark, no signature, no border frame, no ground line
+no text, no watermark, no signature, no border frame, no ground line, no decorative sparkles, no star glints, no lens flare
 ```
 
 ## Extraction au retour (QC verte obligatoire — jamais committer un FAIL)

@@ -22,7 +22,7 @@ cell 4: a wise magic hero, robed spellcaster of the arcane-hunters faction — m
 cell 5: a battle-hardened might hero, armored commander of the necropolis faction — bone white, ash grey and black, necrotic green glow, tattered cloth, spectral mist
 cell 6: a wise magic hero, robed spellcaster of the necropolis faction — bone white, ash grey and black, necrotic green glow, tattered cloth, spectral mist
 flat uniform light grey background (#c8c8c8), no ground shadow,
-no text, no watermark, no signature, no border frame, no ground line
+no text, no watermark, no signature, no border frame, no ground line, no decorative sparkles, no star glints, no lens flare
 ```
 
 ## Extraction au retour (QC verte obligatoire — jamais committer un FAIL)

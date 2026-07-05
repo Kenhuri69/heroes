@@ -23,7 +23,7 @@ cell 5: "Priestess dwelling (fr: Habitation : Prêtresse)" — the dwelling wher
 cell 6: "Griffin Knight dwelling (fr: Habitation : Chevalier du Griffon)" — the dwelling where "Griffin Knight (fr: Chevalier du Griffon)" creatures are recruited
 cell 7: "Angel dwelling (fr: Habitation : Ange)" — the dwelling where "Angel (fr: Ange)" creatures are recruited
 flat uniform light grey background (#c8c8c8), no ground shadow,
-no text, no watermark, no signature, no border frame, no ground line
+no text, no watermark, no signature, no border frame, no ground line, no decorative sparkles, no star glints, no lens flare
 ```
 
 ## Extraction au retour (QC verte obligatoire — jamais committer un FAIL)

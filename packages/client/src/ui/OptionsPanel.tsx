@@ -1,11 +1,12 @@
-import { useEffect, useState } from 'preact/hooks';
+import { useState } from 'preact/hooks';
 import { appStore, useApp } from '../app/store';
 import { t, setLocale } from '../app/i18n';
 import { exportSave, importSave } from '../app/save';
+import { COMBAT_SPEEDS } from '../app/ui-constants';
+import { useEscapeKey } from './useEscapeKey';
 import './options.css';
 
 const FONT_SCALE_PERCENT: Record<1 | 2 | 3, string> = { 1: '100%', 2: '112.5%', 3: '125%' };
-const COMBAT_SPEEDS = [1, 2, 4] as const;
 const FONT_SCALES = [1, 2, 3] as const;
 
 /**
@@ -23,13 +24,7 @@ export function OptionsPanel({ onClose }: { onClose: () => void }) {
   const screen = useApp((s) => s.screen);
   const [message, setMessage] = useState<string | null>(null);
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent): void => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [onClose]);
+  useEscapeKey(onClose);
 
   const applyFontScale = (scale: 1 | 2 | 3): void => {
     appStore.setState({ fontScale: scale });

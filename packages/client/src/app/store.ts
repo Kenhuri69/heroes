@@ -11,7 +11,6 @@ import type { Scenario } from '@heroes/content';
  */
 export interface AppState {
   game: GameState;
-  selectedHeroId: string | null;
   /** Vitesse d'animation du combat ×1/×2/×4 (doc 08 §2.4). */
   combatSpeed: 1 | 2 | 4;
   /** Fourchettes d'affichage de force des gardiens (doc 02 §2.2) — config display. */
@@ -34,7 +33,6 @@ export interface AppState {
 
 export const appStore = createStore<AppState>(() => ({
   game: createEmptyState(),
-  selectedHeroId: null,
   combatSpeed: 1,
   strengthBands: [],
   guardianHint: null,

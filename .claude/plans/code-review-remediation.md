@@ -381,18 +381,31 @@ pas de `concurrency`/`timeout-minutes` ; `__HEROES_TEST__` exposé en prod.
       `meleeOriginsFor` (adjacent/distant).
 - Vérif : golden inchangé (`be72de4b`), déterminisme combat-ai vert (IA
   intacte), 233 tests, lint, typecheck, 44 smoke.
-- Vérif : `pnpm test` + smoke verts, golden inchangé.
 
-#### R7c — Mineurs (à faire)
-- [ ] Classe `.btn` partagée (5 boutons gris quasi identiques + variantes
-      menu/rouge/active dupliquées), `SPEEDS`/`COMBAT_SPEEDS` factorisé en un
-      export, hook `useEscapeKey` partagé (TownScreen + OptionsPanel — pas de
-      « pile » : 2 handlers qui ne coexistent pas, over-engineering évité), code
-      mort (`selectedHeroId` écrit jamais lu ; branche `hovered` de `hexgrid`
-      jamais alimentée par `CombatScene`), toast victoire/défaite par
-      `combat.playerSide` au lieu de `'attacker'` en dur.
+#### R7c — Mineurs ✅ (`.btn` + toast reportés avec justification)
+- [x] `SPEEDS`/`COMBAT_SPEEDS` factorisé en un export unique
+      (`app/ui-constants.ts`) consommé par `combat.tsx` + `OptionsPanel.tsx`.
+- [x] Hook `useEscapeKey` partagé (`ui/useEscapeKey.ts`) — TownScreen +
+      OptionsPanel ; pas de « pile » (2 handlers qui ne coexistent pas).
+- [x] Code mort retiré : `selectedHeroId` (champ store écrit jamais lu →
+      retiré de `store.ts` + écritures `AdventureScene`/`OutcomeOverlay`) ;
+      branche `hovered` de `render/hexgrid.ts` (option + const `STROKE_HOVERED`
+      + branche jamais alimentée par `CombatScene`).
       NB : `town/unit-economy.ts` **n'est pas mort** (consommé par recruit/
       economy/town-ai) — retiré de la liste.
+- **Reporté — toast victoire/défaite par `combat.playerSide`** : `event.winner`
+      est un camp et `draft.combat` est mis à `null` dans le même `apply` juste
+      après l'émission de `CombatEnded` (turns.ts) → l'état n'est plus lisible au
+      toast. Le rendre générique demande de porter `playerSide`/`won` DANS
+      l'événement (changement de forme d'événement moteur) — hors périmètre des
+      mineurs client. Documenté en commentaire ; comportement actuel correct
+      (`playerSide` toujours `'attacker'`).
+- **Reporté — classe `.btn` partagée** : dedup CSS purement cosmétique touchant
+      tous les boutons de ~10 fichiers, à padding hétérogène ; **non vérifiable
+      par le smoke** (pas d'assertion de pixels) → risque de régression visuelle
+      non couvert (guideline §7). À traiter dans un lot dédié avec vérification
+      visuelle, ou renoncer (YAGNI).
+- Vérif : golden inchangé (`be72de4b`), 233 tests, lint, typecheck, 44 smoke.
 - Vérif : smoke verts, golden inchangé.
 
 ### Lot R8 — Documentation & mémoire projet (T4)
@@ -615,3 +628,15 @@ commit (docs = source de vérité).
   `combat/hex.ts` (`combat-hex.test.ts`, 11). Vérif : golden `be72de4b`,
   déterminisme combat-ai, 233 tests, lint, typecheck, 44 smoke. **CL9 levé**
   (client↔moteur). Reste : R7c (mineurs), R8 (docs) ; chantier UX §5.
+- **2026-07-05** — **R7c livré (mineurs client) → R7 complet** : `COMBAT_SPEEDS`
+  factorisé (`app/ui-constants.ts`) ; hook `useEscapeKey` partagé
+  (`ui/useEscapeKey.ts`, TownScreen + OptionsPanel) ; code mort retiré
+  (`selectedHeroId` store + écritures ; branche `hovered`/`STROKE_HOVERED` de
+  `hexgrid`). **Reportés avec justification** : toast victoire/défaite par
+  `combat.playerSide` (nécessite de porter `playerSide`/`won` dans l'événement
+  `CombatEnded` — `draft.combat` est nul au moment du toast ; documenté, comportement
+  actuel correct) ; classe `.btn` partagée (dedup CSS cosmétique sur ~10
+  fichiers, non vérifiable par smoke → risque de régression visuelle non
+  couvert, §7). Vérif : golden `be72de4b`, 233 tests, lint, typecheck, 44 smoke.
+  **R7 (dette & duplication) complet.** Reste au plan : R8 (docs) ; chantier
+  UX §5.

@@ -19,7 +19,6 @@ export function OutcomeOverlay() {
       game: createEmptyState(),
       screen: 'menu',
       townScreenOpen: null,
-      selectedHeroId: null,
     });
   };
 

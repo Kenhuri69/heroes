@@ -53,7 +53,6 @@ const FILL_REACHABLE = 0x2e4a2e;
 const FILL_ATTACKABLE = 0x5a2a2a;
 const FILL_OBSTACLE = 0x4a4340;
 const STROKE_SELECTED = 0xf1c40f;
-const STROKE_HOVERED = 0x8a8d97;
 
 export interface DrawBoardOptions {
   /** Hexes atteignables par la pile active (déplacement). */
@@ -62,8 +61,6 @@ export interface DrawBoardOptions {
   attackable?: ReadonlySet<string>;
   /** Hexes bloqués par un obstacle (doc 02 §5.1). */
   obstacles?: ReadonlySet<string>;
-  /** Hex actuellement survolé (souris) — contour clair. */
-  hovered?: OffsetPos | null;
   /** Hex/cible sélectionné en attente du 2ᵉ tap — contour doré. */
   selected?: OffsetPos | null;
 }
@@ -73,7 +70,6 @@ export function drawBoard(g: Graphics, opts: DrawBoardOptions = {}): void {
   const reachable = opts.reachable ?? new Set<string>();
   const attackable = opts.attackable ?? new Set<string>();
   const obstacles = opts.obstacles ?? new Set<string>();
-  const hovered = opts.hovered ?? null;
   const selected = opts.selected ?? null;
 
   for (let row = 0; row < COMBAT_ROWS; row++) {
@@ -92,9 +88,6 @@ export function drawBoard(g: Graphics, opts: DrawBoardOptions = {}): void {
       if (selected && selected.col === col && selected.row === row) {
         stroke = STROKE_SELECTED;
         strokeWidth = 3;
-      } else if (hovered && hovered.col === col && hovered.row === row) {
-        stroke = STROKE_HOVERED;
-        strokeWidth = 2;
       }
 
       g.regularPoly(x, y, HEX_SIZE - 1, 6, Math.PI / 6)

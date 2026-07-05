@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'preact/hooks';
+import { useState } from 'preact/hooks';
 import { RESOURCE_IDS, buildStatus, builtDwellings, missingRequirements, scaleCost } from '@heroes/engine';
 import type { BuildingDef, CombatUnitDef, TownState } from '@heroes/engine';
 import { useApp, appStore } from '../app/store';
@@ -8,6 +8,7 @@ import { t, resolveUnitName, commandErrorMessage, resolveBuildingName, resolveFa
 import { buildingUrl } from '../render/assets';
 import { AssetImg } from './AssetImg';
 import { FactionBadge } from './FactionBadge';
+import { useEscapeKey } from './useEscapeKey';
 import './town.css';
 
 /**
@@ -63,14 +64,7 @@ export function TownScreen() {
   const [error, setError] = useState<string | null>(null);
 
   const close = (): void => appStore.setState({ townScreenOpen: null });
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent): void => {
-      if (e.key === 'Escape') close();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, []);
+  useEscapeKey(close);
 
   const town = game.towns.find((tw) => tw.id === townId);
 

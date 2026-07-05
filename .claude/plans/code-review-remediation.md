@@ -326,16 +326,48 @@ pas de `concurrency`/`timeout-minutes` ; `__HEROES_TEST__` exposé en prod.
   nettoyé) ; `pnpm test` explicite lance bien engine (210) + content (70) ;
   typecheck/lint/content:check/42 smoke verts.
 
-### Lot R7 — Dette & duplication (E6, CL9 + mineurs)
-- [ ] Helper moteur partagé `advanceHeroAlongPath` (humain + IA).
-- [ ] Exposer en helpers purs `@heroes/engine` : coût scalé, statut de
-      prérequis, dwellings→unités, `attackableTargets`, `bestMeleeOrigin` —
-      consommés par `TownScreen`/`CombatScene` (supprime CL9) ; tests
-      unitaires directs (couvre aussi `combat/hex.ts`, sans test aujourd'hui).
-- [ ] Mineurs : classe `.btn` partagée, `SPEEDS` factorisé, gestion Échap en
-      pile, code mort (`selectedHeroId`, `hovered`, `town/unit-economy.ts`),
-      toast victoire/défaite par `combat.playerSide`.
-- Vérif : `pnpm -r test` + smoke verts, zéro régression golden.
+### Lot R7 — Dette & duplication (E6, CL9 + mineurs) — scindé en a/b/c
+
+#### R7a — E6 : helper moteur partagé `advanceHeroAlongPath` ✅
+- [x] Extrait dans `adventure/movement.ts` (nouveau module feuille) la boucle
+      de pas d'un héros, jusqu'ici **dupliquée verbatim** entre le handler
+      `MoveHero` (`core/engine.ts`, joueur humain) et l'IA d'aventure
+      (`ai/adventure.ts`). Seule divergence — la résolution du combat de
+      gardien — injectée via `AdvanceOptions.onGuardianEngaged` : le humain le
+      laisse indéfini (combat interactif, `draft.combat` posé), l'IA y passe
+      `() => runAutoCombat(draft, events)` (résolution immédiate déterministe).
+- [x] Orphelins nettoyés (imports `beginGuardianCombat`/`ResourceId` dans
+      `engine.ts`, `beginGuardianCombat`/`samePos`/`revealAround`/
+      `heroVisionBonus`/`ResourceId` dans `ai/adventure.ts`).
+- Vérif : **golden inchangé** (`golden-replay` vert, hash `be72de4b`),
+  déterminisme IA vs IA vert, 210 tests moteur, lint, typecheck, 42 smoke.
+  Pas de nouveau test : la boucle est déjà couverte de bout en bout par
+  `golden-replay` (déplacement humain + gardien) et `ai-adventure` (pas IA).
+
+#### R7b — CL9 : helpers purs `@heroes/engine` (à faire)
+- [ ] Exposer/extraire en helpers purs : coût scalé (`scaleCost` — réconcilier
+      le skip `if (amount)` du moteur vs client), statut de prérequis
+      (`buildStatus`/`missingRequirements` factorisés de `validateBuildStructure`),
+      dwellings→unités (`builtDwellings` liste — réconcilier multi-niveaux vs
+      `builtLevelOf` top-level), `attackableTargets` (écrit 3× : validateur, IA,
+      client), candidats de mêlée (`meleeOriginsFor` — garder la *politique* de
+      sélection séparée : client = plus proche, IA = scoré) — consommés par
+      `TownScreen`/`CombatScene`. Élargir `engine/src/index.ts` + `town/index.ts`.
+- [ ] Tests unitaires directs des helpers + couverture de `combat/hex.ts`
+      (aucun test dédié aujourd'hui).
+- Vérif : `pnpm test` + smoke verts, golden inchangé.
+
+#### R7c — Mineurs (à faire)
+- [ ] Classe `.btn` partagée (5 boutons gris quasi identiques + variantes
+      menu/rouge/active dupliquées), `SPEEDS`/`COMBAT_SPEEDS` factorisé en un
+      export, hook `useEscapeKey` partagé (TownScreen + OptionsPanel — pas de
+      « pile » : 2 handlers qui ne coexistent pas, over-engineering évité), code
+      mort (`selectedHeroId` écrit jamais lu ; branche `hovered` de `hexgrid`
+      jamais alimentée par `CombatScene`), toast victoire/défaite par
+      `combat.playerSide` au lieu de `'attacker'` en dur.
+      NB : `town/unit-economy.ts` **n'est pas mort** (consommé par recruit/
+      economy/town-ai) — retiré de la liste.
+- Vérif : smoke verts, golden inchangé.
 
 ### Lot R8 — Documentation & mémoire projet (T4)
 - [ ] CLAUDE.md : état 4.2→4.6, save v3.
@@ -528,3 +560,13 @@ commit (docs = source de vérité).
   injecté (nettoyé), `pnpm test` = 210 engine + 70 content, lint, typecheck 4/4,
   content:check, build, 42 smoke. Golden inchangé (aucun code moteur touché).
   Reste : R7 (dette/duplication), R8 (docs) ; chantier UX §5.
+- **2026-07-05** — **R7a livré (E6 : `advanceHeroAlongPath` partagé)** : la
+  boucle de pas d'un héros (décompte PM, interception gardien, ramassage,
+  brouillard), jusqu'ici copiée à l'identique entre le handler `MoveHero`
+  (humain) et l'IA d'aventure, vit désormais dans un module feuille unique
+  `adventure/movement.ts`. La seule divergence (résolution du combat de gardien :
+  interactif côté humain, `runAutoCombat` côté IA) passe par un callback
+  `onGuardianEngaged`. Extraction **behavior-preserving** : golden vert
+  (`be72de4b`), déterminisme IA vs IA vert, 210 tests, lint/typecheck/42 smoke.
+  R7 scindé en a (E6, fait) / b (CL9 helpers) / c (mineurs). Reste : R7b, R7c,
+  R8 (docs) ; chantier UX §5.

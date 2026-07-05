@@ -1,12 +1,10 @@
-import { beginGuardianCombat } from '../combat/setup';
 import { runAutoCombat } from '../combat/ai';
 import type { ArmyStack, CombatUnitDef } from '../combat/types';
 import type { GameEvent } from '../core/events';
-import type { GameState, HeroState, PlayerState, ResourceId } from '../core/state';
-import { revealAround } from '../adventure/fog';
-import { DIRECTIONS, isAdjacent, samePos, tileIndex, type GridPos } from '../adventure/map';
+import type { GameState, HeroState, PlayerState } from '../core/state';
+import { advanceHeroAlongPath } from '../adventure/movement';
+import { DIRECTIONS, isAdjacent, tileIndex, type GridPos } from '../adventure/map';
 import { findPath, isPassable, stepCost } from '../adventure/path';
-import { heroVisionBonus } from '../hero/skills';
 import { validateCaptureTown, handleCaptureTown } from '../town';
 import type { TownState } from '../town/types';
 import { playTownTurn } from './town-ai';
@@ -182,60 +180,20 @@ function pickExplorationStep(
 }
 
 /**
- * Avance le héros le long de `path`, pas à pas — réplique la logique du
- * handler `MoveHero` (`core/engine.ts`, hors périmètre lot S) : décompte des
- * PM, interception de gardien (combat résolu immédiatement, déterministe),
- * ramassage de ressource (arrêt sur la case), révélation du brouillard.
+ * L'IA d'aventure résout le combat de gardien immédiatement (IA vs IA,
+ * déterministe) : elle passe `runAutoCombat` en `onGuardianEngaged` à la
+ * routine de pas partagée avec le handler humain (`adventure/movement`).
  */
-function advanceHeroAlongPath(
+function advanceAi(
   draft: GameState,
   hero: HeroState,
   player: PlayerState,
   path: GridPos[],
   events: GameEvent[],
 ): void {
-  const { map, config } = draft;
-  if (!map || !config) return;
-  for (const step of path) {
-    const cost = stepCost(config, map, hero.pos, step);
-    if (cost > hero.movementPoints) break;
-    const guardian = map.objects.find((o) => o.type === 'guardian' && samePos(o.pos, step));
-    if (guardian) {
-      hero.movementPoints -= cost;
-      beginGuardianCombat(draft, hero.id, guardian.id, events);
-      runAutoCombat(draft, events); // IA vs IA : résolution immédiate et déterministe
-      return;
-    }
-    const from = { ...hero.pos };
-    hero.movementPoints -= cost;
-    hero.pos = { ...step };
-    revealAround(player.explored, map, hero.pos, config.visionRadius + heroVisionBonus(hero, draft.skillCatalog));
-    events.push({
-      type: 'MoveStepped',
-      heroId: hero.id,
-      from,
-      to: { ...step },
-      movementPointsLeft: hero.movementPoints,
-    });
-    const objIndex = map.objects.findIndex((o) => o.type === 'resource' && samePos(o.pos, hero.pos));
-    if (objIndex !== -1) {
-      const obj = map.objects[objIndex];
-      if (obj && obj.type === 'resource') {
-        player.resources[obj.resource as ResourceId] += obj.amount;
-        map.objects.splice(objIndex, 1);
-        events.push({
-          type: 'ResourcePicked',
-          heroId: hero.id,
-          playerId: player.id,
-          objectId: obj.id,
-          resource: obj.resource,
-          amount: obj.amount,
-          pos: { ...hero.pos },
-        });
-      }
-      break;
-    }
-  }
+  advanceHeroAlongPath(draft, hero, player, path, events, {
+    onGuardianEngaged: () => runAutoCombat(draft, events),
+  });
 }
 
 function captureTown(draft: GameState, town: TownState, player: PlayerState, events: GameEvent[]): void {
@@ -250,13 +208,13 @@ function playHeroTurn(draft: GameState, hero: HeroState, player: PlayerState, ev
 
   const resource = pickResourceTarget(draft, hero, blocked);
   if (resource) {
-    advanceHeroAlongPath(draft, hero, player, resource.path, events);
+    advanceAi(draft, hero, player, resource.path, events);
     return;
   }
 
   const guardian = pickGuardianTarget(draft, hero, blocked);
   if (guardian) {
-    advanceHeroAlongPath(draft, hero, player, guardian.path, events);
+    advanceAi(draft, hero, player, guardian.path, events);
     return;
   }
 
@@ -267,5 +225,5 @@ function playHeroTurn(draft: GameState, hero: HeroState, player: PlayerState, ev
   }
 
   const exploreStep = pickExplorationStep(draft, hero, player, blocked);
-  if (exploreStep) advanceHeroAlongPath(draft, hero, player, exploreStep, events);
+  if (exploreStep) advanceAi(draft, hero, player, exploreStep, events);
 }

@@ -1,13 +1,26 @@
 # Plan — Remédiation de la revue de code globale (post-4.6)
 
-> **Statut : plan seul — aucune correction appliquée dans ce lot.**
-> Revue complète du code produit (Phases 2.0 → 4.6) réalisée le 2026-07-05 sur
-> `main` (`ab5ee82`), en quatre passes parallèles : moteur (`packages/engine`,
-> 44 fichiers lus), client (`packages/client`, ~5 000 lignes lues),
-> contenu/données/CLI (`packages/content`, `packages/tools`, `data/`),
-> et transversal (CI, smoke, config monorepo, cohérence docs ↔ code).
-> Chaque constat cite fichier:ligne et a été vérifié dans le code ; les deux
-> constats critiques du pipeline de contenu ont été **reproduits à l'exécution**.
+> **✅ Statut : CLOS — R1 à R8 tous livrés et mergés (2026-07-05).**
+> Chaque lot est parti en PR draft → ready → squash-merge sur `main`, golden
+> replay stable (`be72de4b`) de bout en bout, garde-fou « zéro faction dans le
+> moteur » vert. **Reste hors de ce plan** : le chantier UX §5 (U1–U6, dont
+> CL7 combat tactile < 44 px) — track distinct, à démarrer sur décision ; et
+> deux items R7c reportés avec justification (toast victoire/défaite par
+> `combat.playerSide` — demande un champ dans l'événement `CombatEnded` ; classe
+> CSS `.btn` partagée — dedup cosmétique non vérifiable par le smoke).
+> Récapitulatif des lots : R1 garde-fous de crash moteur · R2 cycle de vie
+> scènes + erreurs surfacées · R3 identité joueur (`humanPlayerId`) · R4 noms
+> localisés du contenu · R5 résilience pipeline contenu + CLI · R6 durcissement
+> CI/tests · R7 dette & duplication (a `advanceHeroAlongPath`, b helpers purs
+> ville+combat, c mineurs) · R8 docs & mémoire.
+>
+> Revue d'origine (historique) : code produit Phases 2.0 → 4.6, réalisée le
+> 2026-07-05 sur `main` (`ab5ee82`), en quatre passes parallèles : moteur
+> (`packages/engine`, 44 fichiers lus), client (`packages/client`, ~5 000 lignes
+> lues), contenu/données/CLI (`packages/content`, `packages/tools`, `data/`), et
+> transversal (CI, smoke, config monorepo, cohérence docs ↔ code). Chaque constat
+> cite fichier:ligne et a été vérifié dans le code ; les deux constats critiques
+> du pipeline de contenu ont été **reproduits à l'exécution**.
 
 ## Verdict d'ensemble
 

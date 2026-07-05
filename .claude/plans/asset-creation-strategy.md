@@ -70,7 +70,10 @@ les planches ; absente des pièces uniques bg/logo). Prompts regénérés.
       `assets/heroes/`.
 - [x] **Fonds** (L2, 8 scènes ✅) : title ✅, town-haven ✅, town-arcane-hunters ✅, town-necropolis ✅, combat-grass ✅, combat-swamp ✅, victory ✅. Anti-étincelle ajouté aux prompts (gen_prompts.py).
       Reste : defeat.
-- [ ] Logo (L2)
+- [x] **Logo** (L2) : heroes-master.png 1024² transparent (écu héraldique,
+      épée croisée, couronne, bandeau « HEROES »). `assets/logo/`.
+
+**Toutes les familles d'assets sont désormais produites.**
 
 ## 5. Suite (en attente des planches utilisateur)
 Prompts prêts à coller (chacun avec sa commande d'extraction dans le .md) :

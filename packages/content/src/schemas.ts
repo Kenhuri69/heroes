@@ -153,7 +153,9 @@ const buildingEffectSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('growthBonus'), percent: z.number().int().nonnegative() }),
   z.object({ type: z.literal('dwelling'), tier: z.number().int().min(1).max(8), unitId: idSchema }),
   z.object({ type: z.literal('mageGuild'), level: z.number().int().positive() }),
-  /** Bâtiment sans effet mécanique en 3.1 (market/tavern/forge/spécial) — arbre seul. */
+  /** Active l'échange ressource ↔ or (doc 02 §4.1, lot UX U6a). */
+  z.object({ type: z.literal('market') }),
+  /** Bâtiment sans effet mécanique en 3.1 (tavern/forge/spécial) — arbre seul. */
   z.object({ type: z.literal('none') }),
 ]);
 
@@ -331,6 +333,15 @@ export const gameConfigSchema = z.object({
       obstaclesMin: z.number().int().nonnegative(),
       obstaclesMax: z.number().int().nonnegative(),
     }).refine((c) => c.obstaclesMin <= c.obstaclesMax, 'obstaclesMin ≤ obstaclesMax'),
+    /** Marché (doc 02 §4.1, lot UX U6a) : taux d'échange ressource ↔ or au bâtiment marché. */
+    market: z
+      .object({
+        /** Or reçu par unité de ressource non-or VENDUE. */
+        sellRate: z.number().int().positive(),
+        /** Or payé par unité de ressource non-or ACHETÉE (spread : ≥ sellRate). */
+        buyRate: z.number().int().positive(),
+      })
+      .refine((m) => m.buyRate >= m.sellRate, 'market.buyRate ≥ market.sellRate'),
   }),
   newGame: z.object({
     map: idSchema,

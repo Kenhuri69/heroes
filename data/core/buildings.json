@@ -72,7 +72,7 @@
       "id": "market",
       "maxLevel": 1,
       "levels": [
-        { "cost": { "gold": 1000, "wood": 5 }, "requires": [], "effect": { "type": "none" } }
+        { "cost": { "gold": 1000, "wood": 5 }, "requires": [], "effect": { "type": "market" } }
       ]
     },
     {

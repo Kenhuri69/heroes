@@ -145,6 +145,7 @@ function makeConfig(): unknown {
       movement: { base: 1500, perSpeed: 50, roadMultiplier: 0.75, diagonalMultiplier: 1.41 },
       visionRadius: 5,
       terrains: { grass: { moveCost: 100 } },
+      market: { sellRate: 25, buyRate: 50 },
       hero: {
         xpPerHpKilled: 1,
         levelCurve: { base: 1000, exponent: 1.9 },

@@ -48,6 +48,20 @@ export interface AdventureConfig {
   terrains: Record<string, TerrainRule>;
   combat: CombatRulesConfig;
   hero: HeroProgressionConfig;
+  /**
+   * Marché (doc 02 §4.1, lot UX U6a) : taux d'échange ressource ↔ or. Le schéma
+   * de contenu le rend REQUIS (la prod l'a toujours) ; optionnel ici pour les
+   * fixtures de test minimales et la stabilité du golden (config inchangée).
+   */
+  market?: MarketConfig;
+}
+
+/** Taux du marché (doc 02 §4.1) : or par unité de ressource non-or échangée. */
+export interface MarketConfig {
+  /** Or reçu par unité de ressource non-or vendue. */
+  sellRate: number;
+  /** Or payé par unité de ressource non-or achetée (spread : ≥ sellRate). */
+  buyRate: number;
 }
 
 /** Progression du héros (doc 02 §1.2 + décisions plan phase-2.5). */

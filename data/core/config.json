@@ -31,6 +31,10 @@
       "marksMax": 3,
       "obstaclesMin": 2,
       "obstaclesMax": 5
+    },
+    "market": {
+      "sellRate": 25,
+      "buyRate": 50
     }
   },
   "newGame": {

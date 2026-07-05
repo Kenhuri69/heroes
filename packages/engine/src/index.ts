@@ -86,6 +86,7 @@ export {
   builtDwellings,
   missingRequirements,
   scaleCost,
+  tradeQuote,
   unitIsRecruitable,
   type BuildRequirement,
   type BuildStatus,

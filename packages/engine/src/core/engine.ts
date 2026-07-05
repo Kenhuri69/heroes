@@ -19,11 +19,13 @@ import {
   handleCaptureTown,
   handleGarrisonTransfer,
   handleRecruitUnits,
+  handleTradeResources,
   resetBuiltToday,
   validateBuildStructure,
   validateCaptureTown,
   validateGarrisonTransfer,
   validateRecruitUnits,
+  validateTradeResources,
 } from '../town';
 import {
   handleCastSpell,
@@ -87,6 +89,7 @@ const GAME_OVER_BLOCKED = new Set<Command['type']>([
   'RecruitUnits',
   'GarrisonTransfer',
   'CaptureTown',
+  'TradeResources',
   'CastSpell',
   'ChooseSkill',
   'AiTurn',
@@ -180,6 +183,11 @@ export function validate(state: GameState, cmd: Command): CommandError | null {
     case 'CaptureTown': {
       if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
       return validateCaptureTown(state, cmd);
+    }
+    case 'TradeResources': {
+      if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
+      if (state.combat) return { code: 'combatActive', message: 'un combat est en cours' };
+      return validateTradeResources(state, cmd);
     }
     case 'CastSpell': {
       if (!state.combat) return { code: 'noCombat', message: 'aucun combat en cours' };
@@ -379,6 +387,10 @@ const handlers: Handlers = {
 
   CaptureTown(draft, cmd, events) {
     handleCaptureTown(draft, cmd, events);
+  },
+
+  TradeResources(draft, cmd, events) {
+    handleTradeResources(draft, cmd, events);
   },
 
   CastSpell(draft, cmd, events) {

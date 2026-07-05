@@ -46,6 +46,14 @@
 - Panneau construction : arbre visuel avec états (construit / disponible / verrouillé + prérequis manquants en rouge / plus tard : file du jour suivant). 1 bâtiment/jour → le bouton global affiche « Construction du jour utilisée ».
 - Recrutement : slider quantité + boutons min/max, coût total live, « tout recruter » (achat max multi-tiers).
 
+> 🚧 **État U6a** : l'onglet **Marché** est fonctionnel — échange ressource ↔ or
+> au bâtiment marché, taux data-driven (`config.market` : `sellRate`/`buyRate`,
+> spread réaliste), via la commande moteur générique `TradeResources` (point
+> d'extension : un effet de bâtiment `{ type: 'market' }`, aucun id en dur). UI :
+> direction Vendre/Acheter + ressource + quantité, **aperçu de la contrepartie**
+> (`tradeQuote`, pas de réimplémentation du taux). La **Guilde** (apprentissage
+> de sort) reste différée (pas de commande moteur au MVP).
+
 ### 2.3 Écran héros
 
 - Portrait, attributs, XP ; **poupée d'équipement** 10 slots + sac ; compétences (6 slots, rangs) ; grimoire (filtré par école/cercle, coût mana visible, sorts indisponibles grisés avec raison).

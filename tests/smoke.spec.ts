@@ -780,6 +780,43 @@ test('multi-héros / multi-villes : bandeau de portraits + liste de villes (U4)'
   expect(errors).toEqual([]);
 });
 
+test('marché : construire un marché puis vendre une ressource contre de l’or (U6a)', async ({
+  page,
+}) => {
+  const errors = await openGame(page);
+
+  // Construit le marché (setup, coût 1000 or + 5 bois) — la ville de départ n'en a pas.
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({
+      type: 'BuildStructure',
+      townId: 'start-town',
+      buildingId: 'market',
+    }),
+  );
+  const goldBefore = await page.evaluate(
+    () => window.__HEROES_TEST__!.getState().players[0]?.resources.gold ?? 0,
+  );
+
+  // Ouvre la ville → onglet Marché ; vend 5 bois → aperçu 125 or (sellRate 25).
+  await page.getByTestId('town-open-start-town').click();
+  await page.getByTestId('town-tab-market').click();
+  await expect(page.getByTestId('town-panel-market')).toBeVisible();
+  await page.getByTestId('market-amount').fill('5');
+  await expect(page.getByTestId('market-received')).toContainText('125');
+  await page.getByTestId('market-trade').click();
+
+  // L'échange débite le bois et crédite l'or via `tradeQuote` (helper moteur).
+  await expect
+    .poll(() => page.evaluate(() => window.__HEROES_TEST__!.getState().players[0]?.resources.gold))
+    .toBe(goldBefore + 125);
+  expect(
+    await page.evaluate(() => window.__HEROES_TEST__!.getState().players[0]?.resources.wood),
+  ).toBe(0); // 10 − 5 (marché) − 5 (vente)
+  await page.getByTestId('town-close').click();
+
+  expect(errors).toEqual([]);
+});
+
 test('scénario : le menu démarre le tutoriel, l’IA joue son tour', async ({ page }) => {
   const errors = await openMenu(page);
 

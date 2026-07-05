@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'preact/hooks';
-import { RESOURCE_IDS } from '@heroes/engine';
+import { RESOURCE_IDS, buildStatus, builtDwellings, missingRequirements, scaleCost } from '@heroes/engine';
 import type { BuildingDef, CombatUnitDef, TownState } from '@heroes/engine';
 import { useApp, appStore } from '../app/store';
 import { dispatch } from '../app/dispatch';
@@ -28,60 +28,11 @@ function resourceLabel(id: string): string {
   return CORE_RESOURCE_IDS.has(id) ? t(`resource.${id}`) : resolveFactionResourceName(id);
 }
 
-type BuildStatus = 'built' | 'available' | 'locked';
-
 const GARRISON_SLOTS = 7;
-
-/** Multiplie un coût par un effectif (mêmes règles que `town/resources.ts` côté moteur). */
-function scaleCost(cost: Record<string, number>, factor: number): Record<string, number> {
-  const scaled: Record<string, number> = {};
-  for (const [id, amount] of Object.entries(cost)) {
-    scaled[id] = amount * factor;
-  }
-  return scaled;
-}
 
 /** Nom localisé d'un bâtiment — core (`townHall`…) ou dwelling de paquet (CO6), repli id. */
 function buildingName(id: string): string {
   return resolveBuildingName(id);
-}
-
-function nextBuildStatus(
-  town: TownState,
-  def: BuildingDef,
-  buildingId: string,
-  catalog: Record<string, BuildingDef>,
-): BuildStatus {
-  const currentLevel = town.buildings[buildingId] ?? 0;
-  if (currentLevel >= def.maxLevel) return 'built';
-  const nextLevel = def.levels[currentLevel];
-  if (!nextLevel) return 'built';
-  // Choix exclusif (doc 05 §3.2) : verrouillé si un frère du groupe est déjà bâti.
-  if (def.exclusiveGroup) {
-    const rivalBuilt = Object.keys(town.buildings).some(
-      (id) =>
-        id !== buildingId &&
-        (town.buildings[id] ?? 0) >= 1 &&
-        catalog[id]?.exclusiveGroup === def.exclusiveGroup,
-    );
-    if (rivalBuilt) return 'locked';
-  }
-  const met = nextLevel.requires.every((req) => (town.buildings[req.building] ?? 0) >= req.level);
-  return met ? 'available' : 'locked';
-}
-
-/** Dwellings construits dans la ville : unitId débloqué par un bâtiment déjà bâti. */
-function builtDwellings(town: TownState, catalog: Record<string, BuildingDef>): string[] {
-  const unitIds: string[] = [];
-  for (const [buildingId, level] of Object.entries(town.buildings)) {
-    const def = catalog[buildingId];
-    if (!def) continue;
-    for (let i = 0; i < level; i++) {
-      const effect = def.levels[i]?.effect;
-      if (effect?.type === 'dwelling' && !unitIds.includes(effect.unitId)) unitIds.push(effect.unitId);
-    }
-  }
-  return unitIds;
 }
 
 function CostList({ cost }: { cost: Record<string, number> }) {
@@ -222,7 +173,7 @@ function BuildTab({
           const def = catalog[buildingId];
           if (!def) return null;
           const currentLevel = town.buildings[buildingId] ?? 0;
-          const status = nextBuildStatus(town, def, buildingId, catalog);
+          const status = buildStatus(town, catalog, buildingId);
           const nextLevel = def.levels[currentLevel];
           return (
             <li key={buildingId} class={`town-building town-building-${status}`}>
@@ -240,13 +191,11 @@ function BuildTab({
               </div>
               {status === 'locked' && nextLevel && (
                 <ul class="town-requirements">
-                  {nextLevel.requires
-                    .filter((req) => (town.buildings[req.building] ?? 0) < req.level)
-                    .map((req) => (
-                      <li key={req.building} class="town-requirement-missing">
-                        {t('town.requirementMissing', { building: buildingName(req.building), level: req.level })}
-                      </li>
-                    ))}
+                  {missingRequirements(town, catalog, buildingId).map((req) => (
+                    <li key={req.building} class="town-requirement-missing">
+                      {t('town.requirementMissing', { building: buildingName(req.building), level: req.level })}
+                    </li>
+                  ))}
                 </ul>
               )}
               {status === 'available' && nextLevel && (

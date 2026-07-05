@@ -1,6 +1,7 @@
 import type { Command, CommandError } from '../core/commands';
 import type { GameEvent } from '../core/events';
 import type { GameState } from '../core/state';
+import { exclusiveRivalId, missingRequirements } from './helpers';
 import { canAfford, payCost } from './resources';
 
 type BuildCmd = Extract<Command, { type: 'BuildStructure' }>;
@@ -37,20 +38,17 @@ export function validateBuildStructure(state: GameState, cmd: BuildCmd): Command
       code: 'buildingMaxLevel',
       message: `aucun niveau suivant défini pour '${cmd.buildingId}'`,
     };
-  for (const req of nextLevel.requires) {
-    const have = town.buildings[req.building] ?? 0;
-    if (have < req.level)
-      return {
-        code: 'requirementsNotMet',
-        message: `prérequis manquant '${req.building}'@${req.level}`,
-      };
-  }
+  // Prérequis de bâtiment (helper partagé avec l'UI, remédiation CL9).
+  const missing = missingRequirements(town, state.buildingCatalog, cmd.buildingId);
+  const firstMissing = missing[0];
+  if (firstMissing)
+    return {
+      code: 'requirementsNotMet',
+      message: `prérequis manquant '${firstMissing.building}'@${firstMissing.level}`,
+    };
   // Choix exclusif (doc 05 §3.2) : un seul bâtiment par groupe et par ville.
   if (def.exclusiveGroup) {
-    const rival = Object.keys(town.buildings).find((id) => {
-      if (id === cmd.buildingId || (town.buildings[id] ?? 0) < 1) return false;
-      return state.buildingCatalog[id]?.exclusiveGroup === def.exclusiveGroup;
-    });
+    const rival = exclusiveRivalId(town, state.buildingCatalog, cmd.buildingId);
     if (rival)
       return {
         code: 'exclusiveChoiceLocked',

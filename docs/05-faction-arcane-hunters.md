@@ -56,6 +56,15 @@ Faction inédite, produite en **Alpha** — elle sert de validation grandeur nat
 > de faction dans le moteur (garde-fou vert). **Dépense** d'Essence (T8/upgrades)
 > = 4.6 ; **Contrats de chasse** (hook d'aventure hebdomadaire, autre point) =
 > 4.5 ; cap de ressource non imposé au gain pour l'instant.
+>
+> 🚧 **État 4.5 (consumeMarks → expose)** : extension de la capacité générique
+> `consumeMarks` (4.3) avec un 2ᵉ effet déclaratif `suppressRetaliation` —
+> `expose` du **Familier lié** (T2, `consumeMarks(1, suppressRetaliation)`) :
+> consommer 1 charge de Marque prive la cible de sa **riposte** cette attaque
+> (`victim.retaliationsLeft = 0` ; la prévisualisation de dégâts masque la
+> riposte). Aucun nouveau système — un param de plus sur une capacité existante
+> (garde-fou vert, golden inchangé). `pinningShot` (immobilisation, T6) et
+> `devourMarks` (T8) restent différés (statut « ne peut pas agir » / T8 4.6).
 
 ## 1. Lore
 

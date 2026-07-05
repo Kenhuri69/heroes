@@ -301,6 +301,53 @@ describe('performStrike / applyAction — intégration dégâts', () => {
     expect(events.some((e) => e.type === 'MarksConsumed')).toBe(false);
   });
 
+  it('consumeMarks/expose : cible marquée ⇒ 1 charge consommée, pas de riposte', () => {
+    const catalog = {
+      atk: unit({
+        id: 'atk',
+        stats: { hp: 10, attack: 5, defense: 5, damage: [3, 3], speed: 8 },
+        abilities: [{ id: 'consumeMarks', params: { cost: 1, suppressRetaliation: true } }],
+      }),
+      // Défenseur costaud (survit) et dangereux (riposterait fort si pouvait).
+      def: unit({ id: 'def', stats: { hp: 1000, attack: 20, defense: 5, damage: [10, 10], speed: 4 } }),
+    };
+    const attacker = stack({ id: 'attacker-0', side: 'attacker', slot: 0, unitId: 'atk', count: 1, pos: { col: 0, row: 0 }, firstHp: 10 });
+    const defender = stack({ id: 'defender-0', side: 'defender', slot: 0, unitId: 'def', count: 1, pos: { col: 1, row: 0 }, firstHp: 1000, marks: 1 });
+    const state = { ...baseState(catalog), combat: combatState([attacker, defender]) };
+    const events: GameEvent[] = [];
+    const next = produce(state, (draft) => {
+      applyAction(draft, events, 'attacker-0', { type: 'attack', targetStackId: 'defender-0' });
+    });
+    // 1 seule frappe (celle de l'attaquant), aucune riposte.
+    const strikes = events.filter((e) => e.type === 'StackAttacked');
+    expect(strikes).toHaveLength(1);
+    const defenderAfter = next.combat?.stacks.find((s) => s.id === 'defender-0');
+    expect(defenderAfter?.marks).toBe(0); // charge consommée
+    expect(defenderAfter?.retaliationsLeft).toBe(0);
+    expect(events).toContainEqual({ type: 'MarksConsumed', strikerId: 'attacker-0', targetId: 'defender-0', consumed: 1 });
+  });
+
+  it('consumeMarks/expose : cible non marquée ⇒ riposte normale', () => {
+    const catalog = {
+      atk: unit({
+        id: 'atk',
+        stats: { hp: 100, attack: 5, defense: 5, damage: [3, 3], speed: 8 },
+        abilities: [{ id: 'consumeMarks', params: { cost: 1, suppressRetaliation: true } }],
+      }),
+      def: unit({ id: 'def', stats: { hp: 1000, attack: 20, defense: 5, damage: [10, 10], speed: 4 } }),
+    };
+    const attacker = stack({ id: 'attacker-0', side: 'attacker', slot: 0, unitId: 'atk', count: 1, pos: { col: 0, row: 0 }, firstHp: 100 });
+    const defender = stack({ id: 'defender-0', side: 'defender', slot: 0, unitId: 'def', count: 1, pos: { col: 1, row: 0 }, firstHp: 1000, marks: 0 });
+    const state = { ...baseState(catalog), combat: combatState([attacker, defender]) };
+    const events: GameEvent[] = [];
+    produce(state, (draft) => {
+      applyAction(draft, events, 'attacker-0', { type: 'attack', targetStackId: 'defender-0' });
+    });
+    // 2 frappes : attaque + riposte (aucune charge à consommer).
+    expect(events.filter((e) => e.type === 'StackAttacked')).toHaveLength(2);
+    expect(events.some((e) => e.type === 'MarksConsumed')).toBe(false);
+  });
+
   it('doubleAttack : 2 frappes, riposte intercalée une seule fois', () => {
     const catalog = {
       atk: unit({ id: 'atk', stats: { hp: 20, attack: 10, defense: 0, damage: [3, 3], speed: 5 }, abilities: [{ id: 'doubleAttack' }] }),

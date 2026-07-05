@@ -20,6 +20,11 @@ export default defineConfig({
   build: {
     target: 'es2022',
     sourcemap: true,
+    // Aucun asset inliné en data-URI (défaut 4 Ko) : tous les PNG du registre
+    // (assets/) sont émis en fichiers séparés hashés, hors du bundle JS et donc
+    // hors du budget CI (< 800 Ko gzip). Sinon les petites icônes UI (< 4 Ko)
+    // seraient embarquées en base64 dans le JS (lot intégration, doc 12 §10).
+    assetsInlineLimit: 0,
     rollupOptions: {
       output: {
         manualChunks: {

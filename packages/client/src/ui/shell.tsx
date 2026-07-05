@@ -7,7 +7,9 @@ import { humanId } from '../app/game';
 import { saveGame, restoreSavedGame } from '../app/save';
 import { eventBus } from '../app/events';
 import { RESOURCE_COLORS } from '../render/mapObjects';
+import { resourceIconUrl } from '../render/assets';
 import { t, resolveUnitName } from '../app/i18n';
+import { AssetImg } from './AssetImg';
 import { MenuScreen } from './MenuScreen';
 import { OptionsPanel } from './OptionsPanel';
 import { ToastHost } from './toasts';
@@ -73,13 +75,20 @@ function ResourceBar() {
     <header class="resource-bar">
       {RESOURCE_IDS.map((id) => (
         <span class="resource" key={id} data-resource={id}>
-          <i style={{ background: `#${(RESOURCE_COLORS[id] ?? 0xffffff).toString(16).padStart(6, '0')}` }} />
+          <AssetImg
+            src={resourceIconUrl(id, 24)}
+            alt=""
+            class="resource-icon"
+            fallback={
+              <i style={{ background: `#${(RESOURCE_COLORS[id] ?? 0xffffff).toString(16).padStart(6, '0')}` }} />
+            }
+          />
           <span data-testid={`resource-${id}`}>{player.resources[id]}</span>
         </span>
       ))}
       {factionResources.map(([id, amount]) => (
         <span class="resource resource--faction" key={id} data-resource={id}>
-          <i />
+          <AssetImg src={resourceIconUrl(id, 24)} alt="" class="resource-icon" fallback={<i />} />
           <span data-testid={`faction-resource-${id}`}>{amount}</span>
         </span>
       ))}

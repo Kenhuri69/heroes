@@ -28,3 +28,15 @@
 .hero-inventory-slot.empty {
   opacity: 0.4;
 }
+
+/* Slot rempli : icône d'artefact + nom (lot intégration) — icône absente ⇒ nom seul. */
+.hero-inventory-slot.filled {
+  flex-direction: column;
+  gap: 4px;
+}
+
+.hero-inventory-icon {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}

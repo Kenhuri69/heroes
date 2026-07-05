@@ -17,6 +17,7 @@ import { appStore } from './app/store';
 import { exportSave, importSave, saveGame, restoreSavedGame, encodeHeroesFile } from './app/save';
 import { installAutosave } from './app/autosave';
 import { initI18n, t } from './app/i18n';
+import { preloadPixiTextures } from './render/assets';
 import { AdventureScene } from './scenes/adventure/AdventureScene';
 import { CombatScene } from './scenes/combat/CombatScene';
 import { mountUi } from './ui/shell';
@@ -69,6 +70,11 @@ async function bootstrap(): Promise<void> {
   const root = document.getElementById('canvas-root');
   if (!root) throw new Error('missing #canvas-root');
   root.appendChild(app.canvas);
+
+  // Réchauffe le cache de textures PixiJS (tuiles + objets de carte) avant la
+  // 1ʳᵉ scène : les surfaces de rendu lisent le cache en synchrone et retombent
+  // sur les placeholders procéduraux si une texture manque (lot intégration).
+  await preloadPixiTextures();
 
   // Scènes construites paresseusement : une partie peut démarrer depuis le
   // menu (Nouvelle partie), une sauvegarde (Continuer/­import) ou `?seed=N`.

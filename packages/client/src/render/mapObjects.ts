@@ -1,5 +1,6 @@
-import { Container, Graphics } from 'pixi.js';
+import { Container, Graphics, Sprite } from 'pixi.js';
 import type { MapObjectDef } from '@heroes/engine';
+import { getTexture, mineUrl } from './assets';
 import { TILE_SIZE } from './tilemap';
 
 /** Teintes placeholder par ressource (doc 08 §5) — cohérentes avec la barre UI. */
@@ -16,36 +17,49 @@ export const RESOURCE_COLORS: Record<string, number> = {
 /** Couche des objets interactifs — resynchronisée sur l'état après chaque commande. */
 export class MapObjectsLayer {
   readonly container = new Container();
-  private readonly byId = new Map<string, Graphics>();
+  private readonly byId = new Map<string, Container>();
 
   sync(objects: readonly MapObjectDef[]): void {
     const alive = new Set(objects.map((o) => o.id));
-    for (const [id, g] of this.byId) {
+    for (const [id, node] of this.byId) {
       if (!alive.has(id)) {
-        g.destroy();
+        node.destroy({ children: true });
         this.byId.delete(id);
       }
     }
     for (const obj of objects) {
       if (this.byId.has(obj.id)) continue;
-      const g = new Graphics();
-      const c = TILE_SIZE / 2;
-      if (obj.type === 'resource') {
-        // Petit tas : losange teinté, lisible à 64 px (doc 08 §5).
-        const color = RESOURCE_COLORS[obj.resource] ?? 0xffffff;
-        g.poly([c, c - 14, c + 16, c, c, c + 14, c - 16, c])
-          .fill(color)
-          .stroke({ width: 2, color: 0x1a1c22 });
-      } else {
-        // Gardien neutre : fanion sombre, force en fourchette côté UI (doc 02 §2.2).
-        g.poly([c - 4, c + 18, c - 4, c - 18, c + 16, c - 10, c - 4, c - 2])
-          .fill(0x8a8f98)
-          .stroke({ width: 2, color: 0x1a1c22 });
-        g.circle(c - 4, c + 18, 4).fill(0x1a1c22);
-      }
-      g.position.set(obj.pos.x * TILE_SIZE, obj.pos.y * TILE_SIZE);
-      this.byId.set(obj.id, g);
-      this.container.addChild(g);
+      const node = buildObject(obj);
+      node.position.set(obj.pos.x * TILE_SIZE, obj.pos.y * TILE_SIZE);
+      this.byId.set(obj.id, node);
+      this.container.addChild(node);
     }
   }
+}
+
+/** Vignette de mine si la texture est préchargée, sinon picto procédural (repli). */
+function buildObject(obj: MapObjectDef): Container {
+  if (obj.type === 'resource') {
+    const tex = getTexture(mineUrl(obj.resource));
+    if (tex) {
+      const sprite = new Sprite(tex);
+      sprite.setSize(TILE_SIZE, TILE_SIZE);
+      return sprite;
+    }
+    // Repli : petit tas losange teinté, lisible à 64 px (doc 08 §5).
+    const c = TILE_SIZE / 2;
+    const color = RESOURCE_COLORS[obj.resource] ?? 0xffffff;
+    return new Graphics()
+      .poly([c, c - 14, c + 16, c, c, c + 14, c - 16, c])
+      .fill(color)
+      .stroke({ width: 2, color: 0x1a1c22 });
+  }
+  // Gardien neutre : fanion sombre (aucun asset produit — reste procédural).
+  const c = TILE_SIZE / 2;
+  const g = new Graphics()
+    .poly([c - 4, c + 18, c - 4, c - 18, c + 16, c - 10, c - 4, c - 2])
+    .fill(0x8a8f98)
+    .stroke({ width: 2, color: 0x1a1c22 });
+  g.circle(c - 4, c + 18, 4).fill(0x1a1c22);
+  return g;
 }

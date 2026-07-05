@@ -98,6 +98,15 @@
   font-weight: 600;
 }
 
+/* Vignette de bâtiment (lot intégration) — absente ⇒ nom seul (repli gracieux). */
+.town-building-vignette {
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+  object-fit: cover;
+  flex: 0 0 auto;
+}
+
 .town-building-level {
   opacity: 0.75;
   font-size: 0.75rem;

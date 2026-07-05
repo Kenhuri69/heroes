@@ -2,10 +2,11 @@ import type { GameEvent } from '@heroes/engine';
 
 /**
  * Bus moteur → présentation (doc 07 §3) : le rendu anime à partir des
- * événements, l'état « saute » à la fin. `GameLoaded` est un signal
- * applicatif (pas moteur) émis après un chargement de sauvegarde.
+ * événements, l'état « saute » à la fin. `GameLoaded`/`SaveFailed` sont des
+ * signaux applicatifs (pas moteur) : chargement de sauvegarde réussi, échec
+ * de stockage d'une sauvegarde (doc 07 §4).
  */
-export type AppEvent = GameEvent | { type: 'GameLoaded' };
+export type AppEvent = GameEvent | { type: 'GameLoaded' } | { type: 'SaveFailed' };
 
 type Listener = (event: AppEvent) => void;
 

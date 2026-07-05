@@ -95,6 +95,7 @@
   "toast.undeadRaised": "+{count} {unit} relevé(s) (Nécromancie)",
   "toast.heroLevelUp": "Niveau {level} atteint !",
   "toast.gameLoaded": "Partie chargée",
+  "toast.saveFailed": "Échec de la sauvegarde — stockage indisponible",
   "toast.spellCast": "{hero} lance {spell}",
   "toast.skillLearned": "{skill} niveau {rank} apprise",
 

@@ -95,6 +95,7 @@
   "toast.undeadRaised": "+{count} {unit} raised (Necromancy)",
   "toast.heroLevelUp": "Level {level} reached!",
   "toast.gameLoaded": "Game loaded",
+  "toast.saveFailed": "Save failed — storage unavailable",
   "toast.spellCast": "{hero} casts {spell}",
   "toast.skillLearned": "{skill} rank {rank} learned",
 

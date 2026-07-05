@@ -5,6 +5,7 @@ import { useApp, appStore } from '../app/store';
 import { dispatch } from '../app/dispatch';
 import { PLAYER_ID } from '../app/game';
 import { saveGame, restoreSavedGame } from '../app/save';
+import { eventBus } from '../app/events';
 import { RESOURCE_COLORS } from '../render/mapObjects';
 import { t, resolveUnitName } from '../app/i18n';
 import { MenuScreen } from './MenuScreen';
@@ -203,7 +204,14 @@ function TurnBar({ onOpenOptions }: { onOpenOptions: () => void }) {
         >
           ⚙
         </button>
-        <button data-testid="save" onClick={() => void saveGame(appStore.getState().game, 'manual')}>
+        <button
+          data-testid="save"
+          onClick={() =>
+            void saveGame(appStore.getState().game, 'manual').catch(() =>
+              eventBus.emit([{ type: 'SaveFailed' }]),
+            )
+          }
+        >
           {t('turnBar.save')}
         </button>
         <button data-testid="load" onClick={() => void restoreSavedGame('manual')}>

@@ -15,6 +15,7 @@ army visual identity: bone white, ash grey and black, necrotic green glow, tatte
 clear power progression from cell 1 (weakest) to the last cell (mightiest),
 each subject centered in its own cell, not touching cell edges,
 clear spacing between cells,
+IMPORTANT: keep every subject fully inside its cell with generous empty margin all around — fully spread wings, weapons, staves and all extremities must NOT be cropped or touch any edge; zoom each subject out enough that nothing is clipped,
 cell 1: tier 1 unit "Skeleton (fr: Squelette)" — unmistakably undead, slow and massive
 cell 2: tier 2 unit "Rotting Zombie (fr: Zombie putride)" — unmistakably undead, slow and massive
 cell 3: tier 3 unit "Spectre" — unmistakably undead, large spread wings, airborne pose, swift and agile

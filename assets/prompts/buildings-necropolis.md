@@ -14,6 +14,7 @@ architectural identity: bone white, ash grey and black, necrotic green glow, tat
 soft directional light from upper-left,
 each subject centered in its own cell, not touching cell edges,
 clear spacing between cells,
+IMPORTANT: keep every subject fully inside its cell with generous empty margin all around — fully spread wings, weapons, staves and all extremities must NOT be cropped or touch any edge; zoom each subject out enough that nothing is clipped,
 cell 1: "Skeleton dwelling (fr: Habitation : Squelette)" — the dwelling where "Skeleton (fr: Squelette)" creatures are recruited
 cell 2: "Rotting Zombie dwelling (fr: Habitation : Zombie putride)" — the dwelling where "Rotting Zombie (fr: Zombie putride)" creatures are recruited
 cell 3: "Spectre dwelling (fr: Habitation : Spectre)" — the dwelling where "Spectre" creatures are recruited

@@ -15,6 +15,7 @@ army visual identity: midnight blue and arcane violet, silver trim, glowing cyan
 clear power progression from cell 1 (weakest) to the last cell (mightiest),
 each subject centered in its own cell, not touching cell edges,
 clear spacing between cells,
+IMPORTANT: keep every subject fully inside its cell with generous empty margin all around — fully spread wings, weapons, staves and all extremities must NOT be cropped or touch any edge; zoom each subject out enough that nothing is clipped,
 cell 1: tier 1 unit "Duskwatch Pupil (fr: Élève de Sombreveille)" — steady stance
 cell 2: tier 2 unit "Bound Familiar (fr: Familier lié)" — large spread wings, airborne pose, swift and agile
 cell 3: tier 3 unit "Circle Prefect (fr: Préfet de Cercle)" — aiming a ranged weapon, steady stance

@@ -14,6 +14,7 @@ warm key light upper-left, cool rim light,
 each bust over a soft dark faction-themed backdrop kept INSIDE its cell,
 each subject centered in its own cell, not touching cell edges,
 clear spacing between cells,
+IMPORTANT: keep every subject fully inside its cell with generous empty margin all around — fully spread wings, weapons, staves and all extremities must NOT be cropped or touch any edge; zoom each subject out enough that nothing is clipped,
 cell 1: a battle-hardened might hero, armored commander of the haven faction — off-white and light steel armor, sky-blue cloth, gold accents, holy light ambiance
 cell 2: a wise magic hero, robed spellcaster of the haven faction — off-white and light steel armor, sky-blue cloth, gold accents, holy light ambiance
 cell 3: a battle-hardened might hero, armored commander of the arcane-hunters faction — midnight blue and arcane violet, silver trim, glowing cyan runes, hunter gear

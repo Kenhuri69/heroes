@@ -14,6 +14,7 @@ architectural identity: midnight blue and arcane violet, silver trim, glowing cy
 soft directional light from upper-left,
 each subject centered in its own cell, not touching cell edges,
 clear spacing between cells,
+IMPORTANT: keep every subject fully inside its cell with generous empty margin all around — fully spread wings, weapons, staves and all extremities must NOT be cropped or touch any edge; zoom each subject out enough that nothing is clipped,
 cell 1: "Circle of the Watcher (fr: Cercle du Vigile)" — a faction-specific town building
 cell 2: "Circle of the Hunt (fr: Cercle de la Traque)" — a faction-specific town building
 cell 3: "Circle of the Seal (fr: Cercle du Sceau)" — a faction-specific town building

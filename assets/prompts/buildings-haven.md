@@ -14,6 +14,7 @@ architectural identity: off-white and light steel armor, sky-blue cloth, gold ac
 soft directional light from upper-left,
 each subject centered in its own cell, not touching cell edges,
 clear spacing between cells,
+IMPORTANT: keep every subject fully inside its cell with generous empty margin all around — fully spread wings, weapons, staves and all extremities must NOT be cropped or touch any edge; zoom each subject out enough that nothing is clipped,
 cell 1: "Conscript dwelling (fr: Habitation : Conscrit)" — the dwelling where "Conscript (fr: Conscrit)" creatures are recruited
 cell 2: "Archer dwelling (fr: Habitation : Archer)" — the dwelling where "Archer" creatures are recruited
 cell 3: "Blade Brother dwelling (fr: Habitation : Frère-Lame)" — the dwelling where "Blade Brother (fr: Frère-Lame)" creatures are recruited

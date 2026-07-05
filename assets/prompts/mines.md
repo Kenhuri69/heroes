@@ -14,6 +14,7 @@ bold readable silhouette at 64 pixels (adventure map tile size),
 soft directional light from upper-left,
 each subject centered in its own cell, not touching cell edges,
 clear spacing between cells,
+IMPORTANT: keep every subject fully inside its cell with generous empty margin all around — fully spread wings, weapons, staves and all extremities must NOT be cropped or touch any edge; zoom each subject out enough that nothing is clipped,
 cell 1: "gold mine" — a gold mine entrance with cart rails and nuggets
 cell 2: "wood mine" — a sawmill with a water wheel and stacked logs
 cell 3: "ore mine" — an open ore pit with wooden scaffolding

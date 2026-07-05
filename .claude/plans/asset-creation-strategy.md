@@ -49,6 +49,19 @@ Vigile » → « Cercle du Vigile ») → rafraîchir.
       les pixels → **décision : l'utilisateur génère les planches dans Gemini**,
       j'extrais au retour (sheet_extract.py + QC + rangement staging).
 
+## 4bis. Garde-fou marge (ajouté en cours de prod)
+Le LLM cadrait trop serré → ailes/armes rognées par l'anti-bave. Constante
+`MARGIN_GUARD` ajoutée à `gen_prompts.py` (`_sheet_file`, partagée par toutes
+les planches ; absente des pièces uniques bg/logo). Prompts regénérés.
+
+## 4ter. Progression production
+- [x] **Haven** (T1→T7) : planche regénérée avec marge → extraction **7/7 PASS**
+      (0 FAIL), rangée dans `assets/units/haven/` (512² RGBA). Texte/grille
+      parasites Gemini retirés comme specks.
+- [ ] Necropolis, Arcane Hunters, test-faction (unités)
+- [ ] Avatars de héros
+- [ ] Fonds, logo (L2)
+
 ## 5. Suite (en attente des planches utilisateur)
 Prompts prêts à coller (chacun avec sa commande d'extraction dans le .md) :
 `assets/prompts/units-{haven,necropolis,arcane-hunters,test-faction}.md`,

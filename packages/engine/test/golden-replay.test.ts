@@ -183,12 +183,13 @@ const GOLDEN_JOURNAL: Command[] = [
   ),
 ];
 
-// Hash mis à jour au lot 3.8 (garde de version de sauvegarde) : `saveVersion`
-// passe de 1 à `CURRENT_SAVE_VERSION` (2) — champ inclus dans l'état haché, donc
-// seule la FORME/valeur constante change, la simulation est inchangée. Hash
-// relevé après vérification. (Précédents : f85c9e64 en 3.2, 211e3cfd au lot O,
-// 48073225 au cadrage 3.5 — controller/eliminated/scenario/outcome.)
-const GOLDEN_HASH = '3568ea04';
+// Hash mis à jour au lot 4.4 (ressource de faction Essence) : `saveVersion`
+// passe à 3 et `PlayerState.factionResources` ({}) s'ajoute à la forme
+// sérialisée — champs inclus dans l'état haché, donc seule la FORME change, la
+// simulation est inchangée. Hash relevé après vérification. (Précédents :
+// f85c9e64 en 3.2, 211e3cfd au lot O, 48073225 au cadrage 3.5, 3568ea04 au
+// lot 3.8 — saveVersion.)
+const GOLDEN_HASH = 'be72de4b';
 
 describe('golden replay', () => {
   it('le journal scripté produit toujours le même état final', () => {

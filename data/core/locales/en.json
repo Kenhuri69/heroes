@@ -93,6 +93,8 @@
   "toast.combatWon": "Victory!",
   "toast.combatLost": "Defeat…",
   "toast.undeadRaised": "+{count} {unit} raised (Necromancy)",
+  "toast.factionResourceGained": "+{amount} {resource} (hunt)",
+  "factionResource.essence": "Essence",
   "toast.heroLevelUp": "Level {level} reached!",
   "toast.gameLoaded": "Game loaded",
   "toast.saveFailed": "Save failed — storage unavailable",

@@ -28,8 +28,30 @@ export function applyFactionVictoryEffects(
   for (const bonus of bonuses) {
     if (bonus.type === 'raiseUndeadOnVictory') {
       applyRaiseUndeadOnVictory(draft, bonus, casualties, hero, events);
+    } else if (bonus.type === 'gainFactionResourceOnVictory') {
+      applyGainFactionResourceOnVictory(draft, bonus, hero, events);
     }
   }
+}
+
+/** Crédite le joueur du héros vainqueur d'une ressource de faction (doc 05 §3.3). */
+function applyGainFactionResourceOnVictory(
+  draft: Draft,
+  bonus: Extract<FactionBonus, { type: 'gainFactionResourceOnVictory' }>,
+  hero: HeroState,
+  events: GameEvent[],
+): void {
+  if (bonus.amount <= 0) return;
+  const player = draft.players.find((p) => p.id === hero.playerId);
+  if (!player) return;
+  player.factionResources[bonus.resource] =
+    (player.factionResources[bonus.resource] ?? 0) + bonus.amount;
+  events.push({
+    type: 'FactionResourceGained',
+    playerId: player.id,
+    resource: bonus.resource,
+    amount: bonus.amount,
+  });
 }
 
 function applyRaiseUndeadOnVictory(

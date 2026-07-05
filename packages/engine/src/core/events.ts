@@ -50,6 +50,8 @@ export type GameEvent =
   | { type: 'MarkApplied'; targetId: string; marks: number }
   /** Charges de Marque consommées par une capacité `consumeMarks` (doc 05 §3.1). */
   | { type: 'MarksConsumed'; strikerId: string; targetId: string; consumed: number }
+  /** Ressource de faction gagnée post-victoire (doc 05 §3.3, effet déclaratif). */
+  | { type: 'FactionResourceGained'; playerId: string; resource: string; amount: number }
   | {
       type: 'CombatEnded';
       winner: CombatSideId;

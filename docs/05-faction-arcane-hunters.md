@@ -43,6 +43,19 @@ Faction inédite, produite en **Alpha** — elle sert de validation grandeur nat
 > numériquement identique à `markConsumeBonus=0`). Effets de consommation
 > non-dégâts (`expose`=riposte, `pinningShot`=immobilisation, `devourMarks`) :
 > micro-lots ultérieurs (params additionnels de la même capacité).
+>
+> 🚧 **État 4.4 (Essence : ressource de faction gagnée)** : 2ᵉ point d'extension
+> — **brancher une ressource de faction au gameplay**. `PlayerState.
+> factionResources` (carte générique id→montant, le moteur n'en connaît aucun
+> nom ; `saveVersion` 2→3, golden re-fixé). Nouvel effet **déclaratif**
+> `gainFactionResourceOnVictory { resource, amount }` (variante de `factionBonus`,
+> comme la Nécromancie) : chaque combat gagné crédite le joueur (event
+> `FactionResourceGained`, toast i18n, affichage barre de ressources). Données :
+> le manifeste AH gagne +10 Essence/victoire (« vivre de ses combats »). Le
+> loader vérifie que la ressource est déclarée dans `factionResources`. Zéro nom
+> de faction dans le moteur (garde-fou vert). **Dépense** d'Essence (T8/upgrades)
+> = 4.6 ; **Contrats de chasse** (hook d'aventure hebdomadaire, autre point) =
+> 4.5 ; cap de ressource non imposé au gain pour l'instant.
 
 ## 1. Lore
 

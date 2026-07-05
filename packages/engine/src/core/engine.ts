@@ -283,6 +283,7 @@ const handlers: Handlers = {
     draft.players = cmd.players.map((p) => ({
       id: p.id,
       resources: { ...p.startingResources },
+      factionResources: {},
       explored: createFog(cmd.map),
       controller: p.controller ?? 'human',
       eliminated: false,

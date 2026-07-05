@@ -33,6 +33,12 @@ function toastMessage(event: AppEvent): string | null {
     // Nécromancie (doc 04 §2, plan phase-3.4) : relève post-victoire (effet de faction).
     case 'UndeadRaised':
       return t('toast.undeadRaised', { count: event.count, unit: resolveUnitName(event.unitId) });
+    // Ressource de faction gagnée post-victoire (doc 05 §3.3, plan phase-4.4).
+    case 'FactionResourceGained':
+      return t('toast.factionResourceGained', {
+        amount: event.amount,
+        resource: t(`factionResource.${event.resource}`),
+      });
     case 'HeroLevelUp':
       return t('toast.heroLevelUp', { level: event.level });
     // Sorts & compétences du héros (doc 02 §1.2–§1.4, plan phase-3.2 lot M).

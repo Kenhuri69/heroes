@@ -4,7 +4,13 @@ import { describe, expect, it } from 'vitest';
 import { checkCombatEnd } from '../src/combat/turns';
 import { initLedger, recordLoss } from '../src/combat/state-helpers';
 import type { CombatStack, CombatState, CombatUnitDef } from '../src/combat/types';
-import { createEmptyState, type GameState, type HeroState } from '../src/core/state';
+import {
+  createEmptyState,
+  emptyResources,
+  type GameState,
+  type HeroState,
+  type PlayerState,
+} from '../src/core/state';
 import type { GameEvent } from '../src/core/events';
 import type { FactionBonus } from '../src/faction/types';
 
@@ -249,6 +255,68 @@ describe('applyFactionVictoryEffects — raiseUndeadOnVictory', () => {
     const result = next.heroes.find((x) => x.id === 'hero-1');
     expect(result?.army).toEqual([{ unitId: 'grunt', count: 50 }]);
     expect(events.some((e) => e.type === 'UndeadRaised')).toBe(false);
+  });
+});
+
+const HUNTER_BONUS: FactionBonus = {
+  type: 'gainFactionResourceOnVictory',
+  resource: 'essence',
+  amount: 10,
+};
+const HUNTER_CATALOG: Record<string, { bonuses: FactionBonus[] }> = {
+  hunter: { bonuses: [HUNTER_BONUS] },
+};
+
+function player(over: Partial<PlayerState> = {}): PlayerState {
+  return {
+    id: 'p1',
+    resources: emptyResources(),
+    factionResources: {},
+    explored: [],
+    controller: 'human',
+    eliminated: false,
+    ...over,
+  };
+}
+
+describe('applyFactionVictoryEffects — gainFactionResourceOnVictory', () => {
+  it('crédite le joueur du héros vainqueur de la ressource déclarée', () => {
+    const h = hero({ factionId: 'hunter' });
+    const combat = combatState([attackerAlive('grunt', 5), defenderDead('wolf')]);
+    recordLoss(combat, 'defender', 'wolf', 3);
+    const state = baseState({ factionCatalog: HUNTER_CATALOG, heroes: [h], players: [player()], combat });
+    const { state: next, events } = runCheckCombatEnd(state);
+    expect(next.players.find((p) => p.id === 'p1')?.factionResources['essence']).toBe(10);
+    expect(events).toContainEqual({
+      type: 'FactionResourceGained',
+      playerId: 'p1',
+      resource: 'essence',
+      amount: 10,
+    });
+  });
+
+  it('accumule sur un stock existant', () => {
+    const h = hero({ factionId: 'hunter' });
+    const combat = combatState([attackerAlive('grunt', 5), defenderDead('wolf')]);
+    recordLoss(combat, 'defender', 'wolf', 3);
+    const state = baseState({
+      factionCatalog: HUNTER_CATALOG,
+      heroes: [h],
+      players: [player({ factionResources: { essence: 5 } })],
+      combat,
+    });
+    const { state: next } = runCheckCombatEnd(state);
+    expect(next.players.find((p) => p.id === 'p1')?.factionResources['essence']).toBe(15);
+  });
+
+  it("factionId '' : aucun gain de ressource de faction", () => {
+    const h = hero({ factionId: '' });
+    const combat = combatState([attackerAlive('grunt', 5), defenderDead('wolf')]);
+    recordLoss(combat, 'defender', 'wolf', 3);
+    const state = baseState({ factionCatalog: HUNTER_CATALOG, heroes: [h], players: [player()], combat });
+    const { state: next, events } = runCheckCombatEnd(state);
+    expect(next.players.find((p) => p.id === 'p1')?.factionResources).toEqual({});
+    expect(events.some((e) => e.type === 'FactionResourceGained')).toBe(false);
   });
 });
 

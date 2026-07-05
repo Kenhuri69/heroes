@@ -242,6 +242,12 @@ export async function loadFactionPack(
           `manifest.json: factionBonuses(raiseUndeadOnVictory) — unité '${bonus.unitId}' sans capacité 'undead'`,
         );
       }
+    } else if (bonus.type === 'gainFactionResourceOnVictory') {
+      if (!manifest.factionResources.some((r) => r.id === bonus.resource)) {
+        errors.push(
+          `manifest.json: factionBonuses(gainFactionResourceOnVictory) — ressource inconnue '${bonus.resource}' (absente de factionResources)`,
+        );
+      }
     }
   }
 

@@ -57,7 +57,7 @@
 ```
 
 - **Prévisualisation de dégâts obligatoire** avant confirmation : « 12–18 dégâts, ~3 morts · riposte estimée : 5–8 ».
-- Mobile : combat en **paysage recommandé** (suggestion de rotation), jouable en portrait (grille réduite à l'écran, pan).
+- Mobile : combat **jouable en portrait** de plein droit — le plateau est rendu à une **échelle plancher** garantissant des hexes ≥ 44 px (touch-first, §1), puis **déplaçable au pan et zoomable au pinch** (parité avec la carte d'aventure) quand il déborde de l'écran. Le paysage reste possible mais n'est plus imposé par un overlay de suggestion de rotation.
 - Vitesses d'animation ×1/×2/×4 + « combat auto » avec possibilité de reprendre la main à tout round (rejoue depuis l'état courant — gratuit grâce au déterminisme).
 
 ### 2.5 Autres écrans

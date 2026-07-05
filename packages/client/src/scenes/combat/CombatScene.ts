@@ -21,6 +21,7 @@ import { eventBus, type AppEvent } from '../../app/events';
 import { commandErrorMessage } from '../../app/i18n';
 import { pushToast } from '../../ui/toasts';
 import { onTap } from '../../input/pointer';
+import { Camera } from '../../render/camera';
 import { HEX_SIZE, computeBoardBounds, drawBoard, hexKey, offsetToPixel, pixelToOffset } from '../../render/hexgrid';
 import { combatPreview } from './preview';
 
@@ -38,6 +39,9 @@ const MARGIN_TOP = 96; // bandeau armées + round (doc 08 §2.4)
 const MARGIN_BOTTOM = 96; // barre d'actions
 const MARGIN_SIDE = 16;
 const MAX_SCALE = 1.5;
+// Plancher tactile doc 08 §1 : hexes ≥ 44 px (~0,706 pour HEX_SIZE=36).
+const MIN_TAP_PX = 44;
+const MIN_COMBAT_SCALE = MIN_TAP_PX / (HEX_SIZE * Math.sqrt(3));
 
 /** Sélection tap-tap en attente de confirmation. */
 type Selection =
@@ -55,6 +59,7 @@ type Selection =
  */
 export class CombatScene {
   readonly container = new Container();
+  private readonly camera: Camera;
   private readonly boardLayer = new Container();
   private readonly boardGfx = new Graphics();
   private readonly stacksLayer = new Container();
@@ -73,7 +78,10 @@ export class CombatScene {
 
   constructor(private readonly app: Application) {
     this.boardLayer.addChild(this.boardGfx, this.stacksLayer);
-    this.container.addChild(this.boardLayer);
+    // Le plateau vit dans la caméra de combat (pan/pinch/molette, plancher tactile).
+    this.camera = new Camera(app, { minZoom: MIN_COMBAT_SCALE, maxZoom: MAX_SCALE });
+    this.camera.world.addChild(this.boardLayer);
+    this.container.addChild(this.camera.world);
 
     this.activeRing = new Graphics()
       .circle(0, 0, TOKEN_RADIUS + 6)
@@ -98,6 +106,8 @@ export class CombatScene {
     this.unsubscribeEvents();
     this.unsubscribeTap(); // remédiation CL2 : les 3 listeners de tap ne fuient plus
     this.resizeObserver.disconnect();
+    this.container.removeChild(this.camera.world);
+    this.camera.destroy(); // retire les listeners + détruit world (plateau, tokens)
     this.container.destroy({ children: true });
   }
 
@@ -107,9 +117,12 @@ export class CombatScene {
     const bounds = computeBoardBounds();
     const availW = Math.max(1, this.app.screen.width - MARGIN_SIDE * 2);
     const availH = Math.max(1, this.app.screen.height - MARGIN_TOP - MARGIN_BOTTOM);
-    const scale = Math.min(availW / bounds.width, availH / bounds.height, MAX_SCALE);
-    this.boardLayer.scale.set(scale);
-    this.boardLayer.position.set(
+    // Plancher d'échelle : hexes ≥ 44 px même en portrait (le plateau déborde
+    // alors et se déplace au pan/pinch, doc 08 §1/§2.4). Cap à MAX_SCALE.
+    const fit = Math.min(availW / bounds.width, availH / bounds.height, MAX_SCALE);
+    const scale = Math.max(fit, MIN_COMBAT_SCALE);
+    this.camera.world.scale.set(scale);
+    this.camera.world.position.set(
       MARGIN_SIDE + (availW - bounds.width * scale) / 2 - bounds.minX * scale,
       MARGIN_TOP + (availH - bounds.height * scale) / 2 - bounds.minY * scale,
     );

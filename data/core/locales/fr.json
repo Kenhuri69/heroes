@@ -67,8 +67,6 @@
   "combat.retaliationEstimate": "riposte estimée : {min}–{max}",
   "combat.noRetaliation": "pas de riposte",
   "combat.previewSummary": "{damage}, ~{kills} morts · {retal}",
-  "combat.landscapeHint": "Rotation en paysage recommandée pour combattre plus confortablement.",
-  "combat.landscapeHintDismiss": "Compris",
 
   "spellbook.title": "Livre de sorts",
   "spellbook.empty": "Aucun sort connu.",

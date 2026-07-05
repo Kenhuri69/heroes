@@ -32,7 +32,9 @@ Captures de référence : régénérables à l'identique via la skill (voir SKIL
 - [x] Étape 2 — **U2 routeur d'écrans livré** (`.claude/plans/ux-u2-routeur.md`) :
       route de base menu⇄adventure + pile de modales typée (doc 08 §3), combat
       dérivé de l'état moteur, handler global de retour (Échap + back Android).
-- [ ] Étape 3 — **U1 combat mobile** (min-scale 44 px + pan/pinch du plateau) →
-      corrige CL7/A7 ; + le petit correctif A6 (débordement d'onglets ville).
+- [x] Étape 3 — **U1 combat mobile livré** (`.claude/plans/ux-u1-combat-mobile.md`) :
+      plateau de combat dans une caméra (plancher 44 px + pan/pinch), overlay
+      rotation supprimé → **A7 corrigé** ; onglets ville `flex-wrap` → **A6
+      corrigé**. Re-capture ux-audit à l'appui.
 - [ ] Étapes 4–5 — U3 (feedback + journal), U4 (multi-héros/villes), U6 (écrans
       manquants), U5 (DA / ville peinte, jalon Beta).

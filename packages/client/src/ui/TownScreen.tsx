@@ -5,7 +5,7 @@ import { useApp } from '../app/store';
 import { dispatch } from '../app/dispatch';
 import { humanId } from '../app/game';
 import { t, resolveUnitName, commandErrorMessage, resolveBuildingName, resolveFactionResourceName } from '../app/i18n';
-import { buildingUrl } from '../render/assets';
+import { buildingUrl, townBackgroundUrl } from '../render/assets';
 import { AssetImg } from './AssetImg';
 import { FactionBadge } from './FactionBadge';
 import './town.css';
@@ -145,10 +145,10 @@ export function TownScreen({ townId, onClose }: { townId: string; onClose: () =>
 
 /**
  * Vue de ville « peinte » (doc 08 §2.2/§5, lot UX U5) : les bâtiments CONSTRUITS
- * apparaissent en vignettes sur un décor peint (dégradé gouache), en bande à
- * défilement horizontal (touch-first, mobile). Tap sur un bâtiment = bascule
- * vers l'onglet Construire. Réutilise les vignettes existantes (`buildingUrl`) —
- * les fonds bespoke par faction sont un raffinement ultérieur (repli gracieux).
+ * apparaissent en vignettes sur un décor peint (fond bespoke par faction,
+ * lot U5-B — repli sur le dégradé gouache CSS si l'asset est absent), en bande
+ * à défilement horizontal (touch-first, mobile). Tap sur un bâtiment = bascule
+ * vers l'onglet Construire. Réutilise les vignettes existantes (`buildingUrl`).
  */
 function TownView({
   town,
@@ -162,9 +162,10 @@ function TownView({
   const built = Object.keys(town.buildings)
     .filter((id) => (town.buildings[id] ?? 0) >= 1 && catalog[id])
     .sort();
+  const bg = townBackgroundUrl(town.factionId);
   return (
     <div class="town-view" data-testid="town-view">
-      <div class="town-view-scene">
+      <div class="town-view-scene" style={bg ? { backgroundImage: `url(${bg})` } : undefined}>
         {built.length === 0 ? (
           <p class="town-view-empty" data-testid="town-view-empty">
             {t('town.viewEmpty')}

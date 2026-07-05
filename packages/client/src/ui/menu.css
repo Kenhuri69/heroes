@@ -9,15 +9,28 @@
   justify-content: center;
   gap: 32px;
   background: #14161c;
+  background-size: cover;
+  background-position: center;
   color: #e8e2d0;
   font: 1rem/1.4 system-ui, sans-serif;
   pointer-events: auto;
 }
 
-.menu-title {
+.menu-title-text {
   margin: 0;
   font-size: clamp(2rem, 8vw, 3.5rem);
   letter-spacing: 0.04em;
+}
+
+.menu-logo {
+  max-width: 240px;
+  height: auto;
+}
+
+.menu-logo img {
+  display: block;
+  width: 100%;
+  height: auto;
 }
 
 .menu-actions {
@@ -25,6 +38,10 @@
   flex-direction: column;
   gap: 12px;
   width: min(80vw, 320px);
+  /* Voile sombre derrière les boutons pour rester lisible sur le fond peint. */
+  padding: 16px;
+  border-radius: 12px;
+  background: rgba(20, 22, 28, 0.55);
 }
 
 .menu-button {

@@ -3,6 +3,8 @@ import { hasAnySave, restoreLatestSave } from '../app/save';
 import { t, resolveScenarioName } from '../app/i18n';
 import { useApp } from '../app/store';
 import { openModal } from '../app/router';
+import { logoUrl, titleBackgroundUrl } from '../render/assets';
+import { AssetImg } from './AssetImg';
 import './menu.css';
 
 /**
@@ -34,9 +36,17 @@ export function MenuScreen() {
     };
   }, []);
 
+  const bg = titleBackgroundUrl();
+
   return (
-    <div class="menu-screen">
-      <h1 class="menu-title">{t('menu.title')}</h1>
+    <div class="menu-screen" style={bg ? { backgroundImage: `url(${bg})` } : undefined}>
+      <div class="menu-logo" data-testid="menu-logo">
+        <AssetImg
+          src={logoUrl()}
+          alt={t('menu.title')}
+          fallback={<h1 class="menu-title-text">{t('menu.title')}</h1>}
+        />
+      </div>
       <nav class="menu-actions">
         <button
           class="menu-button"

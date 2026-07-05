@@ -332,8 +332,10 @@ button[data-testid='market-trade'] {
   padding: 12px;
   min-height: 96px;
   border-radius: 10px;
-  /* Décor peint placeholder : ciel doux → sol (contours doux, gouache). */
+  /* Décor peint : dégradé gouache en repli si le fond bespoke (lot U5-B) est absent. */
   background: linear-gradient(180deg, #3a4a63 0%, #4a5a54 62%, #6b6048 100%);
+  background-size: cover;
+  background-position: center;
   border: 1px solid #3a3d47;
   scrollbar-width: thin;
 }

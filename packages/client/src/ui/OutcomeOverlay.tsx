@@ -2,6 +2,7 @@ import { createEmptyState, playerPower, type GameState } from '@heroes/engine';
 import { appStore, useApp } from '../app/store';
 import { humanId } from '../app/game';
 import { t } from '../app/i18n';
+import { outcomeBackgroundUrl } from '../render/assets';
 import './OutcomeOverlay.css';
 
 /**
@@ -26,6 +27,8 @@ export function OutcomeOverlay() {
     });
   };
 
+  const bg = outcomeBackgroundUrl(outcome.status);
+
   return (
     <div class="modal-backdrop">
       <div
@@ -34,6 +37,7 @@ export function OutcomeOverlay() {
         aria-modal="true"
         aria-label={t(outcome.status === 'won' ? 'outcome.won' : 'outcome.lost')}
         data-testid="outcome-overlay"
+        style={bg ? { backgroundImage: `url(${bg})` } : undefined}
       >
         <h2 data-testid="outcome-status">{t(outcome.status === 'won' ? 'outcome.won' : 'outcome.lost')}</h2>
         <PowerChart game={game} />

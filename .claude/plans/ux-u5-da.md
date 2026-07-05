@@ -53,3 +53,26 @@ combat) = tranches ultérieures du jalon Beta (avec artiste / skills asset-*).
   spritesheets d'unités + animation de combat, moodboards/palettes (skills
   asset-*/canvas-design). Vérif : typecheck 4/4, eslint, content:check, build,
   smoke.
+- **2026-07-05** — **U5 tranche B (branchement des décors peints) livrée.** La PR
+  d'assets #56 avait produit des fonds peints (`assets/backgrounds/*.jpg`, logo)
+  NON branchés. Registre étendu aux **`.jpg`** (glob + regex) + 5 résolveurs
+  (`townBackgroundUrl`/`combatBackgroundUrl`/`outcomeBackgroundUrl`/
+  `titleBackgroundUrl`/`logoUrl`, faction-agnostiques, repli `undefined`). Câblage :
+  **menu** (logo `heroes-master` + fond `title`), **vue de ville** (fond peint par
+  faction, dégradé en repli), **combat** (toile de terrain, sprite Pixi FIXE
+  derrière le plateau, chargement async gardé `destroyed`, layout « cover »),
+  **fin de partie** (fonds victoire/défaite + voile de lisibilité). Contrat
+  registre figé par le pilote ; surfaces DOM (ville / menu+fin) déléguées à
+  2 sous-agents Sonnet, fond de combat (Pixi, cycle de vie) fait par le pilote.
+  Repli gracieux vérifié (test-faction sans fond → dégradé). Budget JS ~70,5 Ko
+  gzip (< 800). Moteur intact, golden stable.
+- **2026-07-05** — **Correctif CI (anti-gel)** : le fond de combat en **sprite
+  Pixi plein écran** ajoutait un coût de remplissage par-frame qui faisait passer
+  l'arène throttlée ×4 sous le plancher 5 fps en CI (rendu logiciel : 4,5 fps ;
+  local ≥ 5 car machine plus rapide → non attrapé en local). L'anti-gel ×4 est un
+  **invariant non négociable** (doc 01 §5). **Fond de combat RETIRÉ** ; les 3
+  autres fonds (menu/ville/fin) sont en **DOM** (coût par-frame nul, non impactés).
+  Toile de combat **différée** : à refaire via couche DOM derrière un canvas Pixi
+  transparent (coût nul). `combatBackgroundUrl` reste exporté pour cette reprise.
+  Leçon : un asset plein écran rendu par Pixi chaque frame se mesure au budget
+  anti-gel — le vérifier en CI (rendu logiciel), pas seulement en local.

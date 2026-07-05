@@ -143,6 +143,13 @@ tools/assets/              ← outillage Python (indépendant de packages/tools 
 - [ ] **Production** (nouvelle session dédiée) : générer les planches dans
       Gemini, extraire (QC verte), ranger dans `assets/`, une PR par lot de
       planches validées → vérif : `sheet_extract` exit 0 sur chaque planche.
+  - [x] `buildings-core` → 6/6 PASS, `assets/buildings/core/`.
+  - [ ] `buildings-haven`
+  - [ ] `buildings-necropolis`
+  - [ ] `buildings-arcane-hunters-p1`
+  - [ ] `buildings-arcane-hunters-p2`
+  - [ ] `mines`
+  - [ ] `artifacts`
 
 ## 6. Écarts / décisions notées en cours de route
 

@@ -118,6 +118,13 @@ export function handleCastSpell(draft: Draft, cmd: CastSpellCmd, events: GameEve
       target.count = newCount;
       target.firstHp = newPool - (newCount - 1) * targetDef.stats.hp;
     }
+  } else if (spell.kind === 'applyMarks') {
+    // Sort de Marque (doc 05 §6, école Traque) : ajoute des charges à la cible,
+    // plafonné comme la capacité `mark`. `amount` = charges effectivement posées.
+    const before = target.marks;
+    target.marks = Math.min(combatRules(draft).marksMax, target.marks + (spell.marks ?? 0));
+    amount = target.marks - before;
+    if (amount > 0) events.push({ type: 'MarkApplied', targetId: target.id, marks: target.marks });
   } else {
     // buff / debuff (doc 02 §1.4) : statut temporaire sur la pile ciblée.
     target.statuses.push({
@@ -160,7 +167,7 @@ export function handleChooseSkill(draft: Draft, cmd: ChooseSkillCmd, events: Gam
 export interface SpellEstimate {
   amount: number;
   kills: number;
-  kind: 'damage' | 'heal' | 'buff' | 'debuff';
+  kind: 'damage' | 'heal' | 'buff' | 'debuff' | 'applyMarks';
 }
 
 export function estimateSpell(

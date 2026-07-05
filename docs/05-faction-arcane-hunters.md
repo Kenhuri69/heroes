@@ -104,6 +104,19 @@ Faction inédite, produite en **Alpha** — elle sert de validation grandeur nat
 > (executioner/expose/pinningShot) ; `devourMarks` (T8) suivra avec le
 > `demonform`. Grounding explicite des volants simplifié (l'immobilisation
 > couvre).
+>
+> 🚧 **État 4.9 (école de la Traque — amorce)** : ouverture de l'école de sorts
+> propre (doc 05 §6) — `SpellSchool` gagne `traque` et un **nouvel effet de sort
+> générique** `applyMarks` (pose des charges de Marque, plafonné `marksMax`,
+> event `MarkApplied` — réutilise le système de Marque). Threadé dans
+> `handleCastSpell` + `estimateSpell`. Deux sorts au catalogue : **Marque du
+> Guetteur** (`applyMarks`, 2 charges, cercle 1) et **Entraves Runiques**
+> (debuff `speedMod -3`, cercle 2, **data-only**). Manifeste AH `spellSchool:
+> traque`. Golden inchangé (les sorts du golden ne changent pas), garde-fou vert.
+> Sorts Traque complexes (Bannissement, Silence, Volée de Dagues, Heure de la
+> Curée) et **accès des héros AH** aux sorts Traque (avec les héros nommés,
+> doc 05 §7) : différés — les sorts vivent au catalogue, apprenables via guilde/
+> `startingSpells`.
 
 ## 1. Lore
 

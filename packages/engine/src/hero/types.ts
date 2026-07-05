@@ -6,8 +6,8 @@ import type { ResourceId } from '../core/state';
  * ces formes. Le moteur ne connaît aucune faction : tout est id + données.
  */
 
-export type SpellSchool = 'fire' | 'water' | 'earth' | 'air' | 'neutral';
-export type SpellKind = 'damage' | 'heal' | 'buff' | 'debuff';
+export type SpellSchool = 'fire' | 'water' | 'earth' | 'air' | 'neutral' | 'traque';
+export type SpellKind = 'damage' | 'heal' | 'buff' | 'debuff' | 'applyMarks';
 
 /** Définition résolue d'un sort (doc 02 §1.4), embarquée dans le catalogue. */
 export interface SpellDef {
@@ -23,6 +23,8 @@ export interface SpellDef {
   attackMod?: number;
   defenseMod?: number;
   speedMod?: number;
+  /** Charges de Marque appliquées (sort `applyMarks`, doc 05 §6 — école Traque). */
+  marks?: number;
 }
 
 /** Rangs Novice/Expert/Maître d'une compétence (doc 02 §1.3) — effets par rang. */

@@ -6,7 +6,7 @@
   "keyResources": ["mercury", "gems"],
   "factionResources": [{ "id": "essence", "icon": "icons/essence.png", "cap": 999 }],
   "factionBonuses": [{ "type": "gainFactionResourceOnVictory", "resource": "essence", "amount": 10 }],
-  "spellSchool": null,
+  "spellSchool": "traque",
   "heroSkills": [],
   "tiers": 8,
   "sharedGrowthGroups": {},

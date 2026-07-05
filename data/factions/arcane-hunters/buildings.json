@@ -76,6 +76,17 @@
           "effect": { "type": "dwelling", "tier": 7, "unitId": "t7-manticore" }
         }
       ]
+    },
+    {
+      "id": "arcane-hunters-dwelling-t8",
+      "maxLevel": 1,
+      "levels": [
+        {
+          "cost": { "gold": 4000, "gems": 3, "mercury": 3 },
+          "requires": [{ "building": "arcane-hunters-dwelling-t7", "level": 1 }],
+          "effect": { "type": "dwelling", "tier": 8, "unitId": "t8-penitent" }
+        }
+      ]
     }
   ]
 }

@@ -2,7 +2,7 @@ import type { Command, CommandError } from '../core/commands';
 import type { GameEvent } from '../core/events';
 import type { GameState } from '../core/state';
 import { unitIsRecruitable } from './helpers';
-import { canAfford, payCost, scaleCost } from './resources';
+import { canAffordCost, scaleCost, spendCost } from './resources';
 import { unitWithEconomy } from './unit-economy';
 
 type RecruitCmd = Extract<Command, { type: 'RecruitUnits' }>;
@@ -40,7 +40,7 @@ export function validateRecruitUnits(state: GameState, cmd: RecruitCmd): Command
   if (!existingSlot && town.garrison.length >= MAX_GARRISON_STACKS)
     return { code: 'invalidAction', message: `garnison de '${cmd.townId}' pleine (7 piles max)` };
   const { recruitCost } = unitWithEconomy(state.unitCatalog, cmd.unitId) ?? {};
-  if (recruitCost && !canAfford(player.resources, scaleCost(recruitCost, cmd.count)))
+  if (recruitCost && !canAffordCost(player, scaleCost(recruitCost, cmd.count)))
     return { code: 'cannotAfford', message: `ressources insuffisantes pour recruter '${cmd.unitId}'` };
   return null;
 }
@@ -51,7 +51,7 @@ export function handleRecruitUnits(draft: GameState, cmd: RecruitCmd, events: Ga
   if (!town || !player) return; // exclu par validate
   town.stock[cmd.unitId] = (town.stock[cmd.unitId] ?? 0) - cmd.count;
   const { recruitCost } = unitWithEconomy(draft.unitCatalog, cmd.unitId) ?? {};
-  if (recruitCost) payCost(player.resources, scaleCost(recruitCost, cmd.count));
+  if (recruitCost) spendCost(player, scaleCost(recruitCost, cmd.count));
   const existing = town.garrison.find((s) => s.unitId === cmd.unitId);
   if (existing) existing.count += cmd.count;
   else town.garrison.push({ unitId: cmd.unitId, count: cmd.count });

@@ -65,6 +65,20 @@ Faction inédite, produite en **Alpha** — elle sert de validation grandeur nat
 > riposte). Aucun nouveau système — un param de plus sur une capacité existante
 > (garde-fou vert, golden inchangé). `pinningShot` (immobilisation, T6) et
 > `devourMarks` (T8) restent différés (statut « ne peut pas agir » / T8 4.6).
+>
+> 🚧 **État 4.6 (dépense d'Essence + T8 Pénitent)** : ferme la boucle
+> économique (gain 4.4 → dépense). Le paiement de recrutement est **faction-aware**
+> (`canAffordCost`/`spendCost`, `town/resources.ts`) : un coût d'unité peut mêler
+> ressources communes et de faction, chaque clé routée vers le bon stock
+> (`player.resources` / `player.factionResources`). Le **contenu** l'autorisait
+> déjà (`unit.cost` string-keyed, loader validant les clés) — seul le moteur
+> l'ignorait. Le **T8 Pénitent Démonique** (stats doc 05, coût 3800 or + 3
+> gemmes + **40 Essence**) est recrutable (dwelling T8), lineup 8 tiers complet.
+> `CostList` (client) affiche les coûts de faction. Zéro nom de faction moteur
+> (garde-fou vert), golden inchangé (aucune unité du golden n'a de coût de
+> faction). **Croissance partagée `apex`** (T7/T8) et **`demonform`** différés
+> (T8 : croissance 1/sem indépendante, combat en unité forte à `mark`) ; coûts de
+> **bâtiment** en Essence différés (schéma core-only).
 
 ## 1. Lore
 

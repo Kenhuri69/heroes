@@ -114,7 +114,7 @@ function makeData(): Record<string, unknown> {
       id: 'proto',
       schemaVersion: 1,
       name: '@loc:faction.name',
-      nativeTerrain: 'plains',
+      nativeTerrain: 'grass',
       keyResources: ['crystal', 'gems'],
       factionResources: [],
       spellSchool: null,
@@ -266,6 +266,63 @@ describe('loadScenarios — règles croisées', () => {
     const scenarioReport = await loadScenarios(reader(data), report);
     expect(scenarioReport.rejectedScenarios[0]?.errors.join()).toContain(
       "unité d'armée inconnue 't9-fantome'",
+    );
+  });
+
+  it('R5 CO8 — rejette une ville de départ hors carte', async () => {
+    const data = makeData();
+    (data['scenarios/duel.scenario.json'] as { players: Record<string, unknown>[] }).players[0]!.startingTown = {
+      id: 'town-1',
+      x: 99,
+      y: 99,
+      prebuilt: [{ building: 'townHall', level: 1 }],
+    };
+    const report = await loadReport(data);
+    const scenarioReport = await loadScenarios(reader(data), report);
+    expect(scenarioReport.rejectedScenarios[0]?.errors.join()).toContain('ville de départ hors carte');
+  });
+
+  it('R5 CO8 — rejette une ville de départ sur tuile infranchissable', async () => {
+    const data = makeData();
+    const cfg = data['core/config.json'] as { adventure: { terrains: Record<string, unknown> } };
+    cfg.adventure.terrains['water'] = { moveCost: null };
+    const map = data['maps/mini.map.json'] as { legend: Record<string, string>; tiles: string[] };
+    map.legend['w'] = 'water';
+    map.tiles = ['gwgg', 'gggg', 'gggg']; // (1,0) infranchissable, départs (0,0)/(3,2) intacts
+    (data['scenarios/duel.scenario.json'] as { players: Record<string, unknown>[] }).players[0]!.startingTown = {
+      id: 'town-1',
+      x: 1,
+      y: 0,
+      prebuilt: [{ building: 'townHall', level: 1 }],
+    };
+    const report = await loadReport(data);
+    const scenarioReport = await loadScenarios(reader(data), report);
+    expect(scenarioReport.rejectedScenarios[0]?.errors.join()).toContain(
+      'ville de départ sur tuile infranchissable',
+    );
+  });
+
+  it('R5 CO8 — rejette un objectif captureTown vers une ville inexistante', async () => {
+    const data = makeData();
+    (
+      data['scenarios/duel.scenario.json'] as { objectives: Record<string, { victory: unknown }> }
+    ).objectives['player-1']!.victory = { type: 'captureTown', townId: 'ghost-town' };
+    const report = await loadReport(data);
+    const scenarioReport = await loadScenarios(reader(data), report);
+    expect(scenarioReport.rejectedScenarios[0]?.errors.join()).toContain(
+      "captureTown vers ville inconnue 'ghost-town'",
+    );
+  });
+
+  it('R5 CO8 — rejette un objectif defeatHero vers un héros inexistant', async () => {
+    const data = makeData();
+    (
+      data['scenarios/duel.scenario.json'] as { objectives: Record<string, { defeat: unknown }> }
+    ).objectives['player-1']!.defeat = { type: 'defeatHero', heroId: 'hero-ghost' };
+    const report = await loadReport(data);
+    const scenarioReport = await loadScenarios(reader(data), report);
+    expect(scenarioReport.rejectedScenarios[0]?.errors.join()).toContain(
+      "defeatHero vers héros inconnu 'hero-ghost'",
     );
   });
 

@@ -48,7 +48,7 @@ function makeData(): Record<string, unknown> {
       id: 'proto',
       schemaVersion: 1,
       name: '@loc:faction.name',
-      nativeTerrain: 'plains',
+      nativeTerrain: 'grass',
       keyResources: ['crystal', 'gems'],
       factionResources: [{ id: 'essence', icon: 'icons/essence.png', cap: 999 }],
       spellSchool: null,
@@ -187,7 +187,7 @@ describe('loadContent', () => {
       id: 'proto2',
       schemaVersion: 1,
       name: '@loc:faction.name',
-      nativeTerrain: 'plains',
+      nativeTerrain: 'grass',
       keyResources: ['crystal', 'gems'],
       factionResources: [],
       spellSchool: null,
@@ -208,6 +208,14 @@ describe('loadContent', () => {
     data['factions/proto2/locales/fr.json'] = { 'faction.name': 'P2', 'unit.t1-grunt.name': 'Recrue2' };
     data['factions/proto2/locales/en.json'] = { 'faction.name': 'P2', 'unit.t1-grunt.name': 'Recruit2' };
     await expect(loadContent(reader(data))).rejects.toThrow(/globalement uniques/);
+  });
+
+  it('R5 CO3 — rejette un terrain natif absent de la config', async () => {
+    const data = makeData();
+    (data['factions/proto/manifest.json'] as { nativeTerrain: string }).nativeTerrain = 'lande-brumeuse';
+    await expect(loadContent(reader(data))).rejects.toThrow(
+      /nativeTerrain 'lande-brumeuse' inconnu de config\.terrains/,
+    );
   });
 
   it('rejette une stat invalide avec le fichier et le champ en cause', async () => {

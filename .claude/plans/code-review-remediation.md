@@ -221,8 +221,10 @@ pas de `concurrency`/`timeout-minutes` ; `__HEROES_TEST__` exposé en prod.
 - Vérif : audit « 0 id brut à l'écran » rejoué (grep + smoke FR/EN).
 
 ### Lot R5 — Pipeline contenu & CLI (CO1, CO2, CO3, CO4, CO8, CO9)
-> **R5a livré** (CO1 + CO2, outillage faction cassé — priorité). CO3/CO4/CO8/CO9
-> restent (R5b, lot suivant).
+> **R5a livré** (CO1 + CO2, outillage faction cassé). **R5b livré** (CO3 + CO8,
+> complétude de validation contenu). Restent **CO4** (compétences sans effet →
+> lot « skills » dédié, reprend aussi la dette Commandement/moral) et **CO9**
+> (résilience au boot) — lot suivant.
 - [x] CO1 : `faction:validate` charge `core/buildings.json` → les 4 factions
       passent (vérifié CLI) ; régression au niveau `loadFactionPack`
       (avec/sans `coreBuildings`) dans `loader.test.ts`.
@@ -230,17 +232,23 @@ pas de `concurrency`/`timeout-minutes` ; `__HEROES_TEST__` exposé en prod.
       (throw `PackError` listant les doublons) ; scaffolder `faction:new` →
       `t1-<id>-recruit` (plus de collision avec le paquet de test) ; test de
       collision inter-paquets + scaffold→validate vérifié.
-- [ ] CO3 : cross-check `nativeTerrain ∈ config.adventure.terrains` ;
-      corriger test-faction (`plains`) et arcane-hunters (`mistmoor`) — noter
-      l'impact équilibrage dans la PR.
+- [x] CO3 : cross-check `nativeTerrain ∈ config.adventure.terrains` dans
+      `loadContent` (throw) ; données corrigées — test-faction `plains`→`grass`,
+      arcane-hunters `mistmoor`→`swamp` (réalise « lande brumeuse » ; doc 05
+      annotée) ; défaut du scaffolder `plains`→`grass`. **Impact équilibrage** :
+      les unités arcane-hunters gagnent enfin +1 vitesse / +1 moral sur tuile
+      `swamp` (comme Necropolis) ; test-faction sur `grass` — bonus auparavant
+      morts. Test loader du rejet.
 - [ ] CO4 : retirer `wisdom`/`leadership` du pool ou les brancher ; donner un
       effet réel au rang 1 des `magic-*` (mise à jour doc 02 §1.3 dans le
-      même commit — docs source de vérité).
-- [ ] CO8 : valider `startingTown` (bounds/franchissable/collision) et
-      `townId`/`heroId` des objectifs.
+      même commit — docs source de vérité). → **lot « skills » dédié** (absorbe
+      aussi la dette Commandement/moral non branché, `hero/skills.ts`).
+- [x] CO8 : `loadScenario` valide la ville de départ (bounds + tuile
+      franchissable) et les objectifs opaques (`captureTown.townId` ∈ villes du
+      scénario, `defeatHero.heroId` ∈ `hero-<playerId>`). 4 tests de rejet.
 - [ ] CO9 : les refs de `config.newGame` vers un paquet rejeté deviennent des
-      erreurs rapportées, pas un throw.
-- Vérif : `content:check` + tests loader couvrant chaque nouveau rejet.
+      erreurs rapportées, pas un throw. → lot de résilience au boot.
+- Vérif : `content:check` + tests loader/scénario couvrant chaque nouveau rejet.
 
 ### Lot R6 — Durcissement CI & tests (T1, T2, T3)
 - [ ] Garde-fou faction : motif dérivé de `data/factions/index.json`
@@ -377,3 +385,10 @@ commit (docs = source de vérité).
   Vérif verte (266 tests, lint, content:check, build 61,9 Ko, 40 smoke, garde
   faction vert). Reste R5b : CO3 (nativeTerrain), CO4 (compétences sans effet),
   CO8 (validation scénario/startingTown), CO9 (refs vers paquet rejeté).
+- **2026-07-05** — **Lot R5b livré** (CO3 + CO8) : cross-check du terrain natif
+  (données arcane-hunters `mistmoor`→`swamp`, test-faction `plains`→`grass`,
+  scaffolder + doc 05) et validation complète des scénarios (ville de départ
+  bounds/franchissable + objectifs `captureTown`/`defeatHero` non opaques).
+  +5 tests contenu (271 total). Vérif verte (lint, content:check, build
+  62,2 Ko, 40 smoke, garde faction vert). Reste : CO4 → lot « skills » dédié
+  (avec la dette Commandement/moral), CO9 → lot de résilience au boot.

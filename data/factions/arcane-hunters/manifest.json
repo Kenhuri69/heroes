@@ -2,7 +2,7 @@
   "id": "arcane-hunters",
   "schemaVersion": 1,
   "name": "@loc:faction.arcane-hunters.name",
-  "nativeTerrain": "mistmoor",
+  "nativeTerrain": "swamp",
   "keyResources": ["mercury", "gems"],
   "factionResources": [{ "id": "essence", "icon": "icons/essence.png", "cap": 999 }],
   "factionBonuses": [{ "type": "gainFactionResourceOnVictory", "resource": "essence", "amount": 10 }],

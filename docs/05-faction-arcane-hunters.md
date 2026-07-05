@@ -144,7 +144,7 @@ L'Académie est officiellement neutre… mais considère toute armée trop puiss
 |---|---|
 | **Fantasme joueur** | L'école de chasseurs de monstres : marquer une cible et voir toute l'armée fondre dessus ; l'élève discret du T1 devient l'hybride démoniaque du T8 |
 | **Style de jeu** | Tempo et assassinat de piles clés (« burst la cible marquée »), armée d'élite peu nombreuse, fragile si le combat s'éternise |
-| **Terrain natif** | Lande brumeuse |
+| **Terrain natif** | Lande brumeuse — réalisée par le terrain `swamp` (marais) de la config au niveau des données (remédiation R5 CO3) ; un terrain `moor` dédié (légende de carte + rendu) reste à créer si l'on veut le distinguer du marais Necropolis |
 | **Ressources clés** | Mercure + Gemmes |
 | **École de magie propre** | **Art de la Traque** (marques, entraves, bannissement, métamorphose) |
 | **Couleurs / DA** | Violet nuit, argent, vert-de-gris ; tours d'académie gothiques + trophées de chasse, lanternes spectrales, écharpes de maison |

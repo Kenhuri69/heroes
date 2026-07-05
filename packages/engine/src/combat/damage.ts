@@ -36,6 +36,27 @@ interface MultiplierInput {
   heroDamagePct?: number;
   /** Réduction % d'armure du héros défenseur (compétence Armure) — 0 hors héros. */
   heroArmorPct?: number;
+  /** Burst de la capacité `consumeMarks` (doc 05 §3.1) : ×(1+bonus) cette frappe — 0 si inactif. */
+  markConsumeBonus?: number;
+}
+
+/**
+ * Plan de consommation de Marque (capacité générique `consumeMarks`, doc 05
+ * §3.1) : si l'attaquant porte la capacité et que la cible a assez de charges,
+ * renvoie le coût et le bonus de dégâts de la frappe ; sinon `null`. Pur (aucun
+ * effet de bord) — la frappe réelle consomme, la prévisualisation ne fait que
+ * lire le bonus.
+ */
+export function consumeMarksPlan(
+  strikerDef: CombatUnitDef,
+  victimMarks: number,
+): { cost: number; damageBonus: number } | null {
+  const ability = strikerDef.abilities.find((a) => a.id === 'consumeMarks');
+  if (!ability) return null;
+  const cost = Number(ability.params?.['cost'] ?? 0);
+  const damageBonus = Number(ability.params?.['damageBonus'] ?? 0);
+  if (cost <= 0 || victimMarks < cost) return null;
+  return { cost, damageBonus };
 }
 
 /** Multiplicateur global (diff attaque/défense, pénalité mêlée forcée, marques, héros) — sans chance. */
@@ -49,6 +70,7 @@ export function computeMultiplier(input: MultiplierInput): number {
     rules,
     heroDamagePct,
     heroArmorPct: armorPct,
+    markConsumeBonus,
   } = input;
   const effectiveDefense = targetDefending
     ? Math.floor(targetDefense * rules.defendDefenseMultiplier)
@@ -58,6 +80,7 @@ export function computeMultiplier(input: MultiplierInput): number {
   let mult = 1 + factor;
   if (meleePenalized) mult *= rules.rangedMeleePenalty;
   mult *= 1 + rules.markBonusPerStack * targetMarks;
+  mult *= 1 + (markConsumeBonus ?? 0);
   mult *= 1 + (heroDamagePct ?? 0);
   mult *= 1 - (armorPct ?? 0);
   return mult;
@@ -162,6 +185,7 @@ export function performStrike(
       : heroMeleePctOf(draft, combat, striker.side)
     : 0;
   const heroArmor = combat ? heroArmorPctOf(draft, combat, victim.side) : 0;
+  const consume = consumeMarksPlan(strikerDef, victim.marks);
   const mult = computeMultiplier({
     strikerAttack,
     targetDefense,
@@ -171,6 +195,7 @@ export function performStrike(
     rules,
     heroDamagePct,
     heroArmorPct: heroArmor,
+    markConsumeBonus: consume?.damageBonus ?? 0,
   });
   const luck = combat ? heroLuckOf(draft, combat, striker.side) : 0;
   const luckRoll = rollRange(draft.rng, 0, 99);
@@ -186,6 +211,19 @@ export function performStrike(
   victim.firstHp = newCount > 0 ? remaining - (newCount - 1) * victimDef.stats.hp : 0;
 
   if (combat) recordLoss(combat, victim.side, victim.unitId, kills);
+
+  // Consommation des charges de Marque (capacité générique `consumeMarks`,
+  // doc 05 §3.1) : le burst de dégâts a déjà été appliqué via `mult` ; on retire
+  // les charges dépensées. Avant la ré-application de `mark` ci-dessous.
+  if (consume) {
+    victim.marks = Math.max(0, victim.marks - consume.cost);
+    events.push({
+      type: 'MarksConsumed',
+      strikerId: striker.id,
+      targetId: victim.id,
+      consumed: consume.cost,
+    });
+  }
 
   if (strikerDef.abilities.some((a) => a.id === 'mark') && victim.count > 0) {
     const before = victim.marks;
@@ -261,6 +299,7 @@ export function estimateDamage(
     rules,
     heroDamagePct,
     heroArmorPct: heroArmor,
+    markConsumeBonus: consumeMarksPlan(attackerDef, target.marks)?.damageBonus ?? 0,
   });
   const [dmgMin, dmgMax] = attackerDef.stats.damage;
   const baseMin = attacker.count * dmgMin;

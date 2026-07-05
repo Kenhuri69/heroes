@@ -48,6 +48,8 @@ export type GameEvent =
   /** Moral : tour bonus (positive) ou tour sauté (doc 02 §5.3 + décision n°8). */
   | { type: 'MoraleTriggered'; stackId: string; positive: boolean }
   | { type: 'MarkApplied'; targetId: string; marks: number }
+  /** Charges de Marque consommées par une capacité `consumeMarks` (doc 05 §3.1). */
+  | { type: 'MarksConsumed'; strikerId: string; targetId: string; consumed: number }
   | {
       type: 'CombatEnded';
       winner: CombatSideId;

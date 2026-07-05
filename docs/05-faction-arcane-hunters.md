@@ -2,6 +2,20 @@
 
 Faction inédite, produite en **Alpha** — elle sert de validation grandeur nature du système de modularité (doc 06). Inspirations assumées : **académie de magie à l'anglaise** (maisons, tours, bibliothèques vivantes, familiers) × **Demon Hunter** (traque, marques, sacrifice, arsenal anti-démon).
 
+> 🚧 **État 4.1 (cadrage Alpha)** : démarrage de la production. Le paquet
+> `data/factions/arcane-hunters/` existe en **stub** (1 unité T1, se charge et
+> passe `content:check`). Le plan de décomposition vit dans
+> `.claude/plans/phase-4.1-arcane-hunters-cadrage.md` : la faction requiert
+> **6 nouveaux points d'extension moteur génériques** (Marque déclarative,
+> consommation de charges, ressource de faction branchée au gameplay, choix de
+> bâtiment exclusif, hook d'aventure hebdomadaire, module de capacité stateful
+> `demonform`), livrés en sous-lots 4.2→4.7. Chacun reste **générique** (zéro
+> nom de faction dans le moteur, garde-fou CI) — c'est l'objet du test de
+> modularité #3. Périmètre Alpha-MVP : **jouabilité de la signature (Marque +
+> lineup) d'abord** (4.2), mécaniques lourdes ensuite ; comportement dégradé
+> documenté tant qu'un effet n'est pas livré (jamais de crash). Assets peints =
+> Beta.
+
 ## 1. Lore
 
 L'**Académie de Sombreveille** fut fondée sur les ruines d'un portail démoniaque scellé. Ses élèves n'apprennent pas la magie pour la contempler : chaque diplôme est un permis de chasse. Répartis en **quatre Cercles** (Vigile, Traque, Sceau, Abîme), les Chasseurs Arcanes étudient l'ennemi jusqu'à lui ressembler — les plus grands d'entre eux greffent des reliques démoniaques sur leur propre corps. Leur crédo : *« Connaître, marquer, abattre. »*

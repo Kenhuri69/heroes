@@ -22,10 +22,19 @@ défensif. Ajout de `playerSide` à l'événement `CombatEnded` (events.ts + emi
 turns.ts) ; `notify` calcule `won = winner === playerSide`. Golden non impacté
 (événements non hashés) — re-vérifié `be72de4b` + tests combat/notify.
 
-### (c) R7c — Classe `.btn` partagée
-Évaluation : dedup des styles de boutons (~10 fichiers, paddings hétérogènes).
-Si factorisation propre sans risque de régression visuelle → faite ; sinon skip
-documenté (YAGNI, guideline §7, non vérifiable au smoke).
+### (c) R7c — Classe `.btn` partagée  ⏭️ SKIP documenté
+Évaluation faite. La famille de boutons est **hétérogène** : padding `8px 14px`
+(actions/combat) / `8px 10px` (vitesses) / `10px 18px` (menu) / `6px 14px`
+(ville), `min-height` 44/48/56, deux teintes (secondaire gris `#262a33` vs
+primaire rouge `#7a2d22`). Seuls `.actions button` et `.combat-actions button`
+sont strictement identiques (~6 lignes de « reset bouton »), mais dans deux
+feuilles chargées par composant. Factoriser en `.btn` global imposerait : (1) un
+passage sélecteur d'élément → classe = **changement de spécificité** (risque de
+régression sur les surcharges) ; (2) des modificateurs (`--primary`, `--lg`)
+pour conserver les 4 variantes ; (3) ~6 CSS + ~10 sites d'appel touchés — pour un
+rendu **non vérifiable au smoke** (§7). Rapport risque/gain défavorable →
+**skip** (YAGNI, §2/§3). Les styles restent colocalisés avec leur composant
+(bonne localité). À reconsidérer si un design system Beta arrive.
 
 ## Déjà satisfaits (documentés, sans code)
 - A1 cibles ≥ 44 px (audit : 0 warning) ; A5 jamais la couleur seule ;
@@ -40,3 +49,6 @@ cibles ≥ 44 px, anti-gel ×4, docs à jour.
 
 ## Journal
 - **2026-07-05** — Création. Base propre après merge #62 (U5-D).
+- **2026-07-05** — (a) livré (commit toile DOM), (b) livré (commit playerSide).
+- **2026-07-05** — (c) évalué → skip documenté (hétérogénéité + risque
+  spécificité + non vérifiable smoke). Lot prêt pour smoke complet + PR.

@@ -2,7 +2,9 @@ import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  { ignores: ['**/dist/**', '**/node_modules/**', 'playwright-report/**', 'test-results/**'] },
+  // `.claude/` = plans + skills (outillage exécuté directement par node, hors
+  // build/typecheck de l'app) — pas linté par la config TS du projet.
+  { ignores: ['**/dist/**', '**/node_modules/**', 'playwright-report/**', 'test-results/**', '.claude/**'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {

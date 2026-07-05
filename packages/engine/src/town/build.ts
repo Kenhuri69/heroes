@@ -45,6 +45,18 @@ export function validateBuildStructure(state: GameState, cmd: BuildCmd): Command
         message: `prérequis manquant '${req.building}'@${req.level}`,
       };
   }
+  // Choix exclusif (doc 05 §3.2) : un seul bâtiment par groupe et par ville.
+  if (def.exclusiveGroup) {
+    const rival = Object.keys(town.buildings).find((id) => {
+      if (id === cmd.buildingId || (town.buildings[id] ?? 0) < 1) return false;
+      return state.buildingCatalog[id]?.exclusiveGroup === def.exclusiveGroup;
+    });
+    if (rival)
+      return {
+        code: 'exclusiveChoiceLocked',
+        message: `choix exclusif '${def.exclusiveGroup}' déjà pris par '${rival}'`,
+      };
+  }
   if (!canAfford(player.resources, nextLevel.cost))
     return { code: 'cannotAfford', message: `ressources insuffisantes pour '${cmd.buildingId}'` };
   return null;

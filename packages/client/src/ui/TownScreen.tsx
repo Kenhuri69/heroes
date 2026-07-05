@@ -47,11 +47,26 @@ function buildingName(id: string): string {
   return translated === key ? id : translated;
 }
 
-function nextBuildStatus(town: TownState, def: BuildingDef, buildingId: string): BuildStatus {
+function nextBuildStatus(
+  town: TownState,
+  def: BuildingDef,
+  buildingId: string,
+  catalog: Record<string, BuildingDef>,
+): BuildStatus {
   const currentLevel = town.buildings[buildingId] ?? 0;
   if (currentLevel >= def.maxLevel) return 'built';
   const nextLevel = def.levels[currentLevel];
   if (!nextLevel) return 'built';
+  // Choix exclusif (doc 05 §3.2) : verrouillé si un frère du groupe est déjà bâti.
+  if (def.exclusiveGroup) {
+    const rivalBuilt = Object.keys(town.buildings).some(
+      (id) =>
+        id !== buildingId &&
+        (town.buildings[id] ?? 0) >= 1 &&
+        catalog[id]?.exclusiveGroup === def.exclusiveGroup,
+    );
+    if (rivalBuilt) return 'locked';
+  }
   const met = nextLevel.requires.every((req) => (town.buildings[req.building] ?? 0) >= req.level);
   return met ? 'available' : 'locked';
 }
@@ -208,7 +223,7 @@ function BuildTab({
           const def = catalog[buildingId];
           if (!def) return null;
           const currentLevel = town.buildings[buildingId] ?? 0;
-          const status = nextBuildStatus(town, def, buildingId);
+          const status = nextBuildStatus(town, def, buildingId, catalog);
           const nextLevel = def.levels[currentLevel];
           return (
             <li key={buildingId} class={`town-building town-building-${status}`}>

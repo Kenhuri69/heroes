@@ -169,6 +169,8 @@ export const buildingSchema = z
     name: locRef.optional(),
     maxLevel: z.number().int().positive(),
     levels: z.array(buildingLevelSchema).min(1),
+    /** Groupe de choix exclusif (doc 05 §3.2) — un seul bâtiment du groupe par ville. */
+    exclusiveGroup: z.string().optional(),
   })
   .refine((b) => b.levels.length === b.maxLevel, {
     message: 'levels.length doit être égal à maxLevel',

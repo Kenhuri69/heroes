@@ -113,6 +113,7 @@ export interface CommandError {
     | 'unknownBuilding'
     | 'buildingMaxLevel'
     | 'requirementsNotMet'
+    | 'exclusiveChoiceLocked'
     | 'cannotAfford'
     | 'notRecruitable'
     | 'insufficientStock'

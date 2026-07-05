@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { apply, validate } from '../src/core/engine';
 import type { Command, PlayerSetup } from '../src/core/commands';
 import { createEmptyState, emptyResources, type GameState } from '../src/core/state';
+import type { BuildingDef } from '../src/town/types';
 import { testConfig, testMap } from './fixtures';
 import { testBuildingCatalog, testTown, testUnitCatalogWithEconomy } from './town-fixtures';
 
@@ -132,5 +133,54 @@ describe('BuildStructure', () => {
     expect(
       validate(state, { type: 'BuildStructure', townId: 'town-1', buildingId: 'nope' })?.code,
     ).toBe('unknownBuilding');
+  });
+});
+
+/**
+ * Choix de bâtiment exclusif (plan phase-4.7, doc 05 §3.2 les Cercles) —
+ * mécanisme générique : au plus un bâtiment par `exclusiveGroup` et par ville.
+ * Ids de test 'circleA'/'circleB' arbitraires (aucun nom de faction).
+ */
+describe('BuildStructure — choix exclusif (exclusiveGroup)', () => {
+  function circleCatalog(): Record<string, BuildingDef> {
+    const circle = (id: string): BuildingDef => ({
+      id,
+      maxLevel: 1,
+      exclusiveGroup: 'circle',
+      levels: [{ cost: { gold: 100 }, requires: [], effect: { type: 'none' } }],
+    });
+    return { ...testBuildingCatalog(), circleA: circle('circleA'), circleB: circle('circleB') };
+  }
+
+  function startedWith(buildings: Record<string, number>): GameState {
+    const cmd: Command = {
+      type: 'StartGame',
+      seed: 1,
+      players: setup({ gold: 1000 }),
+      map: testMap(),
+      config: testConfig(),
+      unitCatalog: testUnitCatalogWithEconomy(),
+      buildingCatalog: circleCatalog(),
+      towns: [{ ...testTown(), buildings }],
+    };
+    return apply(createEmptyState(), cmd).state;
+  }
+
+  it('rejette un frère du groupe quand un membre est déjà bâti', () => {
+    const state = startedWith({ townHall: 1, fort: 1, circleA: 1 });
+    expect(
+      validate(state, { type: 'BuildStructure', townId: 'town-1', buildingId: 'circleB' })?.code,
+    ).toBe('exclusiveChoiceLocked');
+  });
+
+  it('autorise le premier membre du groupe quand aucun n’est bâti', () => {
+    const state = startedWith({ townHall: 1, fort: 1 });
+    const { state: next, events } = apply(state, {
+      type: 'BuildStructure',
+      townId: 'town-1',
+      buildingId: 'circleA',
+    });
+    expect(next.towns[0]?.buildings.circleA).toBe(1);
+    expect(events).toContainEqual({ type: 'TownBuilt', townId: 'town-1', buildingId: 'circleA', level: 1 });
   });
 });

@@ -22,7 +22,7 @@ const modules = import.meta.glob(['../../../../assets/**/*.png', '!**/_preview.p
 
 /**
  * Index par chemin relatif à `assets/` sans extension :
- * `mines/mine-gold`, `buildings/haven/haven-dwelling-t1`, `ui/res-gold_32`,
+ * `mines/mine-gold`, `buildings/<faction>/<buildingId>`, `ui/res-gold_32`,
  * `tiles/grass-1`, `artifacts/lame-aiguisee`.
  */
 const registry = new Map<string, string>();

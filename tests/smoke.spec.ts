@@ -624,6 +624,23 @@ test('sauvegarde puis rechargement IndexedDB : position restaurée', async ({ pa
   expect(errors).toEqual([]);
 });
 
+test('sauvegarde en échec de stockage : toast d’erreur visible (lot 3.9)', async ({ page }) => {
+  await openGame(page);
+
+  // Simule un stockage indisponible (navigation privée, quota) : `indexedDB.open`
+  // lève ⇒ `saveGame` rejette. La perte ne doit pas être silencieuse.
+  await page.evaluate(() => {
+    window.indexedDB.open = () => {
+      throw new DOMException('storage disabled', 'SecurityError');
+    };
+  });
+
+  await page.getByTestId('save').click();
+  const toast = page.getByTestId('toast');
+  await expect(toast).toBeVisible();
+  await expect(toast).toContainText(/sauvegarde|save/i);
+});
+
 test('scénario : le menu démarre le tutoriel, l’IA joue son tour', async ({ page }) => {
   const errors = await openMenu(page);
 

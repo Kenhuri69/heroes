@@ -12,6 +12,7 @@ export function installAutosave(): void {
     if (event.type !== 'TurnEnded') return;
     saveGame(appStore.getState().game, 'auto').catch((err: unknown) => {
       console.warn('autosave: échec de la sauvegarde automatique', err);
+      eventBus.emit([{ type: 'SaveFailed' }]);
     });
   });
 }

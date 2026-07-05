@@ -45,6 +45,10 @@ function toastMessage(event: AppEvent): string | null {
       });
     case 'GameLoaded':
       return t('toast.gameLoaded');
+    // Échec de stockage d'une sauvegarde (doc 07 §4, plan phase-3.9) — évite la
+    // perte de données silencieuse (navigation privée, quota dépassé…).
+    case 'SaveFailed':
+      return t('toast.saveFailed');
     // Villes (doc 02 §4) — revenu/croissance/construction/recrutement.
     case 'TownIncome':
       return t('toast.townIncome', { amount: event.amount, resource: t(`resource.${event.resource}`) });

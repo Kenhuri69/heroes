@@ -2,9 +2,9 @@ import { produce } from 'immer';
 import { dailyMovementPoints } from '../adventure/config';
 import { createFog, revealAround } from '../adventure/fog';
 import { inBounds, isAdjacent, samePos, type GridPos } from '../adventure/map';
+import { advanceHeroAlongPath } from '../adventure/movement';
 import { isPassable, stepCost } from '../adventure/path';
 import {
-  beginGuardianCombat,
   handleAutoCombat,
   handleCombatAction,
   handleStartCombat,
@@ -38,7 +38,7 @@ import { runAiTurn } from '../ai/adventure';
 import { EngineError, type Command, type CommandError } from './commands';
 import type { GameEvent } from './events';
 import { seedRng } from './rng';
-import { RESOURCE_IDS, weekOf, type GameState, type ResourceId } from './state';
+import { RESOURCE_IDS, weekOf, type GameState } from './state';
 
 export interface EngineResult {
   state: GameState;
@@ -345,56 +345,12 @@ const handlers: Handlers = {
 
   MoveHero(draft, cmd, events) {
     const hero = draft.heroes.find((h) => h.id === cmd.heroId);
-    const map = draft.map;
-    const config = draft.config;
     const player = draft.players.find((p) => hero && p.id === hero.playerId);
-    if (!hero || !map || !config || !player) return; // exclu par validate
-    for (const step of cmd.path) {
-      const cost = stepCost(config, map, hero.pos, step);
-      // Le chemin peut couvrir plusieurs jours (prévisualisation) : on
-      // s'arrête quand les points du jour ne suffisent plus (doc 02 §1.5).
-      if (cost > hero.movementPoints) break;
-      // Gardien sur le pas : interception ⇒ combat, le héros n'entre PAS sur
-      // la tuile (décision plan phase-2.4) mais paie le pas d'engagement.
-      const guardian = map.objects.find((o) => o.type === 'guardian' && samePos(o.pos, step));
-      if (guardian) {
-        hero.movementPoints -= cost;
-        beginGuardianCombat(draft, hero.id, guardian.id, events);
-        return;
-      }
-      const from = { ...hero.pos };
-      hero.movementPoints -= cost;
-      hero.pos = { ...step };
-      revealAround(player.explored, map, hero.pos, config.visionRadius + heroVisionBonus(hero, draft.skillCatalog));
-      events.push({
-        type: 'MoveStepped',
-        heroId: hero.id,
-        from,
-        to: { ...step },
-        movementPointsLeft: hero.movementPoints,
-      });
-      // Interception = arrêt standard HoMM (doc 08 §2.1) — ramassage instantané (doc 02 §2.2).
-      const objIndex = map.objects.findIndex(
-        (o) => o.type === 'resource' && samePos(o.pos, hero.pos),
-      );
-      if (objIndex !== -1) {
-        const obj = map.objects[objIndex];
-        if (obj && obj.type === 'resource') {
-          player.resources[obj.resource as ResourceId] += obj.amount;
-          map.objects.splice(objIndex, 1);
-          events.push({
-            type: 'ResourcePicked',
-            heroId: hero.id,
-            playerId: player.id,
-            objectId: obj.id,
-            resource: obj.resource,
-            amount: obj.amount,
-            pos: { ...hero.pos },
-          });
-        }
-        break;
-      }
-    }
+    if (!hero || !player || !draft.map || !draft.config) return; // exclu par validate
+    // Logique de pas partagée avec l'IA d'aventure (cf. `adventure/movement`).
+    // Le joueur humain ne résout pas le combat de gardien ici : l'interception
+    // laisse `draft.combat` posé pour un combat interactif.
+    advanceHeroAlongPath(draft, hero, player, cmd.path, events);
   },
 
   StartCombat(draft, cmd, events) {

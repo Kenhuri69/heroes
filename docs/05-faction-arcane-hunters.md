@@ -30,6 +30,19 @@ Faction inédite, produite en **Alpha** — elle sert de validation grandeur nat
 > §3.1 : le bonus de Marque est **universel** (tout attaquant vs cible marquée),
 > pas réservé aux Hunters/sorts de Traque — simplification générique déjà en
 > place au moteur.
+>
+> 🚧 **État 4.3 (consumeMarks générique)** : ouverture du **1ᵉʳ nouveau point
+> d'extension moteur** de la faction — la capacité générique **`consumeMarks`**
+> (`{ cost, damageBonus }`, au catalogue `abilities.json`) : à l'attaque, si la
+> cible porte ≥ `cost` charges de Marque, l'attaquant les **consomme** et la
+> frappe gagne `×(1+damageBonus)` (threadé dans la formule unique
+> `computeMultiplier` ⇒ la prévisualisation de dégâts le reflète ; seule la
+> frappe réelle consomme, event `MarksConsumed`). C'est l'`executioner` de la
+> **Lame du Serment** (T5, `consumeMarks(3, +40 %)`) exprimé **génériquement**
+> (zéro nom de faction — garde-fou vert ; golden inchangé, la formule reste
+> numériquement identique à `markConsumeBonus=0`). Effets de consommation
+> non-dégâts (`expose`=riposte, `pinningShot`=immobilisation, `devourMarks`) :
+> micro-lots ultérieurs (params additionnels de la même capacité).
 
 ## 1. Lore
 

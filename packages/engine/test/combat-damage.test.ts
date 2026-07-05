@@ -248,6 +248,59 @@ describe('performStrike / applyAction — intégration dégâts', () => {
     expect(events.some((e) => e.type === 'MarkApplied')).toBe(false);
   });
 
+  it('consumeMarks : consomme les charges au seuil et applique le burst de dégâts', () => {
+    // atk attaque 5 = def défense 5 → diff 0 (mult de base 1) pour isoler les
+    // facteurs Marque. base 10. marks 3 → ×1,24 (0,08×3). burst consumeMarks
+    // ×1,4. dégâts round(10 × 1,24 × 1,4) = round(17,36) = 17. charges → 0.
+    const catalog = {
+      atk: unit({
+        id: 'atk',
+        stats: { hp: 10, attack: 5, defense: 0, damage: [10, 10], speed: 5 },
+        abilities: [{ id: 'consumeMarks', params: { cost: 3, damageBonus: 0.4 } }],
+      }),
+      def: unit({ id: 'def', stats: { hp: 1000, attack: 0, defense: 5, damage: [1, 1], speed: 1 } }),
+    };
+    const attacker = stack({ id: 'attacker-0', side: 'attacker', slot: 0, unitId: 'atk', count: 1, pos: { col: 0, row: 0 }, firstHp: 10 });
+    const defender = stack({ id: 'defender-0', side: 'defender', slot: 0, unitId: 'def', count: 1, pos: { col: 1, row: 0 }, firstHp: 1000, marks: 3 });
+    const state = { ...baseState(catalog), combat: combatState([attacker, defender]) };
+    const events: GameEvent[] = [];
+    const next = produce(state, (draft) => {
+      applyAction(draft, events, 'attacker-0', { type: 'attack', targetStackId: 'defender-0' });
+    });
+    const strike = events.find((e) => e.type === 'StackAttacked') as Extract<GameEvent, { type: 'StackAttacked' }>;
+    expect(strike.damage).toBe(17);
+    expect(next.combat?.stacks.find((s) => s.id === 'defender-0')?.marks).toBe(0);
+    expect(events).toContainEqual({
+      type: 'MarksConsumed',
+      strikerId: 'attacker-0',
+      targetId: 'defender-0',
+      consumed: 3,
+    });
+  });
+
+  it('consumeMarks : sous le seuil, aucune consommation ni burst', () => {
+    // marks 2 < cost 3 → pas de burst : dégâts round(10 × 1,16) = 12, charges intactes.
+    const catalog = {
+      atk: unit({
+        id: 'atk',
+        stats: { hp: 10, attack: 5, defense: 0, damage: [10, 10], speed: 5 },
+        abilities: [{ id: 'consumeMarks', params: { cost: 3, damageBonus: 0.4 } }],
+      }),
+      def: unit({ id: 'def', stats: { hp: 1000, attack: 0, defense: 5, damage: [1, 1], speed: 1 } }),
+    };
+    const attacker = stack({ id: 'attacker-0', side: 'attacker', slot: 0, unitId: 'atk', count: 1, pos: { col: 0, row: 0 }, firstHp: 10 });
+    const defender = stack({ id: 'defender-0', side: 'defender', slot: 0, unitId: 'def', count: 1, pos: { col: 1, row: 0 }, firstHp: 1000, marks: 2 });
+    const state = { ...baseState(catalog), combat: combatState([attacker, defender]) };
+    const events: GameEvent[] = [];
+    const next = produce(state, (draft) => {
+      applyAction(draft, events, 'attacker-0', { type: 'attack', targetStackId: 'defender-0' });
+    });
+    const strike = events.find((e) => e.type === 'StackAttacked') as Extract<GameEvent, { type: 'StackAttacked' }>;
+    expect(strike.damage).toBe(12);
+    expect(next.combat?.stacks.find((s) => s.id === 'defender-0')?.marks).toBe(2);
+    expect(events.some((e) => e.type === 'MarksConsumed')).toBe(false);
+  });
+
   it('doubleAttack : 2 frappes, riposte intercalée une seule fois', () => {
     const catalog = {
       atk: unit({ id: 'atk', stats: { hp: 20, attack: 10, defense: 0, damage: [3, 3], speed: 5 }, abilities: [{ id: 'doubleAttack' }] }),

@@ -69,6 +69,14 @@ export function advanceTurn(draft: Draft, events: GameEvent[]): void {
       continue;
     }
     next.defending = false; // levé quand le tour de la pile revient (doc 02 §5.2)
+    // Immobilisation (doc 05 §3.1 `pinningShot`) : la pile saute son tour, la
+    // charge d'immobilisation baisse d'un cran (même patron que le malus moral).
+    if (next.immobilizedRounds > 0) {
+      next.immobilizedRounds -= 1;
+      next.acted = true;
+      events.push({ type: 'StackImmobilized', stackId: next.id });
+      continue;
+    }
     const moral = moraleOf(next, combat, draft.unitCatalog);
     if (moral < 0) {
       const roll = rollRange(draft.rng, 0, 99);

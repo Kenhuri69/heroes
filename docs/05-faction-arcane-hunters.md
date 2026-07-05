@@ -93,6 +93,17 @@ Faction inédite, produite en **Alpha** — elle sert de validation grandeur nat
 > **passifs fidèles** des Cercles (vision/vitesse/coût mana/dégâts T7-T8) et le
 > **Grand Amphithéâtre** dédié + bâtiments débloqués par Cercle : lots ultérieurs
 > (nouveaux effets de bâtiment).
+>
+> 🚧 **État 4.8 (consumeMarks → pinningShot)** : 3ᵉ effet de la capacité
+> générique `consumeMarks` — `immobilizeRounds`. La **Chasseresse de l'Abîme**
+> (T6, `consumeMarks(2, immobilizeRounds:1)`) consomme 2 charges de Marque pour
+> **immobiliser** la cible (elle saute son prochain tour). Nouveau champ
+> `CombatStack.immobilizedRounds` + saut de tour dans `advanceTurn` (même patron
+> que le malus de moral, event `StackImmobilized`). Golden inchangé (combat null
+> en fin de golden), garde-fou vert. La famille consumeMarks est complète
+> (executioner/expose/pinningShot) ; `devourMarks` (T8) suivra avec le
+> `demonform`. Grounding explicite des volants simplifié (l'immobilisation
+> couvre).
 
 ## 1. Lore
 

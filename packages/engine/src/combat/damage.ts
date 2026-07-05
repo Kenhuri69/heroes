@@ -50,14 +50,15 @@ interface MultiplierInput {
 export function consumeMarksPlan(
   strikerDef: CombatUnitDef,
   victimMarks: number,
-): { cost: number; damageBonus: number; suppressRetaliation: boolean } | null {
+): { cost: number; damageBonus: number; suppressRetaliation: boolean; immobilizeRounds: number } | null {
   const ability = strikerDef.abilities.find((a) => a.id === 'consumeMarks');
   if (!ability) return null;
   const cost = Number(ability.params?.['cost'] ?? 0);
   const damageBonus = Number(ability.params?.['damageBonus'] ?? 0);
   const suppressRetaliation = ability.params?.['suppressRetaliation'] === true;
+  const immobilizeRounds = Number(ability.params?.['immobilizeRounds'] ?? 0);
   if (cost <= 0 || victimMarks < cost) return null;
-  return { cost, damageBonus, suppressRetaliation };
+  return { cost, damageBonus, suppressRetaliation, immobilizeRounds };
 }
 
 /** Multiplicateur global (diff attaque/défense, pénalité mêlée forcée, marques, héros) — sans chance. */
@@ -221,6 +222,9 @@ export function performStrike(
     // `expose` (doc 05 §3.1) : la cible perd sa riposte cette attaque — la
     // riposte est décidée sur `retaliationsLeft` dans `actions.ts`.
     if (consume.suppressRetaliation) victim.retaliationsLeft = 0;
+    // `pinningShot` (doc 05 §3.1) : la cible saute son/ses prochain(s) tour(s).
+    if (consume.immobilizeRounds > 0)
+      victim.immobilizedRounds = Math.max(victim.immobilizedRounds, consume.immobilizeRounds);
     events.push({
       type: 'MarksConsumed',
       strikerId: striker.id,

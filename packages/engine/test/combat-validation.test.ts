@@ -108,6 +108,7 @@ function stack(partial: Pick<CombatStack, 'id' | 'side' | 'slot' | 'unitId' | 'c
     defending: false,
     ammo: null,
     marks: 0,
+    immobilizedRounds: 0,
     acted: false,
     statuses: [],
     ...partial,

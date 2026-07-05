@@ -59,8 +59,10 @@ export type {
   CombatUnitDef,
 } from './combat/types';
 export {
+  attackableTargets,
   canShoot,
   estimateDamage,
+  meleeOriginsFor,
   reachableHexes,
   type DamageEstimate,
 } from './combat';

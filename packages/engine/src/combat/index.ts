@@ -1,7 +1,14 @@
 import type { Command, CommandError } from '../core/commands';
 import type { GameEvent } from '../core/events';
 import type { GameState } from '../core/state';
-import { applyAction, canShoot, reachableHexes, validateCombatAction as validateAction } from './actions';
+import {
+  applyAction,
+  attackableTargets,
+  canShoot,
+  meleeOriginsFor,
+  reachableHexes,
+  validateCombatAction as validateAction,
+} from './actions';
 import { runAiIfNeeded, runAutoCombat } from './ai';
 import { estimateDamage as estimateDamageCore } from './damage';
 import {
@@ -74,6 +81,9 @@ export { reachableHexes };
 
 /** La pile peut-elle tirer (shooter, munitions > 0, pas d'ennemi adjacent) ? */
 export { canShoot };
+
+/** Cibles attaquables + hex d'origine de mêlée — surbrillances/ciblage UI (CL9). */
+export { attackableTargets, meleeOriginsFor };
 
 /**
  * Ouvre un combat d'interception héros ↔ gardien — appelé par le handler

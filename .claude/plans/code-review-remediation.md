@@ -364,13 +364,23 @@ pas de `concurrency`/`timeout-minutes` ; `__HEROES_TEST__` exposé en prod.
 - Vérif : golden inchangé, 222 tests moteur, lint, typecheck, 44 smoke (flux
   ville pilotés par l'UI couverts).
 
-##### R7b (combat) — à faire
-- [ ] `attackableTargets(state, stackId)` (écrit 3× : `validateCombatAction`,
-      IA `chooseAction`, client `CombatScene.redrawBoard`) + `meleeOriginsFor`
-      (ensemble des origines candidates ; garder séparée la *politique* : client
-      = plus proche, IA = scoré) — exposés, consommés par `CombatScene`.
-- [ ] Tests unitaires directs de `combat/hex.ts` (aucun aujourd'hui) + des
-      nouveaux helpers.
+##### R7b (combat) ✅
+- [x] `attackableTargets(state, stackId)` + `meleeOriginsFor(state, stackId,
+      targetId)` extraits dans `combat/actions.ts`, exposés via `@heroes/engine`,
+      **consommés par `CombatScene`** (`redrawBoard` surbrillances + `resolveMeleeFrom`)
+      à la place de la géométrie hex réimplémentée. `resolveMeleeFrom` garde sa
+      *politique* « plus proche » ; l'énumération vient du helper.
+- [x] **IA non rebranchée** (décision) : `chooseAction` garde son parcours scoré
+      `{target, from}` — rebrancher risquait la distinction `from: null` vs
+      `from: stack.pos` (déjà adjacent) qui change le flux d'événements donc
+      `hashState`. La triplication client↔moteur (le cœur de CL9) est levée ;
+      l'énumération interne de l'IA reste, notée.
+- [x] Tests directs `combat-hex.test.ts` (11) : géométrie hex (roundtrip axial,
+      distance, voisins, bornes, sameHex, hexRound) — aucun test dédié
+      auparavant — + `attackableTargets` (mêlée/tireur/alliés-morts) et
+      `meleeOriginsFor` (adjacent/distant).
+- Vérif : golden inchangé (`be72de4b`), déterminisme combat-ai vert (IA
+  intacte), 233 tests, lint, typecheck, 44 smoke.
 - Vérif : `pnpm test` + smoke verts, golden inchangé.
 
 #### R7c — Mineurs (à faire)
@@ -597,3 +607,11 @@ commit (docs = source de vérité).
   smoke. R7b scindé ville (fait) / combat (attackableTargets/meleeOriginsFor +
   tests hex, à faire). Reste : R7b-combat, R7c (mineurs), R8 (docs) ; chantier
   UX §5.
+- **2026-07-05** — **R7b (combat) livré → R7b complet** : `attackableTargets` +
+  `meleeOriginsFor` extraits dans `combat/actions.ts`, exposés, consommés par
+  `CombatScene` (surbrillances + origine de mêlée) — le client ne réimplémente
+  plus la géométrie hex. IA de combat **non rebranchée** (préserve `hashState` :
+  distinction `from: null` vs `from: stack.pos`). Premiers tests directs de
+  `combat/hex.ts` (`combat-hex.test.ts`, 11). Vérif : golden `be72de4b`,
+  déterminisme combat-ai, 233 tests, lint, typecheck, 44 smoke. **CL9 levé**
+  (client↔moteur). Reste : R7c (mineurs), R8 (docs) ; chantier UX §5.

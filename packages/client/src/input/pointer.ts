@@ -8,15 +8,17 @@ const TAP_MAX_MS = 250;
 /**
  * Détection de tap touch-first (doc 08 §1) : un seul pointeur, peu de
  * mouvement, relâché vite. Le pan/pinch de la caméra reste indépendant.
+ * Retourne une fonction de désabonnement (symétrie `eventBus.on`) — sans elle,
+ * chaque scène recréée fuitait ses 3 listeners sur `app.stage` (remédiation CL2).
  */
-export function onTap(app: Application, handler: (global: Point) => void): void {
+export function onTap(app: Application, handler: (global: Point) => void): () => void {
   let downId: number | null = null;
   let downAt = 0;
   let downPos = new Point();
   let multiTouch = false;
   let pointers = 0;
 
-  app.stage.on('pointerdown', (e: FederatedPointerEvent) => {
+  const onDown = (e: FederatedPointerEvent): void => {
     pointers += 1;
     if (pointers > 1) {
       multiTouch = true;
@@ -26,7 +28,7 @@ export function onTap(app: Application, handler: (global: Point) => void): void 
     downId = e.pointerId;
     downAt = performance.now();
     downPos = e.global.clone();
-  });
+  };
 
   const release = (e: FederatedPointerEvent): void => {
     pointers = Math.max(0, pointers - 1);
@@ -38,6 +40,13 @@ export function onTap(app: Application, handler: (global: Point) => void): void 
       handler(e.global.clone());
     }
   };
+
+  app.stage.on('pointerdown', onDown);
   app.stage.on('pointerup', release);
   app.stage.on('pointerupoutside', release);
+  return () => {
+    app.stage.off('pointerdown', onDown);
+    app.stage.off('pointerup', release);
+    app.stage.off('pointerupoutside', release);
+  };
 }

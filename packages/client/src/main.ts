@@ -16,10 +16,11 @@ import { dispatch } from './app/dispatch';
 import { appStore } from './app/store';
 import { exportSave, importSave, saveGame, restoreSavedGame, encodeHeroesFile } from './app/save';
 import { installAutosave } from './app/autosave';
-import { initI18n } from './app/i18n';
+import { initI18n, t } from './app/i18n';
 import { AdventureScene } from './scenes/adventure/AdventureScene';
 import { CombatScene } from './scenes/combat/CombatScene';
 import { mountUi } from './ui/shell';
+import { pushToast } from './ui/toasts';
 
 declare global {
   interface Window {
@@ -72,13 +73,34 @@ async function bootstrap(): Promise<void> {
   // Scènes construites paresseusement : une partie peut démarrer depuis le
   // menu (Nouvelle partie), une sauvegarde (Continuer/­import) ou `?seed=N`.
   let camera: Camera | null = null;
+  let scene: AdventureScene | null = null;
   let combatScene: CombatScene | null = null;
+  // Détruit toutes les scènes (retour menu / changement de carte) — remédiation
+  // CL1 : sans ça, la scène capturait la carte du premier lancement et rejouait
+  // la partie suivante sur l'ancien terrain, en fuyant textures et listeners.
+  const teardownScenes = (): void => {
+    if (combatScene) {
+      combatScene.destroy();
+      combatScene = null;
+    }
+    if (scene) {
+      scene.destroy();
+      scene = null;
+    }
+    if (camera) {
+      camera.destroy();
+      camera = null;
+    }
+  };
   const ensureScenes = (): void => {
     const { game, screen } = appStore.getState();
-    if (!game.started || screen !== 'game') return;
+    if (!game.started || screen !== 'game') {
+      teardownScenes();
+      return;
+    }
     if (!camera) {
       camera = new Camera(app);
-      const scene = new AdventureScene(app, camera);
+      scene = new AdventureScene(app, camera);
       camera.world.addChild(scene.container);
       app.stage.addChild(camera.world);
       scene.centerOnHero(app);
@@ -131,12 +153,22 @@ async function bootstrap(): Promise<void> {
     scenarios: report.content.scenarios,
   });
   // « Nouvelle partie » du menu (contrat lot G) — seed horloge côté client.
-  window.addEventListener('heroes:new-game', () => void startNewGame(Date.now()));
+  // Remédiation CL8 : un échec ne laisse plus une promesse rejetée non gérée
+  // (page muette) — il est surfacé en toast et journalisé.
+  window.addEventListener('heroes:new-game', () => {
+    startNewGame(Date.now()).catch((err: unknown) => {
+      console.error('startNewGame', err);
+      pushToast(t('toast.newGameFailed'));
+    });
+  });
   // Sélection de scénario au menu (doc 08, plan phase-3.5 lot U) — même
   // découplage que « Nouvelle partie » : le menu émet, l'intégration écoute.
   window.addEventListener('heroes:start-scenario', (e) => {
     const { scenarioId } = (e as CustomEvent<{ scenarioId: string }>).detail;
-    void startScenario(scenarioId, Date.now());
+    startScenario(scenarioId, Date.now()).catch((err: unknown) => {
+      console.error('startScenario', err);
+      pushToast(t('toast.scenarioFailed'));
+    });
   });
 
   const uiRoot = document.getElementById('ui-root');
@@ -174,4 +206,23 @@ async function bootstrap(): Promise<void> {
   window.__HEROES_READY__ = true; // signal pour le smoke test headless
 }
 
-void bootstrap();
+/**
+ * Remédiation CL8 : un échec de bootstrap (fetch/validation du contenu, init
+ * Pixi) affichait auparavant une page blanche muette. On surface un bandeau
+ * d'erreur bilingue (l'i18n peut ne pas être initialisée si c'est le
+ * chargement du contenu qui a échoué) au lieu d'une promesse rejetée perdue.
+ */
+function showFatalError(err: unknown): void {
+  console.error('bootstrap', err);
+  const banner = document.createElement('div');
+  banner.setAttribute('role', 'alert');
+  banner.style.cssText =
+    'position:fixed;inset:0;display:flex;align-items:center;justify-content:center;' +
+    'padding:2rem;text-align:center;background:#1a1c22;color:#e8e8ea;font-family:sans-serif;z-index:9999';
+  banner.textContent =
+    'Échec du chargement du jeu. Réessayez de recharger la page. · ' +
+    'Failed to load the game. Please reload the page.';
+  document.body.appendChild(banner);
+}
+
+bootstrap().catch(showFatalError);

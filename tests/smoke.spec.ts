@@ -702,5 +702,23 @@ test('scénario : gagner « survie » contre l’IA (surviveDays)', async ({ pag
   await page.getByTestId('outcome-back-to-menu').click();
   await expect(page.getByTestId('menu-new-game')).toBeVisible();
 
+  // Remédiation CL1 : relancer une partie après retour au menu doit
+  // reconstruire une scène FRAÎCHE (auparavant l'ancienne carte était rejouée,
+  // textures et listeners fuités). On enchaîne menu → partie → menu → partie.
+  await page.getByTestId('menu-new-game').click();
+  await expect(page.getByTestId('end-turn')).toBeVisible();
+  const restarted = await page.evaluate(() => window.__HEROES_TEST__!.getState());
+  expect(restarted.started).toBe(true);
+  expect(restarted.combat).toBeNull();
+  // La scène et la caméra reconstruites répondent : coordonnées écran valides
+  // (`tileToScreen` renvoie {-1,-1} tant que la caméra n'existe pas).
+  const hero = restarted.heroes[0]!;
+  const sp = await page.evaluate(
+    ([x, y]) => window.__HEROES_TEST__!.tileToScreen(x!, y!),
+    [hero.pos.x, hero.pos.y],
+  );
+  expect(sp.x).toBeGreaterThan(0);
+  expect(sp.y).toBeGreaterThan(0);
+
   expect(errors).toEqual([]);
 });

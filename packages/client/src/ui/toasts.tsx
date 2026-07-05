@@ -7,7 +7,8 @@ import './toasts.css';
 const TOAST_DURATION_MS = 4000;
 let nextToastId = 1;
 
-function pushToast(message: string): void {
+/** Ajoute un toast éphémère (exporté pour surfacer les erreurs hors UI, ex. bootstrap — CL8). */
+export function pushToast(message: string): void {
   const id = nextToastId++;
   appStore.setState((s) => ({ toasts: [...s.toasts, { id, message }] }));
   setTimeout(() => {

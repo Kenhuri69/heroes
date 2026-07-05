@@ -98,6 +98,8 @@
   "toast.heroLevelUp": "Niveau {level} atteint !",
   "toast.gameLoaded": "Partie chargée",
   "toast.saveFailed": "Échec de la sauvegarde — stockage indisponible",
+  "toast.newGameFailed": "Impossible de démarrer la partie",
+  "toast.scenarioFailed": "Impossible de démarrer le scénario",
   "toast.spellCast": "{hero} lance {spell}",
   "toast.skillLearned": "{skill} niveau {rank} apprise",
 

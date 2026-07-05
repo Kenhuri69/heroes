@@ -64,7 +64,7 @@ les planches ; absente des pièces uniques bg/logo). Prompts regénérés.
       complet). Rangé dans `assets/units/necropolis/`.
 - [x] **Arcane Hunters** (T1→T8) : extraction 8/8 PASS (garde-fou marge OK,
       bleed_removed 0, ailés t2/t7/t8 complets). `assets/units/arcane-hunters/`.
-- [ ] test-faction (unités)
+- [x] **test-faction** (placeholder) : Recrue 1/1 PASS. `assets/units/test-faction/`.
 - [ ] Avatars de héros
 - [ ] Fonds, logo (L2)
 

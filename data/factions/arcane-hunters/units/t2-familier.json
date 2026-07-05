@@ -5,5 +5,9 @@
   "stats": { "hp": 9, "attack": 4, "defense": 3, "damage": [2, 3], "speed": 8 },
   "growthPerWeek": 9,
   "cost": { "gold": 90 },
-  "abilities": [{ "id": "flying" }, { "id": "mark" }]
+  "abilities": [
+    { "id": "flying" },
+    { "id": "mark" },
+    { "id": "consumeMarks", "params": { "cost": 1, "suppressRetaliation": true } }
+  ]
 }

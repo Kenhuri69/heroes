@@ -50,13 +50,14 @@ interface MultiplierInput {
 export function consumeMarksPlan(
   strikerDef: CombatUnitDef,
   victimMarks: number,
-): { cost: number; damageBonus: number } | null {
+): { cost: number; damageBonus: number; suppressRetaliation: boolean } | null {
   const ability = strikerDef.abilities.find((a) => a.id === 'consumeMarks');
   if (!ability) return null;
   const cost = Number(ability.params?.['cost'] ?? 0);
   const damageBonus = Number(ability.params?.['damageBonus'] ?? 0);
+  const suppressRetaliation = ability.params?.['suppressRetaliation'] === true;
   if (cost <= 0 || victimMarks < cost) return null;
-  return { cost, damageBonus };
+  return { cost, damageBonus, suppressRetaliation };
 }
 
 /** Multiplicateur global (diff attaque/défense, pénalité mêlée forcée, marques, héros) — sans chance. */
@@ -217,6 +218,9 @@ export function performStrike(
   // les charges dépensées. Avant la ré-application de `mark` ci-dessous.
   if (consume) {
     victim.marks = Math.max(0, victim.marks - consume.cost);
+    // `expose` (doc 05 §3.1) : la cible perd sa riposte cette attaque — la
+    // riposte est décidée sur `retaliationsLeft` dans `actions.ts`.
+    if (consume.suppressRetaliation) victim.retaliationsLeft = 0;
     events.push({
       type: 'MarksConsumed',
       strikerId: striker.id,
@@ -312,8 +316,13 @@ export function estimateDamage(
   const killsMax = killsFromDamage(pool, targetDef.stats.hp, target.count, damageMax);
 
   let retaliation: { damageMin: number; damageMax: number } | null = null;
+  // `expose` (doc 05 §3.1) : l'attaque va supprimer la riposte de la cible.
+  const willExpose = consumeMarksPlan(attackerDef, target.marks)?.suppressRetaliation ?? false;
   const canRetaliate =
-    !ranged && target.retaliationsLeft > 0 && !targetDef.abilities.some((a) => a.id === 'noRetaliation');
+    !ranged &&
+    !willExpose &&
+    target.retaliationsLeft > 0 &&
+    !targetDef.abilities.some((a) => a.id === 'noRetaliation');
   if (canRetaliate) {
     const survivorsAfterMaxDamage = target.count - killsMax;
     const survivorsAfterMinDamage = target.count - killsMin;

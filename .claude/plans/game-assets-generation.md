@@ -151,7 +151,9 @@ tools/assets/              ← outillage Python (indépendant de packages/tools 
   - [x] `buildings-necropolis` → 7/7 PASS, `assets/buildings/necropolis/`
         (légendes texte parasites ajoutées par Gemini retirées comme specks
         via `--min-area`).
-  - [ ] `buildings-arcane-hunters-p1`
+  - [x] `buildings-arcane-hunters-p1` → 8/8 PASS (T1-T8),
+        `assets/buildings/arcane-hunters/` (légendes texte retirées via
+        `--min-area`).
   - [ ] `buildings-arcane-hunters-p2`
   - [ ] `mines`
   - [ ] `artifacts`

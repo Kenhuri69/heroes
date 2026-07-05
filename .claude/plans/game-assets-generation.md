@@ -148,7 +148,9 @@ tools/assets/              ← outillage Python (indépendant de packages/tools 
         rempli 8 cellules avec un doublon sacré en cellule 6 : remap
         row-major avec id jetable pour la cellule 6, t6→cellule 7 griffon,
         t7→cellule 8 ange).
-  - [ ] `buildings-necropolis`
+  - [x] `buildings-necropolis` → 7/7 PASS, `assets/buildings/necropolis/`
+        (légendes texte parasites ajoutées par Gemini retirées comme specks
+        via `--min-area`).
   - [ ] `buildings-arcane-hunters-p1`
   - [ ] `buildings-arcane-hunters-p2`
   - [ ] `mines`

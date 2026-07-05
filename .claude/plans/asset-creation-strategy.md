@@ -68,7 +68,7 @@ les planches ; absente des pièces uniques bg/logo). Prompts regénérés.
 - [x] **Avatars de héros** (6 bustes 256²) : haven/arcane-hunters/necropolis ×
       might/magic, extraction 6/6 PASS. Prompt corrigé (fond #c8c8c8 cohérent).
       `assets/heroes/`.
-- [~] **Fonds** (L2, 8 scènes) : title ✅, town-haven ✅, town-arcane-hunters ✅, town-necropolis ✅, combat-grass ✅, combat-swamp ✅, victory ✅. Anti-étincelle ajouté aux prompts (gen_prompts.py).
+- [x] **Fonds** (L2, 8 scènes ✅) : title ✅, town-haven ✅, town-arcane-hunters ✅, town-necropolis ✅, combat-grass ✅, combat-swamp ✅, victory ✅. Anti-étincelle ajouté aux prompts (gen_prompts.py).
       Reste : defeat.
 - [ ] Logo (L2)
 

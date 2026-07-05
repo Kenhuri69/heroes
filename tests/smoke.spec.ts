@@ -874,6 +874,11 @@ test('scénario : gagner « survie » contre l’IA (surviveDays)', async ({ pag
   await expect(page.getByTestId('outcome-overlay')).toBeVisible();
   await expect(page.getByTestId('outcome-status')).toHaveText('Victoire !');
 
+  // Graphique de puissance de fin de partie (doc 08 §2.5, lot U6b) : une barre
+  // par joueur (ici humain + IA), rendu depuis l'état final avant le reset.
+  await expect(page.getByTestId('outcome-power-chart')).toBeVisible();
+  await expect(page.getByTestId('outcome-power-bar')).toHaveCount(2);
+
   // Retour au menu depuis l'overlay (bouton, doc 08).
   await page.getByTestId('outcome-back-to-menu').click();
   await expect(page.getByTestId('menu-new-game')).toBeVisible();

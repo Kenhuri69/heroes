@@ -1,17 +1,21 @@
-import { createEmptyState } from '@heroes/engine';
+import { createEmptyState, playerPower, type GameState } from '@heroes/engine';
 import { appStore, useApp } from '../app/store';
+import { humanId } from '../app/game';
 import { t } from '../app/i18n';
 import './OutcomeOverlay.css';
 
 /**
- * Overlay victoire/défaite (doc 02 §6, plan phase-3.5 lot U) : monté par
- * `Shell` dès que `game.outcome !== null`. Non fermable autrement que par
- * « Retour au menu » — la partie est terminée, comme la modale de choix de
- * compétence (pas de clic-extérieur).
+ * Overlay victoire/défaite (doc 02 §6, plan phase-3.5 lot U ; graphique U6b) :
+ * monté par `Shell` dès que `game.outcome !== null`. Non fermable autrement que
+ * par « Retour au menu » — la partie est terminée. Affiche un graphique de
+ * puissance par joueur (doc 08 §2.5), calculé sur l'état final avant le reset.
  */
 export function OutcomeOverlay() {
   useApp((s) => s.locale); // réactivité i18n
   const outcome = useApp((s) => s.game.outcome);
+  // Réf `s.game` STABLE ; les données du graphique sont dérivées DANS le corps
+  // (un sélecteur renvoyant un tableau frais bouclerait à l'infini, cf. U4).
+  const game = useApp((s) => s.game);
   if (!outcome) return null;
 
   const backToMenu = (): void => {
@@ -32,10 +36,83 @@ export function OutcomeOverlay() {
         data-testid="outcome-overlay"
       >
         <h2 data-testid="outcome-status">{t(outcome.status === 'won' ? 'outcome.won' : 'outcome.lost')}</h2>
+        <PowerChart game={game} />
         <button class="menu-button" data-testid="outcome-back-to-menu" onClick={backToMenu}>
           {t('outcome.backToMenu')}
         </button>
       </div>
     </div>
+  );
+}
+
+/** Teintes catégorielles (thème sombre) validées dataviz — assignées par joueur (identité, pas rang). */
+const SERIES = ['#3987e5', '#199e70', '#c98500', '#9085e9'];
+
+const BAR_H = 26;
+const GAP = 12;
+const PAD_L = 104; // colonne des libellés
+const PAD_R = 52; // colonne des valeurs
+const TOP = 6;
+const CHART_W = 340;
+
+/**
+ * Graphique de puissance de fin de partie (doc 08 §2.5) : barres horizontales,
+ * une par joueur, triées par puissance décroissante. Double encodage (libellé +
+ * valeur en étiquette directe) : jamais la couleur seule (accessibilité §4).
+ * Couleur = identité du joueur (ordre d'origine), pas rang.
+ */
+function PowerChart({ game }: { game: GameState }) {
+  const human = humanId(game);
+  let aiCount = 0;
+  const bars = game.players
+    .map((p, i) => {
+      const isHuman = p.id === human;
+      const label = isHuman ? t('outcome.you') : t('outcome.ai', { n: ++aiCount });
+      return { id: p.id, isHuman, label, color: SERIES[i % SERIES.length]!, power: playerPower(game, p.id) };
+    })
+    .sort((a, b) => b.power - a.power);
+  if (bars.length === 0) return null;
+
+  const maxPower = Math.max(1, ...bars.map((b) => b.power));
+  const barMaxW = CHART_W - PAD_L - PAD_R;
+  const height = TOP * 2 + bars.length * (BAR_H + GAP) - GAP;
+  const summary = bars.map((b) => `${b.label} ${b.power}`).join(', ');
+
+  return (
+    <figure class="power-chart" data-testid="outcome-power-chart">
+      <figcaption class="power-chart-title">{t('outcome.powerTitle')}</figcaption>
+      <svg
+        viewBox={`0 0 ${CHART_W} ${height}`}
+        width="100%"
+        role="img"
+        aria-label={`${t('outcome.powerTitle')} — ${summary}`}
+      >
+        {bars.map((b, i) => {
+          const y = TOP + i * (BAR_H + GAP);
+          const w = Math.max(3, (b.power / maxPower) * barMaxW);
+          return (
+            <g key={b.id} data-testid="outcome-power-bar">
+              <title>{`${b.label} : ${b.power}`}</title>
+              <text class="power-label" x={PAD_L - 10} y={y + BAR_H / 2} dominant-baseline="central" text-anchor="end">
+                {b.label}
+              </text>
+              <rect
+                x={PAD_L}
+                y={y}
+                width={w}
+                height={BAR_H}
+                rx={4}
+                fill={b.color}
+                stroke={b.isHuman ? '#ffffff' : 'none'}
+                stroke-width={b.isHuman ? 2 : 0}
+              />
+              <text class="power-value" x={PAD_L + w + 8} y={y + BAR_H / 2} dominant-baseline="central">
+                {b.power}
+              </text>
+            </g>
+          );
+        })}
+      </svg>
+    </figure>
   );
 }

@@ -14,3 +14,23 @@
   margin: 0;
   font-size: 1.75rem;
 }
+
+/* Graphique de puissance de fin de partie (doc 08 §2.5, lot U6b). */
+.power-chart {
+  margin: 0;
+  width: 100%;
+}
+.power-chart-title {
+  font: 600 0.9rem system-ui, sans-serif;
+  color: #c3c2b7; /* encre secondaire (jamais la couleur de série) */
+  margin-bottom: 8px;
+}
+/* Étiquettes en jetons d'encre — l'identité est portée par la barre + le libellé. */
+.power-chart .power-label {
+  fill: #c3c2b7;
+  font: 600 0.8rem system-ui, sans-serif;
+}
+.power-chart .power-value {
+  fill: #e8e8ea;
+  font: 700 0.8rem system-ui, sans-serif;
+}

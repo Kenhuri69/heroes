@@ -1,4 +1,4 @@
-import { Application, Assets, Container, Graphics, Point, Sprite } from 'pixi.js';
+import { Application, Container, Graphics, Point } from 'pixi.js';
 import {
   hexDistance,
   inCombatBounds,
@@ -22,7 +22,6 @@ import { commandErrorMessage } from '../../app/i18n';
 import { pushToast } from '../../ui/toasts';
 import { onTap } from '../../input/pointer';
 import { Camera } from '../../render/camera';
-import { combatBackgroundUrl } from '../../render/assets';
 import { HEX_SIZE, computeBoardBounds, drawBoard, hexKey, offsetToPixel, pixelToOffset } from '../../render/hexgrid';
 import { combatPreview } from './preview';
 
@@ -71,8 +70,6 @@ export class CombatScene {
   private selection: Selection | null = null;
   private queue: Promise<void> = Promise.resolve();
   private destroyed = false;
-  /** Toile de combat peinte par terrain (doc 08 §2.4, lot U5-B) — fixe, derrière le plateau. */
-  private bgSprite: Sprite | null = null;
 
   private readonly resizeObserver: ResizeObserver;
   private readonly unsubscribeStore: () => void;
@@ -99,36 +96,8 @@ export class CombatScene {
     this.unsubscribeEvents = eventBus.on((event) => this.onEvent(event));
     this.unsubscribeTap = onTap(app, (global) => void this.handleTap(global));
 
-    void this.loadBackground();
     this.layout();
     this.sync();
-  }
-
-  /**
-   * Charge la toile de combat peinte du terrain (async, hors bundle). Placée
-   * derrière le plateau (`addChildAt(…, 0)`), fixe (hors caméra). Terrain sans
-   * asset ⇒ pas de toile (repli : fond sombre). Garde `destroyed` : la scène
-   * peut être détruite avant la fin du chargement (fin de combat rapide).
-   */
-  private async loadBackground(): Promise<void> {
-    const terrain = appStore.getState().game.combat?.terrain;
-    const url = terrain ? combatBackgroundUrl(terrain) : undefined;
-    if (!url) return;
-    const texture = await Assets.load(url);
-    if (this.destroyed) return;
-    this.bgSprite = new Sprite(texture);
-    this.container.addChildAt(this.bgSprite, 0);
-    this.layoutBg();
-  }
-
-  /** Met la toile à l'échelle « cover » du canvas, centrée (fond plein écran). */
-  private layoutBg(): void {
-    const sprite = this.bgSprite;
-    if (!sprite || sprite.texture.width === 0) return;
-    const { width: sw, height: sh } = this.app.screen;
-    const scale = Math.max(sw / sprite.texture.width, sh / sprite.texture.height);
-    sprite.scale.set(scale);
-    sprite.position.set((sw - sprite.texture.width * scale) / 2, (sh - sprite.texture.height * scale) / 2);
   }
 
   destroy(): void {
@@ -157,7 +126,6 @@ export class CombatScene {
       MARGIN_SIDE + (availW - bounds.width * scale) / 2 - bounds.minX * scale,
       MARGIN_TOP + (availH - bounds.height * scale) / 2 - bounds.minY * scale,
     );
-    this.layoutBg();
   }
 
   // ——— Resync depuis le store (réconciliation simple, doc 10 §2.2) ———

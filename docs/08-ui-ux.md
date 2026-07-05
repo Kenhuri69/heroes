@@ -129,7 +129,10 @@ Menu principal (Continuer / Scénarios / Escarmouche / Options), fiche de scéna
 > (résolveurs `townBackgroundUrl`/`combatBackgroundUrl`/`outcomeBackgroundUrl`/
 > `titleBackgroundUrl`/`logoUrl`, faction-agnostiques, repli gracieux) : **menu**
 > (logo + fond de titre), **vue de ville** (fond peint par faction, dégradé en
-> repli), **combat** (toile de terrain, fixe derrière le plateau), **fin de
-> partie** (victoire/défaite, voile de lisibilité). Restent (jalon Beta) :
-> spritesheets d'unités animées, avatars de héros, fonds bespoke des factions/
-> terrains encore sans asset (test-faction, mountain/water → repli).
+> repli), **fin de partie** (victoire/défaite, voile de lisibilité) — tous en
+> **DOM** (composés une fois par le navigateur, coût de rendu par-frame nul). La
+> **toile de combat** est **différée** : rendue en sprite Pixi plein écran, elle
+> faisait passer l'arène sous le plancher anti-gel ×4 (doc 01 §5) ; à refaire via
+> une couche DOM derrière un canvas transparent (coût par-frame nul). Restent
+> aussi (jalon Beta) : spritesheets d'unités animées, avatars de héros, fonds
+> bespoke des factions/terrains encore sans asset.

@@ -29,8 +29,9 @@ Captures de référence : régénérables à l'identique via la skill (voir SKIL
 
 ## 3. Suite (ordre plan §5.3)
 - [x] Étape 1 — skill `ux-audit` + passe de référence (ce lot).
-- [ ] Étape 2 — **U2 routeur d'écrans** (`main.ts` : bascules ad hoc menu⇄carte⇄
-      combat → routeur ; cause racine CL1/CL2 ; prérequis aux écrans futurs).
+- [x] Étape 2 — **U2 routeur d'écrans livré** (`.claude/plans/ux-u2-routeur.md`) :
+      route de base menu⇄adventure + pile de modales typée (doc 08 §3), combat
+      dérivé de l'état moteur, handler global de retour (Échap + back Android).
 - [ ] Étape 3 — **U1 combat mobile** (min-scale 44 px + pan/pinch du plateau) →
       corrige CL7/A7 ; + le petit correctif A6 (débordement d'onglets ville).
 - [ ] Étapes 4–5 — U3 (feedback + journal), U4 (multi-héros/villes), U6 (écrans

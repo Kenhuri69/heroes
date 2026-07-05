@@ -66,7 +66,15 @@ Menu principal (Continuer / Scénarios / Escarmouche / Options), fiche de scéna
 
 ## 3. Navigation & flux
 
-- Pile de modales max 2 niveaux ; bouton retour Android/geste = ferme la modale du dessus.
+- **Routeur d'écrans** (source unique de navigation, lue par le DOM et les
+  scènes Pixi) : une route de base `menu ⇄ adventure`. Le **combat n'est pas une
+  route** : il est dérivé de l'état moteur (`game.combat ≠ null`) pour rester en
+  phase avec l'auto-combat et le déterminisme (aucune désync route/état). Les
+  overlays **forcés non annulables** (choix de compétence à la montée de niveau,
+  fin de partie) sont dérivés de l'état moteur et vivent hors de la pile de
+  modales (on ne peut pas les « fermer » par un retour arrière).
+- Pile de modales max 2 niveaux ; bouton retour Android/geste (et Échap au
+  clavier) = ferme la modale du dessus.
 - Toutes les actions du tour sont annulables **tant qu'aucune information n'a été révélée** (déplacement sans découverte ni combat) — bouton « Annuler le déplacement » ; construction/recrutement non annulables (simplicité économique).
 - Notifications de début de tour : file de toasts (croissance hebdo, revenus, événements) consultable dans un journal.
 

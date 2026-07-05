@@ -2,14 +2,14 @@ import { useEffect, useState } from 'preact/hooks';
 import { hasAnySave, restoreLatestSave } from '../app/save';
 import { t, resolveScenarioName } from '../app/i18n';
 import { useApp } from '../app/store';
-import { OptionsPanel } from './OptionsPanel';
+import { openModal } from '../app/router';
 import './menu.css';
 
 /**
  * Menu principal (doc 08 §2.5). Contrat d'intégration (mountUi(root) figé,
  * pas de callback passé au shell) :
  * - « Continuer » appelle `restoreLatestSave()` — en cas de succès, `save.ts`
- *   bascule lui-même le store sur l'écran 'game' (`GameLoaded` émis).
+ *   bascule lui-même le store sur l'écran 'adventure' (`GameLoaded` émis).
  * - « Nouvelle partie » émet un CustomEvent DOM `heroes:new-game` sur
  *   `window` : c'est `main.ts` (intégration) qui l'écoute pour construire et
  *   lancer une commande `StartGame`, ce composant ne connaît pas la config.
@@ -23,7 +23,6 @@ export function MenuScreen() {
   useApp((s) => s.locale); // réactivité i18n (t() lit le store hors hook)
   const scenarios = useApp((s) => s.scenarios);
   const [canContinue, setCanContinue] = useState(false);
-  const [optionsOpen, setOptionsOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -54,7 +53,7 @@ export function MenuScreen() {
         >
           {t('menu.newGame')}
         </button>
-        <button class="menu-button" data-testid="menu-options" onClick={() => setOptionsOpen(true)}>
+        <button class="menu-button" data-testid="menu-options" onClick={() => openModal({ kind: 'options' })}>
           {t('menu.options')}
         </button>
       </nav>
@@ -77,7 +76,6 @@ export function MenuScreen() {
           ))}
         </nav>
       )}
-      {optionsOpen && <OptionsPanel onClose={() => setOptionsOpen(false)} />}
     </div>
   );
 }

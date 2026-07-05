@@ -14,6 +14,7 @@ import {
 } from './app/game';
 import { dispatch } from './app/dispatch';
 import { appStore } from './app/store';
+import { navigate } from './app/router';
 import { exportSave, importSave, saveGame, restoreSavedGame, encodeHeroesFile } from './app/save';
 import { installAutosave } from './app/autosave';
 import { initI18n, t } from './app/i18n';
@@ -100,7 +101,7 @@ async function bootstrap(): Promise<void> {
   };
   const ensureScenes = (): void => {
     const { game, screen } = appStore.getState();
-    if (!game.started || screen !== 'game') {
+    if (!game.started || screen !== 'adventure') {
       teardownScenes();
       return;
     }
@@ -137,7 +138,7 @@ async function bootstrap(): Promise<void> {
         buildFactionSetup(report),
       ),
     );
-    appStore.setState({ screen: 'game' });
+    navigate('adventure');
   };
 
   /**
@@ -150,7 +151,7 @@ async function bootstrap(): Promise<void> {
     if (!scenario) throw new Error(`scénario inconnu '${scenarioId}'`);
     const scenarioMap = await loadScenarioMap(report, scenario);
     await dispatch(scenarioStartCommand(report, scenario, seed, scenarioMap));
-    appStore.setState({ screen: 'game' });
+    navigate('adventure');
   };
 
   installAutosave(); // autosave à chaque fin de tour (doc 07 §4)

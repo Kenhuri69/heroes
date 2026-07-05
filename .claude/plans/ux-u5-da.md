@@ -53,3 +53,18 @@ combat) = tranches ultérieures du jalon Beta (avec artiste / skills asset-*).
   spritesheets d'unités + animation de combat, moodboards/palettes (skills
   asset-*/canvas-design). Vérif : typecheck 4/4, eslint, content:check, build,
   smoke.
+- **2026-07-05** — **U5 tranche B (branchement des décors peints) livrée.** La PR
+  d'assets #56 avait produit des fonds peints (`assets/backgrounds/*.jpg`, logo)
+  NON branchés. Registre étendu aux **`.jpg`** (glob + regex) + 5 résolveurs
+  (`townBackgroundUrl`/`combatBackgroundUrl`/`outcomeBackgroundUrl`/
+  `titleBackgroundUrl`/`logoUrl`, faction-agnostiques, repli `undefined`). Câblage :
+  **menu** (logo `heroes-master` + fond `title`), **vue de ville** (fond peint par
+  faction, dégradé en repli), **combat** (toile de terrain, sprite Pixi FIXE
+  derrière le plateau, chargement async gardé `destroyed`, layout « cover »),
+  **fin de partie** (fonds victoire/défaite + voile de lisibilité). Contrat
+  registre figé par le pilote ; surfaces DOM (ville / menu+fin) déléguées à
+  2 sous-agents Sonnet, fond de combat (Pixi, cycle de vie) fait par le pilote.
+  Repli gracieux vérifié (test-faction sans fond → dégradé ; terrains sans toile
+  → fond sombre). Captures : menu (logo+paysage), combat (toile herbe). Budget JS
+  70,6 Ko gzip (< 800). Vérif : typecheck 4/4, eslint, content:check, build,
+  smoke. Moteur intact, golden stable.

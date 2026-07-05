@@ -123,3 +123,13 @@ Menu principal (Continuer / Scénarios / Escarmouche / Options), fiche de scéna
 - « **Gouache stylisée** » : décors peints aux contours doux, unités en spritesheets 2D (idle/move/attack/hit/death, 8–12 frames), lisibles à 64 px de haut.
 - Chaque faction a sa palette et son langage de formes (Haven : verticales dorées ; Necropolis : aiguilles et voiles ; Arcane Hunters : violet nuit, argent, lanternes) — définis dans le paquet de faction.
 - Placeholders : au MVP, des sprites génériques teintés + icônes suffisent ; la DA finale arrive par faction en Alpha/Beta.
+
+> 🚧 **État U5-B (décors peints branchés)** : les fonds peints du staging
+> (`assets/backgrounds/*.jpg`, logo) sont câblés via le registre d'assets
+> (résolveurs `townBackgroundUrl`/`combatBackgroundUrl`/`outcomeBackgroundUrl`/
+> `titleBackgroundUrl`/`logoUrl`, faction-agnostiques, repli gracieux) : **menu**
+> (logo + fond de titre), **vue de ville** (fond peint par faction, dégradé en
+> repli), **combat** (toile de terrain, fixe derrière le plateau), **fin de
+> partie** (victoire/défaite, voile de lisibilité). Restent (jalon Beta) :
+> spritesheets d'unités animées, avatars de héros, fonds bespoke des factions/
+> terrains encore sans asset (test-faction, mountain/water → repli).

@@ -14,11 +14,14 @@ import { Assets, type Texture } from 'pixi.js';
  * de `dist/assets` → les PNG en sont exclus. Les octets sont **fetchés à la
  * demande** par `<img>` (DOM) ou `Assets.load` (PixiJS) — lazy, doc 07 §6.
  */
-const modules = import.meta.glob(['../../../../assets/**/*.png', '!**/_preview.png'], {
-  eager: true,
-  query: '?url',
-  import: 'default',
-}) as Record<string, string>;
+const modules = import.meta.glob(
+  ['../../../../assets/**/*.png', '../../../../assets/**/*.jpg', '!**/_preview.png'],
+  {
+    eager: true,
+    query: '?url',
+    import: 'default',
+  },
+) as Record<string, string>;
 
 /**
  * Index par chemin relatif à `assets/` sans extension :
@@ -27,7 +30,7 @@ const modules = import.meta.glob(['../../../../assets/**/*.png', '!**/_preview.p
  */
 const registry = new Map<string, string>();
 for (const [path, url] of Object.entries(modules)) {
-  const m = path.match(/\/assets\/(.+)\.png$/);
+  const m = path.match(/\/assets\/(.+)\.(?:png|jpe?g)$/);
   if (!m || !m[1]) continue;
   registry.set(m[1], url);
 }
@@ -35,6 +38,34 @@ for (const [path, url] of Object.entries(modules)) {
 /** URL hashée d'un asset par sa clé (`famille/nom`), ou `undefined` si absent. */
 export function assetUrl(key: string): string | undefined {
   return registry.get(key);
+}
+
+// --- Décors peints (staging `assets/backgrounds`, `assets/logo` — lot U5-B) ---
+// Faction-agnostiques (convention de nommage) ; `undefined` ⇒ repli procédural.
+
+/** Fond peint de l'écran de ville par faction (`backgrounds/town-<factionId>`). */
+export function townBackgroundUrl(factionId: string): string | undefined {
+  return registry.get(`backgrounds/town-${factionId}`);
+}
+
+/** Toile de combat par terrain (`backgrounds/combat-<terrain>`, doc 08 §2.4). */
+export function combatBackgroundUrl(terrain: string): string | undefined {
+  return registry.get(`backgrounds/combat-${terrain}`);
+}
+
+/** Fond de fin de partie victoire/défaite (doc 08 §2.5). */
+export function outcomeBackgroundUrl(status: 'won' | 'lost'): string | undefined {
+  return registry.get(status === 'won' ? 'backgrounds/victory' : 'backgrounds/defeat');
+}
+
+/** Fond peint du menu principal (`backgrounds/title`, doc 08 §2.5). */
+export function titleBackgroundUrl(): string | undefined {
+  return registry.get('backgrounds/title');
+}
+
+/** Logo du jeu (`logo/heroes-master`, doc 08 §2.5). */
+export function logoUrl(): string | undefined {
+  return registry.get('logo/heroes-master');
 }
 
 // --- Résolveurs par famille (faction-agnostiques, convention de nommage) ---

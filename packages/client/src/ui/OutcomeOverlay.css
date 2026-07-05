@@ -2,12 +2,31 @@
    .modal-backdrop / .modal (options.css, chargé globalement) et .menu-button
    (menu.css, idem) pour le bouton de retour. */
 .modal.outcome-overlay {
+  position: relative;
   width: min(92vw, 360px);
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 16px;
   text-align: center;
+  background-size: cover;
+  background-position: center;
+  overflow: hidden;
+}
+
+/* Voile sombre au-dessus du fond peint (sous le contenu) : garde le titre, le
+   graphique et le bouton lisibles quel que soit le fond victoire/défaite. */
+.modal.outcome-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 11, 15, 0.55);
+  z-index: 0;
+}
+
+.modal.outcome-overlay > * {
+  position: relative;
+  z-index: 1;
 }
 
 .modal.outcome-overlay h2 {

@@ -1,4 +1,4 @@
-import { Application, Container, Graphics, Point } from 'pixi.js';
+import { Application, Assets, Container, Graphics, Point, Sprite } from 'pixi.js';
 import {
   findPath,
   samePos,
@@ -6,11 +6,13 @@ import {
   type EngineResult,
   type GridPos,
   type GuardianObjectDef,
+  type HeroState,
 } from '@heroes/engine';
 import { appStore } from '../../app/store';
 import { dispatch } from '../../app/dispatch';
-import { humanId, humanHeroes, resolveSelectedHero } from '../../app/game';
+import { humanId, humanHeroes, heroArchetype, resolveSelectedHero } from '../../app/game';
 import type { Camera } from '../../render/camera';
+import { heroAvatarUrl } from '../../render/assets';
 import { Tilemap, TILE_SIZE } from '../../render/tilemap';
 import { MapObjectsLayer } from '../../render/mapObjects';
 import { FogOverlay } from '../../render/fog';
@@ -32,7 +34,7 @@ export class AdventureScene {
   private readonly fog: FogOverlay;
   private readonly preview = new PathPreview();
   private readonly heroesLayer = new Container();
-  private readonly heroSprites = new Map<string, Graphics>();
+  private readonly heroSprites = new Map<string, Container>();
   /** Anneau de sélection (doc 08 §2.1, accessibilité A5 — pas la couleur seule). */
   private readonly selectionRing = new Graphics()
     .circle(TILE_SIZE / 2, TILE_SIZE / 2, TILE_SIZE * 0.6)
@@ -104,7 +106,7 @@ export class AdventureScene {
     for (const hero of heroes) {
       let sprite = this.heroSprites.get(hero.id);
       if (!sprite) {
-        sprite = buildHeroSprite(PLAYER_COLOR);
+        sprite = this.buildHeroToken(hero);
         this.heroesLayer.addChild(sprite);
         this.heroSprites.set(hero.id, sprite);
       }
@@ -118,6 +120,34 @@ export class AdventureScene {
     if (selected) {
       this.selectionRing.position.set(selected.pos.x * TILE_SIZE, selected.pos.y * TILE_SIZE);
     }
+  }
+
+  /**
+   * Jeton d'un héros sur la carte (doc 08 §5, lot U5-D) : écusson procédural de
+   * repli + **avatar** de faction/archétype (`assets/heroes/…`, chargé async,
+   * hors bundle). Repli gracieux si l'avatar est absent/en cours. Garde
+   * `destroyed`/`token.destroyed` : la scène peut être détruite avant la fin du
+   * chargement.
+   */
+  private buildHeroToken(hero: HeroState): Container {
+    const token = new Container();
+    const fallback = buildHeroSprite(PLAYER_COLOR);
+    token.addChild(fallback);
+    const url = heroAvatarUrl(hero.factionId, heroArchetype(hero.attributes));
+    if (url) {
+      void Assets.load(url).then((texture) => {
+        if (this.destroyed || token.destroyed) return;
+        token.removeChild(fallback);
+        fallback.destroy();
+        const sprite = new Sprite(texture);
+        sprite.anchor.set(0.5);
+        sprite.width = TILE_SIZE * 0.92;
+        sprite.height = TILE_SIZE * 0.92;
+        sprite.position.set(TILE_SIZE / 2, TILE_SIZE / 2);
+        token.addChild(sprite);
+      });
+    }
+    return token;
   }
 
   private async handleTap(global: Point): Promise<void> {
@@ -205,7 +235,7 @@ export class AdventureScene {
     }
   }
 
-  private tweenTo(sprite: Graphics, from: GridPos, to: GridPos): Promise<void> {
+  private tweenTo(sprite: Container, from: GridPos, to: GridPos): Promise<void> {
     return new Promise((resolve) => {
       const start = performance.now();
       const animate = (): void => {

@@ -73,6 +73,11 @@ export function unitSpriteUrl(unitId: string, factionId?: string): string | unde
   return factionId ? registry.get(`units/${factionId}/${unitId}`) : undefined;
 }
 
+/** Avatar de héros (`heroes/<factionId>-<archetype>`, doc 08 §5, lot U5-D). */
+export function heroAvatarUrl(factionId: string, archetype: 'might' | 'magic'): string | undefined {
+  return factionId ? registry.get(`heroes/${factionId}-${archetype}`) : undefined;
+}
+
 // --- Résolveurs par famille (faction-agnostiques, convention de nommage) ---
 
 const TILE_VARIANTS = 3;

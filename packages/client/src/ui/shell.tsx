@@ -4,11 +4,11 @@ import { RESOURCE_IDS, weekOf, type ArmyStack } from '@heroes/engine';
 import { useApp, appStore } from '../app/store';
 import { back, closeModalKind, openModal, useModals, useScreen } from '../app/router';
 import { dispatch } from '../app/dispatch';
-import { humanHeroes, humanId, humanTowns, resolveSelectedHero } from '../app/game';
+import { heroArchetype, humanHeroes, humanId, humanTowns, resolveSelectedHero } from '../app/game';
 import { saveGame, restoreSavedGame } from '../app/save';
 import { eventBus } from '../app/events';
 import { RESOURCE_COLORS } from '../render/mapObjects';
-import { resourceIconUrl } from '../render/assets';
+import { heroAvatarUrl, resourceIconUrl } from '../render/assets';
 import { t, resolveUnitName } from '../app/i18n';
 import { AssetImg } from './AssetImg';
 import { MenuScreen } from './MenuScreen';
@@ -205,7 +205,12 @@ function HeroDrawer() {
       </button>
       <aside class={`hero-drawer${open ? ' open' : ''}`} data-testid="hero-drawer">
         <HeroStrip />
-        <div class="hero-portrait-placeholder" aria-hidden="true" />
+        <AssetImg
+          src={heroAvatarUrl(hero.factionId, heroArchetype(hero.attributes))}
+          alt=""
+          class="hero-avatar"
+          fallback={<div class="hero-portrait-placeholder" aria-hidden="true" />}
+        />
         <div class="hero-level" data-testid="hero-level">
           {t('hero.level', { level: hero.level })}
         </div>

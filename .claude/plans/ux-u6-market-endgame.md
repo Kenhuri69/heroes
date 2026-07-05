@@ -73,3 +73,15 @@ garnisons). Pur client (helper `playerPower` exposé par le moteur).
   market), content:check OK, typecheck 4/4. Fan-out Sonnet : S-market-ui (onglet
   Marché TownScreen) + S-i18n (clés). Reste : intégration + smoke marché + doc +
   PR U6a. Puis U6b (graphique de fin, dataviz).
+- **2026-07-05** — **U6a livré & mergé (#57).** 54 smoke, golden stable.
+- **2026-07-05** — **U6b livré.** Skill `dataviz` chargée AVANT tout code de
+  graphique ; palette catégorielle sombre `#3987e5/#199e70/#c98500` **validée par
+  le script** (tous PASS, CVD tritan 15.7 > 12). Moteur : helper pur `playerPower`
+  (+ `armyStrength` **dédupliqué** depuis `ai/adventure.ts`), exporté, test
+  `core-power.test.ts` (3). Client : `OutcomeOverlay` enrichi d'un graphique SVG
+  inline (barres horizontales triées, double encodage libellé+valeur, humain mis
+  en évidence ; **sélecteur `s.game` stable** — pas de tableau frais, évite la
+  boucle U4). 3 clés i18n fr/en. doc 08 §2.5. Smoke : la victoire de scénario
+  vérifie le chart (2 barres). **Golden STABLE** (`playerPower` lecture seule,
+  `armyStrength` inchangé). Vérif : typecheck 4/4, eslint, engine 245, content 70,
+  content:check, build. **U6 complet.** Reste au chantier : U5 (DA + ville peinte).

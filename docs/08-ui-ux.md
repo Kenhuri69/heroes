@@ -83,6 +83,14 @@
 
 Menu principal (Continuer / Scénarios / Escarmouche / Options), fiche de scénario (objectifs), fin de partie (stats, graphique de puissance), options (langue FR/EN, vitesse anims, taille UI, audio, daltonisme : cf. §4).
 
+> 🚧 **État U6b** : l'écran de **fin de partie** (`OutcomeOverlay`) affiche un
+> **graphique de puissance par joueur** — barres horizontales SVG triées par
+> puissance décroissante, une par joueur, calculées sur l'état final via le
+> helper moteur pur `playerPower` (Σ force d'armée héros + garnisons). Palette
+> catégorielle validée (skill `dataviz`, thème sombre) ; **double encodage**
+> libellé + valeur (jamais la couleur seule, §4) ; le joueur humain est mis en
+> évidence. Stats détaillées (durée, pertes cumulées…) = raffinement ultérieur.
+
 ## 3. Navigation & flux
 
 - **Routeur d'écrans** (source unique de navigation, lue par le DOM et les

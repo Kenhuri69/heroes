@@ -1,6 +1,6 @@
 import { runAutoCombat } from '../combat/ai';
-import type { ArmyStack, CombatUnitDef } from '../combat/types';
 import type { GameEvent } from '../core/events';
+import { armyStrength } from '../core/power';
 import type { GameState, HeroState, PlayerState } from '../core/state';
 import { advanceHeroAlongPath } from '../adventure/movement';
 import { DIRECTIONS, isAdjacent, tileIndex, type GridPos } from '../adventure/map';
@@ -70,17 +70,6 @@ function totalPathCost(config: GameState['config'], map: GameState['map'], from:
   for (const step of path) {
     total += stepCost(config, map, prev, step);
     prev = step;
-  }
-  return total;
-}
-
-/** Force brute d'une armée : Σ effectif × (PV + attaque + défense) — estimation simple. */
-function armyStrength(army: ArmyStack[], catalog: Record<string, CombatUnitDef>): number {
-  let total = 0;
-  for (const stack of army) {
-    const def = catalog[stack.unitId];
-    if (!def) continue;
-    total += stack.count * (def.stats.hp + def.stats.attack + def.stats.defense);
   }
   return total;
 }

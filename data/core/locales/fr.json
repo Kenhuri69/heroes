@@ -230,6 +230,9 @@
   "outcome.won": "Victoire !",
   "outcome.lost": "Défaite",
   "outcome.backToMenu": "Retour au menu",
+  "outcome.powerTitle": "Puissance finale",
+  "outcome.you": "Vous",
+  "outcome.ai": "IA {n}",
   "toast.gameWon": "Victoire !",
   "toast.gameLost": "Défaite…"
 }

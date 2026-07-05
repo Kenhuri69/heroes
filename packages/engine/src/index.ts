@@ -15,6 +15,7 @@ export {
   type ResourceId,
   type Resources,
 } from './core/state';
+export { armyStrength, playerPower } from './core/power';
 export { seedRng, nextU32, rollRange, type RngState } from './core/rng';
 export {
   serializeState,

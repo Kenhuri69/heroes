@@ -67,8 +67,6 @@
   "combat.retaliationEstimate": "estimated retaliation: {min}–{max}",
   "combat.noRetaliation": "no retaliation",
   "combat.previewSummary": "{damage}, ~{kills} killed · {retal}",
-  "combat.landscapeHint": "Rotate to landscape for a more comfortable fight.",
-  "combat.landscapeHintDismiss": "Got it",
 
   "spellbook.title": "Spellbook",
   "spellbook.empty": "No spells known.",

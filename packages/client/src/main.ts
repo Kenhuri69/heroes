@@ -118,10 +118,12 @@ async function bootstrap(): Promise<void> {
       combatScene = new CombatScene(app);
       app.stage.addChild(combatScene.container);
       camera.world.visible = false;
+      camera.setEnabled(false); // libère les gestes app.stage pour la caméra de combat
     } else if (!inCombat && combatScene) {
       combatScene.destroy();
       combatScene = null;
       camera.world.visible = true;
+      camera.setEnabled(true);
     }
   };
   appStore.subscribe(ensureScenes);

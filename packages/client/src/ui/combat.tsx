@@ -10,9 +10,6 @@ import { pushToast } from './toasts';
 import { SpellBook } from './SpellBook';
 import './combat.css';
 
-/** Rappel dismissible mémorisé pour la session (doc 08 §2.4 : pas d'API Screen Orientation). */
-let landscapeHintDismissed = false;
-
 /**
  * UI DOM de l'écran de combat (doc 08 §2.4) : bandeau haut (piles des deux
  * camps + round), barre d'actions bas, panneau de prévisualisation de
@@ -68,8 +65,6 @@ export function CombatUi() {
         {preview ? formatPreview(preview) : t('combat.damagePreviewPlaceholder')}
       </div>
 
-      <LandscapeHint />
-
       <footer class="combat-actions">
         <button data-testid="combat-wait" disabled={!isPlayerTurn} onClick={() => act('wait')}>
           {t('combat.wait')}
@@ -107,25 +102,6 @@ function StackChip({ unitId, count, active }: { unitId: string; count: number; a
     <div class={`stack-chip${active ? ' stack-chip-active' : ''}`}>
       <span class="stack-chip-count">{count}</span>
       <span class="stack-chip-unit">{resolveUnitName(unitId)}</span>
-    </div>
-  );
-}
-
-/** Overlay « paysage recommandé » (doc 08 §2.4) — CSS le montre en portrait, dismissible pour la session. */
-function LandscapeHint() {
-  const [dismissed, setDismissed] = useState(landscapeHintDismissed);
-  if (dismissed) return null;
-  return (
-    <div class="landscape-hint" data-testid="landscape-hint">
-      <p>{t('combat.landscapeHint')}</p>
-      <button
-        onClick={() => {
-          landscapeHintDismissed = true;
-          setDismissed(true);
-        }}
-      >
-        {t('combat.landscapeHintDismiss')}
-      </button>
     </div>
   );
 }

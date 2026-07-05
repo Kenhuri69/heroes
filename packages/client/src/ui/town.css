@@ -36,13 +36,15 @@
 
 .town-tabs {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
   margin-bottom: 12px;
 }
 
 .town-tabs button {
   min-height: 44px;
-  flex: 1;
+  flex: 1 1 auto;
+  min-width: 6.5em;
   padding: 6px 10px;
   border: 1px solid #3a3d47;
   border-radius: 8px;

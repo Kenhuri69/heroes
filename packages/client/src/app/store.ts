@@ -48,6 +48,12 @@ export interface AppState {
   factions: string[];
   /** Héros humain sélectionné (doc 08 §2.1, lot UX U4) — null = 1er héros par défaut. */
   selectedHeroId: string | null;
+  /**
+   * Hot-seat (Alpha 4.15) : id du joueur actif ayant déjà accusé réception de son
+   * tour (« passez l'appareil » validé). L'overlay de passage s'affiche tant que
+   * le joueur courant diffère. `null` = personne n'a encore validé (nouveau tour).
+   */
+  turnAck: string | null;
 }
 
 export const appStore = createStore<AppState>(() => ({
@@ -65,6 +71,7 @@ export const appStore = createStore<AppState>(() => ({
   scenarios: [],
   factions: [],
   selectedHeroId: null,
+  turnAck: null,
 }));
 
 /** Hook Preact : re-rend quand la valeur sélectionnée change (égalité stricte). */

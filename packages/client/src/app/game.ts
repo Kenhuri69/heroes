@@ -43,12 +43,16 @@ export function buildFactionSetup(report: LoadReport): FactionCatalog {
 export const PLAYER_ID = 'player-1';
 
 /**
- * Id du joueur humain de la partie EN COURS — dérivé du contrôleur `'human'`
- * (remédiation R3/CL5). Repli `PLAYER_ID` hors partie / partie IA-vs-IA, pour
- * que le HUD reste défini. Un scénario nommant autrement son humain est ainsi
- * correctement suivi (avant : `'player-1'` en dur ⇒ HUD vide).
+ * Id du joueur humain **actif** de la partie EN COURS (hot-seat, Alpha 4.15) : si
+ * le joueur dont c'est le tour est humain, c'est lui — tout le HUD (héros,
+ * villes, brouillard, sélection, toasts) suit alors le joueur courant en
+ * multi-humain local. Sinon (tour d'une IA, transitoire dans la boucle) : repli
+ * sur le premier humain, puis `PLAYER_ID` (remédiation R3/CL5). Comportement
+ * solo inchangé : le joueur actif y est toujours l'unique humain.
  */
 export function humanId(game: GameState): string {
+  const active = game.players[game.currentPlayer];
+  if (active?.controller === 'human') return active.id;
   return humanPlayerId(game) ?? PLAYER_ID;
 }
 
@@ -376,8 +380,11 @@ export type SkirmishDifficulty = 'facile' | 'normal' | 'difficile';
 /** Configuration d'une escarmouche choisie par le joueur (aucune donnée en dur). */
 export interface SkirmishConfig {
   humanFactionId: string;
+  /** Faction de l'adversaire (IA ou joueur 2 en hot-seat). */
   aiFactionId: string;
   difficulty: SkirmishDifficulty;
+  /** Adversaire : IA (défaut) ou 2ᵉ joueur humain local (hot-seat, Alpha 4.15). */
+  opponent?: 'ai' | 'human';
 }
 
 /**
@@ -446,9 +453,16 @@ export function skirmishStartCommand(
   const gameConfig = report.content.config;
 
   const humanPack = packById(config.humanFactionId);
-  const aiPack = packById(config.aiFactionId);
+  const oppPack = packById(config.aiFactionId);
   const humanT1 = factionT1(humanPack);
-  const aiT1 = factionT1(aiPack);
+  const oppT1 = factionT1(oppPack);
+
+  // Hot-seat (adversaire humain) : parité stricte, pas de mise à l'échelle de
+  // difficulté — celle-ci n'a de sens que contre l'IA.
+  const opponent = config.opponent ?? 'ai';
+  const armyMult = opponent === 'human' ? 1 : tuning.aiArmyMult;
+  const resourceMult = opponent === 'human' ? 1 : tuning.aiResourceMult;
+  const oppFort = opponent === 'human' ? false : tuning.aiFort;
 
   const seats = [
     {
@@ -462,12 +476,12 @@ export function skirmishStartCommand(
     },
     {
       id: 'player-2',
-      controller: 'ai' as const,
+      controller: opponent,
       factionId: config.aiFactionId,
-      army: [{ unitId: aiT1.unitId, count: Math.round(SKIRMISH_BASE_ARMY * tuning.aiArmyMult) }],
-      resources: skirmishResources(gameConfig, tuning.aiResourceMult),
-      dwelling: aiT1.dwellingBuilding,
-      fort: tuning.aiFort,
+      army: [{ unitId: oppT1.unitId, count: Math.round(SKIRMISH_BASE_ARMY * armyMult) }],
+      resources: skirmishResources(gameConfig, resourceMult),
+      dwelling: oppT1.dwellingBuilding,
+      fort: oppFort,
     },
   ];
 

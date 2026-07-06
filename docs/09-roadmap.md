@@ -45,10 +45,14 @@ Estimations pour une petite équipe (2–3 dev + 1 artiste temps partiel). Chaqu
 > choisies + difficulté), la difficulté étant un **levier de données**
 > (`skirmishStartCommand` met l'armée/les ressources de l'IA à l'échelle) ;
 > **zéro code de difficulté ni nom de faction dans le moteur** (doc 08 §2.5).
+> **4.15 livré** : **hot-seat** — l'escarmouche accepte un 2ᵉ joueur humain local ;
+> le HUD/brouillard/sélection se re-keyent au joueur **actif** (`humanId` suit
+> `currentPlayer`) et un overlay « passez l'appareil » sépare les tours ; **aucun
+> code moteur** (la boucle IA s'arrête déjà sur chaque humain, doc 08 §3).
 
 - **Arcane Hunters** produite intégralement via le pipeline de faction (validation grandeur nature de la doc 06 — aucun diff moteur hors ouverture de points d'extension génériques).
 - ✅ **Unités améliorées (upgrades)** pour toutes les factions (4.11) ; ✅ **machines de guerre basiques** (Baliste, achetée à la Forge — 4.12) ; ✅ **sièges v1 fondation** (combat de ville défendue + murs — 4.13) ; tour de garde / catapulte = v2.
-- ✅ **Escarmouche vs IA** (choix des factions + difficulté — 4.14) : partie 1v1 générée à l'exécution, difficulté = levier de **données** (armée/ressources IA mises à l'échelle, aucun code de difficulté dans le moteur). Hot-seat + sorts d'aventure (Ville-portail…) = lots suivants.
+- ✅ **Escarmouche vs IA** (choix des factions + difficulté — 4.14) : partie 1v1 générée à l'exécution, difficulté = levier de **données** (armée/ressources IA mises à l'échelle, aucun code de difficulté dans le moteur). ✅ **Hot-seat** (4.15) : deux humains locaux alternent, plateau re-keyé au joueur actif + overlay « passez l'appareil » — **zéro code moteur** (`runAiLoop` s'arrête déjà sur chaque humain). Sorts d'aventure (Ville-portail…) = lot suivant.
 - Outil `faction:sim` + première passe d'équilibrage sérieuse (winrates 45–55 %).
 - Éditeur de carte interne minimal (accélère la prod de contenu).
 - Playtests fermés hebdomadaires ; télémétrie locale opt-in (durée des tours, taux d'abandon des combats).

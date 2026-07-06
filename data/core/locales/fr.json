@@ -9,7 +9,11 @@
   "skirmish.title": "Escarmouche vs IA",
   "skirmish.close": "Fermer",
   "skirmish.yourFaction": "Votre faction",
+  "skirmish.opponent": "Adversaire",
+  "skirmish.opponent.ai": "IA",
+  "skirmish.opponent.human": "Joueur 2",
   "skirmish.aiFaction": "Faction de l’IA",
+  "skirmish.player2Faction": "Faction du joueur 2",
   "skirmish.difficulty": "Difficulté",
   "skirmish.difficulty.facile": "Facile",
   "skirmish.difficulty.normal": "Normale",
@@ -263,10 +267,15 @@
 
   "outcome.won": "Victoire !",
   "outcome.lost": "Défaite",
+  "outcome.winner": "Victoire du joueur {n} !",
   "outcome.backToMenu": "Retour au menu",
   "outcome.powerTitle": "Puissance finale",
   "outcome.you": "Vous",
   "outcome.ai": "IA {n}",
+  "handoff.title": "Changement de tour",
+  "handoff.turnOf": "Au tour du joueur {n}",
+  "handoff.pass": "Passez l’appareil au joueur suivant.",
+  "handoff.continue": "Continuer",
   "toast.gameWon": "Victoire !",
   "toast.gameLost": "Défaite…"
 }

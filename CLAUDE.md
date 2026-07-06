@@ -153,6 +153,8 @@ docs/
   09-roadmap.md                  Phases MVP → Alpha → Beta → Live
   10-plan-phase-2-implementation.md  Plan Phase 2 : structure, architecture, build Vite, déploiement GitHub Pages, code prioritaire
   11-plan-mvp-implementation.md  Plan Phase MVP : découpage en sous-phases 3.x (villes, héros, factions, scénarios)
+  12-assets-style-guide.md       Guide de style des assets générés : cadre visuel, procédures de génération, intégration client
+  13-plan-narrative-polish.md    Plan de polishing narratif : ton, campagnes, quêtes, dialogues data-driven, lots N1→N4
   templates/faction-template.md  Gabarit pour spécifier une nouvelle maison
 .github/workflows/
   ci.yml                         PR : typecheck, lint, tests, build, smoke headless

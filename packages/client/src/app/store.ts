@@ -46,6 +46,10 @@ export interface AppState {
   scenarios: Scenario[];
   /** Ids des factions chargées (doc 09) — proposées dans l'écran d'escarmouche. */
   factions: string[];
+  /** Télémétrie locale opt-in activée (doc 09, Alpha 4.19) — miroir du localStorage. */
+  telemetryEnabled: boolean;
+  /** Compteur de rafraîchissement des stats de télémétrie (re-render Options après reset). */
+  telemetryTick: number;
   /** Héros humain sélectionné (doc 08 §2.1, lot UX U4) — null = 1er héros par défaut. */
   selectedHeroId: string | null;
   /**
@@ -70,6 +74,8 @@ export const appStore = createStore<AppState>(() => ({
   modals: [],
   scenarios: [],
   factions: [],
+  telemetryEnabled: false,
+  telemetryTick: 0,
   selectedHeroId: null,
   turnAck: null,
 }));

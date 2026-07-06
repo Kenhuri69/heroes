@@ -130,6 +130,14 @@ Menu principal (Continuer / Scénarios / Escarmouche / **Éditeur de carte** / O
 > **import** d'une carte existante pour l'éditer. Gardiens, triggers, routes et
 > rendu Pixi = raffinements ultérieurs. Client seul (moteur intact).
 
+> 🚧 **État (télémétrie locale opt-in, Alpha 4.19)** : section « Télémétrie
+> (locale) » des Options — **désactivée par défaut**, activable par le joueur
+> (opt-in). Une fois activée, mesure la **durée des tours** (chrono du tour humain
+> jusqu'à « Fin de tour » ; un combat ne le fractionne pas) et le **taux de combats
+> auto-résolus** (bouton « Auto » = délégation/« abandon » de la conduite manuelle).
+> **100 % local** : stocké dans le `localStorage`, jamais envoyé ; export JSON +
+> réinitialisation. Aucun enregistrement sans accord préalable (privacy-first).
+
 ## 3. Navigation & flux
 
 - **Routeur d'écrans** (source unique de navigation, lue par le DOM et les

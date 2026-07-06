@@ -19,6 +19,7 @@ import { appStore } from './app/store';
 import { navigate } from './app/router';
 import { exportSave, importSave, saveGame, restoreSavedGame, encodeHeroesFile } from './app/save';
 import { installAutosave } from './app/autosave';
+import { initTelemetry } from './app/telemetry';
 import { initI18n, t } from './app/i18n';
 import { preloadPixiTextures, combatBackgroundUrl } from './render/assets';
 import { AdventureScene } from './scenes/adventure/AdventureScene';
@@ -182,6 +183,7 @@ async function bootstrap(): Promise<void> {
   };
 
   installAutosave(); // autosave à chaque fin de tour (doc 07 §4)
+  initTelemetry(); // télémétrie locale opt-in (doc 09, Alpha 4.19) — no-op si désactivée
   appStore.setState({
     strengthBands: report.content.config.display.strengthBands,
     scenarios: report.content.scenarios,

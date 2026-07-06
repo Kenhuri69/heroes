@@ -128,3 +128,17 @@
   font: 600 0.9375rem system-ui, sans-serif;
   cursor: pointer;
 }
+
+/* Télémétrie opt-in (Alpha 4.19). */
+.options-hint {
+  margin: 6px 0 0;
+  font-size: 0.75rem;
+  opacity: 0.75;
+}
+.telemetry-stats {
+  margin: 8px 0 0;
+  padding-left: 1.1rem;
+  font-size: 0.8125rem;
+  display: grid;
+  gap: 2px;
+}

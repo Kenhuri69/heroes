@@ -2,6 +2,7 @@ import { useState } from 'preact/hooks';
 import { appStore, useApp } from '../app/store';
 import { t, setLocale } from '../app/i18n';
 import { exportSave, importSave } from '../app/save';
+import { getTelemetry, resetTelemetry, setTelemetryEnabled } from '../app/telemetry';
 import { COMBAT_SPEEDS } from '../app/ui-constants';
 import './options.css';
 
@@ -21,6 +22,8 @@ export function OptionsPanel({ onClose }: { onClose: () => void }) {
   const locale = useApp((s) => s.locale);
   const fontScale = useApp((s) => s.fontScale);
   const combatSpeed = useApp((s) => s.combatSpeed);
+  const telemetryEnabled = useApp((s) => s.telemetryEnabled);
+  useApp((s) => s.telemetryTick); // re-render des stats après reset
   const screen = useApp((s) => s.screen);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -40,6 +43,16 @@ export function OptionsPanel({ onClose }: { onClose: () => void }) {
         URL.revokeObjectURL(url);
       })
       .catch(() => setMessage(t('options.exportError')));
+  };
+
+  const doTelemetryExport = (): void => {
+    const blob = new Blob([JSON.stringify(getTelemetry(), null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'telemetrie.json';
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const onImportFile = (e: Event): void => {
@@ -117,6 +130,51 @@ export function OptionsPanel({ onClose }: { onClose: () => void }) {
               </button>
             ))}
           </div>
+        </section>
+
+        <section class="options-section">
+          <h3>{t('options.telemetry')}</h3>
+          <div class="segmented" role="group">
+            <button
+              class={telemetryEnabled ? '' : 'active'}
+              data-testid="options-telemetry-off"
+              onClick={() => setTelemetryEnabled(false)}
+            >
+              {t('options.telemetryOff')}
+            </button>
+            <button
+              class={telemetryEnabled ? 'active' : ''}
+              data-testid="options-telemetry-on"
+              onClick={() => setTelemetryEnabled(true)}
+            >
+              {t('options.telemetryOn')}
+            </button>
+          </div>
+          <p class="options-hint">{t('options.telemetryHint')}</p>
+          {telemetryEnabled &&
+            (() => {
+              const tel = getTelemetry();
+              const avg = tel.turns > 0 ? (tel.turnMsTotal / tel.turns / 1000).toFixed(1) : '0';
+              const rate = tel.combats > 0 ? Math.round((tel.combatsAuto / tel.combats) * 100) : 0;
+              return (
+                <>
+                  <ul class="telemetry-stats" data-testid="telemetry-stats">
+                    <li data-testid="telemetry-turns">{t('telemetry.turns', { n: tel.turns, avg })}</li>
+                    <li data-testid="telemetry-combats">
+                      {t('telemetry.combats', { n: tel.combats, auto: tel.combatsAuto, rate })}
+                    </li>
+                  </ul>
+                  <div class="options-save-actions">
+                    <button data-testid="telemetry-export" onClick={doTelemetryExport}>
+                      {t('options.telemetryExport')}
+                    </button>
+                    <button data-testid="telemetry-reset" onClick={resetTelemetry}>
+                      {t('options.telemetryReset')}
+                    </button>
+                  </div>
+                </>
+              );
+            })()}
         </section>
 
         {screen === 'adventure' && (

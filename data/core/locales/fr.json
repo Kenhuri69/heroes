@@ -6,7 +6,6 @@
   "menu.editor": "Éditeur de carte",
   "menu.options": "Options",
   "menu.scenarios": "Scénarios",
-
   "editor.back": "← Menu",
   "editor.name": "Nom",
   "editor.width": "Largeur",
@@ -27,7 +26,6 @@
   "editor.importError": "Fichier de carte invalide.",
   "editor.invalid": "Carte invalide ({n} erreur(s)).",
   "editor.needStart": "Ajoutez au moins une position de départ.",
-
   "skirmish.title": "Escarmouche vs IA",
   "skirmish.close": "Fermer",
   "skirmish.yourFaction": "Votre faction",
@@ -41,7 +39,6 @@
   "skirmish.difficulty.normal": "Normale",
   "skirmish.difficulty.difficile": "Difficile",
   "skirmish.start": "Lancer",
-
   "options.title": "Options",
   "options.close": "Fermer",
   "options.language": "Langue",
@@ -60,19 +57,16 @@
   "options.import": "Importer une partie",
   "options.exportError": "Échec de l'export.",
   "options.importError": "Fichier de sauvegarde invalide.",
-
   "journal.title": "Journal",
   "journal.empty": "Aucun événement pour l'instant.",
   "journal.open": "Ouvrir le journal",
   "journal.close": "Fermer le journal",
   "journal.entryDay": "Jour {day}",
-
   "turnBar.calendar": "Jour {day} · Semaine {week}",
   "turnBar.movementPoints": "PM {points}",
   "turnBar.save": "Sauvegarder",
   "turnBar.load": "Charger",
   "turnBar.endTurn": "Fin de tour",
-
   "guardianBand.few": "Quelques défenseurs",
   "guardianBand.several": "Plusieurs défenseurs",
   "guardianBand.pack": "Un groupe",
@@ -80,7 +74,6 @@
   "guardianBand.horde": "Une horde",
   "guardianBand.throng": "Une foule",
   "guardianBand.legion": "Une légion",
-
   "hero.drawerToggle": "Ouvrir le panneau du héros",
   "hero.select": "Sélectionner le héros de niveau {level}",
   "hero.level": "Niveau {level}",
@@ -91,24 +84,19 @@
   "hero.inventoryTitle": "Inventaire",
   "hero.inventoryEmptySlot": "Vide",
   "hero.genericName": "Le héros",
-
   "attribute.attack": "Attaque",
   "attribute.defense": "Défense",
   "attribute.power": "Pouvoir",
   "attribute.knowledge": "Savoir",
-
   "skill.rank.1": "Novice",
   "skill.rank.2": "Expert",
   "skill.rank.3": "Maître",
-
   "school.fire": "Feu",
   "school.water": "Eau",
   "school.earth": "Terre",
   "school.air": "Air",
   "school.neutral": "Neutre",
-
   "army.title": "Armée",
-
   "combat.round": "Round {round}",
   "combat.wait": "Attendre",
   "combat.defend": "Défendre",
@@ -119,7 +107,6 @@
   "combat.retaliationEstimate": "riposte estimée : {min}–{max}",
   "combat.noRetaliation": "pas de riposte",
   "combat.previewSummary": "{damage}, ~{kills} morts · {retal}",
-
   "spellbook.title": "Livre de sorts",
   "spellbook.empty": "Aucun sort connu.",
   "spellbook.manaCost": "{cost} mana",
@@ -134,10 +121,8 @@
   "spellbook.previewBuff": "Effet bénéfique appliqué",
   "spellbook.previewDebuff": "Effet néfaste appliqué",
   "spellbook.previewUnavailable": "—",
-
   "skillChoice.title": "Choix de compétence",
   "skillChoice.subtitle": "Niveau supérieur atteint : choisissez une compétence.",
-
   "toast.resourcePicked": "+{amount} {resource}",
   "toast.triggerResource": "+{amount} {resource}",
   "trigger.proto01.welcome": "Jour 2 : les éclaireurs rapportent une activité à l'est.",
@@ -154,12 +139,10 @@
   "toast.skirmishFailed": "Impossible de démarrer l’escarmouche",
   "toast.adventureSpellCast": "{spell} lancé",
   "spellbook.adventureTitle": "Sorts d’aventure",
-  "spellbook.manaCost": "{cost} mana",
   "toast.spellCast": "{hero} lance {spell}",
   "toast.skillLearned": "{skill} niveau {rank} apprise",
   "toast.saved": "Partie sauvegardée.",
   "toast.townCaptured": "Ville capturée !",
-
   "cmdError.default": "Action impossible",
   "cmdError.cannotAfford": "Ressources insuffisantes",
   "cmdError.alreadyBuiltToday": "Déjà construit aujourd’hui",
@@ -180,7 +163,6 @@
   "cmdError.invalidTarget": "Cible invalide",
   "cmdError.noMovementPoints": "Points de mouvement insuffisants",
   "cmdError.invalidArmy": "Armée invalide",
-
   "spell.trait-de-feu": "Trait de feu",
   "spell.boule-de-feu": "Boule de feu",
   "spell.soin": "Soin",
@@ -204,7 +186,6 @@
   "spell.marque-du-guetteur": "Marque du guetteur",
   "spell.entraves-runiques": "Entraves runiques",
   "spell.ville-portail": "Ville-portail",
-
   "skill.logistics": "Logistique",
   "skill.scouting": "Recherche",
   "skill.luck": "Chance",
@@ -217,12 +198,10 @@
   "skill.magic-water": "Magie de l’eau",
   "skill.magic-earth": "Magie de la terre",
   "skill.magic-air": "Magie de l’air",
-
   "artifact.lame-aiguisee": "Lame aiguisée",
   "artifact.egide-de-pierre": "Égide de pierre",
   "artifact.orbe-de-savoir": "Orbe de savoir",
   "artifact.trefle-chance": "Trèfle de chance",
-
   "building.townHall": "Hôtel de ville",
   "building.fort": "Fort",
   "building.mageGuild": "Guilde des mages",
@@ -230,7 +209,6 @@
   "building.tavern": "Taverne",
   "building.forge": "Forge",
   "warMachine.ballista.name": "Baliste",
-
   "resource.gold": "Or",
   "resource.wood": "Bois",
   "resource.ore": "Minerai",
@@ -238,9 +216,7 @@
   "resource.gems": "Gemmes",
   "resource.sulfur": "Soufre",
   "resource.mercury": "Mercure",
-
   "faction.badge": "Bannière de faction {id}",
-
   "town.open": "Ville",
   "town.title": "Ville",
   "town.close": "Fermer",
@@ -273,7 +249,6 @@
   "town.marketAmount": "Quantité",
   "town.marketReceive": "Vous recevez : {amount}",
   "town.marketConfirm": "Échanger",
-
   "toast.townIncome": "+{amount} {resource} (revenu de ville)",
   "toast.townGrowth": "+{added} {unit} (croissance)",
   "toast.townBuilt": "{building} construit (niveau {level})",
@@ -282,23 +257,14 @@
   "toast.huntContractAssigned": "Nouveau contrat de chasse",
   "toast.huntContractCompleted": "Contrat rempli : +{gold} or, +{amount} {resource}",
   "toast.warMachineBought": "{machine} achetée",
-
-  "building.townHall": "Hôtel de ville",
-  "building.fort": "Fort",
-  "building.mageGuild": "Guilde des mages",
-  "building.market": "Marché",
-  "building.tavern": "Taverne",
-  "building.forge": "Forge",
   "building.special": "Bâtiment spécial",
   "building.arcane-hunters-circle-vigile": "Cercle de la Vigile",
   "building.arcane-hunters-circle-traque": "Cercle de la Traque",
   "building.arcane-hunters-circle-sceau": "Cercle du Sceau",
   "building.arcane-hunters-circle-abime": "Cercle de l'Abîme",
-
   "scenario.tutorial.name": "Tutoriel",
   "scenario.survival.name": "Survie",
   "scenario.conquest.name": "Conquête",
-
   "outcome.won": "Victoire !",
   "outcome.lost": "Défaite",
   "outcome.winner": "Victoire du joueur {n} !",
@@ -311,5 +277,38 @@
   "handoff.pass": "Passez l’appareil au joueur suivant.",
   "handoff.continue": "Continuer",
   "toast.gameWon": "Victoire !",
-  "toast.gameLost": "Défaite…"
+  "toast.gameLost": "Défaite…",
+  "building.townHall.lore": "On y compte l'or et les vivants. Les deux registres maigrissent aux Marches, mais le greffier trempe encore sa plume chaque matin.",
+  "building.fort.lore": "Un mur ne demande pas qui frappe. À Cendregarde, c'est une vertu : la nuit, on cogne rarement pour être reçu.",
+  "building.mageGuild.lore": "Sept sorts au mur, un huitième qu'on n'enseigne pas. Les apprentis dorment la porte close, côté verrou.",
+  "building.market.lore": "On y troque le sel contre le cuivre, la rumeur contre le silence. Tout a un cours ; la peur monte au crépuscule.",
+  "building.tavern.lore": "Le vin est aigre et les histoires meilleures. On y engage des bras et on y enterre des noms qu'on préfère oublier.",
+  "building.forge.lore": "Le forgeron cloue des balistes avant les fers à cheval : aux Marches, on part rarement en promenade.",
+  "spell.trait-de-feu.lore": "La première flamme qu'on apprend, la dernière qu'on oublie. Un doigt tendu, et l'ombre recule d'un pas.",
+  "spell.boule-de-feu.lore": "Elle ne distingue ni ami ni rang. Les mages prudents la lancent loin ; les autres, on les enterre proche.",
+  "spell.soin.lore": "L'eau se souvient de la chair intacte et la lui rappelle. Un baume court, mais la nuit est longue.",
+  "spell.benediction.lore": "Un mot de lumière posé sur l'épaule. Aux Marches, on prend Elrath là où il vacille encore.",
+  "spell.bouclier-de-pierre.lore": "La terre prête sa patience à qui saigne. Elle ne promet rien ; elle tient plus longtemps que la peur.",
+  "spell.affaiblissement.lore": "On ne brise pas l'ennemi, on lui vole l'aplomb. Le reste vient tout seul, à coups d'acier.",
+  "spell.hate.lore": "Le vent entre dans les jambes et chasse l'hésitation. Bien lancée, elle décide qui frappe le premier.",
+  "spell.lenteur.lore": "On alourdit l'air autour d'un ennemi jusqu'à ce qu'il marche dans du miel. La patience est une arme.",
+  "spell.eclair-magique.lore": "Sans école ni couleur, juste une volonté qui mord. Le sort du pauvre, et il tue aussi bien.",
+  "spell.dissipation.lore": "Défaire vaut parfois mieux que faire. On souffle sur les enchantements d'autrui comme sur une bougie.",
+  "spell.armure-fondue.lore": "Le métal se rappelle qu'il fut liquide. Sous la chaleur, la plus belle cuirasse coule au sol.",
+  "spell.brasier.lore": "Une nappe de feu qui s'attarde sur ceux qui tombent. Aux Marches, on brûle les morts par prudence.",
+  "spell.jet-de-glace.lore": "L'eau tendue en pointe, et le froid qui mord après la lame. Simple, net, honnête.",
+  "spell.brouillard-glacial.lore": "Une brume qui gèle les articulations et brouille la vue. L'ennemi tâtonne ; vos rangs avancent.",
+  "spell.grande-guerison.lore": "La marée pleine de l'art de l'eau. Elle recoud les vivants — elle ne rappelle pas ceux qui sont partis.",
+  "spell.seisme.lore": "La terre s'ouvre juste assez pour rappeler à tous qu'elle attend. Sous les Marches, elle attend beaucoup.",
+  "spell.muraille-de-pierre.lore": "On lève un pan de roche là où manquait un rempart. Il tombera ; d'ici là, on tient la ligne.",
+  "spell.choc-electrique.lore": "Le ciel prête un éclat sans nuage. Bref, blanc, et l'odeur d'orage reste dans la bouche.",
+  "spell.tornade.lore": "Le vent noué en colonne arrache les rangs et les jette. On ne discute pas avec la tornade.",
+  "spell.aura-protectrice.lore": "Un cercle discret de faveur autour des siens : un peu d'aplomb, un peu de garde. Petit, mais on le sent.",
+  "spell.marque-du-guetteur.lore": "Un signe qu'on grave sur la proie, invisible à elle seule. Ce qui est marqué ne s'échappe pas deux fois.",
+  "spell.entraves-runiques.lore": "Des runes se referment sur les chevilles comme un piège froid. L'ennemi reste ; la chasse le rejoint.",
+  "spell.ville-portail.lore": "Un pli d'air rapporte le héros entre ses murs. Aux Marches, rentrer vivant vaut bien seize points de mana.",
+  "artifact.lame-aiguisee.lore": "Aiguisée trop souvent, elle est plus fil que lame. Elle n'a jamais appris à s'arrêter à temps.",
+  "artifact.egide-de-pierre.lore": "Lourde comme un remords, sûre comme un mur. Elle ne vous rendra pas rapide, seulement encore là.",
+  "artifact.orbe-de-savoir.lore": "On y lit ce qu'on a peur d'apprendre. Les sages la gardent sous un linge, côté verrou.",
+  "artifact.trefle-chance.lore": "Cueilli sur une tombe, dit-on. La chance des Marches vient rarement sans qu'un autre l'ait perdue."
 }

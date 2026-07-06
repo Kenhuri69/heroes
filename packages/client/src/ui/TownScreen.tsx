@@ -13,7 +13,15 @@ import type { BuildingDef, CombatUnitDef, ResourceId, TownState } from '@heroes/
 import { useApp } from '../app/store';
 import { dispatch } from '../app/dispatch';
 import { humanId } from '../app/game';
-import { t, resolveUnitName, commandErrorMessage, resolveBuildingName, resolveFactionResourceName } from '../app/i18n';
+import {
+  t,
+  resolveUnitName,
+  resolveUnitLore,
+  commandErrorMessage,
+  resolveBuildingName,
+  resolveBuildingLore,
+  resolveFactionResourceName,
+} from '../app/i18n';
 import { buildingUrl, townBackgroundUrl } from '../render/assets';
 import { AssetImg } from './AssetImg';
 import { FactionBadge } from './FactionBadge';
@@ -256,6 +264,9 @@ function BuildTab({
                 </span>
                 <span class={`town-building-status town-building-status-${status}`}>{t(`town.${status}`)}</span>
               </div>
+              {resolveBuildingLore(buildingId) && (
+                <p class="content-lore town-building-lore">{resolveBuildingLore(buildingId)}</p>
+              )}
               {status === 'locked' && nextLevel && (
                 <ul class="town-requirements">
                   {missingRequirements(town, catalog, buildingId).map((req) => (
@@ -331,6 +342,11 @@ function RecruitTab({
                   {t('town.stock', { count: stock })}
                 </span>
               </div>
+              {resolveUnitLore(unitId) && (
+                <p class="content-lore town-dwelling-lore" data-testid={`town-unit-lore-${unitId}`}>
+                  {resolveUnitLore(unitId)}
+                </p>
+              )}
               <div class="town-dwelling-controls">
                 <button disabled={stock === 0} onClick={() => setQty(unitId, 1)}>
                   {t('town.min')}

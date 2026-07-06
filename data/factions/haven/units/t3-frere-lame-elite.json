@@ -2,6 +2,7 @@
   "id": "t3-frere-lame-elite",
   "tier": 3,
   "name": "@loc:unit.t3-frere-lame-elite.name",
+  "loreKey": "@loc:unit.t3-frere-lame-elite.lore",
   "stats": { "hp": 23, "attack": 8, "defense": 10, "damage": [4, 7], "speed": 6 },
   "growthPerWeek": 7,
   "cost": { "gold": 260 },

@@ -449,7 +449,7 @@ laisse le jeu livrable. Ordre pensé « MVP narratif → campagne complète » :
 
 | Lot | Contenu | Sortie vérifiable |
 |-----|---------|-------------------|
-| **N1 — La voix du monde** | Champs `loreKey` sur unités/bâtiments/artefacts/sorts + textes FR/EN des 3 factions ; écrans existants les affichent | Audit i18n étendu ; chaque entité du contenu a son texte ; zéro diff moteur |
+| **N1 — La voix du monde** ✅ | Champs `loreKey` sur unités/bâtiments/artefacts/sorts + textes FR/EN des 4 factions ; écrans existants les affichent | Audit i18n étendu ; chaque entité du contenu a son texte ; zéro diff moteur |
 | **N2 — Systèmes** | `engine/quest` générique + `GameState.quests` (bump save) ; schémas `data/story/` ; boîte de dialogue + journal + `dialogBefore` ; ré-habillage du scénario `tutorial` en **Prologue Haven** (3 quêtes, 4 dialogues) | Golden re-fixé ; smoke Playwright « dérouler le prologue : dialogue s'affiche, se passe, journal à jour, quête récompensée » desktop + mobile |
 | **N3 — Campagnes fondatrices** | Campagnes Haven et Necropolis (3 chapitres chacune, cartes dédiées, cutscenes caméra, arcs Aldric/Séraphine/Vhalen/Mère Corbeau) ; `campaignState` + écran de sélection de campagne | 2 campagnes finissables en smoke long (IA assistée) ; continuité héros entre chapitres testée |
 | **N4 — La Chasse & le vivant** | Campagne Arcane Hunters (relit N3, arcs Evadne/Marchmont) ; quêtes journalières en mode libre ; 2 événements temporaires ; barks de combat | 3ᵉ campagne = données seules (test de modularité narratif) ; événement daté jouable/expirable |
@@ -630,3 +630,34 @@ de journalières pour tout le jeu, la faction ne change que l'habillage.
 - Le polish se livre en **4 lots testables** (voix du monde → systèmes →
   campagnes fondatrices → chasse & vivant), chacun gardé par la CI
   (i18n, golden, budget, smoke narratif) et un protocole d'immersion simple.
+
+---
+
+## État N1 — La voix du monde (livré)
+
+**Textes d'ambiance sur tout le contenu existant, zéro diff moteur.**
+
+- **Schéma** : champ optionnel `loreKey` (`@loc:`) ajouté à `unitSchema` /
+  `buildingSchema` / `spellSchema` / `artifactSchema` (rétro-compatible ;
+  exclu des formes résolues moteur `Resolved*` — le lore est pur affichage).
+- **Contenu** : **97 textes** FR + EN écrits **du point de vue de chaque
+  faction** (ton §1.1, ≤ 200 car.) — 58 unités des 4 maisons (chacune reçoit
+  aussi son champ `loreKey`), 6 bâtiments communs, 23 sorts, 4 artefacts, 6
+  bâtiments spéciaux (Cercles Arcanes + Bosquet du Cœur). Les textes vivent
+  dans les locales (core ou paquet) selon la règle de modularité (doc 06).
+  Le stub `test-faction` reste sans lore (2 unités non couvertes, attendu).
+- **Client** : le lore s'affiche dans les 4 surfaces existantes — fiche d'unité
+  (onglet Recruter), vignette de bâtiment (onglet Construire), infobulle
+  d'artefact (inventaire), description de sort (livre de sorts) — via un
+  composant discret `.content-lore` (italique, `rem` → respecte les 3 crans de
+  police). Résolveurs `resolve*Lore` par convention `<prefix>.<id>.lore`.
+- **Validation** : `content:check` étendu — parité fr/en obligatoire sur toute
+  clé `*.lore` + résolution du `loreKey` des unités, avec rapport de couverture
+  (« 58/60 unités, 97 textes »).
+- **Vérif** : typecheck 4/4, moteur 289 (golden inchangé — le lore n'entre pas
+  dans `GameState`), content 73, `content:check` vert, garde-fou faction vert,
+  build < 800 Ko gzip, smoke desktop+mobile (lore de bâtiment affiché).
+
+Prochain lot : **N2 — Systèmes** (`engine/quest` générique + boîte de dialogue
++ journal + Prologue Haven). Il touche le moteur (nouveau système générique,
+bump de save) — à cadrer explicitement.

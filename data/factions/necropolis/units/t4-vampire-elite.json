@@ -2,6 +2,7 @@
   "id": "t4-vampire-elite",
   "tier": 4,
   "name": "@loc:unit.t4-vampire-elite.name",
+  "loreKey": "@loc:unit.t4-vampire-elite.lore",
   "stats": { "hp": 37, "attack": 10, "defense": 9, "damage": [7, 11], "speed": 7 },
   "growthPerWeek": 5,
   "cost": { "gold": 550 },

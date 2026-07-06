@@ -2,6 +2,7 @@
   "id": "t6-treant-elite",
   "tier": 6,
   "name": "@loc:unit.t6-treant-elite.name",
+  "loreKey": "@loc:unit.t6-treant-elite.lore",
   "stats": { "hp": 79, "attack": 17, "defense": 14, "damage": [14, 22], "speed": 7 },
   "growthPerWeek": 2,
   "cost": { "gold": 1650, "mercury": 1 },

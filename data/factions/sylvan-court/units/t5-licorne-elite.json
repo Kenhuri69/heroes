@@ -2,6 +2,7 @@
   "id": "t5-licorne-elite",
   "tier": 5,
   "name": "@loc:unit.t5-licorne-elite.name",
+  "loreKey": "@loc:unit.t5-licorne-elite.lore",
   "stats": { "hp": 39, "attack": 13, "defense": 9, "damage": [9, 13], "speed": 9 },
   "growthPerWeek": 4,
   "cost": { "gold": 760, "crystal": 1 },

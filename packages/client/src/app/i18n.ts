@@ -133,6 +133,36 @@ export function resolveBuildingName(id: string): string {
   return resolveCoreOrPack('building', id);
 }
 
+/**
+ * Texte d'ambiance optionnel d'une entité de contenu (doc 13 §3.5, lot N1) —
+ * clé de convention `<prefix>.<id>.lore`, cherchée dans les locales CORE puis
+ * PAQUET (comme les noms). Renvoie `null` si absent : l'UI n'affiche rien.
+ */
+function resolveLore(prefix: string, id: string): string | null {
+  const key = `${prefix}.${id}.lore`;
+  const core = t(key);
+  if (core !== key) return core;
+  const pack = resolveLoc(key);
+  return pack === key ? null : pack;
+}
+
+/** Texte d'ambiance d'une unité (fiche/vignette) — `null` si non écrit. */
+export function resolveUnitLore(id: string): string | null {
+  return resolveLore('unit', id);
+}
+/** Texte d'ambiance d'un bâtiment (vignette de ville) — `null` si non écrit. */
+export function resolveBuildingLore(id: string): string | null {
+  return resolveLore('building', id);
+}
+/** Texte d'ambiance d'un sort (livre de sorts) — `null` si non écrit. */
+export function resolveSpellLore(id: string): string | null {
+  return resolveLore('spell', id);
+}
+/** Texte d'ambiance d'un artefact (infobulle d'inventaire) — `null` si non écrit. */
+export function resolveArtifactLore(id: string): string | null {
+  return resolveLore('artifact', id);
+}
+
 /** Nom localisé d'une ressource de faction (`essence`…) — vit dans le paquet (CO7). */
 export function resolveFactionResourceName(id: string): string {
   return resolveCoreOrPack('factionResource', id);

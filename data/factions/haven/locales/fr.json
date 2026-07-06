@@ -20,5 +20,19 @@
   "building.haven-dwelling-t4": "Habitation : Griffon",
   "building.haven-dwelling-t5": "Habitation : Prêtresse",
   "building.haven-dwelling-t6": "Habitation : Chevalier du Griffon",
-  "building.haven-dwelling-t7": "Habitation : Ange"
+  "building.haven-dwelling-t7": "Habitation : Ange",
+  "unit.t1-conscrit.lore": "Hier il labourait. La prêtresse l'a béni au front, puis a détourné les yeux : elle savait déjà. On protège les gens — parfois en les envoyant mourir pour eux.",
+  "unit.t1-conscrit-elite.lore": "On lui a appris que la ligne ne recule pas. Il n'a pas appris pourquoi ; la hallebarde suffit. Derrière lui, un village dort sans savoir son nom.",
+  "unit.t2-archer.lore": "Elle vise la gorge, comme on le lui a dit, et récite une prière entre deux flèches. Douze traits, douze fautes qu'un prêtre lui pardonnera au soir.",
+  "unit.t2-archer-elite.lore": "Il ne rate plus. C'est là son tourment : chaque mort porte désormais son nom. L'Empire appelle cela un don. Lui l'appelle un compte à rendre.",
+  "unit.t3-frere-lame.lore": "Il a juré le silence, la pauvreté, et la lame. Deux vœux le consolent. Le troisième le réveille la nuit, mais tient la frontière depuis la Première Éclipse.",
+  "unit.t3-frere-lame-elite.lore": "Le Templier ne doute plus : le doute a été prié hors de lui, année après année. Ce qui reste frappe droit. On ignore s'il reste un homme dessous.",
+  "unit.t4-griffon.lore": "Emblème de l'Empire, et il l'ignore. Il ne connaît que le vent, la faim, et la main qui l'a nourri petit. Pour cette main, il plonge sur les lances.",
+  "unit.t4-griffon-elite.lore": "Né dans les aires du palais, marqué d'or. On le dit royal ; lui se croit libre. Les deux sont vrais tant qu'il fond sur l'ennemi de l'Empire.",
+  "unit.t5-pretresse.lore": "Elle soigne d'une main, foudroie de l'autre, et bénit les mourants qu'elle n'a pu sauver. La foi exige tout ; elle a cessé de compter ce qu'il lui reste.",
+  "unit.t5-pretresse-elite.lore": "Elle a enterré plus de fils qu'aucune mère. Sa lumière ne tremble pas — c'est le prix. On la vénère ; personne n'ose lui demander si elle dort encore.",
+  "unit.t6-chevalier-griffon.lore": "Un homme, une bête, un seul serment. Le chevalier meurt s'il tombe ; le griffon meurt s'il reste. Ni l'un ni l'autre ne songe à s'enfuir.",
+  "unit.t6-chevalier-griffon-elite.lore": "Le Champion a survécu à trois montures. Il ne pleure plus la quatrième avant la bataille : il la pleurera après, si l'Empire tient encore.",
+  "unit.t7-ange.lore": "Il descend quand la prière est assez désespérée. Beau, terrible, et sourd à nos raisons. Nous prions pour son secours en craignant sa réponse.",
+  "unit.t7-ange-elite.lore": "L'Archange se souvient de la Première Éclipse ; nous ne sommes qu'un jour dans sa mémoire. Il garde le lieu, la loi, les gens — et ne dit jamais lequel prime."
 }

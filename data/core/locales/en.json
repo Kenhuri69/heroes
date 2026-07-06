@@ -6,7 +6,6 @@
   "menu.editor": "Map editor",
   "menu.options": "Options",
   "menu.scenarios": "Scenarios",
-
   "editor.back": "← Menu",
   "editor.name": "Name",
   "editor.width": "Width",
@@ -27,7 +26,6 @@
   "editor.importError": "Invalid map file.",
   "editor.invalid": "Invalid map ({n} error(s)).",
   "editor.needStart": "Add at least one start position.",
-
   "skirmish.title": "Skirmish vs AI",
   "skirmish.close": "Close",
   "skirmish.yourFaction": "Your faction",
@@ -41,7 +39,6 @@
   "skirmish.difficulty.normal": "Normal",
   "skirmish.difficulty.difficile": "Hard",
   "skirmish.start": "Start",
-
   "options.title": "Options",
   "options.close": "Close",
   "options.language": "Language",
@@ -60,19 +57,16 @@
   "options.import": "Import game",
   "options.exportError": "Export failed.",
   "options.importError": "Invalid save file.",
-
   "journal.title": "Event log",
   "journal.empty": "No events yet.",
   "journal.open": "Open the event log",
   "journal.close": "Close the event log",
   "journal.entryDay": "Day {day}",
-
   "turnBar.calendar": "Day {day} · Week {week}",
   "turnBar.movementPoints": "MP {points}",
   "turnBar.save": "Save",
   "turnBar.load": "Load",
   "turnBar.endTurn": "End turn",
-
   "guardianBand.few": "A few defenders",
   "guardianBand.several": "Several defenders",
   "guardianBand.pack": "A pack",
@@ -80,7 +74,6 @@
   "guardianBand.horde": "A horde",
   "guardianBand.throng": "A throng",
   "guardianBand.legion": "A legion",
-
   "hero.drawerToggle": "Open hero panel",
   "hero.select": "Select level {level} hero",
   "hero.level": "Level {level}",
@@ -91,24 +84,19 @@
   "hero.inventoryTitle": "Inventory",
   "hero.inventoryEmptySlot": "Empty",
   "hero.genericName": "The hero",
-
   "attribute.attack": "Attack",
   "attribute.defense": "Defense",
   "attribute.power": "Power",
   "attribute.knowledge": "Knowledge",
-
   "skill.rank.1": "Novice",
   "skill.rank.2": "Expert",
   "skill.rank.3": "Master",
-
   "school.fire": "Fire",
   "school.water": "Water",
   "school.earth": "Earth",
   "school.air": "Air",
   "school.neutral": "Neutral",
-
   "army.title": "Army",
-
   "combat.round": "Round {round}",
   "combat.wait": "Wait",
   "combat.defend": "Defend",
@@ -119,7 +107,6 @@
   "combat.retaliationEstimate": "estimated retaliation: {min}–{max}",
   "combat.noRetaliation": "no retaliation",
   "combat.previewSummary": "{damage}, ~{kills} killed · {retal}",
-
   "spellbook.title": "Spellbook",
   "spellbook.empty": "No spells known.",
   "spellbook.manaCost": "{cost} mana",
@@ -134,10 +121,8 @@
   "spellbook.previewBuff": "Beneficial effect applied",
   "spellbook.previewDebuff": "Harmful effect applied",
   "spellbook.previewUnavailable": "—",
-
   "skillChoice.title": "Skill choice",
   "skillChoice.subtitle": "Level up reached: choose a skill.",
-
   "toast.resourcePicked": "+{amount} {resource}",
   "toast.triggerResource": "+{amount} {resource}",
   "trigger.proto01.welcome": "Day 2: scouts report activity to the east.",
@@ -154,12 +139,10 @@
   "toast.skirmishFailed": "Could not start the skirmish",
   "toast.adventureSpellCast": "{spell} cast",
   "spellbook.adventureTitle": "Adventure spells",
-  "spellbook.manaCost": "{cost} mana",
   "toast.spellCast": "{hero} casts {spell}",
   "toast.skillLearned": "{skill} rank {rank} learned",
   "toast.saved": "Game saved.",
   "toast.townCaptured": "Town captured!",
-
   "cmdError.default": "Action not allowed",
   "cmdError.cannotAfford": "Not enough resources",
   "cmdError.alreadyBuiltToday": "Already built today",
@@ -180,7 +163,6 @@
   "cmdError.invalidTarget": "Invalid target",
   "cmdError.noMovementPoints": "Not enough movement points",
   "cmdError.invalidArmy": "Invalid army",
-
   "spell.trait-de-feu": "Firebolt",
   "spell.boule-de-feu": "Fireball",
   "spell.soin": "Heal",
@@ -204,7 +186,6 @@
   "spell.marque-du-guetteur": "Watcher's Mark",
   "spell.entraves-runiques": "Runic Shackles",
   "spell.ville-portail": "Town Portal",
-
   "skill.logistics": "Logistics",
   "skill.scouting": "Scouting",
   "skill.luck": "Luck",
@@ -217,12 +198,10 @@
   "skill.magic-water": "Water Magic",
   "skill.magic-earth": "Earth Magic",
   "skill.magic-air": "Air Magic",
-
   "artifact.lame-aiguisee": "Sharpened Blade",
   "artifact.egide-de-pierre": "Stone Aegis",
   "artifact.orbe-de-savoir": "Orb of Knowledge",
   "artifact.trefle-chance": "Lucky Clover",
-
   "building.townHall": "Town Hall",
   "building.fort": "Fort",
   "building.mageGuild": "Mage Guild",
@@ -230,7 +209,6 @@
   "building.tavern": "Tavern",
   "building.forge": "Forge",
   "warMachine.ballista.name": "Ballista",
-
   "resource.gold": "Gold",
   "resource.wood": "Wood",
   "resource.ore": "Ore",
@@ -238,9 +216,7 @@
   "resource.gems": "Gems",
   "resource.sulfur": "Sulfur",
   "resource.mercury": "Mercury",
-
   "faction.badge": "Faction {id} banner",
-
   "town.open": "Town",
   "town.title": "Town",
   "town.close": "Close",
@@ -273,7 +249,6 @@
   "town.marketAmount": "Amount",
   "town.marketReceive": "You receive: {amount}",
   "town.marketConfirm": "Trade",
-
   "toast.townIncome": "+{amount} {resource} (town income)",
   "toast.townGrowth": "+{added} {unit} (growth)",
   "toast.townBuilt": "{building} built (level {level})",
@@ -282,23 +257,14 @@
   "toast.huntContractAssigned": "New hunt contract",
   "toast.huntContractCompleted": "Contract fulfilled: +{gold} gold, +{amount} {resource}",
   "toast.warMachineBought": "{machine} bought",
-
-  "building.townHall": "Town Hall",
-  "building.fort": "Fort",
-  "building.mageGuild": "Mage Guild",
-  "building.market": "Market",
-  "building.tavern": "Tavern",
-  "building.forge": "Forge",
   "building.special": "Special building",
   "building.arcane-hunters-circle-vigile": "Circle of the Watch",
   "building.arcane-hunters-circle-traque": "Circle of the Hunt",
   "building.arcane-hunters-circle-sceau": "Circle of the Seal",
   "building.arcane-hunters-circle-abime": "Circle of the Abyss",
-
   "scenario.tutorial.name": "Tutorial",
   "scenario.survival.name": "Survival",
   "scenario.conquest.name": "Conquest",
-
   "outcome.won": "Victory!",
   "outcome.lost": "Defeat",
   "outcome.winner": "Player {n} wins!",
@@ -311,5 +277,38 @@
   "handoff.pass": "Pass the device to the next player.",
   "handoff.continue": "Continue",
   "toast.gameWon": "Victory!",
-  "toast.gameLost": "Defeat…"
+  "toast.gameLost": "Defeat…",
+  "building.townHall.lore": "Here they tally gold and the living. Both ledgers thin in the Marches, yet the clerk still dips his quill each morning.",
+  "building.fort.lore": "A wall never asks who knocks. In the Marches that is a virtue: by night, few knock to be welcomed.",
+  "building.mageGuild.lore": "Seven spells on the wall, an eighth left untaught. Apprentices sleep with the door shut, seal-side.",
+  "building.market.lore": "Salt for copper, rumor for silence — all of it changes hands. Everything has a price; fear rises at dusk.",
+  "building.tavern.lore": "The wine is sour and the stories better. Here you hire strong arms and bury names you would rather forget.",
+  "building.forge.lore": "The smith nails together ballistas before horseshoes: in the Marches, no one rides out for pleasure.",
+  "spell.trait-de-feu.lore": "The first flame you learn, the last you forget. One pointed finger, and the dark steps back a pace.",
+  "spell.boule-de-feu.lore": "It knows neither friend nor rank. Careful mages cast it far; the rest are buried close.",
+  "spell.soin.lore": "Water remembers whole flesh and reminds it. A brief balm — but the night runs long.",
+  "spell.benediction.lore": "A word of light laid upon the shoulder. In the Marches, you take Elrath where he still flickers.",
+  "spell.bouclier-de-pierre.lore": "Earth lends its patience to the bleeding. It promises nothing; it holds longer than fear.",
+  "spell.affaiblissement.lore": "You don't break the foe — you steal his footing. Steel does the rest on its own.",
+  "spell.hate.lore": "Wind slips into the legs and drives out hesitation. Well cast, it decides who strikes first.",
+  "spell.lenteur.lore": "You thicken the air around a foe until he wades through honey. Patience is a weapon.",
+  "spell.eclair-magique.lore": "No school, no color — only a will that bites. The pauper's spell, and it kills just as well.",
+  "spell.dissipation.lore": "Unmaking sometimes beats making. You breathe out another's enchantments like a candle.",
+  "spell.armure-fondue.lore": "Metal recalls it was once liquid. Under the heat, the finest cuirass runs to the ground.",
+  "spell.brasier.lore": "A sheet of fire that lingers on the fallen. In the Marches, the dead are burned as a precaution.",
+  "spell.jet-de-glace.lore": "Water drawn to a point, and the cold that bites after the blade. Simple, clean, honest.",
+  "spell.brouillard-glacial.lore": "A mist that freezes joints and clouds sight. The foe gropes forward; your ranks advance.",
+  "spell.grande-guerison.lore": "The full tide of the water art. It stitches the living — it will not call back those who have gone.",
+  "spell.seisme.lore": "The earth opens just enough to remind all it is waiting. Beneath the Marches, it waits for much.",
+  "spell.muraille-de-pierre.lore": "You raise a slab of rock where a rampart was missing. It will fall; until then, hold the line.",
+  "spell.choc-electrique.lore": "The sky lends a bolt without a cloud. Brief, white, and the smell of storm stays on the tongue.",
+  "spell.tornade.lore": "Wind knotted into a column tears ranks apart and flings them. You do not argue with the tornado.",
+  "spell.aura-protectrice.lore": "A quiet ring of favor about your own: a little poise, a little guard. Small, but you feel it.",
+  "spell.marque-du-guetteur.lore": "A sign etched on the quarry, unseen only by itself. What is marked does not escape twice.",
+  "spell.entraves-runiques.lore": "Runes close on the ankles like a cold snare. The foe stays; the hunt catches up to him.",
+  "spell.ville-portail.lore": "A fold of air carries the hero home within his walls. In the Marches, coming back alive is worth sixteen mana.",
+  "artifact.lame-aiguisee.lore": "Honed too often, it is more edge than blade. It never learned to stop in time.",
+  "artifact.egide-de-pierre.lore": "Heavy as regret, sure as a wall. It won't make you swift — only still standing.",
+  "artifact.orbe-de-savoir.lore": "In it you read what you fear to learn. The wise keep it under a cloth, seal-side.",
+  "artifact.trefle-chance.lore": "Plucked from a grave, they say. Luck in the Marches rarely comes but that another has lost it."
 }

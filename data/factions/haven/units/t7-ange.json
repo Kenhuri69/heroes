@@ -2,6 +2,7 @@
   "id": "t7-ange",
   "tier": 7,
   "name": "@loc:unit.t7-ange.name",
+  "loreKey": "@loc:unit.t7-ange.lore",
   "stats": { "hp": 180, "attack": 22, "defense": 18, "damage": [35, 55], "speed": 11 },
   "growthPerWeek": 1,
   "cost": { "gold": 3200, "crystal": 2, "gems": 2 },

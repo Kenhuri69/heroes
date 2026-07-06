@@ -2,6 +2,7 @@
   "id": "t7-dragon-os",
   "tier": 7,
   "name": "@loc:unit.t7-dragon-os.name",
+  "loreKey": "@loc:unit.t7-dragon-os.lore",
   "stats": { "hp": 160, "attack": 20, "defense": 20, "damage": [30, 50], "speed": 10 },
   "growthPerWeek": 1,
   "cost": { "gold": 3000, "sulfur": 2, "gems": 2 },

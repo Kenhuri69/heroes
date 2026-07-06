@@ -2,6 +2,7 @@
   "id": "t4-griffon-elite",
   "tier": 4,
   "name": "@loc:unit.t4-griffon-elite.name",
+  "loreKey": "@loc:unit.t4-griffon-elite.lore",
   "stats": { "hp": 39, "attack": 10, "defense": 9, "damage": [7, 12], "speed": 8 },
   "growthPerWeek": 5,
   "cost": { "gold": 520 },

@@ -2,6 +2,7 @@
   "id": "t6-chevalier-griffon",
   "tier": 6,
   "name": "@loc:unit.t6-chevalier-griffon.name",
+  "loreKey": "@loc:unit.t6-chevalier-griffon.lore",
   "stats": { "hp": 70, "attack": 14, "defense": 11, "damage": [12, 20], "speed": 8 },
   "growthPerWeek": 2,
   "cost": { "gold": 1300, "crystal": 1 },

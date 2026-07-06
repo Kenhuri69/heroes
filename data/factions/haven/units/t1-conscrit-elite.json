@@ -2,6 +2,7 @@
   "id": "t1-conscrit-elite",
   "tier": 1,
   "name": "@loc:unit.t1-conscrit-elite.name",
+  "loreKey": "@loc:unit.t1-conscrit-elite.lore",
   "stats": { "hp": 8, "attack": 3, "defense": 4, "damage": [2, 3], "speed": 5 },
   "growthPerWeek": 14,
   "cost": { "gold": 50 },

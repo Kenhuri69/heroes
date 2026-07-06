@@ -20,5 +20,19 @@
   "building.necropolis-dwelling-t4": "Habitation : Vampire",
   "building.necropolis-dwelling-t5": "Habitation : Liche",
   "building.necropolis-dwelling-t6": "Habitation : Cavalier funeste",
-  "building.necropolis-dwelling-t7": "Habitation : Dragon d'os"
+  "building.necropolis-dwelling-t7": "Habitation : Dragon d'os",
+  "unit.t1-squelette.lore": "Nous l'appelons le frère simplifié : débarrassé de la peur, du doute et de la faim, il ne garde que l'obéissance. La Roue lui reprendra le reste plus tard.",
+  "unit.t1-squelette-elite.lore": "On lui a rendu une lame et une discipline. Il ne se souvient pas de la guerre qui l'a tué ; c'est là, disent nos prêtres, la première grâce d'Asha.",
+  "unit.t2-zombie.lore": "La chair pourrit encore, oui. Nous ne le cachons pas. Elle marche quand même, patiente, vers l'ennemi : la putréfaction n'est qu'une étape, jamais une fin.",
+  "unit.t2-zombie-elite.lore": "Sa pestilence précède ses pas. Les vivants la nomment fléau ; nous y voyons un rappel honnête que tout corps, un jour, se rend à la Mort.",
+  "unit.t3-spectre.lore": "Une âme qui n'a pas voulu partir. Nous ne la punissons pas : nous la portons au combat, le temps qu'elle comprenne que la Roue tourne pour elle aussi.",
+  "unit.t3-spectre-elite.lore": "Il glisse sans bruit là où les vivants trébuchent. Le froid qu'il laisse n'est pas de la cruauté, disent nos livres, mais l'absence tranquille de tout ce qui pesait.",
+  "unit.t4-vampire.lore": "Il frappe sans laisser riposte, puis boit la vie de sa proie. Un péché, murmurent nos novices. Une nécessité, répond le maître : la foi aussi doit se nourrir.",
+  "unit.t4-vampire-elite.lore": "Seigneur d'un sang qui n'est plus le sien. Il choisit désormais qui rejoint la Roue et quand. Une foi peut-elle rester pure quand elle profite de chaque cadavre ?",
+  "unit.t5-liche.lore": "Elle a troqué sa chair contre le temps d'apprendre. De loin, elle rend la mort en traits soignés : un savant qui a fait de sa propre fin sa matière d'étude.",
+  "unit.t5-liche-elite.lore": "Son savoir déborde du corps qui le contenait. Chaque sort décoché est une leçon, sèche et définitive, sur ce que valent les vivants qui la défient.",
+  "unit.t6-cavalier-funeste.lore": "Un champion mort qu'on a remis en selle et rendu à la charge. Il ne connaît plus ni faction ni serment ; il sert la Roue, au galop, sans jamais se retourner.",
+  "unit.t6-cavalier-funeste-elite.lore": "Là où il passe, les vivants comprennent leur erreur : croire que la mort était loin. Il ne hait personne. Il vient seulement corriger ce malentendu.",
+  "unit.t7-dragon-os.lore": "Un dragon dont il ne reste que l'ossature et la colère. Nous l'avons relevé par révérence : même les plus grands doivent rendre leur chair à la Roue.",
+  "unit.t7-dragon-os-elite.lore": "Ni os ni chair, seulement le souvenir d'un dragon, hurlant dans le vent. Le voir, c'est apercevoir ce qui nous attend tous : beau, glacé, inévitable."
 }

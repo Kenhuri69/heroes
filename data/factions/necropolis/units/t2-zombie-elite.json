@@ -2,6 +2,7 @@
   "id": "t2-zombie-elite",
   "tier": 2,
   "name": "@loc:unit.t2-zombie-elite.name",
+  "loreKey": "@loc:unit.t2-zombie-elite.lore",
   "stats": { "hp": 18, "attack": 4, "defense": 5, "damage": [3, 4], "speed": 4 },
   "growthPerWeek": 9,
   "cost": { "gold": 115 },

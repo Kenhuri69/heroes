@@ -21,5 +21,20 @@
   "building.sylvan-court-dwelling-t5": "Habitation : Licorne",
   "building.sylvan-court-dwelling-t6": "Habitation : Tréant",
   "building.sylvan-court-dwelling-t7": "Habitation : Aïeul de la Forêt",
-  "building.sylvan-court-heart-grove": "Bosquet du Cœur"
+  "building.sylvan-court-heart-grove": "Bosquet du Cœur",
+  "unit.t1-lucine.lore": "Nous volons plus vite que la rumeur. Ce que la Cour murmure, la forêt l'a déjà décidé.",
+  "unit.t1-lucine-elite.lore": "Nous n'avons pas d'âge, seulement des saisons. Celle-ci, nous l'avons choisie pour la guerre.",
+  "unit.t2-archer-sylvestre.lore": "Nous ne visons pas l'ennemi. Nous visons l'endroit où la forêt le veut mort.",
+  "unit.t2-archer-sylvestre-elite.lore": "Douze flèches, douze certitudes. Nous ne comptons pas les corps : la forêt tient ce registre.",
+  "unit.t3-dryade.lore": "Nous prenons racine un instant, et le sol nous rend plus dures. Puis nous repartons.",
+  "unit.t3-dryade-elite.lore": "Nous nous souvenons de la première coupe. Nous n'avons rien oublié, et nous ne pardonnons pas au bois mort.",
+  "unit.t4-loup-argent.lore": "Deux morsures, un seul cœur. La meute n'est pas nombreuse : elle est la forêt qui court.",
+  "unit.t4-loup-argent-elite.lore": "La mort ne l'a pas arrêté, seulement affûté. Nous chassons encore avec ceux que nous avons perdus.",
+  "unit.t5-licorne.lore": "Sa corne guérit ou tranche, selon la fièvre. La guerre est une maladie ; nous sommes le remède qui saigne.",
+  "unit.t5-licorne-elite.lore": "Nous avons cessé de guérir. Il est des membres qu'il faut trancher pour que le reste vive.",
+  "unit.t6-treant.lore": "Il marche : un arbre qui reste debout n'a rien compris à la tempête. Enraciné, il devient muraille.",
+  "unit.t6-treant-elite.lore": "Nous avons vu tomber des forêts entières. Certaines, nous les avons abattues nous-mêmes. Nous marchons toujours.",
+  "unit.t7-aieul.lore": "Quand l'Aïeul se lève, la forêt se déplace. Le monde n'est qu'un seul corps, et il vient de sentir la douleur.",
+  "unit.t7-aieul-elite.lore": "Nous l'avons réveillé en sachant le prix. Pour sauver le tout, nous avons déjà amputé — et nous recommencerons.",
+  "building.sylvan-court-heart-grove.lore": "Nous sommes ce bosquet, et ce bosquet est nous. Ce qui tombe ici lève déjà ; nous ne comptons pas les saisons."
 }

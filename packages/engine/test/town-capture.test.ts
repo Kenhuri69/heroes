@@ -37,11 +37,13 @@ describe('CaptureTown', () => {
     expect(events).toContainEqual({ type: 'TownCaptured', townId: 'town-1', playerId: 'p1' });
   });
 
-  it('rejette la capture d’une ville défendue (garnison non vide)', () => {
+  it('assiéger une ville défendue sans armée est refusé (invalidArmy)', () => {
+    // Le héros de départ n'a pas d'armée : impossible d'assiéger une garnison
+    // (le siège lui-même est couvert par town-siege.test.ts).
     const state = startedGame({ garrison: [{ unitId: 'red-grunt', count: 3 }] });
     expect(
       validate(state, { type: 'CaptureTown', townId: 'town-1', playerId: 'p1' })?.code,
-    ).toBe('invalidAction');
+    ).toBe('invalidArmy');
   });
 
   it('rejette une ville inconnue', () => {

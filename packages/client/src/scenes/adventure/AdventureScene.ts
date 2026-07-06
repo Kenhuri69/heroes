@@ -1,6 +1,7 @@
 import { Application, Assets, Container, Graphics, Point, Sprite } from 'pixi.js';
 import {
   findPath,
+  isAdjacent,
   samePos,
   stepCost,
   type EngineResult,
@@ -15,6 +16,7 @@ import type { Camera } from '../../render/camera';
 import { heroAvatarUrl } from '../../render/assets';
 import { Tilemap, TILE_SIZE } from '../../render/tilemap';
 import { MapObjectsLayer } from '../../render/mapObjects';
+import { TownsLayer } from '../../render/townsLayer';
 import { FogOverlay } from '../../render/fog';
 import { buildHeroSprite } from '../../render/heroSprite';
 import { PathPreview, type PreviewStep } from '../../render/pathPreview';
@@ -31,6 +33,7 @@ const STEP_ANIMATION_MS = 110;
 export class AdventureScene {
   readonly container = new Container();
   private readonly objects = new MapObjectsLayer();
+  private readonly towns = new TownsLayer();
   private readonly fog: FogOverlay;
   private readonly preview = new PathPreview();
   private readonly heroesLayer = new Container();
@@ -59,6 +62,7 @@ export class AdventureScene {
     this.container.addChild(
       tilemap.container,
       this.objects.container,
+      this.towns.container,
       this.preview.graphics,
       this.heroesLayer,
       this.fog.sprite,
@@ -90,6 +94,7 @@ export class AdventureScene {
     const player = game.players.find((p) => p.id === humanId(game));
     if (!map || !config || !player) return;
     this.objects.sync(map.objects, game.unitCatalog);
+    this.towns.sync(game.towns, humanId(game));
     const heroes = humanHeroes(game);
     const positions = heroes.map((h) => h.pos);
     this.fog.update(player.explored, positions, config.visionRadius);
@@ -177,6 +182,10 @@ export class AdventureScene {
       this.clearPreview();
       const result = await dispatch({ type: 'MoveHero', heroId: hero.id, path });
       await this.animateMove(result);
+      // Ville adverse/neutre atteinte (Alpha 4.13) : capturer ⇒ combat de siège
+      // si elle est défendue, capture immédiate sinon. Le combat prend la main
+      // via le routeur (`game.combat`), comme une interception de gardien.
+      await this.tryCaptureTownAt(tile);
       return;
     }
 
@@ -208,6 +217,23 @@ export class AdventureScene {
     }
     this.previewTarget = { target: tile, path };
     this.preview.show(steps);
+  }
+
+  /**
+   * Si `tile` porte une ville non possédée par le joueur et que le héros
+   * sélectionné vient de l'atteindre (dessus ou adjacent), déclenche `CaptureTown`
+   * (Alpha 4.13) : capture immédiate d'une ville sans garnison, sinon combat de
+   * siège. No-op si la ville est déjà à nous, hors de portée, ou inexistante.
+   */
+  private async tryCaptureTownAt(tile: GridPos): Promise<void> {
+    if (this.destroyed) return;
+    const { game } = appStore.getState();
+    const human = humanId(game);
+    const town = game.towns.find((tw) => tw.ownerPlayerId !== human && samePos(tw.pos, tile));
+    if (!town) return;
+    const hero = resolveSelectedHero(game, appStore.getState().selectedHeroId);
+    if (!hero || (!samePos(hero.pos, town.pos) && !isAdjacent(hero.pos, town.pos))) return;
+    await dispatch({ type: 'CaptureTown', townId: town.id, playerId: human });
   }
 
   private clearPreview(): void {

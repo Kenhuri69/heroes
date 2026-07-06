@@ -100,6 +100,8 @@ function manualState(stacks: CombatStack[], activeStackId: string): GameState {
     playerSide: 'attacker',
     heroId: null,
     guardianObjectId: null,
+    townId: null,
+    wallDefenseBonus: 0,
     finished: false,
     attackerHeroId: null,
     defenderHeroId: null,

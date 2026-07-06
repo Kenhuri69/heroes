@@ -207,6 +207,26 @@ export function newGameCommand(
     ...map,
     objects: map.objects.filter((o) => o.type !== 'town'),
   };
+  // Villes **neutres** de la carte (Alpha 4.13) : tout objet `town` qui n'est
+  // pas une ville de départ (référencée par `townSetup.towns`) devient une ville
+  // sans propriétaire, dotée de sa garnison de données — assiégeable (doc 02 §4.1).
+  const startTownIds = new Set(townSetup.towns.map((t) => t.id));
+  const neutralTowns: TownState[] = map.objects.flatMap((obj) =>
+    obj.type === 'town' && !startTownIds.has(obj.id)
+      ? [
+          {
+            id: obj.id,
+            ownerPlayerId: null,
+            pos: { x: obj.pos.x, y: obj.pos.y },
+            factionId: obj.factionId ?? '',
+            buildings: {},
+            builtToday: false,
+            garrison: (obj.garrison ?? []).map((s) => ({ ...s })),
+            stock: {},
+          },
+        ]
+      : [],
+  );
   return {
     type: 'StartGame',
     seed,
@@ -224,7 +244,7 @@ export function newGameCommand(
     config: config.adventure,
     unitCatalog,
     buildingCatalog: townSetup.buildingCatalog,
-    towns: townSetup.towns,
+    towns: [...townSetup.towns, ...neutralTowns],
     spellCatalog: heroSetup.spellCatalog,
     skillCatalog: heroSetup.skillCatalog,
     artifactCatalog: heroSetup.artifactCatalog,
@@ -300,6 +320,24 @@ export function scenarioStartCommand(
       },
     ];
   });
+
+  // Villes **neutres** de la carte (Alpha 4.13) : tout objet `town` qui n'est pas
+  // la ville de départ d'un joueur devient une ville sans propriétaire, dotée de
+  // sa garnison de données — assiégeable par un héros (doc 02 §4.1).
+  const startTownIds = new Set(towns.map((t) => t.id));
+  for (const obj of map.objects) {
+    if (obj.type !== 'town' || startTownIds.has(obj.id)) continue;
+    towns.push({
+      id: obj.id,
+      ownerPlayerId: null,
+      pos: { x: obj.pos.x, y: obj.pos.y },
+      factionId: obj.factionId ?? '',
+      buildings: {},
+      builtToday: false,
+      garrison: (obj.garrison ?? []).map((s) => ({ ...s })),
+      stock: {},
+    });
+  }
 
   // Les objets `town` de la carte vivent dans `GameState.towns`, jamais dans
   // les objets d'aventure du moteur (resource/guardian) — voir `newGameCommand`.

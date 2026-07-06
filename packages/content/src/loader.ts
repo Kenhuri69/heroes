@@ -629,6 +629,9 @@ export type ResolvedMapObject =
       id: string;
       type: 'town';
       pos: { x: number; y: number };
+      /** Ville neutre (Alpha 4.13) : faction + garnison assiégeable. Absents = ville de départ. */
+      factionId?: string;
+      garrison?: { unitId: string; count: number }[];
     };
 
 /** Effet de trigger résolu — identique à `TriggerEffect` du moteur (doc 02 §2.1). */
@@ -874,7 +877,13 @@ function resolveMap(file: MapFile): ResolvedMap {
         return { id: obj.id, type: obj.type, pos, resource: obj.resource, amount: obj.amount };
       if (obj.type === 'guardian')
         return { id: obj.id, type: obj.type, pos, unitId: obj.unitId, count: obj.count };
-      return { id: obj.id, type: obj.type, pos };
+      return {
+        id: obj.id,
+        type: obj.type,
+        pos,
+        ...(obj.factionId !== undefined ? { factionId: obj.factionId } : {}),
+        ...(obj.garrison !== undefined ? { garrison: obj.garrison.map((s) => ({ ...s })) } : {}),
+      };
     }),
     triggers: (file.triggers ?? []).map((t): ResolvedMapTrigger => ({
       id: t.id,

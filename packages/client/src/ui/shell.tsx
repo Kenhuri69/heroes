@@ -13,6 +13,7 @@ import { t, resolveUnitName } from '../app/i18n';
 import { AssetImg } from './AssetImg';
 import { MenuScreen } from './MenuScreen';
 import { OptionsPanel } from './OptionsPanel';
+import { SkirmishScreen } from './SkirmishScreen';
 import { Journal } from './Journal';
 import { ToastHost, pushToast } from './toasts';
 import { CombatUi } from './combat';
@@ -67,6 +68,7 @@ function Shell() {
   const optionsModal = modals.some((m) => m.kind === 'options');
   const townModal = modals.find((m): m is { kind: 'town'; townId: string } => m.kind === 'town');
   const journalModal = modals.some((m) => m.kind === 'journal');
+  const skirmishModal = modals.some((m) => m.kind === 'skirmish');
 
   return (
     <>
@@ -85,6 +87,7 @@ function Shell() {
         )
       ) : null}
       {optionsModal && <OptionsPanel onClose={() => closeModalKind('options')} />}
+      {skirmishModal && <SkirmishScreen onClose={() => closeModalKind('skirmish')} />}
       {townModal && <TownScreen townId={townModal.townId} onClose={() => closeModalKind('town')} />}
       {journalModal && <Journal onClose={() => closeModalKind('journal')} />}
       {pendingSkillHero && <SkillChoice hero={pendingSkillHero} />}

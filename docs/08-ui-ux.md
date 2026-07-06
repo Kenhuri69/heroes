@@ -98,6 +98,17 @@ Menu principal (Continuer / Scénarios / Escarmouche / Options), fiche de scéna
 > libellé + valeur (jamais la couleur seule, §4) ; le joueur humain est mis en
 > évidence. Stats détaillées (durée, pertes cumulées…) = raffinement ultérieur.
 
+> 🚧 **État (escarmouche vs IA, Alpha 4.14)** : le bouton **Escarmouche** du menu
+> ouvre une modale `SkirmishScreen` (pile de modales §3) : choix de la faction du
+> joueur, de la faction de l'IA (listes peuplées depuis les paquets chargés,
+> aucun id en dur) et d'un cran de **difficulté** (Facile / Normale / Difficile,
+> segmented control). « Lancer » émet `heroes:start-skirmish` (même découplage que
+> « Nouvelle partie ») → une partie 1v1 est **générée à l'exécution**
+> (`skirmishStartCommand`). La difficulté est un **levier de données** (l'armée /
+> les ressources de l'IA sont mises à l'échelle) — aucun code de difficulté dans
+> le moteur. i18n FR/EN, sélecteurs à cible tactile ≥ 44 px. Choix de la carte
+> différé (une seule carte proto ; arrivera avec l'éditeur de carte).
+
 ## 3. Navigation & flux
 
 - **Routeur d'écrans** (source unique de navigation, lue par le DOM et les

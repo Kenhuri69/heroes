@@ -63,6 +63,13 @@ export function MenuScreen() {
         >
           {t('menu.newGame')}
         </button>
+        <button
+          class="menu-button"
+          data-testid="menu-skirmish"
+          onClick={() => openModal({ kind: 'skirmish' })}
+        >
+          {t('menu.skirmish')}
+        </button>
         <button class="menu-button" data-testid="menu-options" onClick={() => openModal({ kind: 'options' })}>
           {t('menu.options')}
         </button>

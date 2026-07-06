@@ -327,6 +327,41 @@ test('menu : Nouvelle partie démarre, Continuer grisé sans sauvegarde', async 
   expect(errors).toEqual([]);
 });
 
+test('escarmouche vs IA : config + difficulté génèrent une partie 1v1 (Alpha 4.14)', async ({
+  page,
+}) => {
+  const errors = collectErrors(page);
+  await page.goto('./'); // menu (sans ?seed)
+  await page.waitForFunction(() => window.__HEROES_READY__ === true);
+
+  // Ouvre l'écran d'escarmouche depuis le menu, choisit « Difficile », lance.
+  await page.getByTestId('menu-skirmish').click();
+  await expect(page.getByTestId('skirmish-screen')).toBeVisible();
+  await page.getByTestId('skirmish-difficulty-difficile').click();
+  await page.getByTestId('skirmish-start').click();
+
+  // La partie démarre sur la carte : 1 humain + 1 IA, chacun sa ville.
+  await expect(page.getByTestId('end-turn')).toBeVisible();
+  const state = await page.evaluate(() => window.__HEROES_TEST__!.getState());
+  expect(state.started).toBe(true);
+  expect(state.players.map((p) => p.controller)).toEqual(['human', 'ai']);
+  expect(state.scenario).not.toBeNull();
+  expect(state.towns.find((t) => t.id === 'town-player-1')?.ownerPlayerId).toBe('player-1');
+  expect(state.towns.find((t) => t.id === 'town-player-2')?.ownerPlayerId).toBe('player-2');
+
+  // Difficulté « Difficile » : l'armée IA est mise à l'échelle (×1,6 = 48 vs 30).
+  const humanArmy = state.heroes.find((h) => h.playerId === 'player-1')?.army[0]?.count;
+  const aiArmy = state.heroes.find((h) => h.playerId === 'player-2')?.army[0]?.count;
+  expect(humanArmy).toBe(30);
+  expect(aiArmy).toBe(48);
+
+  // La boucle IA joue son tour sans erreur à la fin de tour du joueur.
+  await page.getByTestId('end-turn').click();
+  await expect(page.getByTestId('calendar')).toContainText('2');
+
+  expect(errors).toEqual([]);
+});
+
 test('autosave à la fin de tour puis « Continuer » depuis le menu', async ({ page }) => {
   const errors = await openGame(page);
 

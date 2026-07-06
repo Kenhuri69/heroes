@@ -494,9 +494,17 @@ describe('4ᵉ faction (native de l’eau) — pipeline data-driven', () => {
     expect(byTier.get(2)?.abilities).toEqual([{ id: 'shooter', params: { ammo: 12 } }]);
     expect(byTier.get(4)?.abilities).toEqual([{ id: 'doubleAttack' }]);
     expect(byTier.get(7)?.stats.hp).toBe(165);
-    // Les unités-Symbiose (T3/T6/T7) n'ont pas encore de capacité (ability ouverte
-    // au lot moteur suivant) : lineup complet et recrutable dès maintenant.
-    expect(byTier.get(3)?.abilities).toEqual([]);
+    // Signature Symbiose (doc 14 §2, Beta 5.3) : T3/T6/T7 portent la capacité
+    // générique `symbiosis` (bonus Att/Déf cumulatif tant que la pile Défend).
+    expect(byTier.get(3)?.abilities).toEqual([
+      { id: 'symbiosis', params: { attackPerRound: 1, defensePerRound: 1, maxStacks: 4 } },
+    ]);
+    expect(byTier.get(6)?.abilities).toEqual([
+      { id: 'symbiosis', params: { attackPerRound: 2, defensePerRound: 2, maxStacks: 4 } },
+    ]);
+    expect(byTier.get(7)?.abilities).toEqual([
+      { id: 'symbiosis', params: { attackPerRound: 2, defensePerRound: 3, maxStacks: 4 } },
+    ]);
   });
 
   it('recrute une unité de chacun des 7 tiers depuis une ville aux habitations construites', async () => {

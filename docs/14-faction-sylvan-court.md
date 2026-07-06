@@ -67,11 +67,12 @@ implacable, car la forêt ne charge pas — elle *encercle*.
 | 6 | **Tréant** | 78 | 13 | 15 | 12–18 | 4 | 2 | 1200 or + 1 mercure | `symbiosis(atk +2, déf +2, max 4)` ¹ |
 | 7 | **Aïeul de la Forêt** | 165 | 20 | 18 | 30–50 | 9 | 1 | 3000 or + 2 cristal + 2 mercure | `symbiosis(atk +2, déf +3, max 4)` ¹ |
 
-> ¹ **Symbiose ouverte au lot moteur (5.3)** : les unités T3/T6/T7 sont livrées au
-> lot **données (5.2)** avec `abilities: []` (lineup complet & recrutable), puis
-> reçoivent la capacité `symbiosis` **en données** quand le module moteur générique
-> est ouvert. Chaque tier a **7 variantes améliorées** (`-elite`, dwelling niveau 2,
-> Alpha 4.11), stats renforcées, mêmes capacités.
+> ¹ **Symbiose livrée (5.3)** : le module moteur générique `symbiosis` est ouvert et
+> les unités T3/T6/T7 portent la capacité **en données** (paliers Att/Déf ci-dessus,
+> plafond 4). Elles étaient livrées au lot **données (5.2)** avec `abilities: []`
+> (lineup complet & recrutable) le temps que le point d'extension existe. Chaque tier
+> a **7 variantes améliorées** (`-elite`, dwelling niveau 2, Alpha 4.11), stats
+> renforcées, mêmes capacités.
 >
 > Le lineup n'utilise que des **capacités existantes** (`flying`, `shooter`,
 > `doubleAttack`) hors Symbiose — la promesse « **1 module moteur total** » (§9)
@@ -174,3 +175,21 @@ paquets), garde-fou faction vert, **zéro diff moteur**. Symbiose (T3/T6/T7) à
 d'extension `symbiosis` (moteur générique + données qui l'exercent + tests) ;
 **5.4** équilibrage `faction:sim` + Bosquet du Cœur + finitions (assets procéduraux
 en repli).
+
+## État 5.3
+
+**Signature Symbiose livrée** — point d'extension moteur **générique** `symbiosis`
+(à la manière de `mark`/`consumeMarks`/`demonform`, **zéro nom de faction dans
+`packages/`**). Une pile portant la capacité accumule un palier à chaque **Défense**
+(et tant qu'elle ne bouge ni n'attaque volontairement), chaque palier ajoutant
+`attackPerRound`/`defensePerRound` à ses stats effectives de frappe, plafonné à
+`maxStacks`. Un **déplacement** ou une **attaque volontaire** remet les paliers à 0
+(la frappe consomme le bonus accumulé) ; **la riposte ne réinitialise pas**, si bien
+qu'un défenseur enraciné cogne dur en représailles. Implémentation :
+`symbiosisStacks` sur `CombatStack` (transitoire, purgé en fin de combat → **golden
+inchangé**), incrément dans `applyDefend`, remise à 0 dans `applyMove`/`applyAttack`,
+bonus lus dans `damage.ts`. Données : `symbiosis` ajouté à `data/core/abilities.json`
+et aux 6 unités Sylvestres T3/T6/T7. **6 tests moteur** (accumulation, plafond,
+bonus Att/Déf, remises à 0 déplacement/attaque, préservation en riposte),
+`content:check` vert, garde-fou faction vert, smoke desktop+mobile vert. Reste :
+**5.4** équilibrage `faction:sim` + Bosquet du Cœur + finitions.

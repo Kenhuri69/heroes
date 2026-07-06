@@ -62,6 +62,13 @@ export interface CombatStack {
   immobilizedRounds: number;
   /** Forme démon activée (capacité `demonform`, doc 05 §4) : bascule à la 1ʳᵉ attaque. */
   transformed: boolean;
+  /**
+   * Paliers de Symbiose accumulés (capacité `symbiosis`, doc 14 §2, Beta 5.3) :
+   * +1 à chaque Défense, remis à 0 sur un déplacement/une attaque volontaire (la
+   * riposte ne réinitialise pas), plafonné à `maxStacks`. Bonus Att/Déf = paliers
+   * × params. 0 pour toute unité sans la capacité.
+   */
+  symbiosisStacks: number;
   /** A déjà agi ce round (vagues par vitesse décroissante — doc 02 §5.2). */
   acted: boolean;
   /** Statuts temporaires de sorts (buff/debuff, doc 02 §1.4) — vide par défaut. */

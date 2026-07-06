@@ -5,5 +5,5 @@
   "stats": { "hp": 78, "attack": 13, "defense": 15, "damage": [12, 18], "speed": 4 },
   "growthPerWeek": 2,
   "cost": { "gold": 1200, "mercury": 1 },
-  "abilities": []
+  "abilities": [{ "id": "symbiosis", "params": { "attackPerRound": 2, "defensePerRound": 2, "maxStacks": 4 } }]
 }

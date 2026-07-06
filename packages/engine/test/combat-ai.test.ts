@@ -68,6 +68,7 @@ function makeStack(overrides: Partial<CombatStack> & Pick<CombatStack, 'id' | 's
     marks: 0,
     immobilizedRounds: 0,
     transformed: false,
+    symbiosisStacks: 0,
     acted: false,
     statuses: [],
     ...overrides,

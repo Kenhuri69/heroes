@@ -98,6 +98,7 @@ function stack(
     marks: 0,
     immobilizedRounds: 0,
     transformed: false,
+    symbiosisStacks: 0,
     acted: false,
     statuses: [],
     ...partial,

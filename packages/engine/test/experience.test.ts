@@ -49,6 +49,7 @@ function baseHero(overrides: Partial<HeroState> = {}): HeroState {
     artifacts: Array.from({ length: 10 }, () => null),
     pendingSkillChoices: [],
     factionId: '',
+    warMachines: [],
     ...overrides,
   };
 }

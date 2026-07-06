@@ -92,6 +92,7 @@ function hero(over: Partial<HeroState> = {}): HeroState {
     artifacts: Array.from({ length: 10 }, () => null),
     pendingSkillChoices: [],
     factionId: '',
+    warMachines: [],
     ...over,
   };
 }

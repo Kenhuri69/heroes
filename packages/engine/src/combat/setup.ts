@@ -154,7 +154,12 @@ export function beginGuardianCombat(
   if (!guardian || guardian.type !== 'guardian')
     throw new Error(`beginGuardianCombat: gardien introuvable '${guardianObjectId}'`);
   const terrain = terrainAt(map, guardian.pos);
-  const attacker = hero.army;
+  // Les machines de guerre du héros (doc 02 §5, Alpha 4.12) rejoignent son camp
+  // comme piles supplémentaires (count 1), hors cap 7 de l'armée.
+  const attacker: ArmyStack[] = [
+    ...hero.army,
+    ...hero.warMachines.map((unitId) => ({ unitId, count: 1 })),
+  ];
   const defender: ArmyStack[] = [{ unitId: guardian.unitId, count: guardian.count }];
   const stacks = [
     ...placeSide('attacker', attacker, draft.unitCatalog, 0),

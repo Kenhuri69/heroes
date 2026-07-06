@@ -110,6 +110,10 @@ export function notify(event: AppEvent, game: GameState): string | null {
       return ownTown(event.townId)
         ? t('toast.unitsUpgraded', { count: event.count, unit: resolveUnitName(event.toUnitId) })
         : null;
+    case 'WarMachineBought':
+      return ownHero(event.heroId)
+        ? t('toast.warMachineBought', { machine: resolveUnitName(event.unitId) })
+        : null;
     case 'TownCaptured':
       return event.playerId === human ? t('toast.townCaptured') : null;
     // Contrats de chasse (doc 05 §3.3) — cible neutre hebdomadaire.

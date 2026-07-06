@@ -86,7 +86,7 @@
       "id": "forge",
       "maxLevel": 1,
       "levels": [
-        { "cost": { "gold": 2000, "ore": 10 }, "requires": [], "effect": { "type": "none" } }
+        { "cost": { "gold": 2000, "ore": 10 }, "requires": [], "effect": { "type": "warMachineVendor", "units": ["ballista"] } }
       ]
     }
   ]

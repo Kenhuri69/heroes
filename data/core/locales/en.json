@@ -179,6 +179,7 @@
   "building.market": "Market",
   "building.tavern": "Tavern",
   "building.forge": "Forge",
+  "warMachine.ballista.name": "Ballista",
 
   "resource.gold": "Gold",
   "resource.wood": "Wood",
@@ -207,6 +208,9 @@
   "town.toHero": "→ hero",
   "town.toTown": "← town",
   "town.upgrade": "Upgrade",
+  "town.warMachines": "War machines",
+  "town.buy": "Buy",
+  "town.owned": "Owned",
   "town.stock": "Stock {count}",
   "town.min": "Min",
   "town.max": "Max",
@@ -227,6 +231,7 @@
   "toast.unitsUpgraded": "{count} {unit} upgraded",
   "toast.huntContractAssigned": "New hunt contract",
   "toast.huntContractCompleted": "Contract fulfilled: +{gold} gold, +{amount} {resource}",
+  "toast.warMachineBought": "{machine} bought",
 
   "building.townHall": "Town Hall",
   "building.fort": "Fort",

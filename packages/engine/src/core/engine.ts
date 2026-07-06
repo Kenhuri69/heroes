@@ -29,6 +29,8 @@ import {
   validateTradeResources,
   validateUpgradeUnits,
   handleUpgradeUnits,
+  validateBuyWarMachine,
+  handleBuyWarMachine,
 } from '../town';
 import {
   handleCastSpell,
@@ -92,6 +94,7 @@ const GAME_OVER_BLOCKED = new Set<Command['type']>([
   'BuildStructure',
   'RecruitUnits',
   'UpgradeUnits',
+  'BuyWarMachine',
   'GarrisonTransfer',
   'CaptureTown',
   'TradeResources',
@@ -184,6 +187,11 @@ export function validate(state: GameState, cmd: Command): CommandError | null {
       if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
       if (state.combat) return { code: 'combatActive', message: 'un combat est en cours' };
       return validateUpgradeUnits(state, cmd);
+    }
+    case 'BuyWarMachine': {
+      if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
+      if (state.combat) return { code: 'combatActive', message: 'un combat est en cours' };
+      return validateBuyWarMachine(state, cmd);
     }
     case 'GarrisonTransfer': {
       if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
@@ -344,6 +352,7 @@ const handlers: Handlers = {
       artifacts: Array.from({ length: 10 }, (_, i) => (cmd.startingArtifacts ?? [])[i] ?? null),
       pendingSkillChoices: [],
       factionId: p.startingFactionId ?? '',
+      warMachines: [],
     }));
     for (const hero of draft.heroes) {
       hero.manaMax = heroManaMax(hero, draft.artifactCatalog);
@@ -397,6 +406,10 @@ const handlers: Handlers = {
 
   UpgradeUnits(draft, cmd, events) {
     handleUpgradeUnits(draft, cmd, events);
+  },
+
+  BuyWarMachine(draft, cmd, events) {
+    handleBuyWarMachine(draft, cmd, events);
   },
 
   GarrisonTransfer(draft, cmd, events) {

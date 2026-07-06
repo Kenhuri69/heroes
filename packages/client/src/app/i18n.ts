@@ -29,6 +29,9 @@ export function initI18n(report: LoadReport): void {
     for (const lang of LOCALE_LANGS) Object.assign(merged[lang], pack.locales[lang]);
     for (const unit of pack.units) refs[unit.id] = unit.name;
   }
+  // Machines de guerre communes (doc 02 §5) : leur nom vit dans les locales CORE
+  // (pas de paquet) — `resolveUnitName` fait le repli core → paquet.
+  for (const wm of report.content.coreWarMachines) refs[wm.id] = wm.name;
   packLocales = merged;
   unitNameRefs = refs;
   appStore.setState({ locale: initialLocale() });
@@ -79,7 +82,12 @@ export function resolveLoc(ref: string): string {
 /** Nom localisé d'une unité depuis son id — pratique pour les vignettes/tiroir. */
 export function resolveUnitName(unitId: string): string {
   const ref = unitNameRefs[unitId];
-  return ref ? resolveLoc(ref) : unitId;
+  if (!ref) return unitId;
+  // Repli core → paquet : les unités de faction vivent dans le paquet, les
+  // machines de guerre communes dans les locales core (doc 02 §5).
+  const key = ref.startsWith('@loc:') ? ref.slice('@loc:'.length) : ref;
+  const core = t(key);
+  return core !== key ? core : resolveLoc(ref);
 }
 
 /**

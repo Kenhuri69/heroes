@@ -83,6 +83,8 @@ export type GameEvent =
   | { type: 'UnitsRecruited'; townId: string; unitId: string; count: number }
   /** Amélioration d'une pile de garnison (doc 02 §4.1, Alpha 4.11). */
   | { type: 'UnitsUpgraded'; townId: string; fromUnitId: string; toUnitId: string; count: number }
+  /** Achat d'une machine de guerre par le héros présent (doc 02 §5, Alpha 4.12). */
+  | { type: 'WarMachineBought'; townId: string; heroId: string; unitId: string }
   | { type: 'TownIncome'; playerId: string; resource: string; amount: number }
   | { type: 'TownGrowth'; townId: string; unitId: string; added: number }
   | { type: 'TownCaptured'; townId: string; playerId: string }

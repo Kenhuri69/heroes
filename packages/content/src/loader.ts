@@ -14,8 +14,10 @@ import {
   skillCatalogSchema,
   spellCatalogSchema,
   unitSchema,
+  warMachineCatalogSchema,
   type AbilityCatalog,
   type Artifact,
+  type WarMachine,
   type Building,
   type FactionBonus,
   type GameConfig,
@@ -63,6 +65,8 @@ export interface LoadedContent {
   coreSkills: Skill[];
   /** Artefacts communs — data/core/artifacts.json (doc 02 §1.1, plan phase-3.2). */
   coreArtifacts: Artifact[];
+  /** Machines de guerre communes — data/core/war-machines.json (doc 02 §5, Alpha 4.12). */
+  coreWarMachines: WarMachine[];
   packs: FactionPack[];
   /**
    * Scénarios solo résolus — data/scenarios/ (plan phase-3.5, lot T). Vide tant
@@ -132,12 +136,18 @@ export async function loadContent(readJson: ReadJson): Promise<LoadReport> {
     await readJson('core/artifacts.json'),
     'core/artifacts.json',
   ).artifacts;
+  const coreWarMachines = parseFile(
+    warMachineCatalogSchema,
+    await readJson('core/war-machines.json'),
+    'core/war-machines.json',
+  ).warMachines;
   {
-    // Sorts/compétences/artefacts communs : erreur bloquante directe (comme bâtiments), pas de rejet partiel.
+    // Sorts/compétences/artefacts/machines communs : erreur bloquante directe (comme bâtiments), pas de rejet partiel.
     const errors: string[] = [];
     checkUniqueIds(errors, 'core/spells.json', coreSpells.map((s) => s.id), 'sort');
     checkUniqueIds(errors, 'core/skills.json', coreSkills.map((s) => s.id), 'compétence');
     checkUniqueIds(errors, 'core/artifacts.json', coreArtifacts.map((a) => a.id), 'artefact');
+    checkUniqueIds(errors, 'core/war-machines.json', coreWarMachines.map((w) => w.id), 'machine de guerre');
     if (errors.length > 0) throw new PackError(errors);
   }
   const report: LoadReport = {
@@ -149,6 +159,7 @@ export async function loadContent(readJson: ReadJson): Promise<LoadReport> {
       coreSpells,
       coreSkills,
       coreArtifacts,
+      coreWarMachines,
       packs: [],
       scenarios: [],
     },

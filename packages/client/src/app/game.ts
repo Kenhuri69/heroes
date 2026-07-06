@@ -105,6 +105,19 @@ export function buildUnitCatalog(report: LoadReport): Record<string, CombatUnitD
       };
     }
   }
+  // Machines de guerre communes (doc 02 §5, Alpha 4.12) — fusionnées dans le
+  // catalogue d'unités : le moteur ne voit qu'un `CombatUnitDef` par id. Groupe
+  // opaque `war-machine` (pas une faction ; pas de bonus de terrain natif).
+  for (const wm of report.content.coreWarMachines) {
+    catalog[wm.id] = {
+      id: wm.id,
+      groupId: 'war-machine',
+      nativeTerrain: '',
+      stats: wm.stats,
+      abilities: wm.abilities,
+      recruitCost: wm.cost as Partial<Resources>,
+    };
+  }
   return catalog;
 }
 

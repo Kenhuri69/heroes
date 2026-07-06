@@ -389,6 +389,21 @@ function GarrisonTab({ town, onError }: { town: TownState; onError: (msg: string
     });
   };
 
+  const buyWarMachine = (unitId: string): void => {
+    onError(null);
+    dispatch({ type: 'BuyWarMachine', townId: town.id, unitId }).catch((err: unknown) => {
+      onError(commandErrorMessage(err));
+    });
+  };
+
+  // Machines de guerre vendues par un bâtiment `warMachineVendor` construit
+  // (la Forge, doc 02 §5) — achetables par le héros présent.
+  const vendorUnits: string[] = [];
+  for (const [bId, lvl] of Object.entries(town.buildings)) {
+    const eff = game.buildingCatalog[bId]?.levels[lvl - 1]?.effect;
+    if (eff?.type === 'warMachineVendor') for (const u of eff.units) if (!vendorUnits.includes(u)) vendorUnits.push(u);
+  }
+
   return (
     <div class="town-tab-panel" data-testid="town-panel-garrison">
       {!hero && (
@@ -451,6 +466,30 @@ function GarrisonTab({ town, onError }: { town: TownState; onError: (msg: string
           </ol>
         </div>
       </div>
+      {hero && vendorUnits.length > 0 && (
+        <div class="town-war-machines" data-testid="town-war-machines">
+          <h3>{t('town.warMachines')}</h3>
+          <ol class="town-garrison-slots">
+            {vendorUnits.map((unitId) => (
+              <li key={unitId} class="town-garrison-slot filled">
+                <span>{resolveUnitName(unitId)}</span>
+                {hero.warMachines.includes(unitId) ? (
+                  <span>{t('town.owned')}</span>
+                ) : (
+                  <button data-testid={`town-buy-machine-${unitId}`} onClick={() => buyWarMachine(unitId)}>
+                    {t('town.buy')}
+                    {(() => {
+                      const cost = (game.unitCatalog[unitId] as UnitEconomyFields | undefined)?.recruitCost;
+                      const c = formatCost(cost ?? {});
+                      return c ? ` (${c})` : '';
+                    })()}
+                  </button>
+                )}
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
     </div>
   );
 }

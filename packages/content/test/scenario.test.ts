@@ -98,6 +98,11 @@ function makeData(): Record<string, unknown> {
       skills: [{ id: 'sk', ranks: [{ movementBonusPct: 10 }, { movementBonusPct: 20 }, { movementBonusPct: 30 }] }],
     },
     'core/artifacts.json': { artifacts: [{ id: 'art', bonus: { attack: 1 } }] },
+    'core/war-machines.json': {
+      warMachines: [
+        { id: 'ballista', name: '@loc:warMachine.ballista.name', stats: { hp: 250, attack: 12, defense: 10, damage: [10, 20], speed: 1 }, abilities: [{ id: 'shooter', params: { ammo: 24 } }], cost: { gold: 1500 } },
+      ],
+    },
     'maps/mini.map.json': {
       id: 'mini',
       schemaVersion: 1,

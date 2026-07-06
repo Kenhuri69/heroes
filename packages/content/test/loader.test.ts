@@ -44,6 +44,11 @@ function makeData(): Record<string, unknown> {
     'core/spells.json': { spells: [makeSpell()] },
     'core/skills.json': { skills: [makeSkill()] },
     'core/artifacts.json': { artifacts: [makeArtifact()] },
+    'core/war-machines.json': {
+      warMachines: [
+        { id: 'ballista', name: '@loc:warMachine.ballista.name', stats: { hp: 250, attack: 12, defense: 10, damage: [10, 20], speed: 1 }, abilities: [{ id: 'shooter', params: { ammo: 24 } }], cost: { gold: 1500 } },
+      ],
+    },
     'maps/mini.map.json': makeMap(),
     'factions/index.json': { factions: ['proto'] },
     'factions/proto/manifest.json': {

@@ -156,8 +156,11 @@ function applyConsequences(
   const hero = draft.heroes.find((h) => h.id === combat.heroId);
   if (winner === 'attacker') {
     if (hero) {
+      // Reconstruit l'armée depuis les survivants — SAUF les machines de guerre
+      // (doc 02 §5) : elles persistent sur `hero.warMachines`, jamais dans l'armée
+      // (sinon elles seraient absorbées comme pile normale après le combat).
       hero.army = combat.stacks
-        .filter((s) => s.side === 'attacker' && s.count > 0)
+        .filter((s) => s.side === 'attacker' && s.count > 0 && !hero.warMachines.includes(s.unitId))
         .map((s) => ({ unitId: s.unitId, count: s.count }));
       // Effets de faction déclaratifs post-victoire (doc 06 §4) — après la
       // reconstruction de l'armée, jamais un nom de faction dans le moteur.

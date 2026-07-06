@@ -1006,6 +1006,34 @@ test('contrat de chasse : bâtir le Tableau des Contrats → cible assignée au 
   expect(errors).toEqual([]);
 });
 
+test('machine de guerre : bâtir la Forge → le héros présent voit l’achat d’une baliste (doc 02 §5)', async ({
+  page,
+}) => {
+  const errors = await openGame(page);
+
+  // Bâtir la Forge (effet `warMachineVendor`) — 2000 or + 10 minerai (départ).
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({ type: 'BuildStructure', townId: 'start-town', buildingId: 'forge' }),
+  );
+  expect(
+    await page.evaluate(
+      () => window.__HEROES_TEST__!.getState().towns.find((t) => t.id === 'start-town')?.buildings['forge'],
+    ),
+  ).toBe(1);
+
+  // Amener le héros sur la tuile de la ville (2,4) : requis pour acheter.
+  await tapTapTile(page, 2, 4);
+  await expect.poll(() => heroPos(page)).toEqual({ x: 2, y: 4 });
+
+  // Ouvrir la ville → onglet Garnison : section « Machines de guerre » + bouton d'achat.
+  await page.getByTestId('town-open-start-town').click();
+  await page.getByTestId('town-tab-garrison').click();
+  await expect(page.getByTestId('town-war-machines')).toBeVisible();
+  await expect(page.getByTestId('town-buy-machine-ballista')).toBeVisible();
+
+  expect(errors).toEqual([]);
+});
+
 test('assets : PNG servis sans 404, icônes de ressources et vignettes de bâtiments affichées (lot intégration)', async ({
   page,
 }) => {

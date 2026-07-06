@@ -17,6 +17,8 @@ export type BuildingEffect =
   | { type: 'mageGuild'; level: number }
   /** Active l'échange ressource ↔ or dans la ville (doc 02 §4.1, lot UX U6a). */
   | { type: 'market' }
+  /** Vend les machines de guerre listées (`units`) au héros présent (doc 02 §5, Alpha 4.12). */
+  | { type: 'warMachineVendor'; units: string[] }
   /**
    * Contrat de chasse (doc 05 §3.3) : cible neutre hebdomadaire assignée au
    * propriétaire ; la vaincre crédite `gold` + `amount` de la ressource de

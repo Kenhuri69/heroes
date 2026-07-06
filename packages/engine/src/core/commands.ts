@@ -88,6 +88,16 @@ export type Command =
       unitId: string;
     }
   | {
+      /**
+       * Achète une machine de guerre (doc 02 §5, Alpha 4.12) à un bâtiment
+       * vendeur (Forge) : requiert le héros présent, la machine listée par le
+       * vendeur et non déjà possédée ; débite le coût du catalogue.
+       */
+      type: 'BuyWarMachine';
+      townId: string;
+      unitId: string;
+    }
+  | {
       /** Échange une pile entre garnison de ville et armée du héros présent. */
       type: 'GarrisonTransfer';
       townId: string;
@@ -140,6 +150,7 @@ export interface CommandError {
     | 'cannotAfford'
     | 'notRecruitable'
     | 'notUpgradable'
+    | 'warMachineUnavailable'
     | 'insufficientStock'
     | 'invalidTransfer'
     | 'invalidTrade'

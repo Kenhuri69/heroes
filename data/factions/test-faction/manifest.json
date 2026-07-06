@@ -25,9 +25,19 @@
     "preferredTargets": "nearest"
   },
   "town": {
-    "buildings": ["townHall", "fort", "mageGuild", "test-faction-dwelling-t1"],
+    "buildings": [
+      "townHall",
+      "fort",
+      "mageGuild",
+      "forge",
+      "test-faction-dwelling-t1"
+    ],
     "dwellings": [
-      { "tier": 1, "unitId": "t1-recruit", "buildingId": "test-faction-dwelling-t1" }
+      {
+        "tier": 1,
+        "unitId": "t1-recruit",
+        "buildingId": "test-faction-dwelling-t1"
+      }
     ]
   }
 }

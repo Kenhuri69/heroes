@@ -58,6 +58,23 @@ export const unitSchema = z.object({
 });
 
 /**
+ * Machine de guerre (doc 02 §5, Alpha 4.12) — comme une unité de combat mais
+ * SANS tier ni croissance : possédée par le héros (achetée à la Forge), elle
+ * combat comme une pile. `cost` = prix d'achat. Générique, faction-agnostique.
+ */
+export const warMachineSchema = z.object({
+  id: idSchema,
+  name: locRef,
+  stats: unitSchema.shape.stats,
+  abilities: unitSchema.shape.abilities,
+  cost: z.record(z.enum(COMMON_RESOURCE_IDS), z.number().int().positive()),
+});
+
+export const warMachineCatalogSchema = z.object({
+  warMachines: z.array(warMachineSchema).min(1),
+});
+
+/**
  * Effets de faction déclaratifs interprétés par le moteur (plan phase-3.4,
  * doc 06 §4 : « la Nécromancie est en fait déclarative »). Union discriminée
  * — un seul type ouvert au MVP. Forme figée, partagée avec le moteur
@@ -155,6 +172,8 @@ const buildingEffectSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('mageGuild'), level: z.number().int().positive() }),
   /** Active l'échange ressource ↔ or (doc 02 §4.1, lot UX U6a). */
   z.object({ type: z.literal('market') }),
+  /** Vend les machines de guerre listées au héros présent (doc 02 §5, Alpha 4.12 — la Forge). */
+  z.object({ type: z.literal('warMachineVendor'), units: z.array(idSchema).min(1) }),
   /**
    * Contrat de chasse (doc 05 §3.3) : au passage de semaine, le propriétaire se
    * voit assigner une cible neutre ; la vaincre crédite `gold` + `amount` de la
@@ -563,6 +582,7 @@ export type SkillCatalogFile = z.infer<typeof skillCatalogSchema>;
 export type ResolvedSkill = Omit<Skill, 'name'>;
 export type Artifact = z.infer<typeof artifactSchema>;
 export type ArtifactCatalogFile = z.infer<typeof artifactCatalogSchema>;
+export type WarMachine = z.infer<typeof warMachineSchema>;
 /** Forme moteur — `Artifact` sans `name` (locale, hors `ArtifactDef` figé). */
 export type ResolvedArtifact = Omit<Artifact, 'name'>;
 export type ScenarioIndex = z.infer<typeof scenarioIndexSchema>;

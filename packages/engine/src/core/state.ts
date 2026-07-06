@@ -86,6 +86,12 @@ export interface HeroState {
   pendingSkillChoices: string[];
   /** Maison du héros (doc 06 §4) — id opaque pour le moteur, '' = aucune. */
   factionId: string;
+  /**
+   * Machines de guerre possédées (doc 02 §5, Alpha 4.12) — ids d'unités du
+   * catalogue, ≤ 1 de chaque. Achetées à la Forge ; elles rejoignent le camp du
+   * héros en combat comme piles supplémentaires (hors cap 7 de l'armée).
+   */
+  warMachines: string[];
 }
 
 export interface Calendar {
@@ -108,9 +114,10 @@ export interface Calendar {
  * `eliminated` introduits en 3.4/3.5. v3 : `PlayerState.factionResources`
  * introduit en 4.4. v4 : `PlayerState.townlessDays` + `AdventureMapDef.triggers`
  * introduits par le comblement MVP — triggers de carte & grâce de reprise.
- * v5 : `PlayerState.huntContract` — contrats de chasse, doc 05 §3.3.)
+ * v5 : `PlayerState.huntContract` — contrats de chasse, doc 05 §3.3.
+ * v6 : `HeroState.warMachines` — machines de guerre, doc 02 §5.)
  */
-export const CURRENT_SAVE_VERSION = 5;
+export const CURRENT_SAVE_VERSION = 6;
 
 export interface GameState {
   saveVersion: number;

@@ -125,7 +125,7 @@ Chaque faction consomme surtout **une paire de ressources rares** (Haven : crist
 | Fort → Château | 3 | murs (défense de siège), +50 %/+100 % croissance créatures |
 | Taverne | 1 | recrutement de héros, rumeurs, moral +1 en défense |
 | Marché | 1 | échange ressources |
-| Forge | 1 | machines de guerre (post-MVP) |
+| Forge | 1 | vend des machines de guerre au héros présent (effet générique `warMachineVendor`, Alpha 4.12) |
 | Guilde des mages | 3 (MVP) – 5 | sorts de cercle 1–3 (–5) |
 | Habitations T1–T7 | 2 (base + améliorée) | niveau 1 débloque le tier de base ; niveau 2 (amélioré) débloque l'unité upgradée |
 | Bâtiments spéciaux ×2–3 | 1 | uniques à la faction (définis dans son manifeste) |
@@ -143,7 +143,16 @@ Chaque faction consomme surtout **une paire de ressources rares** (Haven : crist
 > différentiel de coût (mapping base→amélioré **dérivé** du dwelling gradué —
 > jamais un nom de faction). Chaque faction fournit ses 7–8 variantes améliorées
 > en données (`<baseId>-elite`). Améliorer les unités de l'armée du héros (hors
-> garnison) et les machines de guerre restent différés.
+> garnison) restent différés.
+
+> 🚧 **État (machines de guerre, Alpha 4.12)** : la **Baliste** (doc §5) est
+> livrée comme machine de base — catalogue **core générique** (`data/core/
+> war-machines.json`, fusionné dans le catalogue d'unités), achetée à la **Forge**
+> (effet de bâtiment générique `warMachineVendor` listant les machines vendues)
+> par le héros présent (`BuyWarMachine`, `HeroState.warMachines`). En combat, les
+> machines rejoignent le camp du héros comme piles supplémentaires (hors cap 7) et
+> ne sont jamais absorbées dans l'armée. First Aid Tent / Ammo Cart = différés.
+> `CURRENT_SAVE_VERSION` → 6.
 
 ### 4.2 Écran de ville
 

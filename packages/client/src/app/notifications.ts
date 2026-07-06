@@ -26,10 +26,10 @@ let nextJournalId = 1;
  * recrutements des adversaires. Les événements globaux (semaine, fin de combat /
  * partie) restent affichés.
  *
- * NB victoire/défaite : `event.winner` est un CAMP ; le joueur est toujours
- * l'attaquant (`combat.playerSide === 'attacker'`). Rendre ça générique
- * demanderait de porter `playerSide` dans `CombatEnded` (reporté R7c) ; les
- * combats IA-vs-neutres restent donc affichés — écart mineur documenté.
+ * NB victoire/défaite : comparée au camp du joueur porté par l'événement
+ * (`event.playerSide`, R7c) — correct même en combat défensif, plus l'hypothèse
+ * « le joueur est l'attaquant ». Les combats IA-vs-neutres restent affichés
+ * (le filtrage par joueur du combat est un écart mineur documenté).
  */
 export function notify(event: AppEvent, game: GameState): string | null {
   const human = humanId(game);
@@ -46,7 +46,7 @@ export function notify(event: AppEvent, game: GameState): string | null {
     case 'WeekStarted':
       return t('toast.weekStarted', { week: event.week });
     case 'CombatEnded':
-      return event.winner === 'attacker' ? t('toast.combatWon') : t('toast.combatLost');
+      return event.winner === event.playerSide ? t('toast.combatWon') : t('toast.combatLost');
     // Nécromancie (doc 04 §2) : relève post-victoire (effet de faction).
     case 'UndeadRaised':
       return ownHero(event.heroId)

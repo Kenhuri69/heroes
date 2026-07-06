@@ -18,7 +18,7 @@ import { navigate } from './app/router';
 import { exportSave, importSave, saveGame, restoreSavedGame, encodeHeroesFile } from './app/save';
 import { installAutosave } from './app/autosave';
 import { initI18n, t } from './app/i18n';
-import { preloadPixiTextures } from './render/assets';
+import { preloadPixiTextures, combatBackgroundUrl } from './render/assets';
 import { AdventureScene } from './scenes/adventure/AdventureScene';
 import { CombatScene } from './scenes/combat/CombatScene';
 import { mountUi } from './ui/shell';
@@ -61,7 +61,11 @@ async function bootstrap(): Promise<void> {
   const app = new Application();
   await app.init({
     resizeTo: window,
-    background: '#1a1c22',
+    // Canvas TRANSPARENT (lot U5-E) : `#canvas-root`/`body` gardent `#1a1c22`
+    // (aventure/menu inchangés) et la toile de combat peinte est posée en fond
+    // DOM de `#canvas-root` pendant le combat — coût de rendu par-frame nul
+    // (composé par le navigateur), contrairement au sprite plein écran (anti-gel).
+    backgroundAlpha: 0,
     antialias: false,
     resolution: Math.min(window.devicePixelRatio, 2),
     autoDensity: true,
@@ -90,6 +94,7 @@ async function bootstrap(): Promise<void> {
       combatScene.destroy();
       combatScene = null;
     }
+    root.style.backgroundImage = ''; // retire la toile de combat (U5-E)
     if (scene) {
       scene.destroy();
       scene = null;
@@ -119,11 +124,17 @@ async function bootstrap(): Promise<void> {
       app.stage.addChild(combatScene.container);
       camera.world.visible = false;
       camera.setEnabled(false); // libère les gestes app.stage pour la caméra de combat
+      // Toile de combat peinte du terrain en fond DOM (U5-E) — coût par-frame nul.
+      const url = game.combat ? combatBackgroundUrl(game.combat.terrain) : undefined;
+      root.style.backgroundImage = url ? `url(${url})` : '';
+      root.style.backgroundSize = 'cover';
+      root.style.backgroundPosition = 'center';
     } else if (!inCombat && combatScene) {
       combatScene.destroy();
       combatScene = null;
       camera.world.visible = true;
       camera.setEnabled(true);
+      root.style.backgroundImage = ''; // retour carte : retire la toile (U5-E)
     }
   };
   appStore.subscribe(ensureScenes);

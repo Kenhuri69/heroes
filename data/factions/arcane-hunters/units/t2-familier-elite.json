@@ -2,6 +2,7 @@
   "id": "t2-familier-elite",
   "tier": 2,
   "name": "@loc:unit.t2-familier-elite.name",
+  "loreKey": "@loc:unit.t2-familier-elite.lore",
   "stats": { "hp": 12, "attack": 5, "defense": 4, "damage": [3, 4], "speed": 9 },
   "growthPerWeek": 9,
   "cost": { "gold": 162 },

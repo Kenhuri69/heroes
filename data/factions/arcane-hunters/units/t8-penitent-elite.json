@@ -2,6 +2,7 @@
   "id": "t8-penitent-elite",
   "tier": 8,
   "name": "@loc:unit.t8-penitent-elite.name",
+  "loreKey": "@loc:unit.t8-penitent-elite.lore",
   "stats": { "hp": 273, "attack": 31, "defense": 23, "damage": [52, 78], "speed": 8 },
   "growthPerWeek": 1,
   "cost": { "gold": 6840, "gems": 5, "essence": 72 },

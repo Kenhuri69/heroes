@@ -2,6 +2,7 @@
   "id": "t5-pretresse",
   "tier": 5,
   "name": "@loc:unit.t5-pretresse.name",
+  "loreKey": "@loc:unit.t5-pretresse.lore",
   "stats": { "hp": 36, "attack": 9, "defense": 8, "damage": [7, 11], "speed": 5 },
   "growthPerWeek": 4,
   "cost": { "gold": 640, "gems": 1 },

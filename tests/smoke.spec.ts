@@ -762,6 +762,9 @@ test('ville : construire + croissance + recruter + transférer → armée du hé
   // apparaissent en vignettes (la ville de départ a townHall + habitation T1).
   await expect(page.getByTestId('town-view')).toBeVisible();
   expect(await page.getByTestId('town-view-building').count()).toBeGreaterThanOrEqual(2);
+  // Texte d'ambiance (doc 13 §3.5, lot N1) : les bâtiments communs (townHall/fort)
+  // portent un lore affiché sous leur en-tête dans l'onglet Construire.
+  await expect(page.locator('.town-building-lore').first()).toBeVisible();
   await page.getByTestId('town-close').click();
 
   const armyTotal = (): Promise<number> =>

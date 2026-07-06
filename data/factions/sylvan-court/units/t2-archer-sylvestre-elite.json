@@ -2,6 +2,7 @@
   "id": "t2-archer-sylvestre-elite",
   "tier": 2,
   "name": "@loc:unit.t2-archer-sylvestre-elite.name",
+  "loreKey": "@loc:unit.t2-archer-sylvestre-elite.lore",
   "stats": { "hp": 12, "attack": 6, "defense": 4, "damage": [3, 5], "speed": 6 },
   "growthPerWeek": 9,
   "cost": { "gold": 110 },

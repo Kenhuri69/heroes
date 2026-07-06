@@ -2,6 +2,7 @@
   "id": "t2-archer",
   "tier": 2,
   "name": "@loc:unit.t2-archer.name",
+  "loreKey": "@loc:unit.t2-archer.lore",
   "stats": { "hp": 10, "attack": 4, "defense": 3, "damage": [2, 4], "speed": 4 },
   "growthPerWeek": 9,
   "cost": { "gold": 95 },

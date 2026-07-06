@@ -2,6 +2,7 @@
   "id": "t5-lame",
   "tier": 5,
   "name": "@loc:unit.t5-lame.name",
+  "loreKey": "@loc:unit.t5-lame.lore",
   "stats": { "hp": 40, "attack": 12, "defense": 8, "damage": [8, 12], "speed": 8 },
   "growthPerWeek": 3,
   "cost": { "gold": 620, "mercury": 1 },

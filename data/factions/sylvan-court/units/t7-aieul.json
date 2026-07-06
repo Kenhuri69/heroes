@@ -2,6 +2,7 @@
   "id": "t7-aieul",
   "tier": 7,
   "name": "@loc:unit.t7-aieul.name",
+  "loreKey": "@loc:unit.t7-aieul.lore",
   "stats": { "hp": 125, "attack": 22, "defense": 14, "damage": [28, 48], "speed": 10 },
   "growthPerWeek": 1,
   "cost": { "gold": 3000, "crystal": 2, "mercury": 2 },

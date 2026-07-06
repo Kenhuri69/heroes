@@ -41,6 +41,8 @@ export const unitSchema = z.object({
   id: idSchema,
   tier: z.number().int().min(1).max(8),
   name: locRef,
+  /** Texte d'ambiance optionnel (doc 13 §3.5, lot N1) — `@loc:` pur affichage. */
+  loreKey: locRef.optional(),
   stats: z.object({
     hp: z.number().int().positive(),
     attack: z.number().int().nonnegative(),
@@ -199,6 +201,8 @@ export const buildingSchema = z
   .object({
     id: buildingIdSchema,
     name: locRef.optional(),
+    /** Texte d'ambiance optionnel (doc 13 §3.5, lot N1). */
+    loreKey: locRef.optional(),
     maxLevel: z.number().int().positive(),
     levels: z.array(buildingLevelSchema).min(1),
     /** Groupe de choix exclusif (doc 05 §3.2) — un seul bâtiment du groupe par ville. */
@@ -224,6 +228,8 @@ export const spellSchema = z
   .object({
     id: idSchema,
     name: locRef.optional(),
+    /** Texte d'ambiance optionnel (doc 13 §3.5, lot N1). */
+    loreKey: locRef.optional(),
     school: z.enum(['fire', 'water', 'earth', 'air', 'neutral', 'traque']),
     circle: z.number().int().min(1).max(5),
     manaCost: z.number().int().positive(),
@@ -315,6 +321,8 @@ const artifactBonusSchema = z
 export const artifactSchema = z.object({
   id: idSchema,
   name: locRef.optional(),
+  /** Texte d'ambiance optionnel (doc 13 §3.5, lot N1). */
+  loreKey: locRef.optional(),
   bonus: artifactBonusSchema,
 });
 
@@ -585,12 +593,12 @@ export type GameConfig = z.infer<typeof gameConfigSchema>;
 export type MapFile = z.infer<typeof mapFileSchema>;
 export type Building = z.infer<typeof buildingSchema>;
 export type BuildingCatalogFile = z.infer<typeof buildingCatalogSchema>;
-/** Forme moteur — `Building` sans `name` (locale, hors `BuildingDef` figé). */
-export type ResolvedBuilding = Omit<Building, 'name'>;
+/** Forme moteur — `Building` sans `name`/`loreKey` (affichage, hors `BuildingDef` figé). */
+export type ResolvedBuilding = Omit<Building, 'name' | 'loreKey'>;
 export type Spell = z.infer<typeof spellSchema>;
 export type SpellCatalogFile = z.infer<typeof spellCatalogSchema>;
-/** Forme moteur — `Spell` sans `name` (locale, hors `SpellDef` figé). */
-export type ResolvedSpell = Omit<Spell, 'name'>;
+/** Forme moteur — `Spell` sans `name`/`loreKey` (affichage, hors `SpellDef` figé). */
+export type ResolvedSpell = Omit<Spell, 'name' | 'loreKey'>;
 export type Skill = z.infer<typeof skillSchema>;
 export type SkillCatalogFile = z.infer<typeof skillCatalogSchema>;
 /** Forme moteur — `Skill` sans `name` (locale, hors `HeroSkillDef` figé). */
@@ -598,8 +606,8 @@ export type ResolvedSkill = Omit<Skill, 'name'>;
 export type Artifact = z.infer<typeof artifactSchema>;
 export type ArtifactCatalogFile = z.infer<typeof artifactCatalogSchema>;
 export type WarMachine = z.infer<typeof warMachineSchema>;
-/** Forme moteur — `Artifact` sans `name` (locale, hors `ArtifactDef` figé). */
-export type ResolvedArtifact = Omit<Artifact, 'name'>;
+/** Forme moteur — `Artifact` sans `name`/`loreKey` (affichage, hors `ArtifactDef` figé). */
+export type ResolvedArtifact = Omit<Artifact, 'name' | 'loreKey'>;
 export type ScenarioIndex = z.infer<typeof scenarioIndexSchema>;
 /** Forme moteur — identique à `VictoryCondition` de `engine/src/scenario/types.ts`. */
 export type VictoryCondition = z.infer<typeof victoryConditionSchema>;

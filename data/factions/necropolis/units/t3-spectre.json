@@ -2,6 +2,7 @@
   "id": "t3-spectre",
   "tier": 3,
   "name": "@loc:unit.t3-spectre.name",
+  "loreKey": "@loc:unit.t3-spectre.lore",
   "stats": { "hp": 16, "attack": 5, "defense": 5, "damage": [3, 5], "speed": 7 },
   "growthPerWeek": 7,
   "cost": { "gold": 160 },

@@ -1,5 +1,5 @@
 import type { HeroState } from '@heroes/engine';
-import { t, resolveArtifactName } from '../app/i18n';
+import { t, resolveArtifactName, resolveArtifactLore } from '../app/i18n';
 import { artifactUrl } from '../render/assets';
 import { AssetImg } from './AssetImg';
 import './HeroInventory.css';
@@ -28,6 +28,9 @@ export function HeroInventory({ hero }: { hero: HeroState }) {
                   fallback={null}
                 />
                 <span class="hero-inventory-name">{resolveArtifactName(artifactId)}</span>
+                {resolveArtifactLore(artifactId) && (
+                  <span class="content-lore hero-inventory-lore">{resolveArtifactLore(artifactId)}</span>
+                )}
               </>
             ) : (
               t('hero.inventoryEmptySlot')

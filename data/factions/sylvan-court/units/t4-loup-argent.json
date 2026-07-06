@@ -2,6 +2,7 @@
   "id": "t4-loup-argent",
   "tier": 4,
   "name": "@loc:unit.t4-loup-argent.name",
+  "loreKey": "@loc:unit.t4-loup-argent.lore",
   "stats": { "hp": 28, "attack": 8, "defense": 6, "damage": [5, 8], "speed": 8 },
   "growthPerWeek": 5,
   "cost": { "gold": 320 },

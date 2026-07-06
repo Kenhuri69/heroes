@@ -279,6 +279,35 @@ export function checkPackNameKeys(report: LoadReport): string[] {
   return errors;
 }
 
+/**
+ * Lot N1 (doc 13 §3.5) : les textes d'ambiance (`*.lore`) sont optionnels, mais
+ * s'ils existent ils doivent être en **parité fr/en** (un seul côté = régression
+ * i18n). En prime, le champ `loreKey` d'une unité, s'il est posé, doit résoudre
+ * dans les DEUX locales du paquet. Retourne la liste des manques (vide = OK).
+ */
+export function checkLoreParity(report: LoadReport): string[] {
+  const errors: string[] = [];
+  const parity = (label: string, fr: Record<string, string>, en: Record<string, string>): void => {
+    for (const k of Object.keys(fr))
+      if (k.endsWith('.lore') && !(k in en)) errors.push(`${label}/en.json: texte d'ambiance manquant '${k}'`);
+    for (const k of Object.keys(en))
+      if (k.endsWith('.lore') && !(k in fr)) errors.push(`${label}/fr.json: texte d'ambiance manquant '${k}'`);
+  };
+  parity('core/locales', report.content.coreLocales.fr, report.content.coreLocales.en);
+  for (const pack of report.content.packs) {
+    parity(`factions/${pack.manifest.id}/locales`, pack.locales.fr, pack.locales.en);
+    for (const u of pack.units) {
+      if (!u.loreKey) continue;
+      const key = u.loreKey.startsWith('@loc:') ? u.loreKey.slice('@loc:'.length) : u.loreKey;
+      if (!(key in pack.locales.fr))
+        errors.push(`factions/${pack.manifest.id}/locales/fr.json: loreKey de '${u.id}' introuvable '${key}'`);
+      if (!(key in pack.locales.en))
+        errors.push(`factions/${pack.manifest.id}/locales/en.json: loreKey de '${u.id}' introuvable '${key}'`);
+    }
+  }
+  return errors;
+}
+
 /** IDs d'unités de tous les paquets valides — pour les règles croisées (armée, gardiens). */
 export function knownUnitIds(report: LoadReport): Set<string> {
   return new Set(report.content.packs.flatMap((p) => p.units.map((u) => u.id)));

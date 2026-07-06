@@ -20,5 +20,19 @@
   "building.necropolis-dwelling-t4": "Vampire dwelling",
   "building.necropolis-dwelling-t5": "Lich dwelling",
   "building.necropolis-dwelling-t6": "Doom Knight dwelling",
-  "building.necropolis-dwelling-t7": "Bone Dragon dwelling"
+  "building.necropolis-dwelling-t7": "Bone Dragon dwelling",
+  "unit.t1-squelette.lore": "We call him the simplified brother: stripped of fear, doubt and hunger, he keeps only obedience. The Wheel will reclaim the rest, in time.",
+  "unit.t1-squelette-elite.lore": "We gave him back a blade and a discipline. He remembers nothing of the war that killed him; that, our priests say, is Asha's first mercy.",
+  "unit.t2-zombie.lore": "The flesh still rots, yes. We do not hide it. Still it walks, patient, toward the foe: decay is only a stage, never an end.",
+  "unit.t2-zombie-elite.lore": "Its pestilence walks ahead of its feet. The living call it plague; we call it an honest reminder that every body, one day, yields to Death.",
+  "unit.t3-spectre.lore": "A soul that would not leave. We do not punish it: we carry it to war until it understands the Wheel turns for it too.",
+  "unit.t3-spectre-elite.lore": "It glides silent where the living stumble. The cold it leaves is not cruelty, our books say, but the quiet absence of all that once weighed.",
+  "unit.t4-vampire.lore": "He strikes and suffers no reply, then drinks the life of his prey. A sin, our novices whisper. A need, the master answers: faith too must be fed.",
+  "unit.t4-vampire-elite.lore": "Lord of blood no longer his own. He now chooses who joins the Wheel, and when. Can a faith stay pure while it profits from every corpse?",
+  "unit.t5-liche.lore": "She traded her flesh for time to learn. From afar she deals death in careful bolts: a scholar who made her own ending her subject of study.",
+  "unit.t5-liche-elite.lore": "Her knowledge overflows the body that held it. Each bolt loosed is a lesson, dry and final, on the worth of the living who defy her.",
+  "unit.t6-cavalier-funeste.lore": "A dead champion set back in the saddle and returned to the charge. He knows no banner nor oath now; he serves the Wheel at a gallop, never looking back.",
+  "unit.t6-cavalier-funeste-elite.lore": "Where he rides, the living grasp their error: to have thought death far off. He hates no one. He comes only to correct the misunderstanding.",
+  "unit.t7-dragon-os.lore": "A dragon of which only frame and fury remain. We raised it out of reverence: even the greatest must render their flesh back to the Wheel.",
+  "unit.t7-dragon-os-elite.lore": "Neither bone nor flesh, only the memory of a dragon, howling in the wind. To see it is to glimpse what awaits us all: beautiful, cold, inevitable."
 }

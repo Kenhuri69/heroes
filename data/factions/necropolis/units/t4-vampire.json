@@ -2,6 +2,7 @@
   "id": "t4-vampire",
   "tier": 4,
   "name": "@loc:unit.t4-vampire.name",
+  "loreKey": "@loc:unit.t4-vampire.lore",
   "stats": { "hp": 28, "attack": 8, "defense": 7, "damage": [5, 8], "speed": 6 },
   "growthPerWeek": 5,
   "cost": { "gold": 320 },

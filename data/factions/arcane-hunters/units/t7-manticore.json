@@ -2,6 +2,7 @@
   "id": "t7-manticore",
   "tier": 7,
   "name": "@loc:unit.t7-manticore.name",
+  "loreKey": "@loc:unit.t7-manticore.lore",
   "stats": { "hp": 155, "attack": 18, "defense": 18, "damage": [24, 36], "speed": 11 },
   "growthPerWeek": 1,
   "cost": { "gold": 2600, "mercury": 2, "gems": 1 },

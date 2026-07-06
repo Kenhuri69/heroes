@@ -2,6 +2,7 @@
   "id": "t1-conscrit",
   "tier": 1,
   "name": "@loc:unit.t1-conscrit.name",
+  "loreKey": "@loc:unit.t1-conscrit.lore",
   "stats": { "hp": 6, "attack": 2, "defense": 2, "damage": [1, 2], "speed": 4 },
   "growthPerWeek": 14,
   "cost": { "gold": 40 },

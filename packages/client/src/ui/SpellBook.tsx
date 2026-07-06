@@ -10,7 +10,7 @@ import {
 } from '@heroes/engine';
 import { useApp, appStore } from '../app/store';
 import { dispatch } from '../app/dispatch';
-import { t, resolveUnitName, resolveSpellName, commandErrorMessage } from '../app/i18n';
+import { t, resolveUnitName, resolveSpellName, resolveSpellLore, commandErrorMessage } from '../app/i18n';
 import { pushToast } from './toasts';
 import './SpellBook.css';
 
@@ -103,6 +103,11 @@ export function SpellBook({ hero, onClose }: { hero: HeroState; onClose: () => v
               {t('spellbook.back')}
             </button>
             <h3>{resolveSpellName(def.id)}</h3>
+            {resolveSpellLore(def.id) && (
+              <p class="content-lore" data-testid="spell-lore">
+                {resolveSpellLore(def.id)}
+              </p>
+            )}
             <TargetList
               def={def}
               combat={combat}

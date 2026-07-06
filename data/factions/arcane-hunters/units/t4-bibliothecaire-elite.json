@@ -2,6 +2,7 @@
   "id": "t4-bibliothecaire-elite",
   "tier": 4,
   "name": "@loc:unit.t4-bibliothecaire-elite.name",
+  "loreKey": "@loc:unit.t4-bibliothecaire-elite.lore",
   "stats": { "hp": 44, "attack": 9, "defense": 13, "damage": [6, 10], "speed": 5 },
   "growthPerWeek": 5,
   "cost": { "gold": 612 },

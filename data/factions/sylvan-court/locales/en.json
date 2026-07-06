@@ -21,5 +21,20 @@
   "building.sylvan-court-dwelling-t5": "Dwelling: Unicorn",
   "building.sylvan-court-dwelling-t6": "Dwelling: Treant",
   "building.sylvan-court-dwelling-t7": "Dwelling: Elder of the Wood",
-  "building.sylvan-court-heart-grove": "Heart Grove"
+  "building.sylvan-court-heart-grove": "Heart Grove",
+  "unit.t1-lucine.lore": "We fly faster than rumor. What the Court whispers, the wood has already decided.",
+  "unit.t1-lucine-elite.lore": "We have no age, only seasons. This one we have chosen for war.",
+  "unit.t2-archer-sylvestre.lore": "We do not aim at the enemy. We aim where the forest wants him dead.",
+  "unit.t2-archer-sylvestre-elite.lore": "Twelve arrows, twelve certainties. We do not count the bodies; the wood keeps that tally.",
+  "unit.t3-dryade.lore": "We root for a moment, and the soil returns us harder. Then we walk on.",
+  "unit.t3-dryade-elite.lore": "We remember the first felling. We have forgotten nothing, and we do not forgive dead wood.",
+  "unit.t4-loup-argent.lore": "Two bites, one heart. The pack is not many; it is the forest at a run.",
+  "unit.t4-loup-argent-elite.lore": "Death did not stop it, only sharpened it. We still hunt beside those we have lost.",
+  "unit.t5-licorne.lore": "Her horn heals or cleaves, as the fever demands. War is a sickness; we are the cure that bleeds.",
+  "unit.t5-licorne-elite.lore": "We have stopped healing. Some limbs must be cut so the rest may live.",
+  "unit.t6-treant.lore": "It walks: a tree that only stands has learned nothing from the storm. Rooted, it becomes a wall.",
+  "unit.t6-treant-elite.lore": "We have watched whole forests fall. Some we felled ourselves. Still we walk.",
+  "unit.t7-aieul.lore": "When the Elder rises, the forest moves. The world is one body, and it has just felt the pain.",
+  "unit.t7-aieul-elite.lore": "We woke him knowing the price. To save the whole, we have amputated before, and we would again.",
+  "building.sylvan-court-heart-grove.lore": "We are this grove, and this grove is us. What falls here already rises; we do not count the seasons."
 }

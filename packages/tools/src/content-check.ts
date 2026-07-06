@@ -7,6 +7,7 @@ import {
   buildSpellCatalog,
   checkCoreNameKeys,
   checkPackNameKeys,
+  checkLoreParity,
   knownUnitIds,
   loadContent,
   loadMap,
@@ -39,6 +40,26 @@ const nameKeyErrors = [...checkCoreNameKeys(report), ...checkPackNameKeys(report
 for (const err of nameKeyErrors) console.error(`✗ locales — ${err}`);
 if (nameKeyErrors.length === 0) {
   console.log('✓ noms localisés — sorts/compétences/artefacts/bâtiments/ressources fr/en complets');
+}
+
+// Textes d'ambiance (doc 13 §3.5, lot N1) : optionnels mais en parité fr/en.
+// Couverture affichée (non bloquante) ; parité manquante = échec CI.
+const loreErrors = checkLoreParity(report);
+for (const err of loreErrors) console.error(`✗ lore — ${err}`);
+if (loreErrors.length === 0) {
+  const countLore = (loc: Record<string, string>): number =>
+    Object.keys(loc).filter((k) => k.endsWith('.lore')).length;
+  const coreLore = countLore(report.content.coreLocales.fr);
+  const unitsTotal = report.content.packs.reduce((n, p) => n + p.units.length, 0);
+  const unitsWithLore = report.content.packs.reduce(
+    (n, p) => n + p.units.filter((u) => u.loreKey).length,
+    0,
+  );
+  const packLore = report.content.packs.reduce((n, p) => n + countLore(p.locales.fr), 0);
+  console.log(
+    `✓ textes d'ambiance — parité fr/en ; ${unitsWithLore}/${unitsTotal} unité(s), ` +
+      `${coreLore + packLore} texte(s) au total`,
+  );
 }
 
 // Arbre de bâtiments : agrège core + paquets valides, détecte les collisions d'id.
@@ -132,6 +153,7 @@ if (
   report.rejected.length > 0 ||
   report.configErrors.length > 0 ||
   nameKeyErrors.length > 0 ||
+  loreErrors.length > 0 ||
   badMaps > 0 ||
   badBuildingCatalog ||
   badSpellCatalog ||

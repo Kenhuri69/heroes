@@ -20,5 +20,19 @@
   "building.haven-dwelling-t4": "Griffin dwelling",
   "building.haven-dwelling-t5": "Priestess dwelling",
   "building.haven-dwelling-t6": "Griffin Knight dwelling",
-  "building.haven-dwelling-t7": "Angel dwelling"
+  "building.haven-dwelling-t7": "Angel dwelling",
+  "unit.t1-conscrit.lore": "Yesterday he ploughed fields. The priestess blessed his brow, then looked away: she already knew. We guard the people — sometimes by sending one to die for them.",
+  "unit.t1-conscrit-elite.lore": "They taught him the line does not fall back. Not why; the halberd is answer enough. Behind him a village sleeps, never learning his name.",
+  "unit.t2-archer.lore": "She aims for the throat, as taught, and whispers a prayer between shots. Twelve arrows, twelve sins a priest will forgive her come nightfall.",
+  "unit.t2-archer-elite.lore": "He never misses now. That is his torment: every death bears his name. The Empire calls it a gift. He calls it a debt he will answer for.",
+  "unit.t3-frere-lame.lore": "He swore silence, poverty, and the blade. Two vows comfort him. The third wakes him at night — yet it has held the frontier since the First Eclipse.",
+  "unit.t3-frere-lame-elite.lore": "The Templar no longer doubts: doubt was prayed out of him, year by year. What remains strikes true. None can say if a man still lives beneath.",
+  "unit.t4-griffon.lore": "The Empire's emblem, and it knows nothing of that. It knows only wind, hunger, and the hand that fed it young. For that hand, it dives onto spears.",
+  "unit.t4-griffon-elite.lore": "Hatched in the palace eyries, marked in gold. They call it royal; it believes itself free. Both hold true so long as it falls upon the Empire's foe.",
+  "unit.t5-pretresse.lore": "She heals with one hand, smites with the other, and blesses the dying she could not save. Faith demands everything; she stopped counting what she has left.",
+  "unit.t5-pretresse-elite.lore": "She has buried more sons than any mother. Her light never wavers — that is the price. They revere her; none dare ask if she still sleeps at night.",
+  "unit.t6-chevalier-griffon.lore": "One man, one beast, a single oath. The knight dies if he falls; the griffin dies if it stays. Neither of them thinks to flee.",
+  "unit.t6-chevalier-griffon-elite.lore": "The Champion has outlived three mounts. He no longer grieves the fourth before battle: he will grieve after, if the Empire still stands.",
+  "unit.t7-ange.lore": "It descends only when the prayer grows desperate enough. Beautiful, terrible, and deaf to our reasons. We beg its aid, and dread the answer.",
+  "unit.t7-ange-elite.lore": "The Archangel remembers the First Eclipse; we are but a day in its memory. It guards the place, the law, the people — and never says which comes first."
 }

@@ -7,6 +7,7 @@ export {
   buildSpellCatalog,
   checkCoreNameKeys,
   checkPackNameKeys,
+  checkLoreParity,
   knownUnitIds,
   loadContent,
   loadFactionPack,

@@ -2,6 +2,7 @@
   "id": "t2-familier",
   "tier": 2,
   "name": "@loc:unit.t2-familier.name",
+  "loreKey": "@loc:unit.t2-familier.lore",
   "stats": { "hp": 9, "attack": 4, "defense": 3, "damage": [2, 3], "speed": 8 },
   "growthPerWeek": 9,
   "cost": { "gold": 90 },

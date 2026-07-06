@@ -2,6 +2,7 @@
   "id": "t6-chasseresse-elite",
   "tier": 6,
   "name": "@loc:unit.t6-chasseresse-elite.name",
+  "loreKey": "@loc:unit.t6-chasseresse-elite.lore",
   "stats": { "hp": 81, "attack": 20, "defense": 14, "damage": [14, 22], "speed": 10 },
   "growthPerWeek": 2,
   "cost": { "gold": 2160, "mercury": 4 },

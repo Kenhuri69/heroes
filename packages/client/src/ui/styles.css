@@ -324,3 +324,13 @@
     transform: translateX(0);
   }
 }
+
+/* Textes d'ambiance du contenu (doc 13 §3.5, lot N1) — flavor discret,
+   lisible, en italique ; hérite du cran de police via rem (accessibilité 3.6). */
+.content-lore {
+  margin: 0.25rem 0 0;
+  font-size: 0.8rem;
+  font-style: italic;
+  line-height: 1.35;
+  opacity: 0.82;
+}

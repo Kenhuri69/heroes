@@ -2,6 +2,7 @@
   "id": "t3-prefet-elite",
   "tier": 3,
   "name": "@loc:unit.t3-prefet-elite.name",
+  "loreKey": "@loc:unit.t3-prefet-elite.lore",
   "stats": { "hp": 22, "attack": 8, "defense": 8, "damage": [4, 8], "speed": 6 },
   "growthPerWeek": 7,
   "cost": { "gold": 306, "mercury": 2 },

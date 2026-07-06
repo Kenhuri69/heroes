@@ -44,6 +44,8 @@ export interface AppState {
   modals: Modal[];
   /** Scénarios chargés (doc 02 §6, plan phase-3.5) — liste affichée au menu. */
   scenarios: Scenario[];
+  /** Ids des factions chargées (doc 09) — proposées dans l'écran d'escarmouche. */
+  factions: string[];
   /** Héros humain sélectionné (doc 08 §2.1, lot UX U4) — null = 1er héros par défaut. */
   selectedHeroId: string | null;
 }
@@ -61,6 +63,7 @@ export const appStore = createStore<AppState>(() => ({
   screen: 'menu',
   modals: [],
   scenarios: [],
+  factions: [],
   selectedHeroId: null,
 }));
 

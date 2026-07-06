@@ -1,6 +1,7 @@
 import {
   emptyResources,
   humanPlayerId,
+  type ArmyStack,
   type ArtifactDef,
   type BuildingDef,
   type Command,
@@ -10,7 +11,9 @@ import {
   type HeroAttributes,
   type HeroSkillDef,
   type HeroState,
+  type PlayerSetup,
   type Resources,
+  type ScenarioState,
   type SpellDef,
   type TownState,
 } from '@heroes/engine';
@@ -22,6 +25,7 @@ import {
   buildSkillCatalog,
   buildSpellCatalog,
   resolveStartingTowns,
+  type FactionPack,
   type GameConfig,
   type LoadReport,
   type ResolvedMap,
@@ -361,5 +365,179 @@ export function scenarioStartCommand(
     startingArtifacts: heroSetup.startingArtifacts,
     factionCatalog: buildFactionSetup(report),
     scenario: { objectives: buildScenarioObjectives(scenario) },
+  };
+}
+
+// --- Escarmouche vs IA (Alpha 4.14) ----------------------------------------
+
+/** Cran de difficulté d'une escarmouche (doc 09) — label i18n côté client seul. */
+export type SkirmishDifficulty = 'facile' | 'normal' | 'difficile';
+
+/** Configuration d'une escarmouche choisie par le joueur (aucune donnée en dur). */
+export interface SkirmishConfig {
+  humanFactionId: string;
+  aiFactionId: string;
+  difficulty: SkirmishDifficulty;
+}
+
+/**
+ * Réglage de difficulté = **levier de données** (doc 09) : l'IA reçoit une armée
+ * et des ressources mises à l'échelle, plus un Fort prébâti en difficile. Le
+ * moteur ne voit que des nombres — **jamais** un enum de difficulté ni un nom de
+ * faction. L'humain reste à la ligne de base (multiplicateurs 1, pas de Fort).
+ */
+const DIFFICULTY_TUNING: Record<
+  SkirmishDifficulty,
+  { aiArmyMult: number; aiResourceMult: number; aiFort: boolean }
+> = {
+  facile: { aiArmyMult: 0.6, aiResourceMult: 1, aiFort: false },
+  normal: { aiArmyMult: 1, aiResourceMult: 1, aiFort: false },
+  difficile: { aiArmyMult: 1.6, aiResourceMult: 1.5, aiFort: true },
+};
+
+/** Effectif de base de la pile T1 de départ (mis à l'échelle pour l'IA). */
+const SKIRMISH_BASE_ARMY = 30;
+
+/**
+ * Unité T1 et habitation T1 d'une faction, dérivées **génériquement** de son
+ * manifeste (`town.dwellings` tier 1) — repli sur la 1ʳᵉ unité de tier 1 du
+ * paquet si la faction n'a pas de ville en données. Jamais un id en dur.
+ */
+function factionT1(pack: FactionPack): { unitId: string; dwellingBuilding: string | null } {
+  const dwelling = pack.manifest.town?.dwellings.find((d) => d.tier === 1);
+  if (dwelling) return { unitId: dwelling.unitId, dwellingBuilding: dwelling.buildingId };
+  const unit = pack.units.find((u) => u.tier === 1) ?? pack.units[0];
+  return { unitId: unit?.id ?? '', dwellingBuilding: null };
+}
+
+/** Ressources pleines depuis le barème `newGame`, multipliées et arrondies. */
+function skirmishResources(config: GameConfig, mult: number): Resources {
+  const res: Resources = { ...emptyResources() };
+  for (const [id, amount] of Object.entries(config.newGame.startingResources)) {
+    res[id as keyof Resources] = Math.round((amount ?? 0) * mult);
+  }
+  return res;
+}
+
+/**
+ * Construit la commande `StartGame` d'une escarmouche 1 humain vs 1 IA (doc 09) :
+ * scénario **généré à l'exécution** — mêmes rouages que `scenarioStartCommand`,
+ * mais joueurs/villes/objectifs synthétisés depuis `config` plutôt que lus dans
+ * un fichier. Chaque joueur démarre aux `map.startPositions[0/1]` avec sa ville
+ * (townHall + habitation T1) et une pile de sa T1 ; la difficulté met l'IA à
+ * l'échelle (données). Objectifs : `eliminateAllEnemies` / `defeatHero`.
+ */
+export function skirmishStartCommand(
+  report: LoadReport,
+  config: SkirmishConfig,
+  seed: number,
+  map: ResolvedMap,
+): Command {
+  if (map.startPositions.length < 2)
+    throw new Error(`skirmishStartCommand: carte '${map.id}' — moins de 2 positions de départ`);
+  const packById = (id: string): FactionPack => {
+    const pack = report.content.packs.find((p) => p.manifest.id === id);
+    if (!pack) throw new Error(`skirmishStartCommand: faction inconnue '${id}'`);
+    return pack;
+  };
+  const heroSetup = buildHeroSetup(report);
+  const buildingCatalog = buildBuildingCatalog(report) as Record<string, BuildingDef>;
+  const tuning = DIFFICULTY_TUNING[config.difficulty];
+  const gameConfig = report.content.config;
+
+  const humanPack = packById(config.humanFactionId);
+  const aiPack = packById(config.aiFactionId);
+  const humanT1 = factionT1(humanPack);
+  const aiT1 = factionT1(aiPack);
+
+  const seats = [
+    {
+      id: 'player-1',
+      controller: 'human' as const,
+      factionId: config.humanFactionId,
+      army: [{ unitId: humanT1.unitId, count: SKIRMISH_BASE_ARMY }],
+      resources: skirmishResources(gameConfig, 1),
+      dwelling: humanT1.dwellingBuilding,
+      fort: false,
+    },
+    {
+      id: 'player-2',
+      controller: 'ai' as const,
+      factionId: config.aiFactionId,
+      army: [{ unitId: aiT1.unitId, count: Math.round(SKIRMISH_BASE_ARMY * tuning.aiArmyMult) }],
+      resources: skirmishResources(gameConfig, tuning.aiResourceMult),
+      dwelling: aiT1.dwellingBuilding,
+      fort: tuning.aiFort,
+    },
+  ];
+
+  const players: PlayerSetup[] = seats.map((s) => ({
+    id: s.id,
+    startingResources: s.resources,
+    startingArmy: s.army.filter((a) => a.count > 0) as ArmyStack[],
+    startingAttributes: { ...heroSetup.startingAttributes },
+    startingSpells: [...heroSetup.startingSpells],
+    startingFactionId: s.factionId,
+    controller: s.controller,
+  }));
+
+  const towns: TownState[] = seats.map((s, i) => {
+    const buildings: Record<string, number> = { townHall: 1 };
+    if (s.dwelling) buildings[s.dwelling] = 1;
+    if (s.fort) buildings['fort'] = 1;
+    const pos = map.startPositions[i]!;
+    return {
+      id: `town-${s.id}`,
+      ownerPlayerId: s.id,
+      pos: { x: pos.x, y: pos.y },
+      factionId: s.factionId,
+      buildings,
+      builtToday: false,
+      garrison: [],
+      stock: {},
+    };
+  });
+
+  // Villes neutres de la carte (Alpha 4.13) — tout objet `town` non attribué.
+  const startTownIds = new Set(towns.map((t) => t.id));
+  for (const obj of map.objects) {
+    if (obj.type !== 'town' || startTownIds.has(obj.id)) continue;
+    towns.push({
+      id: obj.id,
+      ownerPlayerId: null,
+      pos: { x: obj.pos.x, y: obj.pos.y },
+      factionId: obj.factionId ?? '',
+      buildings: {},
+      builtToday: false,
+      garrison: (obj.garrison ?? []).map((st) => ({ ...st })),
+      stock: {},
+    });
+  }
+
+  const objectives: ScenarioState['objectives'] = {};
+  for (const s of seats) {
+    objectives[s.id] = {
+      victory: { type: 'eliminateAllEnemies' },
+      defeat: { type: 'defeatHero', heroId: `hero-${s.id}` },
+    };
+  }
+
+  const adventureMap = { ...map, objects: map.objects.filter((o) => o.type !== 'town') };
+
+  return {
+    type: 'StartGame',
+    seed,
+    players,
+    map: adventureMap,
+    config: gameConfig.adventure,
+    unitCatalog: buildUnitCatalog(report),
+    buildingCatalog,
+    towns,
+    spellCatalog: heroSetup.spellCatalog,
+    skillCatalog: heroSetup.skillCatalog,
+    artifactCatalog: heroSetup.artifactCatalog,
+    startingArtifacts: heroSetup.startingArtifacts,
+    factionCatalog: buildFactionSetup(report),
+    scenario: { objectives },
   };
 }

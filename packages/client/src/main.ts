@@ -11,6 +11,8 @@ import {
   buildUnitCatalog,
   newGameCommand,
   scenarioStartCommand,
+  skirmishStartCommand,
+  type SkirmishConfig,
 } from './app/game';
 import { dispatch } from './app/dispatch';
 import { appStore } from './app/store';
@@ -42,6 +44,8 @@ declare global {
       importIncompatibleSave: () => Promise<boolean>;
       /** Démarre un scénario par id, seed fixe (couverture smoke du lot U). */
       startScenario: (scenarioId: string) => Promise<void>;
+      /** Démarre une escarmouche vs IA, seed fixe (couverture smoke Alpha 4.14). */
+      startSkirmish: (config: SkirmishConfig) => Promise<void>;
     };
   }
 }
@@ -167,10 +171,21 @@ async function bootstrap(): Promise<void> {
     navigate('adventure');
   };
 
+  /**
+   * Démarre une escarmouche vs IA (doc 09, Alpha 4.14) : scénario généré à
+   * l'exécution depuis la config du joueur (factions + difficulté), sur la carte
+   * par défaut déjà chargée. Même découplage que « Nouvelle partie ».
+   */
+  const startSkirmish = async (config: SkirmishConfig, seed: number): Promise<void> => {
+    await dispatch(skirmishStartCommand(report, config, seed, map));
+    navigate('adventure');
+  };
+
   installAutosave(); // autosave à chaque fin de tour (doc 07 §4)
   appStore.setState({
     strengthBands: report.content.config.display.strengthBands,
     scenarios: report.content.scenarios,
+    factions: report.content.packs.map((p) => p.manifest.id),
   });
   // « Nouvelle partie » du menu (contrat lot G) — seed horloge côté client.
   // Remédiation CL8 : un échec ne laisse plus une promesse rejetée non gérée
@@ -188,6 +203,15 @@ async function bootstrap(): Promise<void> {
     startScenario(scenarioId, Date.now()).catch((err: unknown) => {
       console.error('startScenario', err);
       pushToast(t('toast.scenarioFailed'));
+    });
+  });
+  // Escarmouche vs IA (doc 09, Alpha 4.14) — même découplage : l'écran émet la
+  // config, l'intégration construit et joue la commande.
+  window.addEventListener('heroes:start-skirmish', (e) => {
+    const config = (e as CustomEvent<SkirmishConfig>).detail;
+    startSkirmish(config, Date.now()).catch((err: unknown) => {
+      console.error('startSkirmish', err);
+      pushToast(t('toast.skirmishFailed'));
     });
   });
 
@@ -222,6 +246,7 @@ async function bootstrap(): Promise<void> {
       return importSave(await encodeHeroesFile(JSON.stringify(parsed), []));
     },
     startScenario: (scenarioId) => startScenario(scenarioId, TEST_SCENARIO_SEED),
+    startSkirmish: (config) => startSkirmish(config, TEST_SCENARIO_SEED),
   };
   window.__HEROES_READY__ = true; // signal pour le smoke test headless
 }

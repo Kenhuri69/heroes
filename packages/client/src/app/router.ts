@@ -22,7 +22,8 @@ export type Screen = 'menu' | 'adventure';
 export type Modal =
   | { kind: 'town'; townId: string }
   | { kind: 'options' }
-  | { kind: 'journal' };
+  | { kind: 'journal' }
+  | { kind: 'skirmish' };
 
 /** Plafond de profondeur de la pile de modales (doc 08 §3). */
 export const MAX_MODAL_DEPTH = 2;

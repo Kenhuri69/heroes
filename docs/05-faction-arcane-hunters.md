@@ -173,6 +173,13 @@ Au moment de construire le **Grand Amphithéâtre** (bâtiment T3 de l'arbre), l
 
 Chaque semaine, le **Tableau des Contrats** (bâtiment) propose 1 cible neutre sur la carte (« Abattez les Griffons du col Nord »). La remplir avant la fin de la semaine rapporte or + **Essence** (monnaie interne de faction servant aux améliorations d'unités et au T8). L'Essence remplace une partie du besoin en ressources rares : la faction est conçue pour **vivre de ses combats**, pas de ses mines.
 
+> ✅ **État (livré)** : le **Tableau des Contrats** (`arcane-hunters-contracts`)
+> porte l'effet de bâtiment **générique** `huntContract { gold, resource, amount }`
+> (jamais un nom de faction). Au `WeekStarted`, tout propriétaire d'un tel
+> bâtiment se voit assigner une cible neutre (un gardien de la carte, tirée au
+> **RNG seedé**) ; la vaincre crédite or + Essence puis libère le contrat
+> (`PlayerState.huntContract`, `HuntContractAssigned`/`HuntContractCompleted`).
+
 ## 4. Lineup d'unités (8 tiers)
 
 Particularité : la faction a **8 tiers**, mais le T8 partage sa croissance avec le T7 (structure « double sommet » : on choisit chaque semaine lequel des deux recruter — le schéma de données le supporte via `sharedGrowthGroup`).
@@ -243,9 +250,9 @@ Héros nommés : *Evadne Corvel* (Maître de Chasse, ex-Cercle de l'Abîme, moit
 
 | Besoin | Mécanisme du framework (doc 06) |
 |--------|--------------------------------|
-| 8ᵉ tier à croissance partagée | donnée `sharedGrowthGroup` (générique, déjà dans le schéma) |
-| Marques | capacité générique `mark` + module `consumeMarks` (registre de capacités) |
-| Essence | ressource **de faction** déclarée dans le manifeste (`factionResources`) |
-| Choix de Cercle | mécanisme générique `exclusiveBuildingChoice` (déjà requis par les villes HoMM classiques) |
-| Contrats de chasse | module de faction `hooks/onWeekStart.ts` (hook d'aventure) |
-| Forme démon du T8 | module de capacité `demonform` (transformation stateful) |
+| 8ᵉ tier à croissance partagée | donnée `sharedGrowthGroup` (schéma validé ; **câblage moteur du choix hebdo différé** — T7/T8 croissent indépendamment pour l'instant) |
+| Marques | capacité générique `mark` + module `consumeMarks` (registre de capacités) — livré (4.2/4.3/4.5/4.8) |
+| Essence | ressource **de faction** déclarée dans le manifeste (`factionResources`) — livré (4.4/4.6) |
+| Choix de Cercle | mécanisme générique `exclusiveBuildingChoice` — livré (4.7) |
+| Contrats de chasse | **effet de bâtiment générique `huntContract`** (assignation au `WeekStarted` + récompense à la victoire) — **livré** (déclaratif, pas un hook impératif) |
+| Forme démon du T8 | module de capacité `demonform` (transformation stateful) — livré (4.10) |

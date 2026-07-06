@@ -17,6 +17,12 @@ export type BuildingEffect =
   | { type: 'mageGuild'; level: number }
   /** Active l'échange ressource ↔ or dans la ville (doc 02 §4.1, lot UX U6a). */
   | { type: 'market' }
+  /**
+   * Contrat de chasse (doc 05 §3.3) : cible neutre hebdomadaire assignée au
+   * propriétaire ; la vaincre crédite `gold` + `amount` de la ressource de
+   * faction `resource` (id opaque — le moteur ne connaît aucune faction).
+   */
+  | { type: 'huntContract'; gold: number; resource: string; amount: number }
   /** Bâtiment sans effet mécanique en 3.1 (tavern/forge/spécial) — arbre seul. */
   | { type: 'none' };
 

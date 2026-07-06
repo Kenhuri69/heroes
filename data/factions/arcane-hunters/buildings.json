@@ -175,6 +175,17 @@
           "effect": { "type": "growthBonus", "percent": 40 }
         }
       ]
+    },
+    {
+      "id": "arcane-hunters-contracts",
+      "maxLevel": 1,
+      "levels": [
+        {
+          "cost": { "gold": 800, "wood": 5 },
+          "requires": [{ "building": "townHall", "level": 1 }],
+          "effect": { "type": "huntContract", "gold": 300, "resource": "essence", "amount": 15 }
+        }
+      ]
     }
   ]
 }

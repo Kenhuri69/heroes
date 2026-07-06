@@ -15,6 +15,7 @@ import {
 import {
   applyDailyIncome,
   applyWeeklyGrowth,
+  assignHuntContracts,
   handleBuildStructure,
   handleCaptureTown,
   handleGarrisonTransfer,
@@ -318,6 +319,7 @@ const handlers: Handlers = {
       // Minuteur de reprise désarmé (-1) tant que le joueur n'a pas de ville de
       // départ ; 0 (armé, possède) sinon (doc 02 §4.1).
       townlessDays: (cmd.towns ?? []).some((t) => t.ownerPlayerId === p.id) ? 0 : -1,
+      huntContract: null,
     }));
     // Un héros par joueur à sa position de départ, armée de scénario (doc 02 §1.5, §5.1).
     draft.heroes = cmd.players.map((p, i) => ({
@@ -447,6 +449,9 @@ const handlers: Handlers = {
       if (week !== weekOf(draft.calendar.day - 1)) {
         events.push({ type: 'WeekStarted', week });
         applyWeeklyGrowth(draft, events); // croissance hebdo des habitations
+        // Contrats de chasse (doc 05 §3.3) : cible neutre hebdomadaire assignée
+        // au propriétaire d'un bâtiment `huntContract`.
+        assignHuntContracts(draft, events);
       }
       // Triggers de carte « onDay » (doc 02 §2.1) puis avancée de la grâce de
       // reprise de ville (doc 02 §4.1) — une fois par jour, avant l'évaluation.

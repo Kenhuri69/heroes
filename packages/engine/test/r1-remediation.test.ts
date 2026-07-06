@@ -311,6 +311,7 @@ describe('R1 · mineur — plafond de croissance non réducteur', () => {
           controller: 'human',
           eliminated: false,
           townlessDays: 0,
+          huntContract: null,
         },
       ],
     };

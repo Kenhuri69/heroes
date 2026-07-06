@@ -1,5 +1,6 @@
 import { grantXp } from '../adventure/experience';
 import { applyFactionVictoryEffects } from '../faction/effects';
+import { rewardHuntContract } from '../town/hunt-contract';
 import type { GameEvent } from '../core/events';
 import { rollRange } from '../core/rng';
 import { evaluateOutcome } from '../scenario/outcome';
@@ -163,6 +164,9 @@ function applyConsequences(
       applyFactionVictoryEffects(draft, combat, hero, casualties, events);
     }
     if (draft.map && combat.guardianObjectId) {
+      // Contrat de chasse (doc 05 §3.3) : si ce gardien était la cible assignée,
+      // crédite la récompense — avant de retirer l'objet de la carte.
+      if (hero) rewardHuntContract(draft, hero, combat.guardianObjectId, events);
       const idx = draft.map.objects.findIndex((o) => o.id === combat.guardianObjectId);
       if (idx !== -1) draft.map.objects.splice(idx, 1);
     }

@@ -106,6 +106,10 @@ export function notify(event: AppEvent, game: GameState): string | null {
       return ownTown(event.townId)
         ? t('toast.unitsRecruited', { count: event.count, unit: resolveUnitName(event.unitId) })
         : null;
+    case 'UnitsUpgraded':
+      return ownTown(event.townId)
+        ? t('toast.unitsUpgraded', { count: event.count, unit: resolveUnitName(event.toUnitId) })
+        : null;
     case 'TownCaptured':
       return event.playerId === human ? t('toast.townCaptured') : null;
     // Fin de partie (doc 02 §6) — l'overlay porte le message principal, ce toast

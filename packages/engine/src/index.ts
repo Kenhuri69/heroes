@@ -89,6 +89,8 @@ export {
   scaleCost,
   tradeQuote,
   unitIsRecruitable,
+  upgradedUnitFor,
+  upgradeCost,
   type BuildRequirement,
   type BuildStatus,
 } from './town';

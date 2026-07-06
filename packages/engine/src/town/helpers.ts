@@ -34,25 +34,21 @@ export function unitIsRecruitable(
 }
 
 /**
- * Liste des unités recrutables dans la ville (unitId débloqué par un dwelling
- * construit). Parcourt TOUS les niveaux construits d'un bâtiment gradué — un
- * bâtiment qui débloquerait un dwelling à plusieurs niveaux les expose tous
- * (là où `unitIsRecruitable` ne regarde que le niveau haut ; les deux
- * coïncident tant que chaque dwelling est un bâtiment `maxLevel: 1`, cas des
- * données actuelles). Ordre stable (ordre d'insertion des bâtiments).
+ * Liste des unités recrutables dans la ville : l'unité du **niveau construit**
+ * de chaque dwelling (cohérent avec `unitIsRecruitable`, qui ne regarde que le
+ * niveau haut). Pour un dwelling gradué (Alpha 4.11 : niveau 1 = base, niveau 2
+ * = amélioré), seule la variante du niveau construit est exposée — recruter
+ * l'amélioré remplace la base une fois le niveau 2 bâti. Ordre stable (ordre
+ * d'insertion des bâtiments).
  */
 export function builtDwellings(
   town: TownState,
   catalog: Record<string, BuildingDef>,
 ): string[] {
   const unitIds: string[] = [];
-  for (const [buildingId, level] of Object.entries(town.buildings)) {
-    const def = catalog[buildingId];
-    if (!def) continue;
-    for (let i = 0; i < level; i++) {
-      const effect = def.levels[i]?.effect;
-      if (effect?.type === 'dwelling' && !unitIds.includes(effect.unitId)) unitIds.push(effect.unitId);
-    }
+  for (const buildingId of Object.keys(town.buildings)) {
+    const effect = builtLevelOf(town, catalog, buildingId)?.effect;
+    if (effect?.type === 'dwelling' && !unitIds.includes(effect.unitId)) unitIds.push(effect.unitId);
   }
   return unitIds;
 }

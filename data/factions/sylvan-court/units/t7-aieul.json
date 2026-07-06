@@ -2,7 +2,7 @@
   "id": "t7-aieul",
   "tier": 7,
   "name": "@loc:unit.t7-aieul.name",
-  "stats": { "hp": 165, "attack": 20, "defense": 18, "damage": [30, 50], "speed": 9 },
+  "stats": { "hp": 125, "attack": 22, "defense": 14, "damage": [28, 48], "speed": 10 },
   "growthPerWeek": 1,
   "cost": { "gold": 3000, "crystal": 2, "mercury": 2 },
   "abilities": [{ "id": "symbiosis", "params": { "attackPerRound": 2, "defensePerRound": 3, "maxStacks": 4 } }]

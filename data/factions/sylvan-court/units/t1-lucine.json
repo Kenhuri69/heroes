@@ -2,7 +2,7 @@
   "id": "t1-lucine",
   "tier": 1,
   "name": "@loc:unit.t1-lucine.name",
-  "stats": { "hp": 4, "attack": 2, "defense": 1, "damage": [1, 2], "speed": 6 },
+  "stats": { "hp": 3, "attack": 2, "defense": 1, "damage": [1, 2], "speed": 6 },
   "growthPerWeek": 16,
   "cost": { "gold": 30 },
   "abilities": [{ "id": "flying" }]

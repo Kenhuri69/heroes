@@ -244,6 +244,28 @@
           }
         }
       ]
+    },
+    {
+      "id": "sylvan-court-heart-grove",
+      "maxLevel": 1,
+      "levels": [
+        {
+          "cost": {
+            "gold": 2000,
+            "crystal": 5
+          },
+          "requires": [
+            {
+              "building": "fort",
+              "level": 1
+            }
+          ],
+          "effect": {
+            "type": "growthBonus",
+            "percent": 25
+          }
+        }
+      ]
     }
   ]
 }

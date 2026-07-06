@@ -16,7 +16,7 @@ import { appStore, useApp } from './store';
  * HORS de cette pile : on ne peut pas les « fermer » par un retour arrière.
  */
 
-export type Screen = 'menu' | 'adventure';
+export type Screen = 'menu' | 'adventure' | 'editor';
 
 /** Modale empilable (doc 08 §3). */
 export type Modal =

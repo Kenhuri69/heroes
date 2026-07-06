@@ -1,0 +1,118 @@
+.map-editor {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: #1a1c22;
+  color: #e8e2d0;
+  overflow: auto;
+  z-index: 5;
+  /* #ui-root est en pointer-events: none (index.html) : réactiver ici pour que
+     l'éditeur reçoive les clics au lieu de la toile PixiJS dessous. */
+  pointer-events: auto;
+}
+
+.map-editor-bar,
+.map-editor-tools,
+.map-editor-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.map-editor-bar label,
+.map-editor-actions label {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  font-size: 0.8125rem;
+}
+
+.map-editor-bar input {
+  min-height: 44px;
+  padding: 0 8px;
+  width: 6rem;
+  border: 1px solid #3a3f4b;
+  border-radius: 8px;
+  background: #262a33;
+  color: #e8e2d0;
+}
+
+.map-editor-tools .tool,
+.map-editor-actions button,
+.map-editor-bar button {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 12px;
+  border: 1px solid #3a3f4b;
+  border-radius: 8px;
+  background: #262a33;
+  color: #e8e2d0;
+  font: 600 0.8125rem system-ui, sans-serif;
+  cursor: pointer;
+}
+
+.map-editor-tools .tool.active {
+  outline: 2px solid #f1c40f;
+}
+
+/* Teintes de terrain (palette + cellules) — non chromatiques seules : le libellé
+   d'outil et l'aria-label portent l'info (accessibilité doc 08 §4). */
+.terrain-grass {
+  background: #5a8f3c;
+}
+.terrain-swamp {
+  background: #6b7a3a;
+}
+.terrain-water {
+  background: #2e6b9e;
+}
+.terrain-mountain {
+  background: #7a6f5f;
+}
+
+.map-editor-grid {
+  display: grid;
+  gap: 1px;
+  max-width: 100%;
+  overflow: auto;
+  border: 1px solid #3a3f4b;
+  align-self: start;
+}
+
+.map-editor-grid .cell {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.map-editor-grid .cell .mark {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font: 700 0.75rem system-ui, sans-serif;
+  color: #1a1c22;
+  text-shadow: 0 0 2px #fff;
+}
+.map-editor-grid .cell .mark.start {
+  background: rgba(241, 196, 15, 0.55);
+}
+
+.map-editor-message.ok {
+  color: #7ed08a;
+}
+.map-editor-message.err {
+  color: #e0736b;
+}
+
+.map-editor-import input[type='file'] {
+  display: inline-block;
+  max-width: 12rem;
+}

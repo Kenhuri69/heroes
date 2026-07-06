@@ -12,6 +12,7 @@ import { heroAvatarUrl, resourceIconUrl } from '../render/assets';
 import { t, resolveUnitName } from '../app/i18n';
 import { AssetImg } from './AssetImg';
 import { MenuScreen } from './MenuScreen';
+import { MapEditor } from './MapEditor';
 import { OptionsPanel } from './OptionsPanel';
 import { SkirmishScreen } from './SkirmishScreen';
 import { Journal } from './Journal';
@@ -76,6 +77,8 @@ function Shell() {
     <>
       {screen === 'menu' ? (
         <MenuScreen />
+      ) : screen === 'editor' ? (
+        <MapEditor />
       ) : started ? (
         inCombat ? (
           <CombatUi />

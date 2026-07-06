@@ -154,3 +154,13 @@ Menu principal (Continuer / Scénarios / Escarmouche / Options), fiche de scéna
 > apparaît autour du plateau (hexes semi-opaques) ; retiré à la sortie du combat
 > et au retour menu. Anti-gel ×4 re-vérifié (arène ~23 fps, carte ~14 fps, rendu
 > logiciel CI, plancher ≥ 5).
+
+> 🚧 **État DA Beta (gardiens illustrés + nommage des sprites)** : sur la carte
+> d'aventure, un **gardien** affiche désormais le **sprite de sa créature**
+> (`unitSpriteUrl(unitId, catalog[unitId].groupId)`, chargé async, même chemin
+> que le combat), avec **repli fanion** procédural si la faction/le sprite manque
+> — comme HoMM montre l'unité qui garde une case. Corrige au passage le
+> **nommage** de 5 sprites Arcane Hunters (suffixe de nom → `<id>.png`) qui les
+> rendait irrésolvables : les 23 sprites d'unités résolvent maintenant tous. Le
+> **générateur** (`gen_prompts`/extraction) devra émettre `units/<faction>/
+> <id>.png` pour ne pas réintroduire de suffixe (follow-up noté au plan).

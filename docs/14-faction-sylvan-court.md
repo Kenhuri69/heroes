@@ -53,19 +53,22 @@ implacable, car la forêt ne charge pas — elle *encercle*.
 
 ## 3. Lineup (7 tiers)
 
-> Stats **indicatives** (équilibrées finement au lot data via `faction:sim`, doc 09
-> ligne 48). Profil : bas de gamme fragile & bon marché, milieu de gamme qui
-> *tient*, haut de gamme cher et lent mais colossal une fois enraciné.
+> Stats **équilibrées** au lot 5.4 via `faction:sim` (doc 09 ligne 48). Profil :
+> **maison-escarmouche mobile** — bas de gamme fragile & bon marché, milieu de
+> gamme rapide qui frappe, **grands anciens mobiles** (Tréant/Aïeul lestes, pas
+> des statues) qui *choisissent* de s'enraciner pour tanker via Symbiose. Ce profil
+> agile est ce qui rend la maison viable face aux factions de burst (voir §9,
+> État 5.4) : des anciens lents s'effondraient contre le tir/l'exécution adverses.
 
 | Tier | Unité | PV | Att | Déf | Dégâts | Vit. | Croiss./sem | Coût | Capacités |
 |------|-------|----|-----|-----|--------|------|-------------|------|-----------|
-| 1 | **Lucine** (fée) | 4 | 2 | 1 | 1–2 | 6 | 16 | 30 or | `flying` |
-| 2 | **Archer Sylvestre** | 9 | 4 | 3 | 2–4 | 5 | 9 | 80 or | `shooter(12)` |
-| 3 | **Dryade** | 17 | 5 | 6 | 3–5 | 5 | 7 | 160 or | `symbiosis(atk +1, déf +1, max 4)` ¹ |
+| 1 | **Lucine** (fée) | 3 | 2 | 1 | 1–2 | 6 | 16 | 30 or | `flying` |
+| 2 | **Archer Sylvestre** | 9 | 5 | 3 | 2–4 | 5 | 9 | 80 or | `shooter(12)` |
+| 3 | **Dryade** | 13 | 6 | 3 | 3–5 | 6 | 7 | 160 or | `symbiosis(atk +1, déf +1, max 4)` ¹ |
 | 4 | **Loup d'Argent** | 28 | 8 | 6 | 5–8 | 8 | 5 | 320 or | `doubleAttack` |
-| 5 | **Licorne** | 38 | 10 | 10 | 7–11 | 7 | 4 | 560 or + 1 cristal | *(aucune ; robuste)* |
-| 6 | **Tréant** | 78 | 13 | 15 | 12–18 | 4 | 2 | 1200 or + 1 mercure | `symbiosis(atk +2, déf +2, max 4)` ¹ |
-| 7 | **Aïeul de la Forêt** | 165 | 20 | 18 | 30–50 | 9 | 1 | 3000 or + 2 cristal + 2 mercure | `symbiosis(atk +2, déf +3, max 4)` ¹ |
+| 5 | **Licorne** | 29 | 11 | 7 | 7–11 | 8 | 4 | 560 or + 1 cristal | *(aucune ; rapide)* |
+| 6 | **Tréant** | 59 | 15 | 11 | 12–18 | 6 | 2 | 1200 or + 1 mercure | `symbiosis(atk +2, déf +2, max 4)` ¹ |
+| 7 | **Aïeul de la Forêt** | 125 | 22 | 14 | 28–48 | 10 | 1 | 3000 or + 2 cristal + 2 mercure | `symbiosis(atk +2, déf +3, max 4)` ¹ |
 
 > ¹ **Symbiose livrée (5.3)** : le module moteur générique `symbiosis` est ouvert et
 > les unités T3/T6/T7 portent la capacité **en données** (paliers Att/Déf ci-dessus,
@@ -84,13 +87,12 @@ implacable, car la forêt ne charge pas — elle *encercle*.
 - **Chaîne d'habitations** : 7 dwellings (T1→T7), prérequis en escalier (hôtel de
   ville → dwelling T1 ; chaque tier requiert le précédent + Fort au-delà de T4),
   **identique au patron des 3 maisons** (données pures, `manifest.town.dwellings`).
-- **Bâtiment propre différé (5.4)** :
-  - **Bosquet du Cœur** (`heart-grove`) — croissance : +% de croissance hebdo
-    (effet de bâtiment **générique** `growthBonus` déjà existant, aucun code neuf).
-    Différé au lot finitions comme raffinement (au lot données 5.2, la faction suit
-    le patron minimal de Haven : **dwellings uniquement**, communs `townHall`/`fort`/
-    `mageGuild`/`forge`). Le « Cercle des Anciens » de l'ébauche est abandonné
-    (redondant avec la `mageGuild` commune).
+- **Bâtiment propre livré (5.4)** :
+  - **Bosquet du Cœur** (`heart-grove`) — croissance : **+25 % de croissance hebdo**
+    (effet de bâtiment **générique** `growthBonus` déjà existant, **aucun code neuf** :
+    `applyWeeklyGrowth` somme le `growthBonus` de tous les bâtiments construits).
+    Coût 2000 or + 5 cristaux, prérequis Fort niveau 1. Le « Cercle des Anciens »
+    de l'ébauche est abandonné (redondant avec la `mageGuild` commune).
 - **Aucune ressource de faction propre** (choix de cadrage : Sylvan valide que la
   modularité tient *sans* rouvrir le point d'extension « ressource de faction »
   déjà prouvé par Essence — variété de preuve).
@@ -193,3 +195,38 @@ et aux 6 unités Sylvestres T3/T6/T7. **6 tests moteur** (accumulation, plafond,
 bonus Att/Déf, remises à 0 déplacement/attaque, préservation en riposte),
 `content:check` vert, garde-fou faction vert, smoke desktop+mobile vert. Reste :
 **5.4** équilibrage `faction:sim` + Bosquet du Cœur + finitions.
+
+## État 5.4 — Sylvan Court complète (Beta)
+
+**Équilibrage `faction:sim`** — la faction passait de **2 déséquilibres béants** à
+**0**. Réglage **100 % données** (stats/coûts d'unités, base + elite cohérents) :
+
+| Matchup (winrate Sylvan) | Avant 5.4 | Après 5.4 |
+|--------------------------|-----------|-----------|
+| vs Haven                 | 73.8 %    | **44.6 %** |
+| vs Arcane Hunters        | 17.9 % ✗  | **44.6 %** |
+| vs Necropolis            | 100.0 % ✗ | **57.5 %** |
+
+**Découverte de réglage** : la Symbiose (5.3) ne pèse presque rien dans le sim
+(l'IA de combat ne Défend qu'en dernier recours) — l'écart était **structurel**
+(stats/coûts). Sylvan écrasait les factions « loyales » (Haven/Necro) mais
+s'effondrait contre le **burst** d'Arcane (marks/exécuteur/tir). Un levier de
+puissance *uniforme* déplaçait les trois matchups dans le même sens sans résorber
+les deux blowouts opposés. La solution qui les corrige **ensemble** : basculer
+Sylvan de **tanky-tortue** vers **agile-verre** — moins de PV/Déf, plus de
+Vitesse/Att, **y compris sur les grands anciens** (Tréant/Aïeul rendus mobiles).
+Vérifié empiriquement : re-ralentir T6/T7 ré-effondrait le matchup Arcane
+(≈ 5 %) et rouvrait le blowout Necro (≈ 85 %). D'où le profil « escarmouche
+mobile » du §3 et la lecture narrative des anciens *striders*. `faction:sim`
+reste un **garde-fou d'alerte** (échec seulement sur blowout), pas un gate CI ;
+les 3 matchups Sylvan sont désormais dans la bande 20–80 (deux à ~45 %, un à
+57.5 %). Aucune autre faction touchée.
+
+**Bosquet du Cœur** (`heart-grove`) livré — bâtiment `growthBonus` +25 %,
+effet **générique** existant, **zéro code moteur** (§4).
+
+**Modularité prouvée une 4ᵉ fois** : maison complète (lineup, dwellings, bâtiment
+propre, signature `symbiosis`) = **données + 1 point d'extension générique**,
+garde-fou « zéro nom de faction dans `packages/` » vert. **Sylvan Court complète.**
+Héros nommés / classes / bonus de faction restent différés (points d'extension
+ouverts au besoin, cf. §5/§7). Assets : repli procédural (intégration hors lot).

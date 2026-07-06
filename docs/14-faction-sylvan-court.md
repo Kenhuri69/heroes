@@ -17,7 +17,7 @@
 | **Fantasme joueur** | *« Je ne me presse pas : plus je tiens le terrain, plus mes rangs deviennent inarrêtables. »* |
 | **Style de jeu** | Attrition / tempo lent — punit l'adversaire qui n'ouvre pas ; s'effondre si on la force à courir |
 | **Faiblesse assumée** | **Agression / tempo** : ses piles-clés sont fragiles au départ et doivent *rester* pour monter en puissance ; un rush qui l'oblige à bouger (ou la tue vite) annule la Symbiose |
-| **Terrain natif** | `grass` (forêt) |
+| **Terrain natif** | `water` — la Forêt-Monde s'abreuve au **fleuve primordial** ; dryades, naïades et licornes sont liées aux **sources sacrées**. (Choix aussi *structurel* : `grass` est déjà la signature de Haven pour l'identification par propriété des tests ; `water` garde chaque maison distinguable sans nom en dur.) |
 | **Ressources clés** | **Cristal + Mercure** (rares partagées — aucune ressource de faction propre, contrairement à Arcane Hunters/Necropolis : Sylvan reste économiquement « classique ») |
 | **École de magie** | **existante** (`earth` / `water`) — pas d'école propre au 1ᵉʳ lot (minimise les points d'extension) |
 | **Couleurs / DA** | Verts profonds & ambre, écorce et lucioles ; bannières à motif de fronde/feuille |
@@ -61,23 +61,35 @@ implacable, car la forêt ne charge pas — elle *encercle*.
 |------|-------|----|-----|-----|--------|------|-------------|------|-----------|
 | 1 | **Lucine** (fée) | 4 | 2 | 1 | 1–2 | 6 | 16 | 30 or | `flying` |
 | 2 | **Archer Sylvestre** | 9 | 4 | 3 | 2–4 | 5 | 9 | 80 or | `shooter(12)` |
-| 3 | **Dryade** | 17 | 5 | 6 | 3–5 | 5 | 7 | 160 or | `symbiosis(atk +1, déf +1, max 4)` |
-| 4 | **Loup d'Argent** | 28 | 8 | 6 | 5–8 | 8 | 5 | 320 or | `unlimitedRetaliation` |
-| 5 | **Licorne** | 38 | 10 | 10 | 7–11 | 7 | 4 | 560 or + 1 cristal | `magicResistance(40 %)` |
-| 6 | **Tréant** | 78 | 13 | 15 | 12–18 | 4 | 2 | 1200 or + 1 mercure | `taunt`, `symbiosis(atk +2, déf +2, max 4)` |
-| 7 | **Aïeul de la Forêt** | 165 | 20 | 18 | 30–50 | 9 | 1 | 3000 or + 2 cristal + 2 mercure | `symbiosis(atk +2, déf +3, max 4)`, immunité au moral négatif |
+| 3 | **Dryade** | 17 | 5 | 6 | 3–5 | 5 | 7 | 160 or | `symbiosis(atk +1, déf +1, max 4)` ¹ |
+| 4 | **Loup d'Argent** | 28 | 8 | 6 | 5–8 | 8 | 5 | 320 or | `doubleAttack` |
+| 5 | **Licorne** | 38 | 10 | 10 | 7–11 | 7 | 4 | 560 or + 1 cristal | *(aucune ; robuste)* |
+| 6 | **Tréant** | 78 | 13 | 15 | 12–18 | 4 | 2 | 1200 or + 1 mercure | `symbiosis(atk +2, déf +2, max 4)` ¹ |
+| 7 | **Aïeul de la Forêt** | 165 | 20 | 18 | 30–50 | 9 | 1 | 3000 or + 2 cristal + 2 mercure | `symbiosis(atk +2, déf +3, max 4)` ¹ |
+
+> ¹ **Symbiose ouverte au lot moteur (5.3)** : les unités T3/T6/T7 sont livrées au
+> lot **données (5.2)** avec `abilities: []` (lineup complet & recrutable), puis
+> reçoivent la capacité `symbiosis` **en données** quand le module moteur générique
+> est ouvert. Chaque tier a **7 variantes améliorées** (`-elite`, dwelling niveau 2,
+> Alpha 4.11), stats renforcées, mêmes capacités.
+>
+> Le lineup n'utilise que des **capacités existantes** (`flying`, `shooter`,
+> `doubleAttack`) hors Symbiose — la promesse « **1 module moteur total** » (§9)
+> est ainsi tenue (pas de `magicResistance`/`taunt`/`unlimitedRetaliation`
+> nouveaux, contrairement à une première ébauche).
 
 ## 4. Bâtiments spéciaux (2–3) + chaîne d'habitations
 
 - **Chaîne d'habitations** : 7 dwellings (T1→T7), prérequis en escalier (hôtel de
   ville → dwelling T1 ; chaque tier requiert le précédent + Fort au-delà de T4),
   **identique au patron des 3 maisons** (données pures, `manifest.town.dwellings`).
-- **Bâtiments propres (2)** :
-  - **Bosquet du Cœur** (`heart-grove`) — bâtiment de croissance : +50 % de
-    croissance hebdo des unités à `symbiosis` (effet de bâtiment **générique**
-    `growthBonus` déjà existant, filtré par tier/dwelling — aucun code neuf).
-  - **Cercle des Anciens** (`elders-circle`) — Guilde des mages thématisée
-    (effet `mageGuild` existant) donnant priorité aux sorts `earth`/`water`.
+- **Bâtiment propre différé (5.4)** :
+  - **Bosquet du Cœur** (`heart-grove`) — croissance : +% de croissance hebdo
+    (effet de bâtiment **générique** `growthBonus` déjà existant, aucun code neuf).
+    Différé au lot finitions comme raffinement (au lot données 5.2, la faction suit
+    le patron minimal de Haven : **dwellings uniquement**, communs `townHall`/`fort`/
+    `mageGuild`/`forge`). Le « Cercle des Anciens » de l'ébauche est abandonné
+    (redondant avec la `mageGuild` commune).
 - **Aucune ressource de faction propre** (choix de cadrage : Sylvan valide que la
   modularité tient *sans* rouvrir le point d'extension « ressource de faction »
   déjà prouvé par Essence — variété de preuve).
@@ -148,7 +160,17 @@ d'extension, **zéro** diff sur Haven/Necropolis/Arcane Hunters (garde-fou CI
 
 ## État 5.1
 
-Cadrage livré (ce document). Prochains lots : **5.2** lineup + dwellings + manifeste
-+ locales (données pures, garde-fou faction vert, test de recrutement) ; **5.3**
-point d'extension `symbiosis` (moteur générique + données qui l'exercent + tests) ;
-**5.4** équilibrage `faction:sim` + finitions (assets procéduraux en repli).
+Cadrage livré (ce document).
+
+## État 5.2
+
+**Données de la faction livrées** (`data/factions/sylvan-court/`) : manifeste
+(natif `water`, 7 tiers, sans ressource de faction), **14 unités** (7 base + 7
+améliorées), **7 dwellings** (`maxLevel:2`, prérequis en escalier), locales FR/EN,
+ajout à `data/factions/index.json`, **test de recrutement** (faction identifiée par
+propriété : native de l'eau + 7 tiers, aucun nom en dur). `content:check` vert (5
+paquets), garde-fou faction vert, **zéro diff moteur**. Symbiose (T3/T6/T7) à
+`abilities: []` en attendant le module moteur. Prochains lots : **5.3** point
+d'extension `symbiosis` (moteur générique + données qui l'exercent + tests) ;
+**5.4** équilibrage `faction:sim` + Bosquet du Cœur + finitions (assets procéduraux
+en repli).

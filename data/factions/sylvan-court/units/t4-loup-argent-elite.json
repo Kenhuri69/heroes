@@ -1,0 +1,9 @@
+{
+  "id": "t4-loup-argent-elite",
+  "tier": 4,
+  "name": "@loc:unit.t4-loup-argent-elite.name",
+  "stats": { "hp": 36, "attack": 10, "defense": 8, "damage": [6, 10], "speed": 9 },
+  "growthPerWeek": 5,
+  "cost": { "gold": 440 },
+  "abilities": [{ "id": "doubleAttack" }]
+}

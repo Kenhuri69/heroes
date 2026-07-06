@@ -461,3 +461,112 @@ describe('Nécromancie (plan phase-3.4) — effet de faction post-victoire, donn
     expect(skeletonsBefore).toBe(500);
   });
 });
+
+/**
+ * La 4ᵉ maison (Beta, doc 14) : native de l'**eau**, lineup complet de 7 tiers de
+ * base. Identifiée par ses PROPRIÉTÉS (terrain natif + 7 tiers), jamais par son id
+ * littéral — le garde-fou de modularité interdit tout nom de faction dans
+ * `packages/` (y compris les tests/commentaires).
+ */
+function findSevenTierWaterFaction(packs: Awaited<ReturnType<typeof loadContent>>['content']['packs']) {
+  return packs.find((p) => p.manifest.nativeTerrain === 'water' && baseUnits(p).length === 7);
+}
+
+describe('4ᵉ faction (native de l’eau) — pipeline data-driven', () => {
+  it('charge la faction (14 unités = 7 base + 7 améliorées, locales fr/en)', async () => {
+    const report = await loadContent(readJsonFromDisk);
+    expect(report.rejected).toEqual([]);
+    const pack = findSevenTierWaterFaction(report.content.packs);
+    expect(pack).toBeDefined();
+    expect(baseUnits(pack!)).toHaveLength(7);
+    expect(pack?.units).toHaveLength(14);
+    const nameKey = pack?.manifest.name.slice('@loc:'.length) ?? '';
+    expect(pack?.locales.fr[nameKey]).toBeTruthy();
+    expect(pack?.locales.en[nameKey]).toBeTruthy();
+  });
+
+  it('résout stats/capacités du lineup (doc 14 §3 ; Symbiose ouverte au lot moteur)', async () => {
+    const report = await loadContent(readJsonFromDisk);
+    const pack = findSevenTierWaterFaction(report.content.packs);
+    const byTier = new Map(baseUnits(pack!).map((u) => [u.tier, u]));
+    // T1 volant fragile, T2 tireur, T4 double attaque, T7 colosse.
+    expect(byTier.get(1)?.abilities).toEqual([{ id: 'flying' }]);
+    expect(byTier.get(2)?.abilities).toEqual([{ id: 'shooter', params: { ammo: 12 } }]);
+    expect(byTier.get(4)?.abilities).toEqual([{ id: 'doubleAttack' }]);
+    expect(byTier.get(7)?.stats.hp).toBe(165);
+    // Les unités-Symbiose (T3/T6/T7) n'ont pas encore de capacité (ability ouverte
+    // au lot moteur suivant) : lineup complet et recrutable dès maintenant.
+    expect(byTier.get(3)?.abilities).toEqual([]);
+  });
+
+  it('recrute une unité de chacun des 7 tiers depuis une ville aux habitations construites', async () => {
+    const report = await loadContent(readJsonFromDisk);
+    const pack = findSevenTierWaterFaction(report.content.packs);
+    if (!pack) throw new Error('4ᵉ faction absente — content:check devrait échouer');
+
+    const unitCatalog: Record<string, CombatUnitDef> = {};
+    for (const unit of pack.units) {
+      unitCatalog[unit.id] = {
+        id: unit.id,
+        groupId: pack.manifest.id,
+        nativeTerrain: pack.manifest.nativeTerrain,
+        stats: unit.stats,
+        abilities: unit.abilities,
+        recruitCost: unit.cost,
+        growthPerWeek: unit.growthPerWeek,
+      };
+    }
+    const buildingCatalog = buildBuildingCatalog(report);
+    const buildings: Record<string, number> = { townHall: 1, fort: 1, mageGuild: 1 };
+    for (const dwelling of pack.manifest.town?.dwellings ?? []) buildings[dwelling.buildingId] = 1;
+    const stock: Record<string, number> = {};
+    for (const unit of pack.units) stock[unit.id] = 5;
+
+    const town: TownState = {
+      id: 'town-1',
+      ownerPlayerId: 'p1',
+      pos: { x: 0, y: 0 },
+      factionId: pack.manifest.id,
+      buildings,
+      builtToday: false,
+      garrison: [],
+      stock,
+    };
+    const players: PlayerSetup[] = [
+      {
+        id: 'p1',
+        startingResources: {
+          ...emptyResources(),
+          gold: 100_000,
+          wood: 100,
+          ore: 100,
+          crystal: 100,
+          mercury: 100,
+        },
+      },
+    ];
+    const startCmd: Command = {
+      type: 'StartGame',
+      seed: 1,
+      players,
+      map: testMap(),
+      config: testConfig(),
+      unitCatalog,
+      buildingCatalog,
+      towns: [town],
+    };
+    let state = apply(createEmptyState(), startCmd).state;
+    const base = baseUnits(pack);
+    for (const unit of base) {
+      const { state: next, events } = apply(state, {
+        type: 'RecruitUnits',
+        townId: 'town-1',
+        unitId: unit.id,
+        count: 1,
+      });
+      expect(events).toContainEqual({ type: 'UnitsRecruited', townId: 'town-1', unitId: unit.id, count: 1 });
+      state = next;
+    }
+    expect(state.towns[0]?.garrison ?? []).toHaveLength(7);
+  });
+});

@@ -1,0 +1,9 @@
+{
+  "id": "t6-treant",
+  "tier": 6,
+  "name": "@loc:unit.t6-treant.name",
+  "stats": { "hp": 78, "attack": 13, "defense": 15, "damage": [12, 18], "speed": 4 },
+  "growthPerWeek": 2,
+  "cost": { "gold": 1200, "mercury": 1 },
+  "abilities": []
+}

@@ -1,0 +1,9 @@
+{
+  "id": "t7-aieul-elite",
+  "tier": 7,
+  "name": "@loc:unit.t7-aieul-elite.name",
+  "stats": { "hp": 200, "attack": 23, "defense": 21, "damage": [36, 58], "speed": 10 },
+  "growthPerWeek": 1,
+  "cost": { "gold": 4100, "crystal": 2, "mercury": 2 },
+  "abilities": []
+}

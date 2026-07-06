@@ -1,0 +1,9 @@
+{
+  "id": "t2-archer-sylvestre",
+  "tier": 2,
+  "name": "@loc:unit.t2-archer-sylvestre.name",
+  "stats": { "hp": 9, "attack": 4, "defense": 3, "damage": [2, 4], "speed": 5 },
+  "growthPerWeek": 9,
+  "cost": { "gold": 80 },
+  "abilities": [{ "id": "shooter", "params": { "ammo": 12 } }]
+}

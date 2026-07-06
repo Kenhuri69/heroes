@@ -54,6 +54,29 @@ export function demonformParams(
   };
 }
 
+/** Paramètres de la capacité `symbiosis` (doc 14 §2, Beta 5.3) d'une unité, ou `null`. */
+export function symbiosisParams(
+  def: CombatUnitDef,
+): { attackPerRound: number; defensePerRound: number; maxStacks: number } | null {
+  const ability = def.abilities.find((a) => a.id === 'symbiosis');
+  if (!ability) return null;
+  return {
+    attackPerRound: Number(ability.params?.['attackPerRound'] ?? 0),
+    defensePerRound: Number(ability.params?.['defensePerRound'] ?? 0),
+    maxStacks: Number(ability.params?.['maxStacks'] ?? 0),
+  };
+}
+
+/** Bonus d'Attaque de Symbiose d'une pile (paliers × params) — 0 hors capacité. */
+export function symbiosisAttackBonus(def: CombatUnitDef, stacks: number): number {
+  return (symbiosisParams(def)?.attackPerRound ?? 0) * stacks;
+}
+
+/** Bonus de Défense de Symbiose d'une pile (paliers × params) — 0 hors capacité. */
+export function symbiosisDefenseBonus(def: CombatUnitDef, stacks: number): number {
+  return (symbiosisParams(def)?.defensePerRound ?? 0) * stacks;
+}
+
 /**
  * Résistance à la magie d'une pile (doc 05 §4) : la forme humaine d'une unité
  * `demonform` réduit les dégâts de sort ; la forme démon (transformée) non.
@@ -205,14 +228,18 @@ export function performStrike(
   const strikerAttack =
     strikerDef.stats.attack +
     (combat ? heroAttackOf(draft, combat, striker.side) : 0) +
-    statusModSum(striker.statuses, 'attackMod');
+    statusModSum(striker.statuses, 'attackMod') +
+    // Symbiose (doc 14 §2, Beta 5.3) : bonus d'Attaque = paliers accumulés × params.
+    symbiosisAttackBonus(strikerDef, striker.symbiosisStacks);
   const targetDefense =
     victimDef.stats.defense +
     (combat ? heroDefenseOf(draft, combat, victim.side) : 0) +
     statusModSum(victim.statuses, 'defenseMod') +
     // Murs du Fort (doc 02 §4.1, Alpha 4.13) : bonus de défense aux piles en
     // garnison (camp défenseur) pendant un siège ; 0 hors combat de ville.
-    (combat && victim.side === 'defender' ? combat.wallDefenseBonus : 0);
+    (combat && victim.side === 'defender' ? combat.wallDefenseBonus : 0) +
+    // Symbiose (doc 14 §2) : bonus de Défense = paliers accumulés × params.
+    symbiosisDefenseBonus(victimDef, victim.symbiosisStacks);
   const heroDamagePct = combat
     ? ranged
       ? heroRangedPctOf(draft, combat, striker.side)

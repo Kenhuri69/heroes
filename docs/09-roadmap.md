@@ -72,11 +72,11 @@ Estimations pour une petite équipe (2–3 dev + 1 artiste temps partiel). Chaqu
 > **Sylvan Court** livré (`docs/14-faction-sylvan-court.md`) — signature `symbiosis`
 > (1 module de combat générique, aucun nouveau point d'extension de framework),
 > **4ᵉ test de modularité**. Créneau « vote communauté » : choix par défaut,
-> réversible. Décomposition 5.1 cadrage → 5.2 données → 5.3 `symbiosis` → 5.4
+> réversible. Décomposition 5.1 cadrage ✅ → 5.2 données ✅ → 5.3 `symbiosis` ✅ → 5.4
 > équilibrage/finitions.
 
 - **Backend Node.js** (doc 07 §5) : comptes (magic link), cloud saves, **PvP asynchrone** avec notifications ; serveur autoritaire par re-simulation. *(attend une direction d'infra)*
-- 🚧 **4ᵉ faction — Sylvan Court** (cadrage 5.1 livré, doc 14) : produite via le pipeline de faction (doc 06), signature `symbiosis` en 1 point d'extension générique.
+- 🚧 **4ᵉ faction — Sylvan Court** (cadrage 5.1, données 5.2, signature `symbiosis` 5.3 livrés — doc 14) : produite via le pipeline de faction (doc 06), signature `symbiosis` en 1 point d'extension générique. Reste 5.4 équilibrage + finitions.
 - DA finale par faction (remplacement des placeholders), audio complet, PWA hors-ligne.
 - Équilibrage continu piloté par les données serveur ; classement saisonnier expérimental.
 - Accessibilité complète (audit), performances re-validées sur parc mobile élargi.

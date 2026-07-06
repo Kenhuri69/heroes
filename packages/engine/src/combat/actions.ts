@@ -2,7 +2,7 @@ import type { CommandError } from '../core/commands';
 import type { GameEvent } from '../core/events';
 import { rollRange } from '../core/rng';
 import type { GameState } from '../core/state';
-import { performStrike } from './damage';
+import { performStrike, symbiosisParams } from './damage';
 import type { Draft } from './draft';
 import { COMBAT_COLS, COMBAT_ROWS, hexDistance, hexNeighbors, sameHex, type OffsetPos } from './hex';
 import { advanceTurn, checkCombatEnd } from './turns';
@@ -226,6 +226,8 @@ function applyMove(
   const wasFirstAction = !stack.acted;
   const from = { ...stack.pos };
   stack.pos = { ...action.to };
+  // Symbiose (doc 14 §2) : un déplacement volontaire rompt l'enracinement.
+  stack.symbiosisStacks = 0;
   events.push({ type: 'StackMoved', stackId: stack.id, from, to: { ...stack.pos } });
   afterAction(draft, events, stack.id, wasFirstAction, 'move');
 }
@@ -242,6 +244,10 @@ function applyDefend(draft: Draft, events: GameEvent[], stackId: string): void {
   const stack = combat.stacks.find((s) => s.id === stackId) as CombatStack;
   const wasFirstAction = !stack.acted;
   stack.defending = true;
+  // Symbiose (doc 14 §2) : Défendre enracine un palier de plus (plafonné).
+  const def = draft.unitCatalog[stack.unitId];
+  const params = def ? symbiosisParams(def) : null;
+  if (params) stack.symbiosisStacks = Math.min(params.maxStacks, stack.symbiosisStacks + 1);
   afterAction(draft, events, stack.id, wasFirstAction, 'defend');
 }
 
@@ -337,5 +343,8 @@ function applyAttack(
       if (checkCombatEnd(draft, events)) return;
     }
   }
+  // Symbiose (doc 14 §2) : l'attaque VOLONTAIRE dépense l'enracinement (le bonus a
+  // profité aux frappes ci-dessus) — remis à 0. La riposte, elle, ne réinitialise pas.
+  attacker.symbiosisStacks = 0;
   afterAction(draft, events, attacker.id, wasFirstAction, 'attack');
 }

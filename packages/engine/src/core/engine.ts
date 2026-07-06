@@ -35,7 +35,8 @@ import {
 } from '../hero';
 import { heroManaMax } from '../hero/artifacts';
 import { heroGoldPerDay, heroMovementBonus, heroVisionBonus } from '../hero/skills';
-import { evaluateOutcome } from '../scenario/outcome';
+import { evaluateOutcome, tickTownGrace } from '../scenario/outcome';
+import { fireDayTriggers } from '../adventure/triggers';
 import { runAiTurn } from '../ai/adventure';
 import { EngineError, type Command, type CommandError } from './commands';
 import type { GameEvent } from './events';
@@ -306,6 +307,9 @@ const handlers: Handlers = {
       explored: createFog(cmd.map),
       controller: p.controller ?? 'human',
       eliminated: false,
+      // Minuteur de reprise désarmé (-1) tant que le joueur n'a pas de ville de
+      // départ ; 0 (armé, possède) sinon (doc 02 §4.1).
+      townlessDays: (cmd.towns ?? []).some((t) => t.ownerPlayerId === p.id) ? 0 : -1,
     }));
     // Un héros par joueur à sa position de départ, armée de scénario (doc 02 §1.5, §5.1).
     draft.heroes = cmd.players.map((p, i) => ({
@@ -432,6 +436,10 @@ const handlers: Handlers = {
         events.push({ type: 'WeekStarted', week });
         applyWeeklyGrowth(draft, events); // croissance hebdo des habitations
       }
+      // Triggers de carte « onDay » (doc 02 §2.1) puis avancée de la grâce de
+      // reprise de ville (doc 02 §4.1) — une fois par jour, avant l'évaluation.
+      fireDayTriggers(draft, events);
+      tickTownGrace(draft);
     }
     // Conditions de victoire/défaite (doc 02 §6, plan phase-3.5) — no-op hors scénario.
     evaluateOutcome(draft, events);

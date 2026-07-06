@@ -31,6 +31,28 @@ export interface GuardianObjectDef {
 
 export type MapObjectDef = ResourceObjectDef | GuardianObjectDef;
 
+/**
+ * Effet déclaratif d'un trigger de carte (doc 02 §2.1 « scripts d'événements
+ * simples »). Union **générique** — le moteur applique le `kind`, jamais un nom
+ * de faction ni de scénario. Ajouter un effet = une variante ici + son
+ * interprétation dans `adventure/triggers.ts` (même idiome que `FactionBonus`).
+ */
+export type TriggerEffect =
+  | { kind: 'grantResource'; resource: string; amount: number }
+  | { kind: 'message'; textKey: string };
+
+/**
+ * Trigger de carte (doc 02 §2.1) : un effet déclaratif déclenché soit à la
+ * visite d'une tuile (`visit`), soit à un jour donné (`day`). One-shot :
+ * `fired` passe à `true` au déclenchement et l'effet ne rejoue plus.
+ */
+export interface MapTriggerDef {
+  id: string;
+  on: { kind: 'visit'; pos: GridPos } | { kind: 'day'; day: number };
+  effect: TriggerEffect;
+  fired: boolean;
+}
+
 /** Forme résolue de la carte, telle qu'embarquée dans `StartGame` puis l'état. */
 export interface AdventureMapDef {
   id: string;
@@ -41,6 +63,8 @@ export interface AdventureMapDef {
   /** Route par tuile (coût ×roadMultiplier — doc 02 §1.5). */
   road: boolean[];
   objects: MapObjectDef[];
+  /** Triggers déclaratifs (doc 02 §2.1) — `[]` si la carte n'en définit aucun. */
+  triggers: MapTriggerDef[];
   /** Positions de départ des héros, une par joueur dans l'ordre des joueurs. */
   startPositions: GridPos[];
 }

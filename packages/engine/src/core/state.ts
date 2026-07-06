@@ -36,6 +36,14 @@ export interface PlayerState {
   controller: 'human' | 'ai';
   /** Éliminé (sans ville ni héros) — ne joue plus, exclu des vivants. */
   eliminated: boolean;
+  /**
+   * Grâce de reprise de ville (doc 02 §4.1). Sentinelle :
+   * `-1` = n'a **jamais** possédé de ville (héros de survie — jamais sur le
+   * minuteur) ; `0` = possède une ville ; `n>0` = jours écoulés depuis la perte
+   * de sa dernière ville. Au-delà de `RETAKE_GRACE_DAYS`, un joueur qui garde un
+   * héros est éliminé. La règle ne s'arme qu'une fois une ville possédée.
+   */
+  townlessDays: number;
 }
 
 /** Attributs primaires du héros (doc 02 §1.1) — effets câblés au MVP. */
@@ -91,9 +99,10 @@ export interface Calendar {
  * sauvegarde d'une autre version plutôt que d'adopter un état malformé.
  * (v2 : couvre les champs `factionCatalog`/`scenario`/`outcome`/`controller`/
  * `eliminated` introduits en 3.4/3.5. v3 : `PlayerState.factionResources`
- * introduit en 4.4.)
+ * introduit en 4.4. v4 : `PlayerState.townlessDays` + `AdventureMapDef.triggers`
+ * introduits par le comblement MVP — triggers de carte & grâce de reprise.)
  */
-export const CURRENT_SAVE_VERSION = 3;
+export const CURRENT_SAVE_VERSION = 4;
 
 export interface GameState {
   saveVersion: number;

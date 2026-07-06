@@ -3,6 +3,29 @@ import type { GameState } from '../core/state';
 import type { VictoryCondition } from './types';
 
 /**
+ * Grâce de reprise de ville (doc 02 §4.1) : un joueur qui perd sa dernière ville
+ * mais garde un héros a ce nombre de jours pour en reprendre une avant d'être
+ * éliminé. Constante de règle (comme la semaine de 7 jours de `weekOf`).
+ */
+export const RETAKE_GRACE_DAYS = 7;
+
+/**
+ * Met à jour le compteur de jours sans ville de chaque joueur — appelé **une
+ * fois par jour** (bascule de jour). Remis à 0 dès qu'une ville est possédée,
+ * incrémenté sinon. L'élimination proprement dite est décidée par
+ * `evaluateOutcome` (qui lit ce compteur).
+ */
+export function tickTownGrace(draft: GameState): void {
+  for (const p of draft.players) {
+    if (p.eliminated) continue;
+    const hasTown = draft.towns.some((t) => t.ownerPlayerId === p.id);
+    // Sentinelle `-1` = jamais possédé (désarmé) : reste désarmé tant qu'aucune
+    // ville n'est prise ; possède ⇒ 0 (armé) ; sinon incrémente les jours perdus.
+    p.townlessDays = hasTown ? 0 : p.townlessDays < 0 ? -1 : p.townlessDays + 1;
+  }
+}
+
+/**
  * Interprétation d'une `VictoryCondition` du point de vue de `playerId` — pure,
  * aucune connaissance de scénario nommé (doc 02 §6, plan phase-3.5).
  */
@@ -31,13 +54,16 @@ export function conditionMet(draft: GameState, playerId: string, cond: VictoryCo
 export function evaluateOutcome(draft: GameState, events: GameEvent[]): void {
   if (!draft.scenario || draft.outcome) return;
 
-  // Élimination : sans ville ni héros, un joueur ne joue plus (grâce de 7
-  // jours du doc 02 §4 différée — élimination immédiate au MVP).
+  // Élimination (doc 02 §4.1) : sans ville NI héros, un joueur ne joue plus
+  // (irrécupérable → immédiat). Sans ville mais avec un héros, il bénéficie de
+  // la grâce de reprise : éliminé seulement au-delà de `RETAKE_GRACE_DAYS` jours
+  // sans ville (compteur `townlessDays` avancé une fois par jour par `tickTownGrace`).
   for (const p of draft.players) {
     if (p.eliminated) continue;
     const hasTown = draft.towns.some((t) => t.ownerPlayerId === p.id);
     const hasHero = draft.heroes.some((h) => h.playerId === p.id);
-    if (!hasTown && !hasHero) {
+    if (hasTown) continue;
+    if (!hasHero || p.townlessDays > RETAKE_GRACE_DAYS) {
       p.eliminated = true;
       events.push({ type: 'PlayerEliminated', playerId: p.id });
     }

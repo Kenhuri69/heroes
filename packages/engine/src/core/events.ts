@@ -1,4 +1,4 @@
-import type { GridPos } from '../adventure/map';
+import type { GridPos, TriggerEffect } from '../adventure/map';
 import type { CombatSideId } from '../combat/types';
 import type { OffsetPos } from '../combat/hex';
 
@@ -23,6 +23,12 @@ export type GameEvent =
       amount: number;
       pos: GridPos;
     }
+  /**
+   * Trigger de carte déclenché (doc 02 §2.1) — l'UI notifie/journalise selon
+   * `effect`. `playerId` = joueur affecté (visite / octroi), `null` pour un
+   * message global (`onDay`).
+   */
+  | { type: 'TriggerFired'; triggerId: string; playerId: string | null; effect: TriggerEffect }
   // ——— Combat (doc 02 §5) — surface figée en cadrage phase 2.4 ———
   | {
       type: 'CombatStarted';

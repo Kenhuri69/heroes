@@ -70,6 +70,7 @@ const GOLDEN_MAP: AdventureMapDef = {
     { id: 'gold-1', type: 'resource', pos: { x: 5, y: 5 }, resource: 'gold', amount: 750 },
     { id: 'guard-1', type: 'guardian', pos: { x: 5, y: 2 }, unitId: 'golden-grunt', count: 5 },
   ],
+  triggers: [],
   startPositions: [
     { x: 0, y: 0 },
     { x: 7, y: 7 },
@@ -183,13 +184,14 @@ const GOLDEN_JOURNAL: Command[] = [
   ),
 ];
 
-// Hash mis à jour au lot 4.4 (ressource de faction Essence) : `saveVersion`
-// passe à 3 et `PlayerState.factionResources` ({}) s'ajoute à la forme
-// sérialisée — champs inclus dans l'état haché, donc seule la FORME change, la
-// simulation est inchangée. Hash relevé après vérification. (Précédents :
-// f85c9e64 en 3.2, 211e3cfd au lot O, 48073225 au cadrage 3.5, 3568ea04 au
-// lot 3.8 — saveVersion.)
-const GOLDEN_HASH = 'be72de4b';
+// Hash mis à jour au comblement MVP (triggers de carte + grâce de reprise) :
+// `saveVersion` passe à 4, `PlayerState.townlessDays` (-1 = jamais possédé de
+// ville pour la partie golden sans ville) et `AdventureMapDef.triggers` ([])
+// s'ajoutent à la forme sérialisée — champs inclus dans l'état haché, donc seule
+// la FORME change, la simulation est inchangée. Hash relevé après vérification.
+// (Précédents : f85c9e64 en 3.2, 211e3cfd au lot O, 48073225 au cadrage 3.5,
+// 3568ea04 au lot 3.8, be72de4b au lot 4.4 — factionResources.)
+const GOLDEN_HASH = '347a584d';
 
 describe('golden replay', () => {
   it('le journal scripté produit toujours le même état final', () => {

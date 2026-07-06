@@ -4,12 +4,12 @@ import type { HeroSkillDef, SkillRankEffect } from './types';
 /**
  * Compétences secondaires (doc 02 §1.3, décision plan phase-3.2 #5) : effets
  * déclaratifs par rang (`HeroSkillDef.ranks`, index 0 = Novice). Fonctions
- * pures lisant uniquement `hero.skills` + `state.skillCatalog` — utilisées
- * par `combat/damage.ts` (luck/moral/mêlée/tir/armure) ; les autres effets
- * (PM, vision, or, réduction de coût de mana) sont exposés ici mais NON
- * branchés au reste du moteur (points d'intégration, hors périmètre lot K :
- * `adventure/config.ts` dailyMovementPoints, `adventure/fog.ts` revealAround,
- * revenu de ville).
+ * pures lisant uniquement `hero.skills` + `state.skillCatalog`, toutes
+ * consommées par le moteur : luck/moral/mêlée/tir/armure dans `combat/damage.ts`
+ * et `combat/state-helpers.ts`, PM dans `core/engine.ts` (`heroDailyMovement`),
+ * vision dans `adventure/movement.ts` (`revealAround`), or/jour dans
+ * `core/engine.ts` (`DayStarted`), réduction de coût de mana dans
+ * `hero/spells.ts` (`effectiveManaCost`).
  */
 
 /** Somme du champ `field` sur toutes les compétences connues, au rang courant. */
@@ -26,7 +26,7 @@ function sumRankField(
   return total;
 }
 
-/** Logistique : bonus % de points de mouvement quotidiens — intégration hors périmètre. */
+/** Logistique : bonus % de points de mouvement quotidiens (`heroDailyMovement`). */
 export function heroMovementBonus(hero: HeroState, catalog: Record<string, HeroSkillDef>): number {
   return sumRankField(hero, catalog, 'movementBonusPct');
 }

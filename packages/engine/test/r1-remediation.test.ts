@@ -310,6 +310,7 @@ describe('R1 · mineur — plafond de croissance non réducteur', () => {
           explored: [],
           controller: 'human',
           eliminated: false,
+          townlessDays: 0,
         },
       ],
     };

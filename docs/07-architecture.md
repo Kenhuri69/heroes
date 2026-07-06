@@ -76,6 +76,8 @@ UI/IA ──commande──► [validation] ──► engine.apply(state, cmd)
     version — « Continuer » se grise, l'import échoue — au lieu d'adopter un
     état malformé. La **migration ascendante** d'anciennes sauvegardes reste
     différée (post-MVP) : au MVP on rejette, on ne migre pas.
+    `CURRENT_SAVE_VERSION` vaut **4** depuis le comblement MVP (ajout de
+    `PlayerState.townlessDays` — grâce de reprise — et `AdventureMapDef.triggers`).
 - Une sauvegarde référence les paquets de faction et leurs versions.
 
 ## 5. Backend multijoueur (Beta — architecturé dès le MVP)

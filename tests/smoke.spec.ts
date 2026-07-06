@@ -164,6 +164,23 @@ test('fin de tour : jour suivant, points de mouvement restaurés', async ({ page
   expect(errors).toEqual([]);
 });
 
+test('trigger de carte : le message onDay (jour 2) alimente le journal (comblement MVP)', async ({
+  page,
+}) => {
+  const errors = await openGame(page);
+
+  // proto-01 porte un trigger onDay (jour 2, message) — la bascule de jour le tire.
+  await page.getByTestId('end-turn').click();
+  await expect(page.getByTestId('calendar')).toHaveText('Jour 2 · Semaine 1');
+  await page.getByTestId('journal-open').click();
+  await expect(
+    page.getByTestId('journal-entry').filter({ hasText: /éclaireurs|activité/i }).first(),
+  ).toBeVisible();
+  await page.getByTestId('journal-close').click();
+
+  expect(errors).toEqual([]);
+});
+
 test('combat : victoire contre le gardien, retour carte avec pertes appliquées', async ({ page }) => {
   const errors = await openGame(page);
 

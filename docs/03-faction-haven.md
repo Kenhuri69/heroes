@@ -40,13 +40,20 @@
 
 | Tier | Unité | PV | Att | Déf | Dégâts | Vit. | Croiss./sem | Coût | Capacités |
 |------|-------|----|-----|-----|--------|------|-------------|------|-----------|
-| 1 | **Conscrit** | 6 | 2 | 3 | 1–2 | 4 | 14 | 30 or | `taunt` (attire les attaques adjacentes) |
-| 2 | **Archer** | 10 | 4 | 3 | 2–4 | 4 | 9 | 80 or | `shooter(12)` |
-| 3 | **Frère-Lame** | 18 | 6 | 8 | 3–5 | 5 | 7 | 150 or | `shieldWall` (défendre donne +50 % au lieu de +30 %) |
-| 4 | **Griffon** | 30 | 8 | 7 | 5–9 | 7 | 5 | 300 or | `flying`, `unlimitedRetaliation` |
-| 5 | **Prêtresse** | 36 | 9 | 10 | 7–11 | 5 | 4 | 500 or + 1 gemme | `shooter(8)`, `spellcaster(soin, ×2)` |
-| 6 | **Chevalier du Griffon** | 70 | 14 | 14 | 12–20 | 8 | 2 | 1100 or + 1 cristal | `charge(+5 %/hex)`, `firstStrike` |
-| 7 | **Ange** | 180 | 22 | 22 | 35–55 | 11 | 1 | 3200 or + 2 cristal + 2 gemmes | `flying`, `resurrectAlly(1×/combat)`, immunité au moral négatif |
+| 1 | **Conscrit** | 6 | 2 | 2 | 1–2 | 4 | 14 | 40 or | `taunt` (attire les attaques adjacentes) |
+| 2 | **Archer** | 10 | 4 | 3 | 2–4 | 4 | 9 | 95 or | `shooter(12)` |
+| 3 | **Frère-Lame** | 18 | 6 | 6 | 3–5 | 5 | 7 | 185 or | `shieldWall` (défendre donne +50 % au lieu de +30 %) |
+| 4 | **Griffon** | 30 | 8 | 7 | 5–9 | 7 | 5 | 360 or | `flying`, `unlimitedRetaliation` |
+| 5 | **Prêtresse** | 36 | 9 | 8 | 7–11 | 5 | 4 | 640 or + 1 gemme | `shooter(8)`, `spellcaster(soin, ×2)` |
+| 6 | **Chevalier du Griffon** | 70 | 14 | 11 | 12–20 | 8 | 2 | 1300 or + 1 cristal | `charge(+5 %/hex)`, `firstStrike` |
+| 7 | **Ange** | 180 | 22 | 18 | 35–55 | 11 | 1 | 3200 or + 2 cristal + 2 gemmes | `flying`, `resurrectAlly(1×/combat)`, immunité au moral négatif |
+
+> ⚖️ **Équilibrage (Alpha 4.17)** : première passe via `faction:sim` (auto-combats
+> à valeur d'or égale). Havre était strictement dominant (100 % vs Necropolis et
+> Arcane Hunters) : défenses ramenées au niveau des autres maisons (T1/T3/T5/T6/T7)
+> et coûts en or rehaussés (T1–T6, faction sous-coûtée). Résultat : plus aucun
+> déséquilibre béant (Havre ~55–66 % vs les deux autres). Réglage fin vers 45–55 %
+> = itérations ultérieures avec l'outil.
 
 Les **unités améliorées** (Conscrit → Hallebardier, etc.) sont spécifiées en Alpha ; le schéma de données les supporte dès le MVP (`upgradeOf`).
 

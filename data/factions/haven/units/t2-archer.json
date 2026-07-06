@@ -4,6 +4,6 @@
   "name": "@loc:unit.t2-archer.name",
   "stats": { "hp": 10, "attack": 4, "defense": 3, "damage": [2, 4], "speed": 4 },
   "growthPerWeek": 9,
-  "cost": { "gold": 80 },
+  "cost": { "gold": 95 },
   "abilities": [{ "id": "shooter", "params": { "ammo": 12 } }]
 }

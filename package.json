@@ -18,7 +18,8 @@
     "smoke": "playwright test",
     "content:check": "pnpm --filter @heroes/tools content:check",
     "faction:new": "pnpm --filter @heroes/tools faction:new",
-    "faction:validate": "pnpm --filter @heroes/tools faction:validate"
+    "faction:validate": "pnpm --filter @heroes/tools faction:validate",
+    "faction:sim": "pnpm --filter @heroes/tools faction:sim"
   },
   "devDependencies": {
     "@eslint/js": "^9.30.0",

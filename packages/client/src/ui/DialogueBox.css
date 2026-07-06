@@ -1,0 +1,69 @@
+/* Boîte de dialogue narrative (doc 13 §6.3, N2b) — bandeau bas plein-largeur. */
+.dialogue-box {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  /* Au-dessus du HUD (army-band/turn-bar) ; `#ui-root` est pointer-events:none,
+     la boîte DOIT réactiver les événements sinon les clics tombent au travers. */
+  z-index: 80;
+  pointer-events: auto;
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom, 0));
+  background: rgba(18, 16, 24, 0.94);
+  color: #f2ece0;
+  border-top: 2px solid #6a5a3a;
+  cursor: pointer;
+}
+
+.dialogue-portrait {
+  flex: 0 0 auto;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.4rem;
+  display: grid;
+  place-items: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  background: #3a3350;
+  color: #f2ece0;
+}
+
+.dialogue-body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.dialogue-speaker {
+  margin: 0 0 0.15rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #d8c48a;
+}
+
+.dialogue-text {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.dialogue-hint {
+  margin: 0.35rem 0 0;
+  font-size: 0.7rem;
+  opacity: 0.6;
+}
+
+.dialogue-skip {
+  flex: 0 0 auto;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 0.9rem;
+  border: 1px solid #6a5a3a;
+  border-radius: 0.4rem;
+  background: #2a2438;
+  color: #f2ece0;
+  font-size: 0.85rem;
+  cursor: pointer;
+}

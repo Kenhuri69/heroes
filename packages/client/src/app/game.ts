@@ -12,6 +12,7 @@ import {
   type HeroSkillDef,
   type HeroState,
   type PlayerSetup,
+  type QuestState,
   type Resources,
   type ScenarioState,
   type SpellDef,
@@ -277,6 +278,28 @@ export function newGameCommand(
  * simple (décision de portée du lot U), le scénario ne surcharge que
  * ressources/armée/ville/faction/contrôleur.
  */
+/**
+ * Résout les quêtes de campagne d'un scénario (doc 13, N2b) en `QuestState`
+ * moteur : on dépouille les champs CÔTÉ CLIENT (`titleKey`/`descriptionKey`/
+ * `dialogBefore`/`kind`) — le moteur ne connaît que conditions + récompenses.
+ * `undefined` si le scénario n'a pas de quêtes (pas de campagne).
+ */
+export function buildQuestState(scenario: Scenario): QuestState | undefined {
+  if (!scenario.quests || scenario.quests.length === 0) return undefined;
+  return {
+    quests: scenario.quests.map((q) => ({
+      def: {
+        id: q.id,
+        ...(q.playerId !== undefined ? { playerId: q.playerId } : {}),
+        steps: q.steps.map((s) => ({ id: s.id, condition: s.condition })),
+        rewards: q.rewards,
+      },
+      stepIndex: 0,
+      status: 'active' as const,
+    })),
+  };
+}
+
 export function scenarioStartCommand(
   report: LoadReport,
   scenario: Scenario,
@@ -285,6 +308,7 @@ export function scenarioStartCommand(
 ): Command {
   const heroSetup = buildHeroSetup(report);
   const buildingCatalog = buildBuildingCatalog(report) as Record<string, BuildingDef>;
+  const quests = buildQuestState(scenario);
   const orderedPlayers = [...scenario.players].sort(
     (a, b) => a.startPositionIndex - b.startPositionIndex,
   );
@@ -369,6 +393,7 @@ export function scenarioStartCommand(
     startingArtifacts: heroSetup.startingArtifacts,
     factionCatalog: buildFactionSetup(report),
     scenario: { objectives: buildScenarioObjectives(scenario) },
+    ...(quests ? { quests } : {}),
   };
 }
 

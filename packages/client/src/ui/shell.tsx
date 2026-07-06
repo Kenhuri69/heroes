@@ -26,6 +26,8 @@ import { SkillChoice } from './SkillChoice';
 import { HandoffOverlay } from './HandoffOverlay';
 import { OutcomeOverlay } from './OutcomeOverlay';
 import { FactionBadge } from './FactionBadge';
+import { DialogueBox } from './DialogueBox';
+import { QuestJournal } from './QuestJournal';
 import './styles.css';
 
 export function mountUi(root: HTMLElement): void {
@@ -97,6 +99,7 @@ function Shell() {
       {journalModal && <Journal onClose={() => closeModalKind('journal')} />}
       {pendingSkillHero && <SkillChoice hero={pendingSkillHero} />}
       {screen === 'adventure' && <HandoffOverlay />}
+      {started && !inCombat && <DialogueBox />}
       <OutcomeOverlay />
       <ToastHost />
     </>
@@ -252,6 +255,7 @@ function HeroDrawer() {
         <HeroSkills hero={hero} />
         <HeroInventory hero={hero} />
         <AdventureSpellbook hero={hero} />
+        <QuestJournal />
       </aside>
     </>
   );

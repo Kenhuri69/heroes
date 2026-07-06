@@ -452,7 +452,7 @@ laisse le jeu livrable. Ordre pensé « MVP narratif → campagne complète » :
 | **N1 — La voix du monde** ✅ | Champs `loreKey` sur unités/bâtiments/artefacts/sorts + textes FR/EN des 4 factions ; écrans existants les affichent | Audit i18n étendu ; chaque entité du contenu a son texte ; zéro diff moteur |
 | **N2 — Systèmes** | `engine/quest` générique + `GameState.quests` (bump save) ; schémas `data/story/` ; boîte de dialogue + journal + `dialogBefore` ; ré-habillage du scénario `tutorial` en **Prologue Haven** (3 quêtes, 4 dialogues) | Golden re-fixé ; smoke Playwright « dérouler le prologue : dialogue s'affiche, se passe, journal à jour, quête récompensée » desktop + mobile |
 | ↳ **N2a — moteur de quêtes** ✅ | `engine/quest` générique (catalogue de conditions fermé, `GameState.quests`, `QuestStarted/Advanced/Completed`, récompenses) ; bump save 6→7 ; câblage `apply()` ; tests unitaires | Golden re-fixé ; moteur seul, zéro UI |
-| ↳ **N2b — contenu & UI** | schémas `data/story/` + Prologue Haven (data) + boîte de dialogue + journal + smoke narratif | (à venir) |
+| ↳ **N2b — contenu & UI** ✅ | schémas narratifs (`quest`/`dialog`/`character`) + **Prologue Haven** (scénario porteur) + boîte de dialogue + journal de quêtes + smoke narratif | Prologue jouable : dialogue s'affiche/se passe, journal à jour, quête récompensée (desktop+mobile) |
 | **N3 — Campagnes fondatrices** | Campagnes Haven et Necropolis (3 chapitres chacune, cartes dédiées, cutscenes caméra, arcs Aldric/Séraphine/Vhalen/Mère Corbeau) ; `campaignState` + écran de sélection de campagne | 2 campagnes finissables en smoke long (IA assistée) ; continuité héros entre chapitres testée |
 | **N4 — La Chasse & le vivant** | Campagne Arcane Hunters (relit N3, arcs Evadne/Marchmont) ; quêtes journalières en mode libre ; 2 événements temporaires ; barks de combat | 3ᵉ campagne = données seules (test de modularité narratif) ; événement daté jouable/expirable |
 
@@ -680,6 +680,31 @@ Cœur moteur du lot N2, livré isolément (le contenu + l'UI = N2b).
 - **Convergence `scenario`↔`quest`** : partielle (évaluateur partagé) ; le merge
   total est différé pour ne pas déstabiliser le golden/les tests scénario.
 
-Prochain lot : **N2b — contenu & UI** (schémas `data/story/`, Prologue Haven en
-données, boîte de dialogue + journal, smoke narratif) — pur contenu + client,
-sans nouveau diff moteur (le catalogue de conditions suffit au prologue).
+## État N2b — Prologue Haven jouable (livré)
+
+Moitié contenu + UI de N2, sur le moteur de quêtes N2a. **Zéro nouveau diff
+moteur** (le catalogue de conditions N2a couvrait le prologue).
+
+- **Schémas narratifs** (`@heroes/content`) : `questSchema` (kind/steps
+  {condition, dialogBefore?}/rewards/titleKey/descriptionKey), `dialogNodeSchema`
+  (lines{speaker, portrait?, textKey}, choices?), `characterSchema` (nameKey,
+  portraits). Le scénario les embarque (`quests`/`dialogs`/`characters`/
+  `openingDialog`) — la forme **dossier `data/story/`** (multi-chapitres, §6.1)
+  est différée à **N3** où la continuité inter-chapitres la justifie.
+- **Prologue Haven** : nouveau scénario `prologue` (proto-01) — dialogue
+  d'ouverture (§9.1), 2 quêtes primaires (« Relever Cendregarde » = bâtir le
+  Fort, récompense or ; « La garde de la marche » = 20 Conscrits, récompense
+  artefact) avec `dialogBefore`, personnages Aldric/Séraphine, locales FR/EN.
+  `tutorial` intact (zéro régression).
+- **Client** : `app/narrative.ts` (contrôleur abonné aux `QuestStarted`/
+  `QuestAdvanced`/`QuestCompleted` → journal + file de dialogues) ;
+  `DialogueBox` (bandeau bas, tap = avancer, **Passer** ≥ 44 px, `rem`) ;
+  `QuestJournal` (tiroir héros) ; `scenarioStartCommand` embarque les quêtes en
+  `QuestState`.
+- **Vérif** : typecheck 4/4, moteur inchangé (golden intact), content + smoke
+  « dérouler le prologue » (dialogue affiché → passé → journal à jour → Fort bâti
+  → récompense créditée) desktop + mobile.
+
+Prochain lot : **N3 — campagnes fondatrices** (campagnes Haven + Necropolis, 3
+chapitres, `data/story/` multi-chapitres, `campaignState`, cutscenes caméra,
+arcs des héros nommés).

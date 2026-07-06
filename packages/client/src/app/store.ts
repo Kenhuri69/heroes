@@ -2,8 +2,25 @@ import { createStore } from 'zustand/vanilla';
 import { useSyncExternalStore } from 'preact/compat';
 import type { GameState } from '@heroes/engine';
 import { createEmptyState } from '@heroes/engine';
-import type { Scenario } from '@heroes/content';
+import type { DialogNode, Scenario, StoryCharacter } from '@heroes/content';
 import type { Modal, Screen } from './router';
+
+/** Catalogue narratif du scénario en cours (doc 13, N2b) — dialogues/personnages/quêtes. */
+export interface NarrativeCatalog {
+  dialogs: Record<string, DialogNode>;
+  characters: Record<string, StoryCharacter>;
+  quests: Record<string, { titleKey: string; descriptionKey?: string; steps: { id: string; dialogBefore?: string }[] }>;
+}
+
+/** Entrée du journal de quêtes (doc 13 §6.3, N2b). */
+export interface QuestJournalEntry {
+  id: string;
+  titleKey: string;
+  descriptionKey?: string;
+  stepIndex: number;
+  stepCount: number;
+  status: 'active' | 'completed';
+}
 
 /** Une entrée du journal d'événements (doc 08 §3), datée du jour de jeu. */
 export interface JournalEntry {
@@ -58,6 +75,14 @@ export interface AppState {
    * le joueur courant diffère. `null` = personne n'a encore validé (nouveau tour).
    */
   turnAck: string | null;
+  /** Catalogue narratif du scénario en cours (doc 13, N2b) — null hors campagne. */
+  narrative: NarrativeCatalog | null;
+  /** Dialogue affiché (doc 13 §6.3) : nœud courant + ligne visible ; null = aucun. */
+  dialogue: { node: DialogNode; line: number } | null;
+  /** File d'attente de dialogues (ouverture, `dialogBefore`) jouée à la suite. */
+  dialogueQueue: string[];
+  /** Journal de quêtes de campagne (doc 13 §6.3) — vide hors campagne. */
+  questJournal: QuestJournalEntry[];
 }
 
 export const appStore = createStore<AppState>(() => ({
@@ -78,6 +103,10 @@ export const appStore = createStore<AppState>(() => ({
   telemetryTick: 0,
   selectedHeroId: null,
   turnAck: null,
+  narrative: null,
+  dialogue: null,
+  dialogueQueue: [],
+  questJournal: [],
 }));
 
 /** Hook Preact : re-rend quand la valeur sélectionnée change (égalité stricte). */

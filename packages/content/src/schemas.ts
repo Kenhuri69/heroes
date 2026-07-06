@@ -536,6 +536,83 @@ export const scenarioObjectivesSchema = z.object({
 });
 
 /**
+ * Narration (doc 13, lot N2b) — contenu déclaratif interprété par le système
+ * de quêtes générique (moteur, N2a) et la couche de présentation (client). Le
+ * moteur ne connaît ni texte ni dialogue : `titleKey`/`descriptionKey`/
+ * `dialogBefore` sont des champs CÔTÉ CLIENT (dépouillés avant embarquement).
+ */
+export const questConditionSchema = z.discriminatedUnion('type', [
+  z.object({ type: z.literal('eliminateAllEnemies') }),
+  z.object({ type: z.literal('captureTown'), townId: idSchema }),
+  z.object({ type: z.literal('defeatHero'), heroId: idSchema }),
+  z.object({ type: z.literal('surviveDays'), days: z.number().int().positive() }),
+  z.object({ type: z.literal('buildStructure'), buildingId: buildingIdSchema }),
+  z.object({ type: z.literal('ownUnits'), unitId: idSchema, count: z.number().int().positive() }),
+  z.object({ type: z.literal('defeatGuardian'), objectId: idSchema }),
+  z.object({
+    type: z.literal('visitTile'),
+    x: z.number().int().nonnegative(),
+    y: z.number().int().nonnegative(),
+  }),
+]);
+
+export const questRewardSchema = z.discriminatedUnion('type', [
+  z.object({
+    type: z.literal('resources'),
+    resources: z.record(z.enum(COMMON_RESOURCE_IDS), z.number().int().positive()),
+  }),
+  z.object({ type: z.literal('artifact'), artifactId: idSchema }),
+  z.object({ type: z.literal('units'), unitId: idSchema, count: z.number().int().positive() }),
+]);
+
+export const questStepSchema = z.object({
+  id: idSchema,
+  condition: questConditionSchema,
+  /** Dialogue joué à l'entrée de l'étape (client) — id d'un nœud du scénario. */
+  dialogBefore: idSchema.optional(),
+});
+
+export const questSchema = z.object({
+  id: idSchema,
+  kind: z.enum(['primary', 'side', 'daily', 'personal']).default('primary'),
+  /** Joueur propriétaire — défaut : le joueur humain (moteur). */
+  playerId: idSchema.optional(),
+  steps: z.array(questStepSchema).min(1),
+  rewards: z.array(questRewardSchema).default([]),
+  titleKey: locRef,
+  descriptionKey: locRef.optional(),
+});
+
+const dialogLineSchema = z.object({
+  /** Id d'un personnage du catalogue `characters`. */
+  speaker: idSchema,
+  /** Humeur/variante de portrait (clé libre) — repli procédural côté client. */
+  portrait: z.string().optional(),
+  textKey: locRef,
+});
+
+export const dialogNodeSchema = z.object({
+  id: idSchema,
+  lines: z.array(dialogLineSchema).min(1),
+  choices: z
+    .array(
+      z.object({
+        textKey: locRef,
+        next: idSchema.optional(),
+        setFlag: z.string().optional(),
+      }),
+    )
+    .optional(),
+});
+
+export const characterSchema = z.object({
+  id: idSchema,
+  nameKey: locRef,
+  /** Portraits par humeur (id libre → chemin/clé) — optionnel, repli procédural. */
+  portraits: z.record(z.string(), z.string()).default({}),
+});
+
+/**
  * data/scenarios/<id>.scenario.json (plan phase-3.5) — une carte + des joueurs
  * (contrôleur, faction, dotation de départ) + des objectifs par joueur. Les
  * règles croisées (carte connue, faction chargée, index de départ valide,
@@ -580,6 +657,17 @@ export const scenarioSchema = z
       )
       .min(2),
     objectives: z.record(idSchema, scenarioObjectivesSchema),
+    /**
+     * Narration embarquée (doc 13, lot N2b) — optionnelle. `quests` sont
+     * résolues en `QuestState` moteur (N2a) ; `dialogs`/`characters`/
+     * `openingDialog` alimentent la couche de présentation client. La forme
+     * dossier `data/story/` (multi-chapitres, doc 13 §6.1) arrive en N3.
+     */
+    quests: z.array(questSchema).optional(),
+    dialogs: z.array(dialogNodeSchema).optional(),
+    characters: z.array(characterSchema).optional(),
+    /** Dialogue joué à l'ouverture de la partie (id d'un nœud de `dialogs`). */
+    openingDialog: idSchema.optional(),
   })
   .refine((s) => s.players.every((p) => s.objectives[p.id]), 'chaque joueur doit avoir des objectifs');
 
@@ -614,3 +702,8 @@ export type VictoryCondition = z.infer<typeof victoryConditionSchema>;
 /** Forme moteur — identique à `ScenarioObjectives` de `engine/src/scenario/types.ts`. */
 export type ScenarioObjectives = z.infer<typeof scenarioObjectivesSchema>;
 export type Scenario = z.infer<typeof scenarioSchema>;
+export type QuestContent = z.infer<typeof questSchema>;
+export type QuestStepContent = z.infer<typeof questStepSchema>;
+export type QuestRewardContent = z.infer<typeof questRewardSchema>;
+export type DialogNode = z.infer<typeof dialogNodeSchema>;
+export type StoryCharacter = z.infer<typeof characterSchema>;

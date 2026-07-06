@@ -1,0 +1,91 @@
+{
+  "id": "sylvan-court",
+  "schemaVersion": 1,
+  "name": "@loc:faction.sylvan-court.name",
+  "nativeTerrain": "water",
+  "keyResources": [
+    "crystal",
+    "mercury"
+  ],
+  "factionResources": [],
+  "factionBonuses": [],
+  "spellSchool": null,
+  "heroSkills": [],
+  "tiers": 7,
+  "sharedGrowthGroups": {},
+  "units": [
+    "t1-lucine",
+    "t2-archer-sylvestre",
+    "t3-dryade",
+    "t4-loup-argent",
+    "t5-licorne",
+    "t6-treant",
+    "t7-aieul",
+    "t1-lucine-elite",
+    "t2-archer-sylvestre-elite",
+    "t3-dryade-elite",
+    "t4-loup-argent-elite",
+    "t5-licorne-elite",
+    "t6-treant-elite",
+    "t7-aieul-elite"
+  ],
+  "abilityModules": [],
+  "hooks": [],
+  "aiProfile": {
+    "aggression": 0.35,
+    "focusFire": 0.5,
+    "preferredTargets": "weakest"
+  },
+  "town": {
+    "buildings": [
+      "townHall",
+      "fort",
+      "mageGuild",
+      "forge",
+      "sylvan-court-dwelling-t1",
+      "sylvan-court-dwelling-t2",
+      "sylvan-court-dwelling-t3",
+      "sylvan-court-dwelling-t4",
+      "sylvan-court-dwelling-t5",
+      "sylvan-court-dwelling-t6",
+      "sylvan-court-dwelling-t7"
+    ],
+    "dwellings": [
+      {
+        "tier": 1,
+        "unitId": "t1-lucine",
+        "buildingId": "sylvan-court-dwelling-t1"
+      },
+      {
+        "tier": 2,
+        "unitId": "t2-archer-sylvestre",
+        "buildingId": "sylvan-court-dwelling-t2"
+      },
+      {
+        "tier": 3,
+        "unitId": "t3-dryade",
+        "buildingId": "sylvan-court-dwelling-t3"
+      },
+      {
+        "tier": 4,
+        "unitId": "t4-loup-argent",
+        "buildingId": "sylvan-court-dwelling-t4"
+      },
+      {
+        "tier": 5,
+        "unitId": "t5-licorne",
+        "buildingId": "sylvan-court-dwelling-t5"
+      },
+      {
+        "tier": 6,
+        "unitId": "t6-treant",
+        "buildingId": "sylvan-court-dwelling-t6"
+      },
+      {
+        "tier": 7,
+        "unitId": "t7-aieul",
+        "buildingId": "sylvan-court-dwelling-t7"
+      }
+    ]
+  }
+}

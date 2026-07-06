@@ -1,0 +1,9 @@
+{
+  "id": "t3-dryade-elite",
+  "tier": 3,
+  "name": "@loc:unit.t3-dryade-elite.name",
+  "stats": { "hp": 22, "attack": 6, "defense": 8, "damage": [4, 6], "speed": 5 },
+  "growthPerWeek": 7,
+  "cost": { "gold": 220 },
+  "abilities": []
+}

@@ -1,0 +1,9 @@
+{
+  "id": "t5-licorne-elite",
+  "tier": 5,
+  "name": "@loc:unit.t5-licorne-elite.name",
+  "stats": { "hp": 48, "attack": 12, "defense": 12, "damage": [9, 13], "speed": 8 },
+  "growthPerWeek": 4,
+  "cost": { "gold": 760, "crystal": 1 },
+  "abilities": []
+}

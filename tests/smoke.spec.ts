@@ -398,6 +398,30 @@ test('hot-seat : deux humains locaux alternent avec l’overlay de passage (Alph
   expect(errors).toEqual([]);
 });
 
+test('sort d’aventure : Ville-portail téléporte le héros vers sa ville (Alpha 4.16)', async ({
+  page,
+}) => {
+  const errors = await openGame(page);
+
+  // Éloigne le héros de sa ville de départ (start-town en (2,4)).
+  await moveHeroToGold(page);
+  await expect.poll(() => heroPos(page)).toEqual({ x: 6, y: 3 });
+  const before = await page.evaluate(() => window.__HEROES_TEST__!.getState().heroes[0]?.mana ?? 0);
+  expect(before).toBeGreaterThanOrEqual(16);
+
+  // Ouvre le tiroir héros et lance Ville-portail (le héros connaît tous les
+  // sorts de cercle ≤ 3).
+  await page.getByTestId('hero-drawer-toggle').click();
+  await page.getByTestId('adventure-spell-ville-portail').click();
+
+  // Téléporté vers la ville possédée la plus proche (start-town), mana décomptée.
+  await expect.poll(() => heroPos(page)).toEqual({ x: 2, y: 4 });
+  const after = await page.evaluate(() => window.__HEROES_TEST__!.getState().heroes[0]?.mana ?? 0);
+  expect(after).toBe(before - 16);
+
+  expect(errors).toEqual([]);
+});
+
 test('autosave à la fin de tour puis « Continuer » depuis le menu', async ({ page }) => {
   const errors = await openGame(page);
 

@@ -211,6 +211,16 @@
       "base": 0,
       "perPower": 0,
       "speedMod": -3
+    },
+    {
+      "id": "ville-portail",
+      "school": "air",
+      "circle": 3,
+      "manaCost": 16,
+      "kind": "adventure",
+      "base": 0,
+      "perPower": 0,
+      "adventure": { "type": "townPortal" }
     }
   ]
 }

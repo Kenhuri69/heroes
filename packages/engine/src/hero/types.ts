@@ -7,7 +7,14 @@ import type { ResourceId } from '../core/state';
  */
 
 export type SpellSchool = 'fire' | 'water' | 'earth' | 'air' | 'neutral' | 'traque';
-export type SpellKind = 'damage' | 'heal' | 'buff' | 'debuff' | 'applyMarks';
+export type SpellKind = 'damage' | 'heal' | 'buff' | 'debuff' | 'applyMarks' | 'adventure';
+
+/**
+ * Effet déclaratif d'un sort d'**aventure** (doc 02 §1.4, Alpha 4.16) — lancé sur
+ * la carte, hors combat. Union extensible : `townPortal` (téléportation vers une
+ * ville possédée) au v1 ; Vision, etc. = ajout de cas + données, jamais de faction.
+ */
+export type AdventureEffect = { type: 'townPortal' };
 
 /** Définition résolue d'un sort (doc 02 §1.4), embarquée dans le catalogue. */
 export interface SpellDef {
@@ -25,6 +32,8 @@ export interface SpellDef {
   speedMod?: number;
   /** Charges de Marque appliquées (sort `applyMarks`, doc 05 §6 — école Traque). */
   marks?: number;
+  /** Effet hors combat d'un sort `adventure` (doc 02 §1.4, Alpha 4.16). */
+  adventure?: AdventureEffect;
 }
 
 /** Rangs Novice/Expert/Maître d'une compétence (doc 02 §1.3) — effets par rang. */

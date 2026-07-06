@@ -77,6 +77,11 @@ export function notify(event: AppEvent, game: GameState): string | null {
       return ownHero(event.heroId)
         ? t('toast.spellCast', { hero: t('hero.genericName'), spell: resolveSpellName(event.spellId) })
         : null;
+    // Sort d'aventure (doc 02 §1.4, Alpha 4.16) — lancé hors combat sur la carte.
+    case 'AdventureSpellCast':
+      return ownHero(event.heroId)
+        ? t('toast.adventureSpellCast', { spell: resolveSpellName(event.spellId) })
+        : null;
     case 'SkillLearned':
       return ownHero(event.heroId)
         ? t('toast.skillLearned', {

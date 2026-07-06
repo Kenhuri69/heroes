@@ -510,6 +510,11 @@ export function buildSpellCatalog(report: LoadReport): Record<string, ResolvedSp
       ...(s.attackMod !== undefined && { attackMod: s.attackMod }),
       ...(s.defenseMod !== undefined && { defenseMod: s.defenseMod }),
       ...(s.speedMod !== undefined && { speedMod: s.speedMod }),
+      // `marks` (sort applyMarks, doc 05 §6) était perdu ici — le moteur le lit
+      // pourtant (`spell.marks ?? 0`) ; propagé désormais, comme `adventure`.
+      ...(s.marks !== undefined && { marks: s.marks }),
+      // Effet hors combat d'un sort `adventure` (doc 02 §1.4, Alpha 4.16).
+      ...(s.adventure !== undefined && { adventure: s.adventure }),
     };
   }
   return catalog;

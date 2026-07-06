@@ -192,8 +192,13 @@ Particularité : la faction a **8 tiers**, mais le T8 partage sa croissance avec
 | 4 | **Bibliothécaire Errant** (golem de grimoires) | 34 | 7 | 10 | 5–8 | 4 | 5 | 340 or | `spellcaster(Entrave/Silence, ×2)`, `magicResistance(30 %)`, `mark` |
 | 5 | **Lame du Serment** (duelliste diplômé) | 40 | 12 | 8 | 8–12 | 8 | 3 | 620 or + 1 mercure | `strikeAndReturn`, `mark`, `executioner` (consomme 3 Marques : +40 % dégâts sur cette attaque) |
 | 6 | **Chasseresse de l'Abîme** | 62 | 15 | 11 | 11–17 | 9 | 2 | 1200 or + 2 mercure | `shooter(8, noMeleePenalty)`, `mark`, `pinningShot` (consomme 2 Marques : cible immobilisée 1 round, les volants tombent) |
-| 7 | **Manticore de Dressage** | 130 | 18 | 16 | 24–36 | 11 | 1* | 2600 or + 2 mercure + 1 gemme | `flying`, `noRetaliation`, `mark`, `poisonSting` |
+| 7 | **Manticore de Dressage** | 155 | 18 | 18 | 24–36 | 11 | 1* | 2600 or + 2 mercure + 1 gemme | `flying`, `noRetaliation`, `mark`, `poisonSting` |
 | 8 | **Pénitent Démonique** (chasseur hybride) | 210 | 24 | 18 | 40–60 | 7 | 1* | 3800 or + 3 gemmes + 40 Essence | `demonform` : commence en forme humaine (`magicResistance(50 %)`), bascule 1×/combat en forme démon (+50 % dégâts, `areaAttack(cône)`, mais perd la résistance) ; `devourMarks` (consomme toutes les Marques du champ de bataille : +2 % dégâts chacune, se soigne d'autant) |
+
+> ⚖️ **Équilibrage (Alpha 4.17)** : la Manticore (T7) était un canon de verre puni
+> par les dégâts de Havre (Arcane Hunters perdait ~94 % vs Havre) : PV 130→155,
+> Déf 16→18 pour renforcer la survie haut de gamme. Le duel Arcane vs Necropolis
+> (≈ 53 %) reste inchangé. Mesuré via `faction:sim`.
 
 \* T7 et T8 partagent 1 croissance/semaine (`sharedGrowthGroup: "apex"`), le joueur choisit.
 

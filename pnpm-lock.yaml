@@ -80,6 +80,9 @@ importers:
       '@heroes/content':
         specifier: workspace:*
         version: link:../content
+      '@heroes/engine':
+        specifier: workspace:*
+        version: link:../engine
     devDependencies:
       '@types/node':
         specifier: ^22.10.0

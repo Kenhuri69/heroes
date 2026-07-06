@@ -65,6 +65,7 @@ export {
   estimateDamage,
   meleeOriginsFor,
   reachableHexes,
+  simulateAutoCombat,
   type DamageEstimate,
 } from './combat';
 export {

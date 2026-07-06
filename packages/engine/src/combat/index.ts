@@ -85,6 +85,9 @@ export { canShoot };
 /** Cibles attaquables + hex d'origine de mêlée — surbrillances/ciblage UI (CL9). */
 export { attackableTargets, meleeOriginsFor };
 
+/** Auto-combat déterministe → camp vainqueur (brique de `faction:sim`, Alpha 4.17). */
+export { simulateAutoCombat } from './simulate';
+
 /**
  * Ouvre un combat d'interception héros ↔ gardien — appelé par le handler
  * `MoveHero` (câblage lot D). Le héros n'entre PAS sur la tuile du gardien.

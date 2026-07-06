@@ -4,6 +4,6 @@
   "name": "@loc:unit.t4-griffon.name",
   "stats": { "hp": 30, "attack": 8, "defense": 7, "damage": [5, 9], "speed": 7 },
   "growthPerWeek": 5,
-  "cost": { "gold": 300 },
+  "cost": { "gold": 360 },
   "abilities": [{ "id": "flying" }]
 }

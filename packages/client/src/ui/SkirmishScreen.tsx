@@ -24,6 +24,7 @@ export function SkirmishScreen({ onClose }: { onClose: () => void }) {
   const [humanFactionId, setHuman] = useState(factions[0] ?? '');
   const [aiFactionId, setAi] = useState(factions[1] ?? factions[0] ?? '');
   const [difficulty, setDifficulty] = useState<SkirmishDifficulty>('normal');
+  const [opponent, setOpponent] = useState<'ai' | 'human'>('ai');
 
   const options = useMemo(
     () => factions.map((id) => ({ id, label: factionName(id) })),
@@ -33,7 +34,7 @@ export function SkirmishScreen({ onClose }: { onClose: () => void }) {
   const start = (): void => {
     window.dispatchEvent(
       new CustomEvent('heroes:start-skirmish', {
-        detail: { humanFactionId, aiFactionId, difficulty },
+        detail: { humanFactionId, aiFactionId, difficulty, opponent },
       }),
     );
     onClose();
@@ -78,7 +79,27 @@ export function SkirmishScreen({ onClose }: { onClose: () => void }) {
         </section>
 
         <section class="options-section">
-          <h3>{t('skirmish.aiFaction')}</h3>
+          <h3>{t('skirmish.opponent')}</h3>
+          <div class="segmented" role="group">
+            <button
+              class={opponent === 'ai' ? 'active' : ''}
+              data-testid="skirmish-opponent-ai"
+              onClick={() => setOpponent('ai')}
+            >
+              {t('skirmish.opponent.ai')}
+            </button>
+            <button
+              class={opponent === 'human' ? 'active' : ''}
+              data-testid="skirmish-opponent-human"
+              onClick={() => setOpponent('human')}
+            >
+              {t('skirmish.opponent.human')}
+            </button>
+          </div>
+        </section>
+
+        <section class="options-section">
+          <h3>{opponent === 'human' ? t('skirmish.player2Faction') : t('skirmish.aiFaction')}</h3>
           <select
             class="skirmish-select"
             data-testid="skirmish-ai-faction"
@@ -93,21 +114,23 @@ export function SkirmishScreen({ onClose }: { onClose: () => void }) {
           </select>
         </section>
 
-        <section class="options-section">
-          <h3>{t('skirmish.difficulty')}</h3>
-          <div class="segmented" role="group">
-            {DIFFICULTIES.map((level) => (
-              <button
-                key={level}
-                class={difficulty === level ? 'active' : ''}
-                data-testid={`skirmish-difficulty-${level}`}
-                onClick={() => setDifficulty(level)}
-              >
-                {t(`skirmish.difficulty.${level}`)}
-              </button>
-            ))}
-          </div>
-        </section>
+        {opponent === 'ai' && (
+          <section class="options-section">
+            <h3>{t('skirmish.difficulty')}</h3>
+            <div class="segmented" role="group">
+              {DIFFICULTIES.map((level) => (
+                <button
+                  key={level}
+                  class={difficulty === level ? 'active' : ''}
+                  data-testid={`skirmish-difficulty-${level}`}
+                  onClick={() => setDifficulty(level)}
+                >
+                  {t(`skirmish.difficulty.${level}`)}
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
 
         <section class="options-section">
           <button

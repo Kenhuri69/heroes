@@ -29,17 +29,26 @@ export function OutcomeOverlay() {
 
   const bg = outcomeBackgroundUrl(outcome.status);
 
+  // Hot-seat (Alpha 4.15) : à ≥ 2 humains, « Victoire/Défaite » (centré sur soi)
+  // n'a pas de sens — on nomme le vainqueur (numéro de siège).
+  const multiHuman = game.players.filter((p) => p.controller === 'human').length >= 2;
+  const winnerSeat = game.players.findIndex((p) => p.id === outcome.winnerPlayerId) + 1;
+  const title =
+    multiHuman && winnerSeat > 0
+      ? t('outcome.winner', { n: winnerSeat })
+      : t(outcome.status === 'won' ? 'outcome.won' : 'outcome.lost');
+
   return (
     <div class="modal-backdrop">
       <div
         class="modal outcome-overlay"
         role="dialog"
         aria-modal="true"
-        aria-label={t(outcome.status === 'won' ? 'outcome.won' : 'outcome.lost')}
+        aria-label={title}
         data-testid="outcome-overlay"
         style={bg ? { backgroundImage: `url(${bg})` } : undefined}
       >
-        <h2 data-testid="outcome-status">{t(outcome.status === 'won' ? 'outcome.won' : 'outcome.lost')}</h2>
+        <h2 data-testid="outcome-status">{title}</h2>
         <PowerChart game={game} />
         <button class="menu-button" data-testid="outcome-back-to-menu" onClick={backToMenu}>
           {t('outcome.backToMenu')}

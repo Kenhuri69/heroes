@@ -47,9 +47,13 @@ export function popModal(stack: readonly Modal[]): Modal[] {
 
 // --- API impérative (mute le store) ----------------------------------------
 
-/** Change la route de base ; toute modale ouverte est refermée (nouvel écran). */
+/**
+ * Change la route de base ; toute modale ouverte est refermée (nouvel écran).
+ * Réinitialise l'accusé de tour hot-seat (Alpha 4.15) : une nouvelle partie
+ * (ou un retour menu) redémarre le cycle « passez l'appareil ».
+ */
 export function navigate(screen: Screen): void {
-  appStore.setState({ screen, modals: [] });
+  appStore.setState({ screen, modals: [], turnAck: null });
 }
 
 /** Ouvre (ou ré-ouvre au sommet) une modale. */

@@ -109,6 +109,17 @@ Menu principal (Continuer / Scénarios / Escarmouche / Options), fiche de scéna
 > le moteur. i18n FR/EN, sélecteurs à cible tactile ≥ 44 px. Choix de la carte
 > différé (une seule carte proto ; arrivera avec l'éditeur de carte).
 
+> 🚧 **État (hot-seat, Alpha 4.15)** : l'écran d'escarmouche propose un
+> **adversaire** « IA » ou « Joueur 2 » (hot-seat local ; la difficulté ne
+> s'affiche qu'en mode IA). En multi-humain, tout le plateau (héros, villes,
+> **brouillard**, sélection, toasts) se re-keye au joueur **actif** — `humanId`
+> suit `currentPlayer` s'il est humain — et un **overlay « passez l'appareil »**
+> (`HandoffOverlay`, overlay forcé hors pile de modales) sépare chaque tour pour
+> masquer le plateau précédent, validé par « Continuer ». L'écran de fin de partie
+> nomme alors le **vainqueur** (« Victoire du joueur N ») plutôt que Victoire/
+> Défaite (centré sur soi). **Aucun code moteur** : la boucle de tours IA s'arrête
+> déjà sur chaque joueur humain. > 2 joueurs / équipes = raffinement ultérieur.
+
 ## 3. Navigation & flux
 
 - **Routeur d'écrans** (source unique de navigation, lue par le DOM et les

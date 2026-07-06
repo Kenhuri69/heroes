@@ -9,7 +9,11 @@
   "skirmish.title": "Skirmish vs AI",
   "skirmish.close": "Close",
   "skirmish.yourFaction": "Your faction",
+  "skirmish.opponent": "Opponent",
+  "skirmish.opponent.ai": "AI",
+  "skirmish.opponent.human": "Player 2",
   "skirmish.aiFaction": "AI faction",
+  "skirmish.player2Faction": "Player 2 faction",
   "skirmish.difficulty": "Difficulty",
   "skirmish.difficulty.facile": "Easy",
   "skirmish.difficulty.normal": "Normal",
@@ -263,10 +267,15 @@
 
   "outcome.won": "Victory!",
   "outcome.lost": "Defeat",
+  "outcome.winner": "Player {n} wins!",
   "outcome.backToMenu": "Back to menu",
   "outcome.powerTitle": "Final power",
   "outcome.you": "You",
   "outcome.ai": "AI {n}",
+  "handoff.title": "Turn change",
+  "handoff.turnOf": "Player {n}’s turn",
+  "handoff.pass": "Pass the device to the next player.",
+  "handoff.continue": "Continue",
   "toast.gameWon": "Victory!",
   "toast.gameLost": "Defeat…"
 }

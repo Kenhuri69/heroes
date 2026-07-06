@@ -362,6 +362,42 @@ test('escarmouche vs IA : config + difficulté génèrent une partie 1v1 (Alpha 
   expect(errors).toEqual([]);
 });
 
+test('hot-seat : deux humains locaux alternent avec l’overlay de passage (Alpha 4.15)', async ({
+  page,
+}) => {
+  const errors = collectErrors(page);
+  await page.goto('./');
+  await page.waitForFunction(() => window.__HEROES_READY__ === true);
+
+  // Escarmouche en mode « Joueur 2 » (hot-seat) : la difficulté disparaît.
+  await page.getByTestId('menu-skirmish').click();
+  await page.getByTestId('skirmish-opponent-human').click();
+  await expect(page.getByTestId('skirmish-difficulty-normal')).toHaveCount(0);
+  await page.getByTestId('skirmish-start').click();
+
+  // Tour du joueur 1 : overlay de passage d'abord, plateau du J1 ensuite.
+  await expect(page.getByTestId('handoff-overlay')).toBeVisible();
+  await page.getByTestId('handoff-continue').click();
+  await expect(page.getByTestId('handoff-overlay')).toHaveCount(0);
+  let state = await page.evaluate(() => window.__HEROES_TEST__!.getState());
+  expect(state.players.map((p) => p.controller)).toEqual(['human', 'human']);
+  expect(state.players[state.currentPlayer]?.id).toBe('player-1');
+  await expect(page.getByTestId('town-open-town-player-1')).toBeVisible();
+
+  // Fin de tour du J1 ⇒ tour du J2 : l'overlay de passage reparaît, puis le
+  // plateau suit le joueur 2 (sa ville, pas celle du J1).
+  await page.getByTestId('end-turn').click();
+  await expect(page.getByTestId('handoff-overlay')).toBeVisible();
+  await expect(page.getByTestId('handoff-player')).toContainText('2');
+  await page.getByTestId('handoff-continue').click();
+  state = await page.evaluate(() => window.__HEROES_TEST__!.getState());
+  expect(state.players[state.currentPlayer]?.id).toBe('player-2');
+  await expect(page.getByTestId('town-open-town-player-2')).toBeVisible();
+  await expect(page.getByTestId('town-open-town-player-1')).toHaveCount(0);
+
+  expect(errors).toEqual([]);
+});
+
 test('autosave à la fin de tour puis « Continuer » depuis le menu', async ({ page }) => {
   const errors = await openGame(page);
 

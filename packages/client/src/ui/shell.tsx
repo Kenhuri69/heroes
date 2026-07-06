@@ -21,6 +21,7 @@ import { TownScreen } from './TownScreen';
 import { HeroSkills } from './HeroSkills';
 import { HeroInventory } from './HeroInventory';
 import { SkillChoice } from './SkillChoice';
+import { HandoffOverlay } from './HandoffOverlay';
 import { OutcomeOverlay } from './OutcomeOverlay';
 import { FactionBadge } from './FactionBadge';
 import './styles.css';
@@ -91,6 +92,7 @@ function Shell() {
       {townModal && <TownScreen townId={townModal.townId} onClose={() => closeModalKind('town')} />}
       {journalModal && <Journal onClose={() => closeModalKind('journal')} />}
       {pendingSkillHero && <SkillChoice hero={pendingSkillHero} />}
+      {screen === 'adventure' && <HandoffOverlay />}
       <OutcomeOverlay />
       <ToastHost />
     </>

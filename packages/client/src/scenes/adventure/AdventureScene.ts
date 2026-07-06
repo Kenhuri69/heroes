@@ -89,7 +89,7 @@ export class AdventureScene {
     const { map, config } = game;
     const player = game.players.find((p) => p.id === humanId(game));
     if (!map || !config || !player) return;
-    this.objects.sync(map.objects);
+    this.objects.sync(map.objects, game.unitCatalog);
     const heroes = humanHeroes(game);
     const positions = heroes.map((h) => h.pos);
     this.fog.update(player.explored, positions, config.visionRadius);

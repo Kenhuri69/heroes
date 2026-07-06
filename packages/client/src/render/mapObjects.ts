@@ -1,7 +1,10 @@
-import { Container, Graphics, Sprite } from 'pixi.js';
-import type { MapObjectDef } from '@heroes/engine';
-import { getTexture, mineUrl } from './assets';
+import { Assets, Container, Graphics, Sprite } from 'pixi.js';
+import type { CombatUnitDef, MapObjectDef } from '@heroes/engine';
+import { getTexture, mineUrl, unitSpriteUrl } from './assets';
 import { TILE_SIZE } from './tilemap';
+
+/** Catalogue d'unités (id → def) — sert à résoudre la faction d'un gardien. */
+type UnitCatalog = Record<string, CombatUnitDef>;
 
 /** Teintes placeholder par ressource (doc 08 §5) — cohérentes avec la barre UI. */
 export const RESOURCE_COLORS: Record<string, number> = {
@@ -19,7 +22,7 @@ export class MapObjectsLayer {
   readonly container = new Container();
   private readonly byId = new Map<string, Container>();
 
-  sync(objects: readonly MapObjectDef[]): void {
+  sync(objects: readonly MapObjectDef[], catalog: UnitCatalog): void {
     const alive = new Set(objects.map((o) => o.id));
     for (const [id, node] of this.byId) {
       if (!alive.has(id)) {
@@ -29,7 +32,7 @@ export class MapObjectsLayer {
     }
     for (const obj of objects) {
       if (this.byId.has(obj.id)) continue;
-      const node = buildObject(obj);
+      const node = buildObject(obj, catalog);
       node.position.set(obj.pos.x * TILE_SIZE, obj.pos.y * TILE_SIZE);
       this.byId.set(obj.id, node);
       this.container.addChild(node);
@@ -38,7 +41,7 @@ export class MapObjectsLayer {
 }
 
 /** Vignette de mine si la texture est préchargée, sinon picto procédural (repli). */
-function buildObject(obj: MapObjectDef): Container {
+function buildObject(obj: MapObjectDef, catalog: UnitCatalog): Container {
   if (obj.type === 'resource') {
     const tex = getTexture(mineUrl(obj.resource));
     if (tex) {
@@ -54,12 +57,36 @@ function buildObject(obj: MapObjectDef): Container {
       .fill(color)
       .stroke({ width: 2, color: 0x1a1c22 });
   }
-  // Gardien neutre : fanion sombre (aucun asset produit — reste procédural).
+  return buildGuardian(obj.unitId, catalog);
+}
+
+/**
+ * Gardien neutre : la créature qui garde la case (HoMM montre l'unité gardienne).
+ * Fanion procédural en repli, remplacé par le **sprite de l'unité** dès qu'il est
+ * chargé (faction résolue via `catalog[unitId].groupId`, même chemin que le
+ * combat). Chargement async gardé (`node.destroyed`) : pas de fuite si le gardien
+ * disparaît (combat gagné) avant la fin du chargement.
+ */
+function buildGuardian(unitId: string, catalog: UnitCatalog): Container {
+  const node = new Container();
   const c = TILE_SIZE / 2;
-  const g = new Graphics()
+  const fallback = new Graphics()
     .poly([c - 4, c + 18, c - 4, c - 18, c + 16, c - 10, c - 4, c - 2])
     .fill(0x8a8f98)
     .stroke({ width: 2, color: 0x1a1c22 });
-  g.circle(c - 4, c + 18, 4).fill(0x1a1c22);
-  return g;
+  fallback.circle(c - 4, c + 18, 4).fill(0x1a1c22);
+  node.addChild(fallback);
+
+  const url = unitSpriteUrl(unitId, catalog[unitId]?.groupId);
+  if (url) {
+    void Assets.load(url).then((texture) => {
+      if (node.destroyed) return;
+      node.removeChild(fallback);
+      fallback.destroy();
+      const sprite = new Sprite(texture);
+      sprite.setSize(TILE_SIZE, TILE_SIZE);
+      node.addChild(sprite);
+    });
+  }
+  return node;
 }

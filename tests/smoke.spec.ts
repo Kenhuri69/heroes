@@ -934,6 +934,14 @@ test('assets : PNG servis sans 404, icônes de ressources et vignettes de bâtim
   expect(assets.loaded.some((u) => /mine-/.test(u))).toBe(true);
   expect(assets.loaded.some((u) => /res-/.test(u))).toBe(true);
 
+  // Gardiens de carte illustrés (DA Beta) : proto-01 place deux gardiens
+  // (`t1-eleve` arcane-hunters, `t1-recruit` test-faction) dont le sprite
+  // d'unité est chargé pour remplacer le fanion de repli. Prouve aussi que la
+  // correction de nommage des sprites Arcane Hunters les rend bien résolvables.
+  await expect
+    .poll(() => assets.loaded.some((u) => /(t1-eleve|t1-recruit)-\w/.test(u)))
+    .toBe(true);
+
   // Le registre ne référence que des fichiers présents : aucun asset en 404.
   expect(assets.failed).toEqual([]);
   expect(errors).toEqual([]);

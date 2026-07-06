@@ -36,5 +36,13 @@ Captures de référence : régénérables à l'identique via la skill (voir SKIL
       plateau de combat dans une caméra (plancher 44 px + pan/pinch), overlay
       rotation supprimé → **A7 corrigé** ; onglets ville `flex-wrap` → **A6
       corrigé**. Re-capture ux-audit à l'appui.
-- [ ] Étapes 4–5 — U3 (feedback + journal), U4 (multi-héros/villes), U6 (écrans
-      manquants), U5 (DA / ville peinte, jalon Beta).
+- [x] Étapes 4–5 — **livrées** : U3 (feedback + journal, #54), U4 (multi-héros/
+      villes, #55), U6a marché (#57) / U6b graphique de fin (#58), U5 tranche A
+      ville peinte (#59), U5-B décors (#60), U5-C sprites d'unités (#61), U5-D
+      avatars de héros (#62), **finitions** toile de combat DOM + toast
+      `playerSide` + éval `.btn` (#63).
+- **§5.3 clos.** Reste au jalon **Beta artistique** (hors remédiation) :
+      spritesheets d'unités **animées** frame-par-frame (idle/move/attack/hit/
+      death) — **bloqué par le tooling** (`asset-sheet` produit des sprites
+      statiques, pas des planches) ; décors bespoke des factions/terrains encore
+      sans asset ; « appui long = fiche d'objet de carte » (feature Beta notée).

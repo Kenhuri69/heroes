@@ -227,7 +227,7 @@ export const spellSchema = z
     school: z.enum(['fire', 'water', 'earth', 'air', 'neutral', 'traque']),
     circle: z.number().int().min(1).max(5),
     manaCost: z.number().int().positive(),
-    kind: z.enum(['damage', 'heal', 'buff', 'debuff', 'applyMarks']),
+    kind: z.enum(['damage', 'heal', 'buff', 'debuff', 'applyMarks', 'adventure']),
     base: z.number().nonnegative(),
     perPower: z.number().nonnegative(),
     attackMod: z.number().optional(),
@@ -235,10 +235,16 @@ export const spellSchema = z
     speedMod: z.number().optional(),
     /** Charges posées par un sort `applyMarks` (doc 05 §6). */
     marks: z.number().int().positive().optional(),
+    /** Effet hors combat d'un sort `adventure` (doc 02 §1.4, Alpha 4.16). */
+    adventure: z.object({ type: z.literal('townPortal') }).optional(),
   })
   .refine((s) => (s.kind === 'damage' || s.kind === 'heal' ? s.base > 0 : true), {
     message: 'damage/heal: base doit être > 0',
     path: ['base'],
+  })
+  .refine((s) => (s.kind === 'adventure') === (s.adventure !== undefined), {
+    message: 'adventure: le champ `adventure` est requis (et réservé) pour ce kind',
+    path: ['adventure'],
   })
   .refine(
     (s) =>

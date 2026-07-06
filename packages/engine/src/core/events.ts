@@ -102,6 +102,8 @@ export type GameEvent =
       kills: number;
     }
   | { type: 'SkillLearned'; heroId: string; skillId: string; rank: number }
+  // ——— Sort d'aventure (doc 02 §1.4, Alpha 4.16) : effet hors combat sur la carte ———
+  | { type: 'AdventureSpellCast'; heroId: string; spellId: string; pos: GridPos }
   // ——— Effets de faction déclaratifs (doc 06 §4) — surface figée lot O 3.4 ———
   /** Nécromancie et effets de faction analogues (raiseUndeadOnVictory). */
   | { type: 'UndeadRaised'; heroId: string; unitId: string; count: number }

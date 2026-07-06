@@ -122,6 +122,9 @@
   "toast.newGameFailed": "Could not start the game",
   "toast.scenarioFailed": "Could not start the scenario",
   "toast.skirmishFailed": "Could not start the skirmish",
+  "toast.adventureSpellCast": "{spell} cast",
+  "spellbook.adventureTitle": "Adventure spells",
+  "spellbook.manaCost": "{cost} mana",
   "toast.spellCast": "{hero} casts {spell}",
   "toast.skillLearned": "{skill} rank {rank} learned",
   "toast.saved": "Game saved.",
@@ -170,6 +173,7 @@
   "spell.aura-protectrice": "Protective Aura",
   "spell.marque-du-guetteur": "Watcher's Mark",
   "spell.entraves-runiques": "Runic Shackles",
+  "spell.ville-portail": "Town Portal",
 
   "skill.logistics": "Logistics",
   "skill.scouting": "Scouting",

@@ -34,8 +34,10 @@ import {
 } from '../town';
 import {
   handleCastSpell,
+  handleCastAdventureSpell,
   handleChooseSkill,
   validateCastSpell,
+  validateCastAdventureSpell,
   validateChooseSkill,
 } from '../hero';
 import { heroManaMax } from '../hero/artifacts';
@@ -99,6 +101,7 @@ const GAME_OVER_BLOCKED = new Set<Command['type']>([
   'CaptureTown',
   'TradeResources',
   'CastSpell',
+  'CastAdventureSpell',
   'ChooseSkill',
   'AiTurn',
 ]);
@@ -210,6 +213,10 @@ export function validate(state: GameState, cmd: Command): CommandError | null {
     case 'CastSpell': {
       if (!state.combat) return { code: 'noCombat', message: 'aucun combat en cours' };
       return validateCastSpell(state, cmd);
+    }
+    case 'CastAdventureSpell': {
+      if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
+      return validateCastAdventureSpell(state, cmd);
     }
     case 'ChooseSkill': {
       if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
@@ -428,6 +435,10 @@ const handlers: Handlers = {
     handleCastSpell(draft, cmd, events);
   },
 
+  CastAdventureSpell(draft, cmd, events) {
+    handleCastAdventureSpell(draft, cmd, events);
+  },
+
   ChooseSkill(draft, cmd, events) {
     handleChooseSkill(draft, cmd, events);
   },
@@ -441,8 +452,12 @@ const handlers: Handlers = {
       draft.calendar.day += 1;
       if (draft.config) {
         // Points de mouvement quotidiens restaurés (doc 02 §1.5), modulés Logistique.
+        // Mana quotidienne restaurée aussi (doc 02 §1.4, Alpha 4.16) : les sorts
+        // d'aventure puisent dans cette réserve, rechargée chaque jour.
         for (const hero of draft.heroes) {
           hero.movementPoints = heroDailyMovement(draft, hero);
+          hero.manaMax = heroManaMax(hero, draft.artifactCatalog);
+          hero.mana = hero.manaMax;
         }
       }
       events.push({ type: 'DayStarted', day: draft.calendar.day });

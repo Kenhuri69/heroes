@@ -1,3 +1,4 @@
+import { revealAround } from '../adventure/fog';
 import { heroLuckOf, killsFromDamage, magicResistanceOf } from '../combat/damage';
 import { combatRules, collectCasualties, recordLoss } from '../combat/state-helpers';
 import { checkCombatEnd } from '../combat/turns';
@@ -5,7 +6,10 @@ import type { CombatState } from '../combat/types';
 import type { Command, CommandError } from '../core/commands';
 import type { GameEvent } from '../core/events';
 import { rollRange } from '../core/rng';
-import type { GameState } from '../core/state';
+import type { GameState, HeroState } from '../core/state';
+import type { TownState } from '../town/types';
+import type { SpellKind } from './types';
+import { heroVisionBonus } from './skills';
 import {
   effectiveManaCost,
   effectivePower,
@@ -68,6 +72,95 @@ export function validateChooseSkill(state: GameState, cmd: ChooseSkillCmd): Comm
   if (!hero.pendingSkillChoices.includes(cmd.skillId))
     return { code: 'unknownSkill', message: `proposition inconnue '${cmd.skillId}'` };
   return null;
+}
+
+type CastAdventureSpellCmd = Extract<Command, { type: 'CastAdventureSpell' }>;
+
+/** Villes possédées par le joueur (`townPortal` ne cible qu'une ville à soi). */
+function ownedTowns(state: GameState, playerId: string): TownState[] {
+  return state.towns.filter((t) => t.ownerPlayerId === playerId);
+}
+
+/** Ville possédée la plus proche du héros (distance de Tchebychev ; ordre stable). */
+function nearestOwnedTown(state: GameState, hero: HeroState): TownState | undefined {
+  let best: TownState | undefined;
+  let bestDist = Infinity;
+  for (const town of ownedTowns(state, hero.playerId)) {
+    const d = Math.max(Math.abs(town.pos.x - hero.pos.x), Math.abs(town.pos.y - hero.pos.y));
+    if (d < bestDist) {
+      bestDist = d;
+      best = town;
+    }
+  }
+  return best;
+}
+
+/**
+ * Sort d'aventure (doc 02 §1.4, Alpha 4.16) — lancé sur la CARTE, hors combat.
+ * Exige : hors combat, joueur actif, héros à lui, sort connu ET de kind
+ * `adventure`, mana suffisante. `townPortal` : le joueur doit posséder une ville
+ * (celle ciblée si `townId`, sinon la plus proche).
+ */
+export function validateCastAdventureSpell(
+  state: GameState,
+  cmd: CastAdventureSpellCmd,
+): CommandError | null {
+  if (state.combat) return { code: 'combatActive', message: 'un combat est en cours' };
+  const current = state.players[state.currentPlayer];
+  if (!current || current.id !== cmd.playerId)
+    return { code: 'notYourTurn', message: `ce n’est pas le tour de ${cmd.playerId}` };
+  const hero = state.heroes.find((h) => h.id === cmd.heroId);
+  if (!hero) return { code: 'unknownHero', message: `héros inconnu '${cmd.heroId}'` };
+  if (hero.playerId !== cmd.playerId)
+    return { code: 'notYourHero', message: `'${cmd.heroId}' n’appartient pas à ${cmd.playerId}` };
+  const spell = state.spellCatalog[cmd.spellId];
+  if (!spell) return { code: 'unknownSpell', message: `sort inconnu '${cmd.spellId}'` };
+  if (!hero.spells.includes(cmd.spellId))
+    return { code: 'spellNotKnown', message: `sort non appris '${cmd.spellId}'` };
+  if (spell.kind !== 'adventure' || !spell.adventure)
+    return { code: 'invalidAction', message: `'${cmd.spellId}' n’est pas un sort d’aventure` };
+  if (hero.mana < spell.manaCost) return { code: 'notEnoughMana', message: 'mana insuffisante' };
+  if (spell.adventure.type === 'townPortal') {
+    if (cmd.townId !== undefined) {
+      const town = state.towns.find((t) => t.id === cmd.townId);
+      if (!town || town.ownerPlayerId !== cmd.playerId)
+        return { code: 'invalidAction', message: `ville cible '${cmd.townId}' non possédée` };
+    } else if (ownedTowns(state, cmd.playerId).length === 0) {
+      return { code: 'invalidAction', message: 'aucune ville possédée où se téléporter' };
+    }
+  }
+  return null;
+}
+
+export function handleCastAdventureSpell(
+  draft: Draft,
+  cmd: CastAdventureSpellCmd,
+  events: GameEvent[],
+): void {
+  const hero = draft.heroes.find((h) => h.id === cmd.heroId);
+  const spell = draft.spellCatalog[cmd.spellId];
+  const player = draft.players.find((p) => p.id === cmd.playerId);
+  const map = draft.map;
+  if (!hero || !spell || !spell.adventure || !player || !map) return; // exclu par validate
+
+  hero.mana -= spell.manaCost;
+
+  if (spell.adventure.type === 'townPortal') {
+    const town = cmd.townId
+      ? draft.towns.find((t) => t.id === cmd.townId)
+      : nearestOwnedTown(draft, hero);
+    if (town) {
+      hero.pos = { ...town.pos };
+      revealAround(
+        player.explored,
+        map,
+        hero.pos,
+        (draft.config?.visionRadius ?? 0) + heroVisionBonus(hero, draft.skillCatalog),
+      );
+    }
+  }
+
+  events.push({ type: 'AdventureSpellCast', heroId: hero.id, spellId: spell.id, pos: { ...hero.pos } });
 }
 
 export function handleCastSpell(draft: Draft, cmd: CastSpellCmd, events: GameEvent[]): void {
@@ -180,7 +273,8 @@ export function handleChooseSkill(draft: Draft, cmd: ChooseSkillCmd, events: Gam
 export interface SpellEstimate {
   amount: number;
   kills: number;
-  kind: 'damage' | 'heal' | 'buff' | 'debuff' | 'applyMarks';
+  /** `adventure` inclus par exhaustivité du type — un sort d'aventure ne se lance jamais en combat. */
+  kind: SpellKind;
 }
 
 export function estimateSpell(

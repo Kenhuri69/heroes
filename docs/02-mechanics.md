@@ -54,7 +54,19 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 - Coût en mana, 1 sort/round de combat + sorts d'aventure (Ville-portail, Vision, etc. — post-MVP sauf `Rappel`).
 - ~20 sorts au MVP (liste dans `data/core/spells/`).
 
-> 🚧 **État 3.2** : 10 sorts livrés (`data/core/spells.json`, cercles 1–3) — Feu/Eau/Terre/Air/neutre, types `damage`/`heal`/`buff`/`debuff`. Mana = `Savoir × 10 + artefacts`, remplie à l'ouverture du combat. **1 sort/round** en combat (commande `CastSpell`, prévisualisation obligatoire sans RNG). Dégâts = `round((base + perPower × Pouvoir) × (1 − résistance) × (lucky ? 2 : 1))`. Gating MVP : le héros connaît d'emblée les sorts de **cercle ≤ 3** (Guilde des mages MVP) ; l'apprentissage à la visite de ville, la régénération de mana d'aventure, les cercles 4–5 (Sagesse/Magie) et les sorts d'aventure sont des raffinements 3.3+. L'IA ne lance pas de sort en 3.2.
+> 🚧 **État 3.2** : 10 sorts livrés (`data/core/spells.json`, cercles 1–3) — Feu/Eau/Terre/Air/neutre, types `damage`/`heal`/`buff`/`debuff`. Mana = `Savoir × 10 + artefacts`, remplie à l'ouverture du combat. **1 sort/round** en combat (commande `CastSpell`, prévisualisation obligatoire sans RNG). Dégâts = `round((base + perPower × Pouvoir) × (1 − résistance) × (lucky ? 2 : 1))`. Gating MVP : le héros connaît d'emblée les sorts de **cercle ≤ 3** (Guilde des mages MVP) ; l'apprentissage à la visite de ville, les cercles 4–5 (Sagesse/Magie) et les autres sorts d'aventure sont des raffinements ultérieurs. L'IA ne lance pas de sort en 3.2.
+
+> 🚧 **État (sorts d'aventure, Alpha 4.16)** : ouverture du sous-système **hors
+> combat**. Nouveau **kind `adventure`** portant un effet déclaratif
+> `adventure: { type: 'townPortal' }` (union extensible — Vision, etc. = pure
+> donnée + un cas). Commande générique **`CastAdventureSpell`** (hors combat,
+> joueur actif, sort connu de kind `adventure`, mana suffisante). Sort livré :
+> **Ville-portail** (cercle 3) — téléporte le héros vers la ville possédée cible
+> (`townId`) ou la **plus proche** par défaut, révèle le brouillard, décompte la
+> mana. La **mana se restaure chaque jour** (comme les points de mouvement) — le
+> combat garde son remplissage propre à l'ouverture, équilibre inchangé. Le coût
+> en mouvement de la téléportation = raffinement ultérieur. **Zéro nom de faction**
+> ; golden inchangé. UI : livre de sorts d'aventure dans le tiroir héros.
 
 ### 1.5 Mouvement sur carte d'aventure
 

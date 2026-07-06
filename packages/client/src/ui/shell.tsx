@@ -20,6 +20,7 @@ import { CombatUi } from './combat';
 import { TownScreen } from './TownScreen';
 import { HeroSkills } from './HeroSkills';
 import { HeroInventory } from './HeroInventory';
+import { AdventureSpellbook } from './AdventureSpellbook';
 import { SkillChoice } from './SkillChoice';
 import { HandoffOverlay } from './HandoffOverlay';
 import { OutcomeOverlay } from './OutcomeOverlay';
@@ -247,6 +248,7 @@ function HeroDrawer() {
         <ArmySlots army={hero.army} />
         <HeroSkills hero={hero} />
         <HeroInventory hero={hero} />
+        <AdventureSpellbook hero={hero} />
       </aside>
     </>
   );

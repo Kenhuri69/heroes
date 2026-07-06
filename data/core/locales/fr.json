@@ -122,6 +122,9 @@
   "toast.newGameFailed": "Impossible de démarrer la partie",
   "toast.scenarioFailed": "Impossible de démarrer le scénario",
   "toast.skirmishFailed": "Impossible de démarrer l’escarmouche",
+  "toast.adventureSpellCast": "{spell} lancé",
+  "spellbook.adventureTitle": "Sorts d’aventure",
+  "spellbook.manaCost": "{cost} mana",
   "toast.spellCast": "{hero} lance {spell}",
   "toast.skillLearned": "{skill} niveau {rank} apprise",
   "toast.saved": "Partie sauvegardée.",
@@ -170,6 +173,7 @@
   "spell.aura-protectrice": "Aura protectrice",
   "spell.marque-du-guetteur": "Marque du guetteur",
   "spell.entraves-runiques": "Entraves runiques",
+  "spell.ville-portail": "Ville-portail",
 
   "skill.logistics": "Logistique",
   "skill.scouting": "Recherche",

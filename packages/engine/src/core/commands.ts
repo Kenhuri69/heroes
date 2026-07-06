@@ -120,6 +120,8 @@ export type Command =
     }
   // ——— Héros : sorts & compétences (doc 02 §1.2–§1.4) — surface figée 3.2 ———
   | { type: 'CastSpell'; spellId: string; targetStackId: string }
+  // ——— Sort d'aventure (doc 02 §1.4, Alpha 4.16) : lancé sur la carte, hors combat ———
+  | { type: 'CastAdventureSpell'; heroId: string; spellId: string; playerId: string; townId?: string }
   | { type: 'ChooseSkill'; heroId: string; skillId: string }
   // ——— IA d'aventure (doc 11 §3.5) : joue le tour complet du joueur IA actif + fin de tour ———
   | { type: 'AiTurn'; playerId: string };

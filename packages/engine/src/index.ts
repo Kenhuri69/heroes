@@ -98,6 +98,7 @@ export type {
   SpellDef,
   SpellSchool,
   SpellKind,
+  AdventureEffect,
   SpellStatus,
   HeroSkillDef,
   SkillRankEffect,

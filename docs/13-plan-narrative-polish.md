@@ -332,14 +332,28 @@ l'évoque dans un dialogue).
 Nouveaux fichiers sous `data/story/`, validés par schémas Zod dans
 `packages/content` (comme factions/scénarios/cartes) :
 
+Le contenu narratif suit la règle de modularité du contenu (doc 06) : **la
+campagne d'une faction vit dans son paquet de faction**, le transverse vit
+dans `data/story/` :
+
 ```
-data/story/
-  index.json                         campagnes + événements (fenêtres de dates)
-  <campaign>/campaign.json           chapitres ordonnés, héros imposé, déblocages
-  <campaign>/<chapter>.quests.json   quêtes (déclencheurs, étapes, récompenses)
-  <campaign>/<chapter>.dialogs.json  nœuds de dialogue (référencés par les quêtes)
-  <campaign>/locales/{fr,en}.json    textes (fusionnés au catalogue @loc:)
+data/story/                          # transverse (aucune faction)
+  index.json                         événements (fenêtres de dates), déblocages croisés
+  characters.json                    catalogue PUBLIC des personnages (portraits par humeur)
+  daily-templates.json               gabarits de quêtes journalières du mode libre
+
+data/factions/<id>/story/            # narratif DE la faction, dans son paquet
+  campaign.json                      chapitres ordonnés, héros imposé, déblocages
+  <chapter>.quests.json              quêtes (déclencheurs, étapes, récompenses)
+  <chapter>.dialogs.json             nœuds de dialogue (référencés par les quêtes)
 ```
+
+Les textes narratifs d'une faction vont dans les `locales/{fr,en}.json`
+**du paquet** (fusion au catalogue `@loc:` déjà en place depuis 3.7) ; le
+manifeste déclare sa campagne (`"story": "story/campaign.json"`, optionnel —
+une faction sans campagne reste valide). Le catalogue de personnages est
+« public » : une campagne peut faire *parler* les personnages d'une autre
+maison (référence par id), jamais modifier ses quêtes.
 
 Esquisse de schémas (détaillés au lot N1) :
 
@@ -455,20 +469,90 @@ laisse le jeu livrable. Ordre pensé « MVP narratif → campagne complète » :
 
 ---
 
-## 8. Extensibilité : « une nouvelle maison = son lore »
+## 8. Intégration narrative d'une faction custom : « une nouvelle maison = son lore »
 
-Checklist ajoutée à `docs/06-modularity.md` §5 et au gabarit
-`docs/templates/faction-template.md` quand N2 est livré :
+La promesse de modularité s'étend au narratif : **ajouter une maison = ajouter
+son lore, sa campagne et ses voix, sans toucher au moteur ni aux campagnes
+existantes**. Même critère CI que le gameplay (doc 06 §5.8) : aucun diff hors
+de `data/factions/<id>/` (+ registre `index.json`).
 
-1. Section lore du gabarit : identité, **lecture du sceau de Cendregarde**
-   (ou de l'arc global courant), rapports aux maisons existantes.
-2. 2 héros nommés avec arc personnel en 3 étapes.
-3. Textes d'ambiance (`loreKey`) pour chaque unité/bâtiment du paquet.
-4. 1 campagne (3 chapitres) au format `data/story/` — **zéro diff moteur**
-   attendu (les conditions de quête sont génériques) ; si un type de
-   condition manque, il s'ajoute au catalogue générique comme un point
-   d'extension (gouvernance doc 06 §6).
-5. Locales FR/EN complètes, budget chapitre tenu.
+### 8.1 Les cinq blocs narratifs obligatoires d'un paquet
+
+Remplis dans le gabarit `docs/templates/faction-template.md` §8 (section
+ajoutée dans ce lot) **avant** `faction:new`, livrés dans le paquet :
+
+| Bloc | Contenu | Où il vit |
+|------|---------|-----------|
+| **1. Identité narrative** | Voix de la faction (comment elle parle : registre, tics de langage), ce qu'elle croit, ce qu'elle se cache | Gabarit §8 + locales du paquet |
+| **2. Lecture de l'arc global** | Sa réponse à « que voit-elle dans le sceau de Cendregarde ? » (ou l'arc courant) — c'est le crochet qui raccorde toute maison à la même guerre sans réécrire les autres | Gabarit §8 ; nourrit `campaign.json` |
+| **3. Relations aux maisons existantes** | 1 phrase par maison en jeu (alliée méfiante, proie, cliente…) — matière des dialogues croisés | Gabarit §8 |
+| **4. Deux héros nommés avec arc** | Arc personnel en 3 étapes chacun (§5.4), qui *incarne* le thème de la faction | `heroes/named.json` + `story/` |
+| **5. Textes d'ambiance** | `loreKey` pour chaque unité/bâtiment/artefact du paquet, écrits du point de vue de la faction (§3.5) | `locales/{fr,en}.json` du paquet |
+
+Plus la **campagne** (3 chapitres au format §6.1, dans
+`data/factions/<id>/story/`) quand la maison passe au rang « campagne » —
+une faction peut sortir jouable en mode libre avec les blocs 1–5 seulement,
+sa campagne arrivant dans un second lot (patron Heroes Online : les factions
+post-lancement ont reçu leur histoire avec elles).
+
+### 8.2 Garde-fous (mêmes règles que le gameplay)
+
+- **Zéro diff moteur attendu** : les conditions de quête sont un catalogue
+  générique ; si une campagne custom a besoin d'un type de condition
+  manquant, il s'ajoute au catalogue **comme point d'extension générique**
+  (gouvernance doc 06 §6 — le cas *Tide Covenant* vaut pour le narratif).
+- **Zéro réécriture des autres maisons** : une campagne custom peut faire
+  apparaître les personnages publics (`data/story/characters.json`) et lire
+  les drapeaux `campaignState` des campagnes finies (ex. : évoquer le choix
+  d'Aldric), mais jamais modifier les quêtes/dialogues d'un autre paquet.
+- **Validation** : `faction:validate` s'étend au narratif — parité FR/EN des
+  locales `story`, `loreKey` présents pour chaque entité, conditions de quête
+  toutes issues du catalogue, personnages référencés existants, budget
+  chapitre < 50 Ko gzip.
+- Les quêtes journalières de la faction ne sont **pas** un système à part :
+  ce sont des gabarits `daily-templates` habillés par le paquet (cf. le
+  Tableau des Contrats, §9.2).
+
+### 8.3 Exemple filé : lore & storytelling d'une faction custom (Sylvan Court)
+
+Démonstration sur un pré-concept de la doc 06 §6 (pressenti pour le vote de
+la 4ᵉ faction en Beta) — la **Cour Sylvaine** (nature/elfes, mécanique
+Symbiose). Ce qu'un contributeur livrerait dans son gabarit §8 :
+
+- **Identité narrative** : la Cour parle au pluriel et au présent éternel
+  (« nous nous souvenons », jamais « je pense ») ; elle croit que le monde
+  est un seul organisme dont chaque guerre est une fièvre ; elle se cache
+  qu'elle a déjà *amputé* des forêts entières pour survivre — et qu'elle
+  recommencera.
+- **Lecture du sceau** : le verrou de Cendregarde n'est ni une porte ni une
+  serrure — c'est une **cicatrice mal suturée** sur la chair du monde. Le
+  Havre la vénère, Heresh l'écoute, l'Académie la surveille ; la Cour veut la
+  **faire cicatriser** en y greffant une forêt-suture… ce qui condamnerait la
+  province humaine qui pousse dessus. « Nous ne haïssons pas Cendregarde.
+  On ne hait pas ce qu'on taille. »
+- **Relations** : Haven = un verger qui se prend pour un jardinier ;
+  Necropolis = la pourriture *a aussi* sa saison (respect glacial) ;
+  Arcane Hunters = des greffons instables — la Cour reconnaît dans le
+  Pénitent T8 sa propre logique de greffe, et ça ne lui plaît pas.
+- **Héros nommés** : *Dame Ronce-Mère* (Might, une aïeule-arbre — arc : sa
+  Symbiose la lie à un esprit né *sous* le sceau, est-il encore sylvain ?) ;
+  *Lióren du Dernier Verger* (Magic, diplomate — arc : négocier la
+  cicatrisation avec les humains qu'elle déracinerait ; son étape 3 relit le
+  drapeau `aldric-pacte` si présent).
+- **Campagne (esquisse 3 chapitres)** : I. *La Fièvre* — la forêt-monde sent
+  la plaie et envoie la Cour (tutoriel Symbiose : quêtes « ne bouge pas ta
+  pile N rounds ») ; II. *La Taille* — conflit avec les trois lectures en
+  place (mêmes lieux que les campagnes fondatrices, autre regard) ;
+  III. *La Suture* — choix final : greffer la forêt (sacrifier la province)
+  ou greffer *un seul* des siens (l'arc de Ronce-Mère devient le prix).
+- **Flavor (extraits)** : Squelette vu par la Cour — « Du bois mort qui
+  marche. Même la mort fait des boutures. » ; son propre T1 — « Il a juré
+  fidélité à une graine. La graine s'en souviendra. »
+
+L'exemple montre le critère de réussite : **rien ici ne demande un diff
+moteur ni une ligne dans les campagnes existantes** — uniquement le gabarit,
+le paquet, et au plus un nouveau type de condition générique (« pile immobile
+N rounds », qui servirait à toute faction défensive).
 
 ---
 

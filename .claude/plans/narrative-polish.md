@@ -25,7 +25,14 @@ aucun code touché).
       roadmap de polishing (N1→N4), exemples concrets (intro, quêtes, dialogue).
       → vérifier : chaque livrable de la demande a sa section.
 - [x] Référencer le doc 13 dans `CLAUDE.md` (structure des fichiers).
-- [x] Commit + push sur `claude/heroes-narrative-polish-plan-o4td5z`, PR draft.
+- [x] Commit + push sur `claude/heroes-narrative-polish-plan-o4td5z`, PR draft
+      (#66).
+- [x] Retour utilisateur : approfondir l'**intégration narrative d'une faction
+      custom** → doc 13 §8 refondu (5 blocs narratifs obligatoires, garde-fous
+      alignés doc 06 §5.8, exemple filé Sylvan Court), §6.1 révisé (la campagne
+      d'une faction vit dans `data/factions/<id>/story/`, `data/story/` =
+      transverse), gabarit de faction +§8 « Lore & storytelling », doc 06 §5
+      +étape 9 (narratif).
 
 ## Décisions prises
 

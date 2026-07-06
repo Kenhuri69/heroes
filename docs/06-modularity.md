@@ -147,6 +147,7 @@ interface AdventureHook {
 6. **Équilibrage** : le test `balance.test.ts` (paquet `@heroes/content`, lancé par `pnpm test`) rejoue des combats auto à valeur d'or égale et vérifie qu'aucune faction ne domine ; un simulateur CLI dédié (`faction:sim`, rapport de winrate par palier) reste à écrire.
 7. Jouabilité : 1 scénario de test dédié + passe IA (le profil `aiProfile` suffit-il ?).
 8. PR unique portant le paquet ; la CI rejoue validation + simulation. **Aucun diff hors de `data/factions/<id>/` n'est accepté**, sauf ajout au registre `index.json` — c'est le test automatique de la promesse de modularité.
+9. **Narratif** (s'arme avec le chantier doc 13) : remplir le gabarit §8 (identité narrative, lecture de l'arc global, relations, arcs des 2 héros nommés) et livrer les `loreKey` FR/EN de chaque entité dans les locales du paquet ; la campagne de faction (3 chapitres, `data/factions/<id>/story/`) peut arriver dans un second lot. Mêmes garde-fous : zéro diff moteur, zéro modification des autres maisons (doc 13 §8.2).
 
 ## 6. Exemples de futures maisons (pré-concepts)
 

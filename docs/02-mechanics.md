@@ -213,8 +213,18 @@ Heuristique par pile : score = dégâts espérés × valeur de la cible − risq
 > `accumulateResource` différées). Le moteur (`engine/scenario`) évalue
 > `GameState.scenario.objectives` (par joueur) après chaque transition (fin de
 > tour, combat, capture) et pose `GameState.outcome` + émet `GameEnded` ; un
-> joueur sans ville ni héros est **éliminé** (grâce des 7 jours différée →
-> immédiate au MVP) ; hors scénario (partie libre) = **aucune** évaluation.
+> joueur sans ville NI héros est **éliminé immédiatement**, et un joueur qui a
+> **perdu** sa dernière ville en gardant un héros est éliminé au-delà de
+> `RETAKE_GRACE_DAYS` (=7) jours (grâce de reprise, doc §4.1 — armée seulement
+> une fois une ville possédée, `PlayerState.townlessDays`) ; hors scénario
+> (partie libre) = **aucune** évaluation.
+>
+> 🚧 **État (comblement MVP)** : la **grâce de reprise de ville** (7 jours) et
+> les **triggers de carte** `onVisit`/`onDay` (doc §2.1) sont désormais
+> implémentés. Triggers = point d'extension **générique** (`AdventureMapDef.
+> triggers`, effets déclaratifs `grantResource`/`message`, one-shot, événement
+> `TriggerFired`) — jamais un nom de faction/scénario dans le moteur.
+> `collectArtifact`/`accumulateResource` et `onFlagCaptured` restent différés.
 > **IA d'aventure** déterministe (`engine/ai`, commande `AiTurn`) : chaque
 > joueur `controller:'ai'` explore / ramasse / attaque un gardien battable /
 > capture / construit / recrute puis passe son tour ; heuristique gloutonne de

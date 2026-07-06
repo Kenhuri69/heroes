@@ -149,6 +149,13 @@
       "y": 4
     }
   ],
+  "triggers": [
+    {
+      "id": "trigger-day2-welcome",
+      "on": { "kind": "day", "day": 2 },
+      "effect": { "kind": "message", "textKey": "trigger.proto01.welcome" }
+    }
+  ],
   "startPositions": [
     {
       "x": 3,

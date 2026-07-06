@@ -48,6 +48,7 @@ function testMap(): AdventureMapDef {
     terrain,
     road: terrain.map(() => false),
     objects: [],
+    triggers: [],
     startPositions: [{ x: 0, y: 0 }],
   };
 }

@@ -620,6 +620,19 @@ export type ResolvedMapObject =
       pos: { x: number; y: number };
     };
 
+/** Effet de trigger résolu — identique à `TriggerEffect` du moteur (doc 02 §2.1). */
+export type ResolvedTriggerEffect =
+  | { kind: 'grantResource'; resource: string; amount: number }
+  | { kind: 'message'; textKey: string };
+
+/** Trigger résolu — forme moteur `MapTriggerDef` (`pos` déplié, `fired` initial). */
+export interface ResolvedMapTrigger {
+  id: string;
+  on: { kind: 'visit'; pos: { x: number; y: number } } | { kind: 'day'; day: number };
+  effect: ResolvedTriggerEffect;
+  fired: boolean;
+}
+
 export interface ResolvedMap {
   id: string;
   width: number;
@@ -627,6 +640,7 @@ export interface ResolvedMap {
   terrain: string[];
   road: boolean[];
   objects: ResolvedMapObject[];
+  triggers: ResolvedMapTrigger[];
   startPositions: { x: number; y: number }[];
 }
 
@@ -851,6 +865,15 @@ function resolveMap(file: MapFile): ResolvedMap {
         return { id: obj.id, type: obj.type, pos, unitId: obj.unitId, count: obj.count };
       return { id: obj.id, type: obj.type, pos };
     }),
+    triggers: (file.triggers ?? []).map((t): ResolvedMapTrigger => ({
+      id: t.id,
+      on:
+        t.on.kind === 'visit'
+          ? { kind: 'visit', pos: { x: t.on.x, y: t.on.y } }
+          : { kind: 'day', day: t.on.day },
+      effect: t.effect,
+      fired: false,
+    })),
     startPositions: file.startPositions.map(({ x, y }) => ({ x, y })),
   };
 }

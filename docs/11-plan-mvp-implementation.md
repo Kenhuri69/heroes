@@ -126,6 +126,15 @@ perf 60 fps mobile re-vérifiée (throttling ×4), i18n complète des nouveaux
 écrans. → **Jalon MVP** (doc 01 §5) : partie complète desktop + mobile,
 3ᵉ faction de test chargée sans diff moteur, budgets tenus.
 
+> ✅ **Comblement MVP (2026-07)** : audit du plan 3.x vs code (5 sous-agents) →
+> 3 écarts réels comblés (le reste étant des différés-Alpha documentés) :
+> **3.2** catalogue de sorts porté à **20** (cercles 1–3, 4 écoles + neutres, en
+> données pures) ; **3.5** **triggers de carte `onVisit`/`onDay`** implémentés
+> (point d'extension générique, effets `grantResource`/`message`, one-shot) ;
+> **3.1** règle **« 7 jours pour reprendre une ville »** (`RETAKE_GRACE_DAYS`,
+> armée seulement après avoir possédé une ville — un héros de survie n'est jamais
+> sur le minuteur). `CURRENT_SAVE_VERSION` → 4. Golden re-fixé (`347a584d`).
+
 ---
 
 ## Garde-fous ajoutés au MVP

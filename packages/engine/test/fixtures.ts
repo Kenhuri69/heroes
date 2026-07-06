@@ -95,6 +95,7 @@ export function testMap(): AdventureMapDef {
     objects: [
       { id: 'gold-1', type: 'resource', pos: { x: 3, y: 0 }, resource: 'gold', amount: 500 },
     ],
+    triggers: [],
     startPositions: [
       { x: 0, y: 0 },
       { x: 9, y: 9 },

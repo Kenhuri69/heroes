@@ -5,6 +5,7 @@ import { heroVisionBonus } from '../hero/skills';
 import { revealAround } from './fog';
 import { samePos, type GridPos } from './map';
 import { stepCost } from './path';
+import { fireVisitTrigger } from './triggers';
 
 export interface AdvanceOptions {
   /**
@@ -64,6 +65,8 @@ export function advanceHeroAlongPath(
       to: { ...step },
       movementPointsLeft: hero.movementPoints,
     });
+    // Trigger de visite (doc 02 §2.1) — la tuile foulée peut porter un effet.
+    fireVisitTrigger(draft, player, hero.pos, events);
     const objIndex = map.objects.findIndex(
       (o) => o.type === 'resource' && samePos(o.pos, hero.pos),
     );

@@ -427,6 +427,35 @@ export const mapFileSchema = z.object({
   startPositions: z
     .array(z.object({ x: z.number().int().nonnegative(), y: z.number().int().nonnegative() }))
     .min(1),
+  /**
+   * Triggers déclaratifs (doc 02 §2.1) — optionnels. `on` = visite d'une tuile
+   * (`x`,`y`) ou jour donné ; `effect` = octroi de ressource commune ou message
+   * localisé. Forme figée identique à `MapTriggerDef` du moteur (générique, sans
+   * faction). `fired` est un champ d'état, absent des données.
+   */
+  triggers: z
+    .array(
+      z.object({
+        id: idSchema,
+        on: z.discriminatedUnion('kind', [
+          z.object({
+            kind: z.literal('visit'),
+            x: z.number().int().nonnegative(),
+            y: z.number().int().nonnegative(),
+          }),
+          z.object({ kind: z.literal('day'), day: z.number().int().positive() }),
+        ]),
+        effect: z.discriminatedUnion('kind', [
+          z.object({
+            kind: z.literal('grantResource'),
+            resource: z.enum(COMMON_RESOURCE_IDS),
+            amount: z.number().int().positive(),
+          }),
+          z.object({ kind: z.literal('message'), textKey: z.string().min(1) }),
+        ]),
+      }),
+    )
+    .optional(),
 });
 
 /** data/scenarios/index.json — registre des scénarios à charger (comme `factionIndexSchema`). */

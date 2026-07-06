@@ -277,6 +277,7 @@ function player(over: Partial<PlayerState> = {}): PlayerState {
     explored: [],
     controller: 'human',
     eliminated: false,
+    townlessDays: 0,
     ...over,
   };
 }

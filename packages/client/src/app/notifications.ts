@@ -45,6 +45,17 @@ export function notify(event: AppEvent, game: GameState): string | null {
         : null;
     case 'WeekStarted':
       return t('toast.weekStarted', { week: event.week });
+    // Trigger de carte (doc 02 §2.1) : message global localisé, ou octroi de
+    // ressource notifié au seul joueur humain (comme un ramassage).
+    case 'TriggerFired':
+      return event.effect.kind === 'message'
+        ? t(event.effect.textKey)
+        : event.playerId === human
+          ? t('toast.triggerResource', {
+              amount: event.effect.amount,
+              resource: t(`resource.${event.effect.resource}`),
+            })
+          : null;
     case 'CombatEnded':
       return event.winner === event.playerSide ? t('toast.combatWon') : t('toast.combatLost');
     // Nécromancie (doc 04 §2) : relève post-victoire (effet de faction).

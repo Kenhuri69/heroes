@@ -663,6 +663,28 @@ export type ResolvedMapObject =
       pos: { x: number; y: number };
       unitId: string;
       count: number;
+      /** Gardien errant (doc 02 §2.2) — absent = statique. */
+      roamRadius?: number;
+    }
+  | {
+      id: string;
+      type: 'visitable';
+      pos: { x: number; y: number };
+      effect:
+        | { kind: 'luck'; amount: number }
+        | { kind: 'movement'; amount: number }
+        | { kind: 'levelXp' }
+        | { kind: 'resource'; resource: string; amount: number };
+      frequency: 'oncePerHero' | 'oncePerHeroPerWeek';
+      /** État initial : personne n'a visité. */
+      visits: Record<string, number>;
+    }
+  | {
+      id: string;
+      type: 'dwelling';
+      pos: { x: number; y: number };
+      unitId: string;
+      stock: number;
     }
   | {
       id: string;
@@ -774,6 +796,8 @@ export async function loadMap(
       errors.push(`${path}: objet '${obj.id}' sur tuile infranchissable (${obj.x},${obj.y})`);
     if (obj.type === 'guardian' && knownUnitIds && !knownUnitIds.has(obj.unitId))
       errors.push(`${path}: gardien '${obj.id}' — unité inconnue des paquets '${obj.unitId}'`);
+    if (obj.type === 'dwelling' && knownUnitIds && !knownUnitIds.has(obj.unitId))
+      errors.push(`${path}: habitation '${obj.id}' — unité inconnue des paquets '${obj.unitId}'`);
     if (obj.type === 'treasure' && obj.gold + obj.xp <= 0)
       errors.push(`${path}: trésor '${obj.id}' — aucun gain (or et XP à zéro)`);
     if (obj.type === 'artifact' && knownArtifactIds && !knownArtifactIds.has(obj.artifactId))
@@ -954,7 +978,18 @@ function resolveMap(file: MapFile): ResolvedMap {
       if (obj.type === 'resource')
         return { id: obj.id, type: obj.type, pos, resource: obj.resource, amount: obj.amount };
       if (obj.type === 'guardian')
-        return { id: obj.id, type: obj.type, pos, unitId: obj.unitId, count: obj.count };
+        return {
+          id: obj.id,
+          type: obj.type,
+          pos,
+          unitId: obj.unitId,
+          count: obj.count,
+          ...(obj.roamRadius !== undefined ? { roamRadius: obj.roamRadius } : {}),
+        };
+      if (obj.type === 'visitable')
+        return { id: obj.id, type: obj.type, pos, effect: obj.effect, frequency: obj.frequency, visits: {} };
+      if (obj.type === 'dwelling')
+        return { id: obj.id, type: obj.type, pos, unitId: obj.unitId, stock: obj.stock ?? 0 };
       if (obj.type === 'mine')
         return {
           id: obj.id,

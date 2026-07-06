@@ -7,6 +7,8 @@ import { resolveTreasure } from '../adventure/treasure';
 import { DIRECTIONS, isAdjacent, tileIndex, type GridPos } from '../adventure/map';
 import { findPath, isPassable, stepCost } from '../adventure/path';
 import { validateCaptureTown, handleCaptureTown } from '../town';
+import { maxAffordableCount } from '../town/resources';
+import { unitWithEconomy } from '../town/unit-economy';
 import type { TownState } from '../town/types';
 import { playTownTurn } from './town-ai';
 
@@ -79,9 +81,12 @@ function totalPathCost(config: GameState['config'], map: GameState['map'], from:
 /**
  * Objet « collectable » par un simple déplacement (doc 02 §2.2) : tas de
  * ressource, trésor (résolu en or, cf. `advanceAi`), artefact au sol (si un
- * slot est libre) ou mine pas encore possédée par ce joueur.
+ * slot est libre), mine pas encore possédée par ce joueur, ou habitation dont
+ * au moins 1 créature est abordable (renforce l'armée). Les lieux de bonus
+ * sont ignorés par l'IA (heuristique MVP — écart documenté au plan).
  */
 function isCollectible(
+  draft: GameState,
   obj: NonNullable<GameState['map']>['objects'][number],
   hero: HeroState,
   player: PlayerState,
@@ -89,6 +94,12 @@ function isCollectible(
   if (obj.type === 'resource' || obj.type === 'treasure') return true;
   if (obj.type === 'artifact') return hero.artifacts.includes(null);
   if (obj.type === 'mine') return obj.ownerId !== player.id;
+  if (obj.type === 'dwelling') {
+    if (obj.stock <= 0) return false;
+    if (!hero.army.some((s) => s.unitId === obj.unitId) && hero.army.length >= 7) return false;
+    const cost = unitWithEconomy(draft.unitCatalog, obj.unitId)?.recruitCost ?? {};
+    return maxAffordableCount(player, cost, obj.stock) > 0;
+  }
   return false;
 }
 
@@ -103,7 +114,7 @@ function pickResourceTarget(
   if (!map || !config) return null;
   let best: (PathTarget & { id: string }) | null = null;
   for (const obj of map.objects) {
-    if (!isCollectible(obj, hero, player)) continue;
+    if (!isCollectible(draft, obj, hero, player)) continue;
     const path = findPath(config, map, hero.pos, obj.pos, blocked);
     if (!path) continue;
     const cost = totalPathCost(config, map, hero.pos, path);

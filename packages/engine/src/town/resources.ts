@@ -40,6 +40,27 @@ export function spendCost(player: PlayerState, cost: Record<string, number>): vo
   }
 }
 
+/**
+ * Effectif maximal payable d'un coût unitaire (ressources communes ET de
+ * faction, même routage que `canAffordCost`) — borne haute `cap`. Coût vide ⇒
+ * `cap` (gratuit).
+ */
+export function maxAffordableCount(
+  player: PlayerState,
+  cost: Record<string, number>,
+  cap: number,
+): number {
+  let max = cap;
+  for (const [id, amount] of Object.entries(cost)) {
+    if (!amount) continue;
+    const have = CORE_IDS.has(id)
+      ? player.resources[id as keyof Resources]
+      : (player.factionResources[id] ?? 0);
+    max = Math.min(max, Math.floor(have / amount));
+  }
+  return Math.max(0, max);
+}
+
 /** Multiplie un coût unitaire par un effectif (recrutement de `count` créatures). */
 export function scaleCost(cost: Record<string, number>, factor: number): Record<string, number> {
   const scaled: Record<string, number> = {};

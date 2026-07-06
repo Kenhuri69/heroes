@@ -106,10 +106,16 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 > aux montants du §3, recapturables — les gardes se posent en plaçant un
 > gardien devant), **coffres** (choix or **ou** XP via une modale forcée ;
 > l'IA prend l'or), **artefacts au sol** (ramassés vers le 1er slot libre,
-> laissés au sol si l'inventaire est plein) et gardiens neutres sont livrés
-> (`data/maps/*.map.json` : `resource`/`mine`/`treasure`/`artifact`/
-> `guardian`/`town`). Habitations hors ville, lieux de bonus et
-> obélisques/Graal restent à venir.
+> laissés au sol si l'inventaire est plein), **lieux de bonus** (effet
+> déclaratif : fontaine `luck` — consommée à la fin du prochain combat,
+> écurie `movement`, arbre du savoir `levelXp` — l'XP du niveau suivant,
+> moulin `resource` fixe ; re-visite `oncePerHero` ou `oncePerHeroPerWeek`),
+> **habitations hors ville** (stock hebdomadaire aux données d'unité, la
+> visite recrute le maximum abordable) et gardiens neutres — y compris
+> **errants** (`roamRadius` : 1 pas/jour vers le héros le plus proche à
+> portée, arrêt au contact) — sont livrés (`data/maps/*.map.json` :
+> `resource`/`mine`/`treasure`/`artifact`/`visitable`/`dwelling`/`guardian`/
+> `town`). Obélisques/Graal restent post-MVP.
 
 ### 2.3 Temps
 

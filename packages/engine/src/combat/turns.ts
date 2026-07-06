@@ -120,6 +120,12 @@ export function checkCombatEnd(draft: Draft, events: GameEvent[]): boolean {
   evaluateOutcome(draft, events);
   events.push({ type: 'CombatEnded', winner, playerSide: combat.playerSide, casualties });
   grantHeroCombatXp(draft, combat, winner, casualties, events);
+  // Chance de fontaine (doc 02 §2.2, effet `luck`) : consommée à la FIN du
+  // combat, pour chaque héros engagé encore vivant (le vaincu a disparu).
+  for (const heroId of [combat.attackerHeroId, combat.defenderHeroId]) {
+    const hero = heroId ? draft.heroes.find((h) => h.id === heroId) : undefined;
+    if (hero) hero.visitLuck = 0;
+  }
   draft.combat = null;
   return true;
 }

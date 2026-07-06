@@ -70,4 +70,50 @@ de chaque type, trésors donnant or **ou** XP, monstres bloquant le passage.
 - L'IA choisit toujours l'or au trésor (déterminisme, simplicité MVP).
 - Écarts constatés en cours de route : la courbe d'XP (base×niveau^1,9) demande 3732 XP pour le niveau 2 — coffre de test à 4000 XP ; les 2 nouveaux tests smoke utilisent le déplacement scripté (`__HEROES_TEST__.dispatch`), pas le tap-tap (pratique du repo : tap-tap réservé à son test dédié — le tap réel était flaky sous charge et masqué par un overlay DOM sur desktop pour (3,6)).
 - `MineCaptured` porte `amount` (revenu/jour) pour que le toast affiche le gain sans relire l'état.
-- L'éditeur de carte (Alpha 4.18) ignore proprement les nouveaux types à l'import (comme il ignorait déjà les gardiens) — extension différée.
+- L'éditeur de carte (Alpha 4.18) ignore proprement les nouveaux types à l'import (comme il ignorait déjà les gardiens) — ~~extension différée~~ **repris au lot 2 (§5)**.
+
+## 5. Lot 2 — comblement des éléments différés (demande utilisateur)
+
+Reprendre TOUT ce qui restait différé au §1 (hors obélisques/Graal, post-MVP au doc 02) :
+
+### Conception (mêmes invariants : générique, déterministe, data-driven)
+
+- **Lieux de bonus** (`type:'visitable'`, doc 02 §2.2) — effet déclaratif générique :
+  `luck` (fontaine : +chance jusqu'à la fin du prochain combat, via `HeroState.visitLuck`
+  consommé au `CombatEnded`), `movement` (écurie : +PM immédiats), `levelXp`
+  (arbre du savoir : l'XP manquante pour le niveau suivant), `resource` (moulin :
+  ressource fixe). Politique de re-visite : `oncePerHero` (à vie) ou
+  `oncePerHeroPerWeek` — état `visits: Record<heroId, semaine | -1>` sur l'objet.
+  Visite **en passant** (le héros ne s'arrête pas), event `BonusVisited` + toast.
+- **Habitations hors ville** (`type:'dwelling'`) : `unitId` + `stock` ; croissance
+  hebdo depuis `growthPerWeek` des données d'unité (plafond 2× comme les villes,
+  dans `applyWeeklyGrowth`) ; la visite recrute **le maximum abordable** (coût
+  `recruitCost`, helpers `canAffordCost`/`spendCost` — ressources de faction
+  comprises), fusion de pile / cap 7. Event `DwellingRecruited` + toast.
+- **Gardiens errants** : champ optionnel `roamRadius` sur `guardian` — au
+  changement de jour, chaque gardien errant fait 1 pas (8 dir) vers le héros le
+  plus proche dans le rayon (Chebyshev), tuile franchissable et libre (ni héros,
+  ni objet, ni ville), ordre du tableau = déterminisme, jamais de combat initié
+  par le gardien (l'interception reste au mouvement du héros). Event `GuardianMoved`.
+- **Éditeur de carte** : outils gardien / mine / trésor / artefact / habitation /
+  lieu de bonus avec défauts (même approche que l'outil « ressource » qui pose
+  or/500), glyphes distincts, import complet.
+- La version de sauvegarde **reste 8** (jamais publiée — le même lot l'a créée) ;
+  golden re-fixé si la forme bouge (`HeroState.visitLuck`).
+
+### Étapes
+
+1. [x] Moteur : types + visite/recrutement + errance + `visitLuck` (branché `heroLuckOf`, purgé fin de combat) + validateMap + IA (habitation abordable) → tests unitaires nouveaux verts, suite engine verte.
+2. [x] Contenu : schémas (`visitable`/`dwelling`/`roamRadius`) + loader + règles croisées (unité d'habitation connue) → tests contenu verts.
+3. [x] Données : proto-01 (fontaine, écurie, arbre du savoir, moulin, habitation, gardien errant) + locales FR/EN → `content:check` vert.
+4. [x] Client : rendu visitable/habitation, repositionnement des gardiens mobiles, toasts ; éditeur étendu → typecheck/lint/build OK.
+5. [x] Smoke : « écurie ⇒ +PM » + « habitation ⇒ recrutement » (déplacement scripté) ; suite complète verte.
+6. [x] Docs 02 (note État §2.2 mise à jour) + plan + push sur la même PR #83.
+
+### Décisions & écarts (lot 2)
+
+- L'IA visite les habitations (renforce son armée) mais ignore les lieux de bonus (heuristique MVP — noté ici).
+- Le moulin donne une ressource **fixe** (data), pas un tirage aléatoire — déterminisme sans toucher au RNG d'état pour un gain cosmétique.
+- L'arbre du savoir donne l'XP manquante pour le niveau suivant (fidèle « +1 niveau »), no-op au niveau max, marqué visité dans tous les cas.
+- Le gardien errant s'arrête au contact (distance 1) : c'est le joueur qui déclenche le combat en l'attaquant — pas de combat sur tour adverse (hors périmètre moteur actuel).
+- La croissance hebdo des habitations n'émet pas d'événement (objet neutre, pas de toast ; le rendu suit l'état).

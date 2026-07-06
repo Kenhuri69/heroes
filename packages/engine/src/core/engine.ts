@@ -43,6 +43,7 @@ import {
 import { heroManaMax } from '../hero/artifacts';
 import { heroGoldPerDay, heroMovementBonus, heroVisionBonus } from '../hero/skills';
 import { resolveTreasure } from '../adventure/treasure';
+import { roamGuardians } from '../adventure/roam';
 import { evaluateOutcome, tickTownGrace } from '../scenario/outcome';
 import { evaluateQuests } from '../quest/evaluate';
 import { fireDayTriggers } from '../adventure/triggers';
@@ -287,10 +288,25 @@ function validateMap(cmd: Extract<Command, { type: 'StartGame' }>): CommandError
     } else if (obj.type === 'artifact') {
       if (!(obj.artifactId in (cmd.artifactCatalog ?? {})))
         return bad(`objet '${obj.id}' : artefact inconnu du catalogue '${obj.artifactId}'`);
+    } else if (obj.type === 'visitable') {
+      const e = obj.effect;
+      if ((e.kind === 'luck' || e.kind === 'movement') && e.amount <= 0)
+        return bad(`lieu '${obj.id}' : montant non positif`);
+      if (e.kind === 'resource') {
+        if (!(RESOURCE_IDS as readonly string[]).includes(e.resource))
+          return bad(`lieu '${obj.id}' : ressource inconnue '${e.resource}'`);
+        if (e.amount <= 0) return bad(`lieu '${obj.id}' : montant non positif`);
+      }
+    } else if (obj.type === 'dwelling') {
+      if (!(obj.unitId in cmd.unitCatalog))
+        return bad(`habitation '${obj.id}' : unité inconnue du catalogue '${obj.unitId}'`);
+      if (obj.stock < 0) return bad(`habitation '${obj.id}' : stock négatif`);
     } else {
       if (!(obj.unitId in cmd.unitCatalog))
         return bad(`gardien '${obj.id}' : unité inconnue du catalogue '${obj.unitId}'`);
       if (obj.count <= 0) return bad(`gardien '${obj.id}' : effectif non positif`);
+      if (obj.roamRadius !== undefined && obj.roamRadius <= 0)
+        return bad(`gardien '${obj.id}' : roamRadius non positif`);
     }
   }
   return null;
@@ -388,6 +404,7 @@ const handlers: Handlers = {
       mana: 0,
       manaMax: 0,
       skills: {},
+      visitLuck: 0,
       // Sorts connus d'emblée (cercle ≤ Guilde MVP), résolus par le contenu (décision 3.2 #7).
       spells: p.startingSpells ? [...p.startingSpells] : [],
       artifacts: Array.from({ length: 10 }, (_, i) => (cmd.startingArtifacts ?? [])[i] ?? null),
@@ -522,6 +539,9 @@ const handlers: Handlers = {
       // Triggers de carte « onDay » (doc 02 §2.1) puis avancée de la grâce de
       // reprise de ville (doc 02 §4.1) — une fois par jour, avant l'évaluation.
       fireDayTriggers(draft, events);
+      // Gardiens errants (doc 02 §2.2) : un pas quotidien vers le héros le plus
+      // proche à portée — après les triggers, avant l'évaluation de fin.
+      roamGuardians(draft, events);
       tickTownGrace(draft);
     }
     // Conditions de victoire/défaite (doc 02 §6, plan phase-3.5) — no-op hors scénario.

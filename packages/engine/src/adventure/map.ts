@@ -27,6 +27,53 @@ export interface GuardianObjectDef {
   pos: GridPos;
   unitId: string;
   count: number;
+  /**
+   * Gardien **errant** (doc 02 §2.2) : au changement de jour, il fait 1 pas
+   * vers le héros le plus proche à ≤ `roamRadius` tuiles (Chebyshev) et
+   * s'arrête au contact — l'interception reste déclenchée par le héros.
+   * Absent = gardien statique (comportement historique).
+   */
+  roamRadius?: number;
+}
+
+/**
+ * Effet déclaratif d'un lieu de bonus (doc 02 §2.2) — union **générique**,
+ * même idiome que `TriggerEffect` : le moteur applique le `kind`, les données
+ * décident du reste (fontaine, écurie, arbre du savoir, moulin…).
+ */
+export type VisitableEffect =
+  /** +chance jusqu'à la fin du prochain combat (`HeroState.visitLuck`). */
+  | { kind: 'luck'; amount: number }
+  /** +points de mouvement immédiats pour le héros visiteur. */
+  | { kind: 'movement'; amount: number }
+  /** L'XP manquante pour atteindre le niveau suivant (« +1 niveau »). */
+  | { kind: 'levelXp' }
+  /** Ressource créditée au joueur visiteur. */
+  | { kind: 'resource'; resource: string; amount: number };
+
+/** Lieu de bonus visitable (doc 02 §2.2) : visite en passant, re-visite bornée. */
+export interface VisitableObjectDef {
+  id: string;
+  type: 'visitable';
+  pos: GridPos;
+  effect: VisitableEffect;
+  /** Une seule visite par héros à vie, ou une par héros et par semaine. */
+  frequency: 'oncePerHero' | 'oncePerHeroPerWeek';
+  /** État : semaine de dernière visite par héros (`-1` = consommé à vie). */
+  visits: Record<string, number>;
+}
+
+/**
+ * Habitation hors ville (doc 02 §2.2) : stock recrutable, croissance hebdo
+ * depuis les données d'unité (`applyWeeklyGrowth`). La visite recrute le
+ * maximum abordable dans l'armée du héros.
+ */
+export interface DwellingObjectDef {
+  id: string;
+  type: 'dwelling';
+  pos: GridPos;
+  unitId: string;
+  stock: number;
 }
 
 /**
@@ -72,7 +119,9 @@ export type MapObjectDef =
   | GuardianObjectDef
   | MineObjectDef
   | TreasureObjectDef
-  | ArtifactObjectDef;
+  | ArtifactObjectDef
+  | VisitableObjectDef
+  | DwellingObjectDef;
 
 /**
  * Effet déclaratif d'un trigger de carte (doc 02 §2.1 « scripts d'événements

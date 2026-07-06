@@ -68,4 +68,13 @@ export function applyWeeklyGrowth(draft: GameState, events: GameEvent[]): void {
       events.push({ type: 'TownGrowth', townId: town.id, unitId, added });
     }
   }
+  // Habitations hors ville (doc 02 §2.2) : même règle d'accumulation que les
+  // villes (plafond 2× la croissance, jamais de réduction). Objet neutre —
+  // aucun événement (pas de toast ; le rendu suit l'état).
+  for (const obj of draft.map?.objects ?? []) {
+    if (obj.type !== 'dwelling') continue;
+    const growth = unitWithEconomy(draft.unitCatalog, obj.unitId)?.growthPerWeek;
+    if (!growth) continue;
+    obj.stock = Math.max(obj.stock, Math.min(obj.stock + growth, 2 * growth));
+  }
 }

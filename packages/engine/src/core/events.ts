@@ -1,4 +1,4 @@
-import type { GridPos, TriggerEffect } from '../adventure/map';
+import type { GridPos, TriggerEffect, VisitableEffect } from '../adventure/map';
 import type { CombatSideId } from '../combat/types';
 import type { OffsetPos } from '../combat/hex';
 
@@ -63,6 +63,26 @@ export type GameEvent =
       artifactId: string;
       pos: GridPos;
     }
+  /** Lieu de bonus visité (doc 02 §2.2) — `amount` = gain effectif appliqué. */
+  | {
+      type: 'BonusVisited';
+      heroId: string;
+      playerId: string;
+      objectId: string;
+      effect: VisitableEffect;
+      amount: number;
+    }
+  /** Recrutement à une habitation hors ville (doc 02 §2.2). */
+  | {
+      type: 'DwellingRecruited';
+      heroId: string;
+      playerId: string;
+      objectId: string;
+      unitId: string;
+      count: number;
+    }
+  /** Gardien errant : un pas quotidien vers le héros le plus proche (doc 02 §2.2). */
+  | { type: 'GuardianMoved'; objectId: string; from: GridPos; to: GridPos }
   /**
    * Trigger de carte déclenché (doc 02 §2.1) — l'UI notifie/journalise selon
    * `effect`. `playerId` = joueur affecté (visite / octroi), `null` pour un

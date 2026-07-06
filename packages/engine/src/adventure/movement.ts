@@ -6,6 +6,7 @@ import { revealAround } from './fog';
 import { samePos, type GridPos } from './map';
 import { stepCost } from './path';
 import { fireVisitTrigger } from './triggers';
+import { recruitDwelling, visitBonus } from './visitable';
 
 export interface AdvanceOptions {
   /**
@@ -73,6 +74,12 @@ export function advanceHeroAlongPath(
     });
     // Trigger de visite (doc 02 §2.1) — la tuile foulée peut porter un effet.
     fireVisitTrigger(draft, player, hero.pos, events);
+    // Lieu de bonus / habitation (doc 02 §2.2) : visite en passant, comme la mine.
+    for (const obj of map.objects) {
+      if (!samePos(obj.pos, hero.pos)) continue;
+      if (obj.type === 'visitable') visitBonus(draft, hero, player, obj, events);
+      else if (obj.type === 'dwelling') recruitDwelling(draft, hero, player, obj, events);
+    }
     // Mine (doc 02 §2.2) : capture en passant — le héros ne s'arrête pas, et
     // une mine adverse est recapturée par le même geste.
     const mine = map.objects.find((o) => o.type === 'mine' && samePos(o.pos, hero.pos));

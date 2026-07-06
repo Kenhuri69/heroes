@@ -43,8 +43,14 @@ export class MapObjectsLayer {
     }
     for (const obj of objects) {
       const signature = obj.type === 'mine' ? `mine:${obj.ownerId ?? ''}` : obj.type;
-      if (this.byId.has(obj.id) && this.signatures.get(obj.id) === signature) continue;
-      this.byId.get(obj.id)?.destroy({ children: true });
+      const existing = this.byId.get(obj.id);
+      if (existing && this.signatures.get(obj.id) === signature) {
+        // Position resynchronisée à chaque passage : les gardiens ERRANTS
+        // bougent au changement de jour (doc 02 §2.2) sans changer d'identité.
+        existing.position.set(obj.pos.x * TILE_SIZE, obj.pos.y * TILE_SIZE);
+        continue;
+      }
+      existing?.destroy({ children: true });
       const node = buildObject(obj, catalog, ownerColor);
       node.position.set(obj.pos.x * TILE_SIZE, obj.pos.y * TILE_SIZE);
       this.byId.set(obj.id, node);
@@ -60,7 +66,59 @@ function buildObject(obj: MapObjectDef, catalog: UnitCatalog, ownerColor: OwnerC
   if (obj.type === 'mine') return buildMine(obj, ownerColor(obj.ownerId));
   if (obj.type === 'treasure') return buildTreasure();
   if (obj.type === 'artifact') return buildGroundArtifact(obj.artifactId);
+  if (obj.type === 'visitable') return buildVisitable(obj.effect.kind);
+  if (obj.type === 'dwelling') return buildDwelling(obj.unitId, catalog);
   return buildGuardian(obj.unitId, catalog);
+}
+
+/** Teinte du lieu de bonus par nature d'effet (doc 08 §5 — le glyphe prime, la teinte aide). */
+const VISITABLE_COLORS: Record<string, number> = {
+  luck: 0x5dade2, // fontaine
+  movement: 0xd68910, // écurie
+  levelXp: 0x27ae60, // arbre du savoir
+  resource: 0xb9770e, // moulin
+};
+
+/** Lieu de bonus : kiosque procédural (toit + socle) teinté par effet, lisible à 64 px. */
+function buildVisitable(kind: string): Container {
+  const c = TILE_SIZE / 2;
+  const color = VISITABLE_COLORS[kind] ?? 0x8a8f98;
+  return new Graphics()
+    .poly([c, c - 18, c + 18, c - 2, c - 18, c - 2])
+    .fill(color)
+    .stroke({ width: 2, color: 0x1a1c22 })
+    .rect(c - 12, c - 2, 24, 16)
+    .fill(0xe8e2d0)
+    .stroke({ width: 2, color: 0x1a1c22 })
+    .circle(c, c + 6, 3)
+    .fill(color);
+}
+
+/**
+ * Habitation hors ville : tente procédurale + sprite de l'unité recrutable en
+ * médaillon (même chargement async gardé que le gardien).
+ */
+function buildDwelling(unitId: string, catalog: UnitCatalog): Container {
+  const node = new Container();
+  const c = TILE_SIZE / 2;
+  const tent = new Graphics()
+    .poly([c - 20, c + 16, c, c - 14, c + 20, c + 16])
+    .fill(0x9a6b3f)
+    .stroke({ width: 2, color: 0x1a1c22 });
+  tent.poly([c - 5, c + 16, c, c + 6, c + 5, c + 16]).fill(0x1a1c22);
+  node.addChild(tent);
+
+  const url = unitSpriteUrl(unitId, catalog[unitId]?.groupId);
+  if (url) {
+    void Assets.load(url).then((texture) => {
+      if (node.destroyed) return;
+      const sprite = new Sprite(texture);
+      sprite.setSize(TILE_SIZE * 0.45, TILE_SIZE * 0.45);
+      sprite.position.set(TILE_SIZE * 0.5, TILE_SIZE * 0.05);
+      node.addChild(sprite);
+    });
+  }
+  return node;
 }
 
 /** Tas de ressource ramassable : sprite `mines/mine-<res>` ou losange teinté (doc 08 §5). */

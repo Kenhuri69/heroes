@@ -79,6 +79,11 @@ export interface HeroState {
   manaMax: number;
   /** Compétences secondaires (doc 02 §1.3) : id → rang 1..3, ≤ 6. */
   skills: Record<string, number>;
+  /**
+   * Chance de fontaine (doc 02 §2.2, lieu de bonus `luck`) — s'ajoute à la
+   * chance du héros en combat puis est consommée à la fin du prochain combat.
+   */
+  visitLuck: number;
   /** Sorts connus (ids du catalogue) — lançables selon cercle/mana. */
   spells: string[];
   /** Équipement d'artefacts, 10 slots (doc 08 §2.3) — null = vide. */
@@ -118,8 +123,9 @@ export interface Calendar {
  * v5 : `PlayerState.huntContract` — contrats de chasse, doc 05 §3.3.
  * v6 : `HeroState.warMachines` — machines de guerre, doc 02 §5.
  * v7 : `GameState.quests` — système de quêtes générique, doc 13 §6.2 (N2a).
- * v8 : objets de carte `mine`/`treasure`/`artifact` + `GameState.pendingTreasure`
- * — éléments de carte manquants, doc 02 §2.2.)
+ * v8 : objets de carte `mine`/`treasure`/`artifact`/`visitable`/`dwelling`,
+ * `GameState.pendingTreasure` et `HeroState.visitLuck` — éléments de carte
+ * manquants, doc 02 §2.2.)
  */
 export const CURRENT_SAVE_VERSION = 8;
 

@@ -450,7 +450,11 @@ export const mapFileSchema = z.object({
         resource: z.enum(COMMON_RESOURCE_IDS),
         amount: z.number().int().positive(),
       }),
-      /** Gardien neutre : pile unique, combat à l'interception (doc 02 §2.2). */
+      /**
+       * Gardien neutre : pile unique, combat à l'interception (doc 02 §2.2).
+       * `roamRadius` (optionnel) = gardien **errant** : 1 pas/jour vers le héros
+       * le plus proche dans ce rayon.
+       */
       z.object({
         id: idSchema,
         type: z.literal('guardian'),
@@ -458,6 +462,37 @@ export const mapFileSchema = z.object({
         y: z.number().int().nonnegative(),
         unitId: idSchema,
         count: z.number().int().positive(),
+        roamRadius: z.number().int().positive().optional(),
+      }),
+      /**
+       * Lieu de bonus visitable (doc 02 §2.2) — effet déclaratif générique
+       * (fontaine/écurie/arbre du savoir/moulin) + politique de re-visite.
+       */
+      z.object({
+        id: idSchema,
+        type: z.literal('visitable'),
+        x: z.number().int().nonnegative(),
+        y: z.number().int().nonnegative(),
+        effect: z.discriminatedUnion('kind', [
+          z.object({ kind: z.literal('luck'), amount: z.number().int().positive() }),
+          z.object({ kind: z.literal('movement'), amount: z.number().int().positive() }),
+          z.object({ kind: z.literal('levelXp') }),
+          z.object({
+            kind: z.literal('resource'),
+            resource: z.enum(COMMON_RESOURCE_IDS),
+            amount: z.number().int().positive(),
+          }),
+        ]),
+        frequency: z.enum(['oncePerHero', 'oncePerHeroPerWeek']),
+      }),
+      /** Habitation hors ville (doc 02 §2.2) : stock initial optionnel (défaut 0). */
+      z.object({
+        id: idSchema,
+        type: z.literal('dwelling'),
+        x: z.number().int().nonnegative(),
+        y: z.number().int().nonnegative(),
+        unitId: idSchema,
+        stock: z.number().int().nonnegative().optional(),
       }),
       /** Mine capturable (doc 02 §2.2) : `amount` de `resource` par jour à son propriétaire. */
       z.object({

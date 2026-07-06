@@ -247,6 +247,48 @@ test('trésor : fouler le coffre ⇒ modale or/XP ⇒ or crédité (doc 02 §2.2
   expect(errors).toEqual([]);
 });
 
+test('lieu de bonus & habitation : écurie ⇒ +PM, camp ⇒ recrutement (doc 02 §2.2)', async ({
+  page,
+}) => {
+  const errors = await openGame(page);
+
+  // Écurie en (4,4) : 1 pas diagonal (141 PM) puis +400 PM — visite en passant.
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({
+      type: 'MoveHero',
+      heroId: 'hero-player-1',
+      path: [{ x: 4, y: 4 }],
+    }),
+  );
+  await expect.poll(() => heroPos(page)).toEqual({ x: 4, y: 4 });
+  let state = await page.evaluate(() => window.__HEROES_TEST__!.getState());
+  expect(state.heroes[0]?.movementPoints).toBe(1700 - 141 + 400);
+
+  // Habitation en (2,2) : recrute tout le stock abordable (8 × 30 or), fusion
+  // avec la pile t1-recruit de départ.
+  const before = state.heroes[0]?.army.find((s) => s.unitId === 't1-recruit')?.count ?? 0;
+  const goldBefore = state.players[0]?.resources.gold ?? 0;
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({
+      type: 'MoveHero',
+      heroId: 'hero-player-1',
+      path: [
+        { x: 3, y: 3 },
+        { x: 2, y: 2 },
+      ],
+    }),
+  );
+  await expect.poll(() => heroPos(page)).toEqual({ x: 2, y: 2 });
+  state = await page.evaluate(() => window.__HEROES_TEST__!.getState());
+  const stack = state.heroes[0]?.army.find((s) => s.unitId === 't1-recruit');
+  expect((stack?.count ?? 0) - before).toBe(8);
+  const camp = state.map?.objects.find((o) => o.id === 'camp-recrues');
+  expect(camp?.type === 'dwelling' && camp.stock).toBe(0);
+  expect(state.players[0]?.resources.gold).toBe(goldBefore - 8 * 30);
+
+  expect(errors).toEqual([]);
+});
+
 test('combat : victoire contre le gardien, retour carte avec pertes appliquées', async ({ page }) => {
   const errors = await openGame(page);
 

@@ -198,6 +198,55 @@
       "artifactId": "trefle-chance"
     },
     {
+      "id": "ecurie-1",
+      "type": "visitable",
+      "x": 4,
+      "y": 4,
+      "effect": { "kind": "movement", "amount": 400 },
+      "frequency": "oncePerHeroPerWeek"
+    },
+    {
+      "id": "fontaine-1",
+      "type": "visitable",
+      "x": 8,
+      "y": 8,
+      "effect": { "kind": "luck", "amount": 1 },
+      "frequency": "oncePerHeroPerWeek"
+    },
+    {
+      "id": "arbre-savoir-1",
+      "type": "visitable",
+      "x": 10,
+      "y": 18,
+      "effect": { "kind": "levelXp" },
+      "frequency": "oncePerHero"
+    },
+    {
+      "id": "moulin-1",
+      "type": "visitable",
+      "x": 20,
+      "y": 12,
+      "effect": { "kind": "resource", "resource": "gems", "amount": 1 },
+      "frequency": "oncePerHeroPerWeek"
+    },
+    {
+      "id": "camp-recrues",
+      "type": "dwelling",
+      "x": 2,
+      "y": 2,
+      "unitId": "t1-recruit",
+      "stock": 8
+    },
+    {
+      "id": "guard-roamer",
+      "type": "guardian",
+      "x": 8,
+      "y": 12,
+      "unitId": "t1-recruit",
+      "count": 6,
+      "roamRadius": 3
+    },
+    {
       "id": "guard-camp",
       "type": "guardian",
       "x": 9,

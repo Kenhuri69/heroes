@@ -23,6 +23,7 @@ import { HeroSkills } from './HeroSkills';
 import { HeroInventory } from './HeroInventory';
 import { AdventureSpellbook } from './AdventureSpellbook';
 import { SkillChoice } from './SkillChoice';
+import { TreasureChoice } from './TreasureChoice';
 import { HandoffOverlay } from './HandoffOverlay';
 import { OutcomeOverlay } from './OutcomeOverlay';
 import { FactionBadge } from './FactionBadge';
@@ -43,6 +44,12 @@ function Shell() {
   const pendingSkillHero = useApp((s) => {
     const id = humanId(s.game);
     return s.game.heroes.find((h) => h.playerId === id && h.pendingSkillChoices.length > 0) ?? null;
+  });
+  // Trésor foulé (doc 02 §2.2) : modale forcée or/XP pour le joueur humain
+  // uniquement — l'IA résout son choix dans son propre tour.
+  const pendingTreasure = useApp((s) => {
+    const pending = s.game.pendingTreasure;
+    return pending && pending.playerId === humanId(s.game) ? pending : null;
   });
 
   // Bouton retour Android / geste / Échap (doc 08 §3) : ferme la modale du
@@ -96,6 +103,7 @@ function Shell() {
       {townModal && <TownScreen townId={townModal.townId} onClose={() => closeModalKind('town')} />}
       {journalModal && <Journal onClose={() => closeModalKind('journal')} />}
       {pendingSkillHero && <SkillChoice hero={pendingSkillHero} />}
+      {pendingTreasure && <TreasureChoice pending={pendingTreasure} />}
       {screen === 'adventure' && <HandoffOverlay />}
       <OutcomeOverlay />
       <ToastHost />

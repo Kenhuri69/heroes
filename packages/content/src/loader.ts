@@ -313,6 +313,11 @@ export function knownUnitIds(report: LoadReport): Set<string> {
   return new Set(report.content.packs.flatMap((p) => p.units.map((u) => u.id)));
 }
 
+/** IDs d'artefacts communs — pour la règle croisée des artefacts posés sur une carte. */
+export function knownArtifactIds(report: LoadReport): Set<string> {
+  return new Set(report.content.coreArtifacts.map((a) => a.id));
+}
+
 /** Charge un paquet et applique les règles croisées (doc 06 §5.3). */
 export async function loadFactionPack(
   readJson: ReadJson,
@@ -661,6 +666,29 @@ export type ResolvedMapObject =
     }
   | {
       id: string;
+      type: 'mine';
+      pos: { x: number; y: number };
+      resource: string;
+      /** Revenu par jour (doc 02 §2.2). */
+      amount: number;
+      /** Toujours neutre en sortie de données — capturée en jeu. */
+      ownerId: string | null;
+    }
+  | {
+      id: string;
+      type: 'treasure';
+      pos: { x: number; y: number };
+      gold: number;
+      xp: number;
+    }
+  | {
+      id: string;
+      type: 'artifact';
+      pos: { x: number; y: number };
+      artifactId: string;
+    }
+  | {
+      id: string;
       type: 'town';
       pos: { x: number; y: number };
       /** Ville neutre (Alpha 4.13) : faction + garnison assiégeable. Absents = ville de départ. */
@@ -703,6 +731,8 @@ export async function loadMap(
   config: GameConfig,
   /** Unités connues des paquets chargés — vérifie les gardiens si fourni. */
   knownUnitIds?: ReadonlySet<string>,
+  /** Artefacts connus (data/core/artifacts.json) — vérifie les artefacts au sol si fourni. */
+  knownArtifactIds?: ReadonlySet<string>,
 ): Promise<ResolvedMap> {
   const path = `maps/${id}.map.json`;
   const file = parseFile(mapFileSchema, await readJson(path), path);
@@ -744,6 +774,10 @@ export async function loadMap(
       errors.push(`${path}: objet '${obj.id}' sur tuile infranchissable (${obj.x},${obj.y})`);
     if (obj.type === 'guardian' && knownUnitIds && !knownUnitIds.has(obj.unitId))
       errors.push(`${path}: gardien '${obj.id}' — unité inconnue des paquets '${obj.unitId}'`);
+    if (obj.type === 'treasure' && obj.gold + obj.xp <= 0)
+      errors.push(`${path}: trésor '${obj.id}' — aucun gain (or et XP à zéro)`);
+    if (obj.type === 'artifact' && knownArtifactIds && !knownArtifactIds.has(obj.artifactId))
+      errors.push(`${path}: artefact '${obj.id}' — inconnu de core/artifacts.json '${obj.artifactId}'`);
   }
   for (const [i, pos] of file.startPositions.entries()) {
     if (!inBounds(pos.x, pos.y)) errors.push(`${path}: startPositions[${i}] hors carte`);
@@ -786,6 +820,7 @@ export async function loadScenarios(readJson: ReadJson, report: LoadReport): Pro
   );
   const knownFactionIds = new Set(report.content.packs.map((p) => p.manifest.id));
   const knownUnits = knownUnitIds(report);
+  const knownArtifacts = knownArtifactIds(report);
   const buildingCatalog = buildBuildingCatalog(report);
 
   const scenarios: Scenario[] = [];
@@ -793,7 +828,15 @@ export async function loadScenarios(readJson: ReadJson, report: LoadReport): Pro
   for (const id of index.scenarios) {
     try {
       scenarios.push(
-        await loadScenario(readJson, id, report.content.config, knownFactionIds, knownUnits, buildingCatalog),
+        await loadScenario(
+          readJson,
+          id,
+          report.content.config,
+          knownFactionIds,
+          knownUnits,
+          knownArtifacts,
+          buildingCatalog,
+        ),
       );
     } catch (e) {
       rejectedScenarios.push({ id, errors: describeError(e) });
@@ -813,6 +856,7 @@ async function loadScenario(
   config: GameConfig,
   knownFactionIds: ReadonlySet<string>,
   knownUnits: ReadonlySet<string>,
+  knownArtifacts: ReadonlySet<string>,
   buildingCatalog: Record<string, ResolvedBuilding>,
 ): Promise<Scenario> {
   const path = `scenarios/${id}.scenario.json`;
@@ -822,7 +866,7 @@ async function loadScenario(
 
   let map: ResolvedMap | undefined;
   try {
-    map = await loadMap(readJson, scenario.map, config, knownUnits);
+    map = await loadMap(readJson, scenario.map, config, knownUnits, knownArtifacts);
   } catch (e) {
     errors.push(
       `${path}: carte '${scenario.map}' invalide — ${describeError(e).join('; ')}`,
@@ -911,6 +955,19 @@ function resolveMap(file: MapFile): ResolvedMap {
         return { id: obj.id, type: obj.type, pos, resource: obj.resource, amount: obj.amount };
       if (obj.type === 'guardian')
         return { id: obj.id, type: obj.type, pos, unitId: obj.unitId, count: obj.count };
+      if (obj.type === 'mine')
+        return {
+          id: obj.id,
+          type: obj.type,
+          pos,
+          resource: obj.resource,
+          amount: obj.amount,
+          ownerId: null,
+        };
+      if (obj.type === 'treasure')
+        return { id: obj.id, type: obj.type, pos, gold: obj.gold, xp: obj.xp };
+      if (obj.type === 'artifact')
+        return { id: obj.id, type: obj.type, pos, artifactId: obj.artifactId };
       return {
         id: obj.id,
         type: obj.type,

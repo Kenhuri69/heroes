@@ -15,6 +15,12 @@ export interface AdvanceOptions {
    * combat immédiatement (`runAutoCombat`) — IA vs IA, déterministe.
    */
   onGuardianEngaged?: () => void;
+  /**
+   * Appelé quand un trésor vient d'être foulé (`pendingTreasure` posé). Le
+   * handler humain le laisse indéfini : le choix or/XP reste interactif. L'IA
+   * d'aventure y résout le choix immédiatement (déterministe).
+   */
+  onTreasureFound?: () => void;
 }
 
 /**
@@ -67,8 +73,24 @@ export function advanceHeroAlongPath(
     });
     // Trigger de visite (doc 02 §2.1) — la tuile foulée peut porter un effet.
     fireVisitTrigger(draft, player, hero.pos, events);
+    // Mine (doc 02 §2.2) : capture en passant — le héros ne s'arrête pas, et
+    // une mine adverse est recapturée par le même geste.
+    const mine = map.objects.find((o) => o.type === 'mine' && samePos(o.pos, hero.pos));
+    if (mine && mine.type === 'mine' && mine.ownerId !== player.id) {
+      mine.ownerId = player.id;
+      events.push({
+        type: 'MineCaptured',
+        playerId: player.id,
+        objectId: mine.id,
+        resource: mine.resource,
+        amount: mine.amount,
+        pos: { ...hero.pos },
+      });
+    }
     const objIndex = map.objects.findIndex(
-      (o) => o.type === 'resource' && samePos(o.pos, hero.pos),
+      (o) =>
+        (o.type === 'resource' || o.type === 'treasure' || o.type === 'artifact') &&
+        samePos(o.pos, hero.pos),
     );
     if (objIndex !== -1) {
       const obj = map.objects[objIndex];
@@ -84,8 +106,48 @@ export function advanceHeroAlongPath(
           amount: obj.amount,
           pos: { ...hero.pos },
         });
+        break;
       }
-      break;
+      // Trésor (doc 02 §2.2) : arrêt et choix or/XP en attente — l'objet n'est
+      // retiré qu'à la résolution (`ResolveTreasure`).
+      if (obj && obj.type === 'treasure') {
+        draft.pendingTreasure = {
+          heroId: hero.id,
+          playerId: player.id,
+          objectId: obj.id,
+          gold: obj.gold,
+          xp: obj.xp,
+        };
+        events.push({
+          type: 'TreasureFound',
+          heroId: hero.id,
+          playerId: player.id,
+          objectId: obj.id,
+          gold: obj.gold,
+          xp: obj.xp,
+          pos: { ...hero.pos },
+        });
+        options.onTreasureFound?.();
+        break;
+      }
+      // Artefact au sol (doc 02 §2.2) : ramassé vers le 1er slot libre ; s'il
+      // n'y en a aucun, il reste au sol et le héros poursuit.
+      if (obj && obj.type === 'artifact') {
+        const slot = hero.artifacts.indexOf(null);
+        if (slot !== -1) {
+          hero.artifacts[slot] = obj.artifactId;
+          map.objects.splice(objIndex, 1);
+          events.push({
+            type: 'ArtifactPicked',
+            heroId: hero.id,
+            playerId: player.id,
+            objectId: obj.id,
+            artifactId: obj.artifactId,
+            pos: { ...hero.pos },
+          });
+          break;
+        }
+      }
     }
   }
 }

@@ -3,6 +3,7 @@ import type { GameEvent } from '../core/events';
 import { armyStrength } from '../core/power';
 import type { GameState, HeroState, PlayerState } from '../core/state';
 import { advanceHeroAlongPath } from '../adventure/movement';
+import { resolveTreasure } from '../adventure/treasure';
 import { DIRECTIONS, isAdjacent, tileIndex, type GridPos } from '../adventure/map';
 import { findPath, isPassable, stepCost } from '../adventure/path';
 import { validateCaptureTown, handleCaptureTown } from '../town';
@@ -23,7 +24,8 @@ import { playTownTurn } from './town-ai';
  *
  * Heuristique gloutonne MVP (un seul objectif par héros par tour, pas de
  * planification multi-tours) : par héros, dans l'ordre de priorité —
- * (1) ressource au sol atteignable la plus proche, (2) gardien atteignable
+ * (1) objet collectable atteignable le plus proche (ressource, trésor résolu
+ * en or, artefact, mine à capturer), (2) gardien atteignable
  * « battable » (marge de force ≥ 1,5×), (3) ville ennemie/neutre capturable
  * (garnison vide) déjà adjacente, (4) sinon un pas vers la tuile inexplorée
  * la plus proche. Par ville : construit le premier bâtiment abordable dont
@@ -74,13 +76,34 @@ function totalPathCost(config: GameState['config'], map: GameState['map'], from:
   return total;
 }
 
-/** Ressource au sol la plus proche atteignable dans les PM du jour (priorité 1). */
-function pickResourceTarget(draft: GameState, hero: HeroState, blocked: GridPos[]): PathTarget | null {
+/**
+ * Objet « collectable » par un simple déplacement (doc 02 §2.2) : tas de
+ * ressource, trésor (résolu en or, cf. `advanceAi`), artefact au sol (si un
+ * slot est libre) ou mine pas encore possédée par ce joueur.
+ */
+function isCollectible(
+  obj: NonNullable<GameState['map']>['objects'][number],
+  hero: HeroState,
+  player: PlayerState,
+): boolean {
+  if (obj.type === 'resource' || obj.type === 'treasure') return true;
+  if (obj.type === 'artifact') return hero.artifacts.includes(null);
+  if (obj.type === 'mine') return obj.ownerId !== player.id;
+  return false;
+}
+
+/** Objet collectable le plus proche atteignable dans les PM du jour (priorité 1). */
+function pickResourceTarget(
+  draft: GameState,
+  hero: HeroState,
+  player: PlayerState,
+  blocked: GridPos[],
+): PathTarget | null {
   const { map, config } = draft;
   if (!map || !config) return null;
   let best: (PathTarget & { id: string }) | null = null;
   for (const obj of map.objects) {
-    if (obj.type !== 'resource') continue;
+    if (!isCollectible(obj, hero, player)) continue;
     const path = findPath(config, map, hero.pos, obj.pos, blocked);
     if (!path) continue;
     const cost = totalPathCost(config, map, hero.pos, path);
@@ -182,6 +205,8 @@ function advanceAi(
 ): void {
   advanceHeroAlongPath(draft, hero, player, path, events, {
     onGuardianEngaged: () => runAutoCombat(draft, events),
+    // L'IA résout le trésor sur-le-champ : toujours l'or (déterministe, MVP).
+    onTreasureFound: () => resolveTreasure(draft, 'gold', events),
   });
 }
 
@@ -195,7 +220,7 @@ function playHeroTurn(draft: GameState, hero: HeroState, player: PlayerState, ev
   if (!draft.map || !draft.config || hero.movementPoints <= 0 || draft.combat) return;
   const blocked = draft.heroes.filter((h) => h.id !== hero.id).map((h) => h.pos);
 
-  const resource = pickResourceTarget(draft, hero, blocked);
+  const resource = pickResourceTarget(draft, hero, player, blocked);
   if (resource) {
     advanceAi(draft, hero, player, resource.path, events);
     return;

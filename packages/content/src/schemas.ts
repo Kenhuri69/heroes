@@ -459,6 +459,36 @@ export const mapFileSchema = z.object({
         unitId: idSchema,
         count: z.number().int().positive(),
       }),
+      /** Mine capturable (doc 02 §2.2) : `amount` de `resource` par jour à son propriétaire. */
+      z.object({
+        id: idSchema,
+        type: z.literal('mine'),
+        x: z.number().int().nonnegative(),
+        y: z.number().int().nonnegative(),
+        resource: z.enum(COMMON_RESOURCE_IDS),
+        amount: z.number().int().positive(),
+      }),
+      /**
+       * Trésor (doc 02 §2.2) : le héros choisit `gold` OU `xp` à la visite.
+       * Au moins un gain > 0 — règle croisée dans `loadMap` (une union
+       * discriminée Zod n'accepte pas de `.refine` par variante).
+       */
+      z.object({
+        id: idSchema,
+        type: z.literal('treasure'),
+        x: z.number().int().nonnegative(),
+        y: z.number().int().nonnegative(),
+        gold: z.number().int().nonnegative(),
+        xp: z.number().int().nonnegative(),
+      }),
+      /** Artefact posé au sol (doc 02 §2.2) — `artifactId` connu, règle croisée dans `loadMap`. */
+      z.object({
+        id: idSchema,
+        type: z.literal('artifact'),
+        x: z.number().int().nonnegative(),
+        y: z.number().int().nonnegative(),
+        artifactId: idSchema,
+      }),
       /**
        * Ville (doc 02 §4, plan phase-3.1) — la ville de départ y référence son id.
        * `factionId`/`garrison` optionnels : une ville **neutre** (Alpha 4.13) posée

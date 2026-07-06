@@ -1,12 +1,13 @@
 import type { GameEvent } from '../core/events';
-import type { GameState } from '../core/state';
+import type { GameState, ResourceId } from '../core/state';
 import { builtLevelOf } from './helpers';
 import { unitWithEconomy } from './unit-economy';
 
 /**
  * Revenu quotidien (doc 02 §4.1, décision plan phase-3.1 point 5) — appelé au
  * `DayStarted` (`core/engine.ts`). Chaque bâtiment construit dont l'effet du
- * NIVEAU CONSTRUIT est `income` crédite son propriétaire.
+ * NIVEAU CONSTRUIT est `income` crédite son propriétaire, puis chaque **mine**
+ * de la carte possédée (doc 02 §2.2) crédite le sien.
  */
 export function applyDailyIncome(draft: GameState, events: GameEvent[]): void {
   for (const town of draft.towns) {
@@ -20,6 +21,19 @@ export function applyDailyIncome(draft: GameState, events: GameEvent[]): void {
       player.resources[resource] += amount;
       events.push({ type: 'TownIncome', playerId: player.id, resource, amount });
     }
+  }
+  for (const obj of draft.map?.objects ?? []) {
+    if (obj.type !== 'mine' || obj.ownerId === null) continue;
+    const player = draft.players.find((p) => p.id === obj.ownerId);
+    if (!player || player.eliminated) continue;
+    player.resources[obj.resource as ResourceId] += obj.amount;
+    events.push({
+      type: 'MineIncome',
+      playerId: player.id,
+      objectId: obj.id,
+      resource: obj.resource,
+      amount: obj.amount,
+    });
   }
 }
 

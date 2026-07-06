@@ -42,6 +42,7 @@ import {
 } from '../hero';
 import { heroManaMax } from '../hero/artifacts';
 import { heroGoldPerDay, heroMovementBonus, heroVisionBonus } from '../hero/skills';
+import { resolveTreasure } from '../adventure/treasure';
 import { evaluateOutcome, tickTownGrace } from '../scenario/outcome';
 import { evaluateQuests } from '../quest/evaluate';
 import { fireDayTriggers } from '../adventure/triggers';
@@ -107,6 +108,7 @@ const GAME_OVER_BLOCKED = new Set<Command['type']>([
   'CastSpell',
   'CastAdventureSpell',
   'ChooseSkill',
+  'ResolveTreasure',
   'AiTurn',
 ]);
 
@@ -137,6 +139,8 @@ export function validate(state: GameState, cmd: Command): CommandError | null {
         return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
       if (state.combat)
         return { code: 'combatActive', message: 'un combat est en cours' };
+      if (state.pendingTreasure)
+        return { code: 'treasurePending', message: 'un trésor attend son choix or/XP' };
       const hero = state.heroes.find((h) => h.id === cmd.heroId);
       if (!hero) return { code: 'unknownHero', message: `héros inconnu '${cmd.heroId}'` };
       const current = state.players[state.currentPlayer];
@@ -160,6 +164,8 @@ export function validate(state: GameState, cmd: Command): CommandError | null {
         return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
       if (state.combat)
         return { code: 'combatActive', message: 'un combat est en cours' };
+      if (state.pendingTreasure)
+        return { code: 'treasurePending', message: 'un trésor attend son choix or/XP' };
       const current = state.players[state.currentPlayer];
       if (!current || current.id !== cmd.playerId)
         return { code: 'notYourTurn', message: `ce n’est pas le tour de ${cmd.playerId}` };
@@ -226,6 +232,17 @@ export function validate(state: GameState, cmd: Command): CommandError | null {
       if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
       return validateChooseSkill(state, cmd);
     }
+    case 'ResolveTreasure': {
+      if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
+      if (!state.pendingTreasure)
+        return { code: 'noPendingChoice', message: 'aucun trésor en attente' };
+      if (state.pendingTreasure.heroId !== cmd.heroId)
+        return {
+          code: 'invalidTarget',
+          message: `le trésor en attente n’appartient pas à '${cmd.heroId}'`,
+        };
+      return null;
+    }
     case 'AiTurn': {
       if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
       if (state.combat) return { code: 'combatActive', message: 'un combat est en cours' };
@@ -260,10 +277,16 @@ function validateMap(cmd: Extract<Command, { type: 'StartGame' }>): CommandError
     if (!inBounds(map, obj.pos)) return bad(`objet '${obj.id}' hors carte`);
     if (objectIds.has(obj.id)) return bad(`ID d'objet en double '${obj.id}'`);
     objectIds.add(obj.id);
-    if (obj.type === 'resource') {
+    if (obj.type === 'resource' || obj.type === 'mine') {
       if (!(RESOURCE_IDS as readonly string[]).includes(obj.resource))
         return bad(`objet '${obj.id}' : ressource inconnue '${obj.resource}'`);
       if (obj.amount <= 0) return bad(`objet '${obj.id}' : montant non positif`);
+    } else if (obj.type === 'treasure') {
+      if (obj.gold < 0 || obj.xp < 0 || obj.gold + obj.xp <= 0)
+        return bad(`trésor '${obj.id}' : montants or/XP invalides`);
+    } else if (obj.type === 'artifact') {
+      if (!(obj.artifactId in (cmd.artifactCatalog ?? {})))
+        return bad(`objet '${obj.id}' : artefact inconnu du catalogue '${obj.artifactId}'`);
     } else {
       if (!(obj.unitId in cmd.unitCatalog))
         return bad(`gardien '${obj.id}' : unité inconnue du catalogue '${obj.unitId}'`);
@@ -322,6 +345,7 @@ const handlers: Handlers = {
     draft.factionCatalog = cmd.factionCatalog ?? {};
     draft.scenario = cmd.scenario ?? null;
     draft.outcome = null;
+    draft.pendingTreasure = null;
     // Quêtes de campagne (doc 13 §6.2, N2a) — embarquées et actives d'emblée ;
     // le chaînage/déclencheurs viennent au lot contenu N2b.
     draft.quests = cmd.quests ?? null;
@@ -451,6 +475,10 @@ const handlers: Handlers = {
 
   ChooseSkill(draft, cmd, events) {
     handleChooseSkill(draft, cmd, events);
+  },
+
+  ResolveTreasure(draft, cmd, events) {
+    resolveTreasure(draft, cmd.choice, events);
   },
 
   EndTurn(draft, cmd, events) {

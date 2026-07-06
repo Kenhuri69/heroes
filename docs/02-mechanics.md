@@ -101,6 +101,16 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 | Villes | capturables | cf. §4 |
 | Obélisques/Graal | méta-puzzle | post-MVP |
 
+> **État (comblement post-MVP)** : ressources au sol (7 types), **mines**
+> capturables (fouler la tuile ⇒ drapeau à la couleur du joueur, revenu/jour
+> aux montants du §3, recapturables — les gardes se posent en plaçant un
+> gardien devant), **coffres** (choix or **ou** XP via une modale forcée ;
+> l'IA prend l'or), **artefacts au sol** (ramassés vers le 1er slot libre,
+> laissés au sol si l'inventaire est plein) et gardiens neutres sont livrés
+> (`data/maps/*.map.json` : `resource`/`mine`/`treasure`/`artifact`/
+> `guardian`/`town`). Habitations hors ville, lieux de bonus et
+> obélisques/Graal restent à venir.
+
 ### 2.3 Temps
 
 - **Jour** = 1 tour de chaque joueur. **Semaine** = 7 jours → croissance des créatures dans villes/habitations. **Mois** = 4 semaines (événements type « semaine de la peste » : post-MVP).

@@ -34,9 +34,12 @@ export {
   tileIndex,
   type AdventureMapDef,
   type GridPos,
+  type ArtifactObjectDef,
   type GuardianObjectDef,
   type MapObjectDef,
+  type MineObjectDef,
   type ResourceObjectDef,
+  type TreasureObjectDef,
 } from './adventure/map';
 export {
   COMBAT_COLS,

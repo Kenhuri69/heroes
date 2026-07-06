@@ -1,4 +1,5 @@
 import {
+  knownArtifactIds,
   knownUnitIds,
   loadContent,
   loadMap,
@@ -38,11 +39,11 @@ export async function loadGameContent(): Promise<LoadReport> {
 /** Charge la carte par défaut de la config, validée contre elle (doc 02 §2.1). */
 export async function loadDefaultMap(report: LoadReport): Promise<ResolvedMap> {
   const config = report.content.config;
-  return loadMap(readJsonFromSite, config.newGame.map, config, knownUnitIds(report));
+  return loadMap(readJsonFromSite, config.newGame.map, config, knownUnitIds(report), knownArtifactIds(report));
 }
 
 /** Charge la carte d'un scénario (même chemin de résolution que `loadDefaultMap`). */
 export async function loadScenarioMap(report: LoadReport, scenario: Scenario): Promise<ResolvedMap> {
   const config = report.content.config;
-  return loadMap(readJsonFromSite, scenario.map, config, knownUnitIds(report));
+  return loadMap(readJsonFromSite, scenario.map, config, knownUnitIds(report), knownArtifactIds(report));
 }

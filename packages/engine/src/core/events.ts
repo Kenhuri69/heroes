@@ -23,6 +23,46 @@ export type GameEvent =
       amount: number;
       pos: GridPos;
     }
+  // ——— Objets de carte (doc 02 §2.2) : mines, trésors, artefacts au sol ———
+  /** Mine capturée en foulant sa tuile — `playerId` = nouveau propriétaire, `amount` = revenu/jour. */
+  | {
+      type: 'MineCaptured';
+      playerId: string;
+      objectId: string;
+      resource: string;
+      amount: number;
+      pos: GridPos;
+    }
+  /** Revenu quotidien d'une mine possédée (appliqué au `DayStarted`). */
+  | { type: 'MineIncome'; playerId: string; objectId: string; resource: string; amount: number }
+  /** Trésor foulé : le choix or/XP est en attente (`ResolveTreasure`). */
+  | {
+      type: 'TreasureFound';
+      heroId: string;
+      playerId: string;
+      objectId: string;
+      gold: number;
+      xp: number;
+      pos: GridPos;
+    }
+  /** Choix du trésor résolu — `amount` = or crédité ou XP accordée selon `choice`. */
+  | {
+      type: 'TreasureTaken';
+      heroId: string;
+      playerId: string;
+      objectId: string;
+      choice: 'gold' | 'xp';
+      amount: number;
+    }
+  /** Artefact ramassé au sol vers le 1er slot libre du héros. */
+  | {
+      type: 'ArtifactPicked';
+      heroId: string;
+      playerId: string;
+      objectId: string;
+      artifactId: string;
+      pos: GridPos;
+    }
   /**
    * Trigger de carte déclenché (doc 02 §2.1) — l'UI notifie/journalise selon
    * `effect`. `playerId` = joueur affecté (visite / octroi), `null` pour un

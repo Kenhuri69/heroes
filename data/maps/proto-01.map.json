@@ -127,6 +127,77 @@
       "amount": 700
     },
     {
+      "id": "crystal-1",
+      "type": "resource",
+      "x": 24,
+      "y": 13,
+      "resource": "crystal",
+      "amount": 2
+    },
+    {
+      "id": "sulfur-1",
+      "type": "resource",
+      "x": 16,
+      "y": 26,
+      "resource": "sulfur",
+      "amount": 3
+    },
+    {
+      "id": "mine-gold-1",
+      "type": "mine",
+      "x": 3,
+      "y": 6,
+      "resource": "gold",
+      "amount": 1000
+    },
+    {
+      "id": "mine-wood-1",
+      "type": "mine",
+      "x": 12,
+      "y": 10,
+      "resource": "wood",
+      "amount": 2
+    },
+    {
+      "id": "mine-ore-1",
+      "type": "mine",
+      "x": 7,
+      "y": 15,
+      "resource": "ore",
+      "amount": 2
+    },
+    {
+      "id": "mine-crystal-1",
+      "type": "mine",
+      "x": 22,
+      "y": 24,
+      "resource": "crystal",
+      "amount": 1
+    },
+    {
+      "id": "chest-1",
+      "type": "treasure",
+      "x": 2,
+      "y": 3,
+      "gold": 1000,
+      "xp": 800
+    },
+    {
+      "id": "chest-2",
+      "type": "treasure",
+      "x": 18,
+      "y": 22,
+      "gold": 1500,
+      "xp": 1200
+    },
+    {
+      "id": "artifact-trefle",
+      "type": "artifact",
+      "x": 5,
+      "y": 5,
+      "artifactId": "trefle-chance"
+    },
+    {
       "id": "guard-camp",
       "type": "guardian",
       "x": 9,

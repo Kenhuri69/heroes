@@ -10,7 +10,7 @@ export interface GridPos {
   y: number;
 }
 
-/** Objets interactifs posés sur la carte (doc 02 §2.2) : ressources, gardiens neutres. */
+/** Objets interactifs posés sur la carte (doc 02 §2.2) : ressources, gardiens, mines, trésors, artefacts. */
 export interface ResourceObjectDef {
   id: string;
   type: 'resource';
@@ -29,7 +29,50 @@ export interface GuardianObjectDef {
   count: number;
 }
 
-export type MapObjectDef = ResourceObjectDef | GuardianObjectDef;
+/**
+ * Mine capturable (doc 02 §2.2) : fouler la tuile la fait passer au joueur
+ * (`ownerId`), qui touche `amount` de `resource` chaque jour (revenu appliqué
+ * au `DayStarted`, cf. `town/economy.ts`). Recapturable par un adversaire.
+ */
+export interface MineObjectDef {
+  id: string;
+  type: 'mine';
+  pos: GridPos;
+  /** ID de ressource — validé par le contenu, opaque pour le moteur. */
+  resource: string;
+  /** Revenu par jour. */
+  amount: number;
+  /** Joueur propriétaire — `null` = neutre (état initial des données). */
+  ownerId: string | null;
+}
+
+/**
+ * Trésor (doc 02 §2.2) : le héros qui le foule choisit `gold` OU `xp`
+ * (commande `ResolveTreasure`) ; le choix est porté par
+ * `GameState.pendingTreasure` le temps de la décision.
+ */
+export interface TreasureObjectDef {
+  id: string;
+  type: 'treasure';
+  pos: GridPos;
+  gold: number;
+  xp: number;
+}
+
+/** Artefact posé sur la carte (doc 02 §2.2) : ramassé vers le 1er slot libre du héros. */
+export interface ArtifactObjectDef {
+  id: string;
+  type: 'artifact';
+  pos: GridPos;
+  artifactId: string;
+}
+
+export type MapObjectDef =
+  | ResourceObjectDef
+  | GuardianObjectDef
+  | MineObjectDef
+  | TreasureObjectDef
+  | ArtifactObjectDef;
 
 /**
  * Effet déclaratif d'un trigger de carte (doc 02 §2.1 « scripts d'événements

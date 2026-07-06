@@ -47,7 +47,8 @@
       "arcane-hunters-circle-vigile",
       "arcane-hunters-circle-traque",
       "arcane-hunters-circle-sceau",
-      "arcane-hunters-circle-abime"
+      "arcane-hunters-circle-abime",
+      "arcane-hunters-contracts"
     ],
     "dwellings": [
       { "tier": 1, "unitId": "t1-eleve", "buildingId": "arcane-hunters-dwelling-t1" },

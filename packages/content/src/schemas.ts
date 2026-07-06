@@ -155,6 +155,17 @@ const buildingEffectSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('mageGuild'), level: z.number().int().positive() }),
   /** Active l'échange ressource ↔ or (doc 02 §4.1, lot UX U6a). */
   z.object({ type: z.literal('market') }),
+  /**
+   * Contrat de chasse (doc 05 §3.3) : au passage de semaine, le propriétaire se
+   * voit assigner une cible neutre ; la vaincre crédite `gold` + `amount` de la
+   * ressource de faction `resource`. Générique — `resource` est un id opaque.
+   */
+  z.object({
+    type: z.literal('huntContract'),
+    gold: z.number().int().nonnegative(),
+    resource: idSchema,
+    amount: z.number().int().positive(),
+  }),
   /** Bâtiment sans effet mécanique en 3.1 (tavern/forge/spécial) — arbre seul. */
   z.object({ type: z.literal('none') }),
 ]);

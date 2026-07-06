@@ -969,6 +969,43 @@ test('scénario : gagner « survie » contre l’IA (surviveDays)', async ({ pag
   expect(errors).toEqual([]);
 });
 
+test('contrat de chasse : bâtir le Tableau des Contrats → cible assignée au passage de semaine (doc 05 §3.3)', async ({
+  page,
+}) => {
+  const errors = await openMenu(page);
+  // Le scénario « conquête » démarre le joueur humain en faction Arcane Hunters
+  // (seule faction avec le bâtiment `huntContract`).
+  await page.evaluate(() => window.__HEROES_TEST__!.startScenario('conquest'));
+  await expect(page.getByTestId('end-turn')).toBeVisible();
+
+  // Bâtir le Tableau des Contrats (prérequis townHall, 800 or + 5 bois).
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({
+      type: 'BuildStructure',
+      townId: 'start-town',
+      buildingId: 'arcane-hunters-contracts',
+    }),
+  );
+  expect(
+    await page.evaluate(
+      () =>
+        window.__HEROES_TEST__!.getState().towns.find((t) => t.id === 'start-town')?.buildings[
+          'arcane-hunters-contracts'
+        ],
+    ),
+  ).toBe(1);
+
+  // Avancer jusqu'au passage de semaine (jour 8) : un contrat est assigné.
+  for (let i = 0; i < 7; i++) {
+    await page.evaluate(() => window.__HEROES_TEST__!.dispatch({ type: 'EndTurn', playerId: 'player-1' }));
+  }
+  const contract = await page.evaluate(() => window.__HEROES_TEST__!.getState().players[0]?.huntContract);
+  expect(contract).not.toBeNull();
+  expect(contract?.targetObjectId).toBeTruthy();
+
+  expect(errors).toEqual([]);
+});
+
 test('assets : PNG servis sans 404, icônes de ressources et vignettes de bâtiments affichées (lot intégration)', async ({
   page,
 }) => {

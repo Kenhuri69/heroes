@@ -44,6 +44,13 @@ export interface PlayerState {
    * héros est éliminé. La règle ne s'arme qu'une fois une ville possédée.
    */
   townlessDays: number;
+  /**
+   * Contrat de chasse actif (doc 05 §3.3) — assigné au passage de semaine si le
+   * joueur possède un bâtiment `huntContract` ; `null` sinon. La cible est un
+   * objet neutre de la carte ; la vaincre crédite la récompense puis remet à
+   * `null`. Générique : `resource` est un id opaque (ressource de faction).
+   */
+  huntContract: { targetObjectId: string; gold: number; resource: string; amount: number } | null;
 }
 
 /** Attributs primaires du héros (doc 02 §1.1) — effets câblés au MVP. */
@@ -100,9 +107,10 @@ export interface Calendar {
  * (v2 : couvre les champs `factionCatalog`/`scenario`/`outcome`/`controller`/
  * `eliminated` introduits en 3.4/3.5. v3 : `PlayerState.factionResources`
  * introduit en 4.4. v4 : `PlayerState.townlessDays` + `AdventureMapDef.triggers`
- * introduits par le comblement MVP — triggers de carte & grâce de reprise.)
+ * introduits par le comblement MVP — triggers de carte & grâce de reprise.
+ * v5 : `PlayerState.huntContract` — contrats de chasse, doc 05 §3.3.)
  */
-export const CURRENT_SAVE_VERSION = 4;
+export const CURRENT_SAVE_VERSION = 5;
 
 export interface GameState {
   saveVersion: number;

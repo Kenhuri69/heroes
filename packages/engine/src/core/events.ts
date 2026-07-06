@@ -86,6 +86,9 @@ export type GameEvent =
   | { type: 'TownIncome'; playerId: string; resource: string; amount: number }
   | { type: 'TownGrowth'; townId: string; unitId: string; added: number }
   | { type: 'TownCaptured'; townId: string; playerId: string }
+  // ——— Contrats de chasse (doc 05 §3.3) — cible neutre hebdomadaire ———
+  | { type: 'HuntContractAssigned'; playerId: string; targetObjectId: string }
+  | { type: 'HuntContractCompleted'; playerId: string; gold: number; resource: string; amount: number }
   // ——— Héros : sorts & compétences (doc 02 §1.2–§1.4) — surface figée 3.2 ———
   | {
       type: 'SpellCast';

@@ -190,8 +190,11 @@ const GOLDEN_JOURNAL: Command[] = [
 // s'ajoutent à la forme sérialisée — champs inclus dans l'état haché, donc seule
 // la FORME change, la simulation est inchangée. Hash relevé après vérification.
 // (Précédents : f85c9e64 en 3.2, 211e3cfd au lot O, 48073225 au cadrage 3.5,
-// 3568ea04 au lot 3.8, be72de4b au lot 4.4 — factionResources.)
-const GOLDEN_HASH = '347a584d';
+// 3568ea04 au lot 3.8, be72de4b au lot 4.4 — factionResources, 347a584d au
+// comblement MVP — townlessDays/triggers.)
+// Contrats de chasse : `saveVersion` → 5 et `PlayerState.huntContract` (null)
+// s'ajoutent à la forme sérialisée — seule la FORME change, simulation inchangée.
+const GOLDEN_HASH = '0b51c01e';
 
 describe('golden replay', () => {
   it('le journal scripté produit toujours le même état final', () => {

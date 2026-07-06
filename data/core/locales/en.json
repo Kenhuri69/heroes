@@ -225,6 +225,8 @@
   "toast.townBuilt": "{building} built (level {level})",
   "toast.unitsRecruited": "{count} {unit} recruited",
   "toast.unitsUpgraded": "{count} {unit} upgraded",
+  "toast.huntContractAssigned": "New hunt contract",
+  "toast.huntContractCompleted": "Contract fulfilled: +{gold} gold, +{amount} {resource}",
 
   "building.townHall": "Town Hall",
   "building.fort": "Fort",

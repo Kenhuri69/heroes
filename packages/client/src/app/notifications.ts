@@ -112,6 +112,17 @@ export function notify(event: AppEvent, game: GameState): string | null {
         : null;
     case 'TownCaptured':
       return event.playerId === human ? t('toast.townCaptured') : null;
+    // Contrats de chasse (doc 05 §3.3) — cible neutre hebdomadaire.
+    case 'HuntContractAssigned':
+      return event.playerId === human ? t('toast.huntContractAssigned') : null;
+    case 'HuntContractCompleted':
+      return event.playerId === human
+        ? t('toast.huntContractCompleted', {
+            gold: event.gold,
+            amount: event.amount,
+            resource: resolveFactionResourceName(event.resource),
+          })
+        : null;
     // Fin de partie (doc 02 §6) — l'overlay porte le message principal, ce toast
     // n'est qu'un signal immédiat.
     case 'GameEnded':

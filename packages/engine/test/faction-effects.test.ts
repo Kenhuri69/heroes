@@ -278,6 +278,7 @@ function player(over: Partial<PlayerState> = {}): PlayerState {
     controller: 'human',
     eliminated: false,
     townlessDays: 0,
+    huntContract: null,
     ...over,
   };
 }

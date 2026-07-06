@@ -65,8 +65,18 @@ Estimations pour une petite équipe (2–3 dev + 1 artiste temps partiel). Chaqu
 
 ## Phase 3 — Beta (10–12 semaines)
 
-- **Backend Node.js** (doc 07 §5) : comptes (magic link), cloud saves, **PvP asynchrone** avec notifications ; serveur autoritaire par re-simulation.
-- 4ᵉ faction (choisie parmi les pré-concepts de la doc 06 §6 — vote de la communauté).
+> 🚧 **Beta démarrée par la 4ᵉ faction (5.1)** — l'item **backend** (ci-dessous)
+> requiert des décisions d'infra (hébergement/DB/auth) relevant du porteur du
+> projet ; il attend une direction. La 4ᵉ faction, elle, est **autonome et
+> in-paradigme** : continuation du pipeline data-driven prouvé 3×. Cadrage
+> **Sylvan Court** livré (`docs/14-faction-sylvan-court.md`) — signature `symbiosis`
+> (1 module de combat générique, aucun nouveau point d'extension de framework),
+> **4ᵉ test de modularité**. Créneau « vote communauté » : choix par défaut,
+> réversible. Décomposition 5.1 cadrage → 5.2 données → 5.3 `symbiosis` → 5.4
+> équilibrage/finitions.
+
+- **Backend Node.js** (doc 07 §5) : comptes (magic link), cloud saves, **PvP asynchrone** avec notifications ; serveur autoritaire par re-simulation. *(attend une direction d'infra)*
+- 🚧 **4ᵉ faction — Sylvan Court** (cadrage 5.1 livré, doc 14) : produite via le pipeline de faction (doc 06), signature `symbiosis` en 1 point d'extension générique.
 - DA finale par faction (remplacement des placeholders), audio complet, PWA hors-ligne.
 - Équilibrage continu piloté par les données serveur ; classement saisonnier expérimental.
 - Accessibilité complète (audit), performances re-validées sur parc mobile élargi.

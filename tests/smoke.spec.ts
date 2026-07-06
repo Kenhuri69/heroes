@@ -1138,6 +1138,48 @@ test('scénario : le menu démarre le tutoriel, l’IA joue son tour', async ({ 
   expect(errors).toEqual([]);
 });
 
+test('prologue narratif : dialogue → journal → quête récompensée (doc 13 N2b)', async ({ page }) => {
+  const errors = await openMenu(page);
+
+  // Démarre le Prologue Haven (scénario porteur de quêtes + dialogues).
+  await page.evaluate(() => window.__HEROES_TEST__!.startScenario('prologue'));
+  await expect(page.getByTestId('end-turn')).toBeVisible();
+
+  // Le dialogue d'ouverture s'affiche (doc 13 §6.3).
+  await expect(page.getByTestId('dialogue-box')).toBeVisible();
+  await expect(page.getByTestId('dialogue-text')).not.toHaveText('');
+
+  // « Passer » saute chaque nœud : ouverture (4 lignes) puis le dialogue
+  // `dialogBefore` de l'étape « bâtir le Fort » (2 lignes). Deux Passer suffisent.
+  await page.getByTestId('dialogue-skip').click();
+  await expect(page.getByTestId('dialogue-box')).toBeVisible();
+  await page.getByTestId('dialogue-skip').click();
+  await expect(page.getByTestId('dialogue-box')).toHaveCount(0);
+
+  // Journal à jour : la quête « Relever Cendregarde » est active (tiroir héros).
+  await page.getByTestId('hero-drawer-toggle').click();
+  await expect(page.getByTestId('quest-entry-prologue-relever')).toBeVisible();
+
+  const goldBefore = await page.evaluate(
+    () => window.__HEROES_TEST__!.getState().players[0]!.resources.gold,
+  );
+
+  // Bâtir le Fort → étape satisfaite → quête complétée → récompense (+1000 or).
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({ type: 'BuildStructure', townId: 'start-town', buildingId: 'fort' }),
+  );
+
+  const state = await page.evaluate(() => window.__HEROES_TEST__!.getState());
+  const relever = state.quests?.quests.find((q) => q.def.id === 'prologue-relever');
+  expect(relever?.status).toBe('completed');
+  // Or = avant − 5000 (coût Fort) + 1000 (récompense).
+  expect(state.players[0]!.resources.gold).toBe(goldBefore - 5000 + 1000);
+  // Le journal reflète la complétion.
+  await expect(page.getByTestId('quest-progress-prologue-relever')).toHaveText('Terminé');
+
+  expect(errors).toEqual([]);
+});
+
 test('scénario : gagner « survie » contre l’IA (surviveDays)', async ({ page }) => {
   const errors = await openMenu(page);
 

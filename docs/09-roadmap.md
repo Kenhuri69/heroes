@@ -85,7 +85,7 @@ Estimations pour une petite équipe (2–3 dev + 1 artiste temps partiel). Chaqu
 ## Phase 4 — Live (continu)
 
 - PvP temps réel à timer, générateur de cartes aléatoires, campagne narrative.
-  - 🚧 **Polishing narratif démarré** (doc 13, à lancer post-Alpha) : lot **N1 — La voix du monde** ✅ (textes d'ambiance `loreKey` sur tout le contenu des 4 factions). Lot **N2a — moteur de quêtes générique** ✅ (`engine/quest` : catalogue de conditions fermé, `GameState.quests`, récompenses, bump save 6→7, golden re-fixé). Reste N2b (contenu/UI : dialogues + journal + Prologue Haven) → N3 campagnes fondatrices → N4 chasse & vivant.
+  - 🚧 **Polishing narratif démarré** (doc 13, à lancer post-Alpha) : lot **N1 — La voix du monde** ✅ (textes d'ambiance `loreKey` sur tout le contenu des 4 factions). Lot **N2a — moteur de quêtes générique** ✅ (`engine/quest`). Lot **N2b — Prologue Haven jouable** ✅ (schémas narratifs, scénario `prologue` avec dialogues + quêtes, boîte de dialogue + journal de quêtes, zéro nouveau diff moteur). Reste N3 campagnes fondatrices → N4 chasse & vivant.
 - Cadence de contenu : **1 faction/trimestre** (le pipeline doc 06 est l'outil de production), saisons, cosmétiques si monétisation activée (doc 01 §4).
 
 ## Risques principaux & parades

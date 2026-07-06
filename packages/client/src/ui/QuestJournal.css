@@ -1,0 +1,44 @@
+/* Journal de quêtes de campagne (doc 13 §6.3, N2b). */
+.quest-journal {
+  margin-top: 0.5rem;
+}
+
+.quest-journal-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.quest-journal-entry {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.4rem 0.5rem;
+  border-left: 3px solid #6a5a3a;
+  background: rgba(0, 0, 0, 0.12);
+  border-radius: 0.25rem;
+}
+
+.quest-journal-completed {
+  opacity: 0.6;
+  border-left-style: dashed;
+}
+
+.quest-journal-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.quest-journal-desc {
+  font-size: 0.8rem;
+  opacity: 0.85;
+}
+
+.quest-journal-progress {
+  font-size: 0.75rem;
+  font-weight: 600;
+  opacity: 0.75;
+}

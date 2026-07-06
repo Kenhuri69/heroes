@@ -20,6 +20,7 @@ import { navigate } from './app/router';
 import { exportSave, importSave, saveGame, restoreSavedGame, encodeHeroesFile } from './app/save';
 import { installAutosave } from './app/autosave';
 import { initTelemetry } from './app/telemetry';
+import { initNarrative, loadScenarioNarrative } from './app/narrative';
 import { initI18n, t } from './app/i18n';
 import { preloadPixiTextures, combatBackgroundUrl } from './render/assets';
 import { AdventureScene } from './scenes/adventure/AdventureScene';
@@ -168,6 +169,9 @@ async function bootstrap(): Promise<void> {
     const scenario = report.content.scenarios.find((s) => s.id === scenarioId);
     if (!scenario) throw new Error(`scénario inconnu '${scenarioId}'`);
     const scenarioMap = await loadScenarioMap(report, scenario);
+    // Charge le catalogue narratif AVANT le dispatch : les `QuestStarted` émis
+    // par `StartGame` alimentent alors le journal (et enfilent les dialogues).
+    loadScenarioNarrative(scenario);
     await dispatch(scenarioStartCommand(report, scenario, seed, scenarioMap));
     navigate('adventure');
   };
@@ -184,6 +188,7 @@ async function bootstrap(): Promise<void> {
 
   installAutosave(); // autosave à chaque fin de tour (doc 07 §4)
   initTelemetry(); // télémétrie locale opt-in (doc 09, Alpha 4.19) — no-op si désactivée
+  initNarrative(); // couche narrative branchée sur les événements de quête (doc 13, N2b)
   appStore.setState({
     strengthBands: report.content.config.display.strengthBands,
     scenarios: report.content.scenarios,

@@ -389,6 +389,52 @@ test('options : bascule de langue FR → EN appliquée à l’UI', async ({ page
   expect(errors).toEqual([]);
 });
 
+test('siège : marcher sur une ville neutre défendue ⇒ combat ⇒ capture (Alpha 4.13)', async ({
+  page,
+}) => {
+  const errors = await openGame(page);
+
+  // La carte porte une ville neutre défendue (`neutral-keep` en (5,6)) — non
+  // possédée, garnison non vide (doc 02 §4.1).
+  const before = await page.evaluate(() =>
+    window.__HEROES_TEST__!.getState().towns.find((t) => t.id === 'neutral-keep'),
+  );
+  expect(before?.ownerPlayerId).toBeNull();
+  expect((before?.garrison.length ?? 0) > 0).toBe(true);
+
+  // Amène le héros au contact (5,2), puis tap-tap sur la ville en (6,2) : le héros
+  // y entre et déclenche le siège — le combat prend la main (routeur sur `combat`).
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({
+      type: 'MoveHero',
+      heroId: 'hero-player-1',
+      path: [
+        { x: 4, y: 2 },
+        { x: 5, y: 2 },
+      ],
+    }),
+  );
+  await expect.poll(() => heroPos(page)).toEqual({ x: 5, y: 2 });
+
+  await tapTapTile(page, 6, 2);
+  await expect
+    .poll(() => page.evaluate(() => window.__HEROES_TEST__!.getState().combat?.townId ?? null))
+    .toBe('neutral-keep');
+
+  // Auto-résolution : l'armée de départ écrase la garnison ⇒ capture.
+  await page.getByTestId('combat-auto').click();
+  await expect
+    .poll(() => page.evaluate(() => window.__HEROES_TEST__!.getState().combat))
+    .toBeNull();
+  const after = await page.evaluate(() =>
+    window.__HEROES_TEST__!.getState().towns.find((t) => t.id === 'neutral-keep'),
+  );
+  expect(after?.ownerPlayerId).toBe('player-1');
+  expect(after?.garrison).toEqual([]);
+
+  expect(errors).toEqual([]);
+});
+
 test('routeur : Échap ferme la modale ouverte (pile de modales, doc 08 §3, U2)', async ({ page }) => {
   const errors = await openGame(page);
 

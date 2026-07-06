@@ -125,6 +125,8 @@ export function handleStartCombat(
     playerSide: 'attacker',
     heroId: null,
     guardianObjectId: null,
+    townId: null,
+    wallDefenseBonus: 0,
     attackerHeroId: null,
     defenderHeroId: null,
     heroCastThisRound: false,
@@ -175,6 +177,8 @@ export function beginGuardianCombat(
     playerSide: 'attacker',
     heroId,
     guardianObjectId,
+    townId: null,
+    wallDefenseBonus: 0,
     // L'attaquant est le héros joueur ; le gardien neutre n'a pas de héros.
     attackerHeroId: heroId,
     defenderHeroId: null,
@@ -185,6 +189,59 @@ export function beginGuardianCombat(
   initLedger(draft.combat);
   initHeroMana(draft, draft.combat);
   events.push({ type: 'CombatStarted', terrain, heroId, guardianObjectId });
+  events.push({ type: 'CombatRoundStarted', round: 1 });
+  advanceTurn(draft, events);
+  runAiIfNeeded(draft, events);
+}
+
+/**
+ * Ouvre un combat de siège héros ↔ garnison de ville (doc 02 §4.1, Alpha 4.13).
+ * Jumeau de `beginGuardianCombat` : attaquant = armée du héros + machines de
+ * guerre, défenseur = garnison ; le Fort accorde un bonus de défense « murs ».
+ * Câblé depuis `CaptureTown` (ville défendue).
+ */
+export function beginTownCombat(
+  draft: Draft,
+  heroId: string,
+  townId: string,
+  wallDefenseBonus: number,
+  events: GameEvent[],
+): void {
+  const hero = draft.heroes.find((h) => h.id === heroId);
+  const town = draft.towns.find((t) => t.id === townId);
+  const rules = draft.config?.combat;
+  if (!hero || !town || !rules) throw new Error('beginTownCombat: héros, ville ou config absents');
+  const terrain = draft.map ? terrainAt(draft.map, town.pos) : 'grass';
+  const attacker: ArmyStack[] = [
+    ...hero.army,
+    ...hero.warMachines.map((unitId) => ({ unitId, count: 1 })),
+  ];
+  const defender: ArmyStack[] = town.garrison.map((s) => ({ ...s }));
+  const stacks = [
+    ...placeSide('attacker', attacker, draft.unitCatalog, 0),
+    ...placeSide('defender', defender, draft.unitCatalog, COMBAT_COLS - 1),
+  ];
+  const obstacles = drawObstacles(draft, rules.obstaclesMin, rules.obstaclesMax);
+  draft.combat = {
+    terrain,
+    round: 1,
+    obstacles,
+    stacks,
+    activeStackId: null,
+    playerSide: 'attacker',
+    heroId,
+    guardianObjectId: null,
+    townId,
+    wallDefenseBonus,
+    attackerHeroId: heroId,
+    defenderHeroId: null,
+    heroCastThisRound: false,
+    finished: false,
+    winner: null,
+  };
+  initLedger(draft.combat);
+  initHeroMana(draft, draft.combat);
+  events.push({ type: 'CombatStarted', terrain, heroId, guardianObjectId: null });
   events.push({ type: 'CombatRoundStarted', round: 1 });
   advanceTurn(draft, events);
   runAiIfNeeded(draft, events);

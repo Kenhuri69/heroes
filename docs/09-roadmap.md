@@ -37,10 +37,13 @@ Estimations pour une petite équipe (2–3 dev + 1 artiste temps partiel). Chaqu
 > contrats hebdo, `demonform`) + les données qui l'exercent — garde-fou
 > « zéro faction dans le moteur » maintenu. **4.11 livré** : upgrades d'unités
 > pour toutes les factions (habitations graduées `maxLevel:2` = données pures +
-> commande générique `UpgradeUnits`, doc 02 §4.1).
+> commande générique `UpgradeUnits`, doc 02 §4.1). **4.13 livré** : sièges v1
+> (fondation) — attaquer une ville défendue ⇒ combat de siège générique
+> (`beginTownCombat`) + bonus de défense « murs » du Fort ; villes neutres
+> assiégeables en données ; tour/catapulte différés v2 (doc 02 §4.1).
 
 - **Arcane Hunters** produite intégralement via le pipeline de faction (validation grandeur nature de la doc 06 — aucun diff moteur hors ouverture de points d'extension génériques).
-- ✅ **Unités améliorées (upgrades)** pour toutes les factions (4.11) ; ✅ **machines de guerre basiques** (Baliste, achetée à la Forge — 4.12) ; sièges v1 (murs, tour, catapulte) restent à faire.
+- ✅ **Unités améliorées (upgrades)** pour toutes les factions (4.11) ; ✅ **machines de guerre basiques** (Baliste, achetée à la Forge — 4.12) ; ✅ **sièges v1 fondation** (combat de ville défendue + murs — 4.13) ; tour de garde / catapulte = v2.
 - Escarmouche vs IA (config de carte, difficulté), hot-seat, sorts d'aventure (Ville-portail…).
 - Outil `faction:sim` + première passe d'équilibrage sérieuse (winrates 45–55 %).
 - Éditeur de carte interne minimal (accélère la prod de contenu).

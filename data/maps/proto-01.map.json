@@ -147,6 +147,14 @@
       "type": "town",
       "x": 2,
       "y": 4
+    },
+    {
+      "id": "neutral-keep",
+      "type": "town",
+      "x": 6,
+      "y": 2,
+      "factionId": "test-faction",
+      "garrison": [{ "unitId": "t1-eleve", "count": 3 }]
     }
   ],
   "triggers": [

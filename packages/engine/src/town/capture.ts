@@ -1,19 +1,33 @@
 import { isAdjacent, samePos } from '../adventure/map';
+import { beginTownCombat } from '../combat/setup';
 import type { Command, CommandError } from '../core/commands';
 import type { GameEvent } from '../core/events';
-import type { GameState } from '../core/state';
+import type { GameState, HeroState } from '../core/state';
+import type { TownState } from './types';
 import { evaluateOutcome } from '../scenario/outcome';
 
 type CaptureCmd = Extract<Command, { type: 'CaptureTown' }>;
 
+/** Bonus de défense « murs » par niveau de Fort construit (doc 02 §4.1, Alpha 4.13). */
+const WALL_DEFENSE_PER_FORT_LEVEL = 3;
+
+/** Héros du joueur sur ou adjacent à la ville (attaquant), ou `undefined`. */
+function attackingHero(state: GameState, town: TownState, playerId: string): HeroState | undefined {
+  return state.heroes.find(
+    (h) => h.playerId === playerId && (samePos(h.pos, town.pos) || isAdjacent(h.pos, town.pos)),
+  );
+}
+
+/** Bonus de mur d'une ville selon son niveau de Fort (0 si pas de Fort). */
+function wallDefenseBonus(town: TownState): number {
+  return (town.buildings['fort'] ?? 0) * WALL_DEFENSE_PER_FORT_LEVEL;
+}
+
 /**
- * Capture (doc 02 §4.1, décision plan phase-3.1 point 9) — MVP 3.1 : une
- * ville sans garnison est prise immédiatement. La prise par combat (garnison
- * non vide) arrive avec l'IA d'aventure en 3.5 : rejetée pour l'instant.
- *
- * Remédiation R1 (E3) : le moteur ne fait pas confiance au client. La capture
- * exige hors combat, par le joueur actif, avec un héros du joueur sur ou
- * adjacent à la ville (même règle que `pickAdjacentCapturableTown` de l'IA).
+ * Capture (doc 02 §4.1) : ville **sans** garnison prise immédiatement ; ville
+ * **défendue** ⇒ **combat de siège** contre la garnison (Alpha 4.13), la capture
+ * suit la victoire (`applyConsequences`). Exige hors combat, joueur actif, un
+ * héros du joueur sur/adjacent à la ville (remédiation R1 E3).
  */
 export function validateCaptureTown(state: GameState, cmd: CaptureCmd): CommandError | null {
   if (state.combat) return { code: 'combatActive', message: 'un combat est en cours' };
@@ -24,25 +38,28 @@ export function validateCaptureTown(state: GameState, cmd: CaptureCmd): CommandE
   if (!town) return { code: 'unknownTown', message: `ville inconnue '${cmd.townId}'` };
   if (town.ownerPlayerId === cmd.playerId)
     return { code: 'invalidAction', message: `'${cmd.townId}' appartient déjà à ${cmd.playerId}` };
-  const hasHeroNear = state.heroes.some(
-    (h) => h.playerId === cmd.playerId && (samePos(h.pos, town.pos) || isAdjacent(h.pos, town.pos)),
-  );
-  if (!hasHeroNear)
+  const hero = attackingHero(state, town, cmd.playerId);
+  if (!hero)
     return {
       code: 'invalidAction',
       message: `aucun héros de ${cmd.playerId} sur ou adjacent à '${cmd.townId}'`,
     };
-  if (town.garrison.length > 0)
-    return {
-      code: 'invalidAction',
-      message: `'${cmd.townId}' est défendue : la prise par combat arrive en 3.5`,
-    };
+  // Ville défendue : le héros a besoin d'une armée pour l'assiéger.
+  if (town.garrison.length > 0 && hero.army.length === 0)
+    return { code: 'invalidArmy', message: `armée vide : impossible d'assiéger '${cmd.townId}'` };
   return null;
 }
 
 export function handleCaptureTown(draft: GameState, cmd: CaptureCmd, events: GameEvent[]): void {
   const town = draft.towns.find((t) => t.id === cmd.townId);
   if (!town) return; // exclu par validate
+  if (town.garrison.length > 0) {
+    // Ville défendue ⇒ siège : combat contre la garnison. La capture est
+    // appliquée à la victoire (doc 02 §4.1, `applyConsequences`).
+    const hero = attackingHero(draft, town, cmd.playerId);
+    if (hero) beginTownCombat(draft, hero.id, town.id, wallDefenseBonus(town), events);
+    return;
+  }
   town.ownerPlayerId = cmd.playerId;
   events.push({ type: 'TownCaptured', townId: town.id, playerId: cmd.playerId });
   // Une ville peut changer de main (élimination de l'ancien propriétaire) :

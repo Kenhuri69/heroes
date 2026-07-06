@@ -131,8 +131,8 @@ Chaque faction consomme surtout **une paire de ressources rares** (Haven : crist
 | Bâtiments spéciaux ×2–3 | 1 | uniques à la faction (définis dans son manifeste) |
 
 - **Recrutement** : chaque habitation a une croissance hebdo (ex. T1 : 14/sem, T7 : 1/sem) ; le stock s'accumule s'il n'est pas recruté (plafond : 2 semaines). Valeurs de départ (Phase 3.1) : coûts des bâtiments communs dans `data/core/buildings.json` (hôtel de ville gratuit→2500/5000/10000 or ; fort 5000 or + 20 minerai, ×2 par niveau ; guilde des mages 2000 or + 5 bois) ; croissance/coût de recrutement dans les données d'unité ; le stock d'une habitation ne se remplit qu'au **passage de semaine** (état de départ vide).
-- **File de garnison** : une ville stocke une armée de défense ; siège si un héros ennemi attaque une ville avec Fort+ (au MVP : combat normal sur décor de ville, sans murs ; murs/catapulte en Alpha).
-- **Capture** : ville sans garnison = capture immédiate ; le joueur qui perd sa dernière ville a 7 jours pour en reprendre une, sinon défaite.
+- **File de garnison** : une ville stocke une armée de défense ; attaquer une ville **défendue** ouvre un **combat de siège** contre sa garnison (Alpha 4.13) — combat normal sur le terrain de la ville, le Fort accordant un bonus de défense « murs » aux piles défenseure. Tour de garde + catapulte différés (v2).
+- **Capture** : ville **sans** garnison = capture immédiate ; ville **défendue** = capture à l'issue d'un siège **gagné** (garnison anéantie ⇒ la ville change de main, garnison vidée ; siège repoussé ⇒ héros retiré, garnison survivante conservée). Le joueur qui perd sa dernière ville a 7 jours pour en reprendre une, sinon défaite.
 
 > 🚧 **État (upgrades d'unités, Alpha 4.11)** : chaque habitation est un
 > **bâtiment gradué `maxLevel:2`** — niveau 1 = unité de base, niveau 2
@@ -153,6 +153,19 @@ Chaque faction consomme surtout **une paire de ressources rares** (Haven : crist
 > machines rejoignent le camp du héros comme piles supplémentaires (hors cap 7) et
 > ne sont jamais absorbées dans l'armée. First Aid Tent / Ammo Cart = différés.
 > `CURRENT_SAVE_VERSION` → 6.
+
+> 🚧 **État (sièges v1 — fondation, Alpha 4.13)** : attaquer une ville **défendue**
+> (`CaptureTown`) n'est plus rejeté — elle ouvre un **combat de siège** générique
+> (`beginTownCombat`, jumeau de l'interception de gardien) : attaquant = armée du
+> héros **+ machines de guerre**, défenseur = **garnison**, terrain de la ville.
+> Le Fort accorde un **bonus de défense « murs »** plat aux piles défenseure
+> (`CombatState.wallDefenseBonus`, +3/niveau, appliqué dans le calcul de dégâts).
+> Victoire ⇒ capture (transfert de propriété, garnison vidée) ; défaite ⇒ héros
+> retiré, garnison survivante réécrite (`applyConsequences`). Côté carte, une
+> ville **neutre** posée en données (objet `town` avec `factionId`/`garrison`) est
+> assiégeable en marchant dessus. **Zéro nom de faction dans le moteur** ; forme
+> de sauvegarde inchangée (état de combat transitoire). Tour de garde, catapulte
+> et destruction de murs = tranche tactique v2.
 
 ### 4.2 Écran de ville
 

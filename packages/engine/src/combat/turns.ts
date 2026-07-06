@@ -173,6 +173,16 @@ function applyConsequences(
       const idx = draft.map.objects.findIndex((o) => o.id === combat.guardianObjectId);
       if (idx !== -1) draft.map.objects.splice(idx, 1);
     }
+    // Siège gagné (doc 02 §4.1, Alpha 4.13) : la garnison est anéantie ⇒ la ville
+    // change de main, garnison vidée.
+    if (combat.townId && hero) {
+      const town = draft.towns.find((t) => t.id === combat.townId);
+      if (town) {
+        town.ownerPlayerId = hero.playerId;
+        town.garrison = [];
+        events.push({ type: 'TownCaptured', townId: town.id, playerId: hero.playerId });
+      }
+    }
   } else {
     if (hero) {
       const idx = draft.heroes.findIndex((h) => h.id === combat.heroId);
@@ -184,6 +194,15 @@ function applyConsequences(
         obj.count = combat.stacks
           .filter((s) => s.side === 'defender')
           .reduce((sum, s) => sum + s.count, 0);
+      }
+    }
+    // Siège repoussé : la garnison survivante est réécrite sur la ville.
+    if (combat.townId) {
+      const town = draft.towns.find((t) => t.id === combat.townId);
+      if (town) {
+        town.garrison = combat.stacks
+          .filter((s) => s.side === 'defender' && s.count > 0)
+          .map((s) => ({ unitId: s.unitId, count: s.count }));
       }
     }
   }

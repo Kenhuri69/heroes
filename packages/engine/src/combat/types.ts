@@ -81,6 +81,10 @@ export interface CombatState {
   /** Contexte aventure — null en arène `/#arena`. */
   heroId: string | null;
   guardianObjectId: string | null;
+  /** Ville assiégée (doc 02 §4.1, Alpha 4.13) — null hors combat de ville ; capture à la victoire. */
+  townId: string | null;
+  /** Bonus de défense « murs » du Fort accordé aux piles défenseure (0 hors siège). */
+  wallDefenseBonus: number;
   /** Héros liés aux camps (attributs + sorts, doc 02 §5) — null si sans héros. */
   attackerHeroId: string | null;
   defenderHeroId: string | null;

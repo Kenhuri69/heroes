@@ -209,7 +209,10 @@ export function performStrike(
   const targetDefense =
     victimDef.stats.defense +
     (combat ? heroDefenseOf(draft, combat, victim.side) : 0) +
-    statusModSum(victim.statuses, 'defenseMod');
+    statusModSum(victim.statuses, 'defenseMod') +
+    // Murs du Fort (doc 02 §4.1, Alpha 4.13) : bonus de défense aux piles en
+    // garnison (camp défenseur) pendant un siège ; 0 hors combat de ville.
+    (combat && victim.side === 'defender' ? combat.wallDefenseBonus : 0);
   const heroDamagePct = combat
     ? ranged
       ? heroRangedPctOf(draft, combat, striker.side)

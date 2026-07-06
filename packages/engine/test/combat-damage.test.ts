@@ -169,6 +169,8 @@ function combatState(stacks: CombatStack[], terrain = 'grass'): CombatState {
     playerSide: 'attacker',
     heroId: null,
     guardianObjectId: null,
+    townId: null,
+    wallDefenseBonus: 0,
     finished: false,
     attackerHeroId: null,
     defenderHeroId: null,

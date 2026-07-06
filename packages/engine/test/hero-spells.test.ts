@@ -64,6 +64,8 @@ function combatState(stacks: CombatStack[], over: Partial<CombatState> = {}): Co
     playerSide: 'attacker',
     heroId: null,
     guardianObjectId: null,
+    townId: null,
+    wallDefenseBonus: 0,
     attackerHeroId: null,
     defenderHeroId: null,
     heroCastThisRound: false,

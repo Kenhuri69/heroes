@@ -445,12 +445,21 @@ export const mapFileSchema = z.object({
         unitId: idSchema,
         count: z.number().int().positive(),
       }),
-      /** Ville (doc 02 §4, plan phase-3.1) — la ville de départ y référence son id. */
+      /**
+       * Ville (doc 02 §4, plan phase-3.1) — la ville de départ y référence son id.
+       * `factionId`/`garrison` optionnels : une ville **neutre** (Alpha 4.13) posée
+       * sur la carte, assiégeable par un héros (combat contre sa garnison). Une
+       * ville de départ de joueur ignore ces champs (garnison initiale vide).
+       */
       z.object({
         id: idSchema,
         type: z.literal('town'),
         x: z.number().int().nonnegative(),
         y: z.number().int().nonnegative(),
+        factionId: idSchema.optional(),
+        garrison: z
+          .array(z.object({ unitId: idSchema, count: z.number().int().positive() }))
+          .optional(),
       }),
     ]),
   ),

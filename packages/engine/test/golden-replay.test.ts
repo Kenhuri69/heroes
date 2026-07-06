@@ -195,7 +195,10 @@ const GOLDEN_JOURNAL: Command[] = [
 // Contrats de chasse : `saveVersion` → 5 et `PlayerState.huntContract` (null)
 // s'ajoutent à la forme sérialisée — seule la FORME change, simulation inchangée.
 // Machines de guerre : `saveVersion` → 6 et `HeroState.warMachines` ([]) idem.
-const GOLDEN_HASH = 'aba92b9f';
+// Quêtes (N2a) : `saveVersion` → 7 et `GameState.quests` (null) s'ajoutent à la
+// forme sérialisée — seule la FORME change, simulation inchangée (aucune quête
+// embarquée dans le journal golden ⇒ `evaluateQuests` no-op).
+const GOLDEN_HASH = '05da0520';
 
 describe('golden replay', () => {
   it('le journal scripté produit toujours le même état final', () => {

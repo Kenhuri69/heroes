@@ -5,6 +5,7 @@ import type { BuildingDef, TownState } from '../town/types';
 import type { ArtifactDef, HeroSkillDef, SpellDef } from '../hero/types';
 import type { FactionBonus } from '../faction/types';
 import type { GameOutcome, ScenarioState } from '../scenario/types';
+import type { QuestState } from '../quest/types';
 import type { RngState } from './rng';
 
 /** Les 7 ressources du jeu (doc 02 §3). Les montants vivent dans les données. */
@@ -115,9 +116,10 @@ export interface Calendar {
  * introduit en 4.4. v4 : `PlayerState.townlessDays` + `AdventureMapDef.triggers`
  * introduits par le comblement MVP — triggers de carte & grâce de reprise.
  * v5 : `PlayerState.huntContract` — contrats de chasse, doc 05 §3.3.
- * v6 : `HeroState.warMachines` — machines de guerre, doc 02 §5.)
+ * v6 : `HeroState.warMachines` — machines de guerre, doc 02 §5.
+ * v7 : `GameState.quests` — système de quêtes générique, doc 13 §6.2 (N2a).)
  */
-export const CURRENT_SAVE_VERSION = 6;
+export const CURRENT_SAVE_VERSION = 7;
 
 export interface GameState {
   saveVersion: number;
@@ -156,6 +158,12 @@ export interface GameState {
   scenario: ScenarioState | null;
   /** Issue de la partie (doc 02 §6) — `null` tant qu'elle est en cours. */
   outcome: GameOutcome | null;
+  /**
+   * Quêtes de campagne (doc 13 §6.2, N2a) — embarquées par `StartGame`, `null`
+   * hors campagne (partie libre / scénario nu). Le moteur évalue des conditions
+   * génériques ; il ne connaît ni texte ni dialogue.
+   */
+  quests: QuestState | null;
 }
 
 export function createEmptyState(): GameState {
@@ -179,6 +187,7 @@ export function createEmptyState(): GameState {
     factionCatalog: {},
     scenario: null,
     outcome: null,
+    quests: null,
   };
 }
 

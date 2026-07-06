@@ -451,6 +451,8 @@ laisse le jeu livrable. Ordre pensé « MVP narratif → campagne complète » :
 |-----|---------|-------------------|
 | **N1 — La voix du monde** ✅ | Champs `loreKey` sur unités/bâtiments/artefacts/sorts + textes FR/EN des 4 factions ; écrans existants les affichent | Audit i18n étendu ; chaque entité du contenu a son texte ; zéro diff moteur |
 | **N2 — Systèmes** | `engine/quest` générique + `GameState.quests` (bump save) ; schémas `data/story/` ; boîte de dialogue + journal + `dialogBefore` ; ré-habillage du scénario `tutorial` en **Prologue Haven** (3 quêtes, 4 dialogues) | Golden re-fixé ; smoke Playwright « dérouler le prologue : dialogue s'affiche, se passe, journal à jour, quête récompensée » desktop + mobile |
+| ↳ **N2a — moteur de quêtes** ✅ | `engine/quest` générique (catalogue de conditions fermé, `GameState.quests`, `QuestStarted/Advanced/Completed`, récompenses) ; bump save 6→7 ; câblage `apply()` ; tests unitaires | Golden re-fixé ; moteur seul, zéro UI |
+| ↳ **N2b — contenu & UI** | schémas `data/story/` + Prologue Haven (data) + boîte de dialogue + journal + smoke narratif | (à venir) |
 | **N3 — Campagnes fondatrices** | Campagnes Haven et Necropolis (3 chapitres chacune, cartes dédiées, cutscenes caméra, arcs Aldric/Séraphine/Vhalen/Mère Corbeau) ; `campaignState` + écran de sélection de campagne | 2 campagnes finissables en smoke long (IA assistée) ; continuité héros entre chapitres testée |
 | **N4 — La Chasse & le vivant** | Campagne Arcane Hunters (relit N3, arcs Evadne/Marchmont) ; quêtes journalières en mode libre ; 2 événements temporaires ; barks de combat | 3ᵉ campagne = données seules (test de modularité narratif) ; événement daté jouable/expirable |
 
@@ -658,6 +660,26 @@ de journalières pour tout le jeu, la faction ne change que l'habillage.
   dans `GameState`), content 73, `content:check` vert, garde-fou faction vert,
   build < 800 Ko gzip, smoke desktop+mobile (lore de bâtiment affiché).
 
-Prochain lot : **N2 — Systèmes** (`engine/quest` générique + boîte de dialogue
-+ journal + Prologue Haven). Il touche le moteur (nouveau système générique,
-bump de save) — à cadrer explicitement.
+## État N2a — Moteur de quêtes générique (livré)
+
+Cœur moteur du lot N2, livré isolément (le contenu + l'UI = N2b).
+
+- **`engine/quest`** : catalogue de conditions **fermé et générique**
+  (`buildStructure`, `ownUnits`, `defeatGuardian`, `visitTile` + réutilisation
+  des `VictoryCondition` `captureTown`/`defeatHero`/`surviveDays`/
+  `eliminateAllEnemies` via `conditionMet` — une seule notion d'objectif) ;
+  récompenses `resources`/`artifact`/`units`. Le moteur **ignore texte,
+  dialogue, faction, quête nommée** — garde-fou faction vert.
+- **`GameState.quests`** embarqué par `StartGame`, `null` hors campagne.
+  Événements `QuestStarted`/`QuestAdvanced`/`QuestCompleted`. Évaluation en
+  **un seul point** (fin d'`apply()`) : toute commande fait avancer les quêtes.
+- **Bump save 6→7** (garde de version 3.8 → rejet propre des v6). **Golden
+  re-fixé** (`aba92b9f`→`05da0520`, nouveau champ sérialisé `quests: null`,
+  simulation inchangée). 5 tests unitaires (avancée/complétion/récompenses/
+  multi-étapes/no-op).
+- **Convergence `scenario`↔`quest`** : partielle (évaluateur partagé) ; le merge
+  total est différé pour ne pas déstabiliser le golden/les tests scénario.
+
+Prochain lot : **N2b — contenu & UI** (schémas `data/story/`, Prologue Haven en
+données, boîte de dialogue + journal, smoke narratif) — pur contenu + client,
+sans nouveau diff moteur (le catalogue de conditions suffit au prologue).

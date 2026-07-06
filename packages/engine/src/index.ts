@@ -114,6 +114,15 @@ export type {
   GameOutcome,
 } from './scenario/types';
 export { evaluateOutcome } from './scenario/outcome';
+export type {
+  QuestCondition,
+  QuestStep,
+  QuestReward,
+  QuestDef,
+  QuestRuntime,
+  QuestState,
+} from './quest/types';
+export { evaluateQuests, questConditionMet } from './quest/evaluate';
 export { runAiTurn } from './ai/adventure';
 export { findPath, isPassable, stepCost } from './adventure/path';
 export { createFog, revealAround } from './adventure/fog';

@@ -227,6 +227,9 @@ async function bootstrap(): Promise<void> {
       const army = report.content.config.newGame.startingArmy.map((s) => ({ ...s }));
       await dispatch({ type: 'StartCombat', attacker: army, defender: army, terrain: 'grass' });
     }
+  } else if (location.hash === '#editor') {
+    // Éditeur de carte (doc 08, Alpha 4.18) — accès direct sans démarrer de partie.
+    navigate('editor');
   }
 
   window.__HEROES_TEST__ = {

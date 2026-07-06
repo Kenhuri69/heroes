@@ -88,7 +88,7 @@
 
 ### 2.5 Autres écrans
 
-Menu principal (Continuer / Scénarios / Escarmouche / Options), fiche de scénario (objectifs), fin de partie (stats, graphique de puissance), options (langue FR/EN, vitesse anims, taille UI, audio, daltonisme : cf. §4).
+Menu principal (Continuer / Scénarios / Escarmouche / **Éditeur de carte** / Options), fiche de scénario (objectifs), fin de partie (stats, graphique de puissance), options (langue FR/EN, vitesse anims, taille UI, audio, daltonisme : cf. §4).
 
 > 🚧 **État U6b** : l'écran de **fin de partie** (`OutcomeOverlay`) affiche un
 > **graphique de puissance par joueur** — barres horizontales SVG triées par
@@ -119,6 +119,16 @@ Menu principal (Continuer / Scénarios / Escarmouche / Options), fiche de scéna
 > nomme alors le **vainqueur** (« Victoire du joueur N ») plutôt que Victoire/
 > Défaite (centré sur soi). **Aucun code moteur** : la boucle de tours IA s'arrête
 > déjà sur chaque joueur humain. > 2 joueurs / équipes = raffinement ultérieur.
+
+> 🚧 **État (éditeur de carte, Alpha 4.18)** : écran `editor` (route de base, bouton
+> menu ou `#editor`) — outil **interne minimal** pour accélérer la prod de contenu.
+> Grille **DOM** peinte au clic (4 terrains grass/swamp/water/mountain, cibles
+> ≥ 44 px, teinte + libellé/aria non chromatiques seuls), outils position de
+> départ / ressource (or) / ville / gomme, champs id/largeur/hauteur (4–32).
+> **Export** : construit un `MapFile`, le **valide par `mapFileSchema`**
+> (@heroes/content) — jamais d'export invalide — puis télécharge `<id>.map.json` ;
+> **import** d'une carte existante pour l'éditer. Gardiens, triggers, routes et
+> rendu Pixi = raffinements ultérieurs. Client seul (moteur intact).
 
 ## 3. Navigation & flux
 

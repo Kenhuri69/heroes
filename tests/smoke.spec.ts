@@ -422,6 +422,36 @@ test('sort d’aventure : Ville-portail téléporte le héros vers sa ville (Alp
   expect(errors).toEqual([]);
 });
 
+test('éditeur de carte : peindre + départ ⇒ export valide (Alpha 4.18)', async ({ page }) => {
+  const errors = collectErrors(page);
+  await page.goto('./');
+  await page.waitForFunction(() => window.__HEROES_READY__ === true);
+
+  // Ouverture depuis le menu.
+  await page.getByTestId('menu-editor').click();
+  await expect(page.getByTestId('map-editor')).toBeVisible();
+
+  // Peindre une cellule en eau.
+  await page.getByTestId('editor-tool-water').click();
+  await page.getByTestId('editor-cell-1-1').click();
+
+  // Export sans position de départ ⇒ refusé (validation).
+  await page.getByTestId('editor-export').click();
+  await expect(page.getByTestId('editor-error')).toBeVisible();
+
+  // Poser un départ puis exporter ⇒ carte valide (`mapFileSchema`).
+  await page.getByTestId('editor-tool-start').click();
+  await page.getByTestId('editor-cell-0-0').click();
+  await page.getByTestId('editor-export').click();
+  await expect(page.getByTestId('editor-valid')).toBeVisible();
+
+  // Retour menu.
+  await page.getByTestId('editor-back').click();
+  await expect(page.getByTestId('menu-new-game')).toBeVisible();
+
+  expect(errors).toEqual([]);
+});
+
 test('autosave à la fin de tour puis « Continuer » depuis le menu', async ({ page }) => {
   const errors = await openGame(page);
 

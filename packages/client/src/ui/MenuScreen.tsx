@@ -2,7 +2,7 @@ import { useEffect, useState } from 'preact/hooks';
 import { hasAnySave, restoreLatestSave } from '../app/save';
 import { t, resolveScenarioName } from '../app/i18n';
 import { useApp } from '../app/store';
-import { openModal } from '../app/router';
+import { navigate, openModal } from '../app/router';
 import { logoUrl, titleBackgroundUrl } from '../render/assets';
 import { AssetImg } from './AssetImg';
 import './menu.css';
@@ -69,6 +69,13 @@ export function MenuScreen() {
           onClick={() => openModal({ kind: 'skirmish' })}
         >
           {t('menu.skirmish')}
+        </button>
+        <button
+          class="menu-button"
+          data-testid="menu-editor"
+          onClick={() => navigate('editor')}
+        >
+          {t('menu.editor')}
         </button>
         <button class="menu-button" data-testid="menu-options" onClick={() => openModal({ kind: 'options' })}>
           {t('menu.options')}

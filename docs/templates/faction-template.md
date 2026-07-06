@@ -36,3 +36,15 @@
 ## 6. Compétence de faction (si applicable) — 3 rangs
 
 ## 7. Matchups attendus (vs chaque faction existante : pourquoi ~50 % ?)
+
+## 8. Lore & storytelling (chantier narratif — doc 13 §8)
+
+> Ces blocs vivent ensuite dans le paquet (`locales/`, `heroes/named.json`,
+> `story/`) — zéro diff moteur, zéro modification des autres maisons.
+
+- **Identité narrative** (comment la faction *parle* : registre, tics de langage ; ce qu'elle croit ; ce qu'elle se cache) :
+- **Lecture de l'arc global** (que voit-elle dans le sceau de Cendregarde — ou l'arc courant ?) :
+- **Relations aux maisons existantes** (1 phrase par maison en jeu) :
+- **Arcs des 2 héros nommés** (3 étapes chacun, incarnant le thème — cf. §5) :
+- **Textes d'ambiance** : engagement à fournir un `loreKey` FR/EN par unité/bâtiment/artefact, écrit du point de vue de la faction.
+- **Campagne** (optionnelle au premier lot ; 3 chapitres, format doc 13 §6.1) — pitch par chapitre :

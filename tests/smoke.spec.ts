@@ -452,6 +452,55 @@ test('éditeur de carte : peindre + départ ⇒ export valide (Alpha 4.18)', asy
   expect(errors).toEqual([]);
 });
 
+test('télémétrie : opt-in enregistre tours + combats auto, en local (Alpha 4.19)', async ({
+  page,
+}) => {
+  const errors = await openGame(page);
+
+  // Activer la télémétrie (opt-in) depuis les options.
+  await page.getByTestId('options-open').click();
+  await page.getByTestId('options-telemetry-on').click();
+  await expect(page.getByTestId('telemetry-stats')).toBeVisible();
+  await page.getByTestId('options-close').click();
+
+  // Combat de gardien résolu via le bouton « Auto » (compte comme abandon manuel).
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({
+      type: 'MoveHero',
+      heroId: 'hero-player-1',
+      path: [
+        { x: 4, y: 2 },
+        { x: 5, y: 2 },
+        { x: 6, y: 2 },
+        { x: 7, y: 2 },
+        { x: 8, y: 2 },
+        { x: 9, y: 3 },
+      ],
+    }),
+  );
+  await expect(page.getByTestId('combat-round')).toBeVisible();
+  await page.getByTestId('combat-auto').click();
+  await expect
+    .poll(() => page.evaluate(() => window.__HEROES_TEST__!.getState().combat))
+    .toBeNull();
+
+  // Fin de tour ⇒ la durée du tour est enregistrée.
+  await page.getByTestId('end-turn').click();
+  await expect(page.getByTestId('calendar')).toContainText('2');
+
+  // Rouvrir les options : stats non nulles (1 tour, 1 combat auto).
+  await page.getByTestId('options-open').click();
+  await expect(page.getByTestId('telemetry-turns')).toContainText('Tours : 1');
+  await expect(page.getByTestId('telemetry-combats')).toContainText('Combats : 1');
+
+  // Export local + réinitialisation.
+  await page.getByTestId('telemetry-export').click();
+  await page.getByTestId('telemetry-reset').click();
+  await expect(page.getByTestId('telemetry-turns')).toContainText('Tours : 0');
+
+  expect(errors).toEqual([]);
+});
+
 test('autosave à la fin de tour puis « Continuer » depuis le menu', async ({ page }) => {
   const errors = await openGame(page);
 

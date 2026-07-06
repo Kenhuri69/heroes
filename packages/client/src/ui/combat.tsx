@@ -2,6 +2,7 @@ import { useSyncExternalStore } from 'preact/compat';
 import { useState } from 'preact/hooks';
 import { useApp, appStore } from '../app/store';
 import { dispatch } from '../app/dispatch';
+import { recordCombatAuto } from '../app/telemetry';
 import { humanId } from '../app/game';
 import { t, resolveUnitName, commandErrorMessage } from '../app/i18n';
 import { COMBAT_SPEEDS } from '../app/ui-constants';
@@ -38,6 +39,7 @@ export function CombatUi() {
     });
   };
   const auto = (): void => {
+    recordCombatAuto(); // télémétrie opt-in (Alpha 4.19) — délégation = « abandon » manuel
     dispatch({ type: 'AutoCombat' }).catch((err: unknown) => {
       pushToast(commandErrorMessage(err));
     });

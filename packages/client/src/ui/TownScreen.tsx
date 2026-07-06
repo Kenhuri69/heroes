@@ -1,5 +1,14 @@
 import { useState } from 'preact/hooks';
-import { RESOURCE_IDS, buildStatus, builtDwellings, missingRequirements, scaleCost, tradeQuote } from '@heroes/engine';
+import {
+  RESOURCE_IDS,
+  buildStatus,
+  builtDwellings,
+  missingRequirements,
+  scaleCost,
+  tradeQuote,
+  upgradedUnitFor,
+  upgradeCost,
+} from '@heroes/engine';
 import type { BuildingDef, CombatUnitDef, ResourceId, TownState } from '@heroes/engine';
 import { useApp } from '../app/store';
 import { dispatch } from '../app/dispatch';
@@ -26,6 +35,13 @@ const CORE_RESOURCE_IDS: ReadonlySet<string> = new Set<string>(RESOURCE_IDS);
 /** Nom localisé d'une ressource de coût — commune (`resource.<id>`) ou de faction (paquet, CO7). */
 function resourceLabel(id: string): string {
   return CORE_RESOURCE_IDS.has(id) ? t(`resource.${id}`) : resolveFactionResourceName(id);
+}
+
+/** Format compact d'un coût (`{gold:120}` → « 120 Or ») — vide si gratuit. */
+function formatCost(cost: Record<string, number>): string {
+  return Object.entries(cost)
+    .map(([id, amount]) => `${amount} ${resourceLabel(id)}`)
+    .join(', ');
 }
 
 const GARRISON_SLOTS = 7;
@@ -351,8 +367,11 @@ function RecruitTab({
 }
 
 function GarrisonTab({ town, onError }: { town: TownState; onError: (msg: string | null) => void }) {
-  const hero = useApp((s) =>
-    s.game.heroes.find((h) => h.playerId === humanId(s.game) && h.pos.x === town.pos.x && h.pos.y === town.pos.y),
+  // Sélecteur stable (réf `s.game`), dérivations dans le corps (leçon U4 : ne pas
+  // renvoyer un objet/tableau frais du sélecteur → boucle de rendu).
+  const game = useApp((s) => s.game);
+  const hero = game.heroes.find(
+    (h) => h.playerId === humanId(game) && h.pos.x === town.pos.x && h.pos.y === town.pos.y,
   );
 
   const transfer = (from: 'town' | 'hero', slot: number): void => {
@@ -360,6 +379,13 @@ function GarrisonTab({ town, onError }: { town: TownState; onError: (msg: string
     onError(null);
     dispatch({ type: 'GarrisonTransfer', townId: town.id, heroId: hero.id, from, slot }).catch((err: unknown) => {
       onError(commandErrorMessage(err)); // remédiation CL6 : message localisé, plus « code: message » brut
+    });
+  };
+
+  const upgrade = (unitId: string): void => {
+    onError(null);
+    dispatch({ type: 'UpgradeUnits', townId: town.id, unitId }).catch((err: unknown) => {
+      onError(commandErrorMessage(err));
     });
   };
 
@@ -383,6 +409,19 @@ function GarrisonTab({ town, onError }: { town: TownState; onError: (msg: string
                     {hero && (
                       <button data-testid={`town-garrison-to-hero-${i}`} onClick={() => transfer('town', i)}>
                         {t('town.toHero')}
+                      </button>
+                    )}
+                    {upgradedUnitFor(town, game.buildingCatalog, stack.unitId) && (
+                      <button
+                        data-testid={`town-garrison-upgrade-${i}`}
+                        onClick={() => upgrade(stack.unitId)}
+                      >
+                        {t('town.upgrade')}
+                        {(() => {
+                          const up = upgradedUnitFor(town, game.buildingCatalog, stack.unitId)!;
+                          const c = formatCost(upgradeCost(game, stack.unitId, up, stack.count));
+                          return c ? ` (${c})` : '';
+                        })()}
                       </button>
                     )}
                   </>

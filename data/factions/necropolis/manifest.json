@@ -25,7 +25,14 @@
     "t4-vampire",
     "t5-liche",
     "t6-cavalier-funeste",
-    "t7-dragon-os"
+    "t7-dragon-os",
+    "t1-squelette-elite",
+    "t2-zombie-elite",
+    "t3-spectre-elite",
+    "t4-vampire-elite",
+    "t5-liche-elite",
+    "t6-cavalier-funeste-elite",
+    "t7-dragon-os-elite"
   ],
   "abilityModules": [],
   "hooks": [],

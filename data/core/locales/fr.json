@@ -206,6 +206,7 @@
   "town.noHero": "Aucun héros en ville",
   "town.toHero": "→ héros",
   "town.toTown": "← ville",
+  "town.upgrade": "Améliorer",
   "town.stock": "Stock {count}",
   "town.min": "Min",
   "town.max": "Max",
@@ -223,6 +224,7 @@
   "toast.townGrowth": "+{added} {unit} (croissance)",
   "toast.townBuilt": "{building} construit (niveau {level})",
   "toast.unitsRecruited": "{count} {unit} recrutés",
+  "toast.unitsUpgraded": "{count} {unit} améliorés",
 
   "building.townHall": "Hôtel de ville",
   "building.fort": "Fort",

@@ -18,7 +18,15 @@
     "t5-lame",
     "t6-chasseresse",
     "t7-manticore",
-    "t8-penitent"
+    "t8-penitent",
+    "t1-eleve-elite",
+    "t2-familier-elite",
+    "t3-prefet-elite",
+    "t4-bibliothecaire-elite",
+    "t5-lame-elite",
+    "t6-chasseresse-elite",
+    "t7-manticore-elite",
+    "t8-penitent-elite"
   ],
   "abilityModules": [],
   "hooks": [],

@@ -1,0 +1,9 @@
+{
+  "id": "t2-archer-elite",
+  "tier": 2,
+  "name": "@loc:unit.t2-archer-elite.name",
+  "stats": { "hp": 13, "attack": 5, "defense": 4, "damage": [3, 5], "speed": 5 },
+  "growthPerWeek": 9,
+  "cost": { "gold": 140 },
+  "abilities": [{ "id": "shooter", "params": { "ammo": 12 } }]
+}

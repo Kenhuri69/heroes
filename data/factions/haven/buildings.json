@@ -2,78 +2,113 @@
   "buildings": [
     {
       "id": "haven-dwelling-t1",
-      "maxLevel": 1,
+      "maxLevel": 2,
       "levels": [
         {
           "cost": { "gold": 500 },
           "requires": [{ "building": "fort", "level": 1 }],
           "effect": { "type": "dwelling", "tier": 1, "unitId": "t1-conscrit" }
+        },
+        {
+          "cost": { "gold": 350 },
+          "requires": [],
+          "effect": { "type": "dwelling", "tier": 1, "unitId": "t1-conscrit-elite" }
         }
       ]
     },
     {
       "id": "haven-dwelling-t2",
-      "maxLevel": 1,
+      "maxLevel": 2,
       "levels": [
         {
           "cost": { "gold": 1000, "wood": 5 },
           "requires": [{ "building": "haven-dwelling-t1", "level": 1 }],
           "effect": { "type": "dwelling", "tier": 2, "unitId": "t2-archer" }
+        },
+        {
+          "cost": { "gold": 700, "wood": 3 },
+          "requires": [],
+          "effect": { "type": "dwelling", "tier": 2, "unitId": "t2-archer-elite" }
         }
       ]
     },
     {
       "id": "haven-dwelling-t3",
-      "maxLevel": 1,
+      "maxLevel": 2,
       "levels": [
         {
           "cost": { "gold": 2000, "ore": 5 },
           "requires": [{ "building": "haven-dwelling-t2", "level": 1 }],
           "effect": { "type": "dwelling", "tier": 3, "unitId": "t3-frere-lame" }
+        },
+        {
+          "cost": { "gold": 1400, "ore": 3 },
+          "requires": [],
+          "effect": { "type": "dwelling", "tier": 3, "unitId": "t3-frere-lame-elite" }
         }
       ]
     },
     {
       "id": "haven-dwelling-t4",
-      "maxLevel": 1,
+      "maxLevel": 2,
       "levels": [
         {
           "cost": { "gold": 3000, "wood": 10 },
           "requires": [{ "building": "haven-dwelling-t3", "level": 1 }],
           "effect": { "type": "dwelling", "tier": 4, "unitId": "t4-griffon" }
+        },
+        {
+          "cost": { "gold": 2100, "wood": 6 },
+          "requires": [],
+          "effect": { "type": "dwelling", "tier": 4, "unitId": "t4-griffon-elite" }
         }
       ]
     },
     {
       "id": "haven-dwelling-t5",
-      "maxLevel": 1,
+      "maxLevel": 2,
       "levels": [
         {
           "cost": { "gold": 3500, "gems": 2 },
           "requires": [{ "building": "mageGuild", "level": 1 }],
           "effect": { "type": "dwelling", "tier": 5, "unitId": "t5-pretresse" }
+        },
+        {
+          "cost": { "gold": 2450, "gems": 1 },
+          "requires": [],
+          "effect": { "type": "dwelling", "tier": 5, "unitId": "t5-pretresse-elite" }
         }
       ]
     },
     {
       "id": "haven-dwelling-t6",
-      "maxLevel": 1,
+      "maxLevel": 2,
       "levels": [
         {
           "cost": { "gold": 4500, "crystal": 2 },
           "requires": [{ "building": "haven-dwelling-t5", "level": 1 }],
           "effect": { "type": "dwelling", "tier": 6, "unitId": "t6-chevalier-griffon" }
+        },
+        {
+          "cost": { "gold": 3200, "crystal": 1 },
+          "requires": [],
+          "effect": { "type": "dwelling", "tier": 6, "unitId": "t6-chevalier-griffon-elite" }
         }
       ]
     },
     {
       "id": "haven-dwelling-t7",
-      "maxLevel": 1,
+      "maxLevel": 2,
       "levels": [
         {
           "cost": { "gold": 6000, "crystal": 3, "gems": 3 },
           "requires": [{ "building": "haven-dwelling-t6", "level": 1 }],
           "effect": { "type": "dwelling", "tier": 7, "unitId": "t7-ange" }
+        },
+        {
+          "cost": { "gold": 4300, "crystal": 2, "gems": 2 },
+          "requires": [],
+          "effect": { "type": "dwelling", "tier": 7, "unitId": "t7-ange-elite" }
         }
       ]
     }

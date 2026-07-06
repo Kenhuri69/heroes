@@ -14,7 +14,8 @@
   "tiers": 7,
   "sharedGrowthGroups": {},
   "units": [
-    "t1-recruit"
+    "t1-recruit",
+    "t1-recruit-elite"
   ],
   "abilityModules": [],
   "hooks": [],

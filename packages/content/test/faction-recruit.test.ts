@@ -31,9 +31,25 @@ const readJsonFromDisk: ReadJson = async (path) => {
   return JSON.parse(text) as unknown;
 };
 
-/** La faction cible : native de l'herbe, lineup complet de 7 tiers (doc 03 §3). */
+/**
+ * La faction cible : native de l'herbe, lineup complet de 7 tiers de BASE
+ * (doc 03 §3). Le compte de base (via les dwellings) distingue Haven (7) de la
+ * faction de test (1), là où `manifest.tiers` ou `units.length` ne le font plus
+ * (la faction de test déclare aussi 7 tiers ; `units` inclut les améliorées — 4.11).
+ */
 function findSevenTierGrassFaction(packs: Awaited<ReturnType<typeof loadContent>>['content']['packs']) {
-  return packs.find((p) => p.manifest.nativeTerrain === 'grass' && p.units.length === 7);
+  return packs.find((p) => p.manifest.nativeTerrain === 'grass' && baseUnits(p).length === 7);
+}
+
+/**
+ * Unités de BASE du lineup (une par tier) — celles référencées par
+ * `manifest.town.dwellings`. Depuis les upgrades (Alpha 4.11), `pack.units`
+ * contient aussi les variantes améliorées (`-elite`, recrutables au dwelling
+ * niveau 2) : les tests de lineup/recrutement de base filtrent sur celles-ci.
+ */
+function baseUnits(pack: Awaited<ReturnType<typeof loadContent>>['content']['packs'][number]) {
+  const baseIds = new Set((pack.manifest.town?.dwellings ?? []).map((d) => d.unitId));
+  return pack.units.filter((u) => baseIds.has(u.id));
 }
 
 /**
@@ -94,7 +110,7 @@ describe('faction data-driven à 7 tiers (plan phase-3.3) — chargement & recru
     expect(report.rejected).toEqual([]);
     const pack = findSevenTierGrassFaction(report.content.packs);
     expect(pack).toBeDefined();
-    expect(pack?.units).toHaveLength(7);
+    expect(baseUnits(pack!)).toHaveLength(7); // 7 tiers de base (+ variantes améliorées)
     // Nom de faction présent dans les deux langues (valeur non assertée en dur
     // pour ne pas réintroduire de littéral de nom de faction). Clé propre au
     // paquet (`@loc:faction.<id>.name`), lue depuis le manifeste.
@@ -106,7 +122,7 @@ describe('faction data-driven à 7 tiers (plan phase-3.3) — chargement & recru
   it('résout les stats et capacités attendues pour chaque tier (doc 03 §3)', async () => {
     const report = await loadContent(readJsonFromDisk);
     const pack = findSevenTierGrassFaction(report.content.packs);
-    const byTier = new Map(pack?.units.map((u) => [u.tier, u]));
+    const byTier = new Map(baseUnits(pack!).map((u) => [u.tier, u]));
 
     const t2 = byTier.get(2); // archer
     expect(t2?.stats.hp).toBe(10);
@@ -194,7 +210,10 @@ describe('faction data-driven à 7 tiers (plan phase-3.3) — chargement & recru
 
     let state = apply(createEmptyState(), startCmd).state;
 
-    for (const unit of pack.units) {
+    // On recrute les unités de BASE (dwellings au niveau 1) — les variantes
+    // améliorées exigeraient le dwelling niveau 2 (Alpha 4.11).
+    const base = baseUnits(pack);
+    for (const unit of base) {
       const { state: next, events } = apply(state, {
         type: 'RecruitUnits',
         townId: 'town-1',
@@ -212,12 +231,12 @@ describe('faction data-driven à 7 tiers (plan phase-3.3) — chargement & recru
 
     const garrison = state.towns[0]?.garrison ?? [];
     expect(garrison).toHaveLength(7);
-    for (const unit of pack.units) {
+    for (const unit of base) {
       expect(garrison).toContainEqual({ unitId: unit.id, count: 1 });
     }
 
     // Coût total débité (or uniquement, pour ne pas dépendre de l'ordre de recrutement).
-    const totalGoldCost = pack.units.reduce((sum, u) => sum + (u.cost['gold'] ?? 0), 0);
+    const totalGoldCost = base.reduce((sum, u) => sum + (u.cost['gold'] ?? 0), 0);
     expect(state.players[0]?.resources.gold).toBe(100_000 - totalGoldCost);
   });
 });
@@ -234,7 +253,8 @@ describe('faction morte-vivante (plan phase-3.4) — effet de faction & recrutem
     expect(report.rejected).toEqual([]);
     const pack = findUndeadFaction(report.content.packs);
     expect(pack).toBeDefined();
-    expect(pack?.units).toHaveLength(7);
+    expect(baseUnits(pack!)).toHaveLength(7); // 7 tiers de base (+ variantes améliorées)
+    // Toutes les unités (base ET améliorées) restent mortes-vivantes.
     for (const unit of pack?.units ?? []) {
       expect(unit.abilities.some((a) => a.id === 'undead')).toBe(true);
     }
@@ -325,7 +345,9 @@ describe('faction morte-vivante (plan phase-3.4) — effet de faction & recrutem
 
     let state = apply(createEmptyState(), startCmd).state;
 
-    for (const unit of pack.units) {
+    // Unités de base (dwellings niveau 1) — les améliorées exigeraient le niveau 2.
+    const base = baseUnits(pack);
+    for (const unit of base) {
       const { state: next, events } = apply(state, {
         type: 'RecruitUnits',
         townId: 'town-1',
@@ -343,7 +365,7 @@ describe('faction morte-vivante (plan phase-3.4) — effet de faction & recrutem
 
     const garrison = state.towns[0]?.garrison ?? [];
     expect(garrison).toHaveLength(7);
-    for (const unit of pack.units) {
+    for (const unit of base) {
       expect(garrison).toContainEqual({ unitId: unit.id, count: 1 });
     }
   });

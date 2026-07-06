@@ -31,11 +31,22 @@ const readJsonFromDisk: ReadJson = async (path) => {
   return JSON.parse(text) as unknown;
 };
 
-/** La faction « chasseurs » : celle dont la majorité des unités portent `mark`. */
+/**
+ * Unités de BASE du lineup (référencées par les dwellings). Depuis les upgrades
+ * (Alpha 4.11), `pack.units` inclut aussi les variantes améliorées : la
+ * signature de faction se lit sur le lineup de base.
+ */
+function baseUnits(pack: Awaited<ReturnType<typeof loadContent>>['content']['packs'][number]) {
+  const ids = new Set((pack.manifest.town?.dwellings ?? []).map((d) => d.unitId));
+  return pack.units.filter((u) => ids.has(u.id));
+}
+
+/** La faction « chasseurs » : celle dont la majorité des unités DE BASE portent `mark`. */
 function findMarkFaction(packs: Awaited<ReturnType<typeof loadContent>>['content']['packs']) {
   return packs.find((p) => {
-    const marked = p.units.filter((u) => u.abilities.some((a) => a.id === 'mark'));
-    return p.units.length >= 6 && marked.length >= p.units.length - 1;
+    const base = baseUnits(p);
+    const marked = base.filter((u) => u.abilities.some((a) => a.id === 'mark'));
+    return base.length >= 6 && marked.length >= base.length - 1;
   });
 }
 
@@ -85,10 +96,11 @@ describe('Arcane Hunters (plan phase-4.2) — signature Marque & lineup data-onl
     const { content } = await loadContent(readJsonFromDisk);
     const pack = findMarkFaction(content.packs);
     expect(pack, 'faction signature `mark` absente — content:check devrait échouer').toBeDefined();
-    expect(pack!.units.length).toBeGreaterThanOrEqual(7);
-    // La signature vit dans les données : (presque) toute l'unité porte `mark`.
-    const marked = pack!.units.filter((u) => u.abilities.some((a) => a.id === 'mark'));
-    expect(marked.length).toBeGreaterThanOrEqual(pack!.units.length - 1);
+    const base = baseUnits(pack!);
+    expect(base.length).toBeGreaterThanOrEqual(7);
+    // La signature vit dans les données : (presque) toute l'unité de base porte `mark`.
+    const marked = base.filter((u) => u.abilities.some((a) => a.id === 'mark'));
+    expect(marked.length).toBeGreaterThanOrEqual(base.length - 1);
     // Nom localisé fr/en présent (clé propre au paquet).
     const nameKey = pack!.manifest.name.slice('@loc:'.length);
     expect(pack!.locales.fr[nameKey]).toBeTruthy();
@@ -163,9 +175,10 @@ describe('Arcane Hunters (plan phase-4.2) — signature Marque & lineup data-onl
         p.id === 'p1' ? { ...p, factionResources: { ...p.factionResources, essence: 10_000 } } : p,
       ),
     };
-    // Chaque tier est recrutable indépendamment (8 tiers > 7 piles de garnison :
-    // on ne les cumule pas, on prouve que chacun passe depuis l'état de base).
-    for (const unit of pack.units) {
+    // Chaque tier de BASE est recrutable indépendamment (dwelling niveau 1 ;
+    // les variantes améliorées exigeraient le niveau 2 — Alpha 4.11). 8 tiers >
+    // 7 piles de garnison : on ne les cumule pas, on prouve que chacun passe.
+    for (const unit of baseUnits(pack)) {
       const { events } = apply(state, {
         type: 'RecruitUnits',
         townId: 'town-1',

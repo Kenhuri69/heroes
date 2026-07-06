@@ -26,6 +26,8 @@ import {
   validateGarrisonTransfer,
   validateRecruitUnits,
   validateTradeResources,
+  validateUpgradeUnits,
+  handleUpgradeUnits,
 } from '../town';
 import {
   handleCastSpell,
@@ -88,6 +90,7 @@ const GAME_OVER_BLOCKED = new Set<Command['type']>([
   'AutoCombat',
   'BuildStructure',
   'RecruitUnits',
+  'UpgradeUnits',
   'GarrisonTransfer',
   'CaptureTown',
   'TradeResources',
@@ -175,6 +178,11 @@ export function validate(state: GameState, cmd: Command): CommandError | null {
       if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
       if (state.combat) return { code: 'combatActive', message: 'un combat est en cours' };
       return validateRecruitUnits(state, cmd);
+    }
+    case 'UpgradeUnits': {
+      if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
+      if (state.combat) return { code: 'combatActive', message: 'un combat est en cours' };
+      return validateUpgradeUnits(state, cmd);
     }
     case 'GarrisonTransfer': {
       if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
@@ -383,6 +391,10 @@ const handlers: Handlers = {
 
   RecruitUnits(draft, cmd, events) {
     handleRecruitUnits(draft, cmd, events);
+  },
+
+  UpgradeUnits(draft, cmd, events) {
+    handleUpgradeUnits(draft, cmd, events);
   },
 
   GarrisonTransfer(draft, cmd, events) {

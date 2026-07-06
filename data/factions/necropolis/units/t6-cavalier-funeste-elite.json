@@ -1,0 +1,9 @@
+{
+  "id": "t6-cavalier-funeste-elite",
+  "tier": 6,
+  "name": "@loc:unit.t6-cavalier-funeste-elite.name",
+  "stats": { "hp": 86, "attack": 18, "defense": 16, "damage": [16, 24], "speed": 10 },
+  "growthPerWeek": 2,
+  "cost": { "gold": 1900, "sulfur": 2 },
+  "abilities": [{ "id": "undead" }]
+}

@@ -100,9 +100,17 @@ describe('équilibrage grossier (plan phase-3.6) — deux factions à 7 tiers, v
   it('aucune faction ne domine > 85 % des duels à budget or égal', async () => {
     const report = await loadContent(readJsonFromDisk);
     const packs = report.content.packs;
-    // Deux factions à 7 tiers de terrains natifs distincts (identifiées par
-    // propriété, pas par nom — garde-fou de modularité).
-    const seven = packs.filter((p) => p.units.length === 7);
+    // Unités de BASE (une par tier, référencées par les dwellings) — l'équilibrage
+    // grossier compare les lineups de base à valeur égale. Depuis les upgrades
+    // (4.11), `pack.units` inclut aussi les variantes améliorées.
+    const baseUnits = (p: (typeof packs)[number]) => {
+      const ids = new Set((p.manifest.town?.dwellings ?? []).map((d) => d.unitId));
+      return p.units.filter((u) => ids.has(u.id));
+    };
+    // Deux factions au lineup de base de 7 tiers, terrains natifs distincts
+    // (identifiées par propriété, pas par nom — garde-fou de modularité ; le
+    // compte de base exclut la faction de test à 1 unité qui déclare 7 tiers).
+    const seven = packs.filter((p) => baseUnits(p).length === 7);
     expect(seven.length).toBeGreaterThanOrEqual(2);
     const a = seven[0]!;
     const b = seven[1]!;
@@ -128,8 +136,8 @@ describe('équilibrage grossier (plan phase-3.6) — deux factions à 7 tiers, v
     const terrain = !nativeTerrains.has('grass') ? 'grass' : !nativeTerrains.has('swamp') ? 'swamp' : 'grass';
 
     const budget = 5000; // or : effectifs = floor(budget / coût unitaire) par tier
-    const byTierA = new Map(a.units.map((u) => [u.tier, u]));
-    const byTierB = new Map(b.units.map((u) => [u.tier, u]));
+    const byTierA = new Map(baseUnits(a).map((u) => [u.tier, u]));
+    const byTierB = new Map(baseUnits(b).map((u) => [u.tier, u]));
 
     let aWins = 0;
     let total = 0;

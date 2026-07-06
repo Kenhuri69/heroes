@@ -81,6 +81,8 @@ export type GameEvent =
   // ——— Villes (doc 02 §4) — surface figée en cadrage 3.1 ———
   | { type: 'TownBuilt'; townId: string; buildingId: string; level: number }
   | { type: 'UnitsRecruited'; townId: string; unitId: string; count: number }
+  /** Amélioration d'une pile de garnison (doc 02 §4.1, Alpha 4.11). */
+  | { type: 'UnitsUpgraded'; townId: string; fromUnitId: string; toUnitId: string; count: number }
   | { type: 'TownIncome'; playerId: string; resource: string; amount: number }
   | { type: 'TownGrowth'; townId: string; unitId: string; added: number }
   | { type: 'TownCaptured'; townId: string; playerId: string }

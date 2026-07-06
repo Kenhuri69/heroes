@@ -77,6 +77,17 @@ export type Command =
   | { type: 'BuildStructure'; townId: string; buildingId: string }
   | { type: 'RecruitUnits'; townId: string; unitId: string; count: number }
   | {
+      /**
+       * Améliore toute la pile de garnison `unitId` (base) en sa variante
+       * améliorée (doc 02 §4.1, Alpha 4.11) : requiert le dwelling amélioré bâti
+       * (niveau 2) ; débite le différentiel de coût. Mapping base→amélioré
+       * dérivé du dwelling gradué — aucun nom de faction dans le moteur.
+       */
+      type: 'UpgradeUnits';
+      townId: string;
+      unitId: string;
+    }
+  | {
       /** Échange une pile entre garnison de ville et armée du héros présent. */
       type: 'GarrisonTransfer';
       townId: string;
@@ -128,6 +139,7 @@ export interface CommandError {
     | 'exclusiveChoiceLocked'
     | 'cannotAfford'
     | 'notRecruitable'
+    | 'notUpgradable'
     | 'insufficientStock'
     | 'invalidTransfer'
     | 'invalidTrade'

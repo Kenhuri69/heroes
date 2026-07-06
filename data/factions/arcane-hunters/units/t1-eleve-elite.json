@@ -1,0 +1,9 @@
+{
+  "id": "t1-eleve-elite",
+  "tier": 1,
+  "name": "@loc:unit.t1-eleve-elite.name",
+  "stats": { "hp": 6, "attack": 4, "defense": 3, "damage": [2, 4], "speed": 6 },
+  "growthPerWeek": 12,
+  "cost": { "gold": 63 },
+  "abilities": [{ "id": "mark" }]
+}

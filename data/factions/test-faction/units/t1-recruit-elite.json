@@ -1,0 +1,20 @@
+{
+  "id": "t1-recruit-elite",
+  "tier": 1,
+  "name": "@loc:unit.t1-recruit-elite.name",
+  "stats": {
+    "hp": 8,
+    "attack": 4,
+    "defense": 3,
+    "damage": [
+      2,
+      3
+    ],
+    "speed": 5
+  },
+  "growthPerWeek": 14,
+  "cost": {
+    "gold": 50
+  },
+  "abilities": []
+}

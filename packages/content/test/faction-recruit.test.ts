@@ -35,7 +35,7 @@ const readJsonFromDisk: ReadJson = async (path) => {
  * La faction cible : native de l'herbe, lineup complet de 7 tiers de BASE
  * (doc 03 §3). Le compte de base (via les dwellings) distingue Haven (7) de la
  * faction de test (1), là où `manifest.tiers` ou `units.length` ne le font plus
- * (test-faction déclare aussi 7 tiers ; `units` inclut les améliorées — 4.11).
+ * (la faction de test déclare aussi 7 tiers ; `units` inclut les améliorées — 4.11).
  */
 function findSevenTierGrassFaction(packs: Awaited<ReturnType<typeof loadContent>>['content']['packs']) {
   return packs.find((p) => p.manifest.nativeTerrain === 'grass' && baseUnits(p).length === 7);

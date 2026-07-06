@@ -109,4 +109,11 @@ export type GameEvent =
   | { type: 'UndeadRaised'; heroId: string; unitId: string; count: number }
   // ——— Scénarios & fin de partie (doc 02 §6) — surface figée cadrage 3.5 ———
   | { type: 'PlayerEliminated'; playerId: string }
-  | { type: 'GameEnded'; status: 'won' | 'lost'; winnerPlayerId: string };
+  | { type: 'GameEnded'; status: 'won' | 'lost'; winnerPlayerId: string }
+  // ——— Quêtes de campagne (doc 13 §6.2, N2a) — le moteur émet, le client lit ———
+  /** Une quête embarquée devient active (à `StartGame`). */
+  | { type: 'QuestStarted'; questId: string }
+  /** Une étape franchie (le client peut y attacher un `dialogBefore`). */
+  | { type: 'QuestAdvanced'; questId: string; stepId: string }
+  /** Toutes les étapes franchies : récompenses appliquées. */
+  | { type: 'QuestCompleted'; questId: string };

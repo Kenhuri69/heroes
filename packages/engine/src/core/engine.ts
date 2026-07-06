@@ -43,6 +43,7 @@ import {
 import { heroManaMax } from '../hero/artifacts';
 import { heroGoldPerDay, heroMovementBonus, heroVisionBonus } from '../hero/skills';
 import { evaluateOutcome, tickTownGrace } from '../scenario/outcome';
+import { evaluateQuests } from '../quest/evaluate';
 import { fireDayTriggers } from '../adventure/triggers';
 import { runAiTurn } from '../ai/adventure';
 import { EngineError, type Command, type CommandError } from './commands';
@@ -82,6 +83,9 @@ export function apply(state: GameState, cmd: Command): EngineResult {
   const events: GameEvent[] = [];
   const next = produce(state, (draft) => {
     handlers[cmd.type](draft, cmd as never, events);
+    // Point d'appel unique des quêtes (doc 13 §6.2, N2a) : toute commande qui
+    // change l'état fait avancer les quêtes actives. No-op hors campagne.
+    evaluateQuests(draft, events);
   });
   return { state: next, events };
 }
@@ -318,6 +322,12 @@ const handlers: Handlers = {
     draft.factionCatalog = cmd.factionCatalog ?? {};
     draft.scenario = cmd.scenario ?? null;
     draft.outcome = null;
+    // Quêtes de campagne (doc 13 §6.2, N2a) — embarquées et actives d'emblée ;
+    // le chaînage/déclencheurs viennent au lot contenu N2b.
+    draft.quests = cmd.quests ?? null;
+    if (draft.quests) {
+      for (const q of draft.quests.quests) events.push({ type: 'QuestStarted', questId: q.def.id });
+    }
     draft.towns = (cmd.towns ?? []).map((t) => ({
       ...t,
       buildings: { ...t.buildings },

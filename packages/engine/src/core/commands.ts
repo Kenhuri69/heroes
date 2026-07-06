@@ -5,6 +5,7 @@ import type { BuildingDef, TownState } from '../town/types';
 import type { ArtifactDef, HeroSkillDef, SpellDef } from '../hero/types';
 import type { FactionBonus } from '../faction/types';
 import type { ScenarioState } from '../scenario/types';
+import type { QuestState } from '../quest/types';
 import type { HeroAttributes, ResourceId, Resources } from './state';
 
 export interface PlayerSetup {
@@ -53,6 +54,8 @@ export type Command =
       factionCatalog?: Record<string, { bonuses: FactionBonus[] }>;
       /** Objectifs de scénario par joueur (doc 02 §6, plan phase-3.5) — absent = partie libre. */
       scenario?: ScenarioState;
+      /** Quêtes de campagne (doc 13 §6.2, N2a) — absent = pas de campagne. */
+      quests?: QuestState;
     }
   | {
       /** Chemin calculé par A* côté client ; le moteur revalide chaque pas. */

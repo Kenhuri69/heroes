@@ -600,6 +600,50 @@ test('ville : construire + croissance + recruter + transférer → armée du hé
   expect(errors).toEqual([]);
 });
 
+test('upgrade : bâtir le dwelling amélioré puis améliorer une pile de garnison (Alpha 4.11)', async ({
+  page,
+}) => {
+  const errors = await openGame(page);
+
+  // Amener le héros sur la ville (2,4) et déposer sa pile de base en garnison.
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({ type: 'MoveHero', heroId: 'hero-player-1', path: [{ x: 2, y: 4 }] }),
+  );
+  await expect.poll(() => heroPos(page)).toEqual({ x: 2, y: 4 });
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({
+      type: 'GarrisonTransfer',
+      townId: 'start-town',
+      heroId: 'hero-player-1',
+      from: 'hero',
+      slot: 0,
+    }),
+  );
+  // Améliorer l'habitation (dwelling gradué niveau 2 = variante d'élite débloquée).
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({
+      type: 'BuildStructure',
+      townId: 'start-town',
+      buildingId: 'test-faction-dwelling-t1',
+    }),
+  );
+  expect(
+    await page.evaluate(
+      () => window.__HEROES_TEST__!.getState().towns[0]?.buildings['test-faction-dwelling-t1'],
+    ),
+  ).toBe(2);
+
+  // Écran de ville → onglet Garnison → bouton « Améliorer » → pile convertie.
+  await page.getByTestId('town-open-start-town').click();
+  await page.getByTestId('town-tab-garrison').click();
+  await page.getByTestId('town-garrison-upgrade-0').click();
+  await expect
+    .poll(() => page.evaluate(() => window.__HEROES_TEST__!.getState().towns[0]?.garrison[0]?.unitId))
+    .toBe('t1-recruit-elite');
+
+  expect(errors).toEqual([]);
+});
+
 test('ville : une construction refusée affiche une erreur localisée (remédiation CL6)', async ({ page }) => {
   const errors = await openGame(page);
 

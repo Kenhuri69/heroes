@@ -2,78 +2,113 @@
   "buildings": [
     {
       "id": "necropolis-dwelling-t1",
-      "maxLevel": 1,
+      "maxLevel": 2,
       "levels": [
         {
           "cost": { "gold": 500 },
           "requires": [{ "building": "fort", "level": 1 }],
           "effect": { "type": "dwelling", "tier": 1, "unitId": "t1-squelette" }
+        },
+        {
+          "cost": { "gold": 350, "wood": 5 },
+          "requires": [],
+          "effect": { "type": "dwelling", "tier": 1, "unitId": "t1-squelette-elite" }
         }
       ]
     },
     {
       "id": "necropolis-dwelling-t2",
-      "maxLevel": 1,
+      "maxLevel": 2,
       "levels": [
         {
           "cost": { "gold": 1000, "ore": 5 },
           "requires": [{ "building": "necropolis-dwelling-t1", "level": 1 }],
           "effect": { "type": "dwelling", "tier": 2, "unitId": "t2-zombie" }
+        },
+        {
+          "cost": { "gold": 700, "ore": 5 },
+          "requires": [],
+          "effect": { "type": "dwelling", "tier": 2, "unitId": "t2-zombie-elite" }
         }
       ]
     },
     {
       "id": "necropolis-dwelling-t3",
-      "maxLevel": 1,
+      "maxLevel": 2,
       "levels": [
         {
           "cost": { "gold": 2000, "wood": 5 },
           "requires": [{ "building": "necropolis-dwelling-t2", "level": 1 }],
           "effect": { "type": "dwelling", "tier": 3, "unitId": "t3-spectre" }
+        },
+        {
+          "cost": { "gold": 1400, "wood": 5 },
+          "requires": [],
+          "effect": { "type": "dwelling", "tier": 3, "unitId": "t3-spectre-elite" }
         }
       ]
     },
     {
       "id": "necropolis-dwelling-t4",
-      "maxLevel": 1,
+      "maxLevel": 2,
       "levels": [
         {
           "cost": { "gold": 3000, "ore": 10 },
           "requires": [{ "building": "necropolis-dwelling-t3", "level": 1 }],
           "effect": { "type": "dwelling", "tier": 4, "unitId": "t4-vampire" }
+        },
+        {
+          "cost": { "gold": 2100, "ore": 10 },
+          "requires": [],
+          "effect": { "type": "dwelling", "tier": 4, "unitId": "t4-vampire-elite" }
         }
       ]
     },
     {
       "id": "necropolis-dwelling-t5",
-      "maxLevel": 1,
+      "maxLevel": 2,
       "levels": [
         {
           "cost": { "gold": 3500, "sulfur": 2 },
           "requires": [{ "building": "mageGuild", "level": 1 }],
           "effect": { "type": "dwelling", "tier": 5, "unitId": "t5-liche" }
+        },
+        {
+          "cost": { "gold": 2450, "ore": 10 },
+          "requires": [],
+          "effect": { "type": "dwelling", "tier": 5, "unitId": "t5-liche-elite" }
         }
       ]
     },
     {
       "id": "necropolis-dwelling-t6",
-      "maxLevel": 1,
+      "maxLevel": 2,
       "levels": [
         {
           "cost": { "gold": 4500, "sulfur": 2 },
           "requires": [{ "building": "necropolis-dwelling-t5", "level": 1 }],
           "effect": { "type": "dwelling", "tier": 6, "unitId": "t6-cavalier-funeste" }
+        },
+        {
+          "cost": { "gold": 3150, "wood": 10 },
+          "requires": [],
+          "effect": { "type": "dwelling", "tier": 6, "unitId": "t6-cavalier-funeste-elite" }
         }
       ]
     },
     {
       "id": "necropolis-dwelling-t7",
-      "maxLevel": 1,
+      "maxLevel": 2,
       "levels": [
         {
           "cost": { "gold": 6000, "sulfur": 3, "gems": 3 },
           "requires": [{ "building": "necropolis-dwelling-t6", "level": 1 }],
           "effect": { "type": "dwelling", "tier": 7, "unitId": "t7-dragon-os" }
+        },
+        {
+          "cost": { "gold": 4200, "ore": 15 },
+          "requires": [],
+          "effect": { "type": "dwelling", "tier": 7, "unitId": "t7-dragon-os-elite" }
         }
       ]
     }

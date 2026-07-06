@@ -35,17 +35,21 @@
   (aperçu du coût) ; le dwelling amélioré se bâtit via l'onglet Construire existant.
 
 ## Lots
-- [ ] **B0 (pilote)** — geler + implémenter le moteur : `UpgradeUnits`, event,
-  helper, ajustement `builtDwellings`, tests unitaires (recrute amélioré après
-  upgrade dwelling ; convertit garnison base→amélioré au bon coût ; rejets).
-- [ ] **B1/B2/B3 (délégués Sonnet, disjoints)** — données par faction (haven,
-  necropolis, arcane-hunters) : 7 unités améliorées (stats doc 03/04/05 si
-  fournies, sinon +~30 % cohérent), dwellings maxLevel 2, locales FR/EN.
-  `content:check` + test de recrutement amélioré verts.
-- [ ] **B4 (pilote)** — client : bouton « Améliorer » (garnison) + aperçu coût ;
-  i18n. Smoke : bâtir dwelling amélioré → recruter amélioré → améliorer une pile.
-- [ ] **B5 (pilote)** — docs 03/04/05 (variantes améliorées), doc 02 §4.1
-  (upgrades), roadmap 09 (item coché), plan.
+- [x] **B0 (pilote)** — moteur : `UpgradeUnits` + `UnitsUpgraded` +
+  `upgradedUnitFor`/`upgradeCost`, `notUpgradable`, `builtDwellings` ajusté. **6
+  tests** unitaires. Golden stable (aucun changement de forme).
+- [x] **B1/B2/B3 (délégués Sonnet)** — données par faction : haven 7, necropolis
+  7, arcane-hunters 8 variantes améliorées + dwellings `maxLevel:2` + locales.
+  `content:check` vert (haven 14 / necropolis 14 / arcane 16 unités).
+- [x] **B4 (pilote)** — client : bouton « Améliorer » (+ coût) par pile de
+  garnison, toast `UnitsUpgraded`, i18n. Upgrade ajouté à **test-faction**
+  (démo sur la partie par défaut). Smoke « bâtir dwelling amélioré → améliorer ».
+- [x] **B5 (pilote)** — docs 02 §4.1 (upgrades), roadmap 09 (4.11 livré), plan.
+- [x] **Fix tests** (pilote) — assertions « 7 unités » remplacées par le compte
+  de BASE (via `manifest.town.dwellings`) : `faction-recruit`/`balance`/
+  `arcane-hunters-mark` identifient les factions par propriété robuste (compte de
+  base, pas `units.length`), recrutent les unités de base (le niveau 2 exige le
+  dwelling amélioré). 70 content + 258 engine verts.
 
 ## Invariants
 Moteur pur ; **zéro nom de faction** (mapping dérivé) ; golden stable (à
@@ -55,3 +59,8 @@ touch-first (bouton ≥ 44 px) ; docs à jour.
 ## Journal
 - **2026-07-06** — Création. Base `fdb9871` (main, après #65). Conception : upgrade
   de dwelling = données pures (graded) ; upgrade de piles = 1 commande générique.
+- **2026-07-06** — B0/B4 pilotés + B1/B2/B3 délégués (3 agents Sonnet parallèles).
+  Intégration : correction des tests « 7 unités » (base-aware). Vérif : typecheck
+  4/4, lint, **258 engine + 70 content**, golden **stable** (aucun changement de
+  forme), content:check, build 71,4 Ko, **58 smoke** (dont upgrade). Docs à jour.
+  Mécanisme committé (`2d766eb`) ; données + tests + smoke + docs à committer. PR.

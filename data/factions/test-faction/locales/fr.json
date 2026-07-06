@@ -1,5 +1,6 @@
 {
   "faction.test-faction.name": "Faction test-faction",
   "unit.t1-recruit.name": "Recrue",
+  "unit.t1-recruit-elite.name": "Recrue d'élite",
   "building.test-faction-dwelling-t1": "Habitation : Recrue"
 }

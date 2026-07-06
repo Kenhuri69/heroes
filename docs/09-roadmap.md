@@ -35,10 +35,12 @@ Estimations pour une petite équipe (2–3 dev + 1 artiste temps partiel). Chaqu
 > Décomposition en sous-lots 4.2→4.7, chacun ouvrant **un** point d'extension
 > moteur générique (Marque, consommation de charges, Essence, choix de Cercle,
 > contrats hebdo, `demonform`) + les données qui l'exercent — garde-fou
-> « zéro faction dans le moteur » maintenu.
+> « zéro faction dans le moteur » maintenu. **4.11 livré** : upgrades d'unités
+> pour toutes les factions (habitations graduées `maxLevel:2` = données pures +
+> commande générique `UpgradeUnits`, doc 02 §4.1).
 
 - **Arcane Hunters** produite intégralement via le pipeline de faction (validation grandeur nature de la doc 06 — aucun diff moteur hors ouverture de points d'extension génériques).
-- Unités améliorées (upgrades) pour les 3 factions ; machines de guerre basiques ; sièges v1 (murs, tour, catapulte).
+- ✅ **Unités améliorées (upgrades)** pour toutes les factions (4.11) ; machines de guerre basiques ; sièges v1 (murs, tour, catapulte) restent à faire.
 - Escarmouche vs IA (config de carte, difficulté), hot-seat, sorts d'aventure (Ville-portail…).
 - Outil `faction:sim` + première passe d'équilibrage sérieuse (winrates 45–55 %).
 - Éditeur de carte interne minimal (accélère la prod de contenu).

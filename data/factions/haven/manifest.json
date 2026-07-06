@@ -17,7 +17,14 @@
     "t4-griffon",
     "t5-pretresse",
     "t6-chevalier-griffon",
-    "t7-ange"
+    "t7-ange",
+    "t1-conscrit-elite",
+    "t2-archer-elite",
+    "t3-frere-lame-elite",
+    "t4-griffon-elite",
+    "t5-pretresse-elite",
+    "t6-chevalier-griffon-elite",
+    "t7-ange-elite"
   ],
   "abilityModules": [],
   "hooks": [],

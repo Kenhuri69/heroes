@@ -1,0 +1,9 @@
+{
+  "id": "t4-griffon-elite",
+  "tier": 4,
+  "name": "@loc:unit.t4-griffon-elite.name",
+  "stats": { "hp": 39, "attack": 10, "defense": 9, "damage": [7, 12], "speed": 8 },
+  "growthPerWeek": 5,
+  "cost": { "gold": 520 },
+  "abilities": [{ "id": "flying" }]
+}

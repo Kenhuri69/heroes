@@ -127,12 +127,23 @@ Chaque faction consomme surtout **une paire de ressources rares** (Haven : crist
 | Marché | 1 | échange ressources |
 | Forge | 1 | machines de guerre (post-MVP) |
 | Guilde des mages | 3 (MVP) – 5 | sorts de cercle 1–3 (–5) |
-| Habitations T1–T7 | 1 + amélioration | débloque recrutement du tier ; version améliorée débloque l'unité upgradée (post-MVP pour les upgrades) |
+| Habitations T1–T7 | 2 (base + améliorée) | niveau 1 débloque le tier de base ; niveau 2 (amélioré) débloque l'unité upgradée |
 | Bâtiments spéciaux ×2–3 | 1 | uniques à la faction (définis dans son manifeste) |
 
 - **Recrutement** : chaque habitation a une croissance hebdo (ex. T1 : 14/sem, T7 : 1/sem) ; le stock s'accumule s'il n'est pas recruté (plafond : 2 semaines). Valeurs de départ (Phase 3.1) : coûts des bâtiments communs dans `data/core/buildings.json` (hôtel de ville gratuit→2500/5000/10000 or ; fort 5000 or + 20 minerai, ×2 par niveau ; guilde des mages 2000 or + 5 bois) ; croissance/coût de recrutement dans les données d'unité ; le stock d'une habitation ne se remplit qu'au **passage de semaine** (état de départ vide).
 - **File de garnison** : une ville stocke une armée de défense ; siège si un héros ennemi attaque une ville avec Fort+ (au MVP : combat normal sur décor de ville, sans murs ; murs/catapulte en Alpha).
 - **Capture** : ville sans garnison = capture immédiate ; le joueur qui perd sa dernière ville a 7 jours pour en reprendre une, sinon défaite.
+
+> 🚧 **État (upgrades d'unités, Alpha 4.11)** : chaque habitation est un
+> **bâtiment gradué `maxLevel:2`** — niveau 1 = unité de base, niveau 2
+> (amélioré) débloque la variante upgradée. **Zéro règle moteur nouvelle** :
+> recrutement/croissance de l'unité améliorée passent par le moteur existant
+> (données pures). SEUL point d'extension : la commande générique `UpgradeUnits`
+> convertit une pile de garnison **déjà recrutée** base→améliorée contre le
+> différentiel de coût (mapping base→amélioré **dérivé** du dwelling gradué —
+> jamais un nom de faction). Chaque faction fournit ses 7–8 variantes améliorées
+> en données (`<baseId>-elite`). Améliorer les unités de l'armée du héros (hors
+> garnison) et les machines de guerre restent différés.
 
 ### 4.2 Écran de ville
 

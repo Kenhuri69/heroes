@@ -135,6 +135,11 @@ export function dayIconUrl(px = 24): string | undefined {
   return registry.get(`ui/ui-day_${pickIconSize(px)}`);
 }
 
+/** Icône d'action/onglet (UXD-2) : `ui/<id>_<mipmap>.png` (ex. `act-options`). */
+export function uiIconUrl(id: string, px = 24): string | undefined {
+  return registry.get(`ui/${id}_${pickIconSize(px)}`);
+}
+
 // --- Chemin PixiJS : préchargement + lecture synchrone du cache ---
 
 /** URLs rendues dans PixiJS (tuiles + mines) — préchargées au bootstrap. */

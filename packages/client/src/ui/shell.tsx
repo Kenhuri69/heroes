@@ -11,6 +11,7 @@ import { RESOURCE_COLORS } from '../render/mapObjects';
 import { heroAvatarUrl, resourceIconUrl } from '../render/assets';
 import { t, resolveUnitName } from '../app/i18n';
 import { AssetImg } from './AssetImg';
+import { UiIcon } from './UiIcon';
 import { MenuScreen } from './MenuScreen';
 import { MapEditor } from './MapEditor';
 import { OptionsPanel } from './OptionsPanel';
@@ -226,7 +227,7 @@ function HeroDrawer() {
         aria-label={t('hero.drawerToggle')}
         onClick={() => setOpen((o) => !o)}
       >
-        ☰
+        <UiIcon id="act-hero" fallback="☰" />
       </button>
       <aside class={`hero-drawer${open ? ' open' : ''}`} data-testid="hero-drawer">
         <HeroStrip />
@@ -313,7 +314,7 @@ function TurnBar({ onOpenOptions }: { onOpenOptions: () => void }) {
         )}
         {hint && (
           <span class="guardian-hint" data-testid="guardian-hint">
-            ⚔ {guardianBand(hint.count, bands)}
+            <UiIcon id="act-combat" fallback="⚔" /> {guardianBand(hint.count, bands)}
           </span>
         )}
       </div>
@@ -324,7 +325,7 @@ function TurnBar({ onOpenOptions }: { onOpenOptions: () => void }) {
           aria-label={t('options.title')}
           onClick={onOpenOptions}
         >
-          ⚙
+          <UiIcon id="act-options" fallback="⚙" />
         </button>
         <button
           class="journal-toggle"
@@ -332,7 +333,7 @@ function TurnBar({ onOpenOptions }: { onOpenOptions: () => void }) {
           aria-label={t('journal.open')}
           onClick={() => openModal({ kind: 'journal' })}
         >
-          🔔
+          <UiIcon id="act-journal" fallback="🔔" />
           {unread > 0 && (
             <span class="journal-badge" data-testid="journal-unread">
               {unread}

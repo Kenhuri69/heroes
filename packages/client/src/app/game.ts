@@ -440,6 +440,8 @@ export interface SkirmishConfig {
   difficulty: SkirmishDifficulty;
   /** Adversaire : IA (défaut) ou 2ᵉ joueur humain local (hot-seat, Alpha 4.15). */
   opponent?: 'ai' | 'human';
+  /** Carte aléatoire générée (doc 09, Live 6.2) — sinon la carte par défaut. */
+  randomMap?: boolean;
 }
 
 /**

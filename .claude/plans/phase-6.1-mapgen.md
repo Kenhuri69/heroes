@@ -62,3 +62,18 @@ smoke desktop + mobile (non-régression — 6.1 n'ajoute pas d'UI).
 - **Routes `'0'`** (aucune) et `triggers` omis en 6.1 : valides et suffisants ;
   raffinements (routes reliant les départs, gardiens gradués) = itération.
 - Intégration client (escarmouche « carte aléatoire ») + CLI `map:gen` → **6.2**.
+
+## 6.2 — intégration client + CLI (livré ✅)
+
+- **Client** : `resolveGeneratedMap(report, seed)` (`app/content.ts`) génère la
+  carte puis la **revalide par le même `loadMap`** via un shim `readJson` en
+  mémoire — toute la validation croisée s'applique, aucun détour. `SkirmishConfig`
+  gagne `randomMap?`, `SkirmishScreen` un choix « Standard / Aléatoire »,
+  `main.startSkirmish` résout la carte générée quand `randomMap`.
+- **CLI** : `pnpm map:gen <id> <seed>` (`@heroes/tools`) génère + valide (loadMap
+  réel avec unités connues) + écrit `data/maps/<id>.map.json` ; jamais d'export
+  invalide.
+- **Vérif 6.2** : typecheck 4/4 · golden inchangé · content 82 · content:check ·
+  garde-fous verts · build < 800 Ko · smoke desktop + mobile (escarmouche « carte
+  aléatoire » démarre sur une carte `id: 'random'`). CLI exercé manuellement
+  (carte 24×24 valide écrite puis retirée — non commitée).

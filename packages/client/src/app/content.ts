@@ -1,4 +1,5 @@
 import {
+  generateMap,
   knownArtifactIds,
   knownUnitIds,
   loadContent,
@@ -51,4 +52,19 @@ export async function loadDefaultMap(report: LoadReport): Promise<ResolvedMap> {
 export async function loadScenarioMap(report: LoadReport, scenario: Scenario): Promise<ResolvedMap> {
   const config = report.content.config;
   return loadMap(readJsonFromSite, scenario.map, config, knownUnitIds(report), knownArtifactIds(report));
+}
+
+/**
+ * Carte aléatoire (doc 09, Live 6.2) : générée déterministiquement depuis `seed`
+ * (`generateMap`), puis résolue **par le même `loadMap`** que les cartes du dépôt
+ * — un shim `readJson` sert la carte en mémoire, TOUTE la validation croisée
+ * (schéma, franchissabilité, unités des gardiens) s'applique donc sans détour.
+ */
+export async function resolveGeneratedMap(report: LoadReport, seed: number): Promise<ResolvedMap> {
+  const config = report.content.config;
+  const units = knownUnitIds(report);
+  const generated = generateMap('random', seed, { guardianUnits: [...units] });
+  const readJson: ReadJson = (path) =>
+    path === 'maps/random.map.json' ? Promise.resolve(generated) : readJsonFromSite(path);
+  return loadMap(readJson, 'random', config, units, knownArtifactIds(report));
 }

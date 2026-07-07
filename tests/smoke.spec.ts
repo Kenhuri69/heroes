@@ -496,6 +496,28 @@ test('escarmouche vs IA : config + difficulté génèrent une partie 1v1 (Alpha 
   expect(errors).toEqual([]);
 });
 
+test('carte aléatoire : l’escarmouche démarre sur une carte générée (doc 09, Live 6.2)', async ({ page }) => {
+  const errors = collectErrors(page);
+  await page.goto('./');
+  await page.waitForFunction(() => window.__HEROES_READY__ === true);
+
+  // Écran d'escarmouche → choisir « Aléatoire » → lancer.
+  await page.getByTestId('menu-skirmish').click();
+  await expect(page.getByTestId('skirmish-screen')).toBeVisible();
+  await page.getByTestId('skirmish-map-random').click();
+  await page.getByTestId('skirmish-start').click();
+
+  // La partie démarre sur une carte GÉNÉRÉE (id 'random'), validée en mémoire par
+  // le même loadMap que les cartes du dépôt.
+  await expect(page.getByTestId('end-turn')).toBeVisible();
+  const state = await page.evaluate(() => window.__HEROES_TEST__!.getState());
+  expect(state.started).toBe(true);
+  expect(state.map?.id).toBe('random');
+  expect(state.map?.width ?? 0).toBeGreaterThanOrEqual(12);
+
+  expect(errors).toEqual([]);
+});
+
 test('quêtes journalières : le mode libre génère des contrats déterministes (doc 13 N4c)', async ({ page }) => {
   const errors = await openMenu(page);
 

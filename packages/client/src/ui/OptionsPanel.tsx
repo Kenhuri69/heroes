@@ -3,6 +3,7 @@ import { appStore, useApp } from '../app/store';
 import { t, setLocale } from '../app/i18n';
 import { exportSave, importSave } from '../app/save';
 import { getTelemetry, resetTelemetry, setTelemetryEnabled } from '../app/telemetry';
+import { setMusicVolume, setSfxVolume } from '../app/audio';
 import { COMBAT_SPEEDS } from '../app/ui-constants';
 import './options.css';
 
@@ -22,6 +23,8 @@ export function OptionsPanel({ onClose }: { onClose: () => void }) {
   const locale = useApp((s) => s.locale);
   const fontScale = useApp((s) => s.fontScale);
   const combatSpeed = useApp((s) => s.combatSpeed);
+  const musicVolume = useApp((s) => s.musicVolume);
+  const sfxVolume = useApp((s) => s.sfxVolume);
   const telemetryEnabled = useApp((s) => s.telemetryEnabled);
   useApp((s) => s.telemetryTick); // re-render des stats après reset
   const screen = useApp((s) => s.screen);
@@ -130,6 +133,32 @@ export function OptionsPanel({ onClose }: { onClose: () => void }) {
               </button>
             ))}
           </div>
+        </section>
+
+        <section class="options-section">
+          <h3>{t('options.audio')}</h3>
+          <label class="audio-slider">
+            <span>{t('options.audioMusic')}</span>
+            <input
+              type="range"
+              min={0}
+              max={100}
+              value={Math.round(musicVolume * 100)}
+              data-testid="options-music-volume"
+              onInput={(e) => setMusicVolume(Number((e.target as HTMLInputElement).value) / 100)}
+            />
+          </label>
+          <label class="audio-slider">
+            <span>{t('options.audioSfx')}</span>
+            <input
+              type="range"
+              min={0}
+              max={100}
+              value={Math.round(sfxVolume * 100)}
+              data-testid="options-sfx-volume"
+              onInput={(e) => setSfxVolume(Number((e.target as HTMLInputElement).value) / 100)}
+            />
+          </label>
         </section>
 
         <section class="options-section">

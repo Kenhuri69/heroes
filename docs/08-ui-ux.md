@@ -196,6 +196,18 @@ Menu principal (Continuer / Scénarios / Escarmouche / **Éditeur de carte** / O
 > attack/hit/death) reste différée : le pipeline `asset-sheet` produit des sprites
 > statiques, pas des planches d'animation.
 
+> 🚧 **État UXD-6B (architecture audio)** : l'option **audio** promise ci-dessus
+> existe — section Options avec deux volumes (musique / effets) persistés
+> (`localStorage`, modérés par défaut). Côté moteur/client : `app/audio.ts` —
+> registre **hors bundle** (`import.meta.glob ?url`, OGG prioritaire, repli
+> M4A), lecteur `HTMLAudioElement` **débloqué à la 1ʳᵉ interaction** (politique
+> autoplay), musique par contexte (menu/aventure/combat/ville) abonnée au store,
+> SFX par événement moteur abonnés au bus (gardés au joueur humain hors combat).
+> Le son **double** toujours un feedback visuel existant (jamais le seul canal,
+> §4). **Jouable silencieux** tant qu'aucun fichier n'est présent sous
+> `assets/audio/` (règle F doc 12) — l'intégration se fait en déposant les
+> `.ogg` nommés par convention.
+
 > 🚧 **État UXD-7 (micro-interactions & transitions)** : `ui/interactions.css`
 > (chargé après les tokens, 100 % présentation) dote toute l'UI DOM d'états
 > interactifs cohérents — `:hover` (éclaircissement), `:active` (enfoncement) et

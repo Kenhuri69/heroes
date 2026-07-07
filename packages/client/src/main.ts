@@ -21,6 +21,7 @@ import { navigate } from './app/router';
 import { exportSave, importSave, saveGame, restoreSavedGame, encodeHeroesFile } from './app/save';
 import { installAutosave } from './app/autosave';
 import { initTelemetry } from './app/telemetry';
+import { initAudio } from './app/audio';
 import { initNarrative, initCombatBarks, loadScenarioNarrative, loadFreeModeNarrative } from './app/narrative';
 import { buildDailyQuests } from './app/daily';
 import { registerCamera, unregisterCamera } from './app/camera-control';
@@ -220,6 +221,7 @@ async function bootstrap(): Promise<void> {
 
   installAutosave(); // autosave à chaque fin de tour (doc 07 §4)
   initTelemetry(); // télémétrie locale opt-in (doc 09, Alpha 4.19) — no-op si désactivée
+  initAudio(); // ambiance sonore (UXD-6B) — silencieuse tant qu'aucun fichier audio
   initNarrative(); // couche narrative branchée sur les événements de quête (doc 13, N2b)
   initCombatBarks(); // barks de combat au début d'un combat de campagne (doc 13, N4b)
   initCampaign(report); // avancement de campagne branché sur les événements (doc 13, N3a)

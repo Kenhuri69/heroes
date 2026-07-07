@@ -23,7 +23,7 @@ import { initTelemetry } from './app/telemetry';
 import { initNarrative, loadScenarioNarrative } from './app/narrative';
 import { registerCamera, unregisterCamera } from './app/camera-control';
 import { playOpeningCutscene } from './app/cutscene';
-import { initCampaign, startCampaignChapter } from './app/campaign';
+import { initCampaign, startCampaignChapter, campaignFlags } from './app/campaign';
 import { initI18n, t } from './app/i18n';
 import { preloadPixiTextures, combatBackgroundUrl } from './render/assets';
 import { AdventureScene } from './scenes/adventure/AdventureScene';
@@ -53,6 +53,8 @@ declare global {
       startSkirmish: (config: SkirmishConfig) => Promise<void>;
       /** Démarre un chapitre de campagne, seed fixe (couverture smoke N3a). */
       startCampaignChapter: (campaignId: string, chapterIndex: number) => Promise<void>;
+      /** Drapeaux de campagne posés par les choix de dialogue (couverture smoke N3c.2). */
+      campaignFlags: () => Record<string, boolean>;
     };
   }
 }
@@ -286,6 +288,7 @@ async function bootstrap(): Promise<void> {
     startSkirmish: (config) => startSkirmish(config, TEST_SCENARIO_SEED),
     startCampaignChapter: (campaignId, chapterIndex) =>
       startChapter(campaignId, chapterIndex, TEST_SCENARIO_SEED),
+    campaignFlags,
   };
   window.__HEROES_READY__ = true; // signal pour le smoke test headless
 }

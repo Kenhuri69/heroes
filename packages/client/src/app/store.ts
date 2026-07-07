@@ -9,7 +9,10 @@ import type { Modal, Screen } from './router';
 export interface NarrativeCatalog {
   dialogs: Record<string, DialogNode>;
   characters: Record<string, StoryCharacter>;
-  quests: Record<string, { titleKey: string; descriptionKey?: string; steps: { id: string; dialogBefore?: string }[] }>;
+  quests: Record<
+    string,
+    { titleKey: string; descriptionKey?: string; kind: string; steps: { id: string; dialogBefore?: string }[] }
+  >;
 }
 
 /** Entrée du journal de quêtes (doc 13 §6.3, N2b). */
@@ -17,6 +20,8 @@ export interface QuestJournalEntry {
   id: string;
   titleKey: string;
   descriptionKey?: string;
+  /** Nature de la quête (doc 13 §6.3) — `personal` reçoit un badge dédié. */
+  kind: string;
   stepIndex: number;
   stepCount: number;
   status: 'active' | 'completed';
@@ -91,6 +96,11 @@ export interface AppState {
   activeChapter: { campaignId: string; chapterIndex: number } | null;
   /** Cinématique caméra en cours (doc 13 §6.3, N3c.1) — letterbox + bouton Passer. */
   cutsceneActive: boolean;
+  /**
+   * Drapeaux de campagne (doc 13 §6.3, N3c.2) — posés par les choix de dialogue,
+   * persistés en localStorage et **relus entre campagnes** (méta-jeu global).
+   */
+  campaignFlags: Record<string, boolean>;
 }
 
 export const appStore = createStore<AppState>(() => ({
@@ -119,6 +129,7 @@ export const appStore = createStore<AppState>(() => ({
   campaignProgress: {},
   activeChapter: null,
   cutsceneActive: false,
+  campaignFlags: {},
 }));
 
 /** Hook Preact : re-rend quand la valeur sélectionnée change (égalité stricte). */

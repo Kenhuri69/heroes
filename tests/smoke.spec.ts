@@ -1358,6 +1358,36 @@ test('cinématique : letterbox + Passer sur l’ouverture d’un chapitre (doc 1
   expect(errors).toEqual([]);
 });
 
+test('choix de dialogue : arc personnel d’Aldric → choix binaire pose un drapeau persistant (doc 13 N3c.2)', async ({
+  page,
+}) => {
+  const errors = await openMenu(page);
+
+  // haven-ch2 embarque l'arc personnel d'Aldric (quête `personal`, 3 étapes) : les
+  // 2 premières sont satisfaites par l'armée de départ, l'arc atteint son nœud de
+  // choix binaire dès l'ouverture. On déroule sans passer la cinématique (qui
+  // viderait la file de dialogues de l'arc).
+  await page.evaluate(() => window.__HEROES_TEST__!.startScenario('haven-ch2'));
+
+  await expect(page.getByTestId('dialogue-box')).toBeVisible();
+  await page.getByTestId('dialogue-skip').click(); // dlg-aldric-1 → dlg-aldric-2
+  await page.getByTestId('dialogue-skip').click(); // dlg-aldric-2 → dlg-aldric-choice
+
+  // Au nœud de choix : deux boutons, aucun « Passer » (une décision est requise).
+  await expect(page.getByTestId('dialogue-choices')).toBeVisible();
+  await expect(page.getByTestId('dialogue-skip')).toHaveCount(0);
+  await expect(page.getByTestId('dialogue-choice-0')).toBeVisible();
+  await expect(page.getByTestId('dialogue-choice-1')).toBeVisible();
+
+  // Choisir « clément » pose le drapeau, persisté (relu entre campagnes).
+  await page.getByTestId('dialogue-choice-0').click();
+  const flags = await page.evaluate(() => window.__HEROES_TEST__!.campaignFlags());
+  expect(flags['aldric-merciful']).toBe(true);
+  expect(flags['aldric-ruthless']).toBeUndefined();
+
+  expect(errors).toEqual([]);
+});
+
 test('scénario : gagner « survie » contre l’IA (surviveDays)', async ({ page }) => {
   const errors = await openMenu(page);
 

@@ -1,5 +1,5 @@
 import { useApp } from '../app/store';
-import { advanceDialogue, skipDialogue } from '../app/narrative';
+import { advanceDialogue, chooseDialogueOption, skipDialogue } from '../app/narrative';
 import { t, resolveLoc } from '../app/i18n';
 import './DialogueBox.css';
 
@@ -8,7 +8,8 @@ import './DialogueBox.css';
  * bas d'écran — portrait/nom du locuteur + réplique, « toucher pour continuer »,
  * bouton **Passer** persistant (≥ 44 px). Touch-first : un tap n'importe où sur
  * la boîte avance ; le bouton Passer saute le nœud entier. `rem` → 3 crans de
- * police. Rien ne s'affiche hors dialogue.
+ * police. À la dernière ligne d'un nœud à `choices` (N3c.2), des boutons de choix
+ * remplacent « continuer »/« Passer » — une décision est requise. Rien hors dialogue.
  */
 export function DialogueBox() {
   const dialogue = useApp((s) => s.dialogue);
@@ -24,9 +25,16 @@ export function DialogueBox() {
   const speaker = characters[line.speaker];
   const speakerName = speaker ? resolveScenarioLoc(speaker.nameKey) : line.speaker;
   const last = dialogue.line >= dialogue.node.lines.length - 1;
+  // Choix (N3c.2) : proposés seulement à la dernière ligne du nœud.
+  const choices = last ? dialogue.node.choices : undefined;
 
   return (
-    <div class="dialogue-box" data-testid="dialogue-box" onClick={advanceDialogue}>
+    <div
+      class="dialogue-box"
+      data-testid="dialogue-box"
+      // Avec des choix affichés, le tap sur la boîte n'avance pas : le joueur doit décider.
+      onClick={choices ? undefined : advanceDialogue}
+    >
       <div class="dialogue-portrait" data-portrait={line.portrait ?? 'neutre'} aria-hidden="true">
         {speakerName.slice(0, 1)}
       </div>
@@ -35,18 +43,38 @@ export function DialogueBox() {
         <p class="dialogue-text" data-testid="dialogue-text">
           {resolveScenarioLoc(line.textKey)}
         </p>
-        <p class="dialogue-hint">{t('dialogue.tapContinue')}</p>
+        {choices ? (
+          <div class="dialogue-choices" data-testid="dialogue-choices">
+            {choices.map((choice, i) => (
+              <button
+                key={i}
+                class="dialogue-choice"
+                data-testid={`dialogue-choice-${i}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  chooseDialogueOption(choice);
+                }}
+              >
+                {resolveScenarioLoc(choice.textKey)}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <p class="dialogue-hint">{t('dialogue.tapContinue')}</p>
+        )}
       </div>
-      <button
-        class="dialogue-skip"
-        data-testid="dialogue-skip"
-        onClick={(e) => {
-          e.stopPropagation();
-          skipDialogue();
-        }}
-      >
-        {last ? t('dialogue.tapContinue') : t('dialogue.skip')}
-      </button>
+      {!choices && (
+        <button
+          class="dialogue-skip"
+          data-testid="dialogue-skip"
+          onClick={(e) => {
+            e.stopPropagation();
+            skipDialogue();
+          }}
+        >
+          {last ? t('dialogue.tapContinue') : t('dialogue.skip')}
+        </button>
+      )}
     </div>
   );
 }

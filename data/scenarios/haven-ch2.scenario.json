@@ -71,6 +71,22 @@
         { "speaker": "seraphine", "portrait": "grave", "textKey": "@loc:dlg.ch2.open.1" },
         { "speaker": "aldric", "textKey": "@loc:dlg.ch2.open.2" }
       ]
+    },
+    {
+      "id": "dlg-aldric-1",
+      "lines": [{ "speaker": "aldric", "textKey": "@loc:dlg.aldric.arc.1" }]
+    },
+    {
+      "id": "dlg-aldric-2",
+      "lines": [{ "speaker": "seraphine", "portrait": "grave", "textKey": "@loc:dlg.aldric.arc.2" }]
+    },
+    {
+      "id": "dlg-aldric-choice",
+      "lines": [{ "speaker": "aldric", "textKey": "@loc:dlg.aldric.arc.3" }],
+      "choices": [
+        { "textKey": "@loc:dlg.aldric.arc.merciful", "setFlag": "aldric-merciful" },
+        { "textKey": "@loc:dlg.aldric.arc.ruthless", "setFlag": "aldric-ruthless" }
+      ]
     }
   ],
   "quests": [
@@ -83,6 +99,30 @@
         { "id": "defeat-heresh", "condition": { "type": "defeatHero", "heroId": "hero-ai-1" } }
       ],
       "rewards": [{ "type": "resources", "resources": { "gold": 2000 } }]
+    },
+    {
+      "id": "aldric-serment",
+      "kind": "personal",
+      "titleKey": "@loc:quest.aldric-serment.title",
+      "descriptionKey": "@loc:quest.aldric-serment.desc",
+      "steps": [
+        {
+          "id": "rallier-la-garde",
+          "condition": { "type": "ownUnits", "unitId": "t1-conscrit", "count": 20 },
+          "dialogBefore": "dlg-aldric-1"
+        },
+        {
+          "id": "armer-les-archers",
+          "condition": { "type": "ownUnits", "unitId": "t2-archer", "count": 8 },
+          "dialogBefore": "dlg-aldric-2"
+        },
+        {
+          "id": "le-serment",
+          "condition": { "type": "defeatHero", "heroId": "hero-ai-1" },
+          "dialogBefore": "dlg-aldric-choice"
+        }
+      ],
+      "rewards": []
     }
   ]
 }

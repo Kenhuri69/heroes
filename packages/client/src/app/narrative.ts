@@ -1,8 +1,12 @@
-import type { Scenario } from '@heroes/content';
+import type { DialogNode, Scenario } from '@heroes/content';
 import { eventBus } from './events';
+import { setCampaignFlag } from './campaign';
 import { t } from './i18n';
 import { appStore, type NarrativeCatalog, type QuestJournalEntry } from './store';
 import { pushToast } from '../ui/toasts';
+
+/** Un choix de dialogue (doc 13 §6.3, N3c.2) — forme du schéma de contenu. */
+type DialogChoice = NonNullable<DialogNode['choices']>[number];
 
 /**
  * Couche de présentation narrative (doc 13 §6.2/§6.3, lot N2b) : abonnée aux
@@ -22,6 +26,7 @@ export function loadScenarioNarrative(scenario: Scenario): void {
         {
           titleKey: q.titleKey,
           ...(q.descriptionKey !== undefined ? { descriptionKey: q.descriptionKey } : {}),
+          kind: q.kind,
           steps: q.steps.map((s) => ({
             id: s.id,
             ...(s.dialogBefore !== undefined ? { dialogBefore: s.dialogBefore } : {}),
@@ -60,6 +65,18 @@ export function skipDialogue(): void {
   if (appStore.getState().dialogue) nextDialogueNode();
 }
 
+/**
+ * Résout un choix de dialogue (doc 13 §6.3, N3c.2) : pose le drapeau éventuel
+ * (`setFlag`), puis saute au nœud `next` s'il existe, sinon enchaîne la file.
+ */
+export function chooseDialogueOption(choice: DialogChoice): void {
+  if (choice.setFlag) setCampaignFlag(choice.setFlag);
+  const { narrative } = appStore.getState();
+  const nextNode = choice.next ? narrative?.dialogs[choice.next] : undefined;
+  if (nextNode) appStore.setState({ dialogue: { node: nextNode, line: 0 } });
+  else nextDialogueNode();
+}
+
 function nextDialogueNode(): void {
   const { narrative, dialogueQueue } = appStore.getState();
   const [nextId, ...rest] = dialogueQueue;
@@ -89,6 +106,7 @@ export function initNarrative(): void {
         id: event.questId,
         titleKey: def.titleKey,
         ...(def.descriptionKey !== undefined ? { descriptionKey: def.descriptionKey } : {}),
+        kind: def.kind,
         stepIndex: 0,
         stepCount: def.steps.length,
         status: 'active',

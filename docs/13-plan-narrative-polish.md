@@ -458,6 +458,7 @@ laisse le jeu livrable. Ordre pensé « MVP narratif → campagne complète » :
 | ↳ **N3b — campagne Necropolis** ✅ | 2ᵉ campagne en **données pures** (`manifest.story` + `story/campaign.json` + 2 scénarios + Vhalen/Mère Corbeau) — test de modularité narratif, **zéro diff moteur/client** | Smoke : la campagne Necropolis apparaît au menu et son ch1 démarre (héros necropolis, dialogue, quête) |
 | ↳ **N3c — finitions campagnes** | 3ᵉ chapitre Haven, cartes dédiées, cutscenes caméra, arcs de héros nommés (quêtes `personal`) — livré en 3 increments | N3c.1 ✅ ; N3c.2/N3c.3 à venir |
 | ↳ **N3c.1 — cutscenes caméra** ✅ | schémas `cutscene`/`cutsceneStep` (`panTo`/`wait`/`dialog`) + scénario `cutscenes?`/`openingCutscene?` ; client `camera-control` (pan animé rAF/easing) + `cutscene` (séquenceur, réutilise la file de dialogues N2b) + `CutsceneOverlay` (letterbox + **Passer** ≥ 44 px) ; cinématique d'ouverture sur `haven-ch2` — **pure présentation, zéro diff moteur** | Smoke : `haven-ch2` → letterbox + Passer visibles → Passer → partie jouable (desktop + mobile) |
+| ↳ **N3c.2 — choix, drapeaux & arcs** ✅ | `choices` de dialogue câblés (`setFlag`/`next`) dans `DialogueBox` (boutons empilés ≥ 44 px) ; drapeaux `campaignFlags` (localStorage `heroes.flags`, **relus entre campagnes**) ; quêtes `kind: personal` (badge journal) ; **arc personnel d'Aldric** (`haven-ch2`, 3 étapes) au choix binaire final posant un drapeau — **zéro diff moteur** (`kind`/drapeau = client) | Smoke : dérouler l'arc → nœud de choix (2 boutons, pas de « Passer ») → clic → drapeau posé & persistant (desktop + mobile) |
 | **N4 — La Chasse & le vivant** | Campagne Arcane Hunters (relit N3, arcs Evadne/Marchmont) ; quêtes journalières en mode libre ; 2 événements temporaires ; barks de combat | 3ᵉ campagne = données seules (test de modularité narratif) ; événement daté jouable/expirable |
 
 **Tests d'immersion** (à chaque lot, protocole léger) :
@@ -749,6 +750,12 @@ Lot **N3c** (finitions campagnes) livré « in full » en 3 increments. **N3c.1
 `app/camera-control.ts` (déplacement caméra animé, rAF/easing — présentation
 pure), `app/cutscene.ts` (séquenceur réutilisant la file de dialogues N2b,
 skippable) et `ui/CutsceneOverlay.tsx` (letterbox + bouton **Passer** ≥ 44 px) ;
-cinématique d'ouverture sur `haven-ch2` — **zéro diff moteur**. Restent **N3c.2**
-(choix de dialogue, `campaignState.flags`, arcs `personal`) et **N3c.3** (3ᵉ
-chapitre Haven + carte dédiée).
+cinématique d'ouverture sur `haven-ch2` — **zéro diff moteur**. **N3c.2 ✅** :
+choix de dialogue câblés (`setFlag`/`next`) dans `DialogueBox` (boutons empilés
+≥ 44 px, une décision requise au nœud de choix) ; drapeaux `campaignFlags`
+(localStorage `heroes.flags`, **relus entre campagnes** — méta-jeu global) posés
+par `chooseDialogueOption` ; quêtes `kind: personal` surfacées par un badge dans
+le journal ; **arc personnel d'Aldric** (`haven-ch2`, 3 étapes) culminant sur un
+choix binaire (clément / implacable) qui pose l'un de deux drapeaux — **zéro diff
+moteur** (`kind` et drapeau sont côté client). Reste **N3c.3** (3ᵉ chapitre Haven
++ carte dédiée).

@@ -14,6 +14,26 @@ vérifiés (chacun une PR verte) :
   personnel de héros nommé** en 3 étapes avec choix binaire final posant un
   drapeau. Zéro/minimal diff moteur (`personal` est un label client ; le
   drapeau est client).
+
+### N3c.2 — détail
+
+- **Client (zéro diff moteur)** :
+  - `app/campaign.ts` : drapeaux globaux (localStorage `heroes.flags`,
+    **relus entre campagnes**) — `setCampaignFlag`/`campaignFlags`, miroir
+    store `campaignFlags` chargé au boot.
+  - `app/narrative.ts` : `chooseDialogueOption(choice)` — `setFlag` pose le
+    drapeau, `next` saute au nœud cible, sinon enchaîne la file ; `kind`
+    porté dans le catalogue + l'entrée de journal.
+  - `ui/DialogueBox.tsx` : à la dernière ligne d'un nœud avec `choices`,
+    boutons de choix empilés (≥ 44 px) au lieu de « toucher pour continuer ».
+  - `ui/QuestJournal.tsx` : badge « Personnel » pour `kind: personal`.
+  - `main.ts` : hook de test `campaignFlags()`.
+- **Données** : arc personnel d'**Aldric** (`haven-ch2`) en 3 étapes ; le
+  nœud final offre un **choix binaire** (clément / implacable) posant l'un de
+  deux drapeaux. Locales fr/en.
+- **Smoke** : démarrer `haven-ch2` → dérouler l'arc jusqu'au nœud de choix →
+  les 2 boutons de choix apparaissent → cliquer → le drapeau est posé
+  (hook `campaignFlags`) et persiste.
 - **N3c.3 — 3ᵉ chapitre Haven + cartes dédiées** : la campagne Haven passe à 3
   chapitres ; ≥ 1 carte dédiée (proto-02) au lieu de tout réutiliser proto-01.
 
@@ -50,8 +70,29 @@ garde-fou faction (grep local) · build < 800 Ko · smoke desktop + mobile.
 - [x] lint propre · build client (246 Ko gzip < 800 Ko)
 - [x] smoke desktop + mobile (nouveau test cutscene + N2b/N3a/N3b non régressés)
 
+### N3c.2 — vérifié ✅
+
+- [x] typecheck 4/4
+- [x] moteur 321 (golden **inchangé** — `kind`/drapeaux = client, zéro diff moteur)
+- [x] content 77 + `content:check` (arc `aldric-serment` résolu, parité fr/en)
+- [x] garde-fou faction + garde-fou couleurs (grep local : propres)
+- [x] lint · build client (248 Ko gzip < 800 Ko)
+- [x] smoke desktop + mobile (nouveau test choix/drapeau + N2b/N3a/N3b/N3c.1 non régressés)
+
 ## Décisions / écarts
 
+- **N3c.2** — drapeaux persistés dans un stockage **propre** (`heroes.flags`),
+  séparé de `heroes.campaigns`, pour rester **globaux et relus entre campagnes**
+  (méta-jeu), indépendamment des sauvegardes de partie.
+- **N3c.2** — arc d'Aldric : les 2 premières étapes (`ownUnits` conscrits/archers)
+  sont satisfaites par l'armée de départ → l'arc atteint son nœud de choix binaire
+  dès l'ouverture (front-loaded), ce qui le rend testable en smoke sans dérouler
+  toute la partie ; l'étape finale (`defeatHero`) laisse le choix être le dernier
+  geste narratif avant la résolution mécanique.
+- **N3c.2** — au nœud de choix, le tap sur la boîte n'avance plus et le bouton
+  « Passer » disparaît : une décision est **requise** (les deux choix posent des
+  drapeaux distincts, sans branche `next` — l'effet narratif est différé aux
+  futurs chapitres).
 - **N3c.1** — cinématique jouée en **arrière-plan** (fire-and-forget après
   `navigate`), pas en bloquant : le pas `dialog` attend l'interaction du joueur,
   bloquer le démarrage figerait aussi le hook de test. La cinématique reste

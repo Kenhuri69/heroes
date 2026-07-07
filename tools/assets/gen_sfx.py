@@ -1,12 +1,18 @@
 #!/usr/bin/env python3
-"""Génère des SFX **procéduraux déterministes** (doc 12 Règle P/F, lot UXD-6).
+"""Génère des SFX & jingles **procéduraux déterministes** (doc 12 Règle P/F,
+lot UXD-6).
 
 Le modèle *musique* de Gemini ne produit pas de one-shots courts et secs ;
-on synthétise donc les effets nous-mêmes : sons dry, courts, mono, au niveau
-maîtrisé, encodés OGG (Vorbis) + repli M4A (AAC) dans `assets/audio/sfx/`.
+on synthétise donc nous-mêmes : (1) les SFX dry/courts/mono → `assets/audio/sfx/`
+et (2) les **jingles** victoire/défaite (stings musicaux courts) →
+`assets/audio/music/`, encodés OGG (Vorbis) + repli M4A (AAC).
 
 Pur stdlib (wave/math/random) pour la synthèse — aucun numpy — puis `ffmpeg`
-pour l'encodage. Reproductible (RNG seedé par effet) : même sortie à chaque run.
+pour l'encodage. La **synthèse est déterministe** (RNG seedé par effet) : le PCM
+est identique à chaque run. NB : le conteneur OGG embarque un n° de série
+aléatoire (muxer ffmpeg), donc les octets `.ogg` varient d'un run à l'autre
+**sans que le son change** — ne re-commiter un `.ogg` que si l'effet a réellement
+été modifié.
 
 Usage : `python3 tools/assets/gen_sfx.py`  (nécessite ffmpeg dans le PATH).
 """
@@ -23,6 +29,7 @@ import wave
 SR = 44100
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.normpath(os.path.join(HERE, "..", "..", "assets", "audio", "sfx"))
+MUSIC_OUT = os.path.normpath(os.path.join(HERE, "..", "..", "assets", "audio", "music"))
 
 
 # --- petites briques de synthèse (listes de flottants, mono) ---------------
@@ -58,6 +65,17 @@ def exp_env(dur: float, decay: float, attack: float = 0.002) -> list[float]:
         t = i / SR
         a = min(1.0, i / na)
         out.append(a * math.exp(-t * decay))
+    return out
+
+
+def span_env(dur: float, attack: float, release: float) -> list[float]:
+    """Enveloppe globale linéaire : montée `attack`, plateau, descente `release`."""
+    out = []
+    for i in range(_n(dur)):
+        t = i / SR
+        a = min(1.0, t / attack) if attack > 0 else 1.0
+        r = 1.0 if t < dur - release else max(0.0, (dur - t) / release)
+        out.append(a * r)
     return out
 
 
@@ -202,6 +220,56 @@ EFFECTS = {
 }
 
 
+# --- jingles de fin de partie (stings musicaux courts, → music/) -------------
+
+def _chord(notes: list[float], dur: float, partials: int, decay: float,
+           attack: float, arpeggio: float = 0.0) -> list[float]:
+    """Accord (option. arpégé) au timbre cuivré (somme d'harmoniques)."""
+    buf = [0.0] * _n(dur)
+    for k, f in enumerate(notes):
+        onset = arpeggio * k
+        seg = mul(saw_tone(f, dur - onset, partials), exp_env(dur - onset, decay, attack))
+        off = int(SR * onset)
+        for i, v in enumerate(seg):
+            if off + i < len(buf):
+                buf[off + i] += v / len(notes)
+    return buf
+
+
+def jingle_victory() -> list[float]:
+    """Fanfare majeure triomphante (do majeur arpégé + basse + swell)."""
+    dur = 3.2
+    chord = _chord([523.25, 659.25, 783.99, 1046.50], dur, 5, 0.9, 0.02, arpeggio=0.10)
+    bass = mul(saw_tone(130.81, dur, 4), exp_env(dur, 0.7, attack=0.05))
+    # éclat de cymbale : bruit aigu en crescendo bref au tout début
+    cym_env = [min(1.0, (i / SR) / 0.35) * math.exp(-(i / SR) * 6) for i in range(_n(0.6))]
+    cym = mul(one_pole_hp(noise(0.6, 21), 4000), cym_env)
+    buf = add(scale(chord, 1.0), scale(bass, 0.6))
+    for i, v in enumerate(cym):
+        if i < len(buf):
+            buf[i] += v * 0.12
+    return normalize(mul(buf, span_env(dur, 0.10, 0.9)), 0.92)
+
+
+def jingle_defeat() -> list[float]:
+    """Sting mineur sombre (glissando descendant + accord de la mineur + cor grave)."""
+    dur = 3.5
+    gliss = mul(chirp(330, 130, 0.6), exp_env(0.6, 1.5, attack=0.02))
+    chord = _chord([220.0, 261.63, 329.63], dur, 3, 0.9, 0.15)
+    horn = mul(saw_tone(110.0, dur, 4), exp_env(dur, 0.7, attack=0.2))
+    buf = [0.0] * _n(dur)
+    for i, v in enumerate(gliss):
+        buf[i] += v * 0.5
+    buf = add(buf, scale(chord, 0.7), scale(horn, 0.5))
+    return normalize(mul(one_pole_lp(buf, 2200), span_env(dur, 0.2, 1.2)), 0.85)
+
+
+JINGLES = {
+    "victory": jingle_victory,
+    "defeat": jingle_defeat,
+}
+
+
 def write_wav(path: str, samples: list[float]) -> None:
     with wave.open(path, "w") as w:
         w.setnchannels(1)
@@ -214,26 +282,36 @@ def write_wav(path: str, samples: list[float]) -> None:
         w.writeframes(bytes(frames))
 
 
-def encode(wav: str, ogg: str, m4a: str) -> None:
-    subprocess.run(["ffmpeg", "-y", "-v", "error", "-i", wav,
-                    "-c:a", "libvorbis", "-q:a", "4", ogg], check=True)
-    subprocess.run(["ffmpeg", "-y", "-v", "error", "-i", wav,
-                    "-c:a", "aac", "-b:a", "96k", m4a], check=True)
+def encode(wav: str, ogg: str, m4a: str, m4a_rate: str = "96k") -> None:
+    # `-bitexact` + `-map_metadata -1` : sortie **reproductible au bit** (pas de
+    # n° de série Ogg aléatoire ni d'horodatage/encodeur embarqué) → re-générer
+    # ne produit aucun diff parasite.
+    subprocess.run(["ffmpeg", "-y", "-v", "error", "-bitexact", "-i", wav,
+                    "-map_metadata", "-1", "-c:a", "libvorbis", "-q:a", "4", ogg], check=True)
+    subprocess.run(["ffmpeg", "-y", "-v", "error", "-bitexact", "-i", wav,
+                    "-map_metadata", "-1", "-c:a", "aac", "-b:a", m4a_rate, m4a], check=True)
+
+
+def _emit(tmp: str, out_dir: str, name: str, fn, m4a_rate: str) -> None:
+    samples = fade_edges(fn())
+    wav = os.path.join(tmp, f"{name}.wav")
+    write_wav(wav, samples)
+    ogg = os.path.join(out_dir, f"{name}.ogg")
+    m4a = os.path.join(out_dir, f"{name}.m4a")
+    encode(wav, ogg, m4a, m4a_rate)
+    print(f"{name:12s} {len(samples) / SR:.2f}s  "
+          f"ogg={os.path.getsize(ogg) // 1024}Ko  m4a={os.path.getsize(m4a) // 1024}Ko")
 
 
 def main() -> None:
     os.makedirs(OUT, exist_ok=True)
+    os.makedirs(MUSIC_OUT, exist_ok=True)
     with tempfile.TemporaryDirectory() as tmp:
         for name, fn in EFFECTS.items():
-            samples = fade_edges(fn())
-            wav = os.path.join(tmp, f"{name}.wav")
-            write_wav(wav, samples)
-            ogg = os.path.join(OUT, f"{name}.ogg")
-            m4a = os.path.join(OUT, f"{name}.m4a")
-            encode(wav, ogg, m4a)
-            print(f"{name:12s} {len(samples)/SR:.2f}s  "
-                  f"ogg={os.path.getsize(ogg)//1024}Ko  m4a={os.path.getsize(m4a)//1024}Ko")
-    print(f"→ {OUT}")
+            _emit(tmp, OUT, name, fn, "96k")
+        for name, fn in JINGLES.items():  # jingles → music/ (128 kbps)
+            _emit(tmp, MUSIC_OUT, name, fn, "128k")
+    print(f"→ {OUT} / {MUSIC_OUT}")
 
 
 if __name__ == "__main__":

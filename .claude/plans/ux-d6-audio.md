@@ -114,3 +114,26 @@ contrôle total, cohérent avec la Règle P).
   (nécessitent des hooks client) ; fanfares victoire/défaite — à sourcer ; la
   fonction de synthèse UI est prête à ajouter au générateur si on ouvre le
   câblage.
+
+## Livraison 6E — jingles victoire/défaite + câblage (2026-07-07)
+
+Fanfares de fin de partie, générées **procéduralement** (même approche que 6D)
+et **câblées** sur l'écran de fin.
+
+- `tools/assets/gen_sfx.py` étendu : `jingle_victory` (fanfare majeure do,
+  arpège cuivré + basse + éclat de cymbale, ~3,2 s) et `jingle_defeat`
+  (glissando descendant + accord la mineur + cor grave, assombri, ~3,5 s),
+  écrits en **`assets/audio/music/{victory,defeat}.{ogg,m4a}`** (128 kbps).
+  Poids : victory 24/49 Ko, defeat 16/54 Ko — sous le budget jingle (< 150 Ko).
+- **Câblage client** (`app/audio.ts`) : `playJingle(id)` joue `music/<id>` en
+  **one-shot** (pas de boucle) au volume musique ; déclenché sur l'événement
+  moteur **`GameEnded`** (`status: 'won'` → victory, `'lost'` → defeat, du point
+  de vue du joueur humain). `musicContextKey` renvoie **null quand
+  `game.outcome` est posé** ⇒ la boucle de fond se coupe pour laisser respirer
+  le jingle.
+- **Vérif runtime** (build de prod, scénario « survie » gagné via le harnais de
+  test) : séquence musicale menu → aventure → combat, puis **`victory.ogg`
+  joué à la victoire** ; boucle de fond coupée ; **0 erreur console**. Defeat =
+  même chemin `playJingle` (fichier présent). Typecheck/lint/build verts,
+  budget JS/CSS inchangé (253 Ko gzip, audio hors bundle).
+- **Reste** : `combat-shoot` + sons d'UI (tap/confirm/erreur) — non câblés.

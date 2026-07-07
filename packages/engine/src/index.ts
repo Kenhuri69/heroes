@@ -16,6 +16,13 @@ export {
   type Resources,
 } from './core/state';
 export { armyStrength, playerPower } from './core/power';
+export {
+  replayCommands,
+  replayHash,
+  currentTurnPlayerId,
+  appendTurn,
+  type AppendResult,
+} from './net/match';
 export { seedRng, nextU32, rollRange, type RngState } from './core/rng';
 export {
   serializeState,

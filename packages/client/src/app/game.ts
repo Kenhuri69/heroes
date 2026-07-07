@@ -494,6 +494,8 @@ export function skirmishStartCommand(
   config: SkirmishConfig,
   seed: number,
   map: ResolvedMap,
+  /** Quêtes journalières générées (doc 13, N4c) — embarquées comme pour un scénario. */
+  quests?: QuestState,
 ): Command {
   if (map.startPositions.length < 2)
     throw new Error(`skirmishStartCommand: carte '${map.id}' — moins de 2 positions de départ`);
@@ -608,5 +610,6 @@ export function skirmishStartCommand(
     startingArtifacts: heroSetup.startingArtifacts,
     factionCatalog: buildFactionSetup(report),
     scenario: { objectives },
+    ...(quests ? { quests } : {}),
   };
 }

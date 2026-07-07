@@ -119,6 +119,11 @@ function makeData(): Record<string, unknown> {
         { id: 'ballista', name: '@loc:warMachine.ballista.name', stats: { hp: 250, attack: 12, defense: 10, damage: [10, 20], speed: 1 }, abilities: [{ id: 'shooter', params: { ammo: 24 } }], cost: { gold: 1500 } },
       ],
     },
+    'core/daily-templates.json': {
+      templates: [
+        { id: 'muster', condition: { type: 'recruitTier', tier: 1, count: 10 }, reward: { type: 'resources', resources: { gold: 500 } }, titleKey: '@loc:daily.muster.title' },
+      ],
+    },
     'maps/mini.map.json': {
       id: 'mini',
       schemaVersion: 1,

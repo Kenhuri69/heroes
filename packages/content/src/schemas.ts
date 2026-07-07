@@ -650,6 +650,34 @@ export const questSchema = z.object({
   descriptionKey: locRef.optional(),
 });
 
+/**
+ * Gabarits de quêtes journalières du mode libre (doc 13 §4.2/§5.3, N4c) — petites
+ * missions « contrats » instanciées côté client via le RNG seedé de la partie.
+ * Les conditions sont résolues en `QuestCondition` moteur : `recruitTier` devient
+ * un `ownUnits` de l'unité de tier N de la faction du joueur (résolu au runtime).
+ */
+export const dailyTemplateConditionSchema = z.discriminatedUnion('type', [
+  z.object({
+    type: z.literal('recruitTier'),
+    tier: z.number().int().min(1).max(8),
+    count: z.number().int().positive(),
+  }),
+  z.object({ type: z.literal('buildStructure'), buildingId: buildingIdSchema }),
+  z.object({ type: z.literal('surviveDays'), days: z.number().int().positive() }),
+]);
+
+export const dailyTemplateSchema = z.object({
+  id: idSchema,
+  condition: dailyTemplateConditionSchema,
+  reward: questRewardSchema,
+  titleKey: locRef,
+  descriptionKey: locRef.optional(),
+});
+
+export const dailyTemplatesFileSchema = z.object({
+  templates: z.array(dailyTemplateSchema).min(1),
+});
+
 const dialogLineSchema = z.object({
   /** Id d'un personnage du catalogue `characters`. */
   speaker: idSchema,
@@ -834,5 +862,7 @@ export type CampaignChapter = z.infer<typeof campaignChapterSchema>;
 export type QuestContent = z.infer<typeof questSchema>;
 export type QuestStepContent = z.infer<typeof questStepSchema>;
 export type QuestRewardContent = z.infer<typeof questRewardSchema>;
+export type DailyTemplate = z.infer<typeof dailyTemplateSchema>;
+export type DailyTemplatesFile = z.infer<typeof dailyTemplatesFileSchema>;
 export type DialogNode = z.infer<typeof dialogNodeSchema>;
 export type StoryCharacter = z.infer<typeof characterSchema>;

@@ -16,8 +16,10 @@ import {
   spellCatalogSchema,
   unitSchema,
   warMachineCatalogSchema,
+  dailyTemplatesFileSchema,
   type AbilityCatalog,
   type Artifact,
+  type DailyTemplate,
   type WarMachine,
   type Building,
   type FactionBonus,
@@ -69,6 +71,8 @@ export interface LoadedContent {
   coreArtifacts: Artifact[];
   /** Machines de guerre communes — data/core/war-machines.json (doc 02 §5, Alpha 4.12). */
   coreWarMachines: WarMachine[];
+  /** Gabarits de quêtes journalières du mode libre — data/core/daily-templates.json (doc 13, N4c). */
+  dailyTemplates: DailyTemplate[];
   packs: FactionPack[];
   /**
    * Scénarios solo résolus — data/scenarios/ (plan phase-3.5, lot T). Vide tant
@@ -150,6 +154,11 @@ export async function loadContent(readJson: ReadJson): Promise<LoadReport> {
     await readJson('core/war-machines.json'),
     'core/war-machines.json',
   ).warMachines;
+  const dailyTemplates = parseFile(
+    dailyTemplatesFileSchema,
+    await readJson('core/daily-templates.json'),
+    'core/daily-templates.json',
+  ).templates;
   {
     // Sorts/compétences/artefacts/machines communs : erreur bloquante directe (comme bâtiments), pas de rejet partiel.
     const errors: string[] = [];
@@ -157,6 +166,7 @@ export async function loadContent(readJson: ReadJson): Promise<LoadReport> {
     checkUniqueIds(errors, 'core/skills.json', coreSkills.map((s) => s.id), 'compétence');
     checkUniqueIds(errors, 'core/artifacts.json', coreArtifacts.map((a) => a.id), 'artefact');
     checkUniqueIds(errors, 'core/war-machines.json', coreWarMachines.map((w) => w.id), 'machine de guerre');
+    checkUniqueIds(errors, 'core/daily-templates.json', dailyTemplates.map((tpl) => tpl.id), 'gabarit journalier');
     if (errors.length > 0) throw new PackError(errors);
   }
   const report: LoadReport = {
@@ -169,6 +179,7 @@ export async function loadContent(readJson: ReadJson): Promise<LoadReport> {
       coreSkills,
       coreArtifacts,
       coreWarMachines,
+      dailyTemplates,
       packs: [],
       scenarios: [],
       campaigns: [],

@@ -21,7 +21,8 @@ import { navigate } from './app/router';
 import { exportSave, importSave, saveGame, restoreSavedGame, encodeHeroesFile } from './app/save';
 import { installAutosave } from './app/autosave';
 import { initTelemetry } from './app/telemetry';
-import { initNarrative, initCombatBarks, loadScenarioNarrative } from './app/narrative';
+import { initNarrative, initCombatBarks, loadScenarioNarrative, loadFreeModeNarrative } from './app/narrative';
+import { buildDailyQuests } from './app/daily';
 import { registerCamera, unregisterCamera } from './app/camera-control';
 import { playOpeningCutscene } from './app/cutscene';
 import { initCampaign, startCampaignChapter, campaignFlags } from './app/campaign';
@@ -199,7 +200,11 @@ async function bootstrap(): Promise<void> {
    * par défaut déjà chargée. Même découplage que « Nouvelle partie ».
    */
   const startSkirmish = async (config: SkirmishConfig, seed: number): Promise<void> => {
-    await dispatch(skirmishStartCommand(report, config, seed, map));
+    // Quêtes journalières (doc 13 §4.2, N4c) : générées déterministiquement depuis
+    // le seed, embarquées dans le StartGame ; leur narration alimente le journal.
+    const daily = buildDailyQuests(report, config.humanFactionId, seed);
+    loadFreeModeNarrative(daily.metas);
+    await dispatch(skirmishStartCommand(report, config, seed, map, daily.questState));
     navigate('adventure');
   };
 

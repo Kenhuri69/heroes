@@ -470,6 +470,39 @@ test('escarmouche vs IA : config + difficulté génèrent une partie 1v1 (Alpha 
   expect(errors).toEqual([]);
 });
 
+test('quêtes journalières : le mode libre génère des contrats déterministes (doc 13 N4c)', async ({ page }) => {
+  const errors = await openMenu(page);
+
+  // Le mode libre (escarmouche) génère des quêtes journalières depuis les gabarits,
+  // déterministes (seed fixe du hook de test).
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.startSkirmish({ humanFactionId: 'haven', aiFactionId: 'necropolis', difficulty: 'normal' }),
+  );
+  await expect(page.getByTestId('end-turn')).toBeVisible();
+
+  const questIds = async (): Promise<string[]> =>
+    page.evaluate(() => window.__HEROES_TEST__!.getState().quests?.quests.map((q) => q.def.id) ?? []);
+  const first = await questIds();
+  expect(first.length).toBeGreaterThan(0);
+  expect(first.every((id) => id.startsWith('daily-'))).toBe(true);
+
+  // Le journal (tiroir héros) affiche les contrats avec le badge « Journalier ».
+  await page.getByTestId('hero-drawer-toggle').click();
+  await expect(page.getByTestId(`quest-entry-${first[0]}`)).toBeVisible();
+  await expect(page.getByTestId(`quest-kind-${first[0]}`)).toBeVisible();
+
+  // Déterminisme : même seed ⇒ mêmes contrats (page rechargée pour repartir à neuf).
+  await page.goto('./');
+  await page.waitForFunction(() => window.__HEROES_READY__ === true);
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.startSkirmish({ humanFactionId: 'haven', aiFactionId: 'necropolis', difficulty: 'normal' }),
+  );
+  await expect(page.getByTestId('end-turn')).toBeVisible();
+  expect(await questIds()).toEqual(first);
+
+  expect(errors).toEqual([]);
+});
+
 test('hot-seat : deux humains locaux alternent avec l’overlay de passage (Alpha 4.15)', async ({
   page,
 }) => {

@@ -435,6 +435,32 @@ test('menu : Nouvelle partie démarre, Continuer grisé sans sauvegarde', async 
   expect(errors).toEqual([]);
 });
 
+test('événements temporaires : actif « Événement » et passé « Archive », tous deux jouables (doc 13 N4d)', async ({
+  page,
+}) => {
+  const errors = collectErrors(page);
+  await page.goto('./');
+  await page.waitForFunction(() => window.__HEROES_READY__ === true);
+
+  // La section Événements liste l'événement en fenêtre (badge « Événement ») et
+  // l'événement expiré (badge « Archive ») — statut via l'horloge CLIENT.
+  await expect(page.getByTestId('menu-events')).toBeVisible();
+  await expect(page.getByTestId('menu-event-badge-event-revenants')).toHaveText('Événement');
+  await expect(page.getByTestId('menu-event-badge-event-curee')).toHaveText('Archive');
+
+  // Les scénarios permanents ne portent PAS de badge d'événement.
+  await expect(page.getByTestId('menu-event-badge-survival')).toHaveCount(0);
+
+  // L'archive reste jouable : la démarrer lance la partie.
+  await page.getByTestId('menu-scenario-event-curee').click();
+  await expect(page.getByTestId('end-turn')).toBeVisible();
+  const state = await page.evaluate(() => window.__HEROES_TEST__!.getState());
+  expect(state.started).toBe(true);
+  expect(state.heroes[0]?.factionId).toBe('arcane-hunters');
+
+  expect(errors).toEqual([]);
+});
+
 test('escarmouche vs IA : config + difficulté génèrent une partie 1v1 (Alpha 4.14)', async ({
   page,
 }) => {

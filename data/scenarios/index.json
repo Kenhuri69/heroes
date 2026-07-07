@@ -1,3 +1,3 @@
 {
-  "scenarios": ["prologue", "haven-ch2", "haven-ch3", "necropolis-ch1", "necropolis-ch2", "arcane-ch1", "arcane-ch2", "tutorial", "survival", "conquest"]
+  "scenarios": ["prologue", "haven-ch2", "haven-ch3", "necropolis-ch1", "necropolis-ch2", "arcane-ch1", "arcane-ch2", "tutorial", "survival", "conquest", "event-revenants", "event-curee"]
 }

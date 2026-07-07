@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'preact/hooks';
+import type { Scenario } from '@heroes/content';
 import { hasAnySave, restoreLatestSave } from '../app/save';
 import { t, resolveScenarioName } from '../app/i18n';
 import { useApp } from '../app/store';
 import { navigate, openModal } from '../app/router';
+import { eventStatus } from '../app/timed-events';
 import { logoUrl, titleBackgroundUrl } from '../render/assets';
 import { AssetImg } from './AssetImg';
 import './menu.css';
@@ -27,6 +29,17 @@ export function MenuScreen() {
   const campaigns = useApp((s) => s.campaigns);
   const campaignProgress = useApp((s) => s.campaignProgress);
   const [canContinue, setCanContinue] = useState(false);
+
+  // Événements temporaires (doc 13 §4.3, N4d) : statut selon l'horloge CLIENT.
+  // Les scénarios sans `availability` restent dans la liste permanente ; un
+  // événement « à venir » (avant `from`) est masqué, l'expiré passe en archive.
+  const now = Date.now();
+  const regularScenarios = scenarios.filter((s) => eventStatus(s, now) === null);
+  const events = scenarios
+    .map((s) => ({ s, status: eventStatus(s, now) }))
+    .filter((e): e is { s: Scenario; status: 'active' | 'archived' } =>
+      e.status === 'active' || e.status === 'archived',
+    );
 
   useEffect(() => {
     let cancelled = false;
@@ -117,10 +130,10 @@ export function MenuScreen() {
           })}
         </nav>
       )}
-      {scenarios.length > 0 && (
+      {regularScenarios.length > 0 && (
         <nav class="menu-actions menu-scenarios" data-testid="menu-scenarios">
           <h2 class="menu-section-title">{t('menu.scenarios')}</h2>
-          {scenarios.map((scenario) => (
+          {regularScenarios.map((scenario) => (
             <button
               class="menu-button"
               key={scenario.id}
@@ -132,6 +145,28 @@ export function MenuScreen() {
               }
             >
               {resolveScenarioName(scenario.name)}
+            </button>
+          ))}
+        </nav>
+      )}
+      {events.length > 0 && (
+        <nav class="menu-actions menu-events" data-testid="menu-events">
+          <h2 class="menu-section-title">{t('menu.events')}</h2>
+          {events.map(({ s, status }) => (
+            <button
+              class="menu-button"
+              key={s.id}
+              data-testid={`menu-scenario-${s.id}`}
+              onClick={() =>
+                window.dispatchEvent(
+                  new CustomEvent('heroes:start-scenario', { detail: { scenarioId: s.id } }),
+                )
+              }
+            >
+              <span class={`menu-event-badge menu-event-${status}`} data-testid={`menu-event-badge-${s.id}`}>
+                {t(`menu.event.${status}`)}
+              </span>
+              {resolveScenarioName(s.name)}
             </button>
           ))}
         </nav>

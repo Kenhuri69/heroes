@@ -59,6 +59,26 @@
   cursor: pointer;
 }
 
+/* Badge d'événement temporaire (doc 13 §4.3, N4d). */
+.menu-event-badge {
+  display: inline-block;
+  margin-right: 0.5rem;
+  padding: 0.05rem 0.4rem;
+  border-radius: var(--radius-s);
+  font: 700 0.7rem var(--font-ui);
+  vertical-align: middle;
+}
+
+.menu-event-active {
+  background: var(--blood-veil);
+  color: var(--danger-text);
+}
+
+.menu-event-archived {
+  background: var(--shadow-40);
+  color: var(--parchment-dim);
+}
+
 .menu-button:disabled {
   opacity: 0.45;
   cursor: default;

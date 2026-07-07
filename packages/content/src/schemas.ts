@@ -799,6 +799,14 @@ export const scenarioSchema = z
      * combat. Présentation pure : jamais embarqué dans le moteur.
      */
     combatBarks: z.array(locRef).optional(),
+    /**
+     * Événement temporaire (doc 13 §4.3, N4d) — fenêtre de dates ISO
+     * (`YYYY-MM-DD`) vérifiée à l'ouverture du menu par l'horloge CLIENT (jamais
+     * le moteur). Un scénario sans `availability` est disponible en permanence.
+     */
+    availability: z
+      .object({ from: z.string().min(1), to: z.string().min(1) })
+      .optional(),
   })
   .refine((s) => s.players.every((p) => s.objectives[p.id]), 'chaque joueur doit avoir des objectifs');
 

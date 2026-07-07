@@ -239,6 +239,9 @@ function HeroDrawer() {
       </button>
       <aside class={`hero-drawer${open ? ' open' : ''}`} data-testid="hero-drawer">
         <HeroStrip />
+        {/* Mini-carte mobile (le widget fixe est desktop only) : masquée ≥ 900px par CSS. */}
+        <h3 class="hero-army-title hero-minimap-title">{t('hero.minimapTitle')}</h3>
+        <MiniMap variant="drawer" />
         <AssetImg
           src={heroAvatarUrl(hero.factionId, heroArchetype(hero.attributes))}
           alt=""

@@ -106,6 +106,7 @@
   "hero.mana": "Mana {mana}/{manaMax}",
   "hero.skillsTitle": "Compétences",
   "hero.noSkills": "Aucune compétence",
+  "hero.minimapTitle": "Carte d'aventure",
   "hero.inventoryTitle": "Inventaire",
   "hero.inventoryEmptySlot": "Vide",
   "hero.genericName": "Le héros",

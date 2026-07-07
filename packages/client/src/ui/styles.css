@@ -75,6 +75,28 @@
   }
 }
 
+/* Mini-carte du tiroir héros (mobile) : le widget fixe ci-dessus étant desktop
+   only, la version tiroir donne la vue d'ensemble aux joueurs mobile. Statique,
+   pleine largeur, ratio intrinsèque de la carte ; masquée ≥ 900px (le widget
+   fixe suffit alors — jamais les deux à la fois). */
+.mini-map-drawer {
+  display: block;
+  width: 100%;
+  height: auto;
+  image-rendering: pixelated;
+  border: 2px solid var(--ink-600);
+  border-radius: var(--radius-s);
+  background: var(--ink-950);
+  cursor: pointer;
+}
+
+@media (min-width: 900px) {
+  .mini-map-drawer,
+  .hero-minimap-title {
+    display: none;
+  }
+}
+
 /* Vignette de bord de monde (UXD-3A) : assombrit les bords de l'écran pour
    donner de la profondeur à la carte, au-dessus du canvas et sous les panneaux
    d'UI. Décorative : ne capte jamais le pointeur. */

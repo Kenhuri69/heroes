@@ -7,7 +7,7 @@ import { computeMultiplier } from '../src/combat/damage';
 import { initLedger, moraleOf } from '../src/combat/state-helpers';
 import type { CombatStack, CombatState, CombatUnitDef } from '../src/combat/types';
 import type { GameEvent } from '../src/core/events';
-import type { HeroSkillDef } from '../src/hero/types';
+import type { ArtifactDef, HeroSkillDef } from '../src/hero/types';
 import {
   heroGoldPerDay,
   heroLuck,
@@ -170,6 +170,33 @@ describe('Commandement branché au moral de pile (remédiation R5 CO4)', () => {
 
   it('Commandement rang 2 ajoute +2 au moral de la pile du camp du héros', () => {
     expect(moralWithLeadership(2)).toBe(2);
+  });
+});
+
+describe('Lot B — machines de guerre hors moral (B6), artefact de moral branché (B7)', () => {
+  it('B6 — une machine de guerre (ability `warMachine`) ne crée pas de malus de moral', () => {
+    const catalog = {
+      def: unit({ id: 'def', nativeTerrain: 'grass' }),
+      wm: unit({ id: 'wm', nativeTerrain: '', abilities: [{ id: 'warMachine' }] }),
+    };
+    const d = stack({ id: 'attacker-0', side: 'attacker', slot: 0, unitId: 'def', count: 3, pos: { col: 0, row: 0 } });
+    const wm = stack({ id: 'attacker-1', side: 'attacker', slot: 1, unitId: 'wm', count: 1, pos: { col: 1, row: 0 } });
+    const combat = combatState([d, wm], { terrain: 'swamp' });
+    const state: GameState = { ...baseState(catalog), heroes: [], combat };
+    // Sans B6 : `wm-group` compterait comme une 2ᵉ « faction » ⇒ −1. Avec B6 : 0.
+    expect(moraleOf(d, combat, state)).toBe(0);
+    // La machine elle-même est hors moral (0).
+    expect(moraleOf(wm, combat, state)).toBe(0);
+  });
+
+  it('B7 — le bonus `morale` d’un artefact du héros s’ajoute au moral de pile', () => {
+    const catalog = { def: unit({ id: 'def', nativeTerrain: 'grass' }) };
+    const artifactCatalog: Record<string, ArtifactDef> = { banner: { id: 'banner', bonus: { morale: 2 } } };
+    const h = baseHero({ id: 'hero-atk', artifacts: Array.from({ length: 10 }, (_, i) => (i === 0 ? 'banner' : null)) });
+    const d = stack({ id: 'attacker-0', side: 'attacker', slot: 0, unitId: 'def', count: 3, pos: { col: 0, row: 0 } });
+    const combat = combatState([d], { terrain: 'swamp', attackerHeroId: h.id });
+    const state: GameState = { ...baseState(catalog), heroes: [h], artifactCatalog, combat };
+    expect(moraleOf(d, combat, state)).toBe(2); // base 0 + moral d'artefact 2
   });
 });
 

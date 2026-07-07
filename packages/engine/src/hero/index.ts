@@ -1,4 +1,6 @@
 import { revealAround } from '../adventure/fog';
+import { DIRECTIONS, samePos, type GridPos } from '../adventure/map';
+import { isPassable } from '../adventure/path';
 import { heroLuckOf, killsFromDamage, magicResistanceOf } from '../combat/damage';
 import { combatRules, collectCasualties, recordLoss } from '../combat/state-helpers';
 import { checkCombatEnd } from '../combat/turns';
@@ -85,6 +87,25 @@ function ownedTowns(state: GameState, playerId: string): TownState[] {
   return state.towns.filter((t) => t.ownerPlayerId === playerId);
 }
 
+/**
+ * B4 — tuile d'arrivée d'un `townPortal` sans superposer deux héros : la tuile de
+ * la ville si elle est franchissable et libre, sinon la 1ʳᵉ voisine (8 dir)
+ * franchissable et libre ; `null` si aucune (le portail avorte, cas extrême).
+ */
+function landingTileFor(draft: GameState, target: GridPos, heroId: string): GridPos | null {
+  const map = draft.map;
+  const config = draft.config;
+  if (!map || !config) return null;
+  const free = (p: GridPos): boolean =>
+    isPassable(config, map, p) && !draft.heroes.some((h) => h.id !== heroId && samePos(h.pos, p));
+  if (free(target)) return target;
+  for (const d of DIRECTIONS) {
+    const p = { x: target.x + d.x, y: target.y + d.y };
+    if (free(p)) return p;
+  }
+  return null;
+}
+
 /** Ville possédée la plus proche du héros (distance de Tchebychev ; ordre stable). */
 function nearestOwnedTown(state: GameState, hero: HeroState): TownState | undefined {
   let best: TownState | undefined;
@@ -153,8 +174,10 @@ export function handleCastAdventureSpell(
     const town = cmd.townId
       ? draft.towns.find((t) => t.id === cmd.townId)
       : nearestOwnedTown(draft, hero);
-    if (town) {
-      hero.pos = { ...town.pos };
+    // B4 : n'atterrit que sur une tuile libre (jamais deux héros superposés).
+    const dest = town ? landingTileFor(draft, town.pos, hero.id) : null;
+    if (dest) {
+      hero.pos = { ...dest };
       revealAround(
         player.explored,
         map,

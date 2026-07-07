@@ -65,6 +65,10 @@ export function evaluateOutcome(draft: GameState, events: GameEvent[]): void {
     if (hasTown) continue;
     if (!hasHero || p.townlessDays > RETAKE_GRACE_DAYS) {
       p.eliminated = true;
+      // B3 : retirer les héros du joueur éliminé — sinon ils persistent comme
+      // obstacles de pathfinding / cibles de gardiens et continuent de rapporter
+      // (or/jour Économie, `core/engine.ts`).
+      draft.heroes = draft.heroes.filter((h) => h.playerId !== p.id);
       events.push({ type: 'PlayerEliminated', playerId: p.id });
     }
   }

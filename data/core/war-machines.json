@@ -4,7 +4,7 @@
       "id": "ballista",
       "name": "@loc:warMachine.ballista.name",
       "stats": { "hp": 250, "attack": 12, "defense": 10, "damage": [10, 20], "speed": 1 },
-      "abilities": [{ "id": "shooter", "params": { "ammo": 24 } }],
+      "abilities": [{ "id": "shooter", "params": { "ammo": 24 } }, { "id": "warMachine" }],
       "cost": { "gold": 1500, "ore": 5 }
     }
   ]

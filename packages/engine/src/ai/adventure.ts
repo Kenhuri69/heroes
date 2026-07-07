@@ -4,7 +4,7 @@ import { armyStrength } from '../core/power';
 import type { GameState, HeroState, PlayerState } from '../core/state';
 import { advanceHeroAlongPath } from '../adventure/movement';
 import { resolveTreasure } from '../adventure/treasure';
-import { DIRECTIONS, isAdjacent, tileIndex, type GridPos } from '../adventure/map';
+import { DIRECTIONS, isAdjacent, samePos, tileIndex, type GridPos } from '../adventure/map';
 import { findPath, isPassable, stepCost } from '../adventure/path';
 import { validateCaptureTown, handleCaptureTown } from '../town';
 import { maxAffordableCount } from '../town/resources';
@@ -127,7 +127,12 @@ function pickResourceTarget(
 }
 
 /** Gardien atteignable que l'armée du héros domine largement (priorité 2). */
-function pickGuardianTarget(draft: GameState, hero: HeroState, blocked: GridPos[]): PathTarget | null {
+function pickGuardianTarget(
+  draft: GameState,
+  hero: HeroState,
+  blocked: GridPos[],
+  guardianPos: GridPos[],
+): PathTarget | null {
   const { map, config, unitCatalog } = draft;
   if (!map || !config) return null;
   const heroStrength = armyStrength(hero.army, unitCatalog);
@@ -137,7 +142,10 @@ function pickGuardianTarget(draft: GameState, hero: HeroState, blocked: GridPos[
     if (obj.type !== 'guardian') continue;
     const guardStrength = armyStrength([{ unitId: obj.unitId, count: obj.count }], unitCatalog);
     if (guardStrength <= 0 || heroStrength < GUARDIAN_STRENGTH_MARGIN * guardStrength) continue;
-    const path = findPath(config, map, hero.pos, obj.pos, blocked);
+    // Bloque les AUTRES gardiens (pas la cible) : on ne traverse pas un gardien
+    // non ciblé pour en atteindre un autre.
+    const pathBlocked = [...blocked, ...guardianPos.filter((p) => !samePos(p, obj.pos))];
+    const path = findPath(config, map, hero.pos, obj.pos, pathBlocked);
     if (!path) continue;
     const cost = totalPathCost(config, map, hero.pos, path);
     if (cost > hero.movementPoints) continue;
@@ -230,14 +238,17 @@ function captureTown(draft: GameState, town: TownState, player: PlayerState, eve
 function playHeroTurn(draft: GameState, hero: HeroState, player: PlayerState, events: GameEvent[]): void {
   if (!draft.map || !draft.config || hero.movementPoints <= 0 || draft.combat) return;
   const blocked = draft.heroes.filter((h) => h.id !== hero.id).map((h) => h.pos);
+  // B5 : les gardiens NON ciblés sont des obstacles de pathfinding — l'IA ne route
+  // pas au travers (sinon interceptions non planifiées à marge < 1,5×).
+  const guardianPos = draft.map.objects.filter((o) => o.type === 'guardian').map((o) => o.pos);
 
-  const resource = pickResourceTarget(draft, hero, player, blocked);
+  const resource = pickResourceTarget(draft, hero, player, [...blocked, ...guardianPos]);
   if (resource) {
     advanceAi(draft, hero, player, resource.path, events);
     return;
   }
 
-  const guardian = pickGuardianTarget(draft, hero, blocked);
+  const guardian = pickGuardianTarget(draft, hero, blocked, guardianPos);
   if (guardian) {
     advanceAi(draft, hero, player, guardian.path, events);
     return;
@@ -249,6 +260,6 @@ function playHeroTurn(draft: GameState, hero: HeroState, player: PlayerState, ev
     return;
   }
 
-  const exploreStep = pickExplorationStep(draft, hero, player, blocked);
+  const exploreStep = pickExplorationStep(draft, hero, player, [...blocked, ...guardianPos]);
   if (exploreStep) advanceAi(draft, hero, player, exploreStep, events);
 }

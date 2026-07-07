@@ -59,6 +59,13 @@ describe('RecruitUnits', () => {
     expect(next.towns[0]?.garrison).toEqual([{ unitId: 'red-grunt', count: 5 }]);
   });
 
+  it('B1 — rejette un effectif non entier (pas de 2,5 créature)', () => {
+    const state = startedGame({ gold: 1000 });
+    expect(
+      validate(state, { type: 'RecruitUnits', townId: 'town-1', unitId: 'red-grunt', count: 2.5 })?.code,
+    ).toBe('invalidAction');
+  });
+
   it('rejette un recrutement au-delà du stock (insufficientStock)', () => {
     const state = startedGame({ gold: 1000 });
     expect(

@@ -13,9 +13,9 @@
   /* Padding latéral ≥ bouton tiroir (44 px + 8 px de marge) : le hamburger
      (mobile : gauche, desktop : droite) ne recouvre plus la 1ère ressource. */
   padding: 6px 60px;
-  background: rgba(16, 18, 24, 0.85);
-  color: #e8e2d0;
-  font: 0.875rem/1.4 system-ui, sans-serif;
+  background: var(--veil-85);
+  color: var(--parchment);
+  font: 0.875rem/1.4 var(--font-ui);
   pointer-events: auto;
 }
 
@@ -68,9 +68,9 @@
   flex-direction: column;
   justify-content: flex-end;
   gap: 2px;
-  color: #e8e2d0;
-  font: 0.875rem/1.5 system-ui, sans-serif;
-  text-shadow: 0 1px 2px #000;
+  color: var(--parchment);
+  font: 0.875rem/1.5 var(--font-ui);
+  text-shadow: 0 1px 2px var(--shadow-ink);
   pointer-events: none;
 }
 
@@ -88,20 +88,20 @@
   min-height: 44px;
   min-width: 44px;
   padding: 8px 14px;
-  border: 1px solid #3a3d47;
-  border-radius: 8px;
-  background: #262a33;
-  color: #e8e2d0;
-  font: 600 0.875rem system-ui, sans-serif;
+  border: 1px solid var(--ink-600);
+  border-radius: var(--radius-m);
+  background: var(--ink-700);
+  color: var(--parchment);
+  font: 600 0.875rem var(--font-ui);
   cursor: pointer;
 }
 
 .actions .end-turn {
   min-height: 56px;
   padding: 8px 22px;
-  background: #7a2d22;
-  border-color: #a0503f;
-  font-size: 1rem;
+  background: var(--blood);
+  border-color: var(--blood-bright);
+  font: 700 1rem var(--font-display); /* voix display UXD-1 (action majeure) */
 }
 
 .options-toggle {
@@ -125,10 +125,10 @@
   left: 8px;
   min-height: 44px;
   min-width: 44px;
-  border: 1px solid #3a3d47;
-  border-radius: 8px;
-  background: #262a33;
-  color: #e8e2d0;
+  border: 1px solid var(--ink-600);
+  border-radius: var(--radius-m);
+  background: var(--ink-700);
+  color: var(--parchment);
   font-size: 1.125rem;
   cursor: pointer;
   pointer-events: auto;
@@ -143,12 +143,12 @@
   width: min(80vw, 280px);
   padding: 56px 14px 14px;
   overflow-y: auto;
-  background: rgba(16, 18, 24, 0.95);
-  color: #e8e2d0;
-  font: 0.875rem/1.4 system-ui, sans-serif;
+  background: var(--veil-95);
+  color: var(--parchment);
+  font: 0.875rem/1.4 var(--font-ui);
   pointer-events: auto;
   transform: translateX(-100%);
-  transition: transform 0.2s ease;
+  transition: transform var(--dur-fast) ease;
   z-index: 10;
 }
 
@@ -161,7 +161,7 @@
   height: 64px;
   margin: 0 auto 10px;
   border-radius: 50%;
-  background: #3a3d47;
+  background: var(--ink-600);
 }
 
 /* Avatar réel du héros sélectionné (lot UX U5-D) : mêmes dimensions/coins
@@ -197,24 +197,24 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid #3a3d47;
-  border-radius: 8px;
-  background: #1c1e25;
+  border: 1px solid var(--ink-600);
+  border-radius: var(--radius-m);
+  background: var(--ink-800);
   cursor: pointer;
 }
 
 /* Sélection : jamais la couleur seule (doc 08 §4) — contour épais + fond
    distinct servent de second canal non chromatique. */
 .hero-portrait.selected {
-  border: 3px solid #e8e2d0;
-  background: #3a3d47;
+  border: 3px solid var(--parchment);
+  background: var(--ink-600);
 }
 
 .hero-portrait-mini {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: #55596a;
+  background: var(--ink-500);
 }
 
 .hero-portrait-level {
@@ -224,9 +224,9 @@
   min-width: 1.4em;
   padding: 0 3px;
   border-radius: 999px;
-  background: #7a2d22;
-  color: #e8e2d0;
-  font: 700 0.6875rem/1.4em system-ui, sans-serif;
+  background: var(--blood);
+  color: var(--parchment);
+  font: 700 0.6875rem/1.4em var(--font-ui);
   text-align: center;
 }
 
@@ -279,9 +279,9 @@
   align-items: center;
   justify-content: center;
   padding: 4px 6px;
-  border: 1px solid #3a3d47;
-  border-radius: 6px;
-  background: #1c1e25;
+  border: 1px solid var(--ink-600);
+  border-radius: var(--radius-s);
+  background: var(--ink-800);
   font-size: 0.75rem;
   text-align: center;
 }
@@ -304,7 +304,7 @@
   flex-direction: column;
   gap: 6px;
   padding: 6px 12px;
-  background: rgba(16, 18, 24, 0.85);
+  background: var(--veil-85);
   pointer-events: auto;
 }
 
@@ -312,11 +312,11 @@
   align-self: flex-start;
   min-height: 44px;
   padding: 4px 10px;
-  border: 1px solid #3a3d47;
-  border-radius: 6px;
-  background: #262a33;
-  color: #e8e2d0;
-  font: 600 0.8125rem system-ui, sans-serif;
+  border: 1px solid var(--ink-600);
+  border-radius: var(--radius-s);
+  background: var(--ink-700);
+  color: var(--parchment);
+  font: 600 0.8125rem var(--font-ui);
   cursor: pointer;
 }
 
@@ -362,11 +362,11 @@
   justify-content: space-between;
   gap: 8px;
   padding: 8px 10px;
-  border: 1px solid #3a3d47;
-  border-radius: 6px;
-  background: #262a33;
-  color: #e8e2d0;
-  font: 600 0.8125rem system-ui, sans-serif;
+  border: 1px solid var(--ink-600);
+  border-radius: var(--radius-s);
+  background: var(--ink-700);
+  color: var(--parchment);
+  font: 600 0.8125rem var(--font-ui);
   cursor: pointer;
   text-align: left;
 }

@@ -26,11 +26,11 @@
   justify-content: space-between;
   gap: 10px;
   padding: 10px 14px;
-  border: 1px solid #3a3d47;
-  border-radius: 8px;
-  background: #262a33;
-  color: #e8e2d0;
-  font: 600 0.875rem system-ui, sans-serif;
+  border: 1px solid var(--ink-600);
+  border-radius: var(--radius-m);
+  background: var(--ink-700);
+  color: var(--parchment);
+  font: 600 0.875rem var(--font-ui);
   text-align: left;
   cursor: pointer;
 }

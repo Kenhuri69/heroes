@@ -17,8 +17,8 @@
   flex-direction: column;
   gap: 0.1rem;
   padding: 0.4rem 0.5rem;
-  border-left: 3px solid #6a5a3a;
-  background: rgba(0, 0, 0, 0.12);
+  border-left: 3px solid var(--brass);
+  background: var(--shadow-12);
   border-radius: 0.25rem;
 }
 

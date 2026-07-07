@@ -18,9 +18,9 @@
   align-items: center;
   justify-content: center;
   padding: 4px 6px;
-  border: 1px solid #3a3d47;
-  border-radius: 6px;
-  background: #1c1e25;
+  border: 1px solid var(--ink-600);
+  border-radius: var(--radius-s);
+  background: var(--ink-800);
   font-size: 0.6875rem;
   text-align: center;
 }

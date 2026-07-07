@@ -6,11 +6,11 @@
   max-height: 86vh;
   overflow-y: auto;
   padding: 16px 18px;
-  border: 1px solid #3a3d47;
+  border: 1px solid var(--ink-600);
   border-radius: 10px;
-  background: #1c1e25;
-  color: #e8e2d0;
-  font: 0.875rem/1.4 system-ui, sans-serif;
+  background: var(--ink-800);
+  color: var(--parchment);
+  font: 0.875rem/1.4 var(--font-ui);
 }
 
 .journal-empty {
@@ -34,9 +34,9 @@
   flex-direction: column;
   gap: 2px;
   padding: 8px 10px;
-  border: 1px solid #3a3d47;
-  border-radius: 8px;
-  background: #262a33;
+  border: 1px solid var(--ink-600);
+  border-radius: var(--radius-m);
+  background: var(--ink-700);
   font-size: 0.8125rem;
 }
 
@@ -65,9 +65,9 @@
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  background: #7a2d22;
-  border: 1px solid #a0503f;
-  color: #e8e2d0;
-  font: 700 0.6875rem system-ui, sans-serif;
+  background: var(--blood);
+  border: 1px solid var(--blood-bright);
+  color: var(--parchment);
+  font: 700 0.6875rem var(--font-ui);
   line-height: 1;
 }

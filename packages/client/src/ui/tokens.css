@@ -1,0 +1,96 @@
+/* ————————————————————————————————————————————————————————————————
+   Design tokens « gouache » (UXD-1, plan .claude/plans/ux-d1-design-system.md)
+
+   SEULE source de vérité des couleurs, polices, rayons et durées de l'UI DOM.
+   Règle (garde-fou CI) : AUCUN littéral #hex / rgb()/rgba() dans les autres
+   feuilles ui/*.css — toujours var(--…). Les valeurs reprennent la palette
+   existante (encre/parchemin/sang/or) : UXD-1 unifie, il ne re-peint pas.
+   Les couleurs de RENDU data-driven (replis procéduraux PixiJS, couleurs de
+   joueur) vivent dans le code de rendu, pas ici.
+   ———————————————————————————————————————————————————————————————— */
+
+/* Voix display : capitales trajanes (Cinzel, OFL 1.1 — voir fonts/README.md),
+   fonte variable 400–900 servie localement, jamais de CDN à l'exécution. */
+@font-face {
+  font-family: 'Cinzel';
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url('./fonts/cinzel-latin.woff2') format('woff2');
+}
+
+:root {
+  /* — Typographie — */
+  --font-ui: system-ui, sans-serif; /* corps de texte, listes, descriptions */
+  --font-display: 'Cinzel', Georgia, serif; /* titres, gros boutons, chiffres de combat */
+
+  /* — Encres (fonds sombres, du plus profond au plus clair) — */
+  --ink-950: #101218; /* base des voiles */
+  --ink-900: #14161c; /* fond d'écran (menu, éditeur) */
+  --ink-800: #1c1e25; /* chips, slots, cartes */
+  --ink-700: #262a33; /* boutons, champs */
+  --ink-600: #3a3d47; /* bordures, filets */
+  --ink-500: #55596a; /* placeholders neutres */
+
+  /* — Parchemin (textes clairs) — */
+  --parchment: #e8e2d0; /* texte courant */
+  --parchment-bright: #f2ece0; /* texte mis en avant (dialogues, en-têtes peints) */
+  --parchment-dim: #c3c2b7; /* texte secondaire (jamais seul canal d'info) */
+
+  /* — Laiton / or (accents chaleureux) — */
+  --brass: #6a5a3a; /* filets décoratifs (dialogues, quêtes) */
+  --brass-bright: #a08a5a; /* liserés mis en avant */
+  --brass-text: #d8c48a; /* noms de personnages, intitulés dorés */
+  --gold: #f1c40f; /* actif / chance / sélection de combat */
+  --gold-veil: rgba(241, 196, 15, 0.55);
+
+  /* — Sang (action principale / danger) — */
+  --blood: #7a2d22; /* bouton primaire (Fin de tour), état actif */
+  --blood-bright: #a0503f; /* bordure du primaire */
+  --blood-veil: rgba(122, 45, 34, 0.35);
+  --blood-soft: rgba(160, 80, 63, 0.3);
+  --danger-text: #ff9d8a; /* prérequis manquant, erreur — toujours doublé d'un libellé */
+
+  /* — États sémantiques — */
+  --ok-text: #7ed08a;
+  --ok-veil: rgba(90, 140, 90, 0.3);
+  --info-veil: rgba(90, 120, 160, 0.3);
+
+  /* — Voiles sombres (panneaux posés sur le canvas / les fonds peints) — */
+  --veil-55: rgba(20, 22, 28, 0.55);
+  --veil-60: rgba(16, 18, 24, 0.6);
+  --veil-85: rgba(16, 18, 24, 0.85);
+  --veil-90: rgba(16, 18, 24, 0.9);
+  --veil-92: rgba(16, 18, 24, 0.92);
+  --veil-95: rgba(16, 18, 24, 0.95);
+  --veil-deep: rgba(10, 11, 15, 0.6); /* overlays plein écran (fin de partie, passage d'appareil) */
+
+  /* — Ombres portées — */
+  --shadow-12: rgba(0, 0, 0, 0.12);
+  --shadow-40: rgba(0, 0, 0, 0.4);
+  --shadow-60: rgba(0, 0, 0, 0.6);
+  --shadow-ink: #000; /* text-shadow de lisibilité sur canvas */
+  --white: #fff;
+
+  /* — Nuit arcanique (boîtes de dialogue, doc 13) — */
+  --night-700: #3a3350;
+  --night-800: #2a2438;
+
+  /* — Teintes de terrain (éditeur de carte ; toujours doublées d'un libellé) — */
+  --terrain-grass: #5a8f3c;
+  --terrain-swamp: #6b7a3a;
+  --terrain-water: #2e6b9e;
+  --terrain-mountain: #7a6f5f;
+
+  /* — Vue de ville peinte (repli dégradé + drapeau, U5-A) — */
+  --townsky-high: #3a4a63;
+  --townsky-mid: #4a5a54;
+  --townsky-low: #6b6048;
+  --town-flag: #7a6a4a;
+
+  /* — Rayons / durées — */
+  --radius-s: 6px;
+  --radius-m: 8px;
+  --radius-l: 12px;
+  --dur-fast: 0.2s;
+}

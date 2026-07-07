@@ -196,6 +196,17 @@ Menu principal (Continuer / Scénarios / Escarmouche / **Éditeur de carte** / O
 > attack/hit/death) reste différée : le pipeline `asset-sheet` produit des sprites
 > statiques, pas des planches d'animation.
 
+> 🚧 **État UXD-7 (micro-interactions & transitions)** : `ui/interactions.css`
+> (chargé après les tokens, 100 % présentation) dote toute l'UI DOM d'états
+> interactifs cohérents — `:hover` (éclaircissement), `:active` (enfoncement) et
+> surtout **`:focus-visible` (contour doré, focus clavier enfin visible — a11y
+> doc 08 §4)** — plus des animations d'apparition (modale scale+fade, écrans
+> menu/combat en fondu, toast qui glisse). Tout le mouvement est coupé par
+> `@media (prefers-reduced-motion: reduce)` (le contour de focus reste). Coût
+> par-frame nul (transitions DOM composées). Toasts icônisés par type et
+> crossfade complet menu⇄aventure = suivis (le premier touche la logique TSX,
+> le second demande une racine unique au HUD d'aventure).
+
 > 🚧 **État UXD-3B (assets peints de la carte)** : les placeholders procéduraux
 > de la carte d'aventure sont remplacés par des sprites peints (règles A/C
 > doc 12, hors bundle, chargés async) avec **repli procédural gracieux** partout :

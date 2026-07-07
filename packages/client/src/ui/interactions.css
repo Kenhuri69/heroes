@@ -1,0 +1,100 @@
+/* ————————————————————————————————————————————————————————————————
+   Micro-interactions & transitions (UXD-7, plan .claude/plans/ux-d7-*.md)
+
+   100 % présentation, s'appuie sur les tokens UXD-1. Chargé après tokens.css
+   dans shell.tsx. Ne touche AUCUN testid ni logique — que du style.
+   ———————————————————————————————————————————————————————————————— */
+
+/* — États interactifs globaux des boutons de l'UI DOM —
+   Non invasif : `filter`/`transform`/`outline` marchent quelle que soit la
+   couleur de fond posée par chaque composant ; `outline` n'affecte pas le flux. */
+button {
+  transition:
+    filter var(--dur-fast) ease,
+    transform 0.08s ease,
+    box-shadow var(--dur-fast) ease;
+}
+
+button:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(1px);
+  filter: brightness(0.96);
+}
+
+/* Focus clavier VISIBLE partout (a11y, doc 08 §4) — contour doré net. */
+button:focus-visible,
+a:focus-visible,
+[role='button']:focus-visible,
+select:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+/* — Ouverture de modale (pile §3) : voile en fondu, panneau scale+fade — */
+.modal-backdrop {
+  animation: uxd7-fade-in var(--dur-fast) ease;
+}
+
+.modal {
+  animation: uxd7-modal-in 0.22s ease;
+}
+
+/* — Écrans à racine unique : fondu court à l'apparition — */
+.menu-screen,
+.combat-ui {
+  animation: uxd7-fade-in 0.25s ease;
+}
+
+/* — Toast : glisse depuis le bas + fondu — */
+.toast {
+  animation: uxd7-toast-in 0.2s ease;
+}
+
+@keyframes uxd7-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes uxd7-modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes uxd7-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* — Accessibilité : couper tout mouvement si le système le demande —
+   Les états :focus-visible (contour) restent : ce n'est pas du mouvement. */
+@media (prefers-reduced-motion: reduce) {
+  button,
+  .modal-backdrop,
+  .modal,
+  .menu-screen,
+  .combat-ui,
+  .toast {
+    animation: none !important;
+    transition: none !important;
+  }
+}

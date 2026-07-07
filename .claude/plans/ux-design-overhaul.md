@@ -327,5 +327,5 @@ intercalé dès qu'un sourcing est validé).
 - [x] UXD-4 — combat immersif (`ux-d4-combat-immersif.md`).
 - [ ] UXD-5 — écrans de gestion habillés.
 - [ ] UXD-6 — ambiance sonore.
-- [ ] UXD-7 — micro-interactions & transitions.
+- [x] UXD-7 — micro-interactions & transitions (`ux-d7-micro-interactions.md`).
 - [ ] UXD-8 — immersion continue & desktop.

@@ -1,6 +1,7 @@
-import { Container, Graphics } from 'pixi.js';
+import { Assets, Container, Graphics, Sprite } from 'pixi.js';
 import type { TownState } from '@heroes/engine';
 import { TILE_SIZE } from './tilemap';
+import { townMapUrl } from './assets';
 
 /** Couleur du donjon selon le propriétaire (doc 08 §5, accessibilité A5 : forme + couleur). */
 const OWNED_COLOR = 0xc0392b; // héros humain — même teinte que son jeton
@@ -39,7 +40,7 @@ export class TownsLayer {
         existing.node.destroy({ children: true });
         this.byId.delete(town.id);
       }
-      const node = buildKeep(town.ownerPlayerId === humanId);
+      const node = buildKeep(town.factionId, town.ownerPlayerId === humanId);
       node.position.set(town.pos.x * TILE_SIZE, town.pos.y * TILE_SIZE);
       this.byId.set(town.id, { node, owner: town.ownerPlayerId });
       this.container.addChild(node);
@@ -47,28 +48,54 @@ export class TownsLayer {
   }
 }
 
-/** Donjon procédural (créneaux + bannière), liseré doré si assiégeable. */
-function buildKeep(owned: boolean): Container {
+/**
+ * Ville sur la carte (UXD-3B) : **château peint** par faction
+ * (`assets/map/town-<faction>`, chargé async, hors bundle), avec un **donjon
+ * procédural** de repli si le sprite est absent/en cours. Le liseré doré
+ * d'« assiégeable » (2ᵉ canal A5) est posé PAR-DESSUS dans les deux cas.
+ */
+function buildKeep(factionId: string, owned: boolean): Container {
+  const node = new Container();
+  const fallback = buildKeepFallback(owned);
+  node.addChild(fallback);
+  const url = townMapUrl(factionId);
+  if (url) {
+    void Assets.load(url).then((texture) => {
+      if (node.destroyed) return;
+      node.removeChild(fallback);
+      fallback.destroy({ children: true });
+      const sprite = new Sprite(texture);
+      sprite.anchor.set(0.5);
+      const scale = (TILE_SIZE * 1.35) / Math.max(texture.width, texture.height);
+      sprite.scale.set(scale);
+      sprite.position.set(TILE_SIZE / 2, TILE_SIZE / 2);
+      node.addChildAt(sprite, 0); // sous le liseré de siège
+    });
+  }
+  if (!owned) {
+    // Liseré doré : cette ville peut être assiégée (doc 08 §5, 2ᵉ canal A5).
+    const c = TILE_SIZE / 2;
+    node.addChild(
+      new Graphics().rect(c - 24, c - 24, 48, 48).stroke({ width: 2, color: 0xf1c40f }),
+    );
+  }
+  return node;
+}
+
+/** Donjon procédural de repli (créneaux), coloré selon le propriétaire. */
+function buildKeepFallback(owned: boolean): Container {
   const node = new Container();
   const color = owned ? OWNED_COLOR : ENEMY_COLOR;
   const c = TILE_SIZE / 2;
   const g = new Graphics()
-    // Corps du donjon.
     .rect(c - 18, c - 6, 36, 22)
     .fill(color)
     .stroke({ width: 2, color: 0x1a1c22 })
-    // Créneaux.
     .rect(c - 18, c - 14, 8, 8)
     .rect(c - 4, c - 14, 8, 8)
     .rect(c + 10, c - 14, 8, 8)
     .fill(color)
     .stroke({ width: 2, color: 0x1a1c22 });
   node.addChild(g);
-  if (!owned) {
-    // Liseré doré : cette ville peut être assiégée (doc 08 §5).
-    node.addChild(
-      new Graphics().rect(c - 21, c - 17, 42, 36).stroke({ width: 2, color: 0xf1c40f }),
-    );
-  }
   return node;
 }

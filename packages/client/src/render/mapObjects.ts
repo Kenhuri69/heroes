@@ -1,6 +1,6 @@
 import { Assets, Container, Graphics, Sprite } from 'pixi.js';
 import type { CombatUnitDef, MapObjectDef, MineObjectDef } from '@heroes/engine';
-import { artifactUrl, getTexture, mineUrl, unitSpriteUrl } from './assets';
+import { artifactUrl, getTexture, mapPropUrl, mineUrl, unitSpriteUrl } from './assets';
 import { NEUTRAL_COLOR } from './playerColors';
 import { TILE_SIZE } from './tilemap';
 
@@ -79,26 +79,83 @@ const VISITABLE_COLORS: Record<string, number> = {
   resource: 0xb9770e, // moulin
 };
 
-/** Lieu de bonus : kiosque procédural (toit + socle) teinté par effet, lisible à 64 px. */
+/**
+ * Objet de carte PEINT (UXD-3B) : superpose au `fallback` procédural le sprite
+ * `assets/map/<propId>` (chargé async, hors bundle). Repli gracieux si le sprite
+ * est absent/en cours. Garde `node.destroyed` : la scène peut être détruite
+ * avant la fin du chargement.
+ */
+function withMapProp(propId: string, fallback: Container, scale = 1.0): Container {
+  const node = new Container();
+  node.addChild(fallback);
+  const url = mapPropUrl(propId);
+  if (url) {
+    void Assets.load(url).then((texture) => {
+      if (node.destroyed) return;
+      node.removeChild(fallback);
+      fallback.destroy({ children: true });
+      const sprite = new Sprite(texture);
+      sprite.anchor.set(0.5);
+      sprite.scale.set((TILE_SIZE * scale) / Math.max(texture.width, texture.height));
+      sprite.position.set(TILE_SIZE / 2, TILE_SIZE / 2);
+      node.addChild(sprite);
+    });
+  }
+  return node;
+}
+
+/** Prop peint associé à la nature du lieu de bonus (autel mystique vs panneau). */
+const VISITABLE_PROP: Record<string, string> = {
+  luck: 'shrine',
+  levelXp: 'shrine',
+  movement: 'signpost',
+  resource: 'signpost',
+};
+
+/** Lieu de bonus : panneau/autel peint (UXD-3B), repli kiosque procédural teinté. */
 function buildVisitable(kind: string): Container {
+  return withMapProp(VISITABLE_PROP[kind] ?? 'signpost', buildVisitableFallback(kind));
+}
+
+function buildVisitableFallback(kind: string): Container {
+  const node = new Container();
   const c = TILE_SIZE / 2;
   const color = VISITABLE_COLORS[kind] ?? 0x8a8f98;
-  return new Graphics()
-    .poly([c, c - 18, c + 18, c - 2, c - 18, c - 2])
-    .fill(color)
-    .stroke({ width: 2, color: 0x1a1c22 })
-    .rect(c - 12, c - 2, 24, 16)
-    .fill(0xe8e2d0)
-    .stroke({ width: 2, color: 0x1a1c22 })
-    .circle(c, c + 6, 3)
-    .fill(color);
+  node.addChild(
+    new Graphics()
+      .poly([c, c - 18, c + 18, c - 2, c - 18, c - 2])
+      .fill(color)
+      .stroke({ width: 2, color: 0x1a1c22 })
+      .rect(c - 12, c - 2, 24, 16)
+      .fill(0xe8e2d0)
+      .stroke({ width: 2, color: 0x1a1c22 })
+      .circle(c, c + 6, 3)
+      .fill(color),
+  );
+  return node;
 }
 
 /**
- * Habitation hors ville : tente procédurale + sprite de l'unité recrutable en
- * médaillon (même chargement async gardé que le gardien).
+ * Habitation hors ville : **camp peint** (UXD-3B, repli tente procédurale) +
+ * sprite de l'unité recrutable en médaillon (chargement async gardé comme le
+ * gardien).
  */
 function buildDwelling(unitId: string, catalog: UnitCatalog): Container {
+  const node = withMapProp('camp', buildTentFallback());
+  const url = unitSpriteUrl(unitId, catalog[unitId]?.groupId);
+  if (url) {
+    void Assets.load(url).then((texture) => {
+      if (node.destroyed) return;
+      const sprite = new Sprite(texture);
+      sprite.setSize(TILE_SIZE * 0.45, TILE_SIZE * 0.45);
+      sprite.position.set(TILE_SIZE * 0.5, TILE_SIZE * 0.05);
+      node.addChild(sprite); // médaillon au-dessus du camp
+    });
+  }
+  return node;
+}
+
+function buildTentFallback(): Container {
   const node = new Container();
   const c = TILE_SIZE / 2;
   const tent = new Graphics()
@@ -107,17 +164,6 @@ function buildDwelling(unitId: string, catalog: UnitCatalog): Container {
     .stroke({ width: 2, color: 0x1a1c22 });
   tent.poly([c - 5, c + 16, c, c + 6, c + 5, c + 16]).fill(0x1a1c22);
   node.addChild(tent);
-
-  const url = unitSpriteUrl(unitId, catalog[unitId]?.groupId);
-  if (url) {
-    void Assets.load(url).then((texture) => {
-      if (node.destroyed) return;
-      const sprite = new Sprite(texture);
-      sprite.setSize(TILE_SIZE * 0.45, TILE_SIZE * 0.45);
-      sprite.position.set(TILE_SIZE * 0.5, TILE_SIZE * 0.05);
-      node.addChild(sprite);
-    });
-  }
   return node;
 }
 
@@ -160,17 +206,25 @@ function buildMine(obj: MineObjectDef, color: number): Container {
   return node;
 }
 
-/** Coffre au trésor procédural (doc 02 §2.2) — lisible à 64 px. */
+/** Coffre au trésor **peint** (UXD-3B, doc 02 §2.2) — repli coffre procédural. */
 function buildTreasure(): Container {
+  return withMapProp('chest', buildTreasureFallback());
+}
+
+function buildTreasureFallback(): Container {
+  const node = new Container();
   const c = TILE_SIZE / 2;
-  return new Graphics()
-    .roundRect(c - 16, c - 8, 32, 20, 4)
-    .fill(0xb9770e)
-    .stroke({ width: 2, color: 0x1a1c22 })
-    .rect(c - 16, c - 2, 32, 4)
-    .fill(0x7e5109)
-    .circle(c, c + 1, 3.5)
-    .fill(0xf1c40f);
+  node.addChild(
+    new Graphics()
+      .roundRect(c - 16, c - 8, 32, 20, 4)
+      .fill(0xb9770e)
+      .stroke({ width: 2, color: 0x1a1c22 })
+      .rect(c - 16, c - 2, 32, 4)
+      .fill(0x7e5109)
+      .circle(c, c + 1, 3.5)
+      .fill(0xf1c40f),
+  );
+  return node;
 }
 
 /**

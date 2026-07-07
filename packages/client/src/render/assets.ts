@@ -104,6 +104,21 @@ export function artifactUrl(id: string): string | undefined {
   return registry.get(`artifacts/${id}`);
 }
 
+/** Jeton de héros sur la carte (`map/hero-<factionId>`, UXD-3B). */
+export function heroMapUrl(factionId: string): string | undefined {
+  return factionId ? registry.get(`map/hero-${factionId}`) : undefined;
+}
+
+/** Château de ville sur la carte (`map/town-<factionId>`, UXD-3B). */
+export function townMapUrl(factionId: string): string | undefined {
+  return factionId ? registry.get(`map/town-${factionId}`) : undefined;
+}
+
+/** Objet de carte peint (`map/<id>` : chest/camp/signpost/shrine, UXD-3B). */
+export function mapPropUrl(id: string): string | undefined {
+  return registry.get(`map/${id}`);
+}
+
 /**
  * Vignette de bâtiment : les fichiers sont nommés exactement par `buildingId`,
  * rangés sous `buildings/<factionId>/` (dwellings & Cercles) ou `buildings/core/`

@@ -156,6 +156,7 @@ docs/
   12-assets-style-guide.md       Guide de style des assets générés : cadre visuel, procédures de génération, intégration client
   13-plan-narrative-polish.md    Plan de polishing narratif : ton, campagnes, quêtes, dialogues data-driven, lots N1→N4
   14-faction-sylvan-court.md     Faction Sylvan Court (Beta, 4ᵉ maison) : cadrage — lineup 7 tiers, signature Symbiose, points d'extension
+  15-backend-infra.md            Backend coût 0 (Cloudflare Workers + D1) : levier déterministe, modèle de données, auth magic-link, PvP async, déploiement
   templates/faction-template.md  Gabarit pour spécifier une nouvelle maison
 .github/workflows/
   ci.yml                         PR : typecheck, lint, tests, build, smoke headless
@@ -176,6 +177,8 @@ data/
   factions/                      Paquets de faction (index.json + haven, arcane-hunters, test-faction, necropolis)
   maps/proto-01.map.json         Carte prototype 32×32 (légende, tuiles, routes, objets, départs)
   scenarios/                     Scénarios solo (index.json + tutorial/survival/conquest : joueurs, IA, objectifs)
+server/
+  schema.sql                     Schéma D1 (Cloudflare) du backend : profiles/sessions/saves/matches/moves (doc 15)
 tests/smoke.spec.ts              Smoke Playwright/Chromium headless (guideline §7) sur le build de prod
 playwright.config.ts             Config smoke (desktop + mobile, vite preview)
 .claude/

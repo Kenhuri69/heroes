@@ -75,7 +75,7 @@ Estimations pour une petite équipe (2–3 dev + 1 artiste temps partiel). Chaqu
 > réversible. Décomposition 5.1 cadrage ✅ → 5.2 données ✅ → 5.3 `symbiosis` ✅ → 5.4
 > équilibrage/finitions ✅. **Sylvan Court complète.**
 
-- **Backend Node.js** (doc 07 §5) : comptes (magic link), cloud saves, **PvP asynchrone** avec notifications ; serveur autoritaire par re-simulation. *(attend une direction d'infra)*
+- 🚧 **Backend coût 0 — Cloudflare Workers + D1** (doc 07 §5, **doc 15**) : direction d'infra choisie (Cloudflare, 0 €, pas de mise en pause). Lot **7.1 — fondation** ✅ : helpers purs de netcode `engine/net` (`replayCommands`/`replayHash`/`currentTurnPlayerId`/`appendTurn` + tests) exploitant le **levier déterministe** (une partie ≡ journal de commandes rejouable ⇒ serveur autoritaire par re-simulation quasi gratuit) ; **schéma D1 provisionné** (`server/schema.sql`, base `heroes` région WEUR) ; doc 15. Restent 7.2 (le Worker + endpoints, déploiement `wrangler` manuel) et 7.3 (client `@heroes/net` derrière un flag de config).
 - ✅ **4ᵉ faction — Sylvan Court complète** (5.1→5.4 livrés — doc 14) : produite via le pipeline de faction (doc 06), signature `symbiosis` en 1 point d'extension générique, équilibrée via `faction:sim` (0 blowout), Bosquet du Cœur (`growthBonus`). **4ᵉ test de modularité réussi** — zéro nom de faction dans `packages/`.
 - DA finale par faction (remplacement des placeholders), audio complet, PWA hors-ligne.
 - Équilibrage continu piloté par les données serveur ; classement saisonnier expérimental.

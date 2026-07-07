@@ -35,6 +35,19 @@ const SCREENS = [
     },
   },
   {
+    name: 'hero',
+    open: async (page) => {
+      await page.goto(`${BASE}?seed=42`);
+      await ready(page);
+      // Rouvre le tiroir s'il a été refermé par une itération précédente.
+      const drawer = page.getByTestId('hero-drawer');
+      if (!(await drawer.evaluate((el) => el.classList.contains('open')))) {
+        await page.getByTestId('hero-drawer-toggle').click({ timeout: 5000 });
+      }
+      await page.waitForTimeout(300); // transition d'ouverture (0.2s)
+    },
+  },
+  {
     name: 'combat',
     open: async (page) => {
       // L'arène immédiate exige la seed ET le hash ensemble (cf. smoke). Passage

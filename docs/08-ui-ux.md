@@ -83,7 +83,7 @@
 ```
 
 - **Prévisualisation de dégâts obligatoire** avant confirmation : « 12–18 dégâts, ~3 morts · riposte estimée : 5–8 ».
-- Mobile : combat **jouable en portrait** de plein droit — le plateau est rendu à une **échelle plancher** garantissant des hexes ≥ 44 px (touch-first, §1), puis **déplaçable au pan et zoomable au pinch** (parité avec la carte d'aventure) quand il déborde de l'écran. Le paysage reste possible mais n'est plus imposé par un overlay de suggestion de rotation.
+- Mobile : combat **jouable en portrait** de plein droit — le plateau est rendu à une **échelle plancher** garantissant des hexes ≥ 44 px (touch-first, §1), puis **déplaçable au pan et zoomable au pinch** (parité avec la carte d'aventure) quand il déborde de l'écran. Le paysage reste possible mais n'est plus imposé par un overlay de suggestion de rotation. Quand le plateau déborde, la vue s'ouvre **centrée sur la pile active** (pas sur le centre du plateau, qui n'affichait aucune unité) ; le pan/pinch du joueur reste ensuite maître (UXD-0). En viewport étroit, le bandeau du haut empile round puis une rangée par camp, et la prévisualisation de dégâts est groupée au-dessus de la barre d'actions (jamais recouverte).
 - Vitesses d'animation ×1/×2/×4 + « combat auto » avec possibilité de reprendre la main à tout round (rejoue depuis l'état courant — gratuit grâce au déterminisme).
 
 ### 2.5 Autres écrans

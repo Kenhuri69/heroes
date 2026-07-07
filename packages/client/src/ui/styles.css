@@ -7,9 +7,12 @@
   left: 0;
   right: 0;
   display: flex;
+  flex-wrap: wrap; /* UXD-0 R2 : au cran 3 mobile, retour à la ligne au lieu de déborder */
   justify-content: center;
-  gap: 12px;
-  padding: 6px 8px;
+  gap: 4px 12px;
+  /* Padding latéral ≥ bouton tiroir (44 px + 8 px de marge) : le hamburger
+     (mobile : gauche, desktop : droite) ne recouvre plus la 1ère ressource. */
+  padding: 6px 60px;
   background: rgba(16, 18, 24, 0.85);
   color: #e8e2d0;
   font: 0.875rem/1.4 system-ui, sans-serif;
@@ -38,12 +41,32 @@
   image-rendering: auto;
 }
 
-.status-bar {
+/* HUD bas de la carte (UXD-0 R3) : un seul conteneur en colonne — bandeau
+   d'armée AU-DESSUS, rangée statut+actions EN DESSOUS. Avant : 3 blocs
+   `position: fixed` indépendants qui se recouvraient dès que la barre
+   d'actions passait sur 2 rangées (mobile × cran 3). */
+.bottom-hud {
   position: fixed;
-  left: 12px;
-  bottom: 12px;
+  left: 0;
+  right: 0;
+  bottom: 0;
   display: flex;
   flex-direction: column;
+  pointer-events: none; /* chaque bloc interactif ré-active les siens */
+}
+
+.turn-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px 12px;
+}
+
+.status-bar {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
   gap: 2px;
   color: #e8e2d0;
   font: 0.875rem/1.5 system-ui, sans-serif;
@@ -52,15 +75,12 @@
 }
 
 .actions {
-  position: fixed;
-  right: 12px;
-  bottom: 12px;
   display: flex;
   align-items: flex-end;
   justify-content: flex-end;
   flex-wrap: wrap; /* mobile étroit : la barre passe à la ligne au lieu de déborder */
   gap: 8px;
-  max-width: calc(100vw - 24px);
+  min-width: 0;
   pointer-events: auto;
 }
 
@@ -277,12 +297,9 @@
   white-space: nowrap;
 }
 
-/* Bandeau d'armée bas, repliable en portrait (doc 08 §2.1). */
+/* Bandeau d'armée bas, repliable en portrait (doc 08 §2.1) — posé dans le
+   flux de `.bottom-hud` (UXD-0 R3), plus jamais sous la barre d'actions. */
 .army-band {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 68px;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -323,6 +340,45 @@
   .hero-drawer.open {
     transform: translateX(0);
   }
+}
+
+/* Livre de sorts d'aventure (Alpha 4.16) dans le tiroir héros — UXD-0 R1 :
+   le bouton n'avait aucun style (bouton nu ~21 px de haut, sous la cible
+   tactile minimale). Aligné sur les boutons du tiroir, cible ≥ 44 px. */
+.adventure-spell-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.adventure-spell-cast {
+  width: 100%;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid #3a3d47;
+  border-radius: 6px;
+  background: #262a33;
+  color: #e8e2d0;
+  font: 600 0.8125rem system-ui, sans-serif;
+  cursor: pointer;
+  text-align: left;
+}
+
+.adventure-spell-cast:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.adventure-spell-cost {
+  flex: none;
+  opacity: 0.75;
 }
 
 /* Textes d'ambiance du contenu (doc 13 §3.5, lot N1) — flavor discret,

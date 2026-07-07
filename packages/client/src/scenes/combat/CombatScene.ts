@@ -71,6 +71,8 @@ export class CombatScene {
   private selection: Selection | null = null;
   private queue: Promise<void> = Promise.resolve();
   private destroyed = false;
+  /** UXD-0 R5b : vrai tant qu'un combat est affiché — sert à détecter l'ouverture. */
+  private combatShown = false;
 
   private readonly resizeObserver: ResizeObserver;
   private readonly unsubscribeStore: () => void;
@@ -127,6 +129,31 @@ export class CombatScene {
       MARGIN_SIDE + (availW - bounds.width * scale) / 2 - bounds.minX * scale,
       MARGIN_TOP + (availH - bounds.height * scale) / 2 - bounds.minY * scale,
     );
+    // Un resize recentrait déjà la caméra (pan perdu) : recadrer sur la pile
+    // active plutôt que sur le centre du plateau quand il déborde (R5b).
+    const combat = appStore.getState().game.combat;
+    if (combat) this.centerOnActive(combat);
+  }
+
+  /**
+   * UXD-0 R5b : à l'OUVERTURE du combat seulement, si le plateau déborde de
+   * l'écran (échelle plancher 44 px en portrait), centre la vue sur l'hex de
+   * la pile active — sinon aucune unité n'était visible au 1er round. Le
+   * pan/pinch de l'utilisateur reste maître ensuite (pas de recentrage).
+   */
+  private centerOnActive(combat: CombatState): void {
+    const bounds = computeBoardBounds();
+    const scale = this.camera.world.scale.x;
+    const availW = Math.max(1, this.app.screen.width - MARGIN_SIDE * 2);
+    const availH = Math.max(1, this.app.screen.height - MARGIN_TOP - MARGIN_BOTTOM);
+    if (bounds.width * scale <= availW && bounds.height * scale <= availH) return; // layout() centré suffit
+    const active = combat.stacks.find((s) => s.id === combat.activeStackId) ?? combat.stacks[0];
+    if (!active) return;
+    const { x, y } = offsetToPixel(active.pos);
+    this.camera.world.position.set(
+      this.app.screen.width / 2 - x * scale,
+      MARGIN_TOP + availH / 2 - y * scale,
+    );
   }
 
   // ——— Resync depuis le store (réconciliation simple, doc 10 §2.2) ———
@@ -135,6 +162,7 @@ export class CombatScene {
     if (this.destroyed) return;
     const combat = appStore.getState().game.combat;
     if (!combat) {
+      this.combatShown = false;
       this.selection = null;
       combatPreview.set(null);
       this.boardGfx.clear();
@@ -145,6 +173,10 @@ export class CombatScene {
       }
       this.activeRing.visible = false;
       return;
+    }
+    if (!this.combatShown) {
+      this.combatShown = true;
+      this.centerOnActive(combat);
     }
     this.syncStacks(combat);
     this.redrawBoard();

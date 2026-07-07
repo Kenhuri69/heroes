@@ -47,9 +47,19 @@ jobs:
           echo "bundle gzip: ${total} octets"
           [ "$total" -le 819200 ]
 
-      # Smoke headless sur le build de prod (guideline §7)
+      # Smoke headless sur le build de prod (guideline §7) — build HORS-LIGNE
+      # (pas de VITE_BACKEND_URL) : le smoke reste déterministe et ne touche
+      # jamais le réseau (bouton « En ligne » masqué, test 7.3).
       - run: pnpm exec playwright install chromium --with-deps
       - run: pnpm smoke
+
+      # Backend (Live 7.4) : REBUILD du client avec l'URL du Worker AVANT publication
+      # — seul l'artefact déployé embarque le backend (le smoke ci-dessus reste
+      # hors-ligne). Variable de dépôt absente ⇒ chaîne vide ⇒ client hors-ligne.
+      - name: Rebuild client with backend URL
+        run: pnpm build
+        env:
+          VITE_BACKEND_URL: ${{ vars.VITE_BACKEND_URL }}
 
       - uses: actions/configure-pages@v5
         with:

@@ -6,7 +6,7 @@ import { performStrike, symbiosisParams } from './damage';
 import type { Draft } from './draft';
 import { COMBAT_COLS, COMBAT_ROWS, hexDistance, hexNeighbors, sameHex, type OffsetPos } from './hex';
 import { advanceTurn, checkCombatEnd } from './turns';
-import { combatRules, hasAbility, isShooterMeleePenalized, moraleOf } from './state-helpers';
+import { combatRules, hasAbility, isShooterMeleePenalized, moraleOf, moveRange } from './state-helpers';
 import type { CombatActionInput, CombatStack } from './types';
 
 /**
@@ -27,7 +27,8 @@ export function reachableHexes(state: GameState, stackId: string): OffsetPos[] {
   if (!stack) return [];
   const def = state.unitCatalog[stack.unitId];
   if (!def) return [];
-  const speed = def.stats.speed + (def.nativeTerrain === combat.terrain ? 1 : 0);
+  // Portée = vitesse effective + speedMod des statuts (Hâte/Lenteur/Entraves), ≥ 0 (A4).
+  const speed = moveRange(stack, combat, state.unitCatalog);
   const flying = hasAbility(def, 'flying');
 
   const blocked = new Set<string>();
@@ -143,13 +144,19 @@ export function validateCombatAction(state: GameState, cmd: { action: CombatActi
         return { code: 'invalidAction', message: 'cible invalide' };
       if (canShoot(state, stack.id)) return null;
       const dist = hexDistance(stack.pos, target.pos);
-      if (dist === 1) return null;
       const from = action.from;
-      if (!from) return { code: 'invalidAction', message: 'cible non adjacente : hex de départ requis' };
+      // A1 (CRITIQUE) : `from` doit TOUJOURS être validé quand fourni — y compris
+      // cible déjà adjacente. Sans ça, `applyAttack` téléportait la pile sur le
+      // `from` arbitraire (hors plateau/sur obstacle/sur une autre pile) avant de
+      // frapper. Sans `from`, frappe sur place autorisée seulement si adjacent.
+      if (!from) {
+        if (dist === 1) return null;
+        return { code: 'invalidAction', message: 'cible non adjacente : hex de départ requis' };
+      }
       if (hexDistance(from, target.pos) !== 1)
         return { code: 'invalidAction', message: 'hex de départ non adjacent à la cible' };
-      const reachable = reachableHexes(state, stack.id);
-      if (!reachable.some((p) => sameHex(p, from)))
+      // `from` accepté s'il est la position actuelle (déjà adjacent) ou atteignable.
+      if (!sameHex(from, stack.pos) && !reachableHexes(state, stack.id).some((p) => sameHex(p, from)))
         return { code: 'invalidAction', message: 'hex de départ inatteignable' };
       return null;
     }
@@ -290,7 +297,9 @@ function applyAttack(
       if (targetDied) break;
     }
   } else {
-    if (action.from) {
+    // Repositionnement avant la frappe (validé par `validateCombatAction`, A1) —
+    // ignoré si `from` est déjà la position actuelle (pas de StackMoved à vide).
+    if (action.from && !sameHex(action.from, attacker.pos)) {
       const from = { ...attacker.pos };
       attacker.pos = { ...action.from };
       events.push({ type: 'StackMoved', stackId: attacker.id, from, to: { ...attacker.pos } });
@@ -309,8 +318,10 @@ function applyAttack(
     if (checkCombatEnd(draft, events)) return;
     let attackerAlive = combat.stacks.some((s) => s.id === attacker.id);
     if (!first.targetDied && attackerAlive) {
+      // `noRetaliation` (doc 02 §5.4) est une capacité de l'ATTAQUANT : elle prive
+      // la victime de riposte (Vampire doc 04, Manticore doc 05). A2.
       const canRetaliate =
-        target.retaliationsLeft > 0 && !hasAbility(targetDef, 'noRetaliation');
+        target.retaliationsLeft > 0 && !hasAbility(attackerDef, 'noRetaliation');
       if (canRetaliate) {
         target.retaliationsLeft -= 1;
         const retMeleePenalized = isShooterMeleePenalized(targetDef);

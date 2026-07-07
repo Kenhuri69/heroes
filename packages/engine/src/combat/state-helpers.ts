@@ -42,6 +42,21 @@ export function effectiveSpeed(
   return def.stats.speed + (def.nativeTerrain === combat.terrain ? 1 : 0);
 }
 
+/**
+ * Portée de DÉPLACEMENT (doc 02 §1.4/5.1, A4) : vitesse effective + somme des
+ * `speedMod` des statuts actifs (Hâte/Lenteur/Entraves), bornée ≥ 0. La vitesse
+ * EST la portée en hexes — l'initiative utilise la même somme (non bornée) dans
+ * `turns.ts`. Consommée par `reachableHexes` (et donc l'UI et l'IA).
+ */
+export function moveRange(
+  stack: CombatStack,
+  combat: CombatState,
+  catalog: Record<string, CombatUnitDef>,
+): number {
+  const mods = stack.statuses.reduce((sum, s) => sum + s.speedMod, 0);
+  return Math.max(0, effectiveSpeed(stack, combat, catalog) + mods);
+}
+
 /** Bonus de moral du héros lié au camp `side` (compétence Commandement) — 0 si aucun héros. */
 function heroMoraleForSide(state: GameState, combat: CombatState, side: CombatSideId): number {
   const heroId = side === 'attacker' ? combat.attackerHeroId : combat.defenderHeroId;

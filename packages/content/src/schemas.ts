@@ -368,6 +368,7 @@ export const gameConfigSchema = z.object({
     /** Règles de combat (doc 02 §5 + plan phase-2.4) — même forme que le moteur. */
     combat: z.object({
       attackDefenseStep: z.number().positive().max(1),
+      heroDefenseStep: z.number().nonnegative().max(1),
       damageBonusMax: z.number().positive().max(5),
       damageReductionMax: z.number().positive().max(1),
       defendDefenseMultiplier: z.number().min(1),

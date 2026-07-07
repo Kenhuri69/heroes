@@ -61,6 +61,17 @@
 > procédural). Décors bespoke par faction + spritesheets d'unités = tranches
 > ultérieures du jalon Beta.
 
+> 🎨 **État UXD-5** : la vue de ville devient un **plan de construction** — plus
+> seulement les bâtiments construits, mais **tout le catalogue**, chaque
+> emplacement portant son statut (construit / disponible / verrouillé). Le
+> statut n'est jamais porté par la seule couleur (a11y §4) : **pastille de forme
+> distincte** (disque plein / anneau pointillé / carré) + opacité et
+> désaturation de la vignette ; `aria-label` = « nom — statut ». Tri par statut
+> puis id ; tap sur n'importe quel emplacement ⇒ onglet Construire (les prérequis
+> d'un emplacement verrouillé y sont détaillés). **Poupée d'équipement typée par
+> slot** (§2.3) et réalignement des écrans annexes = suivis notés
+> (`.claude/plans/ux-d5-gestion.md`).
+
 ### 2.3 Écran héros
 
 - Portrait, attributs, XP ; **poupée d'équipement** 10 slots + sac ; compétences (6 slots, rangs) ; grimoire (filtré par école/cercle, coût mana visible, sorts indisponibles grisés avec raison).

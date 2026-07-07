@@ -169,11 +169,41 @@ export function TownScreen({ townId, onClose }: { townId: string; onClose: () =>
 }
 
 /**
- * Vue de ville « peinte » (doc 08 §2.2/§5, lot UX U5) : les bâtiments CONSTRUITS
- * apparaissent en vignettes sur un décor peint (fond bespoke par faction,
- * lot U5-B — repli sur le dégradé gouache CSS si l'asset est absent), en bande
- * à défilement horizontal (touch-first, mobile). Tap sur un bâtiment = bascule
- * vers l'onglet Construire. Réutilise les vignettes existantes (`buildingUrl`).
+ * Statut d'affichage d'un bâtiment sur le décor (UXD-5) : `constructed`
+ * (niveau ≥ 1, physiquement bâti), `available` (constructible aujourd'hui),
+ * `locked` (prérequis manquant ou rival exclusif déjà bâti). Distinct de
+ * `buildStatus` moteur, qui renvoie `built` pour « rien de plus à bâtir » (max)
+ * — ici on veut « posé sur la carte ou non ».
+ */
+type TownViewStatus = 'constructed' | 'available' | 'locked';
+
+const VIEW_STATUS_ORDER: Record<TownViewStatus, number> = {
+  constructed: 0,
+  available: 1,
+  locked: 2,
+};
+
+/** Clé locale du statut d'affichage (réutilise les libellés existants). */
+const VIEW_STATUS_LABEL: Record<TownViewStatus, string> = {
+  constructed: 'town.built',
+  available: 'town.available',
+  locked: 'town.locked',
+};
+
+function townViewStatus(town: TownState, catalog: Record<string, BuildingDef>, id: string): TownViewStatus {
+  if ((town.buildings[id] ?? 0) >= 1) return 'constructed';
+  return buildStatus(town, catalog, id) === 'available' ? 'available' : 'locked';
+}
+
+/**
+ * Vue de ville « peinte » (doc 08 §2.2/§5, lots UX U5 + UXD-5) : **plan de
+ * construction** sur un décor peint (fond bespoke par faction, lot U5-B — repli
+ * sur le dégradé gouache CSS si l'asset est absent). Chaque bâtiment du catalogue
+ * est un emplacement portant son statut — construit / disponible / verrouillé —
+ * marqué par une pastille de forme distincte + opacité/désaturation (2ᵉ canal
+ * non chromatique, a11y doc 08 §4). Bande à défilement horizontal (touch-first,
+ * mobile). Tap sur un emplacement = bascule vers l'onglet Construire. Réutilise
+ * les vignettes existantes (`buildingUrl`, repli dessiné si l'asset manque).
  */
 function TownView({
   town,
@@ -184,32 +214,37 @@ function TownView({
   catalog: Record<string, BuildingDef>;
   onSelect: () => void;
 }) {
-  const built = Object.keys(town.buildings)
-    .filter((id) => (town.buildings[id] ?? 0) >= 1 && catalog[id])
-    .sort();
+  const slots = Object.keys(catalog)
+    .map((id) => ({ id, status: townViewStatus(town, catalog, id) }))
+    .sort((a, b) => VIEW_STATUS_ORDER[a.status] - VIEW_STATUS_ORDER[b.status] || a.id.localeCompare(b.id));
   const bg = townBackgroundUrl(town.factionId);
   return (
     <div class="town-view" data-testid="town-view">
       <div class="town-view-scene" style={bg ? { backgroundImage: `url(${bg})` } : undefined}>
-        {built.length === 0 ? (
+        {slots.length === 0 ? (
           <p class="town-view-empty" data-testid="town-view-empty">
             {t('town.viewEmpty')}
           </p>
         ) : (
-          built.map((id) => (
+          slots.map(({ id, status }) => (
             <button
               key={id}
-              class="town-view-building"
+              class={`town-view-building is-${status}`}
               data-testid="town-view-building"
+              data-status={status}
               onClick={onSelect}
               title={buildingName(id)}
+              aria-label={`${buildingName(id)} — ${t(VIEW_STATUS_LABEL[status])}`}
             >
-              <AssetImg
-                src={buildingUrl(id, town.factionId)}
-                alt={buildingName(id)}
-                class="town-view-vignette"
-                fallback={<i class="town-view-vignette-fallback" aria-hidden="true" />}
-              />
+              <span class="town-view-figure">
+                <AssetImg
+                  src={buildingUrl(id, town.factionId)}
+                  alt=""
+                  class="town-view-vignette"
+                  fallback={<i class="town-view-vignette-fallback" aria-hidden="true" />}
+                />
+                <span class={`town-view-pip town-view-pip-${status}`} aria-hidden="true" />
+              </span>
               <span class="town-view-label">{buildingName(id)}</span>
             </button>
           ))

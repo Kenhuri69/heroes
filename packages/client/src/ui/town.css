@@ -319,8 +319,10 @@ button[data-testid='market-trade'] {
   cursor: pointer;
 }
 
-/* Vue de ville « peinte » (doc 08 §2.2/§5, lot UX U5) : bande des bâtiments
-   construits sur un décor gouache, défilement horizontal touch-first. */
+/* Vue de ville « peinte » (doc 08 §2.2/§5, lots UX U5 + UXD-5) : plan de
+   construction sur un décor gouache — chaque bâtiment du catalogue est un
+   emplacement (construit/disponible/verrouillé), défilement horizontal
+   touch-first. */
 .town-view {
   margin-bottom: 12px;
 }
@@ -365,6 +367,53 @@ button[data-testid='market-trade'] {
   border-radius: var(--radius-m);
   background: var(--town-flag);
   border: 1px solid var(--brass-bright);
+}
+
+/* Emplacement + pastille de statut (UXD-5, a11y doc 08 §4) : le statut n'est
+   JAMAIS porté par la seule couleur — pastille de forme distincte (disque /
+   anneau pointillé / carré) + opacité/désaturation de la vignette. */
+.town-view-figure {
+  position: relative;
+  display: block;
+}
+.town-view-pip {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  width: 12px;
+  height: 12px;
+  box-sizing: border-box;
+}
+/* construit : disque plein laiton */
+.town-view-pip-constructed {
+  border-radius: 50%;
+  background: var(--brass-bright);
+  border: 1px solid var(--ink-900);
+}
+/* disponible : anneau creux en pointillé (2ᵉ forme) */
+.town-view-pip-available {
+  border-radius: 50%;
+  background: transparent;
+  border: 2px dashed var(--parchment-bright);
+}
+/* verrouillé : carré plein sombre (3ᵉ forme) */
+.town-view-pip-locked {
+  border-radius: 2px;
+  background: var(--ink-500);
+  border: 1px solid var(--ink-900);
+}
+/* Vignette selon statut : opacité (+ désaturation si verrouillé) = 2ᵉ canal. */
+.town-view-building.is-available .town-view-vignette,
+.town-view-building.is-available .town-view-vignette-fallback {
+  opacity: 0.82;
+}
+.town-view-building.is-locked .town-view-vignette,
+.town-view-building.is-locked .town-view-vignette-fallback {
+  opacity: 0.4;
+  filter: grayscale(1);
+}
+.town-view-building.is-locked .town-view-label {
+  opacity: 0.6;
 }
 .town-view-label {
   font: 600 0.75rem var(--font-ui);

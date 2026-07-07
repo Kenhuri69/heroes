@@ -47,11 +47,21 @@ export function hexKey(pos: OffsetPos): string {
   return `${pos.col},${pos.row}`;
 }
 
-const FILL_BASE = 0x22242c;
+// UXD-4 : hexes translucides pour laisser transparaître la toile de combat
+// peinte (posée en DOM sous le canvas, U5-E). Chaque état porte un SECOND CANAL
+// non chromatique (A5, doc 08 §4) en plus de sa teinte : couleur de contour
+// distincte + un marqueur (pip / bord épais / hachures) dessiné par-dessus.
+const FILL_BASE = 0x1a1c22;
+const ALPHA_BASE = 0.16; // très transparent : le décor peint domine
 const STROKE_BASE = 0x3a3d47;
-const FILL_REACHABLE = 0x2e4a2e;
-const FILL_ATTACKABLE = 0x5a2a2a;
-const FILL_OBSTACLE = 0x4a4340;
+const FILL_REACHABLE = 0x3a7a3a;
+const STROKE_REACHABLE = 0x8fe08f;
+const FILL_ATTACKABLE = 0x9a2a2a;
+const STROKE_ATTACKABLE = 0xff8f7a;
+const FILL_OBSTACLE = 0x5a4f45;
+const STROKE_OBSTACLE = 0x9a8f80;
+const ALPHA_STATE = 0.34; // états : assez opaques pour se lire, décor encore perçu
+const MARKER = 0xe8e2d0;
 const STROKE_SELECTED = 0xf1c40f;
 
 export interface DrawBoardOptions {
@@ -71,6 +81,7 @@ export function drawBoard(g: Graphics, opts: DrawBoardOptions = {}): void {
   const attackable = opts.attackable ?? new Set<string>();
   const obstacles = opts.obstacles ?? new Set<string>();
   const selected = opts.selected ?? null;
+  const r = HEX_SIZE - 1;
 
   for (let row = 0; row < COMBAT_ROWS; row++) {
     for (let col = 0; col < COMBAT_COLS; col++) {
@@ -78,21 +89,47 @@ export function drawBoard(g: Graphics, opts: DrawBoardOptions = {}): void {
       const key = hexKey(pos);
       const { x, y } = offsetToPixel(pos);
 
-      let fill = FILL_BASE;
-      if (obstacles.has(key)) fill = FILL_OBSTACLE;
-      else if (attackable.has(key)) fill = FILL_ATTACKABLE;
-      else if (reachable.has(key)) fill = FILL_REACHABLE;
+      const isObstacle = obstacles.has(key);
+      const isAttackable = !isObstacle && attackable.has(key);
+      const isReachable = !isObstacle && !isAttackable && reachable.has(key);
 
+      let fill = FILL_BASE;
+      let alpha = ALPHA_BASE;
       let stroke = STROKE_BASE;
       let strokeWidth = 1;
-      if (selected && selected.col === col && selected.row === row) {
+      if (isObstacle) {
+        fill = FILL_OBSTACLE;
+        alpha = ALPHA_STATE;
+        stroke = STROKE_OBSTACLE;
+      } else if (isAttackable) {
+        fill = FILL_ATTACKABLE;
+        alpha = ALPHA_STATE;
+        stroke = STROKE_ATTACKABLE;
+        strokeWidth = 2.5; // bord épais = 2ᵉ canal (la cible occupe l'hex)
+      } else if (isReachable) {
+        fill = FILL_REACHABLE;
+        alpha = ALPHA_STATE;
+        stroke = STROKE_REACHABLE;
+      }
+
+      const isSelected = selected != null && selected.col === col && selected.row === row;
+      if (isSelected) {
         stroke = STROKE_SELECTED;
         strokeWidth = 3;
       }
 
-      g.regularPoly(x, y, HEX_SIZE - 1, 6, Math.PI / 6)
-        .fill(fill)
+      g.regularPoly(x, y, r, 6, Math.PI / 6)
+        .fill({ color: fill, alpha })
         .stroke({ width: strokeWidth, color: stroke });
+
+      // Marqueurs non chromatiques (A5) : lisibles même sans distinction de teinte.
+      if (isReachable) {
+        g.circle(x, y, 4).fill({ color: MARKER, alpha: 0.9 }); // pip « on peut venir ici »
+      } else if (isObstacle) {
+        const h = r * 0.5; // hachures diagonales « case bloquée »
+        g.moveTo(x - h, y).lineTo(x, y - h).moveTo(x, y + h).lineTo(x + h, y)
+          .stroke({ width: 2, color: MARKER, alpha: 0.5 });
+      }
     }
   }
 }

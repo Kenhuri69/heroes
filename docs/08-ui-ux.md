@@ -196,6 +196,18 @@ Menu principal (Continuer / Scénarios / Escarmouche / **Éditeur de carte** / O
 > attack/hit/death) reste différée : le pipeline `asset-sheet` produit des sprites
 > statiques, pas des planches d'animation.
 
+> 🚧 **État UXD-4 (combat immersif)** : les hexes du plateau sont **translucides**
+> (remplissage de base ~16 %, états ~34 %) — la toile de combat peinte (U5-E)
+> transparaît réellement au lieu d'être masquée par un aplat opaque. Chaque état
+> d'hex porte un **second canal non chromatique** (A5) : pip clair sur
+> atteignable, **bord épais** sur cible attaquable (l'hex est occupé), hachures
+> sur obstacle, contour doré sur la sélection. Au coup porté : **chiffres de
+> dégâts flottants** (montent et s'effacent ~700 ms ; « coup de chance » et
+> pertes stylés à part), flash sur la cible et **micro-secousse** ≤ 150 ms —
+> tout mouvement est coupé par `prefers-reduced-motion` (le nombre reste, sans
+> montée) et reste sous le plancher anti-gel ×4. Bandeau d'initiative illustré
+> et fonds de terrain manquants = lots de suivi.
+
 > 🚧 **État U5-E (toile de combat peinte, coût par-frame nul)** : le canvas Pixi
 > passe en **transparent** (`backgroundAlpha: 0`) ; pendant un combat, le fond
 > peint du terrain (`combatBackgroundUrl(terrain)`, repli gracieux) est posé en

@@ -1,4 +1,4 @@
-import { Application, Assets, Container, Graphics, Point, Sprite } from 'pixi.js';
+import { Application, Assets, Container, Graphics, Point, Sprite, Text } from 'pixi.js';
 import {
   hexDistance,
   inCombatBounds,
@@ -64,6 +64,8 @@ export class CombatScene {
   private readonly boardLayer = new Container();
   private readonly boardGfx = new Graphics();
   private readonly stacksLayer = new Container();
+  /** UXD-4 : effets éphémères (chiffres de dégâts flottants) au-dessus des piles. */
+  private readonly fxLayer = new Container();
   private readonly activeRing: Graphics;
   private readonly stackTokens = new Map<string, Container>();
   private readonly animatingIds = new Set<string>();
@@ -80,7 +82,8 @@ export class CombatScene {
   private readonly unsubscribeTap: () => void;
 
   constructor(private readonly app: Application) {
-    this.boardLayer.addChild(this.boardGfx, this.stacksLayer);
+    this.boardLayer.addChild(this.boardGfx, this.stacksLayer, this.fxLayer);
+    this.fxLayer.eventMode = 'none'; // purement décoratif : ne capte jamais le tap
     // Le plateau vit dans la caméra de combat (pan/pinch/molette, plancher tactile).
     this.camera = new Camera(app, { minZoom: MIN_COMBAT_SCALE, maxZoom: MAX_SCALE });
     this.camera.world.addChild(this.boardLayer);
@@ -166,6 +169,7 @@ export class CombatScene {
       this.selection = null;
       combatPreview.set(null);
       this.boardGfx.clear();
+      this.fxLayer.removeChildren().forEach((c) => c.destroy()); // purge des chiffres flottants
       for (const [id, token] of this.stackTokens) {
         if (this.animatingIds.has(id)) continue;
         token.destroy();
@@ -428,7 +432,7 @@ export class CombatScene {
         await this.animateMove(event.stackId, event.from, event.to, speed);
         return;
       case 'StackAttacked':
-        await this.animateAttack(event.attackerId, event.targetId, speed);
+        await this.animateAttack(event, speed);
         return;
       case 'StackDied':
         await this.animateDeath(event.stackId, speed);
@@ -456,7 +460,11 @@ export class CombatScene {
     this.animatingIds.delete(stackId);
   }
 
-  private async animateAttack(attackerId: string, targetId: string, speed: number): Promise<void> {
+  private async animateAttack(
+    event: Extract<AppEvent, { type: 'StackAttacked' }>,
+    speed: number,
+  ): Promise<void> {
+    const { attackerId, targetId, damage, kills, lucky } = event;
     const attacker = this.stackTokens.get(attackerId);
     if (!attacker) return;
     const target = this.stackTokens.get(targetId);
@@ -471,13 +479,59 @@ export class CombatScene {
     await tween(half, (t) => {
       attacker.position.set(origin.x + (mid.x - origin.x) * t, origin.y + (mid.y - origin.y) * t);
     });
-    if (target) target.tint = 0xff6666;
+    // Impact : flash sur la cible + chiffres de dégâts flottants + micro-secousse.
+    if (target) {
+      target.tint = 0xff6666;
+      this.spawnDamageNumber(dest, damage, kills, lucky);
+      if (!prefersReducedMotion()) void this.shakeToken(target, dest);
+    }
     await tween(half, (t) => {
       attacker.position.set(mid.x + (origin.x - mid.x) * t, mid.y + (origin.y - mid.y) * t);
     });
     attacker.position.set(origin.x, origin.y);
     if (target) target.tint = 0xffffff;
     this.animatingIds.delete(attackerId);
+  }
+
+  /**
+   * UXD-4 : chiffre de dégâts flottant à la position de la cible. Monte et
+   * s'efface (~700 ms) ; « coup de chance » et pertes (`kills`) stylés à part.
+   * `prefers-reduced-motion` : apparaît statique puis s'efface (pas de montée).
+   * Texte transitoire ⇒ self-destruction (aucune accumulation).
+   */
+  private spawnDamageNumber(at: Point, damage: number, kills: number, lucky: boolean): void {
+    const label = kills > 0 ? `-${damage} ☠${kills}` : `-${damage}`;
+    const text = new Text({
+      text: lucky ? `★ ${label}` : label,
+      style: {
+        fontFamily: 'system-ui, sans-serif',
+        fontSize: 20,
+        fontWeight: '700',
+        fill: lucky ? 0xf1c40f : 0xffe0d6,
+        stroke: { color: 0x1a1c22, width: 4 },
+      },
+    });
+    text.anchor.set(0.5, 1);
+    text.position.set(at.x, at.y - TOKEN_RADIUS * 0.6);
+    this.fxLayer.addChild(text);
+    const reduced = prefersReducedMotion();
+    const startY = text.position.y;
+    void tween(700, (t) => {
+      if (!reduced) text.position.y = startY - 26 * t;
+      text.alpha = t < 0.6 ? 1 : 1 - (t - 0.6) / 0.4; // plein puis fondu
+    }).then(() => {
+      if (!text.destroyed) text.destroy();
+    });
+  }
+
+  /** Micro-secousse d'un jeton touché (≤ 150 ms) — coupée par reduced-motion. */
+  private async shakeToken(token: Container, home: Point): Promise<void> {
+    await tween(150, (t) => {
+      if (token.destroyed) return;
+      const amp = (1 - t) * 3;
+      token.position.set(home.x + Math.sin(t * Math.PI * 6) * amp, home.y);
+    });
+    if (!token.destroyed) token.position.set(home.x, home.y);
   }
 
   private async animateDeath(stackId: string, speed: number): Promise<void> {
@@ -513,6 +567,13 @@ function buildStackTokenGraphic(side: CombatSideId): Graphics {
       .stroke({ width: 2, color: 0x1a1c22 });
   }
   return g;
+}
+
+/** Respecte le réglage système « réduire les animations » (a11y, doc 08 §4). */
+function prefersReducedMotion(): boolean {
+  return (
+    typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches
+  );
 }
 
 function tween(durationMs: number, onProgress: (t: number) => void): Promise<void> {

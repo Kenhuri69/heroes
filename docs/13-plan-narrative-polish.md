@@ -455,7 +455,8 @@ laisse le jeu livrable. Ordre pensé « MVP narratif → campagne complète » :
 | ↳ **N2b — contenu & UI** ✅ | schémas narratifs (`quest`/`dialog`/`character`) + **Prologue Haven** (scénario porteur) + boîte de dialogue + journal de quêtes + smoke narratif | Prologue jouable : dialogue s'affiche/se passe, journal à jour, quête récompensée (desktop+mobile) |
 | **N3 — Campagnes fondatrices** | Campagnes Haven et Necropolis (3 chapitres chacune, cartes dédiées, cutscenes caméra, arcs Aldric/Séraphine/Vhalen/Mère Corbeau) ; `campaignState` + écran de sélection de campagne | 2 campagnes finissables en smoke long (IA assistée) ; continuité héros entre chapitres testée |
 | ↳ **N3a — système de campagne** ✅ | pipeline `data/factions/<id>/story/campaign.json` + `loadCampaigns` ; report de héros (`PlayerSetup` étendu + `campaignState` localStorage) ; écran de sélection ; chaînage de chapitres ; campagne Haven à 2 chapitres | Smoke : gagner ch1 → ch2 débloqué + héros reporté (artefact conservé), desktop + mobile |
-| ↳ **N3b/N3c — campagnes complètes** | 3ᵉ chapitre Haven + campagne Necropolis, cartes dédiées, cutscenes caméra, arcs de héros nommés (quêtes `personal`) | (à venir) |
+| ↳ **N3b — campagne Necropolis** ✅ | 2ᵉ campagne en **données pures** (`manifest.story` + `story/campaign.json` + 2 scénarios + Vhalen/Mère Corbeau) — test de modularité narratif, **zéro diff moteur/client** | Smoke : la campagne Necropolis apparaît au menu et son ch1 démarre (héros necropolis, dialogue, quête) |
+| ↳ **N3c — finitions campagnes** | 3ᵉ chapitre Haven, cartes dédiées, cutscenes caméra, arcs de héros nommés (quêtes `personal`) | (à venir) |
 | **N4 — La Chasse & le vivant** | Campagne Arcane Hunters (relit N3, arcs Evadne/Marchmont) ; quêtes journalières en mode libre ; 2 événements temporaires ; barks de combat | 3ᵉ campagne = données seules (test de modularité narratif) ; événement daté jouable/expirable |
 
 **Tests d'immersion** (à chaque lot, protocole léger) :
@@ -730,5 +731,16 @@ du héros**. Prouvé sur une **campagne Haven à 2 chapitres**.
   content 74 (+ campagne), `content:check`, smoke « gagner ch1 → ch2 débloqué +
   héros reporté » desktop + mobile.
 
-Prochain lot : **N3b/N3c** — 3ᵉ chapitre Haven + campagne Necropolis complète,
-cartes dédiées, cutscenes caméra, arcs personnels des héros nommés.
+## État N3b — Campagne Necropolis (livré)
+
+**Test de modularité narratif réussi** : sur le moteur de campagne N3a
+(générique), la campagne Necropolis est livrée en **données pures** — `manifest.
+story` + `data/factions/necropolis/story/campaign.json` + 2 scénarios de chapitre
+(proto-01, dialogues + quêtes, personnages Vhalen / Mère Corbeau au ton
+« doctrine sincère » doc 13 §3.3) + locales FR/EN. **Zéro diff moteur/client** :
+ajouter la campagne d'une maison n'a touché que son paquet (doc 13 §8), comme
+promis. `content:check` résout 2 campagnes ; smoke : la campagne Necropolis
+apparaît au menu et son chapitre 1 démarre.
+
+Prochain lot : **N3c** — 3ᵉ chapitre Haven, cartes dédiées par chapitre,
+cutscenes caméra, arcs personnels des héros nommés (quêtes `personal`).

@@ -45,10 +45,13 @@ jobs:
             exit 1
           fi
 
-      - name: Deploy (wrangler)
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: server
-          command: deploy
+      # Wrangler est invoqué via pnpm (et NON cloudflare/wrangler-action, qui
+      # installe wrangler avec npm — lequel ne comprend pas le protocole
+      # `workspace:*` du lien @heroes/engine dans server/package.json). pnpm le
+      # comprend ; esbuild embarque la source TS de @heroes/engine dans le bundle.
+      - name: Deploy (wrangler via pnpm)
+        working-directory: server
+        run: pnpm exec wrangler deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

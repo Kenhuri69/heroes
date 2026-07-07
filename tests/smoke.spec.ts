@@ -1388,6 +1388,26 @@ test('choix de dialogue : arc personnel d’Aldric → choix binaire pose un dra
   expect(errors).toEqual([]);
 });
 
+test('campagne : 3ᵉ chapitre Haven sur sa carte dédiée proto-02 (doc 13 N3c.3)', async ({ page }) => {
+  const errors = await openMenu(page);
+
+  // La campagne Haven compte désormais 3 chapitres (le 3ᵉ verrouillé tant que le 2ᵉ
+  // n'est pas gagné).
+  await expect(page.getByTestId('menu-campaign-haven-campaign')).toBeVisible();
+  await expect(page.getByTestId('menu-chapter-haven-campaign-2')).toBeVisible();
+
+  // Le chapitre 3 (index 2) charge sa carte DÉDIÉE proto-02 (24×24) — pas proto-01.
+  await page.evaluate(() => window.__HEROES_TEST__!.startCampaignChapter('haven-campaign', 2));
+  await expect(page.getByTestId('end-turn')).toBeVisible();
+  const state = await page.evaluate(() => window.__HEROES_TEST__!.getState());
+  expect(state.map?.id).toBe('proto-02');
+  expect(state.map?.width).toBe(24);
+  expect(state.map?.height).toBe(24);
+  expect(state.heroes[0]?.factionId).toBe('haven');
+
+  expect(errors).toEqual([]);
+});
+
 test('scénario : gagner « survie » contre l’IA (surviveDays)', async ({ page }) => {
   const errors = await openMenu(page);
 

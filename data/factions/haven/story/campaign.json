@@ -13,6 +13,11 @@
       "id": "ch2",
       "scenario": "haven-ch2",
       "titleKey": "@loc:campaign.haven.ch2.title"
+    },
+    {
+      "id": "ch3",
+      "scenario": "haven-ch3",
+      "titleKey": "@loc:campaign.haven.ch3.title"
     }
   ]
 }

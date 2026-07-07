@@ -1,0 +1,140 @@
+{
+  "id": "proto-02",
+  "schemaVersion": 1,
+  "width": 24,
+  "height": 24,
+  "legend": {
+    "g": "grass",
+    "s": "swamp",
+    "w": "water",
+    "m": "mountain"
+  },
+  "tiles": [
+    "gggggggggggggggggggggggg",
+    "gggggggggggggggggggggggg",
+    "gggggggggggggggggggggggg",
+    "gggggggggggggggggggggggg",
+    "gggggggggggggggggmgggggg",
+    "gggggggggggggggggmgggggg",
+    "gggggggggggggggggmgggggg",
+    "gggggggggggggggggmgggggg",
+    "gggggggggggggggggmgggggg",
+    "gggggggggwwwwggggggggggg",
+    "gggggggggwwwwggggggggggg",
+    "gggggggggwwwwggggggggggg",
+    "gggggggggwwwwggggggggggg",
+    "gggggggggggggggggggggggg",
+    "gggggggggggggggggggggggg",
+    "gggggsssgggggggggggggggg",
+    "gggggsssgggggggggggggggg",
+    "gggggsssgggggggggggggggg",
+    "gggggggggggggggggggggggg",
+    "gggggggggggggggggggggggg",
+    "gggggggggggggggggggggggg",
+    "gggggggggggggggggggggggg",
+    "gggggggggggggggggggggggg",
+    "gggggggggggggggggggggggg"
+  ],
+  "roads": [
+    "000000000000000000000000",
+    "000000000000000000000000",
+    "000000000000000000000000",
+    "000111111111111111111000",
+    "000000000000000000001000",
+    "000000000000000000001000",
+    "000000000000000000001000",
+    "000000000000000000001000",
+    "000000000000000000001000",
+    "000000000000000000001000",
+    "000000000000000000001000",
+    "000000000000000000001000",
+    "000000000000000000001000",
+    "000000000000000000001000",
+    "000000000000000000001000",
+    "000000000000000000001000",
+    "000000000000000000001000",
+    "000000000000000000001000",
+    "000000000000000000001000",
+    "000000000000000000001000",
+    "000000000000000000001000",
+    "000000000000000000000000",
+    "000000000000000000000000",
+    "000000000000000000000000"
+  ],
+  "objects": [
+    {
+      "id": "gold-a",
+      "type": "resource",
+      "x": 6,
+      "y": 3,
+      "resource": "gold",
+      "amount": 700
+    },
+    {
+      "id": "wood-a",
+      "type": "resource",
+      "x": 4,
+      "y": 8,
+      "resource": "wood",
+      "amount": 5
+    },
+    {
+      "id": "mine-gold-a",
+      "type": "mine",
+      "x": 12,
+      "y": 5,
+      "resource": "gold",
+      "amount": 350
+    },
+    {
+      "id": "guard-crossing",
+      "type": "guardian",
+      "x": 14,
+      "y": 14,
+      "unitId": "t1-squelette",
+      "count": 12
+    },
+    {
+      "id": "chest-a",
+      "type": "treasure",
+      "x": 18,
+      "y": 8,
+      "gold": 1000,
+      "xp": 400
+    },
+    {
+      "id": "fontaine-a",
+      "type": "visitable",
+      "x": 8,
+      "y": 16,
+      "effect": {
+        "kind": "luck",
+        "amount": 1
+      },
+      "frequency": "oncePerHeroPerWeek"
+    }
+  ],
+  "triggers": [
+    {
+      "id": "trigger-ch3-arrival",
+      "on": {
+        "kind": "day",
+        "day": 1
+      },
+      "effect": {
+        "kind": "message",
+        "textKey": "trigger.proto02.arrival"
+      }
+    }
+  ],
+  "startPositions": [
+    {
+      "x": 3,
+      "y": 3
+    },
+    {
+      "x": 20,
+      "y": 20
+    }
+  ]
+}

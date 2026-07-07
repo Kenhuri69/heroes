@@ -23,7 +23,14 @@ export function QuestJournal() {
               class={`quest-journal-entry quest-journal-${q.status}`}
               data-testid={`quest-entry-${q.id}`}
             >
-              <span class="quest-journal-title">{title}</span>
+              <span class="quest-journal-title">
+                {title}
+                {q.kind === 'personal' && (
+                  <span class="quest-journal-kind" data-testid={`quest-kind-${q.id}`}>
+                    {t('journal.kind.personal')}
+                  </span>
+                )}
+              </span>
               {q.descriptionKey && (
                 <span class="quest-journal-desc">{resolveKey(q.descriptionKey)}</span>
               )}

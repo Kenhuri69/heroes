@@ -32,6 +32,18 @@
   font-weight: 700;
 }
 
+/* Badge « Personnel » (N3c.2) — distingue les arcs de héros nommés. */
+.quest-journal-kind {
+  margin-left: 0.4rem;
+  padding: 0.05rem 0.35rem;
+  font-size: 0.65rem;
+  font-weight: 600;
+  vertical-align: middle;
+  border: 1px solid var(--brass);
+  border-radius: var(--radius-s);
+  color: var(--brass-text);
+}
+
 .quest-journal-desc {
   font-size: 0.8rem;
   opacity: 0.85;

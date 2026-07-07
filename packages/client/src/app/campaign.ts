@@ -17,6 +17,7 @@ import { humanHeroes, scenarioStartCommand, type HeroCarry } from './game';
  */
 
 const STORAGE_KEY = 'heroes.campaigns';
+const FLAGS_KEY = 'heroes.flags';
 
 interface CampaignSave {
   chaptersDone: number;
@@ -44,6 +45,38 @@ function writeStore(store: CampaignStore): void {
 /** Chapitres complétés d'une campagne (0 = seul le chapitre 1 est jouable). */
 export function chaptersDone(campaignId: string): number {
   return readStore()[campaignId]?.chaptersDone ?? 0;
+}
+
+/**
+ * Drapeaux de campagne (doc 13 §6.3, N3c.2) — posés par les choix de dialogue,
+ * **globaux et relus entre campagnes** (méta-jeu, hors `GameState`). Persistés
+ * dans un stockage propre pour rester lisibles indépendamment des sauvegardes.
+ */
+function readFlags(): Record<string, boolean> {
+  try {
+    const raw = localStorage.getItem(FLAGS_KEY);
+    return raw ? (JSON.parse(raw) as Record<string, boolean>) : {};
+  } catch {
+    return {};
+  }
+}
+
+/** Miroir des drapeaux dans le store (mise à jour de l'UI). */
+export function campaignFlags(): Record<string, boolean> {
+  return readFlags();
+}
+
+/** Pose un drapeau (idempotent), le persiste et rafraîchit le miroir du store. */
+export function setCampaignFlag(name: string): void {
+  const flags = readFlags();
+  if (flags[name]) return;
+  flags[name] = true;
+  try {
+    localStorage.setItem(FLAGS_KEY, JSON.stringify(flags));
+  } catch {
+    /* stockage indisponible — le drapeau n'est pas persisté, pas bloquant */
+  }
+  appStore.setState({ campaignFlags: flags });
 }
 
 /** Rafraîchit le miroir de progression dans le store (pour l'écran de sélection). */
@@ -100,6 +133,7 @@ export async function startCampaignChapter(
  */
 export function initCampaign(report: LoadReport): void {
   syncProgress(report.content.campaigns);
+  appStore.setState({ campaignFlags: readFlags() }); // drapeaux persistés (N3c.2)
   eventBus.on((event) => {
     if (event.type !== 'GameEnded' || event.status !== 'won') return;
     const active = appStore.getState().activeChapter;

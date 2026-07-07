@@ -67,3 +67,27 @@
   font-size: 0.85rem;
   cursor: pointer;
 }
+
+/* Choix de dialogue (N3c.2) — boutons empilés, touch-first (≥ 44 px). */
+.dialogue-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin: 0.5rem 0 0;
+}
+
+.dialogue-choice {
+  min-height: 44px;
+  padding: 0.4rem 0.9rem;
+  text-align: left;
+  border: 1px solid var(--brass);
+  border-radius: 0.4rem;
+  background: var(--night-800);
+  color: var(--parchment-bright);
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.dialogue-choice:hover {
+  border-color: var(--brass-bright);
+}

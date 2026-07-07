@@ -21,8 +21,8 @@ Règle F (doc 12).
 - [x] `tools/assets/gen_audio_prompts.py` → `assets/prompts/audio-music.md`
       (6 pistes) et `audio-sfx.md` (10 effets), avec commandes ffmpeg de
       retravail.
-- [ ] **Utilisateur** : générer les sons dans Gemini, retravailler (trim/loop/
-      encode), fournir les `.ogg` (+ `.m4a`).
+- [x] **Utilisateur** : générer les musiques dans Gemini, fournies (5 pistes)
+      → retravaillées + déposées (6C ci-dessous). SFX à suivre.
 - [x] **6B — architecture client** (peut démarrer AVANT les fichiers, jouable
       silencieux) :
   - `render/audio.ts` : registre (`import.meta.glob ?url`, hors bundle, lazy) +
@@ -58,3 +58,34 @@ présent) — peut être livrée en parallèle de la génération audio.
   déposer les `.ogg` nommés par convention.
 - Vérif : capture Options, persistance (music=0 relu), smokes **100 verts +
   2 skipped** (pas d'autoplay), typecheck/lint/build verts, garde-fou couleurs.
+
+## Livraison 6C — musiques déposées (2026-07-07)
+
+Première fournée de fichiers de l'utilisateur : **5 musiques** générées via
+Gemini. Les métadonnées `creation_time` sont vides et l'upload a aplati les
+mtime dans la même seconde (ordre = ordre d'upload, non fiable) ; de plus aucun
+fichier n'est un one-shot ~6 s ⇒ ce ne sont pas les prompts 1-5 dans l'ordre,
+mais **les 4 boucles + 1 variante**. Mapping retenu par **nom + durée**
+(cohérent avec la sémantique des emplacements ; les 2 pistes longues ~3 min
+vont sur menu/aventure) :
+
+| Emplacement | Fichier source | Retravail |
+|---|---|---|
+| `music/menu` | `kingdom_at_first_light` (177 s) | trim silence → **boucle 64 s** (micro-fades anti-clic) + loudnorm |
+| `music/adventure` | `dawn_at_the_stone_ramparts` (179 s) | idem, boucle 64 s |
+| `music/combat` | `vanguard_s_decree` (31 s) | trim silence + loudnorm (durée conservée) |
+| `music/town` | `morning_at_the_citadel` (31 s) | idem |
+| *(réserve, non déposé)* | `a_kingdom_awakened` (30 s) | — |
+
+- **Budget règle F (< 800 Ko/boucle, par format)** : les 2 pistes de 3 min
+  crevaient le plafond (2,6 Mo) → **tronquées à 64 s** et encodées à 96 kbps →
+  menu 656/768 Ko, adventure 668/768 Ko (ogg/m4a) ; combat 456/492, town
+  480/488. Tous < 800 Ko. Encodage **OGG (Vorbis) + repli M4A (AAC)**.
+- Staging : `assets/audio/music/{menu,adventure,combat,town}.{ogg,m4a}`.
+- **Vérif runtime** (build de prod, Chromium) : aucun fetch audio avant la 1ʳᵉ
+  interaction (autoplay respecté) ; après clic **menu → `menu.ogg` fetché** ;
+  en arène **→ `combat.ogg` fetché** ; **0 erreur console**. Budget JS/CSS
+  inchangé (252 Ko gzip, audio hors bundle).
+- **Reste** : SFX (10) + fanfares victoire/défaite + `combat-shoot` + sons d'UI
+  = fournée suivante ; couture de boucle des 2 pistes tronquées à peaufiner si
+  l'oreille l'exige (retravail annoncé « après » par l'utilisateur).

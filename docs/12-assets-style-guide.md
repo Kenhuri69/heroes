@@ -175,9 +175,15 @@ un fichier son par sujet.
 - **Budgets de poids** : SFX < 60 Ko, jingle < 150 Ko, musique de boucle
   < 800 Ko (l'audio est **hors bundle JS/CSS**, fetché à la demande — comme les
   PNG, doc §10.1 ; le garde-fou budget CI ne mesure que `*.js`/`*.css`).
-- **Sourcing** : `python3 tools/assets/gen_audio_prompts.py` émet les prompts
-  dans `assets/prompts/audio-{music,sfx}.md`. Staging final : `assets/audio/
-  music/<id>.ogg` et `assets/audio/sfx/<id>.ogg` (+ `.m4a`).
+- **Sourcing musique** : `python3 tools/assets/gen_audio_prompts.py` émet les
+  prompts dans `assets/prompts/audio-{music,sfx}.md` ; génération via un modèle
+  audio (Gemini), puis retravail ffmpeg (trim/boucle/normalisation/encodage).
+- **Sourcing SFX (procédural)** : le modèle *musique* ne produit pas de one-shots
+  courts et secs → les effets sont **synthétisés** (déterministe, cf. Règle P)
+  par `python3 tools/assets/gen_sfx.py` (stdlib + ffmpeg) : sons dry, mono,
+  niveau maîtrisé, < 60 Ko. Aucune dépendance externe ni licence tierce.
+- **Staging final** : `assets/audio/music/<id>.ogg` et `assets/audio/sfx/<id>.ogg`
+  (+ `.m4a`).
 - **Intégration client (UXD-6B)** : registre `render/audio.ts`
   (`import.meta.glob ?url`, hors bundle, lazy), lecteur Web Audio débloqué à la
   1ʳᵉ interaction (politique autoplay), volumes musique/SFX persistés

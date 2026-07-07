@@ -49,36 +49,11 @@
   image-rendering: auto;
 }
 
-/* Mini-carte (UXD-8, doc 08 §2.1) — desktop only : masquée sous 900 px (sur
-   mobile elle vivra dans le tiroir, suivi noté). Ancrée en bas à droite,
-   au-dessus de la barre d'actions ; clic = recentrage caméra. */
-.mini-map {
-  display: none;
-}
-
-@media (min-width: 900px) {
-  .mini-map {
-    display: block;
-    position: fixed;
-    right: 12px;
-    bottom: 84px;
-    width: 176px;
-    height: 176px;
-    image-rendering: pixelated;
-    border: 2px solid var(--ink-600);
-    border-radius: var(--radius-s);
-    background: var(--ink-950);
-    box-shadow: 0 2px 8px var(--shadow-60);
-    cursor: pointer;
-    pointer-events: auto;
-    z-index: 8;
-  }
-}
-
-/* Mini-carte du tiroir héros (mobile) : le widget fixe ci-dessus étant desktop
-   only, la version tiroir donne la vue d'ensemble aux joueurs mobile. Statique,
-   pleine largeur, ratio intrinsèque de la carte ; masquée ≥ 900px (le widget
-   fixe suffit alors — jamais les deux à la fois). */
+/* Mini-carte (UXD-8, doc 08 §2.1) — unique instance, montée dans le tiroir/
+   colonne héros (bascule mobile, colonne persistante desktop). Statique, pleine
+   largeur de la colonne, ratio intrinsèque de la carte ; clic = recentrage
+   caméra. Le widget flottant `fixed` d'origine a été retiré (redondant avec la
+   colonne desktop). */
 .mini-map-drawer {
   display: block;
   width: 100%;
@@ -88,13 +63,6 @@
   border-radius: var(--radius-s);
   background: var(--ink-950);
   cursor: pointer;
-}
-
-@media (min-width: 900px) {
-  .mini-map-drawer,
-  .hero-minimap-title {
-    display: none;
-  }
 }
 
 /* Vignette de bord de monde (UXD-3A) : assombrit les bords de l'écran pour
@@ -397,21 +365,27 @@
   display: none;
 }
 
-/* Desktop : le tiroir héros peut être ancré à droite (doc 08 §2.1). */
+/* Desktop (doc 08 §2.1) : le tiroir héros devient une **colonne droite
+   persistante** (toujours ouverte, plus de hamburger). La barre de ressources
+   et le HUD bas se confinent à gauche de la colonne pour ne jamais passer
+   dessous. La carte s'étend sous le bord droit opaque (style HoMM). */
 @media (min-width: 900px) {
   .drawer-toggle {
-    left: auto;
-    right: 8px;
+    display: none; /* colonne toujours ouverte : pas de bascule */
   }
 
   .hero-drawer {
     left: auto;
     right: 0;
-    transform: translateX(100%);
+    width: 300px;
+    box-sizing: border-box; /* l'empreinte = 300px pile → alignée sur le confinement */
+    transform: none; /* toujours ouverte */
+    box-shadow: -2px 0 10px var(--shadow-60);
   }
 
-  .hero-drawer.open {
-    transform: translateX(0);
+  .resource-bar,
+  .bottom-hud {
+    right: 300px; /* confinés à gauche de la colonne (même empreinte que le rail) */
   }
 }
 

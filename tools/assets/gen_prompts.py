@@ -379,6 +379,89 @@ def hero_avatars_sheet() -> dict[str, str]:
     )
 
 
+def map_heroes_sheet() -> dict[str, str]:
+    """Jetons de HÉROS sur la carte d'aventure (règle A, sprite transparent).
+
+    Remplace l'écusson placeholder `render/heroSprite.ts` : un héros monté par
+    faction, même style/échelle que les sprites d'unités (rendus sur les tuiles).
+    Convention de nommage runtime : `assets/map/hero-<faction>.png`.
+    """
+    factions = [f for f in _load(DATA / "factions" / "index.json")["factions"]
+                if f != "test-faction"]
+    ids, cells = [], []
+    for fid in factions:
+        palette = PALETTES.get(fid, DEFAULT_PALETTE)
+        ids.append(f"hero-{fid}")
+        cells.append(
+            f"a heroic mounted commander of the {fid} faction riding a "
+            f"caparisoned steed, banner or cloak flowing — {palette}")
+    return _sheets(
+        slug="map-heroes",
+        title="jetons de héros sur la carte (montés, par faction)",
+        rule="A (sprites 512² painterly, alpha strict après extraction)",
+        ids=ids,
+        cells=cells,
+        subject_fmt="Character sheet, {n} mounted fantasy heroes of different armies",
+        style_lines=[
+            "digital painting, heroic fantasy concept art style",
+            "(Heroes of Might and Magic, MTG illustration quality), painterly brush strokes,",
+            "each hero mounted on a steed, dynamic 3/4 view riding pose,",
+            "soft directional light from upper-left,",
+            "readable as a small map token at 64px tall,",
+        ],
+        dest="assets/map/",
+    )
+
+
+def map_props_sheets() -> dict[str, str]:
+    """STRUCTURES & OBJETS de la carte d'aventure (règle C, fond gris clair).
+
+    Remplace les formes procédurales `render/townsLayer.ts` (donjon) et
+    `render/mapObjects.ts` (coffre/tente/panneau). Convention de nommage :
+    `assets/map/town-<faction>.png` et `assets/map/<object>.png`.
+    """
+    factions = [f for f in _load(DATA / "factions" / "index.json")["factions"]
+                if f != "test-faction"]
+    ids, cells = [], []
+    # Châteaux de ville par faction (le drapeau de propriétaire est ajouté par
+    # le code — garder l'architecture neutre en couleur d'équipe).
+    for fid in factions:
+        palette = PALETTES.get(fid, DEFAULT_PALETTE)
+        ids.append(f"town-{fid}")
+        cells.append(
+            f"a grand {fid} faction castle-town seen in slight 3/4 aerial view, "
+            f"walls, towers and keep — architecture identity: {palette}")
+    # Objets communs (faction-agnostiques) — silhouette lisible à 64px.
+    OBJECTS = [
+        ("chest", "a closed wooden treasure chest bound with iron and gold, "
+                  "faint gold glint at the lid seam"),
+        ("camp", "a small recruitment war-camp: a peaked tent with a pennant "
+                 "and a low campfire"),
+        ("signpost", "a weathered wooden signpost with hanging boards at a "
+                     "crossroads, marking a place to visit"),
+        ("shrine", "a small mossy stone shrine with a glowing rune, a place of "
+                   "blessing"),
+    ]
+    for oid, desc in OBJECTS:
+        ids.append(oid)
+        cells.append(desc)
+    return _sheets(
+        slug="map-props",
+        title="structures & objets de la carte (villes + objets)",
+        rule="C (planche de vignettes, fond gris clair plat)",
+        ids=ids,
+        cells=cells,
+        subject_fmt="Item sheet, {n} fantasy map structures and objects",
+        style_lines=[
+            "digital painting, painterly MTG illustration quality,",
+            "rich material detail (stone, timber, iron, cloth),",
+            "soft directional light from upper-left,",
+            "readable as a small map icon at 64px tall,",
+        ],
+        dest="assets/map/",
+    )
+
+
 def singles_files() -> dict[str, str]:
     """Pièces uniques (règles D/E) : fonds d'ambiance + logo."""
     factions = [f for f in _load(DATA / "factions" / "index.json")["factions"]
@@ -441,6 +524,8 @@ def main() -> None:
     files.update(buildings_sheets())
     files.update(mines_sheets())
     files.update(hero_avatars_sheet())
+    files.update(map_heroes_sheet())
+    files.update(map_props_sheets())
     files.update(singles_files())
     for name, content in sorted(files.items()):
         (OUT / name).write_text(content)

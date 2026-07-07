@@ -115,8 +115,11 @@ d'une beta ouverte dépasse ces seuils — improbable avant une audience réelle
 
 ## 9. Reste à faire
 
-- **7.2** — le Worker (`server/worker.ts` + `wrangler.toml`) : endpoints §5,
-  re-sim via `engine/net`, e-mail magic-link ; déploiement manuel.
+- **7.2 ✅** — le Worker (`server/src/worker.ts` + `server/wrangler.toml`) :
+  endpoints §5, re-sim via `engine/net`, e-mail magic-link *pluggable* (le lien de
+  vérification est renvoyé tant qu'aucun provider n'est branché). `server/` est un
+  membre du workspace typechecké en CI (hors build client / smoke). **Déploiement
+  `wrangler deploy` = étape manuelle** de l'utilisateur (identifiants CF).
 - **7.3** — client `@heroes/net` (SDK + écrans connexion / liste de parties / PvP
   async par polling), derrière le flag de config.
 - Ultérieur : notifications push (au lieu du polling), classement saisonnier

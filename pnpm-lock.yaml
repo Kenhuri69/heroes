@@ -94,6 +94,12 @@ importers:
         specifier: ^5.8.0
         version: 5.9.3
 
+  server:
+    dependencies:
+      '@heroes/engine':
+        specifier: workspace:*
+        version: link:../packages/engine
+
 packages:
 
   '@babel/code-frame@7.29.7':

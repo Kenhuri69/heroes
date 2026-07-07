@@ -47,6 +47,11 @@
     }
   },
   "openingDialog": "dlg-arcane-ch1-open",
+  "combatBarks": [
+    "@loc:bark.arcane.necropolis.1",
+    "@loc:bark.arcane.necropolis.2",
+    "@loc:bark.arcane.necropolis.3"
+  ],
   "characters": [
     { "id": "evadne", "nameKey": "@loc:character.evadne.name" },
     { "id": "marchmont", "nameKey": "@loc:character.marchmont.name" }

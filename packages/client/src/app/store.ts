@@ -13,6 +13,8 @@ export interface NarrativeCatalog {
     string,
     { titleKey: string; descriptionKey?: string; kind: string; steps: { id: string; dialogBefore?: string }[] }
   >;
+  /** Pool de barks de combat (doc 13 §6.3, N4b) — vide si le scénario n'en a pas. */
+  combatBarks: string[];
 }
 
 /** Entrée du journal de quêtes (doc 13 §6.3, N2b). */
@@ -101,6 +103,8 @@ export interface AppState {
    * persistés en localStorage et **relus entre campagnes** (méta-jeu global).
    */
   campaignFlags: Record<string, boolean>;
+  /** Bark de combat affiché (doc 13 §6.3, N4b) — clé de locale ; null hors combat. */
+  combatBark: string | null;
 }
 
 export const appStore = createStore<AppState>(() => ({
@@ -130,6 +134,7 @@ export const appStore = createStore<AppState>(() => ({
   activeChapter: null,
   cutsceneActive: false,
   campaignFlags: {},
+  combatBark: null,
 }));
 
 /** Hook Preact : re-rend quand la valeur sélectionnée change (égalité stricte). */

@@ -765,6 +765,12 @@ export const scenarioSchema = z
     cutscenes: z.array(cutsceneSchema).optional(),
     /** Cinématique jouée à l'ouverture de la partie (id d'un nœud de `cutscenes`). */
     openingCutscene: idSchema.optional(),
+    /**
+     * Barks de combat (doc 13 §6.3, N4b) — pool de répliques localisées de
+     * l'antagoniste, dont UNE est tirée au hasard côté client au début d'un
+     * combat. Présentation pure : jamais embarqué dans le moteur.
+     */
+    combatBarks: z.array(locRef).optional(),
   })
   .refine((s) => s.players.every((p) => s.objectives[p.id]), 'chaque joueur doit avoir des objectifs');
 

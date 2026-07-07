@@ -1358,6 +1358,35 @@ test('campagne : 3ᵉ maison (Arcane Hunters) = données pures, apparaît et dé
   expect(errors).toEqual([]);
 });
 
+test('bark de combat : une réplique s’affiche au début d’un combat de campagne (doc 13 N4b)', async ({ page }) => {
+  const errors = await openMenu(page);
+
+  // arcane-ch1 embarque un pool de barks. On démarre le scénario puis on déclenche
+  // un combat : une réplique de l'antagoniste apparaît dans le bandeau (tirée côté
+  // client, hors simulation).
+  await page.evaluate(() => window.__HEROES_TEST__!.startScenario('arcane-ch1'));
+  await expect(page.getByTestId('end-turn')).toBeVisible();
+
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({
+      type: 'StartCombat',
+      attacker: [{ unitId: 't1-eleve', count: 20 }],
+      defender: [{ unitId: 't1-squelette', count: 4 }],
+      terrain: 'grass',
+    }),
+  );
+  await expect(page.getByTestId('combat-round')).toBeVisible();
+  const bark = page.getByTestId('combat-bark');
+  await expect(bark).toBeVisible();
+  expect(((await bark.textContent()) ?? '').trim().length).toBeGreaterThan(0);
+
+  // Fin du combat : le bark disparaît.
+  await page.evaluate(() => window.__HEROES_TEST__!.dispatch({ type: 'AutoCombat' }));
+  await expect(page.getByTestId('combat-bark')).toHaveCount(0);
+
+  expect(errors).toEqual([]);
+});
+
 test('cinématique : letterbox + Passer sur l’ouverture d’un chapitre (doc 13 N3c.1)', async ({ page }) => {
   const errors = await openMenu(page);
 

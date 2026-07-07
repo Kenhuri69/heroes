@@ -40,6 +40,20 @@
   white-space: nowrap;
 }
 
+/* Bark de combat (doc 13 §6.3, N4b) — réplique de l'antagoniste sous le bandeau. */
+.combat-bark {
+  margin: 4px auto 0;
+  max-width: 42rem;
+  padding: 6px 14px;
+  text-align: center;
+  font-style: italic;
+  font-size: 0.9rem;
+  color: var(--parchment-bright);
+  background: var(--veil-60);
+  border-left: 3px solid var(--brass);
+  border-radius: var(--radius-s);
+}
+
 .stack-chip {
   display: inline-flex;
   align-items: center;

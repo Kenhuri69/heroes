@@ -172,7 +172,7 @@ une seule fois en fin de lot, et re-passer le test d'équilibrage grossier.
   (`adventure/movement.ts:62-67`), le client dessine avec
   `config.visionRadius` seul (`AdventureScene.ts:103`, `render/fog.ts:32-41`)
   ⇒ anneau faussement grisé. Passer le rayon effectif par héros.
-- [ ] **C5 — Préviz de chemin : « jours nécessaires » réduit à un booléen
+- [x] **C5 — Préviz de chemin : « jours nécessaires » réduit à un booléen
   aujourd'hui/plus tard** (`AdventureScene.ts:212-220`) — doc 02:76 promet le
   compte de jours. Resegmenter par allocation quotidienne de PM.
 - [ ] Vérif de lot : smoke Playwright (desktop + mobile) vert ; audit i18n

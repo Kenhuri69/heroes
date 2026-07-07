@@ -1,5 +1,6 @@
 import { Application, Assets, Container, Graphics, Point, Sprite } from 'pixi.js';
 import {
+  dailyMovementPoints,
   findPath,
   heroVisionBonus,
   isAdjacent,
@@ -220,13 +221,22 @@ export class AdventureScene {
       this.clearPreview();
       return;
     }
-    // Points verts = atteignable aujourd'hui, jaunes = jours suivants (doc 02 §1.5).
+    // Préviz du COMPTE DE JOURS (doc 02 §1.5/:76, C5) : on consomme les PM du jour,
+    // et quand un pas ne rentre plus dans le budget on passe au jour suivant en
+    // rechargeant l'allocation quotidienne (`dailyMovementPoints`). Couleur par jour.
+    const dailyPM = dailyMovementPoints(config, hero.army, game.unitCatalog);
     const steps: PreviewStep[] = [];
+    let day = 1;
     let remaining = hero.movementPoints;
     let prev = hero.pos;
     for (const step of path) {
-      remaining -= stepCost(config, map, prev, step);
-      steps.push({ x: step.x, y: step.y, today: remaining >= 0 });
+      const cost = stepCost(config, map, prev, step);
+      if (remaining < cost && dailyPM > 0) {
+        day += 1;
+        remaining = dailyPM;
+      }
+      remaining -= cost;
+      steps.push({ x: step.x, y: step.y, day });
       prev = step;
     }
     this.previewTarget = { target: tile, path };

@@ -55,6 +55,12 @@ export interface HeroSkillDef {
   id: string;
   /** 3 rangs (index 0 = Novice) — doc 02 §1.3. */
   ranks: SkillRankEffect[];
+  /**
+   * École visée par une compétence de magie (« Magie par école ×4 », doc 02
+   * §1.3) : sa réduction de coût de mana ne s'applique QU'aux sorts de cette
+   * école (A6). Absente pour les compétences non magiques.
+   */
+  school?: SpellSchool;
 }
 
 /** Bonus déclaratifs cumulatifs d'un artefact (doc 02 §1.1, doc 08 §2.3). */

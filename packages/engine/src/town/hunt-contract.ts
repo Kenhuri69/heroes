@@ -37,7 +37,12 @@ export function assignHuntContracts(draft: GameState, events: GameEvent[]): void
   const map = draft.map;
   if (!map) return;
   for (const player of draft.players) {
-    if (player.eliminated || player.huntContract) continue;
+    if (player.eliminated) continue;
+    // A9 — deadline hebdomadaire (doc 05 §3.3 « avant la fin de la semaine ») :
+    // le contrat non honoré de la semaine écoulée expire, et tout contrat dont la
+    // cible a disparu (gardien tué par un tiers) est libéré ⇒ jamais bloqué à
+    // jamais. On réassigne ensuite une cible fraîche pour la nouvelle semaine.
+    if (player.huntContract) player.huntContract = null;
     const effect = huntContractEffectFor(draft, player.id);
     if (!effect) continue;
     const targets = map.objects.filter((o) => o.type === 'guardian');

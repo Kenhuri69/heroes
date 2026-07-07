@@ -74,16 +74,27 @@ export function evaluateOutcome(draft: GameState, events: GameEvent[]): void {
   const local = draft.players.find((p) => p.controller === 'human') ?? draft.players[0];
   if (!local) return;
   const objectives = draft.scenario.objectives[local.id];
-  if (!objectives) return;
 
-  if (conditionMet(draft, local.id, objectives.defeat) || local.eliminated) {
-    const winner = draft.players.find((p) => p.id !== local.id && !p.eliminated);
-    draft.outcome = { status: 'lost', winnerPlayerId: winner?.id ?? '' };
-    events.push({ type: 'GameEnded', status: 'lost', winnerPlayerId: draft.outcome.winnerPlayerId });
-    return;
-  }
-  if (conditionMet(draft, local.id, objectives.victory)) {
+  // Victoire locale D'ABORD (doc 02 §6) : si le joueur atteint SON objectif, il
+  // gagne — même si un adversaire remplit aussi le sien au même instant (ex. une
+  // survie partagée `surviveDays`). La victoire locale prime sur celle des IA.
+  if (objectives && conditionMet(draft, local.id, objectives.victory)) {
     draft.outcome = { status: 'won', winnerPlayerId: local.id };
     events.push({ type: 'GameEnded', status: 'won', winnerPlayerId: local.id });
+    return;
+  }
+
+  // A10 : sinon la victoire de CHAQUE joueur est évaluée (doc 02 §6 « par
+  // joueur »), pas seulement celle du local. Un ennemi non éliminé qui remplit
+  // SON objectif (ex. l'IA capture `start-town` dans conquest) ⇒ défaite locale.
+  const enemyWinner = draft.players.find((p) => {
+    if (p.id === local.id || p.eliminated) return false;
+    const obj = draft.scenario!.objectives[p.id];
+    return obj ? conditionMet(draft, p.id, obj.victory) : false;
+  });
+  if ((objectives && conditionMet(draft, local.id, objectives.defeat)) || local.eliminated || enemyWinner) {
+    const winner = enemyWinner ?? draft.players.find((p) => p.id !== local.id && !p.eliminated);
+    draft.outcome = { status: 'lost', winnerPlayerId: winner?.id ?? '' };
+    events.push({ type: 'GameEnded', status: 'lost', winnerPlayerId: draft.outcome.winnerPlayerId });
   }
 }

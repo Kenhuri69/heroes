@@ -300,6 +300,8 @@ export const skillSchema = z.object({
   id: idSchema,
   name: locRef.optional(),
   ranks: z.tuple([skillRankEffectSchema, skillRankEffectSchema, skillRankEffectSchema]),
+  /** École visée par une compétence de magie (A6) — réduction de mana filtrée par école. */
+  school: z.enum(['fire', 'water', 'earth', 'air', 'neutral', 'traque']).optional(),
 });
 
 export const skillCatalogSchema = z.object({

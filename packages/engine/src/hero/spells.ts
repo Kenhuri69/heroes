@@ -16,7 +16,7 @@ export function effectiveManaCost(
   skillCatalog: Record<string, HeroSkillDef>,
   spell: SpellDef,
 ): number {
-  const reductionPct = heroManaCostReduction(hero, skillCatalog);
+  const reductionPct = heroManaCostReduction(hero, skillCatalog, spell.school);
   return Math.max(0, Math.round(spell.manaCost * (1 - reductionPct / 100)));
 }
 

@@ -61,6 +61,7 @@ describe('hero/skills — effets purs par rang (Novice/Expert/Maître)', () => {
     archery: { id: 'archery', ranks: [{ rangedDamagePct: 10 }, { rangedDamagePct: 20 }, { rangedDamagePct: 30 }] },
     wisdom: {
       id: 'wisdom',
+      school: 'fire', // A6 : réduction de mana filtrée par école
       ranks: [{ manaCostReductionPct: 10 }, { manaCostReductionPct: 20 }, { manaCostReductionPct: 30 }],
     },
   };
@@ -73,13 +74,16 @@ describe('hero/skills — effets purs par rang (Novice/Expert/Maître)', () => {
     expect(heroGoldPerDay(hero, catalog)).toBe(0); // non apprise
     expect(heroMorale(hero, catalog)).toBe(0);
     expect(heroRangedPct(hero, catalog)).toBe(0);
-    expect(heroManaCostReduction(hero, catalog)).toBe(0);
+    expect(heroManaCostReduction(hero, catalog, 'fire')).toBe(0);
   });
 
   it('cumule plusieurs compétences distinctes', () => {
     const hero = baseHero({ skills: { estates: 3, wisdom: 1 } });
     expect(heroGoldPerDay(hero, catalog)).toBe(500);
-    expect(heroManaCostReduction(hero, catalog)).toBe(10);
+    // A6 : la réduction ne s'applique qu'à l'école de la compétence (Feu) ;
+    // un sort d'une autre école n'en bénéficie pas.
+    expect(heroManaCostReduction(hero, catalog, 'fire')).toBe(10);
+    expect(heroManaCostReduction(hero, catalog, 'water')).toBe(0);
   });
 });
 

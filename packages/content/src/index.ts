@@ -8,6 +8,7 @@ export {
   checkCoreNameKeys,
   checkPackNameKeys,
   checkLoreParity,
+  knownArtifactIds,
   knownUnitIds,
   loadContent,
   loadFactionPack,

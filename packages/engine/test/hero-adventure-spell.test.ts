@@ -49,6 +49,7 @@ function hero(over: Partial<HeroState> = {}): HeroState {
     mana: 40,
     manaMax: 40,
     skills: {},
+    visitLuck: 0,
     spells: ['ville-portail'],
     artifacts: Array.from({ length: 10 }, () => null),
     pendingSkillChoices: [],

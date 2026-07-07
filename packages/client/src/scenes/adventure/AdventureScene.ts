@@ -16,6 +16,7 @@ import type { Camera } from '../../render/camera';
 import { heroAvatarUrl } from '../../render/assets';
 import { Tilemap, TILE_SIZE } from '../../render/tilemap';
 import { MapObjectsLayer } from '../../render/mapObjects';
+import { playerColor } from '../../render/playerColors';
 import { TownsLayer } from '../../render/townsLayer';
 import { FogOverlay } from '../../render/fog';
 import { buildHeroSprite } from '../../render/heroSprite';
@@ -93,7 +94,9 @@ export class AdventureScene {
     const { map, config } = game;
     const player = game.players.find((p) => p.id === humanId(game));
     if (!map || !config || !player) return;
-    this.objects.sync(map.objects, game.unitCatalog);
+    this.objects.sync(map.objects, game.unitCatalog, (ownerId) =>
+      playerColor(game.players, ownerId),
+    );
     this.towns.sync(game.towns, humanId(game));
     const heroes = humanHeroes(game);
     const positions = heroes.map((h) => h.pos);

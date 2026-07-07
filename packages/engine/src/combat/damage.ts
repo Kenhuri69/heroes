@@ -156,11 +156,14 @@ export function heroDefenseOf(state: GameState, combat: CombatState, side: Comba
   return hero.attributes.defense + heroArtifactBonus(hero, state.artifactCatalog).defense;
 }
 
-/** Chance du héros (compétence + artefacts), bornée [0,3] — 0 si aucun héros. */
+/** Chance du héros (compétence + artefacts + fontaine), bornée [0,3] — 0 si aucun héros. */
 export function heroLuckOf(state: GameState, combat: CombatState, side: CombatSideId): number {
   const hero = heroForSide(state, combat, side);
   if (!hero) return 0;
-  const total = heroLuck(hero, state.skillCatalog) + heroArtifactBonus(hero, state.artifactCatalog).luck;
+  const total =
+    heroLuck(hero, state.skillCatalog) +
+    heroArtifactBonus(hero, state.artifactCatalog).luck +
+    hero.visitLuck;
   return clamp(total, 0, 3);
 }
 

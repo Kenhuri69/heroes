@@ -198,7 +198,10 @@ const GOLDEN_JOURNAL: Command[] = [
 // Quêtes (N2a) : `saveVersion` → 7 et `GameState.quests` (null) s'ajoutent à la
 // forme sérialisée — seule la FORME change, simulation inchangée (aucune quête
 // embarquée dans le journal golden ⇒ `evaluateQuests` no-op).
-const GOLDEN_HASH = '05da0520';
+// Objets de carte manquants : `saveVersion` → 8, `GameState.pendingTreasure`
+// (null) et `HeroState.visitLuck` (0) s'ajoutent à la forme sérialisée — seule
+// la FORME change, simulation inchangée (aucun nouvel objet dans la carte golden).
+const GOLDEN_HASH = 'fda800c6';
 
 describe('golden replay', () => {
   it('le journal scripté produit toujours le même état final', () => {

@@ -126,6 +126,8 @@ export type Command =
   // ——— Sort d'aventure (doc 02 §1.4, Alpha 4.16) : lancé sur la carte, hors combat ———
   | { type: 'CastAdventureSpell'; heroId: string; spellId: string; playerId: string; townId?: string }
   | { type: 'ChooseSkill'; heroId: string; skillId: string }
+  // ——— Trésor de carte (doc 02 §2.2) : choix or/XP après avoir foulé un coffre ———
+  | { type: 'ResolveTreasure'; heroId: string; choice: 'gold' | 'xp' }
   // ——— IA d'aventure (doc 11 §3.5) : joue le tour complet du joueur IA actif + fin de tour ———
   | { type: 'AiTurn'; playerId: string };
 
@@ -166,6 +168,7 @@ export interface CommandError {
     | 'invalidTarget'
     | 'unknownSkill'
     | 'noPendingChoice'
+    | 'treasurePending'
     | 'gameOver';
   message: string;
 }

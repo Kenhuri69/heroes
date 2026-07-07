@@ -187,6 +187,108 @@ test('trigger de carte : le message onDay (jour 2) alimente le journal (combleme
   expect(errors).toEqual([]);
 });
 
+test('mine : capture au passage ⇒ propriétaire + revenu au jour suivant (doc 02 §2.2)', async ({
+  page,
+}) => {
+  const errors = await openGame(page);
+
+  // La mine d'or est en (3,6), 3 pas droits depuis (3,3) — la fouler la capture.
+  // Déplacement scripté via le hook moteur : le tap-tap n'est pas le sujet ici
+  // (cf. `moveHeroToGold`) — sur desktop la tuile tombe sous un overlay DOM.
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({
+      type: 'MoveHero',
+      heroId: 'hero-player-1',
+      path: [
+        { x: 3, y: 4 },
+        { x: 3, y: 5 },
+        { x: 3, y: 6 },
+      ],
+    }),
+  );
+  await expect.poll(() => heroPos(page)).toEqual({ x: 3, y: 6 });
+  const state = await page.evaluate(() => window.__HEROES_TEST__!.getState());
+  const mine = state.map?.objects.find((o) => o.id === 'mine-gold-1');
+  expect(mine?.type === 'mine' && mine.ownerId).toBe('player-1');
+
+  // Revenu quotidien : 500 (hôtel de ville) + 1000 (mine d'or — doc 02 §3).
+  const goldBefore = state.players[0]?.resources.gold ?? 0;
+  await page.getByTestId('end-turn').click();
+  await expect(page.getByTestId('calendar')).toHaveText('Jour 2 · Semaine 1');
+  await expect(page.getByTestId('resource-gold')).toHaveText(String(goldBefore + 1500));
+
+  expect(errors).toEqual([]);
+});
+
+test('trésor : fouler le coffre ⇒ modale or/XP ⇒ or crédité (doc 02 §2.2)', async ({ page }) => {
+  const errors = await openGame(page);
+
+  // Le coffre est en (2,3), adjacent au départ (3,3) — le fouler ouvre le choix.
+  // Déplacement scripté (cf. `moveHeroToGold`) : le sujet est coffre ⇒ modale,
+  // pas le tap-tap (couvert par son test dédié).
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({
+      type: 'MoveHero',
+      heroId: 'hero-player-1',
+      path: [{ x: 2, y: 3 }],
+    }),
+  );
+  await expect(page.getByTestId('treasure-choice')).toBeVisible();
+  const pending = await page.evaluate(() => window.__HEROES_TEST__!.getState().pendingTreasure);
+  expect(pending?.objectId).toBe('chest-1');
+
+  await page.getByTestId('treasure-choice-gold').click();
+  await expect(page.getByTestId('treasure-choice')).not.toBeVisible();
+  await expect(page.getByTestId('resource-gold')).toHaveText('3000'); // 2000 + 1000
+  const state = await page.evaluate(() => window.__HEROES_TEST__!.getState());
+  expect(state.pendingTreasure).toBeNull();
+  expect(state.map?.objects.some((o) => o.id === 'chest-1')).toBe(false);
+
+  expect(errors).toEqual([]);
+});
+
+test('lieu de bonus & habitation : écurie ⇒ +PM, camp ⇒ recrutement (doc 02 §2.2)', async ({
+  page,
+}) => {
+  const errors = await openGame(page);
+
+  // Écurie en (4,4) : 1 pas diagonal (141 PM) puis +400 PM — visite en passant.
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({
+      type: 'MoveHero',
+      heroId: 'hero-player-1',
+      path: [{ x: 4, y: 4 }],
+    }),
+  );
+  await expect.poll(() => heroPos(page)).toEqual({ x: 4, y: 4 });
+  let state = await page.evaluate(() => window.__HEROES_TEST__!.getState());
+  expect(state.heroes[0]?.movementPoints).toBe(1700 - 141 + 400);
+
+  // Habitation en (2,2) : recrute tout le stock abordable (8 × 30 or), fusion
+  // avec la pile t1-recruit de départ.
+  const before = state.heroes[0]?.army.find((s) => s.unitId === 't1-recruit')?.count ?? 0;
+  const goldBefore = state.players[0]?.resources.gold ?? 0;
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({
+      type: 'MoveHero',
+      heroId: 'hero-player-1',
+      path: [
+        { x: 3, y: 3 },
+        { x: 2, y: 2 },
+      ],
+    }),
+  );
+  await expect.poll(() => heroPos(page)).toEqual({ x: 2, y: 2 });
+  state = await page.evaluate(() => window.__HEROES_TEST__!.getState());
+  const stack = state.heroes[0]?.army.find((s) => s.unitId === 't1-recruit');
+  expect((stack?.count ?? 0) - before).toBe(8);
+  const camp = state.map?.objects.find((o) => o.id === 'camp-recrues');
+  expect(camp?.type === 'dwelling' && camp.stock).toBe(0);
+  expect(state.players[0]?.resources.gold).toBe(goldBefore - 8 * 30);
+
+  expect(errors).toEqual([]);
+});
+
 test('combat : victoire contre le gardien, retour carte avec pertes appliquées', async ({ page }) => {
   const errors = await openGame(page);
 

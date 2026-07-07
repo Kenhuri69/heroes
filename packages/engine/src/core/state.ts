@@ -79,6 +79,11 @@ export interface HeroState {
   manaMax: number;
   /** Compétences secondaires (doc 02 §1.3) : id → rang 1..3, ≤ 6. */
   skills: Record<string, number>;
+  /**
+   * Chance de fontaine (doc 02 §2.2, lieu de bonus `luck`) — s'ajoute à la
+   * chance du héros en combat puis est consommée à la fin du prochain combat.
+   */
+  visitLuck: number;
   /** Sorts connus (ids du catalogue) — lançables selon cercle/mana. */
   spells: string[];
   /** Équipement d'artefacts, 10 slots (doc 08 §2.3) — null = vide. */
@@ -117,9 +122,12 @@ export interface Calendar {
  * introduits par le comblement MVP — triggers de carte & grâce de reprise.
  * v5 : `PlayerState.huntContract` — contrats de chasse, doc 05 §3.3.
  * v6 : `HeroState.warMachines` — machines de guerre, doc 02 §5.
- * v7 : `GameState.quests` — système de quêtes générique, doc 13 §6.2 (N2a).)
+ * v7 : `GameState.quests` — système de quêtes générique, doc 13 §6.2 (N2a).
+ * v8 : objets de carte `mine`/`treasure`/`artifact`/`visitable`/`dwelling`,
+ * `GameState.pendingTreasure` et `HeroState.visitLuck` — éléments de carte
+ * manquants, doc 02 §2.2.)
  */
-export const CURRENT_SAVE_VERSION = 7;
+export const CURRENT_SAVE_VERSION = 8;
 
 export interface GameState {
   saveVersion: number;
@@ -159,6 +167,18 @@ export interface GameState {
   /** Issue de la partie (doc 02 §6) — `null` tant qu'elle est en cours. */
   outcome: GameOutcome | null;
   /**
+   * Trésor foulé en attente du choix or/XP (doc 02 §2.2) — posé par le
+   * mouvement, résolu par `ResolveTreasure`. `MoveHero`/`EndTurn` sont refusés
+   * tant qu'il est posé ; `null` sinon.
+   */
+  pendingTreasure: {
+    heroId: string;
+    playerId: string;
+    objectId: string;
+    gold: number;
+    xp: number;
+  } | null;
+  /**
    * Quêtes de campagne (doc 13 §6.2, N2a) — embarquées par `StartGame`, `null`
    * hors campagne (partie libre / scénario nu). Le moteur évalue des conditions
    * génériques ; il ne connaît ni texte ni dialogue.
@@ -187,6 +207,7 @@ export function createEmptyState(): GameState {
     factionCatalog: {},
     scenario: null,
     outcome: null,
+    pendingTreasure: null,
     quests: null,
   };
 }

@@ -381,6 +381,113 @@ describe('loadMap', () => {
     );
   });
 
+  it('résout mine, trésor et artefact au sol vers la forme moteur (doc 02 §2.2)', async () => {
+    const data = makeData();
+    const map = data['maps/mini.map.json'] as { objects: unknown[] };
+    map.objects.push(
+      { id: 'mine-1', type: 'mine', x: 1, y: 0, resource: 'wood', amount: 2 },
+      { id: 'chest-1', type: 'treasure', x: 2, y: 0, gold: 1000, xp: 800 },
+      { id: 'art-1', type: 'artifact', x: 1, y: 2, artifactId: 'lame-test' },
+    );
+    const resolved = await loadMap(
+      reader(data),
+      'mini',
+      makeConfig(),
+      undefined,
+      new Set(['lame-test']),
+    );
+    // La mine sort toujours neutre des données — capturée en jeu seulement.
+    expect(resolved.objects).toContainEqual({
+      id: 'mine-1',
+      type: 'mine',
+      pos: { x: 1, y: 0 },
+      resource: 'wood',
+      amount: 2,
+      ownerId: null,
+    });
+    expect(resolved.objects).toContainEqual({
+      id: 'chest-1',
+      type: 'treasure',
+      pos: { x: 2, y: 0 },
+      gold: 1000,
+      xp: 800,
+    });
+    expect(resolved.objects).toContainEqual({
+      id: 'art-1',
+      type: 'artifact',
+      pos: { x: 1, y: 2 },
+      artifactId: 'lame-test',
+    });
+  });
+
+  it('résout lieu de bonus, habitation et gardien errant (doc 02 §2.2, lot 2)', async () => {
+    const data = makeData();
+    const map = data['maps/mini.map.json'] as { objects: unknown[] };
+    map.objects.push(
+      {
+        id: 'fontaine',
+        type: 'visitable',
+        x: 1,
+        y: 0,
+        effect: { kind: 'luck', amount: 1 },
+        frequency: 'oncePerHeroPerWeek',
+      },
+      { id: 'camp', type: 'dwelling', x: 2, y: 0, unitId: 't1-grunt', stock: 8 },
+      { id: 'errant', type: 'guardian', x: 1, y: 2, unitId: 't1-grunt', count: 3, roamRadius: 4 },
+    );
+    const resolved = await loadMap(reader(data), 'mini', makeConfig(), new Set(['t1-grunt']));
+    expect(resolved.objects).toContainEqual({
+      id: 'fontaine',
+      type: 'visitable',
+      pos: { x: 1, y: 0 },
+      effect: { kind: 'luck', amount: 1 },
+      frequency: 'oncePerHeroPerWeek',
+      visits: {},
+    });
+    expect(resolved.objects).toContainEqual({
+      id: 'camp',
+      type: 'dwelling',
+      pos: { x: 2, y: 0 },
+      unitId: 't1-grunt',
+      stock: 8,
+    });
+    expect(resolved.objects).toContainEqual({
+      id: 'errant',
+      type: 'guardian',
+      pos: { x: 1, y: 2 },
+      unitId: 't1-grunt',
+      count: 3,
+      roamRadius: 4,
+    });
+    // Règle croisée : unité d'habitation inconnue rejetée (comme un gardien).
+    const err = await loadMap(reader(data), 'mini', makeConfig(), new Set()).catch(
+      (e: unknown) => e,
+    );
+    expect((err as PackError).errors.join()).toContain(
+      "habitation 'camp' — unité inconnue des paquets 't1-grunt'",
+    );
+  });
+
+  it('rejette un trésor sans aucun gain et un artefact inconnu du catalogue', async () => {
+    const data = makeData();
+    const map = data['maps/mini.map.json'] as { objects: unknown[] };
+    map.objects.push(
+      { id: 'chest-0', type: 'treasure', x: 2, y: 0, gold: 0, xp: 0 },
+      { id: 'art-x', type: 'artifact', x: 1, y: 2, artifactId: 'nope' },
+    );
+    const err = await loadMap(
+      reader(data),
+      'mini',
+      makeConfig(),
+      undefined,
+      new Set(['lame-test']),
+    ).catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(PackError);
+    const all = (err as PackError).errors.join('\n');
+    expect(all).toContain("trésor 'chest-0' — aucun gain");
+    expect(all).toContain("artefact 'art-x' — inconnu de core/artifacts.json 'nope'");
+  });
+
   it("R5 CO9 — rapporte (sans throw) une armée de départ référençant une unité inconnue", async () => {
     const data = makeData();
     (data['core/config.json'] as GameConfig).newGame.startingArmy = [

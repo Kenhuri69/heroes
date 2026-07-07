@@ -9,6 +9,7 @@ import {
   resolveSkillName,
   resolveBuildingName,
   resolveFactionResourceName,
+  resolveArtifactName,
 } from './i18n';
 
 /** Plafond d'entrées conservées dans le journal (doc 08 §3) — ring buffer léger. */
@@ -42,6 +43,44 @@ export function notify(event: AppEvent, game: GameState): string | null {
     case 'ResourcePicked':
       return event.playerId === human
         ? t('toast.resourcePicked', { amount: event.amount, resource: t(`resource.${event.resource}`) })
+        : null;
+    // Objets de carte (doc 02 §2.2) : mine capturée / revenu, trésor, artefact.
+    case 'MineCaptured':
+      return event.playerId === human
+        ? t('toast.mineCaptured', {
+            resource: t(`resource.${event.resource}`),
+            amount: event.amount,
+          })
+        : null;
+    case 'MineIncome':
+      return event.playerId === human
+        ? t('toast.mineIncome', { amount: event.amount, resource: t(`resource.${event.resource}`) })
+        : null;
+    case 'TreasureTaken':
+      return event.playerId === human
+        ? t(event.choice === 'gold' ? 'toast.treasureGold' : 'toast.treasureXp', {
+            amount: event.amount,
+          })
+        : null;
+    case 'ArtifactPicked':
+      return event.playerId === human
+        ? t('toast.artifactPicked', { artifact: resolveArtifactName(event.artifactId) })
+        : null;
+    // Lieux de bonus & habitations (doc 02 §2.2, lot 2 du comblement).
+    case 'BonusVisited': {
+      if (event.playerId !== human) return null;
+      const effect = event.effect;
+      if (effect.kind === 'luck') return t('toast.bonusLuck', { amount: event.amount });
+      if (effect.kind === 'movement') return t('toast.bonusMovement', { amount: event.amount });
+      if (effect.kind === 'levelXp') return t('toast.bonusXp', { amount: event.amount });
+      return t('toast.bonusResource', {
+        amount: event.amount,
+        resource: t(`resource.${effect.resource}`),
+      });
+    }
+    case 'DwellingRecruited':
+      return event.playerId === human
+        ? t('toast.dwellingRecruited', { count: event.count, unit: resolveUnitName(event.unitId) })
         : null;
     case 'WeekStarted':
       return t('toast.weekStarted', { week: event.week });

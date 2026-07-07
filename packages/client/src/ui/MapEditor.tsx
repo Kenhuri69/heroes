@@ -13,10 +13,37 @@ const TERRAINS = [
 ] as const;
 const CHAR_OF = Object.fromEntries(TERRAINS.map((tr) => [tr.id, tr.char]));
 
-type Tool = (typeof TERRAINS)[number]['id'] | 'start' | 'resource' | 'town' | 'erase';
-type MapObj =
-  | { kind: 'resource'; x: number; y: number; amount: number }
-  | { kind: 'town'; x: number; y: number };
+/**
+ * Outils « objet » (doc 02 §2.2) : chacun pose son type avec des défauts
+ * raisonnables à l'export (même approche que l'outil ressource historique qui
+ * pose or/500) — l'édition fine des paramètres se fait dans le JSON exporté.
+ */
+const OBJECT_TOOLS = [
+  'resource',
+  'town',
+  'mine',
+  'treasure',
+  'artifact',
+  'guardian',
+  'dwelling',
+  'visitable',
+] as const;
+type ObjectKind = (typeof OBJECT_TOOLS)[number];
+
+/** Glyphe de la grille par type d'objet (le terrain colore, le glyphe identifie). */
+const OBJECT_GLYPHS: Record<ObjectKind, string> = {
+  resource: '◆',
+  town: '⌂',
+  mine: '⚒',
+  treasure: '▣',
+  artifact: '✦',
+  guardian: '⚔',
+  dwelling: '⛺',
+  visitable: '✚',
+};
+
+type Tool = (typeof TERRAINS)[number]['id'] | 'start' | ObjectKind | 'erase';
+type MapObj = { kind: ObjectKind; x: number; y: number };
 
 const clampSize = (n: number): number => Math.max(4, Math.min(32, Math.round(n) || 4));
 
@@ -57,12 +84,11 @@ export function MapEditor() {
       );
       return;
     }
-    if (tool === 'resource') {
-      setObjects((o) => [...o.filter((p) => !(p.x === x && p.y === y)), { kind: 'resource', x, y, amount: 500 }]);
-      return;
-    }
-    if (tool === 'town') {
-      setObjects((o) => [...o.filter((p) => !(p.x === x && p.y === y)), { kind: 'town', x, y }]);
+    if ((OBJECT_TOOLS as readonly string[]).includes(tool)) {
+      setObjects((o) => [
+        ...o.filter((p) => !(p.x === x && p.y === y)),
+        { kind: tool as ObjectKind, x, y },
+      ]);
       return;
     }
     if (tool === 'erase') {
@@ -88,11 +114,24 @@ export function MapEditor() {
         tiles.push(row);
         roads.push('0'.repeat(width));
       }
-      const objs = objects.map((o, i) =>
-        o.kind === 'resource'
-          ? { id: `resource-${i + 1}`, type: 'resource', x: o.x, y: o.y, resource: 'gold', amount: o.amount }
-          : { id: `town-${i + 1}`, type: 'town', x: o.x, y: o.y },
-      );
+      // Défauts d'export par type (les ids d'unité/artefact suivent le contenu
+      // du dépôt, comme la ressource « gold » historique).
+      const objs = objects.map((o, i) => {
+        const base = { id: `${o.kind}-${i + 1}`, type: o.kind, x: o.x, y: o.y };
+        if (o.kind === 'resource') return { ...base, resource: 'gold', amount: 500 };
+        if (o.kind === 'mine') return { ...base, resource: 'gold', amount: 1000 };
+        if (o.kind === 'treasure') return { ...base, gold: 1000, xp: 800 };
+        if (o.kind === 'artifact') return { ...base, artifactId: 'trefle-chance' };
+        if (o.kind === 'guardian') return { ...base, unitId: 't1-recruit', count: 6 };
+        if (o.kind === 'dwelling') return { ...base, unitId: 't1-recruit', stock: 8 };
+        if (o.kind === 'visitable')
+          return {
+            ...base,
+            effect: { kind: 'luck', amount: 1 },
+            frequency: 'oncePerHeroPerWeek',
+          };
+        return base; // town
+      });
       return {
         id,
         schemaVersion: 1,
@@ -156,15 +195,7 @@ export function MapEditor() {
       setHeight(m.height);
       setTerrain(flat);
       setStarts(m.startPositions.map((p) => ({ x: p.x, y: p.y })));
-      setObjects(
-        m.objects.flatMap((o): MapObj[] =>
-          o.type === 'resource'
-            ? [{ kind: 'resource', x: o.x, y: o.y, amount: o.amount }]
-            : o.type === 'town'
-              ? [{ kind: 'town', x: o.x, y: o.y }]
-              : [],
-        ),
-      );
+      setObjects(m.objects.map((o): MapObj => ({ kind: o.type, x: o.x, y: o.y })));
       setMessage({ ok: true, text: t('editor.imported') });
     });
   };
@@ -215,7 +246,7 @@ export function MapEditor() {
             {t(`editor.terrain.${tr.id}`)}
           </button>
         ))}
-        {(['start', 'resource', 'town', 'erase'] as const).map((tl) => (
+        {(['start', ...OBJECT_TOOLS, 'erase'] as const).map((tl) => (
           <button
             key={tl}
             class={`tool${tool === tl ? ' active' : ''}`}
@@ -246,7 +277,7 @@ export function MapEditor() {
               onClick={() => apply(x, y)}
             >
               {s !== -1 ? <span class="mark start">{s + 1}</span> : null}
-              {o ? <span class="mark obj">{o.kind === 'town' ? '⌂' : '◆'}</span> : null}
+              {o ? <span class="mark obj">{OBJECT_GLYPHS[o.kind]}</span> : null}
             </button>
           );
         })}

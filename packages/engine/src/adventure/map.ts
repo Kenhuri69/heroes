@@ -10,7 +10,7 @@ export interface GridPos {
   y: number;
 }
 
-/** Objets interactifs posés sur la carte (doc 02 §2.2) : ressources, gardiens neutres. */
+/** Objets interactifs posés sur la carte (doc 02 §2.2) : ressources, gardiens, mines, trésors, artefacts. */
 export interface ResourceObjectDef {
   id: string;
   type: 'resource';
@@ -27,9 +27,101 @@ export interface GuardianObjectDef {
   pos: GridPos;
   unitId: string;
   count: number;
+  /**
+   * Gardien **errant** (doc 02 §2.2) : au changement de jour, il fait 1 pas
+   * vers le héros le plus proche à ≤ `roamRadius` tuiles (Chebyshev) et
+   * s'arrête au contact — l'interception reste déclenchée par le héros.
+   * Absent = gardien statique (comportement historique).
+   */
+  roamRadius?: number;
 }
 
-export type MapObjectDef = ResourceObjectDef | GuardianObjectDef;
+/**
+ * Effet déclaratif d'un lieu de bonus (doc 02 §2.2) — union **générique**,
+ * même idiome que `TriggerEffect` : le moteur applique le `kind`, les données
+ * décident du reste (fontaine, écurie, arbre du savoir, moulin…).
+ */
+export type VisitableEffect =
+  /** +chance jusqu'à la fin du prochain combat (`HeroState.visitLuck`). */
+  | { kind: 'luck'; amount: number }
+  /** +points de mouvement immédiats pour le héros visiteur. */
+  | { kind: 'movement'; amount: number }
+  /** L'XP manquante pour atteindre le niveau suivant (« +1 niveau »). */
+  | { kind: 'levelXp' }
+  /** Ressource créditée au joueur visiteur. */
+  | { kind: 'resource'; resource: string; amount: number };
+
+/** Lieu de bonus visitable (doc 02 §2.2) : visite en passant, re-visite bornée. */
+export interface VisitableObjectDef {
+  id: string;
+  type: 'visitable';
+  pos: GridPos;
+  effect: VisitableEffect;
+  /** Une seule visite par héros à vie, ou une par héros et par semaine. */
+  frequency: 'oncePerHero' | 'oncePerHeroPerWeek';
+  /** État : semaine de dernière visite par héros (`-1` = consommé à vie). */
+  visits: Record<string, number>;
+}
+
+/**
+ * Habitation hors ville (doc 02 §2.2) : stock recrutable, croissance hebdo
+ * depuis les données d'unité (`applyWeeklyGrowth`). La visite recrute le
+ * maximum abordable dans l'armée du héros.
+ */
+export interface DwellingObjectDef {
+  id: string;
+  type: 'dwelling';
+  pos: GridPos;
+  unitId: string;
+  stock: number;
+}
+
+/**
+ * Mine capturable (doc 02 §2.2) : fouler la tuile la fait passer au joueur
+ * (`ownerId`), qui touche `amount` de `resource` chaque jour (revenu appliqué
+ * au `DayStarted`, cf. `town/economy.ts`). Recapturable par un adversaire.
+ */
+export interface MineObjectDef {
+  id: string;
+  type: 'mine';
+  pos: GridPos;
+  /** ID de ressource — validé par le contenu, opaque pour le moteur. */
+  resource: string;
+  /** Revenu par jour. */
+  amount: number;
+  /** Joueur propriétaire — `null` = neutre (état initial des données). */
+  ownerId: string | null;
+}
+
+/**
+ * Trésor (doc 02 §2.2) : le héros qui le foule choisit `gold` OU `xp`
+ * (commande `ResolveTreasure`) ; le choix est porté par
+ * `GameState.pendingTreasure` le temps de la décision.
+ */
+export interface TreasureObjectDef {
+  id: string;
+  type: 'treasure';
+  pos: GridPos;
+  gold: number;
+  xp: number;
+}
+
+/** Artefact posé sur la carte (doc 02 §2.2) : ramassé vers le 1er slot libre du héros. */
+export interface ArtifactObjectDef {
+  id: string;
+  type: 'artifact';
+  pos: GridPos;
+  artifactId: string;
+}
+
+export type MapObjectDef =
+  | ResourceObjectDef
+  | GuardianObjectDef
+  | MineObjectDef
+  | TreasureObjectDef
+  | ArtifactObjectDef
+  | VisitableObjectDef
+  | DwellingObjectDef;
 
 /**
  * Effet déclaratif d'un trigger de carte (doc 02 §2.1 « scripts d'événements

@@ -109,7 +109,8 @@ function Shell() {
               <ArmyBand />
               <TurnBar onOpenOptions={() => openModal({ kind: 'options' })} />
             </div>
-            <MiniMap /> {/* UXD-8 : mini-carte desktop (masquée en mobile par CSS) */}
+            {/* Mini-carte : unique instance, montée dans le tiroir/colonne héros
+                (bascule mobile, colonne persistante desktop). Plus de widget flottant. */}
           </>
         )
       ) : null}

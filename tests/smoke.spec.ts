@@ -538,7 +538,9 @@ test('quêtes journalières : le mode libre génère des contrats déterministes
   expect(first.every((id) => id.startsWith('daily-'))).toBe(true);
 
   // Le journal (tiroir héros) affiche les contrats avec le badge « Journalier ».
-  await page.getByTestId('hero-drawer-toggle').click();
+  // Desktop : la colonne héros est persistante (pas de bascule) ; mobile : on ouvre.
+  if (await page.getByTestId('hero-drawer-toggle').isVisible())
+    await page.getByTestId('hero-drawer-toggle').click();
   await expect(page.getByTestId(`quest-entry-${first[0]}`)).toBeVisible();
   await expect(page.getByTestId(`quest-kind-${first[0]}`)).toBeVisible();
 
@@ -603,7 +605,9 @@ test('sort d’aventure : Ville-portail téléporte le héros vers sa ville (Alp
 
   // Ouvre le tiroir héros et lance Ville-portail (le héros connaît tous les
   // sorts de cercle ≤ 3).
-  await page.getByTestId('hero-drawer-toggle').click();
+  // Desktop : la colonne héros est persistante (pas de bascule) ; mobile : on ouvre.
+  if (await page.getByTestId('hero-drawer-toggle').isVisible())
+    await page.getByTestId('hero-drawer-toggle').click();
   await page.getByTestId('adventure-spell-ville-portail').click();
 
   // Téléporté vers la ville possédée la plus proche (start-town), mana décomptée.
@@ -1343,7 +1347,9 @@ test('prologue narratif : dialogue → journal → quête récompensée (doc 13 
   await expect(page.getByTestId('dialogue-box')).toHaveCount(0);
 
   // Journal à jour : la quête « Relever Cendregarde » est active (tiroir héros).
-  await page.getByTestId('hero-drawer-toggle').click();
+  // Desktop : la colonne héros est persistante (pas de bascule) ; mobile : on ouvre.
+  if (await page.getByTestId('hero-drawer-toggle').isVisible())
+    await page.getByTestId('hero-drawer-toggle').click();
   await expect(page.getByTestId('quest-entry-prologue-relever')).toBeVisible();
 
   const goldBefore = await page.evaluate(

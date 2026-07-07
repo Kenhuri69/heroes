@@ -33,6 +33,12 @@ export interface BuildingLevel {
   /** Prérequis : autres bâtiments à un niveau minimum (gradation, doc 02 §4.1). */
   requires: { building: string; level: number }[];
   effect: BuildingEffect;
+  /**
+   * Ce niveau ne peut être bâti que dans UNE ville par joueur (doc 02 §4.1 :
+   * « un seul Capitole »). Générique et data-driven (D4) : le moteur ignore le
+   * nom du bâtiment, seul ce drapeau compte.
+   */
+  uniquePerPlayer?: boolean | undefined;
 }
 
 /** Définition résolue d'un bâtiment, embarquée dans `StartGame.buildingCatalog`. */

@@ -5,14 +5,32 @@
       "maxLevel": 2,
       "levels": [
         {
-          "cost": { "gold": 500 },
-          "requires": [{ "building": "fort", "level": 1 }],
-          "effect": { "type": "dwelling", "tier": 1, "unitId": "t1-eleve" }
+          "cost": {
+            "gold": 500
+          },
+          "requires": [
+            {
+              "building": "fort",
+              "level": 1
+            }
+          ],
+          "effect": {
+            "type": "dwelling",
+            "tier": 1,
+            "unitId": "t1-eleve"
+          }
         },
         {
-          "cost": { "gold": 1500, "wood": 5 },
+          "cost": {
+            "gold": 1500,
+            "wood": 5
+          },
           "requires": [],
-          "effect": { "type": "dwelling", "tier": 1, "unitId": "t1-eleve-elite" }
+          "effect": {
+            "type": "dwelling",
+            "tier": 1,
+            "unitId": "t1-eleve-elite"
+          }
         }
       ]
     },
@@ -21,14 +39,33 @@
       "maxLevel": 2,
       "levels": [
         {
-          "cost": { "gold": 1000, "wood": 5 },
-          "requires": [{ "building": "arcane-hunters-dwelling-t1", "level": 1 }],
-          "effect": { "type": "dwelling", "tier": 2, "unitId": "t2-familier" }
+          "cost": {
+            "gold": 1000,
+            "wood": 5
+          },
+          "requires": [
+            {
+              "building": "arcane-hunters-dwelling-t1",
+              "level": 1
+            }
+          ],
+          "effect": {
+            "type": "dwelling",
+            "tier": 2,
+            "unitId": "t2-familier"
+          }
         },
         {
-          "cost": { "gold": 2500, "wood": 10 },
+          "cost": {
+            "gold": 2500,
+            "wood": 10
+          },
           "requires": [],
-          "effect": { "type": "dwelling", "tier": 2, "unitId": "t2-familier-elite" }
+          "effect": {
+            "type": "dwelling",
+            "tier": 2,
+            "unitId": "t2-familier-elite"
+          }
         }
       ]
     },
@@ -37,14 +74,33 @@
       "maxLevel": 2,
       "levels": [
         {
-          "cost": { "gold": 2000, "mercury": 3 },
-          "requires": [{ "building": "arcane-hunters-dwelling-t2", "level": 1 }],
-          "effect": { "type": "dwelling", "tier": 3, "unitId": "t3-prefet" }
+          "cost": {
+            "gold": 2000,
+            "mercury": 3
+          },
+          "requires": [
+            {
+              "building": "arcane-hunters-dwelling-t2",
+              "level": 1
+            }
+          ],
+          "effect": {
+            "type": "dwelling",
+            "tier": 3,
+            "unitId": "t3-prefet"
+          }
         },
         {
-          "cost": { "gold": 4000, "mercury": 5 },
+          "cost": {
+            "gold": 4000,
+            "mercury": 5
+          },
           "requires": [],
-          "effect": { "type": "dwelling", "tier": 3, "unitId": "t3-prefet-elite" }
+          "effect": {
+            "type": "dwelling",
+            "tier": 3,
+            "unitId": "t3-prefet-elite"
+          }
         }
       ]
     },
@@ -53,14 +109,33 @@
       "maxLevel": 2,
       "levels": [
         {
-          "cost": { "gold": 3000, "ore": 10 },
-          "requires": [{ "building": "arcane-hunters-dwelling-t3", "level": 1 }],
-          "effect": { "type": "dwelling", "tier": 4, "unitId": "t4-bibliothecaire" }
+          "cost": {
+            "gold": 3000,
+            "ore": 10
+          },
+          "requires": [
+            {
+              "building": "arcane-hunters-dwelling-t3",
+              "level": 1
+            }
+          ],
+          "effect": {
+            "type": "dwelling",
+            "tier": 4,
+            "unitId": "t4-bibliothecaire"
+          }
         },
         {
-          "cost": { "gold": 6000, "ore": 15 },
+          "cost": {
+            "gold": 6000,
+            "ore": 15
+          },
           "requires": [],
-          "effect": { "type": "dwelling", "tier": 4, "unitId": "t4-bibliothecaire-elite" }
+          "effect": {
+            "type": "dwelling",
+            "tier": 4,
+            "unitId": "t4-bibliothecaire-elite"
+          }
         }
       ]
     },
@@ -69,14 +144,33 @@
       "maxLevel": 2,
       "levels": [
         {
-          "cost": { "gold": 3500, "mercury": 2 },
-          "requires": [{ "building": "mageGuild", "level": 1 }],
-          "effect": { "type": "dwelling", "tier": 5, "unitId": "t5-lame" }
+          "cost": {
+            "gold": 3500,
+            "mercury": 2
+          },
+          "requires": [
+            {
+              "building": "mageGuild",
+              "level": 1
+            }
+          ],
+          "effect": {
+            "type": "dwelling",
+            "tier": 5,
+            "unitId": "t5-lame"
+          }
         },
         {
-          "cost": { "gold": 7000, "mercury": 4 },
+          "cost": {
+            "gold": 7000,
+            "mercury": 4
+          },
           "requires": [],
-          "effect": { "type": "dwelling", "tier": 5, "unitId": "t5-lame-elite" }
+          "effect": {
+            "type": "dwelling",
+            "tier": 5,
+            "unitId": "t5-lame-elite"
+          }
         }
       ]
     },
@@ -85,14 +179,33 @@
       "maxLevel": 2,
       "levels": [
         {
-          "cost": { "gold": 4500, "mercury": 3 },
-          "requires": [{ "building": "arcane-hunters-dwelling-t5", "level": 1 }],
-          "effect": { "type": "dwelling", "tier": 6, "unitId": "t6-chasseresse" }
+          "cost": {
+            "gold": 4500,
+            "mercury": 3
+          },
+          "requires": [
+            {
+              "building": "arcane-hunters-dwelling-t5",
+              "level": 1
+            }
+          ],
+          "effect": {
+            "type": "dwelling",
+            "tier": 6,
+            "unitId": "t6-chasseresse"
+          }
         },
         {
-          "cost": { "gold": 9000, "mercury": 5 },
+          "cost": {
+            "gold": 9000,
+            "mercury": 5
+          },
           "requires": [],
-          "effect": { "type": "dwelling", "tier": 6, "unitId": "t6-chasseresse-elite" }
+          "effect": {
+            "type": "dwelling",
+            "tier": 6,
+            "unitId": "t6-chasseresse-elite"
+          }
         }
       ]
     },
@@ -101,14 +214,35 @@
       "maxLevel": 2,
       "levels": [
         {
-          "cost": { "gold": 6000, "mercury": 3, "gems": 3 },
-          "requires": [{ "building": "arcane-hunters-dwelling-t6", "level": 1 }],
-          "effect": { "type": "dwelling", "tier": 7, "unitId": "t7-manticore" }
+          "cost": {
+            "gold": 6000,
+            "mercury": 3,
+            "gems": 3
+          },
+          "requires": [
+            {
+              "building": "arcane-hunters-dwelling-t6",
+              "level": 1
+            }
+          ],
+          "effect": {
+            "type": "dwelling",
+            "tier": 7,
+            "unitId": "t7-manticore"
+          }
         },
         {
-          "cost": { "gold": 12000, "mercury": 5, "gems": 5 },
+          "cost": {
+            "gold": 12000,
+            "mercury": 5,
+            "gems": 5
+          },
           "requires": [],
-          "effect": { "type": "dwelling", "tier": 7, "unitId": "t7-manticore-elite" }
+          "effect": {
+            "type": "dwelling",
+            "tier": 7,
+            "unitId": "t7-manticore-elite"
+          }
         }
       ]
     },
@@ -117,14 +251,35 @@
       "maxLevel": 2,
       "levels": [
         {
-          "cost": { "gold": 4000, "gems": 3, "mercury": 3 },
-          "requires": [{ "building": "arcane-hunters-dwelling-t7", "level": 1 }],
-          "effect": { "type": "dwelling", "tier": 8, "unitId": "t8-penitent" }
+          "cost": {
+            "gold": 4000,
+            "gems": 3,
+            "mercury": 3
+          },
+          "requires": [
+            {
+              "building": "arcane-hunters-dwelling-t7",
+              "level": 1
+            }
+          ],
+          "effect": {
+            "type": "dwelling",
+            "tier": 8,
+            "unitId": "t8-penitent"
+          }
         },
         {
-          "cost": { "gold": 14000, "gems": 6, "mercury": 6 },
+          "cost": {
+            "gold": 14000,
+            "gems": 6,
+            "mercury": 6
+          },
           "requires": [],
-          "effect": { "type": "dwelling", "tier": 8, "unitId": "t8-penitent-elite" }
+          "effect": {
+            "type": "dwelling",
+            "tier": 8,
+            "unitId": "t8-penitent-elite"
+          }
         }
       ]
     },
@@ -134,9 +289,21 @@
       "exclusiveGroup": "arcane-circle",
       "levels": [
         {
-          "cost": { "gold": 2000, "ore": 10 },
-          "requires": [{ "building": "mageGuild", "level": 1 }],
-          "effect": { "type": "income", "resource": "gold", "amount": 250 }
+          "cost": {
+            "gold": 2000,
+            "ore": 10
+          },
+          "requires": [
+            {
+              "building": "mageGuild",
+              "level": 1
+            }
+          ],
+          "effect": {
+            "type": "income",
+            "resource": "gold",
+            "amount": 250
+          }
         }
       ]
     },
@@ -146,9 +313,20 @@
       "exclusiveGroup": "arcane-circle",
       "levels": [
         {
-          "cost": { "gold": 2000, "ore": 10 },
-          "requires": [{ "building": "mageGuild", "level": 1 }],
-          "effect": { "type": "growthBonus", "percent": 20 }
+          "cost": {
+            "gold": 2000,
+            "ore": 10
+          },
+          "requires": [
+            {
+              "building": "mageGuild",
+              "level": 1
+            }
+          ],
+          "effect": {
+            "type": "growthBonus",
+            "percent": 20
+          }
         }
       ]
     },
@@ -158,9 +336,21 @@
       "exclusiveGroup": "arcane-circle",
       "levels": [
         {
-          "cost": { "gold": 2000, "mercury": 3 },
-          "requires": [{ "building": "mageGuild", "level": 1 }],
-          "effect": { "type": "income", "resource": "gold", "amount": 400 }
+          "cost": {
+            "gold": 2000,
+            "mercury": 3
+          },
+          "requires": [
+            {
+              "building": "mageGuild",
+              "level": 1
+            }
+          ],
+          "effect": {
+            "type": "income",
+            "resource": "gold",
+            "amount": 400
+          }
         }
       ]
     },
@@ -170,9 +360,20 @@
       "exclusiveGroup": "arcane-circle",
       "levels": [
         {
-          "cost": { "gold": 2000, "gems": 3 },
-          "requires": [{ "building": "mageGuild", "level": 1 }],
-          "effect": { "type": "growthBonus", "percent": 40 }
+          "cost": {
+            "gold": 2000,
+            "gems": 3
+          },
+          "requires": [
+            {
+              "building": "mageGuild",
+              "level": 1
+            }
+          ],
+          "effect": {
+            "type": "growthBonus",
+            "percent": 40
+          }
         }
       ]
     },
@@ -181,9 +382,22 @@
       "maxLevel": 1,
       "levels": [
         {
-          "cost": { "gold": 800, "wood": 5 },
-          "requires": [{ "building": "townHall", "level": 1 }],
-          "effect": { "type": "huntContract", "gold": 300, "resource": "essence", "amount": 15 }
+          "cost": {
+            "gold": 800,
+            "wood": 5
+          },
+          "requires": [
+            {
+              "building": "tavern",
+              "level": 1
+            }
+          ],
+          "effect": {
+            "type": "huntContract",
+            "gold": 300,
+            "resource": "essence",
+            "amount": 15
+          }
         }
       ]
     }

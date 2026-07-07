@@ -184,3 +184,34 @@ describe('BuildStructure — choix exclusif (exclusiveGroup)', () => {
     expect(events).toContainEqual({ type: 'TownBuilt', townId: 'town-1', buildingId: 'circleA', level: 1 });
   });
 });
+
+describe('D4 — bâtiment unique par joueur (« 1 Capitole »)', () => {
+  it('un niveau `uniquePerPlayer` ne peut être bâti que dans UNE ville par joueur', () => {
+    const catalog: Record<string, BuildingDef> = {
+      ...testBuildingCatalog(),
+      capitol: {
+        id: 'capitol',
+        maxLevel: 1,
+        levels: [{ cost: {}, requires: [], effect: { type: 'none' }, uniquePerPlayer: true }],
+      },
+    };
+    const town2 = { ...testTown(), id: 'town-2', pos: { x: 3, y: 3 } };
+    const cmd: Command = {
+      type: 'StartGame',
+      seed: 1,
+      players: setup({ gold: 100 }),
+      map: testMap(),
+      config: testConfig(),
+      unitCatalog: testUnitCatalogWithEconomy(),
+      buildingCatalog: catalog,
+      towns: [testTown(), town2],
+    };
+    let state = apply(createEmptyState(), cmd).state;
+    state = apply(state, { type: 'BuildStructure', townId: 'town-1', buildingId: 'capitol' }).state;
+    expect(state.towns.find((t) => t.id === 'town-1')?.buildings.capitol).toBe(1);
+    // La 2ᵉ ville du même joueur ne peut plus le bâtir.
+    expect(
+      validate(state, { type: 'BuildStructure', townId: 'town-2', buildingId: 'capitol' })?.code,
+    ).toBe('uniquePerPlayer');
+  });
+});

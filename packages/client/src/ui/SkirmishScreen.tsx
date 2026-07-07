@@ -25,6 +25,7 @@ export function SkirmishScreen({ onClose }: { onClose: () => void }) {
   const [aiFactionId, setAi] = useState(factions[1] ?? factions[0] ?? '');
   const [difficulty, setDifficulty] = useState<SkirmishDifficulty>('normal');
   const [opponent, setOpponent] = useState<'ai' | 'human'>('ai');
+  const [randomMap, setRandomMap] = useState(false);
 
   const options = useMemo(
     () => factions.map((id) => ({ id, label: factionName(id) })),
@@ -34,7 +35,7 @@ export function SkirmishScreen({ onClose }: { onClose: () => void }) {
   const start = (): void => {
     window.dispatchEvent(
       new CustomEvent('heroes:start-skirmish', {
-        detail: { humanFactionId, aiFactionId, difficulty, opponent },
+        detail: { humanFactionId, aiFactionId, difficulty, opponent, randomMap },
       }),
     );
     onClose();
@@ -131,6 +132,26 @@ export function SkirmishScreen({ onClose }: { onClose: () => void }) {
             </div>
           </section>
         )}
+
+        <section class="options-section">
+          <h3>{t('skirmish.map')}</h3>
+          <div class="segmented" role="group">
+            <button
+              class={!randomMap ? 'active' : ''}
+              data-testid="skirmish-map-standard"
+              onClick={() => setRandomMap(false)}
+            >
+              {t('skirmish.map.standard')}
+            </button>
+            <button
+              class={randomMap ? 'active' : ''}
+              data-testid="skirmish-map-random"
+              onClick={() => setRandomMap(true)}
+            >
+              {t('skirmish.map.random')}
+            </button>
+          </div>
+        </section>
 
         <section class="options-section">
           <button

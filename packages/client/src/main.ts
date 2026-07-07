@@ -4,7 +4,7 @@ import { CURRENT_SAVE_VERSION, serializeState } from '@heroes/engine';
 import { Camera } from './render/camera';
 import { TILE_SIZE } from './render/tilemap';
 import { WORLD_OCEAN_CSS } from './render/worldBorder';
-import { loadGameContent, loadDefaultMap, loadScenarioMap } from './app/content';
+import { loadGameContent, loadDefaultMap, loadScenarioMap, resolveGeneratedMap } from './app/content';
 import {
   buildFactionSetup,
   buildHeroSetup,
@@ -200,11 +200,14 @@ async function bootstrap(): Promise<void> {
    * par défaut déjà chargée. Même découplage que « Nouvelle partie ».
    */
   const startSkirmish = async (config: SkirmishConfig, seed: number): Promise<void> => {
+    // Carte aléatoire (doc 09, Live 6.2) : générée + validée en mémoire par le
+    // même `loadMap` ; sinon la carte par défaut déjà chargée.
+    const skirmishMap = config.randomMap ? await resolveGeneratedMap(report, seed) : map;
     // Quêtes journalières (doc 13 §4.2, N4c) : générées déterministiquement depuis
     // le seed, embarquées dans le StartGame ; leur narration alimente le journal.
     const daily = buildDailyQuests(report, config.humanFactionId, seed);
     loadFreeModeNarrative(daily.metas);
-    await dispatch(skirmishStartCommand(report, config, seed, map, daily.questState));
+    await dispatch(skirmishStartCommand(report, config, seed, skirmishMap, daily.questState));
     navigate('adventure');
   };
 

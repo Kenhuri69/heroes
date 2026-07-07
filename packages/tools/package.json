@@ -7,7 +7,8 @@
     "content:check": "tsx src/content-check.ts",
     "faction:new": "tsx src/faction-new.ts",
     "faction:validate": "tsx src/faction-validate.ts",
-    "faction:sim": "tsx src/faction-sim.ts"
+    "faction:sim": "tsx src/faction-sim.ts",
+    "map:gen": "tsx src/map-gen.ts"
   },
   "dependencies": {
     "@heroes/content": "workspace:*",

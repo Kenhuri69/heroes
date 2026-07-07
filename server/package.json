@@ -1,0 +1,11 @@
+{
+  "name": "@heroes/server",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@heroes/engine": "workspace:*"
+  }
+}

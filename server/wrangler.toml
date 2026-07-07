@@ -1,0 +1,15 @@
+# Configuration du Worker backend Heroes (doc 15). Déploiement MANUEL :
+#   cd server && wrangler deploy        # nécessite les identifiants Cloudflare
+# La base D1 `heroes` est déjà provisionnée + schéma appliqué (server/schema.sql).
+name = "heroes"
+main = "src/worker.ts"
+compatibility_date = "2026-07-07"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "heroes"
+database_id = "cb83efa4-81f2-404c-b83d-5626117cda56"
+
+# Origine de l'app cliente autorisée en CORS (GitHub Pages). Ajustable au déploiement.
+[vars]
+APP_ORIGIN = "https://kenhuri69.github.io"

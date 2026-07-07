@@ -12,6 +12,11 @@ import { panCameraTo } from '../app/camera-control';
  * villes en pastilles colorées ; un **clic recentre la caméra** d'aventure sur
  * la tuile visée (`panCameraTo`). Coût nul par-frame : ne se redessine qu'au
  * changement d'état (abonnement store), la carte proto est ~1 k tuiles.
+ *
+ * `variant` : `'fixed'` = widget ancré en bas à droite (desktop only) ;
+ * `'drawer'` = version statique montée dans le tiroir héros (mobile). Classe
+ * distincte par variante pour que les règles `fixed`/media du widget desktop ne
+ * fuient pas sur la version tiroir (l'exclusivité par viewport est en CSS).
  */
 
 const C_UNEXPLORED = '#0b0e14';
@@ -27,7 +32,7 @@ function hex(n: number): string {
   return `#${n.toString(16).padStart(6, '0')}`;
 }
 
-export function MiniMap() {
+export function MiniMap({ variant = 'fixed' }: { variant?: 'fixed' | 'drawer' } = {}) {
   const ref = useRef<HTMLCanvasElement>(null);
   // Réf `game` stable (cf. HeroStrip) puis dérivation dans l'effet — évite les
   // nouveaux tableaux à chaque sélecteur.
@@ -86,8 +91,8 @@ export function MiniMap() {
   return (
     <canvas
       ref={ref}
-      class="mini-map"
-      data-testid="mini-map"
+      class={variant === 'drawer' ? 'mini-map-drawer' : 'mini-map'}
+      data-testid={variant === 'drawer' ? 'mini-map-drawer' : 'mini-map'}
       role="img"
       aria-label={`Mini-carte (${heroCount} héros)`}
       onClick={onClick}

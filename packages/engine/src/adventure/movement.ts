@@ -30,7 +30,8 @@ export interface AdvanceOptions {
  * décompte des PM (arrêt quand les points du jour ne suffisent plus,
  * doc 02 §1.5), interception de gardien (le héros paie le pas d'engagement
  * mais n'entre pas sur la tuile, décision plan phase-2.4), ramassage de
- * ressource (arrêt sur la case, doc 02 §2.2), révélation du brouillard.
+ * ressource/artefact (le héros s'arrête sur la case ramassée — choix UX
+ * doc 08 §2.1 ; les mines, elles, se capturent en passant), brouillard.
  *
  * Seule divergence humain/IA : la résolution du combat de gardien, injectée
  * via `options.onGuardianEngaged` (cf. `AdvanceOptions`).

@@ -94,6 +94,34 @@ describe('computeMultiplier — formule ±5 %/pt bornée [-70 %, +60 %]', () => 
     expect(mult).toBeCloseTo(0.5);
   });
 
+  it('attribut Défense du héros : pente douce −2,5 %/pt, séparée du diff d’unités (doc 02 §1.1)', () => {
+    // Stats d'unités égales (diff 0) ; 10 pts de Défense héros ⇒ −0,025×10 = −25 %.
+    const mult = computeMultiplier({
+      strikerAttack: 5,
+      targetDefense: 5,
+      targetDefending: false,
+      targetMarks: 0,
+      meleePenalized: false,
+      heroDefensePoints: 10,
+      rules: RULES,
+    });
+    expect(mult).toBeCloseTo(0.75); // et NON 0,5 (ce serait la pente −5 %/pt du bug)
+  });
+
+  it('la posture « défendre » ne multiplie pas l’attribut Défense du héros', () => {
+    // Défense d'unité 0 (diff 5), défendre ⇒ floor(0×1,3)=0 ; +10 pts héros ⇒ −25 %.
+    const mult = computeMultiplier({
+      strikerAttack: 5,
+      targetDefense: 0,
+      targetDefending: true,
+      targetMarks: 0,
+      meleePenalized: false,
+      heroDefensePoints: 10,
+      rules: RULES,
+    });
+    expect(mult).toBeCloseTo(1 + 0.05 * 5 - 0.025 * 10); // 1,0
+  });
+
   it('marque : +8 %/charge, cumulatif', () => {
     const mult = computeMultiplier({
       strikerAttack: 5,
@@ -217,6 +245,38 @@ describe('performStrike / applyAction — intégration dégâts', () => {
     const strike = events.find((e) => e.type === 'StackAttacked') as Extract<GameEvent, { type: 'StackAttacked' }>;
     // défense effective floor(7*1,3)=9 ; diff=7-9=-2 ; facteur -0,10 ; dégâts round(4*0,9)=4 (arrondi de 3,6)
     expect(strike.damage).toBe(4);
+  });
+
+  it('noRetaliation porté par l’ATTAQUANT : la cible ne riposte pas (doc 02 §5.4)', () => {
+    const catalog = {
+      atk: unit({ id: 'atk', stats: { hp: 10, attack: 5, defense: 0, damage: [4, 4], speed: 5 }, abilities: [{ id: 'noRetaliation' }] }),
+      def: unit({ id: 'def', stats: { hp: 1000, attack: 20, defense: 0, damage: [10, 10], speed: 1 } }),
+    };
+    const attacker = stack({ id: 'attacker-0', side: 'attacker', slot: 0, unitId: 'atk', count: 1, pos: { col: 0, row: 0 } });
+    const defender = stack({ id: 'defender-0', side: 'defender', slot: 0, unitId: 'def', count: 1, pos: { col: 1, row: 0 }, firstHp: 1000 });
+    const state = { ...baseState(catalog), combat: combatState([attacker, defender]) };
+    const events: GameEvent[] = [];
+    produce(state, (draft) => {
+      applyAction(draft, events, 'attacker-0', { type: 'attack', targetStackId: 'defender-0' });
+    });
+    const strikes = events.filter((e) => e.type === 'StackAttacked') as Extract<GameEvent, { type: 'StackAttacked' }>[];
+    expect(strikes.some((s) => s.retaliation)).toBe(false); // aucune riposte
+  });
+
+  it('noRetaliation porté par la CIBLE : elle riposte normalement (n’est pas un malus)', () => {
+    const catalog = {
+      atk: unit({ id: 'atk', stats: { hp: 1000, attack: 5, defense: 0, damage: [4, 4], speed: 5 } }),
+      def: unit({ id: 'def', stats: { hp: 1000, attack: 20, defense: 0, damage: [10, 10], speed: 1 }, abilities: [{ id: 'noRetaliation' }] }),
+    };
+    const attacker = stack({ id: 'attacker-0', side: 'attacker', slot: 0, unitId: 'atk', count: 1, pos: { col: 0, row: 0 }, firstHp: 1000 });
+    const defender = stack({ id: 'defender-0', side: 'defender', slot: 0, unitId: 'def', count: 1, pos: { col: 1, row: 0 }, firstHp: 1000 });
+    const state = { ...baseState(catalog), combat: combatState([attacker, defender]) };
+    const events: GameEvent[] = [];
+    produce(state, (draft) => {
+      applyAction(draft, events, 'attacker-0', { type: 'attack', targetStackId: 'defender-0' });
+    });
+    const strikes = events.filter((e) => e.type === 'StackAttacked') as Extract<GameEvent, { type: 'StackAttacked' }>[];
+    expect(strikes.some((s) => s.retaliation)).toBe(true); // la cible riposte bien
   });
 
   it('marque : +1 charge par frappe (plafond 3), +8 %/charge sur les dégâts suivants', () => {

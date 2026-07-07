@@ -1,5 +1,6 @@
 import type { CombatRulesConfig } from '../adventure/config';
 import type { GameState } from '../core/state';
+import { heroArtifactBonus } from '../hero/artifacts';
 import { heroMorale } from '../hero/skills';
 import type { CombatSideId, CombatStack, CombatState, CombatUnitDef } from './types';
 
@@ -31,7 +32,12 @@ export function isShooterMeleePenalized(def: CombatUnitDef): boolean {
   return shooter.params?.noMeleePenalty !== true;
 }
 
-/** Vitesse effective = vitesse de base +1 si terrain natif (doc 02 §5.1). */
+/**
+ * Vitesse effective = vitesse de base +1 si terrain natif (doc 02 §5.1) + somme
+ * des `speedMod` des statuts actifs (Hâte/Lenteur/Entraves, doc 02 §1.4/§5.1 :
+ * la vitesse est la portée de déplacement), bornée à ≥ 0. Sert à la fois à
+ * l'ordre d'initiative et à la portée de déplacement (`reachableHexes`).
+ */
 export function effectiveSpeed(
   stack: CombatStack,
   combat: CombatState,
@@ -39,33 +45,42 @@ export function effectiveSpeed(
 ): number {
   const def = catalog[stack.unitId];
   if (!def) return 0;
-  return def.stats.speed + (def.nativeTerrain === combat.terrain ? 1 : 0);
+  const nativeBonus = def.nativeTerrain === combat.terrain ? 1 : 0;
+  const speedMod = stack.statuses.reduce((sum, s) => sum + s.speedMod, 0);
+  return Math.max(0, def.stats.speed + nativeBonus + speedMod);
 }
 
-/** Bonus de moral du héros lié au camp `side` (compétence Commandement) — 0 si aucun héros. */
+/** Bonus de moral du héros lié au camp `side` (Commandement + artefacts) — 0 si aucun héros. */
 function heroMoraleForSide(state: GameState, combat: CombatState, side: CombatSideId): number {
   const heroId = side === 'attacker' ? combat.attackerHeroId : combat.defenderHeroId;
   const hero = heroId ? state.heroes.find((h) => h.id === heroId) : undefined;
-  return hero ? heroMorale(hero, state.skillCatalog) : 0;
+  if (!hero) return 0;
+  return heroMorale(hero, state.skillCatalog) + heroArtifactBonus(hero, state.artifactCatalog).morale;
+}
+
+/** Une unité neutre au moral : morts-vivants (moral figé 0) ou machine de guerre. */
+function isMoraleNeutral(def: CombatUnitDef): boolean {
+  return hasAbility(def, 'undead') || hasAbility(def, 'warMachine');
 }
 
 /**
  * Moral d'une pile (doc 02 §5.3, décisions plan #4/#17) : +1 si terrain natif,
- * −1 par groupId distinct au-delà du premier, + Commandement du héros lié au
- * camp (compétence, remédiation R5 CO4 — enfin branché) ; morts-vivants exclus
- * du calcul et toujours à moral 0. Borné [−3, +3].
+ * −1 par groupId distinct au-delà du premier, + Commandement/artefacts du héros
+ * lié au camp ; morts-vivants ET machines de guerre exclus du calcul (moral 0,
+ * hors décompte des groupes — une baliste n'est pas une « faction en plus »).
+ * Borné [−3, +3].
  */
 export function moraleOf(stack: CombatStack, combat: CombatState, state: GameState): number {
   const catalog = state.unitCatalog;
   const def = catalog[stack.unitId];
   if (!def) return 0;
-  if (hasAbility(def, 'undead')) return 0;
+  if (isMoraleNeutral(def)) return 0;
   const terrainBonus = def.nativeTerrain === combat.terrain ? 1 : 0;
   const groups = new Set<string>();
   for (const s of combat.stacks) {
     if (s.side !== stack.side || s.count <= 0) continue;
     const d = catalog[s.unitId];
-    if (d && !hasAbility(d, 'undead')) groups.add(d.groupId);
+    if (d && !isMoraleNeutral(d)) groups.add(d.groupId);
   }
   const malus = Math.max(0, groups.size - 1);
   return clamp(terrainBonus - malus + heroMoraleForSide(state, combat, stack.side), -3, 3);

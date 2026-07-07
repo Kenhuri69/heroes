@@ -151,6 +151,7 @@ export type GameEvent =
   // ——— Contrats de chasse (doc 05 §3.3) — cible neutre hebdomadaire ———
   | { type: 'HuntContractAssigned'; playerId: string; targetObjectId: string }
   | { type: 'HuntContractCompleted'; playerId: string; gold: number; resource: string; amount: number }
+  | { type: 'HuntContractExpired'; playerId: string; targetObjectId: string }
   // ——— Héros : sorts & compétences (doc 02 §1.2–§1.4) — surface figée 3.2 ———
   | {
       type: 'SpellCast';

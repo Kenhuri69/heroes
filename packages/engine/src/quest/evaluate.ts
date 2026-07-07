@@ -60,9 +60,11 @@ function applyRewards(draft: GameState, playerId: string, rewards: QuestReward[]
       }
     } else if (r.type === 'artifact') {
       if (!hero) continue;
+      // 10 slots fixes (state.ts) : si l'inventaire est plein, la récompense est
+      // perdue plutôt que de créer un 11ᵉ slot (invariant partagé avec le
+      // ramassage au sol, qui laisse l'objet par terre).
       const slot = hero.artifacts.indexOf(null);
       if (slot >= 0) hero.artifacts[slot] = r.artifactId;
-      else hero.artifacts.push(r.artifactId);
     } else {
       if (!hero) continue;
       const existing = hero.army.find((s) => s.unitId === r.unitId);

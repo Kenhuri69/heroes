@@ -16,7 +16,7 @@ export function effectiveManaCost(
   skillCatalog: Record<string, HeroSkillDef>,
   spell: SpellDef,
 ): number {
-  const reductionPct = heroManaCostReduction(hero, skillCatalog);
+  const reductionPct = heroManaCostReduction(hero, skillCatalog, spell.school);
   return Math.max(0, Math.round(spell.manaCost * (1 - reductionPct / 100)));
 }
 
@@ -26,17 +26,22 @@ export function effectivePower(hero: HeroState, artifactCatalog: Record<string, 
 }
 
 /**
- * Dégâts d'un sort (décision plan #3) :
- * `round((base + perPower × Pouvoir) × (1 − magicResistance) × (lucky ? 2 : 1))`.
- * `magicResistance` = 0 en phase 3.2 (aucune capacité de résistance encore).
+ * Dégâts d'un sort (décision plan #3, doc 05 §6) :
+ * `round((base + perPower × Pouvoir) × (1 + markBonus) × (1 − magicResistance) × (lucky ? 2 : 1))`.
+ * `markBonus` = amplification des Marques de la cible (comme les frappes, doc 05
+ * §3.1 : +8 %/charge) — 0 si la cible n'en porte pas. `magicResistance` = 0 hors
+ * `demonform`.
  */
 export function spellDamageAmount(
   spell: SpellDef,
   power: number,
   lucky: boolean,
   magicResistance = 0,
+  markBonus = 0,
 ): number {
-  return Math.round((spell.base + spell.perPower * power) * (1 - magicResistance) * (lucky ? 2 : 1));
+  return Math.round(
+    (spell.base + spell.perPower * power) * (1 + markBonus) * (1 - magicResistance) * (lucky ? 2 : 1),
+  );
 }
 
 /** Soin d'un sort — même base que les dégâts, sans résistance ni chance. */

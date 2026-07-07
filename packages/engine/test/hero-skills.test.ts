@@ -59,9 +59,13 @@ describe('hero/skills — effets purs par rang (Novice/Expert/Maître)', () => {
     luck: { id: 'luck', ranks: [{ luckBonus: 1 }, { luckBonus: 2 }, { luckBonus: 3 }] },
     leadership: { id: 'leadership', ranks: [{ moraleBonus: 1 }, { moraleBonus: 2 }, { moraleBonus: 3 }] },
     archery: { id: 'archery', ranks: [{ rangedDamagePct: 10 }, { rangedDamagePct: 20 }, { rangedDamagePct: 30 }] },
-    wisdom: {
-      id: 'wisdom',
+    'magic-fire': {
+      id: 'magic-fire',
       ranks: [{ manaCostReductionPct: 10 }, { manaCostReductionPct: 20 }, { manaCostReductionPct: 30 }],
+    },
+    'magic-water': {
+      id: 'magic-water',
+      ranks: [{ manaCostReductionPct: 5 }, { manaCostReductionPct: 10 }, { manaCostReductionPct: 20 }],
     },
   };
 
@@ -73,13 +77,21 @@ describe('hero/skills — effets purs par rang (Novice/Expert/Maître)', () => {
     expect(heroGoldPerDay(hero, catalog)).toBe(0); // non apprise
     expect(heroMorale(hero, catalog)).toBe(0);
     expect(heroRangedPct(hero, catalog)).toBe(0);
-    expect(heroManaCostReduction(hero, catalog)).toBe(0);
+    expect(heroManaCostReduction(hero, catalog, 'fire')).toBe(0);
   });
 
   it('cumule plusieurs compétences distinctes', () => {
-    const hero = baseHero({ skills: { estates: 3, wisdom: 1 } });
+    const hero = baseHero({ skills: { estates: 3, 'magic-fire': 1 } });
     expect(heroGoldPerDay(hero, catalog)).toBe(500);
-    expect(heroManaCostReduction(hero, catalog)).toBe(10);
+    expect(heroManaCostReduction(hero, catalog, 'fire')).toBe(10);
+  });
+
+  it('Magie par école : réduction propre à l’école du sort, pas de cumul inter-écoles', () => {
+    const hero = baseHero({ skills: { 'magic-fire': 3, 'magic-water': 2 } });
+    expect(heroManaCostReduction(hero, catalog, 'fire')).toBe(30); // magic-fire Maître
+    expect(heroManaCostReduction(hero, catalog, 'water')).toBe(10); // magic-water Expert
+    expect(heroManaCostReduction(hero, catalog, 'earth')).toBe(0); // aucune compétence
+    expect(heroManaCostReduction(hero, catalog, 'traque')).toBe(0); // école sans compétence
   });
 });
 

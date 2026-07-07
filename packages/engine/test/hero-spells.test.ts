@@ -9,7 +9,9 @@ import { advanceTurn } from '../src/combat/turns';
 import { initLedger, recordLoss } from '../src/combat/state-helpers';
 import type { CombatStack, CombatState, CombatUnitDef } from '../src/combat/types';
 import type { SpellDef } from '../src/hero/types';
-import { estimateSpell } from '../src/hero';
+import { estimateSpell, validateCastSpell } from '../src/hero';
+import { heroManaMax } from '../src/hero/artifacts';
+import type { ArtifactDef } from '../src/hero/types';
 import { testConfig } from './fixtures';
 
 /**
@@ -341,5 +343,60 @@ describe('CastSpell — magicResistance (demonform, doc 05 §4)', () => {
 
   it('forme démon (transformée) : dégâts pleins', () => {
     expect(castBoltOn(true)).toBe(16); // 10 + 2×3, sans résistance
+  });
+});
+
+describe('remédiation cohérence — sorts & mana', () => {
+  const catalog = { def: unit({ id: 'def', stats: { hp: 10, attack: 0, defense: 0, damage: [1, 1], speed: 5 } }) };
+  const SPELLS_EXT: Record<string, SpellDef> = {
+    ...SPELLS,
+    portal: {
+      id: 'portal',
+      school: 'air',
+      circle: 2,
+      manaCost: 16,
+      kind: 'adventure',
+      base: 0,
+      perPower: 0,
+      adventure: { type: 'townPortal' },
+    },
+  };
+
+  function combatWithHero(h: HeroState, target: CombatStack): GameState {
+    const attacker = stack({ id: 'attacker-0', side: 'attacker', slot: 0, unitId: 'def', count: 1, pos: { col: 0, row: 0 } });
+    return {
+      ...baseState(catalog),
+      spellCatalog: SPELLS_EXT,
+      heroes: [h],
+      combat: combatState([attacker, target], { attackerHeroId: h.id, activeStackId: 'attacker-0' }),
+    };
+  }
+
+  it('A8 : un sort d’aventure n’est pas lançable en combat', () => {
+    const h = hero({ spells: ['portal'], attributes: { attack: 0, defense: 0, power: 3, knowledge: 5 } });
+    const target = stack({ id: 'defender-0', side: 'defender', slot: 0, unitId: 'def', count: 1, pos: { col: 1, row: 0 } });
+    const state = combatWithHero(h, target);
+    expect(validateCastSpell(state, { type: 'CastSpell', spellId: 'portal', targetStackId: 'defender-0' })?.code).toBe(
+      'invalidAction',
+    );
+  });
+
+  it('D10 : les Marques de la cible amplifient les dégâts de sort (+8 %/charge)', () => {
+    const h = hero({ spells: ['bolt'], attributes: { attack: 0, defense: 0, power: 3, knowledge: 0 } });
+    const target = stack({ id: 'defender-0', side: 'defender', slot: 0, unitId: 'def', count: 5, pos: { col: 1, row: 0 }, firstHp: 10, marks: 2 });
+    const state = combatWithHero(h, target);
+    const result = apply(state, { type: 'CastSpell', spellId: 'bolt', targetStackId: 'defender-0' });
+    const cast = result.events.find((e) => e.type === 'SpellCast') as Extract<GameEvent, { type: 'SpellCast' }>;
+    // base 10 + 2×3 = 16 ; ×(1 + 0,08×2) = ×1,16 → round(18,56) = 19
+    expect(cast.amount).toBe(19);
+  });
+
+  it('A7 : le Savoir d’un artefact (Orbe de savoir) augmente la mana max', () => {
+    const artifactCatalog: Record<string, ArtifactDef> = {
+      orb: { id: 'orb', slot: 'misc', bonus: { knowledge: 2 } },
+    };
+    const h = hero({ attributes: { attack: 0, defense: 0, power: 0, knowledge: 4 }, artifacts: ['orb', ...Array.from({ length: 9 }, () => null)] });
+    // (4 + 2) × 10 = 60, et non 40 (artefact ignoré = bug corrigé).
+    expect(heroManaMax(h, artifactCatalog)).toBe(60);
   });
 });

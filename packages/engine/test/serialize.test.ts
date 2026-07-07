@@ -158,4 +158,40 @@ describe('garde de version de sauvegarde (plan phase-3.8)', () => {
     expect(readSaveVersion('{"saveVersion":"2"}')).toBeNull();
     expect(readSaveVersion('{"saveVersion":null}')).toBeNull();
   });
+
+  /**
+   * Garde-fou de FORME (remédiation B8) : la garde de version a été contournée
+   * deux fois en ajoutant un champ requis sans bumper `CURRENT_SAVE_VERSION`
+   * (⇒ NaN sur une vieille save). Ce snapshot des clés de `GameState` casse dès
+   * qu'un champ est ajouté/retiré : celui qui touche la forme DOIT alors
+   * bumper la version et mettre à jour ce test (et l'historique de state.ts).
+   */
+  it('la forme de GameState est verrouillée à CURRENT_SAVE_VERSION', () => {
+    expect(CURRENT_SAVE_VERSION).toBe(8);
+    expect(Object.keys(createEmptyState()).sort()).toEqual(
+      [
+        'artifactCatalog',
+        'buildingCatalog',
+        'calendar',
+        'combat',
+        'config',
+        'currentPlayer',
+        'factionCatalog',
+        'heroes',
+        'map',
+        'outcome',
+        'pendingTreasure',
+        'players',
+        'quests',
+        'rng',
+        'saveVersion',
+        'scenario',
+        'skillCatalog',
+        'spellCatalog',
+        'started',
+        'towns',
+        'unitCatalog',
+      ].sort(),
+    );
+  });
 });

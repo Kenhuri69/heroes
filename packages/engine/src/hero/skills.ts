@@ -66,7 +66,18 @@ export function heroArmorPct(hero: HeroState, catalog: Record<string, HeroSkillD
   return sumRankField(hero, catalog, 'armorReductionPct');
 }
 
-/** Magie par école : réduction % du coût en mana des sorts — branché dans `hero/spells.ts`. */
-export function heroManaCostReduction(hero: HeroState, catalog: Record<string, HeroSkillDef>): number {
-  return sumRankField(hero, catalog, 'manaCostReductionPct');
+/**
+ * Magie PAR ÉCOLE (doc 02 §1.3) : réduction % du coût en mana des sorts de
+ * `school`, portée par la seule compétence `magic-<school>` — pas de cumul
+ * inter-écoles. Écoles sans compétence dédiée (neutral, traque) ⇒ 0.
+ */
+export function heroManaCostReduction(
+  hero: HeroState,
+  catalog: Record<string, HeroSkillDef>,
+  school: string,
+): number {
+  const skillId = `magic-${school}`;
+  const rank = hero.skills[skillId];
+  if (!rank) return 0;
+  return catalog[skillId]?.ranks[rank - 1]?.manaCostReductionPct ?? 0;
 }

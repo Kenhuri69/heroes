@@ -177,6 +177,42 @@ describe('validateCombatAction', () => {
     ).toBe('invalidAction');
   });
 
+  it('refuse un `from` hors plateau même quand la cible est adjacente (anti-téléportation)', () => {
+    const attacker = stack({ id: 'attacker-0', side: 'attacker', slot: 0, unitId: 'atk', count: 1, pos: { col: 0, row: 0 } });
+    const defender = stack({ id: 'defender-0', side: 'defender', slot: 0, unitId: 'def', count: 1, pos: { col: 1, row: 0 } });
+    const state = manualState([attacker, defender], 'attacker-0');
+    // Bug critique : cible adjacente + `from` forgé ⇒ le moteur DOIT rejeter,
+    // sinon `applyAttack` téléporterait la pile n'importe où.
+    expect(
+      validateCombatAction(state, {
+        action: { type: 'attack', targetStackId: 'defender-0', from: { col: 999, row: -4 } },
+      })?.code,
+    ).toBe('invalidAction');
+  });
+
+  it('refuse un `from` non adjacent à la cible', () => {
+    const attacker = stack({ id: 'attacker-0', side: 'attacker', slot: 0, unitId: 'atk', count: 1, pos: { col: 0, row: 0 } });
+    const defender = stack({ id: 'defender-0', side: 'defender', slot: 0, unitId: 'def', count: 1, pos: { col: 5, row: 0 } });
+    const state = manualState([attacker, defender], 'attacker-0');
+    expect(
+      validateCombatAction(state, {
+        action: { type: 'attack', targetStackId: 'defender-0', from: { col: 0, row: 0 } },
+      })?.code,
+    ).toBe('invalidAction');
+  });
+
+  it('accepte une attaque adjacente sans `from`, et avec `from` = case actuelle', () => {
+    const attacker = stack({ id: 'attacker-0', side: 'attacker', slot: 0, unitId: 'atk', count: 1, pos: { col: 0, row: 0 } });
+    const defender = stack({ id: 'defender-0', side: 'defender', slot: 0, unitId: 'def', count: 1, pos: { col: 1, row: 0 } });
+    const state = manualState([attacker, defender], 'attacker-0');
+    expect(validateCombatAction(state, { action: { type: 'attack', targetStackId: 'defender-0' } })).toBeNull();
+    expect(
+      validateCombatAction(state, {
+        action: { type: 'attack', targetStackId: 'defender-0', from: { col: 0, row: 0 } },
+      }),
+    ).toBeNull();
+  });
+
   it('refuse d’attendre deux fois dans le même round', () => {
     const attacker = stack({ id: 'attacker-0', side: 'attacker', slot: 0, unitId: 'atk', count: 1, pos: { col: 0, row: 0 }, waited: true });
     const defender = stack({ id: 'defender-0', side: 'defender', slot: 0, unitId: 'def', count: 1, pos: { col: 1, row: 0 } });

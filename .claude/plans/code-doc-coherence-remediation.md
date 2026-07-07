@@ -38,7 +38,7 @@ Chaque item : correctif + test unitaire dans le même commit (guidelines §4/§7
 ⚠️ A2, A3, A4 changent le résultat des combats ⇒ re-fixer le golden replay
 une seule fois en fin de lot, et re-passer le test d'équilibrage grossier.
 
-- [ ] **A1 — CRITIQUE. Attaque en mêlée : `from` non validé quand la cible est
+- [x] **A1 — CRITIQUE. Attaque en mêlée : `from` non validé quand la cible est
   adjacente ⇒ téléportation arbitraire.**
   `combat/actions.ts:146` retourne `null` dès `dist === 1` sans regarder
   `action.from`, puis `actions.ts:293-297` applique aveuglément le `from`
@@ -46,27 +46,27 @@ une seule fois en fin de lot, et re-passer le test d'équilibrage grossier.
   hors plateau/sur un obstacle/sur une autre pile, puis frappe. Refuser tout
   `from` non ∈ `reachableHexes` et non adjacent à la cible (ou l'ignorer si
   `dist === 1`). → vérif : test « from hostile rejeté ».
-- [ ] **A2 — `noRetaliation` inversée.** Doc 02 §5.4:252 (+ Vampire doc 04:48,
+- [x] **A2 — `noRetaliation` inversée.** Doc 02 §5.4:252 (+ Vampire doc 04:48,
   Manticore doc 05:195) : la capacité est sur l'ATTAQUANT et prive la victime
   de riposte. Code : `!hasAbility(targetDef, 'noRetaliation')`
   (`combat/actions.ts:312-313`, idem préviz `damage.ts:398-402`) — le porteur
   ne riposte jamais quand on l'attaque, l'exact inverse (capacité-malus).
   Corriger en testant le `strikerDef` + test fixant la direction.
-- [ ] **A3 — Attribut Défense du héros compté −5 %/pt au lieu de −2,5 %/pt.**
+- [x] **A3 — Attribut Défense du héros compté −5 %/pt au lieu de −2,5 %/pt.**
   Doc 02 §1.1:16 + note §5.3:232-236 explicite (« s'ajoutera au MVP »).
   Code : `heroDefenseOf` sommé brut dans la pente symétrique
   `attackDefenseStep: 0.05` (`combat/damage.ts:153-157,237-243`). Introduire
   une pente défensive héros dédiée (0,025) dans `data/core/config.json`
   (règle « jamais codé en dur »). → vérif : test de dégâts avec héros
   défenseur ; équilibrage grossier re-passé.
-- [ ] **A4 — Hâte/Lenteur/Entraves sans effet sur la portée de déplacement.**
+- [x] **A4 — Hâte/Lenteur/Entraves sans effet sur la portée de déplacement.**
   Doc 02:212 « la vitesse est la portée de déplacement en hexes ». Les 4
   sorts à `speedMod` (spells.json:68,78,136,213) n'affectent que l'initiative
   (`combat/turns.ts:17-20`), pas `reachableHexes`/`effectiveSpeed`
   (`actions.ts:30`, `state-helpers.ts:35-43`). Intégrer la somme des
   `speedMod` (bornée ≥ 0) dans `effectiveSpeed`, utilisée partout (IA
   comprise). → vérif : test « Lenteur réduit la portée ».
-- [ ] **A5 — Prévisualisation de dégâts ≠ résolution (murs de siège,
+- [x] **A5 — Prévisualisation de dégâts ≠ résolution (murs de siège,
   Symbiose, Marques en riposte).** `estimateDamage`
   (`damage.ts:359-366,416-425`) omet `wallDefenseBonus`,
   `symbiosisAttack/DefenseBonus` et `markConsumeBonus` côté riposte, alors
@@ -74,20 +74,20 @@ une seule fois en fin de lot, et re-passer le test d'équilibrage grossier.
   « même formule sans tirage » (doc 08 §2.4) ment en siège et face aux
   Sylvan ; l'IA, qui score via `estimateDamage` (`ai.ts:176`), hérite du
   biais. Aligner les termes + tests préviz=résolution en siège et symbiose.
-- [ ] **A6 — Réduction de coût de mana « Magie par école » non filtrée par
+- [x] **A6 — Réduction de coût de mana « Magie par école » non filtrée par
   école.** Doc 02 §1.3:41 « par école ×4 ». Code : `heroManaCostReduction`
   somme TOUTES les compétences (`hero/skills.ts:70-72`), `effectiveManaCost`
   ne transmet pas `spell.school` (`hero/spells.ts:14-21`) ⇒ Magie du Feu
   réduit l'Eau/la Traque, cumul −80 % possible. Filtrer par l'école du sort.
-- [ ] **A7 — Bonus d'artefact `knowledge` mort (Orbe de savoir sans effet).**
+- [x] **A7 — Bonus d'artefact `knowledge` mort (Orbe de savoir sans effet).**
   `heroManaMax = attributes.knowledge × 10 + bonus.manaMax`
   (`hero/artifacts.ts:50-52`) ignore `bonus.knowledge` pourtant sommé (l.41).
   Corriger : `(knowledge + bonus.knowledge) × 10 + bonus.manaMax`.
-- [ ] **A8 — Sort d'aventure lançable en combat comme faux buff.**
+- [x] **A8 — Sort d'aventure lançable en combat comme faux buff.**
   `validateCastSpell` ne rejette pas `kind: 'adventure'`
   (`hero/index.ts:38-65`) ⇒ Ville-portail posable en combat pour 16 mana
   (statut à mods 0). Rejeter au validateur (filtre UI au Lot C).
-- [ ] **A9 — Contrat de chasse : blocage définitif + pas d'échéance hebdo.**
+- [x] **A9 — Contrat de chasse : blocage définitif + pas d'échéance hebdo.**
   Doc 05:174 « avant la fin de la semaine ». Code : `assignHuntContracts`
   saute tout joueur ayant déjà un contrat (`town/hunt-contract.ts:36-52`) et
   seul le héros du joueur sous contrat libère la cible ⇒ si un tiers tue le
@@ -95,14 +95,14 @@ une seule fois en fin de lot, et re-passer le test d'équilibrage grossier.
   aucune assignation. Au `WeekStarted` : expirer/réassigner ; libérer tout
   contrat dont la cible n'existe plus. → vérif : tests expiration + cible
   tuée par un tiers.
-- [ ] **A10 — Objectifs de victoire des joueurs IA jamais évalués.**
+- [x] **A10 — Objectifs de victoire des joueurs IA jamais évalués.**
   Doc 02:275-276 « par joueur » ; conquest déclare une victoire
   `captureTown('start-town')` pour `ai-1`. Code : `evaluateOutcome` n'évalue
   que le premier joueur humain (`scenario/outcome.ts:74-77`) — data morte,
   l'IA « gagne » sans fin de partie. Évaluer la victoire de chaque joueur non
   éliminé ; victoire d'un ennemi ⇒ défaite du joueur local. → vérif : test
   « l'IA capture start-town ⇒ partie perdue ».
-- [ ] **A11 — Trigger `onDay` du jour 1 indéclenchable.** Le schéma accepte
+- [x] **A11 — Trigger `onDay` du jour 1 indéclenchable.** Le schéma accepte
   `day ≥ 1` (`content/schemas.ts:564`) mais `fireDayTriggers` n'est appelé
   qu'à la bascule de jour (`core/engine.ts:541`), jamais à `StartGame`
   (jour 1, engine.ts:429). Appeler les triggers du jour 1 en fin de
@@ -110,34 +110,34 @@ une seule fois en fin de lot, et re-passer le test d'équilibrage grossier.
 
 ## 2. Lot B — Bugs mineurs & validation (corriger le CODE) — P1
 
-- [ ] **B1 — `RecruitUnits` accepte un effectif non entier** (2,5 créatures
+- [x] **B1 — `RecruitUnits` accepte un effectif non entier** (2,5 créatures
   persistées). Ajouter `Number.isInteger(cmd.count)`
   (`town/recruit.ts:29-38`), comme `TradeResources` (`market.ts:54`).
-- [ ] **B2 — Récompense de quête : artefact poussé en 11ᵉ slot**
+- [x] **B2 — Récompense de quête : artefact poussé en 11ᵉ slot**
   (`quest/evaluate.ts:64-65`) — casse l'invariant 10 slots (state.ts:89-90).
   Aligner sur le comportement du ramassage au sol.
-- [ ] **B3 — Joueur éliminé : son héros persiste et rapporte encore.**
+- [x] **B3 — Joueur éliminé : son héros persiste et rapporte encore.**
   L'or/jour de la compétence Économie ne filtre pas `eliminated`
   (`core/engine.ts:523-529`, contrairement aux mines `town/economy.ts:28`) ;
   le héros reste un obstacle de pathfinding et une cible de gardiens.
   Retirer les héros à `PlayerEliminated` (ou a minima filtrer `eliminated`).
-- [ ] **B4 — `townPortal` ignore l'occupation de la tuile d'arrivée**
+- [x] **B4 — `townPortal` ignore l'occupation de la tuile d'arrivée**
   (`hero/index.ts:148-160`) ⇒ deux héros superposés possibles. Valider la
   tuile (ou choisir une adjacente libre).
-- [ ] **B5 — IA d'aventure : chemins traversant des gardiens non ciblés**
+- [x] **B5 — IA d'aventure : chemins traversant des gardiens non ciblés**
   (`ai/adventure.ts:118,141`) ⇒ interceptions non planifiées à marge < 1,5×.
   Exclure du pathfinding IA les tuiles de gardien non ciblées ; dupliquer le
   garde-fou « armée vide ⇒ refus d'engager » dans `beginGuardianCombat`
   (latent : R1 E1 ne couvre que le validateur humain).
-- [ ] **B6 — Machine de guerre = −1 moral pour toute l'armée.** La baliste
+- [x] **B6 — Machine de guerre = −1 moral pour toute l'armée.** La baliste
   (`groupId: 'war-machine'`, client `game.ts:120-128`) compte comme une
   « faction » dans `moraleOf` (`combat/state-helpers.ts:58-72`). Exclure les
   machines du décompte via un marqueur de données (pas de cas particulier
   moteur).
-- [ ] **B7 — Bonus d'artefact `morale` sommé mais jamais branché**
+- [x] **B7 — Bonus d'artefact `morale` sommé mais jamais branché**
   (`hero/artifacts.ts:43` vs `state-helpers.ts:46-49`) — latent (aucun
   artefact core n'en porte). Brancher comme la chance (`damage.ts:160-168`).
-- [ ] **B8 — Garde procédurale de version de sauvegarde.** La garde a déjà
+- [x] **B8 — Garde procédurale de version de sauvegarde.** La garde a déjà
   été contournée deux fois (champ requis `symbiosisStacks` ajouté en 5.3
   sans bump — NaN démontrable sur une save v6 avec combat en cours ;
   `visitLuck` intra-PR #83). Ajouter un test qui snapshotte la FORME de
@@ -189,7 +189,7 @@ Chaque décision = correctif code OU ligne de doc, dans le même commit.
   `town/build.ts:13-61` — townHall niv 4 possible dans chaque ville).
   *Reco : flag générique data-driven `uniquePerPlayer` sur un niveau de
   bâtiment (code).*
-- [ ] **D5 — `consumeMarks` déclenché aussi en riposte** (`damage.ts:252` via
+- [x] **D5 — `consumeMarks` déclenché aussi en riposte** (`damage.ts:252` via
   `actions.ts:317-326`) — doc 05:36 dit « à l'attaque », et la préviz ne le
   reflète pas. *Reco : restreindre aux frappes volontaires (code), lecture
   stricte de la doc.*
@@ -209,7 +209,7 @@ Chaque décision = correctif code OU ligne de doc, dans le même commit.
   (doc 05:213 ; `arcane-hunters/buildings.json:185` — la taverne core n'est
   pas dans la ville AH). *Reco : ajouter `tavern` à la ville AH + le
   `requires` ; sinon amender la doc.*
-- [ ] **D10 — Marques sans effet sur les dégâts des sorts** (doc 05:157
+- [x] **D10 — Marques sans effet sur les dégâts des sorts** (doc 05:157
   « +8 % des unités AH ET des sorts de Traque » ; `hero/spells.ts:33-40`
   ignore `target.marks`). *Reco : appliquer `markBonusPerStack × marks` aux
   sorts de dégâts (code).*

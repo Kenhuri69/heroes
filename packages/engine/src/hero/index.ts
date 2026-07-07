@@ -47,6 +47,10 @@ export function validateCastSpell(state: GameState, cmd: CastSpellCmd): CommandE
     return { code: 'heroAlreadyCast', message: 'le héros a déjà lancé un sort ce round' };
   const spell = state.spellCatalog[cmd.spellId];
   if (!spell) return { code: 'unknownSpell', message: `sort inconnu '${cmd.spellId}'` };
+  // Les sorts d'aventure (doc 02 §1.4) se lancent sur la carte via
+  // `CastAdventureSpell`, jamais en combat (sinon buff vide payé plein pot).
+  if (spell.kind === 'adventure')
+    return { code: 'invalidAction', message: 'sort d’aventure non lançable en combat' };
   if (!hero.spells.includes(cmd.spellId))
     return { code: 'spellNotKnown', message: `sort non appris '${cmd.spellId}'` };
   const manaCost = effectiveManaCost(hero, state.skillCatalog, spell);
@@ -121,13 +125,23 @@ export function validateCastAdventureSpell(
     return { code: 'invalidAction', message: `'${cmd.spellId}' n’est pas un sort d’aventure` };
   if (hero.mana < spell.manaCost) return { code: 'notEnoughMana', message: 'mana insuffisante' };
   if (spell.adventure.type === 'townPortal') {
+    let dest: TownState | undefined;
     if (cmd.townId !== undefined) {
-      const town = state.towns.find((t) => t.id === cmd.townId);
-      if (!town || town.ownerPlayerId !== cmd.playerId)
+      dest = state.towns.find((t) => t.id === cmd.townId);
+      if (!dest || dest.ownerPlayerId !== cmd.playerId)
         return { code: 'invalidAction', message: `ville cible '${cmd.townId}' non possédée` };
-    } else if (ownedTowns(state, cmd.playerId).length === 0) {
-      return { code: 'invalidAction', message: 'aucune ville possédée où se téléporter' };
+    } else {
+      if (ownedTowns(state, cmd.playerId).length === 0)
+        return { code: 'invalidAction', message: 'aucune ville possédée où se téléporter' };
+      dest = nearestOwnedTown(state, hero);
     }
+    // Tuile de destination libre (invariant : jamais deux héros superposés) —
+    // sinon la téléportation contournerait le contrôle d'occupation du déplacement.
+    if (
+      dest &&
+      state.heroes.some((h) => h.id !== hero.id && h.pos.x === dest!.pos.x && h.pos.y === dest!.pos.y)
+    )
+      return { code: 'invalidAction', message: 'tuile de destination occupée par un autre héros' };
   }
   return null;
 }
@@ -188,7 +202,13 @@ export function handleCastSpell(draft: Draft, cmd: CastSpellCmd, events: GameEve
       const lucky = luckRoll.value < Math.round(rules.luckChancePerPoint * luck * 100);
       // Résistance à la magie (doc 05 §4) : la forme humaine d'un `demonform`
       // encaisse moins ; la forme démon (transformée) subit les dégâts pleins.
-      amount = spellDamageAmount(spell, power, lucky, magicResistanceOf(targetDef, target.transformed));
+      amount = spellDamageAmount(
+        spell,
+        power,
+        lucky,
+        magicResistanceOf(targetDef, target.transformed),
+        rules.markBonusPerStack * target.marks,
+      );
       const pool = (target.count - 1) * targetDef.stats.hp + target.firstHp;
       kills = killsFromDamage(pool, targetDef.stats.hp, target.count, amount);
       const remaining = Math.max(0, pool - amount);
@@ -294,7 +314,14 @@ export function estimateSpell(
   if (spell.kind === 'damage') {
     const targetDef = state.unitCatalog[target.unitId];
     if (!targetDef) throw new Error(`estimateSpell: unité inconnue '${target.unitId}'`);
-    const amount = spellDamageAmount(spell, power, false, magicResistanceOf(targetDef, target.transformed));
+    const markBonus = (state.config?.combat.markBonusPerStack ?? 0) * target.marks;
+    const amount = spellDamageAmount(
+      spell,
+      power,
+      false,
+      magicResistanceOf(targetDef, target.transformed),
+      markBonus,
+    );
     const pool = (target.count - 1) * targetDef.stats.hp + target.firstHp;
     const kills = killsFromDamage(pool, targetDef.stats.hp, target.count, amount);
     return { amount, kills, kind: 'damage' };

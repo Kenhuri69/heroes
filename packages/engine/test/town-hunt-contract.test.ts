@@ -76,11 +76,27 @@ describe('assignHuntContracts', () => {
     expect(s.players[0]!.huntContract).toBeNull();
   });
 
-  it('ne réassigne pas si un contrat est déjà actif', () => {
+  it('expire le contrat hebdomadaire non rempli et en réassigne un neuf (doc 05 §3.3)', () => {
     const s = stateWith(true);
     s.players[0]!.huntContract = { targetObjectId: 'gX', gold: 1, resource: 'essence', amount: 1 };
-    assignHuntContracts(s, []);
-    expect(s.players[0]!.huntContract!.targetObjectId).toBe('gX'); // inchangé
+    const events: GameEvent[] = [];
+    assignHuntContracts(s, events);
+    // L'ancien contrat expire, un nouveau (cible existante) est tiré.
+    expect(events).toContainEqual({ type: 'HuntContractExpired', playerId: 'p1', targetObjectId: 'gX' });
+    expect(s.players[0]!.huntContract!.targetObjectId).toBe('g1');
+  });
+
+  it('débloque un contrat dont la cible a disparu (tuée par un tiers) au lieu de rester figé', () => {
+    const s = stateWith(true);
+    // Cible d'un contrat en cours qui n'existe plus sur la carte (aucun gardien).
+    s.map!.objects = [];
+    s.players[0]!.huntContract = { targetObjectId: 'gone', gold: 1, resource: 'essence', amount: 1 };
+    const events: GameEvent[] = [];
+    assignHuntContracts(s, events);
+    // Le contrat orphelin expire ; sans gardien restant, aucun nouveau contrat —
+    // mais le joueur n'est plus bloqué à jamais.
+    expect(events).toContainEqual({ type: 'HuntContractExpired', playerId: 'p1', targetObjectId: 'gone' });
+    expect(s.players[0]!.huntContract).toBeNull();
   });
 });
 

@@ -65,25 +65,43 @@ export function evaluateOutcome(draft: GameState, events: GameEvent[]): void {
     if (hasTown) continue;
     if (!hasHero || p.townlessDays > RETAKE_GRACE_DAYS) {
       p.eliminated = true;
+      // Un joueur éliminé ne joue plus (doc 02 §4.1) : retirer ses héros de la
+      // carte — sinon ils bloquent le pathfinding, restent cibles des gardiens
+      // errants et continuent de rapporter l'or/jour de la compétence Économie.
+      draft.heroes = draft.heroes.filter((h) => h.playerId !== p.id);
       events.push({ type: 'PlayerEliminated', playerId: p.id });
     }
   }
 
-  // Évaluation du point de vue du joueur local : le premier `human`, sinon le
-  // premier joueur de la partie.
+  // L'issue est publiée du point de vue du joueur local : le premier `human`,
+  // sinon le premier joueur de la partie.
   const local = draft.players.find((p) => p.controller === 'human') ?? draft.players[0];
   if (!local) return;
-  const objectives = draft.scenario.objectives[local.id];
-  if (!objectives) return;
+  const localObjectives = draft.scenario.objectives[local.id];
 
-  if (conditionMet(draft, local.id, objectives.defeat) || local.eliminated) {
+  // Défaite du local : sa condition de défaite propre, ou son élimination.
+  if (local.eliminated || (localObjectives && conditionMet(draft, local.id, localObjectives.defeat))) {
     const winner = draft.players.find((p) => p.id !== local.id && !p.eliminated);
     draft.outcome = { status: 'lost', winnerPlayerId: winner?.id ?? '' };
     events.push({ type: 'GameEnded', status: 'lost', winnerPlayerId: draft.outcome.winnerPlayerId });
     return;
   }
-  if (conditionMet(draft, local.id, objectives.victory)) {
+  // Victoire du local.
+  if (localObjectives && conditionMet(draft, local.id, localObjectives.victory)) {
     draft.outcome = { status: 'won', winnerPlayerId: local.id };
     events.push({ type: 'GameEnded', status: 'won', winnerPlayerId: local.id });
+    return;
+  }
+  // Objectifs des AUTRES joueurs (doc 02 §6 : évaluation « par joueur ») : si un
+  // adversaire remplit SA condition de victoire, le local perd — sinon les
+  // objectifs de victoire de l'IA seraient des données mortes.
+  for (const p of draft.players) {
+    if (p.id === local.id || p.eliminated) continue;
+    const obj = draft.scenario.objectives[p.id];
+    if (obj && conditionMet(draft, p.id, obj.victory)) {
+      draft.outcome = { status: 'lost', winnerPlayerId: p.id };
+      events.push({ type: 'GameEnded', status: 'lost', winnerPlayerId: p.id });
+      return;
+    }
   }
 }

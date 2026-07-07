@@ -6,7 +6,7 @@ import { performStrike, symbiosisParams } from './damage';
 import type { Draft } from './draft';
 import { COMBAT_COLS, COMBAT_ROWS, hexDistance, hexNeighbors, sameHex, type OffsetPos } from './hex';
 import { advanceTurn, checkCombatEnd } from './turns';
-import { combatRules, hasAbility, isShooterMeleePenalized, moraleOf } from './state-helpers';
+import { combatRules, effectiveSpeed, hasAbility, isShooterMeleePenalized, moraleOf } from './state-helpers';
 import type { CombatActionInput, CombatStack } from './types';
 
 /**
@@ -27,7 +27,8 @@ export function reachableHexes(state: GameState, stackId: string): OffsetPos[] {
   if (!stack) return [];
   const def = state.unitCatalog[stack.unitId];
   if (!def) return [];
-  const speed = def.stats.speed + (def.nativeTerrain === combat.terrain ? 1 : 0);
+  // Portée = vitesse effective, statuts de vitesse compris (doc 02 §1.4/§5.1).
+  const speed = effectiveSpeed(stack, combat, state.unitCatalog);
   const flying = hasAbility(def, 'flying');
 
   const blocked = new Set<string>();
@@ -143,15 +144,20 @@ export function validateCombatAction(state: GameState, cmd: { action: CombatActi
         return { code: 'invalidAction', message: 'cible invalide' };
       if (canShoot(state, stack.id)) return null;
       const dist = hexDistance(stack.pos, target.pos);
-      if (dist === 1) return null;
       const from = action.from;
-      if (!from) return { code: 'invalidAction', message: 'cible non adjacente : hex de départ requis' };
-      if (hexDistance(from, target.pos) !== 1)
-        return { code: 'invalidAction', message: 'hex de départ non adjacent à la cible' };
-      const reachable = reachableHexes(state, stack.id);
-      if (!reachable.some((p) => sameHex(p, from)))
-        return { code: 'invalidAction', message: 'hex de départ inatteignable' };
-      return null;
+      // Un `from` fourni EST toujours validé (le moteur ne fait pas confiance
+      // au client) : il doit être adjacent à la cible et soit la case actuelle,
+      // soit un hex atteignable — sinon `applyAttack` téléporterait la pile
+      // n'importe où (hors plateau, sur un obstacle, sur une autre pile).
+      if (from) {
+        if (hexDistance(from, target.pos) !== 1)
+          return { code: 'invalidAction', message: 'hex de départ non adjacent à la cible' };
+        if (!sameHex(from, stack.pos) && !reachableHexes(state, stack.id).some((p) => sameHex(p, from)))
+          return { code: 'invalidAction', message: 'hex de départ inatteignable' };
+        return null;
+      }
+      if (dist === 1) return null;
+      return { code: 'invalidAction', message: 'cible non adjacente : hex de départ requis' };
     }
     case 'wait':
       if (stack.waited) return { code: 'invalidAction', message: 'attente déjà utilisée ce round' };
@@ -309,8 +315,10 @@ function applyAttack(
     if (checkCombatEnd(draft, events)) return;
     let attackerAlive = combat.stacks.some((s) => s.id === attacker.id);
     if (!first.targetDied && attackerAlive) {
+      // `noRetaliation` (doc 02 §5.4) : porté par l'ATTAQUANT, il prive sa
+      // cible de riposte — ce n'est pas le riposteur qui s'en dote.
       const canRetaliate =
-        target.retaliationsLeft > 0 && !hasAbility(targetDef, 'noRetaliation');
+        target.retaliationsLeft > 0 && !hasAbility(attackerDef, 'noRetaliation');
       if (canRetaliate) {
         target.retaliationsLeft -= 1;
         const retMeleePenalized = isShooterMeleePenalized(targetDef);

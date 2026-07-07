@@ -163,6 +163,11 @@ export function beginGuardianCombat(
     ...hero.army,
     ...hero.warMachines.map((unitId) => ({ unitId, count: 1 })),
   ];
+  // Garde-fou (remédiation R1 E1, symétrique du validate `MoveHero` humain) : un
+  // héros sans aucune pile ne peut pas engager — sinon l'auto-combat tournerait
+  // à vide. Cas latent (une armée ne redevient jamais vide), mais protège tout
+  // futur scénario / la boucle IA.
+  if (attacker.length === 0) return;
   const defender: ArmyStack[] = [{ unitId: guardian.unitId, count: guardian.count }];
   const stacks = [
     ...placeSide('attacker', attacker, draft.unitCatalog, 0),

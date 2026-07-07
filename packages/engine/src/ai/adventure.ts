@@ -229,7 +229,12 @@ function captureTown(draft: GameState, town: TownState, player: PlayerState, eve
 
 function playHeroTurn(draft: GameState, hero: HeroState, player: PlayerState, events: GameEvent[]): void {
   if (!draft.map || !draft.config || hero.movementPoints <= 0 || draft.combat) return;
+  // Bloque les autres héros ET les tuiles de gardien : l'IA ne planifie jamais
+  // un trajet À TRAVERS un gardien non ciblé (interception non voulue, combat
+  // que `pickGuardianTarget` aurait refusé). `findPath` exempte la case cible,
+  // donc `pickGuardianTarget` atteint quand même le gardien qu'il vise.
   const blocked = draft.heroes.filter((h) => h.id !== hero.id).map((h) => h.pos);
+  for (const obj of draft.map.objects) if (obj.type === 'guardian') blocked.push(obj.pos);
 
   const resource = pickResourceTarget(draft, hero, player, blocked);
   if (resource) {

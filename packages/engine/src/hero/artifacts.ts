@@ -46,7 +46,12 @@ export function heroArtifactBonus(
   return total;
 }
 
-/** Mana max effectif (décision plan phase-3.2 #1/#9) : Savoir × 10 + artefacts. */
+/**
+ * Mana max effectif (doc 02 §1.1 : Mana = Savoir × 10 + artefacts) : le Savoir
+ * des artefacts (`bonus.knowledge`, ex. Orbe de savoir) compte comme du Savoir,
+ * en plus du bonus direct `manaMax`.
+ */
 export function heroManaMax(hero: HeroState, catalog: Record<string, ArtifactDef>): number {
-  return hero.attributes.knowledge * 10 + heroArtifactBonus(hero, catalog).manaMax;
+  const bonus = heroArtifactBonus(hero, catalog);
+  return (hero.attributes.knowledge + bonus.knowledge) * 10 + bonus.manaMax;
 }

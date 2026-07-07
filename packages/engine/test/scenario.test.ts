@@ -148,6 +148,34 @@ describe('evaluateOutcome — victoire/défaite (joueur local player-1)', () => 
     expect(events).toContainEqual({ type: 'GameEnded', status: 'won', winnerPlayerId: 'player-1' });
   });
 
+  it('A10 : la victoire d’un adversaire (objectif « par joueur ») fait perdre le joueur local', () => {
+    // player-1 (local) objectifs hors d'atteinte ; player-2 gagne en capturant town-1.
+    const scenario: ScenarioState = {
+      objectives: {
+        'player-1': { victory: { type: 'surviveDays', days: 999 }, defeat: { type: 'surviveDays', days: 999 } },
+        'player-2': { victory: { type: 'captureTown', townId: 'town-1' }, defeat: { type: 'surviveDays', days: 999 } },
+      },
+    };
+    const cmd = startCmd(scenario);
+    if (cmd.type !== 'StartGame') throw new Error('unreachable');
+    cmd.towns = [
+      {
+        id: 'town-1',
+        ownerPlayerId: 'player-2', // l'adversaire remplit déjà SA condition de victoire
+        pos: { x: 0, y: 0 },
+        factionId: '',
+        buildings: {},
+        builtToday: false,
+        garrison: [],
+        stock: {},
+      },
+    ];
+    const state = apply(createEmptyState(), cmd).state;
+    const { state: next, events } = apply(state, { type: 'EndTurn', playerId: 'player-1' });
+    expect(next.outcome).toEqual({ status: 'lost', winnerPlayerId: 'player-2' });
+    expect(events).toContainEqual({ type: 'GameEnded', status: 'lost', winnerPlayerId: 'player-2' });
+  });
+
   it('defeatHero : défaite quand le héros du joueur local disparaît (et il est éliminé sans ville)', () => {
     const scenario = objectives({ type: 'surviveDays', days: 999 }, { type: 'defeatHero', heroId: 'hero-player-1' });
     let state = startedGame(scenario);

@@ -14,11 +14,6 @@ import type { CombatSideId, CombatStack, CombatState } from './types';
  * moment où il arrive. Fin de combat : victoire/conséquences/CombatEnded.
  */
 
-/** Vitesse effective + `speedMod` des statuts actifs (buff/debuff de vitesse, doc 02 §1.4). */
-function speedWithStatus(stack: CombatStack, combat: CombatState, catalog: Draft['unitCatalog']): number {
-  return effectiveSpeed(stack, combat, catalog) + stack.statuses.reduce((sum, s) => sum + s.speedMod, 0);
-}
-
 function pickNext(
   candidates: CombatStack[],
   combat: CombatState,
@@ -26,8 +21,9 @@ function pickNext(
   direction: 'asc' | 'desc',
 ): CombatStack | undefined {
   const sorted = [...candidates].sort((a, b) => {
-    const sa = speedWithStatus(a, combat, catalog);
-    const sb = speedWithStatus(b, combat, catalog);
+    // `effectiveSpeed` inclut désormais le `speedMod` des statuts (doc 02 §1.4).
+    const sa = effectiveSpeed(a, combat, catalog);
+    const sb = effectiveSpeed(b, combat, catalog);
     if (sa !== sb) return direction === 'desc' ? sb - sa : sa - sb;
     if (a.side !== b.side) return a.side === 'attacker' ? -1 : 1;
     return a.slot - b.slot;

@@ -26,8 +26,8 @@ export function validateRecruitUnits(state: GameState, cmd: RecruitCmd): Command
       code: 'notYourTown',
       message: `la ville '${cmd.townId}' n'appartient pas au joueur actif`,
     };
-  if (cmd.count <= 0)
-    return { code: 'invalidAction', message: 'effectif à recruter non positif' };
+  if (!Number.isInteger(cmd.count) || cmd.count <= 0)
+    return { code: 'invalidAction', message: 'effectif à recruter non entier ou non positif' };
   if (!unitIsRecruitable(town, state.buildingCatalog, cmd.unitId))
     return {
       code: 'notRecruitable',

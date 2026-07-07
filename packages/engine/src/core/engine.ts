@@ -433,6 +433,10 @@ const handlers: Handlers = {
     events.push({ type: 'GameStarted', seed: cmd.seed, playerIds: cmd.players.map((p) => p.id) });
     events.push({ type: 'DayStarted', day: 1 });
     events.push({ type: 'WeekStarted', week: 1 });
+    // Triggers « onDay: 1 » (doc 02 §2.1) : le premier jour ne passe jamais par
+    // une bascule `EndTurn`, on les déclenche donc ici — sinon un trigger de
+    // jour 1 serait silencieusement mort.
+    fireDayTriggers(draft, events);
     // Stock des habitations et revenu ne s'appliquent qu'aux transitions
     // (WeekStarted / DayStarted) via EndTurn — l'état de départ est « vide ».
   },

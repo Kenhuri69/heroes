@@ -29,15 +29,28 @@ function huntContractEffectFor(draft: GameState, playerId: string): HuntContract
 }
 
 /**
- * Assigne un contrat de chasse aux joueurs éligibles (propriétaire d'un bâtiment
- * `huntContract`, sans contrat en cours) — appelé au `WeekStarted`. Cible = un
- * gardien neutre restant, tiré au RNG seedé. No-op s'il n'y a aucun gardien.
+ * (Ré)assigne les contrats de chasse au `WeekStarted` (doc 05 §3.3 : « chaque
+ * semaine … à remplir avant la fin de la semaine »). Contrat HEBDOMADAIRE :
+ * tout contrat non rempli **expire** en début de semaine (émission
+ * `HuntContractExpired`) — ce qui débloque aussi le cas où la cible a été tuée
+ * par un tiers (l'objet a disparu de la carte, le contrat n'aurait jamais pu
+ * être rempli). Un nouveau contrat est ensuite tiré au RNG seedé pour tout
+ * propriétaire d'un bâtiment `huntContract`. No-op s'il n'y a aucun gardien.
  */
 export function assignHuntContracts(draft: GameState, events: GameEvent[]): void {
   const map = draft.map;
   if (!map) return;
   for (const player of draft.players) {
-    if (player.eliminated || player.huntContract) continue;
+    if (player.eliminated) continue;
+    // Expiration hebdomadaire du contrat en cours non rempli.
+    if (player.huntContract) {
+      events.push({
+        type: 'HuntContractExpired',
+        playerId: player.id,
+        targetObjectId: player.huntContract.targetObjectId,
+      });
+      player.huntContract = null;
+    }
     const effect = huntContractEffectFor(draft, player.id);
     if (!effect) continue;
     const targets = map.objects.filter((o) => o.type === 'guardian');

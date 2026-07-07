@@ -207,6 +207,23 @@ Particularité : la faction a **8 tiers**, mais le T8 partage sa croissance avec
 
 **Faiblesses assumées** (pour l'équilibre) : croissance totale la plus faible du jeu, T1–T2 très fragiles, aucune capacité de soin/résurrection de masse — si la cible marquée ne meurt pas, la faction perd l'échange.
 
+### 4bis. Unités élites (habitation niveau 2)
+
+Chaque habitation se **gradue au niveau 2** (Alpha 4.11) : le dwelling amélioré débloque la variante élite (**dwelling niveau 2**, pas un champ `upgradeOf`). La base **et** l'élite restent recrutables (façon HoMM, cf. D3). Les élites AH **conservent** `mark` (et enrichissent souvent la panoplie `consumeMarks`), fidèles à la signature de faction.
+
+| Tier | Élite | PV | Att | Déf | Dégâts | Vit. | Cr./sem | Coût | Capacités |
+|------|-------|----|-----|-----|--------|------|---------|------|-----------|
+| 1 | **Diplômé de Sombreveille** | 6 | 4 | 3 | 2–4 | 6 | 12 | 63 or | `mark` |
+| 2 | **Familier Aîné** | 12 | 5 | 4 | 3–4 | 9 | 9 | 162 or | `flying`, `mark`, `consumeMarks` |
+| 3 | **Grand Préfet** | 22 | 8 | 8 | 4–8 | 6 | 7 | 306 or, 2 mercure | `shooter`, `mark` |
+| 4 | **Archiviste Vivant** | 44 | 9 | 13 | 6–10 | 5 | 5 | 612 or | `mark` |
+| 5 | **Lame Consacrée** | 52 | 16 | 10 | 10–16 | 9 | 3 | 1116 or, 2 mercure | `mark`, `consumeMarks` |
+| 6 | **Traqueuse de l'Abîme** | 81 | 20 | 14 | 14–22 | 10 | 2 | 2160 or, 4 mercure | `shooter`, `mark`, `consumeMarks` |
+| 7 | **Manticore Royale** | 169 | 23 | 21 | 31–47 | 12 | 1 | 4680 or, 4 mercure, 2 gemmes | `flying`, `noRetaliation`, `mark` |
+| 8 | **Pénitent Damné** | 273 | 31 | 23 | 52–78 | 8 | 1 | 6840 or, 5 gemmes, 72 Essence | `mark`, `demonform` |
+
+> ⚖️ **Coûts élites (D12, à arbitrer)** : premium en or élite/base = **1,80× uniforme** sur les 8 tiers — nettement au-dessus de Haven (~1,44× moyen) et Necropolis (~1,65×). Asymétrie relevée par l'audit factions : l'élite AH est proportionnellement la plus chère du jeu. Contrairement aux deux autres maisons, les élites AH **ne perdent pas** leur capacité de base. Arbitrage des coûts **renvoyé à une passe `faction:sim`** (non tranché ici).
+
 ## 5. Arbre de bâtiments
 
 Bâtiments communs : cf. doc 02 §4.1 (skins « académie »). Spécifiques :

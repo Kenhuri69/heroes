@@ -160,7 +160,8 @@ docs/
   templates/faction-template.md  Gabarit pour spécifier une nouvelle maison
 .github/workflows/
   ci.yml                         PR : typecheck, lint, tests, build, smoke headless
-  deploy.yml                     main : build Vite + smoke sur build de prod + déploiement Pages
+  deploy.yml                     main : build Vite + smoke sur build de prod + déploiement Pages (rebuild avec VITE_BACKEND_URL)
+  deploy-worker.yml              Déploiement du Worker backend Cloudflare (wrangler-action ; secrets CLOUDFLARE_*, doc 15 §10)
 packages/
   engine/                        Moteur de règles pur (état, commandes, RNG PCG32) — @heroes/engine
   content/                       Schémas Zod + loader/validateur de paquets de faction — @heroes/content

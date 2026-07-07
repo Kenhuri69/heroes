@@ -1,0 +1,54 @@
+# Déploiement du Worker backend Cloudflare (doc 15, Live 7.4).
+# Le token Cloudflare vit UNIQUEMENT en secret GitHub — jamais en clair.
+# Prérequis (réglages GitHub de l'utilisateur, une fois) :
+#   - Secret  CLOUDFLARE_API_TOKEN   (token « Edit Cloudflare Workers » : Workers + D1)
+#   - Secret  CLOUDFLARE_ACCOUNT_ID  (id du compte Cloudflare)
+# La base D1 `heroes` est déjà provisionnée + schéma appliqué (server/schema.sql).
+
+name: Deploy Worker
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'server/**'
+      - '.github/workflows/deploy-worker.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-worker
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      # Le Worker importe @heroes/engine (lien workspace) — installer résout ce lien.
+      - run: pnpm install --frozen-lockfile
+
+      - name: Vérifier la présence des secrets Cloudflare
+        run: |
+          if [ -z "${{ secrets.CLOUDFLARE_API_TOKEN }}" ]; then
+            echo "::error::Secret CLOUDFLARE_API_TOKEN manquant. Voir docs/15 §10."
+            exit 1
+          fi
+
+      - name: Deploy (wrangler)
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: server
+          command: deploy

@@ -125,16 +125,32 @@ d'une beta ouverte dépasse ces seuils — improbable avant une audience réelle
   backend) ; panneau « En ligne » de connexion magic-link (l'UI PvP complète est un
   suivi ; le SDK l'expose déjà). `GET /matches` ajouté au Worker.
 
-## 10. Backend code-complet — étapes manuelles restantes
+## 10. Mise en ligne (automatisée — Live 7.4)
 
-La plomberie (7.1 fondation + 7.2 Worker + 7.3 client) est complète et vérifiée en
-CI. Pour **mettre en ligne**, côté utilisateur (identifiants/hébergement lui
-appartenant) :
+La plomberie (7.1 fondation + 7.2 Worker + 7.3 client) est complète. Le
+déploiement passe par **GitHub Actions** : le token Cloudflare vit en **secret
+GitHub**, jamais en clair. Étapes de l'utilisateur (une fois) :
 
-1. `cd server && wrangler deploy` (identifiants Cloudflare) → l'URL du Worker.
-2. Construire le client avec `VITE_BACKEND_URL=<url-du-worker>` (le bouton « En
-   ligne » apparaît alors ; le smoke, lui, n'a jamais cette variable).
-3. Optionnel : brancher un provider d'e-mail (Resend free) pour envoyer réellement
-   les liens magic-link au lieu de les renvoyer dans la réponse.
+1. **Token** — Cloudflare → *My Profile → API Tokens* → template **« Edit
+   Cloudflare Workers »** (couvre Workers + D1). Copier le token.
+2. **Secrets GitHub** (repo → *Settings → Secrets and variables → Actions →
+   Secrets*) :
+   - `CLOUDFLARE_API_TOKEN` = le token ;
+   - `CLOUDFLARE_ACCOUNT_ID` = l'id de compte (Cloudflare → Workers & Pages →
+     colonne de droite « Account ID »).
+3. **Déployer le Worker** — Actions → **Deploy Worker** → *Run workflow*. L'URL
+   apparaît dans les logs (`https://heroes.<sous-domaine>.workers.dev`).
+4. **Variable GitHub** (même écran, onglet *Variables*) : `VITE_BACKEND_URL` =
+   cette URL. **Absente ⇒ client hors-ligne** (défaut sûr).
+5. **Publier le client** — Actions → **Deploy to GitHub Pages** → *Run workflow*
+   (ou tout push sur `main`). Le client déployé est rebuild AVEC `VITE_BACKEND_URL`
+   (le smoke, lui, tourne sur un build hors-ligne) → le bouton **« En ligne »**
+   apparaît. `wrangler.toml` référence déjà la base D1 `heroes` (schéma appliqué).
+6. **Option e-mail** — brancher Resend (free) : ajouter un secret Worker
+   (`wrangler secret put RESEND_API_KEY`) et remplacer, dans `/auth/request`, le
+   renvoi du lien par un envoi d'e-mail. Tant que ce n'est pas fait, le lien de
+   vérification est renvoyé/affiché (dev/beta).
+
 - Ultérieur : notifications push (au lieu du polling), classement saisonnier
-  (doc 09 Beta), re-sim de litige (comparaison de `replayHash`).
+  (doc 09 Beta), re-sim de litige (comparaison de `replayHash`), écrans PvP async
+  complets (le SDK `app/net.ts` les expose déjà).

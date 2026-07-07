@@ -176,7 +176,7 @@ describe('MoveHero', () => {
     expect(events.filter((e) => e.type === 'MoveStepped')).toHaveLength(2);
   });
 
-  it("ramasse une ressource et s'arrête dessus (interception, doc 08 §2.1)", () => {
+  it('ramasse une ressource en passant sans s’arrêter (fidélité HoMM, D6)', () => {
     const state = started();
     const { state: next, events } = apply(state, {
       type: 'MoveHero',
@@ -184,13 +184,13 @@ describe('MoveHero', () => {
       path: [
         { x: 1, y: 0 },
         { x: 2, y: 0 },
-        { x: 3, y: 0 },
+        { x: 3, y: 0 }, // tas d'or à (3,0) : ramassé au passage
         { x: 4, y: 0 },
       ],
     });
-    expect(next.heroes[0]?.pos).toEqual({ x: 3, y: 0 }); // arrêt sur le tas d'or
+    expect(next.heroes[0]?.pos).toEqual({ x: 4, y: 0 }); // poursuit jusqu'au bout
     expect(next.players[0]?.resources.gold).toBe(500);
-    expect(next.map?.objects).toHaveLength(0);
+    expect(next.map?.objects).toHaveLength(0); // le tas est retiré
     expect(events).toContainEqual(
       expect.objectContaining({ type: 'ResourcePicked', resource: 'gold', amount: 500 }),
     );

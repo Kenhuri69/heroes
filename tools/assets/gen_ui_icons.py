@@ -237,6 +237,131 @@ def day(d):
     d.polygon([(88, 208), (168, 208), (128, 156)], fill=(224, 178, 84, 255))
 
 
+# ── actions & onglets (UXD-2 : remplacent les emojis/glyphes de l'UI) ──────
+
+def act_options(d):
+    from math import cos, pi, sin
+    cx, cy = 128, 128
+    for i in range(8):
+        a = i * pi / 4
+        d.line([cx + 56 * cos(a), cy + 56 * sin(a), cx + 108 * cos(a), cy + 108 * sin(a)],
+               fill=OUTLINE, width=46)
+    d.ellipse([cx - 86, cy - 86, cx + 86, cy + 86], fill=OUTLINE)
+    for i in range(8):
+        a = i * pi / 4
+        d.line([cx + 56 * cos(a), cy + 56 * sin(a), cx + 98 * cos(a), cy + 98 * sin(a)],
+               fill=(150, 150, 162, 255), width=30)
+    d.ellipse([cx - 74, cy - 74, cx + 74, cy + 74], fill=(150, 150, 162, 255))
+    d.ellipse([cx - 38, cy - 38, cx + 38, cy + 38], fill=OUTLINE)
+    d.ellipse([cx - 28, cy - 28, cx + 28, cy + 28], fill=(96, 98, 108, 255))
+    d.ellipse([72, 64, 116, 100], fill=HILITE)
+
+
+def act_journal(d):
+    # cloche de héraut : anneau, dôme, lèvre, battant — teinte laiton
+    d.ellipse([112, 24, 144, 56], fill=OUTLINE)
+    d.ellipse([120, 32, 136, 48], fill=(150, 112, 44, 255))
+    d.polygon([(128, 44), (176, 76), (188, 156), (204, 184), (52, 184),
+               (68, 156), (80, 76)], fill=OUTLINE)
+    d.polygon([(128, 56), (166, 84), (176, 152), (188, 172), (68, 172),
+               (80, 152), (90, 84)], fill=(212, 168, 60, 255))
+    d.polygon([(128, 56), (90, 84), (80, 152), (68, 172), (110, 172)],
+              fill=(230, 192, 88, 255))
+    d.ellipse([48, 172, 208, 196], fill=OUTLINE)
+    d.ellipse([58, 176, 198, 192], fill=(160, 120, 34, 255))
+    d.ellipse([112, 192, 144, 224], fill=OUTLINE)
+    d.ellipse([118, 198, 138, 218], fill=(212, 168, 60, 255))
+
+
+def act_hero(d):
+    # heaume à cimier : dôme d'acier, fente de visée, plumet
+    d.polygon([(118, 16), (140, 16), (148, 66), (110, 66)], fill=OUTLINE)
+    d.polygon([(122, 24), (136, 24), (142, 62), (116, 62)], fill=(180, 62, 62, 255))
+    d.rounded_rectangle([66, 56, 190, 216], 44, fill=OUTLINE)
+    d.rounded_rectangle([76, 66, 180, 206], 36, fill=(150, 150, 162, 255))
+    d.polygon([(76, 100), (128, 92), (128, 206), (76, 180)], fill=(178, 178, 192, 255))
+    d.rectangle([88, 120, 168, 140], fill=OUTLINE)
+    for x in (108, 128, 148):
+        d.ellipse([x - 7, 162, x + 7, 176], fill=OUTLINE)
+    d.ellipse([90, 74, 126, 100], fill=HILITE)
+
+
+def act_combat(d):
+    # épées croisées (indice gardien) — même acier que stat-attack
+    for flip in (False, True):
+        def X(x):
+            return 256 - x if flip else x
+        d.line([X(52), 204, X(204), 52], fill=OUTLINE, width=36)
+        d.line([X(56), 200, X(200), 56], fill=(196, 198, 208, 255), width=18)
+        d.line([X(96), 132, X(132), 168], fill=OUTLINE, width=20)  # garde
+        d.line([X(98), 134, X(130), 166], fill=(150, 112, 44, 255), width=10)
+        d.ellipse([X(52) - 16, 188, X(52) + 16, 220], fill=(150, 112, 44, 255))
+
+
+def tab_build(d):
+    # maillet sur pierre de taille (onglet Construire)
+    d.polygon([(48, 150), (128, 128), (208, 150), (208, 216), (48, 216)], fill=OUTLINE)
+    d.polygon([(58, 156), (128, 138), (198, 156), (198, 206), (58, 206)],
+              fill=(160, 156, 168, 255))
+    d.polygon([(58, 156), (128, 138), (128, 206), (58, 206)], fill=(184, 180, 192, 255))
+    d.line([128, 146, 128, 200], fill=(118, 114, 122, 255), width=8)
+    d.line([150, 118, 96, 40], fill=OUTLINE, width=26)          # manche
+    d.line([148, 114, 100, 46], fill=(150, 112, 44, 255), width=14)
+    d.rounded_rectangle([60, 14, 148, 74], 18, fill=OUTLINE)    # tête
+    d.rounded_rectangle([68, 22, 140, 66], 14, fill=(118, 82, 48, 255))
+    d.polygon([(68, 22), (104, 22), (104, 66), (68, 66)], fill=(142, 100, 58, 255))
+
+
+def tab_recruit(d):
+    # deux recrues (silhouettes casquées) derrière une bannière
+    for cx, cy, tone in ((92, 96, (150, 150, 162, 255)), (164, 88, (178, 178, 192, 255))):
+        d.ellipse([cx - 34, cy - 34, cx + 34, cy + 34], fill=OUTLINE)
+        d.ellipse([cx - 27, cy - 27, cx + 27, cy + 27], fill=tone)
+        d.polygon([(cx - 56, cy + 110), (cx - 40, cy + 24), (cx + 40, cy + 24),
+                   (cx + 56, cy + 110)], fill=OUTLINE)
+        d.polygon([(cx - 46, cy + 104), (cx - 32, cy + 34), (cx + 32, cy + 34),
+                   (cx + 46, cy + 104)], fill=tone)
+    d.line([128, 120, 128, 232], fill=OUTLINE, width=18)        # hampe
+    d.line([128, 124, 128, 228], fill=(150, 112, 44, 255), width=8)
+    d.polygon([(128, 122), (216, 132), (188, 158), (216, 184), (128, 194)],
+              fill=OUTLINE)
+    d.polygon([(134, 130), (204, 138), (180, 158), (204, 178), (134, 186)],
+              fill=(180, 62, 62, 255))
+
+
+def tab_garrison(d):
+    # tour crénelée (onglet Garnison)
+    d.polygon([(64, 232), (72, 96), (60, 96), (60, 56), (88, 56), (88, 74),
+               (114, 74), (114, 56), (142, 56), (142, 74), (168, 74), (168, 56),
+               (196, 56), (196, 96), (184, 96), (192, 232)], fill=OUTLINE)
+    d.polygon([(76, 222), (82, 104), (174, 104), (180, 222)], fill=(150, 150, 162, 255))
+    d.polygon([(76, 222), (82, 104), (128, 104), (128, 222)], fill=(178, 178, 192, 255))
+    d.polygon([(70, 96), (70, 66), (86, 66), (86, 84), (116, 84), (116, 66),
+               (140, 66), (140, 84), (170, 84), (170, 66), (186, 66), (186, 96)],
+              fill=(160, 156, 168, 255))
+    d.rounded_rectangle([112, 156, 144, 222], 14, fill=OUTLINE)  # porte
+    d.rounded_rectangle([118, 162, 138, 222], 10, fill=(96, 74, 50, 255))
+
+
+def tab_market(d):
+    # balance de marchand (onglet Marché)
+    d.line([128, 36, 128, 190], fill=OUTLINE, width=18)
+    d.line([48, 66, 208, 66], fill=OUTLINE, width=16)
+    d.line([128, 40, 128, 186], fill=(150, 112, 44, 255), width=8)
+    d.line([54, 66, 202, 66], fill=(212, 168, 60, 255), width=7)
+    d.ellipse([112, 20, 144, 52], fill=OUTLINE)
+    d.ellipse([119, 27, 137, 45], fill=(212, 168, 60, 255))
+    for cx in (60, 196):
+        d.line([cx, 70, cx - 26, 128], fill=OUTLINE, width=7)
+        d.line([cx, 70, cx + 26, 128], fill=OUTLINE, width=7)
+        d.polygon([(cx - 34, 126), (cx + 34, 126), (cx + 22, 156), (cx - 22, 156)],
+                  fill=OUTLINE)
+        d.polygon([(cx - 26, 132), (cx + 26, 132), (cx + 17, 148), (cx - 17, 148)],
+                  fill=(212, 168, 60, 255))
+    d.polygon([(96, 176), (160, 176), (176, 232), (80, 232)], fill=OUTLINE)  # socle
+    d.polygon([(102, 184), (154, 184), (166, 224), (90, 224)], fill=(118, 82, 48, 255))
+
+
 ICONS = {
     # ressources (data/core/config.json + manifestes de faction)
     "res-gold": gold,
@@ -259,6 +384,15 @@ ICONS = {
     "stat-morale": morale,
     # divers
     "ui-day": day,
+    # actions & onglets (UXD-2)
+    "act-options": act_options,
+    "act-journal": act_journal,
+    "act-hero": act_hero,
+    "act-combat": act_combat,
+    "tab-build": tab_build,
+    "tab-recruit": tab_recruit,
+    "tab-garrison": tab_garrison,
+    "tab-market": tab_market,
 }
 
 

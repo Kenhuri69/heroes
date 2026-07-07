@@ -25,6 +25,7 @@ import {
 import { buildingUrl, townBackgroundUrl } from '../render/assets';
 import { AssetImg } from './AssetImg';
 import { FactionBadge } from './FactionBadge';
+import { UiIcon } from './UiIcon';
 import './town.css';
 
 /**
@@ -121,28 +122,28 @@ export function TownScreen({ townId, onClose }: { townId: string; onClose: () =>
                 data-testid="town-tab-build"
                 onClick={() => setTab('build')}
               >
-                {t('town.build')}
+                <UiIcon id="tab-build" fallback="" /> {t('town.build')}
               </button>
               <button
                 class={tab === 'recruit' ? 'active' : ''}
                 data-testid="town-tab-recruit"
                 onClick={() => setTab('recruit')}
               >
-                {t('town.recruit')}
+                <UiIcon id="tab-recruit" fallback="" /> {t('town.recruit')}
               </button>
               <button
                 class={tab === 'garrison' ? 'active' : ''}
                 data-testid="town-tab-garrison"
                 onClick={() => setTab('garrison')}
               >
-                {t('town.garrison')}
+                <UiIcon id="tab-garrison" fallback="" /> {t('town.garrison')}
               </button>
               <button
                 class={tab === 'market' ? 'active' : ''}
                 data-testid="town-tab-market"
                 onClick={() => setTab('market')}
               >
-                {t('town.market')}
+                <UiIcon id="tab-market" fallback="" /> {t('town.market')}
               </button>
             </nav>
 

@@ -322,7 +322,7 @@ intercalé dès qu'un sourcing est validé).
 - [x] Réparation minimale de l'outillage d'audit (`capture.mjs`, R6).
 - [x] UXD-0 — correctifs ergonomiques immédiats (`ux-d0-correctifs.md`).
 - [x] UXD-1 — design system « gouache » (`ux-d1-design-system.md`).
-- [ ] UXD-2 — iconographie unifiée.
+- [x] UXD-2 — iconographie unifiée (`ux-d2-iconographie.md`).
 - [ ] UXD-3 — assets carte d'aventure.
 - [ ] UXD-4 — combat immersif.
 - [ ] UXD-5 — écrans de gestion habillés.

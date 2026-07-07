@@ -33,6 +33,14 @@
   display: inline-block;
 }
 
+/* Icône d'action/onglet (UXD-2, composant UiIcon) : décorative, 20 px,
+   alignée sur le texte du bouton hôte ; repli = glyphe historique. */
+.ui-icon {
+  width: 20px;
+  height: 20px;
+  vertical-align: -4px;
+}
+
 /* Icône d'asset de la barre de ressources (lot intégration) — repli sur `i`. */
 .resource-icon {
   width: 20px;

@@ -142,3 +142,19 @@
   display: grid;
   gap: 2px;
 }
+
+/* Section Audio (UXD-6B) : deux sliders de volume musique/effets. */
+.audio-slider {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 8px 0 0;
+  font-size: 0.875rem;
+}
+.audio-slider input[type='range'] {
+  flex: 1;
+  max-width: 200px;
+  min-height: 44px; /* cible tactile (doc 08 §1) */
+  accent-color: var(--gold);
+}

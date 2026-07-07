@@ -1,5 +1,5 @@
 import type { HeroState } from '../core/state';
-import type { HeroSkillDef, SkillRankEffect } from './types';
+import type { HeroSkillDef, SkillRankEffect, SpellSchool } from './types';
 
 /**
  * Compétences secondaires (doc 02 §1.3, décision plan phase-3.2 #5) : effets
@@ -66,7 +66,22 @@ export function heroArmorPct(hero: HeroState, catalog: Record<string, HeroSkillD
   return sumRankField(hero, catalog, 'armorReductionPct');
 }
 
-/** Magie par école : réduction % du coût en mana des sorts — branché dans `hero/spells.ts`. */
-export function heroManaCostReduction(hero: HeroState, catalog: Record<string, HeroSkillDef>): number {
-  return sumRankField(hero, catalog, 'manaCostReductionPct');
+/**
+ * Magie par école (doc 02 §1.3) : réduction % du coût en mana des sorts de
+ * `school` — seules les compétences DÉCLARANT cette école comptent (A6). Une
+ * compétence Magie du Feu ne réduit pas un sort d'Eau/de Traque. Branché dans
+ * `hero/spells.ts` (`effectiveManaCost`, qui transmet `spell.school`).
+ */
+export function heroManaCostReduction(
+  hero: HeroState,
+  catalog: Record<string, HeroSkillDef>,
+  school: SpellSchool,
+): number {
+  let total = 0;
+  for (const [skillId, rank] of Object.entries(hero.skills)) {
+    const def = catalog[skillId];
+    if (!def || def.school !== school) continue;
+    total += def.ranks[rank - 1]?.manaCostReductionPct ?? 0;
+  }
+  return total;
 }

@@ -3,98 +3,174 @@
     {
       "id": "logistics",
       "ranks": [
-        { "movementBonusPct": 10 },
-        { "movementBonusPct": 20 },
-        { "movementBonusPct": 30 }
+        {
+          "movementBonusPct": 10
+        },
+        {
+          "movementBonusPct": 20
+        },
+        {
+          "movementBonusPct": 30
+        }
       ]
     },
     {
       "id": "scouting",
       "ranks": [
-        { "visionBonus": 2 },
-        { "visionBonus": 4 },
-        { "visionBonus": 6 }
+        {
+          "visionBonus": 2
+        },
+        {
+          "visionBonus": 4
+        },
+        {
+          "visionBonus": 6
+        }
       ]
     },
     {
       "id": "luck",
       "ranks": [
-        { "luckBonus": 1 },
-        { "luckBonus": 2 },
-        { "luckBonus": 3 }
+        {
+          "luckBonus": 1
+        },
+        {
+          "luckBonus": 2
+        },
+        {
+          "luckBonus": 3
+        }
       ]
     },
     {
       "id": "leadership",
       "ranks": [
-        { "moraleBonus": 1 },
-        { "moraleBonus": 2 },
-        { "moraleBonus": 3 }
+        {
+          "moraleBonus": 1
+        },
+        {
+          "moraleBonus": 2
+        },
+        {
+          "moraleBonus": 3
+        }
       ]
     },
     {
       "id": "melee",
       "ranks": [
-        { "meleeDamagePct": 10 },
-        { "meleeDamagePct": 20 },
-        { "meleeDamagePct": 30 }
+        {
+          "meleeDamagePct": 10
+        },
+        {
+          "meleeDamagePct": 20
+        },
+        {
+          "meleeDamagePct": 30
+        }
       ]
     },
     {
       "id": "archery",
       "ranks": [
-        { "rangedDamagePct": 10 },
-        { "rangedDamagePct": 20 },
-        { "rangedDamagePct": 30 }
+        {
+          "rangedDamagePct": 10
+        },
+        {
+          "rangedDamagePct": 20
+        },
+        {
+          "rangedDamagePct": 30
+        }
       ]
     },
     {
       "id": "armor",
       "ranks": [
-        { "armorReductionPct": 5 },
-        { "armorReductionPct": 10 },
-        { "armorReductionPct": 15 }
+        {
+          "armorReductionPct": 5
+        },
+        {
+          "armorReductionPct": 10
+        },
+        {
+          "armorReductionPct": 15
+        }
       ]
     },
     {
       "id": "economy",
       "ranks": [
-        { "goldPerDay": 250 },
-        { "goldPerDay": 500 },
-        { "goldPerDay": 1000 }
+        {
+          "goldPerDay": 250
+        },
+        {
+          "goldPerDay": 500
+        },
+        {
+          "goldPerDay": 1000
+        }
       ]
     },
     {
       "id": "magic-fire",
       "ranks": [
-        { "manaCostReductionPct": 5 },
-        { "manaCostReductionPct": 10 },
-        { "manaCostReductionPct": 20 }
-      ]
+        {
+          "manaCostReductionPct": 5
+        },
+        {
+          "manaCostReductionPct": 10
+        },
+        {
+          "manaCostReductionPct": 20
+        }
+      ],
+      "school": "fire"
     },
     {
       "id": "magic-water",
       "ranks": [
-        { "manaCostReductionPct": 5 },
-        { "manaCostReductionPct": 10 },
-        { "manaCostReductionPct": 20 }
-      ]
+        {
+          "manaCostReductionPct": 5
+        },
+        {
+          "manaCostReductionPct": 10
+        },
+        {
+          "manaCostReductionPct": 20
+        }
+      ],
+      "school": "water"
     },
     {
       "id": "magic-earth",
       "ranks": [
-        { "manaCostReductionPct": 5 },
-        { "manaCostReductionPct": 10 },
-        { "manaCostReductionPct": 20 }
-      ]
+        {
+          "manaCostReductionPct": 5
+        },
+        {
+          "manaCostReductionPct": 10
+        },
+        {
+          "manaCostReductionPct": 20
+        }
+      ],
+      "school": "earth"
     },
     {
       "id": "magic-air",
       "ranks": [
-        { "manaCostReductionPct": 5 },
-        { "manaCostReductionPct": 10 },
-        { "manaCostReductionPct": 20 }
-      ]
+        {
+          "manaCostReductionPct": 5
+        },
+        {
+          "manaCostReductionPct": 10
+        },
+        {
+          "manaCostReductionPct": 20
+        }
+      ],
+      "school": "air"
     }
   ]
 }

@@ -76,11 +76,17 @@ describe('assignHuntContracts', () => {
     expect(s.players[0]!.huntContract).toBeNull();
   });
 
-  it('ne réassigne pas si un contrat est déjà actif', () => {
+  it('A9 — expire le contrat de la semaine écoulée et en réassigne un neuf (deadline hebdo + cible tuée par un tiers libérée)', () => {
     const s = stateWith(true);
+    // Contrat périmé de la semaine passée, sur une cible qui n'existe plus sur la
+    // carte (gardien `gX` tué par un tiers) ⇒ auparavant bloqué à jamais.
     s.players[0]!.huntContract = { targetObjectId: 'gX', gold: 1, resource: 'essence', amount: 1 };
-    assignHuntContracts(s, []);
-    expect(s.players[0]!.huntContract!.targetObjectId).toBe('gX'); // inchangé
+    const events: GameEvent[] = [];
+    assignHuntContracts(s, events);
+    // Réassigné à une cible réelle (g1), avec l'effet COURANT du bâtiment (300/essence/15) :
+    // preuve d'expiration + réassignation (et non d'un contrat laissé inchangé).
+    expect(s.players[0]!.huntContract).toEqual({ targetObjectId: 'g1', gold: 300, resource: 'essence', amount: 15 });
+    expect(events).toContainEqual({ type: 'HuntContractAssigned', playerId: 'p1', targetObjectId: 'g1' });
   });
 });
 

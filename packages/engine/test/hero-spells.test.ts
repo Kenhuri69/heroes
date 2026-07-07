@@ -8,8 +8,9 @@ import { applyAction } from '../src/combat/actions';
 import { advanceTurn } from '../src/combat/turns';
 import { initLedger, recordLoss } from '../src/combat/state-helpers';
 import type { CombatStack, CombatState, CombatUnitDef } from '../src/combat/types';
-import type { SpellDef } from '../src/hero/types';
-import { estimateSpell } from '../src/hero';
+import type { ArtifactDef, SpellDef } from '../src/hero/types';
+import { estimateSpell, validateCastSpell } from '../src/hero';
+import { heroManaMax } from '../src/hero/artifacts';
 import { testConfig } from './fixtures';
 
 /**
@@ -24,6 +25,7 @@ const SPELLS: Record<string, SpellDef> = {
   heal: { id: 'heal', school: 'water', circle: 1, manaCost: 5, kind: 'heal', base: 10, perPower: 3 },
   haste: { id: 'haste', school: 'air', circle: 1, manaCost: 4, kind: 'buff', base: 0, perPower: 0, speedMod: 3 },
   markspell: { id: 'markspell', school: 'traque', circle: 1, manaCost: 4, kind: 'applyMarks', base: 0, perPower: 0, marks: 2 },
+  portal: { id: 'portal', school: 'neutral', circle: 2, manaCost: 8, kind: 'adventure', base: 0, perPower: 0, adventure: { type: 'townPortal' } },
 };
 
 function unit(over: Partial<CombatUnitDef> & { id: string }): CombatUnitDef {
@@ -341,5 +343,34 @@ describe('CastSpell — magicResistance (demonform, doc 05 §4)', () => {
 
   it('forme démon (transformée) : dégâts pleins', () => {
     expect(castBoltOn(true)).toBe(16); // 10 + 2×3, sans résistance
+  });
+});
+
+describe('Lot A-2 — héros (A7 artefact Savoir, A8 sort d’aventure hors combat)', () => {
+  it('A7 — le bonus `knowledge` d’un artefact (Orbe de savoir) augmente la mana max (×10)', () => {
+    const catalog: Record<string, ArtifactDef> = { orb: { id: 'orb', bonus: { knowledge: 5 } } };
+    const equipped = Array.from({ length: 10 }, (_, i) => (i === 0 ? 'orb' : null));
+    const withOrb = hero({ attributes: { attack: 0, defense: 0, power: 0, knowledge: 2 }, artifacts: equipped });
+    const without = hero({ attributes: { attack: 0, defense: 0, power: 0, knowledge: 2 } });
+    // (2 + 5) × 10 = 70 ; sans l’artefact 2 × 10 = 20 (le bug donnait 20 même équipé).
+    expect(heroManaMax(withOrb, catalog)).toBe(70);
+    expect(heroManaMax(without, catalog)).toBe(20);
+  });
+
+  it('A8 — un sort d’aventure (Ville-portail) est refusé en combat', () => {
+    const catalog = { def: unit({ id: 'def' }) };
+    const h = hero({ spells: ['portal', 'bolt'], mana: 100 });
+    const attacker = stack({ id: 'attacker-0', side: 'attacker', slot: 0, unitId: 'def', count: 1, pos: { col: 0, row: 0 } });
+    const target = stack({ id: 'defender-0', side: 'defender', slot: 0, unitId: 'def', count: 5, pos: { col: 1, row: 0 } });
+    const state: GameState = {
+      ...baseState(catalog),
+      spellCatalog: SPELLS,
+      heroes: [h],
+      combat: combatState([attacker, target], { attackerHeroId: h.id, activeStackId: 'attacker-0' }),
+    };
+    // Sort d’aventure rejeté (auparavant : posé comme faux buff pour sa mana).
+    expect(validateCastSpell(state, { type: 'CastSpell', spellId: 'portal', targetStackId: 'defender-0' })?.code).toBe('invalidAction');
+    // Contrôle : un sort de combat normal reste accepté.
+    expect(validateCastSpell(state, { type: 'CastSpell', spellId: 'bolt', targetStackId: 'defender-0' })).toBeNull();
   });
 });

@@ -171,6 +171,28 @@ describe('evaluateOutcome — victoire/défaite (joueur local player-1)', () => 
     expect(events).toContainEqual({ type: 'GameEnded', status: 'won', winnerPlayerId: 'player-1' });
   });
 
+  it('A10 — un joueur IA qui remplit SON objectif de victoire fait perdre le joueur local', () => {
+    // player-1 (local) : victoire captureTown('town-ai') — jamais atteinte ;
+    // player-2 (IA) : victoire captureTown('start-town'). Le local GARDE une autre
+    // ville (`keep`) : il n'est donc PAS éliminé — seule la victoire « par joueur »
+    // de l'IA (doc 02 §6, A10) explique la défaite locale.
+    const scenario: ScenarioState = {
+      objectives: {
+        'player-1': { victory: { type: 'captureTown', townId: 'town-ai' }, defeat: { type: 'surviveDays', days: 999 } },
+        'player-2': { victory: { type: 'captureTown', townId: 'start-town' }, defeat: { type: 'surviveDays', days: 999 } },
+      },
+    };
+    const cmd = startCmd(scenario, { 'player-1': 'human', 'player-2': 'ai' });
+    if (cmd.type !== 'StartGame') throw new Error('unreachable');
+    const town = (id: string, owner: string) => ({ id, ownerPlayerId: owner, pos: { x: 0, y: 0 }, factionId: '', buildings: {}, builtToday: false, garrison: [], stock: {} });
+    cmd.towns = [town('start-town', 'player-2'), town('keep', 'player-1')]; // l'IA a déjà pris start-town
+    const state = apply(createEmptyState(), cmd).state;
+    const { state: next, events } = apply(state, { type: 'EndTurn', playerId: 'player-1' });
+    expect(next.players.find((p) => p.id === 'player-1')?.eliminated).toBe(false); // garde `keep`
+    expect(next.outcome).toEqual({ status: 'lost', winnerPlayerId: 'player-2' });
+    expect(events).toContainEqual({ type: 'GameEnded', status: 'lost', winnerPlayerId: 'player-2' });
+  });
+
   it("GameEnded n'est émis qu'une seule fois (outcome déjà posé ⇒ no-op)", () => {
     const scenario = objectives({ type: 'surviveDays', days: 1 }, { type: 'surviveDays', days: 999 });
     let state = startedGame(scenario);

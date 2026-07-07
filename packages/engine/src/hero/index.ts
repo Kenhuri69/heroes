@@ -49,6 +49,10 @@ export function validateCastSpell(state: GameState, cmd: CastSpellCmd): CommandE
   if (!spell) return { code: 'unknownSpell', message: `sort inconnu '${cmd.spellId}'` };
   if (!hero.spells.includes(cmd.spellId))
     return { code: 'spellNotKnown', message: `sort non appris '${cmd.spellId}'` };
+  // A8 : un sort d'aventure (Ville-portail…) ne se lance JAMAIS en combat — il
+  // passe par `CastAdventureSpell`. Sinon il posait un faux buff (mods 0) pour sa mana.
+  if (spell.kind === 'adventure')
+    return { code: 'invalidAction', message: `'${cmd.spellId}' est un sort d’aventure (hors combat)` };
   const manaCost = effectiveManaCost(hero, state.skillCatalog, spell);
   if (hero.mana < manaCost) return { code: 'notEnoughMana', message: 'mana insuffisante' };
   const target = combat.stacks.find((s) => s.id === cmd.targetStackId);

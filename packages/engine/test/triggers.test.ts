@@ -83,6 +83,24 @@ describe('triggers de jour', () => {
     expect(r2.events.some((e) => e.type === 'TriggerFired')).toBe(false);
   });
 
+  it('A11 — un trigger `onDay` du jour 1 se déclenche dès StartGame', () => {
+    const state = startWith(
+      [
+        {
+          id: 't-day1',
+          on: { kind: 'day', day: 1 },
+          effect: { kind: 'grantResource', resource: 'gold', amount: 50 },
+          fired: false,
+        },
+      ],
+      [P1],
+    );
+    // Auparavant `fireDayTriggers` n'était appelé qu'aux bascules de jour ⇒ un
+    // trigger day 1 restait mort. Il doit avoir été tiré pendant StartGame.
+    expect(state.players[0]!.resources.gold).toBe(emptyResources().gold + 50);
+    expect(state.map!.triggers[0]!.fired).toBe(true);
+  });
+
   it('octroie une ressource symétriquement à tous les joueurs actifs', () => {
     const state = startWith(
       [

@@ -40,7 +40,7 @@ une seule fois en fin de lot, et re-passer le test d'équilibrage grossier.
 
 > **Découpage en PR** (lot A trop gros pour une seule revue) :
 > **A-1 = A1–A5 (correctifs combat, golden re-fixé)** ✅ livré ;
-> A-2 = A6–A11 (héros/scénario/ville) à suivre. Tests : `lot-a-combat.test.ts`
+> A-2 = A6–A11 (héros/scénario/ville) ✅ livré. Tests : `lot-a-combat.test.ts`
 > (5) ; golden `fda800c6`→`48c3a5e5` ; `heroDefenseStep: 0.025` ajouté à
 > `data/core/config.json` + schéma + type + fixtures ; équilibrage `balance.test`
 > re-passé vert (aucun blowout).
@@ -83,20 +83,20 @@ une seule fois en fin de lot, et re-passer le test d'équilibrage grossier.
   « même formule sans tirage » (doc 08 §2.4) ment en siège et face aux
   Sylvan ; l'IA, qui score via `estimateDamage` (`ai.ts:176`), hérite du
   biais. Aligner les termes + tests préviz=résolution en siège et symbiose.
-- [ ] **A6 — Réduction de coût de mana « Magie par école » non filtrée par
+- [x] **A6 — Réduction de coût de mana « Magie par école » non filtrée par
   école.** Doc 02 §1.3:41 « par école ×4 ». Code : `heroManaCostReduction`
   somme TOUTES les compétences (`hero/skills.ts:70-72`), `effectiveManaCost`
   ne transmet pas `spell.school` (`hero/spells.ts:14-21`) ⇒ Magie du Feu
   réduit l'Eau/la Traque, cumul −80 % possible. Filtrer par l'école du sort.
-- [ ] **A7 — Bonus d'artefact `knowledge` mort (Orbe de savoir sans effet).**
+- [x] **A7 — Bonus d'artefact `knowledge` mort (Orbe de savoir sans effet).**
   `heroManaMax = attributes.knowledge × 10 + bonus.manaMax`
   (`hero/artifacts.ts:50-52`) ignore `bonus.knowledge` pourtant sommé (l.41).
   Corriger : `(knowledge + bonus.knowledge) × 10 + bonus.manaMax`.
-- [ ] **A8 — Sort d'aventure lançable en combat comme faux buff.**
+- [x] **A8 — Sort d'aventure lançable en combat comme faux buff.**
   `validateCastSpell` ne rejette pas `kind: 'adventure'`
   (`hero/index.ts:38-65`) ⇒ Ville-portail posable en combat pour 16 mana
   (statut à mods 0). Rejeter au validateur (filtre UI au Lot C).
-- [ ] **A9 — Contrat de chasse : blocage définitif + pas d'échéance hebdo.**
+- [x] **A9 — Contrat de chasse : blocage définitif + pas d'échéance hebdo.**
   Doc 05:174 « avant la fin de la semaine ». Code : `assignHuntContracts`
   saute tout joueur ayant déjà un contrat (`town/hunt-contract.ts:36-52`) et
   seul le héros du joueur sous contrat libère la cible ⇒ si un tiers tue le
@@ -104,14 +104,14 @@ une seule fois en fin de lot, et re-passer le test d'équilibrage grossier.
   aucune assignation. Au `WeekStarted` : expirer/réassigner ; libérer tout
   contrat dont la cible n'existe plus. → vérif : tests expiration + cible
   tuée par un tiers.
-- [ ] **A10 — Objectifs de victoire des joueurs IA jamais évalués.**
+- [x] **A10 — Objectifs de victoire des joueurs IA jamais évalués.**
   Doc 02:275-276 « par joueur » ; conquest déclare une victoire
   `captureTown('start-town')` pour `ai-1`. Code : `evaluateOutcome` n'évalue
   que le premier joueur humain (`scenario/outcome.ts:74-77`) — data morte,
   l'IA « gagne » sans fin de partie. Évaluer la victoire de chaque joueur non
   éliminé ; victoire d'un ennemi ⇒ défaite du joueur local. → vérif : test
   « l'IA capture start-town ⇒ partie perdue ».
-- [ ] **A11 — Trigger `onDay` du jour 1 indéclenchable.** Le schéma accepte
+- [x] **A11 — Trigger `onDay` du jour 1 indéclenchable.** Le schéma accepte
   `day ≥ 1` (`content/schemas.ts:564`) mais `fireDayTriggers` n'est appelé
   qu'à la bascule de jour (`core/engine.ts:541`), jamais à `StartGame`
   (jour 1, engine.ts:429). Appeler les triggers du jour 1 en fin de

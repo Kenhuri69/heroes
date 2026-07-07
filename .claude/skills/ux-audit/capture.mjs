@@ -29,7 +29,8 @@ const SCREENS = [
     open: async (page) => {
       await page.goto(`${BASE}?seed=42`);
       await ready(page);
-      await page.getByTestId('town-open').click({ timeout: 5000 });
+      // U4 (multi-villes) : le testid est town-open-<id> — cibler par préfixe.
+      await page.locator('[data-testid^="town-open"]').first().click({ timeout: 5000 });
       await page.getByTestId('town-tab-build').waitFor({ timeout: 5000 });
     },
   },

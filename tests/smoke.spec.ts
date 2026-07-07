@@ -1338,6 +1338,26 @@ test('campagne : 2ᵉ maison (Necropolis) = données pures, apparaît et démarr
   expect(errors).toEqual([]);
 });
 
+test('campagne : 3ᵉ maison (Arcane Hunters) = données pures, apparaît et démarre (doc 13 N4a)', async ({ page }) => {
+  const errors = await openMenu(page);
+
+  // 3ᵉ test de modularité narratif : une 3ᵉ campagne existe sans un octet de moteur
+  // en plus — chapitre 1 jouable, chapitre 2 verrouillé.
+  await expect(page.getByTestId('menu-campaign-arcane-campaign')).toBeVisible();
+  await expect(page.getByTestId('menu-chapter-arcane-campaign-0')).toBeEnabled();
+  await expect(page.getByTestId('menu-chapter-arcane-campaign-1')).toBeDisabled();
+
+  // Le chapitre 1 démarre : héros Arcane Hunters, dialogue d'ouverture, quête active.
+  await page.evaluate(() => window.__HEROES_TEST__!.startCampaignChapter('arcane-campaign', 0));
+  await expect(page.getByTestId('end-turn')).toBeVisible();
+  await expect(page.getByTestId('dialogue-box')).toBeVisible();
+  const state = await page.evaluate(() => window.__HEROES_TEST__!.getState());
+  expect(state.heroes[0]?.factionId).toBe('arcane-hunters');
+  expect(state.quests?.quests.some((q) => q.def.id === 'arcane-ch1-avant-poste')).toBe(true);
+
+  expect(errors).toEqual([]);
+});
+
 test('cinématique : letterbox + Passer sur l’ouverture d’un chapitre (doc 13 N3c.1)', async ({ page }) => {
   const errors = await openMenu(page);
 

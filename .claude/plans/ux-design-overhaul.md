@@ -330,6 +330,9 @@ intercalé dès qu'un sourcing est validé).
   (`ux-d5-gestion.md`) ; poupée d'équipement typée (bloquée sur le schéma
   d'artefacts, sans champ `slot`) + réalignement écrans annexes (déjà sur tokens
   via le garde-fou CI) = suivis notés.
-- [~] UXD-6 — audio : cadrage + prompts (#101) + **architecture 6B livrée** (`ux-d6-audio.md`, règle F doc 12) ; reste la génération/dépôt des fichiers `assets/audio/`.
+- [~] UXD-6 — audio : cadrage + prompts (#101) + **architecture 6B livrée** +
+  **6C musiques déposées** (menu/aventure/combat/ville en OGG+M4A, < 800 Ko/boucle,
+  jouées par contexte, vérifiées runtime) (`ux-d6-audio.md`) ; reste les SFX +
+  fanfares victoire/défaite + sons d'UI (fournée suivante).
 - [x] UXD-7 — micro-interactions & transitions (`ux-d7-micro-interactions.md`).
 - [~] UXD-8 — mini-map desktop livrée (`ux-d8-desktop-minimap.md`) ; layout colonne droite complet + mini-map mobile = suivis notés.

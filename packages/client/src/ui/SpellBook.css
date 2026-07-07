@@ -53,11 +53,11 @@
   gap: 10px;
   width: 100%;
   padding: 8px 12px;
-  border: 1px solid #3a3d47;
-  border-radius: 8px;
-  background: #262a33;
-  color: #e8e2d0;
-  font: 600 0.875rem system-ui, sans-serif;
+  border: 1px solid var(--ink-600);
+  border-radius: var(--radius-m);
+  background: var(--ink-700);
+  color: var(--parchment);
+  font: 600 0.875rem var(--font-ui);
   text-align: left;
   cursor: pointer;
 }
@@ -84,10 +84,10 @@
   min-height: 44px;
   margin-bottom: 10px;
   padding: 6px 12px;
-  border: 1px solid #3a3d47;
-  border-radius: 8px;
-  background: #262a33;
-  color: #e8e2d0;
+  border: 1px solid var(--ink-600);
+  border-radius: var(--radius-m);
+  background: var(--ink-700);
+  color: var(--parchment);
   cursor: pointer;
 }
 
@@ -103,24 +103,24 @@
 .spell-target {
   min-height: 44px;
   padding: 8px 12px;
-  border: 1px solid #3a3d47;
-  border-radius: 8px;
-  background: #262a33;
-  color: #e8e2d0;
+  border: 1px solid var(--ink-600);
+  border-radius: var(--radius-m);
+  background: var(--ink-700);
+  color: var(--parchment);
   cursor: pointer;
 }
 
 .spell-target.selected {
-  border-color: #f1c40f;
-  box-shadow: 0 0 0 1px #f1c40f inset;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 1px var(--gold) inset;
 }
 
 .spell-preview {
   margin: 10px 0;
   padding: 8px 12px;
-  border: 1px solid #3a3d47;
-  border-radius: 8px;
-  background: rgba(16, 18, 24, 0.6);
+  border: 1px solid var(--ink-600);
+  border-radius: var(--radius-m);
+  background: var(--veil-60);
   text-align: center;
 }
 
@@ -128,16 +128,16 @@
   min-height: 44px;
   width: 100%;
   padding: 10px 14px;
-  border: 1px solid #3a3d47;
-  border-radius: 8px;
-  background: #7a2d22;
-  color: #e8e2d0;
-  font: 700 0.875rem system-ui, sans-serif;
+  border: 1px solid var(--ink-600);
+  border-radius: var(--radius-m);
+  background: var(--blood);
+  color: var(--parchment);
+  font: 700 0.875rem var(--font-ui);
   cursor: pointer;
 }
 
 .spellbook-cast:disabled {
   cursor: default;
   opacity: 0.45;
-  background: #262a33;
+  background: var(--ink-700);
 }

@@ -164,6 +164,17 @@ Menu principal (Continuer / Scénarios / Escarmouche / **Éditeur de carte** / O
 - Chaque faction a sa palette et son langage de formes (Haven : verticales dorées ; Necropolis : aiguilles et voiles ; Arcane Hunters : violet nuit, argent, lanternes) — définis dans le paquet de faction.
 - Placeholders : au MVP, des sprites génériques teintés + icônes suffisent ; la DA finale arrive par faction en Alpha/Beta.
 
+> 🚧 **État UXD-1 (design system « gouache »)** : l'UI DOM a une **source
+> unique de style** — `ui/tokens.css` (palette encre/parchemin/laiton/sang
+> reprise des valeurs existantes, voiles, rayons, durées, familles de police),
+> consommée par toutes les feuilles via `var(--…)` ; **aucun littéral de
+> couleur hors tokens** (garde-fou CI, même esprit que le garde-fou faction).
+> **Voix display** : Cinzel (OFL, capitales trajanes, WOFF2 latin ~26 Ko servi
+> localement, repli `Georgia, serif`) sur les titres d'écrans/modales, les
+> boutons de menu, « Fin de tour » et le round de combat ; le corps de texte
+> reste `system-ui` (lisibilité). Les teintes elles-mêmes seront raffinées par
+> les lots visuels (UXD-4/5) sur cette base.
+
 > 🚧 **État U5-B (décors peints branchés)** : les fonds peints du staging
 > (`assets/backgrounds/*.jpg`, logo) sont câblés via le registre d'assets
 > (résolveurs `townBackgroundUrl`/`combatBackgroundUrl`/`outcomeBackgroundUrl`/

@@ -20,7 +20,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: rgba(10, 11, 15, 0.55);
+  background: var(--veil-deep);
   z-index: 0;
 }
 
@@ -40,16 +40,16 @@
   width: 100%;
 }
 .power-chart-title {
-  font: 600 0.9rem system-ui, sans-serif;
-  color: #c3c2b7; /* encre secondaire (jamais la couleur de série) */
+  font: 600 0.9rem var(--font-ui);
+  color: var(--parchment-dim); /* encre secondaire (jamais la couleur de série) */
   margin-bottom: 8px;
 }
 /* Étiquettes en jetons d'encre — l'identité est portée par la barre + le libellé. */
 .power-chart .power-label {
-  fill: #c3c2b7;
-  font: 600 0.8rem system-ui, sans-serif;
+  fill: var(--parchment-dim);
+  font: 600 0.8rem var(--font-ui);
 }
 .power-chart .power-value {
-  fill: #e8e8ea;
-  font: 700 0.8rem system-ui, sans-serif;
+  fill: var(--parchment-bright);
+  font: 700 0.8rem var(--font-ui);
 }

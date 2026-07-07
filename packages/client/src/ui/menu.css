@@ -12,17 +12,17 @@
   overflow-y: auto;
   gap: 32px;
   padding: 24px 16px;
-  background: #14161c;
+  background: var(--ink-900);
   background-size: cover;
   background-position: center;
-  color: #e8e2d0;
-  font: 1rem/1.4 system-ui, sans-serif;
+  color: var(--parchment);
+  font: 1rem/1.4 var(--font-ui);
   pointer-events: auto;
 }
 
 .menu-title-text {
   margin: 0;
-  font-size: clamp(2rem, 8vw, 3.5rem);
+  font: 700 clamp(2rem, 8vw, 3.5rem) var(--font-display); /* voix display UXD-1 */
   letter-spacing: 0.04em;
 }
 
@@ -44,18 +44,18 @@
   width: min(80vw, 320px);
   /* Voile sombre derrière les boutons pour rester lisible sur le fond peint. */
   padding: 16px;
-  border-radius: 12px;
-  background: rgba(20, 22, 28, 0.55);
+  border-radius: var(--radius-l);
+  background: var(--veil-55);
 }
 
 .menu-button {
   min-height: 48px;
   padding: 10px 18px;
-  border: 1px solid #3a3d47;
-  border-radius: 8px;
-  background: #262a33;
-  color: #e8e2d0;
-  font: 600 1rem system-ui, sans-serif;
+  border: 1px solid var(--ink-600);
+  border-radius: var(--radius-m);
+  background: var(--ink-700);
+  color: var(--parchment);
+  font: 600 1rem var(--font-display); /* voix display UXD-1 */
   cursor: pointer;
 }
 
@@ -66,7 +66,7 @@
 
 .menu-section-title {
   margin: 0;
-  font-size: 0.8125rem;
+  font: 600 0.8125rem var(--font-display); /* voix display UXD-1 */
   text-transform: uppercase;
   letter-spacing: 0.04em;
   opacity: 0.75;

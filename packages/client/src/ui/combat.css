@@ -4,8 +4,8 @@
 .combat-ui {
   position: fixed;
   inset: 0;
-  font: 0.875rem/1.4 system-ui, sans-serif;
-  color: #e8e2d0;
+  font: 0.875rem/1.4 var(--font-ui);
+  color: var(--parchment);
 }
 
 .combat-armies {
@@ -18,7 +18,7 @@
   justify-content: space-between;
   gap: 8px;
   padding: 8px 12px;
-  background: rgba(16, 18, 24, 0.85);
+  background: var(--veil-85);
   pointer-events: auto;
 }
 
@@ -36,7 +36,7 @@
 .combat-round {
   flex: none;
   padding: 4px 12px;
-  font-weight: 700;
+  font: 700 1rem var(--font-display); /* voix display UXD-1 */
   white-space: nowrap;
 }
 
@@ -46,14 +46,14 @@
   gap: 6px;
   min-height: 32px;
   padding: 4px 8px;
-  border: 1px solid #3a3d47;
-  border-radius: 6px;
-  background: #1c1e25;
+  border: 1px solid var(--ink-600);
+  border-radius: var(--radius-s);
+  background: var(--ink-800);
 }
 
 .stack-chip-active {
-  border-color: #f1c40f;
-  box-shadow: 0 0 0 1px #f1c40f inset;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 1px var(--gold) inset;
 }
 
 .stack-chip-count {
@@ -86,9 +86,9 @@
 .damage-preview {
   max-width: min(92vw, 480px);
   padding: 8px 14px;
-  border: 1px solid #3a3d47;
-  border-radius: 8px;
-  background: rgba(16, 18, 24, 0.9);
+  border: 1px solid var(--ink-600);
+  border-radius: var(--radius-m);
+  background: var(--veil-90);
   text-align: center;
   pointer-events: none;
 }
@@ -101,7 +101,7 @@
   flex-wrap: wrap;
   gap: 8px;
   padding: 10px 12px;
-  background: rgba(16, 18, 24, 0.85);
+  background: var(--veil-85);
   pointer-events: auto;
 }
 
@@ -109,11 +109,11 @@
   min-height: 44px;
   min-width: 44px;
   padding: 8px 14px;
-  border: 1px solid #3a3d47;
-  border-radius: 8px;
-  background: #262a33;
-  color: #e8e2d0;
-  font: 600 0.875rem system-ui, sans-serif;
+  border: 1px solid var(--ink-600);
+  border-radius: var(--radius-m);
+  background: var(--ink-700);
+  color: var(--parchment);
+  font: 600 0.875rem var(--font-ui);
   cursor: pointer;
 }
 
@@ -131,17 +131,17 @@
   min-height: 44px;
   min-width: 44px;
   padding: 8px 10px;
-  border: 1px solid #3a3d47;
-  border-radius: 8px;
-  background: #262a33;
-  color: #e8e2d0;
-  font: 600 0.875rem system-ui, sans-serif;
+  border: 1px solid var(--ink-600);
+  border-radius: var(--radius-m);
+  background: var(--ink-700);
+  color: var(--parchment);
+  font: 600 0.875rem var(--font-ui);
   cursor: pointer;
 }
 
 .combat-speeds button.active {
-  background: #7a2d22;
-  border-color: #a0503f;
+  background: var(--blood);
+  border-color: var(--blood-bright);
 }
 
 /* Viewport étroit (UXD-0 R4) : round en tête pleine largeur, puis une rangée

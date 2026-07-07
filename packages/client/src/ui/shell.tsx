@@ -29,6 +29,7 @@ import { OutcomeOverlay } from './OutcomeOverlay';
 import { FactionBadge } from './FactionBadge';
 import { DialogueBox } from './DialogueBox';
 import { QuestJournal } from './QuestJournal';
+import './tokens.css'; // design tokens UXD-1 — à charger avant toute feuille
 import './styles.css';
 
 export function mountUi(root: HTMLElement): void {

@@ -54,6 +54,27 @@ jobs:
           fi
           echo "aucun ID de faction dans packages/ ✓"
 
+      # Invariant design system (UXD-1, plan ux-design-overhaul §3) : les
+      # couleurs de l'UI DOM vivent dans ui/tokens.css UNIQUEMENT — aucun
+      # littéral #hex / rgb()/rgba() dans les autres feuilles (toujours
+      # var(--…)). Même triptyque de statuts grep que le garde-fou faction.
+      - name: Vérifier l'absence de couleurs en dur hors tokens.css
+        run: |
+          set +e
+          hits=$(grep -rInE '#[0-9a-fA-F]{3,8}\b|rgba?\(' packages/client/src/ui \
+            --include='*.css' --exclude='tokens.css')
+          status=$?
+          set -e
+          if [ "$status" -eq 0 ]; then
+            echo "::error::couleur(s) en dur hors ui/tokens.css :"
+            echo "$hits"
+            exit 1
+          elif [ "$status" -ne 1 ]; then
+            echo "::error::échec de l'exécution de grep (statut ${status})"
+            exit 1
+          fi
+          echo "aucune couleur en dur hors tokens.css ✓"
+
       - run: pnpm build
 
       # Budget perf (doc 07 §6) : bundle initial JS+CSS < 800 Ko gzip.

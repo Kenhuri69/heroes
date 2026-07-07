@@ -14,11 +14,11 @@
 
 .toast {
   padding: 8px 14px;
-  border: 1px solid #3a3d47;
-  border-radius: 8px;
-  background: rgba(16, 18, 24, 0.92);
-  color: #e8e2d0;
-  font: 0.875rem/1.4 system-ui, sans-serif;
+  border: 1px solid var(--ink-600);
+  border-radius: var(--radius-m);
+  background: var(--veil-92);
+  color: var(--parchment);
+  font: 0.875rem/1.4 var(--font-ui);
   text-align: center;
   max-width: min(90vw, 420px);
 }

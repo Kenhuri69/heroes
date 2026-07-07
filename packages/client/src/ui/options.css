@@ -7,7 +7,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(10, 11, 14, 0.6);
+  background: var(--veil-deep);
   pointer-events: auto;
   z-index: 20;
 }
@@ -17,11 +17,11 @@
   max-height: 86vh;
   overflow-y: auto;
   padding: 16px 18px;
-  border: 1px solid #3a3d47;
+  border: 1px solid var(--ink-600);
   border-radius: 10px;
-  background: #1c1e25;
-  color: #e8e2d0;
-  font: 0.875rem/1.4 system-ui, sans-serif;
+  background: var(--ink-800);
+  color: var(--parchment);
+  font: 0.875rem/1.4 var(--font-ui);
 }
 
 .modal-header {
@@ -33,16 +33,16 @@
 
 .modal-header h2 {
   margin: 0;
-  font-size: 1.125rem;
+  font: 700 1.125rem var(--font-display); /* voix display UXD-1 (tous les écrans modaux) */
 }
 
 .modal-close {
   min-height: 44px;
   min-width: 44px;
-  border: 1px solid #3a3d47;
-  border-radius: 8px;
-  background: #262a33;
-  color: #e8e2d0;
+  border: 1px solid var(--ink-600);
+  border-radius: var(--radius-m);
+  background: var(--ink-700);
+  color: var(--parchment);
   font-size: 1.125rem;
   cursor: pointer;
 }
@@ -68,17 +68,17 @@
   min-height: 44px;
   flex: 1;
   padding: 6px 10px;
-  border: 1px solid #3a3d47;
-  border-radius: 8px;
-  background: #262a33;
-  color: #e8e2d0;
-  font: 600 0.875rem system-ui, sans-serif;
+  border: 1px solid var(--ink-600);
+  border-radius: var(--radius-m);
+  background: var(--ink-700);
+  color: var(--parchment);
+  font: 600 0.875rem var(--font-ui);
   cursor: pointer;
 }
 
 .segmented button.active {
-  background: #7a2d22;
-  border-color: #a0503f;
+  background: var(--blood);
+  border-color: var(--blood-bright);
 }
 
 .options-save-actions {
@@ -94,11 +94,11 @@
   align-items: center;
   justify-content: center;
   padding: 8px 14px;
-  border: 1px solid #3a3d47;
-  border-radius: 8px;
-  background: #262a33;
-  color: #e8e2d0;
-  font: 600 0.875rem system-ui, sans-serif;
+  border: 1px solid var(--ink-600);
+  border-radius: var(--radius-m);
+  background: var(--ink-700);
+  color: var(--parchment);
+  font: 600 0.875rem var(--font-ui);
   cursor: pointer;
   position: relative;
 }
@@ -121,11 +121,11 @@
   width: 100%;
   min-height: 44px;
   padding: 0 12px;
-  border: 1px solid #3a3f4b;
-  border-radius: 8px;
-  background: #262a33;
-  color: #e8e2d0;
-  font: 600 0.9375rem system-ui, sans-serif;
+  border: 1px solid var(--ink-600);
+  border-radius: var(--radius-m);
+  background: var(--ink-700);
+  color: var(--parchment);
+  font: 600 0.9375rem var(--font-ui);
   cursor: pointer;
 }
 

@@ -5,8 +5,8 @@
   flex-direction: column;
   gap: 8px;
   padding: 12px;
-  background: #1a1c22;
-  color: #e8e2d0;
+  background: var(--ink-900);
+  color: var(--parchment);
   overflow: auto;
   z-index: 5;
   /* #ui-root est en pointer-events: none (index.html) : réactiver ici pour que
@@ -35,10 +35,10 @@
   min-height: 44px;
   padding: 0 8px;
   width: 6rem;
-  border: 1px solid #3a3f4b;
-  border-radius: 8px;
-  background: #262a33;
-  color: #e8e2d0;
+  border: 1px solid var(--ink-600);
+  border-radius: var(--radius-m);
+  background: var(--ink-700);
+  color: var(--parchment);
 }
 
 .map-editor-tools .tool,
@@ -47,31 +47,31 @@
   min-height: 44px;
   min-width: 44px;
   padding: 0 12px;
-  border: 1px solid #3a3f4b;
-  border-radius: 8px;
-  background: #262a33;
-  color: #e8e2d0;
-  font: 600 0.8125rem system-ui, sans-serif;
+  border: 1px solid var(--ink-600);
+  border-radius: var(--radius-m);
+  background: var(--ink-700);
+  color: var(--parchment);
+  font: 600 0.8125rem var(--font-ui);
   cursor: pointer;
 }
 
 .map-editor-tools .tool.active {
-  outline: 2px solid #f1c40f;
+  outline: 2px solid var(--gold);
 }
 
 /* Teintes de terrain (palette + cellules) — non chromatiques seules : le libellé
    d'outil et l'aria-label portent l'info (accessibilité doc 08 §4). */
 .terrain-grass {
-  background: #5a8f3c;
+  background: var(--terrain-grass);
 }
 .terrain-swamp {
-  background: #6b7a3a;
+  background: var(--terrain-swamp);
 }
 .terrain-water {
-  background: #2e6b9e;
+  background: var(--terrain-water);
 }
 .terrain-mountain {
-  background: #7a6f5f;
+  background: var(--terrain-mountain);
 }
 
 .map-editor-grid {
@@ -79,7 +79,7 @@
   gap: 1px;
   max-width: 100%;
   overflow: auto;
-  border: 1px solid #3a3f4b;
+  border: 1px solid var(--ink-600);
   align-self: start;
 }
 
@@ -97,19 +97,19 @@
   inset: 0;
   display: grid;
   place-items: center;
-  font: 700 0.75rem system-ui, sans-serif;
-  color: #1a1c22;
-  text-shadow: 0 0 2px #fff;
+  font: 700 0.75rem var(--font-ui);
+  color: var(--ink-900);
+  text-shadow: 0 0 2px var(--white);
 }
 .map-editor-grid .cell .mark.start {
-  background: rgba(241, 196, 15, 0.55);
+  background: var(--gold-veil);
 }
 
 .map-editor-message.ok {
-  color: #7ed08a;
+  color: var(--ok-text);
 }
 .map-editor-message.err {
-  color: #e0736b;
+  color: var(--danger-text);
 }
 
 .map-editor-import input[type='file'] {

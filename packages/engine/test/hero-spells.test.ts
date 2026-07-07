@@ -374,3 +374,24 @@ describe('Lot A-2 — héros (A7 artefact Savoir, A8 sort d’aventure hors comb
     expect(validateCastSpell(state, { type: 'CastSpell', spellId: 'bolt', targetStackId: 'defender-0' })).toBeNull();
   });
 });
+
+describe('Lot D — D10 : la Marque amplifie les dégâts de sort', () => {
+  it('un sort de dégâts frappe plus fort une cible marquée (préviz reflète le bonus)', () => {
+    const catalog = { def: unit({ id: 'def', stats: { hp: 1000, attack: 0, defense: 0, damage: [1, 1], speed: 5 } }) };
+    const h = hero({ spells: ['bolt'], attributes: { attack: 0, defense: 0, power: 3, knowledge: 0 } });
+    const est = (marks: number): number => {
+      const attacker = stack({ id: 'attacker-0', side: 'attacker', slot: 0, unitId: 'def', count: 1, pos: { col: 0, row: 0 } });
+      const target = stack({ id: 'defender-0', side: 'defender', slot: 0, unitId: 'def', count: 5, pos: { col: 1, row: 0 }, firstHp: 1000, marks });
+      const state: GameState = {
+        ...baseState(catalog),
+        spellCatalog: SPELLS,
+        heroes: [h],
+        combat: combatState([attacker, target], { attackerHeroId: h.id, activeStackId: 'attacker-0' }),
+      };
+      return estimateSpell(state, 'bolt', 'defender-0').amount;
+    };
+    // bolt = 10 + 2×3 = 16 ; +8 %/marque × 2 ⇒ ×1,16 ⇒ round(18,56) = 19.
+    expect(est(0)).toBe(16);
+    expect(est(2)).toBe(19);
+  });
+});

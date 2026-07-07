@@ -516,3 +516,29 @@ describe('performStrike / applyAction — intégration dégâts', () => {
     expect(next.combat?.stacks.find((s) => s.id === 'attacker-0')?.ammo).toBe(2);
   });
 });
+
+describe('Lot D — D5 : la riposte ne consomme pas les Marques', () => {
+  it('un riposteur porteur de consumeMarks ne dépense pas les marques de l’attaquant', () => {
+    const catalog = {
+      x: unit({ id: 'x', stats: { hp: 100, attack: 5, defense: 5, damage: [1, 1], speed: 5 } }),
+      y: unit({
+        id: 'y',
+        stats: { hp: 100, attack: 5, defense: 5, damage: [1, 1], speed: 5 },
+        abilities: [{ id: 'consumeMarks', params: { cost: 1, damageBonus: 0.5 } }],
+      }),
+    };
+    // X (sans consumeMarks) attaque Y ; X porte 2 marques. Y riposte (Y a
+    // consumeMarks, X est la victime marquée) — sous le bug, la riposte consommait
+    // les marques de X. D5 : la riposte ne consomme rien.
+    const attacker = stack({ id: 'attacker-0', side: 'attacker', slot: 0, unitId: 'x', count: 3, pos: { col: 0, row: 0 }, firstHp: 100, marks: 2 });
+    const defender = stack({ id: 'defender-0', side: 'defender', slot: 0, unitId: 'y', count: 3, pos: { col: 1, row: 0 }, firstHp: 100 });
+    const state: GameState = { ...baseState(catalog), combat: combatState([attacker, defender]) };
+    const events: GameEvent[] = [];
+    const next = produce(state, (draft) => {
+      applyAction(draft, events, 'attacker-0', { type: 'attack', targetStackId: 'defender-0' });
+    });
+    expect(next.combat?.stacks.find((s) => s.id === 'attacker-0')?.marks).toBe(2);
+    // Aucune consommation de marque émise.
+    expect(events.some((e) => e.type === 'MarksConsumed')).toBe(false);
+  });
+});

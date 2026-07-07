@@ -35,8 +35,12 @@ export function spellDamageAmount(
   power: number,
   lucky: boolean,
   magicResistance = 0,
+  /** Bonus de Marque contre la cible (D10, doc 05 §6) : `markBonusPerStack × charges` — 0 hors marque. */
+  markBonus = 0,
 ): number {
-  return Math.round((spell.base + spell.perPower * power) * (1 - magicResistance) * (lucky ? 2 : 1));
+  return Math.round(
+    (spell.base + spell.perPower * power) * (1 - magicResistance) * (1 + markBonus) * (lucky ? 2 : 1),
+  );
 }
 
 /** Soin d'un sort — même base que les dégâts, sans résistance ni chance. */

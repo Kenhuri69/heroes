@@ -143,12 +143,17 @@ function grantHeroCombatXp(
   casualties: { side: CombatSideId; unitId: string; lost: number }[],
   events: GameEvent[],
 ): void {
-  if (!combat.heroId || winner !== 'attacker') return;
+  // D1 : le héros du camp VAINQUEUR gagne l'XP — plus seulement l'attaquant : un
+  // héros qui l'emporte en DÉFENSE (siège subi) en bénéficie aussi. Arène (aucun
+  // héros lié) : rien. XP = Σ(PV unitaire × pertes infligées au camp PERDANT).
+  const winnerHeroId = winner === 'attacker' ? combat.attackerHeroId : combat.defenderHeroId;
+  if (!winnerHeroId) return;
+  const loserSide: CombatSideId = winner === 'attacker' ? 'defender' : 'attacker';
   const xpPerHpKilled = draft.config?.hero.xpPerHpKilled ?? 0;
   const hpLost = casualties
-    .filter((c) => c.side === 'defender')
+    .filter((c) => c.side === loserSide)
     .reduce((sum, c) => sum + (draft.unitCatalog[c.unitId]?.stats.hp ?? 0) * c.lost, 0);
-  grantXp(draft, events, combat.heroId, Math.round(hpLost * xpPerHpKilled));
+  grantXp(draft, events, winnerHeroId, Math.round(hpLost * xpPerHpKilled));
 }
 
 function applyConsequences(

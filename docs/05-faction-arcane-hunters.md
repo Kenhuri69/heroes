@@ -51,7 +51,10 @@ Faction inédite, produite en **Alpha** — elle sert de validation grandeur nat
 > `gainFactionResourceOnVictory { resource, amount }` (variante de `factionBonus`,
 > comme la Nécromancie) : chaque combat gagné crédite le joueur (event
 > `FactionResourceGained`, toast i18n, affichage barre de ressources). Données :
-> le manifeste AH gagne +10 Essence/victoire (« vivre de ses combats »). Le
+> le manifeste AH gagne +10 Essence/victoire **en tant qu'attaquant** (remédiation
+> D2 : les effets de faction post-victoire sont crédités au héros attaquant
+> vainqueur ; l'extension au défenseur vainqueur suivra la boucle « héros en
+> défense », inexistante aujourd'hui). Le
 > loader vérifie que la ressource est déclarée dans `factionResources`. Zéro nom
 > de faction dans le moteur (garde-fou vert). **Dépense** d'Essence (T8/upgrades)
 > = 4.6 ; **Contrats de chasse** (hook d'aventure hebdomadaire, autre point) =

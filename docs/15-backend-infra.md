@@ -138,8 +138,13 @@ GitHub**, jamais en clair. Étapes de l'utilisateur (une fois) :
    - `CLOUDFLARE_API_TOKEN` = le token ;
    - `CLOUDFLARE_ACCOUNT_ID` = l'id de compte (Cloudflare → Workers & Pages →
      colonne de droite « Account ID »).
-3. **Déployer le Worker** — Actions → **Deploy Worker** → *Run workflow*. L'URL
-   apparaît dans les logs (`https://heroes.<sous-domaine>.workers.dev`).
+3. **Déployer le Worker** — Actions → **Deploy Worker** → *Run workflow*. Si le
+   compte n'a **jamais enregistré de sous-domaine workers.dev**, le Worker se
+   téléverse mais n'a aucune URL publique (erreur *« register a workers.dev
+   subdomain »*). Dans ce cas, relancer le workflow en renseignant le champ
+   **`subdomain`** (ex. `kenhuri`) : une étape enregistre le sous-domaine via
+   l'API Cloudflare (le token secret sert d'auth, idempotent) avant de déployer.
+   L'URL apparaît alors dans les logs (`https://heroes.<sous-domaine>.workers.dev`).
 4. **Variable GitHub** (même écran, onglet *Variables*) : `VITE_BACKEND_URL` =
    cette URL. **Absente ⇒ client hors-ligne** (défaut sûr).
 5. **Publier le client** — Actions → **Deploy to GitHub Pages** → *Run workflow*

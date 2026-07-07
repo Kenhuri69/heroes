@@ -9,6 +9,14 @@ name: Deploy Worker
 
 on:
   workflow_dispatch:
+    inputs:
+      subdomain:
+        description: >-
+          Sous-domaine workers.dev à enregistrer (UNE fois, si le compte n'en a
+          pas encore : le Worker n'a alors aucune URL publique). Laisser vide
+          pour ne rien changer. Ex. « kenhuri » ⇒ heroes.kenhuri.workers.dev
+        required: false
+        default: ''
   push:
     branches: [main]
     paths:
@@ -43,6 +51,31 @@ jobs:
           if [ -z "${{ secrets.CLOUDFLARE_API_TOKEN }}" ]; then
             echo "::error::Secret CLOUDFLARE_API_TOKEN manquant. Voir docs/15 §10."
             exit 1
+          fi
+
+      # Enregistre un sous-domaine workers.dev via l'API Cloudflare (le token
+      # secret sert d'auth) SI l'opérateur en a fourni un au lancement manuel et
+      # que le compte n'en a pas déjà un. Sans sous-domaine, `wrangler deploy`
+      # téléverse le Worker mais ne peut lui donner d'URL publique *.workers.dev.
+      # Idempotent : ne fait rien si un sous-domaine existe déjà.
+      - name: Enregistrer le sous-domaine workers.dev (si demandé)
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.subdomain != '' }}
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          SUB: ${{ inputs.subdomain }}
+        run: |
+          base="https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT/workers/subdomain"
+          current=$(curl -s -H "Authorization: Bearer $CF_TOKEN" "$base" \
+            | python3 -c "import sys,json;d=json.load(sys.stdin);print((d.get('result') or {}).get('subdomain') or '')")
+          if [ -n "$current" ]; then
+            echo "Sous-domaine déjà enregistré : ${current}.workers.dev — aucune modification."
+          else
+            echo "Enregistrement du sous-domaine : ${SUB}.workers.dev"
+            resp=$(curl -s -X PUT -H "Authorization: Bearer $CF_TOKEN" \
+              -H "Content-Type: application/json" --data "{\"subdomain\":\"$SUB\"}" "$base")
+            echo "$resp" | python3 -c "import sys,json;d=json.load(sys.stdin);print('success:',d.get('success'));print('errors:',d.get('errors'))"
+            echo "$resp" | python3 -c "import sys,json;sys.exit(0 if json.load(sys.stdin).get('success') else 1)"
           fi
 
       # Wrangler est invoqué via pnpm (et NON cloudflare/wrangler-action, qui

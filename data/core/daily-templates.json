@@ -1,0 +1,32 @@
+{
+  "templates": [
+    {
+      "id": "muster",
+      "condition": { "type": "recruitTier", "tier": 1, "count": 15 },
+      "reward": { "type": "resources", "resources": { "gold": 600 } },
+      "titleKey": "@loc:daily.muster.title",
+      "descriptionKey": "@loc:daily.muster.desc"
+    },
+    {
+      "id": "warband",
+      "condition": { "type": "recruitTier", "tier": 2, "count": 6 },
+      "reward": { "type": "resources", "resources": { "gold": 800 } },
+      "titleKey": "@loc:daily.warband.title",
+      "descriptionKey": "@loc:daily.warband.desc"
+    },
+    {
+      "id": "fortify",
+      "condition": { "type": "buildStructure", "buildingId": "fort" },
+      "reward": { "type": "resources", "resources": { "wood": 5, "ore": 5 } },
+      "titleKey": "@loc:daily.fortify.title",
+      "descriptionKey": "@loc:daily.fortify.desc"
+    },
+    {
+      "id": "endure",
+      "condition": { "type": "surviveDays", "days": 3 },
+      "reward": { "type": "resources", "resources": { "gold": 900 } },
+      "titleKey": "@loc:daily.endure.title",
+      "descriptionKey": "@loc:daily.endure.desc"
+    }
+  ]
+}

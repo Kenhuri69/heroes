@@ -25,9 +25,9 @@ export function QuestJournal() {
             >
               <span class="quest-journal-title">
                 {title}
-                {q.kind === 'personal' && (
+                {(q.kind === 'personal' || q.kind === 'daily') && (
                   <span class="quest-journal-kind" data-testid={`quest-kind-${q.id}`}>
-                    {t('journal.kind.personal')}
+                    {t(`journal.kind.${q.kind}`)}
                   </span>
                 )}
               </span>

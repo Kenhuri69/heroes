@@ -1,5 +1,6 @@
 import type { DialogNode, Scenario } from '@heroes/content';
 import { eventBus } from './events';
+import type { DailyQuestMeta } from './daily';
 import { setCampaignFlag } from './campaign';
 import { t } from './i18n';
 import { appStore, type NarrativeCatalog, type QuestJournalEntry } from './store';
@@ -45,6 +46,38 @@ export function loadScenarioNarrative(scenario: Scenario): void {
   });
   // Dialogue d'ouverture (doc 13 §6.3) : joué avant les `dialogBefore` d'étape 0.
   if (scenario.openingDialog) enqueueDialog(scenario.openingDialog);
+}
+
+/**
+ * Narration du mode libre (doc 13 §4.2, N4c) : catalogue minimal (quêtes seules,
+ * sans dialogue ni bark) pour que les `QuestStarted` des quêtes journalières
+ * peuplent le journal avec leur `kind: daily`. Appelé avant le `StartGame`
+ * d'escarmouche, comme `loadScenarioNarrative` pour un scénario.
+ */
+export function loadFreeModeNarrative(metas: DailyQuestMeta[]): void {
+  const catalog: NarrativeCatalog = {
+    dialogs: {},
+    characters: {},
+    quests: Object.fromEntries(
+      metas.map((m) => [
+        m.id,
+        {
+          titleKey: m.titleKey,
+          ...(m.descriptionKey !== undefined ? { descriptionKey: m.descriptionKey } : {}),
+          kind: m.kind,
+          steps: m.steps.map((s) => ({ id: s.id })),
+        },
+      ]),
+    ),
+    combatBarks: [],
+  };
+  appStore.setState({
+    narrative: catalog,
+    dialogue: null,
+    dialogueQueue: [],
+    questJournal: [],
+    combatBark: null,
+  });
 }
 
 /** Enfile un dialogue : joué immédiatement si aucun n'est actif, sinon en attente. */

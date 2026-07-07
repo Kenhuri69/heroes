@@ -89,3 +89,28 @@ vont sur menu/aventure) :
 - **Reste** : SFX (10) + fanfares victoire/défaite + `combat-shoot` + sons d'UI
   = fournée suivante ; couture de boucle des 2 pistes tronquées à peaufiner si
   l'oreille l'exige (retravail annoncé « après » par l'utilisateur).
+
+## Livraison 6D — SFX procéduraux (2026-07-07)
+
+Décision utilisateur : le modèle *musique* de Gemini produit des lits
+mélodiques (ex. un « SFX » rendu = 30 s continu), inadapté aux one-shots courts
+et secs → génération **procédurale déterministe** (« Freesound en autonomie ou
+son procédural » ; procédural retenu : sans licence tierce, sans réseau, sous
+contrôle total, cohérent avec la Règle P).
+
+- `tools/assets/gen_sfx.py` (nouveau) : synthèse pur stdlib (sine/chirp/noise +
+  filtres 1-pôle + enveloppes exponentielles) puis encodage ffmpeg
+  **OGG (Vorbis) + repli M4A**. RNG seedé ⇒ reproductible.
+- **6 SFX câblés** générés : `combat-hit` (impact métal+thud), `combat-spell`
+  (balayage montant + shimmer), `combat-death` (chute descendante + clatter),
+  `end-turn` (appel de cor 2 notes E→A, adouci), `map-step` (thud + herbe),
+  `map-pickup` (cloche inharmonique brillante). Tous **< 10 Ko/format** (budget
+  Règle F : SFX < 60 Ko).
+- **Vérif runtime** (build de prod, arène) : l'auto-combat déclenche
+  **`combat-hit.ogg` et `combat-death.ogg`** (même chemin `playSfx` que
+  map-step/pickup/end-turn côté carte) ; **0 erreur console** ; build vert,
+  budget JS/CSS inchangé (audio hors bundle).
+- **Reste** : `combat-shoot` + sons d'UI (tap/confirm/erreur) — non câblés
+  (nécessitent des hooks client) ; fanfares victoire/défaite — à sourcer ; la
+  fonction de synthèse UI est prête à ajouter au générateur si on ouvre le
+  câblage.

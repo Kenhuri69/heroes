@@ -196,6 +196,18 @@ Menu principal (Continuer / Scénarios / Escarmouche / **Éditeur de carte** / O
 > attack/hit/death) reste différée : le pipeline `asset-sheet` produit des sprites
 > statiques, pas des planches d'animation.
 
+> 🚧 **État UXD-3B (assets peints de la carte)** : les placeholders procéduraux
+> de la carte d'aventure sont remplacés par des sprites peints (règles A/C
+> doc 12, hors bundle, chargés async) avec **repli procédural gracieux** partout :
+> **héros monté** par faction (`map/hero-<faction>`, remplace l'écusson — le
+> portrait reste dans le tiroir), **château de ville** par faction
+> (`map/town-<faction>`, le liseré de siège doré reste posé par-dessus comme
+> 2ᵉ canal A5), et **objets** communs (`map/{chest,camp,signpost,shrine}` pour
+> coffre / habitation / lieu de bonus). Résolveurs faction-agnostiques
+> (`heroMapUrl`/`townMapUrl`/`mapPropUrl`). Le sandbox proto-01 utilise la
+> `test-faction` (sans asset) et garde donc le repli ; les scénarios et
+> escarmouches à faction réelle sont peints.
+
 > 🚧 **État UXD-3A (bord de monde)** : au-delà de la carte, le vide sombre
 > (« letterbox ») est remplacé par une **mer profonde** posée en **fond DOM de
 > `#canvas-root`** (coût de rendu par-frame nul, même approche que la toile de

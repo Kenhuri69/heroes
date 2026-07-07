@@ -11,9 +11,9 @@ import {
 } from '@heroes/engine';
 import { appStore } from '../../app/store';
 import { dispatch } from '../../app/dispatch';
-import { humanId, humanHeroes, heroArchetype, resolveSelectedHero } from '../../app/game';
+import { humanId, humanHeroes, resolveSelectedHero } from '../../app/game';
 import type { Camera } from '../../render/camera';
-import { heroAvatarUrl } from '../../render/assets';
+import { heroMapUrl } from '../../render/assets';
 import { Tilemap, TILE_SIZE } from '../../render/tilemap';
 import { MapObjectsLayer } from '../../render/mapObjects';
 import { playerColor } from '../../render/playerColors';
@@ -133,17 +133,18 @@ export class AdventureScene {
   }
 
   /**
-   * Jeton d'un héros sur la carte (doc 08 §5, lot U5-D) : écusson procédural de
-   * repli + **avatar** de faction/archétype (`assets/heroes/…`, chargé async,
-   * hors bundle). Repli gracieux si l'avatar est absent/en cours. Garde
-   * `destroyed`/`token.destroyed` : la scène peut être détruite avant la fin du
-   * chargement.
+   * Jeton d'un héros sur la carte (doc 08 §5, UXD-3B) : écusson procédural de
+   * repli + **sprite de héros monté** par faction (`assets/map/hero-<faction>`,
+   * chargé async, hors bundle) — lit bien mieux qu'un portrait à la taille d'une
+   * tuile (le portrait reste dans le tiroir héros). Repli gracieux si le sprite
+   * est absent/en cours. Garde `destroyed`/`token.destroyed` : la scène peut
+   * être détruite avant la fin du chargement.
    */
   private buildHeroToken(hero: HeroState): Container {
     const token = new Container();
     const fallback = buildHeroSprite(PLAYER_COLOR);
     token.addChild(fallback);
-    const url = heroAvatarUrl(hero.factionId, heroArchetype(hero.attributes));
+    const url = heroMapUrl(hero.factionId);
     if (url) {
       void Assets.load(url).then((texture) => {
         if (this.destroyed || token.destroyed) return;
@@ -151,8 +152,10 @@ export class AdventureScene {
         fallback.destroy();
         const sprite = new Sprite(texture);
         sprite.anchor.set(0.5);
-        sprite.width = TILE_SIZE * 0.92;
-        sprite.height = TILE_SIZE * 0.92;
+        // Ajuste la plus grande dimension à ~1,25 tuile (jeton lisible, le héros
+        // « occupe » sa case et déborde un peu comme dans HoMM).
+        const scale = (TILE_SIZE * 1.25) / Math.max(texture.width, texture.height);
+        sprite.scale.set(scale);
         sprite.position.set(TILE_SIZE / 2, TILE_SIZE / 2);
         token.addChild(sprite);
       });

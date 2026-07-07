@@ -18,15 +18,15 @@
 - [x] Étendre `gen_prompts.py` : familles `map-heroes` (règle A, héros monté par
       faction) et `map-props` (règle C, châteaux par faction + objets communs).
       → `assets/prompts/map-heroes.md`, `assets/prompts/map-props.md`.
-- [ ] **Utilisateur** : générer les 2 planches dans Gemini (fond gris clair
-      `#c8c8c8`), fournir les PNG.
-- [ ] Extraction QC (`sheet_extract.py`, commandes dans les .md) → PNG validés
+- [x] **Utilisateur** : 2 planches générées dans Gemini (fond gris clair
+      `#c8c8c8`) et fournies.
+- [x] Extraction QC (`sheet_extract.py`, commandes dans les .md) → PNG validés
       vers `assets/map/`. **Ne jamais committer un FAIL de QC** (doc 12 §8).
-- [ ] Câblage client (à la réception) : résolveurs `heroMapUrl`/`townMapUrl`/
+- [x] Câblage client (à la réception) : résolveurs `heroMapUrl`/`townMapUrl`/
       `mapPropUrl` dans `render/assets.ts` (faction-agnostiques, convention
       `assets/map/...`), consommés par `heroSprite.ts`/`townsLayer.ts`/
       `mapObjects.ts` avec **repli procédural gracieux** conservé (doc 12 §10.3).
-- [ ] Vérif : smoke « assets servis sans 404 » étendu, ux-audit, anti-gel carte,
+- [x] Vérif : smoke « assets servis sans 404 » étendu, ux-audit, anti-gel carte,
       budget (PNG hors bundle).
 
 ## Notes
@@ -37,3 +37,24 @@
   périmètre, guidelines §3) — à régénérer dans une passe assets dédiée.
 - Le drapeau de propriétaire de ville reste ajouté par le code (2ᵉ canal A5) ;
   l'asset de château reste neutre en couleur d'équipe.
+
+## Livraison (2026-07-07)
+
+- Planches reçues : héros rendus **4×2** (2 variantes/faction, retenu la rangée 1) ;
+  villes+objets avec **libellés texte incrustés** (prompt « no text » non
+  respecté par Gemini) → contourné en découpant la planche en 2 moitiés
+  (châteaux / objets) hors bandes de texte, extraites en 4×1. **QC verte** sur
+  les 16 sujets (8 héros, 4 châteaux, 4 objets).
+- 12 assets copiés dans `assets/map/` (< 260 Ko chacun, hors bundle) :
+  hero-{haven,arcane-hunters,necropolis,sylvan-court}, town-{idem},
+  chest, camp, signpost, shrine.
+- Câblage : résolveurs `heroMapUrl`/`townMapUrl`/`mapPropUrl` ;
+  `heroSprite` (jeton monté, remplace l'avatar-portrait sur la carte),
+  `townsLayer` (château, liseré de siège A5 conservé), `mapObjects`
+  (coffre/camp/panneau-autel) — **repli procédural gracieux partout**.
+- Preuves : tutoriel = **chevalier haven monté** peint dans l'anneau ;
+  escarmouche haven = **château haven** peint ; coffre/camp/panneau peints.
+  Le sandbox proto-01 (faction `test-faction`, sans asset) garde le repli —
+  attendu ; les scénarios/escarmouches à faction réelle sont peints.
+- Vérif : smokes **92 verts + 2 skipped**, « assets sans 404 » OK, anti-gel
+  carte 7,4 / arène 13,4 fps, typecheck/lint/build verts.

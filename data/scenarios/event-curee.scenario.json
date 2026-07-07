@@ -1,0 +1,50 @@
+{
+  "id": "event-curee",
+  "schemaVersion": 1,
+  "name": "@loc:scenario.event-curee.name",
+  "map": "proto-02",
+  "availability": { "from": "2020-01-01", "to": "2020-12-31" },
+  "players": [
+    {
+      "id": "player-1",
+      "controller": "human",
+      "factionId": "arcane-hunters",
+      "startPositionIndex": 0,
+      "startingResources": { "gold": 4000, "wood": 10, "ore": 20, "mercury": 5 },
+      "startingArmy": [
+        { "unitId": "t1-eleve", "count": 20 },
+        { "unitId": "t3-prefet", "count": 7 }
+      ],
+      "startingTown": {
+        "id": "start-town",
+        "x": 2,
+        "y": 4,
+        "prebuilt": [
+          { "building": "townHall", "level": 1 },
+          { "building": "arcane-hunters-dwelling-t1", "level": 1 }
+        ]
+      }
+    },
+    {
+      "id": "ai-1",
+      "controller": "ai",
+      "factionId": "necropolis",
+      "startPositionIndex": 1,
+      "startingResources": { "gold": 2500 },
+      "startingArmy": [
+        { "unitId": "t1-squelette", "count": 16 },
+        { "unitId": "t3-spectre", "count": 5 }
+      ]
+    }
+  ],
+  "objectives": {
+    "player-1": {
+      "victory": { "type": "defeatHero", "heroId": "hero-ai-1" },
+      "defeat": { "type": "defeatHero", "heroId": "hero-player-1" }
+    },
+    "ai-1": {
+      "victory": { "type": "eliminateAllEnemies" },
+      "defeat": { "type": "defeatHero", "heroId": "hero-ai-1" }
+    }
+  }
+}

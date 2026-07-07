@@ -26,4 +26,12 @@ export default tseslint.config(
       'no-restricted-globals': ['error', 'document', 'window'],
     },
   },
+  {
+    // Service worker PWA (lot 8.1) : contexte worker (ni DOM, ni Node) — déclare
+    // les globals du SW pour `no-undef`.
+    files: ['data/sw.js'],
+    languageOptions: {
+      globals: { self: 'readonly', caches: 'readonly', fetch: 'readonly', URL: 'readonly' },
+    },
+  },
 );

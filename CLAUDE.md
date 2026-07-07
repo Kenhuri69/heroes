@@ -134,6 +134,19 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > carte, vignettes de bâtiments, icônes d'artefacts, icônes de ressources.
 > Les docs `docs/0X-*.md` restent la source de vérité du design ; le code doit
 > s'y conformer.
+>
+> 🌐 **Beta — en ligne & PWA** (roadmap doc 09 Phase 3). Backend **déployé et en
+> ligne** (lots 7.1→7.6, doc 15) : Worker Cloudflare `heroes` sur
+> `https://heroes.kenhuri.workers.dev` (D1 `heroes` branchée ; déploiement en CI
+> via `deploy-worker.yml`, wrangler par **pnpm**, sous-domaine workers.dev
+> enregistré par l'API Cloudflare, token en secret GitHub), client republié avec
+> `VITE_BACKEND_URL` ⇒ bouton « En ligne » (auth magic-link, cloud saves, PvP
+> async) actif. Lot **8.1 — PWA hors-ligne** ✅ : coquille installable (manifeste
+> `data/manifest.webmanifest` + icônes générées sans dépendance) et **service
+> worker offline-first** `data/sw.js` *hand-rolled* (navigation network-first
+> repli cache, `/assets/` hashés cache-first, JSON de contenu
+> stale-while-revalidate ; enregistré en PROD only) — hors budget bundle ; smoke :
+> réseau coupé ⇒ l'app démarre depuis le cache.
 
 ---
 
@@ -178,6 +191,9 @@ data/
   factions/                      Paquets de faction (index.json + haven, arcane-hunters, test-faction, necropolis)
   maps/proto-01.map.json         Carte prototype 32×32 (légende, tuiles, routes, objets, départs)
   scenarios/                     Scénarios solo (index.json + tutorial/survival/conquest : joueurs, IA, objectifs)
+  manifest.webmanifest           PWA : manifeste installable (servi /heroes/, lot 8.1)
+  sw.js                          PWA : service worker offline-first hand-rolled (lot 8.1)
+  icons/                         PWA : icônes app (192/512/180 PNG + SVG)
 server/
   schema.sql                     Schéma D1 (Cloudflare) du backend : profiles/sessions/saves/matches/moves (doc 15)
 tests/smoke.spec.ts              Smoke Playwright/Chromium headless (guideline §7) sur le build de prod

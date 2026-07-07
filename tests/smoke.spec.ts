@@ -1704,3 +1704,42 @@ test('assets : PNG servis sans 404, icônes de ressources et vignettes de bâtim
   expect(assets.failed).toEqual([]);
   expect(errors).toEqual([]);
 });
+
+// Phase 8.1 (Beta doc 09) : PWA hors-ligne. Le build de prod expose un manifeste
+// installable et un service worker offline-first. Preuve d'offline : après un
+// chargement en ligne (SW actif + cache peuplé), on coupe le réseau et l'app
+// démarre quand même (coquille + contenu servis par le cache). Le SW ne
+// s'enregistre qu'en PROD → le smoke tourne sur `vite preview` (build de prod).
+test('PWA : manifeste installable + service worker ⇒ démarrage hors-ligne', async ({ page }) => {
+  await page.goto('./');
+  await page.waitForFunction(() => window.__HEROES_READY__ === true);
+
+  // Manifeste lié et servi (nom + scope corrects).
+  await expect(page.locator('link[rel="manifest"]')).toHaveCount(1);
+  const manifest = await page.evaluate(async () => {
+    const res = await fetch('manifest.webmanifest');
+    return res.ok ? res.json() : null;
+  });
+  expect(manifest?.name).toBe('Heroes');
+  expect(manifest?.scope).toBe('/heroes/');
+
+  // Service worker enregistré et actif (register sur l'évènement load).
+  await page.waitForFunction(() => navigator.serviceWorker?.controller != null, null, {
+    timeout: 15000,
+  });
+
+  // Recharge EN LIGNE une fois : la page contrôlée par le SW route désormais ses
+  // requêtes assets/contenu par le cache → celui-ci se peuple.
+  await page.reload();
+  await page.waitForFunction(() => window.__HEROES_READY__ === true);
+
+  // Coupe le réseau et recharge : l'app démarre depuis le cache (offline-first).
+  await page.context().setOffline(true);
+  try {
+    await page.reload();
+    await page.waitForFunction(() => window.__HEROES_READY__ === true, null, { timeout: 15000 });
+    await expect(page.getByTestId('menu-new-game')).toBeVisible();
+  } finally {
+    await page.context().setOffline(false);
+  }
+});

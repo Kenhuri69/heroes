@@ -68,11 +68,22 @@
   opacity: 0.85;
 }
 
-.damage-preview {
+/* Bas de l'écran de combat (UXD-0 R5a) : prévisualisation + barre d'actions
+   dans UN conteneur en colonne — la consigne n'est plus recouverte/tronquée
+   quand la barre passe sur plusieurs rangées (mobile × cran 3). */
+.combat-bottom {
   position: fixed;
-  left: 50%;
-  bottom: 76px;
-  transform: translateX(-50%);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.damage-preview {
   max-width: min(92vw, 480px);
   padding: 8px 14px;
   border: 1px solid #3a3d47;
@@ -83,10 +94,7 @@
 }
 
 .combat-actions {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  align-self: stretch;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -134,4 +142,24 @@
 .combat-speeds button.active {
   background: #7a2d22;
   border-color: #a0503f;
+}
+
+/* Viewport étroit (UXD-0 R4) : round en tête pleine largeur, puis une rangée
+   par camp — avant : les vignettes chevauchaient le titre et sortaient de
+   l'écran (une pile de 360 px ne tient pas dans une demi-largeur). */
+@media (max-width: 640px) {
+  .combat-armies {
+    flex-wrap: wrap;
+  }
+
+  .combat-round {
+    order: -1;
+    width: 100%;
+    padding: 0;
+    text-align: center;
+  }
+
+  .combat-side {
+    flex: 1 1 100%;
+  }
 }

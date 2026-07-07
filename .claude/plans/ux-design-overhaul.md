@@ -133,20 +133,21 @@ Le « stop the bleeding » : régressions mesurées §1.6, sans refonte.
 
 - [x] `capture.mjs` : sélecteur ville par préfixe `town-open` (R6, fait dans
       ce lot de revue).
-- [ ] `capture.mjs` : ajouter l'écran **héros** (tiroir ouvert) — aligner le
+- [x] `capture.mjs` : ajouter l'écran **héros** (tiroir ouvert) — aligner le
       script sur SKILL.md §2.
-- [ ] R1 : cibles ≥ 44 px du livre de sorts d'aventure.
-- [ ] R2 : barre de ressources mobile compacte qui **ne déborde jamais**
-      (retour à la ligne ou condensé « tap = détail » prévu doc 08 §2.1) et ne
-      passe plus sous le bouton tiroir.
-- [ ] R3 : réserver l'espace de la barre d'actions (layout en colonne
+- [x] R1 : cibles ≥ 44 px du livre de sorts d'aventure.
+- [x] R2 : barre de ressources mobile compacte qui **ne déborde jamais**
+      (retour à la ligne) et ne passe plus sous le bouton tiroir.
+- [x] R3 : réserver l'espace de la barre d'actions (layout en colonne
       bas : armée au-dessus, actions en dessous — plus de recouvrement).
-- [ ] R4 : bandeaux d'armées de combat en mobile : empilés sous le titre de
+- [x] R4 : bandeaux d'armées de combat en mobile : empilés sous le titre de
       round, jamais en chevauchement ni hors écran.
-- [ ] R5 : caméra de combat initialement **centrée sur l'unité active** ;
+- [x] R5 : caméra de combat initialement **centrée sur l'unité active** ;
       consigne de prévisualisation non tronquée.
 
-**Vérif** : re-passe `ux-audit` = 0 WARN/FAIL sur 30 captures ; smokes verts.
+**Vérif** : re-passe `ux-audit` = **0 WARN/FAIL sur 30 captures** ✅ ; smokes
+verts (1 flaky pré-existant documenté au plan du lot). **Lot livré** — détail :
+`.claude/plans/ux-d0-correctifs.md`.
 
 ### UXD-1 — Design system « gouache » (style uniforme)
 
@@ -319,7 +320,7 @@ intercalé dès qu'un sourcing est validé).
 
 - [x] Revue complète + captures de référence (ce lot) — constats §1.
 - [x] Réparation minimale de l'outillage d'audit (`capture.mjs`, R6).
-- [ ] UXD-0 — correctifs ergonomiques immédiats.
+- [x] UXD-0 — correctifs ergonomiques immédiats (`ux-d0-correctifs.md`).
 - [ ] UXD-1 — design system « gouache ».
 - [ ] UXD-2 — iconographie unifiée.
 - [ ] UXD-3 — assets carte d'aventure.

@@ -63,11 +63,14 @@ export function CombatUi() {
         </div>
       </header>
 
-      <div class="damage-preview" data-testid="damage-preview">
-        {preview ? formatPreview(preview) : t('combat.damagePreviewPlaceholder')}
-      </div>
+      {/* UXD-0 R5a : préviz + actions dans un conteneur colonne (plus de
+          recouvrement de la consigne quand la barre passe à 2 rangées). */}
+      <div class="combat-bottom">
+        <div class="damage-preview" data-testid="damage-preview">
+          {preview ? formatPreview(preview) : t('combat.damagePreviewPlaceholder')}
+        </div>
 
-      <footer class="combat-actions">
+        <footer class="combat-actions">
         <button data-testid="combat-wait" disabled={!isPlayerTurn} onClick={() => act('wait')}>
           {t('combat.wait')}
         </button>
@@ -92,6 +95,7 @@ export function CombatUi() {
           ))}
         </div>
       </footer>
+      </div>
 
       {spellBookOpen && hero && <SpellBook hero={hero} onClose={() => setSpellBookOpen(false)} />}
     </div>

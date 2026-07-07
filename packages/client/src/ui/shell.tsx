@@ -95,8 +95,12 @@ function Shell() {
           <>
             <ResourceBar />
             <HeroDrawer />
-            <ArmyBand />
-            <TurnBar onOpenOptions={() => openModal({ kind: 'options' })} />
+            {/* UXD-0 R3 : armée + statut/actions dans UN conteneur en colonne —
+                plus de blocs fixed indépendants qui se recouvrent au cran 3. */}
+            <div class="bottom-hud">
+              <ArmyBand />
+              <TurnBar onOpenOptions={() => openModal({ kind: 'options' })} />
+            </div>
           </>
         )
       ) : null}
@@ -298,7 +302,7 @@ function TurnBar({ onOpenOptions }: { onOpenOptions: () => void }) {
   const towns = humanTowns(useApp((s) => s.game));
   const unread = useApp((s) => s.journalUnread);
   return (
-    <>
+    <div class="turn-row">
       <div class="status-bar">
         <span data-testid="calendar">{t('turnBar.calendar', { day, week: weekOf(day) })}</span>
         {hero && (
@@ -366,6 +370,6 @@ function TurnBar({ onOpenOptions }: { onOpenOptions: () => void }) {
           {t('turnBar.endTurn')}
         </button>
       </div>
-    </>
+    </div>
   );
 }

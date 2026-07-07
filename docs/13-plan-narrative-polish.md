@@ -454,6 +454,8 @@ laisse le jeu livrable. Ordre pensé « MVP narratif → campagne complète » :
 | ↳ **N2a — moteur de quêtes** ✅ | `engine/quest` générique (catalogue de conditions fermé, `GameState.quests`, `QuestStarted/Advanced/Completed`, récompenses) ; bump save 6→7 ; câblage `apply()` ; tests unitaires | Golden re-fixé ; moteur seul, zéro UI |
 | ↳ **N2b — contenu & UI** ✅ | schémas narratifs (`quest`/`dialog`/`character`) + **Prologue Haven** (scénario porteur) + boîte de dialogue + journal de quêtes + smoke narratif | Prologue jouable : dialogue s'affiche/se passe, journal à jour, quête récompensée (desktop+mobile) |
 | **N3 — Campagnes fondatrices** | Campagnes Haven et Necropolis (3 chapitres chacune, cartes dédiées, cutscenes caméra, arcs Aldric/Séraphine/Vhalen/Mère Corbeau) ; `campaignState` + écran de sélection de campagne | 2 campagnes finissables en smoke long (IA assistée) ; continuité héros entre chapitres testée |
+| ↳ **N3a — système de campagne** ✅ | pipeline `data/factions/<id>/story/campaign.json` + `loadCampaigns` ; report de héros (`PlayerSetup` étendu + `campaignState` localStorage) ; écran de sélection ; chaînage de chapitres ; campagne Haven à 2 chapitres | Smoke : gagner ch1 → ch2 débloqué + héros reporté (artefact conservé), desktop + mobile |
+| ↳ **N3b/N3c — campagnes complètes** | 3ᵉ chapitre Haven + campagne Necropolis, cartes dédiées, cutscenes caméra, arcs de héros nommés (quêtes `personal`) | (à venir) |
 | **N4 — La Chasse & le vivant** | Campagne Arcane Hunters (relit N3, arcs Evadne/Marchmont) ; quêtes journalières en mode libre ; 2 événements temporaires ; barks de combat | 3ᵉ campagne = données seules (test de modularité narratif) ; événement daté jouable/expirable |
 
 **Tests d'immersion** (à chaque lot, protocole léger) :
@@ -705,6 +707,28 @@ moteur** (le catalogue de conditions N2a couvrait le prologue).
   « dérouler le prologue » (dialogue affiché → passé → journal à jour → Fort bâti
   → récompense créditée) desktop + mobile.
 
-Prochain lot : **N3 — campagnes fondatrices** (campagnes Haven + Necropolis, 3
-chapitres, `data/story/` multi-chapitres, `campaignState`, cutscenes caméra,
-arcs des héros nommés).
+## État N3a — Système de campagne (livré)
+
+Cœur de N3 : chaîner des scénarios en **campagne chapitrée** avec **continuité
+du héros**. Prouvé sur une **campagne Haven à 2 chapitres**.
+
+- **Contenu** : `campaignSchema` + `manifest.story` (la campagne vit dans le
+  paquet de faction, `data/factions/haven/story/campaign.json` — modularité
+  §8) ; `loadCampaigns` (règles croisées : `factionId` connu, chaque chapitre
+  référence un scénario chargé). `content:check` étendu.
+- **Report de héros** (doc 13 §4.1) : `PlayerSetup` gagne
+  `startingLevel/Xp/Skills/Artifacts` (optionnels → héros neuf par défaut,
+  **golden inchangé**) ; `scenarioStartCommand(…, heroCarry?)` dote le joueur
+  humain ; `app/campaign.ts` persiste la progression + le snapshot de héros en
+  **localStorage** (méta-jeu, hors `GameState`, aucun bump de save).
+- **Client** : écran de **sélection de campagne** (chapitres verrouillés
+  au-delà du dernier gagné) ; démarrage de chapitre + avancement à la victoire
+  (`GameEnded(won)` → snapshot + déblocage).
+- **Données** : campagne Haven — chapitre 1 = le Prologue (réutilisé, victoire
+  passée à `surviveDays: 2`), chapitre 2 = `haven-ch2` (dialogue + quête).
+- **Vérif** : typecheck 4/4, moteur 296 (golden intact + report de héros),
+  content 74 (+ campagne), `content:check`, smoke « gagner ch1 → ch2 débloqué +
+  héros reporté » desktop + mobile.
+
+Prochain lot : **N3b/N3c** — 3ᵉ chapitre Haven + campagne Necropolis complète,
+cartes dédiées, cutscenes caméra, arcs personnels des héros nommés.

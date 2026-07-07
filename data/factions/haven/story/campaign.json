@@ -1,0 +1,18 @@
+{
+  "id": "haven-campaign",
+  "factionId": "haven",
+  "nameKey": "@loc:campaign.haven.name",
+  "descriptionKey": "@loc:campaign.haven.desc",
+  "chapters": [
+    {
+      "id": "ch1",
+      "scenario": "prologue",
+      "titleKey": "@loc:campaign.haven.ch1.title"
+    },
+    {
+      "id": "ch2",
+      "scenario": "haven-ch2",
+      "titleKey": "@loc:campaign.haven.ch2.title"
+    }
+  ]
+}

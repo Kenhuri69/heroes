@@ -395,19 +395,24 @@ const handlers: Handlers = {
       movementPoints: 0,
       army: (p.startingArmy ?? []).map((s) => ({ ...s })),
       // Progression (doc 02 §1.2) — attributs de base fournis par le scénario (défaut 0).
-      xp: 0,
-      level: 1,
+      // Report de campagne (doc 13 §4.1, N3a) : niveau/XP/compétences repris si fournis.
+      xp: p.startingXp ?? 0,
+      level: p.startingLevel ?? 1,
       attributes: p.startingAttributes
         ? { ...p.startingAttributes }
         : { attack: 0, defense: 0, power: 0, knowledge: 0 },
       // Magie/compétences/artefacts (doc 02 §1.1–§1.4) — mana = Savoir × 10 + artefacts.
       mana: 0,
       manaMax: 0,
-      skills: {},
+      skills: p.startingSkills ? { ...p.startingSkills } : {},
       visitLuck: 0,
       // Sorts connus d'emblée (cercle ≤ Guilde MVP), résolus par le contenu (décision 3.2 #7).
       spells: p.startingSpells ? [...p.startingSpells] : [],
-      artifacts: Array.from({ length: 10 }, (_, i) => (cmd.startingArtifacts ?? [])[i] ?? null),
+      // Artefacts : report par joueur (campagne) sinon dotation globale du scénario.
+      artifacts: Array.from(
+        { length: 10 },
+        (_, i) => (p.startingArtifacts ?? cmd.startingArtifacts ?? [])[i] ?? null,
+      ),
       pendingSkillChoices: [],
       factionId: p.startingFactionId ?? '',
       warMachines: [],

@@ -121,6 +121,8 @@ export const manifestSchema = z.object({
   sharedGrowthGroups: z.record(z.string(), z.array(idSchema).min(2)).default({}),
   /** Unités du paquet — le navigateur ne liste pas les dossiers ; convention units/<id>.json. */
   units: z.array(idSchema).min(1),
+  /** Campagne de la faction (doc 13 §6.1, N3a) — chemin relatif au paquet, optionnel. */
+  story: z.string().optional(),
   abilityModules: z.array(z.string()).max(0).default([]),
   hooks: z.array(z.string()).max(0).default([]),
   aiProfile: z.object({
@@ -707,6 +709,8 @@ export const scenarioSchema = z
             .array(z.object({ unitId: idSchema, count: z.number().int().positive() }))
             .max(7)
             .default([]),
+          /** Artefacts de départ du héros (ids) — validés contre `data/core/artifacts.json`. */
+          startingArtifacts: z.array(idSchema).optional(),
           /** Ville de départ du joueur (doc 02 §4) — optionnelle (scénario sans ville). */
           startingTown: z
             .object({
@@ -766,7 +770,31 @@ export type ScenarioIndex = z.infer<typeof scenarioIndexSchema>;
 export type VictoryCondition = z.infer<typeof victoryConditionSchema>;
 /** Forme moteur — identique à `ScenarioObjectives` de `engine/src/scenario/types.ts`. */
 export type ScenarioObjectives = z.infer<typeof scenarioObjectivesSchema>;
+/**
+ * Campagne (doc 13 §4.1/§6.1, N3a) — suite ordonnée de chapitres, chacun
+ * référençant un scénario chargé. Vit dans le paquet de faction
+ * (`data/factions/<id>/story/campaign.json`, déclaré par `manifest.story`) :
+ * ajouter une maison = ajouter sa campagne, zéro diff ailleurs (doc 13 §8).
+ */
+export const campaignChapterSchema = z.object({
+  id: idSchema,
+  /** Référence un scénario chargé (`data/scenarios/<id>.scenario.json`). */
+  scenario: idSchema,
+  titleKey: locRef,
+  descriptionKey: locRef.optional(),
+});
+
+export const campaignSchema = z.object({
+  id: idSchema,
+  factionId: idSchema,
+  nameKey: locRef,
+  descriptionKey: locRef.optional(),
+  chapters: z.array(campaignChapterSchema).min(1),
+});
+
 export type Scenario = z.infer<typeof scenarioSchema>;
+export type Campaign = z.infer<typeof campaignSchema>;
+export type CampaignChapter = z.infer<typeof campaignChapterSchema>;
 export type QuestContent = z.infer<typeof questSchema>;
 export type QuestStepContent = z.infer<typeof questStepSchema>;
 export type QuestRewardContent = z.infer<typeof questRewardSchema>;

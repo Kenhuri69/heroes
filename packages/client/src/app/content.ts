@@ -4,6 +4,7 @@ import {
   loadContent,
   loadMap,
   loadScenarios,
+  loadCampaigns,
   type LoadReport,
   type ReadJson,
   type ResolvedMap,
@@ -27,11 +28,15 @@ const readJsonFromSite: ReadJson = async (path) => {
 export async function loadGameContent(): Promise<LoadReport> {
   let report = await loadContent(readJsonFromSite);
   report = await loadScenarios(readJsonFromSite, report);
+  report = await loadCampaigns(readJsonFromSite, report);
   for (const rejected of report.rejected) {
     console.error(`paquet de faction rejeté : ${rejected.id}\n${rejected.errors.join('\n')}`);
   }
   for (const rejected of report.rejectedScenarios) {
     console.error(`scénario rejeté : ${rejected.id}\n${rejected.errors.join('\n')}`);
+  }
+  for (const rejected of report.rejectedCampaigns) {
+    console.error(`campagne rejetée : ${rejected.id}\n${rejected.errors.join('\n')}`);
   }
   return report;
 }

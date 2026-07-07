@@ -1,0 +1,77 @@
+{
+  "id": "haven-ch2",
+  "schemaVersion": 1,
+  "name": "@loc:scenario.haven-ch2.name",
+  "map": "proto-01",
+  "players": [
+    {
+      "id": "player-1",
+      "controller": "human",
+      "factionId": "haven",
+      "startPositionIndex": 0,
+      "startingResources": { "gold": 3000, "wood": 10, "ore": 20 },
+      "startingArmy": [
+        { "unitId": "t1-conscrit", "count": 20 },
+        { "unitId": "t2-archer", "count": 8 },
+        { "unitId": "t3-frere-lame", "count": 4 }
+      ],
+      "startingTown": {
+        "id": "start-town",
+        "x": 2,
+        "y": 4,
+        "prebuilt": [
+          { "building": "townHall", "level": 1 },
+          { "building": "fort", "level": 1 },
+          { "building": "haven-dwelling-t1", "level": 1 }
+        ]
+      }
+    },
+    {
+      "id": "ai-1",
+      "controller": "ai",
+      "factionId": "necropolis",
+      "startPositionIndex": 1,
+      "startingResources": { "gold": 2000 },
+      "startingArmy": [
+        { "unitId": "t1-squelette", "count": 12 },
+        { "unitId": "t3-spectre", "count": 4 }
+      ]
+    }
+  ],
+  "objectives": {
+    "player-1": {
+      "victory": { "type": "eliminateAllEnemies" },
+      "defeat": { "type": "defeatHero", "heroId": "hero-player-1" }
+    },
+    "ai-1": {
+      "victory": { "type": "eliminateAllEnemies" },
+      "defeat": { "type": "defeatHero", "heroId": "hero-ai-1" }
+    }
+  },
+  "openingDialog": "dlg-ch2-open",
+  "characters": [
+    { "id": "aldric", "nameKey": "@loc:character.aldric.name" },
+    { "id": "seraphine", "nameKey": "@loc:character.seraphine.name" }
+  ],
+  "dialogs": [
+    {
+      "id": "dlg-ch2-open",
+      "lines": [
+        { "speaker": "seraphine", "portrait": "grave", "textKey": "@loc:dlg.ch2.open.1" },
+        { "speaker": "aldric", "textKey": "@loc:dlg.ch2.open.2" }
+      ]
+    }
+  ],
+  "quests": [
+    {
+      "id": "ch2-briser-le-siege",
+      "kind": "primary",
+      "titleKey": "@loc:quest.ch2-briser.title",
+      "descriptionKey": "@loc:quest.ch2-briser.desc",
+      "steps": [
+        { "id": "defeat-heresh", "condition": { "type": "defeatHero", "heroId": "hero-ai-1" } }
+      ],
+      "rewards": [{ "type": "resources", "resources": { "gold": 2000 } }]
+    }
+  ]
+}

@@ -21,6 +21,7 @@ import { exportSave, importSave, saveGame, restoreSavedGame, encodeHeroesFile } 
 import { installAutosave } from './app/autosave';
 import { initTelemetry } from './app/telemetry';
 import { initNarrative, loadScenarioNarrative } from './app/narrative';
+import { initCampaign, startCampaignChapter } from './app/campaign';
 import { initI18n, t } from './app/i18n';
 import { preloadPixiTextures, combatBackgroundUrl } from './render/assets';
 import { AdventureScene } from './scenes/adventure/AdventureScene';
@@ -48,6 +49,8 @@ declare global {
       startScenario: (scenarioId: string) => Promise<void>;
       /** Démarre une escarmouche vs IA, seed fixe (couverture smoke Alpha 4.14). */
       startSkirmish: (config: SkirmishConfig) => Promise<void>;
+      /** Démarre un chapitre de campagne, seed fixe (couverture smoke N3a). */
+      startCampaignChapter: (campaignId: string, chapterIndex: number) => Promise<void>;
     };
   }
 }
@@ -186,12 +189,21 @@ async function bootstrap(): Promise<void> {
     navigate('adventure');
   };
 
+  /** Démarre un chapitre de campagne (doc 13 §4.1, N3a) — report de héros géré par le module. */
+  const startChapter = async (campaignId: string, chapterIndex: number, seed: number): Promise<void> => {
+    const campaign = report.content.campaigns.find((c) => c.id === campaignId);
+    if (!campaign) throw new Error(`campagne inconnue '${campaignId}'`);
+    await startCampaignChapter(report, campaign, chapterIndex, seed);
+  };
+
   installAutosave(); // autosave à chaque fin de tour (doc 07 §4)
   initTelemetry(); // télémétrie locale opt-in (doc 09, Alpha 4.19) — no-op si désactivée
   initNarrative(); // couche narrative branchée sur les événements de quête (doc 13, N2b)
+  initCampaign(report); // avancement de campagne branché sur les événements (doc 13, N3a)
   appStore.setState({
     strengthBands: report.content.config.display.strengthBands,
     scenarios: report.content.scenarios,
+    campaigns: report.content.campaigns,
     factions: report.content.packs.map((p) => p.manifest.id),
   });
   // « Nouvelle partie » du menu (contrat lot G) — seed horloge côté client.
@@ -219,6 +231,14 @@ async function bootstrap(): Promise<void> {
     startSkirmish(config, Date.now()).catch((err: unknown) => {
       console.error('startSkirmish', err);
       pushToast(t('toast.skirmishFailed'));
+    });
+  });
+  // Sélection d'un chapitre de campagne (doc 13 §4.1, N3a) — même découplage.
+  window.addEventListener('heroes:start-chapter', (e) => {
+    const { campaignId, chapterIndex } = (e as CustomEvent<{ campaignId: string; chapterIndex: number }>).detail;
+    startChapter(campaignId, chapterIndex, Date.now()).catch((err: unknown) => {
+      console.error('startChapter', err);
+      pushToast(t('toast.scenarioFailed'));
     });
   });
 
@@ -257,6 +277,8 @@ async function bootstrap(): Promise<void> {
     },
     startScenario: (scenarioId) => startScenario(scenarioId, TEST_SCENARIO_SEED),
     startSkirmish: (config) => startSkirmish(config, TEST_SCENARIO_SEED),
+    startCampaignChapter: (campaignId, chapterIndex) =>
+      startChapter(campaignId, chapterIndex, TEST_SCENARIO_SEED),
   };
   window.__HEROES_READY__ = true; // signal pour le smoke test headless
 }

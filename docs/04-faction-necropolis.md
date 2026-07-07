@@ -50,6 +50,22 @@
 | 6 | **Cavalier funeste** | 65 | 14 | 12 | 12–18 | 9 | 2 | 1150 or + 1 soufre | `undead`, `curseOnHit(Faux funeste : −20 % dégâts, 100 %)`, `charge(+4 %/hex)` |
 | 7 | **Dragon d'os** | 160 | 20 | 20 | 30–50 | 10 | 1 | 3000 or + 2 soufre + 2 gemmes | `undead`, `flying`, `aura(−1 moral ennemi, portée totale)`, `breathAttack` |
 
+### 3bis. Unités élites (habitation niveau 2)
+
+Chaque habitation se **gradue au niveau 2** (Alpha 4.11) : le dwelling amélioré débloque la variante élite. Le mécanisme réel est le **dwelling niveau 2**, pas un champ `upgradeOf`. La base **et** l'élite restent recrutables (façon HoMM, cf. D3).
+
+| Tier | Élite | PV | Att | Déf | Dégâts | Vit. | Cr./sem | Coût | Capacités |
+|------|-------|----|-----|-----|--------|------|---------|------|-----------|
+| 1 | **Squelette guerrier** | 7 | 3 | 3 | 1–3 | 5 | 16 | 40 or | `undead` |
+| 2 | **Zombie infect** | 18 | 4 | 5 | 3–4 | 4 | 9 | 115 or | `undead` |
+| 3 | **Spectre supérieur** | 21 | 7 | 7 | 4–7 | 8 | 7 | 260 or | `undead`, `flying` |
+| 4 | **Vampire seigneur** | 37 | 10 | 9 | 7–11 | 7 | 5 | 550 or | `undead`, `noRetaliation` |
+| 5 | **Liche-mage** | 45 | 12 | 13 | 9–14 | 6 | 4 | 900 or, 2 soufre | `undead`, `shooter` |
+| 6 | **Chevalier de la mort** | 86 | 18 | 16 | 16–24 | 10 | 2 | 1900 or, 2 soufre | `undead` |
+| 7 | **Dragon fantôme** | 210 | 26 | 26 | 39–65 | 11 | 1 | 5000 or, 3 soufre, 3 gemmes | `undead`, `flying` |
+
+> ⚖️ **Coûts élites (D12, à arbitrer)** : premium en or élite/base = 1,60–1,72× (régulier). À comparer avec Haven (~1,25–1,69×) et Arcane Hunters (**1,80× uniforme**) — asymétrie relevée par l'audit factions. Les élites conservent `undead` mais **perdent** les capacités actives de leur base (ex. Vampire seigneur sans `lifeDrain`, Liche-mage sans `areaAttack`, Chevalier de la mort sans `curseOnHit`/`charge`) : à revoir. Arbitrage coûts + parité de capacités **renvoyé à une passe `faction:sim`** (non tranché ici).
+
 ## 4. Arbre de bâtiments
 
 Spécifiques Necropolis :

@@ -260,6 +260,10 @@
             {
               "building": "arcane-hunters-dwelling-t7",
               "level": 1
+            },
+            {
+              "building": "fort",
+              "level": 3
             }
           ],
           "effect": {

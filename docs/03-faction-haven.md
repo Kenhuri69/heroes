@@ -55,7 +55,21 @@
 > déséquilibre béant (Havre ~55–66 % vs les deux autres). Réglage fin vers 45–55 %
 > = itérations ultérieures avec l'outil.
 
-Les **unités améliorées** (Conscrit → Hallebardier, etc.) sont spécifiées en Alpha ; le schéma de données les supporte dès le MVP (`upgradeOf`).
+### 3bis. Unités élites (habitation niveau 2)
+
+Chaque habitation se **gradue au niveau 2** (Alpha 4.11) : le dwelling amélioré débloque la variante élite. Le mécanisme réel est le **dwelling niveau 2**, pas un champ `upgradeOf`. La base **et** l'élite restent recrutables (façon HoMM, cf. D3) ; la commande `UpgradeUnits` convertit en plus une pile de base déjà recrutée.
+
+| Tier | Élite | PV | Att | Déf | Dégâts | Vit. | Cr./sem | Coût | Capacités |
+|------|-------|----|-----|-----|--------|------|---------|------|-----------|
+| 1 | **Hallebardier** | 8 | 3 | 4 | 2–3 | 5 | 14 | 50 or | — |
+| 2 | **Archer d'Élite** | 13 | 5 | 4 | 3–5 | 5 | 9 | 140 or | `shooter` |
+| 3 | **Templier** | 23 | 8 | 10 | 4–7 | 6 | 7 | 260 or | — |
+| 4 | **Griffon Royal** | 39 | 10 | 9 | 7–12 | 8 | 5 | 520 or | `flying` |
+| 5 | **Grande Prêtresse** | 47 | 12 | 13 | 9–14 | 6 | 4 | 850 or, 2 gemmes | `shooter` |
+| 6 | **Champion du Griffon** | 91 | 18 | 18 | 16–26 | 9 | 2 | 1900 or, 2 cristal | — |
+| 7 | **Archange** | 234 | 29 | 29 | 46–72 | 12 | 1 | 5400 or, 3 cristal, 3 gemmes | `flying` |
+
+> ⚖️ **Coûts élites (D12, à arbitrer)** : premium en or élite/base = 1,25–1,69× (moyenne ~1,44×), variable selon le tier. À comparer avec Necropolis (~1,6–1,7×, régulier) et Arcane Hunters (**1,80× uniforme**) — asymétrie relevée par l'audit factions. À revoir aussi : certaines élites **perdent la capacité signature** de leur base (Hallebardier sans `taunt`, Templier sans `shieldWall`, Champion sans `charge`/`firstStrike`). Arbitrage coûts + parité de capacités **renvoyé à une passe `faction:sim`** (non tranché ici).
 
 ## 4. Arbre de bâtiments
 

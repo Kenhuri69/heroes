@@ -212,11 +212,12 @@ Chaque décision = correctif code OU ligne de doc, dans le même commit.
 - [x] **D7 — Cap de Nécromancie sur l'effectif post-combat** vs « effectif
   initial » (doc 04:38 ; `faction/effects.ts:78-79`). *Reco : corriger la
   doc (« effectif restant ») — plus conservateur et déjà équilibré ainsi.*
-- [ ] **D8 — Prérequis « Château » des T7/T8 absent** (docs 03:76/04:69/
+- [x] **D8 — Prérequis « Château » des T7/T8 absent** (docs 03:76/04:69/
   05:217 ; les dwellings sommets ne requièrent que le tier précédent, et
-  aucun bâtiment « château » n'existe). *Reco : exiger `fort@3` dans les
-  données des 3 maisons — pur diff data, restaure l'arbitrage économique ;
-  re-passer l'équilibrage grossier.*
+  aucun bâtiment « château » n'existe). *Fait : `fort@3` ajouté au `requires`
+  du dwelling sommet — T7 Haven & Necropolis, T8 Arcane Hunters (l'apex AH ;
+  doc 05 gâte le Portail T8 par « T7 + Château »). Pur diff data ; balance
+  + recruit tests re-passent (stats d'unités inchangées).*
 - [x] **D9 — Tableau des Contrats : prérequis `townHall` au lieu de `tavern`**
   (doc 05:213 ; `arcane-hunters/buildings.json:185` — la taverne core n'est
   pas dans la ville AH). *Fait : `tavern` ajoutée à la ville AH (manifest) +
@@ -232,11 +233,16 @@ Chaque décision = correctif code OU ligne de doc, dans le même commit.
   mais un nom propre à une faction dans le moteur ; toute future école de
   faction = diff moteur. *Reco : `SpellSchool = string` validée par les
   données.*
-- [ ] **D12 — Coûts des unités élites : asymétrie suspecte** relevée par
+- [x] **D12 — Coûts des unités élites : asymétrie suspecte** relevée par
   l'audit factions (élite moins chère que la base chez Haven/Necropolis,
   2-3× plus chère chez Arcane Hunters) — aucune table d'élites dans les
-  docs pour arbitrer. *Reco : documenter la table des élites (E5) puis
-  passer `faction:sim`/équilibrage pour trancher les coûts.*
+  docs pour arbitrer. *Fait : table des unités élites (nom/stats/coût/
+  capacités, chiffres extraits des `units.json`) ajoutée aux docs 03/04/05
+  (§3bis/§4bis) + mécanisme corrigé (dwelling niveau 2, pas `upgradeOf`).
+  Asymétrie chiffrée : premium or élite/base Haven ~1,44× / Necropolis
+  ~1,65× / AH 1,80× uniforme ; à revoir aussi la parité de capacités
+  (élites Haven/Necro perdant leur signature). Arbitrage des coûts renvoyé
+  à `faction:sim` (couvre la partie « table » de E5).*
 
 ## 5. Lot E — Remise à niveau documentaire (corriger la DOC)
 

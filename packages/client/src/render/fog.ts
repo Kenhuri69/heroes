@@ -29,14 +29,20 @@ export class FogOverlay {
     this.sprite.scale.set(TILE_SIZE);
   }
 
-  update(explored: readonly number[], heroPositions: readonly GridPos[], visionRadius: number): void {
+  /**
+   * `sightings` : une entrée par héros du joueur + son rayon de vision EFFECTIF
+   * (config.visionRadius + bonus Recherche) — le « hors vision » doit matcher la
+   * révélation moteur, qui est PAR héros (C4). Auparavant un rayon uniforme
+   * ignorait le bonus Recherche ⇒ anneau faussement grisé autour d'un éclaireur.
+   */
+  update(explored: readonly number[], sightings: readonly { pos: GridPos; radius: number }[]): void {
     const { width, height } = this.map;
     const image = this.ctx.createImageData(width, height);
     for (let i = 0; i < width * height; i++) {
       const x = i % width;
       const y = Math.floor(i / width);
-      const inVision = heroPositions.some(
-        (p) => Math.max(Math.abs(p.x - x), Math.abs(p.y - y)) <= visionRadius,
+      const inVision = sightings.some(
+        (s) => Math.max(Math.abs(s.pos.x - x), Math.abs(s.pos.y - y)) <= s.radius,
       );
       const rgba = inVision ? null : explored[i] ? EXPLORED_DIM : UNEXPLORED;
       if (rgba) image.data.set(rgba, i * 4);

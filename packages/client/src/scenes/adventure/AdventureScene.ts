@@ -1,6 +1,7 @@
 import { Application, Assets, Container, Graphics, Point, Sprite } from 'pixi.js';
 import {
   findPath,
+  heroVisionBonus,
   isAdjacent,
   samePos,
   stepCost,
@@ -101,8 +102,13 @@ export class AdventureScene {
     );
     this.towns.sync(game.towns, humanId(game));
     const heroes = humanHeroes(game);
-    const positions = heroes.map((h) => h.pos);
-    this.fog.update(player.explored, positions, config.visionRadius);
+    // C4 : rayon de vision EFFECTIF par héros (base + bonus Recherche), aligné sur
+    // la révélation moteur (`revealAround` : visionRadius + heroVisionBonus).
+    const sightings = heroes.map((h) => ({
+      pos: h.pos,
+      radius: config.visionRadius + heroVisionBonus(h, game.skillCatalog),
+    }));
+    this.fog.update(player.explored, sightings);
 
     // Réconciliation des sprites de héros : supprime ceux disparus, crée ceux
     // manquants, repositionne tous sauf celui en cours d'animation.

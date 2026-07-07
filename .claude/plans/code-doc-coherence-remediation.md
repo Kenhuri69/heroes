@@ -155,19 +155,19 @@ une seule fois en fin de lot, et re-passer le test d'équilibrage grossier.
 
 ## 3. Lot C — Client/UI (corriger le CODE) — P1
 
-- [ ] **C1 — École `traque` invisible dans le grimoire de combat.**
+- [x] **C1 — École `traque` invisible dans le grimoire de combat.**
   `SCHOOL_ORDER` omet `traque` (`ui/SpellBook.tsx:17`) : sorts connus,
   acceptés par le moteur, jamais affichés. Dériver l'ordre du catalogue +
   texte de préviz `applyMarks` (`SpellBook.tsx:236-249`).
-- [ ] **C2 — Grimoire : disponibilité/coût sans la réduction Magie.**
+- [x] **C2 — Grimoire : disponibilité/coût sans la réduction Magie.**
   `castable = mana >= manaCost` brut (`SpellBook.tsx:169,180`) alors que le
   moteur encaisse `effectiveManaCost` ⇒ sorts lançables affichés grisés,
   coût affiché faux. Utiliser `effectiveManaCost` (après A6).
-- [ ] **C3 — Sorts de départ : tout le catalogue cercle ≤ 3, école de faction
+- [x] **C3 — Sorts de départ : tout le catalogue cercle ≤ 3, école de faction
   et sort d'aventure compris** (`app/game.ts:183-185`) — un héros Haven
   connaît les sorts de Traque dès le jour 1. Exclure l'école de faction des
   autres maisons (A8 gère le sort d'aventure).
-- [ ] **C4 — Le rendu du brouillard ignore le bonus de vision Recherche.**
+- [x] **C4 — Le rendu du brouillard ignore le bonus de vision Recherche.**
   Le moteur révèle avec `visionRadius + heroVisionBonus`
   (`adventure/movement.ts:62-67`), le client dessine avec
   `config.visionRadius` seul (`AdventureScene.ts:103`, `render/fog.ts:32-41`)

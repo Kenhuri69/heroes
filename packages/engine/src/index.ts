@@ -122,6 +122,9 @@ export { estimateSpell, type SpellEstimate } from './hero';
 // Coût de mana effectif (réduction Magie par école, A6) — le grimoire client
 // (C2) affiche/gate sur ce coût, pas sur `spell.manaCost` brut.
 export { effectiveManaCost } from './hero/spells';
+// Bonus de vision (compétence Recherche) — le rendu du brouillard client (C4)
+// dessine « en vision » avec le rayon EFFECTIF par héros, comme la révélation moteur.
+export { heroVisionBonus } from './hero/skills';
 export type { FactionBonus } from './faction/types';
 export type {
   VictoryCondition,

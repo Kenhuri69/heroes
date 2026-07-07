@@ -16,6 +16,7 @@ import {
   type Resources,
   type ScenarioState,
   type SpellDef,
+  type SpellSchool,
   type TownState,
 } from '@heroes/engine';
 import {
@@ -179,9 +180,14 @@ export function buildHeroSetup(report: LoadReport): HeroSetup {
   const artifactCatalog = buildArtifactCatalog(report) as Record<string, ArtifactDef>;
   const newGame = report.content.config.newGame;
   // Guilde des mages MVP (décision plan phase-3.2 #7) : le héros connaît d'emblée
-  // tous les sorts de cercle ≤ 3. Sagesse/Magie (cercles 4/5) = raffinement 3.3+.
+  // tous les sorts de cercle ≤ 3 des écoles UNIVERSELLES, PLUS ceux de l'école de
+  // SA faction (C3) — un héros Haven n'apprend pas les sorts de Traque (arcane).
+  // L'école de faction est une donnée (manifeste `spellSchool`), pas un cas en dur.
+  const universalSchools = new Set<SpellSchool>(['fire', 'water', 'earth', 'air', 'neutral']);
+  const startingFactionId = newGame.startingTown?.factionId ?? '';
+  const factionSchool = report.content.packs.find((p) => p.manifest.id === startingFactionId)?.manifest.spellSchool ?? null;
   const startingSpells = Object.values(spellCatalog)
-    .filter((s) => s.circle <= 3)
+    .filter((s) => s.circle <= 3 && (universalSchools.has(s.school) || s.school === factionSchool))
     .map((s) => s.id);
   return {
     spellCatalog,

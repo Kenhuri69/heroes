@@ -196,6 +196,16 @@ Menu principal (Continuer / Scénarios / Escarmouche / **Éditeur de carte** / O
 > attack/hit/death) reste différée : le pipeline `asset-sheet` produit des sprites
 > statiques, pas des planches d'animation.
 
+> 🚧 **État UXD-3A (bord de monde)** : au-delà de la carte, le vide sombre
+> (« letterbox ») est remplacé par une **mer profonde** posée en **fond DOM de
+> `#canvas-root`** (coût de rendu par-frame nul, même approche que la toile de
+> combat U5-E ; un aplat plein écran DANS le canvas casse l'anti-gel ×4 en rendu
+> logiciel) ; seul le **rivage** (liseré de côte + frange de bas-fonds) est rendu
+> en Pixi, borné au périmètre jouable. Une **vignette** DOM (radial-gradient,
+> adventure-only) assombrit les bords pour la profondeur. Les remplacements
+> d'assets **peints** de la carte (sprite héros monté, château de ville, objets)
+> relèvent d'une passe de génération d'images (tranche B, différée).
+
 > 🚧 **État UXD-4 (combat immersif)** : les hexes du plateau sont **translucides**
 > (remplissage de base ~16 %, états ~34 %) — la toile de combat peinte (U5-E)
 > transparaît réellement au lieu d'être masquée par un aplat opaque. Chaque état

@@ -49,6 +49,23 @@
   image-rendering: auto;
 }
 
+/* Vignette de bord de monde (UXD-3A) : assombrit les bords de l'écran pour
+   donner de la profondeur à la carte, au-dessus du canvas et sous les panneaux
+   d'UI. Décorative : ne capte jamais le pointeur. */
+.map-vignette {
+  position: fixed;
+  inset: 0;
+  /* Pas de z-index : 1er enfant du fragment aventure ⇒ ordre DOM = sous les
+     panneaux du HUD (bords lisibles) mais au-dessus du canvas (#ui-root entier
+     est au-dessus de #canvas-root). */
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 55%,
+    var(--shadow-40) 100%
+  );
+}
+
 /* HUD bas de la carte (UXD-0 R3) : un seul conteneur en colonne — bandeau
    d'armée AU-DESSUS, rangée statut+actions EN DESSOUS. Avant : 3 blocs
    `position: fixed` indépendants qui se recouvraient dès que la barre

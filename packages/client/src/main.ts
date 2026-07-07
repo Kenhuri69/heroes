@@ -3,6 +3,7 @@ import type { Command, GameState } from '@heroes/engine';
 import { CURRENT_SAVE_VERSION, serializeState } from '@heroes/engine';
 import { Camera } from './render/camera';
 import { TILE_SIZE } from './render/tilemap';
+import { WORLD_OCEAN_CSS } from './render/worldBorder';
 import { loadGameContent, loadDefaultMap, loadScenarioMap } from './app/content';
 import {
   buildFactionSetup,
@@ -108,6 +109,7 @@ async function bootstrap(): Promise<void> {
       combatScene = null;
     }
     root.style.backgroundImage = ''; // retire la toile de combat (U5-E)
+    root.style.backgroundColor = ''; // retire la mer d'aventure (UXD-3A)
     if (scene) {
       scene.destroy();
       scene = null;
@@ -129,6 +131,9 @@ async function bootstrap(): Promise<void> {
       scene = new AdventureScene(app, camera);
       camera.world.addChild(scene.container);
       app.stage.addChild(camera.world);
+      // Mer profonde en fond DOM (UXD-3A) : couvre tout le vide au-delà de la
+      // carte sans coût de remplissage par-frame (le rivage est rendu en Pixi).
+      root.style.backgroundColor = WORLD_OCEAN_CSS;
       scene.centerOnHero(app);
       registerCamera(camera, app); // cinématiques caméra (N3c.1)
     }

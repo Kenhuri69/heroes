@@ -20,6 +20,7 @@ import { playerColor } from '../../render/playerColors';
 import { TownsLayer } from '../../render/townsLayer';
 import { FogOverlay } from '../../render/fog';
 import { buildHeroSprite } from '../../render/heroSprite';
+import { buildWorldBorder } from '../../render/worldBorder';
 import { PathPreview, type PreviewStep } from '../../render/pathPreview';
 import { onTap } from '../../input/pointer';
 
@@ -61,6 +62,7 @@ export class AdventureScene {
     this.selectionRing.visible = false;
     this.heroesLayer.addChild(this.selectionRing);
     this.container.addChild(
+      buildWorldBorder(map), // UXD-3A : mer + rivage sous la tuile (plus de letterbox noir)
       tilemap.container,
       this.objects.container,
       this.towns.container,

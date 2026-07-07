@@ -164,6 +164,7 @@ export interface CommandError {
     | 'buildingMaxLevel'
     | 'requirementsNotMet'
     | 'exclusiveChoiceLocked'
+    | 'uniquePerPlayer'
     | 'cannotAfford'
     | 'notRecruitable'
     | 'notUpgradable'

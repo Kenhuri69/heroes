@@ -65,16 +65,18 @@ function startedGame(
 }
 
 describe('dwelling amélioré (données pures, zéro commande moteur)', () => {
-  it('au niveau 2, seule la variante améliorée est recrutable/exposée', () => {
-    const state = startedGame({ gold: 1000 }, { buildings: { dwelling1: 2 }, stock: { [ELITE]: 10 } });
-    expect(builtDwellings(state.towns[0]!, buildings())).toEqual([ELITE]);
+  it('D3 — au niveau 2, la base ET l’améliorée restent recrutables (façon HoMM)', () => {
+    const state = startedGame(
+      { gold: 1000 },
+      { buildings: { dwelling1: 2 }, stock: { [ELITE]: 10, 'red-grunt': 5 } },
+    );
+    // Les deux variantes exposées (base niveau 1, améliorée niveau 2).
+    expect(builtDwellings(state.towns[0]!, buildings())).toEqual(['red-grunt', ELITE]);
     // Recrute l'amélioré : OK.
     const rec = apply(state, { type: 'RecruitUnits', townId: 'town-1', unitId: ELITE, count: 2 });
     expect(rec.state.towns[0]?.garrison).toEqual([{ unitId: ELITE, count: 2 }]);
-    // La base n'est plus recrutable au niveau 2.
-    expect(validate(state, { type: 'RecruitUnits', townId: 'town-1', unitId: 'red-grunt', count: 1 })?.code).toBe(
-      'notRecruitable',
-    );
+    // La base reste recrutable — le stock accumulé avant l'amélioration n'est pas perdu.
+    expect(validate(state, { type: 'RecruitUnits', townId: 'town-1', unitId: 'red-grunt', count: 1 })).toBeNull();
   });
 });
 

@@ -197,6 +197,8 @@ const buildingLevelSchema = z.object({
   cost: z.record(z.enum(COMMON_RESOURCE_IDS), z.number().int().positive()),
   requires: z.array(buildingRequirementSchema).default([]),
   effect: buildingEffectSchema,
+  /** D4 : ce niveau ne peut être bâti que dans une ville par joueur (« 1 Capitole »). */
+  uniquePerPlayer: z.boolean().optional(),
 });
 
 export const buildingSchema = z

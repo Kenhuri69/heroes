@@ -190,14 +190,17 @@ Chaque décision = correctif code OU ligne de doc, dans le même commit.
   « après chaque victoire »). *Reco : cohérence avec D1 — étendre au
   défenseur vainqueur (code) ; sinon noter « en tant qu'attaquant » docs
   04 §2 et 05 §3.3.*
-- [ ] **D3 — Stock de base orphelin après upgrade du dwelling niveau 2**
+- [x] **D3 — Stock de base orphelin après upgrade du dwelling niveau 2**
   (`town/helpers.ts:24-34`, `recruit.ts:31-35`) : le stock accumulé de
-  l'unité de base devient irrécupérable. *Reco : garder les DEUX recrutables
-  (façon HoMM) ; à défaut convertir le stock au build du niveau 2.*
-- [ ] **D4 — « 1 seul Capitole par joueur » non appliqué** (doc 02:152 ;
+  l'unité de base devient irrécupérable. *Fait : `unitIsRecruitable` /
+  `builtDwellings` itèrent TOUS les niveaux bâtis ⇒ base ET améliorée
+  recrutables (façon HoMM) ; test `town-upgrade.test.ts` D3.*
+- [x] **D4 — « 1 seul Capitole par joueur » non appliqué** (doc 02:152 ;
   `town/build.ts:13-61` — townHall niv 4 possible dans chaque ville).
-  *Reco : flag générique data-driven `uniquePerPlayer` sur un niveau de
-  bâtiment (code).*
+  *Fait : flag générique data-driven `uniquePerPlayer` sur `BuildingLevel`
+  (schéma + townHall@4) ; `validateBuildStructure` rejette (code
+  `uniquePerPlayer`) si une autre ville du joueur porte déjà ce niveau ;
+  test `town-build.test.ts`.*
 - [x] **D5 — `consumeMarks` déclenché aussi en riposte** (`damage.ts:252` via
   `actions.ts:317-326`) — doc 05:36 dit « à l'attaque », et la préviz ne le
   reflète pas. *Reco : restreindre aux frappes volontaires (code), lecture
@@ -214,10 +217,12 @@ Chaque décision = correctif code OU ligne de doc, dans le même commit.
   aucun bâtiment « château » n'existe). *Reco : exiger `fort@3` dans les
   données des 3 maisons — pur diff data, restaure l'arbitrage économique ;
   re-passer l'équilibrage grossier.*
-- [ ] **D9 — Tableau des Contrats : prérequis `townHall` au lieu de `tavern`**
+- [x] **D9 — Tableau des Contrats : prérequis `townHall` au lieu de `tavern`**
   (doc 05:213 ; `arcane-hunters/buildings.json:185` — la taverne core n'est
-  pas dans la ville AH). *Reco : ajouter `tavern` à la ville AH + le
-  `requires` ; sinon amender la doc.*
+  pas dans la ville AH). *Fait : `tavern` ajoutée à la ville AH (manifest) +
+  `requires` du contrat passé à `tavern@1` ; test contenu D9 (repérage par
+  effet `huntContract`, pas d'id de faction en dur) + smoke ajusté (bâtir la
+  taverne j1, le contrat j2).*
 - [x] **D10 — Marques sans effet sur les dégâts des sorts** (doc 05:157
   « +8 % des unités AH ET des sorts de Traque » ; `hero/spells.ts:33-40`
   ignore `target.marks`). *Reco : appliquer `markBonusPerStack × marks` aux

@@ -26,20 +26,26 @@ export function unitIsRecruitable(
   catalog: Record<string, BuildingDef>,
   unitId: string,
 ): boolean {
+  // D3 : un dwelling gradué (niveau 1 = base, niveau 2 = amélioré) rend
+  // recrutables les DEUX unités (façon HoMM) — on parcourt TOUS les niveaux
+  // construits, pas seulement le plus haut. Sinon le stock de base accumulé
+  // avant l'amélioration devient irrécupérable.
   for (const buildingId of Object.keys(town.buildings)) {
-    const level = builtLevelOf(town, catalog, buildingId);
-    if (level?.effect.type === 'dwelling' && level.effect.unitId === unitId) return true;
+    const built = town.buildings[buildingId] ?? 0;
+    const def = catalog[buildingId];
+    for (let i = 0; i < built; i++) {
+      const effect = def?.levels[i]?.effect;
+      if (effect?.type === 'dwelling' && effect.unitId === unitId) return true;
+    }
   }
   return false;
 }
 
 /**
- * Liste des unités recrutables dans la ville : l'unité du **niveau construit**
- * de chaque dwelling (cohérent avec `unitIsRecruitable`, qui ne regarde que le
- * niveau haut). Pour un dwelling gradué (Alpha 4.11 : niveau 1 = base, niveau 2
- * = amélioré), seule la variante du niveau construit est exposée — recruter
- * l'amélioré remplace la base une fois le niveau 2 bâti. Ordre stable (ordre
- * d'insertion des bâtiments).
+ * Liste des unités recrutables dans la ville : pour un dwelling gradué (Alpha
+ * 4.11 : niveau 1 = base, niveau 2 = amélioré), les DEUX variantes sont exposées
+ * une fois le niveau 2 bâti (D3, façon HoMM) — on parcourt tous les niveaux
+ * construits. Ordre stable (bâtiments puis niveaux).
  */
 export function builtDwellings(
   town: TownState,
@@ -47,8 +53,12 @@ export function builtDwellings(
 ): string[] {
   const unitIds: string[] = [];
   for (const buildingId of Object.keys(town.buildings)) {
-    const effect = builtLevelOf(town, catalog, buildingId)?.effect;
-    if (effect?.type === 'dwelling' && !unitIds.includes(effect.unitId)) unitIds.push(effect.unitId);
+    const built = town.buildings[buildingId] ?? 0;
+    const def = catalog[buildingId];
+    for (let i = 0; i < built; i++) {
+      const effect = def?.levels[i]?.effect;
+      if (effect?.type === 'dwelling' && !unitIds.includes(effect.unitId)) unitIds.push(effect.unitId);
+    }
   }
   return unitIds;
 }

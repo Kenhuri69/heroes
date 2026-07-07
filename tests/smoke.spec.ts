@@ -1616,7 +1616,14 @@ test('contrat de chasse : bâtir le Tableau des Contrats → cible assignée au 
   await page.evaluate(() => window.__HEROES_TEST__!.startScenario('conquest'));
   await expect(page.getByTestId('end-turn')).toBeVisible();
 
-  // Bâtir le Tableau des Contrats (prérequis townHall, 800 or + 5 bois).
+  // Le Tableau des Contrats requiert la Taverne (D9, doc 05 §3.3) : on la bâtit
+  // au jour 1 (une construction/jour), puis le contrat au jour 2.
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({ type: 'BuildStructure', townId: 'start-town', buildingId: 'tavern' }),
+  );
+  await page.evaluate(() => window.__HEROES_TEST__!.dispatch({ type: 'EndTurn', playerId: 'player-1' }));
+
+  // Bâtir le Tableau des Contrats (prérequis tavern@1, 800 or + 5 bois).
   await page.evaluate(() =>
     window.__HEROES_TEST__!.dispatch({
       type: 'BuildStructure',
@@ -1634,7 +1641,8 @@ test('contrat de chasse : bâtir le Tableau des Contrats → cible assignée au 
   ).toBe(1);
 
   // Avancer jusqu'au passage de semaine (jour 8) : un contrat est assigné.
-  for (let i = 0; i < 7; i++) {
+  // (Le jour 1 a déjà consommé un EndTurn ci-dessus ⇒ 6 tours restants.)
+  for (let i = 0; i < 6; i++) {
     await page.evaluate(() => window.__HEROES_TEST__!.dispatch({ type: 'EndTurn', playerId: 'player-1' }));
   }
   const contract = await page.evaluate(() => window.__HEROES_TEST__!.getState().players[0]?.huntContract);

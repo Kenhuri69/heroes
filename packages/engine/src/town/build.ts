@@ -55,6 +55,22 @@ export function validateBuildStructure(state: GameState, cmd: BuildCmd): Command
         message: `choix exclusif '${def.exclusiveGroup}' déjà pris par '${rival}'`,
       };
   }
+  // D4 : « un seul Capitole par joueur » (doc 02 §4.1) — niveau `uniquePerPlayer`
+  // interdit si une AUTRE ville du joueur porte déjà ce bâtiment à ce niveau.
+  const targetLevel = currentLevel + 1;
+  if (nextLevel.uniquePerPlayer) {
+    const dupe = state.towns.some(
+      (t) =>
+        t.id !== town.id &&
+        t.ownerPlayerId === player.id &&
+        (t.buildings[cmd.buildingId] ?? 0) >= targetLevel,
+    );
+    if (dupe)
+      return {
+        code: 'uniquePerPlayer',
+        message: `'${cmd.buildingId}'@${targetLevel} : un seul par joueur (doc 02 §4.1)`,
+      };
+  }
   if (!canAfford(player.resources, nextLevel.cost))
     return { code: 'cannotAfford', message: `ressources insuffisantes pour '${cmd.buildingId}'` };
   return null;

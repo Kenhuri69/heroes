@@ -195,3 +195,19 @@ describe('Arcane Hunters (plan phase-4.2) — signature Marque & lineup data-onl
     }
   });
 });
+
+describe('D9 — Tableau des Contrats gaté par la Taverne', () => {
+  it('la ville de la maison à Marque inclut la Taverne et son contrat la requiert', async () => {
+    const report = await loadContent(readJsonFromDisk);
+    // Maison repérée sans coder son id en dur (garde-fou faction).
+    const pack = findMarkFaction(report.content.packs)!;
+    expect(pack.manifest.town?.buildings).toContain('tavern');
+    const catalog = buildBuildingCatalog(report);
+    // Bâtiment de contrat de chasse repéré par son EFFET, jamais par un id de faction.
+    const contracts = Object.values(catalog).find((b) =>
+      b.levels.some((l) => l.effect.type === 'huntContract'),
+    )!;
+    expect(contracts.levels[0]!.requires.some((r) => r.building === 'tavern')).toBe(true);
+    expect(contracts.levels[0]!.requires.some((r) => r.building === 'townHall')).toBe(false);
+  });
+});

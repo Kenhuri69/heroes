@@ -5,8 +5,10 @@ import { t, resolveScenarioName } from '../app/i18n';
 import { useApp } from '../app/store';
 import { navigate, openModal } from '../app/router';
 import { eventStatus } from '../app/timed-events';
+import { isOnline } from '../app/net';
 import { logoUrl, titleBackgroundUrl } from '../render/assets';
 import { AssetImg } from './AssetImg';
+import { OnlinePanel } from './OnlinePanel';
 import './menu.css';
 
 /**
@@ -29,6 +31,7 @@ export function MenuScreen() {
   const campaigns = useApp((s) => s.campaigns);
   const campaignProgress = useApp((s) => s.campaignProgress);
   const [canContinue, setCanContinue] = useState(false);
+  const [showOnline, setShowOnline] = useState(false);
 
   // Événements temporaires (doc 13 §4.3, N4d) : statut selon l'horloge CLIENT.
   // Les scénarios sans `availability` restent dans la liste permanente ; un
@@ -95,6 +98,11 @@ export function MenuScreen() {
         <button class="menu-button" data-testid="menu-options" onClick={() => openModal({ kind: 'options' })}>
           {t('menu.options')}
         </button>
+        {isOnline() && (
+          <button class="menu-button" data-testid="menu-online" onClick={() => setShowOnline(true)}>
+            {t('menu.online')}
+          </button>
+        )}
       </nav>
       {campaigns.length > 0 && (
         <nav class="menu-actions menu-campaigns" data-testid="menu-campaigns">
@@ -171,6 +179,7 @@ export function MenuScreen() {
           ))}
         </nav>
       )}
+      {showOnline && <OnlinePanel onClose={() => setShowOnline(false)} />}
     </div>
   );
 }

@@ -147,7 +147,13 @@ def fade_edges(x: list[float], fin: float = 0.002, fout: float = 0.006) -> list[
     return x
 
 
-# --- définition des 6 effets câblés ----------------------------------------
+# --- définition des effets câblés ------------------------------------------
+
+def sfx_ui_tap() -> list[float]:
+    body = mul(sine(180, 0.12), exp_env(0.12, 40))
+    click = mul(one_pole_lp(noise(0.12, 1), 2600), exp_env(0.12, 95))
+    return normalize(add(scale(body, 0.9), scale(click, 0.5)), 0.5)
+
 
 def sfx_combat_hit() -> list[float]:
     clang = mul(one_pole_hp(one_pole_lp(noise(0.30, 2), 6500), 1700), exp_env(0.30, 24))
@@ -211,6 +217,7 @@ def sfx_map_pickup() -> list[float]:
 
 
 EFFECTS = {
+    "ui-tap": sfx_ui_tap,
     "combat-hit": sfx_combat_hit,
     "combat-spell": sfx_combat_spell,
     "combat-death": sfx_combat_death,

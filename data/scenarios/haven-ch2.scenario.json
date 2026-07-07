@@ -60,6 +60,11 @@
       ]
     }
   ],
+  "combatBarks": [
+    "@loc:bark.haven.heresh.1",
+    "@loc:bark.haven.heresh.2",
+    "@loc:bark.haven.heresh.3"
+  ],
   "characters": [
     { "id": "aldric", "nameKey": "@loc:character.aldric.name" },
     { "id": "seraphine", "nameKey": "@loc:character.seraphine.name" }

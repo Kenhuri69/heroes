@@ -34,8 +34,15 @@ export function loadScenarioNarrative(scenario: Scenario): void {
         },
       ]),
     ),
+    combatBarks: [...(scenario.combatBarks ?? [])],
   };
-  appStore.setState({ narrative: catalog, dialogue: null, dialogueQueue: [], questJournal: [] });
+  appStore.setState({
+    narrative: catalog,
+    dialogue: null,
+    dialogueQueue: [],
+    questJournal: [],
+    combatBark: null,
+  });
   // Dialogue d'ouverture (doc 13 §6.3) : joué avant les `dialogBefore` d'étape 0.
   if (scenario.openingDialog) enqueueDialog(scenario.openingDialog);
 }
@@ -135,4 +142,31 @@ export function initNarrative(): void {
 function pushQuestToast(titleKey: string): void {
   const key = titleKey.startsWith('@loc:') ? titleKey.slice('@loc:'.length) : titleKey;
   pushToast(t('toast.questCompleted', { title: t(key) }));
+}
+
+/**
+ * Barks de combat (doc 13 §6.3, N4b) : au DÉBUT d'un combat (transition
+ * `combat` null→set), tire UNE réplique du pool du scénario au hasard **côté
+ * client** (`Math.random` — hors moteur déterministe) et l'affiche ; la retire à
+ * la fin du combat. Idempotent — à appeler une fois au boot (comme `initNarrative`).
+ */
+export function initCombatBarks(): void {
+  let prevInCombat = false;
+  appStore.subscribe(() => {
+    const { game, narrative } = appStore.getState();
+    const inCombat = game.combat !== null;
+    // Pas de transition : rien à faire. Ce garde stoppe aussi la ré-entrance —
+    // `setState` ci-dessous re-notifie ce même abonné en synchrone.
+    if (inCombat === prevInCombat) return;
+    prevInCombat = inCombat; // AVANT le setState (garde de ré-entrance)
+    if (inCombat) {
+      const pool = narrative?.combatBarks ?? [];
+      if (pool.length > 0) {
+        const bark = pool[Math.floor(Math.random() * pool.length)] ?? null;
+        appStore.setState({ combatBark: bark });
+      }
+    } else {
+      appStore.setState({ combatBark: null });
+    }
+  });
 }

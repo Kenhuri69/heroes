@@ -4,7 +4,7 @@ import { useApp, appStore } from '../app/store';
 import { dispatch } from '../app/dispatch';
 import { recordCombatAuto } from '../app/telemetry';
 import { humanId } from '../app/game';
-import { t, resolveUnitName, commandErrorMessage } from '../app/i18n';
+import { t, resolveUnitName, resolveLoc, commandErrorMessage } from '../app/i18n';
 import { COMBAT_SPEEDS } from '../app/ui-constants';
 import { combatPreview, type DamagePreview } from '../scenes/combat/preview';
 import { pushToast } from './toasts';
@@ -21,6 +21,7 @@ export function CombatUi() {
   useApp((s) => s.locale); // réactivité i18n
   const combat = useApp((s) => s.game.combat);
   const combatSpeed = useApp((s) => s.combatSpeed);
+  const combatBark = useApp((s) => s.combatBark);
   const hero = useApp((s) => s.game.heroes.find((h) => h.playerId === humanId(s.game)));
   const preview = useSyncExternalStore(combatPreview.subscribe, combatPreview.get);
   const [spellBookOpen, setSpellBookOpen] = useState(false);
@@ -62,6 +63,13 @@ export function CombatUi() {
           ))}
         </div>
       </header>
+
+      {/* Bark de combat (doc 13 §6.3, N4b) : réplique de l'antagoniste au début du combat. */}
+      {combatBark && (
+        <p class="combat-bark" data-testid="combat-bark">
+          {resolveBark(combatBark)}
+        </p>
+      )}
 
       {/* UXD-0 R5a : préviz + actions dans un conteneur colonne (plus de
           recouvrement de la consigne quand la barre passe à 2 rangées). */}
@@ -119,4 +127,11 @@ function formatPreview(p: DamagePreview): string {
     ? t('combat.retaliationEstimate', { min: p.retaliation.damageMin, max: p.retaliation.damageMax })
     : t('combat.noRetaliation');
   return t('combat.previewSummary', { damage, kills, retal });
+}
+
+/** Résout une clé de bark (`@loc:` vers les locales CORE, comme les dialogues). */
+function resolveBark(ref: string): string {
+  const key = ref.startsWith('@loc:') ? ref.slice('@loc:'.length) : ref;
+  const value = t(key);
+  return value === key ? resolveLoc(ref) : value;
 }

@@ -193,6 +193,23 @@ describe('evaluateOutcome — victoire/défaite (joueur local player-1)', () => 
     expect(events).toContainEqual({ type: 'GameEnded', status: 'lost', winnerPlayerId: 'player-2' });
   });
 
+  it('B3 — le héros d’un joueur éliminé (grâce dépassée) est retiré de l’état', () => {
+    const scenario = objectives({ type: 'surviveDays', days: 999 }, { type: 'surviveDays', days: 999 });
+    let state = startedGame(scenario);
+    expect(state.heroes.some((h) => h.playerId === 'player-1')).toBe(true);
+    // player-1 : héros présent, aucune ville, grâce de reprise dépassée (> 7 jours).
+    state = {
+      ...state,
+      players: state.players.map((p) => (p.id === 'player-1' ? { ...p, townlessDays: 8 } : p)),
+      towns: [],
+    };
+    const { state: next, events } = apply(state, { type: 'EndTurn', playerId: 'player-1' });
+    expect(next.players.find((p) => p.id === 'player-1')?.eliminated).toBe(true);
+    expect(events).toContainEqual({ type: 'PlayerEliminated', playerId: 'player-1' });
+    // B3 : plus aucun héros du joueur éliminé (ni obstacle, ni rapporteur d'or).
+    expect(next.heroes.some((h) => h.playerId === 'player-1')).toBe(false);
+  });
+
   it("GameEnded n'est émis qu'une seule fois (outcome déjà posé ⇒ no-op)", () => {
     const scenario = objectives({ type: 'surviveDays', days: 1 }, { type: 'surviveDays', days: 999 });
     let state = startedGame(scenario);

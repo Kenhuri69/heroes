@@ -1,5 +1,6 @@
 import type { CombatRulesConfig } from '../adventure/config';
 import type { GameState } from '../core/state';
+import { heroArtifactBonus } from '../hero/artifacts';
 import { heroMorale } from '../hero/skills';
 import type { CombatSideId, CombatStack, CombatState, CombatUnitDef } from './types';
 
@@ -57,11 +58,16 @@ export function moveRange(
   return Math.max(0, effectiveSpeed(stack, combat, catalog) + mods);
 }
 
-/** Bonus de moral du héros lié au camp `side` (compétence Commandement) — 0 si aucun héros. */
+/**
+ * Bonus de moral du héros lié au camp `side` : compétence Commandement +
+ * moral d'artefacts (B7 — `bonus.morale` était sommé mais jamais branché).
+ * 0 si aucun héros.
+ */
 function heroMoraleForSide(state: GameState, combat: CombatState, side: CombatSideId): number {
   const heroId = side === 'attacker' ? combat.attackerHeroId : combat.defenderHeroId;
   const hero = heroId ? state.heroes.find((h) => h.id === heroId) : undefined;
-  return hero ? heroMorale(hero, state.skillCatalog) : 0;
+  if (!hero) return 0;
+  return heroMorale(hero, state.skillCatalog) + heroArtifactBonus(hero, state.artifactCatalog).morale;
 }
 
 /**
@@ -74,13 +80,16 @@ export function moraleOf(stack: CombatStack, combat: CombatState, state: GameSta
   const catalog = state.unitCatalog;
   const def = catalog[stack.unitId];
   if (!def) return 0;
-  if (hasAbility(def, 'undead')) return 0;
+  // Morts-vivants ET machines de guerre (B6, marqueur de données `warMachine`) :
+  // hors du système de moral — ni n'en subissent, ni n'en donnent (pas comptés
+  // comme une « faction » distincte dans l'armée).
+  if (hasAbility(def, 'undead') || hasAbility(def, 'warMachine')) return 0;
   const terrainBonus = def.nativeTerrain === combat.terrain ? 1 : 0;
   const groups = new Set<string>();
   for (const s of combat.stacks) {
     if (s.side !== stack.side || s.count <= 0) continue;
     const d = catalog[s.unitId];
-    if (d && !hasAbility(d, 'undead')) groups.add(d.groupId);
+    if (d && !hasAbility(d, 'undead') && !hasAbility(d, 'warMachine')) groups.add(d.groupId);
   }
   const malus = Math.max(0, groups.size - 1);
   return clamp(terrainBonus - malus + heroMoraleForSide(state, combat, stack.side), -3, 3);

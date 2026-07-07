@@ -119,34 +119,34 @@ une seule fois en fin de lot, et re-passer le test d'équilibrage grossier.
 
 ## 2. Lot B — Bugs mineurs & validation (corriger le CODE) — P1
 
-- [ ] **B1 — `RecruitUnits` accepte un effectif non entier** (2,5 créatures
+- [x] **B1 — `RecruitUnits` accepte un effectif non entier** (2,5 créatures
   persistées). Ajouter `Number.isInteger(cmd.count)`
   (`town/recruit.ts:29-38`), comme `TradeResources` (`market.ts:54`).
-- [ ] **B2 — Récompense de quête : artefact poussé en 11ᵉ slot**
+- [x] **B2 — Récompense de quête : artefact poussé en 11ᵉ slot**
   (`quest/evaluate.ts:64-65`) — casse l'invariant 10 slots (state.ts:89-90).
   Aligner sur le comportement du ramassage au sol.
-- [ ] **B3 — Joueur éliminé : son héros persiste et rapporte encore.**
+- [x] **B3 — Joueur éliminé : son héros persiste et rapporte encore.**
   L'or/jour de la compétence Économie ne filtre pas `eliminated`
   (`core/engine.ts:523-529`, contrairement aux mines `town/economy.ts:28`) ;
   le héros reste un obstacle de pathfinding et une cible de gardiens.
   Retirer les héros à `PlayerEliminated` (ou a minima filtrer `eliminated`).
-- [ ] **B4 — `townPortal` ignore l'occupation de la tuile d'arrivée**
+- [x] **B4 — `townPortal` ignore l'occupation de la tuile d'arrivée**
   (`hero/index.ts:148-160`) ⇒ deux héros superposés possibles. Valider la
   tuile (ou choisir une adjacente libre).
-- [ ] **B5 — IA d'aventure : chemins traversant des gardiens non ciblés**
+- [x] **B5 — IA d'aventure : chemins traversant des gardiens non ciblés**
   (`ai/adventure.ts:118,141`) ⇒ interceptions non planifiées à marge < 1,5×.
   Exclure du pathfinding IA les tuiles de gardien non ciblées ; dupliquer le
   garde-fou « armée vide ⇒ refus d'engager » dans `beginGuardianCombat`
   (latent : R1 E1 ne couvre que le validateur humain).
-- [ ] **B6 — Machine de guerre = −1 moral pour toute l'armée.** La baliste
+- [x] **B6 — Machine de guerre = −1 moral pour toute l'armée.** La baliste
   (`groupId: 'war-machine'`, client `game.ts:120-128`) compte comme une
   « faction » dans `moraleOf` (`combat/state-helpers.ts:58-72`). Exclure les
   machines du décompte via un marqueur de données (pas de cas particulier
   moteur).
-- [ ] **B7 — Bonus d'artefact `morale` sommé mais jamais branché**
+- [x] **B7 — Bonus d'artefact `morale` sommé mais jamais branché**
   (`hero/artifacts.ts:43` vs `state-helpers.ts:46-49`) — latent (aucun
   artefact core n'en porte). Brancher comme la chance (`damage.ts:160-168`).
-- [ ] **B8 — Garde procédurale de version de sauvegarde.** La garde a déjà
+- [x] **B8 — Garde procédurale de version de sauvegarde.** La garde a déjà
   été contournée deux fois (champ requis `symbiosisStacks` ajouté en 5.3
   sans bump — NaN démontrable sur une save v6 avec combat en cours ;
   `visitLuck` intra-PR #83). Ajouter un test qui snapshotte la FORME de

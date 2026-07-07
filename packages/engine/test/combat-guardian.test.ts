@@ -63,6 +63,18 @@ describe('beginGuardianCombat', () => {
     ).toBe(true);
   });
 
+  it('B5 — armée vide : beginGuardianCombat refuse d’engager (aucun combat démarré)', () => {
+    const state = startedGameWithGuardian('blue-wolf', 1, 'red-grunt', 1);
+    const events: import('../src/core/events').GameEvent[] = [];
+    const next = produce(state, (draft) => {
+      const hero = draft.heroes.find((h) => h.id === 'hero-p1');
+      if (hero) hero.army = []; // héros sans troupe (et sans machine de guerre)
+      beginGuardianCombat(draft, 'hero-p1', 'guardian-1', events);
+    });
+    expect(next.combat).toBeNull(); // pas de combat monté
+    expect(next.map?.objects.some((o) => o.id === 'guardian-1')).toBe(true); // gardien intact
+  });
+
   it('défaite du héros : héros retiré, effectif survivant écrit sur le gardien', () => {
     // 1 grunt isolé contre 100 loups — le gardien l'emporte largement.
     const state = startedGameWithGuardian('blue-wolf', 100, 'red-grunt', 1);

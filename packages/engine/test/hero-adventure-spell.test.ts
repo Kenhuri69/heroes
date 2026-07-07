@@ -102,6 +102,23 @@ describe('CastAdventureSpell — Ville-portail', () => {
     expect(next.players[0]?.explored[idx]).toBe(1);
   });
 
+  it('B4 — n’atterrit pas sur une tuile occupée par un autre héros (voisine libre)', () => {
+    const s = state();
+    // Un autre héros du joueur occupe déjà la tuile de la ville (8,8).
+    s.heroes.push(hero({ id: 'hero-blocker', pos: { x: 8, y: 8 }, spells: [] }));
+    const { state: next } = apply(s, {
+      type: 'CastAdventureSpell',
+      heroId: 'hero-player-1',
+      spellId: 'ville-portail',
+      playerId: 'player-1',
+    });
+    const moved = next.heroes.find((h) => h.id === 'hero-player-1')!;
+    const blocker = next.heroes.find((h) => h.id === 'hero-blocker')!;
+    expect(moved.pos).not.toEqual(blocker.pos); // pas de superposition
+    // Atterrit sur une tuile voisine de la ville (distance de Tchebychev 1).
+    expect(Math.max(Math.abs(moved.pos.x - 8), Math.abs(moved.pos.y - 8))).toBe(1);
+  });
+
   it('refuse en combat', () => {
     const s = state();
     s.combat = { finished: false } as unknown as GameState['combat'];

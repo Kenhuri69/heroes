@@ -157,6 +157,28 @@ describe('quêtes — évaluateur générique', () => {
     expect(after.state.heroes[0]!.artifacts[0]).toBe('sceau-terni');
   });
 
+  it('B2 — récompense artefact avec inventaire plein : NON attribuée (jamais de slot supplémentaire)', () => {
+    const quests: QuestState = {
+      quests: [
+        {
+          def: {
+            id: 'q3b',
+            steps: [{ id: 's1', condition: { type: 'visitTile', x: 1, y: 0 } }],
+            rewards: [{ type: 'artifact', artifactId: 'sceau-terni' }],
+          },
+          stepIndex: 0,
+          status: 'active',
+        },
+      ],
+    };
+    const s = baseState(quests);
+    s.heroes[0]!.artifacts = ['a', 'b', 'c']; // 3 slots, tous occupés (aucun null)
+    s.map = { width: 4, height: 1, tiles: [], objects: [] } as unknown as GameState['map'];
+    s.players[0]!.explored = [0, 1, 0, 0];
+    const after = run(s);
+    expect(after.state.heroes[0]!.artifacts).toEqual(['a', 'b', 'c']); // pas de 4ᵉ slot
+  });
+
   it('no-op sans quêtes embarquées (partie libre) — aucun événement', () => {
     const after = run(baseState(null));
     expect(after.events).toHaveLength(0);

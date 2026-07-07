@@ -163,6 +163,9 @@ export function beginGuardianCombat(
     ...hero.army,
     ...hero.warMachines.map((unitId) => ({ unitId, count: 1 })),
   ];
+  // B5 : armée vide ⇒ refus d'engager (garde-fou parallèle au validateur humain,
+  // remédiation R1 E1) — un héros sans troupe ne déclenche pas de combat de gardien.
+  if (attacker.length === 0) return;
   const defender: ArmyStack[] = [{ unitId: guardian.unitId, count: guardian.count }];
   const stacks = [
     ...placeSide('attacker', attacker, draft.unitCatalog, 0),

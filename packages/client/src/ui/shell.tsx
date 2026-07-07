@@ -30,6 +30,7 @@ import { OutcomeOverlay } from './OutcomeOverlay';
 import { FactionBadge } from './FactionBadge';
 import { DialogueBox } from './DialogueBox';
 import { CutsceneOverlay } from './CutsceneOverlay';
+import { MiniMap } from './MiniMap';
 import { QuestJournal } from './QuestJournal';
 import './tokens.css'; // design tokens UXD-1 — à charger avant toute feuille
 import './interactions.css'; // micro-interactions & transitions UXD-7
@@ -108,6 +109,7 @@ function Shell() {
               <ArmyBand />
               <TurnBar onOpenOptions={() => openModal({ kind: 'options' })} />
             </div>
+            <MiniMap /> {/* UXD-8 : mini-carte desktop (masquée en mobile par CSS) */}
           </>
         )
       ) : null}

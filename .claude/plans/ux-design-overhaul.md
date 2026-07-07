@@ -328,4 +328,4 @@ intercalé dès qu'un sourcing est validé).
 - [ ] UXD-5 — écrans de gestion habillés.
 - [~] UXD-6 — audio : cadrage + prompts (#101) + **architecture 6B livrée** (`ux-d6-audio.md`, règle F doc 12) ; reste la génération/dépôt des fichiers `assets/audio/`.
 - [x] UXD-7 — micro-interactions & transitions (`ux-d7-micro-interactions.md`).
-- [ ] UXD-8 — immersion continue & desktop.
+- [~] UXD-8 — mini-map desktop livrée (`ux-d8-desktop-minimap.md`) ; layout colonne droite complet + mini-map mobile = suivis notés.

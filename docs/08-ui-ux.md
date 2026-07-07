@@ -196,6 +196,16 @@ Menu principal (Continuer / Scénarios / Escarmouche / **Éditeur de carte** / O
 > attack/hit/death) reste différée : le pipeline `asset-sheet` produit des sprites
 > statiques, pas des planches d'animation.
 
+> 🚧 **État UXD-8 (mini-map desktop)** : la **mini-carte** promise ci-dessus
+> existe (elle « n'existait pas du tout » à l'audit) — `ui/MiniMap.tsx`, un
+> `<canvas>` 1 px/tuile (CSS `pixelated`) rendant le terrain **exploré**
+> (brouillard = sombre) et des pastilles héros/villes (couleur de joueur, la
+> pastille elle-même est le 2ᵉ canal — A5). **Clic = recentrage** de la caméra
+> d'aventure (`panCameraTo`). Redessin seulement au changement d'état (coût
+> par-frame nul). **Desktop only** (ancrée en bas à droite) ; la version mobile
+> dans le tiroir et le **layout complet en colonne droite** (ressources/
+> portraits/villes empilés, doc §2.1) restent des raffinements notés.
+
 > 🚧 **État UXD-6B (architecture audio)** : l'option **audio** promise ci-dessus
 > existe — section Options avec deux volumes (musique / effets) persistés
 > (`localStorage`, modérés par défaut). Côté moteur/client : `app/audio.ts` —

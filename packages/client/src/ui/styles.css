@@ -49,6 +49,32 @@
   image-rendering: auto;
 }
 
+/* Mini-carte (UXD-8, doc 08 §2.1) — desktop only : masquée sous 900 px (sur
+   mobile elle vivra dans le tiroir, suivi noté). Ancrée en bas à droite,
+   au-dessus de la barre d'actions ; clic = recentrage caméra. */
+.mini-map {
+  display: none;
+}
+
+@media (min-width: 900px) {
+  .mini-map {
+    display: block;
+    position: fixed;
+    right: 12px;
+    bottom: 84px;
+    width: 176px;
+    height: 176px;
+    image-rendering: pixelated;
+    border: 2px solid var(--ink-600);
+    border-radius: var(--radius-s);
+    background: var(--ink-950);
+    box-shadow: 0 2px 8px var(--shadow-60);
+    cursor: pointer;
+    pointer-events: auto;
+    z-index: 8;
+  }
+}
+
 /* Vignette de bord de monde (UXD-3A) : assombrit les bords de l'écran pour
    donner de la profondeur à la carte, au-dessus du canvas et sous les panneaux
    d'UI. Décorative : ne capte jamais le pointeur. */

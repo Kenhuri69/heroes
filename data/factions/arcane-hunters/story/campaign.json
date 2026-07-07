@@ -1,0 +1,18 @@
+{
+  "id": "arcane-campaign",
+  "factionId": "arcane-hunters",
+  "nameKey": "@loc:campaign.arcane.name",
+  "descriptionKey": "@loc:campaign.arcane.desc",
+  "chapters": [
+    {
+      "id": "ch1",
+      "scenario": "arcane-ch1",
+      "titleKey": "@loc:campaign.arcane.ch1.title"
+    },
+    {
+      "id": "ch2",
+      "scenario": "arcane-ch2",
+      "titleKey": "@loc:campaign.arcane.ch2.title"
+    }
+  ]
+}

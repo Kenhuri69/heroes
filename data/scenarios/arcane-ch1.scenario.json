@@ -1,0 +1,83 @@
+{
+  "id": "arcane-ch1",
+  "schemaVersion": 1,
+  "name": "@loc:scenario.arcane-ch1.name",
+  "map": "proto-01",
+  "players": [
+    {
+      "id": "player-1",
+      "controller": "human",
+      "factionId": "arcane-hunters",
+      "startPositionIndex": 0,
+      "startingResources": { "gold": 5000, "wood": 10, "ore": 20, "mercury": 4 },
+      "startingArmy": [
+        { "unitId": "t1-eleve", "count": 20 },
+        { "unitId": "t2-familier", "count": 8 }
+      ],
+      "startingTown": {
+        "id": "start-town",
+        "x": 2,
+        "y": 4,
+        "prebuilt": [
+          { "building": "townHall", "level": 1 },
+          { "building": "arcane-hunters-dwelling-t1", "level": 1 }
+        ]
+      }
+    },
+    {
+      "id": "ai-1",
+      "controller": "ai",
+      "factionId": "necropolis",
+      "startPositionIndex": 1,
+      "startingResources": { "gold": 1500 },
+      "startingArmy": [
+        { "unitId": "t1-squelette", "count": 12 },
+        { "unitId": "t2-zombie", "count": 4 }
+      ]
+    }
+  ],
+  "objectives": {
+    "player-1": {
+      "victory": { "type": "surviveDays", "days": 2 },
+      "defeat": { "type": "defeatHero", "heroId": "hero-player-1" }
+    },
+    "ai-1": {
+      "victory": { "type": "eliminateAllEnemies" },
+      "defeat": { "type": "defeatHero", "heroId": "hero-ai-1" }
+    }
+  },
+  "openingDialog": "dlg-arcane-ch1-open",
+  "characters": [
+    { "id": "evadne", "nameKey": "@loc:character.evadne.name" },
+    { "id": "marchmont", "nameKey": "@loc:character.marchmont.name" }
+  ],
+  "dialogs": [
+    {
+      "id": "dlg-arcane-ch1-open",
+      "lines": [
+        { "speaker": "marchmont", "textKey": "@loc:dlg.arcane.ch1.open.1" },
+        { "speaker": "evadne", "portrait": "grave", "textKey": "@loc:dlg.arcane.ch1.open.2" }
+      ]
+    },
+    {
+      "id": "dlg-arcane-ch1-fort",
+      "lines": [{ "speaker": "evadne", "textKey": "@loc:dlg.arcane.ch1.fort.1" }]
+    }
+  ],
+  "quests": [
+    {
+      "id": "arcane-ch1-avant-poste",
+      "kind": "primary",
+      "titleKey": "@loc:quest.arcane-ch1-avant-poste.title",
+      "descriptionKey": "@loc:quest.arcane-ch1-avant-poste.desc",
+      "steps": [
+        {
+          "id": "build-fort",
+          "condition": { "type": "buildStructure", "buildingId": "fort" },
+          "dialogBefore": "dlg-arcane-ch1-fort"
+        }
+      ],
+      "rewards": [{ "type": "resources", "resources": { "gold": 1500 } }]
+    }
+  ]
+}

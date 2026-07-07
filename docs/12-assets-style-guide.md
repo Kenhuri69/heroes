@@ -178,10 +178,11 @@ un fichier son par sujet.
 - **Sourcing musique** : `python3 tools/assets/gen_audio_prompts.py` émet les
   prompts dans `assets/prompts/audio-{music,sfx}.md` ; génération via un modèle
   audio (Gemini), puis retravail ffmpeg (trim/boucle/normalisation/encodage).
-- **Sourcing SFX (procédural)** : le modèle *musique* ne produit pas de one-shots
-  courts et secs → les effets sont **synthétisés** (déterministe, cf. Règle P)
-  par `python3 tools/assets/gen_sfx.py` (stdlib + ffmpeg) : sons dry, mono,
-  niveau maîtrisé, < 60 Ko. Aucune dépendance externe ni licence tierce.
+- **Sourcing SFX & jingles (procédural)** : le modèle *musique* ne produit pas de
+  one-shots courts et secs → ils sont **synthétisés** (déterministe, cf. Règle P)
+  par `python3 tools/assets/gen_sfx.py` (stdlib + ffmpeg) : SFX dry/mono → `sfx/`
+  (< 60 Ko) ; **jingles victoire/défaite** (stings musicaux courts) → `music/`
+  (< 150 Ko). Aucune dépendance externe ni licence tierce.
 - **Staging final** : `assets/audio/music/<id>.ogg` et `assets/audio/sfx/<id>.ogg`
   (+ `.m4a`).
 - **Intégration client (UXD-6B)** : registre `render/audio.ts`

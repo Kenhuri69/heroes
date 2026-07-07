@@ -333,7 +333,8 @@ intercalé dès qu'un sourcing est validé).
 - [~] UXD-6 — audio : cadrage + prompts (#101) + **architecture 6B** +
   **6C musiques déposées** (menu/aventure/combat/ville, OGG+M4A, < 800 Ko/boucle) +
   **6D 6 SFX procéduraux** (`gen_sfx.py` déterministe : combat-hit/spell/death,
-  end-turn, map-step/pickup ; vérifiés runtime) (`ux-d6-audio.md`) ; reste
-  fanfares victoire/défaite, `combat-shoot` + sons d'UI (non câblés).
+  end-turn, map-step/pickup) + **6E jingles victoire/défaite** (procéduraux,
+  câblés sur `GameEnded`, boucle de fond coupée pendant le jingle ; vérifiés
+  runtime) (`ux-d6-audio.md`) ; reste `combat-shoot` + sons d'UI (non câblés).
 - [x] UXD-7 — micro-interactions & transitions (`ux-d7-micro-interactions.md`).
 - [~] UXD-8 — mini-map desktop livrée (`ux-d8-desktop-minimap.md`) ; layout colonne droite complet + mini-map mobile = suivis notés.

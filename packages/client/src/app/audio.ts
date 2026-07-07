@@ -62,6 +62,9 @@ function musicContextKey(): string | null {
   const s = appStore.getState();
   if (s.screen === 'menu') return 'music/menu';
   if (!s.game.started) return null;
+  // Fin de partie : on coupe la boucle de fond pour laisser respirer le jingle
+  // victoire/défaite (joué en one-shot par `playJingle` sur `GameEnded`).
+  if (s.game.outcome) return null;
   if (s.game.combat) return 'music/combat';
   if (s.modals.some((m) => m.kind === 'town')) return 'music/town';
   if (s.screen === 'adventure') return 'music/adventure';
@@ -93,6 +96,20 @@ export function playSfx(id: string): void {
   if (!url || typeof Audio === 'undefined') return;
   const a = new Audio(url); // instance jetable : autorise les recouvrements
   a.volume = sfxVolume;
+  void a.play().catch(() => undefined);
+}
+
+/**
+ * Joue un jingle de fin de partie (`music/<id>` : `victory`/`defeat`) en
+ * **one-shot** (pas de boucle), au volume musique. La boucle de fond est déjà
+ * coupée par `musicContextKey` (outcome ⇒ null). No-op si absent/muet/non débloqué.
+ */
+function playJingle(id: string): void {
+  if (!unlocked || musicVolume === 0) return;
+  const url = registry.get(`music/${id}`);
+  if (!url || typeof Audio === 'undefined') return;
+  const a = new Audio(url);
+  a.volume = musicVolume;
   void a.play().catch(() => undefined);
 }
 
@@ -174,5 +191,11 @@ export function initAudio(): void {
     }
   });
 
-  eventBus.on((event) => sfxForEvent(event));
+  eventBus.on((event) => {
+    sfxForEvent(event);
+    // Jingle de fin de partie : victoire/défaite selon le camp du joueur humain.
+    if (event.type === 'GameEnded') {
+      playJingle(event.status === 'won' ? 'victory' : 'defeat');
+    }
+  });
 }

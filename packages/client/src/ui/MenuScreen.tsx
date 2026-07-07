@@ -24,6 +24,8 @@ import './menu.css';
 export function MenuScreen() {
   useApp((s) => s.locale); // réactivité i18n (t() lit le store hors hook)
   const scenarios = useApp((s) => s.scenarios);
+  const campaigns = useApp((s) => s.campaigns);
+  const campaignProgress = useApp((s) => s.campaignProgress);
   const [canContinue, setCanContinue] = useState(false);
 
   useEffect(() => {
@@ -81,6 +83,40 @@ export function MenuScreen() {
           {t('menu.options')}
         </button>
       </nav>
+      {campaigns.length > 0 && (
+        <nav class="menu-actions menu-campaigns" data-testid="menu-campaigns">
+          <h2 class="menu-section-title">{t('menu.campaigns')}</h2>
+          {campaigns.map((campaign) => {
+            const done = campaignProgress[campaign.id] ?? 0;
+            return (
+              <div class="menu-campaign" key={campaign.id} data-testid={`menu-campaign-${campaign.id}`}>
+                <h3 class="menu-campaign-name">{resolveScenarioName(campaign.nameKey)}</h3>
+                {campaign.chapters.map((chapter, i) => {
+                  const locked = i > done; // chapitre débloqué si i ≤ chapitres faits
+                  return (
+                    <button
+                      class="menu-button menu-chapter"
+                      key={chapter.id}
+                      disabled={locked}
+                      data-testid={`menu-chapter-${campaign.id}-${i}`}
+                      onClick={() =>
+                        window.dispatchEvent(
+                          new CustomEvent('heroes:start-chapter', {
+                            detail: { campaignId: campaign.id, chapterIndex: i },
+                          }),
+                        )
+                      }
+                    >
+                      {`${i + 1}. ${resolveScenarioName(chapter.titleKey)}`}
+                      {locked ? ' 🔒' : done > i ? ' ✓' : ''}
+                    </button>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </nav>
+      )}
       {scenarios.length > 0 && (
         <nav class="menu-actions menu-scenarios" data-testid="menu-scenarios">
           <h2 class="menu-section-title">{t('menu.scenarios')}</h2>

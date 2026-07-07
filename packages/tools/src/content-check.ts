@@ -12,6 +12,7 @@ import {
   loadContent,
   loadMap,
   loadScenarios,
+  loadCampaigns,
   PackError,
 } from '@heroes/content';
 import { DATA_DIR, readJsonFromDisk } from './data-dir';
@@ -132,7 +133,7 @@ if (!mapFiles.includes(`${report.content.config.newGame.map}.map.json`)) {
 let badScenarios = false;
 let scenarioCount = 0;
 try {
-  const scenarioReport = await loadScenarios(readJsonFromDisk, report);
+  let scenarioReport = await loadScenarios(readJsonFromDisk, report);
   scenarioCount = scenarioReport.content.scenarios.length;
   for (const scenario of scenarioReport.content.scenarios) {
     console.log(`✓ scénario ${scenario.id} — ${scenario.players.length} joueur(s)`);
@@ -140,6 +141,16 @@ try {
   for (const rejected of scenarioReport.rejectedScenarios) {
     badScenarios = true;
     console.error(`✗ scénario ${rejected.id}`);
+    for (const err of rejected.errors) console.error(`    ${err}`);
+  }
+  // Campagnes (doc 13, N3a) : chaque chapitre référence un scénario chargé.
+  scenarioReport = await loadCampaigns(readJsonFromDisk, scenarioReport);
+  for (const campaign of scenarioReport.content.campaigns) {
+    console.log(`✓ campagne ${campaign.id} — ${campaign.chapters.length} chapitre(s)`);
+  }
+  for (const rejected of scenarioReport.rejectedCampaigns) {
+    badScenarios = true;
+    console.error(`✗ campagne ${rejected.id}`);
     for (const err of rejected.errors) console.error(`    ${err}`);
   }
 } catch (e) {

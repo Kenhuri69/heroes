@@ -14,6 +14,7 @@
         { "unitId": "t1-conscrit", "count": 15 },
         { "unitId": "t2-archer", "count": 5 }
       ],
+      "startingArtifacts": ["trefle-chance"],
       "startingTown": {
         "id": "start-town",
         "x": 2,
@@ -35,7 +36,7 @@
   ],
   "objectives": {
     "player-1": {
-      "victory": { "type": "eliminateAllEnemies" },
+      "victory": { "type": "surviveDays", "days": 2 },
       "defeat": { "type": "defeatHero", "heroId": "hero-player-1" }
     },
     "ai-1": {

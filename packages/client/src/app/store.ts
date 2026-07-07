@@ -2,7 +2,7 @@ import { createStore } from 'zustand/vanilla';
 import { useSyncExternalStore } from 'preact/compat';
 import type { GameState } from '@heroes/engine';
 import { createEmptyState } from '@heroes/engine';
-import type { DialogNode, Scenario, StoryCharacter } from '@heroes/content';
+import type { Campaign, DialogNode, Scenario, StoryCharacter } from '@heroes/content';
 import type { Modal, Screen } from './router';
 
 /** Catalogue narratif du scénario en cours (doc 13, N2b) — dialogues/personnages/quêtes. */
@@ -83,6 +83,12 @@ export interface AppState {
   dialogueQueue: string[];
   /** Journal de quêtes de campagne (doc 13 §6.3) — vide hors campagne. */
   questJournal: QuestJournalEntry[];
+  /** Campagnes chargées (doc 13 §4.1, N3a) — proposées à l'écran de sélection. */
+  campaigns: Campaign[];
+  /** Chapitres complétés par campagne (miroir du localStorage) — pour l'UI. */
+  campaignProgress: Record<string, number>;
+  /** Chapitre de campagne en cours (pour l'avancement à la victoire) — null hors campagne. */
+  activeChapter: { campaignId: string; chapterIndex: number } | null;
 }
 
 export const appStore = createStore<AppState>(() => ({
@@ -107,6 +113,9 @@ export const appStore = createStore<AppState>(() => ({
   dialogue: null,
   dialogueQueue: [],
   questJournal: [],
+  campaigns: [],
+  campaignProgress: {},
+  activeChapter: null,
 }));
 
 /** Hook Preact : re-rend quand la valeur sélectionnée change (égalité stricte). */

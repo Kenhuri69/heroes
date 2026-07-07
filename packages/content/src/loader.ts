@@ -9,6 +9,7 @@ import {
   localeSchema,
   manifestSchema,
   mapFileSchema,
+  campaignSchema,
   scenarioIndexSchema,
   scenarioSchema,
   skillCatalogSchema,
@@ -24,6 +25,7 @@ import {
   type Locale,
   type Manifest,
   type MapFile,
+  type Campaign,
   type Scenario,
   type ScenarioObjectives,
   type ResolvedArtifact,
@@ -75,6 +77,11 @@ export interface LoadedContent {
    * (factions, unités, bâtiments) pour résoudre ses propres règles croisées.
    */
   scenarios: Scenario[];
+  /**
+   * Campagnes résolues — data/factions/<id>/story/ (doc 13, N3a). Vide tant que
+   * `loadCampaigns` n'a pas été appelé (étape distincte, après les scénarios).
+   */
+  campaigns: Campaign[];
 }
 
 export interface LoadReport {
@@ -83,6 +90,8 @@ export interface LoadReport {
   rejected: { id: string; errors: string[] }[];
   /** Scénarios rejetés (plan phase-3.5) — même forme que `rejected`. */
   rejectedScenarios: { id: string; errors: string[] }[];
+  /** Campagnes rejetées (doc 13, N3a) — même forme que `rejected`. */
+  rejectedCampaigns: { id: string; errors: string[] }[];
   /**
    * Erreurs des règles croisées de `config.newGame` (armée/artefacts/ville de
    * départ) — rapportées, PAS levées (remédiation R5 CO9) : une régression dans
@@ -162,9 +171,11 @@ export async function loadContent(readJson: ReadJson): Promise<LoadReport> {
       coreWarMachines,
       packs: [],
       scenarios: [],
+      campaigns: [],
     },
     rejected: [],
     rejectedScenarios: [],
+    rejectedCampaigns: [],
     configErrors: [],
   };
   for (const id of index.factions) {
@@ -870,6 +881,43 @@ export async function loadScenarios(readJson: ReadJson, report: LoadReport): Pro
     ...report,
     content: { ...report.content, scenarios },
     rejectedScenarios,
+  };
+}
+
+/**
+ * Charge les campagnes déclarées par les manifestes (`manifest.story`, doc 13,
+ * N3a) — étape distincte après `loadScenarios` (chaque chapitre référence un
+ * scénario déjà chargé). Règles croisées : `factionId` connu, chaque
+ * `chapter.scenario` existe parmi les scénarios chargés. Retourne `report`
+ * augmenté de `content.campaigns`/`rejectedCampaigns`.
+ */
+export async function loadCampaigns(readJson: ReadJson, report: LoadReport): Promise<LoadReport> {
+  const knownScenarioIds = new Set(report.content.scenarios.map((s) => s.id));
+  const campaigns: Campaign[] = [];
+  const rejectedCampaigns: { id: string; errors: string[] }[] = [];
+  for (const pack of report.content.packs) {
+    const rel = pack.manifest.story;
+    if (!rel) continue;
+    const path = `factions/${pack.manifest.id}/${rel}`;
+    try {
+      const campaign = parseFile(campaignSchema, await readJson(path), path);
+      const errors: string[] = [];
+      if (campaign.factionId !== pack.manifest.id)
+        errors.push(`${path}: factionId '${campaign.factionId}' ≠ paquet '${pack.manifest.id}'`);
+      for (const ch of campaign.chapters) {
+        if (!knownScenarioIds.has(ch.scenario))
+          errors.push(`${path}: chapitre '${ch.id}' référence un scénario inconnu '${ch.scenario}'`);
+      }
+      if (errors.length > 0) throw new PackError(errors);
+      campaigns.push(campaign);
+    } catch (e) {
+      rejectedCampaigns.push({ id: pack.manifest.id, errors: describeError(e) });
+    }
+  }
+  return {
+    ...report,
+    content: { ...report.content, campaigns },
+    rejectedCampaigns,
   };
 }
 

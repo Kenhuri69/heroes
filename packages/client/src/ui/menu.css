@@ -6,8 +6,12 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  /* `safe center` : centré quand ça tient, aligné au début et SCROLLABLE quand
+     le contenu (campagnes + scénarios) dépasse la hauteur du viewport. */
+  justify-content: safe center;
+  overflow-y: auto;
   gap: 32px;
+  padding: 24px 16px;
   background: #14161c;
   background-size: cover;
   background-position: center;

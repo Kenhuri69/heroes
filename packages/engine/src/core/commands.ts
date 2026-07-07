@@ -22,6 +22,16 @@ export interface PlayerSetup {
   startingFactionId?: string;
   /** Contrôleur (doc 02 §6, plan phase-3.5) — `'ai'` pour un adversaire ; défaut `'human'`. */
   controller?: 'human' | 'ai';
+  /**
+   * Report de héros entre chapitres de campagne (doc 13 §4.1, N3a) — le héros
+   * nommé conserve niveau/XP/compétences/artefacts d'un chapitre à l'autre.
+   * Optionnels : absents ⇒ héros neuf (niveau 1). `startingArtifacts` (par
+   * joueur) prime sur le champ global `StartGame.startingArtifacts`.
+   */
+  startingLevel?: number;
+  startingXp?: number;
+  startingSkills?: Record<string, number>;
+  startingArtifacts?: (string | null)[];
 }
 
 /**

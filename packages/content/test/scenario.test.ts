@@ -6,6 +6,7 @@ import {
   buildScenarioObjectives,
   loadContent,
   loadScenarios,
+  loadCampaigns,
   type LoadReport,
   type ReadJson,
 } from '../src/loader';
@@ -33,6 +34,21 @@ describe('scénarios réels (data/scenarios/)', () => {
     const scenarioReport = await loadScenarios(readJsonFromDisk, report);
     expect(scenarioReport.rejectedScenarios).toEqual([]);
     expect(scenarioReport.content.scenarios.length).toBeGreaterThanOrEqual(3);
+  });
+
+  it('les campagnes valident et chaque chapitre référence un scénario chargé (N3a)', async () => {
+    const report = await loadContent(readJsonFromDisk);
+    const scenarioReport = await loadScenarios(readJsonFromDisk, report);
+    const campaignReport = await loadCampaigns(readJsonFromDisk, scenarioReport);
+    expect(campaignReport.rejectedCampaigns).toEqual([]);
+    expect(campaignReport.content.campaigns.length).toBeGreaterThanOrEqual(1);
+    const scenarioIds = new Set(campaignReport.content.scenarios.map((s) => s.id));
+    for (const campaign of campaignReport.content.campaigns) {
+      expect(campaign.chapters.length).toBeGreaterThanOrEqual(1);
+      for (const chapter of campaign.chapters) {
+        expect(scenarioIds.has(chapter.scenario)).toBe(true);
+      }
+    }
   });
 
   it('buildScenarioObjectives produit des objectifs pour chaque joueur', async () => {

@@ -29,6 +29,7 @@
     "t6-chevalier-griffon-elite",
     "t7-ange-elite"
   ],
+  "story": "story/campaign.json",
   "abilityModules": [],
   "hooks": [],
   "aiProfile": {

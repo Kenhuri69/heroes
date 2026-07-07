@@ -1282,6 +1282,42 @@ test('prologue narratif : dialogue → journal → quête récompensée (doc 13 
   expect(errors).toEqual([]);
 });
 
+test('campagne : gagner le chapitre 1 débloque le 2 et reporte le héros (doc 13 N3a)', async ({ page }) => {
+  const errors = await openMenu(page);
+
+  // La campagne Haven apparaît au menu : chapitre 1 jouable, chapitre 2 verrouillé.
+  await expect(page.getByTestId('menu-campaign-haven-campaign')).toBeVisible();
+  await expect(page.getByTestId('menu-chapter-haven-campaign-0')).toBeEnabled();
+  await expect(page.getByTestId('menu-chapter-haven-campaign-1')).toBeDisabled();
+
+  // Démarre le chapitre 1 (= le Prologue), doté d'un artefact de départ.
+  await page.evaluate(() => window.__HEROES_TEST__!.startCampaignChapter('haven-campaign', 0));
+  await expect(page.getByTestId('end-turn')).toBeVisible();
+  const ch1 = await page.evaluate(() => window.__HEROES_TEST__!.getState());
+  expect(ch1.heroes[0]?.artifacts[0]).toBe('trefle-chance');
+  expect(ch1.quests).not.toBeNull();
+
+  // Gagner le chapitre : survivre 2 jours (finir des tours jusqu'à l'issue).
+  for (let i = 0; i < 6; i++) {
+    const outcome = await page.evaluate(() => window.__HEROES_TEST__!.getState().outcome);
+    if (outcome) break;
+    await page.evaluate(() => window.__HEROES_TEST__!.dispatch({ type: 'EndTurn', playerId: 'player-1' }));
+  }
+  expect(await page.evaluate(() => window.__HEROES_TEST__!.getState().outcome?.status)).toBe('won');
+
+  // Retour au menu : le chapitre 2 est désormais débloqué (progression persistée).
+  await page.getByTestId('outcome-back-to-menu').click();
+  await expect(page.getByTestId('menu-chapter-haven-campaign-1')).toBeEnabled();
+
+  // Le chapitre 2 démarre avec le héros REPORTÉ (artefact conservé — continuité).
+  await page.evaluate(() => window.__HEROES_TEST__!.startCampaignChapter('haven-campaign', 1));
+  await expect(page.getByTestId('end-turn')).toBeVisible();
+  const ch2 = await page.evaluate(() => window.__HEROES_TEST__!.getState());
+  expect(ch2.heroes[0]?.artifacts).toContain('trefle-chance');
+
+  expect(errors).toEqual([]);
+});
+
 test('scénario : gagner « survie » contre l’IA (surviveDays)', async ({ page }) => {
   const errors = await openMenu(page);
 

@@ -300,11 +300,26 @@ export function buildQuestState(scenario: Scenario): QuestState | undefined {
   };
 }
 
+/**
+ * Report de héros entre chapitres de campagne (doc 13 §4.1, N3a) — snapshot du
+ * héros humain injecté dans le chapitre suivant. Client-only (hors `GameState`).
+ */
+export interface HeroCarry {
+  level: number;
+  xp: number;
+  attributes: HeroAttributes;
+  skills: Record<string, number>;
+  spells: string[];
+  artifacts: (string | null)[];
+}
+
 export function scenarioStartCommand(
   report: LoadReport,
   scenario: Scenario,
   seed: number,
   map: ResolvedMap,
+  /** Report de héros (chapitre de campagne > 1) — dote le héros humain. */
+  heroCarry?: HeroCarry,
 ): Command {
   const heroSetup = buildHeroSetup(report);
   const buildingCatalog = buildBuildingCatalog(report) as Record<string, BuildingDef>;
@@ -319,7 +334,7 @@ export function scenarioStartCommand(
     );
   }
 
-  const players = orderedPlayers.map((p) => {
+  const players: PlayerSetup[] = orderedPlayers.map((p): PlayerSetup => {
     const startingResources: Resources = { ...emptyResources() };
     for (const [id, amount] of Object.entries(p.startingResources)) {
       startingResources[id as keyof Resources] = amount ?? 0;
@@ -332,8 +347,23 @@ export function scenarioStartCommand(
       startingSpells: [...heroSetup.startingSpells],
       startingFactionId: p.factionId,
       controller: p.controller,
+      ...(p.startingArtifacts ? { startingArtifacts: [...p.startingArtifacts] } : {}),
     };
   });
+
+  // Report de héros (doc 13 §4.1, N3a) : le héros humain reprend niveau/XP/
+  // attributs/compétences/sorts/artefacts du chapitre précédent.
+  if (heroCarry) {
+    const human = players.find((pl) => pl.controller === 'human');
+    if (human) {
+      human.startingLevel = heroCarry.level;
+      human.startingXp = heroCarry.xp;
+      human.startingAttributes = { ...heroCarry.attributes };
+      human.startingSkills = { ...heroCarry.skills };
+      human.startingSpells = [...heroCarry.spells];
+      human.startingArtifacts = [...heroCarry.artifacts];
+    }
+  }
 
   const towns: TownState[] = orderedPlayers.flatMap((p) => {
     if (!p.startingTown) return [];

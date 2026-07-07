@@ -329,3 +329,17 @@ function showFatalError(err: unknown): void {
 }
 
 bootstrap().catch(showFatalError);
+
+/**
+ * PWA (lot 8.1) : enregistre le service worker offline-first en PROD uniquement
+ * (le smoke tourne sur le build de prod ⇒ le SW y est exercé ; en dev on
+ * n'interfère pas avec le HMR de Vite). Échec silencieux : le jeu reste jouable
+ * sans SW (moteur pur + IndexedDB).
+ */
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker
+      .register(`${import.meta.env.BASE_URL}sw.js`)
+      .catch((err) => console.warn('SW registration failed', err));
+  });
+}

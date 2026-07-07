@@ -4,6 +4,7 @@ import { eventBus } from './events';
 import { dispatch } from './dispatch';
 import { loadScenarioMap } from './content';
 import { loadScenarioNarrative } from './narrative';
+import { playOpeningCutscene } from './cutscene';
 import { navigate } from './router';
 import { appStore } from './store';
 import { humanHeroes, scenarioStartCommand, type HeroCarry } from './game';
@@ -88,6 +89,9 @@ export async function startCampaignChapter(
   appStore.setState({ activeChapter: { campaignId: campaign.id, chapterIndex } });
   await dispatch(scenarioStartCommand(report, scenario, seed, map, heroCarry));
   navigate('adventure');
+  // Cinématique d'ouverture (N3c.1) : en arrière-plan une fois la scène en place
+  // (ne bloque pas le démarrage — elle attend l'interaction du joueur).
+  void playOpeningCutscene(scenario);
 }
 
 /**

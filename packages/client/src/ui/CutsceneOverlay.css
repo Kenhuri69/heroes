@@ -1,0 +1,42 @@
+/* Habillage des cinématiques caméra (doc 13 §6.3, N3c.1) — letterbox + Passer.
+   Couleurs via tokens UXD-1 (garde-fou CI : aucun littéral hors tokens.css). */
+.cutscene-overlay {
+  position: fixed;
+  inset: 0;
+  /* Sous la boîte de dialogue (z 80) mais au-dessus du HUD ; le conteneur
+     lui-même laisse passer les clics, seul le bouton Passer les capture. */
+  z-index: 70;
+  pointer-events: none;
+}
+
+.cutscene-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 12vh;
+  background: var(--ink-950);
+}
+
+.cutscene-bar-top {
+  top: 0;
+}
+
+.cutscene-bar-bottom {
+  bottom: 0;
+}
+
+.cutscene-skip {
+  position: absolute;
+  top: calc(12vh + 0.75rem + env(safe-area-inset-top, 0));
+  right: calc(0.75rem + env(safe-area-inset-right, 0));
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 0.9rem;
+  border: 1px solid var(--brass);
+  border-radius: var(--radius-s);
+  background: var(--night-800);
+  color: var(--parchment-bright);
+  font-size: 0.85rem;
+  pointer-events: auto;
+  cursor: pointer;
+}

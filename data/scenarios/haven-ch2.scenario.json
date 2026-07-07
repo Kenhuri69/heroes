@@ -48,7 +48,18 @@
       "defeat": { "type": "defeatHero", "heroId": "hero-ai-1" }
     }
   },
-  "openingDialog": "dlg-ch2-open",
+  "openingCutscene": "cut-ch2-open",
+  "cutscenes": [
+    {
+      "id": "cut-ch2-open",
+      "steps": [
+        { "type": "panTo", "x": 28, "y": 28, "ms": 1100 },
+        { "type": "wait", "ms": 300 },
+        { "type": "dialog", "dialog": "dlg-ch2-open" },
+        { "type": "panTo", "x": 3, "y": 3, "ms": 1100 }
+      ]
+    }
+  ],
   "characters": [
     { "id": "aldric", "nameKey": "@loc:character.aldric.name" },
     { "id": "seraphine", "nameKey": "@loc:character.seraphine.name" }

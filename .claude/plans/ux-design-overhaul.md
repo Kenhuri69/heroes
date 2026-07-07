@@ -325,7 +325,11 @@ intercalé dès qu'un sourcing est validé).
 - [x] UXD-2 — iconographie unifiée (`ux-d2-iconographie.md`).
 - [x] UXD-3 — carte peinte : bord de monde (#94) + assets peints héros/villes/objets (`ux-d3b-assets-carte.md`).
 - [x] UXD-4 — combat immersif (`ux-d4-combat-immersif.md`).
-- [ ] UXD-5 — écrans de gestion habillés.
+- [~] UXD-5 — vue de ville = **plan de construction** sur le décor peint
+  (construit/disponible/verrouillé, pastille de forme distincte A5) livrée
+  (`ux-d5-gestion.md`) ; poupée d'équipement typée (bloquée sur le schéma
+  d'artefacts, sans champ `slot`) + réalignement écrans annexes (déjà sur tokens
+  via le garde-fou CI) = suivis notés.
 - [~] UXD-6 — audio : cadrage + prompts (#101) + **architecture 6B livrée** (`ux-d6-audio.md`, règle F doc 12) ; reste la génération/dépôt des fichiers `assets/audio/`.
 - [x] UXD-7 — micro-interactions & transitions (`ux-d7-micro-interactions.md`).
 - [~] UXD-8 — mini-map desktop livrée (`ux-d8-desktop-minimap.md`) ; layout colonne droite complet + mini-map mobile = suivis notés.

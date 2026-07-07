@@ -37,6 +37,7 @@
     "t6-cavalier-funeste-elite",
     "t7-dragon-os-elite"
   ],
+  "story": "story/campaign.json",
   "abilityModules": [],
   "hooks": [],
   "aiProfile": {

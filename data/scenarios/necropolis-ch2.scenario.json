@@ -1,0 +1,77 @@
+{
+  "id": "necropolis-ch2",
+  "schemaVersion": 1,
+  "name": "@loc:scenario.necropolis-ch2.name",
+  "map": "proto-01",
+  "players": [
+    {
+      "id": "player-1",
+      "controller": "human",
+      "factionId": "necropolis",
+      "startPositionIndex": 0,
+      "startingResources": { "gold": 3000, "wood": 10, "ore": 20 },
+      "startingArmy": [
+        { "unitId": "t1-squelette", "count": 25 },
+        { "unitId": "t3-spectre", "count": 6 },
+        { "unitId": "t4-vampire", "count": 3 }
+      ],
+      "startingTown": {
+        "id": "start-town",
+        "x": 2,
+        "y": 4,
+        "prebuilt": [
+          { "building": "townHall", "level": 1 },
+          { "building": "fort", "level": 1 },
+          { "building": "necropolis-dwelling-t1", "level": 1 }
+        ]
+      }
+    },
+    {
+      "id": "ai-1",
+      "controller": "ai",
+      "factionId": "haven",
+      "startPositionIndex": 1,
+      "startingResources": { "gold": 2000 },
+      "startingArmy": [
+        { "unitId": "t1-conscrit", "count": 14 },
+        { "unitId": "t2-archer", "count": 5 }
+      ]
+    }
+  ],
+  "objectives": {
+    "player-1": {
+      "victory": { "type": "eliminateAllEnemies" },
+      "defeat": { "type": "defeatHero", "heroId": "hero-player-1" }
+    },
+    "ai-1": {
+      "victory": { "type": "eliminateAllEnemies" },
+      "defeat": { "type": "defeatHero", "heroId": "hero-ai-1" }
+    }
+  },
+  "openingDialog": "dlg-necro-ch2-open",
+  "characters": [
+    { "id": "vhalen", "nameKey": "@loc:character.vhalen.name" },
+    { "id": "mere-corbeau", "nameKey": "@loc:character.mere-corbeau.name" }
+  ],
+  "dialogs": [
+    {
+      "id": "dlg-necro-ch2-open",
+      "lines": [
+        { "speaker": "mere-corbeau", "portrait": "douce", "textKey": "@loc:dlg.necro.ch2.open.1" },
+        { "speaker": "vhalen", "portrait": "grave", "textKey": "@loc:dlg.necro.ch2.open.2" }
+      ]
+    }
+  ],
+  "quests": [
+    {
+      "id": "necro-ch2-moisson",
+      "kind": "primary",
+      "titleKey": "@loc:quest.necro-ch2-moisson.title",
+      "descriptionKey": "@loc:quest.necro-ch2-moisson.desc",
+      "steps": [
+        { "id": "defeat-haven", "condition": { "type": "defeatHero", "heroId": "hero-ai-1" } }
+      ],
+      "rewards": [{ "type": "resources", "resources": { "gold": 2000 } }]
+    }
+  ]
+}

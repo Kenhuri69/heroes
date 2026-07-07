@@ -1,0 +1,18 @@
+{
+  "id": "necropolis-campaign",
+  "factionId": "necropolis",
+  "nameKey": "@loc:campaign.necropolis.name",
+  "descriptionKey": "@loc:campaign.necropolis.desc",
+  "chapters": [
+    {
+      "id": "ch1",
+      "scenario": "necropolis-ch1",
+      "titleKey": "@loc:campaign.necropolis.ch1.title"
+    },
+    {
+      "id": "ch2",
+      "scenario": "necropolis-ch2",
+      "titleKey": "@loc:campaign.necropolis.ch2.title"
+    }
+  ]
+}

@@ -1318,6 +1318,26 @@ test('campagne : gagner le chapitre 1 débloque le 2 et reporte le héros (doc 1
   expect(errors).toEqual([]);
 });
 
+test('campagne : 2ᵉ maison (Necropolis) = données pures, apparaît et démarre (doc 13 N3b)', async ({ page }) => {
+  const errors = await openMenu(page);
+
+  // Test de modularité narratif : une 2ᵉ campagne existe sans un octet de moteur
+  // en plus — chapitre 1 jouable, chapitre 2 verrouillé.
+  await expect(page.getByTestId('menu-campaign-necropolis-campaign')).toBeVisible();
+  await expect(page.getByTestId('menu-chapter-necropolis-campaign-0')).toBeEnabled();
+  await expect(page.getByTestId('menu-chapter-necropolis-campaign-1')).toBeDisabled();
+
+  // Le chapitre 1 démarre : héros Necropolis, dialogue d'ouverture, quête active.
+  await page.evaluate(() => window.__HEROES_TEST__!.startCampaignChapter('necropolis-campaign', 0));
+  await expect(page.getByTestId('end-turn')).toBeVisible();
+  await expect(page.getByTestId('dialogue-box')).toBeVisible();
+  const state = await page.evaluate(() => window.__HEROES_TEST__!.getState());
+  expect(state.heroes[0]?.factionId).toBe('necropolis');
+  expect(state.quests?.quests.some((q) => q.def.id === 'necro-ch1-sanctuaire')).toBe(true);
+
+  expect(errors).toEqual([]);
+});
+
 test('scénario : gagner « survie » contre l’IA (surviveDays)', async ({ page }) => {
   const errors = await openMenu(page);
 

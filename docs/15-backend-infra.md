@@ -120,7 +120,21 @@ d'une beta ouverte dépasse ces seuils — improbable avant une audience réelle
   vérification est renvoyé tant qu'aucun provider n'est branché). `server/` est un
   membre du workspace typechecké en CI (hors build client / smoke). **Déploiement
   `wrangler deploy` = étape manuelle** de l'utilisateur (identifiants CF).
-- **7.3** — client `@heroes/net` (SDK + écrans connexion / liste de parties / PvP
-  async par polling), derrière le flag de config.
+- **7.3 ✅** — client `app/net.ts` (SDK typé : auth / saves / matches / moves),
+  **entièrement conditionné par `VITE_BACKEND_URL`** (inerte + invisible sans
+  backend) ; panneau « En ligne » de connexion magic-link (l'UI PvP complète est un
+  suivi ; le SDK l'expose déjà). `GET /matches` ajouté au Worker.
+
+## 10. Backend code-complet — étapes manuelles restantes
+
+La plomberie (7.1 fondation + 7.2 Worker + 7.3 client) est complète et vérifiée en
+CI. Pour **mettre en ligne**, côté utilisateur (identifiants/hébergement lui
+appartenant) :
+
+1. `cd server && wrangler deploy` (identifiants Cloudflare) → l'URL du Worker.
+2. Construire le client avec `VITE_BACKEND_URL=<url-du-worker>` (le bouton « En
+   ligne » apparaît alors ; le smoke, lui, n'a jamais cette variable).
+3. Optionnel : brancher un provider d'e-mail (Resend free) pour envoyer réellement
+   les liens magic-link au lieu de les renvoyer dans la réponse.
 - Ultérieur : notifications push (au lieu du polling), classement saisonnier
   (doc 09 Beta), re-sim de litige (comparaison de `replayHash`).

@@ -144,6 +144,17 @@ export default {
       }
 
       // — Parties asynchrones —
+      if (path === '/matches' && request.method === 'GET') {
+        // Parties ouvertes à rejoindre + celles où je suis inscrit.
+        const rows = await env.DB.prepare(
+          'SELECT DISTINCT m.id, m.status, m.created_at FROM matches m ' +
+            'LEFT JOIN match_players p ON p.match_id = m.id ' +
+            "WHERE m.status = 'open' OR p.profile_id = ? ORDER BY m.created_at DESC LIMIT 50",
+        )
+          .bind(profileId)
+          .all<{ id: string; status: string; created_at: number }>();
+        return json({ matches: rows.results }, 200, env);
+      }
       if (path === '/matches' && request.method === 'POST') {
         const { seed, setup } = (await request.json()) as { seed?: number; setup?: { players?: { id: string }[] } };
         if (typeof seed !== 'number' || !setup?.players?.length) return fail(400, 'seed/setup requis', env);

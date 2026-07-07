@@ -158,3 +158,16 @@
   min-height: 44px; /* cible tactile (doc 08 §1) */
   accent-color: var(--gold);
 }
+
+/* Panneau « En ligne » (doc 15, Live 7.3). */
+.online-link {
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--parchment-dim);
+  word-break: break-all;
+}
+.online-error {
+  margin: 0.5rem 1rem;
+  color: var(--danger-text);
+  font-size: 0.85rem;
+}

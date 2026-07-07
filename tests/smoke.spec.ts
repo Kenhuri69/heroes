@@ -426,6 +426,9 @@ test('menu : Nouvelle partie démarre, Continuer grisé sans sauvegarde', async 
 
   await expect(page.getByTestId('menu-new-game')).toBeVisible();
   await expect(page.getByTestId('menu-continue')).toBeDisabled(); // IndexedDB vierge
+  // Le bouton « En ligne » (Live 7.3) est masqué sans VITE_BACKEND_URL : le smoke
+  // tourne hors-ligne, le réseau n'est jamais touché (flag de config).
+  await expect(page.getByTestId('menu-online')).toHaveCount(0);
 
   await page.getByTestId('menu-new-game').click();
   await expect(page.getByTestId('end-turn')).toBeVisible();

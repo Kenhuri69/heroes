@@ -89,6 +89,8 @@ export interface AppState {
   campaignProgress: Record<string, number>;
   /** Chapitre de campagne en cours (pour l'avancement à la victoire) — null hors campagne. */
   activeChapter: { campaignId: string; chapterIndex: number } | null;
+  /** Cinématique caméra en cours (doc 13 §6.3, N3c.1) — letterbox + bouton Passer. */
+  cutsceneActive: boolean;
 }
 
 export const appStore = createStore<AppState>(() => ({
@@ -116,6 +118,7 @@ export const appStore = createStore<AppState>(() => ({
   campaigns: [],
   campaignProgress: {},
   activeChapter: null,
+  cutsceneActive: false,
 }));
 
 /** Hook Preact : re-rend quand la valeur sélectionnée change (égalité stricte). */

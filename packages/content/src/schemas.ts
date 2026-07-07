@@ -680,6 +680,30 @@ export const characterSchema = z.object({
 });
 
 /**
+ * Cinématique scriptée par la caméra (doc 13 §6.3, lot N3c.1) — PAS de vidéo.
+ * Une séquence déclarative d'étapes interprétées par la scène d'aventure Pixi
+ * (côté client, pure présentation — zéro diff moteur) : déplacer la caméra sur
+ * une tuile, attendre, jouer un dialogue existant. Skippable au tap.
+ */
+export const cutsceneStepSchema = z.discriminatedUnion('type', [
+  z.object({
+    type: z.literal('panTo'),
+    x: z.number().int().nonnegative(),
+    y: z.number().int().nonnegative(),
+    /** Durée du déplacement caméra en ms (défaut : 900). */
+    ms: z.number().int().positive().optional(),
+  }),
+  z.object({ type: z.literal('wait'), ms: z.number().int().positive() }),
+  /** Joue un nœud de dialogue du scénario (id de `dialogs`). */
+  z.object({ type: z.literal('dialog'), dialog: idSchema }),
+]);
+
+export const cutsceneSchema = z.object({
+  id: idSchema,
+  steps: z.array(cutsceneStepSchema).min(1),
+});
+
+/**
  * data/scenarios/<id>.scenario.json (plan phase-3.5) — une carte + des joueurs
  * (contrôleur, faction, dotation de départ) + des objectifs par joueur. Les
  * règles croisées (carte connue, faction chargée, index de départ valide,
@@ -737,6 +761,10 @@ export const scenarioSchema = z
     characters: z.array(characterSchema).optional(),
     /** Dialogue joué à l'ouverture de la partie (id d'un nœud de `dialogs`). */
     openingDialog: idSchema.optional(),
+    /** Cinématiques caméra (doc 13 §6.3, N3c.1) — présentation client pure. */
+    cutscenes: z.array(cutsceneSchema).optional(),
+    /** Cinématique jouée à l'ouverture de la partie (id d'un nœud de `cutscenes`). */
+    openingCutscene: idSchema.optional(),
   })
   .refine((s) => s.players.every((p) => s.objectives[p.id]), 'chaque joueur doit avoir des objectifs');
 
@@ -793,6 +821,8 @@ export const campaignSchema = z.object({
 });
 
 export type Scenario = z.infer<typeof scenarioSchema>;
+export type Cutscene = z.infer<typeof cutsceneSchema>;
+export type CutsceneStep = z.infer<typeof cutsceneStepSchema>;
 export type Campaign = z.infer<typeof campaignSchema>;
 export type CampaignChapter = z.infer<typeof campaignChapterSchema>;
 export type QuestContent = z.infer<typeof questSchema>;

@@ -301,6 +301,7 @@
   "quest.prologue-garnison.desc": "Rassembler 20 Conscrits sous la bannière.",
   "dialogue.skip": "Passer",
   "dialogue.tapContinue": "Toucher pour continuer",
+  "cutscene.skip": "Passer la scène",
   "journal.title": "Journal de quêtes",
   "journal.empty": "Aucune quête active.",
   "journal.step": "Étape {current}/{total}",

@@ -301,6 +301,7 @@
   "quest.prologue-garnison.desc": "Gather 20 Conscripts under the banner.",
   "dialogue.skip": "Skip",
   "dialogue.tapContinue": "Tap to continue",
+  "cutscene.skip": "Skip scene",
   "journal.title": "Quest Journal",
   "journal.empty": "No active quests.",
   "journal.step": "Step {current}/{total}",

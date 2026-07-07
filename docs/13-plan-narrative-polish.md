@@ -456,7 +456,8 @@ laisse le jeu livrable. Ordre pensé « MVP narratif → campagne complète » :
 | **N3 — Campagnes fondatrices** | Campagnes Haven et Necropolis (3 chapitres chacune, cartes dédiées, cutscenes caméra, arcs Aldric/Séraphine/Vhalen/Mère Corbeau) ; `campaignState` + écran de sélection de campagne | 2 campagnes finissables en smoke long (IA assistée) ; continuité héros entre chapitres testée |
 | ↳ **N3a — système de campagne** ✅ | pipeline `data/factions/<id>/story/campaign.json` + `loadCampaigns` ; report de héros (`PlayerSetup` étendu + `campaignState` localStorage) ; écran de sélection ; chaînage de chapitres ; campagne Haven à 2 chapitres | Smoke : gagner ch1 → ch2 débloqué + héros reporté (artefact conservé), desktop + mobile |
 | ↳ **N3b — campagne Necropolis** ✅ | 2ᵉ campagne en **données pures** (`manifest.story` + `story/campaign.json` + 2 scénarios + Vhalen/Mère Corbeau) — test de modularité narratif, **zéro diff moteur/client** | Smoke : la campagne Necropolis apparaît au menu et son ch1 démarre (héros necropolis, dialogue, quête) |
-| ↳ **N3c — finitions campagnes** | 3ᵉ chapitre Haven, cartes dédiées, cutscenes caméra, arcs de héros nommés (quêtes `personal`) | (à venir) |
+| ↳ **N3c — finitions campagnes** | 3ᵉ chapitre Haven, cartes dédiées, cutscenes caméra, arcs de héros nommés (quêtes `personal`) — livré en 3 increments | N3c.1 ✅ ; N3c.2/N3c.3 à venir |
+| ↳ **N3c.1 — cutscenes caméra** ✅ | schémas `cutscene`/`cutsceneStep` (`panTo`/`wait`/`dialog`) + scénario `cutscenes?`/`openingCutscene?` ; client `camera-control` (pan animé rAF/easing) + `cutscene` (séquenceur, réutilise la file de dialogues N2b) + `CutsceneOverlay` (letterbox + **Passer** ≥ 44 px) ; cinématique d'ouverture sur `haven-ch2` — **pure présentation, zéro diff moteur** | Smoke : `haven-ch2` → letterbox + Passer visibles → Passer → partie jouable (desktop + mobile) |
 | **N4 — La Chasse & le vivant** | Campagne Arcane Hunters (relit N3, arcs Evadne/Marchmont) ; quêtes journalières en mode libre ; 2 événements temporaires ; barks de combat | 3ᵉ campagne = données seules (test de modularité narratif) ; événement daté jouable/expirable |
 
 **Tests d'immersion** (à chaque lot, protocole léger) :
@@ -742,5 +743,12 @@ ajouter la campagne d'une maison n'a touché que son paquet (doc 13 §8), comme
 promis. `content:check` résout 2 campagnes ; smoke : la campagne Necropolis
 apparaît au menu et son chapitre 1 démarre.
 
-Prochain lot : **N3c** — 3ᵉ chapitre Haven, cartes dédiées par chapitre,
-cutscenes caméra, arcs personnels des héros nommés (quêtes `personal`).
+Lot **N3c** (finitions campagnes) livré « in full » en 3 increments. **N3c.1
+✅** : cutscenes caméra — schémas `cutscene`/`cutsceneStep` (`panTo`/`wait`/
+`dialog`) et champs de scénario `cutscenes?`/`openingCutscene?` ; côté client
+`app/camera-control.ts` (déplacement caméra animé, rAF/easing — présentation
+pure), `app/cutscene.ts` (séquenceur réutilisant la file de dialogues N2b,
+skippable) et `ui/CutsceneOverlay.tsx` (letterbox + bouton **Passer** ≥ 44 px) ;
+cinématique d'ouverture sur `haven-ch2` — **zéro diff moteur**. Restent **N3c.2**
+(choix de dialogue, `campaignState.flags`, arcs `personal`) et **N3c.3** (3ᵉ
+chapitre Haven + carte dédiée).

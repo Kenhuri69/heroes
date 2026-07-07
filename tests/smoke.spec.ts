@@ -1338,6 +1338,26 @@ test('campagne : 2ᵉ maison (Necropolis) = données pures, apparaît et démarr
   expect(errors).toEqual([]);
 });
 
+test('cinématique : letterbox + Passer sur l’ouverture d’un chapitre (doc 13 N3c.1)', async ({ page }) => {
+  const errors = await openMenu(page);
+
+  // haven-ch2 embarque une cinématique d'ouverture (pano caméra + dialogue),
+  // jouée en arrière-plan une fois la scène en place.
+  await page.evaluate(() => window.__HEROES_TEST__!.startScenario('haven-ch2'));
+
+  // Letterbox + bouton Passer (≥ 44 px) apparaissent pendant la cinématique.
+  await expect(page.getByTestId('cutscene-overlay')).toBeVisible();
+  await expect(page.getByTestId('cutscene-skip')).toBeVisible();
+
+  // « Passer » (doc 13 §6.3) interrompt la cinématique : plus de letterbox et la
+  // partie est jouable.
+  await page.getByTestId('cutscene-skip').click();
+  await expect(page.getByTestId('cutscene-overlay')).toHaveCount(0);
+  await expect(page.getByTestId('end-turn')).toBeVisible();
+
+  expect(errors).toEqual([]);
+});
+
 test('scénario : gagner « survie » contre l’IA (surviveDays)', async ({ page }) => {
   const errors = await openMenu(page);
 

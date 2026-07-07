@@ -21,6 +21,8 @@ import { exportSave, importSave, saveGame, restoreSavedGame, encodeHeroesFile } 
 import { installAutosave } from './app/autosave';
 import { initTelemetry } from './app/telemetry';
 import { initNarrative, loadScenarioNarrative } from './app/narrative';
+import { registerCamera, unregisterCamera } from './app/camera-control';
+import { playOpeningCutscene } from './app/cutscene';
 import { initCampaign, startCampaignChapter } from './app/campaign';
 import { initI18n, t } from './app/i18n';
 import { preloadPixiTextures, combatBackgroundUrl } from './render/assets';
@@ -109,6 +111,7 @@ async function bootstrap(): Promise<void> {
       scene = null;
     }
     if (camera) {
+      unregisterCamera();
       camera.destroy();
       camera = null;
     }
@@ -125,6 +128,7 @@ async function bootstrap(): Promise<void> {
       camera.world.addChild(scene.container);
       app.stage.addChild(camera.world);
       scene.centerOnHero(app);
+      registerCamera(camera, app); // cinématiques caméra (N3c.1)
     }
     // Bascule aventure ↔ combat sur l'état moteur (doc 07 §3).
     const inCombat = game.combat !== null;
@@ -177,6 +181,9 @@ async function bootstrap(): Promise<void> {
     loadScenarioNarrative(scenario);
     await dispatch(scenarioStartCommand(report, scenario, seed, scenarioMap));
     navigate('adventure');
+    // Cinématique d'ouverture (N3c.1) : jouée en arrière-plan une fois la scène en
+    // place — ne bloque pas le démarrage (elle attend l'interaction du joueur).
+    void playOpeningCutscene(scenario);
   };
 
   /**

@@ -29,6 +29,7 @@ import { HandoffOverlay } from './HandoffOverlay';
 import { OutcomeOverlay } from './OutcomeOverlay';
 import { FactionBadge } from './FactionBadge';
 import { DialogueBox } from './DialogueBox';
+import { CutsceneOverlay } from './CutsceneOverlay';
 import { QuestJournal } from './QuestJournal';
 import './tokens.css'; // design tokens UXD-1 — à charger avant toute feuille
 import './styles.css';
@@ -113,6 +114,7 @@ function Shell() {
       {pendingSkillHero && <SkillChoice hero={pendingSkillHero} />}
       {pendingTreasure && <TreasureChoice pending={pendingTreasure} />}
       {screen === 'adventure' && <HandoffOverlay />}
+      {started && !inCombat && <CutsceneOverlay />}
       {started && !inCombat && <DialogueBox />}
       <OutcomeOverlay />
       <ToastHost />

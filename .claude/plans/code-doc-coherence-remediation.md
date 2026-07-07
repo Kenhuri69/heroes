@@ -38,35 +38,44 @@ Chaque item : correctif + test unitaire dans le même commit (guidelines §4/§7
 ⚠️ A2, A3, A4 changent le résultat des combats ⇒ re-fixer le golden replay
 une seule fois en fin de lot, et re-passer le test d'équilibrage grossier.
 
-- [ ] **A1 — CRITIQUE. Attaque en mêlée : `from` non validé quand la cible est
-  adjacente ⇒ téléportation arbitraire.**
+> **Découpage en PR** (lot A trop gros pour une seule revue) :
+> **A-1 = A1–A5 (correctifs combat, golden re-fixé)** ✅ livré ;
+> A-2 = A6–A11 (héros/scénario/ville) à suivre. Tests : `lot-a-combat.test.ts`
+> (5) ; golden `fda800c6`→`48c3a5e5` ; `heroDefenseStep: 0.025` ajouté à
+> `data/core/config.json` + schéma + type + fixtures ; équilibrage `balance.test`
+> re-passé vert (aucun blowout).
+
+- [x] **A1 — CRITIQUE. Attaque en mêlée : `from` non validé quand la cible est
+  adjacente ⇒ téléportation arbitraire.** ✅ `validateCombatAction` valide
+  TOUJOURS `from` (adjacent à la cible + atteignable/position actuelle) ;
+  `applyAttack` ignore un `from` égal à la position (pas de StackMoved à vide).
   `combat/actions.ts:146` retourne `null` dès `dist === 1` sans regarder
   `action.from`, puis `actions.ts:293-297` applique aveuglément le `from`
   fourni : une commande `{attack, from:{col:999,row:-4}}` téléporte la pile
   hors plateau/sur un obstacle/sur une autre pile, puis frappe. Refuser tout
   `from` non ∈ `reachableHexes` et non adjacent à la cible (ou l'ignorer si
   `dist === 1`). → vérif : test « from hostile rejeté ».
-- [ ] **A2 — `noRetaliation` inversée.** Doc 02 §5.4:252 (+ Vampire doc 04:48,
+- [x] **A2 — `noRetaliation` inversée.** Doc 02 §5.4:252 (+ Vampire doc 04:48,
   Manticore doc 05:195) : la capacité est sur l'ATTAQUANT et prive la victime
   de riposte. Code : `!hasAbility(targetDef, 'noRetaliation')`
   (`combat/actions.ts:312-313`, idem préviz `damage.ts:398-402`) — le porteur
   ne riposte jamais quand on l'attaque, l'exact inverse (capacité-malus).
   Corriger en testant le `strikerDef` + test fixant la direction.
-- [ ] **A3 — Attribut Défense du héros compté −5 %/pt au lieu de −2,5 %/pt.**
+- [x] **A3 — Attribut Défense du héros compté −5 %/pt au lieu de −2,5 %/pt.**
   Doc 02 §1.1:16 + note §5.3:232-236 explicite (« s'ajoutera au MVP »).
   Code : `heroDefenseOf` sommé brut dans la pente symétrique
   `attackDefenseStep: 0.05` (`combat/damage.ts:153-157,237-243`). Introduire
   une pente défensive héros dédiée (0,025) dans `data/core/config.json`
   (règle « jamais codé en dur »). → vérif : test de dégâts avec héros
   défenseur ; équilibrage grossier re-passé.
-- [ ] **A4 — Hâte/Lenteur/Entraves sans effet sur la portée de déplacement.**
+- [x] **A4 — Hâte/Lenteur/Entraves sans effet sur la portée de déplacement.**
   Doc 02:212 « la vitesse est la portée de déplacement en hexes ». Les 4
   sorts à `speedMod` (spells.json:68,78,136,213) n'affectent que l'initiative
   (`combat/turns.ts:17-20`), pas `reachableHexes`/`effectiveSpeed`
   (`actions.ts:30`, `state-helpers.ts:35-43`). Intégrer la somme des
   `speedMod` (bornée ≥ 0) dans `effectiveSpeed`, utilisée partout (IA
   comprise). → vérif : test « Lenteur réduit la portée ».
-- [ ] **A5 — Prévisualisation de dégâts ≠ résolution (murs de siège,
+- [x] **A5 — Prévisualisation de dégâts ≠ résolution (murs de siège,
   Symbiose, Marques en riposte).** `estimateDamage`
   (`damage.ts:359-366,416-425`) omet `wallDefenseBonus`,
   `symbiosisAttack/DefenseBonus` et `markConsumeBonus` côté riposte, alors

@@ -11,8 +11,13 @@ export interface TerrainRule {
 
 /** Constantes des règles de combat (doc 02 §5 + décisions plan phase-2.4). */
 export interface CombatRulesConfig {
-  /** ±0,05 × (AttTotale − DéfTotale) (doc 02 §5.3). */
+  /** ±0,05 × (AttTotale − DéfTotale) sur les stats d'UNITÉS (doc 02 §5.3). */
   attackDefenseStep: number;
+  /**
+   * Pente défensive de l'attribut Défense du HÉROS : −2,5 %/point (doc 02 §1.1,
+   * note §5.3). Distincte de `attackDefenseStep` (unités) ; bornes communes.
+   */
+  heroDefenseStep: number;
   /** Borne haute du bonus de dégâts (+0,60). */
   damageBonusMax: number;
   /** Borne basse de la réduction (−0,70). */

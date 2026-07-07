@@ -28,6 +28,12 @@ import type { Draft } from './draft';
 interface MultiplierInput {
   strikerAttack: number;
   targetDefense: number;
+  /**
+   * Attribut Défense du HÉROS défenseur (points), appliqué à sa pente dédiée
+   * `heroDefenseStep` (−2,5 %/pt, doc 02 §1.1) — distincte de la pente unités.
+   * Hors de `targetDefense` (donc non affecté par le ×1,3 de Défendre). 0 hors héros.
+   */
+  heroDefense?: number;
   targetDefending: boolean;
   targetMarks: number;
   meleePenalized: boolean;
@@ -112,6 +118,7 @@ export function computeMultiplier(input: MultiplierInput): number {
   const {
     strikerAttack,
     targetDefense,
+    heroDefense,
     targetDefending,
     targetMarks,
     meleePenalized,
@@ -125,7 +132,10 @@ export function computeMultiplier(input: MultiplierInput): number {
     ? Math.floor(targetDefense * rules.defendDefenseMultiplier)
     : targetDefense;
   const diff = strikerAttack - effectiveDefense;
-  const factor = clamp(rules.attackDefenseStep * diff, -rules.damageReductionMax, rules.damageBonusMax);
+  // Pente unités (±0,05/pt) MOINS la pente héros dédiée (−0,025/pt de Défense
+  // du héros défenseur, doc 02 §1.1) — bornes communes ±(reduction/bonus)Max.
+  const raw = rules.attackDefenseStep * diff - rules.heroDefenseStep * (heroDefense ?? 0);
+  const factor = clamp(raw, -rules.damageReductionMax, rules.damageBonusMax);
   let mult = 1 + factor;
   if (meleePenalized) mult *= rules.rangedMeleePenalty;
   mult *= 1 + rules.markBonusPerStack * targetMarks;
@@ -234,15 +244,17 @@ export function performStrike(
     statusModSum(striker.statuses, 'attackMod') +
     // Symbiose (doc 14 §2, Beta 5.3) : bonus d'Attaque = paliers accumulés × params.
     symbiosisAttackBonus(strikerDef, striker.symbiosisStacks);
+  // Défense d'UNITÉ (pente ±0,05) : stats + statuts + murs de siège + Symbiose.
+  // La Défense du HÉROS est appliquée à part (pente −0,025, A3) via computeMultiplier.
   const targetDefense =
     victimDef.stats.defense +
-    (combat ? heroDefenseOf(draft, combat, victim.side) : 0) +
     statusModSum(victim.statuses, 'defenseMod') +
     // Murs du Fort (doc 02 §4.1, Alpha 4.13) : bonus de défense aux piles en
     // garnison (camp défenseur) pendant un siège ; 0 hors combat de ville.
     (combat && victim.side === 'defender' ? combat.wallDefenseBonus : 0) +
     // Symbiose (doc 14 §2) : bonus de Défense = paliers accumulés × params.
     symbiosisDefenseBonus(victimDef, victim.symbiosisStacks);
+  const heroDefense = combat ? heroDefenseOf(draft, combat, victim.side) : 0;
   const heroDamagePct = combat
     ? ranged
       ? heroRangedPctOf(draft, combat, striker.side)
@@ -260,6 +272,7 @@ export function performStrike(
   const mult = computeMultiplier({
     strikerAttack,
     targetDefense,
+    heroDefense,
     targetDefending: victim.defending,
     targetMarks: victim.marks,
     meleePenalized,
@@ -356,14 +369,18 @@ export function estimateDamage(
 
   const ranged = canShoot(state, attackerId);
   const meleePenalized = !ranged && isShooterMeleePenalized(attackerDef);
+  // Mêmes termes que `performStrike` (préviz = résolution sans RNG, doc 08 §2.4) :
+  // Symbiose (attaque + défense), murs de siège, et Défense héros à part (A3/A5).
   const strikerAttack =
     attackerDef.stats.attack +
     heroAttackOf(state, combat, attacker.side) +
-    statusModSum(attacker.statuses, 'attackMod');
+    statusModSum(attacker.statuses, 'attackMod') +
+    symbiosisAttackBonus(attackerDef, attacker.symbiosisStacks);
   const targetDefenseVal =
     targetDef.stats.defense +
-    heroDefenseOf(state, combat, target.side) +
-    statusModSum(target.statuses, 'defenseMod');
+    statusModSum(target.statuses, 'defenseMod') +
+    (target.side === 'defender' ? combat.wallDefenseBonus : 0) +
+    symbiosisDefenseBonus(targetDef, target.symbiosisStacks);
   const heroDamagePct = ranged
     ? heroRangedPctOf(state, combat, attacker.side)
     : heroMeleePctOf(state, combat, attacker.side);
@@ -371,6 +388,7 @@ export function estimateDamage(
   const mult = computeMultiplier({
     strikerAttack,
     targetDefense: targetDefenseVal,
+    heroDefense: heroDefenseOf(state, combat, target.side),
     targetDefending: target.defending,
     targetMarks: target.marks,
     meleePenalized,
@@ -395,11 +413,12 @@ export function estimateDamage(
   let retaliation: { damageMin: number; damageMax: number } | null = null;
   // `expose` (doc 05 §3.1) : l'attaque va supprimer la riposte de la cible.
   const willExpose = consumeMarksPlan(attackerDef, target.marks)?.suppressRetaliation ?? false;
+  // `noRetaliation` porté par l'ATTAQUANT prive la victime de riposte (A2).
   const canRetaliate =
     !ranged &&
     !willExpose &&
     target.retaliationsLeft > 0 &&
-    !targetDef.abilities.some((a) => a.id === 'noRetaliation');
+    !attackerDef.abilities.some((a) => a.id === 'noRetaliation');
   if (canRetaliate) {
     const survivorsAfterMaxDamage = target.count - killsMax;
     const survivorsAfterMinDamage = target.count - killsMin;
@@ -408,20 +427,25 @@ export function estimateDamage(
     const retStrikerAttack =
       targetDef.stats.attack +
       heroAttackOf(state, combat, target.side) +
-      statusModSum(target.statuses, 'attackMod');
+      statusModSum(target.statuses, 'attackMod') +
+      symbiosisAttackBonus(targetDef, target.symbiosisStacks);
     const retTargetDefense =
       attackerDef.stats.defense +
-      heroDefenseOf(state, combat, attacker.side) +
-      statusModSum(attacker.statuses, 'defenseMod');
+      statusModSum(attacker.statuses, 'defenseMod') +
+      (attacker.side === 'defender' ? combat.wallDefenseBonus : 0) +
+      symbiosisDefenseBonus(attackerDef, attacker.symbiosisStacks);
     const retMult = computeMultiplier({
       strikerAttack: retStrikerAttack,
       targetDefense: retTargetDefense,
+      heroDefense: heroDefenseOf(state, combat, attacker.side),
       targetDefending: attacker.defending,
       targetMarks: attacker.marks,
       meleePenalized: retMeleePenalized,
       rules,
       heroDamagePct: heroMeleePctOf(state, combat, target.side),
       heroArmorPct: heroArmorPctOf(state, combat, attacker.side),
+      // Marque consommée par le RIPOSTEUR sur l'attaquant (A5) — la résolution l'applique.
+      markConsumeBonus: consumeMarksPlan(targetDef, attacker.marks)?.damageBonus ?? 0,
     });
     const [retDmgMin, retDmgMax] = targetDef.stats.damage;
     retaliation = {

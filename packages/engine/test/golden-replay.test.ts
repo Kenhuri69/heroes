@@ -33,6 +33,7 @@ const GOLDEN_CONFIG: AdventureConfig = {
   },
   combat: {
     attackDefenseStep: 0.05,
+    heroDefenseStep: 0.025,
     damageBonusMax: 0.6,
     damageReductionMax: 0.7,
     defendDefenseMultiplier: 1.3,
@@ -201,7 +202,9 @@ const GOLDEN_JOURNAL: Command[] = [
 // Objets de carte manquants : `saveVersion` → 8, `GameState.pendingTreasure`
 // (null) et `HeroState.visitLuck` (0) s'ajoutent à la forme sérialisée — seule
 // la FORME change, simulation inchangée (aucun nouvel objet dans la carte golden).
-const GOLDEN_HASH = 'fda800c6';
+// Re-fixé une fois en Lot A (correctifs combat A2 noRetaliation / A3 pente Défense
+// héros / A4 speedMod sur la portée / A5 alignement préviz) — résultats de combat modifiés.
+const GOLDEN_HASH = '48c3a5e5';
 
 describe('golden replay', () => {
   it('le journal scripté produit toujours le même état final', () => {

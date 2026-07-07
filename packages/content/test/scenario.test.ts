@@ -180,6 +180,7 @@ function makeConfig(): unknown {
       },
       combat: {
         attackDefenseStep: 0.05,
+        heroDefenseStep: 0.025,
         damageBonusMax: 0.6,
         damageReductionMax: 0.7,
         defendDefenseMultiplier: 1.3,

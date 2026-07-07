@@ -137,3 +137,18 @@ et **câblées** sur l'écran de fin.
   même chemin `playJingle` (fichier présent). Typecheck/lint/build verts,
   budget JS/CSS inchangé (253 Ko gzip, audio hors bundle).
 - **Reste** : `combat-shoot` + sons d'UI (tap/confirm/erreur) — non câblés.
+
+## Livraison 6F — son de tap d'interface (2026-07-07)
+
+Retour tactile audio à l'appui des boutons d'UI (pur client).
+
+- `gen_sfx.py` : `ui-tap` (tap bois/parchemin sourd ~120 ms, discret) → `sfx/`.
+- `app/audio.ts` : écouteur `pointerdown` global qui joue `ui-tap` **uniquement
+  si la cible est un `button`/`[role="button"]`** — jamais sur le canvas de jeu
+  (les taps carte/combat ont déjà leurs propres SFX).
+- **Vérif runtime** (build de prod) : clic dans le vide (déblocage) ⇒ 0 tap ;
+  clic sur un bouton de menu ⇒ **1 `ui-tap.ogg`** ; 0 erreur console. Typecheck/
+  lint/build verts, budget JS/CSS inchangé (253 Ko gzip).
+- **Reste** : `combat-shoot` (tir à distance) — demande un champ `ranged` sur
+  l'événement moteur `StackAttacked` (impact golden replay) : différé, gain
+  marginal ; `ui-confirm`/`ui-error` — demandent un typage des toasts : différés.

@@ -181,6 +181,12 @@ export function initAudio(): void {
   if (typeof window !== 'undefined') {
     window.addEventListener('pointerdown', unlock, { once: true });
     window.addEventListener('keydown', unlock, { once: true });
+    // Retour tactile : un tap discret à l'appui d'un bouton d'UI (jamais sur le
+    // canvas de jeu — les taps carte/combat ont déjà leurs propres SFX).
+    window.addEventListener('pointerdown', (e) => {
+      const el = e.target as Element | null;
+      if (el?.closest('button, [role="button"]')) playSfx('ui-tap');
+    });
   }
 
   appStore.subscribe(() => {

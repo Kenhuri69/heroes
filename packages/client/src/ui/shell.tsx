@@ -32,6 +32,7 @@ import { DialogueBox } from './DialogueBox';
 import { CutsceneOverlay } from './CutsceneOverlay';
 import { QuestJournal } from './QuestJournal';
 import './tokens.css'; // design tokens UXD-1 — à charger avant toute feuille
+import './interactions.css'; // micro-interactions & transitions UXD-7
 import './styles.css';
 
 export function mountUi(root: HTMLElement): void {

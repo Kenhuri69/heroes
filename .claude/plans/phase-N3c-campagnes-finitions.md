@@ -79,8 +79,26 @@ garde-fou faction (grep local) · build < 800 Ko · smoke desktop + mobile.
 - [x] lint · build client (248 Ko gzip < 800 Ko)
 - [x] smoke desktop + mobile (nouveau test choix/drapeau + N2b/N3a/N3b/N3c.1 non régressés)
 
+### N3c.3 — vérifié ✅
+
+- [x] typecheck 4/4
+- [x] moteur 321 (golden **inchangé** — carte/scénario/campagne = données pures)
+- [x] content 77 + `content:check` (2 cartes, 8 scénarios, campagne Haven à 3 chapitres)
+- [x] garde-fou faction + garde-fou couleurs (grep local : propres)
+- [x] lint · build client (248 Ko gzip < 800 Ko)
+- [x] smoke desktop + mobile (nouveau test : 3ᵉ chapitre démarre sur `proto-02` 24×24 ; suite complète 92 ✓)
+
+**N3c complet** (N3c.1 + N3c.2 + N3c.3) — campagnes fondatrices finies « in full ».
+
 ## Décisions / écarts
 
+- **N3c.3** — carte dédiée `proto-02` (24×24, terrain/route/objets propres) au lieu
+  de rejouer proto-01 ; la ville de départ vient des données de scénario
+  (`cmd.towns`), pas d'un objet `town` de carte → proto-02 n'en embarque pas.
+  Servie automatiquement (`publicDir = data/`), zéro câblage client.
+- **N3c.3** — le hook de test `startCampaignChapter` démarre un chapitre par index
+  sans passer par le déverrouillage du menu → le smoke teste le chargement du 3ᵉ
+  chapitre (carte `proto-02`) sans avoir à gagner les 2 premiers.
 - **N3c.2** — drapeaux persistés dans un stockage **propre** (`heroes.flags`),
   séparé de `heroes.campaigns`, pour rester **globaux et relus entre campagnes**
   (méta-jeu), indépendamment des sauvegardes de partie.

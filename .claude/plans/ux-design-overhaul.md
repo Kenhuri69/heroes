@@ -323,7 +323,7 @@ intercalé dès qu'un sourcing est validé).
 - [x] UXD-0 — correctifs ergonomiques immédiats (`ux-d0-correctifs.md`).
 - [x] UXD-1 — design system « gouache » (`ux-d1-design-system.md`).
 - [x] UXD-2 — iconographie unifiée (`ux-d2-iconographie.md`).
-- [ ] UXD-3 — assets carte d'aventure.
+- [~] UXD-3 — bord de monde livré (`ux-d3-bord-de-monde.md`) ; assets peints héros/ville/objets = tranche B (génération d’images) différée.
 - [x] UXD-4 — combat immersif (`ux-d4-combat-immersif.md`).
 - [ ] UXD-5 — écrans de gestion habillés.
 - [ ] UXD-6 — ambiance sonore.

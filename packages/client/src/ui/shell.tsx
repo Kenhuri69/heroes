@@ -96,6 +96,9 @@ function Shell() {
           <CombatUi />
         ) : (
           <>
+            {/* UXD-3A : vignette de bord de monde (radial-gradient DOM, composée
+                une fois — coût par-frame nul comme la toile de combat U5-E). */}
+            <div class="map-vignette" aria-hidden="true" />
             <ResourceBar />
             <HeroDrawer />
             {/* UXD-0 R3 : armée + statut/actions dans UN conteneur en colonne —

@@ -1,12 +1,13 @@
 import { useState } from 'preact/hooks';
 import {
   estimateSpell,
+  effectiveManaCost,
   type CombatState,
   type CombatStack,
+  type HeroSkillDef,
   type HeroState,
   type SpellDef,
   type SpellEstimate,
-  type SpellSchool,
 } from '@heroes/engine';
 import { useApp, appStore } from '../app/store';
 import { dispatch } from '../app/dispatch';
@@ -14,7 +15,17 @@ import { t, resolveUnitName, resolveSpellName, resolveSpellLore, commandErrorMes
 import { pushToast } from './toasts';
 import './SpellBook.css';
 
-const SCHOOL_ORDER: SpellSchool[] = ['fire', 'water', 'earth', 'air', 'neutral'];
+// Ordre d'affichage préféré ; toute autre école présente (ex. `traque` d'une
+// faction) est ajoutée à la suite — aucun sort connu n'est jamais masqué.
+const SCHOOL_ORDER: readonly string[] = ['fire', 'water', 'earth', 'air', 'traque', 'neutral'];
+
+/** Écoles présentes chez le héros, dans l'ordre préféré puis les extras. */
+function orderedSchools(schools: Iterable<string>): string[] {
+  const present = new Set(schools);
+  const ordered = SCHOOL_ORDER.filter((s) => present.has(s));
+  for (const s of present) if (!ordered.includes(s)) ordered.push(s);
+  return ordered;
+}
 
 /**
  * Livre de sorts en combat (doc 08 §2.3/§2.4) : sélection d'un sort connu →
@@ -27,6 +38,7 @@ export function SpellBook({ hero, onClose }: { hero: HeroState; onClose: () => v
   useApp((s) => s.locale); // réactivité i18n
   const combat = useApp((s) => s.game.combat);
   const spellCatalog = useApp((s) => s.game.spellCatalog);
+  const skillCatalog = useApp((s) => s.game.skillCatalog);
   const [spellId, setSpellId] = useState<string | null>(null);
   const [targetId, setTargetId] = useState<string | null>(null);
   const [preview, setPreview] = useState<SpellEstimate | null>(null);
@@ -96,7 +108,7 @@ export function SpellBook({ hero, onClose }: { hero: HeroState; onClose: () => v
         <p class="spellbook-mana">{t('hero.mana', { mana: hero.mana, manaMax: hero.manaMax })}</p>
 
         {!def ? (
-          <SpellList hero={hero} spellCatalog={spellCatalog} onSelect={selectSpell} />
+          <SpellList hero={hero} spellCatalog={spellCatalog} skillCatalog={skillCatalog} onSelect={selectSpell} />
         ) : (
           <div class="spellbook-targets">
             <button class="spellbook-back" onClick={backToList}>
@@ -136,10 +148,12 @@ export function SpellBook({ hero, onClose }: { hero: HeroState; onClose: () => v
 function SpellList({
   hero,
   spellCatalog,
+  skillCatalog,
   onSelect,
 }: {
   hero: HeroState;
   spellCatalog: Record<string, SpellDef>;
+  skillCatalog: Record<string, HeroSkillDef>;
   onSelect: (spellId: string) => void;
 }) {
   const known = hero.spells
@@ -152,7 +166,7 @@ function SpellList({
 
   return (
     <div class="spellbook-list">
-      {SCHOOL_ORDER.filter((school) => known.some((d) => d.school === school)).map((school) => {
+      {orderedSchools(known.map((d) => d.school)).map((school) => {
         const circles = Array.from(new Set(known.filter((d) => d.school === school).map((d) => d.circle))).sort(
           (a, b) => a - b,
         );
@@ -166,7 +180,10 @@ function SpellList({
                   {known
                     .filter((d) => d.school === school && d.circle === circle)
                     .map((spellDef) => {
-                      const castable = hero.mana >= spellDef.manaCost;
+                      // Coût EFFECTIF (réduction Magie par école) — même valeur
+                      // que le moteur encaisse, sinon grisage/coût faux (CL/H13).
+                      const cost = effectiveManaCost(hero, skillCatalog, spellDef);
+                      const castable = hero.mana >= cost;
                       return (
                         <li key={spellDef.id}>
                           <button
@@ -177,7 +194,7 @@ function SpellList({
                           >
                             <span class="spell-name">{resolveSpellName(spellDef.id)}</span>
                             <span class="spell-cost">
-                              {t('spellbook.manaCost', { cost: spellDef.manaCost })}
+                              {t('spellbook.manaCost', { cost })}
                             </span>
                             {!castable && <span class="spell-reason">{t('spellbook.notEnoughMana')}</span>}
                           </button>
@@ -244,6 +261,8 @@ function formatPreview(est: SpellEstimate | null, failed: boolean): string {
       return t('spellbook.previewBuff');
     case 'debuff':
       return t('spellbook.previewDebuff');
+    case 'applyMarks':
+      return t('spellbook.previewMarks');
     default:
       return t('spellbook.previewUnavailable');
   }

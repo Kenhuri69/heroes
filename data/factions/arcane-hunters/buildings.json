@@ -118,7 +118,10 @@
       "levels": [
         {
           "cost": { "gold": 4000, "gems": 3, "mercury": 3 },
-          "requires": [{ "building": "arcane-hunters-dwelling-t7", "level": 1 }],
+          "requires": [
+            { "building": "arcane-hunters-dwelling-t7", "level": 1 },
+            { "building": "fort", "level": 3 }
+          ],
           "effect": { "type": "dwelling", "tier": 8, "unitId": "t8-penitent" }
         },
         {
@@ -182,7 +185,7 @@
       "levels": [
         {
           "cost": { "gold": 800, "wood": 5 },
-          "requires": [{ "building": "townHall", "level": 1 }],
+          "requires": [{ "building": "tavern", "level": 1 }],
           "effect": { "type": "huntContract", "gold": 300, "resource": "essence", "amount": 15 }
         }
       ]

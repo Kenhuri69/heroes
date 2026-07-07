@@ -171,6 +171,8 @@ export function notify(event: AppEvent, game: GameState): string | null {
             resource: resolveFactionResourceName(event.resource),
           })
         : null;
+    case 'HuntContractExpired':
+      return event.playerId === human ? t('toast.huntContractExpired') : null;
     // Fin de partie (doc 02 §6) — l'overlay porte le message principal, ce toast
     // n'est qu'un signal immédiat.
     case 'GameEnded':

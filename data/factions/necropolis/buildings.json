@@ -102,7 +102,10 @@
       "levels": [
         {
           "cost": { "gold": 6000, "sulfur": 3, "gems": 3 },
-          "requires": [{ "building": "necropolis-dwelling-t6", "level": 1 }],
+          "requires": [
+            { "building": "necropolis-dwelling-t6", "level": 1 },
+            { "building": "fort", "level": 3 }
+          ],
           "effect": { "type": "dwelling", "tier": 7, "unitId": "t7-dragon-os" }
         },
         {

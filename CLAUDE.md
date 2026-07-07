@@ -112,9 +112,22 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > faction **Essence** (gain post-victoire puis dépense) + T8 Pénitent
 > recrutable ; 4.7 **Cercles** (choix de bâtiment exclusif `exclusiveGroup`) ;
 > 4.9 **École de la Traque** (school `traque`, sort `applyMarks`, Entraves) ;
-> 4.10 **demonform** (T8, transformation stateful + `magicResistance`). La forme
-> de sauvegarde a évolué avec les ressources de faction : `CURRENT_SAVE_VERSION`
-> vaut désormais **3** (source de vérité `engine/core/state.ts`).
+> 4.10 **demonform** (T8, transformation stateful + `magicResistance`).
+>
+> 🧭 **Remédiation cohérence code↔docs** (plan
+> `.claude/plans/code-doc-coherence-remediation.md`) : revue croisée doc↔code,
+> correction des bugs moteur/client (lots A–C : anti-téléportation en combat,
+> `noRetaliation` porté par l'attaquant, Défense héros −2,5 %/pt, `speedMod` sur
+> la portée, préviz alignée sur la résolution, mana par école, Orbe de savoir,
+> contrats de chasse hebdomadaires, objectifs de victoire par joueur, triggers
+> jour 1…), arbitrages de design (lot D) et remise à niveau documentaire
+> (lot E). **`CURRENT_SAVE_VERSION` vaut désormais 8** (source de vérité
+> `engine/core/state.ts` ; historique v5 huntContract → v8 objets de carte),
+> verrouillé par un test de forme. **4 factions livrées** (Haven, Necropolis,
+> Arcane Hunters + faction de test ; **Sylvan Court** en données, doc 14) et
+> systèmes livrés depuis : marché, machines de guerre, améliorations d'unités,
+> contrats de chasse, hot-seat, quêtes/prologue narratif, mines capturables /
+> coffres / lieux de bonus, éditeur de carte.
 >
 > 🩹 **Remédiation revue de code** (plan `.claude/plans/code-review-remediation.md`,
 > lots R1–R8). Livrés : R1 (garde-fous de crash moteur), R5 (résilience du
@@ -175,9 +188,9 @@ data/
   core/skills.json               Compétences secondaires + effets par rang (doc 02 §1.3)
   core/artifacts.json            Artefacts à bonus cumulés sur 10 slots (doc 02 §1.1, doc 08 §2.3)
   core/locales/                  Locales FR/EN de l'UI générique (menu, options, toasts, ville)
-  factions/                      Paquets de faction (index.json + haven, arcane-hunters, test-faction, necropolis)
+  factions/                      Paquets de faction (index.json + haven, necropolis, arcane-hunters, sylvan-court, test-faction)
   maps/proto-01.map.json         Carte prototype 32×32 (légende, tuiles, routes, objets, départs)
-  scenarios/                     Scénarios solo (index.json + tutorial/survival/conquest : joueurs, IA, objectifs)
+  scenarios/                     Scénarios solo (index.json + tutorial/survival/conquest + prologue narratif + campagnes/événements : joueurs, IA, objectifs)
 server/
   schema.sql                     Schéma D1 (Cloudflare) du backend : profiles/sessions/saves/matches/moves (doc 15)
 tests/smoke.spec.ts              Smoke Playwright/Chromium headless (guideline §7) sur le build de prod

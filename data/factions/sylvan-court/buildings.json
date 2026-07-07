@@ -222,6 +222,10 @@
             {
               "building": "sylvan-court-dwelling-t6",
               "level": 1
+            },
+            {
+              "building": "fort",
+              "level": 3
             }
           ],
           "effect": {

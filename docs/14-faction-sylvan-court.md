@@ -84,9 +84,11 @@ implacable, car la forêt ne charge pas — elle *encercle*.
 
 ## 4. Bâtiments spéciaux (2–3) + chaîne d'habitations
 
-- **Chaîne d'habitations** : 7 dwellings (T1→T7), prérequis en escalier (hôtel de
-  ville → dwelling T1 ; chaque tier requiert le précédent + Fort au-delà de T4),
-  **identique au patron des 3 maisons** (données pures, `manifest.town.dwellings`).
+- **Chaîne d'habitations** : 7 dwellings (T1→T7), prérequis en escalier
+  **identique au patron des 3 maisons** (données pures) : T1 requiert le **Fort**,
+  T5 requiert la **Guilde des mages**, chaque tier requiert le précédent, et le
+  **T7 requiert le Château** (fort niv. 3) ; les autres tiers enchaînent sur le
+  dwelling précédent.
 - **Bâtiment propre livré (5.4)** :
   - **Bosquet du Cœur** (`heart-grove`) — croissance : **+25 % de croissance hebdo**
     (effet de bâtiment **générique** `growthBonus` déjà existant, **aucun code neuf** :

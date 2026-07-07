@@ -119,6 +119,8 @@ export type {
   ArtifactDef,
 } from './hero/types';
 export { estimateSpell, type SpellEstimate } from './hero';
+export { effectiveManaCost } from './hero/spells';
+export { heroVisionBonus, heroMovementBonus } from './hero/skills';
 export type { FactionBonus } from './faction/types';
 export type {
   VictoryCondition,

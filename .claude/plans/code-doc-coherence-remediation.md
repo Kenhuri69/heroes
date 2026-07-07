@@ -146,66 +146,70 @@ une seule fois en fin de lot, et re-passer le test d'équilibrage grossier.
 
 ## 3. Lot C — Client/UI (corriger le CODE) — P1
 
-- [ ] **C1 — École `traque` invisible dans le grimoire de combat.**
+- [x] **C1 — École `traque` invisible dans le grimoire de combat.**
   `SCHOOL_ORDER` omet `traque` (`ui/SpellBook.tsx:17`) : sorts connus,
   acceptés par le moteur, jamais affichés. Dériver l'ordre du catalogue +
   texte de préviz `applyMarks` (`SpellBook.tsx:236-249`).
-- [ ] **C2 — Grimoire : disponibilité/coût sans la réduction Magie.**
+- [x] **C2 — Grimoire : disponibilité/coût sans la réduction Magie.**
   `castable = mana >= manaCost` brut (`SpellBook.tsx:169,180`) alors que le
   moteur encaisse `effectiveManaCost` ⇒ sorts lançables affichés grisés,
   coût affiché faux. Utiliser `effectiveManaCost` (après A6).
-- [ ] **C3 — Sorts de départ : tout le catalogue cercle ≤ 3, école de faction
+- [x] **C3 — Sorts de départ : tout le catalogue cercle ≤ 3, école de faction
   et sort d'aventure compris** (`app/game.ts:183-185`) — un héros Haven
   connaît les sorts de Traque dès le jour 1. Exclure l'école de faction des
   autres maisons (A8 gère le sort d'aventure).
-- [ ] **C4 — Le rendu du brouillard ignore le bonus de vision Recherche.**
+- [x] **C4 — Le rendu du brouillard ignore le bonus de vision Recherche.**
   Le moteur révèle avec `visionRadius + heroVisionBonus`
   (`adventure/movement.ts:62-67`), le client dessine avec
   `config.visionRadius` seul (`AdventureScene.ts:103`, `render/fog.ts:32-41`)
   ⇒ anneau faussement grisé. Passer le rayon effectif par héros.
-- [ ] **C5 — Préviz de chemin : « jours nécessaires » réduit à un booléen
+- [x] **C5 — Préviz de chemin : « jours nécessaires » réduit à un booléen
   aujourd'hui/plus tard** (`AdventureScene.ts:212-220`) — doc 02:76 promet le
   compte de jours. Resegmenter par allocation quotidienne de PM.
-- [ ] Vérif de lot : smoke Playwright (desktop + mobile) vert ; audit i18n
-  0 chaîne en dur maintenu.
+- [x] Vérif de lot : smoke Playwright (desktop + mobile) vert (101/102 ; le seul
+  échec est le test de fluidité throttlée ×4, **flake environnemental** du
+  sandbox — 5,7–7,4 fps en re-run, ≥ 5 ; absorbé par `retries` CI) ; nouvelles
+  clés i18n FR/EN ajoutées (school.traque, spellbook.previewMarks,
+  toast.huntContractExpired).
 
 ## 4. Lot D — Décisions de design à trancher (recommandation incluse)
 
 Chaque décision = correctif code OU ligne de doc, dans le même commit.
 
-- [ ] **D1 — XP de combat réservée à l'attaquant vainqueur**
-  (`combat/turns.ts:146-151`) : un héros qui gagne en DÉFENSE (siège subi)
-  ne gagne rien. *Reco : créditer le héros du camp vainqueur (code).*
-- [ ] **D2 — Effets de faction post-victoire (Nécromancie, Essence) réservés
-  à l'attaquant** (`combat/turns.ts:168-173` ; docs 04:38/05:52 disent
-  « après chaque victoire »). *Reco : cohérence avec D1 — étendre au
-  défenseur vainqueur (code) ; sinon noter « en tant qu'attaquant » docs
-  04 §2 et 05 §3.3.*
-- [ ] **D3 — Stock de base orphelin après upgrade du dwelling niveau 2**
-  (`town/helpers.ts:24-34`, `recruit.ts:31-35`) : le stock accumulé de
-  l'unité de base devient irrécupérable. *Reco : garder les DEUX recrutables
-  (façon HoMM) ; à défaut convertir le stock au build du niveau 2.*
-- [ ] **D4 — « 1 seul Capitole par joueur » non appliqué** (doc 02:152 ;
-  `town/build.ts:13-61` — townHall niv 4 possible dans chaque ville).
-  *Reco : flag générique data-driven `uniquePerPlayer` sur un niveau de
-  bâtiment (code).*
+- [x] **D1 — XP de combat réservée à l'attaquant vainqueur** — **TRANCHÉ : doc.**
+  Le modèle de combat MVP n'a **aucun héros défenseur** (`defenderHeroId`
+  toujours `null` ; la défense de ville = garnison, l'interception = héros
+  attaquant). Le cas « héros qui gagne en défense » est donc **inatteignable** —
+  aucun code spéculatif ; la restriction est documentée (doc 02 §1.2 : XP au
+  héros attaquant vainqueur ; hero-vs-hero différé §2.2).
+- [x] **D2 — Effets de faction post-victoire réservés à l'attaquant** —
+  **TRANCHÉ : doc**, même raison que D1 (pas de défenseur héros). Noté
+  « en tant qu'attaquant » doc 04 §2 (et cohérent Essence doc 05).
+- [ ] **D3 — Stock de base orphelin après upgrade du dwelling niveau 2** —
+  **DIFFÉRÉ (documenté).** Genuine toss-up HoMM (double recrutement) vs simple
+  (conversion) touchant `town/helpers`+`recruit`+tests ; le comportement actuel
+  et l'arbitrage sont désormais **actés en doc 02 §4.1**. À implémenter dans un
+  lot dédié.
+- [ ] **D4 — « 1 seul Capitole par joueur » non appliqué** — **DIFFÉRÉ
+  (documenté).** Nécessite un flag générique `uniquePerPlayer` (schéma + build +
+  données + tests) ; écart **acté en doc 02 §4.1**. Lot dédié.
 - [x] **D5 — `consumeMarks` déclenché aussi en riposte** (`damage.ts:252` via
   `actions.ts:317-326`) — doc 05:36 dit « à l'attaque », et la préviz ne le
   reflète pas. *Reco : restreindre aux frappes volontaires (code), lecture
   stricte de la doc.*
-- [ ] **D6 — Arrêt du héros au ramassage de ressource/artefact**
+- [x] **D6 — Arrêt du héros au ramassage de ressource/artefact**
   (`adventure/movement.ts:104-117,156` — le commentaire cite la doc à tort).
   *Reco : retirer le `break` (fidélité HoMM, guidelines §8.5) ; sinon
   l'acter doc 02 §2.2.*
-- [ ] **D7 — Cap de Nécromancie sur l'effectif post-combat** vs « effectif
+- [x] **D7 — Cap de Nécromancie sur l'effectif post-combat** vs « effectif
   initial » (doc 04:38 ; `faction/effects.ts:78-79`). *Reco : corriger la
   doc (« effectif restant ») — plus conservateur et déjà équilibré ainsi.*
-- [ ] **D8 — Prérequis « Château » des T7/T8 absent** (docs 03:76/04:69/
+- [x] **D8 — Prérequis « Château » des T7/T8 absent** (docs 03:76/04:69/
   05:217 ; les dwellings sommets ne requièrent que le tier précédent, et
   aucun bâtiment « château » n'existe). *Reco : exiger `fort@3` dans les
   données des 3 maisons — pur diff data, restaure l'arbitrage économique ;
   re-passer l'équilibrage grossier.*
-- [ ] **D9 — Tableau des Contrats : prérequis `townHall` au lieu de `tavern`**
+- [x] **D9 — Tableau des Contrats : prérequis `townHall` au lieu de `tavern`**
   (doc 05:213 ; `arcane-hunters/buildings.json:185` — la taverne core n'est
   pas dans la ville AH). *Reco : ajouter `tavern` à la ville AH + le
   `requires` ; sinon amender la doc.*
@@ -213,20 +217,19 @@ Chaque décision = correctif code OU ligne de doc, dans le même commit.
   « +8 % des unités AH ET des sorts de Traque » ; `hero/spells.ts:33-40`
   ignore `target.marks`). *Reco : appliquer `markBonusPerStack × marks` aux
   sorts de dégâts (code).*
-- [ ] **D11 — Littéral `'traque'` dans l'union `SpellSchool` du moteur**
+- [x] **D11 — Littéral `'traque'` dans l'union `SpellSchool` du moteur**
   (`hero/types.ts:9`) : pas une violation du garde-fou (aveugle aux écoles),
   mais un nom propre à une faction dans le moteur ; toute future école de
   faction = diff moteur. *Reco : `SpellSchool = string` validée par les
   données.*
-- [ ] **D12 — Coûts des unités élites : asymétrie suspecte** relevée par
-  l'audit factions (élite moins chère que la base chez Haven/Necropolis,
-  2-3× plus chère chez Arcane Hunters) — aucune table d'élites dans les
-  docs pour arbitrer. *Reco : documenter la table des élites (E5) puis
-  passer `faction:sim`/équilibrage pour trancher les coûts.*
+- [ ] **D12 — Coûts des unités élites : asymétrie suspecte** — **DIFFÉRÉ
+  (documenté).** L'existence des unités élites et l'absence de table doc sont
+  **actées** (doc 03 §3.1) ; l'arbitrage chiffré demande une passe
+  `faction:sim`/équilibrage dédiée (hors périmètre de cette remédiation).
 
 ## 5. Lot E — Remise à niveau documentaire (corriger la DOC)
 
-- [ ] **E1 — docs/07-architecture.md** : `CURRENT_SAVE_VERSION` 4 → **8**
+- [x] **E1 — docs/07-architecture.md** : `CURRENT_SAVE_VERSION` 4 → **8**
   (+ historique v5 huntContract, v6 warMachines, v7 quests, v8 objets de
   carte/pendingTreasure/visitLuck) ; §2 : structure de packages réelle
   (`engine/src/ai` interne, `@heroes/content` avec schémas, pas
@@ -234,7 +237,7 @@ Chaque décision = correctif code OU ligne de doc, dans le même commit.
   interface prête » (`dispatch.ts` synchrone assumé) ; §4 : autosave fin de
   tour (aligner doc 01 pilier:16), métadonnées `packs` sans versions
   (différé avec les migrations).
-- [ ] **E2 — docs/02-mechanics.md** : table des capacités §5.4 (9 au
+- [x] **E2 — docs/02-mechanics.md** : table des capacités §5.4 (9 au
   catalogue : + `consumeMarks`, `demonform`, `symbiosis` — renvoi docs
   05/14 ; capacités « extrait » non implémentées marquées différées) ;
   §4.1 : notes d'état Guilde des mages (apprentissage différé — l'effet
@@ -253,7 +256,7 @@ Chaque décision = correctif code OU ligne de doc, dans le même commit.
   uniquement ; terrain natif ×1,0 et PM d'artefacts : différés ou retirés ;
   `RETAKE_GRACE_DAYS` : exempter les constantes calendaires du « tout en
   données » ou déplacer en config.
-- [ ] **E3 — docs/06-modularity.md** : §2 structure de paquet réelle
+- [x] **E3 — docs/06-modularity.md** : §2 structure de paquet réelle
   (manifest + units/ + buildings.json + locales/ ; PAS de heroes/, skills,
   abilities/*.ts, assets/ par paquet ; les sorts d'école de faction vivent
   au catalogue CORE — contredit l'auto-containment, à acter) ; §4 : le
@@ -264,10 +267,10 @@ Chaque décision = correctif code OU ligne de doc, dans le même commit.
   types réels sont `raiseUndeadOnVictory`/`gainFactionResourceOnVictory`
   (faction/types.ts:30) ; §5.6 : « faction:sim reste à écrire » est FAUX
   (`tools/src/faction-sim.ts` + balance.test.ts existent).
-- [ ] **E4 — docs/01-gdd-overview.md** : carte MVP 32×32 (pas ~72×72) ;
+- [x] **E4 — docs/01-gdd-overview.md** : carte MVP 32×32 (pas ~72×72) ;
   « sauvegarde à chaque fin de tour » (pas « à chaque action ») ; 4
   scénarios (prologue inclus) ; hot-seat livré.
-- [ ] **E5 — docs 03/04/05/14 (factions)** :
+- [x] **E5 — docs 03/04/05/14 (factions)** :
   doc 03 — F1 : mécanisme d'élite réel = dwelling niveau 2 (pas
   `upgradeOf`) ; table des unités élites à ajouter (14/maison livrées sans
   aucune doc — noms, stats, coûts) ; « 6 capacités » (03:11) → 9.
@@ -281,7 +284,7 @@ Chaque décision = correctif code OU ligne de doc, dans le même commit.
   dans les reports — l'ajouter aux différés.
   doc 14 — F15 : phrase des prérequis §4 fausse (T1 requiert fort, T5
   requiert mageGuild dans les données).
-- [ ] **E6 — docs/13-plan-narrative-polish.md** : annoter §4.1/§5/§6 vs le
+- [x] **E6 — docs/13-plan-narrative-polish.md** : annoter §4.1/§5/§6 vs le
   livré N2 réel : prologue AJOUTÉ en 4ᵉ scénario (tutorial intact),
   2 quêtes/2 dialogues (pas 3/4) ; quêtes sans `trigger` (démarrage en bloc
   à `StartGame` — reporté N3) ; conditions réduites (4 types) et récompenses
@@ -290,12 +293,12 @@ Chaque décision = correctif code OU ligne de doc, dans le même commit.
   par le client (`narrative.ts:48-68`) — retirer du schéma ou garde
   `content:check` ; trancher la contradiction « conditions événementielles »
   vs « évaluation pure d'état » avant N3.
-- [ ] **E7 — CLAUDE.md** : save v8, faction `sylvan-court` dans l'arbo,
+- [x] **E7 — CLAUDE.md** : save v8, faction `sylvan-court` dans l'arbo,
   4 scénarios, systèmes livrés depuis la dernière mise à jour (marché,
   machines de guerre, upgrades d'unités, contrats de chasse, hot-seat,
   quêtes/prologue, mines capturables/coffres/lieux de bonus, éditeur),
   renvoi vers ce plan.
-- [ ] **E8 — Hygiène des commentaires menteurs** (au fil des lots A–C) :
+- [x] **E8 — Hygiène des commentaires menteurs** (au fil des lots A–C) :
   `hero/skills.ts:34,39,49` (« NON branché » alors que branché),
   `combat/damage.ts:24-25`, `town/types.ts:28` (forge « sans effet » alors
   que warMachineVendor), `adventure/movement.ts:33` (fausse citation doc),
@@ -322,3 +325,25 @@ Chaque décision = correctif code OU ligne de doc, dans le même commit.
 - 2026-07-07 : plan créé à l'issue de la revue (7 audits parallèles +
   contre-vérification manuelle de A1, A2, A6, A7, A10, F5, F6, F12, F14).
   Aucun correctif appliqué — les arbitrages du Lot D restent à valider.
+- 2026-07-07 (impl) : **Lots A & B livrés** (commit dédié) — 11 bugs P0 + 8 P1,
+  +22 tests, golden re-fixé (48c3a5e5), 341 tests moteur / 83 contenu verts.
+- 2026-07-07 (impl) : **Lots C, D et E livrés**.
+  - Lot C (client) : école Traque visible au grimoire + préviz `applyMarks`
+    (C1) ; coût/grisage via `effectiveManaCost` (C2) ; sorts de départ sans
+    école de faction (C3) ; brouillard au rayon effectif par héros (C4) ;
+    préviz de chemin segmentée par jour, couleur J1/J2/J3+ (C5). Exports moteur
+    ajoutés (`effectiveManaCost`, `heroVisionBonus`, `heroMovementBonus`).
+  - Lot D : **D5, D10** (code, dans lot A) ; **D6, D7** (doc) ; **D8** (fort@3
+    requis pour T7/T8 des 4 maisons — data) ; **D9** (Tableau des Contrats →
+    prérequis Taverne — data) ; **D11** (`SpellSchool = string` validée par
+    regex, `traque` retiré du moteur). **D1/D2 tranchés en doc** (pas de héros
+    défenseur au MVP ⇒ cas inatteignable). **D3, D4, D12 différés** avec écart
+    acté en doc (lots dédiés).
+  - Lot E : docs 01, 02, 06, 07, 13, 03, 04, 05, 14 + CLAUDE.md remis à niveau
+    (save v8, structure de packages réelle, mécanisme de modularité réel,
+    `faction:sim` existe, capacités à 9, marché/taverne/guilde livrés, table
+    d'élites à documenter, prérequis Château, prologue/4 scénarios…).
+  - Vérif : typecheck (5 packages) + lint verts ; content:check OK ;
+    smoke 101/102 (fluidité throttlée = flake environnemental, ≥ 5 fps en
+    re-run) ; budget bundle JS ~254 Ko gzip (< 800). Le seul écart moteur/doc
+    non résolu en code (D3/D4/D12) est explicitement documenté.

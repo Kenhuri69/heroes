@@ -1610,7 +1610,14 @@ test('contrat de chasse : bâtir le Tableau des Contrats → cible assignée au 
   await page.evaluate(() => window.__HEROES_TEST__!.startScenario('conquest'));
   await expect(page.getByTestId('end-turn')).toBeVisible();
 
-  // Bâtir le Tableau des Contrats (prérequis townHall, 800 or + 5 bois).
+  // Prérequis du Tableau des Contrats : la Taverne (doc 05 §3.3). Une seule
+  // construction par jour/ville ⇒ Taverne au jour 1, puis fin de tour.
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({ type: 'BuildStructure', townId: 'start-town', buildingId: 'tavern' }),
+  );
+  await page.evaluate(() => window.__HEROES_TEST__!.dispatch({ type: 'EndTurn', playerId: 'player-1' }));
+
+  // Bâtir le Tableau des Contrats (prérequis tavern, 800 or + 5 bois).
   await page.evaluate(() =>
     window.__HEROES_TEST__!.dispatch({
       type: 'BuildStructure',
@@ -1627,7 +1634,7 @@ test('contrat de chasse : bâtir le Tableau des Contrats → cible assignée au 
     ),
   ).toBe(1);
 
-  // Avancer jusqu'au passage de semaine (jour 8) : un contrat est assigné.
+  // Avancer jusqu'au passage de semaine : un contrat est assigné.
   for (let i = 0; i < 7; i++) {
     await page.evaluate(() => window.__HEROES_TEST__!.dispatch({ type: 'EndTurn', playerId: 'player-1' }));
   }

@@ -19,6 +19,30 @@
 
 ## 2. Découpage en packages
 
+> **État (remédiation cohérence)** : le découpage effectivement livré diffère
+> du plan initial ci-dessous — l'IA d'aventure et les schémas de contenu n'ont
+> pas leur propre package, et il n'existe ni `@heroes/engine-api` ni `schemas/`
+> racine. Structure réelle (voir aussi CLAUDE.md / doc 10) :
+>
+> ```
+> heroes/ (monorepo pnpm)
+> ├── packages/
+> │   ├── engine/    # @heroes/engine — RÈGLES PURES (aucun DOM/Pixi) :
+> │   │   ├── adventure/  combat/  town/  hero/  faction/  scenario/  quest/
+> │   │   └── ai/         # IA d'aventure — vit DANS le moteur (pas de package séparé)
+> │   ├── content/   # @heroes/content — schémas Zod + loader/validateur de paquets
+> │   ├── client/    # @heroes/client — rendu Pixi, UI Preact, input, audio, scènes
+> │   └── tools/     # @heroes/tools — CLI faction:new/validate/sim, map:gen
+> ├── data/          # contenu : core/ (sorts, artefacts, abilities…), factions/, maps/, scenarios/
+> └── docs/
+> ```
+>
+> Un `server/` Node.js reste prévu en Beta (non livré). Les JSON Schemas sont
+> des schémas **Zod** dans `@heroes/content`, pas des fichiers dans `schemas/`.
+
+Plan initial (conservé pour mémoire ; la cible `api`/`ai`/`schemas` séparés
+n'a pas été retenue) :
+
 ```
 heroes/ (monorepo pnpm)
 ├── packages/
@@ -58,7 +82,7 @@ UI/IA ──commande──► [validation] ──► engine.apply(state, cmd)
 - **Commandes** (`MoveHero`, `BuildStructure`, `RecruitUnits`, `CombatAction`…) : petites, sérialisables → c'est le protocole réseau futur ET le format de replay.
 - **État** : un seul arbre sérialisable (`GameState`), mutations via Immer dans le moteur, exposé au client par un store **Zustand** (UI) tandis que Pixi écoute les **événements** pour animer (l'état saute à la fin, l'animation raconte le passage).
 - **Déterminisme** : RNG **PCG32 seedé** dans l'état ; interdiction lintée de `Math.random`/`Date.now` dans `engine` et les modules de faction. Bénéfices : replays, tests reproductibles, combat auto re-simulable, anti-triche serveur (le serveur rejoue les commandes).
-- Le moteur tourne dans un **Web Worker** dès que la carte est grande ou l'IA réfléchit (UI jamais bloquée).
+- Le moteur tournera dans un **Web Worker** dès que la carte est grande ou l'IA réfléchit (UI jamais bloquée). *État : différé — le dispatch est synchrone sur le thread UI ; le passage en worker est un changement d'implémentation, l'interface est prête (cartes ≤ 32×32 : besoin nul).*
 
 ## 4. Sauvegardes
 
@@ -76,9 +100,20 @@ UI/IA ──commande──► [validation] ──► engine.apply(state, cmd)
     version — « Continuer » se grise, l'import échoue — au lieu d'adopter un
     état malformé. La **migration ascendante** d'anciennes sauvegardes reste
     différée (post-MVP) : au MVP on rejette, on ne migre pas.
-    `CURRENT_SAVE_VERSION` vaut **4** depuis le comblement MVP (ajout de
-    `PlayerState.townlessDays` — grâce de reprise — et `AdventureMapDef.triggers`).
-- Une sauvegarde référence les paquets de faction et leurs versions.
+    `CURRENT_SAVE_VERSION` vaut **8** (source de vérité `engine/core/state.ts`).
+    Historique des incréments : v4 comblement MVP (`townlessDays`, `triggers`),
+    v5 contrats de chasse (`huntContract`), v6 machines de guerre (`warMachines`,
+    `symbiosisStacks`), v7 quêtes (`quests`), v8 objets de carte
+    (`pendingTreasure`, `HeroState.visitLuck`). *Garde-fou (remédiation B8) : un
+    test verrouille la forme de `GameState` à `CURRENT_SAVE_VERSION` — tout ajout
+    de champ requis force le bump, la garde ne peut plus être contournée.*
+- Une sauvegarde référence les paquets de faction (ids de groupes). *Les
+  **versions** de paquets ne sont pas encore stockées — champ différé avec les
+  migrations ascendantes ; les `packs` actuels sont informatifs.*
+- Le **moteur tourne sur le thread UI** (dispatch synchrone) : le Web Worker du
+  §3 est différé (interface prête, aucun besoin sur les cartes ≤ 32×32).
+- Autosave **à chaque fin de tour** (pas « à chaque action » — cf. doc 01) :
+  gzip + IndexedDB, coût maîtrisé au tour par tour.
 
 ## 5. Backend multijoueur (Beta — architecturé dès le MVP)
 

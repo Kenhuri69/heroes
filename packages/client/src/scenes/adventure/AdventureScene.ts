@@ -1,6 +1,9 @@
 import { Application, Assets, Container, Graphics, Point, Sprite } from 'pixi.js';
 import {
+  dailyMovementPoints,
   findPath,
+  heroMovementBonus,
+  heroVisionBonus,
   isAdjacent,
   samePos,
   stepCost,
@@ -101,8 +104,13 @@ export class AdventureScene {
     );
     this.towns.sync(game.towns, humanId(game));
     const heroes = humanHeroes(game);
-    const positions = heroes.map((h) => h.pos);
-    this.fog.update(player.explored, positions, config.visionRadius);
+    // Rayon effectif PAR héros (base + Recherche) — aligné sur la révélation
+    // moteur, sinon l'anneau vu grâce à Recherche resterait grisé (C4).
+    const viewers = heroes.map((h) => ({
+      pos: h.pos,
+      radius: config.visionRadius + heroVisionBonus(h, game.skillCatalog),
+    }));
+    this.fog.update(player.explored, viewers);
 
     // Réconciliation des sprites de héros : supprime ceux disparus, crée ceux
     // manquants, repositionne tous sauf celui en cours d'animation.
@@ -214,13 +222,26 @@ export class AdventureScene {
       this.clearPreview();
       return;
     }
-    // Points verts = atteignable aujourd'hui, jaunes = jours suivants (doc 02 §1.5).
+    // Segmentation par JOUR (doc 02 §1.5) : les PM du jour courant, puis
+    // l'allocation quotidienne pleine pour les jours suivants — le nombre de
+    // jours nécessaires devient lisible (vert=J1, jaune/orange/rouge=J2/3/4+).
+    const dailyBudget = Math.round(
+      dailyMovementPoints(config, hero.army, game.unitCatalog) *
+        (1 + heroMovementBonus(hero, game.skillCatalog) / 100),
+    );
     const steps: PreviewStep[] = [];
     let remaining = hero.movementPoints;
+    let day = 1;
     let prev = hero.pos;
     for (const step of path) {
-      remaining -= stepCost(config, map, prev, step);
-      steps.push({ x: step.x, y: step.y, today: remaining >= 0 });
+      const cost = stepCost(config, map, prev, step);
+      if (cost > remaining && dailyBudget > 0) {
+        // Pas infranchissable avec les PM restants : il bascule au jour suivant.
+        day += 1;
+        remaining = dailyBudget;
+      }
+      remaining -= cost;
+      steps.push({ x: step.x, y: step.y, today: day === 1, day });
       prev = step;
     }
     this.previewTarget = { target: tile, path };

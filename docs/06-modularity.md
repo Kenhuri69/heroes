@@ -2,6 +2,26 @@
 
 Objectif : **ajouter une faction sans modifier le moteur**. Une faction est un *paquet* auto-contenu : des données JSON validées par schéma, des assets, et — uniquement si nécessaire — des modules JS enregistrés via des points d'extension explicites.
 
+> **État (remédiation cohérence) — mécanisme réellement livré vs cible**
+> Le garde-fou « zéro faction dans le moteur » est **vert** (motif CI dérivé de
+> `data/factions/index.json`). Mais la cible « modules JS de capacité » de §3/§4
+> **n'a pas été retenue** : il n'existe **ni** interface `AbilityModule`/
+> `AdventureHook`, **ni** package `@heroes/engine-api`, **ni** dossier
+> `schemas/` racine (les schémas sont Zod dans `@heroes/content`). Le mécanisme
+> livré est **« capacités génériques inline paramétrées par les données »** : le
+> moteur expose un catalogue de capacités génériques (`data/core/abilities.json`
+> — `consumeMarks`, `demonform`, `symbiosis`…), une unité les référence par id +
+> `params`, et le moteur les interprète sans connaître la faction. Les
+> `abilityModules`/`hooks` des manifestes restent **forcés vides** par le schéma.
+> Un paquet réel = `manifest.json` + `units/` + `buildings.json` + `locales/`
+> (pas de `heroes/`, `spells/`, `skills.json`, `abilities/*.ts`, `assets/` par
+> paquet). Les **écoles de sorts de faction** (ex. `traque`) vivent au catalogue
+> **core** (`data/core/spells.json`), pas dans le paquet — auto-containment
+> partiel, à trancher. Les deux types de `factionBonuses` réels sont
+> `raiseUndeadOnVictory` et `gainFactionResourceOnVictory` (pas
+> `onAttackApplyStatus`). Les exemples de code ci-dessous décrivent la **cible
+> initiale**, conservée pour mémoire.
+
 ## 1. Principe : moteur générique + contenu déclaratif
 
 ```
@@ -144,7 +164,7 @@ interface AdventureHook {
 3. Remplir `units/`, `buildings/`, `heroes/`, `locales/` ; `pnpm faction:validate <id>` doit passer (schémas + règles croisées : prérequis atteignables, coûts définis, IDs de capacités existants, textes localisés complets).
 4. Capacités : d'abord chercher dans le **catalogue générique** ; ne créer un module que si la composition déclarative ne suffit pas (règle : ≤ 3 modules par faction).
 5. Assets : suivre `docs/12-assets-style-guide.md` (familles P/A/B/C/D/E, tailles, nommage) ; l'intégration client (registre, hors bundle) est décrite en §10. Placeholders procéduraux autorisés jusqu'à la Beta (repli gracieux en place).
-6. **Équilibrage** : le test `balance.test.ts` (paquet `@heroes/content`, lancé par `pnpm test`) rejoue des combats auto à valeur d'or égale et vérifie qu'aucune faction ne domine ; un simulateur CLI dédié (`faction:sim`, rapport de winrate par palier) reste à écrire.
+6. **Équilibrage** : le test `balance.test.ts` (paquet `@heroes/content`, lancé par `pnpm test`) rejoue des combats auto à valeur d'or égale et vérifie qu'aucune faction ne domine ; un simulateur CLI dédié **existe** — `pnpm faction:sim` (`packages/tools/src/faction-sim.ts`), rapport de winrate par palier.
 7. Jouabilité : 1 scénario de test dédié + passe IA (le profil `aiProfile` suffit-il ?).
 8. PR unique portant le paquet ; la CI rejoue validation + simulation. **Aucun diff hors de `data/factions/<id>/` n'est accepté**, sauf ajout au registre `index.json` — c'est le test automatique de la promesse de modularité.
 9. **Narratif** (s'arme avec le chantier doc 13) : remplir le gabarit §8 (identité narrative, lecture de l'arc global, relations, arcs des 2 héros nommés) et livrer les `loreKey` FR/EN de chaque entité dans les locales du paquet ; la campagne de faction (3 chapitres, `data/factions/<id>/story/`) peut arriver dans un second lot. Mêmes garde-fous : zéro diff moteur, zéro modification des autres maisons (doc 13 §8.2).

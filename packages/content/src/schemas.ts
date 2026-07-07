@@ -232,7 +232,9 @@ export const spellSchema = z
     name: locRef.optional(),
     /** Texte d'ambiance optionnel (doc 13 §3.5, lot N1). */
     loreKey: locRef.optional(),
-    school: z.enum(['fire', 'water', 'earth', 'air', 'neutral', 'traque']),
+    // École de magie : identifiant libre (format camelCase/kebab) — le moteur ne
+    // code en dur aucune école ; une faction peut définir la sienne par données.
+    school: z.string().regex(/^[a-z][a-zA-Z0-9-]*$/, 'école en identifiant simple'),
     circle: z.number().int().min(1).max(5),
     manaCost: z.number().int().positive(),
     kind: z.enum(['damage', 'heal', 'buff', 'debuff', 'applyMarks', 'adventure']),

@@ -131,6 +131,21 @@ Faction inédite, produite en **Alpha** — elle sert de validation grandeur nat
 > assumés** : la bascule est **automatique** (choix de timing actif +
 > action/UI/IA différés), l'**`areaAttack(cône)`** et `devourMarks` restent
 > différés (attaque multi-cibles = nouvelle surface).
+>
+> 🧭 **État (remédiation cohérence code↔docs)** — écarts corrigés/actés :
+> - **Marques** : amplifient désormais aussi les **dégâts de sort** (+8 %/charge) ;
+>   `consumeMarks` ne se déclenche qu'à l'**attaque volontaire** (pas en riposte).
+> - **Prérequis** : le **T8 Pénitent** exige désormais le **Château** (fort niv. 3,
+>   doc §5) ; le **Tableau des Contrats** exige la **Taverne** (§5, corrigé — les
+>   données pointaient sur l'hôtel de ville).
+> - **Contrats de chasse** : **hebdomadaires** — un contrat non rempli **expire**
+>   au passage de semaine (et se débloque si la cible a été tuée par un tiers) ;
+>   récompense livrée = **300 or + 15 Essence**.
+> - **École Traque** : reste **différée pour les héros** (les héros ne reçoivent
+>   pas les sorts de Traque dans leur dotation de départ) ; l'école est visible au
+>   grimoire de combat quand elle est connue. Le cap `999` d'Essence au manifeste
+>   n'est pas appliqué au gain (report). `sharedGrowthGroups: {}` (apex ni déclaré
+>   ni câblé). Les **60 Essence** du Portail de l'Abîme restent différées.
 
 ## 1. Lore
 

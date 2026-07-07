@@ -393,7 +393,7 @@ describe('remédiation cohérence — sorts & mana', () => {
 
   it('A7 : le Savoir d’un artefact (Orbe de savoir) augmente la mana max', () => {
     const artifactCatalog: Record<string, ArtifactDef> = {
-      orb: { id: 'orb', slot: 'misc', bonus: { knowledge: 2 } },
+      orb: { id: 'orb', bonus: { knowledge: 2 } },
     };
     const h = hero({ attributes: { attack: 0, defense: 0, power: 0, knowledge: 4 }, artifacts: ['orb', ...Array.from({ length: 9 }, () => null)] });
     // (4 + 2) × 10 = 60, et non 40 (artefact ignoré = bug corrigé).

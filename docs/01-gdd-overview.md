@@ -13,7 +13,7 @@ Un jeu de stratégie navigateur au tour par tour, héritier direct de **Might & 
 | Pilier | Ce que ça implique |
 |--------|--------------------|
 | **Fidélité au core loop HoMM** | Exploration → Ville → Armée → Combat. Pas de réinvention du genre, une exécution moderne. |
-| **Sessions courtes possibles** | Un tour de jeu se joue en 1–3 min ; sauvegarde automatique à chaque action ; reprise instantanée. |
+| **Sessions courtes possibles** | Un tour de jeu se joue en 1–3 min ; sauvegarde automatique à chaque **fin de tour** (cf. doc 07 §4) ; reprise instantanée. |
 | **Touch-first** | Toutes les interactions au doigt (cibles ≥ 44 px, pas de hover obligatoire, confirmation en 2 taps). |
 | **Modularité des factions** | Une faction = un paquet de données + assets. Zéro code moteur spécifique à une faction. |
 | **Lisibilité tactique** | À tout moment, le joueur comprend qui peut faire quoi (portées, zones, initiative visibles). |
@@ -79,7 +79,7 @@ Le MVP est **sans monétisation**. Si le jeu passe en live-service, le modèle e
 ### Inclus (MVP = « vertical slice complète »)
 
 - **2 factions** : Haven, Necropolis (7 tiers chacune).
-- **1 carte d'aventure** faite main (~72×72 tuiles) + 3 scénarios courts.
+- **1 carte d'aventure** faite main (proto-01, **32×32 tuiles** au MVP livré) + scénarios courts (tutorial/survival/conquest **+ prologue narratif** ⇒ 4 scénarios, cf. doc 13). Hot-seat 2 joueurs locaux livré (Alpha).
 - Héros : mouvement, inventaire, 4 attributs, ~12 compétences, ~20 sorts (2 écoles + neutres).
 - **Ville** : arbre de construction complet, 1 bâtiment/jour, recrutement, croissance hebdomadaire.
 - **Combat hex** : grille 12×10, initiative, riposte, moral/chance, sorts, capacités d'unités, IA de combat basique, auto-combat.

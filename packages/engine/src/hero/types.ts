@@ -6,7 +6,12 @@ import type { ResourceId } from '../core/state';
  * ces formes. Le moteur ne connaît aucune faction : tout est id + données.
  */
 
-export type SpellSchool = 'fire' | 'water' | 'earth' | 'air' | 'neutral' | 'traque';
+/**
+ * École de magie : identifiant libre validé par les données (schéma de contenu),
+ * PAS une union figée — le moteur ne code en dur aucune école de faction
+ * (ex. `traque` d'Arcane Hunters). Écoles génériques : fire/water/earth/air/neutral.
+ */
+export type SpellSchool = string;
 export type SpellKind = 'damage' | 'heal' | 'buff' | 'debuff' | 'applyMarks' | 'adventure';
 
 /**

@@ -55,7 +55,7 @@
 > déséquilibre béant (Havre ~55–66 % vs les deux autres). Réglage fin vers 45–55 %
 > = itérations ultérieures avec l'outil.
 
-Les **unités améliorées** (Conscrit → Hallebardier, etc.) sont spécifiées en Alpha ; le schéma de données les supporte dès le MVP (`upgradeOf`).
+Les **unités améliorées** (Conscrit → Hallebardier, etc.) sont livrées. *État (remédiation cohérence) : le mécanisme réel n'est **pas** `upgradeOf` mais une **habitation de niveau 2** (`dwelling` niv. 1 = unité de base, niv. 2 = unité améliorée, id distinct — cf. doc 14 §4) ; l'amélioration en garnison passe par la commande `UpgradeUnits`. Les stats/coûts des unités élites vivent dans `data/factions/haven/units/*` — table dédiée à documenter. L'accès sommet (T7) exige désormais le **Château** (fort niv. 3).*
 
 ## 4. Arbre de bâtiments
 

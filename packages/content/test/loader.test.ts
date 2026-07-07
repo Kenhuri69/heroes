@@ -736,9 +736,17 @@ describe('spellSchema', () => {
     expect(spellSchema.safeParse(spell).success).toBe(false);
   });
 
-  it('rejette une école inconnue', () => {
+  it('accepte une école de faction bien formée (modularité : pas d’enum figée)', () => {
+    // Le moteur ne code en dur aucune école ; une faction peut définir la sienne.
     const spell = { ...(makeSpell() as Record<string, unknown>), school: 'lumiere' };
-    expect(spellSchema.safeParse(spell).success).toBe(false);
+    expect(spellSchema.safeParse(spell).success).toBe(true);
+  });
+
+  it('rejette une école au format invalide (espaces / vide / majuscule initiale)', () => {
+    for (const school of ['', 'Feu Sacré', 'Fire']) {
+      const spell = { ...(makeSpell() as Record<string, unknown>), school };
+      expect(spellSchema.safeParse(spell).success).toBe(false);
+    }
   });
 });
 

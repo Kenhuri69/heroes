@@ -29,14 +29,19 @@ export class FogOverlay {
     this.sprite.scale.set(TILE_SIZE);
   }
 
-  update(explored: readonly number[], heroPositions: readonly GridPos[], visionRadius: number): void {
+  /**
+   * `viewers` : chaque héros avec SON rayon effectif (base + Recherche) — le
+   * moteur révèle avec ce même rayon (movement.ts), donc l'anneau fraîchement
+   * vu par un héros doté de Recherche n'apparaît plus grisé à tort.
+   */
+  update(explored: readonly number[], viewers: readonly { pos: GridPos; radius: number }[]): void {
     const { width, height } = this.map;
     const image = this.ctx.createImageData(width, height);
     for (let i = 0; i < width * height; i++) {
       const x = i % width;
       const y = Math.floor(i / width);
-      const inVision = heroPositions.some(
-        (p) => Math.max(Math.abs(p.x - x), Math.abs(p.y - y)) <= visionRadius,
+      const inVision = viewers.some(
+        (v) => Math.max(Math.abs(v.pos.x - x), Math.abs(v.pos.y - y)) <= v.radius,
       );
       const rgba = inVision ? null : explored[i] ? EXPLORED_DIM : UNEXPLORED;
       if (rgba) image.data.set(rgba, i * 4);

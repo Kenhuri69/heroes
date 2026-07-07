@@ -273,6 +273,23 @@ bâtiment, infobulle d'artefact, description de sort) :
 
 ## 5. Système de quêtes
 
+> **État (remédiation cohérence code↔docs) — livré vs plan N2/N3** :
+> - Le prologue Haven a été **ajouté** en 4ᵉ scénario (`tutorial` **intact**, pas
+>   ré-habillé) et contient **2 quêtes / 2 dialogues** (pas 3/4).
+> - Les quêtes livrées **n'ont pas de `trigger`** : elles démarrent toutes en bloc
+>   au `StartGame` (chaînage/déclencheurs reportés à N3).
+> - Catalogue de conditions **réduit** à ce qui est évaluable purement depuis
+>   l'état : `buildStructure`, `ownUnits`, `defeatGuardian`, `visitTile` + les 4
+>   `VictoryCondition`. Les conditions **événementielles** (`castSpell`, « gagner
+>   sans pertes », `reachTile`, `collectResource`, `recruitUnits`, `heroLevel`,
+>   `equipArtifact`…) sont reportées — trancher « conditions sur événements » vs
+>   « évaluation pure d'état » avant N3.
+> - Récompenses livrées : `resources` | `artifact` | `units` (l'**XP** et le
+>   **sort appris** sont reportés).
+> - Le schéma valide `choices`/`setFlag` sur les dialogues, mais le client les
+>   **ignore** (`campaignState`/drapeaux non implémentés) ; le journal de quêtes
+>   n'a ni **centrage caméra** ni **badge « ! »** — tout cela est N3.
+
 ### 5.1 Principes
 
 - Une quête est un **objet déclaratif** : déclencheur → étapes (conditions

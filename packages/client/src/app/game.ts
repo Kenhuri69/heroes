@@ -179,9 +179,12 @@ export function buildHeroSetup(report: LoadReport): HeroSetup {
   const artifactCatalog = buildArtifactCatalog(report) as Record<string, ArtifactDef>;
   const newGame = report.content.config.newGame;
   // Guilde des mages MVP (décision plan phase-3.2 #7) : le héros connaît d'emblée
-  // tous les sorts de cercle ≤ 3. Sagesse/Magie (cercles 4/5) = raffinement 3.3+.
+  // tous les sorts de cercle ≤ 3 des écoles GÉNÉRIQUES. Les écoles de faction
+  // (ex. Traque) sont exclues de la dotation par défaut — l'accès des héros à ces
+  // sorts est différé (doc 05 État 4.9). Sagesse/Magie (cercles 4/5) = 3.3+.
+  const CORE_SCHOOLS = new Set(['fire', 'water', 'earth', 'air', 'neutral']);
   const startingSpells = Object.values(spellCatalog)
-    .filter((s) => s.circle <= 3)
+    .filter((s) => s.circle <= 3 && CORE_SCHOOLS.has(s.school))
     .map((s) => s.id);
   return {
     spellCatalog,

@@ -148,6 +148,42 @@ Vérifier la planche QC à l'œil : cadre vert = PASS, rouge = FAIL → regéné
   à partir du master — script à écrire au lot intégration.
 - Staging : `assets/logo/`.
 
+## 6bis. Règle F — audio (musiques & effets) (UXD-6)
+
+Famille **AUDIO** : musiques d'ambiance (bouclables) et effets ponctuels (SFX).
+Générés au prompt (Gemini) comme les images, mais **hors du pipeline planche** :
+un fichier son par sujet.
+
+- **Cadre sonore** : orchestre acoustique heroic-fantasy (esprit HoMM / M&M
+  Online) — cordes, cuivres, bois, harpe, chœur léger ; tonal et mélodique ;
+  **pas** de batterie moderne, de synthés ni de voix chantée. Cohérence de
+  tempo et de tonalité pour que les boucles enchaînent proprement.
+- **⚠️ Durées non fiables** : Gemini **ne respecte pas** les durées demandées
+  (retour terrain). Les cibles des prompts sont indicatives ; le **retravail
+  est obligatoire** après génération (voir ci-dessous).
+- **Familles & cibles** :
+  - Musiques (bouclables) : `menu` ~90 s, `adventure` ~120 s (basse intensité),
+    `combat` ~90 s, `town` ~90 s ; jingles courts `victory`/`defeat` ~6 s (non
+    bouclés).
+  - SFX (one-shots courts, mono) : `ui-tap`/`ui-confirm`/`ui-error`,
+    `map-step`/`map-pickup`/`end-turn`, `combat-hit`/`combat-shoot`/
+    `combat-spell`/`combat-death`.
+- **Retravail post-génération (obligatoire)** : trimmer les silences, poser des
+  **points de boucle** propres (passage à zéro, mesure entière) pour les
+  musiques, normaliser (`loudnorm`), puis encoder **`.ogg` (Vorbis q4) + repli
+  `.m4a` (AAC)** (compat Safari). Commandes ffmpeg dans les fiches de prompt.
+- **Budgets de poids** : SFX < 60 Ko, jingle < 150 Ko, musique de boucle
+  < 800 Ko (l'audio est **hors bundle JS/CSS**, fetché à la demande — comme les
+  PNG, doc §10.1 ; le garde-fou budget CI ne mesure que `*.js`/`*.css`).
+- **Sourcing** : `python3 tools/assets/gen_audio_prompts.py` émet les prompts
+  dans `assets/prompts/audio-{music,sfx}.md`. Staging final : `assets/audio/
+  music/<id>.ogg` et `assets/audio/sfx/<id>.ogg` (+ `.m4a`).
+- **Intégration client (UXD-6B)** : registre `render/audio.ts`
+  (`import.meta.glob ?url`, hors bundle, lazy), lecteur Web Audio débloqué à la
+  1ʳᵉ interaction (politique autoplay), volumes musique/SFX persistés
+  (`localStorage`), **coupé/modéré par défaut** ; le son ne porte JAMAIS seul
+  une information (A5 étendu — un SFX double un feedback visuel existant).
+
 ## 7. Prompts-types
 
 Suffix universel à coller à TOUS les prompts :

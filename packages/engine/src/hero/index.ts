@@ -215,7 +215,14 @@ export function handleCastSpell(draft: Draft, cmd: CastSpellCmd, events: GameEve
       const lucky = luckRoll.value < Math.round(rules.luckChancePerPoint * luck * 100);
       // Résistance à la magie (doc 05 §4) : la forme humaine d'un `demonform`
       // encaisse moins ; la forme démon (transformée) subit les dégâts pleins.
-      amount = spellDamageAmount(spell, power, lucky, magicResistanceOf(targetDef, target.transformed));
+      // D10 : la Marque amplifie aussi les dégâts de sort (comme la frappe physique).
+      amount = spellDamageAmount(
+        spell,
+        power,
+        lucky,
+        magicResistanceOf(targetDef, target.transformed),
+        rules.markBonusPerStack * target.marks,
+      );
       const pool = (target.count - 1) * targetDef.stats.hp + target.firstHp;
       kills = killsFromDamage(pool, targetDef.stats.hp, target.count, amount);
       const remaining = Math.max(0, pool - amount);
@@ -321,7 +328,9 @@ export function estimateSpell(
   if (spell.kind === 'damage') {
     const targetDef = state.unitCatalog[target.unitId];
     if (!targetDef) throw new Error(`estimateSpell: unité inconnue '${target.unitId}'`);
-    const amount = spellDamageAmount(spell, power, false, magicResistanceOf(targetDef, target.transformed));
+    // D10 : la Marque amplifie les dégâts de sort — la préviz reflète le même bonus.
+    const markBonus = (state.config?.combat.markBonusPerStack ?? 0) * target.marks;
+    const amount = spellDamageAmount(spell, power, false, magicResistanceOf(targetDef, target.transformed), markBonus);
     const pool = (target.count - 1) * targetDef.stats.hp + target.firstHp;
     const kills = killsFromDamage(pool, targetDef.stats.hp, target.count, amount);
     return { amount, kills, kind: 'damage' };

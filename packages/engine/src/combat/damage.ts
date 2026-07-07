@@ -261,7 +261,10 @@ export function performStrike(
       : heroMeleePctOf(draft, combat, striker.side)
     : 0;
   const heroArmor = combat ? heroArmorPctOf(draft, combat, victim.side) : 0;
-  const consume = consumeMarksPlan(strikerDef, victim.marks);
+  // D5 : `consumeMarks` (doc 05 §3.1 « à l'attaque ») ne se déclenche QUE sur une
+  // frappe VOLONTAIRE, jamais en riposte — sinon un défenseur marqué consommait
+  // ses propres charges en ripostant.
+  const consume = retaliation ? null : consumeMarksPlan(strikerDef, victim.marks);
   // `demonform` (doc 05 §4) : bascule en forme démon à la 1ʳᵉ attaque, puis
   // toutes ses frappes gagnent le bonus (et la résistance à la magie est perdue).
   const demon = demonformParams(strikerDef);
@@ -444,8 +447,8 @@ export function estimateDamage(
       rules,
       heroDamagePct: heroMeleePctOf(state, combat, target.side),
       heroArmorPct: heroArmorPctOf(state, combat, attacker.side),
-      // Marque consommée par le RIPOSTEUR sur l'attaquant (A5) — la résolution l'applique.
-      markConsumeBonus: consumeMarksPlan(targetDef, attacker.marks)?.damageBonus ?? 0,
+      // D5 : une riposte ne consomme PAS de Marque ⇒ pas de burst `consumeMarks`
+      // dans la préviz de riposte non plus (préviz = résolution).
     });
     const [retDmgMin, retDmgMax] = targetDef.stats.damage;
     retaliation = {

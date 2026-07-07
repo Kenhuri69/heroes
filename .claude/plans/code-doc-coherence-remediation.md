@@ -182,10 +182,10 @@ une seule fois en fin de lot, et re-passer le test d'équilibrage grossier.
 
 Chaque décision = correctif code OU ligne de doc, dans le même commit.
 
-- [ ] **D1 — XP de combat réservée à l'attaquant vainqueur**
+- [x] **D1 — XP de combat réservée à l'attaquant vainqueur**
   (`combat/turns.ts:146-151`) : un héros qui gagne en DÉFENSE (siège subi)
   ne gagne rien. *Reco : créditer le héros du camp vainqueur (code).*
-- [ ] **D2 — Effets de faction post-victoire (Nécromancie, Essence) réservés
+- [x] **D2 — Effets de faction post-victoire (Nécromancie, Essence) réservés
   à l'attaquant** (`combat/turns.ts:168-173` ; docs 04:38/05:52 disent
   « après chaque victoire »). *Reco : cohérence avec D1 — étendre au
   défenseur vainqueur (code) ; sinon noter « en tant qu'attaquant » docs
@@ -198,7 +198,7 @@ Chaque décision = correctif code OU ligne de doc, dans le même commit.
   `town/build.ts:13-61` — townHall niv 4 possible dans chaque ville).
   *Reco : flag générique data-driven `uniquePerPlayer` sur un niveau de
   bâtiment (code).*
-- [ ] **D5 — `consumeMarks` déclenché aussi en riposte** (`damage.ts:252` via
+- [x] **D5 — `consumeMarks` déclenché aussi en riposte** (`damage.ts:252` via
   `actions.ts:317-326`) — doc 05:36 dit « à l'attaque », et la préviz ne le
   reflète pas. *Reco : restreindre aux frappes volontaires (code), lecture
   stricte de la doc.*
@@ -206,7 +206,7 @@ Chaque décision = correctif code OU ligne de doc, dans le même commit.
   (`adventure/movement.ts:104-117,156` — le commentaire cite la doc à tort).
   *Reco : retirer le `break` (fidélité HoMM, guidelines §8.5) ; sinon
   l'acter doc 02 §2.2.*
-- [ ] **D7 — Cap de Nécromancie sur l'effectif post-combat** vs « effectif
+- [x] **D7 — Cap de Nécromancie sur l'effectif post-combat** vs « effectif
   initial » (doc 04:38 ; `faction/effects.ts:78-79`). *Reco : corriger la
   doc (« effectif restant ») — plus conservateur et déjà équilibré ainsi.*
 - [ ] **D8 — Prérequis « Château » des T7/T8 absent** (docs 03:76/04:69/
@@ -218,7 +218,7 @@ Chaque décision = correctif code OU ligne de doc, dans le même commit.
   (doc 05:213 ; `arcane-hunters/buildings.json:185` — la taverne core n'est
   pas dans la ville AH). *Reco : ajouter `tavern` à la ville AH + le
   `requires` ; sinon amender la doc.*
-- [ ] **D10 — Marques sans effet sur les dégâts des sorts** (doc 05:157
+- [x] **D10 — Marques sans effet sur les dégâts des sorts** (doc 05:157
   « +8 % des unités AH ET des sorts de Traque » ; `hero/spells.ts:33-40`
   ignore `target.marks`). *Reco : appliquer `markBonusPerStack × marks` aux
   sorts de dégâts (code).*

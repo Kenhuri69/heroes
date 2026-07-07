@@ -35,7 +35,7 @@
 ## 2. Bonus et mécaniques de faction
 
 - **Morts-vivants** : toutes les unités ont `undead` — insensibles au moral (le leur est toujours 0), aux poisons/peurs ; infligent −1 moral aux armées vivantes adverses.
-- **Nécromancie** (compétence de faction, signature) : après chaque victoire, relève en **Squelettes** un pourcentage des PV des créatures vivantes ennemies tuées — Novice 10 %, Expert 15 %, Maître 20 % (+ bâtiment Amplificateur). Plafonné par bataille à `2 × effectif initial de squelettes + 20` pour éviter l'explosion exponentielle (levier d'équilibrage en données).
+- **Nécromancie** (compétence de faction, signature) : après chaque victoire **en tant qu'attaquant** (remédiation D2 : aucun combat n'a de héros défenseur aujourd'hui — l'extension au défenseur vainqueur suivra la boucle « héros en défense »), relève en **Squelettes** un pourcentage des PV des créatures vivantes ennemies tuées — Novice 10 %, Expert 15 %, Maître 20 % (+ bâtiment Amplificateur). Plafonné par bataille à `2 × effectif **restant** de squelettes + 20` (D7 : le cap lit l'effectif restant après combat, pas l'effectif initial) pour éviter l'explosion exponentielle (levier d'équilibrage en données).
 - **Fléau persistant** : les sorts de malédiction lancés par des héros Necropolis durent +1 round.
 
 ## 3. Lineup d'unités (T1–T7)

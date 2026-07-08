@@ -37,11 +37,19 @@ const STEP_ANIMATION_MS = 110;
  */
 export class AdventureScene {
   readonly container = new Container();
-  private readonly objects = new MapObjectsLayer();
-  private readonly towns = new TownsLayer();
+  /**
+   * Couche d'entités UNIQUE (objets + villes + héros) triée par profondeur iso
+   * (`sortableChildren`, `zIndex = x+y` par nœud) — finition A1 : le tri est
+   * INTER-couches, un objet de premier plan passe donc devant un héros situé
+   * plus haut. `eventMode:'none'` : aucune entité ne capte le pointeur (les taps
+   * carte passent au handler de scène). Déclarée avant `objects`/`towns` : les
+   * initialiseurs de champs s'exécutent dans l'ordre, la couche existe déjà.
+   */
+  private readonly entities = new Container();
+  private readonly objects = new MapObjectsLayer(this.entities);
+  private readonly towns = new TownsLayer(this.entities);
   private readonly fog: FogOverlay;
   private readonly preview = new PathPreview();
-  private readonly heroesLayer = new Container();
   private readonly heroSprites = new Map<string, Container>();
   /**
    * Anneau de sélection (doc 08 §2.1, accessibilité A5 — pas la couleur seule).
@@ -66,16 +74,14 @@ export class AdventureScene {
     const tilemap = new Tilemap(map);
     this.fog = new FogOverlay(map);
     this.selectionRing.visible = false;
-    this.selectionRing.zIndex = -1; // sous les jetons de héros (tri iso)
-    this.heroesLayer.sortableChildren = true; // tri de profondeur iso des héros
-    this.heroesLayer.addChild(this.selectionRing);
+    this.entities.sortableChildren = true; // tri de profondeur iso INTER-couches
+    this.entities.eventMode = 'none'; // aucune entité ne capte le pointeur
     this.container.addChild(
       buildWorldBorder(map), // UXD-3A : mer + rivage sous la tuile (plus de letterbox noir)
       tilemap.container,
-      this.objects.container,
-      this.towns.container,
       this.preview.graphics,
-      this.heroesLayer,
+      this.selectionRing, // marqueur au sol, sous les entités
+      this.entities,
       this.fog.graphics,
     );
 
@@ -130,7 +136,7 @@ export class AdventureScene {
       let sprite = this.heroSprites.get(hero.id);
       if (!sprite) {
         sprite = this.buildHeroToken(hero);
-        this.heroesLayer.addChild(sprite);
+        this.entities.addChild(sprite);
         this.heroSprites.set(hero.id, sprite);
       }
       sprite.zIndex = isoDepth(hero.pos.x, hero.pos.y);

@@ -15,16 +15,16 @@ const ENEMY_COLOR = 0x34495e; // ville adverse / neutre (assiégeable)
  * de la cible de capture. Resynchronisée sur l'état après chaque commande.
  */
 export class TownsLayer {
-  readonly container = new Container();
   private readonly byId = new Map<string, { node: Container; owner: string | null }>();
 
-  constructor() {
-    // Couche décorative : ne jamais capter le pointeur — sinon un tap sur la
-    // tuile d'une ville n'atteindrait plus le handler de la scène (le siège se
-    // déclenche par déplacement sur la ville, pas par un clic sur son donjon).
-    this.container.eventMode = 'none';
-    this.container.sortableChildren = true; // tri de profondeur iso
-  }
+  /**
+   * `layer` : couche d'entités PARTAGÉE (objets + villes + héros) triée par
+   * profondeur iso — voir `MapObjectsLayer`. Le siège se déclenche par
+   * déplacement sur la ville (pas par un clic sur le donjon) : la couche
+   * partagée est `eventMode:'none'` côté scène, donc aucune ville ne capte le
+   * pointeur.
+   */
+  constructor(private readonly layer: Container) {}
 
   sync(towns: readonly TownState[], humanId: string): void {
     const alive = new Set(towns.map((tw) => tw.id));
@@ -47,7 +47,7 @@ export class TownsLayer {
       node.position.set(a.x, a.y);
       node.zIndex = isoDepth(town.pos.x, town.pos.y);
       this.byId.set(town.id, { node, owner: town.ownerPlayerId });
-      this.container.addChild(node);
+      this.layer.addChild(node);
     }
   }
 }

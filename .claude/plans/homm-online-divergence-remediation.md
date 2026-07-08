@@ -137,9 +137,13 @@ iso » :
 > `tileToScreen`** (même projection ⇒ picking tap→tuile juste). Moteur/A*/
 > vision/sauvegarde **inchangés**. Vérif : typecheck+lint verts, smoke desktop
 > 53/53 (dont tap-tap, siège par tap sur ville, anti-gel carte 10,8 fps ≥ 5).
-> **Limite 1ʳᵉ passe** (assumée) : pas de tri de profondeur *inter-couches*
-> (héros toujours au-dessus des objets), minimap encore orthographique.
-> Docs 02 §2.1 à jour.
+> ✅ **A1.6 — finitions LIVRÉ** : **tri de profondeur inter-couches** — objets,
+> villes et héros fusionnés dans **une couche d'entités unique** (`sortableChildren`,
+> `zIndex = x+y`) → un objet de premier plan passe devant un héros plus haut
+> (`MapObjectsLayer`/`TownsLayer` reçoivent la couche partagée, `AdventureScene`
+> la possède, `eventMode:'none'`). **Mini-carte** : laissée **top-down** à dessein
+> (convention + fidèle au minimap de HO ; la passer en iso nuirait à la lisibilité
+> sans gain). Docs 02 §2.1 à jour.
 >
 > ✅ **A1.5 — assets de tuiles iso LIVRÉ** (suite). `gen_tiles.py` dérive de
 > chaque tuile carrée un **losange texturé 64×32** (`assets/tiles/iso/`, rotation

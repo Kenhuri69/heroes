@@ -8,6 +8,22 @@
 > Nom de faction verrouillé : **Vox Arcana** (id `vox-arcana`). Titre à l'écran
 > ex-« K-MAGIX / Demon Tour ».
 
+## État du staging (planches générées + extraites, QC verte)
+
+Les 3 planches ont été générées (Gemini) puis extraites via `sheet_extract.py`
+(porte QC verte). **Stagé** (`assets/`) :
+- `assets/heroes/vox-arcana-hermione.png`, `vox-arcana-rumi.png` (Règle B, fond
+  contextuel sombre conservé — voulu).
+- `assets/houses/vox-arcana/house-{lion,serpent,eagle,badger,venari}.png` (blasons).
+- `assets/units/vox-arcana/{t1-choeur,t2-duelliste,t3-hippogriffe,t4-idole,t6-maitre,t8-avatar}.png`.
+
+⚠️ **À regénérer** : **t5-sombral** et **t7-phenix** — leurs cellules source
+étaient peintes sur **fond sombre** (pas le gris clair `#c8c8c8` exigé), donc le
+détourage garde un **caisson sombre** (non conforme Règle A). Elles ne sont PAS
+stagées. Regénérer la planche d'unités en forçant `flat uniform light grey
+background (#c8c8c8)` pour **toutes** les cellules, ou ces 2 cellules seules.
+(rembg/birefnet indisponible dans l'environnement — modèle bloqué au proxy.)
+
 ## Palette de faction (à ajouter à doc 12 §2.3 au verrouillage)
 
 ```

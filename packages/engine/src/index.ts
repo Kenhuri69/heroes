@@ -127,7 +127,7 @@ export { estimateSpell, type SpellEstimate } from './hero';
 export { effectiveManaCost } from './hero/spells';
 // Bonus de vision (compétence Recherche) — le rendu du brouillard client (C4)
 // dessine « en vision » avec le rayon EFFECTIF par héros, comme la révélation moteur.
-export { heroVisionBonus } from './hero/skills';
+export { heroVisionBonus, heroLearnableCircle } from './hero/skills';
 export type { FactionBonus } from './faction/types';
 export type {
   VictoryCondition,

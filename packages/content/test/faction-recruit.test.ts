@@ -182,6 +182,7 @@ describe('faction data-driven à 7 tiers (plan phase-3.3) — chargement & recru
       builtToday: false,
       garrison: [],
       stock,
+      spellPool: [],
     };
 
     const players: PlayerSetup[] = [
@@ -319,6 +320,7 @@ describe('faction morte-vivante (plan phase-3.4) — effet de faction & recrutem
       builtToday: false,
       garrison: [],
       stock,
+      spellPool: [],
     };
 
     const players: PlayerSetup[] = [
@@ -541,6 +543,7 @@ describe('4ᵉ faction (native de l’eau) — pipeline data-driven', () => {
       builtToday: false,
       garrison: [],
       stock,
+      spellPool: [],
     };
     const players: PlayerSetup[] = [
       {

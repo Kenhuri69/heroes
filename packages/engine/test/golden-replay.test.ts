@@ -204,7 +204,10 @@ const GOLDEN_JOURNAL: Command[] = [
 // la FORME change, simulation inchangée (aucun nouvel objet dans la carte golden).
 // Re-fixé une fois en Lot A (correctifs combat A2 noRetaliation / A3 pente Défense
 // héros / A4 speedMod sur la portée / A5 alignement préviz) — résultats de combat modifiés.
-const GOLDEN_HASH = '48c3a5e5';
+// Re-fixé au lot G2 : `TownState.spellPool` (nouveau champ, save v9) entre dans
+// l'état sérialisé — changement de FORME bénin, aucun changement de comportement
+// (toutes les assertions de valeurs ci-dessus restent vertes).
+const GOLDEN_HASH = '33739bfa';
 
 describe('golden replay', () => {
   it('le journal scripté produit toujours le même état final', () => {

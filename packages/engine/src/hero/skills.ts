@@ -67,6 +67,27 @@ export function heroArmorPct(hero: HeroState, catalog: Record<string, HeroSkillD
 }
 
 /**
+ * Cercle de base apprenable sans compétence Sagesse (doc 02 §1.3, H2) : les
+ * cercles 1 à 3 sont libres ; les hauts cercles (4-5) exigent Sagesse.
+ */
+export const BASE_LEARNABLE_CIRCLE = 3;
+
+/**
+ * Cercle de sort le plus élevé que ce héros peut APPRENDRE à la guilde des mages
+ * (G2/H2) : base 3, relevé par la compétence Sagesse (`learnCircle` du rang
+ * courant). N'affecte PAS le lancement d'un sort déjà connu — seulement
+ * l'apprentissage. Prend le max (pas la somme) : un seul palier de déblocage.
+ */
+export function heroLearnableCircle(hero: HeroState, catalog: Record<string, HeroSkillDef>): number {
+  let max = BASE_LEARNABLE_CIRCLE;
+  for (const [skillId, rank] of Object.entries(hero.skills)) {
+    const unlock = catalog[skillId]?.ranks[rank - 1]?.learnCircle;
+    if (unlock !== undefined && unlock > max) max = unlock;
+  }
+  return max;
+}
+
+/**
  * Magie par école (doc 02 §1.3) : réduction % du coût en mana des sorts de
  * `school` — seules les compétences DÉCLARANT cette école comptent (A6). Une
  * compétence Magie du Feu ne réduit pas un sort d'Eau/de Traque. Branché dans

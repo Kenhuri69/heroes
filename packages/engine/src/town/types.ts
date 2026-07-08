@@ -14,7 +14,13 @@ export type BuildingEffect =
   | { type: 'income'; resource: keyof Resources; amount: number }
   | { type: 'growthBonus'; percent: number }
   | { type: 'dwelling'; tier: number; unitId: string }
-  | { type: 'mageGuild'; level: number }
+  /**
+   * Guilde des mages (doc 02 §4.1, G2) : `level` = cercle enseigné ; à la
+   * construction, `spellCount` sorts de ce cercle sont tirés au RNG seedé dans
+   * `town.spellPool`. Absent ⇒ 0. Le moteur ne connaît aucune faction : il tire
+   * dans le catalogue de sorts par cercle.
+   */
+  | { type: 'mageGuild'; level: number; spellCount?: number | undefined }
   /** Active l'échange ressource ↔ or dans la ville (doc 02 §4.1, lot UX U6a). */
   | { type: 'market' }
   /** Vend les machines de guerre listées (`units`) au héros présent (doc 02 §5, Alpha 4.12). */
@@ -54,6 +60,13 @@ export interface BuildingDef {
    * connaît pas les noms de groupes, seulement l'égalité de chaîne.
    */
   exclusiveGroup?: string | undefined;
+  /**
+   * Origine opaque du bâtiment : id du paquet de faction, ou absent pour un
+   * bâtiment commun (core, constructible dans toutes les villes). Une ville ne
+   * peut bâtir que les bâtiments core + ceux de SA faction — le moteur compare
+   * `factionId` avec `town.factionId` (égalité de chaîne, aucun nom en dur).
+   */
+  factionId?: string | undefined;
 }
 
 export interface TownState {
@@ -71,4 +84,10 @@ export interface TownState {
   garrison: ArmyStack[];
   /** Stock de créatures recrutables accumulé (unitId → effectif), plafonné 2 semaines. */
   stock: Record<string, number>;
+  /**
+   * Pool de sorts de la guilde des mages (doc 02 §4.1, G2) : ids tirés au RNG
+   * seedé à la construction de chaque niveau de guilde. Un héros du propriétaire
+   * présent sur la ville apprend ceux de cercle ≤ son cercle apprenable (Sagesse).
+   */
+  spellPool: string[];
 }

@@ -107,7 +107,7 @@ export class AdventureScene {
     this.objects.sync(map.objects, game.unitCatalog, (ownerId) =>
       playerColor(game.players, ownerId),
     );
-    this.towns.sync(game.towns, humanId(game));
+    this.towns.sync(game.towns, humanId(game), (ownerId) => playerColor(game.players, ownerId));
     const heroes = humanHeroes(game);
     // C4 : rayon de vision EFFECTIF par héros (base + bonus Recherche), aligné sur
     // la révélation moteur (`revealAround` : visionRadius + heroVisionBonus).

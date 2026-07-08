@@ -78,6 +78,7 @@ describe('sérialisation', () => {
       builtToday: false,
       garrison: [],
       stock: {},
+      spellPool: [],
     };
     const start: Command = {
       type: 'StartGame',

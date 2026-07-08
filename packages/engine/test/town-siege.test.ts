@@ -47,7 +47,7 @@ function siegeState(army: ArmyStack[], garrison: ArmyStack[], buildings: Record<
     { id: 'p2', resources: emptyResources(), factionResources: {}, explored: [], controller: 'ai', eliminated: false, townlessDays: 0, huntContract: null },
   ];
   s.heroes = [hero(army)];
-  const town: TownState = { id: 't1', ownerPlayerId: 'p2', pos: { x: 5, y: 5 }, factionId: '', buildings, builtToday: false, garrison, stock: {} };
+  const town: TownState = { id: 't1', ownerPlayerId: 'p2', pos: { x: 5, y: 5 }, factionId: '', buildings, builtToday: false, garrison, stock: {}, spellPool: [] };
   s.towns = [town];
   s.unitCatalog = testCatalog();
   return s;

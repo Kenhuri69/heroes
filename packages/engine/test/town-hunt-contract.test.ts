@@ -54,6 +54,7 @@ function stateWith(hasBoard: boolean): GameState {
       builtToday: false,
       garrison: [],
       stock: {},
+      spellPool: [],
     },
   ];
   return s;

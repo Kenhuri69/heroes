@@ -70,7 +70,7 @@ function state(heroOver: Partial<HeroState> = {}, townOwner: string | null = 'pl
     { id: 'player-1', resources: emptyResources(), factionResources: {}, explored: [], controller: 'human', eliminated: false, townlessDays: 0, huntContract: null },
   ];
   s.heroes = [hero(heroOver)];
-  const town: TownState = { id: 't1', ownerPlayerId: townOwner, pos: { x: 8, y: 8 }, factionId: '', buildings: {}, builtToday: false, garrison: [], stock: {} };
+  const town: TownState = { id: 't1', ownerPlayerId: townOwner, pos: { x: 8, y: 8 }, factionId: '', buildings: {}, builtToday: false, garrison: [], stock: {}, spellPool: [] };
   s.towns = [town];
   s.unitCatalog = testCatalog();
   s.spellCatalog = { 'ville-portail': PORTAL, bolt: BOLT };

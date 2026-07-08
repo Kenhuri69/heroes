@@ -3,6 +3,7 @@ import {
   RESOURCE_IDS,
   buildStatus,
   builtDwellings,
+  heroLearnableCircle,
   missingRequirements,
   scaleCost,
   tradeQuote,
@@ -17,6 +18,7 @@ import {
   t,
   resolveUnitName,
   resolveUnitLore,
+  resolveSpellName,
   commandErrorMessage,
   resolveBuildingName,
   resolveBuildingLore,
@@ -83,7 +85,7 @@ function CostList({ cost }: { cost: Record<string, number> }) {
 export function TownScreen({ townId, onClose }: { townId: string; onClose: () => void }) {
   useApp((s) => s.locale); // réactivité i18n
   const game = useApp((s) => s.game);
-  const [tab, setTab] = useState<'build' | 'recruit' | 'garrison' | 'market'>('build');
+  const [tab, setTab] = useState<'build' | 'recruit' | 'garrison' | 'market' | 'guild'>('build');
   const [error, setError] = useState<string | null>(null);
 
   const close = onClose;
@@ -145,6 +147,13 @@ export function TownScreen({ townId, onClose }: { townId: string; onClose: () =>
               >
                 <UiIcon id="tab-market" fallback="" /> {t('town.market')}
               </button>
+              <button
+                class={tab === 'guild' ? 'active' : ''}
+                data-testid="town-tab-guild"
+                onClick={() => setTab('guild')}
+              >
+                <UiIcon id="tab-build" fallback="" /> {t('town.guild')}
+              </button>
             </nav>
 
             {error && (
@@ -161,6 +170,7 @@ export function TownScreen({ townId, onClose }: { townId: string; onClose: () =>
             )}
             {tab === 'garrison' && <GarrisonTab town={town} onError={setError} />}
             {tab === 'market' && <MarketTab town={town} onError={setError} />}
+            {tab === 'guild' && <GuildTab town={town} />}
           </>
         )}
       </div>
@@ -190,6 +200,19 @@ const VIEW_STATUS_LABEL: Record<TownViewStatus, string> = {
   locked: 'town.locked',
 };
 
+/**
+ * Bâtiments constructibles dans cette ville : les communs (core, sans
+ * `factionId`) + ceux de la faction de la ville. Miroir de la règle moteur
+ * (`validateBuildStructure`) : on n'affiche jamais les habitations d'autres
+ * factions, qui encombraient la liste sans jamais être constructibles.
+ */
+function townBuildingIds(town: TownState, catalog: Record<string, BuildingDef>): string[] {
+  return Object.keys(catalog).filter((id) => {
+    const factionId = catalog[id]?.factionId;
+    return factionId === undefined || factionId === town.factionId;
+  });
+}
+
 function townViewStatus(town: TownState, catalog: Record<string, BuildingDef>, id: string): TownViewStatus {
   if ((town.buildings[id] ?? 0) >= 1) return 'constructed';
   return buildStatus(town, catalog, id) === 'available' ? 'available' : 'locked';
@@ -214,7 +237,7 @@ function TownView({
   catalog: Record<string, BuildingDef>;
   onSelect: () => void;
 }) {
-  const slots = Object.keys(catalog)
+  const slots = townBuildingIds(town, catalog)
     .map((id) => ({ id, status: townViewStatus(town, catalog, id) }))
     .sort((a, b) => VIEW_STATUS_ORDER[a.status] - VIEW_STATUS_ORDER[b.status] || a.id.localeCompare(b.id));
   const bg = townBackgroundUrl(town.factionId);
@@ -254,6 +277,64 @@ function TownView({
   );
 }
 
+/**
+ * Onglet Guilde des mages (doc 02 §4.1, G2) — INFORMATIF : les sorts s'apprennent
+ * automatiquement quand un héros visite sa ville. Liste le pool de la guilde et,
+ * pour le héros du joueur présent (ou à défaut le 1ᵉʳ), marque chaque sort
+ * connu / apprenable / verrouillé (cercle > Sagesse). Groupé par cercle.
+ */
+function GuildTab({ town }: { town: TownState }) {
+  const game = useApp((s) => s.game);
+  const heroes = game.heroes.filter((h) => h.playerId === humanId(game));
+  const hero = heroes.find((h) => h.pos.x === town.pos.x && h.pos.y === town.pos.y) ?? heroes[0];
+  const pool = town.spellPool ?? [];
+
+  if (pool.length === 0) {
+    return (
+      <div class="town-tab-panel" data-testid="town-panel-guild">
+        <p class="town-guild-empty" data-testid="town-guild-empty">{t('town.guildEmpty')}</p>
+      </div>
+    );
+  }
+
+  const limit = hero ? heroLearnableCircle(hero, game.skillCatalog) : 0;
+  const circles = Array.from(
+    new Set(pool.map((id) => game.spellCatalog[id]?.circle ?? 0)),
+  ).sort((a, b) => a - b);
+
+  return (
+    <div class="town-tab-panel" data-testid="town-panel-guild">
+      <p class="town-guild-hint">{t('town.guildHint')}</p>
+      {circles.map((circle) => (
+        <div key={circle} class="town-guild-circle">
+          <h4>{t('spellbook.circle', { circle })}</h4>
+          <ul class="town-guild-list">
+            {pool
+              .filter((id) => (game.spellCatalog[id]?.circle ?? 0) === circle)
+              .map((id) => {
+                const known = hero?.spells.includes(id) ?? false;
+                const learnable = circle <= limit;
+                const status = known ? 'known' : learnable ? 'learnable' : 'locked';
+                return (
+                  <li key={id} class={`town-guild-spell is-${status}`} data-testid={`guild-spell-${id}`} data-status={status}>
+                    <span class="town-guild-spell-name">{resolveSpellName(id)}</span>
+                    <span class="town-guild-spell-status">
+                      {known
+                        ? t('town.spellKnown')
+                        : learnable
+                          ? t('town.spellLearnable')
+                          : t('town.spellLockedWisdom')}
+                    </span>
+                  </li>
+                );
+              })}
+          </ul>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function BuildTab({
   town,
   catalog,
@@ -263,7 +344,7 @@ function BuildTab({
   catalog: Record<string, BuildingDef>;
   onError: (msg: string | null) => void;
 }) {
-  const buildingIds = Object.keys(catalog).sort();
+  const buildingIds = townBuildingIds(town, catalog).sort();
 
   const build = (buildingId: string): void => {
     onError(null);

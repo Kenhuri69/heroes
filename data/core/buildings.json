@@ -103,7 +103,8 @@
           "requires": [],
           "effect": {
             "type": "mageGuild",
-            "level": 1
+            "level": 1,
+            "spellCount": 4
           }
         },
         {
@@ -114,7 +115,8 @@
           "requires": [],
           "effect": {
             "type": "mageGuild",
-            "level": 2
+            "level": 2,
+            "spellCount": 3
           }
         },
         {
@@ -125,7 +127,8 @@
           "requires": [],
           "effect": {
             "type": "mageGuild",
-            "level": 3
+            "level": 3,
+            "spellCount": 2
           }
         }
       ]

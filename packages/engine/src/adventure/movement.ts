@@ -2,6 +2,7 @@ import { beginGuardianCombat } from '../combat/setup';
 import type { GameEvent } from '../core/events';
 import type { GameState, HeroState, PlayerState, ResourceId } from '../core/state';
 import { heroVisionBonus } from '../hero/skills';
+import { learnGuildSpellsAtTown } from '../town/mage-guild';
 import { revealAround } from './fog';
 import { samePos, type GridPos } from './map';
 import { stepCost } from './path';
@@ -75,6 +76,12 @@ export function advanceHeroAlongPath(
     });
     // Trigger de visite (doc 02 §2.1) — la tuile foulée peut porter un effet.
     fireVisitTrigger(draft, player, hero.pos, events);
+    // Guilde des mages (G2) : fouler une de ses villes fait apprendre les sorts
+    // du pool que le héros peut apprendre (cercle ≤ Sagesse).
+    for (const town of draft.towns) {
+      if (town.ownerPlayerId === player.id && samePos(town.pos, hero.pos))
+        learnGuildSpellsAtTown(draft, hero, town, events);
+    }
     // Lieu de bonus / habitation (doc 02 §2.2) : visite en passant, comme la mine.
     for (const obj of map.objects) {
       if (!samePos(obj.pos, hero.pos)) continue;

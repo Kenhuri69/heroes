@@ -32,6 +32,7 @@ import {
   validateBuyWarMachine,
   handleBuyWarMachine,
 } from '../town';
+import { learnGuildSpellsAtTown, rollGuildSpells } from '../town/mage-guild';
 import {
   handleCastSpell,
   handleCastAdventureSpell,
@@ -373,6 +374,7 @@ const handlers: Handlers = {
       buildings: { ...t.buildings },
       garrison: t.garrison.map((s) => ({ ...s })),
       stock: { ...t.stock },
+      spellPool: t.spellPool ? [...t.spellPool] : [],
     }));
     draft.players = cmd.players.map((p) => ({
       id: p.id,
@@ -429,6 +431,24 @@ const handlers: Handlers = {
           hero.pos,
           cmd.config.visionRadius + heroVisionBonus(hero, draft.skillCatalog),
         );
+    }
+    // Guilde des mages (G2) : tire le pool des niveaux de guilde PRÉBÂTIS (chaque
+    // niveau ≤ construit), puis chaque héros posé sur sa ville apprend ce qu'il peut.
+    for (const town of draft.towns) {
+      for (const [buildingId, builtLevel] of Object.entries(town.buildings)) {
+        const def = draft.buildingCatalog[buildingId];
+        if (!def) continue;
+        for (let lvl = 1; lvl <= builtLevel; lvl++) {
+          const effect = def.levels[lvl - 1]?.effect;
+          if (effect?.type === 'mageGuild') rollGuildSpells(draft, town, effect.level, effect.spellCount ?? 0);
+        }
+      }
+    }
+    for (const hero of draft.heroes) {
+      for (const town of draft.towns) {
+        if (town.ownerPlayerId === hero.playerId && samePos(town.pos, hero.pos))
+          learnGuildSpellsAtTown(draft, hero, town, events);
+      }
     }
     events.push({ type: 'GameStarted', seed: cmd.seed, playerIds: cmd.players.map((p) => p.id) });
     events.push({ type: 'DayStarted', day: 1 });

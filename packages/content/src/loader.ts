@@ -528,7 +528,10 @@ function checkBuildingRequires(
  */
 export function buildBuildingCatalog(report: LoadReport): Record<string, ResolvedBuilding> {
   const catalog: Record<string, ResolvedBuilding> = {};
-  const add = (list: Building[], origin: string): void => {
+  // `factionId` = origine opaque : id du paquet pour un bâtiment de faction,
+  // undefined pour un bâtiment commun (core). Une ville ne peut construire que
+  // les bâtiments core + ceux de sa propre faction (`validateBuildStructure`).
+  const add = (list: Building[], origin: string, factionId?: string): void => {
     for (const b of list) {
       if (catalog[b.id])
         throw new PackError([`buildBuildingCatalog: id de bâtiment en double '${b.id}' (${origin})`]);
@@ -537,11 +540,12 @@ export function buildBuildingCatalog(report: LoadReport): Record<string, Resolve
         maxLevel: b.maxLevel,
         levels: b.levels,
         ...(b.exclusiveGroup !== undefined ? { exclusiveGroup: b.exclusiveGroup } : {}),
+        ...(factionId !== undefined ? { factionId } : {}),
       };
     }
   };
   add(report.content.coreBuildings, 'core');
-  for (const pack of report.content.packs) add(pack.buildings, pack.manifest.id);
+  for (const pack of report.content.packs) add(pack.buildings, pack.manifest.id, pack.manifest.id);
   return catalog;
 }
 

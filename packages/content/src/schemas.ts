@@ -173,7 +173,16 @@ const buildingEffectSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('income'), resource: z.enum(COMMON_RESOURCE_IDS), amount: z.number().int().positive() }),
   z.object({ type: z.literal('growthBonus'), percent: z.number().int().nonnegative() }),
   z.object({ type: z.literal('dwelling'), tier: z.number().int().min(1).max(8), unitId: idSchema }),
-  z.object({ type: z.literal('mageGuild'), level: z.number().int().positive() }),
+  /**
+   * Guilde des mages (doc 02 §4.1) : `level` = cercle enseigné ; `spellCount` =
+   * nombre de sorts de ce cercle tirés au RNG seedé dans le pool de la ville à
+   * la construction (G2). Absent ⇒ 0 (le bâtiment n'enseigne rien).
+   */
+  z.object({
+    type: z.literal('mageGuild'),
+    level: z.number().int().positive(),
+    spellCount: z.number().int().nonnegative().optional(),
+  }),
   /** Active l'échange ressource ↔ or (doc 02 §4.1, lot UX U6a). */
   z.object({ type: z.literal('market') }),
   /** Vend les machines de guerre listées au héros présent (doc 02 §5, Alpha 4.12 — la Forge). */
@@ -833,8 +842,13 @@ export type GameConfig = z.infer<typeof gameConfigSchema>;
 export type MapFile = z.infer<typeof mapFileSchema>;
 export type Building = z.infer<typeof buildingSchema>;
 export type BuildingCatalogFile = z.infer<typeof buildingCatalogSchema>;
-/** Forme moteur — `Building` sans `name`/`loreKey` (affichage, hors `BuildingDef` figé). */
-export type ResolvedBuilding = Omit<Building, 'name' | 'loreKey'>;
+/**
+ * Forme moteur — `Building` sans `name`/`loreKey` (affichage, hors `BuildingDef`
+ * figé), plus `factionId` : origine opaque du bâtiment (id du paquet de faction,
+ * absent pour un bâtiment commun/core). Sert à restreindre la construction à la
+ * faction de la ville — le moteur ne compare que des chaînes, jamais un nom en dur.
+ */
+export type ResolvedBuilding = Omit<Building, 'name' | 'loreKey'> & { factionId?: string };
 export type Spell = z.infer<typeof spellSchema>;
 export type SpellCatalogFile = z.infer<typeof spellCatalogSchema>;
 /** Forme moteur — `Spell` sans `name`/`loreKey` (affichage, hors `SpellDef` figé). */

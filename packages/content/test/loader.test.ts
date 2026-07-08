@@ -633,6 +633,10 @@ describe('ville de faction (manifest.town / buildings.json)', () => {
       tier: 1,
       unitId: 't1-grunt',
     });
+    // G1 : un bâtiment de faction est tagué de l'id de son paquet ; le core ne
+    // l'est pas — c'est ce qui restreint la construction à la faction de la ville.
+    expect(catalog['proto-dwelling-t1']?.factionId).toBe('proto');
+    expect(catalog['townHall']?.factionId).toBeUndefined();
   });
 
   it('résout la ville de départ (owner, prebuilt appliqués)', async () => {

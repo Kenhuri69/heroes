@@ -457,3 +457,49 @@ button[data-testid='market-trade'] {
   color: var(--parchment-dim);
   font: 0.85rem var(--font-ui);
 }
+
+/* Guilde des mages (G2) — panneau informatif du pool de sorts, groupé par cercle.
+   Le statut (Connu / À apprendre / Sagesse requise) est TOUJOURS porté par le
+   texte (canal non chromatique, a11y doc 08 §4), la teinte ne fait que renforcer. */
+.town-guild-hint,
+.town-guild-empty {
+  margin: 0 0 0.6rem;
+  color: var(--parchment-dim);
+  font: 0.85rem var(--font-ui);
+}
+.town-guild-circle h4 {
+  margin: 0.5rem 0 0.25rem;
+  font: 700 0.8rem var(--font-ui);
+  color: var(--parchment-dim);
+}
+.town-guild-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.town-guild-spell {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 6px;
+  background: var(--shadow-12);
+}
+.town-guild-spell-name {
+  font: 600 0.9rem var(--font-ui);
+}
+.town-guild-spell-status {
+  font: 0.75rem var(--font-ui);
+  color: var(--parchment-dim);
+  white-space: nowrap;
+}
+.town-guild-spell.is-known .town-guild-spell-status {
+  color: var(--gold);
+}
+.town-guild-spell.is-locked {
+  opacity: 0.6;
+}

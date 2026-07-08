@@ -22,6 +22,7 @@ const town = (owner: string): TownState => ({
   builtToday: false,
   garrison: [],
   stock: {},
+  spellPool: [],
 });
 
 const SCENARIO: ScenarioState = {

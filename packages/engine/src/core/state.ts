@@ -125,9 +125,11 @@ export interface Calendar {
  * v7 : `GameState.quests` — système de quêtes générique, doc 13 §6.2 (N2a).
  * v8 : objets de carte `mine`/`treasure`/`artifact`/`visitable`/`dwelling`,
  * `GameState.pendingTreasure` et `HeroState.visitLuck` — éléments de carte
- * manquants, doc 02 §2.2.)
+ * manquants, doc 02 §2.2.
+ * v9 : `TownState.spellPool` — pool de sorts de la guilde des mages (G2), doc
+ * 02 §4.1.)
  */
-export const CURRENT_SAVE_VERSION = 8;
+export const CURRENT_SAVE_VERSION = 9;
 
 export interface GameState {
   saveVersion: number;

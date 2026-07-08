@@ -1,4 +1,5 @@
 import { isAdjacent, samePos } from '../adventure/map';
+import { revealStructure } from '../adventure/vision';
 import { beginTownCombat } from '../combat/setup';
 import type { Command, CommandError } from '../core/commands';
 import type { GameEvent } from '../core/events';
@@ -62,6 +63,7 @@ export function handleCaptureTown(draft: GameState, cmd: CaptureCmd, events: Gam
   }
   town.ownerPlayerId = cmd.playerId;
   events.push({ type: 'TownCaptured', townId: town.id, playerId: cmd.playerId });
+  revealStructure(draft, cmd.playerId, town.pos); // F1 : la ville capturée éclaire son voisinage
   // Une ville peut changer de main (élimination de l'ancien propriétaire) :
   // conditions de victoire/défaite (doc 02 §6, plan phase-3.5) — no-op hors scénario.
   evaluateOutcome(draft, events);

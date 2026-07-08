@@ -4,6 +4,7 @@ import type { GameState, HeroState, PlayerState, ResourceId } from '../core/stat
 import { heroVisionBonus } from '../hero/skills';
 import { learnGuildSpellsAtTown } from '../town/mage-guild';
 import { revealAround } from './fog';
+import { revealStructure } from './vision';
 import { samePos, type GridPos } from './map';
 import { stepCost } from './path';
 import { fireVisitTrigger } from './triggers';
@@ -93,6 +94,7 @@ export function advanceHeroAlongPath(
     const mine = map.objects.find((o) => o.type === 'mine' && samePos(o.pos, hero.pos));
     if (mine && mine.type === 'mine' && mine.ownerId !== player.id) {
       mine.ownerId = player.id;
+      revealStructure(draft, player.id, mine.pos); // F1 : mine capturée = vision de son voisinage
       events.push({
         type: 'MineCaptured',
         playerId: player.id,

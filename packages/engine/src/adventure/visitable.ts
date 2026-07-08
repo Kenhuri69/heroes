@@ -3,6 +3,7 @@ import { weekOf, type GameState, type HeroState, type PlayerState, type Resource
 import { maxAffordableCount, scaleCost, spendCost } from '../town/resources';
 import { unitWithEconomy } from '../town/unit-economy';
 import { grantXp, xpForLevel } from './experience';
+import { revealAround } from './fog';
 import type { DwellingObjectDef, VisitableObjectDef } from './map';
 
 /** Cap d'armée du héros (doc 02 §5.1) — même limite que la garnison de ville. */
@@ -40,6 +41,10 @@ export function visitBonus(
     const config = draft.config?.hero;
     amount = config ? Math.max(0, xpForLevel(config, hero.level + 1) - hero.xp) : 0;
     grantXp(draft, events, hero.id, amount);
+  } else if (effect.kind === 'vision') {
+    // Tour de guet (F2) : révèle durablement le brouillard autour du lieu.
+    if (draft.map) revealAround(player.explored, draft.map, obj.pos, effect.amount);
+    amount = effect.amount;
   } else {
     player.resources[effect.resource as ResourceId] += effect.amount;
     amount = effect.amount;

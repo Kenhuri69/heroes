@@ -368,6 +368,8 @@ export const gameConfigSchema = z.object({
       diagonalMultiplier: z.number().min(1),
     }),
     visionRadius: z.number().int().positive(),
+    /** Vision d'une structure possédée (ville/mine), F1 — optionnel (0 si absent). */
+    buildingVisionRadius: z.number().int().nonnegative().optional(),
     terrains: z
       .record(idSchema, z.object({ moveCost: z.number().int().positive().nullable() }))
       .refine(
@@ -506,6 +508,8 @@ export const mapFileSchema = z.object({
             resource: z.enum(COMMON_RESOURCE_IDS),
             amount: z.number().int().positive(),
           }),
+          /** Tour de guet (F2) : révèle `amount` tuiles de brouillard autour du lieu. */
+          z.object({ kind: z.literal('vision'), amount: z.number().int().positive() }),
         ]),
         frequency: z.enum(['oncePerHero', 'oncePerHeroPerWeek']),
       }),

@@ -50,6 +50,12 @@ export interface AdventureConfig {
   };
   /** Portée de vision du héros en tuiles, distance de Tchebychev (doc 02 §1.5). */
   visionRadius: number;
+  /**
+   * Portée de vision d'une structure possédée (ville/mine) en tuiles (F1, doc 02
+   * §2.1). Optionnel : absent ⇒ 0 (aucune révélation depuis les bâtiments — état
+   * legacy/fixtures/golden inchangés).
+   */
+  buildingVisionRadius?: number | undefined;
   terrains: Record<string, TerrainRule>;
   combat: CombatRulesConfig;
   hero: HeroProgressionConfig;

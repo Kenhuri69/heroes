@@ -3,6 +3,7 @@ import { dailyMovementPoints } from '../adventure/config';
 import { createFog, revealAround } from '../adventure/fog';
 import { inBounds, isAdjacent, samePos, type GridPos } from '../adventure/map';
 import { advanceHeroAlongPath } from '../adventure/movement';
+import { revealOwnedStructures } from '../adventure/vision';
 import { isPassable, stepCost } from '../adventure/path';
 import {
   handleAutoCombat,
@@ -450,6 +451,8 @@ const handlers: Handlers = {
           learnGuildSpellsAtTown(draft, hero, town, events);
       }
     }
+    // F1 : le voisinage des villes/mines possédées est révélé d'emblée.
+    revealOwnedStructures(draft);
     events.push({ type: 'GameStarted', seed: cmd.seed, playerIds: cmd.players.map((p) => p.id) });
     events.push({ type: 'DayStarted', day: 1 });
     events.push({ type: 'WeekStarted', week: 1 });

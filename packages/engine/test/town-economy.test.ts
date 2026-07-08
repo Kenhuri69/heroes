@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { apply } from '../src/core/engine';
+import { dailyIncome, townIncome } from '../src/town/economy';
 import type { Command, PlayerSetup } from '../src/core/commands';
 import { createEmptyState, emptyResources, type GameState } from '../src/core/state';
 import { testConfig, testMap } from './fixtures';
@@ -59,6 +60,30 @@ describe('applyDailyIncome', () => {
     const state = startedGame({}, { ownerPlayerId: null });
     const { events } = apply(state, { type: 'EndTurn', playerId: 'p1' });
     expect(events.some((e) => e.type === 'TownIncome')).toBe(false);
+  });
+});
+
+describe('dailyIncome (projection pure, lot M6 C8)', () => {
+  it('projette le même revenu de ville que celui crédité au DayStarted', () => {
+    const state = startedGame();
+    // Projection AVANT le tour == or effectivement crédité APRÈS (townHall niv.1 = 500).
+    expect(dailyIncome(state, 'p1').gold).toBe(500);
+    const next = apply(state, { type: 'EndTurn', playerId: 'p1' }).state;
+    expect(next.players[0]?.resources.gold).toBe(500);
+  });
+
+  it('rien pour une ville neutre, rien pour un joueur inconnu', () => {
+    const neutral = startedGame({}, { ownerPlayerId: null });
+    expect(dailyIncome(neutral, 'p1')).toEqual({});
+    expect(dailyIncome(startedGame(), 'ghost')).toEqual({});
+  });
+});
+
+describe('townIncome (par ville, lot M7 C21)', () => {
+  it("somme le revenu des bâtiments à effet income de la ville", () => {
+    const state = startedGame(); // townHall niv.1 = 500 or/j
+    const town = state.towns[0]!;
+    expect(townIncome(town, state.buildingCatalog).gold).toBe(500);
   });
 });
 

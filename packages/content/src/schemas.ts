@@ -98,6 +98,38 @@ export const factionBonusSchema = z.discriminatedUnion('type', [
 ]);
 
 /**
+ * Effet déclaratif d'une **Maison** (doc 16 §3.1, signature `houseAllegiance`).
+ * Sous-ensemble de `SkillRankEffect` réellement AGRÉGÉ par le moteur
+ * (`hero/skills.ts`) : on exclut `spellCircleUnlock`/`learnCircle` (non branchés
+ * pour les Maisons) — un champ ignoré serait un mensonge de contenu (doc 06).
+ * Au moins un effet par Maison.
+ */
+const houseEffectSchema = z
+  .object({
+    movementBonusPct: z.number().optional(),
+    visionBonus: z.number().optional(),
+    goldPerDay: z.number().optional(),
+    meleeDamagePct: z.number().optional(),
+    rangedDamagePct: z.number().optional(),
+    armorReductionPct: z.number().optional(),
+    luckBonus: z.number().optional(),
+    moraleBonus: z.number().optional(),
+    manaCostReductionPct: z.number().optional(),
+  })
+  .refine((e) => Object.values(e).some((v) => v !== undefined), 'au moins un effet par Maison');
+
+/**
+ * Une Maison de faction (doc 16 §3.1) : id opaque, nom localisé (`house.<id>`
+ * attendu dans les locales du paquet), et un profil d'effets déclaratifs. Le
+ * héros/la ville choisit UNE Maison ; le moteur les agrège comme des compétences.
+ */
+export const houseSchema = z.object({
+  id: idSchema,
+  name: locRef,
+  effects: z.array(houseEffectSchema).min(1),
+});
+
+/**
  * manifest.json (doc 06 §3, doc 10 §5.4). `schemaVersion: 1` — les migrations
  * arrivent avec la première évolution de schéma (doc 06 §7).
  * `abilityModules`/`hooks` restent refusés non vides tant que le moteur ne
@@ -115,6 +147,8 @@ export const manifestSchema = z.object({
     .array(z.object({ id: idSchema, icon: z.string(), cap: z.number().int().positive() }))
     .default([]),
   factionBonuses: z.array(factionBonusSchema).default([]),
+  /** Maisons de la faction (doc 16 §3.1, signature `houseAllegiance`) — défaut []. */
+  houses: z.array(houseSchema).default([]),
   spellSchool: idSchema.nullable(),
   heroSkills: z.array(idSchema).default([]),
   tiers: z.number().int().min(7).max(8),
@@ -198,6 +232,9 @@ const buildingEffectSchema = z.discriminatedUnion('type', [
     resource: idSchema,
     amount: z.number().int().positive(),
   }),
+  /** Choix de Maison (doc 16 §3.1/§5, « Le Choixpeau ») — `houseId` opaque résolu
+   *  par le moteur dans le catalogue des Maisons ; combiné à `exclusiveGroup`. */
+  z.object({ type: z.literal('houseChoice'), houseId: idSchema }),
   /** Bâtiment sans effet mécanique en 3.1 (tavern/forge/spécial) — arbre seul. */
   z.object({ type: z.literal('none') }),
 ]);
@@ -840,6 +877,8 @@ export type AbilityCatalog = z.infer<typeof abilityCatalogSchema>;
 export type FactionIndex = z.infer<typeof factionIndexSchema>;
 export type Manifest = z.infer<typeof manifestSchema>;
 export type FactionBonus = z.infer<typeof factionBonusSchema>;
+export type House = z.infer<typeof houseSchema>;
+export type HouseEffect = z.infer<typeof houseEffectSchema>;
 export type Unit = z.infer<typeof unitSchema>;
 export type Locale = z.infer<typeof localeSchema>;
 export type GameConfig = z.infer<typeof gameConfigSchema>;

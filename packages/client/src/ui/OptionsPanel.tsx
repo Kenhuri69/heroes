@@ -1,10 +1,13 @@
 import { useState } from 'preact/hooks';
 import { appStore, useApp } from '../app/store';
 import { t, setLocale } from '../app/i18n';
-import { exportSave, importSave } from '../app/save';
+import { exportSave, importSave, saveGame, restoreSavedGame } from '../app/save';
+import { eventBus } from '../app/events';
 import { getTelemetry, resetTelemetry, setTelemetryEnabled } from '../app/telemetry';
 import { setMusicVolume, setSfxVolume } from '../app/audio';
+import { applyReduceMotion } from '../app/motion';
 import { COMBAT_SPEEDS } from '../app/ui-constants';
+import { pushToast } from './toasts';
 import './options.css';
 
 const FONT_SCALE_PERCENT: Record<1 | 2 | 3, string> = { 1: '100%', 2: '112.5%', 3: '125%' };
@@ -13,16 +16,17 @@ const FONT_SCALES = [1, 2, 3] as const;
 /**
  * Modale Options (doc 08 §3, ≤ 2 niveaux) : langue FR/EN, taille de texte
  * (3 crans, doc 08 §4), vitesse de combat par défaut. En jeu (écran
- * 'adventure'), ajoute export/import `.heroes` — sauvegarde/chargement
- * manuels restent dans la barre principale (`shell.tsx`), pas dupliqués ici.
- * Fermeture par bouton ou touche Échap (gérée par le handler global de
- * `shell.tsx`).
+ * 'adventure'), section « Données » : sauvegarde/chargement manuels (déplacés
+ * de la barre de tour au lot M5, C11) + export/import `.heroes`. Fermeture par
+ * bouton ou touche Échap (gérée par le handler global de `shell.tsx`).
  */
 export function OptionsPanel({ onClose }: { onClose: () => void }) {
   useApp((s) => s.locale); // réactivité i18n
   const locale = useApp((s) => s.locale);
   const fontScale = useApp((s) => s.fontScale);
   const combatSpeed = useApp((s) => s.combatSpeed);
+  const reduceMotionOption = useApp((s) => s.reduceMotionOption);
+  const confirmEndTurn = useApp((s) => s.confirmEndTurn);
   const musicVolume = useApp((s) => s.musicVolume);
   const sfxVolume = useApp((s) => s.sfxVolume);
   const telemetryEnabled = useApp((s) => s.telemetryEnabled);
@@ -68,10 +72,20 @@ export function OptionsPanel({ onClose }: { onClose: () => void }) {
       .catch(() => setMessage(t('options.importError')));
   };
 
+  // Sauvegarde/chargement manuels (lot M5, C11) : déplacés de la barre de tour
+  // vers ici — l'autosave de fin de tour couvre le cas courant.
+  const doSave = (): void => {
+    void saveGame(appStore.getState().game, 'manual')
+      .then(() => pushToast(t('toast.saved')))
+      .catch(() => eventBus.emit([{ type: 'SaveFailed' }]));
+  };
+  const doLoad = (): void => void restoreSavedGame('manual');
+
   return (
     <div class="modal-backdrop" onClick={onClose}>
       <div
         class="modal options-panel"
+        data-testid="options-panel"
         role="dialog"
         aria-modal="true"
         aria-label={t('options.title')}
@@ -133,6 +147,45 @@ export function OptionsPanel({ onClose }: { onClose: () => void }) {
               </button>
             ))}
           </div>
+        </section>
+
+        <section class="options-section">
+          <h3>{t('options.accessibility')}</h3>
+          <div class="segmented" role="group" aria-label={t('options.reduceMotion')}>
+            <span class="options-toggle-label">{t('options.reduceMotion')}</span>
+            <button
+              class={reduceMotionOption ? 'active' : ''}
+              data-testid="options-reduce-motion-on"
+              onClick={() => applyReduceMotion(true)}
+            >
+              {t('options.on')}
+            </button>
+            <button
+              class={!reduceMotionOption ? 'active' : ''}
+              data-testid="options-reduce-motion-off"
+              onClick={() => applyReduceMotion(false)}
+            >
+              {t('options.off')}
+            </button>
+          </div>
+          <div class="segmented" role="group" aria-label={t('options.confirmEndTurn')}>
+            <span class="options-toggle-label">{t('options.confirmEndTurn')}</span>
+            <button
+              class={confirmEndTurn ? 'active' : ''}
+              data-testid="options-confirm-endturn-on"
+              onClick={() => appStore.setState({ confirmEndTurn: true })}
+            >
+              {t('options.on')}
+            </button>
+            <button
+              class={!confirmEndTurn ? 'active' : ''}
+              data-testid="options-confirm-endturn-off"
+              onClick={() => appStore.setState({ confirmEndTurn: false })}
+            >
+              {t('options.off')}
+            </button>
+          </div>
+          <p class="options-hint">{t('options.shortcutsHint')}</p>
         </section>
 
         <section class="options-section">
@@ -210,6 +263,12 @@ export function OptionsPanel({ onClose }: { onClose: () => void }) {
           <section class="options-section">
             <h3>{t('options.dataSection')}</h3>
             <div class="options-save-actions">
+              <button data-testid="save" onClick={doSave}>
+                {t('turnBar.save')}
+              </button>
+              <button data-testid="load" onClick={doLoad}>
+                {t('turnBar.load')}
+              </button>
               <button data-testid="options-export" onClick={doExport}>
                 {t('options.export')}
               </button>

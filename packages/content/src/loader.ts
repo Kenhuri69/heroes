@@ -23,6 +23,7 @@ import {
   type WarMachine,
   type Building,
   type FactionBonus,
+  type HouseEffect,
   type GameConfig,
   type Locale,
   type Manifest,
@@ -297,6 +298,12 @@ export function checkPackNameKeys(report: LoadReport): string[] {
     };
     for (const b of pack.buildings) need(`building.${b.id}`);
     for (const r of pack.manifest.factionResources) need(`factionResource.${r.id}`);
+    // Maisons (doc 16 §3.1) : le nom localisé (`house.name`, un `@loc:…`) doit
+    // résoudre dans les deux locales du paquet.
+    for (const h of pack.manifest.houses) {
+      const key = h.name.startsWith('@loc:') ? h.name.slice('@loc:'.length) : h.name;
+      need(key);
+    }
   }
   return errors;
 }
@@ -442,9 +449,15 @@ export async function loadFactionPack(
     checkBuildingRequires(errors, path, buildings, visibleMaxLevel);
     for (const b of buildings) {
       b.levels.forEach((level, i) => {
-        if (level.effect.type === 'dwelling' && !unitIds.has(level.effect.unitId))
+        const eff = level.effect;
+        if (eff.type === 'dwelling' && !unitIds.has(eff.unitId))
           errors.push(
-            `${path}: ${b.id} niveau ${i + 1} — dwelling vers unité inconnue '${level.effect.unitId}'`,
+            `${path}: ${b.id} niveau ${i + 1} — dwelling vers unité inconnue '${eff.unitId}'`,
+          );
+        // Choix de Maison (doc 16) : la Maison ciblée doit être déclarée au manifeste.
+        if (eff.type === 'houseChoice' && !manifest.houses.some((h) => h.id === eff.houseId))
+          errors.push(
+            `${path}: ${b.id} niveau ${i + 1} — houseChoice vers Maison inconnue '${eff.houseId}'`,
           );
       });
     }
@@ -620,6 +633,24 @@ export function buildFactionCatalog(report: LoadReport): Record<string, { bonuse
   const catalog: Record<string, { bonuses: FactionBonus[] }> = {};
   for (const pack of report.content.packs) {
     catalog[pack.manifest.id] = { bonuses: pack.manifest.factionBonuses };
+  }
+  return catalog;
+}
+
+/**
+ * Catalogue des Maisons, prêt pour `StartGame.houseCatalog` (doc 16 §3.1) —
+ * indexé par `houseId` → effets déclaratifs résolus, agrégés par le moteur au
+ * même titre que les compétences. Les Maisons vivent dans les manifestes de
+ * faction ; leur id est unique tous paquets confondus (relève d'un doublon).
+ */
+export function buildHouseCatalog(report: LoadReport): Record<string, { effects: HouseEffect[] }> {
+  const catalog: Record<string, { effects: HouseEffect[] }> = {};
+  for (const pack of report.content.packs) {
+    for (const house of pack.manifest.houses) {
+      if (catalog[house.id])
+        throw new PackError([`buildHouseCatalog: id de Maison en double '${house.id}'`]);
+      catalog[house.id] = { effects: house.effects };
+    }
   }
   return catalog;
 }

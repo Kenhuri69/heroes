@@ -81,6 +81,17 @@
   border-color: var(--blood-bright);
 }
 
+/* Bascule Oui/Non avec libellé à gauche (lot M8 C3/C12). */
+.segmented + .segmented {
+  margin-top: 8px;
+}
+
+.options-toggle-label {
+  flex: 2;
+  align-self: center;
+  font: 600 0.875rem var(--font-ui);
+}
+
 .options-save-actions {
   display: flex;
   flex-direction: column;

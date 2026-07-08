@@ -109,4 +109,15 @@ export function handleBuildStructure(draft: GameState, cmd: BuildCmd, events: Ga
         learnGuildSpellsAtTown(draft, hero, town, events);
     }
   }
+  // Choix de Maison (doc 16 §3.1, « Le Choixpeau ») : les héros du propriétaire
+  // relèvent de la Maison bâtie. Id opaque résolu dans le catalogue embarqué ;
+  // l'exclusivité (`exclusiveGroup`) garantit un seul choix par ville.
+  if (effect.type === 'houseChoice') {
+    const houseEffects = draft.houseCatalog[effect.houseId]?.effects ?? [];
+    for (const hero of draft.heroes) {
+      if (hero.playerId !== town.ownerPlayerId) continue;
+      hero.houseId = effect.houseId;
+      hero.houseEffects = houseEffects.map((e) => ({ ...e }));
+    }
+  }
 }

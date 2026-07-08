@@ -5,6 +5,7 @@ import { createEmptyState, emptyResources, type GameState } from '../src/core/st
 import type { BuildingDef } from '../src/town/types';
 import { testConfig, testMap } from './fixtures';
 import { testBuildingCatalog, testTown, testUnitCatalogWithEconomy } from './town-fixtures';
+import { heroGoldPerDay } from '../src/hero/skills';
 
 function setup(resources: Partial<ReturnType<typeof emptyResources>> = {}): PlayerSetup[] {
   return [{ id: 'p1', startingResources: { ...emptyResources(), ...resources } }];
@@ -222,6 +223,59 @@ describe('BuildStructure — choix exclusif (exclusiveGroup)', () => {
     });
     expect(next.towns[0]?.buildings.circleA).toBe(1);
     expect(events).toContainEqual({ type: 'TownBuilt', townId: 'town-1', buildingId: 'circleA', level: 1 });
+  });
+});
+
+describe('BuildStructure — choix de Maison (houseChoice, doc 16 §3.1/§5)', () => {
+  // Ids FICTIFS de Maison (garde-fou « zéro nom de faction dans le moteur »).
+  const HOUSE_CATALOG = { 'house-lion': { effects: [{ meleeDamagePct: 12, goldPerDay: 300 }] } };
+
+  function houseBuildings(): Record<string, BuildingDef> {
+    const choixpeau = (id: string, houseId: string): BuildingDef => ({
+      id,
+      maxLevel: 1,
+      exclusiveGroup: 'house',
+      levels: [{ cost: { gold: 100 }, requires: [], effect: { type: 'houseChoice', houseId } }],
+    });
+    return {
+      ...testBuildingCatalog(),
+      houseLion: choixpeau('houseLion', 'house-lion'),
+      houseEagle: choixpeau('houseEagle', 'house-eagle'),
+    };
+  }
+
+  function started(buildings: Record<string, number>): GameState {
+    return apply(createEmptyState(), {
+      type: 'StartGame',
+      seed: 1,
+      players: setup({ gold: 1000 }),
+      map: testMap(),
+      config: testConfig(),
+      unitCatalog: testUnitCatalogWithEconomy(),
+      buildingCatalog: houseBuildings(),
+      towns: [{ ...testTown(), buildings }],
+      houseCatalog: HOUSE_CATALOG,
+    }).state;
+  }
+
+  it('construire un Choixpeau stampe la Maison sur les héros du propriétaire', () => {
+    const { state: next } = apply(started({ townHall: 1 }), {
+      type: 'BuildStructure',
+      townId: 'town-1',
+      buildingId: 'houseLion',
+    });
+    const hero = next.heroes.find((h) => h.playerId === 'p1');
+    expect(hero?.houseId).toBe('house-lion');
+    expect(hero?.houseEffects).toEqual([{ meleeDamagePct: 12, goldPerDay: 300 }]);
+    // Effet réellement branché : l'accesseur d'or/jour reflète la Maison.
+    expect(heroGoldPerDay(hero!, {})).toBe(300);
+  });
+
+  it('choix unique : une 2e Maison est verrouillée (exclusiveGroup)', () => {
+    const state = started({ townHall: 1, houseLion: 1 });
+    expect(
+      validate(state, { type: 'BuildStructure', townId: 'town-1', buildingId: 'houseEagle' })?.code,
+    ).toBe('exclusiveChoiceLocked');
   });
 });
 

@@ -19,11 +19,19 @@
   pointer-events: auto;
 }
 
+/* Ressource cliquable (lot M6, C8 « tap = détail ») : bouton remis à zéro,
+   cible ≥ 44 px (A1). */
 .resource {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  min-height: 24px;
+  min-height: 44px;
+  padding: 0 2px;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
 }
 
 .resource i {
@@ -276,6 +284,37 @@
   text-align: center;
 }
 
+/* Jauge générique (lot M6, C9/C24) : barre fine qui DOUBLE un chiffre (2ᵉ canal,
+   jamais la couleur seule §4). Réutilisée par PM (barre de tour) et XP (tiroir). */
+.gauge {
+  display: block;
+  width: 100%;
+  max-width: 160px;
+  height: 4px;
+  margin: 3px auto 0;
+  border-radius: 2px;
+  background: var(--ink-600);
+  overflow: hidden;
+}
+
+.gauge-fill {
+  display: block;
+  height: 100%;
+  background: var(--brass-bright);
+}
+
+/* Jauge de PM dans la barre de statut : alignée à gauche (pas centrée). */
+.movement-gauge {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.movement-gauge .gauge {
+  margin-left: 0;
+  max-width: 120px;
+}
+
 .hero-attributes {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -386,6 +425,25 @@
   .resource-bar,
   .bottom-hud {
     right: 300px; /* confinés à gauche de la colonne (même empreinte que le rail) */
+  }
+}
+
+/* HUD compact en portrait (lot M5, C10) : la barre de ressources tient sur UNE
+   rangée à défilement horizontal (nombres abrégés « 12k »), padding et police
+   réduits — la carte récupère la hauteur mangée par le retour à la ligne. Les
+   cibles ≥ 44 px et les 3 crans de police restent tenus (A1/A6). */
+@media (max-width: 640px) {
+  .resource-bar {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow-x: auto;
+    gap: 4px 8px;
+    padding: 4px 52px;
+    font-size: 0.8rem;
+  }
+
+  .resource {
+    flex: none;
   }
 }
 
@@ -504,4 +562,67 @@
 .map-card-line {
   margin: 8px 0 0;
   font-size: 0.9rem;
+}
+
+/* Confirmation de fin de tour (lot M8 C12) : réutilise .map-card. */
+.end-turn-confirm-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.end-turn-confirm-actions button {
+  flex: 1;
+  min-height: 44px;
+  border: 1px solid var(--ink-600);
+  border-radius: var(--radius-m);
+  background: var(--ink-700);
+  color: var(--parchment);
+  font: 600 0.875rem var(--font-ui);
+  cursor: pointer;
+}
+
+.end-turn-confirm-actions .end-turn-confirm-go {
+  background: var(--blood);
+  border-color: var(--blood-bright);
+}
+
+/* Fiche ressource (lot M6, C8) : table stock + revenu/jour, réutilise .map-card. */
+.resource-detail-list {
+  margin: 8px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.resource-detail-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 8px;
+  border-radius: var(--radius-s);
+}
+
+.resource-detail-row.current {
+  background: var(--veil-55);
+}
+
+.resource-detail-row dt {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.resource-detail-row dd {
+  margin: 0;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.resource-detail-income {
+  margin-left: 8px;
+  font-weight: 400;
+  font-size: 0.85rem;
+  color: var(--ok-text);
 }

@@ -25,6 +25,7 @@ import { Camera } from '../../render/camera';
 import { unitSpriteUrl } from '../../render/assets';
 import { HEX_SIZE, computeBoardBounds, drawBoard, hexKey, offsetToPixel, pixelToOffset } from '../../render/hexgrid';
 import { combatPreview } from './preview';
+import { reduceMotion } from '../../app/motion';
 
 const ATTACKER_COLOR = 0xc0392b;
 const DEFENDER_COLOR = 0x2e6da4;
@@ -597,11 +598,12 @@ function buildStackTokenGraphic(side: CombatSideId): Graphics {
   return g;
 }
 
-/** Respecte le réglage système « réduire les animations » (a11y, doc 08 §4). */
+/**
+ * Respecte le réglage « réduire les animations » (a11y, doc 08 §4) : option en
+ * jeu (lot M8 C3) UNIE au réglage système, via le helper partagé `reduceMotion`.
+ */
 function prefersReducedMotion(): boolean {
-  return (
-    typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches
-  );
+  return reduceMotion();
 }
 
 function tween(durationMs: number, onProgress: (t: number) => void): Promise<void> {

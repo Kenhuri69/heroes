@@ -79,28 +79,20 @@ async function moveHeroToGold(page: Page): Promise<void> {
 
 /** Tap-tap (doc 08 §2.1) : 1er tap = prévisualisation, 2ᵉ tap = exécution. */
 async function tapTapTile(page: Page, x: number, y: number): Promise<void> {
-  const tileScreen = (): Promise<{ x: number; y: number }> =>
-    page.evaluate(([tx, ty]) => window.__HEROES_TEST__!.tileToScreen(tx!, ty!), [x, y]);
-  // 1er tap RÉSILIENT (anti-flake mobile) : sur Pixel 7 le premier tap se perd
-  // parfois (scène/caméra pas encore stabilisée au démarrage) → aucune préviz,
-  // `cancel-path` jamais visible. On re-tape SEULEMENT si le tap est réellement
-  // perdu. Attente généreuse (3 s) avant de conclure « perdu » : bien plus que
-  // le rendu d'une préviz valide (quelques frames) — un tap PRIS n'est donc
-  // jamais re-tapé (sinon le 2ᵉ tap confirmerait par erreur le déplacement),
-  // et un tap PERDU ne change aucun état, donc re-cliquer est sans risque.
+  const screen = await page.evaluate(
+    ([tx, ty]) => window.__HEROES_TEST__!.tileToScreen(tx!, ty!),
+    [x, y],
+  );
+  // 1er tap = prévisualisation ⇒ le bouton « Annuler le déplacement » (M2)
+  // apparaît. Sous charge (CI/parallèle), un tap peut être avalé pendant que la
+  // scène Pixi initialise le pointeur : on re-tape jusqu'à voir la préviz, point
+  // de synchro DÉTERMINISTE (plus fiable que l'ancienne attente aveugle 100 ms).
   const cancel = page.getByTestId('cancel-path');
-  for (let attempt = 0; ; attempt++) {
-    const s = await tileScreen();
-    await page.mouse.click(s.x, s.y);
-    try {
-      await expect(cancel).toBeVisible({ timeout: 3000 });
-      break; // préviz posée
-    } catch (e) {
-      if (attempt >= 3) throw e; // vraiment jamais posée → échec réel
-    }
-  }
-  const s = await tileScreen();
-  await page.mouse.click(s.x, s.y); // 2ᵉ tap = confirmation
+  await expect(async () => {
+    await page.mouse.click(screen.x, screen.y);
+    await expect(cancel).toBeVisible({ timeout: 1000 });
+  }).toPass({ timeout: 10000 });
+  await page.mouse.click(screen.x, screen.y); // 2ᵉ tap = exécution
 }
 
 /**
@@ -111,6 +103,31 @@ async function tapTapTile(page: Page, x: number, y: number): Promise<void> {
 async function passPreBattle(page: Page, mode: 'fight' | 'auto' = 'fight'): Promise<void> {
   await expect(page.getByTestId('pre-battle')).toBeVisible();
   await page.getByTestId(mode === 'auto' ? 'pre-battle-auto' : 'pre-battle-fight').click();
+}
+
+/**
+ * Sauvegarde/chargement manuels : déplacés dans la modale Options (lot M5, C11).
+ * Ouvre Options, clique le bouton, referme — pour laisser la carte au 1er plan.
+ */
+/**
+ * Fin de tour via le bouton HUD (lot M8) : le garde-fou C12 peut intercaler une
+ * confirmation si un héros n'a pas bougé — on la valide alors pour finir le tour.
+ */
+async function endTurn(page: Page): Promise<void> {
+  await page.locator('[data-testid="end-turn"]').click();
+  const confirmGo = page.getByTestId('end-turn-confirm-go');
+  if (await confirmGo.isVisible().catch(() => false)) await confirmGo.click();
+}
+
+async function clickSaveAction(page: Page, action: 'save' | 'load'): Promise<void> {
+  await page.getByTestId('options-open').click();
+  await page.getByTestId(action).click();
+  // Referme Options par Échap (handler global) — robuste au re-render du toast
+  // de sauvegarde. Le chargement referme déjà les modales (rechargement d'état).
+  if (await page.getByTestId('options-panel').isVisible().catch(() => false)) {
+    await page.keyboard.press('Escape');
+  }
+  await expect(page.getByTestId('options-panel')).toHaveCount(0);
 }
 
 /**
@@ -152,6 +169,7 @@ test('le client démarre sans erreur et charge le contenu', async ({ page }) => 
     'test-faction',
     'necropolis',
     'sylvan-court',
+    'vox-arcana',
   ]);
 
   // La partie démarre sur la carte proto : héros à sa position de départ.
@@ -177,7 +195,23 @@ test('tap-tap : déplacement scripté, ramassage, points décomptés', async ({ 
   expect(state.players[0]?.resources.gold).toBe(2500); // 2000 + 500 ramassés
   expect(state.map?.objects.some((o) => o.id === 'gold-1')).toBe(false);
   await expect(page.getByTestId('resource-gold')).toHaveText('2500');
-  await expect(page.getByTestId('movement-points')).toHaveText('PM 1400');
+  await expect(page.getByTestId('movement-points')).toHaveText('PM 1400 / 1700');
+
+  expect(errors).toEqual([]);
+});
+
+test('tap sur une ressource : fiche stock + revenu/jour (doc 08 §2.1, lot M6 C8)', async ({
+  page,
+}) => {
+  const errors = await openGame(page);
+
+  // Tap sur l'or ⇒ fiche ressource : stock + revenu/jour (hôtel de ville = +500/j).
+  await page.getByTestId('resource-open-gold').click();
+  const card = page.getByTestId('resource-detail');
+  await expect(card).toBeVisible();
+  await expect(card).toContainText(/\+500\/j|\+500\/day/);
+  await page.getByTestId('resource-detail-close').click();
+  await expect(card).toBeHidden();
 
   expect(errors).toEqual([]);
 });
@@ -187,12 +221,16 @@ test("préviz de chemin : « Annuler le déplacement » efface l'aperçu (doc 08
 }) => {
   const errors = await openGame(page);
 
-  // 1er tap = prévisualisation ⇒ le bouton d'annulation apparaît.
+  // 1er tap = prévisualisation ⇒ le bouton d'annulation apparaît. Re-tap si le
+  // tap est avalé pendant l'init du pointeur Pixi (robustesse sous charge).
   const screen = await page.evaluate(() => window.__HEROES_TEST__!.tileToScreen(6, 3));
-  await page.mouse.click(screen.x, screen.y);
-  await expect(page.getByTestId('cancel-path')).toBeVisible();
+  const cancel = page.getByTestId('cancel-path');
+  await expect(async () => {
+    await page.mouse.click(screen.x, screen.y);
+    await expect(cancel).toBeVisible({ timeout: 1000 });
+  }).toPass({ timeout: 10000 });
 
-  await page.getByTestId('cancel-path').click();
+  await cancel.click();
   await expect(page.getByTestId('cancel-path')).toBeHidden();
 
   // La préviz est bien annulée : le héros n'a pas bougé, aucun PM dépensé.
@@ -246,9 +284,45 @@ test('fin de tour : jour suivant, points de mouvement restaurés', async ({ page
   await moveHeroToGold(page);
   await expect.poll(() => heroPos(page)).toEqual({ x: 6, y: 3 });
 
-  await page.getByTestId('end-turn').click();
+  await endTurn(page);
   await expect(page.getByTestId('calendar')).toHaveText('Jour 2 · Semaine 1');
-  await expect(page.getByTestId('movement-points')).toHaveText('PM 1700');
+  await expect(page.getByTestId('movement-points')).toHaveText('PM 1700 / 1700');
+
+  expect(errors).toEqual([]);
+});
+
+test('confort : raccourci E + garde-fou de fin de tour (doc 08, lot M8 C2/C12)', async ({ page }) => {
+  const errors = await openGame(page);
+
+  // Établit le focus clavier du document (le contexte de test n'en a pas au
+  // chargement, contrairement à un vrai onglet) : tap sur la tuile du héros
+  // (3,3) = no-op, sans dépenser de PM.
+  const heroTile = await page.evaluate(() => window.__HEROES_TEST__!.tileToScreen(3, 3));
+  await page.mouse.click(heroTile.x, heroTile.y);
+
+  // Le héros n'a pas bougé (PM pleins) ⇒ la touche E ouvre la confirmation (C12).
+  await page.keyboard.press('e');
+  await expect(page.getByTestId('end-turn-confirm')).toBeVisible();
+  await page.getByTestId('end-turn-confirm-go').click();
+  await expect(page.getByTestId('calendar')).toHaveText('Jour 2 · Semaine 1');
+
+  expect(errors).toEqual([]);
+});
+
+test('confort : option « réduire les animations » pose data-reduce-motion (lot M8 C3)', async ({
+  page,
+}) => {
+  const errors = await openGame(page);
+
+  await page.getByTestId('options-open').click();
+  await page.getByTestId('options-reduce-motion-on').click();
+  await expect
+    .poll(() => page.evaluate(() => document.documentElement.dataset.reduceMotion))
+    .toBe('true');
+  await page.getByTestId('options-reduce-motion-off').click();
+  await expect
+    .poll(() => page.evaluate(() => document.documentElement.dataset.reduceMotion))
+    .toBe('false');
 
   expect(errors).toEqual([]);
 });
@@ -259,7 +333,7 @@ test('trigger de carte : le message onDay (jour 2) alimente le journal (combleme
   const errors = await openGame(page);
 
   // proto-01 porte un trigger onDay (jour 2, message) — la bascule de jour le tire.
-  await page.getByTestId('end-turn').click();
+  await endTurn(page);
   await expect(page.getByTestId('calendar')).toHaveText('Jour 2 · Semaine 1');
   await page.getByTestId('journal-open').click();
   await expect(
@@ -296,7 +370,7 @@ test('mine : capture au passage ⇒ propriétaire + revenu au jour suivant (doc 
 
   // Revenu quotidien : 500 (hôtel de ville) + 1000 (mine d'or — doc 02 §3).
   const goldBefore = state.players[0]?.resources.gold ?? 0;
-  await page.getByTestId('end-turn').click();
+  await endTurn(page);
   await expect(page.getByTestId('calendar')).toHaveText('Jour 2 · Semaine 1');
   await expect(page.getByTestId('resource-gold')).toHaveText(String(goldBefore + 1500));
 
@@ -689,7 +763,7 @@ test('escarmouche vs IA : config + difficulté génèrent une partie 1v1 (Alpha 
   expect(aiArmy).toBe(48);
 
   // La boucle IA joue son tour sans erreur à la fin de tour du joueur.
-  await page.getByTestId('end-turn').click();
+  await endTurn(page);
   await expect(page.getByTestId('calendar')).toContainText('2');
 
   expect(errors).toEqual([]);
@@ -776,7 +850,7 @@ test('hot-seat : deux humains locaux alternent avec l’overlay de passage (Alph
 
   // Fin de tour du J1 ⇒ tour du J2 : l'overlay de passage reparaît, puis le
   // plateau suit le joueur 2 (sa ville, pas celle du J1).
-  await page.getByTestId('end-turn').click();
+  await endTurn(page);
   await expect(page.getByTestId('handoff-overlay')).toBeVisible();
   await expect(page.getByTestId('handoff-player')).toContainText('2');
   await page.getByTestId('handoff-continue').click();
@@ -880,7 +954,7 @@ test('télémétrie : opt-in enregistre tours + combats auto, en local (Alpha 4.
     .toBeNull();
 
   // Fin de tour ⇒ la durée du tour est enregistrée.
-  await page.getByTestId('end-turn').click();
+  await endTurn(page);
   await expect(page.getByTestId('calendar')).toContainText('2');
 
   // Rouvrir les options : stats non nulles (1 tour, 1 combat auto).
@@ -901,7 +975,7 @@ test('autosave à la fin de tour puis « Continuer » depuis le menu', async ({ 
 
   await moveHeroToGold(page);
   await expect.poll(() => heroPos(page)).toEqual({ x: 6, y: 3 });
-  await page.getByTestId('end-turn').click(); // ⇒ autosave (doc 07 §4)
+  await endTurn(page); // ⇒ autosave (doc 07 §4)
   await expect(page.getByTestId('calendar')).toContainText('2');
   // L'écriture IndexedDB est asynchrone : attendre qu'elle soit durable
   // avant de naviguer (sinon la sauvegarde serait interrompue).
@@ -1227,6 +1301,40 @@ test('ville : construire + croissance + recruter + transférer → armée du hé
   expect(errors).toEqual([]);
 });
 
+test('ville : en-tête revenu/croissance (C21) + « Tout recruter » (C19) (lot M7)', async ({
+  page,
+}) => {
+  const errors = await openGame(page);
+
+  await page.getByTestId('town-open-start-town').click();
+  // En-tête de décision (C21) : revenu or/jour (hôtel de ville = +500) + croissance.
+  await expect(page.getByTestId('town-income')).toContainText('500');
+  await expect(page.getByTestId('town-growth')).toBeVisible();
+  // Tri Construire par statut (C20) : le 1er bâtiment listé est DISPONIBLE
+  // (plus jamais un verrouillé en tête comme avec le tri alphabétique).
+  const firstBuild = page.locator('.town-building').first();
+  await expect(firstBuild).toHaveClass(/town-building-available/);
+  await page.getByTestId('town-close').click();
+
+  // Générer du stock (croissance hebdo) puis « Tout recruter ».
+  for (let i = 0; i < 7; i++) {
+    await page.evaluate(() => window.__HEROES_TEST__!.dispatch({ type: 'EndTurn', playerId: 'player-1' }));
+  }
+  const goldBefore = await page.evaluate(() => window.__HEROES_TEST__!.getState().players[0]!.resources.gold);
+  await page.getByTestId('town-open-start-town').click();
+  await page.getByTestId('town-tab-recruit').click();
+  await page.getByTestId('town-recruit-all').click();
+  await expect
+    .poll(() => page.evaluate(() => window.__HEROES_TEST__!.getState().players[0]!.resources.gold))
+    .toBeLessThan(goldBefore); // de l'or a été dépensé
+  const garrison = await page.evaluate(() =>
+    window.__HEROES_TEST__!.getState().towns[0]!.garrison.reduce((s, st) => s + st.count, 0),
+  );
+  expect(garrison).toBeGreaterThan(0); // des créatures recrutées dans la garnison
+
+  expect(errors).toEqual([]);
+});
+
 test('upgrade : bâtir le dwelling amélioré puis améliorer une pile de garnison (Alpha 4.11)', async ({
   page,
 }) => {
@@ -1426,7 +1534,7 @@ test('sauvegarde puis rechargement IndexedDB : position restaurée', async ({ pa
   await moveHeroToGold(page);
   await expect.poll(() => heroPos(page)).toEqual({ x: 6, y: 3 });
 
-  await page.getByTestId('save').click();
+  await clickSaveAction(page, 'save'); // lot M5 : save/load via Options
 
   // Déplacement après sauvegarde (déterministe, à réverter par le chargement).
   await page.evaluate(() =>
@@ -1442,7 +1550,7 @@ test('sauvegarde puis rechargement IndexedDB : position restaurée', async ({ pa
   await expect.poll(() => heroPos(page)).toEqual({ x: 5, y: 5 });
 
   // …annulé par le rechargement du slot.
-  await page.getByTestId('load').click();
+  await clickSaveAction(page, 'load');
   await expect.poll(() => heroPos(page)).toEqual({ x: 6, y: 3 });
   const state = await page.evaluate(() => window.__HEROES_TEST__!.getState());
   expect(state.heroes[0]?.movementPoints).toBe(1400);
@@ -1462,7 +1570,7 @@ test('sauvegarde en échec de stockage : toast d’erreur visible (lot 3.9)', as
     };
   });
 
-  await page.getByTestId('save').click();
+  await clickSaveAction(page, 'save'); // lot M5 : save via Options
   const toast = page.getByTestId('toast');
   await expect(toast).toBeVisible();
   await expect(toast).toContainText(/sauvegarde|save/i);
@@ -1489,7 +1597,7 @@ test('journal & feedback : un événement humain alimente le journal + toast de 
   await expect(page.getByTestId('journal-panel')).toHaveCount(0);
 
   // Feedback de sauvegarde manuelle RÉUSSIE (nouveau U3) : toast « sauvegardée ».
-  await page.getByTestId('save').click();
+  await clickSaveAction(page, 'save'); // lot M5 : save via Options
   await expect(page.getByTestId('toast').filter({ hasText: /sauvegard|saved/i })).toBeVisible();
 
   expect(errors).toEqual([]);
@@ -1570,7 +1678,7 @@ test('scénario : le menu démarre le tutoriel, l’IA joue son tour', async ({ 
   // Fin de tour humain : la boucle IA (app/dispatch.ts) joue automatiquement
   // le tour de l'IA (déplacement/ramassage/ville — doc 11 §3.5) puis termine
   // son tour à son tour — le jour avance donc d'un cran, sans intervention.
-  await page.getByTestId('end-turn').click();
+  await endTurn(page);
   await expect(page.getByTestId('calendar')).toHaveText('Jour 2 · Semaine 1');
 
   const after = await page.evaluate(() => window.__HEROES_TEST__!.getState());

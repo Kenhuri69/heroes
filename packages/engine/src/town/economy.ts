@@ -1,7 +1,57 @@
 import type { GameEvent } from '../core/events';
 import type { GameState, ResourceId } from '../core/state';
+import { heroGoldPerDay } from '../hero/skills';
 import { builtLevelOf } from './helpers';
 import { unitWithEconomy } from './unit-economy';
+
+/**
+ * Revenu quotidien PROJETÉ d'un joueur (lot UX M6, C8) — miroir **sans
+ * mutation** de `applyDailyIncome` + or/jour de la compétence Économie de ses
+ * héros. Sert la fiche ressource du HUD (stock + « +X/j »). Retourne les seules
+ * ressources à revenu non nul.
+ */
+/**
+ * Revenu quotidien d'UNE ville (lot UX M7, C21) — bâtiments à effet `income`
+ * du niveau construit. Pur ; sert l'en-tête de ville (« or/jour »).
+ */
+export function townIncome(
+  town: GameState['towns'][number],
+  buildingCatalog: GameState['buildingCatalog'],
+): Partial<Record<ResourceId, number>> {
+  const income: Partial<Record<ResourceId, number>> = {};
+  for (const buildingId of Object.keys(town.buildings)) {
+    const level = builtLevelOf(town, buildingCatalog, buildingId);
+    if (!level || level.effect.type !== 'income') continue;
+    const { resource, amount } = level.effect;
+    if (amount !== 0) income[resource] = (income[resource] ?? 0) + amount;
+  }
+  return income;
+}
+
+export function dailyIncome(state: GameState, playerId: string): Partial<Record<ResourceId, number>> {
+  const income: Partial<Record<ResourceId, number>> = {};
+  const add = (resource: ResourceId, amount: number): void => {
+    if (amount === 0) return;
+    income[resource] = (income[resource] ?? 0) + amount;
+  };
+  for (const town of state.towns) {
+    if (town.ownerPlayerId !== playerId) continue;
+    for (const buildingId of Object.keys(town.buildings)) {
+      const level = builtLevelOf(town, state.buildingCatalog, buildingId);
+      if (!level || level.effect.type !== 'income') continue;
+      add(level.effect.resource, level.effect.amount);
+    }
+  }
+  for (const obj of state.map?.objects ?? []) {
+    if (obj.type !== 'mine' || obj.ownerId !== playerId) continue;
+    add(obj.resource as ResourceId, obj.amount);
+  }
+  for (const hero of state.heroes) {
+    if (hero.playerId !== playerId) continue;
+    add('gold', heroGoldPerDay(hero, state.skillCatalog));
+  }
+  return income;
+}
 
 /**
  * Revenu quotidien (doc 02 §4.1, décision plan phase-3.1 point 5) — appelé au

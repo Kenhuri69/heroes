@@ -1,6 +1,6 @@
 import { createStore } from 'zustand/vanilla';
 import { useSyncExternalStore } from 'preact/compat';
-import type { GameState, MapObjectDef } from '@heroes/engine';
+import type { GameState, MapObjectDef, ResourceId } from '@heroes/engine';
 import { createEmptyState } from '@heroes/engine';
 import type { Campaign, DialogNode, Scenario, StoryCharacter } from '@heroes/content';
 import type { Modal, Screen } from './router';
@@ -53,6 +53,8 @@ export interface AppState {
   pathPreviewActive: boolean;
   /** Objet de carte inspecté à l'appui long (doc 08 §2.1, lot M2) — fiche DOM. */
   mapCard: MapObjectDef | null;
+  /** Ressource inspectée au tap (doc 08 §2.1, lot M6 C8) — fiche stock + revenu/jour. */
+  resourceDetail: ResourceId | null;
   /** Langue de l'UI (doc 08 §2.5) — persistée en localStorage par app/i18n. */
   locale: 'fr' | 'en';
   /** Taille de police, 3 crans (doc 08 §4) : 1 = normal. */
@@ -127,6 +129,12 @@ export interface AppState {
   musicVolume: number;
   /** Volume effets 0-1 (UXD-6B) — miroir du localStorage. */
   sfxVolume: number;
+  /** Option « réduire les animations » (lot M8 C3) — union avec le réglage OS. */
+  reduceMotionOption: boolean;
+  /** Confirmer la fin de tour si un héros n'a pas bougé (lot M8 C12) — défaut on. */
+  confirmEndTurn: boolean;
+  /** Confirmation de fin de tour en attente (lot M8 C12) — overlay tap-tap ; null = aucune. */
+  pendingEndTurn: { playerId: string } | null;
 }
 
 export const appStore = createStore<AppState>(() => ({
@@ -136,6 +144,7 @@ export const appStore = createStore<AppState>(() => ({
   guardianHint: null,
   pathPreviewActive: false,
   mapCard: null,
+  resourceDetail: null,
   locale: 'fr',
   fontScale: 1,
   toasts: [],
@@ -163,6 +172,9 @@ export const appStore = createStore<AppState>(() => ({
   combatAutoActive: false,
   musicVolume: 0.35,
   sfxVolume: 0.6,
+  reduceMotionOption: false,
+  confirmEndTurn: true,
+  pendingEndTurn: null,
 }));
 
 /** Hook Preact : re-rend quand la valeur sélectionnée change (égalité stricte). */

@@ -29,6 +29,30 @@
 - Sélection héros → tap destination : trace le chemin avec jours nécessaires ; 2ᵉ tap : exécute. Interception d'événements en chemin = arrêt standard HoMM.
 - Appui long sur tout objet de carte = fiche (tooltip riche).
 
+> 🚧 **État M6 (plan `ux-revue-mmho.md` C8/C9/C24)** : les grandeurs de décision
+> deviennent lisibles. **Tap sur une ressource** ⇒ fiche `ResourceDetail`
+> (overlay léger, backdrop/×/Échap) : stock + **revenu/jour** de chaque
+> ressource commune, via le helper moteur **pur `dailyIncome`** (villes + mines
+> possédées + compétence Économie — miroir sans mutation de l'application du
+> revenu au `DayStarted`). La barre de statut affiche les **PM restants / PM max
+> du jour** (`dailyMovementPoints`) doublés d'une **jauge** fine ; le tiroir
+> héros affiche l'**XP vers le prochain niveau** (« XP {xp} / {seuil} » via
+> `xpForLevel`, « niveau max » au cap) + jauge. Les jauges doublent toujours un
+> chiffre (2ᵉ canal, jamais la couleur seule §4). Le « +X/j » inline en desktop
+> sous chaque ressource reste un raffinement (la fiche au tap le porte déjà).
+
+> 🚧 **État M5 (plan `ux-revue-mmho.md` C10/C11)** : le HUD portrait est
+> **compacté**. La barre de ressources tient sur **une seule rangée** à
+> défilement horizontal : les grands nombres sont **abrégés** (≥ 10 000 →
+> « 12k », ≥ 10 M → « 12M » ; valeur exacte en `title`, fiche détaillée au tap =
+> lot M6), padding et police réduits en portrait (hauteur ~32 px au lieu de 2
+> lignes). **Sauvegarder/Charger** quittent la barre de tour (l'autosave de fin
+> de tour couvre le cas courant) pour la **section « Données » des Options**
+> (à côté d'export/import `.heroes`) : la barre de tour ne garde que les actions
+> de contexte (options, journal, ville(s)) et le geste majeur **Fin de tour**.
+> La carte récupère la hauteur ainsi libérée. Layout desktop (colonne droite)
+> inchangé.
+
 > 🚧 **État M2 (plan `ux-revue-mmho.md` C5/C6/C7)** : la préviz de chemin porte,
 > sur un trajet de plusieurs jours, une **étiquette numérique** (« J1 », « J2 »…)
 > au dernier pas de chaque journée — la couleur par jour (lot C-3) n'est plus le
@@ -59,6 +83,18 @@
 - Vue peinte interactive (les bâtiments construits apparaissent) + **onglet liste** : `Construire · Recruter · Marché · Guilde · Garnison`. Sur mobile, la liste est l'entrée principale (la vue peinte reste, en scroll horizontal).
 - Panneau construction : arbre visuel avec états (construit / disponible / verrouillé + prérequis manquants en rouge / plus tard : file du jour suivant). 1 bâtiment/jour → le bouton global affiche « Construction du jour utilisée ».
 - Recrutement : slider quantité + boutons min/max, coût total live, « tout recruter » (achat max multi-tiers).
+
+> 🚧 **État M7 (plan `ux-revue-mmho.md` C19/C20/C21)** : décision au premier
+> écran de gestion. **En-tête de ville** enrichi (C21) : nom de faction + « Ville »,
+> **revenu or/jour** (helper moteur pur `townIncome`) et **croissance dans N
+> jours** (`weekOf(day)·7 + 1 − day`). L'onglet Recruter gagne un bouton **« Tout
+> recruter »** (C19) : achat glouton du tier le plus haut au plus bas (proxy coût
+> or décroissant), borné par stock ET ressources courantes (helper client pur
+> `maxAffordable`), dispatch séquentiel de `RecruitUnits` re-validés par le
+> moteur. La liste **Construire** est triée **par statut** (disponible →
+> construit → verrouillé) puis id (C20) — cohérent avec la bande peinte ; l'ancien
+> tri alphabétique plaçait les verrouillés en tête. Vignettes de bâtiments
+> manquantes (Habitation : Recrue, Tableau des Contrats) = suivi asset (C22).
 
 > 🚧 **État U6a** : l'onglet **Marché** est fonctionnel — échange ressource ↔ or
 > au bâtiment marché, taux data-driven (`config.market` : `sellRate`/`buyRate`,
@@ -139,7 +175,23 @@
 
 ### 2.5 Autres écrans
 
-Menu principal (Continuer / Scénarios / Escarmouche / **Éditeur de carte** / Options), fiche de scénario (objectifs), fin de partie (stats, graphique de puissance), options (langue FR/EN, vitesse anims, taille UI, audio, daltonisme : cf. §4).
+Menu principal (Continuer / Scénarios / Escarmouche / **Éditeur de carte** / Options), fiche de scénario (objectifs), fin de partie (stats, graphique de puissance), options (langue FR/EN, vitesse anims, taille UI, audio, réduction des animations, confirmation de fin de tour : cf. §4).
+
+> 🚧 **État M8 (plan `ux-revue-mmho.md` C2/C3/C12/C25/C4)** : confort desktop &
+> finitions. **Raccourcis clavier** desktop (jamais requis, ignorés en saisie/
+> modale/combat) : `E` fin de tour, `H` tiroir héros, `T` ville ; en combat
+> `Espace` = Attendre, `D` = Défendre ; Échap inchangé (documentés dans Options).
+> Option **« Réduire les animations »** (`app/motion.ts`) : s'**unit** au réglage
+> système `prefers-reduced-motion` (l'un OU l'autre coupe le mouvement, DOM via
+> `<html data-reduce-motion>` + rendu Pixi via `reduceMotion()`), persistée.
+> **Garde-fou de fin de tour** (convention HoMM) : si un héros n'a pas bougé
+> (PM au max du jour), la fin de tour demande confirmation (overlay tap-tap),
+> désactivable via l'option « Confirmer la fin de tour ». **Tiroir héros
+> réordonné** : identité (portrait, niveau, jauges XP/mana) en tête, mini-carte
+> en fin (sections repliables = raffinement différé). **C4** : l'ancienne
+> promesse d'une *option* « daltonisme » est retirée — les motifs non chromatiques
+> (badges de faction, pastilles, contours, jamais la couleur seule) sont
+> **toujours actifs** (§4), ce qui est plus sûr qu'un réglage optionnel.
 
 > 🚧 **État U6b** : l'écran de **fin de partie** (`OutcomeOverlay`) affiche un
 > **graphique de puissance par joueur** — barres horizontales SVG triées par
@@ -205,7 +257,8 @@ Menu principal (Continuer / Scénarios / Escarmouche / **Éditeur de carte** / O
 
 ## 4. Accessibilité
 
-- Mode daltonien : les couleurs des joueurs sont doublées de **motifs de bannière** ; états de combat doublés d'icônes (jamais couleur seule).
+- Daltonisme : **pas d'option** — l'accessibilité chromatique est **toujours active** (choix M8/C4, plus sûr qu'un réglage) : couleurs de joueur doublées de **motifs de bannière**, statuts de combat doublés d'icônes/formes, jamais la couleur seule.
+- **Réduire les animations** : option en jeu (M8/C3) qui s'unit au réglage système `prefers-reduced-motion` — coupe transitions DOM et mouvement Pixi (le contour de focus reste).
 - Texte UI en DOM → zoom navigateur et lecteurs d'écran fonctionnent sur toute la gestion ; taille de police réglable (3 crans).
 - Toutes les infos « hover » accessibles à l'appui long ; aucune action à double-clic ou clic droit obligatoire.
 

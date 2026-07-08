@@ -8,6 +8,7 @@ import { loadGameContent, loadDefaultMap, loadScenarioMap, resolveGeneratedMap }
 import {
   buildFactionSetup,
   buildHeroSetup,
+  buildHouseSetup,
   buildTownSetup,
   buildUnitCatalog,
   newGameCommand,
@@ -22,6 +23,7 @@ import { exportSave, importSave, saveGame, restoreSavedGame, encodeHeroesFile } 
 import { installAutosave } from './app/autosave';
 import { initTelemetry } from './app/telemetry';
 import { initAudio } from './app/audio';
+import { initReduceMotion } from './app/motion';
 import { initNarrative, initCombatBarks, loadScenarioNarrative, loadFreeModeNarrative } from './app/narrative';
 import { buildDailyQuests } from './app/daily';
 import { registerCamera, unregisterCamera } from './app/camera-control';
@@ -171,6 +173,7 @@ async function bootstrap(): Promise<void> {
         buildTownSetup(report),
         buildHeroSetup(report),
         buildFactionSetup(report),
+        buildHouseSetup(report),
       ),
     );
     navigate('adventure');
@@ -221,6 +224,7 @@ async function bootstrap(): Promise<void> {
 
   installAutosave(); // autosave à chaque fin de tour (doc 07 §4)
   initTelemetry(); // télémétrie locale opt-in (doc 09, Alpha 4.19) — no-op si désactivée
+  initReduceMotion(); // option « réduire les animations » (lot M8 C3) — miroir localStorage
   initAudio(); // ambiance sonore (UXD-6B) — silencieuse tant qu'aucun fichier audio
   initNarrative(); // couche narrative branchée sur les événements de quête (doc 13, N2b)
   initCombatBarks(); // barks de combat au début d'un combat de campagne (doc 13, N4b)

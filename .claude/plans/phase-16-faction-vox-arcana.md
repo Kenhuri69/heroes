@@ -126,7 +126,20 @@ T8 Avatar du Honmoon (débloqué à Résonance max).
     moteur (golden inchangé), garde-fou vert, smoke.
   - **Écart** : capacités de signature (barrière de zone T8, peur, renaissance)
     différées.
-- **16.6** — héros Hermione & Rumi en données + staging des assets (QC `sheet_extract`).
+- **16.6** ✅ **LIVRÉ** — avatars des héros Hermione & Rumi intégrés (staging).
+  - Les planches héros (QC `sheet_extract`) étant déjà stagées (étape 4), le lot
+    les rend **découvrables** par le client : renommage à la **convention
+    d'archétype** `heroes/<factionId>-<might|magic>` utilisée par toutes les
+    factions — Rumi (Might/Hunter) ⇒ `vox-arcana-might.png`, Hermione (Magic) ⇒
+    `vox-arcana-magic.png`.
+  - Zéro code, zéro donnée de manifeste : `heroAvatarUrl(factionId, archetype)`
+    lit le registre auto-découvert ; le build émet bien les 2 PNG hashés.
+  - **Écart** : l'**identité** nommée en jeu (nom Hermione/Rumi, spécialité,
+    Maison de départ, cf. doc 16 §6) reste liée au **système de héros nommés du
+    moteur**, non ouvert (différé pour toutes les factions). Le smoke par défaut
+    démarre une autre faction ⇒ le rendu de l'avatar vox-arcana n'est pas
+    directement exercé (couverture honnête §7) ; la convention est prouvée par
+    les factions sœurs + la sortie de build.
 - **Différés** : Résonance intra-combat (performeurs), barrière du Honmoon T8, renaissance Phénix, peur Sombral, unités élites.
 
 ## Écarts / décisions

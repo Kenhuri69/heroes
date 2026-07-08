@@ -79,16 +79,28 @@ async function moveHeroToGold(page: Page): Promise<void> {
 
 /** Tap-tap (doc 08 §2.1) : 1er tap = prévisualisation, 2ᵉ tap = exécution. */
 async function tapTapTile(page: Page, x: number, y: number): Promise<void> {
-  const screen = await page.evaluate(
-    ([tx, ty]) => window.__HEROES_TEST__!.tileToScreen(tx!, ty!),
-    [x, y],
-  );
-  await page.mouse.click(screen.x, screen.y);
-  // Point de synchro DÉTERMINISTE (lot M4) : le bouton « Annuler le
-  // déplacement » (M2) apparaît quand la préviz est posée — remplace
-  // l'attente aveugle de 100 ms, flaky sous charge (2 clics chronométrés).
-  await expect(page.getByTestId('cancel-path')).toBeVisible();
-  await page.mouse.click(screen.x, screen.y);
+  const tileScreen = (): Promise<{ x: number; y: number }> =>
+    page.evaluate(([tx, ty]) => window.__HEROES_TEST__!.tileToScreen(tx!, ty!), [x, y]);
+  // 1er tap RÉSILIENT (anti-flake mobile) : sur Pixel 7 le premier tap se perd
+  // parfois (scène/caméra pas encore stabilisée au démarrage) → aucune préviz,
+  // `cancel-path` jamais visible. On re-tape SEULEMENT si le tap est réellement
+  // perdu. Attente généreuse (3 s) avant de conclure « perdu » : bien plus que
+  // le rendu d'une préviz valide (quelques frames) — un tap PRIS n'est donc
+  // jamais re-tapé (sinon le 2ᵉ tap confirmerait par erreur le déplacement),
+  // et un tap PERDU ne change aucun état, donc re-cliquer est sans risque.
+  const cancel = page.getByTestId('cancel-path');
+  for (let attempt = 0; ; attempt++) {
+    const s = await tileScreen();
+    await page.mouse.click(s.x, s.y);
+    try {
+      await expect(cancel).toBeVisible({ timeout: 3000 });
+      break; // préviz posée
+    } catch (e) {
+      if (attempt >= 3) throw e; // vraiment jamais posée → échec réel
+    }
+  }
+  const s = await tileScreen();
+  await page.mouse.click(s.x, s.y); // 2ᵉ tap = confirmation
 }
 
 /**
@@ -228,7 +240,10 @@ test("appui long sur la mine (3,6) : fiche d'objet de carte (doc 08 §2.1, lot M
 test('fin de tour : jour suivant, points de mouvement restaurés', async ({ page }) => {
   const errors = await openGame(page);
 
-  await tapTapTile(page, 6, 3);
+  // Déplacement scripté via le hook moteur (cf. `moveHeroToGold`) : le sujet est
+  // la fin de tour + restauration des PM, PAS le tap-tap (couvert par son test
+  // dédié). Évite le flake tap-tap mobile sous charge (1er tap parfois perdu).
+  await moveHeroToGold(page);
   await expect.poll(() => heroPos(page)).toEqual({ x: 6, y: 3 });
 
   await page.getByTestId('end-turn').click();

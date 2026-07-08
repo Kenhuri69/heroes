@@ -8,13 +8,18 @@
 > (points d'extension moteur non encore ouverts — le loader refuse toute
 > donnée non interprétée) : capacités spéciales `taunt`/`shieldWall`/`charge`/
 > `firstStrike`/`resurrectAlly`/`spellcaster`/`unlimitedRetaliation` + immunité
-> au moral (moteur MVP à 6 capacités : `flying`/`shooter` seuls conservés ici) ;
+> au moral (le catalogue moteur compte **9 capacités** génériques —
+> `flying`/`shooter`/`noRetaliation`/`doubleAttack`/`undead`/`mark`/`consumeMarks`/
+> `demonform`/`symbiosis` ; seules `flying`/`shooter` concernent Haven) ;
 > bonus de faction Ferveur/Formation (§2) ; compétence Prière de bataille ;
 > bâtiments spéciaux Statue/Cloître/Écuries (§4, effets non supportés) ; école
 > Lumière (variante Eau au MVP, `spellSchool: null`) ; classes et héros nommés
-> Aldric/Séraphine (§5, pas de pipeline de héros par faction). Certaines
-> capacités s'ouvriront en 3.4 via le point d'extension `AbilityModule`. Ce
-> document reste la cible de design.
+> Aldric/Séraphine (§5, pas de pipeline de héros par faction). Les capacités
+> riches ci-dessus s'activeront quand le moteur ouvrira les points d'extension
+> **génériques** correspondants (le mécanisme réel = capacités inline
+> paramétrées par les données, cf. doc 06 §4 — il n'existe pas d'interface
+> `AbilityModule`). Le mécanisme d'élite livré = **habitation niveau 2** (§3bis).
+> Ce document reste la cible de design.
 
 ## 1. Identité
 

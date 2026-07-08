@@ -1,5 +1,6 @@
-import { Container, Graphics } from 'pixi.js';
+import { Container, Graphics, Sprite, type Texture } from 'pixi.js';
 import type { AdventureMapDef } from '@heroes/engine';
+import { getTexture, isoRoadUrl, isoTileUrl, tileVariant } from './assets';
 import { isoDiamond, isoTileCenter, ISO_TILE_H, ISO_TILE_W } from './projection';
 
 // Taille logique de la BOÎTE DE CONTENU d'une tuile (sprites/vignettes) — 64 px
@@ -17,39 +18,64 @@ const TERRAIN_COLORS: Record<string, [number, number]> = {
 };
 const UNKNOWN_TERRAIN: [number, number] = [0x555555, 0x4c4c4c];
 const ROAD_COLOR = 0x8a7a55;
-const TILE_EDGE = 0x11161b; // liseré discret entre losanges (lecture de la grille)
 
 /**
  * Carte statique projetée en **isométrie** (Lot A1, doc 02 §2.1). Chaque tuile
- * est un losange 2:1 teinté (repli gouache — les assets de tuiles iso sont un lot
- * d'assets ultérieur). Un seul `Graphics` retenu : géométrie construite une fois,
- * re-rendue en mesh à chaque frame (coût GPU négligeable ; pas de fill plein
- * écran, garde-fou anti-gel ×4 respecté, cf. `worldBorder.ts`).
+ * est un **losange texturé** (`assets/tiles/iso/`, préchargé au bootstrap) posé
+ * sur un **repli gouache** (losange teinté) qui sert de fond ET bouche les
+ * coutures d'anti-aliasing entre losanges. Repli seul si une texture manque
+ * (chargement partiel / asset absent) — dégradation gracieuse, jamais de trou noir.
+ *
+ * Base gouache = un seul `Graphics` (géométrie construite une fois) ; les tuiles
+ * texturées = sprites batchés par PixiJS (peu de textures ⇒ peu de draw calls).
  */
 export class Tilemap {
   readonly container = new Container();
 
   constructor(map: AdventureMapDef) {
-    const g = new Graphics();
-    // Dessin par profondeur (haut-gauche → bas-droite) : les liserés se
-    // recouvrent proprement, l'ordre iso est respecté même dans un seul Graphics.
+    const base = new Graphics(); // repli gouache + fond anti-couture
+    this.container.addChild(base);
+    // Dessin par profondeur (haut-gauche → bas-droite) : arêtes propres, ordre iso.
     for (let ty = 0; ty < map.height; ty++) {
       for (let tx = 0; tx < map.width; tx++) {
         const terrain = map.terrain[ty * map.width + tx] ?? '';
         const shades = TERRAIN_COLORS[terrain] ?? UNKNOWN_TERRAIN;
-        const diamond = isoDiamond(tx, ty);
-        g.poly(diamond).fill(shades[(tx + ty) % 2] as number).stroke({ width: 1, color: TILE_EDGE });
+        base.poly(isoDiamond(tx, ty)).fill(shades[(tx + ty) % 2] as number);
+
+        const tex = getTexture(isoTileUrl(terrain, tileVariant(tx, ty)));
+        if (tex) this.container.addChild(placeDiamond(tex, tx, ty));
+
         if (map.road[ty * map.width + tx]) {
-          // Ruban de route : losange inscrit (coût ×0,75 rendu visible, doc 02 §1.5).
-          g.poly(insetDiamond(tx, ty, 0.55)).fill(ROAD_COLOR);
+          const roadTex = getTexture(isoRoadUrl());
+          if (roadTex) this.container.addChild(placeDiamond(roadTex, tx, ty));
+          else base.poly(insetDiamond(tx, ty, 0.55)).fill(ROAD_COLOR);
         }
       }
     }
-    this.container.addChild(g);
+
+    // Carte statique → une seule texture (1 draw call/frame) : rend les ~1000
+    // losanges gratuits par frame (marge anti-gel ×4, doc 01 §5 critère 3). Garde
+    // sur les cartes géantes : l'extent iso ≈ (W+H)·32 px doit rester < taille max
+    // de texture ; au-delà on garde les sprites (batchés) plutôt qu'une texture
+    // tronquée. Léger flou au zoom max assumé (tuiles gouache basse fréquence,
+    // même compromis que l'ancien bake par chunks).
+    if ((map.width + map.height) * (ISO_TILE_W / 2) < 3968) {
+      this.container.cacheAsTexture(true);
+    }
   }
 }
 
-/** Losange concentrique réduit d'un facteur `k` (0..1) — ruban de route inscrit. */
+/** Sprite losange 64×32 centré sur le centre iso de la tuile (tx,ty). */
+function placeDiamond(texture: Texture, tx: number, ty: number): Sprite {
+  const s = new Sprite(texture);
+  s.anchor.set(0.5);
+  s.setSize(ISO_TILE_W, ISO_TILE_H);
+  const c = isoTileCenter(tx, ty);
+  s.position.set(c.x, c.y);
+  return s;
+}
+
+/** Losange concentrique réduit d'un facteur `k` (0..1) — ruban de route de repli. */
 function insetDiamond(tx: number, ty: number, k: number): number[] {
   const c = isoTileCenter(tx, ty);
   const hw = (ISO_TILE_W / 2) * k;

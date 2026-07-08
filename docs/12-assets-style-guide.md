@@ -36,10 +36,16 @@
 - Scripts : `tools/assets/gen_tiles.py`, `tools/assets/gen_ui_icons.py`.
   Chaque asset est une **recette** dans le script (comme les `RECIPES`
   d'`icon_factory.py` Hogwarth) — ajouter un asset = ajouter une recette.
-- **Tuiles** : 64×64 (le client rend `TILE_SIZE = 64`), **tileables** (tout
-  motif est dessiné avec wrap ±64 px), 3 variantes par terrain pour casser la
+- **Tuiles** : 64×64 (boîte de contenu du client), **tileables** (tout motif
+  est dessiné avec wrap ±64 px), 3 variantes par terrain pour casser la
   répétition. Palette sourde, lisible sous le brouillard de guerre et sous les
   objets de carte.
+- **Tuiles ISO** (Lot A1) : `gen_tiles.py` dérive en plus, de chaque tuile
+  carrée, un **losange 64×32** (`assets/tiles/iso/`) par rotation 45° +
+  compression verticale (= foreshortening iso) — transform PIL pur, donc
+  déterministe. Elles matchent `render/projection.ts` (ISO_TILE_W/H) et sont
+  posées par `tilemap.ts` sur le repli gouache. `iso/_preview.png` = contrôle de
+  tessellation (grille 4×4, aucun trou entre losanges adjacents).
 - **Icônes UI** : rendues à 256 px puis mipmaps LANCZOS 64/48/32/24/16
   (pratique Hogwarth). Silhouette pleine + ombrage simple 45° + liseré sombre ;
   **lisible à 16 px** (taille bandeau ressources mobile).
@@ -299,6 +305,7 @@ faction en dur) et dérivent le chemin de la donnée :
 | Famille | Chemin | Clé de résolution |
 |---|---|---|
 | Tuiles | `tiles/<terrain>-<1..3>.png`, `tiles/road-dirt.png` | terrain + variante déterministe |
+| Tuiles ISO | `tiles/iso/<terrain>-<1..3>.png`, `tiles/iso/road-dirt.png` | `isoTileUrl`/`isoRoadUrl` (rendu carte iso, Lot A1) |
 | Objets de carte | `mines/mine-<resource>.png` | `obj.resource` |
 | Artefacts | `artifacts/<artifactId>.png` | id d'artefact |
 | Bâtiments communs | `buildings/core/<buildingId>.png` | id de bâtiment |

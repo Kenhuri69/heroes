@@ -1,0 +1,21 @@
+{
+  "id": "t6-maitre",
+  "tier": 6,
+  "name": "@loc:unit.t6-maitre.name",
+  "stats": {
+    "hp": 55,
+    "attack": 14,
+    "defense": 12,
+    "damage": [
+      10,
+      16
+    ],
+    "speed": 5
+  },
+  "growthPerWeek": 2,
+  "cost": {
+    "gold": 1150,
+    "gems": 1
+  },
+  "abilities": []
+}

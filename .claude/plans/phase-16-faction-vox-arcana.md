@@ -66,8 +66,18 @@ T8 Avatar du Honmoon (débloqué à Résonance max).
     golden re-fixé (`50cf7842`, forme seule). Garde-fou vert, typecheck/lint OK.
   - **Écart** : le **client** ne passe pas encore `houseCatalog`/`startingHouseId`
     à `StartGame` (Maisons dormantes en jeu) → **16.2** avec les données vox-arcana.
-- **16.2** — paquet `data/factions/vox-arcana/` en stub (manifeste + 1 unité T1) qui charge et passe `content:check` ; ajout à `data/factions/index.json`.
-- **16.3** — lineup T1–T8 data-only (capacités génériques) + test de recrutement faction-agnostique.
+- **16.2a** ✅ **LIVRÉ** — paquet `data/factions/vox-arcana/` complet : manifeste
+  (5 **Maisons** `houses[]` à effets déclaratifs, lineup T1–T8, chaîne d'habitations
+  T1→T8, ville), 8 unités (capacités génériques `shooter/flying/noRetaliation`),
+  `buildings.json`, locales FR/EN ; ajout à `data/factions/index.json`.
+  Vérif : `content:check` + `faction:validate vox-arcana` verts, test contenu
+  « la faction qui déclare des Maisons en résout un catalogue non vide » (trouvée
+  par signature, sans la nommer → garde-fou vert), 89 tests contenu.
+  Écart : **Résonance** (ressource) + **École de la Scène** (sorts) + spécialités
+  différées ; élites différées.
+- **16.2b** — câblage client : passer `houseCatalog`/`startingHouseId` à `StartGame`
+  + registre d'assets (sprites/blasons/avatars vox-arcana). ⏳
+- **16.3** — Résonance (`factionResources` + `gainFactionResourceOnVictory`) + École de la Scène.
 - **16.4** — Résonance : `factionResources` + `gainFactionResourceOnVictory` (réutilise l'acquis Essence) ; T8 gaté par la Résonance.
 - **16.5** — École de la Scène : `spellSchool: scene` + 4 sorts (effets génériques) + locales.
 - **16.6** — héros Hermione & Rumi en données + staging des assets (QC `sheet_extract`).

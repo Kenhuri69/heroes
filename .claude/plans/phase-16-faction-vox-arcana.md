@@ -92,8 +92,23 @@ T8 Avatar du Honmoon (débloqué à Résonance max).
     Cercles) ; sprites/blasons auto-découverts (doc 12 §10, zéro code).
   - Écart : héros recrutés APRÈS le choix (tavernes) — inheritance différée
     (stamp à la construction couvre le héros de départ, cas MVP).
-- **16.3** — Résonance (`factionResources` + `gainFactionResourceOnVictory`) + École de la Scène.
-- **16.4** — Résonance : `factionResources` + `gainFactionResourceOnVictory` (réutilise l'acquis Essence) ; T8 gaté par la Résonance.
+- **16.3** — (absorbé par 16.4/16.5 : Résonance puis École de la Scène, livrés séparément).
+- **16.4** ✅ **LIVRÉ** — Résonance : ressource de faction en **pur contenu**
+  (zéro diff moteur), réutilise l'acquis Essence.
+  - Manifeste vox-arcana : `factionResources: [{ id: resonance, cap: 999 }]` +
+    `factionBonuses: [{ type: gainFactionResourceOnVictory, resource: resonance,
+    amount: 10 }]` (bonus déjà interprété par `engine/faction/effects.ts`).
+  - **T8 gaté** : `units/t8-avatar.json` coût `+40 resonance` (même mécanique
+    que le Pénitent AH gate par l'Essence — `unit.cost` admet les ressources
+    de faction).
+  - Locales FR/EN : `factionResource.resonance` (Résonance / Resonance).
+  - Test : `content/test/resonance-economy.test.ts` — faction trouvée **par
+    signature** (déclare Maisons + ressource), assert gain-sur-victoire + T8 gaté
+    + locales, jamais l'id littéral. 92 tests contenu verts.
+  - Vérifs : `content:check` + `faction:validate vox-arcana` verts, typecheck/lint
+    OK, 376 tests moteur (golden inchangé), garde-fou « zéro faction » vert.
+  - **Écart** : génération de Résonance intra-combat (performeurs) différée ;
+    icône `icons/resonance.png` non stagée ⇒ repli gracieux client (`<i/>`).
 - **16.5** — École de la Scène : `spellSchool: scene` + 4 sorts (effets génériques) + locales.
 - **16.6** — héros Hermione & Rumi en données + staging des assets (QC `sheet_extract`).
 - **Différés** : Résonance intra-combat (performeurs), barrière du Honmoon T8, renaissance Phénix, peur Sombral, unités élites.

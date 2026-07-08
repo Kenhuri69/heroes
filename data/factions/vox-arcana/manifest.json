@@ -7,8 +7,20 @@
     "crystal",
     "gems"
   ],
-  "factionResources": [],
-  "factionBonuses": [],
+  "factionResources": [
+    {
+      "id": "resonance",
+      "icon": "icons/resonance.png",
+      "cap": 999
+    }
+  ],
+  "factionBonuses": [
+    {
+      "type": "gainFactionResourceOnVictory",
+      "resource": "resonance",
+      "amount": 10
+    }
+  ],
   "houses": [
     {
       "id": "house-lion",

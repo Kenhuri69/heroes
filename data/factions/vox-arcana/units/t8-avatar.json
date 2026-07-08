@@ -15,7 +15,8 @@
   "growthPerWeek": 1,
   "cost": {
     "gold": 3600,
-    "gems": 3
+    "gems": 3,
+    "resonance": 40
   },
   "abilities": [
     {

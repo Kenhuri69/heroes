@@ -19,6 +19,7 @@ import { SkirmishScreen } from './SkirmishScreen';
 import { Journal } from './Journal';
 import { ToastHost, pushToast } from './toasts';
 import { CombatUi } from './combat';
+import { PreBattleScreen } from './PreBattleScreen';
 import { TownScreen } from './TownScreen';
 import { HeroSkills } from './HeroSkills';
 import { HeroInventory } from './HeroInventory';
@@ -45,6 +46,7 @@ function Shell() {
   const screen = useScreen();
   const started = useApp((s) => s.game.started);
   const inCombat = useApp((s) => s.game.combat !== null);
+  const preBattle = useApp((s) => s.preBattlePending);
   const modals = useModals();
   // Remédiation CL4 : la montée de niveau vise le héros du JOUEUR HUMAIN avec
   // un choix en attente (avant : `heroes[0]`, qui pouvait être un héros IA).
@@ -95,7 +97,11 @@ function Shell() {
         <MapEditor />
       ) : started ? (
         inCombat ? (
-          <CombatUi />
+          preBattle ? (
+            <PreBattleScreen />
+          ) : (
+            <CombatUi />
+          )
         ) : (
           <>
             {/* UXD-3A : vignette de bord de monde (radial-gradient DOM, composée

@@ -73,7 +73,23 @@ intercalé dans la transition carte → combat.
 s'affiche avec les deux puissances ; les deux chemins (manuel / auto) mènent au
 même état final déterministe qu'aujourd'hui.
 
-### Lot 2 — File d'ordre de tour en combat *(D2, priorité moyenne)*
+> ✅ **Lot 1 LIVRÉ.** `PreBattleScreen.tsx` (overlay client) intercalé au
+> démarrage de tout combat via un flag `preBattlePending` (armé/désarmé par
+> `dispatch` aux transitions de `game.combat`). Puissance = **`armyStrength`
+> réutilisé** (même métrique que le graphe de fin de partie — pas de 2ᵉ formule
+> de « puissance » ; aucun ajout moteur, golden inchangé). Portraits : avatar de
+> héros (attaquant) / sprite d'unité dominante (défenseur), repli `FactionBadge`.
+> Boutons **Combattre** (→ `CombatUi`) / **Auto-Battle** (→ `AutoCombat`). Piège
+> résolu : `#ui-root` est `pointer-events:none` → le backdrop doit ré-activer
+> `pointer-events:auto` sinon le clic traverse vers le canvas. i18n FR/EN, CSS.
+> Smoke : test dédié (puissances comparées + Auto-Battle résout) + `passPreBattle`
+> inséré dans les 9 tests de combat existants. Docs 02 §5.5 à jour.
+
+### Lot 2 — File d'ordre de tour en combat *(D2, priorité moyenne)* — ✅ DÉJÀ LIVRÉ (lot M1)
+
+> Découvert en cours de Lot 1 : la **file d'ordre** existe déjà (`combat-order`,
+> helper moteur `roundActionOrder`/`initiativeSpeed`, fiche de pile `stack-sheet`,
+> lot UX **M1** ; smoke « la file d'ordre s'affiche »). Rien à faire.
 
 **But** : afficher l'ordre d'action du round courant (portraits dans l'ordre où
 les piles vont jouer), comme le bandeau initiative de HO — **sans** passer à un
@@ -194,7 +210,7 @@ docs.
 5. **Décision B** — probablement B0/B1 (documentaire/UI), pas de code lourd.
 
 > Journal (à cocher à l'avancement) :
-> - [ ] Lot 1 — pré-combat & Auto-Battle
+> - [x] Lot 1 — pré-combat & Auto-Battle → **LIVRÉ** (`PreBattleScreen`, `armyStrength` réutilisé)
 > - [x] Lot 2 — file d'initiative → **LIVRÉ par le lot M1** du plan
 >   `ux-revue-mmho.md` (helper `roundActionOrder`, bandeau d'ordre + fiche de
 >   pile) — feu vert « lance le travail » 2026-07-08

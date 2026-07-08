@@ -24,15 +24,18 @@ export const RESOURCE_COLORS: Record<string, number> = {
 
 /** Couche des objets interactifs — resynchronisée sur l'état après chaque commande. */
 export class MapObjectsLayer {
-  readonly container = new Container();
   private readonly byId = new Map<string, Container>();
   /** Signature de rendu par objet — un changement (mine recapturée) force la reconstruction. */
   private readonly signatures = new Map<string, string>();
 
-  constructor() {
-    // Tri de profondeur iso : les objets « plus bas » (x+y grand) passent devant.
-    this.container.sortableChildren = true;
-  }
+  /**
+   * `layer` : couche d'entités PARTAGÉE (objets + villes + héros) triée par
+   * profondeur iso (`sortableChildren`). Chaque nœud porte son `zIndex = x+y`,
+   * si bien qu'un objet de premier plan passe devant un héros situé plus haut
+   * (tri INTER-couches, finition A1). Les objets tracés par `byId` restent
+   * gérés ici ; seule leur destination change.
+   */
+  constructor(private readonly layer: Container) {}
 
   sync(
     objects: readonly MapObjectDef[],
@@ -65,7 +68,7 @@ export class MapObjectsLayer {
       node.zIndex = isoDepth(obj.pos.x, obj.pos.y);
       this.byId.set(obj.id, node);
       this.signatures.set(obj.id, signature);
-      this.container.addChild(node);
+      this.layer.addChild(node);
     }
   }
 }

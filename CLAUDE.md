@@ -157,7 +157,9 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > toucher au moteur : **A1 — rendu isométrique** de la carte d'aventure
 > (`render/projection.ts` : losange 2:1 façon HO ; grille moteur **carrée**
 > inchangée, seule la projection de rendu + le picking `tileToScreen` deviennent
-> iso ; repli gouache, tri de profondeur, brouillard/rivage/chemin projetés) ;
+> iso ; **tuiles-losanges texturées** `assets/tiles/iso/` dérivées par `gen_tiles.py`
+> sur repli gouache, tilemap mise en cache, tri de profondeur, brouillard/rivage/
+> chemin projetés) ;
 > **B1 — file de chantier** dans l'écran de ville (bandeau « Chantier du jour »
 > libre/occupé + temps en **jours**, jamais en secondes — habillage de la règle
 > « 1 construction/jour », zéro churn moteur/sauvegarde). Lots combat fidélité

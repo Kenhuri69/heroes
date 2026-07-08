@@ -95,6 +95,16 @@ export function roadUrl(): string | undefined {
   return registry.get('tiles/road-dirt');
 }
 
+/** Tuile ISO (losange 64×32) par terrain/variante (`tiles/iso/<terrain>-<v>`, Lot A1). */
+export function isoTileUrl(terrain: string, variant: number): string | undefined {
+  return registry.get(`tiles/iso/${terrain}-${variant}`);
+}
+
+/** Route ISO (losange `tiles/iso/road-dirt`, Lot A1). */
+export function isoRoadUrl(): string | undefined {
+  return registry.get('tiles/iso/road-dirt');
+}
+
 /** Objet de carte « tas de ressource » → visuel de mine par ressource. */
 export function mineUrl(resource: string): string | undefined {
   return registry.get(`mines/mine-${resource}`);

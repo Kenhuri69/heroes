@@ -31,8 +31,15 @@ REPO = Path(__file__).resolve().parent.parent.parent
 OUT = REPO / "assets" / "tiles"
 CONFIG = REPO / "data" / "core" / "config.json"
 
-S = 64          # taille de tuile (= TILE_SIZE client)
+S = 64          # taille de tuile carrée (= boîte de contenu client)
 VARIANTS = 3
+
+# Projection isométrique (Lot A1) : losange 2:1 dérivé de la tuile carrée par
+# rotation 45° + compression verticale (= foreshortening iso). Doit matcher
+# `packages/client/src/render/projection.ts` (ISO_TILE_W / ISO_TILE_H).
+ISO_W = 64
+ISO_H = 32
+ISO_SS = 4      # suréchantillonnage pour des arêtes de losange nettes
 
 # Offsets de wrap : dessiner chaque motif 9 fois garantit la tileabilité.
 WRAP = [(dx, dy) for dx in (-S, 0, S) for dy in (-S, 0, S)]
@@ -172,6 +179,17 @@ def render(name: str, recipe, variant: int) -> Image.Image:
     return img
 
 
+def to_iso(img: Image.Image) -> Image.Image:
+    """Losange iso 2:1 (64×32, coins transparents) dérivé d'une tuile carrée.
+
+    Rotation 45° (⇒ la tuile devient un losange) puis compression verticale ×0,5
+    (⇒ foreshortening iso). Suréchantillonnage ×4 pour des arêtes propres. Pur
+    transform déterministe (PIL) — re-run = octets identiques."""
+    big = img.convert("RGBA").resize((S * ISO_SS, S * ISO_SS), Image.NEAREST)
+    dia = big.rotate(45, expand=True, resample=Image.BICUBIC, fillcolor=(0, 0, 0, 0))
+    return dia.resize((ISO_W, ISO_H), Image.BICUBIC)
+
+
 def main() -> None:
     terrains = list(json.loads(CONFIG.read_text())["adventure"]["terrains"])
     missing = [t for t in terrains if t not in TERRAIN_RECIPES]
@@ -192,6 +210,19 @@ def main() -> None:
     tiles.append(("road-dirt", road))
     print(f"  {(OUT / 'road-dirt.png').relative_to(REPO)}")
 
+    # ── tuiles ISO (Lot A1 : rendu isométrique de la carte) ──────────────────
+    # Losanges 64×32 dérivés des tuiles carrées, sous assets/tiles/iso/. Le
+    # client (`tilemap.ts`) les pose au centre du losange (`isoTileCenter`) sur
+    # le repli gouache. Déterministe (transform PIL pur).
+    iso_out = OUT / "iso"
+    iso_out.mkdir(parents=True, exist_ok=True)
+    iso_tiles: list[tuple[str, Image.Image]] = []
+    for name, img in tiles:
+        iso = to_iso(img)
+        iso.save(iso_out / f"{name}.png", optimize=True)
+        iso_tiles.append((name, iso))
+        print(f"  {(iso_out / f'{name}.png').relative_to(REPO)}")
+
     # planche de contrôle (tuiles ×2 + damier 2×2 pour vérifier la tileabilité)
     cols, cell, pad = VARIANTS + 1, S * 2 + 12, 20
     rows = (len(tiles) + cols - 1) // cols
@@ -209,6 +240,23 @@ def main() -> None:
     prev.save(OUT / "_preview.png", optimize=True)
     print(f"\npreview → {(OUT / '_preview.png').relative_to(REPO)} "
           f"({len(tiles)} tuiles, damier 2×2 = contrôle de tileabilité)")
+
+    # planche de contrôle ISO : chaque terrain posé en petit losange 4×4 pour
+    # vérifier la tessellation (aucun trou entre losanges adjacents).
+    iso_prev = Image.new("RGBA", (len(iso_tiles) * (ISO_W + 8) + 8, ISO_H * 5 + 24), (24, 24, 28, 255))
+    di = ImageDraw.Draw(iso_prev)
+    for i, (name, iso) in enumerate(iso_tiles):
+        ox = i * (ISO_W + 8) + 8
+        oy = 12
+        for gy in range(4):
+            for gx in range(4):
+                cx = ox + (gx - gy) * (ISO_W // 2)
+                cy = oy + (gx + gy) * (ISO_H // 2)
+                iso_prev.alpha_composite(iso, (cx, cy))
+        di.text((ox, ISO_H * 5 + 8), name, fill=(200, 200, 200, 255))
+    iso_prev.save(iso_out / "_preview.png")
+    print(f"iso    → {(iso_out / '_preview.png').relative_to(REPO)} "
+          f"({len(iso_tiles)} losanges, grille 4×4 = contrôle de tessellation)")
 
 
 if __name__ == "__main__":

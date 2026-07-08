@@ -8,6 +8,7 @@ import { loadGameContent, loadDefaultMap, loadScenarioMap, resolveGeneratedMap }
 import {
   buildFactionSetup,
   buildHeroSetup,
+  buildHouseSetup,
   buildTownSetup,
   buildUnitCatalog,
   newGameCommand,
@@ -172,6 +173,7 @@ async function bootstrap(): Promise<void> {
         buildTownSetup(report),
         buildHeroSetup(report),
         buildFactionSetup(report),
+        buildHouseSetup(report),
       ),
     );
     navigate('adventure');

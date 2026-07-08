@@ -1,0 +1,24 @@
+{
+  "id": "t3-hippogriffe",
+  "tier": 3,
+  "name": "@loc:unit.t3-hippogriffe.name",
+  "stats": {
+    "hp": 25,
+    "attack": 7,
+    "defense": 6,
+    "damage": [
+      4,
+      7
+    ],
+    "speed": 7
+  },
+  "growthPerWeek": 6,
+  "cost": {
+    "gold": 180
+  },
+  "abilities": [
+    {
+      "id": "flying"
+    }
+  ]
+}

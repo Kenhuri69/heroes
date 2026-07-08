@@ -1,0 +1,308 @@
+{
+  "buildings": [
+    {
+      "id": "vox-arcana-dwelling-t1",
+      "maxLevel": 1,
+      "levels": [
+        {
+          "cost": {
+            "gold": 500
+          },
+          "requires": [
+            {
+              "building": "fort",
+              "level": 1
+            }
+          ],
+          "effect": {
+            "type": "dwelling",
+            "tier": 1,
+            "unitId": "t1-choeur"
+          }
+        }
+      ]
+    },
+    {
+      "id": "vox-arcana-dwelling-t2",
+      "maxLevel": 1,
+      "levels": [
+        {
+          "cost": {
+            "gold": 1000,
+            "wood": 5
+          },
+          "requires": [
+            {
+              "building": "vox-arcana-dwelling-t1",
+              "level": 1
+            }
+          ],
+          "effect": {
+            "type": "dwelling",
+            "tier": 2,
+            "unitId": "t2-duelliste"
+          }
+        }
+      ]
+    },
+    {
+      "id": "vox-arcana-dwelling-t3",
+      "maxLevel": 1,
+      "levels": [
+        {
+          "cost": {
+            "gold": 2000
+          },
+          "requires": [
+            {
+              "building": "vox-arcana-dwelling-t2",
+              "level": 1
+            }
+          ],
+          "effect": {
+            "type": "dwelling",
+            "tier": 3,
+            "unitId": "t3-hippogriffe"
+          }
+        }
+      ]
+    },
+    {
+      "id": "vox-arcana-dwelling-t4",
+      "maxLevel": 1,
+      "levels": [
+        {
+          "cost": {
+            "gold": 3500,
+            "crystal": 2
+          },
+          "requires": [
+            {
+              "building": "vox-arcana-dwelling-t3",
+              "level": 1
+            }
+          ],
+          "effect": {
+            "type": "dwelling",
+            "tier": 4,
+            "unitId": "t4-idole"
+          }
+        }
+      ]
+    },
+    {
+      "id": "vox-arcana-dwelling-t5",
+      "maxLevel": 1,
+      "levels": [
+        {
+          "cost": {
+            "gold": 5500
+          },
+          "requires": [
+            {
+              "building": "vox-arcana-dwelling-t4",
+              "level": 1
+            }
+          ],
+          "effect": {
+            "type": "dwelling",
+            "tier": 5,
+            "unitId": "t5-sombral"
+          }
+        }
+      ]
+    },
+    {
+      "id": "vox-arcana-dwelling-t6",
+      "maxLevel": 1,
+      "levels": [
+        {
+          "cost": {
+            "gold": 8000,
+            "gems": 2
+          },
+          "requires": [
+            {
+              "building": "vox-arcana-dwelling-t5",
+              "level": 1
+            }
+          ],
+          "effect": {
+            "type": "dwelling",
+            "tier": 6,
+            "unitId": "t6-maitre"
+          }
+        }
+      ]
+    },
+    {
+      "id": "vox-arcana-dwelling-t7",
+      "maxLevel": 1,
+      "levels": [
+        {
+          "cost": {
+            "gold": 12000,
+            "gems": 4
+          },
+          "requires": [
+            {
+              "building": "vox-arcana-dwelling-t6",
+              "level": 1
+            },
+            {
+              "building": "fort",
+              "level": 2
+            }
+          ],
+          "effect": {
+            "type": "dwelling",
+            "tier": 7,
+            "unitId": "t7-phenix"
+          }
+        }
+      ]
+    },
+    {
+      "id": "vox-arcana-dwelling-t8",
+      "maxLevel": 1,
+      "levels": [
+        {
+          "cost": {
+            "gold": 18000,
+            "gems": 6
+          },
+          "requires": [
+            {
+              "building": "vox-arcana-dwelling-t7",
+              "level": 1
+            },
+            {
+              "building": "fort",
+              "level": 3
+            }
+          ],
+          "effect": {
+            "type": "dwelling",
+            "tier": 8,
+            "unitId": "t8-avatar"
+          }
+        }
+      ]
+    },
+    {
+      "id": "vox-arcana-house-lion",
+      "maxLevel": 1,
+      "exclusiveGroup": "vox-arcana-house",
+      "levels": [
+        {
+          "cost": {
+            "gold": 1000,
+            "crystal": 2
+          },
+          "requires": [
+            {
+              "building": "townHall",
+              "level": 1
+            }
+          ],
+          "effect": {
+            "type": "houseChoice",
+            "houseId": "house-lion"
+          }
+        }
+      ]
+    },
+    {
+      "id": "vox-arcana-house-serpent",
+      "maxLevel": 1,
+      "exclusiveGroup": "vox-arcana-house",
+      "levels": [
+        {
+          "cost": {
+            "gold": 1000,
+            "crystal": 2
+          },
+          "requires": [
+            {
+              "building": "townHall",
+              "level": 1
+            }
+          ],
+          "effect": {
+            "type": "houseChoice",
+            "houseId": "house-serpent"
+          }
+        }
+      ]
+    },
+    {
+      "id": "vox-arcana-house-eagle",
+      "maxLevel": 1,
+      "exclusiveGroup": "vox-arcana-house",
+      "levels": [
+        {
+          "cost": {
+            "gold": 1000,
+            "crystal": 2
+          },
+          "requires": [
+            {
+              "building": "townHall",
+              "level": 1
+            }
+          ],
+          "effect": {
+            "type": "houseChoice",
+            "houseId": "house-eagle"
+          }
+        }
+      ]
+    },
+    {
+      "id": "vox-arcana-house-badger",
+      "maxLevel": 1,
+      "exclusiveGroup": "vox-arcana-house",
+      "levels": [
+        {
+          "cost": {
+            "gold": 1000,
+            "crystal": 2
+          },
+          "requires": [
+            {
+              "building": "townHall",
+              "level": 1
+            }
+          ],
+          "effect": {
+            "type": "houseChoice",
+            "houseId": "house-badger"
+          }
+        }
+      ]
+    },
+    {
+      "id": "vox-arcana-house-venari",
+      "maxLevel": 1,
+      "exclusiveGroup": "vox-arcana-house",
+      "levels": [
+        {
+          "cost": {
+            "gold": 1000,
+            "crystal": 2
+          },
+          "requires": [
+            {
+              "building": "townHall",
+              "level": 1
+            }
+          ],
+          "effect": {
+            "type": "houseChoice",
+            "houseId": "house-venari"
+          }
+        }
+      ]
+    }
+  ]
+}

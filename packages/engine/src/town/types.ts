@@ -31,6 +31,13 @@ export type BuildingEffect =
    * faction `resource` (id opaque — le moteur ne connaît aucune faction).
    */
   | { type: 'huntContract'; gold: number; resource: string; amount: number }
+  /**
+   * Choix de Maison (doc 16 §3.1, « Le Choixpeau ») : à la construction, le(s)
+   * héros du propriétaire relèvent de la Maison `houseId` — le moteur résout cet
+   * id **opaque** dans `GameState.houseCatalog` et applique ses effets déclaratifs
+   * comme des compétences (jamais un nom de faction/Maison). Combiné à
+   * `exclusiveGroup`, il modélise le choix unique et irréversible d'une Maison. */
+  | { type: 'houseChoice'; houseId: string }
   /** Bâtiment sans effet mécanique (ex. Taverne : prérequis d'arbre seul). La
    *  Forge, elle, porte `warMachineVendor` (Alpha 4.12), pas `none`. */
   | { type: 'none' };

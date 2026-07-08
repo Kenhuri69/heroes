@@ -1,0 +1,28 @@
+{
+  "id": "t7-phenix",
+  "tier": 7,
+  "name": "@loc:unit.t7-phenix.name",
+  "stats": {
+    "hp": 150,
+    "attack": 19,
+    "defense": 17,
+    "damage": [
+      22,
+      34
+    ],
+    "speed": 11
+  },
+  "growthPerWeek": 1,
+  "cost": {
+    "gold": 2500,
+    "gems": 2
+  },
+  "abilities": [
+    {
+      "id": "flying"
+    },
+    {
+      "id": "noRetaliation"
+    }
+  ]
+}

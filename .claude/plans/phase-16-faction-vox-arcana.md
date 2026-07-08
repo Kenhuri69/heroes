@@ -42,16 +42,57 @@ T8 Avatar du Honmoon (débloqué à Résonance max).
 2. Nom de faction verrouillé → **vérif** : **Vox Arcana** (`vox-arcana`). ✅
 3. Base d'assets : prompts avatars Hermione & Rumi + blasons 5 Maisons + planche d'unités → **vérif** : `assets/prompts/faction-vox-arcana.md`, prompts conformes doc 12. ✅
 4. Génération des visuels **(externe/Gemini — côté utilisateur)** → **vérif** : 3 planches reçues (unités T1–T8, 5 Maisons, héros Hermione & Rumi), conformes DA. ✅
-   - QC + détourage + staging `assets/` (`sheet_extract`) → **vérif** : ⏳ en attente des PNG bruts déposés dans le repo/la session.
+   - QC + détourage + staging `assets/` (`sheet_extract`) → **vérif** : ✅ stagé,
+     base complète : 2 héros, 5 blasons, **8/8 unités** (t5-sombral & t7-phenix
+     regénérées sur fond gris clair puis extraites, QC verte).
 5. Verrouillage du plan par les assets → **vérif** : DA + roster + 5 Maisons + héros tous lisibles et raccord ; distinction vs Arcane Hunters confirmée. ✅
 6. Rédaction `docs/16-faction-vox-arcana.md` (source de vérité, guidelines §8.6) → **vérif** : doc complet façon doc 05 (lore, 5 Maisons, Résonance, École de la Scène, lineup T1–T8, bâtiments, héros, points d'extension). ✅
-7. Découpage en sous-lots data-only + points d'extension (`houseAllegiance`, Résonance) → **vérif** : garde-fou « zéro faction dans le moteur » vert. ⏳ (prochain lot)
+7. Découpage en sous-lots data-only + points d'extension (`houseAllegiance`, Résonance) → **vérif** : garde-fou « zéro faction dans le moteur » vert. ⏳ (en cours)
 
 ## Découpage pressenti (sous-lots)
 
-- **16.1** — `houseAllegiance` : LE nouveau point d'extension moteur générique (profil de bonus déclaratif choisi par héros/ville) + garde-fou vert + golden inchangé.
-- **16.2** — paquet `data/factions/vox-arcana/` en stub (manifeste + 1 unité T1) qui charge et passe `content:check` ; ajout à `data/factions/index.json`.
-- **16.3** — lineup T1–T8 data-only (capacités génériques) + test de recrutement faction-agnostique.
+- **16.1** ✅ **LIVRÉ** — `houseAllegiance` : LE nouveau point d'extension moteur générique.
+  - `HeroState.houseId` + `houseEffects` (save v9→**v10**) ; effets résolus à la
+    création depuis `StartGame.houseCatalog` + `PlayerSetup.startingHouseId`.
+  - Injection dans `hero/skills.ts` (`sumHouseField`) : les effets de Maison
+    s'agrègent au même titre que les compétences dans **chaque** accesseur
+    (or/jour, mêlée/tir/armure, chance, moral, PM, vision) + réduction de mana
+    **agnostique de l'école** — zéro changement chez les consommateurs, zéro nom
+    de faction (l'accesseur ne lit que `hero.houseEffects`).
+  - Contenu : `houseSchema`/`houseEffectSchema` (sous-ensemble réellement agrégé,
+    pas de mensonge de contenu), `manifest.houses[]`, `buildHouseCatalog`,
+    validation des clés de nom localisées.
+  - Tests : `house-allegiance.test.ts` (moteur + contenu), `save-shape` v10,
+    golden re-fixé (`50cf7842`, forme seule). Garde-fou vert, typecheck/lint OK.
+  - **Écart** : le **client** ne passe pas encore `houseCatalog`/`startingHouseId`
+    à `StartGame` (Maisons dormantes en jeu) → **16.2** avec les données vox-arcana.
+- **16.2a** ✅ **LIVRÉ** — paquet `data/factions/vox-arcana/` complet : manifeste
+  (5 **Maisons** `houses[]` à effets déclaratifs, lineup T1–T8, chaîne d'habitations
+  T1→T8, ville), 8 unités (capacités génériques `shooter/flying/noRetaliation`),
+  `buildings.json`, locales FR/EN ; ajout à `data/factions/index.json`.
+  Vérif : `content:check` + `faction:validate vox-arcana` verts, test contenu
+  « la faction qui déclare des Maisons en résout un catalogue non vide » (trouvée
+  par signature, sans la nommer → garde-fou vert), 89 tests contenu.
+  Écart : **Résonance** (ressource) + **École de la Scène** (sorts) + spécialités
+  différées ; élites différées.
+- **16.2b** ✅ **LIVRÉ** — **choix de Maison via « Le Choixpeau »** (décision utilisateur : option B).
+  Bâtiment exclusif (réutilise `exclusiveGroup`, façon Cercles AH) qui fixe la
+  Maison de la ville et applique ses bonus au(x) héros du propriétaire.
+  - **Moteur** (nouveau point générique) : effet de bâtiment déclaratif
+    `houseChoice { houseId }` interprété à `BuildStructure` → résout `houseId`
+    dans un `GameState.houseCatalog` (embarqué à `StartGame`) et stampe
+    `houseId`/`houseEffects` sur les héros du propriétaire. `PlayerState.houseId`
+    = choix canonique. Save v10→**v11** ; golden re-fixé. Zéro nom de faction
+    (le moteur ne lit que `effect.houseId` opaque).
+  - **Contenu** : 5 bâtiments Choixpeau (`vox-arcana-house-{lion,serpent,eagle,
+    badger,venari}`, `exclusiveGroup: "vox-arcana-house"`, effet `houseChoice`),
+    ajoutés à `manifest.town.buildings` + locales.
+  - **Client** : passer `houseCatalog` à `StartGame` (les 3 sites) ; la sélection
+    passe par l'écran de ville existant (bâtiments exclusifs déjà gérés, façon
+    Cercles) ; sprites/blasons auto-découverts (doc 12 §10, zéro code).
+  - Écart : héros recrutés APRÈS le choix (tavernes) — inheritance différée
+    (stamp à la construction couvre le héros de départ, cas MVP).
+- **16.3** — Résonance (`factionResources` + `gainFactionResourceOnVictory`) + École de la Scène.
 - **16.4** — Résonance : `factionResources` + `gainFactionResourceOnVictory` (réutilise l'acquis Essence) ; T8 gaté par la Résonance.
 - **16.5** — École de la Scène : `spellSchool: scene` + 4 sorts (effets génériques) + locales.
 - **16.6** — héros Hermione & Rumi en données + staging des assets (QC `sheet_extract`).

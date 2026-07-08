@@ -169,6 +169,7 @@ test('le client démarre sans erreur et charge le contenu', async ({ page }) => 
     'test-faction',
     'necropolis',
     'sylvan-court',
+    'vox-arcana',
   ]);
 
   // La partie démarre sur la carte proto : héros à sa position de départ.

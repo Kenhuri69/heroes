@@ -48,6 +48,8 @@ function heroAt(pos: { x: number; y: number }, warMachines: string[] = []): Hero
     artifacts: Array.from({ length: 10 }, () => null),
     pendingSkillChoices: [],
     factionId: '',
+    houseId: '',
+    houseEffects: [],
     warMachines,
   };
 }

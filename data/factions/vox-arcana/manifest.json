@@ -1,0 +1,146 @@
+{
+  "id": "vox-arcana",
+  "schemaVersion": 1,
+  "name": "@loc:faction.vox-arcana.name",
+  "nativeTerrain": "grass",
+  "keyResources": [
+    "crystal",
+    "gems"
+  ],
+  "factionResources": [],
+  "factionBonuses": [],
+  "houses": [
+    {
+      "id": "house-lion",
+      "name": "@loc:house.house-lion",
+      "effects": [
+        {
+          "meleeDamagePct": 10,
+          "moraleBonus": 1
+        }
+      ]
+    },
+    {
+      "id": "house-serpent",
+      "name": "@loc:house.house-serpent",
+      "effects": [
+        {
+          "goldPerDay": 250
+        }
+      ]
+    },
+    {
+      "id": "house-eagle",
+      "name": "@loc:house.house-eagle",
+      "effects": [
+        {
+          "manaCostReductionPct": 15
+        }
+      ]
+    },
+    {
+      "id": "house-badger",
+      "name": "@loc:house.house-badger",
+      "effects": [
+        {
+          "armorReductionPct": 8
+        }
+      ]
+    },
+    {
+      "id": "house-venari",
+      "name": "@loc:house.house-venari",
+      "effects": [
+        {
+          "rangedDamagePct": 10,
+          "luckBonus": 1
+        }
+      ]
+    }
+  ],
+  "spellSchool": null,
+  "heroSkills": [],
+  "tiers": 8,
+  "sharedGrowthGroups": {},
+  "units": [
+    "t1-choeur",
+    "t2-duelliste",
+    "t3-hippogriffe",
+    "t4-idole",
+    "t5-sombral",
+    "t6-maitre",
+    "t7-phenix",
+    "t8-avatar"
+  ],
+  "abilityModules": [],
+  "hooks": [],
+  "aiProfile": {
+    "aggression": 0.55,
+    "focusFire": 0.6,
+    "preferredTargets": "strongest"
+  },
+  "town": {
+    "buildings": [
+      "townHall",
+      "fort",
+      "mageGuild",
+      "forge",
+      "tavern",
+      "vox-arcana-dwelling-t1",
+      "vox-arcana-dwelling-t2",
+      "vox-arcana-dwelling-t3",
+      "vox-arcana-dwelling-t4",
+      "vox-arcana-dwelling-t5",
+      "vox-arcana-dwelling-t6",
+      "vox-arcana-dwelling-t7",
+      "vox-arcana-dwelling-t8",
+      "vox-arcana-house-lion",
+      "vox-arcana-house-serpent",
+      "vox-arcana-house-eagle",
+      "vox-arcana-house-badger",
+      "vox-arcana-house-venari"
+    ],
+    "dwellings": [
+      {
+        "tier": 1,
+        "unitId": "t1-choeur",
+        "buildingId": "vox-arcana-dwelling-t1"
+      },
+      {
+        "tier": 2,
+        "unitId": "t2-duelliste",
+        "buildingId": "vox-arcana-dwelling-t2"
+      },
+      {
+        "tier": 3,
+        "unitId": "t3-hippogriffe",
+        "buildingId": "vox-arcana-dwelling-t3"
+      },
+      {
+        "tier": 4,
+        "unitId": "t4-idole",
+        "buildingId": "vox-arcana-dwelling-t4"
+      },
+      {
+        "tier": 5,
+        "unitId": "t5-sombral",
+        "buildingId": "vox-arcana-dwelling-t5"
+      },
+      {
+        "tier": 6,
+        "unitId": "t6-maitre",
+        "buildingId": "vox-arcana-dwelling-t6"
+      },
+      {
+        "tier": 7,
+        "unitId": "t7-phenix",
+        "buildingId": "vox-arcana-dwelling-t7"
+      },
+      {
+        "tier": 8,
+        "unitId": "t8-avatar",
+        "buildingId": "vox-arcana-dwelling-t8"
+      }
+    ]
+  }
+}

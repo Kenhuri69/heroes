@@ -12,6 +12,34 @@ Faction #6, produite en **Beta** — elle sert de **test de modularité #4** (do
 > pour Arcane Hunters (ressource de faction post-victoire, école de sorts propre,
 > capacités génériques). Découpage en sous-lots data-only : cf.
 > `.claude/plans/phase-16-faction-vox-arcana.md`.
+>
+> 🚧 **État 16.1 (livré — `houseAllegiance`, le point d'extension moteur)** : le
+> **seul** diff moteur de la faction est ouvert. Les Maisons réutilisent le
+> vocabulaire d'effets des compétences : à la création, `hero.houseEffects` est
+> résolu depuis un catalogue embarqué (`StartGame.houseCatalog` + `startingHouseId`),
+> puis **chaque** accesseur de `hero/skills.ts` additionne ces effets au même titre
+> que les compétences (or/jour, mêlée/tir/armure, chance, moral, PM, vision, coût de
+> mana **agnostique de l'école**). L'accesseur ne lit que `hero.houseEffects` ⇒
+> **zéro** changement chez les consommateurs (combat/économie/mana) et **zéro nom de
+> faction** (garde-fou CI vert). Contenu : `houseSchema` + `manifest.houses[]` +
+> `buildHouseCatalog`. Sauvegarde v9→**v10** (`houseId`/`houseEffects`), golden
+> re-fixé (forme seule). **Différé (16.2)** : câblage client (`houseCatalog`/
+> `startingHouseId` vers `StartGame`) + données `data/factions/vox-arcana/` — tant
+> qu'ils n'existent pas, aucune Maison n'est active en jeu (jamais de crash).
+>
+> 🚧 **État 16.2 (livré — faction jouable + choix de Maison via « Le Choixpeau »)** :
+> paquet `data/factions/vox-arcana/` complet (5 Maisons, lineup T1–T8, habitations,
+> locales FR/EN ; `content:check`/`faction:validate` verts). **Choix de Maison =
+> option B** (décision utilisateur) : 5 bâtiments **Choixpeau** exclusifs
+> (`exclusiveGroup`, réutilisé des Cercles AH) portant l'effet **générique**
+> `houseChoice { houseId }` — à la construction, les héros du propriétaire relèvent
+> de la Maison (le moteur résout l'id opaque dans `GameState.houseCatalog` embarqué
+> et applique ses effets déclaratifs comme des compétences ; **zéro nom de faction**).
+> Client : `houseCatalog` passé à `StartGame` (3 sites) ; la sélection passe par
+> l'écran de ville existant ; sprites/blasons/avatars auto-découverts (doc 12 §10).
+> Save v10→**v11**, golden re-fixé. **Différé** : atteindre le Choixpeau in-game
+> suppose une ville Vox Arcana (sélecteur de faction / scénario dédié = lot suivant) ;
+> héritage des héros recrutés après le choix ; Résonance + École de la Scène.
 
 ## 1. Lore
 

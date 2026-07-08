@@ -2,7 +2,7 @@ import type { AdventureConfig } from '../adventure/config';
 import type { AdventureMapDef, GridPos } from '../adventure/map';
 import type { ArmyStack, CombatActionInput, CombatUnitDef } from '../combat/types';
 import type { BuildingDef, TownState } from '../town/types';
-import type { ArtifactDef, HeroSkillDef, SpellDef } from '../hero/types';
+import type { ArtifactDef, HeroSkillDef, SkillRankEffect, SpellDef } from '../hero/types';
 import type { FactionBonus } from '../faction/types';
 import type { ScenarioState } from '../scenario/types';
 import type { QuestState } from '../quest/types';
@@ -20,6 +20,8 @@ export interface PlayerSetup {
   startingSpells?: string[];
   /** Maison du héros (doc 06 §4) — id opaque pour le moteur ; défaut ''. */
   startingFactionId?: string;
+  /** Allégeance de Maison du héros (doc 16 §3.1) — id opaque ; défaut ''. */
+  startingHouseId?: string;
   /** Contrôleur (doc 02 §6, plan phase-3.5) — `'ai'` pour un adversaire ; défaut `'human'`. */
   controller?: 'human' | 'ai';
   /**
@@ -62,6 +64,12 @@ export type Command =
       startingArtifacts?: string[];
       /** Catalogue d'effets de faction déclaratifs résolu par le contenu (doc 06 §4). */
       factionCatalog?: Record<string, { bonuses: FactionBonus[] }>;
+      /**
+       * Catalogue des Maisons résolu par le contenu (doc 16 §3.1), indexé par
+       * `houseId` → effets déclaratifs. Sert à résoudre `hero.houseEffects` à la
+       * création ; non stocké dans l'état (les effets résolus vivent sur le héros).
+       */
+      houseCatalog?: Record<string, { effects: SkillRankEffect[] }>;
       /** Objectifs de scénario par joueur (doc 02 §6, plan phase-3.5) — absent = partie libre. */
       scenario?: ScenarioState;
       /** Quêtes de campagne (doc 13 §6.2, N2a) — absent = pas de campagne. */

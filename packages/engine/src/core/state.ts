@@ -2,7 +2,7 @@ import type { AdventureConfig } from '../adventure/config';
 import type { AdventureMapDef, GridPos } from '../adventure/map';
 import type { ArmyStack, CombatState, CombatUnitDef } from '../combat/types';
 import type { BuildingDef, TownState } from '../town/types';
-import type { ArtifactDef, HeroSkillDef, SpellDef } from '../hero/types';
+import type { ArtifactDef, HeroSkillDef, SkillRankEffect, SpellDef } from '../hero/types';
 import type { FactionBonus } from '../faction/types';
 import type { GameOutcome, ScenarioState } from '../scenario/types';
 import type { QuestState } from '../quest/types';
@@ -93,6 +93,20 @@ export interface HeroState {
   /** Maison du héros (doc 06 §4) — id opaque pour le moteur, '' = aucune. */
   factionId: string;
   /**
+   * Allégeance de Maison (doc 16 §3.1) — id opaque, '' = aucune. Distinct de
+   * `factionId` (la faction) : une faction peut proposer plusieurs Maisons, et
+   * le héros en choisit une à la création.
+   */
+  houseId: string;
+  /**
+   * Effets déclaratifs RÉSOLUS de la Maison (doc 16 §3.1) — mêmes champs que les
+   * compétences (`SkillRankEffect`), résolus depuis le manifeste à la création du
+   * héros et agrégés dans `hero/skills.ts` au même titre que les compétences.
+   * `[]` = aucune Maison. Le moteur ne compare jamais qu'un id ('' vs autre),
+   * jamais un nom de faction/Maison.
+   */
+  houseEffects: SkillRankEffect[];
+  /**
    * Machines de guerre possédées (doc 02 §5, Alpha 4.12) — ids d'unités du
    * catalogue, ≤ 1 de chaque. Achetées à la Forge ; elles rejoignent le camp du
    * héros en combat comme piles supplémentaires (hors cap 7 de l'armée).
@@ -127,9 +141,13 @@ export interface Calendar {
  * `GameState.pendingTreasure` et `HeroState.visitLuck` — éléments de carte
  * manquants, doc 02 §2.2.
  * v9 : `TownState.spellPool` — pool de sorts de la guilde des mages (G2), doc
- * 02 §4.1.)
+ * 02 §4.1.
+ * v10 : `HeroState.houseId` + `HeroState.houseEffects` — allégeance de Maison
+ * (signature Vox Arcana `houseAllegiance`, doc 16 §3.1).
+ * v11 : `GameState.houseCatalog` — catalogue des Maisons embarqué, lu par
+ * l'effet de bâtiment `houseChoice` (« Le Choixpeau », doc 16 §3.1/§5).)
  */
-export const CURRENT_SAVE_VERSION = 9;
+export const CURRENT_SAVE_VERSION = 11;
 
 export interface GameState {
   saveVersion: number;
@@ -161,6 +179,13 @@ export interface GameState {
    * connaître de nom de faction.
    */
   factionCatalog: Record<string, { bonuses: FactionBonus[] }>;
+  /**
+   * Catalogue des Maisons résolu par le contenu (doc 16 §3.1), indexé par
+   * `houseId` → effets déclaratifs. Embarqué par `StartGame` ; lu à la
+   * construction du « Choixpeau » (effet `houseChoice`) pour stamper les héros —
+   * le moteur ne connaît que des ids opaques.
+   */
+  houseCatalog: Record<string, { effects: SkillRankEffect[] }>;
   /**
    * Objectifs du scénario par joueur (doc 02 §6, plan phase-3.5) — `null` en
    * partie libre : aucune évaluation de fin de partie.
@@ -207,6 +232,7 @@ export function createEmptyState(): GameState {
     towns: [],
     combat: null,
     factionCatalog: {},
+    houseCatalog: {},
     scenario: null,
     outcome: null,
     pendingTreasure: null,

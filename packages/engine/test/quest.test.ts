@@ -51,6 +51,8 @@ function baseState(quests: QuestState | null): GameState {
         artifacts: [null, null, null],
         pendingSkillChoices: [],
         factionId: '',
+        houseId: '',
+        houseEffects: [],
         warMachines: [],
       },
     ],

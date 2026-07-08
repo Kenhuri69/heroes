@@ -206,6 +206,7 @@ docs/
   13-plan-narrative-polish.md    Plan de polishing narratif : ton, campagnes, quêtes, dialogues data-driven, lots N1→N4
   14-faction-sylvan-court.md     Faction Sylvan Court (Beta, 4ᵉ maison) : cadrage — lineup 7 tiers, signature Symbiose, points d'extension
   15-backend-infra.md            Backend coût 0 (Cloudflare Workers + D1) : levier déterministe, modèle de données, auth magic-link, PvP async, déploiement
+  16-faction-vox-arcana.md       Faction Vox Arcana (Beta, 6ᵉ maison — Poudlard × KPop Demon Hunters) : cadrage — 5 Maisons (signature houseAllegiance), Résonance/Honmoon, École de la Scène, lineup T1–T8, héros Hermione & Rumi
   templates/faction-template.md  Gabarit pour spécifier une nouvelle maison
 .github/workflows/
   ci.yml                         PR : typecheck, lint, tests, build, smoke headless

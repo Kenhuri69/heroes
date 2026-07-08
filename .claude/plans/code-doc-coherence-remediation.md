@@ -307,7 +307,7 @@ Chaque décision = correctif code OU ligne de doc, dans le même commit.
   dans les reports — l'ajouter aux différés.
   doc 14 — F15 : phrase des prérequis §4 fausse (T1 requiert fort, T5
   requiert mageGuild dans les données).
-- [ ] **E6 — docs/13-plan-narrative-polish.md** : annoter §4.1/§5/§6 vs le
+- [x] **E6 — docs/13-plan-narrative-polish.md** : annoter §4.1/§5/§6 vs le
   livré N2 réel : prologue AJOUTÉ en 4ᵉ scénario (tutorial intact),
   2 quêtes/2 dialogues (pas 3/4) ; quêtes sans `trigger` (démarrage en bloc
   à `StartGame` — reporté N3) ; conditions réduites (4 types) et récompenses

@@ -29,6 +29,18 @@
 - Sélection héros → tap destination : trace le chemin avec jours nécessaires ; 2ᵉ tap : exécute. Interception d'événements en chemin = arrêt standard HoMM.
 - Appui long sur tout objet de carte = fiche (tooltip riche).
 
+> 🚧 **État M6 (plan `ux-revue-mmho.md` C8/C9/C24)** : les grandeurs de décision
+> deviennent lisibles. **Tap sur une ressource** ⇒ fiche `ResourceDetail`
+> (overlay léger, backdrop/×/Échap) : stock + **revenu/jour** de chaque
+> ressource commune, via le helper moteur **pur `dailyIncome`** (villes + mines
+> possédées + compétence Économie — miroir sans mutation de l'application du
+> revenu au `DayStarted`). La barre de statut affiche les **PM restants / PM max
+> du jour** (`dailyMovementPoints`) doublés d'une **jauge** fine ; le tiroir
+> héros affiche l'**XP vers le prochain niveau** (« XP {xp} / {seuil} » via
+> `xpForLevel`, « niveau max » au cap) + jauge. Les jauges doublent toujours un
+> chiffre (2ᵉ canal, jamais la couleur seule §4). Le « +X/j » inline en desktop
+> sous chaque ressource reste un raffinement (la fiche au tap le porte déjà).
+
 > 🚧 **État M5 (plan `ux-revue-mmho.md` C10/C11)** : le HUD portrait est
 > **compacté**. La barre de ressources tient sur **une seule rangée** à
 > défilement horizontal : les grands nombres sont **abrégés** (≥ 10 000 →

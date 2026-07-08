@@ -88,7 +88,7 @@
   "journal.close": "Close the event log",
   "journal.entryDay": "Day {day}",
   "turnBar.calendar": "Day {day} · Week {week}",
-  "turnBar.movementPoints": "MP {points}",
+  "turnBar.movementPoints": "MP {points} / {max}",
   "turnBar.save": "Save",
   "turnBar.load": "Load",
   "turnBar.endTurn": "End turn",
@@ -102,7 +102,8 @@
   "hero.drawerToggle": "Open hero panel",
   "hero.select": "Select level {level} hero",
   "hero.level": "Level {level}",
-  "hero.xp": "XP {xp}",
+  "hero.xpProgress": "XP {xp} / {next}",
+  "hero.xpMax": "XP {xp} · max level",
   "hero.mana": "Mana {mana}/{manaMax}",
   "hero.skillsTitle": "Skills",
   "hero.noSkills": "No skills",
@@ -510,5 +511,7 @@
   "artifact.lame-aiguisee.lore": "Honed too often, it is more edge than blade. It never learned to stop in time.",
   "artifact.egide-de-pierre.lore": "Heavy as regret, sure as a wall. It won't make you swift — only still standing.",
   "artifact.orbe-de-savoir.lore": "In it you read what you fear to learn. The wise keep it under a cloth, seal-side.",
-  "artifact.trefle-chance.lore": "Plucked from a grave, they say. Luck in the Marches rarely comes but that another has lost it."
+  "artifact.trefle-chance.lore": "Plucked from a grave, they say. Luck in the Marches rarely comes but that another has lost it.",
+  "resourceDetail.title": "Resources",
+  "resourceDetail.perDay": "+{amount}/day"
 }

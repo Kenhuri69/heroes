@@ -276,6 +276,9 @@ M7** (parité MMHO/HoMM) puis **M8** (confort). Chaque lot re-passe la skill
 
 - 2026-07-07 : revue complète effectuée (captures + inventaire code + référence
   MMHO sourcée) ; constats C1–C26 ; plan M1–M8 rédigé. Aucun code modifié.
+- 2026-07-08 : **Lot M6 livré** (plan `ux-m6-economie-visible.md`) — C8 (fiche
+  ressource stock + revenu/jour via helper moteur pur `dailyIncome`), C9 (jauge
+  PM restants/max), C24 (jauge XP vers le prochain niveau).
 - 2026-07-08 : **Lot M5 livré** (plan `ux-m5-hud-mobile.md`) — C10 (barre de
   ressources compacte 1 rangée, nombres abrégés) + C11 (Sauvegarder/Charger
   déplacés vers la section Données des Options). Client seul.

@@ -83,12 +83,16 @@ async function tapTapTile(page: Page, x: number, y: number): Promise<void> {
     ([tx, ty]) => window.__HEROES_TEST__!.tileToScreen(tx!, ty!),
     [x, y],
   );
-  await page.mouse.click(screen.x, screen.y);
-  // Point de synchro DÉTERMINISTE (lot M4) : le bouton « Annuler le
-  // déplacement » (M2) apparaît quand la préviz est posée — remplace
-  // l'attente aveugle de 100 ms, flaky sous charge (2 clics chronométrés).
-  await expect(page.getByTestId('cancel-path')).toBeVisible();
-  await page.mouse.click(screen.x, screen.y);
+  // 1er tap = prévisualisation ⇒ le bouton « Annuler le déplacement » (M2)
+  // apparaît. Sous charge (CI/parallèle), un tap peut être avalé pendant que la
+  // scène Pixi initialise le pointeur : on re-tape jusqu'à voir la préviz, point
+  // de synchro DÉTERMINISTE (plus fiable que l'ancienne attente aveugle 100 ms).
+  const cancel = page.getByTestId('cancel-path');
+  await expect(async () => {
+    await page.mouse.click(screen.x, screen.y);
+    await expect(cancel).toBeVisible({ timeout: 1000 });
+  }).toPass({ timeout: 10000 });
+  await page.mouse.click(screen.x, screen.y); // 2ᵉ tap = exécution
 }
 
 /**
@@ -180,7 +184,23 @@ test('tap-tap : déplacement scripté, ramassage, points décomptés', async ({ 
   expect(state.players[0]?.resources.gold).toBe(2500); // 2000 + 500 ramassés
   expect(state.map?.objects.some((o) => o.id === 'gold-1')).toBe(false);
   await expect(page.getByTestId('resource-gold')).toHaveText('2500');
-  await expect(page.getByTestId('movement-points')).toHaveText('PM 1400');
+  await expect(page.getByTestId('movement-points')).toHaveText('PM 1400 / 1700');
+
+  expect(errors).toEqual([]);
+});
+
+test('tap sur une ressource : fiche stock + revenu/jour (doc 08 §2.1, lot M6 C8)', async ({
+  page,
+}) => {
+  const errors = await openGame(page);
+
+  // Tap sur l'or ⇒ fiche ressource : stock + revenu/jour (hôtel de ville = +500/j).
+  await page.getByTestId('resource-open-gold').click();
+  const card = page.getByTestId('resource-detail');
+  await expect(card).toBeVisible();
+  await expect(card).toContainText(/\+500\/j|\+500\/day/);
+  await page.getByTestId('resource-detail-close').click();
+  await expect(card).toBeHidden();
 
   expect(errors).toEqual([]);
 });
@@ -190,12 +210,16 @@ test("préviz de chemin : « Annuler le déplacement » efface l'aperçu (doc 08
 }) => {
   const errors = await openGame(page);
 
-  // 1er tap = prévisualisation ⇒ le bouton d'annulation apparaît.
+  // 1er tap = prévisualisation ⇒ le bouton d'annulation apparaît. Re-tap si le
+  // tap est avalé pendant l'init du pointeur Pixi (robustesse sous charge).
   const screen = await page.evaluate(() => window.__HEROES_TEST__!.tileToScreen(6, 3));
-  await page.mouse.click(screen.x, screen.y);
-  await expect(page.getByTestId('cancel-path')).toBeVisible();
+  const cancel = page.getByTestId('cancel-path');
+  await expect(async () => {
+    await page.mouse.click(screen.x, screen.y);
+    await expect(cancel).toBeVisible({ timeout: 1000 });
+  }).toPass({ timeout: 10000 });
 
-  await page.getByTestId('cancel-path').click();
+  await cancel.click();
   await expect(page.getByTestId('cancel-path')).toBeHidden();
 
   // La préviz est bien annulée : le héros n'a pas bougé, aucun PM dépensé.
@@ -248,7 +272,7 @@ test('fin de tour : jour suivant, points de mouvement restaurés', async ({ page
 
   await page.getByTestId('end-turn').click();
   await expect(page.getByTestId('calendar')).toHaveText('Jour 2 · Semaine 1');
-  await expect(page.getByTestId('movement-points')).toHaveText('PM 1700');
+  await expect(page.getByTestId('movement-points')).toHaveText('PM 1700 / 1700');
 
   expect(errors).toEqual([]);
 });

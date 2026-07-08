@@ -88,7 +88,7 @@
   "journal.close": "Fermer le journal",
   "journal.entryDay": "Jour {day}",
   "turnBar.calendar": "Jour {day} · Semaine {week}",
-  "turnBar.movementPoints": "PM {points}",
+  "turnBar.movementPoints": "PM {points} / {max}",
   "turnBar.save": "Sauvegarder",
   "turnBar.load": "Charger",
   "turnBar.endTurn": "Fin de tour",
@@ -102,7 +102,8 @@
   "hero.drawerToggle": "Ouvrir le panneau du héros",
   "hero.select": "Sélectionner le héros de niveau {level}",
   "hero.level": "Niveau {level}",
-  "hero.xp": "XP {xp}",
+  "hero.xpProgress": "XP {xp} / {next}",
+  "hero.xpMax": "XP {xp} · niveau max",
   "hero.mana": "Mana {mana}/{manaMax}",
   "hero.skillsTitle": "Compétences",
   "hero.noSkills": "Aucune compétence",
@@ -510,5 +511,7 @@
   "artifact.lame-aiguisee.lore": "Aiguisée trop souvent, elle est plus fil que lame. Elle n'a jamais appris à s'arrêter à temps.",
   "artifact.egide-de-pierre.lore": "Lourde comme un remords, sûre comme un mur. Elle ne vous rendra pas rapide, seulement encore là.",
   "artifact.orbe-de-savoir.lore": "On y lit ce qu'on a peur d'apprendre. Les sages la gardent sous un linge, côté verrou.",
-  "artifact.trefle-chance.lore": "Cueilli sur une tombe, dit-on. La chance des Marches vient rarement sans qu'un autre l'ait perdue."
+  "artifact.trefle-chance.lore": "Cueilli sur une tombe, dit-on. La chance des Marches vient rarement sans qu'un autre l'ait perdue.",
+  "resourceDetail.title": "Ressources",
+  "resourceDetail.perDay": "+{amount}/j"
 }

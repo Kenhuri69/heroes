@@ -129,6 +129,12 @@ export interface AppState {
   musicVolume: number;
   /** Volume effets 0-1 (UXD-6B) — miroir du localStorage. */
   sfxVolume: number;
+  /** Option « réduire les animations » (lot M8 C3) — union avec le réglage OS. */
+  reduceMotionOption: boolean;
+  /** Confirmer la fin de tour si un héros n'a pas bougé (lot M8 C12) — défaut on. */
+  confirmEndTurn: boolean;
+  /** Confirmation de fin de tour en attente (lot M8 C12) — overlay tap-tap ; null = aucune. */
+  pendingEndTurn: { playerId: string } | null;
 }
 
 export const appStore = createStore<AppState>(() => ({
@@ -166,6 +172,9 @@ export const appStore = createStore<AppState>(() => ({
   combatAutoActive: false,
   musicVolume: 0.35,
   sfxVolume: 0.6,
+  reduceMotionOption: false,
+  confirmEndTurn: true,
+  pendingEndTurn: null,
 }));
 
 /** Hook Preact : re-rend quand la valeur sélectionnée change (égalité stricte). */

@@ -564,6 +564,29 @@
   font-size: 0.9rem;
 }
 
+/* Confirmation de fin de tour (lot M8 C12) : réutilise .map-card. */
+.end-turn-confirm-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.end-turn-confirm-actions button {
+  flex: 1;
+  min-height: 44px;
+  border: 1px solid var(--ink-600);
+  border-radius: var(--radius-m);
+  background: var(--ink-700);
+  color: var(--parchment);
+  font: 600 0.875rem var(--font-ui);
+  cursor: pointer;
+}
+
+.end-turn-confirm-actions .end-turn-confirm-go {
+  background: var(--blood);
+  border-color: var(--blood-bright);
+}
+
 /* Fiche ressource (lot M6, C8) : table stock + revenu/jour, réutilise .map-card. */
 .resource-detail-list {
   margin: 8px 0 0;

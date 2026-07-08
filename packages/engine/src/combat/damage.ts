@@ -21,8 +21,8 @@ import type { Draft } from './draft';
  * des `attackMod`/`defenseMod` des statuts actifs de la pile (buffs/debuffs de
  * sort) ; `heroDamagePct`/`heroArmorPct` portent les compétences combat
  * (Attaque au corps/Tir, Armure). Tout reste à 0 hors héros lié — comportement
- * d'arène inchangé. Le moral du héros (Commandement) n'est PAS branché ici :
- * `moraleOf` vit dans `state-helpers.ts`, hors périmètre du lot K.
+ * d'arène inchangé. Le moral du héros (Commandement) n'est pas traité ici mais
+ * dans `moraleOf` (`state-helpers.ts`), qui l'ajoute au moral de pile.
  */
 
 interface MultiplierInput {

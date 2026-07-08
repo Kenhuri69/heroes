@@ -316,12 +316,12 @@ Chaque décision = correctif code OU ligne de doc, dans le même commit.
   par le client (`narrative.ts:48-68`) — retirer du schéma ou garde
   `content:check` ; trancher la contradiction « conditions événementielles »
   vs « évaluation pure d'état » avant N3.
-- [ ] **E7 — CLAUDE.md** : save v8, faction `sylvan-court` dans l'arbo,
+- [x] **E7 — CLAUDE.md** : save v8, faction `sylvan-court` dans l'arbo,
   4 scénarios, systèmes livrés depuis la dernière mise à jour (marché,
   machines de guerre, upgrades d'unités, contrats de chasse, hot-seat,
   quêtes/prologue, mines capturables/coffres/lieux de bonus, éditeur),
   renvoi vers ce plan.
-- [ ] **E8 — Hygiène des commentaires menteurs** (au fil des lots A–C) :
+- [x] **E8 — Hygiène des commentaires menteurs** (au fil des lots A–C) :
   `hero/skills.ts:34,39,49` (« NON branché » alors que branché),
   `combat/damage.ts:24-25`, `town/types.ts:28` (forge « sans effet » alors
   que warMachineVendor), `adventure/movement.ts:33` (fausse citation doc),

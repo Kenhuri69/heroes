@@ -76,7 +76,7 @@ export interface HeroProgressionConfig {
   /** Courbe : xp(niveau) = base × niveau^exponent (1000 × n^1.9). */
   levelCurve: { base: number; exponent: number };
   maxLevel: number;
-  /** Pondérations du +1 attribut/niveau (profil unique en Phase 2, classes au MVP). */
+  /** Pondérations du +1 attribut/niveau (profil unique livré ; classes de héros différées). */
   attributeWeights: { attack: number; defense: number; power: number; knowledge: number };
 }
 

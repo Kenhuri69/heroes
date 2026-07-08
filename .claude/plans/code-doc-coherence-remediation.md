@@ -205,10 +205,13 @@ Chaque décision = correctif code OU ligne de doc, dans le même commit.
   `actions.ts:317-326`) — doc 05:36 dit « à l'attaque », et la préviz ne le
   reflète pas. *Reco : restreindre aux frappes volontaires (code), lecture
   stricte de la doc.*
-- [ ] **D6 — Arrêt du héros au ramassage de ressource/artefact**
+- [x] **D6 — Arrêt du héros au ramassage de ressource/artefact**
   (`adventure/movement.ts:104-117,156` — le commentaire cite la doc à tort).
-  *Reco : retirer le `break` (fidélité HoMM, guidelines §8.5) ; sinon
-  l'acter doc 02 §2.2.*
+  *Fait : `break` retiré au ramassage de ressource et d'artefact — le héros
+  poursuit son chemin (comme la mine), fidélité HoMM (guidelines §8.5). Seul
+  un trésor à choix or/XP interrompt. Docstring corrigée ; tests
+  `adventure.test.ts` (ressource) et `map-objects.test.ts` (artefact) ré-
+  assertés « poursuit jusqu'au bout ». Golden inchangé.*
 - [x] **D7 — Cap de Nécromancie sur l'effectif post-combat** vs « effectif
   initial » (doc 04:38 ; `faction/effects.ts:78-79`). *Reco : corriger la
   doc (« effectif restant ») — plus conservateur et déjà équilibré ainsi.*
@@ -228,11 +231,14 @@ Chaque décision = correctif code OU ligne de doc, dans le même commit.
   « +8 % des unités AH ET des sorts de Traque » ; `hero/spells.ts:33-40`
   ignore `target.marks`). *Reco : appliquer `markBonusPerStack × marks` aux
   sorts de dégâts (code).*
-- [ ] **D11 — Littéral `'traque'` dans l'union `SpellSchool` du moteur**
+- [x] **D11 — Littéral `'traque'` dans l'union `SpellSchool` du moteur**
   (`hero/types.ts:9`) : pas une violation du garde-fou (aveugle aux écoles),
   mais un nom propre à une faction dans le moteur ; toute future école de
-  faction = diff moteur. *Reco : `SpellSchool = string` validée par les
-  données.*
+  faction = diff moteur. *Fait : `SpellSchool = string` (chaîne opaque au
+  moteur, égalité d'école seule) ; l'ensemble valide est énuméré et validé
+  par `@heroes/content` via le registre `SPELL_SCHOOLS` (DRY des deux
+  `z.enum`, rejette toujours une école inconnue). Ajouter une école de
+  faction = donnée + registre contenu, zéro diff moteur.*
 - [x] **D12 — Coûts des unités élites : asymétrie suspecte** relevée par
   l'audit factions (élite moins chère que la base chez Haven/Necropolis,
   2-3× plus chère chez Arcane Hunters) — aucune table d'élites dans les

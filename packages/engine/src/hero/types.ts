@@ -6,7 +6,15 @@ import type { ResourceId } from '../core/state';
  * ces formes. Le moteur ne connaît aucune faction : tout est id + données.
  */
 
-export type SpellSchool = 'fire' | 'water' | 'earth' | 'air' | 'neutral' | 'traque';
+/**
+ * École de magie d'un sort (doc 02 §1.4). **Chaîne opaque pour le moteur** (D11) :
+ * le moteur ne compare que l'égalité d'école (réduction de mana par école, A6) et
+ * n'énumère aucune école — l'ensemble valide est défini par les **données** et
+ * validé par `@heroes/content` (écoles génériques fire/water/earth/air/neutral +
+ * écoles de faction, ex. `traque`). Ajouter une école de faction = donnée +
+ * registre de contenu, jamais un diff moteur.
+ */
+export type SpellSchool = string;
 export type SpellKind = 'damage' | 'heal' | 'buff' | 'debuff' | 'applyMarks' | 'adventure';
 
 /**

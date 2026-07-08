@@ -228,13 +228,21 @@ export const buildingCatalogSchema = z.object({
  * Règles croisées : `damage`/`heal` doivent avoir un effet réel (`base` > 0) ;
  * `buff`/`debuff` doivent porter au moins un modificateur temporaire.
  */
+/**
+ * Registre des écoles de magie valides (D11) : le moteur traite l'école comme
+ * une chaîne opaque ; c'est le **contenu** qui énumère l'ensemble autorisé —
+ * écoles génériques (doc 02 §1.4) + écoles de faction. Ajouter une école de
+ * faction = l'inscrire ici (registre data-aware), jamais un diff moteur.
+ */
+export const SPELL_SCHOOLS = ['fire', 'water', 'earth', 'air', 'neutral', 'traque'] as const;
+
 export const spellSchema = z
   .object({
     id: idSchema,
     name: locRef.optional(),
     /** Texte d'ambiance optionnel (doc 13 §3.5, lot N1). */
     loreKey: locRef.optional(),
-    school: z.enum(['fire', 'water', 'earth', 'air', 'neutral', 'traque']),
+    school: z.enum(SPELL_SCHOOLS),
     circle: z.number().int().min(1).max(5),
     manaCost: z.number().int().positive(),
     kind: z.enum(['damage', 'heal', 'buff', 'debuff', 'applyMarks', 'adventure']),
@@ -303,7 +311,7 @@ export const skillSchema = z.object({
   name: locRef.optional(),
   ranks: z.tuple([skillRankEffectSchema, skillRankEffectSchema, skillRankEffectSchema]),
   /** École visée par une compétence de magie (A6) — réduction de mana filtrée par école. */
-  school: z.enum(['fire', 'water', 'earth', 'air', 'neutral', 'traque']).optional(),
+  school: z.enum(SPELL_SCHOOLS).optional(),
 });
 
 export const skillCatalogSchema = z.object({

@@ -224,16 +224,18 @@ describe('trésor à choix or/XP (doc 02 §2.2)', () => {
 });
 
 describe('artefact au sol (doc 02 §2.2)', () => {
-  it('est ramassé vers le premier slot libre et retiré de la carte', () => {
+  it('est ramassé en passant vers le premier slot libre, sans arrêter le héros (D6)', () => {
     const { state, events } = apply(startedWith([groundArtifact]), {
       type: 'MoveHero',
       heroId: 'hero-p1',
       path: [
         { x: 1, y: 0 },
-        { x: 2, y: 0 },
+        { x: 2, y: 0 }, // artefact à (2,0) : ramassé au passage
+        { x: 3, y: 0 },
       ],
     });
     expect(state.heroes[0]?.artifacts[0]).toBe('test-art');
+    expect(state.heroes[0]?.pos).toEqual({ x: 3, y: 0 }); // poursuit jusqu'au bout
     expect(state.map?.objects.some((o) => o.id === 'art-1')).toBe(false);
     expect(events.some((e) => e.type === 'ArtifactPicked')).toBe(true);
   });

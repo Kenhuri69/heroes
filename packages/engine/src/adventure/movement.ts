@@ -29,8 +29,9 @@ export interface AdvanceOptions {
  * handler `MoveHero` (joueur humain) et l'IA d'aventure (`runAiTurn`) :
  * décompte des PM (arrêt quand les points du jour ne suffisent plus,
  * doc 02 §1.5), interception de gardien (le héros paie le pas d'engagement
- * mais n'entre pas sur la tuile, décision plan phase-2.4), ramassage de
- * ressource (arrêt sur la case, doc 02 §2.2), révélation du brouillard.
+ * mais n'entre pas sur la tuile, décision plan phase-2.4), ramassage en
+ * passant de ressource/artefact (le héros ne s'arrête pas — fidélité HoMM,
+ * D6 ; seul un trésor à choix or/XP interrompt), révélation du brouillard.
  *
  * Seule divergence humain/IA : la résolution du combat de gardien, injectée
  * via `options.onGuardianEngaged` (cf. `AdvanceOptions`).
@@ -113,7 +114,9 @@ export function advanceHeroAlongPath(
           amount: obj.amount,
           pos: { ...hero.pos },
         });
-        break;
+        // Ramassage en passant (doc 02 §2.2, fidélité HoMM, D6) : le héros ne
+        // s'arrête pas — comme la mine, il poursuit son chemin.
+        continue;
       }
       // Trésor (doc 02 §2.2) : arrêt et choix or/XP en attente — l'objet n'est
       // retiré qu'à la résolution (`ResolveTreasure`).
@@ -152,7 +155,8 @@ export function advanceHeroAlongPath(
             artifactId: obj.artifactId,
             pos: { ...hero.pos },
           });
-          break;
+          // Ramassé en passant (doc 02 §2.2, fidélité HoMM, D6) : le héros ne
+          // s'arrête pas ; s'il n'a aucun slot libre, l'artefact reste au sol.
         }
       }
     }

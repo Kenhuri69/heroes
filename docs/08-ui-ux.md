@@ -29,6 +29,20 @@
 - Sélection héros → tap destination : trace le chemin avec jours nécessaires ; 2ᵉ tap : exécute. Interception d'événements en chemin = arrêt standard HoMM.
 - Appui long sur tout objet de carte = fiche (tooltip riche).
 
+> 🚧 **État M2 (plan `ux-revue-mmho.md` C5/C6/C7)** : la préviz de chemin porte,
+> sur un trajet de plusieurs jours, une **étiquette numérique** (« J1 », « J2 »…)
+> au dernier pas de chaque journée — la couleur par jour (lot C-3) n'est plus le
+> seul canal (A5). Un bouton **« Annuler le déplacement »** apparaît dans le HUD
+> pendant la préviz (doc §3 ; pas d'undo après exécution — une révélation a pu
+> avoir lieu). L'**appui long** (geste `onLongPress`, ~450 ms, souris et tactile,
+> annulé par pan/pinch) sur une tuile **explorée** portant un objet ouvre la
+> **fiche d'objet** (`MapObjectCard`) : ressource/quantité, mine (revenu +
+> propriétaire vous/adversaire/neutre), gardien (**fourchette** de force, jamais
+> l'effectif exact — doc 02 §2.2 — + nom d'unité), trésor (or/XP au choix),
+> artefact, habitation (stock), lieu de bonus (effet + fréquence). Le brouillard
+> reste opaque : pas de fiche sous une tuile non explorée. Fiche des **villes**
+> différée au lot M7 (en-tête de ville).
+
 > 🚧 **État U4** : **multi-héros / multi-villes** implémentés (lot UX U4). Le
 > tiroir héros ouvre un **bandeau de portraits** (un par héros du joueur ; tap =
 > sélectionner) — le héros **sélectionné** (`selectedHeroId`, repli 1er héros)

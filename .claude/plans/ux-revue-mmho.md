@@ -276,6 +276,10 @@ M7** (parité MMHO/HoMM) puis **M8** (confort). Chaque lot re-passe la skill
 
 - 2026-07-07 : revue complète effectuée (captures + inventaire code + référence
   MMHO sourcée) ; constats C1–C26 ; plan M1–M8 rédigé. Aucun code modifié.
+- 2026-07-08 : **Lot M2 livré** (plan `ux-m2-carte.md`) — C5 résiduel
+  (étiquettes numériques J1/J2 aux points d'arrêt, A5 levé), C7 (bouton
+  « Annuler le déplacement »), C6 (geste `onLongPress` + fiche d'objet de
+  carte, 7 types, garde brouillard). Fiche des villes différée à M7.
 - 2026-07-08 : **Lot M1 livré** (plan `ux-m1-combat-lisibilite.md`) — C13
   (ordre de passage via `roundActionOrder` moteur pur), C14 (fiche de pile au
   tap), C18 (chips 2 lignes, consigne mobile compacte). Couvre aussi le Lot 2

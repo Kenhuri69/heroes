@@ -1,6 +1,6 @@
 import { createStore } from 'zustand/vanilla';
 import { useSyncExternalStore } from 'preact/compat';
-import type { GameState } from '@heroes/engine';
+import type { GameState, MapObjectDef } from '@heroes/engine';
 import { createEmptyState } from '@heroes/engine';
 import type { Campaign, DialogNode, Scenario, StoryCharacter } from '@heroes/content';
 import type { Modal, Screen } from './router';
@@ -49,6 +49,10 @@ export interface AppState {
   strengthBands: { max: number | null; key: string }[];
   /** Gardien visé par la prévisualisation de chemin (fourchette affichée par l'UI). */
   guardianHint: { count: number } | null;
+  /** Préviz de chemin affichée (lot M2) — le HUD montre « Annuler le déplacement ». */
+  pathPreviewActive: boolean;
+  /** Objet de carte inspecté à l'appui long (doc 08 §2.1, lot M2) — fiche DOM. */
+  mapCard: MapObjectDef | null;
   /** Langue de l'UI (doc 08 §2.5) — persistée en localStorage par app/i18n. */
   locale: 'fr' | 'en';
   /** Taille de police, 3 crans (doc 08 §4) : 1 = normal. */
@@ -116,6 +120,8 @@ export const appStore = createStore<AppState>(() => ({
   combatSpeed: 1,
   strengthBands: [],
   guardianHint: null,
+  pathPreviewActive: false,
+  mapCard: null,
   locale: 'fr',
   fontScale: 1,
   toasts: [],

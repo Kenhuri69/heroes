@@ -833,8 +833,13 @@ export type GameConfig = z.infer<typeof gameConfigSchema>;
 export type MapFile = z.infer<typeof mapFileSchema>;
 export type Building = z.infer<typeof buildingSchema>;
 export type BuildingCatalogFile = z.infer<typeof buildingCatalogSchema>;
-/** Forme moteur — `Building` sans `name`/`loreKey` (affichage, hors `BuildingDef` figé). */
-export type ResolvedBuilding = Omit<Building, 'name' | 'loreKey'>;
+/**
+ * Forme moteur — `Building` sans `name`/`loreKey` (affichage, hors `BuildingDef`
+ * figé), plus `factionId` : origine opaque du bâtiment (id du paquet de faction,
+ * absent pour un bâtiment commun/core). Sert à restreindre la construction à la
+ * faction de la ville — le moteur ne compare que des chaînes, jamais un nom en dur.
+ */
+export type ResolvedBuilding = Omit<Building, 'name' | 'loreKey'> & { factionId?: string };
 export type Spell = z.infer<typeof spellSchema>;
 export type SpellCatalogFile = z.infer<typeof spellCatalogSchema>;
 /** Forme moteur — `Spell` sans `name`/`loreKey` (affichage, hors `SpellDef` figé). */

@@ -3,9 +3,8 @@ import type { TownState } from '@heroes/engine';
 import { TILE_SIZE } from './tilemap';
 import { townMapUrl } from './assets';
 
-/** Couleur du donjon selon le propriétaire (doc 08 §5, accessibilité A5 : forme + couleur). */
-const OWNED_COLOR = 0xc0392b; // héros humain — même teinte que son jeton
-const ENEMY_COLOR = 0x34495e; // ville adverse / neutre (assiégeable)
+/** Résout la couleur de bannière d'un propriétaire (id joueur ou null = neutre). */
+type OwnerColor = (ownerId: string | null) => number;
 
 /**
  * Couche des villes sur la carte d'aventure (Alpha 4.13) : chaque ville est un
@@ -24,7 +23,7 @@ export class TownsLayer {
     this.container.eventMode = 'none';
   }
 
-  sync(towns: readonly TownState[], humanId: string): void {
+  sync(towns: readonly TownState[], humanId: string, ownerColor: OwnerColor): void {
     const alive = new Set(towns.map((tw) => tw.id));
     for (const [id, entry] of this.byId) {
       if (!alive.has(id)) {
@@ -40,7 +39,7 @@ export class TownsLayer {
         existing.node.destroy({ children: true });
         this.byId.delete(town.id);
       }
-      const node = buildKeep(town.factionId, town.ownerPlayerId === humanId);
+      const node = buildKeep(town.factionId, town.ownerPlayerId === humanId, ownerColor(town.ownerPlayerId));
       node.position.set(town.pos.x * TILE_SIZE, town.pos.y * TILE_SIZE);
       this.byId.set(town.id, { node, owner: town.ownerPlayerId });
       this.container.addChild(node);
@@ -54,9 +53,9 @@ export class TownsLayer {
  * procédural** de repli si le sprite est absent/en cours. Le liseré doré
  * d'« assiégeable » (2ᵉ canal A5) est posé PAR-DESSUS dans les deux cas.
  */
-function buildKeep(factionId: string, owned: boolean): Container {
+function buildKeep(factionId: string, owned: boolean, ownerColor: number): Container {
   const node = new Container();
-  const fallback = buildKeepFallback(owned);
+  const fallback = buildKeepFallback(ownerColor);
   node.addChild(fallback);
   const url = townMapUrl(factionId);
   if (url) {
@@ -82,10 +81,9 @@ function buildKeep(factionId: string, owned: boolean): Container {
   return node;
 }
 
-/** Donjon procédural de repli (créneaux), coloré selon le propriétaire. */
-function buildKeepFallback(owned: boolean): Container {
+/** Donjon procédural de repli (créneaux), coloré à la bannière du propriétaire. */
+function buildKeepFallback(color: number): Container {
   const node = new Container();
-  const color = owned ? OWNED_COLOR : ENEMY_COLOR;
   const c = TILE_SIZE / 2;
   const g = new Graphics()
     .rect(c - 18, c - 6, 36, 22)

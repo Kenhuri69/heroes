@@ -190,6 +190,19 @@ const VIEW_STATUS_LABEL: Record<TownViewStatus, string> = {
   locked: 'town.locked',
 };
 
+/**
+ * Bâtiments constructibles dans cette ville : les communs (core, sans
+ * `factionId`) + ceux de la faction de la ville. Miroir de la règle moteur
+ * (`validateBuildStructure`) : on n'affiche jamais les habitations d'autres
+ * factions, qui encombraient la liste sans jamais être constructibles.
+ */
+function townBuildingIds(town: TownState, catalog: Record<string, BuildingDef>): string[] {
+  return Object.keys(catalog).filter((id) => {
+    const factionId = catalog[id]?.factionId;
+    return factionId === undefined || factionId === town.factionId;
+  });
+}
+
 function townViewStatus(town: TownState, catalog: Record<string, BuildingDef>, id: string): TownViewStatus {
   if ((town.buildings[id] ?? 0) >= 1) return 'constructed';
   return buildStatus(town, catalog, id) === 'available' ? 'available' : 'locked';
@@ -214,7 +227,7 @@ function TownView({
   catalog: Record<string, BuildingDef>;
   onSelect: () => void;
 }) {
-  const slots = Object.keys(catalog)
+  const slots = townBuildingIds(town, catalog)
     .map((id) => ({ id, status: townViewStatus(town, catalog, id) }))
     .sort((a, b) => VIEW_STATUS_ORDER[a.status] - VIEW_STATUS_ORDER[b.status] || a.id.localeCompare(b.id));
   const bg = townBackgroundUrl(town.factionId);
@@ -263,7 +276,7 @@ function BuildTab({
   catalog: Record<string, BuildingDef>;
   onError: (msg: string | null) => void;
 }) {
-  const buildingIds = Object.keys(catalog).sort();
+  const buildingIds = townBuildingIds(town, catalog).sort();
 
   const build = (buildingId: string): void => {
     onError(null);

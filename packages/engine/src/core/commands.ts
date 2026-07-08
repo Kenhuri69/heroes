@@ -164,6 +164,7 @@ export interface CommandError {
     | 'buildingMaxLevel'
     | 'requirementsNotMet'
     | 'exclusiveChoiceLocked'
+    | 'wrongFactionBuilding'
     | 'uniquePerPlayer'
     | 'cannotAfford'
     | 'notRecruitable'

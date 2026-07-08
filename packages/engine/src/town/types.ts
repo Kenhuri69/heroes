@@ -54,6 +54,13 @@ export interface BuildingDef {
    * connaît pas les noms de groupes, seulement l'égalité de chaîne.
    */
   exclusiveGroup?: string | undefined;
+  /**
+   * Origine opaque du bâtiment : id du paquet de faction, ou absent pour un
+   * bâtiment commun (core, constructible dans toutes les villes). Une ville ne
+   * peut bâtir que les bâtiments core + ceux de SA faction — le moteur compare
+   * `factionId` avec `town.factionId` (égalité de chaîne, aucun nom en dur).
+   */
+  factionId?: string | undefined;
 }
 
 export interface TownState {

@@ -134,6 +134,46 @@ describe('BuildStructure', () => {
       validate(state, { type: 'BuildStructure', townId: 'town-1', buildingId: 'nope' })?.code,
     ).toBe('unknownBuilding');
   });
+
+  it('rejette un bâtiment d’une AUTRE faction (wrongFactionBuilding), autorise le sien', () => {
+    // G1 : le catalogue mêle les bâtiments de toutes les factions ; une ville ne
+    // doit bâtir que les communs (core, sans factionId) + ceux de SA faction.
+    const catalog: Record<string, BuildingDef> = {
+      ...testBuildingCatalog(),
+      // Habitation d'une AUTRE faction, mêmes prérequis triviaux qu'un dwelling t1.
+      alienDwelling: {
+        id: 'alienDwelling',
+        maxLevel: 1,
+        factionId: 'other-faction',
+        levels: [{ cost: { gold: 100 }, requires: [], effect: { type: 'none' } }],
+      },
+      // Habitation de la faction de la ville de test ('fixture-faction').
+      ownDwelling: {
+        id: 'ownDwelling',
+        maxLevel: 1,
+        factionId: 'fixture-faction',
+        levels: [{ cost: { gold: 100 }, requires: [], effect: { type: 'none' } }],
+      },
+    };
+    const state = apply(createEmptyState(), {
+      type: 'StartGame',
+      seed: 1,
+      players: setup({ gold: 1000 }),
+      map: testMap(),
+      config: testConfig(),
+      unitCatalog: testUnitCatalogWithEconomy(),
+      buildingCatalog: catalog,
+      towns: [testTown()],
+    }).state;
+    // Bâtiment d'une faction étrangère : rejeté.
+    expect(
+      validate(state, { type: 'BuildStructure', townId: 'town-1', buildingId: 'alienDwelling' })?.code,
+    ).toBe('wrongFactionBuilding');
+    // Bâtiment de la faction de la ville : autorisé (core testé ailleurs).
+    expect(
+      validate(state, { type: 'BuildStructure', townId: 'town-1', buildingId: 'ownDwelling' }),
+    ).toBeNull();
+  });
 });
 
 /**

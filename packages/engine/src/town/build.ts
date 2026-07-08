@@ -26,6 +26,14 @@ export function validateBuildStructure(state: GameState, cmd: BuildCmd): Command
     };
   const def = state.buildingCatalog[cmd.buildingId];
   if (!def) return { code: 'unknownBuilding', message: `bâtiment inconnu '${cmd.buildingId}'` };
+  // Un bâtiment tagué d'une faction ne peut être bâti que dans une ville de cette
+  // faction ; les bâtiments core (sans `factionId`) restent universels. Le moteur
+  // ne compare que des chaînes opaques — jamais un nom de faction en dur (doc 06).
+  if (def.factionId !== undefined && def.factionId !== town.factionId)
+    return {
+      code: 'wrongFactionBuilding',
+      message: `'${cmd.buildingId}' (faction '${def.factionId}') n'est pas constructible dans une ville '${town.factionId}'`,
+    };
   const currentLevel = town.buildings[cmd.buildingId] ?? 0;
   if (currentLevel >= def.maxLevel)
     return {

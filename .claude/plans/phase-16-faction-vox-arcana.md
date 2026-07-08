@@ -109,7 +109,23 @@ T8 Avatar du Honmoon (débloqué à Résonance max).
     OK, 376 tests moteur (golden inchangé), garde-fou « zéro faction » vert.
   - **Écart** : génération de Résonance intra-combat (performeurs) différée ;
     icône `icons/resonance.png` non stagée ⇒ repli gracieux client (`<i/>`).
-- **16.5** — École de la Scène : `spellSchool: scene` + 4 sorts (effets génériques) + locales.
+- **16.5** ✅ **LIVRÉ** — École de la Scène : école de sorts propre en **pur
+  contenu** (même mécanisme que `traque` AH), zéro diff moteur.
+  - Manifeste : `spellSchool: "scene"`.
+  - `data/core/spells.json` : 4 sorts `scene` à effets **génériques déjà au
+    moteur** — `barriere-du-honmoon` (buff `defenseMod` C1), `chant-de-courage`
+    (buff `attackMod` C1), `dissonance` (debuff `attackMod` C2), `rappel`
+    (`heal` C3).
+  - Locales : `spell.<id>` + `.lore` FR/EN pour les 4.
+  - `packages/content/src/schemas.ts` : `SPELL_SCHOOLS` (liste contrôlée de
+    contenu, anti-typo) étendue de `scene` — **nom d'école, pas d'id de faction**
+    (garde-fou vert), précédent identique à `traque`.
+  - Client déjà générique (`SpellBook` + `game.ts` lisent `manifest.spellSchool`)
+    ⇒ zéro code : un héros Vox Arcana connaît les sorts de la Scène.
+  - Vérifs : `content:check` vert, typecheck/lint OK, 92 tests contenu, 376 tests
+    moteur (golden inchangé), garde-fou vert, smoke.
+  - **Écart** : capacités de signature (barrière de zone T8, peur, renaissance)
+    différées.
 - **16.6** — héros Hermione & Rumi en données + staging des assets (QC `sheet_extract`).
 - **Différés** : Résonance intra-combat (performeurs), barrière du Honmoon T8, renaissance Phénix, peur Sombral, unités élites.
 

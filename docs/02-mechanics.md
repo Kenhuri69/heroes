@@ -17,13 +17,13 @@ Le héros est le pion central : il transporte l'armée, lance les sorts, porte l
 | **Pouvoir** | Puissance des sorts (dégâts, durée des effets = Pouvoir en rounds min. 1) |
 | **Savoir** | Mana max = Savoir × 10 |
 
-Chaque classe de héros a des **probabilités de gain** par niveau (data-driven). Ex. Chevalier : 30/30/20/20 ; Nécromancien : 15/15/30/40.
+Les **probabilités de gain** par niveau sont data-driven. *État livré : un **profil global unique** `30/30/20/20` (A/D/P/S, `config.json`) s'applique à tous les héros ; les **classes** distinctes (ex. Nécromancien 15/15/30/40) sont différées.*
 
 ### 1.2 Progression
 
-- **XP** : combats (XP = somme des PV des unités ennemies tuées × coefficient — valeur de départ **1**, dans `data/core/config.json`), coffres, lieux de savoir.
+- **XP** : combats **gagnés uniquement** (XP = somme des PV des unités ennemies tuées × coefficient — valeur de départ **1**, dans `data/core/config.json` ; seul le héros du camp vainqueur en reçoit), coffres, lieux de savoir.
 - Courbe : `xp(niveau) = 1000 × niveau^1.9` (héros max niveau 30 au MVP).
-- À chaque niveau : +1 attribut primaire (tirage pondéré par classe) + **choix entre 2 propositions de compétence** (nouvelle compétence ou montée d'une existante).
+- À chaque niveau : +1 attribut primaire (tirage pondéré par un **profil global unique** `attack:30 / defense:30 / power:20 / knowledge:20`, `config.json` — les **classes de héros** distinctes sont différées) + **choix entre 2 propositions de compétence** (nouvelle compétence ou montée d'une existante). Un **seul** choix est visible à la fois : plusieurs niveaux gagnés d'un coup n'empilent pas les choix (le dernier écrase le précédent, `experience.ts`).
 
 ### 1.3 Compétences secondaires
 
@@ -70,11 +70,11 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 
 ### 1.5 Mouvement sur carte d'aventure
 
-- Points de mouvement quotidiens : `base 1500 + 50 × vitesse de la créature la plus lente de l'armée` (encourage les armées homogènes), modifiés par Logistique, artefacts, routes (coût tuile ×0,75), terrains (marais ×1,5 ; le terrain « natif » de la faction coûte ×1,0 pour elle).
+- Points de mouvement quotidiens : `base 1500 + 50 × vitesse de la créature la plus lente de l'armée` (encourage les armées homogènes), modifiés par la compétence **Logistique** (`movementBonusPct`), les routes (coût tuile ×0,75) et les terrains (marais ×1,5). *Pas de bonus de terrain natif sur la carte (les terrains ne portent qu'un `moveCost`) ; les artefacts ne donnent **pas** de points de mouvement — différés.*
 - Coût d'entrée d'une tuile : **100 points** en terrain de base (herbe), pas en **diagonale ×1,41** (≈ √2), multiplicateurs cumulés puis arrondis à l'entier — ex. route en diagonale : `round(100 × 0,75 × 1,41) = 106`. Valeurs de départ pour l'équilibrage, stockées dans `data/core/config.json`.
 - Portée de vision de base du héros : **5 tuiles** (distance de Tchebychev), avant bonus (Recherche +2/4/6).
 - Pathfinding A* avec préviualisation du chemin et des jours nécessaires (points verts/jaunes comme HoMM).
-- Un joueur possède jusqu'à **8 héros** actifs ; échanges d'armée/artefacts quand deux héros alliés se rencontrent.
+- *État livré : **un seul héros par joueur** (créé au démarrage, pas de recrutement de héros). Le multi-héros (jusqu'à 8), les échanges d'armée/artefacts entre héros et le combat héros-vs-héros (le champ `defenderHeroId` existe mais reste toujours `null`) sont **différés**.*
 
 ---
 
@@ -117,6 +117,13 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 > `resource`/`mine`/`treasure`/`artifact`/`visitable`/`dwelling`/`guardian`/
 > `town`). Obélisques/Graal restent post-MVP.
 
+> **Sémantique de parcours** : ressources, artefacts au sol et mines sont
+> ramassés/capturés **en passant** — le héros ne s'arrête pas et poursuit son
+> chemin (fidélité HoMM, D6). Seul un **coffre** interrompt (choix or/XP en
+> attente). Un **gardien** intercepte : le héros paie le pas d'engagement mais
+> **n'entre pas** sur la tuile du gardien ; le combat s'ouvre, et le gardien
+> doit être le dernier pas atteint (le parcours s'arrête à l'interception).
+
 ### 2.3 Temps
 
 - **Jour** = 1 tour de chaque joueur. **Semaine** = 7 jours → croissance des créatures dans villes/habitations. **Mois** = 4 semaines (événements type « semaine de la peste » : post-MVP).
@@ -135,7 +142,9 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 | **Soufre** | rare — factions démoniaques/mortes-vivantes | mine : 1/j |
 | **Mercure** | rare — factions magiques | mine : 1/j |
 
-Chaque faction consomme surtout **une paire de ressources rares** (Haven : cristal+gemmes ; Necropolis : soufre+gemmes ; Arcane Hunters : mercure+gemmes), ce qui crée la compétition territoriale. Marché en ville : troc à taux dégressif selon nombre de marchés possédés.
+Chaque faction consomme surtout **une paire de ressources rares** (Haven : cristal+gemmes ; Necropolis : soufre+gemmes ; Arcane Hunters : mercure+gemmes), ce qui crée la compétition territoriale.
+
+> **État livré (marché)** : `TradeResources` échange **ressource ↔ or** à **taux plats** (`config.market` : vente 25, achat 50) ; exactement un côté doit être de l'or (le troc **ressource ↔ ressource** est rejeté). Le taux **dégressif** selon le nombre de marchés possédés est **différé**.
 
 ---
 
@@ -151,16 +160,16 @@ Chaque faction consomme surtout **une paire de ressources rares** (Haven : crist
 |----------|---------|-------|
 | Hôtel de ville → Capitole | 4 | 500/1000/2000/4000 or/j (1 seul Capitole par joueur) |
 | Fort → Château | 3 | murs (défense de siège), +50 %/+100 % croissance créatures |
-| Taverne | 1 | recrutement de héros, rumeurs, moral +1 en défense |
-| Marché | 1 | échange ressources |
+| Taverne | 1 | **effet `none` — aucune mécanique livrée** (ni recrutement de héros, ni rumeurs, ni +1 moral) ; sert uniquement de **prérequis** (arbre, ex. Tableau des Contrats AH). Recrutement de héros différé |
+| Marché | 1 | échange **ressource ↔ or** à taux plat (`market`, doc §3) ; troc ressource↔ressource différé |
 | Forge | 1 | vend des machines de guerre au héros présent (effet générique `warMachineVendor`, Alpha 4.12) |
-| Guilde des mages | 3 (MVP) – 5 | sorts de cercle 1–3 (–5) |
+| Guilde des mages | 3 | bâtiment payé, mais son effet **n'a aucun consommateur moteur** aujourd'hui : le héros connaît d'emblée les sorts de cercle ≤ 3 (gating MVP, §1.4) — l'apprentissage lié à la guilde et les cercles 4–5 sont différés |
 | Habitations T1–T7 | 2 (base + améliorée) | niveau 1 débloque le tier de base ; niveau 2 (amélioré) débloque l'unité upgradée |
 | Bâtiments spéciaux ×2–3 | 1 | uniques à la faction (définis dans son manifeste) |
 
-- **Recrutement** : chaque habitation a une croissance hebdo (ex. T1 : 14/sem, T7 : 1/sem) ; le stock s'accumule s'il n'est pas recruté (plafond : 2 semaines). Valeurs de départ (Phase 3.1) : coûts des bâtiments communs dans `data/core/buildings.json` (hôtel de ville gratuit→2500/5000/10000 or ; fort 5000 or + 20 minerai, ×2 par niveau ; guilde des mages 2000 or + 5 bois) ; croissance/coût de recrutement dans les données d'unité ; le stock d'une habitation ne se remplit qu'au **passage de semaine** (état de départ vide).
+- **Recrutement** : chaque habitation a une croissance hebdo (ex. T1 : 14/sem, T7 : 1/sem) ; le stock s'accumule s'il n'est pas recruté (plafond : 2 semaines). Valeurs de départ : coûts des bâtiments communs dans `data/core/buildings.json` — hôtel de ville **gratuit / 2500 or / 5000 or + 5 gemmes / 10000 or + 10 gemmes + 10 cristal** (le niveau 4 = Capitole, `uniquePerPlayer`) ; fort 5000 or + 20 minerai, ×2 par niveau ; guilde des mages 2000 or + 5 bois (×2 par niveau). Croissance/coût de recrutement dans les données d'unité ; le stock d'une habitation ne se remplit qu'au **passage de semaine** (état de départ vide).
 - **File de garnison** : une ville stocke une armée de défense ; attaquer une ville **défendue** ouvre un **combat de siège** contre sa garnison (Alpha 4.13) — combat normal sur le terrain de la ville, le Fort accordant un bonus de défense « murs » aux piles défenseure. Tour de garde + catapulte différés (v2).
-- **Capture** : ville **sans** garnison = capture immédiate ; ville **défendue** = capture à l'issue d'un siège **gagné** (garnison anéantie ⇒ la ville change de main, garnison vidée ; siège repoussé ⇒ héros retiré, garnison survivante conservée). Le joueur qui perd sa dernière ville a 7 jours pour en reprendre une, sinon défaite.
+- **Capture** : ville **sans** garnison = capture immédiate ; ville **défendue** = capture à l'issue d'un siège **gagné** (garnison anéantie ⇒ la ville change de main, garnison vidée ; siège repoussé ⇒ héros retiré, garnison survivante conservée). Le joueur qui perd sa dernière ville a **7 jours** (`RETAKE_GRACE_DAYS`, constante moteur) pour en reprendre une, sinon défaite. *L'élimination et cette grâce ne sont actives **qu'en mode scénario** (`GameState.scenario`) — no-op en partie libre/proto.*
 
 > 🚧 **État (upgrades d'unités, Alpha 4.11)** : chaque habitation est un
 > **bâtiment gradué `maxLevel:2`** — niveau 1 = unité de base, niveau 2
@@ -237,13 +246,13 @@ dégâts = Σ(dmg aléatoire min–max par créature de la pile)
 
 ### 5.4 Capacités d'unités (bibliothèque moteur)
 
-Le moteur expose un **catalogue de capacités génériques paramétrables** ; les unités les référencent par ID dans leurs données. Extrait :
+Le moteur expose un **catalogue de capacités génériques paramétrables** ; les unités les référencent par ID dans leurs données.
 
-`flying`, `shooter(ammo, noMeleePenalty?)`, `noRetaliation`, `unlimitedRetaliation`, `strikeAndReturn`, `doubleAttack`, `areaAttack(pattern)`, `breathAttack`, `undead`, `lifeDrain(pct)`, `resurrectOnKill`, `curseOnHit(spell, chance)`, `aura(effect, radius)`, `charge(bonusPerHex)`, `enrage(onAllyDeath)`, `magicResistance(pct)`, `spellcaster(spells, charges)`, `firstStrike`, `taunt`, `stealth(untilFirstAction)`, `mark(target)` …
+> **État livré** : le catalogue réellement interprété par le moteur — `data/core/abilities.json` — compte **9 capacités** : `flying`, `shooter`, `noRetaliation`, `doubleAttack`, `undead`, `mark`, `consumeMarks`, `demonform`, `symbiosis` (+ `magicResistance`, porté par `demonform`). Les capacités plus riches nommées dans les lineups de faction (`taunt`, `shieldWall`, `charge`, `firstStrike`, `lifeDrain`, `curseOnHit`, `spellcaster`, `areaAttack`, `aura`, `incorporeal`, `strikeAndReturn`, `breathAttack`, `poisonSting`, `swarm`, `resurrectAlly`, `unlimitedRetaliation`…) sont **déclarées en données mais pas encore interprétées** par le moteur (inertes en combat) — cible de design, à activer par sous-lots ultérieurs.
 
-Une faction qui a besoin d'une capacité **réellement nouvelle** l'ajoute comme module JS enregistré dans le registre de capacités (cf. doc 06 §4) — c'est le seul point d'extension en code autorisé.
+Une faction qui a besoin d'une capacité **réellement nouvelle** l'obtient en ouvrant **un** point d'extension **générique** du moteur, interprété depuis les données (cf. doc 06 §4) — jamais un module propre à une faction. C'est ainsi que `consumeMarks`/`demonform`/`symbiosis` ont été livrées.
 
-Sémantique des 6 capacités de la Phase 2.4 (valeurs de départ) :
+Sémantique des **9 capacités** du catalogue (valeurs de départ) :
 
 | Capacité | Effet implémenté |
 |---|---|
@@ -253,6 +262,9 @@ Sémantique des 6 capacités de la Phase 2.4 (valeurs de départ) :
 | `doubleAttack` | deux frappes ; la riposte éventuelle s'intercale après la 1ʳᵉ |
 | `undead` | moral figé à 0 (ne subit ni ne donne), ne compte pas dans le malus multi-factions |
 | `mark` | chaque frappe applique 1 charge à la cible (max 3, persistantes) ; +8 %/charge de dégâts subis |
+| `consumeMarks(...)` | sur une frappe **volontaire** (jamais en riposte), consomme les charges de Marque pour un effet paramétré : bonus de dégâts, suppression de riposte (`suppressRetaliation`, « expose ») ou immobilisation (`immobilizeRounds`, « pinningShot ») |
+| `demonform` | T8 : commence en forme humaine (`magicResistance` 50 %), bascule 1×/combat en forme démon (+dégâts, attaque de zone) mais perd la résistance |
+| `symbiosis` | une pile qui **ne bouge pas** accumule un buff croissant round après round (signature Sylvan Court) |
 
 ### 5.5 Fin de combat & auto-résolution
 

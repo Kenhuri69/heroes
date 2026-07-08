@@ -494,33 +494,52 @@ export class CombatScene {
   }
 
   /**
-   * UXD-4 : chiffre de dégâts flottant à la position de la cible. Monte et
-   * s'efface (~700 ms) ; « coup de chance » et pertes (`kills`) stylés à part.
-   * `prefers-reduced-motion` : apparaît statique puis s'efface (pas de montée).
-   * Texte transitoire ⇒ self-destruction (aucune accumulation).
+   * UXD-4 (+ fidélité HoMM Online, capture 4) : popup flottant à la position de
+   * la cible après une frappe. Ligne de **dégâts** (`-N`, `★` sur coup de chance)
+   * et, si la frappe tue, une 2ᵉ ligne **kills** plus grosse et colorée (mise en
+   * avant façon HO). Monte et s'efface (~700 ms) ; `prefers-reduced-motion` :
+   * statique puis fondu. Groupe transitoire ⇒ self-destruction (pas d'accumulation).
    */
   private spawnDamageNumber(at: Point, damage: number, kills: number, lucky: boolean): void {
-    const label = kills > 0 ? `-${damage} ☠${kills}` : `-${damage}`;
-    const text = new Text({
-      text: lucky ? `★ ${label}` : label,
+    const group = new Container();
+    const dmg = new Text({
+      text: lucky ? `★ -${damage}` : `-${damage}`,
       style: {
         fontFamily: 'system-ui, sans-serif',
-        fontSize: 20,
+        fontSize: 22,
         fontWeight: '700',
         fill: lucky ? 0xf1c40f : 0xffe0d6,
         stroke: { color: 0x1a1c22, width: 4 },
+        align: 'center',
       },
     });
-    text.anchor.set(0.5, 1);
-    text.position.set(at.x, at.y - TOKEN_RADIUS * 0.6);
-    this.fxLayer.addChild(text);
+    dmg.anchor.set(0.5, 1);
+    group.addChild(dmg);
+    if (kills > 0) {
+      dmg.position.y = -4; // laisse la place à la 2ᵉ ligne
+      const killsText = new Text({
+        text: `☠ ${kills}`,
+        style: {
+          fontFamily: 'system-ui, sans-serif',
+          fontSize: 26,
+          fontWeight: '700',
+          fill: 0xff7a3c, // orange sang : les pertes ressortent (2ᵉ canal a11y : taille + glyphe)
+          stroke: { color: 0x1a1c22, width: 4 },
+          align: 'center',
+        },
+      });
+      killsText.anchor.set(0.5, 0);
+      group.addChild(killsText);
+    }
+    group.position.set(at.x, at.y - TOKEN_RADIUS * 0.6);
+    this.fxLayer.addChild(group);
     const reduced = prefersReducedMotion();
-    const startY = text.position.y;
+    const startY = group.position.y;
     void tween(700, (t) => {
-      if (!reduced) text.position.y = startY - 26 * t;
-      text.alpha = t < 0.6 ? 1 : 1 - (t - 0.6) / 0.4; // plein puis fondu
+      if (!reduced) group.position.y = startY - 30 * t;
+      group.alpha = t < 0.6 ? 1 : 1 - (t - 0.6) / 0.4; // plein puis fondu
     }).then(() => {
-      if (!text.destroyed) text.destroy();
+      if (!group.destroyed) group.destroy({ children: true });
     });
   }
 

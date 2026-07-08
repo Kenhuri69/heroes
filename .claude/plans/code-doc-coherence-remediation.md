@@ -252,7 +252,7 @@ Chaque décision = correctif code OU ligne de doc, dans le même commit.
 
 ## 5. Lot E — Remise à niveau documentaire (corriger la DOC)
 
-- [ ] **E1 — docs/07-architecture.md** : `CURRENT_SAVE_VERSION` 4 → **8**
+- [x] **E1 — docs/07-architecture.md** : `CURRENT_SAVE_VERSION` 4 → **8**
   (+ historique v5 huntContract, v6 warMachines, v7 quests, v8 objets de
   carte/pendingTreasure/visitLuck) ; §2 : structure de packages réelle
   (`engine/src/ai` interne, `@heroes/content` avec schémas, pas

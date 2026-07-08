@@ -19,22 +19,29 @@
 
 ## 2. Découpage en packages
 
+> **État livré** (le découpage a évolué en Phase 2/3 — voici la réalité ; le
+> plan initial prévoyait un package `engine-api` et un package `ai` séparés,
+> non retenus). Le moteur ne connaît toujours aucune faction, et les frontières
+> d'import ESLint restent en place.
+
 ```
 heroes/ (monorepo pnpm)
 ├── packages/
-│   ├── engine/          # RÈGLES PURES : aucune dépendance DOM/Pixi.
+│   ├── engine/          # @heroes/engine — RÈGLES PURES : aucune dépendance DOM/Pixi.
 │   │   ├── adventure/   # carte, mouvement, économie, calendrier
 │   │   ├── combat/      # simulation hex, capacités, IA de combat
-│   │   ├── content/     # chargeur/validateur de paquets de faction (Zod)
-│   │   └── api/         # @heroes/engine-api — surface publique pour les modules de faction
-│   ├── client/          # rendu Pixi, UI Preact, input, audio, scènes
-│   ├── ai/              # IA d'aventure (joueur ordinateur) — consomme engine-api
-│   ├── server/          # (Beta) Node.js : matchmaking, relais de commandes, persistance
-│   └── tools/           # CLI faction:new/validate/sim, éditeur de carte (futur)
-├── data/                # contenu : core/ (sorts neutres, artefacts…), factions/, maps/
-├── schemas/             # JSON Schemas du contenu
+│   │   ├── ai/          # IA d'aventure (joueur ordinateur) — interne au moteur
+│   │   ├── core/ hero/ town/ faction/ scenario/ quest/ net/  # règles par domaine
+│   │   └── index.ts     # surface publique du moteur (consommée par client/content/tools)
+│   ├── content/         # @heroes/content — schémas Zod + chargeur/validateur de paquets
+│   ├── client/          # @heroes/client — rendu Pixi, UI Preact, input, scènes
+│   └── tools/           # @heroes/tools — CLI faction:new/validate/sim, éditeur de carte
+├── server/              # @heroes/server — (Beta) Worker Cloudflare + D1 (doc 15)
+├── data/                # contenu : core/ (sorts neutres, artefacts…), factions/, maps/, scenarios/
 └── docs/
 ```
+
+Les schémas du contenu sont des **schémas Zod** dans `@heroes/content` (pas de dossier `schemas/` racine ni de JSON Schema séparé).
 
 **Règle d'or** : `engine` est une **fonction pure** `(état, commande) → nouvel état + événements`. Il tourne à l'identique dans le navigateur, dans un worker, dans Node (serveur, simulation d'équilibrage) et dans les tests.
 
@@ -58,7 +65,7 @@ UI/IA ──commande──► [validation] ──► engine.apply(state, cmd)
 - **Commandes** (`MoveHero`, `BuildStructure`, `RecruitUnits`, `CombatAction`…) : petites, sérialisables → c'est le protocole réseau futur ET le format de replay.
 - **État** : un seul arbre sérialisable (`GameState`), mutations via Immer dans le moteur, exposé au client par un store **Zustand** (UI) tandis que Pixi écoute les **événements** pour animer (l'état saute à la fin, l'animation raconte le passage).
 - **Déterminisme** : RNG **PCG32 seedé** dans l'état ; interdiction lintée de `Math.random`/`Date.now` dans `engine` et les modules de faction. Bénéfices : replays, tests reproductibles, combat auto re-simulable, anti-triche serveur (le serveur rejoue les commandes).
-- Le moteur tourne dans un **Web Worker** dès que la carte est grande ou l'IA réfléchit (UI jamais bloquée).
+- **État livré** : `client/app/dispatch.ts` expose une **interface asynchrone** (`Promise<EngineResult>`, prête pour un worker) mais exécute le moteur **synchronement sur le thread principal**. L'anti-gel repose sur le throttling CPU ×4 testé en CI (budget de temps par tour tenu). Le passage effectif en **Web Worker** (très grandes cartes / IA lourde) reste **différé** — la signature asynchrone le rendra transparent le jour venu.
 
 ## 4. Sauvegardes
 
@@ -76,9 +83,17 @@ UI/IA ──commande──► [validation] ──► engine.apply(state, cmd)
     version — « Continuer » se grise, l'import échoue — au lieu d'adopter un
     état malformé. La **migration ascendante** d'anciennes sauvegardes reste
     différée (post-MVP) : au MVP on rejette, on ne migre pas.
-    `CURRENT_SAVE_VERSION` vaut **4** depuis le comblement MVP (ajout de
-    `PlayerState.townlessDays` — grâce de reprise — et `AdventureMapDef.triggers`).
-- Une sauvegarde référence les paquets de faction et leurs versions.
+    `CURRENT_SAVE_VERSION` vaut **8** (source de vérité `engine/core/state.ts`).
+    Historique : v2 (`factionCatalog`/`scenario`/`outcome`/`controller`/
+    `eliminated`, 3.4/3.5) ; v3 (`PlayerState.factionResources`, 4.4) ; v4
+    (`townlessDays` grâce de reprise + `AdventureMapDef.triggers`, comblement
+    MVP) ; v5 (`PlayerState.huntContract`, contrats de chasse, doc 05 §3.3) ;
+    v6 (`HeroState.warMachines`, machines de guerre, doc 02 §5) ; v7
+    (`GameState.quests`, quêtes, doc 13 §6.2) ; v8 (objets de carte
+    `mine`/`treasure`/`artifact`/`visitable`/`dwelling`, `pendingTreasure`,
+    `HeroState.visitLuck`, doc 02 §2.2).
+- Une sauvegarde référence les paquets de faction (par id) ; le suivi de
+  **version** par paquet est différé avec les migrations (post-MVP).
 
 ## 5. Backend multijoueur (Beta — architecturé dès le MVP)
 
@@ -95,7 +110,7 @@ UI/IA ──commande──► [validation] ──► engine.apply(state, cmd)
 - Spritesheets atlassées (TexturePacker ou packer maison dans `tools/`), 2 résolutions (@1x/@2x) servies selon `devicePixelRatio`.
 - Carte d'aventure : rendu par chunks avec culling ; brouillard en texture dédiée mise à jour incrémentalement.
 - Cible : 60 fps en combat sur mobile milieu de gamme (test CI Playwright avec throttling CPU ×4).
-- **PWA** : service worker (Workbox) → jeu solo jouable hors-ligne, icône sur l'écran d'accueil.
+- **PWA** (lot 8.1 livré) : service worker **hand-rolled** `data/sw.js` (offline-first, sans dépendance Workbox — hors budget bundle) + manifeste installable `data/manifest.webmanifest` → jeu solo jouable hors-ligne, icône sur l'écran d'accueil.
 
 ## 7. Qualité & CI
 

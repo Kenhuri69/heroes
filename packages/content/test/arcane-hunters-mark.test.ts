@@ -142,6 +142,7 @@ describe('Arcane Hunters (plan phase-4.2) — signature Marque & lineup data-onl
       builtToday: false,
       garrison: [],
       stock,
+      spellPool: [],
     };
     const players: PlayerSetup[] = [
       {

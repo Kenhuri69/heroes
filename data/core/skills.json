@@ -171,6 +171,20 @@
         }
       ],
       "school": "air"
+    },
+    {
+      "id": "wisdom",
+      "ranks": [
+        {
+          "learnCircle": 4
+        },
+        {
+          "learnCircle": 5
+        },
+        {
+          "learnCircle": 5
+        }
+      ]
     }
   ]
 }

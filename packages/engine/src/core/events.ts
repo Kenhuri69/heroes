@@ -162,6 +162,8 @@ export type GameEvent =
       kills: number;
     }
   | { type: 'SkillLearned'; heroId: string; skillId: string; rank: number }
+  /** Sorts appris à la guilde des mages d'une ville visitée (doc 02 §4.1, G2). */
+  | { type: 'SpellsLearned'; heroId: string; spellIds: string[] }
   // ——— Sort d'aventure (doc 02 §1.4, Alpha 4.16) : effet hors combat sur la carte ———
   | { type: 'AdventureSpellCast'; heroId: string; spellId: string; pos: GridPos }
   // ——— Effets de faction déclaratifs (doc 06 §4) — surface figée lot O 3.4 ———

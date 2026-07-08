@@ -54,7 +54,7 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 - Coût en mana, 1 sort/round de combat + sorts d'aventure (Ville-portail, Vision, etc. — post-MVP sauf `Rappel`).
 - ~20 sorts au MVP (liste dans `data/core/spells/`).
 
-> 🚧 **État 3.2** : 10 sorts livrés (`data/core/spells.json`, cercles 1–3) — Feu/Eau/Terre/Air/neutre, types `damage`/`heal`/`buff`/`debuff`. Mana = `Savoir × 10 + artefacts`, remplie à l'ouverture du combat. **1 sort/round** en combat (commande `CastSpell`, prévisualisation obligatoire sans RNG). Dégâts = `round((base + perPower × Pouvoir) × (1 − résistance) × (lucky ? 2 : 1))`. Gating MVP : le héros connaît d'emblée les sorts de **cercle ≤ 3** (Guilde des mages MVP) ; l'apprentissage à la visite de ville, les cercles 4–5 (Sagesse/Magie) et les autres sorts d'aventure sont des raffinements ultérieurs. L'IA ne lance pas de sort en 3.2.
+> 🚧 **État 3.2** : 10 sorts livrés (`data/core/spells.json`, cercles 1–3) — Feu/Eau/Terre/Air/neutre, types `damage`/`heal`/`buff`/`debuff`. Mana = `Savoir × 10 + artefacts`, remplie à l'ouverture du combat. **1 sort/round** en combat (commande `CastSpell`, prévisualisation obligatoire sans RNG). Dégâts = `round((base + perPower × Pouvoir) × (1 − résistance) × (lucky ? 2 : 1))`. Gating MVP : le héros connaît d'emblée ses `startingSpells`. **G2 livré** : la Guilde des mages enseigne désormais des sorts à la visite (pool seedé par cercle, §4.1), et la compétence **Sagesse** (H2) débloque l'apprentissage des cercles 4–5 (base 3). Les sorts de cercle 4–5 eux-mêmes (contenu) et les autres sorts d'aventure restent des raffinements ultérieurs (H1). L'IA ne lance pas de sort d'aventure en 3.2.
 
 > 🚧 **État (sorts d'aventure, Alpha 4.16)** : ouverture du sous-système **hors
 > combat**. Nouveau **kind `adventure`** portant un effet déclaratif
@@ -163,7 +163,7 @@ Chaque faction consomme surtout **une paire de ressources rares** (Haven : crist
 | Taverne | 1 | **effet `none` — aucune mécanique livrée** (ni recrutement de héros, ni rumeurs, ni +1 moral) ; sert uniquement de **prérequis** (arbre, ex. Tableau des Contrats AH). Recrutement de héros différé |
 | Marché | 1 | échange **ressource ↔ or** à taux plat (`market`, doc §3) ; troc ressource↔ressource différé |
 | Forge | 1 | vend des machines de guerre au héros présent (effet générique `warMachineVendor`, Alpha 4.12) |
-| Guilde des mages | 3 | bâtiment payé, mais son effet **n'a aucun consommateur moteur** aujourd'hui : le héros connaît d'emblée les sorts de cercle ≤ 3 (gating MVP, §1.4) — l'apprentissage lié à la guilde et les cercles 4–5 sont différés |
+| Guilde des mages | 3 | **G2 livré** : à la construction d'un niveau L, `spellCount` sorts du cercle L sont tirés au **RNG seedé** dans `town.spellPool` (4/3/2 par niveau) ; un héros du propriétaire qui **visite la ville** (foule sa tuile) apprend automatiquement les sorts du pool de cercle ≤ son cercle apprenable. Cercle apprenable = **3** de base, relevé à **4/5** par la compétence **Sagesse** (H2). Onglet Guilde informatif côté client |
 | Habitations T1–T7 | 2 (base + améliorée) | niveau 1 débloque le tier de base ; niveau 2 (amélioré) débloque l'unité upgradée |
 | Bâtiments spéciaux ×2–3 | 1 | uniques à la faction (définis dans son manifeste) |
 

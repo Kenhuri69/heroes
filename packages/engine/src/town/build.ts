@@ -1,7 +1,9 @@
+import { samePos } from '../adventure/map';
 import type { Command, CommandError } from '../core/commands';
 import type { GameEvent } from '../core/events';
 import type { GameState } from '../core/state';
 import { exclusiveRivalId, missingRequirements } from './helpers';
+import { learnGuildSpellsAtTown, rollGuildSpells } from './mage-guild';
 import { canAfford, payCost } from './resources';
 
 type BuildCmd = Extract<Command, { type: 'BuildStructure' }>;
@@ -97,4 +99,14 @@ export function handleBuildStructure(draft: GameState, cmd: BuildCmd, events: Ga
   town.buildings[cmd.buildingId] = builtLevel;
   town.builtToday = true;
   events.push({ type: 'TownBuilt', townId: town.id, buildingId: cmd.buildingId, level: builtLevel });
+  // Guilde des mages (G2) : tire le pool de sorts du cercle bâti, puis tout héros
+  // du propriétaire présent sur la ville apprend aussitôt ce qu'il peut.
+  const effect = nextLevel.effect;
+  if (effect.type === 'mageGuild') {
+    rollGuildSpells(draft, town, effect.level, effect.spellCount ?? 0);
+    for (const hero of draft.heroes) {
+      if (hero.playerId === town.ownerPlayerId && samePos(hero.pos, town.pos))
+        learnGuildSpellsAtTown(draft, hero, town, events);
+    }
+  }
 }

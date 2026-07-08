@@ -1063,6 +1063,51 @@ test('upgrade : bâtir le dwelling amélioré puis améliorer une pile de garnis
   expect(errors).toEqual([]);
 });
 
+test('guilde des mages : bâtir la guilde puis visiter → le héros apprend les sorts du pool (G2)', async ({
+  page,
+}) => {
+  const errors = await openGame(page);
+
+  // Amener le héros sur la tuile de la ville (2,4) — condition de « visite ».
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({ type: 'MoveHero', heroId: 'hero-player-1', path: [{ x: 2, y: 4 }] }),
+  );
+  await expect.poll(() => heroPos(page)).toEqual({ x: 2, y: 4 });
+
+  const spellsBefore = await page.evaluate(
+    () => window.__HEROES_TEST__!.getState().heroes[0]?.spells.length ?? 0,
+  );
+
+  // Bâtir la guilde des mages (niveau 1, 2000 or + 5 bois) : tire 4 sorts de
+  // cercle 1 dans le pool ; le héros présent les apprend aussitôt.
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({
+      type: 'BuildStructure',
+      townId: 'start-town',
+      buildingId: 'mageGuild',
+    }),
+  );
+  const pool = await page.evaluate(
+    () => window.__HEROES_TEST__!.getState().towns[0]?.spellPool ?? [],
+  );
+  expect(pool).toHaveLength(4);
+  // Le héros a appris les sorts du pool (cercle 1 ≤ cercle apprenable 3).
+  const spellsAfter = await page.evaluate(
+    () => window.__HEROES_TEST__!.getState().heroes[0]?.spells ?? [],
+  );
+  for (const id of pool) expect(spellsAfter).toContain(id);
+  expect(spellsAfter.length).toBeGreaterThan(spellsBefore);
+
+  // Onglet Guilde de l'écran de ville : le pool est listé, marqué « connu ».
+  await page.getByTestId('town-open-start-town').click();
+  await page.getByTestId('town-tab-guild').click();
+  await expect(page.getByTestId('town-panel-guild')).toBeVisible();
+  expect(await page.locator('[data-testid^="guild-spell-"]').count()).toBe(4);
+  expect(await page.locator('.town-guild-spell.is-known').count()).toBe(4);
+
+  expect(errors).toEqual([]);
+});
+
 test('ville : une construction refusée affiche une erreur localisée (remédiation CL6)', async ({ page }) => {
   const errors = await openGame(page);
 

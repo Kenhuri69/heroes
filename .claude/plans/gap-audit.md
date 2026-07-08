@@ -42,7 +42,7 @@
 - **Vérif** : test moteur « BuildStructure d'un dwelling hors-faction rejeté » +
   smoke « écran de ville n'affiche que core + faction ».
 
-### G2 — Guilde des mages inerte : aucun apprentissage de sort 🐞/🕳️ L
+### G2 — Guilde des mages inerte : aucun apprentissage de sort 🐞/🕳️ L — ✅ FAIT (couplé H2)
 - **Symptôme** : un héros n'apprend **aucun** sort de toute la partie ; construire
   la guilde ne change rien à son grimoire.
 - **Cause** : l'effet `mageGuild` n'existe que dans le type
@@ -167,7 +167,7 @@
   invocation, sorts de masse/zone/chaîne (dépend C7), dissipation réelle
   (`dissipation` n'est qu'un debuff stat).
 
-### H2 — Pas de compétence Sagesse → cercles 4-5 morts 🕳️ M
+### H2 — Pas de compétence Sagesse → cercles 4-5 morts 🕳️ M — ✅ FAIT (mécanisme ; contenu 4-5 = H1)
 - Champs `spellCircleUnlock`/`learnCircle` déclarés mais jamais lus
   (`hero/types.ts:58-59`) ; `circle` n'est pas un gate de lancement
   (`hero/index.ts:40-71`). Aucun sort de cercle > 3 en données. Manque aussi
@@ -214,6 +214,15 @@ moteur touché, smoke, budget). Les items 🕳️ « feature » impliquant du de
 ## Journal
 - **2026-07-08** — Backlog créé depuis 4 audits de code parallèles. Les 4
   exemples utilisateur confirmés dans le source. Rien encore implémenté.
+- **2026-07-08** — **G2 + H2 livrés** (guilde des mages + Sagesse) : pool de
+  sorts seedé par niveau de guilde (`town.spellPool`, save v9), apprentissage
+  automatique à la visite (`learnGuildSpellsAtTown`), compétence `wisdom`
+  débloquant les cercles 4-5 (`heroLearnableCircle`, base 3), onglet Guilde
+  informatif. Vérif : typecheck 5/5, lint, 358 tests moteur + 83 contenu (dont
+  `mage-guild.test.ts`), content:check, build, smoke **106** (nouveau test
+  guilde). Golden re-fixé (`33739bfa`, forme `spellPool`). Docs 02 §1.4/§4.1 +
+  07 §4 mises à jour. Contenu des sorts de cercle 4-5 = **H1** (Sagesse reste
+  inerte tant qu'ils n'existent pas).
 - **2026-07-08** — **G1 livré** : bâtiments tagués `factionId` opaque dans le
   catalogue (`content/loader.ts buildBuildingCatalog`), rejet moteur
   `wrongFactionBuilding` (`engine/town/build.ts`, code ajouté à `CommandError`),

@@ -238,6 +238,7 @@ export function newGameCommand(
             builtToday: false,
             garrison: (obj.garrison ?? []).map((s) => ({ ...s })),
             stock: {},
+            spellPool: [],
           },
         ]
       : [],
@@ -385,6 +386,7 @@ export function scenarioStartCommand(
         builtToday: false,
         garrison: [],
         stock: {},
+        spellPool: [],
       },
     ];
   });
@@ -404,6 +406,7 @@ export function scenarioStartCommand(
       builtToday: false,
       garrison: (obj.garrison ?? []).map((s) => ({ ...s })),
       stock: {},
+      spellPool: [],
     });
   }
 
@@ -574,6 +577,7 @@ export function skirmishStartCommand(
       builtToday: false,
       garrison: [],
       stock: {},
+      spellPool: [],
     };
   });
 
@@ -590,6 +594,7 @@ export function skirmishStartCommand(
       builtToday: false,
       garrison: (obj.garrison ?? []).map((st) => ({ ...st })),
       stock: {},
+      spellPool: [],
     });
   }
 

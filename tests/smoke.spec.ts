@@ -278,7 +278,10 @@ test("appui long sur la mine (3,6) : fiche d'objet de carte (doc 08 §2.1, lot M
 test('fin de tour : jour suivant, points de mouvement restaurés', async ({ page }) => {
   const errors = await openGame(page);
 
-  await tapTapTile(page, 6, 3);
+  // Déplacement scripté via le hook moteur (cf. `moveHeroToGold`) : le sujet est
+  // la fin de tour + restauration des PM, PAS le tap-tap (couvert par son test
+  // dédié). Évite le flake tap-tap mobile sous charge (1er tap parfois perdu).
+  await moveHeroToGold(page);
   await expect.poll(() => heroPos(page)).toEqual({ x: 6, y: 3 });
 
   await endTurn(page);

@@ -310,6 +310,8 @@ faction en dur) et dérivent le chemin de la donnée :
 | Artefacts | `artifacts/<artifactId>.png` | id d'artefact |
 | Bâtiments communs | `buildings/core/<buildingId>.png` | id de bâtiment |
 | Bâtiments de faction | `buildings/<factionId>/<buildingId>.png` | id de bâtiment (fichier nommé exactement par l'id) |
+| Unités | `units/<factionId>/<unitId>.png` | `unitSpriteUrl(unitId, groupId)` — **repli élite→base** : `<base>-elite` sans sprite propre réutilise `<base>` (armées améliorées peintes tant que l'art d'élite dédié n'est pas produit) |
+| Avatars de héros | `heroes/<factionId>-<archetype>.png` | faction + archétype (might/magic) |
 | Icônes UI | `ui/res-<id>_<size>.png`, `ui/stat-<id>_<size>.png`, `ui/ui-day_<size>.png` | id + mipmap ≥ taille voulue (16/24/32/48/64) |
 
 Surfaces branchées : `render/tilemap.ts` (terrain), `render/mapObjects.ts`

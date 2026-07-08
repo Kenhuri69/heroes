@@ -175,7 +175,7 @@ une seule fois en fin de lot, et re-passer le test d'équilibrage grossier.
 - [x] **C5 — Préviz de chemin : « jours nécessaires » réduit à un booléen
   aujourd'hui/plus tard** (`AdventureScene.ts:212-220`) — doc 02:76 promet le
   compte de jours. Resegmenter par allocation quotidienne de PM.
-- [ ] Vérif de lot : smoke Playwright (desktop + mobile) vert ; audit i18n
+- [x] Vérif de lot : smoke Playwright (desktop + mobile) vert ; audit i18n
   0 chaîne en dur maintenu.
 
 ## 4. Lot D — Décisions de design à trancher (recommandation incluse)
@@ -348,3 +348,17 @@ Chaque décision = correctif code OU ligne de doc, dans le même commit.
 - 2026-07-07 : plan créé à l'issue de la revue (7 audits parallèles +
   contre-vérification manuelle de A1, A2, A6, A7, A10, F5, F6, F12, F14).
   Aucun correctif appliqué — les arbitrages du Lot D restent à valider.
+- 2026-07-08 : **plan clos — Lots A→E intégralement livrés et mergés.**
+  Découpage en PR atomiques : A-1/A-2 (#…), B, C-1/C-2/C-3, D-combat (#126),
+  D-ville (#127), D-data (#128), D-misc (#129), E-save (#130), E-mechanics
+  (#131), E-factions (#132), E-narrative (#133), E-meta (#134). Invariants
+  tenus tout du long : golden replay stable (re-fixé **une seule fois** en
+  Lot A-1, `48c3a5e5`), garde-fou « zéro faction dans le moteur » vert (le
+  moteur n'énumère plus aucune école — D11), budget bundle 260 Ko < 800 Ko
+  gzip, smoke desktop + mobile vert à chaque lot. Bilan : ~30 correctifs de
+  **code** (bugs moteur A/B, client C, arbitrages design D) avec tests, et une
+  **remise à niveau documentaire** complète (docs 01/02/06/07 + factions
+  03/04/05/14 + narratif 13 + CLAUDE.md + hygiène des commentaires moteur),
+  chaque écart soit corrigé dans le code, soit acté « différé » dans la doc,
+  au même commit. Deux affirmations du plan elles-mêmes corrigées à la
+  vérification (terrain natif = +1 vitesse combat ; 12 scénarios, pas 4).

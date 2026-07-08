@@ -353,6 +353,38 @@ test("l'arène /#arena ouvre un combat immédiat et se résout en auto", async (
   expect(errors).toEqual([]);
 });
 
+test("combat : la file d'ordre s'affiche (actif en tête) et la fiche de pile s'ouvre au tap", async ({
+  page,
+}) => {
+  const errors = collectErrors(page);
+  await page.goto('./?seed=42#arena');
+  await page.waitForFunction(() => window.__HEROES_READY__ === true);
+
+  // Lot M1 (C13) : file d'ordre de passage — la 1ʳᵉ vignette est la pile active.
+  const order = page.getByTestId('combat-order');
+  await expect(order).toBeVisible();
+  const chips = order.locator('button.stack-chip');
+  await expect(chips.first()).toHaveClass(/stack-chip-active/);
+  const activeId = await page.evaluate(() => window.__HEROES_TEST__!.getState().combat?.activeStackId);
+  const chipLabel = await chips.first().getAttribute('aria-label');
+  const activeStack = await page.evaluate(
+    () => window.__HEROES_TEST__!.getState().combat?.stacks.find((s) => s.id === window.__HEROES_TEST__!.getState().combat?.activeStackId),
+  );
+  expect(activeId).toBeTruthy();
+  expect(chipLabel).toContain(String(activeStack!.count));
+
+  // Lot M1 (C14) : tap sur une vignette ⇒ fiche de pile avec stats, fermeture ×.
+  await chips.first().click();
+  const sheet = page.getByTestId('stack-sheet');
+  await expect(sheet).toBeVisible();
+  await expect(sheet).toContainText('Attaque');
+  await expect(sheet).toContainText('Dégâts');
+  await page.getByTestId('stack-sheet-close').click();
+  await expect(sheet).toBeHidden();
+
+  expect(errors).toEqual([]);
+});
+
 /**
  * Mesure de fluidité anti-gel (doc 10 §6, doc 01 §5 critère 3) : compte les
  * frames `requestAnimationFrame` sur une fenêtre de 2 s après 1 s d'échauffement

@@ -276,3 +276,9 @@ M7** (parité MMHO/HoMM) puis **M8** (confort). Chaque lot re-passe la skill
 
 - 2026-07-07 : revue complète effectuée (captures + inventaire code + référence
   MMHO sourcée) ; constats C1–C26 ; plan M1–M8 rédigé. Aucun code modifié.
+- 2026-07-08 : **Lot M1 livré** (plan `ux-m1-combat-lisibilite.md`) — C13
+  (ordre de passage via `roundActionOrder` moteur pur), C14 (fiche de pile au
+  tap), C18 (chips 2 lignes, consigne mobile compacte). Couvre aussi le Lot 2
+  du plan `homm-online-divergence-remediation.md`. Entre-temps, le lot C-3
+  (#124) a livré le **compte de jours réel** de la préviz de chemin — M2.1 se
+  réduit aux **étiquettes numériques** (la couleur par jour reste seule, A5).

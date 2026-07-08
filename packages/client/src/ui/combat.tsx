@@ -1,10 +1,17 @@
 import { useSyncExternalStore } from 'preact/compat';
-import { useState } from 'preact/hooks';
+import { useEffect, useState } from 'preact/hooks';
+import {
+  initiativeSpeed,
+  roundActionOrder,
+  type CombatStack,
+  type CombatState,
+  type CombatUnitDef,
+} from '@heroes/engine';
 import { useApp, appStore } from '../app/store';
 import { dispatch } from '../app/dispatch';
 import { recordCombatAuto } from '../app/telemetry';
 import { humanId } from '../app/game';
-import { t, resolveUnitName, resolveLoc, commandErrorMessage } from '../app/i18n';
+import { t, resolveUnitName, resolveSpellName, resolveLoc, commandErrorMessage } from '../app/i18n';
 import { COMBAT_SPEEDS } from '../app/ui-constants';
 import { combatPreview, type DamagePreview } from '../scenes/combat/preview';
 import { pushToast } from './toasts';
@@ -23,16 +30,20 @@ export function CombatUi() {
   const combatSpeed = useApp((s) => s.combatSpeed);
   const combatBark = useApp((s) => s.combatBark);
   const hero = useApp((s) => s.game.heroes.find((h) => h.playerId === humanId(s.game)));
+  const catalog = useApp((s) => s.game.unitCatalog);
   const preview = useSyncExternalStore(combatPreview.subscribe, combatPreview.get);
   const [spellBookOpen, setSpellBookOpen] = useState(false);
+  const [sheetStackId, setSheetStackId] = useState<string | null>(null);
   if (!combat) return null;
 
   const active = combat.stacks.find((s) => s.id === combat.activeStackId);
   const isPlayerTurn = !combat.finished && active?.side === combat.playerSide;
   const canCastSpell = isPlayerTurn && !combat.heroCastThisRound && !!hero && hero.spells.length > 0;
 
-  const attackers = combat.stacks.filter((s) => s.side === 'attacker').sort((a, b) => a.slot - b.slot);
-  const defenders = combat.stacks.filter((s) => s.side === 'defender').sort((a, b) => a.slot - b.slot);
+  // Ordre de passage projeté (lot M1, doc 08 §2.4) : remplace les deux rangées
+  // par camp triées par slot — l'actif est la 1ʳᵉ entrée par construction.
+  const order = roundActionOrder(combat, catalog);
+  const sheetStack = sheetStackId ? (combat.stacks.find((s) => s.id === sheetStackId) ?? null) : null;
 
   const act = (action: 'wait' | 'defend'): void => {
     dispatch({ type: 'CombatAction', action: { type: action } }).catch((err: unknown) => {
@@ -49,19 +60,26 @@ export function CombatUi() {
   return (
     <div class="combat-ui">
       <header class="combat-armies">
-        <div class="combat-side combat-side-attacker">
-          {attackers.map((s) => (
-            <StackChip key={s.id} unitId={s.unitId} count={s.count} active={s.id === combat.activeStackId} />
-          ))}
-        </div>
         <div class="combat-round" data-testid="combat-round">
           {t('combat.round', { round: combat.round })}
         </div>
-        <div class="combat-side combat-side-defender">
-          {defenders.map((s) => (
-            <StackChip key={s.id} unitId={s.unitId} count={s.count} active={s.id === combat.activeStackId} />
+        <ol class="combat-order" data-testid="combat-order" aria-label={t('combat.order.label')}>
+          {order.current.map((s) => (
+            <li key={s.id}>
+              <StackChip stack={s} active={s.id === combat.activeStackId} onOpen={() => setSheetStackId(s.id)} />
+            </li>
           ))}
-        </div>
+          {order.next.length > 0 && (
+            <li class="combat-order-sep">
+              <span>{t('combat.order.next')}</span>
+            </li>
+          )}
+          {order.next.map((s) => (
+            <li key={`next-${s.id}`} class="combat-order-next">
+              <StackChip stack={s} active={false} onOpen={() => setSheetStackId(s.id)} />
+            </li>
+          ))}
+        </ol>
       </header>
 
       {/* Bark de combat (doc 13 §6.3, N4b) : réplique de l'antagoniste au début du combat. */}
@@ -106,16 +124,123 @@ export function CombatUi() {
       </div>
 
       {spellBookOpen && hero && <SpellBook hero={hero} onClose={() => setSpellBookOpen(false)} />}
+      {sheetStack && (
+        <StackSheet stack={sheetStack} combat={combat} catalog={catalog} onClose={() => setSheetStackId(null)} />
+      )}
     </div>
   );
 }
 
-/** Vignette d'une pile (bandeau haut) : effectif + nom localisé, pas d'icône de faction en 2.4. */
-function StackChip({ unitId, count, active }: { unitId: string; count: number; active: boolean }) {
+/**
+ * Vignette d'une pile dans la file d'ordre : effectif + nom localisé + marqueur
+ * de camp (losange plein attaquant / anneau défenseur — forme ET couleur, A5).
+ * Tap = fiche de pile (C14) ⇒ cible ≥ 44 px (A1).
+ */
+function StackChip({ stack, active, onOpen }: { stack: CombatStack; active: boolean; onOpen: () => void }) {
+  const sideName = t(stack.side === 'attacker' ? 'combat.side.attacker' : 'combat.side.defender');
   return (
-    <div class={`stack-chip${active ? ' stack-chip-active' : ''}`}>
-      <span class="stack-chip-count">{count}</span>
-      <span class="stack-chip-unit">{resolveUnitName(unitId)}</span>
+    <button
+      type="button"
+      class={`stack-chip stack-chip-${stack.side}${active ? ' stack-chip-active' : ''}`}
+      aria-label={`${stack.count} × ${resolveUnitName(stack.unitId)} — ${sideName}`}
+      onClick={onOpen}
+    >
+      <span class={`stack-chip-side chip-side-${stack.side}`} aria-hidden="true" />
+      <span class="stack-chip-count">{stack.count}</span>
+      <span class="stack-chip-unit">{resolveUnitName(stack.unitId)}</span>
+    </button>
+  );
+}
+
+/**
+ * Fiche de pile (lot M1, C14 — « lisibilité d'état » doc 08 §1.4) : stats de
+ * l'unité + état de combat de la pile, consultable au tap sur une vignette.
+ * Aucune règle réimplémentée : catalogue moteur + `initiativeSpeed`.
+ */
+function StackSheet({
+  stack,
+  combat,
+  catalog,
+  onClose,
+}: {
+  stack: CombatStack;
+  combat: CombatState;
+  catalog: Record<string, CombatUnitDef>;
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent): void => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
+  const def = catalog[stack.unitId];
+  if (!def) return null;
+  const speed = Math.max(0, initiativeSpeed(stack, combat, catalog));
+  const sideName = t(stack.side === 'attacker' ? 'combat.side.attacker' : 'combat.side.defender');
+  const flags = [
+    stack.defending ? t('combat.sheet.defending') : null,
+    stack.waited ? t('combat.sheet.waited') : null,
+    stack.immobilizedRounds > 0 ? t('combat.sheet.immobilized', { rounds: stack.immobilizedRounds }) : null,
+    stack.marks > 0 ? t('combat.sheet.marks', { marks: stack.marks }) : null,
+  ].filter((f): f is string => f !== null);
+  return (
+    <div class="stack-sheet-backdrop" onClick={onClose}>
+      <section
+        class="stack-sheet"
+        data-testid="stack-sheet"
+        role="dialog"
+        aria-label={resolveUnitName(stack.unitId)}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <header class="stack-sheet-header">
+          <h3>
+            {stack.count} × {resolveUnitName(stack.unitId)}
+          </h3>
+          <button
+            type="button"
+            class="stack-sheet-close"
+            data-testid="stack-sheet-close"
+            aria-label={t('combat.sheet.close')}
+            onClick={onClose}
+          >
+            ×
+          </button>
+        </header>
+        <p class="stack-sheet-side">{sideName}</p>
+        <dl class="stack-sheet-stats">
+          <dt>{t('combat.sheet.hp')}</dt>
+          <dd>
+            {stack.firstHp}/{def.stats.hp}
+          </dd>
+          <dt>{t('attribute.attack')}</dt>
+          <dd>{def.stats.attack}</dd>
+          <dt>{t('attribute.defense')}</dt>
+          <dd>{def.stats.defense}</dd>
+          <dt>{t('combat.sheet.damage')}</dt>
+          <dd>
+            {def.stats.damage[0]}–{def.stats.damage[1]}
+          </dd>
+          <dt>{t('combat.sheet.speed')}</dt>
+          <dd>{speed}</dd>
+          {stack.ammo !== null && (
+            <>
+              <dt>{t('combat.sheet.ammo')}</dt>
+              <dd>{stack.ammo}</dd>
+            </>
+          )}
+        </dl>
+        {stack.statuses.length > 0 && (
+          <p class="stack-sheet-statuses">
+            {t('combat.sheet.statuses')}{' '}
+            {stack.statuses
+              .map((st) => t('combat.sheet.statusRounds', { name: resolveSpellName(st.spellId), rounds: st.roundsLeft }))
+              .join(' · ')}
+          </p>
+        )}
+        {flags.length > 0 && <p class="stack-sheet-flags">{flags.join(' · ')}</p>}
+      </section>
     </div>
   );
 }

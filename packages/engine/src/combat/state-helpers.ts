@@ -59,6 +59,54 @@ export function moveRange(
 }
 
 /**
+ * Vitesse d'INITIATIVE (doc 02 §5.2) : vitesse effective + somme des `speedMod`
+ * des statuts actifs, NON bornée (contrairement à `moveRange`) — c'est la somme
+ * qu'utilise l'ordre de jeu par vagues (`turns.ts`) et sa projection UI.
+ */
+export function initiativeSpeed(
+  stack: CombatStack,
+  combat: CombatState,
+  catalog: Record<string, CombatUnitDef>,
+): number {
+  return effectiveSpeed(stack, combat, catalog) + stack.statuses.reduce((sum, s) => sum + s.speedMod, 0);
+}
+
+/** Ordre de passage projeté d'un round (lot UX M1) : piles restantes + round suivant. */
+export interface RoundActionOrder {
+  /** Piles qui doivent encore jouer ce round, dans l'ordre où elles joueront. */
+  current: CombatStack[];
+  /** Projection du round suivant (toutes les piles vivantes, vague normale). */
+  next: CombatStack[];
+}
+
+/**
+ * Projette l'ordre de passage (doc 08 §2.4 « ordre du round ») : vague normale
+ * par vitesse décroissante puis piles en attente par vitesse croissante, mêmes
+ * départages que `pickNext` (`turns.ts`) — la 1ʳᵉ entrée de `current` est donc
+ * la pile active. Projection nominale : les aléas résolus au moment du tour
+ * (saut de moral négatif, immobilisation) ne sont pas anticipés.
+ */
+export function roundActionOrder(
+  combat: CombatState,
+  catalog: Record<string, CombatUnitDef>,
+): RoundActionOrder {
+  if (combat.finished) return { current: [], next: [] };
+  const bySpeed =
+    (direction: 'asc' | 'desc') =>
+    (a: CombatStack, b: CombatStack): number => {
+      const sa = initiativeSpeed(a, combat, catalog);
+      const sb = initiativeSpeed(b, combat, catalog);
+      if (sa !== sb) return direction === 'desc' ? sb - sa : sa - sb;
+      if (a.side !== b.side) return a.side === 'attacker' ? -1 : 1;
+      return a.slot - b.slot;
+    };
+  const alive = combat.stacks.filter((s) => s.count > 0);
+  const main = alive.filter((s) => !s.acted && !s.waited).sort(bySpeed('desc'));
+  const wait = alive.filter((s) => !s.acted && s.waited).sort(bySpeed('asc'));
+  return { current: [...main, ...wait], next: [...alive].sort(bySpeed('desc')) };
+}
+
+/**
  * Bonus de moral du héros lié au camp `side` : compétence Commandement +
  * moral d'artefacts (B7 — `bonus.morale` était sommé mais jamais branché).
  * 0 si aucun héros.

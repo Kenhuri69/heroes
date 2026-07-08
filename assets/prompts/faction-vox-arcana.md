@@ -11,18 +11,18 @@
 ## État du staging (planches générées + extraites, QC verte)
 
 Les 3 planches ont été générées (Gemini) puis extraites via `sheet_extract.py`
-(porte QC verte). **Stagé** (`assets/`) :
+(porte QC verte). **Stagé** (`assets/`) — base complète :
 - `assets/heroes/vox-arcana-hermione.png`, `vox-arcana-rumi.png` (Règle B, fond
   contextuel sombre conservé — voulu).
-- `assets/houses/vox-arcana/house-{lion,serpent,eagle,badger,venari}.png` (blasons).
-- `assets/units/vox-arcana/{t1-choeur,t2-duelliste,t3-hippogriffe,t4-idole,t6-maitre,t8-avatar}.png`.
+- `assets/houses/vox-arcana/house-{lion,serpent,eagle,badger,venari}.png` (5 blasons).
+- `assets/units/vox-arcana/t1..t8.png` — **8/8** (`t1-choeur`, `t2-duelliste`,
+  `t3-hippogriffe`, `t4-idole`, `t5-sombral`, `t6-maitre`, `t7-phenix`, `t8-avatar`).
 
-⚠️ **À regénérer** : **t5-sombral** et **t7-phenix** — leurs cellules source
-étaient peintes sur **fond sombre** (pas le gris clair `#c8c8c8` exigé), donc le
-détourage garde un **caisson sombre** (non conforme Règle A). Elles ne sont PAS
-stagées. Regénérer la planche d'unités en forçant `flat uniform light grey
-background (#c8c8c8)` pour **toutes** les cellules, ou ces 2 cellules seules.
-(rembg/birefnet indisponible dans l'environnement — modèle bloqué au proxy.)
+> Note : `t5-sombral` et `t7-phenix` ont été **regénérées** en images séparées
+> sur fond gris clair `#c8c8c8` (la 1ʳᵉ planche les peignait sur fond sombre →
+> caisson non détourable), puis extraites en 1×1 floodfill. `process_sprite.py`
+> (rembg) reste indisponible dans l'environnement (modèle bloqué au proxy) ; le
+> floodfill suffit pour un fond plat.
 
 ## Palette de faction (à ajouter à doc 12 §2.3 au verrouillage)
 

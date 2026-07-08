@@ -42,9 +42,9 @@ T8 Avatar du Honmoon (débloqué à Résonance max).
 2. Nom de faction verrouillé → **vérif** : **Vox Arcana** (`vox-arcana`). ✅
 3. Base d'assets : prompts avatars Hermione & Rumi + blasons 5 Maisons + planche d'unités → **vérif** : `assets/prompts/faction-vox-arcana.md`, prompts conformes doc 12. ✅
 4. Génération des visuels **(externe/Gemini — côté utilisateur)** → **vérif** : 3 planches reçues (unités T1–T8, 5 Maisons, héros Hermione & Rumi), conformes DA. ✅
-   - QC + détourage + staging `assets/` (`sheet_extract`) → **vérif** : ✅ 3 planches
-     extraites (QC verte), stagées : 2 héros, 5 blasons, **6/8 unités**. **t5-sombral
-     & t7-phenix** à regénérer (source sur fond sombre → caisson non conforme Règle A).
+   - QC + détourage + staging `assets/` (`sheet_extract`) → **vérif** : ✅ stagé,
+     base complète : 2 héros, 5 blasons, **8/8 unités** (t5-sombral & t7-phenix
+     regénérées sur fond gris clair puis extraites, QC verte).
 5. Verrouillage du plan par les assets → **vérif** : DA + roster + 5 Maisons + héros tous lisibles et raccord ; distinction vs Arcane Hunters confirmée. ✅
 6. Rédaction `docs/16-faction-vox-arcana.md` (source de vérité, guidelines §8.6) → **vérif** : doc complet façon doc 05 (lore, 5 Maisons, Résonance, École de la Scène, lineup T1–T8, bâtiments, héros, points d'extension). ✅
 7. Découpage en sous-lots data-only + points d'extension (`houseAllegiance`, Résonance) → **vérif** : garde-fou « zéro faction dans le moteur » vert. ⏳ (en cours)

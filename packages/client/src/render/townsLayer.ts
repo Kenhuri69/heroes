@@ -1,6 +1,7 @@
 import { Assets, Container, Graphics, Sprite } from 'pixi.js';
 import type { TownState } from '@heroes/engine';
 import { TILE_SIZE } from './tilemap';
+import { isoAnchor, isoDepth } from './projection';
 import { townMapUrl } from './assets';
 
 /** Résout la couleur de bannière d'un propriétaire (id joueur ou null = neutre). */
@@ -21,6 +22,7 @@ export class TownsLayer {
     // tuile d'une ville n'atteindrait plus le handler de la scène (le siège se
     // déclenche par déplacement sur la ville, pas par un clic sur son donjon).
     this.container.eventMode = 'none';
+    this.container.sortableChildren = true; // tri de profondeur iso
   }
 
   sync(towns: readonly TownState[], humanId: string, ownerColor: OwnerColor): void {
@@ -40,7 +42,9 @@ export class TownsLayer {
         this.byId.delete(town.id);
       }
       const node = buildKeep(town.factionId, town.ownerPlayerId === humanId, ownerColor(town.ownerPlayerId));
-      node.position.set(town.pos.x * TILE_SIZE, town.pos.y * TILE_SIZE);
+      const a = isoAnchor(town.pos.x, town.pos.y);
+      node.position.set(a.x, a.y);
+      node.zIndex = isoDepth(town.pos.x, town.pos.y);
       this.byId.set(town.id, { node, owner: town.ownerPlayerId });
       this.container.addChild(node);
     }

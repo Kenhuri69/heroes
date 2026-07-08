@@ -83,6 +83,7 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 ### 2.1 Structure
 
 - Grille **carrée** (le hex est réservé au combat — choix Heroes Online) avec déplacement 8 directions, tuiles de 64 px logiques.
+- **Rendu isométrique** (Lot A1) : le moteur reste sur la grille **carrée** (coordonnées entières `GridPos`, A*, vision, coûts, sauvegarde inchangés) ; seule la **projection de rendu** est isométrique (losange 2:1 façon HoMM Online, `packages/client/src/render/projection.ts`). Picking (tap → tuile) et hook de test `tileToScreen` passent par la **même** projection. Repli gouache (losanges teintés) : les assets de tuiles iso sont un lot d'assets ultérieur.
 - Couches : terrain / routes-rivières / décor bloquant / objets interactifs / brouillard.
 - **Brouillard de guerre** à 2 états : inexploré (noir) et exploré-hors-vision (grisé, montre le terrain figé).
 - Format de carte : JSON (`data/maps/*.map.json`), incluant scripts d'événements simples (triggers déclaratifs : `onVisit`, `onDay`, `onFlagCaptured`).
@@ -207,6 +208,13 @@ Chaque faction consomme surtout **une paire de ressources rares** (Haven : crist
 ### 4.2 Écran de ville
 
 Vue peinte de la ville où les bâtiments construits apparaissent (grande satisfaction visuelle HoMM). Chaque bâtiment est un sprite cliquable ; l'arbre complet est aussi accessible en liste (indispensable mobile), cf. doc 08.
+
+> **File de chantier (Lot B1)** : la règle sacrée « 1 construction/ville/jour »
+> (§4.1) est **présentée** façon HoMM Online — un bandeau « Chantier du jour »
+> (libre / occupé) et un temps de chantier affiché **en jours** (« Chantier : 1 j »)
+> par bâtiment. **Habillage de présentation uniquement** : le « temps » se compte
+> en jours (= tours), **jamais** en secondes (interdit anti-timers, doc 01 §4) ;
+> aucun changement moteur ni de forme de sauvegarde (le déterministe reste intact).
 
 ---
 

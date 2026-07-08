@@ -3,6 +3,7 @@ import type { CombatUnitDef, MapObjectDef, MineObjectDef } from '@heroes/engine'
 import { artifactUrl, getTexture, mapPropUrl, mineUrl, unitSpriteUrl } from './assets';
 import { NEUTRAL_COLOR } from './playerColors';
 import { TILE_SIZE } from './tilemap';
+import { isoAnchor, isoDepth } from './projection';
 
 /** Catalogue d'unités (id → def) — sert à résoudre la faction d'un gardien. */
 type UnitCatalog = Record<string, CombatUnitDef>;
@@ -28,6 +29,11 @@ export class MapObjectsLayer {
   /** Signature de rendu par objet — un changement (mine recapturée) force la reconstruction. */
   private readonly signatures = new Map<string, string>();
 
+  constructor() {
+    // Tri de profondeur iso : les objets « plus bas » (x+y grand) passent devant.
+    this.container.sortableChildren = true;
+  }
+
   sync(
     objects: readonly MapObjectDef[],
     catalog: UnitCatalog,
@@ -47,12 +53,16 @@ export class MapObjectsLayer {
       if (existing && this.signatures.get(obj.id) === signature) {
         // Position resynchronisée à chaque passage : les gardiens ERRANTS
         // bougent au changement de jour (doc 02 §2.2) sans changer d'identité.
-        existing.position.set(obj.pos.x * TILE_SIZE, obj.pos.y * TILE_SIZE);
+        const a = isoAnchor(obj.pos.x, obj.pos.y);
+        existing.position.set(a.x, a.y);
+        existing.zIndex = isoDepth(obj.pos.x, obj.pos.y);
         continue;
       }
       existing?.destroy({ children: true });
       const node = buildObject(obj, catalog, ownerColor);
-      node.position.set(obj.pos.x * TILE_SIZE, obj.pos.y * TILE_SIZE);
+      const a = isoAnchor(obj.pos.x, obj.pos.y);
+      node.position.set(a.x, a.y);
+      node.zIndex = isoDepth(obj.pos.x, obj.pos.y);
       this.byId.set(obj.id, node);
       this.signatures.set(obj.id, signature);
       this.container.addChild(node);

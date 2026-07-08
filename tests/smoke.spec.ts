@@ -955,6 +955,11 @@ test('ville : construire + croissance + recruter + transférer → armée du hé
   // Texte d'ambiance (doc 13 §3.5, lot N1) : les bâtiments communs (townHall/fort)
   // portent un lore affiché sous leur en-tête dans l'onglet Construire.
   await expect(page.locator('.town-building-lore').first()).toBeVisible();
+  // B1 — file de chantier façon HoMM Online : au 1er jour rien n'est bâti, le
+  // créneau du jour est LIBRE ; chaque bâtiment disponible affiche son temps de
+  // chantier en jours (fidélité HO sans horloge — cœur tour-par-tour intact).
+  await expect(page.getByTestId('town-build-queue-state')).toHaveText(/Libre/);
+  await expect(page.getByTestId('town-build-time-fort')).toHaveText('Chantier : 1 j');
   await page.getByTestId('town-close').click();
 
   const armyTotal = (): Promise<number> =>

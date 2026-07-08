@@ -59,13 +59,43 @@
   border-color: var(--blood-bright);
 }
 
-.town-built-today {
+/* B1 — file de chantier du jour (façon HoMM Online) : créneau « 1 construction/
+   jour » présenté comme un chantier quotidien (doc 02 §4.2). */
+.town-build-queue {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   margin: 0 0 10px;
   padding: 8px 10px;
-  border: 1px solid var(--blood-bright);
+  border: 1px solid var(--ink-600);
   border-radius: var(--radius-m);
-  background: var(--blood-veil);
+  background: var(--ink-700);
+}
+
+.town-build-queue-title {
   font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.85em;
+  opacity: 0.85;
+}
+
+.town-build-queue-state.is-free {
+  color: var(--gold);
+  font-weight: 600;
+}
+
+.town-build-queue-state.is-used {
+  color: var(--blood-bright);
+  font-weight: 600;
+}
+
+/* Temps de chantier en jours, aligné avec le coût dans la ligne d'action. */
+.town-build-time {
+  opacity: 0.8;
+  font-size: 0.9em;
+  white-space: nowrap;
 }
 
 .town-building-list,

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { apply } from '../src/core/engine';
-import { dailyIncome } from '../src/town/economy';
+import { dailyIncome, townIncome } from '../src/town/economy';
 import type { Command, PlayerSetup } from '../src/core/commands';
 import { createEmptyState, emptyResources, type GameState } from '../src/core/state';
 import { testConfig, testMap } from './fixtures';
@@ -76,6 +76,14 @@ describe('dailyIncome (projection pure, lot M6 C8)', () => {
     const neutral = startedGame({}, { ownerPlayerId: null });
     expect(dailyIncome(neutral, 'p1')).toEqual({});
     expect(dailyIncome(startedGame(), 'ghost')).toEqual({});
+  });
+});
+
+describe('townIncome (par ville, lot M7 C21)', () => {
+  it("somme le revenu des bâtiments à effet income de la ville", () => {
+    const state = startedGame(); // townHall niv.1 = 500 or/j
+    const town = state.towns[0]!;
+    expect(townIncome(town, state.buildingCatalog).gold).toBe(500);
   });
 });
 

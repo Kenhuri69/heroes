@@ -276,6 +276,10 @@ M7** (parité MMHO/HoMM) puis **M8** (confort). Chaque lot re-passe la skill
 
 - 2026-07-07 : revue complète effectuée (captures + inventaire code + référence
   MMHO sourcée) ; constats C1–C26 ; plan M1–M8 rédigé. Aucun code modifié.
+- 2026-07-08 : **Lot M7 livré** (plan `ux-m7-ville.md`) — C19 (« Tout recruter »
+  glouton borné par ressources), C20 (tri Construire par statut), C21 (en-tête
+  ville nom/revenu `townIncome`/croissance). C22 (vignettes manquantes) = suivi
+  asset.
 - 2026-07-08 : **Lot M6 livré** (plan `ux-m6-economie-visible.md`) — C8 (fiche
   ressource stock + revenu/jour via helper moteur pur `dailyIncome`), C9 (jauge
   PM restants/max), C24 (jauge XP vers le prochain niveau).

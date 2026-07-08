@@ -84,6 +84,18 @@
 - Panneau construction : arbre visuel avec états (construit / disponible / verrouillé + prérequis manquants en rouge / plus tard : file du jour suivant). 1 bâtiment/jour → le bouton global affiche « Construction du jour utilisée ».
 - Recrutement : slider quantité + boutons min/max, coût total live, « tout recruter » (achat max multi-tiers).
 
+> 🚧 **État M7 (plan `ux-revue-mmho.md` C19/C20/C21)** : décision au premier
+> écran de gestion. **En-tête de ville** enrichi (C21) : nom de faction + « Ville »,
+> **revenu or/jour** (helper moteur pur `townIncome`) et **croissance dans N
+> jours** (`weekOf(day)·7 + 1 − day`). L'onglet Recruter gagne un bouton **« Tout
+> recruter »** (C19) : achat glouton du tier le plus haut au plus bas (proxy coût
+> or décroissant), borné par stock ET ressources courantes (helper client pur
+> `maxAffordable`), dispatch séquentiel de `RecruitUnits` re-validés par le
+> moteur. La liste **Construire** est triée **par statut** (disponible →
+> construit → verrouillé) puis id (C20) — cohérent avec la bande peinte ; l'ancien
+> tri alphabétique plaçait les verrouillés en tête. Vignettes de bâtiments
+> manquantes (Habitation : Recrue, Tableau des Contrats) = suivi asset (C22).
+
 > 🚧 **État U6a** : l'onglet **Marché** est fonctionnel — échange ressource ↔ or
 > au bâtiment marché, taux data-driven (`config.market` : `sellRate`/`buyRate`,
 > spread réaliste), via la commande moteur générique `TradeResources` (point

@@ -25,6 +25,40 @@
   padding: 8px 0;
 }
 
+/* En-tête de décision (lot M7 C21) : revenu + prochaine croissance. */
+.town-subheader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+  font-size: 0.85rem;
+  opacity: 0.85;
+}
+
+.town-subheader-sep {
+  opacity: 0.5;
+}
+
+/* Bouton « Tout recruter » (lot M7 C19) : action globale de l'onglet Recruter. */
+.town-recruit-all {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  margin-bottom: 10px;
+  border: 1px solid var(--blood-bright);
+  border-radius: var(--radius-m);
+  background: var(--blood-veil);
+  color: var(--parchment);
+  font: 600 0.9rem var(--font-ui);
+  cursor: pointer;
+}
+
+.town-recruit-all:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
 .town-error {
   margin: 8px 0;
   padding: 8px 10px;

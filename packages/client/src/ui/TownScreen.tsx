@@ -6,9 +6,11 @@ import {
   heroLearnableCircle,
   missingRequirements,
   scaleCost,
+  townIncome,
   tradeQuote,
   upgradedUnitFor,
   upgradeCost,
+  weekOf,
 } from '@heroes/engine';
 import type { BuildingDef, CombatUnitDef, ResourceId, TownState } from '@heroes/engine';
 import { useApp } from '../app/store';
@@ -16,6 +18,7 @@ import { dispatch } from '../app/dispatch';
 import { humanId } from '../app/game';
 import {
   t,
+  resolveLoc,
   resolveUnitName,
   resolveUnitLore,
   resolveSpellName,
@@ -104,12 +107,25 @@ export function TownScreen({ townId, onClose }: { townId: string; onClose: () =>
         <header class="modal-header">
           <h2 class="town-title">
             {town && <FactionBadge factionId={town.factionId} />}
-            {t('town.title')}
+            {town ? t('town.titleNamed', { faction: resolveLoc(`faction.${town.factionId}.name`) }) : t('town.title')}
           </h2>
           <button class="modal-close" data-testid="town-close" aria-label={t('town.close')} onClick={close}>
             ×
           </button>
         </header>
+
+        {/* En-tête de décision (lot M7 C21) : revenu or/jour + prochaine croissance. */}
+        {town && town.ownerPlayerId && (
+          <p class="town-subheader" data-testid="town-subheader">
+            <span data-testid="town-income">
+              {t('town.incomeGold', { amount: townIncome(town, game.buildingCatalog).gold ?? 0 })}
+            </span>
+            <span class="town-subheader-sep" aria-hidden="true">·</span>
+            <span data-testid="town-growth">
+              {t('town.growthIn', { days: weekOf(game.calendar.day) * 7 + 1 - game.calendar.day })}
+            </span>
+          </p>
+        )}
 
         {!town ? (
           <p class="town-empty" data-testid="town-empty">
@@ -344,7 +360,18 @@ function BuildTab({
   catalog: Record<string, BuildingDef>;
   onError: (msg: string | null) => void;
 }) {
-  const buildingIds = townBuildingIds(town, catalog).sort();
+  // C20 : tri par statut (disponible → construit → verrouillé) puis id — même
+  // logique que la bande peinte ; l'alphabétique mettait les verrouillés en tête.
+  const buildStatusOrder: Record<ReturnType<typeof buildStatus>, number> = {
+    available: 0,
+    built: 1,
+    locked: 2,
+  };
+  const buildingIds = townBuildingIds(town, catalog).sort(
+    (a, b) =>
+      buildStatusOrder[buildStatus(town, catalog, a)] - buildStatusOrder[buildStatus(town, catalog, b)] ||
+      a.localeCompare(b),
+  );
 
   const build = (buildingId: string): void => {
     onError(null);
@@ -426,6 +453,19 @@ function BuildTab({
   );
 }
 
+/** Effectif maximum abordable pour un coût unitaire donné (lot M7 C19), pur. */
+function maxAffordable(
+  cost: Partial<Record<ResourceId, number>> | undefined,
+  resources: Record<ResourceId, number>,
+): number {
+  if (!cost) return Infinity;
+  let max = Infinity;
+  for (const [res, per] of Object.entries(cost) as [ResourceId, number][]) {
+    if (per > 0) max = Math.min(max, Math.floor((resources[res] ?? 0) / per));
+  }
+  return max;
+}
+
 function RecruitTab({
   town,
   catalog,
@@ -437,6 +477,8 @@ function RecruitTab({
   unitCatalog: Record<string, CombatUnitDef>;
   onError: (msg: string | null) => void;
 }) {
+  const game = useApp((s) => s.game);
+  const player = game.players.find((p) => p.id === humanId(game));
   const unitIds = builtDwellings(town, catalog);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
 
@@ -456,8 +498,49 @@ function RecruitTab({
     });
   };
 
+  // C19 « Tout recruter » : achat glouton du tier le plus haut au plus bas
+  // (proxy : coût unitaire en or décroissant), borné par stock ET ressources
+  // courantes. Le plan est calculé contre un snapshot décrémenté puis dispatché
+  // séquentiellement (le moteur re-valide chaque `RecruitUnits`).
+  const recruitAllPlan = (): { unitId: string; count: number }[] => {
+    if (!player) return [];
+    const remaining = { ...player.resources };
+    const goldCost = (id: string): number =>
+      (unitCatalog[id] as (CombatUnitDef & UnitEconomyFields) | undefined)?.recruitCost?.gold ?? 0;
+    const ordered = [...unitIds].sort((a, b) => goldCost(b) - goldCost(a));
+    const plan: { unitId: string; count: number }[] = [];
+    for (const unitId of ordered) {
+      const stock = town.stock[unitId] ?? 0;
+      if (stock === 0) continue;
+      const cost = (unitCatalog[unitId] as (CombatUnitDef & UnitEconomyFields) | undefined)?.recruitCost;
+      const count = Math.min(stock, maxAffordable(cost, remaining));
+      if (!Number.isFinite(count) || count <= 0) continue;
+      plan.push({ unitId, count });
+      for (const [res, per] of Object.entries(cost ?? {}) as [ResourceId, number][]) {
+        remaining[res] = (remaining[res] ?? 0) - per * count;
+      }
+    }
+    return plan;
+  };
+
+  const plan = recruitAllPlan();
+  const recruitAll = (): void => {
+    onError(null);
+    for (const { unitId, count } of plan) recruit(unitId, count);
+  };
+
   return (
     <div class="town-tab-panel" data-testid="town-panel-recruit">
+      {unitIds.length > 0 && (
+        <button
+          class="town-recruit-all"
+          data-testid="town-recruit-all"
+          disabled={plan.length === 0}
+          onClick={recruitAll}
+        >
+          {t('town.recruitAll')}
+        </button>
+      )}
       <ul class="town-dwelling-list">
         {unitIds.map((unitId) => {
           const stock = town.stock[unitId] ?? 0;

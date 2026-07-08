@@ -1251,6 +1251,40 @@ test('ville : construire + croissance + recruter + transférer → armée du hé
   expect(errors).toEqual([]);
 });
 
+test('ville : en-tête revenu/croissance (C21) + « Tout recruter » (C19) (lot M7)', async ({
+  page,
+}) => {
+  const errors = await openGame(page);
+
+  await page.getByTestId('town-open-start-town').click();
+  // En-tête de décision (C21) : revenu or/jour (hôtel de ville = +500) + croissance.
+  await expect(page.getByTestId('town-income')).toContainText('500');
+  await expect(page.getByTestId('town-growth')).toBeVisible();
+  // Tri Construire par statut (C20) : le 1er bâtiment listé est DISPONIBLE
+  // (plus jamais un verrouillé en tête comme avec le tri alphabétique).
+  const firstBuild = page.locator('.town-building').first();
+  await expect(firstBuild).toHaveClass(/town-building-available/);
+  await page.getByTestId('town-close').click();
+
+  // Générer du stock (croissance hebdo) puis « Tout recruter ».
+  for (let i = 0; i < 7; i++) {
+    await page.evaluate(() => window.__HEROES_TEST__!.dispatch({ type: 'EndTurn', playerId: 'player-1' }));
+  }
+  const goldBefore = await page.evaluate(() => window.__HEROES_TEST__!.getState().players[0]!.resources.gold);
+  await page.getByTestId('town-open-start-town').click();
+  await page.getByTestId('town-tab-recruit').click();
+  await page.getByTestId('town-recruit-all').click();
+  await expect
+    .poll(() => page.evaluate(() => window.__HEROES_TEST__!.getState().players[0]!.resources.gold))
+    .toBeLessThan(goldBefore); // de l'or a été dépensé
+  const garrison = await page.evaluate(() =>
+    window.__HEROES_TEST__!.getState().towns[0]!.garrison.reduce((s, st) => s + st.count, 0),
+  );
+  expect(garrison).toBeGreaterThan(0); // des créatures recrutées dans la garnison
+
+  expect(errors).toEqual([]);
+});
+
 test('upgrade : bâtir le dwelling amélioré puis améliorer une pile de garnison (Alpha 4.11)', async ({
   page,
 }) => {

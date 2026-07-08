@@ -10,6 +10,24 @@ import { unitWithEconomy } from './unit-economy';
  * héros. Sert la fiche ressource du HUD (stock + « +X/j »). Retourne les seules
  * ressources à revenu non nul.
  */
+/**
+ * Revenu quotidien d'UNE ville (lot UX M7, C21) — bâtiments à effet `income`
+ * du niveau construit. Pur ; sert l'en-tête de ville (« or/jour »).
+ */
+export function townIncome(
+  town: GameState['towns'][number],
+  buildingCatalog: GameState['buildingCatalog'],
+): Partial<Record<ResourceId, number>> {
+  const income: Partial<Record<ResourceId, number>> = {};
+  for (const buildingId of Object.keys(town.buildings)) {
+    const level = builtLevelOf(town, buildingCatalog, buildingId);
+    if (!level || level.effect.type !== 'income') continue;
+    const { resource, amount } = level.effect;
+    if (amount !== 0) income[resource] = (income[resource] ?? 0) + amount;
+  }
+  return income;
+}
+
 export function dailyIncome(state: GameState, playerId: string): Partial<Record<ResourceId, number>> {
   const income: Partial<Record<ResourceId, number>> = {};
   const add = (resource: ResourceId, amount: number): void => {

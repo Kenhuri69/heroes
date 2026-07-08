@@ -25,7 +25,8 @@ export type BuildingEffect =
    * faction `resource` (id opaque — le moteur ne connaît aucune faction).
    */
   | { type: 'huntContract'; gold: number; resource: string; amount: number }
-  /** Bâtiment sans effet mécanique en 3.1 (tavern/forge/spécial) — arbre seul. */
+  /** Bâtiment sans effet mécanique (ex. Taverne : prérequis d'arbre seul). La
+   *  Forge, elle, porte `warMachineVendor` (Alpha 4.12), pas `none`. */
   | { type: 'none' };
 
 export interface BuildingLevel {

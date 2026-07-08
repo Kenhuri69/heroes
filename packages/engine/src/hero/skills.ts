@@ -31,12 +31,12 @@ export function heroMovementBonus(hero: HeroState, catalog: Record<string, HeroS
   return sumRankField(hero, catalog, 'movementBonusPct');
 }
 
-/** Recherche : bonus de rayon de vision — intégration hors périmètre. */
+/** Recherche : bonus de rayon de vision — branché dans la révélation du brouillard (`revealAround`). */
 export function heroVisionBonus(hero: HeroState, catalog: Record<string, HeroSkillDef>): number {
   return sumRankField(hero, catalog, 'visionBonus');
 }
 
-/** Économie : or/jour supplémentaire — intégration hors périmètre. */
+/** Économie : or/jour supplémentaire — branché dans le revenu quotidien (`core/engine.ts`). */
 export function heroGoldPerDay(hero: HeroState, catalog: Record<string, HeroSkillDef>): number {
   return sumRankField(hero, catalog, 'goldPerDay');
 }
@@ -46,7 +46,7 @@ export function heroLuck(hero: HeroState, catalog: Record<string, HeroSkillDef>)
   return sumRankField(hero, catalog, 'luckBonus');
 }
 
-/** Commandement (compétence) — moral, NON branché au moral de pile (state-helpers.ts hors périmètre). */
+/** Commandement (compétence) — moral, branché au moral de pile via `moraleOf` (state-helpers.ts). */
 export function heroMorale(hero: HeroState, catalog: Record<string, HeroSkillDef>): number {
   return sumRankField(hero, catalog, 'moraleBonus');
 }

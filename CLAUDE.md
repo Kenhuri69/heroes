@@ -112,9 +112,16 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > faction **Essence** (gain post-victoire puis dépense) + T8 Pénitent
 > recrutable ; 4.7 **Cercles** (choix de bâtiment exclusif `exclusiveGroup`) ;
 > 4.9 **École de la Traque** (school `traque`, sort `applyMarks`, Entraves) ;
-> 4.10 **demonform** (T8, transformation stateful + `magicResistance`). La forme
-> de sauvegarde a évolué avec les ressources de faction : `CURRENT_SAVE_VERSION`
-> vaut désormais **3** (source de vérité `engine/core/state.ts`).
+> 4.10 **demonform** (T8, transformation stateful + `magicResistance`). Depuis,
+> la forme de sauvegarde a continué d'évoluer : `CURRENT_SAVE_VERSION` vaut
+> désormais **8** (source de vérité `engine/core/state.ts` — v5 huntContract,
+> v6 machines de guerre, v7 quêtes, v8 objets de carte/pendingTreasure/visitLuck).
+> Systèmes livrés depuis (voir docs à jour) : upgrades d'unités (habitation
+> niveau 2), **marché** ressource↔or, **machines de guerre** (Forge), **contrats
+> de chasse**, **hot-seat** (2 humains/appareil), **quêtes & campagnes** (N1→N3c :
+> prologue + campagnes Haven/Necropolis, report de héros, cutscenes, choix de
+> dialogue), objets de carte (mines/coffres/artefacts/lieux de bonus, ramassés
+> en passant), 4ᵉ maison **Sylvan Court** en données.
 >
 > 🩹 **Remédiation revue de code** (plan `.claude/plans/code-review-remediation.md`,
 > lots R1–R8). Livrés : R1 (garde-fous de crash moteur), R5 (résilience du
@@ -126,6 +133,16 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > `advanceHeroAlongPath` partagé humain/IA ; helpers purs `@heroes/engine`
 > consommés par le client — coût/prérequis/dwellings de ville, `attackableTargets`/
 > `meleeOriginsFor` de combat ; mineurs). R8 : cette mise à jour docs.
+>
+> 🧭 **Remédiation cohérence code ↔ doc** (plan `.claude/plans/code-doc-coherence-remediation.md`,
+> lots A→E). Issue d'une revue complète : Lots **A/B** (bugs moteur P0/P1 corrigés,
+> golden re-fixé une fois), **C** (client), **D** (arbitrages design appliqués
+> code ou données : stock d'upgrade, Capitole unique `uniquePerPlayer`, prérequis
+> Château `fort@3`, ramassage en passant, `SpellSchool` = chaîne opaque, table des
+> élites documentée…), **E** (remise à niveau documentaire : docs 01/02/06/07 +
+> factions 03/04/05/14 + narratif 13 + ce fichier + hygiène des commentaires
+> moteur, tous alignés sur le livré). Sous-lots découpés en PR atomiques, chacun
+> vérifié (typecheck, lint, golden, tests, garde-fous, budget, smoke).
 >
 > 🎨 **Intégration des assets** (doc 12 §10) : le client consomme les PNG du
 > staging `assets/` via un registre auto-découvert (`import.meta.glob ?url`,
@@ -188,9 +205,9 @@ data/
   core/skills.json               Compétences secondaires + effets par rang (doc 02 §1.3)
   core/artifacts.json            Artefacts à bonus cumulés sur 10 slots (doc 02 §1.1, doc 08 §2.3)
   core/locales/                  Locales FR/EN de l'UI générique (menu, options, toasts, ville)
-  factions/                      Paquets de faction (index.json + haven, arcane-hunters, test-faction, necropolis)
+  factions/                      Paquets de faction (index.json + haven, necropolis, arcane-hunters, sylvan-court, test-faction)
   maps/proto-01.map.json         Carte prototype 32×32 (légende, tuiles, routes, objets, départs)
-  scenarios/                     Scénarios solo (index.json + tutorial/survival/conquest : joueurs, IA, objectifs)
+  scenarios/                     Scénarios (index.json : prologue + chapitres de campagne haven/necropolis/arcane + tutorial/survival/conquest + 2 événements ; joueurs, IA, objectifs, quêtes, dialogues)
   manifest.webmanifest           PWA : manifeste installable (servi /heroes/, lot 8.1)
   sw.js                          PWA : service worker offline-first hand-rolled (lot 8.1)
   icons/                         PWA : icônes app (192/512/180 PNG + SVG)

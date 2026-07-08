@@ -207,7 +207,10 @@ const GOLDEN_JOURNAL: Command[] = [
 // Re-fixé au lot G2 : `TownState.spellPool` (nouveau champ, save v9) entre dans
 // l'état sérialisé — changement de FORME bénin, aucun changement de comportement
 // (toutes les assertions de valeurs ci-dessus restent vertes).
-const GOLDEN_HASH = '33739bfa';
+// Re-fixé au lot 16.1 : `HeroState.houseId` ('') + `HeroState.houseEffects` ([])
+// — allégeance de Maison (save v10). Les héros golden n'ont aucune Maison
+// (houseCatalog absent du journal) ⇒ seule la FORME change, simulation inchangée.
+const GOLDEN_HASH = '50cf7842';
 
 describe('golden replay', () => {
   it('le journal scripté produit toujours le même état final', () => {

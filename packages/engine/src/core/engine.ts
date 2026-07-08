@@ -418,6 +418,12 @@ const handlers: Handlers = {
       ),
       pendingSkillChoices: [],
       factionId: p.startingFactionId ?? '',
+      // Allégeance de Maison (doc 16 §3.1) : effets résolus depuis le catalogue
+      // embarqué (copie défensive), agrégés comme des compétences dans skills.ts.
+      houseId: p.startingHouseId ?? '',
+      houseEffects: ((cmd.houseCatalog ?? {})[p.startingHouseId ?? '']?.effects ?? []).map((e) => ({
+        ...e,
+      })),
       warMachines: [],
     }));
     for (const hero of draft.heroes) {

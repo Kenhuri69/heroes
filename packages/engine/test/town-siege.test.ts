@@ -32,6 +32,8 @@ function hero(army: ArmyStack[]): HeroState {
     artifacts: Array.from({ length: 10 }, () => null),
     pendingSkillChoices: [],
     factionId: '',
+    houseId: '',
+    houseEffects: [],
     warMachines: [],
   };
 }

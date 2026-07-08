@@ -10,6 +10,11 @@ import type { HeroSkillDef, SkillRankEffect, SpellSchool } from './types';
  * vision dans `adventure/movement.ts` (`revealAround`), or/jour dans
  * `core/engine.ts` (`DayStarted`), réduction de coût de mana dans
  * `hero/spells.ts` (`effectiveManaCost`).
+ *
+ * Allégeance de Maison (doc 16 §3.1, signature `houseAllegiance`) : chaque
+ * accesseur additionne AUSSI les effets résolus de la Maison du héros
+ * (`hero.houseEffects`), qui réutilisent le même vocabulaire d'effets — c'est
+ * l'unique interprétation moteur des Maisons, sans jamais nommer de faction.
  */
 
 /** Somme du champ `field` sur toutes les compétences connues, au rang courant. */
@@ -26,44 +31,57 @@ function sumRankField(
   return total;
 }
 
+/**
+ * Somme du champ `field` sur les effets déclaratifs de la Maison du héros
+ * (doc 16 §3.1, signature `houseAllegiance`). Les Maisons réutilisent le
+ * vocabulaire d'effets des compétences : elles s'agrègent donc AU MÊME TITRE
+ * que les compétences dans chaque accesseur ci-dessous — le seul point du
+ * moteur qui interprète l'allégeance de Maison, sans jamais nommer de faction.
+ */
+function sumHouseField(hero: HeroState, field: keyof SkillRankEffect): number {
+  let total = 0;
+  for (const effect of hero.houseEffects) total += effect[field] ?? 0;
+  return total;
+}
+
 /** Logistique : bonus % de points de mouvement quotidiens (`heroDailyMovement`). */
 export function heroMovementBonus(hero: HeroState, catalog: Record<string, HeroSkillDef>): number {
-  return sumRankField(hero, catalog, 'movementBonusPct');
+  return sumRankField(hero, catalog, 'movementBonusPct') + sumHouseField(hero, 'movementBonusPct');
 }
 
 /** Recherche : bonus de rayon de vision — branché dans la révélation du brouillard (`revealAround`). */
 export function heroVisionBonus(hero: HeroState, catalog: Record<string, HeroSkillDef>): number {
-  return sumRankField(hero, catalog, 'visionBonus');
+  return sumRankField(hero, catalog, 'visionBonus') + sumHouseField(hero, 'visionBonus');
 }
 
 /** Économie : or/jour supplémentaire — branché dans le revenu quotidien (`core/engine.ts`). */
 export function heroGoldPerDay(hero: HeroState, catalog: Record<string, HeroSkillDef>): number {
-  return sumRankField(hero, catalog, 'goldPerDay');
+  return sumRankField(hero, catalog, 'goldPerDay') + sumHouseField(hero, 'goldPerDay');
 }
 
 /** Chance (compétence) — combiné aux artefacts et borné [0,3] dans `combat/damage.ts`. */
 export function heroLuck(hero: HeroState, catalog: Record<string, HeroSkillDef>): number {
-  return sumRankField(hero, catalog, 'luckBonus');
+  return sumRankField(hero, catalog, 'luckBonus') + sumHouseField(hero, 'luckBonus');
 }
 
 /** Commandement (compétence) — moral, branché au moral de pile via `moraleOf` (state-helpers.ts). */
 export function heroMorale(hero: HeroState, catalog: Record<string, HeroSkillDef>): number {
-  return sumRankField(hero, catalog, 'moraleBonus');
+  return sumRankField(hero, catalog, 'moraleBonus') + sumHouseField(hero, 'moraleBonus');
 }
 
 /** Attaque au corps : bonus % de dégâts en mêlée — branché dans `combat/damage.ts`. */
 export function heroMeleePct(hero: HeroState, catalog: Record<string, HeroSkillDef>): number {
-  return sumRankField(hero, catalog, 'meleeDamagePct');
+  return sumRankField(hero, catalog, 'meleeDamagePct') + sumHouseField(hero, 'meleeDamagePct');
 }
 
 /** Tir : bonus % de dégâts à distance — branché dans `combat/damage.ts`. */
 export function heroRangedPct(hero: HeroState, catalog: Record<string, HeroSkillDef>): number {
-  return sumRankField(hero, catalog, 'rangedDamagePct');
+  return sumRankField(hero, catalog, 'rangedDamagePct') + sumHouseField(hero, 'rangedDamagePct');
 }
 
 /** Armure : réduction % des dégâts subis — branché dans `combat/damage.ts`. */
 export function heroArmorPct(hero: HeroState, catalog: Record<string, HeroSkillDef>): number {
-  return sumRankField(hero, catalog, 'armorReductionPct');
+  return sumRankField(hero, catalog, 'armorReductionPct') + sumHouseField(hero, 'armorReductionPct');
 }
 
 /**
@@ -104,5 +122,7 @@ export function heroManaCostReduction(
     if (!def || def.school !== school) continue;
     total += def.ranks[rank - 1]?.manaCostReductionPct ?? 0;
   }
-  return total;
+  // La réduction de coût de mana d'une Maison (doc 16) est agnostique de l'école
+  // (contrairement à la compétence Magie par école, A6) : elle s'applique à tout sort.
+  return total + sumHouseField(hero, 'manaCostReductionPct');
 }

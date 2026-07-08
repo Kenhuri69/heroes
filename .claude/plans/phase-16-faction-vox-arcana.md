@@ -45,11 +45,25 @@ T8 Avatar du Honmoon (débloqué à Résonance max).
    - QC + détourage + staging `assets/` (`sheet_extract`) → **vérif** : ⏳ en attente des PNG bruts déposés dans le repo/la session.
 5. Verrouillage du plan par les assets → **vérif** : DA + roster + 5 Maisons + héros tous lisibles et raccord ; distinction vs Arcane Hunters confirmée. ✅
 6. Rédaction `docs/16-faction-vox-arcana.md` (source de vérité, guidelines §8.6) → **vérif** : doc complet façon doc 05 (lore, 5 Maisons, Résonance, École de la Scène, lineup T1–T8, bâtiments, héros, points d'extension). ✅
-7. Découpage en sous-lots data-only + points d'extension (`houseAllegiance`, Résonance) → **vérif** : garde-fou « zéro faction dans le moteur » vert. ⏳ (prochain lot)
+7. Découpage en sous-lots data-only + points d'extension (`houseAllegiance`, Résonance) → **vérif** : garde-fou « zéro faction dans le moteur » vert. ⏳ (en cours)
 
 ## Découpage pressenti (sous-lots)
 
-- **16.1** — `houseAllegiance` : LE nouveau point d'extension moteur générique (profil de bonus déclaratif choisi par héros/ville) + garde-fou vert + golden inchangé.
+- **16.1** ✅ **LIVRÉ** — `houseAllegiance` : LE nouveau point d'extension moteur générique.
+  - `HeroState.houseId` + `houseEffects` (save v9→**v10**) ; effets résolus à la
+    création depuis `StartGame.houseCatalog` + `PlayerSetup.startingHouseId`.
+  - Injection dans `hero/skills.ts` (`sumHouseField`) : les effets de Maison
+    s'agrègent au même titre que les compétences dans **chaque** accesseur
+    (or/jour, mêlée/tir/armure, chance, moral, PM, vision) + réduction de mana
+    **agnostique de l'école** — zéro changement chez les consommateurs, zéro nom
+    de faction (l'accesseur ne lit que `hero.houseEffects`).
+  - Contenu : `houseSchema`/`houseEffectSchema` (sous-ensemble réellement agrégé,
+    pas de mensonge de contenu), `manifest.houses[]`, `buildHouseCatalog`,
+    validation des clés de nom localisées.
+  - Tests : `house-allegiance.test.ts` (moteur + contenu), `save-shape` v10,
+    golden re-fixé (`50cf7842`, forme seule). Garde-fou vert, typecheck/lint OK.
+  - **Écart** : le **client** ne passe pas encore `houseCatalog`/`startingHouseId`
+    à `StartGame` (Maisons dormantes en jeu) → **16.2** avec les données vox-arcana.
 - **16.2** — paquet `data/factions/vox-arcana/` en stub (manifeste + 1 unité T1) qui charge et passe `content:check` ; ajout à `data/factions/index.json`.
 - **16.3** — lineup T1–T8 data-only (capacités génériques) + test de recrutement faction-agnostique.
 - **16.4** — Résonance : `factionResources` + `gainFactionResourceOnVictory` (réutilise l'acquis Essence) ; T8 gaté par la Résonance.

@@ -12,6 +12,20 @@ Faction #6, produite en **Beta** — elle sert de **test de modularité #4** (do
 > pour Arcane Hunters (ressource de faction post-victoire, école de sorts propre,
 > capacités génériques). Découpage en sous-lots data-only : cf.
 > `.claude/plans/phase-16-faction-vox-arcana.md`.
+>
+> 🚧 **État 16.1 (livré — `houseAllegiance`, le point d'extension moteur)** : le
+> **seul** diff moteur de la faction est ouvert. Les Maisons réutilisent le
+> vocabulaire d'effets des compétences : à la création, `hero.houseEffects` est
+> résolu depuis un catalogue embarqué (`StartGame.houseCatalog` + `startingHouseId`),
+> puis **chaque** accesseur de `hero/skills.ts` additionne ces effets au même titre
+> que les compétences (or/jour, mêlée/tir/armure, chance, moral, PM, vision, coût de
+> mana **agnostique de l'école**). L'accesseur ne lit que `hero.houseEffects` ⇒
+> **zéro** changement chez les consommateurs (combat/économie/mana) et **zéro nom de
+> faction** (garde-fou CI vert). Contenu : `houseSchema` + `manifest.houses[]` +
+> `buildHouseCatalog`. Sauvegarde v9→**v10** (`houseId`/`houseEffects`), golden
+> re-fixé (forme seule). **Différé (16.2)** : câblage client (`houseCatalog`/
+> `startingHouseId` vers `StartGame`) + données `data/factions/vox-arcana/` — tant
+> qu'ils n'existent pas, aucune Maison n'est active en jeu (jamais de crash).
 
 ## 1. Lore
 

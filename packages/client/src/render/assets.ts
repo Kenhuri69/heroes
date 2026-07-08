@@ -68,9 +68,21 @@ export function logoUrl(): string | undefined {
   return registry.get('logo/heroes-master');
 }
 
-/** Sprite d'unité de combat (`units/<factionId>/<unitId>`, doc 08 §5, lot U5-C). */
+/**
+ * Sprite d'unité de combat (`units/<factionId>/<unitId>`, doc 08 §5, lot U5-C).
+ * Repli **unité améliorée → art de base** : une variante `<base>-elite` sans
+ * sprite propre réutilise le sprite peint de son unité de base (`<base>`) plutôt
+ * que le repli procédural — les armées améliorées restent peintes tant qu'un art
+ * d'élite dédié n'est pas produit (doc 12 §10).
+ */
 export function unitSpriteUrl(unitId: string, factionId?: string): string | undefined {
-  return factionId ? registry.get(`units/${factionId}/${unitId}`) : undefined;
+  if (!factionId) return undefined;
+  const direct = registry.get(`units/${factionId}/${unitId}`);
+  if (direct) return direct;
+  const ELITE = '-elite';
+  return unitId.endsWith(ELITE)
+    ? registry.get(`units/${factionId}/${unitId.slice(0, -ELITE.length)}`)
+    : undefined;
 }
 
 /** Avatar de héros (`heroes/<factionId>-<archetype>`, doc 08 §5, lot U5-D). */

@@ -1,6 +1,13 @@
 import { render } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
-import { RESOURCE_IDS, weekOf, type ArmyStack } from '@heroes/engine';
+import {
+  RESOURCE_IDS,
+  dailyMovementPoints,
+  dailyIncome,
+  xpForLevel,
+  weekOf,
+  type ArmyStack,
+} from '@heroes/engine';
 import { useApp, appStore } from '../app/store';
 import { back, closeModalKind, openModal, useModals, useScreen } from '../app/router';
 import { dispatch } from '../app/dispatch';
@@ -118,6 +125,8 @@ function Shell() {
                 (bascule mobile, colonne persistante desktop). Plus de widget flottant. */}
             {/* Fiche d'objet de carte (doc 08 §2.1, lot M2) — appui long sur la carte. */}
             <MapObjectCard />
+            {/* Fiche ressource (doc 08 §2.1, lot M6) — tap sur une ressource du bandeau. */}
+            <ResourceDetail />
           </>
         )
       ) : null}
@@ -158,7 +167,15 @@ function ResourceBar() {
   return (
     <header class="resource-bar">
       {RESOURCE_IDS.map((id) => (
-        <span class="resource" key={id} data-resource={id}>
+        <button
+          type="button"
+          class="resource"
+          key={id}
+          data-resource={id}
+          data-testid={`resource-open-${id}`}
+          aria-label={`${t(`resource.${id}`)} : ${player.resources[id]}`}
+          onClick={() => appStore.setState({ resourceDetail: id })}
+        >
           <AssetImg
             src={resourceIconUrl(id, 24)}
             alt=""
@@ -170,7 +187,7 @@ function ResourceBar() {
           <span data-testid={`resource-${id}`} title={String(player.resources[id])}>
             {formatResourceShort(player.resources[id])}
           </span>
-        </span>
+        </button>
       ))}
       {factionResources.map(([id, amount]) => (
         <span class="resource resource--faction" key={id} data-resource={id}>
@@ -181,6 +198,70 @@ function ResourceBar() {
         </span>
       ))}
     </header>
+  );
+}
+
+/**
+ * Fiche ressource (doc 08 §2.1 « tap = détail », lot M6 C8) : stock + revenu/jour
+ * de toutes les ressources communes (villes + mines + compétence Économie via le
+ * helper moteur pur `dailyIncome`). Overlay léger hors pile de modales (même
+ * patron que `MapObjectCard`) — backdrop / × / Échap.
+ */
+function ResourceDetail() {
+  useApp((s) => s.locale);
+  const opened = useApp((s) => s.resourceDetail);
+  const game = useApp((s) => s.game);
+  const player = game.players.find((p) => p.id === humanId(game));
+  const close = (): void => appStore.setState({ resourceDetail: null });
+  useEffect(() => {
+    if (!opened) return;
+    const onKey = (e: KeyboardEvent): void => {
+      if (e.key === 'Escape') close();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [opened]);
+  if (!opened || !player) return null;
+  const income = dailyIncome(game, player.id);
+  return (
+    <div class="map-card-backdrop" onClick={close}>
+      <section
+        class="map-card resource-detail"
+        data-testid="resource-detail"
+        role="dialog"
+        aria-label={t('resourceDetail.title')}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <header class="map-card-header">
+          <h3>{t('resourceDetail.title')}</h3>
+          <button
+            type="button"
+            class="map-card-close"
+            data-testid="resource-detail-close"
+            aria-label={t('mapCard.close')}
+            onClick={close}
+          >
+            ×
+          </button>
+        </header>
+        <dl class="resource-detail-list">
+          {RESOURCE_IDS.map((id) => (
+            <div key={id} class={id === opened ? 'resource-detail-row current' : 'resource-detail-row'}>
+              <dt>
+                <AssetImg src={resourceIconUrl(id, 24)} alt="" class="resource-icon" fallback={<i />} />
+                {t(`resource.${id}`)}
+              </dt>
+              <dd>
+                {player.resources[id]}
+                <span class="resource-detail-income">
+                  {t('resourceDetail.perDay', { amount: income[id] ?? 0 })}
+                </span>
+              </dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+    </div>
   );
 }
 
@@ -249,8 +330,15 @@ function HeroStrip() {
 function HeroDrawer() {
   useApp((s) => s.locale);
   const hero = useApp((s) => resolveSelectedHero(s.game, s.selectedHeroId));
+  const config = useApp((s) => s.game.config);
   const [open, setOpen] = useState(false);
   if (!hero) return null;
+  // Jauge d'XP (lot M6 C24) : progression vers le seuil du prochain niveau
+  // (`xpForLevel`) ; « niveau max » au cap (barre pleine).
+  const atMax = !config || hero.level >= config.hero.maxLevel;
+  const nextXp = config && !atMax ? xpForLevel(config.hero, hero.level + 1) : hero.xp;
+  const prevXp = config && !atMax ? xpForLevel(config.hero, hero.level) : 0;
+  const xpRatio = atMax || nextXp <= prevXp ? 1 : Math.min(1, (hero.xp - prevXp) / (nextXp - prevXp));
   return (
     <>
       <button
@@ -276,7 +364,10 @@ function HeroDrawer() {
           {t('hero.level', { level: hero.level })}
         </div>
         <div class="hero-xp" data-testid="hero-xp">
-          {t('hero.xp', { xp: hero.xp })}
+          {atMax ? t('hero.xpMax', { xp: hero.xp }) : t('hero.xpProgress', { xp: hero.xp, next: nextXp })}
+          <span class="gauge" aria-hidden="true">
+            <span class="gauge-fill" style={{ width: `${Math.round(xpRatio * 100)}%` }} />
+          </span>
         </div>
         <div class="hero-mana" data-testid="hero-mana">
           {t('hero.mana', { mana: hero.mana, manaMax: hero.manaMax })}
@@ -335,6 +426,8 @@ function TurnBar({ onOpenOptions }: { onOpenOptions: () => void }) {
   const hint = useApp((s) => s.guardianHint);
   const bands = useApp((s) => s.strengthBands);
   const pathPreviewActive = useApp((s) => s.pathPreviewActive);
+  const config = useApp((s) => s.game.config);
+  const unitCatalog = useApp((s) => s.game.unitCatalog);
   // Réf `s.game` stable puis dérivation dans le corps (cf. HeroStrip) : un
   // sélecteur `humanTowns(s.game)` renverrait un nouveau tableau → boucle infinie.
   const towns = humanTowns(useApp((s) => s.game));
@@ -343,11 +436,22 @@ function TurnBar({ onOpenOptions }: { onOpenOptions: () => void }) {
     <div class="turn-row">
       <div class="status-bar">
         <span data-testid="calendar">{t('turnBar.calendar', { day, week: weekOf(day) })}</span>
-        {hero && (
-          <span data-testid="movement-points">
-            {t('turnBar.movementPoints', { points: hero.movementPoints })}
-          </span>
-        )}
+        {hero && config && (() => {
+          // Jauge de PM (lot M6 C9) : restants / max du jour (doc 02 §1.5) —
+          // la barre double le chiffre (2ᵉ canal), jamais la couleur seule.
+          const max = dailyMovementPoints(config, hero.army, unitCatalog);
+          const ratio = max > 0 ? Math.min(1, hero.movementPoints / max) : 0;
+          return (
+            <span class="movement-gauge">
+              <span data-testid="movement-points">
+                {t('turnBar.movementPoints', { points: hero.movementPoints, max })}
+              </span>
+              <span class="gauge" aria-hidden="true">
+                <span class="gauge-fill" style={{ width: `${Math.round(ratio * 100)}%` }} />
+              </span>
+            </span>
+          );
+        })()}
         {hint && (
           <span class="guardian-hint" data-testid="guardian-hint">
             <UiIcon id="act-combat" fallback="⚔" /> {guardianBand(hint.count, bands)}

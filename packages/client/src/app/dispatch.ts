@@ -20,8 +20,8 @@ export async function dispatch(cmd: Command): Promise<EngineResult> {
   // Écran pré-combat (Lot 1) : armé quand un combat DÉMARRE (null → non-null),
   // désarmé quand il se termine. La conduite manuelle / l'Auto-Battle le
   // désarment aussi côté UI (PreBattleScreen).
-  if (!before && result.state.combat) appStore.setState({ preBattlePending: true });
-  else if (before && !result.state.combat) appStore.setState({ preBattlePending: false });
+  if (!before && result.state.combat) appStore.setState({ preBattlePending: true, combatAutoActive: false });
+  else if (before && !result.state.combat) appStore.setState({ preBattlePending: false, combatAutoActive: false });
   eventBus.emit(result.events);
   runAiLoop();
   return Promise.resolve(result);

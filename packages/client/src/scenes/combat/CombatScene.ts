@@ -455,6 +455,9 @@ export class CombatScene {
     const duration = (MOVE_MS_PER_HEX * Math.max(1, hexDistance(from, to))) / speed;
     this.animatingIds.add(stackId);
     await tween(duration, (t) => {
+      // Garde `destroyed` (lot M4) : l'auto par rounds enchaîne les animations —
+      // la scène/le jeton peuvent être détruits pendant un tween en vol.
+      if (token.destroyed) return;
       token.position.set(start.x + (end.x - start.x) * t, start.y + (end.y - start.y) * t);
     });
     this.animatingIds.delete(stackId);
@@ -476,20 +479,24 @@ export class CombatScene {
     );
     const half = ATTACK_LUNGE_MS / 2 / speed;
     this.animatingIds.add(attackerId);
+    // Gardes `destroyed` (lot M4) : l'auto par rounds enchaîne les animations —
+    // la scène et ses jetons peuvent être détruits pendant un tween en vol.
     await tween(half, (t) => {
+      if (attacker.destroyed) return;
       attacker.position.set(origin.x + (mid.x - origin.x) * t, origin.y + (mid.y - origin.y) * t);
     });
     // Impact : flash sur la cible + chiffres de dégâts flottants + micro-secousse.
-    if (target) {
+    if (target && !target.destroyed) {
       target.tint = 0xff6666;
       this.spawnDamageNumber(dest, damage, kills, lucky);
       if (!prefersReducedMotion()) void this.shakeToken(target, dest);
     }
     await tween(half, (t) => {
+      if (attacker.destroyed) return;
       attacker.position.set(mid.x + (origin.x - mid.x) * t, mid.y + (origin.y - mid.y) * t);
     });
-    attacker.position.set(origin.x, origin.y);
-    if (target) target.tint = 0xffffff;
+    if (!attacker.destroyed) attacker.position.set(origin.x, origin.y);
+    if (target && !target.destroyed) target.tint = 0xffffff;
     this.animatingIds.delete(attackerId);
   }
 
@@ -536,6 +543,7 @@ export class CombatScene {
     const reduced = prefersReducedMotion();
     const startY = group.position.y;
     void tween(700, (t) => {
+      if (group.destroyed) return; // scène détruite pendant le vol (lot M4)
       if (!reduced) group.position.y = startY - 30 * t;
       group.alpha = t < 0.6 ? 1 : 1 - (t - 0.6) / 0.4; // plein puis fondu
     }).then(() => {
@@ -558,10 +566,11 @@ export class CombatScene {
     if (!token) return;
     this.animatingIds.add(stackId);
     await tween(DEATH_FADE_MS / speed, (t) => {
+      if (token.destroyed) return; // scène détruite pendant le fondu (lot M4)
       token.alpha = 1 - t;
     });
     this.animatingIds.delete(stackId);
-    token.destroy();
+    if (!token.destroyed) token.destroy();
     this.stackTokens.delete(stackId);
   }
 }

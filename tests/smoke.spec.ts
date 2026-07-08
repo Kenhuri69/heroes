@@ -84,7 +84,10 @@ async function tapTapTile(page: Page, x: number, y: number): Promise<void> {
     [x, y],
   );
   await page.mouse.click(screen.x, screen.y);
-  await page.waitForTimeout(100);
+  // Point de synchro DÉTERMINISTE (lot M4) : le bouton « Annuler le
+  // déplacement » (M2) apparaît quand la préviz est posée — remplace
+  // l'attente aveugle de 100 ms, flaky sous charge (2 clics chronométrés).
+  await expect(page.getByTestId('cancel-path')).toBeVisible();
   await page.mouse.click(screen.x, screen.y);
 }
 
@@ -455,11 +458,44 @@ test("l'arène /#arena ouvre un combat immédiat et se résout en auto", async (
   );
   expect(stacks).toBe(4); // armées miroir : 2 piles par camp
 
+  // Lot M4 : « Auto ▶▶ » joue désormais round par round — ×4 pour accélérer.
+  await page.getByTestId('combat-speed').getByText('×4').click();
   await page.getByTestId('combat-auto').click();
   await expect
-    .poll(() => page.evaluate(() => window.__HEROES_TEST__!.getState().combat))
+    .poll(() => page.evaluate(() => window.__HEROES_TEST__!.getState().combat), { timeout: 20000 })
     .toBeNull();
   await expect(page.getByTestId('end-turn')).toBeVisible();
+
+  expect(errors).toEqual([]);
+});
+
+test('auto-combat : bascule round par round et reprise de main (doc 08 §2.4, lot M4)', async ({
+  page,
+}) => {
+  const errors = collectErrors(page);
+  await page.goto('./?seed=42#arena');
+  await page.waitForFunction(() => window.__HEROES_READY__ === true);
+  await passPreBattle(page);
+
+  await expect(page.getByTestId('combat-round')).toHaveText('Round 1');
+  const auto = page.getByTestId('combat-auto');
+  await auto.click(); // bascule ON : le libellé devient « Reprendre la main »
+  await expect(auto).toHaveText('Reprendre la main');
+  await expect(page.getByTestId('combat-wait')).toBeDisabled();
+
+  // Le combat CONTINUE round par round (pas de résolution instantanée).
+  await expect
+    .poll(() => page.evaluate(() => window.__HEROES_TEST__!.getState().combat?.round), {
+      timeout: 15000,
+    })
+    .toBeGreaterThan(1);
+
+  // Reprise de main : la boucle s'arrête, les actions se réactivent, le combat est toujours là.
+  await auto.click();
+  await expect(auto).toHaveText('Auto ▶▶');
+  await expect(page.getByTestId('combat-wait')).toBeEnabled();
+  const combat = await page.evaluate(() => window.__HEROES_TEST__!.getState().combat);
+  expect(combat).not.toBeNull();
 
   expect(errors).toEqual([]);
 });
@@ -821,9 +857,11 @@ test('télémétrie : opt-in enregistre tours + combats auto, en local (Alpha 4.
   );
   await passPreBattle(page);
   await expect(page.getByTestId('combat-round')).toBeVisible();
+  // Lot M4 : l'auto joue round par round — ×4, et marge de poll élargie.
+  await page.getByTestId('combat-speed').getByText('×4').click();
   await page.getByTestId('combat-auto').click();
   await expect
-    .poll(() => page.evaluate(() => window.__HEROES_TEST__!.getState().combat))
+    .poll(() => page.evaluate(() => window.__HEROES_TEST__!.getState().combat), { timeout: 20000 })
     .toBeNull();
 
   // Fin de tour ⇒ la durée du tour est enregistrée.
@@ -938,10 +976,12 @@ test('siège : marcher sur une ville neutre défendue ⇒ combat ⇒ capture (Al
     .toBe('neutral-keep');
 
   // Auto-résolution : l'armée de départ écrase la garnison ⇒ capture.
+  // Lot M4 : l'auto joue round par round — ×4, et marge de poll élargie.
   await passPreBattle(page);
+  await page.getByTestId('combat-speed').getByText('×4').click();
   await page.getByTestId('combat-auto').click();
   await expect
-    .poll(() => page.evaluate(() => window.__HEROES_TEST__!.getState().combat))
+    .poll(() => page.evaluate(() => window.__HEROES_TEST__!.getState().combat), { timeout: 20000 })
     .toBeNull();
   const after = await page.evaluate(() =>
     window.__HEROES_TEST__!.getState().towns.find((t) => t.id === 'neutral-keep'),

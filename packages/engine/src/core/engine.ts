@@ -187,6 +187,9 @@ export function validate(state: GameState, cmd: Command): CommandError | null {
     }
     case 'AutoCombat': {
       if (!state.combat) return { code: 'noCombat', message: 'aucun combat en cours' };
+      // Lot M4 : bornage de rounds optionnel — entier ≥ 1 quand présent.
+      if (cmd.rounds !== undefined && (!Number.isInteger(cmd.rounds) || cmd.rounds < 1))
+        return { code: 'invalidRounds', message: 'rounds doit être un entier ≥ 1' };
       return validateAutoCombat(state);
     }
     case 'BuildStructure': {
@@ -482,8 +485,8 @@ const handlers: Handlers = {
     handleCombatAction(draft, cmd, events);
   },
 
-  AutoCombat(draft, _cmd, events) {
-    handleAutoCombat(draft, events);
+  AutoCombat(draft, cmd, events) {
+    handleAutoCombat(draft, events, cmd.rounds);
   },
 
   BuildStructure(draft, cmd, events) {

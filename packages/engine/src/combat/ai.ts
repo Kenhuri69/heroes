@@ -261,12 +261,19 @@ export function runAiIfNeeded(draft: Draft, events: GameEvent[]): void {
   }
 }
 
-/** L'IA joue aussi le camp joueur jusqu'à la fin (doc 02 §5.5). */
-export function runAutoCombat(draft: Draft, events: GameEvent[]): void {
+/**
+ * L'IA joue aussi le camp joueur jusqu'à la fin (doc 02 §5.5) — ou, si
+ * `rounds` est fourni (lot M4), jusqu'à ce que le compteur de round ait
+ * avancé d'autant : l'appelant (`handleAutoCombat`) rend alors la main au
+ * joueur (« reprendre la main à tout round », doc 08 §2.4).
+ */
+export function runAutoCombat(draft: Draft, events: GameEvent[], rounds?: number): void {
+  const stopAtRound = rounds !== undefined && draft.combat ? draft.combat.round + rounds : null;
   let iterations = 0;
   for (;;) {
     const combat = draft.combat;
     if (!combat || combat.finished || !combat.activeStackId) return;
+    if (stopAtRound !== null && combat.round >= stopAtRound) return;
     if (++iterations > MAX_AI_ITERATIONS) {
       throw new Error('runAutoCombat: dépassement d’itérations (boucle infinie suspectée)');
     }

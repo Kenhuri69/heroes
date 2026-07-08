@@ -276,6 +276,11 @@ M7** (parité MMHO/HoMM) puis **M8** (confort). Chaque lot re-passe la skill
 
 - 2026-07-07 : revue complète effectuée (captures + inventaire code + référence
   MMHO sourcée) ; constats C1–C26 ; plan M1–M8 rédigé. Aucun code modifié.
+- 2026-07-08 : **Lot M4 livré** (plan `ux-m4-auto-combat-reprise.md`) — C15 :
+  `AutoCombat{rounds}` moteur (générique, rétro-compatible) + bascule client
+  « Auto ▶▶ » ⇄ « Reprendre la main » round par round ; l'Auto-Battle
+  instantané reste sur l'écran pré-combat (#144). Le lot M3 est PARTIELLEMENT
+  couvert par #144 (écran pré-combat) — reste M3.2 (retraite/fuite) à cadrer.
 - 2026-07-08 : **Lot M2 livré** (plan `ux-m2-carte.md`) — C5 résiduel
   (étiquettes numériques J1/J2 aux points d'arrêt, A5 levé), C7 (bouton
   « Annuler le déplacement »), C6 (geste `onLongPress` + fiche d'objet de

@@ -125,6 +125,18 @@
 - Mobile : combat **jouable en portrait** de plein droit — le plateau est rendu à une **échelle plancher** garantissant des hexes ≥ 44 px (touch-first, §1), puis **déplaçable au pan et zoomable au pinch** (parité avec la carte d'aventure) quand il déborde de l'écran. Le paysage reste possible mais n'est plus imposé par un overlay de suggestion de rotation. Quand le plateau déborde, la vue s'ouvre **centrée sur la pile active** (pas sur le centre du plateau, qui n'affichait aucune unité) ; le pan/pinch du joueur reste ensuite maître (UXD-0). En viewport étroit, le bandeau du haut empile round puis une rangée par camp, et la prévisualisation de dégâts est groupée au-dessus de la barre d'actions (jamais recouverte).
 - Vitesses d'animation ×1/×2/×4 + « combat auto » avec possibilité de reprendre la main à tout round (rejoue depuis l'état courant — gratuit grâce au déterminisme).
 
+> 🚧 **État M4 (plan `ux-revue-mmho.md` C15)** : la promesse ci-dessus est
+> tenue par **deux autos complémentaires** — l'« **Auto-Battle** » de l'écran
+> pré-combat (Lot 1 fidélité HO) reste la **résolution instantanée** ; le
+> bouton « **Auto ▶▶** » en combat devient une **bascule round par round**
+> (commande moteur générique `AutoCombat{rounds}` : joue N round(s) auto puis
+> rend la main sur une pile du joueur — rétro-compatible, `rounds` absent =
+> résolution complète). Pendant l'auto, les actions sont désactivées et le
+> bouton devient « **Reprendre la main** » ; la coupure prend effet au round
+> courant, la pause entre rounds suit la vitesse ×1/×2/×4. Itérer l'auto par
+> rounds produit exactement le même état final que la résolution complète
+> (même IA, déterminisme testé).
+
 ### 2.5 Autres écrans
 
 Menu principal (Continuer / Scénarios / Escarmouche / **Éditeur de carte** / Options), fiche de scénario (objectifs), fin de partie (stats, graphique de puissance), options (langue FR/EN, vitesse anims, taille UI, audio, daltonisme : cf. §4).

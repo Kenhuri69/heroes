@@ -199,6 +199,22 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > (`LoadingOverlay`, état `store.loading`) affiche l'avancée par étapes. **Zéro
 > diff moteur** (données + client uniquement ; garde-fou « zéro faction » vert,
 > pas de bump `CURRENT_SAVE_VERSION`).
+>
+> 🎓 **Beta — faction Vox Arcana** (6ᵉ maison, doc 16 ; plan `.claude/plans/
+> phase-16-faction-vox-arcana.md`). **Test de modularité #4 : livré.** Sous-lots
+> 16.1→16.6, chacun données pures (ou un point d'extension moteur **générique**),
+> garde-fou « zéro faction » maintenu : 16.1 **`houseAllegiance`** (LE nouveau
+> point moteur générique — profil de bonus déclaratif par héros/ville, save
+> v9→v10) ; 16.2a paquet jouable (5 **Maisons**, lineup T1–T8, ville) ; 16.2b
+> choix de Maison via **« Le Choixpeau »** (effet de bâtiment générique
+> `houseChoice`, save v10→**v11**) ; 16.4 **Résonance** (ressource de faction —
+> réutilise `gainFactionResourceOnVictory`/Essence, T8 gaté) ; 16.5 **École de la
+> Scène** (`spellSchool: scene` + 4 sorts à effets génériques, réutilise
+> l'acquis `traque`) ; 16.6 **avatars** Hermione (magic) & Rumi (might) stagés à
+> la convention client. **Différés** (comme pour toutes les factions) : capacités
+> de signature (barrière Honmoon T8, peur Sombral, renaissance Phénix), Résonance
+> intra-combat, unités élites, **identité** des héros nommés (système moteur non
+> ouvert). Golden inchangé côté 16.4/16.5/16.6 (données hors replay inline).
 
 ---
 
@@ -222,7 +238,7 @@ docs/
   13-plan-narrative-polish.md    Plan de polishing narratif : ton, campagnes, quêtes, dialogues data-driven, lots N1→N4
   14-faction-sylvan-court.md     Faction Sylvan Court (Beta, 4ᵉ maison) : cadrage — lineup 7 tiers, signature Symbiose, points d'extension
   15-backend-infra.md            Backend coût 0 (Cloudflare Workers + D1) : levier déterministe, modèle de données, auth magic-link, PvP async, déploiement
-  16-faction-vox-arcana.md       Faction Vox Arcana (Beta, 6ᵉ maison — Poudlard × KPop Demon Hunters) : cadrage — 5 Maisons (signature houseAllegiance), Résonance/Honmoon, École de la Scène, lineup T1–T8, héros Hermione & Rumi
+  16-faction-vox-arcana.md       Faction Vox Arcana (Beta, 6ᵉ maison — Poudlard × KPop Demon Hunters) : livrée — 5 Maisons (signature houseAllegiance), Résonance/Honmoon, École de la Scène, lineup T1–T8, avatars Hermione & Rumi
   templates/faction-template.md  Gabarit pour spécifier une nouvelle maison
 .github/workflows/
   ci.yml                         PR : typecheck, lint, tests, build, smoke headless

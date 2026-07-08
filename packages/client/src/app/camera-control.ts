@@ -1,6 +1,6 @@
 import type { Application } from 'pixi.js';
 import type { Camera } from '../render/camera';
-import { TILE_SIZE } from '../render/tilemap';
+import { isoTileCenter } from '../render/projection';
 
 /**
  * Contrôle programmatique de la caméra d'aventure (doc 13 §6.3, lot N3c.1) —
@@ -24,9 +24,10 @@ export function unregisterCamera(): void {
 
 /** Position monde qui centre la tuile (x,y) à l'écran (même formule que `centerOnHero`). */
 function targetFor(x: number, y: number, app: Application, scale: number): { x: number; y: number } {
+  const c = isoTileCenter(x, y);
   return {
-    x: app.screen.width / 2 - (x + 0.5) * TILE_SIZE * scale,
-    y: app.screen.height / 2 - (y + 0.5) * TILE_SIZE * scale,
+    x: app.screen.width / 2 - c.x * scale,
+    y: app.screen.height / 2 - c.y * scale,
   };
 }
 

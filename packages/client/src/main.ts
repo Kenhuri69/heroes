@@ -2,7 +2,7 @@ import { Application, Point } from 'pixi.js';
 import type { Command, GameState } from '@heroes/engine';
 import { CURRENT_SAVE_VERSION, serializeState } from '@heroes/engine';
 import { Camera } from './render/camera';
-import { TILE_SIZE } from './render/tilemap';
+import { isoTileCenter } from './render/projection';
 import { WORLD_OCEAN_CSS } from './render/worldBorder';
 import { loadGameContent, loadDefaultMap, loadScenarioMap, resolveGeneratedMap } from './app/content';
 import {
@@ -289,7 +289,8 @@ async function bootstrap(): Promise<void> {
     dispatch,
     tileToScreen: (x, y) => {
       if (!camera) return { x: -1, y: -1 };
-      const p = camera.world.toGlobal(new Point((x + 0.5) * TILE_SIZE, (y + 0.5) * TILE_SIZE));
+      const c = isoTileCenter(x, y); // même projection que le rendu (Lot A1)
+      const p = camera.world.toGlobal(new Point(c.x, c.y));
       return { x: p.x, y: p.y };
     },
     save: () => saveGame(appStore.getState().game, 'manual'),

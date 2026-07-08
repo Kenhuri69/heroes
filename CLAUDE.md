@@ -152,6 +152,19 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > Les docs `docs/0X-*.md` restent la source de vérité du design ; le code doit
 > s'y conformer.
 >
+> 🎥 **Fidélité HoMM Online** (plan `.claude/plans/homm-online-divergence-remediation.md`,
+> revue de captures du jeu d'origine). Deux lots livrés (décision utilisateur) sans
+> toucher au moteur : **A1 — rendu isométrique** de la carte d'aventure
+> (`render/projection.ts` : losange 2:1 façon HO ; grille moteur **carrée**
+> inchangée, seule la projection de rendu + le picking `tileToScreen` deviennent
+> iso ; repli gouache, tri de profondeur, brouillard/rivage/chemin projetés) ;
+> **B1 — file de chantier** dans l'écran de ville (bandeau « Chantier du jour »
+> libre/occupé + temps en **jours**, jamais en secondes — habillage de la règle
+> « 1 construction/jour », zéro churn moteur/sauvegarde). Lots combat fidélité
+> (écran pré-combat/Auto-Battle, file d'initiative, popups dégâts) restent en
+> attente. Divergences délibérées confirmées hors périmètre : MMO temps réel,
+> premium/pay-to-win (doc 01 §3-4).
+>
 > 🌐 **Beta — en ligne & PWA** (roadmap doc 09 Phase 3). Backend **déployé et en
 > ligne** (lots 7.1→7.6, doc 15) : Worker Cloudflare `heroes` sur
 > `https://heroes.kenhuri.workers.dev` (D1 `heroes` branchée ; déploiement en CI

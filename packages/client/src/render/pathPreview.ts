@@ -1,5 +1,5 @@
 import { Graphics } from 'pixi.js';
-import { TILE_SIZE } from './tilemap';
+import { isoTileCenter } from './projection';
 
 export interface PreviewStep {
   x: number;
@@ -22,13 +22,13 @@ export class PathPreview {
   show(steps: readonly PreviewStep[]): void {
     this.graphics.clear();
     for (const [i, step] of steps.entries()) {
-      const px = step.x * TILE_SIZE + TILE_SIZE / 2;
-      const py = step.y * TILE_SIZE + TILE_SIZE / 2;
+      const { x: px, y: py } = isoTileCenter(step.x, step.y);
       const color = dayColor(step.day);
+      // Ellipses (2:1) : marqueurs « au sol » cohérents avec la projection iso.
       if (i === steps.length - 1) {
-        this.graphics.circle(px, py, 14).stroke({ width: 5, color });
+        this.graphics.ellipse(px, py, 14, 7).stroke({ width: 5, color });
       } else {
-        this.graphics.circle(px, py, 7).fill(color);
+        this.graphics.ellipse(px, py, 7, 3.5).fill(color);
       }
     }
   }

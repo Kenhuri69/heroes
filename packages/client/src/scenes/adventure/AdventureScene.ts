@@ -17,6 +17,7 @@ import { humanId, humanHeroes, resolveSelectedHero } from '../../app/game';
 import type { Camera } from '../../render/camera';
 import { heroMapUrl } from '../../render/assets';
 import { Tilemap, TILE_SIZE } from '../../render/tilemap';
+import { isoAnchor, isoDepth, isoTileCenter, isoWorldToTile } from '../../render/projection';
 import { MapObjectsLayer } from '../../render/mapObjects';
 import { playerColor } from '../../render/playerColors';
 import { TownsLayer } from '../../render/townsLayer';
@@ -42,9 +43,12 @@ export class AdventureScene {
   private readonly preview = new PathPreview();
   private readonly heroesLayer = new Container();
   private readonly heroSprites = new Map<string, Container>();
-  /** Anneau de sélection (doc 08 §2.1, accessibilité A5 — pas la couleur seule). */
+  /**
+   * Anneau de sélection (doc 08 §2.1, accessibilité A5 — pas la couleur seule).
+   * Ellipse 2:1 : anneau « au sol » cohérent avec la projection iso (Lot A1).
+   */
   private readonly selectionRing = new Graphics()
-    .circle(TILE_SIZE / 2, TILE_SIZE / 2, TILE_SIZE * 0.6)
+    .ellipse(TILE_SIZE / 2, TILE_SIZE / 2, TILE_SIZE * 0.55, TILE_SIZE * 0.28)
     .stroke({ width: 3, color: 0xf1c40f });
   private previewTarget: { target: GridPos; path: GridPos[] } | null = null;
   private animatingHeroId: string | null = null;
@@ -59,9 +63,11 @@ export class AdventureScene {
     const { map } = appStore.getState().game;
     if (!map) throw new Error('AdventureScene requiert une partie démarrée');
 
-    const tilemap = new Tilemap(app.renderer, map);
+    const tilemap = new Tilemap(map);
     this.fog = new FogOverlay(map);
     this.selectionRing.visible = false;
+    this.selectionRing.zIndex = -1; // sous les jetons de héros (tri iso)
+    this.heroesLayer.sortableChildren = true; // tri de profondeur iso des héros
     this.heroesLayer.addChild(this.selectionRing);
     this.container.addChild(
       buildWorldBorder(map), // UXD-3A : mer + rivage sous la tuile (plus de letterbox noir)
@@ -70,7 +76,7 @@ export class AdventureScene {
       this.towns.container,
       this.preview.graphics,
       this.heroesLayer,
-      this.fog.sprite,
+      this.fog.graphics,
     );
 
     this.unsubscribeStore = appStore.subscribe(() => this.sync());
@@ -127,15 +133,18 @@ export class AdventureScene {
         this.heroesLayer.addChild(sprite);
         this.heroSprites.set(hero.id, sprite);
       }
+      sprite.zIndex = isoDepth(hero.pos.x, hero.pos.y);
       if (hero.id !== this.animatingHeroId) {
-        sprite.position.set(hero.pos.x * TILE_SIZE, hero.pos.y * TILE_SIZE);
+        const a = isoAnchor(hero.pos.x, hero.pos.y);
+        sprite.position.set(a.x, a.y);
       }
     }
 
     const selected = resolveSelectedHero(game, appStore.getState().selectedHeroId);
     this.selectionRing.visible = selected !== undefined;
     if (selected) {
-      this.selectionRing.position.set(selected.pos.x * TILE_SIZE, selected.pos.y * TILE_SIZE);
+      const a = isoAnchor(selected.pos.x, selected.pos.y);
+      this.selectionRing.position.set(a.x, a.y);
     }
   }
 
@@ -180,7 +189,7 @@ export class AdventureScene {
     if (!map || !config || !hero) return;
 
     const local = this.container.toLocal(global);
-    const tile: GridPos = { x: Math.floor(local.x / TILE_SIZE), y: Math.floor(local.y / TILE_SIZE) };
+    const tile: GridPos = isoWorldToTile(local.x, local.y);
     if (tile.x < 0 || tile.y < 0 || tile.x >= map.width || tile.y >= map.height) {
       this.clearPreview();
       return;
@@ -291,10 +300,8 @@ export class AdventureScene {
       const animate = (): void => {
         if (this.destroyed) return resolve(); // scène détruite en cours d'animation
         const t = Math.min(1, (performance.now() - start) / STEP_ANIMATION_MS);
-        sprite.position.set(
-          (from.x + (to.x - from.x) * t) * TILE_SIZE,
-          (from.y + (to.y - from.y) * t) * TILE_SIZE,
-        );
+        const a = isoAnchor(from.x + (to.x - from.x) * t, from.y + (to.y - from.y) * t);
+        sprite.position.set(a.x, a.y);
         if (t < 1) requestAnimationFrame(animate);
         else resolve();
       };
@@ -308,9 +315,10 @@ export class AdventureScene {
     const hero = resolveSelectedHero(game, appStore.getState().selectedHeroId);
     if (!hero) return;
     const scale = this.camera.world.scale.x;
+    const c = isoTileCenter(hero.pos.x, hero.pos.y);
     this.camera.world.position.set(
-      app.screen.width / 2 - (hero.pos.x + 0.5) * TILE_SIZE * scale,
-      app.screen.height / 2 - (hero.pos.y + 0.5) * TILE_SIZE * scale,
+      app.screen.width / 2 - c.x * scale,
+      app.screen.height / 2 - c.y * scale,
     );
   }
 }

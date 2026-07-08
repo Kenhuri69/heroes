@@ -274,11 +274,19 @@ function BuildTab({
 
   return (
     <div class="town-tab-panel" data-testid="town-panel-build">
-      {town.builtToday && (
-        <p class="town-built-today" data-testid="town-built-today">
-          {t('town.builtToday')}
-        </p>
-      )}
+      {/* B1 — file de chantier façon HoMM Online : la règle « 1 construction/jour »
+          (doc 02 §4.1) présentée comme un créneau de chantier quotidien. Le
+          « temps » se compte en JOURS (tours), jamais en secondes — cœur
+          tour-par-tour intact, aucun changement moteur/sauvegarde. */}
+      <div class="town-build-queue" data-testid="town-build-queue">
+        <span class="town-build-queue-title">{t('town.buildQueueTitle')}</span>
+        <span
+          class={`town-build-queue-state ${town.builtToday ? 'is-used' : 'is-free'}`}
+          data-testid="town-build-queue-state"
+        >
+          {t(town.builtToday ? 'town.buildQueueUsed' : 'town.buildQueueFree')}
+        </span>
+      </div>
       <ul class="town-building-list">
         {buildingIds.map((buildingId) => {
           const def = catalog[buildingId];
@@ -315,6 +323,11 @@ function BuildTab({
               {status === 'available' && nextLevel && (
                 <div class="town-building-action">
                   <CostList cost={nextLevel.cost} />
+                  {/* B1 — temps de chantier en JOURS (façon HO), 1 jour = le
+                      créneau quotidien consommé (doc 02 §4.1). */}
+                  <span class="town-build-time" data-testid={`town-build-time-${buildingId}`}>
+                    {t('town.buildTime', { days: 1 })}
+                  </span>
                   <button
                     data-testid={`town-build-${buildingId}`}
                     disabled={town.builtToday}

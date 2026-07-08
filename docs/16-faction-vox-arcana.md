@@ -1,0 +1,171 @@
+# 16 — Nouvelle Maison : Vox Arcana (« la Voix Arcane »)
+
+Faction #6, produite en **Beta** — elle sert de **test de modularité #4** (doc 06). Inspirations assumées : **académie de sorcellerie à l'anglaise** (Poudlard : maisons, château, baguettes, créatures magiques) × **chasseuses de démons pop** (KPop Demon Hunters / HUNTR/X : la scène, le chant, le Honmoon, l'oni coréen).
+
+> 🚧 **État 16.0 (cadrage — identité verrouillée par les assets)** : la DA, le
+> roster T1–T8, les 5 Maisons et les 2 héros nommés (Hermione, Rumi) sont figés
+> par une base d'assets validée (planches d'unités, de blasons et d'avatars —
+> `assets/prompts/faction-vox-arcana.md`). **Aucun code moteur ni donnée jouable
+> à ce stade.** Le pari de modularité : la faction ne requiert qu'**UN** nouveau
+> point d'extension moteur **générique** — l'**allégeance de Maison**
+> (`houseAllegiance`) ; tout le reste **réutilise** des mécanismes déjà livrés
+> pour Arcane Hunters (ressource de faction post-victoire, école de sorts propre,
+> capacités génériques). Découpage en sous-lots data-only : cf.
+> `.claude/plans/phase-16-faction-vox-arcana.md`.
+
+## 1. Lore
+
+L'**Académie Vox Arcana** occupe un château gothique dont les tours coréennes
+veillent sur une faille par où les démons s'infiltrent depuis l'aube des temps.
+On n'y apprend pas la magie pour elle-même : chaque élève sert le **Honmoon**, la
+barrière tissée par le **chant** qui scelle les démons hors du monde. La voix y
+est une arme au même titre que la baguette — les plus grandes élèves montent sur
+scène autant qu'elles montent au front.
+
+L'école répartit ses élèves en **cinq Maisons** selon leur vertu : le Lion
+(courage), le Serpent (ambition), l'Aigle (savoir), le Blaireau (loyauté) et
+**Venari** (la Maison de la Chasse, née de la tradition des chasseuses-idoles).
+Leur crédo : *« Que la voix scelle ce que la lame ne peut trancher. »*
+
+## 2. Identité de jeu
+
+| | |
+|---|---|
+| **Fantasme joueur** | L'académie qui chante autant qu'elle incante : choisir sa Maison, monter la Résonance au combat et déchaîner les sorts de la Scène ; l'apprenti-choriste du T1 devient l'Avatar du Honmoon au T8 |
+| **Style de jeu** | Polyvalent et modulaire : la **Maison** oriente la partie (offensive / économie / magie / défense / performance) ; armée équilibrée soutenue par les buffs de zone de l'École de la Scène |
+| **Terrain natif** | Prairie / colline gothique — `grass` de la config au niveau des données (un terrain dédié reste optionnel) |
+| **Ressources clés** | Cristal + Gemmes |
+| **Ressource de faction** | **Résonance (Honmoon)** — gagnée au combat, dépensée pour le sommet (T8) et la Scène |
+| **École de magie propre** | **École de la Scène** (barrière du Honmoon, chant de courage, dissonance, rappel) |
+| **Couleurs / DA** | Pierre noire gothique + filigrane argent/or ; cyan électrique + magenta/violet néon ; glycine (wisteria) ; masque d'oni, pagodes, chouettes spectrales ; registre « scène/concert » (distinct du registre « traque » d'Arcane Hunters) |
+
+## 3. Mécaniques uniques de faction
+
+### 3.1 Les Cinq Maisons (signature — le point d'extension moteur)
+
+À la création (héros / ville de départ), le joueur relève d'**une des cinq
+Maisons**. Chaque Maison applique un **profil de bonus déclaratif** — jamais un
+`if maison === …`, mais une table de modificateurs data-driven interprétée par un
+mécanisme générique unique **`houseAllegiance`** (le seul nouveau point
+d'extension moteur de la faction, cf. §8). Les valeurs réutilisent le
+vocabulaire d'effets **déjà** existant (comme les compétences).
+
+| Maison | Vertu | Bonus déclaratif (placeholder d'équilibrage) |
+|--------|-------|-----------------------------------------------|
+| **Le Lion** | Courage | +2 Attaque en mêlée, +1 Moral |
+| **Le Serpent** | Ambition | +250 or/jour ; accès aux sorts de malédiction |
+| **L'Aigle** | Savoir | +25 % mana max, −15 % coût de sort |
+| **Le Blaireau** | Loyauté | +20 % croissance hebdo, +2 Défense en garnison |
+| **Venari** *(HUNTR/X)* | Scène / Honmoon | +50 % de gain de Résonance ; buffs de l'École de la Scène +1 Pouvoir |
+
+> Modularité : `houseAllegiance` est **générique** — n'importe quelle faction
+> future peut déclarer ses propres « allégeances » (sous-écoles, ordres,
+> serments) et leurs profils de bonus. Le moteur ne connaît que la clé de chaîne.
+
+### 3.2 Résonance (Honmoon) — ressource de faction
+
+La **Résonance** représente l'énergie du Honmoon nourrie par la performance.
+Au cadrage, elle **réutilise à l'identique** le mécanisme de ressource de faction
+livré pour l'Essence (Arcane Hunters, doc 05 §3.3) :
+
+- Déclarée dans le manifeste (`factionResources`), affichée dans la barre de
+  ressources, plafonnée.
+- **Gagnée** à chaque combat gagné (`gainFactionResourceOnVictory`), event +
+  toast i18n.
+- **Dépensée** au recrutement du **T8 Avatar du Honmoon** (comme l'Essence gate
+  le Pénitent AH), et potentiellement en coût des habitations de la Scène.
+
+> **Différé (extension ultérieure, générique)** : la génération de Résonance
+> **en cours de combat** par les unités « performeuses » (T1 Chœur, T4
+> Chasseuse-Idole) — nouvelle surface (gain intra-combat) traitée après le
+> data-only. En attendant, la Résonance se gagne à la victoire ; aucune unité ne
+> crashe faute d'effet.
+
+### 3.3 École de la Scène (école de sorts propre)
+
+École de sorts de faction (`spellSchool: "scene"`, même mécanisme que `traque`
+d'Arcane Hunters). Les sorts **réutilisent les effets de sort génériques
+existants** (bouclier / buff / debuff / soin) — zéro nouveau moteur :
+
+| Cercle | Sort | Effet (réutilise un effet générique) |
+|--------|------|--------------------------------------|
+| 1 | **Barrière du Honmoon** | Bouclier : la pile alliée subit −X % de dégâts (buff défensif temporaire) |
+| 1 | **Chant de Courage** | Buff de masse : +Moral / +Attaque aux alliés (Pouvoir rounds) |
+| 2 | **Dissonance** | Debuff : −Attaque / peur sur une pile ennemie (renforcé vs `demon`) |
+| 3 | **Rappel** | Soin / relève une fraction des pertes d'une pile alliée |
+
+## 4. Lineup d'unités (8 tiers, dosage Poudlard + hunter)
+
+> Stats **placeholder d'équilibrage** (magnitudes calquées sur les factions
+> existantes), à valider via `faction:sim`. Capacités listées = capacités
+> **génériques déjà au moteur** (shooter, flying, spellcaster, noRetaliation…) ;
+> les capacités de signature exotiques sont **différées** et notées comme telles
+> (les unités combattent normalement en attendant, jamais de crash — discipline
+> doc 05).
+
+| Tier | Unité | Ancrage | PV | Att | Déf | Dégâts | Vit. | Cr./sem | Coût | Capacités |
+|------|-------|---------|----|-----|-----|--------|------|---------|------|-----------|
+| 1 | **Chœur d'apprentis** | élèves / chant | 5 | 3 | 2 | 1–2 | 4 | 14 | 30 or | `swarm` ; *(performeur : gain de Résonance — différé)* |
+| 2 | **Duelliste** | défense contre les Forces du Mal | 10 | 5 | 3 | 2–4 | 5 | 9 | 90 or | `shooter(12)` (baguette) |
+| 3 | **Hippogriffe** | créature Poudlard | 25 | 7 | 6 | 4–7 | 7 | 6 | 180 or | `flying` |
+| 4 | **Chasseuse-Idole** | HUNTR/X | 38 | 11 | 8 | 7–11 | 6 | 4 | 400 or + 1 cristal | `shooter(10, noMeleePenalty)` ; *(performeur — différé)* |
+| 5 | **Sombral** | créature Poudlard | 45 | 12 | 9 | 8–13 | 9 | 3 | 650 or | `flying` ; *(peur — différé)* |
+| 6 | **Maître de Sortilèges** | professeur | 55 | 14 | 12 | 10–16 | 5 | 2 | 1150 or + 1 gemme | `spellcaster(Dissonance/Chant, ×2)` |
+| 7 | **Phénix** | créature Poudlard | 150 | 19 | 17 | 22–34 | 11 | 1 | 2500 or + 2 gemmes | `flying`, `noRetaliation` ; *(renaissance — différé)* |
+| 8 | **Avatar du Honmoon** | fusion scène+magie | 210 | 24 | 20 | 38–56 | 8 | 1 | 3600 or + 3 gemmes + **40 Résonance** | `spellcaster(Barrière du Honmoon)` ; *(barrière de zone au max de Résonance — différé)* |
+
+**Faiblesses assumées** (équilibre) : peu de dégâts bruts « canon » avant le T6 ;
+la faction paie sa polyvalence par l'absence d'un tueur de pile précoce — elle
+gagne par l'usure, les buffs de la Scène et le bon choix de Maison.
+
+> **Unités élites** (habitation niveau 2, façon doc 05 §4bis) : différées au
+> lot d'équilibrage — chaque habitation se graduera au niveau 2 pour débloquer
+> la variante élite, base et élite recrutables.
+
+## 5. Arbre de bâtiments
+
+Bâtiments communs : cf. doc 02 §4.1 (skins « académie gothique »). Spécifiques :
+
+| Bâtiment | Prérequis | Effet |
+|----------|-----------|-------|
+| **Le Choixpeau** | Hôtel de ville | Débloque le **choix de Maison** de la ville (signature `houseAllegiance`) |
+| **La Scène (Amphithéâtre)** | Fort | Production / bonus de **Résonance** |
+| **La Grande Bibliothèque** | — | Guilde des mages (accès aux sorts, dont l'École de la Scène) |
+| **Sanctuaire du Honmoon** | Habitation T7 + Château | Habitation **T8** (Avatar du Honmoon ; coût en Résonance) |
+
+Chaîne d'habitations (T1→T8) :
+
+```
+Fort ─► T1 Dortoirs ─► T2 Salle de Duel ─► T3 Volière ─► T4 Scène des Idoles
+                 │
+        Bibliothèque ─► T5 Écurie des Ombres ─► T6 Cabinet des Maîtres
+                                                        │
+                                          T7 Nid du Phénix
+                                                        │  (+ Château)
+                                          T8 Sanctuaire du Honmoon
+```
+
+## 6. Héros nommés
+
+| Héros | Base | Classe | Maison | Attributs (A/D/P/S) | Compétences de départ | Spécialité (placeholder) |
+|-------|------|--------|--------|---------------------|------------------------|--------------------------|
+| **Hermione** | Poudlard | **Magic** | L'Aigle | 10/10/25/25 | Sagesse N, École de la Scène N | Sorts de la Scène −1 coût de mana |
+| **Rumi** | HUNTR/X | **Might / Hunter** | Venari | 30/15/10/15 | Attaque N, Commandement N | +25 % de gain de Résonance |
+
+> Les spécialités raffinées (barrière renforcée, performance de groupe) suivront
+> avec le câblage de la génération de Résonance intra-combat.
+
+## 7. Résumé des points d'extension (test de modularité #4)
+
+| Besoin | Mécanisme du framework (doc 06) | État |
+|--------|--------------------------------|------|
+| **Allégeance de Maison** | **NOUVEAU** point générique `houseAllegiance` (profil de bonus déclaratif choisi par héros/ville) | à livrer (le seul diff moteur de la faction) |
+| Résonance | ressource **de faction** (`factionResources` + `gainFactionResourceOnVictory`) — **réutilise** l'acquis Essence (doc 05) | réutilisé |
+| École de la Scène | `spellSchool` propre + effets de sort génériques (bouclier/buff/debuff/soin) — **réutilise** | réutilisé |
+| Lineup / capacités | capacités génériques (`shooter`, `flying`, `spellcaster`, `noRetaliation`, `swarm`) — **réutilise** | réutilisé |
+| Génération de Résonance en combat (performeurs) | nouvelle surface (gain intra-combat) — **différée** | différé |
+| Barrière du Honmoon (T8) / renaissance (Phénix) / peur (Sombral) | capacités de signature — **différées** | différé |
+
+> Objectif de modularité tenu : **une** faction complète = **un** nouveau point
+> d'extension **générique** + des **données**. Le garde-fou CI « zéro nom de
+> faction dans le moteur » doit rester vert à chaque sous-lot.

@@ -41,10 +41,21 @@ T8 Avatar du Honmoon (débloqué à Résonance max).
 1. Cadrage identité (ce plan) → **vérif** : validé en chat. ✅
 2. Nom de faction verrouillé → **vérif** : **Vox Arcana** (`vox-arcana`). ✅
 3. Base d'assets : prompts avatars Hermione & Rumi + blasons 5 Maisons + planche d'unités → **vérif** : `assets/prompts/faction-vox-arcana.md`, prompts conformes doc 12. ✅
-4. Génération des visuels **(externe/Gemini — côté utilisateur)** + QC → **vérif** : QC verte `sheet_extract`, staging `assets/`. ⏳
-5. Verrouillage du plan par les assets → **vérif** : accord utilisateur sur DA + roster.
-6. Rédaction `docs/16-faction-vox-arcana.md` (source de vérité, guidelines §8.6) → **vérif** : doc complet façon doc 05.
-7. Découpage en sous-lots data-only + points d'extension (`houseAllegiance`, Résonance) → **vérif** : garde-fou « zéro faction dans le moteur » vert.
+4. Génération des visuels **(externe/Gemini — côté utilisateur)** → **vérif** : 3 planches reçues (unités T1–T8, 5 Maisons, héros Hermione & Rumi), conformes DA. ✅
+   - QC + détourage + staging `assets/` (`sheet_extract`) → **vérif** : ⏳ en attente des PNG bruts déposés dans le repo/la session.
+5. Verrouillage du plan par les assets → **vérif** : DA + roster + 5 Maisons + héros tous lisibles et raccord ; distinction vs Arcane Hunters confirmée. ✅
+6. Rédaction `docs/16-faction-vox-arcana.md` (source de vérité, guidelines §8.6) → **vérif** : doc complet façon doc 05 (lore, 5 Maisons, Résonance, École de la Scène, lineup T1–T8, bâtiments, héros, points d'extension). ✅
+7. Découpage en sous-lots data-only + points d'extension (`houseAllegiance`, Résonance) → **vérif** : garde-fou « zéro faction dans le moteur » vert. ⏳ (prochain lot)
+
+## Découpage pressenti (sous-lots)
+
+- **16.1** — `houseAllegiance` : LE nouveau point d'extension moteur générique (profil de bonus déclaratif choisi par héros/ville) + garde-fou vert + golden inchangé.
+- **16.2** — paquet `data/factions/vox-arcana/` en stub (manifeste + 1 unité T1) qui charge et passe `content:check` ; ajout à `data/factions/index.json`.
+- **16.3** — lineup T1–T8 data-only (capacités génériques) + test de recrutement faction-agnostique.
+- **16.4** — Résonance : `factionResources` + `gainFactionResourceOnVictory` (réutilise l'acquis Essence) ; T8 gaté par la Résonance.
+- **16.5** — École de la Scène : `spellSchool: scene` + 4 sorts (effets génériques) + locales.
+- **16.6** — héros Hermione & Rumi en données + staging des assets (QC `sheet_extract`).
+- **Différés** : Résonance intra-combat (performeurs), barrière du Honmoon T8, renaissance Phénix, peur Sombral, unités élites.
 
 ## Écarts / décisions
 

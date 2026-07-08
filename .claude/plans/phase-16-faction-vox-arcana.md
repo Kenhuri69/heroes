@@ -1,7 +1,9 @@
 # Phase 16 — Nouvelle faction : Vox Arcana (Poudlard × KPop Demon Hunters)
 
 > Plan vivant (guidelines §5). Faction #6, **test de modularité #4**.
-> État : **cadrage — validation de l'identité par les assets** (aucun code moteur, aucune donnée jouable encore).
+> État : **LIVRÉ** — faction jouable de bout en bout (données + `houseAllegiance`),
+> sous-lots 16.1→16.6 mergés. Capacités de signature exotiques & identité des
+> héros nommés différées (cf. « Découpage » et doc 16 §7).
 
 ## Concept validé (chat)
 
@@ -47,7 +49,7 @@ T8 Avatar du Honmoon (débloqué à Résonance max).
      regénérées sur fond gris clair puis extraites, QC verte).
 5. Verrouillage du plan par les assets → **vérif** : DA + roster + 5 Maisons + héros tous lisibles et raccord ; distinction vs Arcane Hunters confirmée. ✅
 6. Rédaction `docs/16-faction-vox-arcana.md` (source de vérité, guidelines §8.6) → **vérif** : doc complet façon doc 05 (lore, 5 Maisons, Résonance, École de la Scène, lineup T1–T8, bâtiments, héros, points d'extension). ✅
-7. Découpage en sous-lots data-only + points d'extension (`houseAllegiance`, Résonance) → **vérif** : garde-fou « zéro faction dans le moteur » vert. ⏳ (en cours)
+7. Découpage en sous-lots data-only + points d'extension (`houseAllegiance`, Résonance) → **vérif** : garde-fou « zéro faction dans le moteur » vert. ✅ (16.1→16.6 livrés)
 
 ## Découpage pressenti (sous-lots)
 

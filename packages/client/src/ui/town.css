@@ -82,7 +82,7 @@
 }
 
 .town-build-queue-state.is-free {
-  color: var(--gold-bright, #d9c34a);
+  color: var(--gold);
   font-weight: 600;
 }
 

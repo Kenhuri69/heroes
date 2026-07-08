@@ -89,4 +89,33 @@ describe('generateMap', () => {
       if (o.type === 'guardian') expect(o.unitId).toBe('t1-guard');
     }
   });
+
+  it('produit N positions de départ distinctes et valides (multi-joueurs)', async () => {
+    for (const count of [3, 4]) {
+      for (let seed = 1; seed <= 20; seed++) {
+        const map = generateMap('random', seed, {
+          startPositionCount: count,
+          guardianUnits: ['t1-guard'],
+        });
+        const resolved = await loadMap(readerFor(map), 'random', config(), KNOWN_UNITS);
+        expect(resolved.startPositions).toHaveLength(count);
+        // Toutes distinctes (loadMap rejette déjà départs occupés/superposés).
+        const keys = new Set(resolved.startPositions.map((p) => `${p.x},${p.y}`));
+        expect(keys.size).toBe(count);
+      }
+    }
+  });
+
+  it('la taille et le multiplicateur de ressources pilotent la densité d’objets', () => {
+    const countRes = (m: MapFile): number =>
+      m.objects.filter((o) => o.type === 'resource' || o.type === 'mine' || o.type === 'treasure').length;
+    // Même graine : « riche » pose strictement plus d'objets que « bas ».
+    const poor = generateMap('r', 42, { resourceMultiplier: 0.5 });
+    const rich = generateMap('r', 42, { resourceMultiplier: 1.7 });
+    expect(countRes(rich)).toBeGreaterThan(countRes(poor));
+    // Grande carte : plus d'objets qu'une petite à densité égale.
+    const small = generateMap('r', 42, { width: 24, height: 24 });
+    const large = generateMap('r', 42, { width: 48, height: 48 });
+    expect(countRes(large)).toBeGreaterThan(countRes(small));
+  });
 });

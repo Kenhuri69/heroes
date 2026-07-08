@@ -23,7 +23,8 @@ export type Modal =
   | { kind: 'town'; townId: string }
   | { kind: 'options' }
   | { kind: 'journal' }
-  | { kind: 'skirmish' };
+  | { kind: 'skirmish' }
+  | { kind: 'newgame' };
 
 /** Plafond de profondeur de la pile de modales (doc 08 §3). */
 export const MAX_MODAL_DEPTH = 2;

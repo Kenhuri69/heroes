@@ -12,8 +12,11 @@ import {
   buildTownSetup,
   buildUnitCatalog,
   newGameCommand,
+  newGameStartCommand,
+  resolveNewGameConfig,
   scenarioStartCommand,
   skirmishStartCommand,
+  type NewGameRawConfig,
   type SkirmishConfig,
 } from './app/game';
 import { dispatch } from './app/dispatch';
@@ -215,6 +218,46 @@ async function bootstrap(): Promise<void> {
     navigate('adventure');
   };
 
+  /**
+   * « Nouvelle partie » configurable (doc 09) : résout les paramètres laissés sur
+   * « Aléatoire » (déterministe depuis le seed), GÉNÈRE la carte à la taille et à
+   * la densité de ressources choisies, puis joue le `StartGame` à N joueurs. La
+   * génération pouvant prendre du temps, un overlay de chargement affiche
+   * l'avancée par étapes ; `requestAnimationFrame` entre les étapes laisse la
+   * barre se peindre. Toujours nettoyé (succès comme échec) via `finally`.
+   */
+  const startNewGameSetup = async (raw: NewGameRawConfig): Promise<void> => {
+    const raf = (): Promise<void> => new Promise((r) => requestAnimationFrame(() => r()));
+    const setLoading = (label: string, progress: number): void =>
+      appStore.setState({ loading: { label, progress } });
+    try {
+      setLoading('newgame.loading.prepare', 0.1);
+      await raf();
+      const factionIds = report.content.packs.map((p) => p.manifest.id);
+      const resolved = resolveNewGameConfig(raw, factionIds, raw.seed);
+
+      setLoading('newgame.loading.map', 0.35);
+      await raf();
+      const generatedMap = await resolveGeneratedMap(report, raw.seed, {
+        width: resolved.map.width,
+        height: resolved.map.height,
+        startPositionCount: resolved.map.startPositionCount,
+        resourceMultiplier: resolved.map.resourceMultiplier,
+      });
+
+      setLoading('newgame.loading.players', 0.75);
+      await raf();
+      const command = newGameStartCommand(report, resolved.setup, raw.seed, generatedMap);
+
+      setLoading('newgame.loading.init', 0.95);
+      await raf();
+      await dispatch(command);
+      navigate('adventure');
+    } finally {
+      appStore.setState({ loading: null });
+    }
+  };
+
   /** Démarre un chapitre de campagne (doc 13 §4.1, N3a) — report de héros géré par le module. */
   const startChapter = async (campaignId: string, chapterIndex: number, seed: number): Promise<void> => {
     const campaign = report.content.campaigns.find((c) => c.id === campaignId);
@@ -235,12 +278,13 @@ async function bootstrap(): Promise<void> {
     campaigns: report.content.campaigns,
     factions: report.content.packs.map((p) => p.manifest.id),
   });
-  // « Nouvelle partie » du menu (contrat lot G) — seed horloge côté client.
-  // Remédiation CL8 : un échec ne laisse plus une promesse rejetée non gérée
-  // (page muette) — il est surfacé en toast et journalisé.
-  window.addEventListener('heroes:new-game', () => {
-    startNewGame(Date.now()).catch((err: unknown) => {
-      console.error('startNewGame', err);
+  // « Nouvelle partie » configurable (doc 09) : l'écran émet la config brute,
+  // l'intégration résout les tirages, génère la carte (overlay de progression) et
+  // joue la commande. Un échec est surfacé en toast (comme les autres démarrages).
+  window.addEventListener('heroes:start-newgame', (e) => {
+    const config = (e as CustomEvent<NewGameRawConfig>).detail;
+    startNewGameSetup(config).catch((err: unknown) => {
+      console.error('startNewGameSetup', err);
       pushToast(t('toast.newGameFailed'));
     });
   });

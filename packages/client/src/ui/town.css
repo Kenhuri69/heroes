@@ -457,7 +457,7 @@ button[data-testid='market-trade'] {
   gap: 0.75rem;
   padding: 0.35rem 0.5rem;
   border-radius: 6px;
-  background: var(--shadow-20, rgba(0, 0, 0, 0.15));
+  background: var(--shadow-12);
 }
 .town-guild-spell-name {
   font: 600 0.9rem var(--font-ui);
@@ -468,7 +468,7 @@ button[data-testid='market-trade'] {
   white-space: nowrap;
 }
 .town-guild-spell.is-known .town-guild-spell-status {
-  color: var(--accent-gold, #f1c40f);
+  color: var(--gold);
 }
 .town-guild-spell.is-locked {
   opacity: 0.6;

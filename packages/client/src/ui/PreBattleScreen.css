@@ -1,4 +1,5 @@
-/* Écran pré-combat (Lot 1) — overlay centré façon HoMM Online. */
+/* Écran pré-combat (Lot 1) — overlay centré façon HoMM Online. Couleurs via
+   tokens uniquement (garde-fou CI : aucun hex/rgba hors ui/tokens.css). */
 .pre-battle-backdrop {
   position: fixed;
   inset: 0;
@@ -7,7 +8,7 @@
   align-items: center;
   justify-content: center;
   padding: 16px;
-  background: rgba(6, 8, 12, 0.72);
+  background: var(--veil-deep);
   /* #ui-root est pointer-events:none : ré-activer pour capter le clic (sinon il
      traverse vers le canvas de combat en dessous, index.html). */
   pointer-events: auto;
@@ -17,9 +18,9 @@
   width: min(560px, 100%);
   padding: 20px 20px 16px;
   border: 1px solid var(--ink-600);
-  border-radius: var(--radius-l, 12px);
-  background: var(--ink-800, #12151c);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  border-radius: var(--radius-l);
+  background: var(--ink-800);
+  box-shadow: 0 12px 40px var(--shadow-60);
   text-align: center;
 }
 
@@ -28,7 +29,7 @@
   font-size: 1.5rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--parchment-bright, #f2ece0);
+  color: var(--parchment-bright);
 }
 
 .pre-battle-sides {
@@ -60,12 +61,12 @@
   height: 72px;
   object-fit: cover;
   border-radius: 50%;
-  border: 2px solid var(--brass-bright, #a08a5a);
+  border: 2px solid var(--brass-bright);
 }
 
 .pre-battle-name {
   font-size: 0.9rem;
-  color: var(--parchment-bright, #f2ece0);
+  color: var(--parchment-bright);
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -116,12 +117,12 @@
 
 .pre-battle-fight {
   background: var(--blood-bright);
-  color: var(--parchment-bright, #f2ece0);
+  color: var(--parchment-bright);
   border: 1px solid var(--blood-bright);
 }
 
 .pre-battle-auto {
   background: transparent;
-  color: var(--parchment-bright, #f2ece0);
-  border: 1px solid var(--brass-bright, #a08a5a);
+  color: var(--parchment-bright);
+  border: 1px solid var(--brass-bright);
 }

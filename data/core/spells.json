@@ -221,6 +221,45 @@
       "base": 0,
       "perPower": 0,
       "adventure": { "type": "townPortal" }
+    },
+    {
+      "id": "barriere-du-honmoon",
+      "school": "scene",
+      "circle": 1,
+      "manaCost": 5,
+      "kind": "buff",
+      "base": 0,
+      "perPower": 0,
+      "defenseMod": 4
+    },
+    {
+      "id": "chant-de-courage",
+      "school": "scene",
+      "circle": 1,
+      "manaCost": 6,
+      "kind": "buff",
+      "base": 0,
+      "perPower": 0,
+      "attackMod": 3
+    },
+    {
+      "id": "dissonance",
+      "school": "scene",
+      "circle": 2,
+      "manaCost": 8,
+      "kind": "debuff",
+      "base": 0,
+      "perPower": 0,
+      "attackMod": -3
+    },
+    {
+      "id": "rappel",
+      "school": "scene",
+      "circle": 3,
+      "manaCost": 15,
+      "kind": "heal",
+      "base": 20,
+      "perPower": 5
     }
   ]
 }

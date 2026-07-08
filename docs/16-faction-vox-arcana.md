@@ -53,6 +53,21 @@ Faction #6, produite en **Beta** — elle sert de **test de modularité #4** (do
 > replay inline). **Différé** : génération de Résonance intra-combat (performeurs)
 > + École de la Scène (lot 16.5) + héros Hermione & Rumi (lot 16.6).
 
+> 🚧 **État 16.5 (livré — École de la Scène)** : l'école de sorts propre de la
+> faction est branchée en **pur contenu** (même mécanisme que `traque` d'Arcane
+> Hunters), zéro diff moteur — les 4 sorts réutilisent les effets génériques
+> existants : `spellSchool: "scene"` au manifeste + 4 sorts dans
+> `data/core/spells.json` (Barrière du Honmoon = buff `defenseMod`, Chant de
+> courage = buff `attackMod`, Dissonance = debuff `attackMod`, Rappel = `heal`),
+> noms + textes d'ambiance FR/EN. Le client câble déjà les écoles de faction de
+> façon générique (`SpellBook` ordonne l'école propre après les 5 universelles ;
+> `game.ts` ajoute au pool de départ les sorts de `manifest.spellSchool`) ⇒ un
+> héros Vox Arcana connaît les sorts de la Scène, un héros d'une autre faction
+> non. `SPELL_SCHOOLS` (liste contrôlée de contenu, anti-typo) étendue de `scene`
+> — un **nom d'école**, pas un id de faction (garde-fou vert). **Différé** :
+> barrière de zone T8 / peur Sombral / renaissance Phénix (capacités de
+> signature) + héros Hermione & Rumi (lot 16.6).
+
 ## 1. Lore
 
 L'**Académie Vox Arcana** occupe un château gothique dont les tours coréennes

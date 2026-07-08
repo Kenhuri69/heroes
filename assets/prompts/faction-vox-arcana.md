@@ -1,9 +1,12 @@
-# Base d'assets — faction K-MAGIX (Poudlard × KPop Demon Hunters)
+# Base d'assets — faction Vox Arcana (Poudlard × KPop Demon Hunters)
 
 > ⚠️ **Rédigé à la main** pour la **validation d'identité** de la faction
-> (le paquet `data/factions/k-magix/` n'existe pas encore, donc `gen_prompts.py`
+> (le paquet `data/factions/vox-arcana/` n'existe pas encore, donc `gen_prompts.py`
 > ne peut pas encore émettre ces prompts). À **regénérer** par `gen_prompts.py`
 > une fois le lineup en données. Conforme à `docs/12-assets-style-guide.md`.
+>
+> Nom de faction verrouillé : **Vox Arcana** (id `vox-arcana`). Titre à l'écran
+> ex-« K-MAGIX / Demon Tour ».
 
 ## Palette de faction (à ajouter à doc 12 §2.3 au verrouillage)
 
@@ -32,11 +35,11 @@ bust shot, 3/4 face turn, determined expression,
 warm key light upper-left, cool cyan rim light,
 each bust fully isolated with clear empty space around head and shoulders,
 each subject centered in its own cell, not touching cell edges,
-cell 1: a young studious magic heroine of the K-MAGIX academy — brown wavy hair,
+cell 1: a young studious magic heroine of the Vox Arcana academy — brown wavy hair,
   black-and-violet school robes with silver house filigree, holding a glowing
   wand, wisteria and floating spellbook pages, midnight gothic library behind,
   electric-cyan magical glow
-cell 2: a fierce idol demon-hunter heroine of the K-MAGIX academy — purple hair
+cell 2: a fierce idol demon-hunter heroine of the Vox Arcana academy — purple hair
   in a high braided bun, sleek black-and-violet hunter armor over a school-crest
   tabard, twin glowing neon blades, oni-mask charm, neon-lit gothic bridge with
   wisteria behind, cyan-and-magenta glow
@@ -47,8 +50,8 @@ Extraction :
 ```bash
 python3 tools/assets/sheet_extract.py <planche.png> \
   --cols 2 --rows 1 --side 256 \
-  --ids k-magix-hermione,k-magix-rumi \
-  --out assets/raster_src --qc /tmp/qc-kmagix-heroes.png
+  --ids vox-arcana-hermione,vox-arcana-rumi \
+  --out assets/raster_src --qc /tmp/qc-voxarcana-heroes.png
 # puis copier vers assets/heroes/
 ```
 
@@ -73,7 +76,7 @@ cell 5: crest of House Venari — stylized oni demon mask over crossed neon blad
 flat uniform light grey background (#c8c8c8), no shadow,
 no text, no watermark, no signature, no border frame
 ```
-Extraction : `sheet_extract.py --cols 3 --rows 2 --ids house-lion,house-serpent,house-eagle,house-badger,house-venari` → `assets/buildings/k-magix/` ou dossier crests dédié au verrouillage.
+Extraction : `sheet_extract.py --cols 3 --rows 2 --ids house-lion,house-serpent,house-eagle,house-badger,house-venari` → dossier crests dédié au verrouillage.
 
 ---
 
@@ -106,8 +109,6 @@ Extraction :
 python3 tools/assets/sheet_extract.py <planche.png> \
   --cols 4 --rows 2 --side 512 \
   --ids t1-choeur,t2-duelliste,t3-hippogriffe,t4-idole,t5-sombral,t6-maitre,t7-phenix,t8-avatar \
-  --out assets/raster_src --qc /tmp/qc-kmagix-units.png
-# puis copier vers assets/units/k-magix/
+  --out assets/units/vox-arcana/
 ```
-> T5 : Sombral par défaut — swap possible vers un esprit coréen (Kumiho/Haetae)
-> si l'on veut plus de folklore (décision ouverte).
+> T5 : Sombral (validé). Swap possible vers un esprit coréen (Kumiho/Haetae) plus tard.

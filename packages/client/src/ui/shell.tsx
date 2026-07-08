@@ -5,8 +5,6 @@ import { useApp, appStore } from '../app/store';
 import { back, closeModalKind, openModal, useModals, useScreen } from '../app/router';
 import { dispatch } from '../app/dispatch';
 import { heroArchetype, humanHeroes, humanId, humanTowns, resolveSelectedHero } from '../app/game';
-import { saveGame, restoreSavedGame } from '../app/save';
-import { eventBus } from '../app/events';
 import { RESOURCE_COLORS } from '../render/mapObjects';
 import { heroAvatarUrl, resourceIconUrl } from '../render/assets';
 import { t, resolveUnitName } from '../app/i18n';
@@ -17,7 +15,7 @@ import { MapEditor } from './MapEditor';
 import { OptionsPanel } from './OptionsPanel';
 import { SkirmishScreen } from './SkirmishScreen';
 import { Journal } from './Journal';
-import { ToastHost, pushToast } from './toasts';
+import { ToastHost } from './toasts';
 import { CombatUi } from './combat';
 import { PreBattleScreen } from './PreBattleScreen';
 import { TownScreen } from './TownScreen';
@@ -138,7 +136,19 @@ function Shell() {
   );
 }
 
-/** Bandeau haut compact, tap = détail plus tard (doc 08 §2.1 mobile). */
+/**
+ * Format compact des grands nombres (lot M5, C10) : ≥ 10 000 → « 12k »,
+ * ≥ 10 000 000 → « 12M » — la barre tient sur une ligne en portrait. La valeur
+ * EXACTE reste accessible (attribut `title` + `data-testid` inchangé pour le
+ * smoke) ; la fiche détaillée au tap arrive au lot M6 (C8).
+ */
+function formatResourceShort(value: number): string {
+  if (value >= 10_000_000) return `${Math.floor(value / 1_000_000)}M`;
+  if (value >= 10_000) return `${Math.floor(value / 1000)}k`;
+  return String(value);
+}
+
+/** Bandeau haut compact, tap = détail au lot M6 (doc 08 §2.1 mobile). */
 function ResourceBar() {
   const player = useApp((s) => s.game.players.find((p) => p.id === humanId(s.game)));
   if (!player) return null;
@@ -157,13 +167,17 @@ function ResourceBar() {
               <i style={{ background: `#${(RESOURCE_COLORS[id] ?? 0xffffff).toString(16).padStart(6, '0')}` }} />
             }
           />
-          <span data-testid={`resource-${id}`}>{player.resources[id]}</span>
+          <span data-testid={`resource-${id}`} title={String(player.resources[id])}>
+            {formatResourceShort(player.resources[id])}
+          </span>
         </span>
       ))}
       {factionResources.map(([id, amount]) => (
         <span class="resource resource--faction" key={id} data-resource={id}>
           <AssetImg src={resourceIconUrl(id, 24)} alt="" class="resource-icon" fallback={<i />} />
-          <span data-testid={`faction-resource-${id}`}>{amount}</span>
+          <span data-testid={`faction-resource-${id}`} title={String(amount)}>
+            {formatResourceShort(amount)}
+          </span>
         </span>
       ))}
     </header>
@@ -374,19 +388,9 @@ function TurnBar({ onOpenOptions }: { onOpenOptions: () => void }) {
             </span>
           )}
         </button>
-        <button
-          data-testid="save"
-          onClick={() =>
-            void saveGame(appStore.getState().game, 'manual')
-              .then(() => pushToast(t('toast.saved')))
-              .catch(() => eventBus.emit([{ type: 'SaveFailed' }]))
-          }
-        >
-          {t('turnBar.save')}
-        </button>
-        <button data-testid="load" onClick={() => void restoreSavedGame('manual')}>
-          {t('turnBar.load')}
-        </button>
+        {/* Sauvegarder/Charger déplacés vers Options (lot M5, C11) : l'autosave
+            de fin de tour couvre le cas courant ; la barre de tour ne garde que
+            le geste le plus fréquent (Fin de tour) et les entrées de contexte. */}
         {towns.map((town) => (
           <button
             key={town.id}

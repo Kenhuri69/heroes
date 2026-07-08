@@ -102,6 +102,21 @@ async function passPreBattle(page: Page, mode: 'fight' | 'auto' = 'fight'): Prom
 }
 
 /**
+ * Sauvegarde/chargement manuels : déplacés dans la modale Options (lot M5, C11).
+ * Ouvre Options, clique le bouton, referme — pour laisser la carte au 1er plan.
+ */
+async function clickSaveAction(page: Page, action: 'save' | 'load'): Promise<void> {
+  await page.getByTestId('options-open').click();
+  await page.getByTestId(action).click();
+  // Referme Options par Échap (handler global) — robuste au re-render du toast
+  // de sauvegarde. Le chargement referme déjà les modales (rechargement d'état).
+  if (await page.getByTestId('options-panel').isVisible().catch(() => false)) {
+    await page.keyboard.press('Escape');
+  }
+  await expect(page.getByTestId('options-panel')).toHaveCount(0);
+}
+
+/**
  * Trace les réponses d'images (lot intégration des assets) : `failed` = tout
  * PNG/JPG servi en ≥ 400 (le registre ne doit référencer que des fichiers
  * présents), `loaded` = URLs servies en < 400. À brancher AVANT `openGame`.
@@ -1411,7 +1426,7 @@ test('sauvegarde puis rechargement IndexedDB : position restaurée', async ({ pa
   await moveHeroToGold(page);
   await expect.poll(() => heroPos(page)).toEqual({ x: 6, y: 3 });
 
-  await page.getByTestId('save').click();
+  await clickSaveAction(page, 'save'); // lot M5 : save/load via Options
 
   // Déplacement après sauvegarde (déterministe, à réverter par le chargement).
   await page.evaluate(() =>
@@ -1427,7 +1442,7 @@ test('sauvegarde puis rechargement IndexedDB : position restaurée', async ({ pa
   await expect.poll(() => heroPos(page)).toEqual({ x: 5, y: 5 });
 
   // …annulé par le rechargement du slot.
-  await page.getByTestId('load').click();
+  await clickSaveAction(page, 'load');
   await expect.poll(() => heroPos(page)).toEqual({ x: 6, y: 3 });
   const state = await page.evaluate(() => window.__HEROES_TEST__!.getState());
   expect(state.heroes[0]?.movementPoints).toBe(1400);
@@ -1447,7 +1462,7 @@ test('sauvegarde en échec de stockage : toast d’erreur visible (lot 3.9)', as
     };
   });
 
-  await page.getByTestId('save').click();
+  await clickSaveAction(page, 'save'); // lot M5 : save via Options
   const toast = page.getByTestId('toast');
   await expect(toast).toBeVisible();
   await expect(toast).toContainText(/sauvegarde|save/i);
@@ -1474,7 +1489,7 @@ test('journal & feedback : un événement humain alimente le journal + toast de 
   await expect(page.getByTestId('journal-panel')).toHaveCount(0);
 
   // Feedback de sauvegarde manuelle RÉUSSIE (nouveau U3) : toast « sauvegardée ».
-  await page.getByTestId('save').click();
+  await clickSaveAction(page, 'save'); // lot M5 : save via Options
   await expect(page.getByTestId('toast').filter({ hasText: /sauvegard|saved/i })).toBeVisible();
 
   expect(errors).toEqual([]);

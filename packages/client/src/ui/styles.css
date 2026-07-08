@@ -389,6 +389,25 @@
   }
 }
 
+/* HUD compact en portrait (lot M5, C10) : la barre de ressources tient sur UNE
+   rangée à défilement horizontal (nombres abrégés « 12k »), padding et police
+   réduits — la carte récupère la hauteur mangée par le retour à la ligne. Les
+   cibles ≥ 44 px et les 3 crans de police restent tenus (A1/A6). */
+@media (max-width: 640px) {
+  .resource-bar {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow-x: auto;
+    gap: 4px 8px;
+    padding: 4px 52px;
+    font-size: 0.8rem;
+  }
+
+  .resource {
+    flex: none;
+  }
+}
+
 /* Livre de sorts d'aventure (Alpha 4.16) dans le tiroir héros — UXD-0 R1 :
    le bouton n'avait aucun style (bouton nu ~21 px de haut, sous la cible
    tactile minimale). Aligné sur les boutons du tiroir, cible ≥ 44 px. */

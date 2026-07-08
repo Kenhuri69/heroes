@@ -276,6 +276,9 @@ M7** (parité MMHO/HoMM) puis **M8** (confort). Chaque lot re-passe la skill
 
 - 2026-07-07 : revue complète effectuée (captures + inventaire code + référence
   MMHO sourcée) ; constats C1–C26 ; plan M1–M8 rédigé. Aucun code modifié.
+- 2026-07-08 : **Lot M5 livré** (plan `ux-m5-hud-mobile.md`) — C10 (barre de
+  ressources compacte 1 rangée, nombres abrégés) + C11 (Sauvegarder/Charger
+  déplacés vers la section Données des Options). Client seul.
 - 2026-07-08 : **Lot M4 livré** (plan `ux-m4-auto-combat-reprise.md`) — C15 :
   `AutoCombat{rounds}` moteur (générique, rétro-compatible) + bascule client
   « Auto ▶▶ » ⇄ « Reprendre la main » round par round ; l'Auto-Battle

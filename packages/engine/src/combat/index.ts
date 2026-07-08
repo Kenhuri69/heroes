@@ -85,6 +85,9 @@ export { canShoot };
 /** Cibles attaquables + hex d'origine de mêlée — surbrillances/ciblage UI (CL9). */
 export { attackableTargets, meleeOriginsFor };
 
+/** Ordre de passage projeté du round (lot UX M1) — bandeau d'initiative UI. */
+export { initiativeSpeed, roundActionOrder, type RoundActionOrder } from './state-helpers';
+
 /** Auto-combat déterministe → camp vainqueur (brique de `faction:sim`, Alpha 4.17). */
 export { simulateAutoCombat } from './simulate';
 

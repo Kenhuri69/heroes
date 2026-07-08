@@ -22,21 +22,39 @@
   pointer-events: auto;
 }
 
-.combat-side {
-  display: flex;
-  flex: 1;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.combat-side-defender {
-  justify-content: flex-end;
-}
-
 .combat-round {
   flex: none;
   padding: 4px 12px;
   font: 700 1rem var(--font-display); /* voix display UXD-1 */
+  white-space: nowrap;
+}
+
+/* File d'ordre de passage (lot M1, doc 08 §2.4) : une rangée dans l'ordre
+   d'action, défilement horizontal quand elle déborde (mobile). */
+.combat-order {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow-x: auto;
+}
+
+.combat-order li {
+  flex: none;
+}
+
+.combat-order-next .stack-chip {
+  opacity: 0.55;
+}
+
+.combat-order-sep {
+  padding: 0 4px;
+  font-size: 0.75rem;
+  font-variant: small-caps;
+  opacity: 0.7;
   white-space: nowrap;
 }
 
@@ -54,15 +72,20 @@
   border-radius: var(--radius-s);
 }
 
+/* Vignette interactive (tap = fiche de pile, C14) ⇒ cible ≥ 44 px (A1). */
 .stack-chip {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 32px;
+  min-height: 44px;
   padding: 4px 8px;
   border: 1px solid var(--ink-600);
   border-radius: var(--radius-s);
   background: var(--ink-800);
+  color: var(--parchment);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
 }
 
 .stack-chip-active {
@@ -74,12 +97,108 @@
   font-weight: 700;
 }
 
+/* C18 : plus d'ellipse à 9em — le nom passe sur 2 lignes max. */
 .stack-chip-unit {
   max-width: 9em;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
+  font-size: 0.8rem;
+  line-height: 1.2;
   opacity: 0.85;
+}
+
+/* Marqueur de camp : forme ET couleur (A5) — losange plein attaquant,
+   anneau défenseur (teintes des bases de la scène, tokens --side-*). */
+.stack-chip-side {
+  flex: none;
+  width: 10px;
+  height: 10px;
+}
+
+.chip-side-attacker {
+  background: var(--side-attacker);
+  transform: rotate(45deg);
+}
+
+.chip-side-defender {
+  border: 2px solid var(--side-defender);
+  border-radius: 50%;
+}
+
+/* Fiche de pile (lot M1, C14) : panneau central léger, hors pile de modales
+   (surface de combat), fermé par ×, tap sur le fond ou Échap. */
+.stack-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background: var(--veil-60);
+  pointer-events: auto;
+}
+
+.stack-sheet {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(92vw, 22rem);
+  padding: 12px 16px;
+  border: 1px solid var(--ink-600);
+  border-radius: var(--radius-m);
+  background: var(--ink-800);
+}
+
+.stack-sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.stack-sheet-header h3 {
+  margin: 0;
+  font: 700 1rem var(--font-display);
+}
+
+.stack-sheet-close {
+  min-width: 44px;
+  min-height: 44px;
+  border: 1px solid var(--ink-600);
+  border-radius: var(--radius-s);
+  background: var(--ink-700);
+  color: var(--parchment);
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.stack-sheet-side {
+  margin: 2px 0 8px;
+  font-size: 0.8rem;
+  opacity: 0.75;
+}
+
+.stack-sheet-stats {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  margin: 0;
+}
+
+.stack-sheet-stats dt {
+  opacity: 0.75;
+}
+
+.stack-sheet-stats dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+.stack-sheet-statuses,
+.stack-sheet-flags {
+  margin: 8px 0 0;
+  font-size: 0.85rem;
+  color: var(--parchment-bright);
 }
 
 /* Bas de l'écran de combat (UXD-0 R5a) : prévisualisation + barre d'actions
@@ -158,12 +277,12 @@
   border-color: var(--blood-bright);
 }
 
-/* Viewport étroit (UXD-0 R4) : round en tête pleine largeur, puis une rangée
-   par camp — avant : les vignettes chevauchaient le titre et sortaient de
-   l'écran (une pile de 360 px ne tient pas dans une demi-largeur). */
+/* Viewport étroit : round en tête pleine largeur, puis la file d'ordre sur une
+   rangée à défilement horizontal (lot M1 — avant : 2 rangées par camp ~400 px). */
 @media (max-width: 640px) {
   .combat-armies {
     flex-wrap: wrap;
+    padding: 6px 8px;
   }
 
   .combat-round {
@@ -173,7 +292,9 @@
     text-align: center;
   }
 
-  .combat-side {
-    flex: 1 1 100%;
+  /* C18 : consigne compacte — elle ne recouvre plus le plateau. */
+  .damage-preview {
+    padding: 4px 10px;
+    font-size: 0.8rem;
   }
 }

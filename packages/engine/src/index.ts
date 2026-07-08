@@ -76,10 +76,13 @@ export {
   attackableTargets,
   canShoot,
   estimateDamage,
+  initiativeSpeed,
   meleeOriginsFor,
   reachableHexes,
+  roundActionOrder,
   simulateAutoCombat,
   type DamageEstimate,
+  type RoundActionOrder,
 } from './combat';
 export {
   dailyMovementPoints,

@@ -94,6 +94,20 @@
 ```
 
 - **Prévisualisation de dégâts obligatoire** avant confirmation : « 12–18 dégâts, ~3 morts · riposte estimée : 5–8 ».
+
+> 🚧 **État M1 (lisibilité d'état — plan `ux-revue-mmho.md` C13/C14/C18)** : le
+> bandeau du haut affiche désormais l'**ordre de passage réel du round** (helper
+> moteur pur `roundActionOrder` : vague normale par vitesse décroissante puis
+> attente croissante, mêmes départages que l'ordre de jeu — la 1ʳᵉ vignette est
+> la pile active), suivi d'une projection **estompée du round suivant** ; une
+> rangée à défilement horizontal en mobile. Chaque vignette porte un **marqueur
+> de camp** forme + couleur (losange plein attaquant / anneau défenseur, jamais
+> la couleur seule §4) et s'ouvre au **tap en fiche de pile** (`StackSheet`,
+> cible ≥ 44 px) : PV de la tête de pile, attaque/défense, dégâts, vitesse
+> effective, munitions, statuts de sorts et durées, postures (défense/attente/
+> immobilisation/marques). La projection n'anticipe pas les aléas résolus au
+> moment du tour (saut de moral négatif, immobilisation). Le tap sur le jeton
+> du plateau (canvas) est différé au geste d'appui long générique (lot M2).
 - Mobile : combat **jouable en portrait** de plein droit — le plateau est rendu à une **échelle plancher** garantissant des hexes ≥ 44 px (touch-first, §1), puis **déplaçable au pan et zoomable au pinch** (parité avec la carte d'aventure) quand il déborde de l'écran. Le paysage reste possible mais n'est plus imposé par un overlay de suggestion de rotation. Quand le plateau déborde, la vue s'ouvre **centrée sur la pile active** (pas sur le centre du plateau, qui n'affichait aucune unité) ; le pan/pinch du joueur reste ensuite maître (UXD-0). En viewport étroit, le bandeau du haut empile round puis une rangée par camp, et la prévisualisation de dégâts est groupée au-dessus de la barre d'actions (jamais recouverte).
 - Vitesses d'animation ×1/×2/×4 + « combat auto » avec possibilité de reprendre la main à tout round (rejoue depuis l'état courant — gratuit grâce au déterminisme).
 

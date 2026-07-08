@@ -51,6 +51,11 @@
   --blood-soft: rgba(160, 80, 63, 0.3);
   --danger-text: #ff9d8a; /* prérequis manquant, erreur — toujours doublé d'un libellé */
 
+  /* — Camps de combat (mêmes teintes que les bases de la scène Pixi) —
+     jamais seules : doublées d'un marqueur de forme (losange/anneau, A5). */
+  --side-attacker: #c0392b;
+  --side-defender: #2e6da4;
+
   /* — États sémantiques — */
   --ok-text: #7ed08a;
   --ok-veil: rgba(90, 140, 90, 0.3);

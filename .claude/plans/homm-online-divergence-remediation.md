@@ -183,7 +183,9 @@ docs.
 
 > Journal (à cocher à l'avancement) :
 > - [ ] Lot 1 — pré-combat & Auto-Battle
-> - [ ] Lot 2 — file d'initiative
+> - [x] Lot 2 — file d'initiative → **LIVRÉ par le lot M1** du plan
+>   `ux-revue-mmho.md` (helper `roundActionOrder`, bandeau d'ordre + fiche de
+>   pile) — feu vert « lance le travail » 2026-07-08
 > - [ ] Lot 3 — popups dégâts/kills
 > - [x] Décision A tranchée → **A1** (projection iso) **LIVRÉ**
 > - [x] Décision B tranchée → **B1** (file de chantier en jours) **LIVRÉ**

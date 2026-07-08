@@ -20,5 +20,10 @@
   "building.vox-arcana-dwelling-t5": "Dwelling: Thestral",
   "building.vox-arcana-dwelling-t6": "Dwelling: Spellmaster",
   "building.vox-arcana-dwelling-t7": "Dwelling: Phoenix",
-  "building.vox-arcana-dwelling-t8": "Dwelling: Honmoon Avatar"
+  "building.vox-arcana-dwelling-t8": "Dwelling: Honmoon Avatar",
+  "building.vox-arcana-house-lion": "The Sorting Hat: House of the Lion",
+  "building.vox-arcana-house-serpent": "The Sorting Hat: House of the Serpent",
+  "building.vox-arcana-house-eagle": "The Sorting Hat: House of the Eagle",
+  "building.vox-arcana-house-badger": "The Sorting Hat: House of the Badger",
+  "building.vox-arcana-house-venari": "The Sorting Hat: House Venari"
 }

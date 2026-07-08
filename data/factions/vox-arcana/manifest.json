@@ -93,7 +93,12 @@
       "vox-arcana-dwelling-t5",
       "vox-arcana-dwelling-t6",
       "vox-arcana-dwelling-t7",
-      "vox-arcana-dwelling-t8"
+      "vox-arcana-dwelling-t8",
+      "vox-arcana-house-lion",
+      "vox-arcana-house-serpent",
+      "vox-arcana-house-eagle",
+      "vox-arcana-house-badger",
+      "vox-arcana-house-venari"
     ],
     "dwellings": [
       {

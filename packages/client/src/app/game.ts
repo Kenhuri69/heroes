@@ -15,6 +15,7 @@ import {
   type QuestState,
   type Resources,
   type ScenarioState,
+  type SkillRankEffect,
   type SpellDef,
   type SpellSchool,
   type TownState,
@@ -23,6 +24,7 @@ import {
   buildArtifactCatalog,
   buildBuildingCatalog,
   buildFactionCatalog,
+  buildHouseCatalog,
   buildScenarioObjectives,
   buildSkillCatalog,
   buildSpellCatalog,
@@ -39,6 +41,13 @@ export type FactionCatalog = Record<string, { bonuses: FactionBonus[] }>;
 
 export function buildFactionSetup(report: LoadReport): FactionCatalog {
   return buildFactionCatalog(report) as FactionCatalog;
+}
+
+/** Catalogue des Maisons résolu contenu → moteur (doc 16 §3.1) — pour `StartGame.houseCatalog`. */
+export type HouseCatalog = Record<string, { effects: SkillRankEffect[] }>;
+
+export function buildHouseSetup(report: LoadReport): HouseCatalog {
+  return buildHouseCatalog(report) as HouseCatalog;
 }
 
 /** Id du joueur humain en NOUVELLE PARTIE (convention du client, cf. `newGameCommand`). */
@@ -208,6 +217,7 @@ export function newGameCommand(
   townSetup: TownSetup = { buildingCatalog: {}, towns: [] },
   heroSetup: HeroSetup = NO_HERO_SETUP,
   factionCatalog: FactionCatalog = {},
+  houseCatalog: HouseCatalog = {},
 ): Command {
   const startingResources: Resources = { ...emptyResources() };
   for (const [id, amount] of Object.entries(config.newGame.startingResources)) {
@@ -266,6 +276,7 @@ export function newGameCommand(
     artifactCatalog: heroSetup.artifactCatalog,
     startingArtifacts: heroSetup.startingArtifacts,
     factionCatalog,
+    houseCatalog,
   };
 }
 
@@ -431,6 +442,7 @@ export function scenarioStartCommand(
     artifactCatalog: heroSetup.artifactCatalog,
     startingArtifacts: heroSetup.startingArtifacts,
     factionCatalog: buildFactionSetup(report),
+    houseCatalog: buildHouseSetup(report),
     scenario: { objectives: buildScenarioObjectives(scenario) },
     ...(quests ? { quests } : {}),
   };
@@ -622,6 +634,7 @@ export function skirmishStartCommand(
     artifactCatalog: heroSetup.artifactCatalog,
     startingArtifacts: heroSetup.startingArtifacts,
     factionCatalog: buildFactionSetup(report),
+    houseCatalog: buildHouseSetup(report),
     scenario: { objectives },
     ...(quests ? { quests } : {}),
   };

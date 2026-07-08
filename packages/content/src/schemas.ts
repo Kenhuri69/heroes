@@ -232,6 +232,9 @@ const buildingEffectSchema = z.discriminatedUnion('type', [
     resource: idSchema,
     amount: z.number().int().positive(),
   }),
+  /** Choix de Maison (doc 16 §3.1/§5, « Le Choixpeau ») — `houseId` opaque résolu
+   *  par le moteur dans le catalogue des Maisons ; combiné à `exclusiveGroup`. */
+  z.object({ type: z.literal('houseChoice'), houseId: idSchema }),
   /** Bâtiment sans effet mécanique en 3.1 (tavern/forge/spécial) — arbre seul. */
   z.object({ type: z.literal('none') }),
 ]);

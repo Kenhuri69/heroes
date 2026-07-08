@@ -449,9 +449,15 @@ export async function loadFactionPack(
     checkBuildingRequires(errors, path, buildings, visibleMaxLevel);
     for (const b of buildings) {
       b.levels.forEach((level, i) => {
-        if (level.effect.type === 'dwelling' && !unitIds.has(level.effect.unitId))
+        const eff = level.effect;
+        if (eff.type === 'dwelling' && !unitIds.has(eff.unitId))
           errors.push(
-            `${path}: ${b.id} niveau ${i + 1} — dwelling vers unité inconnue '${level.effect.unitId}'`,
+            `${path}: ${b.id} niveau ${i + 1} — dwelling vers unité inconnue '${eff.unitId}'`,
+          );
+        // Choix de Maison (doc 16) : la Maison ciblée doit être déclarée au manifeste.
+        if (eff.type === 'houseChoice' && !manifest.houses.some((h) => h.id === eff.houseId))
+          errors.push(
+            `${path}: ${b.id} niveau ${i + 1} — houseChoice vers Maison inconnue '${eff.houseId}'`,
           );
       });
     }

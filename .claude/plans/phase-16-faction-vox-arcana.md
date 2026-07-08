@@ -75,8 +75,23 @@ T8 Avatar du Honmoon (débloqué à Résonance max).
   par signature, sans la nommer → garde-fou vert), 89 tests contenu.
   Écart : **Résonance** (ressource) + **École de la Scène** (sorts) + spécialités
   différées ; élites différées.
-- **16.2b** — câblage client : passer `houseCatalog`/`startingHouseId` à `StartGame`
-  + registre d'assets (sprites/blasons/avatars vox-arcana). ⏳
+- **16.2b** ✅ **LIVRÉ** — **choix de Maison via « Le Choixpeau »** (décision utilisateur : option B).
+  Bâtiment exclusif (réutilise `exclusiveGroup`, façon Cercles AH) qui fixe la
+  Maison de la ville et applique ses bonus au(x) héros du propriétaire.
+  - **Moteur** (nouveau point générique) : effet de bâtiment déclaratif
+    `houseChoice { houseId }` interprété à `BuildStructure` → résout `houseId`
+    dans un `GameState.houseCatalog` (embarqué à `StartGame`) et stampe
+    `houseId`/`houseEffects` sur les héros du propriétaire. `PlayerState.houseId`
+    = choix canonique. Save v10→**v11** ; golden re-fixé. Zéro nom de faction
+    (le moteur ne lit que `effect.houseId` opaque).
+  - **Contenu** : 5 bâtiments Choixpeau (`vox-arcana-house-{lion,serpent,eagle,
+    badger,venari}`, `exclusiveGroup: "vox-arcana-house"`, effet `houseChoice`),
+    ajoutés à `manifest.town.buildings` + locales.
+  - **Client** : passer `houseCatalog` à `StartGame` (les 3 sites) ; la sélection
+    passe par l'écran de ville existant (bâtiments exclusifs déjà gérés, façon
+    Cercles) ; sprites/blasons auto-découverts (doc 12 §10, zéro code).
+  - Écart : héros recrutés APRÈS le choix (tavernes) — inheritance différée
+    (stamp à la construction couvre le héros de départ, cas MVP).
 - **16.3** — Résonance (`factionResources` + `gainFactionResourceOnVictory`) + École de la Scène.
 - **16.4** — Résonance : `factionResources` + `gainFactionResourceOnVictory` (réutilise l'acquis Essence) ; T8 gaté par la Résonance.
 - **16.5** — École de la Scène : `spellSchool: scene` + 4 sorts (effets génériques) + locales.

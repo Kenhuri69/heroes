@@ -188,6 +188,121 @@
           }
         }
       ]
+    },
+    {
+      "id": "vox-arcana-house-lion",
+      "maxLevel": 1,
+      "exclusiveGroup": "vox-arcana-house",
+      "levels": [
+        {
+          "cost": {
+            "gold": 1000,
+            "crystal": 2
+          },
+          "requires": [
+            {
+              "building": "townHall",
+              "level": 1
+            }
+          ],
+          "effect": {
+            "type": "houseChoice",
+            "houseId": "house-lion"
+          }
+        }
+      ]
+    },
+    {
+      "id": "vox-arcana-house-serpent",
+      "maxLevel": 1,
+      "exclusiveGroup": "vox-arcana-house",
+      "levels": [
+        {
+          "cost": {
+            "gold": 1000,
+            "crystal": 2
+          },
+          "requires": [
+            {
+              "building": "townHall",
+              "level": 1
+            }
+          ],
+          "effect": {
+            "type": "houseChoice",
+            "houseId": "house-serpent"
+          }
+        }
+      ]
+    },
+    {
+      "id": "vox-arcana-house-eagle",
+      "maxLevel": 1,
+      "exclusiveGroup": "vox-arcana-house",
+      "levels": [
+        {
+          "cost": {
+            "gold": 1000,
+            "crystal": 2
+          },
+          "requires": [
+            {
+              "building": "townHall",
+              "level": 1
+            }
+          ],
+          "effect": {
+            "type": "houseChoice",
+            "houseId": "house-eagle"
+          }
+        }
+      ]
+    },
+    {
+      "id": "vox-arcana-house-badger",
+      "maxLevel": 1,
+      "exclusiveGroup": "vox-arcana-house",
+      "levels": [
+        {
+          "cost": {
+            "gold": 1000,
+            "crystal": 2
+          },
+          "requires": [
+            {
+              "building": "townHall",
+              "level": 1
+            }
+          ],
+          "effect": {
+            "type": "houseChoice",
+            "houseId": "house-badger"
+          }
+        }
+      ]
+    },
+    {
+      "id": "vox-arcana-house-venari",
+      "maxLevel": 1,
+      "exclusiveGroup": "vox-arcana-house",
+      "levels": [
+        {
+          "cost": {
+            "gold": 1000,
+            "crystal": 2
+          },
+          "requires": [
+            {
+              "building": "townHall",
+              "level": 1
+            }
+          ],
+          "effect": {
+            "type": "houseChoice",
+            "houseId": "house-venari"
+          }
+        }
+      ]
     }
   ]
 }

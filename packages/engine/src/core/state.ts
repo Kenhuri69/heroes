@@ -143,9 +143,11 @@ export interface Calendar {
  * v9 : `TownState.spellPool` — pool de sorts de la guilde des mages (G2), doc
  * 02 §4.1.
  * v10 : `HeroState.houseId` + `HeroState.houseEffects` — allégeance de Maison
- * (signature Vox Arcana `houseAllegiance`, doc 16 §3.1).)
+ * (signature Vox Arcana `houseAllegiance`, doc 16 §3.1).
+ * v11 : `GameState.houseCatalog` — catalogue des Maisons embarqué, lu par
+ * l'effet de bâtiment `houseChoice` (« Le Choixpeau », doc 16 §3.1/§5).)
  */
-export const CURRENT_SAVE_VERSION = 10;
+export const CURRENT_SAVE_VERSION = 11;
 
 export interface GameState {
   saveVersion: number;
@@ -177,6 +179,13 @@ export interface GameState {
    * connaître de nom de faction.
    */
   factionCatalog: Record<string, { bonuses: FactionBonus[] }>;
+  /**
+   * Catalogue des Maisons résolu par le contenu (doc 16 §3.1), indexé par
+   * `houseId` → effets déclaratifs. Embarqué par `StartGame` ; lu à la
+   * construction du « Choixpeau » (effet `houseChoice`) pour stamper les héros —
+   * le moteur ne connaît que des ids opaques.
+   */
+  houseCatalog: Record<string, { effects: SkillRankEffect[] }>;
   /**
    * Objectifs du scénario par joueur (doc 02 §6, plan phase-3.5) — `null` en
    * partie libre : aucune évaluation de fin de partie.
@@ -223,6 +232,7 @@ export function createEmptyState(): GameState {
     towns: [],
     combat: null,
     factionCatalog: {},
+    houseCatalog: {},
     scenario: null,
     outcome: null,
     pendingTreasure: null,

@@ -361,6 +361,7 @@ const handlers: Handlers = {
     draft.skillCatalog = cmd.skillCatalog ?? {};
     draft.artifactCatalog = cmd.artifactCatalog ?? {};
     draft.factionCatalog = cmd.factionCatalog ?? {};
+    draft.houseCatalog = cmd.houseCatalog ?? {};
     draft.scenario = cmd.scenario ?? null;
     draft.outcome = null;
     draft.pendingTreasure = null;

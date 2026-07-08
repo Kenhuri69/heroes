@@ -293,7 +293,7 @@ Chaque décision = correctif code OU ligne de doc, dans le même commit.
 - [x] **E4 — docs/01-gdd-overview.md** : carte MVP 32×32 (pas ~72×72) ;
   « sauvegarde à chaque fin de tour » (pas « à chaque action ») ; 4
   scénarios (prologue inclus) ; hot-seat livré.
-- [ ] **E5 — docs 03/04/05/14 (factions)** :
+- [x] **E5 — docs 03/04/05/14 (factions)** :
   doc 03 — F1 : mécanisme d'élite réel = dwelling niveau 2 (pas
   `upgradeOf`) ; table des unités élites à ajouter (14/maison livrées sans
   aucune doc — noms, stats, coûts) ; « 6 capacités » (03:11) → 9.

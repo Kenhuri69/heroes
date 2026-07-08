@@ -172,6 +172,14 @@ Au moment de construire le **Grand Amphithéâtre** (bâtiment T3 de l'arbre), l
 | **Sceau** | Sorts de Traque −15 % mana pour héros visiteurs | Scriptorium Scellé (1 parchemin de sort aléatoire/semaine) |
 | **Abîme** | T7/T8 : +10 % dégâts | Fosse aux Reliques (+1 croissance T8… et −1 moral en garnison pour les non-Hunters) |
 
+> **État livré (Cercles)** : les 4 bâtiments de Cercle exclusifs existent
+> (`arcane-hunters-circle-{vigile,traque,sceau,abime}`, choix `exclusiveGroup`,
+> Alpha 4.7) mais portent des effets **placeholder génériques** — Vigile
+> **+250 or/j**, Sceau **+400 or/j**, Traque **+20 % croissance**, Abîme
+> **+40 % croissance**. Les **passifs de design** ci-dessus (vision, vitesse,
+> −15 % mana, +10 % dégâts T7/T8) et les bâtiments exclusifs secondaires (Tour
+> de Guet, Volière, Scriptorium, Fosse aux Reliques) sont **différés**.
+
 ### 3.3 Contrat de chasse (économie alternative)
 
 Chaque semaine, le **Tableau des Contrats** (bâtiment) propose 1 cible neutre sur la carte (« Abattez les Griffons du col Nord »). La remplir avant la fin de la semaine rapporte or + **Essence** (monnaie interne de faction servant aux améliorations d'unités et au T8). L'Essence remplace une partie du besoin en ressources rares : la faction est conçue pour **vivre de ses combats**, pas de ses mines.
@@ -182,6 +190,8 @@ Chaque semaine, le **Tableau des Contrats** (bâtiment) propose 1 cible neutre s
 > bâtiment se voit assigner une cible neutre (un gardien de la carte, tirée au
 > **RNG seedé**) ; la vaincre crédite or + Essence puis libère le contrat
 > (`PlayerState.huntContract`, `HuntContractAssigned`/`HuntContractCompleted`).
+> Valeurs livrées : **300 or + 15 Essence** par contrat (`huntContract`,
+> data-driven — placeholder d'équilibrage).
 
 ## 4. Lineup d'unités (8 tiers)
 
@@ -232,20 +242,32 @@ Bâtiments communs : cf. doc 02 §4.1 (skins « académie »). Spécifiques :
 |----------|------|-----------|-------|
 | **Tableau des Contrats** | 800 or, 5 bois | Taverne | Contrats de chasse hebdomadaires (or + Essence) |
 | **Grand Amphithéâtre** | 2000 or, 10 minerai | Guilde des mages 1 | Choix du **Cercle** de la ville (cf. §3.2) |
-| **Salle des Reliques** | 1600 or, 3 mercure | Grand Amphithéâtre | Héros visiteurs : sorts de Traque +1 cercle d'accès ; +1 slot d'artefact « trophée » |
+| **Salle des Reliques** \* | 1600 or, 3 mercure | Grand Amphithéâtre | Héros visiteurs : sorts de Traque +1 cercle d'accès ; +1 slot d'artefact « trophée » |
 | **Bâtiment de Cercle** | variable | Grand Amphithéâtre | 1 des 4 exclusifs selon le Cercle choisi |
-| **Portail de l'Abîme Scellé** | 4000 or, 3 gemmes, 3 mercure, 60 Essence | Habitation T7 + Château | Habitation T8 (Pénitent Démonique) |
+| **Portail de l'Abîme Scellé** | 4000 or, 3 gemmes, 3 mercure (†) | Habitation T7 + Château | Habitation T8 (Pénitent Démonique) |
+
+> \* **Salle des Reliques** : jamais livrée (absente des reports) — **différée**.
+> † Le coût **en Essence** du Portail (60) est **différé** : le bâtiment livré
+> ne coûte pas d'Essence (`4000 or + 3 gemmes + 3 mercure`). L'Essence est en
+> revanche bien dépensée au **recrutement** du T8 Pénitent (40 Essence, base).
 
 Chaîne d'habitations :
 
 ```
 Fort ──► T1 Dortoirs ──► T2 Volière ──► T3 Salle des Préfets ──► T4 Grande Bibliothèque
-                                │                                      │
+                                │
                     Guilde des mages 1 ──► T5 Salle d'Armes ──► T6 Pavillon de Chasse
                                                                        │
-                                              T7 Fauconnerie Royale ◄──┴──► T8 Portail de l'Abîme Scellé
-                                                        (croissance partagée « apex »)
+                                                          T7 Fauconnerie Royale
+                                                                       │  (+ Château)
+                                                          T8 Portail de l'Abîme Scellé
 ```
+
+> **État livré** : le T8 **requiert le T7** (`arcane-hunters-dwelling-t8` →
+> `dwelling-t7` + `fort@3`, D8) — c'est une **chaîne**, pas un double sommet.
+> La **croissance partagée « apex »** (`sharedGrowthGroups`) n'est **ni déclarée**
+> (manifeste = `{}`) **ni câblée** dans le moteur — **différée** ; aujourd'hui
+> T7 et T8 ont chacun leur propre croissance hebdomadaire.
 
 ## 6. École de magie : Art de la Traque (extraits)
 

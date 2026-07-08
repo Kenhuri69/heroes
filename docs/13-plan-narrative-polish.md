@@ -244,6 +244,31 @@ bâtiment, infobulle d'artefact, description de sort) :
   raconte d'abord sur les cartes qui existent, on produit des cartes neuves
   ensuite.
 
+> **État livré (synthèse N1→N3c — lire §4/§5/§6 contre les sections « État Nx »
+> en fin de document, qui font foi du livré).** Le lot narratif a dépassé N2 :
+> les modes/quêtes ci-dessous sont largement livrés, avec ces écarts vs le plan
+> initial :
+> - **Scénarios** : le prologue a été **ajouté** en nouveau scénario (les 3
+>   existants `tutorial`/`survival`/`conquest` restent **intacts**, pas
+>   ré-habillés). Le jeu compte **12 scénarios** (`data/scenarios/index.json`) :
+>   prologue + 6 chapitres de campagne (Haven/Necropolis/Arcane) + tutorial/
+>   survival/conquest + 2 événements.
+> - **Campagnes** : système de campagne chapitrée **livré** (N3a) avec **report
+>   de héros** (niveau/XP/compétences/artefacts), campagnes **Haven** et
+>   **Necropolis** en données pures (N3b), cutscenes caméra + choix de dialogue
+>   **câblés** `setFlag`/`next` (N3c) — `campaignFlags` relus entre campagnes.
+> - **Moteur de quêtes** (`engine/quest`, N2a) : conditions **génériques et
+>   riches** (`eliminateAllEnemies`/`captureTown`/`defeatHero`/`surviveDays`/
+>   `buildStructure`/`ownUnits`/`defeatGuardian`/`visitTile`/`resources`/
+>   `artifact`/`units`) ; récompenses `resources`/`artifact`/`units` (**pas** de
+>   XP ni de sort). Les quêtes **démarrent en bloc à `StartGame`** (`GameState.
+>   quests`) — pas de `trigger` par quête (différé). Prologue = **2 quêtes / 2
+>   dialogues**.
+> - **Client** : journal de quêtes + `DialogueBox` (choix empilés) livrés ; le
+>   **recentrage caméra** existe (mini-carte `panCameraTo`, cutscenes) et les
+>   **badges d'événement** au menu. Aucun champ de schéma « validé mais ignoré »
+>   ne subsiste (les choix `setFlag`/`next` sont interprétés depuis N3c.2).
+
 ### 4.2 Mode Libre / Sandbox
 
 - L'escarmouche (Alpha, doc 09) reste **sans fil narratif imposé** — mais

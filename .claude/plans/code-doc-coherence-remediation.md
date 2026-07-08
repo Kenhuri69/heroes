@@ -260,7 +260,7 @@ Chaque décision = correctif code OU ligne de doc, dans le même commit.
   interface prête » (`dispatch.ts` synchrone assumé) ; §4 : autosave fin de
   tour (aligner doc 01 pilier:16), métadonnées `packs` sans versions
   (différé avec les migrations).
-- [ ] **E2 — docs/02-mechanics.md** : table des capacités §5.4 (9 au
+- [x] **E2 — docs/02-mechanics.md** : table des capacités §5.4 (9 au
   catalogue : + `consumeMarks`, `demonform`, `symbiosis` — renvoi docs
   05/14 ; capacités « extrait » non implémentées marquées différées) ;
   §4.1 : notes d'état Guilde des mages (apprentissage différé — l'effet
@@ -279,7 +279,7 @@ Chaque décision = correctif code OU ligne de doc, dans le même commit.
   uniquement ; terrain natif ×1,0 et PM d'artefacts : différés ou retirés ;
   `RETAKE_GRACE_DAYS` : exempter les constantes calendaires du « tout en
   données » ou déplacer en config.
-- [ ] **E3 — docs/06-modularity.md** : §2 structure de paquet réelle
+- [x] **E3 — docs/06-modularity.md** : §2 structure de paquet réelle
   (manifest + units/ + buildings.json + locales/ ; PAS de heroes/, skills,
   abilities/*.ts, assets/ par paquet ; les sorts d'école de faction vivent
   au catalogue CORE — contredit l'auto-containment, à acter) ; §4 : le
@@ -290,7 +290,7 @@ Chaque décision = correctif code OU ligne de doc, dans le même commit.
   types réels sont `raiseUndeadOnVictory`/`gainFactionResourceOnVictory`
   (faction/types.ts:30) ; §5.6 : « faction:sim reste à écrire » est FAUX
   (`tools/src/faction-sim.ts` + balance.test.ts existent).
-- [ ] **E4 — docs/01-gdd-overview.md** : carte MVP 32×32 (pas ~72×72) ;
+- [x] **E4 — docs/01-gdd-overview.md** : carte MVP 32×32 (pas ~72×72) ;
   « sauvegarde à chaque fin de tour » (pas « à chaque action ») ; 4
   scénarios (prologue inclus) ; hot-seat livré.
 - [ ] **E5 — docs 03/04/05/14 (factions)** :

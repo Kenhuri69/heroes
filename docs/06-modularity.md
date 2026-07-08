@@ -18,107 +18,106 @@ Objectif : **ajouter une faction sans modifier le moteur**. Une faction est un *
             │ enregistre       │ enregistre      │ charge & valide
    ┌────────┴──────────────────┴─────────────────┴─────────┐
    │              PAQUET DE FACTION (ex: arcane-hunters)   │
-   │   manifest.json · units/ · buildings/ · spells/       │
-   │   heroes/ · abilities/*.ts (optionnel) · assets/      │
+   │   manifest.json · units/ · buildings.json             │
+   │   locales/ · story/                                    │
    └────────────────────────────────────────────────────────┘
 ```
 
-Le moteur charge au démarrage la liste des paquets (`data/factions/index.json`), valide chaque paquet contre les **schémas JSON** (`schemas/*.schema.json`, validés par Zod à l'exécution et en CI), puis enregistre son contenu. Une faction invalide est rejetée avec un rapport d'erreurs précis — jamais de crash en jeu.
+> **État livré** : le plan initial prévoyait des dossiers `spells/`, `heroes/`,
+> `abilities/*.ts` et `assets/` par paquet, et deux registres de code (capacités,
+> hooks). La réalité livrée est **100 % déclarative** : un paquet est du JSON pur
+> (aucun `.ts`), les capacités sont des **entrées génériques inline** sur les
+> unités (catalogue `data/core/abilities.json`), les sorts d'école de faction
+> vivent au **catalogue CORE** (`data/core/spells.json`), et les assets sont dans
+> le staging global `assets/` (doc 12 §10). Les registres « capacités » / « hooks »
+> restent des points d'extension ouverts **génériquement, un par sous-lot** (§4).
+
+Le moteur charge au démarrage la liste des paquets (`data/factions/index.json`), valide chaque paquet contre les **schémas Zod** (`@heroes/content`, à l'exécution et en CI), puis enregistre son contenu. Une faction invalide est rejetée avec un rapport d'erreurs précis — jamais de crash en jeu.
 
 ## 2. Structure de dossiers d'un paquet
 
+Structure **livrée** (JSON pur, zéro code par paquet) :
+
 ```
 data/factions/arcane-hunters/
-├── manifest.json            # identité, terrain natif, bonus, ressources de faction
+├── manifest.json            # identité, terrain natif, bonus, ressources, ville, unités
 ├── units/
 │   ├── t1-eleve.json        # 1 fichier par unité (stats, capacités par ID, coûts)
-│   └── … t8-penitent.json
-├── buildings/
-│   ├── common-overrides.json  # skins/renommages des bâtiments communs
-│   └── specials.json          # bâtiments spécifiques + arbre de prérequis
-├── spells/
-│   └── traque.json          # école de faction (optionnelle)
-├── heroes/
-│   ├── classes.json         # classes, probas d'attributs, compétences de départ
-│   └── named.json           # héros nommés + spécialités (par ID d'effet)
-├── skills.json              # compétences ajoutées au pool (ex: Chasse rituelle)
-├── abilities/               # ★ SEUL code autorisé — modules de capacités/hooks
-│   ├── consume-marks.ts
-│   ├── demonform.ts
-│   └── hooks/on-week-start.ts   # ex: contrats de chasse
-├── assets/
-│   ├── units/*.png          # spritesheets (convention de nommage stricte)
-│   ├── town/*.png           # vue de ville + états des bâtiments
-│   ├── icons/*.png
-│   └── audio/*.ogg
+│   ├── t1-eleve-elite.json  # variante élite = dwelling niveau 2 (Alpha 4.11)
+│   └── … t8-penitent(-elite).json
+├── buildings.json           # bâtiments spécifiques + arbre de prérequis (un seul fichier)
+├── story/
+│   └── campaign.json        # campagne de faction (doc 13 §6.1) — optionnel
 └── locales/
     ├── fr.json              # tous les textes, clé = ID de contenu
     └── en.json
 ```
 
+> **Non par paquet** (contrairement au plan initial) : pas de `spells/` (les
+> sorts d'école de faction sont au catalogue CORE `data/core/spells.json`), pas
+> de `heroes/`/`skills.json` (attributs de héros = profil global `config.json` ;
+> compétences = catalogue CORE `data/core/skills.json`), pas d'`abilities/*.ts`
+> (capacités = catalogue générique `data/core/abilities.json`, référencées par
+> ID), pas d'`assets/` (staging global `assets/`, doc 12 §10). Les bâtiments
+> communs (hôtel de ville, fort, guilde, taverne, forge) ne sont pas « override »
+> par paquet : le manifeste les liste dans `town.buildings`.
+
 ## 3. Le manifeste
 
+Manifeste **réel** (arcane-hunters, abrégé) :
+
 ```jsonc
-// manifest.json (extrait)
+// manifest.json (extrait fidèle)
 {
   "id": "arcane-hunters",
-  "schemaVersion": 3,
-  "name": "@loc:faction.name",              // toute string visible passe par locales/
-  "nativeTerrain": "mistmoor",
-  "keyResources": ["mercury", "gems"],
+  "schemaVersion": 1,                        // migrations à la 1ʳᵉ évolution de schéma (§7)
+  "name": "@loc:faction.arcane-hunters.name",// toute string visible passe par locales/
+  "story": "story/campaign.json",            // campagne de faction (optionnel)
+  "nativeTerrain": "swamp",
+  "keyResources": ["mercury", "gems"],       // exactement 2
   "factionResources": [                      // ressources propres (optionnel)
     { "id": "essence", "icon": "icons/essence.png", "cap": 999 }
   ],
   "factionBonuses": [                        // effets déclaratifs interprétés par le moteur
-    { "type": "onAttackApplyStatus", "status": "mark", "maxStacks": 3 }
+    { "type": "gainFactionResourceOnVictory", "resource": "essence", "amount": 10 }
   ],
   "spellSchool": "traque",                   // null si la faction n'en a pas
-  "heroSkills": ["ritual-hunt"],
+  "heroSkills": [],
   "tiers": 8,
-  "sharedGrowthGroups": { "apex": ["t7-manticore", "t8-penitent"] },
-  "abilityModules": ["abilities/consume-marks", "abilities/demonform"],
-  "hooks": ["abilities/hooks/on-week-start"],
-  "aiProfile": { "aggression": 0.7, "focusFire": 0.9, "preferredTargets": "marked" }
+  "sharedGrowthGroups": {},                  // (apex T7/T8 non déclaré aujourd'hui, cf. doc 05)
+  "units": ["t1-eleve", … , "t8-penitent-elite"],  // base + variantes élites
+  "abilityModules": [],                      // ★ DOIT rester vide (schéma `.max(0)`) tant que
+  "hooks": [],                               //   le moteur ne les interprète pas — cf. §4
+  "aiProfile": { "aggression": 0.7, "focusFire": 0.9, "preferredTargets": "marked" },
+  "town": { "buildings": ["townHall", "fort", …], "dwellings": [ … ] }
 }
 ```
 
-> Note d'implémentation (Phase 2.2) : le manifeste liste aussi explicitement
-> ses unités (`"units": ["t1-eleve", …]`, convention `units/<id>.json` vérifiée
-> par le validateur) — un navigateur ne peut pas lister un dossier, le contenu
-> est donc entièrement déclaré.
+Les **deux seuls** types de `factionBonuses` livrés sont `raiseUndeadOnVictory`
+(Nécropolis) et `gainFactionResourceOnVictory` (Essence) — cf. `faction/types.ts`.
+Le manifeste liste explicitement ses unités (`units: [...]`, convention
+`units/<id>.json`) : un navigateur ne peut pas lister un dossier, le contenu est
+donc entièrement déclaré.
 
 ## 4. Points d'extension en code (et leurs limites)
 
-Le déclaratif couvre ~90 % des besoins (stats, coûts, arbres, effets composables du catalogue de capacités — doc 02 §5.4). Pour le reste, **2 interfaces TypeScript et uniquement elles** :
+Le déclaratif couvre **tous** les besoins livrés à ce jour (stats, coûts, arbres, effets composables du catalogue de capacités — doc 02 §5.4).
 
-```ts
-// Capacité custom : logique de combat pure, déterministe, sérialisable
-interface AbilityModule {
-  id: string;                                  // ex: "demonform"
-  /** événements de combat écoutés */
-  on: Partial<{
-    beforeAttack(ctx: CombatCtx, ev: AttackEvent): void;
-    afterAttack(ctx: CombatCtx, ev: AttackEvent): void;
-    turnStart(ctx: CombatCtx, unit: StackRef): void;
-    activate(ctx: CombatCtx, unit: StackRef, target?: HexOrStack): void; // capacité active
-  }>;
-  /** état persistant de la capacité — DOIT être un objet JSON sérialisable */
-  initialState?(unit: StackRef): Json;
-  /** métadonnées UI : icône, tooltip, ciblage */
-  ui: AbilityUiSpec;
-}
-
-// Hook d'aventure : réagit au temps/événements de la carte
-interface AdventureHook {
-  id: string;
-  on: Partial<{
-    weekStart(ctx: AdventureCtx, player: PlayerRef): void;   // ex: contrats de chasse
-    dayStart(ctx: AdventureCtx, player: PlayerRef): void;
-    combatEnd(ctx: AdventureCtx, result: CombatResult): void; // ex: Nécromancie… qui est en fait déclarative
-    townCaptured(ctx: AdventureCtx, town: TownRef): void;
-  }>;
-}
-```
+> **État livré** : les deux interfaces TypeScript initialement prévues
+> (`AbilityModule` / `AdventureHook`, modules de code par paquet) **n'existent
+> pas**. Le schéma du manifeste **force `abilityModules` et `hooks` à vide**
+> (`z.array(z.string()).max(0)`, `content/schemas.ts`) : charger du code de paquet
+> serait un mensonge de validation tant que le moteur ne l'interprète pas. Le
+> mécanisme **réellement** utilisé : des **capacités génériques inline**
+> paramétrées par les données (une entrée du catalogue `data/core/abilities.json`
+> référencée par ID sur l'unité, ex. `consumeMarks` avec ses paramètres
+> `suppressRetaliation`/`immobilizeRounds`), plus des **effets déclaratifs de
+> manifeste** (`factionBonuses`, `sharedGrowthGroups`) et de bâtiment
+> (`exclusiveGroup`). Quand un besoin nouveau apparaît, on ouvre **un** point
+> d'extension **générique** dans le moteur (interprété depuis les données), jamais
+> un module propre à une faction. Les interfaces ci-dessus restent la cible si un
+> jour une capacité échappe au paramétrage ; à ce stade, aucune n'a été
+> nécessaire.
 
 > 🚧 **État 4.x** : plusieurs points d'extension **génériques** sont ouverts, un
 > par sous-lot, **tous sans nom de faction dans le moteur** — chacun interprété
@@ -132,10 +131,10 @@ interface AdventureHook {
 > `data/factions/index.json`** (remédiation R6) : le seul diff moteur admis par
 > lot est l'ouverture d'**un** point générique, jamais un `if (faction === …)`.
 
-**Règles imposées aux modules** (vérifiées par lint + revue) :
-1. Pas d'accès au rendu, au réseau, à `Date`/`Math.random` — le contexte fournit `ctx.rng` (seedé) et `ctx.now` (temps de jeu).
-2. Tout état passe par `ctx.state` (sérialisable) : les sauvegardes et le multi en dépendent.
-3. Un module n'importe que l'API publique `@heroes/engine-api` (interdiction d'importer les internals du moteur — frontière vérifiée par ESLint `no-restricted-imports`).
+**Invariants du moteur** (déjà tenus par le mécanisme déclaratif ; cible d'un futur module le jour où il en faudra un) :
+1. Pas d'accès au rendu, au réseau, à `Date`/`Math.random` — seul le **RNG PCG32 seedé** de l'état est autorisé (interdiction lintée, doc 07 §3).
+2. Tout état passe par `GameState` (sérialisable) : les sauvegardes et le multi en dépendent.
+3. Frontières d'import ESLint (`no-restricted-imports`) : le client/les outils consomment la surface publique `@heroes/engine` (`index.ts`), jamais les internals — il n'existe pas de package `@heroes/engine-api` séparé.
 
 ## 5. Checklist d'intégration d'une nouvelle maison
 
@@ -144,7 +143,7 @@ interface AdventureHook {
 3. Remplir `units/`, `buildings/`, `heroes/`, `locales/` ; `pnpm faction:validate <id>` doit passer (schémas + règles croisées : prérequis atteignables, coûts définis, IDs de capacités existants, textes localisés complets).
 4. Capacités : d'abord chercher dans le **catalogue générique** ; ne créer un module que si la composition déclarative ne suffit pas (règle : ≤ 3 modules par faction).
 5. Assets : suivre `docs/12-assets-style-guide.md` (familles P/A/B/C/D/E, tailles, nommage) ; l'intégration client (registre, hors bundle) est décrite en §10. Placeholders procéduraux autorisés jusqu'à la Beta (repli gracieux en place).
-6. **Équilibrage** : le test `balance.test.ts` (paquet `@heroes/content`, lancé par `pnpm test`) rejoue des combats auto à valeur d'or égale et vérifie qu'aucune faction ne domine ; un simulateur CLI dédié (`faction:sim`, rapport de winrate par palier) reste à écrire.
+6. **Équilibrage** : le test `balance.test.ts` (paquet `@heroes/content`, lancé par `pnpm test`) rejoue des combats auto à valeur d'or égale et vérifie qu'aucune faction ne domine ; le simulateur CLI dédié **existe** — `pnpm faction:sim` (`packages/tools/src/faction-sim.ts`, rapport de winrate par appariement, Alpha 4.17).
 7. Jouabilité : 1 scénario de test dédié + passe IA (le profil `aiProfile` suffit-il ?).
 8. PR unique portant le paquet ; la CI rejoue validation + simulation. **Aucun diff hors de `data/factions/<id>/` n'est accepté**, sauf ajout au registre `index.json` — c'est le test automatique de la promesse de modularité.
 9. **Narratif** (s'arme avec le chantier doc 13) : remplir le gabarit §8 (identité narrative, lecture de l'arc global, relations, arcs des 2 héros nommés) et livrer les `loreKey` FR/EN de chaque entité dans les locales du paquet ; la campagne de faction (3 chapitres, `data/factions/<id>/story/`) peut arriver dans un second lot. Mêmes garde-fous : zéro diff moteur, zéro modification des autres maisons (doc 13 §8.2).
@@ -162,5 +161,5 @@ Le cas *Tide Covenant* illustre la gouvernance du framework : quand une maison a
 
 ## 7. Versionnement du contenu
 
-- `schemaVersion` dans chaque manifeste ; le moteur embarque des migrations de données (comme des migrations de BDD) pour charger les paquets plus anciens.
-- Les sauvegardes stockent la **liste et version des paquets** utilisés ; charger une sauvegarde sans le paquet requis propose le téléchargement (futur) ou refuse proprement.
+- `schemaVersion` dans chaque manifeste (**vaut `1`** aujourd'hui, forcé par le schéma) ; les **migrations de données** de paquet sont **différées** à la première évolution de schéma incompatible (aucune n'existe encore).
+- La forme de sauvegarde a sa propre version moteur (`CURRENT_SAVE_VERSION`, doc 07 §4) qui rejette proprement une version incompatible. Le suivi **par paquet** (liste + version des paquets d'une sauvegarde) est **différé** avec les migrations.

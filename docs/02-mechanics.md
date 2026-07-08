@@ -279,6 +279,7 @@ Sémantique des **9 capacités** du catalogue (valeurs de départ) :
 - Victoire = plus aucune pile adverse. Fuite (perd l'armée, garde héros+artefacts, re-recrutable en taverne) et reddition (idem + coût en or, garde l'armée restante — post-MVP).
 - **Combat auto** : la même IA de combat joue les deux camps en accéléré ; résultat déterministe re-simulable (même seed) — indispensable pour le PvP asynchrone futur.
 - **Écran pré-combat** (Lot 1, fidélité HoMM Online) : au démarrage de tout combat, un écran d'intro compare la **puissance de combat** des deux camps (`armyStrength`, même métrique que le graphe de fin de partie — pur affichage, sans effet sur la simulation) et propose **Combattre** (conduite manuelle) ou **Auto-Battle** (auto-résolution immédiate). Pur habillage client (`preBattlePending`), aucun changement moteur.
+- **Retours de frappe** (UXD-4, fidélité HoMM Online) : après chaque frappe, un popup flottant montre les **dégâts** (`-N`) et, si des créatures meurent, une 2ᵉ ligne **kills** mise en avant (plus grosse, colorée) ; `★` sur coup de chance. La **file d'ordre de passage** du round (bandeau d'initiative, lot M1) et la **fiche de pile** au tap complètent la lisibilité tactique. Purs rendus canvas.
 
 ### 5.6 IA de combat (MVP)
 

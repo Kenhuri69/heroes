@@ -165,9 +165,11 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > « 1 construction/jour », zéro churn moteur/sauvegarde). **Lot 1 combat livré** :
 > **écran pré-combat + Auto-Battle** (`PreBattleScreen`, puissances comparées via
 > `armyStrength` réutilisé, Combattre/Auto-Battle — pur overlay client, zéro
-> moteur). La **file d'initiative** en combat existait déjà (lot M1) ; restent
-> les **popups dégâts/kills** (Lot 3). Divergences délibérées confirmées hors
-> périmètre : MMO temps réel, premium/pay-to-win (doc 01 §3-4).
+> moteur). La **file d'initiative** en combat (lot M1) et les **popups dégâts/kills**
+> (lot UXD-4, avec polish « kills proéminents » façon capture 4) existaient déjà
+> ⇒ les 3 divergences de combat des captures sont couvertes. Divergences
+> délibérées confirmées hors périmètre : MMO temps réel, premium/pay-to-win
+> (doc 01 §3-4).
 >
 > 🌐 **Beta — en ligne & PWA** (roadmap doc 09 Phase 3). Backend **déployé et en
 > ligne** (lots 7.1→7.6, doc 15) : Worker Cloudflare `heroes` sur

@@ -121,6 +121,15 @@ frappe, à partir des events de combat déjà émis par le moteur.
 **Critère de succès** : une frappe manuelle affiche le nombre de pertes ; aucune
 régression de perf sous throttling ×4 (smoke anti-gel).
 
+> ✅ **Lot 3 DÉJÀ LIVRÉ (lot UXD-4), + polish fidélité.** Le popup flottant
+> dégâts/kills existait déjà : `CombatScene.spawnDamageNumber`, sur l'event
+> `StackAttacked` (`damage`/`kills`/`lucky`), monte + fondu 700 ms, respect de
+> `prefers-reduced-motion`, `fxLayer` dédiée. **Polish (capture 4)** : quand la
+> frappe tue, les **kills passent en 2ᵉ ligne plus grosse et colorée** (mise en
+> avant façon HO), au lieu d'un `☠N` compact accolé. Pur rendu canvas, aucune
+> donnée moteur nouvelle ; non couvert par smoke (texte Pixi, hors DOM) — vérifié
+> typecheck/lint/build + non-régression des combats.
+
 ---
 
 ## 4. Décision A — Rendu isométrique de la carte *(à arbitrer avant code)*
@@ -214,6 +223,6 @@ docs.
 > - [x] Lot 2 — file d'initiative → **LIVRÉ par le lot M1** du plan
 >   `ux-revue-mmho.md` (helper `roundActionOrder`, bandeau d'ordre + fiche de
 >   pile) — feu vert « lance le travail » 2026-07-08
-> - [ ] Lot 3 — popups dégâts/kills
+> - [x] Lot 3 — popups dégâts/kills → **DÉJÀ LIVRÉ (UXD-4)** + polish kills proéminents
 > - [x] Décision A tranchée → **A1** (projection iso) **LIVRÉ**
 > - [x] Décision B tranchée → **B1** (file de chantier en jours) **LIVRÉ**

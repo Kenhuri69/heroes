@@ -56,6 +56,30 @@ export function CombatUi() {
     return () => clearTimeout(id);
   }, [autoActive, combat, combatSpeed]);
 
+  // Raccourcis combat desktop (lot M8 C2), jamais requis : Espace = Attendre,
+  // D = Défendre, quand c'est au joueur et hors auto. Ignorés si une saisie a le
+  // focus. Échap reste géré par le handler global (fermeture de pile).
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent): void => {
+      const target = e.target as HTMLElement | null;
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable))
+        return;
+      const s = appStore.getState();
+      const c = s.game.combat;
+      if (!c || c.finished || s.combatAutoActive) return;
+      const act = c.stacks.find((st) => st.id === c.activeStackId);
+      if (act?.side !== c.playerSide) return;
+      const key = e.key === ' ' ? 'space' : e.key.toLowerCase();
+      if (key !== 'space' && key !== 'd') return;
+      e.preventDefault();
+      dispatch({ type: 'CombatAction', action: { type: key === 'space' ? 'wait' : 'defend' } }).catch(
+        (err: unknown) => pushToast(commandErrorMessage(err)),
+      );
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
   if (!combat) return null;
 
   const active = combat.stacks.find((s) => s.id === combat.activeStackId);

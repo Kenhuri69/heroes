@@ -276,6 +276,13 @@ M7** (parité MMHO/HoMM) puis **M8** (confort). Chaque lot re-passe la skill
 
 - 2026-07-07 : revue complète effectuée (captures + inventaire code + référence
   MMHO sourcée) ; constats C1–C26 ; plan M1–M8 rédigé. Aucun code modifié.
+- 2026-07-08 : **Lot M8 livré** (plan `ux-m8-confort-desktop.md`) — DERNIER lot :
+  C2 (raccourcis clavier desktop), C3 (option « réduire les animations » ∪ OS),
+  C12 (garde-fou de fin de tour), C25 (tiroir héros réordonné), C4 (doc aligné
+  sur les motifs non chromatiques toujours actifs). **Revue MMHO close** : tous
+  les constats P0/P1 traités ; P2 traités ou re-notés (voir §5). Suivis restants
+  hors plan : C22 (vignettes asset), transferts entre héros / équipement typé
+  (commandes moteur, section « Différé »).
 - 2026-07-08 : **Lot M7 livré** (plan `ux-m7-ville.md`) — C19 (« Tout recruter »
   glouton borné par ressources), C20 (tri Construire par statut), C21 (en-tête
   ville nom/revenu `townIncome`/croissance). C22 (vignettes manquantes) = suivi

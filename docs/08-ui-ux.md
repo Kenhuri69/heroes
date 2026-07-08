@@ -175,7 +175,23 @@
 
 ### 2.5 Autres écrans
 
-Menu principal (Continuer / Scénarios / Escarmouche / **Éditeur de carte** / Options), fiche de scénario (objectifs), fin de partie (stats, graphique de puissance), options (langue FR/EN, vitesse anims, taille UI, audio, daltonisme : cf. §4).
+Menu principal (Continuer / Scénarios / Escarmouche / **Éditeur de carte** / Options), fiche de scénario (objectifs), fin de partie (stats, graphique de puissance), options (langue FR/EN, vitesse anims, taille UI, audio, réduction des animations, confirmation de fin de tour : cf. §4).
+
+> 🚧 **État M8 (plan `ux-revue-mmho.md` C2/C3/C12/C25/C4)** : confort desktop &
+> finitions. **Raccourcis clavier** desktop (jamais requis, ignorés en saisie/
+> modale/combat) : `E` fin de tour, `H` tiroir héros, `T` ville ; en combat
+> `Espace` = Attendre, `D` = Défendre ; Échap inchangé (documentés dans Options).
+> Option **« Réduire les animations »** (`app/motion.ts`) : s'**unit** au réglage
+> système `prefers-reduced-motion` (l'un OU l'autre coupe le mouvement, DOM via
+> `<html data-reduce-motion>` + rendu Pixi via `reduceMotion()`), persistée.
+> **Garde-fou de fin de tour** (convention HoMM) : si un héros n'a pas bougé
+> (PM au max du jour), la fin de tour demande confirmation (overlay tap-tap),
+> désactivable via l'option « Confirmer la fin de tour ». **Tiroir héros
+> réordonné** : identité (portrait, niveau, jauges XP/mana) en tête, mini-carte
+> en fin (sections repliables = raffinement différé). **C4** : l'ancienne
+> promesse d'une *option* « daltonisme » est retirée — les motifs non chromatiques
+> (badges de faction, pastilles, contours, jamais la couleur seule) sont
+> **toujours actifs** (§4), ce qui est plus sûr qu'un réglage optionnel.
 
 > 🚧 **État U6b** : l'écran de **fin de partie** (`OutcomeOverlay`) affiche un
 > **graphique de puissance par joueur** — barres horizontales SVG triées par
@@ -241,7 +257,8 @@ Menu principal (Continuer / Scénarios / Escarmouche / **Éditeur de carte** / O
 
 ## 4. Accessibilité
 
-- Mode daltonien : les couleurs des joueurs sont doublées de **motifs de bannière** ; états de combat doublés d'icônes (jamais couleur seule).
+- Daltonisme : **pas d'option** — l'accessibilité chromatique est **toujours active** (choix M8/C4, plus sûr qu'un réglage) : couleurs de joueur doublées de **motifs de bannière**, statuts de combat doublés d'icônes/formes, jamais la couleur seule.
+- **Réduire les animations** : option en jeu (M8/C3) qui s'unit au réglage système `prefers-reduced-motion` — coupe transitions DOM et mouvement Pixi (le contour de focus reste).
 - Texte UI en DOM → zoom navigateur et lecteurs d'écran fonctionnent sur toute la gestion ; taille de police réglable (3 crans).
 - Toutes les infos « hover » accessibles à l'appui long ; aucune action à double-clic ou clic droit obligatoire.
 

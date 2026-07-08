@@ -85,8 +85,9 @@ input:focus-visible {
   }
 }
 
-/* — Accessibilité : couper tout mouvement si le système le demande —
-   Les états :focus-visible (contour) restent : ce n'est pas du mouvement. */
+/* — Accessibilité : couper tout mouvement si le système OU l'option en jeu le
+   demande (lot M8 C3 : `<html data-reduce-motion="true">`). Les états
+   :focus-visible (contour) restent : ce n'est pas du mouvement. */
 @media (prefers-reduced-motion: reduce) {
   button,
   .modal-backdrop,
@@ -97,4 +98,14 @@ input:focus-visible {
     animation: none !important;
     transition: none !important;
   }
+}
+
+:root[data-reduce-motion='true'] button,
+:root[data-reduce-motion='true'] .modal-backdrop,
+:root[data-reduce-motion='true'] .modal,
+:root[data-reduce-motion='true'] .menu-screen,
+:root[data-reduce-motion='true'] .combat-ui,
+:root[data-reduce-motion='true'] .toast {
+  animation: none !important;
+  transition: none !important;
 }

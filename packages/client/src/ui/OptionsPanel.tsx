@@ -5,6 +5,7 @@ import { exportSave, importSave, saveGame, restoreSavedGame } from '../app/save'
 import { eventBus } from '../app/events';
 import { getTelemetry, resetTelemetry, setTelemetryEnabled } from '../app/telemetry';
 import { setMusicVolume, setSfxVolume } from '../app/audio';
+import { applyReduceMotion } from '../app/motion';
 import { COMBAT_SPEEDS } from '../app/ui-constants';
 import { pushToast } from './toasts';
 import './options.css';
@@ -24,6 +25,8 @@ export function OptionsPanel({ onClose }: { onClose: () => void }) {
   const locale = useApp((s) => s.locale);
   const fontScale = useApp((s) => s.fontScale);
   const combatSpeed = useApp((s) => s.combatSpeed);
+  const reduceMotionOption = useApp((s) => s.reduceMotionOption);
+  const confirmEndTurn = useApp((s) => s.confirmEndTurn);
   const musicVolume = useApp((s) => s.musicVolume);
   const sfxVolume = useApp((s) => s.sfxVolume);
   const telemetryEnabled = useApp((s) => s.telemetryEnabled);
@@ -144,6 +147,45 @@ export function OptionsPanel({ onClose }: { onClose: () => void }) {
               </button>
             ))}
           </div>
+        </section>
+
+        <section class="options-section">
+          <h3>{t('options.accessibility')}</h3>
+          <div class="segmented" role="group" aria-label={t('options.reduceMotion')}>
+            <span class="options-toggle-label">{t('options.reduceMotion')}</span>
+            <button
+              class={reduceMotionOption ? 'active' : ''}
+              data-testid="options-reduce-motion-on"
+              onClick={() => applyReduceMotion(true)}
+            >
+              {t('options.on')}
+            </button>
+            <button
+              class={!reduceMotionOption ? 'active' : ''}
+              data-testid="options-reduce-motion-off"
+              onClick={() => applyReduceMotion(false)}
+            >
+              {t('options.off')}
+            </button>
+          </div>
+          <div class="segmented" role="group" aria-label={t('options.confirmEndTurn')}>
+            <span class="options-toggle-label">{t('options.confirmEndTurn')}</span>
+            <button
+              class={confirmEndTurn ? 'active' : ''}
+              data-testid="options-confirm-endturn-on"
+              onClick={() => appStore.setState({ confirmEndTurn: true })}
+            >
+              {t('options.on')}
+            </button>
+            <button
+              class={!confirmEndTurn ? 'active' : ''}
+              data-testid="options-confirm-endturn-off"
+              onClick={() => appStore.setState({ confirmEndTurn: false })}
+            >
+              {t('options.off')}
+            </button>
+          </div>
+          <p class="options-hint">{t('options.shortcutsHint')}</p>
         </section>
 
         <section class="options-section">

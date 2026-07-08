@@ -41,6 +41,18 @@ Faction #6, produite en **Beta** — elle sert de **test de modularité #4** (do
 > suppose une ville Vox Arcana (sélecteur de faction / scénario dédié = lot suivant) ;
 > héritage des héros recrutés après le choix ; Résonance + École de la Scène.
 
+> 🚧 **État 16.4 (livré — Résonance, ressource de faction)** : la **Résonance**
+> (Honmoon) est branchée en **pur contenu**, sans aucun diff moteur — elle
+> réutilise l'acquis Essence (doc 05) : `factionResources: [resonance]` +
+> `factionBonuses: [gainFactionResourceOnVictory]` dans le manifeste, gain à
+> chaque combat gagné, et **T8 Avatar du Honmoon gaté** par la ressource
+> (coût de recrutement `40 Résonance`, comme le Pénitent gate par l'Essence).
+> Locales FR/EN (`factionResource.resonance`). Test de contenu par signature
+> (la faction qui déclare Maisons + ressource gagne la ressource et gate son T8),
+> garde-fou « zéro faction » vert, golden inchangé (données de faction hors
+> replay inline). **Différé** : génération de Résonance intra-combat (performeurs)
+> + École de la Scène (lot 16.5) + héros Hermione & Rumi (lot 16.6).
+
 ## 1. Lore
 
 L'**Académie Vox Arcana** occupe un château gothique dont les tours coréennes

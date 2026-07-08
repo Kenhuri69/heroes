@@ -121,6 +121,19 @@ export class AdventureScene {
       pos: h.pos,
       radius: config.visionRadius + heroVisionBonus(h, game.skillCatalog),
     }));
+    // F1 : les villes et mines possédées sont des sources de vision vivante —
+    // halo clair permanent autour d'elles, aligné sur la révélation moteur.
+    const buildingRadius = config.buildingVisionRadius ?? 0;
+    if (buildingRadius > 0) {
+      const hid = humanId(game);
+      for (const town of game.towns) {
+        if (town.ownerPlayerId === hid) sightings.push({ pos: town.pos, radius: buildingRadius });
+      }
+      for (const obj of map.objects) {
+        if (obj.type === 'mine' && obj.ownerId === hid)
+          sightings.push({ pos: obj.pos, radius: buildingRadius });
+      }
+    }
     this.fog.update(player.explored, sightings);
 
     // Réconciliation des sprites de héros : supprime ceux disparus, crée ceux

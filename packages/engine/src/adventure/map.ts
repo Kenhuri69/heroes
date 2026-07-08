@@ -49,7 +49,9 @@ export type VisitableEffect =
   /** L'XP manquante pour atteindre le niveau suivant (« +1 niveau »). */
   | { kind: 'levelXp' }
   /** Ressource créditée au joueur visiteur. */
-  | { kind: 'resource'; resource: string; amount: number };
+  | { kind: 'resource'; resource: string; amount: number }
+  /** Tour de guet (F2) : révèle le brouillard sur `amount` tuiles autour du lieu. */
+  | { kind: 'vision'; amount: number };
 
 /** Lieu de bonus visitable (doc 02 §2.2) : visite en passant, re-visite bornée. */
 export interface VisitableObjectDef {

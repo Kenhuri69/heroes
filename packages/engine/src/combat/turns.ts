@@ -1,4 +1,5 @@
 import { grantXp } from '../adventure/experience';
+import { revealStructure } from '../adventure/vision';
 import { applyFactionVictoryEffects } from '../faction/effects';
 import { rewardHuntContract } from '../town/hunt-contract';
 import type { GameEvent } from '../core/events';
@@ -187,6 +188,7 @@ function applyConsequences(
         town.ownerPlayerId = hero.playerId;
         town.garrison = [];
         events.push({ type: 'TownCaptured', townId: town.id, playerId: hero.playerId });
+        revealStructure(draft, hero.playerId, town.pos); // F1 : ville prise = vision de son voisinage
       }
     }
   } else {

@@ -206,6 +206,14 @@
       "frequency": "oncePerHeroPerWeek"
     },
     {
+      "id": "tour-de-guet-1",
+      "type": "visitable",
+      "x": 8,
+      "y": 3,
+      "effect": { "kind": "vision", "amount": 6 },
+      "frequency": "oncePerHero"
+    },
+    {
       "id": "fontaine-1",
       "type": "visitable",
       "x": 8,

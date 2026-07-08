@@ -179,6 +179,7 @@
   "toast.bonusLuck": "Fontaine : +{amount} chance (prochain combat)",
   "toast.bonusMovement": "+{amount} PM (lieu visité)",
   "toast.bonusXp": "+{amount} XP (lieu visité)",
+  "toast.bonusVision": "Tour de guet : {amount} tuiles révélées",
   "toast.bonusResource": "+{amount} {resource} (lieu visité)",
   "toast.dwellingRecruited": "+{count} {unit} rejoignent l'armée",
   "trigger.proto01.welcome": "Jour 2 : les éclaireurs rapportent une activité à l'est.",

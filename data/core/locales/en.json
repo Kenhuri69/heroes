@@ -179,6 +179,7 @@
   "toast.bonusLuck": "Fountain: +{amount} luck (next combat)",
   "toast.bonusMovement": "+{amount} MP (visited site)",
   "toast.bonusXp": "+{amount} XP (visited site)",
+  "toast.bonusVision": "Watchtower: {amount} tiles revealed",
   "toast.bonusResource": "+{amount} {resource} (visited site)",
   "toast.dwellingRecruited": "+{count} {unit} join the army",
   "trigger.proto01.welcome": "Day 2: scouts report activity to the east.",

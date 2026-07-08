@@ -73,6 +73,7 @@ export function notify(event: AppEvent, game: GameState): string | null {
       if (effect.kind === 'luck') return t('toast.bonusLuck', { amount: event.amount });
       if (effect.kind === 'movement') return t('toast.bonusMovement', { amount: event.amount });
       if (effect.kind === 'levelXp') return t('toast.bonusXp', { amount: event.amount });
+      if (effect.kind === 'vision') return t('toast.bonusVision', { amount: event.amount });
       return t('toast.bonusResource', {
         amount: event.amount,
         resource: t(`resource.${effect.resource}`),

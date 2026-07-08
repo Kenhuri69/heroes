@@ -67,7 +67,7 @@
 
 ## P1 — Brouillard & possession (ton point n°1)
 
-### F1 — Vision liée aux héros uniquement 🕳️ M
+### F1 — Vision liée aux héros uniquement 🕳️ M — ✅ FAIT
 - **Symptôme** : villes/mines/habitations possédées n'éclairent rien ; une ville
   capturée retombe dans le noir dès que le héros part.
 - **Cause** : `revealAround` appelé seulement au pas de héros
@@ -78,7 +78,7 @@
   est **persistante** (drapeau) ou recalculée (comme la vision de héros côté rendu).
 - **Vérif** : test « capturer une ville révèle son voisinage » + smoke fog.
 
-### F2 — Pas de bâtiment donneur de vision (tour de guet) 🕳️ S
+### F2 — Pas de bâtiment donneur de vision (tour de guet) 🕳️ S — ✅ FAIT
 - Type d'objet « avant-poste/tour de guet » inexistant. À ajouter en données une
   fois F1 en place (un `visitable` à effet `vision` ou une propriété d'objet).
 

@@ -85,6 +85,12 @@ export type Command =
   | {
       /** L'IA joue le camp du joueur jusqu'à la fin du combat (doc 02 §5.5). */
       type: 'AutoCombat';
+      /**
+       * Lot M4 (doc 08 §2.4 « reprendre la main à tout round ») : joue `rounds`
+       * round(s) auto puis rend la main sur une pile du joueur. Absent =
+       * résolution complète (comportement historique, replays inchangés).
+       */
+      rounds?: number;
     }
   // ——— Villes (doc 02 §4) — surface figée en cadrage 3.1 ———
   | { type: 'BuildStructure'; townId: string; buildingId: string }
@@ -181,6 +187,7 @@ export interface CommandError {
     | 'unknownSkill'
     | 'noPendingChoice'
     | 'treasurePending'
+    | 'invalidRounds'
     | 'gameOver';
   message: string;
 }

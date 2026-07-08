@@ -438,8 +438,15 @@
   opacity: 0.82;
 }
 
-/* Annulation de déplacement (doc 08 §3, lot M2 C7) : visible pendant la préviz. */
+/* Annulation de déplacement (doc 08 §3, lot M2 C7) : visible pendant la préviz.
+   Flotteur ANCRÉ au-dessus du HUD bas — il ne doit JAMAIS changer la hauteur du
+   HUD, sinon le bandeau d'armée remonte et recouvre la tuile que le joueur
+   s'apprête à confirmer (régression tap-tap mobile corrigée au lot M4). */
 .cancel-path {
+  position: absolute;
+  bottom: 100%;
+  left: 8px;
+  margin-bottom: 6px;
   min-height: 44px;
   padding: 6px 12px;
   border: 1px solid var(--blood-bright);

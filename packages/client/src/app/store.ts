@@ -116,6 +116,13 @@ export interface AppState {
    * aux transitions de `game.combat`.
    */
   preBattlePending: boolean;
+  /**
+   * Auto-combat round par round actif (lot M4, doc 08 §2.4) : une boucle
+   * d'effet de `CombatUi` dispatch `AutoCombat{rounds:1}` tant que le flag est
+   * levé ; « Reprendre la main » le coupe. Réinitialisé aux transitions de
+   * combat par `dispatch` (comme `preBattlePending`).
+   */
+  combatAutoActive: boolean;
   /** Volume musique 0-1 (UXD-6B) — miroir du localStorage, réglé aux Options. */
   musicVolume: number;
   /** Volume effets 0-1 (UXD-6B) — miroir du localStorage. */
@@ -153,6 +160,7 @@ export const appStore = createStore<AppState>(() => ({
   campaignFlags: {},
   combatBark: null,
   preBattlePending: false,
+  combatAutoActive: false,
   musicVolume: 0.35,
   sfxVolume: 0.6,
 }));

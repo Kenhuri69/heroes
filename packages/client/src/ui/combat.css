@@ -298,3 +298,9 @@
     font-size: 0.8rem;
   }
 }
+
+/* Bascule auto active (lot M4) : le bouton devient « Reprendre la main ». */
+.combat-actions button.combat-auto-active {
+  background: var(--blood);
+  border-color: var(--blood-bright);
+}

@@ -54,8 +54,12 @@ export function handleCombatAction(draft: Draft, cmd: CombatActionCmd, events: G
   runAiIfNeeded(draft, events);
 }
 
-export function handleAutoCombat(draft: Draft, events: GameEvent[]): void {
-  runAutoCombat(draft, events);
+export function handleAutoCombat(draft: Draft, events: GameEvent[], rounds?: number): void {
+  runAutoCombat(draft, events, rounds);
+  // Arrêt en bornage de rounds (lot M4) : l'IA adverse joue jusqu'à une pile
+  // du JOUEUR — même invariant qu'après `CombatAction` (la main revient
+  // toujours au joueur, ou le combat est terminé).
+  if (rounds !== undefined) runAiIfNeeded(draft, events);
 }
 
 /** Estimation min–max pour la prévisualisation OBLIGATOIRE (doc 08 §2.4) — sans RNG. */

@@ -134,6 +134,7 @@
   "combat.defend": "Defend",
   "combat.spell": "Hero spell",
   "combat.auto": "Auto ▶▶",
+  "combat.resume": "Take back control",
   "combat.damagePreviewPlaceholder": "Select a target to preview damage.",
   "combat.damage": "{min}–{max} damage",
   "combat.retaliationEstimate": "estimated retaliation: {min}–{max}",

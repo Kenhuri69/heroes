@@ -24,6 +24,9 @@ import './combat.css';
  * dégâts OBLIGATOIRE avant confirmation. Le canvas (`CombatScene`) ne rend
  * aucun de ces chiffres — uniquement cette couche DOM.
  */
+/** Pause entre deux rounds auto (lot M4) — divisée par la vitesse ×1/×2/×4. */
+const AUTO_ROUND_PAUSE_MS = 500;
+
 export function CombatUi() {
   useApp((s) => s.locale); // réactivité i18n
   const combat = useApp((s) => s.game.combat);
@@ -31,14 +34,34 @@ export function CombatUi() {
   const combatBark = useApp((s) => s.combatBark);
   const hero = useApp((s) => s.game.heroes.find((h) => h.playerId === humanId(s.game)));
   const catalog = useApp((s) => s.game.unitCatalog);
+  const autoActive = useApp((s) => s.combatAutoActive);
   const preview = useSyncExternalStore(combatPreview.subscribe, combatPreview.get);
   const [spellBookOpen, setSpellBookOpen] = useState(false);
   const [sheetStackId, setSheetStackId] = useState<string | null>(null);
+
+  // Boucle d'auto-combat round par round (lot M4, doc 08 §2.4) : tant que la
+  // bascule est levée et que la main est au joueur, joue UN round auto après
+  // une courte pause (÷ vitesse). « Reprendre la main » coupe la boucle — le
+  // round en cours de résolution se termine, puis les actions se réactivent.
+  useEffect(() => {
+    if (!autoActive || !combat || combat.finished) return;
+    const activeStack = combat.stacks.find((s) => s.id === combat.activeStackId);
+    if (activeStack?.side !== combat.playerSide) return;
+    const id = setTimeout(() => {
+      dispatch({ type: 'AutoCombat', rounds: 1 }).catch((err: unknown) => {
+        appStore.setState({ combatAutoActive: false });
+        pushToast(commandErrorMessage(err));
+      });
+    }, AUTO_ROUND_PAUSE_MS / combatSpeed);
+    return () => clearTimeout(id);
+  }, [autoActive, combat, combatSpeed]);
+
   if (!combat) return null;
 
   const active = combat.stacks.find((s) => s.id === combat.activeStackId);
   const isPlayerTurn = !combat.finished && active?.side === combat.playerSide;
-  const canCastSpell = isPlayerTurn && !combat.heroCastThisRound && !!hero && hero.spells.length > 0;
+  const canCastSpell =
+    isPlayerTurn && !autoActive && !combat.heroCastThisRound && !!hero && hero.spells.length > 0;
 
   // Ordre de passage projeté (lot M1, doc 08 §2.4) : remplace les deux rangées
   // par camp triées par slot — l'actif est la 1ʳᵉ entrée par construction.
@@ -50,11 +73,15 @@ export function CombatUi() {
       pushToast(commandErrorMessage(err)); // remédiation CL3 : plus d'erreur avalée en silence
     });
   };
+  // Bascule auto ⇄ reprise de main (lot M4). L'« Auto-Battle » instantané
+  // reste disponible sur l'écran pré-combat (Lot 1 fidélité HO).
   const auto = (): void => {
+    if (autoActive) {
+      appStore.setState({ combatAutoActive: false });
+      return;
+    }
     recordCombatAuto(); // télémétrie opt-in (Alpha 4.19) — délégation = « abandon » manuel
-    dispatch({ type: 'AutoCombat' }).catch((err: unknown) => {
-      pushToast(commandErrorMessage(err));
-    });
+    appStore.setState({ combatAutoActive: true });
   };
 
   return (
@@ -97,17 +124,22 @@ export function CombatUi() {
         </div>
 
         <footer class="combat-actions">
-        <button data-testid="combat-wait" disabled={!isPlayerTurn} onClick={() => act('wait')}>
+        <button data-testid="combat-wait" disabled={!isPlayerTurn || autoActive} onClick={() => act('wait')}>
           {t('combat.wait')}
         </button>
-        <button data-testid="combat-defend" disabled={!isPlayerTurn} onClick={() => act('defend')}>
+        <button data-testid="combat-defend" disabled={!isPlayerTurn || autoActive} onClick={() => act('defend')}>
           {t('combat.defend')}
         </button>
         <button data-testid="combat-spell" disabled={!canCastSpell} onClick={() => setSpellBookOpen(true)}>
           {t('combat.spell')}
         </button>
-        <button data-testid="combat-auto" disabled={!isPlayerTurn} onClick={auto}>
-          {t('combat.auto')}
+        <button
+          data-testid="combat-auto"
+          class={autoActive ? 'combat-auto-active' : ''}
+          disabled={!isPlayerTurn && !autoActive}
+          onClick={auto}
+        >
+          {autoActive ? t('combat.resume') : t('combat.auto')}
         </button>
         <div class="combat-speeds" data-testid="combat-speed">
           {COMBAT_SPEEDS.map((speed) => (

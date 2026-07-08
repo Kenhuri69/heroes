@@ -29,6 +29,18 @@
 - Sélection héros → tap destination : trace le chemin avec jours nécessaires ; 2ᵉ tap : exécute. Interception d'événements en chemin = arrêt standard HoMM.
 - Appui long sur tout objet de carte = fiche (tooltip riche).
 
+> 🚧 **État M5 (plan `ux-revue-mmho.md` C10/C11)** : le HUD portrait est
+> **compacté**. La barre de ressources tient sur **une seule rangée** à
+> défilement horizontal : les grands nombres sont **abrégés** (≥ 10 000 →
+> « 12k », ≥ 10 M → « 12M » ; valeur exacte en `title`, fiche détaillée au tap =
+> lot M6), padding et police réduits en portrait (hauteur ~32 px au lieu de 2
+> lignes). **Sauvegarder/Charger** quittent la barre de tour (l'autosave de fin
+> de tour couvre le cas courant) pour la **section « Données » des Options**
+> (à côté d'export/import `.heroes`) : la barre de tour ne garde que les actions
+> de contexte (options, journal, ville(s)) et le geste majeur **Fin de tour**.
+> La carte récupère la hauteur ainsi libérée. Layout desktop (colonne droite)
+> inchangé.
+
 > 🚧 **État M2 (plan `ux-revue-mmho.md` C5/C6/C7)** : la préviz de chemin porte,
 > sur un trajet de plusieurs jours, une **étiquette numérique** (« J1 », « J2 »…)
 > au dernier pas de chaque journée — la couleur par jour (lot C-3) n'est plus le

@@ -1,6 +1,8 @@
 import {
   emptyResources,
   humanPlayerId,
+  rollRange,
+  seedRng,
   type ArmyStack,
   type ArtifactDef,
   type BuildingDef,
@@ -637,5 +639,226 @@ export function skirmishStartCommand(
     houseCatalog: buildHouseSetup(report),
     scenario: { objectives },
     ...(quests ? { quests } : {}),
+  };
+}
+
+// --- Nouvelle partie configurable (doc 09, écran de configuration) ----------
+
+/** Siège d'une nouvelle partie, déjà résolu (aucun « Aléatoire » ni slot fermé). */
+export interface NewGameSeat {
+  controller: 'human' | 'ai';
+  factionId: string;
+}
+
+/**
+ * Configuration résolue d'une « Nouvelle partie » (les choix « Aléatoire » sont
+ * tirés depuis le seed AVANT d'arriver ici, dans `main.ts`). N joueurs sur une
+ * carte générée à la taille choisie ; `resourceMultiplier` = réglage bas/riche
+ * du **stock de départ** (la densité d'objets de la carte est réglée à la
+ * génération, cf. `resolveGeneratedMap`).
+ */
+export interface NewGameSetupConfig {
+  seats: NewGameSeat[];
+  difficulty: SkirmishDifficulty;
+  resourceMultiplier: number;
+}
+
+/** Sentinelle « laisser au tirage aléatoire » d'un paramètre de configuration. */
+export const RANDOM = 'random';
+
+/** Crans de difficulté proposés (mêmes que l'escarmouche) — pour le tirage aléatoire. */
+export const NEWGAME_DIFFICULTIES: SkirmishDifficulty[] = ['facile', 'normal', 'difficile'];
+
+/** Taille de carte → dimension carrée (tuiles). */
+export const MAP_SIZE_DIMENSIONS = { small: 24, medium: 36, large: 48 } as const;
+export type MapSize = keyof typeof MAP_SIZE_DIMENSIONS;
+
+/**
+ * Réglage bas/standard/riche : `start` = échelle du stock de départ ; `mapDensity`
+ * = échelle de la densité d'objets de la carte générée (ressources/mines/trésors).
+ */
+export const RESOURCE_LEVEL_TUNING = {
+  bas: { start: 0.5, mapDensity: 0.6 },
+  standard: { start: 1, mapDensity: 1 },
+  riche: { start: 2, mapDensity: 1.6 },
+} as const;
+export type ResourceLevel = keyof typeof RESOURCE_LEVEL_TUNING;
+
+/** Slot de joueur tel que choisi à l'écran (avant résolution des « Aléatoire »). */
+export interface NewGameSlot {
+  /** `off` = siège fermé (ignoré). */
+  controller: 'human' | 'ai' | 'off';
+  /** Id de faction, ou `RANDOM` pour un tirage. */
+  factionId: string;
+}
+
+/** Configuration BRUTE émise par l'écran « Nouvelle partie » (paramètres possiblement `RANDOM`). */
+export interface NewGameRawConfig {
+  slots: NewGameSlot[];
+  mapSize: MapSize | typeof RANDOM;
+  resourceLevel: ResourceLevel | typeof RANDOM;
+  difficulty: SkirmishDifficulty | typeof RANDOM;
+  seed: number;
+}
+
+/** Configuration résolue : sièges + réglages moteur, + options de génération de carte. */
+export interface ResolvedNewGame {
+  setup: NewGameSetupConfig;
+  map: { width: number; height: number; startPositionCount: number; resourceMultiplier: number };
+}
+
+/**
+ * Résout une config brute : chaque paramètre laissé sur `RANDOM` est tiré
+ * **déterministiquement** depuis `seed` (RNG seedé moteur — reproductible, jamais
+ * `Math.random`). Les slots fermés sont écartés. Fonction pure (testable) : le
+ * `main.ts` n'a plus qu'à générer la carte et construire la commande.
+ */
+export function resolveNewGameConfig(
+  raw: NewGameRawConfig,
+  factionIds: string[],
+  seed: number,
+): ResolvedNewGame {
+  let rng = seedRng(seed);
+  const pick = <T>(arr: readonly T[]): T => {
+    const r = rollRange(rng, 0, arr.length - 1);
+    rng = r.state;
+    return arr[r.value]!;
+  };
+  const seats: NewGameSeat[] = raw.slots
+    .filter((s) => s.controller !== 'off')
+    .map((s) => ({
+      controller: s.controller === 'ai' ? 'ai' : 'human',
+      factionId: s.factionId === RANDOM ? pick(factionIds) : s.factionId,
+    }));
+  const mapSize: MapSize = raw.mapSize === RANDOM ? pick(['small', 'medium', 'large'] as const) : raw.mapSize;
+  const resourceLevel: ResourceLevel =
+    raw.resourceLevel === RANDOM ? pick(['bas', 'standard', 'riche'] as const) : raw.resourceLevel;
+  const difficulty: SkirmishDifficulty =
+    raw.difficulty === RANDOM ? pick(NEWGAME_DIFFICULTIES) : raw.difficulty;
+  const dim = MAP_SIZE_DIMENSIONS[mapSize];
+  const res = RESOURCE_LEVEL_TUNING[resourceLevel];
+  return {
+    setup: { seats, difficulty, resourceMultiplier: res.start },
+    map: { width: dim, height: dim, startPositionCount: seats.length, resourceMultiplier: res.mapDensity },
+  };
+}
+
+/**
+ * Construit le `StartGame` d'une nouvelle partie à N joueurs — généralisation de
+ * `skirmishStartCommand` : mêmes rouages (villes T1 synthétisées, objectifs
+ * eliminate/defeatHero, villes neutres de la carte), mais un nombre quelconque
+ * de sièges humains (hot-seat) et/ou IA. La difficulté ne met à l'échelle QUE
+ * les sièges IA (armée + ressources + Fort) ; les humains restent à la base. Le
+ * réglage bas/riche multiplie le stock de départ de TOUS les joueurs.
+ */
+export function newGameStartCommand(
+  report: LoadReport,
+  config: NewGameSetupConfig,
+  seed: number,
+  map: ResolvedMap,
+): Command {
+  if (map.startPositions.length < config.seats.length) {
+    throw new Error(
+      `newGameStartCommand: ${config.seats.length} joueur(s) pour ` +
+        `${map.startPositions.length} position(s) de départ sur '${map.id}'`,
+    );
+  }
+  const packById = (id: string): FactionPack => {
+    const pack = report.content.packs.find((p) => p.manifest.id === id);
+    if (!pack) throw new Error(`newGameStartCommand: faction inconnue '${id}'`);
+    return pack;
+  };
+  const heroSetup = buildHeroSetup(report);
+  const buildingCatalog = buildBuildingCatalog(report) as Record<string, BuildingDef>;
+  const tuning = DIFFICULTY_TUNING[config.difficulty];
+  const gameConfig = report.content.config;
+
+  const seats = config.seats.map((seat, i) => {
+    const t1 = factionT1(packById(seat.factionId));
+    const isAi = seat.controller === 'ai';
+    const armyMult = isAi ? tuning.aiArmyMult : 1;
+    // Réglage bas/riche sur le stock, cumulé avec le bonus de ressources IA.
+    const resourceMult = config.resourceMultiplier * (isAi ? tuning.aiResourceMult : 1);
+    return {
+      id: `player-${i + 1}`,
+      controller: seat.controller,
+      factionId: seat.factionId,
+      army: [{ unitId: t1.unitId, count: Math.round(SKIRMISH_BASE_ARMY * armyMult) }],
+      resources: skirmishResources(gameConfig, resourceMult),
+      dwelling: t1.dwellingBuilding,
+      fort: isAi ? tuning.aiFort : false,
+    };
+  });
+
+  const players: PlayerSetup[] = seats.map((s) => ({
+    id: s.id,
+    startingResources: s.resources,
+    startingArmy: s.army.filter((a) => a.count > 0) as ArmyStack[],
+    startingAttributes: { ...heroSetup.startingAttributes },
+    startingSpells: [...heroSetup.startingSpells],
+    startingFactionId: s.factionId,
+    controller: s.controller,
+  }));
+
+  const towns: TownState[] = seats.map((s, i) => {
+    const buildings: Record<string, number> = { townHall: 1 };
+    if (s.dwelling) buildings[s.dwelling] = 1;
+    if (s.fort) buildings['fort'] = 1;
+    const pos = map.startPositions[i]!;
+    return {
+      id: `town-${s.id}`,
+      ownerPlayerId: s.id,
+      pos: { x: pos.x, y: pos.y },
+      factionId: s.factionId,
+      buildings,
+      builtToday: false,
+      garrison: [],
+      stock: {},
+      spellPool: [],
+    };
+  });
+
+  // Villes neutres de la carte (Alpha 4.13) — tout objet `town` non attribué.
+  const startTownIds = new Set(towns.map((t) => t.id));
+  for (const obj of map.objects) {
+    if (obj.type !== 'town' || startTownIds.has(obj.id)) continue;
+    towns.push({
+      id: obj.id,
+      ownerPlayerId: null,
+      pos: { x: obj.pos.x, y: obj.pos.y },
+      factionId: obj.factionId ?? '',
+      buildings: {},
+      builtToday: false,
+      garrison: (obj.garrison ?? []).map((st) => ({ ...st })),
+      stock: {},
+      spellPool: [],
+    });
+  }
+
+  const objectives: ScenarioState['objectives'] = {};
+  for (const s of seats) {
+    objectives[s.id] = {
+      victory: { type: 'eliminateAllEnemies' },
+      defeat: { type: 'defeatHero', heroId: `hero-${s.id}` },
+    };
+  }
+
+  const adventureMap = { ...map, objects: map.objects.filter((o) => o.type !== 'town') };
+
+  return {
+    type: 'StartGame',
+    seed,
+    players,
+    map: adventureMap,
+    config: gameConfig.adventure,
+    unitCatalog: buildUnitCatalog(report),
+    buildingCatalog,
+    towns,
+    spellCatalog: heroSetup.spellCatalog,
+    skillCatalog: heroSetup.skillCatalog,
+    artifactCatalog: heroSetup.artifactCatalog,
+    startingArtifacts: heroSetup.startingArtifacts,
+    factionCatalog: buildFactionSetup(report),
+    scenario: { objectives },
   };
 }

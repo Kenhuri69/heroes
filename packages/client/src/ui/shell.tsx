@@ -21,6 +21,8 @@ import { MenuScreen } from './MenuScreen';
 import { MapEditor } from './MapEditor';
 import { OptionsPanel } from './OptionsPanel';
 import { SkirmishScreen } from './SkirmishScreen';
+import { NewGameScreen } from './NewGameScreen';
+import { LoadingOverlay } from './LoadingOverlay';
 import { Journal } from './Journal';
 import { ToastHost } from './toasts';
 import { CombatUi } from './combat';
@@ -119,6 +121,7 @@ function Shell() {
   const townModal = modals.find((m): m is { kind: 'town'; townId: string } => m.kind === 'town');
   const journalModal = modals.some((m) => m.kind === 'journal');
   const skirmishModal = modals.some((m) => m.kind === 'skirmish');
+  const newgameModal = modals.some((m) => m.kind === 'newgame');
 
   return (
     <>
@@ -157,6 +160,7 @@ function Shell() {
       ) : null}
       {optionsModal && <OptionsPanel onClose={() => closeModalKind('options')} />}
       {skirmishModal && <SkirmishScreen onClose={() => closeModalKind('skirmish')} />}
+      {newgameModal && <NewGameScreen onClose={() => closeModalKind('newgame')} />}
       {townModal && <TownScreen townId={townModal.townId} onClose={() => closeModalKind('town')} />}
       {journalModal && <Journal onClose={() => closeModalKind('journal')} />}
       {pendingSkillHero && <SkillChoice hero={pendingSkillHero} />}
@@ -166,6 +170,7 @@ function Shell() {
       {started && !inCombat && <CutsceneOverlay />}
       {started && !inCombat && <DialogueBox />}
       <OutcomeOverlay />
+      <LoadingOverlay />
       <ToastHost />
     </>
   );

@@ -183,6 +183,22 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > repli cache, `/assets/` hashés cache-first, JSON de contenu
 > stale-while-revalidate ; enregistré en PROD only) — hors budget bundle ; smoke :
 > réseau coupé ⇒ l'app démarre depuis le cache.
+>
+> 🎲 **Écran « Nouvelle partie » configurable** (doc 09, lot 6.3 ; plan
+> `.claude/plans/phase-newgame-setup.md`). « Nouvelle partie » ouvre désormais une
+> modale de configuration (`NewGameScreen`) : faction par joueur, **2–4 joueurs**
+> (humain hot-seat / IA), taille de carte (Petite 24² / Moyenne 36² / Grande 48²),
+> quantité de ressources (Bas / Standard / Riche — échelle du stock de départ +
+> densité d'objets de la carte), difficulté IA et graine reproductible. **Chaque
+> paramètre peut rester sur « Aléatoire »**, tiré déterministiquement depuis la
+> graine (RNG seedé moteur, jamais `Math.random`). `generateMap` étendu (option
+> `startPositionCount` ⇒ N départs répartis en anneau ; `resourceMultiplier` +
+> densité ∝ aire) ; `resolveGeneratedMap` prend ces options ; commande
+> N-joueurs `newGameStartCommand` (généralise `skirmishStartCommand`). La
+> génération pouvant durer, un **overlay de chargement à barre de progression**
+> (`LoadingOverlay`, état `store.loading`) affiche l'avancée par étapes. **Zéro
+> diff moteur** (données + client uniquement ; garde-fou « zéro faction » vert,
+> pas de bump `CURRENT_SAVE_VERSION`).
 
 ---
 

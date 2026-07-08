@@ -700,10 +700,47 @@ test('menu : Nouvelle partie démarre, Continuer grisé sans sauvegarde', async 
   // tourne hors-ligne, le réseau n'est jamais touché (flag de config).
   await expect(page.getByTestId('menu-online')).toHaveCount(0);
 
+  // « Nouvelle partie » ouvre désormais l'écran de configuration ; « Lancer »
+  // (réglages par défaut) démarre la partie sur une carte générée.
   await page.getByTestId('menu-new-game').click();
+  await expect(page.getByTestId('newgame-screen')).toBeVisible();
+  await page.getByTestId('newgame-start').click();
   await expect(page.getByTestId('end-turn')).toBeVisible();
   const state = await page.evaluate(() => window.__HEROES_TEST__!.getState());
   expect(state.started).toBe(true);
+
+  expect(errors).toEqual([]);
+});
+
+test('nouvelle partie : configuration 3 joueurs + taille + ressources génèrent la partie', async ({
+  page,
+}) => {
+  const errors = collectErrors(page);
+  await page.goto('./');
+  await page.waitForFunction(() => window.__HEROES_READY__ === true);
+
+  await page.getByTestId('menu-new-game').click();
+  await expect(page.getByTestId('newgame-screen')).toBeVisible();
+
+  // 3 joueurs : un 3ᵉ siège apparaît, réglé en IA ; carte grande, ressources riches.
+  await page.getByTestId('newgame-players-3').click();
+  await expect(page.getByTestId('newgame-seat-2')).toBeVisible();
+  await page.getByTestId('newgame-seat-2-ai').click();
+  await page.getByTestId('newgame-size-large').click();
+  await page.getByTestId('newgame-resources-riche').click();
+
+  await page.getByTestId('newgame-start').click();
+
+  // Overlay de chargement affiché puis partie démarrée sur une carte générée 48×48.
+  await expect(page.getByTestId('end-turn')).toBeVisible();
+  const state = await page.evaluate(() => window.__HEROES_TEST__!.getState());
+  expect(state.started).toBe(true);
+  expect(state.players).toHaveLength(3);
+  expect(state.players[0]?.controller).toBe('human');
+  expect(state.map?.id).toBe('random');
+  expect(state.map?.width).toBe(48);
+  // Un héros par joueur, chacun à sa position de départ (3 positions générées).
+  expect(state.heroes).toHaveLength(3);
 
   expect(errors).toEqual([]);
 });
@@ -1953,6 +1990,7 @@ test('scénario : gagner « survie » contre l’IA (surviveDays)', async ({ pag
   // reconstruire une scène FRAÎCHE (auparavant l'ancienne carte était rejouée,
   // textures et listeners fuités). On enchaîne menu → partie → menu → partie.
   await page.getByTestId('menu-new-game').click();
+  await page.getByTestId('newgame-start').click();
   await expect(page.getByTestId('end-turn')).toBeVisible();
   const restarted = await page.evaluate(() => window.__HEROES_TEST__!.getState());
   expect(restarted.started).toBe(true);

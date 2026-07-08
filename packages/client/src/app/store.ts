@@ -135,6 +135,12 @@ export interface AppState {
   confirmEndTurn: boolean;
   /** Confirmation de fin de tour en attente (lot M8 C12) — overlay tap-tap ; null = aucune. */
   pendingEndTurn: { playerId: string } | null;
+  /**
+   * Chargement en cours (« Nouvelle partie » : génération de carte). `label` =
+   * clé i18n de l'étape ; `progress` ∈ [0,1]. `null` = aucun chargement. Rendu
+   * par `LoadingOverlay` (overlay bloquant à barre de progression).
+   */
+  loading: { label: string; progress: number } | null;
 }
 
 export const appStore = createStore<AppState>(() => ({
@@ -175,6 +181,7 @@ export const appStore = createStore<AppState>(() => ({
   reduceMotionOption: false,
   confirmEndTurn: true,
   pendingEndTurn: null,
+  loading: null,
 }));
 
 /** Hook Preact : re-rend quand la valeur sélectionnée change (égalité stricte). */

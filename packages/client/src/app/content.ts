@@ -60,10 +60,20 @@ export async function loadScenarioMap(report: LoadReport, scenario: Scenario): P
  * — un shim `readJson` sert la carte en mémoire, TOUTE la validation croisée
  * (schéma, franchissabilité, unités des gardiens) s'applique donc sans détour.
  */
-export async function resolveGeneratedMap(report: LoadReport, seed: number): Promise<ResolvedMap> {
+export async function resolveGeneratedMap(
+  report: LoadReport,
+  seed: number,
+  /**
+   * Options de génération (« Nouvelle partie », doc 09) : taille de carte,
+   * nombre de positions de départ (= nombre de joueurs) et densité de
+   * ressources (bas/riche). Absentes ⇒ défauts de `generateMap` (24×24, 2
+   * départs, densité standard) — l'escarmouche 2 joueurs reste inchangée.
+   */
+  opts: { width?: number; height?: number; startPositionCount?: number; resourceMultiplier?: number } = {},
+): Promise<ResolvedMap> {
   const config = report.content.config;
   const units = knownUnitIds(report);
-  const generated = generateMap('random', seed, { guardianUnits: [...units] });
+  const generated = generateMap('random', seed, { guardianUnits: [...units], ...opts });
   const readJson: ReadJson = (path) =>
     path === 'maps/random.map.json' ? Promise.resolve(generated) : readJsonFromSite(path);
   return loadMap(readJson, 'random', config, units, knownArtifactIds(report));

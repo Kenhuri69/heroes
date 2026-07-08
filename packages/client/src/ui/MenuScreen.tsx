@@ -16,9 +16,9 @@ import './menu.css';
  * pas de callback passé au shell) :
  * - « Continuer » appelle `restoreLatestSave()` — en cas de succès, `save.ts`
  *   bascule lui-même le store sur l'écran 'adventure' (`GameLoaded` émis).
- * - « Nouvelle partie » émet un CustomEvent DOM `heroes:new-game` sur
- *   `window` : c'est `main.ts` (intégration) qui l'écoute pour construire et
- *   lancer une commande `StartGame`, ce composant ne connaît pas la config.
+ * - « Nouvelle partie » ouvre la modale de configuration `NewGameScreen`
+ *   (`openModal({kind:'newgame'})`) : c'est cet écran qui émet ensuite
+ *   `heroes:start-newgame` avec la config, résolue et jouée par `main.ts`.
  * - Un scénario (plan phase-3.5, lot U) émet `heroes:start-scenario` avec
  *   `{ scenarioId }` en detail — même découplage, `main.ts` résout la carte
  *   (async) et construit la commande. La liste vient de `appStore.scenarios`
@@ -77,7 +77,7 @@ export function MenuScreen() {
         <button
           class="menu-button"
           data-testid="menu-new-game"
-          onClick={() => window.dispatchEvent(new CustomEvent('heroes:new-game'))}
+          onClick={() => openModal({ kind: 'newgame' })}
         >
           {t('menu.newGame')}
         </button>

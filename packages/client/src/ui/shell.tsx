@@ -32,6 +32,7 @@ import { DialogueBox } from './DialogueBox';
 import { CutsceneOverlay } from './CutsceneOverlay';
 import { MiniMap } from './MiniMap';
 import { QuestJournal } from './QuestJournal';
+import { MapObjectCard } from './MapObjectCard';
 import './tokens.css'; // design tokens UXD-1 — à charger avant toute feuille
 import './interactions.css'; // micro-interactions & transitions UXD-7
 import './styles.css';
@@ -111,6 +112,8 @@ function Shell() {
             </div>
             {/* Mini-carte : unique instance, montée dans le tiroir/colonne héros
                 (bascule mobile, colonne persistante desktop). Plus de widget flottant. */}
+            {/* Fiche d'objet de carte (doc 08 §2.1, lot M2) — appui long sur la carte. */}
+            <MapObjectCard />
           </>
         )
       ) : null}
@@ -311,6 +314,7 @@ function TurnBar({ onOpenOptions }: { onOpenOptions: () => void }) {
   const hero = useApp((s) => resolveSelectedHero(s.game, s.selectedHeroId));
   const hint = useApp((s) => s.guardianHint);
   const bands = useApp((s) => s.strengthBands);
+  const pathPreviewActive = useApp((s) => s.pathPreviewActive);
   // Réf `s.game` stable puis dérivation dans le corps (cf. HeroStrip) : un
   // sélecteur `humanTowns(s.game)` renverrait un nouveau tableau → boucle infinie.
   const towns = humanTowns(useApp((s) => s.game));
@@ -328,6 +332,18 @@ function TurnBar({ onOpenOptions }: { onOpenOptions: () => void }) {
           <span class="guardian-hint" data-testid="guardian-hint">
             <UiIcon id="act-combat" fallback="⚔" /> {guardianBand(hint.count, bands)}
           </span>
+        )}
+        {/* Annulation de la préviz (doc 08 §3, lot M2 C7) — pas d'undo après
+            exécution : une découverte a pu être révélée. */}
+        {pathPreviewActive && (
+          <button
+            type="button"
+            class="cancel-path"
+            data-testid="cancel-path"
+            onClick={() => window.dispatchEvent(new CustomEvent('heroes:cancel-path'))}
+          >
+            {t('adventure.cancelPath')}
+          </button>
         )}
       </div>
       <div class="actions">

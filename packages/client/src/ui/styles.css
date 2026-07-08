@@ -437,3 +437,64 @@
   line-height: 1.35;
   opacity: 0.82;
 }
+
+/* Annulation de déplacement (doc 08 §3, lot M2 C7) : visible pendant la préviz. */
+.cancel-path {
+  min-height: 44px;
+  padding: 6px 12px;
+  border: 1px solid var(--blood-bright);
+  border-radius: var(--radius-m);
+  background: var(--blood-veil);
+  color: var(--parchment);
+  font: 600 0.85rem var(--font-ui);
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+/* Fiche d'objet de carte (doc 08 §2.1 « appui long = fiche », lot M2 C6). */
+.map-card-backdrop {
+  position: fixed;
+  inset: 0;
+  background: var(--veil-60);
+  pointer-events: auto;
+}
+
+.map-card {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(92vw, 22rem);
+  padding: 12px 16px;
+  border: 1px solid var(--ink-600);
+  border-radius: var(--radius-m);
+  background: var(--ink-800);
+}
+
+.map-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.map-card-header h3 {
+  margin: 0;
+  font: 700 1rem var(--font-display);
+}
+
+.map-card-close {
+  min-width: 44px;
+  min-height: 44px;
+  border: 1px solid var(--ink-600);
+  border-radius: var(--radius-s);
+  background: var(--ink-700);
+  color: var(--parchment);
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.map-card-line {
+  margin: 8px 0 0;
+  font-size: 0.9rem;
+}

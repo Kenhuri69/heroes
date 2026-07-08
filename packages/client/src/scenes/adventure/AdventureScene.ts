@@ -25,7 +25,8 @@ import { FogOverlay } from '../../render/fog';
 import { buildHeroSprite } from '../../render/heroSprite';
 import { buildWorldBorder } from '../../render/worldBorder';
 import { PathPreview, type PreviewStep } from '../../render/pathPreview';
-import { onTap } from '../../input/pointer';
+import { onLongPress, onTap } from '../../input/pointer';
+import { t } from '../../app/i18n';
 
 const PLAYER_COLOR = 0xc0392b;
 const STEP_ANIMATION_MS = 110;
@@ -63,6 +64,9 @@ export class AdventureScene {
   private destroyed = false;
   private readonly unsubscribeStore: () => void;
   private readonly unsubscribeTap: () => void;
+  private readonly unsubscribeLongPress: () => void;
+  /** Bouton DOM « Annuler le déplacement » (doc 08 §3, lot M2) → efface la préviz. */
+  private readonly onCancelPath = (): void => this.clearPreview();
 
   constructor(
     app: Application,
@@ -79,7 +83,7 @@ export class AdventureScene {
     this.container.addChild(
       buildWorldBorder(map), // UXD-3A : mer + rivage sous la tuile (plus de letterbox noir)
       tilemap.container,
-      this.preview.graphics,
+      this.preview.container,
       this.selectionRing, // marqueur au sol, sous les entités
       this.entities,
       this.fog.graphics,
@@ -87,6 +91,8 @@ export class AdventureScene {
 
     this.unsubscribeStore = appStore.subscribe(() => this.sync());
     this.unsubscribeTap = onTap(app, (global) => void this.handleTap(global));
+    this.unsubscribeLongPress = onLongPress(app, (global) => this.handleLongPress(global));
+    window.addEventListener('heroes:cancel-path', this.onCancelPath);
     this.sync();
   }
 
@@ -100,6 +106,8 @@ export class AdventureScene {
     this.destroyed = true;
     this.unsubscribeStore();
     this.unsubscribeTap();
+    this.unsubscribeLongPress();
+    window.removeEventListener('heroes:cancel-path', this.onCancelPath);
     this.container.destroy({ children: true, texture: true });
   }
 
@@ -268,7 +276,28 @@ export class AdventureScene {
       prev = step;
     }
     this.previewTarget = { target: tile, path };
-    this.preview.show(steps);
+    this.preview.show(steps, (day) => t('adventure.pathDay', { day }));
+    appStore.setState({ pathPreviewActive: true });
+  }
+
+  /**
+   * Appui long sur une tuile EXPLORÉE portant un objet ⇒ fiche (doc 08 §2.1,
+   * lot M2 C6). Le brouillard reste opaque : pas de fiche sous une tuile non
+   * explorée (aucune fuite d'information).
+   */
+  private handleLongPress(global: Point): void {
+    if (this.destroyed) return;
+    const { game } = appStore.getState();
+    if (game.combat) return;
+    const { map } = game;
+    const player = game.players.find((p) => p.id === humanId(game));
+    if (!map || !player) return;
+    const local = this.container.toLocal(global);
+    const tile: GridPos = isoWorldToTile(local.x, local.y);
+    if (tile.x < 0 || tile.y < 0 || tile.x >= map.width || tile.y >= map.height) return;
+    if (!player.explored[tile.y * map.width + tile.x]) return;
+    const object = map.objects.find((o) => samePos(o.pos, tile));
+    if (object) appStore.setState({ mapCard: object });
   }
 
   /**
@@ -292,6 +321,7 @@ export class AdventureScene {
     this.previewTarget = null;
     this.preview.clear();
     if (appStore.getState().guardianHint) appStore.setState({ guardianHint: null });
+    if (appStore.getState().pathPreviewActive) appStore.setState({ pathPreviewActive: false });
   }
 
   /** Anime les `MoveStepped` tuile par tuile — l'état a déjà « sauté » (doc 07 §3). */

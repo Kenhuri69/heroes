@@ -157,6 +157,61 @@ test('tap-tap : déplacement scripté, ramassage, points décomptés', async ({ 
   expect(errors).toEqual([]);
 });
 
+test("préviz de chemin : « Annuler le déplacement » efface l'aperçu (doc 08 §3, lot M2)", async ({
+  page,
+}) => {
+  const errors = await openGame(page);
+
+  // 1er tap = prévisualisation ⇒ le bouton d'annulation apparaît.
+  const screen = await page.evaluate(() => window.__HEROES_TEST__!.tileToScreen(6, 3));
+  await page.mouse.click(screen.x, screen.y);
+  await expect(page.getByTestId('cancel-path')).toBeVisible();
+
+  await page.getByTestId('cancel-path').click();
+  await expect(page.getByTestId('cancel-path')).toBeHidden();
+
+  // La préviz est bien annulée : le héros n'a pas bougé, aucun PM dépensé.
+  const state = await page.evaluate(() => window.__HEROES_TEST__!.getState());
+  expect(state.heroes[0]?.pos).toEqual({ x: 3, y: 3 });
+  expect(state.heroes[0]?.movementPoints).toBe(1700);
+
+  expect(errors).toEqual([]);
+});
+
+test("appui long sur la mine (3,6) : fiche d'objet de carte (doc 08 §2.1, lot M2)", async ({
+  page,
+}) => {
+  const errors = await openGame(page);
+
+  // En mobile, la tuile (3,6) tombe sous le HUD bas (DOM) : on PAN d'abord le
+  // canvas pour amener la mine au centre du viewport (zone canvas nue), puis
+  // appui maintenu ~600 ms sans bouger (tuile explorée : rayon de vision 5).
+  const vp = page.viewportSize()!;
+  const cx = vp.width / 2;
+  const cy = vp.height / 2;
+  const before = await page.evaluate(() => window.__HEROES_TEST__!.tileToScreen(3, 6));
+  await page.mouse.move(cx, cy);
+  await page.mouse.down();
+  await page.mouse.move(cx + (cx - before.x), cy + (cy - before.y), { steps: 8 });
+  await page.mouse.up();
+  const screen = await page.evaluate(() => window.__HEROES_TEST__!.tileToScreen(3, 6));
+  await page.mouse.move(screen.x, screen.y);
+  await page.mouse.down();
+  // Marge large sur les 450 ms du geste : sous charge CI, le setTimeout du
+  // long-press peut être retardé — un maintien trop court le fait annuler par
+  // la relâche.
+  await page.waitForTimeout(900);
+  await page.mouse.up();
+
+  const card = page.getByTestId('map-card');
+  await expect(card).toBeVisible();
+  await expect(card).toContainText(/jour|day/i); // revenu quotidien de la mine
+  await page.getByTestId('map-card-close').click();
+  await expect(card).toBeHidden();
+
+  expect(errors).toEqual([]);
+});
+
 test('fin de tour : jour suivant, points de mouvement restaurés', async ({ page }) => {
   const errors = await openGame(page);
 

@@ -50,3 +50,60 @@ export function onTap(app: Application, handler: (global: Point) => void): () =>
     app.stage.off('pointerupoutside', release);
   };
 }
+
+const LONG_PRESS_MS = 450;
+
+/**
+ * Détection d'appui long (doc 08 §2.1 « appui long = fiche », lot M2) : un seul
+ * pointeur maintenu ~450 ms sans bouger — annulé par un déplacement (pan), un
+ * second doigt (pinch) ou une relâche anticipée (qui redevient un tap normal).
+ * Souris ET tactile (parité doc 08 §1.1). Même symétrie de désabonnement
+ * qu'`onTap`.
+ */
+export function onLongPress(app: Application, handler: (global: Point) => void): () => void {
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  let downId: number | null = null;
+  let downPos = new Point();
+
+  const cancel = (): void => {
+    if (timer !== null) clearTimeout(timer);
+    timer = null;
+    downId = null;
+  };
+
+  const onDown = (e: FederatedPointerEvent): void => {
+    if (downId !== null) {
+      cancel(); // second pointeur : pinch, pas un appui long
+      return;
+    }
+    downId = e.pointerId;
+    downPos = e.global.clone();
+    timer = setTimeout(() => {
+      timer = null;
+      downId = null;
+      handler(downPos.clone());
+    }, LONG_PRESS_MS);
+  };
+
+  const onMove = (e: FederatedPointerEvent): void => {
+    if (e.pointerId !== downId) return;
+    const dist = Math.hypot(e.global.x - downPos.x, e.global.y - downPos.y);
+    if (dist > TAP_MAX_DISTANCE) cancel();
+  };
+
+  const release = (e: FederatedPointerEvent): void => {
+    if (e.pointerId === downId) cancel();
+  };
+
+  app.stage.on('pointerdown', onDown);
+  app.stage.on('pointermove', onMove);
+  app.stage.on('pointerup', release);
+  app.stage.on('pointerupoutside', release);
+  return () => {
+    cancel();
+    app.stage.off('pointerdown', onDown);
+    app.stage.off('pointermove', onMove);
+    app.stage.off('pointerup', release);
+    app.stage.off('pointerupoutside', release);
+  };
+}

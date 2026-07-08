@@ -89,6 +89,16 @@ async function tapTapTile(page: Page, x: number, y: number): Promise<void> {
 }
 
 /**
+ * Écran pré-combat (Lot 1, fidélité HoMM Online) : intercalé au démarrage de
+ * TOUT combat. `'fight'` passe à la conduite manuelle (révèle `CombatUi`),
+ * `'auto'` lance l'Auto-Battle (résolution déterministe immédiate).
+ */
+async function passPreBattle(page: Page, mode: 'fight' | 'auto' = 'fight'): Promise<void> {
+  await expect(page.getByTestId('pre-battle')).toBeVisible();
+  await page.getByTestId(mode === 'auto' ? 'pre-battle-auto' : 'pre-battle-fight').click();
+}
+
+/**
  * Trace les réponses d'images (lot intégration des assets) : `failed` = tout
  * PNG/JPG servi en ≥ 400 (le registre ne doit référencer que des fichiers
  * présents), `loaded` = URLs servies en < 400. À brancher AVANT `openGame`.
@@ -364,7 +374,8 @@ test('combat : victoire contre le gardien, retour carte avec pertes appliquées'
     }),
   );
 
-  // Le combat est ouvert : le héros n'est PAS entré sur la tuile du gardien.
+  // Le combat est ouvert : écran pré-combat (Lot 1) d'abord, puis conduite manuelle.
+  await passPreBattle(page);
   await expect(page.getByTestId('combat-round')).toBeVisible();
   await expect.poll(() => heroPos(page)).toEqual({ x: 8, y: 2 });
   const combat = await page.evaluate(() => window.__HEROES_TEST__!.getState().combat);
@@ -387,11 +398,56 @@ test('combat : victoire contre le gardien, retour carte avec pertes appliquées'
   expect(errors).toEqual([]);
 });
 
+test('écran pré-combat : puissances comparées + Auto-Battle résout (Lot 1)', async ({ page }) => {
+  const errors = await openGame(page);
+
+  // Interception du gardien (9,3) — même chemin que le test de combat.
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({
+      type: 'MoveHero',
+      heroId: 'hero-player-1',
+      path: [
+        { x: 4, y: 2 },
+        { x: 5, y: 2 },
+        { x: 6, y: 2 },
+        { x: 7, y: 2 },
+        { x: 8, y: 2 },
+        { x: 9, y: 3 },
+      ],
+    }),
+  );
+
+  // L'écran pré-combat (fidélité HoMM Online) s'affiche AVANT le plateau hex :
+  // deux puissances comparées, le plateau (CombatUi) encore masqué.
+  await expect(page.getByTestId('pre-battle')).toBeVisible();
+  await expect(page.getByTestId('combat-round')).toHaveCount(0);
+  const power = (id: string): Promise<number> =>
+    page.getByTestId(id).evaluate((el) => Number(el.textContent));
+  const atk = await power('pre-battle-power-attacker');
+  const def = await power('pre-battle-power-defender');
+  expect(atk).toBeGreaterThan(0);
+  expect(def).toBeGreaterThan(0);
+  expect(atk).toBeGreaterThan(def); // 32 unités vs 4 : le joueur domine
+
+  // Auto-Battle : résolution déterministe immédiate, retour à l'aventure.
+  await page.getByTestId('pre-battle-auto').click();
+  await expect
+    .poll(() => page.evaluate(() => window.__HEROES_TEST__!.getState().combat))
+    .toBeNull();
+  await expect(page.getByTestId('end-turn')).toBeVisible();
+  expect(await page.evaluate(() => window.__HEROES_TEST__!.getState().heroes[0]?.id)).toBe(
+    'hero-player-1',
+  ); // victoire : le héros survit
+
+  expect(errors).toEqual([]);
+});
+
 test("l'arène /#arena ouvre un combat immédiat et se résout en auto", async ({ page }) => {
   const errors = collectErrors(page);
   await page.goto('./?seed=42#arena');
   await page.waitForFunction(() => window.__HEROES_READY__ === true);
 
+  await passPreBattle(page); // écran pré-combat (Lot 1) même en arène
   await expect(page.getByTestId('combat-round')).toHaveText('Round 1');
   await expect(page.getByTestId('damage-preview')).toBeVisible();
   const stacks = await page.evaluate(
@@ -414,6 +470,7 @@ test("combat : la file d'ordre s'affiche (actif en tête) et la fiche de pile s'
   const errors = collectErrors(page);
   await page.goto('./?seed=42#arena');
   await page.waitForFunction(() => window.__HEROES_READY__ === true);
+  await passPreBattle(page); // écran pré-combat (Lot 1) → plateau
 
   // Lot M1 (C13) : file d'ordre de passage — la 1ʳᵉ vignette est la pile active.
   const order = page.getByTestId('combat-order');
@@ -476,6 +533,7 @@ test('arène : fluidité sous throttling CPU ×4 (doc 10 §6)', async ({ page },
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
   await page.goto('./?seed=42#arena');
   await page.waitForFunction(() => window.__HEROES_READY__ === true);
+  await passPreBattle(page); // dismiss l'écran pré-combat pour mesurer la scène de combat
 
   // Garde-fou ANTI-GEL, pas budget de perf : le runner CI partagé rend en
   // LOGICIEL (SwiftShader) sous throttling ×4 — mesuré ~10 fps, variable avec
@@ -761,6 +819,7 @@ test('télémétrie : opt-in enregistre tours + combats auto, en local (Alpha 4.
       ],
     }),
   );
+  await passPreBattle(page);
   await expect(page.getByTestId('combat-round')).toBeVisible();
   await page.getByTestId('combat-auto').click();
   await expect
@@ -879,6 +938,7 @@ test('siège : marcher sur une ville neutre défendue ⇒ combat ⇒ capture (Al
     .toBe('neutral-keep');
 
   // Auto-résolution : l'armée de départ écrase la garnison ⇒ capture.
+  await passPreBattle(page);
   await page.getByTestId('combat-auto').click();
   await expect
     .poll(() => page.evaluate(() => window.__HEROES_TEST__!.getState().combat))
@@ -977,6 +1037,7 @@ test('XP : la victoire contre le gardien crédite le héros', async ({ page }) =
       ],
     }),
   );
+  await passPreBattle(page);
   await expect(page.getByTestId('combat-round')).toBeVisible();
   await page.evaluate(() => window.__HEROES_TEST__!.dispatch({ type: 'AutoCombat' }));
   await expect
@@ -1242,6 +1303,7 @@ test('sort : le héros lance un sort en combat et réduit une pile ennemie', asy
       ],
     }),
   );
+  await passPreBattle(page);
   await expect(page.getByTestId('combat-round')).toBeVisible();
 
   // Dotation de départ (config.newGame.startingHero) : Savoir 4 ⇒ 40 mana,
@@ -1602,6 +1664,7 @@ test('bark de combat : une réplique s’affiche au début d’un combat de camp
       terrain: 'grass',
     }),
   );
+  await passPreBattle(page);
   await expect(page.getByTestId('combat-round')).toBeVisible();
   const bark = page.getByTestId('combat-bark');
   await expect(bark).toBeVisible();

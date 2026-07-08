@@ -1,0 +1,128 @@
+/* Écran pré-combat (Lot 1) — overlay centré façon HoMM Online. Couleurs via
+   tokens uniquement (garde-fou CI : aucun hex/rgba hors ui/tokens.css). */
+.pre-battle-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: var(--veil-deep);
+  /* #ui-root est pointer-events:none : ré-activer pour capter le clic (sinon il
+     traverse vers le canvas de combat en dessous, index.html). */
+  pointer-events: auto;
+}
+
+.pre-battle {
+  width: min(560px, 100%);
+  padding: 20px 20px 16px;
+  border: 1px solid var(--ink-600);
+  border-radius: var(--radius-l);
+  background: var(--ink-800);
+  box-shadow: 0 12px 40px var(--shadow-60);
+  text-align: center;
+}
+
+.pre-battle-title {
+  margin: 0 0 16px;
+  font-size: 1.5rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--parchment-bright);
+}
+
+.pre-battle-sides {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.pre-battle-side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.pre-battle-portrait {
+  width: 72px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pre-battle-avatar {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 2px solid var(--brass-bright);
+}
+
+.pre-battle-name {
+  font-size: 0.9rem;
+  color: var(--parchment-bright);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pre-battle-power {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--gold);
+}
+
+.pre-battle-versus {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 0 6px;
+}
+
+.pre-battle-versus-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.75;
+}
+
+.pre-battle-versus-value {
+  font-size: 0.95rem;
+  font-weight: 600;
+  opacity: 0.9;
+}
+
+.pre-battle-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.pre-battle-actions button {
+  min-height: 44px; /* cible tactile (doc 08 §1) */
+  padding: 0 22px;
+  border-radius: var(--radius-m);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pre-battle-fight {
+  background: var(--blood-bright);
+  color: var(--parchment-bright);
+  border: 1px solid var(--blood-bright);
+}
+
+.pre-battle-auto {
+  background: transparent;
+  color: var(--parchment-bright);
+  border: 1px solid var(--brass-bright);
+}

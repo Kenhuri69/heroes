@@ -109,6 +109,13 @@ export interface AppState {
   campaignFlags: Record<string, boolean>;
   /** Bark de combat affiché (doc 13 §6.3, N4b) — clé de locale ; null hors combat. */
   combatBark: string | null;
+  /**
+   * Écran pré-combat (Lot 1, fidélité HoMM Online) : `true` dès qu'un combat
+   * démarre, jusqu'à ce que le joueur choisisse « Combattre » (→ conduite
+   * manuelle) ou « Auto-Battle » (→ `AutoCombat`). Armé/désarmé par `dispatch`
+   * aux transitions de `game.combat`.
+   */
+  preBattlePending: boolean;
   /** Volume musique 0-1 (UXD-6B) — miroir du localStorage, réglé aux Options. */
   musicVolume: number;
   /** Volume effets 0-1 (UXD-6B) — miroir du localStorage. */
@@ -145,6 +152,7 @@ export const appStore = createStore<AppState>(() => ({
   cutsceneActive: false,
   campaignFlags: {},
   combatBark: null,
+  preBattlePending: false,
   musicVolume: 0.35,
   sfxVolume: 0.6,
 }));

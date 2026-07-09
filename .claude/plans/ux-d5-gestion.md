@@ -15,11 +15,12 @@
   coup d'œil ce qui est bâti, ce qu'on peut bâtir aujourd'hui, ce qui reste
   verrouillé — la ville « se remplit » (doc 08 §2.2).
 - **Hors périmètre (suivis notés)** :
-  - **Poupée d'équipement typée par slot** (doc 08 §2.3) : les artefacts n'ont
-    aucun champ `slot` dans les données (`data/core/artifacts.json` = id +
-    bonus). Un doll typé exigerait un changement de schéma/moteur — hors d'un
-    lot UX purement client. Reste en suivi jusqu'à ce que les données portent
-    les types de slots.
+  - **Poupée d'équipement typée par slot** (doc 08 §2.3) : ✅ **livrée** au lot
+    de suivi `.claude/plans/ux-d5b-poupee-equipement.md` — champ de données
+    `slot` optionnel (présentation pure, jamais lu par le moteur) + poupée à 10
+    emplacements nommés + sac. (À l'origine reportée faute de champ `slot` dans
+    `data/core/artifacts.json` ; ce lot l'ajoute en donnée, sans toucher au
+    comportement moteur.)
   - **Réalignement Menu/Options/Journal/SpellBook/Skirmish sur UXD-1** : le
     garde-fou couleurs CI (UXD-1) interdit déjà tout `#hex`/`rgba()` hors
     `tokens.css` ⇒ ces écrans sont déjà sur tokens. Pas de dette résiduelle

@@ -76,6 +76,24 @@ export interface HeroSkillDef {
   school?: SpellSchool;
 }
 
+/**
+ * Emplacement typé de la poupée d'équipement (doc 08 §2.3, lot UXD-5b).
+ * Donnée de PRÉSENTATION pure : le moteur ne la lit jamais (aucun
+ * `if (slot === …)`), les bonus se somment quel que soit l'emplacement. Elle
+ * sert uniquement au regroupement typé de l'écran héros côté client.
+ */
+export type ArtifactSlot =
+  | 'head'
+  | 'neck'
+  | 'torso'
+  | 'weapon'
+  | 'shield'
+  | 'cloak'
+  | 'hands'
+  | 'feet'
+  | 'ring'
+  | 'misc';
+
 /** Bonus déclaratifs cumulatifs d'un artefact (doc 02 §1.1, doc 08 §2.3). */
 export interface ArtifactDef {
   id: string;
@@ -88,6 +106,8 @@ export interface ArtifactDef {
     morale?: number;
     manaMax?: number;
   };
+  /** Emplacement de poupée (présentation client, jamais lu par le moteur). */
+  slot?: ArtifactSlot;
 }
 
 /** Statut temporaire appliqué à une pile par un sort (buff/debuff). */

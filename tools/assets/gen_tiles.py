@@ -306,7 +306,7 @@ TERRAIN_RECIPES = {
 # pose debout, base au sol, au-dessus du losange texturé (`tilemap.ts`).
 
 PROP_W, PROP_H = 64, 96      # boîte du billboard procédural (transparente)
-PROP_VARIANTS = 5
+PROP_VARIANTS = 6
 PROP_GROUND = PROP_H - 6     # ligne de sol (base des troncs / de la montagne)
 
 

@@ -36,7 +36,8 @@
 
 ## Hors périmètre / suivi
 
-- Refonte du layout desktop en colonne droite (suivi séparé).
+- Refonte du layout desktop en colonne droite : clôturée (le tiroir persistant
+  EST le rail droit — voir `ux-d8-desktop-minimap.md`).
 - `MiniMap` aria-label encore en dur FR (`Mini-carte (N héros)`, hérité d'UXD-8)
-  — hole i18n **pré-existant**, non corrigé ici (chirurgie) ; à traiter dans une
-  passe i18n dédiée.
+  — hole i18n **pré-existant** : ✅ **corrigé** (`.claude/plans/i18n-minimap-aria.md`,
+  clé `hero.minimapAria` FR/EN + réactivité locale).

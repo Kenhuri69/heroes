@@ -155,6 +155,7 @@
   "hero.skillsTitle": "Skills",
   "hero.noSkills": "No skills",
   "hero.minimapTitle": "Adventure map",
+  "hero.minimapAria": "Minimap ({count} heroes)",
   "hero.inventoryTitle": "Inventory",
   "hero.inventoryEmptySlot": "Empty",
   "hero.equipmentTitle": "Equipment",

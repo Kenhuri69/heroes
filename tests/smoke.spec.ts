@@ -1789,6 +1789,12 @@ test('multi-héros / multi-villes : bandeau de portraits + liste de villes (U4)'
   await expect(page.getByTestId('town-tab-build')).toBeVisible();
   await page.getByTestId('town-close').click();
 
+  // Mini-carte : aria-label LOCALISÉ (i18n hole comblé) — plus de FR en dur.
+  // `toBeAttached` : le tiroir/colonne est dans le DOM sur les deux viewports.
+  const minimap = page.getByTestId('mini-map-drawer');
+  await expect(minimap).toBeAttached();
+  await expect(minimap).toHaveAttribute('aria-label', /^Mini-carte \(\d+ héros\)$/);
+
   expect(errors).toEqual([]);
 });
 

@@ -331,16 +331,17 @@ intercalé dès qu'un sourcing est validé).
   (`ux-d5b-poupee-equipement.md` : champ de données `slot` de présentation pure,
   10 emplacements nommés + sac, moteur intact) ; réalignement écrans annexes
   déjà couvert par le garde-fou couleurs CI (UXD-1).
-- [~] UXD-6 — audio : cadrage + prompts (#101) + **architecture 6B** +
+- [x] UXD-6 — audio : cadrage + prompts (#101) + **architecture 6B** +
   **6C musiques déposées** (menu/aventure/combat/ville, OGG+M4A, < 800 Ko/boucle) +
   **6D 6 SFX procéduraux** (`gen_sfx.py` déterministe : combat-hit/spell/death,
   end-turn, map-step/pickup) + **6E jingles victoire/défaite** (procéduraux,
   câblés sur `GameEnded`, boucle de fond coupée pendant le jingle ; vérifiés
   runtime) + **6F son de tap d'UI** (`ui-tap` à l'appui des boutons, pur client)
   + **6G SFX de toasts** `ui-confirm`/`ui-error` (typage `ToastKind` info/succès/
-  erreur + accent visuel + SFX ; `ux-d6b-sfx-toasts.md`) (`ux-d6-audio.md`) ;
-  reste `combat-shoot` seul (bloqué : champ `ranged` sur `StackAttacked`, impact
-  golden replay).
+  erreur + accent visuel + SFX ; `ux-d6b-sfx-toasts.md`)
+  + **6H SFX de tir** `combat-shoot` (champ `ranged` sur `StackAttacked` —
+  golden **non** impacté, événement transitoire ; `ux-d6c-combat-shoot.md`)
+  (`ux-d6-audio.md`). **UXD-6 complet, plus aucun reste.**
 - [x] UXD-7 — micro-interactions & transitions (`ux-d7-micro-interactions.md`).
 - [x] UXD-8 — **colonne droite desktop livrée**. Le **tiroir héros persistant**
   EST le rail droit desktop (≥900px : `right:0`, 300px, portraits + mini-map +

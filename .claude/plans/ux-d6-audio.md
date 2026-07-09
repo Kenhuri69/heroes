@@ -149,9 +149,24 @@ Retour tactile audio à l'appui des boutons d'UI (pur client).
 - **Vérif runtime** (build de prod) : clic dans le vide (déblocage) ⇒ 0 tap ;
   clic sur un bouton de menu ⇒ **1 `ui-tap.ogg`** ; 0 erreur console. Typecheck/
   lint/build verts, budget JS/CSS inchangé (253 Ko gzip).
-- **Reste** : `combat-shoot` (tir à distance) — demande un champ `ranged` sur
-  l'événement moteur `StackAttacked` (impact golden replay) : différé, gain
-  marginal.
+## Livraison 6H — SFX de tir combat-shoot (2026-07-09)
+
+Dernier item audio, livré (plan `.claude/plans/ux-d6c-combat-shoot.md`).
+
+- **Réévaluation du « blocage »** : le golden hache l'ÉTAT FINAL (`hashState`),
+  pas les événements ; `StackAttacked` est transitoire. Ajouter un champ à
+  l'événement **n'impacte pas le golden** (confirmé : hash inchangé) — l'item
+  n'était pas réellement bloqué.
+- `core/events.ts` : champ `ranged: boolean` sur `StackAttacked` ;
+  `combat/damage.ts` le propage (valeur déjà calculée par `canShoot` et passée
+  à `performStrike`).
+- `gen_sfx.py` : recette `combat-shoot` (swish de flèche + twang), OGG+M4A hors
+  bundle. `app/audio.ts` : `StackAttacked` ⇒ `combat-shoot` si `ranged`, sinon
+  `combat-hit`.
+- Tests moteur : le tir émet `ranged: true`, la mêlée forcée `ranged: false`
+  (assertions dans les tests tireur existants) ; golden inchangé, 401 verts.
+
+**UXD-6 : plus aucun reste.**
 
 ## Livraison 6G — SFX de toasts ui-confirm / ui-error (2026-07-09)
 

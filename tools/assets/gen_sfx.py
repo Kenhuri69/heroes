@@ -169,6 +169,13 @@ def sfx_combat_spell() -> list[float]:
     return normalize(add(sweep, octave, shimmer), 0.7)
 
 
+def sfx_combat_shoot() -> list[float]:
+    # Départ de flèche : « swish » bruité filtré passe-bande + court twang de corde.
+    swish = mul(one_pole_hp(one_pole_lp(noise(0.22, 6), 5000), 1200), exp_env(0.22, 22, attack=0.004))
+    twang = mul(saw_tone(320, 0.10, partials=4), exp_env(0.10, 45))
+    return normalize(add(scale(swish, 0.8), scale(twang, 0.5)), 0.62)
+
+
 def sfx_combat_death() -> list[float]:
     fall = mul(chirp(320, 70, 0.45), exp_env(0.5, 4.0, attack=0.01))
     clatter = mul(one_pole_lp(noise(0.5, 4), 3200), exp_env(0.5, 8.0))
@@ -242,6 +249,7 @@ EFFECTS = {
     "ui-confirm": sfx_ui_confirm,
     "ui-error": sfx_ui_error,
     "combat-hit": sfx_combat_hit,
+    "combat-shoot": sfx_combat_shoot,
     "combat-spell": sfx_combat_spell,
     "combat-death": sfx_combat_death,
     "end-turn": sfx_end_turn,

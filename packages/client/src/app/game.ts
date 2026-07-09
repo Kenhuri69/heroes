@@ -648,6 +648,8 @@ export function skirmishStartCommand(
 export interface NewGameSeat {
   controller: 'human' | 'ai';
   factionId: string;
+  /** Équipe/alliance (doc 02 §6) — 0 = sans alliance ; même n° = alliés. */
+  team: number;
 }
 
 /**
@@ -692,6 +694,8 @@ export interface NewGameSlot {
   factionId: string;
   /** Couleur du joueur (0xRRGGBB) — présentation client uniquement (lot 6.4). */
   color: number;
+  /** Équipe/alliance (doc 02 §6) — 0 = sans alliance ; même n° = alliés. */
+  team: number;
 }
 
 /** Configuration BRUTE émise par l'écran « Nouvelle partie » (paramètres possiblement `RANDOM`). */
@@ -735,6 +739,7 @@ export function resolveNewGameConfig(
   const seats: NewGameSeat[] = openSlots.map((s) => ({
     controller: s.controller === 'ai' ? 'ai' : 'human',
     factionId: s.factionId === RANDOM ? pick(factionIds) : s.factionId,
+    team: s.team,
   }));
   // Couleur par joueur, alignée sur l'ordre des sièges (= `player-{i+1}` du moteur).
   const colors: Record<string, number> = {};
@@ -795,6 +800,7 @@ export function newGameStartCommand(
       id: `player-${i + 1}`,
       controller: seat.controller,
       factionId: seat.factionId,
+      team: seat.team,
       army: [{ unitId: t1.unitId, count: Math.round(SKIRMISH_BASE_ARMY * armyMult) }],
       resources: skirmishResources(gameConfig, resourceMult),
       dwelling: t1.dwellingBuilding,
@@ -810,6 +816,7 @@ export function newGameStartCommand(
     startingSpells: [...heroSetup.startingSpells],
     startingFactionId: s.factionId,
     controller: s.controller,
+    team: s.team,
   }));
 
   const towns: TownState[] = seats.map((s, i) => {

@@ -398,6 +398,7 @@ const handlers: Handlers = {
       // départ ; 0 (armé, possède) sinon (doc 02 §4.1).
       townlessDays: (cmd.towns ?? []).some((t) => t.ownerPlayerId === p.id) ? 0 : -1,
       huntContract: null,
+      team: p.team ?? 0,
     }));
     // Un héros par joueur à sa position de départ, armée de scénario (doc 02 §1.5, §5.1).
     draft.heroes = cmd.players.map((p, i) => ({

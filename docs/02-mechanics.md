@@ -308,6 +308,15 @@ Heuristique par pile : score = dégâts espérés × valeur de la cible − risq
 > triggers`, effets déclaratifs `grantResource`/`message`, one-shot, événement
 > `TriggerFired`) — jamais un nom de faction/scénario dans le moteur.
 > `collectArtifact`/`accumulateResource` et `onFlagCaptured` restent différés.
+>
+> 🤝 **Alliances / équipes** (save v13) : `PlayerState.team` (entier opaque —
+> `0` = **sans alliance**, comportement chacun-pour-soi historique ; même n°
+> **non nul** = alliés, `areAllies`). Deux alliés **ne s'assiègent pas**
+> (`validateCaptureTown` + IA) et **partagent la victoire** : `eliminateAllEnemies`
+> compte un allié comme non-ennemi, donc dès que tous les non-alliés sont
+> éliminés chaque allié remplit sa condition. Choisi par siège à « Nouvelle
+> partie » ; générique (aucune faction). Un joueur éliminé reste hors-jeu même
+> si son allié continue (MVP).
 > **IA d'aventure** déterministe (`engine/ai`, commande `AiTurn`) : chaque
 > joueur `controller:'ai'` explore / ramasse / attaque un gardien battable /
 > capture / construit / recrute puis passe son tour ; heuristique gloutonne de

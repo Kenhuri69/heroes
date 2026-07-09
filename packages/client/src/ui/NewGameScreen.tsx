@@ -23,6 +23,13 @@ const RESOURCE_LEVELS: (ResourceLevel | typeof RANDOM)[] = ['bas', 'standard', '
 const DIFFICULTIES: (SkirmishDifficulty | typeof RANDOM)[] = ['facile', 'normal', 'difficile', RANDOM];
 const PLAYER_COUNTS = [2, 3, 4] as const;
 const MAX_PLAYERS = 4;
+// Équipes proposées : 0 = sans alliance ; 1..3 = équipes A/B/C (alliés = même n°).
+const TEAM_OPTIONS = [0, 1, 2, 3] as const;
+
+/** Libellé d'une équipe : 0 = « Aucune » (i18n) ; sinon lettre A/B/C. */
+function teamLabel(team: number): string {
+  return team === 0 ? t('newgame.team.none') : String.fromCharCode(64 + team);
+}
 
 /** Nom localisé d'une faction depuis son id (clé `@loc:faction.<id>.name`). */
 function factionName(id: string): string {
@@ -60,6 +67,8 @@ export function NewGameScreen({ onClose }: { onClose: () => void }) {
   const [slotColors, setSlotColors] = useState<number[]>(
     Array.from({ length: MAX_PLAYERS }, (_, i) => PLAYER_COLORS[i % PLAYER_COLORS.length]!),
   );
+  // Équipe par siège (0 = sans alliance, défaut ⇒ chacun-pour-soi).
+  const [slotTeams, setSlotTeams] = useState<number[]>(Array.from({ length: MAX_PLAYERS }, () => 0));
   const [mapSize, setMapSize] = useState<MapSize | typeof RANDOM>('medium');
   const [resourceLevel, setResourceLevel] = useState<ResourceLevel | typeof RANDOM>('standard');
   const [difficulty, setDifficulty] = useState<SkirmishDifficulty | typeof RANDOM>('normal');
@@ -79,6 +88,8 @@ export function NewGameScreen({ onClose }: { onClose: () => void }) {
     setSlotFactions((prev) => prev.map((f, j) => (j === i ? value : f)));
   const setSlotColor = (i: number, value: number): void =>
     setSlotColors((prev) => prev.map((c, j) => (j === i ? value : c)));
+  const setSlotTeam = (i: number, value: number): void =>
+    setSlotTeams((prev) => prev.map((tm, j) => (j === i ? value : tm)));
 
   // Au moins un humain requis (hot-seat) : le siège 0 l'est toujours, donc OK.
   const canStart = factions.length > 0;
@@ -88,6 +99,7 @@ export function NewGameScreen({ onClose }: { onClose: () => void }) {
       controller: i === 0 ? 'human' : controllers[i]!,
       factionId: slotFactions[i] ?? RANDOM,
       color: slotColors[i]!,
+      team: slotTeams[i]!,
     }));
     const config: NewGameRawConfig = { slots, mapSize, resourceLevel, difficulty, seed };
     window.dispatchEvent(new CustomEvent('heroes:start-newgame', { detail: config }));
@@ -184,6 +196,18 @@ export function NewGameScreen({ onClose }: { onClose: () => void }) {
                       aria-pressed={slotColors[i] === c}
                       onClick={() => setSlotColor(i, c)}
                     />
+                  ))}
+                </div>
+                <div class="segmented newgame-seat-team" role="group" aria-label={t('newgame.team')}>
+                  {TEAM_OPTIONS.map((tm) => (
+                    <button
+                      key={tm}
+                      class={slotTeams[i] === tm ? 'active' : ''}
+                      data-testid={`newgame-seat-${i}-team-${tm}`}
+                      onClick={() => setSlotTeam(i, tm)}
+                    >
+                      {teamLabel(tm)}
+                    </button>
                   ))}
                 </div>
               </li>

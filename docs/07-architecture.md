@@ -83,7 +83,7 @@ UI/IA ──commande──► [validation] ──► engine.apply(state, cmd)
     version — « Continuer » se grise, l'import échoue — au lieu d'adopter un
     état malformé. La **migration ascendante** d'anciennes sauvegardes reste
     différée (post-MVP) : au MVP on rejette, on ne migre pas.
-    `CURRENT_SAVE_VERSION` vaut **11** (source de vérité `engine/core/state.ts`).
+    `CURRENT_SAVE_VERSION` vaut **13** (source de vérité `engine/core/state.ts`).
     Historique : v2 (`factionCatalog`/`scenario`/`outcome`/`controller`/
     `eliminated`, 3.4/3.5) ; v3 (`PlayerState.factionResources`, 4.4) ; v4
     (`townlessDays` grâce de reprise + `AdventureMapDef.triggers`, comblement
@@ -95,7 +95,9 @@ UI/IA ──commande──► [validation] ──► engine.apply(state, cmd)
     guilde des mages, doc 02 §4.1 — G2) ; v10 (`HeroState.houseId` +
     `HeroState.houseEffects`, allégeance de Maison `houseAllegiance`, doc 16 §3.1) ;
     v11 (`GameState.houseCatalog`, catalogue des Maisons lu par l'effet de
-    bâtiment `houseChoice` « Le Choixpeau », doc 16 §3.1/§5).
+    bâtiment `houseChoice` « Le Choixpeau », doc 16 §3.1/§5) ; v12
+    (`CombatState.heroAttackUsed`, attaque du héros 1×/combat, doc 02 §5.2) ;
+    v13 (`PlayerState.team`, alliances/équipes, doc 02 §6).
 - Une sauvegarde référence les paquets de faction (par id) ; le suivi de
   **version** par paquet est différé avec les migrations (post-MVP).
 

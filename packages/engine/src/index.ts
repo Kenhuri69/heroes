@@ -6,6 +6,7 @@ export {
   emptyResources,
   weekOf,
   humanPlayerId,
+  areAllies,
   CURRENT_SAVE_VERSION,
   RESOURCE_IDS,
   type Calendar,

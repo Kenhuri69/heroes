@@ -732,6 +732,10 @@ test('nouvelle partie : configuration 3 joueurs + taille + ressources génèrent
   // Couleur de joueur (lot 6.4) : le joueur 1 choisit le vert (0x27ae60).
   await page.getByTestId('newgame-seat-0-color-27ae60').click();
 
+  // Alliances (lot équipes) : joueurs 1 et 2 dans l'équipe A ; le 3ᵉ sans alliance.
+  await page.getByTestId('newgame-seat-0-team-1').click();
+  await page.getByTestId('newgame-seat-1-team-1').click();
+
   await page.getByTestId('newgame-start').click();
 
   // Overlay de chargement affiché puis partie démarrée sur une carte générée 48×48.
@@ -747,6 +751,8 @@ test('nouvelle partie : configuration 3 joueurs + taille + ressources génèrent
   // La couleur choisie est appliquée au joueur 1 (présentation client).
   const colors = await page.evaluate(() => window.__HEROES_TEST__!.getPlayerColors());
   expect(colors['player-1']).toBe(0x27ae60);
+  // Les équipes sont portées par l'état moteur : p1 & p2 alliés (1), p3 seul (0).
+  expect(state.players.map((p) => p.team)).toEqual([1, 1, 0]);
 
   expect(errors).toEqual([]);
 });

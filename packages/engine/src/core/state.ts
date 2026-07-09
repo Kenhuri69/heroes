@@ -52,6 +52,25 @@ export interface PlayerState {
    * `null`. Générique : `resource` est un id opaque (ressource de faction).
    */
   huntContract: { targetObjectId: string; gold: number; resource: string; amount: number } | null;
+  /**
+   * Équipe / alliance (doc 02 §6) — entier opaque. **`0` = sans alliance** :
+   * ennemi de tous, y compris des autres joueurs à `0` (partie chacun-pour-soi,
+   * comportement historique). Deux joueurs de MÊME équipe **non nulle** sont
+   * alliés (`areAllies`) : ils ne s'assiègent pas et partagent la victoire.
+   */
+  team: number;
+}
+
+/**
+ * Deux joueurs sont-ils alliés ? Générique (aucune faction) : même équipe **non
+ * nulle** et ids distincts. `team === 0` (défaut) = sans alliance ⇒ jamais allié,
+ * donc les parties chacun-pour-soi se comportent comme avant l'ajout des équipes.
+ */
+export function areAllies(
+  a: Pick<PlayerState, 'id' | 'team'>,
+  b: Pick<PlayerState, 'id' | 'team'>,
+): boolean {
+  return a.id !== b.id && a.team !== 0 && a.team === b.team;
 }
 
 /** Attributs primaires du héros (doc 02 §1.1) — effets câblés au MVP. */
@@ -146,9 +165,11 @@ export interface Calendar {
  * (signature Vox Arcana `houseAllegiance`, doc 16 §3.1).
  * v11 : `GameState.houseCatalog` — catalogue des Maisons embarqué, lu par
  * l'effet de bâtiment `houseChoice` (« Le Choixpeau », doc 16 §3.1/§5).
- * v12 : `CombatState.heroAttackUsed` — attaque du héros 1×/combat (C1), doc 02 §5.2.)
+ * v12 : `CombatState.heroAttackUsed` — attaque du héros 1×/combat (C1), doc 02 §5.2.
+ * v13 : `PlayerState.team` — alliances/équipes (doc 02 §6) : joueurs alliés qui
+ * ne s'assiègent pas et partagent la victoire ; `0` = sans alliance.)
  */
-export const CURRENT_SAVE_VERSION = 12;
+export const CURRENT_SAVE_VERSION = 13;
 
 export interface GameState {
   saveVersion: number;

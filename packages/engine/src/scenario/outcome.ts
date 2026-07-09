@@ -1,5 +1,5 @@
 import type { GameEvent } from '../core/events';
-import type { GameState } from '../core/state';
+import { areAllies, type GameState, type PlayerState } from '../core/state';
 import type { VictoryCondition } from './types';
 
 /**
@@ -31,8 +31,15 @@ export function tickTownGrace(draft: GameState): void {
  */
 export function conditionMet(draft: GameState, playerId: string, cond: VictoryCondition): boolean {
   switch (cond.type) {
-    case 'eliminateAllEnemies':
-      return draft.players.every((p) => p.id === playerId || p.eliminated);
+    case 'eliminateAllEnemies': {
+      // « Tous les ennemis » = tous sauf soi-même ET ses alliés (doc 02 §6). Un
+      // allié encore vivant n'empêche pas la victoire ; sans alliance (team 0)
+      // c'est le comportement historique (tout le monde est ennemi).
+      const self = draft.players.find((p) => p.id === playerId);
+      return draft.players.every(
+        (p) => p.id === playerId || p.eliminated || (self ? areAllies(p, self) : false),
+      );
+    }
     case 'captureTown':
       return draft.towns.find((t) => t.id === cond.townId)?.ownerPlayerId === playerId;
     case 'defeatHero':
@@ -91,13 +98,16 @@ export function evaluateOutcome(draft: GameState, events: GameEvent[]): void {
   // A10 : sinon la victoire de CHAQUE joueur est évaluée (doc 02 §6 « par
   // joueur »), pas seulement celle du local. Un ennemi non éliminé qui remplit
   // SON objectif (ex. l'IA capture `start-town` dans conquest) ⇒ défaite locale.
+  // Un ALLIÉ qui remplit son objectif ne fait pas perdre le local (victoire
+  // partagée) : on ne retient que les gagnants NON alliés.
+  const isEnemy = (p: PlayerState): boolean => p.id !== local.id && !areAllies(p, local);
   const enemyWinner = draft.players.find((p) => {
-    if (p.id === local.id || p.eliminated) return false;
+    if (!isEnemy(p) || p.eliminated) return false;
     const obj = draft.scenario!.objectives[p.id];
     return obj ? conditionMet(draft, p.id, obj.victory) : false;
   });
   if ((objectives && conditionMet(draft, local.id, objectives.defeat)) || local.eliminated || enemyWinner) {
-    const winner = enemyWinner ?? draft.players.find((p) => p.id !== local.id && !p.eliminated);
+    const winner = enemyWinner ?? draft.players.find((p) => isEnemy(p) && !p.eliminated);
     draft.outcome = { status: 'lost', winnerPlayerId: winner?.id ?? '' };
     events.push({ type: 'GameEnded', status: 'lost', winnerPlayerId: draft.outcome.winnerPlayerId });
   }

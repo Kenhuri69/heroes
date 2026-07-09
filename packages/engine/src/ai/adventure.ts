@@ -1,7 +1,7 @@
 import { runAutoCombat } from '../combat/ai';
 import type { GameEvent } from '../core/events';
 import { armyStrength } from '../core/power';
-import type { GameState, HeroState, PlayerState } from '../core/state';
+import { areAllies, type GameState, type HeroState, type PlayerState } from '../core/state';
 import { advanceHeroAlongPath } from '../adventure/movement';
 import { resolveTreasure } from '../adventure/treasure';
 import { DIRECTIONS, isAdjacent, samePos, tileIndex, type GridPos } from '../adventure/map';
@@ -161,6 +161,9 @@ function pickAdjacentCapturableTown(draft: GameState, hero: HeroState, player: P
   let best: TownState | null = null;
   for (const town of draft.towns) {
     if (town.ownerPlayerId === player.id) continue;
+    // Ne pas assiéger la ville d'un allié (doc 02 §6) — cohérent avec `validateCaptureTown`.
+    const owner = draft.players.find((p) => p.id === town.ownerPlayerId);
+    if (owner && areAllies(owner, player)) continue;
     if (town.garrison.length > 0) continue;
     if (!isAdjacent(hero.pos, town.pos)) continue;
     if (!best || town.id < best.id) best = town;

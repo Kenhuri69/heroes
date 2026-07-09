@@ -202,8 +202,12 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > siège choisit sa couleur (palette partagée) ; `store.playerColors` (id → couleur,
 > remis à zéro au retour menu) consulté en priorité par `render/playerColors.ts`,
 > le jeton de héros de la carte honore enfin la couleur du joueur. Couleur purement
-> présentation client ⇒ zéro diff moteur. (Alliances/équipes = lot moteur séparé à
-> venir : champ `team` sur `PlayerState`, bump `CURRENT_SAVE_VERSION`.)
+> présentation client ⇒ zéro diff moteur. Lot **alliances/équipes** (doc 02 §6 ;
+> plan `.claude/plans/phase-newgame-teams.md`) : **lot moteur** — `PlayerState.team`
+> (save v12→**v13**), helper générique `areAllies` (`0` = sans alliance ⇒ FFA
+> inchangé). Deux alliés ne s'assiègent pas (`validateCaptureTown` + IA) et
+> partagent la victoire (`eliminateAllEnemies` compte l'allié comme non-ennemi) ;
+> golden re-fixé (forme seule). Sélecteur d'équipe par siège à « Nouvelle partie ».
 >
 > 🎓 **Beta — faction Vox Arcana** (6ᵉ maison, doc 16 ; plan `.claude/plans/
 > phase-16-faction-vox-arcana.md`). **Test de modularité #4 : livré.** Sous-lots

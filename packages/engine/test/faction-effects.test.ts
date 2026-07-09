@@ -287,6 +287,7 @@ function player(over: Partial<PlayerState> = {}): PlayerState {
     eliminated: false,
     townlessDays: 0,
     huntContract: null,
+    team: 0,
     ...over,
   };
 }

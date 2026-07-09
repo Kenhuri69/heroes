@@ -3,8 +3,23 @@
   "tier": 2,
   "name": "@loc:unit.t2-zombie.name",
   "loreKey": "@loc:unit.t2-zombie.lore",
-  "stats": { "hp": 14, "attack": 3, "defense": 4, "damage": [2, 3], "speed": 3 },
+  "stats": {
+    "hp": 14,
+    "attack": 3,
+    "defense": 4,
+    "damage": [
+      2,
+      3
+    ],
+    "speed": 4
+  },
   "growthPerWeek": 9,
-  "cost": { "gold": 70 },
-  "abilities": [{ "id": "undead" }]
+  "cost": {
+    "gold": 70
+  },
+  "abilities": [
+    {
+      "id": "undead"
+    }
+  ]
 }

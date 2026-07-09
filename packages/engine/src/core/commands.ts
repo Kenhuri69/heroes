@@ -149,6 +149,10 @@ export type Command =
   | { type: 'CastSpell'; spellId: string; targetStackId: string }
   /** Attaque du héros (C1) : dégâts directs sur une pile ennemie, 1×/combat. */
   | { type: 'HeroAttack'; targetStackId: string }
+  /** Fuite (C3) : quitter le combat en abandonnant l'armée ; le héros survit. */
+  | { type: 'Retreat' }
+  /** Reddition (C3) : payer de l'or (valeur d'armée) pour quitter en gardant l'armée. */
+  | { type: 'Surrender' }
   // ——— Sort d'aventure (doc 02 §1.4, Alpha 4.16) : lancé sur la carte, hors combat ———
   | { type: 'CastAdventureSpell'; heroId: string; spellId: string; playerId: string; townId?: string }
   | { type: 'ChooseSkill'; heroId: string; skillId: string }

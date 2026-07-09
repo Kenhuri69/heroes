@@ -130,6 +130,8 @@ export type GameEvent =
       /** Pertes par camp et unité — l'UI affiche le bilan. */
       casualties: { side: CombatSideId; unitId: string; lost: number }[];
     }
+  /** Le joueur a quitté le combat (C3) : `retreat` (armée abandonnée) ou `surrender` (armée gardée). */
+  | { type: 'CombatLeft'; mode: 'retreat' | 'surrender'; heroId: string }
   // ——— Progression du héros (doc 02 §1.2) — surface figée en cadrage 2.5 ———
   | { type: 'XpGained'; heroId: string; amount: number; xp: number }
   | {

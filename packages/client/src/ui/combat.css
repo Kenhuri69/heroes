@@ -326,3 +326,25 @@
   background: var(--blood);
   border-color: var(--blood-bright);
 }
+
+/* Confirmation de fuite/reddition (C3) : action irréversible. */
+.combat-leave-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 14px;
+}
+.combat-leave-actions button {
+  min-height: 44px;
+  padding: 6px 16px;
+  border: 1px solid var(--ink-600);
+  border-radius: var(--radius-m);
+  background: var(--ink-700);
+  color: var(--parchment);
+  font: 600 0.875rem var(--font-ui);
+  cursor: pointer;
+}
+.combat-leave-actions .combat-leave-go {
+  background: var(--blood);
+  border-color: var(--blood-bright);
+}

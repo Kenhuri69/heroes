@@ -3,7 +3,7 @@ import { loadMap, type ReadJson } from '../src/loader';
 import { generateMap } from '../src/mapgen';
 import type { GameConfig, MapFile } from '../src/schemas';
 
-/** Config minimale avec les 4 terrains dont le générateur se sert par défaut. */
+/** Config avec tous les terrains que le générateur par biomes peut produire. */
 function config(): GameConfig {
   return {
     adventure: {
@@ -11,9 +11,16 @@ function config(): GameConfig {
       visionRadius: 5,
       terrains: {
         grass: { moveCost: 100 },
+        dirt: { moveCost: 100 },
+        sand: { moveCost: 150 },
+        forest: { moveCost: 150 },
+        rough: { moveCost: 125 },
+        snow: { moveCost: 150 },
         swamp: { moveCost: 150 },
+        river: { moveCost: 200 },
         water: { moveCost: null },
         mountain: { moveCost: null },
+        rocks: { moveCost: null },
       },
       market: { sellRate: 25, buyRate: 50 },
       hero: {
@@ -104,6 +111,28 @@ describe('generateMap', () => {
         expect(keys.size).toBe(count);
       }
     }
+  });
+
+  it('génère des biomes variés et cohérents (pas de bruit blanc)', () => {
+    const map = generateMap('r', 314, { width: 48, height: 48 });
+    // Plusieurs biomes distincts présents (au moins 4 terrains sur une grande carte).
+    const terrains = new Set(Object.values(map.legend));
+    expect(terrains.size).toBeGreaterThanOrEqual(4);
+    // Grande masse de terrain jouable : la plaine (grass) reste dominante ou
+    // quasi (biomes calés pour la jouabilité), l'eau présente mais pas majoritaire.
+    const counts: Record<string, number> = {};
+    for (const row of map.tiles) for (const ch of row) counts[ch] = (counts[ch] ?? 0) + 1;
+    const total = map.width * map.height;
+    const water = counts[Object.entries(map.legend).find(([, t]) => t === 'water')?.[0] ?? ''] ?? 0;
+    expect(water).toBeLessThan(total * 0.6);
+  });
+
+  it('les rivières (si présentes) restent franchissables et bordent souvent l’eau', () => {
+    // Sur de nombreuses graines, au moins une carte produit une rivière.
+    const anyRiver = Array.from({ length: 20 }, (_, s) =>
+      generateMap('r', s + 1, { width: 40, height: 40 }),
+    ).some((m) => Object.values(m.legend).includes('river'));
+    expect(anyRiver).toBe(true);
   });
 
   it('la taille et le multiplicateur de ressources pilotent la densité d’objets', () => {

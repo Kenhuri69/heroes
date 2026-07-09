@@ -335,6 +335,7 @@ export function performStrike(
     kills,
     lucky,
     retaliation,
+    ranged,
   });
 
   const targetDied = victim.count <= 0;

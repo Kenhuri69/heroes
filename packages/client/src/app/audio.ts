@@ -140,7 +140,7 @@ function sfxForEvent(event: AppEvent): void {
   const human = humanId(game);
   switch (event.type) {
     case 'StackAttacked':
-      playSfx('combat-hit');
+      playSfx(event.ranged ? 'combat-shoot' : 'combat-hit');
       return;
     case 'StackDied':
       playSfx('combat-death');

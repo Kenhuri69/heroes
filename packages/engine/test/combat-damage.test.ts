@@ -491,6 +491,7 @@ describe('performStrike / applyAction — intégration dégâts', () => {
     // adjacent ⇒ canShoot faux ⇒ mêlée forcée : diff 5 → mult 1,25 ×0,5 = 0,625 → round(4*0,625)=3 (2,5)
     const strike = events.find((e) => e.type === 'StackAttacked') as Extract<GameEvent, { type: 'StackAttacked' }>;
     expect(strike.damage).toBe(3);
+    expect(strike.ranged).toBe(false); // mêlée forcée ⇒ SFX combat-hit
     expect(next.combat?.stacks.find((s) => s.id === 'attacker-0')?.ammo).toBe(3); // pas de tir : munitions inchangées
   });
 
@@ -513,6 +514,7 @@ describe('performStrike / applyAction — intégration dégâts', () => {
     const strikes = events.filter((e) => e.type === 'StackAttacked') as Extract<GameEvent, { type: 'StackAttacked' }>[];
     expect(strikes).toHaveLength(1);
     expect(strikes[0]?.retaliation).toBe(false);
+    expect(strikes[0]?.ranged).toBe(true); // tir ⇒ SFX combat-shoot
     expect(strikes[0]?.damage).toBe(5); // diff 5 → mult 1,25 → round(4*1,25)=5
     expect(next.combat?.stacks.find((s) => s.id === 'attacker-0')?.ammo).toBe(2);
   });

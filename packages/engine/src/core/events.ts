@@ -109,6 +109,8 @@ export type GameEvent =
       /** Coup de chance : dégâts doublés (doc 02 §5.3). */
       lucky: boolean;
       retaliation: boolean;
+      /** Frappe à distance (tir) vs mêlée — feedback client (SFX `combat-shoot`). */
+      ranged: boolean;
     }
   | { type: 'StackDied'; stackId: string }
   /** Moral : tour bonus (positive) ou tour sauté (doc 02 §5.3 + décision n°8). */

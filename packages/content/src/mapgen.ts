@@ -41,6 +41,12 @@ export interface MapGenOptions {
    * plus d'objets à densité constante).
    */
   resourceMultiplier?: number;
+  /**
+   * Palette d'artefacts connus posables au sol (vide ⇒ aucun artefact, comme
+   * `guardianUnits`). Les artefacts sont placés **en profondeur** et gardés par
+   * une sentinelle — la récompense premium de la carte.
+   */
+  artifactIds?: string[];
 }
 
 /** PRNG déterministe mulberry32 — retourne un flottant dans [0, 1). */
@@ -147,6 +153,7 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
   const unitTiers = opts.unitTiers ?? {};
   const startPositionCount = Math.max(2, opts.startPositionCount ?? 2);
   const resourceMultiplier = opts.resourceMultiplier ?? 1;
+  const artifactIds = opts.artifactIds ?? [];
   // Densité constante quelle que soit la taille : les compteurs d'objets calés
   // sur une carte de base 24×24 sont mis à l'échelle par l'aire, puis par le
   // réglage bas/riche. Au moins 1 objet des catégories principales.
@@ -275,17 +282,86 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
   }
 
   // ── Objets : placés sur des tuiles libres, forcées franchissables, uniques. ──
-  const objects: MapFile['objects'] = [];
+  type PlacedObject = MapFile['objects'][number];
+  const objects: PlacedObject[] = [];
   const occupied = new Set(startPositions.map((s) => `${s.x},${s.y}`));
-  const place = (make: (x: number, y: number, i: number) => MapFile['objects'][number]): void => {
+
+  // « Profondeur » d'une tuile = distance au départ le PLUS PROCHE, normalisée
+  // par `radius` (rayon de l'anneau des départs). 0 ⇒ collé à un départ ; 1 ⇒ au
+  // centre / zones profondes. Pilote toute la progression : richesse des trésors,
+  // tier des habitations, force des gardiens (faible aux abords, fort au centre).
+  const depthAt = (x: number, y: number): number => {
+    let nearest = Infinity;
+    for (const s of startPositions) nearest = Math.min(nearest, Math.hypot(x - s.x, y - s.y));
+    return Math.min(1, nearest / radius);
+  };
+  // Palette de gardiens triée par tier croissant (sert aux gardiens de champ, aux
+  // sentinelles d'objets premium et au choix d'unité des habitations).
+  const byTier = [...guardianUnits].sort((a, b) => (unitTiers[a] ?? 1) - (unitTiers[b] ?? 1));
+  const clampIdx = (i: number): number => Math.min(byTier.length - 1, Math.max(0, i));
+
+  // Sélectionne une tuile libre ; `preferDeep` échantillonne et retient la plus
+  // PROFONDE des candidats vus (récompenses premium loin des départs), sans
+  // jamais échouer en silence (repli sur la meilleure tuile échantillonnée).
+  const freeTile = (preferDeep: boolean): { x: number; y: number } | null => {
+    let best: { x: number; y: number; d: number } | null = null;
     for (let tries = 0; tries < 60; tries++) {
       const x = randInt(width);
       const y = randInt(height);
       const key = `${x},${y}`;
       if (occupied.has(key)) continue;
+      if (!preferDeep) {
+        occupied.add(key);
+        grid[y]![x] = baseChar;
+        return { x, y };
+      }
+      const d = depthAt(x, y);
+      if (best === null || d > best.d) best = { x, y, d };
+    }
+    if (best) {
+      occupied.add(`${best.x},${best.y}`);
+      grid[best.y]![best.x] = baseChar; // garantit la franchissabilité
+      return { x: best.x, y: best.y };
+    }
+    return null;
+  };
+  const place = (
+    make: (x: number, y: number, i: number) => PlacedObject,
+    preferDeep = false,
+  ): { x: number; y: number } | null => {
+    const t = freeTile(preferDeep);
+    if (!t) return null;
+    objects.push(make(t.x, t.y, objects.length));
+    return t;
+  };
+
+  // Sentinelle : gardien posé sur une tuile adjacente libre à un objet premium
+  // (habitation/artefact), force graduée par la profondeur — matérialise « la
+  // récompense est gardée » (garde best-effort, pas un encerclement complet).
+  const neighborOffsets = [
+    [1, 0],
+    [-1, 0],
+    [0, 1],
+    [0, -1],
+    [1, 1],
+    [1, -1],
+    [-1, 1],
+    [-1, -1],
+  ] as const;
+  const placeSentinel = (ax: number, ay: number): void => {
+    if (byTier.length === 0) return;
+    for (const [dx, dy] of neighborOffsets) {
+      const nx = ax + dx;
+      const ny = ay + dy;
+      if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
+      const key = `${nx},${ny}`;
+      if (occupied.has(key)) continue;
       occupied.add(key);
-      grid[y]![x] = baseChar; // garantit la franchissabilité
-      objects.push(make(x, y, objects.length));
+      grid[ny]![nx] = baseChar;
+      const depth = depthAt(nx, ny);
+      const idx = clampIdx(Math.round(depth * (byTier.length - 1)));
+      const count = Math.max(2, Math.round(6 + depth * 40) + randBetween(-3, 3));
+      objects.push({ id: `sentinel-${objects.length}`, type: 'guardian', x: nx, y: ny, unitId: byTier[idx]!, count });
       return;
     }
   };
@@ -310,45 +386,80 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
       };
     });
   }
+  // Trésors : montants gradués par la profondeur (jusqu'à ×2 au centre) — les
+  // coffres loin des départs sont plus riches.
   for (let i = 0; i < scaled(randBetween(1, 2)); i++) {
-    place((x, y, n) => ({
-      id: `chest-${n}`,
-      type: 'treasure',
+    place((x, y, n) => {
+      const depth = depthAt(x, y);
+      return {
+        id: `chest-${n}`,
+        type: 'treasure',
+        x,
+        y,
+        gold: Math.round(randBetween(500, 1500) * (1 + depth)),
+        xp: Math.round(randBetween(200, 600) * (1 + depth)),
+      };
+    });
+  }
+
+  // Lieux de bonus variés (doc 02 §2.2) : fontaine (chance), écurie (mouvement),
+  // tour de guet (vision), sanctuaire (niveau), moulin (ressource) — tirés en
+  // rotation pour garantir la variété. `levelXp` = une fois par héros ; le reste
+  // récurrent (une fois par héros et par semaine).
+  const visitableMakers: ((x: number, y: number, n: number) => PlacedObject)[] = [
+    (x, y, n) => ({ id: `fountain-${n}`, type: 'visitable', x, y, effect: { kind: 'luck', amount: 1 }, frequency: 'oncePerHeroPerWeek' }),
+    (x, y, n) => ({ id: `stable-${n}`, type: 'visitable', x, y, effect: { kind: 'movement', amount: 300 + randInt(4) * 100 }, frequency: 'oncePerHeroPerWeek' }),
+    (x, y, n) => ({ id: `watchtower-${n}`, type: 'visitable', x, y, effect: { kind: 'vision', amount: randBetween(4, 7) }, frequency: 'oncePerHeroPerWeek' }),
+    (x, y, n) => ({ id: `shrine-${n}`, type: 'visitable', x, y, effect: { kind: 'levelXp' }, frequency: 'oncePerHero' }),
+    (x, y, n) => ({
+      id: `mill-${n}`,
+      type: 'visitable',
       x,
       y,
-      gold: randBetween(500, 1500),
-      xp: randBetween(200, 600),
-    }));
+      effect: { kind: 'resource', resource: RESOURCE_IDS[randInt(RESOURCE_IDS.length)]!, amount: randBetween(1, 3) },
+      frequency: 'oncePerHeroPerWeek',
+    }),
+  ];
+  const visitableCount = scaled(randBetween(3, 5));
+  for (let i = 0; i < visitableCount; i++) {
+    const maker = visitableMakers[i % visitableMakers.length]!;
+    place((x, y, n) => maker(x, y, n));
   }
-  place((x, y, n) => ({
-    id: `fountain-${n}`,
-    type: 'visitable',
-    x,
-    y,
-    effect: { kind: 'luck', amount: 1 },
-    frequency: 'oncePerHeroPerWeek',
-  }));
+
+  // Habitations hors ville (renfort d'armée) : tier gradué par la profondeur (bas
+  // tier près des départs, haut tier au centre), placées en profondeur et gardées.
+  if (byTier.length > 0) {
+    for (let i = 0; i < scaled(randBetween(1, 2)); i++) {
+      const t = place((x, y, n) => {
+        const depth = depthAt(x, y);
+        const idx = clampIdx(Math.round(depth * (byTier.length - 1)));
+        const unitId = byTier[idx]!;
+        const tier = unitTiers[unitId] ?? idx + 1;
+        return { id: `dwelling-${n}`, type: 'dwelling', x, y, unitId, stock: Math.max(1, 9 - tier) };
+      }, true);
+      if (t) placeSentinel(t.x, t.y);
+    }
+  }
+
+  // Artefacts : récompense premium, posée en profondeur et gardée par une sentinelle.
+  if (artifactIds.length > 0) {
+    for (let i = 0; i < scaled(randBetween(1, 2)); i++) {
+      const t = place(
+        (x, y, n) => ({ id: `artifact-${n}`, type: 'artifact', x, y, artifactId: artifactIds[randInt(artifactIds.length)]! }),
+        true,
+      );
+      if (t) placeSentinel(t.x, t.y);
+    }
+  }
+
+  // Gardiens de champ : gradués tier/pile selon la profondeur (doc 02 §2.2) —
+  // faibles autour des départs, forts vers le centre (léger jitter = variété).
   if (guardianUnits.length > 0) {
-    // Gradation de difficulté (doc 02 §2.2) : la « profondeur » d'une tuile =
-    // distance au départ le PLUS PROCHE, normalisée par `radius` (rayon de
-    // l'anneau des départs). 0 ⇒ collé à un départ ; 1 ⇒ au centre / zones
-    // profondes. Guide à la fois le tier de l'unité gardienne et la taille de
-    // pile — faible autour des départs, fort vers le centre.
-    const depthAt = (x: number, y: number): number => {
-      let nearest = Infinity;
-      for (const s of startPositions) nearest = Math.min(nearest, Math.hypot(x - s.x, y - s.y));
-      return Math.min(1, nearest / radius);
-    };
-    // Palette triée par tier croissant : l'index sélectionné suit la profondeur,
-    // donc bas tier près des départs, haut tier au centre (léger jitter = variété).
-    const byTier = [...guardianUnits].sort((a, b) => (unitTiers[a] ?? 1) - (unitTiers[b] ?? 1));
-    const clampIdx = (i: number): number => Math.min(byTier.length - 1, Math.max(0, i));
     const guardianCount = Math.max(2, Math.round(randBetween(2, 4) * areaFactor));
     for (let i = 0; i < guardianCount; i++) {
       place((x, y, n) => {
         const depth = depthAt(x, y);
         const idx = clampIdx(Math.round(depth * (byTier.length - 1)) + randBetween(-1, 1));
-        // Pile ~4 (près des départs) → ~40 (au centre), ± jitter.
         const count = Math.max(2, Math.round(4 + depth * 36) + randBetween(-3, 3));
         return { id: `guard-${n}`, type: 'guardian', x, y, unitId: byTier[idx]!, count };
       });

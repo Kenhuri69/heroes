@@ -734,14 +734,15 @@ test('nouvelle partie : configuration 3 joueurs + taille + ressources génèrent
 
   await page.getByTestId('newgame-start').click();
 
-  // Overlay de chargement affiché puis partie démarrée sur une carte générée 48×48.
+  // Overlay de chargement affiché puis partie démarrée sur une grande carte générée
+  // (128², exerce le chunking + culling au viewport de `Tilemap`) — extension carte.
   await expect(page.getByTestId('end-turn')).toBeVisible();
   const state = await page.evaluate(() => window.__HEROES_TEST__!.getState());
   expect(state.started).toBe(true);
   expect(state.players).toHaveLength(3);
   expect(state.players[0]?.controller).toBe('human');
   expect(state.map?.id).toBe('random');
-  expect(state.map?.width).toBe(48);
+  expect(state.map?.width).toBe(128);
   // Un héros par joueur, chacun à sa position de départ (3 positions générées).
   expect(state.heroes).toHaveLength(3);
   // La couleur choisie est appliquée au joueur 1 (présentation client).

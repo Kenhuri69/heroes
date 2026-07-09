@@ -18,7 +18,7 @@ function hex(color: number): string {
   return `#${color.toString(16).padStart(6, '0')}`;
 }
 
-const MAP_SIZES: (MapSize | typeof RANDOM)[] = ['small', 'medium', 'large', RANDOM];
+const MAP_SIZES: (MapSize | typeof RANDOM)[] = ['small', 'medium', 'large', 'huge', RANDOM];
 const RESOURCE_LEVELS: (ResourceLevel | typeof RANDOM)[] = ['bas', 'standard', 'riche', RANDOM];
 const DIFFICULTIES: (SkirmishDifficulty | typeof RANDOM)[] = ['facile', 'normal', 'difficile', RANDOM];
 const PLAYER_COUNTS = [2, 3, 4] as const;

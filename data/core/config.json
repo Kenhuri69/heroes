@@ -10,9 +10,16 @@
     "buildingVisionRadius": 4,
     "terrains": {
       "grass": { "moveCost": 100 },
+      "dirt": { "moveCost": 100 },
+      "sand": { "moveCost": 150 },
+      "forest": { "moveCost": 150 },
+      "rough": { "moveCost": 125 },
+      "snow": { "moveCost": 150 },
       "swamp": { "moveCost": 150 },
+      "river": { "moveCost": 200 },
       "water": { "moveCost": null },
-      "mountain": { "moveCost": null }
+      "mountain": { "moveCost": null },
+      "rocks": { "moveCost": null }
     },
     "hero": {
       "xpPerHpKilled": 1,

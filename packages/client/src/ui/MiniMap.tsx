@@ -22,9 +22,16 @@ import { panCameraTo } from '../app/camera-control';
 const C_UNEXPLORED = '#0b0e14';
 const TERRAIN: Record<string, string> = {
   grass: '#3a5a34',
+  dirt: '#8a6a44',
+  sand: '#ccb680',
+  forest: '#274a24',
+  rough: '#8a7f58',
+  snow: '#dfe6ee',
   swamp: '#4a5a2c',
+  river: '#3f7aa6',
   water: '#24406a',
   mountain: '#6a5f56',
+  rocks: '#7a766f',
 };
 const C_DEFAULT = '#3a3d47';
 

@@ -12,9 +12,16 @@ export const TILE_SIZE = 64;
 /** Placeholders teintés (doc 08 §5) : deux nuances par terrain pour un damier discret. */
 const TERRAIN_COLORS: Record<string, [number, number]> = {
   grass: [0x2b3a2b, 0x24312a],
+  dirt: [0x5f4a32, 0x54412c],
+  sand: [0xc2ac78, 0xb8a270],
+  forest: [0x263e22, 0x20361b],
+  rough: [0x6a6144, 0x5f573c],
+  snow: [0xd6dce6, 0xccd2de],
   swamp: [0x39422c, 0x323b27],
+  river: [0x336288, 0x2e587c],
   water: [0x1f3550, 0x1c304a],
   mountain: [0x4a4340, 0x433d3a],
+  rocks: [0x6a6660, 0x5f5b56],
 };
 const UNKNOWN_TERRAIN: [number, number] = [0x555555, 0x4c4c4c];
 const ROAD_COLOR = 0x8a7a55;

@@ -17,6 +17,7 @@ import { humanId, humanHeroes, resolveSelectedHero } from '../../app/game';
 import type { Camera } from '../../render/camera';
 import { heroMapUrl } from '../../render/assets';
 import { Tilemap, TILE_SIZE } from '../../render/tilemap';
+import { TerrainProps } from '../../render/terrainProps';
 import { isoAnchor, isoDepth, isoTileCenter, isoWorldToTile } from '../../render/projection';
 import { MapObjectsLayer } from '../../render/mapObjects';
 import { playerColor } from '../../render/playerColors';
@@ -50,6 +51,7 @@ export class AdventureScene {
   private readonly towns = new TownsLayer(this.entities);
   private readonly fog: FogOverlay;
   private readonly tilemap: Tilemap;
+  private readonly terrainProps: TerrainProps;
   private readonly preview = new PathPreview();
   private readonly heroSprites = new Map<string, Container>();
   /**
@@ -77,6 +79,8 @@ export class AdventureScene {
 
     const tilemap = new Tilemap(map);
     this.tilemap = tilemap;
+    // Props de relief dans la couche d'entités triée (occlusion héros ↔ forêt/montagne).
+    this.terrainProps = new TerrainProps(map, this.entities);
     this.fog = new FogOverlay(map);
     this.selectionRing.visible = false;
     this.entities.sortableChildren = true; // tri de profondeur iso INTER-couches
@@ -110,12 +114,14 @@ export class AdventureScene {
     const { x: wx, y: wy, scale } = this.camera.world;
     const s = scale.x || 1;
     const margin = 256; // px écran : anticipe le pan, évite le « pop » de chunks
-    this.tilemap.updateVisibility({
+    const view = {
       minX: (-margin - wx) / s,
       minY: (-margin - wy) / s,
       maxX: (this.app.screen.width + margin - wx) / s,
       maxY: (this.app.screen.height + margin - wy) / s,
-    });
+    };
+    this.tilemap.updateVisibility(view);
+    this.terrainProps.updateVisibility(view);
   }
 
   /**
@@ -127,6 +133,7 @@ export class AdventureScene {
   destroy(): void {
     this.destroyed = true;
     this.app.ticker.remove(this.onTick);
+    this.terrainProps.destroy();
     this.unsubscribeStore();
     this.unsubscribeTap();
     this.unsubscribeLongPress();

@@ -1,6 +1,13 @@
 import { Container, Graphics, Sprite, type Texture } from 'pixi.js';
 import type { AdventureMapDef } from '@heroes/engine';
-import { getTexture, isoRoadUrl, isoTileUrl, tileVariant } from './assets';
+import {
+  getTexture,
+  isoRoadUrl,
+  isoTileUrl,
+  terrainPropUrl,
+  terrainPropVariant,
+  tileVariant,
+} from './assets';
 import { isoDiamond, isoTileCenter, ISO_TILE_H, ISO_TILE_W } from './projection';
 
 // Taille logique de la BOÎTE DE CONTENU d'une tuile (sprites/vignettes) — 64 px
@@ -25,6 +32,11 @@ const TERRAIN_COLORS: Record<string, [number, number]> = {
 };
 const UNKNOWN_TERRAIN: [number, number] = [0x555555, 0x4c4c4c];
 const ROAD_COLOR = 0x8a7a55;
+
+/** Terrains dotés d'un prop de relief « billboard » (hauteur au-dessus du sol). */
+const PROP_TERRAINS = new Set(['forest', 'mountain']);
+/** Débord vertical (px monde) d'un prop au-dessus du losange — marge d'AABB de culling. */
+const PROP_OVERHANG = 96;
 
 /** Côté d'un chunk en tuiles — compromis nombre de chunks / granularité du culling. */
 const CHUNK = 16;
@@ -124,9 +136,28 @@ function buildChunk(map: AdventureMapDef, cx: number, cy: number, x1: number, y1
         if (roadTex) node.addChild(placeDiamond(roadTex, tx, ty));
         else base.poly(insetDiamond(tx, ty, 0.55)).fill(ROAD_COLOR);
       }
+
+      // Prop de relief (forêt/montagne) : billboard debout au-dessus du sol.
+      // Dessiné après le sol, dans l'ordre de profondeur du chunk ⇒ un prop de
+      // premier plan recouvre celui d'arrière-plan. Repli silencieux si absent.
+      if (PROP_TERRAINS.has(terrain)) {
+        const propTex = getTexture(terrainPropUrl(terrain, terrainPropVariant(tx, ty)));
+        if (propTex) node.addChild(placeProp(propTex, tx, ty));
+      }
     }
   }
   return node;
+}
+
+/** Billboard de relief posé debout, base au sol, centré sur la tuile (tx,ty). */
+function placeProp(texture: Texture, tx: number, ty: number): Sprite {
+  const s = new Sprite(texture);
+  s.anchor.set(0.5, 1); // base centrée : le sprite monte vers le haut
+  const w = ISO_TILE_W;
+  s.setSize(w, (w * texture.height) / texture.width);
+  const c = isoTileCenter(tx, ty);
+  s.position.set(c.x, c.y + ISO_TILE_H * 0.35); // base légèrement en avant du centre
+  return s;
 }
 
 /** AABB monde d'un chunk de tuiles [cx..x1]×[cy..y1] (losanges inclus, ±demi-tuile). */
@@ -136,7 +167,7 @@ function chunkBounds(cx: number, cy: number, x1: number, y1: number): WorldRect 
   return {
     minX: (cx - y1) * hw - hw,
     maxX: (x1 - cy) * hw + hw,
-    minY: (cx + cy) * hh - hh,
+    minY: (cx + cy) * hh - hh - PROP_OVERHANG, // props débordent vers le haut
     maxY: (x1 + y1) * hh + hh,
   };
 }

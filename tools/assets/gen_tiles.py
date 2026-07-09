@@ -299,9 +299,84 @@ TERRAIN_RECIPES = {
 }
 
 
+# ── props de RELIEF (forêt / montagne) ───────────────────────────────────────
+# Sprites « billboard » TRANSPARENTS qui DÉPASSENT la tuile (donnent de la hauteur
+# à la carte, doc 12). Repli procédural : l'art Gemini varié se branche par simple
+# dépôt de PNG homonymes sous assets/tiles/props/ (voir docs/12 §7). Le client les
+# pose debout, base au sol, au-dessus du losange texturé (`tilemap.ts`).
+
+PROP_W, PROP_H = 64, 96      # boîte du billboard (transparente)
+PROP_VARIANTS = 3
+PROP_GROUND = PROP_H - 6     # ligne de sol (base des troncs / de la montagne)
+
+
+def _tree(d: ImageDraw.ImageDraw, cx: int, base: int, h: int, rng) -> None:
+    """Un conifère : tronc + 3 étages de feuillage, ombre à droite, lumière à gauche."""
+    trunk = _vary((92, 66, 42), rng)
+    d.rectangle([cx - 2, base - h // 4, cx + 2, base], fill=trunk)
+    top = base - h
+    dark = _vary((34, 74, 40), rng)
+    lit = _vary((70, 116, 60), rng)
+    for i in range(3):                                    # étages du plus large (bas)
+        ty = top + int(h * 0.30 * i)
+        half = int((h * 0.42) * (1 - i * 0.22))
+        low = ty + int(h * 0.34)
+        d.polygon([(cx, ty), (cx - half, low), (cx + half, low)], fill=dark)
+        d.polygon([(cx, ty), (cx - half, low), (cx, low)], fill=lit)  # face éclairée
+
+
+def forest_prop(img, rng) -> None:
+    d = ImageDraw.Draw(img)
+    # 2–3 arbres décalés en profondeur (le plus grand au centre-avant).
+    spots = [(PROP_W // 2, PROP_GROUND, rng.randint(58, 74))]
+    if rng.random() < 0.9:
+        spots.append((PROP_W // 2 - rng.randint(14, 20), PROP_GROUND - rng.randint(2, 8),
+                      rng.randint(40, 54)))
+    if rng.random() < 0.7:
+        spots.append((PROP_W // 2 + rng.randint(14, 20), PROP_GROUND - rng.randint(2, 8),
+                      rng.randint(40, 54)))
+    for cx, base, h in sorted(spots, key=lambda s: s[1]):  # arrière → avant
+        _tree(d, cx, base, h, rng)
+
+
+def mountain_prop(img, rng) -> None:
+    d = ImageDraw.Draw(img)
+    cx = PROP_W // 2
+    base = PROP_GROUND
+    h = rng.randint(66, 84)
+    peak = base - h
+    half = rng.randint(24, 30)
+    apex_dx = rng.randint(-6, 6)                           # sommet légèrement décalé
+    rock = _vary((110, 106, 100), rng)
+    shade = _vary((72, 70, 66), rng)
+    light = _vary((150, 148, 142), rng)
+    # Masse : face gauche éclairée, face droite dans l'ombre.
+    d.polygon([(cx + apex_dx, peak), (cx - half, base), (cx + half, base)], fill=rock)
+    d.polygon([(cx + apex_dx, peak), (cx - half, base), (cx - 2, base)], fill=light)
+    d.polygon([(cx + apex_dx, peak), (cx + 2, base), (cx + half, base)], fill=shade)
+    # Calotte neigeuse + une arête.
+    snow_y = peak + int(h * 0.28)
+    d.polygon([(cx + apex_dx, peak), (cx + apex_dx - 10, snow_y), (cx + apex_dx + 10, snow_y)],
+              fill=(238, 242, 248))
+    d.line([(cx + apex_dx, peak), (cx - half // 3, base)], fill=shade, width=2)
+
+
+PROP_RECIPES = {
+    "forest": forest_prop,
+    "mountain": mountain_prop,
+}
+
+
 def render(name: str, recipe, variant: int) -> Image.Image:
     rng = random.Random(f"heroes-tile-{name}-{variant}")
     img = Image.new("RGB", (S, S))
+    recipe(img, rng)
+    return img
+
+
+def render_prop(name: str, recipe, variant: int) -> Image.Image:
+    rng = random.Random(f"heroes-prop-{name}-{variant}")
+    img = Image.new("RGBA", (PROP_W, PROP_H), (0, 0, 0, 0))
     recipe(img, rng)
     return img
 
@@ -384,6 +459,27 @@ def main() -> None:
     iso_prev.save(iso_out / "_preview.png")
     print(f"iso    → {(iso_out / '_preview.png').relative_to(REPO)} "
           f"({len(iso_tiles)} losanges, grille 4×4 = contrôle de tessellation)")
+
+    # ── props de relief (forêt / montagne) : billboards transparents ─────────
+    prop_out = OUT / "props"
+    prop_out.mkdir(parents=True, exist_ok=True)
+    props: list[tuple[str, Image.Image]] = []
+    for name, recipe in PROP_RECIPES.items():
+        for v in range(1, PROP_VARIANTS + 1):
+            img = render_prop(name, recipe, v)
+            img.save(prop_out / f"{name}-{v}.png", optimize=True)
+            props.append((f"{name}-{v}", img))
+            print(f"  {(prop_out / f'{name}-{v}.png').relative_to(REPO)}")
+    # planche de contrôle : props sur damier gris (contrôle de la découpe alpha).
+    prop_prev = Image.new("RGBA", (len(props) * (PROP_W + 8) + 8, PROP_H + 24), (40, 44, 40, 255))
+    dp = ImageDraw.Draw(prop_prev)
+    for i, (name, img) in enumerate(props):
+        ox = i * (PROP_W + 8) + 8
+        prop_prev.alpha_composite(img, (ox, 4))
+        dp.text((ox, PROP_H + 8), name, fill=(210, 210, 210, 255))
+    prop_prev.save(prop_out / "_preview.png")
+    print(f"props  → {(prop_out / '_preview.png').relative_to(REPO)} "
+          f"({len(props)} billboards de relief forêt/montagne)")
 
 
 if __name__ == "__main__":

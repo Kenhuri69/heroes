@@ -117,6 +117,23 @@ export function isoRoadUrl(): string | undefined {
   return registry.get('tiles/iso/road-dirt');
 }
 
+const PROP_VARIANTS = 3;
+
+/** Variante déterministe 1..3 d'un prop de relief (hash décorrélé de `tileVariant`). */
+export function terrainPropVariant(x: number, y: number): number {
+  return (Math.abs(x * 13 + y * 7) % PROP_VARIANTS) + 1;
+}
+
+/**
+ * Prop de RELIEF « billboard » (forêt/montagne) qui dépasse la tuile pour donner
+ * de la hauteur à la carte (`tiles/props/<terrain>-<v>`, extension carte). Repli
+ * procédural déterministe présent ; l'art Gemini varié se branche par simple dépôt
+ * de PNG homonymes (doc 12 §7). `undefined` ⇒ pas de prop (terrain plat).
+ */
+export function terrainPropUrl(terrain: string, variant: number): string | undefined {
+  return registry.get(`tiles/props/${terrain}-${variant}`);
+}
+
 /** Objet de carte « tas de ressource » → visuel de mine par ressource. */
 export function mineUrl(resource: string): string | undefined {
   return registry.get(`mines/mine-${resource}`);

@@ -2214,12 +2214,11 @@ test('assets : PNG servis sans 404, icônes de ressources et vignettes de bâtim
   expect(errors).toEqual([]);
 });
 
-// Vox Arcana (doc 16) : vignettes de bâtiments. Les 8 habitations ont leur art
-// dédié (`buildings/vox-arcana/vox-arcana-dwelling-t*`). Les bâtiments
-// « Le Choixpeau » (effet houseChoice) n'ont pas de vignette propre → ils
-// affichent le blason de leur Maison (`houses/vox-arcana/house-*`, stagé au
-// lot 16). Régression des captures utilisateur : tuiles de bâtiment vides.
-test('assets : Vox Arcana — ville peinte (habitations, blasons, fond) + jetons de carte', async ({
+// Vox Arcana (doc 16) : vignettes de bâtiments toutes peintes — 8 habitations
+// (`buildings/vox-arcana/vox-arcana-dwelling-t*`) + 5 bâtiments « Le Choixpeau »
+// (`buildings/vox-arcana/vox-arcana-house-*`). Régression des captures
+// utilisateur : tuiles de bâtiment vides (repli beige).
+test('assets : Vox Arcana — ville peinte (habitations, Maisons, fond) + jetons de carte', async ({
   page,
 }) => {
   const assets = trackAssets(page);
@@ -2247,9 +2246,9 @@ test('assets : Vox Arcana — ville peinte (habitations, blasons, fond) + jetons
 
   await page.locator('[data-testid^="town-open-"]').first().click();
   // La vue peinte liste tous les bâtiments de la faction en emplacements. Une
-  // habitation montre son art dédié (src `…dwelling-t…`) et un « Le Choixpeau »
-  // montre le blason (src `house-…`) — les deux réellement décodés (repli
-  // beige exclu).
+  // habitation (src `…dwelling-t…`) et un bâtiment « Le Choixpeau »
+  // (src `…house-…`) montrent leur art dédié — les deux réellement décodés
+  // (repli beige exclu).
   const dwelling = page.locator('.town-view-vignette[src*="dwelling-t"]');
   await expect(dwelling.first()).toBeVisible();
   await expect

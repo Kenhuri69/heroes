@@ -49,9 +49,12 @@ lot dédié avec accès au modèle image.
   - **8 habitations** extraites (`sheet_extract.py`, QC 8/8 verte, texte parasite
     éliminé comme specks) → `assets/buildings/vox-arcana/vox-arcana-dwelling-t*.png`.
     Smoke étendu : une habitation peinte + un blason décodés.
-  - **5 bâtiments de Maisons** : planche JPG NON alignée sur une grille régulière
-    (cellules coupant les bâtiments, l'Aigle quasi perdu) ⇒ extraction écartée.
-    Les Maisons restent couvertes par les blasons (Lot A).
+  - **5 bâtiments de Maisons** : 1ʳᵉ planche mal alignée (écartée) ; 2ᵉ planche
+    (grille 3×2 stricte, prompt durci) extraite proprement (QC 5/5) →
+    `assets/buildings/vox-arcana/vox-arcana-house-*.png`. L'indirection blason du
+    Lot A (`houseBadgeUrl`/`buildingThumbUrl`) devient inutile ⇒ **supprimée**,
+    retour à `buildingUrl` direct (les Maisons ont désormais leur art de bâtiment).
+    Les blasons `houses/vox-arcana/` redeviennent inutilisés (comme avant #163).
   - **Fond de ville** `backgrounds/town-vox-arcana.jpg` (PNG→JPEG q85, 197 Ko).
   - **Jetons de carte** héros + ville : planche 2×1 extraite `--tol 68` (le
     panneau gris clair #195 dépassait le fond #162 de +57 > défaut 42) →

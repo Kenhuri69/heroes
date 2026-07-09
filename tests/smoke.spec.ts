@@ -2179,6 +2179,47 @@ test('assets : PNG servis sans 404, icônes de ressources et vignettes de bâtim
   expect(errors).toEqual([]);
 });
 
+// Vox Arcana (doc 16) : vignettes de bâtiments. Les 8 habitations ont leur art
+// dédié (`buildings/vox-arcana/vox-arcana-dwelling-t*`). Les bâtiments
+// « Le Choixpeau » (effet houseChoice) n'ont pas de vignette propre → ils
+// affichent le blason de leur Maison (`houses/vox-arcana/house-*`, stagé au
+// lot 16). Régression des captures utilisateur : tuiles de bâtiment vides.
+test('assets : Vox Arcana — habitations peintes + « Le Choixpeau » en blason de Maison', async ({
+  page,
+}) => {
+  const assets = trackAssets(page);
+  const errors = await openMenu(page);
+
+  // Escarmouche Vox Arcana (seed fixe) ⇒ ville de départ de faction vox-arcana.
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.startSkirmish({
+      humanFactionId: 'vox-arcana',
+      aiFactionId: 'haven',
+      difficulty: 'normal',
+    }),
+  );
+  await expect(page.getByTestId('end-turn')).toBeVisible();
+
+  await page.locator('[data-testid^="town-open-"]').first().click();
+  // La vue peinte liste tous les bâtiments de la faction en emplacements. Une
+  // habitation montre son art dédié (src `…dwelling-t…`) et un « Le Choixpeau »
+  // montre le blason (src `house-…`) — les deux réellement décodés (repli
+  // beige exclu).
+  const dwelling = page.locator('.town-view-vignette[src*="dwelling-t"]');
+  await expect(dwelling.first()).toBeVisible();
+  await expect
+    .poll(() => imgNaturalWidth(page, '.town-view-vignette[src*="dwelling-t"]'))
+    .toBeGreaterThan(0);
+  const badge = page.locator('.town-view-vignette[src*="house-"]');
+  await expect(badge.first()).toBeVisible();
+  await expect
+    .poll(() => imgNaturalWidth(page, '.town-view-vignette[src*="house-"]'))
+    .toBeGreaterThan(0);
+
+  expect(assets.failed).toEqual([]);
+  expect(errors).toEqual([]);
+});
+
 // Phase 8.1 (Beta doc 09) : PWA hors-ligne. Le build de prod expose un manifeste
 // installable et un service worker offline-first. Preuve d'offline : après un
 // chargement en ligne (SW actif + cache peuplé), on coupe le réseau et l'app

@@ -75,7 +75,7 @@ function stateWithForge(gold = 2000, heroPos = { x: 5, y: 5 }): GameState {
   ];
   s.heroes = [heroAt(heroPos)];
   s.towns = [
-    { id: 't1', ownerPlayerId: 'p1', pos: { x: 5, y: 5 }, factionId: '', buildings: { forge: 1 }, builtToday: false, garrison: [], stock: {}, spellPool: [] },
+    { id: 't1', ownerPlayerId: 'p1', pos: { x: 5, y: 5 }, factionId: '', buildings: { forge: 1 }, builtToday: false, garrison: [], stock: {}, spellPool: [], sharedGrowthChoice: {} },
   ];
   s.buildingCatalog = { forge: FORGE };
   s.unitCatalog = { ...testCatalog(), ballista: BALLISTA };

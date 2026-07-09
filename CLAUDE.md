@@ -112,10 +112,15 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > faction **Essence** (gain post-victoire puis dépense) + T8 Pénitent
 > recrutable ; 4.7 **Cercles** (choix de bâtiment exclusif `exclusiveGroup`) ;
 > 4.9 **École de la Traque** (school `traque`, sort `applyMarks`, Entraves) ;
-> 4.10 **demonform** (T8, transformation stateful + `magicResistance`). Depuis,
-> la forme de sauvegarde a continué d'évoluer : `CURRENT_SAVE_VERSION` vaut
-> désormais **8** (source de vérité `engine/core/state.ts` — v5 huntContract,
-> v6 machines de guerre, v7 quêtes, v8 objets de carte/pendingTreasure/visitLuck).
+> 4.10 **demonform** (T8, transformation stateful + `magicResistance`) ; **4.20
+> croissance partagée « apex »** (`sharedGrowthGroups` déclaré + câblé : T7/T8
+> partagent 1 croissance/sem, destinataire au choix du joueur via
+> `ChooseSharedGrowth` ; point d'extension générique `GameState.growthGroups` +
+> `TownState.sharedGrowthChoice` — clôt le Lot B de `phase-4-reverify`, dernier
+> vrai trou de l'Alpha AH). Depuis, la forme de sauvegarde a continué d'évoluer :
+> `CURRENT_SAVE_VERSION` vaut désormais **8** (source de vérité
+> `engine/core/state.ts` — v5 huntContract, v6 machines de guerre, v7 quêtes,
+> v8 objets de carte/pendingTreasure/visitLuck).
 > Systèmes livrés depuis (voir docs à jour) : upgrades d'unités (habitation
 > niveau 2), **marché** ressource↔or, **machines de guerre** (Forge), **contrats
 > de chasse**, **hot-seat** (2 humains/appareil), **quêtes & campagnes** (N1→N3c :

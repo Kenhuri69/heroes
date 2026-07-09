@@ -167,9 +167,12 @@ export interface Calendar {
  * l'effet de bâtiment `houseChoice` (« Le Choixpeau », doc 16 §3.1/§5).
  * v12 : `CombatState.heroAttackUsed` — attaque du héros 1×/combat (C1), doc 02 §5.2.
  * v13 : `PlayerState.team` — alliances/équipes (doc 02 §6) : joueurs alliés qui
- * ne s'assiègent pas et partagent la victoire ; `0` = sans alliance.)
+ * ne s'assiègent pas et partagent la victoire ; `0` = sans alliance.
+ * v14 : `GameState.growthGroups` + `TownState.sharedGrowthChoice` — croissance
+ * partagée « apex » (doc 05 §3.1/§8) : un groupe d'unités partage 1 croissance
+ * hebdo, le joueur choisit le destinataire.)
  */
-export const CURRENT_SAVE_VERSION = 13;
+export const CURRENT_SAVE_VERSION = 14;
 
 export interface GameState {
   saveVersion: number;
@@ -208,6 +211,15 @@ export interface GameState {
    * le moteur ne connaît que des ids opaques.
    */
   houseCatalog: Record<string, { effects: SkillRankEffect[] }>;
+  /**
+   * Groupes de croissance partagée (doc 05 §3.1/§8), indexés par id de groupe
+   * opaque → unités membres. Résolu par le contenu depuis les manifestes
+   * (`sharedGrowthGroups`), embarqué par `StartGame`. Les membres d'un même
+   * groupe **partagent une seule croissance hebdomadaire** ; le joueur choisit le
+   * destinataire par ville (`TownState.sharedGrowthChoice`). `{}` = aucun groupe.
+   * Le moteur ne connaît que des ids opaques — aucun nom de faction.
+   */
+  growthGroups: Record<string, string[]>;
   /**
    * Objectifs du scénario par joueur (doc 02 §6, plan phase-3.5) — `null` en
    * partie libre : aucune évaluation de fin de partie.
@@ -255,6 +267,7 @@ export function createEmptyState(): GameState {
     combat: null,
     factionCatalog: {},
     houseCatalog: {},
+    growthGroups: {},
     scenario: null,
     outcome: null,
     pendingTreasure: null,

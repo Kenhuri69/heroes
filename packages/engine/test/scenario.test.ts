@@ -78,6 +78,7 @@ describe('conditionMet', () => {
           garrison: [],
           stock: {},
           spellPool: [],
+          sharedGrowthChoice: {},
         },
       ],
     };
@@ -138,6 +139,7 @@ describe('evaluateOutcome — victoire/défaite (joueur local player-1)', () => 
         garrison: [],
         stock: {},
         spellPool: [],
+        sharedGrowthChoice: {},
       },
     ];
     const state = apply(createEmptyState(), cmd).state;
@@ -186,7 +188,7 @@ describe('evaluateOutcome — victoire/défaite (joueur local player-1)', () => 
     };
     const cmd = startCmd(scenario, { 'player-1': 'human', 'player-2': 'ai' });
     if (cmd.type !== 'StartGame') throw new Error('unreachable');
-    const town = (id: string, owner: string) => ({ id, ownerPlayerId: owner, pos: { x: 0, y: 0 }, factionId: '', buildings: {}, builtToday: false, garrison: [], stock: {}, spellPool: [] });
+    const town = (id: string, owner: string) => ({ id, ownerPlayerId: owner, pos: { x: 0, y: 0 }, factionId: '', buildings: {}, builtToday: false, garrison: [], stock: {}, spellPool: [], sharedGrowthChoice: {} });
     cmd.towns = [town('start-town', 'player-2'), town('keep', 'player-1')]; // l'IA a déjà pris start-town
     const state = apply(createEmptyState(), cmd).state;
     const { state: next, events } = apply(state, { type: 'EndTurn', playerId: 'player-1' });

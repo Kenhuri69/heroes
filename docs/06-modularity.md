@@ -84,7 +84,7 @@ Manifeste **réel** (arcane-hunters, abrégé) :
   "spellSchool": "traque",                   // null si la faction n'en a pas
   "heroSkills": [],
   "tiers": 8,
-  "sharedGrowthGroups": {},                  // (apex T7/T8 non déclaré aujourd'hui, cf. doc 05)
+  "sharedGrowthGroups": { "apex": ["t7-manticore", "t8-penitent"] },  // T7/T8 partagent 1 croissance/sem, choix joueur (câblé 4.20, cf. doc 05)
   "units": ["t1-eleve", … , "t8-penitent-elite"],  // base + variantes élites
   "abilityModules": [],                      // ★ DOIT rester vide (schéma `.max(0)`) tant que
   "hooks": [],                               //   le moteur ne les interprète pas — cf. §4

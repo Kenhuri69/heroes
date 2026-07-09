@@ -264,10 +264,13 @@ Fort ──► T1 Dortoirs ──► T2 Volière ──► T3 Salle des Préfets
 ```
 
 > **État livré** : le T8 **requiert le T7** (`arcane-hunters-dwelling-t8` →
-> `dwelling-t7` + `fort@3`, D8) — c'est une **chaîne**, pas un double sommet.
-> La **croissance partagée « apex »** (`sharedGrowthGroups`) n'est **ni déclarée**
-> (manifeste = `{}`) **ni câblée** dans le moteur — **différée** ; aujourd'hui
-> T7 et T8 ont chacun leur propre croissance hebdomadaire.
+> `dwelling-t7` + `fort@3`, D8) — la construction est une **chaîne**. La
+> **croissance partagée « apex »** (`sharedGrowthGroups: { apex: [t7, t8] }`) est
+> désormais **déclarée ET câblée** (lot 4.20) : quand les deux habitations sont
+> bâties, T7 et T8 **partagent une seule croissance hebdomadaire** ; le joueur
+> choisit le destinataire (`ChooseSharedGrowth`, préférence permanente ; défaut =
+> T7). Point d'extension moteur **générique** (`GameState.growthGroups` +
+> `TownState.sharedGrowthChoice`) — aucun nom de faction dans le moteur.
 
 ## 6. École de magie : Art de la Traque (extraits)
 
@@ -297,7 +300,7 @@ Héros nommés : *Evadne Corvel* (Maître de Chasse, ex-Cercle de l'Abîme, moit
 
 | Besoin | Mécanisme du framework (doc 06) |
 |--------|--------------------------------|
-| 8ᵉ tier à croissance partagée | donnée `sharedGrowthGroup` (schéma validé ; **câblage moteur du choix hebdo différé** — T7/T8 croissent indépendamment pour l'instant) |
+| 8ᵉ tier à croissance partagée | donnée `sharedGrowthGroups` + point d'extension moteur **générique** `GameState.growthGroups` / `TownState.sharedGrowthChoice` / commande `ChooseSharedGrowth` — **livré** (4.20) : T7/T8 partagent 1 croissance/semaine, destinataire au choix du joueur |
 | Marques | capacité générique `mark` + module `consumeMarks` (registre de capacités) — livré (4.2/4.3/4.5/4.8) |
 | Essence | ressource **de faction** déclarée dans le manifeste (`factionResources`) — livré (4.4/4.6) |
 | Choix de Cercle | mécanisme générique `exclusiveBuildingChoice` — livré (4.7) |

@@ -655,6 +655,25 @@ export function buildHouseCatalog(report: LoadReport): Record<string, { effects:
   return catalog;
 }
 
+/**
+ * Catalogue des groupes de croissance partagée (doc 05 §3.1/§8), prêt pour
+ * `StartGame.growthGroups` / `GameState.growthGroups` — fusion des
+ * `sharedGrowthGroups` de tous les paquets, indexé par id de groupe → membres.
+ * Les labels de groupe doivent être uniques tous paquets confondus (relève d'un
+ * doublon, comme les Maisons) : le moteur ne connaît que des ids opaques.
+ */
+export function buildGrowthGroupCatalog(report: LoadReport): Record<string, string[]> {
+  const catalog: Record<string, string[]> = {};
+  for (const pack of report.content.packs) {
+    for (const [group, members] of Object.entries(pack.manifest.sharedGrowthGroups)) {
+      if (catalog[group])
+        throw new PackError([`buildGrowthGroupCatalog: id de groupe en double '${group}'`]);
+      catalog[group] = [...members];
+    }
+  }
+  return catalog;
+}
+
 /** Ville de départ résolue — même forme que le `TownState` initial du moteur. */
 export interface ResolvedStartingTown {
   id: string;

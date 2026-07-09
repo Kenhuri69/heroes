@@ -482,6 +482,20 @@ function RecruitTab({
   const unitIds = builtDwellings(town, catalog);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
 
+  // Croissance partagée (doc 05 §3.1/§8) : un groupe dont ≥ 2 membres ont un
+  // dwelling bâti se partage une seule croissance hebdo — le joueur choisit le
+  // destinataire. Rien à afficher tant qu'un seul membre (ou aucun) est bâti.
+  const apexGroups = Object.entries(game.growthGroups)
+    .map(([groupId, members]) => ({ groupId, present: members.filter((m) => unitIds.includes(m)) }))
+    .filter((g) => g.present.length >= 2);
+
+  const chooseGrowth = (groupId: string, unitId: string): void => {
+    onError(null);
+    dispatch({ type: 'ChooseSharedGrowth', townId: town.id, groupId, unitId }).catch((err: unknown) => {
+      onError(commandErrorMessage(err));
+    });
+  };
+
   const qtyFor = (unitId: string, stock: number): number => {
     const raw = quantities[unitId] ?? 1;
     return Math.max(1, Math.min(raw, Math.max(stock, 1)));
@@ -531,6 +545,27 @@ function RecruitTab({
 
   return (
     <div class="town-tab-panel" data-testid="town-panel-recruit">
+      {apexGroups.map(({ groupId, present }) => {
+        const chosen = town.sharedGrowthChoice[groupId] ?? present[0];
+        return (
+          <div class="town-shared-growth" data-testid={`town-shared-growth-${groupId}`} key={groupId}>
+            <span class="town-shared-growth-label">{t('town.sharedGrowth')}</span>
+            <div class="town-shared-growth-choices">
+              {present.map((unitId) => (
+                <button
+                  key={unitId}
+                  class={unitId === chosen ? 'active' : ''}
+                  aria-pressed={unitId === chosen}
+                  data-testid={`town-shared-growth-${groupId}-${unitId}`}
+                  onClick={() => chooseGrowth(groupId, unitId)}
+                >
+                  {resolveUnitName(unitId)}
+                </button>
+              ))}
+            </div>
+          </div>
+        );
+      })}
       {unitIds.length > 0 && (
         <button
           class="town-recruit-all"

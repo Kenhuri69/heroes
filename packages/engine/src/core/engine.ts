@@ -34,6 +34,8 @@ import {
   handleUpgradeUnits,
   validateBuyWarMachine,
   handleBuyWarMachine,
+  validateChooseSharedGrowth,
+  handleChooseSharedGrowth,
 } from '../town';
 import { learnGuildSpellsAtTown, rollGuildSpells } from '../town/mage-guild';
 import {
@@ -105,6 +107,7 @@ const GAME_OVER_BLOCKED = new Set<Command['type']>([
   'AutoCombat',
   'BuildStructure',
   'RecruitUnits',
+  'ChooseSharedGrowth',
   'UpgradeUnits',
   'BuyWarMachine',
   'GarrisonTransfer',
@@ -206,6 +209,11 @@ export function validate(state: GameState, cmd: Command): CommandError | null {
       if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
       if (state.combat) return { code: 'combatActive', message: 'un combat est en cours' };
       return validateRecruitUnits(state, cmd);
+    }
+    case 'ChooseSharedGrowth': {
+      if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
+      if (state.combat) return { code: 'combatActive', message: 'un combat est en cours' };
+      return validateChooseSharedGrowth(state, cmd);
     }
     case 'UpgradeUnits': {
       if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
@@ -382,6 +390,9 @@ const handlers: Handlers = {
     draft.artifactCatalog = cmd.artifactCatalog ?? {};
     draft.factionCatalog = cmd.factionCatalog ?? {};
     draft.houseCatalog = cmd.houseCatalog ?? {};
+    draft.growthGroups = cmd.growthGroups
+      ? Object.fromEntries(Object.entries(cmd.growthGroups).map(([g, m]) => [g, [...m]]))
+      : {};
     draft.scenario = cmd.scenario ?? null;
     draft.outcome = null;
     draft.pendingTreasure = null;
@@ -397,6 +408,7 @@ const handlers: Handlers = {
       garrison: t.garrison.map((s) => ({ ...s })),
       stock: { ...t.stock },
       spellPool: t.spellPool ? [...t.spellPool] : [],
+      sharedGrowthChoice: t.sharedGrowthChoice ? { ...t.sharedGrowthChoice } : {},
     }));
     draft.players = cmd.players.map((p) => ({
       id: p.id,
@@ -520,6 +532,10 @@ const handlers: Handlers = {
 
   RecruitUnits(draft, cmd, events) {
     handleRecruitUnits(draft, cmd, events);
+  },
+
+  ChooseSharedGrowth(draft, cmd, events) {
+    handleChooseSharedGrowth(draft, cmd, events);
   },
 
   UpgradeUnits(draft, cmd, events) {

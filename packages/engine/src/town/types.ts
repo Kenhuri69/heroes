@@ -97,4 +97,11 @@ export interface TownState {
    * présent sur la ville apprend ceux de cercle ≤ son cercle apprenable (Sagesse).
    */
   spellPool: string[];
+  /**
+   * Choix de croissance partagée (doc 05 §3.1/§8) — préférence permanente du
+   * joueur par groupe de croissance (`GameState.growthGroups`) : groupId →
+   * unitId destinataire de la croissance hebdo partagée. `{}` = aucun choix (le
+   * moteur retombe sur le 1er membre présent). Posé par `ChooseSharedGrowth`.
+   */
+  sharedGrowthChoice: Record<string, string>;
 }

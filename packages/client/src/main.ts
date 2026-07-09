@@ -7,6 +7,7 @@ import { WORLD_OCEAN_CSS } from './render/worldBorder';
 import { loadGameContent, loadDefaultMap, loadScenarioMap, resolveGeneratedMap } from './app/content';
 import {
   buildFactionSetup,
+  buildGrowthGroupSetup,
   buildHeroSetup,
   buildHouseSetup,
   buildTownSetup,
@@ -178,6 +179,7 @@ async function bootstrap(): Promise<void> {
         buildHeroSetup(report),
         buildFactionSetup(report),
         buildHouseSetup(report),
+        buildGrowthGroupSetup(report),
       ),
     );
     navigate('adventure');

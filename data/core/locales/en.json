@@ -375,6 +375,7 @@
   "town.incomeGold": "Income: +{amount} gold/day",
   "town.growthIn": "Growth in {days}d",
   "town.recruitAll": "Recruit all",
+  "town.sharedGrowth": "Shared growth — recipient:",
   "town.close": "Close",
   "town.build": "Build",
   "town.recruit": "Recruit",

@@ -72,6 +72,11 @@ export type Command =
        * création ; non stocké dans l'état (les effets résolus vivent sur le héros).
        */
       houseCatalog?: Record<string, { effects: SkillRankEffect[] }>;
+      /**
+       * Groupes de croissance partagée résolus par le contenu (doc 05 §3.1/§8),
+       * `groupId → membres`. Embarqué dans `GameState.growthGroups` ; absent = aucun.
+       */
+      growthGroups?: Record<string, string[]>;
       /** Objectifs de scénario par joueur (doc 02 §6, plan phase-3.5) — absent = partie libre. */
       scenario?: ScenarioState;
       /** Quêtes de campagne (doc 13 §6.2, N2a) — absent = pas de campagne. */
@@ -105,6 +110,18 @@ export type Command =
   // ——— Villes (doc 02 §4) — surface figée en cadrage 3.1 ———
   | { type: 'BuildStructure'; townId: string; buildingId: string }
   | { type: 'RecruitUnits'; townId: string; unitId: string; count: number }
+  | {
+      /**
+       * Choisit le destinataire de la croissance hebdo d'un groupe de croissance
+       * partagée (doc 05 §3.1/§8, ex. « apex » T7/T8) dans une ville. Préférence
+       * permanente ; prend effet au prochain passage de semaine. Générique : le
+       * moteur ne connaît que des ids opaques (groupe, unité).
+       */
+      type: 'ChooseSharedGrowth';
+      townId: string;
+      groupId: string;
+      unitId: string;
+    }
   | {
       /**
        * Améliore toute la pile de garnison `unitId` (base) en sa variante
@@ -190,6 +207,7 @@ export interface CommandError {
     | 'uniquePerPlayer'
     | 'cannotAfford'
     | 'notRecruitable'
+    | 'unknownGrowthGroup'
     | 'notUpgradable'
     | 'warMachineUnavailable'
     | 'insufficientStock'

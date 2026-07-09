@@ -13,7 +13,12 @@ import {
   type PlayerSetup,
   type TownState,
 } from '../../engine/src/index';
-import { buildBuildingCatalog, loadContent, type ReadJson } from '../src/loader';
+import {
+  buildBuildingCatalog,
+  buildGrowthGroupCatalog,
+  loadContent,
+  type ReadJson,
+} from '../src/loader';
 
 /**
  * Arcane Hunters — signature « Marque du Chasseur » (plan phase-4.2, doc 05) :
@@ -143,6 +148,7 @@ describe('Arcane Hunters (plan phase-4.2) — signature Marque & lineup data-onl
       garrison: [],
       stock,
       spellPool: [],
+      sharedGrowthChoice: {},
     };
     const players: PlayerSetup[] = [
       {
@@ -210,5 +216,31 @@ describe('D9 — Tableau des Contrats gaté par la Taverne', () => {
     )!;
     expect(contracts.levels[0]!.requires.some((r) => r.building === 'tavern')).toBe(true);
     expect(contracts.levels[0]!.requires.some((r) => r.building === 'townHall')).toBe(false);
+  });
+});
+
+describe('4.20 — croissance partagée apex (double sommet)', () => {
+  it('la faction déclare un groupe de croissance partagée de ses 2 unités de plus haut tier', async () => {
+    const report = await loadContent(readJsonFromDisk);
+    const pack = findMarkFaction(report.content.packs)!;
+    // Un groupe déclaré, de 2 membres — repéré par sa forme, pas par un id de faction.
+    const groups = Object.values(pack.manifest.sharedGrowthGroups);
+    expect(groups).toHaveLength(1);
+    const members = groups[0]!;
+    expect(members).toHaveLength(2);
+    // Les membres sont les deux tiers les plus hauts du lineup de base (apex).
+    const byTier = new Map(baseUnits(pack).map((u) => [u.id, u.tier]));
+    const tiers = members.map((id) => byTier.get(id)).sort((a, b) => (a ?? 0) - (b ?? 0));
+    const maxTier = Math.max(...baseUnits(pack).map((u) => u.tier));
+    expect(tiers).toEqual([maxTier - 1, maxTier]);
+  });
+
+  it('buildGrowthGroupCatalog fusionne les groupes (prêt pour StartGame.growthGroups)', async () => {
+    const report = await loadContent(readJsonFromDisk);
+    const catalog = buildGrowthGroupCatalog(report);
+    const pack = findMarkFaction(report.content.packs)!;
+    for (const [group, members] of Object.entries(pack.manifest.sharedGrowthGroups)) {
+      expect(catalog[group]).toEqual(members);
+    }
   });
 });

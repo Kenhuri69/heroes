@@ -27,7 +27,7 @@ import {
   resolveBuildingLore,
   resolveFactionResourceName,
 } from '../app/i18n';
-import { buildingUrl, houseBadgeUrl, townBackgroundUrl } from '../render/assets';
+import { buildingUrl, townBackgroundUrl } from '../render/assets';
 import { AssetImg } from './AssetImg';
 import { FactionBadge } from './FactionBadge';
 import { UiIcon } from './UiIcon';
@@ -222,24 +222,6 @@ const VIEW_STATUS_LABEL: Record<TownViewStatus, string> = {
  * (`validateBuildStructure`) : on n'affiche jamais les habitations d'autres
  * factions, qui encombraient la liste sans jamais être constructibles.
  */
-/**
- * Vignette d'un bâtiment : un bâtiment à effet `houseChoice` (« Le Choixpeau »)
- * affiche le blason de sa Maison (`houses/<factionId>/<houseId>`) ; sinon la
- * vignette de bâtiment habituelle. Générique — `houseId` vient des données.
- */
-function buildingThumbUrl(
-  def: BuildingDef | undefined,
-  id: string,
-  factionId: string,
-): string | undefined {
-  const effect = def?.levels[0]?.effect;
-  if (effect?.type === 'houseChoice') {
-    const badge = houseBadgeUrl(factionId, effect.houseId);
-    if (badge) return badge;
-  }
-  return buildingUrl(id, factionId);
-}
-
 function townBuildingIds(town: TownState, catalog: Record<string, BuildingDef>): string[] {
   return Object.keys(catalog).filter((id) => {
     const factionId = catalog[id]?.factionId;
@@ -295,7 +277,7 @@ function TownView({
             >
               <span class="town-view-figure">
                 <AssetImg
-                  src={buildingThumbUrl(catalog[id], id, town.factionId)}
+                  src={buildingUrl(id, town.factionId)}
                   alt=""
                   class="town-view-vignette"
                   fallback={<i class="town-view-vignette-fallback" aria-hidden="true" />}
@@ -424,7 +406,7 @@ function BuildTab({
             <li key={buildingId} class={`town-building town-building-${status}`}>
               <div class="town-building-header">
                 <AssetImg
-                  src={buildingThumbUrl(def, buildingId, town.factionId)}
+                  src={buildingUrl(buildingId, town.factionId)}
                   alt=""
                   class="town-building-vignette"
                 />

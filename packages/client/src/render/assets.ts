@@ -90,15 +90,6 @@ export function heroAvatarUrl(factionId: string, archetype: 'might' | 'magic'): 
   return factionId ? registry.get(`heroes/${factionId}-${archetype}`) : undefined;
 }
 
-/**
- * Blason d'une Maison (`houses/<factionId>/<houseId>`, doc 16 §3.1). Sert de
- * vignette aux bâtiments à effet `houseChoice` (« Le Choixpeau »). Générique :
- * `houseId` est un id opaque venu des données, aucun nom de faction en dur.
- */
-export function houseBadgeUrl(factionId: string, houseId: string): string | undefined {
-  return factionId ? registry.get(`houses/${factionId}/${houseId}`) : undefined;
-}
-
 // --- Résolveurs par famille (faction-agnostiques, convention de nommage) ---
 
 const TILE_VARIANTS = 3;

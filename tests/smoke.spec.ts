@@ -2220,12 +2220,11 @@ test('assets : PNG servis sans 404, icônes de ressources et vignettes de bâtim
   expect(errors).toEqual([]);
 });
 
-// Vox Arcana (doc 16) : vignettes de bâtiments. Les 8 habitations ont leur art
-// dédié (`buildings/vox-arcana/vox-arcana-dwelling-t*`). Les bâtiments
-// « Le Choixpeau » (effet houseChoice) n'ont pas de vignette propre → ils
-// affichent le blason de leur Maison (`houses/vox-arcana/house-*`, stagé au
-// lot 16). Régression des captures utilisateur : tuiles de bâtiment vides.
-test('assets : Vox Arcana — habitations peintes + « Le Choixpeau » en blason de Maison', async ({
+// Vox Arcana (doc 16) : vignettes de bâtiments toutes peintes — 8 habitations
+// (`buildings/vox-arcana/vox-arcana-dwelling-t*`) + 5 bâtiments « Le Choixpeau »
+// (`buildings/vox-arcana/vox-arcana-house-*`). Régression des captures
+// utilisateur : tuiles de bâtiment vides (repli beige).
+test('assets : Vox Arcana — ville peinte (habitations, Maisons, fond) + jetons de carte', async ({
   page,
 }) => {
   const assets = trackAssets(page);
@@ -2241,11 +2240,21 @@ test('assets : Vox Arcana — habitations peintes + « Le Choixpeau » en blason
   );
   await expect(page.getByTestId('end-turn')).toBeVisible();
 
+  // Jetons de carte peints : le héros (map/hero-vox-arcana) et la ville
+  // (map/town-vox-arcana) chargent leur texture Pixi au montage de la scène,
+  // remplaçant le repli procédural.
+  await expect
+    .poll(() => assets.loaded.some((u) => /hero-vox-arcana-\w/.test(u)))
+    .toBe(true);
+  await expect
+    .poll(() => assets.loaded.some((u) => /town-vox-arcana-\w/.test(u)))
+    .toBe(true);
+
   await page.locator('[data-testid^="town-open-"]').first().click();
   // La vue peinte liste tous les bâtiments de la faction en emplacements. Une
-  // habitation montre son art dédié (src `…dwelling-t…`) et un « Le Choixpeau »
-  // montre le blason (src `house-…`) — les deux réellement décodés (repli
-  // beige exclu).
+  // habitation (src `…dwelling-t…`) et un bâtiment « Le Choixpeau »
+  // (src `…house-…`) montrent leur art dédié — les deux réellement décodés
+  // (repli beige exclu).
   const dwelling = page.locator('.town-view-vignette[src*="dwelling-t"]');
   await expect(dwelling.first()).toBeVisible();
   await expect
@@ -2256,6 +2265,10 @@ test('assets : Vox Arcana — habitations peintes + « Le Choixpeau » en blason
   await expect
     .poll(() => imgNaturalWidth(page, '.town-view-vignette[src*="house-"]'))
     .toBeGreaterThan(0);
+  // Fond de ville peint (backgrounds/town-vox-arcana) posé en CSS sur la scène.
+  await expect
+    .poll(() => page.locator('.town-view-scene').getAttribute('style'))
+    .toContain('town-vox-arcana');
 
   expect(assets.failed).toEqual([]);
   expect(errors).toEqual([]);

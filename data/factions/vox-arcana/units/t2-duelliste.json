@@ -14,13 +14,13 @@
   },
   "growthPerWeek": 9,
   "cost": {
-    "gold": 90
+    "gold": 100
   },
   "abilities": [
     {
       "id": "shooter",
       "params": {
-        "ammo": 12
+        "ammo": 9
       }
     }
   ]

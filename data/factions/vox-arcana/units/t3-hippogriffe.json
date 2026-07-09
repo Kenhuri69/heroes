@@ -3,9 +3,9 @@
   "tier": 3,
   "name": "@loc:unit.t3-hippogriffe.name",
   "stats": {
-    "hp": 25,
+    "hp": 18,
     "attack": 7,
-    "defense": 6,
+    "defense": 5,
     "damage": [
       4,
       7
@@ -14,7 +14,7 @@
   },
   "growthPerWeek": 6,
   "cost": {
-    "gold": 180
+    "gold": 200
   },
   "abilities": [
     {

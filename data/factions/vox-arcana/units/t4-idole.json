@@ -3,8 +3,8 @@
   "tier": 4,
   "name": "@loc:unit.t4-idole.name",
   "stats": {
-    "hp": 38,
-    "attack": 11,
+    "hp": 33,
+    "attack": 10,
     "defense": 8,
     "damage": [
       7,
@@ -14,14 +14,14 @@
   },
   "growthPerWeek": 4,
   "cost": {
-    "gold": 400,
+    "gold": 450,
     "crystal": 1
   },
   "abilities": [
     {
       "id": "shooter",
       "params": {
-        "ammo": 10
+        "ammo": 7
       }
     }
   ]

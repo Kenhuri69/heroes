@@ -3,18 +3,18 @@
   "tier": 5,
   "name": "@loc:unit.t5-sombral.name",
   "stats": {
-    "hp": 45,
-    "attack": 12,
+    "hp": 38,
+    "attack": 11,
     "defense": 9,
     "damage": [
-      8,
-      13
+      7,
+      11
     ],
     "speed": 9
   },
   "growthPerWeek": 3,
   "cost": {
-    "gold": 650
+    "gold": 720
   },
   "abilities": [
     {

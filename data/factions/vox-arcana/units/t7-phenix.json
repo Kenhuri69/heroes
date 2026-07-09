@@ -3,7 +3,7 @@
   "tier": 7,
   "name": "@loc:unit.t7-phenix.name",
   "stats": {
-    "hp": 150,
+    "hp": 142,
     "attack": 19,
     "defense": 17,
     "damage": [
@@ -14,7 +14,7 @@
   },
   "growthPerWeek": 1,
   "cost": {
-    "gold": 2500,
+    "gold": 2750,
     "gems": 2
   },
   "abilities": [

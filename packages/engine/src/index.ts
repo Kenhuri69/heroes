@@ -75,7 +75,9 @@ export type {
 export {
   attackableTargets,
   canShoot,
+  canHeroAttack,
   estimateDamage,
+  heroAttackDamage,
   initiativeSpeed,
   meleeOriginsFor,
   reachableHexes,

@@ -210,10 +210,10 @@ const GOLDEN_JOURNAL: Command[] = [
 // Re-fixé au lot 16.1 : `HeroState.houseId` ('') + `HeroState.houseEffects` ([])
 // — allégeance de Maison (save v10). Les héros golden n'ont aucune Maison
 // (houseCatalog absent du journal) ⇒ seule la FORME change, simulation inchangée.
-// Re-fixé au lot 16.2b : `GameState.houseCatalog` ({}) — catalogue des Maisons
-// (save v11, effet de bâtiment `houseChoice`). Aucune Maison dans le journal
-// golden ⇒ seule la FORME change, simulation inchangée.
-const GOLDEN_HASH = '4c6b39e6';
+// Re-fixé au lot P2/C1 : `CombatState.heroAttackUsed` ([]) — attaque du héros
+// (save v12). Le journal golden inclut un combat de gardien (dont l'état porte
+// désormais ce champ) ⇒ seule la FORME change, simulation inchangée.
+const GOLDEN_HASH = 'b5456f83';
 
 describe('golden replay', () => {
   it('le journal scripté produit toujours le même état final', () => {

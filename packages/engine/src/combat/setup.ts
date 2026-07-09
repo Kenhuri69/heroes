@@ -131,6 +131,7 @@ export function handleStartCombat(
     attackerHeroId: null,
     defenderHeroId: null,
     heroCastThisRound: false,
+    heroAttackUsed: [],
     finished: false,
     winner: null,
   };
@@ -187,6 +188,7 @@ export function beginGuardianCombat(
     attackerHeroId: heroId,
     defenderHeroId: null,
     heroCastThisRound: false,
+    heroAttackUsed: [],
     finished: false,
     winner: null,
   };
@@ -240,6 +242,7 @@ export function beginTownCombat(
     attackerHeroId: heroId,
     defenderHeroId: null,
     heroCastThisRound: false,
+    heroAttackUsed: [],
     finished: false,
     winner: null,
   };

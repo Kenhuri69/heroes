@@ -147,6 +147,8 @@ export type Command =
     }
   // ——— Héros : sorts & compétences (doc 02 §1.2–§1.4) — surface figée 3.2 ———
   | { type: 'CastSpell'; spellId: string; targetStackId: string }
+  /** Attaque du héros (C1) : dégâts directs sur une pile ennemie, 1×/combat. */
+  | { type: 'HeroAttack'; targetStackId: string }
   // ——— Sort d'aventure (doc 02 §1.4, Alpha 4.16) : lancé sur la carte, hors combat ———
   | { type: 'CastAdventureSpell'; heroId: string; spellId: string; playerId: string; townId?: string }
   | { type: 'ChooseSkill'; heroId: string; skillId: string }
@@ -191,6 +193,8 @@ export interface CommandError {
     | 'spellNotKnown'
     | 'notEnoughMana'
     | 'heroAlreadyCast'
+    | 'heroAttackUnavailable'
+    | 'heroAttackUsed'
     | 'invalidTarget'
     | 'unknownSkill'
     | 'noPendingChoice'

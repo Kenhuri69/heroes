@@ -176,6 +176,7 @@ function combatState(stacks: CombatStack[], terrain = 'grass'): CombatState {
     attackerHeroId: null,
     defenderHeroId: null,
     heroCastThisRound: false,
+    heroAttackUsed: [],
     winner: null,
   };
 }

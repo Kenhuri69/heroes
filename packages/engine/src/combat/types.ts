@@ -97,6 +97,8 @@ export interface CombatState {
   defenderHeroId: string | null;
   /** Le héros du camp joueur a déjà lancé un sort ce round (1/round, doc 02 §5.2). */
   heroCastThisRound: boolean;
+  /** Camps ayant déjà utilisé l'attaque de leur héros ce combat (1×/combat, C1). */
+  heroAttackUsed: CombatSideId[];
   finished: boolean;
   winner: CombatSideId | null;
 }

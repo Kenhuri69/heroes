@@ -95,6 +95,14 @@ export { initiativeSpeed, roundActionOrder, type RoundActionOrder } from './stat
 /** Auto-combat déterministe → camp vainqueur (brique de `faction:sim`, Alpha 4.17). */
 export { simulateAutoCombat } from './simulate';
 
+/** Attaque du héros (C1) — validation/handler + dégâts (preview) + disponibilité pour l'UI. */
+export {
+  validateHeroAttack,
+  handleHeroAttack,
+  heroAttackDamage,
+  canHeroAttack,
+} from './hero-attack';
+
 /**
  * Ouvre un combat d'interception héros ↔ gardien — appelé par le handler
  * `MoveHero` (câblage lot D). Le héros n'entre PAS sur la tuile du gardien.

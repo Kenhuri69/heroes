@@ -51,9 +51,14 @@ lot dédié avec accès au modèle image.
     Smoke étendu : une habitation peinte + un blason décodés.
   - **5 bâtiments de Maisons** : planche JPG NON alignée sur une grille régulière
     (cellules coupant les bâtiments, l'Aigle quasi perdu) ⇒ extraction écartée.
-    Les Maisons restent couvertes par les blasons (Lot A). Fond de ville + jetons
-    de carte toujours à générer.
-- Vérif : `lint` + `build` + budget bundle 264 Ko < 800 Ko + smoke assets (4/4) verts.
+    Les Maisons restent couvertes par les blasons (Lot A).
+  - **Fond de ville** `backgrounds/town-vox-arcana.jpg` (PNG→JPEG q85, 197 Ko).
+  - **Jetons de carte** héros + ville : planche 2×1 extraite `--tol 68` (le
+    panneau gris clair #195 dépassait le fond #162 de +57 > défaut 42) →
+    `map/hero-vox-arcana.png` + `map/town-vox-arcana.png`. QC 2/2 verte.
+  - Smoke vox-arcana étendu aux 3 (jetons chargés Pixi + fond CSS).
+- Lot C **soldé** : plus aucun repli procédural pour vox-arcana.
+- Vérif : `lint` + `build` + smoke vox-arcana (2/2 desktop+mobile) verts.
 
 ## Décisions
 - Blason comme vignette de « Le Choixpeau » : thématiquement juste (le Choixpeau

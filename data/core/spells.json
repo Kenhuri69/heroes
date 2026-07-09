@@ -16,7 +16,8 @@
       "manaCost": 15,
       "kind": "damage",
       "base": 15,
-      "perPower": 4
+      "perPower": 4,
+      "area": "splash"
     },
     {
       "id": "soin",

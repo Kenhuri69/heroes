@@ -40,6 +40,11 @@ export interface SpellDef {
   speedMod?: number;
   /** Charges de Marque appliquées (sort `applyMarks`, doc 05 §6 — école Traque). */
   marks?: number;
+  /**
+   * Zone d'effet (C7) : `splash` = la pile ciblée + les piles du même camp qui lui
+   * sont adjacentes sur la grille hex (Boule de feu…). Absent = mono-cible.
+   */
+  area?: 'splash';
   /** Effet hors combat d'un sort `adventure` (doc 02 §1.4, Alpha 4.16). */
   adventure?: AdventureEffect;
 }

@@ -238,6 +238,7 @@
   "spellbook.manaCost": "{cost} mana",
   "spellbook.notEnoughMana": "Mana insuffisante",
   "spellbook.circle": "Cercle {circle}",
+  "spellbook.area": "(zone)",
   "spellbook.chooseTarget": "Choisissez une cible.",
   "spellbook.noTargets": "Aucune cible disponible.",
   "spellbook.back": "← Retour",

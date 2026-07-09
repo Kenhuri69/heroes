@@ -2120,11 +2120,12 @@ test('assets : PNG servis sans 404, icônes de ressources et vignettes de bâtim
   expect(errors).toEqual([]);
 });
 
-// Vox Arcana (doc 16) : les bâtiments « Le Choixpeau » (effet houseChoice) n'ont
-// pas de vignette de bâtiment propre — ils affichent le blason de leur Maison
-// (`houses/vox-arcana/house-*`, déjà stagé au lot 16 mais jusque-là non consommé).
-// Régression visible sur les captures utilisateur : tuiles de bâtiment vides.
-test('assets : Vox Arcana — « Le Choixpeau » affiche le blason de Maison (câblage houseChoice)', async ({
+// Vox Arcana (doc 16) : vignettes de bâtiments. Les 8 habitations ont leur art
+// dédié (`buildings/vox-arcana/vox-arcana-dwelling-t*`). Les bâtiments
+// « Le Choixpeau » (effet houseChoice) n'ont pas de vignette propre → ils
+// affichent le blason de leur Maison (`houses/vox-arcana/house-*`, stagé au
+// lot 16). Régression des captures utilisateur : tuiles de bâtiment vides.
+test('assets : Vox Arcana — habitations peintes + « Le Choixpeau » en blason de Maison', async ({
   page,
 }) => {
   const assets = trackAssets(page);
@@ -2141,9 +2142,15 @@ test('assets : Vox Arcana — « Le Choixpeau » affiche le blason de Maison (c�
   await expect(page.getByTestId('end-turn')).toBeVisible();
 
   await page.locator('[data-testid^="town-open-"]').first().click();
-  // La vue peinte liste tous les bâtiments de la faction en emplacements : au
-  // moins un « Le Choixpeau » montre le blason (src `house-…`), décodé (repli
+  // La vue peinte liste tous les bâtiments de la faction en emplacements. Une
+  // habitation montre son art dédié (src `…dwelling-t…`) et un « Le Choixpeau »
+  // montre le blason (src `house-…`) — les deux réellement décodés (repli
   // beige exclu).
+  const dwelling = page.locator('.town-view-vignette[src*="dwelling-t"]');
+  await expect(dwelling.first()).toBeVisible();
+  await expect
+    .poll(() => imgNaturalWidth(page, '.town-view-vignette[src*="dwelling-t"]'))
+    .toBeGreaterThan(0);
   const badge = page.locator('.town-view-vignette[src*="house-"]');
   await expect(badge.first()).toBeVisible();
   await expect

@@ -43,10 +43,17 @@ lot dédié avec accès au modèle image.
 
 ## État
 - Lot A **livré** : `houseBadgeUrl` + `buildingThumbUrl`, 2 sites câblés. Smoke
-  dédié « Le Choixpeau affiche le blason » (escarmouche vox-arcana) vert.
+  dédié (escarmouche vox-arcana) vert.
 - Lot B **livré** : palette `vox-arcana` + `assets/prompts/buildings-vox-arcana-p1/p2.md`.
-- Lot C **différé** : génération d'image externe (8 habitations, fond, jetons).
-- Vérif : `pnpm typecheck` + `lint` + `build` + `smoke` (128/128) verts.
+- Lot C **partiellement livré** : planches LLM fournies par l'utilisateur.
+  - **8 habitations** extraites (`sheet_extract.py`, QC 8/8 verte, texte parasite
+    éliminé comme specks) → `assets/buildings/vox-arcana/vox-arcana-dwelling-t*.png`.
+    Smoke étendu : une habitation peinte + un blason décodés.
+  - **5 bâtiments de Maisons** : planche JPG NON alignée sur une grille régulière
+    (cellules coupant les bâtiments, l'Aigle quasi perdu) ⇒ extraction écartée.
+    Les Maisons restent couvertes par les blasons (Lot A). Fond de ville + jetons
+    de carte toujours à générer.
+- Vérif : `lint` + `build` + budget bundle 264 Ko < 800 Ko + smoke assets (4/4) verts.
 
 ## Décisions
 - Blason comme vignette de « Le Choixpeau » : thématiquement juste (le Choixpeau

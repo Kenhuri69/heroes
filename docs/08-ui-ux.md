@@ -78,6 +78,14 @@
 > de héros au moteur) ; l'UI se généralise à N sans diff moteur. Le **transfert
 > d'armée/artefacts** entre héros (doc §2.3) reste différé à U6.
 
+> ✅ **État UXD-8** : la **colonne droite desktop** de ce schéma est réalisée par
+> le **tiroir héros persistant** (≥ 900 px : ancré à droite, 300 px, toujours
+> ouvert ; portraits héros + mini-map + détails). Les ressources restent en
+> **barre haut** (choix M5) et les villes en **barre d'actions** (choix U4),
+> toutes deux confinées à gauche du rail — un déplacement dans le rail est
+> volontairement non retenu (faible valeur, casse de surfaces testées). La
+> **mini-map** est livrée desktop (widget du rail) et mobile (dans le tiroir).
+
 ### 2.2 Écran de ville
 
 - Vue peinte interactive (les bâtiments construits apparaissent) + **onglet liste** : `Construire · Recruter · Marché · Guilde · Garnison`. Sur mobile, la liste est l'entrée principale (la vue peinte reste, en scroll horizontal).

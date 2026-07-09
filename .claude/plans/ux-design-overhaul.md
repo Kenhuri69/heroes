@@ -342,4 +342,13 @@ intercalé dès qu'un sourcing est validé).
   reste `combat-shoot` seul (bloqué : champ `ranged` sur `StackAttacked`, impact
   golden replay).
 - [x] UXD-7 — micro-interactions & transitions (`ux-d7-micro-interactions.md`).
-- [~] UXD-8 — mini-map desktop livrée (`ux-d8-desktop-minimap.md`) ; layout colonne droite complet + mini-map mobile = suivis notés.
+- [x] UXD-8 — **colonne droite desktop livrée**. Le **tiroir héros persistant**
+  EST le rail droit desktop (≥900px : `right:0`, 300px, portraits + mini-map +
+  détails héros ; ressources et bandeau bas confinés à sa gauche `right:300px`)
+  ⇒ doc 08 §2.1 réalisé. Mini-map desktop **et** mobile livrées
+  (`ux-d8-desktop-minimap.md`, `ux-minimap-mobile.md`). Le reshuffle
+  ressources→rail (choix M5 : barre haut) et villes→rail (design U4 : barre
+  d'actions) est un suivi **volontairement non retenu** : faible valeur
+  ergonomique, casserait des surfaces testées (`resource-open-*`,
+  `town-open-*`). **Overhaul UX : 100% des lots livrés** (reste hors overhaul :
+  `combat-shoot`, bloqué golden).

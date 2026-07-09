@@ -44,7 +44,7 @@ export function PreBattleScreen() {
   const auto = (): void => {
     recordCombatAuto(); // délégation = « abandon » manuel (télémétrie opt-in)
     appStore.setState({ preBattlePending: false });
-    dispatch({ type: 'AutoCombat' }).catch((err: unknown) => pushToast(commandErrorMessage(err)));
+    dispatch({ type: 'AutoCombat' }).catch((err: unknown) => pushToast(commandErrorMessage(err), 'error'));
   };
 
   return (

@@ -337,7 +337,9 @@ intercalé dès qu'un sourcing est validé).
   end-turn, map-step/pickup) + **6E jingles victoire/défaite** (procéduraux,
   câblés sur `GameEnded`, boucle de fond coupée pendant le jingle ; vérifiés
   runtime) + **6F son de tap d'UI** (`ui-tap` à l'appui des boutons, pur client)
-  (`ux-d6-audio.md`) ; reste `combat-shoot` (impact golden) + `ui-confirm`/
-  `ui-error` (typage toasts) — différés.
+  + **6G SFX de toasts** `ui-confirm`/`ui-error` (typage `ToastKind` info/succès/
+  erreur + accent visuel + SFX ; `ux-d6b-sfx-toasts.md`) (`ux-d6-audio.md`) ;
+  reste `combat-shoot` seul (bloqué : champ `ranged` sur `StackAttacked`, impact
+  golden replay).
 - [x] UXD-7 — micro-interactions & transitions (`ux-d7-micro-interactions.md`).
 - [~] UXD-8 — mini-map desktop livrée (`ux-d8-desktop-minimap.md`) ; layout colonne droite complet + mini-map mobile = suivis notés.

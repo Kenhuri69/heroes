@@ -58,7 +58,7 @@ export function CombatUi() {
     const id = setTimeout(() => {
       dispatch({ type: 'AutoCombat', rounds: 1 }).catch((err: unknown) => {
         appStore.setState({ combatAutoActive: false });
-        pushToast(commandErrorMessage(err));
+        pushToast(commandErrorMessage(err), 'error');
       });
     }, AUTO_ROUND_PAUSE_MS / combatSpeed);
     return () => clearTimeout(id);
@@ -81,7 +81,7 @@ export function CombatUi() {
       if (key !== 'space' && key !== 'd') return;
       e.preventDefault();
       dispatch({ type: 'CombatAction', action: { type: key === 'space' ? 'wait' : 'defend' } }).catch(
-        (err: unknown) => pushToast(commandErrorMessage(err)),
+        (err: unknown) => pushToast(commandErrorMessage(err), 'error'),
       );
     };
     window.addEventListener('keydown', onKey);
@@ -115,7 +115,7 @@ export function CombatUi() {
 
   const act = (action: 'wait' | 'defend'): void => {
     dispatch({ type: 'CombatAction', action: { type: action } }).catch((err: unknown) => {
-      pushToast(commandErrorMessage(err)); // remédiation CL3 : plus d'erreur avalée en silence
+      pushToast(commandErrorMessage(err), 'error'); // remédiation CL3 : plus d'erreur avalée en silence
     });
   };
   // Bascule auto ⇄ reprise de main (lot M4). L'« Auto-Battle » instantané
@@ -256,7 +256,7 @@ function LeaveConfirm({
   const confirm = (): void => {
     dispatch({ type: mode === 'retreat' ? 'Retreat' : 'Surrender' })
       .then(() => onClose())
-      .catch((err: unknown) => pushToast(commandErrorMessage(err)));
+      .catch((err: unknown) => pushToast(commandErrorMessage(err), 'error'));
   };
   return (
     <div class="modal-backdrop" onClick={onClose}>
@@ -298,7 +298,7 @@ function HeroAttackModal({ combat, onClose }: { combat: CombatState; onClose: ()
   const strike = (targetStackId: string): void => {
     dispatch({ type: 'HeroAttack', targetStackId })
       .then(() => onClose())
-      .catch((err: unknown) => pushToast(commandErrorMessage(err)));
+      .catch((err: unknown) => pushToast(commandErrorMessage(err), 'error'));
   };
 
   return (

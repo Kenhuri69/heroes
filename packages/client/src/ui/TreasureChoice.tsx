@@ -14,7 +14,7 @@ import './SkillChoice.css';
 export function TreasureChoice({ pending }: { pending: NonNullable<GameState['pendingTreasure']> }) {
   const choose = (choice: 'gold' | 'xp'): void => {
     dispatch({ type: 'ResolveTreasure', heroId: pending.heroId, choice }).catch((err: unknown) => {
-      pushToast(commandErrorMessage(err));
+      pushToast(commandErrorMessage(err), 'error');
     });
   };
 

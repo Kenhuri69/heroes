@@ -1735,6 +1735,8 @@ test('sauvegarde en échec de stockage : toast d’erreur visible (lot 3.9)', as
   const toast = page.getByTestId('toast');
   await expect(toast).toBeVisible();
   await expect(toast).toContainText(/sauvegarde|save/i);
+  // UXD-6b : le toast d'échec est typé « erreur » (accent + SFX ui-error).
+  await expect(toast).toHaveAttribute('data-kind', 'error');
 });
 
 test('journal & feedback : un événement humain alimente le journal + toast de sauvegarde (U3)', async ({
@@ -1759,7 +1761,10 @@ test('journal & feedback : un événement humain alimente le journal + toast de 
 
   // Feedback de sauvegarde manuelle RÉUSSIE (nouveau U3) : toast « sauvegardée ».
   await clickSaveAction(page, 'save'); // lot M5 : save via Options
-  await expect(page.getByTestId('toast').filter({ hasText: /sauvegard|saved/i })).toBeVisible();
+  const savedToast = page.getByTestId('toast').filter({ hasText: /sauvegard|saved/i });
+  await expect(savedToast).toBeVisible();
+  // UXD-6b : le toast de succès est typé « success » (accent + SFX ui-confirm).
+  await expect(savedToast).toHaveAttribute('data-kind', 'success');
 
   expect(errors).toEqual([]);
 });

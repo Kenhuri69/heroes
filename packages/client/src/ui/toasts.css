@@ -22,3 +22,13 @@
   text-align: center;
   max-width: min(90vw, 420px);
 }
+
+/* Accent par type (doc 08 §3, UXD-6b) — filet gauche coloré ; l'information
+   reste portée par le texte (A5 : la couleur n'est qu'un renfort du texte). */
+.toast-success {
+  border-left: 3px solid var(--ok-text);
+}
+
+.toast-error {
+  border-left: 3px solid var(--danger-text);
+}

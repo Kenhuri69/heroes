@@ -2,6 +2,10 @@
    .modal-close (options.css) ; ce fichier ne couvre que le contenu propre à
    l'écran de ville. Cibles tactiles ≥ 44 px (doc 08 §1). */
 .modal.town-screen {
+  /* border-box : le cadre `border-image` (skill asset-chrome, doc 12 Règle G)
+     n'agrandit pas la modale — la zone de contenu se réduit de l'épaisseur du
+     cadre, pas l'inverse. Le cadre reste fixe pendant que le contenu défile. */
+  box-sizing: border-box;
   width: min(94vw, 640px);
   max-height: 88vh;
   overflow-y: auto;
@@ -136,6 +140,9 @@
 /* B1 — file de chantier du jour (façon HoMM Online) : créneau « 1 construction/
    jour » présenté comme un chantier quotidien (doc 02 §4.2). */
 .town-build-queue {
+  /* border-box : le ruban `border-image` (skill asset-chrome) habille le bandeau
+     sans en changer l'encombrement. */
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: space-between;

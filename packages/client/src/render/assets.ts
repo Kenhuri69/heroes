@@ -63,6 +63,16 @@ export function titleBackgroundUrl(): string | undefined {
   return registry.get('backgrounds/title');
 }
 
+/** Chrome décoratif d'UI (doc 12 Règle G) — cadre 9-slice `border-image`. */
+export function chromeFrameUrl(): string | undefined {
+  return registry.get('ui/chrome/panel-frame');
+}
+
+/** Chrome décoratif d'UI (doc 12 Règle G) — ruban d'en-tête 3-slice horizontal. */
+export function chromeRibbonUrl(): string | undefined {
+  return registry.get('ui/chrome/ribbon');
+}
+
 /** Logo du jeu (`logo/heroes-master`, doc 08 §2.5). */
 export function logoUrl(): string | undefined {
   return registry.get('logo/heroes-master');

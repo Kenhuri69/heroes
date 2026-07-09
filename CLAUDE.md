@@ -209,6 +209,23 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > partagent la victoire (`eliminateAllEnemies` compte l'allié comme non-ennemi) ;
 > golden re-fixé (forme seule). Sélecteur d'équipe par siège à « Nouvelle partie ».
 >
+> 🗺️ **Extension carte** (plan `.claude/plans/phase-map-tiles-expansion.md`).
+> Cinq lots, **zéro diff moteur** (données + client + assets ; garde-fou « zéro
+> faction » vert, pas de bump `CURRENT_SAVE_VERSION`) : **1** — 7 nouveaux terrains
+> data-driven (`dirt/sand/forest/rough/snow/river` franchissable`/rocks`, les 4
+> existants inchangés = golden stable) + recettes procédurales `gen_tiles.py` +
+> nuances de repli (tilemap/mini-carte) ; **2** — **génération par biomes**
+> (`mapgen.ts` : bruit fractal élévation/humidité/température → biomes cohérents,
+> rivières en descente de pente ; pure & déterministe, carte valide par
+> construction) remplace les amas aléatoires ; **3** — **chunking + culling** au
+> viewport de `Tilemap` (petites cartes toujours aplaties en une texture ; grandes
+> cartes = chunks 16² batchés, seuls les chunks visibles rendus) ; **4** — tailles
+> **64/96/128/256** (`MAP_SIZE_DIMENSIONS` Petite→Immense, plafond schéma 256) ;
+> **5** — **props de relief** forêt/montagne (billboards `assets/tiles/props/` qui
+> dépassent la tuile, 3 variantes procédurales, culés avec leur chunk ; art Gemini
+> varié se branche par simple dépôt de PNG, prompts doc 12 §7.5). Terrains plats =
+> tuile procédurale seule.
+>
 > 🎓 **Beta — faction Vox Arcana** (6ᵉ maison, doc 16 ; plan `.claude/plans/
 > phase-16-faction-vox-arcana.md`). **Test de modularité #4 : livré.** Sous-lots
 > 16.1→16.6, chacun données pures (ou un point d'extension moteur **générique**),

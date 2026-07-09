@@ -671,9 +671,14 @@ export const RANDOM = 'random';
 /** Crans de difficulté proposés (mêmes que l'escarmouche) — pour le tirage aléatoire. */
 export const NEWGAME_DIFFICULTIES: SkirmishDifficulty[] = ['facile', 'normal', 'difficile'];
 
-/** Taille de carte → dimension carrée (tuiles). */
-export const MAP_SIZE_DIMENSIONS = { small: 24, medium: 36, large: 48 } as const;
+/**
+ * Taille de carte → dimension carrée (tuiles). Rendu chunké + culling au viewport
+ * (`Tilemap`) rend les grandes cartes jouables ; plafond schéma = 256 (`schemas.ts`).
+ */
+export const MAP_SIZE_DIMENSIONS = { small: 64, medium: 96, large: 128, huge: 256 } as const;
 export type MapSize = keyof typeof MAP_SIZE_DIMENSIONS;
+/** Ordre d'affichage / tirage aléatoire des tailles. */
+export const MAP_SIZE_ORDER = ['small', 'medium', 'large', 'huge'] as const;
 
 /**
  * Réglage bas/standard/riche : `start` = échelle du stock de départ ; `mapDensity`
@@ -746,7 +751,7 @@ export function resolveNewGameConfig(
   openSlots.forEach((s, i) => {
     colors[`player-${i + 1}`] = s.color;
   });
-  const mapSize: MapSize = raw.mapSize === RANDOM ? pick(['small', 'medium', 'large'] as const) : raw.mapSize;
+  const mapSize: MapSize = raw.mapSize === RANDOM ? pick(MAP_SIZE_ORDER) : raw.mapSize;
   const resourceLevel: ResourceLevel =
     raw.resourceLevel === RANDOM ? pick(['bas', 'standard', 'riche'] as const) : raw.resourceLevel;
   const difficulty: SkirmishDifficulty =

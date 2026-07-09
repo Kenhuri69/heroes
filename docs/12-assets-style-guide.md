@@ -39,7 +39,17 @@
 - **Tuiles** : 64×64 (boîte de contenu du client), **tileables** (tout motif
   est dessiné avec wrap ±64 px), 3 variantes par terrain pour casser la
   répétition. Palette sourde, lisible sous le brouillard de guerre et sous les
-  objets de carte.
+  objets de carte. Terrains couverts : `grass`, `dirt`, `sand`, `forest`,
+  `rough`, `snow`, `swamp`, `river`, `water`, `mountain`, `rocks` (doc 02 §1.5).
+- **Props de relief** (`assets/tiles/props/<terrain>-<v>.png`) : billboards
+  **transparents** qui **dépassent** la tuile pour donner de la hauteur à la
+  carte, là où la profondeur compte — **forêt** (conifères) et **montagne**
+  (pic). Repli procédural déterministe (`gen_tiles.py`, 3 variantes), destiné à
+  être **remplacé par de l'art Gemini varié** (Rule C-like, §7.5) : déposer des
+  PNG homonymes sous `assets/tiles/props/` suffit, le client les prend sans
+  câblage. Le client (`tilemap.ts`) les pose debout (base au sol) au-dessus du
+  losange texturé, culés avec leur chunk. Terrains plats = tuile procédurale
+  seule (pas de prop).
 - **Tuiles ISO** (Lot A1) : `gen_tiles.py` dérive en plus, de chaque tuile
   carrée, un **losange 64×32** (`assets/tiles/iso/`) par rotation 45° +
   compression verticale (= foreshortening iso) — transform PIL pur, donc
@@ -248,6 +258,23 @@ lower third kept simple for UI overlay, atmospheric depth, volumetric light,
 no text, no watermark, no signature, no border frame
 ```
 
+### 7.5 Props de relief forêt/montagne (planche variantes, remplace le repli procédural)
+Billboards **verticaux** vus en légère plongée iso, **fond transparent**, base
+au sol, destinés à peupler les tuiles `forest`/`mountain` de la carte (doc 02
+§2.1). Générer une planche de **variantes** pour casser la répétition (déposer
+les cellules découpées en `assets/tiles/props/forest-<n>.png` /
+`mountain-<n>.png`, PNG à alpha).
+```
+Item sheet, [N] Heroes-of-Might-and-Magic map decorations in a [cols]x[rows] grid,
+digital painting, painterly MTG illustration quality, each object standing on the
+ground, viewed slightly from above (isometric map angle), tall enough to rise
+above a tile, clear spacing, soft directional light from upper-left,
+forest cells: dense clusters of conifers/broadleaf trees, varied silhouettes;
+mountain cells: rocky peaks with snow caps and shaded faces, varied silhouettes;
+fully transparent background (PNG alpha), no ground plane, no shadow baked wide,
+no text, no watermark, no signature, no border frame
+```
+
 ## 8. Critères d'acceptation (toutes familles)
 
 - [ ] **Alpha** (A/C/E) : aucun halo clair au zoom 400 % sur fond noir ; QC
@@ -306,6 +333,7 @@ faction en dur) et dérivent le chemin de la donnée :
 |---|---|---|
 | Tuiles | `tiles/<terrain>-<1..3>.png`, `tiles/road-dirt.png` | terrain + variante déterministe |
 | Tuiles ISO | `tiles/iso/<terrain>-<1..3>.png`, `tiles/iso/road-dirt.png` | `isoTileUrl`/`isoRoadUrl` (rendu carte iso, Lot A1) |
+| Props de relief | `tiles/props/<terrain>-<1..3>.png` (forest/mountain) | `terrainPropUrl` + `terrainPropVariant` (billboard, extension carte) |
 | Objets de carte | `mines/mine-<resource>.png` | `obj.resource` |
 | Artefacts | `artifacts/<artifactId>.png` | id d'artefact |
 | Bâtiments communs | `buildings/core/<buildingId>.png` | id de bâtiment |

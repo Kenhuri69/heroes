@@ -49,6 +49,7 @@ export class AdventureScene {
   private readonly objects = new MapObjectsLayer(this.entities);
   private readonly towns = new TownsLayer(this.entities);
   private readonly fog: FogOverlay;
+  private readonly tilemap: Tilemap;
   private readonly preview = new PathPreview();
   private readonly heroSprites = new Map<string, Container>();
   /**
@@ -68,13 +69,14 @@ export class AdventureScene {
   private readonly onCancelPath = (): void => this.clearPreview();
 
   constructor(
-    app: Application,
+    private readonly app: Application,
     private readonly camera: Camera,
   ) {
     const { map } = appStore.getState().game;
     if (!map) throw new Error('AdventureScene requiert une partie démarrée');
 
     const tilemap = new Tilemap(map);
+    this.tilemap = tilemap;
     this.fog = new FogOverlay(map);
     this.selectionRing.visible = false;
     this.entities.sortableChildren = true; // tri de profondeur iso INTER-couches
@@ -92,7 +94,28 @@ export class AdventureScene {
     this.unsubscribeTap = onTap(app, (global) => void this.handleTap(global));
     this.unsubscribeLongPress = onLongPress(app, (global) => this.handleLongPress(global));
     window.addEventListener('heroes:cancel-path', this.onCancelPath);
+    // Culling des chunks de tuiles au viewport (grandes cartes 64²→256²) : suit la
+    // caméra à chaque frame (no-op sur les petites cartes aplaties en une texture).
+    app.ticker.add(this.onTick);
     this.sync();
+    this.cullTilemap();
+  }
+
+  /** Recalcule les chunks visibles à chaque frame (suit pan/zoom de la caméra). */
+  private readonly onTick = (): void => this.cullTilemap();
+
+  /** Viewport écran → rectangle MONDE (avec marge) puis masque les chunks hors champ. */
+  private cullTilemap(): void {
+    if (this.destroyed) return;
+    const { x: wx, y: wy, scale } = this.camera.world;
+    const s = scale.x || 1;
+    const margin = 256; // px écran : anticipe le pan, évite le « pop » de chunks
+    this.tilemap.updateVisibility({
+      minX: (-margin - wx) / s,
+      minY: (-margin - wy) / s,
+      maxX: (this.app.screen.width + margin - wx) / s,
+      maxY: (this.app.screen.height + margin - wy) / s,
+    });
   }
 
   /**
@@ -103,6 +126,7 @@ export class AdventureScene {
    */
   destroy(): void {
     this.destroyed = true;
+    this.app.ticker.remove(this.onTick);
     this.unsubscribeStore();
     this.unsubscribeTap();
     this.unsubscribeLongPress();

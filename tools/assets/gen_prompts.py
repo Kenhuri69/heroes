@@ -47,6 +47,8 @@ PALETTES = {
     "haven": "off-white and light steel armor, sky-blue cloth, gold accents, holy light ambiance",
     "necropolis": "bone white, ash grey and black, necrotic green glow, tattered cloth, spectral mist",
     "arcane-hunters": "midnight blue and arcane violet, silver trim, glowing cyan runes, hunter gear",
+    "vox-arcana": "black gothic stone with silver/gold filigree, electric cyan and neon magenta, "
+    "wisteria violet, Korean oni/pagoda accents, concert neon lanterns",
     "test-faction": "plain neutral grey with orange accents (placeholder faction)",
 }
 DEFAULT_PALETTE = "muted heroic fantasy palette matching the faction lore"

@@ -342,6 +342,13 @@ export function knownUnitIds(report: LoadReport): Set<string> {
   return new Set(report.content.packs.flatMap((p) => p.units.map((u) => u.id)));
 }
 
+/** Table id → tier des unités connues — pour graduer la force des gardiens générés. */
+export function knownUnitTiers(report: LoadReport): Record<string, number> {
+  const tiers: Record<string, number> = {};
+  for (const p of report.content.packs) for (const u of p.units) tiers[u.id] = u.tier;
+  return tiers;
+}
+
 /** IDs d'artefacts communs — pour la règle croisée des artefacts posés sur une carte. */
 export function knownArtifactIds(report: LoadReport): Set<string> {
   return new Set(report.content.coreArtifacts.map((a) => a.id));

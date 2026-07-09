@@ -97,6 +97,37 @@ describe('generateMap', () => {
     }
   });
 
+  it('gradue les gardiens : faibles près des départs, forts vers le centre', () => {
+    // Palette à 7 tiers distincts : la sélection d'unité et la pile doivent
+    // croître avec l'éloignement du départ le plus proche.
+    const palette = ['u1', 'u2', 'u3', 'u4', 'u5', 'u6', 'u7'];
+    const tiers: Record<string, number> = Object.fromEntries(palette.map((id, i) => [id, i + 1]));
+    const map = generateMap('grad', 2024, {
+      width: 48,
+      height: 48,
+      guardianUnits: palette,
+      unitTiers: tiers,
+    });
+    const guards = map.objects.filter((o) => o.type === 'guardian');
+    expect(guards.length).toBeGreaterThanOrEqual(6);
+    const distNearest = (g: { x: number; y: number }): number =>
+      Math.min(...map.startPositions.map((s) => Math.hypot(g.x - s.x, g.y - s.y)));
+    const enriched = guards
+      .map((g) => ({
+        d: distNearest(g),
+        tier: tiers[(g as { unitId: string }).unitId]!,
+        count: (g as { count: number }).count,
+      }))
+      .sort((a, b) => a.d - b.d);
+    const half = Math.floor(enriched.length / 2);
+    const near = enriched.slice(0, half);
+    const far = enriched.slice(enriched.length - half);
+    const mean = (xs: number[]): number => xs.reduce((s, v) => s + v, 0) / xs.length;
+    // Les gardiens éloignés des départs sont en moyenne plus forts : tier ET pile.
+    expect(mean(far.map((g) => g.tier))).toBeGreaterThan(mean(near.map((g) => g.tier)));
+    expect(mean(far.map((g) => g.count))).toBeGreaterThan(mean(near.map((g) => g.count)));
+  });
+
   it('produit N positions de départ distinctes et valides (multi-joueurs)', async () => {
     for (const count of [3, 4]) {
       for (let seed = 1; seed <= 20; seed++) {

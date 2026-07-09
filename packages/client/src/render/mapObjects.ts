@@ -1,4 +1,4 @@
-import { Assets, Container, Graphics, Sprite } from 'pixi.js';
+import { Assets, Container, Graphics, Sprite, type Texture } from 'pixi.js';
 import type { CombatUnitDef, MapObjectDef, MineObjectDef } from '@heroes/engine';
 import { artifactUrl, getTexture, mapPropUrl, mineUrl, unitSpriteUrl } from './assets';
 import { NEUTRAL_COLOR } from './playerColors';
@@ -10,6 +10,27 @@ type UnitCatalog = Record<string, CombatUnitDef>;
 
 /** Couleur de bannière d'un propriétaire (`null` = neutre) — fournie par la scène. */
 type OwnerColor = (ownerId: string | null) => number;
+
+/**
+ * Empreinte cohérente des **objets ramassables** posés au sol (ressource, coffre,
+ * artefact) exprimée en fraction de tuile : ils lisent comme de petits objets,
+ * nettement plus petits que le gardien (créature, plein tuile). Corrige le coffre
+ * qui, faute d'échelle, occupait toute la tuile (« trop gros »).
+ */
+const COLLECTIBLE_SCALE = 0.8;
+
+/**
+ * Sprite posé au centre de la tuile, ratio d'aspect **préservé** (ajuste la plus
+ * grande dimension à `TILE_SIZE * scale`). Empreinte homogène quels que soient
+ * les dimensions natives de la texture.
+ */
+function placeSprite(texture: Texture, scale: number): Sprite {
+  const sprite = new Sprite(texture);
+  sprite.anchor.set(0.5);
+  sprite.scale.set((TILE_SIZE * scale) / Math.max(texture.width, texture.height));
+  sprite.position.set(TILE_SIZE / 2, TILE_SIZE / 2);
+  return sprite;
+}
 
 /** Teintes placeholder par ressource (doc 08 §5) — cohérentes avec la barre UI. */
 export const RESOURCE_COLORS: Record<string, number> = {
@@ -107,11 +128,7 @@ function withMapProp(propId: string, fallback: Container, scale = 1.0): Containe
       if (node.destroyed) return;
       node.removeChild(fallback);
       fallback.destroy({ children: true });
-      const sprite = new Sprite(texture);
-      sprite.anchor.set(0.5);
-      sprite.scale.set((TILE_SIZE * scale) / Math.max(texture.width, texture.height));
-      sprite.position.set(TILE_SIZE / 2, TILE_SIZE / 2);
-      node.addChild(sprite);
+      node.addChild(placeSprite(texture, scale));
     });
   }
   return node;
@@ -183,11 +200,7 @@ function buildTentFallback(): Container {
 /** Tas de ressource ramassable : sprite `mines/mine-<res>` ou losange teinté (doc 08 §5). */
 function buildResourcePile(resource: string): Container {
   const tex = getTexture(mineUrl(resource));
-  if (tex) {
-    const sprite = new Sprite(tex);
-    sprite.setSize(TILE_SIZE, TILE_SIZE);
-    return sprite;
-  }
+  if (tex) return placeSprite(tex, COLLECTIBLE_SCALE);
   // Repli : petit tas losange teinté, lisible à 64 px (doc 08 §5).
   const c = TILE_SIZE / 2;
   const color = RESOURCE_COLORS[resource] ?? 0xffffff;
@@ -221,7 +234,7 @@ function buildMine(obj: MineObjectDef, color: number): Container {
 
 /** Coffre au trésor **peint** (UXD-3B, doc 02 §2.2) — repli coffre procédural. */
 function buildTreasure(): Container {
-  return withMapProp('chest', buildTreasureFallback());
+  return withMapProp('chest', buildTreasureFallback(), COLLECTIBLE_SCALE);
 }
 
 function buildTreasureFallback(): Container {
@@ -260,10 +273,7 @@ function buildGroundArtifact(artifactId: string): Container {
       if (node.destroyed) return;
       node.removeChild(fallback);
       fallback.destroy();
-      const sprite = new Sprite(texture);
-      sprite.setSize(TILE_SIZE * 0.8, TILE_SIZE * 0.8);
-      sprite.position.set(TILE_SIZE * 0.1, TILE_SIZE * 0.1);
-      node.addChild(sprite);
+      node.addChild(placeSprite(texture, COLLECTIBLE_SCALE));
     });
   }
   return node;

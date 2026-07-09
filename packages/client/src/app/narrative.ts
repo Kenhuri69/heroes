@@ -174,7 +174,7 @@ export function initNarrative(): void {
 
 function pushQuestToast(titleKey: string): void {
   const key = titleKey.startsWith('@loc:') ? titleKey.slice('@loc:'.length) : titleKey;
-  pushToast(t('toast.questCompleted', { title: t(key) }));
+  pushToast(t('toast.questCompleted', { title: t(key) }), 'success');
 }
 
 /**

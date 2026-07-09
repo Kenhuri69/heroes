@@ -84,7 +84,7 @@ export function SpellBook({ hero, onClose }: { hero: HeroState; onClose: () => v
         // Remédiation CL3 : le sort a été REJETÉ (mana, cible, déjà lancé…) — on
         // surface l'erreur et on GARDE le livre ouvert (avant : fermé comme si le
         // sort était parti, perte silencieuse de l'action du joueur).
-        pushToast(commandErrorMessage(err));
+        pushToast(commandErrorMessage(err), 'error');
       });
   };
 

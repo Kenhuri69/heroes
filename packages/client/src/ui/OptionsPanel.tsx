@@ -76,7 +76,7 @@ export function OptionsPanel({ onClose }: { onClose: () => void }) {
   // vers ici — l'autosave de fin de tour couvre le cas courant.
   const doSave = (): void => {
     void saveGame(appStore.getState().game, 'manual')
-      .then(() => pushToast(t('toast.saved')))
+      .then(() => pushToast(t('toast.saved'), 'success'))
       .catch(() => eventBus.emit([{ type: 'SaveFailed' }]));
   };
   const doLoad = (): void => void restoreSavedGame('manual');

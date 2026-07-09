@@ -338,7 +338,7 @@ export class CombatScene {
       try {
         await dispatch({ type: 'CombatAction', action: { type: 'move', to: hex } });
       } catch (err) {
-        pushToast(commandErrorMessage(err)); // action rejetée (CL3) — surfacée, plus avalée
+        pushToast(commandErrorMessage(err), 'error'); // action rejetée (CL3) — surfacée, plus avalée
       }
       return;
     }
@@ -362,7 +362,7 @@ export class CombatScene {
       try {
         await dispatch({ type: 'CombatAction', action });
       } catch (err) {
-        pushToast(commandErrorMessage(err)); // action rejetée (CL3) — surfacée, plus avalée
+        pushToast(commandErrorMessage(err), 'error'); // action rejetée (CL3) — surfacée, plus avalée
       }
       return;
     }

@@ -151,4 +151,25 @@ Retour tactile audio à l'appui des boutons d'UI (pur client).
   lint/build verts, budget JS/CSS inchangé (253 Ko gzip).
 - **Reste** : `combat-shoot` (tir à distance) — demande un champ `ranged` sur
   l'événement moteur `StackAttacked` (impact golden replay) : différé, gain
-  marginal ; `ui-confirm`/`ui-error` — demandent un typage des toasts : différés.
+  marginal.
+
+## Livraison 6G — SFX de toasts ui-confirm / ui-error (2026-07-09)
+
+Les sons de confirmation/erreur, jusque-là bloqués par l'absence de typage des
+toasts, sont livrés (plan `.claude/plans/ux-d6b-sfx-toasts.md`).
+
+- **Typage des toasts** : `ToastKind = 'info' | 'success' | 'error'`
+  (`store.ts`) ; `pushToast(message, kind='info')` pose le kind, rend un
+  `data-kind` + une classe et joue le SFX (`success → ui-confirm`,
+  `error → ui-error`, `info` muet). Helper `toastKind(event)` classe les toasts
+  événementiels ; les appelants directs (échecs de commande / new-game /
+  scénario / skirmish → `error` ; sauvegarde réussie / quête terminée →
+  `success`) passent leur kind.
+- **SFX** : `gen_sfx.py` recettes `ui-confirm` (ping bicorde montant) et
+  `ui-error` (buzz grave descendant), OGG+M4A hors bundle (~5 Ko/pièce).
+- **Accent visuel** : filet gauche coloré par kind (`toasts.css`, tokens
+  sémantiques `--ok-text`/`--danger-text`) — A5 : l'info reste portée par le
+  texte, la couleur/le son ne sont qu'un renfort.
+- **Vérif** : typecheck/lint/moteur 401 (golden intact)/content/content:check/
+  garde-fou couleurs/build (~278 Ko gzip) ; smoke : le toast d'échec de
+  sauvegarde porte `data-kind="error"`, la sauvegarde réussie `data-kind="success"`.

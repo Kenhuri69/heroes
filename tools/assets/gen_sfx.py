@@ -216,8 +216,31 @@ def sfx_map_pickup() -> list[float]:
     return normalize(buf, 0.72)
 
 
+def sfx_ui_confirm() -> list[float]:
+    # Ping bicorde montant (A5 → E6), bref et clair : confirmation positive.
+    n1 = mul(_bell(880, 0.22, 16.0), span_env(0.22, 0.004, 0.05))
+    n2 = mul(_bell(1320, 0.20, 18.0), span_env(0.20, 0.004, 0.05))
+    buf = [0.0] * _n(0.30)
+    for i, v in enumerate(n1):
+        buf[i] += v
+    off = int(SR * 0.07)
+    for i, v in enumerate(n2):
+        if off + i < len(buf):
+            buf[off + i] += v * 0.9
+    return normalize(buf, 0.6)
+
+
+def sfx_ui_error() -> list[float]:
+    # Buzz grave légèrement descendant (saw ~200→150 Hz), court : rejet/erreur.
+    tone = mul(saw_tone(200, 0.26, partials=5), exp_env(0.26, 9.0, attack=0.004))
+    drop = mul(chirp(200, 150, 0.26), exp_env(0.26, 9.0, attack=0.004))
+    return normalize(add(scale(one_pole_lp(tone, 1400), 0.7), scale(drop, 0.5)), 0.55)
+
+
 EFFECTS = {
     "ui-tap": sfx_ui_tap,
+    "ui-confirm": sfx_ui_confirm,
+    "ui-error": sfx_ui_error,
     "combat-hit": sfx_combat_hit,
     "combat-spell": sfx_combat_spell,
     "combat-death": sfx_combat_death,

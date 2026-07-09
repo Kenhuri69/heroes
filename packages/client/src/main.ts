@@ -291,7 +291,7 @@ async function bootstrap(): Promise<void> {
     const config = (e as CustomEvent<NewGameRawConfig>).detail;
     startNewGameSetup(config).catch((err: unknown) => {
       console.error('startNewGameSetup', err);
-      pushToast(t('toast.newGameFailed'));
+      pushToast(t('toast.newGameFailed'), 'error');
     });
   });
   // Sélection de scénario au menu (doc 08, plan phase-3.5 lot U) — même
@@ -300,7 +300,7 @@ async function bootstrap(): Promise<void> {
     const { scenarioId } = (e as CustomEvent<{ scenarioId: string }>).detail;
     startScenario(scenarioId, Date.now()).catch((err: unknown) => {
       console.error('startScenario', err);
-      pushToast(t('toast.scenarioFailed'));
+      pushToast(t('toast.scenarioFailed'), 'error');
     });
   });
   // Escarmouche vs IA (doc 09, Alpha 4.14) — même découplage : l'écran émet la
@@ -309,7 +309,7 @@ async function bootstrap(): Promise<void> {
     const config = (e as CustomEvent<SkirmishConfig>).detail;
     startSkirmish(config, Date.now()).catch((err: unknown) => {
       console.error('startSkirmish', err);
-      pushToast(t('toast.skirmishFailed'));
+      pushToast(t('toast.skirmishFailed'), 'error');
     });
   });
   // Sélection d'un chapitre de campagne (doc 13 §4.1, N3a) — même découplage.
@@ -317,7 +317,7 @@ async function bootstrap(): Promise<void> {
     const { campaignId, chapterIndex } = (e as CustomEvent<{ campaignId: string; chapterIndex: number }>).detail;
     startChapter(campaignId, chapterIndex, Date.now()).catch((err: unknown) => {
       console.error('startChapter', err);
-      pushToast(t('toast.scenarioFailed'));
+      pushToast(t('toast.scenarioFailed'), 'error');
     });
   });
 

@@ -22,7 +22,7 @@ export function AdventureSpellbook({ hero }: { hero: HeroState }) {
     // Le héros du tiroir appartient au joueur actif (`humanId`), donc `hero.playerId`
     // est le joueur courant côté moteur.
     dispatch({ type: 'CastAdventureSpell', heroId: hero.id, spellId, playerId: hero.playerId }).catch(
-      (err: unknown) => pushToast(commandErrorMessage(err)),
+      (err: unknown) => pushToast(commandErrorMessage(err), 'error'),
     );
   };
 

@@ -14,7 +14,7 @@ import './SkillChoice.css';
 export function SkillChoice({ hero }: { hero: HeroState }) {
   const choose = (skillId: string): void => {
     dispatch({ type: 'ChooseSkill', heroId: hero.id, skillId }).catch((err: unknown) => {
-      pushToast(commandErrorMessage(err));
+      pushToast(commandErrorMessage(err), 'error');
     });
   };
 

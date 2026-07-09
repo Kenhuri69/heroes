@@ -155,6 +155,7 @@
   "hero.skillsTitle": "Compétences",
   "hero.noSkills": "Aucune compétence",
   "hero.minimapTitle": "Carte d'aventure",
+  "hero.minimapAria": "Mini-carte ({count} héros)",
   "hero.inventoryTitle": "Inventaire",
   "hero.inventoryEmptySlot": "Vide",
   "hero.equipmentTitle": "Équipement",

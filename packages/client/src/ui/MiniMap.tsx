@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'preact/hooks';
 import { useApp } from '../app/store';
 import { humanId, humanHeroes } from '../app/game';
+import { t } from '../app/i18n';
 import { playerColor } from '../render/playerColors';
 import { panCameraTo } from '../app/camera-control';
 
@@ -41,6 +42,7 @@ function hex(n: number): string {
 
 export function MiniMap({ variant = 'fixed' }: { variant?: 'fixed' | 'drawer' } = {}) {
   const ref = useRef<HTMLCanvasElement>(null);
+  useApp((s) => s.locale); // réactivité i18n (aria-label)
   // Réf `game` stable (cf. HeroStrip) puis dérivation dans l'effet — évite les
   // nouveaux tableaux à chaque sélecteur.
   const game = useApp((s) => s.game);
@@ -101,7 +103,7 @@ export function MiniMap({ variant = 'fixed' }: { variant?: 'fixed' | 'drawer' } 
       class={variant === 'drawer' ? 'mini-map-drawer' : 'mini-map'}
       data-testid={variant === 'drawer' ? 'mini-map-drawer' : 'mini-map'}
       role="img"
-      aria-label={`Mini-carte (${heroCount} héros)`}
+      aria-label={t('hero.minimapAria', { count: heroCount })}
       onClick={onClick}
     />
   );

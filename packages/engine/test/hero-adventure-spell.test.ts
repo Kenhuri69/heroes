@@ -69,7 +69,7 @@ function state(heroOver: Partial<HeroState> = {}, townOwner: string | null = 'pl
   s.rng = seedRng(1);
   s.currentPlayer = 0;
   s.players = [
-    { id: 'player-1', resources: emptyResources(), factionResources: {}, explored: [], controller: 'human', eliminated: false, townlessDays: 0, huntContract: null },
+    { id: 'player-1', resources: emptyResources(), factionResources: {}, explored: [], controller: 'human', eliminated: false, townlessDays: 0, huntContract: null, team: 0 },
   ];
   s.heroes = [hero(heroOver)];
   const town: TownState = { id: 't1', ownerPlayerId: townOwner, pos: { x: 8, y: 8 }, factionId: '', buildings: {}, builtToday: false, garrison: [], stock: {}, spellPool: [] };

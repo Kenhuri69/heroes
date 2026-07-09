@@ -31,6 +31,7 @@ function baseState(quests: QuestState | null): GameState {
         eliminated: false,
         townlessDays: -1,
         huntContract: null,
+        team: 0,
       },
     ],
     heroes: [

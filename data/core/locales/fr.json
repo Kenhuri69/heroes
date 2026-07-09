@@ -71,6 +71,8 @@
   "newgame.human": "Humain",
   "newgame.ai": "IA",
   "newgame.color": "Couleur",
+  "newgame.team": "Équipe",
+  "newgame.team.none": "Aucune",
   "newgame.mapSize": "Taille de la carte",
   "newgame.mapSize.small": "Petite",
   "newgame.mapSize.medium": "Moyenne",

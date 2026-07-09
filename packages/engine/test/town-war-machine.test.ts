@@ -70,6 +70,7 @@ function stateWithForge(gold = 2000, heroPos = { x: 5, y: 5 }): GameState {
       eliminated: false,
       townlessDays: 0,
       huntContract: null,
+      team: 0,
     },
   ];
   s.heroes = [heroAt(heroPos)];

@@ -320,6 +320,7 @@ describe('R1 · mineur — plafond de croissance non réducteur', () => {
           eliminated: false,
           townlessDays: 0,
           huntContract: null,
+          team: 0,
         },
       ],
     };

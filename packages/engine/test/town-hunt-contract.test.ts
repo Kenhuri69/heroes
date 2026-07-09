@@ -31,6 +31,7 @@ function stateWith(hasBoard: boolean): GameState {
       eliminated: false,
       townlessDays: 0,
       huntContract: null,
+      team: 0,
     },
   ];
   s.map = {

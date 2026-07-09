@@ -3,7 +3,7 @@ import { revealStructure } from '../adventure/vision';
 import { beginTownCombat } from '../combat/setup';
 import type { Command, CommandError } from '../core/commands';
 import type { GameEvent } from '../core/events';
-import type { GameState, HeroState } from '../core/state';
+import { areAllies, type GameState, type HeroState } from '../core/state';
 import type { TownState } from './types';
 import { evaluateOutcome } from '../scenario/outcome';
 
@@ -39,6 +39,11 @@ export function validateCaptureTown(state: GameState, cmd: CaptureCmd): CommandE
   if (!town) return { code: 'unknownTown', message: `ville inconnue '${cmd.townId}'` };
   if (town.ownerPlayerId === cmd.playerId)
     return { code: 'invalidAction', message: `'${cmd.townId}' appartient déjà à ${cmd.playerId}` };
+  // On n'assiège pas la ville d'un allié (doc 02 §6).
+  const owner = state.players.find((p) => p.id === town.ownerPlayerId);
+  const self = state.players.find((p) => p.id === cmd.playerId);
+  if (owner && self && areAllies(owner, self))
+    return { code: 'invalidAction', message: `'${cmd.townId}' appartient à un allié de ${cmd.playerId}` };
   const hero = attackingHero(state, town, cmd.playerId);
   if (!hero)
     return {

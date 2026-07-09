@@ -24,6 +24,8 @@ export interface PlayerSetup {
   startingHouseId?: string;
   /** Contrôleur (doc 02 §6, plan phase-3.5) — `'ai'` pour un adversaire ; défaut `'human'`. */
   controller?: 'human' | 'ai';
+  /** Équipe / alliance (doc 02 §6) — entier opaque ; défaut `0` (sans alliance). */
+  team?: number;
   /**
    * Report de héros entre chapitres de campagne (doc 13 §4.1, N3a) — le héros
    * nommé conserve niveau/XP/compétences/artefacts d'un chapitre à l'autre.

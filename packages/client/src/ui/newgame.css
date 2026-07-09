@@ -75,6 +75,11 @@
   box-shadow: 0 0 0 2px var(--gold-veil);
 }
 
+/* Sélecteur d'équipe par siège (alliances) : segmented pleine largeur. */
+.newgame-seat-team {
+  flex: 1 1 100%;
+}
+
 .newgame-seed-row {
   display: flex;
   align-items: stretch;

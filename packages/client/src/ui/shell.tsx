@@ -402,6 +402,7 @@ function HeroDrawer() {
   useApp((s) => s.locale);
   const hero = useApp((s) => resolveSelectedHero(s.game, s.selectedHeroId));
   const config = useApp((s) => s.game.config);
+  const artifactCatalog = useApp((s) => s.game.artifactCatalog);
   const [open, setOpen] = useState(false);
   // Raccourci `H` (lot M8 C2) : bascule le tiroir depuis le handler clavier global.
   useEffect(() => {
@@ -469,7 +470,7 @@ function HeroDrawer() {
         <h3 class="hero-army-title">{t('army.title')}</h3>
         <ArmySlots army={hero.army} />
         <HeroSkills hero={hero} />
-        <HeroInventory hero={hero} />
+        <HeroInventory hero={hero} catalog={artifactCatalog} />
         <AdventureSpellbook hero={hero} />
         <QuestJournal />
         {/* Mini-carte en fin de tiroir (mobile ; le widget fixe est desktop only,

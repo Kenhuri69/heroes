@@ -379,6 +379,24 @@ const artifactBonusSchema = z
   })
   .refine((b) => Object.values(b).some((v) => v !== undefined), 'bonus vide');
 
+/**
+ * Emplacement de la poupée d'équipement (doc 08 §2.3, lot UXD-5b) : donnée de
+ * PRÉSENTATION seule — le moteur ne la lit jamais (les bonus se somment quel
+ * que soit le slot). Sert au regroupement typé de l'écran héros côté client.
+ */
+export const artifactSlotSchema = z.enum([
+  'head',
+  'neck',
+  'torso',
+  'weapon',
+  'shield',
+  'cloak',
+  'hands',
+  'feet',
+  'ring',
+  'misc',
+]);
+
 /** data/core/artifacts.json — forme résolue = `ArtifactDef` (engine/src/hero/types.ts). */
 export const artifactSchema = z.object({
   id: idSchema,
@@ -386,6 +404,8 @@ export const artifactSchema = z.object({
   /** Texte d'ambiance optionnel (doc 13 §3.5, lot N1). */
   loreKey: locRef.optional(),
   bonus: artifactBonusSchema,
+  /** Emplacement typé de la poupée (présentation client, UXD-5b) — absent ⇒ sac. */
+  slot: artifactSlotSchema.optional(),
 });
 
 export const artifactCatalogSchema = z.object({
@@ -911,6 +931,7 @@ export type SkillCatalogFile = z.infer<typeof skillCatalogSchema>;
 /** Forme moteur — `Skill` sans `name` (locale, hors `HeroSkillDef` figé). */
 export type ResolvedSkill = Omit<Skill, 'name'>;
 export type Artifact = z.infer<typeof artifactSchema>;
+export type ArtifactSlot = z.infer<typeof artifactSlotSchema>;
 export type ArtifactCatalogFile = z.infer<typeof artifactCatalogSchema>;
 export type WarMachine = z.infer<typeof warMachineSchema>;
 /** Forme moteur — `Artifact` sans `name`/`loreKey` (affichage, hors `ArtifactDef` figé). */

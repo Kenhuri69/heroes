@@ -938,6 +938,29 @@ test('sort d’aventure : Ville-portail téléporte le héros vers sa ville (Alp
   expect(errors).toEqual([]);
 });
 
+test('poupée d’équipement : l’artefact de départ occupe son slot typé (UXD-5b)', async ({
+  page,
+}) => {
+  const errors = await openGame(page);
+
+  // Ouvre le tiroir héros (desktop : colonne persistante ; mobile : on bascule).
+  if (await page.getByTestId('hero-drawer-toggle').isVisible())
+    await page.getByTestId('hero-drawer-toggle').click();
+
+  // Le héros de départ porte « Lame aiguisée » (slot weapon) : elle occupe
+  // l'emplacement typé Arme, pas un slot générique.
+  const weapon = page.getByTestId('hero-slot-weapon');
+  await expect(weapon).toHaveClass(/filled/);
+  await expect(weapon).toContainText('Lame aiguisée');
+
+  // A5 (jamais la couleur seule) : un emplacement typé vide affiche son libellé.
+  const head = page.getByTestId('hero-slot-head');
+  await expect(head).toHaveClass(/empty/);
+  await expect(head).toContainText('Tête');
+
+  expect(errors).toEqual([]);
+});
+
 test('éditeur de carte : peindre + départ ⇒ export valide (Alpha 4.18)', async ({ page }) => {
   const errors = collectErrors(page);
   await page.goto('./');

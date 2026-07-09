@@ -325,11 +325,12 @@ intercalé dès qu'un sourcing est validé).
 - [x] UXD-2 — iconographie unifiée (`ux-d2-iconographie.md`).
 - [x] UXD-3 — carte peinte : bord de monde (#94) + assets peints héros/villes/objets (`ux-d3b-assets-carte.md`).
 - [x] UXD-4 — combat immersif (`ux-d4-combat-immersif.md`).
-- [~] UXD-5 — vue de ville = **plan de construction** sur le décor peint
+- [x] UXD-5 — vue de ville = **plan de construction** sur le décor peint
   (construit/disponible/verrouillé, pastille de forme distincte A5) livrée
-  (`ux-d5-gestion.md`) ; poupée d'équipement typée (bloquée sur le schéma
-  d'artefacts, sans champ `slot`) + réalignement écrans annexes (déjà sur tokens
-  via le garde-fou CI) = suivis notés.
+  (`ux-d5-gestion.md`) ; **poupée d'équipement typée par slot** livrée
+  (`ux-d5b-poupee-equipement.md` : champ de données `slot` de présentation pure,
+  10 emplacements nommés + sac, moteur intact) ; réalignement écrans annexes
+  déjà couvert par le garde-fou couleurs CI (UXD-1).
 - [~] UXD-6 — audio : cadrage + prompts (#101) + **architecture 6B** +
   **6C musiques déposées** (menu/aventure/combat/ville, OGG+M4A, < 800 Ko/boucle) +
   **6D 6 SFX procéduraux** (`gen_sfx.py` déterministe : combat-hit/spell/death,

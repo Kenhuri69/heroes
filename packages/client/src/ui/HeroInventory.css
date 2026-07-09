@@ -1,9 +1,11 @@
-/* Section Inventaire du tiroir héros (doc 08 §2.3) — 10 slots, lecture seule. */
+/* Section Équipement du tiroir héros (doc 08 §2.3, UXD-5b) — poupée à 10
+   emplacements NOMMÉS (typés par slot) + sac de débordement, lecture seule. */
 .hero-inventory {
   margin: 12px 0;
 }
 
-.hero-inventory-slots {
+.hero-equipment-doll,
+.hero-inventory-bag {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 6px;
@@ -12,11 +14,18 @@
   list-style: none;
 }
 
+.hero-inventory-bag {
+  margin-top: 6px;
+}
+
 .hero-inventory-slot {
-  min-height: 32px;
+  /* Touch-first : cible ≥ 44 px (guidelines §8.4). */
+  min-height: 44px;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 2px;
   padding: 4px 6px;
   border: 1px solid var(--ink-600);
   border-radius: var(--radius-s);
@@ -25,14 +34,29 @@
   text-align: center;
 }
 
-.hero-inventory-slot.empty {
-  opacity: 0.4;
+/* A5 : chaque emplacement porte son libellé de slot (jamais la couleur seule). */
+.hero-slot-label {
+  font-size: 0.5625rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.7;
 }
 
-/* Slot rempli : icône d'artefact + nom (lot intégration) — icône absente ⇒ nom seul. */
+/* Emplacement vide : libellé de slot atténué, contour pointillé, pas de contenu. */
+.hero-inventory-slot.empty {
+  opacity: 0.5;
+  border-style: dashed;
+}
+
+/* Emplacement rempli : icône d'artefact + nom — icône absente ⇒ nom seul. */
 .hero-inventory-slot.filled {
-  flex-direction: column;
   gap: 4px;
+}
+
+.hero-bag-title {
+  margin: 10px 0 0;
+  font-size: 0.75rem;
+  opacity: 0.85;
 }
 
 .hero-inventory-icon {

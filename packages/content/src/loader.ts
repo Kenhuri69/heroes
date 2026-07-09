@@ -618,7 +618,7 @@ export function buildArtifactCatalog(report: LoadReport): Record<string, Resolve
   for (const a of report.content.coreArtifacts) {
     if (catalog[a.id])
       throw new PackError([`buildArtifactCatalog: id d'artefact en double '${a.id}'`]);
-    catalog[a.id] = { id: a.id, bonus: a.bonus };
+    catalog[a.id] = { id: a.id, bonus: a.bonus, slot: a.slot };
   }
   return catalog;
 }

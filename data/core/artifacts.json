@@ -1,8 +1,8 @@
 {
   "artifacts": [
-    { "id": "lame-aiguisee", "bonus": { "attack": 2 } },
-    { "id": "egide-de-pierre", "bonus": { "defense": 2 } },
-    { "id": "orbe-de-savoir", "bonus": { "knowledge": 2 } },
-    { "id": "trefle-chance", "bonus": { "luck": 1 } }
+    { "id": "lame-aiguisee", "bonus": { "attack": 2 }, "slot": "weapon" },
+    { "id": "egide-de-pierre", "bonus": { "defense": 2 }, "slot": "shield" },
+    { "id": "orbe-de-savoir", "bonus": { "knowledge": 2 }, "slot": "neck" },
+    { "id": "trefle-chance", "bonus": { "luck": 1 }, "slot": "ring" }
   ]
 }

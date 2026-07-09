@@ -26,6 +26,12 @@ export interface MapGenOptions {
   baseTerrain?: string;
   /** Palette d'unités connues pour les gardiens (vide ⇒ aucun gardien). */
   guardianUnits?: string[];
+  /**
+   * Tier (1–8) de chaque unité de la palette (id → tier). Sert à **graduer** la
+   * force des gardiens selon l'éloignement des départs (faible près des départs,
+   * fort au centre). Absent ⇒ tier 1 par défaut : seule la taille de pile gradue.
+   */
+  unitTiers?: Record<string, number>;
   /** Nombre de positions de départ à répartir (défaut 2, min 2) — une par joueur. */
   startPositionCount?: number;
   /**
@@ -138,6 +144,7 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
   const height = Math.max(12, opts.height ?? 24);
   const baseTerrain = opts.baseTerrain ?? 'grass';
   const guardianUnits = opts.guardianUnits ?? [];
+  const unitTiers = opts.unitTiers ?? {};
   const startPositionCount = Math.max(2, opts.startPositionCount ?? 2);
   const resourceMultiplier = opts.resourceMultiplier ?? 1;
   // Densité constante quelle que soit la taille : les compteurs d'objets calés
@@ -322,15 +329,29 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
     frequency: 'oncePerHeroPerWeek',
   }));
   if (guardianUnits.length > 0) {
-    for (let i = 0; i < Math.max(1, Math.round(randBetween(1, 3) * areaFactor)); i++) {
-      place((x, y, n) => ({
-        id: `guard-${n}`,
-        type: 'guardian',
-        x,
-        y,
-        unitId: guardianUnits[randInt(guardianUnits.length)]!,
-        count: randBetween(5, 20),
-      }));
+    // Gradation de difficulté (doc 02 §2.2) : la « profondeur » d'une tuile =
+    // distance au départ le PLUS PROCHE, normalisée par `radius` (rayon de
+    // l'anneau des départs). 0 ⇒ collé à un départ ; 1 ⇒ au centre / zones
+    // profondes. Guide à la fois le tier de l'unité gardienne et la taille de
+    // pile — faible autour des départs, fort vers le centre.
+    const depthAt = (x: number, y: number): number => {
+      let nearest = Infinity;
+      for (const s of startPositions) nearest = Math.min(nearest, Math.hypot(x - s.x, y - s.y));
+      return Math.min(1, nearest / radius);
+    };
+    // Palette triée par tier croissant : l'index sélectionné suit la profondeur,
+    // donc bas tier près des départs, haut tier au centre (léger jitter = variété).
+    const byTier = [...guardianUnits].sort((a, b) => (unitTiers[a] ?? 1) - (unitTiers[b] ?? 1));
+    const clampIdx = (i: number): number => Math.min(byTier.length - 1, Math.max(0, i));
+    const guardianCount = Math.max(2, Math.round(randBetween(2, 4) * areaFactor));
+    for (let i = 0; i < guardianCount; i++) {
+      place((x, y, n) => {
+        const depth = depthAt(x, y);
+        const idx = clampIdx(Math.round(depth * (byTier.length - 1)) + randBetween(-1, 1));
+        // Pile ~4 (près des départs) → ~40 (au centre), ± jitter.
+        const count = Math.max(2, Math.round(4 + depth * 36) + randBetween(-3, 3));
+        return { id: `guard-${n}`, type: 'guardian', x, y, unitId: byTier[idx]!, count };
+      });
     }
   }
 

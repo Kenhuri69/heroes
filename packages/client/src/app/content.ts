@@ -2,6 +2,7 @@ import {
   generateMap,
   knownArtifactIds,
   knownUnitIds,
+  knownUnitTiers,
   loadContent,
   loadMap,
   loadScenarios,
@@ -73,7 +74,11 @@ export async function resolveGeneratedMap(
 ): Promise<ResolvedMap> {
   const config = report.content.config;
   const units = knownUnitIds(report);
-  const generated = generateMap('random', seed, { guardianUnits: [...units], ...opts });
+  const generated = generateMap('random', seed, {
+    guardianUnits: [...units],
+    unitTiers: knownUnitTiers(report),
+    ...opts,
+  });
   const readJson: ReadJson = (path) =>
     path === 'maps/random.map.json' ? Promise.resolve(generated) : readJsonFromSite(path);
   return loadMap(readJson, 'random', config, units, knownArtifactIds(report));

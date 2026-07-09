@@ -144,6 +144,15 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 > **n'entre pas** sur la tuile du gardien ; le combat s'ouvre, et le gardien
 > doit être le dernier pas atteint (le parcours s'arrête à l'interception).
 
+> **Gradation des gardiens (cartes générées)** : sur une carte procédurale
+> (`generateMap`, doc 09 Live), la force d'un gardien suit la **profondeur** de
+> sa tuile = distance au départ le plus proche, normalisée par le rayon de
+> l'anneau des départs (0 collé à un départ → 1 au centre / zones profondes).
+> Le **tier** de l'unité (palette triée par tier) et la **taille de pile**
+> (~4 → ~40) croissent avec cette profondeur : faibles autour des départs,
+> forts vers le centre. Générique et faction-agnostique (aucun cas particulier
+> de faction).
+
 ### 2.3 Temps
 
 - **Jour** = 1 tour de chaque joueur. **Semaine** = 7 jours → croissance des créatures dans villes/habitations. **Mois** = 4 semaines (événements type « semaine de la peste » : post-MVP).

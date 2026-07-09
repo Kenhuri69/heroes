@@ -12,6 +12,7 @@ export {
   checkLoreParity,
   knownArtifactIds,
   knownUnitIds,
+  knownUnitTiers,
   loadContent,
   loadFactionPack,
   loadMap,

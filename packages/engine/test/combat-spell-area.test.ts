@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { apply } from '../src/core/engine';
 import { seedRng } from '../src/core/rng';
-import { createEmptyState, type GameState, type HeroState, type SpellDef } from '../src/core/state';
+import { createEmptyState, type GameState, type HeroState } from '../src/core/state';
+import type { SpellDef } from '../src/hero/types';
 import { hexDistance } from '../src/combat/hex';
 import { estimateSpell } from '../src/hero';
 import type { CombatState, CombatStack, CombatUnitDef } from '../src/combat/types';

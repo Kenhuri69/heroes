@@ -29,7 +29,19 @@
 
 ## Hors périmètre (suivis notés)
 
-- **Layout desktop en colonne droite** (ressources/portraits/villes empilés à
-  droite façon doc 08 §2.1) : rework des blocs `fixed` du HUD — plus invasif,
-  gain moindre que la mini-map elle-même. Suivi dédié.
-- **Mini-map dans le tiroir mobile** (aujourd'hui desktop only).
+- **Mini-map dans le tiroir mobile** (aujourd'hui desktop only) : ✅ **livrée**
+  (`.claude/plans/ux-minimap-mobile.md`).
+
+## Décision de clôture (2026-07-09)
+
+- **UXD-8 clos comme livré.** Constat en relisant le CSS : le **tiroir héros
+  persistant** EST déjà le rail droit desktop (`@media min-width:900px` →
+  `.hero-drawer { right:0; width:300px; transform:none }`, `.resource-bar` /
+  `.bottom-hud { right:300px }`). Il porte portraits (`HeroStrip`), mini-map et
+  détails héros ⇒ **doc 08 §2.1 réalisé**.
+- Le « layout colonne droite complet » (déplacer **ressources** et **villes**
+  DANS le rail) est **volontairement non retenu** : la barre de ressources en
+  haut est un choix M5 assumé, la liste de villes en barre d'actions un choix
+  U4 ; les y déplacer casserait des surfaces testées (`resource-open-*`,
+  `town-open-*`) pour un gain ergonomique discutable (le plan maître le notait
+  déjà « plus invasif, gain moindre »). Décision utilisateur du 2026-07-09.

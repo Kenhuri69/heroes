@@ -78,6 +78,7 @@ export {
   canHeroAttack,
   estimateDamage,
   heroAttackDamage,
+  surrenderCost,
   initiativeSpeed,
   meleeOriginsFor,
   reachableHexes,

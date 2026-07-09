@@ -103,6 +103,15 @@ export {
   canHeroAttack,
 } from './hero-attack';
 
+/** Reddition & fuite (C3) — handlers + coût de reddition (affiché sur le bouton). */
+export {
+  validateRetreat,
+  validateSurrender,
+  handleRetreat,
+  handleSurrender,
+  surrenderCost,
+} from './leave';
+
 /**
  * Ouvre un combat d'interception héros ↔ gardien — appelé par le handler
  * `MoveHero` (câblage lot D). Le héros n'entre PAS sur la tuile du gardien.

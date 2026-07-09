@@ -105,7 +105,7 @@
   pas de séparation combat/aventure, pas d'indication de maîtrise.
 - **Piste** : dépend de C7 (sorts de zone) et du design du grimoire (doc 08 §2.3).
 
-### C3 — Pas de reddition ni de fuite 🕳️ M
+### C3 — Pas de reddition ni de fuite 🕳️ M — ✅ FAIT (héros survit ; devenir taverne = M1 différé)
 - Aucune commande surrender/retreat (`combat/commands.ts`). Impossible de quitter
   un combat en abandonnant/rachetant l'armée.
 

@@ -4,6 +4,7 @@ import {
   heroAttackDamage,
   initiativeSpeed,
   roundActionOrder,
+  surrenderCost,
   type CombatStack,
   type CombatState,
   type CombatUnitDef,
@@ -37,9 +38,13 @@ export function CombatUi() {
   const catalog = useApp((s) => s.game.unitCatalog);
   const autoActive = useApp((s) => s.combatAutoActive);
   const config = useApp((s) => s.game.config);
+  const playerGold = useApp(
+    (s) => s.game.players.find((p) => p.id === humanId(s.game))?.resources.gold ?? 0,
+  );
   const preview = useSyncExternalStore(combatPreview.subscribe, combatPreview.get);
   const [spellBookOpen, setSpellBookOpen] = useState(false);
   const [heroAttackOpen, setHeroAttackOpen] = useState(false);
+  const [leaveConfirm, setLeaveConfirm] = useState<'retreat' | 'surrender' | null>(null);
   const [sheetStackId, setSheetStackId] = useState<string | null>(null);
 
   // Boucle d'auto-combat round par round (lot M4, doc 08 §2.4) : tant que la
@@ -97,6 +102,11 @@ export function CombatUi() {
     !!hero &&
     !!config?.combat.heroAttack &&
     !combat.heroAttackUsed.includes(combat.playerSide);
+  // C3 : fuite/reddition disponibles au tour du joueur dans un combat d'aventure
+  // (héros lié). Le coût de reddition est la valeur en or de l'armée survivante.
+  const canLeave = isPlayerTurn && !autoActive && !!combat.heroId;
+  const surrenderGold = canLeave ? surrenderCost(appStore.getState().game, combat) : 0;
+  const canSurrender = canLeave && playerGold >= surrenderGold;
 
   // Ordre de passage projeté (lot M1, doc 08 §2.4) : remplace les deux rangées
   // par camp triées par slot — l'actif est la 1ʳᵉ entrée par construction.
@@ -184,6 +194,16 @@ export function CombatUi() {
         >
           {t('combat.heroAttack')}
         </button>
+        <button data-testid="combat-retreat" disabled={!canLeave} onClick={() => setLeaveConfirm('retreat')}>
+          {t('combat.retreat')}
+        </button>
+        <button
+          data-testid="combat-surrender"
+          disabled={!canSurrender}
+          onClick={() => setLeaveConfirm('surrender')}
+        >
+          {t('combat.surrender', { gold: surrenderGold })}
+        </button>
         <button
           data-testid="combat-auto"
           class={autoActive ? 'combat-auto-active' : ''}
@@ -208,9 +228,58 @@ export function CombatUi() {
 
       {spellBookOpen && hero && <SpellBook hero={hero} onClose={() => setSpellBookOpen(false)} />}
       {heroAttackOpen && <HeroAttackModal combat={combat} onClose={() => setHeroAttackOpen(false)} />}
+      {leaveConfirm && (
+        <LeaveConfirm mode={leaveConfirm} gold={surrenderGold} onClose={() => setLeaveConfirm(null)} />
+      )}
       {sheetStack && (
         <StackSheet stack={sheetStack} combat={combat} catalog={catalog} onClose={() => setSheetStackId(null)} />
       )}
+    </div>
+  );
+}
+
+/**
+ * Confirmation de fuite/reddition (C3) : action IRRÉVERSIBLE (le combat se termine
+ * par une défaite), donc confirmation explicite (doc 08 §2.4). Fuite = armée
+ * abandonnée ; reddition = armée gardée contre `gold` or.
+ */
+function LeaveConfirm({
+  mode,
+  gold,
+  onClose,
+}: {
+  mode: 'retreat' | 'surrender';
+  gold: number;
+  onClose: () => void;
+}) {
+  useApp((s) => s.locale); // réactivité i18n
+  const confirm = (): void => {
+    dispatch({ type: mode === 'retreat' ? 'Retreat' : 'Surrender' })
+      .then(() => onClose())
+      .catch((err: unknown) => pushToast(commandErrorMessage(err)));
+  };
+  return (
+    <div class="modal-backdrop" onClick={onClose}>
+      <div
+        class="modal combat-leave"
+        role="dialog"
+        aria-modal="true"
+        aria-label={t(mode === 'retreat' ? 'combat.retreat' : 'combat.surrender', { gold })}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <header class="modal-header">
+          <h2>{t(mode === 'retreat' ? 'combat.retreat' : 'combat.surrender', { gold })}</h2>
+        </header>
+        <p>{t(mode === 'retreat' ? 'combat.retreatBody' : 'combat.surrenderBody', { gold })}</p>
+        <div class="combat-leave-actions">
+          <button data-testid="combat-leave-cancel" onClick={onClose}>
+            {t('combat.leaveCancel')}
+          </button>
+          <button class="combat-leave-go" data-testid="combat-leave-confirm" onClick={confirm}>
+            {t('combat.leaveConfirm')}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

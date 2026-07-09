@@ -5,6 +5,7 @@ import { inBounds, isAdjacent, samePos, type GridPos } from '../adventure/map';
 import { advanceHeroAlongPath } from '../adventure/movement';
 import { revealOwnedStructures } from '../adventure/vision';
 import { handleHeroAttack, validateHeroAttack } from '../combat/hero-attack';
+import { handleRetreat, handleSurrender, validateRetreat, validateSurrender } from '../combat/leave';
 import { isPassable, stepCost } from '../adventure/path';
 import {
   handleAutoCombat,
@@ -111,6 +112,8 @@ const GAME_OVER_BLOCKED = new Set<Command['type']>([
   'TradeResources',
   'CastSpell',
   'HeroAttack',
+  'Retreat',
+  'Surrender',
   'CastAdventureSpell',
   'ChooseSkill',
   'ResolveTreasure',
@@ -235,6 +238,14 @@ export function validate(state: GameState, cmd: Command): CommandError | null {
     case 'HeroAttack': {
       if (!state.combat) return { code: 'noCombat', message: 'aucun combat en cours' };
       return validateHeroAttack(state, cmd);
+    }
+    case 'Retreat': {
+      if (!state.combat) return { code: 'noCombat', message: 'aucun combat en cours' };
+      return validateRetreat(state);
+    }
+    case 'Surrender': {
+      if (!state.combat) return { code: 'noCombat', message: 'aucun combat en cours' };
+      return validateSurrender(state);
     }
     case 'CastAdventureSpell': {
       if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
@@ -536,6 +547,14 @@ const handlers: Handlers = {
 
   HeroAttack(draft, cmd, events) {
     handleHeroAttack(draft, cmd, events);
+  },
+
+  Retreat(draft, cmd, events) {
+    handleRetreat(draft, cmd, events);
+  },
+
+  Surrender(draft, cmd, events) {
+    handleSurrender(draft, cmd, events);
   },
 
   CastAdventureSpell(draft, cmd, events) {

@@ -1611,6 +1611,41 @@ test('attaque du héros : frappe directe sur une pile ennemie, 1×/combat (C1)',
   expect(errors).toEqual([]);
 });
 
+test('fuite : quitter le combat — le héros survit, armée abandonnée (C3)', async ({ page }) => {
+  const errors = await openGame(page);
+
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({
+      type: 'MoveHero',
+      heroId: 'hero-player-1',
+      path: [
+        { x: 4, y: 2 },
+        { x: 5, y: 2 },
+        { x: 6, y: 2 },
+        { x: 7, y: 2 },
+        { x: 8, y: 2 },
+        { x: 9, y: 3 },
+      ],
+    }),
+  );
+  await passPreBattle(page);
+  await expect(page.getByTestId('combat-round')).toBeVisible();
+
+  // [Fuir] → confirmation → le combat se résout, le héros survit sans armée.
+  await expect(page.getByTestId('combat-retreat')).toBeEnabled();
+  await page.getByTestId('combat-retreat').click();
+  await page.getByTestId('combat-leave-confirm').click();
+
+  await expect.poll(() => page.evaluate(() => window.__HEROES_TEST__!.getState().combat)).toBeNull();
+  const hero = await page.evaluate(
+    () => window.__HEROES_TEST__!.getState().heroes.find((h) => h.id === 'hero-player-1') ?? null,
+  );
+  expect(hero).not.toBeNull(); // le héros a survécu à la fuite
+  expect(hero?.army.length).toBe(0); // armée abandonnée
+
+  expect(errors).toEqual([]);
+});
+
 test('compétence : aucune modale de choix sans montée de niveau (gating)', async ({ page }) => {
   const errors = await openGame(page);
 

@@ -20,14 +20,20 @@ plafond de hauteur du lot A). Fond gris clair plat ⇒ alpha propre. Intégratio
 1. [x] Diagnostic + rejet du recolorage (échantillonnage HSV).
 2. [x] Rédiger le prompt de planche harmonisé + commande d'extraction →
    `assets/prompts/props-forest.md`.
-3. [ ] **(utilisateur)** Générer la planche 3×2 dans Gemini (Nano Banana/Copilot
-   en repli), fond gris #c8c8c8, 1 sujet/cellule, pas de contact bords.
-4. [ ] Extraire avec la porte QC (`sheet_extract.py`) — QC **verte** obligatoire.
-5. [ ] Copier les 6 PNG validés vers `assets/tiles/props/forest-<n>.png`.
-6. [ ] Vérif : `gen_tiles.py` (art conservé, planche de contrôle), rendu carte à
-   l'œil, typecheck/lint/build/smoke (non-régression), budget < 800 Ko gzip
-   (PNG hors bundle JS).
-7. [ ] Commit + PR draft.
+3. [x] **(utilisateur)** Planche 3×2 verte cohérente générée (Gemini) et fournie.
+4. [x] Extraite avec la porte QC (`sheet_extract.py`) → **6/6 PASS**.
+5. [x] Post-traitement :
+   - rogné à la boîte alpha (base au sol, l'extracteur laissait 10 % de marge ⇒
+     arbres flottants + trop petits) ;
+   - **lacs de gris de fond internes** (trouées du houppier, jusqu'à 5 % sur
+     forest-6) retirés par détourage neutre numpy — rembg birefnet indisponible
+     (modèle bloqué 403 par le proxy) ; gris résiduel ≤ 0,12 % ;
+   - réduit à 256 px max (déco carte rendue ~46 px) ⇒ 604 Ko/6 (contre 1,3 Mo).
+   - déposés `assets/tiles/props/forest-1..6.png`.
+6. [~] Vérif : `gen_tiles.py` (« art déposé, conservé » ×6, seul l'art forêt +
+   `_preview` changent, tuiles procédurales identiques) ✅ ; build ✅ ;
+   smoke **en cours** ; PNG hors bundle JS (budget JS intact).
+7. [ ] Commit + push (PR #180 existante).
 
 ## Écarts / décisions
 - Grille 3×2, ids `forest-1..6`, `--side 512`, extraction vers `assets/raster_src`

@@ -305,8 +305,8 @@ TERRAIN_RECIPES = {
 # dépôt de PNG homonymes sous assets/tiles/props/ (voir docs/12 §7). Le client les
 # pose debout, base au sol, au-dessus du losange texturé (`tilemap.ts`).
 
-PROP_W, PROP_H = 64, 96      # boîte du billboard (transparente)
-PROP_VARIANTS = 3
+PROP_W, PROP_H = 64, 96      # boîte du billboard procédural (transparente)
+PROP_VARIANTS = 5
 PROP_GROUND = PROP_H - 6     # ligne de sol (base des troncs / de la montagne)
 
 
@@ -463,13 +463,21 @@ def main() -> None:
     # ── props de relief (forêt / montagne) : billboards transparents ─────────
     prop_out = OUT / "props"
     prop_out.mkdir(parents=True, exist_ok=True)
+    # Art DÉPOSÉ (Gemini) prioritaire : un PNG homonyme déjà présent est CONSERVÉ
+    # (jamais écrasé par le repli procédural), et repris tel quel pour la planche.
+    # Sinon on génère le billboard procédural. Re-run = fichiers identiques.
     props: list[tuple[str, Image.Image]] = []
     for name, recipe in PROP_RECIPES.items():
         for v in range(1, PROP_VARIANTS + 1):
-            img = render_prop(name, recipe, v)
-            img.save(prop_out / f"{name}-{v}.png", optimize=True)
+            path = prop_out / f"{name}-{v}.png"
+            if path.exists():
+                img = Image.open(path).convert("RGBA")
+                print(f"  {path.relative_to(REPO)} (art déposé, conservé)")
+            else:
+                img = render_prop(name, recipe, v)
+                img.save(path, optimize=True)
+                print(f"  {path.relative_to(REPO)}")
             props.append((f"{name}-{v}", img))
-            print(f"  {(prop_out / f'{name}-{v}.png').relative_to(REPO)}")
     # planche de contrôle : props sur damier gris (contrôle de la découpe alpha).
     prop_prev = Image.new("RGBA", (len(props) * (PROP_W + 8) + 8, PROP_H + 24), (40, 44, 40, 255))
     dp = ImageDraw.Draw(prop_prev)

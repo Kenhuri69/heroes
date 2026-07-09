@@ -8,6 +8,28 @@ import { CHUNK, chunkBounds, type WorldRect } from './tilemap';
 const PROP_TERRAINS = new Set(['forest', 'mountain']);
 /** Débord vertical (px monde) d'un prop au-dessus de sa tuile — marge d'AABB de culling. */
 const PROP_OVERHANG = 96;
+/**
+ * Fraction des tuiles d'un terrain qui reçoivent réellement un prop. La forêt est
+ * **éparse** (clairières + lisières → on voit à travers, la ville/le héros ne sont
+ * plus enterrés) ; la montagne reste pleine (mur de relief voulu).
+ */
+const PROP_DENSITY: Record<string, number> = { forest: 0.62, mountain: 1 };
+/** Largeur du prop en fraction de la tuile (< 1 : l'arbre ne remplit plus toute la case). */
+const PROP_WIDTH = 0.72;
+/** Hauteur max du prop en fraction de la largeur de tuile — plafonne les variantes géantes. */
+const PROP_MAX_H_FACTOR = 1.4;
+
+/** Hash entier déterministe (uint32), asymétrique en x/y, décorrélé par `salt`. */
+function tileHash(x: number, y: number, salt: number): number {
+  let h = Math.imul((x | 0) ^ 0x9e3779b9, 0x85ebca6b) ^ Math.imul((y | 0) ^ 0x7f4a7c15, 0xc2b2ae35);
+  h = Math.imul(h ^ (h >>> 13), 0x27d4eb2f ^ (salt | 0));
+  h ^= h >>> 16;
+  return h >>> 0;
+}
+/** Flottant déterministe [0,1) pour la tuile (tx,ty) et un usage `salt`. Aucun `Math.random`. */
+function tileRand(x: number, y: number, salt: number): number {
+  return tileHash(x, y, salt) / 0x1_0000_0000;
+}
 
 interface PropTile {
   x: number;
@@ -47,6 +69,9 @@ export class TerrainProps {
           for (let tx = cx; tx <= x1; tx++) {
             const terrain = map.terrain[ty * map.width + tx] ?? '';
             if (!PROP_TERRAINS.has(terrain)) continue;
+            // Placement épars & déterministe : certaines tuiles forêt restent nues
+            // (clairières) pour aérer le couvert et laisser voir ville/héros/routes.
+            if (tileRand(tx, ty, 0x1) >= (PROP_DENSITY[terrain] ?? 1)) continue;
             const texture = getTexture(terrainPropUrl(terrain, terrainPropVariant(tx, ty)));
             if (texture) tiles.push({ x: tx, y: ty, texture });
           }
@@ -100,9 +125,21 @@ export class TerrainProps {
 function placeProp(texture: Texture, tx: number, ty: number): Sprite {
   const s = new Sprite(texture);
   s.anchor.set(0.5, 1); // base centrée : le sprite monte vers le haut
-  const w = ISO_TILE_W;
-  s.setSize(w, (w * texture.height) / texture.width);
+  // Largeur sous la tuile + léger jitter d'échelle déterministe ; hauteur dérivée
+  // du ratio de la texture PUIS plafonnée (les variantes hautes rétrécissent au
+  // lieu de tours de 3 tuiles → fin du « mur d'arbres »).
+  let w = ISO_TILE_W * PROP_WIDTH * (0.88 + tileRand(tx, ty, 0x2) * 0.24);
+  let h = (w * texture.height) / texture.width;
+  const maxH = ISO_TILE_W * PROP_MAX_H_FACTOR;
+  if (h > maxH) {
+    w *= maxH / h;
+    h = maxH;
+  }
+  s.setSize(w, h);
   const c = isoTileCenter(tx, ty);
-  s.position.set(c.x, c.y + ISO_TILE_H * 0.35); // base légèrement en avant du centre
+  // Jitter de position déterministe : casse l'alignement sur la grille (aspect naturel).
+  const dx = (tileRand(tx, ty, 0x3) - 0.5) * ISO_TILE_W * 0.4;
+  const dy = (tileRand(tx, ty, 0x4) - 0.5) * ISO_TILE_H * 0.3;
+  s.position.set(c.x + dx, c.y + ISO_TILE_H * 0.35 + dy); // base légèrement en avant du centre
   return s;
 }

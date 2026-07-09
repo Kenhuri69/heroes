@@ -119,9 +119,16 @@ export function isoRoadUrl(): string | undefined {
 
 const PROP_VARIANTS = 6;
 
-/** Variante déterministe 1..N d'un prop de relief (hash décorrélé de `tileVariant`). */
+/**
+ * Variante déterministe 1..N d'un prop de relief. Hash **asymétrique en x/y**
+ * (multiplicateurs distincts + avalanche) : contrairement à `x*13+y*7`, il ne se
+ * reflète pas le long d'un axe → pas de motif en miroir sur les cartes symétriques.
+ */
 export function terrainPropVariant(x: number, y: number): number {
-  return (Math.abs(x * 13 + y * 7) % PROP_VARIANTS) + 1;
+  let h = Math.imul((x | 0) ^ 0x9e3779b9, 0x85ebca6b) ^ Math.imul((y | 0) ^ 0x7f4a7c15, 0xc2b2ae35);
+  h = Math.imul(h ^ (h >>> 13), 0x27d4eb2f);
+  h ^= h >>> 16;
+  return ((h >>> 0) % PROP_VARIANTS) + 1;
 }
 
 /**

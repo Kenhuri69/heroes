@@ -117,7 +117,7 @@ export function isoRoadUrl(): string | undefined {
   return registry.get('tiles/iso/road-dirt');
 }
 
-const PROP_VARIANTS = 5;
+const PROP_VARIANTS = 6;
 
 /** Variante déterministe 1..N d'un prop de relief (hash décorrélé de `tileVariant`). */
 export function terrainPropVariant(x: number, y: number): number {

@@ -73,3 +73,22 @@
 
 ## Journal
 - (init) Recherche terminée (3 explorations). Décisions utilisateur prises. Plan écrit.
+- Lot 1 ✅ : 7 terrains ajoutés (config), recettes `gen_tiles.py` (35 tuiles déterministes),
+  couleurs de repli tilemap/mini-carte. Tests engine+content verts (golden stable), typecheck/lint OK.
+- Lot 2 ✅ : `mapgen.ts` réécrit en biomes (bruit fractal + rivières), pur/déterministe.
+  Config de test étendue, 2 nouveaux tests (biomes variés, rivières franchissables). 94 tests contenu verts.
+  Aperçu ASCII vérifié : plaine dominante, forêts groupées, sable côtier, rivières vers l'eau.
+- Lot 3 ✅ : `Tilemap` chunké (16²) + `updateVisibility` viewport ; scène cull au ticker (retiré à destroy).
+  Petites cartes toujours aplaties en 1 texture. Typecheck OK.
+- Lot 4 ✅ : tailles 64/96/128/256 (+ cran Immense), locales FR/EN, smoke newgame màj (128²).
+- Lot 5 ✅ : props billboards forêt/montagne (`gen_tiles.py` → `assets/tiles/props/`, 3 variantes
+  déterministes), `terrainPropUrl/Variant`, rendu dans les chunks (culés, AABB étendu). Repli procédural,
+  Gemini par simple dépôt de PNG. Vérif visuelle (screenshot) : forêt de conifères vivante avec profondeur.
+- Vérif globale : typecheck/lint verts ; engine 381 + content 94 tests verts ; build < budget ;
+  smoke complet 127 passed / 2 skipped (1 flake connu « raccourci E » focus clavier, vert en isolation,
+  absorbé par retries CI). 128² généré+rendu (culling) et carte biomes couverts en smoke ; assets sans 404.
+- Lot 6 ✅ : docs 02 (table terrains + tailles + biomes + chunking/props), docs 12 (terrains, props,
+  prompt Gemini §7.5, table de nommage), CLAUDE.md (mémoire), plan finalisé.
+- **Différé/limitation notée** : tri de profondeur props ↔ entités (héros) — les props vivent dans la
+  couche sol (sous les entités), un prop de premier plan n'occulte pas un héros situé derrière (mineur).
+  Le fog reste redessiné O(W×H) par resync (par commande, pas par frame) — acceptable, à optimiser si besoin.

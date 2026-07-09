@@ -72,6 +72,23 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 
 - Points de mouvement quotidiens : `base 1500 + 50 × vitesse de la créature la plus lente de l'armée` (encourage les armées homogènes), modifiés par la compétence **Logistique** (`movementBonusPct`), les routes (coût tuile ×0,75) et les terrains (marais ×1,5). *Pas de bonus de terrain natif sur la carte (les terrains ne portent qu'un `moveCost`) ; les artefacts ne donnent **pas** de points de mouvement — différés.*
 - Coût d'entrée d'une tuile : **100 points** en terrain de base (herbe), pas en **diagonale ×1,41** (≈ √2), multiplicateurs cumulés puis arrondis à l'entier — ex. route en diagonale : `round(100 × 0,75 × 1,41) = 106`. Valeurs de départ pour l'équilibrage, stockées dans `data/core/config.json`.
+- **Catalogue de terrains** (data-driven, `adventure.terrains` ; le moteur ne connaît que le `moveCost`, `null` = infranchissable) :
+
+  | Terrain | `moveCost` | Nature |
+  |---|---|---|
+  | `grass` (herbe) | 100 | base franchissable |
+  | `dirt` (terre) | 100 | plaine sèche |
+  | `rough` (broussaille) | 125 | hauteurs érodées |
+  | `sand` (sable) | 150 | plages / zones arides |
+  | `forest` (forêt) | 150 | sous-bois (relief) |
+  | `snow` (neige) | 150 | froid |
+  | `swamp` (marais) | 150 | creux humides |
+  | `river` (rivière) | 200 | eau vive **franchissable** (gué) |
+  | `water` (eau) | `null` | mer/lac infranchissable |
+  | `mountain` (montagne) | `null` | relief infranchissable |
+  | `rocks` (éboulis) | `null` | obstacle plat infranchissable |
+
+  Ajouter un terrain = données (`config.json` + recette de tuile `gen_tiles.py`), **zéro diff moteur** (schéma terrain = chaîne opaque validée au load contre la config).
 - Portée de vision de base du héros : **5 tuiles** (distance de Tchebychev), avant bonus (Recherche +2/4/6).
 - Pathfinding A* avec préviualisation du chemin et des jours nécessaires (points verts/jaunes comme HoMM).
 - *État livré : **un seul héros par joueur** (créé au démarrage, pas de recrutement de héros). Le multi-héros (jusqu'à 8), les échanges d'armée/artefacts entre héros et le combat héros-vs-héros (le champ `defenderHeroId` existe mais reste toujours `null`) sont **différés**.*
@@ -83,7 +100,9 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 ### 2.1 Structure
 
 - Grille **carrée** (le hex est réservé au combat — choix Heroes Online) avec déplacement 8 directions, tuiles de 64 px logiques.
-- **Rendu isométrique** (Lot A1) : le moteur reste sur la grille **carrée** (coordonnées entières `GridPos`, A*, vision, coûts, sauvegarde inchangés) ; seule la **projection de rendu** est isométrique (losange 2:1 façon HoMM Online, `packages/client/src/render/projection.ts`). Picking (tap → tuile) et hook de test `tileToScreen` passent par la **même** projection. Sol = **tuiles-losanges texturées** (`assets/tiles/iso/`, dérivées des tuiles carrées par `gen_tiles.py`, cf. doc 12) posées sur un **repli gouache** (losange teinté, aussi anti-couture) ; tilemap statique **mise en cache** en une texture (marge anti-gel). Objets de carte, villes et héros vivent dans **une couche d'entités unique triée par profondeur** (`zIndex = x+y`) : un objet de premier plan passe devant un héros situé plus haut (tri inter-couches). La **mini-carte** reste **top-down** (convention, fidèle à HO).
+- **Tailles de carte** : Petite **64²**, Moyenne **96²**, Grande **128²**, Immense **256²** (plafond du schéma `mapFileSchema`). Chaque paramètre de « Nouvelle partie » peut rester sur « Aléatoire » (tiré de la graine).
+- **Rendu isométrique** (Lot A1) : le moteur reste sur la grille **carrée** (coordonnées entières `GridPos`, A*, vision, coûts, sauvegarde inchangés) ; seule la **projection de rendu** est isométrique (losange 2:1 façon HoMM Online, `packages/client/src/render/projection.ts`). Picking (tap → tuile) et hook de test `tileToScreen` passent par la **même** projection. Sol = **tuiles-losanges texturées** (`assets/tiles/iso/`, dérivées des tuiles carrées par `gen_tiles.py`, cf. doc 12) posées sur un **repli gouache** (losange teinté, aussi anti-couture). **Chunking + culling** : la tilemap est découpée en chunks de 16² tuiles ; une petite carte est aplatie en une texture (1 draw call), une grande garde les chunks en sprites batchés et n'affiche que ceux qui intersectent le viewport (mémoire bornée, pas de dessin hors écran → 64²→256² jouables). Les tuiles **forêt/montagne** portent en plus un **prop de relief** « billboard » (`assets/tiles/props/`) qui dépasse la tuile pour donner de la hauteur, culé avec son chunk. Objets de carte, villes et héros vivent dans **une couche d'entités unique triée par profondeur** (`zIndex = x+y`) : un objet de premier plan passe devant un héros situé plus haut (tri inter-couches). La **mini-carte** reste **top-down** (convention, fidèle à HO).
+- **Génération de carte aléatoire par biomes** (`packages/content/src/mapgen.ts`, pure & déterministe, RNG seedé) : trois champs de bruit fractal (élévation, humidité, température) classent chaque tuile en biome cohérent (mers/lacs en creux, plages de sable au rivage, forêts en zones humides d'altitude moyenne, marais en creux humides, rough en hauteurs sèches, neige au froid, montagnes/rochers en altitude, plaine dominante) ; des **rivières** descendent en pente jusqu'à l'eau. Carte valide par construction (`loadMap`).
 - Couches : terrain / routes-rivières / décor bloquant / objets interactifs / brouillard.
 - **Brouillard de guerre** à 2 états : inexploré (noir) et exploré-hors-vision (grisé, montre le terrain figé).
 - Format de carte : JSON (`data/maps/*.map.json`), incluant scripts d'événements simples (triggers déclaratifs : `onVisit`, `onDay`, `onFlagCaptured`).

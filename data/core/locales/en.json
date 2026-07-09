@@ -70,6 +70,7 @@
   "newgame.seat": "Player {n}",
   "newgame.human": "Human",
   "newgame.ai": "AI",
+  "newgame.color": "Color",
   "newgame.mapSize": "Map size",
   "newgame.mapSize.small": "Small",
   "newgame.mapSize.medium": "Medium",

@@ -47,6 +47,7 @@ declare global {
     /** Surface de test (smoke Playwright) : état, commandes, coordonnées écran. */
     __HEROES_TEST__?: {
       getState: () => GameState;
+      getPlayerColors: () => Record<string, number>;
       dispatch: (cmd: Command) => Promise<unknown>;
       tileToScreen: (x: number, y: number) => { x: number; y: number };
       save: () => Promise<void>;
@@ -251,6 +252,9 @@ async function bootstrap(): Promise<void> {
 
       setLoading('newgame.loading.init', 0.95);
       await raf();
+      // Couleurs de joueur choisies (lot 6.4) — présentation client, posée avant le
+      // rendu de la scène ; `navigate('menu')` les oubliera au retour menu.
+      appStore.setState({ playerColors: resolved.colors });
       await dispatch(command);
       navigate('adventure');
     } finally {
@@ -334,6 +338,7 @@ async function bootstrap(): Promise<void> {
 
   window.__HEROES_TEST__ = {
     getState: () => appStore.getState().game,
+    getPlayerColors: () => appStore.getState().playerColors,
     dispatch,
     tileToScreen: (x, y) => {
       if (!camera) return { x: -1, y: -1 };

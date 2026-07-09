@@ -141,6 +141,13 @@ export interface AppState {
    * par `LoadingOverlay` (overlay bloquant à barre de progression).
    */
   loading: { label: string; progress: number } | null;
+  /**
+   * Couleurs de joueur choisies à « Nouvelle partie » (id de joueur → couleur
+   * 0xRRGGBB). Purement présentation client (le moteur n'a pas de couleur) :
+   * `playerColor` la consulte en priorité, sinon la palette d'index. `{}` = repli
+   * palette (remis à zéro au retour menu ; les autres modes ne la posent pas).
+   */
+  playerColors: Record<string, number>;
 }
 
 export const appStore = createStore<AppState>(() => ({
@@ -182,6 +189,7 @@ export const appStore = createStore<AppState>(() => ({
   confirmEndTurn: true,
   pendingEndTurn: null,
   loading: null,
+  playerColors: {},
 }));
 
 /** Hook Preact : re-rend quand la valeur sélectionnée change (égalité stricte). */

@@ -198,7 +198,12 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > génération pouvant durer, un **overlay de chargement à barre de progression**
 > (`LoadingOverlay`, état `store.loading`) affiche l'avancée par étapes. **Zéro
 > diff moteur** (données + client uniquement ; garde-fou « zéro faction » vert,
-> pas de bump `CURRENT_SAVE_VERSION`).
+> pas de bump `CURRENT_SAVE_VERSION`). Lot **6.4 — couleur par joueur** : chaque
+> siège choisit sa couleur (palette partagée) ; `store.playerColors` (id → couleur,
+> remis à zéro au retour menu) consulté en priorité par `render/playerColors.ts`,
+> le jeton de héros de la carte honore enfin la couleur du joueur. Couleur purement
+> présentation client ⇒ zéro diff moteur. (Alliances/équipes = lot moteur séparé à
+> venir : champ `team` sur `PlayerState`, bump `CURRENT_SAVE_VERSION`.)
 >
 > 🎓 **Beta — faction Vox Arcana** (6ᵉ maison, doc 16 ; plan `.claude/plans/
 > phase-16-faction-vox-arcana.md`). **Test de modularité #4 : livré.** Sous-lots

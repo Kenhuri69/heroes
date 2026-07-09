@@ -729,6 +729,9 @@ test('nouvelle partie : configuration 3 joueurs + taille + ressources génèrent
   await page.getByTestId('newgame-size-large').click();
   await page.getByTestId('newgame-resources-riche').click();
 
+  // Couleur de joueur (lot 6.4) : le joueur 1 choisit le vert (0x27ae60).
+  await page.getByTestId('newgame-seat-0-color-27ae60').click();
+
   await page.getByTestId('newgame-start').click();
 
   // Overlay de chargement affiché puis partie démarrée sur une carte générée 48×48.
@@ -741,6 +744,9 @@ test('nouvelle partie : configuration 3 joueurs + taille + ressources génèrent
   expect(state.map?.width).toBe(48);
   // Un héros par joueur, chacun à sa position de départ (3 positions générées).
   expect(state.heroes).toHaveLength(3);
+  // La couleur choisie est appliquée au joueur 1 (présentation client).
+  const colors = await page.evaluate(() => window.__HEROES_TEST__!.getPlayerColors());
+  expect(colors['player-1']).toBe(0x27ae60);
 
   expect(errors).toEqual([]);
 });

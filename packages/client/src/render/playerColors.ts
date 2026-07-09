@@ -1,4 +1,5 @@
 import type { PlayerState } from '@heroes/engine';
+import { appStore } from '../app/store';
 
 /**
  * Couleur de bannière PAR JOUEUR (doc 08 §5) — dérivée de l'index du joueur
@@ -25,6 +26,10 @@ export function playerColor(
   playerId: string | null,
 ): number {
   if (playerId === null) return NEUTRAL_COLOR;
+  // Couleur choisie à « Nouvelle partie » (lot 6.4) prioritaire ; sinon la palette
+  // d'index (défaut historique, et repli des autres modes qui ne choisissent pas).
+  const chosen = appStore.getState().playerColors[playerId];
+  if (chosen !== undefined) return chosen;
   const index = players.findIndex((p) => p.id === playerId);
   if (index === -1) return NEUTRAL_COLOR;
   return PLAYER_COLORS[index % PLAYER_COLORS.length] as number;

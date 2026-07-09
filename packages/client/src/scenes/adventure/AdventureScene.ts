@@ -28,7 +28,6 @@ import { PathPreview, type PreviewStep } from '../../render/pathPreview';
 import { onLongPress, onTap } from '../../input/pointer';
 import { t } from '../../app/i18n';
 
-const PLAYER_COLOR = 0xc0392b;
 const STEP_ANIMATION_MS = 110;
 
 /**
@@ -156,7 +155,7 @@ export class AdventureScene {
     for (const hero of heroes) {
       let sprite = this.heroSprites.get(hero.id);
       if (!sprite) {
-        sprite = this.buildHeroToken(hero);
+        sprite = this.buildHeroToken(hero, playerColor(game.players, hero.playerId));
         this.entities.addChild(sprite);
         this.heroSprites.set(hero.id, sprite);
       }
@@ -183,9 +182,9 @@ export class AdventureScene {
    * est absent/en cours. Garde `destroyed`/`token.destroyed` : la scène peut
    * être détruite avant la fin du chargement.
    */
-  private buildHeroToken(hero: HeroState): Container {
+  private buildHeroToken(hero: HeroState, color: number): Container {
     const token = new Container();
-    const fallback = buildHeroSprite(PLAYER_COLOR);
+    const fallback = buildHeroSprite(color);
     token.addChild(fallback);
     const url = heroMapUrl(hero.factionId);
     if (url) {

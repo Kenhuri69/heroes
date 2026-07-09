@@ -690,6 +690,8 @@ export interface NewGameSlot {
   controller: 'human' | 'ai' | 'off';
   /** Id de faction, ou `RANDOM` pour un tirage. */
   factionId: string;
+  /** Couleur du joueur (0xRRGGBB) — présentation client uniquement (lot 6.4). */
+  color: number;
 }
 
 /** Configuration BRUTE émise par l'écran « Nouvelle partie » (paramètres possiblement `RANDOM`). */
@@ -705,6 +707,11 @@ export interface NewGameRawConfig {
 export interface ResolvedNewGame {
   setup: NewGameSetupConfig;
   map: { width: number; height: number; startPositionCount: number; resourceMultiplier: number };
+  /**
+   * Couleur par id de joueur (`player-{i+1}`, aligné sur `newGameStartCommand`).
+   * Présentation client (posée dans `store.playerColors`) — hors moteur.
+   */
+  colors: Record<string, number>;
 }
 
 /**
@@ -724,12 +731,16 @@ export function resolveNewGameConfig(
     rng = r.state;
     return arr[r.value]!;
   };
-  const seats: NewGameSeat[] = raw.slots
-    .filter((s) => s.controller !== 'off')
-    .map((s) => ({
-      controller: s.controller === 'ai' ? 'ai' : 'human',
-      factionId: s.factionId === RANDOM ? pick(factionIds) : s.factionId,
-    }));
+  const openSlots = raw.slots.filter((s) => s.controller !== 'off');
+  const seats: NewGameSeat[] = openSlots.map((s) => ({
+    controller: s.controller === 'ai' ? 'ai' : 'human',
+    factionId: s.factionId === RANDOM ? pick(factionIds) : s.factionId,
+  }));
+  // Couleur par joueur, alignée sur l'ordre des sièges (= `player-{i+1}` du moteur).
+  const colors: Record<string, number> = {};
+  openSlots.forEach((s, i) => {
+    colors[`player-${i + 1}`] = s.color;
+  });
   const mapSize: MapSize = raw.mapSize === RANDOM ? pick(['small', 'medium', 'large'] as const) : raw.mapSize;
   const resourceLevel: ResourceLevel =
     raw.resourceLevel === RANDOM ? pick(['bas', 'standard', 'riche'] as const) : raw.resourceLevel;
@@ -740,6 +751,7 @@ export function resolveNewGameConfig(
   return {
     setup: { seats, difficulty, resourceMultiplier: res.start },
     map: { width: dim, height: dim, startPositionCount: seats.length, resourceMultiplier: res.mapDensity },
+    colors,
   };
 }
 

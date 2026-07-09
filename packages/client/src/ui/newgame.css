@@ -50,6 +50,31 @@
   flex: 1 1 100%;
 }
 
+/* Rangée de couleurs par siège : chips ≥ 44px, défile horizontalement si étroit
+   (jamais de débordement de page — doc 08 §4). */
+.newgame-seat-colors {
+  flex: 1 1 100%;
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.newgame-swatch {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  border: 2px solid var(--ink-600);
+  border-radius: var(--radius-s);
+  cursor: pointer;
+  padding: 0;
+}
+
+.newgame-swatch.active {
+  border-color: var(--parchment-bright);
+  box-shadow: 0 0 0 2px var(--gold-veil);
+}
+
 .newgame-seed-row {
   display: flex;
   align-items: stretch;

@@ -54,7 +54,9 @@ export function popModal(stack: readonly Modal[]): Modal[] {
  * (ou un retour menu) redémarre le cycle « passez l'appareil ».
  */
 export function navigate(screen: Screen): void {
-  appStore.setState({ screen, modals: [], turnAck: null });
+  // Retour menu : oublie les couleurs de joueur de la partie précédente (le mode
+  // suivant repart de la palette d'index sauf s'il les repose). Voir `store.playerColors`.
+  appStore.setState({ screen, modals: [], turnAck: null, ...(screen === 'menu' ? { playerColors: {} } : {}) });
 }
 
 /** Ouvre (ou ré-ouvre au sommet) une modale. */

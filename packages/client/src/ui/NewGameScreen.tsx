@@ -9,8 +9,14 @@ import {
   type ResourceLevel,
   type SkirmishDifficulty,
 } from '../app/game';
+import { PLAYER_COLORS } from '../render/playerColors';
 import './options.css';
 import './newgame.css';
+
+/** Teinte CSS `#rrggbb` d'une couleur 0xRRGGBB. */
+function hex(color: number): string {
+  return `#${color.toString(16).padStart(6, '0')}`;
+}
 
 const MAP_SIZES: (MapSize | typeof RANDOM)[] = ['small', 'medium', 'large', RANDOM];
 const RESOURCE_LEVELS: (ResourceLevel | typeof RANDOM)[] = ['bas', 'standard', 'riche', RANDOM];
@@ -50,6 +56,10 @@ export function NewGameScreen({ onClose }: { onClose: () => void }) {
   const [slotFactions, setSlotFactions] = useState<string[]>(
     Array.from({ length: MAX_PLAYERS }, (_, i) => factions[i % Math.max(1, factions.length)] ?? RANDOM),
   );
+  // Couleur par siège (défaut = couleur d'index de la palette partagée).
+  const [slotColors, setSlotColors] = useState<number[]>(
+    Array.from({ length: MAX_PLAYERS }, (_, i) => PLAYER_COLORS[i % PLAYER_COLORS.length]!),
+  );
   const [mapSize, setMapSize] = useState<MapSize | typeof RANDOM>('medium');
   const [resourceLevel, setResourceLevel] = useState<ResourceLevel | typeof RANDOM>('standard');
   const [difficulty, setDifficulty] = useState<SkirmishDifficulty | typeof RANDOM>('normal');
@@ -67,6 +77,8 @@ export function NewGameScreen({ onClose }: { onClose: () => void }) {
     setControllers((prev) => prev.map((c, j) => (j === i ? value : c)));
   const setSlotFaction = (i: number, value: string): void =>
     setSlotFactions((prev) => prev.map((f, j) => (j === i ? value : f)));
+  const setSlotColor = (i: number, value: number): void =>
+    setSlotColors((prev) => prev.map((c, j) => (j === i ? value : c)));
 
   // Au moins un humain requis (hot-seat) : le siège 0 l'est toujours, donc OK.
   const canStart = factions.length > 0;
@@ -75,6 +87,7 @@ export function NewGameScreen({ onClose }: { onClose: () => void }) {
     const slots: NewGameSlot[] = Array.from({ length: playerCount }, (_, i) => ({
       controller: i === 0 ? 'human' : controllers[i]!,
       factionId: slotFactions[i] ?? RANDOM,
+      color: slotColors[i]!,
     }));
     const config: NewGameRawConfig = { slots, mapSize, resourceLevel, difficulty, seed };
     window.dispatchEvent(new CustomEvent('heroes:start-newgame', { detail: config }));
@@ -159,6 +172,20 @@ export function NewGameScreen({ onClose }: { onClose: () => void }) {
                     </option>
                   ))}
                 </select>
+                <div class="newgame-seat-colors" role="group" aria-label={t('newgame.color')}>
+                  {PLAYER_COLORS.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      class={`newgame-swatch${slotColors[i] === c ? ' active' : ''}`}
+                      data-testid={`newgame-seat-${i}-color-${hex(c).slice(1)}`}
+                      style={{ background: hex(c) }}
+                      aria-label={hex(c)}
+                      aria-pressed={slotColors[i] === c}
+                      onClick={() => setSlotColor(i, c)}
+                    />
+                  ))}
+                </div>
               </li>
             ))}
           </ol>

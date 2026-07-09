@@ -25,7 +25,9 @@
   "spellSchool": "traque",
   "heroSkills": [],
   "tiers": 8,
-  "sharedGrowthGroups": {},
+  "sharedGrowthGroups": {
+    "apex": ["t7-manticore", "t8-penitent"]
+  },
   "units": [
     "t1-eleve",
     "t2-familier",

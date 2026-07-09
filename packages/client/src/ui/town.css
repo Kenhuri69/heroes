@@ -59,6 +59,46 @@
   cursor: default;
 }
 
+/* Croissance partagée (doc 05 §3.1/§8) : choix du destinataire apex. */
+.town-shared-growth {
+  margin-bottom: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--ink-600);
+  border-radius: var(--radius-m);
+  background: var(--ink-800);
+}
+
+.town-shared-growth-label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--parchment);
+  font: 600 0.8125rem var(--font-ui);
+}
+
+.town-shared-growth-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.town-shared-growth-choices button {
+  min-height: 44px;
+  flex: 1 1 auto;
+  min-width: 6.5em;
+  padding: 6px 10px;
+  border: 1px solid var(--ink-600);
+  border-radius: var(--radius-m);
+  background: var(--ink-700);
+  color: var(--parchment);
+  font: 600 0.875rem var(--font-ui);
+  cursor: pointer;
+}
+
+.town-shared-growth-choices button.active {
+  background: var(--blood);
+  border-color: var(--blood-bright);
+}
+
 .town-error {
   margin: 8px 0;
   padding: 8px 10px;

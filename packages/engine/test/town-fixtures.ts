@@ -98,6 +98,7 @@ export function testTown(overrides: Partial<TownState> = {}): TownState {
     garrison: [],
     stock: { 'red-grunt': 10 },
     spellPool: [],
+    sharedGrowthChoice: {},
     ...overrides,
   };
 }

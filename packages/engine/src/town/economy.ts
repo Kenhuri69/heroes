@@ -2,6 +2,7 @@ import type { GameEvent } from '../core/events';
 import type { GameState, ResourceId } from '../core/state';
 import { heroGoldPerDay } from '../hero/skills';
 import { builtLevelOf } from './helpers';
+import { sharedGrowthRecipients } from './shared-growth';
 import { unitWithEconomy } from './unit-economy';
 
 /**
@@ -101,10 +102,15 @@ export function applyWeeklyGrowth(draft: GameState, events: GameEvent[]): void {
       const level = builtLevelOf(town, draft.buildingCatalog, buildingId);
       if (level?.effect.type === 'growthBonus') bonusFort += level.effect.percent / 100;
     }
+    // Croissance partagée (doc 05 §3.1/§8) : les membres d'un même groupe se
+    // partagent une seule croissance ; seul le destinataire résolu grossit.
+    const shared = sharedGrowthRecipients(town, draft.growthGroups, draft.buildingCatalog);
     for (const buildingId of Object.keys(town.buildings)) {
       const level = builtLevelOf(town, draft.buildingCatalog, buildingId);
       if (!level || level.effect.type !== 'dwelling') continue;
       const unitId = level.effect.unitId;
+      const groupId = shared.groupOf.get(unitId);
+      if (groupId !== undefined && shared.recipientOf.get(groupId) !== unitId) continue;
       const growth = unitWithEconomy(draft.unitCatalog, unitId)?.growthPerWeek;
       if (!growth) continue; // pas de donnée de croissance connue : no-op
       const added = Math.floor(growth * (1 + bonusFort));

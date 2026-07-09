@@ -26,6 +26,7 @@ import {
   buildArtifactCatalog,
   buildBuildingCatalog,
   buildFactionCatalog,
+  buildGrowthGroupCatalog,
   buildHouseCatalog,
   buildScenarioObjectives,
   buildSkillCatalog,
@@ -50,6 +51,11 @@ export type HouseCatalog = Record<string, { effects: SkillRankEffect[] }>;
 
 export function buildHouseSetup(report: LoadReport): HouseCatalog {
   return buildHouseCatalog(report) as HouseCatalog;
+}
+
+/** Groupes de croissance partagée résolus contenu → moteur (doc 05 §3.1/§8) — pour `StartGame.growthGroups`. */
+export function buildGrowthGroupSetup(report: LoadReport): Record<string, string[]> {
+  return buildGrowthGroupCatalog(report);
 }
 
 /** Id du joueur humain en NOUVELLE PARTIE (convention du client, cf. `newGameCommand`). */
@@ -220,6 +226,7 @@ export function newGameCommand(
   heroSetup: HeroSetup = NO_HERO_SETUP,
   factionCatalog: FactionCatalog = {},
   houseCatalog: HouseCatalog = {},
+  growthGroups: Record<string, string[]> = {},
 ): Command {
   const startingResources: Resources = { ...emptyResources() };
   for (const [id, amount] of Object.entries(config.newGame.startingResources)) {
@@ -251,6 +258,7 @@ export function newGameCommand(
             garrison: (obj.garrison ?? []).map((s) => ({ ...s })),
             stock: {},
             spellPool: [],
+            sharedGrowthChoice: {},
           },
         ]
       : [],
@@ -279,6 +287,7 @@ export function newGameCommand(
     startingArtifacts: heroSetup.startingArtifacts,
     factionCatalog,
     houseCatalog,
+    growthGroups,
   };
 }
 
@@ -400,6 +409,7 @@ export function scenarioStartCommand(
         garrison: [],
         stock: {},
         spellPool: [],
+        sharedGrowthChoice: {},
       },
     ];
   });
@@ -420,6 +430,7 @@ export function scenarioStartCommand(
       garrison: (obj.garrison ?? []).map((s) => ({ ...s })),
       stock: {},
       spellPool: [],
+      sharedGrowthChoice: {},
     });
   }
 
@@ -445,6 +456,7 @@ export function scenarioStartCommand(
     startingArtifacts: heroSetup.startingArtifacts,
     factionCatalog: buildFactionSetup(report),
     houseCatalog: buildHouseSetup(report),
+    growthGroups: buildGrowthGroupSetup(report),
     scenario: { objectives: buildScenarioObjectives(scenario) },
     ...(quests ? { quests } : {}),
   };
@@ -592,6 +604,7 @@ export function skirmishStartCommand(
       garrison: [],
       stock: {},
       spellPool: [],
+      sharedGrowthChoice: {},
     };
   });
 
@@ -609,6 +622,7 @@ export function skirmishStartCommand(
       garrison: (obj.garrison ?? []).map((st) => ({ ...st })),
       stock: {},
       spellPool: [],
+      sharedGrowthChoice: {},
     });
   }
 
@@ -637,6 +651,7 @@ export function skirmishStartCommand(
     startingArtifacts: heroSetup.startingArtifacts,
     factionCatalog: buildFactionSetup(report),
     houseCatalog: buildHouseSetup(report),
+    growthGroups: buildGrowthGroupSetup(report),
     scenario: { objectives },
     ...(quests ? { quests } : {}),
   };
@@ -839,6 +854,7 @@ export function newGameStartCommand(
       garrison: [],
       stock: {},
       spellPool: [],
+      sharedGrowthChoice: {},
     };
   });
 
@@ -856,6 +872,7 @@ export function newGameStartCommand(
       garrison: (obj.garrison ?? []).map((st) => ({ ...st })),
       stock: {},
       spellPool: [],
+      sharedGrowthChoice: {},
     });
   }
 
@@ -883,6 +900,7 @@ export function newGameStartCommand(
     artifactCatalog: heroSetup.artifactCatalog,
     startingArtifacts: heroSetup.startingArtifacts,
     factionCatalog: buildFactionSetup(report),
+    growthGroups: buildGrowthGroupSetup(report),
     scenario: { objectives },
   };
 }

@@ -183,6 +183,7 @@ describe('faction data-driven à 7 tiers (plan phase-3.3) — chargement & recru
       garrison: [],
       stock,
       spellPool: [],
+      sharedGrowthChoice: {},
     };
 
     const players: PlayerSetup[] = [
@@ -321,6 +322,7 @@ describe('faction morte-vivante (plan phase-3.4) — effet de faction & recrutem
       garrison: [],
       stock,
       spellPool: [],
+      sharedGrowthChoice: {},
     };
 
     const players: PlayerSetup[] = [
@@ -544,6 +546,7 @@ describe('4ᵉ faction (native de l’eau) — pipeline data-driven', () => {
       garrison: [],
       stock,
       spellPool: [],
+      sharedGrowthChoice: {},
     };
     const players: PlayerSetup[] = [
       {

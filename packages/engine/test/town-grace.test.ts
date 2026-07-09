@@ -23,6 +23,7 @@ const town = (owner: string): TownState => ({
   garrison: [],
   stock: {},
   spellPool: [],
+  sharedGrowthChoice: {},
 });
 
 const SCENARIO: ScenarioState = {

@@ -90,6 +90,7 @@ describe('validateCaptureTown avec équipes', () => {
           garrison: [],
           stock: {},
           spellPool: [],
+          sharedGrowthChoice: {},
         },
       ],
     };

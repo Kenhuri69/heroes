@@ -36,16 +36,19 @@ passifs distincts des Cercles + bâtiments de suivi, 6/8 sorts Traque + accès h
 héros nommés, « Grand Amphithéâtre ».
 
 ## Étape 3 — Combler DANS L'ORDRE (un lot = un point d'extension générique)
-- [ ] **A — Contrats de chasse** (point 5 du cadrage 4.1) : effet de bâtiment
+- [x] **A — Contrats de chasse** (point 5 du cadrage 4.1) : effet de bâtiment
   **générique** `{ type: 'huntContract', gold, resource, amount }` (pas un hook
   impératif) ; au `WeekStarted`, le propriétaire d'un tel bâtiment se voit
   assigner une cible neutre (gardien) tirée au RNG seedé ; la vaincre crédite
   or + ressource de faction. Bâtiment « Tableau des Contrats » en données AH.
   État `PlayerState.huntContract`, save v→5, golden re-fixé. Tests + smoke + docs
-  02 §4.1 + 05 §3.3/§8.
-- [ ] **B — sharedGrowthGroup** : câbler la croissance partagée apex (choix hebdo
-  d'une unité du groupe) au `WeekStarted` ; données AH T7/T8. Ou, si trop lourd,
-  corriger doc 05 §8 (retirer la sur-évaluation) — décision à la mise en œuvre.
+  02 §4.1 + 05 §3.3/§8. **Livré** (journal 2026-07-06).
+- [x] **B — sharedGrowthGroup** : câblé (décision utilisateur : feature complète,
+  pas correction doc). Plan dédié `.claude/plans/phase-4.20-shared-growth-apex.md`.
+  Point d'extension générique `GameState.growthGroups` + `TownState.sharedGrowthChoice`
+  + commande `ChooseSharedGrowth` ; croissance mutualisée au `WeekStarted` ; données
+  AH `{ apex: [t7-manticore, t8-penitent] }` ; UI ville ; save v13→**14** ; golden
+  re-fixé `0968d47e`. Docs 02 §4.1 / 05 §5/§8 / 06 alignées. **Livré (4.20).**
 
 ## Invariants
 Moteur pur, zéro nom de faction dans `packages/` (y compris commentaires/tests),
@@ -65,3 +68,14 @@ golden re-fixé explicitement, budget < 800 Ko, anti-gel ×4, docs = vérité.
   content** (dont town-hunt-contract ×5), content:check, build, **60 smoke**
   (dont le contrat assigné). Docs 05 §3.3/§8 à jour (§8 ne surévalue plus).
   **Reste : Lot B — sharedGrowthGroup** (ou correction doc si trop lourd).
+- **2026-07-09** — **Lot B livré (4.20)** : câblage complet de la croissance
+  partagée apex (choix utilisateur). Point d'extension **générique**
+  `GameState.growthGroups` + `TownState.sharedGrowthChoice` + commande
+  `ChooseSharedGrowth` + événement `SharedGrowthChosen` ; `applyWeeklyGrowth`
+  mutualise la croissance (destinataire = choix joueur, défaut = 1er membre) ;
+  `buildGrowthGroupCatalog` (contenu) ; manifeste AH `{ apex: [t7-manticore,
+  t8-penitent] }` ; sélecteur apex `RecruitTab` + locales fr/en. `saveVersion`
+  → **14**, golden re-fixé `0968d47e`. Vérif : typecheck **5/5**, lint,
+  **401 engine + 96 content** (dont town-shared-growth ×9 + 2 content), content:check,
+  garde-fous faction + CSS verts, build < 800 Ko (276 Ko gzip), **132 smoke**.
+  Docs 02 §4.1 / 05 §5/§8 / 06 + CLAUDE.md alignées. **phase-4-reverify clos.**

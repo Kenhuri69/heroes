@@ -219,7 +219,10 @@ const GOLDEN_JOURNAL: Command[] = [
 // Re-fixé au lot alliances : `PlayerState.team` (0) — équipes/alliances (save
 // v13). Les joueurs golden sont sans alliance (team 0) ⇒ seule la FORME change,
 // simulation inchangée.
-const GOLDEN_HASH = 'd49416ba';
+// Re-fixé au lot 4.20 : `GameState.growthGroups` ({}) — croissance partagée apex
+// (save v14). Le journal golden n'embarque aucun groupe ni ville ⇒ seule la FORME
+// change, simulation inchangée.
+const GOLDEN_HASH = '0968d47e';
 
 describe('golden replay', () => {
   it('le journal scripté produit toujours le même état final', () => {

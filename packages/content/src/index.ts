@@ -2,6 +2,7 @@ export {
   buildArtifactCatalog,
   buildBuildingCatalog,
   buildFactionCatalog,
+  buildGrowthGroupCatalog,
   buildHouseCatalog,
   buildScenarioObjectives,
   buildSkillCatalog,

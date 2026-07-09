@@ -149,6 +149,8 @@ export type GameEvent =
   | { type: 'WarMachineBought'; townId: string; heroId: string; unitId: string }
   | { type: 'TownIncome'; playerId: string; resource: string; amount: number }
   | { type: 'TownGrowth'; townId: string; unitId: string; added: number }
+  /** Choix du destinataire d'une croissance partagée (doc 05 §3.1/§8). */
+  | { type: 'SharedGrowthChosen'; townId: string; groupId: string; unitId: string }
   | { type: 'TownCaptured'; townId: string; playerId: string }
   // ——— Contrats de chasse (doc 05 §3.3) — cible neutre hebdomadaire ———
   | { type: 'HuntContractAssigned'; playerId: string; targetObjectId: string }

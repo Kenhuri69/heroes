@@ -56,6 +56,7 @@ function stateWith(hasBoard: boolean): GameState {
       garrison: [],
       stock: {},
       spellPool: [],
+      sharedGrowthChoice: {},
     },
   ];
   return s;

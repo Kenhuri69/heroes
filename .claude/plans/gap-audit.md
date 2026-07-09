@@ -124,7 +124,7 @@
 - « Chance » ne fait que ×2 dégâts, bornée [0,3] (`combat/damage.ts:177,288-292`).
   Pas de demi-dégâts (malchance), pas de critique distinct.
 
-### C7 — Sorts mono-cible uniquement 🕳️ M
+### C7 — Sorts mono-cible uniquement 🕳️ M — ✅ FAIT (area: splash ; masse/chaîne = extension ultérieure)
 - Tous les `damage` visent un seul `targetStackId` (`hero/index.ts:60,208`). Pas
   de zone/masse/chaîne. Bloque C2 (ciblage) et H1 (sorts iconiques).
 

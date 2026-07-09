@@ -4,7 +4,8 @@ import { isPassable } from '../adventure/path';
 import { heroLuckOf, killsFromDamage, magicResistanceOf } from '../combat/damage';
 import { combatRules, collectCasualties, recordLoss } from '../combat/state-helpers';
 import { checkCombatEnd } from '../combat/turns';
-import type { CombatState } from '../combat/types';
+import { hexDistance } from '../combat/hex';
+import type { CombatState, CombatStack } from '../combat/types';
 import type { Command, CommandError } from '../core/commands';
 import type { GameEvent } from '../core/events';
 import { rollRange } from '../core/rng';
@@ -190,6 +191,43 @@ export function handleCastAdventureSpell(
   events.push({ type: 'AdventureSpellCast', heroId: hero.id, spellId: spell.id, pos: { ...hero.pos } });
 }
 
+/**
+ * Piles affectées par un sort (C7) : la cible seule, ou — pour un sort `splash`
+ * (Boule de feu…) — la cible + les piles du MÊME camp qui lui sont adjacentes sur
+ * la grille hex. Capturée AVANT toute mutation (une pile tuée est retirée ensuite).
+ */
+function spellTargets(combat: CombatState, area: 'splash' | undefined, center: CombatStack): CombatStack[] {
+  if (area !== 'splash') return [center];
+  return combat.stacks.filter(
+    (s) => s.count > 0 && s.side === center.side && (s.id === center.id || hexDistance(s.pos, center.pos) === 1),
+  );
+}
+
+/** Applique les dégâts d'un sort à UNE pile (kills, firstHp, bilan, mort) — retourne {amount, kills}. */
+function damageOneStack(
+  draft: Draft,
+  combat: CombatState,
+  target: CombatStack,
+  amount: number,
+  events: GameEvent[],
+): { amount: number; kills: number } {
+  const targetDef = draft.unitCatalog[target.unitId];
+  if (!targetDef) return { amount: 0, kills: 0 };
+  const pool = (target.count - 1) * targetDef.stats.hp + target.firstHp;
+  const kills = killsFromDamage(pool, targetDef.stats.hp, target.count, amount);
+  const remaining = Math.max(0, pool - amount);
+  const newCount = target.count - kills;
+  target.count = newCount;
+  target.firstHp = newCount > 0 ? remaining - (newCount - 1) * targetDef.stats.hp : 0;
+  recordLoss(combat, target.side, target.unitId, kills);
+  if (target.count <= 0) {
+    events.push({ type: 'StackDied', stackId: target.id });
+    const idx = combat.stacks.findIndex((s) => s.id === target.id);
+    if (idx !== -1) combat.stacks.splice(idx, 1);
+  }
+  return { amount, kills };
+}
+
 export function handleCastSpell(draft: Draft, cmd: CastSpellCmd, events: GameEvent[]): void {
   const combat = draft.combat;
   if (!combat) return; // exclu par validate
@@ -201,79 +239,71 @@ export function handleCastSpell(draft: Draft, cmd: CastSpellCmd, events: GameEve
   hero.mana -= effectiveManaCost(hero, draft.skillCatalog, spell);
   combat.heroCastThisRound = true;
   const power = effectivePower(hero, draft.artifactCatalog);
+  // C7 : liste des piles affectées (cible seule, ou cible + adjacentes en `splash`).
+  const targets = spellTargets(combat, spell.area, target);
 
   let amount = 0;
   let kills = 0;
 
   if (spell.kind === 'damage') {
-    const targetDef = draft.unitCatalog[target.unitId];
-    if (targetDef) {
-      const luck = heroLuckOf(draft, combat, combat.playerSide);
-      const rules = combatRules(draft);
-      const luckRoll = rollRange(draft.rng, 0, 99);
-      draft.rng = luckRoll.state;
-      const lucky = luckRoll.value < Math.round(rules.luckChancePerPoint * luck * 100);
-      // Résistance à la magie (doc 05 §4) : la forme humaine d'un `demonform`
-      // encaisse moins ; la forme démon (transformée) subit les dégâts pleins.
-      // D10 : la Marque amplifie aussi les dégâts de sort (comme la frappe physique).
-      amount = spellDamageAmount(
+    const luck = heroLuckOf(draft, combat, combat.playerSide);
+    const rules = combatRules(draft);
+    const luckRoll = rollRange(draft.rng, 0, 99);
+    draft.rng = luckRoll.state;
+    const lucky = luckRoll.value < Math.round(rules.luckChancePerPoint * luck * 100);
+    for (const t of targets) {
+      const def = draft.unitCatalog[t.unitId];
+      if (!def) continue;
+      // Résistance à la magie (doc 05 §4) + amplification par la Marque (D10),
+      // évaluées PAR pile affectée. Chance (luck) tirée une fois pour le sort.
+      const dmg = spellDamageAmount(
         spell,
         power,
         lucky,
-        magicResistanceOf(targetDef, target.transformed),
-        rules.markBonusPerStack * target.marks,
+        magicResistanceOf(def, t.transformed),
+        rules.markBonusPerStack * t.marks,
       );
-      const pool = (target.count - 1) * targetDef.stats.hp + target.firstHp;
-      kills = killsFromDamage(pool, targetDef.stats.hp, target.count, amount);
-      const remaining = Math.max(0, pool - amount);
-      const newCount = target.count - kills;
-      target.count = newCount;
-      target.firstHp = newCount > 0 ? remaining - (newCount - 1) * targetDef.stats.hp : 0;
-      // Remédiation R1 (E2) : les créatures tuées par un sort alimentent le
-      // bilan de pertes, comme une frappe — sinon XP, Nécromancie et bilan
-      // `CombatEnded` sous-évaluent les kills par magie.
-      recordLoss(combat, target.side, target.unitId, kills);
-      if (target.count <= 0) {
-        events.push({ type: 'StackDied', stackId: target.id });
-        const idx = combat.stacks.findIndex((s) => s.id === target.id);
-        if (idx !== -1) combat.stacks.splice(idx, 1);
-      }
+      const r = damageOneStack(draft, combat, t, dmg, events);
+      amount += r.amount;
+      kills += r.kills;
     }
   } else if (spell.kind === 'heal') {
-    const targetDef = draft.unitCatalog[target.unitId];
-    if (targetDef) {
-      amount = spellHealAmount(spell, power);
-      // Plafond de soin : `CombatStack` (types.ts figé) ne porte pas
-      // l'effectif initial de la pile — approximé par l'effectif courant +
-      // les pertes déjà enregistrées pour cette unité/ce camp dans le bilan
-      // de combat (`collectCasualties`). Choix documenté (décision plan #3).
+    for (const t of targets) {
+      const def = draft.unitCatalog[t.unitId];
+      if (!def) continue;
+      const heal = spellHealAmount(spell, power);
+      // Plafond de soin approximé par l'effectif courant + pertes déjà
+      // enregistrées (décision plan #3) — évalué par pile.
       const lostSoFar =
-        collectCasualties(combat).find((c) => c.side === target.side && c.unitId === target.unitId)
-          ?.lost ?? 0;
-      const maxCount = target.count + lostSoFar;
-      const currentPool = (target.count - 1) * targetDef.stats.hp + target.firstHp;
-      const maxPool = maxCount * targetDef.stats.hp;
-      const newPool = Math.min(maxPool, currentPool + amount);
-      const newCount = Math.min(maxCount, Math.max(1, Math.ceil(newPool / targetDef.stats.hp)));
-      target.count = newCount;
-      target.firstHp = newPool - (newCount - 1) * targetDef.stats.hp;
+        collectCasualties(combat).find((c) => c.side === t.side && c.unitId === t.unitId)?.lost ?? 0;
+      const maxCount = t.count + lostSoFar;
+      const currentPool = (t.count - 1) * def.stats.hp + t.firstHp;
+      const newPool = Math.min(maxCount * def.stats.hp, currentPool + heal);
+      const newCount = Math.min(maxCount, Math.max(1, Math.ceil(newPool / def.stats.hp)));
+      t.count = newCount;
+      t.firstHp = newPool - (newCount - 1) * def.stats.hp;
+      amount += heal;
     }
   } else if (spell.kind === 'applyMarks') {
-    // Sort de Marque (doc 05 §6, école Traque) : ajoute des charges à la cible,
-    // plafonné comme la capacité `mark`. `amount` = charges effectivement posées.
-    const before = target.marks;
-    target.marks = Math.min(combatRules(draft).marksMax, target.marks + (spell.marks ?? 0));
-    amount = target.marks - before;
-    if (amount > 0) events.push({ type: 'MarkApplied', targetId: target.id, marks: target.marks });
+    const marksMax = combatRules(draft).marksMax;
+    for (const t of targets) {
+      const before = t.marks;
+      t.marks = Math.min(marksMax, t.marks + (spell.marks ?? 0));
+      const posed = t.marks - before;
+      amount += posed;
+      if (posed > 0) events.push({ type: 'MarkApplied', targetId: t.id, marks: t.marks });
+    }
   } else {
-    // buff / debuff (doc 02 §1.4) : statut temporaire sur la pile ciblée.
-    target.statuses.push({
-      spellId: spell.id,
-      attackMod: spell.attackMod ?? 0,
-      defenseMod: spell.defenseMod ?? 0,
-      speedMod: spell.speedMod ?? 0,
-      roundsLeft: spellStatusDuration(power),
-    });
+    // buff / debuff (doc 02 §1.4) : statut temporaire sur chaque pile affectée.
+    for (const t of targets) {
+      t.statuses.push({
+        spellId: spell.id,
+        attackMod: spell.attackMod ?? 0,
+        defenseMod: spell.defenseMod ?? 0,
+        speedMod: spell.speedMod ?? 0,
+        roundsLeft: spellStatusDuration(power),
+      });
+    }
   }
 
   events.push({
@@ -325,18 +355,26 @@ export function estimateSpell(
   const hero = heroForPlayerSide(state, combat);
   const power = hero ? effectivePower(hero, state.artifactCatalog) : 0;
 
+  // C7 : la préviz agrège la zone d'effet (cible + adjacentes en `splash`).
+  const affected = spellTargets(combat, spell.area, target);
+
   if (spell.kind === 'damage') {
-    const targetDef = state.unitCatalog[target.unitId];
-    if (!targetDef) throw new Error(`estimateSpell: unité inconnue '${target.unitId}'`);
-    // D10 : la Marque amplifie les dégâts de sort — la préviz reflète le même bonus.
-    const markBonus = (state.config?.combat.markBonusPerStack ?? 0) * target.marks;
-    const amount = spellDamageAmount(spell, power, false, magicResistanceOf(targetDef, target.transformed), markBonus);
-    const pool = (target.count - 1) * targetDef.stats.hp + target.firstHp;
-    const kills = killsFromDamage(pool, targetDef.stats.hp, target.count, amount);
+    let amount = 0;
+    let kills = 0;
+    for (const t of affected) {
+      const def = state.unitCatalog[t.unitId];
+      if (!def) continue;
+      // D10 : la Marque amplifie les dégâts de sort — la préviz reflète le même bonus.
+      const markBonus = (state.config?.combat.markBonusPerStack ?? 0) * t.marks;
+      const dmg = spellDamageAmount(spell, power, false, magicResistanceOf(def, t.transformed), markBonus);
+      const pool = (t.count - 1) * def.stats.hp + t.firstHp;
+      amount += dmg;
+      kills += killsFromDamage(pool, def.stats.hp, t.count, dmg);
+    }
     return { amount, kills, kind: 'damage' };
   }
   if (spell.kind === 'heal') {
-    return { amount: spellHealAmount(spell, power), kills: 0, kind: 'heal' };
+    return { amount: spellHealAmount(spell, power) * affected.length, kills: 0, kind: 'heal' };
   }
   return { amount: 0, kills: 0, kind: spell.kind };
 }

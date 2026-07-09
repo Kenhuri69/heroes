@@ -141,3 +141,10 @@
   opacity: 0.45;
   background: var(--ink-700);
 }
+
+/* Marqueur de sort à zone d'effet (C7) — Boule de feu et consorts. */
+.spell-area {
+  font-size: 0.75rem;
+  font-variant: small-caps;
+  color: var(--gold);
+}

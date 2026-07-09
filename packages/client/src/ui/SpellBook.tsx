@@ -195,7 +195,15 @@ function SpellList({
                             disabled={!castable}
                             onClick={() => onSelect(spellDef.id)}
                           >
-                            <span class="spell-name">{resolveSpellName(spellDef.id)}</span>
+                            <span class="spell-name">
+                              {resolveSpellName(spellDef.id)}
+                              {spellDef.area === 'splash' && (
+                                <span class="spell-area" data-testid={`spell-area-${spellDef.id}`}>
+                                  {' '}
+                                  {t('spellbook.area')}
+                                </span>
+                              )}
+                            </span>
                             <span class="spell-cost">
                               {t('spellbook.manaCost', { cost })}
                             </span>

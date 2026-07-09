@@ -86,7 +86,7 @@
 
 ## P2 — Combat (tes points n°3 et n°4)
 
-### C1 — Héros absent du champ de bataille, sans action physique 🕳️ L
+### C1 — Héros absent du champ de bataille, sans action physique 🕳️ L — ✅ FAIT (HoMM3 : attaque héroïque + présence ; sprite canvas = polish différé)
 - **Symptôme** : le héros n'est pas dessiné sur la grille ; sa seule action est
   1 sort/round via un bouton DOM. Pas d'attaque héroïque, pas de « défendre ».
 - **Cause** : ordre de jeu itère uniquement `combat.stacks` (`combat/turns.ts:43-98`) ;

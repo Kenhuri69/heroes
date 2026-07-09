@@ -32,7 +32,8 @@
       "markBonusPerStack": 0.08,
       "marksMax": 3,
       "obstaclesMin": 2,
-      "obstaclesMax": 5
+      "obstaclesMax": 5,
+      "heroAttack": { "base": 8, "perPower": 6, "perAttack": 2 }
     },
     "market": {
       "sellRate": 25,

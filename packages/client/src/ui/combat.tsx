@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from 'preact/compat';
 import { useEffect, useState } from 'preact/hooks';
 import {
+  heroAttackDamage,
   initiativeSpeed,
   roundActionOrder,
   type CombatStack,
@@ -35,8 +36,10 @@ export function CombatUi() {
   const hero = useApp((s) => s.game.heroes.find((h) => h.playerId === humanId(s.game)));
   const catalog = useApp((s) => s.game.unitCatalog);
   const autoActive = useApp((s) => s.combatAutoActive);
+  const config = useApp((s) => s.game.config);
   const preview = useSyncExternalStore(combatPreview.subscribe, combatPreview.get);
   const [spellBookOpen, setSpellBookOpen] = useState(false);
+  const [heroAttackOpen, setHeroAttackOpen] = useState(false);
   const [sheetStackId, setSheetStackId] = useState<string | null>(null);
 
   // Boucle d'auto-combat round par round (lot M4, doc 08 §2.4) : tant que la
@@ -86,6 +89,14 @@ export function CombatUi() {
   const isPlayerTurn = !combat.finished && active?.side === combat.playerSide;
   const canCastSpell =
     isPlayerTurn && !autoActive && !combat.heroCastThisRound && !!hero && hero.spells.length > 0;
+  // C1 : attaque du héros disponible si la feature est activée (config), un héros
+  // est lié au camp joueur et ne l'a pas déjà utilisée ce combat.
+  const canHeroStrike =
+    isPlayerTurn &&
+    !autoActive &&
+    !!hero &&
+    !!config?.combat.heroAttack &&
+    !combat.heroAttackUsed.includes(combat.playerSide);
 
   // Ordre de passage projeté (lot M1, doc 08 §2.4) : remplace les deux rangées
   // par camp triées par slot — l'actif est la 1ʳᵉ entrée par construction.
@@ -114,6 +125,15 @@ export function CombatUi() {
         <div class="combat-round" data-testid="combat-round">
           {t('combat.round', { round: combat.round })}
         </div>
+        {hero && (
+          <div class="combat-hero" data-testid="combat-hero" title={t('combat.heroPresent')}>
+            <span class="combat-hero-badge" aria-hidden="true">
+              ⚔
+            </span>
+            <span class="combat-hero-name">{t('hero.genericName')}</span>
+            <span class="combat-hero-mana">{t('hero.mana', { mana: hero.mana, manaMax: hero.manaMax })}</span>
+          </div>
+        )}
         <ol class="combat-order" data-testid="combat-order" aria-label={t('combat.order.label')}>
           {order.current.map((s) => (
             <li key={s.id}>
@@ -158,6 +178,13 @@ export function CombatUi() {
           {t('combat.spell')}
         </button>
         <button
+          data-testid="combat-hero-attack"
+          disabled={!canHeroStrike}
+          onClick={() => setHeroAttackOpen(true)}
+        >
+          {t('combat.heroAttack')}
+        </button>
+        <button
           data-testid="combat-auto"
           class={autoActive ? 'combat-auto-active' : ''}
           disabled={!isPlayerTurn && !autoActive}
@@ -180,9 +207,67 @@ export function CombatUi() {
       </div>
 
       {spellBookOpen && hero && <SpellBook hero={hero} onClose={() => setSpellBookOpen(false)} />}
+      {heroAttackOpen && <HeroAttackModal combat={combat} onClose={() => setHeroAttackOpen(false)} />}
       {sheetStack && (
         <StackSheet stack={sheetStack} combat={combat} catalog={catalog} onClose={() => setSheetStackId(null)} />
       )}
+    </div>
+  );
+}
+
+/**
+ * Modale d'attaque du héros (C1, doc 08 §2.4) : dégâts prévisualisés (déterministes,
+ * indépendants de la cible) + liste des piles ennemies vivantes ; le choix d'une
+ * cible confirme et dispatch `HeroAttack`. La feature est gatée par `combat-hero-attack`.
+ */
+function HeroAttackModal({ combat, onClose }: { combat: CombatState; onClose: () => void }) {
+  useApp((s) => s.locale); // réactivité i18n
+  const game = appStore.getState().game;
+  const damage = heroAttackDamage(game, combat, combat.playerSide);
+  const targets = combat.stacks.filter((s) => s.side !== combat.playerSide && s.count > 0);
+
+  const strike = (targetStackId: string): void => {
+    dispatch({ type: 'HeroAttack', targetStackId })
+      .then(() => onClose())
+      .catch((err: unknown) => pushToast(commandErrorMessage(err)));
+  };
+
+  return (
+    <div class="modal-backdrop" onClick={onClose}>
+      <div
+        class="modal spellbook"
+        role="dialog"
+        aria-modal="true"
+        aria-label={t('combat.heroAttack')}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <header class="modal-header">
+          <h2>{t('combat.heroAttack')}</h2>
+          <button class="modal-close" aria-label={t('options.close')} onClick={onClose}>
+            ×
+          </button>
+        </header>
+        <p class="spell-preview" data-testid="hero-attack-preview">
+          {t('combat.heroAttackPreview', { amount: damage })}
+        </p>
+        {targets.length === 0 ? (
+          <p class="spellbook-empty">{t('spellbook.noTargets')}</p>
+        ) : (
+          <ul class="spell-target-list">
+            {targets.map((stack) => (
+              <li key={stack.id}>
+                <button
+                  class="spell-target"
+                  data-testid={`hero-attack-target-${stack.id}`}
+                  onClick={() => strike(stack.id)}
+                >
+                  {resolveUnitName(stack.unitId)} ×{stack.count}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   );
 }

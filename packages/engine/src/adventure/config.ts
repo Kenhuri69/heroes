@@ -36,6 +36,12 @@ export interface CombatRulesConfig {
   /** Obstacles générés au RNG du combat : 2–5 hexes (doc 02 §5.1). */
   obstaclesMin: number;
   obstaclesMax: number;
+  /**
+   * Attaque du héros (C1) : dégâts directs sur une pile, 1×/combat =
+   * `base + perPower×Pouvoir + perAttack×Attaque`. Optionnel : absent ⇒ la
+   * commande `HeroAttack` est refusée (feature désactivée, fixtures/golden épargnés).
+   */
+  heroAttack?: { base: number; perPower: number; perAttack: number } | undefined;
 }
 
 export interface AdventureConfig {

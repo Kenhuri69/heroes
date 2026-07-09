@@ -4,6 +4,7 @@ import { createFog, revealAround } from '../adventure/fog';
 import { inBounds, isAdjacent, samePos, type GridPos } from '../adventure/map';
 import { advanceHeroAlongPath } from '../adventure/movement';
 import { revealOwnedStructures } from '../adventure/vision';
+import { handleHeroAttack, validateHeroAttack } from '../combat/hero-attack';
 import { isPassable, stepCost } from '../adventure/path';
 import {
   handleAutoCombat,
@@ -109,6 +110,7 @@ const GAME_OVER_BLOCKED = new Set<Command['type']>([
   'CaptureTown',
   'TradeResources',
   'CastSpell',
+  'HeroAttack',
   'CastAdventureSpell',
   'ChooseSkill',
   'ResolveTreasure',
@@ -229,6 +231,10 @@ export function validate(state: GameState, cmd: Command): CommandError | null {
     case 'CastSpell': {
       if (!state.combat) return { code: 'noCombat', message: 'aucun combat en cours' };
       return validateCastSpell(state, cmd);
+    }
+    case 'HeroAttack': {
+      if (!state.combat) return { code: 'noCombat', message: 'aucun combat en cours' };
+      return validateHeroAttack(state, cmd);
     }
     case 'CastAdventureSpell': {
       if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
@@ -526,6 +532,10 @@ const handlers: Handlers = {
 
   CastSpell(draft, cmd, events) {
     handleCastSpell(draft, cmd, events);
+  },
+
+  HeroAttack(draft, cmd, events) {
+    handleHeroAttack(draft, cmd, events);
   },
 
   CastAdventureSpell(draft, cmd, events) {

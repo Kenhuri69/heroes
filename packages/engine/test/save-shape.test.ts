@@ -76,7 +76,7 @@ void _stackExact;
 
 describe('B8 — forme de sauvegarde verrouillée', () => {
   it('CURRENT_SAVE_VERSION correspond à la forme documentée (doc 07 §4)', () => {
-    expect(CURRENT_SAVE_VERSION).toBe(11);
+    expect(CURRENT_SAVE_VERSION).toBe(12);
   });
 
   it('clés top-level de GameState (createEmptyState) inchangées', () => {

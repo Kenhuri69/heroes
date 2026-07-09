@@ -145,9 +145,10 @@ export interface Calendar {
  * v10 : `HeroState.houseId` + `HeroState.houseEffects` — allégeance de Maison
  * (signature Vox Arcana `houseAllegiance`, doc 16 §3.1).
  * v11 : `GameState.houseCatalog` — catalogue des Maisons embarqué, lu par
- * l'effet de bâtiment `houseChoice` (« Le Choixpeau », doc 16 §3.1/§5).)
+ * l'effet de bâtiment `houseChoice` (« Le Choixpeau », doc 16 §3.1/§5).
+ * v12 : `CombatState.heroAttackUsed` — attaque du héros 1×/combat (C1), doc 02 §5.2.)
  */
-export const CURRENT_SAVE_VERSION = 11;
+export const CURRENT_SAVE_VERSION = 12;
 
 export interface GameState {
   saveVersion: number;

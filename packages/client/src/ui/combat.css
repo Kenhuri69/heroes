@@ -29,6 +29,28 @@
   white-space: nowrap;
 }
 
+/* Présence du héros au combat (C1) : chip côté joueur — le héros mène l'armée
+   (hors-grille façon HoMM3) et peut frapper 1×/combat via le bouton dédié. */
+.combat-hero {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border: 1px solid var(--gold);
+  border-radius: 999px;
+  background: var(--ink-700);
+  color: var(--parchment);
+  font: 600 0.8rem var(--font-ui);
+  white-space: nowrap;
+}
+.combat-hero-badge {
+  color: var(--gold);
+}
+.combat-hero-mana {
+  opacity: 0.8;
+}
+
 /* File d'ordre de passage (lot M1, doc 08 §2.4) : une rangée dans l'ordre
    d'action, défilement horizontal quand elle déborde (mobile). */
 .combat-order {

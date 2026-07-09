@@ -1558,6 +1558,59 @@ test('sort : le héros lance un sort en combat et réduit une pile ennemie', asy
   expect(errors).toEqual([]);
 });
 
+test('attaque du héros : frappe directe sur une pile ennemie, 1×/combat (C1)', async ({ page }) => {
+  const errors = await openGame(page);
+
+  // Même interception que le test de sort : le héros est lié au camp attaquant.
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({
+      type: 'MoveHero',
+      heroId: 'hero-player-1',
+      path: [
+        { x: 4, y: 2 },
+        { x: 5, y: 2 },
+        { x: 6, y: 2 },
+        { x: 7, y: 2 },
+        { x: 8, y: 2 },
+        { x: 9, y: 3 },
+      ],
+    }),
+  );
+  await passPreBattle(page);
+  await expect(page.getByTestId('combat-round')).toBeVisible();
+
+  const target = await page.evaluate(() => {
+    const g = window.__HEROES_TEST__!.getState();
+    const t = g.combat!.stacks.find((s) => s.side === 'defender')!;
+    return { id: t.id, count: t.count };
+  });
+
+  // Bouton [Attaque du héros] actif → modale → prévisualisation → cible.
+  await expect(page.getByTestId('combat-hero-attack')).toBeEnabled();
+  await page.getByTestId('combat-hero-attack').click();
+  await expect(page.getByTestId('hero-attack-preview')).toContainText(/\d/);
+  await page.getByTestId(`hero-attack-target-${target.id}`).click();
+
+  const after = await page.evaluate((id) => {
+    const g = window.__HEROES_TEST__!.getState();
+    const c = g.combat;
+    return {
+      remaining: c?.stacks.find((s) => s.id === id)?.count ?? 0,
+      used: c?.heroAttackUsed ?? [],
+      active: !!c && !c.finished,
+    };
+  }, target.id);
+  // La frappe a porté : pile réduite (0 si l'attaque a résolu le combat).
+  expect(after.remaining).toBeLessThan(target.count);
+  // Tant que le combat continue : camp marqué (1×/combat) + bouton désactivé.
+  if (after.active) {
+    expect(after.used).toContain('attacker');
+    await expect(page.getByTestId('combat-hero-attack')).toBeDisabled();
+  }
+
+  expect(errors).toEqual([]);
+});
+
 test('compétence : aucune modale de choix sans montée de niveau (gating)', async ({ page }) => {
   const errors = await openGame(page);
 

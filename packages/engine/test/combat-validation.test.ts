@@ -137,6 +137,7 @@ function manualState(stacks: CombatStack[], activeStackId: string | null): GameS
     attackerHeroId: null,
     defenderHeroId: null,
     heroCastThisRound: false,
+    heroAttackUsed: [],
     winner: null,
   };
   return { ...createEmptyState(), started: true, rng: seedRng(1), config: testConfig(), unitCatalog: catalog, combat };

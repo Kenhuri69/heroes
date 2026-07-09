@@ -439,6 +439,14 @@ export const gameConfigSchema = z.object({
       marksMax: z.number().int().positive(),
       obstaclesMin: z.number().int().nonnegative(),
       obstaclesMax: z.number().int().nonnegative(),
+      /** Attaque du héros (C1) — optionnel : absent ⇒ feature désactivée. */
+      heroAttack: z
+        .object({
+          base: z.number().nonnegative(),
+          perPower: z.number().nonnegative(),
+          perAttack: z.number().nonnegative(),
+        })
+        .optional(),
     }).refine((c) => c.obstaclesMin <= c.obstaclesMax, 'obstaclesMin ≤ obstaclesMax'),
     /** Marché (doc 02 §4.1, lot UX U6a) : taux d'échange ressource ↔ or au bâtiment marché. */
     market: z

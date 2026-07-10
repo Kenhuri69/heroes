@@ -233,3 +233,9 @@ moteur touché, smoke, budget). Les items 🕳️ « feature » impliquant du de
   humain/non-humain. Vérif : typecheck 5/5, lint, 348 tests moteur + 83 contenu,
   content:check, build (254 Ko gzip), smoke 104 passed. Golden intact (fixtures
   sans `factionId`). G2 (guilde des mages) : demande un cadrage design → en attente.
+- **2026-07-10** — **Backlog remplacé** : re-audit complet docs 01→16 vs code
+  (5 audits parallèles). Les items ⬜ restants (C2, C4, C5, C6, M1–M5, H1,
+  H3–H5, T1–T4) sont repris, re-vérifiés et re-spécifiés — avec les manques
+  des autres domaines (factions, en ligne, narratif, UX, assets) — dans
+  **`.claude/plans/game-feature-gaps.md`**, qui devient le backlog de
+  référence. Ce fichier est conservé pour l'historique.

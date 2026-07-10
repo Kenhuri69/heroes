@@ -6,5 +6,10 @@
   "stats": { "hp": 160, "attack": 20, "defense": 20, "damage": [30, 50], "speed": 10 },
   "growthPerWeek": 1,
   "cost": { "gold": 3000, "sulfur": 2, "gems": 2 },
-  "abilities": [{ "id": "undead" }, { "id": "flying" }, { "id": "aura", "params": { "moraleMod": -1 } }]
+  "abilities": [
+    { "id": "undead" },
+    { "id": "flying" },
+    { "id": "aura", "params": { "moraleMod": -1 } },
+    { "id": "breathAttack", "params": { "pct": 0.6 } }
+  ]
 }

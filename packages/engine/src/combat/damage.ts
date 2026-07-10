@@ -4,7 +4,7 @@ import { heroArtifactBonus } from '../hero/artifacts';
 import { heroArmorPct, heroLuck, heroMeleePct, heroRangedPct } from '../hero/skills';
 import type { SpellStatus } from '../hero/types';
 import { canShootTarget } from './actions';
-import { hexDistance } from './hex';
+import { hexBehind, hexDistance, inCombatBounds, sameHex } from './hex';
 import { clamp, collectCasualties, hasAbility, isShooterMeleePenalized, recordLoss } from './state-helpers';
 import type { CombatSideId, CombatStack, CombatUnitDef, CombatState } from './types';
 import type { CombatRulesConfig } from '../adventure/config';
@@ -150,6 +150,14 @@ export function areaAttackParams(def: CombatUnitDef): { pct: number; sparesUndea
   const pct = Number(ability.params?.['pct'] ?? 0);
   if (pct <= 0) return null;
   return { pct, sparesUndead: ability.params?.['sparesUndead'] === true };
+}
+
+/** Paramètres de `breathAttack` (Dragon d'os doc 04 §3, A3d) d'une unité, ou `null`. */
+export function breathAttackParams(def: CombatUnitDef): { pct: number } | null {
+  const ability = def.abilities.find((a) => a.id === 'breathAttack');
+  if (!ability) return null;
+  const pct = Number(ability.params?.['pct'] ?? 0);
+  return pct > 0 ? { pct } : null;
 }
 
 /**
@@ -319,6 +327,46 @@ export function killsFromDamage(pool: number, hp: number, count: number, damage:
   const remaining = Math.max(0, pool - damage);
   const newCount = remaining <= 0 ? 0 : Math.min(count, Math.ceil(remaining / hp));
   return count - newCount;
+}
+
+/**
+ * Applique des dégâts « de zone » à UNE pile secondaire (areaAttack/breathAttack,
+ * A3c/A3d) : pertes/PV, bilan, event `StackAttacked`, mort éventuelle. Aucune
+ * riposte ni chance (dégâts dérivés de la frappe primaire).
+ */
+function applySplashDamage(
+  combat: CombatState,
+  striker: CombatStack,
+  t: CombatStack,
+  tDef: CombatUnitDef,
+  amount: number,
+  ranged: boolean,
+  events: GameEvent[],
+): void {
+  const pool = (t.count - 1) * tDef.stats.hp + t.firstHp;
+  const kills = killsFromDamage(pool, tDef.stats.hp, t.count, amount);
+  const remaining = Math.max(0, pool - amount);
+  const newCount = t.count - kills;
+  t.count = newCount;
+  t.firstHp = newCount > 0 ? remaining - (newCount - 1) * tDef.stats.hp : 0;
+  recordLoss(combat, t.side, t.unitId, kills);
+  events.push({
+    type: 'StackAttacked',
+    attackerId: striker.id,
+    targetId: t.id,
+    damage: amount,
+    kills,
+    lucky: false,
+    unlucky: false,
+    dodged: false,
+    retaliation: false,
+    ranged,
+  });
+  if (t.count <= 0) {
+    events.push({ type: 'StackDied', stackId: t.id });
+    const idx = combat.stacks.findIndex((x) => x.id === t.id);
+    if (idx !== -1) combat.stacks.splice(idx, 1);
+  }
 }
 
 interface StrikeParams {
@@ -505,31 +553,25 @@ export function performStrike(
       });
       for (const t of splashTargets) {
         const tDef = catalog[t.unitId];
-        if (!tDef) continue;
-        const pool = (t.count - 1) * tDef.stats.hp + t.firstHp;
-        const sKills = killsFromDamage(pool, tDef.stats.hp, t.count, splash);
-        const remaining = Math.max(0, pool - splash);
-        const newCount = t.count - sKills;
-        t.count = newCount;
-        t.firstHp = newCount > 0 ? remaining - (newCount - 1) * tDef.stats.hp : 0;
-        recordLoss(combat, t.side, t.unitId, sKills);
-        events.push({
-          type: 'StackAttacked',
-          attackerId: striker.id,
-          targetId: t.id,
-          damage: splash,
-          kills: sKills,
-          lucky: false,
-          unlucky: false,
-          dodged: false,
-          retaliation: false,
-          ranged,
-        });
-        if (t.count <= 0) {
-          events.push({ type: 'StackDied', stackId: t.id });
-          const idx = combat.stacks.findIndex((x) => x.id === t.id);
-          if (idx !== -1) combat.stacks.splice(idx, 1);
-        }
+        if (tDef) applySplashDamage(combat, striker, t, tDef, splash, ranged, events);
+      }
+    }
+  }
+
+  // `breathAttack` (Dragon d'os, doc 04 §3, A3d) : une frappe VOLONTAIRE de mêlée
+  // (striker adjacent à la cible) touche AUSSI la pile ennemie située DERRIÈRE la
+  // cible (prolongement du souffle), d'une fraction des dégâts. Sans RNG/riposte.
+  const breath = retaliation || dodged ? null : breathAttackParams(strikerDef);
+  if (combat && breath && damage > 0 && hexDistance(striker.pos, victim.pos) === 1) {
+    const behind = hexBehind(striker.pos, victim.pos);
+    if (inCombatBounds(behind)) {
+      const t = combat.stacks.find(
+        (s) => s.side !== striker.side && s.count > 0 && s.id !== victim.id && sameHex(s.pos, behind),
+      );
+      const tDef = t ? draft.unitCatalog[t.unitId] : undefined;
+      if (t && tDef) {
+        const splash = Math.round(damage * breath.pct);
+        if (splash > 0) applySplashDamage(combat, striker, t, tDef, splash, ranged, events);
       }
     }
   }

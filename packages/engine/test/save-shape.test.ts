@@ -42,6 +42,7 @@ type HeroKey =
   | 'spells'
   | 'artifacts'
   | 'pendingSkillChoices'
+  | 'pendingAttributeChoices'
   | 'name'
   | 'factionId'
   | 'houseId'
@@ -79,7 +80,7 @@ void _stackExact;
 
 describe('B8 — forme de sauvegarde verrouillée', () => {
   it('CURRENT_SAVE_VERSION correspond à la forme documentée (doc 07 §4)', () => {
-    expect(CURRENT_SAVE_VERSION).toBe(16);
+    expect(CURRENT_SAVE_VERSION).toBe(17);
   });
 
   it('clés top-level de GameState (createEmptyState) inchangées', () => {

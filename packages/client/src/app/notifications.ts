@@ -113,6 +113,10 @@ export function notify(event: AppEvent, game: GameState): string | null {
         : null;
     case 'HeroLevelUp':
       return ownHero(event.heroId) ? t('toast.heroLevelUp', { level: event.level }) : null;
+    case 'HeroAttributeChosen':
+      return ownHero(event.heroId)
+        ? t('toast.heroAttributeChosen', { attribute: t(`attribute.${event.attribute}`) })
+        : null;
     case 'SpellCast':
       return ownHero(event.heroId)
         ? t('toast.spellCast', { hero: t('hero.genericName'), spell: resolveSpellName(event.spellId) })

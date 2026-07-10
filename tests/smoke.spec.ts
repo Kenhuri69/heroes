@@ -20,10 +20,10 @@ import { expect, test, type Page } from '@playwright/test';
 // Non couvert ici (dit explicitement, guideline §7) : le tap-tap DANS le
 // combat (sélection d'hex/cible au canvas) — couvert indirectement par
 // AutoCombat ; à outiller quand la scène exposera ses coordonnées. La montée
-// de niveau → choix de compétence (modale + ChooseSkill) n'est PAS jouable en
-// smoke (niveau 2 ≈ 3732 XP, un gardien ≈ 20 XP) : le flux moteur (level-up →
-// pendingSkillChoices → ChooseSkill) est couvert par `hero-level-up.test.ts` ;
-// seul le gating d'affichage de la modale est vérifié ici.
+// de niveau → choix de compétence/attribut (modales + ChooseSkill/ChooseAttribute)
+// n'est PAS jouable en smoke (niveau 2 ≈ 3732 XP, un gardien ≈ 20 XP) : le flux
+// moteur (level-up → pendingSkillChoices/pendingAttributeChoices → Choose*) est
+// couvert par `hero-level-up.test.ts` ; seul le gating d'affichage est vérifié ici.
 
 function collectErrors(page: Page): string[] {
   const errors: string[] = [];
@@ -1765,6 +1765,11 @@ test('compétence : aucune modale de choix sans montée de niveau (gating)', asy
   expect(hero?.level).toBe(1);
   expect(hero?.pendingSkillChoices).toHaveLength(0);
   await expect(page.getByTestId('skill-choice')).toHaveCount(0);
+  // Idem pour le choix d'attribut (H-LEVELCHOICE) : même gating, absent au niveau 1.
+  // Le flux complet (montée → file → ChooseAttribute) est couvert en unitaire
+  // (`hero-level-up.test.ts`) — non déclenchable en smoke (XP de niveau trop élevée).
+  expect(hero?.pendingAttributeChoices).toHaveLength(0);
+  await expect(page.getByTestId('attribute-choice')).toHaveCount(0);
 
   expect(errors).toEqual([]);
 });

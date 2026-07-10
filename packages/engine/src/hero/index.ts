@@ -31,6 +31,7 @@ import {
 type Draft = GameState;
 type CastSpellCmd = Extract<Command, { type: 'CastSpell' }>;
 type ChooseSkillCmd = Extract<Command, { type: 'ChooseSkill' }>;
+type ChooseAttributeCmd = Extract<Command, { type: 'ChooseAttribute' }>;
 
 /** Héros lié au camp joueur (`combat.playerSide`) — seul camp habilité à lancer un sort (décision plan #2). */
 function heroForPlayerSide(state: GameState, combat: CombatState) {
@@ -78,6 +79,17 @@ export function validateChooseSkill(state: GameState, cmd: ChooseSkillCmd): Comm
     return { code: 'noPendingChoice', message: 'aucune proposition de compétence en attente' };
   if (!hero.pendingSkillChoices.includes(cmd.skillId))
     return { code: 'unknownSkill', message: `proposition inconnue '${cmd.skillId}'` };
+  return null;
+}
+
+/** H-LEVELCHOICE (doc 02 §1.2) : le joueur choisit un attribut parmi la 1ʳᵉ paire en attente. */
+export function validateChooseAttribute(state: GameState, cmd: ChooseAttributeCmd): CommandError | null {
+  const hero = state.heroes.find((h) => h.id === cmd.heroId);
+  if (!hero) return { code: 'unknownHero', message: `héros inconnu '${cmd.heroId}'` };
+  const pending = hero.pendingAttributeChoices[0];
+  if (!pending) return { code: 'noPendingChoice', message: 'aucune proposition d’attribut en attente' };
+  if (!pending.includes(cmd.attribute))
+    return { code: 'invalidAttribute', message: `proposition inconnue '${cmd.attribute}'` };
   return null;
 }
 
@@ -329,6 +341,14 @@ export function handleChooseSkill(draft: Draft, cmd: ChooseSkillCmd, events: Gam
   hero.skills[cmd.skillId] = rank;
   hero.pendingSkillChoices = [];
   events.push({ type: 'SkillLearned', heroId: hero.id, skillId: cmd.skillId, rank });
+}
+
+export function handleChooseAttribute(draft: Draft, cmd: ChooseAttributeCmd, events: GameEvent[]): void {
+  const hero = draft.heroes.find((h) => h.id === cmd.heroId);
+  if (!hero) return; // exclu par validate
+  hero.attributes[cmd.attribute] += 1;
+  hero.pendingAttributeChoices.shift(); // défile (H-LEVELCHOICE : file, pas écrasement)
+  events.push({ type: 'HeroAttributeChosen', heroId: hero.id, level: hero.level, attribute: cmd.attribute });
 }
 
 /**

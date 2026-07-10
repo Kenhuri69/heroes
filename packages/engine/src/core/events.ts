@@ -150,6 +150,18 @@ export type GameEvent =
       type: 'HeroLevelUp';
       heroId: string;
       level: number;
+      /**
+       * Attribut gagné — présent uniquement pour un héros IA (tirage auto, doc 02
+       * §1.2). Absent pour un héros humain : le gain est différé au choix du joueur
+       * (`HeroAttributeChosen`, H-LEVELCHOICE).
+       */
+      attribute?: 'attack' | 'defense' | 'power' | 'knowledge';
+    }
+  | {
+      /** Attribut choisi à la montée par un héros humain (H-LEVELCHOICE, doc 02 §1.2). */
+      type: 'HeroAttributeChosen';
+      heroId: string;
+      level: number;
       attribute: 'attack' | 'defense' | 'power' | 'knowledge';
     }
   // ——— Villes (doc 02 §4) — surface figée en cadrage 3.1 ———

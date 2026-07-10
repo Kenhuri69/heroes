@@ -278,12 +278,17 @@ Source design : doc 02 §1 (héros), docs de faction §5/§6/§7 (héros nommés
   spéciaux déclaratifs (immunités, +sorts…), sets à seuils ; UI tap-tap
   (touch-first, pas de drag obligatoire). Save bump probable.
 
-- **H-LEVELCHOICE — Choix d'attribut à la montée de niveau** 🎨 S ⬜
-  Doc : doc 02 §1.2. Code : `rollAttribute` auto au RNG pondéré
-  (`packages/engine/src/adventure/experience.ts:29-42`) ; montées en chaîne
-  écrasent les propositions (`experience.ts:72`). Spec : proposition de 2
-  attributs (comme `ChooseSkill`) OU maintien du tirage (décision design) ;
-  file de propositions au lieu d'écrasement.
+- **H-LEVELCHOICE — Choix d'attribut à la montée de niveau** 🎨 S ✅
+  > **Livré** : le joueur **humain** choisit +1 attribut parmi 2 propositions à
+  > chaque montée (`HeroState.pendingAttributeChoices` = **file**, pas écrasement ;
+  > save v17), via la commande `ChooseAttribute` + modale `AttributeChoice`
+  > (miroir de `SkillChoice`). L'**IA** garde le tirage auto pondéré (zéro
+  > régression de puissance). `HeroLevelUp.attribute` devient optionnel (présent
+  > côté IA) ; nouvel événement `HeroAttributeChosen`. Couvert en unitaire
+  > (`hero-level-up.test.ts` : file humaine, auto IA, ChooseAttribute + rejets) ;
+  > golden re-fixé (879c3291, forme seule). Flux modal non déclenchable en smoke
+  > (XP de niveau trop élevée) — gating d'absence vérifié.
+  Doc : doc 02 §1.2. Code (avant) : `rollAttribute` auto au RNG pondéré.
 
 ### 2.5 Carte d'aventure (M-*)
 

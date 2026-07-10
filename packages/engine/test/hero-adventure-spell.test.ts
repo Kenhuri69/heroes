@@ -53,6 +53,7 @@ function hero(over: Partial<HeroState> = {}): HeroState {
     spells: ['ville-portail'],
     artifacts: Array.from({ length: 10 }, () => null),
     pendingSkillChoices: [],
+    pendingAttributeChoices: [],
     factionId: '',
     houseId: '',
     houseEffects: [],

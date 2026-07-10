@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { apply } from '../src/core/engine';
 import { grantXp } from '../src/adventure/experience';
-import { createEmptyState, type GameState, type HeroState } from '../src/core/state';
+import { createEmptyState, emptyResources, type GameState, type HeroState } from '../src/core/state';
 import { seedRng } from '../src/core/rng';
 import type { GameEvent } from '../src/core/events';
 import type { HeroProgressionConfig } from '../src/adventure/config';
@@ -41,6 +41,7 @@ function baseHero(over: Partial<HeroState> = {}): HeroState {
     spells: [],
     artifacts: Array.from({ length: 10 }, () => null),
     pendingSkillChoices: [],
+    pendingAttributeChoices: [],
     factionId: '',
     houseId: '',
     houseEffects: [],
@@ -172,6 +173,83 @@ describe('ChooseSkill', () => {
     const state = startedState(baseHero({ pendingSkillChoices: ['a'] }));
     expect(() => apply(state, { type: 'ChooseSkill', heroId: 'ghost', skillId: 'a' })).toThrowError(
       /unknownHero/,
+    );
+  });
+});
+
+describe('grantXp → choix d’attribut (H-LEVELCHOICE)', () => {
+  function humanPlayer(id: string): GameState['players'][number] {
+    return {
+      id,
+      resources: emptyResources(),
+      factionResources: {},
+      explored: [],
+      controller: 'human',
+      eliminated: false,
+      townlessDays: 0,
+      huntContract: null,
+      team: 0,
+    };
+  }
+
+  it('héros HUMAIN : la montée empile une paire de propositions, n’applique PAS l’attribut', () => {
+    const state = stateWithHero(baseHero({ playerId: 'p1', xp: 15 }), {});
+    state.players = [humanPlayer('p1')];
+    const events: GameEvent[] = [];
+    grantXp(state, events, 'hero-1', 10); // xp 15→25, franchit le niveau 2 (courbe base 10)
+    const hero = state.heroes[0]!;
+    expect(hero.level).toBe(2);
+    expect(hero.pendingAttributeChoices).toHaveLength(1);
+    expect(hero.pendingAttributeChoices[0]).toHaveLength(2);
+    expect(hero.pendingAttributeChoices[0]![0]).not.toBe(hero.pendingAttributeChoices[0]![1]); // distincts
+    expect(hero.attributes).toEqual({ attack: 0, defense: 0, power: 0, knowledge: 0 }); // rien appliqué
+    // HeroLevelUp sans attribut (le gain est différé au choix).
+    const lvl = events.find((e) => e.type === 'HeroLevelUp');
+    expect(lvl && 'attribute' in lvl && lvl.attribute).toBeFalsy();
+  });
+
+  it('héros IA : la montée applique +1 attribut au tirage auto (aucune régression)', () => {
+    const state = stateWithHero(baseHero({ playerId: 'ai1', xp: 15 }), {});
+    state.players = [{ ...humanPlayer('ai1'), controller: 'ai' }];
+    const events: GameEvent[] = [];
+    grantXp(state, events, 'hero-1', 10);
+    const hero = state.heroes[0]!;
+    const sum = hero.attributes.attack + hero.attributes.defense + hero.attributes.power + hero.attributes.knowledge;
+    expect(sum).toBe(1);
+    expect(hero.pendingAttributeChoices).toEqual([]);
+  });
+
+  it('ChooseAttribute applique +1, défile la file, émet HeroAttributeChosen', () => {
+    const hero = baseHero({ playerId: 'p1', level: 2, pendingAttributeChoices: [['attack', 'defense']] });
+    const state = createEmptyState();
+    state.started = true;
+    state.heroes = [hero];
+    const result = apply(state, { type: 'ChooseAttribute', heroId: 'hero-1', attribute: 'defense' });
+    const updated = result.state.heroes[0]!;
+    expect(updated.attributes.defense).toBe(1);
+    expect(updated.pendingAttributeChoices).toEqual([]);
+    expect(result.events).toEqual([
+      { type: 'HeroAttributeChosen', heroId: 'hero-1', level: 2, attribute: 'defense' },
+    ]);
+  });
+
+  it('ChooseAttribute rejette un attribut hors de la 1ʳᵉ paire', () => {
+    const hero = baseHero({ pendingAttributeChoices: [['attack', 'defense']] });
+    const state = createEmptyState();
+    state.started = true;
+    state.heroes = [hero];
+    expect(() => apply(state, { type: 'ChooseAttribute', heroId: 'hero-1', attribute: 'power' })).toThrowError(
+      /invalidAttribute/,
+    );
+  });
+
+  it('ChooseAttribute sans proposition en attente ⇒ noPendingChoice', () => {
+    const hero = baseHero({ pendingAttributeChoices: [] });
+    const state = createEmptyState();
+    state.started = true;
+    state.heroes = [hero];
+    expect(() => apply(state, { type: 'ChooseAttribute', heroId: 'hero-1', attribute: 'attack' })).toThrowError(
+      /noPendingChoice/,
     );
   });
 });

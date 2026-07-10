@@ -229,7 +229,10 @@ const GOLDEN_JOURNAL: Command[] = [
 // `specialtyEffects` ([]) — héros nommés & spécialité (save v16). Les héros golden
 // n'ont ni nom ni spécialité (journal sans startingName/specialtyCatalog) ⇒ seule
 // la FORME change, simulation inchangée.
-const GOLDEN_HASH = 'b546f06c';
+// Re-fixé au lot H-LEVELCHOICE : `HeroState.pendingAttributeChoices` (save v17).
+// Le héros humain golden ne franchit aucun niveau (XP du gardien < seuil) ⇒ file
+// vide `[]` ajoutée à la forme ; combat/valeurs inchangés, seule la FORME change.
+const GOLDEN_HASH = '879c3291';
 
 describe('golden replay', () => {
   it('le journal scripté produit toujours le même état final', () => {

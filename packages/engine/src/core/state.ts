@@ -114,6 +114,13 @@ export interface HeroState {
   artifacts: (string | null)[];
   /** Propositions de compétence en attente d'un `ChooseSkill` (doc 02 §1.2). */
   pendingSkillChoices: string[];
+  /**
+   * File de propositions d'attribut en attente d'un `ChooseAttribute` (doc 02
+   * §1.2, H-LEVELCHOICE) — une paire `[a, b]` par montée de niveau d'un héros
+   * HUMAIN, résolue dans l'ordre (pas d'écrasement). Les héros IA appliquent
+   * +1 attribut au tirage auto (file toujours vide).
+   */
+  pendingAttributeChoices: [keyof HeroAttributes, keyof HeroAttributes][];
   /** Maison du héros (doc 06 §4) — id opaque pour le moteur, '' = aucune. */
   factionId: string;
   /**
@@ -194,9 +201,12 @@ export interface Calendar {
  * infligés par la pile maudite.
  * v16 : `HeroState.name` + `HeroState.specialtyId` + `HeroState.specialtyEffects`
  * — héros nommés & spécialité déclarative (H-NAMED, doc 02 §1.1/§1.2) : identité
- * du héros et profil de bonus générique agrégé comme les effets de Maison.)
+ * du héros et profil de bonus générique agrégé comme les effets de Maison.
+ * v17 : `HeroState.pendingAttributeChoices` — choix d'attribut à la montée de
+ * niveau (H-LEVELCHOICE, doc 02 §1.2) : le héros humain choisit +1 attribut
+ * parmi 2 (file), l'IA garde le tirage auto.)
  */
-export const CURRENT_SAVE_VERSION = 16;
+export const CURRENT_SAVE_VERSION = 17;
 
 export interface GameState {
   saveVersion: number;

@@ -446,6 +446,12 @@ export class CombatScene {
         if (token) this.spawnHealNumber(new Point(token.position.x, token.position.y), event.amount);
         return;
       }
+      case 'StackCursed': {
+        // curseOnHit (A2c) : label « maudit » violet sur la cible affligée.
+        const token = this.stackTokens.get(event.targetId);
+        if (token) this.spawnFloatingLabel(new Point(token.position.x, token.position.y), 'maudit', 0xb07de0);
+        return;
+      }
       default:
         return;
     }

@@ -83,7 +83,7 @@ UI/IA ──commande──► [validation] ──► engine.apply(state, cmd)
     version — « Continuer » se grise, l'import échoue — au lieu d'adopter un
     état malformé. La **migration ascendante** d'anciennes sauvegardes reste
     différée (post-MVP) : au MVP on rejette, on ne migre pas.
-    `CURRENT_SAVE_VERSION` vaut **14** (source de vérité `engine/core/state.ts`).
+    `CURRENT_SAVE_VERSION` vaut **15** (source de vérité `engine/core/state.ts`).
     Historique : v2 (`factionCatalog`/`scenario`/`outcome`/`controller`/
     `eliminated`, 3.4/3.5) ; v3 (`PlayerState.factionResources`, 4.4) ; v4
     (`townlessDays` grâce de reprise + `AdventureMapDef.triggers`, comblement
@@ -99,7 +99,8 @@ UI/IA ──commande──► [validation] ──► engine.apply(state, cmd)
     (`CombatState.heroAttackUsed`, attaque du héros 1×/combat, doc 02 §5.2) ;
     v13 (`PlayerState.team`, alliances/équipes, doc 02 §6) ; v14
     (`GameState.growthGroups`, croissance partagée apex `sharedGrowthGroups`,
-    doc 05 §4.20).
+    doc 05 §4.20) ; v15 (`SpellStatus.damageDealtMod`, malédiction `curseOnHit`
+    « Faux funeste », doc 04 §3, lot A2c).
 - Une sauvegarde référence les paquets de faction (par id) ; le suivi de
   **version** par paquet est différé avec les migrations (post-MVP).
 

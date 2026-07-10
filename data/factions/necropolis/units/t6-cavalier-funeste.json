@@ -27,6 +27,14 @@
       "params": {
         "perHex": 0.04
       }
+    },
+    {
+      "id": "curseOnHit",
+      "params": {
+        "chance": 1,
+        "damageDealtMod": -0.2,
+        "rounds": 2
+      }
     }
   ]
 }

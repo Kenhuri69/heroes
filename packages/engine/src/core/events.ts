@@ -119,6 +119,8 @@ export type GameEvent =
   | { type: 'StackDied'; stackId: string }
   /** Soin/relève d'une pile (`lifeDrain` Vampire doc 04 §3, ou soin) : PV rendus. */
   | { type: 'StackHealed'; stackId: string; amount: number }
+  /** Malédiction appliquée par `curseOnHit` (Zombie/Cavalier funeste, doc 04 §3). */
+  | { type: 'StackCursed'; targetId: string; spellId: string }
   /** Moral : tour bonus (positive) ou tour sauté (doc 02 §5.3 + décision n°8). */
   | { type: 'MoraleTriggered'; stackId: string; positive: boolean }
   | { type: 'MarkApplied'; targetId: string; marks: number }

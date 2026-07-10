@@ -136,8 +136,8 @@ Familles, par mécanique moteur commune :
   `magicResistance` autonome (Bibliothécaire AH 30 %, doc 05 §4 — n'existe
   qu'imbriqué dans `demonform`). Effort : M.
 - **CAP-ATK — Attaque** 🧩 (A2a : `charge`, `lifeDrain` **livrés** ; A2b :
-  `strikeAndReturn` **livré** ; `firstStrike`, `curseOnHit`, `poisonSting` → A2c ;
-  `areaAttack`, `breathAttack` → A3) : `charge`/`firstStrike` (Chevalier du Griffon,
+  `strikeAndReturn` **livré** ; A2c : `curseOnHit` **livré** ; `firstStrike`,
+  `poisonSting` → A2d ; `areaAttack`, `breathAttack` → A3) : `charge`/`firstStrike` (Chevalier du Griffon,
   doc 03 §3 ; Cavalier funeste +4 %/hex, doc 04 §3), `lifeDrain` 50 %
   (Vampire, doc 04 §3), `curseOnHit` (Zombie 20 %/Cavalier funeste 100 %,
   doc 04 §3), `poisonSting` (Manticore, doc 05 §4), `strikeAndReturn` (Lame du
@@ -663,4 +663,17 @@ si nouvel écran), bump `CURRENT_SAVE_VERSION` si la forme de sauvegarde change
   (431 engine +3 `combat-capabilities-b`, 101 content), typecheck 5/5, lint,
   content:check, golden **inchangé**, bundle < 800 Ko gzip, pas de bump save
   version. Restent en A2c/A3 : `taunt`, `firstStrike`, `curseOnHit`,
-  `poisonSting`, `areaAttack`, `breathAttack`. PR draft : (à créer, sur #194).
+  `poisonSting`, `areaAttack`, `breathAttack`. **PR #195 (mergée)**.
+- **2026-07-10 — Merge stack A1/A2a/A2b** : PR #191, #194, #195 mergées dans
+  `main` (dans l'ordre) sur demande utilisateur. Suivi PR arrêté.
+- **2026-07-10 — Lot A2c** (`.claude/plans/a2c-combat-debuffs.md`, branche
+  `claude/a2c-combat-debuffs` depuis main) : **livré**. Capacité `curseOnHit`
+  (catalogue 16 → 17) : malédiction au contact (chance %, statut temporaire) —
+  Zombie « Affaiblissement » (−Défense 20 %), Cavalier funeste « Faux funeste »
+  (−20 % dégâts infligés, 100 %). Nouveau champ `SpellStatus.damageDealtMod`
+  (multiplicatif) ⇒ **bump `CURRENT_SAVE_VERSION` 14 → 15**, golden re-fixé une
+  fois (forme seule). Event `StackCursed` + label client. Garde-fou zéro faction
+  vert. Vérifs : `pnpm test` complet (435 engine +4 `combat-curse`, 101 content),
+  typecheck 5/5, lint, content:check, bundle < 800 Ko gzip. Restent en A2d/A3 :
+  `firstStrike`, `poisonSting`, `taunt`, `areaAttack`, `breathAttack`, moral/
+  auras, `spellcaster`, cycle de vie. PR draft : (à créer, sur main).

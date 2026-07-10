@@ -129,7 +129,9 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 > laissés au sol si l'inventaire est plein), **lieux de bonus** (effet
 > déclaratif : fontaine `luck` — consommée à la fin du prochain combat,
 > écurie `movement`, arbre du savoir `levelXp` — l'XP du niveau suivant,
-> moulin `resource` fixe ; re-visite `oncePerHero` ou `oncePerHeroPerWeek`),
+> moulin `resource` fixe, **arène/statue `permanentStat`** (M-VISIT : +attribut
+> primaire **définitif** au héros visiteur) ; re-visite `oncePerHero` ou
+> `oncePerHeroPerWeek`),
 > **habitations hors ville** (M-DWELLOWN : **capturables** — la fouler pose le
 > drapeau du joueur et lui réserve le réassort hebdomadaire, façon HoMM ; la
 > visite recrute le maximum abordable ; stock hebdomadaire aux données d'unité)

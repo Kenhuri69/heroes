@@ -593,6 +593,12 @@ export const mapFileSchema = z.object({
           }),
           /** Tour de guet (F2) : révèle `amount` tuiles de brouillard autour du lieu. */
           z.object({ kind: z.literal('vision'), amount: z.number().int().positive() }),
+          /** Bonus d'attribut PERMANENT (M-VISIT, doc 02 §2.2 — arène/statue). */
+          z.object({
+            kind: z.literal('permanentStat'),
+            attribute: z.enum(['attack', 'defense', 'power', 'knowledge']),
+            amount: z.number().int().positive(),
+          }),
         ]),
         frequency: z.enum(['oncePerHero', 'oncePerHeroPerWeek']),
       }),

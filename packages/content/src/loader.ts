@@ -758,7 +758,8 @@ export type ResolvedMapObject =
         | { kind: 'movement'; amount: number }
         | { kind: 'levelXp' }
         | { kind: 'resource'; resource: string; amount: number }
-        | { kind: 'vision'; amount: number };
+        | { kind: 'vision'; amount: number }
+        | { kind: 'permanentStat'; attribute: 'attack' | 'defense' | 'power' | 'knowledge'; amount: number };
       frequency: 'oncePerHero' | 'oncePerHeroPerWeek';
       /** État initial : personne n'a visité. */
       visits: Record<string, number>;

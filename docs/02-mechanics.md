@@ -145,6 +145,12 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 > attente). Un **gardien** intercepte : le héros paie le pas d'engagement mais
 > **n'entre pas** sur la tuile du gardien ; le combat s'ouvre, et le gardien
 > doit être le dernier pas atteint (le parcours s'arrête à l'interception).
+> **M-GUARDLINK (« gardés selon rareté »)** : un objet ramassable
+> (`resource`/`treasure`/`artifact`) peut porter un champ optionnel `guardedBy`
+> = id d'un **gardien** de la carte. Tant que cette sentinelle existe, l'objet
+> **reste inerte** (impossible de la contourner pour rafler le butin) ; une fois
+> la sentinelle vaincue (retirée de la carte), l'objet se ramasse normalement.
+> Le contenu valide que `guardedBy` désigne bien un gardien présent.
 
 > **Gradation des gardiens (cartes générées)** : sur une carte procédurale
 > (`generateMap`, doc 09 Live), la force d'un gardien suit la **profondeur** de

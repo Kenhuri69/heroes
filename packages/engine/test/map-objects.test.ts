@@ -3,7 +3,7 @@ import { apply, validate } from '../src/core/engine';
 import { EngineError, type Command } from '../src/core/commands';
 import { createEmptyState, emptyResources, type GameState } from '../src/core/state';
 import type { MapObjectDef } from '../src/adventure/map';
-import { testConfig, testMap } from './fixtures';
+import { testConfig, testMap, testCatalog } from './fixtures';
 
 /**
  * Objets de carte « comblement » (doc 02 §2.2) : mines capturables à revenu
@@ -294,5 +294,53 @@ describe("IA d'aventure et objets de carte", () => {
     expect(() =>
       apply(state, { type: 'MoveHero', heroId: 'hero-p1', path: [{ x: 3, y: 0 }] }),
     ).toThrow(EngineError);
+  });
+});
+
+describe('M-GUARDLINK — objet gardé (doc 02 §2.2)', () => {
+  // Gardien VALIDE (unité du catalogue) placé HORS du chemin — il n'intercepte
+  // pas, il sert seulement de sentinelle liée à l'objet.
+  const sentinel: MapObjectDef = { id: 'g1', type: 'guardian', pos: { x: 4, y: 0 }, unitId: 'red-grunt', count: 1 };
+  const guardedGold: MapObjectDef = {
+    id: 'res-g',
+    type: 'resource',
+    pos: { x: 2, y: 0 },
+    resource: 'gold',
+    amount: 500,
+    guardedBy: 'g1',
+  };
+  const walkOver: Command = {
+    type: 'MoveHero',
+    heroId: 'hero-p1',
+    path: [
+      { x: 1, y: 0 },
+      { x: 2, y: 0 },
+      { x: 3, y: 0 },
+    ],
+  };
+  const startGuarded = (objects: MapObjectDef[]): GameState => {
+    const map = testMap();
+    map.objects = objects;
+    return apply(createEmptyState(), {
+      type: 'StartGame',
+      seed: 42,
+      players: [{ id: 'p1', startingResources: emptyResources() }],
+      map,
+      config: testConfig(),
+      unitCatalog: testCatalog(),
+    }).state;
+  };
+
+  it("un objet gardé n'est PAS ramassé tant que sa sentinelle existe", () => {
+    const { state } = apply(startGuarded([guardedGold, sentinel]), walkOver);
+    expect(state.players[0]?.resources.gold).toBe(0); // rien ramassé
+    expect(state.map?.objects.some((o) => o.id === 'res-g')).toBe(true); // l'objet reste
+    expect(state.heroes[0]?.pos).toEqual({ x: 3, y: 0 }); // le héros a poursuivi (sentinelle hors chemin)
+  });
+
+  it('sentinelle absente (vaincue) ⇒ l’objet est ramassé en passant', () => {
+    const { state } = apply(startGuarded([guardedGold]), walkOver); // pas de gardien sur la carte
+    expect(state.players[0]?.resources.gold).toBe(500);
+    expect(state.map?.objects.some((o) => o.id === 'res-g')).toBe(false);
   });
 });

@@ -18,6 +18,12 @@ export interface ResourceObjectDef {
   /** ID de ressource — validé par le contenu, opaque pour le moteur. */
   resource: string;
   amount: number;
+  /**
+   * Gardien lié (M-GUARDLINK, doc 02 §2.2 « gardés selon rareté ») — id d'un
+   * objet `guardian` : tant qu'il existe sur la carte, l'objet ne se ramasse
+   * PAS (le héros doit d'abord vaincre la sentinelle). Absent = non gardé.
+   */
+  guardedBy?: string;
 }
 
 /** Gardien neutre : pile unique, déclenche un combat à l'interception (doc 02 §2.2, §5). */
@@ -112,6 +118,8 @@ export interface TreasureObjectDef {
   pos: GridPos;
   gold: number;
   xp: number;
+  /** Gardien lié (M-GUARDLINK, doc 02 §2.2) — cf. `ResourceObjectDef.guardedBy`. */
+  guardedBy?: string;
 }
 
 /** Artefact posé sur la carte (doc 02 §2.2) : ramassé vers le 1er slot libre du héros. */
@@ -120,6 +128,8 @@ export interface ArtifactObjectDef {
   type: 'artifact';
   pos: GridPos;
   artifactId: string;
+  /** Gardien lié (M-GUARDLINK, doc 02 §2.2) — cf. `ResourceObjectDef.guardedBy`. */
+  guardedBy?: string;
 }
 
 export type MapObjectDef =

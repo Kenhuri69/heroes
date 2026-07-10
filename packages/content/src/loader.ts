@@ -888,6 +888,10 @@ export async function loadMap(
       errors.push(`${path}: trésor '${obj.id}' — aucun gain (or et XP à zéro)`);
     if (obj.type === 'artifact' && knownArtifactIds && !knownArtifactIds.has(obj.artifactId))
       errors.push(`${path}: artefact '${obj.id}' — inconnu de core/artifacts.json '${obj.artifactId}'`);
+    // M-GUARDLINK (doc 02 §2.2) : un `guardedBy` doit désigner un gardien de la carte.
+    if ('guardedBy' in obj && obj.guardedBy !== undefined &&
+        !file.objects.some((g) => g.type === 'guardian' && g.id === obj.guardedBy))
+      errors.push(`${path}: objet '${obj.id}' — gardien lié inconnu '${obj.guardedBy}'`);
   }
   for (const [i, pos] of file.startPositions.entries()) {
     if (!inBounds(pos.x, pos.y)) errors.push(`${path}: startPositions[${i}] hors carte`);
@@ -1099,7 +1103,14 @@ function resolveMap(file: MapFile): ResolvedMap {
     objects: file.objects.map((obj): ResolvedMapObject => {
       const pos = { x: obj.x, y: obj.y };
       if (obj.type === 'resource')
-        return { id: obj.id, type: obj.type, pos, resource: obj.resource, amount: obj.amount };
+        return {
+          id: obj.id,
+          type: obj.type,
+          pos,
+          resource: obj.resource,
+          amount: obj.amount,
+          ...(obj.guardedBy !== undefined ? { guardedBy: obj.guardedBy } : {}),
+        };
       if (obj.type === 'guardian')
         return {
           id: obj.id,
@@ -1123,9 +1134,22 @@ function resolveMap(file: MapFile): ResolvedMap {
           ownerId: null,
         };
       if (obj.type === 'treasure')
-        return { id: obj.id, type: obj.type, pos, gold: obj.gold, xp: obj.xp };
+        return {
+          id: obj.id,
+          type: obj.type,
+          pos,
+          gold: obj.gold,
+          xp: obj.xp,
+          ...(obj.guardedBy !== undefined ? { guardedBy: obj.guardedBy } : {}),
+        };
       if (obj.type === 'artifact')
-        return { id: obj.id, type: obj.type, pos, artifactId: obj.artifactId };
+        return {
+          id: obj.id,
+          type: obj.type,
+          pos,
+          artifactId: obj.artifactId,
+          ...(obj.guardedBy !== undefined ? { guardedBy: obj.guardedBy } : {}),
+        };
       return {
         id: obj.id,
         type: obj.type,

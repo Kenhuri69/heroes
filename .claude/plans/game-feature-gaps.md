@@ -304,12 +304,18 @@ Source design : doc 02 §2 (carte), §1.5 (multi-héros).
   actif dans l'UI, combat héros-vs-héros (les deux côtés avec sorts/attaque
   héroïque), héros vaincu retourne au pool. Gros lot ; save bump.
 
-- **M-GUARDLINK — Gardiens attachés aux trésors** 🕳️ M ⬜
-  Doc : doc 02 §2.2 (« gardés selon rareté »). Code : `guardian` autonome sur sa
-  tuile (`packages/engine/src/adventure/map.ts:23-37`) ; trésors ramassés en
-  passant. Spec : champ optionnel `guardedBy`/`guardianId` sur les objets ⇒
-  interception obligatoire avant ramassage ; `generateMap` lie sentinelle et
-  trésor.
+- **M-GUARDLINK — Gardiens attachés aux trésors** 🕳️ 🧩 (tranche livrée)
+  > **Livré** : champ **optionnel** `guardedBy` (id de gardien) sur les objets
+  > `resource`/`treasure`/`artifact` (`map.ts`) ; le ramassage est **inerte tant
+  > que la sentinelle liée existe** sur la carte (`movement.ts`), impossible de la
+  > contourner ; sentinelle vaincue ⇒ objet libéré. Schéma + résolution
+  > (`schemas.ts`/`loader.ts`) + **validation croisée** (`guardedBy` doit désigner
+  > un gardien de la carte). Données : proto-01 `gold-2` gardé par `guard-gold`
+  > (adjacents). Champ optionnel ⇒ **pas de bump save, golden inchangé**. Couvert
+  > en unitaire (`map-objects.test.ts` : gardé ⇒ non ramassé ; sentinelle absente
+  > ⇒ ramassé). **Différé** : liaison automatique sentinelle↔trésor dans
+  > `generateMap` (cartes procédurales) — actuellement data-driven sur cartes
+  > éditées.
 
 - **M-NAV — Navigation & topologie : bateaux, téléporteurs, souterrain** 🕳️ L ⬜
   Doc : doc 02 §2.1/§2.2. Code : eau infranchissable (`data/core/config.json:20-22`),

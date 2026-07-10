@@ -556,6 +556,8 @@ export const mapFileSchema = z.object({
         y: z.number().int().nonnegative(),
         resource: z.enum(COMMON_RESOURCE_IDS),
         amount: z.number().int().positive(),
+        /** Gardien lié (M-GUARDLINK, doc 02 §2.2) — id d'un objet `guardian` ; ramassage bloqué tant qu'il vit. */
+        guardedBy: idSchema.optional(),
       }),
       /**
        * Gardien neutre : pile unique, combat à l'interception (doc 02 §2.2).
@@ -624,6 +626,8 @@ export const mapFileSchema = z.object({
         y: z.number().int().nonnegative(),
         gold: z.number().int().nonnegative(),
         xp: z.number().int().nonnegative(),
+        /** Gardien lié (M-GUARDLINK, doc 02 §2.2) — cf. objet `resource`. */
+        guardedBy: idSchema.optional(),
       }),
       /** Artefact posé au sol (doc 02 §2.2) — `artifactId` connu, règle croisée dans `loadMap`. */
       z.object({
@@ -632,6 +636,8 @@ export const mapFileSchema = z.object({
         x: z.number().int().nonnegative(),
         y: z.number().int().nonnegative(),
         artifactId: idSchema,
+        /** Gardien lié (M-GUARDLINK, doc 02 §2.2) — cf. objet `resource`. */
+        guardedBy: idSchema.optional(),
       }),
       /**
        * Ville (doc 02 §4, plan phase-3.1) — la ville de départ y référence son id.

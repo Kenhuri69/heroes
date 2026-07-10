@@ -120,6 +120,15 @@ export function advanceHeroAlongPath(
     );
     if (objIndex !== -1) {
       const obj = map.objects[objIndex];
+      // M-GUARDLINK (doc 02 §2.2) : un objet gardé reste inerte tant que sa
+      // sentinelle existe — impossible de contourner le gardien pour rafler le
+      // butin. La sentinelle défaite est retirée de `map.objects` ⇒ objet libéré.
+      const guarded =
+        obj &&
+        'guardedBy' in obj &&
+        obj.guardedBy !== undefined &&
+        map.objects.some((g) => g.id === obj.guardedBy);
+      if (guarded) continue;
       if (obj && obj.type === 'resource') {
         player.resources[obj.resource as ResourceId] += obj.amount;
         map.objects.splice(objIndex, 1);

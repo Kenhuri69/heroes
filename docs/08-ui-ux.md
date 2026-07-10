@@ -130,6 +130,22 @@
 > slot** (§2.3) et réalignement des écrans annexes = suivis notés
 > (`.claude/plans/ux-d5-gestion.md`).
 
+> 🎯 **État refonte UX (plan `.claude/plans/ux-town-screen-refonte.md`)** : allègement
+> de l'écran, rapprochement du core loop HoMM (la panorama devient le point
+> d'entrée), **zéro diff moteur** (client + CSS + doc). Cinq axes :
+> **(A) cohérence des onglets** — **Marché** et **Guilde** ne s'affichent QUE si
+> le bâtiment portant l'effet (`market` / `mageGuild`) est **construit** (miroir
+> client de `townHasMarket` : le moteur refusait sinon l'action, l'onglet menait
+> à un cul-de-sac) ; l'onglet actif retombe sur Construire s'il devient
+> indisponible. **(B) vue peinte interactive** — un tap sur un emplacement route
+> vers l'action pertinente (entrer le marché/la guilde, recruter dans une
+> habitation construite, sinon Construire) au lieu de toujours ouvrir Construire.
+> **(C) cartes compactes** — lore tronqué à 2 lignes (texte complet en `title`),
+> le « Chantier : 1 j » redondant par carte est retiré. **(D) chantier du jour
+> condensé** — l'ancien grand ruban ornemental devient un badge compact dans
+> l'en-tête (revenu · croissance · chantier). **(E) mobile** — onglets **collants**
+> (sticky) en haut du scroll de la modale, vue peinte un peu plus courte.
+
 ### 2.3 Écran héros
 
 - Portrait, attributs, XP ; **poupée d'équipement** 10 slots + sac ; compétences (6 slots, rangs) ; grimoire (filtré par école/cercle, coût mana visible, sorts indisponibles grisés avec raison).

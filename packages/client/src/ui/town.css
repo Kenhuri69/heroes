@@ -203,7 +203,8 @@
 
 /* Lot C (refonte UX) : le lore reste présent (ambiance, doc 13) mais tronqué à
    2 lignes — il n'explose plus la hauteur d'une carte quand ~15 bâtiments sont
-   listés. Le texte complet reste dans le `title` natif de l'élément. */
+   listés. Lot X2 (parité tactile A2, doc 08 §1.1) : un tap déplie le texte
+   complet (classe `.lore-toggle`), le `title` survol n'est plus l'unique accès. */
 .town-building-lore,
 .town-dwelling-lore {
   display: -webkit-box;
@@ -211,6 +212,27 @@
   -webkit-line-clamp: 2;
   line-clamp: 2;
   overflow: hidden;
+}
+
+/* Bouton-lore expandable : réinitialise l'apparence bouton (garde le clamp des
+   règles ci-dessus), cible tactile ≥ 44 px (A1), déplié = texte intégral. */
+.lore-toggle {
+  width: 100%;
+  min-height: 44px;
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.lore-toggle.expanded {
+  display: block;
+  -webkit-line-clamp: unset;
+  line-clamp: unset;
+  overflow: visible;
 }
 
 .town-building-status {

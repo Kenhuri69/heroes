@@ -136,7 +136,7 @@ export function CombatUi() {
           {t('combat.round', { round: combat.round })}
         </div>
         {hero && (
-          <div class="combat-hero" data-testid="combat-hero" title={t('combat.heroPresent')}>
+          <div class="combat-hero" data-testid="combat-hero" aria-label={t('combat.heroPresent')}>
             <span class="combat-hero-badge" aria-hidden="true">
               ⚔
             </span>

@@ -260,7 +260,19 @@ Espace/D en combat — `combat.tsx:71`) mais sont **indécouvrables**.
       moteur (pas l'UI) — assumé, le tap-tap a son smoke dédié ; la **vignette
       du héros dans la liste du tiroir reste un cercle gris** même en parcours
       réel (observation nouvelle, à traiter avec E2/X4 ou en suivi d'assets).
-- [ ] Lot X2 — parité tactile (A2).
+- [x] Lot X2 — parité tactile (A2) (2026-07-10). Livré : les **lores tronqués**
+      de l'écran de ville (bâtiment + unité) deviennent des boutons expandables
+      `LoreText` (tap = texte intégral, `aria-expanded`, cible ≥ 44 px via
+      `.lore-toggle`) — le `title` survol reste en complément desktop.
+      Combat : `title` héros redondant (nom+mana déjà visibles) passé en
+      `aria-label`. Doc 08 §1.1 mis à jour (règle « info tronquée/masquée =
+      accès tactile »). **Correction d'audit honnête** : X2.3 (ressources) était
+      un faux écart — les communes ouvrent déjà `ResourceDetail` au tap (M6) et
+      les ressources de faction sont plafonnées (≤ 999) donc jamais abrégées
+      (montant exact toujours visible). Aucun travail inventé de ce côté.
+      **Vérifié** : typecheck/lint/build OK (bundle 114,5 Ko gzip JS, sous
+      budget), smoke complet 138✓ + test dédié « parité tactile du lore » (les 2
+      viewports), garde-fous faction & couleurs verts, zéro diff moteur.
 - [ ] Lot X3 — HUD aventure mobile.
 - [ ] Lot X4 — pré-combat.
 - [ ] Lot X5 — micro-i18n.

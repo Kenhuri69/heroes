@@ -100,6 +100,16 @@ export function heroAvatarUrl(factionId: string, archetype: 'might' | 'magic'): 
   return factionId ? registry.get(`heroes/${factionId}-${archetype}`) : undefined;
 }
 
+/**
+ * Blason de faction (`badges/<factionId>`, doc 12 famille « blasons ») — écu
+ * héraldique peint/procédural. `undefined` ⇒ repli sur le motif SVG procédural
+ * de `FactionBadge` (distinction non chromatique, a11y doc 08 §4). Clé opaque :
+ * aucune faction en dur (comme `buildingUrl`/`townBackgroundUrl`).
+ */
+export function factionBadgeUrl(factionId: string): string | undefined {
+  return factionId ? registry.get(`badges/${factionId}`) : undefined;
+}
+
 // --- Résolveurs par famille (faction-agnostiques, convention de nommage) ---
 
 const TILE_VARIANTS = 3;

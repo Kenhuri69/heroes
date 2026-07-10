@@ -8,7 +8,13 @@
   vertical-align: middle;
 }
 
-.faction-badge svg {
+.faction-badge svg,
+.faction-badge-crest {
   width: 100%;
   height: 100%;
+}
+
+/* Blason peint (doc 12 « blasons ») : l'écu remplit le carré du badge. */
+.faction-badge-crest {
+  object-fit: contain;
 }

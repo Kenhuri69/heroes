@@ -109,11 +109,18 @@
   font-size: 0.8125rem;
 }
 
+/* Lot E (refonte UX) : onglets COLLANTS en haut du scroll de la modale — on
+   change d'onglet sans re-scroller la vue peinte + l'en-tête (touch-first). */
 .town-tabs {
+  position: sticky;
+  top: -1px;
+  z-index: 2;
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
   margin-bottom: 12px;
+  padding: 6px 0;
+  background: var(--ink-800);
 }
 
 .town-tabs button {
@@ -134,43 +141,18 @@
   border-color: var(--blood-bright);
 }
 
-/* B1 — file de chantier du jour (façon HoMM Online) : créneau « 1 construction/
-   jour » présenté comme un chantier quotidien (doc 02 §4.2). */
-.town-build-queue {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin: 0 0 10px;
-  padding: 8px 10px;
-  border-radius: var(--radius-m);
-  background: var(--ink-700);
-  /* Bordure & box-sizing délégués à `.chrome-ribbon` (skill asset-chrome). */
-}
-
-.town-build-queue-title {
+/* Lot D (refonte UX) : le créneau « 1 construction/jour » (doc 02 §4.2, ex-ruban
+   B1) est condensé en badge compact dans l'en-tête de ville. */
+.town-build-queue-state {
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  font-size: 0.85em;
-  opacity: 0.85;
 }
 
 .town-build-queue-state.is-free {
   color: var(--gold);
-  font-weight: 600;
 }
 
 .town-build-queue-state.is-used {
   color: var(--blood-bright);
-  font-weight: 600;
-}
-
-/* Temps de chantier en jours, aligné avec le coût dans la ligne d'action. */
-.town-build-time {
-  opacity: 0.8;
-  font-size: 0.9em;
-  white-space: nowrap;
 }
 
 .town-building-list,
@@ -217,6 +199,18 @@
 .town-building-level {
   opacity: 0.75;
   font-size: 0.75rem;
+}
+
+/* Lot C (refonte UX) : le lore reste présent (ambiance, doc 13) mais tronqué à
+   2 lignes — il n'explose plus la hauteur d'une carte quand ~15 bâtiments sont
+   listés. Le texte complet reste dans le `title` natif de l'élément. */
+.town-building-lore,
+.town-dwelling-lore {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
 }
 
 .town-building-status {
@@ -436,8 +430,8 @@ button[data-testid='market-trade'] {
   gap: 10px;
   align-items: flex-end;
   overflow-x: auto;
-  padding: 12px;
-  min-height: 96px;
+  padding: 10px;
+  min-height: 78px;
   border-radius: 10px;
   /* Décor peint : dégradé gouache en repli si le fond bespoke (lot U5-B) est absent. */
   background: linear-gradient(180deg, var(--townsky-high) 0%, var(--townsky-mid) 62%, var(--townsky-low) 100%);

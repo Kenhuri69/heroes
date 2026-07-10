@@ -65,6 +65,24 @@ function buildingName(id: string): string {
   return resolveBuildingName(id);
 }
 
+/**
+ * La ville a-t-elle un bâtiment CONSTRUIT (niveau ≥ 1) portant l'effet demandé ?
+ * Miroir client de `townHasMarket` (engine/town/market.ts) : sert à n'exposer
+ * l'onglet Marché/Guilde que lorsque le bâtiment existe — le moteur refuse
+ * sinon l'échange (`invalidTrade`). Aucun id de bâtiment en dur (data-driven).
+ */
+function hasBuiltEffect(
+  town: TownState,
+  catalog: Record<string, BuildingDef>,
+  effectType: 'market' | 'mageGuild',
+): boolean {
+  for (const [id, level] of Object.entries(town.buildings)) {
+    if (level < 1) continue;
+    if (catalog[id]?.levels[level - 1]?.effect?.type === effectType) return true;
+  }
+  return false;
+}
+
 function CostList({ cost }: { cost: Record<string, number> }) {
   const entries = Object.entries(cost);
   if (entries.length === 0) return null;
@@ -95,6 +113,32 @@ export function TownScreen({ townId, onClose }: { townId: string; onClose: () =>
 
   const town = game.towns.find((tw) => tw.id === townId);
 
+  // Lot A (refonte UX) : les onglets Marché/Guilde ne s'affichent que si le
+  // bâtiment correspondant est CONSTRUIT — sinon le moteur refuse l'action
+  // (`invalidTrade`), l'onglet menait à un cul-de-sac. Comme HoMM : ce sont des
+  // bâtiments qu'on entre, pas des modes permanents.
+  const hasMarket = town ? hasBuiltEffect(town, game.buildingCatalog, 'market') : false;
+  const hasGuild = town ? hasBuiltEffect(town, game.buildingCatalog, 'mageGuild') : false;
+  // Onglet effectif : si l'onglet mémorisé n'est plus disponible (bâtiment non
+  // construit), repli sur Construire — jamais un panneau vide/inaccessible.
+  const activeTab =
+    (tab === 'market' && !hasMarket) || (tab === 'guild' && !hasGuild) ? 'build' : tab;
+
+  // Lot B (refonte UX) : la vue peinte devient le point d'entrée — un tap sur un
+  // emplacement route vers l'action pertinente (entrer le marché/la guilde,
+  // recruter dans une habitation, sinon construire), au lieu de toujours ouvrir
+  // Construire.
+  const selectBuilding = (id: string): void => {
+    if (!town) return;
+    const effect = game.buildingCatalog[id]?.levels[(town.buildings[id] ?? 0) - 1]?.effect;
+    if ((town.buildings[id] ?? 0) >= 1) {
+      if (effect?.type === 'market') return setTab('market');
+      if (effect?.type === 'mageGuild') return setTab('guild');
+      if (builtDwellings(town, game.buildingCatalog).includes(id)) return setTab('recruit');
+    }
+    setTab('build');
+  };
+
   return (
     <div class="modal-backdrop" onClick={close}>
       <div
@@ -114,7 +158,9 @@ export function TownScreen({ townId, onClose }: { townId: string; onClose: () =>
           </button>
         </header>
 
-        {/* En-tête de décision (lot M7 C21) : revenu or/jour + prochaine croissance. */}
+        {/* En-tête de décision (lot M7 C21) : revenu or/jour + prochaine croissance
+            + créneau de chantier du jour (lot D refonte UX : le grand ruban est
+            condensé ici en badge compact — testid conservé). */}
         {town && town.ownerPlayerId && (
           <p class="town-subheader" data-testid="town-subheader">
             <span data-testid="town-income">
@@ -123,6 +169,14 @@ export function TownScreen({ townId, onClose }: { townId: string; onClose: () =>
             <span class="town-subheader-sep" aria-hidden="true">·</span>
             <span data-testid="town-growth">
               {t('town.growthIn', { days: weekOf(game.calendar.day) * 7 + 1 - game.calendar.day })}
+            </span>
+            <span class="town-subheader-sep" aria-hidden="true">·</span>
+            <span
+              class={`town-build-queue-state ${town.builtToday ? 'is-used' : 'is-free'}`}
+              data-testid="town-build-queue-state"
+              title={t('town.buildQueueTitle')}
+            >
+              {t(town.builtToday ? 'town.buildQueueUsed' : 'town.buildQueueFree')}
             </span>
           </p>
         )}
@@ -133,43 +187,47 @@ export function TownScreen({ townId, onClose }: { townId: string; onClose: () =>
           </p>
         ) : (
           <>
-            <TownView town={town} catalog={game.buildingCatalog} onSelect={() => setTab('build')} />
+            <TownView town={town} catalog={game.buildingCatalog} onSelect={selectBuilding} />
             <nav class="town-tabs" role="tablist">
               <button
-                class={tab === 'build' ? 'active' : ''}
+                class={activeTab === 'build' ? 'active' : ''}
                 data-testid="town-tab-build"
                 onClick={() => setTab('build')}
               >
                 <UiIcon id="tab-build" fallback="" /> {t('town.build')}
               </button>
               <button
-                class={tab === 'recruit' ? 'active' : ''}
+                class={activeTab === 'recruit' ? 'active' : ''}
                 data-testid="town-tab-recruit"
                 onClick={() => setTab('recruit')}
               >
                 <UiIcon id="tab-recruit" fallback="" /> {t('town.recruit')}
               </button>
               <button
-                class={tab === 'garrison' ? 'active' : ''}
+                class={activeTab === 'garrison' ? 'active' : ''}
                 data-testid="town-tab-garrison"
                 onClick={() => setTab('garrison')}
               >
                 <UiIcon id="tab-garrison" fallback="" /> {t('town.garrison')}
               </button>
-              <button
-                class={tab === 'market' ? 'active' : ''}
-                data-testid="town-tab-market"
-                onClick={() => setTab('market')}
-              >
-                <UiIcon id="tab-market" fallback="" /> {t('town.market')}
-              </button>
-              <button
-                class={tab === 'guild' ? 'active' : ''}
-                data-testid="town-tab-guild"
-                onClick={() => setTab('guild')}
-              >
-                <UiIcon id="tab-build" fallback="" /> {t('town.guild')}
-              </button>
+              {hasMarket && (
+                <button
+                  class={activeTab === 'market' ? 'active' : ''}
+                  data-testid="town-tab-market"
+                  onClick={() => setTab('market')}
+                >
+                  <UiIcon id="tab-market" fallback="" /> {t('town.market')}
+                </button>
+              )}
+              {hasGuild && (
+                <button
+                  class={activeTab === 'guild' ? 'active' : ''}
+                  data-testid="town-tab-guild"
+                  onClick={() => setTab('guild')}
+                >
+                  <UiIcon id="tab-build" fallback="" /> {t('town.guild')}
+                </button>
+              )}
             </nav>
 
             {error && (
@@ -178,15 +236,15 @@ export function TownScreen({ townId, onClose }: { townId: string; onClose: () =>
               </p>
             )}
 
-            {tab === 'build' && (
+            {activeTab === 'build' && (
               <BuildTab town={town} catalog={game.buildingCatalog} onError={setError} />
             )}
-            {tab === 'recruit' && (
+            {activeTab === 'recruit' && (
               <RecruitTab town={town} catalog={game.buildingCatalog} unitCatalog={game.unitCatalog} onError={setError} />
             )}
-            {tab === 'garrison' && <GarrisonTab town={town} onError={setError} />}
-            {tab === 'market' && <MarketTab town={town} onError={setError} />}
-            {tab === 'guild' && <GuildTab town={town} />}
+            {activeTab === 'garrison' && <GarrisonTab town={town} onError={setError} />}
+            {activeTab === 'market' && <MarketTab town={town} onError={setError} />}
+            {activeTab === 'guild' && <GuildTab town={town} />}
           </>
         )}
       </div>
@@ -251,7 +309,7 @@ function TownView({
 }: {
   town: TownState;
   catalog: Record<string, BuildingDef>;
-  onSelect: () => void;
+  onSelect: (id: string) => void;
 }) {
   const slots = townBuildingIds(town, catalog)
     .map((id) => ({ id, status: townViewStatus(town, catalog, id) }))
@@ -271,7 +329,7 @@ function TownView({
               class={`town-view-building is-${status}`}
               data-testid="town-view-building"
               data-status={status}
-              onClick={onSelect}
+              onClick={() => onSelect(id)}
               title={buildingName(id)}
               aria-label={`${buildingName(id)} — ${t(VIEW_STATUS_LABEL[status])}`}
             >
@@ -382,19 +440,9 @@ function BuildTab({
 
   return (
     <div class="town-tab-panel" data-testid="town-panel-build">
-      {/* B1 — file de chantier façon HoMM Online : la règle « 1 construction/jour »
-          (doc 02 §4.1) présentée comme un créneau de chantier quotidien. Le
-          « temps » se compte en JOURS (tours), jamais en secondes — cœur
-          tour-par-tour intact, aucun changement moteur/sauvegarde. */}
-      <div class="town-build-queue chrome-ribbon" data-testid="town-build-queue">
-        <span class="town-build-queue-title">{t('town.buildQueueTitle')}</span>
-        <span
-          class={`town-build-queue-state ${town.builtToday ? 'is-used' : 'is-free'}`}
-          data-testid="town-build-queue-state"
-        >
-          {t(town.builtToday ? 'town.buildQueueUsed' : 'town.buildQueueFree')}
-        </span>
-      </div>
+      {/* Lot D (refonte UX) : le créneau « 1 construction/jour » (doc 02 §4.1) est
+          désormais un badge compact dans l'en-tête de ville, plus un grand ruban
+          ornemental qui poussait le contenu hors écran sur mobile. */}
       <ul class="town-building-list">
         {buildingIds.map((buildingId) => {
           const def = catalog[buildingId];
@@ -417,7 +465,9 @@ function BuildTab({
                 <span class={`town-building-status town-building-status-${status}`}>{t(`town.${status}`)}</span>
               </div>
               {resolveBuildingLore(buildingId) && (
-                <p class="content-lore town-building-lore">{resolveBuildingLore(buildingId)}</p>
+                <p class="content-lore town-building-lore" title={resolveBuildingLore(buildingId) ?? undefined}>
+                  {resolveBuildingLore(buildingId)}
+                </p>
               )}
               {status === 'locked' && nextLevel && (
                 <ul class="town-requirements">
@@ -431,11 +481,6 @@ function BuildTab({
               {status === 'available' && nextLevel && (
                 <div class="town-building-action">
                   <CostList cost={nextLevel.cost} />
-                  {/* B1 — temps de chantier en JOURS (façon HO), 1 jour = le
-                      créneau quotidien consommé (doc 02 §4.1). */}
-                  <span class="town-build-time" data-testid={`town-build-time-${buildingId}`}>
-                    {t('town.buildTime', { days: 1 })}
-                  </span>
                   <button
                     data-testid={`town-build-${buildingId}`}
                     disabled={town.builtToday}
@@ -591,7 +636,11 @@ function RecruitTab({
                 </span>
               </div>
               {resolveUnitLore(unitId) && (
-                <p class="content-lore town-dwelling-lore" data-testid={`town-unit-lore-${unitId}`}>
+                <p
+                  class="content-lore town-dwelling-lore"
+                  data-testid={`town-unit-lore-${unitId}`}
+                  title={resolveUnitLore(unitId) ?? undefined}
+                >
                   {resolveUnitLore(unitId)}
                 </p>
               )}

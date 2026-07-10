@@ -22,6 +22,7 @@
 | **D** | Fonds d'ambiance (menu, ville, combat) | Pièce unique LLM | **1920×1080** | Opaque |
 | **E** | Logo du jeu | Pièce unique LLM | ≥ 1024² | Transparent |
 | **G** | Chrome d'UI (cadres de panneau, rubans d'en-tête) | Procédural (Pillow, formes fixes) | 160² (cadre), 320×72 (ruban) | Transparent (centre) |
+| **H** | Blasons de faction (écus héraldiques) | Procédural (Pillow, formes fixes) | 256² | Transparent (hors écu) |
 
 > Erreur classique observée sur Hogwarth : appliquer le template d'une famille
 > à une autre (ex. style sprite transparent pour un portrait). Identifier la
@@ -241,6 +242,29 @@ un rendu **9-slice** propre et déterministe, pas une planche LLM.
   Skill dédié : `.claude/skills/asset-chrome/`. **Surfaces habillées** : modales
   de **ville** (+ ruban « Chantier du jour »), **Options**, **Journal**,
   **pré-combat**.
+
+## 6quater. Règle H — blasons de faction (écus héraldiques)
+
+Famille **BLASONS** : un **écu** héraldique par faction, remplaçant le motif
+géométrique procédural du `FactionBadge` (qui reste le **repli** a11y non
+chromatique — doc 08 §4 — quand l'asset manque). Comble le trou d'identité de
+l'en-tête de ville (le « dé » générique jadis affiché pour Havre).
+
+- **Forme** : écu « heater » (haut droit, flancs courbes → pointe basse), bordure
+  laiton biseautée (rampe de la Règle G), ombre portée douce ; fond transparent
+  hors de l'écu. **Charge** et **couleurs** dérivées de l'identité de la faction
+  (doc 03/04/05…) : p. ex. **Havre** = champ bleu roi + chef clair (blanc
+  héraldique) + soleil rayonnant or (thème lumière/ordre, Saint-Empire du
+  Griffon).
+- **Déterminisme** : formes vectorielles fixes, supersampling ×4 → LANCZOS,
+  aucun aléa → re-run = octets identiques (guidelines §8.2).
+  `python3 tools/assets/gen_faction_badge.py`.
+- **Staging** : `assets/badges/<factionId>.png` (256²). La clé est le `factionId`
+  **opaque** — aucune faction connue du moteur/client (guidelines §8.1).
+- **Intégration client** : registre `render/assets.ts` (auto-découverte `?url`,
+  **hors bundle**) → résolveur `factionBadgeUrl(factionId)` → `FactionBadge` rend
+  l'`<img>` du blason si présent, sinon le motif SVG (le `data-pattern` reste
+  posé → le canal non chromatique survit au repli).
 
 ## 7. Prompts-types
 

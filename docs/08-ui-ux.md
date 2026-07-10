@@ -260,6 +260,14 @@ Menu principal (Continuer / Scénarios / Escarmouche / **Éditeur de carte** / O
 > finitions. **Raccourcis clavier** desktop (jamais requis, ignorés en saisie/
 > modale/combat) : `E` fin de tour, `H` tiroir héros, `T` ville ; en combat
 > `Espace` = Attendre, `D` = Défendre ; Échap inchangé (documentés dans Options).
+> **État X7 (plan `ux-enrichissement-2026-07`)** : ces raccourcis étaient
+> indécouvrables. Ajouts : la touche **`?`** ouvre une **aide des raccourcis**
+> (`ShortcutsOverlay`, modale dans la pile, fermée à Échap — doc 08 §3), listée
+> aussi dans l'astuce d'Options ; la touche **`N`** sélectionne le **héros
+> suivant ayant des points de mouvement** et recentre la caméra (cyclique,
+> no-op à un seul héros — utile en multi-héros U4) ; les boutons « Fin de tour »
+> et « Ville » portent un `title` d'appoint rappelant leur touche (« Fin de tour
+> (E) »), info **complémentaire** jamais exclusive (A2).
 > Option **« Réduire les animations »** (`app/motion.ts`) : s'**unit** au réglage
 > système `prefers-reduced-motion` (l'un OU l'autre coupe le mouvement, DOM via
 > `<html data-reduce-motion>` + rendu Pixi via `reduceMotion()`), persistée.

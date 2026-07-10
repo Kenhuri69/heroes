@@ -24,7 +24,8 @@ export type Modal =
   | { kind: 'options' }
   | { kind: 'journal' }
   | { kind: 'skirmish' }
-  | { kind: 'newgame' };
+  | { kind: 'newgame' }
+  | { kind: 'shortcuts' };
 
 /** Plafond de profondeur de la pile de modales (doc 08 §3). */
 export const MAX_MODAL_DEPTH = 2;

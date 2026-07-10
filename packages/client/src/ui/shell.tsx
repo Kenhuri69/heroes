@@ -43,12 +43,32 @@ import { CutsceneOverlay } from './CutsceneOverlay';
 import { MiniMap } from './MiniMap';
 import { QuestJournal } from './QuestJournal';
 import { MapObjectCard } from './MapObjectCard';
+import { ShortcutsOverlay } from './ShortcutsOverlay';
+import { panCameraTo, DEFAULT_PAN_MS } from '../app/camera-control';
+import { reduceMotion } from '../app/motion';
 import './tokens.css'; // design tokens UXD-1 — à charger avant toute feuille
 import './interactions.css'; // micro-interactions & transitions UXD-7
 import './styles.css';
 
 export function mountUi(root: HTMLElement): void {
   render(<Shell />, root);
+}
+
+/**
+ * Raccourci « N » (lot X7) : sélectionne le prochain héros humain ayant encore
+ * des points de mouvement et recentre la caméra dessus. Cyclique depuis le héros
+ * sélectionné ; no-op s'il n'y a qu'un (ou zéro) héros mobile — utile surtout
+ * en multi-héros (U4). Présentation pure (pas de commande moteur).
+ */
+function selectNextHeroWithMoves(s: ReturnType<typeof appStore.getState>): void {
+  const withMoves = humanHeroes(s.game).filter((h) => h.movementPoints > 0);
+  if (withMoves.length === 0) return;
+  const currentId = resolveSelectedHero(s.game, s.selectedHeroId)?.id;
+  const idx = withMoves.findIndex((h) => h.id === currentId);
+  const next = withMoves[(idx + 1) % withMoves.length]!;
+  if (next.id === currentId) return; // déjà le seul héros mobile, déjà sélectionné
+  appStore.setState({ selectedHeroId: next.id });
+  void panCameraTo(next.pos.x, next.pos.y, reduceMotion() ? 0 : DEFAULT_PAN_MS);
 }
 
 function Shell() {
@@ -96,12 +116,21 @@ function Shell() {
       const s = appStore.getState();
       if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
       if (s.screen !== 'adventure' || s.game.combat || s.modals.length > 0 || s.pendingEndTurn) return;
+      // « ? » ouvre l'aide des raccourcis (X7) — `e.key` vaut '?' (Maj+/), avant
+      // le switch minuscule qui ne le verrait pas.
+      if (e.key === '?') {
+        openModal({ kind: 'shortcuts' });
+        return;
+      }
       switch (e.key.toLowerCase()) {
         case 'e':
           requestEndTurn();
           break;
         case 'h':
           window.dispatchEvent(new CustomEvent('heroes:toggle-drawer'));
+          break;
+        case 'n':
+          selectNextHeroWithMoves(s);
           break;
         case 't': {
           const town = humanTowns(s.game)[0];
@@ -130,6 +159,7 @@ function Shell() {
   const journalModal = modals.some((m) => m.kind === 'journal');
   const skirmishModal = modals.some((m) => m.kind === 'skirmish');
   const newgameModal = modals.some((m) => m.kind === 'newgame');
+  const shortcutsModal = modals.some((m) => m.kind === 'shortcuts');
 
   return (
     <>
@@ -171,6 +201,7 @@ function Shell() {
       {newgameModal && <NewGameScreen onClose={() => closeModalKind('newgame')} />}
       {townModal && <TownScreen townId={townModal.townId} onClose={() => closeModalKind('town')} />}
       {journalModal && <Journal onClose={() => closeModalKind('journal')} />}
+      {shortcutsModal && <ShortcutsOverlay onClose={() => closeModalKind('shortcuts')} />}
       {pendingSkillHero && <SkillChoice hero={pendingSkillHero} />}
       {/* Un seul choix forcé à la fois (pile ≤ 2, doc 08 §3) : l'attribut passe
           après la compétence si les deux sont en attente. */}
@@ -691,13 +722,19 @@ function TurnBar({ onOpenOptions }: { onOpenOptions: () => void }) {
             key={town.id}
             class="town-open"
             data-testid={`town-open-${town.id}`}
+            title={`${t('town.open')} (T)`}
             onClick={() => openModal({ kind: 'town', townId: town.id })}
           >
             <FactionBadge factionId={town.factionId} />
             {t('town.open')}
           </button>
         ))}
-        <button class="end-turn" data-testid="end-turn" onClick={requestEndTurn}>
+        <button
+          class="end-turn"
+          data-testid="end-turn"
+          title={`${t('turnBar.endTurn')} (E)`}
+          onClick={requestEndTurn}
+        >
           {t('turnBar.endTurn')}
         </button>
       </div>

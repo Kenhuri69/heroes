@@ -326,6 +326,22 @@ test('confort : raccourci E + garde-fou de fin de tour (doc 08, lot M8 C2/C12)',
   expect(errors).toEqual([]);
 });
 
+test('confort : « ? » ouvre l’aide des raccourcis, Échap la ferme (X7)', async ({ page }) => {
+  const errors = await openGame(page);
+
+  // Établit le focus clavier du document (cf. test raccourci E) : tap sur la
+  // tuile du héros (3,3) = no-op sans dépenser de PM.
+  const heroTile = await page.evaluate(() => window.__HEROES_TEST__!.tileToScreen(3, 3));
+  await page.mouse.click(heroTile.x, heroTile.y);
+
+  await page.keyboard.press('Shift+Slash'); // « ? »
+  await expect(page.getByTestId('shortcuts-panel')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByTestId('shortcuts-panel')).toHaveCount(0);
+
+  expect(errors).toEqual([]);
+});
+
 test('confort : option « réduire les animations » pose data-reduce-motion (lot M8 C3)', async ({
   page,
 }) => {

@@ -45,16 +45,30 @@ PW_CHROMIUM_PATH=$(ls /opt/pw-browsers/chromium*/chrome-linux/chrome | head -1) 
 ```
 
 Le script capture, pour **desktop (1280×800)** et **mobile (360×640 = Pixel 7
-portrait)**, aux **3 crans de police** :
-- `menu` — écran d'accueil
-- `adventure` — carte d'aventure (partie `?seed=42`)
-- `town` — écran de ville (bouton `town-open`)
-- `hero` — tiroir héros
-- `combat` — arène `/#arena` (combat immédiat)
+portrait)**, aux **3 crans de police** (l'état de chaque « flux » n'est préparé
+qu'une fois ; seuls les crans re-photographient) :
+- `menu` — écran d'accueil ; `newgame` — modale « Nouvelle partie » ;
+  `options` — modale Options ;
+- `adventure` / `town` / `hero` — partie `?seed=42` (chemin dev **test-faction**,
+  rapide ; le tiroir héros n'est basculé qu'en mobile — colonne permanente
+  ≥ 900 px) ;
+- `prebattle` / `combat` — arène `/#arena` (l'écran pré-combat est capturé puis
+  franchi via `pre-battle-fight`) ;
+- `market` / `guild` — onglets conditionnels de la ville (bâtiments construits
+  via le hook `__HEROES_TEST__.dispatch`, tours passés jusqu'au coût de la
+  guilde) ;
+- `adventure-real` / `town-real` / `hero-real` — **parcours joueur réel** :
+  menu → Nouvelle partie → faction **Haven**, petite carte, seed 42 (noms de
+  ville localisés, avatars peints — ce que `?seed=42` ne montre pas) ;
+- `handoff` — hot-seat 2 humains, passage d'appareil à la fin de tour ;
+- `quests` / `outcome` — scénario « survival » (journal de quêtes, puis victoire
+  par `surviveDays` via la même boucle déterministe que le smoke).
 
 Fichiers : `ux-captures/<écran>-<viewport>-font<1|2|3>.png`. Les inspecter à
-l'œil pour A5/A6, et lire les mesures A1 imprimées par le script (les cibles
-< 44 px sont listées en `WARN`).
+l'œil pour A5/A6, et lire les mesures A1 imprimées par le script — cibles
+< 44 px en `WARN`, **éléments interactifs seulement** (`button`, `a`,
+`[role="button"]`, `input`, `select`). Une étape en échec marque `FAIL`, saute
+la suite de son flux (`SKIP`) et met le code de sortie à 1.
 
 ## 3. Sortie de l'audit
 

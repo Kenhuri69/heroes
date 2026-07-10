@@ -13,6 +13,7 @@ import { back, closeModalKind, openModal, useModals, useScreen } from '../app/ro
 import { requestEndTurn, confirmPendingEndTurn, cancelPendingEndTurn } from '../app/end-turn';
 import { heroArchetype, humanHeroes, humanId, humanTowns, resolveSelectedHero } from '../app/game';
 import { RESOURCE_COLORS } from '../render/mapObjects';
+import { playerColor } from '../render/playerColors';
 import { heroAvatarUrl, resourceIconUrl } from '../render/assets';
 import { t, resolveUnitName } from '../app/i18n';
 import { AssetImg } from './AssetImg';
@@ -498,6 +499,56 @@ function ArmyBand() {
   );
 }
 
+/** Nom hexadécimal `#rrggbb` d'une couleur de joueur (pastille de l'indicateur). */
+function colorCss(value: number): string {
+  return `#${value.toString(16).padStart(6, '0')}`;
+}
+
+/**
+ * Indicateur de tour (UX multi-joueurs) : dit QUI agit, en permanence quand il y
+ * a plusieurs joueurs. Pendant les tours IA (`store.aiTurn`), affiche une barre
+ * de progression `done/total` des adversaires — le joueur voit que la partie
+ * n'est pas figée et suit l'avancée, tout en gardant la carte navigable (rien
+ * n'est bloqué). Sur le tour d'un humain (hot-seat), montre le joueur actif.
+ */
+function TurnIndicator() {
+  useApp((s) => s.locale);
+  const players = useApp((s) => s.game.players);
+  const currentPlayer = useApp((s) => s.game.currentPlayer);
+  const aiTurn = useApp((s) => s.aiTurn);
+  const active = players[currentPlayer];
+  if (aiTurn) {
+    const color = colorCss(playerColor(players, players[aiTurn.seat - 1]?.id ?? null));
+    const pct = aiTurn.total > 0 ? Math.round((aiTurn.done / aiTurn.total) * 100) : 0;
+    return (
+      <span class="turn-indicator turn-indicator--ai" data-testid="turn-indicator" role="status">
+        <span class="turn-dot" style={{ background: color }} aria-hidden="true" />
+        <span data-testid="ai-turn-label">{t('turn.aiPlaying', { n: aiTurn.seat })}</span>
+        <span class="gauge" aria-hidden="true">
+          <span class="gauge-fill" style={{ width: `${pct}%` }} />
+        </span>
+        <span class="turn-progress" data-testid="ai-progress">
+          {t('turn.progress', { done: aiTurn.done, total: aiTurn.total })}
+        </span>
+      </span>
+    );
+  }
+  // Hors tour IA : n'affiche le joueur actif que s'il y a plusieurs joueurs
+  // (en solo, « Joueur 1 » serait du bruit).
+  if (players.length < 2 || !active) return null;
+  const color = colorCss(playerColor(players, active.id));
+  return (
+    <span class="turn-indicator" data-testid="turn-indicator">
+      <span class="turn-dot" style={{ background: color }} aria-hidden="true" />
+      <span data-testid="active-player-label">
+        {active.controller === 'human'
+          ? t('turn.player', { n: currentPlayer + 1 })
+          : t('turn.aiPlaying', { n: currentPlayer + 1 })}
+      </span>
+    </span>
+  );
+}
+
 /** Jour/semaine, points de mouvement, sauvegarde et gros bouton fin de tour (doc 08 §2.1). */
 function TurnBar({ onOpenOptions }: { onOpenOptions: () => void }) {
   useApp((s) => s.locale);
@@ -515,6 +566,7 @@ function TurnBar({ onOpenOptions }: { onOpenOptions: () => void }) {
   return (
     <div class="turn-row">
       <div class="status-bar">
+        <TurnIndicator />
         <span data-testid="calendar">{t('turnBar.calendar', { day, week: weekOf(day) })}</span>
         {hero && config && (() => {
           // Jauge de PM (lot M6 C9) : restants / max du jour (doc 02 §1.5) —

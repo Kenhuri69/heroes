@@ -912,6 +912,57 @@ test('hot-seat : deux humains locaux alternent avec l’overlay de passage (Alph
   expect(errors).toEqual([]);
 });
 
+test('multi-joueurs : indicateur de tour + progression IA non bloquante', async ({ page }) => {
+  const errors = await openMenu(page);
+
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.startSkirmish({
+      humanFactionId: 'haven',
+      aiFactionId: 'necropolis',
+      difficulty: 'normal',
+    }),
+  );
+  await expect(page.getByTestId('end-turn')).toBeVisible();
+
+  // Tour de l'humain (partie à 2 joueurs) : l'indicateur nomme le joueur actif.
+  await expect(page.getByTestId('turn-indicator')).toBeVisible();
+  await expect(page.getByTestId('active-player-label')).toContainText('1');
+
+  // Fin de tour humain ⇒ l'IA joue sans figer l'UI : `dispatch` attend la boucle
+  // IA (qui cède la main au navigateur entre chaque tour), et pendant ce relais
+  // `store.aiTurn` porte la progression. On l'observe DE MANIÈRE DÉTERMINISTE via
+  // le store (pas de capture DOM chronométrée, non fiable pour un état transitoire) :
+  // au moins un état de progression IA est vu, avec un total ≥ 1.
+  const sawAi = await page.evaluate(async () => {
+    let seen: { seat: number; done: number; total: number } | null = null;
+    const unsub = window.__HEROES_TEST__!.subscribe(() => {
+      const ai = window.__HEROES_TEST__!.getAiTurn();
+      if (ai) seen = ai;
+    });
+    try {
+      await window.__HEROES_TEST__!.dispatch({ type: 'EndTurn', playerId: 'player-1' });
+    } finally {
+      unsub();
+    }
+    return seen as { seat: number; done: number; total: number } | null;
+  });
+  expect(sawAi).not.toBeNull();
+  expect(sawAi!.total).toBeGreaterThanOrEqual(1);
+
+  // Après le relais IA : la main revient au joueur 1, l'indicateur de progression a
+  // disparu, et l'indicateur nomme de nouveau le joueur actif.
+  const back = await page.evaluate(() => {
+    const s = window.__HEROES_TEST__!.getState();
+    return { id: s.players[s.currentPlayer]?.id, aiTurn: window.__HEROES_TEST__!.getAiTurn() };
+  });
+  expect(back.id).toBe('player-1');
+  expect(back.aiTurn).toBeNull();
+  await expect(page.getByTestId('ai-progress')).toHaveCount(0);
+  await expect(page.getByTestId('active-player-label')).toContainText('1');
+
+  expect(errors).toEqual([]);
+});
+
 test('sort d’aventure : Ville-portail téléporte le héros vers sa ville (Alpha 4.16)', async ({
   page,
 }) => {

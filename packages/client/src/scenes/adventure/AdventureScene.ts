@@ -7,12 +7,15 @@ import {
   samePos,
   stepCost,
   type EngineResult,
+  type GameState,
   type GridPos,
   type GuardianObjectDef,
   type HeroState,
 } from '@heroes/engine';
 import { appStore } from '../../app/store';
 import { dispatch } from '../../app/dispatch';
+import { panCameraTo, DEFAULT_PAN_MS } from '../../app/camera-control';
+import { reduceMotion } from '../../app/motion';
 import { humanId, humanHeroes, resolveSelectedHero } from '../../app/game';
 import type { Camera } from '../../render/camera';
 import { heroMapUrl } from '../../render/assets';
@@ -63,6 +66,13 @@ export class AdventureScene {
     .stroke({ width: 3, color: 0xf1c40f });
   private previewTarget: { target: GridPos; path: GridPos[] } | null = null;
   private animatingHeroId: string | null = null;
+  /**
+   * Dernier joueur humain sur lequel la caméra a été centrée (UX multi-joueurs) :
+   * quand le joueur humain actif change (hot-seat, retour d'un relais IA), on
+   * recentre la vue sur son héros. `null` avant le 1er centrage (fait par
+   * `ensureScenes`/`centerOnHero` à la construction) — évite un double centrage.
+   */
+  private lastCenteredHumanId: string | null = null;
   private destroyed = false;
   private readonly unsubscribeStore: () => void;
   private readonly unsubscribeTap: () => void;
@@ -203,6 +213,34 @@ export class AdventureScene {
       const a = isoAnchor(selected.pos.x, selected.pos.y);
       this.selectionRing.position.set(a.x, a.y);
     }
+
+    this.recenterOnActivePlayerChange(game);
+  }
+
+  /**
+   * Recentre la caméra sur le héros du joueur humain actif quand celui-ci change
+   * (UX multi-joueurs : hot-seat, ou retour à l'humain après un relais IA). En
+   * hot-seat on attend la validation du passage d'appareil (`turnAck`) pour ne
+   * pas dévoiler/centrer avant que le bon joueur soit devant l'écran. Le tout
+   * premier centrage est celui de `ensureScenes` (drapeau `null`), pour éviter un
+   * double recentrage au démarrage.
+   */
+  private recenterOnActivePlayerChange(game: GameState): void {
+    const active = game.players[game.currentPlayer];
+    const humans = game.players.filter((p) => p.controller === 'human');
+    const handoffPending =
+      humans.length >= 2 &&
+      active?.controller === 'human' &&
+      appStore.getState().turnAck !== active.id;
+    if (handoffPending) return; // le passage d'appareil n'est pas encore validé
+    const id = humanId(game);
+    if (id === this.lastCenteredHumanId) return;
+    const first = this.lastCenteredHumanId === null;
+    this.lastCenteredHumanId = id;
+    if (first) return; // centrage initial déjà assuré par `centerOnHero`
+    const hero = resolveSelectedHero(game, appStore.getState().selectedHeroId);
+    if (!hero) return;
+    void panCameraTo(hero.pos.x, hero.pos.y, reduceMotion() ? 0 : DEFAULT_PAN_MS);
   }
 
   /**
@@ -246,6 +284,10 @@ export class AdventureScene {
     const { game } = appStore.getState();
     // En combat, la scène de combat a la main — la carte ignore les taps.
     if (game.combat) return;
+    // Tour d'un adversaire (IA) en cours : les actions du héros humain sont
+    // ignorées (le moteur les rejetterait). La caméra (pan/zoom) reste libre —
+    // le joueur peut observer la carte pendant que l'IA joue.
+    if (game.players[game.currentPlayer]?.controller !== 'human') return;
     const { map, config } = game;
     const hero = resolveSelectedHero(game, appStore.getState().selectedHeroId);
     if (!map || !config || !hero) return;

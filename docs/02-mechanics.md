@@ -300,11 +300,11 @@ dégâts = Σ(dmg aléatoire min–max par créature de la pile)
 
 Le moteur expose un **catalogue de capacités génériques paramétrables** ; les unités les référencent par ID dans leurs données.
 
-> **État livré** : le catalogue réellement interprété par le moteur — `data/core/abilities.json` — compte **20 capacités** : `flying`, `shooter`, `noRetaliation`, `doubleAttack`, `undead`, `mark`, `consumeMarks`, `demonform`, `symbiosis`, `shieldWall`, `unlimitedRetaliation`, `charge`, `magicResistance` (autonome, plus seulement porté par `demonform`), `lifeDrain` (lot A2a), `incorporeal`, `strikeAndReturn` (lot A2b), `curseOnHit` (lot A2c), `aura`, `moraleImmune` (lot A3a), et `swarm` (lot A3b). Les capacités encore nommées dans les lineups mais **pas encore interprétées** (inertes en combat) : `taunt`, `firstStrike`, `spellcaster`, `areaAttack`, `breathAttack`, `poisonSting`, `resurrectAlly` — cible de design, activées par sous-lots ultérieurs (A2d/A3).
+> **État livré** : le catalogue réellement interprété par le moteur — `data/core/abilities.json` — compte **21 capacités** : `flying`, `shooter`, `noRetaliation`, `doubleAttack`, `undead`, `mark`, `consumeMarks`, `demonform`, `symbiosis`, `shieldWall`, `unlimitedRetaliation`, `charge`, `magicResistance` (autonome, plus seulement porté par `demonform`), `lifeDrain` (lot A2a), `incorporeal`, `strikeAndReturn` (lot A2b), `curseOnHit` (lot A2c), `aura`, `moraleImmune` (lot A3a), `swarm` (lot A3b), et `areaAttack` (lot A3c). Les capacités encore nommées dans les lineups mais **pas encore interprétées** (inertes en combat) : `taunt`, `firstStrike`, `spellcaster`, `breathAttack`, `poisonSting`, `resurrectAlly` — cible de design, activées par sous-lots ultérieurs (A2d/A3).
 
 Une faction qui a besoin d'une capacité **réellement nouvelle** l'obtient en ouvrant **un** point d'extension **générique** du moteur, interprété depuis les données (cf. doc 06 §4) — jamais un module propre à une faction. C'est ainsi que `consumeMarks`/`demonform`/`symbiosis` ont été livrées.
 
-Sémantique des **20 capacités** du catalogue (valeurs de départ) :
+Sémantique des **21 capacités** du catalogue (valeurs de départ) :
 
 | Capacité | Effet implémenté |
 |---|---|
@@ -328,6 +328,7 @@ Sémantique des **20 capacités** du catalogue (valeurs de départ) :
 | `aura(moraleMod)` | A3a : une pile portant l'aura module le moral des piles **adverses** vivantes (ex. Dragon d'os −1) — portée totale du champ |
 | `moraleImmune` | A3a : immunité au moral **négatif** (plancher 0) — le moral positif reste possible (ex. Ange) |
 | `swarm(bonus, minAllies)` | A3b : +`bonus` de dégâts **par créature** quand au moins `minAllies` autres piles alliées de l'attaquant sont adjacentes à la cible (tactique de meute — Élève, Chœur) |
+| `areaAttack(pct, sparesUndead?)` | A3c : une frappe volontaire éclabousse les piles **ennemies adjacentes à la cible** de `pct` des dégâts (sans riposte ; épargne les morts-vivants si `sparesUndead`) — nuage de la Liche |
 
 ### 5.5 Fin de combat & auto-résolution
 

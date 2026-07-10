@@ -153,8 +153,8 @@ Familles, par mécanique moteur commune :
   charges) — Prêtresse soin ×2 (doc 03 §3), Bibliothécaire Entrave/Silence ×2
   (doc 05 §4), Maître de Sortilèges (doc 16 §4), Avatar barrière (doc 16 §4).
   Réutilise le pipeline `CastSpell`. Effort : M.
-- **CAP-LIFE — Cycle de vie** 🧩 (A3b : `swarm` **livré** ; `resurrectAlly`,
-  renaissance, `devourMarks` → A3) : `resurrectAlly` 1× (Ange, doc 03 §3),
+- **CAP-LIFE — Cycle de vie** 🧩 (A3b : `swarm` **livré** ; A2d : `devourMarks`
+  **livré** ; `resurrectAlly`, renaissance → A3) : `resurrectAlly` 1× (Ange, doc 03 §3),
   renaissance (Phénix, doc 16 §4/§7), `swarm` (+dégâts ∝ effectif — Élève AH
   doc 05 §4, Chœur Vox doc 16 §4), `devourMarks` (Pénitent, doc 05 §4).
   Effort : M.
@@ -718,4 +718,14 @@ si nouvel écran), bump `CURRENT_SAVE_VERSION` si la forme de sauvegarde change
   (446 engine +3 `combat-area`, 101 content), typecheck 5/5, lint, content:check,
   golden **inchangé**, bundle < 800 Ko gzip. Restent : `firstStrike`,
   `poisonSting`, `taunt`, `breathAttack` (souffle/cône), `spellcaster`, peur,
-  `resurrectAlly`/renaissance/`devourMarks`. PR draft : (à créer, sur main).
+  `resurrectAlly`/renaissance/`devourMarks`. **PR #199 (mergée)**.
+- **2026-07-10 — Lot A2d** (`.claude/plans/a2d-devour-marks.md`, branche
+  `claude/a2d-devour-marks` depuis main, qui porte aussi le travail parallèle :
+  héros nommés/spécialités save v16, cloud saves, blasons) : **livré**. Capacité
+  `devourMarks(perMark, healPerMark)` (catalogue 21 → 22) : le Pénitent dévore
+  toutes les Marques du champ (+2 %/charge de dégâts, se soigne 2 PV/charge).
+  **Pas de bump save** (réutilise Marques + soin). Garde-fou zéro faction vert.
+  Vérifs : `pnpm test` complet (448 engine +2 `combat-devour`, 101 content),
+  typecheck 5/5, lint, content:check, golden **inchangé**, bundle < 800 Ko gzip.
+  Restent (capacités) : `firstStrike`, `poisonSting`, `taunt`, `breathAttack`,
+  `spellcaster`, peur, `resurrectAlly`/renaissance. PR draft : (à créer, sur main).

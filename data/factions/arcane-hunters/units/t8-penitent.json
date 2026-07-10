@@ -8,6 +8,7 @@
   "cost": { "gold": 3800, "gems": 3, "essence": 40 },
   "abilities": [
     { "id": "mark" },
-    { "id": "demonform", "params": { "damageBonus": 0.5, "magicResistance": 0.5 } }
+    { "id": "demonform", "params": { "damageBonus": 0.5, "magicResistance": 0.5 } },
+    { "id": "devourMarks", "params": { "perMark": 0.02, "healPerMark": 2 } }
   ]
 }

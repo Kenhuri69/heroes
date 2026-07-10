@@ -128,6 +128,21 @@ export function incorporealDodge(def: CombatUnitDef): number {
   return ability ? Number(ability.params?.['dodge'] ?? 0) : 0;
 }
 
+/** Paramètres de `devourMarks` (Pénitent doc 05 §4, A2d) d'une unité, ou `null`. */
+export function devourMarksParams(def: CombatUnitDef): { perMark: number; healPerMark: number } | null {
+  const ability = def.abilities.find((a) => a.id === 'devourMarks');
+  if (!ability) return null;
+  return {
+    perMark: Number(ability.params?.['perMark'] ?? 0),
+    healPerMark: Number(ability.params?.['healPerMark'] ?? 0),
+  };
+}
+
+/** Total de charges de Marque présentes sur tout le champ de bataille. */
+function totalMarksOnField(combat: CombatState): number {
+  return combat.stacks.reduce((sum, s) => sum + s.marks, 0);
+}
+
 /** Paramètres de `areaAttack` (Liche nuage doc 04 §3, A3c) d'une unité, ou `null`. */
 export function areaAttackParams(def: CombatUnitDef): { pct: number; sparesUndead: boolean } | null {
   const ability = def.abilities.find((a) => a.id === 'areaAttack');
@@ -368,6 +383,13 @@ export function performStrike(
   // frappe VOLONTAIRE, jamais en riposte — sinon un défenseur marqué consommait
   // ses propres charges en ripostant.
   const consume = retaliation ? null : consumeMarksPlan(strikerDef, victim.marks);
+  // `devourMarks` (Pénitent, doc 05 §4, A2d) : sur une frappe VOLONTAIRE, dévore
+  // TOUTES les charges de Marque du champ de bataille — +perMark/charge de dégâts
+  // sur cette attaque, puis se soigne. Bonus cumulé au canal `markConsumeBonus`
+  // (un même unité ne porte pas consumeMarks ET devourMarks).
+  const devour = retaliation || !combat ? null : devourMarksParams(strikerDef);
+  const devouredMarks = devour && combat ? totalMarksOnField(combat) : 0;
+  const devourBonus = devour ? devouredMarks * devour.perMark : 0;
   // `demonform` (doc 05 §4) : bascule en forme démon à la 1ʳᵉ attaque, puis
   // toutes ses frappes gagnent le bonus (et la résistance à la magie est perdue).
   const demon = demonformParams(strikerDef);
@@ -385,7 +407,7 @@ export function performStrike(
     rules,
     heroDamagePct,
     heroArmorPct: heroArmor,
-    markConsumeBonus: consume?.damageBonus ?? 0,
+    markConsumeBonus: (consume?.damageBonus ?? 0) + devourBonus,
     demonBonus: demon && striker.transformed ? demon.damageBonus : 0,
     // `shieldWall` (A2a) : le défenseur qui Défend a un multiplicateur propre.
     defendMultiplier: shieldWallMultiplier(victimDef) ?? rules.defendDefenseMultiplier,
@@ -534,6 +556,28 @@ export function performStrike(
     }
   }
 
+  // `devourMarks` (Pénitent, doc 05 §4, A2d) : le bonus de dégâts a déjà été
+  // appliqué (via `mult`) ; on dévore désormais toutes les Marques du champ et le
+  // striker se soigne de `healPerMark` par charge — même plafond que `lifeDrain`.
+  if (devour && combat && devouredMarks > 0 && striker.count > 0) {
+    for (const s of combat.stacks) s.marks = 0;
+    events.push({ type: 'MarksDevoured', strikerId: striker.id, consumed: devouredMarks });
+    const heal = devouredMarks * devour.healPerMark;
+    if (heal > 0) {
+      const strikerPool = (striker.count - 1) * strikerDef.stats.hp + striker.firstHp;
+      const lostSoFar =
+        collectCasualties(combat).find((c) => c.side === striker.side && c.unitId === striker.unitId)?.lost ?? 0;
+      const maxCount = striker.count + lostSoFar;
+      const newPool = Math.min(maxCount * strikerDef.stats.hp, strikerPool + heal);
+      if (newPool > strikerPool) {
+        const nc = Math.min(maxCount, Math.max(1, Math.ceil(newPool / strikerDef.stats.hp)));
+        striker.count = nc;
+        striker.firstHp = newPool - (nc - 1) * strikerDef.stats.hp;
+        events.push({ type: 'StackHealed', stackId: striker.id, amount: newPool - strikerPool });
+      }
+    }
+  }
+
   // `curseOnHit` (Zombie/Cavalier funeste, doc 04 §3, A2c) : une frappe qui touche
   // (non esquivée, cible survivante — volontaire OU riposte) a une chance
   // d'appliquer/rafraîchir un statut sur la cible. Le jet est gated sur la
@@ -626,7 +670,10 @@ export function estimateDamage(
     rules,
     heroDamagePct,
     heroArmorPct: heroArmor,
-    markConsumeBonus: consumeMarksPlan(attackerDef, target.marks)?.damageBonus ?? 0,
+    // `devourMarks` (A2d) : bonus = total des Marques du champ × perMark (préviz).
+    markConsumeBonus:
+      (consumeMarksPlan(attackerDef, target.marks)?.damageBonus ?? 0) +
+      (devourMarksParams(attackerDef) ? totalMarksOnField(combat) * (devourMarksParams(attackerDef) as { perMark: number }).perMark : 0),
     // `demonform` : la frappe transforme l'attaquant s'il ne l'est pas déjà, donc
     // la prévisualisation reflète toujours le bonus de la forme démon.
     demonBonus: demonformParams(attackerDef)?.damageBonus ?? 0,

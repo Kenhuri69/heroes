@@ -67,7 +67,7 @@
       content 96 ✅, `content:check` ✅, garde-fou couleurs ✅, build ~278 Ko
       gzip JS/CSS ✅, **suite smoke 134 passed / 2 skipped** ✅.
 - [x] MàJ `ux-d5-gestion.md` + `ux-design-overhaul.md` §6 (UXD-5 → livré).
-- [ ] Commit + push + PR draft.
+- [x] Commit + push + PR draft.
 
 ## Journal
 - **2026-07-09** — Cadrage : recherche faite (schéma/loader/type/données/client/

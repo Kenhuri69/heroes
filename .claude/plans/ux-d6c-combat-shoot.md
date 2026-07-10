@@ -33,7 +33,7 @@
 - [x] Vérif : typecheck ✅, lint ✅, tests moteur 401 (**golden inchangé** —
       confirme que l'événement n'entre pas dans l'état haché) ✅, content 96 ✅,
       content:check ✅, build ~278 Ko gzip ✅, **smoke 134 passed / 2 skipped** ✅.
-- [ ] Commit + push + PR draft.
+- [x] Commit + push + PR draft.
 
 ## Invariants
 

@@ -46,4 +46,4 @@
       2 skipped** — seul échec = flaky pré-existant `raccourci E` (chemin
       clavier/fin-de-tour non touché ; snapshot d'échec = écran sain ; tous les
       tests de modales verts ; rejoué 2× en CI).
-- [ ] Commit + push + PR.
+- [x] Commit + push + PR.

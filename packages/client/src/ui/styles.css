@@ -338,6 +338,53 @@
   max-width: 120px;
 }
 
+/* Indicateur de tour (UX multi-joueurs) : qui agit + progression IA. Hérite du
+   `pointer-events:none` de `.status-bar` — n'intercepte pas les gestes de carte. */
+.turn-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+}
+
+.turn-indicator .gauge {
+  margin: 0;
+  width: 72px;
+}
+
+.turn-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid var(--shadow-ink);
+  flex: none;
+}
+
+.turn-progress {
+  font-variant-numeric: tabular-nums;
+  opacity: 0.85;
+}
+
+/* Tour IA : léger battement pour signaler l'activité (coupé en reduce-motion). */
+.turn-indicator--ai .turn-dot {
+  animation: turn-dot-pulse 1s ease-in-out infinite;
+}
+
+@keyframes turn-dot-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+:root[data-reduce-motion='true'] .turn-indicator--ai .turn-dot {
+  animation: none;
+}
+
 .hero-attributes {
   display: grid;
   grid-template-columns: 1fr 1fr;

@@ -156,6 +156,14 @@ export interface AppState {
    * palette (remis à zéro au retour menu ; les autres modes ne la posent pas).
    */
   playerColors: Record<string, number>;
+  /**
+   * Progression des tours IA (UX multi-joueurs) : posée par `runAiLoop` pendant
+   * qu'un ou plusieurs joueurs IA jouent, `null` sinon. `seat` = n° (1-based) du
+   * joueur IA en train d'agir ; `done`/`total` = tours IA joués / à jouer sur ce
+   * relais. Purement présentation (non persistée) : alimente l'indicateur de tour
+   * et évite l'impression de gel pendant que l'IA calcule.
+   */
+  aiTurn: { seat: number; done: number; total: number } | null;
 }
 
 export const appStore = createStore<AppState>(() => ({
@@ -198,6 +206,7 @@ export const appStore = createStore<AppState>(() => ({
   pendingEndTurn: null,
   loading: null,
   playerColors: {},
+  aiTurn: null,
 }));
 
 /** Hook Preact : re-rend quand la valeur sélectionnée change (égalité stricte). */

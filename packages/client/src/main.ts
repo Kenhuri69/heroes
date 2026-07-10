@@ -65,6 +65,10 @@ declare global {
       startCampaignChapter: (campaignId: string, chapterIndex: number) => Promise<void>;
       /** Drapeaux de campagne posés par les choix de dialogue (couverture smoke N3c.2). */
       campaignFlags: () => Record<string, boolean>;
+      /** Progression des tours IA (UX multi-joueurs) — non-null pendant qu'une IA joue. */
+      getAiTurn: () => { seat: number; done: number; total: number } | null;
+      /** Abonnement au store (couverture smoke) : observe l'état d'UI transitoire (ex. `aiTurn`). */
+      subscribe: (cb: () => void) => () => void;
     };
   }
 }
@@ -370,6 +374,8 @@ async function bootstrap(): Promise<void> {
     startCampaignChapter: (campaignId, chapterIndex) =>
       startChapter(campaignId, chapterIndex, TEST_SCENARIO_SEED),
     campaignFlags,
+    getAiTurn: () => appStore.getState().aiTurn,
+    subscribe: (cb) => appStore.subscribe(cb),
   };
   window.__HEROES_READY__ = true; // signal pour le smoke test headless
 }

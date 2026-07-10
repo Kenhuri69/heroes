@@ -246,6 +246,18 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > de signature (barrière Honmoon T8, peur Sombral, renaissance Phénix), Résonance
 > intra-combat, unités élites, **identité** des héros nommés (système moteur non
 > ouvert). Golden inchangé côté 16.4/16.5/16.6 (données hors replay inline).
+>
+> 🎛️ **UX multi-joueurs — passage de tour & tours IA** (plan `.claude/plans/
+> multiplayer-ux-issues.md`, doc 08). Trois correctifs **client uniquement** (zéro
+> diff moteur, pas de bump `CURRENT_SAVE_VERSION`) : (1) **recentrage caméra** sur le
+> héros du joueur humain actif à chaque changement de main (hot-seat / retour d'un
+> relais IA), après validation du passage d'appareil ; (2) **tours IA non bloquants**
+> — `runAiLoop` devient asynchrone et cède la main au navigateur (rAF + court délai,
+> coupé en *reduce-motion*) entre chaque tour, `dispatch` l'`await` (contrat des tests
+> préservé) : fini l'écran figé, la carte reste navigable, les actions humaines sont
+> ignorées tant que l'IA joue ; (3) **indicateur de tour** dans la barre (`TurnIndicator`,
+> `store.aiTurn`) — joueur actif (pastille couleur + n°) et barre de progression
+> `done/total` des adversaires IA. Smoke étendu.
 
 ---
 

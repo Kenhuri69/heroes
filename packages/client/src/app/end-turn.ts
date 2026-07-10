@@ -19,6 +19,9 @@ function anyHumanHeroUnmoved(game: GameState): boolean {
 
 export function requestEndTurn(): void {
   const { game, confirmEndTurn } = appStore.getState();
+  // Tour d'un adversaire (IA) en cours : la fin de tour n'appartient pas à
+  // l'humain — on ignore (le moteur la rejetterait ; on évite un toast d'erreur).
+  if (game.players[game.currentPlayer]?.controller !== 'human') return;
   const playerId = humanId(game);
   if (confirmEndTurn && anyHumanHeroUnmoved(game)) {
     appStore.setState({ pendingEndTurn: { playerId } });

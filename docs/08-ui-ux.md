@@ -249,6 +249,21 @@ Menu principal (Continuer / Scénarios / Escarmouche / **Éditeur de carte** / O
 > Défaite (centré sur soi). **Aucun code moteur** : la boucle de tours IA s'arrête
 > déjà sur chaque joueur humain. > 2 joueurs / équipes = raffinement ultérieur.
 
+> 🚧 **État (UX multi-joueurs — passage de tour & tours IA)** : trois correctifs
+> client (zéro moteur, pas de bump save). (1) **Recentrage caméra** : au changement
+> de joueur humain actif (hot-seat, ou retour à l'humain après un relais IA), la vue
+> se recentre en douceur (`panCameraTo`) sur le héros du nouveau joueur — en hot-seat
+> après validation du « passez l'appareil ». (2) **Tours IA non bloquants** : la
+> boucle de pilotage IA (`runAiLoop`) cède la main au navigateur (`requestAnimationFrame`
+> + court délai, coupé en *reduce-motion*) entre chaque tour au lieu de tourner en
+> synchrone — plus de gel/écran figé pendant que les adversaires jouent ; la carte
+> reste **navigable** (pan/zoom) pendant ce temps, les actions du héros humain étant
+> ignorées (le moteur les rejetterait). (3) **Indicateur de tour** dans la barre :
+> nomme le **joueur actif** (pastille de couleur + n°, dès qu'il y a ≥ 2 joueurs) et,
+> pendant les tours IA, affiche une **barre de progression** `done/total` des
+> adversaires — le joueur sait qui agit et voit l'avancée (choix « liberté de naviguer
+> **et** taux de progression »).
+
 > 🚧 **État (éditeur de carte, Alpha 4.18)** : écran `editor` (route de base, bouton
 > menu ou `#editor`) — outil **interne minimal** pour accélérer la prod de contenu.
 > Grille **DOM** peinte au clic (4 terrains grass/swamp/water/mountain, cibles

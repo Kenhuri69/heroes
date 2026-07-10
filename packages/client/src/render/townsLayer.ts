@@ -68,7 +68,10 @@ function buildKeep(factionId: string, owned: boolean, ownerColor: number): Conta
       node.removeChild(fallback);
       fallback.destroy({ children: true });
       const sprite = new Sprite(texture);
-      sprite.anchor.set(0.5);
+      // Base CENTRÉE (comme le héros et les props de relief) : le château REPOSE sur
+      // le sol de sa case au lieu d'être centré dessus — ancré au centre, à 1,35 tuile
+      // il débordait de part et d'autre du losange et paraissait « entre quatre cases ».
+      sprite.anchor.set(0.5, 1);
       const scale = (TILE_SIZE * 1.35) / Math.max(texture.width, texture.height);
       sprite.scale.set(scale);
       sprite.position.set(TILE_SIZE / 2, TILE_SIZE / 2);

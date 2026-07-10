@@ -1,4 +1,4 @@
-# Planche — avatars de héros (archétypes par faction)
+# Planche — avatars de héros (archétypes par faction) — planche 1/2
 
 > Générée par `tools/assets/gen_prompts.py` — ne pas éditer à la main.
 > Règle B (bustes painterly 256²) de `docs/12-assets-style-guide.md`. Grille **4×2**,
@@ -7,7 +7,7 @@
 ## Prompt (à coller dans Gemini — Nano Banana/Copilot en repli)
 
 ```
-Portrait sheet, 6 heroic fantasy bust portraits in a 4x2 grid,
+Portrait sheet, 8 heroic fantasy bust portraits in a 4x2 grid,
 painterly digital painting (Heroes of Might and Magic style), NOT photorealistic,
 bust shot, 3/4 face turn, determined expression,
 warm key light upper-left, cool rim light,
@@ -21,6 +21,8 @@ cell 3: a battle-hardened might hero, armored commander of the arcane-hunters fa
 cell 4: a wise magic hero, robed spellcaster of the arcane-hunters faction — midnight blue and arcane violet, silver trim, glowing cyan runes, hunter gear
 cell 5: a battle-hardened might hero, armored commander of the necropolis faction — bone white, ash grey and black, necrotic green glow, tattered cloth, spectral mist
 cell 6: a wise magic hero, robed spellcaster of the necropolis faction — bone white, ash grey and black, necrotic green glow, tattered cloth, spectral mist
+cell 7: a battle-hardened might hero, armored commander of the sylvan-court faction — muted heroic fantasy palette matching the faction lore
+cell 8: a wise magic hero, robed spellcaster of the sylvan-court faction — muted heroic fantasy palette matching the faction lore
 flat uniform light grey background (#c8c8c8), no ground shadow,
 no text, no watermark, no signature, no border frame, no ground line, no decorative sparkles, no star glints, no lens flare
 ```
@@ -30,8 +32,8 @@ no text, no watermark, no signature, no border frame, no ground line, no decorat
 ```bash
 python3 tools/assets/sheet_extract.py <planche.png> \
   --cols 4 --rows 2 --side 256 \
-  --ids haven-might,haven-magic,arcane-hunters-might,arcane-hunters-magic,necropolis-might,necropolis-magic \
-  --out assets/raster_src --qc /tmp/qc-hero-avatars.png
+  --ids haven-might,haven-magic,arcane-hunters-might,arcane-hunters-magic,necropolis-might,necropolis-magic,sylvan-court-might,sylvan-court-magic \
+  --out assets/raster_src --qc /tmp/qc-hero-avatars-p1.png
 ```
 
 Puis copier les PNG validés de `assets/raster_src/` vers `assets/heroes/`.

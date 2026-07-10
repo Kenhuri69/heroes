@@ -43,6 +43,26 @@ atmospheric depth, volumetric light,
 no text, no watermark, no signature, no border frame, no decorative sparkles, no star glints, no lens flare
 ```
 
+## town-sylvan-court
+
+```
+Epic painterly fantasy cityscape of a sylvan-court faction stronghold, muted heroic fantasy palette matching the faction lore, Heroes of Might and Magic concept art,
+wide 16:9 composition (1920x1080), focal point upper-center,
+darker vignetted edges, lower third kept simple for UI overlay,
+atmospheric depth, volumetric light,
+no text, no watermark, no signature, no border frame, no decorative sparkles, no star glints, no lens flare
+```
+
+## town-vox-arcana
+
+```
+Epic painterly fantasy cityscape of a vox-arcana faction stronghold, black gothic stone with silver/gold filigree, electric cyan and neon magenta, wisteria violet, Korean oni/pagoda accents, concert neon lanterns, Heroes of Might and Magic concept art,
+wide 16:9 composition (1920x1080), focal point upper-center,
+darker vignetted edges, lower third kept simple for UI overlay,
+atmospheric depth, volumetric light,
+no text, no watermark, no signature, no border frame, no decorative sparkles, no star glints, no lens flare
+```
+
 ## combat-grass
 
 ```
@@ -53,10 +73,70 @@ atmospheric depth, volumetric light,
 no text, no watermark, no signature, no border frame, no decorative sparkles, no star glints, no lens flare
 ```
 
+## combat-dirt
+
+```
+Epic painterly fantasy battlefield clearing on dirt terrain seen from a slight elevation, open ground in the middle for a battle, Heroes of Might and Magic concept art,
+wide 16:9 composition (1920x1080), focal point upper-center,
+darker vignetted edges, lower third kept simple for UI overlay,
+atmospheric depth, volumetric light,
+no text, no watermark, no signature, no border frame, no decorative sparkles, no star glints, no lens flare
+```
+
+## combat-sand
+
+```
+Epic painterly fantasy battlefield clearing on sand terrain seen from a slight elevation, open ground in the middle for a battle, Heroes of Might and Magic concept art,
+wide 16:9 composition (1920x1080), focal point upper-center,
+darker vignetted edges, lower third kept simple for UI overlay,
+atmospheric depth, volumetric light,
+no text, no watermark, no signature, no border frame, no decorative sparkles, no star glints, no lens flare
+```
+
+## combat-forest
+
+```
+Epic painterly fantasy battlefield clearing on forest terrain seen from a slight elevation, open ground in the middle for a battle, Heroes of Might and Magic concept art,
+wide 16:9 composition (1920x1080), focal point upper-center,
+darker vignetted edges, lower third kept simple for UI overlay,
+atmospheric depth, volumetric light,
+no text, no watermark, no signature, no border frame, no decorative sparkles, no star glints, no lens flare
+```
+
+## combat-rough
+
+```
+Epic painterly fantasy battlefield clearing on rough terrain seen from a slight elevation, open ground in the middle for a battle, Heroes of Might and Magic concept art,
+wide 16:9 composition (1920x1080), focal point upper-center,
+darker vignetted edges, lower third kept simple for UI overlay,
+atmospheric depth, volumetric light,
+no text, no watermark, no signature, no border frame, no decorative sparkles, no star glints, no lens flare
+```
+
+## combat-snow
+
+```
+Epic painterly fantasy battlefield clearing on snow terrain seen from a slight elevation, open ground in the middle for a battle, Heroes of Might and Magic concept art,
+wide 16:9 composition (1920x1080), focal point upper-center,
+darker vignetted edges, lower third kept simple for UI overlay,
+atmospheric depth, volumetric light,
+no text, no watermark, no signature, no border frame, no decorative sparkles, no star glints, no lens flare
+```
+
 ## combat-swamp
 
 ```
 Epic painterly fantasy battlefield clearing on swamp terrain seen from a slight elevation, open ground in the middle for a battle, Heroes of Might and Magic concept art,
+wide 16:9 composition (1920x1080), focal point upper-center,
+darker vignetted edges, lower third kept simple for UI overlay,
+atmospheric depth, volumetric light,
+no text, no watermark, no signature, no border frame, no decorative sparkles, no star glints, no lens flare
+```
+
+## combat-river
+
+```
+Epic painterly fantasy battlefield clearing on river terrain seen from a slight elevation, open ground in the middle for a battle, Heroes of Might and Magic concept art,
 wide 16:9 composition (1920x1080), focal point upper-center,
 darker vignetted edges, lower third kept simple for UI overlay,
 atmospheric depth, volumetric light,

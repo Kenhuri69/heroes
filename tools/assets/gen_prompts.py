@@ -464,6 +464,73 @@ def map_props_sheets() -> dict[str, str]:
     )
 
 
+def map_bonus_places_sheets() -> dict[str, str]:
+    """Lieux de bonus visitables (règle C, fond gris clair) — un visuel PAR
+    NATURE d'effet (doc 02 §2.2). Distingue l'écurie (mouvement), la tour de
+    guet (vision), le moulin (ressource) et la fontaine (chance), aujourd'hui
+    rendus par un panneau/autel générique. Le sanctuaire `levelXp` garde
+    `shrine` (planche `map-props`). Convention : `assets/map/<place>.png`.
+    """
+    PLACES = [
+        ("fountain", "an ornate stone fountain with clear flowing water and a "
+                     "soft blessing aura, a place granting good luck"),
+        ("stable", "a wooden horse stable with a fenced paddock, hay bales and a "
+                   "saddled horse, a place granting swift travel"),
+        ("watchtower", "a tall slender stone watchtower with a lit lantern at its "
+                       "top, a lookout that extends sight over the land"),
+        ("mill", "a rustic water mill with a turning wooden wheel beside a small "
+                 "stream, a place that produces resources"),
+    ]
+    return _sheets(
+        slug="map-bonus-places",
+        title="lieux de bonus de la carte (fontaine, écurie, tour de guet, moulin)",
+        rule="C (planche de vignettes, fond gris clair plat)",
+        ids=[p[0] for p in PLACES],
+        cells=[p[1] for p in PLACES],
+        subject_fmt="Item sheet, {n} fantasy map bonus locations",
+        style_lines=[
+            "digital painting, painterly MTG illustration quality,",
+            "rich material detail (stone, timber, iron, water, cloth),",
+            "soft directional light from upper-left,",
+            "readable as a small map icon at 64px tall,",
+        ],
+        dest="assets/map/",
+    )
+
+
+def map_dwellings_sheets() -> dict[str, str]:
+    """Camps d'habitation hors ville PAR FACTION (règle C, fond gris clair) —
+    architecture teintée à la faction de la créature recrutable (doc 02 §2.2).
+    Le client retombe sur le camp générique (`camp`) si le camp de faction
+    manque. Convention : `assets/map/camp-<faction>.png`.
+    """
+    factions = [f for f in _load(DATA / "factions" / "index.json")["factions"]
+                if f != "test-faction"]
+    ids, cells = [], []
+    for fid in factions:
+        palette = PALETTES.get(fid, DEFAULT_PALETTE)
+        ids.append(f"camp-{fid}")
+        cells.append(
+            f"a creature dwelling war-camp with {fid} faction architecture "
+            f"identity: {palette} — a peaked tent with a pennant, a carved totem "
+            f"and a low campfire")
+    return _sheets(
+        slug="map-dwellings",
+        title="camps d'habitation par faction",
+        rule="C (planche de vignettes, fond gris clair plat)",
+        ids=ids,
+        cells=cells,
+        subject_fmt="Item sheet, {n} fantasy creature dwelling war-camps",
+        style_lines=[
+            "digital painting, painterly MTG illustration quality,",
+            "rich material detail (timber, hide, iron, cloth),",
+            "soft directional light from upper-left,",
+            "readable as a small map icon at 64px tall,",
+        ],
+        dest="assets/map/",
+    )
+
+
 def singles_files() -> dict[str, str]:
     """Pièces uniques (règles D/E) : fonds d'ambiance + logo."""
     factions = [f for f in _load(DATA / "factions" / "index.json")["factions"]
@@ -528,6 +595,8 @@ def main() -> None:
     files.update(hero_avatars_sheet())
     files.update(map_heroes_sheet())
     files.update(map_props_sheets())
+    files.update(map_bonus_places_sheets())
+    files.update(map_dwellings_sheets())
     files.update(singles_files())
     for name, content in sorted(files.items()):
         (OUT / name).write_text(content)

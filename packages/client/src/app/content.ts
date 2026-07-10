@@ -77,6 +77,7 @@ export async function resolveGeneratedMap(
   const generated = generateMap('random', seed, {
     guardianUnits: [...units],
     unitTiers: knownUnitTiers(report),
+    artifactIds: [...knownArtifactIds(report)],
     ...opts,
   });
   const readJson: ReadJson = (path) =>

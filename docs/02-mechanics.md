@@ -153,6 +153,20 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 > forts vers le centre. Générique et faction-agnostique (aucun cas particulier
 > de faction).
 
+> **Panel & progression d'objets (cartes générées)** : `generateMap` peuple la
+> carte de toutes les catégories du §2.2, pas seulement des tas de ressources et
+> des gardiens. Chaque partie propose un **panel varié** — ressources, mines,
+> **coffres** (montants gradués par la profondeur, jusqu'à ×2 au centre), **lieux
+> de bonus** tirés en rotation dans les cinq sortes (fontaine `luck`, **écurie
+> `movement`**, tour de guet `vision`, sanctuaire `levelXp`, moulin `resource`),
+> **habitations** (`dwelling`, tier de l'unité gradué par la profondeur) et
+> **artefacts** au sol. La **progression** suit la même profondeur que les
+> gardiens : les récompenses premium (habitations de haut tier, artefacts) sont
+> posées loin des départs et **gardées** par une sentinelle (`guardian` adjacent,
+> force graduée). Densité mise à l'échelle par l'aire et le réglage bas/riche.
+> Zéro diff moteur : tout passe par des objets déjà interprétés (`data/maps/`),
+> `generateMap` ne fait que les instancier.
+
 ### 2.3 Temps
 
 - **Jour** = 1 tour de chaque joueur. **Semaine** = 7 jours → croissance des créatures dans villes/habitations. **Mois** = 4 semaines (événements type « semaine de la peste » : post-MVP).

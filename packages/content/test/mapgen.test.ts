@@ -166,6 +166,48 @@ describe('generateMap', () => {
     expect(anyRiver).toBe(true);
   });
 
+  it('pose des lieux de bonus variés (fontaine/écurie/tour/sanctuaire/moulin)', () => {
+    // Grande carte pour dépasser le seuil de rotation des 5 sortes.
+    const map = generateMap('r', 77, { width: 48, height: 48 });
+    const kinds = new Set(
+      map.objects.filter((o) => o.type === 'visitable').map((o) => (o as { effect: { kind: string } }).effect.kind),
+    );
+    // Au moins l'écurie (mouvement) demandée, plus plusieurs autres sortes.
+    expect(kinds.has('movement')).toBe(true);
+    expect(kinds.size).toBeGreaterThanOrEqual(3);
+  });
+
+  it('pose des artefacts (si palette) gardés par une sentinelle en profondeur', () => {
+    const map = generateMap('r', 88, {
+      width: 40,
+      height: 40,
+      guardianUnits: ['t1-guard'],
+      artifactIds: ['trefle-chance', 'lame-aiguisee'],
+    });
+    const artifacts = map.objects.filter((o) => o.type === 'artifact');
+    expect(artifacts.length).toBeGreaterThanOrEqual(1);
+    // Chaque artefact utilise un id de la palette.
+    for (const a of artifacts) expect(['trefle-chance', 'lame-aiguisee']).toContain((a as { artifactId: string }).artifactId);
+    // Une sentinelle (gardien) borde au moins un artefact.
+    const guards = map.objects.filter((o) => o.type === 'guardian') as { x: number; y: number }[];
+    const guarded = artifacts.some((a) =>
+      guards.some((g) => Math.max(Math.abs(g.x - (a as { x: number }).x), Math.abs(g.y - (a as { y: number }).y)) === 1),
+    );
+    expect(guarded).toBe(true);
+  });
+
+  it('sans palette d’artefacts, aucun artefact posé', () => {
+    const map = generateMap('r', 88, { width: 40, height: 40, guardianUnits: ['t1-guard'] });
+    expect(map.objects.some((o) => o.type === 'artifact')).toBe(false);
+  });
+
+  it('pose des habitations (si palette d’unités) pour renforcer l’armée', () => {
+    const map = generateMap('r', 91, { width: 40, height: 40, guardianUnits: ['t1-guard'] });
+    const dwellings = map.objects.filter((o) => o.type === 'dwelling');
+    expect(dwellings.length).toBeGreaterThanOrEqual(1);
+    for (const d of dwellings) expect((d as { unitId: string }).unitId).toBe('t1-guard');
+  });
+
   it('la taille et le multiplicateur de ressources pilotent la densité d’objets', () => {
     const countRes = (m: MapFile): number =>
       m.objects.filter((o) => o.type === 'resource' || o.type === 'mine' || o.type === 'treasure').length;

@@ -27,7 +27,11 @@ async function main(): Promise<void> {
 
   const report = await loadContent(readJsonFromDisk);
   const units = knownUnitIds(report);
-  const map = generateMap(id, seed, { guardianUnits: [...units], unitTiers: knownUnitTiers(report) });
+  const map = generateMap(id, seed, {
+    guardianUnits: [...units],
+    unitTiers: knownUnitTiers(report),
+    artifactIds: [...knownArtifactIds(report)],
+  });
 
   // Validation par le même `loadMap` que les cartes du dépôt (shim en mémoire).
   const readJson: ReadJson = (path) =>

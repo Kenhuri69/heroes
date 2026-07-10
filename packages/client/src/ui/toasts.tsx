@@ -41,6 +41,7 @@ function toastKind(event: AppEvent): ToastKind {
     case 'WarMachineBought':
     case 'TownCaptured':
     case 'HeroLevelUp':
+    case 'HeroAttributeChosen':
     case 'SkillLearned':
     case 'HuntContractCompleted':
       return 'success';

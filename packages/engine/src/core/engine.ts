@@ -42,9 +42,11 @@ import {
   handleCastSpell,
   handleCastAdventureSpell,
   handleChooseSkill,
+  handleChooseAttribute,
   validateCastSpell,
   validateCastAdventureSpell,
   validateChooseSkill,
+  validateChooseAttribute,
 } from '../hero';
 import { heroManaMax } from '../hero/artifacts';
 import { heroGoldPerDay, heroMovementBonus, heroVisionBonus } from '../hero/skills';
@@ -119,6 +121,7 @@ const GAME_OVER_BLOCKED = new Set<Command['type']>([
   'Surrender',
   'CastAdventureSpell',
   'ChooseSkill',
+  'ChooseAttribute',
   'ResolveTreasure',
   'AiTurn',
 ]);
@@ -262,6 +265,10 @@ export function validate(state: GameState, cmd: Command): CommandError | null {
     case 'ChooseSkill': {
       if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
       return validateChooseSkill(state, cmd);
+    }
+    case 'ChooseAttribute': {
+      if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
+      return validateChooseAttribute(state, cmd);
     }
     case 'ResolveTreasure': {
       if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
@@ -453,6 +460,7 @@ const handlers: Handlers = {
         (_, i) => (p.startingArtifacts ?? cmd.startingArtifacts ?? [])[i] ?? null,
       ),
       pendingSkillChoices: [],
+      pendingAttributeChoices: [],
       factionId: p.startingFactionId ?? '',
       // Allégeance de Maison (doc 16 §3.1) : effets résolus depuis le catalogue
       // embarqué (copie défensive), agrégés comme des compétences dans skills.ts.
@@ -588,6 +596,10 @@ const handlers: Handlers = {
 
   ChooseSkill(draft, cmd, events) {
     handleChooseSkill(draft, cmd, events);
+  },
+
+  ChooseAttribute(draft, cmd, events) {
+    handleChooseAttribute(draft, cmd, events);
   },
 
   ResolveTreasure(draft, cmd, events) {

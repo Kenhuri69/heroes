@@ -33,6 +33,7 @@ import { HeroSkills } from './HeroSkills';
 import { HeroInventory } from './HeroInventory';
 import { AdventureSpellbook } from './AdventureSpellbook';
 import { SkillChoice } from './SkillChoice';
+import { AttributeChoice } from './AttributeChoice';
 import { TreasureChoice } from './TreasureChoice';
 import { HandoffOverlay } from './HandoffOverlay';
 import { OutcomeOverlay } from './OutcomeOverlay';
@@ -62,6 +63,12 @@ function Shell() {
   const pendingSkillHero = useApp((s) => {
     const id = humanId(s.game);
     return s.game.heroes.find((h) => h.playerId === id && h.pendingSkillChoices.length > 0) ?? null;
+  });
+  // Choix d'attribut à la montée (H-LEVELCHOICE, doc 02 §1.2) — même ciblage :
+  // le héros du joueur humain avec une proposition d'attribut en attente.
+  const pendingAttributeHero = useApp((s) => {
+    const id = humanId(s.game);
+    return s.game.heroes.find((h) => h.playerId === id && h.pendingAttributeChoices.length > 0) ?? null;
   });
   // Trésor foulé (doc 02 §2.2) : modale forcée or/XP pour le joueur humain
   // uniquement — l'IA résout son choix dans son propre tour.
@@ -165,6 +172,9 @@ function Shell() {
       {townModal && <TownScreen townId={townModal.townId} onClose={() => closeModalKind('town')} />}
       {journalModal && <Journal onClose={() => closeModalKind('journal')} />}
       {pendingSkillHero && <SkillChoice hero={pendingSkillHero} />}
+      {/* Un seul choix forcé à la fois (pile ≤ 2, doc 08 §3) : l'attribut passe
+          après la compétence si les deux sont en attente. */}
+      {!pendingSkillHero && pendingAttributeHero && <AttributeChoice hero={pendingAttributeHero} />}
       {pendingTreasure && <TreasureChoice pending={pendingTreasure} />}
       <EndTurnConfirm />
       {screen === 'adventure' && <HandoffOverlay />}

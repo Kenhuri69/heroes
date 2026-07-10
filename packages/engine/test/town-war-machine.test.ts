@@ -47,6 +47,7 @@ function heroAt(pos: { x: number; y: number }, warMachines: string[] = []): Hero
     spells: [],
     artifacts: Array.from({ length: 10 }, () => null),
     pendingSkillChoices: [],
+    pendingAttributeChoices: [],
     factionId: '',
     houseId: '',
     houseEffects: [],

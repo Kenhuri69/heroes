@@ -42,6 +42,30 @@ function rollAttribute(
 }
 
 /**
+ * Tire 2 attributs DISTINCTS au RNG pondéré (H-LEVELCHOICE, doc 02 §1.2) — la
+ * paire proposée au joueur humain à une montée. Déterministe : ordre stable +
+ * tirage pondéré sur le pool restant. Toujours 2 attributs (4 au catalogue).
+ */
+function rollAttributePair(
+  draft: Draft,
+  weights: HeroProgressionConfig['attributeWeights'],
+): [keyof HeroAttributes, keyof HeroAttributes] {
+  const pool = [...ATTRIBUTE_ORDER];
+  const pick = (): keyof HeroAttributes => {
+    const total = pool.reduce((sum, id) => sum + weights[id], 0);
+    const roll = rollRange(draft.rng, 0, Math.max(0, total - 1));
+    draft.rng = roll.state;
+    let acc = 0;
+    for (const id of pool) {
+      acc += weights[id];
+      if (roll.value < acc) return pool.splice(pool.indexOf(id), 1)[0]!;
+    }
+    return pool.splice(pool.length - 1, 1)[0]!;
+  };
+  return [pick(), pick()];
+}
+
+/**
  * Attribue `amount` XP au héros `heroId` : cumul, montées en chaîne (cap
  * `config.hero.maxLevel`, l'XP continue de s'accumuler au cap sans monter),
  * +1 attribut pondéré par niveau gagné. Émet `XpGained` une fois (montant
@@ -61,15 +85,26 @@ export function grantXp(
   if (!hero) return;
   hero.xp += amount;
   events.push({ type: 'XpGained', heroId, amount, xp: hero.xp });
+  // Le joueur humain CHOISIT ses attributs (H-LEVELCHOICE) ; l'IA garde le
+  // tirage auto pondéré (aucune régression de puissance IA). Contrôleur lu sur
+  // le joueur du héros — donnée, jamais un id en dur.
+  const isHuman = draft.players.find((p) => p.id === hero.playerId)?.controller === 'human';
   while (hero.level < config.maxLevel && hero.xp >= xpForLevel(config, hero.level + 1)) {
     hero.level += 1;
-    const attribute = rollAttribute(draft, config.attributeWeights);
-    hero.attributes[attribute] += 1;
+    if (isHuman) {
+      // File de propositions (doc 02 §1.2) : une paire par montée, résolue par
+      // `ChooseAttribute` — pas d'écrasement (contrairement aux compétences).
+      hero.pendingAttributeChoices.push(rollAttributePair(draft, config.attributeWeights));
+      events.push({ type: 'HeroLevelUp', heroId, level: hero.level });
+    } else {
+      const attribute = rollAttribute(draft, config.attributeWeights);
+      hero.attributes[attribute] += 1;
+      events.push({ type: 'HeroLevelUp', heroId, level: hero.level, attribute });
+    }
     // Choix de compétence (décision plan phase-3.2 #6) : 2 propositions au RNG
     // de l'état, REMPLACENT les propositions en attente (un seul choix visible
     // à la fois — un niveau supplémentaire dans la même chaîne écrase le
     // précédent plutôt que d'accumuler plusieurs paires en attente).
     hero.pendingSkillChoices = rollSkillChoices(draft, hero);
-    events.push({ type: 'HeroLevelUp', heroId, level: hero.level, attribute });
   }
 }

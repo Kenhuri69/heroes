@@ -235,6 +235,15 @@
 > portrait de l'attaquant reste l'avatar du héros quand il existe (parcours
 > réel), repli sur le blason de faction sinon.
 
+> 🚧 **État X5 (micro-i18n, plan `ux-enrichissement-2026-07`)** : deux valeurs
+> **FR** anglophones corrigées (clés et EN inchangés). (1) Le bouton du
+> pré-combat `preBattle.auto` : « Auto-Battle » → **« Combat auto »** (cohérent
+> avec le bouton « Auto ▶▶ » du combat, où *auto* = automatique est un usage
+> français admis). (2) L'en-tête de manche `combat.round` : « Round {round} » →
+> **« Manche {round} »** — *manche* est le terme FR retenu pour un round de
+> combat, distinct de « tour » (déjà pris par le tour d'aventure / « fin de
+> tour »). « Options » et « Mana » restent des emprunts standard en français.
+
 ### 2.5 Autres écrans
 
 Menu principal (Continuer / Scénarios / Escarmouche / **Éditeur de carte** / Options), fiche de scénario (objectifs), fin de partie (stats, graphique de puissance), options (langue FR/EN, vitesse anims, taille UI, audio, réduction des animations, confirmation de fin de tour : cf. §4).

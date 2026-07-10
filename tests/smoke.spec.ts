@@ -559,7 +559,7 @@ test("l'arène /#arena ouvre un combat immédiat et se résout en auto", async (
   await page.waitForFunction(() => window.__HEROES_READY__ === true);
 
   await passPreBattle(page); // écran pré-combat (Lot 1) même en arène
-  await expect(page.getByTestId('combat-round')).toHaveText('Round 1');
+  await expect(page.getByTestId('combat-round')).toHaveText('Manche 1');
   await expect(page.getByTestId('damage-preview')).toBeVisible();
   const stacks = await page.evaluate(
     () => window.__HEROES_TEST__!.getState().combat?.stacks.length,
@@ -585,7 +585,7 @@ test('auto-combat : bascule round par round et reprise de main (doc 08 §2.4, lo
   await page.waitForFunction(() => window.__HEROES_READY__ === true);
   await passPreBattle(page);
 
-  await expect(page.getByTestId('combat-round')).toHaveText('Round 1');
+  await expect(page.getByTestId('combat-round')).toHaveText('Manche 1');
   const auto = page.getByTestId('combat-auto');
   await auto.click(); // bascule ON : le libellé devient « Reprendre la main »
   await expect(auto).toHaveText('Reprendre la main');

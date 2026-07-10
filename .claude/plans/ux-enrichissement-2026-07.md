@@ -299,7 +299,15 @@ Espace/D en combat — `combat.tsx:71`) mais sont **indécouvrables**.
       typecheck/lint/build OK, smoke 141✓ (1 flaky raccourci-E confirmé sans
       lien, repassé isolément), zéro diff moteur. Le renommage FR « Auto-Battle »
       → « Combat auto » est traité au lot X5 (i18n).
-- [ ] Lot X5 — micro-i18n.
+- [x] Lot X5 — micro-i18n (2026-07-10). Livré : deux valeurs FR anglophones
+      corrigées (clés + EN inchangés, parité vérifiée) — `preBattle.auto`
+      « Auto-Battle » → **« Combat auto »** ; `combat.round` « Round {round} »
+      → **« Manche {round} »** (terme FR distinct de « tour »/aventure).
+      Passe anglicismes sur les 7 locales FR (core + 6 paquets) : « Options » et
+      « Mana » retenus comme emprunts standard, rien d'autre à corriger. Doc 08
+      §2.4 consigne la décision. Tests : 2 assertions smoke « Round 1 » → « Manche
+      1 » ; content:check OK, build OK, 22/22 tests combat verts (dont round-
+      par-round). Zéro diff moteur (données locale + docs + test).
 - [ ] Lot X6 — tiroir héros mobile.
 - [ ] Lot X7 — confort desktop.
 - [ ] Lot X8 — hygiène des plans.

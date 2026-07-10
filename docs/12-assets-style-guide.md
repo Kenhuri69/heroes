@@ -21,6 +21,7 @@
 | **C** | Icônes d'artefacts, vignettes de bâtiments, mines de ressources | Planche LLM + `sheet_extract` | 512² par sujet | Planche gris clair plat → transparent |
 | **D** | Fonds d'ambiance (menu, ville, combat) | Pièce unique LLM | **1920×1080** | Opaque |
 | **E** | Logo du jeu | Pièce unique LLM | ≥ 1024² | Transparent |
+| **G** | Chrome d'UI (cadres de panneau, rubans d'en-tête) | Procédural (Pillow, formes fixes) | 160² (cadre), 320×72 (ruban) | Transparent (centre) |
 
 > Erreur classique observée sur Hogwarth : appliquer le template d'une famille
 > à une autre (ex. style sprite transparent pour un portrait). Identifier la
@@ -206,6 +207,34 @@ un fichier son par sujet.
   1ʳᵉ interaction (politique autoplay), volumes musique/SFX persistés
   (`localStorage`), **coupé/modéré par défaut** ; le son ne porte JAMAIS seul
   une information (A5 étendu — un SFX double un feedback visuel existant).
+
+## 6ter. Règle G — chrome décoratif d'UI (cadres & rubans)
+
+Famille **CHROME** : l'habillage de l'UI **interactive** (cadres de panneau,
+rubans d'en-tête, séparateurs). Comble le trou d'identité — l'art plein cadre
+(fonds Règle D, logo Règle E, illustrations Règle A/B/C) porte la gouache, mais
+les panneaux DOM étaient plats/tokenisés. Procédural (comme Règle P) car il faut
+un rendu **9-slice** propre et déterministe, pas une planche LLM.
+
+- **Style** : « laiton & parchemin » (doc 08 §5) — rails laiton (rampe
+  brass sombre→clair), lit d'encre, rivets/caps ornés. Rampe couleur **dans le
+  script** (`tools/assets/gen_chrome.py`), jamais dans les `.css` (garde-fou).
+- **9-slice / 3-slice** : les **bords** (entre coins) ont une **section
+  constante** → répétables sans couture en `border-image ... round` ; l'ornement
+  vit dans les **coins** (cadre) ou les **caps** (ruban). Centre du cadre
+  **transparent** (le fond tokenisé du panneau transparaît).
+- **Pièces** : `panel-frame.png` (160², slice 40) ; `ribbon.png` (320×72, slice
+  horizontal 72, face **encre** pour rester lisible sous un texte clair) ;
+  `_preview.png` (contrôle à l'œil).
+- **Déterminisme** : formes vectorielles fixes, aucun aléa → re-run = octets
+  identiques (guidelines §8.2). `python3 tools/assets/gen_chrome.py`.
+- **Staging** : `assets/ui/chrome/<pièce>.png`.
+- **Intégration client** : registre `render/assets.ts` (auto-découverte
+  `?url`, **hors bundle**) → résolveurs `chromeFrameUrl()`/`chromeRibbonUrl()` →
+  appliqués en **style inline `border-image`** (repli gracieux si URL absente).
+  Surface habillée en `box-sizing: border-box` (le cadre ne l'agrandit pas). Skill
+  dédié : `.claude/skills/asset-chrome/`. **Panneau témoin livré** : modale de
+  ville (cadre sur `.town-screen`, ruban sur le bandeau « Chantier du jour »).
 
 ## 7. Prompts-types
 

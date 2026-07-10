@@ -98,7 +98,7 @@ describe('conditionMet', () => {
   it('surviveDays : vrai à partir du jour visé', () => {
     const state = startedGame();
     expect(conditionMet(state, 'player-1', { type: 'surviveDays', days: 5 })).toBe(false);
-    const day5: GameState = { ...state, calendar: { day: 5 } };
+    const day5: GameState = { ...state, calendar: { day: 5, weekEventId: null } };
     expect(conditionMet(day5, 'player-1', { type: 'surviveDays', days: 5 })).toBe(true);
   });
 });

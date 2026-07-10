@@ -238,7 +238,11 @@ const GOLDEN_JOURNAL: Command[] = [
 // Re-fixé au lot A2f : `SpellStatus.damagePerRound` — poison `poisonSting`
 // Manticore (save v19). Les piles golden ont des statuts vides ⇒ seul le champ
 // `saveVersion` de l'état haché change (18→19), simulation/combat inchangés.
-const GOLDEN_HASH = 'ce30195f';
+// Re-fixé au lot M-CALENDAR : `Calendar.weekEventId` (null) + `saveVersion` → 20
+// (événements de calendrier, doc 02 §2.3). La config golden n'a pas de
+// `calendar` ⇒ `rollWeekEvent` no-op, aucun RNG consommé, croissance ×1 : seule
+// la FORME change (champ null + version), simulation/combat inchangés.
+const GOLDEN_HASH = 'fa1ab89f';
 
 describe('golden replay', () => {
   it('le journal scripté produit toujours le même état final', () => {

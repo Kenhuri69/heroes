@@ -44,6 +44,20 @@ export interface CombatRulesConfig {
   heroAttack?: { base: number; perPower: number; perAttack: number } | undefined;
 }
 
+/**
+ * Événement de calendrier hebdomadaire (M-CALENDAR, doc 02 §2.3) — tiré au
+ * RNG seedé à chaque bascule de semaine. `growthFactor` module la croissance
+ * hebdomadaire (`1` = normal, `0.5` = « semaine de la peste », `2` = abondance).
+ * `id` opaque ⇒ nom/desc localisés (`calendar.event.<id>.*`).
+ */
+export interface CalendarEventDef {
+  id: string;
+  /** Poids relatif du tirage pondéré. */
+  weight: number;
+  /** Multiplicateur de la croissance hebdomadaire des créatures. */
+  growthFactor: number;
+}
+
 export interface AdventureConfig {
   /** Points de mouvement quotidiens : base + perSpeed × vitesse la plus lente (doc 02 §1.5). */
   movement: {
@@ -71,6 +85,12 @@ export interface AdventureConfig {
    * fixtures de test minimales et la stabilité du golden (config inchangée).
    */
   market?: MarketConfig;
+  /**
+   * Calendrier (M-CALENDAR, doc 02 §2.3) : événements hebdomadaires tirés au RNG
+   * seedé. Optionnel : absent ⇒ aucune semaine spéciale (facteur 1 partout ;
+   * fixtures/golden inchangés).
+   */
+  calendar?: { events: CalendarEventDef[] } | undefined;
 }
 
 /** Taux du marché (doc 02 §4.1) : or par unité de ressource non-or échangée. */

@@ -350,8 +350,13 @@ Source design : doc 02 §2 (carte), §1.5 (multi-héros).
   > neutre vs possédée) + smoke (drapeau du joueur après visite).
   Doc : doc 02 §2.2.
 
-- **M-CALENDAR — Mois & événements de calendrier** 🕳️ S ⬜ (post-MVP assumé doc 02 §2.3)
+- **M-CALENDAR — Mois & événements de calendrier** 🧩 S ✅ (livré)
   Spec : mois = 4 semaines, événements type « semaine de la peste » déclaratifs.
+  Livré : `config.calendar.events` (table pondérée déclarative), tirage RNG seedé
+  hebdo `rollWeekEvent`, `growthFactor` module `applyWeeklyGrowth`,
+  `Calendar.weekEventId` (save v20), `monthOf`, event `CalendarEventStarted`,
+  toast client des semaines spéciales. Différés : mois persistants, semaine
+  ciblant une créature, calendrier persistant à l'écran.
 
 ### 2.6 Villes & économie (T-*)
 

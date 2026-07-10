@@ -92,6 +92,15 @@ export function notify(event: AppEvent, game: GameState): string | null {
       return ownHero(event.heroId) ? t('toast.teleported') : null;
     case 'WeekStarted':
       return t('toast.weekStarted', { week: event.week });
+    // Événement de calendrier (M-CALENDAR, doc 02 §2.3) : annoncé seulement si sa
+    // croissance diffère de la normale (les semaines « normales » ne toastent pas
+    // — décidé par le facteur, pas un id en dur).
+    case 'CalendarEventStarted': {
+      const factor = game.config?.calendar?.events.find((e) => e.id === event.eventId)?.growthFactor;
+      return factor !== undefined && factor !== 1
+        ? t('toast.calendarEvent', { event: t(`calendar.event.${event.eventId}.name`) })
+        : null;
+    }
     // Trigger de carte (doc 02 §2.1) : message global localisé, ou octroi de
     // ressource notifié au seul joueur humain (comme un ramassage).
     case 'TriggerFired':

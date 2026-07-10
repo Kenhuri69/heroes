@@ -45,6 +45,14 @@
     "market": {
       "sellRate": 25,
       "buyRate": 50
+    },
+    "calendar": {
+      "events": [
+        { "id": "normal", "weight": 55, "growthFactor": 1 },
+        { "id": "harvest", "weight": 18, "growthFactor": 1.5 },
+        { "id": "bounty", "weight": 15, "growthFactor": 2 },
+        { "id": "plague", "weight": 12, "growthFactor": 0.5 }
+      ]
     }
   },
   "newGame": {

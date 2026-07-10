@@ -161,6 +161,13 @@ export interface HeroState {
 export interface Calendar {
   /** Jour absolu, commence à 1. Semaine = floor((day-1)/7)+1 (doc 02 §2.3). */
   day: number;
+  /**
+   * Événement de la semaine courante (M-CALENDAR, doc 02 §2.3) — id tiré au RNG
+   * seedé à chaque bascule de semaine, `null` tant qu'aucun n'a été tiré (semaine
+   * 1, ou config sans calendrier). Le facteur de croissance associé vit dans
+   * `config.calendar.events`.
+   */
+  weekEventId: string | null;
 }
 
 /**
@@ -210,9 +217,12 @@ export interface Calendar {
  * réservé au propriétaire.
  * v19 : `SpellStatus.damagePerRound` — poison sur la durée (`poisonSting`
  * Manticore, doc 05 §4, A2f) : dégâts plats infligés au porteur au début de
- * chaque round, tick avant décroissance des statuts.)
+ * chaque round, tick avant décroissance des statuts.
+ * v20 : `Calendar.weekEventId` — événements de calendrier hebdomadaires
+ * (M-CALENDAR, doc 02 §2.3) : id de l'événement tiré pour la semaine courante,
+ * son `growthFactor` (dans `config.calendar.events`) module la croissance.)
  */
-export const CURRENT_SAVE_VERSION = 19;
+export const CURRENT_SAVE_VERSION = 20;
 
 export interface GameState {
   saveVersion: number;
@@ -292,7 +302,7 @@ export function createEmptyState(): GameState {
     saveVersion: CURRENT_SAVE_VERSION,
     started: false,
     rng: { hi: 0, lo: 0, incHi: 0, incLo: 0 },
-    calendar: { day: 1 },
+    calendar: { day: 1, weekEventId: null },
     players: [],
     currentPlayer: 0,
     config: null,
@@ -317,6 +327,11 @@ export function createEmptyState(): GameState {
 
 export function weekOf(day: number): number {
   return Math.floor((day - 1) / 7) + 1;
+}
+
+/** Mois absolu (M-CALENDAR, doc 02 §2.3) : 4 semaines = 28 jours, commence à 1. */
+export function monthOf(day: number): number {
+  return Math.floor((day - 1) / 28) + 1;
 }
 
 /**

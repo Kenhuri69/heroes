@@ -1,6 +1,7 @@
 import type { GameEvent } from '../core/events';
 import type { GameState, ResourceId } from '../core/state';
 import { heroGoldPerDay } from '../hero/skills';
+import { weekGrowthFactor } from '../adventure/calendar';
 import { builtLevelOf } from './helpers';
 import { sharedGrowthRecipients } from './shared-growth';
 import { unitWithEconomy } from './unit-economy';
@@ -95,6 +96,9 @@ export function applyDailyIncome(draft: GameState, events: GameEvent[]): void {
  * optionnellement via `unit-economy.ts`, no-op si absent).
  */
 export function applyWeeklyGrowth(draft: GameState, events: GameEvent[]): void {
+  // Événement de calendrier de la semaine (M-CALENDAR, doc 02 §2.3) : module la
+  // croissance (peste ÷2, abondance ×2…). 1 hors calendrier ⇒ règle inchangée.
+  const eventFactor = weekGrowthFactor(draft);
   for (const town of draft.towns) {
     if (!town.ownerPlayerId) continue;
     let bonusFort = 0;
@@ -113,7 +117,7 @@ export function applyWeeklyGrowth(draft: GameState, events: GameEvent[]): void {
       if (groupId !== undefined && shared.recipientOf.get(groupId) !== unitId) continue;
       const growth = unitWithEconomy(draft.unitCatalog, unitId)?.growthPerWeek;
       if (!growth) continue; // pas de donnée de croissance connue : no-op
-      const added = Math.floor(growth * (1 + bonusFort));
+      const added = Math.floor(growth * (1 + bonusFort) * eventFactor);
       if (added <= 0) continue;
       const cap = 2 * added;
       const current = town.stock[unitId] ?? 0;
@@ -133,6 +137,7 @@ export function applyWeeklyGrowth(draft: GameState, events: GameEvent[]): void {
     if (obj.type !== 'dwelling' || !obj.ownerId) continue;
     const growth = unitWithEconomy(draft.unitCatalog, obj.unitId)?.growthPerWeek;
     if (!growth) continue;
-    obj.stock = Math.max(obj.stock, Math.min(obj.stock + growth, 2 * growth));
+    const added = Math.floor(growth * eventFactor);
+    obj.stock = Math.max(obj.stock, Math.min(obj.stock + added, 2 * growth));
   }
 }

@@ -798,6 +798,12 @@ export type ResolvedMapObject =
     }
   | {
       id: string;
+      type: 'monolith';
+      pos: { x: number; y: number };
+      pairId: string;
+    }
+  | {
+      id: string;
       type: 'town';
       pos: { x: number; y: number };
       /** Ville neutre (Alpha 4.13) : faction + garnison assiégeable. Absents = ville de départ. */
@@ -894,6 +900,14 @@ export async function loadMap(
         !file.objects.some((g) => g.type === 'guardian' && g.id === obj.guardedBy))
       errors.push(`${path}: objet '${obj.id}' — gardien lié inconnu '${obj.guardedBy}'`);
   }
+  // M-NAV a (doc 02 §2.1) : chaque `pairId` de monolithe doit lier EXACTEMENT 2
+  // monolithes (un jumeau, pas plus) — sinon le téléport serait ambigu/orphelin.
+  const monolithPairs = new Map<string, number>();
+  for (const obj of file.objects)
+    if (obj.type === 'monolith') monolithPairs.set(obj.pairId, (monolithPairs.get(obj.pairId) ?? 0) + 1);
+  for (const [pairId, count] of monolithPairs)
+    if (count !== 2)
+      errors.push(`${path}: paire de monolithes '${pairId}' — ${count} monolithe(s), exactement 2 attendus`);
   for (const [i, pos] of file.startPositions.entries()) {
     if (!inBounds(pos.x, pos.y)) errors.push(`${path}: startPositions[${i}] hors carte`);
     else if (!passable(pos.x, pos.y))
@@ -1151,6 +1165,8 @@ function resolveMap(file: MapFile): ResolvedMap {
           artifactId: obj.artifactId,
           ...(obj.guardedBy !== undefined ? { guardedBy: obj.guardedBy } : {}),
         };
+      if (obj.type === 'monolith')
+        return { id: obj.id, type: obj.type, pos, pairId: obj.pairId };
       return {
         id: obj.id,
         type: obj.type,

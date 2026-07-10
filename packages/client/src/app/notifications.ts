@@ -88,6 +88,8 @@ export function notify(event: AppEvent, game: GameState): string | null {
       return event.playerId === human
         ? t('toast.dwellingRecruited', { count: event.count, unit: resolveUnitName(event.unitId) })
         : null;
+    case 'HeroTeleported':
+      return ownHero(event.heroId) ? t('toast.teleported') : null;
     case 'WeekStarted':
       return t('toast.weekStarted', { week: event.week });
     // Trigger de carte (doc 02 §2.1) : message global localisé, ou octroi de

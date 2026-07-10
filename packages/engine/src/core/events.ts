@@ -83,6 +83,8 @@ export type GameEvent =
     }
   /** Gardien errant : un pas quotidien vers le héros le plus proche (doc 02 §2.2). */
   | { type: 'GuardianMoved'; objectId: string; from: GridPos; to: GridPos }
+  /** Téléport par monolithe apparié (M-NAV a, doc 02 §2.1) — le déplacement s'interrompt à l'arrivée. */
+  | { type: 'HeroTeleported'; heroId: string; from: GridPos; to: GridPos }
   /**
    * Trigger de carte déclenché (doc 02 §2.1) — l'UI notifie/journalise selon
    * `effect`. `playerId` = joueur affecté (visite / octroi), `null` pour un

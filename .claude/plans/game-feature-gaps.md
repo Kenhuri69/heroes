@@ -318,13 +318,15 @@ Source design : doc 02 §2 (carte), §1.5 (multi-héros).
   > `generateMap` (cartes procédurales) — actuellement data-driven sur cartes
   > éditées.
 
-- **M-NAV — Navigation & topologie : bateaux, téléporteurs, souterrain** 🕳️ L ⬜
-  Doc : doc 02 §2.1/§2.2. Code : eau infranchissable (`data/core/config.json:20-22`),
-  aucun objet bateau/chantier naval/monolithe dans l'union `MapObjectDef`
-  (`map.ts:119-126`), carte mono-niveau (`map.ts:150-164`). Spec incrémentale :
-  (a) monolithes appariés (S), (b) bateaux + chantier naval + combat
-  d'abordage ? (L), (c) souterrain = 2ᵉ niveau + escaliers (L). Chacun
-  data-driven ; save bump pour (c).
+- **M-NAV — Navigation & topologie : bateaux, téléporteurs, souterrain** 🕳️ L 🧩 (a livré)
+  > **(a) monolithes appariés — LIVRÉ** : objet `monolith` + `pairId` (union
+  > `MapObjectDef`) ; fouler l'un téléporte vers son jumeau et interrompt le
+  > déplacement (pas de boucle) ; validation « exactement 2 par pairId » ; rendu
+  > (portail de pierres) + fiche + toast ; data proto-01 (`monolith-a/b`).
+  > Additif ⇒ **pas de bump save, golden inchangé**. Couvert en unitaire
+  > (`map-objects.test.ts` : téléport + pas de boucle).
+  Doc : doc 02 §2.1/§2.2. **Différés** : (b) bateaux + chantier naval + combat
+  d'abordage (L), (c) souterrain = 2ᵉ niveau + escaliers (L, save bump).
 
 - **M-VISIT — Objets visitables riches** 🧩 (tranche livrée)
   > **Livré** : nouveau `VisitableEffect` **générique** `permanentStat`

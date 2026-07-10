@@ -646,6 +646,17 @@ export const mapFileSchema = z.object({
         guardedBy: idSchema.optional(),
       }),
       /**
+       * Monolithe / téléporteur apparié (M-NAV a, doc 02 §2.1) : exactement 2
+       * monolithes partagent un `pairId` — règle croisée dans `loadMap`.
+       */
+      z.object({
+        id: idSchema,
+        type: z.literal('monolith'),
+        x: z.number().int().nonnegative(),
+        y: z.number().int().nonnegative(),
+        pairId: idSchema,
+      }),
+      /**
        * Ville (doc 02 §4, plan phase-3.1) — la ville de départ y référence son id.
        * `factionId`/`garrison` optionnels : une ville **neutre** (Alpha 4.13) posée
        * sur la carte, assiégeable par un héros (combat contre sa garnison). Une

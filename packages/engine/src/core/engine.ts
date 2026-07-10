@@ -338,6 +338,9 @@ function validateMap(cmd: Extract<Command, { type: 'StartGame' }>): CommandError
       if (!(obj.unitId in cmd.unitCatalog))
         return bad(`habitation '${obj.id}' : unité inconnue du catalogue '${obj.unitId}'`);
       if (obj.stock < 0) return bad(`habitation '${obj.id}' : stock négatif`);
+    } else if (obj.type === 'monolith') {
+      // Monolithe apparié (M-NAV a) : l'appariement 2-à-2 est validé au load du
+      // contenu (`loadMap`) ; le moteur n'a rien de plus à vérifier ici.
     } else {
       if (!(obj.unitId in cmd.unitCatalog))
         return bad(`gardien '${obj.id}' : unité inconnue du catalogue '${obj.unitId}'`);

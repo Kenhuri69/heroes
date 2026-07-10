@@ -379,6 +379,15 @@ Heuristique par pile : score = dégâts espérés × valeur de la cible − risq
 > `TriggerFired`) — jamais un nom de faction/scénario dans le moteur.
 > `collectArtifact`/`accumulateResource` et `onFlagCaptured` restent différés.
 >
+> 🚧 **État (M-NAV a — monolithes appariés, doc §2.1)** : nouvel objet de carte
+> `monolith` portant un `pairId`. **Exactement 2** monolithes partagent un `pairId`
+> (validé au load) ; fouler l'un **téléporte** le héros sur la tuile de l'autre et
+> **interrompt** le déplacement (le reste du chemin part de l'entrée). Le héros
+> arrive sur la sortie sans re-téléporter (pas de boucle) ; le brouillard est
+> révélé à l'arrivée ; événement `HeroTeleported`. **Zéro sens imposé** (deux
+> sens), zéro faction. Bateaux/chantier naval (b) et souterrain (c) restent
+> différés (cf. backlog M-NAV).
+>
 > 🤝 **Alliances / équipes** (save v13) : `PlayerState.team` (entier opaque —
 > `0` = **sans alliance**, comportement chacun-pour-soi historique ; même n°
 > **non nul** = alliés, `areAllies`). Deux alliés **ne s'assiègent pas**

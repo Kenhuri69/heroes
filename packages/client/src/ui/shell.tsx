@@ -510,15 +510,47 @@ function HeroDrawer() {
   );
 }
 
+/**
+ * Préférence « bandeau d'armée replié » (lot X3, HUD aventure mobile) — état de
+ * présentation local, hors `GameState` (pas de bump de save). **Replié par
+ * défaut** : au premier lancement mobile la carte n'est plus masquée à ~40 % par
+ * le bandeau déployé (constat E3 de l'audit). Le choix du joueur persiste.
+ */
+const ARMY_BAND_KEY = 'heroes.armyBandCollapsed';
+
+function readArmyBandCollapsed(): boolean {
+  try {
+    const v = localStorage.getItem(ARMY_BAND_KEY);
+    return v === null ? true : v === '1'; // absent = replié par défaut
+  } catch {
+    return true;
+  }
+}
+
+function writeArmyBandCollapsed(collapsed: boolean): void {
+  try {
+    localStorage.setItem(ARMY_BAND_KEY, collapsed ? '1' : '0');
+  } catch {
+    /* stockage indisponible (navigation privée) — préférence en mémoire seule */
+  }
+}
+
 /** Bandeau bas repliable (portrait, doc 08 §2.1) — accès rapide à l'armée du héros sélectionné. */
 function ArmyBand() {
   useApp((s) => s.locale);
   const hero = useApp((s) => resolveSelectedHero(s.game, s.selectedHeroId));
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(readArmyBandCollapsed);
   if (!hero) return null;
+  const toggle = (): void => {
+    setCollapsed((c) => {
+      const next = !c;
+      writeArmyBandCollapsed(next);
+      return next;
+    });
+  };
   return (
     <div class={`army-band${collapsed ? ' collapsed' : ''}`} data-testid="army-band">
-      <button class="army-band-toggle" onClick={() => setCollapsed((c) => !c)}>
+      <button class="army-band-toggle" data-testid="army-band-toggle" onClick={toggle}>
         {t('army.title')} {collapsed ? '▲' : '▼'}
       </button>
       {!collapsed && <ArmySlots army={hero.army} />}

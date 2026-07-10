@@ -200,6 +200,23 @@ test('tap-tap : déplacement scripté, ramassage, points décomptés', async ({ 
   expect(errors).toEqual([]);
 });
 
+test('HUD mobile : bandeau d’armée replié par défaut, dépliable (X3)', async ({ page }) => {
+  const errors = await openGame(page);
+
+  // E3 : au 1er lancement le bandeau est REPLIÉ ⇒ la carte n'est plus masquée
+  // (aucun slot rendu tant qu'il est replié).
+  const band = page.getByTestId('army-band');
+  await expect(band).toHaveClass(/collapsed/);
+  await expect(page.locator('.army-band .army-slots')).toHaveCount(0);
+
+  // Dépliage : les 2 piles de départ apparaissent (test-faction : recrue + élève).
+  await page.getByTestId('army-band-toggle').click();
+  await expect(band).not.toHaveClass(/collapsed/);
+  await expect(page.locator('.army-band .army-slot.filled')).toHaveCount(2);
+
+  expect(errors).toEqual([]);
+});
+
 test('tap sur une ressource : fiche stock + revenu/jour (doc 08 §2.1, lot M6 C8)', async ({
   page,
 }) => {

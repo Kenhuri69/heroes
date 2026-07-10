@@ -6,7 +6,7 @@ import type { GameEvent } from '../core/events';
 import { rollRange } from '../core/rng';
 import { evaluateOutcome } from '../scenario/outcome';
 import type { Draft } from './draft';
-import { collectCasualties, combatRules, initiativeSpeed, moraleOf, recordLoss } from './state-helpers';
+import { collectCasualties, combatRules, compareInitiative, moraleOf, recordLoss } from './state-helpers';
 import type { CombatSideId, CombatStack, CombatState } from './types';
 
 /**
@@ -21,13 +21,7 @@ function pickNext(
   catalog: Draft['unitCatalog'],
   direction: 'asc' | 'desc',
 ): CombatStack | undefined {
-  const sorted = [...candidates].sort((a, b) => {
-    const sa = initiativeSpeed(a, combat, catalog);
-    const sb = initiativeSpeed(b, combat, catalog);
-    if (sa !== sb) return direction === 'desc' ? sb - sa : sa - sb;
-    if (a.side !== b.side) return a.side === 'attacker' ? -1 : 1;
-    return a.slot - b.slot;
-  });
+  const sorted = [...candidates].sort((a, b) => compareInitiative(a, b, combat, catalog, direction));
   return sorted[0];
 }
 

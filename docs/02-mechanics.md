@@ -310,11 +310,11 @@ dégâts = Σ(dmg aléatoire min–max par créature de la pile)
 
 Le moteur expose un **catalogue de capacités génériques paramétrables** ; les unités les référencent par ID dans leurs données.
 
-> **État livré** : le catalogue réellement interprété par le moteur — `data/core/abilities.json` — compte **25 capacités** : `flying`, `shooter`, `noRetaliation`, `doubleAttack`, `undead`, `mark`, `consumeMarks`, `demonform`, `symbiosis`, `shieldWall`, `unlimitedRetaliation`, `charge`, `magicResistance` (autonome, plus seulement porté par `demonform`), `lifeDrain` (lot A2a), `incorporeal`, `strikeAndReturn` (lot A2b), `curseOnHit` (lot A2c), `aura`, `moraleImmune` (lot A3a), `swarm` (lot A3b), `areaAttack` (lot A3c), `devourMarks` (lot A2d), `breathAttack` (lot A3d), `taunt` (lot A2e), et `poisonSting` (lot A2f). Les capacités encore nommées dans les lineups mais **pas encore interprétées** (inertes en combat) : `firstStrike`, `spellcaster`, `resurrectAlly` — cible de design, activées par sous-lots ultérieurs.
+> **État livré** : le catalogue réellement interprété par le moteur — `data/core/abilities.json` — compte **26 capacités** : `flying`, `shooter`, `noRetaliation`, `doubleAttack`, `undead`, `mark`, `consumeMarks`, `demonform`, `symbiosis`, `shieldWall`, `unlimitedRetaliation`, `charge`, `magicResistance` (autonome, plus seulement porté par `demonform`), `lifeDrain` (lot A2a), `incorporeal`, `strikeAndReturn` (lot A2b), `curseOnHit` (lot A2c), `aura`, `moraleImmune` (lot A3a), `swarm` (lot A3b), `areaAttack` (lot A3c), `devourMarks` (lot A2d), `breathAttack` (lot A3d), `taunt` (lot A2e), `poisonSting` (lot A2f), et `firstStrike` (lot A2g). Les capacités encore nommées dans les lineups mais **pas encore interprétées** (inertes en combat) : `spellcaster`, `resurrectAlly` — cible de design, activées par sous-lots ultérieurs.
 
 Une faction qui a besoin d'une capacité **réellement nouvelle** l'obtient en ouvrant **un** point d'extension **générique** du moteur, interprété depuis les données (cf. doc 06 §4) — jamais un module propre à une faction. C'est ainsi que `consumeMarks`/`demonform`/`symbiosis` ont été livrées.
 
-Sémantique des **25 capacités** du catalogue (valeurs de départ) :
+Sémantique des **26 capacités** du catalogue (valeurs de départ) :
 
 | Capacité | Effet implémenté |
 |---|---|
@@ -343,6 +343,7 @@ Sémantique des **25 capacités** du catalogue (valeurs de départ) :
 | `breathAttack(pct)` | A3d : une frappe de mêlée touche **aussi** la pile ennemie située **derrière** la cible (prolongement du souffle) de `pct` des dégâts — Dragon d'os |
 | `taunt` | A2e : une attaque de **mêlée** partant d'une case adjacente à ce provocateur **doit le viser** (protège les tiers ; le **tir** n'est pas concerné) — Conscrit |
 | `poisonSting(damagePerRound, rounds)` | A2f : une frappe de **mêlée** qui touche applique/rafraîchit un **poison** ; la cible subit `damagePerRound` (plats, cumulés) au **début de chaque round** pendant `rounds`, avant décroissance des statuts — Manticore |
+| `firstStrike` | A2g : à **vitesse d'initiative égale**, la pile agit **avant** les piles sans `firstStrike` (priorité dans la vague, indépendante du camp/slot) — Chevalier du Griffon |
 
 ### 5.5 Fin de combat & auto-résolution
 

@@ -6,5 +6,5 @@
   "stats": { "hp": 70, "attack": 14, "defense": 11, "damage": [12, 20], "speed": 8 },
   "growthPerWeek": 2,
   "cost": { "gold": 1300, "crystal": 1 },
-  "abilities": [{ "id": "charge", "params": { "perHex": 0.05 } }]
+  "abilities": [{ "id": "charge", "params": { "perHex": 0.05 } }, { "id": "firstStrike" }]
 }

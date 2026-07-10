@@ -224,6 +224,17 @@
 > rounds produit exactement le même état final que la résolution complète
 > (même IA, déterminisme testé).
 
+> 🚧 **État X4 (finitions pré-combat mobile, plan `ux-enrichissement-2026-07`)** :
+> l'écran pré-combat s'adapte au portrait. La puissance de chaque camp n'est
+> affichée **qu'une fois** (grande valeur d'or sous chaque camp) — la ligne
+> « {att} · {def} » redondante est retirée, le libellé « Puissance de combat »
+> reste comme intitulé pivot. Sous 480 px, la grille passe à **libellé pivot en
+> rangée haute + les deux camps côte à côte** (colonnes pleines ⇒ plus de
+> troncature « Vos … / Rec… »), et les boutons **Combattre / Auto-Battle**
+> s'empilent en **pleine largeur** (une ligne chacun, cible ≥ 44 px). Le
+> portrait de l'attaquant reste l'avatar du héros quand il existe (parcours
+> réel), repli sur le blason de faction sinon.
+
 ### 2.5 Autres écrans
 
 Menu principal (Continuer / Scénarios / Escarmouche / **Éditeur de carte** / Options), fiche de scénario (objectifs), fin de partie (stats, graphique de puissance), options (langue FR/EN, vitesse anims, taille UI, audio, réduction des animations, confirmation de fin de tour : cf. §4).

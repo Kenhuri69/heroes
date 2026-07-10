@@ -58,6 +58,22 @@ alléger la densité, **zéro diff moteur** (client + CSS + data + doc uniquemen
 - Vérif finale : typecheck, lint, build, smoke Chromium, budget bundle, garde-fou
   « zéro faction ».
 
+### Lot G — Blason de faction (suivi hors refonte, demandé après)
+Le `FactionBadge` n'affichait qu'un motif procédural (repli a11y), d'où le
+« dé violet » pour Havre. Objectif : un vrai blason quand un asset existe, sans
+perdre le repli non chromatique ni introduire de faction en dur.
+- Résolveur générique `factionBadgeUrl(factionId)` → `badges/<factionId>`
+  (data-driven, aucune faction en dur, comme `buildingUrl`).
+- `FactionBadge` : rend l'image de blason si présente, sinon le motif SVG
+  procédural. `aria-label` + `data-pattern` + `data-testid` conservés (a11y +
+  smoke inchangés).
+- Générateur procédural déterministe `tools/assets/gen_faction_badge.py` (PIL,
+  esprit `gen_chrome.py`) → écu bleu roi, bordure or, charge héraldique dorée
+  (soleil/lumière — identité Haven doc 03). Staging `assets/badges/haven.png`.
+- Doc 12 : nouvelle famille d'assets « blasons ».
+- Vérif : smoke `faction-badge` toujours visible ; budget bundle inchangé (PNG
+  hors JS).
+
 ## Critères de vérification
 - [ ] `pnpm typecheck` / `pnpm lint` OK
 - [ ] `pnpm build` OK, budget < 800 Ko gzip tenu

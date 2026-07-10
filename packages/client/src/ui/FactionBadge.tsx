@@ -1,5 +1,6 @@
 import { useMemo } from 'preact/hooks';
 import { t } from '../app/i18n';
+import { factionBadgeUrl } from '../render/assets';
 import './FactionBadge.css';
 
 /**
@@ -44,6 +45,7 @@ function colorFor(id: string): string {
 export function FactionBadge({ factionId }: { factionId: string }) {
   const pattern = useMemo(() => patternFor(factionId), [factionId]);
   const color = useMemo(() => colorFor(factionId), [factionId]);
+  const crest = factionBadgeUrl(factionId);
 
   return (
     <span
@@ -53,10 +55,16 @@ export function FactionBadge({ factionId }: { factionId: string }) {
       data-testid="faction-badge"
       data-pattern={pattern}
     >
-      <svg viewBox="0 0 32 32" aria-hidden="true">
-        <rect x="1.5" y="1.5" width="29" height="29" rx="7" fill={color} stroke="#e8e2d0" stroke-width="1.5" />
-        <PatternMark pattern={pattern} />
-      </svg>
+      {crest ? (
+        // Blason peint/procédural quand un asset existe (doc 12 « blasons ») ;
+        // `data-pattern` reste posé → le canal non chromatique survit au repli.
+        <img class="faction-badge-crest" src={crest} alt="" aria-hidden="true" />
+      ) : (
+        <svg viewBox="0 0 32 32" aria-hidden="true">
+          <rect x="1.5" y="1.5" width="29" height="29" rx="7" fill={color} stroke="#e8e2d0" stroke-width="1.5" />
+          <PatternMark pattern={pattern} />
+        </svg>
+      )}
     </span>
   );
 }

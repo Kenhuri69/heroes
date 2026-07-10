@@ -72,7 +72,7 @@ UI/IA ──commande──► [validation] ──► engine.apply(state, cmd)
 | Phase | Mécanisme |
 |-------|-----------|
 | MVP | **IndexedDB** (API brute, `client/app/save.ts` — pas de dépendance `idb`) : snapshot `GameState` compressé (gzip via CompressionStream). Autosave à chaque fin de tour + slots manuels. Export/import fichier `.heroes` (JSON gzip) pour partage/backup. *État MVP : snapshot seul ; le journal de commandes incrémental depuis le dernier snapshot est différé (le moteur reste re-simulable, cf. §3).* |
-| Beta | Cloud saves : mêmes blobs poussés sur le serveur, résolution de conflit « le plus récent gagne + copie de sécurité ». |
+| Beta | Cloud saves : mêmes blobs poussés sur le serveur (D1, cf. [doc 15](15-backend-infra.md) §5.2), résolution de conflit **cible** « le plus récent gagne + copie de sécurité N-1 ». *État : l'endpoint `PUT /saves` accepte aujourd'hui tout `save_version` sans garde ni historique — le durcissement (garde de version + slot N-1) est suivi sous **NET-SRVGUARD** (doc 15).* |
 
 - Format versionné (`saveVersion`) + migrations, comme le contenu (doc 06 §7).
   - **État (lot 3.8)** : `CURRENT_SAVE_VERSION` (moteur) est l'unique source de
@@ -83,7 +83,7 @@ UI/IA ──commande──► [validation] ──► engine.apply(state, cmd)
     version — « Continuer » se grise, l'import échoue — au lieu d'adopter un
     état malformé. La **migration ascendante** d'anciennes sauvegardes reste
     différée (post-MVP) : au MVP on rejette, on ne migre pas.
-    `CURRENT_SAVE_VERSION` vaut **13** (source de vérité `engine/core/state.ts`).
+    `CURRENT_SAVE_VERSION` vaut **14** (source de vérité `engine/core/state.ts`).
     Historique : v2 (`factionCatalog`/`scenario`/`outcome`/`controller`/
     `eliminated`, 3.4/3.5) ; v3 (`PlayerState.factionResources`, 4.4) ; v4
     (`townlessDays` grâce de reprise + `AdventureMapDef.triggers`, comblement
@@ -97,18 +97,28 @@ UI/IA ──commande──► [validation] ──► engine.apply(state, cmd)
     v11 (`GameState.houseCatalog`, catalogue des Maisons lu par l'effet de
     bâtiment `houseChoice` « Le Choixpeau », doc 16 §3.1/§5) ; v12
     (`CombatState.heroAttackUsed`, attaque du héros 1×/combat, doc 02 §5.2) ;
-    v13 (`PlayerState.team`, alliances/équipes, doc 02 §6).
+    v13 (`PlayerState.team`, alliances/équipes, doc 02 §6) ; v14
+    (`GameState.growthGroups`, croissance partagée apex `sharedGrowthGroups`,
+    doc 05 §4.20).
 - Une sauvegarde référence les paquets de faction (par id) ; le suivi de
   **version** par paquet est différé avec les migrations (post-MVP).
 
 ## 5. Backend multijoueur (Beta — architecturé dès le MVP)
 
-- **Node.js + Fastify + WebSocket (ws)**, TypeScript, réutilise `packages/engine` tel quel.
-- Modèle **serveur autoritaire par re-simulation** : les clients envoient des commandes ; le serveur les valide/applique avec le même moteur déterministe et rediffuse. Coût CPU minime (tour par tour).
-- **PvP asynchrone d'abord** (notifications Web Push, tours en différé — le mode qui pardonne le mobile), temps réel à timer ensuite.
-- Persistance : **PostgreSQL** (comptes, parties, classements) + blobs de sauvegarde ; **Redis** pour présence/matchmaking si besoin.
-- Auth : magic link e-mail + OAuth (pas de mot de passe à gérer).
-- Anti-triche : le client n'est jamais cru — brouillard de guerre calculé serveur, seule la vue du joueur lui est envoyée (`stateView(playerId)`).
+> ⚠️ **Superseded par [doc 15](15-backend-infra.md) (DOC-07)** : cette section
+> décrit la cible *conceptuelle* d'origine (Node/Fastify/WebSocket/PostgreSQL/
+> Redis/OAuth). Le backend **réellement livré** est un **Worker Cloudflare +
+> D1** avec **polling** (pas de WebSocket) et **auth magic-link** (pas d'OAuth) —
+> le *modèle autoritaire par re-simulation déterministe* ci-dessous reste, lui,
+> exact et central. Se référer à doc 15 pour l'infrastructure, les endpoints et
+> le modèle de données à jour. Points ci-dessous conservés pour l'intention.
+
+- ~~**Node.js + Fastify + WebSocket (ws)**~~ → **Cloudflare Workers + D1**, TypeScript, réutilise `packages/engine` tel quel (doc 15).
+- Modèle **serveur autoritaire par re-simulation** : les clients envoient des commandes ; le serveur les valide/applique avec le même moteur déterministe et rediffuse. Coût CPU minime (tour par tour). *(Toujours vrai.)*
+- **PvP asynchrone d'abord** (tours en différé, **polling** « c'est ton tour » — le mode qui pardonne le mobile), temps réel à timer ensuite (post-Beta).
+- Persistance : ~~PostgreSQL + Redis~~ → **D1** (SQLite Cloudflare : comptes, parties, moves, blobs de sauvegarde) — cf. `server/schema.sql`.
+- Auth : magic link e-mail ~~+ OAuth~~ (pas de mot de passe à gérer).
+- Anti-triche : le client n'est jamais cru — vue filtrée par joueur (`stateView(playerId)`) **différée** : au PvP async actuel l'information est ouverte (les participants peuvent re-simuler le journal complet), limite assumée et documentée doc 15 (NET-FOG).
 
 ## 6. Assets & performance
 

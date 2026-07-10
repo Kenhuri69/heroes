@@ -7,7 +7,7 @@
   "growthPerWeek": 2,
   "cost": { "gold": 1200, "mercury": 2 },
   "abilities": [
-    { "id": "shooter", "params": { "ammo": 8 } },
+    { "id": "shooter", "params": { "ammo": 8, "noMeleePenalty": true } },
     { "id": "mark" },
     { "id": "consumeMarks", "params": { "cost": 2, "immobilizeRounds": 1 } }
   ]

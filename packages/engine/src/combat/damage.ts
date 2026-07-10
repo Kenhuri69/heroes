@@ -3,7 +3,7 @@ import type { GameState } from '../core/state';
 import { heroArtifactBonus } from '../hero/artifacts';
 import { heroArmorPct, heroLuck, heroMeleePct, heroRangedPct } from '../hero/skills';
 import type { SpellStatus } from '../hero/types';
-import { canShoot } from './actions';
+import { canShootTarget } from './actions';
 import { hexDistance } from './hex';
 import { clamp, isShooterMeleePenalized, recordLoss } from './state-helpers';
 import type { CombatSideId, CombatStack, CombatUnitDef, CombatState } from './types';
@@ -166,7 +166,12 @@ export function heroDefenseOf(state: GameState, combat: CombatState, side: Comba
   return hero.attributes.defense + heroArtifactBonus(hero, state.artifactCatalog).defense;
 }
 
-/** Chance du héros (compétence + artefacts + fontaine), bornée [0,3] — 0 si aucun héros. */
+/**
+ * Chance du héros (compétence + artefacts + fontaine), bornée **[-3,3]**
+ * (C-BADLUCK, doc 02 §5.3) — 0 si aucun héros. Une chance négative peut être
+ * infligée par un futur malus ; le signe pilote coup de chance (×2) vs
+ * malchance (×0,5) dans `performStrike`.
+ */
 export function heroLuckOf(state: GameState, combat: CombatState, side: CombatSideId): number {
   const hero = heroForSide(state, combat, side);
   if (!hero) return 0;
@@ -174,7 +179,7 @@ export function heroLuckOf(state: GameState, combat: CombatState, side: CombatSi
     heroLuck(hero, state.skillCatalog) +
     heroArtifactBonus(hero, state.artifactCatalog).luck +
     hero.visitLuck;
-  return clamp(total, 0, 3);
+  return clamp(total, -3, 3);
 }
 
 /** Bonus % de dégâts mêlée du héros lié au camp (compétence Attaque au corps) — fraction (0,10 = +10 %). */
@@ -285,11 +290,16 @@ export function performStrike(
     markConsumeBonus: consume?.damageBonus ?? 0,
     demonBonus: demon && striker.transformed ? demon.damageBonus : 0,
   });
+  // Chance/malchance (C-BADLUCK, doc 02 §5.3) : un SEUL jet, interprété selon le
+  // signe de la chance — |chance| × 4 %/point de déclencher soit un coup de
+  // chance (×2), soit un coup de malchance (×0,5). Chance nulle ⇒ jamais.
   const luck = combat ? heroLuckOf(draft, combat, striker.side) : 0;
   const luckRoll = rollRange(draft.rng, 0, 99);
   draft.rng = luckRoll.state;
-  const lucky = luckRoll.value < Math.round(rules.luckChancePerPoint * luck * 100);
-  const damage = Math.round(base * mult * (lucky ? 2 : 1));
+  const triggered = luckRoll.value < Math.round(rules.luckChancePerPoint * Math.abs(luck) * 100);
+  const lucky = triggered && luck > 0;
+  const unlucky = triggered && luck < 0;
+  const damage = Math.round(base * mult * (lucky ? 2 : unlucky ? 0.5 : 1));
 
   const pool = (victim.count - 1) * victimDef.stats.hp + victim.firstHp;
   const remaining = Math.max(0, pool - damage);
@@ -334,6 +344,7 @@ export function performStrike(
     damage,
     kills,
     lucky,
+    unlucky,
     retaliation,
     ranged,
   });
@@ -371,7 +382,9 @@ export function estimateDamage(
   if (!state.config) throw new Error('estimateDamage: config absente');
   const rules = state.config.combat;
 
-  const ranged = canShoot(state, attackerId);
+  // C-LOS : la préviz partage le critère de tir PAR CIBLE (ligne de vue) avec
+  // la résolution (`applyAttack`) — un tir bloqué s'affiche comme une mêlée.
+  const ranged = canShootTarget(state, attackerId, targetId);
   const meleePenalized = !ranged && isShooterMeleePenalized(attackerDef);
   // Mêmes termes que `performStrike` (préviz = résolution sans RNG, doc 08 §2.4) :
   // Symbiose (attaque + défense), murs de siège, et Défense héros à part (A3/A5).

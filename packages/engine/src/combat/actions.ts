@@ -4,10 +4,10 @@ import { rollRange } from '../core/rng';
 import type { GameState } from '../core/state';
 import { performStrike, symbiosisParams } from './damage';
 import type { Draft } from './draft';
-import { COMBAT_COLS, COMBAT_ROWS, hexDistance, hexNeighbors, sameHex, type OffsetPos } from './hex';
+import { COMBAT_COLS, COMBAT_ROWS, hexDistance, hexLine, hexNeighbors, sameHex, type OffsetPos } from './hex';
 import { advanceTurn, checkCombatEnd } from './turns';
 import { combatRules, hasAbility, isShooterMeleePenalized, moraleOf, moveRange } from './state-helpers';
-import type { CombatActionInput, CombatStack } from './types';
+import type { CombatActionInput, CombatStack, CombatState } from './types';
 
 /**
  * Actions de la pile active (doc 02 §5.2) : déplacement (BFS hex), tir/mêlée,
@@ -83,6 +83,39 @@ export function canShoot(state: GameState, stackId: string): boolean {
 }
 
 /**
+ * Ligne de vue (C-LOS, doc 02 §5.4) : un **obstacle** sur le segment strict
+ * entre `from` et `to` bloque la vue ; les **piles** ne bloquent pas (décision
+ * design 2026-07-10). Pure (lit `combat.obstacles`), déterministe.
+ */
+export function hasLineOfSight(combat: CombatState, from: OffsetPos, to: OffsetPos): boolean {
+  const blocked = new Set<string>();
+  for (const o of combat.obstacles) blocked.add(hexKey(o));
+  const line = hexLine(from, to);
+  // Hexes STRICTEMENT intermédiaires (on exclut le tireur et la cible).
+  for (let i = 1; i < line.length - 1; i++) {
+    if (blocked.has(hexKey(line[i] as OffsetPos))) return false;
+  }
+  return true;
+}
+
+/**
+ * La pile peut-elle **tirer sur cette cible** (C-LOS) : tireur en mode tir
+ * (`canShoot`) ET ligne de vue dégagée jusqu'à la cible. Un tireur sans ligne
+ * de vue tombe en mêlée (comme au contact) — jamais de tir « à travers » un
+ * obstacle. C'est le critère par cible partagé par la validation, la
+ * résolution (`applyAttack`), la préviz (`estimateDamage`) et l'UI/IA.
+ */
+export function canShootTarget(state: GameState, stackId: string, targetId: string): boolean {
+  const combat = state.combat;
+  if (!combat) return false;
+  if (!canShoot(state, stackId)) return false;
+  const stack = combat.stacks.find((s) => s.id === stackId);
+  const target = combat.stacks.find((s) => s.id === targetId);
+  if (!stack || !target) return false;
+  return hasLineOfSight(combat, stack.pos, target.pos);
+}
+
+/**
  * Piles ennemies que la pile active peut attaquer ce tour-ci (remédiation
  * CL9) : tireur non entravé ⇒ toutes les cibles vivantes ; sinon les cibles
  * adjacentes ou dont un hex adjacent est atteignable. Helper pur consommé par
@@ -94,11 +127,13 @@ export function attackableTargets(state: GameState, stackId: string): CombatStac
   if (!combat) return [];
   const stack = combat.stacks.find((s) => s.id === stackId);
   if (!stack) return [];
-  const ranged = canShoot(state, stackId);
-  const reachSet = new Set((ranged ? [] : reachableHexes(state, stackId)).map(hexKey));
+  // C-LOS : le mode tir se décide PAR CIBLE (ligne de vue) ⇒ une cible sans LoS
+  // n'est atteignable qu'en mêlée. On calcule toujours la portée de mêlée.
+  const shootMode = canShoot(state, stackId);
+  const reachSet = new Set(reachableHexes(state, stackId).map(hexKey));
   return combat.stacks.filter((s) => {
     if (s.side === stack.side || s.count <= 0) return false;
-    if (ranged) return true;
+    if (shootMode && hasLineOfSight(combat, stack.pos, s.pos)) return true; // tir
     return hexDistance(stack.pos, s.pos) === 1 || hexNeighbors(s.pos).some((p) => reachSet.has(hexKey(p)));
   });
 }
@@ -142,7 +177,9 @@ export function validateCombatAction(state: GameState, cmd: { action: CombatActi
       const target = combat.stacks.find((s) => s.id === action.targetStackId);
       if (!target || target.side === stack.side || target.count <= 0)
         return { code: 'invalidAction', message: 'cible invalide' };
-      if (canShoot(state, stack.id)) return null;
+      // C-LOS : tir autorisé seulement avec ligne de vue sur CETTE cible ;
+      // sinon (obstacle sur le segment) le tireur doit frapper en mêlée.
+      if (canShootTarget(state, stack.id, target.id)) return null;
       const dist = hexDistance(stack.pos, target.pos);
       const from = action.from;
       // A1 (CRITIQUE) : `from` doit TOUJOURS être validé quand fourni — y compris
@@ -274,7 +311,8 @@ function applyAttack(
   const targetDef = catalog[target.unitId];
   if (!targetDef) return;
   const wasFirstAction = !attacker.acted;
-  const ranged = canShoot(draft, attacker.id);
+  // C-LOS : tir seulement avec ligne de vue sur la cible ; sinon mêlée forcée.
+  const ranged = canShootTarget(draft, attacker.id, target.id);
   const hasDoubleAttack = hasAbility(attackerDef, 'doubleAttack');
 
   if (ranged) {

@@ -5,6 +5,8 @@ import {
   applyAction,
   attackableTargets,
   canShoot,
+  canShootTarget,
+  hasLineOfSight,
   meleeOriginsFor,
   reachableHexes,
   validateCombatAction as validateAction,
@@ -85,6 +87,9 @@ export { reachableHexes };
 
 /** La pile peut-elle tirer (shooter, munitions > 0, pas d'ennemi adjacent) ? */
 export { canShoot };
+
+/** Tir possible sur une cible donnée (mode tir + ligne de vue, C-LOS) + LoS brute. */
+export { canShootTarget, hasLineOfSight };
 
 /** Cibles attaquables + hex d'origine de mêlée — surbrillances/ciblage UI (CL9). */
 export { attackableTargets, meleeOriginsFor };

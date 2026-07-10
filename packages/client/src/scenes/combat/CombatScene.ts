@@ -4,7 +4,7 @@ import {
   inCombatBounds,
   sameHex,
   attackableTargets,
-  canShoot,
+  canShootTarget,
   estimateDamage,
   meleeOriginsFor,
   reachableHexes,
@@ -367,9 +367,11 @@ export class CombatScene {
       return;
     }
 
+    // C-LOS : le tir dépend de la ligne de vue vers CETTE cible ; une cible
+    // masquée par un obstacle bascule en mêlée (origine de mêlée résolue).
     let ranged = false;
     try {
-      ranged = canShoot(game, active.id);
+      ranged = canShootTarget(game, active.id, target.id);
     } catch {
       ranged = false;
     }
@@ -468,7 +470,7 @@ export class CombatScene {
     event: Extract<AppEvent, { type: 'StackAttacked' }>,
     speed: number,
   ): Promise<void> {
-    const { attackerId, targetId, damage, kills, lucky } = event;
+    const { attackerId, targetId, damage, kills, lucky, unlucky } = event;
     const attacker = this.stackTokens.get(attackerId);
     if (!attacker) return;
     const target = this.stackTokens.get(targetId);
@@ -489,7 +491,7 @@ export class CombatScene {
     // Impact : flash sur la cible + chiffres de dégâts flottants + micro-secousse.
     if (target && !target.destroyed) {
       target.tint = 0xff6666;
-      this.spawnDamageNumber(dest, damage, kills, lucky);
+      this.spawnDamageNumber(dest, damage, kills, lucky, unlucky);
       if (!prefersReducedMotion()) void this.shakeToken(target, dest);
     }
     await tween(half, (t) => {
@@ -508,15 +510,23 @@ export class CombatScene {
    * avant façon HO). Monte et s'efface (~700 ms) ; `prefers-reduced-motion` :
    * statique puis fondu. Groupe transitoire ⇒ self-destruction (pas d'accumulation).
    */
-  private spawnDamageNumber(at: Point, damage: number, kills: number, lucky: boolean): void {
+  private spawnDamageNumber(
+    at: Point,
+    damage: number,
+    kills: number,
+    lucky: boolean,
+    unlucky = false,
+  ): void {
     const group = new Container();
+    // Marqueurs a11y (glyphe + couleur) : ★ chance (or), ⚑ malchance (bleu-gris).
+    const prefix = lucky ? '★ ' : unlucky ? '⚑ ' : '';
     const dmg = new Text({
-      text: lucky ? `★ -${damage}` : `-${damage}`,
+      text: `${prefix}-${damage}`,
       style: {
         fontFamily: 'system-ui, sans-serif',
         fontSize: 22,
         fontWeight: '700',
-        fill: lucky ? 0xf1c40f : 0xffe0d6,
+        fill: lucky ? 0xf1c40f : unlucky ? 0x8fb3d9 : 0xffe0d6,
         stroke: { color: 0x1a1c22, width: 4 },
         align: 'center',
       },

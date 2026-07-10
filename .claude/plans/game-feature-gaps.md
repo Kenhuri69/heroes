@@ -57,7 +57,7 @@ Les cinq plus gros écarts entre le concept et le jeu livré :
 Source design : **doc 02 §5** (déroulé, dégâts, moral/chance, capacités, siège),
 doc 08 §2.4 (écran de combat).
 
-- **C-LOS — Ligne de vue des tireurs** 🐞 S ⬜
+- **C-LOS — Ligne de vue des tireurs** 🐞 S ✅ (A1)
   Doc : doc 02 §5.2/§5.4 (obstacles bloquants). Code : `canShoot` ne teste que
   l'adjacence d'un ennemi et les munitions (`packages/engine/src/combat/actions.ts:73-83`) ;
   les obstacles bloquent le déplacement (`actions.ts:34-35`) mais jamais le tir.
@@ -66,7 +66,7 @@ doc 08 §2.4 (écran de combat).
   LoS stricte ; HO = LoS). Pas de malus de distance (doc §5.4 : portée illimitée).
   Vérif : tests moteur LoS + golden re-fixé.
 
-- **C-BADLUCK — Malchance & bornes de chance** 🐞 S ⬜
+- **C-BADLUCK — Malchance & bornes de chance** 🐞 S ✅ (A1)
   Doc : doc 02 §5.3 (chance ±, demi-dégâts). Code : chance = ×2 seulement,
   bornée [0,3] (`packages/engine/src/combat/damage.ts:170-178,288-292`).
   Spec : borne symétrique [-3,3], jet de malchance ⇒ ×0,5 ; prévisualisation
@@ -151,7 +151,7 @@ Familles, par mécanique moteur commune :
   renaissance (Phénix, doc 16 §4/§7), `swarm` (+dégâts ∝ effectif — Élève AH
   doc 05 §4, Chœur Vox doc 16 §4), `devourMarks` (Pénitent, doc 05 §4).
   Effort : M.
-- **CAP-DATAFIX — Corrections de données pures** 🐞 S ⬜ (aucun moteur) :
+- **CAP-DATAFIX — Corrections de données pures** 🐞 S 🧩 (A1 : noMeleePenalty Chasseresse+Idole faits ; le reste — écarts Vit/stats — traité en DOC-STATS) (aucun moteur) :
   `noMeleePenalty` manquant sur Chasseresse AH (`data/factions/arcane-hunters/units/t6-chasseresse.json`,
   doc 05 §4) et sur l'Idole Vox (doc 16 §4) alors que le moteur le supporte
   (`state-helpers.ts:32`) ; capacités non prévues au doc sur l'Avatar Vox
@@ -497,14 +497,14 @@ sont du **contenu**.
 
 ### 2.11 Hygiène documentaire (DOC-*)
 
-- **DOC-07 — doc 07 §5 périmé** 📄 S ⬜ : décrit Node/Fastify/WebSocket/
+- **DOC-07 — doc 07 §5 périmé** 📄 S ✅ (A1) : décrit Node/Fastify/WebSocket/
   PostgreSQL/Redis/OAuth ; la réalité est Workers+D1+polling (doc 15). Ajouter
   la note « superseded by doc 15 » et réaligner §4 (« copie de sécurité »).
-- **DOC-SKILLS — doc 02 §1.3 note R5** 📄 S ⬜ : annonce un pool de 12 sans
+- **DOC-SKILLS — doc 02 §1.3 note R5** 📄 S ✅ (A1) : annonce un pool de 12 sans
   Sagesse ; `data/core/skills.json` en a 13 dont `wisdom` (livrée depuis).
-- **DOC-AUDIO — doc 12 §6bis/§6ter** 📄 S ⬜ : situe le registre audio en
+- **DOC-AUDIO — doc 12 §6bis/§6ter** 📄 S ✅ (A1) : situe le registre audio en
   `render/audio.ts` ; le code réel est `app/audio.ts`.
-- **DOC-STATS — tables de stats divergentes** 📄 S ⬜ : Cavalier funeste
+- **DOC-STATS — tables de stats divergentes** 📄 S ✅ (A1) : Cavalier funeste
   Vit. 9 (doc 04 §3) vs 10 (données) ; stats placeholder Vox (doc 16 §4) vs
   données équilibrées — répercuter les choix `faction:sim` dans les docs
   (croise CAP-DATAFIX : trancher qui, du doc ou des données, fait foi par cas).
@@ -623,3 +623,17 @@ si nouvel écran), bump `CURRENT_SAVE_VERSION` si la forme de sauvegarde change
   audio complet livré (ne pas re-planifier). Inventaire : 55 manques répartis
   en 11 domaines, 4 pistes d'exécution (A moteur/données, B en ligne,
   C narratif/UX, D assets), 7 décisions design à cadrer.
+- **2026-07-10 — Lot A1** (`.claude/plans/a1-rules-data-fixes.md`, branche
+  `claude/a1-rules-data-fixes`) : **livré**. C-LOS (ligne de vue tireurs :
+  `hexLine`/`hasLineOfSight`/`canShootTarget`, obstacles seuls bloquants, tir
+  interdit si bloqué ⇒ mêlée forcée ; branché validation/résolution/préviz/IA/
+  client) ; C-BADLUCK (chance bornée [-3,3], coup de malchance ×0,5, event
+  `unlucky` + marqueur client) ; CAP-DATAFIX (`noMeleePenalty` Chasseresse AH +
+  Idole Vox — docs font foi) ; DOC-STATS (doc 04 Cavalier funeste Vit.→10 ;
+  tables Vox doc 16 §4 réalignées sur données `faction:sim` ; Avatar
+  flying+noRetaliation tranché côté données) ; DOC-07 (§5 superseded par doc 15 +
+  §4 backup/version 14) ; DOC-SKILLS (pool 13, Sagesse) ; DOC-AUDIO (app/audio.ts).
+  Écarts : golden **inchangé** (LoS n'altère pas le combat gardien golden) ⇒
+  aucun re-fix ; pas de bump save version. Vérifs : typecheck 5/5, lint, 420
+  tests moteur (+19 : `combat-los`, `combat-luck`), content:check, garde-fou
+  « zéro faction » vert, bundle < 800 Ko gzip. PR draft : (à créer).

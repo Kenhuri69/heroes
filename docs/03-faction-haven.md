@@ -7,13 +7,14 @@
 > (Cristal/Gemmes), locales FR/EN, recrutement validé par test. **Différé**
 > (points d'extension moteur non encore ouverts — le loader refuse toute
 > donnée non interprétée) : capacités spéciales
-> `firstStrike`/`resurrectAlly`/`spellcaster`.
+> `resurrectAlly`/`spellcaster`.
 > **Livré depuis** : `shieldWall` (Frère-Lame), `unlimitedRetaliation` (Griffon),
 > `charge` (Chevalier du Griffon) en A2a ; `moraleImmune` (Ange, immunité au
 > moral négatif) en A3a ; `taunt` (Conscrit, attire les frappes de mêlée
-> adjacentes) en A2e — interprétées par le moteur (catalogue = **24 capacités**
-> génériques, doc 02 §5.4) ; côté Haven restent inertes
-> `firstStrike`/`resurrectAlly` ;
+> adjacentes) en A2e ; `firstStrike` (Chevalier du Griffon, priorité d'initiative
+> à vitesse égale) en A2g — interprétées par le moteur (catalogue = **26 capacités**
+> génériques, doc 02 §5.4) ; côté Haven reste inerte
+> `resurrectAlly` ;
 > bonus de faction Ferveur/Formation (§2) ; compétence Prière de bataille ;
 > bâtiments spéciaux Statue/Cloître/Écuries (§4, effets non supportés) ; école
 > Lumière (variante Eau au MVP, `spellSchool: null`) ; classes et héros nommés

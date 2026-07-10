@@ -86,6 +86,32 @@ export interface RoundActionOrder {
  * la pile active. Projection nominale : les aléas résolus au moment du tour
  * (saut de moral négatif, immobilisation) ne sont pas anticipés.
  */
+/**
+ * Départage d'initiative PARTAGÉ (doc 02 §5.2) entre `pickNext` (turns.ts) et
+ * `roundActionOrder` — source unique pour éviter toute divergence ordre réel /
+ * projection UI. Critères : vitesse d'initiative (sens `direction`), puis
+ * `firstStrike` (A2g : priorité à vitesse égale, indépendante du camp), puis
+ * camp attaquant, puis slot.
+ */
+export function compareInitiative(
+  a: CombatStack,
+  b: CombatStack,
+  combat: CombatState,
+  catalog: Record<string, CombatUnitDef>,
+  direction: 'asc' | 'desc',
+): number {
+  const sa = initiativeSpeed(a, combat, catalog);
+  const sb = initiativeSpeed(b, combat, catalog);
+  if (sa !== sb) return direction === 'desc' ? sb - sa : sa - sb;
+  const defA = catalog[a.unitId];
+  const defB = catalog[b.unitId];
+  const fa = defA ? hasAbility(defA, 'firstStrike') : false;
+  const fb = defB ? hasAbility(defB, 'firstStrike') : false;
+  if (fa !== fb) return fa ? -1 : 1;
+  if (a.side !== b.side) return a.side === 'attacker' ? -1 : 1;
+  return a.slot - b.slot;
+}
+
 export function roundActionOrder(
   combat: CombatState,
   catalog: Record<string, CombatUnitDef>,
@@ -93,13 +119,8 @@ export function roundActionOrder(
   if (combat.finished) return { current: [], next: [] };
   const bySpeed =
     (direction: 'asc' | 'desc') =>
-    (a: CombatStack, b: CombatStack): number => {
-      const sa = initiativeSpeed(a, combat, catalog);
-      const sb = initiativeSpeed(b, combat, catalog);
-      if (sa !== sb) return direction === 'desc' ? sb - sa : sa - sb;
-      if (a.side !== b.side) return a.side === 'attacker' ? -1 : 1;
-      return a.slot - b.slot;
-    };
+    (a: CombatStack, b: CombatStack): number =>
+      compareInitiative(a, b, combat, catalog, direction);
   const alive = combat.stacks.filter((s) => s.count > 0);
   const main = alive.filter((s) => !s.acted && !s.waited).sort(bySpeed('desc'));
   const wait = alive.filter((s) => !s.acted && s.waited).sort(bySpeed('asc'));

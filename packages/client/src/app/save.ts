@@ -7,6 +7,7 @@ import {
 } from '@heroes/engine';
 import { appStore } from './store';
 import { eventBus } from './events';
+import { getSave, putSave } from './net';
 
 /**
  * Sauvegarde IndexedDB (doc 07 §4) : snapshot `serializeState(state)`
@@ -131,6 +132,34 @@ export async function hasAnySave(): Promise<boolean> {
  */
 function isCompatible(snapshot: string): boolean {
   return readSaveVersion(snapshot) === CURRENT_SAVE_VERSION;
+}
+
+// — Cloud saves (doc 15 §5.2, NET-CLOUDSAVES) : réutilise la MÊME sérialisation
+// et la MÊME garde de version que les sauvegardes locales/import. Le SDK `net`
+// est inerte hors-ligne (pas de `VITE_BACKEND_URL`) ; ces helpers ne sont
+// appelés que derrière `isOnline() && isLoggedIn()`.
+
+/** Envoie l'état courant vers le slot cloud (snapshot moteur + version de forme). */
+export async function pushCloudSave(state: GameState, slot: SaveSlot = 'manual'): Promise<void> {
+  await putSave(slot, serializeState(state), state.saveVersion);
+}
+
+/** Issue d'un chargement cloud : chargé / version incompatible / partie non démarrée. */
+export type CloudPullResult = 'ok' | 'incompatible' | 'notStarted';
+
+/**
+ * Charge le slot cloud dans le store. Rejette proprement une sauvegarde d'une
+ * autre version de forme (même garde que `importSave`, doc 07 §4). Les erreurs
+ * réseau / slot vide (404) se propagent en exception — gérées par l'appelant.
+ */
+export async function pullCloudSave(slot: SaveSlot = 'manual'): Promise<CloudPullResult> {
+  const r = await getSave(slot);
+  if (!isCompatible(r.state)) return 'incompatible';
+  const state = deserializeState(r.state);
+  if (!state.started) return 'notStarted';
+  appStore.setState({ game: state, screen: 'adventure', modals: [] });
+  eventBus.emit([{ type: 'GameLoaded' }]);
+  return 'ok';
 }
 
 /** Emballe un snapshot en fichier `.heroes` gzip (format d'export, doc 07 §4). */

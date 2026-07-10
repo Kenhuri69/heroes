@@ -1,7 +1,8 @@
 import { useState } from 'preact/hooks';
 import { appStore, useApp } from '../app/store';
 import { t, setLocale } from '../app/i18n';
-import { exportSave, importSave, saveGame, restoreSavedGame } from '../app/save';
+import { exportSave, importSave, saveGame, restoreSavedGame, pushCloudSave, pullCloudSave } from '../app/save';
+import { isOnline, isLoggedIn } from '../app/net';
 import { eventBus } from '../app/events';
 import { getTelemetry, resetTelemetry, setTelemetryEnabled } from '../app/telemetry';
 import { setMusicVolume, setSfxVolume } from '../app/audio';
@@ -80,6 +81,18 @@ export function OptionsPanel({ onClose }: { onClose: () => void }) {
       .catch(() => eventBus.emit([{ type: 'SaveFailed' }]));
   };
   const doLoad = (): void => void restoreSavedGame('manual');
+
+  // Cloud saves (NET-CLOUDSAVES) : n'apparaît que connecté (isOnline+isLoggedIn).
+  const doCloudPush = (): void => {
+    void pushCloudSave(appStore.getState().game)
+      .then(() => pushToast(t('toast.cloudSaved'), 'success'))
+      .catch(() => pushToast(t('toast.cloudSaveError'), 'error'));
+  };
+  const doCloudPull = (): void => {
+    void pullCloudSave()
+      .then((r) => pushToast(t(r === 'ok' ? 'toast.cloudLoaded' : 'toast.cloudIncompatible'), r === 'ok' ? 'success' : 'error'))
+      .catch(() => pushToast(t('toast.cloudLoadError'), 'error'));
+  };
 
   return (
     <div class="modal-backdrop" onClick={onClose}>
@@ -282,6 +295,22 @@ export function OptionsPanel({ onClose }: { onClose: () => void }) {
                 {message}
               </p>
             )}
+          </section>
+        )}
+
+        {/* Cloud saves (NET-CLOUDSAVES) : réservé au jeu connecté ; hors-ligne
+            (smoke, pas de backend) la section n'existe pas → app inchangée. */}
+        {screen === 'adventure' && isOnline() && isLoggedIn() && (
+          <section class="options-section" data-testid="options-cloud">
+            <h3>{t('options.cloudSection')}</h3>
+            <div class="options-save-actions">
+              <button data-testid="cloud-push" onClick={doCloudPush}>
+                {t('options.cloudPush')}
+              </button>
+              <button data-testid="cloud-pull" onClick={doCloudPull}>
+                {t('options.cloudPull')}
+              </button>
+            </div>
           </section>
         )}
       </div>

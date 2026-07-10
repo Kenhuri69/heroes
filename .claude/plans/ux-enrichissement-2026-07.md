@@ -318,7 +318,19 @@ Espace/D en combat — `combat.tsx:71`) mais sont **indécouvrables**.
       atteignables ; smoke complet **142✓** (dont drag des slots d'équipement —
       le masque ne bloque pas les interactions) ; build OK, zéro diff moteur.
       Desktop (colonne >= 900 px) inchangé.
-- [ ] Lot X7 — confort desktop.
+- [x] Lot X7 — confort desktop (2026-07-10). Livré : (1) **aide des raccourcis**
+      `ShortcutsOverlay` (modale, ouverte par la touche `?`, listée aussi dans
+      l'astuce d'Options ; Échap ferme — pile <= 2) avec 8 raccourcis en liste
+      kbd ; (2) touche **`N`** = héros suivant avec PM restants + recentrage
+      caméra (cyclique, no-op à un héros, forward-looking multi-héros U4) ;
+      (3) `title` d'appoint « Fin de tour (E) » / « Ville (T) » (info
+      complémentaire, A2). Nouvelle clé modale `shortcuts`, 11 clés locale FR/EN
+      (parité), CSS via tokens (garde-fou vert). Doc 08 §2.5 mis à jour.
+      **Vérifié** navigateur desktop : `?` ouvre (8 lignes), Échap ferme, title
+      présent, `N` sans crash à 1 héros ; smoke complet **144 verts** + test dédié
+      « ? ouvre l'aide, Échap ferme » (2 viewports) ; typecheck/lint/build OK,
+      zéro diff moteur. Écart : le cyclage de `N` n'est pas couvert en smoke
+      (contenu MVP = 1 héros/joueur) — vérifié par lecture + no-op testé.
 - [ ] Lot X8 — hygiène des plans.
 
 > Note de périmètre : cette PR est **documentaire** (ce plan uniquement) ; le

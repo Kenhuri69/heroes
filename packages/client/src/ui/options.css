@@ -182,3 +182,32 @@
   color: var(--danger-text);
   font-size: 0.85rem;
 }
+
+/* Aide des raccourcis clavier (lot X7) — liste clé → action. Couleurs via
+   tokens uniquement (garde-fou CI). */
+.shortcuts-list {
+  margin: 12px 0 0;
+  display: grid;
+  gap: 6px;
+}
+.shortcuts-row {
+  display: grid;
+  grid-template-columns: 4.5rem 1fr;
+  align-items: center;
+  gap: 10px;
+}
+.shortcuts-row dt,
+.shortcuts-row dd {
+  margin: 0;
+}
+.shortcuts-key {
+  display: inline-block;
+  min-width: 2.2rem;
+  padding: 3px 8px;
+  border: 1px solid var(--ink-600);
+  border-radius: var(--radius-s);
+  background: var(--ink-700);
+  color: var(--parchment-bright);
+  font: 600 0.8125rem var(--font-ui);
+  text-align: center;
+}

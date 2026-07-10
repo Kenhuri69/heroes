@@ -65,7 +65,10 @@ export function PreBattleScreen() {
                 <FactionBadge factionId={attackerFaction} />
               ) : null}
             </div>
-            <span class="pre-battle-name">{t('preBattle.attacker')}</span>
+            <span class="pre-battle-name">
+              {attackerFaction && <FactionBadge factionId={attackerFaction} />}
+              {t('preBattle.attacker')}
+            </span>
             <span class="pre-battle-power" data-testid="pre-battle-power-attacker">
               {attackerPower}
             </span>
@@ -90,6 +93,7 @@ export function PreBattleScreen() {
               ) : null}
             </div>
             <span class="pre-battle-name">
+              {defenderFaction && <FactionBadge factionId={defenderFaction} />}
               {defTop ? resolveUnitName(defTop.unitId) : t('preBattle.defender')}
             </span>
             <span class="pre-battle-power" data-testid="pre-battle-power-defender">

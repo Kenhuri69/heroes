@@ -248,6 +248,15 @@
   display: block;
 }
 
+/* Blason de faction du héros (Lot 2 identité visuelle) : sous le portrait,
+   centré ; réutilise le composant partagé (repli motif a11y si pas d'asset). */
+.hero-faction {
+  display: flex;
+  justify-content: center;
+  margin: -4px 0 8px;
+  font-size: 1.25rem;
+}
+
 /* Bandeau de portraits (doc 08 §2.1, lot UX U4) : sélection du héros humain
    actif parmi plusieurs. Scroll horizontal si trop de héros pour la largeur. */
 .hero-strip {

@@ -72,7 +72,10 @@ export class MapObjectsLayer {
       }
     }
     for (const obj of objects) {
-      const signature = obj.type === 'mine' ? `mine:${obj.ownerId ?? ''}` : obj.type;
+      // Mine ET habitation (M-DWELLOWN) : la couleur du propriétaire fait partie
+      // de la signature ⇒ une (re)capture force la reconstruction du drapeau.
+      const signature =
+        obj.type === 'mine' || obj.type === 'dwelling' ? `${obj.type}:${obj.ownerId ?? ''}` : obj.type;
       const existing = this.byId.get(obj.id);
       if (existing && this.signatures.get(obj.id) === signature) {
         // Position resynchronisée à chaque passage : les gardiens ERRANTS
@@ -101,7 +104,7 @@ function buildObject(obj: MapObjectDef, catalog: UnitCatalog, ownerColor: OwnerC
   if (obj.type === 'treasure') return buildTreasure();
   if (obj.type === 'artifact') return buildGroundArtifact(obj.artifactId);
   if (obj.type === 'visitable') return buildVisitable(obj.effect.kind);
-  if (obj.type === 'dwelling') return buildDwelling(obj.unitId, catalog);
+  if (obj.type === 'dwelling') return buildDwelling(obj.unitId, catalog, ownerColor(obj.ownerId));
   return buildGuardian(obj.unitId, catalog);
 }
 
@@ -196,7 +199,7 @@ function buildVisitableFallback(kind: string): Container {
  * sprite de l'unité recrutable en médaillon (chargement async gardé comme le
  * gardien).
  */
-function buildDwelling(unitId: string, catalog: UnitCatalog): Container {
+function buildDwelling(unitId: string, catalog: UnitCatalog, color: number): Container {
   // Camp teinté à la faction de la créature recrutable si son art est présent,
   // sinon camp générique (puis repli tente procédurale) — doc 02 §2.2.
   const faction = catalog[unitId]?.groupId;
@@ -213,7 +216,19 @@ function buildDwelling(unitId: string, catalog: UnitCatalog): Container {
       node.addChild(sprite); // médaillon au-dessus du camp
     });
   }
+  node.addChild(ownerFlag(color)); // M-DWELLOWN : drapeau du propriétaire (gris = neutre)
   return node;
+}
+
+/** Fanion de propriété (mine/habitation) en haut à droite de la tuile, teinté propriétaire. */
+function ownerFlag(color: number): Graphics {
+  const s = TILE_SIZE;
+  return new Graphics()
+    .rect(s - 14, 2, 3, 20)
+    .fill(0x1a1c22)
+    .poly([s - 11, 3, s - 1, 8, s - 11, 13])
+    .fill(color)
+    .stroke({ width: 1.5, color: 0x1a1c22 });
 }
 
 function buildTentFallback(): Container {
@@ -250,16 +265,7 @@ function buildResourcePile(resource: string): Container {
 function buildMine(obj: MineObjectDef, color: number): Container {
   const node = new Container();
   node.addChild(buildResourcePile(obj.resource));
-  const s = TILE_SIZE;
-  const flag = new Graphics()
-    // Hampe en haut à droite de la tuile.
-    .rect(s - 14, 2, 3, 20)
-    .fill(0x1a1c22)
-    // Fanion triangulaire teinté couleur du propriétaire (gris = neutre).
-    .poly([s - 11, 3, s - 1, 8, s - 11, 13])
-    .fill(color)
-    .stroke({ width: 1.5, color: 0x1a1c22 });
-  node.addChild(flag);
+  node.addChild(ownerFlag(color)); // fanion propriétaire (gris = neutre)
   return node;
 }
 

@@ -325,10 +325,15 @@ Source design : doc 02 §2 (carte), §1.5 (multi-héros).
   cabane de sorcière (donne une compétence), bonus permanents (arène +att/déf,
   statues moral/chance) ⇒ nouveau kind `permanentStat` + registre de visites.
 
-- **M-DWELLOWN — Habitations de carte capturables** 🕳️ S ⬜
-  Doc : doc 02 §2.2. Code : `DwellingObjectDef` = `unitId`+`stock`, sans
-  `ownerId`/drapeau/croissance (`map.ts:73-79`). Spec : propriétaire + drapeau
-  couleur + réassort hebdo au propriétaire.
+- **M-DWELLOWN — Habitations de carte capturables** 🕳️ S ✅
+  > **Livré** : `DwellingObjectDef.ownerId` (save v18). La fouler la **capture**
+  > (drapeau du joueur + `revealStructure` comme une mine, `movement.ts`) ; le
+  > **réassort hebdo est réservé au propriétaire** (`applyWeeklyGrowth` gardé sur
+  > `ownerId`) — une habitation neutre garde son stock initial. Client : fanion
+  > propriétaire sur le camp (`ownerFlag` partagé mine/habitation, signature de
+  > recapture). Golden re-fixé 6fa5044c (forme). Tests moteur (capture, croissance
+  > neutre vs possédée) + smoke (drapeau du joueur après visite).
+  Doc : doc 02 §2.2.
 
 - **M-CALENDAR — Mois & événements de calendrier** 🕳️ S ⬜ (post-MVP assumé doc 02 §2.3)
   Spec : mois = 4 semaines, événements type « semaine de la peste » déclaratifs.

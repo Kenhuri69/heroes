@@ -162,6 +162,7 @@ describe('habitation hors ville (doc 02 §2.2)', () => {
     pos: { x: 2, y: 0 },
     unitId: 'red-grunt',
     stock: 10,
+    ownerId: null,
   };
 
   it('la visite recrute le maximum abordable dans l’armée du héros', () => {
@@ -193,12 +194,28 @@ describe('habitation hors ville (doc 02 §2.2)', () => {
     expect(events.some((e) => e.type === 'DwellingRecruited')).toBe(false);
   });
 
-  it('le stock croît chaque semaine (croissance des données, plafond 2×)', () => {
-    let state = startedWith([{ ...dwelling, stock: 5 }]);
+  it('M-DWELLOWN : une habitation NEUTRE ne croît pas (réassort réservé au propriétaire)', () => {
+    let state = startedWith([{ ...dwelling, stock: 5, ownerId: null }]);
+    for (let i = 0; i < 7; i++) state = apply(state, { type: 'EndTurn', playerId: 'p1' }).state;
+    const obj = state.map?.objects.find((o) => o.id === 'camp');
+    expect(obj?.type === 'dwelling' && obj.stock).toBe(5); // inchangé, non capturée
+  });
+
+  it('M-DWELLOWN : une habitation POSSÉDÉE croît chaque semaine (plafond 2×)', () => {
+    let state = startedWith([{ ...dwelling, stock: 5, ownerId: 'p1' }]);
     for (let i = 0; i < 7; i++) state = apply(state, { type: 'EndTurn', playerId: 'p1' }).state;
     const obj = state.map?.objects.find((o) => o.id === 'camp');
     // Semaine 2 : 5 + 6 = 11 (< plafond 12).
     expect(obj?.type === 'dwelling' && obj.stock).toBe(11);
+  });
+
+  it('M-DWELLOWN : fouler une habitation la capture (drapeau du joueur)', () => {
+    const { state } = move(startedWith([{ ...dwelling, stock: 5 }], 0), [
+      { x: 1, y: 0 },
+      { x: 2, y: 0 },
+    ]);
+    const obj = state.map?.objects.find((o) => o.id === 'camp');
+    expect(obj?.type === 'dwelling' && obj.ownerId).toBe('p1');
   });
 });
 

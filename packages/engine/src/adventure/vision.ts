@@ -31,6 +31,8 @@ export function revealOwnedStructures(draft: GameState): void {
   const map = draft.map;
   if (!map) return;
   for (const obj of map.objects) {
-    if (obj.type === 'mine' && obj.ownerId) revealStructure(draft, obj.ownerId, obj.pos);
+    // Structures possédées : mine (F1) + habitation capturée (M-DWELLOWN).
+    if ((obj.type === 'mine' || obj.type === 'dwelling') && obj.ownerId)
+      revealStructure(draft, obj.ownerId, obj.pos);
   }
 }

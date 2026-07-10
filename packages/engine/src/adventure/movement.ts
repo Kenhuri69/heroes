@@ -87,7 +87,16 @@ export function advanceHeroAlongPath(
     for (const obj of map.objects) {
       if (!samePos(obj.pos, hero.pos)) continue;
       if (obj.type === 'visitable') visitBonus(draft, hero, player, obj, events);
-      else if (obj.type === 'dwelling') recruitDwelling(draft, hero, player, obj, events);
+      else if (obj.type === 'dwelling') {
+        // Habitation de carte capturable (M-DWELLOWN, doc 02 §2.2) : la fouler la
+        // fait passer au joueur (drapeau + vision), qui touchera son réassort hebdo
+        // (`applyWeeklyGrowth`). Recapturable par un adversaire — comme une mine.
+        if (obj.ownerId !== player.id) {
+          obj.ownerId = player.id;
+          revealStructure(draft, player.id, obj.pos);
+        }
+        recruitDwelling(draft, hero, player, obj, events);
+      }
     }
     // Mine (doc 02 §2.2) : capture en passant — le héros ne s'arrête pas, et
     // une mine adverse est recapturée par le même geste.

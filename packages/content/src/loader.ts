@@ -769,6 +769,8 @@ export type ResolvedMapObject =
       pos: { x: number; y: number };
       unitId: string;
       stock: number;
+      /** Toujours neutre en sortie de données — capturée en jeu (M-DWELLOWN). */
+      ownerId: string | null;
     }
   | {
       id: string;
@@ -1110,7 +1112,7 @@ function resolveMap(file: MapFile): ResolvedMap {
       if (obj.type === 'visitable')
         return { id: obj.id, type: obj.type, pos, effect: obj.effect, frequency: obj.frequency, visits: {} };
       if (obj.type === 'dwelling')
-        return { id: obj.id, type: obj.type, pos, unitId: obj.unitId, stock: obj.stock ?? 0 };
+        return { id: obj.id, type: obj.type, pos, unitId: obj.unitId, stock: obj.stock ?? 0, ownerId: null };
       if (obj.type === 'mine')
         return {
           id: obj.id,

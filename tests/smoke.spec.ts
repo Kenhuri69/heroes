@@ -441,6 +441,8 @@ test('lieu de bonus & habitation : écurie ⇒ +PM, camp ⇒ recrutement (doc 02
   expect((stack?.count ?? 0) - before).toBe(8);
   const camp = state.map?.objects.find((o) => o.id === 'camp-recrues');
   expect(camp?.type === 'dwelling' && camp.stock).toBe(0);
+  // M-DWELLOWN (doc 02 §2.2) : fouler l'habitation la capture (drapeau du joueur).
+  expect(camp?.type === 'dwelling' && camp.ownerId).toBe('player-1');
   expect(state.players[0]?.resources.gold).toBe(goldBefore - 8 * 30);
 
   expect(errors).toEqual([]);

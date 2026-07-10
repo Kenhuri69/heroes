@@ -456,6 +456,7 @@ describe('loadMap', () => {
       pos: { x: 2, y: 0 },
       unitId: 't1-grunt',
       stock: 8,
+      ownerId: null,
     });
     expect(resolved.objects).toContainEqual({
       id: 'errant',

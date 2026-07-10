@@ -130,8 +130,10 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 > déclaratif : fontaine `luck` — consommée à la fin du prochain combat,
 > écurie `movement`, arbre du savoir `levelXp` — l'XP du niveau suivant,
 > moulin `resource` fixe ; re-visite `oncePerHero` ou `oncePerHeroPerWeek`),
-> **habitations hors ville** (stock hebdomadaire aux données d'unité, la
-> visite recrute le maximum abordable) et gardiens neutres — y compris
+> **habitations hors ville** (M-DWELLOWN : **capturables** — la fouler pose le
+> drapeau du joueur et lui réserve le réassort hebdomadaire, façon HoMM ; la
+> visite recrute le maximum abordable ; stock hebdomadaire aux données d'unité)
+> et gardiens neutres — y compris
 > **errants** (`roamRadius` : 1 pas/jour vers le héros le plus proche à
 > portée, arrêt au contact) — sont livrés (`data/maps/*.map.json` :
 > `resource`/`mine`/`treasure`/`artifact`/`visitable`/`dwelling`/`guardian`/

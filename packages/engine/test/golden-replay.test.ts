@@ -232,7 +232,10 @@ const GOLDEN_JOURNAL: Command[] = [
 // Re-fixé au lot H-LEVELCHOICE : `HeroState.pendingAttributeChoices` (save v17).
 // Le héros humain golden ne franchit aucun niveau (XP du gardien < seuil) ⇒ file
 // vide `[]` ajoutée à la forme ; combat/valeurs inchangés, seule la FORME change.
-const GOLDEN_HASH = '879c3291';
+// Re-fixé au lot M-DWELLOWN : `DwellingObjectDef.ownerId` (save v18). La carte
+// golden n'a aucune habitation ⇒ seul le champ `saveVersion` (17→18) de l'état
+// haché change, simulation inchangée.
+const GOLDEN_HASH = '6fa5044c';
 
 describe('golden replay', () => {
   it('le journal scripté produit toujours le même état final', () => {

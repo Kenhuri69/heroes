@@ -76,6 +76,12 @@ export interface DwellingObjectDef {
   pos: GridPos;
   unitId: string;
   stock: number;
+  /**
+   * Joueur propriétaire (M-DWELLOWN, doc 02 §2.2) — `null` = neutre (état
+   * initial). La fouler capture l'habitation (drapeau + vision) ; seul un
+   * propriétaire touche le réassort hebdomadaire (`applyWeeklyGrowth`).
+   */
+  ownerId: string | null;
 }
 
 /**

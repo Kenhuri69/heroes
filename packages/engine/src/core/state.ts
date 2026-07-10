@@ -204,9 +204,12 @@ export interface Calendar {
  * du héros et profil de bonus générique agrégé comme les effets de Maison.
  * v17 : `HeroState.pendingAttributeChoices` — choix d'attribut à la montée de
  * niveau (H-LEVELCHOICE, doc 02 §1.2) : le héros humain choisit +1 attribut
- * parmi 2 (file), l'IA garde le tirage auto.)
+ * parmi 2 (file), l'IA garde le tirage auto.
+ * v18 : `DwellingObjectDef.ownerId` — habitations de carte capturables
+ * (M-DWELLOWN, doc 02 §2.2) : drapeau du joueur qui les foule + réassort hebdo
+ * réservé au propriétaire.)
  */
-export const CURRENT_SAVE_VERSION = 17;
+export const CURRENT_SAVE_VERSION = 18;
 
 export interface GameState {
   saveVersion: number;

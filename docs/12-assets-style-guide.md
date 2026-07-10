@@ -251,14 +251,21 @@ chromatique — doc 08 §4 — quand l'asset manque). Comble le trou d'identité
 l'en-tête de ville (le « dé » générique jadis affiché pour Havre).
 
 - **Forme** : écu « heater » (haut droit, flancs courbes → pointe basse), bordure
-  laiton biseautée (rampe de la Règle G), ombre portée douce ; fond transparent
-  hors de l'écu. **Charge** et **couleurs** dérivées de l'identité de la faction
-  (doc 03/04/05…) : p. ex. **Havre** = champ bleu roi + chef clair (blanc
-  héraldique) + soleil rayonnant or (thème lumière/ordre, Saint-Empire du
-  Griffon).
+  métal biseautée (rampe **laiton/or** ou **argent** selon la faction, esprit
+  Règle G), chef teinté (2ᵉ couleur héraldique), ombre portée douce ; fond
+  transparent hors de l'écu.
+- **Recettes** (une par faction, `RECIPES` dans le script) — **charge** et
+  **couleurs** dérivées de l'identité (doc 03/04/05/14/16) :
+  - **haven** — bleu roi / or → **soleil rayonnant** (lumière, Saint-Empire du Griffon) ;
+  - **necropolis** — noir·cendre / vert spectral, bordure argent → **crâne** (morts-vivants d'Heresh) ;
+  - **arcane-hunters** — violet nuit / argent, runes cyan → **flèche de traque + anneau runique** ;
+  - **sylvan-court** — verts profonds / ambre → **feuille** (motif de bannière, doc 14) ;
+  - **vox-arcana** — noir·violet / or, liseré néon → **croissant (honmoon) + étoile (scène)**.
+  `test-faction` **n'a pas** de blason (placeholder assumé, §2.3) → garde le motif SVG.
 - **Déterminisme** : formes vectorielles fixes, supersampling ×4 → LANCZOS,
-  aucun aléa → re-run = octets identiques (guidelines §8.2).
-  `python3 tools/assets/gen_faction_badge.py`.
+  aucun aléa → re-run = octets identiques (guidelines §8.2). Ajouter une faction
+  = une entrée `RECIPES` + une fonction de charge. `python3
+  tools/assets/gen_faction_badge.py [--only <ids>]`.
 - **Staging** : `assets/badges/<factionId>.png` (256²). La clé est le `factionId`
   **opaque** — aucune faction connue du moteur/client (guidelines §8.1).
 - **Intégration client** : registre `render/assets.ts` (auto-découverte `?url`,

@@ -224,9 +224,14 @@ export class AdventureScene {
         token.removeChild(fallback);
         fallback.destroy();
         const sprite = new Sprite(texture);
-        sprite.anchor.set(0.5);
+        // Base CENTRÉE (comme les props de relief) : le héros se DRESSE depuis le
+        // sol de sa case au lieu d'être centré dessus. Ancré au centre, un sprite
+        // haut débordait de part et d'autre du losange (±16 px) → il paraissait
+        // « entre quatre cases » et son bas empiétait sur la tuile avant (occlusion
+        // = problème d'ordre perçu). Pieds au centre-sol de la tuile.
+        sprite.anchor.set(0.5, 1);
         // Ajuste la plus grande dimension à ~1,25 tuile (jeton lisible, le héros
-        // « occupe » sa case et déborde un peu comme dans HoMM).
+        // « occupe » sa case et déborde un peu vers le haut comme dans HoMM).
         const scale = (TILE_SIZE * 1.25) / Math.max(texture.width, texture.height);
         sprite.scale.set(scale);
         sprite.position.set(TILE_SIZE / 2, TILE_SIZE / 2);

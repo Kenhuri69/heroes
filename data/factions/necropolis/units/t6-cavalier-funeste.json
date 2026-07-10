@@ -21,6 +21,12 @@
   "abilities": [
     {
       "id": "undead"
+    },
+    {
+      "id": "charge",
+      "params": {
+        "perHex": 0.04
+      }
     }
   ]
 }

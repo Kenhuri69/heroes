@@ -440,6 +440,12 @@ export class CombatScene {
       case 'StackDied':
         await this.animateDeath(event.stackId, speed);
         return;
+      case 'StackHealed': {
+        // lifeDrain / soin (A2a) : chiffre vert flottant sur la pile soignée.
+        const token = this.stackTokens.get(event.stackId);
+        if (token) this.spawnHealNumber(new Point(token.position.x, token.position.y), event.amount);
+        return;
+      }
       default:
         return;
     }
@@ -559,6 +565,34 @@ export class CombatScene {
       group.alpha = t < 0.6 ? 1 : 1 - (t - 0.6) / 0.4; // plein puis fondu
     }).then(() => {
       if (!group.destroyed) group.destroy({ children: true });
+    });
+  }
+
+  /** Chiffre de soin flottant (vert, `+N`) — lifeDrain / soin (A2a). */
+  private spawnHealNumber(at: Point, amount: number): void {
+    if (amount <= 0) return;
+    const text = new Text({
+      text: `+${amount}`,
+      style: {
+        fontFamily: 'system-ui, sans-serif',
+        fontSize: 22,
+        fontWeight: '700',
+        fill: 0x6fe08a, // vert soin (2ᵉ canal a11y : signe + couleur)
+        stroke: { color: 0x1a1c22, width: 4 },
+        align: 'center',
+      },
+    });
+    text.anchor.set(0.5, 1);
+    text.position.set(at.x, at.y - TOKEN_RADIUS * 0.6);
+    this.fxLayer.addChild(text);
+    const reduced = prefersReducedMotion();
+    const startY = text.position.y;
+    void tween(700, (t) => {
+      if (text.destroyed) return;
+      if (!reduced) text.position.y = startY - 30 * t;
+      text.alpha = t < 0.6 ? 1 : 1 - (t - 0.6) / 0.4;
+    }).then(() => {
+      if (!text.destroyed) text.destroy();
     });
   }
 

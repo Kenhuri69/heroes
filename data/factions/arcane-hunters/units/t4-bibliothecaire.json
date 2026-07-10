@@ -6,5 +6,5 @@
   "stats": { "hp": 34, "attack": 7, "defense": 10, "damage": [5, 8], "speed": 4 },
   "growthPerWeek": 5,
   "cost": { "gold": 340 },
-  "abilities": [{ "id": "mark" }]
+  "abilities": [{ "id": "mark" }, { "id": "magicResistance", "params": { "value": 0.3 } }]
 }

@@ -9,7 +9,7 @@ import {
 } from '@heroes/engine';
 
 /**
- * Rendu de la grille hex de combat (doc 10 §5.5) — pointy-top, 12×10.
+ * Rendu de la grille hex de combat (doc 10 §5.5) — pointy-top, 15×10.
  * Les maths hexagonales (offset↔axial, arrondi) viennent de `@heroes/engine`
  * (`combat/hex.ts`) : ce module ne fait QUE la conversion pixel et le dessin.
  */
@@ -75,7 +75,7 @@ export interface DrawBoardOptions {
   selected?: OffsetPos | null;
 }
 
-/** Dessine les 120 hexes du plateau avec leurs surbrillances (doc 10 §5.5). */
+/** Dessine les 150 hexes du plateau avec leurs surbrillances (doc 10 §5.5). */
 export function drawBoard(g: Graphics, opts: DrawBoardOptions = {}): void {
   const reachable = opts.reachable ?? new Set<string>();
   const attackable = opts.attackable ?? new Set<string>();

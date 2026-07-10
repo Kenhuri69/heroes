@@ -82,7 +82,7 @@ Le MVP est **sans monétisation**. Si le jeu passe en live-service, le modèle e
 - **1 carte d'aventure** faite main (**32×32** tuiles, `proto-01`) + scénarios courts. *Livré : bien au-delà des 3 prévus — prologue + chapitres de campagne (3 maisons) + tutorial/survie/conquête + 2 scénarios d'événement (`data/scenarios/index.json`).*
 - Héros : mouvement, inventaire, 4 attributs, ~12 compétences, ~20 sorts (2 écoles + neutres).
 - **Ville** : arbre de construction complet, 1 bâtiment/jour, recrutement, croissance hebdomadaire.
-- **Combat hex** : grille 12×10, initiative, riposte, moral/chance, sorts, capacités d'unités, IA de combat basique, auto-combat.
+- **Combat hex** : grille 15×10, initiative, riposte, moral/chance, sorts, capacités d'unités, IA de combat basique, auto-combat.
 - **7 ressources**, mines capturables, objets de carte (~25 types).
 - IA d'aventure minimale (héros neutres statiques + 1 IA joueur simple).
 - Sauvegarde locale (IndexedDB), export/import de fichier de sauvegarde.

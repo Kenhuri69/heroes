@@ -25,7 +25,7 @@ bundle < 800 Ko gzip).
 
 - Moteur pur `apply(state, cmd) → {state, events}`, RNG PCG32 seedé, golden
   replay, sérialisation ; carte d'aventure (A* 8 dir, brouillard, ramassage) ;
-  combat hex 12×10 complet (initiative, riposte, dégâts, moral/chance, 6
+  combat hex 15×10 complet (initiative, riposte, dégâts, moral/chance, 6
   capacités, IA + auto-combat) ; XP/niveau/attributs du héros.
 - Pipeline de contenu : schémas Zod (manifest, unit, config, map),
   `loadContent`/`loadMap`, règles croisées, CLI `faction:new/validate`,

@@ -1,11 +1,11 @@
 /**
- * Maths hexagonales du combat — pointy-top, plateau 12×10 (doc 02 §5.1).
+ * Maths hexagonales du combat — pointy-top, plateau 15×10 (doc 02 §5.1).
  * Convention doc 10 §5.5 : STOCKAGE en coordonnées « offset » (col, row),
  * maths en axiales (odd-r : q = col − (row >> 1)). Zéro dépendance rendu ;
  * le client réutilise ces fonctions pour ses conversions pixel.
  */
 
-export const COMBAT_COLS = 12;
+export const COMBAT_COLS = 15;
 export const COMBAT_ROWS = 10;
 
 export interface OffsetPos {

@@ -265,10 +265,10 @@ Vue peinte de la ville où les bâtiments construits apparaissent (grande satisf
 
 ### 5.1 Plateau
 
-- **Grille hexagonale pointy-top de 12 colonnes × 10 rangées** (proche Heroes Online, plus compacte que HoMM III — combats plus courts, meilleur pour mobile).
+- **Grille hexagonale pointy-top de 15 colonnes × 10 rangées** (largeur HoMM III : no-man's land central ample, marge de manœuvre tactique et séparation nette des camps ; hauteur 10 rangées pour rester lisible sur mobile).
 - Attaquant à gauche, défenseur à droite ; jusqu'à **7 piles** par armée, placement initial automatique + phase de placement tactique si compétence Tactique.
-- Placement automatique (valeur de départ, Phase 2) : attaquant colonne 0, défenseur colonne 11 ; pour n piles, rangée du slot i = `floor((i + 0,5) × 10 / n)`.
-- Obstacles générés selon le terrain d'aventure (2–5 hexes bloqués, tirés au RNG du combat dans les colonnes 3–8) ; le terrain natif donne +1 vitesse/+1 moral aux unités natives.
+- Placement automatique (valeur de départ, Phase 2) : attaquant colonne 0, défenseur colonne 14 ; pour n piles, rangée du slot i = `floor((i + 0,5) × 10 / n)`.
+- Obstacles générés selon le terrain d'aventure (2–5 hexes bloqués, tirés au RNG du combat dans les colonnes centrales 3–11, soit 3 tuiles de marge depuis chaque bord de spawn) ; le terrain natif donne +1 vitesse/+1 moral aux unités natives.
 - La **vitesse** d'une unité est sa portée de déplacement en hexes par round.
 
 ### 5.2 Tour par tour

@@ -128,5 +128,10 @@ function visitableEffectLine(effect: VisitableEffect): string {
       return t('mapCard.effectResource', { amount: effect.amount, name: t(`resource.${effect.resource}`) });
     case 'vision':
       return t('mapCard.effectVision', { amount: effect.amount });
+    case 'permanentStat':
+      return t('mapCard.effectPermanentStat', {
+        attribute: t(`attribute.${effect.attribute}`),
+        amount: effect.amount,
+      });
   }
 }

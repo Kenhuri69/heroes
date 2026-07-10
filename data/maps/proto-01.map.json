@@ -304,6 +304,18 @@
           "count": 3
         }
       ]
+    },
+    {
+      "id": "arene-1",
+      "type": "visitable",
+      "x": 12,
+      "y": 4,
+      "effect": {
+        "kind": "permanentStat",
+        "attribute": "attack",
+        "amount": 1
+      },
+      "frequency": "oncePerHero"
     }
   ],
   "triggers": [

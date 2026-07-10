@@ -45,6 +45,10 @@ export function visitBonus(
     // Tour de guet (F2) : révèle durablement le brouillard autour du lieu.
     if (draft.map) revealAround(player.explored, draft.map, obj.pos, effect.amount);
     amount = effect.amount;
+  } else if (effect.kind === 'permanentStat') {
+    // Arène/statue (M-VISIT) : +attribut DÉFINITIF au héros visiteur.
+    hero.attributes[effect.attribute] += effect.amount;
+    amount = effect.amount;
   } else {
     player.resources[effect.resource as ResourceId] += effect.amount;
     amount = effect.amount;

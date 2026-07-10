@@ -57,7 +57,13 @@ export type VisitableEffect =
   /** Ressource créditée au joueur visiteur. */
   | { kind: 'resource'; resource: string; amount: number }
   /** Tour de guet (F2) : révèle le brouillard sur `amount` tuiles autour du lieu. */
-  | { kind: 'vision'; amount: number };
+  | { kind: 'vision'; amount: number }
+  /**
+   * Bonus d'attribut PERMANENT (M-VISIT, doc 02 §2.2 — arène, statue) : +`amount`
+   * définitif à un attribut primaire du héros visiteur. `oncePerHero` (à vie) =
+   * gain unique (comme HoMM) ; la re-visite bornée est gérée par le registre.
+   */
+  | { kind: 'permanentStat'; attribute: 'attack' | 'defense' | 'power' | 'knowledge'; amount: number };
 
 /** Lieu de bonus visitable (doc 02 §2.2) : visite en passant, re-visite bornée. */
 export interface VisitableObjectDef {

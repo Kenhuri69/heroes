@@ -95,6 +95,39 @@ describe('lieux de bonus visitables (doc 02 §2.2)', () => {
     expect(obj?.type === 'visitable' && obj.visits['hero-p1']).toBe(-1); // à vie
   });
 
+  it("l'arène accorde un bonus d'attribut PERMANENT, une seule fois par héros (M-VISIT)", () => {
+    const arena: MapObjectDef = {
+      id: 'arene',
+      type: 'visitable',
+      pos: { x: 2, y: 0 },
+      effect: { kind: 'permanentStat', attribute: 'attack', amount: 1 },
+      frequency: 'oncePerHero',
+      visits: {},
+    };
+    const s0 = startedWith([arena]);
+    const baseAttack = s0.heroes[0]!.attributes.attack;
+    const { state, events } = move(s0, [
+      { x: 1, y: 0 },
+      { x: 2, y: 0 },
+    ]);
+    expect(state.heroes[0]?.attributes.attack).toBe(baseAttack + 1);
+    expect(events).toContainEqual({
+      type: 'BonusVisited',
+      heroId: 'hero-p1',
+      playerId: 'p1',
+      objectId: 'arene',
+      effect: { kind: 'permanentStat', attribute: 'attack', amount: 1 },
+      amount: 1,
+    });
+    const obj = state.map?.objects.find((o) => o.id === 'arene');
+    expect(obj?.type === 'visitable' && obj.visits['hero-p1']).toBe(-1); // à vie
+    // Re-visite : aucun second gain (bonus permanent unique, comme HoMM).
+    const back = move(state, [{ x: 1, y: 0 }]).state;
+    const again = move(back, [{ x: 2, y: 0 }]);
+    expect(again.state.heroes[0]?.attributes.attack).toBe(baseAttack + 1);
+    expect(again.events.some((e) => e.type === 'BonusVisited')).toBe(false);
+  });
+
   it('le moulin crédite sa ressource fixe au joueur', () => {
     const mill: MapObjectDef = {
       id: 'moulin',

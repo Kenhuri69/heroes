@@ -326,11 +326,17 @@ Source design : doc 02 §2 (carte), §1.5 (multi-héros).
   d'abordage ? (L), (c) souterrain = 2ᵉ niveau + escaliers (L). Chacun
   data-driven ; save bump pour (c).
 
-- **M-VISIT — Objets visitables riches** 🧩 M ⬜
-  Doc : doc 02 §2.2. Code : 5 kinds (`luck`/`movement`/`levelXp`/`resource`/
-  `vision`, `map.ts:44-54`). Spec : sanctuaire de sort (apprend un sort),
-  cabane de sorcière (donne une compétence), bonus permanents (arène +att/déf,
-  statues moral/chance) ⇒ nouveau kind `permanentStat` + registre de visites.
+- **M-VISIT — Objets visitables riches** 🧩 (tranche livrée)
+  > **Livré** : nouveau `VisitableEffect` **générique** `permanentStat`
+  > (`{attribute, amount}`) — **arène/statue** accordant un bonus d'**attribut
+  > primaire DÉFINITIF** au héros visiteur (`visitable.ts`), borné par le registre
+  > de visites existant (`oncePerHero` = à vie). Schéma + loader + client
+  > (`MapObjectCard`, toast) + locales FR/EN + data proto-01 `arene-1` (attack+1).
+  > Variant optionnel ⇒ **pas de bump save, golden inchangé**. Couvert en unitaire
+  > (`map-visitables.test.ts` : gain permanent + unicité par héros). **Différé** :
+  > sanctuaire de **sort** (apprend un sort) et cabane de **compétence** —
+  > nécessitent d'ouvrir l'octroi de sort/compétence hors montée (croise H-SPELLS).
+  Doc : doc 02 §2.2. Code (avant) : 5 kinds seulement.
 
 - **M-DWELLOWN — Habitations de carte capturables** 🕳️ S ✅
   > **Livré** : `DwellingObjectDef.ownerId` (save v18). La fouler la **capture**

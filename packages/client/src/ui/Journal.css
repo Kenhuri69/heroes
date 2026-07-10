@@ -6,11 +6,11 @@
   max-height: 86vh;
   overflow-y: auto;
   padding: 16px 18px;
-  border: 1px solid var(--ink-600);
   border-radius: 10px;
   background: var(--ink-800);
   color: var(--parchment);
   font: 0.875rem/1.4 var(--font-ui);
+  /* Bordure déléguée à `.chrome-framed` (skill asset-chrome). */
 }
 
 .journal-empty {

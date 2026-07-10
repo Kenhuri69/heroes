@@ -27,7 +27,7 @@ import {
   resolveBuildingLore,
   resolveFactionResourceName,
 } from '../app/i18n';
-import { buildingUrl, townBackgroundUrl, chromeFrameUrl, chromeRibbonUrl } from '../render/assets';
+import { buildingUrl, townBackgroundUrl } from '../render/assets';
 import { AssetImg } from './AssetImg';
 import { FactionBadge } from './FactionBadge';
 import { UiIcon } from './UiIcon';
@@ -95,27 +95,14 @@ export function TownScreen({ townId, onClose }: { townId: string; onClose: () =>
 
   const town = game.towns.find((tw) => tw.id === townId);
 
-  // Chrome décoratif (doc 12 Règle G, skill asset-chrome) : cadre 9-slice en
-  // `border-image` sur la modale témoin. `undefined` ⇒ bordure tokenisée du CSS.
-  const frame = chromeFrameUrl();
-  const frameStyle = frame
-    ? {
-        borderWidth: '16px',
-        borderStyle: 'solid',
-        borderColor: 'transparent',
-        borderImage: `url(${frame}) 40 round`,
-      }
-    : undefined;
-
   return (
     <div class="modal-backdrop" onClick={close}>
       <div
-        class="modal town-screen"
+        class="modal town-screen chrome-framed"
         role="dialog"
         aria-modal="true"
         aria-label={t('town.title')}
         onClick={(e) => e.stopPropagation()}
-        style={frameStyle}
       >
         <header class="modal-header">
           <h2 class="town-title">
@@ -399,20 +386,7 @@ function BuildTab({
           (doc 02 §4.1) présentée comme un créneau de chantier quotidien. Le
           « temps » se compte en JOURS (tours), jamais en secondes — cœur
           tour-par-tour intact, aucun changement moteur/sauvegarde. */}
-      <div
-        class="town-build-queue"
-        data-testid="town-build-queue"
-        style={
-          chromeRibbonUrl()
-            ? {
-                borderWidth: '11px 34px',
-                borderStyle: 'solid',
-                borderColor: 'transparent',
-                borderImage: `url(${chromeRibbonUrl()}) 18 72 fill round`,
-              }
-            : undefined
-        }
-      >
+      <div class="town-build-queue chrome-ribbon" data-testid="town-build-queue">
         <span class="town-build-queue-title">{t('town.buildQueueTitle')}</span>
         <span
           class={`town-build-queue-state ${town.builtToday ? 'is-used' : 'is-free'}`}

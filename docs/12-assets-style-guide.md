@@ -230,11 +230,17 @@ un rendu **9-slice** propre et déterministe, pas une planche LLM.
   identiques (guidelines §8.2). `python3 tools/assets/gen_chrome.py`.
 - **Staging** : `assets/ui/chrome/<pièce>.png`.
 - **Intégration client** : registre `render/assets.ts` (auto-découverte
-  `?url`, **hors bundle**) → résolveurs `chromeFrameUrl()`/`chromeRibbonUrl()` →
-  appliqués en **style inline `border-image`** (repli gracieux si URL absente).
-  Surface habillée en `box-sizing: border-box` (le cadre ne l'agrandit pas). Skill
-  dédié : `.claude/skills/asset-chrome/`. **Panneau témoin livré** : modale de
-  ville (cadre sur `.town-screen`, ruban sur le bandeau « Chantier du jour »).
+  `?url`, **hors bundle**) → résolveurs `chromeFrameUrl()`/`chromeRibbonUrl()`.
+  Au bootstrap (`main.ts`), les URLs résolues sont posées en **variables CSS**
+  `--chrome-frame` / `--chrome-ribbon` sur `:root`, consommées par les **classes
+  partagées** `.chrome-framed` / `.chrome-ribbon` (`styles.css`, `border-image`
+  + `box-sizing: border-box` → le cadre n'agrandit pas la surface ; repli
+  gracieux : variable absente ⇒ `border-image` ignoré, la surface garde son
+  fond/rayon tokenisés). **Déléguer la bordure** : retirer le `border` de la
+  règle spécifique `.modal.<x>` habillée (sinon elle l'emporte en spécificité).
+  Skill dédié : `.claude/skills/asset-chrome/`. **Surfaces habillées** : modales
+  de **ville** (+ ruban « Chantier du jour »), **Options**, **Journal**,
+  **pré-combat**.
 
 ## 7. Prompts-types
 

@@ -49,7 +49,7 @@ export function PreBattleScreen() {
 
   return (
     <div class="pre-battle-backdrop" data-testid="pre-battle">
-      <div class="pre-battle" role="dialog" aria-modal="true" aria-label={t('preBattle.title')}>
+      <div class="pre-battle chrome-framed" role="dialog" aria-modal="true" aria-label={t('preBattle.title')}>
         <h2 class="pre-battle-title">{t('preBattle.title')}</h2>
         <div class="pre-battle-sides">
           <div class="pre-battle-side">

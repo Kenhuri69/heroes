@@ -1,6 +1,25 @@
 /* UI DOM par-dessus le canvas (doc 07 §1) — cibles tactiles ≥ 44 px (doc 08 §1).
    #ui-root est en pointer-events: none (index.html) : chaque bloc interactif
    ré-active explicitement les siens. */
+
+/* Chrome décoratif partagé (doc 12 Règle G, skill asset-chrome) : cadre &
+   ruban laiton en `border-image`, pilotés par les variables `--chrome-frame`
+   / `--chrome-ribbon` posées au bootstrap (main.ts) depuis le registre d'assets.
+   `box-sizing: border-box` → le cadre n'agrandit pas la surface. Repli : si la
+   variable n'est pas posée (asset absent), `border-image` est ignoré et la
+   surface garde son fond/rayon tokenisés (bordure transparente, sans casse). */
+.chrome-framed {
+  box-sizing: border-box;
+  border: 16px solid transparent;
+  border-image: var(--chrome-frame) 40 round;
+}
+
+.chrome-ribbon {
+  box-sizing: border-box;
+  border: 11px solid transparent;
+  border-width: 11px 34px;
+  border-image: var(--chrome-ribbon) 18 72 fill round;
+}
 .resource-bar {
   position: fixed;
   top: 0;
@@ -24,8 +43,12 @@
 .resource {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
+  /* Cible tactile ≥ 44 px sur LES DEUX axes (audit V-1) : les ressources à
+     valeur courte (« 0 ») tombaient à ~36 px de large faute de min-width. */
   min-height: 44px;
+  min-width: 44px;
   padding: 0 2px;
   border: none;
   background: none;

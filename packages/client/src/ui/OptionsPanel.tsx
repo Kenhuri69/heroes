@@ -84,7 +84,7 @@ export function OptionsPanel({ onClose }: { onClose: () => void }) {
   return (
     <div class="modal-backdrop" onClick={onClose}>
       <div
-        class="modal options-panel"
+        class="modal options-panel chrome-framed"
         data-testid="options-panel"
         role="dialog"
         aria-modal="true"

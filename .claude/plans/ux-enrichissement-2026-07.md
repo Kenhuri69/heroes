@@ -247,7 +247,19 @@ Espace/D en combat — `combat.tsx:71`) mais sont **indécouvrables**.
       combat/hero-desktop + inspection code) — 2026-07-10.
 - [x] Constats E1→E8 consignés avec preuves (captures, fichier:ligne).
 - [x] Plan X1→X8 rédigé avec critères de vérification par étape.
-- [ ] Lot X1 — outillage d'audit.
+- [x] Lot X1 — outillage d'audit (2026-07-10). Livré : `capture.mjs` refactoré
+      en flux (état préparé une fois, 3 crans re-photographiés), pré-combat
+      capturé puis franchi, tiroir héros basculé seulement en mobile, sélecteur
+      A1 limité aux interactifs, +9 écrans (`newgame`, `options`, `market`,
+      `guild`, `adventure/town/hero-real` via NewGameScreen→Haven, `handoff`
+      hot-seat, `quests`/`outcome` via scénario survival), code de sortie ≠ 0
+      si une étape échoue ; `SKILL.md` §2 aligné. **Vérifié** : run complet =
+      84 captures, 0 FAIL, 0 WARN (faux positif disparu) ; `town-real` affiche
+      « Ville de Havre » + blason Haven, `hero-real` un avatar peint.
+      Écarts notés : la couverture `mageGuild` passe des tours via le hook
+      moteur (pas l'UI) — assumé, le tap-tap a son smoke dédié ; la **vignette
+      du héros dans la liste du tiroir reste un cercle gris** même en parcours
+      réel (observation nouvelle, à traiter avec E2/X4 ou en suivi d'assets).
 - [ ] Lot X2 — parité tactile (A2).
 - [ ] Lot X3 — HUD aventure mobile.
 - [ ] Lot X4 — pré-combat.

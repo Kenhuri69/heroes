@@ -304,6 +304,11 @@ function buildGuardian(unitId: string, catalog: UnitCatalog): Container {
       fallback.destroy();
       const sprite = new Sprite(texture);
       sprite.setSize(TILE_SIZE, TILE_SIZE);
+      // Base CENTRÉE (comme le héros et les props de relief) : la créature se DRESSE
+      // depuis le sol de sa case au lieu d'être centrée dessus — ancré au centre, elle
+      // débordait de part et d'autre du losange et paraissait « entre quatre cases ».
+      sprite.anchor.set(0.5, 1);
+      sprite.position.set(TILE_SIZE / 2, TILE_SIZE / 2);
       node.addChild(sprite);
     });
   }

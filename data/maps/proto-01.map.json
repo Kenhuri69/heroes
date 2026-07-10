@@ -124,7 +124,8 @@
       "x": 12,
       "y": 28,
       "resource": "gold",
-      "amount": 700
+      "amount": 700,
+      "guardedBy": "guard-gold"
     },
     {
       "id": "crystal-1",
@@ -202,7 +203,10 @@
       "type": "visitable",
       "x": 4,
       "y": 4,
-      "effect": { "kind": "movement", "amount": 400 },
+      "effect": {
+        "kind": "movement",
+        "amount": 400
+      },
       "frequency": "oncePerHeroPerWeek"
     },
     {
@@ -210,7 +214,10 @@
       "type": "visitable",
       "x": 8,
       "y": 3,
-      "effect": { "kind": "vision", "amount": 6 },
+      "effect": {
+        "kind": "vision",
+        "amount": 6
+      },
       "frequency": "oncePerHero"
     },
     {
@@ -218,7 +225,10 @@
       "type": "visitable",
       "x": 8,
       "y": 8,
-      "effect": { "kind": "luck", "amount": 1 },
+      "effect": {
+        "kind": "luck",
+        "amount": 1
+      },
       "frequency": "oncePerHeroPerWeek"
     },
     {
@@ -226,7 +236,9 @@
       "type": "visitable",
       "x": 10,
       "y": 18,
-      "effect": { "kind": "levelXp" },
+      "effect": {
+        "kind": "levelXp"
+      },
       "frequency": "oncePerHero"
     },
     {
@@ -234,7 +246,11 @@
       "type": "visitable",
       "x": 20,
       "y": 12,
-      "effect": { "kind": "resource", "resource": "gems", "amount": 1 },
+      "effect": {
+        "kind": "resource",
+        "resource": "gems",
+        "amount": 1
+      },
       "frequency": "oncePerHeroPerWeek"
     },
     {
@@ -282,14 +298,25 @@
       "x": 6,
       "y": 2,
       "factionId": "test-faction",
-      "garrison": [{ "unitId": "t1-eleve", "count": 3 }]
+      "garrison": [
+        {
+          "unitId": "t1-eleve",
+          "count": 3
+        }
+      ]
     }
   ],
   "triggers": [
     {
       "id": "trigger-day2-welcome",
-      "on": { "kind": "day", "day": 2 },
-      "effect": { "kind": "message", "textKey": "trigger.proto01.welcome" }
+      "on": {
+        "kind": "day",
+        "day": 2
+      },
+      "effect": {
+        "kind": "message",
+        "textKey": "trigger.proto01.welcome"
+      }
     }
   ],
   "startPositions": [

@@ -153,7 +153,8 @@ Familles, par mécanique moteur commune :
   charges) — Prêtresse soin ×2 (doc 03 §3), Bibliothécaire Entrave/Silence ×2
   (doc 05 §4), Maître de Sortilèges (doc 16 §4), Avatar barrière (doc 16 §4).
   Réutilise le pipeline `CastSpell`. Effort : M.
-- **CAP-LIFE — Cycle de vie** ⬜ : `resurrectAlly` 1× (Ange, doc 03 §3),
+- **CAP-LIFE — Cycle de vie** 🧩 (A3b : `swarm` **livré** ; `resurrectAlly`,
+  renaissance, `devourMarks` → A3) : `resurrectAlly` 1× (Ange, doc 03 §3),
   renaissance (Phénix, doc 16 §4/§7), `swarm` (+dégâts ∝ effectif — Élève AH
   doc 05 §4, Chœur Vox doc 16 §4), `devourMarks` (Pénitent, doc 05 §4).
   Effort : M.
@@ -686,4 +687,15 @@ si nouvel écran), bump `CURRENT_SAVE_VERSION` si la forme de sauvegarde change
   vert. Vérifs : `pnpm test` complet (439 engine +4 `combat-morale`, 101 content),
   typecheck 5/5, lint, content:check, golden **inchangé**, bundle < 800 Ko gzip.
   Restent en A3 : peur (Sombral), `spellcaster`, `areaAttack`/`breathAttack`,
-  cycle de vie (`resurrectAlly`/renaissance/`swarm`). PR draft : (à créer, sur A2c).
+  cycle de vie (`resurrectAlly`/renaissance/`swarm`). **PR #197 (mergée)**.
+- **2026-07-10 — Merge A2c + A3a** : PR #196 (A2c) et #197 (A3a) mergées dans
+  `main` (dans l'ordre) sur demande utilisateur. Suivi PR arrêté.
+- **2026-07-10 — Lot A3b** (`.claude/plans/a3b-swarm.md`, branche
+  `claude/a3b-swarm` depuis main) : **livré**. Capacité `swarm(bonus, minAllies)`
+  (catalogue 19 → 20) : +bonus de dégâts/créature quand ≥ minAllies autres alliés
+  cernent la cible (Élève AH, Chœur Vox). **Pas de bump save** (bonus live).
+  Garde-fou zéro faction vert. Vérifs : `pnpm test` complet (443 engine +4
+  `combat-swarm`, 101 content), typecheck 5/5, lint, content:check, golden
+  **inchangé**, bundle < 800 Ko gzip. Restent en A2d/A3 : `firstStrike`,
+  `poisonSting`, `taunt`, `areaAttack`/`breathAttack`, peur, `spellcaster`,
+  `resurrectAlly`/renaissance/`devourMarks`. PR draft : (à créer, sur main).

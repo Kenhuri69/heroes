@@ -107,9 +107,10 @@ function buildObject(obj: MapObjectDef, catalog: UnitCatalog, ownerColor: OwnerC
 
 /** Teinte du lieu de bonus par nature d'effet (doc 08 §5 — le glyphe prime, la teinte aide). */
 const VISITABLE_COLORS: Record<string, number> = {
-  luck: 0x5dade2, // fontaine
+  luck: 0x5dade2, // fontaine (eau)
   movement: 0xd68910, // écurie
-  levelXp: 0x27ae60, // arbre du savoir
+  vision: 0x48c9b0, // tour de guet
+  levelXp: 0x27ae60, // sanctuaire / arbre du savoir
   resource: 0xb9770e, // moulin
 };
 
@@ -134,34 +135,59 @@ function withMapProp(propId: string, fallback: Container, scale = 1.0): Containe
   return node;
 }
 
-/** Prop peint associé à la nature du lieu de bonus (autel mystique vs panneau). */
+/**
+ * Prop peint associé à la nature du lieu de bonus (doc 02 §2.2) : un visuel
+ * DISTINCT par effet. `signpost` reste le repli pour une nature inconnue.
+ */
 const VISITABLE_PROP: Record<string, string> = {
-  luck: 'shrine',
-  levelXp: 'shrine',
-  movement: 'signpost',
-  resource: 'signpost',
+  luck: 'fountain', // fontaine
+  movement: 'stable', // écurie
+  vision: 'watchtower', // tour de guet
+  levelXp: 'shrine', // sanctuaire / arbre du savoir
+  resource: 'mill', // moulin
 };
 
-/** Lieu de bonus : panneau/autel peint (UXD-3B), repli kiosque procédural teinté. */
+/** Lieu de bonus : structure peinte (UXD-3B), repli procédural distinct par nature. */
 function buildVisitable(kind: string): Container {
   return withMapProp(VISITABLE_PROP[kind] ?? 'signpost', buildVisitableFallback(kind));
 }
 
+/**
+ * Repli procédural du lieu de bonus : une silhouette DISTINCTE par nature (le
+ * glyphe prime, la teinte aide — doc 08 §5) tant que le PNG peint est absent.
+ */
 function buildVisitableFallback(kind: string): Container {
   const node = new Container();
   const c = TILE_SIZE / 2;
   const color = VISITABLE_COLORS[kind] ?? 0x8a8f98;
-  node.addChild(
-    new Graphics()
-      .poly([c, c - 18, c + 18, c - 2, c - 18, c - 2])
-      .fill(color)
-      .stroke({ width: 2, color: 0x1a1c22 })
-      .rect(c - 12, c - 2, 24, 16)
-      .fill(0xe8e2d0)
-      .stroke({ width: 2, color: 0x1a1c22 })
-      .circle(c, c + 6, 3)
-      .fill(color),
-  );
+  const ink = 0x1a1c22;
+  const g = new Graphics();
+  switch (kind) {
+    case 'movement': // écurie : grange (toit pentu + porte)
+      g.poly([c - 20, c + 2, c, c - 16, c + 20, c + 2]).fill(color).stroke({ width: 2, color: ink })
+        .rect(c - 16, c + 2, 32, 16).fill(0x9a6b3f).stroke({ width: 2, color: ink })
+        .rect(c - 6, c + 6, 12, 12).fill(ink);
+      break;
+    case 'vision': // tour de guet : tour élancée + créneaux + lanterne
+      g.rect(c - 8, c - 18, 16, 34).fill(color).stroke({ width: 2, color: ink })
+        .rect(c - 10, c - 22, 20, 6).fill(color).stroke({ width: 2, color: ink })
+        .circle(c, c - 25, 3).fill(0xf1c40f);
+      break;
+    case 'resource': // moulin : corps + toit + roue
+      g.rect(c - 14, c - 6, 20, 22).fill(0xe8e2d0).stroke({ width: 2, color: ink })
+        .poly([c - 16, c - 6, c + 8, c - 6, c - 4, c - 18]).fill(color).stroke({ width: 2, color: ink })
+        .circle(c + 12, c + 8, 8).fill(color).stroke({ width: 2, color: ink });
+      break;
+    case 'luck': // fontaine : vasque + jet d'eau
+      g.ellipse(c, c + 10, 18, 7).fill(color).stroke({ width: 2, color: ink })
+        .rect(c - 2, c - 12, 4, 20).fill(0xcfe8f5)
+        .circle(c, c - 13, 4).fill(0xcfe8f5).stroke({ width: 1.5, color });
+      break;
+    default: // sanctuaire / levelXp : obélisque runique
+      g.poly([c, c - 20, c + 8, c + 12, c - 8, c + 12]).fill(color).stroke({ width: 2, color: ink })
+        .circle(c, c - 2, 3).fill(0xf4ecf7);
+  }
+  node.addChild(g);
   return node;
 }
 
@@ -171,7 +197,12 @@ function buildVisitableFallback(kind: string): Container {
  * gardien).
  */
 function buildDwelling(unitId: string, catalog: UnitCatalog): Container {
-  const node = withMapProp('camp', buildTentFallback());
+  // Camp teinté à la faction de la créature recrutable si son art est présent,
+  // sinon camp générique (puis repli tente procédurale) — doc 02 §2.2.
+  const faction = catalog[unitId]?.groupId;
+  const propId =
+    [faction ? `camp-${faction}` : '', 'camp'].find((id) => id && mapPropUrl(id)) ?? 'camp';
+  const node = withMapProp(propId, buildTentFallback());
   const url = unitSpriteUrl(unitId, catalog[unitId]?.groupId);
   if (url) {
     void Assets.load(url).then((texture) => {

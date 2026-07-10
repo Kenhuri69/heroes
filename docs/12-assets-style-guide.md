@@ -364,6 +364,8 @@ faction en dur) et dérivent le chemin de la donnée :
 | Tuiles ISO | `tiles/iso/<terrain>-<1..3>.png`, `tiles/iso/road-dirt.png` | `isoTileUrl`/`isoRoadUrl` (rendu carte iso, Lot A1) |
 | Props de relief | `tiles/props/<terrain>-<1..3>.png` (forest/mountain) | `terrainPropUrl` + `terrainPropVariant` (billboard, extension carte) |
 | Objets de carte | `mines/mine-<resource>.png` | `obj.resource` |
+| Structures/props de carte | `map/<prop>.png` : `chest`/`camp`/`signpost`/`shrine` + lieux de bonus `fountain`/`stable`/`watchtower`/`mill` + `town-<faction>`/`hero-<faction>` | `mapPropUrl` — visitable : `VISITABLE_PROP[kind]` (luck→fountain, movement→stable, vision→watchtower, levelXp→shrine, resource→mill) |
+| Camps d'habitation | `map/camp-<faction>.png` | `camp-<groupId de l'unité>` avec repli sur `camp` générique |
 | Artefacts | `artifacts/<artifactId>.png` | id d'artefact |
 | Bâtiments communs | `buildings/core/<buildingId>.png` | id de bâtiment |
 | Bâtiments de faction | `buildings/<factionId>/<buildingId>.png` | id de bâtiment (fichier nommé exactement par l'id) |
@@ -372,7 +374,8 @@ faction en dur) et dérivent le chemin de la donnée :
 | Icônes UI | `ui/res-<id>_<size>.png`, `ui/stat-<id>_<size>.png`, `ui/ui-day_<size>.png` | id + mipmap ≥ taille voulue (16/24/32/48/64) |
 
 Surfaces branchées : `render/tilemap.ts` (terrain), `render/mapObjects.ts`
-(mines), `ui/TownScreen.tsx` (vignettes de bâtiments), `ui/HeroInventory.tsx`
+(mines, coffres, artefacts au sol, lieux de bonus, camps d'habitation),
+`ui/TownScreen.tsx` (vignettes de bâtiments), `ui/HeroInventory.tsx`
 (icônes d'artefacts), `ui/shell.tsx` (icônes de la barre de ressources).
 Preuve de non-régression : smoke « assets : PNG servis sans 404… » (desktop +
 mobile) + budget vérifié vert en CI.

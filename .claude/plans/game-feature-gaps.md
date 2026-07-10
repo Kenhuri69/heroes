@@ -128,14 +128,15 @@ unités concernées (zéro nom de faction dans le moteur, guidelines §8).
 Familles, par mécanique moteur commune :
 
 - **CAP-DEF — Défense/riposte** 🧩 (A2a : `shieldWall`, `unlimitedRetaliation`,
-  `magicResistance` autonome **livrés** ; `taunt`, `incorporeal` restants → A2b) :
+  `magicResistance` autonome **livrés** ; A2b : `incorporeal` **livré** ;
+  `taunt` restant → A2c) :
   `taunt` (Conscrit Haven, doc 03 §3),
   `shieldWall` (Frère-Lame, doc 03 §3), `unlimitedRetaliation` (Griffon,
   doc 03 §3), `incorporeal` 20 % esquive (Spectre, doc 04 §3),
   `magicResistance` autonome (Bibliothécaire AH 30 %, doc 05 §4 — n'existe
   qu'imbriqué dans `demonform`). Effort : M.
-- **CAP-ATK — Attaque** 🧩 (A2a : `charge`, `lifeDrain` **livrés** ;
-  `firstStrike`, `curseOnHit`, `poisonSting`, `strikeAndReturn` → A2b ;
+- **CAP-ATK — Attaque** 🧩 (A2a : `charge`, `lifeDrain` **livrés** ; A2b :
+  `strikeAndReturn` **livré** ; `firstStrike`, `curseOnHit`, `poisonSting` → A2c ;
   `areaAttack`, `breathAttack` → A3) : `charge`/`firstStrike` (Chevalier du Griffon,
   doc 03 §3 ; Cavalier funeste +4 %/hex, doc 04 §3), `lifeDrain` 50 %
   (Vampire, doc 04 §3), `curseOnHit` (Zombie 20 %/Cavalier funeste 100 %,
@@ -651,4 +652,15 @@ si nouvel écran), bump `CURRENT_SAVE_VERSION` si la forme de sauvegarde change
   `combat-capabilities`), content:check, golden **inchangé** (pas de re-fix),
   bundle < 800 Ko gzip, pas de bump save version. Restent en A2b (statuts/RNG/
   ordre/ciblage) : `taunt`, `incorporeal`, `firstStrike`, `curseOnHit`,
-  `poisonSting`, `strikeAndReturn`. PR draft : (à créer, empilée sur #191).
+  `poisonSting`, `strikeAndReturn`. **PR draft #194**.
+- **2026-07-10 — Lot A2b** (`.claude/plans/a2b-combat-capabilities.md`, branche
+  `claude/a2b-combat-capabilities` empilée sur A2a) : **livré**. 2 capacités
+  génériques (catalogue 14 → 16) : `incorporeal(dodge)` (Spectre 20 % d'esquive,
+  jet seedé, event `dodged` + « esquive » client) et `strikeAndReturn` (Lame du
+  Serment : frappe volontaire puis retour à l'origine, cible sans riposte —
+  sémantique « harpie » documentée doc 02/05). Correctif CI A2a inclus en amont
+  (assertion Griffon). Garde-fou zéro faction vert. Vérifs : `pnpm test` complet
+  (431 engine +3 `combat-capabilities-b`, 101 content), typecheck 5/5, lint,
+  content:check, golden **inchangé**, bundle < 800 Ko gzip, pas de bump save
+  version. Restent en A2c/A3 : `taunt`, `firstStrike`, `curseOnHit`,
+  `poisonSting`, `areaAttack`, `breathAttack`. PR draft : (à créer, sur #194).

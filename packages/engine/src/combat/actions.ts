@@ -340,6 +340,10 @@ function applyAttack(
     // repositionnement. Une frappe sur place (pas de `from`) ne charge pas.
     const chargeMoved = action.from ? hexDistance(attacker.pos, action.from) : 0;
     const chargeBonus = chargePerHex(attackerDef) * chargeMoved;
+    // `strikeAndReturn` (Lame du Serment, doc 05 §4, A2b) : la pile frappe puis
+    // regagne sa case d'origine et n'essuie AUCUNE riposte (repli « harpie »).
+    const strikeAndReturn = hasAbility(attackerDef, 'strikeAndReturn');
+    const originPos = { ...attacker.pos };
     // Repositionnement avant la frappe (validé par `validateCombatAction`, A1) —
     // ignoré si `from` est déjà la position actuelle (pas de StackMoved à vide).
     if (action.from && !sameHex(action.from, attacker.pos)) {
@@ -367,7 +371,8 @@ function applyAttack(
       // `unlimitedRetaliation` (Griffon, doc 03 §3, A2a) : ripostes non limitées.
       const canRetaliate =
         (target.retaliationsLeft > 0 || hasAbility(targetDef, 'unlimitedRetaliation')) &&
-        !hasAbility(attackerDef, 'noRetaliation');
+        !hasAbility(attackerDef, 'noRetaliation') &&
+        !strikeAndReturn;
       if (canRetaliate) {
         if (target.retaliationsLeft > 0) target.retaliationsLeft -= 1;
         const retMeleePenalized = isShooterMeleePenalized(targetDef);
@@ -399,6 +404,14 @@ function applyAttack(
         chargeBonus,
       });
       if (checkCombatEnd(draft, events)) return;
+    }
+    // `strikeAndReturn` (A2b) : retour à la case d'origine si la pile a bougé et
+    // survit encore (la case d'origine est forcément libre — seule cette pile
+    // l'a quittée). Aucune riposte n'a été essuyée (repli).
+    if (strikeAndReturn && combat.stacks.some((s) => s.id === attacker.id) && !sameHex(attacker.pos, originPos)) {
+      const from = { ...attacker.pos };
+      attacker.pos = { ...originPos };
+      events.push({ type: 'StackMoved', stackId: attacker.id, from, to: { ...originPos } });
     }
   }
   // Symbiose (doc 14 §2) : l'attaque VOLONTAIRE dépense l'enracinement (le bonus a

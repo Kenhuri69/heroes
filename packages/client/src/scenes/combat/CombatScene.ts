@@ -476,7 +476,7 @@ export class CombatScene {
     event: Extract<AppEvent, { type: 'StackAttacked' }>,
     speed: number,
   ): Promise<void> {
-    const { attackerId, targetId, damage, kills, lucky, unlucky } = event;
+    const { attackerId, targetId, damage, kills, lucky, unlucky, dodged } = event;
     const attacker = this.stackTokens.get(attackerId);
     if (!attacker) return;
     const target = this.stackTokens.get(targetId);
@@ -495,10 +495,15 @@ export class CombatScene {
       attacker.position.set(origin.x + (mid.x - origin.x) * t, origin.y + (mid.y - origin.y) * t);
     });
     // Impact : flash sur la cible + chiffres de dégâts flottants + micro-secousse.
+    // Une frappe esquivée (`incorporeal`, A2b) affiche « esquive » sans dégâts.
     if (target && !target.destroyed) {
-      target.tint = 0xff6666;
-      this.spawnDamageNumber(dest, damage, kills, lucky, unlucky);
-      if (!prefersReducedMotion()) void this.shakeToken(target, dest);
+      if (dodged) {
+        this.spawnFloatingLabel(dest, 'esquive', 0x8fb3d9);
+      } else {
+        target.tint = 0xff6666;
+        this.spawnDamageNumber(dest, damage, kills, lucky, unlucky);
+        if (!prefersReducedMotion()) void this.shakeToken(target, dest);
+      }
     }
     await tween(half, (t) => {
       if (attacker.destroyed) return;
@@ -571,13 +576,18 @@ export class CombatScene {
   /** Chiffre de soin flottant (vert, `+N`) — lifeDrain / soin (A2a). */
   private spawnHealNumber(at: Point, amount: number): void {
     if (amount <= 0) return;
+    this.spawnFloatingLabel(at, `+${amount}`, 0x6fe08a); // vert soin (a11y : signe + couleur)
+  }
+
+  /** Étiquette flottante générique (montée + fondu) — soin, esquive, etc. */
+  private spawnFloatingLabel(at: Point, label: string, color: number): void {
     const text = new Text({
-      text: `+${amount}`,
+      text: label,
       style: {
         fontFamily: 'system-ui, sans-serif',
         fontSize: 22,
         fontWeight: '700',
-        fill: 0x6fe08a, // vert soin (2ᵉ canal a11y : signe + couleur)
+        fill: color,
         stroke: { color: 0x1a1c22, width: 4 },
         align: 'center',
       },

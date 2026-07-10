@@ -11,11 +11,12 @@
 > (piloté par le manifeste, appliqué via `factionCatalog`/`hero.factionId`).
 > **Différé** : scaling de la Nécromancie par la compétence (Novice/Expert/
 > Maître 10/15/20 %) + bâtiment Amplificateur (§2/§4) — effet **plat** en
-> données au MVP (15 %) ; capacités spéciales `curseOnHit`/`incorporeal`/
+> données au MVP (15 %) ; capacités spéciales `curseOnHit`/
 > `areaAttack`/`aura`/`breathAttack`, bâtiments spéciaux,
 > « Fléau persistant », école Prime, héros nommés (Vhalen/Mère Corbeau).
-> **Livré depuis (lot A2a)** : `lifeDrain` (Vampire) et `charge` (Cavalier
-> funeste) sont désormais interprétées par le moteur (doc 02 §5.4).
+> **Livré depuis** : `lifeDrain` (Vampire) et `charge` (Cavalier funeste) en A2a ;
+> `incorporeal` (Spectre, 20 % d'esquive) en A2b — interprétées par le moteur
+> (doc 02 §5.4).
 > Terrain natif : `swamp` (« terre morte » n'existe pas dans les terrains du
 > MVP). `raiseUndeadOnVictory` est le SEUL point d'extension ouvert. Ce
 > document reste la cible de design.

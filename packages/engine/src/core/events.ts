@@ -110,6 +110,8 @@ export type GameEvent =
       lucky: boolean;
       /** Coup de malchance : demi-dégâts (C-BADLUCK, doc 02 §5.3). */
       unlucky: boolean;
+      /** Frappe esquivée (`incorporeal`, doc 04 §3, A2b) : dégâts 0. */
+      dodged: boolean;
       retaliation: boolean;
       /** Frappe à distance (tir) vs mêlée — feedback client (SFX `combat-shoot`). */
       ranged: boolean;

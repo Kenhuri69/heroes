@@ -465,9 +465,7 @@ function BuildTab({
                 <span class={`town-building-status town-building-status-${status}`}>{t(`town.${status}`)}</span>
               </div>
               {resolveBuildingLore(buildingId) && (
-                <p class="content-lore town-building-lore" title={resolveBuildingLore(buildingId) ?? undefined}>
-                  {resolveBuildingLore(buildingId)}
-                </p>
+                <LoreText text={resolveBuildingLore(buildingId)!} variant="town-building-lore" />
               )}
               {status === 'locked' && nextLevel && (
                 <ul class="town-requirements">
@@ -495,6 +493,28 @@ function BuildTab({
         })}
       </ul>
     </div>
+  );
+}
+
+/**
+ * Lore d'ambiance expandable (lot X2, parité tactile A2 — doc 08 §1.1) : tronqué
+ * à 2 lignes par défaut, un tap/clic déplie le texte complet. Le `title` natif
+ * (survol souris) n'est ainsi plus le SEUL accès au texte intégral. Bouton pour
+ * l'accessibilité clavier/tactile ; apparence réinitialisée via `.lore-toggle`.
+ */
+function LoreText({ text, variant, testid }: { text: string; variant: string; testid?: string }) {
+  const [expanded, setExpanded] = useState(false);
+  return (
+    <button
+      type="button"
+      class={`content-lore lore-toggle ${variant}${expanded ? ' expanded' : ''}`}
+      data-testid={testid}
+      aria-expanded={expanded}
+      title={text}
+      onClick={() => setExpanded((prev) => !prev)}
+    >
+      {text}
+    </button>
   );
 }
 
@@ -636,13 +656,11 @@ function RecruitTab({
                 </span>
               </div>
               {resolveUnitLore(unitId) && (
-                <p
-                  class="content-lore town-dwelling-lore"
-                  data-testid={`town-unit-lore-${unitId}`}
-                  title={resolveUnitLore(unitId) ?? undefined}
-                >
-                  {resolveUnitLore(unitId)}
-                </p>
+                <LoreText
+                  text={resolveUnitLore(unitId)!}
+                  variant="town-dwelling-lore"
+                  testid={`town-unit-lore-${unitId}`}
+                />
               )}
               <div class="town-dwelling-controls">
                 <button disabled={stock === 0} onClick={() => setQty(unitId, 1)}>

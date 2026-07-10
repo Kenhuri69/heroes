@@ -67,6 +67,20 @@
 > reste opaque : pas de fiche sous une tuile non explorée. Fiche des **villes**
 > différée au lot M7 (en-tête de ville).
 
+> 🚧 **État X2 (parité tactile — pilier §1.1, plan `ux-enrichissement-2026-07`)** :
+> les **textes de lore tronqués** de l'écran de ville (bâtiments et unités,
+> coupés à 2 lignes) sont désormais des **boutons expandables** — un tap/clic
+> déplie le texte intégral (cible ≥ 44 px, `aria-expanded`). Le `title` de survol
+> subsiste en **complément** desktop, il n'est plus l'unique accès au texte
+> complet. Règle générale posée : *toute information tronquée ou masquée derrière
+> un `title` doit avoir un accès tactile* (expansion sur place ou fiche au tap),
+> comme les fiches d'objet de carte (M2) et d'unité de combat (`stack-sheet`, M1).
+> Vérifié compliant sans changement : les **ressources communes** ouvrent déjà
+> leur fiche exacte au tap (bouton → `ResourceDetail`, lot M6) ; les **ressources
+> de faction** sont plafonnées (≤ 999) donc jamais abrégées (montant exact
+> toujours visible) ; en combat, la présence du héros est déjà lisible (badge +
+> nom + mana), le `title` redondant est passé en `aria-label`.
+
 > 🚧 **État U4** : **multi-héros / multi-villes** implémentés (lot UX U4). Le
 > tiroir héros ouvre un **bandeau de portraits** (un par héros du joueur ; tap =
 > sélectionner) — le héros **sélectionné** (`selectedHeroId`, repli 1er héros)

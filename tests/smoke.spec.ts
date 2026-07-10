@@ -1486,6 +1486,26 @@ test('ville : en-tête revenu/croissance (C21) + « Tout recruter » (C19) (lot 
   expect(errors).toEqual([]);
 });
 
+test('ville : parité tactile du lore (X2) — un tap déplie le texte tronqué', async ({ page }) => {
+  const errors = await openGame(page);
+
+  await page.getByTestId('town-open-start-town').click();
+  await expect(page.getByTestId('town-tab-build')).toBeVisible();
+  // Lore tronqué (2 lignes) accessible au doigt : le bouton part replié, un tap
+  // le déplie (A2 — l'info n'est plus exclusive au survol `title`).
+  const lore = page.locator('.lore-toggle').first();
+  await expect(lore).toBeVisible();
+  await expect(lore).toHaveAttribute('aria-expanded', 'false');
+  // Clampé au départ (2 lignes) : le clamp CSS retire le texte au-delà du pli.
+  expect(await lore.evaluate((el) => getComputedStyle(el).webkitLineClamp)).toBe('2');
+  await lore.click();
+  await expect(lore).toHaveAttribute('aria-expanded', 'true');
+  // Déplié : le clamp est levé ⇒ texte intégral (indépendant du viewport).
+  expect(await lore.evaluate((el) => getComputedStyle(el).webkitLineClamp)).toBe('none');
+
+  expect(errors).toEqual([]);
+});
+
 test('upgrade : bâtir le dwelling amélioré puis améliorer une pile de garnison (Alpha 4.11)', async ({
   page,
 }) => {

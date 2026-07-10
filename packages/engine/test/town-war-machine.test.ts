@@ -50,6 +50,9 @@ function heroAt(pos: { x: number; y: number }, warMachines: string[] = []): Hero
     factionId: '',
     houseId: '',
     houseEffects: [],
+    name: '',
+    specialtyId: '',
+    specialtyEffects: [],
     warMachines,
   };
 }

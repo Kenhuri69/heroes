@@ -248,6 +248,15 @@
   display: block;
 }
 
+/* Blason de faction du héros (Lot 2 identité visuelle) : sous le portrait,
+   centré ; réutilise le composant partagé (repli motif a11y si pas d'asset). */
+.hero-faction {
+  display: flex;
+  justify-content: center;
+  margin: -4px 0 8px;
+  font-size: 1.25rem;
+}
+
 /* Bandeau de portraits (doc 08 §2.1, lot UX U4) : sélection du héros humain
    actif parmi plusieurs. Scroll horizontal si trop de héros pour la largeur. */
 .hero-strip {
@@ -305,6 +314,40 @@
 .hero-level,
 .hero-xp {
   text-align: center;
+}
+
+/* Identité du héros (H-NAMED, Lot 3) : nom + spécialité, sous le portrait. */
+.hero-name {
+  text-align: center;
+  font: 700 1.05rem var(--font-display, var(--font-ui));
+  color: var(--parchment-bright);
+  margin-bottom: 2px;
+}
+
+.hero-specialty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.hero-specialty-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.6;
+}
+
+.hero-specialty-name {
+  font-weight: 600;
+  color: var(--gold);
+}
+
+.hero-specialty-desc {
+  font-size: 0.75rem;
+  opacity: 0.8;
 }
 
 /* Jauge générique (lot M6, C9/C24) : barre fine qui DOUBLE un chiffre (2ᵉ canal,

@@ -34,6 +34,9 @@ function hero(army: ArmyStack[]): HeroState {
     factionId: '',
     houseId: '',
     houseEffects: [],
+    name: '',
+    specialtyId: '',
+    specialtyEffects: [],
     warMachines: [],
   };
 }

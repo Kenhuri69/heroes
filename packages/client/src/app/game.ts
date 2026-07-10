@@ -179,6 +179,10 @@ export interface HeroSetup {
   startingSpells: string[];
   startingArtifacts: string[];
   startingAttributes: HeroAttributes;
+  /** Nom du héros (H-NAMED) — réf `@loc:` ou '' si non fourni par les données. */
+  startingName: string;
+  /** Spécialité résolue (id + effets déclaratifs), ou null si non fournie. */
+  startingSpecialty: { id: string; effects: SkillRankEffect[] } | null;
 }
 
 const NO_HERO_SETUP: HeroSetup = {
@@ -188,6 +192,8 @@ const NO_HERO_SETUP: HeroSetup = {
   startingSpells: [],
   startingArtifacts: [],
   startingAttributes: { attack: 0, defense: 0, power: 0, knowledge: 0 },
+  startingName: '',
+  startingSpecialty: null,
 };
 
 /** Résout les catalogues héros et la dotation de départ depuis le contenu chargé. */
@@ -206,6 +212,12 @@ export function buildHeroSetup(report: LoadReport): HeroSetup {
   const startingSpells = Object.values(spellCatalog)
     .filter((s) => s.circle <= 3 && (universalSchools.has(s.school) || s.school === factionSchool))
     .map((s) => s.id);
+  // Spécialité de héros (H-NAMED, doc 02 §1.2) : id + effets déclaratifs résolus
+  // depuis les données (l'`id` séparé des champs d'effet). null si non fournie.
+  const spec = newGame.startingHeroSpecialty;
+  const startingSpecialty = spec
+    ? { id: spec.id, effects: [Object.fromEntries(Object.entries(spec).filter(([k]) => k !== 'id')) as SkillRankEffect] }
+    : null;
   return {
     spellCatalog,
     skillCatalog,
@@ -213,6 +225,8 @@ export function buildHeroSetup(report: LoadReport): HeroSetup {
     startingSpells,
     startingArtifacts: newGame.startingArtifacts ?? [],
     startingAttributes: newGame.startingHero ?? { attack: 0, defense: 0, power: 0, knowledge: 0 },
+    startingName: newGame.startingHeroName ?? '',
+    startingSpecialty,
   };
 }
 
@@ -274,6 +288,8 @@ export function newGameCommand(
         startingAttributes: { ...heroSetup.startingAttributes },
         startingSpells: [...heroSetup.startingSpells],
         startingFactionId,
+        ...(heroSetup.startingName ? { startingName: heroSetup.startingName } : {}),
+        ...(heroSetup.startingSpecialty ? { startingSpecialtyId: heroSetup.startingSpecialty.id } : {}),
       },
     ],
     map: adventureMap,
@@ -287,6 +303,13 @@ export function newGameCommand(
     startingArtifacts: heroSetup.startingArtifacts,
     factionCatalog,
     houseCatalog,
+    ...(heroSetup.startingSpecialty
+      ? {
+          specialtyCatalog: {
+            [heroSetup.startingSpecialty.id]: { effects: heroSetup.startingSpecialty.effects },
+          },
+        }
+      : {}),
     growthGroups,
   };
 }

@@ -238,7 +238,17 @@ Source design : docs 03 §2/§4/§5, 04 §2/§4, 05 §3/§5/§6/§7, 14 §5/§6,
 
 Source design : doc 02 §1 (héros), docs de faction §5/§6/§7 (héros nommés).
 
-- **H-NAMED — Système de héros nommés / identités / spécialités** 🕳️ L ⬜
+- **H-NAMED — Système de héros nommés / identités / spécialités** 🧩 (tranche livrée ; reste L)
+  > **Point d'extension ouvert (bornée)** : `HeroState.name` + `specialtyId` +
+  > `specialtyEffects` (save v15) ; `PlayerSetup.startingName`/`startingSpecialtyId`
+  > + `StartGame.specialtyCatalog` (miroir de `houseCatalog`). La **spécialité est
+  > un profil déclaratif générique** (même vocabulaire que Maisons/compétences),
+  > résolue à la création et agrégée dans `hero/skills.ts` (`sumHouseField`) — zéro
+  > héros/faction en dur. Données : `config.newGame.startingHeroName` +
+  > `startingHeroSpecialty` (héros de départ « Aldric l'Érudit », spécialité
+  > *Arcaniste* = −20 % coût mana) ; UI : nom + spécialité dans le tiroir héros. **Différés**
+  > (le vrai L) : roster de héros nommés par faction (`heroes.json`), pool/taverne
+  > (M-TAVERN), spécialités conditionnelles (ex. « +vitesse aux Griffons »), bio.
   Doc : doc 02 §1.1/§1.2 ; Aldric/Séraphine (doc 03 §5), Vhalen/Mère Corbeau
   (doc 04 §5), Evadne/Alwin (doc 05 §7), Faelar/Sylwen (doc 14 §5),
   Hermione/Rumi (doc 16 §6). Code : zéro occurrence (`HeroState` sans

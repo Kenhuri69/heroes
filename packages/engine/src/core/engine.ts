@@ -427,6 +427,8 @@ const handlers: Handlers = {
     draft.heroes = cmd.players.map((p, i) => ({
       id: `hero-${p.id}`,
       playerId: p.id,
+      // Identité (H-NAMED, doc 02 §1.1) — nom opaque fourni par les données.
+      name: p.startingName ?? '',
       pos: cmd.map.startPositions[i] as GridPos,
       // PM/mana posés dans la boucle suivante (nécessitent l'objet héros complet).
       movementPoints: 0,
@@ -458,6 +460,12 @@ const handlers: Handlers = {
       houseEffects: ((cmd.houseCatalog ?? {})[p.startingHouseId ?? '']?.effects ?? []).map((e) => ({
         ...e,
       })),
+      // Spécialité (H-NAMED, doc 02 §1.2) : effets résolus depuis le catalogue
+      // embarqué (copie défensive), agrégés comme la Maison dans skills.ts.
+      specialtyId: p.startingSpecialtyId ?? '',
+      specialtyEffects: ((cmd.specialtyCatalog ?? {})[p.startingSpecialtyId ?? '']?.effects ?? []).map(
+        (e) => ({ ...e }),
+      ),
       warMachines: [],
     }));
     for (const hero of draft.heroes) {

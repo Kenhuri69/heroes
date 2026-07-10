@@ -22,6 +22,10 @@ export interface PlayerSetup {
   startingFactionId?: string;
   /** Allégeance de Maison du héros (doc 16 §3.1) — id opaque ; défaut ''. */
   startingHouseId?: string;
+  /** Nom du héros (doc 02 §1.1, H-NAMED) — chaîne opaque (souvent `@loc:`) ; défaut ''. */
+  startingName?: string;
+  /** Spécialité du héros (doc 02 §1.2, H-NAMED) — id opaque résolu via `specialtyCatalog` ; défaut ''. */
+  startingSpecialtyId?: string;
   /** Contrôleur (doc 02 §6, plan phase-3.5) — `'ai'` pour un adversaire ; défaut `'human'`. */
   controller?: 'human' | 'ai';
   /** Équipe / alliance (doc 02 §6) — entier opaque ; défaut `0` (sans alliance). */
@@ -72,6 +76,13 @@ export type Command =
        * création ; non stocké dans l'état (les effets résolus vivent sur le héros).
        */
       houseCatalog?: Record<string, { effects: SkillRankEffect[] }>;
+      /**
+       * Catalogue des spécialités de héros résolu par le contenu (doc 02 §1.2,
+       * H-NAMED), indexé par `specialtyId` → effets déclaratifs. Sert à résoudre
+       * `hero.specialtyEffects` à la création ; non stocké dans l'état (les effets
+       * résolus vivent sur le héros, comme `houseCatalog`/`houseEffects`).
+       */
+      specialtyCatalog?: Record<string, { effects: SkillRankEffect[] }>;
       /**
        * Groupes de croissance partagée résolus par le contenu (doc 05 §3.1/§8),
        * `groupId → membres`. Embarqué dans `GameState.growthGroups` ; absent = aucun.

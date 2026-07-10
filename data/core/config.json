@@ -56,6 +56,8 @@
     ],
     "startingArtifacts": ["lame-aiguisee"],
     "startingHero": { "attack": 1, "defense": 1, "power": 3, "knowledge": 4 },
+    "startingHeroName": "hero.name.default",
+    "startingHeroSpecialty": { "id": "arcanist", "manaCostReductionPct": 20 },
     "startingTown": {
       "id": "start-town",
       "factionId": "test-faction",

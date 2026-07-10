@@ -438,6 +438,23 @@ function HeroDrawer() {
           class="hero-avatar"
           fallback={<div class="hero-portrait-placeholder" aria-hidden="true" />}
         />
+        {hero.factionId && (
+          <div class="hero-faction" data-testid="hero-faction-badge">
+            <FactionBadge factionId={hero.factionId} />
+          </div>
+        )}
+        {hero.name && (
+          <div class="hero-name" data-testid="hero-name">
+            {t(hero.name)}
+          </div>
+        )}
+        {hero.specialtyId && (
+          <div class="hero-specialty" data-testid="hero-specialty">
+            <span class="hero-specialty-label">{t('hero.specialty')}</span>
+            <span class="hero-specialty-name">{t(`hero.specialty.${hero.specialtyId}.name`)}</span>
+            <span class="hero-specialty-desc">{t(`hero.specialty.${hero.specialtyId}.desc`)}</span>
+          </div>
+        )}
         <div class="hero-level" data-testid="hero-level">
           {t('hero.level', { level: hero.level })}
         </div>

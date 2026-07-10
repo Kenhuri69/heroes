@@ -225,7 +225,11 @@ const GOLDEN_JOURNAL: Command[] = [
 // Re-fixé au lot A2c : `SpellStatus.damageDealtMod` — malédiction `curseOnHit`
 // « Faux funeste » (save v15). Les piles golden ont des statuts vides ⇒ seul le
 // champ `saveVersion` de l'état haché change (14→15), simulation inchangée.
-const GOLDEN_HASH = '2713b959';
+// Re-fixé au lot H-NAMED : `HeroState.name` ('') + `specialtyId` ('') +
+// `specialtyEffects` ([]) — héros nommés & spécialité (save v16). Les héros golden
+// n'ont ni nom ni spécialité (journal sans startingName/specialtyCatalog) ⇒ seule
+// la FORME change, simulation inchangée.
+const GOLDEN_HASH = 'b546f06c';
 
 describe('golden replay', () => {
   it('le journal scripté produit toujours le même état final', () => {

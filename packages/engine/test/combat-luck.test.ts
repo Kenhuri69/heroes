@@ -52,6 +52,9 @@ function hero(visitLuck: number): HeroState {
     artifacts: Array.from({ length: 10 }, () => null),
     skills: {},
     houseEffects: [],
+    name: '',
+    specialtyId: '',
+    specialtyEffects: [],
     visitLuck,
   } as unknown as HeroState;
 }

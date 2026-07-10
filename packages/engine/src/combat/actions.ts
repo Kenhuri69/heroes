@@ -2,7 +2,7 @@ import type { CommandError } from '../core/commands';
 import type { GameEvent } from '../core/events';
 import { rollRange } from '../core/rng';
 import type { GameState } from '../core/state';
-import { performStrike, symbiosisParams } from './damage';
+import { chargePerHex, performStrike, symbiosisParams } from './damage';
 import type { Draft } from './draft';
 import { COMBAT_COLS, COMBAT_ROWS, hexDistance, hexLine, hexNeighbors, sameHex, type OffsetPos } from './hex';
 import { advanceTurn, checkCombatEnd } from './turns';
@@ -335,6 +335,11 @@ function applyAttack(
       if (targetDied) break;
     }
   } else {
+    // `charge` (A2a, doc 03/04 §3) : bonus = `perHex × hexes parcourus` AVANT la
+    // frappe — mesuré depuis la position d'origine, donc capturé avant le
+    // repositionnement. Une frappe sur place (pas de `from`) ne charge pas.
+    const chargeMoved = action.from ? hexDistance(attacker.pos, action.from) : 0;
+    const chargeBonus = chargePerHex(attackerDef) * chargeMoved;
     // Repositionnement avant la frappe (validé par `validateCombatAction`, A1) —
     // ignoré si `from` est déjà la position actuelle (pas de StackMoved à vide).
     if (action.from && !sameHex(action.from, attacker.pos)) {
@@ -352,16 +357,19 @@ function applyAttack(
       retaliation: false,
       ranged: false,
       rules,
+      chargeBonus,
     });
     if (checkCombatEnd(draft, events)) return;
     let attackerAlive = combat.stacks.some((s) => s.id === attacker.id);
     if (!first.targetDied && attackerAlive) {
       // `noRetaliation` (doc 02 §5.4) est une capacité de l'ATTAQUANT : elle prive
       // la victime de riposte (Vampire doc 04, Manticore doc 05). A2.
+      // `unlimitedRetaliation` (Griffon, doc 03 §3, A2a) : ripostes non limitées.
       const canRetaliate =
-        target.retaliationsLeft > 0 && !hasAbility(attackerDef, 'noRetaliation');
+        (target.retaliationsLeft > 0 || hasAbility(targetDef, 'unlimitedRetaliation')) &&
+        !hasAbility(attackerDef, 'noRetaliation');
       if (canRetaliate) {
-        target.retaliationsLeft -= 1;
+        if (target.retaliationsLeft > 0) target.retaliationsLeft -= 1;
         const retMeleePenalized = isShooterMeleePenalized(targetDef);
         performStrike(draft, events, {
           striker: target,
@@ -388,6 +396,7 @@ function applyAttack(
         retaliation: false,
         ranged: false,
         rules,
+        chargeBonus,
       });
       if (checkCombatEnd(draft, events)) return;
     }

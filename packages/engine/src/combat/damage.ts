@@ -5,7 +5,7 @@ import { heroArmorPct, heroLuck, heroMeleePct, heroRangedPct } from '../hero/ski
 import type { SpellStatus } from '../hero/types';
 import { canShootTarget } from './actions';
 import { hexDistance } from './hex';
-import { clamp, isShooterMeleePenalized, recordLoss } from './state-helpers';
+import { clamp, collectCasualties, isShooterMeleePenalized, recordLoss } from './state-helpers';
 import type { CombatSideId, CombatStack, CombatUnitDef, CombatState } from './types';
 import type { CombatRulesConfig } from '../adventure/config';
 import type { GameEvent } from '../core/events';
@@ -46,6 +46,10 @@ interface MultiplierInput {
   markConsumeBonus?: number;
   /** Bonus de la forme démon (`demonform`, doc 05 §4) : ×(1+bonus) tant que transformé — 0 sinon. */
   demonBonus?: number;
+  /** Multiplicateur de Défense en Défendant (`shieldWall`, A2a) — défaut `rules.defendDefenseMultiplier`. */
+  defendMultiplier?: number;
+  /** Bonus de charge : ×(1+bonus) de la frappe volontaire après déplacement (`charge`, A2a) — 0 sinon. */
+  chargeBonus?: number;
 }
 
 /** Paramètres de la capacité `demonform` (doc 05 §4) d'une unité, ou `null`. */
@@ -84,12 +88,36 @@ export function symbiosisDefenseBonus(def: CombatUnitDef, stacks: number): numbe
 }
 
 /**
- * Résistance à la magie d'une pile (doc 05 §4) : la forme humaine d'une unité
- * `demonform` réduit les dégâts de sort ; la forme démon (transformée) non.
+ * Résistance à la magie d'une pile : la forme humaine d'une unité `demonform`
+ * réduit les dégâts de sort (doc 05 §4) ; la forme démon (transformée) non. La
+ * capacité **autonome** `magicResistance(value)` (A2a — Bibliothécaire AH 30 %,
+ * doc 05 §4) s'applique en permanence. On prend le max des deux sources.
  */
 export function magicResistanceOf(def: CombatUnitDef, transformed: boolean): number {
   const demon = demonformParams(def);
-  return demon && !transformed ? demon.magicResistance : 0;
+  const fromDemon = demon && !transformed ? demon.magicResistance : 0;
+  const standalone = def.abilities.find((a) => a.id === 'magicResistance');
+  const fromStandalone = standalone ? Number(standalone.params?.['value'] ?? 0) : 0;
+  return Math.max(fromDemon, fromStandalone);
+}
+
+/** Multiplicateur de Défense propre à `shieldWall` (Frère-Lame, doc 03 §3), ou `null`. */
+export function shieldWallMultiplier(def: CombatUnitDef): number | null {
+  const ability = def.abilities.find((a) => a.id === 'shieldWall');
+  if (!ability) return null;
+  return Number(ability.params?.['defendMultiplier'] ?? 0) || null;
+}
+
+/** Bonus de dégâts par hex parcouru avant la frappe (`charge`, doc 03/04 §3) — 0 hors capacité. */
+export function chargePerHex(def: CombatUnitDef): number {
+  const ability = def.abilities.find((a) => a.id === 'charge');
+  return ability ? Number(ability.params?.['perHex'] ?? 0) : 0;
+}
+
+/** Fraction de dégâts rendue en soin/relève par `lifeDrain` (Vampire, doc 04 §3) — 0 hors capacité. */
+export function lifeDrainPct(def: CombatUnitDef): number {
+  const ability = def.abilities.find((a) => a.id === 'lifeDrain');
+  return ability ? Number(ability.params?.['pct'] ?? 0) : 0;
 }
 
 /**
@@ -127,9 +155,11 @@ export function computeMultiplier(input: MultiplierInput): number {
     heroArmorPct: armorPct,
     markConsumeBonus,
     demonBonus,
+    defendMultiplier,
+    chargeBonus,
   } = input;
   const effectiveDefense = targetDefending
-    ? Math.floor(targetDefense * rules.defendDefenseMultiplier)
+    ? Math.floor(targetDefense * (defendMultiplier ?? rules.defendDefenseMultiplier))
     : targetDefense;
   const diff = strikerAttack - effectiveDefense;
   // Pente unités (±0,05/pt) MOINS la pente héros dédiée (−0,025/pt de Défense
@@ -141,6 +171,7 @@ export function computeMultiplier(input: MultiplierInput): number {
   mult *= 1 + rules.markBonusPerStack * targetMarks;
   mult *= 1 + (markConsumeBonus ?? 0);
   mult *= 1 + (demonBonus ?? 0);
+  mult *= 1 + (chargeBonus ?? 0);
   mult *= 1 + (heroDamagePct ?? 0);
   mult *= 1 - (armorPct ?? 0);
   return mult;
@@ -227,6 +258,8 @@ interface StrikeParams {
    */
   ranged: boolean;
   rules: CombatRulesConfig;
+  /** Bonus de charge de CETTE frappe (`perHex × hexes parcourus`, A2a) — 0 par défaut. */
+  chargeBonus?: number;
 }
 
 /** Une frappe réelle (RNG threadé via `draft.rng`) : dégâts, pertes, marque, mort éventuelle. */
@@ -235,7 +268,7 @@ export function performStrike(
   events: GameEvent[],
   params: StrikeParams,
 ): { targetDied: boolean } {
-  const { striker, victim, strikerDef, victimDef, meleePenalized, retaliation, ranged, rules } = params;
+  const { striker, victim, strikerDef, victimDef, meleePenalized, retaliation, ranged, rules, chargeBonus } = params;
   let base = 0;
   for (let i = 0; i < striker.count; i++) {
     const r = rollRange(draft.rng, strikerDef.stats.damage[0], strikerDef.stats.damage[1]);
@@ -289,6 +322,10 @@ export function performStrike(
     heroArmorPct: heroArmor,
     markConsumeBonus: consume?.damageBonus ?? 0,
     demonBonus: demon && striker.transformed ? demon.damageBonus : 0,
+    // `shieldWall` (A2a) : le défenseur qui Défend a un multiplicateur propre.
+    defendMultiplier: shieldWallMultiplier(victimDef) ?? rules.defendDefenseMultiplier,
+    // `charge` (A2a) : bonus fourni par l'appelant (mêlée volontaire uniquement).
+    chargeBonus: retaliation ? 0 : (chargeBonus ?? 0),
   });
   // Chance/malchance (C-BADLUCK, doc 02 §5.3) : un SEUL jet, interprété selon le
   // signe de la chance — |chance| × 4 %/point de déclencher soit un coup de
@@ -348,6 +385,28 @@ export function performStrike(
     retaliation,
     ranged,
   });
+
+  // `lifeDrain` (Vampire, doc 04 §3, A2a) : la pile qui frappe en mêlée se
+  // soigne/relève de `pct × dégâts` — plafonné à son effectif de départ
+  // (effectif courant + pertes déjà enregistrées, même plafond que le soin de
+  // sort). Jamais au tir. Le striker est toujours vivant ici (c'est lui qui frappe).
+  const drainPct = ranged ? 0 : lifeDrainPct(strikerDef);
+  if (combat && drainPct > 0 && damage > 0 && striker.count > 0) {
+    const heal = Math.floor(damage * drainPct);
+    if (heal > 0) {
+      const strikerPool = (striker.count - 1) * strikerDef.stats.hp + striker.firstHp;
+      const lostSoFar =
+        collectCasualties(combat).find((c) => c.side === striker.side && c.unitId === striker.unitId)?.lost ?? 0;
+      const maxCount = striker.count + lostSoFar;
+      const newPool = Math.min(maxCount * strikerDef.stats.hp, strikerPool + heal);
+      if (newPool > strikerPool) {
+        const drainCount = Math.min(maxCount, Math.max(1, Math.ceil(newPool / strikerDef.stats.hp)));
+        striker.count = drainCount;
+        striker.firstHp = newPool - (drainCount - 1) * strikerDef.stats.hp;
+        events.push({ type: 'StackHealed', stackId: striker.id, amount: newPool - strikerPool });
+      }
+    }
+  }
 
   const targetDied = victim.count <= 0;
   if (targetDied && combat) {
@@ -416,6 +475,10 @@ export function estimateDamage(
     // `demonform` : la frappe transforme l'attaquant s'il ne l'est pas déjà, donc
     // la prévisualisation reflète toujours le bonus de la forme démon.
     demonBonus: demonformParams(attackerDef)?.damageBonus ?? 0,
+    // `shieldWall` (A2a) : multiplicateur de Défense propre du défenseur.
+    defendMultiplier: shieldWallMultiplier(targetDef) ?? rules.defendDefenseMultiplier,
+    // `charge` (A2a) : distance de déplacement inconnue à la préviz (dépend du
+    // `from` choisi) ⇒ non reflétée (comme la chance) — bonus de charge omis.
   });
   const [dmgMin, dmgMax] = attackerDef.stats.damage;
   const baseMin = attacker.count * dmgMin;
@@ -431,10 +494,12 @@ export function estimateDamage(
   // `expose` (doc 05 §3.1) : l'attaque va supprimer la riposte de la cible.
   const willExpose = consumeMarksPlan(attackerDef, target.marks)?.suppressRetaliation ?? false;
   // `noRetaliation` porté par l'ATTAQUANT prive la victime de riposte (A2).
+  // `unlimitedRetaliation` (Griffon, doc 03 §3, A2a) : la cible peut riposter
+  // même sans charge de riposte restante.
   const canRetaliate =
     !ranged &&
     !willExpose &&
-    target.retaliationsLeft > 0 &&
+    (target.retaliationsLeft > 0 || targetDef.abilities.some((a) => a.id === 'unlimitedRetaliation')) &&
     !attackerDef.abilities.some((a) => a.id === 'noRetaliation');
   if (canRetaliate) {
     const survivorsAfterMaxDamage = target.count - killsMax;
@@ -461,6 +526,8 @@ export function estimateDamage(
       rules,
       heroDamagePct: heroMeleePctOf(state, combat, target.side),
       heroArmorPct: heroArmorPctOf(state, combat, attacker.side),
+      // `shieldWall` (A2a) : l'attaquant qui Défend a son multiplicateur propre.
+      defendMultiplier: shieldWallMultiplier(attackerDef) ?? rules.defendDefenseMultiplier,
       // D5 : une riposte ne consomme PAS de Marque ⇒ pas de burst `consumeMarks`
       // dans la préviz de riposte non plus (préviz = résolution).
     });

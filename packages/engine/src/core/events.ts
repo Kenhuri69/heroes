@@ -115,6 +115,8 @@ export type GameEvent =
       ranged: boolean;
     }
   | { type: 'StackDied'; stackId: string }
+  /** Soin/relève d'une pile (`lifeDrain` Vampire doc 04 §3, ou soin) : PV rendus. */
+  | { type: 'StackHealed'; stackId: string; amount: number }
   /** Moral : tour bonus (positive) ou tour sauté (doc 02 §5.3 + décision n°8). */
   | { type: 'MoraleTriggered'; stackId: string; positive: boolean }
   | { type: 'MarkApplied'; targetId: string; marks: number }

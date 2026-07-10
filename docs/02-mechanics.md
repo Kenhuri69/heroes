@@ -300,11 +300,11 @@ dégâts = Σ(dmg aléatoire min–max par créature de la pile)
 
 Le moteur expose un **catalogue de capacités génériques paramétrables** ; les unités les référencent par ID dans leurs données.
 
-> **État livré** : le catalogue réellement interprété par le moteur — `data/core/abilities.json` — compte **9 capacités** : `flying`, `shooter`, `noRetaliation`, `doubleAttack`, `undead`, `mark`, `consumeMarks`, `demonform`, `symbiosis` (+ `magicResistance`, porté par `demonform`). Les capacités plus riches nommées dans les lineups de faction (`taunt`, `shieldWall`, `charge`, `firstStrike`, `lifeDrain`, `curseOnHit`, `spellcaster`, `areaAttack`, `aura`, `incorporeal`, `strikeAndReturn`, `breathAttack`, `poisonSting`, `swarm`, `resurrectAlly`, `unlimitedRetaliation`…) sont **déclarées en données mais pas encore interprétées** par le moteur (inertes en combat) — cible de design, à activer par sous-lots ultérieurs.
+> **État livré** : le catalogue réellement interprété par le moteur — `data/core/abilities.json` — compte **14 capacités** : `flying`, `shooter`, `noRetaliation`, `doubleAttack`, `undead`, `mark`, `consumeMarks`, `demonform`, `symbiosis`, et (lot A2a) `shieldWall`, `unlimitedRetaliation`, `charge`, `magicResistance` (désormais **autonome**, plus seulement porté par `demonform`), `lifeDrain`. Les capacités encore nommées dans les lineups mais **pas encore interprétées** (inertes en combat) : `taunt`, `firstStrike`, `curseOnHit`, `spellcaster`, `areaAttack`, `aura`, `incorporeal`, `strikeAndReturn`, `breathAttack`, `poisonSting`, `swarm`, `resurrectAlly` — cible de design, activées par sous-lots ultérieurs (A2b/A3).
 
 Une faction qui a besoin d'une capacité **réellement nouvelle** l'obtient en ouvrant **un** point d'extension **générique** du moteur, interprété depuis les données (cf. doc 06 §4) — jamais un module propre à une faction. C'est ainsi que `consumeMarks`/`demonform`/`symbiosis` ont été livrées.
 
-Sémantique des **9 capacités** du catalogue (valeurs de départ) :
+Sémantique des **14 capacités** du catalogue (valeurs de départ) :
 
 | Capacité | Effet implémenté |
 |---|---|
@@ -317,6 +317,11 @@ Sémantique des **9 capacités** du catalogue (valeurs de départ) :
 | `consumeMarks(...)` | sur une frappe **volontaire** (jamais en riposte), consomme les charges de Marque pour un effet paramétré : bonus de dégâts, suppression de riposte (`suppressRetaliation`, « expose ») ou immobilisation (`immobilizeRounds`, « pinningShot ») |
 | `demonform` | T8 : commence en forme humaine (`magicResistance` 50 %), bascule 1×/combat en forme démon (+dégâts, attaque de zone) mais perd la résistance |
 | `symbiosis` | une pile qui **ne bouge pas** accumule un buff croissant round après round (signature Sylvan Court) |
+| `shieldWall(defendMultiplier)` | A2a : Défendre donne un multiplicateur de Défense propre (ex. ×1,5) au lieu du ×1,3 commun |
+| `unlimitedRetaliation` | A2a : la pile riposte sans limite de 1/round |
+| `charge(perHex)` | A2a : bonus de dégâts de la frappe de mêlée **volontaire** = `perHex × hexes parcourus` avant la frappe (0 sur place, jamais en riposte) |
+| `magicResistance(value)` | A2a : réduit les dégâts de sort subis de `value` (autonome ; `demonform` en porte aussi une variante conditionnelle) |
+| `lifeDrain(pct)` | A2a : la pile qui frappe en mêlée se soigne/relève de `pct × dégâts` infligés, plafonné à son effectif de départ |
 
 ### 5.5 Fin de combat & auto-résolution
 

@@ -6,5 +6,5 @@
   "stats": { "hp": 18, "attack": 6, "defense": 6, "damage": [3, 5], "speed": 5 },
   "growthPerWeek": 7,
   "cost": { "gold": 185 },
-  "abilities": []
+  "abilities": [{ "id": "shieldWall", "params": { "defendMultiplier": 1.5 } }]
 }

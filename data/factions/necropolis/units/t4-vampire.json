@@ -23,6 +23,12 @@
     },
     {
       "id": "noRetaliation"
+    },
+    {
+      "id": "lifeDrain",
+      "params": {
+        "pct": 0.5
+      }
     }
   ]
 }

@@ -53,7 +53,10 @@ function drawObstacles(draft: Draft, min: number, max: number): OffsetPos[] {
   draft.rng = countRoll.state;
   const obstacles: OffsetPos[] = [];
   while (obstacles.length < countRoll.value) {
-    const colRoll = rollRange(draft.rng, 3, 8);
+    // Colonnes centrales uniquement : 3 tuiles de marge depuis chaque bord de
+    // spawn (0 et COMBAT_COLS-1) ⇒ obstacles symétriques dans le no-man's land,
+    // jamais sur/adjacents à une colonne de départ.
+    const colRoll = rollRange(draft.rng, 3, COMBAT_COLS - 4);
     draft.rng = colRoll.state;
     const rowRoll = rollRange(draft.rng, 0, COMBAT_ROWS - 1);
     draft.rng = rowRoll.state;

@@ -145,7 +145,7 @@
 ┌────────────────────────────────────────────────────────────┐
 │  [armée A: 7 vignettes]      round 3       [armée B: 7]    │  ← ordre du round
 │                                                            │    (vitesse décroissante)
-│                  CANVAS grille hex 12×10                   │
+│                  CANVAS grille hex 15×10                   │
 │        (surbrillance : hexes atteignables, cibles,         │
 │         prévisualisation dégâts min–max & ripostes)        │
 │                                                            │

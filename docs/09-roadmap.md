@@ -19,7 +19,7 @@ Estimations pour une petite équipe (2–3 dev + 1 artiste temps partiel). Chaqu
 > spéciales de faction avancées, `faction:sim` d'équilibrage fin, sorts
 > d'aventure, hot-seat/PvP, assets peints).
 
-- **Combat hex complet** (grille 12×10, vagues d'initiative, riposte, moral/chance, catalogue de ~20 capacités, sorts en combat, IA de combat, auto-combat, prévisualisation de dégâts).
+- **Combat hex complet** (grille 15×10, vagues d'initiative, riposte, moral/chance, catalogue de ~20 capacités, sorts en combat, IA de combat, auto-combat, prévisualisation de dégâts).
 - **Carte d'aventure** : brouillard 2 états, ~25 objets, mines, gardiens neutres, pathfinding multi-jours.
 - **Villes** : arbre complet, 1 bâtiment/jour, recrutement, croissance hebdo, capture, écran de ville (liste d'abord, vue peinte simple).
 - **Héros** : progression, 12 compétences, ~20 sorts (2 écoles + neutres), inventaire/artefacts.

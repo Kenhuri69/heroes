@@ -51,7 +51,7 @@ heroes/
 │   │   ├── src/
 │   │   │   ├── core/            # GameState, Command, apply(), events, rng (PCG32)
 │   │   │   ├── adventure/       # grille carrée, mouvement A*, économie, calendrier
-│   │   │   ├── combat/          # grille hex 12×10, vagues, riposte, dégâts, IA
+│   │   │   ├── combat/          # grille hex 15×10, vagues, riposte, dégâts, IA
 │   │   │   ├── content/         # registres (unités, capacités, hooks) — génériques
 │   │   │   └── index.ts
 │   │   ├── test/                # Vitest : unitaires + property-based + golden replays
@@ -175,7 +175,7 @@ UI Preact / input Pixi ──Command──► dispatch()
   étirée) mise à jour incrémentalement. En Phase 2, la carte proto 32×32 tient
   sans chunks — l'API `Tilemap` est néanmoins écrite chunkée d'emblée car
   c'est structurel, pas de l'optimisation prématurée.
-- **Combat** : grille hex **pointy-top 12×10** en coordonnées axiales,
+- **Combat** : grille hex **pointy-top 15×10** en coordonnées axiales,
   surbrillances (hexes atteignables, cibles) via `Graphics` partagés.
 - **Caméra** : un `Container` monde transformé (position/scale) ; pan (drag),
   pinch-zoom, molette. Touch-first : gestes natifs Pointer Events, cibles
@@ -269,7 +269,7 @@ visible en live dès son premier commit.*
 
 *Livrée tôt, testable seule via `/#arena` (risque n°1, doc 09).*
 
-1. Moteur : grille hex 12×10, vagues d'initiative par vitesse décroissante,
+1. Moteur : grille hex 15×10, vagues d'initiative par vitesse décroissante,
    déplacer/attaquer/attendre/défendre, riposte 1×/round, dégâts (formule
    doc 02 §5.3), moral/chance, ~6 capacités du catalogue. → vérif :
    property-based « un combat se termine toujours » + cas tabulaires de dégâts.

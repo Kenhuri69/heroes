@@ -5,7 +5,7 @@ import { heroArmorPct, heroLuck, heroMeleePct, heroRangedPct } from '../hero/ski
 import type { SpellStatus } from '../hero/types';
 import { canShootTarget } from './actions';
 import { hexDistance } from './hex';
-import { clamp, collectCasualties, isShooterMeleePenalized, recordLoss } from './state-helpers';
+import { clamp, collectCasualties, hasAbility, isShooterMeleePenalized, recordLoss } from './state-helpers';
 import type { CombatSideId, CombatStack, CombatUnitDef, CombatState } from './types';
 import type { CombatRulesConfig } from '../adventure/config';
 import type { GameEvent } from '../core/events';
@@ -126,6 +126,15 @@ export function lifeDrainPct(def: CombatUnitDef): number {
 export function incorporealDodge(def: CombatUnitDef): number {
   const ability = def.abilities.find((a) => a.id === 'incorporeal');
   return ability ? Number(ability.params?.['dodge'] ?? 0) : 0;
+}
+
+/** Paramètres de `areaAttack` (Liche nuage doc 04 §3, A3c) d'une unité, ou `null`. */
+export function areaAttackParams(def: CombatUnitDef): { pct: number; sparesUndead: boolean } | null {
+  const ability = def.abilities.find((a) => a.id === 'areaAttack');
+  if (!ability) return null;
+  const pct = Number(ability.params?.['pct'] ?? 0);
+  if (pct <= 0) return null;
+  return { pct, sparesUndead: ability.params?.['sparesUndead'] === true };
 }
 
 /**
@@ -456,6 +465,52 @@ export function performStrike(
     retaliation,
     ranged,
   });
+
+  // `areaAttack` (Liche nuage, doc 04 §3, A3c) : une frappe VOLONTAIRE qui touche
+  // éclabousse les piles ENNEMIES adjacentes à la cible d'une fraction des dégâts
+  // (`pct`), épargnant les morts-vivants si `sparesUndead`. Sans RNG (dégâts déjà
+  // tirés), sans riposte. Gated sur la capacité ⇒ flux inchangé hors unité concernée.
+  const area = retaliation || dodged ? null : areaAttackParams(strikerDef);
+  if (combat && area && damage > 0) {
+    const splash = Math.round(damage * area.pct);
+    if (splash > 0) {
+      const catalog = draft.unitCatalog;
+      const splashTargets = combat.stacks.filter((s) => {
+        if (s.side === striker.side || s.count <= 0 || s.id === victim.id) return false;
+        if (hexDistance(s.pos, victim.pos) !== 1) return false;
+        const sd = catalog[s.unitId];
+        return !(area.sparesUndead && sd && hasAbility(sd, 'undead'));
+      });
+      for (const t of splashTargets) {
+        const tDef = catalog[t.unitId];
+        if (!tDef) continue;
+        const pool = (t.count - 1) * tDef.stats.hp + t.firstHp;
+        const sKills = killsFromDamage(pool, tDef.stats.hp, t.count, splash);
+        const remaining = Math.max(0, pool - splash);
+        const newCount = t.count - sKills;
+        t.count = newCount;
+        t.firstHp = newCount > 0 ? remaining - (newCount - 1) * tDef.stats.hp : 0;
+        recordLoss(combat, t.side, t.unitId, sKills);
+        events.push({
+          type: 'StackAttacked',
+          attackerId: striker.id,
+          targetId: t.id,
+          damage: splash,
+          kills: sKills,
+          lucky: false,
+          unlucky: false,
+          dodged: false,
+          retaliation: false,
+          ranged,
+        });
+        if (t.count <= 0) {
+          events.push({ type: 'StackDied', stackId: t.id });
+          const idx = combat.stacks.findIndex((x) => x.id === t.id);
+          if (idx !== -1) combat.stacks.splice(idx, 1);
+        }
+      }
+    }
+  }
 
   // `lifeDrain` (Vampire, doc 04 §3, A2a) : la pile qui frappe en mêlée se
   // soigne/relève de `pct × dégâts` — plafonné à son effectif de départ

@@ -12,12 +12,14 @@
 > **Différé** : scaling de la Nécromancie par la compétence (Novice/Expert/
 > Maître 10/15/20 %) + bâtiment Amplificateur (§2/§4) — effet **plat** en
 > données au MVP (15 %) ; capacités spéciales
-> `areaAttack`/`aura`/`breathAttack`, bâtiments spéciaux,
+> `breathAttack`, bâtiments spéciaux,
 > « Fléau persistant », école Prime, héros nommés (Vhalen/Mère Corbeau).
 > **Livré depuis** : `lifeDrain` (Vampire) et `charge` (Cavalier funeste) en A2a ;
 > `incorporeal` (Spectre, 20 % d'esquive) en A2b ; `curseOnHit` (Zombie
 > « Affaiblissement » −Défense 20 %, Cavalier funeste « Faux funeste » −20 %
-> dégâts 100 %) en A2c — interprétées par le moteur (doc 02 §5.4).
+> dégâts 100 %) en A2c ; `aura` (Dragon d'os −1 moral) en A3a ; `areaAttack`
+> (Liche nuage 1 hex, ½ dégâts, épargne les morts-vivants) en A3c — interprétées
+> par le moteur (doc 02 §5.4).
 > Terrain natif : `swamp` (« terre morte » n'existe pas dans les terrains du
 > MVP). `raiseUndeadOnVictory` est le SEUL point d'extension ouvert. Ce
 > document reste la cible de design.

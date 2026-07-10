@@ -121,6 +121,8 @@ export type GameEvent =
   | { type: 'StackHealed'; stackId: string; amount: number }
   /** Malédiction appliquée par `curseOnHit` (Zombie/Cavalier funeste, doc 04 §3). */
   | { type: 'StackCursed'; targetId: string; spellId: string }
+  /** Dégâts de poison au début de round (`poisonSting` Manticore, doc 05 §4, A2f). */
+  | { type: 'StackPoisoned'; stackId: string; damage: number; kills: number }
   /** Moral : tour bonus (positive) ou tour sauté (doc 02 §5.3 + décision n°8). */
   | { type: 'MoraleTriggered'; stackId: string; positive: boolean }
   | { type: 'MarkApplied'; targetId: string; marks: number }

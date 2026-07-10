@@ -202,6 +202,16 @@ export function curseOnHitPlan(
   };
 }
 
+/** Poison infligé par `poisonSting` (Manticore, doc 05 §4, A2f), ou `null`. */
+export function poisonStingPlan(def: CombatUnitDef): { damagePerRound: number; rounds: number } | null {
+  const ability = def.abilities.find((a) => a.id === 'poisonSting');
+  if (!ability) return null;
+  const damagePerRound = Number(ability.params?.['damagePerRound'] ?? 0);
+  const rounds = Number(ability.params?.['rounds'] ?? 0);
+  if (damagePerRound <= 0 || rounds <= 0) return null;
+  return { damagePerRound, rounds };
+}
+
 /**
  * Plan de consommation de Marque (capacité générique `consumeMarks`, doc 05
  * §3.1) : si l'attaquant porte la capacité et que la cible a assez de charges,
@@ -640,6 +650,7 @@ export function performStrike(
         defenseMod: curse.defenseMod,
         speedMod: curse.speedMod,
         damageDealtMod: curse.damageDealtMod,
+        damagePerRound: 0,
         roundsLeft: curse.rounds,
       };
       const existing = victim.statuses.find((s) => s.spellId === spellId);
@@ -647,6 +658,27 @@ export function performStrike(
       else victim.statuses.push(status);
       events.push({ type: 'StackCursed', targetId: victim.id, spellId });
     }
+  }
+
+  // `poisonSting` (Manticore, doc 05 §4, A2f) : une frappe de MÊLÉE qui touche
+  // (non esquivée, cible survivante) applique/rafraîchit un statut de poison ; les
+  // dégâts sur la durée sont infligés au début de chaque round (`turns.ts`). Jamais
+  // au tir (dard de mêlée). Le statut porte `damagePerRound` sans autre modificateur.
+  const poison = !ranged && !dodged ? poisonStingPlan(strikerDef) : null;
+  if (poison && victim.count > 0) {
+    const spellId = `poison:${strikerDef.id}`;
+    const status: SpellStatus = {
+      spellId,
+      attackMod: 0,
+      defenseMod: 0,
+      speedMod: 0,
+      damageDealtMod: 0,
+      damagePerRound: poison.damagePerRound,
+      roundsLeft: poison.rounds,
+    };
+    const existing = victim.statuses.find((s) => s.spellId === spellId);
+    if (existing) Object.assign(existing, status); // rafraîchit la durée
+    else victim.statuses.push(status);
   }
 
   const targetDied = victim.count <= 0;

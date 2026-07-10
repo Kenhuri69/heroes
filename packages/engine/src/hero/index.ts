@@ -314,6 +314,7 @@ export function handleCastSpell(draft: Draft, cmd: CastSpellCmd, events: GameEve
         defenseMod: spell.defenseMod ?? 0,
         speedMod: spell.speedMod ?? 0,
         damageDealtMod: 0, // les sorts actuels ne modulent pas les dégâts infligés (A2c)
+        damagePerRound: 0, // les sorts actuels n'empoisonnent pas (A2f)
         roundsLeft: spellStatusDuration(power),
       });
     }

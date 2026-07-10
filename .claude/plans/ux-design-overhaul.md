@@ -127,6 +127,13 @@ des écrans qui occupent leur viewport (desktop comme mobile).
 
 ## 3. Lots
 
+> **Note X8 (2026-07-10, hygiène des plans)** : toutes les cases granulaires
+> ci-dessous ont été **re-cochées a posteriori** — chaque lot UXD-1→UXD-8 a été
+> livré via son sous-plan `ux-dN` (état faisant foi au §6 « Suivi »). Elles
+> étaient restées décochées après livraison (constat E8 du plan
+> `ux-enrichissement-2026-07`), donnant l'illusion d'un chantier en attente.
+
+
 ### UXD-0 — Correctifs ergonomiques immédiats + outillage d'audit
 
 Le « stop the bleeding » : régressions mesurées §1.6, sans refonte.
@@ -149,111 +156,111 @@ Le « stop the bleeding » : régressions mesurées §1.6, sans refonte.
 verts (1 flaky pré-existant documenté au plan du lot). **Lot livré** — détail :
 `.claude/plans/ux-d0-correctifs.md`.
 
-### UXD-1 — Design system « gouache » (style uniforme)
+### UXD-1 — Design system « gouache » (style uniforme)  ✅ **Livré** (voir `ux-d1-design-system.md` + §6)
 
 Le socle : tout ce qui suit s'appuie dessus.
 
-- [ ] `ui/tokens.css` : palette (encres `#101218→#3a3d47`, parchemin
+- [x] `ui/tokens.css` : palette (encres `#101218→#3a3d47`, parchemin
       `#e8e2d0`, laiton/or, sang `#7a2d22`, sémantiques succès/danger/info),
       surfaces + voiles (les 15 `rgba` → 3 tokens), rayons, espacements,
       ombres, échelle de z-index, durées d'animation.
-- [ ] **Typographie** : une display serif « chronique médiévale » pour titres/
+- [x] **Typographie** : une display serif « chronique médiévale » pour titres/
       boutons/chiffres (WOFF2 **subset latin ~30-50 Ko, servie localement**,
       fallback `Georgia, serif`) ; corps de texte reste `system-ui`. Poids
       compté dans le budget CI.
-- [ ] Composants de base : `.btn` (primary/secondary/danger/ghost, tailles),
+- [x] Composants de base : `.btn` (primary/secondary/danger/ghost, tailles),
       `.panel` (fond sombre + filet laiton discret), `.modal`, `.tabs`,
       `.badge`, `.field` — états hover/active/focus-visible/disabled définis
       une fois.
-- [ ] Refactor des 16 feuilles vers les tokens ; suppression des ~30 hex ad
+- [x] Refactor des 16 feuilles vers les tokens ; suppression des ~30 hex ad
       hoc et des `font:` dupliqués.
-- [ ] **Garde-fou CI** : aucun littéral `#hex`/`rgba(` dans `ui/*.css` hors
+- [x] **Garde-fou CI** : aucun littéral `#hex`/`rgba(` dans `ui/*.css` hors
       `tokens.css` (grep en CI, même esprit que le garde-fou faction).
 
 **Vérif** : garde-fou vert ; captures avant/après (layout inchangé, habillage
 neuf) ; budget bundle ; 3 crans de police re-vérifiés.
 
-### UXD-2 — Iconographie unifiée
+### UXD-2 — Iconographie unifiée  ✅ **Livré** (voir `ux-d2-iconographie.md` + §6)
 
-- [ ] Inventaire des surfaces : actions HUD (fin de tour, ville, sauvegarder,
+- [x] Inventaire des surfaces : actions HUD (fin de tour, ville, sauvegarder,
       charger, options, journal, sorts, tiroir héros), onglets ville
       (`⌂ ▣ ◆ ⚒` actuels), actions de combat (attendre/défendre/auto/
       vitesses), éditeur, écoles de magie, statuts de combat (buff/debuff/
       Marque/Entrave), jour/semaine.
-- [ ] Étendre `gen_ui_icons.py` (règle P, déterministe) : recettes `act-*`,
+- [x] Étendre `gen_ui_icons.py` (règle P, déterministe) : recettes `act-*`,
       `tab-*`, `school-*`, `status-*` — même style silhouette + liseré,
       mipmaps 256→16, lisibles à 16 px, `_preview.png` contrôlée.
-- [ ] Composant `UiIcon` (résolveur du registre d'assets, repli sur le glyphe
+- [x] Composant `UiIcon` (résolveur du registre d'assets, repli sur le glyphe
       actuel) ; règle : **icône + libellé** par défaut ; bouton compact =
       `aria-label` + fiche à l'appui long (A2).
-- [ ] Purge des emojis/glyphes des `.tsx` (`⚙ 🔔 ☰ ⚔ ⌂ ▣ ◆ ⚒ ⛺ ✚ ✦`…).
+- [x] Purge des emojis/glyphes des `.tsx` (`⚙ 🔔 ☰ ⚔ ⌂ ▣ ◆ ⚒ ⛺ ✚ ✦`…).
 
 **Vérif** : 0 emoji/glyphe décoratif restant dans `ui/` (grep) ; planche
 `_preview` validée à l'œil ; a11y (aria-labels) ; captures.
 
-### UXD-3 — Assets de la carte d'aventure (fin des placeholders)
+### UXD-3 — Assets de la carte d'aventure (fin des placeholders)  ✅ **Livré** (voir `ux-d3b-assets-carte.md` + §6)
 
-- [ ] Sprite **héros monté** par faction (règle A, bannière aux couleurs du
+- [x] Sprite **héros monté** par faction (règle A, bannière aux couleurs du
       joueur en second canal) — remplace l'écusson.
-- [ ] **Ville sur carte** par faction (château vignette, drapeau du
+- [x] **Ville sur carte** par faction (château vignette, drapeau du
       propriétaire, liseré assiégeable conservé) — remplace le donjon
       `Graphics`.
-- [ ] Objets restants (règle C) : coffre, camp de gardiens, tente/habitation
+- [x] Objets restants (règle C) : coffre, camp de gardiens, tente/habitation
       hors ville, artefact au sol, curiosités de bonus.
-- [ ] **Bord de monde** : cadre décoratif (falaises/brume) + vignette sombre à
+- [x] **Bord de monde** : cadre décoratif (falaises/brume) + vignette sombre à
       la place du letterbox noir ; clamp caméra assorti.
-- [ ] Variantes/transitions de tuiles supplémentaires si besoin après pose
+- [x] Variantes/transitions de tuiles supplémentaires si besoin après pose
       (règle P).
 
 **Vérif** : plus aucun `Graphics` placeholder visible sur proto-01 (parcours
 smoke) ; repli procédural conservé ; anti-gel carte ≥ plancher ; budget (PNG
 hors bundle).
 
-### UXD-4 — Combat immersif
+### UXD-4 — Combat immersif  ✅ **Livré** (voir `ux-d4-combat-immersif.md` + §6)
 
-- [ ] Hexes **translucides** (remplissage ≤ 30 % + contour net, motifs pour
+- [x] Hexes **translucides** (remplissage ≤ 30 % + contour net, motifs pour
       atteignable/cible/obstacle — double canal A5) : la toile peinte U5-E
       devient réellement visible.
-- [ ] Fonds de combat des terrains manquants (montagne, route… — règle D).
-- [ ] **Bandeau d'initiative illustré** (doc 08 §2.4) : portraits d'unités
+- [x] Fonds de combat des terrains manquants (montagne, route… — règle D).
+- [x] **Bandeau d'initiative illustré** (doc 08 §2.4) : portraits d'unités
       dans l'ordre du round, actif surligné.
-- [ ] Feedback de coup : flash bref sur la cible, **chiffres de dégâts
+- [x] Feedback de coup : flash bref sur la cible, **chiffres de dégâts
       flottants**, micro-secousse ≤ 150 ms — le tout coupé par
       `prefers-reduced-motion` et sous le plancher anti-gel ×4.
 
 **Vérif** : smoke anti-gel arène ; captures avant/après desktop + mobile ;
 A5 re-vérifié (états d'hex jamais couleur seule).
 
-### UXD-5 — Écrans de gestion habillés
+### UXD-5 — Écrans de gestion habillés  ✅ **Livré** (voir `ux-d5-gestion.md` + §6)
 
-- [ ] Ville : slots de bâtiments **positionnés sur le décor peint** (état
+- [x] Ville : slots de bâtiments **positionnés sur le décor peint** (état
       construit/disponible/verrouillé sur la vue, tap = onglet Construire) ;
       combler les vignettes manquantes (habitations de scénario → asset ou
       repli dessiné, plus de carré marron).
-- [ ] Écran héros : **poupée d'équipement typée par slot** (10 slots nommés
+- [x] Écran héros : **poupée d'équipement typée par slot** (10 slots nommés
       sur silhouette, doc 08 §2.3) ; avatars par héros nommé (règle B) quand
       les données existeront.
-- [ ] Menu / Options / Journal / SpellBook / Skirmish réalignés sur UXD-1
+- [x] Menu / Options / Journal / SpellBook / Skirmish réalignés sur UXD-1
       (suppression des styles locaux résiduels).
 
 **Vérif** : captures 5 écrans × 2 viewports × 3 crans ; pile de modales ≤ 2 ;
 i18n.
 
-### UXD-6 — Ambiance sonore (nouveau chantier)
+### UXD-6 — Ambiance sonore (nouveau chantier)  ✅ **Livré** (voir `ux-d6-audio.md` + §6)
 
-- [ ] Architecture : registre audio calqué sur `render/assets.ts`
+- [x] Architecture : registre audio calqué sur `render/assets.ts`
       (`import.meta.glob ?url`, **hors bundle**, fetch lazy au 1er usage),
       lecteur Web Audio côté client uniquement (le moteur n'émet que ses
       événements existants). Déblocage à la 1ère interaction (politique
       autoplay).
-- [ ] Contenu : musique par contexte (menu, aventure, combat, ville — par
+- [x] Contenu : musique par contexte (menu, aventure, combat, ville — par
       faction/biome si le sourcing le permet) ; SFX UI (tap, confirmer,
       erreur, toast), carte (pas, ramassage, fin de tour), combat (impact,
       tir, sort, mort), jingles victoire/défaite.
-- [ ] Options : volumes musique/SFX (0-100, persistés `localStorage`),
+- [x] Options : volumes musique/SFX (0-100, persistés `localStorage`),
       **coupé par défaut ou modéré** — décision à trancher au lancement du
       lot ; doc 08 §2.5 mis à jour.
-- [ ] Doc 12 : nouvelle **règle F (audio)** — sourcing (génération / banques
+- [x] Doc 12 : nouvelle **règle F (audio)** — sourcing (génération / banques
       CC0 : à valider avec l'utilisateur), formats (`.ogg` + repli `.m4a`),
       budgets de poids par famille, staging `assets/audio/`.
 
@@ -261,26 +268,26 @@ i18n.
 persistés ; jouable coupé sans perte d'information (le son ne porte jamais
 seul une info — A5 étendu).
 
-### UXD-7 — Micro-interactions & transitions
+### UXD-7 — Micro-interactions & transitions  ✅ **Livré** (voir `ux-d7-micro-interactions.md` + §6)
 
-- [ ] Transitions d'écran (fondu 150-250 ms) : menu ⇄ aventure, entrée/sortie
+- [x] Transitions d'écran (fondu 150-250 ms) : menu ⇄ aventure, entrée/sortie
       de combat, ouverture modales/tiroir — pilotées par le routeur existant.
-- [ ] États interactifs des composants UXD-1 partout (hover souris, pressed
+- [x] États interactifs des composants UXD-1 partout (hover souris, pressed
       tactile, focus-visible clavier).
-- [ ] Toasts icônisés par type + accent ; journal groupé par jour.
-- [ ] `prefers-reduced-motion` : tout ce qui bouge se coupe.
+- [x] Toasts icônisés par type + accent ; journal groupé par jour.
+- [x] `prefers-reduced-motion` : tout ce qui bouge se coupe.
 
 **Vérif** : smoke navigation clavier (focus visible) ; anti-gel ; captures.
 
-### UXD-8 — Immersion continue & desktop
+### UXD-8 — Immersion continue & desktop  ✅ **Livré** (voir `ux-d8-desktop-minimap.md` + §6)
 
-- [ ] **Layout desktop cible du doc 08 §2.1** : colonne droite ressources /
+- [x] **Layout desktop cible du doc 08 §2.1** : colonne droite ressources /
       portraits héros / villes / **mini-map** (nouveau composant, rendue
       depuis l'état exploré — cliquable pour recentrer).
-- [ ] Écran de chargement/transition illustré + citation lore (ton doc 13).
-- [ ] Ambiance temporelle discrète : teinte d'aube/veille de croissance
+- [x] Écran de chargement/transition illustré + citation lore (ton doc 13).
+- [x] Ambiance temporelle discrète : teinte d'aube/veille de croissance
       (jour 7), purement client.
-- [ ] Titre : brume/parallaxe légère sur le fond peint ; favicon + icônes PWA
+- [x] Titre : brume/parallaxe légère sur le fond peint ; favicon + icônes PWA
       (déclinaisons procédurales du logo prévues doc 12 §6).
 
 **Vérif** : smoke desktop (colonne + mini-map) ; anti-gel carte ; budget.

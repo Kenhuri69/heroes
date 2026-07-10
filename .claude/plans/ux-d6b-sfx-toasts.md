@@ -61,7 +61,7 @@
       content ✅, content:check ✅, garde-fou couleurs ✅, build ~278 Ko gzip ✅,
       **smoke 133 passed / 2 skipped** (1 flaky pré-existant `raccourci E`,
       vert 3/3 en isolement, rejoué 2× en CI).
-- [ ] Commit + push + PR draft.
+- [x] Commit + push + PR draft.
 
 ## Journal
 - **2026-07-09** — Cadrage : audio.ts/toasts/notify/gen_sfx lus, ffmpeg installé

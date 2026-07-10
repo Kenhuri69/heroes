@@ -331,7 +331,16 @@ Espace/D en combat — `combat.tsx:71`) mais sont **indécouvrables**.
       « ? ouvre l'aide, Échap ferme » (2 viewports) ; typecheck/lint/build OK,
       zéro diff moteur. Écart : le cyclage de `N` n'est pas couvert en smoke
       (contenu MVP = 1 héros/joueur) — vérifié par lecture + no-op testé.
-- [ ] Lot X8 — hygiène des plans.
+- [x] Lot X8 — hygiène des plans (2026-07-10). Livré (pure doc) : plan maître
+      `ux-design-overhaul.md` — §3 « Lots » remis en cohérence avec le §6
+      « Suivi » (déjà à jour) : **33 cases granulaires UXD-1→UXD-8 re-cochées**,
+      8 en-têtes marqués « ✅ Livré (`ux-dN`) », bannière expliquant le
+      back-cochage a posteriori (constat E8). `ux-town-screen-refonte.md` — 4
+      critères de vérification cochés avec note de clôture (refonte mergée PR
+      #203, CI verte). Nettoyage de bord : 4 cases procédurales « Commit + push
+      + PR » de sous-plans livrés/mergés (d5b, d6b, d6c, v1) cochées.
+      **Vérifié** : plus aucun plan `.claude/plans/ux-*` « livré mais non
+      coché » (le comptage E8 tombe à zéro). Aucun code touché.
 
 > Note de périmètre : cette PR est **documentaire** (ce plan uniquement) ; le
 > smoke navigateur (guidelines §7) est omis au titre de l'exception « changement

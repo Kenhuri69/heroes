@@ -75,7 +75,11 @@ perdre le repli non chromatique ni introduire de faction en dur.
   hors JS).
 
 ## Critères de vérification
-- [ ] `pnpm typecheck` / `pnpm lint` OK
-- [ ] `pnpm build` OK, budget < 800 Ko gzip tenu
-- [ ] smoke Playwright vert (dont onglets marché/guilde masqués avant construction)
-- [ ] garde-fou « zéro faction dans le moteur » vert (aucun diff moteur)
+> **Clôture X8 (2026-07-10)** : refonte livrée et mergée dans `main` (PR #203,
+> CI `quality` verte) ; critères reportés d'après cette CI et les passes smoke
+> vertes du chantier `ux-enrichissement-2026-07` (marché/guilde couverts par les
+> captures X1 et le smoke complet 144✓).
+- [x] `pnpm typecheck` / `pnpm lint` OK
+- [x] `pnpm build` OK, budget < 800 Ko gzip tenu
+- [x] smoke Playwright vert (dont onglets marché/guilde masqués avant construction)
+- [x] garde-fou « zéro faction dans le moteur » vert (aucun diff moteur)

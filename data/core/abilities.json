@@ -1,3 +1,3 @@
 {
-  "abilities": ["flying", "shooter", "noRetaliation", "mark", "undead", "doubleAttack", "consumeMarks", "demonform", "symbiosis", "shieldWall", "unlimitedRetaliation", "charge", "magicResistance", "lifeDrain", "incorporeal", "strikeAndReturn"]
+  "abilities": ["flying", "shooter", "noRetaliation", "mark", "undead", "doubleAttack", "consumeMarks", "demonform", "symbiosis", "shieldWall", "unlimitedRetaliation", "charge", "magicResistance", "lifeDrain", "incorporeal", "strikeAndReturn", "curseOnHit"]
 }

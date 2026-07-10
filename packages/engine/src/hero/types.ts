@@ -110,12 +110,18 @@ export interface ArtifactDef {
   slot?: ArtifactSlot;
 }
 
-/** Statut temporaire appliqué à une pile par un sort (buff/debuff). */
+/** Statut temporaire appliqué à une pile par un sort (buff/debuff) ou une capacité (curseOnHit). */
 export interface SpellStatus {
   spellId: string;
   attackMod: number;
   defenseMod: number;
   speedMod: number;
+  /**
+   * Modificateur MULTIPLICATIF des dégâts que la pile INFLIGE (A2c, `curseOnHit`
+   * « Faux funeste » : −0,2 = −20 %). 0 = neutre. Distinct des mods additifs
+   * d'attaque/défense (pente ±0,05).
+   */
+  damageDealtMod: number;
   roundsLeft: number;
 }
 

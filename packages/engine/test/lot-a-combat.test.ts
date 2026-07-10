@@ -96,7 +96,7 @@ function baseHero(over: Partial<HeroState>): HeroState {
 }
 
 function status(over: Partial<SpellStatus>): SpellStatus {
-  return { spellId: 'test', attackMod: 0, defenseMod: 0, speedMod: 0, roundsLeft: 3, ...over };
+  return { spellId: 'test', attackMod: 0, defenseMod: 0, speedMod: 0, damageDealtMod: 0, roundsLeft: 3, ...over };
 }
 
 function strikeDamage(state: GameState, attackerId: string, targetId: string): number {

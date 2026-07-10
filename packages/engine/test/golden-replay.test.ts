@@ -222,7 +222,10 @@ const GOLDEN_JOURNAL: Command[] = [
 // Re-fixé au lot 4.20 : `GameState.growthGroups` ({}) — croissance partagée apex
 // (save v14). Le journal golden n'embarque aucun groupe ni ville ⇒ seule la FORME
 // change, simulation inchangée.
-const GOLDEN_HASH = '0968d47e';
+// Re-fixé au lot A2c : `SpellStatus.damageDealtMod` — malédiction `curseOnHit`
+// « Faux funeste » (save v15). Les piles golden ont des statuts vides ⇒ seul le
+// champ `saveVersion` de l'état haché change (14→15), simulation inchangée.
+const GOLDEN_HASH = '2713b959';
 
 describe('golden replay', () => {
   it('le journal scripté produit toujours le même état final', () => {

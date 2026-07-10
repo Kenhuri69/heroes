@@ -50,6 +50,8 @@ interface MultiplierInput {
   defendMultiplier?: number;
   /** Bonus de charge : ×(1+bonus) de la frappe volontaire après déplacement (`charge`, A2a) — 0 sinon. */
   chargeBonus?: number;
+  /** Modificateur MULTIPLICATIF des dégâts infligés par l'attaquant (malédiction « Faux funeste », A2c) — 0 sinon. */
+  dealtDamageMod?: number;
 }
 
 /** Paramètres de la capacité `demonform` (doc 05 §4) d'une unité, ou `null`. */
@@ -126,6 +128,24 @@ export function incorporealDodge(def: CombatUnitDef): number {
   return ability ? Number(ability.params?.['dodge'] ?? 0) : 0;
 }
 
+/** Statut infligé par `curseOnHit` (Zombie/Cavalier funeste, doc 04 §3, A2c), ou `null`. */
+export function curseOnHitPlan(
+  def: CombatUnitDef,
+): { chance: number; attackMod: number; defenseMod: number; speedMod: number; damageDealtMod: number; rounds: number } | null {
+  const ability = def.abilities.find((a) => a.id === 'curseOnHit');
+  if (!ability) return null;
+  const rounds = Number(ability.params?.['rounds'] ?? 0);
+  if (rounds <= 0) return null;
+  return {
+    chance: Number(ability.params?.['chance'] ?? 0),
+    attackMod: Number(ability.params?.['attackMod'] ?? 0),
+    defenseMod: Number(ability.params?.['defenseMod'] ?? 0),
+    speedMod: Number(ability.params?.['speedMod'] ?? 0),
+    damageDealtMod: Number(ability.params?.['damageDealtMod'] ?? 0),
+    rounds,
+  };
+}
+
 /**
  * Plan de consommation de Marque (capacité générique `consumeMarks`, doc 05
  * §3.1) : si l'attaquant porte la capacité et que la cible a assez de charges,
@@ -163,6 +183,7 @@ export function computeMultiplier(input: MultiplierInput): number {
     demonBonus,
     defendMultiplier,
     chargeBonus,
+    dealtDamageMod,
   } = input;
   const effectiveDefense = targetDefending
     ? Math.floor(targetDefense * (defendMultiplier ?? rules.defendDefenseMultiplier))
@@ -178,6 +199,9 @@ export function computeMultiplier(input: MultiplierInput): number {
   mult *= 1 + (markConsumeBonus ?? 0);
   mult *= 1 + (demonBonus ?? 0);
   mult *= 1 + (chargeBonus ?? 0);
+  // Malédiction « Faux funeste » (A2c) : réduit multiplicativement les dégâts que
+  // l'attaquant inflige tant qu'il porte le statut (damageDealtMod ≤ 0).
+  mult *= 1 + (dealtDamageMod ?? 0);
   mult *= 1 + (heroDamagePct ?? 0);
   mult *= 1 - (armorPct ?? 0);
   return mult;
@@ -237,8 +261,8 @@ function heroArmorPctOf(state: GameState, combat: CombatState, side: CombatSideI
   return hero ? heroArmorPct(hero, state.skillCatalog) / 100 : 0;
 }
 
-/** Somme d'un modificateur de statut temporaire (buff/debuff de sort) sur une pile. */
-function statusModSum(statuses: SpellStatus[], key: 'attackMod' | 'defenseMod'): number {
+/** Somme d'un modificateur de statut temporaire (buff/debuff de sort, malédiction) sur une pile. */
+function statusModSum(statuses: SpellStatus[], key: 'attackMod' | 'defenseMod' | 'damageDealtMod'): number {
   return statuses.reduce((sum, s) => sum + s[key], 0);
 }
 
@@ -332,6 +356,8 @@ export function performStrike(
     defendMultiplier: shieldWallMultiplier(victimDef) ?? rules.defendDefenseMultiplier,
     // `charge` (A2a) : bonus fourni par l'appelant (mêlée volontaire uniquement).
     chargeBonus: retaliation ? 0 : (chargeBonus ?? 0),
+    // Malédiction « Faux funeste » (A2c) : dégâts infligés réduits tant que le statut tient.
+    dealtDamageMod: statusModSum(striker.statuses, 'damageDealtMod'),
   });
   // Chance/malchance (C-BADLUCK, doc 02 §5.3) : un SEUL jet, interprété selon le
   // signe de la chance — |chance| × 4 %/point de déclencher soit un coup de
@@ -427,6 +453,35 @@ export function performStrike(
     }
   }
 
+  // `curseOnHit` (Zombie/Cavalier funeste, doc 04 §3, A2c) : une frappe qui touche
+  // (non esquivée, cible survivante — volontaire OU riposte) a une chance
+  // d'appliquer/rafraîchir un statut sur la cible. Le jet est gated sur la
+  // capacité (aucun tirage hors unité maudissante).
+  const curse = dodged ? null : curseOnHitPlan(strikerDef);
+  if (curse && victim.count > 0) {
+    let applies = curse.chance >= 1;
+    if (!applies && curse.chance > 0) {
+      const roll = rollRange(draft.rng, 0, 99);
+      draft.rng = roll.state;
+      applies = roll.value < Math.round(curse.chance * 100);
+    }
+    if (applies) {
+      const spellId = `curse:${strikerDef.id}`;
+      const status: SpellStatus = {
+        spellId,
+        attackMod: curse.attackMod,
+        defenseMod: curse.defenseMod,
+        speedMod: curse.speedMod,
+        damageDealtMod: curse.damageDealtMod,
+        roundsLeft: curse.rounds,
+      };
+      const existing = victim.statuses.find((s) => s.spellId === spellId);
+      if (existing) Object.assign(existing, status); // rafraîchit la durée/les mods
+      else victim.statuses.push(status);
+      events.push({ type: 'StackCursed', targetId: victim.id, spellId });
+    }
+  }
+
   const targetDied = victim.count <= 0;
   if (targetDied && combat) {
     events.push({ type: 'StackDied', stackId: victim.id });
@@ -496,6 +551,8 @@ export function estimateDamage(
     demonBonus: demonformParams(attackerDef)?.damageBonus ?? 0,
     // `shieldWall` (A2a) : multiplicateur de Défense propre du défenseur.
     defendMultiplier: shieldWallMultiplier(targetDef) ?? rules.defendDefenseMultiplier,
+    // Malédiction « Faux funeste » (A2c) : dégâts infligés réduits par le statut.
+    dealtDamageMod: statusModSum(attacker.statuses, 'damageDealtMod'),
     // `charge` (A2a) : distance de déplacement inconnue à la préviz (dépend du
     // `from` choisi) ⇒ non reflétée (comme la chance) — bonus de charge omis.
   });
@@ -549,6 +606,8 @@ export function estimateDamage(
       heroArmorPct: heroArmorPctOf(state, combat, attacker.side),
       // `shieldWall` (A2a) : l'attaquant qui Défend a son multiplicateur propre.
       defendMultiplier: shieldWallMultiplier(attackerDef) ?? rules.defendDefenseMultiplier,
+      // Malédiction « Faux funeste » (A2c) : le riposteur (`target`) peut être maudit.
+      dealtDamageMod: statusModSum(target.statuses, 'damageDealtMod'),
       // D5 : une riposte ne consomme PAS de Marque ⇒ pas de burst `consumeMarks`
       // dans la préviz de riposte non plus (préviz = résolution).
     });

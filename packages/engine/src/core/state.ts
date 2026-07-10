@@ -170,9 +170,12 @@ export interface Calendar {
  * ne s'assiègent pas et partagent la victoire ; `0` = sans alliance.
  * v14 : `GameState.growthGroups` + `TownState.sharedGrowthChoice` — croissance
  * partagée « apex » (doc 05 §3.1/§8) : un groupe d'unités partage 1 croissance
- * hebdo, le joueur choisit le destinataire.)
+ * hebdo, le joueur choisit le destinataire.
+ * v15 : `SpellStatus.damageDealtMod` — malédiction `curseOnHit` « Faux funeste »
+ * (Cavalier funeste, doc 04 §3, A2c) : réduit multiplicativement les dégâts
+ * infligés par la pile maudite.)
  */
-export const CURRENT_SAVE_VERSION = 14;
+export const CURRENT_SAVE_VERSION = 15;
 
 export interface GameState {
   saveVersion: number;

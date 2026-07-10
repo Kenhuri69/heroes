@@ -87,7 +87,7 @@ describe('roundActionOrder', () => {
   });
 
   it('applique les modificateurs de vitesse des statuts (Hâte/Lenteur)', () => {
-    const haste = { spellId: 'hate', attackMod: 0, defenseMod: 0, speedMod: 3, roundsLeft: 2 };
+    const haste = { spellId: 'hate', attackMod: 0, defenseMod: 0, speedMod: 3, damageDealtMod: 0, roundsLeft: 2 };
     const combat = combatWith([
       stack({ id: 'attacker-0', side: 'attacker', slot: 0, unitId: 'red-grunt', statuses: [haste] }), // 4+3=7
       stack({ id: 'defender-0', side: 'defender', slot: 0, unitId: 'blue-wolf' }), // 6

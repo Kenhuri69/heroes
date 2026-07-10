@@ -20,6 +20,14 @@
   "abilities": [
     {
       "id": "undead"
+    },
+    {
+      "id": "curseOnHit",
+      "params": {
+        "chance": 0.2,
+        "defenseMod": -2,
+        "rounds": 3
+      }
     }
   ]
 }

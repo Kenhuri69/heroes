@@ -301,6 +301,7 @@ export function handleCastSpell(draft: Draft, cmd: CastSpellCmd, events: GameEve
         attackMod: spell.attackMod ?? 0,
         defenseMod: spell.defenseMod ?? 0,
         speedMod: spell.speedMod ?? 0,
+        damageDealtMod: 0, // les sorts actuels ne modulent pas les dégâts infligés (A2c)
         roundsLeft: spellStatusDuration(power),
       });
     }

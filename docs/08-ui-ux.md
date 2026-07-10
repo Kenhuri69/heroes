@@ -92,6 +92,14 @@
 > chacun sur **une** ligne insécable (fini l'étalement sur 3-4 lignes), valeurs
 > inchangées.
 
+> 🚧 **État X6 (tiroir héros mobile, plan `ux-enrichissement-2026-07`)** : le
+> tiroir défile (attributs → armée → compétences → équipement → sorts d'aventure
+> → mini-carte) ; sous 900 px un **fondu bas** (masque alpha CSS) signale qu'il
+> reste du contenu sous le pli — plus de section « perdue » (constat E5) — et une
+> **marge basse** empêche le dernier bloc de coller au bord de l'écran. La zone
+> fondue couvre la marge vide, donc le dernier contenu reste net une fois défilé
+> à fond.
+
 > 🚧 **État U4** : **multi-héros / multi-villes** implémentés (lot UX U4). Le
 > tiroir héros ouvre un **bandeau de portraits** (un par héros du joueur ; tap =
 > sélectionner) — le héros **sélectionné** (`selectedHeroId`, repli 1er héros)

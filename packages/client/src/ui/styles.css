@@ -228,6 +228,20 @@
   transform: translateX(0);
 }
 
+/* Lot X6 (E5) : sur mobile le tiroir héros défile, mais rien n'indiquait que la
+   poupée d'équipement continuait sous le pli (contenu « perdu »). Un **fondu
+   bas** signale le défilement ; une **marge basse** évite que le dernier bloc
+   ne colle au bord de l'écran (et au HUD bas qui flotte au-dessus). La zone
+   fondue couvre la marge vide ⇒ le dernier contenu reste net une fois défilé à
+   fond. `black`/`transparent` = masque alpha (aucune couleur de thème). */
+@media (max-width: 899px) {
+  .hero-drawer {
+    padding-bottom: 72px;
+    -webkit-mask-image: linear-gradient(to bottom, black calc(100% - 28px), transparent);
+    mask-image: linear-gradient(to bottom, black calc(100% - 28px), transparent);
+  }
+}
+
 .hero-portrait-placeholder {
   width: 64px;
   height: 64px;

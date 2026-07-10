@@ -308,7 +308,16 @@ Espace/D en combat — `combat.tsx:71`) mais sont **indécouvrables**.
       §2.4 consigne la décision. Tests : 2 assertions smoke « Round 1 » → « Manche
       1 » ; content:check OK, build OK, 22/22 tests combat verts (dont round-
       par-round). Zéro diff moteur (données locale + docs + test).
-- [ ] Lot X6 — tiroir héros mobile.
+- [x] Lot X6 — tiroir héros mobile (2026-07-10). Livré (CSS pur, < 900 px) :
+      **fondu bas** (masque alpha `black`→`transparent` sur les 28 derniers px,
+      mots-clés = pas de couleur de thème ⇒ garde-fou vert) signalant le
+      défilement + **marge basse 72px** pour que le dernier bloc ne colle pas au
+      bord/HUD ; la zone fondue couvre la marge vide ⇒ contenu net une fois
+      défilé à fond. Doc 08 §2.1 mis à jour. **Vérifié** navigateur 360 px :
+      masque appliqué, tiroir défilable (1628>640), équipement/mini-carte
+      atteignables ; smoke complet **142✓** (dont drag des slots d'équipement —
+      le masque ne bloque pas les interactions) ; build OK, zéro diff moteur.
+      Desktop (colonne >= 900 px) inchangé.
 - [ ] Lot X7 — confort desktop.
 - [ ] Lot X8 — hygiène des plans.
 

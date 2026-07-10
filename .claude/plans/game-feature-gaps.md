@@ -127,10 +127,10 @@ unités concernées (zéro nom de faction dans le moteur, guidelines §8).
 
 Familles, par mécanique moteur commune :
 
-- **CAP-DEF — Défense/riposte** 🧩 (A2a : `shieldWall`, `unlimitedRetaliation`,
+- **CAP-DEF — Défense/riposte** ✅ (A2a : `shieldWall`, `unlimitedRetaliation`,
   `magicResistance` autonome **livrés** ; A2b : `incorporeal` **livré** ;
-  `taunt` restant → A2c) :
-  `taunt` (Conscrit Haven, doc 03 §3),
+  A2e : `taunt` **livré** — dernière capacité défensive) :
+  `taunt` (Conscrit Haven, doc 03 §3) ✅,
   `shieldWall` (Frère-Lame, doc 03 §3), `unlimitedRetaliation` (Griffon,
   doc 03 §3), `incorporeal` 20 % esquive (Spectre, doc 04 §3),
   `magicResistance` autonome (Bibliothécaire AH 30 %, doc 05 §4 — n'existe

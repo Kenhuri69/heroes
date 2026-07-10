@@ -7,7 +7,7 @@ import type { Draft } from './draft';
 import { COMBAT_COLS, COMBAT_ROWS, hexDistance, hexLine, hexNeighbors, sameHex, type OffsetPos } from './hex';
 import { advanceTurn, checkCombatEnd } from './turns';
 import { combatRules, hasAbility, isShooterMeleePenalized, moraleOf, moveRange } from './state-helpers';
-import type { CombatActionInput, CombatStack, CombatState } from './types';
+import type { CombatActionInput, CombatSideId, CombatStack, CombatState, CombatUnitDef } from './types';
 
 /**
  * Actions de la pile active (doc 02 §5.2) : déplacement (BFS hex), tir/mêlée,
@@ -116,6 +116,43 @@ export function canShootTarget(state: GameState, stackId: string, targetId: stri
 }
 
 /**
+ * Piles ennemies « provocatrices » (`taunt`, doc 03 §3) adjacentes à `pos`.
+ * Une attaque de **mêlée** partant de `pos` doit viser l'une d'elles : le
+ * provocateur détourne sur lui les frappes adjacentes (protège les tiers).
+ * Pure, déterministe ; le **tir** n'est pas concerné (portée > adjacence).
+ */
+export function tauntersAdjacentTo(
+  combat: CombatState,
+  catalog: Record<string, CombatUnitDef>,
+  attackerSide: CombatSideId,
+  pos: OffsetPos,
+): CombatStack[] {
+  return combat.stacks.filter((s) => {
+    if (s.side === attackerSide || s.count <= 0) return false;
+    if (hexDistance(s.pos, pos) !== 1) return false;
+    const def = catalog[s.unitId];
+    return def ? hasAbility(def, 'taunt') : false;
+  });
+}
+
+/**
+ * `taunt` (doc 03 §3) : refuse une frappe de mêlée partant de `strikePos` si un
+ * provocateur ennemi y est adjacent sans être la cible. `null` = pas de blocage.
+ */
+function tauntBlocks(
+  state: GameState,
+  combat: CombatState,
+  stack: CombatStack,
+  target: CombatStack,
+  strikePos: OffsetPos,
+): CommandError | null {
+  const taunters = tauntersAdjacentTo(combat, state.unitCatalog, stack.side, strikePos);
+  if (taunters.length > 0 && !taunters.some((t) => t.id === target.id))
+    return { code: 'invalidAction', message: 'une pile provocatrice adjacente doit être visée' };
+  return null;
+}
+
+/**
  * Piles ennemies que la pile active peut attaquer ce tour-ci (remédiation
  * CL9) : tireur non entravé ⇒ toutes les cibles vivantes ; sinon les cibles
  * adjacentes ou dont un hex adjacent est atteignable. Helper pur consommé par
@@ -133,8 +170,18 @@ export function attackableTargets(state: GameState, stackId: string): CombatStac
   const reachSet = new Set(reachableHexes(state, stackId).map(hexKey));
   return combat.stacks.filter((s) => {
     if (s.side === stack.side || s.count <= 0) return false;
-    if (shootMode && hasLineOfSight(combat, stack.pos, s.pos)) return true; // tir
-    return hexDistance(stack.pos, s.pos) === 1 || hexNeighbors(s.pos).some((p) => reachSet.has(hexKey(p)));
+    if (shootMode && hasLineOfSight(combat, stack.pos, s.pos)) return true; // tir (provocation ignorée)
+    // Mêlée : positions de frappe adjacentes à `s` (place actuelle si déjà
+    // adjacente, sinon hex atteignables adjacents). `taunt` (doc 03 §3) : une
+    // frappe n'est légale depuis `p` que si aucun provocateur autre que `s`
+    // n'y est adjacent ⇒ une cible protégée n'est pas exposée en mêlée.
+    const strikePositions: OffsetPos[] = [];
+    if (hexDistance(stack.pos, s.pos) === 1) strikePositions.push(stack.pos);
+    for (const p of hexNeighbors(s.pos)) if (reachSet.has(hexKey(p))) strikePositions.push(p);
+    return strikePositions.some((p) => {
+      const taunters = tauntersAdjacentTo(combat, state.unitCatalog, stack.side, p);
+      return taunters.length === 0 || taunters.some((t) => t.id === s.id);
+    });
   });
 }
 
@@ -187,15 +234,15 @@ export function validateCombatAction(state: GameState, cmd: { action: CombatActi
       // `from` arbitraire (hors plateau/sur obstacle/sur une autre pile) avant de
       // frapper. Sans `from`, frappe sur place autorisée seulement si adjacent.
       if (!from) {
-        if (dist === 1) return null;
-        return { code: 'invalidAction', message: 'cible non adjacente : hex de départ requis' };
+        if (dist !== 1) return { code: 'invalidAction', message: 'cible non adjacente : hex de départ requis' };
+        return tauntBlocks(state, combat, stack, target, stack.pos);
       }
       if (hexDistance(from, target.pos) !== 1)
         return { code: 'invalidAction', message: 'hex de départ non adjacent à la cible' };
       // `from` accepté s'il est la position actuelle (déjà adjacent) ou atteignable.
       if (!sameHex(from, stack.pos) && !reachableHexes(state, stack.id).some((p) => sameHex(p, from)))
         return { code: 'invalidAction', message: 'hex de départ inatteignable' };
-      return null;
+      return tauntBlocks(state, combat, stack, target, from);
     }
     case 'wait':
       if (stack.waited) return { code: 'invalidAction', message: 'attente déjà utilisée ce round' };

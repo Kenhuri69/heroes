@@ -6,5 +6,5 @@
   "stats": { "hp": 6, "attack": 2, "defense": 2, "damage": [1, 2], "speed": 4 },
   "growthPerWeek": 14,
   "cost": { "gold": 40 },
-  "abilities": []
+  "abilities": [{ "id": "taunt" }]
 }

@@ -6,13 +6,14 @@
 > d'habitations (7 dwellings + prérequis, §4), manifeste, ressources clés
 > (Cristal/Gemmes), locales FR/EN, recrutement validé par test. **Différé**
 > (points d'extension moteur non encore ouverts — le loader refuse toute
-> donnée non interprétée) : capacités spéciales `taunt`/
+> donnée non interprétée) : capacités spéciales
 > `firstStrike`/`resurrectAlly`/`spellcaster`.
 > **Livré depuis** : `shieldWall` (Frère-Lame), `unlimitedRetaliation` (Griffon),
 > `charge` (Chevalier du Griffon) en A2a ; `moraleImmune` (Ange, immunité au
-> moral négatif) en A3a — interprétées par le moteur (catalogue = **19 capacités**
+> moral négatif) en A3a ; `taunt` (Conscrit, attire les frappes de mêlée
+> adjacentes) en A2e — interprétées par le moteur (catalogue = **24 capacités**
 > génériques, doc 02 §5.4) ; côté Haven restent inertes
-> `taunt`/`firstStrike`/`resurrectAlly` ;
+> `firstStrike`/`resurrectAlly` ;
 > bonus de faction Ferveur/Formation (§2) ; compétence Prière de bataille ;
 > bâtiments spéciaux Statue/Cloître/Écuries (§4, effets non supportés) ; école
 > Lumière (variante Eau au MVP, `spellSchool: null`) ; classes et héros nommés

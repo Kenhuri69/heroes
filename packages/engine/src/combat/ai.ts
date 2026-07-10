@@ -1,6 +1,6 @@
 import type { GameEvent } from '../core/events';
 import type { GameState } from '../core/state';
-import { applyAction, canShoot, canShootTarget, reachableHexes } from './actions';
+import { applyAction, canShoot, canShootTarget, reachableHexes, tauntersAdjacentTo } from './actions';
 import { estimateDamage } from './damage';
 import type { Draft } from './draft';
 import { hexDistance, type OffsetPos } from './hex';
@@ -222,9 +222,19 @@ export function chooseAction(state: GameState, stackId: string): CombatActionInp
     }
   }
 
-  if (candidates.length > 0) {
+  // `taunt` (doc 03 §3) : écarte les frappes de mêlée illégales — depuis une
+  // case adjacente à un provocateur ennemi, seul ce provocateur est visable.
+  // Le tir (from===null ET ligne de vue) n'est jamais concerné.
+  const legalCandidates = candidates.filter((c) => {
+    if (canShootTarget(state, stackId, c.target.id)) return true;
+    const pos = c.from ?? stack.pos;
+    const taunters = tauntersAdjacentTo(combat, catalog, stack.side, pos);
+    return taunters.length === 0 || taunters.some((t) => t.id === c.target.id);
+  });
+
+  if (legalCandidates.length > 0) {
     const best = pickBestBy(
-      candidates,
+      legalCandidates,
       (c) => scoreCandidate(state, stackId, c, enemies, combat, catalog, stack.pos),
       (a, b) => compareCodeUnits(a.target.id, b.target.id) || compareHex(a.from ?? stack.pos, b.from ?? stack.pos),
     ) as AttackCandidate;

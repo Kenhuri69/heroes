@@ -135,7 +135,8 @@ describe('faction data-driven à 7 tiers (plan phase-3.3) — chargement & recru
 
     const t4 = byTier.get(4); // griffon
     expect(t4?.stats.hp).toBe(30);
-    expect(t4?.abilities).toEqual([{ id: 'flying' }]);
+    // Lot A2a : le Griffon reçoit `unlimitedRetaliation` (doc 03 §3, désormais interprété).
+    expect(t4?.abilities).toEqual([{ id: 'flying' }, { id: 'unlimitedRetaliation' }]);
 
     const t7 = byTier.get(7); // ange
     expect(t7?.stats.hp).toBe(180);

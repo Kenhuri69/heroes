@@ -144,7 +144,8 @@ Familles, par mécanique moteur commune :
   Serment, doc 05 §4), `areaAttack` (Liche nuage, doc 04 §3 ; cône Pénitent,
   doc 05 §4 ; réutilise `splash` de C7), `breathAttack` (Dragon d'os,
   doc 04 §3). Effort : L (découpable).
-- **CAP-MORAL — Moral & auras** ⬜ : immunité au moral négatif (Ange,
+- **CAP-MORAL — Moral & auras** 🧩 (A3a : `moraleImmune` (Ange), `aura`
+  (Dragon d'os −1) **livrés** ; peur Sombral → A3d) : immunité au moral négatif (Ange,
   doc 03 §3), `aura` −1 moral aux vivants adverses (Dragon d'os, doc 04 §2/§3),
   peur (Sombral Vox, doc 16 §4). Le moral existe (`heroMorale`) mais aucune
   capacité ne le module. Effort : M.
@@ -676,4 +677,13 @@ si nouvel écran), bump `CURRENT_SAVE_VERSION` si la forme de sauvegarde change
   vert. Vérifs : `pnpm test` complet (435 engine +4 `combat-curse`, 101 content),
   typecheck 5/5, lint, content:check, bundle < 800 Ko gzip. Restent en A2d/A3 :
   `firstStrike`, `poisonSting`, `taunt`, `areaAttack`, `breathAttack`, moral/
-  auras, `spellcaster`, cycle de vie. PR draft : (à créer, sur main).
+  auras, `spellcaster`, cycle de vie. **PR draft #196** (sur main).
+- **2026-07-10 — Lot A3a** (`.claude/plans/a3a-morale-auras.md`, branche
+  `claude/a3a-morale-auras` empilée sur A2c) : **livré**. 2 capacités de moral
+  (catalogue 17 → 19) : `aura(moraleMod)` (Dragon d'os −1 moral aux vivants
+  adverses) et `moraleImmune` (Ange, plancher moral 0) — interprétées dans
+  `moraleOf`. **Pas de bump save** (moral live-calculé). Garde-fou zéro faction
+  vert. Vérifs : `pnpm test` complet (439 engine +4 `combat-morale`, 101 content),
+  typecheck 5/5, lint, content:check, golden **inchangé**, bundle < 800 Ko gzip.
+  Restent en A3 : peur (Sombral), `spellcaster`, `areaAttack`/`breathAttack`,
+  cycle de vie (`resurrectAlly`/renaissance/`swarm`). PR draft : (à créer, sur A2c).

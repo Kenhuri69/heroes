@@ -121,8 +121,10 @@ function heroMoraleForSide(state: GameState, combat: CombatState, side: CombatSi
 /**
  * Moral d'une pile (doc 02 §5.3, décisions plan #4/#17) : +1 si terrain natif,
  * −1 par groupId distinct au-delà du premier, + Commandement du héros lié au
- * camp (compétence, remédiation R5 CO4 — enfin branché) ; morts-vivants exclus
- * du calcul et toujours à moral 0. Borné [−3, +3].
+ * camp (compétence, remédiation R5 CO4) ; morts-vivants exclus du calcul et
+ * toujours à moral 0. **A3a** : les capacités `aura` (une pile ennemie module le
+ * moral, ex. Dragon d'os `moraleMod:-1`) et `moraleImmune` (le moral ne descend
+ * jamais sous 0, ex. Ange) sont interprétées ici. Borné [−3, +3].
  */
 export function moraleOf(stack: CombatStack, combat: CombatState, state: GameState): number {
   const catalog = state.unitCatalog;
@@ -134,13 +136,23 @@ export function moraleOf(stack: CombatStack, combat: CombatState, state: GameSta
   if (hasAbility(def, 'undead') || hasAbility(def, 'warMachine')) return 0;
   const terrainBonus = def.nativeTerrain === combat.terrain ? 1 : 0;
   const groups = new Set<string>();
+  let auraMod = 0;
   for (const s of combat.stacks) {
-    if (s.side !== stack.side || s.count <= 0) continue;
     const d = catalog[s.unitId];
-    if (d && !hasAbility(d, 'undead') && !hasAbility(d, 'warMachine')) groups.add(d.groupId);
+    if (!d || s.count <= 0) continue;
+    if (s.side === stack.side) {
+      if (!hasAbility(d, 'undead') && !hasAbility(d, 'warMachine')) groups.add(d.groupId);
+    } else {
+      // Aura d'une pile ENNEMIE (A3a, ex. Dragon d'os −1 moral aux vivants adverses).
+      const aura = d.abilities.find((a) => a.id === 'aura');
+      if (aura) auraMod += Number(aura.params?.['moraleMod'] ?? 0);
+    }
   }
   const malus = Math.max(0, groups.size - 1);
-  return clamp(terrainBonus - malus + heroMoraleForSide(state, combat, stack.side), -3, 3);
+  const raw = terrainBonus - malus + auraMod + heroMoraleForSide(state, combat, stack.side);
+  // `moraleImmune` (A3a, Ange) : immunité au moral NÉGATIF ⇒ plancher à 0.
+  const floor = hasAbility(def, 'moraleImmune') ? 0 : -3;
+  return clamp(raw, floor, 3);
 }
 
 export function otherSide(side: CombatSideId): CombatSideId {

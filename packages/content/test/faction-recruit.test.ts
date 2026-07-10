@@ -141,7 +141,8 @@ describe('faction data-driven à 7 tiers (plan phase-3.3) — chargement & recru
     const t7 = byTier.get(7); // ange
     expect(t7?.stats.hp).toBe(180);
     expect(t7?.stats.attack).toBe(22);
-    expect(t7?.abilities).toEqual([{ id: 'flying' }]);
+    // Lot A3a : l'Ange reçoit `moraleImmune` (immunité au moral négatif, doc 03 §3).
+    expect(t7?.abilities).toEqual([{ id: 'flying' }, { id: 'moraleImmune' }]);
   });
 
   it('recrute une unité de chacun des 7 tiers depuis une ville aux habitations construites', async () => {

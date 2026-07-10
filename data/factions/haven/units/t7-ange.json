@@ -6,5 +6,5 @@
   "stats": { "hp": 180, "attack": 22, "defense": 18, "damage": [35, 55], "speed": 11 },
   "growthPerWeek": 1,
   "cost": { "gold": 3200, "crystal": 2, "gems": 2 },
-  "abilities": [{ "id": "flying" }]
+  "abilities": [{ "id": "flying" }, { "id": "moraleImmune" }]
 }

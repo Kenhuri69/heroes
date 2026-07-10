@@ -202,7 +202,8 @@ un fichier son par sujet.
   (< 150 Ko). Aucune dépendance externe ni licence tierce.
 - **Staging final** : `assets/audio/music/<id>.ogg` et `assets/audio/sfx/<id>.ogg`
   (+ `.m4a`).
-- **Intégration client (UXD-6B)** : registre `render/audio.ts`
+- **Intégration client (UXD-6B)** : registre `app/audio.ts` (DOC-AUDIO —
+  emplacement réel, sous `packages/client/src/app/`, et non `render/`)
   (`import.meta.glob ?url`, hors bundle, lazy), lecteur Web Audio débloqué à la
   1ʳᵉ interaction (politique autoplay), volumes musique/SFX persistés
   (`localStorage`), **coupé/modéré par défaut** ; le son ne porte JAMAIS seul

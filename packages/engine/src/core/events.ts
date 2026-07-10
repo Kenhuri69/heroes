@@ -108,6 +108,8 @@ export type GameEvent =
       kills: number;
       /** Coup de chance : dégâts doublés (doc 02 §5.3). */
       lucky: boolean;
+      /** Coup de malchance : demi-dégâts (C-BADLUCK, doc 02 §5.3). */
+      unlucky: boolean;
       retaliation: boolean;
       /** Frappe à distance (tir) vs mêlée — feedback client (SFX `combat-shoot`). */
       ranged: boolean;

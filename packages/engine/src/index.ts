@@ -57,6 +57,7 @@ export {
   COMBAT_ROWS,
   axialToOffset,
   hexDistance,
+  hexLine,
   hexNeighbors,
   hexRound,
   inCombatBounds,
@@ -76,6 +77,8 @@ export type {
 export {
   attackableTargets,
   canShoot,
+  canShootTarget,
+  hasLineOfSight,
   canHeroAttack,
   estimateDamage,
   heroAttackDamage,

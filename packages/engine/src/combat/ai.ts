@@ -1,6 +1,6 @@
 import type { GameEvent } from '../core/events';
 import type { GameState } from '../core/state';
-import { applyAction, canShoot, reachableHexes } from './actions';
+import { applyAction, canShoot, canShootTarget, reachableHexes } from './actions';
 import { estimateDamage } from './damage';
 import type { Draft } from './draft';
 import { hexDistance, type OffsetPos } from './hex';
@@ -204,19 +204,20 @@ export function chooseAction(state: GameState, stackId: string): CombatActionInp
     }
   }
 
-  // Score normal : tir (sur place) ou mêlée (sur place ou après déplacement).
+  // Score normal : tir (sur place, ligne de vue dégagée — C-LOS) ou mêlée (sur
+  // place ou après déplacement). La décision se fait PAR CIBLE : un tireur dont
+  // la ligne de vue vers une cible est bloquée génère des candidats de mêlée
+  // (jamais un tir « à travers » l'obstacle).
   const candidates: AttackCandidate[] = [];
-  if (canShoot(state, stackId)) {
-    for (const e of enemies) candidates.push({ target: e, from: null });
-  } else {
-    const reachable = reachableHexes(state, stackId);
-    for (const e of enemies) {
-      if (hexDistance(stack.pos, e.pos) === 1) {
-        candidates.push({ target: e, from: null });
-      } else {
-        for (const p of reachable) {
-          if (hexDistance(p, e.pos) === 1) candidates.push({ target: e, from: p });
-        }
+  const reachable = reachableHexes(state, stackId);
+  for (const e of enemies) {
+    if (canShootTarget(state, stackId, e.id)) {
+      candidates.push({ target: e, from: null });
+    } else if (hexDistance(stack.pos, e.pos) === 1) {
+      candidates.push({ target: e, from: null });
+    } else {
+      for (const p of reachable) {
+        if (hexDistance(p, e.pos) === 1) candidates.push({ target: e, from: p });
       }
     }
   }

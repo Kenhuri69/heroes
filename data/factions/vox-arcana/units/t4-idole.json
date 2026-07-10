@@ -21,7 +21,8 @@
     {
       "id": "shooter",
       "params": {
-        "ammo": 7
+        "ammo": 7,
+        "noMeleePenalty": true
       }
     }
   ]

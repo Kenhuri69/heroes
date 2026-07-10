@@ -45,7 +45,7 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 
 > 🚧 **État 3.2** : pool livré = **13** compétences en données (`data/core/skills.json`) — « Magie (par école ×4) » compte pour 4 entrées (`magic-fire/water/earth/air`). Effets branchés au moteur : Logistique (PM), Recherche (vision), Économie (or/jour), Chance, Attaque au corps / Tir / Armure et réduction de coût de mana (combat). **Commandement (moral) reste à brancher** au moral de pile (raffinement 3.3+). Choix à la montée de niveau (`ChooseSkill`) opérationnel ; cap 3 rangs.
 >
-> 🔧 **État R5 (remédiation)** : pool réduit à **12** — **Commandement enfin branché** au moral de pile (`moraleOf`, `combat/state-helpers.ts`) ; **Sagesse retirée du pool MVP** (son effet `learnCircle`/apprentissage de sorts et les cercles 4–5 sont différés — plus de choix mort à la montée de niveau) ; les 4 compétences **Magie** donnent désormais un effet réel **dès le rang 1** (−5/10/20 % coût mana ; le déblocage de cercle `spellCircleUnlock`, no-op tant que tous les sorts ≤ cercle 3 sont connus, est retiré des données). Champs de schéma `learnCircle`/`spellCircleUnlock` conservés (réservés post-MVP).
+> 🔧 **État R5 (remédiation)** : **Commandement enfin branché** au moral de pile (`moraleOf`, `combat/state-helpers.ts`) ; les 4 compétences **Magie** donnent un effet réel **dès le rang 1** (−5/10/20 % coût mana). **Sagesse ré-introduite depuis (G2/H2)** : son effet `learnCircle` débloque l'apprentissage des cercles 4–5 à la Guilde des mages — le pool livré est donc bien de **13** compétences (`data/core/skills.json`), Sagesse incluse. Le champ de schéma `spellCircleUnlock` reste conservé (réservé post-MVP).
 
 ### 1.4 Magie
 
@@ -274,7 +274,8 @@ Vue peinte de la ville où les bâtiments construits apparaissent (grande satisf
 ### 5.2 Tour par tour
 
 - **Rounds par vagues** : à chaque round, toutes les piles agissent par ordre de **vitesse décroissante** (égalité : attaquant d'abord, puis ordre de slot). Choix « vagues » plutôt que barre ATB : plus prévisible et lisible sur petit écran.
-- Actions d'une pile : **déplacer**, **attaquer** (mêlée : déplacement+attaque ; distance : tir si pas d'ennemi adjacent, sinon mêlée à ½ dégâts), **attendre** (rejoue en fin de round, par vitesse **croissante** ; une attente par round), **défendre** (+30 % défense, soit Défense ×1,3 arrondie à l'entier inférieur, jusqu'au prochain tour de la pile).
+- Actions d'une pile : **déplacer**, **attaquer** (mêlée : déplacement+attaque ; distance : tir si pas d'ennemi adjacent **et ligne de vue dégagée**, sinon mêlée à ½ dégâts), **attendre** (rejoue en fin de round, par vitesse **croissante** ; une attente par round), **défendre** (+30 % défense, soit Défense ×1,3 arrondie à l'entier inférieur, jusqu'au prochain tour de la pile).
+- **Ligne de vue** (C-LOS) : un tir exige une ligne de vue dégagée entre le tireur et sa cible. Seuls les **obstacles** de la grille bloquent la vue — les **piles** (alliées ou ennemies) ne la bloquent pas. Une cible masquée par un obstacle **ne peut pas être tirée** (pas de malus : tir simplement interdit) ⇒ le tireur doit la frapper en mêlée. La portée reste illimitée (§5.4). La ligne est tracée en géométrie hexagonale déterministe (linedraw cubique) pour un replay stable.
 - **Riposte** : 1 riposte/round par pile, après application des pertes de la frappe — une pile détruite ne riposte pas, le tir ne déclenche jamais de riposte (des capacités la modifient : `noRetaliation`, `unlimitedRetaliation`).
 - **Le héros** : 1 action/round (sort OU attaque héroïque mineure), ne peut pas être ciblé.
 
@@ -283,12 +284,12 @@ Vue peinte de la ville où les bâtiments construits apparaissent (grande satisf
 ```
 dégâts = Σ(dmg aléatoire min–max par créature de la pile)
        × (1 ± 0.05 × (AttaqueTotale − DéfenseTotale))   // borné [−0.70, +0.60]
-       × modificateurs (capacités, sorts, chance ×2, moral n'affecte pas les dégâts)
+       × modificateurs (capacités, sorts, chance ×2 / malchance ×0,5, moral n'affecte pas les dégâts)
 ```
 
 - Les pertes retirent des créatures entières + PV entamés sur la première.
 - **Moral** (−3..+3) : proba d'un **tour bonus** (moral positif : 4 %/point) ou d'un **tour sauté** (négatif : 4 %/point, symétrique). Armée multi-factions : −1 moral par faction supplémentaire (les morts-vivants ne subissent/ne donnent pas de moral).
-- **Chance** (0..+3) : proba de dégâts doublés (4 %/point).
+- **Chance** (−3..+3, C-BADLUCK) : un seul jet par frappe, |chance| × 4 %/point de déclencher — selon le signe — soit un **coup de chance** (dégâts ×2), soit un **coup de malchance** (demi-dégâts, ×0,5). Symétrique du moral. Chance nulle ⇒ jamais de déclenchement.
 - Note (Phase 2.4) : en combat, la formule symétrique ±0,05/point s'applique
   telle quelle aux stats des unités ; la pente défensive −2,5 %/point de §1.1
   concerne l'attribut **Défense du héros**, qui s'ajoutera au MVP (les bornes
@@ -308,7 +309,7 @@ Sémantique des **9 capacités** du catalogue (valeurs de départ) :
 | Capacité | Effet implémenté |
 |---|---|
 | `flying` | le déplacement ignore obstacles et unités (survol), portée = vitesse, atterrissage sur hex libre |
-| `shooter(ammo, noMeleePenalty?)` | tir sans riposte, portée illimitée, 1 munition/tir ; à 0 munition ou ennemi adjacent : mêlée à ½ dégâts sauf `noMeleePenalty` |
+| `shooter(ammo, noMeleePenalty?)` | tir sans riposte, portée illimitée **avec ligne de vue** (obstacles bloquants, C-LOS §5.2), 1 munition/tir ; à 0 munition, ennemi adjacent **ou vue bloquée** : mêlée à ½ dégâts sauf `noMeleePenalty` |
 | `noRetaliation` | la cible ne riposte jamais aux attaques de cette unité |
 | `doubleAttack` | deux frappes ; la riposte éventuelle s'intercale après la 1ʳᵉ |
 | `undead` | moral figé à 0 (ne subit ni ne donne), ne compte pas dans le malus multi-factions |

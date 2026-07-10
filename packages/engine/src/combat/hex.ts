@@ -63,6 +63,29 @@ export function hexNeighbors(p: OffsetPos): OffsetPos[] {
   return out;
 }
 
+/**
+ * Ligne d'hexes entre `a` et `b` inclus (linedraw cubique, doc 02 §5.4 LoS) :
+ * échantillonne `hexDistance` + 1 points le long du segment axial et arrondit
+ * chacun. Un léger décalage (`EPS`) écarte les cas d'égalité pile entre deux
+ * hexes de façon DÉTERMINISTE (même résultat sur toute machine, IEEE 754) —
+ * indispensable pour un replay stable. Consommé par `hasLineOfSight`.
+ */
+const LINE_EPS = 1e-6;
+export function hexLine(a: OffsetPos, b: OffsetPos): OffsetPos[] {
+  const n = hexDistance(a, b);
+  if (n === 0) return [a];
+  const aa = offsetToAxial(a);
+  const bb = offsetToAxial(b);
+  const out: OffsetPos[] = [];
+  for (let i = 0; i <= n; i++) {
+    const t = i / n;
+    const q = aa.q + LINE_EPS + (bb.q - aa.q) * t;
+    const r = aa.r + LINE_EPS + (bb.r - aa.r) * t;
+    out.push(axialToOffset(hexRound(q, r)));
+  }
+  return out;
+}
+
 /** Arrondi cubique standard (fractionnaire → hex) — utilisé par pixelToHex côté client. */
 export function hexRound(q: number, r: number): AxialPos {
   const s = -q - r;

@@ -17,11 +17,11 @@
 .pre-battle {
   width: min(560px, 100%);
   padding: 20px 20px 16px;
-  border: 1px solid var(--ink-600);
   border-radius: var(--radius-l);
   background: var(--ink-800);
   box-shadow: 0 12px 40px var(--shadow-60);
   text-align: center;
+  /* Bordure déléguée à `.chrome-framed` (skill asset-chrome). */
 }
 
 .pre-battle-title {

@@ -23,7 +23,7 @@ export function Journal({ onClose }: { onClose: () => void }) {
   return (
     <div class="modal-backdrop" onClick={onClose}>
       <div
-        class="modal journal-panel"
+        class="modal journal-panel chrome-framed"
         role="dialog"
         aria-modal="true"
         aria-label={t('journal.title')}

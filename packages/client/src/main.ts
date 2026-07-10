@@ -34,7 +34,7 @@ import { registerCamera, unregisterCamera } from './app/camera-control';
 import { playOpeningCutscene } from './app/cutscene';
 import { initCampaign, startCampaignChapter, campaignFlags } from './app/campaign';
 import { initI18n, t } from './app/i18n';
-import { preloadPixiTextures, combatBackgroundUrl } from './render/assets';
+import { preloadPixiTextures, combatBackgroundUrl, chromeFrameUrl, chromeRibbonUrl } from './render/assets';
 import { AdventureScene } from './scenes/adventure/AdventureScene';
 import { CombatScene } from './scenes/combat/CombatScene';
 import { mountUi } from './ui/shell';
@@ -320,6 +320,15 @@ async function bootstrap(): Promise<void> {
       pushToast(t('toast.scenarioFailed'), 'error');
     });
   });
+
+  // Chrome décoratif (doc 12 Règle G, skill asset-chrome) : on expose les URLs
+  // résolues du cadre/ruban en variables CSS `:root`, consommées par les classes
+  // partagées `.chrome-framed` / `.chrome-ribbon` (border-image). Absent ⇒ la
+  // variable reste vide et les classes retombent sur la bordure tokenisée.
+  const frameUrl = chromeFrameUrl();
+  const ribbonUrl = chromeRibbonUrl();
+  if (frameUrl) document.documentElement.style.setProperty('--chrome-frame', `url(${frameUrl})`);
+  if (ribbonUrl) document.documentElement.style.setProperty('--chrome-ribbon', `url(${ribbonUrl})`);
 
   const uiRoot = document.getElementById('ui-root');
   if (!uiRoot) throw new Error('missing #ui-root');

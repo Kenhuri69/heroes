@@ -60,6 +60,22 @@ def _corner_stud(d: ImageDraw.ImageDraw, cx, cy, r):
     d.ellipse([cx - r + 3, cy - r + 3, cx + r - 6, cy + r - 6], fill=BRASS_HILITE)
 
 
+def _bead(d: ImageDraw.ImageDraw, cx, cy, r):
+    """Petite perle laiton biseautée (ornement de rail)."""
+    d.ellipse([cx - r - 1, cy - r - 1, cx + r + 1, cy + r + 1], fill=INK)
+    d.ellipse([cx - r, cy - r, cx + r, cy + r], fill=BRASS_LITE)
+
+
+def _corner_filigree(d: ImageDraw.ImageDraw, cx, cy, sx, sy):
+    """Perlage de coin : 3 perles décroissantes le long de chaque rail partant
+    du coin (sx/sy = sens vers l'intérieur, ±1). Confiné au bloc de coin du
+    9-slice → n'affecte pas la répétabilité des bords."""
+    for i, off in enumerate((16, 26, 34)):
+        r = 3 - i  # perles décroissantes (3 → 1 px)
+        _bead(d, cx + sx * off, cy, r)  # le long du rail horizontal
+        _bead(d, cx, cy + sy * off, r)  # le long du rail vertical
+
+
 def build_frame() -> Image.Image:
     """Cadre 9-slice 160², slice 40 : rails laiton continus + rivets de coin.
 
@@ -75,8 +91,14 @@ def build_frame() -> Image.Image:
     _inset_rect(d, (13, 13, S - 14, S - 14), BRASS_DARK, 3)
     # Filet interne encre (ferme la bande vers le centre transparent).
     _inset_rect(d, (20, 20, S - 21, S - 21), INK_SOFT, 3)
-    # Rivets de coin (dans les blocs 40² fixes du 9-slice).
-    for cx, cy in ((20, 20), (S - 20, 20), (20, S - 20), (S - 20, S - 20)):
+    # Ornement de coin (dans les blocs 40² fixes du 9-slice) : volutes + rivet.
+    for cx, cy, sx, sy in (
+        (20, 20, 1, 1),
+        (S - 20, 20, -1, 1),
+        (20, S - 20, 1, -1),
+        (S - 20, S - 20, -1, -1),
+    ):
+        _corner_filigree(d, cx, cy, sx, sy)
         _corner_stud(d, cx, cy, 8)
     return img
 

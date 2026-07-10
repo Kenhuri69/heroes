@@ -6,5 +6,5 @@
   "stats": { "hp": 16, "attack": 5, "defense": 5, "damage": [3, 5], "speed": 7 },
   "growthPerWeek": 7,
   "cost": { "gold": 160 },
-  "abilities": [{ "id": "undead" }, { "id": "flying" }]
+  "abilities": [{ "id": "undead" }, { "id": "flying" }, { "id": "incorporeal", "params": { "dodge": 0.2 } }]
 }

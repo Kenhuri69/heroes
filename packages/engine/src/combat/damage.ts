@@ -120,6 +120,12 @@ export function lifeDrainPct(def: CombatUnitDef): number {
   return ability ? Number(ability.params?.['pct'] ?? 0) : 0;
 }
 
+/** Probabilité d'esquive d'`incorporeal` (Spectre, doc 04 §3, A2b) — 0 hors capacité. */
+export function incorporealDodge(def: CombatUnitDef): number {
+  const ability = def.abilities.find((a) => a.id === 'incorporeal');
+  return ability ? Number(ability.params?.['dodge'] ?? 0) : 0;
+}
+
 /**
  * Plan de consommation de Marque (capacité générique `consumeMarks`, doc 05
  * §3.1) : si l'attaquant porte la capacité et que la cible a assez de charges,
@@ -336,7 +342,17 @@ export function performStrike(
   const triggered = luckRoll.value < Math.round(rules.luckChancePerPoint * Math.abs(luck) * 100);
   const lucky = triggered && luck > 0;
   const unlucky = triggered && luck < 0;
-  const damage = Math.round(base * mult * (lucky ? 2 : unlucky ? 0.5 : 1));
+  // `incorporeal` (Spectre, doc 04 §3, A2b) : la VICTIME peut esquiver la frappe
+  // (dégâts 0). Jet gated sur la présence de la capacité ⇒ n'ajoute un tirage
+  // qu'aux combats concernés (flux RNG des autres inchangé, golden stable).
+  const dodgeChance = incorporealDodge(victimDef);
+  let dodged = false;
+  if (dodgeChance > 0) {
+    const dodgeRoll = rollRange(draft.rng, 0, 99);
+    draft.rng = dodgeRoll.state;
+    dodged = dodgeRoll.value < Math.round(dodgeChance * 100);
+  }
+  const damage = dodged ? 0 : Math.round(base * mult * (lucky ? 2 : unlucky ? 0.5 : 1));
 
   const pool = (victim.count - 1) * victimDef.stats.hp + victim.firstHp;
   const remaining = Math.max(0, pool - damage);
@@ -349,8 +365,9 @@ export function performStrike(
 
   // Consommation des charges de Marque (capacité générique `consumeMarks`,
   // doc 05 §3.1) : le burst de dégâts a déjà été appliqué via `mult` ; on retire
-  // les charges dépensées. Avant la ré-application de `mark` ci-dessous.
-  if (consume) {
+  // les charges dépensées. Avant la ré-application de `mark` ci-dessous. Une
+  // frappe esquivée (A2b) ne consomme rien (aucun impact).
+  if (consume && !dodged) {
     victim.marks = Math.max(0, victim.marks - consume.cost);
     // `expose` (doc 05 §3.1) : la cible perd sa riposte cette attaque — la
     // riposte est décidée sur `retaliationsLeft` dans `actions.ts`.
@@ -366,7 +383,8 @@ export function performStrike(
     });
   }
 
-  if (strikerDef.abilities.some((a) => a.id === 'mark') && victim.count > 0) {
+  // Une frappe esquivée (A2b) n'applique pas de Marque (aucun impact).
+  if (!dodged && strikerDef.abilities.some((a) => a.id === 'mark') && victim.count > 0) {
     const before = victim.marks;
     victim.marks = Math.min(rules.marksMax, victim.marks + 1);
     if (victim.marks !== before) {
@@ -382,6 +400,7 @@ export function performStrike(
     kills,
     lucky,
     unlucky,
+    dodged,
     retaliation,
     ranged,
   });
@@ -500,7 +519,9 @@ export function estimateDamage(
     !ranged &&
     !willExpose &&
     (target.retaliationsLeft > 0 || targetDef.abilities.some((a) => a.id === 'unlimitedRetaliation')) &&
-    !attackerDef.abilities.some((a) => a.id === 'noRetaliation');
+    !attackerDef.abilities.some((a) => a.id === 'noRetaliation') &&
+    // `strikeAndReturn` (A2b) : l'attaquant se replie, aucune riposte.
+    !attackerDef.abilities.some((a) => a.id === 'strikeAndReturn');
   if (canRetaliate) {
     const survivorsAfterMaxDamage = target.count - killsMax;
     const survivorsAfterMinDamage = target.count - killsMin;

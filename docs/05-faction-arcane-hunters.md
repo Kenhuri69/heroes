@@ -24,10 +24,11 @@ Faction inédite, produite en **Alpha** — elle sert de validation grandeur nat
 > dwellings T1–T7, manifeste, locales fr/en), toutes porteuses de `mark` ;
 > recrutement complet prouvé par un test faction-agnostique. **T8 Pénitent**
 > (coût en Essence, `demonform`, croissance partagée `apex`) reporté en **4.6** ;
-> capacités exotiques (swarm, poisonSting, strikeAndReturn, spellcaster,
-> areaAttack) différées en 4.3+ ; expose/executioner/pinningShot livrées
-> (`consumeMarks`) et **`magicResistance` autonome livrée (lot A2a)** — la
-> capacité du Bibliothécaire réduit bien les dégâts de sort, hors `demonform`
+> capacités exotiques (swarm, poisonSting, spellcaster, areaAttack) différées
+> en 4.3+ ; expose/executioner/pinningShot livrées (`consumeMarks`),
+> **`magicResistance` autonome livrée (A2a)** (Bibliothécaire, réduit les dégâts
+> de sort hors `demonform`) et **`strikeAndReturn` livrée (A2b)** (Lame du
+> Serment : frappe puis retour à l'origine, sans riposte)
 > (les unités combattent sans en attendant, jamais de crash). Écart assumé vs
 > §3.1 : le bonus de Marque est **universel** (tout attaquant vs cible marquée),
 > pas réservé aux Hunters/sorts de Traque — simplification générique déjà en

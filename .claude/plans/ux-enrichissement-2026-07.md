@@ -273,7 +273,19 @@ Espace/D en combat — `combat.tsx:71`) mais sont **indécouvrables**.
       **Vérifié** : typecheck/lint/build OK (bundle 114,5 Ko gzip JS, sous
       budget), smoke complet 138✓ + test dédié « parité tactile du lore » (les 2
       viewports), garde-fous faction & couleurs verts, zéro diff moteur.
-- [ ] Lot X3 — HUD aventure mobile.
+- [x] Lot X3 — HUD aventure mobile (2026-07-10). Livré : (1) bandeau d'armée
+      **replié par défaut** + préférence persistée (`heroes.armyBandCollapsed`,
+      localStorage) ; (2) **slots vides masqués** sur le bandeau < 900 px (CSS,
+      desktop/tiroir intacts) ; (3) indicateur **jour/PM compact** (calendrier +
+      jauge PM insécables, 1 ligne chacun ; valeurs inchangées ⇒ tests exacts
+      préservés). Doc 08 §2.1 mis à jour. **Vérifié** navigateur 360 px : carte
+      visible ~60 % (vs ⅓), 2 lignes compactes, persistance du déploiement après
+      reload, 2 piles réelles sans slots vides ; smoke complet 140✓ + test dédié
+      « bandeau replié par défaut/dépliable » (2 viewports) ; typecheck/lint/
+      build OK (bundle 114,8 Ko gzip), garde-fous verts, zéro diff moteur.
+      Écart noté : le **nom d'unité tronqué** (« Élève de Sombreve… ») dans les
+      slots du bandeau n'a pas de fiche au tap — hors périmètre X3 (relève de la
+      fiche unité, cf. X2.2 différé) ; à traiter en suivi.
 - [ ] Lot X4 — pré-combat.
 - [ ] Lot X5 — micro-i18n.
 - [ ] Lot X6 — tiroir héros mobile.

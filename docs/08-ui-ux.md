@@ -81,6 +81,17 @@
 > toujours visible) ; en combat, la présence du héros est déjà lisible (badge +
 > nom + mana), le `title` redondant est passé en `aria-label`.
 
+> 🚧 **État X3 (HUD aventure mobile, plan `ux-enrichissement-2026-07`)** : en
+> portrait, la carte reprend la place que le HUD lui mangeait. (1) Le **bandeau
+> d'armée bas est replié par défaut** au premier lancement (préférence persistée
+> `heroes.armyBandCollapsed` en `localStorage`, hors sauvegarde) — la carte est
+> visible à ~60 % au lieu de ~⅓. (2) Déplié, il n'affiche que les **piles
+> réelles** (les cases vides sont masquées sous 900 px ; desktop et tiroir héros
+> gardent les 7 slots pour le drag/échange de garnison). (3) L'indicateur
+> **jour/PM** est compact : calendrier et jauge de points de mouvement tiennent
+> chacun sur **une** ligne insécable (fini l'étalement sur 3-4 lignes), valeurs
+> inchangées.
+
 > 🚧 **État U4** : **multi-héros / multi-villes** implémentés (lot UX U4). Le
 > tiroir héros ouvre un **bandeau de portraits** (un par héros du joueur ; tap =
 > sélectionner) — le héros **sélectionné** (`selectedHeroId`, repli 1er héros)

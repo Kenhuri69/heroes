@@ -517,6 +517,16 @@
   display: none;
 }
 
+/* Lot X3 (HUD aventure mobile) : sur le bandeau bas < 900 px (hors colonne
+   droite desktop), on ne montre QUE les piles réelles — les cases vides
+   n'occupent plus la moitié de la hauteur pour rien (constat E3). Le tiroir
+   héros et le desktop gardent les 7 slots (drag/échange garnison). */
+@media (max-width: 899px) {
+  .army-band .army-slot.empty {
+    display: none;
+  }
+}
+
 /* Desktop (doc 08 §2.1) : le tiroir héros devient une **colonne droite
    persistante** (toujours ouverte, plus de hamburger). La barre de ressources
    et le HUD bas se confinent à gauche de la colonne pour ne jamais passer
@@ -557,6 +567,19 @@
 
   .resource {
     flex: none;
+  }
+
+  /* Lot X3 (constat E4) : le coin statut s'étalait sur 3-4 lignes (« Jour 1 · /
+     Semaine 1 / PM 1700 / / 1700 ») en mangeant la carte. Compact : police
+     réduite + chaque ligne insécable ⇒ calendrier et jauge de PM tiennent sur
+     UNE ligne chacun (2 lignes au total). Valeurs inchangées (tests exacts). */
+  .status-bar {
+    font-size: 0.8rem;
+  }
+
+  .status-bar > span,
+  .movement-gauge {
+    white-space: nowrap;
   }
 }
 

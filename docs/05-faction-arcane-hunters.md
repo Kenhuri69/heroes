@@ -24,8 +24,10 @@ Faction inédite, produite en **Alpha** — elle sert de validation grandeur nat
 > dwellings T1–T7, manifeste, locales fr/en), toutes porteuses de `mark` ;
 > recrutement complet prouvé par un test faction-agnostique. **T8 Pénitent**
 > (coût en Essence, `demonform`, croissance partagée `apex`) reporté en **4.6** ;
-> capacités exotiques (poisonSting, spellcaster) différées
-> en 4.3+ ; expose/executioner/pinningShot livrées (`consumeMarks`),
+> capacité exotique `spellcaster` différée ; **`poisonSting` livrée (A2f)**
+> (Manticore de Dressage : dard de mêlée appliquant un poison de 6 PV/round
+> sur 3 rounds, tick au début de round) ;
+> expose/executioner/pinningShot livrées (`consumeMarks`),
 > **`magicResistance` autonome livrée (A2a)** (Bibliothécaire, réduit les dégâts
 > de sort hors `demonform`), **`strikeAndReturn` livrée (A2b)** (Lame du
 > Serment : frappe puis retour à l'origine, sans riposte), **`swarm` livrée

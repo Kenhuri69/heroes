@@ -83,7 +83,7 @@ UI/IA ──commande──► [validation] ──► engine.apply(state, cmd)
     version — « Continuer » se grise, l'import échoue — au lieu d'adopter un
     état malformé. La **migration ascendante** d'anciennes sauvegardes reste
     différée (post-MVP) : au MVP on rejette, on ne migre pas.
-    `CURRENT_SAVE_VERSION` vaut **15** (source de vérité `engine/core/state.ts`).
+    `CURRENT_SAVE_VERSION` vaut **19** (source de vérité `engine/core/state.ts`).
     Historique : v2 (`factionCatalog`/`scenario`/`outcome`/`controller`/
     `eliminated`, 3.4/3.5) ; v3 (`PlayerState.factionResources`, 4.4) ; v4
     (`townlessDays` grâce de reprise + `AdventureMapDef.triggers`, comblement
@@ -100,7 +100,13 @@ UI/IA ──commande──► [validation] ──► engine.apply(state, cmd)
     v13 (`PlayerState.team`, alliances/équipes, doc 02 §6) ; v14
     (`GameState.growthGroups`, croissance partagée apex `sharedGrowthGroups`,
     doc 05 §4.20) ; v15 (`SpellStatus.damageDealtMod`, malédiction `curseOnHit`
-    « Faux funeste », doc 04 §3, lot A2c).
+    « Faux funeste », doc 04 §3, lot A2c) ; v16 (`HeroState.name` +
+    `specialtyId` + `specialtyEffects`, héros nommés & spécialité, doc 02 §1.1/§1.2,
+    lot H-NAMED) ; v17 (`HeroState.pendingAttributeChoices`, choix d'attribut à
+    la montée de niveau, doc 02 §1.2, lot H-LEVELCHOICE) ; v18
+    (`DwellingObjectDef.ownerId`, habitations de carte capturables, doc 02 §2.2,
+    lot M-DWELLOWN) ; v19 (`SpellStatus.damagePerRound`, poison `poisonSting`
+    Manticore, doc 05 §4, lot A2f).
 - Une sauvegarde référence les paquets de faction (par id) ; le suivi de
   **version** par paquet est différé avec les migrations (post-MVP).
 

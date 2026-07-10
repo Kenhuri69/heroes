@@ -122,6 +122,12 @@ export interface SpellStatus {
    * d'attaque/défense (pente ±0,05).
    */
   damageDealtMod: number;
+  /**
+   * Dégâts de POISON infligés à la pile porteuse au début de chaque round
+   * (A2f, `poisonSting` Manticore — doc 05 §4). Dégâts plats, cumulés si
+   * plusieurs poisons. 0 = statut non toxique (buff/debuff/malédiction).
+   */
+  damagePerRound: number;
   roundsLeft: number;
 }
 

@@ -137,7 +137,8 @@ Familles, par mécanique moteur commune :
   qu'imbriqué dans `demonform`). Effort : M.
 - **CAP-ATK — Attaque** 🧩 (A2a : `charge`, `lifeDrain` **livrés** ; A2b :
   `strikeAndReturn` **livré** ; A2c : `curseOnHit` **livré** ; A3c : `areaAttack`
-  **livré** ; `firstStrike`, `poisonSting` → A2d ; `breathAttack` → A3) : `charge`/`firstStrike` (Chevalier du Griffon,
+  **livré** ; A3d : `breathAttack` **livré** ; A2f : `poisonSting` **livré** ;
+  reste `firstStrike` — sémantique à cadrer) : `charge`/`firstStrike` (Chevalier du Griffon,
   doc 03 §3 ; Cavalier funeste +4 %/hex, doc 04 §3), `lifeDrain` 50 %
   (Vampire, doc 04 §3), `curseOnHit` (Zombie 20 %/Cavalier funeste 100 %,
   doc 04 §3), `poisonSting` (Manticore, doc 05 §4), `strikeAndReturn` (Lame du

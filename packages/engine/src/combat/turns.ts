@@ -6,7 +6,7 @@ import type { GameEvent } from '../core/events';
 import { rollRange } from '../core/rng';
 import { evaluateOutcome } from '../scenario/outcome';
 import type { Draft } from './draft';
-import { collectCasualties, combatRules, initiativeSpeed, moraleOf } from './state-helpers';
+import { collectCasualties, combatRules, initiativeSpeed, moraleOf, recordLoss } from './state-helpers';
 import type { CombatSideId, CombatStack, CombatState } from './types';
 
 /**
@@ -29,6 +29,44 @@ function pickNext(
     return a.slot - b.slot;
   });
   return sorted[0];
+}
+
+/**
+ * Tick de poison au début de round (A2f, `poisonSting` doc 05 §4) : chaque pile
+ * vivante portant un/des statut(s) toxique(s) (`damagePerRound > 0`) subit la
+ * SOMME de leurs dégâts (plats, sans RNG). Peut tuer — la pile est alors retirée.
+ * Appelé AVANT la décroissance des statuts pour que la dernière tranche compte.
+ * Retourne `true` si au moins une pile est morte (⇒ vérifier la fin de combat).
+ */
+function applyPoisonTicks(draft: Draft, events: GameEvent[]): boolean {
+  const combat = draft.combat;
+  if (!combat) return false;
+  let anyDeath = false;
+  for (const stack of combat.stacks) {
+    if (stack.count <= 0) continue;
+    const poison = stack.statuses.reduce((sum, st) => sum + Math.max(0, st.damagePerRound), 0);
+    if (poison <= 0) continue;
+    const def = draft.unitCatalog[stack.unitId];
+    if (!def) continue;
+    const pool = (stack.count - 1) * def.stats.hp + stack.firstHp;
+    const remaining = Math.max(0, pool - poison);
+    const newCount = remaining <= 0 ? 0 : Math.min(stack.count, Math.ceil(remaining / def.stats.hp));
+    const kills = stack.count - newCount;
+    stack.count = newCount;
+    stack.firstHp = newCount > 0 ? remaining - (newCount - 1) * def.stats.hp : 0;
+    recordLoss(combat, stack.side, stack.unitId, kills);
+    events.push({ type: 'StackPoisoned', stackId: stack.id, damage: Math.min(poison, pool), kills });
+    if (newCount <= 0) {
+      events.push({ type: 'StackDied', stackId: stack.id });
+      anyDeath = true;
+    }
+  }
+  if (anyDeath) {
+    for (let i = combat.stacks.length - 1; i >= 0; i--) {
+      if ((combat.stacks[i] as CombatStack).count <= 0) combat.stacks.splice(i, 1);
+    }
+  }
+  return anyDeath;
 }
 
 /**
@@ -56,12 +94,18 @@ export function advanceTurn(draft: Draft, events: GameEvent[]): void {
         s.acted = false;
         s.waited = false;
         s.retaliationsLeft = 1;
+      }
+      // A2f : le poison ronge AVANT la décroissance des statuts (dernière tranche
+      // incluse) ; s'il vide un camp, le combat s'arrête (fin gérée normalement).
+      const poisonKilled = applyPoisonTicks(draft, events);
+      for (const s of combat.stacks) {
         if (s.statuses.length > 0) {
           s.statuses = s.statuses
             .map((st) => ({ ...st, roundsLeft: st.roundsLeft - 1 }))
             .filter((st) => st.roundsLeft > 0);
         }
       }
+      if (poisonKilled && checkCombatEnd(draft, events)) return;
       events.push({ type: 'CombatRoundStarted', round: combat.round });
       continue;
     }

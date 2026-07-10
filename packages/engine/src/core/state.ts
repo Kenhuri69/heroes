@@ -207,9 +207,12 @@ export interface Calendar {
  * parmi 2 (file), l'IA garde le tirage auto.
  * v18 : `DwellingObjectDef.ownerId` — habitations de carte capturables
  * (M-DWELLOWN, doc 02 §2.2) : drapeau du joueur qui les foule + réassort hebdo
- * réservé au propriétaire.)
+ * réservé au propriétaire.
+ * v19 : `SpellStatus.damagePerRound` — poison sur la durée (`poisonSting`
+ * Manticore, doc 05 §4, A2f) : dégâts plats infligés au porteur au début de
+ * chaque round, tick avant décroissance des statuts.)
  */
-export const CURRENT_SAVE_VERSION = 18;
+export const CURRENT_SAVE_VERSION = 19;
 
 export interface GameState {
   saveVersion: number;

@@ -235,7 +235,10 @@ const GOLDEN_JOURNAL: Command[] = [
 // Re-fixé au lot M-DWELLOWN : `DwellingObjectDef.ownerId` (save v18). La carte
 // golden n'a aucune habitation ⇒ seul le champ `saveVersion` (17→18) de l'état
 // haché change, simulation inchangée.
-const GOLDEN_HASH = '6fa5044c';
+// Re-fixé au lot A2f : `SpellStatus.damagePerRound` — poison `poisonSting`
+// Manticore (save v19). Les piles golden ont des statuts vides ⇒ seul le champ
+// `saveVersion` de l'état haché change (18→19), simulation/combat inchangés.
+const GOLDEN_HASH = 'ce30195f';
 
 describe('golden replay', () => {
   it('le journal scripté produit toujours le même état final', () => {

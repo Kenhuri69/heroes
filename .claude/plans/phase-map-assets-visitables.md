@@ -55,6 +55,24 @@ unique.
    repli procédural, aucun PNG requis.
 6. [x] Branche redémarrée depuis `main` (PR #184 mergée) ; commit + push + PR draft.
 
+## 3bis. Extraction & intégration des PNG (images fournies par l'utilisateur)
+
+- Deux planches Gemini reçues. **Bonus places** : 4×1 conforme au prompt
+  (fountain/stable/watchtower/mill). **Dwellings** : le LLM a produit un **3×2**
+  (3 en haut, 2 en bas) au lieu du 4×2 demandé, et a **inversé** vox-arcana /
+  sylvan-court en bas → extraction relancée avec `--cols 3 --rows 2` et l'ordre
+  row-major réel (`camp-haven,camp-arcane-hunters,camp-necropolis,camp-vox-arcana,
+  camp-sylvan-court`, 6ᵉ cellule vide tolérée).
+- `sheet_extract.py` : **9/9 PASS** (QC verte, fonds retirés, tente+totem+feu
+  conservés). PNG copiés `raster_src/` → `assets/map/` (fountain, stable,
+  watchtower, mill, camp-<5 factions>). Tailles 104–284 Ko, hors bundle JS.
+- Build : les 9 PNG sont hashés dans `dist/assets/` (glob auto-découvert), le
+  client les consomme sans câblage. **Effet de bord bénéfique** : les 5 lieux de
+  bonus de proto-01 redeviennent des sprites texturés (au lieu du repli
+  procédural), ce qui **lève le risque FPS** relevé en CI (#185).
+- Smoke (chromium local) : client + bonus/habitation + assets-no-404 + les **deux
+  planchers FPS ×4** verts (arène 36 fps, carte 18,9 fps).
+
 ## 4. Décisions & écarts
 
 - **Deux planches dédiées** plutôt qu'un ajout dans `map-props` : éviter de

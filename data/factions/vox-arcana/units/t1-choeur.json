@@ -16,5 +16,5 @@
   "cost": {
     "gold": 34
   },
-  "abilities": []
+  "abilities": [{ "id": "swarm", "params": { "bonus": 1, "minAllies": 2 } }]
 }

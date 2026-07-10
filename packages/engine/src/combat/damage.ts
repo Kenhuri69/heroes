@@ -128,6 +128,30 @@ export function incorporealDodge(def: CombatUnitDef): number {
   return ability ? Number(ability.params?.['dodge'] ?? 0) : 0;
 }
 
+/**
+ * Bonus de dégâts total de `swarm` (Élève AH doc 05 §4, Chœur Vox doc 16 §4,
+ * A3b) : si au moins `minAllies` autres piles alliées de l'attaquant sont
+ * adjacentes à la cible, chaque créature de l'attaquant inflige `bonus` de plus
+ * (∝ effectif). L'attaquant lui-même est exclu du décompte ⇒ préviz stable
+ * (indépendante de la position finale de l'attaquant). 0 hors capacité/condition.
+ */
+export function swarmBonus(
+  strikerDef: CombatUnitDef,
+  striker: CombatStack,
+  victim: CombatStack,
+  combat: CombatState,
+): number {
+  const ability = strikerDef.abilities.find((a) => a.id === 'swarm');
+  if (!ability) return 0;
+  const bonus = Number(ability.params?.['bonus'] ?? 0);
+  const minAllies = Number(ability.params?.['minAllies'] ?? 0);
+  if (bonus <= 0 || minAllies <= 0) return 0;
+  const allies = combat.stacks.filter(
+    (s) => s.side === striker.side && s.id !== striker.id && s.count > 0 && hexDistance(s.pos, victim.pos) === 1,
+  ).length;
+  return allies >= minAllies ? striker.count * bonus : 0;
+}
+
 /** Statut infligé par `curseOnHit` (Zombie/Cavalier funeste, doc 04 §3, A2c), ou `null`. */
 export function curseOnHitPlan(
   def: CombatUnitDef,
@@ -306,6 +330,8 @@ export function performStrike(
     base += r.value;
   }
   const combat = draft.combat;
+  // `swarm` (A3b) : bonus plat de meute quand la cible est cernée par les alliés.
+  if (combat) base += swarmBonus(strikerDef, striker, victim, combat);
   const strikerAttack =
     strikerDef.stats.attack +
     (combat ? heroAttackOf(draft, combat, striker.side) : 0) +
@@ -557,8 +583,11 @@ export function estimateDamage(
     // `from` choisi) ⇒ non reflétée (comme la chance) — bonus de charge omis.
   });
   const [dmgMin, dmgMax] = attackerDef.stats.damage;
-  const baseMin = attacker.count * dmgMin;
-  const baseMax = attacker.count * dmgMax;
+  // `swarm` (A3b) : bonus plat ajouté aux bornes (indépendant du multiplicateur,
+  // comme les dégâts de base) — stable car l'attaquant est exclu du décompte.
+  const swarm = swarmBonus(attackerDef, attacker, target, combat);
+  const baseMin = attacker.count * dmgMin + swarm;
+  const baseMax = attacker.count * dmgMax + swarm;
   const damageMin = Math.round(baseMin * mult);
   const damageMax = Math.round(baseMax * mult);
 

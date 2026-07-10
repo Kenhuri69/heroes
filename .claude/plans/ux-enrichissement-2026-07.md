@@ -286,7 +286,19 @@ Espace/D en combat — `combat.tsx:71`) mais sont **indécouvrables**.
       Écart noté : le **nom d'unité tronqué** (« Élève de Sombreve… ») dans les
       slots du bandeau n'a pas de fiche au tap — hors périmètre X3 (relève de la
       fiche unité, cf. X2.2 différé) ; à traiter en suivi.
-- [ ] Lot X4 — pré-combat.
+- [x] Lot X4 — pré-combat (2026-07-10). Livré : (1) libellés de camp non
+      tronqués en 360 px — grille réagencée sous 480 px (libellé pivot
+      « Puissance de combat » en rangée haute, deux camps côte à côte en
+      colonnes pleines) ; (2) ligne redondante « {att} · {def} » retirée (une
+      seule valeur d'or par camp) ; (3) portrait attaquant = avatar héros →
+      repli blason (déjà géré par le code existant, confirmé) ; (4) boutons
+      Combattre / Auto-Battle empilés pleine largeur en mobile (1 ligne, ≥ 44
+      px). Doc 08 §2.4 mis à jour. **Vérifié** navigateur 360 px + 1280 px :
+      « Vos forces » / « Recrue » complets (scrollWidth = clientWidth), 0 ligne
+      340·340, boutons colonne pleine largeur ; desktop en 3 colonnes intact ;
+      typecheck/lint/build OK, smoke 141✓ (1 flaky raccourci-E confirmé sans
+      lien, repassé isolément), zéro diff moteur. Le renommage FR « Auto-Battle »
+      → « Combat auto » est traité au lot X5 (i18n).
 - [ ] Lot X5 — micro-i18n.
 - [ ] Lot X6 — tiroir héros mobile.
 - [ ] Lot X7 — confort desktop.

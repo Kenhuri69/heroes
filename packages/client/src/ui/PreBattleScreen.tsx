@@ -75,10 +75,9 @@ export function PreBattleScreen() {
           </div>
 
           <div class="pre-battle-versus">
+            {/* Libellé pivot : nomme les deux valeurs d'or par camp (lot X4 — la
+                ligne « {att} · {def} » redondante avec `pre-battle-power` retirée). */}
             <span class="pre-battle-versus-label">{t('preBattle.battlePower')}</span>
-            <span class="pre-battle-versus-value">
-              {attackerPower} · {defenderPower}
-            </span>
           </div>
 
           <div class="pre-battle-side">

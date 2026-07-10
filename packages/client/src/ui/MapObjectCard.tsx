@@ -73,6 +73,8 @@ function cardTitle(object: MapObjectDef): string {
       return t('mapCard.visitableTitle');
     case 'dwelling':
       return t('mapCard.dwellingTitle');
+    case 'monolith':
+      return t('mapCard.monolithTitle');
   }
 }
 
@@ -113,6 +115,8 @@ function cardLines(
       ];
     case 'dwelling':
       return [t('mapCard.dwellingLine', { name: resolveUnitName(object.unitId), stock: object.stock })];
+    case 'monolith':
+      return [t('mapCard.monolithLine')];
   }
 }
 

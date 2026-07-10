@@ -75,6 +75,28 @@ export function advanceHeroAlongPath(
       to: { ...step },
       movementPointsLeft: hero.movementPoints,
     });
+    // Monolithe apparié (M-NAV a, doc 02 §2.1) : fouler l'un téléporte vers son
+    // jumeau et INTERROMPT le déplacement (le reste du chemin part de l'entrée,
+    // devenu invalide). Le héros arrive sur la tuile de sortie sans re-téléporter
+    // (il n'y « entre » pas au sens d'un pas) — pas de boucle.
+    const monolith = map.objects.find((o) => o.type === 'monolith' && samePos(o.pos, hero.pos));
+    if (monolith && monolith.type === 'monolith') {
+      const exit = map.objects.find(
+        (o) => o.type === 'monolith' && o.pairId === monolith.pairId && o.id !== monolith.id,
+      );
+      if (exit) {
+        const fromPos = { ...hero.pos };
+        hero.pos = { ...exit.pos };
+        revealAround(
+          player.explored,
+          map,
+          hero.pos,
+          config.visionRadius + heroVisionBonus(hero, draft.skillCatalog),
+        );
+        events.push({ type: 'HeroTeleported', heroId: hero.id, from: fromPos, to: { ...exit.pos } });
+        break;
+      }
+    }
     // Trigger de visite (doc 02 §2.1) — la tuile foulée peut porter un effet.
     fireVisitTrigger(draft, player, hero.pos, events);
     // Guilde des mages (G2) : fouler une de ses villes fait apprendre les sorts

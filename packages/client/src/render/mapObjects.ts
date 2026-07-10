@@ -105,7 +105,26 @@ function buildObject(obj: MapObjectDef, catalog: UnitCatalog, ownerColor: OwnerC
   if (obj.type === 'artifact') return buildGroundArtifact(obj.artifactId);
   if (obj.type === 'visitable') return buildVisitable(obj.effect.kind);
   if (obj.type === 'dwelling') return buildDwelling(obj.unitId, catalog, ownerColor(obj.ownerId));
+  if (obj.type === 'monolith') return buildMonolith();
   return buildGuardian(obj.unitId, catalog);
+}
+
+/** Monolithe / téléporteur (M-NAV a) : portail de pierres dressées à lueur arcane. */
+function buildMonolith(): Container {
+  const node = new Container();
+  const c = TILE_SIZE / 2;
+  const stone = 0x6c7a89;
+  const ink = 0x1a1c22;
+  const glow = 0x8e44ad;
+  const g = new Graphics();
+  // Deux montants + un linteau (trilithe), avec un vide lumineux au centre.
+  g.rect(c - 16, c - 18, 8, 34).fill(stone).stroke({ width: 2, color: ink })
+    .rect(c + 8, c - 18, 8, 34).fill(stone).stroke({ width: 2, color: ink })
+    .rect(c - 18, c - 24, 36, 8).fill(stone).stroke({ width: 2, color: ink })
+    .roundRect(c - 8, c - 15, 16, 30, 5).fill(glow).stroke({ width: 1.5, color: 0xd2b4de })
+    .circle(c, c - 1, 3).fill(0xf4ecf7);
+  node.addChild(g);
+  return node;
 }
 
 /** Teinte du lieu de bonus par nature d'effet (doc 08 §5 — le glyphe prime, la teinte aide). */

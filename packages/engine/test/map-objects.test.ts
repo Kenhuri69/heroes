@@ -344,3 +344,40 @@ describe('M-GUARDLINK — objet gardé (doc 02 §2.2)', () => {
     expect(state.map?.objects.some((o) => o.id === 'res-g')).toBe(false);
   });
 });
+
+describe('M-NAV a — monolithe apparié (doc 02 §2.1)', () => {
+  const monoA: MapObjectDef = { id: 'mono-a', type: 'monolith', pos: { x: 2, y: 0 }, pairId: 'gate' };
+  const monoB: MapObjectDef = { id: 'mono-b', type: 'monolith', pos: { x: 5, y: 3 }, pairId: 'gate' };
+
+  it('fouler un monolithe téléporte vers son jumeau et interrompt le déplacement', () => {
+    const { state, events } = apply(startedWith([monoA, monoB]), {
+      type: 'MoveHero',
+      heroId: 'hero-p1',
+      path: [
+        { x: 1, y: 0 },
+        { x: 2, y: 0 }, // monolithe A ⇒ téléport en B (5,3), le reste du chemin est ignoré
+        { x: 3, y: 0 },
+      ],
+    });
+    expect(state.heroes[0]?.pos).toEqual({ x: 5, y: 3 }); // arrivé sur le jumeau
+    expect(events).toContainEqual({
+      type: 'HeroTeleported',
+      heroId: 'hero-p1',
+      from: { x: 2, y: 0 },
+      to: { x: 5, y: 3 },
+    });
+  });
+
+  it('arriver sur le jumeau ne re-téléporte pas (pas de boucle)', () => {
+    const state = startedWith([monoA, monoB]);
+    const after = apply(state, { type: 'MoveHero', heroId: 'hero-p1', path: [{ x: 1, y: 0 }, { x: 2, y: 0 }] }).state;
+    expect(after.heroes[0]?.pos).toEqual({ x: 5, y: 3 });
+    // Un SEUL téléport a eu lieu (le héros reste sur B, il n'y « entre » pas).
+    const teleports = apply(state, {
+      type: 'MoveHero',
+      heroId: 'hero-p1',
+      path: [{ x: 1, y: 0 }, { x: 2, y: 0 }],
+    }).events.filter((e) => e.type === 'HeroTeleported');
+    expect(teleports).toHaveLength(1);
+  });
+});

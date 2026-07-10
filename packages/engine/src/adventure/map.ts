@@ -138,6 +138,20 @@ export interface ArtifactObjectDef {
   guardedBy?: string;
 }
 
+/**
+ * Monolithe / téléporteur apparié (M-NAV a, doc 02 §2.1) : deux monolithes
+ * partageant le même `pairId` sont liés ; fouler l'un téléporte le héros sur la
+ * tuile de l'autre (le téléport interrompt le déplacement, comme un trésor). Le
+ * moteur ne connaît que l'appariement — aucune faction, aucun sens imposé.
+ */
+export interface MonolithObjectDef {
+  id: string;
+  type: 'monolith';
+  pos: GridPos;
+  /** Identifiant de paire — exactement 2 monolithes le partagent (validé au load). */
+  pairId: string;
+}
+
 export type MapObjectDef =
   | ResourceObjectDef
   | GuardianObjectDef
@@ -145,7 +159,8 @@ export type MapObjectDef =
   | TreasureObjectDef
   | ArtifactObjectDef
   | VisitableObjectDef
-  | DwellingObjectDef;
+  | DwellingObjectDef
+  | MonolithObjectDef;
 
 /**
  * Effet déclaratif d'un trigger de carte (doc 02 §2.1 « scripts d'événements

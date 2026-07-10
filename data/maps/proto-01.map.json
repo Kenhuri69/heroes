@@ -316,6 +316,20 @@
         "amount": 1
       },
       "frequency": "oncePerHero"
+    },
+    {
+      "id": "monolith-a",
+      "type": "monolith",
+      "x": 20,
+      "y": 3,
+      "pairId": "gate-1"
+    },
+    {
+      "id": "monolith-b",
+      "type": "monolith",
+      "x": 6,
+      "y": 26,
+      "pairId": "gate-1"
     }
   ],
   "triggers": [

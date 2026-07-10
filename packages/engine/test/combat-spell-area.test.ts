@@ -61,6 +61,9 @@ function stateWith(): GameState {
     attributes: { attack: 0, defense: 0, power: 0, knowledge: 0 },
     skills: {},
     houseEffects: [],
+    name: '',
+    specialtyId: '',
+    specialtyEffects: [],
     artifacts: Array.from({ length: 10 }, () => null),
   } as unknown as HeroState;
   const combat: CombatState = {

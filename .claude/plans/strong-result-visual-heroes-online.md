@@ -48,4 +48,19 @@ contrat SDK↔Worker.
 - [ ] PR draft unique, corps détaillé + limites de vérif du lot 4
 
 ## Journal
-- (à compléter au fil des lots)
+- **Lot 2 livré** (commit 408ac94) : `FactionBadge` persistant sur PreBattleScreen
+  (par camp) + tiroir héros (sous le portrait). Client pur, smoke ciblé combat/
+  drawer vert (12 tests).
+- **Lot 4 livré** (commit 8a7fcb6) : `pushCloudSave`/`pullCloudSave` (save.ts,
+  garde de version réutilisée) + section « Sauvegarde en ligne » dans OptionsPanel,
+  gardée `isOnline() && isLoggedIn()`. Hors-ligne = section absente ⇒ smoke intact
+  (9 tests). Locales FR/EN. Chemin réseau authentifié non couvert par le smoke
+  (pas de backend en CI) — explicité.
+- **Lot 3 livré** : `HeroState.name`/`specialtyId`/`specialtyEffects` (save v15,
+  golden re-fixé `ba4ee56d`). Spécialité = profil déclaratif générique agrégé via
+  `sumHouseField` (canal Maison réutilisé) — zéro héros/faction en dur. Héros de
+  départ « Aldric l'Érudit », spécialité **Arcaniste** (−20 % coût mana en combat ;
+  choisie car smoke-safe : les sorts d'AVENTURE déduisent le coût brut, seuls les
+  sorts de COMBAT appliquent `effectiveManaCost`). UI tiroir héros. Fixtures de
+  test moteur mises à jour (+3 champs), `save-shape` (v15 + clés). Nouveau smoke
+  H-NAMED + assertion de combat renforcée (coût éclair 4→3).

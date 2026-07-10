@@ -32,15 +32,17 @@ function sumRankField(
 }
 
 /**
- * Somme du champ `field` sur les effets déclaratifs de la Maison du héros
- * (doc 16 §3.1, signature `houseAllegiance`). Les Maisons réutilisent le
- * vocabulaire d'effets des compétences : elles s'agrègent donc AU MÊME TITRE
- * que les compétences dans chaque accesseur ci-dessous — le seul point du
- * moteur qui interprète l'allégeance de Maison, sans jamais nommer de faction.
+ * Somme du champ `field` sur les effets déclaratifs PROPRES AU HÉROS : sa Maison
+ * (doc 16 §3.1, signature `houseAllegiance`) ET sa spécialité (doc 02 §1.2,
+ * H-NAMED). Les deux réutilisent le vocabulaire d'effets des compétences : elles
+ * s'agrègent donc AU MÊME TITRE que les compétences dans chaque accesseur
+ * ci-dessous — l'unique point du moteur qui les interprète, sans jamais nommer
+ * de faction, de Maison ni de héros.
  */
 function sumHouseField(hero: HeroState, field: keyof SkillRankEffect): number {
   let total = 0;
   for (const effect of hero.houseEffects) total += effect[field] ?? 0;
+  for (const effect of hero.specialtyEffects) total += effect[field] ?? 0;
   return total;
 }
 

@@ -84,6 +84,11 @@ export interface HeroAttributes {
 export interface HeroState {
   id: string;
   playerId: string;
+  /**
+   * Nom du héros (doc 02 §1.1, H-NAMED) — chaîne opaque pour le moteur (souvent
+   * une réf `@loc:` résolue par le client). '' = héros générique sans nom.
+   */
+  name: string;
   pos: GridPos;
   /** Points de mouvement restants aujourd'hui (doc 02 §1.5), restaurés chaque jour. */
   movementPoints: number;
@@ -125,6 +130,19 @@ export interface HeroState {
    * jamais un nom de faction/Maison.
    */
   houseEffects: SkillRankEffect[];
+  /**
+   * Spécialité du héros (doc 02 §1.2, H-NAMED) — id opaque, '' = aucune. Le
+   * client résout son nom/description localisés (`hero.specialty.<id>.*`) ; le
+   * moteur ne compare jamais qu'un id.
+   */
+  specialtyId: string;
+  /**
+   * Effets déclaratifs RÉSOLUS de la spécialité (mêmes champs que les
+   * compétences/Maisons, `SkillRankEffect`), résolus à la création depuis le
+   * catalogue embarqué et agrégés dans `hero/skills.ts` AU MÊME TITRE que les
+   * effets de Maison — aucun héros/faction en dur. `[]` = aucune spécialité.
+   */
+  specialtyEffects: SkillRankEffect[];
   /**
    * Machines de guerre possédées (doc 02 §5, Alpha 4.12) — ids d'unités du
    * catalogue, ≤ 1 de chaque. Achetées à la Forge ; elles rejoignent le camp du
@@ -173,9 +191,12 @@ export interface Calendar {
  * hebdo, le joueur choisit le destinataire.
  * v15 : `SpellStatus.damageDealtMod` — malédiction `curseOnHit` « Faux funeste »
  * (Cavalier funeste, doc 04 §3, A2c) : réduit multiplicativement les dégâts
- * infligés par la pile maudite.)
+ * infligés par la pile maudite.
+ * v16 : `HeroState.name` + `HeroState.specialtyId` + `HeroState.specialtyEffects`
+ * — héros nommés & spécialité déclarative (H-NAMED, doc 02 §1.1/§1.2) : identité
+ * du héros et profil de bonus générique agrégé comme les effets de Maison.)
  */
-export const CURRENT_SAVE_VERSION = 15;
+export const CURRENT_SAVE_VERSION = 16;
 
 export interface GameState {
   saveVersion: number;

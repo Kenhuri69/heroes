@@ -982,6 +982,8 @@ test('sort d’aventure : Ville-portail téléporte le héros vers sa ville (Alp
   await page.getByTestId('adventure-spell-ville-portail').click();
 
   // Téléporté vers la ville possédée la plus proche (start-town), mana décomptée.
+  // (Les sorts d'AVENTURE déduisent le coût brut — la réduction Arcaniste ne joue
+  // qu'en COMBAT, `effectiveManaCost` ; cf. hero/index.ts.)
   await expect.poll(() => heroPos(page)).toEqual({ x: 2, y: 4 });
   const after = await page.evaluate(() => window.__HEROES_TEST__!.getState().heroes[0]?.mana ?? 0);
   expect(after).toBe(before - 16);
@@ -1427,6 +1429,29 @@ test('ville : construire + croissance + recruter + transférer → armée du hé
   expect(errors).toEqual([]);
 });
 
+test('héros nommé : nom + spécialité affichés, effets résolus (H-NAMED, lot 3)', async ({ page }) => {
+  const errors = await openGame(page);
+
+  // Le héros de départ porte un nom et une spécialité, résolus depuis les données
+  // (config.newGame.startingHeroName / startingHeroSpecialty) — pas en dur au moteur.
+  const hero = await page.evaluate(() => {
+    const h = window.__HEROES_TEST__!.getState().heroes[0]!;
+    return { name: h.name, specialtyId: h.specialtyId, effects: h.specialtyEffects };
+  });
+  expect(hero.name).toBe('hero.name.default');
+  expect(hero.specialtyId).toBe('arcanist');
+  // Effet déclaratif résolu (mêmes champs que Maison/compétences) : -20 % coût mana.
+  expect(hero.effects).toEqual([{ manaCostReductionPct: 20 }]);
+
+  // Tiroir héros : nom + spécialité résolus en clair (i18n FR).
+  if (await page.getByTestId('hero-drawer-toggle').isVisible())
+    await page.getByTestId('hero-drawer-toggle').click();
+  await expect(page.getByTestId('hero-name')).toHaveText("Aldric l'Érudit");
+  await expect(page.getByTestId('hero-specialty')).toContainText('Arcaniste');
+
+  expect(errors).toEqual([]);
+});
+
 test('ville : en-tête revenu/croissance (C21) + « Tout recruter » (C19) (lot M7)', async ({
   page,
 }) => {
@@ -1634,7 +1659,9 @@ test('sort : le héros lance un sort en combat et réduit une pile ennemie', asy
       cast: g.combat?.heroCastThisRound ?? false,
     };
   }, setup.targetId);
-  expect(after.mana).toBeLessThan(setup.mana);
+  // Coût éclair magique 4, réduit de 20 % par la spécialité Arcaniste du héros
+  // (H-NAMED) ⇒ round(4 × 0,8) = 3 : la spécialité agit bien EN COMBAT.
+  expect(after.mana).toBe(setup.mana - 3);
   expect(after.remaining).toBeLessThan(setup.count);
   expect(after.cast).toBe(true);
 

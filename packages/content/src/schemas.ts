@@ -104,18 +104,21 @@ export const factionBonusSchema = z.discriminatedUnion('type', [
  * pour les Maisons) — un champ ignoré serait un mensonge de contenu (doc 06).
  * Au moins un effet par Maison.
  */
+/** Vocabulaire d'effets déclaratifs de héros (partagé Maison + spécialité). */
+const heroEffectFields = {
+  movementBonusPct: z.number().optional(),
+  visionBonus: z.number().optional(),
+  goldPerDay: z.number().optional(),
+  meleeDamagePct: z.number().optional(),
+  rangedDamagePct: z.number().optional(),
+  armorReductionPct: z.number().optional(),
+  luckBonus: z.number().optional(),
+  moraleBonus: z.number().optional(),
+  manaCostReductionPct: z.number().optional(),
+} as const;
+
 const houseEffectSchema = z
-  .object({
-    movementBonusPct: z.number().optional(),
-    visionBonus: z.number().optional(),
-    goldPerDay: z.number().optional(),
-    meleeDamagePct: z.number().optional(),
-    rangedDamagePct: z.number().optional(),
-    armorReductionPct: z.number().optional(),
-    luckBonus: z.number().optional(),
-    moraleBonus: z.number().optional(),
-    manaCostReductionPct: z.number().optional(),
-  })
+  .object(heroEffectFields)
   .refine((e) => Object.values(e).some((v) => v !== undefined), 'au moins un effet par Maison');
 
 /**
@@ -498,6 +501,17 @@ export const gameConfigSchema = z.object({
         power: z.number().int().nonnegative(),
         knowledge: z.number().int().nonnegative(),
       })
+      .optional(),
+    /** Nom du héros de départ (H-NAMED, doc 02 §1.1) — clé de locale UI (core) résolue au client. */
+    startingHeroName: z.string().optional(),
+    /**
+     * Spécialité du héros de départ (H-NAMED, doc 02 §1.2) : id opaque +
+     * profil d'effets déclaratifs (même vocabulaire que les Maisons). Le nom/la
+     * description localisés vivent dans les locales (`hero.specialty.<id>.*`).
+     */
+    startingHeroSpecialty: z
+      .object({ id: idSchema, ...heroEffectFields })
+      .refine((e) => Object.entries(e).some(([k, v]) => k !== 'id' && v !== undefined), 'au moins un effet de spécialité')
       .optional(),
     /** Ville de départ (doc 02 §4, plan phase-3.1) — optionnelle, mono-ville en 3.1. */
     startingTown: z

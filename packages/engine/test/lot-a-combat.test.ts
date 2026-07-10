@@ -90,6 +90,9 @@ function baseHero(over: Partial<HeroState>): HeroState {
     factionId: '',
     houseId: '',
     houseEffects: [],
+    name: '',
+    specialtyId: '',
+    specialtyEffects: [],
     warMachines: [],
     ...over,
   };

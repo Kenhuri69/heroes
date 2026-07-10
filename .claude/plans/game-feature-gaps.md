@@ -723,7 +723,8 @@ si nouvel écran), bump `CURRENT_SAVE_VERSION` si la forme de sauvegarde change
   (446 engine +3 `combat-area`, 101 content), typecheck 5/5, lint, content:check,
   golden **inchangé**, bundle < 800 Ko gzip. Restent : `firstStrike`,
   `poisonSting`, `taunt`, `breathAttack` (souffle/cône), `spellcaster`, peur,
-  `resurrectAlly`/renaissance/`devourMarks`. **PR #199 (mergée)**.
+  `resurrectAlly`/renaissance/`devourMarks`. **PR #199 (mergée)** ; `breathAttack`
+  → A3d.
 - **2026-07-10 — Lot A2d** (`.claude/plans/a2d-devour-marks.md`, branche
   `claude/a2d-devour-marks` depuis main, qui porte aussi le travail parallèle :
   héros nommés/spécialités save v16, cloud saves, blasons) : **livré**. Capacité
@@ -733,4 +734,14 @@ si nouvel écran), bump `CURRENT_SAVE_VERSION` si la forme de sauvegarde change
   Vérifs : `pnpm test` complet (448 engine +2 `combat-devour`, 101 content),
   typecheck 5/5, lint, content:check, golden **inchangé**, bundle < 800 Ko gzip.
   Restent (capacités) : `firstStrike`, `poisonSting`, `taunt`, `breathAttack`,
-  `spellcaster`, peur, `resurrectAlly`/renaissance. PR draft : (à créer, sur main).
+  `spellcaster`, peur, `resurrectAlly`/renaissance. **PR #202 (mergée)**.
+- **2026-07-10 — Lot A3d** (`.claude/plans/a3d-breath-attack.md`, branche
+  `claude/a3d-breath-attack` depuis main) : **livré**. Capacité `breathAttack(pct)`
+  (catalogue 22 → 23) : le Dragon d'os frappe aussi la pile derrière la cible
+  (souffle en ligne, 60 % des dégâts) — réutilise le « splash » de A3c (helper
+  `applySplashDamage` extrait, `hexBehind` ajouté). **Pas de bump save**. Garde-fou
+  zéro faction vert. **Toutes les capacités de lineup Necropolis sont désormais
+  actives.** Vérifs : `pnpm test` complet (452 engine +5, 101 content), typecheck
+  5/5, lint, content:check, golden **inchangé**, bundle < 800 Ko gzip. Restent
+  (capacités) : `firstStrike`, `poisonSting`, `taunt`, `spellcaster`, peur,
+  `resurrectAlly`/renaissance. PR draft : (à créer, sur main).

@@ -34,6 +34,18 @@ export function sameHex(a: OffsetPos, b: OffsetPos): boolean {
   return a.col === b.col && a.row === b.row;
 }
 
+/**
+ * Hex situé « derrière » `through` vu depuis `from` : la case dans le
+ * prolongement du segment `from → through` (souffle du Dragon, A3d). Calcul
+ * axial `through + (through − from)`. Peut sortir du plateau (à filtrer par
+ * l'appelant via `inCombatBounds`).
+ */
+export function hexBehind(from: OffsetPos, through: OffsetPos): OffsetPos {
+  const f = offsetToAxial(from);
+  const t = offsetToAxial(through);
+  return axialToOffset({ q: 2 * t.q - f.q, r: 2 * t.r - f.r });
+}
+
 /** Distance hex (cube) entre deux positions offset. */
 export function hexDistance(a: OffsetPos, b: OffsetPos): number {
   const aa = offsetToAxial(a);

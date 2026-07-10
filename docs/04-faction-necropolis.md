@@ -11,15 +11,16 @@
 > (piloté par le manifeste, appliqué via `factionCatalog`/`hero.factionId`).
 > **Différé** : scaling de la Nécromancie par la compétence (Novice/Expert/
 > Maître 10/15/20 %) + bâtiment Amplificateur (§2/§4) — effet **plat** en
-> données au MVP (15 %) ; capacités spéciales
-> `breathAttack`, bâtiments spéciaux,
+> données au MVP (15 %) ; bâtiments spéciaux,
 > « Fléau persistant », école Prime, héros nommés (Vhalen/Mère Corbeau).
 > **Livré depuis** : `lifeDrain` (Vampire) et `charge` (Cavalier funeste) en A2a ;
 > `incorporeal` (Spectre, 20 % d'esquive) en A2b ; `curseOnHit` (Zombie
 > « Affaiblissement » −Défense 20 %, Cavalier funeste « Faux funeste » −20 %
 > dégâts 100 %) en A2c ; `aura` (Dragon d'os −1 moral) en A3a ; `areaAttack`
-> (Liche nuage 1 hex, ½ dégâts, épargne les morts-vivants) en A3c — interprétées
-> par le moteur (doc 02 §5.4).
+> (Liche nuage 1 hex, ½ dégâts, épargne les morts-vivants) en A3c ; `breathAttack`
+> (Dragon d'os : souffle sur la pile derrière la cible) en A3d — interprétées
+> par le moteur (doc 02 §5.4). **Toutes les capacités de lineup Necropolis sont
+> désormais actives.**
 > Terrain natif : `swamp` (« terre morte » n'existe pas dans les terrains du
 > MVP). `raiseUndeadOnVictory` est le SEUL point d'extension ouvert. Ce
 > document reste la cible de design.

@@ -66,3 +66,22 @@ de niveau ⇒ aucun tirage de compétence ; aucune faction).
     Nécromancie » du doc 04 §2.
   - Changements partiels (types/schéma additifs) **révertés** pour garder l'arbre
     propre ; **re-checkpoint** sur le choix A/B/C.
+
+## Exécution (option B retenue)
+
+- **B implémentée** : compétence marqueur `external` — schéma `skillSchema.external`
+  + `superRefine` (rangs vides tolérés si `external`, sinon ≥1 effet/rang) ;
+  `ResolvedSkill = Omit<Skill,'name'|'external'> & { factionId? }`.
+- Moteur : `HeroSkillDef.factionId?` ; `eligibleSkills` filtre par faction
+  (`hero/level-up.ts`) ; `raiseUndeadOnVictory` `scaleSkillId?`/`percentByRank?`
+  (`faction/types.ts`) lus dans `applyRaiseUndeadOnVictory` (`faction/effects.ts`).
+- Contenu : `raiseUndeadOnVictory` scaling (`.default(''/[])` pour matcher le type
+  moteur optionnel sous exactOptionalPropertyTypes) ; `buildSkillCatalog`
+  estampille `factionId` depuis `manifest.heroSkills`.
+- Données : `necromancy` (core/skills.json, `external`, rangs vides) + locales
+  fr/en ; manifeste Necropolis `heroSkills:['necromancy']` + bonus gradué 10/15/20.
+- Test : `faction-skills.test.ts` (scaling 10<15<20 ; pool gaté par faction ;
+  ids génériques `facA`/`facB` — jamais un nom de faction réel, garde-fou vert).
+- Vérif : `pnpm test` = 496 (engine, +3) + 103 (content) ; typecheck 5/5 ; lint ;
+  `content:check` ; garde-fou vert ; build 280 Ko < 800 ; **golden inchangé**,
+  **pas de bump save**. Docs 02 §1.3 / 04 §2 / 06 mis à jour.

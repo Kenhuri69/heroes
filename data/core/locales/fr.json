@@ -643,5 +643,6 @@
   "artifact.orbe-de-savoir.lore": "On y lit ce qu'on a peur d'apprendre. Les sages la gardent sous un linge, côté verrou.",
   "artifact.trefle-chance.lore": "Cueilli sur une tombe, dit-on. La chance des Marches vient rarement sans qu'un autre l'ait perdue.",
   "resourceDetail.title": "Ressources",
-  "resourceDetail.perDay": "+{amount}/j"
+  "resourceDetail.perDay": "+{amount}/j",
+  "skill.necromancy": "Nécromancie"
 }

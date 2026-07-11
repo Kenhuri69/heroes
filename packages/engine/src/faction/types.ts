@@ -15,6 +15,14 @@ export interface RaiseUndeadOnVictoryBonus {
   capBase: number;
   /** Plafond additionnel par unité déjà présente dans l'armée du héros. */
   capPerExisting: number;
+  /**
+   * Nécromancie graduée (F-SKILLS, doc 04 §2) : compétence dont le RANG du héros
+   * pilote le pourcentage. Si le héros connaît `scaleSkillId` (rang 1..3) et que
+   * `percentByRank[rang-1]` est défini, on l'utilise au lieu de `percentHpRaised`.
+   * Absents ⇒ pourcentage plat (`percentHpRaised`), comportement historique.
+   */
+  scaleSkillId?: string;
+  percentByRank?: number[];
 }
 
 /**

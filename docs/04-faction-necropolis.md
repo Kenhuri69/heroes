@@ -9,9 +9,14 @@
 > **vivants** ennemis tués en `t1-squelette`, plafonné `capBase +
 > capPerExisting × effectif`), **sans que le moteur connaisse la faction**
 > (piloté par le manifeste, appliqué via `factionCatalog`/`hero.factionId`).
-> **Différé** : scaling de la Nécromancie par la compétence (Novice/Expert/
-> Maître 10/15/20 %) + bâtiment Amplificateur (§2/§4) — effet **plat** en
-> données au MVP (15 %) ; bâtiments spéciaux,
+> **Livré (F-SKILLS)** : **scaling de la Nécromancie par la compétence**
+> (Novice/Expert/Maître **10/15/20 %**) — `raiseUndeadOnVictory` gagne
+> `scaleSkillId: 'necromancy'` + `percentByRank: [10,15,20]` ; l'effet lit le rang
+> du héros dans la compétence `necromancy` (repli sur le % plat si non apprise).
+> La compétence `necromancy` est une **compétence de faction** (marqueur à effet
+> externe, `external`), estampillée `factionId` par le loader depuis
+> `manifest.heroSkills` ⇒ **proposée au tirage de niveau aux seuls héros
+> Necropolis**. **Différé** : bâtiment Amplificateur (+% cumulable, §2/§4) ;
 > « Fléau persistant », école Prime, héros nommés (Vhalen/Mère Corbeau).
 > **Livré depuis** : `lifeDrain` (Vampire) et `charge` (Cavalier funeste) en A2a ;
 > `incorporeal` (Spectre, 20 % d'esquive) en A2b ; `curseOnHit` (Zombie

@@ -15,6 +15,10 @@ function eligibleSkills(hero: HeroState, catalog: Draft['skillCatalog']): string
   const ids = Object.keys(catalog).sort();
   const eligible: string[] = [];
   for (const id of ids) {
+    // F-SKILLS : une compétence de faction (`factionId` estampillé) n'est proposée
+    // qu'aux héros de sa faction. Compétence commune (`factionId` absent) : à tous.
+    const factionId = catalog[id]?.factionId;
+    if (factionId && factionId !== hero.factionId) continue;
     const rank = hero.skills[id];
     if (rank !== undefined) {
       if (rank < 3) eligible.push(id);

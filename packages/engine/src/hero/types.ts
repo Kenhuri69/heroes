@@ -74,6 +74,14 @@ export interface HeroSkillDef {
    * école (A6). Absente pour les compétences non magiques.
    */
   school?: SpellSchool;
+  /**
+   * Faction propriétaire (F-SKILLS, doc 02 §1.3) — id opaque **estampillé par le
+   * loader** depuis `manifest.heroSkills`. Une compétence de faction n'est
+   * proposée au tirage de niveau **qu'aux héros de cette faction** (`hero.factionId
+   * === factionId`). Absente = compétence **commune**. Le moteur ne compare
+   * jamais qu'un id ; optionnelle ⇒ vieilles saves gracieuses (aucun bump).
+   */
+  factionId?: string;
 }
 
 /**

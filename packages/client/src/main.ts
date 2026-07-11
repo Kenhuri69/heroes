@@ -36,7 +36,7 @@ import { registerCamera, unregisterCamera } from './app/camera-control';
 import { playOpeningCutscene } from './app/cutscene';
 import { initCampaign, startCampaignChapter, campaignFlags } from './app/campaign';
 import { initI18n, t } from './app/i18n';
-import { preloadPixiTextures, combatBackgroundUrl, chromeFrameUrl, chromeRibbonUrl } from './render/assets';
+import { preloadPixiTextures, combatBackgroundUrl, chromeFrameUrl, chromeRibbonUrl, initHeroAvatars } from './render/assets';
 import { AdventureScene } from './scenes/adventure/AdventureScene';
 import { CombatScene } from './scenes/combat/CombatScene';
 import { mountUi } from './ui/shell';
@@ -85,6 +85,8 @@ async function bootstrap(): Promise<void> {
     rejected: report.rejected.map((r) => r.id),
   };
   initI18n(report);
+  // Avatars dédiés des héros nommés (M-TAVERN.3) : réf de nom → clé de fiche.
+  initHeroAvatars(report.content.packs.flatMap((p) => p.heroes));
   const map = await loadDefaultMap(report);
 
   const app = new Application();

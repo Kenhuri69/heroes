@@ -116,6 +116,30 @@ pool inter-joueurs, IA qui recrute des héros, choix du héros de départ
    < 800 Ko ✓ · smoke complet **150 passés / 2 skip / 0 échec** ✓.
 8. [ ] Commit + push `claude/hero-system-tavern-eob1jr`, PR draft.
 
+## Suite — M-TAVERN.3 : portraits dédiés (post-merge #262)
+
+L'utilisateur a généré les 3 portraits Haven depuis les prompts fournis
+(Règle B doc 12 §3/§7.3). Branche repartie de `main` (PR #262 mergée).
+
+1. [x] Staging : `assets/heroes/haven-{anton,freyda,isabel}.png` — 256²,
+   115/121/116 Ko < 150 Ko (redimensionnés depuis les uploads 1024²).
+2. [x] Fiches : `avatar` bascule des clés génériques vers `haven-<id>`.
+3. [x] Client : résolution d'avatar PAR HÉROS — `initHeroAvatars(report)`
+   (réf de nom `@loc:hero.<id>.name` → clé `avatar` de fiche, même valeur que
+   `HeroState.name`/`ResolvedHeroDef.name`) ; `heroAvatarUrl` gagne un
+   3ᵉ paramètre `heroName?` (portrait dédié si présent, repli archétype).
+   Branché : tiroir héros, onglet Taverne, écran pré-combat, médaillon de la
+   scène de combat. Effet de bord voulu : les portraits Vox déjà stagés
+   (anastasia/celeste/iris) s'affichent enfin.
+4. [x] Necropolis : portraits reçus et stagés
+   (`assets/heroes/necropolis-{sandro,ornella,markal}.png`, 122/125/123 Ko),
+   fiches basculées. Doc 04 mis à jour.
+5. [x] Smoke : nouveau test « le portrait DÉDIÉ d'un héros canon s'affiche »
+   (escarmouche Haven ⇒ Taverne ⇒ `src` de la carte d'Anton contient
+   `haven-anton`). Suite complète 152 passés / 2 skip / 0 échec + unitaires
+   660 ✓ (avant staging Necropolis ; re-vérifiée ciblée après).
+6. [ ] Commit + push + nouvelle PR.
+
 ## Journal
 
 - Branche : `claude/hero-system-tavern-eob1jr` depuis main @ 5bdb5c9.

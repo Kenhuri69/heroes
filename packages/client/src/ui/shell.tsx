@@ -623,7 +623,7 @@ function HeroDrawer() {
       <aside class={`hero-drawer${open ? ' open' : ''}`} data-testid="hero-drawer">
         <HeroStrip />
         <AssetImg
-          src={heroAvatarUrl(hero.factionId, heroArchetype(hero.attributes))}
+          src={heroAvatarUrl(hero.factionId, heroArchetype(hero.attributes), hero.name)}
           alt=""
           class="hero-avatar"
           fallback={<div class="hero-portrait-placeholder" aria-hidden="true" />}

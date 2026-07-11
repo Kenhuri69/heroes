@@ -95,8 +95,33 @@ export function unitSpriteUrl(unitId: string, factionId?: string): string | unde
     : undefined;
 }
 
-/** Avatar de héros (`heroes/<factionId>-<archetype>`, doc 08 §5, lot U5-D). */
-export function heroAvatarUrl(factionId: string, archetype: 'might' | 'magic'): string | undefined {
+/**
+ * Avatars dédiés des héros nommés (M-TAVERN.3) : réf de nom de la fiche
+ * (`@loc:hero.<id>.name` — la même valeur que porte `HeroState.name` et
+ * `ResolvedHeroDef.name`) → clé `avatar` de la fiche. Initialisé au démarrage
+ * depuis le rapport de contenu (comme l'i18n) — vide tant que non appelé.
+ */
+let heroAvatarKeysByName: Record<string, string> = {};
+
+export function initHeroAvatars(identities: readonly { name: string; avatar: string }[]): void {
+  heroAvatarKeysByName = Object.fromEntries(identities.map((h) => [h.name, h.avatar]));
+}
+
+/**
+ * Avatar de héros (doc 08 §5, lot U5-D) : portrait DÉDIÉ du héros nommé si sa
+ * fiche en déclare un et que l'asset existe (`heroes/<avatar>`, M-TAVERN.3),
+ * sinon archétype de faction (`heroes/<factionId>-<archetype>`).
+ */
+export function heroAvatarUrl(
+  factionId: string,
+  archetype: 'might' | 'magic',
+  heroName?: string,
+): string | undefined {
+  if (heroName) {
+    const key = heroAvatarKeysByName[heroName];
+    const dedicated = key ? registry.get(`heroes/${key}`) : undefined;
+    if (dedicated) return dedicated;
+  }
   return factionId ? registry.get(`heroes/${factionId}-${archetype}`) : undefined;
 }
 

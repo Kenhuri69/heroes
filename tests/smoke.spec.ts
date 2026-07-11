@@ -1665,6 +1665,40 @@ test('taverne : construire ⇒ onglet Taverne ⇒ recruter un héros nommé (M-T
   expect(errors).toEqual([]);
 });
 
+test('taverne : le portrait DÉDIÉ d’un héros canon s’affiche (M-TAVERN.3)', async ({ page }) => {
+  const errors = collectErrors(page);
+  await page.goto('./');
+  await page.waitForFunction(() => window.__HEROES_READY__ === true);
+
+  // Escarmouche par défaut : la faction humaine est le 1er paquet chargé
+  // (haven), dont le roster porte des héros canon à portrait dédié stagé.
+  await page.getByTestId('menu-skirmish').click();
+  await page.getByTestId('skirmish-start').click();
+  await expect(page.getByTestId('end-turn')).toBeVisible();
+
+  // Bâtir la Taverne de la ville humaine puis ouvrir l'onglet.
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({
+      type: 'BuildStructure',
+      townId: 'town-player-1',
+      buildingId: 'tavern',
+    }),
+  );
+  await page.getByTestId('town-open-town-player-1').click();
+  await page.getByTestId('town-tab-tavern').click();
+
+  // La carte d'Anton affiche son PORTRAIT DÉDIÉ (assets/heroes/haven-anton.png,
+  // via la clé `avatar` de sa fiche) — pas l'archétype générique de la faction.
+  await expect(page.getByTestId('town-tavern-recruit-anton')).toBeVisible();
+  const card = page.locator('.town-tavern-hero', {
+    has: page.getByTestId('town-tavern-recruit-anton'),
+  });
+  const src = await card.locator('img.town-tavern-avatar').getAttribute('src');
+  expect(src ?? '').toContain('haven-anton');
+
+  expect(errors).toEqual([]);
+});
+
 test('héros nommé : nom + spécialité affichés, effets résolus (H-NAMED, lot 3)', async ({ page }) => {
   const errors = await openGame(page);
 

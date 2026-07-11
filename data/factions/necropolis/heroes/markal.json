@@ -5,7 +5,7 @@
   "archetype": "magic",
   "origin": "canon",
   "source": "Might & Magic",
-  "avatar": "necropolis-magic",
+  "avatar": "necropolis-markal",
   "avatarStyle": "painterly",
   "specialty": "@loc:hero.markal.specialty",
   "attributes": { "attack": 1, "defense": 0, "power": 3, "knowledge": 2 },

@@ -140,5 +140,6 @@ Héros nommés MVP : *Aldric* (Chevalier, spécialité : +1 vitesse Chevaliers d
 > garnison via l'effet town-scoped `garrisonDefense`), **Freyda** (Might,
 > chevalière — *Charge de cavalerie*, +10 % dégâts de mêlée), **Isabel** (Magic,
 > reine — *Trésor impérial*, +250 or/jour ; sorts de Lumière de départ).
-> Fiches `heroes/{anton,freyda,isabel}.json`, avatars = clés génériques
-> `haven-might`/`haven-magic` (portraits dédiés différés, doc 12 §7).
+> Fiches `heroes/{anton,freyda,isabel}.json`, **portraits dédiés** stagés
+> (`assets/heroes/haven-<id>.png`, Règle B doc 12 §3) et affichés partout où
+> l'avatar apparaît (tiroir, Taverne, pré-combat, combat — M-TAVERN.3).

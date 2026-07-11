@@ -114,8 +114,9 @@ Héros nommés MVP : *Vhalen* (Chevalier de la mort, spécialité : Vampires +1 
 > départ, Nécromancie/Sagesse), **Markal** (Magic, conseiller de cour —
 > *Intrigant de cour*, +200 or/jour), **Ornella** (Might, chevalière noire —
 > *Dame noire*, −10 % dégâts de mêlée subis). Fiches
-> `heroes/{sandro,markal,ornella}.json`, avatars = clés génériques
-> `necropolis-might`/`necropolis-magic`. **Différés** : *Vhalen* et *Mère
+> `heroes/{sandro,markal,ornella}.json`, **portraits dédiés** stagés
+> (`assets/heroes/necropolis-<id>.png`, Règle B doc 12 §3 — affichés tiroir/
+> Taverne/pré-combat/combat, M-TAVERN.3). **Différés** : *Vhalen* et *Mère
 > Corbeau* — leurs spécialités du tableau ci-dessus sont **conditionnelles**
 > (par unité / par niveau), hors du vocabulaire d'effets déclaratifs actuel
 > (nouveau point d'extension moteur requis).

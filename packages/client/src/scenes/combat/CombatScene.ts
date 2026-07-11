@@ -239,7 +239,7 @@ export class CombatScene {
           .fill(0x232630)
           .stroke({ width: 3, color }),
       );
-      const url = heroAvatarUrl(hero.factionId, heroArchetype(hero.attributes));
+      const url = heroAvatarUrl(hero.factionId, heroArchetype(hero.attributes), hero.name);
       if (url) {
         void Assets.load(url).then((texture) => {
           if (token.destroyed) return;

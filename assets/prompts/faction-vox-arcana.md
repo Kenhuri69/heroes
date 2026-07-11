@@ -23,6 +23,10 @@ Les 3 planches ont été générées (Gemini) puis extraites via `sheet_extract.
   **origine `original`**, Maison du Blaireau/Poufsouffle — loyauté). **Photoréaliste**
   (grimage d'une photo source), ambre-or + noir, iris violet + blaireau, 256² RGBA.
   Voir §1c pour le prompt (doc 16 État 16.9).
+- `assets/heroes/vox-arcana-anastasia.png` — **Anastasia** (5ᵉ héroïne nommée,
+  Magic offensive, **origine `original`**, Maison du Lion/Gryffondor — disciple
+  d'Hermione, orientée attaque). **⏳ avatar en attente** (fiche livrée, PNG à
+  déposer). Prompt photoréaliste §1d.
 - `assets/houses/vox-arcana/house-{lion,serpent,eagle,badger,venari}.png` (5 blasons).
 - `assets/units/vox-arcana/t1..t8.png` — **8/8** (`t1-choeur`, `t2-duelliste`,
   `t3-hippogriffe`, `t4-idole`, `t5-sombral`, `t6-maitre`, `t7-phenix`, `t8-avatar`).
@@ -136,6 +140,37 @@ violet neon accent in the background. Replace the background with a heavily
 blurred neon-lit gothic academy courtyard at dusk, wisteria vines and Korean
 pagoda silhouettes, warm bokeh lanterns. Shallow depth of field, 85mm portrait
 look, professional color grade.
+Photorealistic result, single bust shot (head and shoulders), 3/4 face turn,
+subject centered with clear space around head and shoulders, square 1:1.
+no text, no watermark, no signature, no border frame, no ground line
+```
+
+### 1d. Avatar Anastasia — grimage photoréaliste (héroïne #5, Magic offensive, Maison du Lion)
+
+> Origine `original`, Maison du Lion (Gryffondor : courage), disciple d'Hermione,
+> **orientée attaque**. Édition d'une photo source, sortie carrée →
+> `assets/heroes/vox-arcana-anastasia.png` (256² RGBA).
+
+```
+Edit the provided photo. Keep this exact person — preserve their real face,
+identity, bone structure, skin and gaze. Do NOT replace the person. Only
+"grimer"/transform them (makeup, hair, costume, lighting, background) into a
+character: Anastasia, a brave and fiery offensive battle-mage of the Vox Arcana
+academy, belonging to the House of the Lion (Gryffindor-inspired: courage,
+boldness), a disciple of the mage Hermione. Original character (not from any book).
+Keep the person's own hair but tint it with warm auburn-red highlights, bold and
+windswept, a small golden lion-crest hairpin. Fierce confident half-smile, sharp
+determined eyes, light battle makeup with crimson-and-gold accents, clearly
+recognizable as the same person.
+Dress them in black-and-crimson academy robes with a golden lion house crest and
+gold filigree, over a school-crest tabard; a glowing wand crackling with fiery
+red-gold offensive magic held forward in an aggressive casting stance; embers and
+sparks around. Realistic materials: brushed gold, dark leather, woven fabric.
+Relight: warm crimson-gold key light from upper-left, hot ember rim light, subtle
+violet neon accent in the background. Replace the background with a heavily
+blurred neon-lit gothic academy at night in the heat of a duel, wisteria vines
+and Korean pagoda silhouettes, sparks and warm bokeh. Shallow depth of field,
+85mm portrait look, professional color grade.
 Photorealistic result, single bust shot (head and shoulders), 3/4 face turn,
 subject centered with clear space around head and shoulders, square 1:1.
 no text, no watermark, no signature, no border frame, no ground line

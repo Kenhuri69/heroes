@@ -60,6 +60,7 @@
   --ok-text: #7ed08a;
   --ok-veil: rgba(90, 140, 90, 0.3);
   --info-veil: rgba(90, 120, 160, 0.3);
+  --gain: #6fcf7f; /* revenu positif « +X/j » — jamais seul canal d'info */
 
   /* — Voiles sombres (panneaux posés sur le canvas / les fonds peints) — */
   --veil-55: rgba(20, 22, 28, 0.55);

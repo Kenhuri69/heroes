@@ -208,6 +208,48 @@ describe('generateMap', () => {
     for (const d of dwellings) expect((d as { unitId: string }).unitId).toBe('t1-guard');
   });
 
+  it('connexité : chaque départ et chaque objet est atteignable depuis le 1er départ', () => {
+    // Mêmes règles que le jeu : 8 directions, pas de blocage de coin, terrains
+    // à moveCost null infranchissables (water/mountain/rocks).
+    const impassable = new Set(['water', 'mountain', 'rocks']);
+    for (const [size, players] of [
+      [24, 2],
+      [48, 3],
+    ] as const) {
+      for (let seed = 1; seed <= 12; seed++) {
+        const map = generateMap('random', seed, {
+          width: size,
+          height: size,
+          startPositionCount: players,
+          guardianUnits: ['t1-guard'],
+          artifactIds: ['trefle-chance'],
+        });
+        const pass = (x: number, y: number): boolean =>
+          !impassable.has(map.legend[map.tiles[y]![x]!]!);
+        const reached = new Set<string>();
+        const queue = [map.startPositions[0]!];
+        reached.add(`${queue[0]!.x},${queue[0]!.y}`);
+        for (let head = 0; head < queue.length; head++) {
+          const { x, y } = queue[head]!;
+          for (let dy = -1; dy <= 1; dy++) {
+            for (let dx = -1; dx <= 1; dx++) {
+              if (dx === 0 && dy === 0) continue;
+              const nx = x + dx;
+              const ny = y + dy;
+              const key = `${nx},${ny}`;
+              if (nx < 0 || ny < 0 || nx >= size || ny >= size) continue;
+              if (reached.has(key) || !pass(nx, ny)) continue;
+              reached.add(key);
+              queue.push({ x: nx, y: ny });
+            }
+          }
+        }
+        for (const s of map.startPositions) expect(reached.has(`${s.x},${s.y}`)).toBe(true);
+        for (const o of map.objects) expect(reached.has(`${o.x},${o.y}`)).toBe(true);
+      }
+    }
+  });
+
   it('la taille et le multiplicateur de ressources pilotent la densité d’objets', () => {
     const countRes = (m: MapFile): number =>
       m.objects.filter((o) => o.type === 'resource' || o.type === 'mine' || o.type === 'treasure').length;

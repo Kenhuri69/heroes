@@ -138,6 +138,8 @@ export type GameEvent =
   | { type: 'FactionResourceGained'; playerId: string; resource: string; amount: number }
   /** Pile immobilisée (doc 05 §3.1 `pinningShot`) : son tour est sauté. */
   | { type: 'StackImmobilized'; stackId: string }
+  /** Pile effrayée par `fear` (Sombral, doc 16 §4) : elle sautera son prochain tour. */
+  | { type: 'StackFeared'; targetId: string }
   /** Bascule en forme démon (doc 05 §4 `demonform`) : perd la résistance, gagne des dégâts. */
   | { type: 'StackTransformed'; stackId: string }
   | {

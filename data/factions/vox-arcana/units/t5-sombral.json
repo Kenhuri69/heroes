@@ -19,6 +19,13 @@
   "abilities": [
     {
       "id": "flying"
+    },
+    {
+      "id": "fear",
+      "params": {
+        "chance": 0.2,
+        "rounds": 1
+      }
     }
   ]
 }

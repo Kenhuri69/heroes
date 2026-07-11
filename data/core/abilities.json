@@ -1,3 +1,3 @@
 {
-  "abilities": ["flying", "shooter", "noRetaliation", "mark", "undead", "doubleAttack", "consumeMarks", "demonform", "symbiosis", "shieldWall", "unlimitedRetaliation", "charge", "magicResistance", "lifeDrain", "incorporeal", "strikeAndReturn", "curseOnHit", "aura", "moraleImmune", "swarm", "areaAttack", "devourMarks", "breathAttack", "taunt", "poisonSting", "firstStrike"]
+  "abilities": ["flying", "shooter", "noRetaliation", "mark", "undead", "doubleAttack", "consumeMarks", "demonform", "symbiosis", "shieldWall", "unlimitedRetaliation", "charge", "magicResistance", "lifeDrain", "incorporeal", "strikeAndReturn", "curseOnHit", "aura", "moraleImmune", "swarm", "areaAttack", "devourMarks", "breathAttack", "taunt", "poisonSting", "firstStrike", "fear"]
 }

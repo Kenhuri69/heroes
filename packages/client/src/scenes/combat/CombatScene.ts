@@ -452,6 +452,12 @@ export class CombatScene {
         if (token) this.spawnFloatingLabel(new Point(token.position.x, token.position.y), 'maudit', 0xb07de0);
         return;
       }
+      case 'StackFeared': {
+        // fear (Sombral, doc 16 §4) : label « peur » sombre sur la cible effrayée.
+        const token = this.stackTokens.get(event.targetId);
+        if (token) this.spawnFloatingLabel(new Point(token.position.x, token.position.y), 'peur', 0x9b6bd0);
+        return;
+      }
       default:
         return;
     }

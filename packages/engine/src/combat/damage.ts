@@ -202,6 +202,15 @@ export function curseOnHitPlan(
   };
 }
 
+/** Peur infligée par `fear` (Sombral, doc 16 §4), ou `null`. `chance` ∈ [0,1]. */
+export function fearPlan(def: CombatUnitDef): { chance: number; rounds: number } | null {
+  const ability = def.abilities.find((a) => a.id === 'fear');
+  if (!ability) return null;
+  const rounds = Number(ability.params?.['rounds'] ?? 0);
+  if (rounds <= 0) return null;
+  return { chance: Number(ability.params?.['chance'] ?? 0), rounds };
+}
+
 /** Poison infligé par `poisonSting` (Manticore, doc 05 §4, A2f), ou `null`. */
 export function poisonStingPlan(def: CombatUnitDef): { damagePerRound: number; rounds: number } | null {
   const ability = def.abilities.find((a) => a.id === 'poisonSting');
@@ -679,6 +688,24 @@ export function performStrike(
     const existing = victim.statuses.find((s) => s.spellId === spellId);
     if (existing) Object.assign(existing, status); // rafraîchit la durée
     else victim.statuses.push(status);
+  }
+
+  // `fear` (Sombral, doc 16 §4) : une frappe qui touche (non esquivée, cible
+  // survivante) a une chance d'effrayer la cible ⇒ elle saute son prochain tour
+  // (réutilise `immobilizedRounds`, comme `pinningShot`). Jet gated sur la
+  // capacité (aucun tirage hors unité effrayante ⇒ golden inchangé).
+  const fear = dodged ? null : fearPlan(strikerDef);
+  if (fear && victim.count > 0) {
+    let applies = fear.chance >= 1;
+    if (!applies && fear.chance > 0) {
+      const roll = rollRange(draft.rng, 0, 99);
+      draft.rng = roll.state;
+      applies = roll.value < Math.round(fear.chance * 100);
+    }
+    if (applies) {
+      victim.immobilizedRounds = Math.max(victim.immobilizedRounds, fear.rounds);
+      events.push({ type: 'StackFeared', targetId: victim.id });
+    }
   }
 
   const targetDied = victim.count <= 0;

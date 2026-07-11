@@ -146,7 +146,8 @@
 > seulement si la Taverne est **construite** (même règle que Marché/Guilde ; tap
 > sur la vignette de la Taverne dans la vue peinte ⇒ onglet). Liste le **roster
 > de héros nommés de la faction de la ville** (`GameState.heroRoster`) : avatar
-> (`heroes/<faction>-<archétype>`, repli procédural), nom, **bio** dépliable
+> (**portrait dédié** `heroes/<clé de fiche>` si stagé — M-TAVERN.3, sinon
+> `heroes/<faction>-<archétype>`, repli procédural), nom, **bio** dépliable
 > (parité tactile X2), spécialité (nom + effet), attributs, **coût en or** et
 > compteur `héros possédés/cap`. Bouton **Recruter** ⇒ `RecruitHero` (re-validé
 > moteur) ; états affichés : « Recruté » (carte atténuée + libellé, canal non

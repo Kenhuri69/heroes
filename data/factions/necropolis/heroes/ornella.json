@@ -5,7 +5,7 @@
   "archetype": "might",
   "origin": "canon",
   "source": "Might & Magic",
-  "avatar": "necropolis-might",
+  "avatar": "necropolis-ornella",
   "avatarStyle": "painterly",
   "specialty": "@loc:hero.ornella.specialty",
   "attributes": { "attack": 2, "defense": 3, "power": 0, "knowledge": 1 },

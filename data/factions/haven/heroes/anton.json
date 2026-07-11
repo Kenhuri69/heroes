@@ -5,7 +5,7 @@
   "archetype": "might",
   "origin": "canon",
   "source": "Might & Magic",
-  "avatar": "haven-might",
+  "avatar": "haven-anton",
   "avatarStyle": "painterly",
   "specialty": "@loc:hero.anton.specialty",
   "attributes": { "attack": 2, "defense": 2, "power": 1, "knowledge": 1 },

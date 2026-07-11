@@ -5,7 +5,7 @@
   "archetype": "might",
   "origin": "canon",
   "source": "Might & Magic",
-  "avatar": "haven-might",
+  "avatar": "haven-freyda",
   "avatarStyle": "painterly",
   "specialty": "@loc:hero.freyda.specialty",
   "attributes": { "attack": 3, "defense": 1, "power": 1, "knowledge": 1 },

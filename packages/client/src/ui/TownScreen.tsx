@@ -487,7 +487,7 @@ function TavernTab({ town, onError }: { town: TownState; onError: (msg: string |
               <li key={heroId} class={`town-tavern-hero${already ? ' is-recruited' : ''}`}>
                 <div class="town-tavern-header">
                   <AssetImg
-                    src={heroAvatarUrl(def.factionId, heroArchetype(def.attributes))}
+                    src={heroAvatarUrl(def.factionId, heroArchetype(def.attributes), def.name)}
                     alt=""
                     class="town-tavern-avatar"
                     fallback={<i class="town-tavern-avatar-fallback" aria-hidden="true" />}

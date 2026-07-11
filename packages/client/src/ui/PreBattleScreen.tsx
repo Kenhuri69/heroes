@@ -56,7 +56,7 @@ export function PreBattleScreen() {
             <div class="pre-battle-portrait">
               {hero ? (
                 <AssetImg
-                  src={heroAvatarUrl(hero.factionId, heroArchetype(hero.attributes))}
+                  src={heroAvatarUrl(hero.factionId, heroArchetype(hero.attributes), hero.name)}
                   alt=""
                   class="pre-battle-avatar"
                   fallback={<FactionBadge factionId={hero.factionId} />}

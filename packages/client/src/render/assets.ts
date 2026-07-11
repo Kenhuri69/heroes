@@ -161,9 +161,19 @@ export function terrainPropUrl(terrain: string, variant: number): string | undef
   return registry.get(`tiles/props/${terrain}-${variant}`);
 }
 
-/** Objet de carte « tas de ressource » → visuel de mine par ressource. */
+/** Mine capturable → visuel de mine par ressource (EXCLUSIF aux mines). */
 export function mineUrl(resource: string): string | undefined {
   return registry.get(`mines/mine-${resource}`);
+}
+
+/**
+ * Tas de ressource RAMASSABLE (`resources/pile-<res>`) — famille distincte du
+ * visuel de mine : une mine (bâtiment permanent à capturer) et un tas (objet
+ * consommé au passage) ne doivent plus partager le même asset (plan
+ * map-design-issues P3). `undefined` ⇒ repli procédural (losange teinté).
+ */
+export function resourcePileUrl(resource: string): string | undefined {
+  return registry.get(`resources/pile-${resource}`);
 }
 
 export function artifactUrl(id: string): string | undefined {
@@ -223,11 +233,12 @@ export function uiIconUrl(id: string, px = 24): string | undefined {
 
 // --- Chemin PixiJS : préchargement + lecture synchrone du cache ---
 
-/** URLs rendues dans PixiJS (tuiles + mines) — préchargées au bootstrap. */
+/** URLs rendues dans PixiJS (tuiles + mines + tas) — préchargées au bootstrap. */
 function pixiUrls(): string[] {
   const urls: string[] = [];
   for (const [key, url] of registry) {
-    if (key.startsWith('tiles/') || key.startsWith('mines/')) urls.push(url);
+    if (key.startsWith('tiles/') || key.startsWith('mines/') || key.startsWith('resources/'))
+      urls.push(url);
   }
   return urls;
 }

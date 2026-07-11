@@ -162,7 +162,9 @@ Au cadrage, elle **réutilise à l'identique** le mécanisme de ressource de fac
 livré pour l'Essence (Arcane Hunters, doc 05 §3.3) :
 
 - Déclarée dans le manifeste (`factionResources`), affichée dans la barre de
-  ressources, plafonnée.
+  ressources, **plafonnée** — le cap (999) est désormais **appliqué au gain**
+  (F-RESON.1 : estampillé par le loader sur le bonus de gain, plafonne le crédit
+  post-victoire).
 - **Gagnée** à chaque combat gagné (`gainFactionResourceOnVictory`), event +
   toast i18n.
 - **Dépensée** au recrutement du **T8 Avatar du Honmoon** (comme l'Essence gate

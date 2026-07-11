@@ -34,6 +34,13 @@ export interface GainFactionResourceOnVictoryBonus {
   type: 'gainFactionResourceOnVictory';
   resource: string;
   amount: number;
+  /**
+   * Plafond de la ressource (F-RESON.1, doc 16 §3.2 / doc 05 §3.3) — **estampillé
+   * par le loader** depuis `manifest.factionResources[].cap`, jamais authored. Le
+   * gain post-victoire est plafonné à cette valeur. Optionnel ⇒ vieilles saves
+   * gracieuses (absent = non plafonné). Le moteur ne lit qu'un nombre opaque.
+   */
+  cap?: number;
 }
 
 /**

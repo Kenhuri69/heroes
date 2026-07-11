@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { loadContent, type ReadJson } from '../src/loader';
+import { buildFactionCatalog, loadContent, type ReadJson } from '../src/loader';
 
 /**
  * Vox Arcana — Résonance (plan phase-16 lot 16.4, doc 16 §3.2). La Résonance
@@ -50,5 +50,13 @@ describe('Résonance — ressource de faction de l\'académie', () => {
     const t8 = pack.units.find((u) => u.tier === 8);
     if (!t8) throw new Error('unité T8 absente du lineup');
     expect((t8.cost as Record<string, number>)[resource.id]).toBeGreaterThan(0);
+
+    // F-RESON.1 : `buildFactionCatalog` estampille le cap de la ressource sur le
+    // bonus de gain (pour que le moteur plafonne le crédit post-victoire).
+    const catalog = buildFactionCatalog(report);
+    const stampedGain = catalog[pack.manifest.id]?.bonuses.find(
+      (b) => b.type === 'gainFactionResourceOnVictory' && b.resource === resource.id,
+    );
+    expect(stampedGain?.type === 'gainFactionResourceOnVictory' && stampedGain.cap).toBe(resource.cap);
   });
 });

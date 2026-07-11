@@ -337,6 +337,43 @@ describe('applyFactionVictoryEffects — gainFactionResourceOnVictory', () => {
   });
 });
 
+// F-RESON.1 : même bonus, mais plafonné (cap estampillé par le loader).
+const CAPPED_CATALOG: Record<string, { bonuses: FactionBonus[] }> = {
+  hunter: { bonuses: [{ type: 'gainFactionResourceOnVictory', resource: 'essence', amount: 10, cap: 12 }] },
+};
+
+describe('F-RESON.1 — cap de ressource de faction appliqué au gain', () => {
+  it('plafonne le gain au cap (le crédit ne dépasse pas la capacité)', () => {
+    const h = hero({ factionId: 'hunter' });
+    const combat = combatState([attackerAlive('grunt', 5), defenderDead('wolf')]);
+    recordLoss(combat, 'defender', 'wolf', 3);
+    const state = baseState({
+      factionCatalog: CAPPED_CATALOG,
+      heroes: [h],
+      players: [player({ factionResources: { essence: 5 } })], // 5 + 10 = 15, plafonné à 12
+      combat,
+    });
+    const { state: next, events } = runCheckCombatEnd(state);
+    expect(next.players.find((p) => p.id === 'p1')?.factionResources['essence']).toBe(12);
+    // L'event reflète le gain RÉEL (7), pas le montant nominal (10).
+    expect(events).toContainEqual({ type: 'FactionResourceGained', playerId: 'p1', resource: 'essence', amount: 7 });
+  });
+
+  it('déjà au cap : aucun gain, jamais de réduction', () => {
+    const h = hero({ factionId: 'hunter' });
+    const combat = combatState([attackerAlive('grunt', 5), defenderDead('wolf')]);
+    recordLoss(combat, 'defender', 'wolf', 3);
+    const state = baseState({
+      factionCatalog: CAPPED_CATALOG,
+      heroes: [h],
+      players: [player({ factionResources: { essence: 20 } })], // déjà > cap
+      combat,
+    });
+    const { state: next } = runCheckCombatEnd(state);
+    expect(next.players.find((p) => p.id === 'p1')?.factionResources['essence']).toBe(20); // inchangé
+  });
+});
+
 describe('propriété : après relève, l’armée du héros reste ≤ 7 piles', () => {
   it('quels que soient l’effectif pré-existant et les PV vivants tués', () => {
     fc.assert(

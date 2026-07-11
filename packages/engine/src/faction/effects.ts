@@ -44,13 +44,18 @@ function applyGainFactionResourceOnVictory(
   if (bonus.amount <= 0) return;
   const player = draft.players.find((p) => p.id === hero.playerId);
   if (!player) return;
-  player.factionResources[bonus.resource] =
-    (player.factionResources[bonus.resource] ?? 0) + bonus.amount;
+  const current = player.factionResources[bonus.resource] ?? 0;
+  const next = current + bonus.amount;
+  // F-RESON.1 : plafonne le gain au cap de la ressource (doc 16 §3.2 / doc 05 §3.3).
+  // `max(current, …)` : ne réduit jamais un stock déjà au-delà du cap (pré-seedé
+  // par un scénario) — patron R1 de la croissance de ville. Cap absent = non plafonné.
+  const capped = bonus.cap !== undefined ? Math.max(current, Math.min(next, bonus.cap)) : next;
+  player.factionResources[bonus.resource] = capped;
   events.push({
     type: 'FactionResourceGained',
     playerId: player.id,
     resource: bonus.resource,
-    amount: bonus.amount,
+    amount: capped - current,
   });
 }
 

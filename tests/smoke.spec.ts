@@ -243,6 +243,11 @@ test('tap sur une ressource : fiche stock + revenu/jour (doc 08 §2.1, lot M6 C8
 }) => {
   const errors = await openGame(page);
 
+  // UX-RAIL (doc 08 §2.1) : revenu quotidien inline dans la barre haute (hôtel de
+  // ville = +500 or/j). Présent des deux côtés ; masqué par CSS en portrait
+  // compact (toContainText lit le textContent sans exiger la visibilité).
+  await expect(page.getByTestId('resource-income-gold')).toContainText('+500');
+
   // Tap sur l'or ⇒ fiche ressource : stock + revenu/jour (hôtel de ville = +500/j).
   await page.getByTestId('resource-open-gold').click();
   const card = page.getByTestId('resource-detail');

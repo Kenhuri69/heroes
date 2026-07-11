@@ -46,7 +46,11 @@
 > défilement horizontal : les grands nombres sont **abrégés** (≥ 10 000 →
 > « 12k », ≥ 10 M → « 12M » ; valeur exacte en `title`, fiche détaillée au tap =
 > lot M6), padding et police réduits en portrait (hauteur ~32 px au lieu de 2
-> lignes). **Sauvegarder/Charger** quittent la barre de tour (l'autosave de fin
+> lignes). **Revenu inline « +N » (UX-RAIL)** : sur desktop, le revenu quotidien
+> projeté (`dailyIncome`, même helper que la fiche `ResourceDetail`) s'affiche à
+> côté de chaque stock ; **masqué en portrait compact** (le détail reste au tap).
+> Arbitrage UXD-8 tranché : pas de rail droit ressources séparé (le rail droit
+> desktop porte héros/mini-carte — l'inline suffit). **Sauvegarder/Charger** quittent la barre de tour (l'autosave de fin
 > de tour couvre le cas courant) pour la **section « Données » des Options**
 > (à côté d'export/import `.heroes`) : la barre de tour ne garde que les actions
 > de contexte (options, journal, ville(s)) et le geste majeur **Fin de tour**.

@@ -286,6 +286,36 @@ describe('generateMap', () => {
     }
   });
 
+  it('villes neutres (si palette de factions) : posées, garnies et validées par loadMap', async () => {
+    const map = generateMap('r', 55, {
+      width: 40,
+      height: 40,
+      guardianUnits: ['t1-guard'],
+      townFactionIds: ['haven', 'necropolis'],
+    });
+    const towns = map.objects.filter((o) => o.type === 'town') as {
+      factionId?: string;
+      garrison?: { unitId: string; count: number }[];
+    }[];
+    expect(towns.length).toBeGreaterThanOrEqual(1);
+    expect(towns.length).toBeLessThanOrEqual(2);
+    for (const t of towns) {
+      expect(['haven', 'necropolis']).toContain(t.factionId);
+      expect(t.garrison!.length).toBeGreaterThan(0);
+      for (const stack of t.garrison!) {
+        expect(stack.unitId).toBe('t1-guard');
+        expect(stack.count).toBeGreaterThan(0);
+      }
+    }
+    // La carte reste valide de bout en bout (tuile franchissable, ids uniques…).
+    await loadMap(readerFor(map), 'r', config(), KNOWN_UNITS);
+  });
+
+  it('sans palette de factions de ville, aucune ville neutre', () => {
+    const map = generateMap('r', 55, { width: 40, height: 40, guardianUnits: ['t1-guard'] });
+    expect(map.objects.some((o) => o.type === 'town')).toBe(false);
+  });
+
   it('la taille et le multiplicateur de ressources pilotent la densité d’objets', () => {
     const countRes = (m: MapFile): number =>
       m.objects.filter((o) => o.type === 'resource' || o.type === 'mine' || o.type === 'treasure').length;

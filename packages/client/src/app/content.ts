@@ -12,7 +12,7 @@ import {
   type ResolvedMap,
   type Scenario,
 } from '@heroes/content';
-import { unitSpriteUrl } from '../render/assets';
+import { townMapUrl, unitSpriteUrl } from '../render/assets';
 
 /** Lecteur navigateur : data/ est copié à la racine du site par Vite (publicDir). */
 const readJsonFromSite: ReadJson = async (path) => {
@@ -83,10 +83,17 @@ export async function resolveGeneratedMap(
   const painted = report.content.packs.flatMap((p) =>
     p.units.filter((u) => unitSpriteUrl(u.id, p.manifest.id) !== undefined).map((u) => u.id),
   );
+  // Villes neutres : factions dont le château de carte est peint (même logique
+  // que la palette de gardiens — pas de donjon gris anonyme sur une carte
+  // aléatoire). `test-faction` en est naturellement écartée.
+  const townFactions = report.content.packs
+    .map((p) => p.manifest.id)
+    .filter((id) => townMapUrl(id) !== undefined);
   const generated = generateMap('random', seed, {
     guardianUnits: painted.length > 0 ? painted : [...units],
     unitTiers: knownUnitTiers(report),
     artifactIds: [...knownArtifactIds(report)],
+    townFactionIds: townFactions,
     ...opts,
   });
   const readJson: ReadJson = (path) =>

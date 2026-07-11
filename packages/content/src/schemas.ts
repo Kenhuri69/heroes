@@ -95,6 +95,14 @@ export const factionBonusSchema = z.discriminatedUnion('type', [
     resource: idSchema,
     amount: z.number().int().positive(),
   }),
+  // F-BONUS : bonus de combat passifs (Ferveur `morale`, Formation `defense`,
+  // variante offensive `attack`) — points plats, ≥ 0. Générique, doc 06 §4.
+  z.object({
+    type: z.literal('combatBonus'),
+    attack: z.number().int().nonnegative().default(0),
+    defense: z.number().int().nonnegative().default(0),
+    morale: z.number().int().nonnegative().default(0),
+  }),
 ]);
 
 /**

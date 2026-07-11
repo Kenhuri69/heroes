@@ -16,7 +16,7 @@
 > interprétées par le moteur (catalogue = **27 capacités** génériques, doc 02
 > §5.4) ; côté Haven reste inerte
 > `resurrectAlly` ;
-> bonus de faction Ferveur/Formation (§2) ; compétence Prière de bataille ;
+> compétence Prière de bataille ;
 > bâtiments spéciaux Statue/Cloître/Écuries (§4, effets non supportés) ; école
 > Lumière (variante Eau au MVP, `spellSchool: null`) ; classes et héros nommés
 > Aldric/Séraphine (§5, pas de pipeline de héros par faction). Les capacités
@@ -42,9 +42,18 @@
 
 ## 2. Bonus de faction
 
+> ✅ **Livré (F-BONUS)** : Ferveur + Formation via la variante générique
+> `combatBonus` du manifeste (`factionBonuses: [{ type:'combatBonus', morale:1,
+> defense:2 }]`), interprétée en combat par les helpers par-camp du moteur (moral,
+> défense) — **zéro nom de faction**. **Écart assumé** : Formation est modélisée
+> en **points de Défense plats** (`defense: 2` ≈ +5 % via la pente 2,5 %/pt) sur
+> **toute l'armée** du héros Haven, et non comme une aura conditionnée à
+> l'adjacence (simplification générique ; magnitude fidèle). La variante
+> `combatBonus` porte aussi un champ `attack` (offensif) réservé.
+
 - **Ferveur** : +1 moral permanent pour les unités Haven.
-- **Formation** : les piles adjacentes à une autre pile alliée Haven gagnent +5 % défense (aura passive, non cumulable).
-- Compétence de faction ajoutée au pool des héros Haven : **Prière de bataille** (Novice/Expert/Maître : 1 résurrection de X PV par combat sur une pile vivante).
+- **Formation** : +5 % défense pour l'armée Haven (livré en points plats, cf. note).
+- Compétence de faction ajoutée au pool des héros Haven : **Prière de bataille** (Novice/Expert/Maître : 1 résurrection de X PV par combat sur une pile vivante). *(différée — `resurrectAlly`)*
 
 ## 3. Lineup d'unités (T1–T7)
 

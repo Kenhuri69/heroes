@@ -8,7 +8,9 @@
     "gems"
   ],
   "factionResources": [],
-  "factionBonuses": [],
+  "factionBonuses": [
+    { "type": "combatBonus", "morale": 1, "defense": 2 }
+  ],
   "spellSchool": null,
   "heroSkills": [],
   "tiers": 7,

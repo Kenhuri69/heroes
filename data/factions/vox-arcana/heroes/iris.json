@@ -1,0 +1,11 @@
+{
+  "id": "iris",
+  "name": "@loc:hero.iris.name",
+  "bio": "@loc:hero.iris.bio",
+  "archetype": "magic",
+  "origin": "original",
+  "avatar": "vox-arcana-iris",
+  "avatarStyle": "photoreal",
+  "startingHouseId": "house-badger",
+  "specialty": "@loc:hero.iris.specialty"
+}

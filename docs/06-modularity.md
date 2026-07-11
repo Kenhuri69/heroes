@@ -46,6 +46,8 @@ data/factions/arcane-hunters/
 │   ├── t1-eleve-elite.json  # variante élite = dwelling niveau 2 (Alpha 4.11)
 │   └── … t8-penitent(-elite).json
 ├── buildings.json           # bâtiments spécifiques + arbre de prérequis (un seul fichier)
+├── heroes/                  # identité des héros nommés (doc 16 État 16.9) — optionnel
+│   └── <id>.json            # name/bio/archetype/origin(canon|original)/avatar — staging
 ├── story/
 │   └── campaign.json        # campagne de faction (doc 13 §6.1) — optionnel
 └── locales/
@@ -55,8 +57,12 @@ data/factions/arcane-hunters/
 
 > **Non par paquet** (contrairement au plan initial) : pas de `spells/` (les
 > sorts d'école de faction sont au catalogue CORE `data/core/spells.json`), pas
-> de `heroes/`/`skills.json` (attributs de héros = profil global `config.json` ;
-> compétences = catalogue CORE `data/core/skills.json`), pas d'`abilities/*.ts`
+> de `skills.json` par paquet (compétences = catalogue CORE
+> `data/core/skills.json`). `heroes/<id>.json` **existe** depuis doc 16 État 16.9,
+> mais porte seulement l'**identité** d'un héros nommé (nom, bio, archétype,
+> origine canon/original, avatar) — *pas* ses attributs (toujours profil global
+> `config.json`) — et n'est **pas encore consommé par le moteur** (staging). Pas
+> d'`abilities/*.ts`
 > (capacités = catalogue générique `data/core/abilities.json`, référencées par
 > ID), pas d'`assets/` (staging global `assets/`, doc 12 §10). Les bâtiments
 > communs (hôtel de ville, fort, guilde, taverne, forge) ne sont pas « override »

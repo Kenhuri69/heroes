@@ -14,6 +14,20 @@ Les 3 planches ont été générées (Gemini) puis extraites via `sheet_extract.
 (porte QC verte). **Stagé** (`assets/`) — base complète :
 - `assets/heroes/vox-arcana-hermione.png`, `vox-arcana-rumi.png` (Règle B, fond
   contextuel sombre conservé — voulu).
+- `assets/heroes/vox-arcana-celeste.png` — **Céleste** (3ᵉ héroïne nommée,
+  Hunter/Might, protégée de Rumi). **Photoréaliste** (divergence assumée vs DA
+  painterly, doc 12 §7 / doc 16 État 16.8) : grimage d'une photo source (visage
+  réel conservé), redimensionné 256² RGBA. Stagé sous clé nommée dédiée, pas
+  encore affiché in-game (voir doc 16 État 16.8).
+- `assets/heroes/vox-arcana-iris.png` — **Iris** (4ᵉ héroïne nommée, Magic,
+  **origine `original`**, Maison du Blaireau/Poufsouffle — loyauté). **Photoréaliste**
+  (grimage d'une photo source), ambre-or + noir, iris violet + blaireau, 256² RGBA.
+  Voir §1c pour le prompt (doc 16 État 16.9).
+- `assets/heroes/vox-arcana-anastasia.png` — **Anastasia** (5ᵉ héroïne nommée,
+  Magic offensive, **origine `original`**, Maison du Lion/Gryffondor — disciple
+  d'Hermione, orientée attaque). Photoréaliste (grimage d'une photo source),
+  rouge-cramoisi + or, écu du Lion + baguette lumineuse, 256² RGBA. Prompt §1d
+  (variante « registre héroïque non-combat » pour passer les filtres de contenu).
 - `assets/houses/vox-arcana/house-{lion,serpent,eagle,badger,venari}.png` (5 blasons).
 - `assets/units/vox-arcana/t1..t8.png` — **8/8** (`t1-choeur`, `t2-duelliste`,
   `t3-hippogriffe`, `t4-idole`, `t5-sombral`, `t6-maitre`, `t7-phenix`, `t8-avatar`).
@@ -69,6 +83,98 @@ python3 tools/assets/sheet_extract.py <planche.png> \
   --ids vox-arcana-hermione,vox-arcana-rumi \
   --out assets/raster_src --qc /tmp/qc-voxarcana-heroes.png
 # puis copier vers assets/heroes/
+```
+
+### 1b. Avatar Céleste — grimage photoréaliste (héroïne #3, Hunter/Might)
+
+> Divergence assumée : **photoréaliste** (pas painterly), obtenu par **édition
+> d'une photo source** (visage réel conservé, « grimé » en personnage) plutôt que
+> par génération. Sortie carrée, redimensionnée 256² RGBA vers
+> `assets/heroes/vox-arcana-celeste.png`.
+
+```
+Edit the provided photo. Keep this exact person — preserve their real face,
+identity, bone structure, skin and gaze. Do NOT replace the person. Only
+"grimer"/transform them (makeup, hair, costume, lighting, background) into a
+character: Céleste, a young fierce demon-hunter idol of the Vox Arcana academy,
+protégée of the huntress Rumi.
+Restyle the hair into a luminous silver-lavender high braided idol bun with a
+small star-shaped ornament. Add subtle stage makeup with a celestial / starlight
+motif (faint constellation freckles, cyan-and-magenta neon eyeliner accents),
+keeping the person's own features clearly recognizable.
+Dress them in sleek black-and-violet hunter armor with silver filigree over a
+school-crest tabard, a small Korean oni-mask charm at the collar, a slim neon
+blade hilt at the shoulder. Realistic materials: brushed metal, matte leather,
+woven fabric.
+Relight: warm key light from upper-left, cool cyan rim light on the hair, soft
+magenta neon accents. Replace the background with a heavily blurred neon-lit
+gothic bridge at night, wisteria vines and Korean pagoda silhouettes, bokeh
+city glow. Shallow depth of field, 85mm portrait look, professional color grade.
+Photorealistic result, single bust shot (head and shoulders), 3/4 face turn,
+subject centered with clear space around head and shoulders, square 1:1.
+no text, no watermark, no signature, no border frame, no ground line
+```
+
+### 1c. Avatar Iris — grimage photoréaliste (héroïne #4, Magic, Maison du Blaireau)
+
+> Origine `original` (personnage inventé), Maison du Blaireau (Poufsouffle :
+> loyauté). Même workflow que Céleste : **édition d'une photo source**, sortie
+> carrée → `assets/heroes/vox-arcana-iris.png` (256² RGBA).
+
+```
+Edit the provided photo. Keep this exact person — preserve their real face,
+identity, bone structure, skin and gaze. Do NOT replace the person. Only
+"grimer"/transform them (makeup, hair, costume, lighting, background) into a
+character: Iris, a young loyal student-mage of the Vox Arcana academy,
+belonging to the House of the Badger (Hufflepuff-inspired: loyalty, warmth,
+steadfastness). Original character (not from any book).
+Keep the person's own hair but tint it warm honey-blonde with soft waves, add a
+small iris-flower ornament (violet-blue petals) and a woven braid. Gentle stage
+makeup with a warm amber-gold motif, soft freckles, kind confident smile,
+clearly recognizable as the same person.
+Dress them in black-and-amber academy robes with a badger house crest and gold
+filigree, over a school-crest tabard; a small badger charm and a glowing wand
+of honey-amber light in hand; wisteria and floating herbology leaves around.
+Realistic materials: woven wool, brushed gold, soft fabric.
+Relight: warm amber key light from upper-left, soft golden rim light, subtle
+violet neon accent in the background. Replace the background with a heavily
+blurred neon-lit gothic academy courtyard at dusk, wisteria vines and Korean
+pagoda silhouettes, warm bokeh lanterns. Shallow depth of field, 85mm portrait
+look, professional color grade.
+Photorealistic result, single bust shot (head and shoulders), 3/4 face turn,
+subject centered with clear space around head and shoulders, square 1:1.
+no text, no watermark, no signature, no border frame, no ground line
+```
+
+### 1d. Avatar Anastasia — grimage photoréaliste (héroïne #5, Magic offensive, Maison du Lion)
+
+> Origine `original`, Maison du Lion (Gryffondor : courage), disciple d'Hermione,
+> **orientée attaque**. Édition d'une photo source, sortie carrée →
+> `assets/heroes/vox-arcana-anastasia.png` (256² RGBA).
+
+```
+Edit the provided photo. Keep this exact person — preserve their real face,
+identity, bone structure, skin and gaze. Do NOT replace the person. Only
+"grimer"/transform them (makeup, hair, costume, lighting, background) into a
+character: Anastasia, a brave and fiery offensive battle-mage of the Vox Arcana
+academy, belonging to the House of the Lion (Gryffindor-inspired: courage,
+boldness), a disciple of the mage Hermione. Original character (not from any book).
+Keep the person's own hair but tint it with warm auburn-red highlights, bold and
+windswept, a small golden lion-crest hairpin. Fierce confident half-smile, sharp
+determined eyes, light battle makeup with crimson-and-gold accents, clearly
+recognizable as the same person.
+Dress them in black-and-crimson academy robes with a golden lion house crest and
+gold filigree, over a school-crest tabard; a glowing wand crackling with fiery
+red-gold offensive magic held forward in an aggressive casting stance; embers and
+sparks around. Realistic materials: brushed gold, dark leather, woven fabric.
+Relight: warm crimson-gold key light from upper-left, hot ember rim light, subtle
+violet neon accent in the background. Replace the background with a heavily
+blurred neon-lit gothic academy at night in the heat of a duel, wisteria vines
+and Korean pagoda silhouettes, sparks and warm bokeh. Shallow depth of field,
+85mm portrait look, professional color grade.
+Photorealistic result, single bust shot (head and shoulders), 3/4 face turn,
+subject centered with clear space around head and shoulders, square 1:1.
+no text, no watermark, no signature, no border frame, no ground line
 ```
 
 ---

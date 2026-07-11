@@ -1,0 +1,11 @@
+{
+  "id": "anastasia",
+  "name": "@loc:hero.anastasia.name",
+  "bio": "@loc:hero.anastasia.bio",
+  "archetype": "magic",
+  "origin": "original",
+  "avatar": "vox-arcana-anastasia",
+  "avatarStyle": "photoreal",
+  "startingHouseId": "house-lion",
+  "specialty": "@loc:hero.anastasia.specialty"
+}

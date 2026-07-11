@@ -15,11 +15,13 @@ import {
   skillCatalogSchema,
   spellCatalogSchema,
   unitSchema,
+  heroIdentitySchema,
   warMachineCatalogSchema,
   dailyTemplatesFileSchema,
   type AbilityCatalog,
   type Artifact,
   type DailyTemplate,
+  type HeroIdentity,
   type WarMachine,
   type Building,
   type FactionBonus,
@@ -55,6 +57,12 @@ export interface FactionPack {
   locales: Record<(typeof LOCALE_LANGS)[number], Locale>;
   /** Bâtiments propres au paquet (dwellings + spéciaux) — vide si pas de `manifest.town`. */
   buildings: Building[];
+  /**
+   * Héros nommés (doc 16 État 16.9) — identité data-driven, séparable par
+   * `origin` (`canon` = univers tiers / `original` = création propre). Vide si
+   * le manifeste ne déclare aucun héros. Non consommé par le moteur (staging).
+   */
+  heroes: HeroIdentity[];
 }
 
 export interface LoadedContent {
@@ -425,12 +433,28 @@ export async function loadFactionPack(
     }
   }
 
+  // Héros nommés (doc 16 État 16.9) — identité data-driven, convention
+  // `heroes/<id>.json`. Non consommés par le moteur (staging) ; règles croisées
+  // ici pour que `content:check`/`faction:validate` valident les fiches.
+  const heroes: HeroIdentity[] = [];
+  const houseIds = new Set(manifest.houses.map((h) => h.id));
+  for (const heroId of manifest.heroes) {
+    const path = `heroes/${heroId}.json`;
+    const hero = parseFile(heroIdentitySchema, await readJson(`${base}/${path}`), path);
+    if (hero.id !== heroId) errors.push(`${path}: id '${hero.id}' ≠ fichier '${heroId}'`);
+    if (hero.startingHouseId && !houseIds.has(hero.startingHouseId))
+      errors.push(`${path}: startingHouseId — Maison inconnue '${hero.startingHouseId}'`);
+    heroes.push(hero);
+  }
+  if (new Set(heroes.map((h) => h.id)).size !== heroes.length)
+    errors.push('manifest.json: héros en double dans `heroes`');
+
   const locales = {} as FactionPack['locales'];
   for (const lang of LOCALE_LANGS) {
     const path = `locales/${lang}.json`;
     locales[lang] = parseFile(localeSchema, await readJson(`${base}/${path}`), path);
   }
-  for (const key of collectLocRefs({ manifest, units })) {
+  for (const key of collectLocRefs({ manifest, units, heroes })) {
     for (const lang of LOCALE_LANGS) {
       if (!(key in locales[lang])) errors.push(`locales/${lang}.json: clé manquante '${key}'`);
     }
@@ -505,7 +529,7 @@ export async function loadFactionPack(
   }
 
   if (errors.length > 0) throw new PackError(errors);
-  return { manifest, units, locales, buildings };
+  return { manifest, units, locales, buildings, heroes };
 }
 
 /** Un `id` de bâtiment ne doit apparaître qu'une fois dans la liste donnée. */
@@ -1230,8 +1254,16 @@ function checkRows(
 }
 
 /** Toutes les références `@loc:` d'un paquet (name du manifeste + unités). */
-function collectLocRefs(pack: { manifest: Manifest; units: Unit[] }): string[] {
-  const refs = [pack.manifest.name, ...pack.units.map((u) => u.name)];
+function collectLocRefs(pack: {
+  manifest: Manifest;
+  units: Unit[];
+  heroes: HeroIdentity[];
+}): string[] {
+  const refs = [
+    pack.manifest.name,
+    ...pack.units.map((u) => u.name),
+    ...pack.heroes.flatMap((h) => [h.name, h.bio, ...(h.specialty ? [h.specialty] : [])]),
+  ];
   return refs.map((r) => r.slice('@loc:'.length));
 }
 

@@ -1,0 +1,10 @@
+{
+  "id": "hermione",
+  "name": "@loc:hero.hermione.name",
+  "bio": "@loc:hero.hermione.bio",
+  "archetype": "magic",
+  "origin": "canon",
+  "source": "Harry Potter",
+  "avatar": "vox-arcana-magic",
+  "avatarStyle": "painterly"
+}

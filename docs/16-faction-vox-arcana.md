@@ -97,6 +97,44 @@ Faction #6, produite en **Beta** — elle sert de **test de modularité #4** (do
 > Attaque plate (Lion), accès aux malédictions (Serpent), +25 % mana max (Aigle),
 > +50 % Résonance / Scène +1 Pouvoir (Venari) — non exprimables sans nouvelles
 > surfaces moteur.
+>
+> 🚧 **État 16.8 (avatar stagé — Céleste, 3ᵉ héroïne nommée)** : **Céleste**, jeune
+> chasseuse **Hunter/Might**, **protégée de Rumi**, rejoint la base d'assets. Thème
+> **céleste / lumière stellaire** (chignon tressé argent-lavande, ornement étoile),
+> distincte de sa mentore (violet néon) tout en partageant l'identité Venari
+> (armure noir-et-violet, charm d'oni, lame néon). L'avatar est **stagé en avance**
+> sous une clé nommée dédiée `heroes/vox-arcana-celeste` (auto-découverte par le
+> registre d'assets), **exactement** comme Hermione/Rumi l'ont été avant leur slot.
+> **Zéro code, zéro donnée de manifeste, zéro nom de faction dans le moteur.**
+> **Différé** : affichage in-game — la convention d'archétype ne connaît que 2
+> slots (`might`/`magic`, déjà pris par Rumi/Hermione), et l'**identité** des héros
+> nommés reste liée au **système de héros nommés du moteur**, non ouvert (différé
+> pour toutes les factions, cf. État 16.6). **Divergence assumée (doc 12 §7)** :
+> l'avatar est **photoréaliste** (grimage d'une photo source), là où la DA de tous
+> les autres avatars stagés est *painterly* — choix éditorial explicite pour ce
+> personnage.
+>
+> 🚧 **État 16.9 (livré — format d'identité de héros + séparation canon/original)** :
+> introduction d'un **format d'identité de héros nommé** *data-driven* dans la
+> couche **content** (schéma `heroIdentitySchema`), **zéro diff moteur**. Chaque
+> fiche `data/factions/<faction>/heroes/<id>.json` porte `name`/`bio` (@loc:),
+> `archetype` (`might`/`magic`), `avatar` (clé du registre) + `avatarStyle`
+> (`painterly`/`photoreal`, doc 12 §7), et surtout **`origin`** : le champ qui
+> **sépare** les héros **`canon`** (issus d'un univers tiers — exige `source`, le
+> nom de l'œuvre) des héros **`original`** (créations propres au jeu, éventuellement
+> inspirées d'un vrai joueur — pas de `source`). Le manifeste déclare
+> `heroes: [id]` (défaut `[]`) ; le loader charge/valide les fiches (id↔fichier,
+> parité locale, `startingHouseId` connu) et les expose sur `FactionPack.heroes`,
+> **filtrables par origine**. Vox Arcana peuple les 5 premières fiches : **Rumi**
+> (canon, *KPop Demon Hunters*, might), **Hermione** (canon, *Harry Potter*, magic),
+> **Céleste** (original, might), **Iris** (original, magic, Maison du Blaireau —
+> `startingHouseId`, spécialité **défense / protection de ville**) et **Anastasia**
+> (original, magic, Maison du Lion/Gryffondor, disciple d'Hermione, spécialité
+> **offensive / attaque**). Avatars photoréalistes pour les originaux. **Non
+> consommé par le moteur** (identité stagée en
+> avance du système de héros nommés, toujours différé pour toutes les factions) :
+> `specialty`/`startingHouseId` restent indicatifs. **Zéro nom de faction** (garde-fou
+> vert), **aucun bump de sauvegarde** (rien en sauvegarde), golden **inchangé**.
 
 ## 1. Lore
 

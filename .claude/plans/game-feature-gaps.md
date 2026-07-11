@@ -215,7 +215,12 @@ Source design : docs 03 §2/§4/§5, 04 §2/§4, 05 §3/§5/§6/§7, 14 §5/§6,
     ville, réutilise `townBuildingAura`) ; **Statue du Jugement** Haven livrée
     (+1 moral garnison en siège). Volet « héros visiteur défenseur » différé avec
     le modèle de héros défenseur en siège. Zéro faction, aucun bump, golden inchangé.
-  - **F-BUILDEFF.3** ⬜ : Cloître (apprentissage de sort au visiteur + régén mana).
+  - **F-BUILDEFF.3** ✅ (plan `f-buildeff-cloister.md`) : effet générique
+    `grantSpell` (ajoute un sort au `spellPool` de la ville à la construction,
+    réutilise l'apprentissage à la visite) + cross-validation du `spellId` au
+    chargement ; **Cloître** Haven livré (enseigne Bénédiction). Volet « +2 mana/j »
+    réconcilié (la mana se restaure entièrement chaque jour — no-op). Zéro faction,
+    aucun bump, golden inchangé.
   - **F-BUILDEFF.4+** ⬜ : modif ressource de faction, passifs de Cercles AH
     (`data/factions/arcane-hunters/buildings.json`, placeholders + `mageGuild@1`),
     +XP/+rang, Grand Amphithéâtre/Salle des Reliques, La Scène/Sanctuaire.

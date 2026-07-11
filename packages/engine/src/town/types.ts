@@ -48,6 +48,14 @@ export type BuildingEffect =
    * Les sous-lots suivants étendront la charge + leur câblage.
    */
   | { type: 'heroAura'; movementBonusFlat?: number; combatMoraleBonus?: number }
+  /**
+   * Bâtiment qui enseigne un sort (F-BUILDEFF.3, doc 03 §4 — Cloître) : à la
+   * construction, `spellId` est ajouté au `spellPool` de la ville ; le héros du
+   * propriétaire présent l'apprend via la mécanique d'apprentissage à la visite
+   * (`learnGuildSpellsAtTown`), si son cercle apprenable le permet. `spellId`
+   * opaque — le moteur ne connaît aucune faction (le sort vit dans le catalogue).
+   */
+  | { type: 'grantSpell'; spellId: string }
   /** Bâtiment sans effet mécanique (ex. Taverne : prérequis d'arbre seul). La
    *  Forge, elle, porte `warMachineVendor` (Alpha 4.12), pas `none`. */
   | { type: 'none' };

@@ -136,6 +136,17 @@
           "effect": { "type": "heroAura", "combatMoraleBonus": 1 }
         }
       ]
+    },
+    {
+      "id": "haven-cloister",
+      "maxLevel": 1,
+      "levels": [
+        {
+          "cost": { "gold": 2000, "ore": 5, "gems": 3 },
+          "requires": [{ "building": "mageGuild", "level": 1 }],
+          "effect": { "type": "grantSpell", "spellId": "benediction" }
+        }
+      ]
     }
   ]
 }

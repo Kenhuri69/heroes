@@ -269,6 +269,12 @@ const buildingEffectSchema = z.discriminatedUnion('type', [
     movementBonusFlat: z.number().int().nonnegative().default(0),
     combatMoraleBonus: z.number().int().nonnegative().default(0),
   }),
+  /**
+   * Bâtiment enseignant (F-BUILDEFF.3, doc 03 §4 — Cloître) : `spellId` (opaque)
+   * ajouté au pool de la ville à la construction. Cross-validé dans le loader
+   * (le sort doit exister dans `core/spells.json`).
+   */
+  z.object({ type: z.literal('grantSpell'), spellId: idSchema }),
   /** Bâtiment sans effet mécanique en 3.1 (tavern/forge/spécial) — arbre seul. */
   z.object({ type: z.literal('none') }),
 ]);

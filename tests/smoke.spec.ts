@@ -238,6 +238,34 @@ test("bandeau d'armée : tap sur une vignette ⇒ fiche d'unité (stats + capaci
   expect(errors).toEqual([]);
 });
 
+test('UX-REORDER : réorganiser deux piles en tap-tap change l’ordre de l’armée', async ({
+  page,
+}) => {
+  const errors = await openGame(page);
+
+  // Armée de départ du héros humain (heroes[0]) : 2 piles distinctes.
+  const before = await page.evaluate(() =>
+    window.__HEROES_TEST__!.getState().heroes[0]!.army.map((s) => s.unitId),
+  );
+  expect(before.length).toBe(2);
+
+  // Déplie le bandeau, entre en mode réorganisation, déplace slot 0 → slot 1.
+  // (Le testid existe aussi dans le tiroir héros desktop ⇒ on scope au bandeau.)
+  await page.getByTestId('army-band-toggle').click();
+  await page.locator('.army-band [data-testid="army-reorder-toggle"]').click();
+  await page.locator('.army-band [data-testid="army-slot-0"]').click(); // sélectionne
+  await page.locator('.army-band [data-testid="army-slot-1"]').click(); // déplace ici
+
+  // L'ordre moteur est inversé (commande ReorderArmy appliquée).
+  await expect
+    .poll(() =>
+      page.evaluate(() => window.__HEROES_TEST__!.getState().heroes[0]!.army.map((s) => s.unitId)),
+    )
+    .toEqual([before[1], before[0]]);
+
+  expect(errors).toEqual([]);
+});
+
 test('tap sur une ressource : fiche stock + revenu/jour (doc 08 §2.1, lot M6 C8)', async ({
   page,
 }) => {

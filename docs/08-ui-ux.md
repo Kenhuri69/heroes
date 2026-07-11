@@ -115,6 +115,17 @@
 > de héros au moteur) ; l'UI se généralise à N sans diff moteur. Le **transfert
 > d'armée/artefacts** entre héros (doc §2.3) reste différé à U6.
 
+> 🚧 **État (réorganisation d'armée — UX-REORDER, livré)** : les 7 slots ne sont
+> plus en lecture seule. Un bouton **« Réorganiser »** (tiroir héros + bandeau
+> bas) bascule un mode **tap-tap** (touch-first, pas de drag obligatoire) : 1er
+> tap sélectionne une pile (liseré épais, 2ᵉ canal — jamais la couleur seule),
+> 2ᵉ tap sur une autre pile la **déplace** là ; re-tap = désélectionner. L'ordre
+> **pèse sur le placement de combat** ⇒ c'est une **commande moteur**
+> déterministe `ReorderArmy { heroId, from, to }` (générique, zéro faction) et non
+> de la présentation. **Pas de nouveau champ d'état** (`army` déjà sérialisé) ⇒
+> pas de bump de sauvegarde ; commande absente du golden ⇒ golden inchangé. Le
+> **split de pile** (§2.3, `SplitStack`) reste différé (UX-SPLIT).
+
 > ✅ **État UXD-8** : la **colonne droite desktop** de ce schéma est réalisée par
 > le **tiroir héros persistant** (≥ 900 px : ancré à droite, 300 px, toujours
 > ouvert ; portraits héros + mini-map + détails). Les ressources restent en

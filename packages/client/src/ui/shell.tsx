@@ -12,6 +12,7 @@ import {
 import { useApp, appStore } from '../app/store';
 import { back, closeModalKind, openModal, useModals, useScreen } from '../app/router';
 import { requestEndTurn, confirmPendingEndTurn, cancelPendingEndTurn } from '../app/end-turn';
+import { dispatch } from '../app/dispatch';
 import { heroArchetype, humanHeroes, humanId, humanTowns, resolveSelectedHero } from '../app/game';
 import { RESOURCE_COLORS } from '../render/mapObjects';
 import { playerColor } from '../render/playerColors';
@@ -404,28 +405,77 @@ function EndTurnConfirm() {
 }
 
 /**
- * 7 slots d'armée en lecture seule (doc 08 §2.1) — partagé tiroir héros + bandeau
- * bas. Slot rempli = vignette **encadrée** (asset de l'unité + effectif) qui ouvre
- * au tap une fiche détaillée (`UnitCard` : stats + capacités). Repli gracieux : si
- * l'asset manque, la vignette affiche le nom de l'unité.
+ * 7 slots d'armée (doc 08 §2.1) — partagé tiroir héros + bandeau bas. Slot rempli
+ * = vignette **encadrée** (asset de l'unité + effectif) qui ouvre au tap une fiche
+ * détaillée (`UnitCard` : stats + capacités). Repli gracieux : si l'asset manque,
+ * la vignette affiche le nom de l'unité.
+ *
+ * UX-REORDER (doc 08 §2.1/§2.3) : quand `heroId` est fourni et l'armée compte ≥ 2
+ * piles, un bouton **« Réorganiser »** bascule un mode **tap-tap** (touch-first,
+ * pas de drag obligatoire) : 1er tap = sélectionner une pile, 2ᵉ tap sur une autre
+ * = la déplacer là (commande moteur `ReorderArmy`), re-tap = désélectionner.
+ * L'ordre des slots pèse sur le placement de combat.
  */
-function ArmySlots({ army }: { army: ArmyStack[] }) {
+function ArmySlots({ army, heroId }: { army: ArmyStack[]; heroId?: string }) {
   useApp((s) => s.locale); // réactivité i18n (noms d'unités/capacités)
   const catalog = useApp((s) => s.game.unitCatalog);
   const [inspected, setInspected] = useState<string | null>(null);
+  const [reordering, setReordering] = useState(false);
+  const [picked, setPicked] = useState<number | null>(null);
   const def = inspected ? catalog[inspected] : undefined;
+  const canReorder = heroId !== undefined && army.length >= 2;
+
+  const stopReorder = (): void => {
+    setReordering(false);
+    setPicked(null);
+  };
+
+  const tapSlot = (i: number, unitId: string): void => {
+    if (!reordering) {
+      setInspected(unitId);
+      return;
+    }
+    if (picked === null) {
+      setPicked(i);
+      return;
+    }
+    if (picked === i) {
+      setPicked(null);
+      return;
+    }
+    dispatch({ type: 'ReorderArmy', heroId: heroId!, from: picked, to: i }).catch(() => {
+      /* réorg invalide (hors tour) — sans conséquence, ignorée */
+    });
+    setPicked(null);
+  };
+
   return (
     <>
+      {canReorder && (
+        <button
+          type="button"
+          class="army-reorder-toggle"
+          data-testid="army-reorder-toggle"
+          aria-pressed={reordering}
+          onClick={() => (reordering ? stopReorder() : setReordering(true))}
+        >
+          {reordering ? t('army.reorder.done') : t('army.reorder.toggle')}
+        </button>
+      )}
       <ol class="army-slots" data-testid="army-slots">
         {Array.from({ length: 7 }, (_, i) => army[i]).map((stack, i) =>
           stack ? (
-            <li key={i} class="army-slot filled">
+            <li key={i} class={`army-slot filled${reordering && picked === i ? ' picked' : ''}`}>
               <button
                 type="button"
                 class="army-slot-btn"
                 data-testid={`army-slot-${i}`}
-                aria-label={t('army.card.inspect', { name: resolveUnitName(stack.unitId) })}
-                onClick={() => setInspected(stack.unitId)}
+                aria-label={
+                  reordering
+                    ? t('army.reorder.move', { name: resolveUnitName(stack.unitId) })
+                    : t('army.card.inspect', { name: resolveUnitName(stack.unitId) })
+                }
+                onClick={() => tapSlot(i, stack.unitId)}
               >
                 <span class="army-slot-portrait">
                   <AssetImg
@@ -668,7 +718,7 @@ function HeroDrawer() {
           </div>
         </dl>
         <h3 class="hero-army-title">{t('army.title')}</h3>
-        <ArmySlots army={hero.army} />
+        <ArmySlots army={hero.army} heroId={hero.id} />
         <HeroSkills hero={hero} />
         <HeroInventory hero={hero} catalog={artifactCatalog} />
         <AdventureSpellbook hero={hero} />
@@ -725,7 +775,7 @@ function ArmyBand() {
       <button class="army-band-toggle" data-testid="army-band-toggle" onClick={toggle}>
         {t('army.title')} {collapsed ? '▲' : '▼'}
       </button>
-      {!collapsed && <ArmySlots army={hero.army} />}
+      {!collapsed && <ArmySlots army={hero.army} heroId={hero.id} />}
     </div>
   );
 }

@@ -179,6 +179,17 @@ export type Command =
     }
   | {
       /**
+       * Réordonne l'armée d'un héros (UX-REORDER, doc 08 §2.1/§2.3) : déplace la
+       * pile de l'index `from` à `to` dans `hero.army`. L'ordre des slots influe
+       * sur le placement de combat (`combat/setup.ts`). Générique, zéro faction.
+       */
+      type: 'ReorderArmy';
+      heroId: string;
+      from: number;
+      to: number;
+    }
+  | {
+      /**
        * Envoie une pile de garnison vers une autre ville possédée (T-CARAVAN,
        * doc 02 §4.1). Trajet en jours via l'A* existant ; arrivée en garnison.
        */
@@ -260,6 +271,7 @@ export interface CommandError {
     | 'warMachineUnavailable'
     | 'insufficientStock'
     | 'invalidTransfer'
+    | 'invalidReorder'
     | 'invalidCaravan'
     | 'invalidTrade'
     | 'unknownSpell'

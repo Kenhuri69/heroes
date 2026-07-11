@@ -574,10 +574,15 @@ préviz dégâts, raccourcis, a11y 3 crans, audio complet, chrome UI, options.)
   piles entières (`TownScreen.tsx:682-731`). Spec : commande moteur
   `SplitStack` + UI curseur de répartition (touch-first).
 
-- **UX-REORDER — Réorganisation des 7 slots** 🕳️ S ⬜
-  Doc : doc 08 §2.1. Code : `<ol>` non interactif (`shell.tsx:345-359`).
-  Spec : tap-tap pour permuter (pas de drag obligatoire) ; commande
-  `ReorderArmy` (l'ordre des slots influe sur le placement de combat).
+- **UX-REORDER — Réorganisation des 7 slots** 🕳️ S ✅ (livré)
+  Doc : doc 08 §2.1/§2.3. Livré : commande moteur générique `ReorderArmy
+  { heroId, from, to }` (déplace une pile dans `hero.army` ; validée : héros du
+  joueur actif, indices bornés, hors combat/partie finie) + UI **tap-tap**
+  (bouton « Réorganiser » tiroir héros + bandeau ; 1er tap sélectionne, 2ᵉ
+  déplace ; liseré 2ᵉ canal). L'ordre pèse sur le placement de combat. **Pas de
+  bump save** (`army` déjà sérialisé), **golden inchangé** (commande absente du
+  replay). Zéro faction. Tests moteur `army-reorder.test.ts` + smoke. Plan
+  `.claude/plans/ux-reorder.md`.
 
 - **UX-COMBATLOG — Journal de combat** 🎨 S ✅ (livré)
   Doc : doc 08 §2.4 (lisibilité d'état). Spec : log déroulant des actions/dégâts

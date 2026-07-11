@@ -267,6 +267,35 @@ export function handleChooseAttribute(draft: Draft, cmd: ChooseAttributeCmd, eve
   events.push({ type: 'HeroAttributeChosen', heroId: hero.id, level: hero.level, attribute: cmd.attribute });
 }
 
+type ReorderArmyCmd = Extract<Command, { type: 'ReorderArmy' }>;
+
+/**
+ * UX-REORDER (doc 08 §2.1/§2.3) : réordonne l'armée du héros du joueur ACTIF.
+ * L'ordre des slots pèse sur le placement de combat (`combat/setup.ts`), c'est
+ * donc une commande moteur déterministe et non de la simple présentation.
+ * Aucun événement dédié (surface figée `events.ts`) : le rendu observe `army`.
+ */
+export function validateReorderArmy(state: GameState, cmd: ReorderArmyCmd): CommandError | null {
+  const hero = state.heroes.find((h) => h.id === cmd.heroId);
+  if (!hero) return { code: 'unknownHero', message: `héros inconnu '${cmd.heroId}'` };
+  const current = state.players[state.currentPlayer];
+  if (!current || hero.playerId !== current.id)
+    return { code: 'notYourHero', message: `'${cmd.heroId}' n’appartient pas au joueur actif` };
+  const n = hero.army.length;
+  const valid = (i: number): boolean => Number.isInteger(i) && i >= 0 && i < n;
+  if (!valid(cmd.from) || !valid(cmd.to))
+    return { code: 'invalidReorder', message: `indices hors de l'armée (${cmd.from}→${cmd.to})` };
+  return null;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- pas d'événement dédié (surface figée events.ts)
+export function handleReorderArmy(draft: Draft, cmd: ReorderArmyCmd, events: GameEvent[]): void {
+  const hero = draft.heroes.find((h) => h.id === cmd.heroId);
+  if (!hero) return; // exclu par validate
+  const [moved] = hero.army.splice(cmd.from, 1);
+  if (moved) hero.army.splice(cmd.to, 0, moved);
+}
+
 /**
  * Estimation min/max d'un sort SANS RNG (doc 08 §2.4) — prévisualisation
  * obligatoire, utilisée par l'UI et l'IA future.

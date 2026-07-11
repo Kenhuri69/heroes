@@ -53,10 +53,12 @@ import {
   handleCastAdventureSpell,
   handleChooseSkill,
   handleChooseAttribute,
+  handleReorderArmy,
   validateCastSpell,
   validateCastAdventureSpell,
   validateChooseSkill,
   validateChooseAttribute,
+  validateReorderArmy,
 } from '../hero';
 import { heroManaMax } from '../hero/artifacts';
 import { validateRecruitHero, handleRecruitHero } from '../hero/recruit';
@@ -128,6 +130,7 @@ const GAME_OVER_BLOCKED = new Set<Command['type']>([
   'UpgradeUnits',
   'BuyWarMachine',
   'GarrisonTransfer',
+  'ReorderArmy',
   'SendCaravan',
   'CaptureTown',
   'RecruitHero',
@@ -251,6 +254,11 @@ export function validate(state: GameState, cmd: Command): CommandError | null {
       if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
       if (state.combat) return { code: 'combatActive', message: 'un combat est en cours' };
       return validateGarrisonTransfer(state, cmd);
+    }
+    case 'ReorderArmy': {
+      if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
+      if (state.combat) return { code: 'combatActive', message: 'un combat est en cours' };
+      return validateReorderArmy(state, cmd);
     }
     case 'SendCaravan': {
       if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
@@ -615,6 +623,10 @@ const handlers: Handlers = {
 
   GarrisonTransfer(draft, cmd, events) {
     handleGarrisonTransfer(draft, cmd, events);
+  },
+
+  ReorderArmy(draft, cmd, events) {
+    handleReorderArmy(draft, cmd, events);
   },
 
   SendCaravan(draft, cmd, events) {

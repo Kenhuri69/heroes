@@ -585,6 +585,33 @@
   display: none;
 }
 
+/* UX-REORDER (doc 08 §2.1/§2.3) : bascule du mode réorganisation tap-tap. */
+.army-reorder-toggle {
+  align-self: flex-start;
+  min-height: 44px;
+  margin-bottom: 6px;
+  padding: 4px 10px;
+  border: 1px solid var(--ink-600);
+  border-radius: var(--radius-s);
+  background: var(--ink-700);
+  color: var(--parchment);
+  font: 600 0.8125rem var(--font-ui);
+  cursor: pointer;
+}
+
+.army-reorder-toggle[aria-pressed='true'] {
+  background: var(--brass);
+  color: var(--brass-text);
+}
+
+/* Pile sélectionnée en mode réorganisation : liseré de mise en avant (2ᵉ canal
+   au-delà de la couleur — anneau épais, jamais la seule teinte, doc 08 §4). */
+.army-slot.picked .army-slot-btn {
+  border-width: 3px;
+  border-color: var(--brass-bright);
+  outline: 2px solid var(--brass);
+}
+
 /* Fiche d'unité de l'armée (aventure, doc 08 §2.1) — portrait, stats, capacités.
    Même famille visuelle que `.stack-sheet` de combat ; z-index au-dessus du HUD
    (rendue dans `.bottom-hud`, pointer-events réactivés sur le backdrop). */

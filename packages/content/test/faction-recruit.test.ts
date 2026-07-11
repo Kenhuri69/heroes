@@ -131,7 +131,11 @@ describe('faction data-driven à 7 tiers (plan phase-3.3) — chargement & recru
     expect(t2?.abilities).toEqual([{ id: 'shooter', params: { ammo: 12 } }]);
 
     const t5 = byTier.get(5); // prêtresse
-    expect(t5?.abilities).toEqual([{ id: 'shooter', params: { ammo: 8 } }]);
+    // Lot A2h : la Prêtresse reçoit `spellcaster` (soin embarqué ×2, doc 03 §3).
+    expect(t5?.abilities).toEqual([
+      { id: 'shooter', params: { ammo: 8 } },
+      { id: 'spellcaster', params: { spellId: 'soin', charges: 2, power: 3 } },
+    ]);
 
     const t4 = byTier.get(4); // griffon
     expect(t4?.stats.hp).toBe(30);

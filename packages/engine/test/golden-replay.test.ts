@@ -246,7 +246,11 @@ const GOLDEN_JOURNAL: Command[] = [
 // (caravanes inter-villes, doc 02 §4.1). Le journal golden n'expédie aucune
 // caravane ⇒ `tickCaravans` no-op sur liste vide : seule la FORME change (champ
 // [] + version), simulation/combat inchangés.
-const GOLDEN_HASH = '290e3531';
+// Re-fixé au lot A2h : `CombatStack.spellCharges` — unités lanceuses
+// (`spellcaster`, save v21→22). Les piles golden ne sont pas lanceuses ⇒
+// `spellCharges: 0` s'ajoute à leur forme sérialisée (+ `saveVersion`) ; simulation
+// inchangée.
+const GOLDEN_HASH = '8501d5a0';
 
 describe('golden replay', () => {
   it('le journal scripté produit toujours le même état final', () => {

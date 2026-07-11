@@ -17,7 +17,7 @@ function stack(over: Partial<CombatStack> & Pick<CombatStack, 'id' | 'side' | 's
     retaliationsLeft: 1,
     waited: false,
     defending: false,
-    ammo: null,
+    ammo: null, spellCharges: 0,
     marks: 0,
     immobilizedRounds: 0,
     transformed: false,

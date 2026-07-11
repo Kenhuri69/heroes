@@ -9,6 +9,7 @@ import type { Draft } from './draft';
 import { COMBAT_COLS, COMBAT_ROWS, sameHex, type OffsetPos } from './hex';
 import { advanceTurn } from './turns';
 import { initLedger, shooterAmmo } from './state-helpers';
+import { spellcasterParams } from './spell-effect';
 import type { ArmyStack, CombatSideId, CombatState, CombatStack, CombatUnitDef } from './types';
 
 /**
@@ -38,6 +39,7 @@ function placeSide(
       waited: false,
       defending: false,
       ammo: def ? shooterAmmo(def) : null,
+      spellCharges: def ? (spellcasterParams(def)?.charges ?? 0) : 0,
       marks: 0,
       immobilizedRounds: 0,
       transformed: false,

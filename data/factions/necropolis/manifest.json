@@ -27,6 +27,7 @@
   "heroSkills": [
     "necromancy"
   ],
+  "heroes": ["sandro", "markal", "ornella"],
   "tiers": 7,
   "sharedGrowthGroups": {},
   "units": [

@@ -1,0 +1,15 @@
+{
+  "id": "freyda",
+  "name": "@loc:hero.freyda.name",
+  "bio": "@loc:hero.freyda.bio",
+  "archetype": "might",
+  "origin": "canon",
+  "source": "Might & Magic",
+  "avatar": "haven-might",
+  "avatarStyle": "painterly",
+  "specialty": "@loc:hero.freyda.specialty",
+  "attributes": { "attack": 3, "defense": 1, "power": 1, "knowledge": 1 },
+  "specialtyEffect": { "id": "charge-de-cavalerie", "meleeDamagePct": 10 },
+  "startingSkills": { "melee": 1, "logistics": 1 },
+  "startingSpells": []
+}

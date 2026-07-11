@@ -1,0 +1,15 @@
+{
+  "id": "anton",
+  "name": "@loc:hero.anton.name",
+  "bio": "@loc:hero.anton.bio",
+  "archetype": "might",
+  "origin": "canon",
+  "source": "Might & Magic",
+  "avatar": "haven-might",
+  "avatarStyle": "painterly",
+  "specialty": "@loc:hero.anton.specialty",
+  "attributes": { "attack": 2, "defense": 2, "power": 1, "knowledge": 1 },
+  "specialtyEffect": { "id": "protecteur-du-duche", "garrisonDefense": 2 },
+  "startingSkills": { "leadership": 1, "tactics": 1 },
+  "startingSpells": []
+}

@@ -11,8 +11,12 @@ type RecruitCmd = Extract<Command, { type: 'RecruitHero' }>;
 const DEFAULT_RECRUIT_COST = 2500;
 const DEFAULT_MAX_HEROES = 8;
 
-/** id déterministe d'un héros recruté : namespacé par joueur + id de roster (unique). */
-function recruitedHeroId(playerId: string, heroId: string): string {
+/**
+ * id déterministe d'un héros recruté : namespacé par joueur + id de roster
+ * (unique). Exporté (M-TAVERN.2) : le client teste « déjà recruté » avec la
+ * même convention au lieu de la dupliquer (leçon CL9/R7).
+ */
+export function recruitedHeroId(playerId: string, heroId: string): string {
   return `hero-${playerId}-${heroId}`;
 }
 

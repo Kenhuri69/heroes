@@ -180,6 +180,43 @@ export function resolveFactionResourceName(id: string): string {
   return resolveCoreOrPack('factionResource', id);
 }
 
+/** Cherche une clé exacte dans les locales CORE puis PAQUET — `null` si absente partout. */
+function lookupCoreOrPack(key: string): string | null {
+  const core = t(key);
+  if (core !== key) return core;
+  const pack = resolveLoc(key);
+  return pack === key ? null : pack;
+}
+
+/**
+ * Nom localisé d'un héros (`HeroState.name`, M-TAVERN.2) : clé CORE pour le
+ * héros de départ générique (`hero.name.default`) ou référence `@loc:` de
+ * paquet pour un héros nommé (H-NAMED). Repli : la clé brute.
+ */
+export function resolveHeroName(name: string): string {
+  const key = name.startsWith('@loc:') ? name.slice('@loc:'.length) : name;
+  return lookupCoreOrPack(key) ?? key;
+}
+
+/**
+ * Nom/description localisés d'une spécialité de héros
+ * (`hero.specialty.<id>.name/.desc`) : CORE pour la spécialité du héros de
+ * départ (`arcanist`), locales de PAQUET pour celles des héros nommés
+ * (M-TAVERN.2). Desc `null` si absente — l'UI n'affiche rien.
+ */
+export function resolveSpecialtyName(id: string): string {
+  return lookupCoreOrPack(`hero.specialty.${id}.name`) ?? id;
+}
+
+export function resolveSpecialtyDesc(id: string): string | null {
+  return lookupCoreOrPack(`hero.specialty.${id}.desc`);
+}
+
+/** Bio localisée d'un héros nommé (`hero.<id>.bio`, locales de paquet) — `null` si absente. */
+export function resolveHeroBio(heroId: string): string | null {
+  return lookupCoreOrPack(`hero.${heroId}.bio`);
+}
+
 /**
  * Nom localisé d'un scénario (`scenario.name` = référence `@loc:` vers les
  * locales CORE — data/core/locales/, plan phase-3.5, pas les locales de

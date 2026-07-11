@@ -594,3 +594,80 @@ button[data-testid='market-trade'] {
 .town-guild-spell.is-locked {
   opacity: 0.6;
 }
+
+/* ─── Onglet Taverne (M-TAVERN.2) : recrutement de héros nommés ─── */
+.town-tavern-status {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  margin: 0 0 0.5rem;
+  font: 600 0.9rem var(--font-ui);
+}
+.town-tavern-cap {
+  font: 0.8rem var(--font-ui);
+  color: var(--parchment-dim);
+}
+.town-tavern-empty {
+  color: var(--parchment-dim);
+}
+.town-tavern-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.town-tavern-hero {
+  padding: 8px 10px;
+  border: 1px solid var(--ink-600);
+  border-radius: var(--radius-m);
+  background: var(--ink-700);
+}
+/* Déjà recruté : atténué + libellé (2ᵉ canal non chromatique, doc 08 §4). */
+.town-tavern-hero.is-recruited {
+  opacity: 0.65;
+}
+.town-tavern-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.town-tavern-avatar,
+.town-tavern-avatar-fallback {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-s);
+  object-fit: cover;
+  flex: 0 0 auto;
+}
+.town-tavern-avatar-fallback {
+  display: inline-block;
+  background: var(--shadow-12);
+}
+.town-tavern-name {
+  font-weight: 600;
+}
+.town-tavern-attrs {
+  font: 0.75rem var(--font-ui);
+  color: var(--parchment-dim);
+  margin-left: auto;
+}
+.town-tavern-specialty {
+  margin: 0.35rem 0 0;
+  font: 0.85rem var(--font-ui);
+}
+.town-tavern-specialty-name {
+  font-weight: 600;
+}
+.town-tavern-action {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+.town-tavern-recruited {
+  font: 600 0.85rem var(--font-ui);
+  color: var(--parchment-dim);
+}

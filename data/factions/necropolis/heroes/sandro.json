@@ -1,0 +1,15 @@
+{
+  "id": "sandro",
+  "name": "@loc:hero.sandro.name",
+  "bio": "@loc:hero.sandro.bio",
+  "archetype": "magic",
+  "origin": "canon",
+  "source": "Might & Magic",
+  "avatar": "necropolis-magic",
+  "avatarStyle": "painterly",
+  "specialty": "@loc:hero.sandro.specialty",
+  "attributes": { "attack": 0, "defense": 0, "power": 3, "knowledge": 3 },
+  "specialtyEffect": { "id": "maitre-liche", "manaCostReductionPct": 15 },
+  "startingSkills": { "necromancy": 1, "wisdom": 1 },
+  "startingSpells": ["fletrissure", "drain-vital"]
+}

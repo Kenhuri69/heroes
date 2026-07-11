@@ -258,6 +258,23 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > ignorées tant que l'IA joue ; (3) **indicateur de tour** dans la barre (`TurnIndicator`,
 > `store.aiTurn`) — joueur actif (pastille couleur + n°) et barre de progression
 > `done/total` des adversaires IA. Smoke étendu.
+>
+> 🍺 **Système de héros complet — Taverne & héros canon** (plan `.claude/plans/
+> m-tavern-client-canon-heroes.md`, docs 02/03/04/08). **M-TAVERN.2 livré** :
+> onglet **Taverne** de l'écran de ville (visible si construite, comme Marché/
+> Guilde) — roster de la faction de la ville (avatar/nom/bio/spécialité/
+> attributs/coût), bouton Recruter ⇒ `RecruitHero`, états Recruté/cap/or ; le
+> héros recruté devient le héros **sélectionné** ; roster embarqué à `StartGame`
+> par **tous** les chemins client (partie rapide et `newGameStartCommand` ne le
+> passaient pas). Correctif latent : libellés de héros nommés résolus **core →
+> paquet** (`resolveHeroName`/`resolveSpecialtyName/Desc` — plus de clé brute au
+> tiroir). **Héros canon du jeu d'origine** (`origin: canon`, `source: "Might &
+> Magic"`) : Haven +3 (Anton/Freyda/Isabel), Necropolis +3 (Sandro/Markal/
+> Ornella) ; test-faction +1 original (Garrick, exerce le smoke sur la partie
+> rapide). Seul diff moteur : **export** du helper pur `recruitedHeroId`. Pas de
+> bump save, golden inchangé, garde-fou faction vert. Différés : Vhalen/Mère
+> Corbeau & co (spécialités conditionnelles = nouveau point d'extension),
+> UX-HEROSWAP, héros-vs-héros, pool exclusif, IA recruteuse, H-NAMED.2.
 
 ---
 

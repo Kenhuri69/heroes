@@ -13,7 +13,7 @@
   ],
   "spellSchool": "lumiere",
   "heroSkills": [],
-  "heroes": ["aldric", "seraphine"],
+  "heroes": ["aldric", "seraphine", "anton", "freyda", "isabel"],
   "tiers": 7,
   "sharedGrowthGroups": {},
   "units": [

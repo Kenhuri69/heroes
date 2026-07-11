@@ -16,7 +16,15 @@ import { heroArchetype, humanHeroes, humanId, humanTowns, resolveSelectedHero } 
 import { RESOURCE_COLORS } from '../render/mapObjects';
 import { playerColor } from '../render/playerColors';
 import { heroAvatarUrl, resourceIconUrl, unitSpriteUrl } from '../render/assets';
-import { t, resolveUnitName, resolveAbilityName, resolveAbilityDescription } from '../app/i18n';
+import {
+  t,
+  resolveUnitName,
+  resolveAbilityName,
+  resolveAbilityDescription,
+  resolveHeroName,
+  resolveSpecialtyName,
+  resolveSpecialtyDesc,
+} from '../app/i18n';
 import { AssetImg } from './AssetImg';
 import { UiIcon } from './UiIcon';
 import { MenuScreen } from './MenuScreen';
@@ -627,14 +635,16 @@ function HeroDrawer() {
         )}
         {hero.name && (
           <div class="hero-name" data-testid="hero-name">
-            {t(hero.name)}
+            {resolveHeroName(hero.name)}
           </div>
         )}
         {hero.specialtyId && (
           <div class="hero-specialty" data-testid="hero-specialty">
             <span class="hero-specialty-label">{t('hero.specialty')}</span>
-            <span class="hero-specialty-name">{t(`hero.specialty.${hero.specialtyId}.name`)}</span>
-            <span class="hero-specialty-desc">{t(`hero.specialty.${hero.specialtyId}.desc`)}</span>
+            <span class="hero-specialty-name">{resolveSpecialtyName(hero.specialtyId)}</span>
+            {resolveSpecialtyDesc(hero.specialtyId) && (
+              <span class="hero-specialty-desc">{resolveSpecialtyDesc(hero.specialtyId)}</span>
+            )}
           </div>
         )}
         <div class="hero-level" data-testid="hero-level">

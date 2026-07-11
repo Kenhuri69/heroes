@@ -1,0 +1,14 @@
+{
+  "id": "garrick",
+  "name": "@loc:hero.garrick.name",
+  "bio": "@loc:hero.garrick.bio",
+  "archetype": "might",
+  "origin": "original",
+  "avatar": "test-faction-might",
+  "avatarStyle": "painterly",
+  "specialty": "@loc:hero.garrick.specialty",
+  "attributes": { "attack": 2, "defense": 2, "power": 1, "knowledge": 1 },
+  "specialtyEffect": { "id": "videur-de-taverne", "moraleBonus": 1 },
+  "startingSkills": { "armor": 1 },
+  "startingSpells": []
+}

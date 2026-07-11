@@ -1,4 +1,4 @@
-# Planche — unités vox-arcana (T1→T8)
+# Planche — unités vox-arcana (T1→T8) — planche 2/2
 
 > Générée par `tools/assets/gen_prompts.py` — ne pas éditer à la main.
 > Règle A (sprites 512² painterly, alpha strict après extraction) de `docs/12-assets-style-guide.md`. Grille **4×2**,
@@ -16,14 +16,14 @@ clear power progression from cell 1 (weakest) to the last cell (mightiest),
 each subject centered in its own cell, not touching cell edges,
 clear spacing between cells,
 IMPORTANT: keep every subject fully inside its cell with generous empty margin all around — fully spread wings, weapons, staves and all extremities must NOT be cropped or touch any edge; zoom each subject out enough that nothing is clipped,
-cell 1: tier 1 unit "Apprentice Choir (fr: Chœur d'apprentis)" — slow and massive
-cell 2: tier 2 unit "Duelist (fr: Duelliste)" — aiming a ranged weapon, steady stance
-cell 3: tier 3 unit "Hippogriff (fr: Hippogriffe)" — large spread wings, airborne pose, swift and agile
-cell 4: tier 4 unit "Idol Huntress (fr: Chasseuse-Idole)" — aiming a ranged weapon, steady stance
-cell 5: tier 5 unit "Thestral (fr: Sombral)" — large spread wings, airborne pose, swift and agile
-cell 6: tier 6 unit "Spellmaster (fr: Maître de Sortilèges)" — steady stance
-cell 7: tier 7 unit "Phoenix (fr: Phénix)" — large spread wings, airborne pose, swift and agile
-cell 8: tier 8 unit "Honmoon Avatar (fr: Avatar du Honmoon)" — large spread wings, airborne pose, swift and agile
+cell 1: tier 1 unit "Cantor (fr: Chantre)" — steady stance
+cell 2: tier 2 unit "Blademaster (fr: Bretteur)" — aiming a ranged weapon, steady stance
+cell 3: tier 3 unit "Royal Hippogriff (fr: Hippogriffe Royal)" — large spread wings, airborne pose, swift and agile
+cell 4: tier 4 unit "Diva" — aiming a ranged weapon, swift and agile
+cell 5: tier 5 unit "Elder Thestral (fr: Sombral Ancien)" — large spread wings, airborne pose, swift and agile
+cell 6: tier 6 unit "Archmage (fr: Archimage)" — steady stance
+cell 7: tier 7 unit "Immortal Phoenix (fr: Phénix Immortel)" — large spread wings, airborne pose, swift and agile
+cell 8: tier 8 unit "Supreme Avatar (fr: Avatar Suprême)" — large spread wings, airborne pose, swift and agile
 flat uniform light grey background (#c8c8c8), no ground shadow,
 no text, no watermark, no signature, no border frame, no ground line, no decorative sparkles, no star glints, no lens flare
 ```
@@ -33,8 +33,8 @@ no text, no watermark, no signature, no border frame, no ground line, no decorat
 ```bash
 python3 tools/assets/sheet_extract.py <planche.png> \
   --cols 4 --rows 2 --side 512 \
-  --ids t1-choeur,t2-duelliste,t3-hippogriffe,t4-idole,t5-sombral,t6-maitre,t7-phenix,t8-avatar \
-  --out assets/raster_src --qc /tmp/qc-units-vox-arcana.png
+  --ids t1-choeur-elite,t2-duelliste-elite,t3-hippogriffe-elite,t4-idole-elite,t5-sombral-elite,t6-maitre-elite,t7-phenix-elite,t8-avatar-elite \
+  --out assets/raster_src --qc /tmp/qc-units-vox-arcana-p2.png
 ```
 
 Puis copier les PNG validés de `assets/raster_src/` vers `assets/units/vox-arcana/`.

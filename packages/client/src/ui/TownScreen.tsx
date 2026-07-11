@@ -14,10 +14,11 @@ import {
   weekOf,
   weeklyGrowthOf,
 } from '@heroes/engine';
-import type { BuildingDef, CombatUnitDef, ResourceId, TownState } from '@heroes/engine';
-import { useApp } from '../app/store';
+import { recruitedHeroId } from '@heroes/engine';
+import type { BuildingDef, CombatUnitDef, GameEvent, ResourceId, TownState } from '@heroes/engine';
+import { useApp, appStore } from '../app/store';
 import { dispatch } from '../app/dispatch';
-import { humanId } from '../app/game';
+import { heroArchetype, humanId } from '../app/game';
 import {
   t,
   resolveLoc,
@@ -28,8 +29,11 @@ import {
   resolveBuildingName,
   resolveBuildingLore,
   resolveFactionResourceName,
+  resolveHeroBio,
+  resolveSpecialtyName,
+  resolveSpecialtyDesc,
 } from '../app/i18n';
-import { buildingUrl, townBackgroundUrl } from '../render/assets';
+import { buildingUrl, heroAvatarUrl, townBackgroundUrl } from '../render/assets';
 import { AssetImg } from './AssetImg';
 import { FactionBadge } from './FactionBadge';
 import { UiIcon } from './UiIcon';
@@ -70,13 +74,13 @@ function buildingName(id: string): string {
 /**
  * La ville a-t-elle un bâtiment CONSTRUIT (niveau ≥ 1) portant l'effet demandé ?
  * Miroir client de `townHasMarket` (engine/town/market.ts) : sert à n'exposer
- * l'onglet Marché/Guilde que lorsque le bâtiment existe — le moteur refuse
- * sinon l'échange (`invalidTrade`). Aucun id de bâtiment en dur (data-driven).
+ * l'onglet Marché/Guilde/Taverne que lorsque le bâtiment existe — le moteur
+ * refuse sinon l'action. Aucun id de bâtiment en dur (data-driven).
  */
 function hasBuiltEffect(
   town: TownState,
   catalog: Record<string, BuildingDef>,
-  effectType: 'market' | 'mageGuild',
+  effectType: 'market' | 'mageGuild' | 'tavern',
 ): boolean {
   for (const [id, level] of Object.entries(town.buildings)) {
     if (level < 1) continue;
@@ -108,7 +112,7 @@ function CostList({ cost }: { cost: Record<string, number> }) {
 export function TownScreen({ townId, onClose }: { townId: string; onClose: () => void }) {
   useApp((s) => s.locale); // réactivité i18n
   const game = useApp((s) => s.game);
-  const [tab, setTab] = useState<'build' | 'recruit' | 'garrison' | 'market' | 'guild'>('build');
+  const [tab, setTab] = useState<'build' | 'recruit' | 'garrison' | 'market' | 'guild' | 'tavern'>('build');
   const [error, setError] = useState<string | null>(null);
 
   const close = onClose;
@@ -121,10 +125,13 @@ export function TownScreen({ townId, onClose }: { townId: string; onClose: () =>
   // bâtiments qu'on entre, pas des modes permanents.
   const hasMarket = town ? hasBuiltEffect(town, game.buildingCatalog, 'market') : false;
   const hasGuild = town ? hasBuiltEffect(town, game.buildingCatalog, 'mageGuild') : false;
+  const hasTavern = town ? hasBuiltEffect(town, game.buildingCatalog, 'tavern') : false;
   // Onglet effectif : si l'onglet mémorisé n'est plus disponible (bâtiment non
   // construit), repli sur Construire — jamais un panneau vide/inaccessible.
   const activeTab =
-    (tab === 'market' && !hasMarket) || (tab === 'guild' && !hasGuild) ? 'build' : tab;
+    (tab === 'market' && !hasMarket) || (tab === 'guild' && !hasGuild) || (tab === 'tavern' && !hasTavern)
+      ? 'build'
+      : tab;
 
   // Lot B (refonte UX) : la vue peinte devient le point d'entrée — un tap sur un
   // emplacement route vers l'action pertinente (entrer le marché/la guilde,
@@ -136,6 +143,7 @@ export function TownScreen({ townId, onClose }: { townId: string; onClose: () =>
     if ((town.buildings[id] ?? 0) >= 1) {
       if (effect?.type === 'market') return setTab('market');
       if (effect?.type === 'mageGuild') return setTab('guild');
+      if (effect?.type === 'tavern') return setTab('tavern');
       if (builtDwellings(town, game.buildingCatalog).includes(id)) return setTab('recruit');
     }
     setTab('build');
@@ -230,6 +238,15 @@ export function TownScreen({ townId, onClose }: { townId: string; onClose: () =>
                   <UiIcon id="tab-build" fallback="" /> {t('town.guild')}
                 </button>
               )}
+              {hasTavern && (
+                <button
+                  class={activeTab === 'tavern' ? 'active' : ''}
+                  data-testid="town-tab-tavern"
+                  onClick={() => setTab('tavern')}
+                >
+                  <UiIcon id="tab-recruit" fallback="" /> {t('town.tavern')}
+                </button>
+              )}
             </nav>
 
             {error && (
@@ -247,6 +264,7 @@ export function TownScreen({ townId, onClose }: { townId: string; onClose: () =>
             {activeTab === 'garrison' && <GarrisonTab town={town} onError={setError} />}
             {activeTab === 'market' && <MarketTab town={town} onError={setError} />}
             {activeTab === 'guild' && <GuildTab town={town} />}
+            {activeTab === 'tavern' && <TavernTab town={town} onError={setError} />}
           </>
         )}
       </div>
@@ -407,6 +425,108 @@ function GuildTab({ town }: { town: TownState }) {
           </ul>
         </div>
       ))}
+    </div>
+  );
+}
+
+/**
+ * Onglet Taverne (doc 02 §1.5/§4.1, M-TAVERN.2) : recrutement de héros nommés.
+ * Liste le roster embarqué (`game.heroRoster`) de la faction de la ville —
+ * avatar, nom, bio, spécialité, attributs — et dispatch `RecruitHero` contre
+ * or (`config.hero.recruitCost`). Le moteur re-valide tout (Taverne bâtie,
+ * cap, or, déjà recruté) ; l'UI ne fait que refléter ces états. Après succès,
+ * le héros recruté devient le héros SÉLECTIONNÉ (il apparaît de lui-même dans
+ * la bande `HeroStrip` et sur la carte).
+ */
+function TavernTab({ town, onError }: { town: TownState; onError: (msg: string | null) => void }) {
+  const game = useApp((s) => s.game);
+  const playerId = humanId(game);
+  const player = game.players.find((p) => p.id === playerId);
+  const cost = game.config?.hero?.recruitCost ?? 2500;
+  const max = game.config?.hero?.maxPerPlayer ?? 8;
+  const owned = game.heroes.filter((h) => h.playerId === playerId).length;
+  const capReached = owned >= max;
+  const affordable = (player?.resources.gold ?? 0) >= cost;
+  // La Taverne d'une ville n'offre que les héros de SA faction (règle moteur,
+  // ids opaques — zéro nom de faction en dur). Tri par id pour un ordre stable.
+  const roster = Object.entries(game.heroRoster)
+    .filter(([, def]) => def.factionId === town.factionId)
+    .sort(([a], [b]) => a.localeCompare(b));
+
+  const recruit = (heroId: string): void => {
+    onError(null);
+    dispatch({ type: 'RecruitHero', playerId, townId: town.id, heroId })
+      .then((result) => {
+        const recruited = result.events.find(
+          (e): e is Extract<GameEvent, { type: 'HeroRecruited' }> => e.type === 'HeroRecruited',
+        );
+        if (recruited) appStore.setState({ selectedHeroId: recruited.newHeroId });
+      })
+      .catch((err: unknown) => {
+        onError(commandErrorMessage(err));
+      });
+  };
+
+  return (
+    <div class="town-tab-panel" data-testid="town-panel-tavern">
+      <p class="town-tavern-status" data-testid="town-tavern-status">
+        <span>{t('town.tavernHeroes', { count: owned, max })}</span>
+        {capReached && <span class="town-tavern-cap">{t('town.tavernCapReached')}</span>}
+      </p>
+      {roster.length === 0 ? (
+        <p class="town-tavern-empty" data-testid="town-tavern-empty">
+          {t('town.tavernEmpty')}
+        </p>
+      ) : (
+        <ul class="town-tavern-list">
+          {roster.map(([heroId, def]) => {
+            const already = game.heroes.some((h) => h.id === recruitedHeroId(playerId, heroId));
+            const bio = resolveHeroBio(heroId);
+            const specDesc = def.specialtyId ? resolveSpecialtyDesc(def.specialtyId) : null;
+            return (
+              <li key={heroId} class={`town-tavern-hero${already ? ' is-recruited' : ''}`}>
+                <div class="town-tavern-header">
+                  <AssetImg
+                    src={heroAvatarUrl(def.factionId, heroArchetype(def.attributes))}
+                    alt=""
+                    class="town-tavern-avatar"
+                    fallback={<i class="town-tavern-avatar-fallback" aria-hidden="true" />}
+                  />
+                  <span class="town-tavern-name">{resolveLoc(def.name)}</span>
+                  <span class="town-tavern-attrs" data-testid={`town-tavern-attrs-${heroId}`}>
+                    {`${t('attribute.attack')} ${def.attributes.attack} · ${t('attribute.defense')} ${def.attributes.defense} · ${t('attribute.power')} ${def.attributes.power} · ${t('attribute.knowledge')} ${def.attributes.knowledge}`}
+                  </span>
+                </div>
+                {def.specialtyId && (
+                  <p class="town-tavern-specialty">
+                    <span class="town-tavern-specialty-name">{resolveSpecialtyName(def.specialtyId)}</span>
+                    {specDesc && <span class="town-tavern-specialty-desc"> — {specDesc}</span>}
+                  </p>
+                )}
+                {bio && <LoreText text={bio} variant="town-tavern-bio" testid={`town-tavern-bio-${heroId}`} />}
+                <div class="town-tavern-action">
+                  {already ? (
+                    <span class="town-tavern-recruited" data-testid={`town-tavern-recruited-${heroId}`}>
+                      {t('town.tavernRecruited')}
+                    </span>
+                  ) : (
+                    <>
+                      <CostList cost={{ gold: cost }} />
+                      <button
+                        data-testid={`town-tavern-recruit-${heroId}`}
+                        disabled={capReached || !affordable}
+                        onClick={() => recruit(heroId)}
+                      >
+                        {t('town.recruit')}
+                      </button>
+                    </>
+                  )}
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </div>
   );
 }

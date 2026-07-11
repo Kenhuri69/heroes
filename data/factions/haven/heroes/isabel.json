@@ -1,0 +1,15 @@
+{
+  "id": "isabel",
+  "name": "@loc:hero.isabel.name",
+  "bio": "@loc:hero.isabel.bio",
+  "archetype": "magic",
+  "origin": "canon",
+  "source": "Might & Magic",
+  "avatar": "haven-magic",
+  "avatarStyle": "painterly",
+  "specialty": "@loc:hero.isabel.specialty",
+  "attributes": { "attack": 0, "defense": 1, "power": 3, "knowledge": 2 },
+  "specialtyEffect": { "id": "tresor-imperial", "goldPerDay": 250 },
+  "startingSkills": { "wisdom": 1, "economy": 1 },
+  "startingSpells": ["trait-de-lumiere", "aura-sacree"]
+}

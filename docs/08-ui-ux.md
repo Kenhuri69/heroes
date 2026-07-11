@@ -111,9 +111,10 @@
 > l'interaction carte ; la carte rend **un sprite par héros** avec un anneau sur
 > le sélectionné. La barre d'actions liste **toutes les villes possédées** (une
 > entrée par ville, badge de faction) — la 2ᵉ ville capturée est donc
-> accessible. Le contenu MVP ne donne qu'un héros par joueur (pas de recrutement
-> de héros au moteur) ; l'UI se généralise à N sans diff moteur. Le **transfert
-> d'armée/artefacts** entre héros (doc §2.3) reste différé à U6.
+> accessible. Depuis **M-TAVERN.2**, le recrutement de héros à la **Taverne**
+> alimente réellement ce multi-héros (le héros recruté devient le héros
+> sélectionné et apparaît dans le bandeau). Le **transfert d'armée/artefacts**
+> entre héros (doc §2.3) reste différé à U6.
 
 > ✅ **État UXD-8** : la **colonne droite desktop** de ce schéma est réalisée par
 > le **tiroir héros persistant** (≥ 900 px : ancré à droite, 300 px, toujours
@@ -125,7 +126,7 @@
 
 ### 2.2 Écran de ville
 
-- Vue peinte interactive (les bâtiments construits apparaissent) + **onglet liste** : `Construire · Recruter · Marché · Guilde · Garnison`. Sur mobile, la liste est l'entrée principale (la vue peinte reste, en scroll horizontal).
+- Vue peinte interactive (les bâtiments construits apparaissent) + **onglet liste** : `Construire · Recruter · Garnison · Marché · Guilde · Taverne` (les trois derniers seulement si le bâtiment est construit). Sur mobile, la liste est l'entrée principale (la vue peinte reste, en scroll horizontal).
 - Panneau construction : arbre visuel avec états (construit / disponible / verrouillé + prérequis manquants en rouge / plus tard : file du jour suivant). 1 bâtiment/jour → le bouton global affiche « Construction du jour utilisée ».
 - Recrutement : slider quantité + boutons min/max, coût total live, « tout recruter » (achat max multi-tiers).
 
@@ -141,6 +142,18 @@
 > tri alphabétique plaçait les verrouillés en tête. Vignettes de bâtiments
 > manquantes (Habitation : Recrue, Tableau des Contrats) = suivi asset (C22).
 
+> 🚧 **État M-TAVERN.2** : l'onglet **Taverne** est fonctionnel — visible
+> seulement si la Taverne est **construite** (même règle que Marché/Guilde ; tap
+> sur la vignette de la Taverne dans la vue peinte ⇒ onglet). Liste le **roster
+> de héros nommés de la faction de la ville** (`GameState.heroRoster`) : avatar
+> (`heroes/<faction>-<archétype>`, repli procédural), nom, **bio** dépliable
+> (parité tactile X2), spécialité (nom + effet), attributs, **coût en or** et
+> compteur `héros possédés/cap`. Bouton **Recruter** ⇒ `RecruitHero` (re-validé
+> moteur) ; états affichés : « Recruté » (carte atténuée + libellé, canal non
+> chromatique doc §4), cap atteint, or insuffisant (bouton désactivé). Le héros
+> recruté devient le héros **sélectionné**. Les libellés de spécialité des héros
+> nommés sont résolus **core → paquet** (`hero.specialty.<id>.name/.desc`).
+>
 > 🚧 **État U6a** : l'onglet **Marché** est fonctionnel — échange ressource ↔ or
 > au bâtiment marché, taux data-driven (`config.market` : `sellRate`/`buyRate`,
 > spread réaliste), via la commande moteur générique `TradeResources` (point

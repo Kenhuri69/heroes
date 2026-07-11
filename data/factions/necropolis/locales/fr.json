@@ -34,5 +34,20 @@
   "unit.t6-cavalier-funeste.lore": "Un champion mort qu'on a remis en selle et rendu à la charge. Il ne connaît plus ni faction ni serment ; il sert la Roue, au galop, sans jamais se retourner.",
   "unit.t6-cavalier-funeste-elite.lore": "Là où il passe, les vivants comprennent leur erreur : croire que la mort était loin. Il ne hait personne. Il vient seulement corriger ce malentendu.",
   "unit.t7-dragon-os.lore": "Un dragon dont il ne reste que l'ossature et la colère. Nous l'avons relevé par révérence : même les plus grands doivent rendre leur chair à la Roue.",
-  "unit.t7-dragon-os-elite.lore": "Ni os ni chair, seulement le souvenir d'un dragon, hurlant dans le vent. Le voir, c'est apercevoir ce qui nous attend tous : beau, glacé, inévitable."
+  "unit.t7-dragon-os-elite.lore": "Ni os ni chair, seulement le souvenir d'un dragon, hurlant dans le vent. Le voir, c'est apercevoir ce qui nous attend tous : beau, glacé, inévitable.",
+  "hero.sandro.name": "Sandro",
+  "hero.sandro.bio": "Liche entre les liches, il a survécu à ses maîtres, à ses ennemis et à sa propre mort. Chaque guerre qu'on croit finie porte encore sa signature.",
+  "hero.sandro.specialty": "Maître liche — −15 % de coût en mana des sorts.",
+  "hero.markal.name": "Markal",
+  "hero.markal.bio": "Nécromancien de cour, il a chuchoté à l'oreille d'une reine jusqu'à régner à sa place. Ses intrigues rapportent plus que ses batailles.",
+  "hero.markal.specialty": "Intrigant de cour — +200 or par jour.",
+  "hero.ornella.name": "Ornella",
+  "hero.ornella.bio": "Noble vivante passée du côté des morts par ambition, restée par loyauté. Son armure noire n'a jamais cédé — pas même à la tombe.",
+  "hero.ornella.specialty": "Dame noire — −10 % de dégâts subis en mêlée.",
+  "hero.specialty.maitre-liche.name": "Maître liche",
+  "hero.specialty.maitre-liche.desc": "−15 % de coût en mana des sorts.",
+  "hero.specialty.intrigant-de-cour.name": "Intrigant de cour",
+  "hero.specialty.intrigant-de-cour.desc": "+200 or par jour.",
+  "hero.specialty.dame-noire.name": "Dame noire",
+  "hero.specialty.dame-noire.desc": "−10 % de dégâts subis en mêlée."
 }

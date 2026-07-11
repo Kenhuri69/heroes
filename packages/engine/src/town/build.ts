@@ -109,6 +109,16 @@ export function handleBuildStructure(draft: GameState, cmd: BuildCmd, events: Ga
         learnGuildSpellsAtTown(draft, hero, town, events);
     }
   }
+  // Bâtiment enseignant (F-BUILDEFF.3, doc 03 §4 — Cloître) : ajoute son sort au
+  // pool de la ville (jumeau du bloc mageGuild, sans RNG), puis tout héros du
+  // propriétaire présent l'apprend aussitôt s'il le peut.
+  if (effect.type === 'grantSpell') {
+    if (!town.spellPool.includes(effect.spellId)) town.spellPool.push(effect.spellId);
+    for (const hero of draft.heroes) {
+      if (hero.playerId === town.ownerPlayerId && samePos(hero.pos, town.pos))
+        learnGuildSpellsAtTown(draft, hero, town, events);
+    }
+  }
   // Choix de Maison (doc 16 §3.1, « Le Choixpeau ») : les héros du propriétaire
   // relèvent de la Maison bâtie. Id opaque résolu dans le catalogue embarqué ;
   // l'exclusivité (`exclusiveGroup`) garantit un seul choix par ville.

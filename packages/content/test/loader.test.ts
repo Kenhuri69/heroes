@@ -622,6 +622,36 @@ describe('ville de faction (manifest.town / buildings.json)', () => {
     );
   });
 
+  it('F-BUILDEFF.3 — rejette un grantSpell vers un sort inconnu', async () => {
+    const data = makeData();
+    withTown(data);
+    const buildings = data['factions/proto/buildings.json'] as { buildings: unknown[] };
+    (data['factions/proto/manifest.json'] as { town: { buildings: string[] } }).town.buildings.push('proto-cloister');
+    buildings.buildings.push({
+      id: 'proto-cloister', maxLevel: 1,
+      levels: [{ cost: { gold: 100 }, requires: [], effect: { type: 'grantSpell', spellId: 'sort-fantome' } }],
+    });
+    (data['factions/proto/locales/fr.json'] as Record<string, string>)['building.proto-cloister'] = 'Cloître';
+    (data['factions/proto/locales/en.json'] as Record<string, string>)['building.proto-cloister'] = 'Cloister';
+    const report = await loadContent(reader(data));
+    expect(report.rejected[0]?.errors.join()).toContain("grantSpell vers sort inconnu 'sort-fantome'");
+  });
+
+  it('F-BUILDEFF.3 — accepte un grantSpell vers un sort connu (core)', async () => {
+    const data = makeData();
+    withTown(data);
+    const buildings = data['factions/proto/buildings.json'] as { buildings: unknown[] };
+    (data['factions/proto/manifest.json'] as { town: { buildings: string[] } }).town.buildings.push('proto-cloister');
+    buildings.buildings.push({
+      id: 'proto-cloister', maxLevel: 1,
+      levels: [{ cost: { gold: 100 }, requires: [], effect: { type: 'grantSpell', spellId: 'boule-de-feu' } }],
+    });
+    (data['factions/proto/locales/fr.json'] as Record<string, string>)['building.proto-cloister'] = 'Cloître';
+    (data['factions/proto/locales/en.json'] as Record<string, string>)['building.proto-cloister'] = 'Cloister';
+    const report = await loadContent(reader(data));
+    expect(report.rejected).toEqual([]);
+  });
+
   it('buildBuildingCatalog agrège core + faction sans collision', async () => {
     const data = makeData();
     withTown(data);

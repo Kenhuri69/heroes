@@ -192,7 +192,7 @@ export async function loadContent(readJson: ReadJson): Promise<LoadReport> {
   };
   for (const id of index.factions) {
     try {
-      report.content.packs.push(await loadFactionPack(readJson, id, catalog, coreBuildings));
+      report.content.packs.push(await loadFactionPack(readJson, id, catalog, coreBuildings, coreSpells));
     } catch (e) {
       report.rejected.push({ id, errors: describeError(e) });
     }
@@ -361,6 +361,8 @@ export async function loadFactionPack(
   catalog: AbilityCatalog,
   /** Bâtiments communs (data/core/buildings.json) — résolus par `manifest.town.buildings`. */
   coreBuildings: Building[] = [],
+  /** Sorts communs (data/core/spells.json) — cross-validation de `grantSpell.spellId`. */
+  coreSpells: Spell[] = [],
 ): Promise<FactionPack> {
   const base = `factions/${id}`;
   const manifest = parseFile(manifestSchema, await readJson(`${base}/manifest.json`), 'manifest.json');
@@ -442,6 +444,7 @@ export async function loadFactionPack(
     buildings.push(...file.buildings);
 
     const coreBuildingIds = new Set(coreBuildings.map((b) => b.id));
+    const coreSpellIds = new Set(coreSpells.map((s) => s.id));
     const ownIds = buildings.map((b) => b.id);
     checkUniqueBuildingIds(errors, path, ownIds);
     for (const id of ownIds) {
@@ -465,6 +468,11 @@ export async function loadFactionPack(
         if (eff.type === 'houseChoice' && !manifest.houses.some((h) => h.id === eff.houseId))
           errors.push(
             `${path}: ${b.id} niveau ${i + 1} — houseChoice vers Maison inconnue '${eff.houseId}'`,
+          );
+        // Bâtiment enseignant (F-BUILDEFF.3) : le sort enseigné doit exister.
+        if (eff.type === 'grantSpell' && !coreSpellIds.has(eff.spellId))
+          errors.push(
+            `${path}: ${b.id} niveau ${i + 1} — grantSpell vers sort inconnu '${eff.spellId}'`,
           );
       });
     }

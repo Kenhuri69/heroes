@@ -17,8 +17,9 @@
 > §5.4) ; côté Haven reste inerte
 > `resurrectAlly` ;
 > compétence Prière de bataille ;
-> bâtiment spécial Cloître (§4, effet non supporté ; **Écuries** livré en
-> F-BUILDEFF.1 et **Statue du Jugement** en F-BUILDEFF.2 — aura `heroAura`) ; école
+> bâtiments spéciaux **livrés** : **Écuries** (F-BUILDEFF.1) et **Statue du
+> Jugement** (F-BUILDEFF.2) via `heroAura`, **Cloître** (F-BUILDEFF.3) via
+> `grantSpell` ; école
 > Lumière (variante Eau au MVP, `spellSchool: null`) ; classes et héros nommés
 > Aldric/Séraphine (§5, pas de pipeline de héros par faction). Les capacités
 > riches ci-dessus s'activeront quand le moteur ouvrira les points d'extension
@@ -98,7 +99,7 @@ Bâtiments communs : cf. doc 02 §4.1. Spécifiques Haven :
 | Bâtiment | Coût | Prérequis | Effet |
 |----------|------|-----------|-------|
 | **Statue du Jugement** | 1000 or, 5 bois, 5 minerai | Hôtel de ville | +1 moral en combat pour la **garnison** — **livré** (F-BUILDEFF.2, `heroAura combatMoraleBonus`). Volet « héros visiteurs » (héros défenseur en siège) différé avec le modèle de héros défenseur |
-| **Cloître** | 2000 or, 5 minerai, 3 gemmes | Guilde des mages 1 | Les héros visiteurs apprennent `Bénédiction` ; +2 mana/j régénérés *(différé F-BUILDEFF.3 : apprentissage/mana)* |
+| **Cloître** | 2000 or, 5 minerai, 3 gemmes | Guilde des mages 1 | Les héros visiteurs apprennent `Bénédiction` — **livré** (F-BUILDEFF.3, `grantSpell`). +2 mana/j **différé/réconcilié** : la mana se restaure entièrement chaque jour (§1.4), un regen quotidien serait un no-op |
 | **Écuries** | 1500 or, 10 bois | Habitation T4 | +400 pts de mouvement/j aux héros qui commencent leur tour dans la ville — **livré** (F-BUILDEFF.1, effet `heroAura`) |
 
 Chaîne d'habitations (prérequis) :

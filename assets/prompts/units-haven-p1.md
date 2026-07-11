@@ -21,7 +21,7 @@ cell 2: tier 2 unit "Archer" — aiming a ranged weapon, slow and massive
 cell 3: tier 3 unit "Blade Brother (fr: Frère-Lame)" — steady stance
 cell 4: tier 4 unit "Griffin (fr: Griffon)" — large spread wings, airborne pose, swift and agile
 cell 5: tier 5 unit "Priestess (fr: Prêtresse)" — aiming a ranged weapon, steady stance
-cell 6: tier 6 unit "Griffin Knight (fr: Chevalier du Griffon)" — swift and agile
+cell 6: tier 6 unit "Griffin Knight (fr: Chevalier du Griffon)" — charging forward, swift and agile
 cell 7: tier 7 unit "Angel (fr: Ange)" — large spread wings, airborne pose, swift and agile
 cell 8: tier 1 unit "Halberdier (fr: Hallebardier)" — steady stance
 flat uniform light grey background (#c8c8c8), no ground shadow,

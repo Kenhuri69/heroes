@@ -6,16 +6,17 @@
 > d'habitations (7 dwellings + prérequis, §4), manifeste, ressources clés
 > (Cristal/Gemmes), locales FR/EN, recrutement validé par test. **Différé**
 > (points d'extension moteur non encore ouverts — le loader refuse toute
-> donnée non interprétée) : capacités spéciales
-> `resurrectAlly`/`spellcaster`.
+> donnée non interprétée) : capacité spéciale `resurrectAlly`.
 > **Livré depuis** : `shieldWall` (Frère-Lame), `unlimitedRetaliation` (Griffon),
 > `charge` (Chevalier du Griffon) en A2a ; `moraleImmune` (Ange, immunité au
 > moral négatif) en A3a ; `taunt` (Conscrit, attire les frappes de mêlée
 > adjacentes) en A2e ; `firstStrike` (Chevalier du Griffon, priorité d'initiative
-> à vitesse égale) en A2g — interprétées par le moteur (catalogue = **26 capacités**
-> génériques, doc 02 §5.4) ; côté Haven reste inerte
+> à vitesse égale) en A2g ; `spellcaster` (Prêtresse, soin embarqué ×2 —
+> engine-first : lancé par l'IA/auto-combat, UI joueur différée) en A2h —
+> interprétées par le moteur (catalogue = **27 capacités** génériques, doc 02
+> §5.4) ; côté Haven reste inerte
 > `resurrectAlly` ;
-> bonus de faction Ferveur/Formation (§2) ; compétence Prière de bataille ;
+> compétence Prière de bataille ;
 > bâtiments spéciaux Statue/Cloître/Écuries (§4, effets non supportés) ; école
 > Lumière (variante Eau au MVP, `spellSchool: null`) ; classes et héros nommés
 > Aldric/Séraphine (§5, pas de pipeline de héros par faction). Les capacités
@@ -41,9 +42,18 @@
 
 ## 2. Bonus de faction
 
+> ✅ **Livré (F-BONUS)** : Ferveur + Formation via la variante générique
+> `combatBonus` du manifeste (`factionBonuses: [{ type:'combatBonus', morale:1,
+> defense:2 }]`), interprétée en combat par les helpers par-camp du moteur (moral,
+> défense) — **zéro nom de faction**. **Écart assumé** : Formation est modélisée
+> en **points de Défense plats** (`defense: 2` ≈ +5 % via la pente 2,5 %/pt) sur
+> **toute l'armée** du héros Haven, et non comme une aura conditionnée à
+> l'adjacence (simplification générique ; magnitude fidèle). La variante
+> `combatBonus` porte aussi un champ `attack` (offensif) réservé.
+
 - **Ferveur** : +1 moral permanent pour les unités Haven.
-- **Formation** : les piles adjacentes à une autre pile alliée Haven gagnent +5 % défense (aura passive, non cumulable).
-- Compétence de faction ajoutée au pool des héros Haven : **Prière de bataille** (Novice/Expert/Maître : 1 résurrection de X PV par combat sur une pile vivante).
+- **Formation** : +5 % défense pour l'armée Haven (livré en points plats, cf. note).
+- Compétence de faction ajoutée au pool des héros Haven : **Prière de bataille** (Novice/Expert/Maître : 1 résurrection de X PV par combat sur une pile vivante). *(différée — `resurrectAlly`)*
 
 ## 3. Lineup d'unités (T1–T7)
 

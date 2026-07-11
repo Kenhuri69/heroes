@@ -15,6 +15,14 @@ export interface RaiseUndeadOnVictoryBonus {
   capBase: number;
   /** Plafond additionnel par unité déjà présente dans l'armée du héros. */
   capPerExisting: number;
+  /**
+   * Nécromancie graduée (F-SKILLS, doc 04 §2) : compétence dont le RANG du héros
+   * pilote le pourcentage. Si le héros connaît `scaleSkillId` (rang 1..3) et que
+   * `percentByRank[rang-1]` est défini, on l'utilise au lieu de `percentHpRaised`.
+   * Absents ⇒ pourcentage plat (`percentHpRaised`), comportement historique.
+   */
+  scaleSkillId?: string;
+  percentByRank?: number[];
 }
 
 /**
@@ -28,4 +36,17 @@ export interface GainFactionResourceOnVictoryBonus {
   amount: number;
 }
 
-export type FactionBonus = RaiseUndeadOnVictoryBonus | GainFactionResourceOnVictoryBonus;
+/**
+ * Bonus de combat PASSIF de faction (F-BONUS, doc 03 §2 / doc 06 §4) : points
+ * plats accordés à l'armée du héros de cette faction pendant tout combat —
+ * Ferveur (`morale`), Formation (`defense`), variante offensive (`attack`).
+ * Interprété par les helpers par-camp du combat, jamais un nom de faction.
+ */
+export interface CombatBonus {
+  type: 'combatBonus';
+  attack?: number;
+  defense?: number;
+  morale?: number;
+}
+
+export type FactionBonus = RaiseUndeadOnVictoryBonus | GainFactionResourceOnVictoryBonus | CombatBonus;

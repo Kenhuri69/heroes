@@ -1,6 +1,7 @@
 import type { GameEvent } from '../core/events';
 import type { GameState } from '../core/state';
 import { applyAction, canShoot, canShootTarget, reachableHexes, tauntersAdjacentTo } from './actions';
+import { spellcasterParams } from './spell-effect';
 import { estimateDamage } from './damage';
 import type { Draft } from './draft';
 import { hexDistance, type OffsetPos } from './hex';
@@ -185,6 +186,56 @@ function scoreCandidate(
  * Heuristique de combat (doc 02 §5.6, raffinée au lot B) — formule et règles
  * imposées (kite/défense/progression) documentées en tête de fichier.
  */
+/**
+ * Choix de lancer de sort pour une unité `spellcaster` (A2h), ou `null` si rien
+ * d'utile / pas lanceuse / plus de charges. Heuristique simple et déterministe :
+ * heal ⇒ allié au top d'unité le plus endommagé (aucun blessé ⇒ garde la charge) ;
+ * damage/debuff/applyMarks ⇒ ennemi de plus haute valeur ; buff ⇒ meilleur allié.
+ */
+function chooseSpellcast(
+  state: GameState,
+  stack: CombatStack,
+  combat: CombatState,
+  catalog: Record<string, CombatUnitDef>,
+  enemies: CombatStack[],
+): CombatActionInput | null {
+  const def = catalog[stack.unitId];
+  const params = def ? spellcasterParams(def) : null;
+  if (!params || stack.spellCharges <= 0) return null;
+  const spell = state.spellCatalog[params.spellId];
+  if (!spell) return null;
+  const targetsEnemy = spell.kind === 'damage' || spell.kind === 'debuff' || spell.kind === 'applyMarks';
+
+  if (targetsEnemy) {
+    const best = pickBestBy(
+      enemies,
+      (e) => { const d = catalog[e.unitId]; return d ? targetValue(d) : 0; },
+      (a, b) => compareCodeUnits(a.id, b.id),
+    );
+    return best ? { type: 'castSpell', targetStackId: best.id } : null;
+  }
+
+  const allies = combat.stacks.filter((s) => s.side === stack.side && s.count > 0);
+  if (spell.kind === 'heal') {
+    const wounded = allies.filter((a) => { const d = catalog[a.unitId]; return d ? a.firstHp < d.stats.hp : false; });
+    if (wounded.length === 0) return null; // rien à soigner ⇒ conserve la charge
+    const best = pickBestBy(
+      wounded,
+      (a) => { const d = catalog[a.unitId]; return d ? d.stats.hp - a.firstHp : 0; },
+      (a, b) => compareCodeUnits(a.id, b.id),
+    );
+    return best ? { type: 'castSpell', targetStackId: best.id } : null;
+  }
+
+  // buff : renforce l'allié le plus fort (soi inclus) — départage stable.
+  const best = pickBestBy(
+    allies,
+    (a) => { const d = catalog[a.unitId]; return d ? targetValue(d) * a.count : 0; },
+    (a, b) => compareCodeUnits(a.id, b.id),
+  );
+  return best ? { type: 'castSpell', targetStackId: best.id } : null;
+}
+
 export function chooseAction(state: GameState, stackId: string): CombatActionInput {
   const combat = state.combat;
   if (!combat) throw new Error(`chooseAction: aucun combat en cours`);
@@ -193,6 +244,12 @@ export function chooseAction(state: GameState, stackId: string): CombatActionInp
   const catalog = state.unitCatalog;
   const enemies = combat.stacks.filter((s) => s.side !== stack.side && s.count > 0);
   if (enemies.length === 0) return { type: 'defend' };
+
+  // `spellcaster` (A2h) : une pile lanceuse avec des charges lance un sort UTILE
+  // en priorité (heal ⇒ allié le plus blessé ; damage/debuff ⇒ meilleur ennemi ;
+  // buff ⇒ meilleur allié). Sinon (rien à soigner…) elle enchaîne normalement.
+  const cast = chooseSpellcast(state, stack, combat, catalog, enemies);
+  if (cast) return cast;
 
   // Règle imposée 1 — KITE : tireur menacé qui peut s'éloigner en sécurité.
   if (canShoot(state, stackId) && isThreatenedAt(stack.pos, enemies, combat, catalog)) {

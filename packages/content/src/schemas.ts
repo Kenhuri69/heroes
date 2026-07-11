@@ -89,11 +89,24 @@ export const factionBonusSchema = z.discriminatedUnion('type', [
     percentHpRaised: z.number().int().positive(),
     capBase: z.number().int().nonnegative(),
     capPerExisting: z.number().int().nonnegative(),
+    // Nécromancie graduée (F-SKILLS) : rang de `scaleSkillId` → `percentByRank`.
+    // `.default` (comme combatBonus F-BONUS) : sort optionnel côté données, type
+    // requis assignable au champ moteur optionnel (exactOptionalPropertyTypes).
+    scaleSkillId: idSchema.default(''),
+    percentByRank: z.array(z.number().int().positive()).default([]),
   }),
   z.object({
     type: z.literal('gainFactionResourceOnVictory'),
     resource: idSchema,
     amount: z.number().int().positive(),
+  }),
+  // F-BONUS : bonus de combat passifs (Ferveur `morale`, Formation `defense`,
+  // variante offensive `attack`) — points plats, ≥ 0. Générique, doc 06 §4.
+  z.object({
+    type: z.literal('combatBonus'),
+    attack: z.number().int().nonnegative().default(0),
+    defense: z.number().int().nonnegative().default(0),
+    morale: z.number().int().nonnegative().default(0),
   }),
 ]);
 
@@ -340,30 +353,43 @@ export const spellCatalogSchema = z.object({
  * `SkillRankEffect` (engine/src/hero/types.ts) ; au moins un champ par rang,
  * sinon un rang « no-op » serait un mensonge de contenu.
  */
-const skillRankEffectSchema = z
-  .object({
-    movementBonusPct: z.number().optional(),
-    visionBonus: z.number().optional(),
-    goldPerDay: z.number().optional(),
-    meleeDamagePct: z.number().optional(),
-    rangedDamagePct: z.number().optional(),
-    armorReductionPct: z.number().optional(),
-    luckBonus: z.number().optional(),
-    moraleBonus: z.number().optional(),
-    manaCostReductionPct: z.number().optional(),
-    spellCircleUnlock: z.number().int().min(1).max(5).optional(),
-    learnCircle: z.number().int().min(1).max(5).optional(),
-  })
-  .refine((e) => Object.values(e).some((v) => v !== undefined), 'au moins un effet par rang');
+const skillRankEffectSchema = z.object({
+  movementBonusPct: z.number().optional(),
+  visionBonus: z.number().optional(),
+  goldPerDay: z.number().optional(),
+  meleeDamagePct: z.number().optional(),
+  rangedDamagePct: z.number().optional(),
+  armorReductionPct: z.number().optional(),
+  luckBonus: z.number().optional(),
+  moraleBonus: z.number().optional(),
+  manaCostReductionPct: z.number().optional(),
+  spellCircleUnlock: z.number().int().min(1).max(5).optional(),
+  learnCircle: z.number().int().min(1).max(5).optional(),
+});
 
 /** data/core/skills.json (doc 02 §1.3) — exactement 3 rangs (Novice/Expert/Maître). */
-export const skillSchema = z.object({
-  id: idSchema,
-  name: locRef.optional(),
-  ranks: z.tuple([skillRankEffectSchema, skillRankEffectSchema, skillRankEffectSchema]),
-  /** École visée par une compétence de magie (A6) — réduction de mana filtrée par école. */
-  school: z.enum(SPELL_SCHOOLS).optional(),
-});
+export const skillSchema = z
+  .object({
+    id: idSchema,
+    name: locRef.optional(),
+    ranks: z.tuple([skillRankEffectSchema, skillRankEffectSchema, skillRankEffectSchema]),
+    /** École visée par une compétence de magie (A6) — réduction de mana filtrée par école. */
+    school: z.enum(SPELL_SCHOOLS).optional(),
+    /**
+     * F-SKILLS : compétence « marqueur » à effet EXTERNE (ex. Nécromancie graduée,
+     * dont le payoff est le % de `raiseUndeadOnVictory`). Ses rangs peuvent être
+     * vides (aucun `SkillRankEffect` direct). Absent/false ⇒ chaque rang doit
+     * porter au moins un effet (règle commune, doc 02 §1.3).
+     */
+    external: z.boolean().optional(),
+  })
+  .superRefine((s, ctx) => {
+    if (s.external) return;
+    s.ranks.forEach((rank, i) => {
+      if (!Object.values(rank).some((v) => v !== undefined))
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'au moins un effet par rang', path: ['ranks', i] });
+    });
+  });
 
 export const skillCatalogSchema = z.object({
   skills: z.array(skillSchema).min(1),
@@ -984,7 +1010,9 @@ export type ResolvedSpell = Omit<Spell, 'name' | 'loreKey'>;
 export type Skill = z.infer<typeof skillSchema>;
 export type SkillCatalogFile = z.infer<typeof skillCatalogSchema>;
 /** Forme moteur — `Skill` sans `name` (locale, hors `HeroSkillDef` figé). */
-export type ResolvedSkill = Omit<Skill, 'name'>;
+// `external` est une contrainte de VALIDATION (contenu) hors forme moteur ; le
+// `factionId` (F-SKILLS) est estampillé par le loader depuis `manifest.heroSkills`.
+export type ResolvedSkill = Omit<Skill, 'name' | 'external'> & { factionId?: string };
 export type Artifact = z.infer<typeof artifactSchema>;
 export type ArtifactSlot = z.infer<typeof artifactSlotSchema>;
 export type ArtifactCatalogFile = z.infer<typeof artifactCatalogSchema>;

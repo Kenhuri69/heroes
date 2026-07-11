@@ -318,14 +318,14 @@ test('confort : raccourci E + garde-fou de fin de tour (doc 08, lot M8 C2/C12)',
   await page.mouse.click(heroTile.x, heroTile.y);
 
   // Le héros n'a pas bougé (PM pleins) ⇒ la touche E ouvre la confirmation (C12).
-  // Sous charge (CI/parallèle), un keydown peut être avalé pendant l'init de la
-  // scène Pixi : on re-presse jusqu'à voir la confirmation (point de synchro
-  // DÉTERMINISTE, comme le tap de préviz). Re-presser E est un no-op tant que la
-  // confirmation est ouverte — le handler court-circuite sur `pendingEndTurn`.
-  const endTurnConfirm = page.getByTestId('end-turn-confirm');
+  // Sous charge (CI/parallèle), la frappe peut être avalée avant que le focus
+  // clavier soit réellement établi : on re-frappe jusqu'à voir la confirmation
+  // (même point de synchro déterministe que `tapTapTile`), sans re-frapper si
+  // elle est déjà ouverte.
+  const confirm = page.getByTestId('end-turn-confirm');
   await expect(async () => {
-    await page.keyboard.press('e');
-    await expect(endTurnConfirm).toBeVisible({ timeout: 1000 });
+    if (!(await confirm.isVisible())) await page.keyboard.press('e');
+    await expect(confirm).toBeVisible({ timeout: 1000 });
   }).toPass({ timeout: 10000 });
   await page.getByTestId('end-turn-confirm-go').click();
   await expect(page.getByTestId('calendar')).toHaveText('Jour 2 · Semaine 1');
@@ -341,17 +341,17 @@ test('confort : « ? » ouvre l’aide des raccourcis, Échap la ferme (X7)', as
   const heroTile = await page.evaluate(() => window.__HEROES_TEST__!.tileToScreen(3, 3));
   await page.mouse.click(heroTile.x, heroTile.y);
 
-  // Re-presse « ? » jusqu'à l'ouverture (keydown avalé sous charge, cf. raccourci
-  // E) ; no-op tant que la modale est ouverte (handler court-circuité sur
-  // `modals.length > 0`). Point de synchro déterministe.
-  const shortcutsPanel = page.getByTestId('shortcuts-panel');
+  // « ? » — re-frappé jusqu'à l'ouverture (cf. test raccourci E : la frappe
+  // peut être avalée sous charge avant que le focus soit établi) ; fermeture
+  // Échap re-jouée de même (keydown avalable sous charge).
+  const panel = page.getByTestId('shortcuts-panel');
   await expect(async () => {
-    await page.keyboard.press('Shift+Slash'); // « ? »
-    await expect(shortcutsPanel).toBeVisible({ timeout: 1000 });
+    if (!(await panel.isVisible())) await page.keyboard.press('Shift+Slash');
+    await expect(panel).toBeVisible({ timeout: 1000 });
   }).toPass({ timeout: 10000 });
   await expect(async () => {
     await page.keyboard.press('Escape');
-    await expect(shortcutsPanel).toHaveCount(0, { timeout: 1000 });
+    await expect(panel).toHaveCount(0, { timeout: 1000 });
   }).toPass({ timeout: 10000 });
 
   expect(errors).toEqual([]);

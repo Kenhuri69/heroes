@@ -72,86 +72,99 @@ dense.
 Chaque lot est indépendamment livrable (PR atomique), avec critère de
 vérification. Ordre proposé = impact joueur décroissant.
 
-### Lot 1 — Palette de gardiens saine (fin des drapeaux gris)
+### Lot 1 — Palette de gardiens saine (fin des drapeaux gris) — ✅ livré
 
-1. Dans `resolveGeneratedMap` (client), **filtrer la palette de gardiens** aux
-   unités dont le sprite existe (`unitSpriteUrl` non-undefined) — déterministe à
-   build donné, zéro diff moteur/contenu.
-   → vérif : test unitaire client (palette filtrée) + partie aléatoire sans
-   fanion gris persistant.
-2. Retirer `test-faction` de `data/factions/index.json` de **prod** si le
-   garde-fou CI le permet (il se dérive de cet index — vérifier avant) ; sinon
-   la garder mais elle est déjà écartée par le filtre du point 1.
-   → vérif : CI verte (garde-fou « zéro faction dans le moteur » + tests).
-3. Durcir le repli visuel du gardien : silhouette de créature + pastille de
-   menace au lieu du fanion ambigu (défense en profondeur si un art manque).
-   → vérif : capture smoke.
-4. (Suivi, hors lot) Générer les planches d'unités `sylvan-court` via le skill
-   `asset-sheet` pour compléter `assets/units/`.
+1. [x] Dans `resolveGeneratedMap` (client), **filtrer la palette de gardiens**
+   aux unités dont le sprite existe (`unitSpriteUrl` non-undefined) —
+   déterministe à build donné, zéro diff moteur/contenu. Repli sur la palette
+   complète si AUCUN art n'est présent (build sans assets).
+   → vérif : pas d'infra de test unitaire client (le registre d'assets dépend
+   de `import.meta.glob` Vite) ⇒ vérifié par typecheck + build + smoke.
+2. [x] `test-faction` **reste** dans `data/factions/index.json` : elle est
+   câblée dans la config de départ (`config.newGame.startingHero`), proto-01 et
+   le smoke — la retirer casserait la partie par défaut. Le filtre du point 1
+   l'écarte déjà des cartes aléatoires.
+3. [x] Repli visuel du gardien durci : silhouette de créature (ombre + torse +
+   tête cornue, yeux jaunes) au lieu du fanion gris pris pour une ville.
+4. [ ] (Suivi, hors lot) Générer les planches d'unités `sylvan-court` via le
+   skill `asset-sheet` pour compléter `assets/units/`.
 
-### Lot 2 — Ancrage iso des objets de carte (mine sur SA case)
+### Lot 2 — Ancrage iso des objets de carte (mine sur SA case) — ✅ livré
 
-1. Aligner les mines/tas de ressources/coffres/artefacts/lieux de bonus sur la
-   convention « base centrée » déjà appliquée aux villes/gardiens/props :
-   `anchor(0.5, 1)` + position au centre du losange, échelle inchangée.
-2. Ajouter (léger) un liseré/losange de sol sous les objets interactifs pour
-   matérialiser la case exacte à viser (aide picking, doc 08 « prévisualisation
-   avant action »).
-3. **Séparer les visuels mine / tas ramassable** : nouvelle famille d'assets
-   `resources/pile-<res>` (convention registre, résolveur `resourcePileUrl`) ;
-   `buildResourcePile` (type `resource`) la consomme, `buildMine` garde
-   `mines/mine-<res>` en exclusivité. Tant que les PNG de tas n'existent pas,
-   le repli procédural (losange teinté) reste — plus JAMAIS le sprite de mine
-   sur un ramassable.
-4. (Suivi, hors lot) Générer les PNG des tas (`gold/wood/ore/crystal/gems`) via
-   le skill asset adapté, déposés dans `assets/resources/`.
-   → vérif : smoke Playwright avec capture — l'asset repose visuellement sur son
-   losange ; tap sur la case = interaction attendue ; une carte avec mine + tas
-   de la même ressource affiche deux visuels distincts.
+1. [x] `placeSprite` passe en « base centrée » (`anchor(0.5, 1)`), base posée un
+   quart de losange sous le centre (ces assets embarquent leur socle iso, qui
+   recouvre ainsi le losange de la case) — s'applique à tous les objets peints :
+   mines, tas, coffres, artefacts, lieux de bonus, camps.
+2. [x] `groundDiamond()` : losange de sol discret sous CHAQUE objet de carte
+   (posé par `buildObject`), matérialise la case exacte à viser.
+3. [x] Visuels mine / tas séparés : résolveur `resourcePileUrl`
+   (`resources/pile-<res>`, préchargé PixiJS) pour les tas ramassables ;
+   `buildMine` garde `mines/mine-<res>` en exclusivité, avec un repli procédural
+   de bâtiment (distinct du losange du tas).
+4. [ ] (Suivi, hors lot) Générer les PNG des tas (`gold/wood/ore/crystal/gems`)
+   dans `assets/resources/`.
+   → vérif : typecheck/lint/build + smoke complet (les tests existants « appui
+   long sur la mine » et « assets sans 404 » couvrent la zone).
 
-### Lot 3 — Connexité garantie de la carte générée
+### Lot 3 — Connexité garantie de la carte générée — ✅ livré
 
-1. Dans `generateMap`, après le placement des départs : **flood-fill** (8
-   directions, mêmes règles de franchissabilité que le jeu) depuis le premier
-   départ ; identifier la composante principale.
-2. Pour chaque départ ou objet hors composante : **creuser un corridor**
-   déterministe (transformer en `dirt`/terrain de base les tuiles bloquantes le
-   long d'une ligne vers la composante) — jamais de relocalisation silencieuse
-   qui viderait une zone.
-3. Rejouer le flood-fill en garde finale : tout départ + tout objet joignable.
-   → vérif : property test (N graines × tailles) « chaque objet et chaque départ
-   est atteignable depuis chaque départ » ; déterminisme conservé (même graine ⇒
-   même carte) ; golden/parties existantes non affectées (les cartes du dépôt ne
-   passent pas par `generateMap`).
+1. [x] Flood-fill 8 directions depuis le premier départ, après le placement de
+   tous les objets (l'A* du jeu autorise le pas diagonal sans blocage de coin :
+   le flood-fill 8 dir reflète exactement l'atteignabilité réelle).
+2. [x] Pour chaque départ/objet hors composante : corridor creusé en pas
+   8 directions vers la tuile de la composante la plus proche (balayage
+   déterministe), tuiles bloquantes → terrain de base, puis fusion de la poche
+   dans la composante (`grow`). Jamais de relocalisation silencieuse.
+3. [x] Garde finale implicite : chaque cible passe par `connect` (no-op si déjà
+   dans la composante).
+   → vérif : property test « chaque départ et chaque objet est atteignable
+   depuis le 1er départ » (12 graines × {24²/2 joueurs, 48²/3 joueurs}) ; les
+   tests de déterminisme existants passent inchangés ; cartes du dépôt non
+   affectées (elles ne passent pas par `generateMap`).
 
-### Lot 4 — Gradient de gardiens autour des départs
+### Lot 4 — Gradient de gardiens autour des départs — ✅ livré
 
-1. Stratifier le placement : répartir le budget de gardiens par **anneaux de
-   profondeur** (ex. 40 % en zone proche `depth < 0.35`, 35 % en zone médiane,
-   25 % en zone profonde), en échantillonnant les tuiles DANS l'anneau visé
-   plutôt qu'uniformément.
-2. Garantir un minimum par départ : ≥ 2–3 gardiens de tier 1–2 dans l'anneau
-   proche de **chaque** position de départ.
-3. Borner le tier par la profondeur : plafond de tier croissant avec `depth`
-   (fini le tier élevé collé au départ via jitter) ; appliquer le jitter au
-   **tier** puis choisir une unité de ce tier, pas à l'index brut de la liste.
-   → vérif : test statistique déterministe (graines fixes) : pour chaque départ,
-   compter les gardiens par anneau/tier — minimums respectés, aucun gardien
-   au-dessus du plafond de tier de son anneau.
+1. [x] `pickUnitForDepth(depth, jitter)` : tier visé ∝ profondeur, **jitter au
+   tier** (plus à l'index brut de la palette triée), **plafond**
+   `1 + ⌊depth × tierMax⌋` — jamais de gardien fort collé à un départ. Utilisé
+   par les gardiens de champ ET les sentinelles (les habitations gardent leur
+   sélection d'origine : récompense, pas combat).
+2. [x] Anneau proche garanti : 2–3 gardiens faibles (pile ~4) placés dans un
+   rayon de 35 % du rayon d'anneau des départs autour de **chaque** départ
+   (distance euclidienne ∈ [2, nearRadius], 80 essais bornés).
+3. [x] Le budget de gardiens de champ existant est conservé (tuiles uniformes),
+   le plafond de tier faisant seul la gradation — la stratification en
+   pourcentages par anneau s'est avérée inutile une fois le minimum par départ
+   garanti (décision : moins de churn).
+   → vérif : test déterministe (3 graines, 48², 3 joueurs) — ≥ 2 gardiens à
+   portée de chaque départ, tous tier ≤ 3, et plafond de profondeur respecté
+   par TOUT gardien ; le test de gradient moyen existant passe inchangé.
 
-### Lot 5 (option, après 1–4) — Vraies villes neutres générées
+### Lot 5 — Vraies villes neutres générées — ✅ livré
 
-1. Émettre dans `generateMap` 1–2 objets `type: 'town'` en zone médiane/profonde
-   (faction tirée de la palette des paquets chargés, garnison graduée par la
-   profondeur) — `newGameStartCommand` les instancie déjà, et le rendu
-   `townsLayer` a l'asset `map/town-<faction>` + repli donjon.
-   → vérif : test mapgen (villes présentes, garnison > 0, tuile franchissable,
-   connexité lot 3) + capture : château neutre visible avec liseré « assiégeable ».
+1. [x] Option `townFactionIds` de `generateMap` : 1–2 objets `type: 'town'`
+   posés en profondeur (`preferDeep`), faction tirée de la palette, garnison à
+   deux piles graduée par la profondeur (`pickUnitForDepth`, plafond du Lot 4).
+   Vide ⇒ aucune ville neutre (même convention que `guardianUnits`).
+2. [x] `resolveGeneratedMap` passe les factions dont le château de carte est
+   peint (`townMapUrl`) — `test-faction` naturellement écartée ;
+   `newGameStartCommand`/`skirmishStartCommand` instancient déjà ces villes,
+   le rendu a le château peint + repli donjon + liseré « assiégeable ».
+   → vérif : tests mapgen (1–2 villes, faction de la palette, garnison > 0,
+   `loadMap` valide, connexité du Lot 3 les couvre) + smoke ciblé carte
+   aléatoire.
 
 ## Suivi
 
-- [ ] Lot 1 — palette gardiens + repli visuel
-- [ ] Lot 2 — ancrage iso des objets
-- [ ] Lot 3 — connexité (flood-fill + corridors)
-- [ ] Lot 4 — gradient de gardiens par anneaux
-- [ ] Lot 5 — villes neutres générées (option)
+- [x] Lot 1 — palette gardiens + repli visuel (PR #224)
+- [x] Lot 2 — ancrage iso des objets + tas/mine séparés (PR #227)
+- [x] Lot 3 — connexité (flood-fill + corridors) (PR #228)
+- [x] Lot 4 — progression des gardiens (PR #229)
+- [x] Lot 5 — villes neutres générées
+- [ ] Suivi assets (hors lots) : planches d'unités `sylvan-court`
+  (`assets/units/`) et tas de ressources (`assets/resources/pile-<res>.png`).
+  Prompts PRÊTS à coller (générateur `gen_prompts.py` étendu à la famille
+  `resource-piles`) : `assets/prompts/resource-piles-p1/p2.md` et
+  `assets/prompts/units-sylvan-court-p1/p2.md`, extraction QC documentée dans
+  chaque fichier. La génération d'image reste MANUELLE (LLM image externe —
+  indisponible en session : l'`invoke` du serveur HF est désactivé).

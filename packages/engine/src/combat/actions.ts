@@ -3,6 +3,7 @@ import type { GameEvent } from '../core/events';
 import { rollRange } from '../core/rng';
 import type { GameState } from '../core/state';
 import { chargePerHex, performStrike, symbiosisParams } from './damage';
+import { applySpellToTargets, spellcasterParams } from './spell-effect';
 import type { Draft } from './draft';
 import { COMBAT_COLS, COMBAT_ROWS, hexDistance, hexLine, hexNeighbors, sameHex, type OffsetPos } from './hex';
 import { advanceTurn, checkCombatEnd } from './turns';
@@ -244,6 +245,23 @@ export function validateCombatAction(state: GameState, cmd: { action: CombatActi
         return { code: 'invalidAction', message: 'hex de départ inatteignable' };
       return tauntBlocks(state, combat, stack, target, from);
     }
+    case 'castSpell': {
+      // `spellcaster` (A2h) : la pile doit être lanceuse, avoir une charge, et
+      // viser le bon camp selon le sort (ennemi pour damage/debuff/applyMarks,
+      // allié pour heal/buff) — RELATIVEMENT au camp de la pile lanceuse.
+      const params = spellcasterParams(def);
+      if (!params) return { code: 'invalidAction', message: 'unité non lanceuse de sort' };
+      if (stack.spellCharges <= 0) return { code: 'invalidAction', message: 'plus de charges de sort' };
+      const spell = state.spellCatalog[params.spellId];
+      if (!spell) return { code: 'invalidAction', message: `sort inconnu '${params.spellId}'` };
+      const target = combat.stacks.find((s) => s.id === action.targetStackId);
+      if (!target || target.count <= 0) return { code: 'invalidAction', message: 'cible invalide' };
+      const targetsEnemy =
+        spell.kind === 'damage' || spell.kind === 'debuff' || spell.kind === 'applyMarks';
+      if (targetsEnemy !== (target.side !== stack.side))
+        return { code: 'invalidAction', message: 'cible du mauvais camp pour ce sort' };
+      return null;
+    }
     case 'wait':
       if (stack.waited) return { code: 'invalidAction', message: 'attente déjà utilisée ce round' };
       return null;
@@ -265,6 +283,9 @@ export function applyAction(
       break;
     case 'attack':
       applyAttack(draft, events, stackId, action);
+      break;
+    case 'castSpell':
+      applyCastSpell(draft, events, stackId, action);
       break;
     case 'wait':
       applyWait(draft, events, stackId);
@@ -465,4 +486,31 @@ function applyAttack(
   // profité aux frappes ci-dessus) — remis à 0. La riposte, elle, ne réinitialise pas.
   attacker.symbiosisStacks = 0;
   afterAction(draft, events, attacker.id, wasFirstAction, 'attack');
+}
+
+/**
+ * `spellcaster` (Prêtresse, doc 03 §3, A2h) : la pile active lance son sort
+ * embarqué sur la cible, consomme une charge, ne subit aucune riposte. Effet
+ * résolu par le cœur PARTAGÉ (`applySpellToTargets`) — même moteur que le sort
+ * du héros. Pouvoir = param de la capacité (les unités n'ont pas d'attribut).
+ */
+function applyCastSpell(
+  draft: Draft,
+  events: GameEvent[],
+  stackId: string,
+  action: Extract<CombatActionInput, { type: 'castSpell' }>,
+): void {
+  const combat = draft.combat as NonNullable<Draft['combat']>;
+  const caster = combat.stacks.find((s) => s.id === stackId) as CombatStack;
+  const casterDef = draft.unitCatalog[caster.unitId];
+  const params = casterDef ? spellcasterParams(casterDef) : null;
+  const target = combat.stacks.find((s) => s.id === action.targetStackId);
+  const spell = params ? draft.spellCatalog[params.spellId] : undefined;
+  if (!params || !target || !spell) return; // défensif : déjà validé
+  const wasFirstAction = !caster.acted;
+  caster.spellCharges = Math.max(0, caster.spellCharges - 1);
+  const { amount, kills } = applySpellToTargets(draft, combat, spell, target, params.power, 0, events);
+  events.push({ type: 'UnitSpellCast', casterId: caster.id, spellId: spell.id, targetId: target.id, amount, kills });
+  if (checkCombatEnd(draft, events)) return;
+  afterAction(draft, events, caster.id, wasFirstAction, 'castSpell');
 }

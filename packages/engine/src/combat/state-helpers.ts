@@ -136,7 +136,39 @@ function heroMoraleForSide(state: GameState, combat: CombatState, side: CombatSi
   const heroId = side === 'attacker' ? combat.attackerHeroId : combat.defenderHeroId;
   const hero = heroId ? state.heroes.find((h) => h.id === heroId) : undefined;
   if (!hero) return 0;
-  return heroMorale(hero, state.skillCatalog) + heroArtifactBonus(hero, state.artifactCatalog).morale;
+  return (
+    heroMorale(hero, state.skillCatalog) +
+    heroArtifactBonus(hero, state.artifactCatalog).morale +
+    factionCombatBonus(state, combat, side).morale
+  );
+}
+
+/**
+ * Bonus de combat PASSIFS de la faction du héros lié au camp (F-BONUS, doc 03 §2 /
+ * doc 06 §4) : somme les variantes `combatBonus` de `factionCatalog[factionId]
+ * .bonuses`. Générique — le moteur ne connaît aucun nom de faction. {0,0,0} si
+ * aucun héros / aucune faction / aucun bonus de combat déclaré. Consommé par le
+ * moral (ici) et par l'attaque/défense de camp (`damage.ts`).
+ */
+export function factionCombatBonus(
+  state: GameState,
+  combat: CombatState,
+  side: CombatSideId,
+): { attack: number; defense: number; morale: number } {
+  const heroId = side === 'attacker' ? combat.attackerHeroId : combat.defenderHeroId;
+  const hero = heroId ? state.heroes.find((h) => h.id === heroId) : undefined;
+  const bonuses = hero ? state.factionCatalog[hero.factionId]?.bonuses ?? [] : [];
+  let attack = 0;
+  let defense = 0;
+  let morale = 0;
+  for (const b of bonuses) {
+    if (b.type === 'combatBonus') {
+      attack += b.attack ?? 0;
+      defense += b.defense ?? 0;
+      morale += b.morale ?? 0;
+    }
+  }
+  return { attack, defense, morale };
 }
 
 /**

@@ -47,6 +47,13 @@ export interface MapGenOptions {
    * une sentinelle — la récompense premium de la carte.
    */
   artifactIds?: string[];
+  /**
+   * Factions candidates pour les **villes neutres** (vide ⇒ aucune ville
+   * neutre, comme `guardianUnits`). 1–2 villes assiégeables sont posées en
+   * zone médiane/profonde, garnison graduée par la profondeur — le client les
+   * instancie via l'objet de carte `town` non attribué (Alpha 4.13).
+   */
+  townFactionIds?: string[];
 }
 
 /** PRNG déterministe mulberry32 — retourne un flottant dans [0, 1). */
@@ -154,6 +161,7 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
   const startPositionCount = Math.max(2, opts.startPositionCount ?? 2);
   const resourceMultiplier = opts.resourceMultiplier ?? 1;
   const artifactIds = opts.artifactIds ?? [];
+  const townFactionIds = opts.townFactionIds ?? [];
   // Densité constante quelle que soit la taille : les compteurs d'objets calés
   // sur une carte de base 24×24 sont mis à l'échelle par l'aire, puis par le
   // réglage bas/riche. Au moins 1 objet des catégories principales.
@@ -299,6 +307,23 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
   // sentinelles d'objets premium et au choix d'unité des habitations).
   const byTier = [...guardianUnits].sort((a, b) => (unitTiers[a] ?? 1) - (unitTiers[b] ?? 1));
   const clampIdx = (i: number): number => Math.min(byTier.length - 1, Math.max(0, i));
+  // Choix d'unité de gardien par PROFONDEUR (plan map-design-issues P4) : le
+  // tier visé croît avec l'éloignement des départs et reste PLAFONNÉ par la
+  // profondeur — jamais de gardien fort collé à un départ. Le jitter s'applique
+  // au TIER, pas à l'index de la palette (avec une palette dense, ±1 d'index de
+  // la liste triée pouvait sauter plusieurs tiers d'un coup).
+  const paletteMaxTier =
+    byTier.length > 0 ? Math.max(...byTier.map((u) => unitTiers[u] ?? 1)) : 1;
+  const pickUnitForDepth = (depth: number, jitter: number): string => {
+    const cap = Math.min(paletteMaxTier, 1 + Math.floor(depth * paletteMaxTier));
+    const target = Math.max(1, Math.min(cap, Math.round(depth * paletteMaxTier) + jitter));
+    // Bucket du tier visé, sinon le tier existant le plus proche EN DESSOUS.
+    for (let t = target; t >= 1; t--) {
+      const bucket = byTier.filter((u) => (unitTiers[u] ?? 1) === t);
+      if (bucket.length > 0) return bucket[randInt(bucket.length)]!;
+    }
+    return byTier[0]!; // aucun tier ≤ visé dans la palette : la plus faible connue
+  };
 
   // Sélectionne une tuile libre ; `preferDeep` échantillonne et retient la plus
   // PROFONDE des candidats vus (récompenses premium loin des départs), sans
@@ -359,9 +384,15 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
       occupied.add(key);
       grid[ny]![nx] = baseChar;
       const depth = depthAt(nx, ny);
-      const idx = clampIdx(Math.round(depth * (byTier.length - 1)));
       const count = Math.max(2, Math.round(6 + depth * 40) + randBetween(-3, 3));
-      objects.push({ id: `sentinel-${objects.length}`, type: 'guardian', x: nx, y: ny, unitId: byTier[idx]!, count });
+      objects.push({
+        id: `sentinel-${objects.length}`,
+        type: 'guardian',
+        x: nx,
+        y: ny,
+        unitId: pickUnitForDepth(depth, 0),
+        count,
+      });
       return;
     }
   };
@@ -452,19 +483,149 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
     }
   }
 
-  // Gardiens de champ : gradués tier/pile selon la profondeur (doc 02 §2.2) —
-  // faibles autour des départs, forts vers le centre (léger jitter = variété).
+  // Villes neutres (plan map-design-issues Lot 5) : 1–2 châteaux assiégeables
+  // en zone médiane/profonde, garnison à deux piles graduée par la profondeur.
+  // Le client les instancie déjà (objet `town` non attribué, Alpha 4.13) et le
+  // rendu a le château peint par faction + repli donjon.
+  if (townFactionIds.length > 0) {
+    const townCount = Math.min(2, scaled(1));
+    for (let i = 0; i < townCount; i++) {
+      place((x, y, n) => {
+        const depth = depthAt(x, y);
+        const factionId = townFactionIds[randInt(townFactionIds.length)]!;
+        const garrison =
+          byTier.length > 0
+            ? [
+                {
+                  unitId: pickUnitForDepth(depth, 0),
+                  count: Math.max(4, Math.round(8 + depth * 30) + randBetween(-2, 2)),
+                },
+                {
+                  unitId: pickUnitForDepth(Math.min(1, depth + 0.15), 0),
+                  count: Math.max(4, Math.round(6 + depth * 20) + randBetween(-2, 2)),
+                },
+              ]
+            : undefined;
+        return {
+          id: `neutral-town-${n}`,
+          type: 'town',
+          x,
+          y,
+          factionId,
+          ...(garrison ? { garrison } : {}),
+        };
+      }, true);
+    }
+  }
+
+  // Gardiens de champ (doc 02 §2.2, plan map-design-issues P4) : la progression
+  // du joueur commence devant sa porte — 2 à 3 gardiens FAIBLES garantis dans
+  // l'anneau proche de CHAQUE départ, puis des gardiens gradués tier
+  // (plafonné)/pile par la profondeur sur le reste de la carte.
   if (guardianUnits.length > 0) {
+    const nearRadius = Math.max(3, Math.round(radius * 0.35));
+    for (const s of startPositions) {
+      const wanted = randBetween(2, 3);
+      let placed = 0;
+      for (let tries = 0; tries < 80 && placed < wanted; tries++) {
+        const x = clampX(s.x + randBetween(-nearRadius, nearRadius));
+        const y = clampY(s.y + randBetween(-nearRadius, nearRadius));
+        const d = Math.hypot(x - s.x, y - s.y);
+        if (d < 2 || d > nearRadius) continue;
+        const key = `${x},${y}`;
+        if (occupied.has(key)) continue;
+        occupied.add(key);
+        grid[y]![x] = baseChar;
+        objects.push({
+          id: `guard-near-${objects.length}`,
+          type: 'guardian',
+          x,
+          y,
+          unitId: pickUnitForDepth(depthAt(x, y), 0),
+          count: Math.max(2, 4 + randBetween(-2, 2)),
+        });
+        placed++;
+      }
+    }
     const guardianCount = Math.max(2, Math.round(randBetween(2, 4) * areaFactor));
     for (let i = 0; i < guardianCount; i++) {
       place((x, y, n) => {
         const depth = depthAt(x, y);
-        const idx = clampIdx(Math.round(depth * (byTier.length - 1)) + randBetween(-1, 1));
         const count = Math.max(2, Math.round(4 + depth * 36) + randBetween(-3, 3));
-        return { id: `guard-${n}`, type: 'guardian', x, y, unitId: byTier[idx]!, count };
+        return {
+          id: `guard-${n}`,
+          type: 'guardian',
+          x,
+          y,
+          unitId: pickUnitForDepth(depth, randBetween(-1, 1)),
+          count,
+        };
       });
     }
   }
+
+  // ── Connexité (plan map-design-issues P2) : le bruit d'élévation peut fermer
+  // des poches (montagnes/rochers/eau) contenant des départs ou des objets. On
+  // relie tout ce qui compte à la composante du premier départ en CREUSANT des
+  // corridors de terrain de base — déterministe, jamais de relocalisation
+  // silencieuse. L'A* du jeu autorise le pas diagonal dès que la tuile d'arrivée
+  // est franchissable (pas de blocage de coin) : un flood-fill 8 directions
+  // reflète donc exactement l'atteignabilité réelle. ──
+  const blockedChars = new Set([waterChar, TERRAIN_CHARS.mountain!, TERRAIN_CHARS.rocks!]);
+  const tileIdx = (x: number, y: number): number => y * width + x;
+  const inMain = new Uint8Array(width * height); // 1 = composante du 1er départ
+  const grow = (sx: number, sy: number): void => {
+    if (inMain[tileIdx(sx, sy)] === 1 || blockedChars.has(grid[sy]![sx]!)) return;
+    const qx: number[] = [sx];
+    const qy: number[] = [sy];
+    inMain[tileIdx(sx, sy)] = 1;
+    for (let head = 0; head < qx.length; head++) {
+      const x = qx[head]!;
+      const y = qy[head]!;
+      for (const [dx, dy] of neighborOffsets) {
+        const nx = x + dx;
+        const ny = y + dy;
+        if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
+        if (inMain[tileIdx(nx, ny)] === 1 || blockedChars.has(grid[ny]![nx]!)) continue;
+        inMain[tileIdx(nx, ny)] = 1;
+        qx.push(nx);
+        qy.push(ny);
+      }
+    }
+  };
+  const firstStart = startPositions[0]!;
+  grow(firstStart.x, firstStart.y);
+  const connect = (tx: number, ty: number): void => {
+    if (inMain[tileIdx(tx, ty)] === 1) return;
+    // Tuile de la composante la plus proche (balayage ligne à ligne : premier
+    // minimum rencontré ⇒ départage déterministe).
+    let bx = firstStart.x;
+    let by = firstStart.y;
+    let bestD = Infinity;
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        if (inMain[tileIdx(x, y)] !== 1) continue;
+        const d = Math.max(Math.abs(x - tx), Math.abs(y - ty)); // distance 8 dir
+        if (d < bestD) {
+          bestD = d;
+          bx = x;
+          by = y;
+        }
+      }
+    }
+    // Corridor en pas 8 directions de (tx,ty) vers (bx,by) : chaque tuile
+    // bloquante traversée devient du terrain de base.
+    let x = tx;
+    let y = ty;
+    while (x !== bx || y !== by) {
+      if (blockedChars.has(grid[y]![x]!)) grid[y]![x] = baseChar;
+      x += Math.sign(bx - x);
+      y += Math.sign(by - y);
+    }
+    grow(tx, ty); // fusionne la poche désormais ouverte dans la composante
+  };
+  for (const s of startPositions.slice(1)) connect(s.x, s.y);
+  for (const o of objects) connect(o.x, o.y);
 
   // Légende : uniquement les terrains réellement présents dans la grille.
   const usedChars = new Set<string>();

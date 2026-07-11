@@ -21,7 +21,7 @@ cell 2: tier 2 unit "Rotting Zombie (fr: Zombie putride)" — unmistakably undea
 cell 3: tier 3 unit "Spectre" — unmistakably undead, large spread wings, airborne pose, swift and agile
 cell 4: tier 4 unit "Vampire" — unmistakably undead, steady stance
 cell 5: tier 5 unit "Lich (fr: Liche)" — unmistakably undead, aiming a ranged weapon, steady stance
-cell 6: tier 6 unit "Doom Knight (fr: Cavalier funeste)" — unmistakably undead, swift and agile
+cell 6: tier 6 unit "Doom Knight (fr: Cavalier funeste)" — unmistakably undead, charging forward, swift and agile
 cell 7: tier 7 unit "Bone Dragon (fr: Dragon d'os)" — unmistakably undead, large spread wings, airborne pose, swift and agile
 cell 8: tier 1 unit "Skeleton Warrior (fr: Squelette guerrier)" — unmistakably undead, steady stance
 flat uniform light grey background (#c8c8c8), no ground shadow,

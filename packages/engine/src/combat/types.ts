@@ -56,6 +56,8 @@ export interface CombatStack {
   defending: boolean;
   /** Munitions restantes (null = pas un tireur). */
   ammo: number | null;
+  /** Charges de sort restantes (`spellcaster`, doc 02 §5.4, A2h) — 0 pour toute unité non lanceuse. */
+  spellCharges: number;
   /** Charges de Marque subies, 0–3 (doc 05 §3.1, générique). */
   marks: number;
   /** Tours d'immobilisation restants (doc 05 §3.1 `pinningShot`) : saute son tour tant que > 0. */
@@ -108,5 +110,7 @@ export type CombatActionInput =
   | { type: 'move'; to: OffsetPos }
   /** Mêlée : `from` = hex d'où frapper (déplacement inclus) ; tir : omis. */
   | { type: 'attack'; targetStackId: string; from?: OffsetPos }
+  /** Lancer de sort d'unité (`spellcaster`, A2h) : la pile active lance son sort embarqué. */
+  | { type: 'castSpell'; targetStackId: string }
   | { type: 'wait' }
   | { type: 'defend' };

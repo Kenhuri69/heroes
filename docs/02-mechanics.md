@@ -46,6 +46,8 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 > 🚧 **État 3.2** : pool livré = **13** compétences en données (`data/core/skills.json`) — « Magie (par école ×4) » compte pour 4 entrées (`magic-fire/water/earth/air`). Effets branchés au moteur : Logistique (PM), Recherche (vision), Économie (or/jour), Chance, Attaque au corps / Tir / Armure et réduction de coût de mana (combat). **Commandement (moral) reste à brancher** au moral de pile (raffinement 3.3+). Choix à la montée de niveau (`ChooseSkill`) opérationnel ; cap 3 rangs.
 >
 > 🔧 **État R5 (remédiation)** : **Commandement enfin branché** au moral de pile (`moraleOf`, `combat/state-helpers.ts`) ; les 4 compétences **Magie** donnent un effet réel **dès le rang 1** (−5/10/20 % coût mana). **Sagesse ré-introduite depuis (G2/H2)** : son effet `learnCircle` débloque l'apprentissage des cercles 4–5 à la Guilde des mages — le pool livré est donc bien de **13** compétences (`data/core/skills.json`), Sagesse incluse. Le champ de schéma `spellCircleUnlock` reste conservé (réservé post-MVP).
+>
+> 🚧 **État F-SKILLS** : les factions **injectent des compétences dans le pool via leur manifeste** (`manifest.heroSkills` = ids de compétences). Le loader **estampille** ces compétences de l'id de leur faction (`HeroSkillDef.factionId`) ⇒ elles ne sont proposées au tirage de niveau (`eligibleSkills`) **qu'aux héros de cette faction**. Une compétence dont le payoff est **externe** (ex. **Nécromancie** = % gradué de `raiseUndeadOnVictory`, doc 04 §2) est marquée `external` en données (rangs sans `SkillRankEffect` direct autorisés). 1ʳᵉ compétence de faction livrée : **Nécromancie** (Necropolis, 10/15/20 % par rang). Effet UI des compétences marqueurs (description de rang) = raffinement ultérieur.
 
 ### 1.4 Magie
 
@@ -334,11 +336,11 @@ dégâts = Σ(dmg aléatoire min–max par créature de la pile)
 
 Le moteur expose un **catalogue de capacités génériques paramétrables** ; les unités les référencent par ID dans leurs données.
 
-> **État livré** : le catalogue réellement interprété par le moteur — `data/core/abilities.json` — compte **26 capacités** : `flying`, `shooter`, `noRetaliation`, `doubleAttack`, `undead`, `mark`, `consumeMarks`, `demonform`, `symbiosis`, `shieldWall`, `unlimitedRetaliation`, `charge`, `magicResistance` (autonome, plus seulement porté par `demonform`), `lifeDrain` (lot A2a), `incorporeal`, `strikeAndReturn` (lot A2b), `curseOnHit` (lot A2c), `aura`, `moraleImmune` (lot A3a), `swarm` (lot A3b), `areaAttack` (lot A3c), `devourMarks` (lot A2d), `breathAttack` (lot A3d), `taunt` (lot A2e), `poisonSting` (lot A2f), et `firstStrike` (lot A2g). Les capacités encore nommées dans les lineups mais **pas encore interprétées** (inertes en combat) : `spellcaster`, `resurrectAlly` — cible de design, activées par sous-lots ultérieurs.
+> **État livré** : le catalogue réellement interprété par le moteur — `data/core/abilities.json` — compte **27 capacités** : `flying`, `shooter`, `noRetaliation`, `doubleAttack`, `undead`, `mark`, `consumeMarks`, `demonform`, `symbiosis`, `shieldWall`, `unlimitedRetaliation`, `charge`, `magicResistance` (autonome, plus seulement porté par `demonform`), `lifeDrain` (lot A2a), `incorporeal`, `strikeAndReturn` (lot A2b), `curseOnHit` (lot A2c), `aura`, `moraleImmune` (lot A3a), `swarm` (lot A3b), `areaAttack` (lot A3c), `devourMarks` (lot A2d), `breathAttack` (lot A3d), `taunt` (lot A2e), `poisonSting` (lot A2f), `firstStrike` (lot A2g), et `spellcaster` (lot A2h). La dernière capacité encore nommée dans les lineups mais **pas encore interprétée** (inerte en combat) : `resurrectAlly` — cible de design, activée par un sous-lot ultérieur.
 
 Une faction qui a besoin d'une capacité **réellement nouvelle** l'obtient en ouvrant **un** point d'extension **générique** du moteur, interprété depuis les données (cf. doc 06 §4) — jamais un module propre à une faction. C'est ainsi que `consumeMarks`/`demonform`/`symbiosis` ont été livrées.
 
-Sémantique des **26 capacités** du catalogue (valeurs de départ) :
+Sémantique des **27 capacités** du catalogue (valeurs de départ) :
 
 | Capacité | Effet implémenté |
 |---|---|
@@ -368,6 +370,7 @@ Sémantique des **26 capacités** du catalogue (valeurs de départ) :
 | `taunt` | A2e : une attaque de **mêlée** partant d'une case adjacente à ce provocateur **doit le viser** (protège les tiers ; le **tir** n'est pas concerné) — Conscrit |
 | `poisonSting(damagePerRound, rounds)` | A2f : une frappe de **mêlée** qui touche applique/rafraîchit un **poison** ; la cible subit `damagePerRound` (plats, cumulés) au **début de chaque round** pendant `rounds`, avant décroissance des statuts — Manticore |
 | `firstStrike` | A2g : à **vitesse d'initiative égale**, la pile agit **avant** les piles sans `firstStrike` (priorité dans la vague, indépendante du camp/slot) — Chevalier du Griffon |
+| `spellcaster(spellId, charges, power)` | A2h : la pile lance le sort embarqué `spellId` (catalogue partagé) jusqu'à `charges` fois/combat, Pouvoir effectif `power` (dégâts/soin/durée) ; cibles comme un sort de héros (ennemi damage/debuff, allié heal/buff), sans riposte. **Engine-first** : piloté par l'IA/auto-combat ; UI joueur différée — Prêtresse (soin ×2) |
 
 ### 5.5 Fin de combat & auto-résolution
 

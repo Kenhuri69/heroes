@@ -127,6 +127,8 @@ export type GameEvent =
   | { type: 'StackCursed'; targetId: string; spellId: string }
   /** Dégâts de poison au début de round (`poisonSting` Manticore, doc 05 §4, A2f). */
   | { type: 'StackPoisoned'; stackId: string; damage: number; kills: number }
+  /** Sort lancé par une UNITÉ lanceuse (`spellcaster` Prêtresse, doc 03 §3, A2h). */
+  | { type: 'UnitSpellCast'; casterId: string; spellId: string; targetId: string; amount: number; kills: number }
   /** Moral : tour bonus (positive) ou tour sauté (doc 02 §5.3 + décision n°8). */
   | { type: 'MoraleTriggered'; stackId: string; positive: boolean }
   | { type: 'MarkApplied'; targetId: string; marks: number }

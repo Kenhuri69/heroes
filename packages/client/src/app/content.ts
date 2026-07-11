@@ -12,6 +12,7 @@ import {
   type ResolvedMap,
   type Scenario,
 } from '@heroes/content';
+import { townMapUrl, unitSpriteUrl } from '../render/assets';
 
 /** Lecteur navigateur : data/ est copié à la racine du site par Vite (publicDir). */
 const readJsonFromSite: ReadJson = async (path) => {
@@ -74,10 +75,25 @@ export async function resolveGeneratedMap(
 ): Promise<ResolvedMap> {
   const config = report.content.config;
   const units = knownUnitIds(report);
+  // Palette de gardiens : uniquement les unités qui ONT un sprite peint — un
+  // gardien tiré d'une unité sans art resterait le fanion gris de repli pour
+  // toujours (plan map-design-issues P1 : factions de test/beta sans art). Repli
+  // sur toutes les unités si AUCUN art n'est présent (build sans assets :
+  // mieux vaut des gardiens procéduraux que pas de gardiens du tout).
+  const painted = report.content.packs.flatMap((p) =>
+    p.units.filter((u) => unitSpriteUrl(u.id, p.manifest.id) !== undefined).map((u) => u.id),
+  );
+  // Villes neutres : factions dont le château de carte est peint (même logique
+  // que la palette de gardiens — pas de donjon gris anonyme sur une carte
+  // aléatoire). Les factions de test sans château peint en sont écartées.
+  const townFactions = report.content.packs
+    .map((p) => p.manifest.id)
+    .filter((id) => townMapUrl(id) !== undefined);
   const generated = generateMap('random', seed, {
-    guardianUnits: [...units],
+    guardianUnits: painted.length > 0 ? painted : [...units],
     unitTiers: knownUnitTiers(report),
     artifactIds: [...knownArtifactIds(report)],
+    townFactionIds: townFactions,
     ...opts,
   });
   const readJson: ReadJson = (path) =>

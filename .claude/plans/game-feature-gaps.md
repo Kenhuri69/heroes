@@ -153,10 +153,13 @@ Familles, par mécanique moteur commune :
   `fear` : frappe qui touche ⇒ chance de faire sauter le prochain tour de la
   cible (réutilise `immobilizedRounds`, événement `StackFeared`, pas de bump
   save, golden inchangé). Données : `t5-sombral` `fear(chance 0.2, rounds 1)`.
-- **CAP-CAST — Lanceurs** ⬜ : `spellcaster` générique (sorts embarqués ×N
-  charges) — Prêtresse soin ×2 (doc 03 §3), Bibliothécaire Entrave/Silence ×2
-  (doc 05 §4), Maître de Sortilèges (doc 16 §4), Avatar barrière (doc 16 §4).
-  Réutilise le pipeline `CastSpell`. Effort : M.
+- **CAP-CAST — Lanceurs** 🧩 (A2h : `spellcaster` **livré engine-first**) :
+  `spellcaster` générique (sorts embarqués ×N charges) — Prêtresse soin ×2 (doc
+  03 §3) **livrée** ; Bibliothécaire Entrave/Silence ×2 (doc 05 §4), Maître de
+  Sortilèges (doc 16 §4), Avatar barrière (doc 16 §4) = données à ajouter (moteur
+  prêt). Réutilise le pipeline `CastSpell` via `applySpellToTargets` partagé.
+  **Reste (suivi UI)** : bouton de lancer en combat pour une pile jouée à la main
+  (A2h ne pilote que l'IA/auto-combat). Effort : M.
 - **CAP-LIFE — Cycle de vie** 🧩 (A3b : `swarm` **livré** ; A2d : `devourMarks`
   **livré** ; `resurrectAlly`, renaissance → A3) : `resurrectAlly` 1× (Ange, doc 03 §3),
   renaissance (Phénix, doc 16 §4/§7), `swarm` (+dégâts ∝ effectif — Élève AH
@@ -174,22 +177,28 @@ Familles, par mécanique moteur commune :
 
 Source design : docs 03 §2/§4/§5, 04 §2/§4, 05 §3/§5/§6/§7, 14 §5/§6, 16 §3/§5.
 
-- **F-BONUS — Bonus passifs de faction** 🕳️ M ⬜
+- **F-BONUS — Bonus passifs de faction** 🧩 M (variante `combatBonus` **livrée**)
   Doc : Ferveur +1 moral / Formation +5 % déf (doc 03 §2), Fléau persistant
-  +1 round de malédiction (doc 04 §2). Code : `factionBonuses:[]` dans tous les
-  manifestes ; seuls 2 effets de faction existent, tous deux post-victoire
-  (`packages/engine/src/faction/effects.ts` : `raiseUndeadOnVictory`,
-  `gainFactionResourceOnVictory`). Spec : élargir l'union d'effets de faction à
-  des modificateurs passifs déclaratifs (combat + statuts), interprétés
-  génériquement via le manifeste.
+  +1 round de malédiction (doc 04 §2). **Livré** : variante générique
+  `combatBonus` de `FactionBonus` (points plats `attack`/`defense`/`morale`),
+  interprétée en combat par les helpers par-camp (`heroMoraleForSide`,
+  `heroAttackOf`, `heroDefenseOf` via `factionCombatBonus`) — **pas de save bump**
+  (le `factionCatalog` est déjà sérialisé). Haven doté (Ferveur `morale:1` +
+  Formation `defense:2` ≈ +5 %). **Reste** : Fléau persistant Nécropolis
+  (+1 round de malédiction — modificateur de statut, variante ultérieure) et le
+  câblage des autres factions (données).
 
-- **F-SKILLS — Compétences de faction** 🕳️ M ⬜
+- **F-SKILLS — Compétences de faction** 🧩 M (mécanisme + Nécromancie **livrés**)
   Doc : Prière de bataille (doc 03 §2/§5), Nécromancie graduée Novice/Expert/
   Maître 10/15/20 % (doc 04 §2), Chasse rituelle (doc 05 §7), compétence Sylve
-  (doc 14 §6). Code : `heroSkills:[]` partout ; la Nécromancie est plate
-  (`percentHpRaised:15` dans `data/factions/necropolis/manifest.json:11`).
-  Spec : les manifestes injectent des compétences dans le pool de choix du
-  héros de leur faction ; les effets de faction lisent le rang (scaling).
+  (doc 14 §6). **Livré** : (1) pool gaté par faction — le loader estampille les
+  `manifest.heroSkills` d'un `HeroSkillDef.factionId`, `eligibleSkills` ne les
+  propose qu'aux héros de la faction ; (2) compétences **marqueur** (`external`)
+  à payoff externe ; (3) **Nécromancie graduée** — `raiseUndeadOnVictory` gagne
+  `scaleSkillId`/`percentByRank`, l'effet lit le rang (10/15/20 %). **Pas de save
+  bump** (compétences dans `hero.skills`, `factionId` = catalogue). **Reste
+  (données)** : Prière de bataille (`resurrectAlly`), Chasse rituelle, Sylve —
+  moteur prêt, à câbler par faction ; Amplificateur (F-BUILDEFF).
 
 - **F-BUILDEFF — Effets de bâtiment spéciaux** 🕳️ L ⬜
   Doc : Statue du Jugement/Cloître/Écuries (doc 03 §4), Amplificateur

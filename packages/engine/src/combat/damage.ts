@@ -5,7 +5,7 @@ import { heroArmorPct, heroLuck, heroMeleePct, heroRangedPct } from '../hero/ski
 import type { SpellStatus } from '../hero/types';
 import { canShootTarget } from './actions';
 import { hexBehind, hexDistance, inCombatBounds, sameHex } from './hex';
-import { clamp, collectCasualties, hasAbility, isShooterMeleePenalized, recordLoss } from './state-helpers';
+import { clamp, collectCasualties, factionCombatBonus, hasAbility, isShooterMeleePenalized, recordLoss } from './state-helpers';
 import type { CombatSideId, CombatStack, CombatUnitDef, CombatState } from './types';
 import type { CombatRulesConfig } from '../adventure/config';
 import type { GameEvent } from '../core/events';
@@ -288,18 +288,20 @@ function heroForSide(state: GameState, combat: CombatState, side: CombatSideId) 
   return heroId ? state.heroes.find((h) => h.id === heroId) : undefined;
 }
 
-/** Attaque additionnelle du héros lié au camp (attribut + artefacts) — 0 si aucun héros. */
+/** Attaque additionnelle du camp : héros (attribut + artefacts) + bonus de faction (F-BONUS). */
 export function heroAttackOf(state: GameState, combat: CombatState, side: CombatSideId): number {
+  const factionAttack = factionCombatBonus(state, combat, side).attack;
   const hero = heroForSide(state, combat, side);
-  if (!hero) return 0;
-  return hero.attributes.attack + heroArtifactBonus(hero, state.artifactCatalog).attack;
+  if (!hero) return factionAttack;
+  return hero.attributes.attack + heroArtifactBonus(hero, state.artifactCatalog).attack + factionAttack;
 }
 
-/** Défense additionnelle du héros lié au camp (attribut + artefacts) — 0 si aucun héros. */
+/** Défense additionnelle du camp : héros (attribut + artefacts) + bonus de faction (F-BONUS). */
 export function heroDefenseOf(state: GameState, combat: CombatState, side: CombatSideId): number {
+  const factionDefense = factionCombatBonus(state, combat, side).defense;
   const hero = heroForSide(state, combat, side);
-  if (!hero) return 0;
-  return hero.attributes.defense + heroArtifactBonus(hero, state.artifactCatalog).defense;
+  if (!hero) return factionDefense;
+  return hero.attributes.defense + heroArtifactBonus(hero, state.artifactCatalog).defense + factionDefense;
 }
 
 /**

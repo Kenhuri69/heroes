@@ -214,15 +214,16 @@ Source design : docs 03 §2/§4/§5, 04 §2/§4, 05 §3/§5/§6/§7, 14 §5/§6,
   apprentissage de sort, +PM, vision, modificateur de ressource de faction,
   +rang de compétence) puis bâtiments data-driven par faction.
 
-- **F-HOUSES — Effets de Maison Vox conformes** 🧩/📄 M ⬜
-  Doc : doc 16 §3.1 (profils des 5 Maisons). Code : effets hero-scoped
-  uniquement (`hero/skills.ts:41`) ⇒ `house-badger` (+20 % croissance, +2 déf
-  garnison) remplacé par `armorReductionPct:8`, `house-venari` (+50 % Résonance,
-  +1 Pouvoir Scène) remplacé par des bonus génériques, `house-eagle` sans
-  +25 % mana max, `house-serpent` sans accès malédictions
-  (`data/factions/vox-arcana/manifest.json:24+`). Spec : étendre
-  `houseAllegiance` à des effets town-scoped/économiques (dépend F-BUILDEFF
-  pour la croissance) ; sinon amender doc 16 §3.1 (arbitrage design).
+- **F-HOUSES — Effets de Maison Vox conformes** ✅ (plan `f-houses-vox.md`, doc 16 §État 16.7)
+  `houseAllegiance` étendu de 2 champs **town-scoped** génériques
+  (`garrisonGrowthPct`/`garrisonDefense`) interprétés par `townHouseField`
+  (**option B** — la Maison du héros présent sur la tuile de la ville s'applique
+  à cette ville) : `garrisonGrowthPct` dans `applyWeeklyGrowth`, `garrisonDefense`
+  dans le mur de siège (`handleCaptureTown`). Données : `house-badger` conforme au
+  doc (`{garrisonGrowthPct:20, garrisonDefense:2}`). **Toujours différés** (sans
+  surface moteur, notés dans le doc) : +2 Att plate (Lion), accès malédictions
+  (Serpent), +25 % mana max (Aigle), +50 % Résonance / Scène +1 Pouvoir (Venari).
+  Zéro faction (garde-fou vert), aucun bump de sauvegarde, golden inchangé.
 
 - **F-RESON — Résonance intra-combat & cap** 🧩 M ⬜
   Doc : doc 16 §3.2/§4 (performeurs génèrent en combat ; cap 999). Code : gain
@@ -660,7 +661,7 @@ le seul item nécessitant un vrai cadrage design/coût — à trancher avant B4.
 
 1. **C-LOS** : LoS stricte (HO) vs pas de LoS (HoMM3) — avant A1.
 2. **H-LEVELCHOICE** : choix joueur vs tirage — avant A7.
-3. **F-HOUSES** : étendre le moteur (effets town-scoped) vs amender doc 16 §3.1 — avant A4.
+3. **F-HOUSES** : ✅ tranché — **étendre le moteur** (effets town-scoped, option B = « le héros apporte sa Maison à la ville où il se tient »), livré (plan `f-houses-vox.md`).
 4. **DOC-STATS / CAP-DATAFIX** : qui fait foi, docs ou données `faction:sim`, par cas — avant A1.
 5. **NET-FOG** : accepter l'info ouverte en async vs `stateView` serveur — avant B4.
 6. **T-CARAVAN** : caravanes interceptables ou non — avant A9.

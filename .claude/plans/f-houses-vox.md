@@ -16,22 +16,40 @@ town-scoped** conformes au doc.
 | Le Blaireau | **+20 % croissance hebdo**, **+2 Déf garnison** | **town-scoped** — non exprimable |
 | Venari | **+50 % Résonance**, buffs Scène +1 Pouvoir | **resource/spell-scoped** — non exprimable |
 
-## ❓ Question de conception ouverte (à trancher)
+## ✅ Question de conception — TRANCHÉE : option **B** (le plus proche du doc)
 
 `houseAllegiance` est une propriété **du HÉROS** (`hero.houseId`/`houseEffects`).
 Or « +20 % croissance hebdo / +2 Déf garnison » est **town-scoped**. Comment un
 effet de Maison **par héros** atteint-il une **ville par joueur** ?
 
-- **A** — la Maison du héros s'applique aux villes **possédées par son joueur**
-  (agrégée sur les héros du joueur ; simple mais un joueur multi-héros multi-Maison
-  cumule).
-- **B** — la Maison s'applique à la ville **où le héros est présent/en garnison**
-  (fidèle « le héros apporte sa Maison » ; plus de plomberie, effet intermittent).
-- **C** — v1 **hero-scoped seulement** : livrer les effets exprimables au niveau
-  héros (Lion moral, Serpent or/jour, Aigle coût mana), **différer** les
-  town-scoped (Blaireau) + resource/spell (Venari, Serpent access, Aigle manaMax,
-  Lion +2 Att) en réconciliant le doc/données ; plus petit, sans nouvelle
-  propagation héros→ville.
+**Décision utilisateur : B — « on reste toujours le plus proche de la
+documentation ».** La Maison s'applique à la ville **où le héros du propriétaire
+se tient** (`hero.pos === town.pos`) — fidèle à « le héros apporte sa Maison » ;
+effet **intermittent** par conception (le héros doit être là).
+
+- ~~A — la Maison du héros s'applique aux villes possédées par son joueur~~
+- **B (retenu)** — la Maison s'applique à la ville **où le héros se tient**.
+- ~~C — v1 hero-scoped seulement~~
+
+## Design retenu (option B)
+
+Point d'interprétation unique : `townHouseField(heroes, ownerPlayerId, townPos,
+field)` (`hero/skills.ts`) somme les effets de Maison/spécialité des héros du
+**propriétaire** présents **sur la tuile** de la ville — jumeau town-scoped de
+`sumHouseField`, jamais un nom de faction.
+
+- Vocabulaire d'effets étendu de 2 champs **town-scoped** : `garrisonGrowthPct`,
+  `garrisonDefense` (`SkillRankEffect` + `heroEffectFields` du schéma).
+- `garrisonGrowthPct` → replié dans le multiplicateur de `applyWeeklyGrowth`.
+- `garrisonDefense` → ajouté au bonus « murs » du siège (`handleCaptureTown`).
+- Données : **Le Blaireau** passe de `armorReductionPct:8` (placeholder) à
+  `{ garrisonGrowthPct:20, garrisonDefense:2 }` — conforme au doc 16 §3.1. Les 4
+  autres Maisons gardent leur profil exprimable (Lion mêlée+moral, Serpent
+  or/jour, Aigle coût mana, Venari tir+chance) ; effets non exprimables (+2 Att
+  plate, accès sorts, mana max %, Résonance, Scène +1 Pouvoir) restent **différés**.
+- **Aucun bump de sauvegarde** : `houseEffects` (v10) porte déjà les effets ; les
+  2 nouveaux champs sont des clés optionnelles imbriquées. Golden **inchangé**
+  (le héros du golden n'a pas de Maison).
 
 ## Contexte session
 

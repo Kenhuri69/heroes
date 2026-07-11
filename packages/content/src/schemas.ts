@@ -128,6 +128,11 @@ const heroEffectFields = {
   luckBonus: z.number().optional(),
   moraleBonus: z.number().optional(),
   manaCostReductionPct: z.number().optional(),
+  // Effets TOWN-SCOPED (F-HOUSES, doc 16 §3.1 — Le Blaireau) : interprétés par le
+  // code de ville (croissance hebdo / défense de siège) via `townHouseField`,
+  // pas par les accesseurs par-héros. Branchés ⇒ pas un mensonge de contenu.
+  garrisonGrowthPct: z.number().optional(),
+  garrisonDefense: z.number().optional(),
 } as const;
 
 const houseEffectSchema = z

@@ -62,6 +62,16 @@ export interface SkillRankEffect {
   manaCostReductionPct?: number;
   spellCircleUnlock?: number;
   learnCircle?: number;
+  /**
+   * Effets **town-scoped** d'une Maison (F-HOUSES, doc 16 §3.1 — Le Blaireau).
+   * Contrairement aux champs ci-dessus (agrégés PAR HÉROS dans `hero/skills.ts`),
+   * ceux-ci s'appliquent à une VILLE : ils ne sont interprétés que par le code de
+   * ville, via `townHouseField` (option B — la Maison du héros présent sur la
+   * tuile de la ville). `garrisonGrowthPct` = bonus % de croissance hebdo ;
+   * `garrisonDefense` = bonus plat de défense « murs » au siège.
+   */
+  garrisonGrowthPct?: number;
+  garrisonDefense?: number;
 }
 
 export interface HeroSkillDef {

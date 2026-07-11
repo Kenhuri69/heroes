@@ -151,6 +151,43 @@ export const houseSchema = z.object({
 });
 
 /**
+ * Origine d'un héros nommé (doc 16, séparation demandée) :
+ * - `canon` : personnage issu d'un univers existant (fiction tierce) — exige
+ *   `source` (le nom de l'œuvre) ; utile pour filtrer/gater les emprunts (IP).
+ * - `original` : création propre au jeu, éventuellement inspirée d'un vrai
+ *   joueur — pas de `source`.
+ */
+export const HERO_ORIGINS = ['canon', 'original'] as const;
+
+/**
+ * heroes/<id>.json — **identité** d'un héros nommé (couche contenu, doc 16
+ * État 16.9). Format data-driven, **non consommé par le moteur** au staging :
+ * le système de héros nommés (spécialité/Maison jouées en jeu) reste différé
+ * pour toutes les factions. `specialty`/`startingHouseId` sont indicatifs.
+ * `avatar` = clé du registre d'assets client (`heroes/<clé>`), `avatarStyle`
+ * documente la divergence painterly/photoréaliste (doc 12 §7).
+ */
+export const heroIdentitySchema = z
+  .object({
+    id: idSchema,
+    name: locRef,
+    bio: locRef,
+    archetype: z.enum(['might', 'magic']),
+    origin: z.enum(HERO_ORIGINS),
+    /** Univers/œuvre source — nom propre non localisé ; requis ssi `canon`. */
+    source: z.string().min(1).optional(),
+    avatar: z.string().min(1),
+    avatarStyle: z.enum(['painterly', 'photoreal']).default('painterly'),
+    /** Indicatifs (différé moteur) : non résolus en jeu au staging. */
+    specialty: locRef.optional(),
+    startingHouseId: idSchema.optional(),
+  })
+  .refine((h) => (h.origin === 'canon') === (h.source !== undefined), {
+    message: "origin 'canon' exige 'source' (univers) ; 'original' l'interdit",
+    path: ['source'],
+  });
+
+/**
  * manifest.json (doc 06 §3, doc 10 §5.4). `schemaVersion: 1` — les migrations
  * arrivent avec la première évolution de schéma (doc 06 §7).
  * `abilityModules`/`hooks` restent refusés non vides tant que le moteur ne
@@ -170,6 +207,12 @@ export const manifestSchema = z.object({
   factionBonuses: z.array(factionBonusSchema).default([]),
   /** Maisons de la faction (doc 16 §3.1, signature `houseAllegiance`) — défaut []. */
   houses: z.array(houseSchema).default([]),
+  /**
+   * Héros nommés de la faction (doc 16 État 16.9) — convention
+   * `heroes/<id>.json`. Défaut `[]` : le moteur ne les consomme pas (identité
+   * stagée en avance du système de héros nommés, différé).
+   */
+  heroes: z.array(idSchema).default([]),
   spellSchool: idSchema.nullable(),
   heroSkills: z.array(idSchema).default([]),
   tiers: z.number().int().min(7).max(8),
@@ -1019,6 +1062,8 @@ export type Manifest = z.infer<typeof manifestSchema>;
 export type FactionBonus = z.infer<typeof factionBonusSchema>;
 export type House = z.infer<typeof houseSchema>;
 export type HouseEffect = z.infer<typeof houseEffectSchema>;
+export type HeroIdentity = z.infer<typeof heroIdentitySchema>;
+export type HeroOrigin = (typeof HERO_ORIGINS)[number];
 export type Unit = z.infer<typeof unitSchema>;
 export type Locale = z.infer<typeof localeSchema>;
 export type GameConfig = z.infer<typeof gameConfigSchema>;

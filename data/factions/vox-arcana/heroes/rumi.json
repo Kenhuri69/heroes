@@ -1,0 +1,10 @@
+{
+  "id": "rumi",
+  "name": "@loc:hero.rumi.name",
+  "bio": "@loc:hero.rumi.bio",
+  "archetype": "might",
+  "origin": "canon",
+  "source": "KPop Demon Hunters",
+  "avatar": "vox-arcana-might",
+  "avatarStyle": "painterly"
+}

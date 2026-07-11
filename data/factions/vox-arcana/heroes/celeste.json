@@ -1,0 +1,9 @@
+{
+  "id": "celeste",
+  "name": "@loc:hero.celeste.name",
+  "bio": "@loc:hero.celeste.bio",
+  "archetype": "might",
+  "origin": "original",
+  "avatar": "vox-arcana-celeste",
+  "avatarStyle": "photoreal"
+}

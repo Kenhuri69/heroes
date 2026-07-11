@@ -113,6 +113,24 @@ Faction #6, produite en **Beta** — elle sert de **test de modularité #4** (do
 > l'avatar est **photoréaliste** (grimage d'une photo source), là où la DA de tous
 > les autres avatars stagés est *painterly* — choix éditorial explicite pour ce
 > personnage.
+>
+> 🚧 **État 16.9 (livré — format d'identité de héros + séparation canon/original)** :
+> introduction d'un **format d'identité de héros nommé** *data-driven* dans la
+> couche **content** (schéma `heroIdentitySchema`), **zéro diff moteur**. Chaque
+> fiche `data/factions/<faction>/heroes/<id>.json` porte `name`/`bio` (@loc:),
+> `archetype` (`might`/`magic`), `avatar` (clé du registre) + `avatarStyle`
+> (`painterly`/`photoreal`, doc 12 §7), et surtout **`origin`** : le champ qui
+> **sépare** les héros **`canon`** (issus d'un univers tiers — exige `source`, le
+> nom de l'œuvre) des héros **`original`** (créations propres au jeu, éventuellement
+> inspirées d'un vrai joueur — pas de `source`). Le manifeste déclare
+> `heroes: [id]` (défaut `[]`) ; le loader charge/valide les fiches (id↔fichier,
+> parité locale, `startingHouseId` connu) et les expose sur `FactionPack.heroes`,
+> **filtrables par origine**. Vox Arcana peuple les 3 premières fiches : **Rumi**
+> (canon, *KPop Demon Hunters*, might), **Hermione** (canon, *Harry Potter*, magic),
+> **Céleste** (original, might). **Non consommé par le moteur** (identité stagée en
+> avance du système de héros nommés, toujours différé pour toutes les factions) :
+> `specialty`/`startingHouseId` restent indicatifs. **Zéro nom de faction** (garde-fou
+> vert), **aucun bump de sauvegarde** (rien en sauvegarde), golden **inchangé**.
 
 ## 1. Lore
 

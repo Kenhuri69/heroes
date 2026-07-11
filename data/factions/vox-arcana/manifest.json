@@ -73,6 +73,11 @@
   ],
   "spellSchool": "scene",
   "heroSkills": [],
+  "heroes": [
+    "rumi",
+    "hermione",
+    "celeste"
+  ],
   "tiers": 8,
   "sharedGrowthGroups": {},
   "units": [

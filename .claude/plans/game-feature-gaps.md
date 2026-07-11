@@ -563,10 +563,17 @@ Source design : **doc 13** (N1→N4 livrés), docs de faction §lore.
 Source design : **doc 08**. (Livrés vérifiés : mini-carte, file d'initiative,
 préviz dégâts, raccourcis, a11y 3 crans, audio complet, chrome UI, options.)
 
-- **UX-HEROSWAP — Écran de transfert héros↔héros** 🕳️ M ⬜
+- **UX-HEROSWAP — Écran de transfert héros↔héros** 🕳️ M ✅
+  > **Livré** (plan `ux-heroswap.md`) : commande moteur GÉNÉRIQUE
+  > `TransferBetweenHeroes` (`kind: 'army' | 'artifact'`, une entité par
+  > commande, adjacence 8 dir, joueur actif ; fusion des piles de même unité,
+  > cap 7, artefact vers 1er slot libre) — purement déterministe, **aucun champ
+  > d'état nouveau ⇒ pas de bump save, golden inchangé**. Client : bouton
+  > « Échanger avec {nom} » dans le tiroir héros dès qu'un allié est adjacent →
+  > écran `HeroSwap` double-colonne tap-tap + « Tout donner ». Locales FR/EN,
+  > smoke étendu (recrutement d'un 2ᵉ héros à la Taverne du start-town ⇒
+  > transfert). **Différé** : « Équilibrer » (split de pile) = UX-SPLIT.
   Doc : doc 08 §2.3 (double-colonne, tap-tap, « équilibrer »/« tout donner »).
-  Code : seul ville↔héros existe (`packages/client/src/ui/TownScreen.tsx:641-731`).
-  Dépend de M-TAVERN (il faut ≥ 2 héros).
 
 - **UX-SPLIT — Split de piles** 🕳️ M ⬜
   Doc : doc 08 §2.1/§2.3 (armée 7 slots gérable). Code : `ArmySlots` lecture

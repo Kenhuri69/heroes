@@ -8,12 +8,20 @@ import {
   weekOf,
   type ArmyStack,
   type CombatUnitDef,
+  type HeroState,
 } from '@heroes/engine';
 import { useApp, appStore } from '../app/store';
 import { back, closeModalKind, openModal, useModals, useScreen } from '../app/router';
 import { requestEndTurn, confirmPendingEndTurn, cancelPendingEndTurn } from '../app/end-turn';
 import { dispatch } from '../app/dispatch';
-import { heroArchetype, humanHeroes, humanId, humanTowns, resolveSelectedHero } from '../app/game';
+import {
+  adjacentFriendlyHeroes,
+  heroArchetype,
+  humanHeroes,
+  humanId,
+  humanTowns,
+  resolveSelectedHero,
+} from '../app/game';
 import { RESOURCE_COLORS } from '../render/mapObjects';
 import { playerColor } from '../render/playerColors';
 import { heroAvatarUrl, resourceIconUrl, unitSpriteUrl } from '../render/assets';
@@ -40,6 +48,7 @@ import { ToastHost } from './toasts';
 import { CombatUi } from './combat';
 import { PreBattleScreen } from './PreBattleScreen';
 import { TownScreen } from './TownScreen';
+import { HeroSwap } from './HeroSwap';
 import { HeroSkills } from './HeroSkills';
 import { HeroInventory } from './HeroInventory';
 import { AdventureSpellbook } from './AdventureSpellbook';
@@ -174,6 +183,9 @@ function Shell() {
     (m): m is { kind: 'briefing'; scenarioId: string } => m.kind === 'briefing',
   );
   const shortcutsModal = modals.some((m) => m.kind === 'shortcuts');
+  const heroswapModal = modals.find(
+    (m): m is { kind: 'heroswap'; fromHeroId: string; toHeroId: string } => m.kind === 'heroswap',
+  );
 
   return (
     <>
@@ -217,6 +229,13 @@ function Shell() {
         <BriefingScreen scenarioId={briefingModal.scenarioId} onClose={() => closeModalKind('briefing')} />
       )}
       {townModal && <TownScreen townId={townModal.townId} onClose={() => closeModalKind('town')} />}
+      {heroswapModal && (
+        <HeroSwap
+          fromHeroId={heroswapModal.fromHeroId}
+          toHeroId={heroswapModal.toHeroId}
+          onClose={() => closeModalKind('heroswap')}
+        />
+      )}
       {journalModal && <Journal onClose={() => closeModalKind('journal')} />}
       {shortcutsModal && <ShortcutsOverlay onClose={() => closeModalKind('shortcuts')} />}
       {pendingSkillHero && <SkillChoice hero={pendingSkillHero} />}
@@ -634,6 +653,35 @@ function HeroStrip() {
 }
 
 /**
+ * Bouton de rencontre héros ↔ héros (UX-HEROSWAP, doc 02 §1.5) : un bouton par
+ * héros allié adjacent, ouvrant l'écran de transfert double-colonne. Rien
+ * n'apparaît si aucun héros allié n'est adjacent (cas MVP mono-héros).
+ */
+function HeroSwapButton({ hero }: { hero: HeroState }) {
+  useApp((s) => s.locale);
+  const game = useApp((s) => s.game);
+  const neighbours = adjacentFriendlyHeroes(game, hero);
+  if (neighbours.length === 0) return null;
+  return (
+    <div class="hero-swap-actions" data-testid="hero-swap-actions">
+      {neighbours.map((other) => (
+        <button
+          key={other.id}
+          type="button"
+          class="hero-swap-open"
+          data-testid={`hero-swap-open-${other.id}`}
+          onClick={() => openModal({ kind: 'heroswap', fromHeroId: hero.id, toHeroId: other.id })}
+        >
+          {t('heroswap.openWith', {
+            name: other.name ? resolveHeroName(other.name) : t('hero.genericName'),
+          })}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/**
  * Tiroir latéral (doc 08 §2.1) : portrait placeholder, niveau/XP, attributs,
  * armée 7 slots lecture seule, pour le héros SÉLECTIONNÉ (bandeau `HeroStrip`
  * en tête, lot UX U4). Mobile : ancré à gauche, replié par défaut
@@ -729,6 +777,7 @@ function HeroDrawer() {
         </dl>
         <h3 class="hero-army-title">{t('army.title')}</h3>
         <ArmySlots army={hero.army} heroId={hero.id} />
+        <HeroSwapButton hero={hero} />
         <HeroSkills hero={hero} />
         <HeroInventory hero={hero} catalog={artifactCatalog} />
         <AdventureSpellbook hero={hero} />

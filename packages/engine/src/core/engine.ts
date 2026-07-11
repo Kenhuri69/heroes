@@ -62,6 +62,7 @@ import {
 } from '../hero';
 import { heroManaMax } from '../hero/artifacts';
 import { validateRecruitHero, handleRecruitHero } from '../hero/recruit';
+import { validateTransferBetweenHeroes, handleTransferBetweenHeroes } from '../hero/transfer';
 import { heroGoldPerDay, heroMovementBonus, heroVisionBonus } from '../hero/skills';
 import { resolveTreasure } from '../adventure/treasure';
 import { roamGuardians } from '../adventure/roam';
@@ -131,6 +132,7 @@ const GAME_OVER_BLOCKED = new Set<Command['type']>([
   'BuyWarMachine',
   'GarrisonTransfer',
   'ReorderArmy',
+  'TransferBetweenHeroes',
   'SendCaravan',
   'CaptureTown',
   'RecruitHero',
@@ -259,6 +261,11 @@ export function validate(state: GameState, cmd: Command): CommandError | null {
       if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
       if (state.combat) return { code: 'combatActive', message: 'un combat est en cours' };
       return validateReorderArmy(state, cmd);
+    }
+    case 'TransferBetweenHeroes': {
+      if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
+      if (state.combat) return { code: 'combatActive', message: 'un combat est en cours' };
+      return validateTransferBetweenHeroes(state, cmd);
     }
     case 'SendCaravan': {
       if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
@@ -627,6 +634,10 @@ const handlers: Handlers = {
 
   ReorderArmy(draft, cmd, events) {
     handleReorderArmy(draft, cmd, events);
+  },
+
+  TransferBetweenHeroes(draft, cmd, events) {
+    handleTransferBetweenHeroes(draft, cmd, events);
   },
 
   SendCaravan(draft, cmd, events) {

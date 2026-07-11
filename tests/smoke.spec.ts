@@ -506,6 +506,45 @@ test('trésor : fouler le coffre ⇒ modale or/XP ⇒ or crédité (doc 02 §2.2
   expect(errors).toEqual([]);
 });
 
+test('UX-HEROSWAP : recruter un 2ᵉ héros ⇒ transférer une pile (doc 02 §1.5, doc 08 §2.3)', async ({
+  page,
+}) => {
+  const errors = await openGame(page);
+
+  // Construire la Taverne du start-town (2,4) puis 2 fins de tour (+500 or/j
+  // ⇒ 2500) ⇒ recruter Garrick. Le 2ᵉ héros apparaît sur la ville (2,4),
+  // adjacent au héros de départ (3,3) — préparation via le hook moteur (le
+  // sujet du test est l'ÉCHANGE, pas le recrutement, couvert par M-TAVERN.2).
+  await page.evaluate(async () => {
+    const d = window.__HEROES_TEST__!.dispatch;
+    await d({ type: 'BuildStructure', townId: 'start-town', buildingId: 'tavern' });
+    await d({ type: 'EndTurn', playerId: 'player-1' });
+    await d({ type: 'EndTurn', playerId: 'player-1' });
+    await d({ type: 'RecruitHero', townId: 'start-town', heroId: 'garrick', playerId: 'player-1' });
+  });
+  const heroCount = await page.evaluate(() => window.__HEROES_TEST__!.getState().heroes.length);
+  expect(heroCount).toBe(2);
+
+  // Le tiroir héros (héros de départ sélectionné) affiche le bouton de rencontre.
+  // Mobile : le tiroir est replié (bouton hamburger) ; desktop : colonne visible.
+  const drawerToggle = page.getByTestId('hero-drawer-toggle');
+  if (await drawerToggle.isVisible().catch(() => false)) await drawerToggle.click();
+  await page.getByTestId('hero-swap-open-hero-player-1-garrick').click();
+  await expect(page.getByTestId('heroswap')).toBeVisible();
+
+  // Taper la 1ʳᵉ pile du héros de départ la donne au héros recruté.
+  await page.getByTestId('heroswap-army-hero-player-1-0').click();
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () => window.__HEROES_TEST__!.getState().heroes.find((h) => h.id === 'hero-player-1-garrick')?.army.length ?? 0,
+      ),
+    )
+    .toBe(1);
+
+  expect(errors).toEqual([]);
+});
+
 test('lieu de bonus & habitation : écurie ⇒ +PM, camp ⇒ recrutement (doc 02 §2.2)', async ({
   page,
 }) => {

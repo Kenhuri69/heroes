@@ -1,6 +1,7 @@
 import {
   emptyResources,
   humanPlayerId,
+  isAdjacent,
   rollRange,
   seedRng,
   type ArmyStack,
@@ -101,6 +102,15 @@ export function resolveSelectedHero(
 ): HeroState | undefined {
   const mine = humanHeroes(game);
   return mine.find((h) => h.id === selectedHeroId) ?? mine[0];
+}
+
+/**
+ * Héros du joueur humain adjacents (8 directions) à `hero` (UX-HEROSWAP, doc 02
+ * §1.5) — candidats à une rencontre/transfert. Présentation pure : le moteur
+ * revalide l'adjacence au dispatch.
+ */
+export function adjacentFriendlyHeroes(game: GameState, hero: HeroState): HeroState[] {
+  return humanHeroes(game).filter((h) => h.id !== hero.id && isAdjacent(h.pos, hero.pos));
 }
 
 /** Villes du joueur humain (doc 08 §2.1) — plusieurs possibles par capture. */

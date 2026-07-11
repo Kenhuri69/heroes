@@ -1,0 +1,15 @@
+{
+  "id": "markal",
+  "name": "@loc:hero.markal.name",
+  "bio": "@loc:hero.markal.bio",
+  "archetype": "magic",
+  "origin": "canon",
+  "source": "Might & Magic",
+  "avatar": "necropolis-magic",
+  "avatarStyle": "painterly",
+  "specialty": "@loc:hero.markal.specialty",
+  "attributes": { "attack": 1, "defense": 0, "power": 3, "knowledge": 2 },
+  "specialtyEffect": { "id": "intrigant-de-cour", "goldPerDay": 200 },
+  "startingSkills": { "necromancy": 1, "magic-earth": 1 },
+  "startingSpells": ["fletrissure", "carapace-osseuse"]
+}

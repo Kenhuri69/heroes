@@ -107,6 +107,19 @@ Fort ──► T1 Cimetière ──► T2 Fosse commune ──► T3 Tour hanté
 
 Héros nommés MVP : *Vhalen* (Chevalier de la mort, spécialité : Vampires +1 att/déf par 2 niveaux), *Mère Corbeau* (Nécromancienne, spécialité : Nécromancie +2 %/niveau).
 
+> **État livré (M-TAVERN.2 — héros canon)** : le roster Necropolis compte **3
+> héros** recrutables à la Taverne, tous **canon du jeu d'origine**
+> (`origin: "canon"`, `source: "Might & Magic"`, univers Ashan) :
+> **Sandro** (Magic, liche — *Maître liche*, −15 % coût mana ; sorts Prime de
+> départ, Nécromancie/Sagesse), **Markal** (Magic, conseiller de cour —
+> *Intrigant de cour*, +200 or/jour), **Ornella** (Might, chevalière noire —
+> *Dame noire*, −10 % dégâts de mêlée subis). Fiches
+> `heroes/{sandro,markal,ornella}.json`, avatars = clés génériques
+> `necropolis-might`/`necropolis-magic`. **Différés** : *Vhalen* et *Mère
+> Corbeau* — leurs spécialités du tableau ci-dessus sont **conditionnelles**
+> (par unité / par niveau), hors du vocabulaire d'effets déclaratifs actuel
+> (nouveau point d'extension moteur requis).
+
 ## 6. Notes d'équilibrage
 
 - La Nécropole doit gagner **en jouant beaucoup de combats** : ses unités coûtent ~10 % de moins mais ses tiers 1–3 sont individuellement plus faibles que Haven.

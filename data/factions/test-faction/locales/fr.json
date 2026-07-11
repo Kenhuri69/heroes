@@ -2,5 +2,10 @@
   "faction.test-faction.name": "Faction test-faction",
   "unit.t1-recruit.name": "Recrue",
   "unit.t1-recruit-elite.name": "Recrue d'élite",
-  "building.test-faction-dwelling-t1": "Habitation : Recrue"
+  "building.test-faction-dwelling-t1": "Habitation : Recrue",
+  "hero.garrick.name": "Garrick",
+  "hero.garrick.bio": "Ancien videur de la taverne du coin, engagé pour de bon le jour où il a mis dehors une bande de pillards à mains nues.",
+  "hero.garrick.specialty": "Videur de taverne — +1 Moral à l'armée.",
+  "hero.specialty.videur-de-taverne.name": "Videur de taverne",
+  "hero.specialty.videur-de-taverne.desc": "+1 Moral à l'armée."
 }

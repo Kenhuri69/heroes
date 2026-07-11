@@ -2,5 +2,10 @@
   "faction.test-faction.name": "Faction test-faction",
   "unit.t1-recruit.name": "Recruit",
   "unit.t1-recruit-elite.name": "Elite Recruit",
-  "building.test-faction-dwelling-t1": "Recruit dwelling"
+  "building.test-faction-dwelling-t1": "Recruit dwelling",
+  "hero.garrick.name": "Garrick",
+  "hero.garrick.bio": "Former bouncer of the local tavern, hired for good the day he threw out a band of raiders bare-handed.",
+  "hero.garrick.specialty": "Tavern Bouncer — +1 Morale to the army.",
+  "hero.specialty.videur-de-taverne.name": "Tavern Bouncer",
+  "hero.specialty.videur-de-taverne.desc": "+1 Morale to the army."
 }

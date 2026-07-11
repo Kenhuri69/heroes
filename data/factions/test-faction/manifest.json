@@ -11,6 +11,7 @@
   "factionBonuses": [],
   "spellSchool": null,
   "heroSkills": [],
+  "heroes": ["garrick"],
   "tiers": 7,
   "sharedGrowthGroups": {},
   "units": [

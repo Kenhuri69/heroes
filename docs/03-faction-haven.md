@@ -131,5 +131,14 @@ Héros nommés MVP : *Aldric* (Chevalier, spécialité : +1 vitesse Chevaliers d
 > `houseCatalog` — `buildHeroRoster` n'expose QUE les fiches portant `attributes`).
 > **Différés** : profil de **gain d'attribut par classe** (reste global), **spécialités
 > conditionnelles** du doc (+vitesse Griffons / Soin +50 % — rendues par des spécialités
-> exprimables), **câblage de sélection client** (héros nommé à « Nouvelle partie » /
-> taverne = H-NAMED.2, M-TAVERN).
+> exprimables), choix du héros nommé de départ à « Nouvelle partie » (H-NAMED.2).
+>
+> **État livré (M-TAVERN.2 — héros canon)** : le roster Haven compte **5 héros**
+> recrutables à la Taverne — les 2 originaux ci-dessus + **3 héros canon du jeu
+> d'origine** (`origin: "canon"`, `source: "Might & Magic"`, univers Ashan) :
+> **Anton** (Might, duc de Griffon — *Protecteur du Duché*, +2 Défense de
+> garnison via l'effet town-scoped `garrisonDefense`), **Freyda** (Might,
+> chevalière — *Charge de cavalerie*, +10 % dégâts de mêlée), **Isabel** (Magic,
+> reine — *Trésor impérial*, +250 or/jour ; sorts de Lumière de départ).
+> Fiches `heroes/{anton,freyda,isabel}.json`, avatars = clés génériques
+> `haven-might`/`haven-magic` (portraits dédiés différés, doc 12 §7).

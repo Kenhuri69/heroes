@@ -1603,6 +1603,68 @@ test('ville : construire + croissance + recruter + transférer → armée du hé
   expect(errors).toEqual([]);
 });
 
+test('taverne : construire ⇒ onglet Taverne ⇒ recruter un héros nommé (M-TAVERN.2)', async ({
+  page,
+}) => {
+  const errors = await openGame(page);
+
+  // Avant construction : pas d'onglet Taverne (comme Marché/Guilde — le moteur
+  // refuserait le recrutement, l'onglet serait un cul-de-sac).
+  await page.getByTestId('town-open-start-town').click();
+  await expect(page.getByTestId('town-tab-build')).toBeVisible();
+  await expect(page.getByTestId('town-tab-tavern')).toHaveCount(0);
+
+  // Construire la Taverne (500 or + 5 bois) via l'onglet Construire.
+  await page.getByTestId('town-build-tavern').click();
+  await expect(page.getByTestId('town-tab-tavern')).toBeVisible();
+
+  // Or : 2000 − 500 = 1500 < coût de recrutement (2500) ⇒ bouton désactivé.
+  await page.getByTestId('town-tab-tavern').click();
+  const recruitBtn = page.getByTestId('town-tavern-recruit-garrick');
+  await expect(recruitBtn).toBeVisible();
+  await expect(recruitBtn).toBeDisabled();
+
+  // Deux fins de tour : +500 or/jour (hôtel de ville) ⇒ 2500 = coût exact.
+  await page.getByTestId('town-close').click();
+  for (let i = 0; i < 2; i++) {
+    await page.evaluate(() =>
+      window.__HEROES_TEST__!.dispatch({ type: 'EndTurn', playerId: 'player-1' }),
+    );
+  }
+
+  // Recruter Garrick (roster test-faction) à la Taverne.
+  await page.getByTestId('town-open-start-town').click();
+  await page.getByTestId('town-tab-tavern').click();
+  await expect(page.getByTestId('town-tavern-status')).toContainText('1/8');
+  await expect(recruitBtn).toBeEnabled();
+  await recruitBtn.click();
+
+  // Moteur : 2ᵉ héros créé sur la ville, armée vide, or décompté (2500 → 0).
+  const state = await page.evaluate(() => window.__HEROES_TEST__!.getState());
+  expect(state.heroes).toHaveLength(2);
+  const recruited = state.heroes.find((h) => h.id === 'hero-player-1-garrick');
+  expect(recruited?.pos).toEqual({ x: 2, y: 4 });
+  expect(recruited?.army).toEqual([]);
+  expect(state.players[0]?.resources.gold).toBe(0);
+
+  // UI : la carte passe en « Recruté », le compteur suit, et le héros recruté
+  // devient le héros SÉLECTIONNÉ (bande de portraits à 2 entrées).
+  await expect(page.getByTestId('town-tavern-recruited-garrick')).toBeVisible();
+  await expect(page.getByTestId('town-tavern-status')).toContainText('2/8');
+  await page.getByTestId('town-close').click();
+  await expect(page.getByTestId('hero-select-hero-player-1-garrick')).toBeVisible();
+  await expect(page.getByTestId('hero-select-hero-player-1-garrick')).toHaveClass(/selected/);
+
+  // Tiroir héros : nom + spécialité du héros nommé résolus depuis les locales
+  // de PAQUET (correctif M-TAVERN.2 — plus de clé brute à l'écran).
+  if (await page.getByTestId('hero-drawer-toggle').isVisible())
+    await page.getByTestId('hero-drawer-toggle').click();
+  await expect(page.getByTestId('hero-name')).toHaveText('Garrick');
+  await expect(page.getByTestId('hero-specialty')).toContainText('Videur de taverne');
+
+  expect(errors).toEqual([]);
+});
+
 test('héros nommé : nom + spécialité affichés, effets résolus (H-NAMED, lot 3)', async ({ page }) => {
   const errors = await openGame(page);
 

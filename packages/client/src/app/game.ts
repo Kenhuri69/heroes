@@ -250,6 +250,7 @@ export function newGameCommand(
   factionCatalog: FactionCatalog = {},
   houseCatalog: HouseCatalog = {},
   growthGroups: Record<string, string[]> = {},
+  heroRoster: HeroRosterCatalog = {},
 ): Command {
   const startingResources: Resources = { ...emptyResources() };
   for (const [id, amount] of Object.entries(config.newGame.startingResources)) {
@@ -320,6 +321,8 @@ export function newGameCommand(
         }
       : {}),
     growthGroups,
+    // Roster de héros nommés (M-TAVERN) : sans lui, la Taverne n'offre personne.
+    heroRoster,
   };
 }
 
@@ -935,6 +938,8 @@ export function newGameStartCommand(
     startingArtifacts: heroSetup.startingArtifacts,
     factionCatalog: buildFactionSetup(report),
     growthGroups: buildGrowthGroupSetup(report),
+    // Roster de héros nommés (M-TAVERN) : sans lui, la Taverne n'offre personne.
+    heroRoster: buildHeroRosterSetup(report),
     scenario: { objectives },
   };
 }

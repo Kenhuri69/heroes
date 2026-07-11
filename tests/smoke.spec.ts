@@ -1613,6 +1613,10 @@ test('ville : en-tête revenu/croissance (C21) + « Tout recruter » (C19) (lot 
   const goldBefore = await page.evaluate(() => window.__HEROES_TEST__!.getState().players[0]!.resources.gold);
   await page.getByTestId('town-open-start-town').click();
   await page.getByTestId('town-tab-recruit').click();
+  // T-GROWTHUI (doc 02 §4.1) : le détail de croissance de l'habitation est
+  // affiché — rythme hebdo (+X/sem) et plafond d'accumulation (max 2X).
+  await expect(page.getByTestId('town-growth-t1-recruit')).toContainText('/sem');
+  await expect(page.getByTestId('town-growth-t1-recruit')).toContainText('max');
   await page.getByTestId('town-recruit-all').click();
   await expect
     .poll(() => page.evaluate(() => window.__HEROES_TEST__!.getState().players[0]!.resources.gold))

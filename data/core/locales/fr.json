@@ -456,6 +456,8 @@
   "town.buy": "Acheter",
   "town.owned": "Possédée",
   "town.stock": "Stock {count}",
+  "town.growthPerWeek": "+{count}/sem",
+  "town.growthCap": "max {count}",
   "town.min": "Min",
   "town.max": "Max",
   "town.requirementMissing": "{building} niveau {level} requis",

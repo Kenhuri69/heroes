@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { apply } from '../src/core/engine';
-import { dailyIncome, townIncome } from '../src/town/economy';
+import { dailyIncome, townIncome, weeklyGrowthOf } from '../src/town/economy';
 import type { Command, PlayerSetup } from '../src/core/commands';
 import { createEmptyState, emptyResources, type GameState } from '../src/core/state';
 import { testConfig, testMap } from './fixtures';
@@ -106,6 +106,23 @@ describe('applyWeeklyGrowth', () => {
     // growthPerWeek=6, bonus=+50% ⇒ floor(6*1.5)=9 ; stock 2+9=11 ≤ plafond 18.
     expect(growthAmounts).toEqual([9]);
     expect(s.towns[0]?.stock['red-grunt']).toBe(11);
+  });
+
+  it('weeklyGrowthOf : projection pure — bonus de fort, plafond 2×, null sans donnée', () => {
+    // Même configuration que le test du jour 8 : growthPerWeek=6, fort 2 = +50 %.
+    const state = startedGame(
+      {},
+      { buildings: { townHall: 1, fort: 2, dwelling1: 1 }, stock: { 'red-grunt': 2 } },
+    );
+    const town = state.towns[0]!;
+    expect(weeklyGrowthOf(state, town, 'red-grunt')).toEqual({ added: 9, cap: 18 });
+    // Sans bonus de fort : croissance de donnée brute.
+    const bare = startedGame({}, { buildings: { townHall: 1, dwelling1: 1 } });
+    expect(weeklyGrowthOf(bare, bare.towns[0]!, 'red-grunt')).toEqual({ added: 6, cap: 12 });
+    // Unité sans donnée de croissance : null (no-op, cohérent avec applyWeeklyGrowth).
+    expect(weeklyGrowthOf(state, town, 'unknown-unit')).toBeNull();
+    // La projection ne mute rien.
+    expect(town.stock['red-grunt']).toBe(2);
   });
 
   it('plafonne le stock à 2× la croissance hebdo', () => {

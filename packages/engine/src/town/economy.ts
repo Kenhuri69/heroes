@@ -90,22 +90,39 @@ export function applyDailyIncome(draft: GameState, events: GameEvent[]): void {
 }
 
 /**
+ * Croissance hebdomadaire PROJETÉE d'une unité dans une ville (T-GROWTHUI,
+ * doc 02 §4.1) — miroir **sans mutation** du calcul d'`applyWeeklyGrowth` :
+ * `added` = croissance de donnée × (1 + bonus Fort) × facteur d'événement de
+ * calendrier de la semaine, `cap` = plafond d'ACCUMULATION du stock
+ * (2 × added). `null` si l'unité n'a pas de donnée de croissance. Sert le
+ * détail de l'onglet Recruter (pattern R7 : helper pur consommé par le client).
+ */
+export function weeklyGrowthOf(
+  state: GameState,
+  town: GameState['towns'][number],
+  unitId: string,
+): { added: number; cap: number } | null {
+  const growth = unitWithEconomy(state.unitCatalog, unitId)?.growthPerWeek;
+  if (!growth) return null;
+  let bonusFort = 0;
+  for (const buildingId of Object.keys(town.buildings)) {
+    const level = builtLevelOf(town, state.buildingCatalog, buildingId);
+    if (level?.effect.type === 'growthBonus') bonusFort += level.effect.percent / 100;
+  }
+  const added = Math.floor(growth * (1 + bonusFort) * weekGrowthFactor(state));
+  return { added, cap: 2 * added };
+}
+
+/**
  * Croissance hebdomadaire (doc 02 §4.1, décision plan phase-3.1 point 6) —
  * appelée au `WeekStarted`. La croissance/le coût des créatures vivent dans
  * les données d'unité (`growthPerWeek?`, absent de `CombatUnitDef` figé — lu
- * optionnellement via `unit-economy.ts`, no-op si absent).
+ * optionnellement via `unit-economy.ts`, no-op si absent). Le calcul par unité
+ * vit dans `weeklyGrowthOf` (partagé avec l'UI de recrutement).
  */
 export function applyWeeklyGrowth(draft: GameState, events: GameEvent[]): void {
-  // Événement de calendrier de la semaine (M-CALENDAR, doc 02 §2.3) : module la
-  // croissance (peste ÷2, abondance ×2…). 1 hors calendrier ⇒ règle inchangée.
-  const eventFactor = weekGrowthFactor(draft);
   for (const town of draft.towns) {
     if (!town.ownerPlayerId) continue;
-    let bonusFort = 0;
-    for (const buildingId of Object.keys(town.buildings)) {
-      const level = builtLevelOf(town, draft.buildingCatalog, buildingId);
-      if (level?.effect.type === 'growthBonus') bonusFort += level.effect.percent / 100;
-    }
     // Croissance partagée (doc 05 §3.1/§8) : les membres d'un même groupe se
     // partagent une seule croissance ; seul le destinataire résolu grossit.
     const shared = sharedGrowthRecipients(town, draft.growthGroups, draft.buildingCatalog);
@@ -115,17 +132,14 @@ export function applyWeeklyGrowth(draft: GameState, events: GameEvent[]): void {
       const unitId = level.effect.unitId;
       const groupId = shared.groupOf.get(unitId);
       if (groupId !== undefined && shared.recipientOf.get(groupId) !== unitId) continue;
-      const growth = unitWithEconomy(draft.unitCatalog, unitId)?.growthPerWeek;
-      if (!growth) continue; // pas de donnée de croissance connue : no-op
-      const added = Math.floor(growth * (1 + bonusFort) * eventFactor);
-      if (added <= 0) continue;
-      const cap = 2 * added;
+      const g = weeklyGrowthOf(draft, town, unitId);
+      if (!g || g.added <= 0) continue;
       const current = town.stock[unitId] ?? 0;
       // Le plafond (2× la croissance) borne l'ACCUMULATION, il ne doit jamais
       // RÉDUIRE un stock déjà supérieur (pré-seedé par un scénario) — remédiation
       // R1 : on n'ajoute rien si le stock dépasse déjà le plafond.
-      town.stock[unitId] = Math.max(current, Math.min(current + added, cap));
-      events.push({ type: 'TownGrowth', townId: town.id, unitId, added });
+      town.stock[unitId] = Math.max(current, Math.min(current + g.added, g.cap));
+      events.push({ type: 'TownGrowth', townId: town.id, unitId, added: g.added });
     }
   }
   // Habitations hors ville (doc 02 §2.2) : même règle d'accumulation que les
@@ -137,7 +151,9 @@ export function applyWeeklyGrowth(draft: GameState, events: GameEvent[]): void {
     if (obj.type !== 'dwelling' || !obj.ownerId) continue;
     const growth = unitWithEconomy(draft.unitCatalog, obj.unitId)?.growthPerWeek;
     if (!growth) continue;
-    const added = Math.floor(growth * eventFactor);
+    // Événement de calendrier de la semaine (M-CALENDAR) : module la croissance
+    // (peste ÷2, abondance ×2…) — 1 hors calendrier, règle inchangée.
+    const added = Math.floor(growth * weekGrowthFactor(draft));
     obj.stock = Math.max(obj.stock, Math.min(obj.stock + added, 2 * growth));
   }
 }

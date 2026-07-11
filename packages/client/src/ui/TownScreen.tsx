@@ -11,6 +11,7 @@ import {
   upgradedUnitFor,
   upgradeCost,
   weekOf,
+  weeklyGrowthOf,
 } from '@heroes/engine';
 import type { BuildingDef, CombatUnitDef, ResourceId, TownState } from '@heroes/engine';
 import { useApp } from '../app/store';
@@ -645,6 +646,7 @@ function RecruitTab({
         {unitIds.map((unitId) => {
           const stock = town.stock[unitId] ?? 0;
           const qty = qtyFor(unitId, stock);
+          const growth = weeklyGrowthOf(game, town, unitId);
           const economy = unitCatalog[unitId] as (CombatUnitDef & UnitEconomyFields) | undefined;
           const totalCost = economy?.recruitCost ? scaleCost(economy.recruitCost, qty) : null;
           return (
@@ -653,6 +655,15 @@ function RecruitTab({
                 <span class="town-dwelling-name">{resolveUnitName(unitId)}</span>
                 <span class="town-dwelling-stock" data-testid={`town-stock-${unitId}`}>
                   {t('town.stock', { count: stock })}
+                  {growth && (
+                    // T-GROWTHUI (doc 02 §4.1) : rythme hebdo + plafond d'accumulation.
+                    <span class="town-dwelling-growth" data-testid={`town-growth-${unitId}`}>
+                      {' · '}
+                      {t('town.growthPerWeek', { count: growth.added })}
+                      {' · '}
+                      {t('town.growthCap', { count: growth.cap })}
+                    </span>
+                  )}
                 </span>
               </div>
               {resolveUnitLore(unitId) && (

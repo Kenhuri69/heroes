@@ -388,9 +388,10 @@ Source design : doc 02 §3/§4.
   Code : zéro occurrence. Spec : obélisques (visitables révélant une carte au
   trésor), fouille, bâtiment Graal à effet majeur par faction (données).
 
-- **T-GROWTHUI — Affichage croissance base/accumulée** 🎨 S ⬜
-  Doc : doc 02 §4.1. Code : cumul plafonné 2× livré, non affiché. Spec : détail
-  dans l'onglet Recruter (`TownScreen.tsx`).
+- **T-GROWTHUI — Affichage croissance base/accumulée** 🎨 S ✅ (livré)
+  Doc : doc 02 §4.1. Livré : helper pur `weeklyGrowthOf` (moteur, partagé avec
+  `applyWeeklyGrowth` — bonus Fort + facteur calendrier + plafond 2×) ; l'onglet
+  Recruter affiche « +X/sem · max Y » par habitation (`town-growth-<unitId>`).
 
 - **T-MARKETRATE — Taux de marché dégressif + troc** 🧩 S ⬜ (différé assumé doc 02 §3)
   Code : taux plats (`data/core/config.json:45-48`), troc ressource↔ressource

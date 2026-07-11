@@ -55,7 +55,8 @@
       "name": "@loc:house.house-badger",
       "effects": [
         {
-          "armorReductionPct": 8
+          "garrisonGrowthPct": 20,
+          "garrisonDefense": 2
         }
       ]
     },

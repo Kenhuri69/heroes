@@ -1,6 +1,6 @@
 import type { GameEvent } from '../core/events';
 import type { GameState, ResourceId } from '../core/state';
-import { heroGoldPerDay } from '../hero/skills';
+import { heroGoldPerDay, townHouseField } from '../hero/skills';
 import { weekGrowthFactor } from '../adventure/calendar';
 import { builtLevelOf } from './helpers';
 import { sharedGrowthRecipients } from './shared-growth';
@@ -109,6 +109,11 @@ export function weeklyGrowthOf(
     const level = builtLevelOf(town, state.buildingCatalog, buildingId);
     if (level?.effect.type === 'growthBonus') bonusFort += level.effect.percent / 100;
   }
+  // Maison town-scoped (F-HOUSES, doc 16 §3.1 — Le Blaireau) : + % croissance hebdo
+  // apporté par un héros du propriétaire présent sur la tuile de la ville (option B).
+  // Calculé ici (helper partagé) ⇒ l'UI de recrutement projette la même croissance.
+  if (town.ownerPlayerId)
+    bonusFort += townHouseField(state.heroes, town.ownerPlayerId, town.pos, 'garrisonGrowthPct') / 100;
   const added = Math.floor(growth * (1 + bonusFort) * weekGrowthFactor(state));
   return { added, cap: 2 * added };
 }

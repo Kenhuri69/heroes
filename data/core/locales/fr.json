@@ -582,6 +582,7 @@
   "town.tavernCapReached": "Limite de héros atteinte",
   "town.tavernEmpty": "Aucun héros disponible pour cette faction.",
   "town.tavernRecruited": "Recruté",
+  "town.tavernUnavailable": "Indisponible",
   "town.guildEmpty": "Aucune guilde des mages construite — construisez-la pour enseigner des sorts.",
   "town.guildHint": "Un héros qui visite la ville apprend automatiquement les sorts qu’il peut.",
   "town.spellKnown": "Connu",

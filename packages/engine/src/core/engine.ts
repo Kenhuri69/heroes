@@ -558,6 +558,9 @@ const handlers: Handlers = {
         ? ((cmd.specialtyCatalog ?? {})[p.startingSpecialtyId]?.effects ?? []).map((e) => ({ ...e }))
         : (named?.specialtyEffects ?? []).map((e) => ({ ...e })),
       warMachines: [],
+      // Origine roster (M-TAVERN.4) : un héros de DÉPART nommé occupe l'entrée de
+      // pool correspondante (exclusivité inter-joueurs). '' pour un héros générique.
+      rosterId: p.startingHeroId ?? '',
       };
     });
     for (const hero of draft.heroes) {

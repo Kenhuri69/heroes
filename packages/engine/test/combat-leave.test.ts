@@ -47,6 +47,7 @@ function stateWith(gold: number): GameState {
     playerId: 'p1',
     army: [{ unitId: 'ally', count: 5 }],
     warMachines: [],
+    rosterId: '',
     attributes: { attack: 0, defense: 0, power: 0, knowledge: 0 },
     artifacts: Array.from({ length: 10 }, () => null),
   } as unknown as HeroState;

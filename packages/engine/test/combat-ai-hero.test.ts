@@ -74,6 +74,7 @@ function hero(over: Partial<HeroState> & { id: string }): HeroState {
     specialtyId: '',
     specialtyEffects: [],
     warMachines: [],
+    rosterId: '',
     ...over,
   };
 }

@@ -30,7 +30,7 @@ function hero(over: Partial<HeroState>): HeroState {
     attributes: { attack: 0, defense: 0, power: 0, knowledge: 0 }, mana: 0, manaMax: 0, skills: {},
     visitLuck: 0, spells: [], artifacts: Array.from({ length: 10 }, () => null), pendingSkillChoices: [],
     pendingAttributeChoices: [], factionId: '', houseId: '', houseEffects: [], name: '', specialtyId: '',
-    specialtyEffects: [], warMachines: [], ...over,
+    specialtyEffects: [], warMachines: [], rosterId: '', ...over,
   };
 }
 

@@ -14,7 +14,6 @@ import {
   weekOf,
   weeklyGrowthOf,
 } from '@heroes/engine';
-import { recruitedHeroId } from '@heroes/engine';
 import type { BuildingDef, CombatUnitDef, GameEvent, ResourceId, TownState } from '@heroes/engine';
 import { useApp, appStore } from '../app/store';
 import { dispatch } from '../app/dispatch';
@@ -480,11 +479,15 @@ function TavernTab({ town, onError }: { town: TownState; onError: (msg: string |
       ) : (
         <ul class="town-tavern-list">
           {roster.map(([heroId, def]) => {
-            const already = game.heroes.some((h) => h.id === recruitedHeroId(playerId, heroId));
+            // Pool exclusif (M-TAVERN.4) : un héros de roster VIVANT occupe l'entrée.
+            // `owner` = son joueur (undefined si libre) ; `mine` = c'est le mien.
+            const owner = game.heroes.find((h) => h.rosterId === heroId);
+            const mine = owner?.playerId === playerId;
+            const taken = owner !== undefined;
             const bio = resolveHeroBio(heroId);
             const specDesc = def.specialtyId ? resolveSpecialtyDesc(def.specialtyId) : null;
             return (
-              <li key={heroId} class={`town-tavern-hero${already ? ' is-recruited' : ''}`}>
+              <li key={heroId} class={`town-tavern-hero${taken ? ' is-recruited' : ''}`}>
                 <div class="town-tavern-header">
                   <AssetImg
                     src={heroAvatarUrl(def.factionId, heroArchetype(def.attributes), def.name)}
@@ -505,9 +508,13 @@ function TavernTab({ town, onError }: { town: TownState; onError: (msg: string |
                 )}
                 {bio && <LoreText text={bio} variant="town-tavern-bio" testid={`town-tavern-bio-${heroId}`} />}
                 <div class="town-tavern-action">
-                  {already ? (
+                  {taken && mine ? (
                     <span class="town-tavern-recruited" data-testid={`town-tavern-recruited-${heroId}`}>
                       {t('town.tavernRecruited')}
+                    </span>
+                  ) : taken ? (
+                    <span class="town-tavern-recruited" data-testid={`town-tavern-unavailable-${heroId}`}>
+                      {t('town.tavernUnavailable')}
                     </span>
                   ) : (
                     <>

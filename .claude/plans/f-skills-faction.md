@@ -48,5 +48,21 @@ de niveau ⇒ aucun tirage de compétence ; aucune faction).
 ## Journal
 
 - branche `claude/f-skills-faction` créée depuis `main` @ 57a694e.
-- Plan rédigé ; **checkpoint utilisateur** avant exécution (lot M multi-surface +
-  décision de gating ; AskUserQuestion indisponible en séance).
+- Plan rédigé ; checkpoint utilisateur ; « go » reçu ⇒ début d'exécution.
+- **Wrinkle découvert en implémentant** : `skillRankEffectSchema` **exige ≥ 1
+  effet par rang** (refine `content/schemas.ts`). Or la Nécromancie est une
+  compétence dont le **payoff est externe** (le % gradué de `raiseUndeadOnVictory`)
+  ⇒ pas d'effet `SkillRankEffect` naturel par rang. Le gating (`factionId` estampillé
+  + filtre `eligibleSkills`) et le scaling (`scaleSkillId`/`percentByRank`) sont
+  scaffoldés sans souci ; c'est **la modélisation de la compétence marqueur** qui
+  demande un arbitrage. Options :
+  - **A** — donner à Nécromancie un petit effet par rang du palette existante
+    (hors-doc, mais valide schéma) ; rapide, mais bénéfice non spécifié.
+  - **B** — relâcher le schéma pour autoriser une compétence « marqueur » à effet
+    externe (ex. flag `external: true` ou rangs vides tolérés) ; modélisation la
+    plus propre, mais touche la validation partagée.
+  - **C** — ne pas créer de compétence séparée : graduer le % par un **attribut**
+    existant du héros (ex. Savoir) ; plus simple, mais s'écarte du « skill
+    Nécromancie » du doc 04 §2.
+  - Changements partiels (types/schéma additifs) **révertés** pour garder l'arbre
+    propre ; **re-checkpoint** sur le choix A/B/C.

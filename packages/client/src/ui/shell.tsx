@@ -7,6 +7,7 @@ import {
   xpForLevel,
   weekOf,
   type ArmyStack,
+  type CombatUnitDef,
 } from '@heroes/engine';
 import { useApp, appStore } from '../app/store';
 import { back, closeModalKind, openModal, useModals, useScreen } from '../app/router';
@@ -14,8 +15,8 @@ import { requestEndTurn, confirmPendingEndTurn, cancelPendingEndTurn } from '../
 import { heroArchetype, humanHeroes, humanId, humanTowns, resolveSelectedHero } from '../app/game';
 import { RESOURCE_COLORS } from '../render/mapObjects';
 import { playerColor } from '../render/playerColors';
-import { heroAvatarUrl, resourceIconUrl } from '../render/assets';
-import { t, resolveUnitName } from '../app/i18n';
+import { heroAvatarUrl, resourceIconUrl, unitSpriteUrl } from '../render/assets';
+import { t, resolveUnitName, resolveAbilityName, resolveAbilityDescription } from '../app/i18n';
 import { AssetImg } from './AssetImg';
 import { UiIcon } from './UiIcon';
 import { MenuScreen } from './MenuScreen';
@@ -383,21 +384,142 @@ function EndTurnConfirm() {
   );
 }
 
-/** 7 slots d'armée en lecture seule (doc 08 §2.1) — partagé tiroir héros + bandeau bas. */
+/**
+ * 7 slots d'armée en lecture seule (doc 08 §2.1) — partagé tiroir héros + bandeau
+ * bas. Slot rempli = vignette **encadrée** (asset de l'unité + effectif) qui ouvre
+ * au tap une fiche détaillée (`UnitCard` : stats + capacités). Repli gracieux : si
+ * l'asset manque, la vignette affiche le nom de l'unité.
+ */
 function ArmySlots({ army }: { army: ArmyStack[] }) {
+  useApp((s) => s.locale); // réactivité i18n (noms d'unités/capacités)
+  const catalog = useApp((s) => s.game.unitCatalog);
+  const [inspected, setInspected] = useState<string | null>(null);
+  const def = inspected ? catalog[inspected] : undefined;
   return (
-    <ol class="army-slots" data-testid="army-slots">
-      {Array.from({ length: 7 }, (_, i) => army[i]).map((stack, i) => (
-        <li key={i} class={stack ? 'army-slot filled' : 'army-slot empty'}>
-          {stack && (
-            <>
-              <span class="army-slot-name">{resolveUnitName(stack.unitId)}</span>
-              <span class="army-slot-count">×{stack.count}</span>
-            </>
-          )}
-        </li>
-      ))}
-    </ol>
+    <>
+      <ol class="army-slots" data-testid="army-slots">
+        {Array.from({ length: 7 }, (_, i) => army[i]).map((stack, i) =>
+          stack ? (
+            <li key={i} class="army-slot filled">
+              <button
+                type="button"
+                class="army-slot-btn"
+                data-testid={`army-slot-${i}`}
+                aria-label={t('army.card.inspect', { name: resolveUnitName(stack.unitId) })}
+                onClick={() => setInspected(stack.unitId)}
+              >
+                <span class="army-slot-portrait">
+                  <AssetImg
+                    src={unitSpriteUrl(stack.unitId, catalog[stack.unitId]?.groupId)}
+                    alt=""
+                    class="army-slot-img"
+                    fallback={<span class="army-slot-name">{resolveUnitName(stack.unitId)}</span>}
+                  />
+                </span>
+                <span class="army-slot-count">×{stack.count}</span>
+              </button>
+            </li>
+          ) : (
+            <li key={i} class="army-slot empty" aria-hidden="true" />
+          ),
+        )}
+      </ol>
+      {inspected && def && (
+        <UnitCard unitId={inspected} def={def} onClose={() => setInspected(null)} />
+      )}
+    </>
+  );
+}
+
+/**
+ * Fiche d'unité de l'armée (aventure, doc 08 §2.1) : portrait encadré, stats et
+ * capacités **localisées** de l'unité. Lecture seule ; lit le catalogue moteur
+ * (aucune règle réimplémentée). Distincte de la `StackSheet` de combat, qui
+ * montre l'état de combat live d'une pile engagée.
+ */
+function UnitCard({
+  unitId,
+  def,
+  onClose,
+}: {
+  unitId: string;
+  def: CombatUnitDef;
+  onClose: () => void;
+}) {
+  useApp((s) => s.locale); // réactivité i18n
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent): void => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
+  return (
+    <div class="unit-card-backdrop" onClick={onClose}>
+      <section
+        class="unit-card"
+        data-testid="unit-card"
+        role="dialog"
+        aria-modal="true"
+        aria-label={resolveUnitName(unitId)}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <header class="unit-card-header">
+          <span class="unit-card-portrait">
+            <AssetImg
+              src={unitSpriteUrl(unitId, def.groupId)}
+              alt=""
+              class="unit-card-img"
+              fallback={
+                <span class="unit-card-portrait-fallback" aria-hidden="true">
+                  ⚔
+                </span>
+              }
+            />
+          </span>
+          <h3>{resolveUnitName(unitId)}</h3>
+          <button
+            type="button"
+            class="unit-card-close"
+            data-testid="unit-card-close"
+            aria-label={t('combat.sheet.close')}
+            onClick={onClose}
+          >
+            ×
+          </button>
+        </header>
+        <dl class="unit-card-stats">
+          <dt>{t('army.card.hp')}</dt>
+          <dd>{def.stats.hp}</dd>
+          <dt>{t('attribute.attack')}</dt>
+          <dd>{def.stats.attack}</dd>
+          <dt>{t('attribute.defense')}</dt>
+          <dd>{def.stats.defense}</dd>
+          <dt>{t('combat.sheet.damage')}</dt>
+          <dd>
+            {def.stats.damage[0]}–{def.stats.damage[1]}
+          </dd>
+          <dt>{t('combat.sheet.speed')}</dt>
+          <dd>{def.stats.speed}</dd>
+        </dl>
+        <h4 class="unit-card-abilities-title">{t('army.card.abilities')}</h4>
+        {def.abilities.length > 0 ? (
+          <ul class="unit-card-abilities" data-testid="unit-card-abilities">
+            {def.abilities.map((a) => {
+              const desc = resolveAbilityDescription(a.id);
+              return (
+                <li key={a.id}>
+                  <span class="unit-card-ability-name">{resolveAbilityName(a.id)}</span>
+                  {desc && <span class="unit-card-ability-desc">{desc}</span>}
+                </li>
+              );
+            })}
+          </ul>
+        ) : (
+          <p class="unit-card-no-abilities">{t('army.card.noAbilities')}</p>
+        )}
+      </section>
+    </div>
   );
 }
 

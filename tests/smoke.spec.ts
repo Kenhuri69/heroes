@@ -217,6 +217,27 @@ test('HUD mobile : bandeau d’armée replié par défaut, dépliable (X3)', asy
   expect(errors).toEqual([]);
 });
 
+test("bandeau d'armée : tap sur une vignette ⇒ fiche d'unité (stats + capacités)", async ({
+  page,
+}) => {
+  const errors = await openGame(page);
+
+  // Déplie le bandeau puis ouvre la fiche de la 1ʳᵉ pile (vignette encadrée).
+  await page.getByTestId('army-band-toggle').click();
+  await page.locator('.army-band [data-testid="army-slot-0"]').click();
+
+  const card = page.getByTestId('unit-card');
+  await expect(card).toBeVisible();
+  await expect(card).toContainText('Attaque'); // stats localisées
+  await expect(card).toContainText('Compétences'); // section capacités
+
+  // Fermeture par le bouton × ⇒ retour à la carte.
+  await page.getByTestId('unit-card-close').click();
+  await expect(card).toBeHidden();
+
+  expect(errors).toEqual([]);
+});
+
 test('tap sur une ressource : fiche stock + revenu/jour (doc 08 §2.1, lot M6 C8)', async ({
   page,
 }) => {

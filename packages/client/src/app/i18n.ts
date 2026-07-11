@@ -114,6 +114,18 @@ export function resolveArtifactName(artifactId: string): string {
   return resolveGenericName('artifact', artifactId);
 }
 
+/** Nom localisé d'une capacité d'unité (`ability.<id>` core) — repli sur l'id brut. */
+export function resolveAbilityName(abilityId: string): string {
+  return resolveGenericName('ability', abilityId);
+}
+
+/** Effet court localisé d'une capacité (`ability.<id>.desc`) — `null` si absent. */
+export function resolveAbilityDescription(abilityId: string): string | null {
+  const key = `ability.${abilityId}.desc`;
+  const value = t(key);
+  return value === key ? null : value;
+}
+
 /**
  * Cherche une clé de nom dans les locales CORE puis, à défaut, dans les locales
  * de PAQUET (remédiation R4b) — les noms de bâtiments de faction (dwellings) et

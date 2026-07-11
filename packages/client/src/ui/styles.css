@@ -486,6 +486,30 @@
   opacity: 0.75;
 }
 
+/* Boutons de rencontre héros ↔ héros (UX-HEROSWAP, doc 02 §1.5). */
+.hero-swap-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 6px 0;
+}
+
+.hero-swap-open {
+  min-height: 44px;
+  padding: 6px 10px;
+  border: 1px solid var(--ink-600);
+  border-radius: var(--radius-s);
+  background: var(--ink-700);
+  color: inherit;
+  cursor: pointer;
+  font-size: 0.8125rem;
+}
+
+.hero-swap-open:hover,
+.hero-swap-open:focus-visible {
+  border-color: var(--brass);
+}
+
 /* Slots d'armée (doc 08 §2.1), réutilisés par le tiroir et le bandeau bas. */
 .army-slots {
   display: flex;

@@ -1,0 +1,125 @@
+/* Écran de rencontre héros ↔ héros (UX-HEROSWAP, doc 02 §1.5, doc 08 §2.3) —
+   double-colonne, transfert tap-tap (touch-first). Layout uniquement : les
+   couleurs viennent des tokens (var(--…)). */
+.modal.heroswap {
+  max-width: 720px;
+  width: 92vw;
+}
+
+.heroswap-hint {
+  margin: 4px 0 10px;
+  font-size: 0.8125rem;
+  opacity: 0.8;
+}
+
+.heroswap-error {
+  margin: 4px 0;
+  color: var(--danger-text);
+  font-size: 0.8125rem;
+}
+
+.heroswap-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.heroswap-col {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  border: 1px solid var(--ink-600);
+  border-radius: var(--radius-s);
+  background: var(--ink-800);
+}
+
+.heroswap-hero-name {
+  margin: 0 0 4px;
+  font-size: 0.9375rem;
+}
+
+.heroswap-section {
+  margin: 6px 0 2px;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+
+.heroswap-army,
+.heroswap-artifacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.heroswap-empty {
+  font-size: 0.75rem;
+  opacity: 0.6;
+}
+
+.heroswap-item {
+  /* Touch-first : cible ≥ 44 px (guidelines §8.4). */
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 4px;
+  border: 1px solid var(--ink-600);
+  border-radius: var(--radius-s);
+  background: var(--ink-700);
+  color: inherit;
+  cursor: pointer;
+  font-size: 0.6875rem;
+}
+
+.heroswap-item:hover,
+.heroswap-item:focus-visible {
+  border-color: var(--brass);
+}
+
+.heroswap-icon {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.heroswap-item-name {
+  font-size: 0.625rem;
+  text-align: center;
+}
+
+.heroswap-count {
+  font-weight: 600;
+}
+
+.heroswap-giveall {
+  margin-top: auto;
+  min-height: 44px;
+  padding: 6px 10px;
+  border: 1px solid var(--ink-600);
+  border-radius: var(--radius-s);
+  background: var(--ink-700);
+  color: inherit;
+  cursor: pointer;
+  font-size: 0.8125rem;
+}
+
+.heroswap-giveall:hover,
+.heroswap-giveall:focus-visible {
+  border-color: var(--brass);
+}
+
+/* Mobile portrait : colonnes empilées. */
+@media (max-width: 560px) {
+  .heroswap-cols {
+    grid-template-columns: 1fr;
+  }
+}

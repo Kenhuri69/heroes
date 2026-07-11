@@ -21,6 +21,7 @@ export type Screen = 'menu' | 'adventure' | 'editor';
 /** Modale empilable (doc 08 §3). */
 export type Modal =
   | { kind: 'town'; townId: string }
+  | { kind: 'heroswap'; fromHeroId: string; toHeroId: string }
   | { kind: 'options' }
   | { kind: 'journal' }
   | { kind: 'skirmish' }

@@ -190,6 +190,20 @@ export type Command =
     }
   | {
       /**
+       * Transfert d'une pile d'armée OU d'un artefact entre deux héros du MÊME
+       * joueur sur des tuiles adjacentes (UX-HEROSWAP, doc 02 §1.5, doc 08 §2.3).
+       * `kind` sélectionne la ressource transférée ; `slot` est l'index source
+       * (dans `army` ou `artifacts` du héros source). Une entité par commande —
+       * l'UI enchaîne pour « tout donner ». Purement déterministe (aucun RNG).
+       */
+      type: 'TransferBetweenHeroes';
+      fromHeroId: string;
+      toHeroId: string;
+      kind: 'army' | 'artifact';
+      slot: number;
+    }
+  | {
+      /**
        * Envoie une pile de garnison vers une autre ville possédée (T-CARAVAN,
        * doc 02 §4.1). Trajet en jours via l'A* existant ; arrivée en garnison.
        */
@@ -272,6 +286,7 @@ export interface CommandError {
     | 'insufficientStock'
     | 'invalidTransfer'
     | 'invalidReorder'
+    | 'notAdjacent'
     | 'invalidCaravan'
     | 'invalidTrade'
     | 'unknownSpell'

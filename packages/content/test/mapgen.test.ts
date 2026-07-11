@@ -128,6 +128,42 @@ describe('generateMap', () => {
     expect(mean(far.map((g) => g.count))).toBeGreaterThan(mean(near.map((g) => g.count)));
   });
 
+  it('progression : ≥ 2 gardiens faibles près de CHAQUE départ, tier plafonné par la profondeur', () => {
+    const palette = ['u1', 'u2', 'u3', 'u4', 'u5', 'u6', 'u7'];
+    const tiers: Record<string, number> = Object.fromEntries(palette.map((id, i) => [id, i + 1]));
+    for (const seed of [11, 22, 33]) {
+      const map = generateMap('prog', seed, {
+        width: 48,
+        height: 48,
+        startPositionCount: 3,
+        guardianUnits: palette,
+        unitTiers: tiers,
+      });
+      // Mêmes constantes que generateMap : rayon de l'anneau des départs et
+      // anneau « proche » (35 % du rayon).
+      const radius = 48 * 0.38;
+      const nearR = Math.max(3, Math.round(radius * 0.35));
+      const guards = map.objects.filter((o) => o.type === 'guardian') as {
+        x: number;
+        y: number;
+        unitId: string;
+      }[];
+      for (const s of map.startPositions) {
+        const near = guards.filter((g) => Math.hypot(g.x - s.x, g.y - s.y) <= nearR);
+        // Plusieurs gardiens à portée immédiate du départ…
+        expect(near.length).toBeGreaterThanOrEqual(2);
+        // …et tous FAIBLES (profondeur ≤ 0,35 ⇒ plafond tier 3 sur 7).
+        for (const g of near) expect(tiers[g.unitId]!).toBeLessThanOrEqual(3);
+      }
+      // Plafond global : tier ≤ 1 + ⌊profondeur × tierMax⌋ pour TOUT gardien.
+      for (const g of guards) {
+        const nearest = Math.min(...map.startPositions.map((s) => Math.hypot(g.x - s.x, g.y - s.y)));
+        const depth = Math.min(1, nearest / radius);
+        expect(tiers[g.unitId]!).toBeLessThanOrEqual(Math.min(7, 1 + Math.floor(depth * 7)));
+      }
+    }
+  });
+
   it('produit N positions de départ distinctes et valides (multi-joueurs)', async () => {
     for (const count of [3, 4]) {
       for (let seed = 1; seed <= 20; seed++) {

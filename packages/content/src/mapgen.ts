@@ -299,6 +299,23 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
   // sentinelles d'objets premium et au choix d'unité des habitations).
   const byTier = [...guardianUnits].sort((a, b) => (unitTiers[a] ?? 1) - (unitTiers[b] ?? 1));
   const clampIdx = (i: number): number => Math.min(byTier.length - 1, Math.max(0, i));
+  // Choix d'unité de gardien par PROFONDEUR (plan map-design-issues P4) : le
+  // tier visé croît avec l'éloignement des départs et reste PLAFONNÉ par la
+  // profondeur — jamais de gardien fort collé à un départ. Le jitter s'applique
+  // au TIER, pas à l'index de la palette (avec une palette dense, ±1 d'index de
+  // la liste triée pouvait sauter plusieurs tiers d'un coup).
+  const paletteMaxTier =
+    byTier.length > 0 ? Math.max(...byTier.map((u) => unitTiers[u] ?? 1)) : 1;
+  const pickUnitForDepth = (depth: number, jitter: number): string => {
+    const cap = Math.min(paletteMaxTier, 1 + Math.floor(depth * paletteMaxTier));
+    const target = Math.max(1, Math.min(cap, Math.round(depth * paletteMaxTier) + jitter));
+    // Bucket du tier visé, sinon le tier existant le plus proche EN DESSOUS.
+    for (let t = target; t >= 1; t--) {
+      const bucket = byTier.filter((u) => (unitTiers[u] ?? 1) === t);
+      if (bucket.length > 0) return bucket[randInt(bucket.length)]!;
+    }
+    return byTier[0]!; // aucun tier ≤ visé dans la palette : la plus faible connue
+  };
 
   // Sélectionne une tuile libre ; `preferDeep` échantillonne et retient la plus
   // PROFONDE des candidats vus (récompenses premium loin des départs), sans
@@ -359,9 +376,15 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
       occupied.add(key);
       grid[ny]![nx] = baseChar;
       const depth = depthAt(nx, ny);
-      const idx = clampIdx(Math.round(depth * (byTier.length - 1)));
       const count = Math.max(2, Math.round(6 + depth * 40) + randBetween(-3, 3));
-      objects.push({ id: `sentinel-${objects.length}`, type: 'guardian', x: nx, y: ny, unitId: byTier[idx]!, count });
+      objects.push({
+        id: `sentinel-${objects.length}`,
+        type: 'guardian',
+        x: nx,
+        y: ny,
+        unitId: pickUnitForDepth(depth, 0),
+        count,
+      });
       return;
     }
   };
@@ -452,16 +475,48 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
     }
   }
 
-  // Gardiens de champ : gradués tier/pile selon la profondeur (doc 02 §2.2) —
-  // faibles autour des départs, forts vers le centre (léger jitter = variété).
+  // Gardiens de champ (doc 02 §2.2, plan map-design-issues P4) : la progression
+  // du joueur commence devant sa porte — 2 à 3 gardiens FAIBLES garantis dans
+  // l'anneau proche de CHAQUE départ, puis des gardiens gradués tier
+  // (plafonné)/pile par la profondeur sur le reste de la carte.
   if (guardianUnits.length > 0) {
+    const nearRadius = Math.max(3, Math.round(radius * 0.35));
+    for (const s of startPositions) {
+      const wanted = randBetween(2, 3);
+      let placed = 0;
+      for (let tries = 0; tries < 80 && placed < wanted; tries++) {
+        const x = clampX(s.x + randBetween(-nearRadius, nearRadius));
+        const y = clampY(s.y + randBetween(-nearRadius, nearRadius));
+        const d = Math.hypot(x - s.x, y - s.y);
+        if (d < 2 || d > nearRadius) continue;
+        const key = `${x},${y}`;
+        if (occupied.has(key)) continue;
+        occupied.add(key);
+        grid[y]![x] = baseChar;
+        objects.push({
+          id: `guard-near-${objects.length}`,
+          type: 'guardian',
+          x,
+          y,
+          unitId: pickUnitForDepth(depthAt(x, y), 0),
+          count: Math.max(2, 4 + randBetween(-2, 2)),
+        });
+        placed++;
+      }
+    }
     const guardianCount = Math.max(2, Math.round(randBetween(2, 4) * areaFactor));
     for (let i = 0; i < guardianCount; i++) {
       place((x, y, n) => {
         const depth = depthAt(x, y);
-        const idx = clampIdx(Math.round(depth * (byTier.length - 1)) + randBetween(-1, 1));
         const count = Math.max(2, Math.round(4 + depth * 36) + randBetween(-3, 3));
-        return { id: `guard-${n}`, type: 'guardian', x, y, unitId: byTier[idx]!, count };
+        return {
+          id: `guard-${n}`,
+          type: 'guardian',
+          x,
+          y,
+          unitId: pickUnitForDepth(depth, randBetween(-1, 1)),
+          count,
+        };
       });
     }
   }

@@ -207,12 +207,12 @@ Particularité : la faction a **8 tiers**, mais le T8 partage sa croissance avec
 
 | Tier | Unité | PV | Att | Déf | Dégâts | Vit. | Croiss./sem | Coût | Capacités |
 |------|-------|----|-----|-----|--------|------|-------------|------|-----------|
-| 1 | **Élève de Sombreveille** | 5 | 3 | 2 | 1–3 | 5 | 12 | 35 or | `mark` ; `swarm` (+1 dégât si ≥ 2 piles alliées adjacentes de la cible) |
-| 2 | **Familier lié** (chouette spectrale) | 9 | 4 | 3 | 2–3 | 8 | 9 | 90 or | `flying`, `mark`, `expose` (consomme 1 Marque : la cible perd sa riposte ce round) |
-| 3 | **Préfet de Cercle** | 17 | 6 | 6 | 3–6 | 5 | 7 | 170 or + 1 mercure | `shooter(10)` (baguette-arbalète), `mark` |
+| 1 | **Élève de Sombreveille** | 5 | 3 | 2 | 1–3 | 5 | 12 | 38 or | `mark` ; `swarm` (+1 dégât si ≥ 2 piles alliées adjacentes de la cible) |
+| 2 | **Familier lié** (chouette spectrale) | 9 | 4 | 3 | 2–3 | 8 | 9 | 95 or | `flying`, `mark`, `expose` (consomme 1 Marque : la cible perd sa riposte ce round) |
+| 3 | **Préfet de Cercle** | 17 | 6 | 6 | 3–6 | 5 | 7 | 185 or + 1 mercure | `shooter(10)` (baguette-arbalète), `mark` |
 | 4 | **Bibliothécaire Errant** (golem de grimoires) | 34 | 7 | 10 | 5–8 | 4 | 5 | 340 or | `spellcaster(Entrave/Silence, ×2)`, `magicResistance(30 %)`, `mark` |
-| 5 | **Lame du Serment** (duelliste diplômé) | 40 | 12 | 8 | 8–12 | 8 | 3 | 620 or + 1 mercure | `strikeAndReturn`, `mark`, `executioner` (consomme 3 Marques : +40 % dégâts sur cette attaque) |
-| 6 | **Chasseresse de l'Abîme** | 62 | 15 | 11 | 11–17 | 9 | 2 | 1200 or + 2 mercure | `shooter(8, noMeleePenalty)`, `mark`, `pinningShot` (consomme 2 Marques : cible immobilisée 1 round, les volants tombent) |
+| 5 | **Lame du Serment** (duelliste diplômé) | 40 | 12 | 8 | 8–12 | 8 | 3 | 650 or + 1 mercure | `strikeAndReturn`, `mark`, `executioner` (consomme 3 Marques : +40 % dégâts sur cette attaque) |
+| 6 | **Chasseresse de l'Abîme** | 62 | 15 | 11 | 11–17 | 9 | 2 | 1280 or + 2 mercure | `shooter(8, noMeleePenalty)`, `mark`, `pinningShot` (consomme 2 Marques : cible immobilisée 1 round, les volants tombent) |
 | 7 | **Manticore de Dressage** | 155 | 18 | 18 | 24–36 | 11 | 1* | 2600 or + 2 mercure + 1 gemme | `flying`, `noRetaliation`, `mark`, `poisonSting` |
 | 8 | **Pénitent Démonique** (chasseur hybride) | 210 | 24 | 18 | 40–60 | 7 | 1* | 3800 or + 3 gemmes + 40 Essence | `demonform` : commence en forme humaine (`magicResistance(50 %)`), bascule 1×/combat en forme démon (+50 % dégâts, `areaAttack(cône)`, mais perd la résistance) ; `devourMarks` (consomme toutes les Marques du champ de bataille : +2 % dégâts chacune, se soigne d'autant) |
 

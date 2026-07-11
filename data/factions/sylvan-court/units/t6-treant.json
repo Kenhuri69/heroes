@@ -3,8 +3,29 @@
   "tier": 6,
   "name": "@loc:unit.t6-treant.name",
   "loreKey": "@loc:unit.t6-treant.lore",
-  "stats": { "hp": 59, "attack": 15, "defense": 11, "damage": [12, 18], "speed": 6 },
+  "stats": {
+    "hp": 59,
+    "attack": 15,
+    "defense": 11,
+    "damage": [
+      12,
+      18
+    ],
+    "speed": 6
+  },
   "growthPerWeek": 2,
-  "cost": { "gold": 1200, "mercury": 1 },
-  "abilities": [{ "id": "symbiosis", "params": { "attackPerRound": 2, "defensePerRound": 2, "maxStacks": 4 } }]
+  "cost": {
+    "gold": 1150,
+    "mercury": 1
+  },
+  "abilities": [
+    {
+      "id": "symbiosis",
+      "params": {
+        "attackPerRound": 2,
+        "defensePerRound": 2,
+        "maxStacks": 4
+      }
+    }
+  ]
 }

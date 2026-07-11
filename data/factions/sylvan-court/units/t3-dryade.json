@@ -3,8 +3,28 @@
   "tier": 3,
   "name": "@loc:unit.t3-dryade.name",
   "loreKey": "@loc:unit.t3-dryade.lore",
-  "stats": { "hp": 13, "attack": 6, "defense": 3, "damage": [3, 5], "speed": 6 },
+  "stats": {
+    "hp": 13,
+    "attack": 6,
+    "defense": 3,
+    "damage": [
+      3,
+      5
+    ],
+    "speed": 6
+  },
   "growthPerWeek": 7,
-  "cost": { "gold": 160 },
-  "abilities": [{ "id": "symbiosis", "params": { "attackPerRound": 1, "defensePerRound": 1, "maxStacks": 4 } }]
+  "cost": {
+    "gold": 150
+  },
+  "abilities": [
+    {
+      "id": "symbiosis",
+      "params": {
+        "attackPerRound": 1,
+        "defensePerRound": 1,
+        "maxStacks": 4
+      }
+    }
+  ]
 }

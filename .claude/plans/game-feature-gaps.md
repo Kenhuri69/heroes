@@ -576,10 +576,13 @@ préviz dégâts, raccourcis, a11y 3 crans, audio complet, chrome UI, options.)
   moteur pour être exactes en multi-joueurs/IA (les événements `CombatEnded` ne
   portent pas le joueur).
 
-- **UX-RAIL — Rail droit desktop complet & « +X/j » inline** 🧩 S ⬜
-  Doc : doc 08 §2.1 (wireframe + note M6). Code : ressources en barre haute
-  sans revenu inline (`shell.tsx:191-233`), villes dans `TurnBar`.
-  Arbitrage UXD-8 : à re-trancher ou amender le doc.
+- **UX-RAIL — Rail droit desktop complet & « +X/j » inline** 🧩 S ✅ (livré, arbitré)
+  Doc : doc 08 §2.1 (note M6). Livré : revenu quotidien projeté « +N » inline à
+  côté de chaque stock dans `ResourceBar` (helper moteur `dailyIncome`, partagé
+  avec `ResourceDetail`), visible desktop, masqué en portrait compact (le détail
+  reste au tap). Arbitrage UXD-8 tranché : PAS de rail droit ressources séparé —
+  le rail droit desktop porte déjà héros/mini-carte, y dédoubler les ressources
+  serait redondant ; l'inline suffit. Villes : restent dans `TurnBar` (inchangé).
 
 - **UX-TOWNVIEW — Vraie vue de ville peinte** 🧩 L ⬜
   Doc : doc 08 §2.2/§5 + CLAUDE.md (« vue de ville peinte + assets finaux =

@@ -72,6 +72,16 @@
   display: inline-block;
 }
 
+/* UX-RAIL (doc 08 §2.1, note M6) : revenu quotidien projeté « +N » inline à côté
+   du stock, teinté positif et insécable. Masqué en portrait compact (≤ 640 px)
+   pour préserver la rangée à défilement — le détail reste accessible au tap. */
+.resource-income {
+  font-size: 0.72em;
+  font-weight: 600;
+  color: var(--gain, #6fcf7f);
+  white-space: nowrap;
+}
+
 /* Icône d'action/onglet (UXD-2, composant UiIcon) : décorative, 20 px,
    alignée sur le texte du bouton hôte ; repli = glyphe historique. */
 .ui-icon {
@@ -754,6 +764,12 @@
 
   .resource {
     flex: none;
+  }
+
+  /* Portrait compact : le revenu inline masqué (la barre tient sur une rangée ;
+     le revenu reste au tap dans la fiche ResourceDetail). */
+  .resource-income {
+    display: none;
   }
 
   /* Lot X3 (constat E4) : le coin statut s'étalait sur 3-4 lignes (« Jour 1 · /

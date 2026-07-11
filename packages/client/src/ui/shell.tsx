@@ -233,11 +233,16 @@ function formatResourceShort(value: number): string {
 
 /** Bandeau haut compact, tap = détail au lot M6 (doc 08 §2.1 mobile). */
 function ResourceBar() {
-  const player = useApp((s) => s.game.players.find((p) => p.id === humanId(s.game)));
+  const game = useApp((s) => s.game);
+  const player = game.players.find((p) => p.id === humanId(game));
   if (!player) return null;
   // Ressources de faction (doc 05 §3.3) : affichées après les 7 communes, seulement
   // celles que le joueur possède (Essence pour Arcane Hunters ; rien sinon).
   const factionResources = Object.entries(player.factionResources);
+  // UX-RAIL (doc 08 §2.1, note M6) : revenu quotidien projeté affiché inline à
+  // côté de chaque stock (desktop ; masqué en portrait compact via CSS). Helper
+  // moteur pur partagé avec `ResourceDetail` — aucun calcul dupliqué (R7).
+  const income = dailyIncome(game, player.id);
   return (
     <header class="resource-bar">
       {RESOURCE_IDS.map((id) => (
@@ -247,7 +252,9 @@ function ResourceBar() {
           key={id}
           data-resource={id}
           data-testid={`resource-open-${id}`}
-          aria-label={`${t(`resource.${id}`)} : ${player.resources[id]}`}
+          aria-label={`${t(`resource.${id}`)} : ${player.resources[id]}${
+            income[id] ? ` (${t('resourceDetail.perDay', { amount: income[id] ?? 0 })})` : ''
+          }`}
           onClick={() => appStore.setState({ resourceDetail: id })}
         >
           <AssetImg
@@ -261,6 +268,11 @@ function ResourceBar() {
           <span data-testid={`resource-${id}`} title={String(player.resources[id])}>
             {formatResourceShort(player.resources[id])}
           </span>
+          {income[id] ? (
+            <span class="resource-income" data-testid={`resource-income-${id}`}>
+              +{formatResourceShort(income[id] ?? 0)}
+            </span>
+          ) : null}
         </button>
       ))}
       {factionResources.map(([id, amount]) => (

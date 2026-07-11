@@ -128,6 +128,11 @@ const heroEffectFields = {
   luckBonus: z.number().optional(),
   moraleBonus: z.number().optional(),
   manaCostReductionPct: z.number().optional(),
+  // Effets TOWN-SCOPED (F-HOUSES, doc 16 §3.1 — Le Blaireau) : interprétés par le
+  // code de ville (croissance hebdo / défense de siège) via `townHouseField`,
+  // pas par les accesseurs par-héros. Branchés ⇒ pas un mensonge de contenu.
+  garrisonGrowthPct: z.number().optional(),
+  garrisonDefense: z.number().optional(),
 } as const;
 
 const houseEffectSchema = z
@@ -251,6 +256,13 @@ const buildingEffectSchema = z.discriminatedUnion('type', [
   /** Choix de Maison (doc 16 §3.1/§5, « Le Choixpeau ») — `houseId` opaque résolu
    *  par le moteur dans le catalogue des Maisons ; combiné à `exclusiveGroup`. */
   z.object({ type: z.literal('houseChoice'), houseId: idSchema }),
+  /**
+   * Aura de bâtiment au héros présent (F-BUILDEFF.1, doc 03 §4 — Écuries) :
+   * bonus au héros du propriétaire présent sur la tuile de la ville.
+   * `movementBonusFlat` = points de mouvement/jour plats. Seul ce champ est câblé
+   * pour l'instant (les sous-lots F-BUILDEFF.x en ajouteront d'autres).
+   */
+  z.object({ type: z.literal('heroAura'), movementBonusFlat: z.number().int().positive() }),
   /** Bâtiment sans effet mécanique en 3.1 (tavern/forge/spécial) — arbre seul. */
   z.object({ type: z.literal('none') }),
 ]);
@@ -506,6 +518,10 @@ export const gameConfigSchema = z.object({
         sellRate: z.number().int().positive(),
         /** Or payé par unité de ressource non-or ACHETÉE (spread : ≥ sellRate). */
         buyRate: z.number().int().positive(),
+        /** Bonus de taux par marché possédé au-delà du 1er (T-MARKETRATE) — optionnel. */
+        perMarketBonus: z.number().nonnegative().optional(),
+        /** Plafond du facteur dégressif (≥ 1) — optionnel. */
+        maxMarketFactor: z.number().min(1).optional(),
       })
       .refine((m) => m.buyRate >= m.sellRate, 'market.buyRate ≥ market.sellRate'),
     /**

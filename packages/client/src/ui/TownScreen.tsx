@@ -8,6 +8,7 @@ import {
   scaleCost,
   townIncome,
   tradeQuote,
+  ownedMarketCount,
   upgradedUnitFor,
   upgradeCost,
   weekOf,
@@ -905,14 +906,23 @@ const TRADABLE_RESOURCE_IDS = RESOURCE_IDS.filter((r): r is Exclude<ResourceId, 
  */
 function MarketTab({ town, onError }: { town: TownState; onError: (msg: string | null) => void }) {
   const game = useApp((s) => s.game);
-  const [mode, setMode] = useState<'sell' | 'buy'>('sell');
+  const [mode, setMode] = useState<'sell' | 'buy' | 'barter'>('sell');
   const [resource, setResource] = useState<Exclude<ResourceId, 'gold'>>('wood');
+  // Ressource reçue en mode troc (T-MARKETRATE) — distincte de `resource` (donnée).
+  const [barterReceive, setBarterReceive] = useState<Exclude<ResourceId, 'gold'>>('ore');
   const [amount, setAmount] = useState(1);
 
-  const give: ResourceId = mode === 'sell' ? resource : 'gold';
-  const receive: ResourceId = mode === 'sell' ? 'gold' : resource;
+  // Cible du troc : jamais la même ressource que celle donnée (repli sur la 1ère
+  // autre ressource si l'état a dérivé vers l'égalité).
+  const barterTarget: Exclude<ResourceId, 'gold'> =
+    barterReceive !== resource ? barterReceive : (TRADABLE_RESOURCE_IDS.find((r) => r !== resource) ?? barterReceive);
+  const give: ResourceId = mode === 'buy' ? 'gold' : resource;
+  const receive: ResourceId = mode === 'sell' ? 'gold' : mode === 'buy' ? resource : barterTarget;
   const market = game.config?.market;
-  const received = market ? tradeQuote(market, give, receive, amount) : 0;
+  // Taux dégressif (T-MARKETRATE) : fonction du nombre de marchés possédés par le
+  // propriétaire de la ville — helper moteur (pas de réimplémentation, leçon CL9).
+  const marketCount = ownedMarketCount(game, town.ownerPlayerId ?? '');
+  const received = market ? tradeQuote(market, give, receive, amount, marketCount) : 0;
 
   const trade = (): void => {
     onError(null);
@@ -936,9 +946,16 @@ function MarketTab({ town, onError }: { town: TownState; onError: (msg: string |
         <button class={mode === 'buy' ? 'active' : ''} data-testid="market-mode-buy" onClick={() => setMode('buy')}>
           {t('town.marketBuy')}
         </button>
+        <button
+          class={mode === 'barter' ? 'active' : ''}
+          data-testid="market-mode-barter"
+          onClick={() => setMode('barter')}
+        >
+          {t('town.marketBarter')}
+        </button>
       </div>
       <label class="town-market-field">
-        {t('town.marketResource')}
+        {mode === 'barter' ? t('town.marketGive') : t('town.marketResource')}
         <select
           data-testid="market-resource"
           value={resource}
@@ -951,6 +968,25 @@ function MarketTab({ town, onError }: { town: TownState; onError: (msg: string |
           ))}
         </select>
       </label>
+      {mode === 'barter' && (
+        <label class="town-market-field">
+          {t('town.marketReceiveResource')}
+          <select
+            data-testid="market-barter-receive"
+            value={barterTarget}
+            onChange={(e) => setBarterReceive((e.currentTarget as HTMLSelectElement).value as Exclude<ResourceId, 'gold'>)}
+          >
+            {TRADABLE_RESOURCE_IDS.filter((id) => id !== resource).map((id) => (
+              <option key={id} value={id}>
+                {t(`resource.${id}`)}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
+      <p class="town-market-count" data-testid="market-count">
+        {t('town.marketOwned', { count: marketCount })}
+      </p>
       <label class="town-market-field">
         {t('town.marketAmount')}
         <input

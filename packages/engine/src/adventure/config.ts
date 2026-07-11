@@ -99,6 +99,14 @@ export interface MarketConfig {
   sellRate: number;
   /** Or payé par unité de ressource non-or achetée (spread : ≥ sellRate). */
   buyRate: number;
+  /**
+   * Bonus de taux par marché possédé au-delà du premier (T-MARKETRATE, doc 02
+   * §3) : `factor = 1 + perMarketBonus × (nbMarchés − 1)`, plafonné à
+   * `maxMarketFactor`. Optionnel : absent ⇒ 0 (taux plat, comportement legacy).
+   */
+  perMarketBonus?: number | undefined;
+  /** Plafond du facteur de taux dégressif (≥ 1). Optionnel : absent ⇒ 1 (plat). */
+  maxMarketFactor?: number | undefined;
 }
 
 /** Progression du héros (doc 02 §1.2 + décisions plan phase-2.5). */

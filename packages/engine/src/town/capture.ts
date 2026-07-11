@@ -4,6 +4,7 @@ import { beginTownCombat } from '../combat/setup';
 import type { Command, CommandError } from '../core/commands';
 import type { GameEvent } from '../core/events';
 import { areAllies, type GameState, type HeroState } from '../core/state';
+import { townHouseField } from '../hero/skills';
 import type { TownState } from './types';
 import { evaluateOutcome } from '../scenario/outcome';
 
@@ -19,9 +20,18 @@ function attackingHero(state: GameState, town: TownState, playerId: string): Her
   );
 }
 
-/** Bonus de mur d'une ville selon son niveau de Fort (0 si pas de Fort). */
-function wallDefenseBonus(town: TownState): number {
-  return (town.buildings['fort'] ?? 0) * WALL_DEFENSE_PER_FORT_LEVEL;
+/**
+ * Bonus de défense « murs » d'une ville au siège : niveau de Fort (doc 02 §4.1)
+ * + Maison town-scoped du défenseur (F-HOUSES, doc 16 §3.1 — Le Blaireau
+ * `garrisonDefense`), apportée par un héros du propriétaire présent sur la ville
+ * (option B). 0 si pas de Fort ni de héros de Maison présent.
+ */
+function wallDefenseBonus(state: GameState, town: TownState): number {
+  const fort = (town.buildings['fort'] ?? 0) * WALL_DEFENSE_PER_FORT_LEVEL;
+  const house = town.ownerPlayerId
+    ? townHouseField(state.heroes, town.ownerPlayerId, town.pos, 'garrisonDefense')
+    : 0;
+  return fort + house;
 }
 
 /**
@@ -63,7 +73,7 @@ export function handleCaptureTown(draft: GameState, cmd: CaptureCmd, events: Gam
     // Ville défendue ⇒ siège : combat contre la garnison. La capture est
     // appliquée à la victoire (doc 02 §4.1, `applyConsequences`).
     const hero = attackingHero(draft, town, cmd.playerId);
-    if (hero) beginTownCombat(draft, hero.id, town.id, wallDefenseBonus(town), events);
+    if (hero) beginTownCombat(draft, hero.id, town.id, wallDefenseBonus(draft, town), events);
     return;
   }
   town.ownerPlayerId = cmd.playerId;

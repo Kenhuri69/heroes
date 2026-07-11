@@ -200,29 +200,33 @@ Source design : docs 03 §2/§4/§5, 04 §2/§4, 05 §3/§5/§6/§7, 14 §5/§6,
   (données)** : Prière de bataille (`resurrectAlly`), Chasse rituelle, Sylve —
   moteur prêt, à câbler par faction ; Amplificateur (F-BUILDEFF).
 
-- **F-BUILDEFF — Effets de bâtiment spéciaux** 🕳️ L ⬜
+- **F-BUILDEFF — Effets de bâtiment spéciaux** 🕳️ L 🚧 (**découpé en sous-lots**, décision utilisateur)
   Doc : Statue du Jugement/Cloître/Écuries (doc 03 §4), Amplificateur
   nécromantique/Croisée des âmes/Puits d'ombre (doc 04 §4), Grand Amphithéâtre/
   Salle des Reliques + passifs de Cercles (doc 05 §3.2/§5), La Scène/Sanctuaire
-  du Honmoon (doc 16 §5), bâtiments de bonus au héros (doc 02 §4.1 — ex-T2 du
-  gap-audit). Code : union `BuildingEffect` limitée à
-  income/growthBonus/dwelling/mageGuild/market/warMachineVendor/huntContract/
-  houseChoice/none (`packages/engine/src/town/types.ts:13-43`) ; les Cercles AH
-  portent des effets placeholder et requièrent `mageGuild@1` au lieu du Grand
-  Amphithéâtre (doc 05 §3.2 ; `data/factions/arcane-hunters/buildings.json`).
-  Spec : nouveaux kinds génériques (+moral/chance/XP en garnison ou visite,
-  apprentissage de sort, +PM, vision, modificateur de ressource de faction,
-  +rang de compétence) puis bâtiments data-driven par faction.
+  du Honmoon (doc 16 §5), bâtiments de bonus au héros (doc 02 §4.1).
+  - **F-BUILDEFF.1** ✅ (plan `f-buildeff-aura.md`) : effet générique `heroAura`
+    (aura de présence au héros du propriétaire sur la ville, option B) + champ
+    `movementBonusFlat` câblé dans `heroDailyMovement` ; **Écuries** Haven livré
+    (doc 03 §4). Helper `townBuildingAura`, zéro faction, aucun bump de save,
+    golden inchangé.
+  - **F-BUILDEFF.2** ⬜ : Statue du Jugement (+moral garnison/visiteur **en
+    combat**) — threading du moral de ville dans le siège.
+  - **F-BUILDEFF.3** ⬜ : Cloître (apprentissage de sort au visiteur + régén mana).
+  - **F-BUILDEFF.4+** ⬜ : modif ressource de faction, passifs de Cercles AH
+    (`data/factions/arcane-hunters/buildings.json`, placeholders + `mageGuild@1`),
+    +XP/+rang, Grand Amphithéâtre/Salle des Reliques, La Scène/Sanctuaire.
 
-- **F-HOUSES — Effets de Maison Vox conformes** 🧩/📄 M ⬜
-  Doc : doc 16 §3.1 (profils des 5 Maisons). Code : effets hero-scoped
-  uniquement (`hero/skills.ts:41`) ⇒ `house-badger` (+20 % croissance, +2 déf
-  garnison) remplacé par `armorReductionPct:8`, `house-venari` (+50 % Résonance,
-  +1 Pouvoir Scène) remplacé par des bonus génériques, `house-eagle` sans
-  +25 % mana max, `house-serpent` sans accès malédictions
-  (`data/factions/vox-arcana/manifest.json:24+`). Spec : étendre
-  `houseAllegiance` à des effets town-scoped/économiques (dépend F-BUILDEFF
-  pour la croissance) ; sinon amender doc 16 §3.1 (arbitrage design).
+- **F-HOUSES — Effets de Maison Vox conformes** ✅ (plan `f-houses-vox.md`, doc 16 §État 16.7)
+  `houseAllegiance` étendu de 2 champs **town-scoped** génériques
+  (`garrisonGrowthPct`/`garrisonDefense`) interprétés par `townHouseField`
+  (**option B** — la Maison du héros présent sur la tuile de la ville s'applique
+  à cette ville) : `garrisonGrowthPct` dans `applyWeeklyGrowth`, `garrisonDefense`
+  dans le mur de siège (`handleCaptureTown`). Données : `house-badger` conforme au
+  doc (`{garrisonGrowthPct:20, garrisonDefense:2}`). **Toujours différés** (sans
+  surface moteur, notés dans le doc) : +2 Att plate (Lion), accès malédictions
+  (Serpent), +25 % mana max (Aigle), +50 % Résonance / Scène +1 Pouvoir (Venari).
+  Zéro faction (garde-fou vert), aucun bump de sauvegarde, golden inchangé.
 
 - **F-RESON — Résonance intra-combat & cap** 🧩 M ⬜
   Doc : doc 16 §3.2/§4 (performeurs génèrent en combat ; cap 999). Code : gain
@@ -399,9 +403,14 @@ Source design : doc 02 §3/§4.
   `applyWeeklyGrowth` — bonus Fort + facteur calendrier + plafond 2×) ; l'onglet
   Recruter affiche « +X/sem · max Y » par habitation (`town-growth-<unitId>`).
 
-- **T-MARKETRATE — Taux de marché dégressif + troc** 🧩 S ⬜ (différé assumé doc 02 §3)
-  Code : taux plats (`data/core/config.json:45-48`), troc ressource↔ressource
-  rejeté. Spec : taux fonction du nombre de marchés possédés ; troc direct.
+- **T-MARKETRATE — Taux de marché dégressif + troc** 🧩 S ✅ (livré)
+  Code : taux plats (`data/core/config.json`), troc ressource↔ressource rejeté.
+  Spec : taux fonction du nombre de marchés possédés ; troc direct. Livré :
+  `effectiveMarketRates`/`ownedMarketCount` (moteur), `tradeQuote` gère le troc
+  (équivalence or, facteur²) + taux dégressif `factor = min(maxMarketFactor, 1 +
+  perMarketBonus × (nbMarchés − 1))` ; config `perMarketBonus`/`maxMarketFactor`
+  **optionnels** (absents ⇒ plat) ; UI 3ᵉ mode Troc + « Marchés possédés : N ».
+  Pas de bump save, golden inchangé. Différés : courbe HoMM3 exacte, troc pénalisé.
 
 ### 2.7 En ligne / backend (NET-*)
 
@@ -666,7 +675,7 @@ le seul item nécessitant un vrai cadrage design/coût — à trancher avant B4.
 
 1. **C-LOS** : LoS stricte (HO) vs pas de LoS (HoMM3) — avant A1.
 2. **H-LEVELCHOICE** : choix joueur vs tirage — avant A7.
-3. **F-HOUSES** : étendre le moteur (effets town-scoped) vs amender doc 16 §3.1 — avant A4.
+3. **F-HOUSES** : ✅ tranché — **étendre le moteur** (effets town-scoped, option B = « le héros apporte sa Maison à la ville où il se tient »), livré (plan `f-houses-vox.md`).
 4. **DOC-STATS / CAP-DATAFIX** : qui fait foi, docs ou données `faction:sim`, par cas — avant A1.
 5. **NET-FOG** : accepter l'info ouverte en async vs `stateView` serveur — avant B4.
 6. **T-CARAVAN** : caravanes interceptables ou non — avant A9.

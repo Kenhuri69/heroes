@@ -46,6 +46,31 @@ function sumHouseField(hero: HeroState, field: keyof SkillRankEffect): number {
   return total;
 }
 
+/**
+ * Effets de Maison **TOWN-SCOPED** (F-HOUSES, doc 16 §3.1 — Le Blaireau) : somme
+ * du champ `field` sur les effets de Maison/spécialité des héros du
+ * **propriétaire** présents SUR la tuile de la ville (option B — « le héros
+ * apporte sa Maison à la ville où il se tient »). Intermittent par conception.
+ * Jumeau town-scoped de `sumHouseField` ; ne nomme jamais de faction ni de Maison.
+ * Consommé par `applyWeeklyGrowth` (`garrisonGrowthPct`) et le siège
+ * (`garrisonDefense`).
+ */
+export function townHouseField(
+  heroes: readonly HeroState[],
+  ownerPlayerId: string,
+  townPos: { x: number; y: number },
+  field: keyof SkillRankEffect,
+): number {
+  let total = 0;
+  for (const hero of heroes) {
+    if (hero.playerId !== ownerPlayerId) continue;
+    if (hero.pos.x !== townPos.x || hero.pos.y !== townPos.y) continue;
+    for (const effect of hero.houseEffects) total += effect[field] ?? 0;
+    for (const effect of hero.specialtyEffects) total += effect[field] ?? 0;
+  }
+  return total;
+}
+
 /** Logistique : bonus % de points de mouvement quotidiens (`heroDailyMovement`). */
 export function heroMovementBonus(hero: HeroState, catalog: Record<string, HeroSkillDef>): number {
   return sumRankField(hero, catalog, 'movementBonusPct') + sumHouseField(hero, 'movementBonusPct');

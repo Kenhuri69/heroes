@@ -209,7 +209,7 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 
 Chaque faction consomme surtout **une paire de ressources rares** (Haven : cristal+gemmes ; Necropolis : soufre+gemmes ; Arcane Hunters : mercure+gemmes), ce qui crée la compétition territoriale.
 
-> **État livré (marché)** : `TradeResources` échange **ressource ↔ or** à **taux plats** (`config.market` : vente 25, achat 50) ; exactement un côté doit être de l'or (le troc **ressource ↔ ressource** est rejeté). Le taux **dégressif** selon le nombre de marchés possédés est **différé**.
+> **État livré (marché, T-MARKETRATE)** : `TradeResources` échange **ressource ↔ or** ET **ressource ↔ ressource** (troc, via équivalence or). Le taux est **dégressif** selon le nombre de marchés possédés par le joueur : `factor = min(maxMarketFactor, 1 + perMarketBonus × (nbMarchés − 1))`, `sellRate × factor` / `buyRate ÷ factor` (`config.market`, valeurs de départ vente 25 / achat 50, `perMarketBonus 0.1` / `maxMarketFactor 2`). Un seul marché ⇒ facteur 1 (taux plat). Déterministe (aucun RNG), aucun nouvel état (pas de bump save). *Différés : courbe HoMM3 exacte non linéaire, taux de troc pénalisé distinct de l'équivalence or.*
 
 ---
 
@@ -226,11 +226,12 @@ Chaque faction consomme surtout **une paire de ressources rares** (Haven : crist
 | Hôtel de ville → Capitole | 4 | 500/1000/2000/4000 or/j (1 seul Capitole par joueur) |
 | Fort → Château | 3 | murs (défense de siège), +50 %/+100 % croissance créatures |
 | Taverne | 1 | **effet `none` — aucune mécanique livrée** (ni recrutement de héros, ni rumeurs, ni +1 moral) ; sert uniquement de **prérequis** (arbre, ex. Tableau des Contrats AH). Recrutement de héros différé |
-| Marché | 1 | échange **ressource ↔ or** à taux plat (`market`, doc §3) ; troc ressource↔ressource différé |
+| Marché | 1 | échange **ressource ↔ or** et **troc** ressource↔ressource ; taux **dégressif** selon le nombre de marchés possédés (`market`, doc §3, T-MARKETRATE) |
 | Forge | 1 | vend des machines de guerre au héros présent (effet générique `warMachineVendor`, Alpha 4.12) |
 | Guilde des mages | 3 | **G2 livré** : à la construction d'un niveau L, `spellCount` sorts du cercle L sont tirés au **RNG seedé** dans `town.spellPool` (4/3/2 par niveau) ; un héros du propriétaire qui **visite la ville** (foule sa tuile) apprend automatiquement les sorts du pool de cercle ≤ son cercle apprenable. Cercle apprenable = **3** de base, relevé à **4/5** par la compétence **Sagesse** (H2). Onglet Guilde informatif côté client |
 | Habitations T1–T7 | 2 (base + améliorée) | niveau 1 débloque le tier de base ; niveau 2 (amélioré) débloque l'unité upgradée |
 | Bâtiments spéciaux ×2–3 | 1 | uniques à la faction (définis dans son manifeste) |
+| Aura de héros (ex. Écuries Haven) | 1 | effet générique `heroAura` (F-BUILDEFF.1) : bonus au héros du **propriétaire présent sur la ville** (option B, comme les Maisons). Champ câblé : `movementBonusFlat` = +PM/jour au héros qui commence son tour dans la ville. Autres champs (moral/chance en combat, apprentissage de sort…) = sous-lots F-BUILDEFF.x |
 
 - **Recrutement** : chaque habitation a une croissance hebdo (ex. T1 : 14/sem, T7 : 1/sem) ; le stock s'accumule s'il n'est pas recruté (plafond : 2 semaines). Valeurs de départ : coûts des bâtiments communs dans `data/core/buildings.json` — hôtel de ville **gratuit / 2500 or / 5000 or + 5 gemmes / 10000 or + 10 gemmes + 10 cristal** (le niveau 4 = Capitole, `uniquePerPlayer`) ; fort 5000 or + 20 minerai, ×2 par niveau ; guilde des mages 2000 or + 5 bois (×2 par niveau). Croissance/coût de recrutement dans les données d'unité ; le stock d'une habitation ne se remplit qu'au **passage de semaine** (état de départ vide).
 - **Croissance partagée** (générique, doc 05 §3.1/§8) : un manifeste de faction peut déclarer un **groupe de croissance partagée** (`sharedGrowthGroups`, ex. « double sommet » T7/T8). Les membres d'un même groupe **se partagent une seule croissance hebdomadaire** dans une ville où au moins deux d'entre eux sont bâtis ; le joueur désigne le destinataire via la commande `ChooseSharedGrowth` (préférence permanente, défaut = 1er membre déclaré). Le moteur ne connaît que des ids opaques (`GameState.growthGroups`, `TownState.sharedGrowthChoice`) — aucun nom de faction.

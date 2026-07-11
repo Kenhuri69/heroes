@@ -1,6 +1,6 @@
 import type { GameEvent } from '../core/events';
 import type { GameState, ResourceId } from '../core/state';
-import { heroGoldPerDay } from '../hero/skills';
+import { heroGoldPerDay, townHouseField } from '../hero/skills';
 import { weekGrowthFactor } from '../adventure/calendar';
 import { builtLevelOf } from './helpers';
 import { sharedGrowthRecipients } from './shared-growth';
@@ -28,6 +28,31 @@ export function townIncome(
     if (amount !== 0) income[resource] = (income[resource] ?? 0) + amount;
   }
   return income;
+}
+
+/**
+ * Aura de bâtiment (F-BUILDEFF.1, doc 02 §4.1 / doc 03 §4 — Écuries) : somme du
+ * champ `field` des effets `heroAura` des bâtiments **construits** de la ville
+ * que `playerId` possède ET où il se tient (`pos`). Jumeau bâtiment de
+ * `townHouseField` (option B — le héros doit être présent). Jamais un nom de
+ * faction : lit `heroAura` de façon opaque. Consommé par `heroDailyMovement`.
+ */
+export function townBuildingAura(
+  state: GameState,
+  playerId: string,
+  pos: { x: number; y: number },
+  field: 'movementBonusFlat',
+): number {
+  let total = 0;
+  for (const town of state.towns) {
+    if (town.ownerPlayerId !== playerId) continue;
+    if (town.pos.x !== pos.x || town.pos.y !== pos.y) continue;
+    for (const buildingId of Object.keys(town.buildings)) {
+      const level = builtLevelOf(town, state.buildingCatalog, buildingId);
+      if (level?.effect.type === 'heroAura') total += level.effect[field] ?? 0;
+    }
+  }
+  return total;
 }
 
 export function dailyIncome(state: GameState, playerId: string): Partial<Record<ResourceId, number>> {
@@ -109,6 +134,11 @@ export function weeklyGrowthOf(
     const level = builtLevelOf(town, state.buildingCatalog, buildingId);
     if (level?.effect.type === 'growthBonus') bonusFort += level.effect.percent / 100;
   }
+  // Maison town-scoped (F-HOUSES, doc 16 §3.1 — Le Blaireau) : + % croissance hebdo
+  // apporté par un héros du propriétaire présent sur la tuile de la ville (option B).
+  // Calculé ici (helper partagé) ⇒ l'UI de recrutement projette la même croissance.
+  if (town.ownerPlayerId)
+    bonusFort += townHouseField(state.heroes, town.ownerPlayerId, town.pos, 'garrisonGrowthPct') / 100;
   const added = Math.floor(growth * (1 + bonusFort) * weekGrowthFactor(state));
   return { added, cap: 2 * added };
 }

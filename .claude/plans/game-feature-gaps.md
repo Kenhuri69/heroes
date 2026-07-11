@@ -92,7 +92,7 @@ doc 08 §2.4 (écran de combat).
   séparation sorts combat/aventure. Dépend de H-SPELLS pour masse/chaîne.
   Vérif : smoke ciblage zone + a11y cibles ≥ 44px.
 
-- **C-TACTICS — Compétence Tactique & phase de placement** 🕳️ M ⬜
+- **C-TACTICS — Compétence Tactique & phase de placement** 🕳️ M ✅ (livré)
   Doc : doc 02 §5.1 (« placement initial automatique + phase de placement
   tactique si compétence Tactique ») + §1.3 (pool de compétences).
   Code : aucune compétence `tactics` dans `data/core/skills.json` ;
@@ -694,7 +694,7 @@ moteur, garde-fou « zéro faction », budget bundle, smoke).
 | A7 | **Sorts & artefacts** | H-SPELLS (aventure, c4-5, résurrection, masse), H-ARTEQUIP, H-LEVELCHOICE, C-SPELLUI | ~2 sem | Sagesse utile, grimoire doc 08 §2.3 |
 | A8 | **Carte d'aventure riche** | M-GUARDLINK, M-VISIT, M-DWELLOWN, M-CALENDAR, puis M-NAV (monolithes → bateaux → souterrain) | ~3 sem | doc 02 §2 complet |
 | A9 | **Villes & économie** | C-SIEGE2, T-CARAVAN, T-MARKETRATE, T-GROWTHUI, T-GRAIL | ~3 sem | doc 02 §3/§4 complet |
-| A10 | **IA & équilibrage** | C-AIPARITY, ~~F-SYMBAI~~ ✅, C-TACTICS, ~~re-passe `faction:sim` post-capacités~~ ✅ (coûts, plan `a10-rebalance-post-capacites.md`) | ~1,5 sem | signatures « pèsent » en sim |
+| A10 | **IA & équilibrage** | ~~C-AIPARITY~~ ✅, ~~F-SYMBAI~~ ✅, ~~C-TACTICS~~ ✅, ~~re-passe `faction:sim` post-capacités~~ ✅ (coûts, plan `a10-rebalance-post-capacites.md`) | ~1,5 sem | signatures « pèsent » en sim |
 
 Ordre A2→A4 justifié : chaque capacité/effet ouvert est immédiatement exercé
 par les données des 5 factions (test de modularité continu), et A4 dépend de

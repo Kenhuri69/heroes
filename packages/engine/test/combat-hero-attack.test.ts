@@ -57,6 +57,7 @@ function stateWith(heroAttackCfg: { base: number; perPower: number; perAttack: n
   ];
   const combat: CombatState = {
     terrain: 'grass',
+    phase: 'battle',
     round: 1,
     obstacles: [],
     stacks,

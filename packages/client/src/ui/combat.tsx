@@ -92,8 +92,12 @@ export function CombatUi() {
 
   if (!combat) return null;
 
+  // C-TACTICS (doc 02 §5.1) : phase de placement — le joueur repositionne ses
+  // piles (tap sur le plateau, géré par CombatScene) puis lance la bataille.
+  const isPlacement = combat.phase === 'placement';
+
   const active = combat.stacks.find((s) => s.id === combat.activeStackId);
-  const isPlayerTurn = !combat.finished && active?.side === combat.playerSide;
+  const isPlayerTurn = !combat.finished && !isPlacement && active?.side === combat.playerSide;
   const canCastSpell =
     isPlayerTurn &&
     !autoActive &&
@@ -183,6 +187,20 @@ export function CombatUi() {
           {preview ? formatPreview(preview) : t('combat.damagePreviewPlaceholder')}
         </div>
 
+        {isPlacement ? (
+          <footer class="combat-actions combat-placement" data-testid="combat-placement">
+            <span class="combat-placement-hint">{t('combat.placementHint')}</span>
+            <button
+              data-testid="combat-start-battle"
+              class="combat-start-battle"
+              onClick={() => {
+                dispatch({ type: 'FinishPlacement' }).catch((err: unknown) => pushToast(commandErrorMessage(err)));
+              }}
+            >
+              {t('combat.startBattle')}
+            </button>
+          </footer>
+        ) : (
         <footer class="combat-actions">
         <button data-testid="combat-wait" disabled={!isPlayerTurn || autoActive} onClick={() => act('wait')}>
           {t('combat.wait')}
@@ -238,6 +256,7 @@ export function CombatUi() {
           ))}
         </div>
       </footer>
+        )}
       </div>
 
       {/* Journal de combat (UX-COMBATLOG) — monté en permanence pour accumuler

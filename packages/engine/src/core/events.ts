@@ -103,6 +103,8 @@ export type GameEvent =
   | { type: 'CombatRoundStarted'; round: number }
   | { type: 'CombatTurnStarted'; stackId: string }
   | { type: 'StackMoved'; stackId: string; from: OffsetPos; to: OffsetPos }
+  /** Repositionnement d'une pile pendant la phase de placement (C-TACTICS, doc 02 §5.1). */
+  | { type: 'StackPlaced'; stackId: string; from: OffsetPos; to: OffsetPos }
   /** Une frappe (attaque, 2ᵉ frappe doubleAttack ou riposte). */
   | {
       type: 'StackAttacked';

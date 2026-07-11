@@ -5,6 +5,12 @@ import { inBounds, isAdjacent, samePos, type GridPos } from '../adventure/map';
 import { advanceHeroAlongPath } from '../adventure/movement';
 import { revealOwnedStructures } from '../adventure/vision';
 import { handleHeroAttack, validateHeroAttack } from '../combat/hero-attack';
+import {
+  handleFinishPlacement,
+  handlePlaceStack,
+  validateFinishPlacement,
+  validatePlaceStack,
+} from '../combat/setup';
 import { handleRetreat, handleSurrender, validateRetreat, validateSurrender } from '../combat/leave';
 import { isPassable, stepCost } from '../adventure/path';
 import {
@@ -126,6 +132,8 @@ const GAME_OVER_BLOCKED = new Set<Command['type']>([
   'TradeResources',
   'CastSpell',
   'HeroAttack',
+  'PlaceStack',
+  'FinishPlacement',
   'Retreat',
   'Surrender',
   'CastAdventureSpell',
@@ -263,6 +271,14 @@ export function validate(state: GameState, cmd: Command): CommandError | null {
     case 'HeroAttack': {
       if (!state.combat) return { code: 'noCombat', message: 'aucun combat en cours' };
       return validateHeroAttack(state, cmd);
+    }
+    case 'PlaceStack': {
+      if (!state.combat) return { code: 'noCombat', message: 'aucun combat en cours' };
+      return validatePlaceStack(state, cmd);
+    }
+    case 'FinishPlacement': {
+      if (!state.combat) return { code: 'noCombat', message: 'aucun combat en cours' };
+      return validateFinishPlacement(state);
     }
     case 'Retreat': {
       if (!state.combat) return { code: 'noCombat', message: 'aucun combat en cours' };
@@ -612,6 +628,14 @@ const handlers: Handlers = {
 
   HeroAttack(draft, cmd, events) {
     handleHeroAttack(draft, cmd, events);
+  },
+
+  PlaceStack(draft, cmd, events) {
+    handlePlaceStack(draft, cmd, events);
+  },
+
+  FinishPlacement(draft, _cmd, events) {
+    handleFinishPlacement(draft, events);
   },
 
   Retreat(draft, cmd, events) {

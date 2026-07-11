@@ -6,6 +6,7 @@ import { applyAction, canShoot, canShootTarget, reachableHexes, tauntersAdjacent
 import { heroAttackDamage, strikeWithHero } from './hero-attack';
 import { spellcasterParams } from './spell-effect';
 import { estimateDamage, killsFromDamage, symbiosisParams } from './damage';
+import { advanceTurn } from './turns';
 import type { Draft } from './draft';
 import { hexDistance, type OffsetPos } from './hex';
 import { effectiveSpeed, hasAbility } from './state-helpers';
@@ -450,8 +451,24 @@ export function maybeHeroAction(draft: Draft, events: GameEvent[], side: CombatS
 /** Garde-fou : une vraie boucle infinie serait un bug de règles, pas un cas à masquer. */
 const MAX_AI_ITERATIONS = 20_000;
 
+/**
+ * C-TACTICS : une phase de placement pendante est AUTO-terminée avant toute
+ * conduite automatique (auto-combat, relais IA, IA-vs-IA) — aucune IA ne
+ * repositionne ses piles ; le placement reste un choix du joueur humain, sauté
+ * dès qu'il n'est pas piloté à la main. Sans cela, une IA dotée de Tactique
+ * resterait bloquée en placement (property « un combat se termine toujours »).
+ */
+function skipPlacementIfPending(draft: Draft, events: GameEvent[]): void {
+  const combat = draft.combat;
+  if (combat && combat.phase === 'placement') {
+    combat.phase = 'battle';
+    advanceTurn(draft, events);
+  }
+}
+
 /** Fait jouer l'IA tant que la pile active appartient au camp NON-joueur. */
 export function runAiIfNeeded(draft: Draft, events: GameEvent[]): void {
+  skipPlacementIfPending(draft, events);
   let iterations = 0;
   for (;;) {
     const combat = draft.combat;
@@ -476,6 +493,7 @@ export function runAiIfNeeded(draft: Draft, events: GameEvent[]): void {
  * joueur (« reprendre la main à tout round », doc 08 §2.4).
  */
 export function runAutoCombat(draft: Draft, events: GameEvent[], rounds?: number): void {
+  skipPlacementIfPending(draft, events); // C-TACTICS : l'auto-combat ne place pas, il bataille
   const stopAtRound = rounds !== undefined && draft.combat ? draft.combat.round + rounds : null;
   let iterations = 0;
   for (;;) {

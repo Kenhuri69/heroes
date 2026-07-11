@@ -4,9 +4,10 @@ import type { GameEvent } from '../core/events';
 import { rollRange } from '../core/rng';
 import type { GameState } from '../core/state';
 import { heroManaMax } from '../hero/artifacts';
+import { heroTacticsColumns } from '../hero/skills';
 import { runAiIfNeeded } from './ai';
 import type { Draft } from './draft';
-import { COMBAT_COLS, COMBAT_ROWS, sameHex, type OffsetPos } from './hex';
+import { COMBAT_COLS, COMBAT_ROWS, inCombatBounds, sameHex, type OffsetPos } from './hex';
 import { advanceTurn } from './turns';
 import { initLedger, shooterAmmo } from './state-helpers';
 import { spellcasterParams } from './spell-effect';
@@ -124,6 +125,7 @@ export function handleStartCombat(
   const obstacles = drawObstacles(draft, rules.obstaclesMin, rules.obstaclesMax);
   draft.combat = {
     terrain: cmd.terrain,
+    phase: 'battle', // arène sans héros : jamais de phase de placement (C-TACTICS)
     round: 1,
     obstacles,
     stacks,
@@ -180,6 +182,7 @@ export function beginGuardianCombat(
   const obstacles = drawObstacles(draft, rules.obstaclesMin, rules.obstaclesMax);
   draft.combat = {
     terrain,
+    phase: 'battle',
     round: 1,
     obstacles,
     stacks,
@@ -201,8 +204,7 @@ export function beginGuardianCombat(
   initHeroMana(draft, draft.combat);
   events.push({ type: 'CombatStarted', terrain, heroId, guardianObjectId });
   events.push({ type: 'CombatRoundStarted', round: 1 });
-  advanceTurn(draft, events);
-  runAiIfNeeded(draft, events);
+  openPlacementOrBattle(draft, events);
 }
 
 /**
@@ -235,6 +237,7 @@ export function beginTownCombat(
   const obstacles = drawObstacles(draft, rules.obstaclesMin, rules.obstaclesMax);
   draft.combat = {
     terrain,
+    phase: 'battle',
     round: 1,
     obstacles,
     stacks,
@@ -255,6 +258,104 @@ export function beginTownCombat(
   initHeroMana(draft, draft.combat);
   events.push({ type: 'CombatStarted', terrain, heroId, guardianObjectId: null });
   events.push({ type: 'CombatRoundStarted', round: 1 });
+  openPlacementOrBattle(draft, events);
+}
+
+/**
+ * C-TACTICS (doc 02 §5.1) : profondeur de la bande de placement du camp JOUEUR
+ * (héros lié à `playerSide` doté de la compétence Tactique). 0 ⇒ pas de phase de
+ * placement (comportement historique).
+ */
+export function combatTacticsColumns(draft: GameState, combat: CombatState): number {
+  const heroId = combat.playerSide === 'attacker' ? combat.attackerHeroId : combat.defenderHeroId;
+  const hero = heroId ? draft.heroes.find((h) => h.id === heroId) : undefined;
+  return hero ? Math.max(0, heroTacticsColumns(hero, draft.skillCatalog)) : 0;
+}
+
+/**
+ * À l'ouverture d'un combat de héros : entre en **phase de placement** si le
+ * camp joueur a la Tactique (le joueur repositionne ses piles avant la bataille,
+ * `FinishPlacement` la clôt), sinon démarre la bataille immédiatement.
+ */
+function openPlacementOrBattle(draft: Draft, events: GameEvent[]): void {
+  const combat = draft.combat;
+  if (!combat) return;
+  if (combatTacticsColumns(draft, combat) > 0) {
+    combat.phase = 'placement'; // activeStackId reste null : aucun tour tant que FinishPlacement
+    return;
+  }
+  beginBattlePhase(draft, events);
+}
+
+/**
+ * Démarre la bataille (premier tour d'initiative + relais IA) — appelé soit à
+ * l'ouverture (sans Tactique), soit à `FinishPlacement`, soit par l'auto-combat
+ * qui saute une phase de placement pendante.
+ */
+export function beginBattlePhase(draft: Draft, events: GameEvent[]): void {
+  const combat = draft.combat;
+  if (!combat) return;
+  combat.phase = 'battle';
   advanceTurn(draft, events);
   runAiIfNeeded(draft, events);
+}
+
+/** Bande de placement du camp joueur (C-TACTICS) : colonnes [0, cols] côté attaquant,
+ *  [COMBAT_COLS-1-cols, COMBAT_COLS-1] côté défenseur — depuis la colonne de spawn. */
+function placementBandCols(playerSide: CombatSideId, cols: number): { min: number; max: number } {
+  return playerSide === 'attacker'
+    ? { min: 0, max: cols }
+    : { min: COMBAT_COLS - 1 - cols, max: COMBAT_COLS - 1 };
+}
+
+/** Validation de `PlaceStack` (C-TACTICS) : phase de placement, pile du camp joueur, cible dans la bande, libre. */
+export function validatePlaceStack(
+  state: GameState,
+  cmd: { stackId: string; to: OffsetPos },
+): CommandError | null {
+  const combat = state.combat;
+  if (!combat) return { code: 'noCombat', message: 'aucun combat en cours' };
+  if (combat.phase !== 'placement')
+    return { code: 'invalidAction', message: 'placement hors de la phase de placement' };
+  const stack = combat.stacks.find((s) => s.id === cmd.stackId);
+  if (!stack || stack.count <= 0) return { code: 'invalidTarget', message: `pile invalide '${cmd.stackId}'` };
+  if (stack.side !== combat.playerSide)
+    return { code: 'invalidTarget', message: 'seules les piles du camp joueur se placent' };
+  if (!inCombatBounds(cmd.to)) return { code: 'invalidTarget', message: 'case hors du plateau' };
+  const cols = combatTacticsColumns(state, combat);
+  const band = placementBandCols(combat.playerSide, cols);
+  if (cmd.to.col < band.min || cmd.to.col > band.max)
+    return { code: 'invalidTarget', message: 'case hors de la bande de placement' };
+  if (combat.obstacles.some((o) => sameHex(o, cmd.to)))
+    return { code: 'invalidTarget', message: 'case occupée par un obstacle' };
+  if (combat.stacks.some((s) => s.id !== cmd.stackId && s.count > 0 && sameHex(s.pos, cmd.to)))
+    return { code: 'invalidTarget', message: 'case occupée par une autre pile' };
+  return null;
+}
+
+export function handlePlaceStack(
+  draft: Draft,
+  cmd: { stackId: string; to: OffsetPos },
+  events: GameEvent[],
+): void {
+  const combat = draft.combat;
+  if (!combat) return; // exclu par validate
+  const stack = combat.stacks.find((s) => s.id === cmd.stackId);
+  if (!stack) return;
+  const from = { ...stack.pos };
+  stack.pos = { ...cmd.to };
+  events.push({ type: 'StackPlaced', stackId: stack.id, from, to: { ...cmd.to } });
+}
+
+export function validateFinishPlacement(state: GameState): CommandError | null {
+  const combat = state.combat;
+  if (!combat) return { code: 'noCombat', message: 'aucun combat en cours' };
+  if (combat.phase !== 'placement')
+    return { code: 'invalidAction', message: 'aucune phase de placement à clore' };
+  return null;
+}
+
+export function handleFinishPlacement(draft: Draft, events: GameEvent[]): void {
+  if (!draft.combat || draft.combat.phase !== 'placement') return; // exclu par validate
+  beginBattlePhase(draft, events);
 }

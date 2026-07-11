@@ -62,6 +62,8 @@ export interface SkillRankEffect {
   manaCostReductionPct?: number;
   spellCircleUnlock?: number;
   learnCircle?: number;
+  /** Compétence Tactique (C-TACTICS, doc 02 §5.1) : profondeur de la bande de placement pré-combat. */
+  tacticsColumns?: number;
   /**
    * Effets **town-scoped** d'une Maison (F-HOUSES, doc 16 §3.1 — Le Blaireau).
    * Contrairement aux champs ci-dessus (agrégés PAR HÉROS dans `hero/skills.ts`),

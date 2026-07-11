@@ -80,6 +80,13 @@ export interface CombatStack {
 export interface CombatState {
   /** Terrain d'aventure du combat (bonus natif +1 vitesse/+1 moral — doc 02 §5.1). */
   terrain: string;
+  /**
+   * Phase du combat (C-TACTICS, doc 02 §5.1) : `'placement'` = phase de placement
+   * tactique préalable (le camp joueur repositionne ses piles dans sa bande via
+   * `PlaceStack`, `activeStackId` null, aucun tour joué) ; `'battle'` = combat en
+   * cours. Un combat sans compétence Tactique démarre directement en `'battle'`.
+   */
+  phase: 'placement' | 'battle';
   round: number;
   obstacles: OffsetPos[];
   stacks: CombatStack[];

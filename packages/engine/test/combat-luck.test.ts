@@ -66,6 +66,7 @@ function stateWith(visitLuck: number): GameState {
   const defender = stack({ id: 'defender-0', side: 'defender', slot: 0, unitId: 'def', count: 1, pos: { col: 1, row: 0 } });
   const combat: CombatState = {
     terrain: 'grass',
+    phase: 'battle',
     round: 1,
     obstacles: [],
     stacks: [attacker, defender],

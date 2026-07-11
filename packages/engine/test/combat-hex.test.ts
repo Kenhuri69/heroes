@@ -94,6 +94,7 @@ function stack(
 function manualState(stacks: CombatStack[], activeStackId: string): GameState {
   const combat: CombatState = {
     terrain: 'grass',
+    phase: 'battle',
     round: 1,
     obstacles: [],
     stacks,

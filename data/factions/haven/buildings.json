@@ -114,6 +114,17 @@
           "effect": { "type": "dwelling", "tier": 7, "unitId": "t7-ange-elite" }
         }
       ]
+    },
+    {
+      "id": "haven-stables",
+      "maxLevel": 1,
+      "levels": [
+        {
+          "cost": { "gold": 1500, "wood": 10 },
+          "requires": [{ "building": "haven-dwelling-t4", "level": 1 }],
+          "effect": { "type": "heroAura", "movementBonusFlat": 400 }
+        }
+      ]
     }
   ]
 }

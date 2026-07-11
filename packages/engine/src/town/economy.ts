@@ -30,6 +30,31 @@ export function townIncome(
   return income;
 }
 
+/**
+ * Aura de bâtiment (F-BUILDEFF.1, doc 02 §4.1 / doc 03 §4 — Écuries) : somme du
+ * champ `field` des effets `heroAura` des bâtiments **construits** de la ville
+ * que `playerId` possède ET où il se tient (`pos`). Jumeau bâtiment de
+ * `townHouseField` (option B — le héros doit être présent). Jamais un nom de
+ * faction : lit `heroAura` de façon opaque. Consommé par `heroDailyMovement`.
+ */
+export function townBuildingAura(
+  state: GameState,
+  playerId: string,
+  pos: { x: number; y: number },
+  field: 'movementBonusFlat',
+): number {
+  let total = 0;
+  for (const town of state.towns) {
+    if (town.ownerPlayerId !== playerId) continue;
+    if (town.pos.x !== pos.x || town.pos.y !== pos.y) continue;
+    for (const buildingId of Object.keys(town.buildings)) {
+      const level = builtLevelOf(town, state.buildingCatalog, buildingId);
+      if (level?.effect.type === 'heroAura') total += level.effect[field] ?? 0;
+    }
+  }
+  return total;
+}
+
 export function dailyIncome(state: GameState, playerId: string): Partial<Record<ResourceId, number>> {
   const income: Partial<Record<ResourceId, number>> = {};
   const add = (resource: ResourceId, amount: number): void => {

@@ -268,6 +268,20 @@ Chaque faction consomme surtout **une paire de ressources rares** (Haven : crist
 > de sauvegarde inchangée (état de combat transitoire). Tour de garde, catapulte
 > et destruction de murs = tranche tactique v2.
 
+> 🚧 **État (caravanes inter-villes — T-CARAVAN, livré)** : commande générique
+> **`SendCaravan { fromTownId, toTownId, slot }`** — envoie une pile de garnison
+> d'une ville possédée vers une autre ville du **joueur actif**. La durée de
+> trajet (en **jours**) est dérivée de l'A* existant (`ceil(coûtChemin /
+> movement.base)`, min 1 ; vitesse de base, aucun PM de héros consommé). La
+> caravane vit dans `GameState.caravans` (`CURRENT_SAVE_VERSION` → 21) et avance
+> d'un jour à chaque `DayStarted` ; à l'arrivée elle se **dépose en garnison**
+> (fusion par unité, sinon nouvelle pile ≤ 7 ; garnison pleine ⇒ attente). Si la
+> ville de destination **change de main** avant l'arrivée, la caravane se
+> **disperse** (`CaravanLost`). **Non interceptable** (convention HoMM3). UI :
+> bouton « Caravane » + sélecteur de destination dans l'onglet Garnison, bandeau
+> des caravanes en route. *Différés : interception, caravanes de héros (multi-héros
+> non livré), annulation en route.*
+
 ### 4.2 Écran de ville
 
 Vue peinte de la ville où les bâtiments construits apparaissent (grande satisfaction visuelle HoMM). Chaque bâtiment est un sprite cliquable ; l'arbre complet est aussi accessible en liste (indispensable mobile), cf. doc 08.

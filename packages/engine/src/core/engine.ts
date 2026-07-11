@@ -22,12 +22,15 @@ import {
   handleBuildStructure,
   handleCaptureTown,
   handleGarrisonTransfer,
+  handleSendCaravan,
+  tickCaravans,
   handleRecruitUnits,
   handleTradeResources,
   resetBuiltToday,
   validateBuildStructure,
   validateCaptureTown,
   validateGarrisonTransfer,
+  validateSendCaravan,
   validateRecruitUnits,
   validateTradeResources,
   validateUpgradeUnits,
@@ -114,6 +117,7 @@ const GAME_OVER_BLOCKED = new Set<Command['type']>([
   'UpgradeUnits',
   'BuyWarMachine',
   'GarrisonTransfer',
+  'SendCaravan',
   'CaptureTown',
   'TradeResources',
   'CastSpell',
@@ -233,6 +237,11 @@ export function validate(state: GameState, cmd: Command): CommandError | null {
       if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
       if (state.combat) return { code: 'combatActive', message: 'un combat est en cours' };
       return validateGarrisonTransfer(state, cmd);
+    }
+    case 'SendCaravan': {
+      if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
+      if (state.combat) return { code: 'combatActive', message: 'un combat est en cours' };
+      return validateSendCaravan(state, cmd);
     }
     case 'CaptureTown': {
       if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
@@ -408,6 +417,7 @@ const handlers: Handlers = {
     draft.scenario = cmd.scenario ?? null;
     draft.outcome = null;
     draft.pendingTreasure = null;
+    draft.caravans = [];
     // Quêtes de campagne (doc 13 §6.2, N2a) — embarquées et actives d'emblée ;
     // le chaînage/déclencheurs viennent au lot contenu N2b.
     draft.quests = cmd.quests ?? null;
@@ -571,6 +581,10 @@ const handlers: Handlers = {
     handleGarrisonTransfer(draft, cmd, events);
   },
 
+  SendCaravan(draft, cmd, events) {
+    handleSendCaravan(draft, cmd, events);
+  },
+
   CaptureTown(draft, cmd, events) {
     handleCaptureTown(draft, cmd, events);
   },
@@ -632,6 +646,9 @@ const handlers: Handlers = {
       // Économie des villes : 1 build/jour réarmé, revenu quotidien (doc 02 §4.1).
       resetBuiltToday(draft);
       applyDailyIncome(draft, events);
+      // Caravanes inter-villes (T-CARAVAN, doc 02 §4.1) : un jour de trajet en
+      // moins, dépôt en garnison à l'arrivée.
+      tickCaravans(draft, events);
       // Économie (compétence héros, décision plan phase-3.2 #5) : or/jour supplémentaire.
       for (const hero of draft.heroes) {
         const gold = heroGoldPerDay(hero, draft.skillCatalog);

@@ -701,15 +701,33 @@ function GarrisonTab({ town, onError }: { town: TownState; onError: (msg: string
   // Sélecteur stable (réf `s.game`), dérivations dans le corps (leçon U4 : ne pas
   // renvoyer un objet/tableau frais du sélecteur → boucle de rendu).
   const game = useApp((s) => s.game);
+  const humanPlayerId = humanId(game);
   const hero = game.heroes.find(
-    (h) => h.playerId === humanId(game) && h.pos.x === town.pos.x && h.pos.y === town.pos.y,
+    (h) => h.playerId === humanPlayerId && h.pos.x === town.pos.x && h.pos.y === town.pos.y,
   );
+
+  // Caravanes inter-villes (T-CARAVAN, doc 02 §4.1) : destinations = autres villes
+  // possédées ; caravanes en route = celles du joueur humain.
+  const otherTowns = game.towns.filter(
+    (tw) => tw.ownerPlayerId === humanPlayerId && tw.id !== town.id,
+  );
+  const [caravanDest, setCaravanDest] = useState<string>('');
+  const destId = caravanDest || otherTowns[0]?.id || '';
+  const myCaravans = game.caravans.filter((c) => c.playerId === humanPlayerId);
 
   const transfer = (from: 'town' | 'hero', slot: number): void => {
     if (!hero) return;
     onError(null);
     dispatch({ type: 'GarrisonTransfer', townId: town.id, heroId: hero.id, from, slot }).catch((err: unknown) => {
       onError(commandErrorMessage(err)); // remédiation CL6 : message localisé, plus « code: message » brut
+    });
+  };
+
+  const sendCaravan = (slot: number): void => {
+    if (!destId) return;
+    onError(null);
+    dispatch({ type: 'SendCaravan', fromTownId: town.id, toTownId: destId, slot }).catch((err: unknown) => {
+      onError(commandErrorMessage(err));
     });
   };
 
@@ -757,6 +775,14 @@ function GarrisonTab({ town, onError }: { town: TownState; onError: (msg: string
                         {t('town.toHero')}
                       </button>
                     )}
+                    {otherTowns.length > 0 && (
+                      <button
+                        data-testid={`town-caravan-send-${i}`}
+                        onClick={() => sendCaravan(i)}
+                      >
+                        {t('town.sendCaravan')}
+                      </button>
+                    )}
                     {upgradedUnitFor(town, game.buildingCatalog, stack.unitId) && (
                       <button
                         data-testid={`town-garrison-upgrade-${i}`}
@@ -797,6 +823,40 @@ function GarrisonTab({ town, onError }: { town: TownState; onError: (msg: string
           </ol>
         </div>
       </div>
+      {otherTowns.length > 0 && (
+        <div class="town-caravans" data-testid="town-caravans">
+          <label class="town-caravan-dest-label">
+            {t('town.caravanTo')}{' '}
+            <select
+              data-testid="town-caravan-dest"
+              value={destId}
+              onChange={(e) => setCaravanDest((e.target as HTMLSelectElement).value)}
+            >
+              {otherTowns.map((tw) => (
+                <option key={tw.id} value={tw.id}>
+                  {t('town.at', { x: tw.pos.x, y: tw.pos.y })}
+                </option>
+              ))}
+            </select>
+          </label>
+          {myCaravans.length > 0 && (
+            <ul class="town-caravans-transit" data-testid="town-caravans-transit">
+              {myCaravans.map((c) => {
+                const dest = game.towns.find((tw) => tw.id === c.toTownId);
+                return (
+                  <li key={c.id}>
+                    {t('town.caravanLine', {
+                      count: c.army.reduce((s, st) => s + st.count, 0),
+                      town: dest ? t('town.at', { x: dest.pos.x, y: dest.pos.y }) : c.toTownId,
+                      days: c.daysLeft,
+                    })}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+      )}
       {hero && vendorUnits.length > 0 && (
         <div class="town-war-machines" data-testid="town-war-machines">
           <h3>{t('town.warMachines')}</h3>

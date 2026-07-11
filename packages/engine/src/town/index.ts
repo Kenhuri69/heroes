@@ -12,6 +12,7 @@ export { validateRecruitUnits, handleRecruitUnits } from './recruit';
 export { validateUpgradeUnits, handleUpgradeUnits, upgradedUnitFor, upgradeCost } from './upgrade';
 export { validateBuyWarMachine, handleBuyWarMachine } from './war-machine';
 export { validateGarrisonTransfer, handleGarrisonTransfer } from './transfer';
+export { validateSendCaravan, handleSendCaravan, tickCaravans } from './caravan';
 export { validateCaptureTown, handleCaptureTown } from './capture';
 export { validateTradeResources, handleTradeResources, tradeQuote } from './market';
 export { applyDailyIncome, applyWeeklyGrowth } from './economy';

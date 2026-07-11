@@ -363,11 +363,15 @@ Source design : doc 02 §2 (carte), §1.5 (multi-héros).
 
 Source design : doc 02 §3/§4.
 
-- **T-CARAVAN — Caravanes / transfert inter-villes** 🕳️ M ⬜
+- **T-CARAVAN — Caravanes / transfert inter-villes** 🧩 M ✅ (livré)
   Doc : doc 02 §4.1. Code : `GarrisonTransfer` exige héros et ville sur la même
   tuile (`packages/engine/src/town/transfer.ts:21`). Spec : commande
-  `SendCaravan` (unités, trajet en jours via A* existant, arrivée en garnison),
-  interceptable ? (décision design).
+  `SendCaravan` (unités, trajet en jours via A* existant, arrivée en garnison).
+  Livré : `SendCaravan { fromTownId, toTownId, slot }`, `GameState.caravans`
+  (save v21), `tickCaravans` au `DayStarted`, events `CaravanSent`/`Arrived`/
+  `Lost`, UI onglet Garnison (bouton + destination + bandeau en route), locales.
+  **Décision design : non interceptable** (convention HoMM3). Différés :
+  interception, caravanes de héros (multi-héros non livré), annulation en route.
 
 - **T-GRAIL — Graal & obélisques** 🕳️ L ⬜ (post-MVP assumé doc 02 §2.2/§4.1)
   Code : zéro occurrence. Spec : obélisques (visitables révélant une carte au

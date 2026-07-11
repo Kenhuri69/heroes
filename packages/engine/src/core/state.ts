@@ -171,6 +171,23 @@ export interface Calendar {
 }
 
 /**
+ * Caravane en transit (T-CARAVAN, doc 02 §4.1) — pile(s) d'unités en route d'une
+ * ville possédée vers une autre. Avance d'un jour au `DayStarted` ; arrivée ⇒
+ * dépôt en garnison de la ville de destination. Non interceptable (HoMM3).
+ */
+export interface CaravanState {
+  id: string;
+  /** Joueur expéditeur — la caravane se disperse si la destination change de main. */
+  playerId: string;
+  /** Ville de destination (garnison créditée à l'arrivée). */
+  toTownId: string;
+  /** Unités transportées (≤ 7 piles, comme une garnison). */
+  army: ArmyStack[];
+  /** Jours restants avant l'arrivée ; 0 = en attente d'une place en garnison. */
+  daysLeft: number;
+}
+
+/**
  * L'état complet d'une partie — un seul arbre JSON-sérialisable (doc 07 §3) :
  * c'est à la fois le format de sauvegarde et le futur état re-simulable serveur.
  * Carte et constantes d'équilibrage sont EMBARQUÉES par `StartGame` : le
@@ -220,9 +237,12 @@ export interface Calendar {
  * chaque round, tick avant décroissance des statuts.
  * v20 : `Calendar.weekEventId` — événements de calendrier hebdomadaires
  * (M-CALENDAR, doc 02 §2.3) : id de l'événement tiré pour la semaine courante,
- * son `growthFactor` (dans `config.calendar.events`) module la croissance.)
+ * son `growthFactor` (dans `config.calendar.events`) module la croissance.
+ * v21 : `GameState.caravans` — caravanes inter-villes (T-CARAVAN, doc 02 §4.1) :
+ * piles d'unités en transit d'une ville possédée à une autre, avancées d'un jour
+ * au `DayStarted`, déposées en garnison à l'arrivée.)
  */
-export const CURRENT_SAVE_VERSION = 20;
+export const CURRENT_SAVE_VERSION = 21;
 
 export interface GameState {
   saveVersion: number;
@@ -246,6 +266,8 @@ export interface GameState {
   artifactCatalog: Record<string, ArtifactDef>;
   /** Villes de la partie (doc 02 §4) — vide tant qu'aucune n'est placée. */
   towns: TownState[];
+  /** Caravanes en transit (T-CARAVAN, doc 02 §4.1) — vide hors trajet. */
+  caravans: CaravanState[];
   /** Combat en cours (doc 02 §5) — null hors combat. */
   combat: CombatState | null;
   /**
@@ -314,6 +336,7 @@ export function createEmptyState(): GameState {
     skillCatalog: {},
     artifactCatalog: {},
     towns: [],
+    caravans: [],
     combat: null,
     factionCatalog: {},
     houseCatalog: {},

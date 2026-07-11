@@ -125,6 +125,17 @@
           "effect": { "type": "heroAura", "movementBonusFlat": 400 }
         }
       ]
+    },
+    {
+      "id": "haven-statue",
+      "maxLevel": 1,
+      "levels": [
+        {
+          "cost": { "gold": 1000, "wood": 5, "ore": 5 },
+          "requires": [{ "building": "townHall", "level": 1 }],
+          "effect": { "type": "heroAura", "combatMoraleBonus": 1 }
+        }
+      ]
     }
   ]
 }

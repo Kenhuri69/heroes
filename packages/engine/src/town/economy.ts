@@ -41,7 +41,7 @@ export function townBuildingAura(
   state: GameState,
   playerId: string,
   pos: { x: number; y: number },
-  field: 'movementBonusFlat',
+  field: 'movementBonusFlat' | 'combatMoraleBonus',
 ): number {
   let total = 0;
   for (const town of state.towns) {

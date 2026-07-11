@@ -345,11 +345,25 @@ function buildGroundArtifact(artifactId: string): Container {
 function buildGuardian(unitId: string, catalog: UnitCatalog): Container {
   const node = new Container();
   const c = TILE_SIZE / 2;
+  // Repli : silhouette de créature (ombre + torse + tête griffue) — doit se lire
+  // « un monstre garde cette case », jamais comme un drapeau de ville/mine
+  // (l'ancien fanion gris était pris pour une ville neutre — plan
+  // map-design-issues P1).
+  const ink = 0x1a1c22;
+  const body = 0x5d6470;
   const fallback = new Graphics()
-    .poly([c - 4, c + 18, c - 4, c - 18, c + 16, c - 10, c - 4, c - 2])
-    .fill(0x8a8f98)
-    .stroke({ width: 2, color: 0x1a1c22 });
-  fallback.circle(c - 4, c + 18, 4).fill(0x1a1c22);
+    .ellipse(c, c + 16, 15, 5)
+    .fill({ color: ink, alpha: 0.35 })
+    .roundRect(c - 11, c - 4, 22, 20, 7)
+    .fill(body)
+    .stroke({ width: 2, color: ink })
+    .poly([c - 8, c - 14, c - 4, c - 20, c, c - 14, c + 4, c - 20, c + 8, c - 14]) // crête cornue
+    .fill(body)
+    .stroke({ width: 2, color: ink })
+    .circle(c, c - 8, 8)
+    .fill(body)
+    .stroke({ width: 2, color: ink });
+  fallback.circle(c - 3, c - 9, 1.8).fill(0xf1c40f).circle(c + 3, c - 9, 1.8).fill(0xf1c40f);
   node.addChild(fallback);
 
   const url = unitSpriteUrl(unitId, catalog[unitId]?.groupId);

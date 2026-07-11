@@ -162,4 +162,9 @@ vérification. Ordre proposé = impact joueur décroissant.
 - [x] Lot 4 — progression des gardiens (PR #229)
 - [x] Lot 5 — villes neutres générées
 - [ ] Suivi assets (hors lots) : planches d'unités `sylvan-court`
-  (`assets/units/`) et tas de ressources (`assets/resources/pile-<res>.png`)
+  (`assets/units/`) et tas de ressources (`assets/resources/pile-<res>.png`).
+  Prompts PRÊTS à coller (générateur `gen_prompts.py` étendu à la famille
+  `resource-piles`) : `assets/prompts/resource-piles-p1/p2.md` et
+  `assets/prompts/units-sylvan-court-p1/p2.md`, extraction QC documentée dans
+  chaque fichier. La génération d'image reste MANUELLE (LLM image externe —
+  indisponible en session : l'`invoke` du serveur HF est désactivé).

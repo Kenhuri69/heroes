@@ -53,3 +53,28 @@
   fill: var(--parchment-bright);
   font: 700 0.8rem var(--font-ui);
 }
+
+/* Récapitulatif de fin de partie (UX-ENDSTATS, doc 08 §2.5) : durée + avoirs. */
+.outcome-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.35rem 1rem;
+  margin: 0.5rem 0 0.75rem;
+  padding: 0;
+}
+.outcome-stats > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--ink-700);
+  padding-bottom: 0.2rem;
+}
+.outcome-stats dt {
+  color: var(--parchment-dim);
+  font: 600 0.85rem var(--font-ui);
+}
+.outcome-stats dd {
+  margin: 0;
+  color: var(--parchment-bright);
+  font: 700 0.85rem var(--font-ui);
+}

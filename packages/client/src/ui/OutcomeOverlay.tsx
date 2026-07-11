@@ -1,4 +1,4 @@
-import { createEmptyState, playerPower, type GameState } from '@heroes/engine';
+import { createEmptyState, playerPower, weekOf, type GameState } from '@heroes/engine';
 import { appStore, useApp } from '../app/store';
 import { humanId } from '../app/game';
 import { t } from '../app/i18n';
@@ -49,12 +49,51 @@ export function OutcomeOverlay() {
         style={bg ? { backgroundImage: `url(${bg})` } : undefined}
       >
         <h2 data-testid="outcome-status">{title}</h2>
+        <StatsSummary game={game} />
         <PowerChart game={game} />
         <button class="menu-button" data-testid="outcome-back-to-menu" onClick={backToMenu}>
           {t('outcome.backToMenu')}
         </button>
       </div>
     </div>
+  );
+}
+
+/**
+ * Récapitulatif de fin de partie (UX-ENDSTATS, doc 08 §2.5) : durée + avoirs
+ * finaux du joueur humain, lus DIRECTEMENT de l'état final (aucun suivi moteur).
+ * Les pertes cumulées (nécessitant un suivi côté moteur pour être exactes en
+ * multi-joueurs/IA) restent différées.
+ */
+function StatsSummary({ game }: { game: GameState }) {
+  const human = humanId(game);
+  const day = game.calendar.day;
+  const week = weekOf(day);
+  const ownTowns = game.towns.filter((tw) => tw.ownerPlayerId === human);
+  const heroes = game.heroes.filter((h) => h.playerId === human);
+  const bestLevel = heroes.reduce((m, h) => Math.max(m, h.level), 0);
+  const armyUnits =
+    heroes.reduce((sum, h) => sum + h.army.reduce((n, s) => n + s.count, 0), 0) +
+    ownTowns.reduce((sum, tw) => sum + tw.garrison.reduce((n, s) => n + s.count, 0), 0);
+  return (
+    <dl class="outcome-stats" data-testid="outcome-stats">
+      <div>
+        <dt>{t('outcome.duration')}</dt>
+        <dd data-testid="outcome-duration">{t('outcome.durationValue', { day, week })}</dd>
+      </div>
+      <div>
+        <dt>{t('outcome.townsOwned')}</dt>
+        <dd>{ownTowns.length}</dd>
+      </div>
+      <div>
+        <dt>{t('outcome.heroesOwned')}</dt>
+        <dd>{t('outcome.heroesValue', { count: heroes.length, level: bestLevel })}</dd>
+      </div>
+      <div>
+        <dt>{t('outcome.armyUnits')}</dt>
+        <dd>{armyUnits}</dd>
+      </div>
+    </dl>
   );
 }
 

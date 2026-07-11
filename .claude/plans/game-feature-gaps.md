@@ -553,9 +553,13 @@ préviz dégâts, raccourcis, a11y 3 crans, audio complet, chrome UI, options.)
   **Client pur** (zéro moteur/save/golden). Traduit round/attaque/riposte/
   esquive/mort/soin/poison/sort/moral/peur/immobilisation/fin.
 
-- **UX-ENDSTATS — Stats détaillées de fin de partie** 🧩 S ⬜ (différé assumé
-  note U6b doc 08 §2.5). Code : graphique de puissance livré
-  (`OutcomeOverlay.tsx`), durée/pertes cumulées manquantes.
+- **UX-ENDSTATS — Stats détaillées de fin de partie** 🧩 S ✅ (livré)
+  Note U6b doc 08 §2.5. Code : graphique de puissance livré (`OutcomeOverlay.tsx`).
+  Livré : récapitulatif `StatsSummary` (durée `Jour N · Semaine W`, villes possédées,
+  héros + niveau max, unités en armée) lu directement de l'état final. **Client pur**
+  (aucun suivi moteur). **Pertes cumulées différées** : nécessitent un suivi côté
+  moteur pour être exactes en multi-joueurs/IA (les événements `CombatEnded` ne
+  portent pas le joueur).
 
 - **UX-RAIL — Rail droit desktop complet & « +X/j » inline** 🧩 S ⬜
   Doc : doc 08 §2.1 (wireframe + note M6). Code : ressources en barre haute

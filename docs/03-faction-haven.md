@@ -19,8 +19,9 @@
 > compétence Prière de bataille ;
 > bâtiments spéciaux **livrés** : **Écuries** (F-BUILDEFF.1) et **Statue du
 > Jugement** (F-BUILDEFF.2) via `heroAura`, **Cloître** (F-BUILDEFF.3) via
-> `grantSpell` ; école
-> Lumière (variante Eau au MVP, `spellSchool: null`) ; classes et héros nommés
+> `grantSpell` ; **école Lumière livrée** (F-SCHOOLS.1 — `spellSchool: "lumiere"`,
+> 4 sorts Trait de Lumière/Aura Sacrée/Soin de Lumière/Châtiment Céleste réutilisant
+> les kinds génériques, comme la Scène de Vox) ; classes et héros nommés
 > Aldric/Séraphine (§5, pas de pipeline de héros par faction). Les capacités
 > riches ci-dessus s'activeront quand le moteur ouvrira les points d'extension
 > **génériques** correspondants (le mécanisme réel = capacités inline
@@ -37,7 +38,7 @@
 | **Style de jeu** | Défensif-économique en début de partie, boule de neige de moral et de soins, très accessible (faction « tutoriel ») |
 | **Terrain natif** | Herbe |
 | **Ressources clés** | Cristal + Gemmes |
-| **École de magie affine** | Lumière (variante de l'école Eau/soutien au MVP : sorts de soin, bénédiction, protection) |
+| **École de magie affine** | Lumière — **école propre livrée** (F-SCHOOLS.1, `spellSchool: "lumiere"`) : 4 sorts de soin/bénédiction/protection/châtiment réutilisant les kinds génériques (damage/heal/buff) |
 | **Couleurs / DA** | Blanc, or, bleu roi ; architecture gothique claire, bannières |
 
 **Lore (résumé)** : le Saint-Empire du Griffon garde la frontière contre les ténèbres depuis la Première Éclipse. Ses armées mêlent conscrits fervents, ordres monastiques et créatures célestes invoquées par la foi collective.

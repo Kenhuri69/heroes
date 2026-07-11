@@ -772,8 +772,13 @@ describe('spellSchema', () => {
   });
 
   it('rejette une école inconnue', () => {
-    const spell = { ...(makeSpell() as Record<string, unknown>), school: 'lumiere' };
+    const spell = { ...(makeSpell() as Record<string, unknown>), school: 'ecole-fantome' };
     expect(spellSchema.safeParse(spell).success).toBe(false);
+  });
+
+  it('F-SCHOOLS.1 — accepte l’école de faction `lumiere`', () => {
+    const spell = { ...(makeSpell() as Record<string, unknown>), school: 'lumiere' };
+    expect(spellSchema.safeParse(spell).success).toBe(true);
   });
 });
 

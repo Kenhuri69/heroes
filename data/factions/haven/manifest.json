@@ -11,7 +11,7 @@
   "factionBonuses": [
     { "type": "combatBonus", "morale": 1, "defense": 2 }
   ],
-  "spellSchool": null,
+  "spellSchool": "lumiere",
   "heroSkills": [],
   "tiers": 7,
   "sharedGrowthGroups": {},

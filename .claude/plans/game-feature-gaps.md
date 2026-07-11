@@ -247,13 +247,17 @@ Source design : docs 03 §2/§4/§5, 04 §2/§4, 05 §3/§5/§6/§7, 14 §5/§6,
   Spec : événement de gain par action de « performeur » (capacité générique),
   application du cap au gain.
 
-- **F-SCHOOLS — Écoles de sorts propres incomplètes** 🧩 M ⬜
+- **F-SCHOOLS — Écoles de sorts propres incomplètes** 🧩 M 🚧 (**découpé en sous-lots**)
   Doc : Lumière (doc 03 §1/§3), Nécromancie/Prime (doc 04 §1), Traque 8 sorts
-  (doc 05 §6), Scène (doc 16 §3.3). Code : `spellSchool:null` pour Haven et
-  Necropolis ; Traque = 2/8 sorts (`marque-du-guetteur`, `entraves-runiques`
-  dans `data/core/spells.json`) ; Scène 4/4 mais effets simplifiés (Dissonance
-  sans peur/anti-démon, Chant de Courage sans +Moral). Spec : pur contenu +
-  quelques effets de sort génériques (peur, +moral) partagés avec CAP-MORAL.
+  (doc 05 §6), Scène (doc 16 §3.3).
+  - **F-SCHOOLS.1** ✅ (plan `f-schools-lumiere.md`) : **École de la Lumière**
+    (Haven) livrée en **pur contenu** (patron Scène/16.5) — `spellSchool:"lumiere"`
+    + 4 sorts (damage/heal/buff) + `SPELL_SCHOOLS += lumiere` + locales. Zéro diff
+    moteur, golden inchangé.
+  - **F-SCHOOLS.2+** ⬜ : Necropolis Nécromancie/Prime (doc 04 §1) ; complétion
+    Traque 8 sorts (doc 05 §6 — 6 sorts exigent de **nouvelles** mécaniques de
+    combat : téléport, silence, bannissement, furtivité, noRetaliation conditionnel) ;
+    effets Scène enrichis (peur/+moral, partagés CAP-MORAL).
 
 - **F-ELITEVOX — Élites Vox Arcana** 🕳️ M ⬜ (différé assumé doc 16 §4)
   Code : 8 dwellings `maxLevel:1`, aucun fichier `-elite` (contrairement aux 4

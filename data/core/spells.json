@@ -261,6 +261,44 @@
       "kind": "heal",
       "base": 20,
       "perPower": 5
+    },
+    {
+      "id": "trait-de-lumiere",
+      "school": "lumiere",
+      "circle": 1,
+      "manaCost": 5,
+      "kind": "damage",
+      "base": 8,
+      "perPower": 2
+    },
+    {
+      "id": "aura-sacree",
+      "school": "lumiere",
+      "circle": 1,
+      "manaCost": 6,
+      "kind": "buff",
+      "base": 0,
+      "perPower": 0,
+      "defenseMod": 3
+    },
+    {
+      "id": "soin-de-lumiere",
+      "school": "lumiere",
+      "circle": 2,
+      "manaCost": 10,
+      "kind": "heal",
+      "base": 15,
+      "perPower": 4
+    },
+    {
+      "id": "chatiment-celeste",
+      "school": "lumiere",
+      "circle": 3,
+      "manaCost": 15,
+      "kind": "damage",
+      "base": 18,
+      "perPower": 4,
+      "area": "splash"
     }
   ]
 }

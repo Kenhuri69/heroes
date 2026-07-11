@@ -342,14 +342,17 @@ test('confort : « ? » ouvre l’aide des raccourcis, Échap la ferme (X7)', as
   await page.mouse.click(heroTile.x, heroTile.y);
 
   // « ? » — re-frappé jusqu'à l'ouverture (cf. test raccourci E : la frappe
-  // peut être avalée sous charge avant que le focus soit établi).
+  // peut être avalée sous charge avant que le focus soit établi) ; fermeture
+  // Échap re-jouée de même (keydown avalable sous charge).
   const panel = page.getByTestId('shortcuts-panel');
   await expect(async () => {
     if (!(await panel.isVisible())) await page.keyboard.press('Shift+Slash');
     await expect(panel).toBeVisible({ timeout: 1000 });
   }).toPass({ timeout: 10000 });
-  await page.keyboard.press('Escape');
-  await expect(page.getByTestId('shortcuts-panel')).toHaveCount(0);
+  await expect(async () => {
+    await page.keyboard.press('Escape');
+    await expect(panel).toHaveCount(0, { timeout: 1000 });
+  }).toPass({ timeout: 10000 });
 
   expect(errors).toEqual([]);
 });

@@ -146,11 +146,13 @@ Familles, par mécanique moteur commune :
   Serment, doc 05 §4), `areaAttack` (Liche nuage, doc 04 §3 ; cône Pénitent,
   doc 05 §4 ; réutilise `splash` de C7), `breathAttack` (Dragon d'os,
   doc 04 §3). Effort : L (découpable).
-- **CAP-MORAL — Moral & auras** 🧩 (A3a : `moraleImmune` (Ange), `aura`
-  (Dragon d'os −1) **livrés** ; peur Sombral → A3d) : immunité au moral négatif (Ange,
-  doc 03 §3), `aura` −1 moral aux vivants adverses (Dragon d'os, doc 04 §2/§3),
-  peur (Sombral Vox, doc 16 §4). Le moral existe (`heroMorale`) mais aucune
-  capacité ne le module. Effort : M.
+- **CAP-MORAL — Moral & auras** ✅ (A3a : `moraleImmune` (Ange), `aura`
+  (Dragon d'os −1) **livrés** ; `fear` (Sombral Vox) **livré** — dernière pièce) :
+  immunité au moral négatif (Ange, doc 03 §3), `aura` −1 moral aux vivants
+  adverses (Dragon d'os, doc 04 §2/§3), **peur** (Sombral Vox, doc 16 §4).
+  `fear` : frappe qui touche ⇒ chance de faire sauter le prochain tour de la
+  cible (réutilise `immobilizedRounds`, événement `StackFeared`, pas de bump
+  save, golden inchangé). Données : `t5-sombral` `fear(chance 0.2, rounds 1)`.
 - **CAP-CAST — Lanceurs** 🧩 (A2h : `spellcaster` **livré engine-first**) :
   `spellcaster` générique (sorts embarqués ×N charges) — Prêtresse soin ×2 (doc
   03 §3) **livrée** ; Bibliothécaire Entrave/Silence ×2 (doc 05 §4), Maître de

@@ -85,7 +85,7 @@ export async function resolveGeneratedMap(
   );
   // Villes neutres : factions dont le château de carte est peint (même logique
   // que la palette de gardiens — pas de donjon gris anonyme sur une carte
-  // aléatoire). `test-faction` en est naturellement écartée.
+  // aléatoire). Les factions de test sans château peint en sont écartées.
   const townFactions = report.content.packs
     .map((p) => p.manifest.id)
     .filter((id) => townMapUrl(id) !== undefined);

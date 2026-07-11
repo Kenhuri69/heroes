@@ -223,6 +223,16 @@ reste un **garde-fou d'alerte** (échec seulement sur blowout), pas un gate CI ;
 les 3 matchups Sylvan sont désormais dans la bande 20–80 (deux à ~45 %, un à
 57.5 %). Aucune autre faction touchée.
 
+**F-SYMBAI (post-5.4)** : l'IA de combat sait désormais s'enraciner — une pile
+`symbiosis` sous son plafond qui n'a rien à frapper Défend quand le combat
+vient à elle (au lieu d'avancer et de perdre ses paliers), bornée par le
+plafond. Une variante plus agressive (« défendre au lieu de bouger-frapper »)
+a été testée en sim et **rejetée** : avec le profil agile-verre ci-dessus,
+temporiser donne la première frappe à l'adversaire et effondre Sylvan
+(1–10 % de winrate). La Symbiose pèse donc en sim par sa règle minimale ;
+son poids principal reste le jeu du joueur (enraciner un Tréant sur un point
+de passage), pas l'auto-combat.
+
 **Bosquet du Cœur** (`heart-grove`) livré — bâtiment `growthBonus` +25 %,
 effet **générique** existant, **zéro code moteur** (§4).
 

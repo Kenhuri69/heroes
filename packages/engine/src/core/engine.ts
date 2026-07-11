@@ -19,6 +19,7 @@ import {
   applyDailyIncome,
   applyWeeklyGrowth,
   assignHuntContracts,
+  townBuildingAura,
   handleBuildStructure,
   handleCaptureTown,
   handleGarrisonTransfer,
@@ -81,13 +82,16 @@ type Handlers = {
 
 /**
  * PM quotidiens du héros : base (doc 02 §1.5) modulés par la Logistique
- * (`movementBonusPct`, compétence — décision plan phase-3.2 #5). Sans
- * compétence : bonus 0 ⇒ valeur de base inchangée (golden intact).
+ * (`movementBonusPct`, compétence — décision plan phase-3.2 #5), puis bonus plat
+ * d'**aura de bâtiment** (F-BUILDEFF.1, doc 03 §4 — Écuries : +PM/jour au héros
+ * qui commence son tour dans la ville). Sans compétence ni aura : bonus 0 ⇒
+ * valeur de base inchangée (golden intact).
  */
 function heroDailyMovement(draft: Draft, hero: GameState['heroes'][number]): number {
   if (!draft.config) return 0;
   const base = dailyMovementPoints(draft.config, hero.army, draft.unitCatalog);
-  return Math.round(base * (1 + heroMovementBonus(hero, draft.skillCatalog) / 100));
+  const scaled = Math.round(base * (1 + heroMovementBonus(hero, draft.skillCatalog) / 100));
+  return scaled + townBuildingAura(draft, hero.playerId, hero.pos, 'movementBonusFlat');
 }
 
 /** Règle d'or (doc 07 §2) : fonction pure (état, commande) → état + événements. */

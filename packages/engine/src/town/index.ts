@@ -21,7 +21,7 @@ export {
   effectiveMarketRates,
   ownedMarketCount,
 } from './market';
-export { applyDailyIncome, applyWeeklyGrowth } from './economy';
+export { applyDailyIncome, applyWeeklyGrowth, townBuildingAura } from './economy';
 export { assignHuntContracts, rewardHuntContract } from './hunt-contract';
 export {
   sharedGrowthRecipients,

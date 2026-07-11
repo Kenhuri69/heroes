@@ -299,6 +299,45 @@
       "base": 18,
       "perPower": 4,
       "area": "splash"
+    },
+    {
+      "id": "fletrissure",
+      "school": "prime",
+      "circle": 1,
+      "manaCost": 5,
+      "kind": "debuff",
+      "base": 0,
+      "perPower": 0,
+      "attackMod": -3
+    },
+    {
+      "id": "drain-vital",
+      "school": "prime",
+      "circle": 1,
+      "manaCost": 6,
+      "kind": "damage",
+      "base": 8,
+      "perPower": 2
+    },
+    {
+      "id": "carapace-osseuse",
+      "school": "prime",
+      "circle": 2,
+      "manaCost": 8,
+      "kind": "buff",
+      "base": 0,
+      "perPower": 0,
+      "defenseMod": 4
+    },
+    {
+      "id": "vague-mortifere",
+      "school": "prime",
+      "circle": 3,
+      "manaCost": 15,
+      "kind": "damage",
+      "base": 18,
+      "perPower": 4,
+      "area": "splash"
     }
   ]
 }

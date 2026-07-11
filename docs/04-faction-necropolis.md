@@ -16,8 +16,9 @@
 > La compétence `necromancy` est une **compétence de faction** (marqueur à effet
 > externe, `external`), estampillée `factionId` par le loader depuis
 > `manifest.heroSkills` ⇒ **proposée au tirage de niveau aux seuls héros
-> Necropolis**. **Différé** : bâtiment Amplificateur (+% cumulable, §2/§4) ;
-> « Fléau persistant », école Prime, héros nommés (Vhalen/Mère Corbeau).
+> Necropolis**. **École Prime livrée** (F-SCHOOLS.2 — `spellSchool: "prime"`, 4
+> sorts génériques, patron Lumière/Scène). **Différé** : bâtiment Amplificateur
+> (+% cumulable, §2/§4) ; « Fléau persistant », héros nommés (Vhalen/Mère Corbeau).
 > **Livré depuis** : `lifeDrain` (Vampire) et `charge` (Cavalier funeste) en A2a ;
 > `incorporeal` (Spectre, 20 % d'esquive) en A2b ; `curseOnHit` (Zombie
 > « Affaiblissement » −Défense 20 %, Cavalier funeste « Faux funeste » −20 %
@@ -39,7 +40,7 @@
 | **Style de jeu** | Attrition, quantité, immunités ; faible moral adverse exploité ; snowball par la Nécromancie |
 | **Terrain natif** | Terre morte |
 | **Ressources clés** | Soufre + Gemmes |
-| **École de magie affine** | Nécromancie/Prime (variante Terre au MVP : affaiblissement, animation, drain) |
+| **École de magie affine** | Nécromancie/Prime — **école propre livrée** (F-SCHOOLS.2, `spellSchool: "prime"`) : 4 sorts affaiblissement/animation/drain réutilisant les kinds génériques (Flétrissure debuff, Drain Vital damage, Carapace Osseuse buff, Vague Mortifère damage splash) |
 | **Couleurs / DA** | Noir, vert spectral, os blanchi ; architecture de flèches et cryptes |
 
 **Lore (résumé)** : les Nécromanciens d'Heresh vénèrent Asha sous son aspect de Mort. Pour eux, la non-vie est la purification ultime des passions. Chaque champ de bataille est une moisson.

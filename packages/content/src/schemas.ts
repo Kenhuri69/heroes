@@ -321,7 +321,7 @@ export const buildingCatalogSchema = z.object({
  * écoles génériques (doc 02 §1.4) + écoles de faction. Ajouter une école de
  * faction = l'inscrire ici (registre data-aware), jamais un diff moteur.
  */
-export const SPELL_SCHOOLS = ['fire', 'water', 'earth', 'air', 'neutral', 'traque', 'scene', 'lumiere'] as const;
+export const SPELL_SCHOOLS = ['fire', 'water', 'earth', 'air', 'neutral', 'traque', 'scene', 'lumiere', 'prime'] as const;
 
 export const spellSchema = z
   .object({

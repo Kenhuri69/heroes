@@ -25,6 +25,7 @@ import { appStore } from './app/store';
 import { navigate } from './app/router';
 import { exportSave, importSave, saveGame, restoreSavedGame, encodeHeroesFile } from './app/save';
 import { installAutosave } from './app/autosave';
+import { installCombatLog } from './app/combat-log';
 import { initTelemetry } from './app/telemetry';
 import { initAudio } from './app/audio';
 import { initReduceMotion } from './app/motion';
@@ -276,6 +277,7 @@ async function bootstrap(): Promise<void> {
   };
 
   installAutosave(); // autosave à chaque fin de tour (doc 07 §4)
+  installCombatLog(); // journal de combat (UX-COMBATLOG, doc 08 §2.4) — accumule les événements
   initTelemetry(); // télémétrie locale opt-in (doc 09, Alpha 4.19) — no-op si désactivée
   initReduceMotion(); // option « réduire les animations » (lot M8 C3) — miroir localStorage
   initAudio(); // ambiance sonore (UXD-6B) — silencieuse tant qu'aucun fichier audio

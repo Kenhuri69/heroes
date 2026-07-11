@@ -18,6 +18,7 @@ import { COMBAT_SPEEDS } from '../app/ui-constants';
 import { combatPreview, type DamagePreview } from '../scenes/combat/preview';
 import { pushToast } from './toasts';
 import { SpellBook } from './SpellBook';
+import { CombatLog } from './CombatLog';
 import './combat.css';
 
 /**
@@ -46,6 +47,7 @@ export function CombatUi() {
   const [heroAttackOpen, setHeroAttackOpen] = useState(false);
   const [leaveConfirm, setLeaveConfirm] = useState<'retreat' | 'surrender' | null>(null);
   const [sheetStackId, setSheetStackId] = useState<string | null>(null);
+  const [logOpen, setLogOpen] = useState(false);
 
   // Boucle d'auto-combat round par round (lot M4, doc 08 §2.4) : tant que la
   // bascule est levée et que la main est au joueur, joue UN round auto après
@@ -212,6 +214,14 @@ export function CombatUi() {
         >
           {autoActive ? t('combat.resume') : t('combat.auto')}
         </button>
+        <button
+          data-testid="combat-log-toggle"
+          class={logOpen ? 'active' : ''}
+          aria-pressed={logOpen}
+          onClick={() => setLogOpen((v) => !v)}
+        >
+          {t('combat.log')}
+        </button>
         <div class="combat-speeds" data-testid="combat-speed">
           {COMBAT_SPEEDS.map((speed) => (
             <button
@@ -226,6 +236,9 @@ export function CombatUi() {
       </footer>
       </div>
 
+      {/* Journal de combat (UX-COMBATLOG) — monté en permanence pour accumuler
+          les événements même masqué ; le bouton bascule seulement sa visibilité. */}
+      <CombatLog visible={logOpen} />
       {spellBookOpen && hero && <SpellBook hero={hero} onClose={() => setSpellBookOpen(false)} />}
       {heroAttackOpen && <HeroAttackModal combat={combat} onClose={() => setHeroAttackOpen(false)} />}
       {leaveConfirm && (

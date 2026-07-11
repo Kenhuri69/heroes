@@ -535,10 +535,14 @@ préviz dégâts, raccourcis, a11y 3 crans, audio complet, chrome UI, options.)
   Spec : tap-tap pour permuter (pas de drag obligatoire) ; commande
   `ReorderArmy` (l'ordre des slots influe sur le placement de combat).
 
-- **UX-COMBATLOG — Journal de combat** 🕳️ S ⬜
-  Doc : doc 08 §2.4 (lisibilité d'état). Code : `Journal.tsx:12-55` = aventure
-  uniquement. Spec : log déroulant des actions/dégâts du combat courant
-  (consomme les événements moteur déjà émis).
+- **UX-COMBATLOG — Journal de combat** 🎨 S ✅ (livré)
+  Doc : doc 08 §2.4 (lisibilité d'état). Spec : log déroulant des actions/dégâts
+  du combat courant (consomme les événements moteur déjà émis). Livré :
+  `app/combat-log.ts` (listener global → `store.combatLog`, résout id de pile →
+  nom d'unité, remis à zéro à `CombatStarted`, borne 80 lignes) + composant
+  `CombatLog` (panneau déroulant basculé par le bouton « Journal » en combat).
+  **Client pur** (zéro moteur/save/golden). Traduit round/attaque/riposte/
+  esquive/mort/soin/poison/sort/moral/peur/immobilisation/fin.
 
 - **UX-ENDSTATS — Stats détaillées de fin de partie** 🧩 S ⬜ (différé assumé
   note U6b doc 08 §2.5). Code : graphique de puissance livré

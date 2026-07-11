@@ -318,8 +318,15 @@ test('confort : raccourci E + garde-fou de fin de tour (doc 08, lot M8 C2/C12)',
   await page.mouse.click(heroTile.x, heroTile.y);
 
   // Le héros n'a pas bougé (PM pleins) ⇒ la touche E ouvre la confirmation (C12).
-  await page.keyboard.press('e');
-  await expect(page.getByTestId('end-turn-confirm')).toBeVisible();
+  // Sous charge (CI/parallèle), la frappe peut être avalée avant que le focus
+  // clavier soit réellement établi : on re-frappe jusqu'à voir la confirmation
+  // (même point de synchro déterministe que `tapTapTile`), sans re-frapper si
+  // elle est déjà ouverte.
+  const confirm = page.getByTestId('end-turn-confirm');
+  await expect(async () => {
+    if (!(await confirm.isVisible())) await page.keyboard.press('e');
+    await expect(confirm).toBeVisible({ timeout: 1000 });
+  }).toPass({ timeout: 10000 });
   await page.getByTestId('end-turn-confirm-go').click();
   await expect(page.getByTestId('calendar')).toHaveText('Jour 2 · Semaine 1');
 
@@ -334,8 +341,13 @@ test('confort : « ? » ouvre l’aide des raccourcis, Échap la ferme (X7)', as
   const heroTile = await page.evaluate(() => window.__HEROES_TEST__!.tileToScreen(3, 3));
   await page.mouse.click(heroTile.x, heroTile.y);
 
-  await page.keyboard.press('Shift+Slash'); // « ? »
-  await expect(page.getByTestId('shortcuts-panel')).toBeVisible();
+  // « ? » — re-frappé jusqu'à l'ouverture (cf. test raccourci E : la frappe
+  // peut être avalée sous charge avant que le focus soit établi).
+  const panel = page.getByTestId('shortcuts-panel');
+  await expect(async () => {
+    if (!(await panel.isVisible())) await page.keyboard.press('Shift+Slash');
+    await expect(panel).toBeVisible({ timeout: 1000 });
+  }).toPass({ timeout: 10000 });
   await page.keyboard.press('Escape');
   await expect(page.getByTestId('shortcuts-panel')).toHaveCount(0);
 

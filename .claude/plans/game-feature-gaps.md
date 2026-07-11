@@ -254,10 +254,14 @@ Source design : docs 03 §2/§4/§5, 04 §2/§4, 05 §3/§5/§6/§7, 14 §5/§6,
     (Haven) livrée en **pur contenu** (patron Scène/16.5) — `spellSchool:"lumiere"`
     + 4 sorts (damage/heal/buff) + `SPELL_SCHOOLS += lumiere` + locales. Zéro diff
     moteur, golden inchangé.
-  - **F-SCHOOLS.2+** ⬜ : Necropolis Nécromancie/Prime (doc 04 §1) ; complétion
-    Traque 8 sorts (doc 05 §6 — 6 sorts exigent de **nouvelles** mécaniques de
-    combat : téléport, silence, bannissement, furtivité, noRetaliation conditionnel) ;
-    effets Scène enrichis (peur/+moral, partagés CAP-MORAL).
+  - **F-SCHOOLS.2** ✅ (plan `f-schools-prime.md`) : **École Prime** (Necropolis)
+    livrée en pur contenu (patron .1) — `spellSchool:"prime"` + 4 sorts
+    (debuff/damage/buff) + `SPELL_SCHOOLS += prime` + locales. Zéro diff moteur,
+    golden inchangé.
+  - **F-SCHOOLS.3+** ⬜ : complétion Traque 8 sorts (doc 05 §6 — 6 sorts exigent
+    de **nouvelles** mécaniques de combat : téléport, silence, bannissement,
+    furtivité, noRetaliation conditionnel) ; effets Scène enrichis (peur/+moral,
+    partagés CAP-MORAL).
 
 - **F-ELITEVOX — Élites Vox Arcana** 🕳️ M ⬜ (différé assumé doc 16 §4)
   Code : 8 dwellings `maxLevel:1`, aucun fichier `-elite` (contrairement aux 4

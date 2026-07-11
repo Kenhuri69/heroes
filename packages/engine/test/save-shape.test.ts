@@ -106,6 +106,7 @@ describe('B8 — forme de sauvegarde verrouillée', () => {
         'combat',
         'factionCatalog',
         'houseCatalog',
+        'heroRoster',
         'growthGroups',
         'scenario',
         'outcome',

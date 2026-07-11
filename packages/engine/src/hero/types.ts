@@ -83,6 +83,8 @@ export interface SkillRankEffect {
  * Effets déclaratifs génériques (mêmes que Maisons/compétences) — zéro nom en dur.
  */
 export interface ResolvedHeroDef {
+  /** Faction propriétaire (id opaque) — la Taverne d'une ville n'offre que les héros de SA faction (M-TAVERN.1). */
+  factionId: string;
   name: string;
   attributes: { attack: number; defense: number; power: number; knowledge: number };
   specialtyId: string;

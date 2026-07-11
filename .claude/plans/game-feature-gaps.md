@@ -361,15 +361,18 @@ Source design : doc 02 §1 (héros), docs de faction §5/§6/§7 (héros nommés
 
 Source design : doc 02 §2 (carte), §1.5 (multi-héros).
 
-- **M-TAVERN — Multi-héros & recrutement en taverne** 🕳️ L ⬜
-  Doc : doc 02 §1.5 (jusqu'à 8 héros, échanges, héros vaincu re-recrutable),
-  §4.1 (Taverne). Code : un seul `hero-${p.id}` au `StartGame` ; aucune
-  commande `RecruitHero` ; Taverne = effet `none`
-  (`packages/engine/src/town/types.ts:41-43`) ; `defenderHeroId` toujours
-  `null` (pas de combat héros-vs-héros). Spec : pool de héros (croise H-NAMED),
-  commande `RecruitHero` (coût or, apparition en ville), sélection du héros
-  actif dans l'UI, combat héros-vs-héros (les deux côtés avec sorts/attaque
-  héroïque), héros vaincu retourne au pool. Gros lot ; save bump.
+- **M-TAVERN — Multi-héros & recrutement en taverne** 🕳️ L 🚧 (**découpé en sous-lots**)
+  Doc : doc 02 §1.5 (jusqu'à 8 héros, échanges, héros vaincu re-recrutable), §4.1 (Taverne).
+  - **M-TAVERN.1** ✅ (plan `m-tavern-recruit.md`) : **recrutement moteur** — effet
+    de bâtiment `tavern` (Taverne core) ; `GameState.heroRoster` persisté (save
+    **23→24**) ; commande `RecruitHero` (joueur actif, ville possédée + Taverne, or
+    ≥ `config.hero.recruitCost` 2500, cap `maxPerPlayer` 8, héros du roster de la
+    faction de la ville, pas déjà recruté) crée le héros nommé (identité H-NAMED,
+    armée vide) à la ville ; client embarque le roster à `StartGame`. Zéro faction
+    moteur, golden re-fixé (forme). **Différés (M-TAVERN.2+)** : câblage client
+    (bouton Recruter + sélection du héros actif), combat héros-vs-héros
+    (`defenderHeroId`), échanges d'armée/artefacts (UX-HEROSWAP), exclusivité de
+    pool inter-joueurs.
 
 - **M-GUARDLINK — Gardiens attachés aux trésors** 🕳️ 🧩 (tranche livrée)
   > **Livré** : champ **optionnel** `guardedBy` (id de gardien) sur les objets

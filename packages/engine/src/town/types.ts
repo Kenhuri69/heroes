@@ -64,8 +64,14 @@ export type BuildingEffect =
    * opaque — le moteur ne connaît aucune faction (le sort vit dans le catalogue).
    */
   | { type: 'grantSpell'; spellId: string }
-  /** Bâtiment sans effet mécanique (ex. Taverne : prérequis d'arbre seul). La
-   *  Forge, elle, porte `warMachineVendor` (Alpha 4.12), pas `none`. */
+  /**
+   * Taverne (doc 02 §4.1, M-TAVERN.1) : active le **recrutement de héros nommés**
+   * du propriétaire (commande `RecruitHero`, contre or, cap 8). Générique — le
+   * héros vient du roster embarqué (`GameState.heroRoster`), zéro nom en dur.
+   */
+  | { type: 'tavern' }
+  /** Bâtiment sans effet mécanique (prérequis d'arbre seul). La Forge, elle,
+   *  porte `warMachineVendor` (Alpha 4.12), pas `none`. */
   | { type: 'none' };
 
 export interface BuildingLevel {

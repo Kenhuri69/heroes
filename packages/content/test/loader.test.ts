@@ -113,6 +113,8 @@ function makeConfig(): GameConfig {
         levelCurve: { base: 1000, exponent: 1.9 },
         maxLevel: 30,
         attributeWeights: { attack: 30, defense: 30, power: 20, knowledge: 20 },
+        recruitCost: 2500,
+        maxPerPlayer: 8,
       },
       combat: {
         attackDefenseStep: 0.05,

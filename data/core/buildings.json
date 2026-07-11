@@ -160,7 +160,7 @@
           },
           "requires": [],
           "effect": {
-            "type": "none"
+            "type": "tavern"
           }
         }
       ]

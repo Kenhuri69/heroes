@@ -15,6 +15,7 @@ import {
   type HeroState,
   type PlayerSetup,
   type QuestState,
+  type ResolvedHeroDef,
   type Resources,
   type ScenarioState,
   type SkillRankEffect,
@@ -27,6 +28,7 @@ import {
   buildBuildingCatalog,
   buildFactionCatalog,
   buildGrowthGroupCatalog,
+  buildHeroRoster,
   buildHouseCatalog,
   buildScenarioObjectives,
   buildSkillCatalog,
@@ -51,6 +53,13 @@ export type HouseCatalog = Record<string, { effects: SkillRankEffect[] }>;
 
 export function buildHouseSetup(report: LoadReport): HouseCatalog {
   return buildHouseCatalog(report) as HouseCatalog;
+}
+
+/** Roster de héros nommés résolu contenu → moteur (H-NAMED.1) — pour `StartGame.heroRoster`. */
+export type HeroRosterCatalog = Record<string, ResolvedHeroDef>;
+
+export function buildHeroRosterSetup(report: LoadReport): HeroRosterCatalog {
+  return buildHeroRoster(report) as HeroRosterCatalog;
 }
 
 /** Groupes de croissance partagée résolus contenu → moteur (doc 05 §3.1/§8) — pour `StartGame.growthGroups`. */
@@ -479,6 +488,7 @@ export function scenarioStartCommand(
     startingArtifacts: heroSetup.startingArtifacts,
     factionCatalog: buildFactionSetup(report),
     houseCatalog: buildHouseSetup(report),
+    heroRoster: buildHeroRosterSetup(report),
     growthGroups: buildGrowthGroupSetup(report),
     scenario: { objectives: buildScenarioObjectives(scenario) },
     ...(quests ? { quests } : {}),
@@ -674,6 +684,7 @@ export function skirmishStartCommand(
     startingArtifacts: heroSetup.startingArtifacts,
     factionCatalog: buildFactionSetup(report),
     houseCatalog: buildHouseSetup(report),
+    heroRoster: buildHeroRosterSetup(report),
     growthGroups: buildGrowthGroupSetup(report),
     scenario: { objectives },
     ...(quests ? { quests } : {}),

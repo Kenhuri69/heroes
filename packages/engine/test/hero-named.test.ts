@@ -14,6 +14,7 @@ import { testConfig, testMap } from './fixtures';
 
 const ROSTER: Record<string, ResolvedHeroDef> = {
   'named-a': {
+    factionId: 'fac-x',
     name: '@loc:hero.named-a.name',
     attributes: { attack: 2, defense: 2, power: 1, knowledge: 1 },
     specialtyId: 'meneur',

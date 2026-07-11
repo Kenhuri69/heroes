@@ -341,7 +341,9 @@ const buildingEffectSchema = z.discriminatedUnion('type', [
    * (le sort doit exister dans `core/spells.json`).
    */
   z.object({ type: z.literal('grantSpell'), spellId: idSchema }),
-  /** Bâtiment sans effet mécanique en 3.1 (tavern/forge/spécial) — arbre seul. */
+  /** Taverne (M-TAVERN.1, doc 02 §4.1) : active le recrutement de héros nommés. */
+  z.object({ type: z.literal('tavern') }),
+  /** Bâtiment sans effet mécanique (forge/spécial) — prérequis d'arbre seul. */
   z.object({ type: z.literal('none') }),
 ]);
 
@@ -567,6 +569,9 @@ export const gameConfigSchema = z.object({
         power: z.number().nonnegative(),
         knowledge: z.number().nonnegative(),
       }),
+      /** Recrutement de héros à la Taverne (M-TAVERN.1, doc 02 §1.5/§4.1). `.default` (bridge exactOptional → engine `?:`). */
+      recruitCost: z.number().int().nonnegative().default(2500),
+      maxPerPlayer: z.number().int().positive().default(8),
     }),
     /** Règles de combat (doc 02 §5 + plan phase-2.4) — même forme que le moteur. */
     combat: z.object({

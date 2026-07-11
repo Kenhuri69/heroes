@@ -118,6 +118,10 @@ export interface HeroProgressionConfig {
   maxLevel: number;
   /** Pondérations du +1 attribut/niveau (profil unique livré ; classes de héros différées). */
   attributeWeights: { attack: number; defense: number; power: number; knowledge: number };
+  /** Coût en or d'un recrutement de héros à la Taverne (M-TAVERN.1). Défaut 2500. */
+  recruitCost?: number;
+  /** Nombre maximum de héros par joueur (doc 02 §1.5). Défaut 8. */
+  maxPerPlayer?: number;
 }
 
 /**

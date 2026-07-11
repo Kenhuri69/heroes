@@ -95,7 +95,7 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
   Ajouter un terrain = données (`config.json` + recette de tuile `gen_tiles.py`), **zéro diff moteur** (schéma terrain = chaîne opaque validée au load contre la config).
 - Portée de vision de base du héros : **5 tuiles** (distance de Tchebychev), avant bonus (Recherche +2/4/6).
 - Pathfinding A* avec préviualisation du chemin et des jours nécessaires (points verts/jaunes comme HoMM).
-- *État livré : **un seul héros par joueur** (créé au démarrage, pas de recrutement de héros). Le multi-héros (jusqu'à 8), les échanges d'armée/artefacts entre héros et le combat héros-vs-héros (le champ `defenderHeroId` existe mais reste toujours `null`) sont **différés**.*
+- *État livré (M-TAVERN.1) : **multi-héros par recrutement à la Taverne** — la commande `RecruitHero` (moteur) crée un **héros nommé** du roster de la faction de la ville (`GameState.heroRoster`, H-NAMED.1) contre or (`config.hero.recruitCost` = 2500), plafonné à `config.hero.maxPerPlayer` (**8**, doc §1.5) ; le héros apparaît sur la ville, armée vide. **Différés (M-TAVERN.2+)** : câblage client (bouton Recruter + sélection du héros actif), **échanges** d'armée/artefacts entre héros (UX-HEROSWAP), **combat héros-vs-héros** (`defenderHeroId` toujours `null`), exclusivité de pool inter-joueurs.*
 
 ---
 
@@ -227,7 +227,7 @@ Chaque faction consomme surtout **une paire de ressources rares** (Haven : crist
 |----------|---------|-------|
 | Hôtel de ville → Capitole | 4 | 500/1000/2000/4000 or/j (1 seul Capitole par joueur) |
 | Fort → Château | 3 | murs (défense de siège), +50 %/+100 % croissance créatures |
-| Taverne | 1 | **effet `none` — aucune mécanique livrée** (ni recrutement de héros, ni rumeurs, ni +1 moral) ; sert uniquement de **prérequis** (arbre, ex. Tableau des Contrats AH). Recrutement de héros différé |
+| Taverne | 1 | **effet `tavern` (M-TAVERN.1)** : active le **recrutement de héros nommés** du propriétaire (`RecruitHero`, contre or, cap 8, doc §1.5). Sert aussi de prérequis d'arbre. Rumeurs / +1 moral non livrés |
 | Marché | 1 | échange **ressource ↔ or** et **troc** ressource↔ressource ; taux **dégressif** selon le nombre de marchés possédés (`market`, doc §3, T-MARKETRATE) |
 | Forge | 1 | vend des machines de guerre au héros présent (effet générique `warMachineVendor`, Alpha 4.12) |
 | Guilde des mages | 3 | **G2 livré** : à la construction d'un niveau L, `spellCount` sorts du cercle L sont tirés au **RNG seedé** dans `town.spellPool` (4/3/2 par niveau) ; un héros du propriétaire qui **visite la ville** (foule sa tuile) apprend automatiquement les sorts du pool de cercle ≤ son cercle apprenable. Cercle apprenable = **3** de base, relevé à **4/5** par la compétence **Sagesse** (H2). Onglet Guilde informatif côté client |

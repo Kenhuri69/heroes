@@ -25,6 +25,7 @@ export type Modal =
   | { kind: 'journal' }
   | { kind: 'skirmish' }
   | { kind: 'newgame' }
+  | { kind: 'briefing'; scenarioId: string }
   | { kind: 'shortcuts' };
 
 /** Plafond de profondeur de la pile de modales (doc 08 §3). */

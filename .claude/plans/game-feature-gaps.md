@@ -210,8 +210,11 @@ Source design : docs 03 §2/§4/§5, 04 §2/§4, 05 §3/§5/§6/§7, 14 §5/§6,
     `movementBonusFlat` câblé dans `heroDailyMovement` ; **Écuries** Haven livré
     (doc 03 §4). Helper `townBuildingAura`, zéro faction, aucun bump de save,
     golden inchangé.
-  - **F-BUILDEFF.2** ⬜ : Statue du Jugement (+moral garnison/visiteur **en
-    combat**) — threading du moral de ville dans le siège.
+  - **F-BUILDEFF.2** ✅ (plan `f-buildeff-morale.md`) : champ d'aura
+    `combatMoraleBonus` câblé dans `moraleOf` (camp défenseur d'un combat de
+    ville, réutilise `townBuildingAura`) ; **Statue du Jugement** Haven livrée
+    (+1 moral garnison en siège). Volet « héros visiteur défenseur » différé avec
+    le modèle de héros défenseur en siège. Zéro faction, aucun bump, golden inchangé.
   - **F-BUILDEFF.3** ⬜ : Cloître (apprentissage de sort au visiteur + régén mana).
   - **F-BUILDEFF.4+** ⬜ : modif ressource de faction, passifs de Cercles AH
     (`data/factions/arcane-hunters/buildings.json`, placeholders + `mageGuild@1`),

@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { apply } from '../src/core/engine';
 import { townBuildingAura } from '../src/town/economy';
+import { moraleOf } from '../src/combat/state-helpers';
 import { seedRng } from '../src/core/rng';
 import { createEmptyState, emptyResources, type GameState, type HeroState } from '../src/core/state';
+import type { CombatStack, CombatState } from '../src/combat/types';
 import type { BuildingDef, TownState } from '../src/town/types';
 import { testConfig, testCatalog } from './fixtures';
 
@@ -29,6 +31,10 @@ const AURA_CATALOG: Record<string, BuildingDef> = {
   stables: {
     id: 'stables', maxLevel: 1,
     levels: [{ cost: {}, requires: [], effect: { type: 'heroAura', movementBonusFlat: 400 } }],
+  },
+  statue: {
+    id: 'statue', maxLevel: 1,
+    levels: [{ cost: {}, requires: [], effect: { type: 'heroAura', combatMoraleBonus: 1 } }],
   },
 };
 
@@ -85,5 +91,44 @@ describe('F-BUILDEFF.1 — Écuries : +PM/jour au héros présent', () => {
     const mvOff = offTown.heroes[0]?.movementPoints ?? 0;
     expect(mvOff).toBeGreaterThan(0); // base non nulle
     expect(mvOn - mvOff).toBe(400); // aura Écuries appliquée seulement sur la ville
+  });
+});
+
+/** Combat de siège minimal : une pile défenseure (garnison) dans la ville `townId`. */
+function siegeCombat(townId: string | null): { stack: CombatStack; combat: CombatState } {
+  const stack: CombatStack = {
+    id: 'defender-0', side: 'defender', slot: 0, unitId: 'red-grunt', count: 5, firstHp: 10,
+    pos: { col: 11, row: 3 }, retaliationsLeft: 1, waited: false, defending: false, ammo: null,
+    spellCharges: 0, marks: 0, immobilizedRounds: 0, transformed: false, symbiosisStacks: 0,
+    acted: false, statuses: [],
+  };
+  const combat = {
+    terrain: 'water', round: 1, obstacles: [], stacks: [stack], activeStackId: null,
+    playerSide: 'attacker', heroId: null, guardianObjectId: null, townId, wallDefenseBonus: 0,
+    attackerHeroId: null, defenderHeroId: null, heroCastThisRound: false, heroAttackUsed: [],
+    finished: false, winner: null,
+  } as unknown as CombatState;
+  return { stack, combat };
+}
+
+describe('F-BUILDEFF.2 — Statue du Jugement : +moral à la garnison en siège', () => {
+  const state = (buildings: Record<string, number>): GameState =>
+    ({
+      ...createEmptyState(),
+      unitCatalog: testCatalog(),
+      buildingCatalog: AURA_CATALOG,
+      towns: [town({ buildings })],
+    }) as GameState;
+
+  it('la garnison défenseure gagne +1 moral quand la ville a une Statue', () => {
+    const { stack, combat } = siegeCombat('t1');
+    const withStatue = moraleOf(stack, combat, state({ statue: 1 }));
+    const without = moraleOf(stack, combat, state({}));
+    expect(withStatue - without).toBe(1);
+  });
+
+  it('hors siège (townId null) : aucune aura de moral', () => {
+    const { stack, combat } = siegeCombat(null);
+    expect(moraleOf(stack, combat, state({ statue: 1 }))).toBe(moraleOf(stack, combat, state({})));
   });
 });

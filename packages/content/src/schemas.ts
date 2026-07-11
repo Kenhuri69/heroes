@@ -257,12 +257,18 @@ const buildingEffectSchema = z.discriminatedUnion('type', [
    *  par le moteur dans le catalogue des Maisons ; combiné à `exclusiveGroup`. */
   z.object({ type: z.literal('houseChoice'), houseId: idSchema }),
   /**
-   * Aura de bâtiment au héros présent (F-BUILDEFF.1, doc 03 §4 — Écuries) :
-   * bonus au héros du propriétaire présent sur la tuile de la ville.
-   * `movementBonusFlat` = points de mouvement/jour plats. Seul ce champ est câblé
-   * pour l'instant (les sous-lots F-BUILDEFF.x en ajouteront d'autres).
+   * Aura de bâtiment (F-BUILDEFF, doc 03 §4). `movementBonusFlat` (.1, Écuries) =
+   * PM/jour au héros du propriétaire présent sur la ville. `combatMoraleBonus`
+   * (.2, Statue du Jugement) = +moral en combat de siège au camp défenseur.
+   * `.default(0)` (comme combatBonus F-BONUS) : champ optionnel côté données, type
+   * requis assignable au champ moteur optionnel (exactOptionalPropertyTypes) — un
+   * champ à 0 est un no-op côté moteur (lu `?? 0`). D'autres champs suivront.
    */
-  z.object({ type: z.literal('heroAura'), movementBonusFlat: z.number().int().positive() }),
+  z.object({
+    type: z.literal('heroAura'),
+    movementBonusFlat: z.number().int().nonnegative().default(0),
+    combatMoraleBonus: z.number().int().nonnegative().default(0),
+  }),
   /** Bâtiment sans effet mécanique en 3.1 (tavern/forge/spécial) — arbre seul. */
   z.object({ type: z.literal('none') }),
 ]);

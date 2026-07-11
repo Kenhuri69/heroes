@@ -39,14 +39,15 @@ export type BuildingEffect =
    * `exclusiveGroup`, il modélise le choix unique et irréversible d'une Maison. */
   | { type: 'houseChoice'; houseId: string }
   /**
-   * Aura de bâtiment au héros présent (F-BUILDEFF.1, doc 02 §4.1 / doc 03 §4 —
-   * Écuries) : bonus appliqué au héros du **propriétaire présent sur la tuile**
-   * de la ville (option B, comme les Maisons). Générique et data-driven — le
-   * moteur ne connaît aucune faction. F-BUILDEFF.1 câble `movementBonusFlat`
-   * (points de mouvement/jour plats) ; les sous-lots suivants étendront la
-   * charge (moral/chance en combat…) + leur câblage.
+   * Aura de bâtiment (F-BUILDEFF, doc 02 §4.1 / doc 03 §4). Générique et
+   * data-driven — le moteur ne connaît aucune faction. Deux portées :
+   * - `movementBonusFlat` (.1, Écuries) : PM/jour plats au héros du propriétaire
+   *   **présent sur la tuile** de la ville (option B), câblé dans `heroDailyMovement`.
+   * - `combatMoraleBonus` (.2, Statue du Jugement) : +moral en **combat de siège**
+   *   au camp défenseur (garnison), câblé dans `moraleOf`.
+   * Les sous-lots suivants étendront la charge + leur câblage.
    */
-  | { type: 'heroAura'; movementBonusFlat?: number }
+  | { type: 'heroAura'; movementBonusFlat?: number; combatMoraleBonus?: number }
   /** Bâtiment sans effet mécanique (ex. Taverne : prérequis d'arbre seul). La
    *  Forge, elle, porte `warMachineVendor` (Alpha 4.12), pas `none`. */
   | { type: 'none' };

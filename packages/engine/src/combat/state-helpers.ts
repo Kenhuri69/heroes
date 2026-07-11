@@ -2,6 +2,7 @@ import type { CombatRulesConfig } from '../adventure/config';
 import type { GameState } from '../core/state';
 import { heroArtifactBonus } from '../hero/artifacts';
 import { heroMorale } from '../hero/skills';
+import { townBuildingAura } from '../town/economy';
 import type { CombatSideId, CombatStack, CombatState, CombatUnitDef } from './types';
 
 /**
@@ -202,7 +203,17 @@ export function moraleOf(stack: CombatStack, combat: CombatState, state: GameSta
     }
   }
   const malus = Math.max(0, groups.size - 1);
-  const raw = terrainBonus - malus + auraMod + heroMoraleForSide(state, combat, stack.side);
+  // Aura de bâtiment en siège (F-BUILDEFF.2, doc 03 §4 — Statue du Jugement) :
+  // le camp défenseur (garnison) d'un combat de ville gagne le `combatMoraleBonus`
+  // des bâtiments construits de la ville assiégée. Générique via `townBuildingAura`.
+  let townMoraleAura = 0;
+  if (stack.side === 'defender' && combat.townId) {
+    const town = state.towns.find((t) => t.id === combat.townId);
+    if (town?.ownerPlayerId)
+      townMoraleAura = townBuildingAura(state, town.ownerPlayerId, town.pos, 'combatMoraleBonus');
+  }
+  const raw =
+    terrainBonus - malus + auraMod + townMoraleAura + heroMoraleForSide(state, combat, stack.side);
   // `moraleImmune` (A3a, Ange) : immunité au moral NÉGATIF ⇒ plancher à 0.
   const floor = hasAbility(def, 'moraleImmune') ? 0 : -3;
   return clamp(raw, floor, 3);

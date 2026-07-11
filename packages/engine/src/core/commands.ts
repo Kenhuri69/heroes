@@ -162,6 +162,16 @@ export type Command =
       from: 'town' | 'hero';
       slot: number;
     }
+  | {
+      /**
+       * Envoie une pile de garnison vers une autre ville possédée (T-CARAVAN,
+       * doc 02 §4.1). Trajet en jours via l'A* existant ; arrivée en garnison.
+       */
+      type: 'SendCaravan';
+      fromTownId: string;
+      toTownId: string;
+      slot: number;
+    }
   | { type: 'CaptureTown'; townId: string; playerId: string }
   | {
       /**
@@ -225,6 +235,7 @@ export interface CommandError {
     | 'warMachineUnavailable'
     | 'insufficientStock'
     | 'invalidTransfer'
+    | 'invalidCaravan'
     | 'invalidTrade'
     | 'unknownSpell'
     | 'spellNotKnown'

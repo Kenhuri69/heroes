@@ -182,6 +182,13 @@ export type GameEvent =
   /** Choix du destinataire d'une croissance partagée (doc 05 §3.1/§8). */
   | { type: 'SharedGrowthChosen'; townId: string; groupId: string; unitId: string }
   | { type: 'TownCaptured'; townId: string; playerId: string }
+  // ——— Caravanes inter-villes (T-CARAVAN, doc 02 §4.1) ———
+  /** Caravane expédiée : `days` = durée de trajet estimée. */
+  | { type: 'CaravanSent'; playerId: string; fromTownId: string; toTownId: string; days: number }
+  /** Caravane arrivée : pile déposée en garnison de la ville de destination. */
+  | { type: 'CaravanArrived'; playerId: string; toTownId: string; unitId: string; count: number }
+  /** Caravane perdue (ville de destination passée à l'ennemi avant l'arrivée). */
+  | { type: 'CaravanLost'; playerId: string; toTownId: string }
   // ——— Contrats de chasse (doc 05 §3.3) — cible neutre hebdomadaire ———
   | { type: 'HuntContractAssigned'; playerId: string; targetObjectId: string }
   | { type: 'HuntContractCompleted'; playerId: string; gold: number; resource: string; amount: number }

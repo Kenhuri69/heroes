@@ -242,7 +242,11 @@ const GOLDEN_JOURNAL: Command[] = [
 // (événements de calendrier, doc 02 §2.3). La config golden n'a pas de
 // `calendar` ⇒ `rollWeekEvent` no-op, aucun RNG consommé, croissance ×1 : seule
 // la FORME change (champ null + version), simulation/combat inchangés.
-const GOLDEN_HASH = 'fa1ab89f';
+// Re-fixé au lot T-CARAVAN : `GameState.caravans` ([]) + `saveVersion` → 21
+// (caravanes inter-villes, doc 02 §4.1). Le journal golden n'expédie aucune
+// caravane ⇒ `tickCaravans` no-op sur liste vide : seule la FORME change (champ
+// [] + version), simulation/combat inchangés.
+const GOLDEN_HASH = '290e3531';
 
 describe('golden replay', () => {
   it('le journal scripté produit toujours le même état final', () => {

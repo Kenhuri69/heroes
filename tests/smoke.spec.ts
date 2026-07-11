@@ -1242,6 +1242,81 @@ test('siège : marcher sur une ville neutre défendue ⇒ combat ⇒ capture (Al
   expect(errors).toEqual([]);
 });
 
+test('caravane : posséder 2 villes ⇒ expédier une pile ⇒ arrivée en garnison (T-CARAVAN, doc 02 §4.1)', async ({
+  page,
+}) => {
+  const errors = await openGame(page);
+
+  // 1) Capturer la ville neutre `neutral-keep` (6,2) pour posséder 2 villes.
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({
+      type: 'MoveHero',
+      heroId: 'hero-player-1',
+      path: [
+        { x: 4, y: 2 },
+        { x: 5, y: 2 },
+      ],
+    }),
+  );
+  await expect.poll(() => heroPos(page)).toEqual({ x: 5, y: 2 });
+  await tapTapTile(page, 6, 2);
+  await expect
+    .poll(() => page.evaluate(() => window.__HEROES_TEST__!.getState().combat?.townId ?? null))
+    .toBe('neutral-keep');
+  await passPreBattle(page);
+  await page.evaluate(() => window.__HEROES_TEST__!.dispatch({ type: 'AutoCombat' }));
+  await expect
+    .poll(() => page.evaluate(() => window.__HEROES_TEST__!.getState().combat), { timeout: 20000 })
+    .toBeNull();
+  expect(
+    await page.evaluate(
+      () => window.__HEROES_TEST__!.getState().towns.find((t) => t.id === 'neutral-keep')?.ownerPlayerId,
+    ),
+  ).toBe('player-1');
+
+  // 2) Placer une pile dans la garnison de `neutral-keep` (le héros y est).
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({
+      type: 'GarrisonTransfer',
+      townId: 'neutral-keep',
+      heroId: 'hero-player-1',
+      from: 'hero',
+      slot: 0,
+    }),
+  );
+  const sentUnit = await page.evaluate(
+    () => window.__HEROES_TEST__!.getState().towns.find((t) => t.id === 'neutral-keep')?.garrison[0]?.unitId,
+  );
+  expect(sentUnit).toBeTruthy();
+
+  // 3) Expédier une caravane depuis `neutral-keep` vers `start-town` via l'UI.
+  await page.getByTestId('town-open-neutral-keep').click();
+  await page.getByTestId('town-tab-garrison').click();
+  await expect(page.getByTestId('town-caravans')).toBeVisible();
+  // Une seule autre ville possédée (start-town) ⇒ destination par défaut.
+  await page.getByTestId('town-caravan-send-0').click();
+  await expect
+    .poll(() => page.evaluate(() => window.__HEROES_TEST__!.getState().caravans.length))
+    .toBeGreaterThan(0);
+  expect(
+    await page.evaluate(() => window.__HEROES_TEST__!.getState().caravans[0]?.toTownId),
+  ).toBe('start-town');
+  await page.getByTestId('town-close').click();
+
+  // 4) Avancer les jours : la caravane arrive et dépose sa pile en garnison de start-town.
+  for (let i = 0; i < 12; i++) {
+    const left = await page.evaluate(() => window.__HEROES_TEST__!.getState().caravans.length);
+    if (left === 0) break;
+    await page.evaluate(() => window.__HEROES_TEST__!.dispatch({ type: 'EndTurn', playerId: 'player-1' }));
+  }
+  const startGarrison = await page.evaluate(
+    () => window.__HEROES_TEST__!.getState().towns.find((t) => t.id === 'start-town')?.garrison ?? [],
+  );
+  expect(startGarrison.some((s) => s.unitId === sentUnit)).toBe(true);
+
+  expect(errors).toEqual([]);
+});
+
 test('routeur : Échap ferme la modale ouverte (pile de modales, doc 08 §3, U2)', async ({ page }) => {
   const errors = await openGame(page);
 

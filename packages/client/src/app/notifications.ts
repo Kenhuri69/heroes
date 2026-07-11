@@ -181,6 +181,15 @@ export function notify(event: AppEvent, game: GameState): string | null {
         : null;
     case 'TownCaptured':
       return event.playerId === human ? t('toast.townCaptured') : null;
+    // Caravanes inter-villes (T-CARAVAN, doc 02 §4.1) — notifiées au joueur humain.
+    case 'CaravanSent':
+      return event.playerId === human ? t('toast.caravanSent', { days: event.days }) : null;
+    case 'CaravanArrived':
+      return event.playerId === human
+        ? t('toast.caravanArrived', { count: event.count, unit: resolveUnitName(event.unitId) })
+        : null;
+    case 'CaravanLost':
+      return event.playerId === human ? t('toast.caravanLost') : null;
     // Contrats de chasse (doc 05 §3.3) — cible neutre hebdomadaire.
     case 'HuntContractAssigned':
       return event.playerId === human ? t('toast.huntContractAssigned') : null;

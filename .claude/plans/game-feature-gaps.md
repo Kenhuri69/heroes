@@ -242,10 +242,16 @@ Source design : docs 03 §2/§4/§5, 04 §2/§4, 05 §3/§5/§6/§7, 14 §5/§6,
   Code : 8 dwellings `maxLevel:1`, aucun fichier `-elite` (contrairement aux 4
   autres maisons). Spec : données pures (upgrades 4.11 déjà génériques).
 
-- **F-SYMBAI — La Symbiose pèse en simulation** 🧩 S ⬜
-  Doc : doc 14 §9 (État 5.4 : l'IA ne Défend presque jamais ⇒ signature inerte
-  en sim). Spec : heuristique IA « Défendre/enraciner » quand profitable
-  (croise C-AIPARITY).
+- **F-SYMBAI — La Symbiose pèse en simulation** 🧩 S ✅ (livré)
+  Doc : doc 14 §9. Livré : une pile `symbiosis` sous son plafond qui n'a RIEN à
+  frapper s'enracine (Défend) quand le combat vient à elle, même en étant la plus
+  rapide de son camp (bornée par le plafond — pas de blocage mutuel). Variante
+  agressive « défendre au lieu de bouger-frapper » testée en sim et REJETÉE
+  (Sylvan agile-verre s'effondre à 1–10 % — donner la première frappe est
+  suicidaire ; consigné dans `ai.ts` et `.claude/plans/f-symbai.md`).
+  ⚠ Constat sim au passage (indépendant de ce lot) : 2 blowouts hors 20–80
+  après la vague de capacités du jour — haven/necro 18,8 %, necro/vox 90 % —
+  à résorber par A10 (re-passe d'équilibrage post-capacités).
 
 ### 2.4 Héros (H-*)
 

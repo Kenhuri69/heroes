@@ -2,7 +2,7 @@ import type { GameEvent } from '../core/events';
 import type { GameState } from '../core/state';
 import { applyAction, canShoot, canShootTarget, reachableHexes, tauntersAdjacentTo } from './actions';
 import { spellcasterParams } from './spell-effect';
-import { estimateDamage } from './damage';
+import { estimateDamage, symbiosisParams } from './damage';
 import type { Draft } from './draft';
 import { hexDistance, type OffsetPos } from './hex';
 import { effectiveSpeed, hasAbility } from './state-helpers';
@@ -261,6 +261,23 @@ export function chooseAction(state: GameState, stackId: string): CombatActionInp
     }
   }
 
+  // F-SYMBAI (doc 14 §9) : une pile `symbiosis` sous son plafond de paliers qui
+  // n'a RIEN à frapper ce tour-ci s'ENRACINE (Défend) plutôt que d'avancer quand
+  // le combat vient à elle (un ennemi peut atteindre son adjacence au tour
+  // prochain) — avancer remettrait ses paliers à zéro pour rien. Bornée par le
+  // plafond : au max, comportement normal (jamais de blocage mutuel sans fin, la
+  // property « un combat se termine toujours » reste garantie). NE PAS étendre
+  // à « défendre au lieu de bouger-frapper » : testé en sim (`faction:sim`),
+  // temporiser dès qu'une frappe est possible effondre Sylvan (profil
+  // agile-verre, doc 14 §9 — donner la première frappe est suicidaire) de
+  // ~22 % à ~1-10 % de winrate.
+  const selfDef = catalog[stack.unitId];
+  const symb = selfDef ? symbiosisParams(selfDef) : null;
+  const roots =
+    symb !== null &&
+    stack.symbiosisStacks < symb.maxStacks &&
+    isThreatenedAt(stack.pos, enemies, combat, catalog);
+
   // Score normal : tir (sur place, ligne de vue dégagée — C-LOS) ou mêlée (sur
   // place ou après déplacement). La décision se fait PAR CIBLE : un tireur dont
   // la ligne de vue vers une cible est bloquée génère des candidats de mêlée
@@ -300,9 +317,11 @@ export function chooseAction(state: GameState, stackId: string): CombatActionInp
       : { type: 'attack', targetStackId: best.target.id };
   }
 
-  // Règle imposée 2 — PROGRESSION/DÉFENSE : rien à attaquer ce tour-ci.
+  // Règle imposée 2 — PROGRESSION/DÉFENSE : rien à attaquer ce tour-ci. Une
+  // pile qui s'enracine (F-SYMBAI, ci-dessus) Défend même si elle est la plus
+  // rapide de son camp — avancer remettrait ses paliers à zéro pour rien.
   const fastest = fastestOfSide(stack.side, combat, catalog);
-  if (fastest && fastest.id === stack.id) {
+  if (!roots && fastest && fastest.id === stack.id) {
     const reachable = reachableHexes(state, stackId);
     const nearest = pickBestBy(reachable, (p) => -nearestEnemyDistance(p, enemies), compareHex);
     if (nearest) return { type: 'move', to: nearest };

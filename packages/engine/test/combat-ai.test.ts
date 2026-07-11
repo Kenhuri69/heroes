@@ -134,6 +134,52 @@ describe('IA de combat — comportements imposés', () => {
     expect(fastAction.type).toBe('move');
   });
 
+  it('F-SYMBAI : une pile symbiosis s’enracine quand le combat vient à elle, bornée au plafond', () => {
+    const catalog: Record<string, CombatUnitDef> = {
+      ...testCatalog(),
+      rooter: {
+        id: 'rooter',
+        groupId: 'x',
+        nativeTerrain: 'grass',
+        stats: { hp: 30, attack: 5, defense: 5, damage: [4, 6], speed: 3 },
+        abilities: [{ id: 'symbiosis', params: { attackPerRound: 2, defensePerRound: 2, maxStacks: 3 } }],
+      },
+      rusher: {
+        id: 'rusher',
+        groupId: 'y',
+        nativeTerrain: 'grass',
+        stats: { hp: 30, attack: 5, defense: 5, damage: [4, 6], speed: 6 },
+        abilities: [],
+      },
+    };
+    // Distance 6 : le rooter (vitesse 3) ne peut frapper personne ce tour-ci,
+    // mais le rusher (vitesse 6) peut atteindre son adjacence au tour prochain.
+    const rooter = makeStack({ id: 'attacker-0', side: 'attacker', slot: 0, unitId: 'rooter', count: 5, pos: { col: 0, row: 5 } });
+    const rusher = makeStack({ id: 'defender-0', side: 'defender', slot: 0, unitId: 'rusher', count: 5, pos: { col: 6, row: 5 } });
+
+    // Menacée + paliers sous le plafond ⇒ s'enracine (Défend) même en étant la
+    // plus rapide de son camp — avant F-SYMBAI, elle avançait (progression).
+    const threatened = makeCombatState(catalog, [rooter, rusher], 'attacker-0');
+    expect(chooseAction(threatened, 'attacker-0').type).toBe('defend');
+
+    // Au plafond de paliers : la progression normale reprend (borne anti-blocage).
+    const capped = makeCombatState(
+      catalog,
+      [makeStack({ ...rooter, symbiosisStacks: 3 }), rusher],
+      'attacker-0',
+    );
+    expect(chooseAction(capped, 'attacker-0').type).toBe('move');
+
+    // Personne ne peut l'atteindre au tour prochain : défendre ne prépare rien,
+    // elle avance (ennemi lent loin — vitesse 3 à distance 9).
+    const far = makeCombatState(
+      catalog,
+      [rooter, makeStack({ ...rusher, unitId: 'rooter', pos: { col: 9, row: 5 } })],
+      'attacker-0',
+    );
+    expect(chooseAction(far, 'attacker-0').type).toBe('move');
+  });
+
   it('préfère achever une cible qui subit des pertes plutôt qu’une cible blindée increvable', () => {
     const catalog: Record<string, CombatUnitDef> = {
       ...testCatalog(),

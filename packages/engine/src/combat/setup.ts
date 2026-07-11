@@ -262,6 +262,69 @@ export function beginTownCombat(
 }
 
 /**
+ * Ouvre un combat héros ↔ héros (H-VS-H, doc 02 §1.5/§5). Jumeau de
+ * `beginTownCombat` : attaquant = armée du héros mouvant + machines de guerre,
+ * défenseur = armée du héros ennemi + ses machines de guerre. Les DEUX
+ * `attackerHeroId`/`defenderHeroId` sont posés (contrairement au gardien/siège) ;
+ * les conséquences (dépouille, mort du vaincu) sont gérées dans `turns.ts`.
+ * Câblé depuis `advanceHeroAlongPath` (le héros mouvant reste adjacent).
+ */
+export function beginHeroCombat(
+  draft: Draft,
+  attackerHeroId: string,
+  defenderHeroId: string,
+  events: GameEvent[],
+): void {
+  const attacker = draft.heroes.find((h) => h.id === attackerHeroId);
+  const defender = draft.heroes.find((h) => h.id === defenderHeroId);
+  const rules = draft.config?.combat;
+  if (!attacker || !defender || !rules) throw new Error('beginHeroCombat: héros ou config absents');
+  const terrain = draft.map ? terrainAt(draft.map, defender.pos) : 'grass';
+  const attackerArmy: ArmyStack[] = [
+    ...attacker.army,
+    ...attacker.warMachines.map((unitId) => ({ unitId, count: 1 })),
+  ];
+  // Garde-fou (parallèle à `beginGuardianCombat`) : armée vide ⇒ pas de combat
+  // (le validateur de `MoveHero` refuse déjà, ceci est une sécurité).
+  if (attackerArmy.length === 0) return;
+  const defenderArmy: ArmyStack[] = [
+    ...defender.army,
+    ...defender.warMachines.map((unitId) => ({ unitId, count: 1 })),
+  ];
+  const stacks = [
+    ...placeSide('attacker', attackerArmy, draft.unitCatalog, 0),
+    ...placeSide('defender', defenderArmy, draft.unitCatalog, COMBAT_COLS - 1),
+  ];
+  const obstacles = drawObstacles(draft, rules.obstaclesMin, rules.obstaclesMax);
+  draft.combat = {
+    terrain,
+    phase: 'battle',
+    round: 1,
+    obstacles,
+    stacks,
+    activeStackId: null,
+    playerSide: 'attacker',
+    // `heroId` = héros mouvant (attaquant) : conserve la sémantique « héros joueur »
+    // pour les conséquences ; les DEUX camps portent un héros ici.
+    heroId: attackerHeroId,
+    guardianObjectId: null,
+    townId: null,
+    wallDefenseBonus: 0,
+    attackerHeroId,
+    defenderHeroId,
+    heroCastThisRound: [],
+    heroAttackUsed: [],
+    finished: false,
+    winner: null,
+  };
+  initLedger(draft.combat);
+  initHeroMana(draft, draft.combat);
+  events.push({ type: 'CombatStarted', terrain, heroId: attackerHeroId, guardianObjectId: null });
+  events.push({ type: 'CombatRoundStarted', round: 1 });
+  openPlacementOrBattle(draft, events);
+}
+
+/**
  * C-TACTICS (doc 02 §5.1) : profondeur de la bande de placement du camp JOUEUR
  * (héros lié à `playerSide` doté de la compétence Tactique). 0 ⇒ pas de phase de
  * placement (comportement historique).

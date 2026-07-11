@@ -74,7 +74,7 @@ import { EngineError, type Command, type CommandError } from './commands';
 import type { GameEvent } from './events';
 import { seedRng } from './rng';
 import { rollWeekEvent } from '../adventure/calendar';
-import { RESOURCE_IDS, weekOf, monthOf, type GameState } from './state';
+import { RESOURCE_IDS, weekOf, monthOf, areAllies, type GameState } from './state';
 
 export interface EngineResult {
   state: GameState;
@@ -193,8 +193,12 @@ export function validate(state: GameState, cmd: Command): CommandError | null {
       const last = cmd.path[cmd.path.length - 1];
       const engagesGuardian =
         !!last && (state.map?.objects.some((o) => o.type === 'guardian' && samePos(o.pos, last)) ?? false);
-      if (engagesGuardian && hero.army.reduce((n, s) => n + s.count, 0) === 0)
-        return { code: 'invalidArmy', message: 'armée vide : impossible d’engager un gardien' };
+      // H-VS-H : engager un héros ennemi avec une armée vide plante l'IA de combat
+      // (`beginHeroCombat` = jumeau de `beginGuardianCombat`) — même garde-fou.
+      const engagesEnemyHero =
+        !!last && state.heroes.some((h) => h.id !== cmd.heroId && samePos(h.pos, last));
+      if ((engagesGuardian || engagesEnemyHero) && hero.army.reduce((n, s) => n + s.count, 0) === 0)
+        return { code: 'invalidArmy', message: 'armée vide : impossible d’engager un combat' };
       return null;
     }
     case 'EndTurn': {
@@ -414,14 +418,28 @@ function validatePath(
   const { map, config } = state;
   if (!map || !config) return { code: 'gameNotStarted', message: 'carte absente de l’état' };
   if (path.length === 0) return { code: 'invalidPath', message: 'chemin vide' };
+  const mover = state.heroes.find((h) => h.id === heroId);
+  const moverPlayer = state.players.find((p) => p.id === mover?.playerId);
   let prev = start;
   for (const step of path) {
     if (!isAdjacent(prev, step))
       return { code: 'invalidPath', message: `pas non adjacent (${step.x},${step.y})` };
     if (!isPassable(config, map, step))
       return { code: 'invalidPath', message: `tuile infranchissable (${step.x},${step.y})` };
-    if (state.heroes.some((h) => h.id !== heroId && samePos(h.pos, step)))
-      return { code: 'invalidPath', message: `tuile occupée (${step.x},${step.y})` };
+    // Héros occupant : un héros ENNEMI (autre joueur, non allié) est ciblable en
+    // DERNIER pas (combat héros-vs-héros, doc 02 §5, H-VS-H) ; un allié ou soi
+    // bloque toujours (pas de superposition).
+    const occupant = state.heroes.find((h) => h.id !== heroId && samePos(h.pos, step));
+    if (occupant) {
+      const occPlayer = state.players.find((p) => p.id === occupant.playerId);
+      const enemy =
+        !!moverPlayer &&
+        !!occPlayer &&
+        occupant.playerId !== mover?.playerId &&
+        !areAllies(moverPlayer, occPlayer);
+      if (!(enemy && step === path[path.length - 1]))
+        return { code: 'invalidPath', message: `tuile occupée (${step.x},${step.y})` };
+    }
     // Gardien : uniquement en DERNIER pas (attaque ⇒ interception, doc 02 §5).
     if (
       map.objects.some((o) => o.type === 'guardian' && samePos(o.pos, step)) &&

@@ -251,9 +251,11 @@ describe('MoveHero', () => {
     );
   });
 
-  it('refuse de traverser un autre héros', () => {
+  it('refuse de TRAVERSER un autre héros (héros en pas NON final)', () => {
+    // H-VS-H (doc 02 §1.5) : un héros ennemi est ciblable en DERNIER pas (combat) ;
+    // mais on ne peut jamais le TRAVERSER pour continuer au-delà. Ici (3,3) est un
+    // pas intermédiaire ⇒ refus, quelle que soit l'appartenance.
     const state = started(['p1', 'p2']);
-    // hero-p2 est en (9,9) ; p1 tente d'y entrer via un chemin valide jusqu'à (9,9)
     const moved = apply(state, {
       type: 'MoveHero',
       heroId: 'hero-p1',
@@ -262,14 +264,14 @@ describe('MoveHero', () => {
         { x: 2, y: 2 },
       ],
     }).state;
-    const toOccupied = validate(
+    const through = validate(
       {
         ...moved,
         heroes: moved.heroes.map((h) => (h.id === 'hero-p2' ? { ...h, pos: { x: 3, y: 3 } } : h)),
       },
-      { type: 'MoveHero', heroId: 'hero-p1', path: [{ x: 3, y: 3 }] },
+      { type: 'MoveHero', heroId: 'hero-p1', path: [{ x: 3, y: 3 }, { x: 4, y: 4 }] },
     );
-    expect(toOccupied?.code).toBe('invalidPath');
+    expect(through?.code).toBe('invalidPath');
   });
 });
 

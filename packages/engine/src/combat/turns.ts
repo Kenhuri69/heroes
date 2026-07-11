@@ -190,6 +190,57 @@ function grantHeroCombatXp(
   grantXp(draft, events, winnerHeroId, Math.round(hpLost * xpPerHpKilled));
 }
 
+/**
+ * Conséquences d'un combat héros-vs-héros (H-VS-H, doc 02 §1.5/§5) :
+ * - le VAINQUEUR reconstruit son armée depuis ses survivants (machines de guerre
+ *   exclues, elles persistent sur `hero.warMachines`) et bénéficie des effets de
+ *   faction post-victoire (ex. Nécromancie) ;
+ * - le VAINCU est retiré de la partie (il meurt — règle de disparition déjà en
+ *   place pour l'attaquant vaincu) ;
+ * - DÉPOUILLE (arbitrage doc silencieux, fidélité HoMM) : les artefacts du vaincu
+ *   passent au vainqueur (1ers slots libres) ; le surplus est déposé au sol sur
+ *   la tuile du vaincu (objet `artifact` de carte, réutilise le ramassage).
+ * L'XP du vainqueur est accordée par `grantHeroCombatXp` (PV ennemis tués).
+ */
+function applyHeroVsHeroConsequences(
+  draft: Draft,
+  combat: CombatState,
+  winner: CombatSideId,
+  _casualties: { side: CombatSideId; unitId: string; lost: number }[],
+  events: GameEvent[],
+): void {
+  const winnerId = winner === 'attacker' ? combat.attackerHeroId : combat.defenderHeroId;
+  const loserId = winner === 'attacker' ? combat.defenderHeroId : combat.attackerHeroId;
+  const winnerHero = draft.heroes.find((h) => h.id === winnerId);
+  const loserHero = draft.heroes.find((h) => h.id === loserId);
+  if (!winnerHero || !loserHero) return;
+  // Armée du vainqueur = survivants de SON camp (machines de guerre exclues).
+  winnerHero.army = combat.stacks
+    .filter((s) => s.side === winner && s.count > 0 && !winnerHero.warMachines.includes(s.unitId))
+    .map((s) => ({ unitId: s.unitId, count: s.count }));
+  applyFactionVictoryEffects(draft, combat, winnerHero, _casualties, events);
+  // Dépouille : artefacts du vaincu → slots libres du vainqueur, surplus au sol.
+  const spoils = loserHero.artifacts.filter((a): a is string => a !== null);
+  let dropped = 0;
+  for (const artifactId of spoils) {
+    const slot = winnerHero.artifacts.indexOf(null);
+    if (slot !== -1) {
+      winnerHero.artifacts[slot] = artifactId;
+    } else if (draft.map) {
+      draft.map.objects.push({
+        id: `spoil-${loserHero.id}-${dropped}`,
+        type: 'artifact',
+        pos: { ...loserHero.pos },
+        artifactId,
+      });
+      dropped += 1;
+    }
+  }
+  // Le vaincu meurt (retiré de la partie).
+  const idx = draft.heroes.findIndex((h) => h.id === loserHero.id);
+  if (idx !== -1) draft.heroes.splice(idx, 1);
+}
+
 function applyConsequences(
   draft: Draft,
   combat: CombatState,
@@ -198,6 +249,13 @@ function applyConsequences(
   events: GameEvent[],
 ): void {
   if (!combat.heroId) return; // arène : rien à appliquer
+  // Combat héros-vs-héros (H-VS-H, doc 02 §1.5/§5) : les DEUX camps portent un
+  // héros ⇒ conséquences dédiées (vainqueur reconstruit son armée, vaincu retiré,
+  // dépouille d'artefacts transférée). Aucun gardien/ville en jeu.
+  if (combat.attackerHeroId && combat.defenderHeroId) {
+    applyHeroVsHeroConsequences(draft, combat, winner, casualties, events);
+    return;
+  }
   const hero = draft.heroes.find((h) => h.id === combat.heroId);
   if (winner === 'attacker') {
     if (hero) {

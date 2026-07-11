@@ -215,7 +215,7 @@ function pickExplorationStep(
 
 /**
  * L'IA d'aventure résout le combat de gardien immédiatement (IA vs IA,
- * déterministe) : elle passe `runAutoCombat` en `onGuardianEngaged` à la
+ * déterministe) : elle passe `runAutoCombat` en `onCombatEngaged` à la
  * routine de pas partagée avec le handler humain (`adventure/movement`).
  */
 function advanceAi(
@@ -226,7 +226,7 @@ function advanceAi(
   events: GameEvent[],
 ): void {
   advanceHeroAlongPath(draft, hero, player, path, events, {
-    onGuardianEngaged: () => runAutoCombat(draft, events),
+    onCombatEngaged: () => runAutoCombat(draft, events),
     // L'IA résout le trésor sur-le-champ : toujours l'or (déterministe, MVP).
     onTreasureFound: () => resolveTreasure(draft, 'gold', events),
   });

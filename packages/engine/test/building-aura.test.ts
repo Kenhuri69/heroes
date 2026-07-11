@@ -109,7 +109,7 @@ function siegeCombat(townId: string | null): { stack: CombatStack; combat: Comba
   const combat = {
     terrain: 'water', round: 1, obstacles: [], stacks: [stack], activeStackId: null,
     playerSide: 'attacker', heroId: null, guardianObjectId: null, townId, wallDefenseBonus: 0,
-    attackerHeroId: null, defenderHeroId: null, heroCastThisRound: false, heroAttackUsed: [],
+    attackerHeroId: null, defenderHeroId: null, heroCastThisRound: [], heroAttackUsed: [],
     finished: false, winner: null,
   } as unknown as CombatState;
   return { stack, combat };

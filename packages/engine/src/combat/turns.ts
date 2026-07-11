@@ -83,7 +83,7 @@ export function advanceTurn(draft: Draft, events: GameEvent[]): void {
       // regagne son sort (décision plan phase-3.2 #2) et les statuts de
       // sort expirent (roundsLeft décrémenté, retirés à 0 — doc 02 §1.4).
       combat.round += 1;
-      combat.heroCastThisRound = false;
+      combat.heroCastThisRound = [];
       for (const s of alive) {
         s.acted = false;
         s.waited = false;

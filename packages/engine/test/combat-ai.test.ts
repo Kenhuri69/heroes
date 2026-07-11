@@ -52,7 +52,7 @@ function makeCombatState(
       finished: false,
       attackerHeroId: null,
     defenderHeroId: null,
-    heroCastThisRound: false,
+    heroCastThisRound: [],
     heroAttackUsed: [],
     winner: null,
     },

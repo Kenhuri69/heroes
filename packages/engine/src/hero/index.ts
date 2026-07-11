@@ -25,10 +25,15 @@ type CastSpellCmd = Extract<Command, { type: 'CastSpell' }>;
 type ChooseSkillCmd = Extract<Command, { type: 'ChooseSkill' }>;
 type ChooseAttributeCmd = Extract<Command, { type: 'ChooseAttribute' }>;
 
-/** Héros lié au camp joueur (`combat.playerSide`) — seul camp habilité à lancer un sort (décision plan #2). */
-function heroForPlayerSide(state: GameState, combat: CombatState) {
-  const heroId = combat.playerSide === 'attacker' ? combat.attackerHeroId : combat.defenderHeroId;
+/** Héros lié à un camp du combat — `undefined` si le camp n'a pas de héros. */
+function heroForSide(state: GameState, combat: CombatState, side: CombatState['playerSide']) {
+  const heroId = side === 'attacker' ? combat.attackerHeroId : combat.defenderHeroId;
   return heroId ? state.heroes.find((h) => h.id === heroId) : undefined;
+}
+
+/** Héros lié au camp joueur — la COMMANDE `CastSpell` reste joueur-only ; l'IA passe par `castHeroSpell`. */
+function heroForPlayerSide(state: GameState, combat: CombatState) {
+  return heroForSide(state, combat, combat.playerSide);
 }
 
 export function validateCastSpell(state: GameState, cmd: CastSpellCmd): CommandError | null {
@@ -39,7 +44,7 @@ export function validateCastSpell(state: GameState, cmd: CastSpellCmd): CommandE
     return { code: 'invalidAction', message: 'ce n’est pas au joueur de jouer' };
   const hero = heroForPlayerSide(state, combat);
   if (!hero) return { code: 'invalidAction', message: 'aucun héros lié au camp joueur' };
-  if (combat.heroCastThisRound)
+  if (combat.heroCastThisRound.includes(combat.playerSide))
     return { code: 'heroAlreadyCast', message: 'le héros a déjà lancé un sort ce round' };
   const spell = state.spellCatalog[cmd.spellId];
   if (!spell) return { code: 'unknownSpell', message: `sort inconnu '${cmd.spellId}'` };
@@ -195,18 +200,31 @@ export function handleCastAdventureSpell(
   events.push({ type: 'AdventureSpellCast', heroId: hero.id, spellId: spell.id, pos: { ...hero.pos } });
 }
 
-export function handleCastSpell(draft: Draft, cmd: CastSpellCmd, events: GameEvent[]): void {
+/**
+ * Lancer du sort du héros d'un CAMP (C-AIPARITY, doc 02 §5.5) — cœur partagé
+ * joueur/IA : mana débitée, verrou 1/round par camp, effet via le même
+ * `applySpellToTargets` que le lancer d'unité. Les validations de la COMMANDE
+ * `CastSpell` restent joueur-only ; l'appelant IA garantit ses préconditions
+ * (héros présent, mana suffisante, cible du bon camp).
+ */
+export function castHeroSpell(
+  draft: Draft,
+  side: CombatState['playerSide'],
+  spellId: string,
+  targetStackId: string,
+  events: GameEvent[],
+): void {
   const combat = draft.combat;
-  if (!combat) return; // exclu par validate
-  const hero = heroForPlayerSide(draft, combat);
-  const spell = draft.spellCatalog[cmd.spellId];
-  const target = combat.stacks.find((s) => s.id === cmd.targetStackId);
-  if (!hero || !spell || !target) return; // exclu par validate
+  if (!combat) return;
+  const hero = heroForSide(draft, combat, side);
+  const spell = draft.spellCatalog[spellId];
+  const target = combat.stacks.find((s) => s.id === targetStackId);
+  if (!hero || !spell || !target) return;
 
   hero.mana -= effectiveManaCost(hero, draft.skillCatalog, spell);
-  combat.heroCastThisRound = true;
+  combat.heroCastThisRound.push(side);
   const power = effectivePower(hero, draft.artifactCatalog);
-  const luck = heroLuckOf(draft, combat, combat.playerSide);
+  const luck = heroLuckOf(draft, combat, side);
   // C7 : effet appliqué à la cible (+ alliées adjacentes en `splash`) via le
   // cœur PARTAGÉ avec le lancer d'unité `spellcaster` (A2h, combat/spell-effect).
   const { amount, kills } = applySpellToTargets(draft, combat, spell, target, power, luck, events);
@@ -215,7 +233,7 @@ export function handleCastSpell(draft: Draft, cmd: CastSpellCmd, events: GameEve
     type: 'SpellCast',
     heroId: hero.id,
     spellId: spell.id,
-    targetId: cmd.targetStackId,
+    targetId: targetStackId,
     amount,
     kills,
   });
@@ -223,6 +241,12 @@ export function handleCastSpell(draft: Draft, cmd: CastSpellCmd, events: GameEve
   // Un sort de dégâts peut achever le dernier défenseur adverse : le combat
   // doit se terminer immédiatement, comme après une frappe (`applyAction`).
   checkCombatEnd(draft, events);
+}
+
+export function handleCastSpell(draft: Draft, cmd: CastSpellCmd, events: GameEvent[]): void {
+  const combat = draft.combat;
+  if (!combat) return; // exclu par validate
+  castHeroSpell(draft, combat.playerSide, cmd.spellId, cmd.targetStackId, events);
 }
 
 export function handleChooseSkill(draft: Draft, cmd: ChooseSkillCmd, events: GameEvent[]): void {

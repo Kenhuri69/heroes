@@ -63,15 +63,26 @@ export function validateHeroAttack(state: GameState, cmd: HeroAttackCmd): Comman
   return null;
 }
 
-export function handleHeroAttack(draft: Draft, cmd: HeroAttackCmd, events: GameEvent[]): void {
+/**
+ * Frappe du héros d'un CAMP (C-AIPARITY, doc 02 §5.5) — cœur partagé
+ * joueur/IA : dégâts déterministes, 1×/combat par camp. Les validations de la
+ * COMMANDE `HeroAttack` restent joueur-only ; l'appelant IA garantit ses
+ * préconditions (héros présent, frappe disponible, cible adverse vivante).
+ */
+export function strikeWithHero(
+  draft: Draft,
+  side: CombatSideId,
+  targetStackId: string,
+  events: GameEvent[],
+): void {
   const combat = draft.combat;
-  if (!combat) return; // exclu par validate
-  const target = combat.stacks.find((s) => s.id === cmd.targetStackId);
+  if (!combat) return;
+  const target = combat.stacks.find((s) => s.id === targetStackId);
   const targetDef = target ? draft.unitCatalog[target.unitId] : undefined;
-  if (!target || !targetDef) return; // exclu par validate
+  if (!target || !targetDef) return;
 
-  const amount = heroAttackDamage(draft, combat, combat.playerSide);
-  combat.heroAttackUsed.push(combat.playerSide);
+  const amount = heroAttackDamage(draft, combat, side);
+  combat.heroAttackUsed.push(side);
 
   const pool = (target.count - 1) * targetDef.stats.hp + target.firstHp;
   const kills = killsFromDamage(pool, targetDef.stats.hp, target.count, amount);
@@ -82,11 +93,17 @@ export function handleHeroAttack(draft: Draft, cmd: HeroAttackCmd, events: GameE
   recordLoss(combat, target.side, target.unitId, kills);
   events.push({
     type: 'HeroStruck',
-    side: combat.playerSide,
+    side,
     targetId: target.id,
     amount,
     kills,
   });
   if (target.count <= 0) events.push({ type: 'StackDied', stackId: target.id });
   checkCombatEnd(draft, events);
+}
+
+export function handleHeroAttack(draft: Draft, cmd: HeroAttackCmd, events: GameEvent[]): void {
+  const combat = draft.combat;
+  if (!combat) return; // exclu par validate
+  strikeWithHero(draft, combat.playerSide, cmd.targetStackId, events);
 }

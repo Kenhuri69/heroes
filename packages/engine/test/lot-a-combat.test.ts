@@ -59,7 +59,7 @@ function combatState(stacks: CombatStack[], over: Partial<CombatState> = {}): Co
     finished: false,
     attackerHeroId: null,
     defenderHeroId: null,
-    heroCastThisRound: false,
+    heroCastThisRound: [],
     heroAttackUsed: [],
     winner: null,
     ...over,

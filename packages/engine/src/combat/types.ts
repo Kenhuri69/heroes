@@ -97,8 +97,13 @@ export interface CombatState {
   /** Héros liés aux camps (attributs + sorts, doc 02 §5) — null si sans héros. */
   attackerHeroId: string | null;
   defenderHeroId: string | null;
-  /** Le héros du camp joueur a déjà lancé un sort ce round (1/round, doc 02 §5.2). */
-  heroCastThisRound: boolean;
+  /**
+   * Camps dont le héros a déjà lancé un sort CE round (1/round par camp,
+   * doc 02 §5.2) — remis à vide au changement de round. Liste par camp (comme
+   * `heroAttackUsed`) depuis C-AIPARITY : l'IA lance aussi, un booléen partagé
+   * créait une course entre les deux camps.
+   */
+  heroCastThisRound: CombatSideId[];
   /** Camps ayant déjà utilisé l'attaque de leur héros ce combat (1×/combat, C1). */
   heroAttackUsed: CombatSideId[];
   finished: boolean;

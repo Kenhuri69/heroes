@@ -110,7 +110,9 @@ UI/IA ──commande──► [validation] ──► engine.apply(state, cmd)
     calendrier hebdomadaires, doc 02 §2.3, lot M-CALENDAR) ; v21
     (`GameState.caravans`, caravanes inter-villes, doc 02 §4.1, lot T-CARAVAN) ;
     v22 (`CombatStack.spellCharges`, charges de sort d'unité `spellcaster`, doc 02
-    §5.4, lot A2h).
+    §5.4, lot A2h) ; v23 (`CombatState.heroCastThisRound` booléen → liste de
+    camps ayant lancé ce round — parité IA des sorts de héros, doc 02 §5.5,
+    lot C-AIPARITY).
 - Une sauvegarde référence les paquets de faction (par id) ; le suivi de
   **version** par paquet est différé avec les migrations (post-MVP).
 

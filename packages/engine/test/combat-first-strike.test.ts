@@ -39,7 +39,7 @@ function combatWith(catalog: Record<string, CombatUnitDef>, stacks: CombatStack[
   return {
     terrain: 'grass', round: 1, obstacles: [], stacks, activeStackId: stacks[0]?.id ?? null,
     playerSide: 'attacker', heroId: null, guardianObjectId: null, townId: null, wallDefenseBonus: 0,
-    attackerHeroId: null, defenderHeroId: null, heroCastThisRound: false, heroAttackUsed: [],
+    attackerHeroId: null, defenderHeroId: null, heroCastThisRound: [], heroAttackUsed: [],
     finished: false, winner: null,
   };
 }

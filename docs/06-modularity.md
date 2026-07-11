@@ -93,8 +93,12 @@ Manifeste **réel** (arcane-hunters, abrégé) :
 }
 ```
 
-Les **deux seuls** types de `factionBonuses` livrés sont `raiseUndeadOnVictory`
-(Nécropolis) et `gainFactionResourceOnVictory` (Essence) — cf. `faction/types.ts`.
+Les types de `factionBonuses` livrés sont `raiseUndeadOnVictory` (Nécropolis) et
+`gainFactionResourceOnVictory` (Essence) — effets **post-victoire** — plus
+`combatBonus` (F-BONUS) : bonus **passifs de combat** (points plats
+`attack`/`defense`/`morale` accordés à l'armée du héros de la faction, ex. Haven
+Ferveur `morale:1` + Formation `defense:2`), interprétés par les helpers par-camp
+du moteur. Cf. `faction/types.ts` (union `FactionBonus`).
 Le manifeste liste explicitement ses unités (`units: [...]`, convention
 `units/<id>.json`) : un navigateur ne peut pas lister un dossier, le contenu est
 donc entièrement déclaré.

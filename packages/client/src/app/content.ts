@@ -77,7 +77,7 @@ export async function resolveGeneratedMap(
   const units = knownUnitIds(report);
   // Palette de gardiens : uniquement les unités qui ONT un sprite peint — un
   // gardien tiré d'une unité sans art resterait le fanion gris de repli pour
-  // toujours (plan map-design-issues P1 : test-faction, sylvan-court). Repli
+  // toujours (plan map-design-issues P1 : factions de test/beta sans art). Repli
   // sur toutes les unités si AUCUN art n'est présent (build sans assets :
   // mieux vaut des gardiens procéduraux que pas de gardiens du tout).
   const painted = report.content.packs.flatMap((p) =>

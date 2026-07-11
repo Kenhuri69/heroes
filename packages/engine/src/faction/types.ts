@@ -28,4 +28,17 @@ export interface GainFactionResourceOnVictoryBonus {
   amount: number;
 }
 
-export type FactionBonus = RaiseUndeadOnVictoryBonus | GainFactionResourceOnVictoryBonus;
+/**
+ * Bonus de combat PASSIF de faction (F-BONUS, doc 03 §2 / doc 06 §4) : points
+ * plats accordés à l'armée du héros de cette faction pendant tout combat —
+ * Ferveur (`morale`), Formation (`defense`), variante offensive (`attack`).
+ * Interprété par les helpers par-camp du combat, jamais un nom de faction.
+ */
+export interface CombatBonus {
+  type: 'combatBonus';
+  attack?: number;
+  defense?: number;
+  morale?: number;
+}
+
+export type FactionBonus = RaiseUndeadOnVictoryBonus | GainFactionResourceOnVictoryBonus | CombatBonus;

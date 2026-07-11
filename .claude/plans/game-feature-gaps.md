@@ -175,14 +175,16 @@ Familles, par mécanique moteur commune :
 
 Source design : docs 03 §2/§4/§5, 04 §2/§4, 05 §3/§5/§6/§7, 14 §5/§6, 16 §3/§5.
 
-- **F-BONUS — Bonus passifs de faction** 🕳️ M ⬜
+- **F-BONUS — Bonus passifs de faction** 🧩 M (variante `combatBonus` **livrée**)
   Doc : Ferveur +1 moral / Formation +5 % déf (doc 03 §2), Fléau persistant
-  +1 round de malédiction (doc 04 §2). Code : `factionBonuses:[]` dans tous les
-  manifestes ; seuls 2 effets de faction existent, tous deux post-victoire
-  (`packages/engine/src/faction/effects.ts` : `raiseUndeadOnVictory`,
-  `gainFactionResourceOnVictory`). Spec : élargir l'union d'effets de faction à
-  des modificateurs passifs déclaratifs (combat + statuts), interprétés
-  génériquement via le manifeste.
+  +1 round de malédiction (doc 04 §2). **Livré** : variante générique
+  `combatBonus` de `FactionBonus` (points plats `attack`/`defense`/`morale`),
+  interprétée en combat par les helpers par-camp (`heroMoraleForSide`,
+  `heroAttackOf`, `heroDefenseOf` via `factionCombatBonus`) — **pas de save bump**
+  (le `factionCatalog` est déjà sérialisé). Haven doté (Ferveur `morale:1` +
+  Formation `defense:2` ≈ +5 %). **Reste** : Fléau persistant Nécropolis
+  (+1 round de malédiction — modificateur de statut, variante ultérieure) et le
+  câblage des autres factions (données).
 
 - **F-SKILLS — Compétences de faction** 🕳️ M ⬜
   Doc : Prière de bataille (doc 03 §2/§5), Nécromancie graduée Novice/Expert/

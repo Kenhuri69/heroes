@@ -140,19 +140,26 @@ vérification. Ordre proposé = impact joueur décroissant.
    portée de chaque départ, tous tier ≤ 3, et plafond de profondeur respecté
    par TOUT gardien ; le test de gradient moyen existant passe inchangé.
 
-### Lot 5 (option, après 1–4) — Vraies villes neutres générées
+### Lot 5 — Vraies villes neutres générées — ✅ livré
 
-1. Émettre dans `generateMap` 1–2 objets `type: 'town'` en zone médiane/profonde
-   (faction tirée de la palette des paquets chargés, garnison graduée par la
-   profondeur) — `newGameStartCommand` les instancie déjà, et le rendu
-   `townsLayer` a l'asset `map/town-<faction>` + repli donjon.
-   → vérif : test mapgen (villes présentes, garnison > 0, tuile franchissable,
-   connexité lot 3) + capture : château neutre visible avec liseré « assiégeable ».
+1. [x] Option `townFactionIds` de `generateMap` : 1–2 objets `type: 'town'`
+   posés en profondeur (`preferDeep`), faction tirée de la palette, garnison à
+   deux piles graduée par la profondeur (`pickUnitForDepth`, plafond du Lot 4).
+   Vide ⇒ aucune ville neutre (même convention que `guardianUnits`).
+2. [x] `resolveGeneratedMap` passe les factions dont le château de carte est
+   peint (`townMapUrl`) — `test-faction` naturellement écartée ;
+   `newGameStartCommand`/`skirmishStartCommand` instancient déjà ces villes,
+   le rendu a le château peint + repli donjon + liseré « assiégeable ».
+   → vérif : tests mapgen (1–2 villes, faction de la palette, garnison > 0,
+   `loadMap` valide, connexité du Lot 3 les couvre) + smoke ciblé carte
+   aléatoire.
 
 ## Suivi
 
-- [ ] Lot 1 — palette gardiens + repli visuel
-- [ ] Lot 2 — ancrage iso des objets
-- [ ] Lot 3 — connexité (flood-fill + corridors)
-- [ ] Lot 4 — gradient de gardiens par anneaux
-- [ ] Lot 5 — villes neutres générées (option)
+- [x] Lot 1 — palette gardiens + repli visuel (PR #224)
+- [x] Lot 2 — ancrage iso des objets + tas/mine séparés (PR #227)
+- [x] Lot 3 — connexité (flood-fill + corridors) (PR #228)
+- [x] Lot 4 — progression des gardiens (PR #229)
+- [x] Lot 5 — villes neutres générées
+- [ ] Suivi assets (hors lots) : planches d'unités `sylvan-court`
+  (`assets/units/`) et tas de ressources (`assets/resources/pile-<res>.png`)

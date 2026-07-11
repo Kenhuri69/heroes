@@ -47,6 +47,13 @@ export interface MapGenOptions {
    * une sentinelle — la récompense premium de la carte.
    */
   artifactIds?: string[];
+  /**
+   * Factions candidates pour les **villes neutres** (vide ⇒ aucune ville
+   * neutre, comme `guardianUnits`). 1–2 villes assiégeables sont posées en
+   * zone médiane/profonde, garnison graduée par la profondeur — le client les
+   * instancie via l'objet de carte `town` non attribué (Alpha 4.13).
+   */
+  townFactionIds?: string[];
 }
 
 /** PRNG déterministe mulberry32 — retourne un flottant dans [0, 1). */
@@ -154,6 +161,7 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
   const startPositionCount = Math.max(2, opts.startPositionCount ?? 2);
   const resourceMultiplier = opts.resourceMultiplier ?? 1;
   const artifactIds = opts.artifactIds ?? [];
+  const townFactionIds = opts.townFactionIds ?? [];
   // Densité constante quelle que soit la taille : les compteurs d'objets calés
   // sur une carte de base 24×24 sont mis à l'échelle par l'aire, puis par le
   // réglage bas/riche. Au moins 1 objet des catégories principales.
@@ -472,6 +480,41 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
         true,
       );
       if (t) placeSentinel(t.x, t.y);
+    }
+  }
+
+  // Villes neutres (plan map-design-issues Lot 5) : 1–2 châteaux assiégeables
+  // en zone médiane/profonde, garnison à deux piles graduée par la profondeur.
+  // Le client les instancie déjà (objet `town` non attribué, Alpha 4.13) et le
+  // rendu a le château peint par faction + repli donjon.
+  if (townFactionIds.length > 0) {
+    const townCount = Math.min(2, scaled(1));
+    for (let i = 0; i < townCount; i++) {
+      place((x, y, n) => {
+        const depth = depthAt(x, y);
+        const factionId = townFactionIds[randInt(townFactionIds.length)]!;
+        const garrison =
+          byTier.length > 0
+            ? [
+                {
+                  unitId: pickUnitForDepth(depth, 0),
+                  count: Math.max(4, Math.round(8 + depth * 30) + randBetween(-2, 2)),
+                },
+                {
+                  unitId: pickUnitForDepth(Math.min(1, depth + 0.15), 0),
+                  count: Math.max(4, Math.round(6 + depth * 20) + randBetween(-2, 2)),
+                },
+              ]
+            : undefined;
+        return {
+          id: `neutral-town-${n}`,
+          type: 'town',
+          x,
+          y,
+          factionId,
+          ...(garrison ? { garrison } : {}),
+        };
+      }, true);
     }
   }
 

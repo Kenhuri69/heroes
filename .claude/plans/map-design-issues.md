@@ -72,22 +72,22 @@ dense.
 Chaque lot est indépendamment livrable (PR atomique), avec critère de
 vérification. Ordre proposé = impact joueur décroissant.
 
-### Lot 1 — Palette de gardiens saine (fin des drapeaux gris)
+### Lot 1 — Palette de gardiens saine (fin des drapeaux gris) — ✅ livré
 
-1. Dans `resolveGeneratedMap` (client), **filtrer la palette de gardiens** aux
-   unités dont le sprite existe (`unitSpriteUrl` non-undefined) — déterministe à
-   build donné, zéro diff moteur/contenu.
-   → vérif : test unitaire client (palette filtrée) + partie aléatoire sans
-   fanion gris persistant.
-2. Retirer `test-faction` de `data/factions/index.json` de **prod** si le
-   garde-fou CI le permet (il se dérive de cet index — vérifier avant) ; sinon
-   la garder mais elle est déjà écartée par le filtre du point 1.
-   → vérif : CI verte (garde-fou « zéro faction dans le moteur » + tests).
-3. Durcir le repli visuel du gardien : silhouette de créature + pastille de
-   menace au lieu du fanion ambigu (défense en profondeur si un art manque).
-   → vérif : capture smoke.
-4. (Suivi, hors lot) Générer les planches d'unités `sylvan-court` via le skill
-   `asset-sheet` pour compléter `assets/units/`.
+1. [x] Dans `resolveGeneratedMap` (client), **filtrer la palette de gardiens**
+   aux unités dont le sprite existe (`unitSpriteUrl` non-undefined) —
+   déterministe à build donné, zéro diff moteur/contenu. Repli sur la palette
+   complète si AUCUN art n'est présent (build sans assets).
+   → vérif : pas d'infra de test unitaire client (le registre d'assets dépend
+   de `import.meta.glob` Vite) ⇒ vérifié par typecheck + build + smoke.
+2. [x] `test-faction` **reste** dans `data/factions/index.json` : elle est
+   câblée dans la config de départ (`config.newGame.startingHero`), proto-01 et
+   le smoke — la retirer casserait la partie par défaut. Le filtre du point 1
+   l'écarte déjà des cartes aléatoires.
+3. [x] Repli visuel du gardien durci : silhouette de créature (ombre + torse +
+   tête cornue, yeux jaunes) au lieu du fanion gris pris pour une ville.
+4. [ ] (Suivi, hors lot) Générer les planches d'unités `sylvan-court` via le
+   skill `asset-sheet` pour compléter `assets/units/`.
 
 ### Lot 2 — Ancrage iso des objets de carte (mine sur SA case)
 

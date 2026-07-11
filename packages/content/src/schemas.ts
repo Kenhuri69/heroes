@@ -151,6 +151,38 @@ export const houseSchema = z.object({
 });
 
 /**
+ * Un héros nommé du roster d'une faction (H-NAMED, doc 02 §1.2 ; doc 03 §5,
+ * 04 §5, 05 §7, 14 §5, 16 §6). Identité déclarative pure : attributs de départ,
+ * spécialité de signature (même vocabulaire d'effets que Maisons/compétences),
+ * compétences/sorts de départ, nom + bio localisés. La **classe** (might/magic,
+ * profil de gain d'attribut) et les **spécialités conditionnelles** (ex. « +vitesse
+ * aux Griffons ») sont **différées** (H-NAMED.2) — le profil de gain reste global.
+ */
+export const heroSchema = z.object({
+  id: idSchema,
+  name: locRef,
+  /** Biographie (doc 13 §3.5) — `@loc:` optionnel, affichage client. */
+  bio: locRef.optional(),
+  attributes: z.object({
+    attack: z.number().int().nonnegative(),
+    defense: z.number().int().nonnegative(),
+    power: z.number().int().nonnegative(),
+    knowledge: z.number().int().nonnegative(),
+  }),
+  /** Spécialité de signature (id opaque + profil d'effets, cf. `startingHeroSpecialty`). */
+  specialty: z
+    .object({ id: idSchema, ...heroEffectFields })
+    .refine((e) => Object.entries(e).some(([k, v]) => k !== 'id' && v !== undefined), 'au moins un effet de spécialité'),
+  /** Compétences de départ (skillId → rang 1..3) — validées vs le pool connu. */
+  startingSkills: z.record(idSchema, z.number().int().min(1).max(3)).default({}),
+  /** Sorts connus d'emblée (ids) — validés vs le catalogue de sorts. */
+  startingSpells: z.array(idSchema).default([]),
+});
+
+/** heroes.json d'une faction (H-NAMED) — un roster de héros nommés (optionnel). */
+export const heroCatalogSchema = z.object({ heroes: z.array(heroSchema).min(1) });
+
+/**
  * manifest.json (doc 06 §3, doc 10 §5.4). `schemaVersion: 1` — les migrations
  * arrivent avec la première évolution de schéma (doc 06 §7).
  * `abilityModules`/`hooks` restent refusés non vides tant que le moteur ne
@@ -178,6 +210,8 @@ export const manifestSchema = z.object({
   units: z.array(idSchema).min(1),
   /** Campagne de la faction (doc 13 §6.1, N3a) — chemin relatif au paquet, optionnel. */
   story: z.string().optional(),
+  /** Roster de héros nommés (H-NAMED, doc 02 §1.2) — chemin relatif au paquet (ex. `heroes.json`), optionnel. */
+  heroRoster: z.string().optional(),
   abilityModules: z.array(z.string()).max(0).default([]),
   hooks: z.array(z.string()).max(0).default([]),
   aiProfile: z.object({
@@ -1032,6 +1066,9 @@ export type BuildingCatalogFile = z.infer<typeof buildingCatalogSchema>;
  * faction de la ville — le moteur ne compare que des chaînes, jamais un nom en dur.
  */
 export type ResolvedBuilding = Omit<Building, 'name' | 'loreKey'> & { factionId?: string };
+export type Hero = z.infer<typeof heroSchema>;
+/** Roster résolu prêt pour le moteur : identité par héros, `factionId` stampé. */
+export type ResolvedHero = Hero & { factionId: string };
 export type Spell = z.infer<typeof spellSchema>;
 export type SpellCatalogFile = z.infer<typeof spellCatalogSchema>;
 /** Forme moteur — `Spell` sans `name`/`loreKey` (affichage, hors `SpellDef` figé). */

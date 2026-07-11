@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   buildArtifactCatalog,
   buildBuildingCatalog,
+  buildHeroRoster,
   buildSkillCatalog,
   buildSpellCatalog,
   checkCoreNameKeys,
@@ -865,5 +866,60 @@ describe('catalogues sorts/compétences/artefacts (plan phase-3.2 lot L)', () =>
     expect(report.configErrors.join()).toMatch(/startingArmy.*t1-grunt/s); // erreur rapportée
     // Boot survit : la fonction n'a pas levé, le rapport est exploitable.
     expect(report.content.config.newGame.map).toBe('mini');
+  });
+});
+
+/** Injecte un roster (`heroRoster` + heroes.json + clés de nom) dans le paquet proto. */
+function withRoster(data: Record<string, unknown>, heroes: unknown[]): void {
+  (data['factions/proto/manifest.json'] as { heroRoster?: string }).heroRoster = 'heroes.json';
+  data['factions/proto/heroes.json'] = { heroes };
+  const fr = data['factions/proto/locales/fr.json'] as Record<string, string>;
+  const en = data['factions/proto/locales/en.json'] as Record<string, string>;
+  fr['hero.proto-knight.name'] = 'Chevalier';
+  en['hero.proto-knight.name'] = 'Knight';
+}
+
+const VALID_HERO = {
+  id: 'proto-knight',
+  name: '@loc:hero.proto-knight.name',
+  attributes: { attack: 2, defense: 2, power: 1, knowledge: 1 },
+  specialty: { id: 'meneur', moraleBonus: 1 },
+  startingSkills: { logistics: 1 },
+  startingSpells: ['boule-de-feu'],
+};
+
+describe('H-NAMED.1 — roster de héros nommés', () => {
+  it('charge un roster valide et le résout (buildHeroRoster)', async () => {
+    const data = makeData();
+    withRoster(data, [VALID_HERO]);
+    const report = await loadContent(reader(data));
+    expect(report.rejected).toEqual([]);
+    const roster = buildHeroRoster(report);
+    expect(roster['proto-knight']?.factionId).toBe('proto');
+    expect(roster['proto-knight']?.specialtyId).toBe('meneur');
+    expect(roster['proto-knight']?.specialtyEffects).toEqual([{ moraleBonus: 1 }]);
+    expect(roster['proto-knight']?.startingSpells).toEqual(['boule-de-feu']);
+  });
+
+  it('rejette une compétence de départ inconnue', async () => {
+    const data = makeData();
+    withRoster(data, [{ ...VALID_HERO, startingSkills: { 'skill-fantome': 1 } }]);
+    const report = await loadContent(reader(data));
+    expect(report.rejected[0]?.errors.join()).toContain("compétence de départ inconnue 'skill-fantome'");
+  });
+
+  it('rejette un sort de départ inconnu', async () => {
+    const data = makeData();
+    withRoster(data, [{ ...VALID_HERO, startingSpells: ['sort-fantome'] }]);
+    const report = await loadContent(reader(data));
+    expect(report.rejected[0]?.errors.join()).toContain("sort de départ inconnu 'sort-fantome'");
+  });
+
+  it('rejette un nom de héros non localisé', async () => {
+    const data = makeData();
+    withRoster(data, [VALID_HERO]);
+    delete (data['factions/proto/locales/fr.json'] as Record<string, string>)['hero.proto-knight.name'];
+    const report = await loadContent(reader(data));
+    expect(report.rejected[0]?.errors.join()).toContain("clé de héros manquante 'hero.proto-knight.name'");
   });
 });

@@ -74,6 +74,21 @@ export interface SkillRankEffect {
   garrisonDefense?: number;
 }
 
+/**
+ * Identité résolue d'un héros nommé (H-NAMED, doc 02 §1.2) — embarquée dans
+ * `StartGame.heroRoster`, indexée par id. Le moteur applique nom/attributs/
+ * spécialité/départ à la création si `PlayerSetup.startingHeroId` la désigne.
+ * Effets déclaratifs génériques (mêmes que Maisons/compétences) — zéro nom en dur.
+ */
+export interface ResolvedHeroDef {
+  name: string;
+  attributes: { attack: number; defense: number; power: number; knowledge: number };
+  specialtyId: string;
+  specialtyEffects: SkillRankEffect[];
+  startingSkills: Record<string, number>;
+  startingSpells: string[];
+}
+
 export interface HeroSkillDef {
   id: string;
   /** 3 rangs (index 0 = Novice) — doc 02 §1.3. */

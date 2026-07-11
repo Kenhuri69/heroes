@@ -19,6 +19,8 @@ Le héros est le pion central : il transporte l'armée, lance les sorts, porte l
 
 Les **probabilités de gain** par niveau sont data-driven. *État livré : un **profil global unique** `30/30/20/20` (A/D/P/S, `config.json`) s'applique à tous les héros ; les **classes** distinctes (ex. Nécromancien 15/15/30/40) sont différées.*
 
+> **Héros nommés (H-NAMED.1, doc §1.2)** : chaque faction peut déclarer un **roster** (`data/factions/<id>/heroes.json`, déclaré par `manifest.heroRoster`) — identité déclarative par héros : attributs de départ, spécialité de signature (mêmes effets génériques que Maisons/compétences), compétences/sorts de départ, nom + bio localisés. Le moteur résout cette identité à la création si `PlayerSetup.startingHeroId` la désigne (catalogue `StartGame.heroRoster`, comme `houseCatalog`) ; les champs explicites du scénario (report de campagne) la priment. **Différés** : profil de gain par classe, spécialités conditionnelles, pool/taverne (M-TAVERN), câblage de sélection client (H-NAMED.2).
+
 ### 1.2 Progression
 
 - **XP** : combats **gagnés uniquement** (XP = somme des PV des unités ennemies tuées × coefficient — valeur de départ **1**, dans `data/core/config.json` ; seul le héros du camp vainqueur en reçoit), coffres, lieux de savoir.

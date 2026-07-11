@@ -450,11 +450,16 @@ const handlers: Handlers = {
       team: p.team ?? 0,
     }));
     // Un héros par joueur à sa position de départ, armée de scénario (doc 02 §1.5, §5.1).
-    draft.heroes = cmd.players.map((p, i) => ({
+    draft.heroes = cmd.players.map((p, i) => {
+      // Héros nommé du roster (H-NAMED, doc 02 §1.2) : identité par défaut (nom,
+      // attributs, spécialité, compétences/sorts de départ). Les champs explicites
+      // du PlayerSetup (report de campagne) la priment via `??`.
+      const named = p.startingHeroId ? cmd.heroRoster?.[p.startingHeroId] : undefined;
+      return {
       id: `hero-${p.id}`,
       playerId: p.id,
-      // Identité (H-NAMED, doc 02 §1.1) — nom opaque fourni par les données.
-      name: p.startingName ?? '',
+      // Identité (H-NAMED, doc 02 §1.1) — nom opaque fourni par les données/roster.
+      name: p.startingName ?? named?.name ?? '',
       pos: cmd.map.startPositions[i] as GridPos,
       // PM/mana posés dans la boucle suivante (nécessitent l'objet héros complet).
       movementPoints: 0,
@@ -465,14 +470,16 @@ const handlers: Handlers = {
       level: p.startingLevel ?? 1,
       attributes: p.startingAttributes
         ? { ...p.startingAttributes }
-        : { attack: 0, defense: 0, power: 0, knowledge: 0 },
+        : named
+          ? { ...named.attributes }
+          : { attack: 0, defense: 0, power: 0, knowledge: 0 },
       // Magie/compétences/artefacts (doc 02 §1.1–§1.4) — mana = Savoir × 10 + artefacts.
       mana: 0,
       manaMax: 0,
-      skills: p.startingSkills ? { ...p.startingSkills } : {},
+      skills: p.startingSkills ? { ...p.startingSkills } : named ? { ...named.startingSkills } : {},
       visitLuck: 0,
       // Sorts connus d'emblée (cercle ≤ Guilde MVP), résolus par le contenu (décision 3.2 #7).
-      spells: p.startingSpells ? [...p.startingSpells] : [],
+      spells: p.startingSpells ? [...p.startingSpells] : named ? [...named.startingSpells] : [],
       // Artefacts : report par joueur (campagne) sinon dotation globale du scénario.
       artifacts: Array.from(
         { length: 10 },
@@ -488,13 +495,15 @@ const handlers: Handlers = {
         ...e,
       })),
       // Spécialité (H-NAMED, doc 02 §1.2) : effets résolus depuis le catalogue
-      // embarqué (copie défensive), agrégés comme la Maison dans skills.ts.
-      specialtyId: p.startingSpecialtyId ?? '',
-      specialtyEffects: ((cmd.specialtyCatalog ?? {})[p.startingSpecialtyId ?? '']?.effects ?? []).map(
-        (e) => ({ ...e }),
-      ),
+      // embarqué (copie défensive), agrégés comme la Maison dans skills.ts. Le
+      // roster de héros nommés fournit la spécialité de signature par défaut.
+      specialtyId: p.startingSpecialtyId || named?.specialtyId || '',
+      specialtyEffects: p.startingSpecialtyId
+        ? ((cmd.specialtyCatalog ?? {})[p.startingSpecialtyId]?.effects ?? []).map((e) => ({ ...e }))
+        : (named?.specialtyEffects ?? []).map((e) => ({ ...e })),
       warMachines: [],
-    }));
+      };
+    });
     for (const hero of draft.heroes) {
       hero.manaMax = heroManaMax(hero, draft.artifactCatalog);
       hero.mana = hero.manaMax;

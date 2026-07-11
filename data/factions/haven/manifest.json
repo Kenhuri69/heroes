@@ -12,6 +12,7 @@
     { "type": "combatBonus", "morale": 1, "defense": 2 }
   ],
   "spellSchool": "lumiere",
+  "heroRoster": "heroes.json",
   "heroSkills": [],
   "tiers": 7,
   "sharedGrowthGroups": {},

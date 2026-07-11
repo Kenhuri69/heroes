@@ -120,3 +120,5 @@ Fort ──► T1 Caserne ──► T2 Tour d'archers ──► T3 Monastère-la
 | **Clerc** | Magic | 15/25/30/30 | Magie de Lumière N, Sagesse N |
 
 Héros nommés MVP : *Aldric* (Chevalier, spécialité : +1 vitesse Chevaliers du Griffon), *Séraphine* (Clerc, spécialité : Soin +50 %).
+
+> **État livré (H-NAMED.1)** : le **roster data-driven** est livré — `data/factions/haven/heroes.json` définit **Aldric** (Might : attributs de départ, spécialité exprimable *Meneur* +1 moral, compétences Commandement/Armure) et **Séraphine** (Magic : spécialité *Liturgiste* −15 % coût mana, Sagesse, sorts de Lumière de départ) avec noms + bio FR/EN. Un `PlayerSetup.startingHeroId` résout cette identité à la création (via `StartGame.heroRoster`, embarqué comme `houseCatalog`/`specialtyCatalog`). **Différés** : le **profil de gain d'attribut par classe** (Might/Magic — reste global), les **spécialités conditionnelles** du doc (+vitesse Griffons / Soin +50 % — rendues par des spécialités exprimables en attendant), et le **câblage client** (sélection de héros / taverne = H-NAMED.2, M-TAVERN).

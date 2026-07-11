@@ -292,7 +292,17 @@ Source design : docs 03 §2/§4/§5, 04 §2/§4, 05 §3/§5/§6/§7, 14 §5/§6,
 
 Source design : doc 02 §1 (héros), docs de faction §5/§6/§7 (héros nommés).
 
-- **H-NAMED — Système de héros nommés / identités / spécialités** 🧩 (tranche livrée ; reste L)
+- **H-NAMED — Système de héros nommés / identités / spécialités** 🧩 (tranches livrées ; reste M)
+  > **H-NAMED.1 ✅** (plan `h-named-roster.md`) : **roster data-driven** livré —
+  > schéma `heroSchema`/`heroCatalogSchema` (`heroes.json` par faction, déclaré via
+  > `manifest.heroRoster`), loader + cross-validation (compétences/sorts/nom), export
+  > `buildHeroRoster` ; moteur : `PlayerSetup.startingHeroId` + `StartGame.heroRoster`
+  > (`ResolvedHeroDef`) résout nom/attributs/spécialité/compétences/sorts à la création
+  > (patron `houseCatalog`, champs de scénario prioritaires). Données : Haven Aldric
+  > (Might) + Séraphine (Magic) + bio FR/EN. Zéro faction moteur, golden inchangé,
+  > **aucun bump de save** (identité sur des champs héros existants). **Différés
+  > (H-NAMED.2+)** : profil de gain d'attribut par classe, spécialités conditionnelles,
+  > pool/taverne (M-TAVERN), câblage de sélection client.
   > **Point d'extension ouvert (bornée)** : `HeroState.name` + `specialtyId` +
   > `specialtyEffects` (save v15) ; `PlayerSetup.startingName`/`startingSpecialtyId`
   > + `StartGame.specialtyCatalog` (miroir de `houseCatalog`). La **spécialité est

@@ -3,6 +3,7 @@ import {
   abilityCatalogSchema,
   artifactCatalogSchema,
   buildingCatalogSchema,
+  heroCatalogSchema,
   COMMON_RESOURCE_IDS,
   factionIndexSchema,
   gameConfigSchema,
@@ -23,6 +24,7 @@ import {
   type WarMachine,
   type Building,
   type FactionBonus,
+  type Hero,
   type HouseEffect,
   type GameConfig,
   type Locale,
@@ -55,6 +57,8 @@ export interface FactionPack {
   locales: Record<(typeof LOCALE_LANGS)[number], Locale>;
   /** Bâtiments propres au paquet (dwellings + spéciaux) — vide si pas de `manifest.town`. */
   buildings: Building[];
+  /** Roster de héros nommés (H-NAMED) — vide si le paquet n'a pas de `heroes.json`. */
+  heroes: Hero[];
 }
 
 export interface LoadedContent {
@@ -192,7 +196,9 @@ export async function loadContent(readJson: ReadJson): Promise<LoadReport> {
   };
   for (const id of index.factions) {
     try {
-      report.content.packs.push(await loadFactionPack(readJson, id, catalog, coreBuildings, coreSpells));
+      report.content.packs.push(
+        await loadFactionPack(readJson, id, catalog, coreBuildings, coreSpells, coreSkills),
+      );
     } catch (e) {
       report.rejected.push({ id, errors: describeError(e) });
     }
@@ -361,8 +367,10 @@ export async function loadFactionPack(
   catalog: AbilityCatalog,
   /** Bâtiments communs (data/core/buildings.json) — résolus par `manifest.town.buildings`. */
   coreBuildings: Building[] = [],
-  /** Sorts communs (data/core/spells.json) — cross-validation de `grantSpell.spellId`. */
+  /** Sorts communs (data/core/spells.json) — cross-validation de `grantSpell.spellId` + roster. */
   coreSpells: Spell[] = [],
+  /** Compétences communes (data/core/skills.json) — cross-validation des `startingSkills` du roster. */
+  coreSkills: Skill[] = [],
 ): Promise<FactionPack> {
   const base = `factions/${id}`;
   const manifest = parseFile(manifestSchema, await readJson(`${base}/manifest.json`), 'manifest.json');
@@ -504,8 +512,71 @@ export async function loadFactionPack(
     }
   }
 
+  // Roster de héros nommés (H-NAMED, doc 02 §1.2) — optionnel, déclaré par
+  // `manifest.heroRoster` (chemin, comme `story`). Un fichier absent = pas de
+  // roster ; un fichier présent mais invalide échoue (parseFile lève).
+  const heroes: Hero[] = [];
+  if (manifest.heroRoster) {
+    const path = manifest.heroRoster;
+    heroes.push(...parseFile(heroCatalogSchema, await readJson(`${base}/${path}`), path).heroes);
+    const knownSkillIds = new Set([...coreSkills.map((s) => s.id), ...manifest.heroSkills]);
+    const spellIds = new Set(coreSpells.map((s) => s.id));
+    const seenHeroIds = new Set<string>();
+    for (const h of heroes) {
+      if (seenHeroIds.has(h.id)) errors.push(`${path}: id de héros en double '${h.id}'`);
+      seenHeroIds.add(h.id);
+      for (const skillId of Object.keys(h.startingSkills))
+        if (!knownSkillIds.has(skillId))
+          errors.push(`${path}: héros '${h.id}' — compétence de départ inconnue '${skillId}'`);
+      for (const spellId of h.startingSpells)
+        if (!spellIds.has(spellId))
+          errors.push(`${path}: héros '${h.id}' — sort de départ inconnu '${spellId}'`);
+      // Nom (requis) + bio (optionnelle) localisés dans les deux langues du paquet.
+      for (const ref of [h.name, ...(h.bio ? [h.bio] : [])]) {
+        const key = ref.startsWith('@loc:') ? ref.slice('@loc:'.length) : ref;
+        for (const lang of LOCALE_LANGS)
+          if (!(key in locales[lang])) errors.push(`locales/${lang}.json: clé de héros manquante '${key}'`);
+      }
+    }
+  }
+
   if (errors.length > 0) throw new PackError(errors);
-  return { manifest, units, locales, buildings };
+  return { manifest, units, locales, buildings, heroes };
+}
+
+/**
+ * Roster de héros nommés prêt pour `StartGame.heroRoster` (H-NAMED, doc 02 §1.2) —
+ * indexé par `heroId`. La spécialité de signature est éclatée en `specialtyId` +
+ * `specialtyEffects` (mêmes effets déclaratifs que Maisons/compétences). Le moteur
+ * résout l'identité (nom/attributs/spécialité/départ) à la création du héros.
+ */
+export function buildHeroRoster(
+  report: LoadReport,
+): Record<string, {
+  factionId: string;
+  name: string;
+  attributes: { attack: number; defense: number; power: number; knowledge: number };
+  specialtyId: string;
+  specialtyEffects: HouseEffect[];
+  startingSkills: Record<string, number>;
+  startingSpells: string[];
+}> {
+  const roster: ReturnType<typeof buildHeroRoster> = {};
+  for (const pack of report.content.packs) {
+    for (const h of pack.heroes) {
+      const { id: specialtyId, ...effect } = h.specialty;
+      roster[h.id] = {
+        factionId: pack.manifest.id,
+        name: h.name,
+        attributes: { ...h.attributes },
+        specialtyId,
+        specialtyEffects: [effect],
+        startingSkills: { ...h.startingSkills },
+        startingSpells: [...h.startingSpells],
+      };
+    }
+  }
+  return roster;
 }
 
 /** Un `id` de bâtiment ne doit apparaître qu'une fois dans la liste donnée. */

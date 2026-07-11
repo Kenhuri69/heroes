@@ -36,6 +36,10 @@ const AURA_CATALOG: Record<string, BuildingDef> = {
     id: 'statue', maxLevel: 1,
     levels: [{ cost: {}, requires: [], effect: { type: 'heroAura', combatMoraleBonus: 1 } }],
   },
+  watchtower: {
+    id: 'watchtower', maxLevel: 1,
+    levels: [{ cost: {}, requires: [], effect: { type: 'heroAura', garrisonDefense: 3 } }],
+  },
 };
 
 function town(over: Partial<TownState> = {}): TownState {
@@ -130,5 +134,31 @@ describe('F-BUILDEFF.2 — Statue du Jugement : +moral à la garnison en siège'
   it('hors siège (townId null) : aucune aura de moral', () => {
     const { stack, combat } = siegeCombat(null);
     expect(moraleOf(stack, combat, state({ statue: 1 }))).toBe(moraleOf(stack, combat, state({})));
+  });
+});
+
+/** État de siège : p1 (humain) assiège la ville défendue de p2, buildings donnés. */
+function defenseSiegeState(townBuildings: Record<string, number>): GameState {
+  const s = createEmptyState();
+  s.started = true;
+  s.config = testConfig();
+  s.rng = seedRng(4);
+  s.currentPlayer = 0;
+  s.players = [
+    { id: 'p1', resources: emptyResources(), factionResources: {}, explored: [], controller: 'human', eliminated: false, townlessDays: -1, huntContract: null, team: 0 },
+    { id: 'p2', resources: emptyResources(), factionResources: {}, explored: [], controller: 'ai', eliminated: false, townlessDays: 0, huntContract: null, team: 0 },
+  ];
+  s.heroes = [hero({ id: 'hero-p1', playerId: 'p1', pos: { x: 5, y: 5 }, movementPoints: 100 })];
+  s.towns = [{ id: 't1', ownerPlayerId: 'p2', pos: { x: 5, y: 5 }, factionId: '', buildings: townBuildings, builtToday: false, garrison: [{ unitId: 'blue-wolf', count: 1 }], stock: {}, spellPool: [], sharedGrowthChoice: {} }];
+  s.unitCatalog = testCatalog();
+  s.buildingCatalog = AURA_CATALOG;
+  return s;
+}
+
+describe('F-BUILDEFF.4 — Cercle Vigile : +défense de garnison au siège', () => {
+  it('un bâtiment garrisonDefense majore le mur de siège', () => {
+    const withTower = apply(defenseSiegeState({ watchtower: 1 }), { type: 'CaptureTown', townId: 't1', playerId: 'p1' }).state;
+    const without = apply(defenseSiegeState({}), { type: 'CaptureTown', townId: 't1', playerId: 'p1' }).state;
+    expect((withTower.combat?.wallDefenseBonus ?? 0) - (without.combat?.wallDefenseBonus ?? 0)).toBe(3);
   });
 });

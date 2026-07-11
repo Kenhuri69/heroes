@@ -656,7 +656,16 @@ export function buildArtifactCatalog(report: LoadReport): Record<string, Resolve
 export function buildFactionCatalog(report: LoadReport): Record<string, { bonuses: FactionBonus[] }> {
   const catalog: Record<string, { bonuses: FactionBonus[] }> = {};
   for (const pack of report.content.packs) {
-    catalog[pack.manifest.id] = { bonuses: pack.manifest.factionBonuses };
+    // F-RESON.1 : estampille le cap de la ressource sur chaque bonus de gain
+    // (dérivé de `factionResources[].cap` du même paquet). Le loader valide déjà
+    // que la ressource du bonus est déclarée ⇒ le cap existe toujours.
+    const capByResource = new Map(pack.manifest.factionResources.map((r) => [r.id, r.cap]));
+    const bonuses = pack.manifest.factionBonuses.map((b) => {
+      if (b.type !== 'gainFactionResourceOnVictory') return b;
+      const cap = capByResource.get(b.resource);
+      return cap !== undefined ? { ...b, cap } : b;
+    });
+    catalog[pack.manifest.id] = { bonuses };
   }
   return catalog;
 }

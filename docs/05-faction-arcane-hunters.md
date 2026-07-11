@@ -66,7 +66,10 @@ Faction inédite, produite en **Alpha** — elle sert de validation grandeur nat
 > loader vérifie que la ressource est déclarée dans `factionResources`. Zéro nom
 > de faction dans le moteur (garde-fou vert). **Dépense** d'Essence (T8/upgrades)
 > = 4.6 ; **Contrats de chasse** (hook d'aventure hebdomadaire, autre point) =
-> 4.5 ; cap de ressource non imposé au gain pour l'instant.
+> 4.5. **Cap de ressource désormais appliqué au gain** (F-RESON.1) : le cap
+> déclaré (`factionResources[].cap` = 999) est estampillé par le loader sur le
+> bonus de gain et plafonne le crédit post-victoire (jamais de réduction d'un
+> stock pré-seedé).
 >
 > 🚧 **État 4.5 (consumeMarks → expose)** : extension de la capacité générique
 > `consumeMarks` (4.3) avec un 2ᵉ effet déclaratif `suppressRetaliation` —

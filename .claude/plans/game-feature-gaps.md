@@ -241,11 +241,15 @@ Source design : docs 03 §2/§4/§5, 04 §2/§4, 05 §3/§5/§6/§7, 14 §5/§6,
   (Serpent), +25 % mana max (Aigle), +50 % Résonance / Scène +1 Pouvoir (Venari).
   Zéro faction (garde-fou vert), aucun bump de sauvegarde, golden inchangé.
 
-- **F-RESON — Résonance intra-combat & cap** 🧩 M ⬜
-  Doc : doc 16 §3.2/§4 (performeurs génèrent en combat ; cap 999). Code : gain
-  post-victoire uniquement ; cap déclaré non appliqué (`faction/effects.ts`).
-  Spec : événement de gain par action de « performeur » (capacité générique),
-  application du cap au gain.
+- **F-RESON — Résonance intra-combat & cap** 🧩 M 🚧 (**découpé en sous-lots**)
+  Doc : doc 16 §3.2/§4 (performeurs génèrent en combat ; cap 999).
+  - **F-RESON.1** ✅ (plan `f-reson-cap.md`) : **cap appliqué au gain** — le cap
+    déclaré (`factionResources[].cap`) est estampillé par `buildFactionCatalog`
+    sur le bonus `gainFactionResourceOnVictory` et plafonne le crédit post-victoire
+    (`faction/effects.ts`, `max(current, min(next, cap))`). Cap optionnel ⇒ saves
+    gracieuses ; zéro faction, golden inchangé, aucun bump de save.
+  - **F-RESON.2** ⬜ : génération intra-combat par « performeur » (capacité
+    générique de gain de ressource en combat) — nouvelle surface de combat.
 
 - **F-SCHOOLS — Écoles de sorts propres incomplètes** 🧩 M 🚧 (**découpé en sous-lots**)
   Doc : Lumière (doc 03 §1/§3), Nécromancie/Prime (doc 04 §1), Traque 8 sorts

@@ -178,9 +178,31 @@ export const heroIdentitySchema = z
     source: z.string().min(1).optional(),
     avatar: z.string().min(1),
     avatarStyle: z.enum(['painterly', 'photoreal']).default('painterly'),
-    /** Indicatifs (différé moteur) : non résolus en jeu au staging. */
+    /** Description de spécialité (indicative, `@loc:`) — affichage. */
     specialty: locRef.optional(),
     startingHouseId: idSchema.optional(),
+    /**
+     * Gameplay résoluble par le moteur (H-NAMED.1, doc 02 §1.2) — **optionnels**.
+     * Un héros PORTANT `attributes` devient **résolu en jeu** (identité appliquée
+     * au StartGame : attributs/spécialité/compétences/sorts de départ) ; sans, il
+     * reste identity-only (avatar/bio, staging 16.9). `specialtyEffect` = profil
+     * d'effets structuré (mêmes effets génériques que Maisons/compétences), distinct
+     * de `specialty` (texte descriptif). `startingHouseId` ci-dessus reste indicatif.
+     */
+    attributes: z
+      .object({
+        attack: z.number().int().nonnegative(),
+        defense: z.number().int().nonnegative(),
+        power: z.number().int().nonnegative(),
+        knowledge: z.number().int().nonnegative(),
+      })
+      .optional(),
+    specialtyEffect: z
+      .object({ id: idSchema, ...heroEffectFields })
+      .refine((e) => Object.entries(e).some(([k, v]) => k !== 'id' && v !== undefined), 'au moins un effet de spécialité')
+      .optional(),
+    startingSkills: z.record(idSchema, z.number().int().min(1).max(3)).default({}),
+    startingSpells: z.array(idSchema).default([]),
   })
   .refine((h) => (h.origin === 'canon') === (h.source !== undefined), {
     message: "origin 'canon' exige 'source' (univers) ; 'original' l'interdit",

@@ -294,7 +294,18 @@ Source design : docs 03 §2/§4/§5, 04 §2/§4, 05 §3/§5/§6/§7, 14 §5/§6,
 
 Source design : doc 02 §1 (héros), docs de faction §5/§6/§7 (héros nommés).
 
-- **H-NAMED — Système de héros nommés / identités / spécialités** 🧩 (tranche livrée ; reste L)
+- **H-NAMED — Système de héros nommés / identités / spécialités** 🧩 (tranches livrées ; reste M)
+  > **H-NAMED.1 ✅** (plan `h-named-roster.md`) : **héros nommés jouables** — les
+  > fiches d'identité `heroes/<id>.json` (couche 16.9, avatar/bio/origine) sont
+  > **étendues** de champs gameplay OPTIONNELS (`attributes`/`specialtyEffect`/
+  > `startingSkills`/`startingSpells`) ; `buildHeroRoster` ne retient que celles
+  > portant `attributes` ; moteur `PlayerSetup.startingHeroId` + `StartGame.heroRoster`
+  > (`ResolvedHeroDef`) résout nom/attributs/spécialité/départ à la création (patron
+  > `houseCatalog`, champs de scénario prioritaires). Données : Haven Aldric + Séraphine
+  > **jouables** (Vox reste identity-only). **Rework** de #253 (approche parallèle
+  > `heroes.json` en collision avec 16.9). Zéro faction moteur, golden inchangé, aucun
+  > bump save. **Différés (H-NAMED.2+)** : profil de gain par classe, spécialités
+  > conditionnelles, pool/taverne (M-TAVERN), câblage de sélection client.
   > **Point d'extension ouvert (bornée)** : `HeroState.name` + `specialtyId` +
   > `specialtyEffects` (save v15) ; `PlayerSetup.startingName`/`startingSpecialtyId`
   > + `StartGame.specialtyCatalog` (miroir de `houseCatalog`). La **spécialité est

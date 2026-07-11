@@ -2,7 +2,7 @@ import type { AdventureConfig } from '../adventure/config';
 import type { AdventureMapDef, GridPos } from '../adventure/map';
 import type { ArmyStack, CombatActionInput, CombatUnitDef } from '../combat/types';
 import type { BuildingDef, TownState } from '../town/types';
-import type { ArtifactDef, HeroSkillDef, SkillRankEffect, SpellDef } from '../hero/types';
+import type { ArtifactDef, HeroSkillDef, ResolvedHeroDef, SkillRankEffect, SpellDef } from '../hero/types';
 import type { FactionBonus } from '../faction/types';
 import type { ScenarioState } from '../scenario/types';
 import type { QuestState } from '../quest/types';
@@ -26,6 +26,13 @@ export interface PlayerSetup {
   startingName?: string;
   /** Spécialité du héros (doc 02 §1.2, H-NAMED) — id opaque résolu via `specialtyCatalog` ; défaut ''. */
   startingSpecialtyId?: string;
+  /**
+   * Héros nommé du roster (H-NAMED.1, doc 02 §1.2) — id opaque résolu via
+   * `StartGame.heroRoster` : fournit nom/attributs/spécialité/compétences/sorts de
+   * départ. Les champs explicites ci-dessus (report de campagne) le priment. Défaut :
+   * aucun (héros générique).
+   */
+  startingHeroId?: string;
   /** Contrôleur (doc 02 §6, plan phase-3.5) — `'ai'` pour un adversaire ; défaut `'human'`. */
   controller?: 'human' | 'ai';
   /** Équipe / alliance (doc 02 §6) — entier opaque ; défaut `0` (sans alliance). */
@@ -83,6 +90,13 @@ export type Command =
        * résolus vivent sur le héros, comme `houseCatalog`/`houseEffects`).
        */
       specialtyCatalog?: Record<string, { effects: SkillRankEffect[] }>;
+      /**
+       * Roster de héros nommés résolu par le contenu (H-NAMED.1, doc 02 §1.2), indexé
+       * par `heroId` → identité déclarative (fiches `heroes/<id>.json` portant du
+       * gameplay). Résout l'identité à la création (`PlayerSetup.startingHeroId`) ; non
+       * stocké dans l'état (comme `houseCatalog`/`specialtyCatalog`).
+       */
+      heroRoster?: Record<string, ResolvedHeroDef>;
       /**
        * Groupes de croissance partagée résolus par le contenu (doc 05 §3.1/§8),
        * `groupId → membres`. Embarqué dans `GameState.growthGroups` ; absent = aucun.

@@ -1,0 +1,14 @@
+{
+  "id": "seraphine",
+  "name": "@loc:hero.seraphine.name",
+  "bio": "@loc:hero.seraphine.bio",
+  "archetype": "magic",
+  "origin": "original",
+  "avatar": "haven-magic",
+  "avatarStyle": "painterly",
+  "specialty": "@loc:hero.seraphine.specialty",
+  "attributes": { "attack": 0, "defense": 1, "power": 2, "knowledge": 3 },
+  "specialtyEffect": { "id": "liturgiste", "manaCostReductionPct": 15 },
+  "startingSkills": { "wisdom": 1 },
+  "startingSpells": ["soin-de-lumiere", "aura-sacree"]
+}

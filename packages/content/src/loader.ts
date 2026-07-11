@@ -200,7 +200,9 @@ export async function loadContent(readJson: ReadJson): Promise<LoadReport> {
   };
   for (const id of index.factions) {
     try {
-      report.content.packs.push(await loadFactionPack(readJson, id, catalog, coreBuildings, coreSpells));
+      report.content.packs.push(
+        await loadFactionPack(readJson, id, catalog, coreBuildings, coreSpells, coreSkills),
+      );
     } catch (e) {
       report.rejected.push({ id, errors: describeError(e) });
     }
@@ -369,8 +371,10 @@ export async function loadFactionPack(
   catalog: AbilityCatalog,
   /** Bâtiments communs (data/core/buildings.json) — résolus par `manifest.town.buildings`. */
   coreBuildings: Building[] = [],
-  /** Sorts communs (data/core/spells.json) — cross-validation de `grantSpell.spellId`. */
+  /** Sorts communs (data/core/spells.json) — cross-validation de `grantSpell.spellId` + roster. */
   coreSpells: Spell[] = [],
+  /** Compétences communes (data/core/skills.json) — cross-validation des `startingSkills` du roster. */
+  coreSkills: Skill[] = [],
 ): Promise<FactionPack> {
   const base = `factions/${id}`;
   const manifest = parseFile(manifestSchema, await readJson(`${base}/manifest.json`), 'manifest.json');
@@ -434,16 +438,25 @@ export async function loadFactionPack(
   }
 
   // Héros nommés (doc 16 État 16.9) — identité data-driven, convention
-  // `heroes/<id>.json`. Non consommés par le moteur (staging) ; règles croisées
-  // ici pour que `content:check`/`faction:validate` valident les fiches.
+  // `heroes/<id>.json`. L'identité (avatar/bio) est staging ; les champs
+  // GAMEPLAY optionnels (H-NAMED.1 : attributs/spécialité/compétences/sorts) sont
+  // consommés par le moteur (`buildHeroRoster` → StartGame). Règles croisées ici.
   const heroes: HeroIdentity[] = [];
   const houseIds = new Set(manifest.houses.map((h) => h.id));
+  const knownSkillIds = new Set([...coreSkills.map((s) => s.id), ...manifest.heroSkills]);
+  const rosterSpellIds = new Set(coreSpells.map((s) => s.id));
   for (const heroId of manifest.heroes) {
     const path = `heroes/${heroId}.json`;
     const hero = parseFile(heroIdentitySchema, await readJson(`${base}/${path}`), path);
     if (hero.id !== heroId) errors.push(`${path}: id '${hero.id}' ≠ fichier '${heroId}'`);
     if (hero.startingHouseId && !houseIds.has(hero.startingHouseId))
       errors.push(`${path}: startingHouseId — Maison inconnue '${hero.startingHouseId}'`);
+    // Gameplay (H-NAMED.1) : compétences/sorts de départ validés vs les catalogues.
+    for (const skillId of Object.keys(hero.startingSkills))
+      if (!knownSkillIds.has(skillId))
+        errors.push(`${path}: compétence de départ inconnue '${skillId}'`);
+    for (const spellId of hero.startingSpells)
+      if (!rosterSpellIds.has(spellId)) errors.push(`${path}: sort de départ inconnu '${spellId}'`);
     heroes.push(hero);
   }
   if (new Set(heroes.map((h) => h.id)).size !== heroes.length)
@@ -710,6 +723,49 @@ export function buildHouseCatalog(report: LoadReport): Record<string, { effects:
     }
   }
   return catalog;
+}
+
+/**
+ * Roster de héros nommés prêt pour `StartGame.heroRoster` (H-NAMED.1, doc 02 §1.2) —
+ * indexé par `heroId`, **uniquement** pour les fiches `heroes/<id>.json` PORTANT le
+ * gameplay (`attributes`). Les fiches identity-only (staging 16.9 : avatar/bio) sont
+ * ignorées (non jouées en jeu). La spécialité de signature est éclatée en
+ * `specialtyId` + `specialtyEffects` (mêmes effets déclaratifs que Maisons/compétences).
+ */
+export function buildHeroRoster(
+  report: LoadReport,
+): Record<string, {
+  factionId: string;
+  name: string;
+  attributes: { attack: number; defense: number; power: number; knowledge: number };
+  specialtyId: string;
+  specialtyEffects: HouseEffect[];
+  startingSkills: Record<string, number>;
+  startingSpells: string[];
+}> {
+  const roster: ReturnType<typeof buildHeroRoster> = {};
+  for (const pack of report.content.packs) {
+    for (const h of pack.heroes) {
+      if (!h.attributes) continue; // fiche identity-only (staging) — non jouée
+      let specialtyId = '';
+      let specialtyEffects: HouseEffect[] = [];
+      if (h.specialtyEffect) {
+        const { id, ...eff } = h.specialtyEffect; // éclate la spécialité en id + effets
+        specialtyId = id;
+        specialtyEffects = [eff];
+      }
+      roster[h.id] = {
+        factionId: pack.manifest.id,
+        name: h.name,
+        attributes: { ...h.attributes },
+        specialtyId,
+        specialtyEffects,
+        startingSkills: { ...h.startingSkills },
+        startingSpells: [...h.startingSpells],
+      };
+    }
+  }
+  return roster;
 }
 
 /**

@@ -3,6 +3,7 @@ export {
   buildBuildingCatalog,
   buildFactionCatalog,
   buildGrowthGroupCatalog,
+  buildHeroRoster,
   buildHouseCatalog,
   buildScenarioObjectives,
   buildSkillCatalog,

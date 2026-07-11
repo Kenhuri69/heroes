@@ -13,6 +13,7 @@
   ],
   "spellSchool": "lumiere",
   "heroSkills": [],
+  "heroes": ["aldric", "seraphine"],
   "tiers": 7,
   "sharedGrowthGroups": {},
   "units": [

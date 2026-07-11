@@ -1,0 +1,14 @@
+{
+  "id": "aldric",
+  "name": "@loc:hero.aldric.name",
+  "bio": "@loc:hero.aldric.bio",
+  "archetype": "might",
+  "origin": "original",
+  "avatar": "haven-might",
+  "avatarStyle": "painterly",
+  "specialty": "@loc:hero.aldric.specialty",
+  "attributes": { "attack": 2, "defense": 2, "power": 1, "knowledge": 1 },
+  "specialtyEffect": { "id": "meneur", "moraleBonus": 1 },
+  "startingSkills": { "leadership": 1, "armor": 1 },
+  "startingSpells": []
+}

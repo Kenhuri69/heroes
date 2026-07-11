@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   buildArtifactCatalog,
   buildBuildingCatalog,
+  buildHeroRoster,
   buildSkillCatalog,
   buildSpellCatalog,
   checkCoreNameKeys,
@@ -865,5 +866,71 @@ describe('catalogues sorts/compétences/artefacts (plan phase-3.2 lot L)', () =>
     expect(report.configErrors.join()).toMatch(/startingArmy.*t1-grunt/s); // erreur rapportée
     // Boot survit : la fonction n'a pas levé, le rapport est exploitable.
     expect(report.content.config.newGame.map).toBe('mini');
+  });
+});
+
+/** Injecte un roster gameplay (manifest.heroes + heroes/<id>.json + clés de nom). */
+function withRoster(data: Record<string, unknown>, hero: Record<string, unknown>): void {
+  (data['factions/proto/manifest.json'] as { heroes?: string[] }).heroes = [hero.id as string];
+  data[`factions/proto/heroes/${hero.id as string}.json`] = hero;
+  const fr = data['factions/proto/locales/fr.json'] as Record<string, string>;
+  const en = data['factions/proto/locales/en.json'] as Record<string, string>;
+  for (const loc of [fr, en]) {
+    loc[`hero.${hero.id as string}.name`] = 'Héros';
+    loc[`hero.${hero.id as string}.bio`] = 'Bio';
+  }
+}
+
+const GAMEPLAY_HERO = {
+  id: 'proto-knight',
+  name: '@loc:hero.proto-knight.name',
+  bio: '@loc:hero.proto-knight.bio',
+  archetype: 'might',
+  origin: 'original',
+  avatar: 'proto-might',
+  attributes: { attack: 2, defense: 2, power: 1, knowledge: 1 },
+  specialtyEffect: { id: 'meneur', moraleBonus: 1 },
+  startingSkills: { logistics: 1 },
+  startingSpells: ['boule-de-feu'],
+};
+
+describe('H-NAMED.1 — roster de héros nommés (gameplay sur heroIdentitySchema)', () => {
+  it('charge un héros gameplay et le résout (buildHeroRoster)', async () => {
+    const data = makeData();
+    withRoster(data, GAMEPLAY_HERO);
+    const report = await loadContent(reader(data));
+    expect(report.rejected).toEqual([]);
+    const roster = buildHeroRoster(report);
+    expect(roster['proto-knight']?.factionId).toBe('proto');
+    expect(roster['proto-knight']?.attributes).toEqual({ attack: 2, defense: 2, power: 1, knowledge: 1 });
+    expect(roster['proto-knight']?.specialtyId).toBe('meneur');
+    expect(roster['proto-knight']?.specialtyEffects).toEqual([{ moraleBonus: 1 }]);
+    expect(roster['proto-knight']?.startingSpells).toEqual(['boule-de-feu']);
+  });
+
+  it('un héros identity-only (sans attributs) est ignoré par le roster moteur', async () => {
+    const data = makeData();
+    const identityOnly = {
+      id: 'proto-knight', name: '@loc:hero.proto-knight.name', bio: '@loc:hero.proto-knight.bio',
+      archetype: 'might', origin: 'original', avatar: 'proto-might',
+    };
+    withRoster(data, identityOnly);
+    const report = await loadContent(reader(data));
+    expect(report.rejected).toEqual([]);
+    expect(buildHeroRoster(report)['proto-knight']).toBeUndefined(); // staging, non joué
+  });
+
+  it('rejette une compétence de départ inconnue', async () => {
+    const data = makeData();
+    withRoster(data, { ...GAMEPLAY_HERO, startingSkills: { 'skill-fantome': 1 } });
+    const report = await loadContent(reader(data));
+    expect(report.rejected[0]?.errors.join()).toContain("compétence de départ inconnue 'skill-fantome'");
+  });
+
+  it('rejette un sort de départ inconnu', async () => {
+    const data = makeData();
+    withRoster(data, { ...GAMEPLAY_HERO, startingSpells: ['sort-fantome'] });
+    const report = await loadContent(reader(data));
+    expect(report.rejected[0]?.errors.join()).toContain("sort de départ inconnu 'sort-fantome'");
   });
 });

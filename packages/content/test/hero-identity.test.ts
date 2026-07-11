@@ -40,10 +40,13 @@ describe('Héros nommés — identité et séparation par origine', () => {
 
   it("sépare canon (avec source d'univers) et original (sans source)", async () => {
     const report = await loadContent(readJsonFromDisk);
-    const pack = report.content.packs.find((p) => p.heroes.length > 0)!;
+    // Agrégé sur TOUTES les factions : plusieurs paquets déclarent désormais des
+    // héros nommés (identité 16.9 et/ou gameplay H-NAMED.1), certains 100 % original.
+    const allHeroes = report.content.packs.flatMap((p) => p.heroes);
+    expect(allHeroes.length).toBeGreaterThan(0);
 
-    const canon = pack.heroes.filter((h) => h.origin === 'canon');
-    const original = pack.heroes.filter((h) => h.origin === 'original');
+    const canon = allHeroes.filter((h) => h.origin === 'canon');
+    const original = allHeroes.filter((h) => h.origin === 'original');
 
     // La séparation est effective : les deux catégories existent et se filtrent.
     expect(canon.length).toBeGreaterThan(0);

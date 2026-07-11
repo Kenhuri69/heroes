@@ -2,6 +2,14 @@
    #ui-root est en pointer-events: none (index.html) : chaque bloc interactif
    ré-active explicitement les siens. */
 
+/* Couleur de texte par défaut de toute l'UI DOM : sans elle, les éléments qui
+   n'imposent pas leur `color` héritaient du noir du navigateur (illisible sur
+   nos fonds sombres — handoff, chips d'armée, fiches). Les rares surfaces sur
+   fond clair posent déjà leur couleur explicite (ex. MapEditor). */
+#ui-root {
+  color: var(--parchment);
+}
+
 /* Chrome décoratif partagé (doc 12 Règle G, skill asset-chrome) : cadre &
    ruban laiton en `border-image`, pilotés par les variables `--chrome-frame`
    / `--chrome-ribbon` posées au bootstrap (main.ts) depuis le registre d'assets.
@@ -479,29 +487,65 @@
 }
 
 .army-slot {
-  min-width: 70px;
-  min-height: 32px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 4px 6px;
-  border: 1px solid var(--ink-600);
-  border-radius: var(--radius-s);
-  background: var(--ink-800);
-  font-size: 0.75rem;
-  text-align: center;
+  list-style: none;
 }
 
+/* Case vide (garnison/échange) : cadre discret pointillé de même gabarit. */
 .army-slot.empty {
+  width: 56px;
+  height: 56px;
+  border: 1px dashed var(--ink-600);
+  border-radius: var(--radius-s);
   opacity: 0.4;
 }
 
-.army-slot-name {
-  max-width: 9em;
+/* Vignette d'unité encadrée + effectif, cliquable (ouvre la fiche `UnitCard`) —
+   cible tactile 56 px ≥ 44 px (doc 08 §1). */
+.army-slot-btn {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  padding: 0;
+  border: 1px solid var(--ink-600);
+  border-radius: var(--radius-s);
+  background: var(--ink-800);
+  color: var(--parchment);
+  cursor: pointer;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+}
+
+.army-slot-portrait {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.army-slot-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Repli texte (asset absent) : nom de l'unité dans la vignette. */
+.army-slot-name {
+  padding: 2px;
+  font-size: 0.6875rem;
+  line-height: 1.1;
+  text-align: center;
+  overflow: hidden;
+}
+
+.army-slot-count {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  padding: 0 4px;
+  border-radius: var(--radius-s);
+  background: var(--veil-90);
+  color: var(--parchment-bright);
+  font: 700 0.75rem var(--font-ui);
 }
 
 /* Bandeau d'armée bas, repliable en portrait (doc 08 §2.1) — posé dans le
@@ -529,6 +573,135 @@
 
 .army-band.collapsed .army-slots {
   display: none;
+}
+
+/* Fiche d'unité de l'armée (aventure, doc 08 §2.1) — portrait, stats, capacités.
+   Même famille visuelle que `.stack-sheet` de combat ; z-index au-dessus du HUD
+   (rendue dans `.bottom-hud`, pointer-events réactivés sur le backdrop). */
+.unit-card-backdrop {
+  position: fixed;
+  inset: 0;
+  background: var(--veil-60);
+  pointer-events: auto;
+  z-index: 30;
+}
+
+.unit-card {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(92vw, 22rem);
+  max-height: 86vh;
+  overflow-y: auto;
+  padding: 12px 16px;
+  border: 1px solid var(--ink-600);
+  border-radius: var(--radius-m);
+  background: var(--ink-800);
+  color: var(--parchment);
+}
+
+.unit-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.unit-card-header h3 {
+  flex: 1;
+  margin: 0;
+  font: 700 1rem var(--font-display);
+}
+
+.unit-card-portrait {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border: 1px solid var(--ink-600);
+  border-radius: var(--radius-s);
+  background: var(--ink-900);
+  overflow: hidden;
+}
+
+.unit-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.unit-card-portrait-fallback {
+  font-size: 1.5rem;
+  opacity: 0.6;
+}
+
+.unit-card-close {
+  flex: none;
+  min-width: 44px;
+  min-height: 44px;
+  border: 1px solid var(--ink-600);
+  border-radius: var(--radius-s);
+  background: var(--ink-700);
+  color: var(--parchment);
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.unit-card-stats {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  margin: 12px 0;
+}
+
+.unit-card-stats dt {
+  opacity: 0.75;
+}
+
+.unit-card-stats dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+.unit-card-abilities-title {
+  margin: 12px 0 6px;
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.75;
+}
+
+.unit-card-abilities {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.unit-card-abilities li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.unit-card-ability-name {
+  font-weight: 600;
+  color: var(--brass-text);
+}
+
+.unit-card-ability-desc {
+  font-size: 0.8125rem;
+  color: var(--parchment-dim);
+}
+
+.unit-card-no-abilities {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--parchment-dim);
 }
 
 /* Lot X3 (HUD aventure mobile) : sur le bandeau bas < 900 px (hors colonne

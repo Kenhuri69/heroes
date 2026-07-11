@@ -268,6 +268,7 @@ const buildingEffectSchema = z.discriminatedUnion('type', [
     type: z.literal('heroAura'),
     movementBonusFlat: z.number().int().nonnegative().default(0),
     combatMoraleBonus: z.number().int().nonnegative().default(0),
+    garrisonDefense: z.number().int().nonnegative().default(0),
   }),
   /**
    * Bâtiment enseignant (F-BUILDEFF.3, doc 03 §4 — Cloître) : `spellId` (opaque)

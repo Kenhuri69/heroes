@@ -304,9 +304,8 @@
             }
           ],
           "effect": {
-            "type": "income",
-            "resource": "gold",
-            "amount": 250
+            "type": "heroAura",
+            "garrisonDefense": 3
           }
         }
       ]

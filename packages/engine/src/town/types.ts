@@ -45,9 +45,17 @@ export type BuildingEffect =
    *   **présent sur la tuile** de la ville (option B), câblé dans `heroDailyMovement`.
    * - `combatMoraleBonus` (.2, Statue du Jugement) : +moral en **combat de siège**
    *   au camp défenseur (garnison), câblé dans `moraleOf`.
+   * - `garrisonDefense` (.4, Cercle Vigile) : +défense « murs » plate au **siège**
+   *   côté défenseur, câblé dans `wallDefenseBonus` (même champ que la Maison
+   *   Blaireau, F-HOUSES, mais porté par un bâtiment).
    * Les sous-lots suivants étendront la charge + leur câblage.
    */
-  | { type: 'heroAura'; movementBonusFlat?: number; combatMoraleBonus?: number }
+  | {
+      type: 'heroAura';
+      movementBonusFlat?: number;
+      combatMoraleBonus?: number;
+      garrisonDefense?: number;
+    }
   /**
    * Bâtiment qui enseigne un sort (F-BUILDEFF.3, doc 03 §4 — Cloître) : à la
    * construction, `spellId` est ajouté au `spellPool` de la ville ; le héros du

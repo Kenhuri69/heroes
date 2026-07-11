@@ -5,6 +5,7 @@ import type { Command, CommandError } from '../core/commands';
 import type { GameEvent } from '../core/events';
 import { areAllies, type GameState, type HeroState } from '../core/state';
 import { townHouseField } from '../hero/skills';
+import { townBuildingAura } from './economy';
 import type { TownState } from './types';
 import { evaluateOutcome } from '../scenario/outcome';
 
@@ -23,15 +24,16 @@ function attackingHero(state: GameState, town: TownState, playerId: string): Her
 /**
  * Bonus de défense « murs » d'une ville au siège : niveau de Fort (doc 02 §4.1)
  * + Maison town-scoped du défenseur (F-HOUSES, doc 16 §3.1 — Le Blaireau
- * `garrisonDefense`), apportée par un héros du propriétaire présent sur la ville
- * (option B). 0 si pas de Fort ni de héros de Maison présent.
+ * `garrisonDefense`, apportée par un héros du propriétaire présent) + aura de
+ * **bâtiment** `garrisonDefense` (F-BUILDEFF.4, doc 05 §3.2 — Cercle Vigile).
+ * 0 si aucune de ces sources.
  */
 function wallDefenseBonus(state: GameState, town: TownState): number {
   const fort = (town.buildings['fort'] ?? 0) * WALL_DEFENSE_PER_FORT_LEVEL;
-  const house = town.ownerPlayerId
-    ? townHouseField(state.heroes, town.ownerPlayerId, town.pos, 'garrisonDefense')
-    : 0;
-  return fort + house;
+  if (!town.ownerPlayerId) return fort;
+  const house = townHouseField(state.heroes, town.ownerPlayerId, town.pos, 'garrisonDefense');
+  const building = townBuildingAura(state, town.ownerPlayerId, town.pos, 'garrisonDefense');
+  return fort + house + building;
 }
 
 /**

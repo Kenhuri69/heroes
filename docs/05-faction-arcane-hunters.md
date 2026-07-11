@@ -182,11 +182,16 @@ Au moment de construire le **Grand Amphithéâtre** (bâtiment T3 de l'arbre), l
 
 > **État livré (Cercles)** : les 4 bâtiments de Cercle exclusifs existent
 > (`arcane-hunters-circle-{vigile,traque,sceau,abime}`, choix `exclusiveGroup`,
-> Alpha 4.7) mais portent des effets **placeholder génériques** — Vigile
-> **+250 or/j**, Sceau **+400 or/j**, Traque **+20 % croissance**, Abîme
-> **+40 % croissance**. Les **passifs de design** ci-dessus (vision, vitesse,
-> −15 % mana, +10 % dégâts T7/T8) et les bâtiments exclusifs secondaires (Tour
-> de Guet, Volière, Scriptorium, Fosse aux Reliques) sont **différés**.
+> Alpha 4.7). **Vigile** porte désormais son **passif de design** (F-BUILDEFF.4) :
+> son aura `heroAura garrisonDefense` accorde **+déf de garnison au siège** (rendu
+> par un flat **+3** ≈ un niveau de Fort — équivalent exprimable du « +10 % déf »
+> du doc, la défense de garnison étant plate dans le moteur, comme le Fort et la
+> Maison Blaireau). Le volet **« +2 vision des héros recrutés ici »** reste
+> **différé** (recrutement de héros = M-TAVERN). Les Cercles **Sceau/Traque/Abîme**
+> gardent des effets **placeholder** (or/j, croissance) — passifs de design
+> (−15 % mana d'école, +1 vitesse des recrues, +10 % dégâts T7/T8) et bâtiments
+> exclusifs secondaires (Tour de Guet, Volière, Scriptorium, Fosse aux Reliques)
+> **différés** aux sous-lots F-BUILDEFF.x suivants.
 
 ### 3.3 Contrat de chasse (économie alternative)
 

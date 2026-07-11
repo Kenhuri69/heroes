@@ -221,9 +221,14 @@ Source design : docs 03 §2/§4/§5, 04 §2/§4, 05 §3/§5/§6/§7, 14 §5/§6,
     chargement ; **Cloître** Haven livré (enseigne Bénédiction). Volet « +2 mana/j »
     réconcilié (la mana se restaure entièrement chaque jour — no-op). Zéro faction,
     aucun bump, golden inchangé.
-  - **F-BUILDEFF.4+** ⬜ : modif ressource de faction, passifs de Cercles AH
-    (`data/factions/arcane-hunters/buildings.json`, placeholders + `mageGuild@1`),
-    +XP/+rang, Grand Amphithéâtre/Salle des Reliques, La Scène/Sanctuaire.
+  - **F-BUILDEFF.4** ✅ (plan `f-buildeff-vigile.md`) : champ d'aura
+    `garrisonDefense` câblé dans `wallDefenseBonus` (siège, via `townBuildingAura`,
+    réutilise l'acquis F-HOUSES) ; **Cercle Vigile** AH livré (passif « +déf
+    garnison », flat +3, remplace le placeholder or/j). Volet « +vision recrue »
+    différé (M-TAVERN). Zéro faction, aucun bump, golden inchangé.
+  - **F-BUILDEFF.5+** ⬜ : Cercles Traque (+vitesse recrue) / Sceau (−mana d'école)
+    / Abîme (+dégâts T7-T8), modif ressource de faction, +XP/+rang, Grand
+    Amphithéâtre/Salle des Reliques, La Scène/Sanctuaire Vox.
 
 - **F-HOUSES — Effets de Maison Vox conformes** ✅ (plan `f-houses-vox.md`, doc 16 §État 16.7)
   `houseAllegiance` étendu de 2 champs **town-scoped** génériques

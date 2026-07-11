@@ -110,10 +110,12 @@ doc 08 §2.4 (écran de combat).
   (save v22→23), l'auto-combat joue le héros des DEUX camps. Golden re-fixé
   (forme). `faction:sim` inchangé (armées sans héros).
 
-- **C-HEROSPRITE — Présence visuelle du héros en combat** 🎨 S ⬜
-  Doc : doc 08 §2.4. Code : plan C1 a livré `HeroAttack` + HUD, le sprite du
-  héros au flanc de la grille est un polish canvas différé. Spec : jeton statique
-  aux flancs (réutilise l'avatar), anim légère au lancer de sort/attaque.
+- **C-HEROSPRITE — Présence visuelle du héros en combat** 🎨 S ✅ (livré)
+  Doc : doc 08 §2.4. Livré : jeton de héros au flanc de la grille par camp
+  (avatar `heroes/<faction>-<archétype>` en médaillon, repli disque au liseré
+  du camp), ruée sur `SpellCast`/`HeroStruck` + retour visuel sur la cible
+  (chiffres dégâts/soin réutilisés — le sort du héros n'avait aucun feedback
+  canvas). Client pur (CombatScene), reduce-motion respecté.
 
 ### 2.2 Capacités d'unités spécifiées mais inertes (CAP-*)
 

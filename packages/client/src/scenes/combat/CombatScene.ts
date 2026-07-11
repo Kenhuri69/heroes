@@ -22,7 +22,8 @@ import { commandErrorMessage } from '../../app/i18n';
 import { pushToast } from '../../ui/toasts';
 import { onTap } from '../../input/pointer';
 import { Camera } from '../../render/camera';
-import { unitSpriteUrl } from '../../render/assets';
+import { heroAvatarUrl, unitSpriteUrl } from '../../render/assets';
+import { heroArchetype } from '../../app/game';
 import { HEX_SIZE, computeBoardBounds, drawBoard, hexKey, offsetToPixel, pixelToOffset } from '../../render/hexgrid';
 import { combatPreview } from './preview';
 import { reduceMotion } from '../../app/motion';
@@ -36,6 +37,12 @@ const ACTIVE_RING_COLOR = 0xf1c40f;
 const MOVE_MS_PER_HEX = 140;
 const ATTACK_LUNGE_MS = 220;
 const DEATH_FADE_MS = 260;
+
+// C-HEROSPRITE (doc 08 §2.4) : jeton du héros au flanc de la grille.
+const HERO_TOKEN_RADIUS = HEX_SIZE * 0.85;
+const HERO_FLANK_OFFSET = HEX_SIZE * 1.3; // du bord du plateau au centre du jeton
+const HERO_LUNGE_MS = 260;
+const HERO_LUNGE_PX = HEX_SIZE * 0.6;
 
 const MARGIN_TOP = 96; // bandeau armées + round (doc 08 §2.4)
 const MARGIN_BOTTOM = 96; // barre d'actions
@@ -70,6 +77,9 @@ export class CombatScene {
   private readonly activeRing: Graphics;
   private readonly stackTokens = new Map<string, Container>();
   private readonly animatingIds = new Set<string>();
+  /** C-HEROSPRITE : jeton du héros de chaque camp (absent si camp sans héros). */
+  private readonly heroTokens = new Map<CombatSideId, Container>();
+  private readonly heroLayer = new Container();
 
   private selection: Selection | null = null;
   private queue: Promise<void> = Promise.resolve();
@@ -83,8 +93,9 @@ export class CombatScene {
   private readonly unsubscribeTap: () => void;
 
   constructor(private readonly app: Application) {
-    this.boardLayer.addChild(this.boardGfx, this.stacksLayer, this.fxLayer);
+    this.boardLayer.addChild(this.boardGfx, this.heroLayer, this.stacksLayer, this.fxLayer);
     this.fxLayer.eventMode = 'none'; // purement décoratif : ne capte jamais le tap
+    this.heroLayer.eventMode = 'none'; // jetons de héros décoratifs (C-HEROSPRITE)
     // Le plateau vit dans la caméra de combat (pan/pinch/molette, plancher tactile).
     this.camera = new Camera(app, { minZoom: MIN_COMBAT_SCALE, maxZoom: MAX_SCALE });
     this.camera.world.addChild(this.boardLayer);
@@ -177,14 +188,89 @@ export class CombatScene {
         this.stackTokens.delete(id);
       }
       this.activeRing.visible = false;
+      for (const token of this.heroTokens.values()) token.destroy({ children: true });
+      this.heroTokens.clear();
       return;
     }
     if (!this.combatShown) {
       this.combatShown = true;
       this.centerOnActive(combat);
+      this.buildHeroTokens(combat);
     }
     this.syncStacks(combat);
     this.redrawBoard();
+  }
+
+  /**
+   * C-HEROSPRITE (doc 08 §2.4) : le héros de chaque camp est PRÉSENT sur le
+   * canvas — jeton statique au flanc de la grille (attaquant à gauche,
+   * défenseur à droite), avatar `heroes/<faction>-<archétype>` chargé en async
+   * avec repli disque au liseré du camp. Animé à la ruée sur `SpellCast` /
+   * `HeroStruck` (le sort du héros « sortait de nulle part »).
+   */
+  private buildHeroTokens(combat: CombatState): void {
+    for (const token of this.heroTokens.values()) token.destroy({ children: true });
+    this.heroTokens.clear();
+    const bounds = computeBoardBounds();
+    const centerY = bounds.minY + bounds.height / 2;
+    const heroes = appStore.getState().game.heroes;
+    const sides: { side: CombatSideId; heroId: string | null; x: number }[] = [
+      { side: 'attacker', heroId: combat.attackerHeroId, x: bounds.minX - HERO_FLANK_OFFSET },
+      { side: 'defender', heroId: combat.defenderHeroId, x: bounds.minX + bounds.width + HERO_FLANK_OFFSET },
+    ];
+    for (const { side, heroId, x } of sides) {
+      const hero = heroId ? heroes.find((h) => h.id === heroId) : undefined;
+      if (!hero) continue;
+      const token = new Container();
+      const color = side === 'attacker' ? ATTACKER_COLOR : DEFENDER_COLOR;
+      // Socle + cadre circulaire au liseré du camp (repli visible tant que
+      // l'avatar n'est pas chargé — ou s'il n'existe pas).
+      token.addChild(
+        new Graphics()
+          .ellipse(0, HERO_TOKEN_RADIUS * 0.9, HERO_TOKEN_RADIUS * 0.8, HERO_TOKEN_RADIUS * 0.3)
+          .fill({ color, alpha: 0.85 })
+          .stroke({ width: 2, color: 0x1a1c22 })
+          .circle(0, 0, HERO_TOKEN_RADIUS)
+          .fill(0x232630)
+          .stroke({ width: 3, color }),
+      );
+      const url = heroAvatarUrl(hero.factionId, heroArchetype(hero.attributes));
+      if (url) {
+        void Assets.load(url).then((texture) => {
+          if (token.destroyed) return;
+          const sprite = new Sprite(texture);
+          const scale = (HERO_TOKEN_RADIUS * 2) / Math.max(texture.width, texture.height);
+          sprite.anchor.set(0.5);
+          sprite.scale.set(scale);
+          // Masque circulaire : l'avatar remplit le médaillon sans déborder.
+          const mask = new Graphics().circle(0, 0, HERO_TOKEN_RADIUS - 2).fill(0xffffff);
+          sprite.mask = mask;
+          token.addChild(sprite, mask);
+          token.addChild(
+            new Graphics().circle(0, 0, HERO_TOKEN_RADIUS).stroke({ width: 3, color }),
+          );
+        });
+      }
+      token.position.set(x, centerY);
+      this.heroTokens.set(side, token);
+      this.heroLayer.addChild(token);
+    }
+  }
+
+  /** Ruée du jeton de héros vers le plateau puis retour (sort / frappe héroïque). */
+  private async lungeHero(side: CombatSideId, speed: number): Promise<void> {
+    const token = this.heroTokens.get(side);
+    if (!token || token.destroyed || prefersReducedMotion()) return;
+    const originX = token.position.x;
+    const dir = side === 'attacker' ? 1 : -1;
+    const half = HERO_LUNGE_MS / 2 / speed;
+    await tween(half, (t) => {
+      if (!token.destroyed) token.position.x = originX + dir * HERO_LUNGE_PX * t;
+    });
+    await tween(half, (t) => {
+      if (!token.destroyed) token.position.x = originX + dir * HERO_LUNGE_PX * (1 - t);
+    });
+    if (!token.destroyed) token.position.x = originX;
   }
 
   private syncStacks(combat: CombatState): void {
@@ -456,6 +542,37 @@ export class CombatScene {
         // fear (Sombral, doc 16 §4) : label « peur » sombre sur la cible effrayée.
         const token = this.stackTokens.get(event.targetId);
         if (token) this.spawnFloatingLabel(new Point(token.position.x, token.position.y), 'peur', 0x9b6bd0);
+        return;
+      }
+      case 'SpellCast': {
+        // C-HEROSPRITE : le héros lanceur se rue, la cible reçoit son retour
+        // visuel (le sort du héros n'avait AUCUN feedback canvas).
+        const combat = appStore.getState().game.combat;
+        const side: CombatSideId =
+          combat && event.heroId === combat.defenderHeroId ? 'defender' : 'attacker';
+        await this.lungeHero(side, speed);
+        const target = this.stackTokens.get(event.targetId);
+        if (target && !target.destroyed && event.amount > 0) {
+          const at = new Point(target.position.x, target.position.y);
+          const kind = appStore.getState().game.spellCatalog[event.spellId]?.kind;
+          if (kind === 'heal') this.spawnHealNumber(at, event.amount);
+          else this.spawnDamageNumber(at, event.amount, event.kills, false, false);
+        }
+        return;
+      }
+      case 'HeroStruck': {
+        // C1 + C-HEROSPRITE : ruée du héros frappeur + dégâts sur la cible.
+        await this.lungeHero(event.side, speed);
+        const target = this.stackTokens.get(event.targetId);
+        if (target && !target.destroyed) {
+          this.spawnDamageNumber(
+            new Point(target.position.x, target.position.y),
+            event.amount,
+            event.kills,
+            false,
+            false,
+          );
+        }
         return;
       }
       default:

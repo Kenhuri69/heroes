@@ -91,6 +91,7 @@ export {
   type DamageEstimate,
   type RoundActionOrder,
 } from './combat';
+export { combatTacticsColumns } from './combat/setup';
 export {
   dailyMovementPoints,
   type AdventureConfig,

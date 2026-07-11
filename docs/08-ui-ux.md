@@ -211,6 +211,15 @@
 > (aucun suivi moteur). *Différé : pertes cumulées (suivi moteur requis pour
 > l'exactitude multi-joueurs/IA).*
 
+> 🚧 **État (fiche de scénario — N-BRIEFING, livré)** : cliquer un **scénario** ou
+> un **événement** du menu ouvre d'abord une **fiche** (`BriefingScreen`, modale
+> simple de la pile) avant le lancement : **faction** jouée, **objectif de
+> victoire** et **condition de défaite** (libellés génériques, `surviveDays`
+> interpolé), **nombre d'adversaires** — lus du `Scenario` déjà en store. Boutons
+> **Commencer** (dispatch `heroes:start-scenario`) / **Retour**. **Client pur**
+> (zéro moteur/save/golden). *Les chapitres de campagne conservent leur intro
+> narrative (`openingDialog`) et ne passent pas par la fiche.*
+
 > 🚧 **État (journal de combat — UX-COMBATLOG, livré)** : un bouton **« Journal »**
 > dans la barre d'actions bascule un **panneau déroulant** listant les actions du
 > combat courant (round, attaque/riposte, esquive, mort, soin, poison, sort, moral,

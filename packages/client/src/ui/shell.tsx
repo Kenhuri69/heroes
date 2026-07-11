@@ -24,6 +24,7 @@ import { MapEditor } from './MapEditor';
 import { OptionsPanel } from './OptionsPanel';
 import { SkirmishScreen } from './SkirmishScreen';
 import { NewGameScreen } from './NewGameScreen';
+import { BriefingScreen } from './BriefingScreen';
 import { LoadingOverlay } from './LoadingOverlay';
 import { Journal } from './Journal';
 import { ToastHost } from './toasts';
@@ -160,6 +161,9 @@ function Shell() {
   const journalModal = modals.some((m) => m.kind === 'journal');
   const skirmishModal = modals.some((m) => m.kind === 'skirmish');
   const newgameModal = modals.some((m) => m.kind === 'newgame');
+  const briefingModal = modals.find(
+    (m): m is { kind: 'briefing'; scenarioId: string } => m.kind === 'briefing',
+  );
   const shortcutsModal = modals.some((m) => m.kind === 'shortcuts');
 
   return (
@@ -200,6 +204,9 @@ function Shell() {
       {optionsModal && <OptionsPanel onClose={() => closeModalKind('options')} />}
       {skirmishModal && <SkirmishScreen onClose={() => closeModalKind('skirmish')} />}
       {newgameModal && <NewGameScreen onClose={() => closeModalKind('newgame')} />}
+      {briefingModal && (
+        <BriefingScreen scenarioId={briefingModal.scenarioId} onClose={() => closeModalKind('briefing')} />
+      )}
       {townModal && <TownScreen townId={townModal.townId} onClose={() => closeModalKind('town')} />}
       {journalModal && <Journal onClose={() => closeModalKind('journal')} />}
       {shortcutsModal && <ShortcutsOverlay onClose={() => closeModalKind('shortcuts')} />}

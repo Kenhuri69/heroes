@@ -531,10 +531,16 @@ Source design : **doc 13** (N1→N4 livrés), docs de faction §lore.
   Code : pas de dossier `story/` dans `data/factions/{sylvan-court,vox-arcana}/`.
   Spec : données pures via le pipeline N3a (4ᵉ/5ᵉ test de modularité narratif).
 
-- **N-BRIEFING — Fiche de scénario avant lancement** 🕳️ S ⬜
-  Doc : doc 08 §2.5 (« fiche de scénario (objectifs) »). Code : lancement
-  direct (`packages/client/src/ui/MenuScreen.tsx:141-159`). Spec : modale
-  briefing (objectifs/carte/faction) avant `heroes:start-scenario`.
+- **N-BRIEFING — Fiche de scénario avant lancement** 🕳️ S ✅ (livré)
+  Doc : doc 08 §2.5 (« fiche de scénario (objectifs) »). Livré : modale
+  `BriefingScreen` (kind `briefing` de la pile, doc 08 §3) interposée entre le
+  clic sur un scénario/événement du menu et `heroes:start-scenario` — affiche
+  **faction** jouée, **objectif de victoire** + **condition de défaite**
+  (libellés génériques, `surviveDays` interpolé), **nombre d'adversaires**, lus
+  du `Scenario` en store (zéro faction/scénario en dur). Boutons Commencer /
+  Retour. **Client pur** (zéro moteur/save/golden). Locales FR/EN `briefing.*`,
+  CSS `briefing.css` (tokens). Les chapitres de campagne (intro `openingDialog`)
+  ne passent pas par la fiche. Plan `.claude/plans/n-briefing.md`.
 
 ### 2.9 UI/UX client (UX-*)
 

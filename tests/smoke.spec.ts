@@ -851,8 +851,11 @@ test('événements temporaires : actif « Événement » et passé « Archive »
   // Les scénarios permanents ne portent PAS de badge d'événement.
   await expect(page.getByTestId('menu-event-badge-survival')).toHaveCount(0);
 
-  // L'archive reste jouable : la démarrer lance la partie.
+  // L'archive reste jouable : la fiche de scénario (N-BRIEFING) s'ouvre, puis
+  // « Commencer » lance la partie.
   await page.getByTestId('menu-scenario-event-curee').click();
+  await expect(page.getByTestId('briefing-panel')).toBeVisible();
+  await page.getByTestId('briefing-start').click();
   await expect(page.getByTestId('end-turn')).toBeVisible();
   const state = await page.evaluate(() => window.__HEROES_TEST__!.getState());
   expect(state.started).toBe(true);
@@ -2132,6 +2135,11 @@ test('scénario : le menu démarre le tutoriel, l’IA joue son tour', async ({ 
 
   await expect(page.getByTestId('menu-scenario-tutorial')).toBeVisible();
   await page.getByTestId('menu-scenario-tutorial').click();
+  // Fiche de scénario (N-BRIEFING) avant lancement : objectif + faction, puis démarrage.
+  await expect(page.getByTestId('briefing-panel')).toBeVisible();
+  await expect(page.getByTestId('briefing-victory')).not.toBeEmpty();
+  await expect(page.getByTestId('briefing-faction')).not.toBeEmpty();
+  await page.getByTestId('briefing-start').click();
   await expect(page.getByTestId('end-turn')).toBeVisible();
 
   const before = await page.evaluate(() => window.__HEROES_TEST__!.getState());

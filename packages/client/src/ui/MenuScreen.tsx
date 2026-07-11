@@ -146,11 +146,7 @@ export function MenuScreen() {
               class="menu-button"
               key={scenario.id}
               data-testid={`menu-scenario-${scenario.id}`}
-              onClick={() =>
-                window.dispatchEvent(
-                  new CustomEvent('heroes:start-scenario', { detail: { scenarioId: scenario.id } }),
-                )
-              }
+              onClick={() => openModal({ kind: 'briefing', scenarioId: scenario.id })}
             >
               {resolveScenarioName(scenario.name)}
             </button>
@@ -165,11 +161,7 @@ export function MenuScreen() {
               class="menu-button"
               key={s.id}
               data-testid={`menu-scenario-${s.id}`}
-              onClick={() =>
-                window.dispatchEvent(
-                  new CustomEvent('heroes:start-scenario', { detail: { scenarioId: s.id } }),
-                )
-              }
+              onClick={() => openModal({ kind: 'briefing', scenarioId: s.id })}
             >
               <span class={`menu-event-badge menu-event-${status}`} data-testid={`menu-event-badge-${s.id}`}>
                 {t(`menu.event.${status}`)}

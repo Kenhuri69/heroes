@@ -2074,6 +2074,22 @@ test('marché : construire un marché puis vendre une ressource contre de l’or
   expect(
     await page.evaluate(() => window.__HEROES_TEST__!.getState().players[0]?.resources.wood),
   ).toBe(0); // 10 − 5 (marché) − 5 (vente)
+
+  // Troc (T-MARKETRATE) : mode Troc, donner 4 minerai → recevoir du bois
+  // (floor(4 × 25 / 50) = 2). Le 2ᵉ sélecteur choisit la ressource reçue.
+  await page.getByTestId('market-mode-barter').click();
+  await expect(page.getByTestId('market-count')).toBeVisible(); // « Marchés possédés : 1 »
+  await page.getByTestId('market-resource').selectOption('ore');
+  await page.getByTestId('market-barter-receive').selectOption('wood');
+  await page.getByTestId('market-amount').fill('4');
+  await expect(page.getByTestId('market-received')).toContainText('2');
+  await page.getByTestId('market-trade').click();
+  await expect
+    .poll(() => page.evaluate(() => window.__HEROES_TEST__!.getState().players[0]?.resources.wood))
+    .toBe(2);
+  expect(
+    await page.evaluate(() => window.__HEROES_TEST__!.getState().players[0]?.resources.ore),
+  ).toBe(6); // 10 − 4 (troc)
   await page.getByTestId('town-close').click();
 
   expect(errors).toEqual([]);

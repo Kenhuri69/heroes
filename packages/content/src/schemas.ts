@@ -506,6 +506,10 @@ export const gameConfigSchema = z.object({
         sellRate: z.number().int().positive(),
         /** Or payé par unité de ressource non-or ACHETÉE (spread : ≥ sellRate). */
         buyRate: z.number().int().positive(),
+        /** Bonus de taux par marché possédé au-delà du 1er (T-MARKETRATE) — optionnel. */
+        perMarketBonus: z.number().nonnegative().optional(),
+        /** Plafond du facteur dégressif (≥ 1) — optionnel. */
+        maxMarketFactor: z.number().min(1).optional(),
       })
       .refine((m) => m.buyRate >= m.sellRate, 'market.buyRate ≥ market.sellRate'),
     /**

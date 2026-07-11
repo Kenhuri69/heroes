@@ -68,6 +68,7 @@ function stateWith(): GameState {
   } as unknown as HeroState;
   const combat: CombatState = {
     terrain: 'grass',
+    phase: 'battle',
     round: 1,
     obstacles: [],
     stacks: [

@@ -40,6 +40,7 @@ function makeCombatState(
     unitCatalog: catalog,
     combat: {
       terrain: 'grass',
+      phase: 'battle',
       round: 1,
       obstacles: [],
       stacks,

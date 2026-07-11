@@ -247,8 +247,12 @@ export interface CaravanState {
  * v23 : `CombatState.heroCastThisRound` passe de booléen à `CombatSideId[]`
  * (camps ayant lancé ce round) — parité IA (C-AIPARITY, doc 02 §5.5) : l'IA
  * lance aussi les sorts de son héros, un booléen partagé créait une course.
+ * v24 : `CombatState.phase` (`'placement' | 'battle'`) — phase de placement
+ * tactique préalable (C-TACTICS, doc 02 §5.1) : un combat de héros doté de la
+ * compétence Tactique démarre en placement (repositionnement des piles) avant
+ * la bataille ; les combats sans Tactique démarrent en `'battle'`.
  */
-export const CURRENT_SAVE_VERSION = 23;
+export const CURRENT_SAVE_VERSION = 24;
 
 export interface GameState {
   saveVersion: number;

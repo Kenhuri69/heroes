@@ -90,6 +90,7 @@ function aiHeroState(
   ];
   const combat: CombatState = {
     terrain: 'grass',
+    phase: 'battle',
     round: 1,
     obstacles: [],
     stacks,

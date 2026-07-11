@@ -115,6 +115,7 @@ function stack(
 function combatState(stacks: CombatStack[], over: Partial<CombatState> = {}): CombatState {
   const combat: CombatState = {
     terrain: 'grass',
+    phase: 'battle',
     round: 3,
     obstacles: [],
     stacks,

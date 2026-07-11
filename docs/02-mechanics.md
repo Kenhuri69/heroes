@@ -308,6 +308,15 @@ Vue peinte de la ville où les bâtiments construits apparaissent (grande satisf
 - **Grille hexagonale pointy-top de 15 colonnes × 10 rangées** (largeur HoMM III : no-man's land central ample, marge de manœuvre tactique et séparation nette des camps ; hauteur 10 rangées pour rester lisible sur mobile).
 - Attaquant à gauche, défenseur à droite ; jusqu'à **7 piles** par armée, placement initial automatique + phase de placement tactique si compétence Tactique.
 - Placement automatique (valeur de départ, Phase 2) : attaquant colonne 0, défenseur colonne 14 ; pour n piles, rangée du slot i = `floor((i + 0,5) × 10 / n)`.
+
+> **Phase de placement (C-TACTICS, livré)** : un héros doté de la compétence
+> **Tactique** ouvre le combat en `phase: 'placement'` — le camp joueur
+> repositionne ses piles dans une **bande** de `tacticsColumns` colonnes depuis
+> sa colonne de spawn (rang 1/2/3 → 2/3/4 colonnes) via la commande `PlaceStack`
+> (bornée : bande, case libre, hors obstacle), puis `FinishPlacement` démarre la
+> bataille. Sans Tactique, le combat démarre directement en `phase: 'battle'`.
+> L'auto-combat et l'IA **sautent** un placement pendant (aucune IA ne place ;
+> la property « un combat se termine toujours » est préservée). Save v24.
 - Obstacles générés selon le terrain d'aventure (2–5 hexes bloqués, tirés au RNG du combat dans les colonnes centrales 3–11, soit 3 tuiles de marge depuis chaque bord de spawn) ; le terrain natif donne +1 vitesse/+1 moral aux unités natives.
 - La **vitesse** d'une unité est sa portée de déplacement en hexes par round.
 

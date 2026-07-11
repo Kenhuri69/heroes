@@ -31,6 +31,7 @@ function stack(over: Partial<CombatStack> & Pick<CombatStack, 'id' | 'side' | 's
 function combatWith(stacks: CombatStack[]): CombatState {
   return {
     terrain: 'dirt', // aucun terrain natif du catalogue de test : vitesses pures
+    phase: 'battle',
     round: 1,
     obstacles: [],
     stacks,

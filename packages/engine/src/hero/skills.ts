@@ -81,6 +81,11 @@ export function heroVisionBonus(hero: HeroState, catalog: Record<string, HeroSki
   return sumRankField(hero, catalog, 'visionBonus') + sumHouseField(hero, 'visionBonus');
 }
 
+/** Tactique (C-TACTICS, doc 02 §5.1) : profondeur de la bande de placement pré-combat (0 = pas de phase). */
+export function heroTacticsColumns(hero: HeroState, catalog: Record<string, HeroSkillDef>): number {
+  return sumRankField(hero, catalog, 'tacticsColumns');
+}
+
 /** Économie : or/jour supplémentaire — branché dans le revenu quotidien (`core/engine.ts`). */
 export function heroGoldPerDay(hero: HeroState, catalog: Record<string, HeroSkillDef>): number {
   return sumRankField(hero, catalog, 'goldPerDay') + sumHouseField(hero, 'goldPerDay');

@@ -37,7 +37,7 @@ function stack(
 
 function combatWith(catalog: Record<string, CombatUnitDef>, stacks: CombatStack[]): CombatState {
   return {
-    terrain: 'grass', round: 1, obstacles: [], stacks, activeStackId: stacks[0]?.id ?? null,
+    terrain: 'grass', phase: 'battle', round: 1, obstacles: [], stacks, activeStackId: stacks[0]?.id ?? null,
     playerSide: 'attacker', heroId: null, guardianObjectId: null, townId: null, wallDefenseBonus: 0,
     attackerHeroId: null, defenderHeroId: null, heroCastThisRound: [], heroAttackUsed: [],
     finished: false, winner: null,

@@ -254,7 +254,10 @@ const GOLDEN_JOURNAL: Command[] = [
 // (save v22→23) — forme sérialisée changée ; les combats golden n'attachent pas
 // de héros aux deux camps avec sorts/mana ⇒ mêmes issues de combat, hash de
 // forme seule (les assertions sémantiques armée/jour restent vertes).
-const GOLDEN_HASH = 'ec45a813';
+// Re-fixé à C-TACTICS : `CombatState.phase` (save v23→24) — le héros golden n'a
+// pas la compétence Tactique ⇒ combat démarré directement en `'battle'`, issues
+// inchangées ; seul le champ `phase` s'ajoute à la forme sérialisée.
+const GOLDEN_HASH = 'ad317a4a';
 
 describe('golden replay', () => {
   it('le journal scripté produit toujours le même état final', () => {

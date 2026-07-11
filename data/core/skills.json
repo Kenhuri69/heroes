@@ -15,6 +15,20 @@
       ]
     },
     {
+      "id": "tactics",
+      "ranks": [
+        {
+          "tacticsColumns": 1
+        },
+        {
+          "tacticsColumns": 2
+        },
+        {
+          "tacticsColumns": 3
+        }
+      ]
+    },
+    {
       "id": "scouting",
       "ranks": [
         {

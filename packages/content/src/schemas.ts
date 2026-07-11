@@ -455,6 +455,8 @@ const skillRankEffectSchema = z.object({
   manaCostReductionPct: z.number().optional(),
   spellCircleUnlock: z.number().int().min(1).max(5).optional(),
   learnCircle: z.number().int().min(1).max(5).optional(),
+  /** Compétence Tactique (C-TACTICS, doc 02 §5.1) : profondeur de la bande de placement pré-combat. */
+  tacticsColumns: z.number().int().min(1).max(6).optional(),
 });
 
 /** data/core/skills.json (doc 02 §1.3) — exactement 3 rangs (Novice/Expert/Maître). */

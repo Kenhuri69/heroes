@@ -124,6 +124,7 @@ function manualState(stacks: CombatStack[], activeStackId: string | null): GameS
   };
   const combat: CombatState = {
     terrain: 'grass',
+    phase: 'battle',
     round: 1,
     obstacles: [],
     stacks,

@@ -31,7 +31,7 @@ function stack(id: string, side: CombatStack['side'], unitId: string): CombatSta
 
 function state(catalog: Record<string, CombatUnitDef>, stacks: CombatStack[]): GameState {
   const combat: CombatState = {
-    terrain: 'grass', round: 1, obstacles: [], stacks, activeStackId: stacks[0]?.id ?? null,
+    terrain: 'grass', phase: 'battle', round: 1, obstacles: [], stacks, activeStackId: stacks[0]?.id ?? null,
     playerSide: 'attacker', heroId: null, guardianObjectId: null, townId: null, wallDefenseBonus: 0,
     finished: false, attackerHeroId: null, defenderHeroId: null, heroCastThisRound: [],
     heroAttackUsed: [], winner: null,

@@ -44,6 +44,7 @@ function stack(
 function combatState(stacks: CombatStack[]): CombatState {
   return {
     terrain: 'grass',
+    phase: 'battle',
     round: 1,
     obstacles: [],
     stacks,

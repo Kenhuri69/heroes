@@ -36,7 +36,7 @@ function hero(over: Partial<HeroState>): HeroState {
 
 function combatState(over: Partial<CombatState> = {}): CombatState {
   return {
-    terrain: 'grass', round: 1, obstacles: [], stacks: [], activeStackId: null, playerSide: 'attacker',
+    terrain: 'grass', phase: 'battle', round: 1, obstacles: [], stacks: [], activeStackId: null, playerSide: 'attacker',
     heroId: null, guardianObjectId: null, townId: null, wallDefenseBonus: 0, attackerHeroId: null,
     defenderHeroId: null, heroCastThisRound: [], heroAttackUsed: [], finished: false, winner: null, ...over,
   };

@@ -163,6 +163,7 @@ function stack(partial: Pick<CombatStack, 'id' | 'side' | 'slot' | 'unitId' | 'c
 function combatState(stacks: CombatStack[], terrain = 'grass'): CombatState {
   return {
     terrain,
+    phase: 'battle',
     round: 1,
     obstacles: [],
     stacks,

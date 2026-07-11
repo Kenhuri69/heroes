@@ -82,6 +82,8 @@ export class CombatScene {
   private readonly heroLayer = new Container();
 
   private selection: Selection | null = null;
+  /** C-TACTICS : pile du camp joueur sélectionnée pendant la phase de placement (null sinon). */
+  private placementSelectedId: string | null = null;
   private queue: Promise<void> = Promise.resolve();
   private destroyed = false;
   /** UXD-0 R5b : vrai tant qu'un combat est affiché — sert à détecter l'ouverture. */
@@ -392,6 +394,12 @@ export class CombatScene {
     const game = appStore.getState().game;
     const combat = game.combat;
     if (!combat || combat.finished) return;
+    // C-TACTICS : pendant le placement, le tap sélectionne une pile du camp
+    // joueur puis la déplace sur une case libre de sa bande (PlaceStack).
+    if (combat.phase === 'placement') {
+      await this.handlePlacementTap(combat, global);
+      return;
+    }
     const active = combat.stacks.find((s) => s.id === combat.activeStackId);
     if (!active || active.side !== combat.playerSide) return; // pas le tour du joueur
 
@@ -432,6 +440,37 @@ export class CombatScene {
     this.selection = { kind: 'move', to: hex };
     combatPreview.set(null);
     this.redrawBoard();
+  }
+
+  /**
+   * C-TACTICS : tap de la phase de placement. 1er tap sur une pile du camp
+   * joueur = sélection ; tap suivant sur une case libre = `PlaceStack` (le
+   * moteur borne à la bande / rejette les cases occupées, surfacé en toast).
+   */
+  private async handlePlacementTap(combat: CombatState, global: Point): Promise<void> {
+    const local = this.boardLayer.toLocal(global);
+    const hex = pixelToOffset(local.x, local.y);
+    if (!inCombatBounds(hex)) {
+      this.placementSelectedId = null;
+      this.redrawBoard();
+      return;
+    }
+    const own = combat.stacks.find((s) => sameHex(s.pos, hex) && s.side === combat.playerSide && s.count > 0);
+    if (own) {
+      this.placementSelectedId = own.id; // (re)sélection d'une pile à replacer
+      this.redrawBoard();
+      return;
+    }
+    if (this.placementSelectedId) {
+      const stackId = this.placementSelectedId;
+      this.placementSelectedId = null;
+      try {
+        await dispatch({ type: 'PlaceStack', stackId, to: hex });
+      } catch (err) {
+        pushToast(commandErrorMessage(err), 'error'); // hors bande / occupé — surfacé
+      }
+      this.redrawBoard();
+    }
   }
 
   private async handleAttackTap(

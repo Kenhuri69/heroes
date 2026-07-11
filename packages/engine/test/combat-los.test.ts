@@ -53,6 +53,7 @@ function stack(
 function stateWith(stacks: CombatStack[], obstacles: OffsetPos[], activeStackId: string): GameState {
   const combat: CombatState = {
     terrain: 'grass',
+    phase: 'battle',
     round: 1,
     obstacles,
     stacks,

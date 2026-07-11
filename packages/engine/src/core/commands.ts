@@ -1,6 +1,7 @@
 import type { AdventureConfig } from '../adventure/config';
 import type { AdventureMapDef, GridPos } from '../adventure/map';
 import type { ArmyStack, CombatActionInput, CombatUnitDef } from '../combat/types';
+import type { OffsetPos } from '../combat/hex';
 import type { BuildingDef, TownState } from '../town/types';
 import type { ArtifactDef, HeroSkillDef, ResolvedHeroDef, SkillRankEffect, SpellDef } from '../hero/types';
 import type { FactionBonus } from '../faction/types';
@@ -203,6 +204,10 @@ export type Command =
   | { type: 'CastSpell'; spellId: string; targetStackId: string }
   /** Attaque du héros (C1) : dégâts directs sur une pile ennemie, 1×/combat. */
   | { type: 'HeroAttack'; targetStackId: string }
+  /** Placement d'une pile pendant la phase de placement tactique (C-TACTICS, doc 02 §5.1). */
+  | { type: 'PlaceStack'; stackId: string; to: OffsetPos }
+  /** Clôt la phase de placement et démarre la bataille (C-TACTICS). */
+  | { type: 'FinishPlacement' }
   /** Fuite (C3) : quitter le combat en abandonnant l'armée ; le héros survit. */
   | { type: 'Retreat' }
   /** Reddition (C3) : payer de l'or (valeur d'armée) pour quitter en gardant l'armée. */

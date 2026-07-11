@@ -112,7 +112,8 @@ UI/IA ──commande──► [validation] ──► engine.apply(state, cmd)
     v22 (`CombatStack.spellCharges`, charges de sort d'unité `spellcaster`, doc 02
     §5.4, lot A2h) ; v23 (`CombatState.heroCastThisRound` booléen → liste de
     camps ayant lancé ce round — parité IA des sorts de héros, doc 02 §5.5,
-    lot C-AIPARITY).
+    lot C-AIPARITY) ; v24 (`CombatState.phase` `'placement'|'battle'` — phase de
+    placement tactique pré-combat, doc 02 §5.1, lot C-TACTICS).
 - Une sauvegarde référence les paquets de faction (par id) ; le suivi de
   **version** par paquet est différé avec les migrations (post-MVP).
 

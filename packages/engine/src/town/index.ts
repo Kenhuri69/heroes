@@ -14,7 +14,13 @@ export { validateBuyWarMachine, handleBuyWarMachine } from './war-machine';
 export { validateGarrisonTransfer, handleGarrisonTransfer } from './transfer';
 export { validateSendCaravan, handleSendCaravan, tickCaravans } from './caravan';
 export { validateCaptureTown, handleCaptureTown } from './capture';
-export { validateTradeResources, handleTradeResources, tradeQuote } from './market';
+export {
+  validateTradeResources,
+  handleTradeResources,
+  tradeQuote,
+  effectiveMarketRates,
+  ownedMarketCount,
+} from './market';
 export { applyDailyIncome, applyWeeklyGrowth } from './economy';
 export { assignHuntContracts, rewardHuntContract } from './hunt-contract';
 export {

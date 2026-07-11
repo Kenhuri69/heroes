@@ -394,9 +394,14 @@ Source design : doc 02 §3/§4.
   `applyWeeklyGrowth` — bonus Fort + facteur calendrier + plafond 2×) ; l'onglet
   Recruter affiche « +X/sem · max Y » par habitation (`town-growth-<unitId>`).
 
-- **T-MARKETRATE — Taux de marché dégressif + troc** 🧩 S ⬜ (différé assumé doc 02 §3)
-  Code : taux plats (`data/core/config.json:45-48`), troc ressource↔ressource
-  rejeté. Spec : taux fonction du nombre de marchés possédés ; troc direct.
+- **T-MARKETRATE — Taux de marché dégressif + troc** 🧩 S ✅ (livré)
+  Code : taux plats (`data/core/config.json`), troc ressource↔ressource rejeté.
+  Spec : taux fonction du nombre de marchés possédés ; troc direct. Livré :
+  `effectiveMarketRates`/`ownedMarketCount` (moteur), `tradeQuote` gère le troc
+  (équivalence or, facteur²) + taux dégressif `factor = min(maxMarketFactor, 1 +
+  perMarketBonus × (nbMarchés − 1))` ; config `perMarketBonus`/`maxMarketFactor`
+  **optionnels** (absents ⇒ plat) ; UI 3ᵉ mode Troc + « Marchés possédés : N ».
+  Pas de bump save, golden inchangé. Différés : courbe HoMM3 exacte, troc pénalisé.
 
 ### 2.7 En ligne / backend (NET-*)
 

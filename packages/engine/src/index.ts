@@ -112,6 +112,7 @@ export {
   missingRequirements,
   scaleCost,
   tradeQuote,
+  ownedMarketCount,
   unitIsRecruitable,
   upgradedUnitFor,
   upgradeCost,

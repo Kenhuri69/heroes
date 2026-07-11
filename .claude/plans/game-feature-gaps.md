@@ -269,9 +269,12 @@ Source design : docs 03 §2/§4/§5, 04 §2/§4, 05 §3/§5/§6/§7, 14 §5/§6,
     furtivité, noRetaliation conditionnel) ; effets Scène enrichis (peur/+moral,
     partagés CAP-MORAL).
 
-- **F-ELITEVOX — Élites Vox Arcana** 🕳️ M ⬜ (différé assumé doc 16 §4)
-  Code : 8 dwellings `maxLevel:1`, aucun fichier `-elite` (contrairement aux 4
-  autres maisons). Spec : données pures (upgrades 4.11 déjà génériques).
+- **F-ELITEVOX — Élites Vox Arcana** ✅ (plan `f-elitevox.md`, doc 16 §4)
+  Pur contenu : 8 unités élites (`t*-*-elite`, stats ~1,25-1,3× base), 8 dwellings
+  gradués `maxLevel:2` (niveau 2 = dwelling élite ⇒ upgrade base→élite générique
+  4.11), manifest `units[]` + locales FR/EN. Zéro diff moteur, golden inchangé,
+  aucun bump. (Drive-by : corrige l'erreur de typecheck latente de #248 —
+  `stampedGain.cap` dans le test Résonance, cap loader-managed hors schéma.)
 
 - **F-SYMBAI — La Symbiose pèse en simulation** 🧩 S ✅ (livré)
   Doc : doc 14 §9. Livré : une pile `symbiosis` sous son plafond qui n'a RIEN à

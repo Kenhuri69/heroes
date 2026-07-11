@@ -1,0 +1,18 @@
+{
+  "id": "t4-idole-elite",
+  "tier": 4,
+  "name": "@loc:unit.t4-idole-elite.name",
+  "stats": {
+    "hp": 42,
+    "attack": 12,
+    "defense": 9,
+    "damage": [8, 13],
+    "speed": 7
+  },
+  "growthPerWeek": 4,
+  "cost": {
+    "gold": 550,
+    "crystal": 1
+  },
+  "abilities": [{ "id": "shooter", "params": { "ammo": 9, "noMeleePenalty": true } }]
+}

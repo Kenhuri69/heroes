@@ -83,7 +83,15 @@
     "t5-sombral",
     "t6-maitre",
     "t7-phenix",
-    "t8-avatar"
+    "t8-avatar",
+    "t1-choeur-elite",
+    "t2-duelliste-elite",
+    "t3-hippogriffe-elite",
+    "t4-idole-elite",
+    "t5-sombral-elite",
+    "t6-maitre-elite",
+    "t7-phenix-elite",
+    "t8-avatar-elite"
   ],
   "abilityModules": [],
   "hooks": [],

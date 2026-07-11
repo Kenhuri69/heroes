@@ -223,9 +223,12 @@ existants** (bouclier / buff / debuff / soin) — zéro nouveau moteur :
 la faction paie sa polyvalence par l'absence d'un tueur de pile précoce — elle
 gagne par l'usure, les buffs de la Scène et le bon choix de Maison.
 
-> **Unités élites** (habitation niveau 2, façon doc 05 §4bis) : différées au
-> lot d'équilibrage — chaque habitation se graduera au niveau 2 pour débloquer
-> la variante élite, base et élite recrutables.
+> **Unités élites** (habitation niveau 2, façon doc 05 §4bis) : **livrées**
+> (F-ELITEVOX) — les 8 habitations sont désormais `maxLevel:2`, leur niveau 2
+> débloque la variante élite (`t*-*-elite`) recrutable et l'**upgrade** base→élite
+> (mécanisme générique 4.11, dérivé du dwelling gradué). Stats **placeholder
+> d'équilibrage** (~1,25-1,3× la base, capacités conservées/renforcées) — affinage
+> via `faction:sim` ultérieur. Pur contenu, zéro diff moteur.
 
 ## 5. Arbre de bâtiments
 

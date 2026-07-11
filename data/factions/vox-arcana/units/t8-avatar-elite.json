@@ -1,0 +1,22 @@
+{
+  "id": "t8-avatar-elite",
+  "tier": 8,
+  "name": "@loc:unit.t8-avatar-elite.name",
+  "stats": {
+    "hp": 260,
+    "attack": 27,
+    "defense": 22,
+    "damage": [44, 64],
+    "speed": 9
+  },
+  "growthPerWeek": 1,
+  "cost": {
+    "gold": 4300,
+    "gems": 3,
+    "resonance": 50
+  },
+  "abilities": [
+    { "id": "flying" },
+    { "id": "noRetaliation" }
+  ]
+}

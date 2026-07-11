@@ -1,0 +1,17 @@
+{
+  "id": "t1-choeur-elite",
+  "tier": 1,
+  "name": "@loc:unit.t1-choeur-elite.name",
+  "stats": {
+    "hp": 7,
+    "attack": 4,
+    "defense": 3,
+    "damage": [2, 3],
+    "speed": 5
+  },
+  "growthPerWeek": 14,
+  "cost": {
+    "gold": 44
+  },
+  "abilities": [{ "id": "swarm", "params": { "bonus": 1, "minAllies": 2 } }]
+}

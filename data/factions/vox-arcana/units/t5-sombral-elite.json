@@ -1,0 +1,20 @@
+{
+  "id": "t5-sombral-elite",
+  "tier": 5,
+  "name": "@loc:unit.t5-sombral-elite.name",
+  "stats": {
+    "hp": 48,
+    "attack": 13,
+    "defense": 10,
+    "damage": [8, 13],
+    "speed": 10
+  },
+  "growthPerWeek": 3,
+  "cost": {
+    "gold": 900
+  },
+  "abilities": [
+    { "id": "flying" },
+    { "id": "fear", "params": { "chance": 0.25, "rounds": 1 } }
+  ]
+}

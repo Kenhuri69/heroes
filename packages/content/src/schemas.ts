@@ -482,6 +482,24 @@ export const gameConfigSchema = z.object({
         buyRate: z.number().int().positive(),
       })
       .refine((m) => m.buyRate >= m.sellRate, 'market.buyRate ≥ market.sellRate'),
+    /**
+     * Calendrier (M-CALENDAR, doc 02 §2.3) : événements hebdomadaires tirés au
+     * RNG seedé. Optionnel — absent ⇒ aucune semaine spéciale (facteur 1).
+     */
+    calendar: z
+      .object({
+        events: z
+          .array(
+            z.object({
+              id: idSchema,
+              weight: z.number().int().positive(),
+              /** Multiplicateur de la croissance hebdomadaire (peste < 1, abondance > 1). */
+              growthFactor: z.number().positive(),
+            }),
+          )
+          .min(1),
+      })
+      .optional(),
   }),
   newGame: z.object({
     map: idSchema,

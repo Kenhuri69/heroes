@@ -59,7 +59,8 @@ import { runAiTurn } from '../ai/adventure';
 import { EngineError, type Command, type CommandError } from './commands';
 import type { GameEvent } from './events';
 import { seedRng } from './rng';
-import { RESOURCE_IDS, weekOf, type GameState } from './state';
+import { rollWeekEvent } from '../adventure/calendar';
+import { RESOURCE_IDS, weekOf, monthOf, type GameState } from './state';
 
 export interface EngineResult {
   state: GameState;
@@ -390,6 +391,7 @@ const handlers: Handlers = {
     draft.started = true;
     draft.rng = seedRng(cmd.seed);
     draft.calendar.day = 1;
+    draft.calendar.weekEventId = null;
     draft.currentPlayer = 0;
     draft.config = cmd.config;
     draft.map = cmd.map;
@@ -642,6 +644,16 @@ const handlers: Handlers = {
       const week = weekOf(draft.calendar.day);
       if (week !== weekOf(draft.calendar.day - 1)) {
         events.push({ type: 'WeekStarted', week });
+        // Événement de calendrier (M-CALENDAR, doc 02 §2.3) : tiré AVANT la
+        // croissance (il la module via `weekGrowthFactor`). No-op hors calendrier.
+        const calEvent = rollWeekEvent(draft);
+        if (calEvent)
+          events.push({
+            type: 'CalendarEventStarted',
+            eventId: calEvent.id,
+            week,
+            month: monthOf(draft.calendar.day),
+          });
         applyWeeklyGrowth(draft, events); // croissance hebdo des habitations
         // Contrats de chasse (doc 05 §3.3) : cible neutre hebdomadaire assignée
         // au propriétaire d'un bâtiment `huntContract`.

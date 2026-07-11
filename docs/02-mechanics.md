@@ -179,7 +179,17 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 
 ### 2.3 Temps
 
-- **Jour** = 1 tour de chaque joueur. **Semaine** = 7 jours → croissance des créatures dans villes/habitations. **Mois** = 4 semaines (événements type « semaine de la peste » : post-MVP).
+- **Jour** = 1 tour de chaque joueur. **Semaine** = 7 jours → croissance des créatures dans villes/habitations. **Mois** = 4 semaines (28 jours).
+- **Événements de calendrier** (M-CALENDAR, livré) : à chaque début de semaine, un
+  événement est tiré au **RNG seedé** parmi une table pondérée déclarative
+  (`config.calendar.events` — données pures, aucun cas en dur). Chaque événement
+  porte un `growthFactor` qui module la croissance hebdomadaire des créatures
+  (villes + habitations de carte) : `1` = semaine normale, `0.5` = « semaine de la
+  peste » (croissance ÷2), `2` = « semaine d'abondance » (×2). Le moteur émet
+  `CalendarEventStarted { eventId, week, month }` ; le client toaste les semaines
+  spéciales (pas les normales). `monthOf(jour)` = `⌊(jour−1)/28⌋+1`. *Différés :*
+  événements de **mois** persistants, événements ciblant une créature précise
+  (« semaine du Griffon »), calendrier persistant à l'écran.
 
 ---
 

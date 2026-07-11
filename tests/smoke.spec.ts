@@ -1421,22 +1421,36 @@ test('ville : construire + croissance + recruter + transférer → armée du hé
     await page.evaluate(() => window.__HEROES_TEST__!.getState().towns[0]?.buildings['market']),
   ).toBe(1);
 
-  // Passage de semaine (jour 8) : l'habitation T1 génère son stock (croissance 14).
+  // Passage de semaine (jour 8) : l'habitation T1 génère son stock (croissance
+  // 14 = growthPerWeek, sans bonus de fort). L'événement de calendrier de la
+  // semaine (M-CALENDAR, doc 02 §2.3) module cette croissance par son
+  // `growthFactor` — on lit l'événement effectivement tiré (RNG seedé) pour
+  // asserter `floor(14 × facteur)`, robuste quelle que soit la semaine tirée.
   for (let i = 0; i < 7; i++) {
     await page.evaluate(() => window.__HEROES_TEST__!.dispatch({ type: 'EndTurn', playerId: 'player-1' }));
   }
+  const expectedGrowth = await page.evaluate(() => {
+    const s = window.__HEROES_TEST__!.getState();
+    const id = s.calendar.weekEventId;
+    const factor = id ? (s.config?.calendar?.events.find((e) => e.id === id)?.growthFactor ?? 1) : 1;
+    return Math.floor(14 * factor);
+  });
   expect(
     await page.evaluate(() => window.__HEROES_TEST__!.getState().towns[0]?.stock['t1-recruit'] ?? 0),
-  ).toBe(14);
+  ).toBe(expectedGrowth);
 
-  // Recruter 10 recrues dans la garnison de la ville (débit d'or).
-  await page.evaluate(() =>
-    window.__HEROES_TEST__!.dispatch({
-      type: 'RecruitUnits',
-      townId: 'start-town',
-      unitId: 't1-recruit',
-      count: 10,
-    }),
+  // Recruter des recrues dans la garnison (débit d'or) — au plus le stock
+  // disponible (une « semaine de la peste » peut l'avoir réduit sous 10).
+  const recruitCount = Math.min(10, expectedGrowth);
+  await page.evaluate(
+    (count) =>
+      window.__HEROES_TEST__!.dispatch({
+        type: 'RecruitUnits',
+        townId: 'start-town',
+        unitId: 't1-recruit',
+        count,
+      }),
+    recruitCount,
   );
 
   // Amener le héros sur la tuile de la ville (2,4) puis transférer la garnison.
@@ -1458,8 +1472,8 @@ test('ville : construire + croissance + recruter + transférer → armée du hé
     }),
   );
 
-  // L'armée du héros a augmenté de 10 (fusion avec la pile t1-recruit existante).
-  expect(await armyTotal()).toBe(before + 10);
+  // L'armée du héros a augmenté du nombre recruté (fusion avec la pile existante).
+  expect(await armyTotal()).toBe(before + recruitCount);
 
   expect(errors).toEqual([]);
 });

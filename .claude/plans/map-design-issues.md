@@ -89,25 +89,22 @@ vérification. Ordre proposé = impact joueur décroissant.
 4. [ ] (Suivi, hors lot) Générer les planches d'unités `sylvan-court` via le
    skill `asset-sheet` pour compléter `assets/units/`.
 
-### Lot 2 — Ancrage iso des objets de carte (mine sur SA case)
+### Lot 2 — Ancrage iso des objets de carte (mine sur SA case) — ✅ livré
 
-1. Aligner les mines/tas de ressources/coffres/artefacts/lieux de bonus sur la
-   convention « base centrée » déjà appliquée aux villes/gardiens/props :
-   `anchor(0.5, 1)` + position au centre du losange, échelle inchangée.
-2. Ajouter (léger) un liseré/losange de sol sous les objets interactifs pour
-   matérialiser la case exacte à viser (aide picking, doc 08 « prévisualisation
-   avant action »).
-3. **Séparer les visuels mine / tas ramassable** : nouvelle famille d'assets
-   `resources/pile-<res>` (convention registre, résolveur `resourcePileUrl`) ;
-   `buildResourcePile` (type `resource`) la consomme, `buildMine` garde
-   `mines/mine-<res>` en exclusivité. Tant que les PNG de tas n'existent pas,
-   le repli procédural (losange teinté) reste — plus JAMAIS le sprite de mine
-   sur un ramassable.
-4. (Suivi, hors lot) Générer les PNG des tas (`gold/wood/ore/crystal/gems`) via
-   le skill asset adapté, déposés dans `assets/resources/`.
-   → vérif : smoke Playwright avec capture — l'asset repose visuellement sur son
-   losange ; tap sur la case = interaction attendue ; une carte avec mine + tas
-   de la même ressource affiche deux visuels distincts.
+1. [x] `placeSprite` passe en « base centrée » (`anchor(0.5, 1)`), base posée un
+   quart de losange sous le centre (ces assets embarquent leur socle iso, qui
+   recouvre ainsi le losange de la case) — s'applique à tous les objets peints :
+   mines, tas, coffres, artefacts, lieux de bonus, camps.
+2. [x] `groundDiamond()` : losange de sol discret sous CHAQUE objet de carte
+   (posé par `buildObject`), matérialise la case exacte à viser.
+3. [x] Visuels mine / tas séparés : résolveur `resourcePileUrl`
+   (`resources/pile-<res>`, préchargé PixiJS) pour les tas ramassables ;
+   `buildMine` garde `mines/mine-<res>` en exclusivité, avec un repli procédural
+   de bâtiment (distinct du losange du tas).
+4. [ ] (Suivi, hors lot) Générer les PNG des tas (`gold/wood/ore/crystal/gems`)
+   dans `assets/resources/`.
+   → vérif : typecheck/lint/build + smoke complet (les tests existants « appui
+   long sur la mine » et « assets sans 404 » couvrent la zone).
 
 ### Lot 3 — Connexité garantie de la carte générée
 

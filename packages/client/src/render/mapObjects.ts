@@ -1,9 +1,16 @@
 import { Assets, Container, Graphics, Sprite, type Texture } from 'pixi.js';
 import type { CombatUnitDef, MapObjectDef, MineObjectDef } from '@heroes/engine';
-import { artifactUrl, getTexture, mapPropUrl, mineUrl, unitSpriteUrl } from './assets';
+import {
+  artifactUrl,
+  getTexture,
+  mapPropUrl,
+  mineUrl,
+  resourcePileUrl,
+  unitSpriteUrl,
+} from './assets';
 import { NEUTRAL_COLOR } from './playerColors';
 import { TILE_SIZE } from './tilemap';
-import { isoAnchor, isoDepth } from './projection';
+import { ISO_TILE_H, ISO_TILE_W, isoAnchor, isoDepth } from './projection';
 
 /** Catalogue d'unités (id → def) — sert à résoudre la faction d'un gardien. */
 type UnitCatalog = Record<string, CombatUnitDef>;
@@ -20,16 +27,36 @@ type OwnerColor = (ownerId: string | null) => number;
 const COLLECTIBLE_SCALE = 0.8;
 
 /**
- * Sprite posé au centre de la tuile, ratio d'aspect **préservé** (ajuste la plus
- * grande dimension à `TILE_SIZE * scale`). Empreinte homogène quels que soient
- * les dimensions natives de la texture.
+ * Sprite DEBOUT sur sa tuile — même convention « base centrée » que les villes,
+ * gardiens et props de relief : `anchor(0.5, 1)`, le visuel REPOSE sur le sol de
+ * sa case. Ancré au centre (0.5, 0.5), un sprite carré débordait sur les 4
+ * losanges voisins et paraissait « entre quatre cases » (plan map-design-issues
+ * P3). La base est posée un quart de losange SOUS le centre : ces assets
+ * embarquent leur propre socle iso, qui recouvre ainsi le losange de la case au
+ * lieu de flotter au-dessus. Ratio d'aspect préservé (la plus grande dimension
+ * est ajustée à `TILE_SIZE * scale`).
  */
 function placeSprite(texture: Texture, scale: number): Sprite {
   const sprite = new Sprite(texture);
-  sprite.anchor.set(0.5);
+  sprite.anchor.set(0.5, 1);
   sprite.scale.set((TILE_SIZE * scale) / Math.max(texture.width, texture.height));
-  sprite.position.set(TILE_SIZE / 2, TILE_SIZE / 2);
+  sprite.position.set(TILE_SIZE / 2, TILE_SIZE / 2 + ISO_TILE_H / 4);
   return sprite;
+}
+
+/**
+ * Losange de sol sous un objet interactif : matérialise LA case exacte à viser
+ * (aide au picking tactile — l'asset debout peut déborder de son losange).
+ * Discret : liseré sombre semi-transparent, sous le visuel.
+ */
+function groundDiamond(): Graphics {
+  const c = TILE_SIZE / 2;
+  const hw = ISO_TILE_W / 2 - 2;
+  const hh = ISO_TILE_H / 2 - 1;
+  return new Graphics()
+    .poly([c, c - hh, c + hw, c, c, c + hh, c - hw, c])
+    .fill({ color: 0x1a1c22, alpha: 0.12 })
+    .stroke({ width: 1.5, color: 0x1a1c22, alpha: 0.4 });
 }
 
 /** Teintes placeholder par ressource (doc 08 §5) — cohérentes avec la barre UI. */
@@ -99,14 +126,19 @@ export class MapObjectsLayer {
 
 /** Vignette de mine si la texture est préchargée, sinon picto procédural (repli). */
 function buildObject(obj: MapObjectDef, catalog: UnitCatalog, ownerColor: OwnerColor): Container {
-  if (obj.type === 'resource') return buildResourcePile(obj.resource);
-  if (obj.type === 'mine') return buildMine(obj, ownerColor(obj.ownerId));
-  if (obj.type === 'treasure') return buildTreasure();
-  if (obj.type === 'artifact') return buildGroundArtifact(obj.artifactId);
-  if (obj.type === 'visitable') return buildVisitable(obj.effect.kind);
-  if (obj.type === 'dwelling') return buildDwelling(obj.unitId, catalog, ownerColor(obj.ownerId));
-  if (obj.type === 'monolith') return buildMonolith();
-  return buildGuardian(obj.unitId, catalog);
+  const node = ((): Container => {
+    if (obj.type === 'resource') return buildResourcePile(obj.resource);
+    if (obj.type === 'mine') return buildMine(obj, ownerColor(obj.ownerId));
+    if (obj.type === 'treasure') return buildTreasure();
+    if (obj.type === 'artifact') return buildGroundArtifact(obj.artifactId);
+    if (obj.type === 'visitable') return buildVisitable(obj.effect.kind);
+    if (obj.type === 'dwelling') return buildDwelling(obj.unitId, catalog, ownerColor(obj.ownerId));
+    if (obj.type === 'monolith') return buildMonolith();
+    return buildGuardian(obj.unitId, catalog);
+  })();
+  // Sous le visuel : la case exacte à viser (les sprites debout débordent du losange).
+  node.addChildAt(groundDiamond(), 0);
+  return node;
 }
 
 /** Monolithe / téléporteur (M-NAV a) : portail de pierres dressées à lueur arcane. */
@@ -262,28 +294,57 @@ function buildTentFallback(): Container {
   return node;
 }
 
-/** Tas de ressource ramassable : sprite `mines/mine-<res>` ou losange teinté (doc 08 §5). */
+/**
+ * Tas de ressource RAMASSABLE : sprite `resources/pile-<res>` (famille dédiée),
+ * sinon losange teinté (doc 08 §5). Ne réutilise PLUS le visuel de mine : une
+ * mine est un bâtiment permanent à capturer, un tas est consommé au passage —
+ * deux gameplay, deux assets (plan map-design-issues P3).
+ */
 function buildResourcePile(resource: string): Container {
-  const tex = getTexture(mineUrl(resource));
-  if (tex) return placeSprite(tex, COLLECTIBLE_SCALE);
+  const tex = getTexture(resourcePileUrl(resource));
+  if (tex) {
+    const node = new Container();
+    node.addChild(placeSprite(tex, COLLECTIBLE_SCALE));
+    return node;
+  }
   // Repli : petit tas losange teinté, lisible à 64 px (doc 08 §5).
   const c = TILE_SIZE / 2;
   const color = RESOURCE_COLORS[resource] ?? 0xffffff;
-  return new Graphics()
-    .poly([c, c - 14, c + 16, c, c, c + 14, c - 16, c])
-    .fill(color)
-    .stroke({ width: 2, color: 0x1a1c22 });
+  const node = new Container();
+  node.addChild(
+    new Graphics()
+      .poly([c, c - 14, c + 16, c, c, c + 14, c - 16, c])
+      .fill(color)
+      .stroke({ width: 2, color: 0x1a1c22 }),
+  );
+  return node;
 }
 
 /**
- * Mine capturable (doc 02 §2.2) : même visuel de base que le tas, mais avec un
- * **drapeau** TOUJOURS présent — gris quand neutre, couleur du joueur
- * propriétaire sinon (doc 08 §5 ; jamais la couleur seule : la présence du
- * drapeau elle-même distingue la mine du tas ramassable).
+ * Mine capturable (doc 02 §2.2) : visuel de mine `mines/mine-<res>` (exclusif
+ * aux mines), avec un **drapeau** TOUJOURS présent — gris quand neutre, couleur
+ * du joueur propriétaire sinon (doc 08 §5 ; jamais la couleur seule : la
+ * présence du drapeau elle-même distingue la mine du tas ramassable).
  */
 function buildMine(obj: MineObjectDef, color: number): Container {
   const node = new Container();
-  node.addChild(buildResourcePile(obj.resource));
+  const tex = getTexture(mineUrl(obj.resource));
+  if (tex) {
+    node.addChild(placeSprite(tex, COLLECTIBLE_SCALE));
+  } else {
+    // Repli : bâtiment trapu teinté à la ressource (distinct du tas losange).
+    const c = TILE_SIZE / 2;
+    const color2 = RESOURCE_COLORS[obj.resource] ?? 0xffffff;
+    node.addChild(
+      new Graphics()
+        .poly([c - 16, c + 10, c - 16, c - 4, c, c - 14, c + 16, c - 4, c + 16, c + 10])
+        .fill(0x6c7a89)
+        .stroke({ width: 2, color: 0x1a1c22 })
+        .circle(c, c + 2, 5)
+        .fill(color2)
+        .stroke({ width: 1.5, color: 0x1a1c22 }),
+    );
+  }
   node.addChild(ownerFlag(color)); // fanion propriétaire (gris = neutre)
   return node;
 }

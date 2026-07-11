@@ -25,8 +25,9 @@ Les 3 planches ont été générées (Gemini) puis extraites via `sheet_extract.
   Voir §1c pour le prompt (doc 16 État 16.9).
 - `assets/heroes/vox-arcana-anastasia.png` — **Anastasia** (5ᵉ héroïne nommée,
   Magic offensive, **origine `original`**, Maison du Lion/Gryffondor — disciple
-  d'Hermione, orientée attaque). **⏳ avatar en attente** (fiche livrée, PNG à
-  déposer). Prompt photoréaliste §1d.
+  d'Hermione, orientée attaque). Photoréaliste (grimage d'une photo source),
+  rouge-cramoisi + or, écu du Lion + baguette lumineuse, 256² RGBA. Prompt §1d
+  (variante « registre héroïque non-combat » pour passer les filtres de contenu).
 - `assets/houses/vox-arcana/house-{lion,serpent,eagle,badger,venari}.png` (5 blasons).
 - `assets/units/vox-arcana/t1..t8.png` — **8/8** (`t1-choeur`, `t2-duelliste`,
   `t3-hippogriffe`, `t4-idole`, `t5-sombral`, `t6-maitre`, `t7-phenix`, `t8-avatar`).

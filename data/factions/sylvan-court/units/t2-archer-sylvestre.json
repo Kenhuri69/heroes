@@ -3,8 +3,26 @@
   "tier": 2,
   "name": "@loc:unit.t2-archer-sylvestre.name",
   "loreKey": "@loc:unit.t2-archer-sylvestre.lore",
-  "stats": { "hp": 9, "attack": 5, "defense": 3, "damage": [2, 4], "speed": 5 },
+  "stats": {
+    "hp": 9,
+    "attack": 5,
+    "defense": 3,
+    "damage": [
+      2,
+      4
+    ],
+    "speed": 5
+  },
   "growthPerWeek": 9,
-  "cost": { "gold": 80 },
-  "abilities": [{ "id": "shooter", "params": { "ammo": 12 } }]
+  "cost": {
+    "gold": 76
+  },
+  "abilities": [
+    {
+      "id": "shooter",
+      "params": {
+        "ammo": 12
+      }
+    }
+  ]
 }

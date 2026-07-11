@@ -3,8 +3,23 @@
   "tier": 1,
   "name": "@loc:unit.t1-squelette.name",
   "loreKey": "@loc:unit.t1-squelette.lore",
-  "stats": { "hp": 5, "attack": 2, "defense": 2, "damage": [1, 2], "speed": 4 },
+  "stats": {
+    "hp": 5,
+    "attack": 2,
+    "defense": 2,
+    "damage": [
+      1,
+      2
+    ],
+    "speed": 4
+  },
   "growthPerWeek": 16,
-  "cost": { "gold": 25 },
-  "abilities": [{ "id": "undead" }]
+  "cost": {
+    "gold": 28
+  },
+  "abilities": [
+    {
+      "id": "undead"
+    }
+  ]
 }

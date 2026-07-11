@@ -258,7 +258,8 @@ Source design : docs 03 §2/§4/§5, 04 §2/§4, 05 §3/§5/§6/§7, 14 §5/§6,
   suicidaire ; consigné dans `ai.ts` et `.claude/plans/f-symbai.md`).
   ⚠ Constat sim au passage (indépendant de ce lot) : 2 blowouts hors 20–80
   après la vague de capacités du jour — haven/necro 18,8 %, necro/vox 90 % —
-  à résorber par A10 (re-passe d'équilibrage post-capacités).
+  ✅ résorbés par la re-passe A10 (coûts de recrutement, plan
+  `a10-rebalance-post-capacites.md` : 0 blowout, moyennes 46–55 %).
 
 ### 2.4 Héros (H-*)
 
@@ -636,7 +637,7 @@ moteur, garde-fou « zéro faction », budget bundle, smoke).
 | A7 | **Sorts & artefacts** | H-SPELLS (aventure, c4-5, résurrection, masse), H-ARTEQUIP, H-LEVELCHOICE, C-SPELLUI | ~2 sem | Sagesse utile, grimoire doc 08 §2.3 |
 | A8 | **Carte d'aventure riche** | M-GUARDLINK, M-VISIT, M-DWELLOWN, M-CALENDAR, puis M-NAV (monolithes → bateaux → souterrain) | ~3 sem | doc 02 §2 complet |
 | A9 | **Villes & économie** | C-SIEGE2, T-CARAVAN, T-MARKETRATE, T-GROWTHUI, T-GRAIL | ~3 sem | doc 02 §3/§4 complet |
-| A10 | **IA & équilibrage** | C-AIPARITY, F-SYMBAI, C-TACTICS, re-passe `faction:sim` post-capacités | ~1,5 sem | signatures « pèsent » en sim |
+| A10 | **IA & équilibrage** | C-AIPARITY, ~~F-SYMBAI~~ ✅, C-TACTICS, ~~re-passe `faction:sim` post-capacités~~ ✅ (coûts, plan `a10-rebalance-post-capacites.md`) | ~1,5 sem | signatures « pèsent » en sim |
 
 Ordre A2→A4 justifié : chaque capacité/effet ouvert est immédiatement exercé
 par les données des 5 factions (test de modularité continu), et A4 dépend de

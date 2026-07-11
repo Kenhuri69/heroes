@@ -3,12 +3,38 @@
   "tier": 6,
   "name": "@loc:unit.t6-chasseresse.name",
   "loreKey": "@loc:unit.t6-chasseresse.lore",
-  "stats": { "hp": 62, "attack": 15, "defense": 11, "damage": [11, 17], "speed": 9 },
+  "stats": {
+    "hp": 62,
+    "attack": 15,
+    "defense": 11,
+    "damage": [
+      11,
+      17
+    ],
+    "speed": 9
+  },
   "growthPerWeek": 2,
-  "cost": { "gold": 1200, "mercury": 2 },
+  "cost": {
+    "gold": 1280,
+    "mercury": 2
+  },
   "abilities": [
-    { "id": "shooter", "params": { "ammo": 8, "noMeleePenalty": true } },
-    { "id": "mark" },
-    { "id": "consumeMarks", "params": { "cost": 2, "immobilizeRounds": 1 } }
+    {
+      "id": "shooter",
+      "params": {
+        "ammo": 8,
+        "noMeleePenalty": true
+      }
+    },
+    {
+      "id": "mark"
+    },
+    {
+      "id": "consumeMarks",
+      "params": {
+        "cost": 2,
+        "immobilizeRounds": 1
+      }
+    }
   ]
 }

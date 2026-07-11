@@ -3,8 +3,30 @@
   "tier": 1,
   "name": "@loc:unit.t1-eleve.name",
   "loreKey": "@loc:unit.t1-eleve.lore",
-  "stats": { "hp": 5, "attack": 3, "defense": 2, "damage": [1, 3], "speed": 5 },
+  "stats": {
+    "hp": 5,
+    "attack": 3,
+    "defense": 2,
+    "damage": [
+      1,
+      3
+    ],
+    "speed": 5
+  },
   "growthPerWeek": 12,
-  "cost": { "gold": 35 },
-  "abilities": [{ "id": "mark" }, { "id": "swarm", "params": { "bonus": 1, "minAllies": 2 } }]
+  "cost": {
+    "gold": 38
+  },
+  "abilities": [
+    {
+      "id": "mark"
+    },
+    {
+      "id": "swarm",
+      "params": {
+        "bonus": 1,
+        "minAllies": 2
+      }
+    }
+  ]
 }

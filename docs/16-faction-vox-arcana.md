@@ -97,6 +97,22 @@ Faction #6, produite en **Beta** — elle sert de **test de modularité #4** (do
 > Attaque plate (Lion), accès aux malédictions (Serpent), +25 % mana max (Aigle),
 > +50 % Résonance / Scène +1 Pouvoir (Venari) — non exprimables sans nouvelles
 > surfaces moteur.
+>
+> 🚧 **État 16.8 (avatar stagé — Céleste, 3ᵉ héroïne nommée)** : **Céleste**, jeune
+> chasseuse **Hunter/Might**, **protégée de Rumi**, rejoint la base d'assets. Thème
+> **céleste / lumière stellaire** (chignon tressé argent-lavande, ornement étoile),
+> distincte de sa mentore (violet néon) tout en partageant l'identité Venari
+> (armure noir-et-violet, charm d'oni, lame néon). L'avatar est **stagé en avance**
+> sous une clé nommée dédiée `heroes/vox-arcana-celeste` (auto-découverte par le
+> registre d'assets), **exactement** comme Hermione/Rumi l'ont été avant leur slot.
+> **Zéro code, zéro donnée de manifeste, zéro nom de faction dans le moteur.**
+> **Différé** : affichage in-game — la convention d'archétype ne connaît que 2
+> slots (`might`/`magic`, déjà pris par Rumi/Hermione), et l'**identité** des héros
+> nommés reste liée au **système de héros nommés du moteur**, non ouvert (différé
+> pour toutes les factions, cf. État 16.6). **Divergence assumée (doc 12 §7)** :
+> l'avatar est **photoréaliste** (grimage d'une photo source), là où la DA de tous
+> les autres avatars stagés est *painterly* — choix éditorial explicite pour ce
+> personnage.
 
 ## 1. Lore
 

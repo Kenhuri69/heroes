@@ -18,16 +18,15 @@ Ajout d'un 3ᵉ héros nommé à la faction **Vox Arcana** (doc 16) :
      leur slot). Zéro diff moteur/client.
    - (b) Étendre la convention client d'un slot de héros nommé (petit diff client).
    - (c) Attendre le système de héros nommés du moteur (différé — hors périmètre).
-   → Par défaut : **(a)** (minimal, conforme au pattern « stagé en avance »).
+   → **Décision : (a)** — stagé sous `heroes/vox-arcana-celeste` (minimal,
+     conforme au pattern « stagé en avance » ; affichage in-game = système de
+     héros nommés, différé pour toutes les factions).
 
 ## Étapes
 1. [x] Proposer le nom (base « Celeste ») → **Céleste** (mononyme, cf. Rumi/Hermione).
-   verify: cohérent avec la convention de nommage des héros nommés existants.
-2. [x] Rédiger le prompt d'avatar photoréaliste (ChatGPT). → dans la réponse + prompts file.
-   verify: prompt autonome, distinct de Rumi, suffixe universel doc 12 §7.
-3. [ ] (Après photo) Extraire/détourer en 256² et stager le PNG. verify: QC image.
-4. [ ] (Après photo) Documenter dans `assets/prompts/faction-vox-arcana.md` + doc 16.
-   verify: cohérence doc = source de vérité.
-5. [ ] (Après photo) Trancher/appliquer l'emplacement d'avatar (option a/b).
-   verify: typecheck + lint + build + smoke ; garde-fou « zéro faction » vert.
-6. [ ] Commit + push branche `claude/vox-arcane-hunter-hero-g9jtcw` + PR draft.
+2. [x] Rédiger le prompt d'avatar photoréaliste (ChatGPT) → réponse + prompts file §1b.
+3. [x] Redimensionner la photo grimée en 256² RGBA → `assets/heroes/vox-arcana-celeste.png`.
+4. [x] Documenter : `assets/prompts/faction-vox-arcana.md` (§1b + staging) + doc 16 (État 16.8).
+5. [x] Emplacement d'avatar : option (a) retenue et appliquée.
+6. [ ] Vérifs : typecheck + build client + budget ; garde-fou « zéro faction » vert.
+7. [ ] Commit + push branche `claude/vox-arcane-hunter-hero-g9jtcw` + PR draft.

@@ -14,6 +14,11 @@ Les 3 planches ont été générées (Gemini) puis extraites via `sheet_extract.
 (porte QC verte). **Stagé** (`assets/`) — base complète :
 - `assets/heroes/vox-arcana-hermione.png`, `vox-arcana-rumi.png` (Règle B, fond
   contextuel sombre conservé — voulu).
+- `assets/heroes/vox-arcana-celeste.png` — **Céleste** (3ᵉ héroïne nommée,
+  Hunter/Might, protégée de Rumi). **Photoréaliste** (divergence assumée vs DA
+  painterly, doc 12 §7 / doc 16 État 16.8) : grimage d'une photo source (visage
+  réel conservé), redimensionné 256² RGBA. Stagé sous clé nommée dédiée, pas
+  encore affiché in-game (voir doc 16 État 16.8).
 - `assets/houses/vox-arcana/house-{lion,serpent,eagle,badger,venari}.png` (5 blasons).
 - `assets/units/vox-arcana/t1..t8.png` — **8/8** (`t1-choeur`, `t2-duelliste`,
   `t3-hippogriffe`, `t4-idole`, `t5-sombral`, `t6-maitre`, `t7-phenix`, `t8-avatar`).
@@ -69,6 +74,36 @@ python3 tools/assets/sheet_extract.py <planche.png> \
   --ids vox-arcana-hermione,vox-arcana-rumi \
   --out assets/raster_src --qc /tmp/qc-voxarcana-heroes.png
 # puis copier vers assets/heroes/
+```
+
+### 1b. Avatar Céleste — grimage photoréaliste (héroïne #3, Hunter/Might)
+
+> Divergence assumée : **photoréaliste** (pas painterly), obtenu par **édition
+> d'une photo source** (visage réel conservé, « grimé » en personnage) plutôt que
+> par génération. Sortie carrée, redimensionnée 256² RGBA vers
+> `assets/heroes/vox-arcana-celeste.png`.
+
+```
+Edit the provided photo. Keep this exact person — preserve their real face,
+identity, bone structure, skin and gaze. Do NOT replace the person. Only
+"grimer"/transform them (makeup, hair, costume, lighting, background) into a
+character: Céleste, a young fierce demon-hunter idol of the Vox Arcana academy,
+protégée of the huntress Rumi.
+Restyle the hair into a luminous silver-lavender high braided idol bun with a
+small star-shaped ornament. Add subtle stage makeup with a celestial / starlight
+motif (faint constellation freckles, cyan-and-magenta neon eyeliner accents),
+keeping the person's own features clearly recognizable.
+Dress them in sleek black-and-violet hunter armor with silver filigree over a
+school-crest tabard, a small Korean oni-mask charm at the collar, a slim neon
+blade hilt at the shoulder. Realistic materials: brushed metal, matte leather,
+woven fabric.
+Relight: warm key light from upper-left, cool cyan rim light on the hair, soft
+magenta neon accents. Replace the background with a heavily blurred neon-lit
+gothic bridge at night, wisteria vines and Korean pagoda silhouettes, bokeh
+city glow. Shallow depth of field, 85mm portrait look, professional color grade.
+Photorealistic result, single bust shot (head and shoulders), 3/4 face turn,
+subject centered with clear space around head and shoulders, square 1:1.
+no text, no watermark, no signature, no border frame, no ground line
 ```
 
 ---

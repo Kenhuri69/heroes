@@ -128,7 +128,8 @@ Faction #6, produite en **Beta** — elle sert de **test de modularité #4** (do
 > **filtrables par origine**. Vox Arcana peuple les 4 premières fiches : **Rumi**
 > (canon, *KPop Demon Hunters*, might), **Hermione** (canon, *Harry Potter*, magic),
 > **Céleste** (original, might) et **Iris** (original, magic, Maison du Blaireau —
-> `startingHouseId`, avatar photoréaliste). **Non consommé par le moteur** (identité stagée en
+> `startingHouseId`, spécialité **défense / protection de ville**, avatar
+> photoréaliste). **Non consommé par le moteur** (identité stagée en
 > avance du système de héros nommés, toujours différé pour toutes les factions) :
 > `specialty`/`startingHouseId` restent indicatifs. **Zéro nom de faction** (garde-fou
 > vert), **aucun bump de sauvegarde** (rien en sauvegarde), golden **inchangé**.

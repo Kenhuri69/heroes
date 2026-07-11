@@ -6,5 +6,6 @@
   "origin": "original",
   "avatar": "vox-arcana-iris",
   "avatarStyle": "photoreal",
-  "startingHouseId": "house-badger"
+  "startingHouseId": "house-badger",
+  "specialty": "@loc:hero.iris.specialty"
 }

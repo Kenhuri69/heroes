@@ -204,6 +204,13 @@
 
 - **Prévisualisation de dégâts obligatoire** avant confirmation : « 12–18 dégâts, ~3 morts · riposte estimée : 5–8 ».
 
+> 🚧 **État (récapitulatif de fin — UX-ENDSTATS, livré)** : l'overlay de fin de
+> partie (`OutcomeOverlay`, §2.5) affiche, au-dessus du graphique de puissance, un
+> **récapitulatif** lu de l'état final : **durée** (`Jour N · Semaine W`), **villes
+> possédées**, **héros** (nombre + niveau max), **unités en armée**. Client pur
+> (aucun suivi moteur). *Différé : pertes cumulées (suivi moteur requis pour
+> l'exactitude multi-joueurs/IA).*
+
 > 🚧 **État (journal de combat — UX-COMBATLOG, livré)** : un bouton **« Journal »**
 > dans la barre d'actions bascule un **panneau déroulant** listant les actions du
 > combat courant (round, attaque/riposte, esquive, mort, soin, poison, sort, moral,

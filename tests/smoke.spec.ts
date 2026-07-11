@@ -2409,6 +2409,10 @@ test('scénario : gagner « survie » contre l’IA (surviveDays)', async ({ pag
   await expect(page.getByTestId('outcome-power-chart')).toBeVisible();
   await expect(page.getByTestId('outcome-power-bar')).toHaveCount(2);
 
+  // Récapitulatif de fin de partie (UX-ENDSTATS, doc 08 §2.5) : durée + avoirs.
+  await expect(page.getByTestId('outcome-stats')).toBeVisible();
+  await expect(page.getByTestId('outcome-duration')).toHaveText(/Jour \d+ · Semaine \d+/);
+
   // Retour au menu depuis l'overlay (bouton, doc 08).
   await page.getByTestId('outcome-back-to-menu').click();
   await expect(page.getByTestId('menu-new-game')).toBeVisible();

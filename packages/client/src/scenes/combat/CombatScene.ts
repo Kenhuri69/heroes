@@ -5,6 +5,9 @@ import {
   sameHex,
   attackableTargets,
   canShootTarget,
+  combatTacticsColumns,
+  COMBAT_COLS,
+  COMBAT_ROWS,
   estimateDamage,
   meleeOriginsFor,
   reachableHexes,
@@ -352,6 +355,23 @@ export class CombatScene {
     this.boardGfx.clear();
     if (!combat) return;
 
+    // C-TACTICS : pendant le placement, surligne la BANDE autorisée (comme les
+    // cases atteignables) et la pile sélectionnée à replacer — le joueur voit où
+    // il peut poser au lieu de taper à l'aveugle.
+    if (combat.phase === 'placement') {
+      const band = this.placementBandHexes(game, combat);
+      const selectedStack = this.placementSelectedId
+        ? combat.stacks.find((s) => s.id === this.placementSelectedId)
+        : undefined;
+      drawBoard(this.boardGfx, {
+        reachable: new Set(band.map(hexKey)),
+        attackable: new Set(),
+        obstacles: new Set(combat.obstacles.map(hexKey)),
+        selected: selectedStack?.pos ?? null,
+      });
+      return;
+    }
+
     const active = combat.stacks.find((s) => s.id === combat.activeStackId);
     const isPlayerTurn = !!active && active.side === combat.playerSide && !combat.finished;
 
@@ -377,6 +397,31 @@ export class CombatScene {
       obstacles: new Set(combat.obstacles.map(hexKey)),
       selected: this.selectionHex(combat),
     });
+  }
+
+  /** C-TACTICS : cases de la bande de placement du camp joueur (libres, hors obstacle). */
+  private placementBandHexes(game: GameState, combat: CombatState): OffsetPos[] {
+    let cols = 0;
+    try {
+      cols = combatTacticsColumns(game, combat);
+    } catch {
+      cols = 0;
+    }
+    const band =
+      combat.playerSide === 'attacker'
+        ? { min: 0, max: cols }
+        : { min: COMBAT_COLS - 1 - cols, max: COMBAT_COLS - 1 };
+    const obstacles = new Set(combat.obstacles.map(hexKey));
+    const occupied = new Set(combat.stacks.filter((s) => s.count > 0).map((s) => hexKey(s.pos)));
+    const out: OffsetPos[] = [];
+    for (let row = 0; row < COMBAT_ROWS; row++) {
+      for (let col = band.min; col <= band.max; col++) {
+        const key = hexKey({ col, row });
+        if (obstacles.has(key) || occupied.has(key)) continue;
+        out.push({ col, row });
+      }
+    }
+    return out;
   }
 
   private selectionHex(combat: CombatState): OffsetPos | null {

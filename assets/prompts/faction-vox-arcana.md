@@ -19,6 +19,10 @@ Les 3 planches ont été générées (Gemini) puis extraites via `sheet_extract.
   painterly, doc 12 §7 / doc 16 État 16.8) : grimage d'une photo source (visage
   réel conservé), redimensionné 256² RGBA. Stagé sous clé nommée dédiée, pas
   encore affiché in-game (voir doc 16 État 16.8).
+- `assets/heroes/vox-arcana-iris.png` — **Iris** (4ᵉ héroïne nommée, Magic,
+  **origine `original`**, Maison du Blaireau/Poufsouffle — loyauté). **Photoréaliste**
+  (grimage d'une photo source), ambre-or + noir, iris violet + blaireau, 256² RGBA.
+  Voir §1c pour le prompt (doc 16 État 16.9).
 - `assets/houses/vox-arcana/house-{lion,serpent,eagle,badger,venari}.png` (5 blasons).
 - `assets/units/vox-arcana/t1..t8.png` — **8/8** (`t1-choeur`, `t2-duelliste`,
   `t3-hippogriffe`, `t4-idole`, `t5-sombral`, `t6-maitre`, `t7-phenix`, `t8-avatar`).
@@ -101,6 +105,37 @@ Relight: warm key light from upper-left, cool cyan rim light on the hair, soft
 magenta neon accents. Replace the background with a heavily blurred neon-lit
 gothic bridge at night, wisteria vines and Korean pagoda silhouettes, bokeh
 city glow. Shallow depth of field, 85mm portrait look, professional color grade.
+Photorealistic result, single bust shot (head and shoulders), 3/4 face turn,
+subject centered with clear space around head and shoulders, square 1:1.
+no text, no watermark, no signature, no border frame, no ground line
+```
+
+### 1c. Avatar Iris — grimage photoréaliste (héroïne #4, Magic, Maison du Blaireau)
+
+> Origine `original` (personnage inventé), Maison du Blaireau (Poufsouffle :
+> loyauté). Même workflow que Céleste : **édition d'une photo source**, sortie
+> carrée → `assets/heroes/vox-arcana-iris.png` (256² RGBA).
+
+```
+Edit the provided photo. Keep this exact person — preserve their real face,
+identity, bone structure, skin and gaze. Do NOT replace the person. Only
+"grimer"/transform them (makeup, hair, costume, lighting, background) into a
+character: Iris, a young loyal student-mage of the Vox Arcana academy,
+belonging to the House of the Badger (Hufflepuff-inspired: loyalty, warmth,
+steadfastness). Original character (not from any book).
+Keep the person's own hair but tint it warm honey-blonde with soft waves, add a
+small iris-flower ornament (violet-blue petals) and a woven braid. Gentle stage
+makeup with a warm amber-gold motif, soft freckles, kind confident smile,
+clearly recognizable as the same person.
+Dress them in black-and-amber academy robes with a badger house crest and gold
+filigree, over a school-crest tabard; a small badger charm and a glowing wand
+of honey-amber light in hand; wisteria and floating herbology leaves around.
+Realistic materials: woven wool, brushed gold, soft fabric.
+Relight: warm amber key light from upper-left, soft golden rim light, subtle
+violet neon accent in the background. Replace the background with a heavily
+blurred neon-lit gothic academy courtyard at dusk, wisteria vines and Korean
+pagoda silhouettes, warm bokeh lanterns. Shallow depth of field, 85mm portrait
+look, professional color grade.
 Photorealistic result, single bust shot (head and shoulders), 3/4 face turn,
 subject centered with clear space around head and shoulders, square 1:1.
 no text, no watermark, no signature, no border frame, no ground line

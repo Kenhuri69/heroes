@@ -2,24 +2,16 @@ import { revealAround } from '../adventure/fog';
 import { DIRECTIONS, samePos, type GridPos } from '../adventure/map';
 import { isPassable } from '../adventure/path';
 import { heroLuckOf, killsFromDamage, magicResistanceOf } from '../combat/damage';
-import { combatRules, collectCasualties, recordLoss } from '../combat/state-helpers';
 import { checkCombatEnd } from '../combat/turns';
-import { hexDistance } from '../combat/hex';
-import type { CombatState, CombatStack } from '../combat/types';
+import { applySpellToTargets, spellTargets } from '../combat/spell-effect';
+import type { CombatState } from '../combat/types';
 import type { Command, CommandError } from '../core/commands';
 import type { GameEvent } from '../core/events';
-import { rollRange } from '../core/rng';
 import type { GameState, HeroState } from '../core/state';
 import type { TownState } from '../town/types';
 import type { SpellKind } from './types';
 import { heroVisionBonus } from './skills';
-import {
-  effectiveManaCost,
-  effectivePower,
-  spellDamageAmount,
-  spellHealAmount,
-  spellStatusDuration,
-} from './spells';
+import { effectiveManaCost, effectivePower, spellDamageAmount, spellHealAmount } from './spells';
 
 /**
  * Points d'entrée héros (sorts en combat + choix de compétence) appelés par
@@ -203,43 +195,6 @@ export function handleCastAdventureSpell(
   events.push({ type: 'AdventureSpellCast', heroId: hero.id, spellId: spell.id, pos: { ...hero.pos } });
 }
 
-/**
- * Piles affectées par un sort (C7) : la cible seule, ou — pour un sort `splash`
- * (Boule de feu…) — la cible + les piles du MÊME camp qui lui sont adjacentes sur
- * la grille hex. Capturée AVANT toute mutation (une pile tuée est retirée ensuite).
- */
-function spellTargets(combat: CombatState, area: 'splash' | undefined, center: CombatStack): CombatStack[] {
-  if (area !== 'splash') return [center];
-  return combat.stacks.filter(
-    (s) => s.count > 0 && s.side === center.side && (s.id === center.id || hexDistance(s.pos, center.pos) === 1),
-  );
-}
-
-/** Applique les dégâts d'un sort à UNE pile (kills, firstHp, bilan, mort) — retourne {amount, kills}. */
-function damageOneStack(
-  draft: Draft,
-  combat: CombatState,
-  target: CombatStack,
-  amount: number,
-  events: GameEvent[],
-): { amount: number; kills: number } {
-  const targetDef = draft.unitCatalog[target.unitId];
-  if (!targetDef) return { amount: 0, kills: 0 };
-  const pool = (target.count - 1) * targetDef.stats.hp + target.firstHp;
-  const kills = killsFromDamage(pool, targetDef.stats.hp, target.count, amount);
-  const remaining = Math.max(0, pool - amount);
-  const newCount = target.count - kills;
-  target.count = newCount;
-  target.firstHp = newCount > 0 ? remaining - (newCount - 1) * targetDef.stats.hp : 0;
-  recordLoss(combat, target.side, target.unitId, kills);
-  if (target.count <= 0) {
-    events.push({ type: 'StackDied', stackId: target.id });
-    const idx = combat.stacks.findIndex((s) => s.id === target.id);
-    if (idx !== -1) combat.stacks.splice(idx, 1);
-  }
-  return { amount, kills };
-}
-
 export function handleCastSpell(draft: Draft, cmd: CastSpellCmd, events: GameEvent[]): void {
   const combat = draft.combat;
   if (!combat) return; // exclu par validate
@@ -251,74 +206,10 @@ export function handleCastSpell(draft: Draft, cmd: CastSpellCmd, events: GameEve
   hero.mana -= effectiveManaCost(hero, draft.skillCatalog, spell);
   combat.heroCastThisRound = true;
   const power = effectivePower(hero, draft.artifactCatalog);
-  // C7 : liste des piles affectées (cible seule, ou cible + adjacentes en `splash`).
-  const targets = spellTargets(combat, spell.area, target);
-
-  let amount = 0;
-  let kills = 0;
-
-  if (spell.kind === 'damage') {
-    const luck = heroLuckOf(draft, combat, combat.playerSide);
-    const rules = combatRules(draft);
-    const luckRoll = rollRange(draft.rng, 0, 99);
-    draft.rng = luckRoll.state;
-    const lucky = luckRoll.value < Math.round(rules.luckChancePerPoint * luck * 100);
-    for (const t of targets) {
-      const def = draft.unitCatalog[t.unitId];
-      if (!def) continue;
-      // Résistance à la magie (doc 05 §4) + amplification par la Marque (D10),
-      // évaluées PAR pile affectée. Chance (luck) tirée une fois pour le sort.
-      const dmg = spellDamageAmount(
-        spell,
-        power,
-        lucky,
-        magicResistanceOf(def, t.transformed),
-        rules.markBonusPerStack * t.marks,
-      );
-      const r = damageOneStack(draft, combat, t, dmg, events);
-      amount += r.amount;
-      kills += r.kills;
-    }
-  } else if (spell.kind === 'heal') {
-    for (const t of targets) {
-      const def = draft.unitCatalog[t.unitId];
-      if (!def) continue;
-      const heal = spellHealAmount(spell, power);
-      // Plafond de soin approximé par l'effectif courant + pertes déjà
-      // enregistrées (décision plan #3) — évalué par pile.
-      const lostSoFar =
-        collectCasualties(combat).find((c) => c.side === t.side && c.unitId === t.unitId)?.lost ?? 0;
-      const maxCount = t.count + lostSoFar;
-      const currentPool = (t.count - 1) * def.stats.hp + t.firstHp;
-      const newPool = Math.min(maxCount * def.stats.hp, currentPool + heal);
-      const newCount = Math.min(maxCount, Math.max(1, Math.ceil(newPool / def.stats.hp)));
-      t.count = newCount;
-      t.firstHp = newPool - (newCount - 1) * def.stats.hp;
-      amount += heal;
-    }
-  } else if (spell.kind === 'applyMarks') {
-    const marksMax = combatRules(draft).marksMax;
-    for (const t of targets) {
-      const before = t.marks;
-      t.marks = Math.min(marksMax, t.marks + (spell.marks ?? 0));
-      const posed = t.marks - before;
-      amount += posed;
-      if (posed > 0) events.push({ type: 'MarkApplied', targetId: t.id, marks: t.marks });
-    }
-  } else {
-    // buff / debuff (doc 02 §1.4) : statut temporaire sur chaque pile affectée.
-    for (const t of targets) {
-      t.statuses.push({
-        spellId: spell.id,
-        attackMod: spell.attackMod ?? 0,
-        defenseMod: spell.defenseMod ?? 0,
-        speedMod: spell.speedMod ?? 0,
-        damageDealtMod: 0, // les sorts actuels ne modulent pas les dégâts infligés (A2c)
-        damagePerRound: 0, // les sorts actuels n'empoisonnent pas (A2f)
-        roundsLeft: spellStatusDuration(power),
-      });
-    }
-  }
+  const luck = heroLuckOf(draft, combat, combat.playerSide);
+  // C7 : effet appliqué à la cible (+ alliées adjacentes en `splash`) via le
+  // cœur PARTAGÉ avec le lancer d'unité `spellcaster` (A2h, combat/spell-effect).
+  const { amount, kills } = applySpellToTargets(draft, combat, spell, target, power, luck, events);
 
   events.push({
     type: 'SpellCast',

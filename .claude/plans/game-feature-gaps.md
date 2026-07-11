@@ -151,10 +151,13 @@ Familles, par mécanique moteur commune :
   doc 03 §3), `aura` −1 moral aux vivants adverses (Dragon d'os, doc 04 §2/§3),
   peur (Sombral Vox, doc 16 §4). Le moral existe (`heroMorale`) mais aucune
   capacité ne le module. Effort : M.
-- **CAP-CAST — Lanceurs** ⬜ : `spellcaster` générique (sorts embarqués ×N
-  charges) — Prêtresse soin ×2 (doc 03 §3), Bibliothécaire Entrave/Silence ×2
-  (doc 05 §4), Maître de Sortilèges (doc 16 §4), Avatar barrière (doc 16 §4).
-  Réutilise le pipeline `CastSpell`. Effort : M.
+- **CAP-CAST — Lanceurs** 🧩 (A2h : `spellcaster` **livré engine-first**) :
+  `spellcaster` générique (sorts embarqués ×N charges) — Prêtresse soin ×2 (doc
+  03 §3) **livrée** ; Bibliothécaire Entrave/Silence ×2 (doc 05 §4), Maître de
+  Sortilèges (doc 16 §4), Avatar barrière (doc 16 §4) = données à ajouter (moteur
+  prêt). Réutilise le pipeline `CastSpell` via `applySpellToTargets` partagé.
+  **Reste (suivi UI)** : bouton de lancer en combat pour une pile jouée à la main
+  (A2h ne pilote que l'IA/auto-combat). Effort : M.
 - **CAP-LIFE — Cycle de vie** 🧩 (A3b : `swarm` **livré** ; A2d : `devourMarks`
   **livré** ; `resurrectAlly`, renaissance → A3) : `resurrectAlly` 1× (Ange, doc 03 §3),
   renaissance (Phénix, doc 16 §4/§7), `swarm` (+dégâts ∝ effectif — Élève AH

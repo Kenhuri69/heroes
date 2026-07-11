@@ -30,7 +30,7 @@ function stack(over: Pick<CombatStack, 'id' | 'side' | 'unitId' | 'count'> & Par
     retaliationsLeft: 1,
     waited: false,
     defending: false,
-    ammo: null,
+    ammo: null, spellCharges: 0,
     marks: 0,
     immobilizedRounds: 0,
     transformed: false,

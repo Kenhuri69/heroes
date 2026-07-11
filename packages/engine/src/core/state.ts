@@ -240,9 +240,12 @@ export interface CaravanState {
  * son `growthFactor` (dans `config.calendar.events`) module la croissance.
  * v21 : `GameState.caravans` — caravanes inter-villes (T-CARAVAN, doc 02 §4.1) :
  * piles d'unités en transit d'une ville possédée à une autre, avancées d'un jour
- * au `DayStarted`, déposées en garnison à l'arrivée.)
+ * au `DayStarted`, déposées en garnison à l'arrivée.
+ * v22 : `CombatStack.spellCharges` — charges de sort d'unité (`spellcaster`,
+ * doc 02 §5.4, A2h) : lancers de sort embarqué restants ce combat, 0 pour toute
+ * unité non lanceuse.)
  */
-export const CURRENT_SAVE_VERSION = 21;
+export const CURRENT_SAVE_VERSION = 22;
 
 export interface GameState {
   saveVersion: number;

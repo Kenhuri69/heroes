@@ -28,7 +28,7 @@ function stack(
   partial: Pick<CombatStack, 'id' | 'side' | 'slot' | 'unitId' | 'count' | 'pos'> & Partial<CombatStack>,
 ): CombatStack {
   return {
-    firstHp: 100, retaliationsLeft: 1, waited: false, defending: false, ammo: null,
+    firstHp: 100, retaliationsLeft: 1, waited: false, defending: false, ammo: null, spellCharges: 0,
     marks: 0, immobilizedRounds: 0, transformed: false, symbiosisStacks: 0, acted: false, statuses: [],
     ...partial,
   };

@@ -6,14 +6,15 @@
 > d'habitations (7 dwellings + prérequis, §4), manifeste, ressources clés
 > (Cristal/Gemmes), locales FR/EN, recrutement validé par test. **Différé**
 > (points d'extension moteur non encore ouverts — le loader refuse toute
-> donnée non interprétée) : capacités spéciales
-> `resurrectAlly`/`spellcaster`.
+> donnée non interprétée) : capacité spéciale `resurrectAlly`.
 > **Livré depuis** : `shieldWall` (Frère-Lame), `unlimitedRetaliation` (Griffon),
 > `charge` (Chevalier du Griffon) en A2a ; `moraleImmune` (Ange, immunité au
 > moral négatif) en A3a ; `taunt` (Conscrit, attire les frappes de mêlée
 > adjacentes) en A2e ; `firstStrike` (Chevalier du Griffon, priorité d'initiative
-> à vitesse égale) en A2g — interprétées par le moteur (catalogue = **26 capacités**
-> génériques, doc 02 §5.4) ; côté Haven reste inerte
+> à vitesse égale) en A2g ; `spellcaster` (Prêtresse, soin embarqué ×2 —
+> engine-first : lancé par l'IA/auto-combat, UI joueur différée) en A2h —
+> interprétées par le moteur (catalogue = **27 capacités** génériques, doc 02
+> §5.4) ; côté Haven reste inerte
 > `resurrectAlly` ;
 > bonus de faction Ferveur/Formation (§2) ; compétence Prière de bataille ;
 > bâtiments spéciaux Statue/Cloître/Écuries (§4, effets non supportés) ; école

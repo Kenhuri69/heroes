@@ -29,7 +29,7 @@ function stack(
 ): CombatStack {
   return {
     count: 5, firstHp: 10, pos: { col: 0, row: partial.slot }, retaliationsLeft: 1, waited: false,
-    defending: false, ammo: null, marks: 0, immobilizedRounds: 0, transformed: false,
+    defending: false, ammo: null, spellCharges: 0, marks: 0, immobilizedRounds: 0, transformed: false,
     symbiosisStacks: 0, acted: false, statuses: [],
     ...partial,
   };

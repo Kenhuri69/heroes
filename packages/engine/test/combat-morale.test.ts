@@ -24,7 +24,7 @@ function unit(id: string, abilities: CombatUnitDef['abilities'] = [], groupId = 
 function stack(id: string, side: CombatStack['side'], unitId: string): CombatStack {
   return {
     id, side, slot: 0, unitId, count: 5, pos: { col: 0, row: 0 },
-    firstHp: 10, retaliationsLeft: 1, waited: false, defending: false, ammo: null,
+    firstHp: 10, retaliationsLeft: 1, waited: false, defending: false, ammo: null, spellCharges: 0,
     marks: 0, immobilizedRounds: 0, transformed: false, symbiosisStacks: 0, acted: false, statuses: [],
   };
 }

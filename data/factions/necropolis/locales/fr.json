@@ -55,5 +55,10 @@
   "hero.specialty.intrigant-de-cour.name": "Intrigant de cour",
   "hero.specialty.intrigant-de-cour.desc": "+200 or par jour.",
   "hero.specialty.dame-noire.name": "Dame noire",
-  "hero.specialty.dame-noire.desc": "−10 % de dégâts subis en mêlée."
+  "hero.specialty.dame-noire.desc": "−10 % de dégâts subis en mêlée.",
+  "hero.olivier.name": "Olivier Givrepeste",
+  "hero.olivier.bio": "Ancien enlumineur de reliquaires, il a troqué l'or des saints pour le gel des tombes. Olivier Givrepeste fige ses morts dans la glace nécrotique puis les laisse pourrir à volonté : là où il passe, l'hiver ne fond jamais et la chair ne repose pas.",
+  "hero.olivier.specialty": "Givrepeste — −10 % de coût en mana des sorts.",
+  "hero.specialty.givrepeste.name": "Givrepeste",
+  "hero.specialty.givrepeste.desc": "−10 % de coût en mana des sorts."
 }

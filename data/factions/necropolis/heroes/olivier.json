@@ -1,0 +1,14 @@
+{
+  "id": "olivier",
+  "name": "@loc:hero.olivier.name",
+  "bio": "@loc:hero.olivier.bio",
+  "archetype": "magic",
+  "origin": "original",
+  "avatar": "necropolis-olivier",
+  "avatarStyle": "photoreal",
+  "specialty": "@loc:hero.olivier.specialty",
+  "attributes": { "attack": 0, "defense": 1, "power": 3, "knowledge": 2 },
+  "specialtyEffect": { "id": "givrepeste", "manaCostReductionPct": 10 },
+  "startingSkills": { "necromancy": 1, "magic-water": 1 },
+  "startingSpells": ["jet-de-glace", "fletrissure"]
+}

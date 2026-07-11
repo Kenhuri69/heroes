@@ -55,5 +55,10 @@
   "hero.specialty.intrigant-de-cour.name": "Court Schemer",
   "hero.specialty.intrigant-de-cour.desc": "+200 gold per day.",
   "hero.specialty.dame-noire.name": "Dark Lady",
-  "hero.specialty.dame-noire.desc": "−10% melee damage taken."
+  "hero.specialty.dame-noire.desc": "−10% melee damage taken.",
+  "hero.olivier.name": "Olivier Frostblight",
+  "hero.olivier.bio": "Once an illuminator of reliquaries, he traded the gold of saints for the frost of graves. Olivier Frostblight seals his dead in necrotic ice, then lets them rot at will: where he treads, winter never thaws and flesh never rests.",
+  "hero.olivier.specialty": "Frostblight — spells cost 10% less mana.",
+  "hero.specialty.givrepeste.name": "Frostblight",
+  "hero.specialty.givrepeste.desc": "Spells cost 10% less mana."
 }

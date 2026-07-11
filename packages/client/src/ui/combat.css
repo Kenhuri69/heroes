@@ -348,3 +348,41 @@
   background: var(--blood);
   border-color: var(--blood-bright);
 }
+
+/* Journal de combat (UX-COMBATLOG, doc 08 §2.4) : panneau déroulant basculé par
+   le bouton « Journal », superposé au-dessus de la barre d'actions. */
+.combat-log {
+  position: absolute;
+  right: 0.5rem;
+  bottom: 4.5rem;
+  width: min(22rem, 90vw);
+  max-height: 40vh;
+  border: 1px solid var(--brass);
+  border-radius: var(--radius-s);
+  background: var(--veil-85);
+  overflow: hidden;
+  z-index: 5;
+}
+.combat-log.closed {
+  display: none;
+}
+.combat-log-lines {
+  margin: 0;
+  padding: 0.4rem 0.6rem;
+  list-style: none;
+  max-height: 40vh;
+  overflow-y: auto;
+  font: 0.8rem/1.4 var(--font-ui);
+  color: var(--parchment);
+}
+.combat-log-lines li {
+  padding: 0.1rem 0;
+  border-bottom: 1px solid var(--ink-700);
+}
+.combat-log-lines li:last-child {
+  border-bottom: none;
+}
+.combat-log-empty {
+  color: var(--parchment-dim, var(--parchment));
+  opacity: 0.7;
+}

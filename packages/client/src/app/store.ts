@@ -36,6 +36,12 @@ export interface JournalEntry {
   message: string;
 }
 
+/** Une ligne du journal de combat (UX-COMBATLOG, doc 08 §2.4). */
+export interface CombatLogLine {
+  id: number;
+  text: string;
+}
+
 /**
  * Type d'un toast (doc 08 §3, lot UXD-6b) : porte l'accent visuel (filet
  * coloré) et le SFX (`success → ui-confirm`, `error → ui-error`, `info` muet).
@@ -71,6 +77,8 @@ export interface AppState {
   toasts: { id: number; message: string; kind: ToastKind }[];
   /** Journal consultable des notifications de jeu (doc 08 §3), le plus récent en dernier. */
   journal: JournalEntry[];
+  /** Journal du combat courant (UX-COMBATLOG, doc 08 §2.4) — remis à zéro à chaque `CombatStarted`. */
+  combatLog: CombatLogLine[];
   /** Nombre d'entrées de journal non lues (badge cloche) — remis à 0 à l'ouverture. */
   journalUnread: number;
   /**
@@ -178,6 +186,7 @@ export const appStore = createStore<AppState>(() => ({
   fontScale: 1,
   toasts: [],
   journal: [],
+  combatLog: [],
   journalUnread: 0,
   screen: 'menu',
   modals: [],

@@ -520,6 +520,12 @@ test('combat : victoire contre le gardien, retour carte avec pertes appliquées'
   await passPreBattle(page);
   await expect(page.getByTestId('combat-round')).toBeVisible();
   await expect.poll(() => heroPos(page)).toEqual({ x: 8, y: 2 });
+
+  // Journal de combat (UX-COMBATLOG) : le bouton bascule le panneau ; le journal
+  // est alimenté dès l'ouverture du combat (« Round 1 » déjà présent).
+  await page.getByTestId('combat-log-toggle').click();
+  await expect(page.getByTestId('combat-log')).toBeVisible();
+  await expect(page.getByTestId('combat-log-lines')).toContainText(/Round/i);
   const combat = await page.evaluate(() => window.__HEROES_TEST__!.getState().combat);
   expect(combat?.playerSide).toBe('attacker');
   expect(combat?.stacks.filter((s) => s.side === 'defender')).toHaveLength(1);

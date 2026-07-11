@@ -204,6 +204,14 @@
 
 - **Prévisualisation de dégâts obligatoire** avant confirmation : « 12–18 dégâts, ~3 morts · riposte estimée : 5–8 ».
 
+> 🚧 **État (journal de combat — UX-COMBATLOG, livré)** : un bouton **« Journal »**
+> dans la barre d'actions bascule un **panneau déroulant** listant les actions du
+> combat courant (round, attaque/riposte, esquive, mort, soin, poison, sort, moral,
+> peur, immobilisation, fin). **Client pur** : un listener global alimente
+> `store.combatLog` depuis les **événements moteur déjà émis** (aucun état ni règle
+> ajoutés), remis à zéro à chaque combat, borné à 80 lignes ; les ids de pile sont
+> résolus en noms d'unité localisés.
+
 > 🚧 **État M1 (lisibilité d'état — plan `ux-revue-mmho.md` C13/C14/C18)** : le
 > bandeau du haut affiche désormais l'**ordre de passage réel du round** (helper
 > moteur pur `roundActionOrder` : vague normale par vitesse décroissante puis

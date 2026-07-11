@@ -57,6 +57,7 @@ function baseHero(overrides: Partial<HeroState> = {}): HeroState {
     specialtyId: '',
     specialtyEffects: [],
     warMachines: [],
+    rosterId: '',
     ...overrides,
   };
 }

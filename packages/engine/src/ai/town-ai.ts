@@ -2,6 +2,7 @@ import type { GameEvent } from '../core/events';
 import type { GameState, PlayerState, Resources } from '../core/state';
 import { RESOURCE_IDS } from '../core/state';
 import { validateBuildStructure, handleBuildStructure, validateRecruitUnits, handleRecruitUnits } from '../town';
+import { validateRecruitHero, handleRecruitHero } from '../hero/recruit';
 import type { BuildingDef, TownState } from '../town/types';
 import { unitWithEconomy } from '../town/unit-economy';
 
@@ -67,7 +68,36 @@ function tryRecruit(draft: GameState, town: TownState, player: PlayerState, even
   }
 }
 
+/** Facteur de marge « riche » (M-TAVERN.4) : l'IA ne recrute un héros que si son or ≥ coût × ce facteur (garde de l'or pour l'armée). */
+const AI_HERO_GOLD_FACTOR = 2;
+
+const DEFAULT_RECRUIT_COST = 2500;
+const DEFAULT_MAX_HEROES = 8;
+
+/**
+ * IA recruteuse (M-TAVERN.4, doc 02 §1.5) : à une ville dotée d'une Taverne, si
+ * l'IA est **riche** (or ≥ coût × marge) et **sous le cap**, recrute le premier
+ * héros de roster éligible (faction de la ville, non déjà en jeu). Réutilise
+ * `validate/handleRecruitHero` — aucune commande illégale (le pool exclusif et
+ * la Taverne y sont vérifiés). Un seul recrutement par ville et par tour.
+ */
+function tryRecruitHero(draft: GameState, town: TownState, player: PlayerState, events: GameEvent[]): void {
+  const cost = draft.config?.hero?.recruitCost ?? DEFAULT_RECRUIT_COST;
+  const cap = draft.config?.hero?.maxPerPlayer ?? DEFAULT_MAX_HEROES;
+  if (player.resources.gold < cost * AI_HERO_GOLD_FACTOR) return;
+  if (draft.heroes.filter((h) => h.playerId === player.id).length >= cap) return;
+  // Héros de roster de la faction de la ville, non déjà vivant (pool exclusif),
+  // en ordre d'id stable (déterministe).
+  for (const heroId of Object.keys(draft.heroRoster).sort()) {
+    const cmd = { type: 'RecruitHero' as const, townId: town.id, heroId, playerId: player.id };
+    if (validateRecruitHero(draft, cmd)) continue;
+    handleRecruitHero(draft, cmd, events);
+    return;
+  }
+}
+
 export function playTownTurn(draft: GameState, town: TownState, player: PlayerState, events: GameEvent[]): void {
   tryBuild(draft, town, events);
   tryRecruit(draft, town, player, events);
+  tryRecruitHero(draft, town, player, events);
 }

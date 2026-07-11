@@ -156,6 +156,14 @@ export interface HeroState {
    * héros en combat comme piles supplémentaires (hors cap 7 de l'armée).
    */
   warMachines: string[];
+  /**
+   * Id du héros de **roster** dont ce héros est issu (M-TAVERN.4, doc 02 §1.5) —
+   * '' pour un héros générique. Sert au **pool exclusif** de la Taverne : un
+   * héros du roster ne peut être VIVANT que chez un joueur à la fois ; un héros
+   * mort (retiré de `heroes`) libère l'entrée. Posé à la création (départ nommé
+   * ou recrutement). Le moteur ne compare que des ids opaques.
+   */
+  rosterId: string;
 }
 
 export interface Calendar {
@@ -253,8 +261,11 @@ export interface CaravanState {
  * la bataille ; les combats sans Tactique démarrent en `'battle'`.
  * v25 : `GameState.heroRoster` — roster de héros nommés persisté (H-NAMED.1),
  * requis pour résoudre `RecruitHero` en cours de partie (Taverne, M-TAVERN.1).
+ * v26 : `HeroState.rosterId` — pool de taverne exclusif (M-TAVERN.4, doc 02 §1.5) :
+ * origine roster d'un héros vivant, pour interdire de recruter un héros déjà
+ * vivant chez un joueur (un héros mort libère l'entrée).
  */
-export const CURRENT_SAVE_VERSION = 25;
+export const CURRENT_SAVE_VERSION = 26;
 
 export interface GameState {
   saveVersion: number;

@@ -582,6 +582,7 @@
   "town.tavernCapReached": "Hero limit reached",
   "town.tavernEmpty": "No hero available for this faction.",
   "town.tavernRecruited": "Recruited",
+  "town.tavernUnavailable": "Unavailable",
   "town.guildEmpty": "No mage guild built — build it to teach spells.",
   "town.guildHint": "A hero visiting the town automatically learns the spells they can.",
   "town.spellKnown": "Known",

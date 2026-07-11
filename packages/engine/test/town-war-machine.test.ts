@@ -55,6 +55,7 @@ function heroAt(pos: { x: number; y: number }, warMachines: string[] = []): Hero
     specialtyId: '',
     specialtyEffects: [],
     warMachines,
+    rosterId: '',
   };
 }
 

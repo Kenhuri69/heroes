@@ -55,8 +55,11 @@ export function validateRecruitHero(state: GameState, cmd: RecruitCmd): CommandE
   const max = state.config?.hero?.maxPerPlayer ?? DEFAULT_MAX_HEROES;
   if (owned.length >= max)
     return { code: 'invalidAction', message: `cap de ${max} héros atteint pour ${cmd.playerId}` };
-  if (state.heroes.some((h) => h.id === recruitedHeroId(cmd.playerId, cmd.heroId)))
-    return { code: 'invalidAction', message: `'${cmd.heroId}' déjà recruté par ${cmd.playerId}` };
+  // Pool exclusif inter-joueurs (M-TAVERN.4, doc 02 §1.5) : un héros du roster ne
+  // peut être VIVANT que chez un seul joueur (subsume l'ancien « déjà recruté par
+  // ce joueur »). Un héros mort (retiré de `heroes`) libère l'entrée.
+  if (state.heroes.some((h) => h.rosterId === cmd.heroId))
+    return { code: 'invalidAction', message: `'${cmd.heroId}' déjà en jeu chez un joueur` };
   const cost = state.config?.hero?.recruitCost ?? DEFAULT_RECRUIT_COST;
   if (player.resources.gold < cost)
     return { code: 'cannotAfford', message: `or insuffisant (${cost} requis)` };
@@ -94,6 +97,7 @@ export function handleRecruitHero(draft: GameState, cmd: RecruitCmd, events: Gam
     specialtyId: def.specialtyId,
     specialtyEffects: def.specialtyEffects.map((e) => ({ ...e })),
     warMachines: [],
+    rosterId: cmd.heroId, // pool exclusif (M-TAVERN.4) : marque l'entrée de roster occupée
   };
   hero.manaMax = heroManaMax(hero, draft.artifactCatalog);
   hero.mana = hero.manaMax;

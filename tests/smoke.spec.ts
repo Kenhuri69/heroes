@@ -1797,6 +1797,66 @@ test('taverne : construire ⇒ onglet Taverne ⇒ recruter un héros nommé (M-T
   expect(errors).toEqual([]);
 });
 
+test('M-TAVERN.4 : pool exclusif — un héros recruté chez p1 est indisponible pour p2', async ({
+  page,
+}) => {
+  const errors = await openMenu(page);
+
+  // Hot-seat MÊME faction (haven vs haven) : les deux Tavernes offrent le même
+  // roster ⇒ l'exclusivité inter-joueurs est observable.
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.startSkirmish({
+      humanFactionId: 'haven',
+      aiFactionId: 'haven',
+      difficulty: 'normal',
+      opponent: 'human',
+    }),
+  );
+  await expect(page.getByTestId('end-turn')).toBeVisible();
+
+  // Via le hook : bâtir les 2 Tavernes, accumuler l'or (townHall +500/j), puis
+  // p1 recrute « anton ». Le sujet est l'EXCLUSIVITÉ (recrutement couvert par M-TAVERN.2).
+  await page.evaluate(async () => {
+    const d = window.__HEROES_TEST__!.dispatch;
+    await d({ type: 'BuildStructure', townId: 'town-player-1', buildingId: 'tavern' });
+    await d({ type: 'EndTurn', playerId: 'player-1' });
+    await d({ type: 'BuildStructure', townId: 'town-player-2', buildingId: 'tavern' });
+    await d({ type: 'EndTurn', playerId: 'player-2' });
+    for (let i = 0; i < 4; i++) {
+      await d({ type: 'EndTurn', playerId: 'player-1' });
+      await d({ type: 'EndTurn', playerId: 'player-2' });
+    }
+    await d({ type: 'RecruitHero', townId: 'town-player-1', heroId: 'anton', playerId: 'player-1' });
+  });
+  const p1HasAnton = await page.evaluate(() =>
+    window.__HEROES_TEST__!.getState().heroes.some((h) => h.playerId === 'player-1' && h.rosterId === 'anton'),
+  );
+  expect(p1HasAnton).toBe(true);
+
+  // p2 tente de recruter « anton » (vivant chez p1) ⇒ REFUS moteur (exclusivité).
+  const rejected = await page.evaluate(async () => {
+    try {
+      await window.__HEROES_TEST__!.dispatch({
+        type: 'RecruitHero',
+        townId: 'town-player-2',
+        heroId: 'anton',
+        playerId: 'player-2',
+      });
+      return false;
+    } catch {
+      return true;
+    }
+  });
+  expect(rejected).toBe(true);
+  // Aucun héros « anton » chez p2.
+  const p2HasAnton = await page.evaluate(() =>
+    window.__HEROES_TEST__!.getState().heroes.some((h) => h.playerId === 'player-2' && h.rosterId === 'anton'),
+  );
+  expect(p2HasAnton).toBe(false);
+
+  expect(errors).toEqual([]);
+});
+
 test('taverne : le portrait DÉDIÉ d’un héros canon s’affiche (M-TAVERN.3)', async ({ page }) => {
   const errors = collectErrors(page);
   await page.goto('./');

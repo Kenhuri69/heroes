@@ -373,7 +373,11 @@ Source design : doc 02 §2 (carte), §1.5 (multi-héros).
     (M-TAVERN.2), échanges d'armée/artefacts (UX-HEROSWAP ✅), **combat
     héros-vs-héros** (H-VS-H ✅ — `beginHeroCombat`, `defenderHeroId` non-null, le
     perdant meurt + dépouille d'artefacts au vainqueur, plan `h-vs-h.md`).
-    **Différés (M-TAVERN.4)** : exclusivité de pool inter-joueurs, IA recruteuse.
+  - **M-TAVERN.4** ✅ (plan `m-tavern-4.md`) : **pool exclusif inter-joueurs**
+    (`HeroState.rosterId`, save **25→26** ; `validateRecruitHero` refuse un héros
+    déjà vivant ; un héros mort le libère) + **IA recruteuse** (`town-ai.ts` :
+    riche + sous le cap ⇒ recrute à la Taverne) ; client « Indisponible ».
+    Golden re-fixé (forme). **Différé** : choix du héros de départ (H-NAMED.2).
 
 - **M-GUARDLINK — Gardiens attachés aux trésors** 🕳️ 🧩 (tranche livrée)
   > **Livré** : champ **optionnel** `guardedBy` (id de gardien) sur les objets

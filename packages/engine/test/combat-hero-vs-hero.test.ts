@@ -41,6 +41,7 @@ function hero(
     specialtyId: '',
     specialtyEffects: [],
     warMachines: [],
+    rosterId: '',
   };
 }
 

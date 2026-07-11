@@ -257,7 +257,10 @@ const GOLDEN_JOURNAL: Command[] = [
 // Re-fixé à M-TAVERN.1 (save v24→25) : `GameState.heroRoster:{}` s'ajoute à la
 // forme sérialisée (empilé sur C-TACTICS `CombatState.phase`) — issues inchangées
 // (le golden ne recrute pas ; roster vide). Hash de forme seule.
-const GOLDEN_HASH = '22d88254';
+// Re-fixé à M-TAVERN.4 (save v25→26) : `HeroState.rosterId:''` s'ajoute à chaque
+// héros sérialisé — pool de taverne exclusif. Issues de simulation inchangées
+// (le golden n'a pas de héros de roster) : hash de FORME seule.
+const GOLDEN_HASH = '15b26649';
 
 describe('golden replay', () => {
   it('le journal scripté produit toujours le même état final', () => {

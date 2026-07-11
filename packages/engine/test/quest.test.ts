@@ -59,6 +59,7 @@ function baseState(quests: QuestState | null): GameState {
         specialtyId: '',
         specialtyEffects: [],
         warMachines: [],
+        rosterId: '',
       },
     ],
     quests,

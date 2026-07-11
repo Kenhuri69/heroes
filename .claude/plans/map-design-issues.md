@@ -106,20 +106,21 @@ vérification. Ordre proposé = impact joueur décroissant.
    → vérif : typecheck/lint/build + smoke complet (les tests existants « appui
    long sur la mine » et « assets sans 404 » couvrent la zone).
 
-### Lot 3 — Connexité garantie de la carte générée
+### Lot 3 — Connexité garantie de la carte générée — ✅ livré
 
-1. Dans `generateMap`, après le placement des départs : **flood-fill** (8
-   directions, mêmes règles de franchissabilité que le jeu) depuis le premier
-   départ ; identifier la composante principale.
-2. Pour chaque départ ou objet hors composante : **creuser un corridor**
-   déterministe (transformer en `dirt`/terrain de base les tuiles bloquantes le
-   long d'une ligne vers la composante) — jamais de relocalisation silencieuse
-   qui viderait une zone.
-3. Rejouer le flood-fill en garde finale : tout départ + tout objet joignable.
-   → vérif : property test (N graines × tailles) « chaque objet et chaque départ
-   est atteignable depuis chaque départ » ; déterminisme conservé (même graine ⇒
-   même carte) ; golden/parties existantes non affectées (les cartes du dépôt ne
-   passent pas par `generateMap`).
+1. [x] Flood-fill 8 directions depuis le premier départ, après le placement de
+   tous les objets (l'A* du jeu autorise le pas diagonal sans blocage de coin :
+   le flood-fill 8 dir reflète exactement l'atteignabilité réelle).
+2. [x] Pour chaque départ/objet hors composante : corridor creusé en pas
+   8 directions vers la tuile de la composante la plus proche (balayage
+   déterministe), tuiles bloquantes → terrain de base, puis fusion de la poche
+   dans la composante (`grow`). Jamais de relocalisation silencieuse.
+3. [x] Garde finale implicite : chaque cible passe par `connect` (no-op si déjà
+   dans la composante).
+   → vérif : property test « chaque départ et chaque objet est atteignable
+   depuis le 1er départ » (12 graines × {24²/2 joueurs, 48²/3 joueurs}) ; les
+   tests de déterminisme existants passent inchangés ; cartes du dépôt non
+   affectées (elles ne passent pas par `generateMap`).
 
 ### Lot 4 — Gradient de gardiens autour des départs
 

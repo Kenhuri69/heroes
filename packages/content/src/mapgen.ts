@@ -466,6 +466,69 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
     }
   }
 
+  // ── Connexité (plan map-design-issues P2) : le bruit d'élévation peut fermer
+  // des poches (montagnes/rochers/eau) contenant des départs ou des objets. On
+  // relie tout ce qui compte à la composante du premier départ en CREUSANT des
+  // corridors de terrain de base — déterministe, jamais de relocalisation
+  // silencieuse. L'A* du jeu autorise le pas diagonal dès que la tuile d'arrivée
+  // est franchissable (pas de blocage de coin) : un flood-fill 8 directions
+  // reflète donc exactement l'atteignabilité réelle. ──
+  const blockedChars = new Set([waterChar, TERRAIN_CHARS.mountain!, TERRAIN_CHARS.rocks!]);
+  const tileIdx = (x: number, y: number): number => y * width + x;
+  const inMain = new Uint8Array(width * height); // 1 = composante du 1er départ
+  const grow = (sx: number, sy: number): void => {
+    if (inMain[tileIdx(sx, sy)] === 1 || blockedChars.has(grid[sy]![sx]!)) return;
+    const qx: number[] = [sx];
+    const qy: number[] = [sy];
+    inMain[tileIdx(sx, sy)] = 1;
+    for (let head = 0; head < qx.length; head++) {
+      const x = qx[head]!;
+      const y = qy[head]!;
+      for (const [dx, dy] of neighborOffsets) {
+        const nx = x + dx;
+        const ny = y + dy;
+        if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
+        if (inMain[tileIdx(nx, ny)] === 1 || blockedChars.has(grid[ny]![nx]!)) continue;
+        inMain[tileIdx(nx, ny)] = 1;
+        qx.push(nx);
+        qy.push(ny);
+      }
+    }
+  };
+  const firstStart = startPositions[0]!;
+  grow(firstStart.x, firstStart.y);
+  const connect = (tx: number, ty: number): void => {
+    if (inMain[tileIdx(tx, ty)] === 1) return;
+    // Tuile de la composante la plus proche (balayage ligne à ligne : premier
+    // minimum rencontré ⇒ départage déterministe).
+    let bx = firstStart.x;
+    let by = firstStart.y;
+    let bestD = Infinity;
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        if (inMain[tileIdx(x, y)] !== 1) continue;
+        const d = Math.max(Math.abs(x - tx), Math.abs(y - ty)); // distance 8 dir
+        if (d < bestD) {
+          bestD = d;
+          bx = x;
+          by = y;
+        }
+      }
+    }
+    // Corridor en pas 8 directions de (tx,ty) vers (bx,by) : chaque tuile
+    // bloquante traversée devient du terrain de base.
+    let x = tx;
+    let y = ty;
+    while (x !== bx || y !== by) {
+      if (blockedChars.has(grid[y]![x]!)) grid[y]![x] = baseChar;
+      x += Math.sign(bx - x);
+      y += Math.sign(by - y);
+    }
+    grow(tx, ty); // fusionne la poche désormais ouverte dans la composante
+  };
+  for (const s of startPositions.slice(1)) connect(s.x, s.y);
+  for (const o of objects) connect(o.x, o.y);
+
   // Légende : uniquement les terrains réellement présents dans la grille.
   const usedChars = new Set<string>();
   for (const row of grid) for (const ch of row) usedChars.add(ch);

@@ -38,7 +38,7 @@ function combatState(stacks: CombatStack[]): CombatState {
   return {
     terrain: 'grass', round: 1, obstacles: [], stacks, activeStackId: stacks[0]?.id ?? null,
     playerSide: 'attacker', heroId: null, guardianObjectId: null, townId: null, wallDefenseBonus: 0,
-    attackerHeroId: null, defenderHeroId: null, heroCastThisRound: false, finished: false, winner: null,
+    attackerHeroId: null, defenderHeroId: null, heroCastThisRound: [], finished: false, winner: null,
     ledger: [],
   } as unknown as CombatState;
 }

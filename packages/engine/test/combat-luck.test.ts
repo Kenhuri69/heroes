@@ -78,7 +78,7 @@ function stateWith(visitLuck: number): GameState {
     finished: false,
     attackerHeroId: 'hero-a',
     defenderHeroId: null,
-    heroCastThisRound: false,
+    heroCastThisRound: [],
     heroAttackUsed: [],
     winner: null,
   };

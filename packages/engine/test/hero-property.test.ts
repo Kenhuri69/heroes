@@ -73,7 +73,7 @@ describe('propriété héros : sorts scriptés + IA ⇒ le combat se termine tou
           const combat = state.combat;
           expect(combat.round).toBeLessThan(500);
 
-          if (combat.activeStackId && !combat.heroCastThisRound) {
+          if (combat.activeStackId && !combat.heroCastThisRound.includes(combat.playerSide)) {
             const activeStack = combat.stacks.find((s) => s.id === combat.activeStackId);
             if (activeStack && activeStack.side === combat.playerSide) {
               const enemy = combat.stacks.find((s) => s.side !== combat.playerSide && s.count > 0);

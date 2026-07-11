@@ -106,7 +106,7 @@ function manualState(stacks: CombatStack[], activeStackId: string): GameState {
     finished: false,
     attackerHeroId: null,
     defenderHeroId: null,
-    heroCastThisRound: false,
+    heroCastThisRound: [],
     heroAttackUsed: [],
     winner: null,
   };

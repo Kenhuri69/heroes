@@ -250,7 +250,11 @@ const GOLDEN_JOURNAL: Command[] = [
 // (`spellcaster`, save v21→22). Les piles golden ne sont pas lanceuses ⇒
 // `spellCharges: 0` s'ajoute à leur forme sérialisée (+ `saveVersion`) ; simulation
 // inchangée.
-const GOLDEN_HASH = '8501d5a0';
+// Re-fixé à C-AIPARITY : `CombatState.heroCastThisRound` booléen → CombatSideId[]
+// (save v22→23) — forme sérialisée changée ; les combats golden n'attachent pas
+// de héros aux deux camps avec sorts/mana ⇒ mêmes issues de combat, hash de
+// forme seule (les assertions sémantiques armée/jour restent vertes).
+const GOLDEN_HASH = 'ec45a813';
 
 describe('golden replay', () => {
   it('le journal scripté produit toujours le même état final', () => {

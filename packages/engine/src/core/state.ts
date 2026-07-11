@@ -244,8 +244,11 @@ export interface CaravanState {
  * v22 : `CombatStack.spellCharges` — charges de sort d'unité (`spellcaster`,
  * doc 02 §5.4, A2h) : lancers de sort embarqué restants ce combat, 0 pour toute
  * unité non lanceuse.)
+ * v23 : `CombatState.heroCastThisRound` passe de booléen à `CombatSideId[]`
+ * (camps ayant lancé ce round) — parité IA (C-AIPARITY, doc 02 §5.5) : l'IA
+ * lance aussi les sorts de son héros, un booléen partagé créait une course.
  */
-export const CURRENT_SAVE_VERSION = 22;
+export const CURRENT_SAVE_VERSION = 23;
 
 export interface GameState {
   saveVersion: number;

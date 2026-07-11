@@ -101,12 +101,14 @@ doc 08 §2.4 (écran de combat).
   phase pré-combat optionnelle (commande `PlaceStack` bornée) ; UI de placement
   tap-tap. Vérif : test moteur placement borné + smoke.
 
-- **C-AIPARITY — Parité IA : sorts & attaque héroïque** 🧩 M ⬜
-  Doc : doc 02 §5.5 (IA de combat). Code : l'IA de combat n'utilise ni
-  `CastSpell` ni `HeroAttack` (livrés côté joueur, plan `p2-c1-hero-combat.md`).
-  Spec : heuristique gloutonne étendue (score de sort ≈ dégâts/soins espérés,
-  attaque héroïque si cooldown prêt). Améliore aussi l'auto-combat et
-  `faction:sim`. Vérif : property « IA vs IA se termine », winrates re-mesurés.
+- **C-AIPARITY — Parité IA : sorts & attaque héroïque** 🧩 M ✅ (livré)
+  Doc : doc 02 §5.5. Livré : `maybeHeroAction` (combat/ai) — le héros du camp
+  IA lance un sort/round (priorité dégâts > soin si blessé > debuff/marques >
+  buff, à mana suffisante) et frappe 1×/combat (cible maximisant pertes ×
+  valeur), via les cœurs partagés `castHeroSpell`/`strikeWithHero` (les
+  commandes joueur restent joueur-only). `heroCastThisRound` devient par-camp
+  (save v22→23), l'auto-combat joue le héros des DEUX camps. Golden re-fixé
+  (forme). `faction:sim` inchangé (armées sans héros).
 
 - **C-HEROSPRITE — Présence visuelle du héros en combat** 🎨 S ⬜
   Doc : doc 08 §2.4. Code : plan C1 a livré `HeroAttack` + HUD, le sprite du

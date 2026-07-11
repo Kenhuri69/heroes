@@ -1825,14 +1825,15 @@ test('sort : le héros lance un sort en combat et réduit une pile ennemie', asy
     return {
       mana: g.heroes[0]!.mana,
       remaining: target?.count ?? 0,
-      cast: g.combat?.heroCastThisRound ?? false,
+      cast: g.combat?.heroCastThisRound ?? [],
     };
   }, setup.targetId);
   // Coût éclair magique 4, réduit de 20 % par la spécialité Arcaniste du héros
   // (H-NAMED) ⇒ round(4 × 0,8) = 3 : la spécialité agit bien EN COMBAT.
   expect(after.mana).toBe(setup.mana - 3);
   expect(after.remaining).toBeLessThan(setup.count);
-  expect(after.cast).toBe(true);
+  // C-AIPARITY : verrou 1 sort/round PAR CAMP (liste des camps ayant lancé).
+  expect(after.cast).toContain('attacker');
 
   expect(errors).toEqual([]);
 });

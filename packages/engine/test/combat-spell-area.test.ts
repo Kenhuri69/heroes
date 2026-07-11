@@ -84,7 +84,7 @@ function stateWith(): GameState {
     wallDefenseBonus: 0,
     attackerHeroId: 'hero-a',
     defenderHeroId: null,
-    heroCastThisRound: false,
+    heroCastThisRound: [],
     heroAttackUsed: [],
     finished: false,
     winner: null,

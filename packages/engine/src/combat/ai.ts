@@ -1,8 +1,11 @@
 import type { GameEvent } from '../core/events';
-import type { GameState } from '../core/state';
+import type { GameState, HeroState } from '../core/state';
+import { castHeroSpell } from '../hero';
+import { effectiveManaCost } from '../hero/spells';
 import { applyAction, canShoot, canShootTarget, reachableHexes, tauntersAdjacentTo } from './actions';
+import { heroAttackDamage, strikeWithHero } from './hero-attack';
 import { spellcasterParams } from './spell-effect';
-import { estimateDamage, symbiosisParams } from './damage';
+import { estimateDamage, killsFromDamage, symbiosisParams } from './damage';
 import type { Draft } from './draft';
 import { hexDistance, type OffsetPos } from './hex';
 import { effectiveSpeed, hasAbility } from './state-helpers';
@@ -329,6 +332,121 @@ export function chooseAction(state: GameState, stackId: string): CombatActionInp
   return { type: 'defend' };
 }
 
+/** Héros lié à un camp du combat — `undefined` si le camp n'en a pas. */
+function heroOfSide(state: GameState, combat: CombatState, side: CombatSideId): HeroState | undefined {
+  const heroId = side === 'attacker' ? combat.attackerHeroId : combat.defenderHeroId;
+  return heroId ? state.heroes.find((h) => h.id === heroId) : undefined;
+}
+
+/**
+ * Choix de sort de héros pour l'IA (C-AIPARITY) — même philosophie gloutonne
+ * que `chooseSpellcast` (A2h), étendue au grimoire : priorité dégâts > soin
+ * (seulement si un allié est blessé — sinon la mana est conservée) > debuff/
+ * marques > buff, à mana suffisante. Départage stable (ordre du grimoire pour
+ * le sort, id pour la cible) — aucun RNG dans le choix.
+ */
+function chooseHeroSpell(
+  state: GameState,
+  combat: CombatState,
+  hero: HeroState,
+  side: CombatSideId,
+  enemies: CombatStack[],
+  catalog: Record<string, CombatUnitDef>,
+): { spellId: string; targetStackId: string } | null {
+  const castable = hero.spells
+    .map((id) => state.spellCatalog[id])
+    .filter(
+      (sp): sp is NonNullable<typeof sp> =>
+        !!sp && sp.kind !== 'adventure' && hero.mana >= effectiveManaCost(hero, state.skillCatalog, sp),
+    );
+  if (castable.length === 0) return null;
+  const firstOfKind = (...kinds: string[]) =>
+    castable.find((sp) => kinds.includes(sp.kind));
+  const bestEnemy = pickBestBy(
+    enemies,
+    (e) => { const d = catalog[e.unitId]; return d ? targetValue(d) : 0; },
+    (a, b) => compareCodeUnits(a.id, b.id),
+  );
+
+  const damage = firstOfKind('damage');
+  if (damage && bestEnemy) return { spellId: damage.id, targetStackId: bestEnemy.id };
+
+  const allies = combat.stacks.filter((s) => s.side === side && s.count > 0);
+  const heal = firstOfKind('heal');
+  if (heal) {
+    const wounded = allies.filter((a) => { const d = catalog[a.unitId]; return d ? a.firstHp < d.stats.hp : false; });
+    const best = pickBestBy(
+      wounded,
+      (a) => { const d = catalog[a.unitId]; return d ? d.stats.hp - a.firstHp : 0; },
+      (a, b) => compareCodeUnits(a.id, b.id),
+    );
+    if (best) return { spellId: heal.id, targetStackId: best.id };
+  }
+
+  const debuff = firstOfKind('debuff', 'applyMarks');
+  if (debuff && bestEnemy) return { spellId: debuff.id, targetStackId: bestEnemy.id };
+
+  const buff = firstOfKind('buff');
+  if (buff) {
+    const best = pickBestBy(
+      allies,
+      (a) => { const d = catalog[a.unitId]; return d ? targetValue(d) * a.count : 0; },
+      (a, b) => compareCodeUnits(a.id, b.id),
+    );
+    if (best) return { spellId: buff.id, targetStackId: best.id };
+  }
+  return null;
+}
+
+/**
+ * C-AIPARITY (doc 02 §5.5) : actions de HÉROS d'un camp joué par l'IA, tentées
+ * AVANT l'action de la pile active — sort (1/round par camp, à mana suffisante)
+ * puis attaque héroïque (1×/combat, dès que disponible, sur la cible qui
+ * maximise pertes × valeur). Retourne true si une action a été jouée :
+ * l'appelant réévalue l'état (le combat peut être terminé). Terminaison
+ * garantie : sorts bornés par la mana (pas de régénération en combat), frappe
+ * unique — la property « un combat se termine toujours » est préservée.
+ */
+export function maybeHeroAction(draft: Draft, events: GameEvent[], side: CombatSideId): boolean {
+  const combat = draft.combat;
+  if (!combat || combat.finished) return false;
+  const hero = heroOfSide(draft, combat, side);
+  if (!hero) return false;
+  const enemies = combat.stacks.filter((s) => s.side !== side && s.count > 0);
+  if (enemies.length === 0) return false;
+  const catalog = draft.unitCatalog;
+
+  if (!combat.heroCastThisRound.includes(side)) {
+    const cast = chooseHeroSpell(draft, combat, hero, side, enemies, catalog);
+    if (cast) {
+      castHeroSpell(draft, side, cast.spellId, cast.targetStackId, events);
+      return true;
+    }
+  }
+
+  if (draft.config?.combat.heroAttack && !combat.heroAttackUsed.includes(side)) {
+    const amount = heroAttackDamage(draft, combat, side);
+    if (amount > 0) {
+      const best = pickBestBy(
+        enemies,
+        (e) => {
+          const def = catalog[e.unitId];
+          if (!def) return -Infinity;
+          const pool = (e.count - 1) * def.stats.hp + e.firstHp;
+          const kills = killsFromDamage(pool, def.stats.hp, e.count, amount);
+          return Math.min(amount, pool) + kills * targetValue(def);
+        },
+        (a, b) => compareCodeUnits(a.id, b.id),
+      );
+      if (best) {
+        strikeWithHero(draft, side, best.id, events);
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 /** Garde-fou : une vraie boucle infinie serait un bug de règles, pas un cas à masquer. */
 const MAX_AI_ITERATIONS = 20_000;
 
@@ -343,6 +461,9 @@ export function runAiIfNeeded(draft: Draft, events: GameEvent[]): void {
     if (++iterations > MAX_AI_ITERATIONS) {
       throw new Error('runAiIfNeeded: dépassement d’itérations (boucle infinie suspectée)');
     }
+    // C-AIPARITY : le héros IA joue d'abord (sort/frappe) — puis on réévalue
+    // l'état (le combat a pu se terminer) avant l'action de pile.
+    if (maybeHeroAction(draft, events, active.side)) continue;
     const action = chooseAction(draft, active.id);
     applyAction(draft, events, active.id, action);
   }
@@ -364,6 +485,10 @@ export function runAutoCombat(draft: Draft, events: GameEvent[], rounds?: number
     if (++iterations > MAX_AI_ITERATIONS) {
       throw new Error('runAutoCombat: dépassement d’itérations (boucle infinie suspectée)');
     }
+    // C-AIPARITY : en auto-combat, CHAQUE camp joue les actions de son héros
+    // (sort 1/round, frappe 1×/combat) avant l'action de sa pile active.
+    const activeAuto = combat.stacks.find((s) => s.id === combat.activeStackId);
+    if (activeAuto && maybeHeroAction(draft, events, activeAuto.side)) continue;
     const action = chooseAction(draft, combat.activeStackId);
     applyAction(draft, events, combat.activeStackId, action);
   }

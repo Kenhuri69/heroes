@@ -95,7 +95,11 @@ export function CombatUi() {
   const active = combat.stacks.find((s) => s.id === combat.activeStackId);
   const isPlayerTurn = !combat.finished && active?.side === combat.playerSide;
   const canCastSpell =
-    isPlayerTurn && !autoActive && !combat.heroCastThisRound && !!hero && hero.spells.length > 0;
+    isPlayerTurn &&
+    !autoActive &&
+    !combat.heroCastThisRound.includes(combat.playerSide) &&
+    !!hero &&
+    hero.spells.length > 0;
   // C1 : attaque du héros disponible si la feature est activée (config), un héros
   // est lié au camp joueur et ne l'a pas déjà utilisée ce combat.
   const canHeroStrike =

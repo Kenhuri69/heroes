@@ -65,7 +65,7 @@ function stateWith(stacks: CombatStack[], obstacles: OffsetPos[], activeStackId:
     finished: false,
     attackerHeroId: null,
     defenderHeroId: null,
-    heroCastThisRound: false,
+    heroCastThisRound: [],
     heroAttackUsed: [],
     winner: null,
   };

@@ -62,7 +62,7 @@ function combatState(stacks: CombatStack[]): CombatState {
     finished: false,
     attackerHeroId: null,
     defenderHeroId: null,
-    heroCastThisRound: false,
+    heroCastThisRound: [],
     heroAttackUsed: [],
     winner: null,
   };

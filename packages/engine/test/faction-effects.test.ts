@@ -126,7 +126,7 @@ function combatState(stacks: CombatStack[], over: Partial<CombatState> = {}): Co
     wallDefenseBonus: 0,
     attackerHeroId: 'hero-1',
     defenderHeroId: null,
-    heroCastThisRound: false,
+    heroCastThisRound: [],
     heroAttackUsed: [],
     finished: false,
     winner: null,

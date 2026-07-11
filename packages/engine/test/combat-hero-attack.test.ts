@@ -68,7 +68,7 @@ function stateWith(heroAttackCfg: { base: number; perPower: number; perAttack: n
     wallDefenseBonus: 0,
     attackerHeroId: 'hero-a',
     defenderHeroId: null,
-    heroCastThisRound: false,
+    heroCastThisRound: [],
     heroAttackUsed: [],
     finished: false,
     winner: null,

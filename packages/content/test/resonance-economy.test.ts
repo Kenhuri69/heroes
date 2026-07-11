@@ -52,11 +52,13 @@ describe('Résonance — ressource de faction de l\'académie', () => {
     expect((t8.cost as Record<string, number>)[resource.id]).toBeGreaterThan(0);
 
     // F-RESON.1 : `buildFactionCatalog` estampille le cap de la ressource sur le
-    // bonus de gain (pour que le moteur plafonne le crédit post-victoire).
+    // bonus de gain (pour que le moteur plafonne le crédit post-victoire). Le cap
+    // est DÉRIVÉ (loader-managed) : absent du schéma de contenu, présent à
+    // l'exécution ⇒ accès typé via un cast local.
     const catalog = buildFactionCatalog(report);
     const stampedGain = catalog[pack.manifest.id]?.bonuses.find(
       (b) => b.type === 'gainFactionResourceOnVictory' && b.resource === resource.id,
-    );
-    expect(stampedGain?.type === 'gainFactionResourceOnVictory' && stampedGain.cap).toBe(resource.cap);
+    ) as { cap?: number } | undefined;
+    expect(stampedGain?.cap).toBe(resource.cap);
   });
 });

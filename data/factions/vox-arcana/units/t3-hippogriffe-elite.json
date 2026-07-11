@@ -1,0 +1,17 @@
+{
+  "id": "t3-hippogriffe-elite",
+  "tier": 3,
+  "name": "@loc:unit.t3-hippogriffe-elite.name",
+  "stats": {
+    "hp": 23,
+    "attack": 9,
+    "defense": 6,
+    "damage": [5, 8],
+    "speed": 8
+  },
+  "growthPerWeek": 6,
+  "cost": {
+    "gold": 260
+  },
+  "abilities": [{ "id": "flying" }]
+}

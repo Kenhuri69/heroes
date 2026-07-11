@@ -1,0 +1,17 @@
+{
+  "id": "t2-duelliste-elite",
+  "tier": 2,
+  "name": "@loc:unit.t2-duelliste-elite.name",
+  "stats": {
+    "hp": 13,
+    "attack": 6,
+    "defense": 4,
+    "damage": [3, 5],
+    "speed": 6
+  },
+  "growthPerWeek": 9,
+  "cost": {
+    "gold": 130
+  },
+  "abilities": [{ "id": "shooter", "params": { "ammo": 12 } }]
+}

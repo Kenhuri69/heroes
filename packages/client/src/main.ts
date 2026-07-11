@@ -1,6 +1,6 @@
 import { Application, Point } from 'pixi.js';
-import type { Command, GameState } from '@heroes/engine';
-import { CURRENT_SAVE_VERSION, serializeState } from '@heroes/engine';
+import type { Command, GameState, GridPos } from '@heroes/engine';
+import { CURRENT_SAVE_VERSION, findPath, serializeState } from '@heroes/engine';
 import { Camera } from './render/camera';
 import { isoTileCenter } from './render/projection';
 import { WORLD_OCEAN_CSS } from './render/worldBorder';
@@ -71,6 +71,8 @@ declare global {
       getAiTurn: () => { seat: number; done: number; total: number } | null;
       /** Abonnement au store (couverture smoke) : observe l'état d'UI transitoire (ex. `aiTurn`). */
       subscribe: (cb: () => void) => () => void;
+      /** Chemin A* moteur d'un héros vers (x,y), autres héros/gardiens bloqués, destination permise (smoke H-VS-H). */
+      findPath: (heroId: string, x: number, y: number) => GridPos[] | null;
     };
   }
 }
@@ -382,6 +384,16 @@ async function bootstrap(): Promise<void> {
     campaignFlags,
     getAiTurn: () => appStore.getState().aiTurn,
     subscribe: (cb) => appStore.subscribe(cb),
+    findPath: (heroId, x, y) => {
+      const game = appStore.getState().game;
+      const hero = game.heroes.find((h) => h.id === heroId);
+      if (!game.map || !game.config || !hero) return null;
+      const blocked = [
+        ...game.heroes.filter((h) => h.id !== heroId).map((h) => h.pos),
+        ...game.map.objects.filter((o) => o.type === 'guardian').map((o) => o.pos),
+      ];
+      return findPath(game.config, game.map, hero.pos, { x, y }, blocked, true);
+    },
   };
   window.__HEROES_READY__ = true; // signal pour le smoke test headless
 }

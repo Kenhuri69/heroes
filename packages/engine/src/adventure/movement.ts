@@ -1,6 +1,6 @@
-import { beginGuardianCombat } from '../combat/setup';
+import { beginGuardianCombat, beginHeroCombat } from '../combat/setup';
 import type { GameEvent } from '../core/events';
-import type { GameState, HeroState, PlayerState, ResourceId } from '../core/state';
+import { areAllies, type GameState, type HeroState, type PlayerState, type ResourceId } from '../core/state';
 import { heroVisionBonus } from '../hero/skills';
 import { learnGuildSpellsAtTown } from '../town/mage-guild';
 import { revealAround } from './fog';
@@ -12,12 +12,12 @@ import { recruitDwelling, visitBonus } from './visitable';
 
 export interface AdvanceOptions {
   /**
-   * Appelé après `beginGuardianCombat` quand un gardien intercepte le héros.
-   * Le handler humain (`MoveHero`) le laisse indéfini : le combat reste
+   * Appelé après l'ouverture d'un combat d'interception (gardien OU héros ennemi,
+   * H-VS-H). Le handler humain (`MoveHero`) le laisse indéfini : le combat reste
    * interactif (l'état conserve `draft.combat`). L'IA d'aventure y résout le
-   * combat immédiatement (`runAutoCombat`) — IA vs IA, déterministe.
+   * combat immédiatement (`runAutoCombat`) — déterministe.
    */
-  onGuardianEngaged?: () => void;
+  onCombatEngaged?: () => void;
   /**
    * Appelé quand un trésor vient d'être foulé (`pendingTreasure` posé). Le
    * handler humain le laisse indéfini : le choix or/XP reste interactif. L'IA
@@ -36,7 +36,7 @@ export interface AdvanceOptions {
  * D6 ; seul un trésor à choix or/XP interrompt), révélation du brouillard.
  *
  * Seule divergence humain/IA : la résolution du combat de gardien, injectée
- * via `options.onGuardianEngaged` (cf. `AdvanceOptions`).
+ * via `options.onCombatEngaged` (cf. `AdvanceOptions`).
  */
 export function advanceHeroAlongPath(
   draft: GameState,
@@ -56,7 +56,21 @@ export function advanceHeroAlongPath(
     if (guardian) {
       hero.movementPoints -= cost;
       beginGuardianCombat(draft, hero.id, guardian.id, events);
-      options.onGuardianEngaged?.();
+      options.onCombatEngaged?.();
+      return;
+    }
+    // Héros ENNEMI sur la tuile (H-VS-H, doc 02 §1.5/§5) : combat d'interception —
+    // le héros paie le pas d'engagement mais n'entre pas sur la tuile (comme un
+    // gardien). Allié/soi ne sont jamais sur le chemin (bloqués par `validatePath`).
+    const enemyHero = draft.heroes.find((h) => {
+      if (h.id === hero.id || !samePos(h.pos, step)) return false;
+      const occPlayer = draft.players.find((p) => p.id === h.playerId);
+      return h.playerId !== player.id && !(occPlayer && areAllies(player, occPlayer));
+    });
+    if (enemyHero) {
+      hero.movementPoints -= cost;
+      beginHeroCombat(draft, hero.id, enemyHero.id, events);
+      options.onCombatEngaged?.();
       return;
     }
     const from = { ...hero.pos };

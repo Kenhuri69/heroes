@@ -369,10 +369,11 @@ Source design : doc 02 §2 (carte), §1.5 (multi-héros).
     ≥ `config.hero.recruitCost` 2500, cap `maxPerPlayer` 8, héros du roster de la
     faction de la ville, pas déjà recruté) crée le héros nommé (identité H-NAMED,
     armée vide) à la ville ; client embarque le roster à `StartGame`. Zéro faction
-    moteur, golden re-fixé (forme). **Différés (M-TAVERN.2+)** : câblage client
-    (bouton Recruter + sélection du héros actif), combat héros-vs-héros
-    (`defenderHeroId`), échanges d'armée/artefacts (UX-HEROSWAP), exclusivité de
-    pool inter-joueurs.
+    moteur, golden re-fixé (forme). **Livrés depuis** : câblage client
+    (M-TAVERN.2), échanges d'armée/artefacts (UX-HEROSWAP ✅), **combat
+    héros-vs-héros** (H-VS-H ✅ — `beginHeroCombat`, `defenderHeroId` non-null, le
+    perdant meurt + dépouille d'artefacts au vainqueur, plan `h-vs-h.md`).
+    **Différés (M-TAVERN.4)** : exclusivité de pool inter-joueurs, IA recruteuse.
 
 - **M-GUARDLINK — Gardiens attachés aux trésors** 🕳️ 🧩 (tranche livrée)
   > **Livré** : champ **optionnel** `guardedBy` (id de gardien) sur les objets

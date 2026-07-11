@@ -1064,6 +1064,71 @@ test('hot-seat : deux humains locaux alternent avec l’overlay de passage (Alph
   expect(errors).toEqual([]);
 });
 
+test('H-VS-H : marcher sur un héros ennemi ⇒ combat ⇒ le perdant meurt (doc 02 §1.5/§5)', async ({
+  page,
+}) => {
+  const errors = await openMenu(page);
+
+  // Escarmouche HOT-SEAT (2 humains) : le héros du joueur 2 reste immobile (pas
+  // d'IA), on peut donc rapprocher le héros du joueur 1 de façon déterministe.
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.startSkirmish({
+      humanFactionId: 'haven',
+      aiFactionId: 'necropolis',
+      difficulty: 'normal',
+      opponent: 'human',
+    }),
+  );
+  await expect(page.getByTestId('end-turn')).toBeVisible();
+
+  // Rapproche le héros du joueur 1 du héros du joueur 2 (via le hook : chemin
+  // moteur, on s'arrête ADJACENT — jamais sur la tuile ennemie pendant l'approche).
+  await page.evaluate(async () => {
+    const T = window.__HEROES_TEST__!;
+    const A = 'hero-player-1';
+    const B = 'hero-player-2';
+    const st = () => T.getState();
+    const posOf = (id: string) => st().heroes.find((h) => h.id === id)!.pos;
+    const adj = (a: { x: number; y: number }, b: { x: number; y: number }) =>
+      Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y)) === 1;
+    const bPos = posOf(B);
+    for (let i = 0; i < 30; i++) {
+      if (st().combat) break;
+      const pt = st().pendingTreasure;
+      if (pt) await T.dispatch({ type: 'ResolveTreasure', heroId: pt.heroId, choice: 'gold' });
+      if (adj(posOf(A), bPos)) break;
+      const path = T.findPath(A, bPos.x, bPos.y);
+      if (!path || path.length <= 1) break;
+      await T.dispatch({ type: 'MoveHero', heroId: A, path: path.slice(0, -1) });
+      const pt2 = st().pendingTreasure;
+      if (pt2) await T.dispatch({ type: 'ResolveTreasure', heroId: pt2.heroId, choice: 'gold' });
+      if (adj(posOf(A), bPos) || st().combat) continue;
+      await T.dispatch({ type: 'EndTurn', playerId: 'player-1' });
+      await T.dispatch({ type: 'EndTurn', playerId: 'player-2' });
+    }
+  });
+
+  // Attaque : marcher sur la tuile du héros ennemi ⇒ combat avec les DEUX hero ids.
+  await page.evaluate(() => {
+    const T = window.__HEROES_TEST__!;
+    const b = T.getState().heroes.find((h) => h.id === 'hero-player-2')!.pos;
+    return T.dispatch({ type: 'MoveHero', heroId: 'hero-player-1', path: [{ x: b.x, y: b.y }] });
+  });
+  const combat = await page.evaluate(() => window.__HEROES_TEST__!.getState().combat);
+  expect(combat?.attackerHeroId).toBe('hero-player-1');
+  expect(combat?.defenderHeroId).toBe('hero-player-2'); // enfin non-null (H-VS-H)
+
+  // Auto-Battle : un héros meurt (le perdant retiré) — de 2 héros à 1.
+  await passPreBattle(page, 'auto');
+  await expect
+    .poll(() => page.evaluate(() => window.__HEROES_TEST__!.getState().combat), { timeout: 20000 })
+    .toBeNull();
+  const heroesLeft = await page.evaluate(() => window.__HEROES_TEST__!.getState().heroes.length);
+  expect(heroesLeft).toBe(1);
+
+  expect(errors).toEqual([]);
+});
+
 test('multi-joueurs : indicateur de tour + progression IA non bloquante', async ({ page }) => {
   const errors = await openMenu(page);
 

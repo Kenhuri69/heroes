@@ -1,5 +1,6 @@
 import { Application, Assets, Container, Graphics, Point, Sprite } from 'pixi.js';
 import {
+  areAllies,
   dailyMovementPoints,
   findPath,
   heroVisionBonus,
@@ -317,18 +318,27 @@ export class AdventureScene {
       return;
     }
 
-    // Tuiles occupées : héros et gardiens bloquent ; un gardien est ciblable
-    // en DESTINATION (attaque ⇒ interception, doc 02 §5 — force en fourchette §2.2).
+    // Tuiles occupées : héros et gardiens bloquent ; un gardien — ou un héros
+    // ENNEMI (H-VS-H, doc 02 §1.5/§5) — est ciblable en DESTINATION (attaque ⇒
+    // interception ; force en fourchette §2.2).
     const guardian = map.objects.find(
       (o): o is GuardianObjectDef => o.type === 'guardian' && samePos(o.pos, tile),
     );
+    const moverPlayer = game.players.find((p) => p.id === hero.playerId);
+    const enemyHero = game.heroes.find((h) => {
+      if (h.id === hero.id || !samePos(h.pos, tile)) return false;
+      const occPlayer = game.players.find((p) => p.id === h.playerId);
+      return h.playerId !== hero.playerId && !(moverPlayer && occPlayer && areAllies(moverPlayer, occPlayer));
+    });
     const blocked = [
       ...game.heroes.filter((h) => h.id !== hero.id).map((h) => h.pos),
       ...map.objects.filter((o) => o.type === 'guardian').map((o) => o.pos),
     ];
-    const path = findPath(config, map, hero.pos, tile, blocked, guardian !== undefined);
+    const path = findPath(config, map, hero.pos, tile, blocked, guardian !== undefined || enemyHero !== undefined);
+    // Fourchette de force affichée (comme un gardien) : effectif total du héros ennemi.
+    const enemyCount = enemyHero ? enemyHero.army.reduce((n, s) => n + s.count, 0) : 0;
     appStore.setState({
-      guardianHint: guardian && path ? { count: guardian.count } : null,
+      guardianHint: path && (guardian || enemyHero) ? { count: guardian ? guardian.count : enemyCount } : null,
     });
     if (!path) {
       this.clearPreview();

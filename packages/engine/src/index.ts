@@ -157,4 +157,4 @@ export { runAiTurn } from './ai/adventure';
 export { findPath, isPassable, stepCost } from './adventure/path';
 export { createFog, revealAround } from './adventure/fog';
 export { xpForLevel } from './adventure/experience';
-export { dailyIncome, townIncome } from './town/economy';
+export { dailyIncome, townIncome, weeklyGrowthOf } from './town/economy';

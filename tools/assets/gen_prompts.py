@@ -310,10 +310,9 @@ def buildings_sheets() -> dict[str, str]:
     return files
 
 
-def mines_sheets() -> dict[str, str]:
-    """Mines de ressources (objets de la carte d'aventure). Dérivées de
-    l'union des ressources du jeu : startingResources + keyResources +
-    factionResources des manifestes — une mine par ressource."""
+def _all_resources() -> list[str]:
+    """Union des ressources du jeu : startingResources + keyResources +
+    factionResources des manifestes — partagée par mines et tas ramassables."""
     resources = list(_load(DATA / "core" / "config.json")["newGame"]["startingResources"])
     for fid in _load(DATA / "factions" / "index.json")["factions"]:
         m = _load(DATA / "factions" / fid / "manifest.json")
@@ -321,6 +320,13 @@ def mines_sheets() -> dict[str, str]:
         extra += [r["id"] if isinstance(r, dict) else r
                   for r in m.get("factionResources", [])]
         resources += [r for r in extra if r not in resources]
+    return resources
+
+
+def mines_sheets() -> dict[str, str]:
+    """Mines de ressources (objets de la carte d'aventure) — une mine par
+    ressource de `_all_resources()`."""
+    resources = _all_resources()
     cues = {
         "gold": "a gold mine entrance with cart rails and nuggets",
         "wood": "a sawmill with a water wheel and stacked logs",
@@ -348,6 +354,43 @@ def mines_sheets() -> dict[str, str]:
             "soft directional light from upper-left,",
         ],
         dest="assets/mines/",
+    )
+
+
+def resource_piles_sheet() -> dict[str, str]:
+    """Tas de ressources RAMASSABLES (objets de carte consommés au passage) —
+    famille `resources/pile-<res>` distincte du visuel de mine (plan
+    map-design-issues Lot 2) : petits butins posés au sol, une entrée par
+    ressource de `_all_resources()` (symétrie avec les mines)."""
+    resources = _all_resources()
+    cues = {
+        "gold": "a small heap of gold coins with a few loose coins",
+        "wood": "a neat stack of cut timber logs",
+        "ore": "a pile of grey iron ore chunks",
+        "crystal": "a cluster of glowing purple crystal shards",
+        "gems": "a small mound of colorful cut gemstones",
+        "mercury": "a corked flask of quicksilver on a small crate",
+        "sulfur": "a heap of yellow sulfur powder and rocks",
+        "essence": "a glowing arcane phial nested in a small chest",
+        "resonance": "a humming tuning-fork crystal on a small lacquered stand",
+    }
+    ids = [f"pile-{r}" for r in resources]
+    cells = [f"\"{r} pile\" — {cues.get(r, f'a small pile of {r}')}"
+             for r in resources]
+    return _sheets(
+        slug="resource-piles",
+        title="tas de ressources ramassables (objets de carte)",
+        rule="C (planche de vignettes, fond gris clair plat)",
+        ids=ids,
+        cells=cells,
+        subject_fmt="Item sheet, {n} small fantasy resource piles lying on the ground",
+        style_lines=[
+            "digital painting, painterly HoMM adventure-map style,",
+            "collectible loot piles resting on flat ground, slight 3/4 aerial view,",
+            "bold readable silhouette at 64 pixels (adventure map tile size),",
+            "soft directional light from upper-left,",
+        ],
+        dest="assets/resources/",
     )
 
 
@@ -592,6 +635,7 @@ def main() -> None:
     files.update(artifacts_sheet())
     files.update(buildings_sheets())
     files.update(mines_sheets())
+    files.update(resource_piles_sheet())
     files.update(hero_avatars_sheet())
     files.update(map_heroes_sheet())
     files.update(map_props_sheets())

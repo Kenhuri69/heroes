@@ -291,7 +291,7 @@ describe('generateMap', () => {
       width: 40,
       height: 40,
       guardianUnits: ['t1-guard'],
-      townFactionIds: ['haven', 'necropolis'],
+      townFactionIds: ['fac-x', 'fac-y'],
     });
     const towns = map.objects.filter((o) => o.type === 'town') as {
       factionId?: string;
@@ -300,7 +300,7 @@ describe('generateMap', () => {
     expect(towns.length).toBeGreaterThanOrEqual(1);
     expect(towns.length).toBeLessThanOrEqual(2);
     for (const t of towns) {
-      expect(['haven', 'necropolis']).toContain(t.factionId);
+      expect(['fac-x', 'fac-y']).toContain(t.factionId);
       expect(t.garrison!.length).toBeGreaterThan(0);
       for (const stack of t.garrison!) {
         expect(stack.unitId).toBe('t1-guard');

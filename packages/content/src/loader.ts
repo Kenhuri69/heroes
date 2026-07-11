@@ -612,6 +612,15 @@ export function buildSkillCatalog(report: LoadReport): Record<string, ResolvedSk
       throw new PackError([`buildSkillCatalog: id de compétence en double '${s.id}'`]);
     catalog[s.id] = { id: s.id, ranks: s.ranks };
   }
+  // F-SKILLS : estampille chaque compétence listée par un manifeste
+  // (`heroSkills`) de l'id de sa faction ⇒ le tirage de niveau ne la propose
+  // qu'aux héros de cette faction (`eligibleSkills`, doc 02 §1.3).
+  for (const pack of report.content.packs) {
+    for (const skillId of pack.manifest.heroSkills) {
+      const skill = catalog[skillId];
+      if (skill) skill.factionId = pack.manifest.id;
+    }
+  }
   return catalog;
 }
 

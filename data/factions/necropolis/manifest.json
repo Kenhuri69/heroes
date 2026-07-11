@@ -14,11 +14,19 @@
       "unitId": "t1-squelette",
       "percentHpRaised": 15,
       "capBase": 20,
-      "capPerExisting": 2
+      "capPerExisting": 2,
+      "scaleSkillId": "necromancy",
+      "percentByRank": [
+        10,
+        15,
+        20
+      ]
     }
   ],
   "spellSchool": null,
-  "heroSkills": [],
+  "heroSkills": [
+    "necromancy"
+  ],
   "tiers": 7,
   "sharedGrowthGroups": {},
   "units": [

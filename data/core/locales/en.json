@@ -643,5 +643,6 @@
   "artifact.orbe-de-savoir.lore": "In it you read what you fear to learn. The wise keep it under a cloth, seal-side.",
   "artifact.trefle-chance.lore": "Plucked from a grave, they say. Luck in the Marches rarely comes but that another has lost it.",
   "resourceDetail.title": "Resources",
-  "resourceDetail.perDay": "+{amount}/day"
+  "resourceDetail.perDay": "+{amount}/day",
+  "skill.necromancy": "Necromancy"
 }

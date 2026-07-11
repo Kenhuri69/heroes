@@ -186,13 +186,17 @@ Source design : docs 03 §2/§4/§5, 04 §2/§4, 05 §3/§5/§6/§7, 14 §5/§6,
   (+1 round de malédiction — modificateur de statut, variante ultérieure) et le
   câblage des autres factions (données).
 
-- **F-SKILLS — Compétences de faction** 🕳️ M ⬜
+- **F-SKILLS — Compétences de faction** 🧩 M (mécanisme + Nécromancie **livrés**)
   Doc : Prière de bataille (doc 03 §2/§5), Nécromancie graduée Novice/Expert/
   Maître 10/15/20 % (doc 04 §2), Chasse rituelle (doc 05 §7), compétence Sylve
-  (doc 14 §6). Code : `heroSkills:[]` partout ; la Nécromancie est plate
-  (`percentHpRaised:15` dans `data/factions/necropolis/manifest.json:11`).
-  Spec : les manifestes injectent des compétences dans le pool de choix du
-  héros de leur faction ; les effets de faction lisent le rang (scaling).
+  (doc 14 §6). **Livré** : (1) pool gaté par faction — le loader estampille les
+  `manifest.heroSkills` d'un `HeroSkillDef.factionId`, `eligibleSkills` ne les
+  propose qu'aux héros de la faction ; (2) compétences **marqueur** (`external`)
+  à payoff externe ; (3) **Nécromancie graduée** — `raiseUndeadOnVictory` gagne
+  `scaleSkillId`/`percentByRank`, l'effet lit le rang (10/15/20 %). **Pas de save
+  bump** (compétences dans `hero.skills`, `factionId` = catalogue). **Reste
+  (données)** : Prière de bataille (`resurrectAlly`), Chasse rituelle, Sylve —
+  moteur prêt, à câbler par faction ; Amplificateur (F-BUILDEFF).
 
 - **F-BUILDEFF — Effets de bâtiment spéciaux** 🕳️ L ⬜
   Doc : Statue du Jugement/Cloître/Écuries (doc 03 §4), Amplificateur

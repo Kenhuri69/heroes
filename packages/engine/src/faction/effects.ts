@@ -77,10 +77,14 @@ function applyRaiseUndeadOnVictory(
 
   const existingStack = hero.army.find((s) => s.unitId === bonus.unitId);
   const cap = bonus.capBase + bonus.capPerExisting * (existingStack?.count ?? 0);
-  const raised = Math.min(
-    Math.floor((hpKilled * bonus.percentHpRaised) / 100 / raisedDef.stats.hp),
-    cap,
-  );
+  // Nécromancie graduée (F-SKILLS, doc 04 §2) : le rang de `scaleSkillId` choisit
+  // le pourcentage ; repli sur `percentHpRaised` si non gradué / compétence non apprise.
+  const rank = bonus.scaleSkillId ? (hero.skills[bonus.scaleSkillId] ?? 0) : 0;
+  const percent =
+    rank > 0 && bonus.percentByRank && bonus.percentByRank[rank - 1] !== undefined
+      ? bonus.percentByRank[rank - 1]!
+      : bonus.percentHpRaised;
+  const raised = Math.min(Math.floor((hpKilled * percent) / 100 / raisedDef.stats.hp), cap);
   if (raised <= 0) return;
 
   if (existingStack) {

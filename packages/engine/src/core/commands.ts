@@ -188,6 +188,12 @@ export type Command =
       slot: number;
     }
   | { type: 'CaptureTown'; townId: string; playerId: string }
+  /**
+   * Recruter un héros nommé à la Taverne (M-TAVERN.1, doc 02 §1.5/§4.1) : `heroId`
+   * = id du roster (`GameState.heroRoster`), résolu contre or à la ville. Le héros
+   * apparaît sur la tuile de la ville, armée vide.
+   */
+  | { type: 'RecruitHero'; townId: string; heroId: string; playerId: string }
   | {
       /**
        * Échange ressource ↔ or au bâtiment marché (doc 02 §4.1, lot UX U6a).

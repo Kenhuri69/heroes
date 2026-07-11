@@ -2,7 +2,7 @@ import type { AdventureConfig } from '../adventure/config';
 import type { AdventureMapDef, GridPos } from '../adventure/map';
 import type { ArmyStack, CombatState, CombatUnitDef } from '../combat/types';
 import type { BuildingDef, TownState } from '../town/types';
-import type { ArtifactDef, HeroSkillDef, SkillRankEffect, SpellDef } from '../hero/types';
+import type { ArtifactDef, HeroSkillDef, ResolvedHeroDef, SkillRankEffect, SpellDef } from '../hero/types';
 import type { FactionBonus } from '../faction/types';
 import type { GameOutcome, ScenarioState } from '../scenario/types';
 import type { QuestState } from '../quest/types';
@@ -251,8 +251,10 @@ export interface CaravanState {
  * tactique préalable (C-TACTICS, doc 02 §5.1) : un combat de héros doté de la
  * compétence Tactique démarre en placement (repositionnement des piles) avant
  * la bataille ; les combats sans Tactique démarrent en `'battle'`.
+ * v25 : `GameState.heroRoster` — roster de héros nommés persisté (H-NAMED.1),
+ * requis pour résoudre `RecruitHero` en cours de partie (Taverne, M-TAVERN.1).
  */
-export const CURRENT_SAVE_VERSION = 24;
+export const CURRENT_SAVE_VERSION = 25;
 
 export interface GameState {
   saveVersion: number;
@@ -293,6 +295,14 @@ export interface GameState {
    * le moteur ne connaît que des ids opaques.
    */
   houseCatalog: Record<string, { effects: SkillRankEffect[] }>;
+  /**
+   * Roster de héros nommés (H-NAMED.1, doc 02 §1.2), indexé par `heroId` →
+   * identité résolue. Embarqué par `StartGame` et **persisté** (contrairement à
+   * `houseCatalog`, lu seulement à la création) : sert à résoudre un recrutement
+   * de héros **en cours de partie** (`RecruitHero`, Taverne — M-TAVERN.1). `{}` =
+   * aucun héros nommé jouable. Le moteur ne connaît que des ids opaques.
+   */
+  heroRoster: Record<string, ResolvedHeroDef>;
   /**
    * Groupes de croissance partagée (doc 05 §3.1/§8), indexés par id de groupe
    * opaque → unités membres. Résolu par le contenu depuis les manifestes
@@ -350,6 +360,7 @@ export function createEmptyState(): GameState {
     combat: null,
     factionCatalog: {},
     houseCatalog: {},
+    heroRoster: {},
     growthGroups: {},
     scenario: null,
     outcome: null,

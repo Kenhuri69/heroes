@@ -78,7 +78,7 @@
 .resource-income {
   font-size: 0.72em;
   font-weight: 600;
-  color: var(--gain, #6fcf7f);
+  color: var(--gain);
   white-space: nowrap;
 }
 

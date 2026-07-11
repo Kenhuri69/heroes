@@ -59,6 +59,7 @@ import {
   validateChooseAttribute,
 } from '../hero';
 import { heroManaMax } from '../hero/artifacts';
+import { validateRecruitHero, handleRecruitHero } from '../hero/recruit';
 import { heroGoldPerDay, heroMovementBonus, heroVisionBonus } from '../hero/skills';
 import { resolveTreasure } from '../adventure/treasure';
 import { roamGuardians } from '../adventure/roam';
@@ -129,6 +130,7 @@ const GAME_OVER_BLOCKED = new Set<Command['type']>([
   'GarrisonTransfer',
   'SendCaravan',
   'CaptureTown',
+  'RecruitHero',
   'TradeResources',
   'CastSpell',
   'HeroAttack',
@@ -258,6 +260,10 @@ export function validate(state: GameState, cmd: Command): CommandError | null {
     case 'CaptureTown': {
       if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
       return validateCaptureTown(state, cmd);
+    }
+    case 'RecruitHero': {
+      if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
+      return validateRecruitHero(state, cmd);
     }
     case 'TradeResources': {
       if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
@@ -431,6 +437,7 @@ const handlers: Handlers = {
     draft.artifactCatalog = cmd.artifactCatalog ?? {};
     draft.factionCatalog = cmd.factionCatalog ?? {};
     draft.houseCatalog = cmd.houseCatalog ?? {};
+    draft.heroRoster = cmd.heroRoster ?? {};
     draft.growthGroups = cmd.growthGroups
       ? Object.fromEntries(Object.entries(cmd.growthGroups).map(([g, m]) => [g, [...m]]))
       : {};
@@ -616,6 +623,10 @@ const handlers: Handlers = {
 
   CaptureTown(draft, cmd, events) {
     handleCaptureTown(draft, cmd, events);
+  },
+
+  RecruitHero(draft, cmd, events) {
+    handleRecruitHero(draft, cmd, events);
   },
 
   TradeResources(draft, cmd, events) {

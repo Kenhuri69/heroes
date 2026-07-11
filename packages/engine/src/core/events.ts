@@ -188,6 +188,8 @@ export type GameEvent =
   /** Choix du destinataire d'une croissance partagée (doc 05 §3.1/§8). */
   | { type: 'SharedGrowthChosen'; townId: string; groupId: string; unitId: string }
   | { type: 'TownCaptured'; townId: string; playerId: string }
+  /** Héros nommé recruté à la Taverne (M-TAVERN.1) — `heroId` du roster, `newHeroId` créé. */
+  | { type: 'HeroRecruited'; playerId: string; heroId: string; newHeroId: string }
   // ——— Caravanes inter-villes (T-CARAVAN, doc 02 §4.1) ———
   /** Caravane expédiée : `days` = durée de trajet estimée. */
   | { type: 'CaravanSent'; playerId: string; fromTownId: string; toTownId: string; days: number }

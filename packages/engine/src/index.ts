@@ -127,6 +127,7 @@ export type {
   AdventureEffect,
   SpellStatus,
   HeroSkillDef,
+  ResolvedHeroDef,
   SkillRankEffect,
   ArtifactDef,
   ArtifactSlot,

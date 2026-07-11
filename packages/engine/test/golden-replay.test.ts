@@ -254,9 +254,9 @@ const GOLDEN_JOURNAL: Command[] = [
 // (save v22→23) — forme sérialisée changée ; les combats golden n'attachent pas
 // de héros aux deux camps avec sorts/mana ⇒ mêmes issues de combat, hash de
 // forme seule (les assertions sémantiques armée/jour restent vertes).
-// Re-fixé à C-TACTICS : `CombatState.phase` (save v23→24) — le héros golden n'a
-// pas la compétence Tactique ⇒ combat démarré directement en `'battle'`, issues
-// inchangées ; seul le champ `phase` s'ajoute à la forme sérialisée.
+// Re-fixé à M-TAVERN.1 (save v24→25) : `GameState.heroRoster:{}` s'ajoute à la
+// forme sérialisée (empilé sur C-TACTICS `CombatState.phase`) — issues inchangées
+// (le golden ne recrute pas ; roster vide). Hash de forme seule.
 const GOLDEN_HASH = 'ad317a4a';
 
 describe('golden replay', () => {

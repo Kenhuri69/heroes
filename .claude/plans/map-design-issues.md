@@ -122,20 +122,23 @@ vérification. Ordre proposé = impact joueur décroissant.
    tests de déterminisme existants passent inchangés ; cartes du dépôt non
    affectées (elles ne passent pas par `generateMap`).
 
-### Lot 4 — Gradient de gardiens autour des départs
+### Lot 4 — Gradient de gardiens autour des départs — ✅ livré
 
-1. Stratifier le placement : répartir le budget de gardiens par **anneaux de
-   profondeur** (ex. 40 % en zone proche `depth < 0.35`, 35 % en zone médiane,
-   25 % en zone profonde), en échantillonnant les tuiles DANS l'anneau visé
-   plutôt qu'uniformément.
-2. Garantir un minimum par départ : ≥ 2–3 gardiens de tier 1–2 dans l'anneau
-   proche de **chaque** position de départ.
-3. Borner le tier par la profondeur : plafond de tier croissant avec `depth`
-   (fini le tier élevé collé au départ via jitter) ; appliquer le jitter au
-   **tier** puis choisir une unité de ce tier, pas à l'index brut de la liste.
-   → vérif : test statistique déterministe (graines fixes) : pour chaque départ,
-   compter les gardiens par anneau/tier — minimums respectés, aucun gardien
-   au-dessus du plafond de tier de son anneau.
+1. [x] `pickUnitForDepth(depth, jitter)` : tier visé ∝ profondeur, **jitter au
+   tier** (plus à l'index brut de la palette triée), **plafond**
+   `1 + ⌊depth × tierMax⌋` — jamais de gardien fort collé à un départ. Utilisé
+   par les gardiens de champ ET les sentinelles (les habitations gardent leur
+   sélection d'origine : récompense, pas combat).
+2. [x] Anneau proche garanti : 2–3 gardiens faibles (pile ~4) placés dans un
+   rayon de 35 % du rayon d'anneau des départs autour de **chaque** départ
+   (distance euclidienne ∈ [2, nearRadius], 80 essais bornés).
+3. [x] Le budget de gardiens de champ existant est conservé (tuiles uniformes),
+   le plafond de tier faisant seul la gradation — la stratification en
+   pourcentages par anneau s'est avérée inutile une fois le minimum par départ
+   garanti (décision : moins de churn).
+   → vérif : test déterministe (3 graines, 48², 3 joueurs) — ≥ 2 gardiens à
+   portée de chaque départ, tous tier ≤ 3, et plafond de profondeur respecté
+   par TOUT gardien ; le test de gradient moyen existant passe inchangé.
 
 ### Lot 5 (option, après 1–4) — Vraies villes neutres générées
 

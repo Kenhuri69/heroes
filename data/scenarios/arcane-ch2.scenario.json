@@ -67,6 +67,22 @@
         { "textKey": "@loc:dlg.arcane.ch2.pacte", "setFlag": "aldric-pacte" },
         { "textKey": "@loc:dlg.arcane.ch2.refus", "setFlag": "aldric-crypte-refus" }
       ]
+    },
+    {
+      "id": "dlg-evadne-1",
+      "lines": [{ "speaker": "evadne", "portrait": "grave", "textKey": "@loc:dlg.evadne.arc.1" }]
+    },
+    {
+      "id": "dlg-evadne-2",
+      "lines": [{ "speaker": "aldric", "textKey": "@loc:dlg.evadne.arc.2" }]
+    },
+    {
+      "id": "dlg-evadne-choice",
+      "lines": [{ "speaker": "evadne", "portrait": "grave", "textKey": "@loc:dlg.evadne.arc.3" }],
+      "choices": [
+        { "textKey": "@loc:dlg.evadne.arc.embrace", "setFlag": "evadne-embrace" },
+        { "textKey": "@loc:dlg.evadne.arc.sever", "setFlag": "evadne-sever" }
+      ]
     }
   ],
   "quests": [
@@ -79,6 +95,30 @@
         { "id": "tenir-la-crypte", "condition": { "type": "defeatHero", "heroId": "hero-ai-1" } }
       ],
       "rewards": [{ "type": "resources", "resources": { "gold": 2500 } }]
+    },
+    {
+      "id": "evadne-verrou",
+      "kind": "personal",
+      "titleKey": "@loc:quest.evadne-verrou.title",
+      "descriptionKey": "@loc:quest.evadne-verrou.desc",
+      "steps": [
+        {
+          "id": "sentir-le-verrou",
+          "condition": { "type": "ownUnits", "unitId": "t1-eleve", "count": 22 },
+          "dialogBefore": "dlg-evadne-1"
+        },
+        {
+          "id": "lire-la-relique",
+          "condition": { "type": "ownUnits", "unitId": "t5-lame", "count": 3 },
+          "dialogBefore": "dlg-evadne-2"
+        },
+        {
+          "id": "trancher",
+          "condition": { "type": "defeatHero", "heroId": "hero-ai-1" },
+          "dialogBefore": "dlg-evadne-choice"
+        }
+      ],
+      "rewards": []
     }
   ]
 }

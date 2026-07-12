@@ -5,9 +5,14 @@ import {
   initiativeSpeed,
   roundActionOrder,
   surrenderCost,
+  spellcasterParams,
+  isSilenced,
+  estimateUnitSpell,
+  spellTargetsEnemy,
   type CombatStack,
   type CombatState,
   type CombatUnitDef,
+  type SpellEstimate,
 } from '@heroes/engine';
 import { useApp, appStore } from '../app/store';
 import { dispatch } from '../app/dispatch';
@@ -46,6 +51,7 @@ export function CombatUi() {
   const spellTarget = useApp((s) => s.combatSpellTarget);
   const [spellBookOpen, setSpellBookOpen] = useState(false);
   const [heroAttackOpen, setHeroAttackOpen] = useState(false);
+  const [unitSpellOpen, setUnitSpellOpen] = useState(false);
   const [leaveConfirm, setLeaveConfirm] = useState<'retreat' | 'surrender' | null>(null);
   const [sheetStackId, setSheetStackId] = useState<string | null>(null);
   const [logOpen, setLogOpen] = useState(false);
@@ -113,6 +119,17 @@ export function CombatUi() {
     !!hero &&
     !!config?.combat.heroAttack &&
     !combat.heroAttackUsed.includes(combat.playerSide);
+  // CAP-CAST : la pile active du joueur est-elle une lanceuse (`spellcaster`)
+  // jouable à la main (charges > 0, non silenciée, son sort au catalogue) ? Le
+  // moteur supporte déjà `castSpell` ; on n'exposait que l'IA/auto jusqu'ici.
+  const unitSpell = (() => {
+    if (!isPlayerTurn || autoActive || !active) return null;
+    const def = catalog[active.unitId];
+    const params = def ? spellcasterParams(def) : null;
+    if (!params || active.spellCharges <= 0 || isSilenced(active)) return null;
+    const spell = appStore.getState().game.spellCatalog[params.spellId];
+    return spell ? { spell } : null;
+  })();
   // C3 : fuite/reddition disponibles au tour du joueur dans un combat d'aventure
   // (héros lié). Le coût de reddition est la valeur en or de l'armée survivante.
   const canLeave = isPlayerTurn && !autoActive && !!combat.heroId;
@@ -233,6 +250,13 @@ export function CombatUi() {
         >
           {t('combat.heroAttack')}
         </button>
+        <button
+          data-testid="combat-unit-spell"
+          disabled={!unitSpell}
+          onClick={() => setUnitSpellOpen(true)}
+        >
+          {t('combat.unitSpell')}
+        </button>
         <button data-testid="combat-retreat" disabled={!canLeave} onClick={() => setLeaveConfirm('retreat')}>
           {t('combat.retreat')}
         </button>
@@ -279,6 +303,15 @@ export function CombatUi() {
       <CombatLog visible={logOpen} />
       {spellBookOpen && hero && <SpellBook hero={hero} onClose={() => setSpellBookOpen(false)} />}
       {heroAttackOpen && <HeroAttackModal combat={combat} onClose={() => setHeroAttackOpen(false)} />}
+      {unitSpellOpen && unitSpell && active && (
+        <UnitSpellModal
+          combat={combat}
+          casterId={active.id}
+          spellKind={unitSpell.spell.kind}
+          spellId={unitSpell.spell.id}
+          onClose={() => setUnitSpellOpen(false)}
+        />
+      )}
       {leaveConfirm && (
         <LeaveConfirm mode={leaveConfirm} gold={surrenderGold} onClose={() => setLeaveConfirm(null)} />
       )}
@@ -390,6 +423,125 @@ function HeroAttackModal({ combat, onClose }: { combat: CombatState; onClose: ()
       </div>
     </div>
   );
+}
+
+/**
+ * Modale de lancer de sort d'unité (CAP-CAST, doc 08 §2.4) : la pile active
+ * `spellcaster` du joueur lance son sort embarqué. Cibles amies/ennemies selon
+ * la nature du sort (`spellTargetsEnemy`), prévisualisation OBLIGATOIRE
+ * (`estimateUnitSpell`, sans RNG) avant confirmation ⇒ `CombatAction castSpell`.
+ */
+function UnitSpellModal({
+  combat,
+  casterId,
+  spellKind,
+  spellId,
+  onClose,
+}: {
+  combat: CombatState;
+  casterId: string;
+  spellKind: SpellEstimate['kind'];
+  spellId: string;
+  onClose: () => void;
+}) {
+  useApp((s) => s.locale); // réactivité i18n
+  const [targetId, setTargetId] = useState<string | null>(null);
+  const [preview, setPreview] = useState<SpellEstimate | null>(null);
+  const [previewFailed, setPreviewFailed] = useState(false);
+
+  const caster = combat.stacks.find((s) => s.id === casterId);
+  const friendly = !spellTargetsEnemy(spellKind);
+  // Cibles : camp allié (soin/buff) ou ennemi ; une pile furtive est inciblable.
+  const targets = combat.stacks.filter(
+    (s) =>
+      s.count > 0 &&
+      !s.stealthed &&
+      (friendly ? s.side === combat.playerSide : s.side !== combat.playerSide),
+  );
+
+  const select = (id: string): void => {
+    setTargetId(id);
+    try {
+      setPreview(estimateUnitSpell(appStore.getState().game, casterId, id));
+      setPreviewFailed(false);
+    } catch {
+      setPreview(null);
+      setPreviewFailed(true);
+    }
+  };
+  const cast = (id: string): void => {
+    dispatch({ type: 'CombatAction', action: { type: 'castSpell', targetStackId: id } })
+      .then(() => onClose())
+      .catch((err: unknown) => pushToast(commandErrorMessage(err), 'error'));
+  };
+
+  return (
+    <div class="modal-backdrop" onClick={onClose}>
+      <div
+        class="modal spellbook"
+        role="dialog"
+        aria-modal="true"
+        aria-label={t('combat.unitSpell')}
+        data-testid="unit-spell-modal"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <header class="modal-header">
+          <h2>{caster ? resolveUnitName(caster.unitId) : t('combat.unitSpell')}</h2>
+          <button class="modal-close" aria-label={t('options.close')} onClick={onClose}>
+            ×
+          </button>
+        </header>
+        <p class="content-lore">{resolveSpellName(spellId)}</p>
+        {targets.length === 0 ? (
+          <p class="spellbook-empty">{t('spellbook.noTargets')}</p>
+        ) : (
+          <ul class="spell-target-list">
+            {targets.map((stack) => (
+              <li key={stack.id}>
+                <button
+                  class={`spell-target${targetId === stack.id ? ' selected' : ''}`}
+                  data-testid={`unit-spell-target-${stack.id}`}
+                  onClick={() => select(stack.id)}
+                >
+                  {resolveUnitName(stack.unitId)} ×{stack.count}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        <div class="spell-preview" data-testid="unit-spell-preview">
+          {targetId ? formatSpellPreview(preview, previewFailed) : t('spellbook.chooseTarget')}
+        </div>
+        <button
+          class="spellbook-cast"
+          data-testid="unit-spell-cast"
+          disabled={!targetId}
+          onClick={() => targetId && cast(targetId)}
+        >
+          {t('spellbook.cast')}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/** Préviz d'un sort d'unité (mêmes libellés que le grimoire héros). */
+function formatSpellPreview(est: SpellEstimate | null, failed: boolean): string {
+  if (failed || !est) return t('spellbook.previewUnavailable');
+  switch (est.kind) {
+    case 'damage':
+      return t('spellbook.previewDamage', { amount: est.amount, kills: est.kills });
+    case 'heal':
+      return t('spellbook.previewHeal', { amount: est.amount });
+    case 'buff':
+      return t('spellbook.previewBuff');
+    case 'debuff':
+      return t('spellbook.previewDebuff');
+    case 'applyMarks':
+      return t('spellbook.previewMarks');
+    default:
+      return t('spellbook.previewUnavailable');
+  }
 }
 
 /**

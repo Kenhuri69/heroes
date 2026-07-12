@@ -326,6 +326,7 @@
   "combat.spell": "Sort héros",
   "combat.heroPresent": "Votre héros mène l’armée",
   "combat.heroAttack": "Attaque du héros",
+  "combat.unitSpell": "Sort (unité)",
   "combat.heroAttackPreview": "≈ {amount} dégâts sur la cible choisie (1×/combat)",
   "combat.retreat": "Fuir",
   "combat.surrender": "Se rendre ({gold} or)",

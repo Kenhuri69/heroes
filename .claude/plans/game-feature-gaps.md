@@ -162,8 +162,11 @@ Familles, par mécanique moteur commune :
   03 §3) **livrée** ; Bibliothécaire Entrave/Silence ×2 (doc 05 §4), Maître de
   Sortilèges (doc 16 §4), Avatar barrière (doc 16 §4) = données à ajouter (moteur
   prêt). Réutilise le pipeline `CastSpell` via `applySpellToTargets` partagé.
-  **Reste (suivi UI)** : bouton de lancer en combat pour une pile jouée à la main
-  (A2h ne pilote que l'IA/auto-combat). Effort : M.
+  **UI livrée** (plan `cap-cast-ui.md`) : bouton « Sort (unité) » en combat pour
+  une pile `spellcaster` jouée à la main (charges > 0, non silenciée) ⇒ modale de
+  ciblage + préviz obligatoire (`estimateUnitSpell`, Pouvoir de la capacité) ⇒
+  `CombatAction castSpell`. Exports purs `spellcasterParams`/`isSilenced`. Zéro
+  save/golden. **Reste (données)** : lanceurs Bibliothécaire/Maître/Avatar à câbler.
 - **CAP-LIFE — Cycle de vie** 🧩 (A3b : `swarm` **livré** ; A2d : `devourMarks`
   **livré** ; `resurrectAlly`, renaissance → A3) : `resurrectAlly` 1× (Ange, doc 03 §3),
   renaissance (Phénix, doc 16 §4/§7), `swarm` (+dégâts ∝ effectif — Élève AH

@@ -4,6 +4,7 @@ import { createEmptyState, type GameState } from '../src/core/state';
 import { seedRng } from '../src/core/rng';
 import { applyAction } from '../src/combat/actions';
 import { chooseAction as aiChooseAction } from '../src/combat/ai';
+import { estimateUnitSpell } from '../src/hero';
 import type { CombatStack, CombatState, CombatUnitDef } from '../src/combat/types';
 import type { SpellDef } from '../src/hero/types';
 import type { GameEvent } from '../src/core/events';
@@ -87,5 +88,11 @@ describe('A2h — spellcaster', () => {
   it('plus de charges ⇒ ne lance pas', () => {
     const action = aiChooseAction(state(catalog, scene(0, 5)), 'attacker-0');
     expect(action.type).not.toBe('castSpell');
+  });
+
+  it('CAP-CAST : estimateUnitSpell prévisualise le soin avec le Pouvoir de la capacité', () => {
+    // Prêtresse (power 3) soigne l'allié : base 10 + 3×3 = 19 (préviz sans RNG).
+    const est = estimateUnitSpell(state(catalog, scene()), 'attacker-0', 'attacker-1');
+    expect(est).toEqual({ amount: 19, kills: 0, kind: 'heal' });
   });
 });

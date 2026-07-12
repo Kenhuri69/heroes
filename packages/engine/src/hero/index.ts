@@ -3,7 +3,7 @@ import { DIRECTIONS, samePos, type GridPos } from '../adventure/map';
 import { isPassable } from '../adventure/path';
 import { heroLuckOf, killsFromDamage, magicResistanceOf } from '../combat/damage';
 import { checkCombatEnd } from '../combat/turns';
-import { applySpellToTargets, spellTargets } from '../combat/spell-effect';
+import { applySpellToTargets, spellTargets, spellcasterParams } from '../combat/spell-effect';
 import {
   COMBAT_COLS,
   COMBAT_ROWS,
@@ -425,6 +425,42 @@ export function estimateSpell(
   if (!target) throw new Error(`estimateSpell: cible introuvable '${targetStackId}'`);
   const hero = heroForPlayerSide(state, combat);
   const power = hero ? effectivePower(hero, state.artifactCatalog) : 0;
+  return estimateSpellWithPower(state, spellId, targetStackId, power);
+}
+
+/**
+ * CAP-CAST : préviz du sort EMBARQUÉ d'une pile `spellcaster` (A2h) jouée à la
+ * main — mêmes maths que le sort de héros mais le **Pouvoir** vient de la
+ * capacité (les unités n'ont pas d'attribut Pouvoir), comme à la résolution
+ * (`applyCastSpell`). Le client l'utilise pour la préviz obligatoire (doc 08 §2.4).
+ */
+export function estimateUnitSpell(
+  state: GameState,
+  casterStackId: string,
+  targetStackId: string,
+): SpellEstimate {
+  const combat = state.combat;
+  if (!combat) throw new Error('estimateUnitSpell: aucun combat en cours');
+  const caster = combat.stacks.find((s) => s.id === casterStackId);
+  const def = caster ? state.unitCatalog[caster.unitId] : undefined;
+  const params = def ? spellcasterParams(def) : null;
+  if (!params) throw new Error(`estimateUnitSpell: pile non lanceuse '${casterStackId}'`);
+  return estimateSpellWithPower(state, params.spellId, targetStackId, params.power);
+}
+
+/** Cœur partagé de l'estimation : `power` explicite (héros ou capacité d'unité). */
+function estimateSpellWithPower(
+  state: GameState,
+  spellId: string,
+  targetStackId: string,
+  power: number,
+): SpellEstimate {
+  const combat = state.combat;
+  if (!combat) throw new Error('estimateSpell: aucun combat en cours');
+  const spell = state.spellCatalog[spellId];
+  if (!spell) throw new Error(`estimateSpell: sort inconnu '${spellId}'`);
+  const target = combat.stacks.find((s) => s.id === targetStackId);
+  if (!target) throw new Error(`estimateSpell: cible introuvable '${targetStackId}'`);
 
   // C7 : la préviz agrège la zone d'effet (cible + adjacentes en `splash`).
   const affected = spellTargets(combat, spell.area, target);

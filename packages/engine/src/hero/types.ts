@@ -30,9 +30,10 @@ export type SpellKind =
 /**
  * Effet déclaratif d'un sort d'**aventure** (doc 02 §1.4, Alpha 4.16) — lancé sur
  * la carte, hors combat. Union extensible : `townPortal` (téléportation vers une
- * ville possédée) au v1 ; Vision, etc. = ajout de cas + données, jamais de faction.
+ * ville possédée) ; `vision` (H-SPELLS.3 — révèle le brouillard dans un rayon
+ * autour du héros). Ajouter un effet = un cas + données, jamais de faction.
  */
-export type AdventureEffect = { type: 'townPortal' };
+export type AdventureEffect = { type: 'townPortal' } | { type: 'vision'; radius: number };
 
 /** Définition résolue d'un sort (doc 02 §1.4), embarquée dans le catalogue. */
 export interface SpellDef {

@@ -196,6 +196,10 @@ export function handleCastAdventureSpell(
         (draft.config?.visionRadius ?? 0) + heroVisionBonus(hero, draft.skillCatalog),
       );
     }
+  } else if (spell.adventure.type === 'vision') {
+    // H-SPELLS.3 : ouvre le brouillard dans un large rayon autour du héros (sans
+    // le déplacer). Le rayon est porté par la donnée du sort.
+    revealAround(player.explored, map, hero.pos, spell.adventure.radius);
   }
 
   events.push({ type: 'AdventureSpellCast', heroId: hero.id, spellId: spell.id, pos: { ...hero.pos } });

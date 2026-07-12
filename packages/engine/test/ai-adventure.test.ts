@@ -76,15 +76,21 @@ describe('runAiTurn — propriété « IA vs IA se termine »', () => {
     20_000,
   );
 
-  it('déterminisme : même seed ⇒ même hashState après N tours IA', () => {
-    fc.assert(
-      fc.property(arbSeed, (seed) => {
-        const run = (): GameState => runAiUntilDayCap(aiGame(seed), 30);
-        expect(hashState(run())).toBe(hashState(run()));
-      }),
-      { numRuns: 20 },
-    );
-  });
+  it(
+    'déterminisme : même seed ⇒ même hashState après N tours IA',
+    () => {
+      fc.assert(
+        fc.property(arbSeed, (seed) => {
+          const run = (): GameState => runAiUntilDayCap(aiGame(seed), 30);
+          expect(hashState(run())).toBe(hashState(run()));
+        }),
+        { numRuns: 20 },
+      );
+    },
+    // Property test lourd (20 seeds × 2 simulations × 30 jours) : sous charge CI, il
+    // dépasse le défaut 5 s. Timeout explicite, aligné sur le test frère ci-dessus.
+    20_000,
+  );
 });
 
 describe('runAiTurn — cas ciblés', () => {

@@ -431,8 +431,17 @@ export const spellSchema = z
      * `all` (H-SPELLS.1) = toutes les piles vivantes du camp de la cible (masse).
      */
     area: z.enum(['splash', 'all']).optional(),
-    /** Effet hors combat d'un sort `adventure` (doc 02 §1.4, Alpha 4.16). */
-    adventure: z.object({ type: z.literal('townPortal') }).optional(),
+    /**
+     * Effet hors combat d'un sort `adventure` (doc 02 §1.4, Alpha 4.16) :
+     * `townPortal` (téléportation vers une ville) ou `vision` (H-SPELLS.3 —
+     * révèle le brouillard dans `radius` tuiles autour du héros).
+     */
+    adventure: z
+      .discriminatedUnion('type', [
+        z.object({ type: z.literal('townPortal') }),
+        z.object({ type: z.literal('vision'), radius: z.number().int().positive() }),
+      ])
+      .optional(),
   })
   .refine((s) => (s.kind === 'damage' || s.kind === 'heal' ? s.base > 0 : true), {
     message: 'damage/heal: base doit être > 0',

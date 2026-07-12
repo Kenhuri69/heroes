@@ -27,6 +27,15 @@ export function shooterAmmo(def: CombatUnitDef): number | null {
 }
 
 /**
+ * Pile silenciée (F-SCHOOLS.4, doc 05 §6 « Silence Scellé ») : porte un statut
+ * `silenced` actif ⇒ ne peut plus lancer son sort d'unité (`spellcaster`). Les
+ * statuts expirés sont retirés au round ⇒ présence = actif.
+ */
+export function isSilenced(stack: CombatStack): boolean {
+  return stack.statuses.some((s) => s.silenced);
+}
+
+/**
  * Paramètres de la capacité `performer` (F-RESON.2, doc 16 §3.2) : ressource de
  * faction générée en combat et montant par round, ou null si non-performeur.
  */

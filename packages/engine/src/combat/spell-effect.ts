@@ -95,16 +95,22 @@ export function applySpellToTargets(
     for (const t of targets) {
       const def = draft.unitCatalog[t.unitId];
       if (!def) continue;
+      // F-SCHOOLS.3 : un sort mange-Marques ajoute `marksDamagePct`%/charge au
+      // bonus passif de Marque, puis consomme les Marques de la cible.
+      const consumeBonus = spell.marksDamagePct ? (spell.marksDamagePct / 100) * t.marks : 0;
       const dmg = spellDamageAmount(
         spell,
         power,
         lucky,
         magicResistanceOf(def, t.transformed),
-        rules.markBonusPerStack * t.marks,
+        rules.markBonusPerStack * t.marks + consumeBonus,
       );
       const r = damageOneStack(draft, combat, t, dmg, events);
       amount += r.amount;
       kills += r.kills;
+      // Marques consommées (dépense de la ressource) — silencieux : l'`amount`
+      // de `SpellCast` reflète déjà les dégâts amplifiés.
+      if (spell.marksDamagePct && t.count > 0) t.marks = 0;
     }
   } else if (spell.kind === 'heal') {
     for (const t of targets) {
@@ -131,7 +137,8 @@ export function applySpellToTargets(
       if (posed > 0) events.push({ type: 'MarkApplied', targetId: t.id, marks: t.marks });
     }
   } else {
-    // buff / debuff (doc 02 §1.4) : statut temporaire sur chaque pile affectée.
+    // buff / debuff / silence (doc 02 §1.4, doc 05 §6) : statut temporaire sur
+    // chaque pile affectée. `silence` désactive le sort d'unité (`silenced`).
     for (const t of targets) {
       t.statuses.push({
         spellId: spell.id,
@@ -140,6 +147,7 @@ export function applySpellToTargets(
         speedMod: spell.speedMod ?? 0,
         damageDealtMod: 0,
         damagePerRound: 0,
+        silenced: spell.kind === 'silence',
         roundsLeft: spellStatusDuration(power),
       });
     }

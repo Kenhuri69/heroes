@@ -15,7 +15,7 @@ import type { ResourceId } from '../core/state';
  * registre de contenu, jamais un diff moteur.
  */
 export type SpellSchool = string;
-export type SpellKind = 'damage' | 'heal' | 'buff' | 'debuff' | 'applyMarks' | 'adventure';
+export type SpellKind = 'damage' | 'heal' | 'buff' | 'debuff' | 'applyMarks' | 'silence' | 'adventure';
 
 /**
  * Effet déclaratif d'un sort d'**aventure** (doc 02 §1.4, Alpha 4.16) — lancé sur
@@ -40,6 +40,13 @@ export interface SpellDef {
   speedMod?: number;
   /** Charges de Marque appliquées (sort `applyMarks`, doc 05 §6 — école Traque). */
   marks?: number;
+  /**
+   * Sort mange-Marques (F-SCHOOLS.3, doc 05 §6 « Volée de Dagues Spectrales ») :
+   * un sort `damage` gagne `marksDamagePct` % de dégâts PAR charge de Marque de la
+   * cible (s'ajoute au bonus passif de Marque), puis les Marques sont consommées
+   * (remises à 0). Absent = sort de dégâts normal. Générique : nombre opaque.
+   */
+  marksDamagePct?: number;
   /**
    * Zone d'effet (C7) : `splash` = la pile ciblée + les piles du même camp qui lui
    * sont adjacentes sur la grille hex (Boule de feu…). Absent = mono-cible.
@@ -182,6 +189,12 @@ export interface SpellStatus {
    * plusieurs poisons. 0 = statut non toxique (buff/debuff/malédiction).
    */
   damagePerRound: number;
+  /**
+   * Silence (F-SCHOOLS.4, doc 05 §6 « Silence Scellé ») : tant qu'un statut
+   * `silenced` est actif sur la pile, elle ne peut plus lancer son sort embarqué
+   * (`spellcaster`, A2h). `false` pour tout statut de buff/debuff/malédiction/poison.
+   */
+  silenced: boolean;
   roundsLeft: number;
 }
 

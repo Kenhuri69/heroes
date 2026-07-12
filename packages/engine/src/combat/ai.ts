@@ -1,7 +1,7 @@
 import type { GameEvent } from '../core/events';
 import type { GameState, HeroState } from '../core/state';
 import { castHeroSpell } from '../hero';
-import { effectiveManaCost } from '../hero/spells';
+import { effectiveManaCost, spellTargetsEnemy } from '../hero/spells';
 import { applyAction, canShoot, canShootTarget, reachableHexes, tauntersAdjacentTo } from './actions';
 import { heroAttackDamage, strikeWithHero } from './hero-attack';
 import { spellcasterParams } from './spell-effect';
@@ -9,7 +9,7 @@ import { estimateDamage, killsFromDamage, symbiosisParams } from './damage';
 import { advanceTurn } from './turns';
 import type { Draft } from './draft';
 import { hexDistance, type OffsetPos } from './hex';
-import { effectiveSpeed, hasAbility } from './state-helpers';
+import { effectiveSpeed, hasAbility, isSilenced } from './state-helpers';
 import type { CombatActionInput, CombatSideId, CombatStack, CombatState, CombatUnitDef } from './types';
 
 /**
@@ -206,9 +206,10 @@ function chooseSpellcast(
   const def = catalog[stack.unitId];
   const params = def ? spellcasterParams(def) : null;
   if (!params || stack.spellCharges <= 0) return null;
+  if (isSilenced(stack)) return null; // F-SCHOOLS.4 : pile silenciée ⇒ pas de cast
   const spell = state.spellCatalog[params.spellId];
   if (!spell) return null;
-  const targetsEnemy = spell.kind === 'damage' || spell.kind === 'debuff' || spell.kind === 'applyMarks';
+  const targetsEnemy = spellTargetsEnemy(spell.kind);
 
   if (targetsEnemy) {
     const best = pickBestBy(

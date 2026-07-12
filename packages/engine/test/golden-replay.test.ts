@@ -260,7 +260,10 @@ const GOLDEN_JOURNAL: Command[] = [
 // Re-fixé à M-TAVERN.4 (save v25→26) : `HeroState.rosterId:''` s'ajoute à chaque
 // héros sérialisé — pool de taverne exclusif. Issues de simulation inchangées
 // (le golden n'a pas de héros de roster) : hash de FORME seule.
-const GOLDEN_HASH = '15b26649';
+// Re-fixé à F-SCHOOLS.4 (save v26→27) : `SpellStatus.silenced:false` s'ajoute à
+// chaque statut sérialisé (silence de combat « Silence Scellé »). Issues de
+// simulation inchangées (le golden ne lance aucun silence) : hash de FORME seule.
+const GOLDEN_HASH = '2d4de0ae';
 
 describe('golden replay', () => {
   it('le journal scripté produit toujours le même état final', () => {

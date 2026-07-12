@@ -271,9 +271,19 @@ Source design : docs 03 §2/§4/§5, 04 §2/§4, 05 §3/§5/§6/§7, 14 §5/§6,
     livrée en pur contenu (patron .1) — `spellSchool:"prime"` + 4 sorts
     (debuff/damage/buff) + `SPELL_SCHOOLS += prime` + locales. Zéro diff moteur,
     golden inchangé.
-  - **F-SCHOOLS.3+** ⬜ : complétion Traque 8 sorts (doc 05 §6 — 6 sorts exigent
-    de **nouvelles** mécaniques de combat : téléport, silence, bannissement,
-    furtivité, noRetaliation conditionnel) ; effets Scène enrichis (peur/+moral,
+  - **F-SCHOOLS.3** ✅ (plan `f-schools-3.md`) : **Volée de Dagues Spectrales**
+    (doc 05 §6, cercle 3) — nouvelle mécanique générique `SpellDef.marksDamagePct`
+    (sort de dégâts mange-Marques : +%/charge en plus du passif, puis Marques
+    consommées ; 1ᵉʳ *sort* à consommer des Marques, cf. `consumeMarks`/`devourMarks`
+    côté capacités). Zéro faction moteur, aucun bump save, golden inchangé.
+  - **F-SCHOOLS.4** ✅ (plan `f-schools-4.md`) : **Silence Scellé** (doc 05 §6,
+    cercle 2) — nouvelle mécanique générique `SpellKind 'silence'` +
+    `SpellStatus.silenced` (save 26→27) : une pile silenciée ne peut plus lancer
+    son sort d'unité (`spellcaster`), gate partagé joueur+IA (`isSilenced`).
+    Refactor `spellTargetsEnemy(kind)`. Zéro faction moteur, golden re-fixé (forme).
+  - **F-SCHOOLS.5+** ⬜ : 4 sorts Traque restants (un sous-lot chacun) — Pas de
+    Brume (téléport allié), Mue Éphémère (furtivité), Bannissement, Heure de la
+    Curée (noRetaliation conditionnel) ; effets Scène enrichis (peur/+moral,
     partagés CAP-MORAL).
 
 - **F-ELITEVOX — Élites Vox Arcana** ✅ (plan `f-elitevox.md`, doc 16 §4)

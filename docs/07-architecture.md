@@ -113,7 +113,11 @@ UI/IA ──commande──► [validation] ──► engine.apply(state, cmd)
     §5.4, lot A2h) ; v23 (`CombatState.heroCastThisRound` booléen → liste de
     camps ayant lancé ce round — parité IA des sorts de héros, doc 02 §5.5,
     lot C-AIPARITY) ; v24 (`CombatState.phase` `'placement'|'battle'` — phase de
-    placement tactique pré-combat, doc 02 §5.1, lot C-TACTICS).
+    placement tactique pré-combat, doc 02 §5.1, lot C-TACTICS) ; v25
+    (`GameState.heroRoster`, roster de héros nommés persisté, lot H-NAMED.1) ;
+    v26 (`HeroState.rosterId`, pool de taverne exclusif, doc 02 §1.5, lot
+    M-TAVERN.4) ; v27 (`SpellStatus.silenced`, silence de combat « Silence
+    Scellé », doc 05 §6, lot F-SCHOOLS.4).
 - Une sauvegarde référence les paquets de faction (par id) ; le suivi de
   **version** par paquet est différé avec les migrations (post-MVP).
 

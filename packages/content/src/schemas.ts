@@ -416,7 +416,7 @@ export const spellSchema = z
     school: z.enum(SPELL_SCHOOLS),
     circle: z.number().int().min(1).max(5),
     manaCost: z.number().int().positive(),
-    kind: z.enum(['damage', 'heal', 'buff', 'debuff', 'applyMarks', 'adventure']),
+    kind: z.enum(['damage', 'heal', 'buff', 'debuff', 'applyMarks', 'silence', 'adventure']),
     base: z.number().nonnegative(),
     perPower: z.number().nonnegative(),
     attackMod: z.number().optional(),
@@ -424,6 +424,8 @@ export const spellSchema = z
     speedMod: z.number().optional(),
     /** Charges posées par un sort `applyMarks` (doc 05 §6). */
     marks: z.number().int().positive().optional(),
+    /** Sort mange-Marques (F-SCHOOLS.3, doc 05 §6) : %/charge de dégâts, puis consomme. */
+    marksDamagePct: z.number().nonnegative().optional(),
     /** Zone d'effet (C7) : `splash` = cible + piles adjacentes du même camp. */
     area: z.literal('splash').optional(),
     /** Effet hors combat d'un sort `adventure` (doc 02 §1.4, Alpha 4.16). */

@@ -666,6 +666,7 @@ export function performStrike(
         speedMod: curse.speedMod,
         damageDealtMod: curse.damageDealtMod,
         damagePerRound: 0,
+        silenced: false,
         roundsLeft: curse.rounds,
       };
       const existing = victim.statuses.find((s) => s.spellId === spellId);
@@ -689,6 +690,7 @@ export function performStrike(
       speedMod: 0,
       damageDealtMod: 0,
       damagePerRound: poison.damagePerRound,
+      silenced: false,
       roundsLeft: poison.rounds,
     };
     const existing = victim.statuses.find((s) => s.spellId === spellId);

@@ -104,7 +104,7 @@ describe('A2c — curseOnHit', () => {
     // La pile attaquante porte déjà « Faux funeste » (−20 %).
     const attacker = stack({
       id: 'attacker-0', side: 'attacker', slot: 0, unitId: 'cursed', count: 1, pos: { col: 0, row: 0 }, firstHp: 100,
-      statuses: [{ spellId: 'curse:x', attackMod: 0, defenseMod: 0, speedMod: 0, damageDealtMod: -0.2, damagePerRound: 0, roundsLeft: 2 }],
+      statuses: [{ spellId: 'curse:x', attackMod: 0, defenseMod: 0, speedMod: 0, damageDealtMod: -0.2, damagePerRound: 0, silenced: false, roundsLeft: 2 }],
     });
     const defender = stack({ id: 'defender-0', side: 'defender', slot: 0, unitId: 'def', count: 1, pos: { col: 1, row: 0 }, firstHp: 1000 });
     const strike = strikes(runAttack(state(catalog, [attacker, defender])).events)[0];

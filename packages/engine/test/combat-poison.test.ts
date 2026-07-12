@@ -94,7 +94,7 @@ describe('A2f — poisonSting', () => {
     const attacker = stack({ id: 'attacker-0', side: 'attacker', slot: 0, unitId: 'manticore', count: 1, pos: { col: 2, row: 5 } });
     // Cible à 4 PV : la frappe (10) la tue direct — on teste plutôt un poison seul.
     const frail = stack({ id: 'defender-0', side: 'defender', slot: 0, unitId: 'foe', count: 1, pos: { col: 5, row: 5 }, firstHp: 4, retaliationsLeft: 0,
-      statuses: [{ spellId: 'poison:manticore', attackMod: 0, defenseMod: 0, speedMod: 0, damageDealtMod: 0, damagePerRound: 6, roundsLeft: 2 }] });
+      statuses: [{ spellId: 'poison:manticore', attackMod: 0, defenseMod: 0, speedMod: 0, damageDealtMod: 0, damagePerRound: 6, silenced: false, roundsLeft: 2 }] });
     const events: GameEvent[] = [];
     const next = produce(state(catalog, [attacker, frail]), (draft) => {
       const combat = draft.combat as CombatState;

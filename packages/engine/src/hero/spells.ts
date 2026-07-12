@@ -1,7 +1,17 @@
 import type { HeroState } from '../core/state';
 import { heroArtifactBonus } from './artifacts';
 import { heroManaCostReduction } from './skills';
-import type { ArtifactDef, HeroSkillDef, SpellDef } from './types';
+import type { ArtifactDef, HeroSkillDef, SpellDef, SpellKind } from './types';
+
+/**
+ * Un sort vise-t-il le camp ADVERSE (dégâts/debuff/marque/silence) plutôt que le
+ * sien (soin/buff) ? Source unique de vérité de la contrainte de camp, partagée
+ * par les 3 sites de validation (héros joueur, unité joueur, IA) — un nouveau
+ * `kind` offensif ne doit être ajouté qu'ici. `adventure` : hors combat.
+ */
+export function spellTargetsEnemy(kind: SpellKind): boolean {
+  return kind === 'damage' || kind === 'debuff' || kind === 'applyMarks' || kind === 'silence';
+}
 
 /**
  * Calculs purs des sorts (doc 02 §1.1, §1.4, décision plan phase-3.2 #3) —

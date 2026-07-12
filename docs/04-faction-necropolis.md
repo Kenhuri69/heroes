@@ -116,10 +116,19 @@ Héros nommés MVP : *Vhalen* (Chevalier de la mort, spécialité : Vampires +1 
 > *Dame noire*, −10 % dégâts de mêlée subis). Fiches
 > `heroes/{sandro,markal,ornella}.json`, **portraits dédiés** stagés
 > (`assets/heroes/necropolis-<id>.png`, Règle B doc 12 §3 — affichés tiroir/
-> Taverne/pré-combat/combat, M-TAVERN.3). **Différés** : *Vhalen* et *Mère
-> Corbeau* — leurs spécialités du tableau ci-dessus sont **conditionnelles**
-> (par unité / par niveau), hors du vocabulaire d'effets déclaratifs actuel
-> (nouveau point d'extension moteur requis).
+> Taverne/pré-combat/combat, M-TAVERN.3).
+>
+> **État livré (H-COND)** : *Vhalen* et *Mère Corbeau* sont désormais **jouables**
+> (roster necropolis, recrutables/choisissables au départ). Le point d'extension
+> moteur **générique** est ouvert : une spécialité peut porter un effet
+> `conditional` scopé **par unité** (`unitId`) et/ou **par niveau** (`perLevels` ⇒
+> magnitude × `ceil(niveau/perLevels)`), interprété au niveau unité en combat
+> (`conditionalUnitBonus` — attaque/défense/vitesse ; aucune faction en dur, pas
+> de bump save, golden inchangé). **Vhalen** = **+1 att/+1 déf aux Vampires
+> (`t4-vampire`) par 2 niveaux** (fidèle au tableau). **Mère Corbeau** = variante
+> unit-scopée **+1 att aux Squelettes par 2 niveaux** ; sa signature EXACTE
+> (« Nécromancie +2 %/niveau » = mise à l'échelle d'un effet de faction) reste
+> **différée** (exigerait un 2ᵉ point d'extension, hors périmètre « un seul »).
 
 ## 6. Notes d'équilibrage
 

@@ -20,8 +20,9 @@ function pickNext(
   combat: CombatState,
   catalog: Draft['unitCatalog'],
   direction: 'asc' | 'desc',
+  state: Draft,
 ): CombatStack | undefined {
-  const sorted = [...candidates].sort((a, b) => compareInitiative(a, b, combat, catalog, direction));
+  const sorted = [...candidates].sort((a, b) => compareInitiative(a, b, combat, catalog, direction, state));
   return sorted[0];
 }
 
@@ -76,8 +77,8 @@ export function advanceTurn(draft: Draft, events: GameEvent[]): void {
     const alive = combat.stacks;
     const mainPhase = alive.filter((s) => !s.acted && !s.waited);
     const waitPhase = alive.filter((s) => !s.acted && s.waited);
-    let next = mainPhase.length > 0 ? pickNext(mainPhase, combat, draft.unitCatalog, 'desc') : undefined;
-    if (!next) next = waitPhase.length > 0 ? pickNext(waitPhase, combat, draft.unitCatalog, 'asc') : undefined;
+    let next = mainPhase.length > 0 ? pickNext(mainPhase, combat, draft.unitCatalog, 'desc', draft) : undefined;
+    if (!next) next = waitPhase.length > 0 ? pickNext(waitPhase, combat, draft.unitCatalog, 'asc', draft) : undefined;
     if (!next) {
       // Round terminé : personne à faire jouer — round suivant. Le héros
       // regagne son sort (décision plan phase-3.2 #2) et les statuts de

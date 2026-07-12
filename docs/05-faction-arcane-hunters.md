@@ -312,6 +312,8 @@ Fort ──► T1 Dortoirs ──► T2 Volière ──► T3 Salle des Préfets
 
 Héros nommés : *Evadne Corvel* (Maître de Chasse, ex-Cercle de l'Abîme, moitié de visage runique), *Professeur Alwin Marchmont* (Doyen, sa chouette est un familier de combat T2 gratuit au jour 1).
 
+> **État livré (H-COND)** : *Evadne* et *Alwin* sont **jouables** (roster arcane-hunters). **Evadne** « Maître de Chasse » = spécialité conditionnelle **+1 att aux Chasseresses (`t6-chasseresse`) par 2 niveaux** (le doc ne chiffrait pas — choix cohérent via le point d'extension `conditional`). **Alwin** « Doyen » = spécialité **plate** −15 % coût mana (vocabulaire existant) ; son **familier T2 gratuit au jour 1** reste **différé** (bonus d'armée de départ = mécanique distincte du point d'extension conditionnel).
+
 ## 8. Résumé des points d'extension utilisés (test de modularité)
 
 | Besoin | Mécanisme du framework (doc 06) |

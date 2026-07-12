@@ -1,5 +1,11 @@
 {
   "faction.arcane-hunters.name": "Chasseurs Arcanes",
+  "hero.evadne.name": "Evadne Corvel",
+  "hero.evadne.bio": "Maître de Chasse au visage à demi runique, ancienne du Cercle de l'Abîme. Ses Chasseresses ne manquent jamais deux fois la même proie.",
+  "hero.evadne.specialty": "Maître de Chasse — +1 attaque aux Chasseresses par tranche de 2 niveaux.",
+  "hero.alwin.name": "Professeur Alwin Marchmont",
+  "hero.alwin.bio": "Doyen de l'académie, plus à l'aise avec un grimoire qu'avec une lame. Son économie de mana lui permet de lancer sans relâche.",
+  "hero.alwin.specialty": "Doyen — −15 % de coût en mana des sorts.",
   "unit.t1-eleve.name": "Élève de Sombreveille",
   "unit.t2-familier.name": "Familier lié",
   "unit.t3-prefet.name": "Préfet de Cercle",

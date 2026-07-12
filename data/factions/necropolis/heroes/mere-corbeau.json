@@ -1,0 +1,17 @@
+{
+  "id": "mere-corbeau",
+  "name": "@loc:hero.mere-corbeau.name",
+  "bio": "@loc:hero.mere-corbeau.bio",
+  "archetype": "magic",
+  "origin": "original",
+  "avatar": "necropolis-magic",
+  "avatarStyle": "painterly",
+  "specialty": "@loc:hero.mere-corbeau.specialty",
+  "attributes": { "attack": 0, "defense": 1, "power": 2, "knowledge": 3 },
+  "specialtyEffect": {
+    "id": "necromancienne",
+    "conditional": { "unitId": "t1-squelette", "perLevels": 2, "attack": 1 }
+  },
+  "startingSkills": { "necromancy": 1, "wisdom": 1 },
+  "startingSpells": []
+}

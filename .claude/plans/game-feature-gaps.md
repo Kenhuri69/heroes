@@ -307,8 +307,13 @@ Source design : doc 02 §1 (héros), docs de faction §5/§6/§7 (héros nommés
   > bump save. **H-NAMED.2 ✅** (plan `h-named-2.md`) : **choix du héros de départ**
   > à « Nouvelle partie »/« Escarmouche » — `<select>` par siège humain (roster de
   > la faction) ⇒ `PlayerSetup.startingHeroId` ; défaut aléatoire **seedé**, unicité
-  > de pool ; **zéro diff moteur** (pas de bump save). **Différés (H-NAMED.3+)** :
-  > profil de gain par classe, spécialités conditionnelles (H-COND).
+  > de pool ; **zéro diff moteur** (pas de bump save). **H-COND ✅** (plan `h-cond.md`) :
+  > point d'extension moteur GÉNÉRIQUE `conditional` (spécialité scopée par unitId
+  > et/ou par niveau, `conditionalUnitBonus` en combat — att/déf/vitesse ; pas de
+  > bump save, golden inchangé) ; 6 héros différés jouables (Vhalen/Mère Corbeau,
+  > Sylwen/Faelar, Evadne/Alwin, locales FR/EN + avatars génériques). **Différés
+  > (H-NAMED.3+)** : profil de gain par classe ; signatures exactes hors périmètre
+  > (Nécromancie/niveau, Symbiose de départ, familier gratuit).
   > **Point d'extension ouvert (bornée)** : `HeroState.name` + `specialtyId` +
   > `specialtyEffects` (save v15) ; `PlayerSetup.startingName`/`startingSpecialtyId`
   > + `StartGame.specialtyCatalog` (miroir de `houseCatalog`). La **spécialité est

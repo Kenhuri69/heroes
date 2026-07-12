@@ -88,5 +88,9 @@
         "buildingId": "sylvan-court-dwelling-t7"
       }
     ]
-  }
+  },
+  "heroes": [
+    "faelar",
+    "sylwen"
+  ]
 }

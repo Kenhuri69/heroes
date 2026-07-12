@@ -27,7 +27,13 @@
   "heroSkills": [
     "necromancy"
   ],
-  "heroes": ["sandro", "markal", "ornella"],
+  "heroes": [
+    "sandro",
+    "markal",
+    "ornella",
+    "vhalen",
+    "mere-corbeau"
+  ],
   "tiers": 7,
   "sharedGrowthGroups": {},
   "units": [

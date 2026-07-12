@@ -1,0 +1,17 @@
+{
+  "id": "evadne",
+  "name": "@loc:hero.evadne.name",
+  "bio": "@loc:hero.evadne.bio",
+  "archetype": "might",
+  "origin": "original",
+  "avatar": "arcane-hunters-might",
+  "avatarStyle": "painterly",
+  "specialty": "@loc:hero.evadne.specialty",
+  "attributes": { "attack": 2, "defense": 1, "power": 1, "knowledge": 1 },
+  "specialtyEffect": {
+    "id": "maitre-de-chasse",
+    "conditional": { "unitId": "t6-chasseresse", "perLevels": 2, "attack": 1 }
+  },
+  "startingSkills": { "archery": 1 },
+  "startingSpells": []
+}

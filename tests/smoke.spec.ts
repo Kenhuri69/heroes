@@ -1887,14 +1887,45 @@ test('H-NAMED.2 : choisir son héros de départ à l’Escarmouche (doc 02 §1.2
   expect(errors).toEqual([]);
 });
 
+test('H-COND : héros à spécialité conditionnelle jouable (Vhalen, doc 04 §5)', async ({ page }) => {
+  const errors = collectErrors(page);
+  await page.goto('./');
+  await page.waitForFunction(() => window.__HEROES_READY__ === true);
+
+  // Escarmouche necropolis + choix du héros « vhalen » (spécialité conditionnelle
+  // +att/déf aux vampires par 2 niveaux — H-COND). Vérifie l'intégration bout en
+  // bout (roster → sélection → identité + effet conditionnel résolu sur le héros).
+  await page.getByTestId('menu-skirmish').click();
+  await page.getByTestId('skirmish-human-faction').selectOption('necropolis');
+  await page.getByTestId('skirmish-human-hero').selectOption('vhalen');
+  await page.getByTestId('skirmish-start').click();
+  await expect(page.getByTestId('end-turn')).toBeVisible();
+
+  const hero = await page.evaluate(() => {
+    const h = window.__HEROES_TEST__!.getState().heroes.find((x) => x.id === 'hero-player-1')!;
+    return { rosterId: h.rosterId, specialtyId: h.specialtyId, cond: h.specialtyEffects[0]?.conditional ?? null };
+  });
+  expect(hero.rosterId).toBe('vhalen');
+  expect(hero.specialtyId).toBe('chevalier-vampirique');
+  // L'effet conditionnel est résolu sur le héros (ciblé sur les vampires, par 2 niveaux).
+  expect(hero.cond?.unitId).toBe('t4-vampire');
+  expect(hero.cond?.perLevels).toBe(2);
+
+  expect(errors).toEqual([]);
+});
+
 test('taverne : le portrait DÉDIÉ d’un héros canon s’affiche (M-TAVERN.3)', async ({ page }) => {
   const errors = collectErrors(page);
   await page.goto('./');
   await page.waitForFunction(() => window.__HEROES_READY__ === true);
 
-  // Escarmouche par défaut : la faction humaine est le 1er paquet chargé
-  // (haven), dont le roster porte des héros canon à portrait dédié stagé.
+  // Escarmouche haven : le roster porte des héros canon à portrait dédié stagé.
+  // On choisit explicitement « aldric » comme héros de départ (H-NAMED.2) pour
+  // qu'« anton » reste LIBRE au pool ⇒ recrutable à la Taverne (déterministe :
+  // sinon le tirage aléatoire du héros de départ pourrait prendre anton).
   await page.getByTestId('menu-skirmish').click();
+  await page.getByTestId('skirmish-human-faction').selectOption('haven');
+  await page.getByTestId('skirmish-human-hero').selectOption('aldric');
   await page.getByTestId('skirmish-start').click();
   await expect(page.getByTestId('end-turn')).toBeVisible();
 

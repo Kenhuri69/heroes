@@ -2,6 +2,13 @@ import type { HeroState } from '../core/state';
 import type { HeroSkillDef, SkillRankEffect, SpellSchool } from './types';
 
 /**
+ * Champs SCALAIRES du vocabulaire d'effets — agrégés à plat. On EXCLUT
+ * `conditional` (objet, interprété au niveau unité en combat via
+ * `conditionalUnitBonus`, jamais sommé à plat — H-COND).
+ */
+type NumericEffectField = Exclude<keyof SkillRankEffect, 'conditional'>;
+
+/**
  * Compétences secondaires (doc 02 §1.3, décision plan phase-3.2 #5) : effets
  * déclaratifs par rang (`HeroSkillDef.ranks`, index 0 = Novice). Fonctions
  * pures lisant uniquement `hero.skills` + `state.skillCatalog`, toutes
@@ -21,7 +28,7 @@ import type { HeroSkillDef, SkillRankEffect, SpellSchool } from './types';
 function sumRankField(
   hero: HeroState,
   catalog: Record<string, HeroSkillDef>,
-  field: keyof SkillRankEffect,
+  field: NumericEffectField,
 ): number {
   let total = 0;
   for (const [skillId, rank] of Object.entries(hero.skills)) {
@@ -39,7 +46,7 @@ function sumRankField(
  * ci-dessous — l'unique point du moteur qui les interprète, sans jamais nommer
  * de faction, de Maison ni de héros.
  */
-function sumHouseField(hero: HeroState, field: keyof SkillRankEffect): number {
+function sumHouseField(hero: HeroState, field: NumericEffectField): number {
   let total = 0;
   for (const effect of hero.houseEffects) total += effect[field] ?? 0;
   for (const effect of hero.specialtyEffects) total += effect[field] ?? 0;
@@ -59,7 +66,7 @@ export function townHouseField(
   heroes: readonly HeroState[],
   ownerPlayerId: string,
   townPos: { x: number; y: number },
-  field: keyof SkillRankEffect,
+  field: NumericEffectField,
 ): number {
   let total = 0;
   for (const hero of heroes) {

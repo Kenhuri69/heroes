@@ -457,6 +457,11 @@ export async function loadFactionPack(
         errors.push(`${path}: compétence de départ inconnue '${skillId}'`);
     for (const spellId of hero.startingSpells)
       if (!rosterSpellIds.has(spellId)) errors.push(`${path}: sort de départ inconnu '${spellId}'`);
+    // Spécialité conditionnelle (H-COND) : l'unité ciblée doit exister dans le
+    // paquet (sinon effet inerte = mensonge de contenu, doc 06).
+    const condUnit = hero.specialtyEffect?.conditional?.unitId;
+    if (condUnit && !unitIds.has(condUnit))
+      errors.push(`${path}: spécialité conditionnelle — unité inconnue '${condUnit}'`);
     heroes.push(hero);
   }
   if (new Set(heroes.map((h) => h.id)).size !== heroes.length)

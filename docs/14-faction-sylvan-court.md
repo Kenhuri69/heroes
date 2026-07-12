@@ -103,10 +103,15 @@ implacable, car la forêt ne charge pas — elle *encercle*.
 - **Classes** : **Gardien** (Might — Commandement/Armure) et **Druide** (Magic —
   Sagesse/école earth-water). Dotation par défaut du contenu au 1ᵉʳ lot (comme les
   autres maisons ; héros nommés = chantier narratif doc 13).
-- **Héros nommés (différés au lot narratif)** : *Faelar l'Écoutant* (Druide,
-  spécialité : Symbiose démarre à 1 palier), *Sylwen Gardefronde* (Gardien,
-  spécialité : +1 vitesse aux tireurs). Spécialités = **données** si/quand le point
-  d'extension « héros nommés » est ouvert (différé, comme pour les 3 maisons).
+- **Héros nommés (état livré, H-COND)** : *Faelar l'Écoutant* (Druide) et *Sylwen
+  Gardefronde* (Gardien) sont **jouables** (roster sylvan-court). Le point
+  d'extension moteur **générique** `conditional` (spécialité scopée par unité et/ou
+  par niveau, interprété en combat par `conditionalUnitBonus` — aucune faction en
+  dur, pas de bump save) porte leurs spécialités. **Sylwen** = **+1 vitesse aux
+  Archers sylvestres (`t2-archer-sylvestre`)** (fidèle : « +vitesse aux tireurs »).
+  **Faelar** = variante **+1 déf aux Tréants (`t6-treant`) par 2 niveaux** ; sa
+  signature EXACTE (« Symbiose démarre à 1 palier » = état de départ de combat)
+  reste **différée** (mécanique distincte du point d'extension conditionnel).
 
 ## 6. Compétence de faction (si applicable)
 

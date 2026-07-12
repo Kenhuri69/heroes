@@ -1,5 +1,11 @@
 {
   "faction.sylvan-court.name": "Sylvan Court",
+  "hero.sylwen.name": "Sylwen Slingward",
+  "hero.sylwen.bio": "A warden of the treeline, she learned to defend the border rather than the whole forest. Her archers strike before the enemy has seen the bow.",
+  "hero.sylwen.specialty": "Slingward — +1 speed to Sylvan Archers.",
+  "hero.faelar.name": "Faelar the Listener",
+  "hero.faelar.bio": "A druid who listens more than he acts; when he finally speaks, the Treants rise, patient and unshakable.",
+  "hero.faelar.specialty": "The Listener — +1 defense to Treants per 2 levels.",
   "unit.t1-lucine.name": "Lucine",
   "unit.t2-archer-sylvestre.name": "Sylvan Archer",
   "unit.t3-dryade.name": "Dryad",

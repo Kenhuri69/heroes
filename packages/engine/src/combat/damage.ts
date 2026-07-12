@@ -5,7 +5,7 @@ import { heroArmorPct, heroLuck, heroMeleePct, heroRangedPct } from '../hero/ski
 import type { SpellStatus } from '../hero/types';
 import { canShootTarget } from './actions';
 import { hexBehind, hexDistance, inCombatBounds, sameHex } from './hex';
-import { clamp, collectCasualties, factionCombatBonus, hasAbility, isShooterMeleePenalized, recordLoss } from './state-helpers';
+import { clamp, collectCasualties, conditionalUnitBonus, factionCombatBonus, hasAbility, isShooterMeleePenalized, recordLoss } from './state-helpers';
 import type { CombatSideId, CombatStack, CombatUnitDef, CombatState } from './types';
 import type { CombatRulesConfig } from '../adventure/config';
 import type { GameEvent } from '../core/events';
@@ -428,6 +428,8 @@ export function performStrike(
   const strikerAttack =
     strikerDef.stats.attack +
     (combat ? heroAttackOf(draft, combat, striker.side) : 0) +
+    // Spécialité conditionnelle (H-COND) : bonus d'attaque ciblé sur cette unité.
+    (combat ? conditionalUnitBonus(draft, combat, striker.side, strikerDef.id, 'attack') : 0) +
     statusModSum(striker.statuses, 'attackMod') +
     // Symbiose (doc 14 §2, Beta 5.3) : bonus d'Attaque = paliers accumulés × params.
     symbiosisAttackBonus(strikerDef, striker.symbiosisStacks);
@@ -436,6 +438,8 @@ export function performStrike(
   const targetDefense =
     victimDef.stats.defense +
     statusModSum(victim.statuses, 'defenseMod') +
+    // Spécialité conditionnelle (H-COND) : bonus de défense ciblé sur cette unité.
+    (combat ? conditionalUnitBonus(draft, combat, victim.side, victimDef.id, 'defense') : 0) +
     // Murs du Fort (doc 02 §4.1, Alpha 4.13) : bonus de défense aux piles en
     // garnison (camp défenseur) pendant un siège ; 0 hors combat de ville.
     (combat && victim.side === 'defender' ? combat.wallDefenseBonus : 0) +
@@ -752,11 +756,13 @@ export function estimateDamage(
   const strikerAttack =
     attackerDef.stats.attack +
     heroAttackOf(state, combat, attacker.side) +
+    conditionalUnitBonus(state, combat, attacker.side, attackerDef.id, 'attack') +
     statusModSum(attacker.statuses, 'attackMod') +
     symbiosisAttackBonus(attackerDef, attacker.symbiosisStacks);
   const targetDefenseVal =
     targetDef.stats.defense +
     statusModSum(target.statuses, 'defenseMod') +
+    conditionalUnitBonus(state, combat, target.side, targetDef.id, 'defense') +
     (target.side === 'defender' ? combat.wallDefenseBonus : 0) +
     symbiosisDefenseBonus(targetDef, target.symbiosisStacks);
   const heroDamagePct = ranged
@@ -821,11 +827,13 @@ export function estimateDamage(
     const retStrikerAttack =
       targetDef.stats.attack +
       heroAttackOf(state, combat, target.side) +
+      conditionalUnitBonus(state, combat, target.side, targetDef.id, 'attack') +
       statusModSum(target.statuses, 'attackMod') +
       symbiosisAttackBonus(targetDef, target.symbiosisStacks);
     const retTargetDefense =
       attackerDef.stats.defense +
       statusModSum(attacker.statuses, 'defenseMod') +
+      conditionalUnitBonus(state, combat, attacker.side, attackerDef.id, 'defense') +
       (attacker.side === 'defender' ? combat.wallDefenseBonus : 0) +
       symbiosisDefenseBonus(attackerDef, attacker.symbiosisStacks);
     const retMult = computeMultiplier({

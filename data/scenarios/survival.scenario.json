@@ -10,7 +10,7 @@
       "factionId": "necropolis",
       "startPositionIndex": 0,
       "startingResources": { "gold": 1500 },
-      "startingArmy": [{ "unitId": "t1-squelette", "count": 10 }]
+      "startingArmy": [{ "unitId": "t1-squelette", "count": 25 }]
     },
     {
       "id": "ai-1",

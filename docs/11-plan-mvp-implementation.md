@@ -134,6 +134,14 @@ perf 60 fps mobile re-vérifiée (throttling ×4), i18n complète des nouveaux
 > **3.1** règle **« 7 jours pour reprendre une ville »** (`RETAKE_GRACE_DAYS`,
 > armée seulement après avoir possédé une ville — un héros de survie n'est jamais
 > sur le minuteur). `CURRENT_SAVE_VERSION` → 4. Golden re-fixé (`347a584d`).
+>
+> ✅ **AI-HERO-HUNT (post-MVP)** : l'IA d'aventure cible désormais un **héros
+> ennemi « battable »** (priorité 2, marge de force ≥ 1,5× comme les gardiens),
+> réutilisant le combat héros-vs-héros (H-VS-H) — clôt le différé noté à H-VS-H
+> (« l'A* évitait les tuiles occupées »). Zéro faction moteur, RNG seedé, pas de
+> bump save, golden inchangé. Le scénario `survival` a été rééquilibré en
+> conséquence (armée humaine 10→25 squelettes) pour rester gagnable par la survie
+> face à une IA désormais capable de chasser (cf. `.claude/plans/ai-hero-hunt.md`).
 
 ---
 

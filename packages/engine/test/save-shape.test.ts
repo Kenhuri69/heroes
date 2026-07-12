@@ -41,6 +41,7 @@ type HeroKey =
   | 'visitLuck'
   | 'spells'
   | 'artifacts'
+  | 'backpack'
   | 'pendingSkillChoices'
   | 'pendingAttributeChoices'
   | 'name'
@@ -83,7 +84,7 @@ void _stackExact;
 
 describe('B8 — forme de sauvegarde verrouillée', () => {
   it('CURRENT_SAVE_VERSION correspond à la forme documentée (doc 07 §4)', () => {
-    expect(CURRENT_SAVE_VERSION).toBe(28);
+    expect(CURRENT_SAVE_VERSION).toBe(29);
   });
 
   it('clés top-level de GameState (createEmptyState) inchangées', () => {

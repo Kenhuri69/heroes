@@ -65,6 +65,12 @@ import {
 import { heroManaMax } from '../hero/artifacts';
 import { validateRecruitHero, handleRecruitHero } from '../hero/recruit';
 import { validateTransferBetweenHeroes, handleTransferBetweenHeroes } from '../hero/transfer';
+import {
+  validateEquipArtifact,
+  validateUnequipArtifact,
+  applyEquipArtifact,
+  applyUnequipArtifact,
+} from '../hero/equip';
 import { heroGoldPerDay, heroMovementBonus, heroVisionBonus } from '../hero/skills';
 import { resolveTreasure } from '../adventure/treasure';
 import { roamGuardians } from '../adventure/roam';
@@ -137,6 +143,8 @@ const GAME_OVER_BLOCKED = new Set<Command['type']>([
   'ReorderArmy',
   'SplitStack',
   'TransferBetweenHeroes',
+  'EquipArtifact',
+  'UnequipArtifact',
   'SendCaravan',
   'CaptureTown',
   'RecruitHero',
@@ -280,6 +288,14 @@ export function validate(state: GameState, cmd: Command): CommandError | null {
       if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
       if (state.combat) return { code: 'combatActive', message: 'un combat est en cours' };
       return validateTransferBetweenHeroes(state, cmd);
+    }
+    case 'EquipArtifact': {
+      if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
+      return validateEquipArtifact(state, cmd);
+    }
+    case 'UnequipArtifact': {
+      if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
+      return validateUnequipArtifact(state, cmd);
     }
     case 'SendCaravan': {
       if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
@@ -553,6 +569,7 @@ const handlers: Handlers = {
         { length: 10 },
         (_, i) => (p.startingArtifacts ?? cmd.startingArtifacts ?? [])[i] ?? null,
       ),
+      backpack: [],
       pendingSkillChoices: [],
       pendingAttributeChoices: [],
       factionId: p.startingFactionId ?? '',
@@ -686,6 +703,14 @@ const handlers: Handlers = {
 
   TransferBetweenHeroes(draft, cmd, events) {
     handleTransferBetweenHeroes(draft, cmd, events);
+  },
+
+  EquipArtifact(draft, cmd, events) {
+    applyEquipArtifact(draft, cmd, events);
+  },
+
+  UnequipArtifact(draft, cmd, events) {
+    applyUnequipArtifact(draft, cmd, events);
   },
 
   SendCaravan(draft, cmd, events) {

@@ -240,7 +240,7 @@ describe('artefact au sol (doc 02 §2.2)', () => {
     expect(events.some((e) => e.type === 'ArtifactPicked')).toBe(true);
   });
 
-  it("reste au sol si l'inventaire du héros est plein", () => {
+  it('tombe dans le sac si les 10 slots équipés sont pleins (H-ARTEQUIP)', () => {
     const full = Array.from({ length: 10 }, () => 'test-art');
     const { state, events } = apply(startedWith([groundArtifact], [{ id: 'p1' }], full), {
       type: 'MoveHero',
@@ -251,9 +251,11 @@ describe('artefact au sol (doc 02 §2.2)', () => {
         { x: 3, y: 0 },
       ],
     });
-    expect(state.map?.objects.some((o) => o.id === 'art-1')).toBe(true);
+    // Plus rien de perdu au sol : l'artefact est ramassé dans le sac.
+    expect(state.map?.objects.some((o) => o.id === 'art-1')).toBe(false);
+    expect(state.heroes[0]?.backpack).toEqual(['test-art']); // ramassé au sac
     expect(state.heroes[0]?.pos).toEqual({ x: 3, y: 0 }); // pas d'arrêt
-    expect(events.some((e) => e.type === 'ArtifactPicked')).toBe(false);
+    expect(events.some((e) => e.type === 'ArtifactPicked')).toBe(true);
   });
 
   it('validateMap rejette un artefact inconnu du catalogue', () => {

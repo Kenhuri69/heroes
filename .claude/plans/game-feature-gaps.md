@@ -408,14 +408,19 @@ Source design : doc 02 §1 (héros), docs de faction §5/§6/§7 (héros nommés
   - **H-SPELLS.4+** ⬜ : **invocation**, **chaîne**, **résurrection de pile entière**
     (pile à 0 retirée de la grille), dissipation réelle. Débloque C-SPELLUI.
 
-- **H-ARTEQUIP — Artefacts équipables + effets spéciaux + sets** 🧩/🎨 M ⬜
-  Doc : doc 02 §1.1 (10 slots), doc 08 §2.3 (poupée interactive). Code :
-  `heroArtifactBonus` somme 7 stats (`packages/engine/src/hero/artifacts.ts:21-47`) ;
-  aucune commande Equip/Unequip (`core/commands.ts`) ; poupée UI en lecture
-  seule (`packages/client/src/ui/HeroInventory.tsx:41-99`). Spec : commandes
-  `EquipArtifact`/`UnequipArtifact` (validation slot), slots typés, effets
-  spéciaux déclaratifs (immunités, +sorts…), sets à seuils ; UI tap-tap
-  (touch-first, pas de drag obligatoire). Save bump probable.
+- **H-ARTEQUIP — Artefacts équipables + effets spéciaux + sets** 🧩/🎨 M 🚧 (.1 livré)
+  Doc : doc 02 §1.1 (10 slots), doc 08 §2.3 (poupée interactive).
+  - **H-ARTEQUIP.1** ✅ (plan `h-artequip.md`) : **sac + équiper/déséquiper** —
+    `HeroState.backpack?: string[]` (save **v28→29**, save-shape + golden re-fixés
+    une fois, forme) ; commandes génériques `UnequipArtifact { heroId, slot }`
+    (slot équipé → sac) et `EquipArtifact { heroId, index }` (sac → 1er slot libre,
+    refus si 10 pleins), joueur actif + hors combat ; **débordement de ramassage
+    carte → sac** (plus rien perdu au sol) ; UI `HeroInventory` interactive tap-tap
+    (poupée typée → déséquiper, section Sac → équiper, ≥ 44px). Zéro faction.
+  - **Reste (H-ARTEQUIP.2+)** ⬜ : slots typés contraignants, effets spéciaux
+    déclaratifs (immunités, +sorts…), sets à seuils ; routage vers le sac de la
+    dépouille de combat / récompense de quête (débordement actuellement au sol /
+    non attribué).
 
 - **H-LEVELCHOICE — Choix d'attribut à la montée de niveau** 🎨 S ✅
   > **Livré** : le joueur **humain** choisit +1 attribut parmi 2 propositions à

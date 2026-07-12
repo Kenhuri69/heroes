@@ -203,24 +203,22 @@ export function advanceHeroAlongPath(
         options.onTreasureFound?.();
         break;
       }
-      // Artefact au sol (doc 02 §2.2) : ramassé vers le 1er slot libre ; s'il
-      // n'y en a aucun, il reste au sol et le héros poursuit.
+      // Artefact au sol (doc 02 §2.2) : ramassé vers le 1er slot équipé libre ;
+      // s'il n'y en a aucun, il tombe dans le SAC (H-ARTEQUIP — plus rien de
+      // perdu au sol). Ramassé en passant (D6) : le héros ne s'arrête pas.
       if (obj && obj.type === 'artifact') {
         const slot = hero.artifacts.indexOf(null);
-        if (slot !== -1) {
-          hero.artifacts[slot] = obj.artifactId;
-          map.objects.splice(objIndex, 1);
-          events.push({
-            type: 'ArtifactPicked',
-            heroId: hero.id,
-            playerId: player.id,
-            objectId: obj.id,
-            artifactId: obj.artifactId,
-            pos: { ...hero.pos },
-          });
-          // Ramassé en passant (doc 02 §2.2, fidélité HoMM, D6) : le héros ne
-          // s'arrête pas ; s'il n'a aucun slot libre, l'artefact reste au sol.
-        }
+        if (slot !== -1) hero.artifacts[slot] = obj.artifactId;
+        else (hero.backpack ??= []).push(obj.artifactId);
+        map.objects.splice(objIndex, 1);
+        events.push({
+          type: 'ArtifactPicked',
+          heroId: hero.id,
+          playerId: player.id,
+          objectId: obj.id,
+          artifactId: obj.artifactId,
+          pos: { ...hero.pos },
+        });
       }
     }
   }

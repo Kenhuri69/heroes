@@ -110,8 +110,17 @@ export interface HeroState {
   visitLuck: number;
   /** Sorts connus (ids du catalogue) — lançables selon cercle/mana. */
   spells: string[];
-  /** Équipement d'artefacts, 10 slots (doc 08 §2.3) — null = vide. */
+  /** Équipement d'artefacts, 10 slots (doc 08 §2.3) — null = vide. Ces slots
+   * contribuent aux bonus (`heroArtifactBonus`). */
   artifacts: (string | null)[];
+  /**
+   * Sac (H-ARTEQUIP, doc 08 §2.3) : artefacts NON équipés — aucun bonus tant
+   * qu'ils n'y sont pas remontés (`EquipArtifact`). Reçoit le débordement de
+   * ramassage carte quand les 10 slots sont pleins (plus rien de perdu au sol).
+   * **Optionnel** (patron `stealthed`/`markedNoRetaliation`) : le moteur le
+   * peuple toujours à la création ; absent = sac vide (saves/états ad hoc).
+   */
+  backpack?: string[];
   /** Propositions de compétence en attente d'un `ChooseSkill` (doc 02 §1.2). */
   pendingSkillChoices: string[];
   /**
@@ -271,7 +280,7 @@ export interface CaravanState {
  * F-SCHOOLS.7) : une pile furtive est inciblable par l'ennemi jusqu'à sa prochaine
  * action ; absent hors sort.
  */
-export const CURRENT_SAVE_VERSION = 28;
+export const CURRENT_SAVE_VERSION = 29;
 
 export interface GameState {
   saveVersion: number;

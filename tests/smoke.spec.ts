@@ -2697,6 +2697,41 @@ test('campagne : gagner le chapitre 1 débloque le 2 et reporte le héros (doc 1
   expect(errors).toEqual([]);
 });
 
+test('artefacts : déséquiper vers le sac puis rééquiper depuis le tiroir héros (H-ARTEQUIP)', async ({
+  page,
+}) => {
+  const errors = await openMenu(page);
+
+  // Le Prologue Haven dote le héros de `trefle-chance` (slot `ring`) équipé.
+  await page.evaluate(() => window.__HEROES_TEST__!.startCampaignChapter('haven-campaign', 0));
+  await expect(page.getByTestId('end-turn')).toBeVisible();
+  // Purge la file de dialogues d'ouverture (openingDialog + dialogBefore).
+  const skip = page.getByTestId('dialogue-skip');
+  for (let i = 0; i < 8 && (await skip.count()) > 0; i++) await skip.click();
+
+  // Ouvre le tiroir héros (mobile ; desktop = colonne persistante).
+  if (await page.getByTestId('hero-drawer-toggle').isVisible())
+    await page.getByTestId('hero-drawer-toggle').click();
+  await expect(page.getByTestId('hero-inventory')).toBeVisible();
+  await expect(page.getByTestId('hero-bag-empty')).toBeVisible(); // sac vide au départ
+
+  // Déséquiper l'anneau (trefle-chance) → il tombe dans le sac.
+  await page.getByTestId('hero-slot-ring').click();
+  await expect(page.getByTestId('hero-bag-item-0')).toBeVisible();
+  const unequipped = await page.evaluate(() => window.__HEROES_TEST__!.getState().heroes[0]!);
+  expect(unequipped.backpack).toContain('trefle-chance');
+  expect(unequipped.artifacts).not.toContain('trefle-chance');
+
+  // Rééquiper depuis le sac → il repart dans un slot, le sac se vide.
+  await page.getByTestId('hero-bag-item-0').click();
+  await expect(page.getByTestId('hero-bag-empty')).toBeVisible();
+  const reequipped = await page.evaluate(() => window.__HEROES_TEST__!.getState().heroes[0]!);
+  expect(reequipped.artifacts).toContain('trefle-chance');
+  expect(reequipped.backpack ?? []).not.toContain('trefle-chance');
+
+  expect(errors).toEqual([]);
+});
+
 test('campagne : 2ᵉ maison (Necropolis) = données pures, apparaît et démarre (doc 13 N3b)', async ({ page }) => {
   const errors = await openMenu(page);
 

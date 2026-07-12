@@ -65,6 +65,15 @@ par la planche B → à ignorer (on ne l'édite pas : fichier tool-owned).
    la PR). Fix : `20_000` ms aligné sur le test frère. Local vert (3,5 s). Commit
    f55bd5e.
 
+8. [x] **Faction Sylvan Court** (à la demande) : 4 planches Gemini enrichies
+   (palette forêt/ambre, doc 14) → **24 assets QC verts** : 14 unités (T1–T7 +
+   élites), 8 bâtiments (7 habitations + Bosquet du Cœur), 2 avatars might/magic.
+   Piège rencontré : le modèle a *centré* les 2 sujets de la 2ᵉ rangée de la
+   planche élites (cellules 6-7, pas 5-6) → ré-extraction ciblée du Tréant
+   Ancestral et de l'Aïeul Éveillé depuis leurs vraies cellules (l'ordre
+   row-major supposait un alignement à gauche). Build OK, smoke vert. Commit
+   25f2b0c. **Reste différé** : ~40 variantes élite des 3 autres factions.
+
 ## Notes de décision
 
 - La question de périmètre (AskUserQuestion) a échoué (flux fermé) → défaut

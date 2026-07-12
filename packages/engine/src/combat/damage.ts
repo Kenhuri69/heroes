@@ -814,9 +814,14 @@ export function estimateDamage(
   // `noRetaliation` porté par l'ATTAQUANT prive la victime de riposte (A2).
   // `unlimitedRetaliation` (Griffon, doc 03 §3, A2a) : la cible peut riposter
   // même sans charge de riposte restante.
+  // Heure de la Curée (F-SCHOOLS.6) : le camp de l'attaquant ne subit pas de
+  // riposte en frappant une pile MARQUÉE tant que l'effet est actif (préviz).
+  const cureeSuppresses =
+    combat.markedNoRetaliation?.side === attacker.side && target.marks > 0;
   const canRetaliate =
     !ranged &&
     !willExpose &&
+    !cureeSuppresses &&
     (target.retaliationsLeft > 0 || targetDef.abilities.some((a) => a.id === 'unlimitedRetaliation')) &&
     !attackerDef.abilities.some((a) => a.id === 'noRetaliation') &&
     // `strikeAndReturn` (A2b) : l'attaquant se replie, aucune riposte.

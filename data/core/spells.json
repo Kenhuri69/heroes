@@ -242,6 +242,15 @@
       "perPower": 20
     },
     {
+      "id": "heure-de-la-curee",
+      "school": "traque",
+      "circle": 5,
+      "manaCost": 20,
+      "kind": "rally",
+      "base": 1,
+      "perPower": 0
+    },
+    {
       "id": "ville-portail",
       "school": "air",
       "circle": 3,

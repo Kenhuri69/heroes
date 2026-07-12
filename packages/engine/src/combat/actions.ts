@@ -443,9 +443,14 @@ function applyAttack(
       // `noRetaliation` (doc 02 §5.4) est une capacité de l'ATTAQUANT : elle prive
       // la victime de riposte (Vampire doc 04, Manticore doc 05). A2.
       // `unlimitedRetaliation` (Griffon, doc 03 §3, A2a) : ripostes non limitées.
+      // Heure de la Curée (F-SCHOOLS.6) : le camp de l'attaquant ne subit aucune
+      // riposte en frappant une pile MARQUÉE tant que l'effet est actif.
+      const cureeSuppresses =
+        combat.markedNoRetaliation?.side === attacker.side && target.marks > 0;
       const canRetaliate =
         (target.retaliationsLeft > 0 || hasAbility(targetDef, 'unlimitedRetaliation')) &&
         !hasAbility(attackerDef, 'noRetaliation') &&
+        !cureeSuppresses &&
         !strikeAndReturn;
       if (canRetaliate) {
         if (target.retaliationsLeft > 0) target.retaliationsLeft -= 1;

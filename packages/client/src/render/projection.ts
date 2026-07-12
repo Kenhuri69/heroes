@@ -42,6 +42,26 @@ export function isoAnchor(tx: number, ty: number): WorldPoint {
   return { x: c.x - CONTENT_BOX / 2, y: c.y - CONTENT_BOX / 2 };
 }
 
+/**
+ * Fraction transparente SOUS le contact-sol des assets de carte 512² : leur
+ * contenu opaque s'arrête vers ~87 % de la hauteur (ombre/marge en dessous).
+ */
+export const CONTENT_BOTTOM_MARGIN = 0.13;
+
+/**
+ * Ordonnée LOCALE (dans la boîte de contenu) où poser le BORD BAS `anchor(0.5, 1)`
+ * d'un asset qui EMBARQUE son propre socle isométrique (mine, coffre, fontaine,
+ * château…) pour que ce socle recouvre exactement le losange de la case. Le
+ * contact-sol peint tombe alors sur le VERTEX AVANT du losange (centre +
+ * `ISO_TILE_H/2`) ; on y ajoute la {@link CONTENT_BOTTOM_MARGIN} qui sépare le
+ * contenu opaque du bord bas de l'image. Poser le bord bas AU CENTRE (ancien
+ * réglage) remontait tout l'asset d'un demi-losange → il flottait au-dessus de
+ * sa case. `spriteHeight` = hauteur du sprite APRÈS mise à l'échelle.
+ */
+export function isoGroundSeatY(spriteHeight: number): number {
+  return CONTENT_BOX / 2 + ISO_TILE_H / 2 + spriteHeight * CONTENT_BOTTOM_MARGIN;
+}
+
 /** Inverse de `isoTileCenter` : point MONDE → tuile entière la plus proche (picking). */
 export function isoWorldToTile(wx: number, wy: number): { x: number; y: number } {
   const a = wx / (ISO_TILE_W / 2); // = tx - ty

@@ -67,9 +67,11 @@ sérialisé + statut) ; `match_players` (sièges = ordre de tour) ; `moves`
    plus 500.
 3. Requêtes suivantes : `Authorization: Bearer <session>`.
 4. **`DELETE /session`** (NET-SEC.1) : révoque la session courante côté serveur
-   (déconnexion) ; le SDK `logout()` l'appelle en best-effort. **Reste NET-SEC
-   différé** : rate-limit e-mail/IP, quotas de taille/slots, purge des sessions
-   expirées.
+   (déconnexion) ; le SDK `logout()` l'appelle en best-effort.
+5. **NET-SEC.2** : au `verify` (faible fréquence, après validation du jeton), le
+   Worker **purge** les `sessions` et `auth_tokens` expirés (`expires_at < now`) —
+   les tables ne croissent plus sans fin. **Reste NET-SEC différé** : rate-limit
+   e-mail/IP (exige un state KV, lot à part).
 
 ### 5.2 Cloud saves
 
@@ -82,6 +84,11 @@ celui déjà stocké pour ce slot est rejeté (**409**), un client obsolète ne 
 donc pas écraser une sauvegarde plus récente (« le plus récent gagne », doc 07 §4).
 Le serveur reste version-agnostique (pas de constante moteur dupliquée). **Copie
 de sécurité N-1** (doc 07 §4) : différée (NET-SRVGUARD.2 — évolution de schéma D1).
+**Quota de slots (NET-SEC.2)** : un `PUT` vers un slot **nouveau** est rejeté
+(**409**) si le profil possède déjà `MAX_SAVE_SLOTS` (20) slots ; mettre à jour un
+slot existant reste permis. **Bornage de taille** : tout corps JSON est borné
+(`MAX_BODY_BYTES` 256 Ko ; `MAX_SAVE_BYTES` 4 Mo pour `PUT /saves`) — au-delà,
+rejet **413** (garde-fou anti-épuisement mémoire du Worker).
 
 ### 5.3 PvP asynchrone
 

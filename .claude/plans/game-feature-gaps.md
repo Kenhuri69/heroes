@@ -567,13 +567,17 @@ SDK `packages/client/src/app/net.ts` sans autre appelant).
   monotonie). SDK `putSave` documente le 409. **Différé (NET-SRVGUARD.2)** : copie
   de sécurité N-1 (évolution de schéma D1 + migration base live).
 
-- **NET-SEC — Durcissement : rate limit, quotas, validation, revoke** 🧩 M 🧩 (.1 livré)
+- **NET-SEC — Durcissement : rate limit, quotas, validation, revoke** 🧩 M 🧩 (.1/.2 livrés)
   Doc : doc 15 §2/§8, doc 07 §5 (anti-triche). **NET-SEC.1 ✅** (plan
   `net-sec-1.md`) : **désambiguïsation de handle** (`/auth/verify` — suffixe uuid
   sur collision `UNIQUE`, plus de 500) + **révocation de session** (endpoint
   `DELETE /session` supprimant le bearer courant ; SDK `logout()` l'appelle en
-  best-effort ; CORS `+DELETE`). **Reste (NET-SEC.2+)** : rate limit par
-  e-mail/IP, bornage taille de body + quota de slots, purge des sessions expirées.
+  best-effort ; CORS `+DELETE`). **NET-SEC.2 ✅** (plan `net-sec-2.md`) : **bornage
+  de body** (helper `body<T>` : 413 si > `MAX_BODY_BYTES` 256 Ko / `MAX_SAVE_BYTES`
+  4 Mo pour les saves, `HttpError` typée) + **quota de slots** (409 si slot nouveau
+  au-delà de `MAX_SAVE_SLOTS` 20) + **purge opportuniste** des sessions/jetons
+  expirés au login. Server-only, zéro moteur. **Reste (NET-SEC.3+)** : rate limit
+  par e-mail/IP (exige un state KV, lot à part).
 
 - **NET-FOG — Information cachée : `stateView(playerId)`** 🕳️ L ⬜
   Doc : doc 07 §5 (« brouillard calculé serveur, seule la vue du joueur est

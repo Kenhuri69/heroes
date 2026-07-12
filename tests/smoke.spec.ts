@@ -1815,9 +1815,11 @@ test('M-TAVERN.4 : pool exclusif — un héros recruté chez p1 est indisponible
   await expect(page.getByTestId('end-turn')).toBeVisible();
 
   // Via le hook : bâtir les 2 Tavernes, accumuler l'or (townHall +500/j), puis
-  // p1 recrute « anton ». Le sujet est l'EXCLUSIVITÉ (recrutement couvert par M-TAVERN.2).
-  await page.evaluate(async () => {
-    const d = window.__HEROES_TEST__!.dispatch;
+  // p1 recrute un héros haven encore LIBRE (les héros nommés de DÉPART occupent
+  // déjà des entrées de pool — H-NAMED.2). Le sujet est l'EXCLUSIVITÉ.
+  const target = await page.evaluate(async () => {
+    const T = window.__HEROES_TEST__!;
+    const d = T.dispatch;
     await d({ type: 'BuildStructure', townId: 'town-player-1', buildingId: 'tavern' });
     await d({ type: 'EndTurn', playerId: 'player-1' });
     await d({ type: 'BuildStructure', townId: 'town-player-2', buildingId: 'tavern' });
@@ -1826,33 +1828,61 @@ test('M-TAVERN.4 : pool exclusif — un héros recruté chez p1 est indisponible
       await d({ type: 'EndTurn', playerId: 'player-1' });
       await d({ type: 'EndTurn', playerId: 'player-2' });
     }
-    await d({ type: 'RecruitHero', townId: 'town-player-1', heroId: 'anton', playerId: 'player-1' });
+    const g = T.getState();
+    const taken = new Set(g.heroes.map((h) => h.rosterId).filter(Boolean));
+    // Héros haven du roster non encore en jeu (les départs nommés en ont pris).
+    const free = Object.keys(g.heroRoster).find(
+      (id) => g.heroRoster[id]!.factionId === 'haven' && !taken.has(id),
+    )!;
+    await d({ type: 'RecruitHero', townId: 'town-player-1', heroId: free, playerId: 'player-1' });
+    return free;
   });
-  const p1HasAnton = await page.evaluate(() =>
-    window.__HEROES_TEST__!.getState().heroes.some((h) => h.playerId === 'player-1' && h.rosterId === 'anton'),
+  const p1HasIt = await page.evaluate(
+    (id) => window.__HEROES_TEST__!.getState().heroes.some((h) => h.playerId === 'player-1' && h.rosterId === id),
+    target,
   );
-  expect(p1HasAnton).toBe(true);
+  expect(p1HasIt).toBe(true);
 
-  // p2 tente de recruter « anton » (vivant chez p1) ⇒ REFUS moteur (exclusivité).
-  const rejected = await page.evaluate(async () => {
+  // p2 tente de recruter le MÊME héros (vivant chez p1) ⇒ REFUS moteur (exclusivité).
+  const rejected = await page.evaluate(async (id) => {
     try {
-      await window.__HEROES_TEST__!.dispatch({
-        type: 'RecruitHero',
-        townId: 'town-player-2',
-        heroId: 'anton',
-        playerId: 'player-2',
-      });
+      await window.__HEROES_TEST__!.dispatch({ type: 'RecruitHero', townId: 'town-player-2', heroId: id, playerId: 'player-2' });
       return false;
     } catch {
       return true;
     }
-  });
+  }, target);
   expect(rejected).toBe(true);
-  // Aucun héros « anton » chez p2.
-  const p2HasAnton = await page.evaluate(() =>
-    window.__HEROES_TEST__!.getState().heroes.some((h) => h.playerId === 'player-2' && h.rosterId === 'anton'),
+  const p2HasIt = await page.evaluate(
+    (id) => window.__HEROES_TEST__!.getState().heroes.some((h) => h.playerId === 'player-2' && h.rosterId === id),
+    target,
   );
-  expect(p2HasAnton).toBe(false);
+  expect(p2HasIt).toBe(false);
+
+  expect(errors).toEqual([]);
+});
+
+test('H-NAMED.2 : choisir son héros de départ à l’Escarmouche (doc 02 §1.2)', async ({ page }) => {
+  const errors = collectErrors(page);
+  await page.goto('./');
+  await page.waitForFunction(() => window.__HEROES_READY__ === true);
+
+  // Écran Escarmouche : faction humaine = haven, puis choix explicite du héros
+  // « anton » dans le sélecteur de héros (H-NAMED.2).
+  await page.getByTestId('menu-skirmish').click();
+  await page.getByTestId('skirmish-human-faction').selectOption('haven');
+  await page.getByTestId('skirmish-human-hero').selectOption('anton');
+  await page.getByTestId('skirmish-start').click();
+  await expect(page.getByTestId('end-turn')).toBeVisible();
+
+  // Le héros de départ du joueur porte l'identité du roster (rosterId + nom).
+  const hero = await page.evaluate(() => {
+    const g = window.__HEROES_TEST__!.getState();
+    const h = g.heroes.find((x) => x.id === 'hero-player-1')!;
+    return { rosterId: h.rosterId, name: h.name, rosterName: g.heroRoster['anton']?.name ?? null };
+  });
+  expect(hero.rosterId).toBe('anton');
+  expect(hero.name).toBe(hero.rosterName); // nom résolu depuis le roster, pas générique
 
   expect(errors).toEqual([]);
 });

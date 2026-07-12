@@ -304,8 +304,11 @@ Source design : doc 02 §1 (héros), docs de faction §5/§6/§7 (héros nommés
   > `houseCatalog`, champs de scénario prioritaires). Données : Haven Aldric + Séraphine
   > **jouables** (Vox reste identity-only). **Rework** de #253 (approche parallèle
   > `heroes.json` en collision avec 16.9). Zéro faction moteur, golden inchangé, aucun
-  > bump save. **Différés (H-NAMED.2+)** : profil de gain par classe, spécialités
-  > conditionnelles, pool/taverne (M-TAVERN), câblage de sélection client.
+  > bump save. **H-NAMED.2 ✅** (plan `h-named-2.md`) : **choix du héros de départ**
+  > à « Nouvelle partie »/« Escarmouche » — `<select>` par siège humain (roster de
+  > la faction) ⇒ `PlayerSetup.startingHeroId` ; défaut aléatoire **seedé**, unicité
+  > de pool ; **zéro diff moteur** (pas de bump save). **Différés (H-NAMED.3+)** :
+  > profil de gain par classe, spécialités conditionnelles (H-COND).
   > **Point d'extension ouvert (bornée)** : `HeroState.name` + `specialtyId` +
   > `specialtyEffects` (save v15) ; `PlayerSetup.startingName`/`startingSpecialtyId`
   > + `StartGame.specialtyCatalog` (miroir de `houseCatalog`). La **spécialité est

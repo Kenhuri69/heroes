@@ -92,6 +92,12 @@ export interface AppState {
   scenarios: Scenario[];
   /** Ids des factions chargées (doc 09) — proposées dans l'écran d'escarmouche. */
   factions: string[];
+  /**
+   * Héros nommés jouables du roster (H-NAMED.2) — id + faction + réf de nom `@loc:`.
+   * Peuplé au chargement ; consommé par les écrans de configuration (choix du héros
+   * de départ par siège humain). Vide si aucun héros de roster.
+   */
+  rosterHeroes: { id: string; factionId: string; name: string }[];
   /** Télémétrie locale opt-in activée (doc 09, Alpha 4.19) — miroir du localStorage. */
   telemetryEnabled: boolean;
   /** Compteur de rafraîchissement des stats de télémétrie (re-render Options après reset). */
@@ -192,6 +198,7 @@ export const appStore = createStore<AppState>(() => ({
   modals: [],
   scenarios: [],
   factions: [],
+  rosterHeroes: [],
   telemetryEnabled: false,
   telemetryTick: 0,
   selectedHeroId: null,

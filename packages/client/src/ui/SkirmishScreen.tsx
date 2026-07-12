@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'preact/hooks';
 import { useApp } from '../app/store';
-import { t, resolveLoc } from '../app/i18n';
-import type { SkirmishDifficulty } from '../app/game';
+import { t, resolveLoc, resolveHeroName } from '../app/i18n';
+import { RANDOM, type SkirmishDifficulty } from '../app/game';
 import './options.css';
 
 const DIFFICULTIES: SkirmishDifficulty[] = ['facile', 'normal', 'difficile'];
@@ -21,21 +21,39 @@ function factionName(id: string): string {
 export function SkirmishScreen({ onClose }: { onClose: () => void }) {
   useApp((s) => s.locale); // réactivité i18n
   const factions = useApp((s) => s.factions);
-  const [humanFactionId, setHuman] = useState(factions[0] ?? '');
+  const rosterHeroes = useApp((s) => s.rosterHeroes);
+  const [humanFactionId, setHumanRaw] = useState(factions[0] ?? '');
   const [aiFactionId, setAi] = useState(factions[1] ?? factions[0] ?? '');
   const [difficulty, setDifficulty] = useState<SkirmishDifficulty>('normal');
   const [opponent, setOpponent] = useState<'ai' | 'human'>('ai');
   const [randomMap, setRandomMap] = useState(false);
+  // Héros de départ du joueur (H-NAMED.2) — `RANDOM` = tirage seedé.
+  const [humanHeroId, setHumanHeroId] = useState<string>(RANDOM);
+  // Changer de faction réinitialise le héros (le roster proposé change).
+  const setHuman = (id: string): void => {
+    setHumanRaw(id);
+    setHumanHeroId(RANDOM);
+  };
 
   const options = useMemo(
     () => factions.map((id) => ({ id, label: factionName(id) })),
     [factions],
   );
+  // Héros nommés de la faction humaine + option « Aléatoire ».
+  const heroOptions = useMemo(
+    () => [
+      { id: RANDOM, label: t('newgame.random') },
+      ...rosterHeroes
+        .filter((h) => h.factionId === humanFactionId)
+        .map((h) => ({ id: h.id, label: resolveHeroName(h.name) })),
+    ],
+    [rosterHeroes, humanFactionId],
+  );
 
   const start = (): void => {
     window.dispatchEvent(
       new CustomEvent('heroes:start-skirmish', {
-        detail: { humanFactionId, aiFactionId, difficulty, opponent, randomMap },
+        detail: { humanFactionId, aiFactionId, difficulty, opponent, randomMap, humanHeroId },
       }),
     );
     onClose();
@@ -72,6 +90,22 @@ export function SkirmishScreen({ onClose }: { onClose: () => void }) {
             onChange={(e) => setHuman((e.currentTarget as HTMLSelectElement).value)}
           >
             {options.map((o) => (
+              <option key={o.id} value={o.id}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+        </section>
+
+        <section class="options-section">
+          <h3>{t('skirmish.hero')}</h3>
+          <select
+            class="skirmish-select"
+            data-testid="skirmish-human-hero"
+            value={humanHeroId}
+            onChange={(e) => setHumanHeroId((e.currentTarget as HTMLSelectElement).value)}
+          >
+            {heroOptions.map((o) => (
               <option key={o.id} value={o.id}>
                 {o.label}
               </option>

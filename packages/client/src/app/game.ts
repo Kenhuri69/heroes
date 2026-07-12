@@ -63,6 +63,48 @@ export function buildHeroRosterSetup(report: LoadReport): HeroRosterCatalog {
   return buildHeroRoster(report) as HeroRosterCatalog;
 }
 
+/**
+ * Héros de roster jouables d'une faction (H-NAMED.2) — id + réf de nom `@loc:`,
+ * triés par id (déterministe). Sert à l'UI de choix du héros de départ.
+ */
+export function rosterHeroesFor(
+  roster: HeroRosterCatalog,
+  factionId: string,
+): { id: string; name: string }[] {
+  return Object.entries(roster)
+    .filter(([, def]) => def.factionId === factionId)
+    .map(([id, def]) => ({ id, name: def.name }))
+    .sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+}
+
+/**
+ * Résout le héros nommé de départ d'un siège HUMAIN (H-NAMED.2). `pick` explicite
+ * (id du roster) prioritaire s'il est éligible (bonne faction) et non déjà pris ;
+ * sinon tirage **seedé** parmi les héros de la faction non pris ; '' si la faction
+ * n'a aucun héros de roster. Fait avancer `rng` (déterministe) et marque l'id pris
+ * (unicité de pool au sein d'un `StartGame`).
+ */
+export function pickStartingHero(
+  roster: HeroRosterCatalog,
+  factionId: string,
+  pick: string | undefined,
+  rng: ReturnType<typeof seedRng>,
+  taken: Set<string>,
+): { heroId: string; rng: ReturnType<typeof seedRng> } {
+  if (pick && pick !== RANDOM && roster[pick]?.factionId === factionId && !taken.has(pick)) {
+    taken.add(pick);
+    return { heroId: pick, rng };
+  }
+  const available = rosterHeroesFor(roster, factionId)
+    .map((h) => h.id)
+    .filter((id) => !taken.has(id));
+  if (available.length === 0) return { heroId: '', rng };
+  const r = rollRange(rng, 0, available.length - 1);
+  const heroId = available[r.value]!;
+  taken.add(heroId);
+  return { heroId, rng: r.state };
+}
+
 /** Groupes de croissance partagée résolus contenu → moteur (doc 05 §3.1/§8) — pour `StartGame.growthGroups`. */
 export function buildGrowthGroupSetup(report: LoadReport): Record<string, string[]> {
   return buildGrowthGroupCatalog(report);
@@ -523,6 +565,12 @@ export interface SkirmishConfig {
   opponent?: 'ai' | 'human';
   /** Carte aléatoire générée (doc 09, Live 6.2) — sinon la carte par défaut. */
   randomMap?: boolean;
+  /**
+   * Héros nommé de départ du joueur humain (H-NAMED.2) — id du roster, `RANDOM`
+   * ou absent = tirage seedé parmi les héros de sa faction. Le siège humain 2
+   * (hot-seat) tire aussi aléatoirement (choix par siège différé à l'écran).
+   */
+  humanHeroId?: string;
 }
 
 /**
@@ -625,15 +673,35 @@ export function skirmishStartCommand(
     },
   ];
 
-  const players: PlayerSetup[] = seats.map((s) => ({
-    id: s.id,
-    startingResources: s.resources,
-    startingArmy: s.army.filter((a) => a.count > 0) as ArmyStack[],
-    startingAttributes: { ...heroSetup.startingAttributes },
-    startingSpells: [...heroSetup.startingSpells],
-    startingFactionId: s.factionId,
-    controller: s.controller,
-  }));
+  // Héros nommés de départ (H-NAMED.2) : chaque siège HUMAIN reçoit un héros du
+  // roster de sa faction (choix explicite du J1 via `config.humanHeroId`, sinon
+  // tirage seedé ; J2 hot-seat tire toujours). RNG seedé, unicité de pool.
+  const roster = buildHeroRosterSetup(report);
+  let heroRng = seedRng(seed);
+  const takenHeroes = new Set<string>();
+  const seatHeroId: Record<string, string> = {};
+  for (const s of seats) {
+    if (s.controller !== 'human') continue;
+    const pick = s.id === 'player-1' ? config.humanHeroId : undefined;
+    const res = pickStartingHero(roster, s.factionId, pick, heroRng, takenHeroes);
+    heroRng = res.rng;
+    seatHeroId[s.id] = res.heroId;
+  }
+
+  const players: PlayerSetup[] = seats.map((s) => {
+    const heroId = seatHeroId[s.id] ?? '';
+    return {
+      id: s.id,
+      startingResources: s.resources,
+      startingArmy: s.army.filter((a) => a.count > 0) as ArmyStack[],
+      // Héros nommé (H-NAMED.2) : le roster fournit nom/attributs/spécialité ⇒ on
+      // n'impose PAS `startingAttributes`/`startingName`. Sinon : héros générique.
+      ...(heroId ? { startingHeroId: heroId } : { startingAttributes: { ...heroSetup.startingAttributes } }),
+      startingSpells: [...heroSetup.startingSpells],
+      startingFactionId: s.factionId,
+      controller: s.controller,
+    };
+  });
 
   const towns: TownState[] = seats.map((s, i) => {
     const buildings: Record<string, number> = { townHall: 1 };
@@ -712,6 +780,12 @@ export interface NewGameSeat {
   factionId: string;
   /** Équipe/alliance (doc 02 §6) — 0 = sans alliance ; même n° = alliés. */
   team: number;
+  /**
+   * Héros nommé de départ résolu (H-NAMED.2) — id du roster, ou '' (aucun ⇒ héros
+   * générique). Résolu par `resolveNewGameConfig` (choix explicite ou tirage seedé)
+   * pour les sièges HUMAINS ; toujours '' pour l'IA.
+   */
+  heroId: string;
 }
 
 /**
@@ -763,6 +837,11 @@ export interface NewGameSlot {
   color: number;
   /** Équipe/alliance (doc 02 §6) — 0 = sans alliance ; même n° = alliés. */
   team: number;
+  /**
+   * Héros nommé de départ choisi (H-NAMED.2) — id du roster, ou `RANDOM`/absent
+   * pour un tirage seedé. Résolu par `resolveNewGameConfig` (sièges humains).
+   */
+  heroId?: string;
 }
 
 /** Configuration BRUTE émise par l'écran « Nouvelle partie » (paramètres possiblement `RANDOM`). */
@@ -794,6 +873,7 @@ export interface ResolvedNewGame {
 export function resolveNewGameConfig(
   raw: NewGameRawConfig,
   factionIds: string[],
+  roster: HeroRosterCatalog,
   seed: number,
 ): ResolvedNewGame {
   let rng = seedRng(seed);
@@ -807,6 +887,7 @@ export function resolveNewGameConfig(
     controller: s.controller === 'ai' ? 'ai' : 'human',
     factionId: s.factionId === RANDOM ? pick(factionIds) : s.factionId,
     team: s.team,
+    heroId: '', // résolu ci-dessous (après les autres tirages, séquence RNG stable)
   }));
   // Couleur par joueur, alignée sur l'ordre des sièges (= `player-{i+1}` du moteur).
   const colors: Record<string, number> = {};
@@ -818,6 +899,15 @@ export function resolveNewGameConfig(
     raw.resourceLevel === RANDOM ? pick(['bas', 'standard', 'riche'] as const) : raw.resourceLevel;
   const difficulty: SkirmishDifficulty =
     raw.difficulty === RANDOM ? pick(NEWGAME_DIFFICULTIES) : raw.difficulty;
+  // Héros nommés de départ (H-NAMED.2) : résolus EN DERNIER (la séquence RNG des
+  // tirages précédents reste inchangée) ; sièges HUMAINS seulement, unicité de pool.
+  const takenHeroes = new Set<string>();
+  seats.forEach((seat, i) => {
+    if (seat.controller !== 'human') return;
+    const res = pickStartingHero(roster, seat.factionId, openSlots[i]?.heroId, rng, takenHeroes);
+    rng = res.rng;
+    seat.heroId = res.heroId;
+  });
   const dim = MAP_SIZE_DIMENSIONS[mapSize];
   const res = RESOURCE_LEVEL_TUNING[resourceLevel];
   return {
@@ -868,6 +958,8 @@ export function newGameStartCommand(
       controller: seat.controller,
       factionId: seat.factionId,
       team: seat.team,
+      // Héros nommé de départ résolu (H-NAMED.2) — '' pour l'IA (héros générique).
+      heroId: seat.heroId,
       army: [{ unitId: t1.unitId, count: Math.round(SKIRMISH_BASE_ARMY * armyMult) }],
       resources: skirmishResources(gameConfig, resourceMult),
       dwelling: t1.dwellingBuilding,
@@ -879,7 +971,9 @@ export function newGameStartCommand(
     id: s.id,
     startingResources: s.resources,
     startingArmy: s.army.filter((a) => a.count > 0) as ArmyStack[],
-    startingAttributes: { ...heroSetup.startingAttributes },
+    // Héros nommé (H-NAMED.2) : le roster fournit nom/attributs/spécialité ⇒ on
+    // n'impose pas `startingAttributes`. Sinon (IA / faction sans roster) : générique.
+    ...(s.heroId ? { startingHeroId: s.heroId } : { startingAttributes: { ...heroSetup.startingAttributes } }),
     startingSpells: [...heroSetup.startingSpells],
     startingFactionId: s.factionId,
     controller: s.controller,

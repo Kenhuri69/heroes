@@ -5,6 +5,7 @@ export {
   createEmptyState,
   emptyResources,
   weekOf,
+  monthOf,
   humanPlayerId,
   areAllies,
   CURRENT_SAVE_VERSION,

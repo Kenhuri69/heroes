@@ -392,7 +392,7 @@ test('fin de tour : jour suivant, points de mouvement restaurés', async ({ page
   await expect.poll(() => heroPos(page)).toEqual({ x: 6, y: 3 });
 
   await endTurn(page);
-  await expect(page.getByTestId('calendar')).toHaveText('Jour 2 · Semaine 1');
+  await expect(page.getByTestId('calendar')).toHaveText('Mois 1 · Semaine 1 · Jour 2');
   await expect(page.getByTestId('movement-points')).toHaveText('PM 1700 / 1700');
 
   expect(errors).toEqual([]);
@@ -418,7 +418,7 @@ test('confort : raccourci E + garde-fou de fin de tour (doc 08, lot M8 C2/C12)',
     await expect(confirm).toBeVisible({ timeout: 1000 });
   }).toPass({ timeout: 10000 });
   await page.getByTestId('end-turn-confirm-go').click();
-  await expect(page.getByTestId('calendar')).toHaveText('Jour 2 · Semaine 1');
+  await expect(page.getByTestId('calendar')).toHaveText('Mois 1 · Semaine 1 · Jour 2');
 
   expect(errors).toEqual([]);
 });
@@ -472,7 +472,7 @@ test('trigger de carte : le message onDay (jour 2) alimente le journal (combleme
 
   // proto-01 porte un trigger onDay (jour 2, message) — la bascule de jour le tire.
   await endTurn(page);
-  await expect(page.getByTestId('calendar')).toHaveText('Jour 2 · Semaine 1');
+  await expect(page.getByTestId('calendar')).toHaveText('Mois 1 · Semaine 1 · Jour 2');
   await page.getByTestId('journal-open').click();
   await expect(
     page.getByTestId('journal-entry').filter({ hasText: /éclaireurs|activité/i }).first(),
@@ -509,7 +509,7 @@ test('mine : capture au passage ⇒ propriétaire + revenu au jour suivant (doc 
   // Revenu quotidien : 500 (hôtel de ville) + 1000 (mine d'or — doc 02 §3).
   const goldBefore = state.players[0]?.resources.gold ?? 0;
   await endTurn(page);
-  await expect(page.getByTestId('calendar')).toHaveText('Jour 2 · Semaine 1');
+  await expect(page.getByTestId('calendar')).toHaveText('Mois 1 · Semaine 1 · Jour 2');
   await expect(page.getByTestId('resource-gold')).toHaveText(String(goldBefore + 1500));
 
   expect(errors).toEqual([]);
@@ -1084,7 +1084,7 @@ test('N-DAILYREFRESH : la fin de tour humain ajoute les contrats du nouveau jour
 
   // Fin de tour humain ⇒ le jour avance et `AddQuests` ajoute les contrats du jour 2.
   await endTurn(page);
-  await expect(page.getByTestId('calendar')).toHaveText('Jour 2 · Semaine 1');
+  await expect(page.getByTestId('calendar')).toHaveText('Mois 1 · Semaine 1 · Jour 2');
   await expect
     .poll(async () => (await questIds()).some((id) => id.startsWith('daily-d2-')))
     .toBe(true);
@@ -1432,11 +1432,16 @@ test('autosave à la fin de tour puis « Continuer » depuis le menu', async ({ 
 test('options : bascule de langue FR → EN appliquée à l’UI', async ({ page }) => {
   const errors = await openGame(page);
 
-  await expect(page.getByTestId('calendar')).toHaveText('Jour 1 · Semaine 1');
+  // Calendrier persistant (M-CALWIDGET, doc 02 §2.3) : le chip affiche mois +
+  // semaine + jour, localisé dans les deux langues (jour 1 ⇒ mois 1).
+  await expect(page.getByTestId('calendar')).toHaveText('Mois 1 · Semaine 1 · Jour 1');
+  // Aucune semaine spéciale en début de partie ⇒ pas de badge (le badge exige
+  // un passage de semaine + un tirage RNG ≠ normal, non forçable ici).
+  await expect(page.getByTestId('week-event')).toHaveCount(0);
   await page.getByTestId('options-open').click();
   await page.getByTestId('options-locale-en').click();
   await page.getByTestId('options-close').click();
-  await expect(page.getByTestId('calendar')).toHaveText('Day 1 · Week 1');
+  await expect(page.getByTestId('calendar')).toHaveText('Month 1 · Week 1 · Day 1');
 
   expect(errors).toEqual([]);
 });
@@ -2571,7 +2576,7 @@ test('scénario : le menu démarre le tutoriel, l’IA joue son tour', async ({ 
   // le tour de l'IA (déplacement/ramassage/ville — doc 11 §3.5) puis termine
   // son tour à son tour — le jour avance donc d'un cran, sans intervention.
   await endTurn(page);
-  await expect(page.getByTestId('calendar')).toHaveText('Jour 2 · Semaine 1');
+  await expect(page.getByTestId('calendar')).toHaveText('Mois 1 · Semaine 1 · Jour 2');
 
   const after = await page.evaluate(() => window.__HEROES_TEST__!.getState());
   expect(after.calendar.day).toBe(2);

@@ -60,6 +60,8 @@ const FILL_ATTACKABLE = 0x9a2a2a;
 const STROKE_ATTACKABLE = 0xff8f7a;
 const FILL_OBSTACLE = 0x5a4f45;
 const STROKE_OBSTACLE = 0x9a8f80;
+const FILL_MOAT = 0x1f3a52; // fossé bleu-nuit : franchissable mais ralentissant
+const STROKE_MOAT = 0x4a86b8;
 const ALPHA_STATE = 0.34; // états : assez opaques pour se lire, décor encore perçu
 const MARKER = 0xe8e2d0;
 const STROKE_SELECTED = 0xf1c40f;
@@ -71,6 +73,8 @@ export interface DrawBoardOptions {
   attackable?: ReadonlySet<string>;
   /** Hexes bloqués par un obstacle (doc 02 §5.1). */
   obstacles?: ReadonlySet<string>;
+  /** Hexes de douve de siège (C-SIEGE2.3) : franchissables mais ralentissants. */
+  moat?: ReadonlySet<string>;
   /** Hex/cible sélectionné en attente du 2ᵉ tap — contour doré. */
   selected?: OffsetPos | null;
 }
@@ -80,6 +84,7 @@ export function drawBoard(g: Graphics, opts: DrawBoardOptions = {}): void {
   const reachable = opts.reachable ?? new Set<string>();
   const attackable = opts.attackable ?? new Set<string>();
   const obstacles = opts.obstacles ?? new Set<string>();
+  const moat = opts.moat ?? new Set<string>();
   const selected = opts.selected ?? null;
   const r = HEX_SIZE - 1;
 
@@ -92,10 +97,13 @@ export function drawBoard(g: Graphics, opts: DrawBoardOptions = {}): void {
       const isObstacle = obstacles.has(key);
       const isAttackable = !isObstacle && attackable.has(key);
       const isReachable = !isObstacle && !isAttackable && reachable.has(key);
+      // C-SIEGE2.3 : la douve est une teinte de FOND (fossé), recouverte par les
+      // surbrillances transitoires (atteignable/attaquable/obstacle) quand actives.
+      const isMoat = moat.has(key);
 
-      let fill = FILL_BASE;
-      let alpha = ALPHA_BASE;
-      let stroke = STROKE_BASE;
+      let fill = isMoat ? FILL_MOAT : FILL_BASE;
+      let alpha = isMoat ? ALPHA_STATE : ALPHA_BASE;
+      let stroke = isMoat ? STROKE_MOAT : STROKE_BASE;
       let strokeWidth = 1;
       if (isObstacle) {
         fill = FILL_OBSTACLE;

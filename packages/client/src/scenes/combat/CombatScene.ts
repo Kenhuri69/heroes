@@ -362,6 +362,11 @@ export class CombatScene {
     return set;
   }
 
+  /** C-SIEGE2.3 : hexes de douve (teinte de fossé, ralentissement) — vide hors siège. */
+  private moatKeys(combat: CombatState): Set<string> {
+    return new Set((combat.moat ?? []).map(hexKey));
+  }
+
   private redrawBoard(): void {
     const game = appStore.getState().game;
     const combat = game.combat;
@@ -380,6 +385,7 @@ export class CombatScene {
         reachable: new Set(band.map(hexKey)),
         attackable: new Set(),
         obstacles: this.blockedKeys(combat),
+        moat: this.moatKeys(combat),
         selected: selectedStack?.pos ?? null,
       });
       return;
@@ -400,6 +406,7 @@ export class CombatScene {
         reachable: new Set(dests.map(hexKey)),
         attackable: new Set(),
         obstacles: this.blockedKeys(combat),
+        moat: this.moatKeys(combat),
         selected: ally?.pos ?? null,
       });
       return;
@@ -428,6 +435,7 @@ export class CombatScene {
       reachable: new Set(reachable.map(hexKey)),
       attackable: attackableHexes,
       obstacles: this.blockedKeys(combat),
+      moat: this.moatKeys(combat),
       selected: this.selectionHex(combat),
     });
   }

@@ -53,6 +53,10 @@ export function reachableHexes(state: GameState, stackId: string): OffsetPos[] {
     return out;
   }
 
+  // C-SIEGE2.3 : une douve est atteignable mais NON traversable en un mouvement
+  // (on s'y arrête). BFS : on ajoute l'hex de douve à l'atteignable sans le
+  // ré-explorer. Vide hors siège fortifié ⇒ BFS inchangé.
+  const moat = new Set((combat.moat ?? []).map(hexKey));
   const dist = new Map<string, number>();
   dist.set(hexKey(stack.pos), 0);
   const queue: OffsetPos[] = [stack.pos];
@@ -66,8 +70,8 @@ export function reachableHexes(state: GameState, stackId: string): OffsetPos[] {
       const nk = hexKey(n);
       if (dist.has(nk) || blocked.has(nk)) continue;
       dist.set(nk, d + 1);
-      queue.push(n);
       out.push(n);
+      if (!moat.has(nk)) queue.push(n); // douve : on ne va pas plus loin ce tour
     }
   }
   return out;

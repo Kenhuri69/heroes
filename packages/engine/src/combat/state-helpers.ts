@@ -14,6 +14,19 @@ export function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
 }
 
+/**
+ * Hexes STATIQUEMENT bloqués d'un combat (C-SIEGE2) : obstacles + murs de siège
+ * intacts. Clés `col,row`. Partagé par le déplacement (`reachableHexes`), la
+ * ligne de vue (`hasLineOfSight`) et le ciblage de téléportation
+ * (`teleportDestinations`) — un mur bloque exactement comme un obstacle.
+ */
+export function staticBlockedKeys(combat: CombatState): Set<string> {
+  const set = new Set<string>();
+  for (const o of combat.obstacles) set.add(`${o.col},${o.row}`);
+  for (const w of combat.siegeWalls ?? []) set.add(`${w.col},${w.row}`);
+  return set;
+}
+
 export function hasAbility(def: CombatUnitDef, id: string): boolean {
   return def.abilities.some((a) => a.id === id);
 }

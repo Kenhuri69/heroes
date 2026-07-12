@@ -102,6 +102,15 @@ export interface CombatState {
   phase: 'placement' | 'battle';
   round: number;
   obstacles: OffsetPos[];
+  /**
+   * Murs de siège (C-SIEGE2, doc 02 §5) — segments d'obstacle sur une colonne
+   * devant le défenseur quand la ville a un Fort, laissant une **porte**. Ils
+   * bloquent déplacement + ligne de vue (comme les obstacles) ; les volants les
+   * survolent. **Optionnel** : absent hors siège de ville fortifiée ⇒ pas de bump
+   * de sauvegarde (save-shape ne garde que HeroState/CombatStack) et golden
+   * inchangé. Non destructibles au .1 (catapulte/PV = C-SIEGE2.2).
+   */
+  siegeWalls?: OffsetPos[];
   stacks: CombatStack[];
   /** Pile dont c'est le tour (id), null si combat terminé. */
   activeStackId: string | null;

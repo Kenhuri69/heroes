@@ -308,6 +308,17 @@ Chaque faction consomme surtout **une paire de ressources rares** (Haven : crist
 > de sauvegarde inchangée (état de combat transitoire). Tour de garde, catapulte
 > et destruction de murs = tranche tactique v2.
 
+> 🚧 **État (sièges v2 — C-SIEGE2.1, murs de grille)** : une ville à **Fort**
+> (`buildings.fort ≥ 1`) assiégée dresse un **rempart** — des segments d'obstacle
+> sur une colonne devant le défenseur (`combat.siegeWalls`, champ **OPTIONNEL** ⇒
+> pas de bump de sauvegarde, golden inchangé), laissant une **porte** centrale
+> ouverte. Le mur **bloque déplacement + ligne de vue** exactement comme un
+> obstacle (helper partagé `staticBlockedKeys`) : la mêlée s'engouffre par la
+> porte, les **volants** le survolent, les **tireurs** tirent par l'ouverture. Une
+> ville **sans Fort** ⇒ aucun mur (siège v1 inchangé). **Non destructibles** pour
+> l'instant : catapulte (machine de guerre) + PV de segment = **C-SIEGE2.2** ;
+> tour de tir = .3 ; douves = .4. Zéro faction moteur.
+
 > 🚧 **État (caravanes inter-villes — T-CARAVAN, livré)** : commande générique
 > **`SendCaravan { fromTownId, toTownId, slot }`** — envoie une pile de garnison
 > d'une ville possédée vers une autre ville du **joueur actif**. La durée de

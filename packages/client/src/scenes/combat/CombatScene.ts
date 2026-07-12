@@ -350,6 +350,18 @@ export class CombatScene {
     return token;
   }
 
+  /**
+   * C-SIEGE2 : hexes bloqués rendus comme obstacles = obstacles + murs de siège
+   * (`combat.siegeWalls`). Le rempart apparaît donc comme bloqueur sur la grille
+   * (art de rempart distinct = polish .2) et la surbrillance d'atteignabilité,
+   * calculée par le moteur (`reachableHexes`), l'exclut déjà.
+   */
+  private blockedKeys(combat: CombatState): Set<string> {
+    const set = new Set(combat.obstacles.map(hexKey));
+    for (const w of combat.siegeWalls ?? []) set.add(hexKey(w));
+    return set;
+  }
+
   private redrawBoard(): void {
     const game = appStore.getState().game;
     const combat = game.combat;
@@ -367,7 +379,7 @@ export class CombatScene {
       drawBoard(this.boardGfx, {
         reachable: new Set(band.map(hexKey)),
         attackable: new Set(),
-        obstacles: new Set(combat.obstacles.map(hexKey)),
+        obstacles: this.blockedKeys(combat),
         selected: selectedStack?.pos ?? null,
       });
       return;
@@ -387,7 +399,7 @@ export class CombatScene {
       drawBoard(this.boardGfx, {
         reachable: new Set(dests.map(hexKey)),
         attackable: new Set(),
-        obstacles: new Set(combat.obstacles.map(hexKey)),
+        obstacles: this.blockedKeys(combat),
         selected: ally?.pos ?? null,
       });
       return;
@@ -415,7 +427,7 @@ export class CombatScene {
     drawBoard(this.boardGfx, {
       reachable: new Set(reachable.map(hexKey)),
       attackable: attackableHexes,
-      obstacles: new Set(combat.obstacles.map(hexKey)),
+      obstacles: this.blockedKeys(combat),
       selected: this.selectionHex(combat),
     });
   }
@@ -432,7 +444,7 @@ export class CombatScene {
       combat.playerSide === 'attacker'
         ? { min: 0, max: cols }
         : { min: COMBAT_COLS - 1 - cols, max: COMBAT_COLS - 1 };
-    const obstacles = new Set(combat.obstacles.map(hexKey));
+    const obstacles = this.blockedKeys(combat);
     const occupied = new Set(combat.stacks.filter((s) => s.count > 0).map((s) => hexKey(s.pos)));
     const out: OffsetPos[] = [];
     for (let row = 0; row < COMBAT_ROWS; row++) {

@@ -4,6 +4,8 @@ import { apply, validate } from '../src/core/engine';
 import { createEmptyState, emptyResources, type GameState, type HeroState } from '../src/core/state';
 import { seedRng } from '../src/core/rng';
 import { runAutoCombat } from '../src/combat/ai';
+import { staticBlockedKeys } from '../src/combat/state-helpers';
+import { COMBAT_COLS, COMBAT_ROWS } from '../src/combat/hex';
 import type { GameEvent } from '../src/core/events';
 import type { ArmyStack } from '../src/combat/types';
 import type { TownState } from '../src/town/types';
@@ -103,5 +105,43 @@ describe('CaptureTown — ville défendue = siège', () => {
   it('armée vide contre une ville défendue : refusé (invalidArmy)', () => {
     const s = siegeState([], [{ unitId: 'blue-wolf', count: 1 }]);
     expect(validate(s, { type: 'CaptureTown', townId: 't1', playerId: 'p1' })?.code).toBe('invalidArmy');
+  });
+});
+
+describe('C-SIEGE2 — murs de siège', () => {
+  const WALL_COL = COMBAT_COLS - 4;
+  const GATE = [Math.floor(COMBAT_ROWS / 2) - 1, Math.floor(COMBAT_ROWS / 2)];
+
+  it('un Fort dresse un rempart sur une colonne avec une porte centrale', () => {
+    const s = siegeState([{ unitId: 'red-grunt', count: 50 }], [{ unitId: 'blue-wolf', count: 1 }], { fort: 2 });
+    const { state: next } = apply(s, { type: 'CaptureTown', townId: 't1', playerId: 'p1' });
+    const walls = next.combat?.siegeWalls ?? [];
+    expect(walls.length).toBe(COMBAT_ROWS - GATE.length); // toutes rangées sauf la porte
+    expect(walls.every((w) => w.col === WALL_COL)).toBe(true);
+    expect(walls.some((w) => GATE.includes(w.row))).toBe(false); // porte ouverte
+  });
+
+  it('sans Fort : aucun mur (siège v1 inchangé)', () => {
+    const s = siegeState([{ unitId: 'red-grunt', count: 50 }], [{ unitId: 'blue-wolf', count: 1 }]);
+    const { state: next } = apply(s, { type: 'CaptureTown', townId: 't1', playerId: 'p1' });
+    expect(next.combat?.siegeWalls).toBeUndefined();
+  });
+
+  it('staticBlockedKeys inclut les segments de mur, jamais la porte', () => {
+    const s = siegeState([{ unitId: 'red-grunt', count: 50 }], [{ unitId: 'blue-wolf', count: 1 }], { fort: 1 });
+    const { state: next } = apply(s, { type: 'CaptureTown', townId: 't1', playerId: 'p1' });
+    const blocked = staticBlockedKeys(next.combat!);
+    expect(blocked.has(`${WALL_COL},0`)).toBe(true); // segment de mur
+    expect(blocked.has(`${WALL_COL},${GATE[0]}`)).toBe(false); // porte franchissable
+  });
+
+  it('un assaillant fort capture malgré le rempart (porte franchissable, pas de stalemate)', () => {
+    const s = siegeState([{ unitId: 'red-grunt', count: 100 }], [{ unitId: 'blue-wolf', count: 1 }], { fort: 3 });
+    const events: GameEvent[] = [];
+    const started = apply(s, { type: 'CaptureTown', townId: 't1', playerId: 'p1' }).state;
+    expect((started.combat?.siegeWalls ?? []).length).toBeGreaterThan(0);
+    const done = produce(started, (d) => runAutoCombat(d, events));
+    expect(done.combat).toBeNull(); // le combat se termine (pas de blocage)
+    expect(done.towns[0]?.ownerPlayerId).toBe('p1');
   });
 });

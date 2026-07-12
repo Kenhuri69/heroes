@@ -374,8 +374,9 @@
             }
           ],
           "effect": {
-            "type": "growthBonus",
-            "percent": 40
+            "type": "heroAura",
+            "eliteDamagePct": 10,
+            "eliteMinTier": 7
           }
         }
       ]

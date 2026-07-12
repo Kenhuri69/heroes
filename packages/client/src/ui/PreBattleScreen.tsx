@@ -46,6 +46,14 @@ export function PreBattleScreen() {
     appStore.setState({ preBattlePending: false });
     dispatch({ type: 'AutoCombat' }).catch((err: unknown) => pushToast(commandErrorMessage(err), 'error'));
   };
+  // Abandon (retour de jeu 2026-07) : renoncer au combat une fois la puissance
+  // connue, en conservant l'armée survivante, sans coût. Réservé aux combats de
+  // héros (jamais l'arène, `heroId` null).
+  const canAbandon = combat.heroId != null;
+  const abandon = (): void => {
+    appStore.setState({ preBattlePending: false });
+    dispatch({ type: 'AbandonCombat' }).catch((err: unknown) => pushToast(commandErrorMessage(err), 'error'));
+  };
 
   return (
     <div class="pre-battle-backdrop" data-testid="pre-battle">
@@ -108,6 +116,11 @@ export function PreBattleScreen() {
           <button class="pre-battle-auto" data-testid="pre-battle-auto" onClick={auto}>
             {t('preBattle.auto')}
           </button>
+          {canAbandon && (
+            <button class="pre-battle-abandon" data-testid="pre-battle-abandon" onClick={abandon}>
+              {t('preBattle.abandon')}
+            </button>
+          )}
         </div>
       </div>
     </div>

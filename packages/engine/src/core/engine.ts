@@ -11,7 +11,7 @@ import {
   validateFinishPlacement,
   validatePlaceStack,
 } from '../combat/setup';
-import { handleRetreat, handleSurrender, validateRetreat, validateSurrender } from '../combat/leave';
+import { handleAbandon, handleRetreat, handleSurrender, validateAbandon, validateRetreat, validateSurrender } from '../combat/leave';
 import { isPassable, stepCost } from '../adventure/path';
 import {
   handleAutoCombat,
@@ -338,6 +338,10 @@ export function validate(state: GameState, cmd: Command): CommandError | null {
     case 'Surrender': {
       if (!state.combat) return { code: 'noCombat', message: 'aucun combat en cours' };
       return validateSurrender(state);
+    }
+    case 'AbandonCombat': {
+      if (!state.combat) return { code: 'noCombat', message: 'aucun combat en cours' };
+      return validateAbandon(state);
     }
     case 'CastAdventureSpell': {
       if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
@@ -751,6 +755,10 @@ const handlers: Handlers = {
 
   Surrender(draft, cmd, events) {
     handleSurrender(draft, cmd, events);
+  },
+
+  AbandonCombat(draft, cmd, events) {
+    handleAbandon(draft, cmd, events);
   },
 
   CastAdventureSpell(draft, cmd, events) {

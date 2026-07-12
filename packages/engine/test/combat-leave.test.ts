@@ -115,3 +115,28 @@ describe('C3 — reddition (Surrender)', () => {
     expect(() => apply(stateWith(10), { type: 'Surrender' })).toThrowError(/cannotAfford/);
   });
 });
+
+describe('Abandon pré-combat (AbandonCombat)', () => {
+  it('gratuit, armée survivante conservée, héros survit, combat perdu', () => {
+    const { state: next, events } = apply(stateWith(0), { type: 'AbandonCombat' });
+    expect(next.combat).toBeNull();
+    const hero = next.heroes.find((h) => h.id === 'hero-a');
+    expect(hero?.army).toEqual([{ unitId: 'ally', count: 5 }]); // armée gardée
+    expect(next.players[0]?.resources.gold).toBe(0); // aucun coût
+    expect(events).toContainEqual({ type: 'CombatLeft', mode: 'abandon', heroId: 'hero-a' });
+    expect(events.some((e) => e.type === 'CombatEnded' && e.winner === 'defender')).toBe(true);
+  });
+
+  it('ne ressuscite pas les pertes du round 1 (reconstruit depuis les survivants)', () => {
+    const state = stateWith(0);
+    (state.combat as CombatState).stacks[0]!.count = 3; // 2 unités déjà perdues
+    const { state: next } = apply(state, { type: 'AbandonCombat' });
+    expect(next.heroes[0]?.army).toEqual([{ unitId: 'ally', count: 3 }]);
+  });
+
+  it('refuse au-delà du premier round (invalidAction)', () => {
+    const state = stateWith(0);
+    (state.combat as CombatState).round = 2;
+    expect(() => apply(state, { type: 'AbandonCombat' })).toThrowError(/invalidAction/);
+  });
+});

@@ -24,7 +24,7 @@ Les **probabilités de gain** par niveau sont data-driven. *État livré (H-NAME
 ### 1.2 Progression
 
 - **XP** : combats **gagnés uniquement** (XP = somme des PV des unités ennemies tuées × coefficient — valeur de départ **1**, dans `data/core/config.json` ; seul le héros du camp vainqueur en reçoit), coffres, lieux de savoir.
-- Courbe : `xp(niveau) = 1000 × niveau^1.9` (héros max niveau 30 au MVP).
+- Courbe : `xp(niveau) = base × niveau^1.9` avec `base = 268` (`config.json`) ⇒ **premier palier au niveau 2 ≈ 1000 XP** ; héros max niveau 30 au MVP.
 - À chaque niveau : +1 attribut primaire (tirage pondéré par un **profil global unique** `attack:30 / defense:30 / power:20 / knowledge:20`, `config.json` — les **classes de héros** distinctes sont différées) + **choix entre 2 propositions de compétence** (nouvelle compétence ou montée d'une existante). Un **seul** choix est visible à la fois : plusieurs niveaux gagnés d'un coup n'empilent pas les choix (le dernier écrase le précédent, `experience.ts`).
 
 ### 1.3 Compétences secondaires
@@ -461,6 +461,8 @@ Sémantique des **27 capacités** du catalogue (valeurs de départ) :
 ### 5.5 Fin de combat & auto-résolution
 
 - Victoire = plus aucune pile adverse. Fuite (perd l'armée, garde héros+artefacts, re-recrutable en taverne) et reddition (idem + coût en or, garde l'armée restante — post-MVP).
+- **Abandon pré-combat** (retour de jeu 2026-07, commande `AbandonCombat`) : la puissance ennemie n'étant visible qu'en lançant le combat (écran pré-combat), on peut y **renoncer avant d'échanger le moindre coup** en conservant l'armée survivante, **sans coût** (l'ennemi l'emporte, le gardien/la ville reste). Réservé au premier round ; l'UI n'expose le bouton **que** sur l'écran pré-combat, jamais en bataille (où seules fuite/reddition existent). Distinct de la fuite (qui, elle, abandonne l'armée).
+- **Bilan de fin de combat** (retour de jeu 2026-07) : à l'issue d'un combat *fouillé* (annihilation), un écran récapitule **morts/survivants par armée** et les **gains** (XP + niveaux, or, ressources, artefact, mort-vivants relevés). L'événement `CombatEnded` porte désormais `survivors` (en plus de `casualties`) ; un départ délibéré (fuite/reddition/abandon) n'ouvre pas de bilan.
 - **Combat auto** : la même IA de combat joue les deux camps en accéléré ; résultat déterministe re-simulable (même seed) — indispensable pour le PvP asynchrone futur.
 - **Écran pré-combat** (Lot 1, fidélité HoMM Online) : au démarrage de tout combat, un écran d'intro compare la **puissance de combat** des deux camps (`armyStrength`, même métrique que le graphe de fin de partie — pur affichage, sans effet sur la simulation) et propose **Combattre** (conduite manuelle) ou **Auto-Battle** (auto-résolution immédiate). Pur habillage client (`preBattlePending`), aucun changement moteur.
 - **Retours de frappe** (UXD-4, fidélité HoMM Online) : après chaque frappe, un popup flottant montre les **dégâts** (`-N`) et, si des créatures meurent, une 2ᵉ ligne **kills** mise en avant (plus grosse, colorée) ; `★` sur coup de chance. La **file d'ordre de passage** du round (bandeau d'initiative, lot M1) et la **fiche de pile** au tap complètent la lisibilité tactique. Purs rendus canvas.

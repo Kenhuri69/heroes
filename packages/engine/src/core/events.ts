@@ -155,9 +155,11 @@ export type GameEvent =
       playerSide: CombatSideId;
       /** Pertes par camp et unité — l'UI affiche le bilan. */
       casualties: { side: CombatSideId; unitId: string; lost: number }[];
+      /** Survivants par camp et unité (retour de jeu 2026-07) — bilan de fin de combat. */
+      survivors: { side: CombatSideId; unitId: string; count: number }[];
     }
-  /** Le joueur a quitté le combat (C3) : `retreat` (armée abandonnée) ou `surrender` (armée gardée). */
-  | { type: 'CombatLeft'; mode: 'retreat' | 'surrender'; heroId: string }
+  /** Le joueur a quitté le combat (C3) : `retreat` (armée abandonnée), `surrender` (armée gardée, payante) ou `abandon` (pré-combat, armée survivante gardée, gratuit). */
+  | { type: 'CombatLeft'; mode: 'retreat' | 'surrender' | 'abandon'; heroId: string }
   // ——— Progression du héros (doc 02 §1.2) — surface figée en cadrage 2.5 ———
   | { type: 'XpGained'; heroId: string; amount: number; xp: number }
   | {

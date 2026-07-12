@@ -58,6 +58,7 @@ import { AttributeChoice } from './AttributeChoice';
 import { TreasureChoice } from './TreasureChoice';
 import { HandoffOverlay } from './HandoffOverlay';
 import { OutcomeOverlay } from './OutcomeOverlay';
+import { CombatResultScreen } from './CombatResultScreen';
 import { FactionBadge } from './FactionBadge';
 import { DialogueBox } from './DialogueBox';
 import { CutsceneOverlay } from './CutsceneOverlay';
@@ -249,6 +250,10 @@ function Shell() {
       {started && !inCombat && <CutsceneOverlay />}
       {started && !inCombat && <DialogueBox />}
       <OutcomeOverlay />
+      {/* Bilan de fin de combat (retour de jeu 2026-07) — par-dessus la carte
+          après un combat fouillé ; l'overlay de fin de PARTIE prime (rendu après
+          ⇒ au-dessus, et l'écran de bilan ne s'affiche pas s'il n'y a rien). */}
+      {!inCombat && <CombatResultScreen />}
       <LoadingOverlay />
       <ToastHost />
     </>

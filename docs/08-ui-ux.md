@@ -317,6 +317,21 @@
 > combat, distinct de « tour » (déjà pris par le tour d'aventure / « fin de
 > tour »). « Options » et « Mana » restent des emprunts standard en français.
 
+> ✅ **Retour de jeu 2026-07 (pré-combat & bilan)** : deux ajouts *client* (un
+> point d'extension moteur générique). (1) **Abandon** — l'écran pré-combat
+> gagne un 3ᵉ bouton **« Abandonner »**, après *Combattre* / *Combat auto*,
+> pour renoncer une fois la puissance ennemie connue en **gardant l'armée
+> survivante, sans coût** (commande moteur `AbandonCombat`, gate round 1). Le
+> bouton n'apparaît **que** sur l'écran pré-combat (jamais en bataille — seules
+> fuite/reddition y figurent) et seulement pour un combat de héros (pas l'arène).
+> (2) **Bilan de fin de combat** (`CombatResultScreen`) — à l'issue d'un combat
+> *fouillé*, une modale par-dessus la carte liste **morts/survivants par armée**
+> (survivants verts, `−pertes` rouges signés — jamais la couleur seule) et les
+> **gains** (XP + niveaux, or, ressources, artefact, mort-vivants) ; « Continuer »
+> la ferme. Un départ délibéré (fuite/reddition/abandon) n'ouvre pas de bilan.
+> L'événement moteur `CombatEnded` porte désormais `survivors` en plus de
+> `casualties` (état haché inchangé ⇒ golden épargné).
+
 ### 2.5 Autres écrans
 
 Menu principal (Continuer / Scénarios / Escarmouche / **Éditeur de carte** / Options), fiche de scénario (objectifs), fin de partie (stats, graphique de puissance), options (langue FR/EN, vitesse anims, taille UI, audio, réduction des animations, confirmation de fin de tour : cf. §4).

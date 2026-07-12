@@ -124,6 +124,15 @@
   border: 1px solid var(--brass-bright);
 }
 
+/* Abandon (retour de jeu 2026-07) : action de repli, moins saillante que
+   Combattre/Auto (bordure discrète, texte atténué). */
+.pre-battle-abandon {
+  background: transparent;
+  color: var(--parchment-bright);
+  border: 1px solid var(--ink-500);
+  opacity: 0.85;
+}
+
 /* Lot X4 (finitions pré-combat mobile, constat E2) : sur petit écran la grille
    `1fr auto 1fr` cassait — le libellé pivot « Puissance de combat » ne
    s'enroulait pas et écrasait les colonnes de camp (« Vos … / Rec… » tronqués).

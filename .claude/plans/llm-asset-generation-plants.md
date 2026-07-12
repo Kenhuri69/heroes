@@ -54,7 +54,12 @@ par la planche B → à ignorer (on ne l'édite pas : fichier tool-owned).
 5. [ ] Intégration : le registre `render/assets.ts` auto-découvre les PNG
    (`import.meta.glob ?url`, hors bundle) → aucun câblage. Vérifier : smoke
    « assets servis sans 404 » + budget bundle vert.
-6. [ ] Commit + push + PR draft.
+6. [x] Commit + push + PR draft (#287).
+7. [x] **Anti-flake CI** : le check `quality` échouait sur `ai-adventure.test.ts`
+   (test de déterminisme IA sans timeout explicite → défaut 5000 ms dépassé sur
+   runner CI, mesuré 5160 ms ; échec par timeout, pas assertion ; sans lien avec
+   la PR). Fix : `20_000` ms aligné sur le test frère. Local vert (3,5 s). Commit
+   f55bd5e.
 
 ## Notes de décision
 

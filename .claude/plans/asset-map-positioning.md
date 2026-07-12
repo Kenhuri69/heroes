@@ -41,8 +41,9 @@ tout l'asset est remonté au-dessus du losange.
    asset d'unité distinct). Vérif capture après : stable/mine/fontaine/tente/
    château reposent sur le marqueur central de leur case ; château Haven validé
    via escarmouche.
-3. [ ] **Non-régression** : typecheck ✅, lint ✅, tests ✅ (552), build ✅, smoke ⏳.
-4. [ ] Commit + push + PR draft.
+3. [x] **Non-régression** : typecheck ✅, lint ✅, tests ✅ (552), build ✅,
+   smoke ✅ (154 passed).
+4. [x] Commit + push + PR draft #279.
 
 ## Décisions
 

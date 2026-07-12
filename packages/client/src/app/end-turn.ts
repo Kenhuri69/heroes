@@ -2,6 +2,21 @@ import { dailyMovementPoints, type GameState } from '@heroes/engine';
 import { appStore } from './store';
 import { dispatch } from './dispatch';
 import { humanHeroes, humanId } from './game';
+import { refreshDailiesForCurrentDay } from './daily-refresh';
+
+/**
+ * Fin de tour humain (un seul point de sortie) : dispatch `EndTurn` — qui joue
+ * aussi les tours IA jusqu'au prochain humain (le jour a alors avancé) — puis
+ * rafraîchit les contrats journaliers du nouveau jour (N-DAILYREFRESH ; no-op
+ * hors mode libre). Erreurs avalées comme l'ancien `void dispatch`.
+ */
+function endHumanTurn(playerId: string): void {
+  void dispatch({ type: 'EndTurn', playerId })
+    .then(() => refreshDailiesForCurrentDay())
+    .catch(() => {
+      /* rejet de validate/apply ou refresh — non bloquant (comportement historique) */
+    });
+}
 
 /**
  * Fin de tour avec garde-fou (lot M8 C12, convention HoMM) : si l'option
@@ -27,7 +42,7 @@ export function requestEndTurn(): void {
     appStore.setState({ pendingEndTurn: { playerId } });
     return;
   }
-  void dispatch({ type: 'EndTurn', playerId });
+  endHumanTurn(playerId);
 }
 
 /** Confirme la fin de tour en attente (overlay C12). */
@@ -35,7 +50,7 @@ export function confirmPendingEndTurn(): void {
   const pending = appStore.getState().pendingEndTurn;
   if (!pending) return;
   appStore.setState({ pendingEndTurn: null });
-  void dispatch({ type: 'EndTurn', playerId: pending.playerId });
+  endHumanTurn(pending.playerId);
 }
 
 /** Annule la confirmation en attente (le joueur revient au tour). */

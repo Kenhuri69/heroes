@@ -1028,6 +1028,36 @@ test('quêtes journalières : le mode libre génère des contrats déterministes
   expect(errors).toEqual([]);
 });
 
+test('N-DAILYREFRESH : la fin de tour humain ajoute les contrats du nouveau jour', async ({
+  page,
+}) => {
+  const errors = await openMenu(page);
+
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.startSkirmish({ humanFactionId: 'haven', aiFactionId: 'necropolis', difficulty: 'normal' }),
+  );
+  await expect(page.getByTestId('end-turn')).toBeVisible();
+
+  const questIds = async (): Promise<string[]> =>
+    page.evaluate(() => window.__HEROES_TEST__!.getState().quests?.quests.map((q) => q.def.id) ?? []);
+
+  // Jour 1 : contrats embarqués (ids `daily-<tpl>`, sans préfixe de jour).
+  const day1 = await questIds();
+  expect(day1.length).toBeGreaterThan(0);
+  expect(day1.some((id) => id.startsWith('daily-d2-'))).toBe(false);
+
+  // Fin de tour humain ⇒ le jour avance et `AddQuests` ajoute les contrats du jour 2.
+  await endTurn(page);
+  await expect(page.getByTestId('calendar')).toHaveText('Jour 2 · Semaine 1');
+  await expect
+    .poll(async () => (await questIds()).some((id) => id.startsWith('daily-d2-')))
+    .toBe(true);
+  // Les contrats du jour 1 restent présents (ajout, pas remplacement).
+  expect((await questIds()).length).toBeGreaterThan(day1.length);
+
+  expect(errors).toEqual([]);
+});
+
 test('hot-seat : deux humains locaux alternent avec l’overlay de passage (Alpha 4.15)', async ({
   page,
 }) => {

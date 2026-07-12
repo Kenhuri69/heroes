@@ -32,6 +32,7 @@ import { initAudio } from './app/audio';
 import { initReduceMotion } from './app/motion';
 import { initNarrative, initCombatBarks, loadScenarioNarrative, loadFreeModeNarrative } from './app/narrative';
 import { buildDailyQuests } from './app/daily';
+import { armDailyRefresh, disarmDailyRefresh } from './app/daily-refresh';
 import { registerCamera, unregisterCamera } from './app/camera-control';
 import { playOpeningCutscene } from './app/cutscene';
 import { initCampaign, startCampaignChapter, campaignFlags } from './app/campaign';
@@ -205,6 +206,7 @@ async function bootstrap(): Promise<void> {
     const scenario = report.content.scenarios.find((s) => s.id === scenarioId);
     if (!scenario) throw new Error(`scénario inconnu '${scenarioId}'`);
     const scenarioMap = await loadScenarioMap(report, scenario);
+    disarmDailyRefresh(); // scénario = quêtes propres, pas de contrats journaliers
     // Charge le catalogue narratif AVANT le dispatch : les `QuestStarted` émis
     // par `StartGame` alimentent alors le journal (et enfilent les dialogues).
     loadScenarioNarrative(scenario);
@@ -229,6 +231,9 @@ async function bootstrap(): Promise<void> {
     const daily = buildDailyQuests(report, config.humanFactionId, seed);
     loadFreeModeNarrative(daily.metas);
     await dispatch(skirmishStartCommand(report, config, seed, skirmishMap, daily.questState));
+    // Rafraîchissement quotidien (N-DAILYREFRESH) : armé avec le contexte de mode
+    // libre ; les jours suivants génèrent de nouveaux contrats via `AddQuests`.
+    armDailyRefresh(report, config.humanFactionId, seed);
     navigate('adventure');
   };
 
@@ -244,6 +249,7 @@ async function bootstrap(): Promise<void> {
     const raf = (): Promise<void> => new Promise((r) => requestAnimationFrame(() => r()));
     const setLoading = (label: string, progress: number): void =>
       appStore.setState({ loading: { label, progress } });
+    disarmDailyRefresh(); // « Nouvelle partie » n'embarque pas de contrats journaliers
     try {
       setLoading('newgame.loading.prepare', 0.1);
       await raf();
@@ -279,6 +285,7 @@ async function bootstrap(): Promise<void> {
   const startChapter = async (campaignId: string, chapterIndex: number, seed: number): Promise<void> => {
     const campaign = report.content.campaigns.find((c) => c.id === campaignId);
     if (!campaign) throw new Error(`campagne inconnue '${campaignId}'`);
+    disarmDailyRefresh(); // campagne = quêtes de scénario, pas de contrats journaliers
     await startCampaignChapter(report, campaign, chapterIndex, seed);
   };
 

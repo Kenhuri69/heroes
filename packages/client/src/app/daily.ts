@@ -55,6 +55,12 @@ export function buildDailyQuests(
   humanFactionId: string,
   seed: number,
   count = 2,
+  /**
+   * Préfixe d'id (N-DAILYREFRESH) — jour-scopé (`d2-`…) pour que les contrats
+   * rafraîchis ne collisionnent pas avec ceux des jours précédents (la commande
+   * `AddQuests` dédup par id). Défaut `''` : ids du jour 1 inchangés (`daily-<tpl>`).
+   */
+  idPrefix = '',
 ): DailyQuests {
   // Ne garde que les gabarits résolubles pour cette faction (tier existant).
   const pool = report.content.dailyTemplates
@@ -71,12 +77,14 @@ export function buildDailyQuests(
     chosen.push(remaining.splice(roll.value, 1)[0]!);
   }
 
+  const questId = (tplId: string): string => `daily-${idPrefix}${tplId}`;
+  const stepId = (tplId: string): string => `${idPrefix}${tplId}-step`;
   const questState: QuestState = {
     quests: chosen.map(({ tpl, condition }) => ({
       def: {
-        id: `daily-${tpl.id}`,
+        id: questId(tpl.id),
         playerId: HUMAN_PLAYER_ID,
-        steps: [{ id: `${tpl.id}-step`, condition }],
+        steps: [{ id: stepId(tpl.id), condition }],
         rewards: [tpl.reward],
       },
       stepIndex: 0,
@@ -84,11 +92,11 @@ export function buildDailyQuests(
     })),
   };
   const metas: DailyQuestMeta[] = chosen.map(({ tpl }) => ({
-    id: `daily-${tpl.id}`,
+    id: questId(tpl.id),
     titleKey: tpl.titleKey,
     ...(tpl.descriptionKey !== undefined ? { descriptionKey: tpl.descriptionKey } : {}),
     kind: 'daily' as const,
-    steps: [{ id: `${tpl.id}-step` }],
+    steps: [{ id: stepId(tpl.id) }],
   }));
   return { questState, metas };
 }

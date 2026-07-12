@@ -593,11 +593,18 @@ préviz dégâts, raccourcis, a11y 3 crans, audio complet, chrome UI, options.)
   > transfert). **Différé** : « Équilibrer » (split de pile) = UX-SPLIT.
   Doc : doc 08 §2.3 (double-colonne, tap-tap, « équilibrer »/« tout donner »).
 
-- **UX-SPLIT — Split de piles** 🕳️ M ⬜
-  Doc : doc 08 §2.1/§2.3 (armée 7 slots gérable). Code : `ArmySlots` lecture
-  seule (`packages/client/src/shell.tsx:344-360`) ; garnison ne déplace que des
-  piles entières (`TownScreen.tsx:682-731`). Spec : commande moteur
-  `SplitStack` + UI curseur de répartition (touch-first).
+- **UX-SPLIT — Split de piles** 🕳️ M ✅ (livré)
+  > **Livré** (plan `ux-split.md`) : commande moteur GÉNÉRIQUE
+  > `SplitStack { heroId, from, count }` (héros du joueur actif, armée non pleine
+  > ≤ 7, `count ∈ [1, source.count-1]`) — retire `count` créatures de la pile
+  > `from` et crée une nouvelle pile du même `unitId` ajoutée en fin d'`army`.
+  > **Aucun champ d'état nouveau ⇒ pas de bump save, golden inchangé.** Client :
+  > 2ᵉ bouton « Séparer » dans `ArmySlots` (tiroir héros + bandeau) ⇒ modale
+  > `SplitDialog` **curseur de répartition** tap-tap (slider + ± ≥ 44px, aperçu
+  > « restant | détaché »). Locales FR/EN `army.split.*`, smoke étendu (split de
+  > la pile de départ). Zéro faction.
+  Doc : doc 08 §2.1/§2.3 (armée 7 slots gérable). Le split de garnison entière
+  reste hors périmètre (garnison déplace des piles entières via `TownScreen`).
 
 - **UX-REORDER — Réorganisation des 7 slots** 🕳️ S ✅ (livré)
   Doc : doc 08 §2.1/§2.3. Livré : commande moteur générique `ReorderArmy

@@ -447,18 +447,25 @@ function ArmySlots({ army, heroId }: { army: ArmyStack[]; heroId?: string }) {
   useApp((s) => s.locale); // réactivité i18n (noms d'unités/capacités)
   const catalog = useApp((s) => s.game.unitCatalog);
   const [inspected, setInspected] = useState<string | null>(null);
-  const [reordering, setReordering] = useState(false);
+  const [mode, setMode] = useState<'none' | 'reorder' | 'split'>('none');
   const [picked, setPicked] = useState<number | null>(null);
+  const [splitSlot, setSplitSlot] = useState<number | null>(null);
   const def = inspected ? catalog[inspected] : undefined;
   const canReorder = heroId !== undefined && army.length >= 2;
+  // UX-SPLIT : séparer exige un slot libre (≤ 7) et une pile scindable (≥ 2).
+  const canSplit = heroId !== undefined && army.length < 7 && army.some((s) => s.count >= 2);
 
-  const stopReorder = (): void => {
-    setReordering(false);
+  const setToggle = (target: 'reorder' | 'split'): void => {
+    setMode((m) => (m === target ? 'none' : target));
     setPicked(null);
   };
 
-  const tapSlot = (i: number, unitId: string): void => {
-    if (!reordering) {
+  const tapSlot = (i: number, unitId: string, count: number): void => {
+    if (mode === 'split') {
+      if (count >= 2) setSplitSlot(i);
+      return;
+    }
+    if (mode !== 'reorder') {
       setInspected(unitId);
       return;
     }
@@ -478,31 +485,52 @@ function ArmySlots({ army, heroId }: { army: ArmyStack[]; heroId?: string }) {
 
   return (
     <>
-      {canReorder && (
-        <button
-          type="button"
-          class="army-reorder-toggle"
-          data-testid="army-reorder-toggle"
-          aria-pressed={reordering}
-          onClick={() => (reordering ? stopReorder() : setReordering(true))}
-        >
-          {reordering ? t('army.reorder.done') : t('army.reorder.toggle')}
-        </button>
+      {(canReorder || canSplit) && (
+        <div class="army-actions">
+          {canReorder && (
+            <button
+              type="button"
+              class="army-reorder-toggle"
+              data-testid="army-reorder-toggle"
+              aria-pressed={mode === 'reorder'}
+              onClick={() => setToggle('reorder')}
+            >
+              {mode === 'reorder' ? t('army.reorder.done') : t('army.reorder.toggle')}
+            </button>
+          )}
+          {canSplit && (
+            <button
+              type="button"
+              class="army-reorder-toggle"
+              data-testid="army-split-toggle"
+              aria-pressed={mode === 'split'}
+              onClick={() => setToggle('split')}
+            >
+              {mode === 'split' ? t('army.reorder.done') : t('army.split.toggle')}
+            </button>
+          )}
+        </div>
       )}
       <ol class="army-slots" data-testid="army-slots">
         {Array.from({ length: 7 }, (_, i) => army[i]).map((stack, i) =>
           stack ? (
-            <li key={i} class={`army-slot filled${reordering && picked === i ? ' picked' : ''}`}>
+            <li
+              key={i}
+              class={`army-slot filled${mode === 'reorder' && picked === i ? ' picked' : ''}`}
+            >
               <button
                 type="button"
                 class="army-slot-btn"
                 data-testid={`army-slot-${i}`}
+                disabled={mode === 'split' && stack.count < 2}
                 aria-label={
-                  reordering
+                  mode === 'reorder'
                     ? t('army.reorder.move', { name: resolveUnitName(stack.unitId) })
-                    : t('army.card.inspect', { name: resolveUnitName(stack.unitId) })
+                    : mode === 'split'
+                      ? t('army.split.pick', { name: resolveUnitName(stack.unitId) })
+                      : t('army.card.inspect', { name: resolveUnitName(stack.unitId) })
                 }
-                onClick={() => tapSlot(i, stack.unitId)}
+                onClick={() => tapSlot(i, stack.unitId, stack.count)}
               >
                 <span class="army-slot-portrait">
                   <AssetImg
@@ -523,7 +551,109 @@ function ArmySlots({ army, heroId }: { army: ArmyStack[]; heroId?: string }) {
       {inspected && def && (
         <UnitCard unitId={inspected} def={def} onClose={() => setInspected(null)} />
       )}
+      {splitSlot !== null && army[splitSlot] && heroId !== undefined && (
+        <SplitDialog
+          stack={army[splitSlot]!}
+          onConfirm={(count) => {
+            const from = splitSlot;
+            dispatch({ type: 'SplitStack', heroId, from, count }).catch(() => {
+              /* split invalide (hors tour) — sans conséquence, ignorée */
+            });
+            setSplitSlot(null);
+            setMode('none');
+          }}
+          onClose={() => setSplitSlot(null)}
+        />
+      )}
     </>
+  );
+}
+
+/**
+ * UX-SPLIT (doc 08 §2.1/§2.3) : curseur de répartition **touch-first** pour
+ * séparer une pile en deux. Aperçu « effectif restant | effectif détaché »,
+ * slider + boutons ± (cibles ≥ 44px), confirmation ⇒ commande `SplitStack`.
+ */
+function SplitDialog({
+  stack,
+  onConfirm,
+  onClose,
+}: {
+  stack: ArmyStack;
+  onConfirm: (count: number) => void;
+  onClose: () => void;
+}) {
+  useApp((s) => s.locale); // réactivité i18n
+  const total = stack.count;
+  const [count, setCount] = useState(Math.floor(total / 2) || 1);
+  const name = resolveUnitName(stack.unitId);
+  const clamp = (n: number): number => Math.max(1, Math.min(total - 1, n));
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent): void => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
+  return (
+    <div class="split-backdrop" onClick={onClose}>
+      <section
+        class="split-dialog"
+        data-testid="split-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-label={t('army.split.title', { name })}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <header class="split-dialog-header">{t('army.split.title', { name })}</header>
+        <div class="split-preview" aria-hidden="true">
+          <span class="split-preview-part">×{total - count}</span>
+          <span class="split-preview-sep">|</span>
+          <span class="split-preview-part">×{count}</span>
+        </div>
+        <div class="split-controls">
+          <button
+            type="button"
+            class="split-step"
+            aria-label={t('army.split.less')}
+            onClick={() => setCount((c) => clamp(c - 1))}
+          >
+            −
+          </button>
+          <input
+            type="range"
+            class="split-range"
+            data-testid="split-range"
+            min={1}
+            max={total - 1}
+            value={count}
+            aria-label={t('army.split.title', { name })}
+            onInput={(e) => setCount(clamp(Number((e.target as HTMLInputElement).value)))}
+          />
+          <button
+            type="button"
+            class="split-step"
+            aria-label={t('army.split.more')}
+            onClick={() => setCount((c) => clamp(c + 1))}
+          >
+            +
+          </button>
+        </div>
+        <div class="split-actions">
+          <button type="button" class="split-cancel" onClick={onClose}>
+            {t('army.split.cancel')}
+          </button>
+          <button
+            type="button"
+            class="split-confirm"
+            data-testid="split-confirm"
+            onClick={() => onConfirm(count)}
+          >
+            {t('army.split.confirm')}
+          </button>
+        </div>
+      </section>
+    </div>
   );
 }
 

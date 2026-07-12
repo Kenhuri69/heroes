@@ -610,6 +610,13 @@
 }
 
 /* UX-REORDER (doc 08 §2.1/§2.3) : bascule du mode réorganisation tap-tap. */
+/* UX-REORDER + UX-SPLIT : rangée d'actions d'armée (boutons de mode). */
+.army-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
 .army-reorder-toggle {
   align-self: flex-start;
   min-height: 44px;
@@ -634,6 +641,96 @@
   border-width: 3px;
   border-color: var(--brass-bright);
   outline: 2px solid var(--brass);
+}
+
+/* UX-SPLIT (doc 08 §2.1/§2.3) — curseur de répartition d'une pile (touch-first).
+   Backdrop + boîte centrée, même famille visuelle que `.unit-card`. */
+.split-backdrop {
+  position: fixed;
+  inset: 0;
+  background: var(--veil-60);
+  pointer-events: auto;
+  z-index: 30;
+}
+
+.split-dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(92vw, 20rem);
+  padding: 16px;
+  border: 1px solid var(--ink-600);
+  border-radius: var(--radius-m);
+  background: var(--ink-800);
+  color: var(--parchment);
+}
+
+.split-dialog-header {
+  margin-bottom: 12px;
+  font: 700 1rem var(--font-ui);
+  text-align: center;
+}
+
+.split-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  font: 700 1.5rem var(--font-ui);
+}
+
+.split-preview-sep {
+  color: var(--ink-400);
+}
+
+.split-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.split-step {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--ink-600);
+  border-radius: var(--radius-s);
+  background: var(--ink-700);
+  color: var(--parchment);
+  font: 700 1.25rem var(--font-ui);
+  cursor: pointer;
+}
+
+.split-range {
+  flex: 1 1 auto;
+  min-height: 44px;
+}
+
+.split-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.split-actions button {
+  flex: 1 1 0;
+  min-height: 44px;
+  border: 1px solid var(--ink-600);
+  border-radius: var(--radius-s);
+  font: 600 0.875rem var(--font-ui);
+  cursor: pointer;
+}
+
+.split-cancel {
+  background: var(--ink-700);
+  color: var(--parchment);
+}
+
+.split-confirm {
+  background: var(--brass);
+  color: var(--brass-text);
 }
 
 /* Fiche d'unité de l'armée (aventure, doc 08 §2.1) — portrait, stats, capacités.

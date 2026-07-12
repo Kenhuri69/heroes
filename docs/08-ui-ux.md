@@ -124,8 +124,18 @@
 > **pèse sur le placement de combat** ⇒ c'est une **commande moteur**
 > déterministe `ReorderArmy { heroId, from, to }` (générique, zéro faction) et non
 > de la présentation. **Pas de nouveau champ d'état** (`army` déjà sérialisé) ⇒
-> pas de bump de sauvegarde ; commande absente du golden ⇒ golden inchangé. Le
-> **split de pile** (§2.3, `SplitStack`) reste différé (UX-SPLIT).
+> pas de bump de sauvegarde ; commande absente du golden ⇒ golden inchangé.
+
+> 🚧 **État (séparation d'armée — UX-SPLIT, livré)** : un second bouton
+> **« Séparer »** (à côté de « Réorganiser ») bascule un mode **tap-tap** où taper
+> une pile d'au moins 2 créatures ouvre un **curseur de répartition** (slider +
+> boutons ± ≥ 44px, aperçu « effectif restant | effectif détaché ») ; confirmer
+> crée une **nouvelle pile** du même type ajoutée en fin d'armée (compact ≤ 7).
+> Le bouton n'apparaît que s'il reste un slot libre et une pile scindable. Le
+> nombre/ordre de piles **pèse sur le placement de combat** ⇒ **commande moteur**
+> déterministe `SplitStack { heroId, from, count }` (générique, zéro faction).
+> **Pas de nouveau champ d'état** (`army` déjà sérialisé) ⇒ pas de bump de
+> sauvegarde ; commande absente du golden ⇒ golden inchangé.
 
 > ✅ **État UXD-8** : la **colonne droite desktop** de ce schéma est réalisée par
 > le **tiroir héros persistant** (≥ 900 px : ancré à droite, 300 px, toujours
@@ -217,7 +227,7 @@
 >
 > ✅ **État UXD-5b** : la **poupée d'équipement typée par slot** est livrée. Les artefacts portent un champ de données `slot` (`head/neck/torso/weapon/shield/cloak/hands/feet/ring/misc`, doc 02 §1.1) — donnée de **présentation pure**, jamais lue par le moteur (les bonus se somment quel que soit l'emplacement). `HeroInventory` affiche **10 emplacements nommés** dans l'ordre tête→pieds (chaque type = une position typée, libellé toujours visible → A5 jamais la couleur seule) + un **sac** de débordement (2ᵉ artefact d'un même type, ou artefact sans slot). Le regroupement est purement client : le moteur garde son tableau plat `hero.artifacts` (ramassage au 1er slot libre inchangé). Lecture seule (équiper/déséquiper = raffinement ultérieur).
 >
-> ✅ **État UX-HEROSWAP** : le **transfert d'armée/artefacts entre 2 héros** est livré. Un bouton « Échanger avec {nom} » apparaît dans le tiroir héros dès qu'un héros allié occupe une tuile **adjacente** ; il ouvre l'écran de rencontre `HeroSwap` **double-colonne** (un héros par colonne) où **taper** une pile ou un artefact la donne à l'autre héros (tap-tap, touch-first ; pas de drag), plus un bouton **« Tout donner »** par colonne. Moteur : commande générique `TransferBetweenHeroes`. Le bouton **« Équilibrer »** (split d'une pile en deux) reste différé à **UX-SPLIT** (nécessite une commande `SplitStack`).
+> ✅ **État UX-HEROSWAP** : le **transfert d'armée/artefacts entre 2 héros** est livré. Un bouton « Échanger avec {nom} » apparaît dans le tiroir héros dès qu'un héros allié occupe une tuile **adjacente** ; il ouvre l'écran de rencontre `HeroSwap` **double-colonne** (un héros par colonne) où **taper** une pile ou un artefact la donne à l'autre héros (tap-tap, touch-first ; pas de drag), plus un bouton **« Tout donner »** par colonne. Moteur : commande générique `TransferBetweenHeroes`. Le **split d'une pile en deux** est désormais livré (**UX-SPLIT**, commande `SplitStack`) via le bouton « Séparer » du tiroir héros/bandeau (§2.1).
 
 ### 2.4 Écran de combat
 

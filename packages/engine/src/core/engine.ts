@@ -54,11 +54,13 @@ import {
   handleChooseSkill,
   handleChooseAttribute,
   handleReorderArmy,
+  handleSplitStack,
   validateCastSpell,
   validateCastAdventureSpell,
   validateChooseSkill,
   validateChooseAttribute,
   validateReorderArmy,
+  validateSplitStack,
 } from '../hero';
 import { heroManaMax } from '../hero/artifacts';
 import { validateRecruitHero, handleRecruitHero } from '../hero/recruit';
@@ -133,6 +135,7 @@ const GAME_OVER_BLOCKED = new Set<Command['type']>([
   'BuyWarMachine',
   'GarrisonTransfer',
   'ReorderArmy',
+  'SplitStack',
   'TransferBetweenHeroes',
   'SendCaravan',
   'CaptureTown',
@@ -267,6 +270,11 @@ export function validate(state: GameState, cmd: Command): CommandError | null {
       if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
       if (state.combat) return { code: 'combatActive', message: 'un combat est en cours' };
       return validateReorderArmy(state, cmd);
+    }
+    case 'SplitStack': {
+      if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
+      if (state.combat) return { code: 'combatActive', message: 'un combat est en cours' };
+      return validateSplitStack(state, cmd);
     }
     case 'TransferBetweenHeroes': {
       if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
@@ -659,6 +667,10 @@ const handlers: Handlers = {
 
   ReorderArmy(draft, cmd, events) {
     handleReorderArmy(draft, cmd, events);
+  },
+
+  SplitStack(draft, cmd, events) {
+    handleSplitStack(draft, cmd, events);
   },
 
   TransferBetweenHeroes(draft, cmd, events) {

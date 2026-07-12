@@ -266,6 +266,42 @@ test('UX-REORDER : réorganiser deux piles en tap-tap change l’ordre de l’ar
   expect(errors).toEqual([]);
 });
 
+test('UX-SPLIT : séparer une pile en deux via le curseur ajoute un slot', async ({ page }) => {
+  const errors = await openGame(page);
+
+  // Armée de départ du héros humain : t1-recruit ×20 (slot 0), t1-eleve ×12.
+  const before = await page.evaluate(() =>
+    window.__HEROES_TEST__!.getState().heroes[0]!.army.map((s) => ({ id: s.unitId, n: s.count })),
+  );
+  expect(before.length).toBe(2);
+  const slot0 = before[0]!;
+
+  // Déplie le bandeau, entre en mode séparation, ouvre le curseur sur le slot 0.
+  await page.getByTestId('army-band-toggle').click();
+  await page.locator('.army-band [data-testid="army-split-toggle"]').click();
+  await page.locator('.army-band [data-testid="army-slot-0"]').click();
+
+  const dialog = page.getByTestId('split-dialog');
+  await expect(dialog).toBeVisible();
+  await dialog.getByTestId('split-confirm').click();
+
+  // Une 3ᵉ pile apparaît, le même unitId total est conservé (split déterministe).
+  await expect
+    .poll(() => page.evaluate(() => window.__HEROES_TEST__!.getState().heroes[0]!.army.length))
+    .toBe(before.length + 1);
+  const total = await page.evaluate(
+    (id) =>
+      window
+        .__HEROES_TEST__!.getState()
+        .heroes[0]!.army.filter((s) => s.unitId === id)
+        .reduce((sum, s) => sum + s.count, 0),
+    slot0.id,
+  );
+  expect(total).toBe(slot0.n);
+
+  expect(errors).toEqual([]);
+});
+
 test('tap sur une ressource : fiche stock + revenu/jour (doc 08 §2.1, lot M6 C8)', async ({
   page,
 }) => {

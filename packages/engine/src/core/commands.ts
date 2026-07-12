@@ -190,6 +190,17 @@ export type Command =
     }
   | {
       /**
+       * Sépare une pile d'armée d'un héros (UX-SPLIT, doc 08 §2.1/§2.3) : retire
+       * `count` créatures de la pile d'index `from` et crée une nouvelle pile du
+       * même `unitId` ajoutée à `hero.army` (compact ≤ 7). Générique, zéro faction.
+       */
+      type: 'SplitStack';
+      heroId: string;
+      from: number;
+      count: number;
+    }
+  | {
+      /**
        * Transfert d'une pile d'armée OU d'un artefact entre deux héros du MÊME
        * joueur sur des tuiles adjacentes (UX-HEROSWAP, doc 02 §1.5, doc 08 §2.3).
        * `kind` sélectionne la ressource transférée ; `slot` est l'index source
@@ -297,6 +308,7 @@ export interface CommandError {
     | 'insufficientStock'
     | 'invalidTransfer'
     | 'invalidReorder'
+    | 'invalidSplit'
     | 'notAdjacent'
     | 'invalidCaravan'
     | 'invalidTrade'

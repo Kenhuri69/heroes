@@ -166,7 +166,11 @@ Familles, par mécanique moteur commune :
   une pile `spellcaster` jouée à la main (charges > 0, non silenciée) ⇒ modale de
   ciblage + préviz obligatoire (`estimateUnitSpell`, Pouvoir de la capacité) ⇒
   `CombatAction castSpell`. Exports purs `spellcasterParams`/`isSilenced`. Zéro
-  save/golden. **Reste (données)** : lanceurs Bibliothécaire/Maître/Avatar à câbler.
+  save/golden. **Bibliothécaire AH câblé** (plan `cap-cast-bibliothecaire.md`) :
+  `spellcaster(entraves-runiques, ×2)` — Entraves plutôt que Silence (l'IA cible
+  la meilleure pile ennemie quelle qu'elle soit ⇒ un debuff de vitesse universel
+  ne gâche pas de tour), `faction:sim` inchangé (0 blowout). **Reste (données)** :
+  Maître de Sortilèges / Avatar Vox (factions fortes en sim ⇒ câblage à équilibrer).
 - **CAP-LIFE — Cycle de vie** 🧩 (A3b : `swarm` **livré** ; A2d : `devourMarks`
   **livré** ; `resurrectAlly`, renaissance → A3) : `resurrectAlly` 1× (Ange, doc 03 §3),
   renaissance (Phénix, doc 16 §4/§7), `swarm` (+dégâts ∝ effectif — Élève AH

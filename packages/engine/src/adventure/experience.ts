@@ -2,8 +2,25 @@ import type { HeroProgressionConfig } from './config';
 import type { Draft } from '../combat/draft';
 import type { GameEvent } from '../core/events';
 import { rollRange } from '../core/rng';
-import type { HeroAttributes } from '../core/state';
+import type { HeroAttributes, HeroState } from '../core/state';
 import { rollSkillChoices } from '../hero/level-up';
+
+/**
+ * Profil de gain d'attribut effectif du héros (H-NAMED.3, doc 02 §1.2) : si son
+ * entrée de roster (`draft.heroRoster[hero.rosterId]`) déclare un archétype pour
+ * lequel `config.attributeWeightsByArchetype` a un profil, on l'utilise ; sinon
+ * repli sur le profil GLOBAL `attributeWeights`. Aucune faction : l'archétype est
+ * une clé opaque et le repli préserve le comportement historique.
+ */
+function attributeWeightsFor(
+  draft: Draft,
+  config: HeroProgressionConfig,
+  hero: HeroState,
+): HeroProgressionConfig['attributeWeights'] {
+  const archetype = hero.rosterId ? draft.heroRoster[hero.rosterId]?.archetype : undefined;
+  const byArchetype = archetype ? config.attributeWeightsByArchetype?.[archetype] : undefined;
+  return byArchetype ?? config.attributeWeights;
+}
 
 /**
  * Progression du héros (doc 02 §1.2 + décisions plan phase-2.5) : XP gagnée
@@ -89,15 +106,18 @@ export function grantXp(
   // tirage auto pondéré (aucune régression de puissance IA). Contrôleur lu sur
   // le joueur du héros — donnée, jamais un id en dur.
   const isHuman = draft.players.find((p) => p.id === hero.playerId)?.controller === 'human';
+  // Profil de gain par archétype (H-NAMED.3) : résolu une fois, appliqué à toutes
+  // les montées de cette chaîne (l'archétype ne change pas en cours de partie).
+  const weights = attributeWeightsFor(draft, config, hero);
   while (hero.level < config.maxLevel && hero.xp >= xpForLevel(config, hero.level + 1)) {
     hero.level += 1;
     if (isHuman) {
       // File de propositions (doc 02 §1.2) : une paire par montée, résolue par
       // `ChooseAttribute` — pas d'écrasement (contrairement aux compétences).
-      hero.pendingAttributeChoices.push(rollAttributePair(draft, config.attributeWeights));
+      hero.pendingAttributeChoices.push(rollAttributePair(draft, weights));
       events.push({ type: 'HeroLevelUp', heroId, level: hero.level });
     } else {
-      const attribute = rollAttribute(draft, config.attributeWeights);
+      const attribute = rollAttribute(draft, weights);
       hero.attributes[attribute] += 1;
       events.push({ type: 'HeroLevelUp', heroId, level: hero.level, attribute });
     }

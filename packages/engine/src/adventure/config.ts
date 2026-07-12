@@ -116,8 +116,21 @@ export interface HeroProgressionConfig {
   /** Courbe : xp(niveau) = base × niveau^exponent (1000 × n^1.9). */
   levelCurve: { base: number; exponent: number };
   maxLevel: number;
-  /** Pondérations du +1 attribut/niveau (profil unique livré ; classes de héros différées). */
+  /** Pondérations du +1 attribut/niveau — profil GLOBAL (repli). */
   attributeWeights: { attack: number; defense: number; power: number; knowledge: number };
+  /**
+   * Profils de gain d'attribut PAR ARCHÉTYPE de héros (H-NAMED.3, doc 02 §1.2) :
+   * un héros dont le roster déclare un archétype connu ici utilise ce profil au
+   * lieu du global (`might` favorise Att/Déf, `magic` favorise Pou/Sav). Optionnel
+   * ⇒ repli sur `attributeWeights` (comportement historique). Data-driven, aucune
+   * faction : l'archétype est une clé opaque `'might' | 'magic'`.
+   */
+  attributeWeightsByArchetype?:
+    | {
+        might?: { attack: number; defense: number; power: number; knowledge: number } | undefined;
+        magic?: { attack: number; defense: number; power: number; knowledge: number } | undefined;
+      }
+    | undefined;
   /** Coût en or d'un recrutement de héros à la Taverne (M-TAVERN.1). Défaut 2500. */
   recruitCost?: number;
   /** Nombre maximum de héros par joueur (doc 02 §1.5). Défaut 8. */

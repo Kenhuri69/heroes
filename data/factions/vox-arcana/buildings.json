@@ -135,6 +135,17 @@
       ]
     },
     {
+      "id": "vox-arcana-scene",
+      "maxLevel": 1,
+      "levels": [
+        {
+          "cost": { "gold": 2000, "crystal": 3 },
+          "requires": [{ "building": "fort", "level": 1 }],
+          "effect": { "type": "factionResourceIncome", "resource": "resonance", "amount": 5 }
+        }
+      ]
+    },
+    {
       "id": "vox-arcana-house-lion",
       "maxLevel": 1,
       "exclusiveGroup": "vox-arcana-house",

@@ -12,6 +12,13 @@ import type { Resources } from '../core/state';
 /** Effet déclaratif d'un niveau de bâtiment (doc 02 §4.1). */
 export type BuildingEffect =
   | { type: 'income'; resource: keyof Resources; amount: number }
+  /**
+   * Revenu quotidien d'une **ressource de faction** (F-BUILDEFF.6, doc 16 §5 —
+   * La Scène) : crédite `player.factionResources[resource]` chaque `DayStarted`,
+   * plafonné au cap de la ressource (F-RESON.1). `resource` = id opaque (le
+   * moteur ne connaît aucune faction). Parallèle de `income` (ressources communes).
+   */
+  | { type: 'factionResourceIncome'; resource: string; amount: number }
   | { type: 'growthBonus'; percent: number }
   | { type: 'dwelling'; tier: number; unitId: string }
   /**

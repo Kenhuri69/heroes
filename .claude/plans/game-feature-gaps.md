@@ -235,10 +235,15 @@ Source design : docs 03 §2/§4/§5, 04 §2/§4, 05 §3/§5/§6/§7, 14 §5/§6,
     T≥seuil du camp défenseur en siège (`CombatUnitDef.tier?` exposé,
     `siegeEliteDamage` fondu dans `computeMultiplier`). Cercle Abîme AH livré
     (+10 % T7/T8). Zéro faction moteur, aucun bump save, golden inchangé.
-  - **F-BUILDEFF.6+** ⬜ : Cercles Traque (+vitesse recrue — bloqué : stats
+  - **F-BUILDEFF.6** ✅ (plan `f-buildeff-6.md`) : **La Scène** (Vox, doc 16 §5) —
+    effet générique `factionResourceIncome { resource, amount }` : revenu quotidien
+    d'une ressource de faction (plafonné, parallèle du `income` commun). Bâtiment
+    `vox-arcana-scene` (+5 Résonance/jour). Sanctuaire du Honmoon = T8 dwelling déjà
+    livré. Zéro faction moteur, aucun bump save, golden inchangé.
+  - **F-BUILDEFF.7+** ⬜ : Cercles Traque (+vitesse recrue — bloqué : stats
     par-instance d'unité) / Sceau (−mana d'école — bloqué : portée mana
     combat↔ville), modif ressource de faction, +XP/+rang, Grand Amphithéâtre/
-    Salle des Reliques, La Scène/Sanctuaire Vox.
+    Salle des Reliques, Sanctuaire du Honmoon (bonus additionnels).
 
 - **F-HOUSES — Effets de Maison Vox conformes** ✅ (plan `f-houses-vox.md`, doc 16 §État 16.7)
   `houseAllegiance` étendu de 2 champs **town-scoped** génériques

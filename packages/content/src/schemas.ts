@@ -308,6 +308,9 @@ const buildingRequirementSchema = z.object({
 
 const buildingEffectSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('income'), resource: z.enum(COMMON_RESOURCE_IDS), amount: z.number().int().positive() }),
+  // F-BUILDEFF.6 (doc 16 §5, La Scène) : revenu quotidien d'une ressource de
+  // faction (id opaque, cross-validé loader). Parallèle de `income` (communes).
+  z.object({ type: z.literal('factionResourceIncome'), resource: idSchema, amount: z.number().int().positive() }),
   z.object({ type: z.literal('growthBonus'), percent: z.number().int().nonnegative() }),
   z.object({ type: z.literal('dwelling'), tier: z.number().int().min(1).max(8), unitId: idSchema }),
   /**

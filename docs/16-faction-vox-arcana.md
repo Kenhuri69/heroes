@@ -68,6 +68,18 @@ Faction #6, produite en **Beta** — elle sert de **test de modularité #4** (do
 > `StackResonated` → ligne de journal de combat (pas de toast). **Aucun état
 > persisté ⇒ pas de bump de sauvegarde, golden inchangé.**
 
+> 🚧 **État 16.11 (livré — F-BUILDEFF.6 : La Scène, production de Résonance)** :
+> nouveau point d'extension moteur **générique** — l'effet de bâtiment
+> `factionResourceIncome { resource, amount }` crédite chaque `DayStarted` une
+> ressource de faction (`player.factionResources`, plafonnée au cap F-RESON.1),
+> parallèle du `income` de ressources communes. Bâtiment **La Scène**
+> (`vox-arcana-scene`, requiert Fort) : **+5 Résonance/jour** (data-driven,
+> placeholder d'équilibrage). Cross-validation contenu (la ressource doit être
+> déclarée au manifeste). Le moteur ne lit qu'un id opaque (garde-fou « zéro
+> faction » vert). **Aucun état persisté nouveau ⇒ pas de bump de sauvegarde,
+> golden inchangé.** (Le **Sanctuaire du Honmoon** du doc = habitation T8, déjà
+> livrée `vox-arcana-dwelling-t8`.)
+
 > 🚧 **État 16.5 (livré — École de la Scène)** : l'école de sorts propre de la
 > faction est branchée en **pur contenu** (même mécanisme que `traque` d'Arcane
 > Hunters), zéro diff moteur — les 4 sorts réutilisent les effets génériques
@@ -295,7 +307,7 @@ Bâtiments communs : cf. doc 02 §4.1 (skins « académie gothique »). Spécifi
 | Bâtiment | Prérequis | Effet |
 |----------|-----------|-------|
 | **Le Choixpeau** | Hôtel de ville | Débloque le **choix de Maison** de la ville (signature `houseAllegiance`) |
-| **La Scène (Amphithéâtre)** | Fort | Production / bonus de **Résonance** |
+| **La Scène (Amphithéâtre)** | Fort | Production de **Résonance** (+5/jour, plafonné) — livré F-BUILDEFF.6 |
 | **La Grande Bibliothèque** | — | Guilde des mages (accès aux sorts, dont l'École de la Scène) |
 | **Sanctuaire du Honmoon** | Habitation T7 + Château | Habitation **T8** (Avatar du Honmoon ; coût en Résonance) |
 

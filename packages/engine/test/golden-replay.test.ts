@@ -263,7 +263,11 @@ const GOLDEN_JOURNAL: Command[] = [
 // Re-fixé à F-SCHOOLS.4 (save v26→27) : `SpellStatus.silenced:false` s'ajoute à
 // chaque statut sérialisé (silence de combat « Silence Scellé »). Issues de
 // simulation inchangées (le golden ne lance aucun silence) : hash de FORME seule.
-const GOLDEN_HASH = '2d4de0ae';
+// Re-fixé à F-SCHOOLS.7 (save v27→28) : le `saveVersion` de l'état haché passe à
+// 28 (`CombatStack.stealthed` optionnel, furtivité « Mue Éphémère »). Le champ
+// n'est jamais posé dans le golden (aucune Mue lancée) ; seul `saveVersion`
+// change ⇒ hash de FORME seule, simulation/combat inchangés.
+const GOLDEN_HASH = 'cfa19967';
 
 describe('golden replay', () => {
   it('le journal scripté produit toujours le même état final', () => {

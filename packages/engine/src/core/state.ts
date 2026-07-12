@@ -267,8 +267,11 @@ export interface CaravanState {
  * v27 : `SpellStatus.silenced` — silence de combat (Silence Scellé, doc 05 §6,
  * F-SCHOOLS.4) : une pile portant un statut `silenced` actif ne peut plus lancer
  * son sort d'unité (`spellcaster`) ; `false` pour tout autre statut.
+ * v28 : `CombatStack.stealthed` (optionnel) — furtivité (Mue Éphémère, doc 05 §6,
+ * F-SCHOOLS.7) : une pile furtive est inciblable par l'ennemi jusqu'à sa prochaine
+ * action ; absent hors sort.
  */
-export const CURRENT_SAVE_VERSION = 27;
+export const CURRENT_SAVE_VERSION = 28;
 
 export interface GameState {
   saveVersion: number;

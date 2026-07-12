@@ -182,6 +182,18 @@ Faction inédite, produite en **Alpha** — elle sert de validation grandeur nat
 > moteur, **aucun bump de save, golden inchangé**. Reste différés : Pas de Brume
 > (téléport allié), Mue Éphémère (furtivité).
 >
+> 🚧 **État F-SCHOOLS.7 (livré — Mue Éphémère)** : 5ᵉ des sorts Traque restants —
+> nouvelle mécanique de combat **générique** « furtivité » : `SpellKind 'stealth'`
+> + champ `CombatStack.stealthed` (save v27→**28**). Une pile furtive est
+> **INCIBLABLE** par l'ennemi — exclusion centralisée à TOUS les sites de ciblage
+> ennemi (`attackableTargets`/attaque, `canShootTarget`/tir, sort d'unité, sort de
+> héros, frappe de héros, IA `chooseAction` + `maybeHeroAction`) — et redevient
+> visible dès qu'elle prend sa prochaine action réelle (`afterAction`). Elle bloque
+> et menace toujours (une pile furtive agit encore). Sort de camp allié
+> (`mue-ephemere`, cercle 3). **École de la Traque : 7/8 sorts livrés** (reste
+> différé : **Pas de Brume**, téléport allié — nouvelle surface de ciblage d'hex
+> client). Zéro faction moteur, golden re-fixé si la forme change.
+>
 > 🚧 **État 4.10 (demonform — T8)** : dernière grande capacité de signature —
 > `demonform` (doc 05 §4), capacité **stateful** générique (état par pile
 > sérialisable `CombatStack.transformed`), inline dans le moteur comme

@@ -114,7 +114,7 @@ export function canShootTarget(state: GameState, stackId: string, targetId: stri
   if (!canShoot(state, stackId)) return false;
   const stack = combat.stacks.find((s) => s.id === stackId);
   const target = combat.stacks.find((s) => s.id === targetId);
-  if (!stack || !target) return false;
+  if (!stack || !target || target.stealthed) return false; // F-SCHOOLS.7 : inciblable
   return hasLineOfSight(combat, stack.pos, target.pos);
 }
 
@@ -173,6 +173,7 @@ export function attackableTargets(state: GameState, stackId: string): CombatStac
   const reachSet = new Set(reachableHexes(state, stackId).map(hexKey));
   return combat.stacks.filter((s) => {
     if (s.side === stack.side || s.count <= 0) return false;
+    if (s.stealthed) return false; // F-SCHOOLS.7 : une pile furtive est inciblable
     if (shootMode && hasLineOfSight(combat, stack.pos, s.pos)) return true; // tir (provocation ignorée)
     // Mêlée : positions de frappe adjacentes à `s` (place actuelle si déjà
     // adjacente, sinon hex atteignables adjacents). `taunt` (doc 03 §3) : une
@@ -225,7 +226,7 @@ export function validateCombatAction(state: GameState, cmd: { action: CombatActi
     }
     case 'attack': {
       const target = combat.stacks.find((s) => s.id === action.targetStackId);
-      if (!target || target.side === stack.side || target.count <= 0)
+      if (!target || target.side === stack.side || target.count <= 0 || target.stealthed)
         return { code: 'invalidAction', message: 'cible invalide' };
       // C-LOS : tir autorisé seulement avec ligne de vue sur CETTE cible ;
       // sinon (obstacle sur le segment) le tireur doit frapper en mêlée.
@@ -260,6 +261,9 @@ export function validateCombatAction(state: GameState, cmd: { action: CombatActi
       if (!spell) return { code: 'invalidAction', message: `sort inconnu '${params.spellId}'` };
       const target = combat.stacks.find((s) => s.id === action.targetStackId);
       if (!target || target.count <= 0) return { code: 'invalidAction', message: 'cible invalide' };
+      // F-SCHOOLS.7 : un sort offensif ne peut viser une pile ennemie furtive.
+      if (spellTargetsEnemy(spell.kind) && target.stealthed)
+        return { code: 'invalidAction', message: 'cible furtive' };
       if (spellTargetsEnemy(spell.kind) !== (target.side !== stack.side))
         return { code: 'invalidAction', message: 'cible du mauvais camp pour ce sort' };
       return null;
@@ -310,6 +314,8 @@ function afterAction(
   const actor = combat.stacks.find((s) => s.id === actorId);
   if (actor && actionType !== 'wait') {
     actor.acted = true;
+    // F-SCHOOLS.7 : la furtivité retombe dès que la pile prend une action réelle.
+    if (actor.stealthed) delete actor.stealthed;
     if (wasFirstAction) {
       // F-RESON.2 : un performeur génère sa ressource de faction au moment où il
       // prend réellement son tour (1×/round : gaté sur `wasFirstAction` ⇒ jamais

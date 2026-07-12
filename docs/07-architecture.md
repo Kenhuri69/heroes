@@ -117,7 +117,8 @@ UI/IA ──commande──► [validation] ──► engine.apply(state, cmd)
     (`GameState.heroRoster`, roster de héros nommés persisté, lot H-NAMED.1) ;
     v26 (`HeroState.rosterId`, pool de taverne exclusif, doc 02 §1.5, lot
     M-TAVERN.4) ; v27 (`SpellStatus.silenced`, silence de combat « Silence
-    Scellé », doc 05 §6, lot F-SCHOOLS.4).
+    Scellé », doc 05 §6, lot F-SCHOOLS.4) ; v28 (`CombatStack.stealthed`,
+    furtivité « Mue Éphémère », doc 05 §6, lot F-SCHOOLS.7).
 - Une sauvegarde référence les paquets de faction (par id) ; le suivi de
   **version** par paquet est différé avec les migrations (post-MVP).
 

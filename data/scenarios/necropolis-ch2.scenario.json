@@ -76,6 +76,22 @@
         { "textKey": "@loc:dlg.vhalen.arc.repair", "setFlag": "vhalen-repair" },
         { "textKey": "@loc:dlg.vhalen.arc.feed", "setFlag": "vhalen-feed" }
       ]
+    },
+    {
+      "id": "dlg-corbeau-1",
+      "lines": [{ "speaker": "mere-corbeau", "portrait": "douce", "textKey": "@loc:dlg.corbeau.arc.1" }]
+    },
+    {
+      "id": "dlg-corbeau-2",
+      "lines": [{ "speaker": "vhalen", "portrait": "grave", "textKey": "@loc:dlg.corbeau.arc.2" }]
+    },
+    {
+      "id": "dlg-corbeau-choice",
+      "lines": [{ "speaker": "mere-corbeau", "portrait": "douce", "textKey": "@loc:dlg.corbeau.arc.3" }],
+      "choices": [
+        { "textKey": "@loc:dlg.corbeau.arc.pact", "setFlag": "corbeau-pact" },
+        { "textKey": "@loc:dlg.corbeau.arc.refuse", "setFlag": "corbeau-refuse" }
+      ]
     }
   ],
   "quests": [
@@ -109,6 +125,30 @@
           "id": "trancher",
           "condition": { "type": "defeatHero", "heroId": "hero-ai-1" },
           "dialogBefore": "dlg-vhalen-choice"
+        }
+      ],
+      "rewards": []
+    },
+    {
+      "id": "corbeau-enfant",
+      "kind": "personal",
+      "titleKey": "@loc:quest.corbeau-enfant.title",
+      "descriptionKey": "@loc:quest.corbeau-enfant.desc",
+      "steps": [
+        {
+          "id": "entendre-l-enfant",
+          "condition": { "type": "ownUnits", "unitId": "t3-spectre", "count": 6 },
+          "dialogBefore": "dlg-corbeau-1"
+        },
+        {
+          "id": "sonder-le-sceau",
+          "condition": { "type": "ownUnits", "unitId": "t1-squelette", "count": 25 },
+          "dialogBefore": "dlg-corbeau-2"
+        },
+        {
+          "id": "recueillir-ou-laisser",
+          "condition": { "type": "defeatHero", "heroId": "hero-ai-1" },
+          "dialogBefore": "dlg-corbeau-choice"
         }
       ],
       "rewards": []

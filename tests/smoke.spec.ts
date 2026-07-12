@@ -2883,6 +2883,43 @@ test('choix de dialogue : arc personnel de Vhalen (necropolis-ch2) → drapeau p
   expect(errors).toEqual([]);
 });
 
+test('choix de dialogue : arc personnel de Mère Corbeau (necropolis-ch2) → drapeau persistant (doc 13 §5.4, N-ARCS.4)', async ({
+  page,
+}) => {
+  const errors = await openMenu(page);
+
+  // necropolis-ch2 embarque DEUX arcs `personal` : Vhalen (livré) puis Mère
+  // Corbeau (ce lot), tous deux déroulés dès l'ouverture (étapes pré-satisfaites
+  // par l'armée de départ). On résout chaque nœud de choix (le 1ᵉʳ = Vhalen)
+  // jusqu'à poser le drapeau de Mère Corbeau — même patron robuste qu'Evadne.
+  await page.evaluate(() => window.__HEROES_TEST__!.startScenario('necropolis-ch2'));
+
+  await expect(page.getByTestId('dialogue-box')).toBeVisible();
+  const choices = page.getByTestId('dialogue-choices');
+  const skip = page.getByTestId('dialogue-skip');
+  const flagsNow = () => page.evaluate(() => window.__HEROES_TEST__!.campaignFlags());
+  for (let i = 0; i < 12; i++) {
+    const f = await flagsNow();
+    if (f['corbeau-pact'] || f['corbeau-refuse']) break;
+    if ((await choices.count()) > 0) {
+      // choix : l'option 0 pose `vhalen-repair` (arc Vhalen) ou `corbeau-pact`
+      // (arc Corbeau) — dans les deux cas on avance vers / on atteint le drapeau visé.
+      await page.getByTestId('dialogue-choice-0').click();
+    } else if ((await skip.count()) > 0) {
+      await skip.click();
+    } else {
+      break;
+    }
+  }
+
+  // Le choix de Mère Corbeau « pactiser avec le Havre » pose le drapeau, persisté.
+  const flags = await flagsNow();
+  expect(flags['corbeau-pact']).toBe(true);
+  expect(flags['corbeau-refuse']).toBeUndefined();
+
+  expect(errors).toEqual([]);
+});
+
 test('choix de dialogue : arc personnel d’Evadne (arcane-ch2) → drapeau persistant (doc 13 §5.4, N-ARCS.3)', async ({
   page,
 }) => {

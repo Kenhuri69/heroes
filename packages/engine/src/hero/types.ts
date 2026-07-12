@@ -15,7 +15,7 @@ import type { ResourceId } from '../core/state';
  * registre de contenu, jamais un diff moteur.
  */
 export type SpellSchool = string;
-export type SpellKind = 'damage' | 'heal' | 'buff' | 'debuff' | 'applyMarks' | 'adventure';
+export type SpellKind = 'damage' | 'heal' | 'buff' | 'debuff' | 'applyMarks' | 'silence' | 'adventure';
 
 /**
  * Effet déclaratif d'un sort d'**aventure** (doc 02 §1.4, Alpha 4.16) — lancé sur
@@ -189,6 +189,12 @@ export interface SpellStatus {
    * plusieurs poisons. 0 = statut non toxique (buff/debuff/malédiction).
    */
   damagePerRound: number;
+  /**
+   * Silence (F-SCHOOLS.4, doc 05 §6 « Silence Scellé ») : tant qu'un statut
+   * `silenced` est actif sur la pile, elle ne peut plus lancer son sort embarqué
+   * (`spellcaster`, A2h). `false` pour tout statut de buff/debuff/malédiction/poison.
+   */
+  silenced: boolean;
   roundsLeft: number;
 }
 

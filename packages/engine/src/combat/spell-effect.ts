@@ -137,7 +137,8 @@ export function applySpellToTargets(
       if (posed > 0) events.push({ type: 'MarkApplied', targetId: t.id, marks: t.marks });
     }
   } else {
-    // buff / debuff (doc 02 §1.4) : statut temporaire sur chaque pile affectée.
+    // buff / debuff / silence (doc 02 §1.4, doc 05 §6) : statut temporaire sur
+    // chaque pile affectée. `silence` désactive le sort d'unité (`silenced`).
     for (const t of targets) {
       t.statuses.push({
         spellId: spell.id,
@@ -146,6 +147,7 @@ export function applySpellToTargets(
         speedMod: spell.speedMod ?? 0,
         damageDealtMod: 0,
         damagePerRound: 0,
+        silenced: spell.kind === 'silence',
         roundsLeft: spellStatusDuration(power),
       });
     }

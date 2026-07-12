@@ -263,7 +263,7 @@ describe('CastSpell — buff/debuff', () => {
     const state: GameState = { ...baseState(catalog), spellCatalog: SPELLS, heroes: [h], combat };
     const result = apply(state, { type: 'CastSpell', spellId: 'haste', targetStackId: 'attacker-1' });
     const target = result.state.combat?.stacks.find((s) => s.id === 'attacker-1');
-    expect(target?.statuses).toEqual([{ spellId: 'haste', attackMod: 0, defenseMod: 0, speedMod: 3, damageDealtMod: 0, damagePerRound: 0, roundsLeft: 2 }]);
+    expect(target?.statuses).toEqual([{ spellId: 'haste', attackMod: 0, defenseMod: 0, speedMod: 3, damageDealtMod: 0, damagePerRound: 0, silenced: false, roundsLeft: 2 }]);
     const spellCast = result.events.find((e) => e.type === 'SpellCast');
     expect(spellCast).toEqual({ type: 'SpellCast', heroId: 'hero-1', spellId: 'haste', targetId: 'attacker-1', amount: 0, kills: 0 });
   });
@@ -282,7 +282,7 @@ describe('CastSpell — buff/debuff', () => {
       count: 1,
       pos: { col: 1, row: 0 },
       firstHp: 100,
-      statuses: [{ spellId: 'bouclier-de-pierre', attackMod: 0, defenseMod: 10, speedMod: 0, damageDealtMod: 0, damagePerRound: 0, roundsLeft: 2 }],
+      statuses: [{ spellId: 'bouclier-de-pierre', attackMod: 0, defenseMod: 10, speedMod: 0, damageDealtMod: 0, damagePerRound: 0, silenced: false, roundsLeft: 2 }],
     });
     const state = { ...baseState(dmgCatalog), combat: combatState([attacker, defender]) };
     const events: GameEvent[] = [];
@@ -303,7 +303,7 @@ describe('CastSpell — buff/debuff', () => {
       unitId: 'def',
       count: 1,
       pos: { col: 0, row: 0 },
-      statuses: [{ spellId: 'x', attackMod: 1, defenseMod: 0, speedMod: 0, damageDealtMod: 0, damagePerRound: 0, roundsLeft: 2 }],
+      statuses: [{ spellId: 'x', attackMod: 1, defenseMod: 0, speedMod: 0, damageDealtMod: 0, damagePerRound: 0, silenced: false, roundsLeft: 2 }],
     });
     const b = stack({ id: 'defender-0', side: 'defender', slot: 0, unitId: 'def', count: 1, pos: { col: 1, row: 0 } });
     const state = { ...baseState(statusCatalog), combat: combatState([a, b]) };

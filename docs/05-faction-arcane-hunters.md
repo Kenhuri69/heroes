@@ -145,6 +145,18 @@ Faction inédite, produite en **Alpha** — elle sert de validation grandeur nat
 > Éphémère** (furtivité), **Bannissement**, **Heure de la Curée** (noRetaliation
 > conditionnel).
 >
+> 🚧 **État F-SCHOOLS.4 (livré — Silence Scellé)** : 2ᵉ des sorts Traque restants
+> — nouvelle mécanique de combat **générique** « silence » : `SpellKind 'silence'`
+> + statut persisté `SpellStatus.silenced`. Une pile portant un statut `silenced`
+> actif ne peut plus lancer son sort d'unité (`spellcaster`, A2h) — gate partagé
+> côté validation joueur ET IA (`isSilenced`) ; le silence n'affecte que le
+> `spellcaster` (durée = `Pouvoir` rounds, décrément/retrait au round existants).
+> Refactor : helper `spellTargetsEnemy(kind)` (dédup des 3 contraintes de camp,
+> le nouveau kind reste cohérent). Données : `silence-scelle` (cercle 2), ciblage
+> de pile ennemie existant, fiche de pile générique affiche déjà le statut. **Bump
+> `CURRENT_SAVE_VERSION` 26→27** (doc 07 §4), golden re-fixé si la forme change.
+> Restent différés : Pas de Brume, Mue Éphémère, Bannissement, Heure de la Curée.
+>
 > 🚧 **État 4.10 (demonform — T8)** : dernière grande capacité de signature —
 > `demonform` (doc 05 §4), capacité **stateful** générique (état par pile
 > sérialisable `CombatStack.transformed`), inline dans le moteur comme

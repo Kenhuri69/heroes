@@ -224,6 +224,15 @@
       "marksDamagePct": 50
     },
     {
+      "id": "silence-scelle",
+      "school": "traque",
+      "circle": 2,
+      "manaCost": 9,
+      "kind": "silence",
+      "base": 0,
+      "perPower": 0
+    },
+    {
       "id": "ville-portail",
       "school": "air",
       "circle": 3,

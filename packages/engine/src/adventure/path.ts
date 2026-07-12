@@ -98,6 +98,32 @@ export function findPath(
   return path.reverse();
 }
 
+/**
+ * Coût de pas minimal possible sur cette carte (terrain le moins cher × meilleur
+ * multiplicateur de route, arrondi) — base de l'heuristique octile de `findPath`
+ * et borne inférieure admissible du coût d'un chemin (cf. `octileLowerBound`).
+ */
+export function minStepCost(config: AdventureConfig): number {
+  let min = Infinity;
+  for (const rule of Object.values(config.terrains)) {
+    if (rule.moveCost !== null) min = Math.min(min, rule.moveCost);
+  }
+  return Math.round(min * Math.min(1, config.movement.roadMultiplier));
+}
+
+/**
+ * Borne INFÉRIEURE admissible du coût d'un chemin `from → to` : distance octile
+ * (Chebyshev) × coût de pas minimal. Si elle dépasse le budget de PM, aucune
+ * route n'y arrive dans le budget — inutile de lancer `findPath` (A\*). Ce
+ * pré-filtre `O(1)` évite le fan-out `O(objets × A\*)` de l'IA sur grande carte,
+ * qui gelait l'onglet (plan `.claude/plans/ai-turn-non-blocking.md`). Le résultat
+ * étant l'heuristique même de l'A\*, écarter une cible ici est EXACTEMENT
+ * équivalent à obtenir `cost > budget` de l'A\* : zéro changement de décision.
+ */
+export function octileLowerBound(minStep: number, from: GridPos, to: GridPos): number {
+  return minStep * Math.max(Math.abs(from.x - to.x), Math.abs(from.y - to.y));
+}
+
 /** Tas binaire min avec départage FIFO — l'ordre d'exploration est stable. */
 class MinHeap {
   private keys: number[] = [];

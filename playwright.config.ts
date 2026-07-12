@@ -4,14 +4,20 @@ import { defineConfig, devices } from '@playwright/test';
 // (même artefact que celui déployé sur GitHub Pages).
 export default defineConfig({
   testDir: 'tests',
-  timeout: 30_000,
+  // 45 s en CI : le rendu logiciel (SwiftShader) est gourmand en CPU ; sous
+  // parallélisme la contention allonge les tests lourds (scénarios), une marge
+  // évite les faux timeouts. 30 s en local (rendu matériel).
+  timeout: process.env.CI ? 45_000 : 30_000,
   // Parallélisme intra-fichier : tout le smoke vit dans un seul fichier ; sans
   // `fullyParallel`, Playwright ne parallélise QUE par fichier ⇒ 1 seul worker
   // par projet. Chaque test ayant déjà un contexte/IndexedDB isolé, on peut les
   // répartir sur plusieurs workers sans changer une assertion (doc perf :
-  // .claude/plans/test-performance-optimization.md). Les runners GH ont 4 vCPU.
+  // .claude/plans/test-performance-optimization.md). En CI on borne à 2 workers :
+  // le rendu SwiftShader sature vite les 4 vCPU (au-delà, timeouts). La CI
+  // combine ces 2 workers avec 2 shards ⇒ concurrence effective 4 sans
+  // sur-souscrire une même machine.
   fullyParallel: true,
-  workers: process.env.CI ? 4 : undefined,
+  workers: process.env.CI ? 2 : undefined,
   // En CI : interdit un `test.only` oublié (garde-fou anti-couverture partielle)
   // et rejoue 2 fois un échec pour absorber la flakiness résiduelle du rendu.
   forbidOnly: !!process.env.CI,

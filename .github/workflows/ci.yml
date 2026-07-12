@@ -116,7 +116,10 @@ jobs:
 
       - run: pnpm build
 
-      - run: pnpm smoke -- --shard=${{ matrix.shard }}/2 --grep-invert=@perf
+      # Appel direct de Playwright (pas via `pnpm smoke`) : le script npm ne
+      # transmet pas les arguments passés après `--`, ce qui ferait tourner
+      # toute la suite au lieu du shard.
+      - run: pnpm exec playwright test --shard=${{ matrix.shard }}/2 --grep-invert=@perf
 
   # Tests de fluidité (@perf) isolés : mono-worker, seuls sur le runner, pour
   # une mesure FPS non perturbée par la charge parallèle.
@@ -140,4 +143,4 @@ jobs:
 
       - run: pnpm build
 
-      - run: pnpm smoke -- --project=desktop --grep=@perf --workers=1
+      - run: pnpm exec playwright test --project=desktop --grep=@perf --workers=1

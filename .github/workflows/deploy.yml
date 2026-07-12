@@ -59,8 +59,10 @@ jobs:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
       - run: pnpm exec playwright install chromium --with-deps
-      - run: pnpm smoke -- --grep-invert=@perf
-      - run: pnpm smoke -- --project=desktop --grep=@perf --workers=1
+      # Appel direct de Playwright (le script `pnpm smoke` ne transmet pas les
+      # arguments après `--`).
+      - run: pnpm exec playwright test --grep-invert=@perf
+      - run: pnpm exec playwright test --project=desktop --grep=@perf --workers=1
 
       # Backend (Live 7.4) : REBUILD du client avec l'URL du Worker AVANT publication
       # — seul l'artefact déployé embarque le backend (le smoke ci-dessus reste

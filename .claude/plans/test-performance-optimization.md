@@ -204,3 +204,12 @@ sharding CI (B). Lots 4/5 (dédoublonnage, deux vitesses) non retenus pour l'ins
   avant, −43 %), shards 49/49 équilibrés ; run parallèle (4 workers, 2 projets,
   mode CI) 10/10 vert en 43,9 s ; `@perf` isolé 2/2 vert (22 / 12,1 fps) ;
   lint + typecheck verts.
+- 2026-07-12 : **1er run CI rouge → corrigé.** `quality` vert (~1m30) mais les 3
+  jobs smoke rouges : (1) `pnpm smoke -- <args>` NE transmet PAS les arguments
+  ⇒ chaque job lançait la suite entière (non shardée, `@perf` inclus) ; (2)
+  `workers=4` sature les 4 vCPU sous SwiftShader ⇒ timeouts 30 s sur les tests
+  lourds. Fix : appel direct `pnpm exec playwright test <args>` (ci.yml +
+  deploy.yml), `workers: 2` en CI, `timeout: 45 s` en CI. Vérif locale : les 5
+  tests lourds tombés en CI passent avec workers=2 (54,9 s). Note : la CI teste
+  le merge PR+main (main a avancé : +tests N-ARCS.4/5), d'où le décalage de
+  lignes vs local.

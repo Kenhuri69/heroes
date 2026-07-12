@@ -126,9 +126,14 @@ Héros nommés MVP : *Vhalen* (Chevalier de la mort, spécialité : Vampires +1 
 > (`conditionalUnitBonus` — attaque/défense/vitesse ; aucune faction en dur, pas
 > de bump save, golden inchangé). **Vhalen** = **+1 att/+1 déf aux Vampires
 > (`t4-vampire`) par 2 niveaux** (fidèle au tableau). **Mère Corbeau** = variante
-> unit-scopée **+1 att aux Squelettes par 2 niveaux** ; sa signature EXACTE
-> (« Nécromancie +2 %/niveau » = mise à l'échelle d'un effet de faction) reste
-> **différée** (exigerait un 2ᵉ point d'extension, hors périmètre « un seul »).
+> unit-scopée **+1 att aux Squelettes par 2 niveaux** au lot H-COND.
+>
+> **État livré (H-COND-EXACT)** : *Mère Corbeau* porte désormais sa signature
+> EXACTE (doc §5) — **Nécromancie +2 %/niveau** — via un point d'extension moteur
+> **générique** dédié : le champ d'effet déclaratif `raiseUndeadPctPerLevel` est
+> additionné au pourcentage de `raiseUndeadOnVictory` (`+N % × niveau du héros`)
+> dans `applyRaiseUndeadOnVictory`. Zéro faction en dur (`raiseUndead` est le nom
+> du mécanisme, pas une maison), pas de bump save, golden inchangé.
 
 ## 6. Notes d'équilibrage
 

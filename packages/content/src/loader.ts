@@ -471,6 +471,10 @@ export async function loadFactionPack(
     const condUnit = hero.specialtyEffect?.conditional?.unitId;
     if (condUnit && !unitIds.has(condUnit))
       errors.push(`${path}: spécialité conditionnelle — unité inconnue '${condUnit}'`);
+    // Familier de départ (H-COND-EXACT, Alwin) : l'unité doit exister (sinon inerte).
+    const bonusUnit = hero.specialtyEffect?.startingArmyBonus?.unitId;
+    if (bonusUnit && !unitIds.has(bonusUnit))
+      errors.push(`${path}: familier de départ — unité inconnue '${bonusUnit}'`);
     heroes.push(hero);
   }
   if (new Set(heroes.map((h) => h.id)).size !== heroes.length)

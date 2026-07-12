@@ -5,7 +5,7 @@
   "hero.sylwen.specialty": "Slingward — +1 speed to Sylvan Archers.",
   "hero.faelar.name": "Faelar the Listener",
   "hero.faelar.bio": "A druid who listens more than he acts; when he finally speaks, the Treants rise, patient and unshakable.",
-  "hero.faelar.specialty": "The Listener — +1 defense to Treants per 2 levels.",
+  "hero.faelar.specialty": "The Listener — his Symbiosis starts at 1 stack at the beginning of combat.",
   "hero.agathe.name": "Agathe the Healer",
   "hero.agathe.bio": "A healer-druid of the Sylvan Court, she learned from the sacred springs the art of closing wounds. Where she lays her hand, moss regrows and the fallen rise again.",
   "hero.agathe.specialty": "The Healer — her healing magic flows effortlessly: -15% spell mana cost.",

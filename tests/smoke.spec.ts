@@ -1985,6 +1985,33 @@ test('H-COND : héros à spécialité conditionnelle jouable (Vhalen, doc 04 §5
   expect(errors).toEqual([]);
 });
 
+test('H-COND-EXACT : le familier de départ d’Alwin rejoint son armée (doc 05 §7)', async ({ page }) => {
+  const errors = collectErrors(page);
+  await page.goto('./');
+  await page.waitForFunction(() => window.__HEROES_READY__ === true);
+
+  // Escarmouche arcane-hunters + héros « alwin » (Doyen) : sa spécialité EXACTE
+  // (`startingArmyBonus`) dote son armée d'un familier T2 gratuit à la création.
+  await page.getByTestId('menu-skirmish').click();
+  await page.getByTestId('skirmish-human-faction').selectOption('arcane-hunters');
+  await page.getByTestId('skirmish-human-hero').selectOption('alwin');
+  await page.getByTestId('skirmish-start').click();
+  await expect(page.getByTestId('end-turn')).toBeVisible();
+
+  const hero = await page.evaluate(() => {
+    const h = window.__HEROES_TEST__!.getState().heroes.find((x) => x.id === 'hero-player-1')!;
+    return { rosterId: h.rosterId, specialtyId: h.specialtyId, army: h.army };
+  });
+  expect(hero.rosterId).toBe('alwin');
+  expect(hero.specialtyId).toBe('doyen');
+  // Le familier (t2-familier) est présent dans l'armée de départ (count ≥ 1).
+  const familiar = hero.army.find((s) => s.unitId === 't2-familier');
+  expect(familiar).toBeDefined();
+  expect(familiar!.count).toBeGreaterThanOrEqual(1);
+
+  expect(errors).toEqual([]);
+});
+
 test('taverne : le portrait DÉDIÉ d’un héros canon s’affiche (M-TAVERN.3)', async ({ page }) => {
   const errors = collectErrors(page);
   await page.goto('./');

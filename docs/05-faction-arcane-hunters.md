@@ -362,7 +362,9 @@ Fort ──► T1 Dortoirs ──► T2 Volière ──► T3 Salle des Préfets
 
 Héros nommés : *Evadne Corvel* (Maître de Chasse, ex-Cercle de l'Abîme, moitié de visage runique), *Professeur Alwin Marchmont* (Doyen, sa chouette est un familier de combat T2 gratuit au jour 1).
 
-> **État livré (H-COND)** : *Evadne* et *Alwin* sont **jouables** (roster arcane-hunters). **Evadne** « Maître de Chasse » = spécialité conditionnelle **+1 att aux Chasseresses (`t6-chasseresse`) par 2 niveaux** (le doc ne chiffrait pas — choix cohérent via le point d'extension `conditional`). **Alwin** « Doyen » = spécialité **plate** −15 % coût mana (vocabulaire existant) ; son **familier T2 gratuit au jour 1** reste **différé** (bonus d'armée de départ = mécanique distincte du point d'extension conditionnel).
+> **État livré (H-COND)** : *Evadne* et *Alwin* sont **jouables** (roster arcane-hunters). **Evadne** « Maître de Chasse » = spécialité conditionnelle **+1 att aux Chasseresses (`t6-chasseresse`) par 2 niveaux** (le doc ne chiffrait pas — choix cohérent via le point d'extension `conditional`). **Alwin** « Doyen » portait au lot H-COND une spécialité plate −15 % coût mana.
+>
+> **État livré (H-COND-EXACT)** : *Alwin* porte désormais sa signature EXACTE (doc §7) — **un familier T2 gratuit au jour 1** (`t2-familier`, la chouette) — via un point d'extension moteur **générique** dédié : le champ d'effet `startingArmyBonus: { unitId, count }` fusionne l'unité dans l'armée du héros à la création (`StartGame`, empilée si déjà présente, sinon nouvelle pile si < 7). Zéro faction en dur (`unitId` opaque), pas de bump save, golden inchangé.
 
 ## 8. Résumé des points d'extension utilisés (test de modularité)
 

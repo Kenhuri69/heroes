@@ -150,6 +150,16 @@ const heroEffectFields = {
       'au moins un effet conditionnel (attack/defense/speed)',
     )
     .optional(),
+  // Signatures EXACTES de spécialités (H-COND-EXACT) — chacune interprétée par un
+  // point d'extension moteur générique dédié, jamais agrégée à plat :
+  // Mère Corbeau (doc 04 §5) : +N % de Nécromancie (`raiseUndeadOnVictory`) par niveau.
+  raiseUndeadPctPerLevel: z.number().optional(),
+  // Faelar (doc 14 §5) : paliers de Symbiose au début du combat.
+  startingSymbiosisStacks: z.number().int().positive().optional(),
+  // Alwin (doc 05 §7) : familier gratuit dans l'armée de départ (unitId opaque).
+  startingArmyBonus: z
+    .object({ unitId: idSchema, count: z.number().int().positive() })
+    .optional(),
 } as const;
 
 const houseEffectSchema = z

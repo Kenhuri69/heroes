@@ -4,7 +4,8 @@ import type { GameEvent } from '../core/events';
 import { rollRange } from '../core/rng';
 import type { GameState } from '../core/state';
 import { heroManaMax } from '../hero/artifacts';
-import { heroTacticsColumns } from '../hero/skills';
+import { heroTacticsColumns, sumHeroEffectField } from '../hero/skills';
+import { symbiosisParams } from './damage';
 import { runAiIfNeeded } from './ai';
 import type { Draft } from './draft';
 import { COMBAT_COLS, COMBAT_ROWS, inCombatBounds, sameHex, type OffsetPos } from './hex';
@@ -340,9 +341,38 @@ export function combatTacticsColumns(draft: GameState, combat: CombatState): num
  * camp joueur a la Tactique (le joueur repositionne ses piles avant la bataille,
  * `FinishPlacement` la clôt), sinon démarre la bataille immédiatement.
  */
+/**
+ * Spécialité EXACTE Faelar (H-COND-EXACT, doc 14 §5) : au début du combat, les
+ * piles de CHAQUE camp portant un héros doté de `startingSymbiosisStacks`
+ * démarrent à ce nombre de paliers de Symbiose (borné par `maxStacks` de l'unité)
+ * au lieu de 0 — seulement les piles réellement dotées de la capacité
+ * `symbiosis`. Générique : aucun nom de faction/héros, seul le module de
+ * capacité `symbiosis` et un champ d'effet déclaratif sont lus.
+ */
+function applyStartingSymbiosis(draft: Draft, combat: CombatState): void {
+  const sides: [CombatSideId, string | null][] = [
+    ['attacker', combat.attackerHeroId],
+    ['defender', combat.defenderHeroId],
+  ];
+  for (const [side, heroId] of sides) {
+    const hero = heroId ? draft.heroes.find((h) => h.id === heroId) : undefined;
+    if (!hero) continue;
+    const start = sumHeroEffectField(hero, 'startingSymbiosisStacks');
+    if (start <= 0) continue;
+    for (const stack of combat.stacks) {
+      if (stack.side !== side) continue;
+      const def = draft.unitCatalog[stack.unitId];
+      const params = def ? symbiosisParams(def) : null;
+      if (!params) continue;
+      stack.symbiosisStacks = Math.min(start, params.maxStacks);
+    }
+  }
+}
+
 function openPlacementOrBattle(draft: Draft, events: GameEvent[]): void {
   const combat = draft.combat;
   if (!combat) return;
+  applyStartingSymbiosis(draft, combat);
   if (combatTacticsColumns(draft, combat) > 0) {
     combat.phase = 'placement'; // activeStackId reste null : aucun tour tant que FinishPlacement
     return;

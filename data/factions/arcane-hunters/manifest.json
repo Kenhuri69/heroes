@@ -3,6 +3,7 @@
   "schemaVersion": 1,
   "name": "@loc:faction.arcane-hunters.name",
   "story": "story/campaign.json",
+  "heroes": ["olivier"],
   "nativeTerrain": "swamp",
   "keyResources": [
     "mercury",

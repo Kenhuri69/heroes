@@ -252,8 +252,13 @@ Source design : docs 03 §2/§4/§5, 04 §2/§4, 05 §3/§5/§6/§7, 14 §5/§6,
     sur le bonus `gainFactionResourceOnVictory` et plafonne le crédit post-victoire
     (`faction/effects.ts`, `max(current, min(next, cap))`). Cap optionnel ⇒ saves
     gracieuses ; zéro faction, golden inchangé, aucun bump de save.
-  - **F-RESON.2** ⬜ : génération intra-combat par « performeur » (capacité
-    générique de gain de ressource en combat) — nouvelle surface de combat.
+  - **F-RESON.2** ✅ (plan `f-reson-2.md`) : génération intra-combat par
+    « performeur » — capacité générique `performer` (`{resource, amount}`) : une
+    pile performeuse crédite le joueur du héros de son camp quand elle prend
+    réellement son tour (1×/round, hook `afterAction` gaté sur `wasFirstAction`),
+    plafonné au cap partagé avec le gain post-victoire (helper `creditFactionResource`).
+    Event `StackResonated` → journal de combat. Données Vox : Chœur T1 `+1`, Idole
+    T4 `+2` (+ élites). Zéro faction moteur, aucun bump save, golden inchangé.
 
 - **F-SCHOOLS — Écoles de sorts propres incomplètes** 🧩 M 🚧 (**découpé en sous-lots**)
   Doc : Lumière (doc 03 §1/§3), Nécromancie/Prime (doc 04 §1), Traque 8 sorts

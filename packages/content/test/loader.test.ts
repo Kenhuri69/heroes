@@ -295,6 +295,28 @@ describe('loadContent', () => {
     expect(report.rejected[0]?.errors.join()).toContain("capacité inconnue au catalogue 'demonform'");
   });
 
+  it('F-RESON.2 — rejette un performeur dont la ressource de faction est inconnue', async () => {
+    const data = makeData();
+    (data['core/abilities.json'] as { abilities: string[] }).abilities.push('performer');
+    (data['factions/proto/units/t2-archer.json'] as { abilities: unknown[] }).abilities = [
+      { id: 'performer', params: { resource: 'res-fantome', amount: 1 } },
+    ];
+    const report = await loadContent(reader(data));
+    expect(report.rejected[0]?.errors.join()).toContain(
+      "capacité 'performer' — ressource de faction inconnue 'res-fantome'",
+    );
+  });
+
+  it('F-RESON.2 — accepte un performeur dont la ressource de faction est déclarée', async () => {
+    const data = makeData();
+    (data['core/abilities.json'] as { abilities: string[] }).abilities.push('performer');
+    (data['factions/proto/units/t2-archer.json'] as { abilities: unknown[] }).abilities = [
+      { id: 'performer', params: { resource: 'essence', amount: 1 } },
+    ];
+    const report = await loadContent(reader(data));
+    expect(report.rejected).toEqual([]);
+  });
+
   it('rejette une clé de locale manquante (dans la langue fautive uniquement)', async () => {
     const data = makeData();
     delete (data['factions/proto/locales/en.json'] as Record<string, string>)[

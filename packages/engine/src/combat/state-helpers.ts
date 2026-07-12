@@ -26,6 +26,19 @@ export function shooterAmmo(def: CombatUnitDef): number | null {
   return typeof ammo === 'number' ? ammo : 0;
 }
 
+/**
+ * Paramètres de la capacité `performer` (F-RESON.2, doc 16 §3.2) : ressource de
+ * faction générée en combat et montant par round, ou null si non-performeur.
+ */
+export function performerParams(def: CombatUnitDef): { resource: string; amount: number } | null {
+  const perf = def.abilities.find((a) => a.id === 'performer');
+  if (!perf) return null;
+  const resource = perf.params?.resource;
+  const amount = perf.params?.amount;
+  if (typeof resource !== 'string' || typeof amount !== 'number') return null;
+  return { resource, amount };
+}
+
 /** Tireur forcé en mêlée sans `noMeleePenalty` ⇒ pénalité ×rangedMeleePenalty. */
 export function isShooterMeleePenalized(def: CombatUnitDef): boolean {
   const shooter = def.abilities.find((a) => a.id === 'shooter');

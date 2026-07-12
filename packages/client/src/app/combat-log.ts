@@ -1,6 +1,6 @@
 import { appStore } from './store';
 import { eventBus, type AppEvent } from './events';
-import { t, resolveUnitName, resolveSpellName } from './i18n';
+import { t, resolveUnitName, resolveSpellName, resolveFactionResourceName } from './i18n';
 
 /**
  * Journal de combat (UX-COMBATLOG, doc 08 §2.4) : un listener global accumule
@@ -60,6 +60,12 @@ function combatLogText(e: AppEvent): string | null {
       return t('combatLog.feared', { unit: nameOf(e.targetId) });
     case 'StackImmobilized':
       return t('combatLog.immobilized', { unit: nameOf(e.stackId) });
+    case 'StackResonated':
+      return t('combatLog.resonated', {
+        unit: nameOf(e.stackId),
+        amount: e.amount,
+        resource: resolveFactionResourceName(e.resource),
+      });
     case 'CombatEnded':
       return e.winner === e.playerSide ? t('combatLog.won') : t('combatLog.lost');
     default:

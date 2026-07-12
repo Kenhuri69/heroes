@@ -1,9 +1,48 @@
 import type { Draft } from '../combat/draft';
-import { hasAbility } from '../combat/state-helpers';
-import type { CombatSideId, CombatState } from '../combat/types';
+import { hasAbility, performerParams } from '../combat/state-helpers';
+import type { CombatSideId, CombatStack, CombatState } from '../combat/types';
 import type { GameEvent } from '../core/events';
-import type { HeroState } from '../core/state';
+import type { GameState, HeroState, PlayerState } from '../core/state';
 import type { FactionBonus } from './types';
+
+/**
+ * Crédite un joueur d'une ressource de faction (id opaque), plafonné au `cap`
+ * si fourni. Patron R1 de la croissance de ville : `max(current, …)` ne réduit
+ * jamais un stock déjà au-delà du cap (pré-seedé par un scénario). Cap absent =
+ * non plafonné. Retourne le gain effectif (≥ 0). Partagé par le gain
+ * post-victoire (F-RESON.1) et la génération intra-combat (F-RESON.2).
+ */
+export function creditFactionResource(
+  player: PlayerState,
+  resource: string,
+  amount: number,
+  cap: number | undefined,
+): number {
+  if (amount <= 0) return 0;
+  const current = player.factionResources[resource] ?? 0;
+  const next = current + amount;
+  const capped = cap !== undefined ? Math.max(current, Math.min(next, cap)) : next;
+  player.factionResources[resource] = capped;
+  return capped - current;
+}
+
+/**
+ * Cap déclaré d'une ressource de faction, estampillé par le loader sur le bonus
+ * `gainFactionResourceOnVictory` de la faction (dérivé de
+ * `factionResources[].cap`). Générique : le moteur ne lit qu'un id opaque.
+ * `undefined` si non plafonné / faction sans bonus de gain de cette ressource.
+ */
+export function factionResourceCap(
+  state: GameState,
+  factionId: string,
+  resource: string,
+): number | undefined {
+  const bonuses = state.factionCatalog[factionId]?.bonuses ?? [];
+  for (const b of bonuses) {
+    if (b.type === 'gainFactionResourceOnVictory' && b.resource === resource) return b.cap;
+  }
+  return undefined;
+}
 
 /** Capacité d'armée du héros (doc 02 §5.1) — ≤ 7 piles distinctes. */
 const MAX_ARMY_STACKS = 7;
@@ -44,18 +83,48 @@ function applyGainFactionResourceOnVictory(
   if (bonus.amount <= 0) return;
   const player = draft.players.find((p) => p.id === hero.playerId);
   if (!player) return;
-  const current = player.factionResources[bonus.resource] ?? 0;
-  const next = current + bonus.amount;
   // F-RESON.1 : plafonne le gain au cap de la ressource (doc 16 §3.2 / doc 05 §3.3).
-  // `max(current, …)` : ne réduit jamais un stock déjà au-delà du cap (pré-seedé
-  // par un scénario) — patron R1 de la croissance de ville. Cap absent = non plafonné.
-  const capped = bonus.cap !== undefined ? Math.max(current, Math.min(next, bonus.cap)) : next;
-  player.factionResources[bonus.resource] = capped;
+  const gained = creditFactionResource(player, bonus.resource, bonus.amount, bonus.cap);
   events.push({
     type: 'FactionResourceGained',
     playerId: player.id,
     resource: bonus.resource,
-    amount: capped - current,
+    amount: gained,
+  });
+}
+
+/**
+ * Génération de ressource de faction intra-combat (F-RESON.2, doc 16 §3.2) : une
+ * pile « performeuse » (capacité `performer`) crédite le joueur du héros de son
+ * camp quand elle prend réellement son tour (1×/round, appelé depuis `afterAction`
+ * hors Attendre). Plafonné au cap de la ressource (partagé avec le gain
+ * post-victoire). No-op sans héros lié au camp (arène/gardien/garnison).
+ * Générique : le moteur ne lit qu'un id de ressource opaque.
+ */
+export function applyPerformerResonance(
+  state: Draft,
+  combat: CombatState,
+  actor: CombatStack,
+  events: GameEvent[],
+): void {
+  const def = state.unitCatalog[actor.unitId];
+  if (!def) return;
+  const params = performerParams(def);
+  if (!params) return;
+  const heroId = actor.side === 'attacker' ? combat.attackerHeroId : combat.defenderHeroId;
+  const hero = heroId ? state.heroes.find((h) => h.id === heroId) : undefined;
+  if (!hero) return;
+  const player = state.players.find((p) => p.id === hero.playerId);
+  if (!player) return;
+  const cap = factionResourceCap(state, hero.factionId, params.resource);
+  const gained = creditFactionResource(player, params.resource, params.amount, cap);
+  if (gained <= 0) return;
+  events.push({
+    type: 'StackResonated',
+    stackId: actor.id,
+    playerId: player.id,
+    resource: params.resource,
+    amount: gained,
   });
 }
 

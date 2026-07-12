@@ -35,6 +35,18 @@ const BOLT: SpellDef = {
   base: 10,
   perPower: 2,
 };
+// H-SPELLS.3 — sort d'aventure « Vision » : révèle le brouillard dans un rayon
+// autour du héros, sans le déplacer.
+const VISION: SpellDef = {
+  id: 'clairvoyance',
+  school: 'air',
+  circle: 2,
+  manaCost: 8,
+  kind: 'adventure',
+  base: 0,
+  perPower: 0,
+  adventure: { type: 'vision', radius: 3 },
+};
 
 function hero(over: Partial<HeroState> = {}): HeroState {
   return {
@@ -80,7 +92,7 @@ function state(heroOver: Partial<HeroState> = {}, townOwner: string | null = 'pl
   const town: TownState = { id: 't1', ownerPlayerId: townOwner, pos: { x: 8, y: 8 }, factionId: '', buildings: {}, builtToday: false, garrison: [], stock: {}, spellPool: [], sharedGrowthChoice: {} };
   s.towns = [town];
   s.unitCatalog = testCatalog();
-  s.spellCatalog = { 'ville-portail': PORTAL, bolt: BOLT };
+  s.spellCatalog = { 'ville-portail': PORTAL, bolt: BOLT, clairvoyance: VISION };
   return s;
 }
 
@@ -157,5 +169,38 @@ describe('CastAdventureSpell — Ville-portail', () => {
     const { state: next } = apply(s, { type: 'EndTurn', playerId: 'player-1' });
     expect(next.calendar.day).toBe(2);
     expect(next.heroes[0]?.mana).toBe(40); // restaurée à manaMax (knowledge 4 × 10)
+  });
+});
+
+describe('CastAdventureSpell — Vision (H-SPELLS.3)', () => {
+  it('révèle le brouillard dans le rayon autour du héros, sans le déplacer', () => {
+    const { state: next, events } = apply(state({ spells: ['clairvoyance'], pos: { x: 5, y: 5 } }), {
+      type: 'CastAdventureSpell',
+      heroId: 'hero-player-1',
+      spellId: 'clairvoyance',
+      playerId: 'player-1',
+    });
+    const hero = next.heroes[0]!;
+    const map = next.map!;
+    const explored = next.players[0]!.explored;
+    // Le héros ne bouge pas.
+    expect(hero.pos).toEqual({ x: 5, y: 5 });
+    // Tuile au bord du rayon (3) révélée ; tuile hors rayon (dist 4) non révélée.
+    expect(explored[5 * map.width + (5 + 3)]).toBe(1);
+    expect(explored[(5 + 4) * map.width + 5] ?? 0).toBe(0);
+    // Mana décomptée + événement émis.
+    expect(hero.mana).toBe(32); // 40 − 8
+    expect(events.some((e) => e.type === 'AdventureSpellCast')).toBe(true);
+  });
+
+  it('refuse Vision sans mana suffisante', () => {
+    expect(
+      validate(state({ spells: ['clairvoyance'], mana: 5 }), {
+        type: 'CastAdventureSpell',
+        heroId: 'hero-player-1',
+        spellId: 'clairvoyance',
+        playerId: 'player-1',
+      })?.code,
+    ).toBe('notEnoughMana');
   });
 });

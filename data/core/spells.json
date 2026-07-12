@@ -267,7 +267,9 @@
       "kind": "adventure",
       "base": 0,
       "perPower": 0,
-      "adventure": { "type": "townPortal" }
+      "adventure": {
+        "type": "townPortal"
+      }
     },
     {
       "id": "barriere-du-honmoon",
@@ -456,6 +458,19 @@
       "base": 30,
       "perPower": 6,
       "area": "all"
+    },
+    {
+      "id": "clairvoyance",
+      "school": "air",
+      "circle": 2,
+      "manaCost": 8,
+      "kind": "adventure",
+      "base": 0,
+      "perPower": 0,
+      "adventure": {
+        "type": "vision",
+        "radius": 12
+      }
     }
   ]
 }

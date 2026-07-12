@@ -72,6 +72,15 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 > en mouvement de la téléportation = raffinement ultérieur. **Zéro nom de faction**
 > ; golden inchangé. UI : livre de sorts d'aventure dans le tiroir héros.
 
+> 🚧 **État (Vision, H-SPELLS.3)** : 2ᵉ effet d'aventure — `adventure: { type:
+> 'vision', radius }`. Sort livré **Clairvoyance** (Air, cercle 2) : **révèle le
+> brouillard** dans `radius` tuiles autour du héros **sans le déplacer**
+> (`revealAround`). Le schéma `adventure` devient une **union discriminée**
+> (`townPortal | vision`) ; le client `AdventureSpellbook` le lance sans changement
+> (aucune cible requise). **Additif** (l'effet vit dans le catalogue) ⇒ **pas de
+> bump save, golden inchangé**. « Rappel » = déjà couvert par Ville-portail ;
+> invocation / résurrection de pile entière restent à venir.
+
 > 🚧 **État (sorts de masse, H-SPELLS.1)** : le champ de zone `SpellDef.area`
 > gagne la valeur **`all`** (à côté de `splash`) — le sort touche **toutes** les
 > piles vivantes du camp de la pile ciblée (le camp visé = celui de la cible :

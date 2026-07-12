@@ -10,7 +10,7 @@
   "attributes": { "attack": 0, "defense": 1, "power": 3, "knowledge": 3 },
   "specialtyEffect": {
     "id": "ecoutant",
-    "conditional": { "unitId": "t6-treant", "perLevels": 2, "defense": 1 }
+    "startingSymbiosisStacks": 1
   },
   "startingSkills": { "wisdom": 1 },
   "startingSpells": []

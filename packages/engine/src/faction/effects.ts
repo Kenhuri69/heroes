@@ -3,6 +3,7 @@ import { hasAbility, performerParams } from '../combat/state-helpers';
 import type { CombatSideId, CombatStack, CombatState } from '../combat/types';
 import type { GameEvent } from '../core/events';
 import type { GameState, HeroState, PlayerState } from '../core/state';
+import { sumHeroEffectField } from '../hero/skills';
 import type { FactionBonus } from './types';
 
 /**
@@ -154,10 +155,14 @@ function applyRaiseUndeadOnVictory(
   // Nécromancie graduée (F-SKILLS, doc 04 §2) : le rang de `scaleSkillId` choisit
   // le pourcentage ; repli sur `percentHpRaised` si non gradué / compétence non apprise.
   const rank = bonus.scaleSkillId ? (hero.skills[bonus.scaleSkillId] ?? 0) : 0;
-  const percent =
+  const basePercent =
     rank > 0 && bonus.percentByRank && bonus.percentByRank[rank - 1] !== undefined
       ? bonus.percentByRank[rank - 1]!
       : bonus.percentHpRaised;
+  // Spécialité EXACTE Mère Corbeau (H-COND-EXACT, doc 04 §5) : +N %/niveau du
+  // héros, additionné au pourcentage de base. Générique (0 si aucun héros n'a
+  // l'effet) ⇒ comportement historique préservé.
+  const percent = basePercent + sumHeroEffectField(hero, 'raiseUndeadPctPerLevel') * hero.level;
   const raised = Math.min(Math.floor((hpKilled * percent) / 100 / raisedDef.stats.hp), cap);
   if (raised <= 0) return;
 

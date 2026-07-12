@@ -111,6 +111,28 @@ export interface SkillRankEffect {
     defense?: number;
     speed?: number;
   };
+  /**
+   * Spécialité EXACTE Mère Corbeau (H-COND-EXACT, doc 04 §5) — met à l'échelle
+   * l'effet de faction générique `raiseUndeadOnVictory` : `+N %` de PV relevés
+   * PAR NIVEAU du héros vainqueur, additionné au pourcentage de base. Lu dans
+   * `applyRaiseUndeadOnVictory` uniquement. Générique : `raiseUndead` est le nom
+   * du mécanisme déclaratif au moteur, pas un id de faction.
+   */
+  raiseUndeadPctPerLevel?: number;
+  /**
+   * Spécialité EXACTE Faelar (H-COND-EXACT, doc 14 §5) — au DÉBUT du combat, les
+   * piles du camp du héros dotées de la capacité `symbiosis` démarrent à ce
+   * nombre de paliers (borné par `maxStacks`) au lieu de 0. Lu dans
+   * `openPlacementOrBattle`. Générique : `symbiosis` est un module de capacité.
+   */
+  startingSymbiosisStacks?: number;
+  /**
+   * Spécialité EXACTE Alwin (H-COND-EXACT, doc 05 §7) — armée de départ bonus :
+   * à la création du héros (`StartGame`), `count` créatures `unitId` rejoignent
+   * `hero.army` (empilées si déjà présentes, sinon nouvelle pile si < 7). Objet
+   * EXCLU de `NumericEffectField` (comme `conditional`). `unitId` = id opaque.
+   */
+  startingArmyBonus?: { unitId: string; count: number };
 }
 
 /**

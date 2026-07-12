@@ -1,5 +1,10 @@
 # Lot H-COND — Spécialités conditionnelles
 
+> ⏭️ **Suite (lot H-COND-EXACT, livré)** : les 3 variantes différées ci-dessous
+> (Mère Corbeau / Faelar / Alwin) portent désormais leurs **signatures exactes**
+> via 3 nouveaux points d'extension moteur génériques (`raiseUndeadPctPerLevel`,
+> `startingSymbiosisStacks`, `startingArmyBonus`). Voir `.claude/plans/h-cond-exact.md`.
+
 > Plan vivant (guidelines §5). Source : doc 04 §5 (Vhalen, Mère Corbeau), doc 05
 > §7 (Evadne, Alwin), doc 14 §5 (Faelar, Sylwen). Backlog H-NAMED.
 

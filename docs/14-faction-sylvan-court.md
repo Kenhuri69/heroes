@@ -109,9 +109,14 @@ implacable, car la forêt ne charge pas — elle *encercle*.
   par niveau, interprété en combat par `conditionalUnitBonus` — aucune faction en
   dur, pas de bump save) porte leurs spécialités. **Sylwen** = **+1 vitesse aux
   Archers sylvestres (`t2-archer-sylvestre`)** (fidèle : « +vitesse aux tireurs »).
-  **Faelar** = variante **+1 déf aux Tréants (`t6-treant`) par 2 niveaux** ; sa
-  signature EXACTE (« Symbiose démarre à 1 palier » = état de départ de combat)
-  reste **différée** (mécanique distincte du point d'extension conditionnel).
+  **Faelar** portait au lot H-COND une variante **+1 déf aux Tréants par 2 niveaux**.
+- **État livré (H-COND-EXACT)** : *Faelar* porte désormais sa signature EXACTE
+  (doc §5) — **sa Symbiose démarre à 1 palier** — via un point d'extension moteur
+  **générique** dédié : le champ d'effet `startingSymbiosisStacks` initialise, à
+  l'ouverture du combat (`openPlacementOrBattle`), les piles du camp du héros
+  DOTÉES de la capacité `symbiosis` à `min(valeur, maxStacks)` paliers (au lieu de
+  0). Zéro faction en dur (`symbiosis` est un module de capacité), pas de bump
+  save, golden inchangé.
 
 ## 6. Compétence de faction (si applicable)
 

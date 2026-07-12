@@ -2,11 +2,12 @@ import type { HeroState } from '../core/state';
 import type { HeroSkillDef, SkillRankEffect, SpellSchool } from './types';
 
 /**
- * Champs SCALAIRES du vocabulaire d'effets — agrégés à plat. On EXCLUT
- * `conditional` (objet, interprété au niveau unité en combat via
- * `conditionalUnitBonus`, jamais sommé à plat — H-COND).
+ * Champs SCALAIRES du vocabulaire d'effets — agrégés à plat. On EXCLUT les champs
+ * OBJET (`conditional`, interprété au niveau unité via `conditionalUnitBonus` ;
+ * `startingArmyBonus`, armée de départ H-COND-EXACT lue à `StartGame`) : jamais
+ * sommés à plat.
  */
-type NumericEffectField = Exclude<keyof SkillRankEffect, 'conditional'>;
+type NumericEffectField = Exclude<keyof SkillRankEffect, 'conditional' | 'startingArmyBonus'>;
 
 /**
  * Compétences secondaires (doc 02 §1.3, décision plan phase-3.2 #5) : effets
@@ -47,6 +48,17 @@ function sumRankField(
  * de faction, de Maison ni de héros.
  */
 function sumHouseField(hero: HeroState, field: NumericEffectField): number {
+  return sumHeroEffectField(hero, field);
+}
+
+/**
+ * Somme générique d'un champ scalaire d'effet de héros sur sa Maison + sa
+ * spécialité — version EXPORTÉE de `sumHouseField`, consommée hors de ce module
+ * par les points d'extension H-COND-EXACT : `raiseUndeadPctPerLevel`
+ * (`faction/effects.ts`) et `startingSymbiosisStacks` (`combat/setup.ts`).
+ * Aucun nom de faction/Maison/héros — que des ids opaques.
+ */
+export function sumHeroEffectField(hero: HeroState, field: NumericEffectField): number {
   let total = 0;
   for (const effect of hero.houseEffects) total += effect[field] ?? 0;
   for (const effect of hero.specialtyEffects) total += effect[field] ?? 0;

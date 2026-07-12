@@ -576,6 +576,17 @@ const handlers: Handlers = {
       };
     });
     for (const hero of draft.heroes) {
+      // Spécialité EXACTE Alwin (H-COND-EXACT, doc 05 §7) : familier de départ —
+      // les bonus d'armée déclaratifs (Maison + spécialité) rejoignent l'armée à
+      // la création (empilés si l'unité est déjà présente, sinon nouvelle pile si
+      // < 7). Générique : `unitId` opaque, aucun nom de faction/héros.
+      for (const effect of [...hero.houseEffects, ...hero.specialtyEffects]) {
+        const bonus = effect.startingArmyBonus;
+        if (!bonus || bonus.count <= 0) continue;
+        const existing = hero.army.find((s) => s.unitId === bonus.unitId);
+        if (existing) existing.count += bonus.count;
+        else if (hero.army.length < 7) hero.army.push({ unitId: bonus.unitId, count: bonus.count });
+      }
       hero.manaMax = heroManaMax(hero, draft.artifactCatalog);
       hero.mana = hero.manaMax;
       hero.movementPoints = heroDailyMovement(draft, hero);

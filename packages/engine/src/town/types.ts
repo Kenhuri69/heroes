@@ -55,6 +55,13 @@ export type BuildingEffect =
       movementBonusFlat?: number;
       combatMoraleBonus?: number;
       garrisonDefense?: number;
+      /**
+       * F-BUILDEFF.5 (doc 05 §3.2, Cercle Abîme) : +% de dégâts en **combat de
+       * siège** aux piles du camp défenseur (garnison du propriétaire) dont le
+       * tier ≥ `eliteMinTier` (défaut 7). Câblé dans `computeMultiplier`.
+       */
+      eliteDamagePct?: number;
+      eliteMinTier?: number;
     }
   /**
    * Bâtiment qui enseigne un sort (F-BUILDEFF.3, doc 03 §4 — Cloître) : à la

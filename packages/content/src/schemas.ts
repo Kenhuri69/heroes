@@ -351,6 +351,10 @@ const buildingEffectSchema = z.discriminatedUnion('type', [
     movementBonusFlat: z.number().int().nonnegative().default(0),
     combatMoraleBonus: z.number().int().nonnegative().default(0),
     garrisonDefense: z.number().int().nonnegative().default(0),
+    // F-BUILDEFF.5 (Cercle Abîme) : +% dégâts en siège aux piles défenseure de tier
+    // ≥ `eliteMinTier`. `eliteDamagePct` 0 = no-op ; `eliteMinTier` défaut 7 (T7/T8).
+    eliteDamagePct: z.number().int().nonnegative().default(0),
+    eliteMinTier: z.number().int().positive().default(7),
   }),
   /**
    * Bâtiment enseignant (F-BUILDEFF.3, doc 03 §4 — Cloître) : `spellId` (opaque)

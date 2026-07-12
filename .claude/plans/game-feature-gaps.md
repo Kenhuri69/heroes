@@ -230,9 +230,15 @@ Source design : docs 03 §2/§4/§5, 04 §2/§4, 05 §3/§5/§6/§7, 14 §5/§6,
     réutilise l'acquis F-HOUSES) ; **Cercle Vigile** AH livré (passif « +déf
     garnison », flat +3, remplace le placeholder or/j). Volet « +vision recrue »
     différé (M-TAVERN). Zéro faction, aucun bump, golden inchangé.
-  - **F-BUILDEFF.5+** ⬜ : Cercles Traque (+vitesse recrue) / Sceau (−mana d'école)
-    / Abîme (+dégâts T7-T8), modif ressource de faction, +XP/+rang, Grand
-    Amphithéâtre/Salle des Reliques, La Scène/Sanctuaire Vox.
+  - **F-BUILDEFF.5** ✅ (plan `f-buildeff-5.md`) : **Cercle Abîme** — aura
+    générique `heroAura { eliteDamagePct, eliteMinTier }` : +% dégâts aux piles
+    T≥seuil du camp défenseur en siège (`CombatUnitDef.tier?` exposé,
+    `siegeEliteDamage` fondu dans `computeMultiplier`). Cercle Abîme AH livré
+    (+10 % T7/T8). Zéro faction moteur, aucun bump save, golden inchangé.
+  - **F-BUILDEFF.6+** ⬜ : Cercles Traque (+vitesse recrue — bloqué : stats
+    par-instance d'unité) / Sceau (−mana d'école — bloqué : portée mana
+    combat↔ville), modif ressource de faction, +XP/+rang, Grand Amphithéâtre/
+    Salle des Reliques, La Scène/Sanctuaire Vox.
 
 - **F-HOUSES — Effets de Maison Vox conformes** ✅ (plan `f-houses-vox.md`, doc 16 §État 16.7)
   `houseAllegiance` étendu de 2 champs **town-scoped** génériques

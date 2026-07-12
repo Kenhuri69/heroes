@@ -55,6 +55,33 @@ export function townBuildingAura(
   return total;
 }
 
+/**
+ * Bonus de dégâts « élite » d'une aura de bâtiment (F-BUILDEFF.5, doc 05 §3.2 —
+ * Cercle Abîme) pour une unité de tier `tier` : somme des `eliteDamagePct` (en
+ * fraction) des bâtiments `heroAura` de la ville du propriétaire à `pos` dont le
+ * seuil `eliteMinTier` (défaut 7) est atteint. 0 hors seuil / sans aura.
+ * Générique : le moteur ne lit que des nombres opaques.
+ */
+export function townEliteDamageBonus(
+  state: GameState,
+  playerId: string,
+  pos: { x: number; y: number },
+  tier: number,
+): number {
+  let total = 0;
+  for (const town of state.towns) {
+    if (town.ownerPlayerId !== playerId) continue;
+    if (town.pos.x !== pos.x || town.pos.y !== pos.y) continue;
+    for (const buildingId of Object.keys(town.buildings)) {
+      const level = builtLevelOf(town, state.buildingCatalog, buildingId);
+      if (level?.effect.type !== 'heroAura') continue;
+      const pct = level.effect.eliteDamagePct ?? 0;
+      if (pct > 0 && tier >= (level.effect.eliteMinTier ?? 7)) total += pct / 100;
+    }
+  }
+  return total;
+}
+
 export function dailyIncome(state: GameState, playerId: string): Partial<Record<ResourceId, number>> {
   const income: Partial<Record<ResourceId, number>> = {};
   const add = (resource: ResourceId, amount: number): void => {

@@ -35,6 +35,12 @@ export interface CombatUnitDef {
   recruitCost?: Partial<Record<ResourceId, number>>;
   /** Croissance hebdomadaire de l'habitation (doc 02 §4.1) — absent ⇒ pas de stock généré. */
   growthPerWeek?: number;
+  /**
+   * Tier de l'unité (doc 02 §4) — estampillé depuis les données. Utilisé par les
+   * effets ciblant les hauts tiers (F-BUILDEFF.5, Cercle Abîme). Optionnel :
+   * absent pour les unités hors habitation (machines de guerre) ⇒ traité comme 0.
+   */
+  tier?: number;
 }
 
 export type CombatSideId = 'attacker' | 'defender';

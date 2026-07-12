@@ -5,7 +5,7 @@ import { heroArmorPct, heroLuck, heroMeleePct, heroRangedPct } from '../hero/ski
 import type { SpellStatus } from '../hero/types';
 import { canShootTarget } from './actions';
 import { hexBehind, hexDistance, inCombatBounds, sameHex } from './hex';
-import { clamp, collectCasualties, conditionalUnitBonus, factionCombatBonus, hasAbility, isShooterMeleePenalized, recordLoss } from './state-helpers';
+import { clamp, collectCasualties, conditionalUnitBonus, factionCombatBonus, hasAbility, isShooterMeleePenalized, recordLoss, siegeEliteDamage } from './state-helpers';
 import type { CombatSideId, CombatStack, CombatUnitDef, CombatState } from './types';
 import type { CombatRulesConfig } from '../adventure/config';
 import type { GameEvent } from '../core/events';
@@ -52,6 +52,8 @@ interface MultiplierInput {
   chargeBonus?: number;
   /** Modificateur MULTIPLICATIF des dégâts infligés par l'attaquant (malédiction « Faux funeste », A2c) — 0 sinon. */
   dealtDamageMod?: number;
+  /** Bonus de dégâts « élite » en siège (F-BUILDEFF.5, Cercle Abîme) : ×(1+bonus) pour un défenseur haut tier — 0 sinon. */
+  eliteDamagePct?: number;
 }
 
 /** Paramètres de la capacité `demonform` (doc 05 §4) d'une unité, ou `null`. */
@@ -259,6 +261,7 @@ export function computeMultiplier(input: MultiplierInput): number {
     defendMultiplier,
     chargeBonus,
     dealtDamageMod,
+    eliteDamagePct,
   } = input;
   const effectiveDefense = targetDefending
     ? Math.floor(targetDefense * (defendMultiplier ?? rules.defendDefenseMultiplier))
@@ -278,6 +281,8 @@ export function computeMultiplier(input: MultiplierInput): number {
   // l'attaquant inflige tant qu'il porte le statut (damageDealtMod ≤ 0).
   mult *= 1 + (dealtDamageMod ?? 0);
   mult *= 1 + (heroDamagePct ?? 0);
+  // Cercle Abîme (F-BUILDEFF.5) : bonus de dégâts « élite » du défenseur en siège.
+  mult *= 1 + (eliteDamagePct ?? 0);
   mult *= 1 - (armorPct ?? 0);
   return mult;
 }
@@ -488,6 +493,8 @@ export function performStrike(
     chargeBonus: retaliation ? 0 : (chargeBonus ?? 0),
     // Malédiction « Faux funeste » (A2c) : dégâts infligés réduits tant que le statut tient.
     dealtDamageMod: statusModSum(striker.statuses, 'damageDealtMod'),
+    // Cercle Abîme (F-BUILDEFF.5) : bonus « élite » du défenseur haut tier en siège.
+    eliteDamagePct: combat ? siegeEliteDamage(draft, combat, striker.side, strikerDef) : 0,
   });
   // Chance/malchance (C-BADLUCK, doc 02 §5.3) : un SEUL jet, interprété selon le
   // signe de la chance — |chance| × 4 %/point de déclencher soit un coup de
@@ -792,6 +799,8 @@ export function estimateDamage(
     defendMultiplier: shieldWallMultiplier(targetDef) ?? rules.defendDefenseMultiplier,
     // Malédiction « Faux funeste » (A2c) : dégâts infligés réduits par le statut.
     dealtDamageMod: statusModSum(attacker.statuses, 'damageDealtMod'),
+    // Cercle Abîme (F-BUILDEFF.5) : bonus « élite » du défenseur haut tier en siège (préviz).
+    eliteDamagePct: siegeEliteDamage(state, combat, attacker.side, attackerDef),
     // `charge` (A2a) : distance de déplacement inconnue à la préviz (dépend du
     // `from` choisi) ⇒ non reflétée (comme la chance) — bonus de charge omis.
   });

@@ -190,6 +190,8 @@ export function buildUnitCatalog(report: LoadReport): Record<string, CombatUnitD
         // hebdo vivent dans les données d'unité — exposés au moteur ici.
         recruitCost: unit.cost as Partial<Resources>,
         growthPerWeek: unit.growthPerWeek,
+        // Tier exposé au moteur (F-BUILDEFF.5) : effets ciblant les hauts tiers.
+        tier: unit.tier,
       };
     }
   }

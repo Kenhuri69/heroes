@@ -252,11 +252,16 @@ Au moment de construire le **Grand Amphithéâtre** (bâtiment T3 de l'arbre), l
 > par un flat **+3** ≈ un niveau de Fort — équivalent exprimable du « +10 % déf »
 > du doc, la défense de garnison étant plate dans le moteur, comme le Fort et la
 > Maison Blaireau). Le volet **« +2 vision des héros recrutés ici »** reste
-> **différé** (recrutement de héros = M-TAVERN). Les Cercles **Sceau/Traque/Abîme**
-> gardent des effets **placeholder** (or/j, croissance) — passifs de design
-> (−15 % mana d'école, +1 vitesse des recrues, +10 % dégâts T7/T8) et bâtiments
+> **différé** (recrutement de héros = M-TAVERN). Le Cercle **Abîme** porte
+> désormais son **passif de design** (F-BUILDEFF.5) : aura de bâtiment générique
+> `heroAura { eliteDamagePct: 10, eliteMinTier: 7 }` ⇒ **+10 % de dégâts aux piles
+> T7/T8 du camp défenseur en combat de siège** (câblé dans `computeMultiplier` via
+> `siegeEliteDamage` ; `CombatUnitDef.tier` exposé au moteur, optionnel). Les
+> Cercles **Sceau/Traque** gardent des effets **placeholder** (or/j, croissance) —
+> passifs de design (−15 % mana d'école, +1 vitesse des recrues) et bâtiments
 > exclusifs secondaires (Tour de Guet, Volière, Scriptorium, Fosse aux Reliques)
-> **différés** aux sous-lots F-BUILDEFF.x suivants.
+> **différés** aux sous-lots F-BUILDEFF.x suivants (infra manquante : mana
+> combat↔ville, stats par-instance d'unité).
 
 ### 3.3 Contrat de chasse (économie alternative)
 

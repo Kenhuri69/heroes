@@ -1,7 +1,7 @@
 import { killsFromDamage, magicResistanceOf } from './damage';
 import type { Draft } from './draft';
 import { hexDistance } from './hex';
-import { combatRules, collectCasualties, recordLoss } from './state-helpers';
+import { combatRules, collectCasualties, hasAbility, recordLoss } from './state-helpers';
 import type { CombatState, CombatStack, CombatUnitDef } from './types';
 import type { GameEvent } from '../core/events';
 import { rollRange } from '../core/rng';
@@ -142,6 +142,24 @@ export function applySpellToTargets(
       const posed = t.marks - before;
       amount += posed;
       if (posed > 0) events.push({ type: 'MarkApplied', targetId: t.id, marks: t.marks });
+    }
+  } else if (spell.kind === 'banish') {
+    // F-SCHOOLS.5 : bannit une pile ENNEMIE `banishable` (invoquée/démoniaque)
+    // dont le total de PV ≤ seuil (`base + perPower × Pouvoir`) — retrait complet
+    // (comme une mort de pile). Sinon fizzle. Générique : capacité opaque.
+    const threshold = spell.base + spell.perPower * power;
+    for (const t of targets) {
+      const def = draft.unitCatalog[t.unitId];
+      if (!def || !hasAbility(def, 'banishable')) continue;
+      const pool = (t.count - 1) * def.stats.hp + t.firstHp;
+      if (pool > threshold) continue;
+      recordLoss(combat, t.side, t.unitId, t.count);
+      amount += pool;
+      t.count = 0;
+      t.firstHp = 0;
+      events.push({ type: 'StackDied', stackId: t.id });
+      const idx = combat.stacks.findIndex((s) => s.id === t.id);
+      if (idx !== -1) combat.stacks.splice(idx, 1);
     }
   } else {
     // buff / debuff / silence (doc 02 §1.4, doc 05 §6) : statut temporaire sur

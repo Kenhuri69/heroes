@@ -9,6 +9,7 @@
   "abilities": [
     { "id": "mark" },
     { "id": "demonform", "params": { "damageBonus": 0.5, "magicResistance": 0.5 } },
-    { "id": "devourMarks", "params": { "perMark": 0.02, "healPerMark": 2 } }
+    { "id": "devourMarks", "params": { "perMark": 0.02, "healPerMark": 2 } },
+    { "id": "banishable" }
   ]
 }

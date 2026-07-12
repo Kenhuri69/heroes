@@ -15,7 +15,15 @@ import type { ResourceId } from '../core/state';
  * registre de contenu, jamais un diff moteur.
  */
 export type SpellSchool = string;
-export type SpellKind = 'damage' | 'heal' | 'buff' | 'debuff' | 'applyMarks' | 'silence' | 'adventure';
+export type SpellKind =
+  | 'damage'
+  | 'heal'
+  | 'buff'
+  | 'debuff'
+  | 'applyMarks'
+  | 'silence'
+  | 'banish'
+  | 'adventure';
 
 /**
  * Effet déclaratif d'un sort d'**aventure** (doc 02 §1.4, Alpha 4.16) — lancé sur

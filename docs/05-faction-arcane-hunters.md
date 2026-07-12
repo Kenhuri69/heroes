@@ -157,6 +157,18 @@ Faction inédite, produite en **Alpha** — elle sert de validation grandeur nat
 > `CURRENT_SAVE_VERSION` 26→27** (doc 07 §4), golden re-fixé si la forme change.
 > Restent différés : Pas de Brume, Mue Éphémère, Bannissement, Heure de la Curée.
 >
+> 🚧 **État F-SCHOOLS.5 (livré — Bannissement)** : 3ᵉ des sorts Traque restants —
+> nouvelle mécanique de combat **générique** « bannir » : `SpellKind 'banish'` +
+> capacité de données `banishable`. Le sort retire du combat une pile ENNEMIE
+> `banishable` (invoquée/démoniaque) dont le total de PV ≤ seuil (`base +
+> perPower × Pouvoir`) — retrait complet, sinon fizzle. Données : capacité
+> `banishable` posée sur le **squelette** relevé par Nécromancie (invoquée) et le
+> **Pénitent** `demonform` + élite (démoniaque) ; sort `bannissement` (cercle 4,
+> `seuil 40 + 20×Pouvoir`). Ciblage de pile ennemie existant. Zéro faction moteur
+> (id de capacité opaque), **aucun bump de save, golden inchangé**. Restent
+> différés : Pas de Brume (téléport), Mue Éphémère (furtivité), Heure de la Curée
+> (noRetaliation conditionnel).
+>
 > 🚧 **État 4.10 (demonform — T8)** : dernière grande capacité de signature —
 > `demonform` (doc 05 §4), capacité **stateful** générique (état par pile
 > sérialisable `CombatStack.transformed`), inline dans le moteur comme

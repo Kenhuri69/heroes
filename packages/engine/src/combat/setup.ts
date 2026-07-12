@@ -10,7 +10,7 @@ import { runAiIfNeeded } from './ai';
 import type { Draft } from './draft';
 import { COMBAT_COLS, COMBAT_ROWS, inCombatBounds, sameHex, type OffsetPos } from './hex';
 import { advanceTurn } from './turns';
-import { initLedger, shooterAmmo } from './state-helpers';
+import { hasAbility, initLedger, shooterAmmo } from './state-helpers';
 import { spellcasterParams } from './spell-effect';
 import type { ArmyStack, CombatSideId, CombatState, CombatStack, CombatUnitDef } from './types';
 
@@ -60,13 +60,20 @@ const SIEGE_GATE_ROWS: readonly number[] = [Math.floor(COMBAT_ROWS / 2) - 1, Mat
 /**
  * Murs de siège (C-SIEGE2, doc 02 §5) : une ville à Fort dresse un rempart sur
  * `SIEGE_WALL_COL`, toutes rangées sauf la **porte** centrale. `fortLevel < 1`
- * (ville sans Fort) ⇒ aucun mur (siège v1 inchangé). Non destructibles (.1).
+ * (ville sans Fort) ⇒ aucun mur (siège v1 inchangé). `breached` (C-SIEGE2.2) :
+ * une **catapulte** assaillante a bombardé le rempart ⇒ la porte est élargie
+ * (les rangées qui la flanquent sont retirées), doublant l'ouverture.
  */
-function buildSiegeWalls(fortLevel: number): OffsetPos[] {
+function buildSiegeWalls(fortLevel: number, breached: boolean): OffsetPos[] {
   if (fortLevel < 1) return [];
+  const open = new Set<number>(SIEGE_GATE_ROWS);
+  if (breached) {
+    open.add(SIEGE_GATE_ROWS[0]! - 1);
+    open.add(SIEGE_GATE_ROWS[SIEGE_GATE_ROWS.length - 1]! + 1);
+  }
   const walls: OffsetPos[] = [];
   for (let row = 0; row < COMBAT_ROWS; row++) {
-    if (SIEGE_GATE_ROWS.includes(row)) continue; // porte ouverte
+    if (open.has(row)) continue; // porte / brèche
     walls.push({ col: SIEGE_WALL_COL, row });
   }
   return walls;
@@ -257,7 +264,13 @@ export function beginTownCombat(
     ...placeSide('defender', defender, draft.unitCatalog, COMBAT_COLS - 1),
   ];
   const obstacles = drawObstacles(draft, rules.obstaclesMin, rules.obstaclesMax);
-  const siegeWalls = buildSiegeWalls(fortLevel);
+  // C-SIEGE2.2 : une catapulte (machine de guerre `siegeBreaker`) portée par
+  // l'assaillant élargit la brèche du rempart au montage du siège.
+  const breached = hero.warMachines.some((id) => {
+    const d = draft.unitCatalog[id];
+    return d ? hasAbility(d, 'siegeBreaker') : false;
+  });
+  const siegeWalls = buildSiegeWalls(fortLevel, breached);
   draft.combat = {
     terrain,
     phase: 'battle',

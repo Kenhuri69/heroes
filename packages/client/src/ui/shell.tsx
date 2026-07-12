@@ -6,6 +6,7 @@ import {
   dailyIncome,
   xpForLevel,
   weekOf,
+  monthOf,
   type ArmyStack,
   type CombatUnitDef,
   type HeroState,
@@ -1023,6 +1024,7 @@ function TurnIndicator() {
 function TurnBar({ onOpenOptions }: { onOpenOptions: () => void }) {
   useApp((s) => s.locale);
   const day = useApp((s) => s.game.calendar.day);
+  const weekEventId = useApp((s) => s.game.calendar.weekEventId);
   const hero = useApp((s) => resolveSelectedHero(s.game, s.selectedHeroId));
   const hint = useApp((s) => s.guardianHint);
   const bands = useApp((s) => s.strengthBands);
@@ -1037,7 +1039,27 @@ function TurnBar({ onOpenOptions }: { onOpenOptions: () => void }) {
     <div class="turn-row">
       <div class="status-bar">
         <TurnIndicator />
-        <span data-testid="calendar">{t('turnBar.calendar', { day, week: weekOf(day) })}</span>
+        <span data-testid="calendar">
+          {t('turnBar.calendar', { month: monthOf(day), week: weekOf(day), day })}
+        </span>
+        {/* Semaine spéciale (M-CALENDAR, doc 02 §2.3) : indicateur PERSISTANT
+            là où il n'y avait qu'un toast transitoire. Gaté sur `growthFactor
+            !== 1` comme le toast (`notifications.ts`) — jamais un id en dur. */}
+        {(() => {
+          const event = config?.calendar?.events.find((e) => e.id === weekEventId);
+          if (!event || event.growthFactor === 1) return null;
+          const name = t(`calendar.event.${event.id}.name`);
+          return (
+            <span
+              class="week-event-badge"
+              data-testid="week-event"
+              title={name}
+              aria-label={t('turnBar.weekEvent.aria', { event: name })}
+            >
+              <UiIcon id="act-journal" fallback="📅" /> {name}
+            </span>
+          );
+        })()}
         {hero && config && (() => {
           // Jauge de PM (lot M6 C9) : restants / max du jour (doc 02 §1.5) —
           // la barre double le chiffre (2ᵉ canal), jamais la couleur seule.

@@ -203,9 +203,12 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
   (villes + habitations de carte) : `1` = semaine normale, `0.5` = « semaine de la
   peste » (croissance ÷2), `2` = « semaine d'abondance » (×2). Le moteur émet
   `CalendarEventStarted { eventId, week, month }` ; le client toaste les semaines
-  spéciales (pas les normales). `monthOf(jour)` = `⌊(jour−1)/28⌋+1`. *Différés :*
-  événements de **mois** persistants, événements ciblant une créature précise
-  (« semaine du Griffon »), calendrier persistant à l'écran.
+  spéciales (pas les normales). `monthOf(jour)` = `⌊(jour−1)/28⌋+1`. **Calendrier
+  persistant à l'écran (M-CALWIDGET, livré)** : la barre de statut affiche
+  « Mois M · Semaine W · Jour J » et un **badge persistant** de semaine spéciale
+  (croissance ≠ normale) tant qu'elle dure — là où il n'y avait qu'un toast
+  transitoire. *Différés :* événements de **mois** persistants, événements
+  ciblant une créature précise (« semaine du Griffon »).
 
 ---
 

@@ -413,6 +413,20 @@
   max-width: 120px;
 }
 
+/* Badge de semaine spéciale (M-CALWIDGET, doc 02 §2.3) : indicateur persistant
+   de la croissance modifiée. Filet laiton (idiome décoratif quêtes/dialogues),
+   texte + icône ⇒ jamais la couleur seule (a11y). */
+.week-event-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 8px;
+  border: 1px solid var(--brass-bright);
+  border-radius: var(--radius-s);
+  color: var(--brass-text);
+  font-weight: 600;
+}
+
 /* Indicateur de tour (UX multi-joueurs) : qui agit + progression IA. Hérite du
    `pointer-events:none` de `.status-bar` — n'intercepte pas les gestes de carte. */
 .turn-indicator {

@@ -73,6 +73,13 @@ export interface CombatStack {
   symbiosisStacks: number;
   /** A déjà agi ce round (vagues par vitesse décroissante — doc 02 §5.2). */
   acted: boolean;
+  /**
+   * Furtivité (F-SCHOOLS.7, doc 05 §6 « Mue Éphémère ») : tant que `true`, la pile
+   * est INCIBLABLE par l'ennemi (attaque/tir/sort/frappe de héros) ; retombe quand
+   * elle prend sa prochaine action réelle. **Optionnel** : absent pour toute pile
+   * non furtive (jamais posé hors sort).
+   */
+  stealthed?: boolean;
   /** Statuts temporaires de sorts (buff/debuff, doc 02 §1.4) — vide par défaut. */
   statuses: SpellStatus[];
 }

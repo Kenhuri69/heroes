@@ -24,6 +24,7 @@ export type SpellKind =
   | 'silence'
   | 'banish'
   | 'rally'
+  | 'stealth'
   | 'adventure';
 
 /**

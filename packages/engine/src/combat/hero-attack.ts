@@ -60,6 +60,8 @@ export function validateHeroAttack(state: GameState, cmd: HeroAttackCmd): Comman
     return { code: 'invalidTarget', message: `cible invalide '${cmd.targetStackId}'` };
   if (target.side === combat.playerSide)
     return { code: 'invalidTarget', message: 'l’attaque du héros vise l’ennemi' };
+  // F-SCHOOLS.7 : la frappe du héros ne peut viser une pile ennemie furtive.
+  if (target.stealthed) return { code: 'invalidTarget', message: 'cible furtive' };
   return null;
 }
 

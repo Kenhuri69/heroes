@@ -249,11 +249,15 @@ export function chooseAction(state: GameState, stackId: string): CombatActionInp
   const catalog = state.unitCatalog;
   const enemies = combat.stacks.filter((s) => s.side !== stack.side && s.count > 0);
   if (enemies.length === 0) return { type: 'defend' };
+  // F-SCHOOLS.7 : les piles furtives sont INCIBLABLES ⇒ exclues des candidats
+  // d'attaque et de sort (mais gardées dans `enemies` pour la menace/le mouvement,
+  // une pile furtive agit et frappe encore).
+  const targetable = enemies.filter((s) => !s.stealthed);
 
   // `spellcaster` (A2h) : une pile lanceuse avec des charges lance un sort UTILE
   // en priorité (heal ⇒ allié le plus blessé ; damage/debuff ⇒ meilleur ennemi ;
   // buff ⇒ meilleur allié). Sinon (rien à soigner…) elle enchaîne normalement.
-  const cast = chooseSpellcast(state, stack, combat, catalog, enemies);
+  const cast = chooseSpellcast(state, stack, combat, catalog, targetable);
   if (cast) return cast;
 
   // Règle imposée 1 — KITE : tireur menacé qui peut s'éloigner en sécurité.
@@ -289,7 +293,7 @@ export function chooseAction(state: GameState, stackId: string): CombatActionInp
   // (jamais un tir « à travers » l'obstacle).
   const candidates: AttackCandidate[] = [];
   const reachable = reachableHexes(state, stackId);
-  for (const e of enemies) {
+  for (const e of targetable) {
     if (canShootTarget(state, stackId, e.id)) {
       candidates.push({ target: e, from: null });
     } else if (hexDistance(stack.pos, e.pos) === 1) {
@@ -414,7 +418,8 @@ export function maybeHeroAction(draft: Draft, events: GameEvent[], side: CombatS
   if (!combat || combat.finished) return false;
   const hero = heroOfSide(draft, combat, side);
   if (!hero) return false;
-  const enemies = combat.stacks.filter((s) => s.side !== side && s.count > 0);
+  // F-SCHOOLS.7 : le héros ne peut viser une pile ennemie furtive (sort/frappe).
+  const enemies = combat.stacks.filter((s) => s.side !== side && s.count > 0 && !s.stealthed);
   if (enemies.length === 0) return false;
   const catalog = draft.unitCatalog;
 

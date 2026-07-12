@@ -251,6 +251,15 @@
       "perPower": 0
     },
     {
+      "id": "mue-ephemere",
+      "school": "traque",
+      "circle": 3,
+      "manaCost": 12,
+      "kind": "stealth",
+      "base": 0,
+      "perPower": 0
+    },
+    {
       "id": "ville-portail",
       "school": "air",
       "circle": 3,

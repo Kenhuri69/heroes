@@ -292,9 +292,14 @@ Source design : docs 03 §2/§4/§5, 04 §2/§4, 05 §3/§5/§6/§7, 14 §5/§6,
     pile marquée n'essuient aucune riposte (N rounds). Réutilise Marques +
     `noRetaliation`. Dédup `spellTargetsEnemy` (moteur → client). Zéro faction
     moteur, aucun bump save, golden inchangé.
-  - **F-SCHOOLS.7+** ⬜ : 2 sorts Traque restants (un sous-lot chacun) — Pas de
-    Brume (téléport allié), Mue Éphémère (furtivité) ; effets Scène enrichis
-    (peur/+moral, partagés CAP-MORAL).
+  - **F-SCHOOLS.7** ✅ (plan `f-schools-7.md`) : **Mue Éphémère** (doc 05 §6,
+    cercle 3) — nouvelle mécanique générique `SpellKind 'stealth'` +
+    `CombatStack.stealthed` (save 27→28) : une pile furtive est INCIBLABLE
+    (exclusion centralisée sur tous les sites de ciblage ennemi), visible dès sa
+    prochaine action. Zéro faction moteur, golden re-fixé (forme).
+  - **F-SCHOOLS.8** ⬜ : dernier sort Traque — **Pas de Brume** (téléport allié,
+    nouvelle surface : `CastSpell.targetHex` + ciblage d'hex client) ; puis effets
+    Scène enrichis (peur/+moral, partagés CAP-MORAL).
 
 - **F-ELITEVOX — Élites Vox Arcana** ✅ (plan `f-elitevox.md`, doc 16 §4)
   Pur contenu : 8 unités élites (`t*-*-elite`, stats ~1,25-1,3× base), 8 dwellings

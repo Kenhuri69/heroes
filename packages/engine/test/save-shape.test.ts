@@ -70,6 +70,7 @@ type StackKey =
   | 'transformed'
   | 'symbiosisStacks'
   | 'acted'
+  | 'stealthed'
   | 'statuses';
 
 // Gardes à la COMPILATION : `true` seulement si l'union des clés du type est
@@ -82,7 +83,7 @@ void _stackExact;
 
 describe('B8 — forme de sauvegarde verrouillée', () => {
   it('CURRENT_SAVE_VERSION correspond à la forme documentée (doc 07 §4)', () => {
-    expect(CURRENT_SAVE_VERSION).toBe(27);
+    expect(CURRENT_SAVE_VERSION).toBe(28);
   });
 
   it('clés top-level de GameState (createEmptyState) inchangées', () => {

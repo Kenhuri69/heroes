@@ -106,14 +106,22 @@ const SIEGE_TOWER_UNIT = 'arrow-tower';
 const SIEGE_TOWER_POS: OffsetPos = { col: SIEGE_WALL_COL + 1, row: SIEGE_GATE_ROWS[0]! };
 
 /**
+ * Une tour de tir apparaîtrait-elle en défense (C-SIEGE2.5/2.7a) ? Vrai si Fort ≥ 3
+ * ET l'unité `arrow-tower` est chargée. Sert à `capture.ts` : une ville qui pose
+ * une tour se défend même à garnison vide (défense tour-seule).
+ */
+export function wouldSpawnSiegeTower(fortLevel: number, catalog: Record<string, CombatUnitDef>): boolean {
+  return fortLevel >= SIEGE_TOWER_MIN_FORT && !!catalog[SIEGE_TOWER_UNIT];
+}
+
+/**
  * Pile « tour de tir » côté défenseur (C-SIEGE2.5), ou null si `fortLevel < 3`
  * ou si l'unité `arrow-tower` est absente du catalogue (données non chargées).
  * Slot dédié `tower` (jamais en collision avec les slots numérotés de garnison).
  */
 function buildTowerStack(fortLevel: number, catalog: Record<string, CombatUnitDef>): CombatStack | null {
-  if (fortLevel < SIEGE_TOWER_MIN_FORT) return null;
-  const def = catalog[SIEGE_TOWER_UNIT];
-  if (!def) return null;
+  if (!wouldSpawnSiegeTower(fortLevel, catalog)) return null;
+  const def = catalog[SIEGE_TOWER_UNIT]!;
   return {
     id: 'defender-tower',
     side: 'defender',

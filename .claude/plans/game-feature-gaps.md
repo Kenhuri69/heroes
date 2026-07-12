@@ -118,8 +118,15 @@ doc 08 §2.4 (écran de combat).
     segment retiré de `siegeWalls` + événement `WallBombarded`. Optionnel ⇒ pas de
     bump save, golden inchangé ; client redessine le mur ouvert. Tests : PV posés
     avec/sans catapulte, segment détruit sur quelques rounds (auto-combat).
-  - **C-SIEGE2.7+** ⬜ : défense **tour-seule** (garnison vide, la tour se bat) ;
-    art de rempart distinct (segments fissurés/détruits).
+  - **C-SIEGE2.7a** ✅ (plan `c-siege2-tower-only.md`) : **défense tour-seule** —
+    un Château (Fort ≥ 3) à garnison vide se défend par sa seule **tour de tir** au
+    lieu d'être pris sans combat (`handleCaptureTown` ouvre un siège si garnison OU
+    tour ; `validateCaptureTown` refuse l'armée vide quand une tour défend). Tour
+    atteignable ⇒ destructible, pas de stalemate ; aucun champ neuf ⇒ pas de bump
+    save, golden inchangé. Tests : siège tour-seule + capture, armée vide refusée,
+    Fort < 3 vide = capture immédiate inchangée.
+  - **C-SIEGE2.7b+** ⬜ : art de rempart distinct (segments fissurés/détruits) —
+    lot **assets/client** (skills `asset-*`), pas moteur.
 
 - **C-SPELLUI — Grimoire & ciblage de sorts** 🎨 M ⬜
   Doc : doc 08 §2.3 (grimoire feuilletable par école), doc 02 §1.4.

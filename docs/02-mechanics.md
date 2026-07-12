@@ -401,6 +401,18 @@ Chaque faction consomme surtout **une paire de ressources rares** (Haven : crist
 > plateau sur `WallBombarded`). `siegeWallHp` **optionnel** ⇒ pas de bump save,
 > golden inchangé (aucun siège dans le golden). Zéro faction moteur.
 
+> 🚧 **État (sièges v2 — C-SIEGE2.7a, défense tour-seule)** : une ville à garnison
+> **vide** n'est plus toujours prise sans combat — un **Château** (Fort ≥ 3, qui
+> pose une tour de tir) **se défend par sa seule tour**. `handleCaptureTown` ouvre
+> un siège si `garnison > 0` **OU** si une tour apparaîtrait
+> (`wouldSpawnSiegeTower(fortLevel, catalog)` = Fort ≥ 3 ET unité `arrow-tower`
+> chargée) ; `validateCaptureTown` refuse alors aussi l'**armée vide** (un héros
+> sans troupe ne prend pas une ville tour-défendue). La tour seule est atteignable
+> (derrière la porte) ⇒ destructible, **pas de stalemate** ; sa chute vide le camp
+> défenseur ⇒ capture (flux `applyConsequences` inchangé). Changement **de
+> comportement** (aucun champ neuf) ⇒ pas de bump save, golden inchangé. Zéro
+> faction moteur.
+
 > 🚧 **État (caravanes inter-villes — T-CARAVAN, livré)** : commande générique
 > **`SendCaravan { fromTownId, toTownId, slot }`** — envoie une pile de garnison
 > d'une ville possédée vers une autre ville du **joueur actif**. La durée de

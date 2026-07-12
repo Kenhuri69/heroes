@@ -424,6 +424,8 @@ export const spellSchema = z
     speedMod: z.number().optional(),
     /** Charges posées par un sort `applyMarks` (doc 05 §6). */
     marks: z.number().int().positive().optional(),
+    /** Sort mange-Marques (F-SCHOOLS.3, doc 05 §6) : %/charge de dégâts, puis consomme. */
+    marksDamagePct: z.number().nonnegative().optional(),
     /** Zone d'effet (C7) : `splash` = cible + piles adjacentes du même camp. */
     area: z.literal('splash').optional(),
     /** Effet hors combat d'un sort `adventure` (doc 02 §1.4, Alpha 4.16). */

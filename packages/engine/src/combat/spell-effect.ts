@@ -95,16 +95,22 @@ export function applySpellToTargets(
     for (const t of targets) {
       const def = draft.unitCatalog[t.unitId];
       if (!def) continue;
+      // F-SCHOOLS.3 : un sort mange-Marques ajoute `marksDamagePct`%/charge au
+      // bonus passif de Marque, puis consomme les Marques de la cible.
+      const consumeBonus = spell.marksDamagePct ? (spell.marksDamagePct / 100) * t.marks : 0;
       const dmg = spellDamageAmount(
         spell,
         power,
         lucky,
         magicResistanceOf(def, t.transformed),
-        rules.markBonusPerStack * t.marks,
+        rules.markBonusPerStack * t.marks + consumeBonus,
       );
       const r = damageOneStack(draft, combat, t, dmg, events);
       amount += r.amount;
       kills += r.kills;
+      // Marques consommées (dépense de la ressource) — silencieux : l'`amount`
+      // de `SpellCast` reflète déjà les dégâts amplifiés.
+      if (spell.marksDamagePct && t.count > 0) t.marks = 0;
     }
   } else if (spell.kind === 'heal') {
     for (const t of targets) {

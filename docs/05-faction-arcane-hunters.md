@@ -132,6 +132,19 @@ Faction inédite, produite en **Alpha** — elle sert de validation grandeur nat
 > doc 05 §7) : différés — les sorts vivent au catalogue, apprenables via guilde/
 > `startingSpells`.
 >
+> 🚧 **État F-SCHOOLS.3 (livré — Volée de Dagues Spectrales)** : 1ᵉʳ des sorts
+> Traque « complexes » — nouvelle mécanique de sort **générique**
+> `SpellDef.marksDamagePct` : un sort de dégâts gagne `%`/charge de Marque de la
+> cible (s'ajoute au bonus passif de Marque), puis **consomme** les Marques
+> (remises à 0). Jusqu'ici seules des *capacités* d'unité mangeaient les Marques
+> (`consumeMarks`/`devourMarks`) ; c'est le 1ᵉʳ *sort* à le faire. Données :
+> `volee-de-dagues` (cercle 3, `base 12 + 3×Pouvoir`, `marksDamagePct 50`).
+> Ciblage de pile existant, préviz reflète le bonus. Zéro faction moteur, **aucun
+> bump de save, golden inchangé**. Restent différés (un sous-lot chacun) :
+> **Pas de Brume** (téléport allié), **Silence Scellé** (silence), **Mue
+> Éphémère** (furtivité), **Bannissement**, **Heure de la Curée** (noRetaliation
+> conditionnel).
+>
 > 🚧 **État 4.10 (demonform — T8)** : dernière grande capacité de signature —
 > `demonform` (doc 05 §4), capacité **stateful** générique (état par pile
 > sérialisable `CombatStack.transformed`), inline dans le moteur comme

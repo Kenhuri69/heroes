@@ -214,6 +214,16 @@
       "speedMod": -3
     },
     {
+      "id": "volee-de-dagues",
+      "school": "traque",
+      "circle": 3,
+      "manaCost": 14,
+      "kind": "damage",
+      "base": 12,
+      "perPower": 3,
+      "marksDamagePct": 50
+    },
+    {
       "id": "ville-portail",
       "school": "air",
       "circle": 3,

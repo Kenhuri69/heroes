@@ -348,6 +348,14 @@ drapeau dans `campaignState` que les campagnes suivantes peuvent relire
 (ex. : si Aldric a révélé le mensonge de l'Église, la campagne Arcane Hunters
 l'évoque dans un dialogue).
 
+> **État livré (N-ARCS)** : arcs personnels en **données pures** (quêtes
+> `kind: personal` + dialogues à `choices`/`setFlag`, patron N3c.2, zéro diff
+> moteur). **Aldric** (`haven-ch2`, drapeaux `aldric-merciful`/`aldric-ruthless`)
+> et **Séraphine** (`haven-ch3` — « ses visions viennent-elles d'Elrath ou de ce
+> qui dort sous le sceau ? », drapeaux `seraphine-faith`/`seraphine-doubt`)
+> livrés. *Restent :* Vhalen, Mère Corbeau (Necropolis), Evadne, Marchmont
+> (Arcane Hunters).
+
 ---
 
 ## 6. Implémentation technique (PixiJS, data-driven)

@@ -578,12 +578,17 @@ SDK `packages/client/src/app/net.ts` sans autre appelant).
 
 Source design : **doc 13** (N1→N4 livrés), docs de faction §lore.
 
-- **N-ARCS — 5 arcs personnels de héros sur 6** 🧩 M ⬜
-  Doc : doc 13 §5.4 (6 arcs, 2/faction, 3 étapes : Aldric ✅, Séraphine,
-  Vhalen, Mère Corbeau, Evadne, Marchmont). Code : une seule quête
-  `kind:"personal"` (`data/scenarios/haven-ch2.scenario.json:110`). Spec :
-  données pures (quêtes + dialogues), zéro moteur. Synergie avec H-NAMED
-  (les arcs prennent du sens quand les héros ont une identité).
+- **N-ARCS — 4 arcs personnels de héros sur 6** 🧩 M 🚧 (**découpé en sous-lots**)
+  Doc : doc 13 §5.4 (6 arcs, 2/faction, 3 étapes : Aldric ✅, **Séraphine ✅**,
+  Vhalen, Mère Corbeau, Evadne, Marchmont). Spec : données pures (quêtes +
+  dialogues), zéro moteur. Synergie avec H-NAMED (les arcs prennent du sens
+  quand les héros ont une identité).
+  - **N-ARCS.1** ✅ (plan `n-arcs-seraphine.md`) : **arc de Séraphine** (Haven,
+    `haven-ch3` — visions d'Elrath vs. le sceau, drapeaux `seraphine-faith`/
+    `seraphine-doubt`) en données pures (patron Aldric N3c.2), zéro diff moteur/
+    client/save/golden. Smoke : dérouler l'arc → nœud de choix → drapeau posé.
+  - **N-ARCS.2+** ⬜ : Vhalen & Mère Corbeau (Necropolis), Evadne & Marchmont
+    (Arcane Hunters) — mêmes patron/vérifs.
 
 - **N-DAILYREFRESH — Rafraîchissement quotidien des journalières** 🧩 S ✅ (livré)
   Doc : doc 13 §4.2/§5.2. Livré : commande moteur **générique** `AddQuests

@@ -85,6 +85,9 @@ const SIEGE_MOAT_COL = SIEGE_WALL_COL - 1;
 const SIEGE_MOAT_MIN_FORT = 2;
 // C-SIEGE2.4 : dégâts subis en s'arrêtant dans la douve (échelle Fort).
 const SIEGE_MOAT_DAMAGE_PER_FORT = 20;
+// C-SIEGE2.6 : PV d'un segment de rempart quand une catapulte l'érode round après
+// round (≈ 2-3 tirs par segment aux dégâts de la catapulte). Exporté pour turns.ts.
+export const SIEGE_WALL_HP = 30;
 
 /** Douve de siège (C-SIEGE2.3) : colonne d'hexes devant le mur, gatée Fort ≥ 2. */
 function buildMoat(fortLevel: number): OffsetPos[] {
@@ -330,12 +333,20 @@ export function beginTownCombat(
   });
   const siegeWalls = buildSiegeWalls(fortLevel, breached);
   const moat = buildMoat(fortLevel);
+  // C-SIEGE2.6 : une catapulte assaillante (`breached`) érode le rempart round
+  // après round ⇒ les segments restants gagnent des PV. Sans catapulte, murs
+  // indestructibles (champ absent).
+  const siegeWallHp: Record<string, number> | undefined =
+    breached && siegeWalls.length > 0
+      ? Object.fromEntries(siegeWalls.map((w) => [`${w.col},${w.row}`, SIEGE_WALL_HP]))
+      : undefined;
   draft.combat = {
     terrain,
     phase: 'battle',
     round: 1,
     obstacles,
     ...(siegeWalls.length > 0 ? { siegeWalls } : {}),
+    ...(siegeWallHp ? { siegeWallHp } : {}),
     ...(moat.length > 0 ? { moat, moatDamage: fortLevel * SIEGE_MOAT_DAMAGE_PER_FORT } : {}),
     stacks,
     activeStackId: null,

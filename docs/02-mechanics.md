@@ -386,6 +386,21 @@ Chaque faction consomme surtout **une paire de ressources rares** (Haven : crist
 > `stacks` (aucun champ neuf) ⇒ pas de bump save, golden inchangé. Zéro faction
 > moteur ; rendu client automatique (jeton d'unité).
 
+> 🚧 **État (sièges v2 — C-SIEGE2.6, bombardement de catapulte)** : au-delà de la
+> **brèche initiale** au montage (C-SIEGE2.2), une **catapulte** (`siegeBreaker`)
+> encore vivante côté assaillant **érode le rempart round après round**. Les
+> segments gagnent des **PV** (`CombatState.siegeWallHp`, `"col,row" → PV`, présent
+> **uniquement** avec une catapulte ⇒ sinon murs indestructibles comme en .1/.2).
+> **Au début de chaque round** (`advanceTurn`), la catapulte **bombarde** le segment
+> intact le plus proche du centre de la porte (élargissement contigu, déterministe) :
+> dégâts = tirage RNG **seedé** des dégâts de la catapulte ; PV ≤ 0 ⇒ le segment
+> est **retiré** de `siegeWalls` (l'hex s'ouvre) et de `siegeWallHp`, événement
+> `WallBombarded { col, row, destroyed }`. Un seul tir/round ; catapulte détruite ⇒
+> plus d'érosion. La catapulte **agit toujours** comme pile (le bombardement est un
+> effet de round, pas son tour). Rendu client : le mur détruit s'ouvre (redraw du
+> plateau sur `WallBombarded`). `siegeWallHp` **optionnel** ⇒ pas de bump save,
+> golden inchangé (aucun siège dans le golden). Zéro faction moteur.
+
 > 🚧 **État (caravanes inter-villes — T-CARAVAN, livré)** : commande générique
 > **`SendCaravan { fromTownId, toTownId, slot }`** — envoie une pile de garnison
 > d'une ville possédée vers une autre ville du **joueur actif**. La durée de

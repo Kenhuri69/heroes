@@ -112,6 +112,14 @@ export interface CombatState {
    */
   siegeWalls?: OffsetPos[];
   /**
+   * PV des segments de rempart (C-SIEGE2.6, doc 02 §5) — `"col,row" → PV`, présent
+   * UNIQUEMENT quand l'assaillant porte une catapulte (`siegeBreaker`) : elle
+   * bombarde un segment/round jusqu'à l'ouvrir. Absent sinon ⇒ murs indestructibles
+   * (siège .1/.2 inchangé). **Optionnel** ⇒ pas de bump save (save-shape ne garde
+   * que HeroState/CombatStack), golden inchangé (aucun siège dans le golden).
+   */
+  siegeWallHp?: Record<string, number>;
+  /**
    * Douves de siège (C-SIEGE2.3, doc 02 §5) — colonne d'hexes devant le rempart
    * d'une ville bien fortifiée (Fort ≥ 2). Un hex de douve est **atteignable**
    * mais **non traversable en un déplacement** (le BFS ne le ré-explore pas) :

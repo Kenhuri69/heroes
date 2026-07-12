@@ -109,9 +109,17 @@ doc 08 §2.4 (écran de combat).
     comme pile défenseur ; Nécromancie exclut `warMachine`. Tour = pile dans
     `stacks` ⇒ pas de bump save, golden inchangé ; rendu client automatique. Tests :
     tour immobile Fort 3, aucune tour Fort 2, capture malgré la tour (auto-combat).
-  - **C-SIEGE2.6+** ⬜ : bombardement **tour-par-tour** de la catapulte (PV de
-    segment, ciblage) ; défense **tour-seule** (garnison vide) ; art de rempart
-    distinct.
+  - **C-SIEGE2.6** ✅ (plan `c-siege2-catapult-bombard.md`) : **bombardement
+    tour-par-tour** de la catapulte — au-delà de la brèche de montage (.2), une
+    catapulte (`siegeBreaker`) vivante **érode le rempart** chaque round. Segments
+    dotés de PV (`CombatState.siegeWallHp`, présent avec catapulte seulement ⇒
+    sinon indestructibles) ; en début de round (`advanceTurn`) elle bombarde le
+    segment le plus proche du centre de la porte (dégâts RNG seedés), PV ≤ 0 ⇒
+    segment retiré de `siegeWalls` + événement `WallBombarded`. Optionnel ⇒ pas de
+    bump save, golden inchangé ; client redessine le mur ouvert. Tests : PV posés
+    avec/sans catapulte, segment détruit sur quelques rounds (auto-combat).
+  - **C-SIEGE2.7+** ⬜ : défense **tour-seule** (garnison vide, la tour se bat) ;
+    art de rempart distinct (segments fissurés/détruits).
 
 - **C-SPELLUI — Grimoire & ciblage de sorts** 🎨 M ⬜
   Doc : doc 08 §2.3 (grimoire feuilletable par école), doc 02 §1.4.

@@ -5,7 +5,7 @@ import { areAllies, type GameState, type HeroState, type PlayerState } from '../
 import { advanceHeroAlongPath } from '../adventure/movement';
 import { resolveTreasure } from '../adventure/treasure';
 import { DIRECTIONS, isAdjacent, samePos, tileIndex, type GridPos } from '../adventure/map';
-import { findPath, isPassable, stepCost } from '../adventure/path';
+import { findPath, isPassable, minStepCost, octileLowerBound, stepCost } from '../adventure/path';
 import { validateCaptureTown, handleCaptureTown } from '../town';
 import { maxAffordableCount } from '../town/resources';
 import { unitWithEconomy } from '../town/unit-economy';
@@ -116,12 +116,15 @@ function pickResourceTarget(
   hero: HeroState,
   player: PlayerState,
   blocked: GridPos[],
+  minStep: number,
 ): PathTarget | null {
   const { map, config } = draft;
   if (!map || !config) return null;
   let best: (PathTarget & { id: string }) | null = null;
   for (const obj of map.objects) {
     if (!isCollectible(draft, obj, hero, player)) continue;
+    // Pré-filtre O(1) : hors de portée du jour à vol d'oiseau ⇒ pas d'A* (perf).
+    if (octileLowerBound(minStep, hero.pos, obj.pos) > hero.movementPoints) continue;
     const path = findPath(config, map, hero.pos, obj.pos, blocked);
     if (!path) continue;
     const cost = totalPathCost(config, map, hero.pos, path);
@@ -139,6 +142,7 @@ function pickGuardianTarget(
   hero: HeroState,
   blocked: GridPos[],
   guardianPos: GridPos[],
+  minStep: number,
 ): PathTarget | null {
   const { map, config, unitCatalog } = draft;
   if (!map || !config) return null;
@@ -149,6 +153,8 @@ function pickGuardianTarget(
     if (obj.type !== 'guardian') continue;
     const guardStrength = armyStrength([{ unitId: obj.unitId, count: obj.count }], unitCatalog);
     if (guardStrength <= 0 || heroStrength < GUARDIAN_STRENGTH_MARGIN * guardStrength) continue;
+    // Pré-filtre O(1) : hors de portée du jour à vol d'oiseau ⇒ pas d'A* (perf).
+    if (octileLowerBound(minStep, hero.pos, obj.pos) > hero.movementPoints) continue;
     // Bloque les AUTRES gardiens (pas la cible) : on ne traverse pas un gardien
     // non ciblé pour en atteindre un autre.
     const pathBlocked = [...blocked, ...guardianPos.filter((p) => !samePos(p, obj.pos))];
@@ -174,6 +180,7 @@ function pickEnemyHeroTarget(
   hero: HeroState,
   player: PlayerState,
   blocked: GridPos[],
+  minStep: number,
 ): PathTarget | null {
   const { map, config, unitCatalog } = draft;
   if (!map || !config) return null;
@@ -186,6 +193,8 @@ function pickEnemyHeroTarget(
     if (enemyPlayer && areAllies(player, enemyPlayer)) continue;
     const enemyStrength = armyStrength(enemy.army, unitCatalog);
     if (heroStrength < ENEMY_HERO_STRENGTH_MARGIN * enemyStrength) continue;
+    // Pré-filtre O(1) : hors de portée du jour à vol d'oiseau ⇒ pas d'A* (perf).
+    if (octileLowerBound(minStep, hero.pos, enemy.pos) > hero.movementPoints) continue;
     // Route vers la tuile du héros ciblé : elle NE doit PAS être bloquée
     // (contrairement aux autres héros, qui restent des obstacles).
     const pathBlocked = blocked.filter((p) => !samePos(p, enemy.pos));
@@ -288,21 +297,26 @@ function playHeroTurn(draft: GameState, hero: HeroState, player: PlayerState, ev
   // B5 : les gardiens NON ciblés sont des obstacles de pathfinding — l'IA ne route
   // pas au travers (sinon interceptions non planifiées à marge < 1,5×).
   const guardianPos = draft.map.objects.filter((o) => o.type === 'guardian').map((o) => o.pos);
+  // Coût de pas minimal de la carte, calculé UNE fois : sert de borne inférieure
+  // O(1) aux pré-filtres des pickers pour écarter les cibles hors de portée du
+  // jour AVANT tout A* — évite le fan-out `O(cibles × A*)` qui gelait l'onglet
+  // sur grande carte (plan `.claude/plans/ai-turn-non-blocking.md`).
+  const minStep = minStepCost(draft.config);
 
-  const resource = pickResourceTarget(draft, hero, player, [...blocked, ...guardianPos]);
+  const resource = pickResourceTarget(draft, hero, player, [...blocked, ...guardianPos], minStep);
   if (resource) {
     advanceAi(draft, hero, player, resource.path, events);
     return;
   }
 
   // Priorité 2 (H-VS-H) : marcher sur un héros ennemi battable ⇒ combat auto.
-  const enemyHero = pickEnemyHeroTarget(draft, hero, player, [...blocked, ...guardianPos]);
+  const enemyHero = pickEnemyHeroTarget(draft, hero, player, [...blocked, ...guardianPos], minStep);
   if (enemyHero) {
     advanceAi(draft, hero, player, enemyHero.path, events);
     return;
   }
 
-  const guardian = pickGuardianTarget(draft, hero, blocked, guardianPos);
+  const guardian = pickGuardianTarget(draft, hero, blocked, guardianPos, minStep);
   if (guardian) {
     advanceAi(draft, hero, player, guardian.path, events);
     return;

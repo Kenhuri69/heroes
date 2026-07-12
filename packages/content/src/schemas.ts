@@ -426,8 +426,11 @@ export const spellSchema = z
     marks: z.number().int().positive().optional(),
     /** Sort mange-Marques (F-SCHOOLS.3, doc 05 §6) : %/charge de dégâts, puis consomme. */
     marksDamagePct: z.number().nonnegative().optional(),
-    /** Zone d'effet (C7) : `splash` = cible + piles adjacentes du même camp. */
-    area: z.literal('splash').optional(),
+    /**
+     * Zone d'effet : `splash` (C7) = cible + piles adjacentes du même camp ;
+     * `all` (H-SPELLS.1) = toutes les piles vivantes du camp de la cible (masse).
+     */
+    area: z.enum(['splash', 'all']).optional(),
     /** Effet hors combat d'un sort `adventure` (doc 02 §1.4, Alpha 4.16). */
     adventure: z.object({ type: z.literal('townPortal') }).optional(),
   })

@@ -348,6 +348,39 @@
       "base": 18,
       "perPower": 4,
       "area": "splash"
+    },
+    {
+      "id": "benediction-de-masse",
+      "school": "water",
+      "circle": 3,
+      "manaCost": 18,
+      "kind": "buff",
+      "base": 0,
+      "perPower": 0,
+      "attackMod": 3,
+      "area": "all"
+    },
+    {
+      "id": "hate-de-masse",
+      "school": "air",
+      "circle": 3,
+      "manaCost": 18,
+      "kind": "buff",
+      "base": 0,
+      "perPower": 0,
+      "speedMod": 3,
+      "area": "all"
+    },
+    {
+      "id": "affaiblissement-de-masse",
+      "school": "earth",
+      "circle": 3,
+      "manaCost": 18,
+      "kind": "debuff",
+      "base": 0,
+      "perPower": 0,
+      "defenseMod": -3,
+      "area": "all"
     }
   ]
 }

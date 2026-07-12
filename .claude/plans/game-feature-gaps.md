@@ -345,14 +345,20 @@ Source design : doc 02 §1 (héros), docs de faction §5/§6/§7 (héros nommés
   (réutilise F-SKILLS/CAP). Point d'extension attendu par les 5 docs ; débloque
   M-TAVERN et N-ARCS.
 
-- **H-SPELLS — Contenu de sorts : aventure, cercles 4-5, iconiques** 🧩 M ⬜
-  Doc : doc 02 §1.4/§1.5. Code : un seul sort d'aventure (`AdventureEffect` =
-  union à 1 variante `townPortal`, `packages/engine/src/hero/types.ts:25`) ;
-  aucun sort de cercle 4-5 (⇒ Sagesse livrée mais inerte) ; le soin ne
-  ressuscite pas ; pas d'invocation, de masse/chaîne, de dissipation réelle.
-  Spec : nouveaux `AdventureEffect` (vision, rappel…), sorts c4-5, effets
-  combat additionnels (résurrection de pile, invocation, masse = tous alliés/
-  ennemis, chaîne ; étend `splash` livré). Débloque la valeur de C-SPELLUI.
+- **H-SPELLS — Contenu de sorts : aventure, cercles 4-5, iconiques** 🧩 M 🚧 (**découpé en sous-lots**)
+  Doc : doc 02 §1.4/§1.5.
+  - **H-SPELLS.1** ✅ (plan `h-spells-mass.md`) : **sorts de masse** — champ de
+    zone `SpellDef.area` étendu à **`all`** (toutes les piles vivantes du camp de
+    la cible ; le camp visé = celui de la pile choisie), interprété par
+    `spellTargets` (réutilise `applySpellToTargets`/`estimateSpell`, préviz
+    agrégée). Données : Bénédiction/Hâte/Affaiblissement **de masse** (cercle 3).
+    Schéma content `area: enum(['splash','all'])`. **Zéro faction, aucun champ
+    d'état ⇒ pas de bump save, golden inchangé.** Constat au passage : le **heal
+    résout déjà la résurrection intra-pile** (`maxCount = count + lostSoFar`).
+  - **H-SPELLS.2+** ⬜ : sorts de **cercle 4-5** (+ extension Guilde des mages
+    niv. 4-5 pour les enseigner ⇒ Sagesse enfin utile), nouveaux `AdventureEffect`
+    (Vision, Rappel), **invocation**, **chaîne**, **résurrection de pile entière**
+    (pile à 0 retirée de la grille), dissipation réelle. Débloque C-SPELLUI.
 
 - **H-ARTEQUIP — Artefacts équipables + effets spéciaux + sets** 🧩/🎨 M ⬜
   Doc : doc 02 §1.1 (10 slots), doc 08 §2.3 (poupée interactive). Code :

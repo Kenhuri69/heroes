@@ -48,10 +48,12 @@ export interface SpellDef {
    */
   marksDamagePct?: number;
   /**
-   * Zone d'effet (C7) : `splash` = la pile ciblée + les piles du même camp qui lui
-   * sont adjacentes sur la grille hex (Boule de feu…). Absent = mono-cible.
+   * Zone d'effet : `splash` (C7) = la pile ciblée + les piles du même camp qui lui
+   * sont adjacentes sur la grille hex (Boule de feu…) ; `all` (H-SPELLS.1, doc 02
+   * §1.4) = **toutes** les piles vivantes du camp de la cible (sorts de masse —
+   * le camp visé est celui de la pile choisie). Absent = mono-cible.
    */
-  area?: 'splash';
+  area?: 'splash' | 'all';
   /** Effet hors combat d'un sort `adventure` (doc 02 §1.4, Alpha 4.16). */
   adventure?: AdventureEffect;
 }

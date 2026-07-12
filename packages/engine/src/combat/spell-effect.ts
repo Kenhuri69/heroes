@@ -29,12 +29,19 @@ export function spellcasterParams(def: CombatUnitDef): { spellId: string; charge
   return { spellId, charges, power: Number(ability.params?.['power'] ?? 0) };
 }
 
-/** Piles affectées : la cible seule, ou la cible + ses alliées adjacentes en `splash` (C7). */
+/**
+ * Piles affectées : la cible seule ; ou la cible + ses alliées adjacentes en
+ * `splash` (C7) ; ou **toutes** les piles vivantes du camp de la cible en `all`
+ * (H-SPELLS.1 — sorts de masse : le camp visé est celui de la pile choisie).
+ */
 export function spellTargets(
   combat: CombatState,
-  area: 'splash' | undefined,
+  area: 'splash' | 'all' | undefined,
   center: CombatStack,
 ): CombatStack[] {
+  if (area === 'all') {
+    return combat.stacks.filter((s) => s.count > 0 && s.side === center.side);
+  }
   if (area !== 'splash') return [center];
   return combat.stacks.filter(
     (s) => s.count > 0 && s.side === center.side && (s.id === center.id || hexDistance(s.pos, center.pos) === 1),

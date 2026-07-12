@@ -370,10 +370,15 @@ Source design : doc 02 §1 (héros), docs de faction §5/§6/§7 (héros nommés
     Schéma content `area: enum(['splash','all'])`. **Zéro faction, aucun champ
     d'état ⇒ pas de bump save, golden inchangé.** Constat au passage : le **heal
     résout déjà la résurrection intra-pile** (`maxCount = count + lostSoFar`).
-  - **H-SPELLS.2+** ⬜ : sorts de **cercle 4-5** (+ extension Guilde des mages
-    niv. 4-5 pour les enseigner ⇒ Sagesse enfin utile), nouveaux `AdventureEffect`
-    (Vision, Rappel), **invocation**, **chaîne**, **résurrection de pile entière**
-    (pile à 0 retirée de la grille), dissipation réelle. Débloque C-SPELLUI.
+  - **H-SPELLS.2** ✅ (plan `h-spells-circles45.md`) : **cercles 4-5 & Guilde à 5
+    niveaux** — `mageGuild` `maxLevel` 3→5 (niveaux 4/5 = cercles 4/5) + sorts
+    c4-5 (Résurrection, Pluie de météores ; Armageddon masse, Résurrection de
+    masse), **Sagesse enfin utile**. **Données pures** (le moteur enseigne déjà un
+    cercle arbitraire, testé) : zéro diff moteur, pas de bump save, golden inchangé.
+    Test content de cohérence guilde↔cercles.
+  - **H-SPELLS.3+** ⬜ : nouveaux `AdventureEffect` (Vision, Rappel), **invocation**,
+    **chaîne**, **résurrection de pile entière** (pile à 0 retirée de la grille),
+    dissipation réelle. Débloque C-SPELLUI.
 
 - **H-ARTEQUIP — Artefacts équipables + effets spéciaux + sets** 🧩/🎨 M ⬜
   Doc : doc 02 §1.1 (10 slots), doc 08 §2.3 (poupée interactive). Code :

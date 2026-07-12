@@ -408,6 +408,45 @@
       "perPower": 0,
       "defenseMod": -3,
       "area": "all"
+    },
+    {
+      "id": "resurrection",
+      "school": "water",
+      "circle": 4,
+      "manaCost": 22,
+      "kind": "heal",
+      "base": 40,
+      "perPower": 8
+    },
+    {
+      "id": "meteore",
+      "school": "fire",
+      "circle": 4,
+      "manaCost": 24,
+      "kind": "damage",
+      "base": 26,
+      "perPower": 6,
+      "area": "splash"
+    },
+    {
+      "id": "armageddon",
+      "school": "neutral",
+      "circle": 5,
+      "manaCost": 30,
+      "kind": "damage",
+      "base": 40,
+      "perPower": 8,
+      "area": "all"
+    },
+    {
+      "id": "resurrection-de-masse",
+      "school": "water",
+      "circle": 5,
+      "manaCost": 32,
+      "kind": "heal",
+      "base": 30,
+      "perPower": 6,
+      "area": "all"
     }
   ]
 }

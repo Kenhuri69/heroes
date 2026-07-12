@@ -264,8 +264,11 @@ export interface CaravanState {
  * v26 : `HeroState.rosterId` — pool de taverne exclusif (M-TAVERN.4, doc 02 §1.5) :
  * origine roster d'un héros vivant, pour interdire de recruter un héros déjà
  * vivant chez un joueur (un héros mort libère l'entrée).
+ * v27 : `SpellStatus.silenced` — silence de combat (Silence Scellé, doc 05 §6,
+ * F-SCHOOLS.4) : une pile portant un statut `silenced` actif ne peut plus lancer
+ * son sort d'unité (`spellcaster`) ; `false` pour tout autre statut.
  */
-export const CURRENT_SAVE_VERSION = 26;
+export const CURRENT_SAVE_VERSION = 27;
 
 export interface GameState {
   saveVersion: number;

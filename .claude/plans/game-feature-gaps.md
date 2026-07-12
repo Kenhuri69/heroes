@@ -276,10 +276,15 @@ Source design : docs 03 §2/§4/§5, 04 §2/§4, 05 §3/§5/§6/§7, 14 §5/§6,
     (sort de dégâts mange-Marques : +%/charge en plus du passif, puis Marques
     consommées ; 1ᵉʳ *sort* à consommer des Marques, cf. `consumeMarks`/`devourMarks`
     côté capacités). Zéro faction moteur, aucun bump save, golden inchangé.
-  - **F-SCHOOLS.4+** ⬜ : 5 sorts Traque restants (un sous-lot chacun) — Pas de
-    Brume (téléport allié), Silence Scellé (silence), Mue Éphémère (furtivité),
-    Bannissement, Heure de la Curée (noRetaliation conditionnel) ; effets Scène
-    enrichis (peur/+moral, partagés CAP-MORAL).
+  - **F-SCHOOLS.4** ✅ (plan `f-schools-4.md`) : **Silence Scellé** (doc 05 §6,
+    cercle 2) — nouvelle mécanique générique `SpellKind 'silence'` +
+    `SpellStatus.silenced` (save 26→27) : une pile silenciée ne peut plus lancer
+    son sort d'unité (`spellcaster`), gate partagé joueur+IA (`isSilenced`).
+    Refactor `spellTargetsEnemy(kind)`. Zéro faction moteur, golden re-fixé (forme).
+  - **F-SCHOOLS.5+** ⬜ : 4 sorts Traque restants (un sous-lot chacun) — Pas de
+    Brume (téléport allié), Mue Éphémère (furtivité), Bannissement, Heure de la
+    Curée (noRetaliation conditionnel) ; effets Scène enrichis (peur/+moral,
+    partagés CAP-MORAL).
 
 - **F-ELITEVOX — Élites Vox Arcana** ✅ (plan `f-elitevox.md`, doc 16 §4)
   Pur contenu : 8 unités élites (`t*-*-elite`, stats ~1,25-1,3× base), 8 dwellings

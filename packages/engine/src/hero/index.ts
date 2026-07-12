@@ -11,7 +11,7 @@ import type { GameState, HeroState } from '../core/state';
 import type { TownState } from '../town/types';
 import type { SpellKind } from './types';
 import { heroVisionBonus } from './skills';
-import { effectiveManaCost, effectivePower, spellDamageAmount, spellHealAmount } from './spells';
+import { effectiveManaCost, effectivePower, spellDamageAmount, spellHealAmount, spellTargetsEnemy } from './spells';
 
 /**
  * Points d'entrée héros (sorts en combat + choix de compétence) appelés par
@@ -60,11 +60,9 @@ export function validateCastSpell(state: GameState, cmd: CastSpellCmd): CommandE
   if (!target || target.count <= 0)
     return { code: 'invalidTarget', message: `cible invalide '${cmd.targetStackId}'` };
   // Remédiation R1 : contrainte de camp selon la nature du sort — dégâts,
-  // debuff et marque visent l'adverse ; soin et buff le camp du lanceur
+  // debuff, marque et silence visent l'adverse ; soin et buff le camp du lanceur
   // (`combat.playerSide`). Interdit un dégât sur soi ou un buff sur l'ennemi.
-  const targetsEnemy =
-    spell.kind === 'damage' || spell.kind === 'debuff' || spell.kind === 'applyMarks';
-  if (targetsEnemy !== (target.side !== combat.playerSide))
+  if (spellTargetsEnemy(spell.kind) !== (target.side !== combat.playerSide))
     return { code: 'invalidTarget', message: 'cible du mauvais camp pour ce sort' };
   return null;
 }

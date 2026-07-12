@@ -8,7 +8,8 @@ import { applySpellToTargets, spellcasterParams } from './spell-effect';
 import type { Draft } from './draft';
 import { COMBAT_COLS, COMBAT_ROWS, hexDistance, hexLine, hexNeighbors, sameHex, type OffsetPos } from './hex';
 import { advanceTurn, checkCombatEnd } from './turns';
-import { combatRules, hasAbility, isShooterMeleePenalized, moraleOf, moveRange } from './state-helpers';
+import { combatRules, hasAbility, isShooterMeleePenalized, isSilenced, moraleOf, moveRange } from './state-helpers';
+import { spellTargetsEnemy } from '../hero/spells';
 import type { CombatActionInput, CombatSideId, CombatStack, CombatState, CombatUnitDef } from './types';
 
 /**
@@ -253,13 +254,13 @@ export function validateCombatAction(state: GameState, cmd: { action: CombatActi
       const params = spellcasterParams(def);
       if (!params) return { code: 'invalidAction', message: 'unité non lanceuse de sort' };
       if (stack.spellCharges <= 0) return { code: 'invalidAction', message: 'plus de charges de sort' };
+      // F-SCHOOLS.4 : une pile silenciée ne peut plus lancer son sort embarqué.
+      if (isSilenced(stack)) return { code: 'invalidAction', message: 'pile silenciée' };
       const spell = state.spellCatalog[params.spellId];
       if (!spell) return { code: 'invalidAction', message: `sort inconnu '${params.spellId}'` };
       const target = combat.stacks.find((s) => s.id === action.targetStackId);
       if (!target || target.count <= 0) return { code: 'invalidAction', message: 'cible invalide' };
-      const targetsEnemy =
-        spell.kind === 'damage' || spell.kind === 'debuff' || spell.kind === 'applyMarks';
-      if (targetsEnemy !== (target.side !== stack.side))
+      if (spellTargetsEnemy(spell.kind) !== (target.side !== stack.side))
         return { code: 'invalidAction', message: 'cible du mauvais camp pour ce sort' };
       return null;
     }

@@ -93,7 +93,7 @@
     },
     {
       "id": "mageGuild",
-      "maxLevel": 3,
+      "maxLevel": 5,
       "levels": [
         {
           "cost": {
@@ -129,6 +129,30 @@
             "type": "mageGuild",
             "level": 3,
             "spellCount": 2
+          }
+        },
+        {
+          "cost": {
+            "gold": 16000,
+            "crystal": 10
+          },
+          "requires": [],
+          "effect": {
+            "type": "mageGuild",
+            "level": 4,
+            "spellCount": 2
+          }
+        },
+        {
+          "cost": {
+            "gold": 30000,
+            "gems": 15
+          },
+          "requires": [],
+          "effect": {
+            "type": "mageGuild",
+            "level": 5,
+            "spellCount": 1
           }
         }
       ]

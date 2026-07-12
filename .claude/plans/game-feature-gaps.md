@@ -694,10 +694,17 @@ Source design : **doc 13** (N1→N4 livrés), docs de faction §lore.
   **golden inchangé** (commande absente du replay). Zéro faction. Test moteur
   `quest-add.test.ts` + smoke. Plan `.claude/plans/n-dailyrefresh.md`.
 
-- **N-CAMPAIGNS2 — Campagnes Sylvan Court & Vox Arcana** 🕳️ L ⬜ (conforme au
-  design : doc 13 §8.1 autorise une sortie sans campagne)
-  Code : pas de dossier `story/` dans `data/factions/{sylvan-court,vox-arcana}/`.
+- **N-CAMPAIGNS2 — Campagnes Sylvan Court & Vox Arcana** 🕳️ L 🚧 (Vox ch1 livré ;
+  conforme au design : doc 13 §8.1 autorise une sortie sans campagne)
   Spec : données pures via le pipeline N3a (4ᵉ/5ᵉ test de modularité narratif).
+  **Livré (tranche Vox ch1)** (plan `n-campaigns2-vox.md`) : campagne
+  `vox-campaign` + prologue `vox-ch1` « La brèche » (carte `proto-01`, Vox vs IA
+  Necropolis, `surviveDays`, dialogue d'ouverture Hermione/Rumi, quête primaire
+  `vox-ch1-honmoon` bâtir le Fort, barks) — 100 % données (nouveau scénario +
+  `story/campaign.json` via `manifest.story` + index + locales FR/EN), **zéro
+  diff moteur/client/save/golden**. Smoke : la campagne apparaît + le chapitre 1
+  démarre (héros vox-arcana, dialogue, quête). **Reste** : chapitres Vox 2+ et la
+  campagne **Sylvan Court** (`data/factions/sylvan-court/story/` absent).
 
 - **N-BRIEFING — Fiche de scénario avant lancement** 🕳️ S ✅ (livré)
   Doc : doc 08 §2.5 (« fiche de scénario (objectifs) »). Livré : modale

@@ -2863,6 +2863,25 @@ test('campagne : 3ᵉ maison (Arcane Hunters) = données pures, apparaît et dé
   expect(errors).toEqual([]);
 });
 
+test('campagne : 4ᵉ maison (Vox Arcana) = données pures, apparaît et démarre (doc 13 N-CAMPAIGNS2)', async ({ page }) => {
+  const errors = await openMenu(page);
+
+  // 4ᵉ test de modularité narratif : une campagne Vox Arcana existe sans un octet
+  // de moteur en plus — le chapitre 1 (prologue « La brèche ») est jouable.
+  await expect(page.getByTestId('menu-campaign-vox-campaign')).toBeVisible();
+  await expect(page.getByTestId('menu-chapter-vox-campaign-0')).toBeEnabled();
+
+  // Le chapitre 1 démarre : héros Vox Arcana, dialogue d'ouverture, quête active.
+  await page.evaluate(() => window.__HEROES_TEST__!.startCampaignChapter('vox-campaign', 0));
+  await expect(page.getByTestId('end-turn')).toBeVisible();
+  await expect(page.getByTestId('dialogue-box')).toBeVisible();
+  const state = await page.evaluate(() => window.__HEROES_TEST__!.getState());
+  expect(state.heroes[0]?.factionId).toBe('vox-arcana');
+  expect(state.quests?.quests.some((q) => q.def.id === 'vox-ch1-honmoon')).toBe(true);
+
+  expect(errors).toEqual([]);
+});
+
 test('bark de combat : une réplique s’affiche au début d’un combat de campagne (doc 13 N4b)', async ({ page }) => {
   const errors = await openMenu(page);
 

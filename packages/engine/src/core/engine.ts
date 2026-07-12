@@ -68,6 +68,7 @@ import { resolveTreasure } from '../adventure/treasure';
 import { roamGuardians } from '../adventure/roam';
 import { evaluateOutcome, tickTownGrace } from '../scenario/outcome';
 import { evaluateQuests } from '../quest/evaluate';
+import { validateAddQuests, handleAddQuests } from '../quest/add';
 import { fireDayTriggers } from '../adventure/triggers';
 import { runAiTurn } from '../ai/adventure';
 import { EngineError, type Command, type CommandError } from './commands';
@@ -148,6 +149,7 @@ const GAME_OVER_BLOCKED = new Set<Command['type']>([
   'ChooseAttribute',
   'ResolveTreasure',
   'AiTurn',
+  'AddQuests',
 ]);
 
 export function validate(state: GameState, cmd: Command): CommandError | null {
@@ -346,6 +348,8 @@ export function validate(state: GameState, cmd: Command): CommandError | null {
         return { code: 'invalidAction', message: `'${cmd.playerId}' n’est pas un joueur IA` };
       return null;
     }
+    case 'AddQuests':
+      return validateAddQuests(state);
   }
 }
 
@@ -787,5 +791,9 @@ const handlers: Handlers = {
     runAiTurn(draft, cmd.playerId, events);
     if (draft.combat || draft.outcome) return; // sécurité : combat resté ouvert / partie finie
     handlers.EndTurn(draft, { type: 'EndTurn', playerId: cmd.playerId }, events);
+  },
+
+  AddQuests(draft, cmd, events) {
+    handleAddQuests(draft, cmd, events);
   },
 };

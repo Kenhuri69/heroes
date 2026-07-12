@@ -549,11 +549,16 @@ Source design : **doc 13** (N1→N4 livrés), docs de faction §lore.
   données pures (quêtes + dialogues), zéro moteur. Synergie avec H-NAMED
   (les arcs prennent du sens quand les héros ont une identité).
 
-- **N-DAILYREFRESH — Rafraîchissement quotidien des journalières** 🧩 S ⬜
-  Doc : doc 13 §4.2/§5.2 (esprit « contrats » rejouables) ; limitation notée
-  doc 09 (« nécessiterait une commande `AddQuests` »). Code : gabarits
-  instanciés une fois au `StartGame` (`packages/client/src/app/daily.ts`).
-  Spec : commande générique `AddQuests` au `DayStarted`.
+- **N-DAILYREFRESH — Rafraîchissement quotidien des journalières** 🧩 S ✅ (livré)
+  Doc : doc 13 §4.2/§5.2. Livré : commande moteur **générique** `AddQuests
+  { quests: QuestDef[] }` — ajoute des quêtes en cours de partie, **idempotente**
+  (dédup par id), crée `state.quests` si absent, émet `QuestStarted` ; `evaluateQuests`
+  fait avancer les nouvelles. Client : `app/daily-refresh.ts` armé au démarrage
+  d'escarmouche, génère après chaque fin de tour humain les contrats du nouveau
+  jour (ids `daily-d<jour>-*`, seed `seed + jour`) et les ajoute au journal
+  (`appendFreeModeQuests`). **Pas de bump save** (`state.quests` déjà sérialisé),
+  **golden inchangé** (commande absente du replay). Zéro faction. Test moteur
+  `quest-add.test.ts` + smoke. Plan `.claude/plans/n-dailyrefresh.md`.
 
 - **N-CAMPAIGNS2 — Campagnes Sylvan Court & Vox Arcana** 🕳️ L ⬜ (conforme au
   design : doc 13 §8.1 autorise une sortie sans campagne)

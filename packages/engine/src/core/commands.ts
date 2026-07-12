@@ -6,7 +6,7 @@ import type { BuildingDef, TownState } from '../town/types';
 import type { ArtifactDef, HeroSkillDef, ResolvedHeroDef, SkillRankEffect, SpellDef } from '../hero/types';
 import type { FactionBonus } from '../faction/types';
 import type { ScenarioState } from '../scenario/types';
-import type { QuestState } from '../quest/types';
+import type { QuestDef, QuestState } from '../quest/types';
 import type { HeroAttributes, ResourceId, Resources } from './state';
 
 export interface PlayerSetup {
@@ -250,6 +250,17 @@ export type Command =
   | { type: 'ChooseAttribute'; heroId: string; attribute: 'attack' | 'defense' | 'power' | 'knowledge' }
   // ——— Trésor de carte (doc 02 §2.2) : choix or/XP après avoir foulé un coffre ———
   | { type: 'ResolveTreasure'; heroId: string; choice: 'gold' | 'xp' }
+  // ——— Quêtes ajoutées en cours de partie (N-DAILYREFRESH, doc 13 §4.2) ———
+  | {
+      /**
+       * Ajoute des quêtes en cours de partie (ex. rafraîchissement des contrats
+       * journaliers au passage de jour). Défs **opaques** (le moteur ne connaît
+       * ni texte ni dialogue) ; **idempotent** : une déf dont l'id existe déjà
+       * est ignorée. Générique — aucune notion de faction/quête nommée.
+       */
+      type: 'AddQuests';
+      quests: QuestDef[];
+    }
   // ——— IA d'aventure (doc 11 §3.5) : joue le tour complet du joueur IA actif + fin de tour ———
   | { type: 'AiTurn'; playerId: string };
 

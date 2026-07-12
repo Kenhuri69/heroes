@@ -80,6 +80,27 @@ export function loadFreeModeNarrative(metas: DailyQuestMeta[]): void {
   });
 }
 
+/**
+ * Rafraîchissement journalier (N-DAILYREFRESH, doc 13 §4.2) : AJOUTE des métas de
+ * contrats au catalogue narratif existant (sans clobber, contrairement à
+ * `loadFreeModeNarrative`) pour que les nouveaux `daily-*` apparaissent au
+ * journal. No-op hors mode libre (aucun catalogue narratif chargé).
+ */
+export function appendFreeModeQuests(metas: DailyQuestMeta[]): void {
+  const { narrative } = appStore.getState();
+  if (!narrative) return;
+  const quests = { ...narrative.quests };
+  for (const m of metas) {
+    quests[m.id] = {
+      titleKey: m.titleKey,
+      ...(m.descriptionKey !== undefined ? { descriptionKey: m.descriptionKey } : {}),
+      kind: m.kind,
+      steps: m.steps.map((s) => ({ id: s.id })),
+    };
+  }
+  appStore.setState({ narrative: { ...narrative, quests } });
+}
+
 /** Enfile un dialogue : joué immédiatement si aucun n'est actif, sinon en attente. */
 export function enqueueDialog(dialogId: string): void {
   const { narrative, dialogue, dialogueQueue } = appStore.getState();

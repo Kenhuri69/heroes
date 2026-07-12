@@ -614,11 +614,11 @@ SDK `packages/client/src/app/net.ts` sans autre appelant).
 
 Source design : **doc 13** (N1→N4 livrés), docs de faction §lore.
 
-- **N-ARCS — 2 arcs personnels de héros sur 6** 🧩 M 🚧 (**découpé en sous-lots**)
+- **N-ARCS — 5 arcs personnels de héros sur 6** 🧩 M 🚧 (**découpé en sous-lots**)
   Doc : doc 13 §5.4 (6 arcs, 2/faction, 3 étapes : Aldric ✅, **Séraphine ✅**,
-  **Vhalen ✅**, **Evadne ✅**, Mère Corbeau, Marchmont). Spec : données pures
-  (quêtes + dialogues), zéro moteur. Synergie avec H-NAMED (les arcs prennent
-  du sens quand les héros ont une identité).
+  **Vhalen ✅**, **Evadne ✅**, **Mère Corbeau ✅**, Marchmont). Spec : données
+  pures (quêtes + dialogues), zéro moteur. Synergie avec H-NAMED (les arcs
+  prennent du sens quand les héros ont une identité).
   - **N-ARCS.1** ✅ (plan `n-arcs-seraphine.md`) : **arc de Séraphine** (Haven,
     `haven-ch3` — visions d'Elrath vs. le sceau, drapeaux `seraphine-faith`/
     `seraphine-doubt`) en données pures (patron Aldric N3c.2), zéro diff moteur/
@@ -629,8 +629,15 @@ Source design : **doc 13** (N1→N4 livrés), docs de faction §lore.
   - **N-ARCS.3** ✅ (plan `n-arcs-evadne.md`) : **arc d'Evadne** (Arcane Hunters,
     `arcane-ch2` — la rune du verrou greffée sur son visage, `evadne-embrace`/
     `evadne-sever`), mêmes patron/vérifs, zéro diff moteur.
-  - **N-ARCS.4+** ⬜ : Mère Corbeau (Necropolis), Marchmont (Arcane Hunters) —
-    mêmes patron/vérifs.
+  - **N-ARCS.4** ✅ (plan `n-arcs-mere-corbeau.md`) : **arc de Mère Corbeau**
+    (Necropolis, `necropolis-ch2`, 2ᵉ arc aux côtés de Vhalen — « l'âme d'un
+    enfant de Cendregarde prise dans le sceau, quitte à pactiser avec le Havre »,
+    `corbeau-pact`/`corbeau-refuse`). Quête `corbeau-enfant` (personal, 3 étapes)
+    ajoutée APRÈS `vhalen-sceau` ⇒ smoke Vhalen inchangé. Mêmes patron/vérifs,
+    zéro diff moteur. Smoke : résoudre le choix de Vhalen puis atteindre celui de
+    Corbeau → drapeau posé.
+  - **N-ARCS.5+** ⬜ : Marchmont (Arcane Hunters) — mêmes patron/vérifs (dernier
+    des 6 arcs).
 
 - **N-DAILYREFRESH — Rafraîchissement quotidien des journalières** 🧩 S ✅ (livré)
   Doc : doc 13 §4.2/§5.2. Livré : commande moteur **générique** `AddQuests

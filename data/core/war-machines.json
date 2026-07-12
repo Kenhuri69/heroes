@@ -13,6 +13,13 @@
       "stats": { "hp": 300, "attack": 8, "defense": 10, "damage": [8, 15], "speed": 1 },
       "abilities": [{ "id": "warMachine" }, { "id": "siegeBreaker" }],
       "cost": { "gold": 2500, "ore": 10, "wood": 10 }
+    },
+    {
+      "id": "arrow-tower",
+      "name": "@loc:warMachine.arrow-tower.name",
+      "stats": { "hp": 400, "attack": 12, "defense": 12, "damage": [10, 20], "speed": 1 },
+      "abilities": [{ "id": "shooter", "params": { "ammo": 999, "noMeleePenalty": true } }, { "id": "warMachine" }, { "id": "immobile" }],
+      "cost": { "gold": 1 }
     }
   ]
 }

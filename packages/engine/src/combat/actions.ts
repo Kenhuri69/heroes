@@ -30,6 +30,9 @@ export function reachableHexes(state: GameState, stackId: string): OffsetPos[] {
   if (!stack) return [];
   const def = state.unitCatalog[stack.unitId];
   if (!def) return [];
+  // C-SIEGE2.5 : une pile `immobile` (tour de tir de siège) ne se déplace jamais
+  // — elle tire ou attend sur place. Générique, faction-agnostique.
+  if (hasAbility(def, 'immobile')) return [];
   // Portée = vitesse effective + speedMod des statuts (Hâte/Lenteur/Entraves), ≥ 0 (A4).
   const speed = moveRange(stack, combat, state.unitCatalog, state);
   const flying = hasAbility(def, 'flying');

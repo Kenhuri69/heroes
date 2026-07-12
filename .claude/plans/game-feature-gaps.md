@@ -101,9 +101,17 @@ doc 08 §2.4 (écran de combat).
     `applyMove` → `damageOneStack` + événement `MoatDamaged`). **Seul l'assaillant**
     la subit (garde `stack.side === 'attacker'`, générique) ; rendu client (nombre
     de dégâts flottant). Tests : dégâts à l'assaillant + défenseur épargné.
-  - **C-SIEGE2.5+** ⬜ : bombardement **tour-par-tour** de la catapulte (PV de
-    segment, ciblage) ; (c) **tour de tir** (pile défenderesse fixe) ; art de
-    rempart distinct.
+  - **C-SIEGE2.5** ✅ (plan `c-siege2-arrow-tower.md`) : **tour de tir** — une
+    ville Fort ≥ 3 (Château) ajoute une pile tireuse **immobile** au camp défenseur
+    (unité générique `arrow-tower` de `war-machines.json`, marqueurs `warMachine` +
+    `shooter` + **`immobile`** ⇒ `reachableHexes` vide). Plantée derrière la porte
+    (`SIEGE_WALL_COL + 1`) ⇒ atteignable/destructible, **pas de stalemate** ; compte
+    comme pile défenseur ; Nécromancie exclut `warMachine`. Tour = pile dans
+    `stacks` ⇒ pas de bump save, golden inchangé ; rendu client automatique. Tests :
+    tour immobile Fort 3, aucune tour Fort 2, capture malgré la tour (auto-combat).
+  - **C-SIEGE2.6+** ⬜ : bombardement **tour-par-tour** de la catapulte (PV de
+    segment, ciblage) ; défense **tour-seule** (garnison vide) ; art de rempart
+    distinct.
 
 - **C-SPELLUI — Grimoire & ciblage de sorts** 🎨 M ⬜
   Doc : doc 08 §2.3 (grimoire feuilletable par école), doc 02 §1.4.

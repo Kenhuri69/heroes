@@ -1,0 +1,14 @@
+{
+  "id": "agathe",
+  "name": "@loc:hero.agathe.name",
+  "bio": "@loc:hero.agathe.bio",
+  "archetype": "magic",
+  "origin": "original",
+  "avatar": "sylvan-court-agathe",
+  "avatarStyle": "photoreal",
+  "specialty": "@loc:hero.agathe.specialty",
+  "attributes": { "attack": 0, "defense": 1, "power": 2, "knowledge": 4 },
+  "specialtyEffect": { "id": "guerisseuse", "manaCostReductionPct": 15 },
+  "startingSkills": { "magic-water": 1, "wisdom": 1 },
+  "startingSpells": ["soin"]
+}

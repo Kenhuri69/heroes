@@ -78,7 +78,10 @@ client réutilise `serializeState`/`deserializeState` et la **garde de version**
    **rejoue** `base + batch` via `appendTurn` : refuse si ce n'est pas son tour,
    si `seq` n'est pas contigu, ou si une commande est illégale. Sinon insère la
    ligne `moves`.
-4. L'adversaire **poll** `GET /matches/:id/moves?since=seq`, rejoue les nouveaux
+4. Pour (re)construire l'état de zéro, le client lit d'abord
+   **`GET /matches/:id`** → `{ id, seed, setup, players, status, seq }`
+   (NET-MATCHDETAIL, livré ; SDK `getMatch`), puis rejoue `base(setup) + batch`.
+5. L'adversaire **poll** `GET /matches/:id/moves?since=seq`, rejoue les nouveaux
    lots (`replayCommands`) pour obtenir l'état courant, joue, poste. Fin de partie
    = `GameState.outcome` non nul (le serveur le détecte au rejeu → `status`).
 

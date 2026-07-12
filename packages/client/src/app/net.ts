@@ -92,6 +92,28 @@ export function listMatches(): Promise<{ matches: MatchSummary[] }> {
 export function createMatch(seed: number, setup: Command): Promise<{ id: string }> {
   return api('/matches', { method: 'POST', body: JSON.stringify({ seed, setup }) });
 }
+/** Siège d'une partie async : ordre de tour + occupation (NET-MATCHDETAIL). */
+export interface MatchSeat {
+  seat: number;
+  player_id: string;
+  profile_id: string | null;
+}
+/**
+ * Détail d'une partie (doc 15 §5.3) — de quoi RECONSTRUIRE l'état côté client :
+ * `seed`/`setup` (base à rejouer) + `seq` (dernier coup connu) + sièges. `setup`
+ * est le `StartGame` (Command) sérialisé du créateur.
+ */
+export interface MatchDetail {
+  id: string;
+  seed: number;
+  setup: Command;
+  status: string;
+  players: MatchSeat[];
+  seq: number;
+}
+export function getMatch(id: string): Promise<MatchDetail> {
+  return api(`/matches/${id}`, { method: 'GET' });
+}
 export function joinMatch(id: string): Promise<{ ok: true; seat: number }> {
   return api(`/matches/${id}/join`, { method: 'POST' });
 }

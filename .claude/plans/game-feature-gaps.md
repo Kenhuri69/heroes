@@ -537,11 +537,14 @@ Constat global : Worker déployé, 8 endpoints, re-simulation anti-triche
 testée ; **le client n'appelle que l'auth** (`packages/client/src/ui/OnlinePanel.tsx`,
 SDK `packages/client/src/app/net.ts` sans autre appelant).
 
-- **NET-MATCHDETAIL — Endpoint détail de partie** 🕳️ S ⬜ **bloquant PvP**
-  Doc : doc 15 §5.3 (le client rejoue `base + batch`). Code : pas de
-  `GET /matches/:id` (`server/src/worker.ts`) ni de `getMatch` SDK ⇒ impossible
-  de récupérer seed/setup/sièges pour reconstruire l'état. Spec : endpoint +
-  SDK renvoyant `{ seed, setup, players, status, seq }`.
+- **NET-MATCHDETAIL — Endpoint détail de partie** 🕳️ S ✅ (plan `net-matchdetail.md`)
+  Doc : doc 15 §5.3. Livré : **`GET /matches/:id`** (Worker) → `{ id, seed, setup,
+  players, status, seq }` (match + sièges `match_players` + `MAX(seq)` des
+  `moves`) + SDK `getMatch(id)` / interface `MatchDetail`. Info ouverte (décision
+  NET-FOG, async v1) : authentification requise, pas de filtre par participant.
+  Débloque NET-PVPUI. Self-contained (zéro moteur ; SDK inerte hors
+  `VITE_BACKEND_URL` ⇒ smoke non-régressé). Pas de harness de test Worker ⇒
+  vérifié par typecheck server+client + intégration à NET-PVPUI.
 
 - **NET-PVPUI — Écrans PvP asynchrones jouables** 🕳️ L ⬜
   Doc : doc 01 §3 (PvP async = Beta), doc 09 Phase 3 (jalon « PvP asynchrone

@@ -5,6 +5,7 @@ import { seedRng } from '../src/core/rng';
 import { applyAction } from '../src/combat/actions';
 import { chooseAction as aiChooseAction } from '../src/combat/ai';
 import { estimateUnitSpell } from '../src/hero';
+import { initLedger, recordLoss } from '../src/combat/state-helpers';
 import type { CombatStack, CombatState, CombatUnitDef } from '../src/combat/types';
 import type { SpellDef } from '../src/hero/types';
 import type { GameEvent } from '../src/core/events';
@@ -94,5 +95,50 @@ describe('A2h — spellcaster', () => {
     // Prêtresse (power 3) soigne l'allié : base 10 + 3×3 = 19 (préviz sans RNG).
     const est = estimateUnitSpell(state(catalog, scene()), 'attacker-0', 'attacker-1');
     expect(est).toEqual({ amount: 19, kills: 0, kind: 'heal' });
+  });
+});
+
+/**
+ * CAP-LIFE.1 — l'Ange (Haven T7) réalise `resurrectAlly(1×/combat)` via le
+ * `spellcaster` générique embarquant le sort `resurrection` : le heal ressuscite
+ * la pile alliée au-delà de son effectif courant (`maxCount = count + lostSoFar`).
+ * Données pures, aucun code moteur propre à l'Ange.
+ */
+describe('CAP-LIFE.1 — résurrection de l’Ange', () => {
+  const RESURRECTION: SpellDef = { id: 'resurrection', school: 'water', circle: 4, manaCost: 22, kind: 'heal', base: 40, perPower: 8 };
+  const angelCatalog: Record<string, CombatUnitDef> = {
+    ange: unit({ id: 'ange', abilities: [{ id: 'spellcaster', params: { spellId: 'resurrection', charges: 1, power: 4 } }] }),
+    grunt: unit({ id: 'grunt' }),
+  };
+  function angelState(stacks: CombatStack[]): GameState {
+    const combat: CombatState = {
+      terrain: 'grass', phase: 'battle', round: 1, obstacles: [], stacks, activeStackId: 'attacker-0',
+      playerSide: 'defender', heroId: null, guardianObjectId: null, townId: null, wallDefenseBonus: 0,
+      finished: false, attackerHeroId: null, defenderHeroId: null, heroCastThisRound: [],
+      heroAttackUsed: [], winner: null,
+    };
+    initLedger(combat);
+    return { ...createEmptyState(), started: true, rng: seedRng(1), config: testConfig(), unitCatalog: angelCatalog, combat, spellCatalog: { resurrection: RESURRECTION } };
+  }
+
+  it('ressuscite une pile alliée qui a perdu des créatures (l’effectif remonte)', () => {
+    // Allié réduit à 2/5 grunts (3 perdus enregistrés au ledger). Résurrection =
+    // 40 + 8×4 = 72 PV ⇒ maxCount = 2 + 3 = 5, pool 40 → 100 ⇒ 5 grunts (3 relevés).
+    const stacks: CombatStack[] = [
+      stack({ id: 'attacker-0', side: 'attacker', slot: 0, unitId: 'ange', count: 1, pos: { col: 2, row: 4 }, spellCharges: 1 }),
+      stack({ id: 'attacker-1', side: 'attacker', slot: 1, unitId: 'grunt', count: 2, pos: { col: 2, row: 5 }, firstHp: 20 }),
+      stack({ id: 'defender-0', side: 'defender', slot: 0, unitId: 'grunt', count: 1, pos: { col: 12, row: 5 } }),
+    ];
+    const base = angelState(stacks);
+    recordLoss(base.combat!, 'attacker', 'grunt', 3); // 3 grunts déjà tombés
+    const events: GameEvent[] = [];
+    const next = produce(base, (draft) => {
+      applyAction(draft, events, 'attacker-0', { type: 'castSpell', targetStackId: 'attacker-1' });
+    });
+    const revived = next.combat?.stacks.find((s) => s.id === 'attacker-1');
+    expect(revived?.count).toBe(5); // 2 → 5 : trois créatures relevées
+    const angel = next.combat?.stacks.find((s) => s.id === 'attacker-0');
+    expect(angel?.spellCharges).toBe(0); // 1×/combat consommée
+    expect(events.some((e) => e.type === 'UnitSpellCast' && e.casterId === 'attacker-0')).toBe(true);
   });
 });

@@ -4,9 +4,9 @@
 > données** (`data/factions/haven/`, zéro diff moteur/client — critère de
 > modularité doc 11). **Livré** : lineup T1–T7 (stats §3 exactes), arbre
 > d'habitations (7 dwellings + prérequis, §4), manifeste, ressources clés
-> (Cristal/Gemmes), locales FR/EN, recrutement validé par test. **Différé**
-> (points d'extension moteur non encore ouverts — le loader refuse toute
-> donnée non interprétée) : capacité spéciale `resurrectAlly`.
+> (Cristal/Gemmes), locales FR/EN, recrutement validé par test. **Toutes les
+> capacités d'unité du lineup Haven sont désormais interprétées** (plus aucune
+> donnée inerte).
 > **Livré depuis** : `shieldWall` (Frère-Lame), `unlimitedRetaliation` (Griffon),
 > `charge` (Chevalier du Griffon) en A2a ; `moraleImmune` (Ange, immunité au
 > moral négatif) en A3a ; `taunt` (Conscrit, attire les frappes de mêlée
@@ -14,9 +14,11 @@
 > à vitesse égale) en A2g ; `spellcaster` (Prêtresse, soin embarqué ×2 —
 > engine-first : lancé par l'IA/auto-combat, UI joueur différée) en A2h —
 > interprétées par le moteur (catalogue = **27 capacités** génériques, doc 02
-> §5.4) ; côté Haven reste inerte
-> `resurrectAlly` ;
-> compétence Prière de bataille ;
+> §5.4) ; `resurrectAlly` de l'Ange (CAP-LIFE.1) **réalisé** via le `spellcaster`
+> générique embarquant le sort `resurrection` (1×/combat, comme la Prêtresse
+> soigne — données pures, aucun code moteur propre à l'Ange) ; côté Haven reste
+> inerte
+> la compétence de héros Prière de bataille ;
 > bâtiments spéciaux **livrés** : **Écuries** (F-BUILDEFF.1) et **Statue du
 > Jugement** (F-BUILDEFF.2) via `heroAura`, **Cloître** (F-BUILDEFF.3) via
 > `grantSpell` ; **école Lumière livrée** (F-SCHOOLS.1 — `spellSchool: "lumiere"`,
@@ -68,7 +70,7 @@
 | 4 | **Griffon** | 30 | 8 | 7 | 5–9 | 7 | 5 | 360 or | `flying`, `unlimitedRetaliation` |
 | 5 | **Prêtresse** | 36 | 9 | 8 | 7–11 | 5 | 4 | 640 or + 1 gemme | `shooter(8)`, `spellcaster(soin, ×2)` |
 | 6 | **Chevalier du Griffon** | 70 | 14 | 11 | 12–20 | 8 | 2 | 1300 or + 1 cristal | `charge(+5 %/hex)`, `firstStrike` |
-| 7 | **Ange** | 180 | 22 | 18 | 35–55 | 11 | 1 | 3200 or + 2 cristal + 2 gemmes | `flying`, `resurrectAlly(1×/combat)`, immunité au moral négatif |
+| 7 | **Ange** | 180 | 22 | 18 | 35–55 | 11 | 1 | 3200 or + 2 cristal + 2 gemmes | `flying`, `resurrectAlly(1×/combat)` (réalisé `spellcaster(resurrection, ×1)`), immunité au moral négatif |
 
 > ⚖️ **Équilibrage (Alpha 4.17)** : première passe via `faction:sim` (auto-combats
 > à valeur d'or égale). Havre était strictement dominant (100 % vs Necropolis et

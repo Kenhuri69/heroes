@@ -352,10 +352,11 @@ l'évoque dans un dialogue).
 > `kind: personal` + dialogues à `choices`/`setFlag`, patron N3c.2, zéro diff
 > moteur). **Aldric** (`haven-ch2`, `aldric-merciful`/`aldric-ruthless`),
 > **Séraphine** (`haven-ch3` — visions d'Elrath vs. sceau, `seraphine-faith`/
-> `seraphine-doubt`) et **Vhalen** (`necropolis-ch2` — « le sceau nourrit Heresh
+> `seraphine-doubt`), **Vhalen** (`necropolis-ch2` — « le sceau nourrit Heresh
 > en âmes ; le réparer affamerait son peuple », `vhalen-repair`/`vhalen-feed`)
-> livrés. *Restent :* Mère Corbeau (Necropolis), Evadne, Marchmont (Arcane
-> Hunters).
+> et **Evadne** (`arcane-ch2` — « la rune du verrou greffée sur son visage ; le
+> sceau la reconnaît », `evadne-embrace`/`evadne-sever`) livrés. *Restent :*
+> Mère Corbeau (Necropolis), Marchmont (Arcane Hunters).
 
 ---
 

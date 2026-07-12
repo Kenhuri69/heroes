@@ -2880,6 +2880,45 @@ test('choix de dialogue : arc personnel de Vhalen (necropolis-ch2) → drapeau p
   expect(errors).toEqual([]);
 });
 
+test('choix de dialogue : arc personnel d’Evadne (arcane-ch2) → drapeau persistant (doc 13 §5.4, N-ARCS.3)', async ({
+  page,
+}) => {
+  const errors = await openMenu(page);
+
+  // arcane-ch2 embarque l'arc Arcane (Evadne, quête `personal`, 3 étapes) : les
+  // 2 premières sont satisfaites par l'armée de départ, l'arc atteint son nœud
+  // de choix dès l'ouverture. Particularité : le dialogue d'OUVERTURE porte
+  // lui-même un choix (rencontre Evadne↔Aldric). On déroule donc la file en
+  // résolvant chaque choix qui n'est pas encore celui d'Evadne, jusqu'à ce que
+  // le drapeau d'Evadne soit posé.
+  await page.evaluate(() => window.__HEROES_TEST__!.startScenario('arcane-ch2'));
+
+  await expect(page.getByTestId('dialogue-box')).toBeVisible();
+  const choices = page.getByTestId('dialogue-choices');
+  const skip = page.getByTestId('dialogue-skip');
+  const flagsNow = () => page.evaluate(() => window.__HEROES_TEST__!.campaignFlags());
+  for (let i = 0; i < 12; i++) {
+    const f = await flagsNow();
+    if (f['evadne-embrace'] || f['evadne-sever']) break;
+    if ((await choices.count()) > 0) {
+      // choix : l'option 0 pose `aldric-pacte` (ouverture) ou `evadne-embrace`
+      // (arc) — dans les deux cas on avance vers / on atteint le drapeau visé.
+      await page.getByTestId('dialogue-choice-0').click();
+    } else if ((await skip.count()) > 0) {
+      await skip.click();
+    } else {
+      break;
+    }
+  }
+
+  // Le choix d'Evadne « l'assumer » pose le drapeau, persisté.
+  const flags = await flagsNow();
+  expect(flags['evadne-embrace']).toBe(true);
+  expect(flags['evadne-sever']).toBeUndefined();
+
+  expect(errors).toEqual([]);
+});
+
 test('campagne : 3ᵉ chapitre Haven sur sa carte dédiée proto-02 (doc 13 N3c.3)', async ({ page }) => {
   const errors = await openMenu(page);
 

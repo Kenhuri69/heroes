@@ -60,6 +60,22 @@
         { "speaker": "mere-corbeau", "portrait": "douce", "textKey": "@loc:dlg.necro.ch2.open.1" },
         { "speaker": "vhalen", "portrait": "grave", "textKey": "@loc:dlg.necro.ch2.open.2" }
       ]
+    },
+    {
+      "id": "dlg-vhalen-1",
+      "lines": [{ "speaker": "vhalen", "portrait": "grave", "textKey": "@loc:dlg.vhalen.arc.1" }]
+    },
+    {
+      "id": "dlg-vhalen-2",
+      "lines": [{ "speaker": "mere-corbeau", "portrait": "douce", "textKey": "@loc:dlg.vhalen.arc.2" }]
+    },
+    {
+      "id": "dlg-vhalen-choice",
+      "lines": [{ "speaker": "vhalen", "portrait": "grave", "textKey": "@loc:dlg.vhalen.arc.3" }],
+      "choices": [
+        { "textKey": "@loc:dlg.vhalen.arc.repair", "setFlag": "vhalen-repair" },
+        { "textKey": "@loc:dlg.vhalen.arc.feed", "setFlag": "vhalen-feed" }
+      ]
     }
   ],
   "quests": [
@@ -72,6 +88,30 @@
         { "id": "defeat-haven", "condition": { "type": "defeatHero", "heroId": "hero-ai-1" } }
       ],
       "rewards": [{ "type": "resources", "resources": { "gold": 2000 } }]
+    },
+    {
+      "id": "vhalen-sceau",
+      "kind": "personal",
+      "titleKey": "@loc:quest.vhalen-sceau.title",
+      "descriptionKey": "@loc:quest.vhalen-sceau.desc",
+      "steps": [
+        {
+          "id": "lire-les-archives",
+          "condition": { "type": "ownUnits", "unitId": "t1-squelette", "count": 25 },
+          "dialogBefore": "dlg-vhalen-1"
+        },
+        {
+          "id": "peser-le-sceau",
+          "condition": { "type": "ownUnits", "unitId": "t4-vampire", "count": 3 },
+          "dialogBefore": "dlg-vhalen-2"
+        },
+        {
+          "id": "trancher",
+          "condition": { "type": "defeatHero", "heroId": "hero-ai-1" },
+          "dialogBefore": "dlg-vhalen-choice"
+        }
+      ],
+      "rewards": []
     }
   ]
 }

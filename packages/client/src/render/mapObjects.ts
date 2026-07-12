@@ -10,7 +10,7 @@ import {
 } from './assets';
 import { NEUTRAL_COLOR } from './playerColors';
 import { TILE_SIZE } from './tilemap';
-import { ISO_TILE_H, ISO_TILE_W, isoAnchor, isoDepth } from './projection';
+import { ISO_TILE_H, ISO_TILE_W, isoAnchor, isoDepth, isoGroundSeatY } from './projection';
 
 /** Catalogue d'unités (id → def) — sert à résoudre la faction d'un gardien. */
 type UnitCatalog = Record<string, CombatUnitDef>;
@@ -27,20 +27,18 @@ type OwnerColor = (ownerId: string | null) => number;
 const COLLECTIBLE_SCALE = 0.8;
 
 /**
- * Sprite DEBOUT sur sa tuile — même convention « base centrée » que les villes,
- * gardiens et props de relief : `anchor(0.5, 1)`, le visuel REPOSE sur le sol de
- * sa case. Ancré au centre (0.5, 0.5), un sprite carré débordait sur les 4
- * losanges voisins et paraissait « entre quatre cases » (plan map-design-issues
- * P3). La base est posée un quart de losange SOUS le centre : ces assets
- * embarquent leur propre socle iso, qui recouvre ainsi le losange de la case au
- * lieu de flotter au-dessus. Ratio d'aspect préservé (la plus grande dimension
- * est ajustée à `TILE_SIZE * scale`).
+ * Sprite d'un objet de carte qui EMBARQUE son propre socle isométrique (mine,
+ * coffre, fontaine, écurie, camp…). Ancré par son bord bas `anchor(0.5, 1)`,
+ * posé par {@link isoGroundSeatY} pour que le socle peint recouvre exactement le
+ * losange de la case au lieu de flotter au-dessus (captures « asset pas centré
+ * sur la case »). Ratio d'aspect préservé (la plus grande dimension est ajustée
+ * à `TILE_SIZE * scale`).
  */
 function placeSprite(texture: Texture, scale: number): Sprite {
   const sprite = new Sprite(texture);
   sprite.anchor.set(0.5, 1);
   sprite.scale.set((TILE_SIZE * scale) / Math.max(texture.width, texture.height));
-  sprite.position.set(TILE_SIZE / 2, TILE_SIZE / 2 + ISO_TILE_H / 4);
+  sprite.position.set(TILE_SIZE / 2, isoGroundSeatY(sprite.height));
   return sprite;
 }
 

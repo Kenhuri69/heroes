@@ -1,7 +1,7 @@
 import { Assets, Container, Graphics, Sprite } from 'pixi.js';
 import type { TownState } from '@heroes/engine';
 import { TILE_SIZE } from './tilemap';
-import { isoAnchor, isoDepth } from './projection';
+import { isoAnchor, isoDepth, isoGroundSeatY } from './projection';
 import { townMapUrl } from './assets';
 
 /** Résout la couleur de bannière d'un propriétaire (id joueur ou null = neutre). */
@@ -68,13 +68,14 @@ function buildKeep(factionId: string, owned: boolean, ownerColor: number): Conta
       node.removeChild(fallback);
       fallback.destroy({ children: true });
       const sprite = new Sprite(texture);
-      // Base CENTRÉE (comme le héros et les props de relief) : le château REPOSE sur
-      // le sol de sa case au lieu d'être centré dessus — ancré au centre, à 1,35 tuile
-      // il débordait de part et d'autre du losange et paraissait « entre quatre cases ».
+      // Socle iso peint posé sur le losange de la case (comme les objets de carte) :
+      // `anchor(0.5, 1)` + `isoGroundSeatY`, pour que la parcelle du château recouvre
+      // sa case au lieu de flotter au-dessus (l'ancien réglage posait le bord bas au
+      // centre → tout le château remontait d'un demi-losange).
       sprite.anchor.set(0.5, 1);
       const scale = (TILE_SIZE * 1.35) / Math.max(texture.width, texture.height);
       sprite.scale.set(scale);
-      sprite.position.set(TILE_SIZE / 2, TILE_SIZE / 2);
+      sprite.position.set(TILE_SIZE / 2, isoGroundSeatY(sprite.height));
       node.addChildAt(sprite, 0); // sous le liseré de siège
     });
   }

@@ -1,0 +1,89 @@
+{
+  "id": "vox-ch1",
+  "schemaVersion": 1,
+  "name": "@loc:scenario.vox-ch1.name",
+  "map": "proto-01",
+  "players": [
+    {
+      "id": "player-1",
+      "controller": "human",
+      "factionId": "vox-arcana",
+      "startPositionIndex": 0,
+      "startingResources": { "gold": 5000, "wood": 10, "ore": 20, "crystal": 4 },
+      "startingArmy": [
+        { "unitId": "t1-choeur", "count": 20 },
+        { "unitId": "t2-duelliste", "count": 8 }
+      ],
+      "startingTown": {
+        "id": "start-town",
+        "x": 2,
+        "y": 4,
+        "prebuilt": [
+          { "building": "townHall", "level": 1 },
+          { "building": "vox-arcana-dwelling-t1", "level": 1 }
+        ]
+      }
+    },
+    {
+      "id": "ai-1",
+      "controller": "ai",
+      "factionId": "necropolis",
+      "startPositionIndex": 1,
+      "startingResources": { "gold": 1500 },
+      "startingArmy": [
+        { "unitId": "t1-squelette", "count": 12 },
+        { "unitId": "t2-zombie", "count": 4 }
+      ]
+    }
+  ],
+  "objectives": {
+    "player-1": {
+      "victory": { "type": "surviveDays", "days": 2 },
+      "defeat": { "type": "defeatHero", "heroId": "hero-player-1" }
+    },
+    "ai-1": {
+      "victory": { "type": "eliminateAllEnemies" },
+      "defeat": { "type": "defeatHero", "heroId": "hero-ai-1" }
+    }
+  },
+  "openingDialog": "dlg-vox-ch1-open",
+  "combatBarks": [
+    "@loc:bark.vox.necropolis.1",
+    "@loc:bark.vox.necropolis.2",
+    "@loc:bark.vox.necropolis.3"
+  ],
+  "characters": [
+    { "id": "hermione", "nameKey": "@loc:character.hermione.name" },
+    { "id": "rumi", "nameKey": "@loc:character.rumi.name" }
+  ],
+  "dialogs": [
+    {
+      "id": "dlg-vox-ch1-open",
+      "lines": [
+        { "speaker": "hermione", "textKey": "@loc:dlg.vox.ch1.open.1" },
+        { "speaker": "rumi", "portrait": "grave", "textKey": "@loc:dlg.vox.ch1.open.2" },
+        { "speaker": "hermione", "textKey": "@loc:dlg.vox.ch1.open.3" }
+      ]
+    },
+    {
+      "id": "dlg-vox-ch1-fort",
+      "lines": [{ "speaker": "rumi", "textKey": "@loc:dlg.vox.ch1.fort.1" }]
+    }
+  ],
+  "quests": [
+    {
+      "id": "vox-ch1-honmoon",
+      "kind": "primary",
+      "titleKey": "@loc:quest.vox-ch1-honmoon.title",
+      "descriptionKey": "@loc:quest.vox-ch1-honmoon.desc",
+      "steps": [
+        {
+          "id": "build-fort",
+          "condition": { "type": "buildStructure", "buildingId": "fort" },
+          "dialogBefore": "dlg-vox-ch1-fort"
+        }
+      ],
+      "rewards": [{ "type": "resources", "resources": { "gold": 1500 } }]
+    }
+  ]
+}

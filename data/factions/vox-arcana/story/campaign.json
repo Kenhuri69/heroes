@@ -1,0 +1,13 @@
+{
+  "id": "vox-campaign",
+  "factionId": "vox-arcana",
+  "nameKey": "@loc:campaign.vox.name",
+  "descriptionKey": "@loc:campaign.vox.desc",
+  "chapters": [
+    {
+      "id": "ch1",
+      "scenario": "vox-ch1",
+      "titleKey": "@loc:campaign.vox.ch1.title"
+    }
+  ]
+}

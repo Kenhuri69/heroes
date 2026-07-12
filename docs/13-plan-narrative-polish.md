@@ -547,6 +547,17 @@ une faction peut sortir jouable en mode libre avec les blocs 1–5 seulement,
 sa campagne arrivant dans un second lot (patron Heroes Online : les factions
 post-lancement ont reçu leur histoire avec elles).
 
+> **État livré (N-CAMPAIGNS2 — tranche Vox Arcana)** : la **4ᵉ campagne**
+> (`vox-campaign`, prologue « La brèche » `vox-ch1`) est livrée **100 % données**
+> (patron N3a/`arcane-ch1`) — **zéro octet de moteur/client** : nouveau scénario
+> (carte `proto-01` réutilisée, Vox vs IA Necropolis, victoire `surviveDays`,
+> dialogue d'ouverture Hermione/Rumi, quête primaire `vox-ch1-honmoon` « bâtir le
+> Fort », barks), `story/campaign.json` (via `manifest.story`), entrée d'index et
+> locales FR/EN. **4ᵉ test de modularité narratif** validé au smoke (la campagne
+> apparaît au menu et le chapitre 1 démarre). Chapitres suivants + campagne
+> Sylvan Court restent différés (conforme §8.1 : une maison peut recevoir son
+> histoire par tranches).
+
 ### 8.2 Garde-fous (mêmes règles que le gameplay)
 
 - **Zéro diff moteur attendu** : les conditions de quête sont un catalogue

@@ -2,6 +2,7 @@
   "id": "vox-arcana",
   "schemaVersion": 1,
   "name": "@loc:faction.vox-arcana.name",
+  "story": "story/campaign.json",
   "nativeTerrain": "grass",
   "keyResources": [
     "crystal",

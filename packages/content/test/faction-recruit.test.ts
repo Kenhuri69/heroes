@@ -146,7 +146,13 @@ describe('faction data-driven à 7 tiers (plan phase-3.3) — chargement & recru
     expect(t7?.stats.hp).toBe(180);
     expect(t7?.stats.attack).toBe(22);
     // Lot A3a : l'Ange reçoit `moraleImmune` (immunité au moral négatif, doc 03 §3).
-    expect(t7?.abilities).toEqual([{ id: 'flying' }, { id: 'moraleImmune' }]);
+    // CAP-LIFE.1 : `resurrectAlly(1×/combat)` réalisé via le `spellcaster` générique
+    // embarquant `resurrection` (doc 03 §3 lineup T7).
+    expect(t7?.abilities).toEqual([
+      { id: 'flying' },
+      { id: 'moraleImmune' },
+      { id: 'spellcaster', params: { spellId: 'resurrection', charges: 1, power: 4 } },
+    ]);
   });
 
   it('recrute une unité de chacun des 7 tiers depuis une ville aux habitations construites', async () => {

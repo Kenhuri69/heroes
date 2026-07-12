@@ -217,10 +217,16 @@ Familles, par mécanique moteur commune :
   ne gâche pas de tour), `faction:sim` inchangé (0 blowout). **Reste (données)** :
   Maître de Sortilèges / Avatar Vox (factions fortes en sim ⇒ câblage à équilibrer).
 - **CAP-LIFE — Cycle de vie** 🧩 (A3b : `swarm` **livré** ; A2d : `devourMarks`
-  **livré** ; `resurrectAlly`, renaissance → A3) : `resurrectAlly` 1× (Ange, doc 03 §3),
-  renaissance (Phénix, doc 16 §4/§7), `swarm` (+dégâts ∝ effectif — Élève AH
-  doc 05 §4, Chœur Vox doc 16 §4), `devourMarks` (Pénitent, doc 05 §4).
-  Effort : M.
+  **livré** ; **CAP-LIFE.1 `resurrectAlly` Ange livré**) :
+  - **CAP-LIFE.1** ✅ (plan `cap-life-angel-resurrect.md`) : **résurrection de
+    l'Ange** (Haven T7, doc 03 §3) réalisée en **données pures** via le
+    `spellcaster` générique embarquant le sort `resurrection` (charges 1) — le
+    `heal` ressuscite déjà intra-pile (`maxCount = count + lostSoFar`). Zéro moteur,
+    zéro save, golden inchangé ; `faction:sim` sans blowout (0 béant). Test : l'Ange
+    relève une pile alliée décimée.
+  - **Reste** ⬜ : renaissance (Phénix, doc 16 §4/§7 — auto-revive à la mort, point
+    d'extension distinct), `swarm` pour Élève AH / Chœur Vox (données), autres
+    porteurs. Effort : M.
 - **CAP-DATAFIX — Corrections de données pures** 🐞 S 🧩 (A1 : noMeleePenalty Chasseresse+Idole faits ; le reste — écarts Vit/stats — traité en DOC-STATS) (aucun moteur) :
   `noMeleePenalty` manquant sur Chasseresse AH (`data/factions/arcane-hunters/units/t6-chasseresse.json`,
   doc 05 §4) et sur l'Idole Vox (doc 16 §4) alors que le moteur le supporte

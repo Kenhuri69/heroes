@@ -593,10 +593,14 @@ SDK `packages/client/src/app/net.ts` sans autre appelant).
   Spec : décision design — accepter (async entre amis) ou implémenter une vue
   filtrée par re-simulation serveur. Coûteux ; à cadrer avant Beta compétitive.
 
-- **NET-LIFECYCLE — Forfait / timeout de tour** 🕳️ S ⬜
-  Doc : implicite au jalon « PvP stable » (doc 09 Phase 3). Code : statuts
-  open/active/finished seulement (`worker.ts:218-220`). Spec : abandon
-  volontaire, expiration d'inactivité, statut `abandoned`.
+- **NET-LIFECYCLE — Forfait / timeout de tour** 🕳️ S ✅ (plan `net-lifecycle.md`)
+  Doc : implicite au jalon « PvP stable » (doc 09 Phase 3). Livré : **abandon
+  volontaire** (`POST /matches/:id/forfeit` → `status = 'abandoned'`, participant
+  seul, idempotent) + **expiration paresseuse** (`TURN_TIMEOUT_MS` 14 j :
+  une partie `active` inactive devient `abandoned` à la consultation `GET
+  /matches/:id` ou au coup `POST …/moves` rejeté **409**). Nouvelle **valeur** de
+  `status` (zéro migration de schéma D1) ; vainqueur non stocké (info ouverte,
+  NET-FOG). Détail expose `createdAt` ; SDK `forfeitMatch`. Server-only.
 
 - **NET-RANKED — Classements / saisons** 🕳️ L ⬜
   Doc : doc 01 §2 (core loop « classements », macro-loop « saisons PvP »),

@@ -26,6 +26,10 @@
       "levelCurve": { "base": 1000, "exponent": 1.9 },
       "maxLevel": 30,
       "attributeWeights": { "attack": 30, "defense": 30, "power": 20, "knowledge": 20 },
+      "attributeWeightsByArchetype": {
+        "might": { "attack": 35, "defense": 30, "power": 15, "knowledge": 20 },
+        "magic": { "attack": 15, "defense": 15, "power": 35, "knowledge": 35 }
+      },
       "recruitCost": 2500,
       "maxPerPlayer": 8
     },

@@ -766,6 +766,7 @@ export function buildHeroRoster(
 ): Record<string, {
   factionId: string;
   name: string;
+  archetype: 'might' | 'magic';
   attributes: { attack: number; defense: number; power: number; knowledge: number };
   specialtyId: string;
   specialtyEffects: HouseEffect[];
@@ -786,6 +787,7 @@ export function buildHeroRoster(
       roster[h.id] = {
         factionId: pack.manifest.id,
         name: h.name,
+        archetype: h.archetype,
         attributes: { ...h.attributes },
         specialtyId,
         specialtyEffects,

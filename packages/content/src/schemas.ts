@@ -617,6 +617,27 @@ export const gameConfigSchema = z.object({
         power: z.number().nonnegative(),
         knowledge: z.number().nonnegative(),
       }),
+      /** Profils de gain d'attribut PAR ARCHÉTYPE (H-NAMED.3, doc 02 §1.2). Optionnel ⇒ repli global. */
+      attributeWeightsByArchetype: z
+        .object({
+          might: z
+            .object({
+              attack: z.number().nonnegative(),
+              defense: z.number().nonnegative(),
+              power: z.number().nonnegative(),
+              knowledge: z.number().nonnegative(),
+            })
+            .optional(),
+          magic: z
+            .object({
+              attack: z.number().nonnegative(),
+              defense: z.number().nonnegative(),
+              power: z.number().nonnegative(),
+              knowledge: z.number().nonnegative(),
+            })
+            .optional(),
+        })
+        .optional(),
       /** Recrutement de héros à la Taverne (M-TAVERN.1, doc 02 §1.5/§4.1). `.default` (bridge exactOptional → engine `?:`). */
       recruitCost: z.number().int().nonnegative().default(2500),
       maxPerPlayer: z.number().int().positive().default(8),

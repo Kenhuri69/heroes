@@ -145,6 +145,12 @@ export interface ResolvedHeroDef {
   /** Faction propriétaire (id opaque) — la Taverne d'une ville n'offre que les héros de SA faction (M-TAVERN.1). */
   factionId: string;
   name: string;
+  /**
+   * Archétype du héros (H-NAMED.3, doc 02 §1.2) — sélectionne le profil de gain
+   * d'attribut par niveau (`config.attributeWeightsByArchetype`). Optionnel ⇒
+   * repli sur le profil global (vieux save / héros générique). Clé opaque.
+   */
+  archetype?: 'might' | 'magic';
   attributes: { attack: number; defense: number; power: number; knowledge: number };
   specialtyId: string;
   specialtyEffects: SkillRankEffect[];

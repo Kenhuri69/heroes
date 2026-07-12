@@ -14,5 +14,8 @@
     "gold": 550,
     "crystal": 1
   },
-  "abilities": [{ "id": "shooter", "params": { "ammo": 9, "noMeleePenalty": true } }]
+  "abilities": [
+    { "id": "shooter", "params": { "ammo": 9, "noMeleePenalty": true } },
+    { "id": "performer", "params": { "resource": "resonance", "amount": 2 } }
+  ]
 }

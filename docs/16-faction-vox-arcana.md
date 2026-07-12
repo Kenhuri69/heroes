@@ -50,8 +50,23 @@ Faction #6, produite en **Beta** — elle sert de **test de modularité #4** (do
 > Locales FR/EN (`factionResource.resonance`). Test de contenu par signature
 > (la faction qui déclare Maisons + ressource gagne la ressource et gate son T8),
 > garde-fou « zéro faction » vert, golden inchangé (données de faction hors
-> replay inline). **Différé** : génération de Résonance intra-combat (performeurs)
-> + École de la Scène (lot 16.5) + héros Hermione & Rumi (lot 16.6).
+> replay inline). **~~Différé~~ (levé en 16.10)** : génération de Résonance
+> intra-combat (performeurs) ✅ ; École de la Scène (lot 16.5) ✅ + héros
+> Hermione & Rumi (lot 16.6) ✅.
+
+> 🚧 **État 16.10 (livré — F-RESON.2 : génération de Résonance intra-combat)** :
+> UNE nouvelle surface de combat **générique** — la capacité `performer`
+> (`{ resource, amount }`) : une pile performeuse crédite le joueur du héros de son
+> camp de `amount` de sa ressource de faction **quand elle prend réellement son
+> tour** (1×/round, gaté sur la première action ⇒ jamais sur Attendre ni sur le
+> tour bonus de moral positif), **plafonné** au même cap que le gain post-victoire
+> (helper `creditFactionResource` partagé avec F-RESON.1). No-op sans héros lié au
+> camp (arène/gardien/garnison). Le moteur ne lit qu'un id de ressource opaque
+> (garde-fou « zéro faction » vert). Données : **T1 Chœur** `+1/round`, **T4
+> Chasseuse-Idole** `+2/round` (+ variantes élites). Cross-validation contenu (le
+> `resource` d'un performeur doit être une ressource de faction déclarée). Event
+> `StackResonated` → ligne de journal de combat (pas de toast). **Aucun état
+> persisté ⇒ pas de bump de sauvegarde, golden inchangé.**
 
 > 🚧 **État 16.5 (livré — École de la Scène)** : l'école de sorts propre de la
 > faction est branchée en **pur contenu** (même mécanisme que `traque` d'Arcane
@@ -208,11 +223,16 @@ livré pour l'Essence (Arcane Hunters, doc 05 §3.3) :
 - **Dépensée** au recrutement du **T8 Avatar du Honmoon** (comme l'Essence gate
   le Pénitent AH), et potentiellement en coût des habitations de la Scène.
 
-> **Différé (extension ultérieure, générique)** : la génération de Résonance
-> **en cours de combat** par les unités « performeuses » (T1 Chœur, T4
-> Chasseuse-Idole) — nouvelle surface (gain intra-combat) traitée après le
-> data-only. En attendant, la Résonance se gagne à la victoire ; aucune unité ne
-> crashe faute d'effet.
+> **F-RESON.2 ✅ (livré)** : la génération de Résonance **en cours de combat**
+> par les unités « performeuses » — capacité de combat **générique** `performer`
+> (`{ resource, amount }`) : quand une pile performeuse prend réellement son tour
+> (1×/round, jamais sur Attendre ni sur le tour bonus de moral), elle crédite le
+> joueur du héros de son camp de `amount` de la ressource, **plafonné** au même cap
+> que le gain post-victoire (F-RESON.1). Zéro nom de faction dans le moteur (id de
+> ressource opaque). Données : **T1 Chœur** (`+1/round`) et **T4 Chasseuse-Idole**
+> (`+2/round`) + variantes élites. Event `StackResonated` → ligne de journal de
+> combat (pas de toast, la barre de ressources montre la croissance). Aucun état
+> persisté ⇒ pas de bump de sauvegarde, golden inchangé.
 
 ### 3.3 École de la Scène (école de sorts propre)
 

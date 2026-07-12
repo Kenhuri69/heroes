@@ -3,6 +3,7 @@ import type { GameEvent } from '../core/events';
 import { rollRange } from '../core/rng';
 import type { GameState } from '../core/state';
 import { chargePerHex, performStrike, symbiosisParams } from './damage';
+import { applyPerformerResonance } from '../faction/effects';
 import { applySpellToTargets, spellcasterParams } from './spell-effect';
 import type { Draft } from './draft';
 import { COMBAT_COLS, COMBAT_ROWS, hexDistance, hexLine, hexNeighbors, sameHex, type OffsetPos } from './hex';
@@ -309,6 +310,10 @@ function afterAction(
   if (actor && actionType !== 'wait') {
     actor.acted = true;
     if (wasFirstAction) {
+      // F-RESON.2 : un performeur génère sa ressource de faction au moment où il
+      // prend réellement son tour (1×/round : gaté sur `wasFirstAction` ⇒ jamais
+      // sur Attendre — traité au-dessus — ni sur le tour bonus de moral positif).
+      applyPerformerResonance(draft, combat, actor, events);
       const rules = combatRules(draft);
       const moral = moraleOf(actor, combat, draft);
       if (moral > 0) {

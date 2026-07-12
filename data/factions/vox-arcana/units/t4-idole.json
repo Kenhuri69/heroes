@@ -24,6 +24,7 @@
         "ammo": 7,
         "noMeleePenalty": true
       }
-    }
+    },
+    { "id": "performer", "params": { "resource": "resonance", "amount": 2 } }
   ]
 }

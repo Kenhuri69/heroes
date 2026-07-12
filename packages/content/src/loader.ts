@@ -399,6 +399,15 @@ export async function loadFactionPack(
       ...COMMON_RESOURCE_IDS,
       ...manifest.factionResources.map((r) => r.id),
     ]);
+    // F-RESON.2 : la capacité `performer` génère une ressource de faction en
+    // combat ⇒ son `resource` doit être une ressource de faction déclarée.
+    const performer = unit.abilities.find((a) => a.id === 'performer');
+    if (performer) {
+      const res = performer.params?.['resource'];
+      if (typeof res !== 'string' || !manifest.factionResources.some((r) => r.id === res)) {
+        errors.push(`${path}: capacité 'performer' — ressource de faction inconnue '${String(res)}'`);
+      }
+    }
     for (const res of Object.keys(unit.cost)) {
       if (!knownResources.has(res)) errors.push(`${path}: ressource de coût inconnue '${res}'`);
     }

@@ -335,6 +335,7 @@
   "combatLog.moraleNeg": "{unit} hesitates (morale) and skips its turn",
   "combatLog.feared": "{unit} is frightened",
   "combatLog.immobilized": "{unit} is immobilized and skips its turn",
+  "combatLog.resonated": "{unit} performs and generates {amount} {resource}",
   "combatLog.won": "Victory!",
   "combatLog.lost": "Defeat…",
   "combat.damagePreviewPlaceholder": "Select a target to preview damage.",

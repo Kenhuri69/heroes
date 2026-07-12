@@ -13,5 +13,8 @@
   "cost": {
     "gold": 44
   },
-  "abilities": [{ "id": "swarm", "params": { "bonus": 1, "minAllies": 2 } }]
+  "abilities": [
+    { "id": "swarm", "params": { "bonus": 1, "minAllies": 2 } },
+    { "id": "performer", "params": { "resource": "resonance", "amount": 1 } }
+  ]
 }

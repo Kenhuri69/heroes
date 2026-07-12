@@ -140,6 +140,8 @@ export type GameEvent =
   | { type: 'MarksDevoured'; strikerId: string; consumed: number }
   /** Ressource de faction gagnée post-victoire (doc 05 §3.3, effet déclaratif). */
   | { type: 'FactionResourceGained'; playerId: string; resource: string; amount: number }
+  /** Résonance générée intra-combat par un performeur (F-RESON.2, doc 16 §3.2). */
+  | { type: 'StackResonated'; stackId: string; playerId: string; resource: string; amount: number }
   /** Pile immobilisée (doc 05 §3.1 `pinningShot`) : son tour est sauté. */
   | { type: 'StackImmobilized'; stackId: string }
   /** Pile effrayée par `fear` (Sombral, doc 16 §4) : elle sautera son prochain tour. */

@@ -48,12 +48,16 @@ par la planche B → à ignorer (on ne l'édite pas : fichier tool-owned).
    prêt + extraction 7 ids sur 4×2 + copie par-id vers les dest). Vérifié :
    `sheet_extract --cols 4 --rows 2` accepte 7 ids (len ≤ 8, OK).
 3. [ ] Livrer les 2 prompts à l'utilisateur (chat). Vérifier : coller-prêt.
-4. [ ] **Au retour des images** (par l'utilisateur) : `sheet_extract` → QC verte
-   obligatoire → copier vers `assets/resources/`, `assets/mines/`,
-   `assets/buildings/<faction>/`. Vérifier : QC PASS, aucune image cassée.
-5. [ ] Intégration : le registre `render/assets.ts` auto-découvre les PNG
-   (`import.meta.glob ?url`, hors bundle) → aucun câblage. Vérifier : smoke
-   « assets servis sans 404 » + budget bundle vert.
+4. [x] **Images reçues** (2 planches Gemini). Labels ajoutés par le modèle
+   malgré le prompt → pré-traitement `clean_labels.py` (repeint le bandeau bas
+   de chaque cellule au fond, band 0.20, déterministe) avant découpe. Extraction
+   `sheet_extract.py` : **QC verte 8/8 (A) et 7/7 (B)**, composants multiples
+   légitimes (pièces éparses, gemmes, lanterne). Copie vers dest. Poids ≤ 212 Ko.
+5. [x] Intégration auto : `resourcePileUrl`/`mineUrl`/vignettes par id déjà
+   câblés dans `render/assets.ts`+`mapObjects.ts` → **zéro modif client**. Build
+   OK (PNG hashés hors bundle). Smoke « assets : PNG servis sans 404 » **vert
+   desktop+mobile** (via `PW_CHROMIUM_PATH` — révision navigateur du conteneur
+   1194 ≠ 1228 attendue par playwright 1.61 ; sans rapport avec le changement).
 6. [x] Commit + push + PR draft (#287).
 7. [x] **Anti-flake CI** : le check `quality` échouait sur `ai-adventure.test.ts`
    (test de déterminisme IA sans timeout explicite → défaut 5000 ms dépassé sur

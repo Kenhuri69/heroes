@@ -913,6 +913,9 @@ test('nouvelle partie : configuration 3 joueurs + taille + ressources génèrent
   await page.getByTestId('newgame-seat-2-ai').click();
   await page.getByTestId('newgame-size-large').click();
   await page.getByTestId('newgame-resources-riche').click();
+  // Quantités par catégorie (« Nouvelle partie ») : plus de gardiens, aucune mine.
+  await page.getByTestId('newgame-guardians-abundant').click();
+  await page.getByTestId('newgame-mines-none').click();
 
   // Couleur de joueur (lot 6.4) : le joueur 1 choisit le vert (0x27ae60).
   await page.getByTestId('newgame-seat-0-color-27ae60').click();

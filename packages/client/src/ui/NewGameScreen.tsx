@@ -3,6 +3,7 @@ import { useApp } from '../app/store';
 import { t, resolveLoc } from '../app/i18n';
 import {
   RANDOM,
+  type ContentLevel,
   type MapSize,
   type NewGameRawConfig,
   type NewGameSlot,
@@ -21,6 +22,14 @@ function hex(color: number): string {
 
 const MAP_SIZES: (MapSize | typeof RANDOM)[] = ['small', 'medium', 'large', 'huge', RANDOM];
 const RESOURCE_LEVELS: (ResourceLevel | typeof RANDOM)[] = ['bas', 'standard', 'riche', RANDOM];
+const CONTENT_LEVELS: (ContentLevel | typeof RANDOM)[] = ['none', 'rare', 'standard', 'abundant', RANDOM];
+/** Curseurs de quantité par catégorie d'objets de carte (doc 09) : clé i18n ↔ champ de config. */
+const CONTENT_CATEGORIES = [
+  { key: 'guardians', field: 'guardians' },
+  { key: 'mines', field: 'mines' },
+  { key: 'eventBuildings', field: 'eventBuildings' },
+  { key: 'pickups', field: 'pickups' },
+] as const;
 const DIFFICULTIES: (SkirmishDifficulty | typeof RANDOM)[] = ['facile', 'normal', 'difficile', RANDOM];
 const PLAYER_COUNTS = [2, 3, 4] as const;
 const MAX_PLAYERS = 4;
@@ -75,6 +84,15 @@ export function NewGameScreen({ onClose }: { onClose: () => void }) {
   const rosterHeroes = useApp((s) => s.rosterHeroes);
   const [mapSize, setMapSize] = useState<MapSize | typeof RANDOM>('medium');
   const [resourceLevel, setResourceLevel] = useState<ResourceLevel | typeof RANDOM>('standard');
+  // Quantité par catégorie d'objets de carte (défaut « standard » ⇒ carte inchangée).
+  const [contentLevels, setContentLevels] = useState<Record<string, ContentLevel | typeof RANDOM>>({
+    guardians: 'standard',
+    mines: 'standard',
+    eventBuildings: 'standard',
+    pickups: 'standard',
+  });
+  const setContentLevel = (field: string, value: ContentLevel | typeof RANDOM): void =>
+    setContentLevels((prev) => ({ ...prev, [field]: value }));
   const [difficulty, setDifficulty] = useState<SkirmishDifficulty | typeof RANDOM>('normal');
   const [seed, setSeed] = useState<number>(() => rollSeed(0));
 
@@ -111,7 +129,17 @@ export function NewGameScreen({ onClose }: { onClose: () => void }) {
       team: slotTeams[i]!,
       heroId: slotHeroes[i] ?? RANDOM,
     }));
-    const config: NewGameRawConfig = { slots, mapSize, resourceLevel, difficulty, seed };
+    const config: NewGameRawConfig = {
+      slots,
+      mapSize,
+      resourceLevel,
+      guardians: contentLevels.guardians!,
+      mines: contentLevels.mines!,
+      eventBuildings: contentLevels.eventBuildings!,
+      pickups: contentLevels.pickups!,
+      difficulty,
+      seed,
+    };
     window.dispatchEvent(new CustomEvent('heroes:start-newgame', { detail: config }));
     onClose();
   };
@@ -273,6 +301,24 @@ export function NewGameScreen({ onClose }: { onClose: () => void }) {
             ))}
           </div>
         </section>
+
+        {CONTENT_CATEGORIES.map((cat) => (
+          <section class="options-section" key={cat.field}>
+            <h3>{t(`newgame.content.${cat.key}`)}</h3>
+            <div class="segmented" role="group">
+              {CONTENT_LEVELS.map((level) => (
+                <button
+                  key={level}
+                  class={contentLevels[cat.field] === level ? 'active' : ''}
+                  data-testid={`newgame-${cat.field}-${level}`}
+                  onClick={() => setContentLevel(cat.field, level)}
+                >
+                  {t(`newgame.contentLevel.${level}`)}
+                </button>
+              ))}
+            </div>
+          </section>
+        ))}
 
         <section class="options-section">
           <h3>{t('newgame.difficulty')}</h3>

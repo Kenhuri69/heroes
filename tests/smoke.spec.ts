@@ -2959,6 +2959,43 @@ test('choix de dialogue : arc personnel d’Evadne (arcane-ch2) → drapeau pers
   expect(errors).toEqual([]);
 });
 
+test('choix de dialogue : arc personnel de Marchmont (arcane-ch2) → drapeau persistant (doc 13 §5.4, N-ARCS.5)', async ({
+  page,
+}) => {
+  const errors = await openMenu(page);
+
+  // arcane-ch2 embarque DEUX arcs `personal` : Evadne (livré) puis Marchmont (ce
+  // lot), + une rencontre d'ouverture à choix. On résout chaque nœud de choix
+  // (ouverture, puis Evadne) jusqu'à poser le drapeau de Marchmont — patron
+  // robuste identique à Evadne (l'arc de Marchmont s'enfile APRÈS celui d'Evadne).
+  await page.evaluate(() => window.__HEROES_TEST__!.startScenario('arcane-ch2'));
+
+  await expect(page.getByTestId('dialogue-box')).toBeVisible();
+  const choices = page.getByTestId('dialogue-choices');
+  const skip = page.getByTestId('dialogue-skip');
+  const flagsNow = () => page.evaluate(() => window.__HEROES_TEST__!.campaignFlags());
+  for (let i = 0; i < 16; i++) {
+    const f = await flagsNow();
+    if (f['marchmont-reveal'] || f['marchmont-protect']) break;
+    if ((await choices.count()) > 0) {
+      // choix : l'option 0 pose `aldric-pacte` (ouverture), `evadne-embrace`
+      // (arc Evadne) ou `marchmont-reveal` (arc Marchmont) — on avance jusqu'au visé.
+      await page.getByTestId('dialogue-choice-0').click();
+    } else if ((await skip.count()) > 0) {
+      await skip.click();
+    } else {
+      break;
+    }
+  }
+
+  // Le choix de Marchmont « révéler les feuillets » pose le drapeau, persisté.
+  const flags = await flagsNow();
+  expect(flags['marchmont-reveal']).toBe(true);
+  expect(flags['marchmont-protect']).toBeUndefined();
+
+  expect(errors).toEqual([]);
+});
+
 test('campagne : 3ᵉ chapitre Haven sur sa carte dédiée proto-02 (doc 13 N3c.3)', async ({ page }) => {
   const errors = await openMenu(page);
 

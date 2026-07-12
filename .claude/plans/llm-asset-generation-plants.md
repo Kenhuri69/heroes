@@ -72,7 +72,15 @@ par la planche B → à ignorer (on ne l'édite pas : fichier tool-owned).
    planche élites (cellules 6-7, pas 5-6) → ré-extraction ciblée du Tréant
    Ancestral et de l'Aïeul Éveillé depuis leurs vraies cellules (l'ordre
    row-major supposait un alignement à gauche). Build OK, smoke vert. Commit
-   25f2b0c. **Reste différé** : ~40 variantes élite des 3 autres factions.
+   25f2b0c.
+9. [x] **Variantes élite des 3 factions restantes** (à la demande, « go les 40 »
+   = 22 réelles) : 3 planches enrichies (Haven 7, Necropolis 7, Arcane Hunters 8),
+   **QC vert 22/22**. Labels retirés sur Haven. Ordre row-major respecté (consigne
+   explicite « remplir 1→7, seule la 8 vide » ⇒ plus de recentrage). Translucides
+   Necropolis (spectre/dragon fantôme) détourés proprement au floodfill (lueur
+   nécrotique). Build OK, smoke vert. Commit 333e3fa. **Fin du repli élite→base
+   pour toutes les factions.** Reste hors-périmètre : fonds d'ambiance (Règle D,
+   pièces uniques) — non demandés.
 
 ## Notes de décision
 

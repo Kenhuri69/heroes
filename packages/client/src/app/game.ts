@@ -829,6 +829,22 @@ export const RESOURCE_LEVEL_TUNING = {
 } as const;
 export type ResourceLevel = keyof typeof RESOURCE_LEVEL_TUNING;
 
+/**
+ * Quantité par catégorie d'objets de carte (gardiens / mines / bâtiments
+ * événement / objets à ramasser) → facteur de densité passé à `generateMap`.
+ * Superposé au `resourceMultiplier` global ; `standard` (×1) reproduit la
+ * densité de base (défaut ⇒ carte inchangée). `none` (×0) retire la catégorie.
+ */
+export const CONTENT_LEVEL_FACTOR = {
+  none: 0,
+  rare: 0.5,
+  standard: 1,
+  abundant: 2,
+} as const;
+export type ContentLevel = keyof typeof CONTENT_LEVEL_FACTOR;
+/** Ordre d'affichage / tirage aléatoire des crans de quantité par catégorie. */
+export const CONTENT_LEVEL_ORDER = ['none', 'rare', 'standard', 'abundant'] as const;
+
 /** Slot de joueur tel que choisi à l'écran (avant résolution des « Aléatoire »). */
 export interface NewGameSlot {
   /** `off` = siège fermé (ignoré). */
@@ -851,6 +867,11 @@ export interface NewGameRawConfig {
   slots: NewGameSlot[];
   mapSize: MapSize | typeof RANDOM;
   resourceLevel: ResourceLevel | typeof RANDOM;
+  /** Quantités par catégorie d'objets de carte (`RANDOM` = tirage seedé). */
+  guardians: ContentLevel | typeof RANDOM;
+  mines: ContentLevel | typeof RANDOM;
+  eventBuildings: ContentLevel | typeof RANDOM;
+  pickups: ContentLevel | typeof RANDOM;
   difficulty: SkirmishDifficulty | typeof RANDOM;
   seed: number;
 }
@@ -858,7 +879,16 @@ export interface NewGameRawConfig {
 /** Configuration résolue : sièges + réglages moteur, + options de génération de carte. */
 export interface ResolvedNewGame {
   setup: NewGameSetupConfig;
-  map: { width: number; height: number; startPositionCount: number; resourceMultiplier: number };
+  map: {
+    width: number;
+    height: number;
+    startPositionCount: number;
+    resourceMultiplier: number;
+    guardianDensity: number;
+    mineDensity: number;
+    eventBuildingDensity: number;
+    pickupDensity: number;
+  };
   /**
    * Couleur par id de joueur (`player-{i+1}`, aligné sur `newGameStartCommand`).
    * Présentation client (posée dans `store.playerColors`) — hors moteur.
@@ -910,11 +940,30 @@ export function resolveNewGameConfig(
     rng = res.rng;
     seat.heroId = res.heroId;
   });
+  // Densités par catégorie (« Nouvelle partie ») résolues EN DERNIER : les crans
+  // non-`RANDOM` (défaut = `standard`) ne consomment aucun RNG, donc la séquence
+  // des tirages ci-dessus (faction/carte/héros) reste inchangée quand ces
+  // curseurs sont explicitement réglés.
+  const level = (v: ContentLevel | typeof RANDOM): number =>
+    CONTENT_LEVEL_FACTOR[v === RANDOM ? pick(CONTENT_LEVEL_ORDER) : v];
+  const guardianDensity = level(raw.guardians);
+  const mineDensity = level(raw.mines);
+  const eventBuildingDensity = level(raw.eventBuildings);
+  const pickupDensity = level(raw.pickups);
   const dim = MAP_SIZE_DIMENSIONS[mapSize];
   const res = RESOURCE_LEVEL_TUNING[resourceLevel];
   return {
     setup: { seats, difficulty, resourceMultiplier: res.start },
-    map: { width: dim, height: dim, startPositionCount: seats.length, resourceMultiplier: res.mapDensity },
+    map: {
+      width: dim,
+      height: dim,
+      startPositionCount: seats.length,
+      resourceMultiplier: res.mapDensity,
+      guardianDensity,
+      mineDensity,
+      eventBuildingDensity,
+      pickupDensity,
+    },
     colors,
   };
 }

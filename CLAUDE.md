@@ -207,7 +207,19 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > siège choisit sa couleur (palette partagée) ; `store.playerColors` (id → couleur,
 > remis à zéro au retour menu) consulté en priorité par `render/playerColors.ts`,
 > le jeton de héros de la carte honore enfin la couleur du joueur. Couleur purement
-> présentation client ⇒ zéro diff moteur. Lot **alliances/équipes** (doc 02 §6 ;
+> présentation client ⇒ zéro diff moteur. Lot **6.5 — quantités de carte par
+> catégorie** (plan `.claude/plans/phase-newgame-content-density.md`) : quatre
+> curseurs indépendants à « Nouvelle partie » — **Gardiens**, **Mines**,
+> **Bâtiments événement**, **Ressources & artefacts** — à 5 crans
+> (`Aucun ×0` / `Rare ×0.5` / `Standard ×1` / `Abondant ×2` / `Aléatoire` seedé).
+> `generateMap` gagne `guardianDensity`/`mineDensity`/`eventBuildingDensity`/
+> `pickupDensity` (défaut ×1, **superposés** au réglage global bas/riche) ;
+> défaut « Standard » partout ⇒ carte identique à graine égale (helper `scaledCat`,
+> facteur 1 ≡ `scaled`). « Aucun gardien » retire aussi les sentinelles (carte
+> pacifique). Résolution seedée en fin de `resolveNewGameConfig` (séquence RNG des
+> autres tirages inchangée). **Zéro diff moteur, pas de bump `CURRENT_SAVE_VERSION`**
+> (options jetées après génération) ; données + client uniquement. Lot
+> **alliances/équipes** (doc 02 §6 ;
 > plan `.claude/plans/phase-newgame-teams.md`) : **lot moteur** — `PlayerState.team`
 > (save v12→**v13**), helper générique `areAllies` (`0` = sans alliance ⇒ FFA
 > inchangé). Deux alliés ne s'assiègent pas (`validateCaptureTown` + IA) et

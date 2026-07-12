@@ -263,6 +263,10 @@ async function bootstrap(): Promise<void> {
         height: resolved.map.height,
         startPositionCount: resolved.map.startPositionCount,
         resourceMultiplier: resolved.map.resourceMultiplier,
+        guardianDensity: resolved.map.guardianDensity,
+        mineDensity: resolved.map.mineDensity,
+        eventBuildingDensity: resolved.map.eventBuildingDensity,
+        pickupDensity: resolved.map.pickupDensity,
       });
 
       setLoading('newgame.loading.players', 0.75);

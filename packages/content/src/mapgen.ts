@@ -42,6 +42,19 @@ export interface MapGenOptions {
    */
   resourceMultiplier?: number;
   /**
+   * Facteurs de densité PAR CATÉGORIE (défaut 1 chacun), superposés au
+   * `resourceMultiplier` global — réglages « Nouvelle partie » (doc 09). Chaque
+   * facteur multiplie la densité de sa catégorie : `0` ⇒ catégorie absente,
+   * `0.5` rare, `1` standard (identique à sans réglage), `2` abondant.
+   * `guardianDensity` pilote gardiens de champ, gardiens de départ ET
+   * sentinelles (à 0 ⇒ carte pacifique, artefacts/habitations non gardés) ;
+   * `pickupDensity` couvre ressources, coffres et artefacts à ramasser.
+   */
+  guardianDensity?: number;
+  mineDensity?: number;
+  eventBuildingDensity?: number;
+  pickupDensity?: number;
+  /**
    * Palette d'artefacts connus posables au sol (vide ⇒ aucun artefact, comme
    * `guardianUnits`). Les artefacts sont placés **en profondeur** et gardés par
    * une sentinelle — la récompense premium de la carte.
@@ -160,6 +173,10 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
   const unitTiers = opts.unitTiers ?? {};
   const startPositionCount = Math.max(2, opts.startPositionCount ?? 2);
   const resourceMultiplier = opts.resourceMultiplier ?? 1;
+  const guardianDensity = opts.guardianDensity ?? 1;
+  const mineDensity = opts.mineDensity ?? 1;
+  const eventBuildingDensity = opts.eventBuildingDensity ?? 1;
+  const pickupDensity = opts.pickupDensity ?? 1;
   const artifactIds = opts.artifactIds ?? [];
   const townFactionIds = opts.townFactionIds ?? [];
   // Densité constante quelle que soit la taille : les compteurs d'objets calés
@@ -168,6 +185,10 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
   const areaFactor = (width * height) / (24 * 24);
   const density = areaFactor * resourceMultiplier;
   const scaled = (base: number, min = 1): number => Math.max(min, Math.round(base * density));
+  // Compteur d'une catégorie modulé par son facteur (« Nouvelle partie ») :
+  // facteur ≤ 0 ⇒ catégorie absente ; facteur 1 ⇒ identique à `scaled(base)`.
+  const scaledCat = (base: number, factor: number): number =>
+    factor <= 0 ? 0 : Math.max(1, Math.round(base * density * factor));
 
   const rand = mulberry32(seed);
   const randInt = (n: number): number => Math.floor(rand() * n);
@@ -374,7 +395,7 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
     [-1, -1],
   ] as const;
   const placeSentinel = (ax: number, ay: number): void => {
-    if (byTier.length === 0) return;
+    if (byTier.length === 0 || guardianDensity <= 0) return;
     for (const [dx, dy] of neighborOffsets) {
       const nx = ax + dx;
       const ny = ay + dy;
@@ -398,13 +419,13 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
   };
 
   const resAmount = (res: string): number => (res === 'gold' ? randBetween(200, 900) : randBetween(2, 6));
-  for (let i = 0; i < scaled(randBetween(4, 6)); i++) {
+  for (let i = 0; i < scaledCat(randBetween(4, 6), pickupDensity); i++) {
     place((x, y, n) => {
       const resource = RESOURCE_IDS[randInt(RESOURCE_IDS.length)]!;
       return { id: `res-${n}`, type: 'resource', x, y, resource, amount: resAmount(resource) };
     });
   }
-  for (let i = 0; i < scaled(randBetween(2, 3)); i++) {
+  for (let i = 0; i < scaledCat(randBetween(2, 3), mineDensity); i++) {
     place((x, y, n) => {
       const resource = RESOURCE_IDS[randInt(RESOURCE_IDS.length)]!;
       return {
@@ -419,7 +440,7 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
   }
   // Trésors : montants gradués par la profondeur (jusqu'à ×2 au centre) — les
   // coffres loin des départs sont plus riches.
-  for (let i = 0; i < scaled(randBetween(1, 2)); i++) {
+  for (let i = 0; i < scaledCat(randBetween(1, 2), pickupDensity); i++) {
     place((x, y, n) => {
       const depth = depthAt(x, y);
       return {
@@ -451,7 +472,7 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
       frequency: 'oncePerHeroPerWeek',
     }),
   ];
-  const visitableCount = scaled(randBetween(3, 5));
+  const visitableCount = scaledCat(randBetween(3, 5), eventBuildingDensity);
   for (let i = 0; i < visitableCount; i++) {
     const maker = visitableMakers[i % visitableMakers.length]!;
     place((x, y, n) => maker(x, y, n));
@@ -474,7 +495,7 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
 
   // Artefacts : récompense premium, posée en profondeur et gardée par une sentinelle.
   if (artifactIds.length > 0) {
-    for (let i = 0; i < scaled(randBetween(1, 2)); i++) {
+    for (let i = 0; i < scaledCat(randBetween(1, 2), pickupDensity); i++) {
       const t = place(
         (x, y, n) => ({ id: `artifact-${n}`, type: 'artifact', x, y, artifactId: artifactIds[randInt(artifactIds.length)]! }),
         true,
@@ -522,10 +543,10 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
   // du joueur commence devant sa porte — 2 à 3 gardiens FAIBLES garantis dans
   // l'anneau proche de CHAQUE départ, puis des gardiens gradués tier
   // (plafonné)/pile par la profondeur sur le reste de la carte.
-  if (guardianUnits.length > 0) {
+  if (guardianUnits.length > 0 && guardianDensity > 0) {
     const nearRadius = Math.max(3, Math.round(radius * 0.35));
     for (const s of startPositions) {
-      const wanted = randBetween(2, 3);
+      const wanted = Math.max(1, Math.round(randBetween(2, 3) * guardianDensity));
       let placed = 0;
       for (let tries = 0; tries < 80 && placed < wanted; tries++) {
         const x = clampX(s.x + randBetween(-nearRadius, nearRadius));
@@ -547,7 +568,7 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
         placed++;
       }
     }
-    const guardianCount = Math.max(2, Math.round(randBetween(2, 4) * areaFactor));
+    const guardianCount = Math.max(2, Math.round(randBetween(2, 4) * areaFactor * guardianDensity));
     for (let i = 0; i < guardianCount; i++) {
       place((x, y, n) => {
         const depth = depthAt(x, y);

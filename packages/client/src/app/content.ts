@@ -67,11 +67,21 @@ export async function resolveGeneratedMap(
   seed: number,
   /**
    * Options de génération (« Nouvelle partie », doc 09) : taille de carte,
-   * nombre de positions de départ (= nombre de joueurs) et densité de
-   * ressources (bas/riche). Absentes ⇒ défauts de `generateMap` (24×24, 2
-   * départs, densité standard) — l'escarmouche 2 joueurs reste inchangée.
+   * nombre de positions de départ (= nombre de joueurs), densité de ressources
+   * globale (bas/riche) et densités PAR CATÉGORIE (gardiens / mines / bâtiments
+   * événement / objets à ramasser). Absentes ⇒ défauts de `generateMap` (24×24,
+   * 2 départs, densité standard) — l'escarmouche 2 joueurs reste inchangée.
    */
-  opts: { width?: number; height?: number; startPositionCount?: number; resourceMultiplier?: number } = {},
+  opts: {
+    width?: number;
+    height?: number;
+    startPositionCount?: number;
+    resourceMultiplier?: number;
+    guardianDensity?: number;
+    mineDensity?: number;
+    eventBuildingDensity?: number;
+    pickupDensity?: number;
+  } = {},
 ): Promise<ResolvedMap> {
   const config = report.content.config;
   const units = knownUnitIds(report);

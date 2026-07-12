@@ -330,4 +330,46 @@ describe('generateMap', () => {
     const large = generateMap('r', 42, { width: 48, height: 48 });
     expect(countRes(large)).toBeGreaterThan(countRes(small));
   });
+
+  it('facteurs par catégorie : « aucun » (0) retire la catégorie ciblée', () => {
+    const palette = { width: 48, height: 48, guardianUnits: ['t1-guard'], artifactIds: ['trefle-chance'] };
+    const has = (m: MapFile, type: string): boolean => m.objects.some((o) => o.type === type);
+    // Gardiens à 0 ⇒ aucun gardien NI sentinelle (carte pacifique), même avec une
+    // palette d'artefacts (les artefacts restent posés mais non gardés).
+    const noGuards = generateMap('cat', 3, { ...palette, guardianDensity: 0 });
+    expect(has(noGuards, 'guardian')).toBe(false);
+    expect(has(noGuards, 'artifact')).toBe(true);
+    // Mines / bâtiments événement / objets à ramasser à 0 ⇒ catégorie absente.
+    expect(has(generateMap('cat', 3, { ...palette, mineDensity: 0 }), 'mine')).toBe(false);
+    expect(has(generateMap('cat', 3, { ...palette, eventBuildingDensity: 0 }), 'visitable')).toBe(false);
+    const noPickups = generateMap('cat', 3, { ...palette, pickupDensity: 0 });
+    expect(has(noPickups, 'resource')).toBe(false);
+    expect(has(noPickups, 'treasure')).toBe(false);
+    expect(has(noPickups, 'artifact')).toBe(false);
+  });
+
+  it('facteurs par catégorie : « abondant » pose strictement plus que « standard »', () => {
+    const base = { width: 48, height: 48, guardianUnits: ['t1-guard'], artifactIds: ['trefle-chance'] };
+    const count = (m: MapFile, type: string): number => m.objects.filter((o) => o.type === type).length;
+    const std = generateMap('cat', 7, base);
+    expect(count(generateMap('cat', 7, { ...base, guardianDensity: 2 }), 'guardian')).toBeGreaterThan(count(std, 'guardian'));
+    expect(count(generateMap('cat', 7, { ...base, mineDensity: 2 }), 'mine')).toBeGreaterThan(count(std, 'mine'));
+    expect(count(generateMap('cat', 7, { ...base, eventBuildingDensity: 2 }), 'visitable')).toBeGreaterThan(count(std, 'visitable'));
+    const rich = generateMap('cat', 7, { ...base, pickupDensity: 2 });
+    const pickups = (m: MapFile): number => count(m, 'resource') + count(m, 'treasure') + count(m, 'artifact');
+    expect(pickups(rich)).toBeGreaterThan(pickups(std));
+  });
+
+  it('facteurs par catégorie : « standard » (défaut) = facteurs 1 explicites (carte inchangée)', () => {
+    const base = { width: 40, height: 40, guardianUnits: ['t1-guard'], artifactIds: ['trefle-chance'] };
+    const implicit = generateMap('cat', 21, base);
+    const explicit = generateMap('cat', 21, {
+      ...base,
+      guardianDensity: 1,
+      mineDensity: 1,
+      eventBuildingDensity: 1,
+      pickupDensity: 1,
+    });
+    expect(explicit).toEqual(implicit);
+  });
 });

@@ -364,6 +364,23 @@ Menu principal (Continuer / Scénarios / Escarmouche / **Éditeur de carte** / O
 > le moteur. i18n FR/EN, sélecteurs à cible tactile ≥ 44 px. Choix de la carte
 > différé (une seule carte proto ; arrivera avec l'éditeur de carte).
 
+> 🚧 **État (« Nouvelle partie » configurable, Live 6.3→6.5)** : le bouton
+> **Nouvelle partie** ouvre `NewGameScreen` (mêmes conventions : pile de modales
+> §3, segmented controls ≥ 44 px, i18n FR/EN). Réglages : joueurs (2–4, humain
+> hot-seat / IA), faction / héros / couleur / équipe par siège, **taille de
+> carte**, **Ressources** (bas/standard/riche = stock de départ + densité de
+> base), **difficulté IA**, **graine**. Lot **6.5** ajoute quatre curseurs de
+> **quantité par catégorie d'objets de carte** — **Gardiens**, **Mines**,
+> **Bâtiments événement**, **Ressources & artefacts** — à 5 crans chacun
+> (`Aucun` / `Rare` / `Standard` / `Abondant` / `Aléatoire`). Ces crans sont des
+> **facteurs de densité superposés** au réglage global (défaut « Standard » ⇒
+> carte inchangée) ; « Aucun gardien » produit une carte pacifique (ni gardiens
+> ni sentinelles). Chaque paramètre peut rester sur **« Aléatoire »** (tiré
+> déterministiquement depuis la graine, jamais `Math.random`). « Lancer » émet
+> `heroes:start-newgame` avec la config brute ; `main.ts` résout les tirages,
+> génère la carte (overlay de progression) et joue le `StartGame`. **Zéro diff
+> moteur** (données + client).
+
 > 🚧 **État (hot-seat, Alpha 4.15)** : l'écran d'escarmouche propose un
 > **adversaire** « IA » ou « Joueur 2 » (hot-seat local ; la difficulté ne
 > s'affiche qu'en mode IA). En multi-humain, tout le plateau (héros, villes,

@@ -97,6 +97,7 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 - Si le changement introduit un nouveau scénario à couvrir, ajouter le cas de test **dans le même commit**.
 - Si le test ne couvre pas la zone modifiée, le dire explicitement à l'utilisateur plutôt que de prétendre que la non-régression est garantie.
 - Pour un changement purement documentaire (markdown, commentaires), le test reste recommandé mais peut être omis si justifié.
+- **Pour AJOUTER ou modifier un test, suivre le skill `test-authoring`** : il donne l'arbre de décision de niveau (unitaire moteur / contenu / smoke — le smoke coûte ~100× un unitaire), les tags (`@core`/`@mobile`/`@perf`), les pièges de conformité CI et la recette de vérification locale. Objectif : garder la rigueur sans laisser dériver le temps de CI (cf. `.claude/plans/test-performance-optimization.md`).
 
 ## 8. Principes non négociables du projet (moteur pur & data-driven)
 

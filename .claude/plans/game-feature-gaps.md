@@ -72,16 +72,19 @@ doc 08 §2.4 (écran de combat).
   Spec : borne symétrique [-3,3], jet de malchance ⇒ ×0,5 ; prévisualisation
   mise à jour. Vérif : tests dégâts min/max, golden re-fixé.
 
-- **C-SIEGE2 — Siège v2 : murs jouables** 🕳️ L ⬜
+- **C-SIEGE2 — Siège v2 : murs jouables** 🕳️ L 🚧 (**.1 livré**, découpé)
   Doc : doc 02 §4.1/§5 (murs, porte, douves, tours de tir, catapulte).
-  Code : « murs » = bonus plat `wallDefenseBonus` +3/niveau de Fort
-  (`packages/engine/src/town/capture.ts` → `combat/damage.ts:249-256`) ; grille
-  de siège inexistante. Spec (v2, incrémentale) : (a) murs/porte comme
-  obstacles destructibles sur la colonne de grille, (b) catapulte auto (comme
-  machine de guerre, réutilise la Forge 4.12), (c) tour de tir = pile
-  défenderesse fixe, (d) douves = zone de ralentissement. Chaque incrément
-  data-driven (niveau de Fort ⇒ éléments présents). Vérif : tests moteur par
-  élément + smoke siège.
+  - **C-SIEGE2.1** ✅ (plan `c-siege2-walls.md`) : **murs de grille bloquants avec
+    porte** — champ **optionnel** `CombatState.siegeWalls` (pas de bump save,
+    golden inchangé) ; une ville à **Fort** dresse un rempart sur une colonne
+    (`buildSiegeWalls`, gaté `fort ≥ 1`) avec une porte centrale ; bloque
+    déplacement + LoS via le helper partagé `staticBlockedKeys` (mêlée par la
+    porte, volants au-dessus, tir par l'ouverture) ; rendu client comme bloqueur.
+    Auto-combat non bloqué (test « assaillant fort capture malgré le rempart »).
+    Ville sans Fort ⇒ siège v1 inchangé.
+  - **C-SIEGE2.2+** ⬜ : (b) **catapulte** (machine de guerre, Forge) + **PV de
+    segment / destruction de murs** ; (c) **tour de tir** (pile défenderesse
+    fixe) ; (d) **douves** (zone de ralentissement) ; art de rempart distinct.
 
 - **C-SPELLUI — Grimoire & ciblage de sorts** 🎨 M ⬜
   Doc : doc 08 §2.3 (grimoire feuilletable par école), doc 02 §1.4.

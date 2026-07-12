@@ -4,6 +4,7 @@ import { isPassable } from '../adventure/path';
 import { heroLuckOf, killsFromDamage, magicResistanceOf } from '../combat/damage';
 import { checkCombatEnd } from '../combat/turns';
 import { applySpellToTargets, spellTargets, spellcasterParams } from '../combat/spell-effect';
+import { staticBlockedKeys } from '../combat/state-helpers';
 import {
   COMBAT_COLS,
   COMBAT_ROWS,
@@ -102,8 +103,8 @@ export function teleportDestinations(state: GameState, spellId: string, targetSt
   const hero = heroForPlayerSide(state, combat);
   const power = hero ? effectivePower(hero, state.artifactCatalog) : 0;
   const range = spell.base + spell.perPower * power;
-  const blocked = new Set<string>();
-  for (const o of combat.obstacles) blocked.add(`${o.col},${o.row}`);
+  // C-SIEGE2 : on ne peut pas téléporter sur un obstacle, un mur ni une pile.
+  const blocked = staticBlockedKeys(combat);
   for (const s of combat.stacks) if (s.count > 0) blocked.add(`${s.pos.col},${s.pos.row}`);
   const out: OffsetPos[] = [];
   for (let col = 0; col < COMBAT_COLS; col++) {

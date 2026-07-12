@@ -8,7 +8,7 @@ import { applySpellToTargets, spellcasterParams } from './spell-effect';
 import type { Draft } from './draft';
 import { COMBAT_COLS, COMBAT_ROWS, hexDistance, hexLine, hexNeighbors, sameHex, type OffsetPos } from './hex';
 import { advanceTurn, checkCombatEnd } from './turns';
-import { combatRules, hasAbility, isShooterMeleePenalized, isSilenced, moraleOf, moveRange } from './state-helpers';
+import { combatRules, hasAbility, isShooterMeleePenalized, isSilenced, moraleOf, moveRange, staticBlockedKeys } from './state-helpers';
 import { spellTargetsEnemy } from '../hero/spells';
 import type { CombatActionInput, CombatSideId, CombatStack, CombatState, CombatUnitDef } from './types';
 
@@ -34,8 +34,9 @@ export function reachableHexes(state: GameState, stackId: string): OffsetPos[] {
   const speed = moveRange(stack, combat, state.unitCatalog, state);
   const flying = hasAbility(def, 'flying');
 
-  const blocked = new Set<string>();
-  for (const o of combat.obstacles) blocked.add(hexKey(o));
+  // C-SIEGE2 : obstacles + murs de siège bloquent le déplacement (les volants
+  // les survolent : ils ne pathent pas, seul l'hex d'arrivée doit être libre).
+  const blocked = staticBlockedKeys(combat);
   for (const s of combat.stacks) if (s.id !== stackId) blocked.add(hexKey(s.pos));
 
   if (flying) {
@@ -91,8 +92,8 @@ export function canShoot(state: GameState, stackId: string): boolean {
  * design 2026-07-10). Pure (lit `combat.obstacles`), déterministe.
  */
 export function hasLineOfSight(combat: CombatState, from: OffsetPos, to: OffsetPos): boolean {
-  const blocked = new Set<string>();
-  for (const o of combat.obstacles) blocked.add(hexKey(o));
+  // C-SIEGE2 : un mur de siège bloque la vue comme un obstacle (tir par la porte).
+  const blocked = staticBlockedKeys(combat);
   const line = hexLine(from, to);
   // Hexes STRICTEMENT intermédiaires (on exclut le tireur et la cible).
   for (let i = 1; i < line.length - 1; i++) {

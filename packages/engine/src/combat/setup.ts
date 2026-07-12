@@ -52,6 +52,26 @@ function placeSide(
   });
 }
 
+// C-SIEGE2 : rempart devant le défenseur (colonne fixe, hors zone d'obstacles
+// centrale 3..COMBAT_COLS-4) avec une PORTE centrale (rangées ouvertes).
+const SIEGE_WALL_COL = COMBAT_COLS - 4;
+const SIEGE_GATE_ROWS: readonly number[] = [Math.floor(COMBAT_ROWS / 2) - 1, Math.floor(COMBAT_ROWS / 2)];
+
+/**
+ * Murs de siège (C-SIEGE2, doc 02 §5) : une ville à Fort dresse un rempart sur
+ * `SIEGE_WALL_COL`, toutes rangées sauf la **porte** centrale. `fortLevel < 1`
+ * (ville sans Fort) ⇒ aucun mur (siège v1 inchangé). Non destructibles (.1).
+ */
+function buildSiegeWalls(fortLevel: number): OffsetPos[] {
+  if (fortLevel < 1) return [];
+  const walls: OffsetPos[] = [];
+  for (let row = 0; row < COMBAT_ROWS; row++) {
+    if (SIEGE_GATE_ROWS.includes(row)) continue; // porte ouverte
+    walls.push({ col: SIEGE_WALL_COL, row });
+  }
+  return walls;
+}
+
 function drawObstacles(draft: Draft, min: number, max: number): OffsetPos[] {
   const countRoll = rollRange(draft.rng, min, max);
   draft.rng = countRoll.state;
@@ -219,6 +239,7 @@ export function beginTownCombat(
   heroId: string,
   townId: string,
   wallDefenseBonus: number,
+  fortLevel: number,
   events: GameEvent[],
 ): void {
   const hero = draft.heroes.find((h) => h.id === heroId);
@@ -236,11 +257,13 @@ export function beginTownCombat(
     ...placeSide('defender', defender, draft.unitCatalog, COMBAT_COLS - 1),
   ];
   const obstacles = drawObstacles(draft, rules.obstaclesMin, rules.obstaclesMax);
+  const siegeWalls = buildSiegeWalls(fortLevel);
   draft.combat = {
     terrain,
     phase: 'battle',
     round: 1,
     obstacles,
+    ...(siegeWalls.length > 0 ? { siegeWalls } : {}),
     stacks,
     activeStackId: null,
     playerSide: 'attacker',

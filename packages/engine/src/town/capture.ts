@@ -75,7 +75,9 @@ export function handleCaptureTown(draft: GameState, cmd: CaptureCmd, events: Gam
     // Ville défendue ⇒ siège : combat contre la garnison. La capture est
     // appliquée à la victoire (doc 02 §4.1, `applyConsequences`).
     const hero = attackingHero(draft, town, cmd.playerId);
-    if (hero) beginTownCombat(draft, hero.id, town.id, wallDefenseBonus(draft, town), events);
+    // C-SIEGE2 : le niveau de Fort dresse un rempart sur la grille de siège.
+    const fortLevel = town.buildings['fort'] ?? 0;
+    if (hero) beginTownCombat(draft, hero.id, town.id, wallDefenseBonus(draft, town), fortLevel, events);
     return;
   }
   town.ownerPlayerId = cmd.playerId;

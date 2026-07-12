@@ -133,7 +133,7 @@ export type {
   ArtifactDef,
   ArtifactSlot,
 } from './hero/types';
-export { estimateSpell, type SpellEstimate } from './hero';
+export { estimateSpell, teleportDestinations, type SpellEstimate } from './hero';
 // Coût de mana effectif (réduction Magie par école, A6) — le grimoire client
 // (C2) affiche/gate sur ce coût, pas sur `spell.manaCost` brut.
 export { effectiveManaCost, spellTargetsEnemy } from './hero/spells';

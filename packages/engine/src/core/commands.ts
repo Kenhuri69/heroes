@@ -243,7 +243,12 @@ export type Command =
       giveAmount: number;
     }
   // ——— Héros : sorts & compétences (doc 02 §1.2–§1.4) — surface figée 3.2 ———
-  | { type: 'CastSpell'; spellId: string; targetStackId: string }
+  /**
+   * F-SCHOOLS.8 : `targetHex` = destination d'un sort de téléportation
+   * (`kind: 'teleport'`, Pas de Brume) ; ignoré par les autres sorts. Champ de
+   * commande (pas d'état persisté) ⇒ aucun bump de sauvegarde.
+   */
+  | { type: 'CastSpell'; spellId: string; targetStackId: string; targetHex?: OffsetPos }
   /** Attaque du héros (C1) : dégâts directs sur une pile ennemie, 1×/combat. */
   | { type: 'HeroAttack'; targetStackId: string }
   /** Placement d'une pile pendant la phase de placement tactique (C-TACTICS, doc 02 §5.1). */

@@ -79,6 +79,14 @@ export function SpellBook({ hero, onClose }: { hero: HeroState; onClose: () => v
   };
 
   const cast = (selectedSpellId: string, selectedTargetId: string): void => {
+    // F-SCHOOLS.8 (Pas de Brume) : un sort de téléportation exige une DESTINATION
+    // sur la grille. On n'a que la pile alliée ici — on entre en mode ciblage
+    // d'hex (le tap sur le plateau dispatchera `CastSpell{…, targetHex}`).
+    if (spellCatalog[selectedSpellId]?.kind === 'teleport') {
+      appStore.setState({ combatSpellTarget: { spellId: selectedSpellId, targetStackId: selectedTargetId } });
+      onClose();
+      return;
+    }
     dispatch({ type: 'CastSpell', spellId: selectedSpellId, targetStackId: selectedTargetId })
       .then(() => onClose())
       .catch((err: unknown) => {
@@ -131,7 +139,11 @@ export function SpellBook({ hero, onClose }: { hero: HeroState; onClose: () => v
               onSelect={(stackId) => selectTarget(stackId, def.id)}
             />
             <div class="spell-preview" data-testid="spell-preview">
-              {targetId ? formatPreview(preview, previewFailed) : t('spellbook.chooseTarget')}
+              {targetId
+                ? def.kind === 'teleport'
+                  ? t('spellbook.chooseDestination')
+                  : formatPreview(preview, previewFailed)
+                : t('spellbook.chooseTarget')}
             </div>
             <button
               class="spellbook-cast"
@@ -139,7 +151,7 @@ export function SpellBook({ hero, onClose }: { hero: HeroState; onClose: () => v
               disabled={!targetId}
               onClick={() => targetId && cast(def.id, targetId)}
             >
-              {t('spellbook.cast')}
+              {def.kind === 'teleport' ? t('spellbook.pickHex') : t('spellbook.cast')}
             </button>
           </div>
         )}

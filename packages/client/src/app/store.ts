@@ -178,6 +178,14 @@ export interface AppState {
    * et évite l'impression de gel pendant que l'IA calcule.
    */
   aiTurn: { seat: number; done: number; total: number } | null;
+  /**
+   * F-SCHOOLS.8 (Pas de Brume) : ciblage d'hex de combat en attente. Posé par le
+   * grimoire quand le joueur a choisi un sort de téléportation et sa pile alliée ;
+   * `CombatScene` surligne alors les destinations et le tap dispatche
+   * `CastSpell{…, targetHex}`. `null` = aucun ciblage en cours. Purement
+   * présentation client (non persisté) ; remis à zéro aux transitions de combat.
+   */
+  combatSpellTarget: { spellId: string; targetStackId: string } | null;
 }
 
 export const appStore = createStore<AppState>(() => ({
@@ -223,6 +231,7 @@ export const appStore = createStore<AppState>(() => ({
   loading: null,
   playerColors: {},
   aiTurn: null,
+  combatSpellTarget: null,
 }));
 
 /** Hook Preact : re-rend quand la valeur sélectionnée change (égalité stricte). */

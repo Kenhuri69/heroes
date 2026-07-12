@@ -308,8 +308,15 @@ Source design : docs 03 §2/§4/§5, 04 §2/§4, 05 §3/§5/§6/§7, 14 §5/§6,
     `CombatStack.stealthed` (save 27→28) : une pile furtive est INCIBLABLE
     (exclusion centralisée sur tous les sites de ciblage ennemi), visible dès sa
     prochaine action. Zéro faction moteur, golden re-fixé (forme).
-  - **F-SCHOOLS.8** ⬜ : dernier sort Traque — **Pas de Brume** (téléport allié,
-    nouvelle surface : `CastSpell.targetHex` + ciblage d'hex client) ; puis effets
+  - **F-SCHOOLS.8** ✅ (plan `f-schools-8.md`) : dernier sort Traque — **Pas de
+    Brume** (téléport allié). Mécanique générique `SpellKind 'teleport'` + champ de
+    commande `CastSpell.targetHex` (pas d'état ⇒ **aucun bump save, golden
+    inchangé**) ; helper pur `teleportDestinations` (portée `base + perPower ×
+    Pouvoir`, case libre, obstacles/piles intermédiaires ignorés). **Nouvelle
+    surface client** : mode ciblage d'hex (`store.combatSpellTarget`) — le grimoire
+    passe la main à la grille, `CombatScene` surligne les destinations, tap →
+    `CastSpell{…, targetHex}`, bandeau d'annulation. Données `pas-de-brume` (cercle
+    1). **École de la Traque : 8/8.** Reste (hors périmètre de ce lot) : effets
     Scène enrichis (peur/+moral, partagés CAP-MORAL).
 
 - **F-ELITEVOX — Élites Vox Arcana** ✅ (plan `f-elitevox.md`, doc 16 §4)

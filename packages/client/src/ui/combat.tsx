@@ -43,6 +43,7 @@ export function CombatUi() {
     (s) => s.game.players.find((p) => p.id === humanId(s.game))?.resources.gold ?? 0,
   );
   const preview = useSyncExternalStore(combatPreview.subscribe, combatPreview.get);
+  const spellTarget = useApp((s) => s.combatSpellTarget);
   const [spellBookOpen, setSpellBookOpen] = useState(false);
   const [heroAttackOpen, setHeroAttackOpen] = useState(false);
   const [leaveConfirm, setLeaveConfirm] = useState<'retreat' | 'surrender' | null>(null);
@@ -178,6 +179,20 @@ export function CombatUi() {
         <p class="combat-bark" data-testid="combat-bark">
           {resolveBark(combatBark)}
         </p>
+      )}
+
+      {/* F-SCHOOLS.8 (Pas de Brume) : bandeau de ciblage d'hex — le joueur tape
+          la destination sur la grille, ou annule. Tap hors zone = annulation. */}
+      {spellTarget && (
+        <div class="combat-teleport-banner" data-testid="teleport-banner">
+          <span>{t('spellbook.chooseDestination')}</span>
+          <button
+            data-testid="teleport-cancel"
+            onClick={() => appStore.setState({ combatSpellTarget: null })}
+          >
+            {t('combat.leaveCancel')}
+          </button>
+        </div>
       )}
 
       {/* UXD-0 R5a : préviz + actions dans un conteneur colonne (plus de

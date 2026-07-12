@@ -260,6 +260,15 @@
       "perPower": 0
     },
     {
+      "id": "pas-de-brume",
+      "school": "traque",
+      "circle": 1,
+      "manaCost": 5,
+      "kind": "teleport",
+      "base": 3,
+      "perPower": 0
+    },
+    {
       "id": "ville-portail",
       "school": "air",
       "circle": 3,

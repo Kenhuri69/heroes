@@ -147,6 +147,10 @@ export function applySpellToTargets(
     // F-SCHOOLS.7 (Mue Éphémère) : la/les pile(s) alliée(s) deviennent furtives
     // (inciblables) jusqu'à leur prochaine action. Effet sans durée en rounds.
     for (const t of targets) t.stealthed = true;
+  } else if (spell.kind === 'teleport') {
+    // F-SCHOOLS.8 (Pas de Brume) : le déplacement se fait dans `castHeroSpell`
+    // (il exige la destination `targetHex` que ce cœur partagé ne reçoit pas) —
+    // no-op ici (le chemin unité `spellcaster` ne porte pas de sort teleport).
   } else if (spell.kind === 'rally') {
     // F-SCHOOLS.6 (Heure de la Curée) : le camp du lanceur ne subit plus de
     // riposte en frappant une pile MARQUÉE, pour `max(1, base)` round(s). Effet

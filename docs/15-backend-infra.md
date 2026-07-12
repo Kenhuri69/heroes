@@ -61,8 +61,15 @@ sérialisé + statut) ; `match_players` (sièges = ordre de tour) ; `moves`
 1. `POST /auth/request { email }` → le Worker crée un `auth_tokens` (aléatoire,
    expirant) et envoie un lien `…/auth/verify?token=…`.
 2. `GET /auth/verify?token` → jeton valide & non utilisé ⇒ crée/retrouve le
-   `profiles`, ouvre une `sessions` (bearer), marque le jeton `used`.
+   `profiles`, ouvre une `sessions` (bearer), marque le jeton `used`. **NET-SEC.1** :
+   le `handle` (partie locale de l'e-mail, `UNIQUE`) est **désambiguïsé** sur
+   collision (suffixe tiré de l'uuid) — deux e-mails de même partie locale ne font
+   plus 500.
 3. Requêtes suivantes : `Authorization: Bearer <session>`.
+4. **`DELETE /session`** (NET-SEC.1) : révoque la session courante côté serveur
+   (déconnexion) ; le SDK `logout()` l'appelle en best-effort. **Reste NET-SEC
+   différé** : rate-limit e-mail/IP, quotas de taille/slots, purge des sessions
+   expirées.
 
 ### 5.2 Cloud saves
 

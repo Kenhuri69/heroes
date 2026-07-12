@@ -34,7 +34,7 @@ const token = (): string => crypto.randomUUID().replace(/-/g, '') + crypto.rando
 function cors(origin: string | undefined): Record<string, string> {
   return {
     'Access-Control-Allow-Origin': origin ?? '*',
-    'Access-Control-Allow-Methods': 'GET,POST,PUT,OPTIONS',
+    'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
     'Access-Control-Allow-Headers': 'Authorization,Content-Type',
   };
 }
@@ -105,8 +105,14 @@ export default {
           .first<{ id: string }>();
         if (!profile) {
           const id = crypto.randomUUID();
+          // NET-SEC.1 : `handle` est UNIQUE — deux e-mails de même partie locale
+          // (`a@x.com`/`a@y.com`) violaient la contrainte (500). Désambiguïse sur
+          // collision par un suffixe tiré de l'uuid (unicité pratique).
+          const base = (row.email.split('@')[0] || id).slice(0, 40);
+          const clash = await env.DB.prepare('SELECT 1 FROM profiles WHERE handle = ?').bind(base).first();
+          const handle = clash ? `${base}-${id.slice(0, 6)}` : base;
           await env.DB.prepare('INSERT INTO profiles (id, handle, email, created_at) VALUES (?, ?, ?, ?)')
-            .bind(id, row.email.split('@')[0] ?? id, row.email, now())
+            .bind(id, handle, row.email, now())
             .run();
           profile = { id };
         }
@@ -119,6 +125,17 @@ export default {
 
       const profileId = await authProfile(request, env);
       if (!profileId) return fail(401, 'authentification requise', env);
+
+      // NET-SEC.1 : révocation de session serveur (déconnexion). Le client
+      // n'invalidait la session que localement ; elle restait valide au serveur.
+      // On ne révoque que SA propre session (bearer courant). Idempotent.
+      if (path === '/session' && request.method === 'DELETE') {
+        const bearer = request.headers.get('Authorization')?.slice(7) ?? '';
+        await env.DB.prepare('DELETE FROM sessions WHERE id = ? AND profile_id = ?')
+          .bind(bearer, profileId)
+          .run();
+        return json({ ok: true }, 200, env);
+      }
 
       // — Cloud saves —
       const saveMatch = path.match(/^\/saves\/([\w-]+)$/);

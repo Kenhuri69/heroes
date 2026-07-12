@@ -66,6 +66,22 @@ export function notify(event: AppEvent, game: GameState): string | null {
       return event.playerId === human
         ? t('toast.artifactPicked', { artifact: resolveArtifactName(event.artifactId) })
         : null;
+    // Butin de gardien (doc 02 §2.2) : or toujours, ressource/artefact selon la
+    // force — message composé (seuls les gains effectifs sont mentionnés).
+    case 'GuardianVanquished': {
+      if (event.playerId !== human) return null;
+      const parts = [t('toast.guardianRewardGold', { gold: event.gold })];
+      if (event.resource && event.resourceAmount > 0)
+        parts.push(
+          t('toast.guardianRewardResource', {
+            amount: event.resourceAmount,
+            resource: t(`resource.${event.resource}`),
+          }),
+        );
+      if (event.artifactId)
+        parts.push(t('toast.guardianRewardArtifact', { artifact: resolveArtifactName(event.artifactId) }));
+      return parts.join(' ');
+    }
     // Lieux de bonus & habitations (doc 02 §2.2, lot 2 du comblement).
     case 'BonusVisited': {
       if (event.playerId !== human) return null;

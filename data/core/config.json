@@ -61,6 +61,15 @@
         { "id": "bounty", "weight": 15, "growthFactor": 2 },
         { "id": "plague", "weight": 12, "growthFactor": 0.5 }
       ]
+    },
+    "guardianReward": {
+      "goldPerHp": 3,
+      "variancePercent": 20,
+      "resources": ["wood", "ore", "crystal", "gems", "sulfur", "mercury"],
+      "resourceThresholdHp": 400,
+      "resourceAmount": { "min": 2, "max": 5 },
+      "artifactThresholdHp": 1200,
+      "artifactChancePercent": 50
     }
   },
   "newGame": {

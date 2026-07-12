@@ -91,6 +91,34 @@ export interface AdventureConfig {
    * fixtures/golden inchangés).
    */
   calendar?: { events: CalendarEventDef[] } | undefined;
+  /**
+   * Butin de gardien (doc 02 §2.2) : vaincre un gardien neutre crédite un butin
+   * gradué par sa **force** (PV totaux = `hp × count`). Optionnel — absent ⇒
+   * aucun butin (fixtures/golden épargnés). GÉNÉRIQUE : le moteur ne lit que des
+   * ids de ressource/artefact opaques, jamais un nom de faction.
+   */
+  guardianReward?: GuardianRewardConfig | undefined;
+}
+
+/**
+ * Butin de gardien (doc 02 §2.2) — tiré au **RNG seedé** à la victoire d'un
+ * combat de gardien, gradué par les PV totaux du gardien vaincu.
+ */
+export interface GuardianRewardConfig {
+  /** Or de base par PV total du gardien (avant variance). */
+  goldPerHp: number;
+  /** Variance aléatoire de l'or, en % (±) autour de la base. */
+  variancePercent: number;
+  /** Ressources non-or éligibles (ids opaques) — vide ⇒ jamais de ressource. */
+  resources: string[];
+  /** Seuil de PV totaux au-delà duquel une ressource est aussi accordée. */
+  resourceThresholdHp: number;
+  /** Fourchette (incluse) du montant de ressource accordé. */
+  resourceAmount: { min: number; max: number };
+  /** Seuil de PV totaux au-delà duquel un artefact peut tomber. */
+  artifactThresholdHp: number;
+  /** Chance (%) de tomber un artefact au-delà du seuil. */
+  artifactChancePercent: number;
 }
 
 /** Taux du marché (doc 02 §4.1) : or par unité de ressource non-or échangée. */

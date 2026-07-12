@@ -202,6 +202,18 @@ export type GameEvent =
   // ——— Contrats de chasse (doc 05 §3.3) — cible neutre hebdomadaire ———
   | { type: 'HuntContractAssigned'; playerId: string; targetObjectId: string }
   | { type: 'HuntContractCompleted'; playerId: string; gold: number; resource: string; amount: number }
+  // Butin de gardien (doc 02 §2.2) : or toujours, ressource/artefact selon la
+  // force du gardien vaincu. `resource`/`artifactId` = null si non accordé.
+  | {
+      type: 'GuardianVanquished';
+      heroId: string;
+      playerId: string;
+      objectId: string;
+      gold: number;
+      resource: string | null;
+      resourceAmount: number;
+      artifactId: string | null;
+    }
   // ——— Héros : sorts & compétences (doc 02 §1.2–§1.4) — surface figée 3.2 ———
   | {
       type: 'SpellCast';

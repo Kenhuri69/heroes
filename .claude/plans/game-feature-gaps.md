@@ -588,16 +588,22 @@ SDK `packages/client/src/app/net.ts` sans autre appelant).
 
 Source design : **doc 13** (N1→N4 livrés), docs de faction §lore.
 
-- **N-ARCS — 4 arcs personnels de héros sur 6** 🧩 M 🚧 (**découpé en sous-lots**)
+- **N-ARCS — 5 arcs personnels de héros sur 6** 🧩 M 🚧 (**découpé en sous-lots**)
   Doc : doc 13 §5.4 (6 arcs, 2/faction, 3 étapes : Aldric ✅, **Séraphine ✅**,
-  Vhalen, Mère Corbeau, Evadne, Marchmont). Spec : données pures (quêtes +
+  **Vhalen ✅**, Mère Corbeau, Evadne, Marchmont). Spec : données pures (quêtes +
   dialogues), zéro moteur. Synergie avec H-NAMED (les arcs prennent du sens
   quand les héros ont une identité).
   - **N-ARCS.1** ✅ (plan `n-arcs-seraphine.md`) : **arc de Séraphine** (Haven,
     `haven-ch3` — visions d'Elrath vs. le sceau, drapeaux `seraphine-faith`/
     `seraphine-doubt`) en données pures (patron Aldric N3c.2), zéro diff moteur/
     client/save/golden. Smoke : dérouler l'arc → nœud de choix → drapeau posé.
-  - **N-ARCS.2+** ⬜ : Vhalen & Mère Corbeau (Necropolis), Evadne & Marchmont
+  - **N-ARCS.2** ✅ (plan `n-arcs-vhalen.md`) : **arc de Vhalen** (Necropolis,
+    `necropolis-ch2` — l'archiviste doctrinaire découvre que le sceau dévore les
+    âmes de son peuple pour Heresh ; sceller par doctrine vs. laisser couler pour
+    nourrir les siens, drapeaux `vhalen-doctrine`/`vhalen-people`) en données pures
+    (patron Séraphine), zéro diff moteur/client/save/golden. Smoke : arc déroulé
+    → nœud de choix → drapeau posé.
+  - **N-ARCS.3+** ⬜ : Mère Corbeau (Necropolis), Evadne & Marchmont
     (Arcane Hunters) — mêmes patron/vérifs.
 
 - **N-DAILYREFRESH — Rafraîchissement quotidien des journalières** 🧩 S ✅ (livré)

@@ -2820,6 +2820,39 @@ test('choix de dialogue : arc personnel de Séraphine (haven-ch3) → drapeau pe
   expect(errors).toEqual([]);
 });
 
+test('choix de dialogue : arc personnel de Vhalen (necropolis-ch2) → drapeau persistant (doc 13 §5.4, N-ARCS.2)', async ({
+  page,
+}) => {
+  const errors = await openMenu(page);
+
+  // necropolis-ch2 embarque le 1ᵉʳ arc Necropolis (Vhalen, quête `personal`, 3
+  // étapes) : les 2 premières sont satisfaites par l'armée de départ, l'arc
+  // atteint son nœud de choix binaire dès l'ouverture. On déroule la file
+  // (dialogue d'ouverture + étapes) jusqu'au nœud de choix.
+  await page.evaluate(() => window.__HEROES_TEST__!.startScenario('necropolis-ch2'));
+
+  await expect(page.getByTestId('dialogue-box')).toBeVisible();
+  const choices = page.getByTestId('dialogue-choices');
+  const skip = page.getByTestId('dialogue-skip');
+  for (let i = 0; i < 8 && (await choices.count()) === 0; i++) {
+    await skip.click();
+  }
+
+  // Au nœud de choix : deux boutons, aucun « Passer » (une décision est requise).
+  await expect(choices).toBeVisible();
+  await expect(skip).toHaveCount(0);
+  await expect(page.getByTestId('dialogue-choice-0')).toBeVisible();
+  await expect(page.getByTestId('dialogue-choice-1')).toBeVisible();
+
+  // Choisir « sceller » (doctrine) pose le drapeau, persisté.
+  await page.getByTestId('dialogue-choice-0').click();
+  const flags = await page.evaluate(() => window.__HEROES_TEST__!.campaignFlags());
+  expect(flags['vhalen-doctrine']).toBe(true);
+  expect(flags['vhalen-people']).toBeUndefined();
+
+  expect(errors).toEqual([]);
+});
+
 test('campagne : 3ᵉ chapitre Haven sur sa carte dédiée proto-02 (doc 13 N3c.3)', async ({ page }) => {
   const errors = await openMenu(page);
 

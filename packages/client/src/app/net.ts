@@ -117,13 +117,16 @@ export interface MatchSeat {
 /**
  * Détail d'une partie (doc 15 §5.3) — de quoi RECONSTRUIRE l'état côté client :
  * `seed`/`setup` (base à rejouer) + `seq` (dernier coup connu) + sièges. `setup`
- * est le `StartGame` (Command) sérialisé du créateur.
+ * est le `StartGame` (Command) sérialisé du créateur. `status` peut valoir
+ * `abandoned` (NET-LIFECYCLE : forfait volontaire ou expiration d'inactivité) —
+ * dans une partie à 2, l'adversaire non-forfaiteur en déduit sa victoire.
  */
 export interface MatchDetail {
   id: string;
   seed: number;
   setup: Command;
   status: string;
+  createdAt: number;
   players: MatchSeat[];
   seq: number;
 }
@@ -132,6 +135,10 @@ export function getMatch(id: string): Promise<MatchDetail> {
 }
 export function joinMatch(id: string): Promise<{ ok: true; seat: number }> {
   return api(`/matches/${id}/join`, { method: 'POST' });
+}
+/** Abandon volontaire (NET-LIFECYCLE) : la partie passe `abandoned`. */
+export function forfeitMatch(id: string): Promise<{ ok: true }> {
+  return api(`/matches/${id}/forfeit`, { method: 'POST' });
 }
 export function getMoves(id: string, since = -1): Promise<{ moves: { seq: number; commands: Command[] }[] }> {
   return api(`/matches/${id}/moves?since=${since}`, { method: 'GET' });

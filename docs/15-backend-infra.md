@@ -104,6 +104,13 @@ rejet **413** (garde-fou anti-épuisement mémoire du Worker).
 5. L'adversaire **poll** `GET /matches/:id/moves?since=seq`, rejoue les nouveaux
    lots (`replayCommands`) pour obtenir l'état courant, joue, poste. Fin de partie
    = `GameState.outcome` non nul (le serveur le détecte au rejeu → `status`).
+6. **Cycle de vie (NET-LIFECYCLE)** : `POST /matches/:id/forfeit` (un participant
+   abandonne ⇒ `status = 'abandoned'`) ; **expiration paresseuse** — une partie
+   `active` inactive depuis `TURN_TIMEOUT_MS` (14 j) devient `abandoned` à la
+   consultation (`GET /matches/:id`) ou à la tentative d'un coup (`POST …/moves`
+   rejeté **409**). Le vainqueur n'est pas stocké (pas de colonne, zéro migration) :
+   dans une partie à 2, l'adversaire non-forfaiteur infère sa victoire du statut
+   `abandoned` (info ouverte, décision NET-FOG). Le détail expose aussi `createdAt`.
 
 ## 6. Stratégie de vérification
 

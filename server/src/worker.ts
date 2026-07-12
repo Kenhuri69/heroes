@@ -84,6 +84,28 @@ async function authProfile(request: Request, env: Env): Promise<string | null> {
   return row.profile_id;
 }
 
+// NET-LIFECYCLE : une partie `active` sans activité depuis ce délai est
+// considérée abandonnée (expiration paresseuse — pas de cron Worker configuré).
+const TURN_TIMEOUT_MS = 14 * 24 * HOUR;
+
+/**
+ * Statut EFFECTIF d'une partie (NET-LIFECYCLE) : `active` inactive depuis
+ * `TURN_TIMEOUT_MS` ⇒ `abandoned`, persisté paresseusement. Dernière activité =
+ * dernier coup posté, sinon la création de la partie. Idempotent.
+ */
+async function effectiveStatus(env: Env, matchId: string, status: string, createdAt: number): Promise<string> {
+  if (status !== 'active') return status;
+  const last = await env.DB.prepare('SELECT MAX(created_at) AS t FROM moves WHERE match_id = ?')
+    .bind(matchId)
+    .first<{ t: number | null }>();
+  const idleSince = last?.t ?? createdAt;
+  if (now() - idleSince < TURN_TIMEOUT_MS) return status;
+  await env.DB.prepare("UPDATE matches SET status = 'abandoned' WHERE id = ? AND status = 'active'")
+    .bind(matchId)
+    .run();
+  return 'abandoned';
+}
+
 /** Reconstitue le journal de base d'une partie : StartGame + tous les lots postés. */
 async function baseLog(env: Env, matchId: string): Promise<{ setup: Command; commands: Command[] } | null> {
   const match = await env.DB.prepare('SELECT setup FROM matches WHERE id = ?')
@@ -245,10 +267,13 @@ export default {
       const detailMatch = path.match(/^\/matches\/([\w-]+)$/);
       if (detailMatch && request.method === 'GET') {
         const matchId = detailMatch[1]!;
-        const m = await env.DB.prepare('SELECT seed, setup, status FROM matches WHERE id = ?')
+        const m = await env.DB.prepare('SELECT seed, setup, status, created_at FROM matches WHERE id = ?')
           .bind(matchId)
-          .first<{ seed: number; setup: string; status: string }>();
+          .first<{ seed: number; setup: string; status: string; created_at: number }>();
         if (!m) return fail(404, 'partie inconnue', env);
+        // NET-LIFECYCLE : expiration paresseuse (une partie inactive devient
+        // `abandoned` à la consultation).
+        const status = await effectiveStatus(env, matchId, m.status, m.created_at);
         const players = await env.DB.prepare(
           'SELECT seat, player_id, profile_id FROM match_players WHERE match_id = ? ORDER BY seat',
         )
@@ -262,7 +287,8 @@ export default {
             id: matchId,
             seed: m.seed,
             setup: JSON.parse(m.setup) as unknown,
-            status: m.status,
+            status,
+            createdAt: m.created_at,
             players: players.results,
             seq: seqRow?.seq ?? -1,
           },
@@ -285,6 +311,23 @@ export default {
         return json({ ok: true, seat: free.seat }, 200, env);
       }
 
+      // NET-LIFECYCLE : abandon volontaire. Un participant renonce ⇒ la partie
+      // passe `abandoned` (borné sur open/active pour rester idempotent). Le
+      // vainqueur n'est pas stocké : dans une partie async à 2, l'adversaire
+      // infère sa victoire en voyant `abandoned` (info ouverte, décision NET-FOG).
+      const forfeitMatch = path.match(/^\/matches\/([\w-]+)\/forfeit$/);
+      if (forfeitMatch && request.method === 'POST') {
+        const matchId = forfeitMatch[1]!;
+        const seat = await env.DB.prepare('SELECT seat FROM match_players WHERE match_id = ? AND profile_id = ?')
+          .bind(matchId, profileId)
+          .first<{ seat: number }>();
+        if (!seat) return fail(403, 'vous ne participez pas à cette partie', env);
+        await env.DB.prepare("UPDATE matches SET status = 'abandoned' WHERE id = ? AND status IN ('open', 'active')")
+          .bind(matchId)
+          .run();
+        return json({ ok: true }, 200, env);
+      }
+
       const movesMatch = path.match(/^\/matches\/([\w-]+)\/moves$/);
       if (movesMatch) {
         const matchId = movesMatch[1]!;
@@ -302,6 +345,15 @@ export default {
             .bind(matchId, profileId)
             .first<{ player_id: string }>();
           if (!seat) return fail(403, 'vous ne participez pas à cette partie', env);
+          // NET-LIFECYCLE : on ne poste plus dans une partie terminée/abandonnée
+          // (ni dans une partie `active` expirée par inactivité — marquée ici).
+          const mrow = await env.DB.prepare('SELECT status, created_at FROM matches WHERE id = ?')
+            .bind(matchId)
+            .first<{ status: string; created_at: number }>();
+          if (!mrow) return fail(404, 'partie inconnue', env);
+          const status = await effectiveStatus(env, matchId, mrow.status, mrow.created_at);
+          if (status !== 'active' && status !== 'open')
+            return fail(409, 'partie terminée ou abandonnée', env);
           const base = await baseLog(env, matchId);
           if (!base) return fail(404, 'partie inconnue', env);
           const count = await env.DB.prepare('SELECT COUNT(*) AS n FROM moves WHERE match_id = ?')

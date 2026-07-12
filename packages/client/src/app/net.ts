@@ -72,6 +72,11 @@ export async function verifyMagicLink(token: string): Promise<void> {
 
 // — Cloud saves —
 
+/**
+ * Envoie une sauvegarde cloud. Le serveur applique une **garde anti-downgrade**
+ * (NET-SRVGUARD) : un `saveVersion` antérieur à la version déjà stockée pour ce
+ * slot est rejeté (**409**) — `api` lève alors, l'appelant doit gérer l'échec.
+ */
 export function putSave(slot: string, state: string, saveVersion: number): Promise<{ ok: true }> {
   return api(`/saves/${slot}`, { method: 'PUT', body: JSON.stringify({ state, save_version: saveVersion }) });
 }

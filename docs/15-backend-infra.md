@@ -69,6 +69,12 @@ sérialisé + statut) ; `match_players` (sièges = ordre de tour) ; `moves`
 `PUT /saves/:slot { state, save_version }` (upsert) · `GET /saves/:slot`. Le
 client réutilise `serializeState`/`deserializeState` et la **garde de version**
 (doc 07 §4, 3.8) déjà en place — un save d'une autre version est rejeté proprement.
+**Garde serveur (NET-SRVGUARD)** : le Worker applique aussi une garde
+**anti-downgrade** — un `PUT /saves` dont le `save_version` est **antérieur** à
+celui déjà stocké pour ce slot est rejeté (**409**), un client obsolète ne peut
+donc pas écraser une sauvegarde plus récente (« le plus récent gagne », doc 07 §4).
+Le serveur reste version-agnostique (pas de constante moteur dupliquée). **Copie
+de sécurité N-1** (doc 07 §4) : différée (NET-SRVGUARD.2 — évolution de schéma D1).
 
 ### 5.3 PvP asynchrone
 

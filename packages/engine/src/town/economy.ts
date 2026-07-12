@@ -113,6 +113,23 @@ export function dailyIncome(state: GameState, playerId: string): Partial<Record<
  * NIVEAU CONSTRUIT est `income` crédite son propriétaire, puis chaque **mine**
  * de la carte possédée (doc 02 §2.2) crédite le sien.
  */
+/**
+ * Cap d'une ressource de faction, estampillé par le loader sur le bonus
+ * `gainFactionResourceOnVictory` de la faction (F-RESON.1). Lu inline ici (plutôt
+ * qu'importé de `faction/effects`) pour éviter un cycle economy ↔ faction/effects.
+ * `undefined` si non plafonné / faction sans bonus de gain de cette ressource.
+ */
+function factionResourceCapFor(
+  state: GameState,
+  factionId: string,
+  resource: string,
+): number | undefined {
+  for (const b of state.factionCatalog[factionId]?.bonuses ?? []) {
+    if (b.type === 'gainFactionResourceOnVictory' && b.resource === resource) return b.cap;
+  }
+  return undefined;
+}
+
 export function applyDailyIncome(draft: GameState, events: GameEvent[]): void {
   for (const town of draft.towns) {
     if (!town.ownerPlayerId) continue;
@@ -120,10 +137,20 @@ export function applyDailyIncome(draft: GameState, events: GameEvent[]): void {
     if (!player) continue;
     for (const buildingId of Object.keys(town.buildings)) {
       const level = builtLevelOf(town, draft.buildingCatalog, buildingId);
-      if (!level || level.effect.type !== 'income') continue;
-      const { resource, amount } = level.effect;
-      player.resources[resource] += amount;
-      events.push({ type: 'TownIncome', playerId: player.id, resource, amount });
+      if (!level) continue;
+      if (level.effect.type === 'income') {
+        const { resource, amount } = level.effect;
+        player.resources[resource] += amount;
+        events.push({ type: 'TownIncome', playerId: player.id, resource, amount });
+      } else if (level.effect.type === 'factionResourceIncome') {
+        // F-BUILDEFF.6 (La Scène) : revenu quotidien d'une ressource de faction,
+        // plafonné au cap déclaré (F-RESON.1). Silencieux (pas de toast quotidien).
+        const { resource, amount } = level.effect;
+        const cap = factionResourceCapFor(draft, town.factionId, resource);
+        const current = player.factionResources[resource] ?? 0;
+        player.factionResources[resource] =
+          cap !== undefined ? Math.max(current, Math.min(current + amount, cap)) : current + amount;
+      }
     }
   }
   for (const obj of draft.map?.objects ?? []) {

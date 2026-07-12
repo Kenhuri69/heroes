@@ -525,6 +525,15 @@ export async function loadFactionPack(
           errors.push(
             `${path}: ${b.id} niveau ${i + 1} — grantSpell vers sort inconnu '${eff.spellId}'`,
           );
+        // Revenu de ressource de faction (F-BUILDEFF.6) : la ressource doit être
+        // déclarée dans le manifeste de la faction.
+        if (
+          eff.type === 'factionResourceIncome' &&
+          !manifest.factionResources.some((r) => r.id === eff.resource)
+        )
+          errors.push(
+            `${path}: ${b.id} niveau ${i + 1} — factionResourceIncome vers ressource inconnue '${eff.resource}'`,
+          );
       });
     }
 

@@ -652,6 +652,8 @@ export function buildSpellCatalog(report: LoadReport): Record<string, ResolvedSp
       // `marks` (sort applyMarks, doc 05 §6) était perdu ici — le moteur le lit
       // pourtant (`spell.marks ?? 0`) ; propagé désormais, comme `adventure`.
       ...(s.marks !== undefined && { marks: s.marks }),
+      // Sort mange-Marques (F-SCHOOLS.3, doc 05 §6 « Volée de Dagues Spectrales »).
+      ...(s.marksDamagePct !== undefined && { marksDamagePct: s.marksDamagePct }),
       // Effet hors combat d'un sort `adventure` (doc 02 §1.4, Alpha 4.16).
       ...(s.adventure !== undefined && { adventure: s.adventure }),
     };

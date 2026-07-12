@@ -271,10 +271,15 @@ Source design : docs 03 §2/§4/§5, 04 §2/§4, 05 §3/§5/§6/§7, 14 §5/§6,
     livrée en pur contenu (patron .1) — `spellSchool:"prime"` + 4 sorts
     (debuff/damage/buff) + `SPELL_SCHOOLS += prime` + locales. Zéro diff moteur,
     golden inchangé.
-  - **F-SCHOOLS.3+** ⬜ : complétion Traque 8 sorts (doc 05 §6 — 6 sorts exigent
-    de **nouvelles** mécaniques de combat : téléport, silence, bannissement,
-    furtivité, noRetaliation conditionnel) ; effets Scène enrichis (peur/+moral,
-    partagés CAP-MORAL).
+  - **F-SCHOOLS.3** ✅ (plan `f-schools-3.md`) : **Volée de Dagues Spectrales**
+    (doc 05 §6, cercle 3) — nouvelle mécanique générique `SpellDef.marksDamagePct`
+    (sort de dégâts mange-Marques : +%/charge en plus du passif, puis Marques
+    consommées ; 1ᵉʳ *sort* à consommer des Marques, cf. `consumeMarks`/`devourMarks`
+    côté capacités). Zéro faction moteur, aucun bump save, golden inchangé.
+  - **F-SCHOOLS.4+** ⬜ : 5 sorts Traque restants (un sous-lot chacun) — Pas de
+    Brume (téléport allié), Silence Scellé (silence), Mue Éphémère (furtivité),
+    Bannissement, Heure de la Curée (noRetaliation conditionnel) ; effets Scène
+    enrichis (peur/+moral, partagés CAP-MORAL).
 
 - **F-ELITEVOX — Élites Vox Arcana** ✅ (plan `f-elitevox.md`, doc 16 §4)
   Pur contenu : 8 unités élites (`t*-*-elite`, stats ~1,25-1,3× base), 8 dwellings

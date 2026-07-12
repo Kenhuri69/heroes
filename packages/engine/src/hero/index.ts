@@ -368,7 +368,9 @@ export function estimateSpell(
       const def = state.unitCatalog[t.unitId];
       if (!def) continue;
       // D10 : la Marque amplifie les dégâts de sort — la préviz reflète le même bonus.
-      const markBonus = (state.config?.combat.markBonusPerStack ?? 0) * t.marks;
+      // F-SCHOOLS.3 : un sort mange-Marques ajoute `marksDamagePct`%/charge.
+      const consumeBonus = spell.marksDamagePct ? (spell.marksDamagePct / 100) * t.marks : 0;
+      const markBonus = (state.config?.combat.markBonusPerStack ?? 0) * t.marks + consumeBonus;
       const dmg = spellDamageAmount(spell, power, false, magicResistanceOf(def, t.transformed), markBonus);
       const pool = (t.count - 1) * def.stats.hp + t.firstHp;
       amount += dmg;

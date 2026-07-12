@@ -41,6 +41,13 @@ export interface SpellDef {
   /** Charges de Marque appliquées (sort `applyMarks`, doc 05 §6 — école Traque). */
   marks?: number;
   /**
+   * Sort mange-Marques (F-SCHOOLS.3, doc 05 §6 « Volée de Dagues Spectrales ») :
+   * un sort `damage` gagne `marksDamagePct` % de dégâts PAR charge de Marque de la
+   * cible (s'ajoute au bonus passif de Marque), puis les Marques sont consommées
+   * (remises à 0). Absent = sort de dégâts normal. Générique : nombre opaque.
+   */
+  marksDamagePct?: number;
+  /**
    * Zone d'effet (C7) : `splash` = la pile ciblée + les piles du même camp qui lui
    * sont adjacentes sur la grille hex (Boule de feu…). Absent = mono-cible.
    */

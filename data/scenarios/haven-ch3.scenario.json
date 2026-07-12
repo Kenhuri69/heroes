@@ -63,6 +63,22 @@
         { "speaker": "seraphine", "portrait": "grave", "textKey": "@loc:dlg.ch3.open.1" },
         { "speaker": "aldric", "textKey": "@loc:dlg.ch3.open.2" }
       ]
+    },
+    {
+      "id": "dlg-seraphine-1",
+      "lines": [{ "speaker": "seraphine", "portrait": "grave", "textKey": "@loc:dlg.seraphine.arc.1" }]
+    },
+    {
+      "id": "dlg-seraphine-2",
+      "lines": [{ "speaker": "aldric", "textKey": "@loc:dlg.seraphine.arc.2" }]
+    },
+    {
+      "id": "dlg-seraphine-choice",
+      "lines": [{ "speaker": "seraphine", "portrait": "grave", "textKey": "@loc:dlg.seraphine.arc.3" }],
+      "choices": [
+        { "textKey": "@loc:dlg.seraphine.arc.faith", "setFlag": "seraphine-faith" },
+        { "textKey": "@loc:dlg.seraphine.arc.doubt", "setFlag": "seraphine-doubt" }
+      ]
     }
   ],
   "quests": [
@@ -75,6 +91,30 @@
         { "id": "defeat-necromancien", "condition": { "type": "defeatHero", "heroId": "hero-ai-1" } }
       ],
       "rewards": [{ "type": "resources", "resources": { "gold": 3000 } }]
+    },
+    {
+      "id": "seraphine-visions",
+      "kind": "personal",
+      "titleKey": "@loc:quest.seraphine-visions.title",
+      "descriptionKey": "@loc:quest.seraphine-visions.desc",
+      "steps": [
+        {
+          "id": "confier-les-visions",
+          "condition": { "type": "ownUnits", "unitId": "t5-pretresse", "count": 2 },
+          "dialogBefore": "dlg-seraphine-1"
+        },
+        {
+          "id": "peser-le-doute",
+          "condition": { "type": "ownUnits", "unitId": "t3-frere-lame", "count": 6 },
+          "dialogBefore": "dlg-seraphine-2"
+        },
+        {
+          "id": "trancher",
+          "condition": { "type": "defeatHero", "heroId": "hero-ai-1" },
+          "dialogBefore": "dlg-seraphine-choice"
+        }
+      ],
+      "rewards": []
     }
   ]
 }

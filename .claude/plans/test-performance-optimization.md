@@ -219,3 +219,53 @@ sharding CI (B). Lots 4/5 (dédoublonnage, deux vitesses) non retenus pour l'ins
   Étape smoke la plus longue (shard 2) 3m25 vs 9m49 au run de référence
   (**-65 %** sur le smoke). Reste un léger déséquilibre de shard (2m26 vs 3m25 —
   split par nombre, pas par durée) ; acceptable, non traité. **Objectif atteint.**
+
+## 9. Lot 4+5 — E/F/G/H (décision utilisateur 2026-07-12, 2ᵉ demande)
+
+Suite du plan demandée : regroupement (E), dédoublonnage (F), migration
+unitaire (G), deux vitesses (H). **PR de suivi** (branche repartie de `main`
+après merge de #305, guideline §6).
+
+### Décisions
+- **F — Dédoublonnage** : les **6 tests « arc personnel … → drapeau
+  persistant »** (Aldric/Séraphine/Vhalen/Corbeau/Evadne/Marchmont) suivaient un
+  patron identique (openMenu → startScenario → dérouler la file de choix → clic
+  option 0 → vérifier drapeau posé + frère absent). Fusionnés en **1 test
+  paramétré** (table `DIALOGUE_ARCS`, une seule page, patron robuste tolérant
+  l'ordre des nœuds). 6 boots → 1. Couverture des 6 arcs préservée (chacun testé
+  via une `test.step`).
+- **E — Regroupement** : les **3 tests « confort »** (raccourci E, aide « ? »,
+  réduction d'animations), tous sur l'écran de carte avec le même démarrage,
+  fusionnés en **1 test à 3 `test.step`**. 3 boots → 1. (Les 2 tests « routeur »
+  NON fusionnés : états de départ différents — partie vs menu — gain marginal.)
+- **H — Deux vitesses** : tag **`@core`** sur 13 tests de parcours critique. En
+  **PR** (`pull_request`) le job `smoke` ne joue que `@core` (retour rapide) ;
+  la **suite complète** tourne sur `main` (`deploy.yml`, inchangé) et à la
+  demande (`workflow_dispatch` sur CI). `smoke-perf` (@perf) reste joué en PR
+  (anti-gel, peu coûteux). ⚠️ Compromis assumé : une régression hors `@core` et
+  hors `@perf` n'est vue qu'au merge/dispatch, pas sur la PR — filet = deploy.yml
+  bloque toute publication rouge.
+- **G — Migration vers l'unitaire** : **partiellement faite.** La DONNÉE des
+  arcs (nœuds de choix, drapeaux) est validée en test contenu
+  `packages/content/test/dialogue-arcs.test.ts` via des **invariants
+  faction-agnostiques** (aucun ID de scénario/faction en dur — le garde-fou
+  modularité grepe `packages/`) : tout drapeau de choix est unique dans le
+  corpus (pas de collision d'arc), et chaque nœud à choix binaire est une
+  décision complète à drapeaux distincts (≥ 6 nœuds = les arcs livrés). Le smoke
+  ne rejoue donc plus que 2 parcours UI. La **mécanique** dialogue→drapeau, elle,
+  vit dans le **client** (`app/narrative.ts` + `app/campaign.ts`, localStorage),
+  PAS dans le moteur pur ; or le client n'a **aucune** suite de tests unitaires (seuls
+  `@heroes/engine` et `@heroes/content` tournent sous vitest). Une vraie
+  descente en unitaire supposerait de monter une infra de tests client
+  (vitest + jsdom) — chantier séparé, hors périmètre de ce lot. Recommandé
+  comme suivi. Le smoke reste le bon niveau pour ces vérifs d'intégration UI ;
+  la consolidation (F/E) est le levier approprié ici.
+
+### Journal
+- 2026-07-12 : impl. E+F+G+H. Smoke `tests/smoke.spec.ts` : E confort 3→1,
+  F arcs 6→2 (générateur), 13 tags `@core` ; `ci.yml` PR = `@core`, dispatch/main
+  = complet ; G = `packages/content/test/dialogue-arcs.test.ts` (invariants
+  génériques). **1er run rouge** : le garde-fou faction a flaggé les IDs de
+  scénario en dur (`haven-ch2`…) dans le test contenu ⇒ réécrit en invariants
+  **faction-agnostiques** (aucun ID en dur). Vérifs locales : contenu 2/2,
+  garde-fou faction propre, @core 19/19, typecheck + lint verts.

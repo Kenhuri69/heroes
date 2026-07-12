@@ -154,7 +154,7 @@ function imgNaturalWidth(page: Page, selector: string): Promise<number> {
     .evaluate((el) => (el as HTMLImageElement).naturalWidth);
 }
 
-test('le client démarre sans erreur et charge le contenu', { tag: '@mobile' }, async ({ page }) => {
+test('le client démarre sans erreur et charge le contenu', { tag: ['@mobile', '@core'] }, async ({ page }) => {
   const errors = await openGame(page);
 
   await expect(page.locator('#canvas-root canvas')).toBeVisible();
@@ -183,7 +183,7 @@ test('le client démarre sans erreur et charge le contenu', { tag: '@mobile' }, 
   expect(errors).toEqual([]);
 });
 
-test('tap-tap : déplacement scripté, ramassage, points décomptés', { tag: '@mobile' }, async ({ page }) => {
+test('tap-tap : déplacement scripté, ramassage, points décomptés', { tag: ['@mobile', '@core'] }, async ({ page }) => {
   const errors = await openGame(page);
 
   // Le tas d'or est en (6,3), 3 pas droits depuis (3,3) : 3 × 100 PM.
@@ -398,69 +398,65 @@ test('fin de tour : jour suivant, points de mouvement restaurés', async ({ page
   expect(errors).toEqual([]);
 });
 
-test('confort : raccourci E + garde-fou de fin de tour (doc 08, lot M8 C2/C12)', async ({ page }) => {
-  const errors = await openGame(page);
-
-  // Établit le focus clavier du document (le contexte de test n'en a pas au
-  // chargement, contrairement à un vrai onglet) : tap sur la tuile du héros
-  // (3,3) = no-op, sans dépenser de PM.
-  const heroTile = await page.evaluate(() => window.__HEROES_TEST__!.tileToScreen(3, 3));
-  await page.mouse.click(heroTile.x, heroTile.y);
-
-  // Le héros n'a pas bougé (PM pleins) ⇒ la touche E ouvre la confirmation (C12).
-  // Sous charge (CI/parallèle), la frappe peut être avalée avant que le focus
-  // clavier soit réellement établi : on re-frappe jusqu'à voir la confirmation
-  // (même point de synchro déterministe que `tapTapTile`), sans re-frapper si
-  // elle est déjà ouverte.
-  const confirm = page.getByTestId('end-turn-confirm');
-  await expect(async () => {
-    if (!(await confirm.isVisible())) await page.keyboard.press('e');
-    await expect(confirm).toBeVisible({ timeout: 1000 });
-  }).toPass({ timeout: 10000 });
-  await page.getByTestId('end-turn-confirm-go').click();
-  await expect(page.getByTestId('calendar')).toHaveText('Mois 1 · Semaine 1 · Jour 2');
-
-  expect(errors).toEqual([]);
-});
-
-test('confort : « ? » ouvre l’aide des raccourcis, Échap la ferme (X7)', async ({ page }) => {
-  const errors = await openGame(page);
-
-  // Établit le focus clavier du document (cf. test raccourci E) : tap sur la
-  // tuile du héros (3,3) = no-op sans dépenser de PM.
-  const heroTile = await page.evaluate(() => window.__HEROES_TEST__!.tileToScreen(3, 3));
-  await page.mouse.click(heroTile.x, heroTile.y);
-
-  // « ? » — re-frappé jusqu'à l'ouverture (cf. test raccourci E : la frappe
-  // peut être avalée sous charge avant que le focus soit établi) ; fermeture
-  // Échap re-jouée de même (keydown avalable sous charge).
-  const panel = page.getByTestId('shortcuts-panel');
-  await expect(async () => {
-    if (!(await panel.isVisible())) await page.keyboard.press('Shift+Slash');
-    await expect(panel).toBeVisible({ timeout: 1000 });
-  }).toPass({ timeout: 10000 });
-  await expect(async () => {
-    await page.keyboard.press('Escape');
-    await expect(panel).toHaveCount(0, { timeout: 1000 });
-  }).toPass({ timeout: 10000 });
-
-  expect(errors).toEqual([]);
-});
-
-test('confort : option « réduire les animations » pose data-reduce-motion (lot M8 C3)', async ({
+// Regroupe trois vérifs de confort sur l'écran de carte (un seul démarrage) :
+// aide « ? » (X7), option « réduire les animations » (M8 C3), raccourci E +
+// garde-fou de fin de tour (M8 C2/C12 — joué en dernier car il finit le tour).
+test('confort : aide « ? », réduction des animations et raccourci E (doc 08, lot M8)', async ({
   page,
 }) => {
   const errors = await openGame(page);
 
-  await page.getByTestId('options-open').click();
-  await page.getByTestId('options-reduce-motion-on').click();
-  await expect
-    .poll(() => page.evaluate(() => document.documentElement.dataset.reduceMotion))
-    .toBe('true');
-  await page.getByTestId('options-reduce-motion-off').click();
-  await expect
-    .poll(() => page.evaluate(() => document.documentElement.dataset.reduceMotion))
-    .toBe('false');
+  // Établit le focus clavier du document (le contexte de test n'en a pas au
+  // chargement) : tap sur la tuile du héros (3,3) = no-op sans dépenser de PM.
+  const focusMap = async () => {
+    const heroTile = await page.evaluate(() => window.__HEROES_TEST__!.tileToScreen(3, 3));
+    await page.mouse.click(heroTile.x, heroTile.y);
+  };
+  await focusMap();
+
+  await test.step('aide « ? » : ouverture puis fermeture Échap (X7)', async () => {
+    // Re-frappé jusqu'à l'ouverture (la frappe peut être avalée sous charge
+    // avant que le focus soit établi) ; fermeture Échap re-jouée de même.
+    const panel = page.getByTestId('shortcuts-panel');
+    await expect(async () => {
+      if (!(await panel.isVisible())) await page.keyboard.press('Shift+Slash');
+      await expect(panel).toBeVisible({ timeout: 1000 });
+    }).toPass({ timeout: 10000 });
+    await expect(async () => {
+      await page.keyboard.press('Escape');
+      await expect(panel).toHaveCount(0, { timeout: 1000 });
+    }).toPass({ timeout: 10000 });
+  });
+
+  await test.step('option « réduire les animations » pose data-reduce-motion (C3)', async () => {
+    await page.getByTestId('options-open').click();
+    await page.getByTestId('options-reduce-motion-on').click();
+    await expect
+      .poll(() => page.evaluate(() => document.documentElement.dataset.reduceMotion))
+      .toBe('true');
+    await page.getByTestId('options-reduce-motion-off').click();
+    await expect
+      .poll(() => page.evaluate(() => document.documentElement.dataset.reduceMotion))
+      .toBe('false');
+    // Referme les options pour laisser la carte au 1er plan (le raccourci E suit).
+    if (await page.getByTestId('options-panel').isVisible().catch(() => false)) {
+      await page.keyboard.press('Escape');
+    }
+    await expect(page.getByTestId('options-panel')).toHaveCount(0);
+  });
+
+  await test.step('raccourci E : garde-fou de fin de tour puis jour suivant (C2/C12)', async () => {
+    await focusMap(); // ré-établit le focus clavier après la modale d'options
+    // Le héros n'a pas bougé (PM pleins) ⇒ E ouvre la confirmation (C12) ;
+    // re-frappé jusqu'à la voir (même synchro déterministe que `tapTapTile`).
+    const confirm = page.getByTestId('end-turn-confirm');
+    await expect(async () => {
+      if (!(await confirm.isVisible())) await page.keyboard.press('e');
+      await expect(confirm).toBeVisible({ timeout: 1000 });
+    }).toPass({ timeout: 10000 });
+    await page.getByTestId('end-turn-confirm-go').click();
+    await expect(page.getByTestId('calendar')).toHaveText('Mois 1 · Semaine 1 · Jour 2');
+  });
 
   expect(errors).toEqual([]);
 });
@@ -625,7 +621,7 @@ test('lieu de bonus & habitation : écurie ⇒ +PM, camp ⇒ recrutement (doc 02
   expect(errors).toEqual([]);
 });
 
-test('combat : victoire contre le gardien, retour carte avec pertes appliquées', { tag: '@mobile' }, async ({ page }) => {
+test('combat : victoire contre le gardien, retour carte avec pertes appliquées', { tag: ['@mobile', '@core'] }, async ({ page }) => {
   const errors = await openGame(page);
 
   // Chemin scripté vers le gardien (9,3) par la rangée 2 (évite le tas d'or
@@ -675,7 +671,7 @@ test('combat : victoire contre le gardien, retour carte avec pertes appliquées'
   expect(errors).toEqual([]);
 });
 
-test('écran pré-combat : puissances comparées + Auto-Battle résout (Lot 1)', async ({ page }) => {
+test('écran pré-combat : puissances comparées + Auto-Battle résout (Lot 1)', { tag: '@core' }, async ({ page }) => {
   const errors = await openGame(page);
 
   // Interception du gardien (9,3) — même chemin que le test de combat.
@@ -874,7 +870,7 @@ test('carte d’aventure : fluidité sous throttling CPU ×4 (doc 01 §5 critèr
   expect(fps).toBeGreaterThanOrEqual(5);
 });
 
-test('menu : Nouvelle partie démarre, Continuer grisé sans sauvegarde', { tag: '@mobile' }, async ({ page }) => {
+test('menu : Nouvelle partie démarre, Continuer grisé sans sauvegarde', { tag: ['@mobile', '@core'] }, async ({ page }) => {
   const errors = collectErrors(page);
   await page.goto('./'); // sans ?seed : le menu s'affiche (doc 08 §2.5)
   await page.waitForFunction(() => window.__HEROES_READY__ === true);
@@ -897,7 +893,7 @@ test('menu : Nouvelle partie démarre, Continuer grisé sans sauvegarde', { tag:
   expect(errors).toEqual([]);
 });
 
-test('nouvelle partie : configuration 3 joueurs + taille + ressources génèrent la partie', async ({
+test('nouvelle partie : configuration 3 joueurs + taille + ressources génèrent la partie', { tag: '@core' }, async ({
   page,
 }) => {
   const errors = collectErrors(page);
@@ -1432,7 +1428,7 @@ test('autosave à la fin de tour puis « Continuer » depuis le menu', { tag: '@
   expect(errors).toEqual([]);
 });
 
-test('options : bascule de langue FR → EN appliquée à l’UI', async ({ page }) => {
+test('options : bascule de langue FR → EN appliquée à l’UI', { tag: '@core' }, async ({ page }) => {
   const errors = await openGame(page);
 
   // Calendrier persistant (M-CALWIDGET, doc 02 §2.3) : le chip affiche mois +
@@ -1702,7 +1698,7 @@ test('sauvegarde à version de forme incompatible : import rejeté proprement (l
   expect(errors).toEqual([]);
 });
 
-test('ville : construire + croissance + recruter + transférer → armée du héros', { tag: '@mobile' }, async ({ page }) => {
+test('ville : construire + croissance + recruter + transférer → armée du héros', { tag: ['@mobile', '@core'] }, async ({ page }) => {
   const errors = await openGame(page);
 
   // La ville de départ est chargée (doc 02 §4) : bouton [Ville] + écran.
@@ -2246,7 +2242,7 @@ test('ville : une construction refusée affiche une erreur localisée (remédiat
   expect(errors).toEqual([]);
 });
 
-test('sort : le héros lance un sort en combat et réduit une pile ennemie', async ({ page }) => {
+test('sort : le héros lance un sort en combat et réduit une pile ennemie', { tag: '@core' }, async ({ page }) => {
   const errors = await openGame(page);
 
   // Interception du gardien (9,3) : le héros est lié au camp attaquant (doc 02
@@ -2423,7 +2419,7 @@ test('compétence : aucune modale de choix sans montée de niveau (gating)', asy
   expect(errors).toEqual([]);
 });
 
-test('sauvegarde puis rechargement IndexedDB : position restaurée', { tag: '@mobile' }, async ({ page }) => {
+test('sauvegarde puis rechargement IndexedDB : position restaurée', { tag: ['@mobile', '@core'] }, async ({ page }) => {
   const errors = await openGame(page);
 
   await moveHeroToGold(page);
@@ -2585,7 +2581,7 @@ test('marché : construire un marché puis vendre une ressource contre de l’or
   expect(errors).toEqual([]);
 });
 
-test('scénario : le menu démarre le tutoriel, l’IA joue son tour', async ({ page }) => {
+test('scénario : le menu démarre le tutoriel, l’IA joue son tour', { tag: '@core' }, async ({ page }) => {
   const errors = await openMenu(page);
 
   await expect(page.getByTestId('menu-scenario-tutorial')).toBeVisible();
@@ -2661,7 +2657,7 @@ test('prologue narratif : dialogue → journal → quête récompensée (doc 13 
   expect(errors).toEqual([]);
 });
 
-test('campagne : gagner le chapitre 1 débloque le 2 et reporte le héros (doc 13 N3a)', async ({ page }) => {
+test('campagne : gagner le chapitre 1 débloque le 2 et reporte le héros (doc 13 N3a)', { tag: '@core' }, async ({ page }) => {
   const errors = await openMenu(page);
 
   // La campagne Haven apparaît au menu : chapitre 1 jouable, chapitre 2 verrouillé.
@@ -2822,214 +2818,46 @@ test('cinématique : letterbox + Passer sur l’ouverture d’un chapitre (doc 1
   expect(errors).toEqual([]);
 });
 
-test('choix de dialogue : arc personnel d’Aldric → choix binaire pose un drapeau persistant (doc 13 N3c.2)', async ({
-  page,
-}) => {
-  const errors = await openMenu(page);
+// Arcs personnels de campagne (doc 13 §5.4). La DONNÉE des 6 arcs (nœud de
+// choix binaire → drapeaux) est validée en contenu (dialogue-arcs.test.ts) ;
+// le smoke ne garde que 2 parcours UI REPRÉSENTATIFS pour prouver le câblage
+// dialogue→drapeau persistant côté client : un arc simple (choix dès
+// l'ouverture) et un arc CHAÎNÉ (enfilé après d'autres nœuds à choix du même
+// scénario). Un seul corps paramétré ⇒ 2 cas isolés, exécutés en parallèle
+// (plan test-performance-optimization §9, axes F/G).
+const DIALOGUE_ARCS_UI = [
+  { label: 'Aldric — arc simple (haven-ch2)', scenario: 'haven-ch2', set: 'aldric-merciful', unset: 'aldric-ruthless' },
+  { label: 'Marchmont — arc chaîné (arcane-ch2)', scenario: 'arcane-ch2', set: 'marchmont-reveal', unset: 'marchmont-protect' },
+] as const;
 
-  // haven-ch2 embarque l'arc personnel d'Aldric (quête `personal`, 3 étapes) : les
-  // 2 premières sont satisfaites par l'armée de départ, l'arc atteint son nœud de
-  // choix binaire dès l'ouverture. On déroule sans passer la cinématique (qui
-  // viderait la file de dialogues de l'arc).
-  await page.evaluate(() => window.__HEROES_TEST__!.startScenario('haven-ch2'));
+for (const arc of DIALOGUE_ARCS_UI) {
+  test(`choix de dialogue : ${arc.label} pose un drapeau persistant (doc 13 §5.4)`, async ({
+    page,
+  }) => {
+    const errors = await openMenu(page);
+    await page.evaluate((id) => window.__HEROES_TEST__!.startScenario(id), arc.scenario);
+    await expect(page.getByTestId('dialogue-box')).toBeVisible();
 
-  await expect(page.getByTestId('dialogue-box')).toBeVisible();
-  await page.getByTestId('dialogue-skip').click(); // dlg-aldric-1 → dlg-aldric-2
-  await page.getByTestId('dialogue-skip').click(); // dlg-aldric-2 → dlg-aldric-choice
-
-  // Au nœud de choix : deux boutons, aucun « Passer » (une décision est requise).
-  await expect(page.getByTestId('dialogue-choices')).toBeVisible();
-  await expect(page.getByTestId('dialogue-skip')).toHaveCount(0);
-  await expect(page.getByTestId('dialogue-choice-0')).toBeVisible();
-  await expect(page.getByTestId('dialogue-choice-1')).toBeVisible();
-
-  // Choisir « clément » pose le drapeau, persisté (relu entre campagnes).
-  await page.getByTestId('dialogue-choice-0').click();
-  const flags = await page.evaluate(() => window.__HEROES_TEST__!.campaignFlags());
-  expect(flags['aldric-merciful']).toBe(true);
-  expect(flags['aldric-ruthless']).toBeUndefined();
-
-  expect(errors).toEqual([]);
-});
-
-test('choix de dialogue : arc personnel de Séraphine (haven-ch3) → drapeau persistant (doc 13 §5.4, N-ARCS.1)', async ({
-  page,
-}) => {
-  const errors = await openMenu(page);
-
-  // haven-ch3 embarque le 2ᵉ arc Haven (Séraphine, quête `personal`, 3 étapes) :
-  // les 2 premières sont satisfaites par l'armée de départ, l'arc atteint son
-  // nœud de choix binaire dès l'ouverture. On déroule la file (dialogue
-  // d'ouverture + étapes) jusqu'au nœud de choix.
-  await page.evaluate(() => window.__HEROES_TEST__!.startScenario('haven-ch3'));
-
-  await expect(page.getByTestId('dialogue-box')).toBeVisible();
-  const choices = page.getByTestId('dialogue-choices');
-  const skip = page.getByTestId('dialogue-skip');
-  for (let i = 0; i < 8 && (await choices.count()) === 0; i++) {
-    await skip.click();
-  }
-
-  // Au nœud de choix : deux boutons, aucun « Passer » (une décision est requise).
-  await expect(choices).toBeVisible();
-  await expect(skip).toHaveCount(0);
-  await expect(page.getByTestId('dialogue-choice-0')).toBeVisible();
-  await expect(page.getByTestId('dialogue-choice-1')).toBeVisible();
-
-  // Choisir « écouter » (foi) pose le drapeau, persisté.
-  await page.getByTestId('dialogue-choice-0').click();
-  const flags = await page.evaluate(() => window.__HEROES_TEST__!.campaignFlags());
-  expect(flags['seraphine-faith']).toBe(true);
-  expect(flags['seraphine-doubt']).toBeUndefined();
-
-  expect(errors).toEqual([]);
-});
-
-test('choix de dialogue : arc personnel de Vhalen (necropolis-ch2) → drapeau persistant (doc 13 §5.4, N-ARCS.2)', async ({
-  page,
-}) => {
-  const errors = await openMenu(page);
-
-  // necropolis-ch2 embarque l'arc Necropolis (Vhalen, quête `personal`, 3 étapes) :
-  // les 2 premières sont satisfaites par l'armée de départ, l'arc atteint son
-  // nœud de choix binaire dès l'ouverture. On déroule la file (dialogue
-  // d'ouverture + étapes) jusqu'au nœud de choix.
-  await page.evaluate(() => window.__HEROES_TEST__!.startScenario('necropolis-ch2'));
-
-  await expect(page.getByTestId('dialogue-box')).toBeVisible();
-  const choices = page.getByTestId('dialogue-choices');
-  const skip = page.getByTestId('dialogue-skip');
-  for (let i = 0; i < 8 && (await choices.count()) === 0; i++) {
-    await skip.click();
-  }
-
-  // Au nœud de choix : deux boutons, aucun « Passer » (une décision est requise).
-  await expect(choices).toBeVisible();
-  await expect(skip).toHaveCount(0);
-  await expect(page.getByTestId('dialogue-choice-0')).toBeVisible();
-  await expect(page.getByTestId('dialogue-choice-1')).toBeVisible();
-
-  // Choisir « réparer le sceau » (doctrine) pose le drapeau, persisté.
-  await page.getByTestId('dialogue-choice-0').click();
-  const flags = await page.evaluate(() => window.__HEROES_TEST__!.campaignFlags());
-  expect(flags['vhalen-repair']).toBe(true);
-  expect(flags['vhalen-feed']).toBeUndefined();
-
-  expect(errors).toEqual([]);
-});
-
-test('choix de dialogue : arc personnel de Mère Corbeau (necropolis-ch2) → drapeau persistant (doc 13 §5.4, N-ARCS.4)', async ({
-  page,
-}) => {
-  const errors = await openMenu(page);
-
-  // necropolis-ch2 embarque DEUX arcs `personal` : Vhalen (livré) puis Mère
-  // Corbeau (ce lot), tous deux déroulés dès l'ouverture (étapes pré-satisfaites
-  // par l'armée de départ). On résout chaque nœud de choix (le 1ᵉʳ = Vhalen)
-  // jusqu'à poser le drapeau de Mère Corbeau — même patron robuste qu'Evadne.
-  await page.evaluate(() => window.__HEROES_TEST__!.startScenario('necropolis-ch2'));
-
-  await expect(page.getByTestId('dialogue-box')).toBeVisible();
-  const choices = page.getByTestId('dialogue-choices');
-  const skip = page.getByTestId('dialogue-skip');
-  const flagsNow = () => page.evaluate(() => window.__HEROES_TEST__!.campaignFlags());
-  for (let i = 0; i < 12; i++) {
-    const f = await flagsNow();
-    if (f['corbeau-pact'] || f['corbeau-refuse']) break;
-    if ((await choices.count()) > 0) {
-      // choix : l'option 0 pose `vhalen-repair` (arc Vhalen) ou `corbeau-pact`
-      // (arc Corbeau) — dans les deux cas on avance vers / on atteint le drapeau visé.
-      await page.getByTestId('dialogue-choice-0').click();
-    } else if ((await skip.count()) > 0) {
-      await skip.click();
-    } else {
-      break;
+    // Patron robuste : résout chaque nœud (choix → option 0, sinon « Passer »)
+    // jusqu'au drapeau visé — tolère l'ordre des nœuds et les arcs enfilés dans
+    // un même scénario. L'option 0 ne pose jamais le drapeau « frère ».
+    const choices = page.getByTestId('dialogue-choices');
+    const skip = page.getByTestId('dialogue-skip');
+    const flagsNow = () => page.evaluate(() => window.__HEROES_TEST__!.campaignFlags());
+    for (let i = 0; i < 16; i++) {
+      const f = await flagsNow();
+      if (f[arc.set] || f[arc.unset]) break;
+      if ((await choices.count()) > 0) await page.getByTestId('dialogue-choice-0').click();
+      else if ((await skip.count()) > 0) await skip.click();
+      else break;
     }
-  }
 
-  // Le choix de Mère Corbeau « pactiser avec le Havre » pose le drapeau, persisté.
-  const flags = await flagsNow();
-  expect(flags['corbeau-pact']).toBe(true);
-  expect(flags['corbeau-refuse']).toBeUndefined();
-
-  expect(errors).toEqual([]);
-});
-
-test('choix de dialogue : arc personnel d’Evadne (arcane-ch2) → drapeau persistant (doc 13 §5.4, N-ARCS.3)', async ({
-  page,
-}) => {
-  const errors = await openMenu(page);
-
-  // arcane-ch2 embarque l'arc Arcane (Evadne, quête `personal`, 3 étapes) : les
-  // 2 premières sont satisfaites par l'armée de départ, l'arc atteint son nœud
-  // de choix dès l'ouverture. Particularité : le dialogue d'OUVERTURE porte
-  // lui-même un choix (rencontre Evadne↔Aldric). On déroule donc la file en
-  // résolvant chaque choix qui n'est pas encore celui d'Evadne, jusqu'à ce que
-  // le drapeau d'Evadne soit posé.
-  await page.evaluate(() => window.__HEROES_TEST__!.startScenario('arcane-ch2'));
-
-  await expect(page.getByTestId('dialogue-box')).toBeVisible();
-  const choices = page.getByTestId('dialogue-choices');
-  const skip = page.getByTestId('dialogue-skip');
-  const flagsNow = () => page.evaluate(() => window.__HEROES_TEST__!.campaignFlags());
-  for (let i = 0; i < 12; i++) {
-    const f = await flagsNow();
-    if (f['evadne-embrace'] || f['evadne-sever']) break;
-    if ((await choices.count()) > 0) {
-      // choix : l'option 0 pose `aldric-pacte` (ouverture) ou `evadne-embrace`
-      // (arc) — dans les deux cas on avance vers / on atteint le drapeau visé.
-      await page.getByTestId('dialogue-choice-0').click();
-    } else if ((await skip.count()) > 0) {
-      await skip.click();
-    } else {
-      break;
-    }
-  }
-
-  // Le choix d'Evadne « l'assumer » pose le drapeau, persisté.
-  const flags = await flagsNow();
-  expect(flags['evadne-embrace']).toBe(true);
-  expect(flags['evadne-sever']).toBeUndefined();
-
-  expect(errors).toEqual([]);
-});
-
-test('choix de dialogue : arc personnel de Marchmont (arcane-ch2) → drapeau persistant (doc 13 §5.4, N-ARCS.5)', async ({
-  page,
-}) => {
-  const errors = await openMenu(page);
-
-  // arcane-ch2 embarque DEUX arcs `personal` : Evadne (livré) puis Marchmont (ce
-  // lot), + une rencontre d'ouverture à choix. On résout chaque nœud de choix
-  // (ouverture, puis Evadne) jusqu'à poser le drapeau de Marchmont — patron
-  // robuste identique à Evadne (l'arc de Marchmont s'enfile APRÈS celui d'Evadne).
-  await page.evaluate(() => window.__HEROES_TEST__!.startScenario('arcane-ch2'));
-
-  await expect(page.getByTestId('dialogue-box')).toBeVisible();
-  const choices = page.getByTestId('dialogue-choices');
-  const skip = page.getByTestId('dialogue-skip');
-  const flagsNow = () => page.evaluate(() => window.__HEROES_TEST__!.campaignFlags());
-  for (let i = 0; i < 16; i++) {
-    const f = await flagsNow();
-    if (f['marchmont-reveal'] || f['marchmont-protect']) break;
-    if ((await choices.count()) > 0) {
-      // choix : l'option 0 pose `aldric-pacte` (ouverture), `evadne-embrace`
-      // (arc Evadne) ou `marchmont-reveal` (arc Marchmont) — on avance jusqu'au visé.
-      await page.getByTestId('dialogue-choice-0').click();
-    } else if ((await skip.count()) > 0) {
-      await skip.click();
-    } else {
-      break;
-    }
-  }
-
-  // Le choix de Marchmont « révéler les feuillets » pose le drapeau, persisté.
-  const flags = await flagsNow();
-  expect(flags['marchmont-reveal']).toBe(true);
-  expect(flags['marchmont-protect']).toBeUndefined();
-
-  expect(errors).toEqual([]);
-});
+    const flags = await flagsNow();
+    expect(flags[arc.set]).toBe(true);
+    expect(flags[arc.unset]).toBeUndefined();
+    expect(errors).toEqual([]);
+  });
+}
 
 test('campagne : 3ᵉ chapitre Haven sur sa carte dédiée proto-02 (doc 13 N3c.3)', async ({ page }) => {
   const errors = await openMenu(page);
@@ -3289,7 +3117,7 @@ test('assets : Vox Arcana — ville peinte (habitations, Maisons, fond) + jetons
 // chargement en ligne (SW actif + cache peuplé), on coupe le réseau et l'app
 // démarre quand même (coquille + contenu servis par le cache). Le SW ne
 // s'enregistre qu'en PROD → le smoke tourne sur `vite preview` (build de prod).
-test('PWA : manifeste installable + service worker ⇒ démarrage hors-ligne', async ({ page }) => {
+test('PWA : manifeste installable + service worker ⇒ démarrage hors-ligne', { tag: '@core' }, async ({ page }) => {
   await page.goto('./');
   await page.waitForFunction(() => window.__HEROES_READY__ === true);
 

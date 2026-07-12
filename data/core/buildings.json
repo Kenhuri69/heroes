@@ -202,7 +202,8 @@
           "effect": {
             "type": "warMachineVendor",
             "units": [
-              "ballista"
+              "ballista",
+              "catapulte"
             ]
           }
         }

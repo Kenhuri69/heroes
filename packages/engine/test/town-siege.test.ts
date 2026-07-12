@@ -144,4 +144,24 @@ describe('C-SIEGE2 — murs de siège', () => {
     expect(done.combat).toBeNull(); // le combat se termine (pas de blocage)
     expect(done.towns[0]?.ownerPlayerId).toBe('p1');
   });
+
+  it('C-SIEGE2.2 : une catapulte (siegeBreaker) élargit la brèche du rempart', () => {
+    const s = siegeState([{ unitId: 'red-grunt', count: 50 }], [{ unitId: 'blue-wolf', count: 1 }], { fort: 2 });
+    s.heroes[0]!.warMachines = ['siege-cat'];
+    s.unitCatalog = {
+      ...s.unitCatalog,
+      'siege-cat': {
+        id: 'siege-cat', groupId: 'wm', nativeTerrain: 'grass',
+        stats: { hp: 300, attack: 8, defense: 10, damage: [8, 15], speed: 1 },
+        abilities: [{ id: 'warMachine' }, { id: 'siegeBreaker' }],
+      },
+    };
+    const { state: next } = apply(s, { type: 'CaptureTown', townId: 't1', playerId: 'p1' });
+    const walls = next.combat?.siegeWalls ?? [];
+    // Brèche : la porte est élargie ⇒ 2 segments de moins que le rempart plein.
+    expect(walls.length).toBe(COMBAT_ROWS - GATE.length - 2);
+    expect(walls.some((w) => w.row === GATE[0]! - 1 || w.row === GATE[1]! + 1)).toBe(false);
+    // La catapulte rejoint bien le camp attaquant (machine de guerre).
+    expect(next.combat?.stacks.some((st) => st.side === 'attacker' && st.unitId === 'siege-cat')).toBe(true);
+  });
 });

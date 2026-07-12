@@ -331,8 +331,19 @@ Chaque faction consomme surtout **une paire de ressources rares** (Haven : crist
 > obstacle (helper partagé `staticBlockedKeys`) : la mêlée s'engouffre par la
 > porte, les **volants** le survolent, les **tireurs** tirent par l'ouverture. Une
 > ville **sans Fort** ⇒ aucun mur (siège v1 inchangé). **Non destructibles** pour
-> l'instant : catapulte (machine de guerre) + PV de segment = **C-SIEGE2.2** ;
+> l'instant : PV de segment / destruction par les unités = **C-SIEGE2.2+** ;
 > tour de tir = .3 ; douves = .4. Zéro faction moteur.
+
+> 🚧 **État (sièges v2 — C-SIEGE2.2, catapulte)** : une **catapulte** (machine de
+> guerre `data/core/war-machines.json`, marqueur `siegeBreaker`, vendue par la
+> **Forge** comme la Baliste) portée par l'assaillant **brèche le rempart** au
+> montage du siège — les segments qui **flanquent la porte** sont retirés,
+> **doublant l'ouverture** (`buildSiegeWalls(fortLevel, breached)`, `breached`
+> détecté via `hero.warMachines` + `hasAbility('siegeBreaker')`). La catapulte
+> rejoint aussi le camp attaquant comme pile (engin lent/tanky). Bombardement
+> **tour-par-tour** (ciblage de segment, PV) = raffinement ultérieur. Champ
+> `siegeWalls` inchangé (la brèche = moins de segments) ⇒ pas de bump save, golden
+> inchangé. Zéro faction moteur.
 
 > 🚧 **État (caravanes inter-villes — T-CARAVAN, livré)** : commande générique
 > **`SendCaravan { fromTownId, toTownId, slot }`** — envoie une pile de garnison

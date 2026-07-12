@@ -82,9 +82,15 @@ doc 08 §2.4 (écran de combat).
     porte, volants au-dessus, tir par l'ouverture) ; rendu client comme bloqueur.
     Auto-combat non bloqué (test « assaillant fort capture malgré le rempart »).
     Ville sans Fort ⇒ siège v1 inchangé.
-  - **C-SIEGE2.2+** ⬜ : (b) **catapulte** (machine de guerre, Forge) + **PV de
-    segment / destruction de murs** ; (c) **tour de tir** (pile défenderesse
-    fixe) ; (d) **douves** (zone de ralentissement) ; art de rempart distinct.
+  - **C-SIEGE2.2** ✅ (plan `c-siege2-catapult.md`) : **catapulte** — machine de
+    guerre `catapulte` (marqueur `siegeBreaker`, vendue par la Forge comme la
+    Baliste) qui **brèche le rempart** au montage du siège (retire les segments
+    flanquant la porte ⇒ ouverture doublée, `buildSiegeWalls(fortLevel, breached)`,
+    détectée via `hero.warMachines`). Champ `siegeWalls` inchangé (pas de bump,
+    golden inchangé). Données pures + petit branchement moteur.
+  - **C-SIEGE2.3+** ⬜ : bombardement **tour-par-tour** de la catapulte (PV de
+    segment, ciblage) ; (c) **tour de tir** (pile défenderesse fixe) ; (d)
+    **douves** (zone de ralentissement) ; art de rempart distinct.
 
 - **C-SPELLUI — Grimoire & ciblage de sorts** 🎨 M ⬜
   Doc : doc 08 §2.3 (grimoire feuilletable par école), doc 02 §1.4.

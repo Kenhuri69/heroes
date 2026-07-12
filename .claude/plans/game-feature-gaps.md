@@ -614,11 +614,10 @@ SDK `packages/client/src/app/net.ts` sans autre appelant).
 
 Source design : **doc 13** (N1→N4 livrés), docs de faction §lore.
 
-- **N-ARCS — 5 arcs personnels de héros sur 6** 🧩 M 🚧 (**découpé en sous-lots**)
+- **N-ARCS — 6 arcs personnels de héros sur 6** ✅ (**découpé en sous-lots**)
   Doc : doc 13 §5.4 (6 arcs, 2/faction, 3 étapes : Aldric ✅, **Séraphine ✅**,
-  **Vhalen ✅**, **Evadne ✅**, **Mère Corbeau ✅**, Marchmont). Spec : données
-  pures (quêtes + dialogues), zéro moteur. Synergie avec H-NAMED (les arcs
-  prennent du sens quand les héros ont une identité).
+  **Vhalen ✅**, **Evadne ✅**, **Mère Corbeau ✅**, **Marchmont ✅**). Spec :
+  données pures (quêtes + dialogues), zéro moteur. **Les 6 arcs sont livrés.**
   - **N-ARCS.1** ✅ (plan `n-arcs-seraphine.md`) : **arc de Séraphine** (Haven,
     `haven-ch3` — visions d'Elrath vs. le sceau, drapeaux `seraphine-faith`/
     `seraphine-doubt`) en données pures (patron Aldric N3c.2), zéro diff moteur/
@@ -636,8 +635,12 @@ Source design : **doc 13** (N1→N4 livrés), docs de faction §lore.
     ajoutée APRÈS `vhalen-sceau` ⇒ smoke Vhalen inchangé. Mêmes patron/vérifs,
     zéro diff moteur. Smoke : résoudre le choix de Vhalen puis atteindre celui de
     Corbeau → drapeau posé.
-  - **N-ARCS.5+** ⬜ : Marchmont (Arcane Hunters) — mêmes patron/vérifs (dernier
-    des 6 arcs).
+  - **N-ARCS.5** ✅ (plan `n-arcs-marchmont.md`) : **arc de Marchmont** (Arcane
+    Hunters, `arcane-ch2`, 2ᵉ arc aux côtés d'Evadne — « le Doyen des Sceaux
+    exhume le mensonge fondateur de l'Académie : révéler ou taire »,
+    `marchmont-reveal`/`marchmont-protect`). Quête `marchmont-mensonge` (personal,
+    3 étapes) ajoutée APRÈS `evadne-verrou` ⇒ smoke Evadne inchangé. Mêmes
+    patron/vérifs, zéro diff moteur. **N-ARCS complet : 6/6.**
 
 - **N-DAILYREFRESH — Rafraîchissement quotidien des journalières** 🧩 S ✅ (livré)
   Doc : doc 13 §4.2/§5.2. Livré : commande moteur **générique** `AddQuests

@@ -355,11 +355,13 @@ l'évoque dans un dialogue).
 > `seraphine-doubt`), **Vhalen** (`necropolis-ch2` — « le sceau nourrit Heresh
 > en âmes ; le réparer affamerait son peuple », `vhalen-repair`/`vhalen-feed`)
 > et **Evadne** (`arcane-ch2` — « la rune du verrou greffée sur son visage ; le
-> sceau la reconnaît », `evadne-embrace`/`evadne-sever`) et **Mère Corbeau**
+> sceau la reconnaît », `evadne-embrace`/`evadne-sever`), **Mère Corbeau**
 > (`necropolis-ch2`, 2ᵉ arc Necropolis aux côtés de Vhalen — « l'âme d'un enfant
 > de Cendregarde prise dans le sceau, quitte à pactiser avec le Havre pour la
-> recueillir », `corbeau-pact`/`corbeau-refuse`) livrés. *Reste :* Marchmont
-> (Arcane Hunters).
+> recueillir », `corbeau-pact`/`corbeau-refuse`) et **Marchmont** (`arcane-ch2`,
+> 2ᵉ arc Arcane Hunters aux côtés d'Evadne — « le Doyen des Sceaux exhume le
+> mensonge fondateur de l'Académie : révéler ou taire », `marchmont-reveal`/
+> `marchmont-protect`) livrés. **Les 6 arcs sont livrés (6/6).**
 
 ---
 

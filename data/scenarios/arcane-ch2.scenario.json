@@ -52,7 +52,8 @@
   "openingDialog": "dlg-arcane-ch2-rencontre",
   "characters": [
     { "id": "evadne", "nameKey": "@loc:character.evadne.name" },
-    { "id": "aldric", "nameKey": "@loc:character.aldric.name" }
+    { "id": "aldric", "nameKey": "@loc:character.aldric.name" },
+    { "id": "marchmont", "nameKey": "@loc:character.marchmont.name" }
   ],
   "dialogs": [
     {
@@ -82,6 +83,22 @@
       "choices": [
         { "textKey": "@loc:dlg.evadne.arc.embrace", "setFlag": "evadne-embrace" },
         { "textKey": "@loc:dlg.evadne.arc.sever", "setFlag": "evadne-sever" }
+      ]
+    },
+    {
+      "id": "dlg-marchmont-1",
+      "lines": [{ "speaker": "marchmont", "portrait": "grave", "textKey": "@loc:dlg.marchmont.arc.1" }]
+    },
+    {
+      "id": "dlg-marchmont-2",
+      "lines": [{ "speaker": "evadne", "portrait": "grave", "textKey": "@loc:dlg.marchmont.arc.2" }]
+    },
+    {
+      "id": "dlg-marchmont-choice",
+      "lines": [{ "speaker": "marchmont", "portrait": "grave", "textKey": "@loc:dlg.marchmont.arc.3" }],
+      "choices": [
+        { "textKey": "@loc:dlg.marchmont.arc.reveal", "setFlag": "marchmont-reveal" },
+        { "textKey": "@loc:dlg.marchmont.arc.protect", "setFlag": "marchmont-protect" }
       ]
     }
   ],
@@ -116,6 +133,30 @@
           "id": "trancher",
           "condition": { "type": "defeatHero", "heroId": "hero-ai-1" },
           "dialogBefore": "dlg-evadne-choice"
+        }
+      ],
+      "rewards": []
+    },
+    {
+      "id": "marchmont-mensonge",
+      "kind": "personal",
+      "titleKey": "@loc:quest.marchmont-mensonge.title",
+      "descriptionKey": "@loc:quest.marchmont-mensonge.desc",
+      "steps": [
+        {
+          "id": "ouvrir-les-archives",
+          "condition": { "type": "ownUnits", "unitId": "t3-prefet", "count": 8 },
+          "dialogBefore": "dlg-marchmont-1"
+        },
+        {
+          "id": "confronter-la-doctrine",
+          "condition": { "type": "ownUnits", "unitId": "t1-eleve", "count": 22 },
+          "dialogBefore": "dlg-marchmont-2"
+        },
+        {
+          "id": "reveler-ou-taire",
+          "condition": { "type": "defeatHero", "heroId": "hero-ai-1" },
+          "dialogBefore": "dlg-marchmont-choice"
         }
       ],
       "rewards": []

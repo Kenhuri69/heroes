@@ -289,6 +289,33 @@ describe('C-SIEGE2 — murs de siège', () => {
     expect(done.towns[0]?.ownerPlayerId).toBe('p1');
   });
 
+  it('C-SIEGE2.7a : un Château (Fort ≥ 3) à garnison vide se défend par sa seule tour', () => {
+    const s = withTower(siegeState([{ unitId: 'red-grunt', count: 100 }], [], { fort: 3 }));
+    const events: GameEvent[] = [];
+    const started = apply(s, { type: 'CaptureTown', townId: 't1', playerId: 'p1' }).state;
+    // Siège ouvert malgré la garnison vide : la tour seule défend.
+    expect(started.combat).not.toBeNull();
+    const defenders = started.combat!.stacks.filter((st) => st.side === 'defender');
+    expect(defenders).toHaveLength(1);
+    expect(defenders[0]!.id).toBe('defender-tower');
+    // Puis l'assaillant détruit la tour et capture (pas de stalemate).
+    const done = produce(started, (d) => runAutoCombat(d, events));
+    expect(done.combat).toBeNull();
+    expect(done.towns[0]?.ownerPlayerId).toBe('p1');
+  });
+
+  it('C-SIEGE2.7a : un héros sans armée ne prend pas un Château tour-défendu (invalidArmy)', () => {
+    const s = withTower(siegeState([], [], { fort: 3 }));
+    expect(validate(s, { type: 'CaptureTown', townId: 't1', playerId: 'p1' })?.code).toBe('invalidArmy');
+  });
+
+  it('C-SIEGE2.7a : sans tour (Fort < 3), une garnison vide reste une capture immédiate', () => {
+    const s = withTower(siegeState([{ unitId: 'red-grunt', count: 1 }], [], { fort: 2 }));
+    const next = apply(s, { type: 'CaptureTown', townId: 't1', playerId: 'p1' }).state;
+    expect(next.combat).toBeNull(); // aucun combat
+    expect(next.towns[0]?.ownerPlayerId).toBe('p1');
+  });
+
   it('C-SIEGE2.2 : une catapulte (siegeBreaker) élargit la brèche du rempart', () => {
     const s = siegeState([{ unitId: 'red-grunt', count: 50 }], [{ unitId: 'blue-wolf', count: 1 }], { fort: 2 });
     s.heroes[0]!.warMachines = ['siege-cat'];

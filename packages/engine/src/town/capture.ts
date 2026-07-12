@@ -1,6 +1,6 @@
 import { isAdjacent, samePos } from '../adventure/map';
 import { revealStructure } from '../adventure/vision';
-import { beginTownCombat } from '../combat/setup';
+import { beginTownCombat, wouldSpawnSiegeTower } from '../combat/setup';
 import type { Command, CommandError } from '../core/commands';
 import type { GameEvent } from '../core/events';
 import { areAllies, type GameState, type HeroState } from '../core/state';
@@ -62,8 +62,11 @@ export function validateCaptureTown(state: GameState, cmd: CaptureCmd): CommandE
       code: 'invalidAction',
       message: `aucun héros de ${cmd.playerId} sur ou adjacent à '${cmd.townId}'`,
     };
-  // Ville défendue : le héros a besoin d'une armée pour l'assiéger.
-  if (town.garrison.length > 0 && hero.army.length === 0)
+  // Ville défendue (garnison OU tour de tir d'un Château, C-SIEGE2.7a) : le héros
+  // a besoin d'une armée pour l'assiéger — un héros sans troupe ne prend pas une
+  // ville tour-défendue pour rien.
+  const defended = town.garrison.length > 0 || wouldSpawnSiegeTower(town.buildings['fort'] ?? 0, state.unitCatalog);
+  if (defended && hero.army.length === 0)
     return { code: 'invalidArmy', message: `armée vide : impossible d'assiéger '${cmd.townId}'` };
   return null;
 }
@@ -71,12 +74,12 @@ export function validateCaptureTown(state: GameState, cmd: CaptureCmd): CommandE
 export function handleCaptureTown(draft: GameState, cmd: CaptureCmd, events: GameEvent[]): void {
   const town = draft.towns.find((t) => t.id === cmd.townId);
   if (!town) return; // exclu par validate
-  if (town.garrison.length > 0) {
-    // Ville défendue ⇒ siège : combat contre la garnison. La capture est
-    // appliquée à la victoire (doc 02 §4.1, `applyConsequences`).
+  // C-SIEGE2 : le niveau de Fort dresse un rempart sur la grille de siège.
+  const fortLevel = town.buildings['fort'] ?? 0;
+  // Ville défendue par une garnison OU par la seule tour de tir d'un Château
+  // (C-SIEGE2.7a) ⇒ siège. La capture suit la victoire (`applyConsequences`).
+  if (town.garrison.length > 0 || wouldSpawnSiegeTower(fortLevel, draft.unitCatalog)) {
     const hero = attackingHero(draft, town, cmd.playerId);
-    // C-SIEGE2 : le niveau de Fort dresse un rempart sur la grille de siège.
-    const fortLevel = town.buildings['fort'] ?? 0;
     if (hero) beginTownCombat(draft, hero.id, town.id, wallDefenseBonus(draft, town), fortLevel, events);
     return;
   }

@@ -95,9 +95,15 @@ doc 08 §2.4 (écran de combat).
     ré-explore pas ⇒ la franchir coûte un tour) ; ne bloque pas la LoS, volants
     l'ignorent ; rendu client (teinte de fossé). Test « atteignable mais
     infranchissable d'un coup » + pas de stalemate.
-  - **C-SIEGE2.4+** ⬜ : bombardement **tour-par-tour** de la catapulte (PV de
-    segment, ciblage) ; (c) **tour de tir** (pile défenderesse fixe) ; dégâts de
-    douve ; art de rempart distinct.
+  - **C-SIEGE2.4** ✅ (plan `c-siege2-moat-damage.md`) : **dégâts de douve** — une
+    pile **assaillante** qui s'arrête dans la douve subit `fortLevel × 20` dégâts
+    (`CombatState.moatDamage`, optionnel ⇒ pas de bump save, golden inchangé ;
+    `applyMove` → `damageOneStack` + événement `MoatDamaged`). **Seul l'assaillant**
+    la subit (garde `stack.side === 'attacker'`, générique) ; rendu client (nombre
+    de dégâts flottant). Tests : dégâts à l'assaillant + défenseur épargné.
+  - **C-SIEGE2.5+** ⬜ : bombardement **tour-par-tour** de la catapulte (PV de
+    segment, ciblage) ; (c) **tour de tir** (pile défenderesse fixe) ; art de
+    rempart distinct.
 
 - **C-SPELLUI — Grimoire & ciblage de sorts** 🎨 M ⬜
   Doc : doc 08 §2.3 (grimoire feuilletable par école), doc 02 §1.4.

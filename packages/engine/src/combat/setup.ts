@@ -83,6 +83,8 @@ function buildSiegeWalls(fortLevel: number, breached: boolean): OffsetPos[] {
 // bien fortifiée (Fort ≥ 2). Colonne pleine : franchir la douve coûte un tour.
 const SIEGE_MOAT_COL = SIEGE_WALL_COL - 1;
 const SIEGE_MOAT_MIN_FORT = 2;
+// C-SIEGE2.4 : dégâts subis en s'arrêtant dans la douve (échelle Fort).
+const SIEGE_MOAT_DAMAGE_PER_FORT = 20;
 
 /** Douve de siège (C-SIEGE2.3) : colonne d'hexes devant le mur, gatée Fort ≥ 2. */
 function buildMoat(fortLevel: number): OffsetPos[] {
@@ -291,7 +293,7 @@ export function beginTownCombat(
     round: 1,
     obstacles,
     ...(siegeWalls.length > 0 ? { siegeWalls } : {}),
-    ...(moat.length > 0 ? { moat } : {}),
+    ...(moat.length > 0 ? { moat, moatDamage: fortLevel * SIEGE_MOAT_DAMAGE_PER_FORT } : {}),
     stacks,
     activeStackId: null,
     playerSide: 'attacker',

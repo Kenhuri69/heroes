@@ -354,8 +354,19 @@ Chaque faction consomme surtout **une paire de ressources rares** (Haven : crist
 > BFS de `reachableHexes` l'ajoute à l'atteignable sans le ré-explorer, si bien
 > que **franchir la douve coûte un tour**. La douve ne bloque **pas** la ligne de
 > vue (ce n'est pas un mur) et les **volants l'ignorent**. Rendu client : teinte
-> de fossé distincte (`FILL_MOAT`). Dégâts de douve (comme HoMM) = raffinement
-> ultérieur. Zéro faction moteur.
+> de fossé distincte (`FILL_MOAT`). Dégâts de douve = **C-SIEGE2.4**. Zéro faction
+> moteur.
+
+> 🚧 **État (sièges v2 — C-SIEGE2.4, dégâts de douve)** : une pile **assaillante**
+> qui **s'arrête dans la douve** (la douve étant infranchissable en un tour,
+> terminer un déplacement dessus = y être entré) subit des **dégâts** échelonnés
+> sur le Fort (`CombatState.moatDamage`, champ **optionnel** = `fortLevel × 20` ⇒
+> pas de bump save, golden inchangé ; `applyMove` inflige les dégâts via
+> `damageOneStack` puis émet `MoatDamaged`). **Seul l'assaillant** la subit — le
+> **défenseur** vit derrière son rempart et ne franchit jamais sa propre douve
+> (garde `stack.side === 'attacker'`, générique, zéro faction). Rendu client : le
+> nombre de dégâts flotte sur la pile mordue (`MoatDamaged` ⇒ `spawnDamageNumber`).
+> Zéro faction moteur.
 
 > 🚧 **État (caravanes inter-villes — T-CARAVAN, livré)** : commande générique
 > **`SendCaravan { fromTownId, toTownId, slot }`** — envoie une pile de garnison

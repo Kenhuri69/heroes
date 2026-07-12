@@ -120,6 +120,12 @@ export interface CombatState {
    * inchangé (absent hors siège fortifié).
    */
   moat?: OffsetPos[];
+  /**
+   * Dégâts infligés à une pile qui s'ARRÊTE dans la douve (C-SIEGE2.4, doc 02
+   * §5) — échelle Fort. **Optionnel** (0/absent = douve sans dégâts) ⇒ pas de
+   * bump save, golden inchangé.
+   */
+  moatDamage?: number;
   stacks: CombatStack[];
   /** Pile dont c'est le tour (id), null si combat terminé. */
   activeStackId: string | null;

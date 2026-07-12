@@ -694,6 +694,14 @@ export class CombatScene {
         if (token) this.spawnHealNumber(new Point(token.position.x, token.position.y), event.amount);
         return;
       }
+      case 'MoatDamaged': {
+        // C-SIEGE2.4 : dégâts de douve — chiffre de dégâts flottant sur la pile.
+        const token = this.stackTokens.get(event.stackId);
+        if (token && event.damage > 0) {
+          this.spawnDamageNumber(new Point(token.position.x, token.position.y), event.damage, event.kills, false, false);
+        }
+        return;
+      }
       case 'StackCursed': {
         // curseOnHit (A2c) : label « maudit » violet sur la cible affligée.
         const token = this.stackTokens.get(event.targetId);

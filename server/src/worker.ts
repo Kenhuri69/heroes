@@ -31,6 +31,32 @@ const HOUR = 3_600_000;
 const now = (): number => Date.now();
 const token = (): string => crypto.randomUUID().replace(/-/g, '') + crypto.randomUUID().replace(/-/g, '');
 
+// NET-SEC.2 (doc 15 §2/§8) — durcissement : bornage de body, quota de slots.
+const MAX_BODY_BYTES = 256 * 1024; // petits corps (auth, matches, moves)
+const MAX_SAVE_BYTES = 4 * 1024 * 1024; // état de jeu sérialisé (grandes cartes 256²)
+const MAX_SAVE_SLOTS = 20; // slots de sauvegarde cloud par profil
+
+/** Erreur HTTP typée : le `try` externe la traduit en réponse (sinon 500). */
+class HttpError extends Error {
+  constructor(
+    public status: number,
+    message: string,
+  ) {
+    super(message);
+  }
+}
+
+/** Lit et parse un corps JSON borné en taille (413 si trop gros, 400 si invalide). */
+async function body<T>(request: Request, max = MAX_BODY_BYTES): Promise<T> {
+  const text = await request.text();
+  if (text.length > max) throw new HttpError(413, 'corps de requête trop volumineux');
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    throw new HttpError(400, 'JSON invalide');
+  }
+}
+
 function cors(origin: string | undefined): Record<string, string> {
   return {
     'Access-Control-Allow-Origin': origin ?? '*',
@@ -80,7 +106,7 @@ export default {
     try {
       // — Auth magic-link —
       if (path === '/auth/request' && request.method === 'POST') {
-        const { email } = (await request.json()) as { email?: string };
+        const { email } = await body<{ email?: string }>(request);
         if (!email) return fail(400, 'email requis', env);
         const t = token();
         await env.DB.prepare('INSERT INTO auth_tokens (token, email, expires_at, used) VALUES (?, ?, ?, 0)')
@@ -99,6 +125,10 @@ export default {
           .first<{ email: string; expires_at: number; used: number }>();
         if (!row || row.used || row.expires_at < now()) return fail(401, 'jeton invalide ou expiré', env);
         await env.DB.prepare('UPDATE auth_tokens SET used = 1 WHERE token = ?').bind(t).run();
+        // NET-SEC.2 : purge opportuniste des sessions/jetons expirés (au login,
+        // faible fréquence — empêche la croissance sans fin des tables).
+        await env.DB.prepare('DELETE FROM sessions WHERE expires_at < ?').bind(now()).run();
+        await env.DB.prepare('DELETE FROM auth_tokens WHERE expires_at < ?').bind(now()).run();
         // Crée le profil au premier login (handle = partie locale de l'e-mail).
         let profile = await env.DB.prepare('SELECT id FROM profiles WHERE email = ?')
           .bind(row.email)
@@ -142,7 +172,7 @@ export default {
       if (saveMatch) {
         const slot = saveMatch[1]!;
         if (request.method === 'PUT') {
-          const { state, save_version } = (await request.json()) as { state?: string; save_version?: number };
+          const { state, save_version } = await body<{ state?: string; save_version?: number }>(request, MAX_SAVE_BYTES);
           if (typeof state !== 'string' || typeof save_version !== 'number') return fail(400, 'state/save_version requis', env);
           // NET-SRVGUARD (doc 15 §5.2, doc 07 §4) : garde de version ANTI-DOWNGRADE.
           // Un client d'une version obsolète ne peut pas écraser une sauvegarde plus
@@ -155,6 +185,15 @@ export default {
             .first<{ save_version: number }>();
           if (existing && save_version < existing.save_version)
             return fail(409, 'version de sauvegarde obsolète', env);
+          // NET-SEC.2 : quota de slots. Un slot NOUVEAU (pas de ligne existante)
+          // est refusé si le profil est déjà au plafond. La mise à jour d'un slot
+          // existant reste toujours permise.
+          if (!existing) {
+            const count = await env.DB.prepare('SELECT COUNT(*) AS n FROM saves WHERE profile_id = ?')
+              .bind(profileId)
+              .first<{ n: number }>();
+            if ((count?.n ?? 0) >= MAX_SAVE_SLOTS) return fail(409, 'quota de sauvegardes atteint', env);
+          }
           await env.DB.prepare(
             'INSERT INTO saves (profile_id, slot, save_version, state, updated_at) VALUES (?, ?, ?, ?, ?) ' +
               'ON CONFLICT(profile_id, slot) DO UPDATE SET save_version=excluded.save_version, state=excluded.state, updated_at=excluded.updated_at',
@@ -184,7 +223,7 @@ export default {
         return json({ matches: rows.results }, 200, env);
       }
       if (path === '/matches' && request.method === 'POST') {
-        const { seed, setup } = (await request.json()) as { seed?: number; setup?: { players?: { id: string }[] } };
+        const { seed, setup } = await body<{ seed?: number; setup?: { players?: { id: string }[] } }>(request);
         if (typeof seed !== 'number' || !setup?.players?.length) return fail(400, 'seed/setup requis', env);
         const id = crypto.randomUUID();
         await env.DB.prepare('INSERT INTO matches (id, seed, setup, status, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?)')
@@ -257,7 +296,7 @@ export default {
           return json({ moves: rows.results.map((r) => ({ seq: r.seq, commands: JSON.parse(r.commands) })) }, 200, env);
         }
         if (request.method === 'POST') {
-          const { seq, commands } = (await request.json()) as { seq?: number; commands?: Command[] };
+          const { seq, commands } = await body<{ seq?: number; commands?: Command[] }>(request);
           if (typeof seq !== 'number' || !Array.isArray(commands)) return fail(400, 'seq/commands requis', env);
           const seat = await env.DB.prepare('SELECT player_id FROM match_players WHERE match_id = ? AND profile_id = ?')
             .bind(matchId, profileId)
@@ -285,6 +324,7 @@ export default {
 
       return fail(404, 'route inconnue', env);
     } catch (e) {
+      if (e instanceof HttpError) return fail(e.status, e.message, env);
       return fail(500, (e as Error).message, env);
     }
   },

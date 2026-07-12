@@ -4,7 +4,7 @@ import { rollRange } from '../core/rng';
 import type { GameState } from '../core/state';
 import { chargePerHex, performStrike, symbiosisParams } from './damage';
 import { applyPerformerResonance } from '../faction/effects';
-import { applySpellToTargets, spellcasterParams } from './spell-effect';
+import { applySpellToTargets, damageOneStack, spellcasterParams } from './spell-effect';
 import type { Draft } from './draft';
 import { COMBAT_COLS, COMBAT_ROWS, hexDistance, hexLine, hexNeighbors, sameHex, type OffsetPos } from './hex';
 import { advanceTurn, checkCombatEnd } from './turns';
@@ -358,6 +358,20 @@ function applyMove(
   // Symbiose (doc 14 §2) : un déplacement volontaire rompt l'enracinement.
   stack.symbiosisStacks = 0;
   events.push({ type: 'StackMoved', stackId: stack.id, from, to: { ...stack.pos } });
+  // C-SIEGE2.4 : s'arrêter dans la douve inflige des dégâts (la douve étant non
+  // traversable, terminer un déplacement dessus = y être entré ce tour). Seul
+  // l'ASSAILLANT la subit : la douve garde le rempart du défenseur, qui vit
+  // derrière et ne franchit jamais sa propre douve (doc 02 §5, siège HoMM).
+  const moatDamage = combat.moatDamage ?? 0;
+  if (
+    moatDamage > 0 &&
+    stack.side === 'attacker' &&
+    (combat.moat ?? []).some((m) => sameHex(m, stack.pos))
+  ) {
+    const { amount, kills } = damageOneStack(draft, combat, stack, moatDamage, events);
+    events.push({ type: 'MoatDamaged', stackId: stack.id, damage: amount, kills });
+    if (checkCombatEnd(draft, events)) return;
+  }
   afterAction(draft, events, stack.id, wasFirstAction, 'move');
 }
 

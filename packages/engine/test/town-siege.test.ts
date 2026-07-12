@@ -197,6 +197,56 @@ describe('C-SIEGE2 — murs de siège', () => {
     expect(done.towns[0]?.ownerPlayerId).toBe('p1');
   });
 
+  it('C-SIEGE2.4 : s’arrêter dans la douve d’un Fort ≥ 2 inflige des dégâts (MoatDamaged)', () => {
+    const s = siegeState([{ unitId: 'red-grunt', count: 50 }], [{ unitId: 'blue-wolf', count: 1 }], { fort: 2 });
+    const next = apply(s, { type: 'CaptureTown', townId: 't1', playerId: 'p1' }).state;
+    const combat = next.combat!;
+    expect(combat.moatDamage).toBe(40); // Fort 2 × 20
+    const attacker = combat.stacks.find((st) => st.side === 'attacker')!;
+    const defender = combat.stacks.find((st) => st.side === 'defender')!;
+    // Isolation : attaquant devant la douve sur la rangée de la porte, défenseur
+    // relégué au fond (le combat ne se termine pas), obstacles effacés.
+    const ready = produce(next, (d) => {
+      d.combat!.obstacles = [];
+      d.combat!.stacks = d.combat!.stacks.filter((st) => st.id === attacker.id || st.id === defender.id);
+      d.combat!.stacks.find((st) => st.id === attacker.id)!.pos = { col: WALL_COL - 2, row: GATE[0]! };
+      d.combat!.stacks.find((st) => st.id === defender.id)!.pos = { col: COMBAT_COLS - 1, row: 0 };
+      d.combat!.activeStackId = attacker.id;
+      d.combat!.phase = 'battle';
+    });
+    const { events } = apply(ready, { type: 'CombatAction', action: { type: 'move', to: { col: WALL_COL - 1, row: GATE[0]! } } });
+    // La douve mord l'assaillant qui s'y arrête : StackMoved dans la douve, puis
+    // MoatDamaged (dégâts = échelle Fort, au moins une créature perdue).
+    const moatEvent = events.find((e) => e.type === 'MoatDamaged');
+    expect(moatEvent).toBeDefined();
+    expect(moatEvent).toMatchObject({ stackId: attacker.id, damage: 40 });
+    expect((moatEvent as { kills: number }).kills).toBeGreaterThan(0); // red-grunt 6 PV
+  });
+
+  it('C-SIEGE2.4 : sans Fort ≥ 2, aucun dégât de douve', () => {
+    const s = siegeState([{ unitId: 'red-grunt', count: 50 }], [{ unitId: 'blue-wolf', count: 1 }], { fort: 1 });
+    const next = apply(s, { type: 'CaptureTown', townId: 't1', playerId: 'p1' }).state;
+    expect(next.combat?.moatDamage).toBeUndefined();
+  });
+
+  it('C-SIEGE2.4 : la douve épargne le défenseur (il vit derrière son rempart)', () => {
+    // Un seul loup défenseur avancé jusqu'à la douve : s'il subissait les dégâts,
+    // il mourrait et le combat s'achèverait à l'ouverture — or la garnison tient.
+    const s = siegeState([{ unitId: 'red-grunt', count: 1 }], [{ unitId: 'blue-wolf', count: 100 }], { fort: 3 });
+    const next = apply(s, { type: 'CaptureTown', townId: 't1', playerId: 'p1' }).state;
+    const defender = next.combat!.stacks.find((st) => st.side === 'defender')!;
+    const moved = produce(next, (d) => {
+      d.combat!.obstacles = [];
+      d.combat!.stacks = d.combat!.stacks.filter((st) => st.id === defender.id);
+      d.combat!.stacks[0]!.pos = { col: WALL_COL - 1, row: GATE[0]! }; // sur la douve
+      d.combat!.activeStackId = defender.id;
+      d.combat!.playerSide = 'defender'; // on pilote le défenseur pour le tester
+      d.combat!.phase = 'battle';
+    });
+    const { events } = apply(moved, { type: 'CombatAction', action: { type: 'move', to: { col: WALL_COL - 1, row: GATE[1]! } } });
+    expect(events.some((e) => e.type === 'MoatDamaged')).toBe(false); // défenseur épargné
+  });
+
   it('C-SIEGE2.2 : une catapulte (siegeBreaker) élargit la brèche du rempart', () => {
     const s = siegeState([{ unitId: 'red-grunt', count: 50 }], [{ unitId: 'blue-wolf', count: 1 }], { fort: 2 });
     s.heroes[0]!.warMachines = ['siege-cat'];

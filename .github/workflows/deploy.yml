@@ -50,8 +50,19 @@ jobs:
       # Smoke headless sur le build de prod (guideline §7) — build HORS-LIGNE
       # (pas de VITE_BACKEND_URL) : le smoke reste déterministe et ne touche
       # jamais le réseau (bouton « En ligne » masqué, test 7.3).
+      # Fully-parallel via playwright.config.ts ; les tests @perf (FPS) sont
+      # isolés en mono-worker après coup pour ne pas fausser la mesure sous
+      # charge (cf. .claude/plans/test-performance-optimization.md).
+      - name: Cache des navigateurs Playwright
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
       - run: pnpm exec playwright install chromium --with-deps
-      - run: pnpm smoke
+      # Appel direct de Playwright (le script `pnpm smoke` ne transmet pas les
+      # arguments après `--`).
+      - run: pnpm exec playwright test --grep-invert=@perf
+      - run: pnpm exec playwright test --project=desktop --grep=@perf --workers=1
 
       # Backend (Live 7.4) : REBUILD du client avec l'URL du Worker AVANT publication
       # — seul l'artefact déployé embarque le backend (le smoke ci-dessus reste

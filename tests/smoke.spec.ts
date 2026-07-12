@@ -154,7 +154,7 @@ function imgNaturalWidth(page: Page, selector: string): Promise<number> {
     .evaluate((el) => (el as HTMLImageElement).naturalWidth);
 }
 
-test('le client démarre sans erreur et charge le contenu', async ({ page }) => {
+test('le client démarre sans erreur et charge le contenu', { tag: '@mobile' }, async ({ page }) => {
   const errors = await openGame(page);
 
   await expect(page.locator('#canvas-root canvas')).toBeVisible();
@@ -183,7 +183,7 @@ test('le client démarre sans erreur et charge le contenu', async ({ page }) => 
   expect(errors).toEqual([]);
 });
 
-test('tap-tap : déplacement scripté, ramassage, points décomptés', async ({ page }) => {
+test('tap-tap : déplacement scripté, ramassage, points décomptés', { tag: '@mobile' }, async ({ page }) => {
   const errors = await openGame(page);
 
   // Le tas d'or est en (6,3), 3 pas droits depuis (3,3) : 3 × 100 PM.
@@ -200,7 +200,7 @@ test('tap-tap : déplacement scripté, ramassage, points décomptés', async ({ 
   expect(errors).toEqual([]);
 });
 
-test('HUD mobile : bandeau d’armée replié par défaut, dépliable (X3)', async ({ page }) => {
+test('HUD mobile : bandeau d’armée replié par défaut, dépliable (X3)', { tag: '@mobile' }, async ({ page }) => {
   const errors = await openGame(page);
 
   // E3 : au 1er lancement le bandeau est REPLIÉ ⇒ la carte n'est plus masquée
@@ -217,7 +217,7 @@ test('HUD mobile : bandeau d’armée replié par défaut, dépliable (X3)', asy
   expect(errors).toEqual([]);
 });
 
-test("bandeau d'armée : tap sur une vignette ⇒ fiche d'unité (stats + capacités)", async ({
+test("bandeau d'armée : tap sur une vignette ⇒ fiche d'unité (stats + capacités)", { tag: '@mobile' }, async ({
   page,
 }) => {
   const errors = await openGame(page);
@@ -625,7 +625,7 @@ test('lieu de bonus & habitation : écurie ⇒ +PM, camp ⇒ recrutement (doc 02
   expect(errors).toEqual([]);
 });
 
-test('combat : victoire contre le gardien, retour carte avec pertes appliquées', async ({ page }) => {
+test('combat : victoire contre le gardien, retour carte avec pertes appliquées', { tag: '@mobile' }, async ({ page }) => {
   const errors = await openGame(page);
 
   // Chemin scripté vers le gardien (9,3) par la rangée 2 (évite le tas d'or
@@ -837,7 +837,7 @@ async function measureFpsUnderThrottle(page: Page): Promise<number> {
   );
 }
 
-test('arène : fluidité sous throttling CPU ×4 (doc 10 §6)', async ({ page }, testInfo) => {
+test('arène : fluidité sous throttling CPU ×4 (doc 10 §6)', { tag: '@perf' }, async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'desktop', 'mesure unique, desktop');
   const cdp = await page.context().newCDPSession(page);
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
@@ -857,7 +857,7 @@ test('arène : fluidité sous throttling CPU ×4 (doc 10 §6)', async ({ page },
   expect(fps).toBeGreaterThanOrEqual(5);
 });
 
-test('carte d’aventure : fluidité sous throttling CPU ×4 (doc 01 §5 critère 3)', async ({ page }, testInfo) => {
+test('carte d’aventure : fluidité sous throttling CPU ×4 (doc 01 §5 critère 3)', { tag: '@perf' }, async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'desktop', 'mesure unique, desktop');
   const cdp = await page.context().newCDPSession(page);
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
@@ -874,7 +874,7 @@ test('carte d’aventure : fluidité sous throttling CPU ×4 (doc 01 §5 critèr
   expect(fps).toBeGreaterThanOrEqual(5);
 });
 
-test('menu : Nouvelle partie démarre, Continuer grisé sans sauvegarde', async ({ page }) => {
+test('menu : Nouvelle partie démarre, Continuer grisé sans sauvegarde', { tag: '@mobile' }, async ({ page }) => {
   const errors = collectErrors(page);
   await page.goto('./'); // sans ?seed : le menu s'affiche (doc 08 §2.5)
   await page.waitForFunction(() => window.__HEROES_READY__ === true);
@@ -1382,7 +1382,7 @@ test('télémétrie : opt-in enregistre tours + combats auto, en local (Alpha 4.
   expect(errors).toEqual([]);
 });
 
-test('autosave à la fin de tour puis « Continuer » depuis le menu', async ({ page }) => {
+test('autosave à la fin de tour puis « Continuer » depuis le menu', { tag: '@mobile' }, async ({ page }) => {
   const errors = await openGame(page);
 
   await moveHeroToGold(page);
@@ -1608,7 +1608,7 @@ test('routeur : options du MENU passent par la pile de modales (doc 08 §3, U2)'
   expect(errors).toEqual([]);
 });
 
-test('accessibilité : les 3 crans de police changent la taille du texte (doc 08 §4)', async ({ page }) => {
+test('accessibilité : les 3 crans de police changent la taille du texte (doc 08 §4)', { tag: '@mobile' }, async ({ page }) => {
   const errors = await openGame(page);
 
   const calendarFontSizePx = (): Promise<number> =>
@@ -1702,7 +1702,7 @@ test('sauvegarde à version de forme incompatible : import rejeté proprement (l
   expect(errors).toEqual([]);
 });
 
-test('ville : construire + croissance + recruter + transférer → armée du héros', async ({ page }) => {
+test('ville : construire + croissance + recruter + transférer → armée du héros', { tag: '@mobile' }, async ({ page }) => {
   const errors = await openGame(page);
 
   // La ville de départ est chargée (doc 02 §4) : bouton [Ville] + écran.
@@ -2114,7 +2114,7 @@ test('ville : en-tête revenu/croissance (C21) + « Tout recruter » (C19) (lot 
   expect(errors).toEqual([]);
 });
 
-test('ville : parité tactile du lore (X2) — un tap déplie le texte tronqué', async ({ page }) => {
+test('ville : parité tactile du lore (X2) — un tap déplie le texte tronqué', { tag: '@mobile' }, async ({ page }) => {
   const errors = await openGame(page);
 
   await page.getByTestId('town-open-start-town').click();
@@ -2423,7 +2423,7 @@ test('compétence : aucune modale de choix sans montée de niveau (gating)', asy
   expect(errors).toEqual([]);
 });
 
-test('sauvegarde puis rechargement IndexedDB : position restaurée', async ({ page }) => {
+test('sauvegarde puis rechargement IndexedDB : position restaurée', { tag: '@mobile' }, async ({ page }) => {
   const errors = await openGame(page);
 
   await moveHeroToGold(page);
@@ -2503,7 +2503,7 @@ test('journal & feedback : un événement humain alimente le journal + toast de 
   expect(errors).toEqual([]);
 });
 
-test('multi-héros / multi-villes : bandeau de portraits + liste de villes (U4)', async ({ page }) => {
+test('multi-héros / multi-villes : bandeau de portraits + liste de villes (U4)', { tag: '@mobile' }, async ({ page }) => {
   const errors = await openGame(page);
 
   // Bandeau de portraits (dans le tiroir héros, doc 08 §2.1) : le héros humain

@@ -2,7 +2,7 @@ import { useEffect } from 'preact/hooks';
 import type { MapObjectDef, VisitableEffect } from '@heroes/engine';
 import { useApp, appStore } from '../app/store';
 import { humanId } from '../app/game';
-import { t, resolveArtifactName, resolveUnitName } from '../app/i18n';
+import { t, resolveArtifactName, resolveUnitName, resolveSpellName } from '../app/i18n';
 
 /**
  * Fiche d'objet de carte (doc 08 §2.1 « appui long = fiche », lot M2 C6) :
@@ -137,5 +137,7 @@ function visitableEffectLine(effect: VisitableEffect): string {
         attribute: t(`attribute.${effect.attribute}`),
         amount: effect.amount,
       });
+    case 'learnSpell':
+      return t('mapCard.effectLearnSpell', { spell: resolveSpellName(effect.spellId) });
   }
 }

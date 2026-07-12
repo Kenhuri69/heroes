@@ -165,7 +165,9 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 > déclaratif : fontaine `luck` — consommée à la fin du prochain combat,
 > écurie `movement`, arbre du savoir `levelXp` — l'XP du niveau suivant,
 > moulin `resource` fixe, **arène/statue `permanentStat`** (M-VISIT : +attribut
-> primaire **définitif** au héros visiteur) ; re-visite `oncePerHero` ou
+> primaire **définitif** au héros visiteur), **sanctuaire de sort `learnSpell`**
+> (M-VISIT : enseigne un sort précis au héros — ajout idempotent à `hero.spells`,
+> classique « Sanctuaire de Magie » HoMM) ; re-visite `oncePerHero` ou
 > `oncePerHeroPerWeek`),
 > **habitations hors ville** (M-DWELLOWN : **capturables** — la fouler pose le
 > drapeau du joueur et lui réserve le réassort hebdomadaire, façon HoMM ; la

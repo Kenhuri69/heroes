@@ -163,6 +163,7 @@ const VISITABLE_COLORS: Record<string, number> = {
   movement: 0xd68910, // écurie
   vision: 0x48c9b0, // tour de guet
   levelXp: 0x27ae60, // sanctuaire / arbre du savoir
+  learnSpell: 0x8e44ad, // sanctuaire de sort (magie)
   resource: 0xb9770e, // moulin
 };
 
@@ -196,6 +197,7 @@ const VISITABLE_PROP: Record<string, string> = {
   movement: 'stable', // écurie
   vision: 'watchtower', // tour de guet
   levelXp: 'shrine', // sanctuaire / arbre du savoir
+  learnSpell: 'shrine', // sanctuaire de sort
   resource: 'mill', // moulin
 };
 
@@ -234,6 +236,11 @@ function buildVisitableFallback(kind: string): Container {
       g.ellipse(c, c + 10, 18, 7).fill(color).stroke({ width: 2, color: ink })
         .rect(c - 2, c - 12, 4, 20).fill(0xcfe8f5)
         .circle(c, c - 13, 4).fill(0xcfe8f5).stroke({ width: 1.5, color });
+      break;
+    case 'learnSpell': // sanctuaire de sort : grimoire ouvert + étincelle
+      g.poly([c - 16, c + 8, c, c + 2, c, c + 12, c - 16, c + 18]).fill(color).stroke({ width: 2, color: ink })
+        .poly([c + 16, c + 8, c, c + 2, c, c + 12, c + 16, c + 18]).fill(color).stroke({ width: 2, color: ink })
+        .circle(c, c - 8, 3).fill(0xf4ecf7).stroke({ width: 1.5, color: ink });
       break;
     default: // sanctuaire / levelXp : obélisque runique
       g.poly([c, c - 20, c + 8, c + 12, c - 8, c + 12]).fill(color).stroke({ width: 2, color: ink })

@@ -213,3 +213,9 @@ sharding CI (B). Lots 4/5 (dédoublonnage, deux vitesses) non retenus pour l'ins
   tests lourds tombés en CI passent avec workers=2 (54,9 s). Note : la CI teste
   le merge PR+main (main a avancé : +tests N-ARCS.4/5), d'où le décalage de
   lignes vs local.
+- 2026-07-12 : **run CI VERT** (#29194841769, b5dafda). Les 4 jobs passent.
+  Temps mur total **4 min 17 s** (vs ~11-14 min avant, **~-62 %**) : quality
+  1m22, smoke-perf 1m16, smoke(1) 3m18, smoke(2) 4m14 — tous parallèles.
+  Étape smoke la plus longue (shard 2) 3m25 vs 9m49 au run de référence
+  (**-65 %** sur le smoke). Reste un léger déséquilibre de shard (2m26 vs 3m25 —
+  split par nombre, pas par durée) ; acceptable, non traité. **Objectif atteint.**

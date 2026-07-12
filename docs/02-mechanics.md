@@ -72,6 +72,18 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 > en mouvement de la téléportation = raffinement ultérieur. **Zéro nom de faction**
 > ; golden inchangé. UI : livre de sorts d'aventure dans le tiroir héros.
 
+> 🚧 **État (sorts de masse, H-SPELLS.1)** : le champ de zone `SpellDef.area`
+> gagne la valeur **`all`** (à côté de `splash`) — le sort touche **toutes** les
+> piles vivantes du camp de la pile ciblée (le camp visé = celui de la cible :
+> taper un allié ⇒ buff de tout son camp ; taper un ennemi ⇒ debuff/dégâts de
+> tout le camp adverse). Réutilise le cœur de résolution partagé
+> (`applySpellToTargets`/`estimateSpell`) — la prévisualisation agrège l'effet.
+> Sorts livrés (cercle 3, plafond apprenable de la Guilde) : **Bénédiction de
+> masse**, **Hâte de masse**, **Affaiblissement de masse**. **Zéro nom de
+> faction, aucun champ d'état nouveau ⇒ pas de bump save, golden inchangé.**
+> Restent (H-SPELLS suite) : sorts de cercle 4–5 (+ extension Guilde niv. 4–5),
+> autres sorts d'aventure (Vision, Rappel), invocation, chaîne, dissipation réelle.
+
 ### 1.5 Mouvement sur carte d'aventure
 
 - Points de mouvement quotidiens : `base 1500 + 50 × vitesse de la créature la plus lente de l'armée` (encourage les armées homogènes), modifiés par la compétence **Logistique** (`movementBonusPct`), les routes (coût tuile ×0,75) et les terrains (marais ×1,5). *Pas de bonus de terrain natif sur la carte (les terrains ne portent qu'un `moveCost`) ; les artefacts ne donnent **pas** de points de mouvement — différés.*

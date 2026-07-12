@@ -8,6 +8,9 @@ permissions:
   contents: read
 
 jobs:
+  # Qualité statique + moteur + build + gardes-fous — tourne une seule fois.
+  # Le smoke Playwright (le plus long) est déporté dans des jobs dédiés
+  # parallèles ci-dessous (voir .claude/plans/test-performance-optimization.md).
   quality:
     runs-on: ubuntu-latest
     steps:
@@ -84,6 +87,57 @@ jobs:
           echo "bundle gzip: ${total} octets"
           [ "$total" -le 819200 ]
 
-      # Smoke headless sur le build de prod (guideline §7)
+  # Smoke headless sur le build de prod (guideline §7), shardé en 2 lots
+  # parallèles + fully-parallel intra-lot (playwright.config.ts). Les tests de
+  # throttling FPS (@perf) sont exclus ici — ils mesurent des FPS sous rendu
+  # logiciel et deviendraient flaky en concurrence CPU ; ils tournent isolés
+  # dans le job `smoke-perf`.
+  smoke:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      - name: Cache des navigateurs Playwright
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
       - run: pnpm exec playwright install chromium --with-deps
-      - run: pnpm smoke
+
+      - run: pnpm build
+
+      - run: pnpm smoke -- --shard=${{ matrix.shard }}/2 --grep-invert=@perf
+
+  # Tests de fluidité (@perf) isolés : mono-worker, seuls sur le runner, pour
+  # une mesure FPS non perturbée par la charge parallèle.
+  smoke-perf:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      - name: Cache des navigateurs Playwright
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+      - run: pnpm exec playwright install chromium --with-deps
+
+      - run: pnpm build
+
+      - run: pnpm smoke -- --project=desktop --grep=@perf --workers=1

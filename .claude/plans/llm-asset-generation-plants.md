@@ -79,8 +79,12 @@ par la planche B → à ignorer (on ne l'édite pas : fichier tool-owned).
    explicite « remplir 1→7, seule la 8 vide » ⇒ plus de recentrage). Translucides
    Necropolis (spectre/dragon fantôme) détourés proprement au floodfill (lueur
    nécrotique). Build OK, smoke vert. Commit 333e3fa. **Fin du repli élite→base
-   pour toutes les factions.** Reste hors-périmètre : fonds d'ambiance (Règle D,
-   pièces uniques) — non demandés.
+   pour toutes les factions.**
+10. [x] **Fonds d'ambiance** (Règle D, à la demande) : 4 pièces uniques
+   1920×1080 JPEG < 500 Ko — `town-sylvan-court` (dernier écran de ville) +
+   `combat-{dirt,forest,sand}`. Résolveurs `townBackgroundUrl`/`combatBackgroundUrl`
+   déjà câblés. Build OK, smoke vert. Commit f6fd0c0. **Restent 3** :
+   `combat-{rough,snow,river}` (prompts fournis à l'utilisateur).
 
 ## Notes de décision
 

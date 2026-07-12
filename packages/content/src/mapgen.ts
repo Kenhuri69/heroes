@@ -466,14 +466,20 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
     (x, y, n) => ({ id: `stable-${n}`, type: 'visitable', x, y, effect: { kind: 'movement', amount: 300 + randInt(4) * 100 }, frequency: 'oncePerHeroPerWeek' }),
     (x, y, n) => ({ id: `watchtower-${n}`, type: 'visitable', x, y, effect: { kind: 'vision', amount: randBetween(4, 7) }, frequency: 'oncePerHeroPerWeek' }),
     (x, y, n) => ({ id: `shrine-${n}`, type: 'visitable', x, y, effect: { kind: 'levelXp' }, frequency: 'oncePerHero' }),
-    (x, y, n) => ({
-      id: `mill-${n}`,
-      type: 'visitable',
-      x,
-      y,
-      effect: { kind: 'resource', resource: RESOURCE_IDS[randInt(RESOURCE_IDS.length)]!, amount: randBetween(1, 3) },
-      frequency: 'oncePerHeroPerWeek',
-    }),
+    (x, y, n) => {
+      // Le moulin donne une ressource aléatoire ; l'or suit ses propres paliers
+      // (250/500/1000) — comme les mines, il ne se compte pas à l'unité.
+      const resource = RESOURCE_IDS[randInt(RESOURCE_IDS.length)]!;
+      const amount = resource === 'gold' ? [250, 500, 1000][randInt(3)]! : randBetween(1, 3);
+      return {
+        id: `mill-${n}`,
+        type: 'visitable',
+        x,
+        y,
+        effect: { kind: 'resource', resource, amount },
+        frequency: 'oncePerHeroPerWeek',
+      };
+    },
   ];
   const visitableCount = scaledCat(randBetween(3, 5), eventBuildingDensity);
   for (let i = 0; i < visitableCount; i++) {

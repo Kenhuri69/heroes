@@ -141,7 +141,7 @@ export interface MarketConfig {
 export interface HeroProgressionConfig {
   /** XP par PV d'unité ennemie tuée en combat (coefficient du doc 02 §1.2). */
   xpPerHpKilled: number;
-  /** Courbe : xp(niveau) = base × niveau^exponent (1000 × n^1.9). */
+  /** Courbe : xp(niveau) = base × niveau^exponent (268 × n^1.9 ⇒ niveau 2 ≈ 1000 XP). */
   levelCurve: { base: number; exponent: number };
   maxLevel: number;
   /** Pondérations du +1 attribut/niveau — profil GLOBAL (repli). */

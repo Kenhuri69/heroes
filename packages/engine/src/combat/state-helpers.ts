@@ -358,6 +358,28 @@ export function collectCasualties(
   });
 }
 
+/**
+ * Survivants d'un combat (retour de jeu 2026-07, écran de bilan) : effectifs
+ * restants par camp et unité (piles `count > 0` agrégées par `unitId`). Permet à
+ * l'UI d'afficher morts ET survivants ; combiné aux pertes, l'effectif initial se
+ * reconstitue (`initial = survivants + pertes`). Aucun état persistant (lu à la
+ * fin, comme `collectCasualties`).
+ */
+export function collectSurvivors(
+  combat: CombatState,
+): { side: CombatSideId; unitId: string; count: number }[] {
+  const byKey: Record<string, number> = {};
+  for (const s of combat.stacks) {
+    if (s.count <= 0) continue;
+    const key = `${s.side}:${s.unitId}`;
+    byKey[key] = (byKey[key] ?? 0) + s.count;
+  }
+  return Object.entries(byKey).map(([key, count]) => {
+    const sep = key.indexOf(':');
+    return { side: key.slice(0, sep) as CombatSideId, unitId: key.slice(sep + 1), count };
+  });
+}
+
 export type Rules = CombatRulesConfig;
 
 /** Config de combat non-nulle — le moteur garantit `config` dès `StartGame`. */

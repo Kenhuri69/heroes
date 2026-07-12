@@ -106,6 +106,16 @@ async function passPreBattle(page: Page, mode: 'fight' | 'auto' = 'fight'): Prom
 }
 
 /**
+ * Bilan de fin de combat (retour de jeu 2026-07) : après un combat FOUILLÉ, une
+ * modale de résultat s'affiche par-dessus la carte. Ce helper la ferme si elle
+ * est présente (« Continuer »), pour reprendre les interactions sur la carte.
+ */
+async function dismissCombatResult(page: Page): Promise<void> {
+  const cont = page.getByTestId('combat-result-continue');
+  if (await cont.isVisible().catch(() => false)) await cont.click();
+}
+
+/**
  * Sauvegarde/chargement manuels : déplacés dans la modale Options (lot M5, C11).
  * Ouvre Options, clique le bouton, referme — pour laisser la carte au 1er plan.
  */
@@ -114,6 +124,8 @@ async function passPreBattle(page: Page, mode: 'fight' | 'auto' = 'fight'): Prom
  * confirmation si un héros n'a pas bougé — on la valide alors pour finir le tour.
  */
 async function endTurn(page: Page): Promise<void> {
+  // Un bilan de combat pendant (retour de jeu 2026-07) recouvre le HUD : le fermer d'abord.
+  await dismissCombatResult(page);
   await page.locator('[data-testid="end-turn"]').click();
   const confirmGo = page.getByTestId('end-turn-confirm-go');
   if (await confirmGo.isVisible().catch(() => false)) await confirmGo.click();
@@ -715,6 +727,88 @@ test('écran pré-combat : puissances comparées + Auto-Battle résout (Lot 1)',
   expect(await page.evaluate(() => window.__HEROES_TEST__!.getState().heroes[0]?.id)).toBe(
     'hero-player-1',
   ); // victoire : le héros survit
+
+  expect(errors).toEqual([]);
+});
+
+test('abandon pré-combat : renoncer garde l’armée et ne montre pas de bilan (retour de jeu 2026-07)', async ({
+  page,
+}) => {
+  const errors = await openGame(page);
+
+  const armyBefore = await page.evaluate(
+    () => window.__HEROES_TEST__!.getState().heroes[0]?.army.reduce((n, s) => n + s.count, 0) ?? 0,
+  );
+
+  // Interception du gardien (9,3) — même chemin que les autres tests de combat.
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({
+      type: 'MoveHero',
+      heroId: 'hero-player-1',
+      path: [
+        { x: 4, y: 2 },
+        { x: 5, y: 2 },
+        { x: 6, y: 2 },
+        { x: 7, y: 2 },
+        { x: 8, y: 2 },
+        { x: 9, y: 3 },
+      ],
+    }),
+  );
+
+  // L'écran pré-combat offre « Abandonner » (uniquement pour un combat de héros).
+  await expect(page.getByTestId('pre-battle')).toBeVisible();
+  await page.getByTestId('pre-battle-abandon').click();
+
+  // Combat quitté sans bataille : le héros survit avec son armée intacte, aucun
+  // bilan (départ délibéré), le gardien reste sur la carte.
+  await expect
+    .poll(() => page.evaluate(() => window.__HEROES_TEST__!.getState().combat))
+    .toBeNull();
+  await expect(page.getByTestId('combat-result')).toHaveCount(0);
+  const state = await page.evaluate(() => window.__HEROES_TEST__!.getState());
+  expect(state.heroes[0]?.id).toBe('hero-player-1');
+  const armyAfter = state.heroes[0]?.army.reduce((n, s) => n + s.count, 0) ?? 0;
+  expect(armyAfter).toBe(armyBefore); // aucune perte
+  expect(state.map?.objects.some((o) => o.id === 'guard-camp')).toBe(true); // gardien intact
+  await expect(page.getByTestId('end-turn')).toBeVisible();
+
+  expect(errors).toEqual([]);
+});
+
+test('bilan de fin de combat : morts/survivants + gains XP, « Continuer » ferme (retour de jeu 2026-07)', async ({
+  page,
+}) => {
+  const errors = await openGame(page);
+
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({
+      type: 'MoveHero',
+      heroId: 'hero-player-1',
+      path: [
+        { x: 4, y: 2 },
+        { x: 5, y: 2 },
+        { x: 6, y: 2 },
+        { x: 7, y: 2 },
+        { x: 8, y: 2 },
+        { x: 9, y: 3 },
+      ],
+    }),
+  );
+
+  // Auto-Battle depuis le pré-combat ⇒ combat fouillé résolu ⇒ bilan affiché.
+  await passPreBattle(page, 'auto');
+  await expect(page.getByTestId('combat-result')).toBeVisible();
+  await expect(page.getByTestId('combat-result-title')).toHaveText('Victoire');
+  // Détail des deux armées + gains (le gardien anéanti donne de l'XP).
+  await expect(page.getByTestId('combat-result-player')).toBeVisible();
+  await expect(page.getByTestId('combat-result-enemy')).toBeVisible();
+  await expect(page.getByTestId('combat-result-gains')).toBeVisible();
+
+  // « Continuer » ferme le bilan et rend la main à la carte.
+  await page.getByTestId('combat-result-continue').click();
+  await expect(page.getByTestId('combat-result')).toHaveCount(0);
+  await expect(page.getByTestId('end-turn')).toBeVisible();
 
   expect(errors).toEqual([]);
 });
@@ -1529,6 +1623,7 @@ test('caravane : posséder 2 villes ⇒ expédier une pile ⇒ arrivée en garni
       () => window.__HEROES_TEST__!.getState().towns.find((t) => t.id === 'neutral-keep')?.ownerPlayerId,
     ),
   ).toBe('player-1');
+  await dismissCombatResult(page); // le bilan de siège recouvre la carte
 
   // 2) Placer une pile dans la garnison de `neutral-keep` (le héros y est).
   await page.evaluate(() =>

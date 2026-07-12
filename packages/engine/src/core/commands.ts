@@ -277,6 +277,8 @@ export type Command =
   | { type: 'Retreat' }
   /** Reddition (C3) : payer de l'or (valeur d'armée) pour quitter en gardant l'armée. */
   | { type: 'Surrender' }
+  /** Abandon pré-combat : renoncer avant l'engagement (round 1) en gardant l'armée survivante, sans coût. */
+  | { type: 'AbandonCombat' }
   // ——— Sort d'aventure (doc 02 §1.4, Alpha 4.16) : lancé sur la carte, hors combat ———
   | { type: 'CastAdventureSpell'; heroId: string; spellId: string; playerId: string; townId?: string }
   | { type: 'ChooseSkill'; heroId: string; skillId: string }

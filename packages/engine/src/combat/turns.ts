@@ -7,7 +7,7 @@ import type { GameEvent } from '../core/events';
 import { rollRange } from '../core/rng';
 import { evaluateOutcome } from '../scenario/outcome';
 import type { Draft } from './draft';
-import { collectCasualties, combatRules, compareInitiative, moraleOf, recordLoss } from './state-helpers';
+import { collectCasualties, collectSurvivors, combatRules, compareInitiative, moraleOf, recordLoss } from './state-helpers';
 import type { CombatSideId, CombatStack, CombatState } from './types';
 
 /**
@@ -156,11 +156,12 @@ export function checkCombatEnd(draft: Draft, events: GameEvent[]): boolean {
   combat.winner = winner;
   combat.activeStackId = null;
   const casualties = collectCasualties(combat);
+  const survivors = collectSurvivors(combat);
   applyConsequences(draft, combat, winner, casualties, events);
   // Un héros peut disparaître (défaite) : conditions de victoire/défaite
   // (doc 02 §6, plan phase-3.5) — no-op hors scénario.
   evaluateOutcome(draft, events);
-  events.push({ type: 'CombatEnded', winner, playerSide: combat.playerSide, casualties });
+  events.push({ type: 'CombatEnded', winner, playerSide: combat.playerSide, casualties, survivors });
   grantHeroCombatXp(draft, combat, winner, casualties, events);
   // Chance de fontaine (doc 02 §2.2, effet `luck`) : consommée à la FIN du
   // combat, pour chaque héros engagé encore vivant (le vaincu a disparu).

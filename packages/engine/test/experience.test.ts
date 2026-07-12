@@ -16,7 +16,7 @@ import { testCatalog, testConfig, testMap } from './fixtures';
 
 const REAL_CURVE: HeroProgressionConfig = {
   xpPerHpKilled: 1,
-  levelCurve: { base: 1000, exponent: 1.9 },
+  levelCurve: { base: 268, exponent: 1.9 },
   maxLevel: 30,
   attributeWeights: { attack: 30, defense: 30, power: 20, knowledge: 20 },
 };
@@ -80,14 +80,14 @@ describe('xpForLevel', () => {
     expect(xpForLevel(REAL_CURVE, 1)).toBe(0);
   });
 
-  it('valeurs exactes de la courbe 1000 × n^1.9', () => {
-    expect(xpForLevel(REAL_CURVE, 2)).toBe(3732);
-    expect(xpForLevel(REAL_CURVE, 3)).toBe(8064);
-    expect(xpForLevel(REAL_CURVE, 10)).toBe(79433);
+  it('valeurs exactes de la courbe 268 × n^1.9 (premier palier ≈ 1000 XP)', () => {
+    expect(xpForLevel(REAL_CURVE, 2)).toBe(1000);
+    expect(xpForLevel(REAL_CURVE, 3)).toBe(2161);
+    expect(xpForLevel(REAL_CURVE, 10)).toBe(21288);
   });
 
   it('valeur au cap (niveau 30)', () => {
-    expect(xpForLevel(REAL_CURVE, 30)).toBe(640517);
+    expect(xpForLevel(REAL_CURVE, 30)).toBe(171658);
   });
 });
 
@@ -219,7 +219,7 @@ describe('intégration combat (via apply)', () => {
     expect(xpGained).toEqual({ type: 'XpGained', heroId: 'hero-p1', amount: 50, xp: 50 });
     const hero = state.heroes.find((h) => h.id === 'hero-p1');
     expect(hero?.xp).toBe(50);
-    expect(hero?.level).toBe(1); // 50 < xpForLevel(2) = 3732 avec la courbe réelle
+    expect(hero?.level).toBe(1); // 50 < xpForLevel(2) = 3732 (courbe fixture base 1000)
   });
 
   it('arène (StartCombat, heroId null) : aucun XP accordé', () => {

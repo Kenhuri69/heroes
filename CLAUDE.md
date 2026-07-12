@@ -307,6 +307,22 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > Sylwen/Faelar, Evadne/Alwin ; locales FR/EN, avatars génériques). Différés
 > restants notés dans chaque doc de faction (signatures exactes = points
 > d'extension distincts) : Nécromancie/niveau, Symbiose de départ, familier gratuit.
+>
+> 🎯 **Retours de jeu — équilibrage, combat & UI** (plan `.claude/plans/
+> game-balance-combat-ui.md`, docs 02/08). Quatre correctifs : (1) **moulin** —
+> l'or aléatoire suit les paliers **250/500/1000** (comme les mines) au lieu de
+> 1–3 à l'unité (`mapgen.ts`, données) ; (2) **abandon pré-combat** — commande
+> moteur générique `AbandonCombat` (garde l'armée survivante, gratuit, gate
+> round 1) + 3ᵉ bouton **« Abandonner »** sur `PreBattleScreen` UNIQUEMENT (jamais
+> en bataille — choix utilisateur) et hors arène ; (3) **courbe XP** — `levelCurve.
+> base` 1000→**268** (`config.json`) ⇒ 1ᵉʳ palier niveau 2 ≈ **1000 XP** (exposant
+> 1.9 inchangé ; fixture de test gardée à 1000 ⇒ golden inline épargné) ; (4)
+> **bilan de fin de combat** — `CombatEnded` enrichi de `survivors` (état haché
+> inchangé ⇒ golden épargné), `dispatch.buildCombatResult` agrège pertes/
+> survivants + gains (XP/niveaux/or/ressources/artefact/mort-vivants), composant
+> `CombatResultScreen` (modale par-dessus la carte, « Continuer » ; pas de bilan
+> pour un départ délibéré). Garde-fou « zéro faction » vert, pas de bump save,
+> golden inchangé ; smoke étendu (abandon + bilan).
 
 ---
 

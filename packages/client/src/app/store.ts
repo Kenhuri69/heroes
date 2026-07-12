@@ -42,6 +42,42 @@ export interface CombatLogLine {
   text: string;
 }
 
+/** Effectif d'une unité au bilan de fin de combat (retour de jeu 2026-07). */
+export interface CombatResultUnit {
+  unitId: string;
+  /** Survivants (0 si l'unité a été anéantie). */
+  survived: number;
+  /** Pertes. */
+  lost: number;
+}
+
+/**
+ * Bilan de fin de combat (retour de jeu 2026-07) : morts/survivants par armée +
+ * gains XP et ressources. Construit à partir des événements du dispatch qui
+ * termine le combat (`CombatEnded` + `XpGained`/`GuardianVanquished`/…), affiché
+ * par `CombatResultScreen`. Purement présentation client (non persisté).
+ */
+export interface CombatResult {
+  /** Le joueur a-t-il gagné ? */
+  victory: boolean;
+  /** Détail de l'armée du joueur (camp `playerSide`). */
+  player: CombatResultUnit[];
+  /** Détail de l'armée ennemie. */
+  enemy: CombatResultUnit[];
+  /** XP gagnée par le héros (0 en défaite). */
+  xp: number;
+  /** Nombre de niveaux gagnés. */
+  levelUps: number;
+  /** Or gagné (butin de gardien). */
+  gold: number;
+  /** Ressources gagnées (butin de gardien + ressource de faction). */
+  resources: { resource: string; amount: number }[];
+  /** Artefact trouvé (butin de gardien), ou null. */
+  artifactId: string | null;
+  /** Mort-vivants relevés (Nécromancie), ou null. */
+  undead: { unitId: string; count: number } | null;
+}
+
 /**
  * Type d'un toast (doc 08 §3, lot UXD-6b) : porte l'accent visuel (filet
  * coloré) et le SFX (`success → ui-confirm`, `error → ui-error`, `info` muet).
@@ -186,6 +222,13 @@ export interface AppState {
    * présentation client (non persisté) ; remis à zéro aux transitions de combat.
    */
   combatSpellTarget: { spellId: string; targetStackId: string } | null;
+  /**
+   * Bilan de fin de combat (retour de jeu 2026-07) : posé par `dispatch` quand un
+   * combat FOUILLÉ se termine (annihilation), affiché par `CombatResultScreen`
+   * par-dessus la carte jusqu'à ce que le joueur le ferme. `null` = aucun bilan.
+   * Non posé pour un abandon/fuite/reddition (départ délibéré). Non persisté.
+   */
+  combatResult: CombatResult | null;
 }
 
 export const appStore = createStore<AppState>(() => ({
@@ -232,6 +275,7 @@ export const appStore = createStore<AppState>(() => ({
   playerColors: {},
   aiTurn: null,
   combatSpellTarget: null,
+  combatResult: null,
 }));
 
 /** Hook Preact : re-rend quand la valeur sélectionnée change (égalité stricte). */

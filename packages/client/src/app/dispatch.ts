@@ -1,7 +1,71 @@
-import { apply, validate, EngineError, type Command, type EngineResult, type GameState } from '@heroes/engine';
-import { appStore } from './store';
+import { apply, validate, EngineError, type Command, type EngineResult, type GameEvent, type GameState } from '@heroes/engine';
+import { appStore, type CombatResult, type CombatResultUnit } from './store';
 import { eventBus } from './events';
 import { reduceMotion } from './motion';
+
+/**
+ * Bilan de fin de combat (retour de jeu 2026-07) : agrège les événements du
+ * dispatch qui a terminé le combat (`CombatEnded` porte pertes + survivants par
+ * camp ; `XpGained`/`HeroLevelUp`/`GuardianVanquished`/`FactionResourceGained`/
+ * `UndeadRaised` portent les gains). Retourne `null` s'il n'y a pas de combat
+ * fouillé terminé, ou si le joueur a QUITTÉ (fuite/reddition/abandon délibéré :
+ * pas d'écran de bilan). Pur (données ⇒ vue) — aucune lecture d'état.
+ */
+export function buildCombatResult(events: readonly GameEvent[]): CombatResult | null {
+  const ended = events.find((e) => e.type === 'CombatEnded');
+  if (!ended || ended.type !== 'CombatEnded') return null;
+  // Départ délibéré (fuite/reddition/abandon) : pas de bilan (l'action est déjà
+  // explicite côté joueur).
+  if (events.some((e) => e.type === 'CombatLeft')) return null;
+
+  const enemySide = ended.playerSide === 'attacker' ? 'defender' : 'attacker';
+  const breakdown = (side: 'attacker' | 'defender'): CombatResultUnit[] => {
+    const byUnit = new Map<string, CombatResultUnit>();
+    const get = (unitId: string): CombatResultUnit => {
+      let u = byUnit.get(unitId);
+      if (!u) {
+        u = { unitId, survived: 0, lost: 0 };
+        byUnit.set(unitId, u);
+      }
+      return u;
+    };
+    for (const s of ended.survivors) if (s.side === side) get(s.unitId).survived += s.count;
+    for (const c of ended.casualties) if (c.side === side) get(c.unitId).lost += c.lost;
+    return [...byUnit.values()];
+  };
+
+  let xp = 0;
+  let levelUps = 0;
+  let gold = 0;
+  const resources: { resource: string; amount: number }[] = [];
+  let artifactId: string | null = null;
+  let undead: { unitId: string; count: number } | null = null;
+  for (const e of events) {
+    if (e.type === 'XpGained') xp += e.amount;
+    else if (e.type === 'HeroLevelUp') levelUps += 1;
+    else if (e.type === 'GuardianVanquished') {
+      gold += e.gold;
+      if (e.resource && e.resourceAmount > 0) resources.push({ resource: e.resource, amount: e.resourceAmount });
+      if (e.artifactId) artifactId = e.artifactId;
+    } else if (e.type === 'FactionResourceGained') {
+      resources.push({ resource: e.resource, amount: e.amount });
+    } else if (e.type === 'UndeadRaised' && e.count > 0) {
+      undead = { unitId: e.unitId, count: e.count };
+    }
+  }
+
+  return {
+    victory: ended.winner === ended.playerSide,
+    player: breakdown(ended.playerSide),
+    enemy: breakdown(enemySide),
+    xp,
+    levelUps,
+    gold,
+    resources,
+    artifactId,
+    undead,
+  };
+}
 
 /**
  * Point d'entrée unique UI/input → moteur (doc 07 §3). Synchrone en Phase 2
@@ -21,8 +85,17 @@ export async function dispatch(cmd: Command): Promise<EngineResult> {
   // Écran pré-combat (Lot 1) : armé quand un combat DÉMARRE (null → non-null),
   // désarmé quand il se termine. La conduite manuelle / l'Auto-Battle le
   // désarment aussi côté UI (PreBattleScreen).
-  if (!before && result.state.combat) appStore.setState({ preBattlePending: true, combatAutoActive: false, combatSpellTarget: null });
-  else if (before && !result.state.combat) appStore.setState({ preBattlePending: false, combatAutoActive: false, combatSpellTarget: null });
+  if (!before && result.state.combat) appStore.setState({ preBattlePending: true, combatAutoActive: false, combatSpellTarget: null, combatResult: null });
+  else if (before && !result.state.combat) {
+    // Fin de combat : bilan (retour de jeu 2026-07) pour un combat FOUILLÉ, sinon
+    // `null` (départ délibéré / pas de combat).
+    appStore.setState({
+      preBattlePending: false,
+      combatAutoActive: false,
+      combatSpellTarget: null,
+      combatResult: buildCombatResult(result.events),
+    });
+  }
   eventBus.emit(result.events);
   await runAiLoop();
   return result;

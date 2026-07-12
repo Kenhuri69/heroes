@@ -326,6 +326,7 @@
   "combat.spell": "Hero spell",
   "combat.heroPresent": "Your hero leads the army",
   "combat.heroAttack": "Hero attack",
+  "combat.unitSpell": "Unit spell",
   "combat.heroAttackPreview": "≈ {amount} damage to the chosen target (once per combat)",
   "combat.retreat": "Retreat",
   "combat.surrender": "Surrender ({gold} gold)",

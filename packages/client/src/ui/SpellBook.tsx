@@ -2,6 +2,7 @@ import { useState } from 'preact/hooks';
 import {
   effectiveManaCost,
   estimateSpell,
+  spellTargetsEnemy,
   type CombatState,
   type CombatStack,
   type HeroSkillDef,
@@ -234,7 +235,9 @@ function TargetList({
   targetId: string | null;
   onSelect: (stackId: string) => void;
 }) {
-  const friendly = def.kind === 'heal' || def.kind === 'buff';
+  // Un sort qui ne vise pas l'ennemi (soin/buff/rally) cible le camp du joueur —
+  // source unique partagée avec le moteur (F-SCHOOLS.6 : `rally` = allié).
+  const friendly = !spellTargetsEnemy(def.kind);
   const targets: CombatStack[] = combat.stacks.filter((s) =>
     friendly ? s.side === combat.playerSide : s.side !== combat.playerSide,
   );

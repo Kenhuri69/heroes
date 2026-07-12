@@ -286,10 +286,15 @@ Source design : docs 03 §2/§4/§5, 04 §2/§4, 05 §3/§5/§6/§7, 14 §5/§6,
     `banishable` : retire une pile ennemie invoquée/démoniaque (squelette,
     Pénitent) dont le total de PV ≤ seuil (`base + perPower × Pouvoir`). Zéro
     faction moteur, aucun bump save, golden inchangé.
-  - **F-SCHOOLS.6+** ⬜ : 3 sorts Traque restants (un sous-lot chacun) — Pas de
-    Brume (téléport allié), Mue Éphémère (furtivité), Heure de la Curée
-    (noRetaliation conditionnel) ; effets Scène enrichis (peur/+moral, partagés
-    CAP-MORAL).
+  - **F-SCHOOLS.6** ✅ (plan `f-schools-6.md`) : **Heure de la Curée** (doc 05 §6,
+    cercle 5) — nouvelle mécanique générique `SpellKind 'rally'` + champ optionnel
+    `CombatState.markedNoRetaliation` : les attaques du camp du lanceur contre une
+    pile marquée n'essuient aucune riposte (N rounds). Réutilise Marques +
+    `noRetaliation`. Dédup `spellTargetsEnemy` (moteur → client). Zéro faction
+    moteur, aucun bump save, golden inchangé.
+  - **F-SCHOOLS.7+** ⬜ : 2 sorts Traque restants (un sous-lot chacun) — Pas de
+    Brume (téléport allié), Mue Éphémère (furtivité) ; effets Scène enrichis
+    (peur/+moral, partagés CAP-MORAL).
 
 - **F-ELITEVOX — Élites Vox Arcana** ✅ (plan `f-elitevox.md`, doc 16 §4)
   Pur contenu : 8 unités élites (`t*-*-elite`, stats ~1,25-1,3× base), 8 dwellings

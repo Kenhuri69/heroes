@@ -113,6 +113,13 @@ export interface CombatState {
   heroCastThisRound: CombatSideId[];
   /** Camps ayant déjà utilisé l'attaque de leur héros ce combat (1×/combat, C1). */
   heroAttackUsed: CombatSideId[];
+  /**
+   * Heure de la Curée (F-SCHOOLS.6, doc 05 §6) : tant que présent, les attaques
+   * du camp `side` contre une pile MARQUÉE n'essuient aucune riposte. `roundsLeft`
+   * décroît au passage de round (retiré à 0). **Optionnel** ⇒ vieilles saves
+   * gracieuses (pas de bump de version) et combats sans Curée l'omettent.
+   */
+  markedNoRetaliation?: { side: CombatSideId; roundsLeft: number };
   finished: boolean;
   winner: CombatSideId | null;
 }

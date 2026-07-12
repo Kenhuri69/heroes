@@ -23,6 +23,7 @@ export type SpellKind =
   | 'applyMarks'
   | 'silence'
   | 'banish'
+  | 'rally'
   | 'adventure';
 
 /**

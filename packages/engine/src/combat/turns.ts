@@ -100,6 +100,12 @@ export function advanceTurn(draft: Draft, events: GameEvent[]): void {
             .filter((st) => st.roundsLeft > 0);
         }
       }
+      // Heure de la Curée (F-SCHOOLS.6) : effet de camp à durée en rounds, décru
+      // comme les statuts et retiré à expiration.
+      if (combat.markedNoRetaliation) {
+        combat.markedNoRetaliation.roundsLeft -= 1;
+        if (combat.markedNoRetaliation.roundsLeft <= 0) delete combat.markedNoRetaliation;
+      }
       if (poisonKilled && checkCombatEnd(draft, events)) return;
       events.push({ type: 'CombatRoundStarted', round: combat.round });
       continue;

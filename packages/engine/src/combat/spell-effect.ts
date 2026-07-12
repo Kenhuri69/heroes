@@ -143,6 +143,11 @@ export function applySpellToTargets(
       amount += posed;
       if (posed > 0) events.push({ type: 'MarkApplied', targetId: t.id, marks: t.marks });
     }
+  } else if (spell.kind === 'rally') {
+    // F-SCHOOLS.6 (Heure de la Curée) : le camp du lanceur ne subit plus de
+    // riposte en frappant une pile MARQUÉE, pour `max(1, base)` round(s). Effet
+    // de camp (global), pas un statut de pile — estampillé sur le combat.
+    combat.markedNoRetaliation = { side: center.side, roundsLeft: Math.max(1, spell.base) };
   } else if (spell.kind === 'banish') {
     // F-SCHOOLS.5 : bannit une pile ENNEMIE `banishable` (invoquée/démoniaque)
     // dont le total de PV ≤ seuil (`base + perPower × Pouvoir`) — retrait complet

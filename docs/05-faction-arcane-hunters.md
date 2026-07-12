@@ -169,6 +169,19 @@ Faction inédite, produite en **Alpha** — elle sert de validation grandeur nat
 > différés : Pas de Brume (téléport), Mue Éphémère (furtivité), Heure de la Curée
 > (noRetaliation conditionnel).
 >
+> 🚧 **État F-SCHOOLS.6 (livré — Heure de la Curée)** : 4ᵉ des sorts Traque
+> restants — nouvelle mécanique de combat **générique** « suppression de riposte
+> conditionnelle par camp » : `SpellKind 'rally'` + champ **optionnel**
+> `CombatState.markedNoRetaliation { side, roundsLeft }`. Tant qu'il est actif,
+> les attaques du camp du lanceur contre une pile **marquée** n'essuient aucune
+> riposte (gate branché dans `applyAttack` + miroir préviz `estimateAttack`),
+> décru au passage de round. Réutilise Marques + le gate `noRetaliation` existant.
+> Sort de camp allié (`heure-de-la-curee`, cercle 5, `base` = rounds). Dédup :
+> `spellTargetsEnemy` exporté de `@heroes/engine`, consommé par le `SpellBook`
+> client (`friendly = !spellTargetsEnemy(kind)`). Champ optionnel ⇒ zéro faction
+> moteur, **aucun bump de save, golden inchangé**. Reste différés : Pas de Brume
+> (téléport allié), Mue Éphémère (furtivité).
+>
 > 🚧 **État 4.10 (demonform — T8)** : dernière grande capacité de signature —
 > `demonform` (doc 05 §4), capacité **stateful** générique (état par pile
 > sérialisable `CombatStack.transformed`), inline dans le moteur comme

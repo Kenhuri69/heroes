@@ -1,0 +1,17 @@
+{
+  "id": "vhalen",
+  "name": "@loc:hero.vhalen.name",
+  "bio": "@loc:hero.vhalen.bio",
+  "archetype": "might",
+  "origin": "original",
+  "avatar": "necropolis-might",
+  "avatarStyle": "painterly",
+  "specialty": "@loc:hero.vhalen.specialty",
+  "attributes": { "attack": 2, "defense": 2, "power": 1, "knowledge": 1 },
+  "specialtyEffect": {
+    "id": "chevalier-vampirique",
+    "conditional": { "unitId": "t4-vampire", "perLevels": 2, "attack": 1, "defense": 1 }
+  },
+  "startingSkills": { "necromancy": 1 },
+  "startingSpells": []
+}

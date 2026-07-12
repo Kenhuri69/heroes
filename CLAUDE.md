@@ -275,6 +275,26 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > bump save, golden inchangé, garde-fou faction vert. Différés : Vhalen/Mère
 > Corbeau & co (spécialités conditionnelles = nouveau point d'extension),
 > UX-HEROSWAP, héros-vs-héros, pool exclusif, IA recruteuse, H-NAMED.2.
+>
+> 🏁 **Chantier « système de héros complet »** (5 lots, 5 PR mergées ; plans
+> `.claude/plans/{ux-heroswap,h-vs-h,m-tavern-4,h-named-2,h-cond}.md`). Clôt les
+> différés ci-dessus. **UX-HEROSWAP** : commande générique `TransferBetweenHeroes`
+> (armée/artefacts entre 2 héros du même joueur sur tuiles adjacentes) + UI de
+> rencontre `HeroSwap` double-colonne tap-tap (« Équilibrer »/split → UX-SPLIT).
+> **H-VS-H** : marcher sur un héros ENNEMI ouvre un combat (`beginHeroCombat`,
+> `defenderHeroId` enfin non-null) ; le vaincu meurt + dépouille d'artefacts au
+> vainqueur (surplus au sol). **M-TAVERN.4** : pool de Taverne **exclusif
+> inter-joueurs** (`HeroState.rosterId`, save **v25→v26** ; un héros mort
+> redevient recrutable) + **IA recruteuse** (riche + sous le cap, `ai/town-ai.ts`).
+> **H-NAMED.2** : chaque siège humain **choisit son héros de départ** à « Nouvelle
+> partie »/« Escarmouche » (`startingHeroId`, défaut aléatoire seedé ; zéro diff
+> moteur). **H-COND** : UN point d'extension moteur générique — spécialité
+> `conditional` scopée par `unitId` et/ou par niveau (`conditionalUnitBonus` en
+> combat : att/déf/vitesse), **zéro faction moteur, pas de bump save, golden
+> inchangé** ; 6 héros nommés différés désormais jouables (Vhalen/Mère Corbeau,
+> Sylwen/Faelar, Evadne/Alwin ; locales FR/EN, avatars génériques). Différés
+> restants notés dans chaque doc de faction (signatures exactes = points
+> d'extension distincts) : Nécromancie/niveau, Symbiose de départ, familier gratuit.
 
 ---
 

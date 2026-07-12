@@ -1,0 +1,17 @@
+{
+  "id": "sylwen",
+  "name": "@loc:hero.sylwen.name",
+  "bio": "@loc:hero.sylwen.bio",
+  "archetype": "might",
+  "origin": "original",
+  "avatar": "sylvan-court-might",
+  "avatarStyle": "painterly",
+  "specialty": "@loc:hero.sylwen.specialty",
+  "attributes": { "attack": 2, "defense": 2, "power": 1, "knowledge": 1 },
+  "specialtyEffect": {
+    "id": "gardefronde",
+    "conditional": { "unitId": "t2-archer-sylvestre", "speed": 1 }
+  },
+  "startingSkills": { "archery": 1 },
+  "startingSpells": []
+}

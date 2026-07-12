@@ -29,7 +29,7 @@ export function reachableHexes(state: GameState, stackId: string): OffsetPos[] {
   const def = state.unitCatalog[stack.unitId];
   if (!def) return [];
   // Portée = vitesse effective + speedMod des statuts (Hâte/Lenteur/Entraves), ≥ 0 (A4).
-  const speed = moveRange(stack, combat, state.unitCatalog);
+  const speed = moveRange(stack, combat, state.unitCatalog, state);
   const flying = hasAbility(def, 'flying');
 
   const blocked = new Set<string>();

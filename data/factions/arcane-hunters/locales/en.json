@@ -1,5 +1,11 @@
 {
   "faction.arcane-hunters.name": "Arcane Hunters",
+  "hero.evadne.name": "Evadne Corvel",
+  "hero.evadne.bio": "Master of the Hunt with a half-runic face, once of the Circle of the Abyss. Her Huntresses never miss the same prey twice.",
+  "hero.evadne.specialty": "Master of the Hunt — +1 attack to Huntresses per 2 levels.",
+  "hero.alwin.name": "Professor Alwin Marchmont",
+  "hero.alwin.bio": "Dean of the academy, more at ease with a grimoire than a blade. His mana economy lets him cast tirelessly.",
+  "hero.alwin.specialty": "Dean — -15% spell mana cost.",
   "unit.t1-eleve.name": "Duskwatch Pupil",
   "unit.t2-familier.name": "Bound Familiar",
   "unit.t3-prefet.name": "Circle Prefect",

@@ -120,7 +120,7 @@ export function CombatUi() {
 
   // Ordre de passage projeté (lot M1, doc 08 §2.4) : remplace les deux rangées
   // par camp triées par slot — l'actif est la 1ʳᵉ entrée par construction.
-  const order = roundActionOrder(combat, catalog);
+  const order = roundActionOrder(combat, catalog, appStore.getState().game);
   const sheetStack = sheetStackId ? (combat.stacks.find((s) => s.id === sheetStackId) ?? null) : null;
 
   const act = (action: 'wait' | 'defend'): void => {

@@ -1,0 +1,14 @@
+{
+  "id": "alwin",
+  "name": "@loc:hero.alwin.name",
+  "bio": "@loc:hero.alwin.bio",
+  "archetype": "magic",
+  "origin": "original",
+  "avatar": "arcane-hunters-magic",
+  "avatarStyle": "painterly",
+  "specialty": "@loc:hero.alwin.specialty",
+  "attributes": { "attack": 0, "defense": 0, "power": 3, "knowledge": 3 },
+  "specialtyEffect": { "id": "doyen", "manaCostReductionPct": 15 },
+  "startingSkills": { "wisdom": 1 },
+  "startingSpells": []
+}

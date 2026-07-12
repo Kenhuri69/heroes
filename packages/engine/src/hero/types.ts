@@ -74,6 +74,23 @@ export interface SkillRankEffect {
    */
   garrisonGrowthPct?: number;
   garrisonDefense?: number;
+  /**
+   * Spécialité CONDITIONNELLE (H-COND, doc 04 §5 / 05 §7 / 14 §5) — bonus de
+   * combat ciblé sur une UNITÉ précise (`unitId`) et/ou mis à l'échelle par
+   * NIVEAU du héros (`perLevels` ⇒ magnitude × `ceil(level/perLevels)`, sinon ×1).
+   * Interprété au niveau unité en combat (`conditionalUnitBonus`) ; **jamais**
+   * agrégé par `sumHouseField` (les entrées `conditional` n'ont pas de champ
+   * scalaire). Générique : le moteur ne lit que des ids opaques (aucune faction).
+   */
+  conditional?: {
+    /** Unité ciblée (id opaque) — absent = toutes les piles du camp. */
+    unitId?: string;
+    /** Palier de niveau : magnitude × `ceil(heroLevel / perLevels)`. Absent/0 = ×1 (plat). */
+    perLevels?: number;
+    attack?: number;
+    defense?: number;
+    speed?: number;
+  };
 }
 
 /**

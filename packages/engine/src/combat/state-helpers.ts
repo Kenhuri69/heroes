@@ -33,15 +33,51 @@ export function isShooterMeleePenalized(def: CombatUnitDef): boolean {
   return shooter.params?.noMeleePenalty !== true;
 }
 
-/** Vitesse effective = vitesse de base +1 si terrain natif (doc 02 §5.1). */
+/**
+ * Bonus de spécialité CONDITIONNEL (H-COND, doc 04 §5 / 05 §7 / 14 §5) porté par
+ * le héros du camp `side` et ciblé sur une UNITÉ (`unitId`) : attaque/défense/
+ * vitesse, mis à l'échelle par niveau (`perLevels` ⇒ ×`ceil(level/perLevels)`,
+ * sinon ×1). Lit `specialtyEffects`/`houseEffects` (mêmes effets déclaratifs).
+ * Générique : le moteur ne lit que des ids opaques. 0 sans héros ou hors cible.
+ */
+export function conditionalUnitBonus(
+  state: GameState,
+  combat: CombatState,
+  side: CombatSideId,
+  unitId: string,
+  key: 'attack' | 'defense' | 'speed',
+): number {
+  const heroId = side === 'attacker' ? combat.attackerHeroId : combat.defenderHeroId;
+  const hero = heroId ? state.heroes.find((h) => h.id === heroId) : undefined;
+  if (!hero) return 0;
+  let total = 0;
+  for (const eff of [...hero.specialtyEffects, ...hero.houseEffects]) {
+    const c = eff.conditional;
+    if (!c) continue;
+    if (c.unitId && c.unitId !== unitId) continue;
+    const amount = c[key] ?? 0;
+    if (!amount) continue;
+    const scale = c.perLevels && c.perLevels > 0 ? Math.max(1, Math.ceil(hero.level / c.perLevels)) : 1;
+    total += amount * scale;
+  }
+  return total;
+}
+
+/**
+ * Vitesse effective = vitesse de base +1 si terrain natif (doc 02 §5.1) + bonus de
+ * spécialité conditionnelle de vitesse (H-COND) quand `state` est fourni (chemins
+ * de correction : initiative, portée) ; omis dans les approximations d'IA.
+ */
 export function effectiveSpeed(
   stack: CombatStack,
   combat: CombatState,
   catalog: Record<string, CombatUnitDef>,
+  state?: GameState,
 ): number {
   const def = catalog[stack.unitId];
   if (!def) return 0;
-  return def.stats.speed + (def.nativeTerrain === combat.terrain ? 1 : 0);
+  const base = def.stats.speed + (def.nativeTerrain === combat.terrain ? 1 : 0);
+  return base + (state ? conditionalUnitBonus(state, combat, stack.side, stack.unitId, 'speed') : 0);
 }
 
 /**
@@ -54,9 +90,10 @@ export function moveRange(
   stack: CombatStack,
   combat: CombatState,
   catalog: Record<string, CombatUnitDef>,
+  state?: GameState,
 ): number {
   const mods = stack.statuses.reduce((sum, s) => sum + s.speedMod, 0);
-  return Math.max(0, effectiveSpeed(stack, combat, catalog) + mods);
+  return Math.max(0, effectiveSpeed(stack, combat, catalog, state) + mods);
 }
 
 /**
@@ -68,8 +105,9 @@ export function initiativeSpeed(
   stack: CombatStack,
   combat: CombatState,
   catalog: Record<string, CombatUnitDef>,
+  state?: GameState,
 ): number {
-  return effectiveSpeed(stack, combat, catalog) + stack.statuses.reduce((sum, s) => sum + s.speedMod, 0);
+  return effectiveSpeed(stack, combat, catalog, state) + stack.statuses.reduce((sum, s) => sum + s.speedMod, 0);
 }
 
 /** Ordre de passage projeté d'un round (lot UX M1) : piles restantes + round suivant. */
@@ -100,9 +138,10 @@ export function compareInitiative(
   combat: CombatState,
   catalog: Record<string, CombatUnitDef>,
   direction: 'asc' | 'desc',
+  state?: GameState,
 ): number {
-  const sa = initiativeSpeed(a, combat, catalog);
-  const sb = initiativeSpeed(b, combat, catalog);
+  const sa = initiativeSpeed(a, combat, catalog, state);
+  const sb = initiativeSpeed(b, combat, catalog, state);
   if (sa !== sb) return direction === 'desc' ? sb - sa : sa - sb;
   const defA = catalog[a.unitId];
   const defB = catalog[b.unitId];
@@ -116,12 +155,13 @@ export function compareInitiative(
 export function roundActionOrder(
   combat: CombatState,
   catalog: Record<string, CombatUnitDef>,
+  state?: GameState,
 ): RoundActionOrder {
   if (combat.finished) return { current: [], next: [] };
   const bySpeed =
     (direction: 'asc' | 'desc') =>
     (a: CombatStack, b: CombatStack): number =>
-      compareInitiative(a, b, combat, catalog, direction);
+      compareInitiative(a, b, combat, catalog, direction, state);
   const alive = combat.stacks.filter((s) => s.count > 0);
   const main = alive.filter((s) => !s.acted && !s.waited).sort(bySpeed('desc'));
   const wait = alive.filter((s) => !s.acted && s.waited).sort(bySpeed('asc'));

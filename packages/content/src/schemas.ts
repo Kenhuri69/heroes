@@ -133,6 +133,23 @@ const heroEffectFields = {
   // pas par les accesseurs par-héros. Branchés ⇒ pas un mensonge de contenu.
   garrisonGrowthPct: z.number().optional(),
   garrisonDefense: z.number().optional(),
+  // Spécialité CONDITIONNELLE (H-COND, doc 04 §5 / 05 §7 / 14 §5) : bonus de combat
+  // ciblé sur une UNITÉ (`unitId`) et/ou mis à l'échelle par niveau (`perLevels`).
+  // Interprété au niveau unité en combat (`conditionalUnitBonus`), jamais agrégé
+  // à plat. Générique — `unitId` est un id opaque.
+  conditional: z
+    .object({
+      unitId: idSchema.optional(),
+      perLevels: z.number().int().positive().optional(),
+      attack: z.number().optional(),
+      defense: z.number().optional(),
+      speed: z.number().optional(),
+    })
+    .refine(
+      (c) => c.attack !== undefined || c.defense !== undefined || c.speed !== undefined,
+      'au moins un effet conditionnel (attack/defense/speed)',
+    )
+    .optional(),
 } as const;
 
 const houseEffectSchema = z

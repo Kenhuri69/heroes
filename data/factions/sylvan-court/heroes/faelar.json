@@ -1,0 +1,17 @@
+{
+  "id": "faelar",
+  "name": "@loc:hero.faelar.name",
+  "bio": "@loc:hero.faelar.bio",
+  "archetype": "magic",
+  "origin": "original",
+  "avatar": "sylvan-court-magic",
+  "avatarStyle": "painterly",
+  "specialty": "@loc:hero.faelar.specialty",
+  "attributes": { "attack": 0, "defense": 1, "power": 3, "knowledge": 3 },
+  "specialtyEffect": {
+    "id": "ecoutant",
+    "conditional": { "unitId": "t6-treant", "perLevels": 2, "defense": 1 }
+  },
+  "startingSkills": { "wisdom": 1 },
+  "startingSpells": []
+}

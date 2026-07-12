@@ -1,5 +1,11 @@
 {
   "faction.sylvan-court.name": "Cour Sylvestre",
+  "hero.sylwen.name": "Sylwen Gardefronde",
+  "hero.sylwen.bio": "Gardienne de la lisière, elle a appris à défendre la frontière plutôt que la forêt entière. Ses archers frappent avant que l'ennemi n'ait vu l'arc.",
+  "hero.sylwen.specialty": "Gardefronde — +1 vitesse aux Archers sylvestres.",
+  "hero.faelar.name": "Faelar l'Écoutant",
+  "hero.faelar.bio": "Druide qui écoute plus qu'il n'agit ; quand il parle enfin, les Tréants se dressent, patients et inébranlables.",
+  "hero.faelar.specialty": "L'Écoutant — +1 défense aux Tréants par tranche de 2 niveaux.",
   "unit.t1-lucine.name": "Lucine",
   "unit.t2-archer-sylvestre.name": "Archer Sylvestre",
   "unit.t3-dryade.name": "Dryade",

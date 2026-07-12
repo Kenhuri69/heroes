@@ -127,6 +127,17 @@ export default {
         if (request.method === 'PUT') {
           const { state, save_version } = (await request.json()) as { state?: string; save_version?: number };
           if (typeof state !== 'string' || typeof save_version !== 'number') return fail(400, 'state/save_version requis', env);
+          // NET-SRVGUARD (doc 15 §5.2, doc 07 §4) : garde de version ANTI-DOWNGRADE.
+          // Un client d'une version obsolète ne peut pas écraser une sauvegarde plus
+          // récente : rejet si `save_version` < version déjà stockée pour ce slot.
+          // Même version (autosave) ou supérieure (client à niveau) ⇒ upsert. Le
+          // serveur reste version-agnostique (pas de constante moteur dupliquée) ;
+          // il n'impose que la monotonie (« le plus récent gagne »).
+          const existing = await env.DB.prepare('SELECT save_version FROM saves WHERE profile_id = ? AND slot = ?')
+            .bind(profileId, slot)
+            .first<{ save_version: number }>();
+          if (existing && save_version < existing.save_version)
+            return fail(409, 'version de sauvegarde obsolète', env);
           await env.DB.prepare(
             'INSERT INTO saves (profile_id, slot, save_version, state, updated_at) VALUES (?, ?, ?, ?, ?) ' +
               'ON CONFLICT(profile_id, slot) DO UPDATE SET save_version=excluded.save_version, state=excluded.state, updated_at=excluded.updated_at',

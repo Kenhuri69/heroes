@@ -559,11 +559,13 @@ SDK `packages/client/src/app/net.ts` sans autre appelant).
   appelant ; aucune UI. Spec : section « En ligne » des sauvegardes (liste de
   slots, upload/download, horodatage), garde de version client déjà en place.
 
-- **NET-SRVGUARD — Garde de version & conflits côté serveur** 🧩 S ⬜
-  Doc : doc 15 §5.2 (« save d'une autre version rejeté »), doc 07 §4 (« le plus
-  récent gagne + copie de sécurité »). Code : `PUT /saves` accepte tout
-  `save_version` (`worker.ts:127-136`), upsert sans copie. Spec : rejet si
-  version ≠ `CURRENT_SAVE_VERSION` attendue, colonne/slot d'historique N-1.
+- **NET-SRVGUARD — Garde de version & conflits côté serveur** 🧩 S 🧩 (garde livrée ; backup différé)
+  Doc : doc 15 §5.2, doc 07 §4. Livré (plan `net-srvguard.md`) : **garde
+  anti-downgrade** — `PUT /saves` rejette (**409**) un `save_version` antérieur à
+  celui déjà stocké pour ce slot ; même/supérieure ⇒ upsert. Serveur
+  version-agnostique (pas de constante moteur dupliquée ; « le plus récent gagne »,
+  monotonie). SDK `putSave` documente le 409. **Différé (NET-SRVGUARD.2)** : copie
+  de sécurité N-1 (évolution de schéma D1 + migration base live).
 
 - **NET-SEC — Durcissement : rate limit, quotas, validation, revoke** 🧩 M ⬜
   Doc : doc 15 §2/§8, doc 07 §5 (anti-triche). Code : `/auth/request` sans

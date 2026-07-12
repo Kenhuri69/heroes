@@ -160,7 +160,10 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 > capturables (fouler la tuile ⇒ drapeau à la couleur du joueur, revenu/jour
 > aux montants du §3, recapturables — les gardes se posent en plaçant un
 > gardien devant), **coffres** (choix or **ou** XP via une modale forcée ;
-> l'IA prend l'or), **artefacts au sol** (ramassés vers le 1er slot libre,
+> l'IA prend l'or) — **ratio 1 or : 0,8 XP** : « random parfait », l'or est la
+> seule magnitude aléatoire du coffre et l'XP en dérive (`xp = round(gold ×
+> 0,8)`), afin que le dilemme reste équilibré (`generateMap` le garantit ; les
+> cartes livrées le respectent) —, **artefacts au sol** (ramassés vers le 1er slot libre,
 > laissés au sol si l'inventaire est plein), **lieux de bonus** (effet
 > déclaratif : fontaine `luck` — consommée à la fin du prochain combat,
 > écurie `movement`, arbre du savoir `levelXp` — l'XP du niveau suivant,
@@ -197,6 +200,18 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 > (~4 → ~40) croissent avec cette profondeur : faibles autour des départs,
 > forts vers le centre. Générique et faction-agnostique (aucun cas particulier
 > de faction).
+
+> **Butin de gardien** : vaincre un gardien neutre **crédite un butin** gradué
+> par sa **force** (PV totaux = `hp × count`), tiré au **RNG seedé** — piloté par
+> le bloc de config optionnel `adventure.guardianReward` (`goldPerHp`,
+> `variancePercent`, `resources`, `resourceThresholdHp`, `resourceAmount`,
+> `artifactThresholdHp`, `artifactChancePercent`). **Or toujours** (base × PV ±
+> variance) ; **ressource** non-or au-delà d'un seuil ; **artefact** (tirage du
+> catalogue) avec une chance au-delà d'un seuil plus haut ⇒ « artefact au niveau
+> élevé » (gardiens forts, en profondeur). GÉNÉRIQUE : le moteur ne lit que des
+> ids de ressource/artefact **opaques**, jamais un nom de faction ; config absente
+> ⇒ aucun butin (aucun tirage RNG — fixtures/golden épargnés). L'artefact rejoint
+> le 1er slot équipé libre, sinon le SAC (comme un ramassage au sol).
 
 > **Panel & progression d'objets (cartes générées)** : `generateMap` peuple la
 > carte de toutes les catégories du §2.2, pas seulement des tas de ressources et

@@ -697,6 +697,26 @@ export const gameConfigSchema = z.object({
           .min(1),
       })
       .optional(),
+    /**
+     * Butin de gardien (doc 02 §2.2) : or/ressource/artefact gradué par la force
+     * du gardien vaincu, tiré au RNG seedé. Optionnel — absent ⇒ aucun butin.
+     */
+    guardianReward: z
+      .object({
+        goldPerHp: z.number().nonnegative(),
+        variancePercent: z.number().int().min(0).max(100),
+        /** Ressources non-or éligibles (ids opaques, validées contre les paquets ailleurs). */
+        resources: z.array(idSchema),
+        resourceThresholdHp: z.number().int().nonnegative(),
+        resourceAmount: z.object({
+          min: z.number().int().nonnegative(),
+          max: z.number().int().nonnegative(),
+        }),
+        artifactThresholdHp: z.number().int().nonnegative(),
+        artifactChancePercent: z.number().int().min(0).max(100),
+      })
+      .refine((r) => r.resourceAmount.min <= r.resourceAmount.max, 'resourceAmount.min ≤ max')
+      .optional(),
   }),
   newGame: z.object({
     map: idSchema,

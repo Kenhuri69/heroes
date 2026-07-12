@@ -439,17 +439,20 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
     });
   }
   // Trésors : montants gradués par la profondeur (jusqu'à ×2 au centre) — les
-  // coffres loin des départs sont plus riches.
+  // coffres loin des départs sont plus riches. « Random parfait » (doc 02 §2.2) :
+  // l'or est la seule magnitude aléatoire ; l'XP en dérive au ratio 1 or : 0,8 XP
+  // ⇒ le dilemme or/XP reste équilibré à chaque coffre.
   for (let i = 0; i < scaledCat(randBetween(1, 2), pickupDensity); i++) {
     place((x, y, n) => {
       const depth = depthAt(x, y);
+      const gold = Math.round(randBetween(500, 1500) * (1 + depth));
       return {
         id: `chest-${n}`,
         type: 'treasure',
         x,
         y,
-        gold: Math.round(randBetween(500, 1500) * (1 + depth)),
-        xp: Math.round(randBetween(200, 600) * (1 + depth)),
+        gold,
+        xp: Math.round(gold * 0.8),
       };
     });
   }

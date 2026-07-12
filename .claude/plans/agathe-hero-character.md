@@ -55,3 +55,13 @@ par l'utilisateur (conserve un visage réel — divergence assumée vs painterly
 - ✅ Vérifs : `content:check` (6 paquets), typecheck, lint, **595 tests** engine,
   build, smoke héros-nommé + assets-no-404 (desktop) verts. Zéro diff moteur
   (grep faction en dur vide), pas de bump save.
+
+## Suivi PR #278 — CI
+- CI PR (merge avec `main`) rouge : bug **préexistant sur `main`**
+  `combat-silence.test.ts:21` (TS2783 — `id: over.id` redondant avant `...over`),
+  sans rapport avec Agathe. `main` cassé pour toutes les PR.
+- **Décision utilisateur** : corriger + merger `main` dans cette PR.
+- ✅ `main` mergé (résolution auto, 0 conflit) ; correctif 1 ligne (retrait du
+  `id:` redondant, aligné sur les helpers `unit()` voisins). Revérifié :
+  typecheck/lint/content:check verts, **602 + 116 tests**, build, smoke
+  héros/assets verts.

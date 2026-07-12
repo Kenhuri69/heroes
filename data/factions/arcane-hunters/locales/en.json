@@ -50,5 +50,8 @@
   "building.arcane-hunters-circle-traque.lore": "The hall where the quarry is given a name. Mark next: what bears the sign is lost in the fog no more.",
   "building.arcane-hunters-circle-sceau.lore": "Here they study the seal of Duskwatch that it hold one more day. It is not reopened; it is endured.",
   "building.arcane-hunters-circle-abime.lore": "Here they touch what the Seal holds back, fingertip only, at their peril. Strike last — even at the cost of leaning in.",
-  "building.arcane-hunters-contracts.lore": "A board, names nailed to it, a price on each. No hatred here: you fulfill the contract, then go home."
+  "building.arcane-hunters-contracts.lore": "A board, names nailed to it, a price on each. No hatred here: you fulfill the contract, then go home.",
+  "hero.olivier.name": "Olivier",
+  "hero.olivier.bio": "A graduate of Darkwatch's Circle of the Hunt, Olivier made the shadows his ally and poison his craft. An original creation, this assassin strikes once, surely, and vanishes before the riposte.",
+  "hero.olivier.specialty": "Poisoned Blades — increased melee damage, venom eats through the target's armor"
 }

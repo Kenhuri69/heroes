@@ -50,5 +50,8 @@
   "building.arcane-hunters-circle-traque.lore": "La salle où le gibier reçoit un nom. Marquer ensuite : ce qui porte le signe ne se perd plus dans la brume.",
   "building.arcane-hunters-circle-sceau.lore": "Ici on étudie le verrou de Sombreveille afin qu'il tienne un jour de plus. On ne le rouvre pas ; on l'endure.",
   "building.arcane-hunters-circle-abime.lore": "On y touche ce que le Sceau retient, du bout des doigts, à ses risques. Abattre enfin — même au prix de se pencher.",
-  "building.arcane-hunters-contracts.lore": "Un tableau, des noms cloués, un prix pour chacun. On n'y hait personne : on remplit le contrat, puis on rentre."
+  "building.arcane-hunters-contracts.lore": "Un tableau, des noms cloués, un prix pour chacun. On n'y hait personne : on remplit le contrat, puis on rentre.",
+  "hero.olivier.name": "Olivier",
+  "hero.olivier.bio": "Diplômé du Cercle de la Traque de Sombreveille, Olivier a fait de l'ombre son alliée et du poison son art. Création propre au jeu, cet assassin frappe une fois, sûrement, et disparaît avant la riposte.",
+  "hero.olivier.specialty": "Lames empoisonnées — dégâts de mêlée accrus, le venin ronge l'armure de la cible"
 }

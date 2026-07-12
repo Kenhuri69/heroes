@@ -11,6 +11,7 @@ import {
   estimateDamage,
   meleeOriginsFor,
   reachableHexes,
+  teleportDestinations,
   type CombatActionInput,
   type CombatSideId,
   type CombatStack,
@@ -372,6 +373,26 @@ export class CombatScene {
       return;
     }
 
+    // F-SCHOOLS.8 (Pas de Brume) : en mode ciblage de téléportation, surligne les
+    // destinations valides (helper moteur partagé) + la pile alliée à déplacer.
+    const spellTarget = appStore.getState().combatSpellTarget;
+    if (spellTarget) {
+      let dests: OffsetPos[] = [];
+      try {
+        dests = teleportDestinations(game, spellTarget.spellId, spellTarget.targetStackId);
+      } catch {
+        dests = [];
+      }
+      const ally = combat.stacks.find((s) => s.id === spellTarget.targetStackId);
+      drawBoard(this.boardGfx, {
+        reachable: new Set(dests.map(hexKey)),
+        attackable: new Set(),
+        obstacles: new Set(combat.obstacles.map(hexKey)),
+        selected: ally?.pos ?? null,
+      });
+      return;
+    }
+
     const active = combat.stacks.find((s) => s.id === combat.activeStackId);
     const isPlayerTurn = !!active && active.side === combat.playerSide && !combat.finished;
 
@@ -445,6 +466,12 @@ export class CombatScene {
       await this.handlePlacementTap(combat, global);
       return;
     }
+    // F-SCHOOLS.8 : ciblage d'hex d'un sort de téléportation en cours — le tap
+    // choisit la destination (ou annule si l'hex n'est pas une destination valide).
+    if (appStore.getState().combatSpellTarget) {
+      await this.handleTeleportTap(game, global);
+      return;
+    }
     const active = combat.stacks.find((s) => s.id === combat.activeStackId);
     if (!active || active.side !== combat.playerSide) return; // pas le tour du joueur
 
@@ -516,6 +543,37 @@ export class CombatScene {
       }
       this.redrawBoard();
     }
+  }
+
+  /**
+   * F-SCHOOLS.8 (Pas de Brume) : tap en mode ciblage de téléportation. Un tap
+   * sur une destination valide (`teleportDestinations`) dispatche
+   * `CastSpell{…, targetHex}` ; tout autre tap ANNULE le ciblage (le grimoire ne
+   * se rouvre pas — le joueur peut relancer). Le mode est purgé dans les deux cas.
+   */
+  private async handleTeleportTap(game: GameState, global: Point): Promise<void> {
+    const target = appStore.getState().combatSpellTarget;
+    if (!target) return;
+    const local = this.boardLayer.toLocal(global);
+    const hex = pixelToOffset(local.x, local.y);
+    let dests: OffsetPos[] = [];
+    try {
+      dests = teleportDestinations(game, target.spellId, target.targetStackId);
+    } catch {
+      dests = [];
+    }
+    if (!inCombatBounds(hex) || !dests.some((p) => sameHex(p, hex))) {
+      appStore.setState({ combatSpellTarget: null }); // annulation (hex hors zone)
+      this.redrawBoard();
+      return;
+    }
+    appStore.setState({ combatSpellTarget: null });
+    try {
+      await dispatch({ type: 'CastSpell', spellId: target.spellId, targetStackId: target.targetStackId, targetHex: hex });
+    } catch (err) {
+      pushToast(commandErrorMessage(err), 'error'); // rejeté (CL3) — surfacé
+    }
+    this.redrawBoard();
   }
 
   private async handleAttackTap(

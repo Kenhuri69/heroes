@@ -94,6 +94,32 @@
   border-radius: var(--radius-s);
 }
 
+/* F-SCHOOLS.8 (Pas de Brume) : bandeau de ciblage d'hex de téléportation. */
+.combat-teleport-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 4px auto 0;
+  max-width: 42rem;
+  padding: 6px 14px;
+  text-align: center;
+  color: var(--parchment-bright);
+  background: var(--veil-85);
+  border: 1px solid var(--gold);
+  border-radius: var(--radius-s);
+}
+.combat-teleport-banner button {
+  min-height: 44px;
+  padding: 4px 14px;
+  border: 1px solid var(--gold);
+  border-radius: var(--radius-s);
+  background: var(--ink-700);
+  color: var(--parchment);
+  font: 600 0.8rem var(--font-ui);
+  cursor: pointer;
+}
+
 /* Vignette interactive (tap = fiche de pile, C14) ⇒ cible ≥ 44 px (A1). */
 .stack-chip {
   display: inline-flex;

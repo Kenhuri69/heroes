@@ -4,6 +4,14 @@ import { isPassable } from '../adventure/path';
 import { heroLuckOf, killsFromDamage, magicResistanceOf } from '../combat/damage';
 import { checkCombatEnd } from '../combat/turns';
 import { applySpellToTargets, spellTargets } from '../combat/spell-effect';
+import {
+  COMBAT_COLS,
+  COMBAT_ROWS,
+  hexDistance,
+  inCombatBounds,
+  sameHex,
+  type OffsetPos,
+} from '../combat/hex';
 import type { CombatState } from '../combat/types';
 import type { Command, CommandError } from '../core/commands';
 import type { GameEvent } from '../core/events';
@@ -67,7 +75,46 @@ export function validateCastSpell(state: GameState, cmd: CastSpellCmd): CommandE
   // (`combat.playerSide`). Interdit un dégât sur soi ou un buff sur l'ennemi.
   if (spellTargetsEnemy(spell.kind) !== (target.side !== combat.playerSide))
     return { code: 'invalidTarget', message: 'cible du mauvais camp pour ce sort' };
+  // F-SCHOOLS.8 (Pas de Brume) : un sort de téléportation exige une destination
+  // valide (case du plateau libre à portée de la pile ciblée).
+  if (spell.kind === 'teleport') {
+    if (!cmd.targetHex) return { code: 'invalidTarget', message: 'destination de téléportation requise' };
+    const hex = cmd.targetHex;
+    if (!teleportDestinations(state, cmd.spellId, cmd.targetStackId).some((p) => sameHex(p, hex)))
+      return { code: 'invalidTarget', message: 'destination de téléportation invalide' };
+  }
   return null;
+}
+
+/**
+ * F-SCHOOLS.8 : cases où une pile alliée peut être téléportée par `spellId`
+ * (`kind: 'teleport'`) — pure, déterministe (patron `reachableHexes`). Portée =
+ * `base + perPower × Pouvoir` du héros joueur. La destination doit être DANS le
+ * plateau, hors obstacle et libre de toute pile ; la téléportation ignore ce
+ * qu'il y a ENTRE (seule la case d'arrivée compte). Partagée validation + UI.
+ */
+export function teleportDestinations(state: GameState, spellId: string, targetStackId: string): OffsetPos[] {
+  const combat = state.combat;
+  if (!combat) return [];
+  const spell = state.spellCatalog[spellId];
+  const target = combat.stacks.find((s) => s.id === targetStackId);
+  if (!spell || spell.kind !== 'teleport' || !target || target.count <= 0) return [];
+  const hero = heroForPlayerSide(state, combat);
+  const power = hero ? effectivePower(hero, state.artifactCatalog) : 0;
+  const range = spell.base + spell.perPower * power;
+  const blocked = new Set<string>();
+  for (const o of combat.obstacles) blocked.add(`${o.col},${o.row}`);
+  for (const s of combat.stacks) if (s.count > 0) blocked.add(`${s.pos.col},${s.pos.row}`);
+  const out: OffsetPos[] = [];
+  for (let col = 0; col < COMBAT_COLS; col++) {
+    for (let row = 0; row < COMBAT_ROWS; row++) {
+      const p = { col, row };
+      if (!inCombatBounds(p) || blocked.has(`${col},${row}`)) continue;
+      if (hexDistance(target.pos, p) > range) continue;
+      out.push(p);
+    }
+  }
+  return out;
 }
 
 export function validateChooseSkill(state: GameState, cmd: ChooseSkillCmd): CommandError | null {
@@ -218,6 +265,7 @@ export function castHeroSpell(
   spellId: string,
   targetStackId: string,
   events: GameEvent[],
+  targetHex?: OffsetPos,
 ): void {
   const combat = draft.combat;
   if (!combat) return;
@@ -229,10 +277,25 @@ export function castHeroSpell(
   hero.mana -= effectiveManaCost(hero, draft.skillCatalog, spell);
   combat.heroCastThisRound.push(side);
   const power = effectivePower(hero, draft.artifactCatalog);
-  const luck = heroLuckOf(draft, combat, side);
-  // C7 : effet appliqué à la cible (+ alliées adjacentes en `splash`) via le
-  // cœur PARTAGÉ avec le lancer d'unité `spellcaster` (A2h, combat/spell-effect).
-  const { amount, kills } = applySpellToTargets(draft, combat, spell, target, power, luck, events);
+
+  let amount = 0;
+  let kills = 0;
+  if (spell.kind === 'teleport') {
+    // F-SCHOOLS.8 (Pas de Brume) : déplace instantanément la pile alliée ciblée
+    // vers `targetHex` (validé). Réutilise `StackMoved` (le client anime déjà) ;
+    // un repositionnement rompt l'enracinement de Symbiose (comme un déplacement).
+    if (targetHex) {
+      const from = { ...target.pos };
+      target.pos = { ...targetHex };
+      target.symbiosisStacks = 0;
+      events.push({ type: 'StackMoved', stackId: target.id, from, to: { ...targetHex } });
+    }
+  } else {
+    const luck = heroLuckOf(draft, combat, side);
+    // C7 : effet appliqué à la cible (+ alliées adjacentes en `splash`) via le
+    // cœur PARTAGÉ avec le lancer d'unité `spellcaster` (A2h, combat/spell-effect).
+    ({ amount, kills } = applySpellToTargets(draft, combat, spell, target, power, luck, events));
+  }
 
   events.push({
     type: 'SpellCast',
@@ -251,7 +314,7 @@ export function castHeroSpell(
 export function handleCastSpell(draft: Draft, cmd: CastSpellCmd, events: GameEvent[]): void {
   const combat = draft.combat;
   if (!combat) return; // exclu par validate
-  castHeroSpell(draft, combat.playerSide, cmd.spellId, cmd.targetStackId, events);
+  castHeroSpell(draft, combat.playerSide, cmd.spellId, cmd.targetStackId, events, cmd.targetHex);
 }
 
 export function handleChooseSkill(draft: Draft, cmd: ChooseSkillCmd, events: GameEvent[]): void {

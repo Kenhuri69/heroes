@@ -194,6 +194,20 @@ Faction inédite, produite en **Alpha** — elle sert de validation grandeur nat
 > différé : **Pas de Brume**, téléport allié — nouvelle surface de ciblage d'hex
 > client). Zéro faction moteur, golden re-fixé si la forme change.
 >
+> ✅ **État F-SCHOOLS.8 (livré — Pas de Brume)** : **8ᵉ et dernier sort Traque —
+> l'École de la Traque est COMPLÈTE (8/8)**. Nouvelle mécanique de combat
+> **générique** « téléportation » : `SpellKind 'teleport'` + champ **de commande**
+> `CastSpell.targetHex` (pas d'état persisté ⇒ **aucun bump save, golden
+> inchangé**). Le héros téléporte une pile ALLIÉE vers une case libre à portée
+> (`base + perPower × Pouvoir` = 3 hexes plats), obstacles/piles intermédiaires
+> ignorés (seule la case d'arrivée compte). Helper moteur pur `teleportDestinations`
+> (patron `reachableHexes`) partagé validation + surbrillance client. **Nouvelle
+> surface client** : après le choix de la pile alliée au grimoire, on entre en
+> **mode ciblage d'hex** (`store.combatSpellTarget`) — `CombatScene` surligne les
+> destinations, le tap dispatche `CastSpell{…, targetHex}`, un bandeau pilote
+> l'annulation. Données : `pas-de-brume` (cercle 1, kind teleport, base 3). Zéro
+> faction moteur.
+>
 > 🚧 **État 4.10 (demonform — T8)** : dernière grande capacité de signature —
 > `demonform` (doc 05 §4), capacité **stateful** générique (état par pile
 > sérialisable `CombatStack.transformed`), inline dans le moteur comme

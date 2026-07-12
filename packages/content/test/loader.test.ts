@@ -786,7 +786,7 @@ describe('spellSchema', () => {
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error.issues.map((i) => i.message).join()).toContain(
-        'damage/heal: base doit être > 0',
+        'damage/heal/teleport: base doit être > 0',
       );
     }
   });
@@ -804,6 +804,12 @@ describe('spellSchema', () => {
   it('F-SCHOOLS.1 — accepte l’école de faction `lumiere`', () => {
     const spell = { ...(makeSpell() as Record<string, unknown>), school: 'lumiere' };
     expect(spellSchema.safeParse(spell).success).toBe(true);
+  });
+
+  it('F-SCHOOLS.8 — accepte un sort teleport (base = portée) et rejette une portée nulle', () => {
+    const base = { ...(makeSpell() as Record<string, unknown>), kind: 'teleport', perPower: 0 };
+    expect(spellSchema.safeParse({ ...base, base: 3 }).success).toBe(true);
+    expect(spellSchema.safeParse({ ...base, base: 0 }).success).toBe(false);
   });
 });
 

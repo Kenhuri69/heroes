@@ -433,7 +433,7 @@ export const spellSchema = z
     school: z.enum(SPELL_SCHOOLS),
     circle: z.number().int().min(1).max(5),
     manaCost: z.number().int().positive(),
-    kind: z.enum(['damage', 'heal', 'buff', 'debuff', 'applyMarks', 'silence', 'banish', 'rally', 'stealth', 'adventure']),
+    kind: z.enum(['damage', 'heal', 'buff', 'debuff', 'applyMarks', 'silence', 'banish', 'rally', 'stealth', 'teleport', 'adventure']),
     base: z.number().nonnegative(),
     perPower: z.number().nonnegative(),
     attackMod: z.number().optional(),
@@ -460,8 +460,9 @@ export const spellSchema = z
       ])
       .optional(),
   })
-  .refine((s) => (s.kind === 'damage' || s.kind === 'heal' ? s.base > 0 : true), {
-    message: 'damage/heal: base doit être > 0',
+  .refine((s) => (s.kind === 'damage' || s.kind === 'heal' || s.kind === 'teleport' ? s.base > 0 : true), {
+    // teleport (F-SCHOOLS.8) : `base` = portée en hexes (≥ 1).
+    message: 'damage/heal/teleport: base doit être > 0',
     path: ['base'],
   })
   .refine((s) => (s.kind === 'adventure') === (s.adventure !== undefined), {

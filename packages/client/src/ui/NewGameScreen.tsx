@@ -9,6 +9,7 @@ import {
   type ResourceLevel,
   type SkirmishDifficulty,
 } from '../app/game';
+import { resolveHeroName } from '../app/i18n';
 import { PLAYER_COLORS } from '../render/playerColors';
 import './options.css';
 import './newgame.css';
@@ -69,6 +70,9 @@ export function NewGameScreen({ onClose }: { onClose: () => void }) {
   );
   // Équipe par siège (0 = sans alliance, défaut ⇒ chacun-pour-soi).
   const [slotTeams, setSlotTeams] = useState<number[]>(Array.from({ length: MAX_PLAYERS }, () => 0));
+  // Héros de départ par siège (H-NAMED.2) : `RANDOM` = tirage seedé ; sièges humains.
+  const [slotHeroes, setSlotHeroes] = useState<string[]>(Array.from({ length: MAX_PLAYERS }, () => RANDOM));
+  const rosterHeroes = useApp((s) => s.rosterHeroes);
   const [mapSize, setMapSize] = useState<MapSize | typeof RANDOM>('medium');
   const [resourceLevel, setResourceLevel] = useState<ResourceLevel | typeof RANDOM>('standard');
   const [difficulty, setDifficulty] = useState<SkirmishDifficulty | typeof RANDOM>('normal');
@@ -84,8 +88,13 @@ export function NewGameScreen({ onClose }: { onClose: () => void }) {
 
   const setController = (i: number, value: 'human' | 'ai'): void =>
     setControllers((prev) => prev.map((c, j) => (j === i ? value : c)));
-  const setSlotFaction = (i: number, value: string): void =>
+  const setSlotFaction = (i: number, value: string): void => {
     setSlotFactions((prev) => prev.map((f, j) => (j === i ? value : f)));
+    // Changer de faction réinitialise le héros du siège (roster proposé différent).
+    setSlotHeroes((prev) => prev.map((h, j) => (j === i ? RANDOM : h)));
+  };
+  const setSlotHero = (i: number, value: string): void =>
+    setSlotHeroes((prev) => prev.map((h, j) => (j === i ? value : h)));
   const setSlotColor = (i: number, value: number): void =>
     setSlotColors((prev) => prev.map((c, j) => (j === i ? value : c)));
   const setSlotTeam = (i: number, value: number): void =>
@@ -100,6 +109,7 @@ export function NewGameScreen({ onClose }: { onClose: () => void }) {
       factionId: slotFactions[i] ?? RANDOM,
       color: slotColors[i]!,
       team: slotTeams[i]!,
+      heroId: slotHeroes[i] ?? RANDOM,
     }));
     const config: NewGameRawConfig = { slots, mapSize, resourceLevel, difficulty, seed };
     window.dispatchEvent(new CustomEvent('heroes:start-newgame', { detail: config }));
@@ -184,6 +194,23 @@ export function NewGameScreen({ onClose }: { onClose: () => void }) {
                     </option>
                   ))}
                 </select>
+                {(i === 0 || controllers[i] === 'human') && (
+                  <select
+                    class="skirmish-select newgame-seat-hero"
+                    data-testid={`newgame-seat-${i}-hero`}
+                    value={slotHeroes[i]}
+                    onChange={(e) => setSlotHero(i, (e.currentTarget as HTMLSelectElement).value)}
+                  >
+                    <option value={RANDOM}>{t('newgame.random')}</option>
+                    {rosterHeroes
+                      .filter((h) => h.factionId === slotFactions[i])
+                      .map((h) => (
+                        <option key={h.id} value={h.id}>
+                          {resolveHeroName(h.name)}
+                        </option>
+                      ))}
+                  </select>
+                )}
                 <div class="newgame-seat-colors" role="group" aria-label={t('newgame.color')}>
                   {PLAYER_COLORS.map((c) => (
                     <button

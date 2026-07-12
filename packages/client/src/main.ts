@@ -248,7 +248,7 @@ async function bootstrap(): Promise<void> {
       setLoading('newgame.loading.prepare', 0.1);
       await raf();
       const factionIds = report.content.packs.map((p) => p.manifest.id);
-      const resolved = resolveNewGameConfig(raw, factionIds, raw.seed);
+      const resolved = resolveNewGameConfig(raw, factionIds, buildHeroRosterSetup(report), raw.seed);
 
       setLoading('newgame.loading.map', 0.35);
       await raf();
@@ -295,6 +295,12 @@ async function bootstrap(): Promise<void> {
     scenarios: report.content.scenarios,
     campaigns: report.content.campaigns,
     factions: report.content.packs.map((p) => p.manifest.id),
+    // Roster de héros nommés jouables (H-NAMED.2) — pour le choix du héros de départ.
+    rosterHeroes: Object.entries(buildHeroRosterSetup(report)).map(([id, def]) => ({
+      id,
+      factionId: def.factionId,
+      name: def.name,
+    })),
   });
   // « Nouvelle partie » configurable (doc 09) : l'écran émet la config brute,
   // l'intégration résout les tirages, génère la carte (overlay de progression) et

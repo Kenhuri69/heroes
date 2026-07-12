@@ -296,6 +296,43 @@ export function handleReorderArmy(draft: Draft, cmd: ReorderArmyCmd, events: Gam
   if (moved) hero.army.splice(cmd.to, 0, moved);
 }
 
+type SplitStackCmd = Extract<Command, { type: 'SplitStack' }>;
+
+const MAX_ARMY_STACKS = 7;
+
+/**
+ * UX-SPLIT (doc 08 §2.1/§2.3) : sépare une pile de l'armée du héros du joueur
+ * ACTIF en deux, la nouvelle pile étant ajoutée en fin d'`army` (compact ≤ 7).
+ * Commande moteur déterministe (l'ordre/nombre de piles pèse sur le combat).
+ * Aucun événement dédié (surface figée `events.ts`) : le rendu observe `army`.
+ */
+export function validateSplitStack(state: GameState, cmd: SplitStackCmd): CommandError | null {
+  const hero = state.heroes.find((h) => h.id === cmd.heroId);
+  if (!hero) return { code: 'unknownHero', message: `héros inconnu '${cmd.heroId}'` };
+  const current = state.players[state.currentPlayer];
+  if (!current || hero.playerId !== current.id)
+    return { code: 'notYourHero', message: `'${cmd.heroId}' n’appartient pas au joueur actif` };
+  if (hero.army.length >= MAX_ARMY_STACKS)
+    return { code: 'invalidSplit', message: 'armée pleine (7 piles max)' };
+  if (!Number.isInteger(cmd.from) || cmd.from < 0 || cmd.from >= hero.army.length)
+    return { code: 'invalidSplit', message: `pile source invalide (${cmd.from})` };
+  const source = hero.army[cmd.from];
+  if (!source) return { code: 'invalidSplit', message: `pile source invalide (${cmd.from})` };
+  if (!Number.isInteger(cmd.count) || cmd.count < 1 || cmd.count >= source.count)
+    return { code: 'invalidSplit', message: `quantité de séparation invalide (${cmd.count})` };
+  return null;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- pas d'événement dédié (surface figée events.ts)
+export function handleSplitStack(draft: Draft, cmd: SplitStackCmd, events: GameEvent[]): void {
+  const hero = draft.heroes.find((h) => h.id === cmd.heroId);
+  if (!hero) return; // exclu par validate
+  const source = hero.army[cmd.from];
+  if (!source) return; // exclu par validate
+  source.count -= cmd.count;
+  hero.army.push({ unitId: source.unitId, count: cmd.count });
+}
+
 /**
  * Estimation min/max d'un sort SANS RNG (doc 08 §2.4) — prévisualisation
  * obligatoire, utilisée par l'UI et l'IA future.

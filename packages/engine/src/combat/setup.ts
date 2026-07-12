@@ -79,6 +79,19 @@ function buildSiegeWalls(fortLevel: number, breached: boolean): OffsetPos[] {
   return walls;
 }
 
+// C-SIEGE2.3 : douve devant le rempart (colonne juste en amont), pour une ville
+// bien fortifiée (Fort ≥ 2). Colonne pleine : franchir la douve coûte un tour.
+const SIEGE_MOAT_COL = SIEGE_WALL_COL - 1;
+const SIEGE_MOAT_MIN_FORT = 2;
+
+/** Douve de siège (C-SIEGE2.3) : colonne d'hexes devant le mur, gatée Fort ≥ 2. */
+function buildMoat(fortLevel: number): OffsetPos[] {
+  if (fortLevel < SIEGE_MOAT_MIN_FORT) return [];
+  const moat: OffsetPos[] = [];
+  for (let row = 0; row < COMBAT_ROWS; row++) moat.push({ col: SIEGE_MOAT_COL, row });
+  return moat;
+}
+
 function drawObstacles(draft: Draft, min: number, max: number): OffsetPos[] {
   const countRoll = rollRange(draft.rng, min, max);
   draft.rng = countRoll.state;
@@ -271,12 +284,14 @@ export function beginTownCombat(
     return d ? hasAbility(d, 'siegeBreaker') : false;
   });
   const siegeWalls = buildSiegeWalls(fortLevel, breached);
+  const moat = buildMoat(fortLevel);
   draft.combat = {
     terrain,
     phase: 'battle',
     round: 1,
     obstacles,
     ...(siegeWalls.length > 0 ? { siegeWalls } : {}),
+    ...(moat.length > 0 ? { moat } : {}),
     stacks,
     activeStackId: null,
     playerSide: 'attacker',

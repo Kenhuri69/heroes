@@ -88,9 +88,16 @@ doc 08 §2.4 (écran de combat).
     flanquant la porte ⇒ ouverture doublée, `buildSiegeWalls(fortLevel, breached)`,
     détectée via `hero.warMachines`). Champ `siegeWalls` inchangé (pas de bump,
     golden inchangé). Données pures + petit branchement moteur.
-  - **C-SIEGE2.3+** ⬜ : bombardement **tour-par-tour** de la catapulte (PV de
-    segment, ciblage) ; (c) **tour de tir** (pile défenderesse fixe) ; (d)
-    **douves** (zone de ralentissement) ; art de rempart distinct.
+  - **C-SIEGE2.3** ✅ (plan `c-siege2-moat.md`) : (d) **douves** — colonne d'hexes
+    devant le rempart d'une ville bien fortifiée (Fort ≥ 2, `CombatState.moat`,
+    optionnel ⇒ pas de bump save, golden inchangé) ; un hex de douve est
+    atteignable mais **non traversable en un déplacement** (le BFS ne le
+    ré-explore pas ⇒ la franchir coûte un tour) ; ne bloque pas la LoS, volants
+    l'ignorent ; rendu client (teinte de fossé). Test « atteignable mais
+    infranchissable d'un coup » + pas de stalemate.
+  - **C-SIEGE2.4+** ⬜ : bombardement **tour-par-tour** de la catapulte (PV de
+    segment, ciblage) ; (c) **tour de tir** (pile défenderesse fixe) ; dégâts de
+    douve ; art de rempart distinct.
 
 - **C-SPELLUI — Grimoire & ciblage de sorts** 🎨 M ⬜
   Doc : doc 08 §2.3 (grimoire feuilletable par école), doc 02 §1.4.

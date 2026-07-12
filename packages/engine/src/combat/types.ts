@@ -111,6 +111,15 @@ export interface CombatState {
    * inchangé. Non destructibles au .1 (catapulte/PV = C-SIEGE2.2).
    */
   siegeWalls?: OffsetPos[];
+  /**
+   * Douves de siège (C-SIEGE2.3, doc 02 §5) — colonne d'hexes devant le rempart
+   * d'une ville bien fortifiée (Fort ≥ 2). Un hex de douve est **atteignable**
+   * mais **non traversable en un déplacement** (le BFS ne le ré-explore pas) :
+   * la franchir coûte un tour. Ne bloque PAS la ligne de vue (ce n'est pas un
+   * mur) ; les volants l'ignorent. **Optionnel** ⇒ pas de bump save, golden
+   * inchangé (absent hors siège fortifié).
+   */
+  moat?: OffsetPos[];
   stacks: CombatStack[];
   /** Pile dont c'est le tour (id), null si combat terminé. */
   activeStackId: string | null;

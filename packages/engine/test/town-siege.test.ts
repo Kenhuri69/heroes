@@ -4,6 +4,7 @@ import { apply, validate } from '../src/core/engine';
 import { createEmptyState, emptyResources, type GameState, type HeroState } from '../src/core/state';
 import { seedRng } from '../src/core/rng';
 import { runAutoCombat } from '../src/combat/ai';
+import { reachableHexes } from '../src/combat/actions';
 import { staticBlockedKeys } from '../src/combat/state-helpers';
 import { COMBAT_COLS, COMBAT_ROWS } from '../src/combat/hex';
 import type { GameEvent } from '../src/core/events';
@@ -142,6 +143,57 @@ describe('C-SIEGE2 — murs de siège', () => {
     expect((started.combat?.siegeWalls ?? []).length).toBeGreaterThan(0);
     const done = produce(started, (d) => runAutoCombat(d, events));
     expect(done.combat).toBeNull(); // le combat se termine (pas de blocage)
+    expect(done.towns[0]?.ownerPlayerId).toBe('p1');
+  });
+
+  it('C-SIEGE2.3 : une ville bien fortifiée (Fort ≥ 2) creuse une douve devant le rempart', () => {
+    const noMoat = apply(
+      siegeState([{ unitId: 'red-grunt', count: 50 }], [{ unitId: 'blue-wolf', count: 1 }], { fort: 1 }),
+      { type: 'CaptureTown', townId: 't1', playerId: 'p1' },
+    ).state;
+    expect(noMoat.combat?.moat).toBeUndefined(); // Fort 1 : murs seuls
+
+    const withMoat = apply(
+      siegeState([{ unitId: 'red-grunt', count: 50 }], [{ unitId: 'blue-wolf', count: 1 }], { fort: 2 }),
+      { type: 'CaptureTown', townId: 't1', playerId: 'p1' },
+    ).state;
+    const moat = withMoat.combat?.moat ?? [];
+    expect(moat.length).toBe(COMBAT_ROWS); // colonne pleine
+    expect(moat.every((m) => m.col === WALL_COL - 1)).toBe(true); // juste devant le mur
+  });
+
+  it('C-SIEGE2.3 : une douve est atteignable mais infranchissable en un déplacement', () => {
+    const s = siegeState([{ unitId: 'red-grunt', count: 50 }], [{ unitId: 'blue-wolf', count: 1 }], { fort: 2 });
+    const next = apply(s, { type: 'CaptureTown', townId: 't1', playerId: 'p1' }).state;
+    const combat = next.combat!;
+    // Attaquant devant la douve sur la RANGÉE DE LA PORTE (le mur y est ouvert,
+    // isolant l'effet de la douve du blocage de mur), vitesse large : il peut
+    // ENTRER dans la douve mais pas la traverser jusqu'au-delà du rempart.
+    const attacker = combat.stacks.find((st) => st.side === 'attacker')!;
+    // Isolation : on ne garde que l'attaquant (l'IA défenseuse a pu occuper la
+    // douve) et on efface les obstacles aléatoires — seule la douve doit peser.
+    const moved = produce(next, (d) => {
+      d.combat!.obstacles = [];
+      d.combat!.stacks = d.combat!.stacks.filter((st) => st.id === attacker.id);
+      d.combat!.stacks[0]!.pos = { col: WALL_COL - 2, row: GATE[0]! };
+      d.combat!.activeStackId = attacker.id;
+    });
+    const reach = reachableHexes(moved, attacker.id);
+    const gateRow = (p: { col: number; row: number }): boolean => p.row === GATE[0]!;
+    // Peut entrer dans la douve (col WALL-1) sur la rangée de la porte…
+    expect(reach.some((p) => p.col === WALL_COL - 1 && gateRow(p))).toBe(true);
+    // …mais ne franchit pas la douve ce tour-ci : la porte elle-même (col WALL)
+    // et l'au-delà restent inatteignables (il faut d'abord s'arrêter dans la douve).
+    expect(reach.some((p) => p.col >= WALL_COL && gateRow(p))).toBe(false);
+  });
+
+  it('C-SIEGE2.3 : un assaillant fort capture malgré la douve (franchie en un tour, pas de stalemate)', () => {
+    const s = siegeState([{ unitId: 'red-grunt', count: 100 }], [{ unitId: 'blue-wolf', count: 1 }], { fort: 2 });
+    const events: GameEvent[] = [];
+    const started = apply(s, { type: 'CaptureTown', townId: 't1', playerId: 'p1' }).state;
+    expect((started.combat?.moat ?? []).length).toBeGreaterThan(0);
+    const done = produce(started, (d) => runAutoCombat(d, events));
+    expect(done.combat).toBeNull();
     expect(done.towns[0]?.ownerPlayerId).toBe('p1');
   });
 

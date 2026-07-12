@@ -347,6 +347,16 @@ Chaque faction consomme surtout **une paire de ressources rares** (Haven : crist
 > `siegeWalls` inchangé (la brèche = moins de segments) ⇒ pas de bump save, golden
 > inchangé. Zéro faction moteur.
 
+> 🚧 **État (sièges v2 — C-SIEGE2.3, douves)** : une ville **bien fortifiée**
+> (Fort ≥ 2) creuse une **douve** — une colonne d'hexes (`CombatState.moat`, champ
+> **optionnel** ⇒ pas de bump save, golden inchangé) juste devant le rempart. Un
+> hex de douve est **atteignable** mais **non traversable en un déplacement** : le
+> BFS de `reachableHexes` l'ajoute à l'atteignable sans le ré-explorer, si bien
+> que **franchir la douve coûte un tour**. La douve ne bloque **pas** la ligne de
+> vue (ce n'est pas un mur) et les **volants l'ignorent**. Rendu client : teinte
+> de fossé distincte (`FILL_MOAT`). Dégâts de douve (comme HoMM) = raffinement
+> ultérieur. Zéro faction moteur.
+
 > 🚧 **État (caravanes inter-villes — T-CARAVAN, livré)** : commande générique
 > **`SendCaravan { fromTownId, toTownId, slot }`** — envoie une pile de garnison
 > d'une ville possédée vers une autre ville du **joueur actif**. La durée de

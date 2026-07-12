@@ -318,6 +318,17 @@
       "frequency": "oncePerHero"
     },
     {
+      "id": "sanctuaire-1",
+      "type": "visitable",
+      "x": 7,
+      "y": 7,
+      "effect": {
+        "kind": "learnSpell",
+        "spellId": "eclair-magique"
+      },
+      "frequency": "oncePerHero"
+    },
+    {
       "id": "monolith-a",
       "type": "monolith",
       "x": 20,

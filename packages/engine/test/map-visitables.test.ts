@@ -128,6 +128,45 @@ describe('lieux de bonus visitables (doc 02 §2.2)', () => {
     expect(again.events.some((e) => e.type === 'BonusVisited')).toBe(false);
   });
 
+  it("le sanctuaire de sort enseigne un sort au héros, une seule fois (M-VISIT)", () => {
+    const shrine = (id: string, x: number): MapObjectDef => ({
+      id,
+      type: 'visitable',
+      pos: { x, y: 0 },
+      effect: { kind: 'learnSpell', spellId: 'test-bolt' },
+      frequency: 'oncePerHero',
+      visits: {},
+    });
+    const s0 = startedWith([shrine('sanctuaire-a', 2), shrine('sanctuaire-b', 3)]);
+    expect(s0.heroes[0]?.spells).not.toContain('test-bolt');
+    const { state, events } = move(s0, [
+      { x: 1, y: 0 },
+      { x: 2, y: 0 },
+    ]);
+    expect(state.heroes[0]?.spells).toContain('test-bolt');
+    expect(events).toContainEqual({
+      type: 'BonusVisited',
+      heroId: 'hero-p1',
+      playerId: 'p1',
+      objectId: 'sanctuaire-a',
+      effect: { kind: 'learnSpell', spellId: 'test-bolt' },
+      amount: 1,
+    });
+    const first = state.map?.objects.find((o) => o.id === 'sanctuaire-a');
+    expect(first?.type === 'visitable' && first.visits['hero-p1']).toBe(-1); // à vie
+    // Un 2ᵉ sanctuaire du MÊME sort : appris idempotent (pas de doublon, amount 0).
+    const second = move(state, [{ x: 3, y: 0 }]);
+    expect(second.state.heroes[0]?.spells.filter((s) => s === 'test-bolt')).toHaveLength(1);
+    expect(second.events).toContainEqual({
+      type: 'BonusVisited',
+      heroId: 'hero-p1',
+      playerId: 'p1',
+      objectId: 'sanctuaire-b',
+      effect: { kind: 'learnSpell', spellId: 'test-bolt' },
+      amount: 0,
+    });
+  });
+
   it('le moulin crédite sa ressource fixe au joueur', () => {
     const mill: MapObjectDef = {
       id: 'moulin',

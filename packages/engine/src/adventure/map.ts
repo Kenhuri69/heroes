@@ -63,7 +63,12 @@ export type VisitableEffect =
    * définitif à un attribut primaire du héros visiteur. `oncePerHero` (à vie) =
    * gain unique (comme HoMM) ; la re-visite bornée est gérée par le registre.
    */
-  | { kind: 'permanentStat'; attribute: 'attack' | 'defense' | 'power' | 'knowledge'; amount: number };
+  | { kind: 'permanentStat'; attribute: 'attack' | 'defense' | 'power' | 'knowledge'; amount: number }
+  /**
+   * Sanctuaire de sort (M-VISIT, doc 02 §2.2) : enseigne `spellId` au héros
+   * visiteur (ajout à `hero.spells`, idempotent). `oncePerHero` = gain unique.
+   */
+  | { kind: 'learnSpell'; spellId: string };
 
 /** Lieu de bonus visitable (doc 02 §2.2) : visite en passant, re-visite bornée. */
 export interface VisitableObjectDef {

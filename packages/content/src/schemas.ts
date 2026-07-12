@@ -834,6 +834,8 @@ export const mapFileSchema = z.object({
             attribute: z.enum(['attack', 'defense', 'power', 'knowledge']),
             amount: z.number().int().positive(),
           }),
+          /** Sanctuaire de sort (M-VISIT, doc 02 §2.2) : enseigne `spellId` au héros. */
+          z.object({ kind: z.literal('learnSpell'), spellId: idSchema }),
         ]),
         frequency: z.enum(['oncePerHero', 'oncePerHeroPerWeek']),
       }),

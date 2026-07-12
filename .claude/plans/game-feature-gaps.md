@@ -502,9 +502,18 @@ Source design : doc 02 §2 (carte), §1.5 (multi-héros).
   > de visites existant (`oncePerHero` = à vie). Schéma + loader + client
   > (`MapObjectCard`, toast) + locales FR/EN + data proto-01 `arene-1` (attack+1).
   > Variant optionnel ⇒ **pas de bump save, golden inchangé**. Couvert en unitaire
-  > (`map-visitables.test.ts` : gain permanent + unicité par héros). **Différé** :
-  > sanctuaire de **sort** (apprend un sort) et cabane de **compétence** —
-  > nécessitent d'ouvrir l'octroi de sort/compétence hors montée (croise H-SPELLS).
+  > (`map-visitables.test.ts` : gain permanent + unicité par héros).
+  > **Livré (tranche sanctuaire de sort)** (plan `m-visit-spell-shrine.md`) : effet
+  > visitable **générique** `learnSpell { spellId }` — un sanctuaire enseigne un
+  > sort précis au héros visiteur (ajout **idempotent** à `hero.spells`, champ déjà
+  > sérialisé ⇒ **pas de bump save**), classique « Sanctuaire de Magie » HoMM.
+  > Réutilise le pipeline `visitBonus`/`BonusVisited` (toast + fiche + silhouette
+  > client dédiés). Data proto-01 `sanctuaire-1` (7,7) enseigne `eclair-magique`.
+  > Golden **inchangé** (le golden-replay n'a pas de visitable). Couvert en unitaire
+  > (`map-visitables.test.ts` : apprend le sort + idempotent + visite consommée).
+  > **Différé** : cabane de **compétence** (octroi de compétence hors montée) ;
+  > gating par Savoir (`heroLearnableCircle`) volontairement omis (simplicité —
+  > le sanctuaire enseigne un sort de bas cercle).
   Doc : doc 02 §2.2. Code (avant) : 5 kinds seulement.
 
 - **M-DWELLOWN — Habitations de carte capturables** 🕳️ S ✅

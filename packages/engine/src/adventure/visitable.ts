@@ -49,6 +49,13 @@ export function visitBonus(
     // Arène/statue (M-VISIT) : +attribut DÉFINITIF au héros visiteur.
     hero.attributes[effect.attribute] += effect.amount;
     amount = effect.amount;
+  } else if (effect.kind === 'learnSpell') {
+    // Sanctuaire de sort (M-VISIT) : enseigne un sort au héros. Idempotent —
+    // s'il le connaît déjà, la visite est consommée sans rien apprendre (0).
+    if (!hero.spells.includes(effect.spellId)) {
+      hero.spells.push(effect.spellId);
+      amount = 1;
+    }
   } else {
     player.resources[effect.resource as ResourceId] += effect.amount;
     amount = effect.amount;

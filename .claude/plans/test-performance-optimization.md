@@ -245,10 +245,16 @@ après merge de #305, guideline §6).
   (anti-gel, peu coûteux). ⚠️ Compromis assumé : une régression hors `@core` et
   hors `@perf` n'est vue qu'au merge/dispatch, pas sur la PR — filet = deploy.yml
   bloque toute publication rouge.
-- **G — Migration vers l'unitaire** : **non faite, à dessein.** La seule
-  redondance de règle restante (mécanique dialogue→drapeau) vit dans le
-  **client** (`app/narrative.ts` + `app/campaign.ts`, localStorage), PAS dans le
-  moteur pur ; or le client n'a **aucune** suite de tests unitaires (seuls
+- **G — Migration vers l'unitaire** : **partiellement faite.** La DONNÉE des
+  arcs (nœuds de choix, drapeaux) est validée en test contenu
+  `packages/content/test/dialogue-arcs.test.ts` via des **invariants
+  faction-agnostiques** (aucun ID de scénario/faction en dur — le garde-fou
+  modularité grepe `packages/`) : tout drapeau de choix est unique dans le
+  corpus (pas de collision d'arc), et chaque nœud à choix binaire est une
+  décision complète à drapeaux distincts (≥ 6 nœuds = les arcs livrés). Le smoke
+  ne rejoue donc plus que 2 parcours UI. La **mécanique** dialogue→drapeau, elle,
+  vit dans le **client** (`app/narrative.ts` + `app/campaign.ts`, localStorage),
+  PAS dans le moteur pur ; or le client n'a **aucune** suite de tests unitaires (seuls
   `@heroes/engine` et `@heroes/content` tournent sous vitest). Une vraie
   descente en unitaire supposerait de monter une infra de tests client
   (vitest + jsdom) — chantier séparé, hors périmètre de ce lot. Recommandé
@@ -256,6 +262,10 @@ après merge de #305, guideline §6).
   la consolidation (F/E) est le levier approprié ici.
 
 ### Journal
-- 2026-07-12 : impl. E+F+H sur `tests/smoke.spec.ts` (92 → 85 tests : F −5, E −2)
-  + `ci.yml` (PR `@core`, dispatch/main = complet). G documenté non-fait (infra
-  client manquante).
+- 2026-07-12 : impl. E+F+G+H. Smoke `tests/smoke.spec.ts` : E confort 3→1,
+  F arcs 6→2 (générateur), 13 tags `@core` ; `ci.yml` PR = `@core`, dispatch/main
+  = complet ; G = `packages/content/test/dialogue-arcs.test.ts` (invariants
+  génériques). **1er run rouge** : le garde-fou faction a flaggé les IDs de
+  scénario en dur (`haven-ch2`…) dans le test contenu ⇒ réécrit en invariants
+  **faction-agnostiques** (aucun ID en dur). Vérifs locales : contenu 2/2,
+  garde-fou faction propre, @core 19/19, typecheck + lint verts.

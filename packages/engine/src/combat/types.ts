@@ -35,6 +35,12 @@ export interface CombatUnitDef {
   recruitCost?: Partial<Record<ResourceId, number>>;
   /** Croissance hebdomadaire de l'habitation (doc 02 §4.1) — absent ⇒ pas de stock généré. */
   growthPerWeek?: number;
+  /**
+   * Tier de l'unité (doc 02 §4) — estampillé depuis les données. Utilisé par les
+   * effets ciblant les hauts tiers (F-BUILDEFF.5, Cercle Abîme). Optionnel :
+   * absent pour les unités hors habitation (machines de guerre) ⇒ traité comme 0.
+   */
+  tier?: number;
 }
 
 export type CombatSideId = 'attacker' | 'defender';
@@ -73,6 +79,13 @@ export interface CombatStack {
   symbiosisStacks: number;
   /** A déjà agi ce round (vagues par vitesse décroissante — doc 02 §5.2). */
   acted: boolean;
+  /**
+   * Furtivité (F-SCHOOLS.7, doc 05 §6 « Mue Éphémère ») : tant que `true`, la pile
+   * est INCIBLABLE par l'ennemi (attaque/tir/sort/frappe de héros) ; retombe quand
+   * elle prend sa prochaine action réelle. **Optionnel** : absent pour toute pile
+   * non furtive (jamais posé hors sort).
+   */
+  stealthed?: boolean;
   /** Statuts temporaires de sorts (buff/debuff, doc 02 §1.4) — vide par défaut. */
   statuses: SpellStatus[];
 }

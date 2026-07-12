@@ -2,7 +2,7 @@ import type { CombatRulesConfig } from '../adventure/config';
 import type { GameState } from '../core/state';
 import { heroArtifactBonus } from '../hero/artifacts';
 import { heroMorale } from '../hero/skills';
-import { townBuildingAura } from '../town/economy';
+import { townBuildingAura, townEliteDamageBonus } from '../town/economy';
 import type { CombatSideId, CombatStack, CombatState, CombatUnitDef } from './types';
 
 /**
@@ -283,6 +283,25 @@ export function moraleOf(stack: CombatStack, combat: CombatState, state: GameSta
 
 export function otherSide(side: CombatSideId): CombatSideId {
   return side === 'attacker' ? 'defender' : 'attacker';
+}
+
+/**
+ * Bonus de dégâts « élite » en combat de siège (F-BUILDEFF.5, doc 05 §3.2 —
+ * Cercle Abîme) : le camp DÉFENSEUR (garnison du propriétaire de la ville
+ * assiégée) voit ses piles de tier ≥ seuil frapper plus fort, via l'aura de
+ * bâtiment `eliteDamagePct`. 0 hors siège / camp attaquant / tier sous le seuil.
+ * Générique — aucune faction.
+ */
+export function siegeEliteDamage(
+  state: GameState,
+  combat: CombatState,
+  side: CombatSideId,
+  def: CombatUnitDef,
+): number {
+  if (side !== 'defender' || !combat.townId) return 0;
+  const town = state.towns.find((t) => t.id === combat.townId);
+  if (!town?.ownerPlayerId) return 0;
+  return townEliteDamageBonus(state, town.ownerPlayerId, town.pos, def.tier ?? 0);
 }
 
 /**

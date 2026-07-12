@@ -72,6 +72,15 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 > en mouvement de la téléportation = raffinement ultérieur. **Zéro nom de faction**
 > ; golden inchangé. UI : livre de sorts d'aventure dans le tiroir héros.
 
+> 🚧 **État (Vision, H-SPELLS.3)** : 2ᵉ effet d'aventure — `adventure: { type:
+> 'vision', radius }`. Sort livré **Clairvoyance** (Air, cercle 2) : **révèle le
+> brouillard** dans `radius` tuiles autour du héros **sans le déplacer**
+> (`revealAround`). Le schéma `adventure` devient une **union discriminée**
+> (`townPortal | vision`) ; le client `AdventureSpellbook` le lance sans changement
+> (aucune cible requise). **Additif** (l'effet vit dans le catalogue) ⇒ **pas de
+> bump save, golden inchangé**. « Rappel » = déjà couvert par Ville-portail ;
+> invocation / résurrection de pile entière restent à venir.
+
 > 🚧 **État (sorts de masse, H-SPELLS.1)** : le champ de zone `SpellDef.area`
 > gagne la valeur **`all`** (à côté de `splash`) — le sort touche **toutes** les
 > piles vivantes du camp de la pile ciblée (le camp visé = celui de la cible :
@@ -81,8 +90,18 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 > Sorts livrés (cercle 3, plafond apprenable de la Guilde) : **Bénédiction de
 > masse**, **Hâte de masse**, **Affaiblissement de masse**. **Zéro nom de
 > faction, aucun champ d'état nouveau ⇒ pas de bump save, golden inchangé.**
-> Restent (H-SPELLS suite) : sorts de cercle 4–5 (+ extension Guilde niv. 4–5),
-> autres sorts d'aventure (Vision, Rappel), invocation, chaîne, dissipation réelle.
+> Restent (H-SPELLS suite) : autres sorts d'aventure (Vision, Rappel),
+> invocation, chaîne, résurrection de pile entière, dissipation réelle.
+
+> 🚧 **État (cercles 4-5 & Guilde à 5 niveaux, H-SPELLS.2)** : la **Guilde des
+> mages** monte désormais à **5 niveaux** (cercles 1→5 ; `data/core/buildings.json`)
+> et le catalogue gagne des sorts de **cercle 4-5** — **Résurrection** & **Pluie
+> de météores** (c4), **Armageddon** (dégâts de masse) & **Résurrection de masse**
+> (c5). La compétence **Sagesse** (`learnCircle` 4/5), jusque-là inerte faute de
+> sorts à apprendre, devient enfin utile. **Données pures** : le moteur enseignait
+> déjà un cercle arbitraire (`rollGuildSpells` filtre `circle === level`, testé) —
+> **zéro diff moteur, pas de bump save, golden inchangé**. Un test de contenu
+> garde l'invariant « chaque niveau de guilde a assez de sorts de son cercle ».
 
 ### 1.5 Mouvement sur carte d'aventure
 
@@ -245,7 +264,7 @@ Chaque faction consomme surtout **une paire de ressources rares** (Haven : crist
 | Taverne | 1 | **effet `tavern` (M-TAVERN.1 + .2)** : active le **recrutement de héros nommés** du propriétaire (`RecruitHero`, contre or, cap 8, doc §1.5) — onglet **Taverne** de l'écran de ville côté client. Sert aussi de prérequis d'arbre. Rumeurs / +1 moral non livrés |
 | Marché | 1 | échange **ressource ↔ or** et **troc** ressource↔ressource ; taux **dégressif** selon le nombre de marchés possédés (`market`, doc §3, T-MARKETRATE) |
 | Forge | 1 | vend des machines de guerre au héros présent (effet générique `warMachineVendor`, Alpha 4.12) |
-| Guilde des mages | 3 | **G2 livré** : à la construction d'un niveau L, `spellCount` sorts du cercle L sont tirés au **RNG seedé** dans `town.spellPool` (4/3/2 par niveau) ; un héros du propriétaire qui **visite la ville** (foule sa tuile) apprend automatiquement les sorts du pool de cercle ≤ son cercle apprenable. Cercle apprenable = **3** de base, relevé à **4/5** par la compétence **Sagesse** (H2). Onglet Guilde informatif côté client |
+| Guilde des mages | 5 | **G2 + H-SPELLS.2 livrés** : à la construction d'un niveau L (1→5), `spellCount` sorts du cercle L sont tirés au **RNG seedé** dans `town.spellPool` (4/3/2/2/1 par niveau) ; un héros du propriétaire qui **visite la ville** (foule sa tuile) apprend automatiquement les sorts du pool de cercle ≤ son cercle apprenable. Cercle apprenable = **3** de base, relevé à **4/5** par la compétence **Sagesse** (H2). Onglet Guilde informatif côté client |
 | Habitations T1–T7 | 2 (base + améliorée) | niveau 1 débloque le tier de base ; niveau 2 (amélioré) débloque l'unité upgradée |
 | Bâtiments spéciaux ×2–3 | 1 | uniques à la faction (définis dans son manifeste) |
 | Aura de héros (ex. Écuries / Statue du Jugement Haven, Cercle Vigile AH) | 1 | effet générique `heroAura` (F-BUILDEFF) : bonus lié à la ville, sans nom de faction. Champs câblés : `movementBonusFlat` (.1) = +PM/jour au héros du **propriétaire présent sur la ville** (option B) ; `combatMoraleBonus` (.2) = +moral en **combat de siège** au camp **défenseur** (garnison) ; `garrisonDefense` (.4) = +défense « murs » plate au **siège** (même champ que la Maison Blaireau, porté par un bâtiment). Autres champs = sous-lots F-BUILDEFF.x |

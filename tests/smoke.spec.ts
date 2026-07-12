@@ -2787,6 +2787,39 @@ test('choix de dialogue : arc personnel d’Aldric → choix binaire pose un dra
   expect(errors).toEqual([]);
 });
 
+test('choix de dialogue : arc personnel de Séraphine (haven-ch3) → drapeau persistant (doc 13 §5.4, N-ARCS.1)', async ({
+  page,
+}) => {
+  const errors = await openMenu(page);
+
+  // haven-ch3 embarque le 2ᵉ arc Haven (Séraphine, quête `personal`, 3 étapes) :
+  // les 2 premières sont satisfaites par l'armée de départ, l'arc atteint son
+  // nœud de choix binaire dès l'ouverture. On déroule la file (dialogue
+  // d'ouverture + étapes) jusqu'au nœud de choix.
+  await page.evaluate(() => window.__HEROES_TEST__!.startScenario('haven-ch3'));
+
+  await expect(page.getByTestId('dialogue-box')).toBeVisible();
+  const choices = page.getByTestId('dialogue-choices');
+  const skip = page.getByTestId('dialogue-skip');
+  for (let i = 0; i < 8 && (await choices.count()) === 0; i++) {
+    await skip.click();
+  }
+
+  // Au nœud de choix : deux boutons, aucun « Passer » (une décision est requise).
+  await expect(choices).toBeVisible();
+  await expect(skip).toHaveCount(0);
+  await expect(page.getByTestId('dialogue-choice-0')).toBeVisible();
+  await expect(page.getByTestId('dialogue-choice-1')).toBeVisible();
+
+  // Choisir « écouter » (foi) pose le drapeau, persisté.
+  await page.getByTestId('dialogue-choice-0').click();
+  const flags = await page.evaluate(() => window.__HEROES_TEST__!.campaignFlags());
+  expect(flags['seraphine-faith']).toBe(true);
+  expect(flags['seraphine-doubt']).toBeUndefined();
+
+  expect(errors).toEqual([]);
+});
+
 test('campagne : 3ᵉ chapitre Haven sur sa carte dédiée proto-02 (doc 13 N3c.3)', async ({ page }) => {
   const errors = await openMenu(page);
 
@@ -2818,9 +2851,11 @@ test('scénario : gagner « survie » contre l’IA (surviveDays)', async ({ pag
   expect(state0.outcome).toBeNull();
 
   // Le joueur humain se contente de finir son tour ; la boucle IA joue
-  // automatiquement le tour adverse (aucun combat héros-vs-héros au moteur —
-  // écart assumé plan phase-3.5, cf. commentaire d'en-tête) jusqu'à ce que
-  // `surviveDays: 15` soit atteint. Plafond largement au-delà du nécessaire.
+  // automatiquement le tour adverse jusqu'à ce que `surviveDays: 15` soit
+  // atteint. Depuis AI-HERO-HUNT, l'IA d'aventure PEUT attaquer un héros ennemi
+  // « battable » (marge ≥ 1,5×) — mais l'armée de départ humaine (25 squelettes)
+  // domine assez la force IA (même boostée par l'habitation de carte) pour que
+  // l'IA ne l'engage jamais : le héros passif survit. Plafond au-delà du besoin.
   const MAX_TURNS = 30;
   for (let i = 0; i < MAX_TURNS; i++) {
     const outcome = await page.evaluate(() => window.__HEROES_TEST__!.getState().outcome);

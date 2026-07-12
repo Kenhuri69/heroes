@@ -351,6 +351,10 @@ const buildingEffectSchema = z.discriminatedUnion('type', [
     movementBonusFlat: z.number().int().nonnegative().default(0),
     combatMoraleBonus: z.number().int().nonnegative().default(0),
     garrisonDefense: z.number().int().nonnegative().default(0),
+    // F-BUILDEFF.5 (Cercle Abîme) : +% dégâts en siège aux piles défenseure de tier
+    // ≥ `eliteMinTier`. `eliteDamagePct` 0 = no-op ; `eliteMinTier` défaut 7 (T7/T8).
+    eliteDamagePct: z.number().int().nonnegative().default(0),
+    eliteMinTier: z.number().int().positive().default(7),
   }),
   /**
    * Bâtiment enseignant (F-BUILDEFF.3, doc 03 §4 — Cloître) : `spellId` (opaque)
@@ -416,7 +420,7 @@ export const spellSchema = z
     school: z.enum(SPELL_SCHOOLS),
     circle: z.number().int().min(1).max(5),
     manaCost: z.number().int().positive(),
-    kind: z.enum(['damage', 'heal', 'buff', 'debuff', 'applyMarks', 'silence', 'banish', 'rally', 'adventure']),
+    kind: z.enum(['damage', 'heal', 'buff', 'debuff', 'applyMarks', 'silence', 'banish', 'rally', 'stealth', 'adventure']),
     base: z.number().nonnegative(),
     perPower: z.number().nonnegative(),
     attackMod: z.number().optional(),
@@ -431,8 +435,17 @@ export const spellSchema = z
      * `all` (H-SPELLS.1) = toutes les piles vivantes du camp de la cible (masse).
      */
     area: z.enum(['splash', 'all']).optional(),
-    /** Effet hors combat d'un sort `adventure` (doc 02 §1.4, Alpha 4.16). */
-    adventure: z.object({ type: z.literal('townPortal') }).optional(),
+    /**
+     * Effet hors combat d'un sort `adventure` (doc 02 §1.4, Alpha 4.16) :
+     * `townPortal` (téléportation vers une ville) ou `vision` (H-SPELLS.3 —
+     * révèle le brouillard dans `radius` tuiles autour du héros).
+     */
+    adventure: z
+      .discriminatedUnion('type', [
+        z.object({ type: z.literal('townPortal') }),
+        z.object({ type: z.literal('vision'), radius: z.number().int().positive() }),
+      ])
+      .optional(),
   })
   .refine((s) => (s.kind === 'damage' || s.kind === 'heal' ? s.base > 0 : true), {
     message: 'damage/heal: base doit être > 0',

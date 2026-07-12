@@ -251,6 +251,15 @@
       "perPower": 0
     },
     {
+      "id": "mue-ephemere",
+      "school": "traque",
+      "circle": 3,
+      "manaCost": 12,
+      "kind": "stealth",
+      "base": 0,
+      "perPower": 0
+    },
+    {
       "id": "ville-portail",
       "school": "air",
       "circle": 3,
@@ -258,7 +267,9 @@
       "kind": "adventure",
       "base": 0,
       "perPower": 0,
-      "adventure": { "type": "townPortal" }
+      "adventure": {
+        "type": "townPortal"
+      }
     },
     {
       "id": "barriere-du-honmoon",
@@ -408,6 +419,58 @@
       "perPower": 0,
       "defenseMod": -3,
       "area": "all"
+    },
+    {
+      "id": "resurrection",
+      "school": "water",
+      "circle": 4,
+      "manaCost": 22,
+      "kind": "heal",
+      "base": 40,
+      "perPower": 8
+    },
+    {
+      "id": "meteore",
+      "school": "fire",
+      "circle": 4,
+      "manaCost": 24,
+      "kind": "damage",
+      "base": 26,
+      "perPower": 6,
+      "area": "splash"
+    },
+    {
+      "id": "armageddon",
+      "school": "neutral",
+      "circle": 5,
+      "manaCost": 30,
+      "kind": "damage",
+      "base": 40,
+      "perPower": 8,
+      "area": "all"
+    },
+    {
+      "id": "resurrection-de-masse",
+      "school": "water",
+      "circle": 5,
+      "manaCost": 32,
+      "kind": "heal",
+      "base": 30,
+      "perPower": 6,
+      "area": "all"
+    },
+    {
+      "id": "clairvoyance",
+      "school": "air",
+      "circle": 2,
+      "manaCost": 8,
+      "kind": "adventure",
+      "base": 0,
+      "perPower": 0,
+      "adventure": {
+        "type": "vision",
+        "radius": 12
+      }
     }
   ]
 }

@@ -87,6 +87,8 @@ describe('runAiTurn — propriété « IA vs IA se termine »', () => {
         { numRuns: 20 },
       );
     },
+    // Property test lourd (20 seeds × 2 simulations × 30 jours) : sous charge CI, il
+    // dépasse le défaut 5 s. Timeout explicite, aligné sur le test frère ci-dessus.
     20_000,
   );
 });
@@ -153,6 +155,83 @@ describe('runAiTurn — cas ciblés', () => {
     expect(nextTown?.stock['red-grunt']).toBe(0);
     expect(next.players[0]?.resources.gold).toBe(1000 - 10 * 50); // recrutement : 50 or/unité
     expect(events).toContainEqual({ type: 'UnitsRecruited', townId: 'town-1', unitId: 'red-grunt', count: 10 });
+  });
+
+  it('un héros IA fort marche sur un héros ennemi battable et le tue (H-VS-H)', () => {
+    // Deux joueurs IA ; héros p1 fort (blue-wolf ×50) voisin d'un héros p2
+    // faible (red-grunt ×1). Aucun objet collectable ⇒ priorité 2 (chasse).
+    const map: AdventureMapDef = { ...testMap(), objects: [] };
+    const players: PlayerSetup[] = [
+      { id: 'p1', startingResources: emptyResources(), controller: 'ai' },
+      { id: 'p2', startingResources: emptyResources(), controller: 'ai' },
+    ];
+    let state = apply(createEmptyState(), {
+      type: 'StartGame',
+      seed: 1,
+      players,
+      map,
+      config,
+      unitCatalog: CATALOG,
+    }).state;
+
+    // Place les héros côte à côte avec des armées asymétriques (p1 domine largement).
+    state = produce(state, (draft) => {
+      const a = draft.heroes.find((h) => h.playerId === 'p1');
+      const b = draft.heroes.find((h) => h.playerId === 'p2');
+      if (!a || !b) throw new Error('héros absents');
+      a.pos = { x: 2, y: 2 };
+      a.army = [{ unitId: 'blue-wolf', count: 50 }];
+      b.pos = { x: 3, y: 3 };
+      b.army = [{ unitId: 'red-grunt', count: 1 }];
+    });
+
+    const events: GameEvent[] = [];
+    const next = produce(state, (draft) => {
+      runAiTurn(draft, 'p1', events);
+    });
+
+    // Le héros ennemi faible est mort ; l'attaquant survit sur sa tuile.
+    expect(next.heroes.find((h) => h.playerId === 'p2')).toBeUndefined();
+    const attacker = next.heroes.find((h) => h.playerId === 'p1');
+    expect(attacker).toBeDefined();
+    expect(attacker?.pos).toEqual({ x: 2, y: 2 }); // n'entre pas sur la tuile (comme un gardien)
+    expect(next.combat).toBeNull(); // combat auto-résolu
+    expect(events).toContainEqual(expect.objectContaining({ type: 'CombatEnded', winner: 'attacker' }));
+  });
+
+  it('n’attaque PAS un héros ennemi trop fort (marge insuffisante)', () => {
+    const map: AdventureMapDef = { ...testMap(), objects: [] };
+    const players: PlayerSetup[] = [
+      { id: 'p1', startingResources: emptyResources(), controller: 'ai' },
+      { id: 'p2', startingResources: emptyResources(), controller: 'ai' },
+    ];
+    let state = apply(createEmptyState(), {
+      type: 'StartGame',
+      seed: 1,
+      players,
+      map,
+      config,
+      unitCatalog: CATALOG,
+    }).state;
+    state = produce(state, (draft) => {
+      const a = draft.heroes.find((h) => h.playerId === 'p1');
+      const b = draft.heroes.find((h) => h.playerId === 'p2');
+      if (!a || !b) throw new Error('héros absents');
+      a.pos = { x: 2, y: 2 };
+      a.army = [{ unitId: 'red-grunt', count: 2 }]; // faible
+      b.pos = { x: 3, y: 3 };
+      b.army = [{ unitId: 'blue-wolf', count: 50 }]; // bien plus fort
+    });
+
+    const events: GameEvent[] = [];
+    const next = produce(state, (draft) => {
+      runAiTurn(draft, 'p1', events);
+    });
+
+    // Aucun combat de héros : les deux survivent (l'IA explore plutôt).
+    expect(next.heroes.find((h) => h.playerId === 'p2')).toBeDefined();
+    expect(next.heroes.find((h) => h.playerId === 'p1')).toBeDefined();
+    expect(next.combat).toBeNull();
   });
 
   it('ne joue pas un joueur humain ni une partie déjà finie', () => {

@@ -59,6 +59,9 @@ export function validateCastSpell(state: GameState, cmd: CastSpellCmd): CommandE
   const target = combat.stacks.find((s) => s.id === cmd.targetStackId);
   if (!target || target.count <= 0)
     return { code: 'invalidTarget', message: `cible invalide '${cmd.targetStackId}'` };
+  // F-SCHOOLS.7 : un sort offensif ne peut viser une pile ennemie furtive.
+  if (spellTargetsEnemy(spell.kind) && target.stealthed)
+    return { code: 'invalidTarget', message: 'cible furtive' };
   // Remédiation R1 : contrainte de camp selon la nature du sort — dégâts,
   // debuff, marque et silence visent l'adverse ; soin et buff le camp du lanceur
   // (`combat.playerSide`). Interdit un dégât sur soi ou un buff sur l'ennemi.
@@ -193,6 +196,10 @@ export function handleCastAdventureSpell(
         (draft.config?.visionRadius ?? 0) + heroVisionBonus(hero, draft.skillCatalog),
       );
     }
+  } else if (spell.adventure.type === 'vision') {
+    // H-SPELLS.3 : ouvre le brouillard dans un large rayon autour du héros (sans
+    // le déplacer). Le rayon est porté par la donnée du sort.
+    revealAround(player.explored, map, hero.pos, spell.adventure.radius);
   }
 
   events.push({ type: 'AdventureSpellCast', heroId: hero.id, spellId: spell.id, pos: { ...hero.pos } });

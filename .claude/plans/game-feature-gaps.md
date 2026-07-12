@@ -230,9 +230,15 @@ Source design : docs 03 §2/§4/§5, 04 §2/§4, 05 §3/§5/§6/§7, 14 §5/§6,
     réutilise l'acquis F-HOUSES) ; **Cercle Vigile** AH livré (passif « +déf
     garnison », flat +3, remplace le placeholder or/j). Volet « +vision recrue »
     différé (M-TAVERN). Zéro faction, aucun bump, golden inchangé.
-  - **F-BUILDEFF.5+** ⬜ : Cercles Traque (+vitesse recrue) / Sceau (−mana d'école)
-    / Abîme (+dégâts T7-T8), modif ressource de faction, +XP/+rang, Grand
-    Amphithéâtre/Salle des Reliques, La Scène/Sanctuaire Vox.
+  - **F-BUILDEFF.5** ✅ (plan `f-buildeff-5.md`) : **Cercle Abîme** — aura
+    générique `heroAura { eliteDamagePct, eliteMinTier }` : +% dégâts aux piles
+    T≥seuil du camp défenseur en siège (`CombatUnitDef.tier?` exposé,
+    `siegeEliteDamage` fondu dans `computeMultiplier`). Cercle Abîme AH livré
+    (+10 % T7/T8). Zéro faction moteur, aucun bump save, golden inchangé.
+  - **F-BUILDEFF.6+** ⬜ : Cercles Traque (+vitesse recrue — bloqué : stats
+    par-instance d'unité) / Sceau (−mana d'école — bloqué : portée mana
+    combat↔ville), modif ressource de faction, +XP/+rang, Grand Amphithéâtre/
+    Salle des Reliques, La Scène/Sanctuaire Vox.
 
 - **F-HOUSES — Effets de Maison Vox conformes** ✅ (plan `f-houses-vox.md`, doc 16 §État 16.7)
   `houseAllegiance` étendu de 2 champs **town-scoped** génériques
@@ -292,9 +298,14 @@ Source design : docs 03 §2/§4/§5, 04 §2/§4, 05 §3/§5/§6/§7, 14 §5/§6,
     pile marquée n'essuient aucune riposte (N rounds). Réutilise Marques +
     `noRetaliation`. Dédup `spellTargetsEnemy` (moteur → client). Zéro faction
     moteur, aucun bump save, golden inchangé.
-  - **F-SCHOOLS.7+** ⬜ : 2 sorts Traque restants (un sous-lot chacun) — Pas de
-    Brume (téléport allié), Mue Éphémère (furtivité) ; effets Scène enrichis
-    (peur/+moral, partagés CAP-MORAL).
+  - **F-SCHOOLS.7** ✅ (plan `f-schools-7.md`) : **Mue Éphémère** (doc 05 §6,
+    cercle 3) — nouvelle mécanique générique `SpellKind 'stealth'` +
+    `CombatStack.stealthed` (save 27→28) : une pile furtive est INCIBLABLE
+    (exclusion centralisée sur tous les sites de ciblage ennemi), visible dès sa
+    prochaine action. Zéro faction moteur, golden re-fixé (forme).
+  - **F-SCHOOLS.8** ⬜ : dernier sort Traque — **Pas de Brume** (téléport allié,
+    nouvelle surface : `CastSpell.targetHex` + ciblage d'hex client) ; puis effets
+    Scène enrichis (peur/+moral, partagés CAP-MORAL).
 
 - **F-ELITEVOX — Élites Vox Arcana** ✅ (plan `f-elitevox.md`, doc 16 §4)
   Pur contenu : 8 unités élites (`t*-*-elite`, stats ~1,25-1,3× base), 8 dwellings
@@ -370,9 +381,19 @@ Source design : doc 02 §1 (héros), docs de faction §5/§6/§7 (héros nommés
     Schéma content `area: enum(['splash','all'])`. **Zéro faction, aucun champ
     d'état ⇒ pas de bump save, golden inchangé.** Constat au passage : le **heal
     résout déjà la résurrection intra-pile** (`maxCount = count + lostSoFar`).
-  - **H-SPELLS.2+** ⬜ : sorts de **cercle 4-5** (+ extension Guilde des mages
-    niv. 4-5 pour les enseigner ⇒ Sagesse enfin utile), nouveaux `AdventureEffect`
-    (Vision, Rappel), **invocation**, **chaîne**, **résurrection de pile entière**
+  - **H-SPELLS.2** ✅ (plan `h-spells-circles45.md`) : **cercles 4-5 & Guilde à 5
+    niveaux** — `mageGuild` `maxLevel` 3→5 (niveaux 4/5 = cercles 4/5) + sorts
+    c4-5 (Résurrection, Pluie de météores ; Armageddon masse, Résurrection de
+    masse), **Sagesse enfin utile**. **Données pures** (le moteur enseigne déjà un
+    cercle arbitraire, testé) : zéro diff moteur, pas de bump save, golden inchangé.
+    Test content de cohérence guilde↔cercles.
+  - **H-SPELLS.3** ✅ (plan `h-spells-vision.md`) : **sort d'aventure Vision** —
+    `AdventureEffect` union += `{ type:'vision', radius }` ; handler
+    `handleCastAdventureSpell` révèle le brouillard autour du héros (`revealAround`,
+    sans le déplacer). Schéma `adventure` = union discriminée ; client générique
+    inchangé. Sort **Clairvoyance** (Air, cercle 2). **Additif ⇒ pas de bump save,
+    golden inchangé.** « Rappel » = déjà couvert par Ville-portail.
+  - **H-SPELLS.4+** ⬜ : **invocation**, **chaîne**, **résurrection de pile entière**
     (pile à 0 retirée de la grille), dissipation réelle. Débloque C-SPELLUI.
 
 - **H-ARTEQUIP — Artefacts équipables + effets spéciaux + sets** 🧩/🎨 M ⬜
@@ -573,12 +594,17 @@ SDK `packages/client/src/app/net.ts` sans autre appelant).
 
 Source design : **doc 13** (N1→N4 livrés), docs de faction §lore.
 
-- **N-ARCS — 5 arcs personnels de héros sur 6** 🧩 M ⬜
-  Doc : doc 13 §5.4 (6 arcs, 2/faction, 3 étapes : Aldric ✅, Séraphine,
-  Vhalen, Mère Corbeau, Evadne, Marchmont). Code : une seule quête
-  `kind:"personal"` (`data/scenarios/haven-ch2.scenario.json:110`). Spec :
-  données pures (quêtes + dialogues), zéro moteur. Synergie avec H-NAMED
-  (les arcs prennent du sens quand les héros ont une identité).
+- **N-ARCS — 4 arcs personnels de héros sur 6** 🧩 M 🚧 (**découpé en sous-lots**)
+  Doc : doc 13 §5.4 (6 arcs, 2/faction, 3 étapes : Aldric ✅, **Séraphine ✅**,
+  Vhalen, Mère Corbeau, Evadne, Marchmont). Spec : données pures (quêtes +
+  dialogues), zéro moteur. Synergie avec H-NAMED (les arcs prennent du sens
+  quand les héros ont une identité).
+  - **N-ARCS.1** ✅ (plan `n-arcs-seraphine.md`) : **arc de Séraphine** (Haven,
+    `haven-ch3` — visions d'Elrath vs. le sceau, drapeaux `seraphine-faith`/
+    `seraphine-doubt`) en données pures (patron Aldric N3c.2), zéro diff moteur/
+    client/save/golden. Smoke : dérouler l'arc → nœud de choix → drapeau posé.
+  - **N-ARCS.2+** ⬜ : Vhalen & Mère Corbeau (Necropolis), Evadne & Marchmont
+    (Arcane Hunters) — mêmes patron/vérifs.
 
 - **N-DAILYREFRESH — Rafraîchissement quotidien des journalières** 🧩 S ✅ (livré)
   Doc : doc 13 §4.2/§5.2. Livré : commande moteur **générique** `AddQuests

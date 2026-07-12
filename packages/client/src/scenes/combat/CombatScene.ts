@@ -702,6 +702,12 @@ export class CombatScene {
         }
         return;
       }
+      case 'WallBombarded': {
+        // C-SIEGE2.6 : tir de catapulte — quand un segment tombe, l'état a déjà
+        // retiré le mur ⇒ redessiner le plateau ouvre l'hex (la brèche s'élargit).
+        if (event.destroyed) this.redrawBoard();
+        return;
+      }
       case 'StackCursed': {
         // curseOnHit (A2c) : label « maudit » violet sur la cible affligée.
         const token = this.stackTokens.get(event.targetId);

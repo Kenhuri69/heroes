@@ -7,7 +7,8 @@ import type { GameEvent } from '../core/events';
 import { rollRange } from '../core/rng';
 import { evaluateOutcome } from '../scenario/outcome';
 import type { Draft } from './draft';
-import { collectCasualties, collectSurvivors, combatRules, compareInitiative, moraleOf, recordLoss } from './state-helpers';
+import { collectCasualties, collectSurvivors, combatRules, compareInitiative, hasAbility, moraleOf, recordLoss } from './state-helpers';
+import { COMBAT_ROWS } from './hex';
 import type { CombatSideId, CombatStack, CombatState } from './types';
 
 /**
@@ -70,6 +71,42 @@ function applyPoisonTicks(draft: Draft, events: GameEvent[]): boolean {
  * puis piles en attente (vitesse croissante), sinon nouveau round. Applique
  * le saut de tour pour moral négatif. Émet CombatRoundStarted/CombatTurnStarted.
  */
+/**
+ * C-SIEGE2.6 : au début d'un round, une catapulte (`siegeBreaker`) encore vivante
+ * côté assaillant bombarde UN segment de rempart (le plus proche du centre de la
+ * porte, pour élargir la brèche de façon contiguë). Segment à 0 PV ⇒ ouvert. No-op
+ * hors siège avec catapulte (`siegeWallHp` absent) ⇒ murs indestructibles.
+ */
+function bombardWalls(draft: Draft, events: GameEvent[]): void {
+  const combat = draft.combat;
+  if (!combat?.siegeWallHp || !combat.siegeWalls || combat.siegeWalls.length === 0) return;
+  const catapult = combat.stacks.find((s) => {
+    const def = draft.unitCatalog[s.unitId];
+    return s.side === 'attacker' && s.count > 0 && !!def && hasAbility(def, 'siegeBreaker');
+  });
+  if (!catapult) return; // catapulte détruite ⇒ plus d'érosion
+  const hp = combat.siegeWallHp;
+  const center = (COMBAT_ROWS - 1) / 2;
+  const target = combat.siegeWalls
+    .filter((w) => (hp[`${w.col},${w.row}`] ?? 0) > 0)
+    .sort((a, b) => Math.abs(a.row - center) - Math.abs(b.row - center) || a.row - b.row)[0];
+  if (!target) return;
+  const def = draft.unitCatalog[catapult.unitId]!;
+  const [dmin, dmax] = def.stats.damage;
+  const roll = rollRange(draft.rng, dmin, dmax);
+  draft.rng = roll.state;
+  const key = `${target.col},${target.row}`;
+  const left = (hp[key] ?? 0) - roll.value;
+  if (left <= 0) {
+    delete hp[key];
+    combat.siegeWalls = combat.siegeWalls.filter((w) => !(w.col === target.col && w.row === target.row));
+    events.push({ type: 'WallBombarded', col: target.col, row: target.row, destroyed: true });
+  } else {
+    hp[key] = left;
+    events.push({ type: 'WallBombarded', col: target.col, row: target.row, destroyed: false });
+  }
+}
+
 export function advanceTurn(draft: Draft, events: GameEvent[]): void {
   const combat = draft.combat;
   if (!combat || combat.finished) return;
@@ -108,6 +145,8 @@ export function advanceTurn(draft: Draft, events: GameEvent[]): void {
         if (combat.markedNoRetaliation.roundsLeft <= 0) delete combat.markedNoRetaliation;
       }
       if (poisonKilled && checkCombatEnd(draft, events)) return;
+      // C-SIEGE2.6 : la catapulte assaillante érode le rempart en début de round.
+      bombardWalls(draft, events);
       events.push({ type: 'CombatRoundStarted', round: combat.round });
       continue;
     }

@@ -308,4 +308,52 @@ describe('C-SIEGE2 — murs de siège', () => {
     // La catapulte rejoint bien le camp attaquant (machine de guerre).
     expect(next.combat?.stacks.some((st) => st.side === 'attacker' && st.unitId === 'siege-cat')).toBe(true);
   });
+
+  // C-SIEGE2.6 : catapulte assaillante embarquée + son catalogue.
+  const withCatapult = (s: GameState): GameState => {
+    s.heroes[0]!.warMachines = ['siege-cat'];
+    s.unitCatalog = {
+      ...s.unitCatalog,
+      'siege-cat': {
+        id: 'siege-cat', groupId: 'wm', nativeTerrain: 'grass',
+        stats: { hp: 300, attack: 8, defense: 10, damage: [8, 15], speed: 1 },
+        abilities: [{ id: 'warMachine' }, { id: 'siegeBreaker' }],
+      },
+    };
+    return s;
+  };
+
+  it('C-SIEGE2.6 : une catapulte dote les segments de PV (siegeWallHp) ; sans catapulte, aucun', () => {
+    const withCat = apply(
+      withCatapult(siegeState([{ unitId: 'red-grunt', count: 30 }], [{ unitId: 'blue-wolf', count: 30 }], { fort: 2 })),
+      { type: 'CaptureTown', townId: 't1', playerId: 'p1' },
+    ).state;
+    const hp = withCat.combat!.siegeWallHp!;
+    expect(hp).toBeDefined();
+    // Un PV par segment restant (après la brèche de montage).
+    expect(Object.keys(hp).length).toBe(withCat.combat!.siegeWalls!.length);
+    expect(Object.values(hp).every((v) => v > 0)).toBe(true);
+
+    const noCat = apply(
+      siegeState([{ unitId: 'red-grunt', count: 30 }], [{ unitId: 'blue-wolf', count: 30 }], { fort: 2 }),
+      { type: 'CaptureTown', townId: 't1', playerId: 'p1' },
+    ).state;
+    expect(noCat.combat!.siegeWallHp).toBeUndefined(); // murs indestructibles
+  });
+
+  it('C-SIEGE2.6 : la catapulte érode le rempart round après round (segment détruit)', () => {
+    // Combat qui dure : l'assaillant tient assez longtemps pour que la catapulte
+    // ouvre au moins un segment (30 PV ÷ dégâts 8-15 ⇒ ~2-3 tirs).
+    const s = withCatapult(siegeState([{ unitId: 'red-grunt', count: 60 }], [{ unitId: 'blue-wolf', count: 40 }], { fort: 2 }));
+    const events: GameEvent[] = [];
+    const started = apply(s, { type: 'CaptureTown', townId: 't1', playerId: 'p1' }).state;
+    const wallsAtStart = started.combat!.siegeWalls!.length;
+    produce(started, (d) => runAutoCombat(d, events));
+    const bombardments = events.filter((e) => e.type === 'WallBombarded');
+    expect(bombardments.length).toBeGreaterThan(0); // la catapulte a tiré
+    expect(bombardments.some((e) => (e as { destroyed: boolean }).destroyed)).toBe(true); // ≥ 1 segment ouvert
+    // Autant de destructions que de segments retirés du rempart initial.
+    const destroyed = bombardments.filter((e) => (e as { destroyed: boolean }).destroyed).length;
+    expect(destroyed).toBeLessThanOrEqual(wallsAtStart);
+  });
 });

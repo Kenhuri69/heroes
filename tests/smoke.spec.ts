@@ -2818,9 +2818,11 @@ test('scénario : gagner « survie » contre l’IA (surviveDays)', async ({ pag
   expect(state0.outcome).toBeNull();
 
   // Le joueur humain se contente de finir son tour ; la boucle IA joue
-  // automatiquement le tour adverse (aucun combat héros-vs-héros au moteur —
-  // écart assumé plan phase-3.5, cf. commentaire d'en-tête) jusqu'à ce que
-  // `surviveDays: 15` soit atteint. Plafond largement au-delà du nécessaire.
+  // automatiquement le tour adverse jusqu'à ce que `surviveDays: 15` soit
+  // atteint. Depuis AI-HERO-HUNT, l'IA d'aventure PEUT attaquer un héros ennemi
+  // « battable » (marge ≥ 1,5×) — mais l'armée de départ humaine (25 squelettes)
+  // domine assez la force IA (même boostée par l'habitation de carte) pour que
+  // l'IA ne l'engage jamais : le héros passif survit. Plafond au-delà du besoin.
   const MAX_TURNS = 30;
   for (let i = 0; i < MAX_TURNS; i++) {
     const outcome = await page.evaluate(() => window.__HEROES_TEST__!.getState().outcome);

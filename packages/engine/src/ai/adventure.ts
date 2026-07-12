@@ -27,9 +27,10 @@ import { playTownTurn } from './town-ai';
  * Heuristique gloutonne MVP (un seul objectif par héros par tour, pas de
  * planification multi-tours) : par héros, dans l'ordre de priorité —
  * (1) objet collectable atteignable le plus proche (ressource, trésor résolu
- * en or, artefact, mine à capturer), (2) gardien atteignable
- * « battable » (marge de force ≥ 1,5×), (3) ville ennemie/neutre capturable
- * (garnison vide) déjà adjacente, (4) sinon un pas vers la tuile inexplorée
+ * en or, artefact, mine à capturer), (2) héros ennemi atteignable « battable »
+ * (marge de force ≥ 1,5×, H-VS-H), (3) gardien atteignable « battable »
+ * (même marge), (4) ville ennemie/neutre capturable (garnison vide) déjà
+ * adjacente, (5) sinon un pas vers la tuile inexplorée
  * la plus proche. Par ville : construit le premier bâtiment abordable dont
  * les prérequis sont satisfaits, puis recrute le plus haut tier abordable
  * (voir `town-ai.ts`).
@@ -60,6 +61,12 @@ export function runAiTurn(draft: GameState, playerId: string, events: GameEvent[
 // ——— Héros : choix d'objectif + déplacement ———
 
 const GUARDIAN_STRENGTH_MARGIN = 1.5;
+/**
+ * Marge de force pour attaquer un héros ennemi (H-VS-H). Alignée sur le seuil
+ * gardien (arbitrage plan `ai-hero-hunt`) : l'IA n'engage qu'un adversaire
+ * qu'elle domine largement, laissant les affrontements équilibrés au joueur.
+ */
+const ENEMY_HERO_STRENGTH_MARGIN = 1.5;
 
 interface PathTarget {
   path: GridPos[];
@@ -126,7 +133,7 @@ function pickResourceTarget(
   return best;
 }
 
-/** Gardien atteignable que l'armée du héros domine largement (priorité 2). */
+/** Gardien atteignable que l'armée du héros domine largement (priorité 3). */
 function pickGuardianTarget(
   draft: GameState,
   hero: HeroState,
@@ -156,7 +163,44 @@ function pickGuardianTarget(
   return best;
 }
 
-/** Ville ennemie/neutre non défendue déjà adjacente au héros (priorité 3, pas de déplacement). */
+/**
+ * Héros ENNEMI atteignable ce tour que l'armée du héros domine largement
+ * (H-VS-H, doc 02 §1.5/§5). Modèle exact de `pickGuardianTarget` : même seuil
+ * de marge, même exclusion de la cible du `blocked`. La branche « héros ennemi »
+ * de `advanceHeroAlongPath` ouvrira `beginHeroCombat` (résolu par `runAutoCombat`).
+ */
+function pickEnemyHeroTarget(
+  draft: GameState,
+  hero: HeroState,
+  player: PlayerState,
+  blocked: GridPos[],
+): PathTarget | null {
+  const { map, config, unitCatalog } = draft;
+  if (!map || !config) return null;
+  const heroStrength = armyStrength(hero.army, unitCatalog);
+  if (heroStrength <= 0) return null;
+  let best: (PathTarget & { id: string }) | null = null;
+  for (const enemy of draft.heroes) {
+    if (enemy.id === hero.id || enemy.playerId === player.id) continue;
+    const enemyPlayer = draft.players.find((p) => p.id === enemy.playerId);
+    if (enemyPlayer && areAllies(player, enemyPlayer)) continue;
+    const enemyStrength = armyStrength(enemy.army, unitCatalog);
+    if (heroStrength < ENEMY_HERO_STRENGTH_MARGIN * enemyStrength) continue;
+    // Route vers la tuile du héros ciblé : elle NE doit PAS être bloquée
+    // (contrairement aux autres héros, qui restent des obstacles).
+    const pathBlocked = blocked.filter((p) => !samePos(p, enemy.pos));
+    const path = findPath(config, map, hero.pos, enemy.pos, pathBlocked);
+    if (!path) continue;
+    const cost = totalPathCost(config, map, hero.pos, path);
+    if (cost > hero.movementPoints) continue;
+    if (!best || cost < best.cost || (cost === best.cost && enemy.id < best.id)) {
+      best = { id: enemy.id, path, cost };
+    }
+  }
+  return best;
+}
+
+/** Ville ennemie/neutre non défendue déjà adjacente au héros (priorité 4, pas de déplacement). */
 function pickAdjacentCapturableTown(draft: GameState, hero: HeroState, player: PlayerState): TownState | null {
   let best: TownState | null = null;
   for (const town of draft.towns) {
@@ -196,7 +240,7 @@ function nearestUnexploredTile(
   return null;
 }
 
-/** Un pas vers l'inexploré le plus proche, si abordable (priorité 4, exploration). */
+/** Un pas vers l'inexploré le plus proche, si abordable (priorité 5, exploration). */
 function pickExplorationStep(
   draft: GameState,
   hero: HeroState,
@@ -248,6 +292,13 @@ function playHeroTurn(draft: GameState, hero: HeroState, player: PlayerState, ev
   const resource = pickResourceTarget(draft, hero, player, [...blocked, ...guardianPos]);
   if (resource) {
     advanceAi(draft, hero, player, resource.path, events);
+    return;
+  }
+
+  // Priorité 2 (H-VS-H) : marcher sur un héros ennemi battable ⇒ combat auto.
+  const enemyHero = pickEnemyHeroTarget(draft, hero, player, [...blocked, ...guardianPos]);
+  if (enemyHero) {
+    advanceAi(draft, hero, player, enemyHero.path, events);
     return;
   }
 

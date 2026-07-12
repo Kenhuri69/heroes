@@ -64,3 +64,37 @@
   height: 32px;
   object-fit: contain;
 }
+
+/* H-ARTEQUIP : cellules de la poupée (wrapper) + boutons équiper/déséquiper. */
+.hero-equipment-doll > .hero-inventory-cell,
+.hero-inventory-bag > li {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.hero-inventory-cell > .hero-inventory-slot,
+.hero-inventory-bag > li > .hero-inventory-slot {
+  width: 100%;
+}
+
+/* Bouton d'action (équiper/déséquiper) — hérite du look d'emplacement, ajoute
+   l'affordance tactile (cible ≥ 44 px déjà via .hero-inventory-slot). */
+button.hero-inventory-action {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+button.hero-inventory-action:hover {
+  border-color: var(--gold);
+}
+button.hero-inventory-action:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.hero-bag-empty {
+  margin: 6px 0 0;
+  font-size: 0.6875rem;
+  opacity: 0.65;
+}

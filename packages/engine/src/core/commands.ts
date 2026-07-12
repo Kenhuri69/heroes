@@ -215,6 +215,24 @@ export type Command =
     }
   | {
       /**
+       * Déséquipe un artefact (H-ARTEQUIP, doc 08 §2.3) : `artifacts[slot]` du
+       * héros du joueur actif → son sac (`backpack`). Hors combat, déterministe.
+       */
+      type: 'UnequipArtifact';
+      heroId: string;
+      slot: number;
+    }
+  | {
+      /**
+       * Équipe un artefact du sac (H-ARTEQUIP) : `backpack[index]` → 1er slot
+       * d'`artifacts` libre (refus si les 10 sont pleins). Hors combat.
+       */
+      type: 'EquipArtifact';
+      heroId: string;
+      index: number;
+    }
+  | {
+      /**
        * Envoie une pile de garnison vers une autre ville possédée (T-CARAVAN,
        * doc 02 §4.1). Trajet en jours via l'A* existant ; arrivée en garnison.
        */
@@ -314,6 +332,7 @@ export interface CommandError {
     | 'invalidTransfer'
     | 'invalidReorder'
     | 'invalidSplit'
+    | 'invalidEquip'
     | 'notAdjacent'
     | 'invalidCaravan'
     | 'invalidTrade'

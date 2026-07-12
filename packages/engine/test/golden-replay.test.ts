@@ -267,7 +267,7 @@ const GOLDEN_JOURNAL: Command[] = [
 // 28 (`CombatStack.stealthed` optionnel, furtivité « Mue Éphémère »). Le champ
 // n'est jamais posé dans le golden (aucune Mue lancée) ; seul `saveVersion`
 // change ⇒ hash de FORME seule, simulation/combat inchangés.
-const GOLDEN_HASH = 'cfa19967';
+const GOLDEN_HASH = 'af8a45c4';
 
 describe('golden replay', () => {
   it('le journal scripté produit toujours le même état final', () => {

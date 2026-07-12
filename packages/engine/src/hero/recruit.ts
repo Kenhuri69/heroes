@@ -89,6 +89,7 @@ export function handleRecruitHero(draft: GameState, cmd: RecruitCmd, events: Gam
     visitLuck: 0,
     spells: [...def.startingSpells],
     artifacts: Array.from({ length: 10 }, () => null),
+    backpack: [],
     pendingSkillChoices: [],
     pendingAttributeChoices: [],
     factionId: def.factionId,

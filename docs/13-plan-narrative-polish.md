@@ -350,11 +350,12 @@ l'évoque dans un dialogue).
 
 > **État livré (N-ARCS)** : arcs personnels en **données pures** (quêtes
 > `kind: personal` + dialogues à `choices`/`setFlag`, patron N3c.2, zéro diff
-> moteur). **Aldric** (`haven-ch2`, drapeaux `aldric-merciful`/`aldric-ruthless`)
-> et **Séraphine** (`haven-ch3` — « ses visions viennent-elles d'Elrath ou de ce
-> qui dort sous le sceau ? », drapeaux `seraphine-faith`/`seraphine-doubt`)
-> livrés. *Restent :* Vhalen, Mère Corbeau (Necropolis), Evadne, Marchmont
-> (Arcane Hunters).
+> moteur). **Aldric** (`haven-ch2`, `aldric-merciful`/`aldric-ruthless`),
+> **Séraphine** (`haven-ch3` — visions d'Elrath vs. sceau, `seraphine-faith`/
+> `seraphine-doubt`) et **Vhalen** (`necropolis-ch2` — « le sceau nourrit Heresh
+> en âmes ; le réparer affamerait son peuple », `vhalen-repair`/`vhalen-feed`)
+> livrés. *Restent :* Mère Corbeau (Necropolis), Evadne, Marchmont (Arcane
+> Hunters).
 
 ---
 

@@ -8,6 +8,7 @@
   "cost": { "gold": 6840, "gems": 5, "essence": 72 },
   "abilities": [
     { "id": "mark" },
-    { "id": "demonform", "params": { "damageBonus": 0.5, "magicResistance": 0.5 } }
+    { "id": "demonform", "params": { "damageBonus": 0.5, "magicResistance": 0.5 } },
+    { "id": "banishable" }
   ]
 }

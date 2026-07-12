@@ -281,10 +281,15 @@ Source design : docs 03 §2/§4/§5, 04 §2/§4, 05 §3/§5/§6/§7, 14 §5/§6,
     `SpellStatus.silenced` (save 26→27) : une pile silenciée ne peut plus lancer
     son sort d'unité (`spellcaster`), gate partagé joueur+IA (`isSilenced`).
     Refactor `spellTargetsEnemy(kind)`. Zéro faction moteur, golden re-fixé (forme).
-  - **F-SCHOOLS.5+** ⬜ : 4 sorts Traque restants (un sous-lot chacun) — Pas de
-    Brume (téléport allié), Mue Éphémère (furtivité), Bannissement, Heure de la
-    Curée (noRetaliation conditionnel) ; effets Scène enrichis (peur/+moral,
-    partagés CAP-MORAL).
+  - **F-SCHOOLS.5** ✅ (plan `f-schools-5.md`) : **Bannissement** (doc 05 §6,
+    cercle 4) — nouvelle mécanique générique `SpellKind 'banish'` + capacité
+    `banishable` : retire une pile ennemie invoquée/démoniaque (squelette,
+    Pénitent) dont le total de PV ≤ seuil (`base + perPower × Pouvoir`). Zéro
+    faction moteur, aucun bump save, golden inchangé.
+  - **F-SCHOOLS.6+** ⬜ : 3 sorts Traque restants (un sous-lot chacun) — Pas de
+    Brume (téléport allié), Mue Éphémère (furtivité), Heure de la Curée
+    (noRetaliation conditionnel) ; effets Scène enrichis (peur/+moral, partagés
+    CAP-MORAL).
 
 - **F-ELITEVOX — Élites Vox Arcana** ✅ (plan `f-elitevox.md`, doc 16 §4)
   Pur contenu : 8 unités élites (`t*-*-elite`, stats ~1,25-1,3× base), 8 dwellings

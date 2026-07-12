@@ -10,7 +10,13 @@ import type { ArtifactDef, HeroSkillDef, SpellDef, SpellKind } from './types';
  * `kind` offensif ne doit être ajouté qu'ici. `adventure` : hors combat.
  */
 export function spellTargetsEnemy(kind: SpellKind): boolean {
-  return kind === 'damage' || kind === 'debuff' || kind === 'applyMarks' || kind === 'silence';
+  return (
+    kind === 'damage' ||
+    kind === 'debuff' ||
+    kind === 'applyMarks' ||
+    kind === 'silence' ||
+    kind === 'banish'
+  );
 }
 
 /**

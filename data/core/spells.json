@@ -233,6 +233,15 @@
       "perPower": 0
     },
     {
+      "id": "bannissement",
+      "school": "traque",
+      "circle": 4,
+      "manaCost": 18,
+      "kind": "banish",
+      "base": 40,
+      "perPower": 20
+    },
+    {
       "id": "ville-portail",
       "school": "air",
       "circle": 3,

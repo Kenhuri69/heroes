@@ -20,6 +20,9 @@
   "abilities": [
     {
       "id": "undead"
+    },
+    {
+      "id": "banishable"
     }
   ]
 }

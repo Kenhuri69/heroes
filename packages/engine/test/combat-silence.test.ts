@@ -18,7 +18,7 @@ import { testConfig } from './fixtures';
 
 function unit(over: Partial<CombatUnitDef> & { id: string }): CombatUnitDef {
   return {
-    id: over.id, groupId: `${over.id}-g`, nativeTerrain: 'swamp',
+    groupId: `${over.id}-g`, nativeTerrain: 'swamp',
     stats: { hp: 20, attack: 5, defense: 5, damage: [4, 4], speed: 6 }, abilities: [], ...over,
   };
 }

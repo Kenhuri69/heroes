@@ -171,6 +171,39 @@ export default {
         return json({ id }, 200, env);
       }
 
+      // Détail d'une partie (doc 15 §5.3, NET-MATCHDETAIL) : le client rejoue
+      // `base (seed/setup) + batch (moves)` — cet endpoint fournit de quoi
+      // reconstruire l'état. Info ouverte (décision NET-FOG, async v1) : pas de
+      // filtre par participant, seule l'authentification est requise.
+      const detailMatch = path.match(/^\/matches\/([\w-]+)$/);
+      if (detailMatch && request.method === 'GET') {
+        const matchId = detailMatch[1]!;
+        const m = await env.DB.prepare('SELECT seed, setup, status FROM matches WHERE id = ?')
+          .bind(matchId)
+          .first<{ seed: number; setup: string; status: string }>();
+        if (!m) return fail(404, 'partie inconnue', env);
+        const players = await env.DB.prepare(
+          'SELECT seat, player_id, profile_id FROM match_players WHERE match_id = ? ORDER BY seat',
+        )
+          .bind(matchId)
+          .all<{ seat: number; player_id: string; profile_id: string | null }>();
+        const seqRow = await env.DB.prepare('SELECT MAX(seq) AS seq FROM moves WHERE match_id = ?')
+          .bind(matchId)
+          .first<{ seq: number | null }>();
+        return json(
+          {
+            id: matchId,
+            seed: m.seed,
+            setup: JSON.parse(m.setup) as unknown,
+            status: m.status,
+            players: players.results,
+            seq: seqRow?.seq ?? -1,
+          },
+          200,
+          env,
+        );
+      }
+
       const joinMatch = path.match(/^\/matches\/([\w-]+)\/join$/);
       if (joinMatch && request.method === 'POST') {
         const matchId = joinMatch[1]!;

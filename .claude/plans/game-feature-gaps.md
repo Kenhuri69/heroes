@@ -567,14 +567,13 @@ SDK `packages/client/src/app/net.ts` sans autre appelant).
   monotonie). SDK `putSave` documente le 409. **Différé (NET-SRVGUARD.2)** : copie
   de sécurité N-1 (évolution de schéma D1 + migration base live).
 
-- **NET-SEC — Durcissement : rate limit, quotas, validation, revoke** 🧩 M ⬜
-  Doc : doc 15 §2/§8, doc 07 §5 (anti-triche). Code : `/auth/request` sans
-  throttling (`worker.ts:82-93`), collision de `handle` non gérée (l.108-109 ⇒
-  500 sur contrainte UNIQUE), aucun bornage de taille de body ni quota de
-  slots, `logout()` purement local (`net.ts:32-38`, pas de `DELETE /session`),
-  CORS `*` si `APP_ORIGIN` absent (l.35). Spec : rate limit par e-mail/IP,
-  désambiguïsation de handle, limites taille/quantité, endpoint de révocation +
-  purge des sessions expirées.
+- **NET-SEC — Durcissement : rate limit, quotas, validation, revoke** 🧩 M 🧩 (.1 livré)
+  Doc : doc 15 §2/§8, doc 07 §5 (anti-triche). **NET-SEC.1 ✅** (plan
+  `net-sec-1.md`) : **désambiguïsation de handle** (`/auth/verify` — suffixe uuid
+  sur collision `UNIQUE`, plus de 500) + **révocation de session** (endpoint
+  `DELETE /session` supprimant le bearer courant ; SDK `logout()` l'appelle en
+  best-effort ; CORS `+DELETE`). **Reste (NET-SEC.2+)** : rate limit par
+  e-mail/IP, bornage taille de body + quota de slots, purge des sessions expirées.
 
 - **NET-FOG — Information cachée : `stateView(playerId)`** 🕳️ L ⬜
   Doc : doc 07 §5 (« brouillard calculé serveur, seule la vue du joueur est

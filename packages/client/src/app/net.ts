@@ -28,8 +28,17 @@ export function isLoggedIn(): boolean {
   return !!session();
 }
 
-/** Termine la session locale (déconnexion). */
+/** Termine la session (déconnexion). */
 export function logout(): void {
+  // NET-SEC.1 : révoque la session CÔTÉ SERVEUR (best-effort) avant de purger
+  // l'état local — `api` capture le bearer de façon synchrone à l'appel, donc le
+  // retrait local qui suit n'affecte pas la requête. Un échec réseau ne bloque
+  // pas la déconnexion locale.
+  if (BACKEND_URL && session()) {
+    void api('/session', { method: 'DELETE' }).catch(() => {
+      /* révocation best-effort : la session expirera de toute façon */
+    });
+  }
   try {
     localStorage.removeItem(SESSION_KEY);
   } catch {

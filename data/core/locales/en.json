@@ -588,6 +588,7 @@
   "building.forge": "Forge",
   "warMachine.ballista.name": "Ballista",
   "warMachine.catapulte.name": "Catapult",
+  "warMachine.arrow-tower.name": "Arrow Tower",
   "resource.gold": "Gold",
   "resource.wood": "Wood",
   "resource.ore": "Ore",

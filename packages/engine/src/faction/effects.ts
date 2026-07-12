@@ -140,12 +140,13 @@ function applyRaiseUndeadOnVictory(
   if (!raisedDef || raisedDef.stats.hp <= 0) return; // données absentes/invalides — no-op défensif
 
   // PV vivants (non-`undead`) tués côté défenseur (doc 04 : « PV des créatures
-  // vivantes ennemies tuées »).
+  // vivantes ennemies tuées »). Les machines (`warMachine` — ex. tour de tir
+  // C-SIEGE2.5) ne sont pas des créatures : elles ne se relèvent pas.
   const hpKilled = casualties
     .filter((c) => c.side === 'defender')
     .reduce((sum, c) => {
       const def = draft.unitCatalog[c.unitId];
-      if (!def || hasAbility(def, 'undead')) return sum;
+      if (!def || hasAbility(def, 'undead') || hasAbility(def, 'warMachine')) return sum;
       return sum + def.stats.hp * c.lost;
     }, 0);
   if (hpKilled <= 0) return;

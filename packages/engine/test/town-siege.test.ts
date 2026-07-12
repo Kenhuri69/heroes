@@ -247,6 +247,48 @@ describe('C-SIEGE2 — murs de siège', () => {
     expect(events.some((e) => e.type === 'MoatDamaged')).toBe(false); // défenseur épargné
   });
 
+  // C-SIEGE2.5 : la tour de tir vit dans les données `war-machines.json` (absente
+  // du catalogue de test) — on l'injecte pour les sièges Fort ≥ 3.
+  const withTower = (s: GameState): GameState => {
+    s.unitCatalog = {
+      ...s.unitCatalog,
+      'arrow-tower': {
+        id: 'arrow-tower', groupId: 'war-machine', nativeTerrain: '',
+        stats: { hp: 400, attack: 12, defense: 12, damage: [10, 20], speed: 1 },
+        abilities: [{ id: 'shooter', params: { ammo: 999, noMeleePenalty: true } }, { id: 'warMachine' }, { id: 'immobile' }],
+      },
+    };
+    return s;
+  };
+
+  it('C-SIEGE2.5 : une ville Fort ≥ 3 défend avec une tour de tir immobile derrière la porte', () => {
+    const s = withTower(siegeState([{ unitId: 'red-grunt', count: 50 }], [{ unitId: 'blue-wolf', count: 1 }], { fort: 3 }));
+    const next = apply(s, { type: 'CaptureTown', townId: 't1', playerId: 'p1' }).state;
+    const tower = next.combat!.stacks.find((st) => st.id === 'defender-tower');
+    expect(tower).toBeDefined();
+    expect(tower!.side).toBe('defender');
+    expect(tower!.pos).toEqual({ col: WALL_COL + 1, row: GATE[0]! }); // derrière la porte
+    expect(tower!.ammo).toBeGreaterThan(0); // tireuse
+    // Immobile (vitesse 0) : aucun hex atteignable.
+    expect(reachableHexes(next, 'defender-tower')).toHaveLength(0);
+  });
+
+  it('C-SIEGE2.5 : sans Fort ≥ 3, aucune tour', () => {
+    const s = withTower(siegeState([{ unitId: 'red-grunt', count: 50 }], [{ unitId: 'blue-wolf', count: 1 }], { fort: 2 }));
+    const next = apply(s, { type: 'CaptureTown', townId: 't1', playerId: 'p1' }).state;
+    expect(next.combat!.stacks.some((st) => st.id === 'defender-tower')).toBe(false);
+  });
+
+  it('C-SIEGE2.5 : un assaillant fort capture malgré la tour (atteignable, pas de stalemate)', () => {
+    const s = withTower(siegeState([{ unitId: 'red-grunt', count: 100 }], [{ unitId: 'blue-wolf', count: 1 }], { fort: 3 }));
+    const events: GameEvent[] = [];
+    const started = apply(s, { type: 'CaptureTown', townId: 't1', playerId: 'p1' }).state;
+    expect(started.combat!.stacks.some((st) => st.id === 'defender-tower')).toBe(true);
+    const done = produce(started, (d) => runAutoCombat(d, events));
+    expect(done.combat).toBeNull(); // le combat se termine (la tour est tuable)
+    expect(done.towns[0]?.ownerPlayerId).toBe('p1');
+  });
+
   it('C-SIEGE2.2 : une catapulte (siegeBreaker) élargit la brèche du rempart', () => {
     const s = siegeState([{ unitId: 'red-grunt', count: 50 }], [{ unitId: 'blue-wolf', count: 1 }], { fort: 2 });
     s.heroes[0]!.warMachines = ['siege-cat'];

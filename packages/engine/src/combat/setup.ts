@@ -94,6 +94,45 @@ function buildMoat(fortLevel: number): OffsetPos[] {
   return moat;
 }
 
+// C-SIEGE2.5 : tour de tir d'une ville très fortifiée (Fort ≥ 3, Château). Pile
+// tireuse IMMOBILE (capacité `immobile` : `reachableHexes` renvoie vide) plantée
+// DERRIÈRE la porte, donc atteignable par l'assaillant qui la franchit (pas de
+// stalemate). Col > zone d'obstacles et hors colonne de douve ⇒ aucune collision.
+const SIEGE_TOWER_MIN_FORT = 3;
+const SIEGE_TOWER_UNIT = 'arrow-tower';
+const SIEGE_TOWER_POS: OffsetPos = { col: SIEGE_WALL_COL + 1, row: SIEGE_GATE_ROWS[0]! };
+
+/**
+ * Pile « tour de tir » côté défenseur (C-SIEGE2.5), ou null si `fortLevel < 3`
+ * ou si l'unité `arrow-tower` est absente du catalogue (données non chargées).
+ * Slot dédié `tower` (jamais en collision avec les slots numérotés de garnison).
+ */
+function buildTowerStack(fortLevel: number, catalog: Record<string, CombatUnitDef>): CombatStack | null {
+  if (fortLevel < SIEGE_TOWER_MIN_FORT) return null;
+  const def = catalog[SIEGE_TOWER_UNIT];
+  if (!def) return null;
+  return {
+    id: 'defender-tower',
+    side: 'defender',
+    slot: 99,
+    unitId: SIEGE_TOWER_UNIT,
+    count: 1,
+    firstHp: def.stats.hp,
+    pos: { ...SIEGE_TOWER_POS },
+    retaliationsLeft: 1,
+    waited: false,
+    defending: false,
+    ammo: shooterAmmo(def),
+    spellCharges: 0,
+    marks: 0,
+    immobilizedRounds: 0,
+    transformed: false,
+    symbiosisStacks: 0,
+    acted: false,
+    statuses: [],
+  };
+}
+
 function drawObstacles(draft: Draft, min: number, max: number): OffsetPos[] {
   const countRoll = rollRange(draft.rng, min, max);
   draft.rng = countRoll.state;
@@ -274,9 +313,13 @@ export function beginTownCombat(
     ...hero.warMachines.map((unitId) => ({ unitId, count: 1 })),
   ];
   const defender: ArmyStack[] = town.garrison.map((s) => ({ ...s }));
+  // C-SIEGE2.5 : une ville très fortifiée (Fort ≥ 3) ajoute une tour de tir au
+  // camp défenseur (pile immobile derrière la porte). Absente sinon.
+  const tower = buildTowerStack(fortLevel, draft.unitCatalog);
   const stacks = [
     ...placeSide('attacker', attacker, draft.unitCatalog, 0),
     ...placeSide('defender', defender, draft.unitCatalog, COMBAT_COLS - 1),
+    ...(tower ? [tower] : []),
   ];
   const obstacles = drawObstacles(draft, rules.obstaclesMin, rules.obstaclesMax);
   // C-SIEGE2.2 : une catapulte (machine de guerre `siegeBreaker`) portée par

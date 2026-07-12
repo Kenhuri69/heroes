@@ -368,6 +368,24 @@ Chaque faction consomme surtout **une paire de ressources rares** (Haven : crist
 > nombre de dégâts flotte sur la pile mordue (`MoatDamaged` ⇒ `spawnDamageNumber`).
 > Zéro faction moteur.
 
+> 🚧 **État (sièges v2 — C-SIEGE2.5, tour de tir)** : une ville **très fortifiée**
+> (Fort ≥ 3, Château) ajoute une **tour de tir** au camp défenseur — une pile
+> tireuse **immobile** (unité générique `arrow-tower` de `war-machines.json`,
+> marqueurs `warMachine` + `shooter` + **`immobile`**). La capacité générique
+> `immobile` fait renvoyer `reachableHexes` **vide** : la tour ne se déplace
+> jamais, elle **tire ou attend** (le schéma d'unité impose vitesse ≥ 1, d'où le
+> marqueur plutôt qu'une vitesse 0). Elle est plantée **derrière la porte**
+> (`SIEGE_WALL_COL + 1`), donc **atteignable** par l'assaillant qui franchit la
+> porte ⇒ **destructible, pas de stalemate** ; hors zone d'obstacles et de la
+> colonne de douve ⇒ aucune collision de montage. Elle **compte comme pile
+> défenseur** (le combat ne finit qu'une fois la tour tombée aussi) ; comme toute
+> `warMachine` elle est hors moral/pertes et **ne se relève pas** en squelettes
+> (Nécromancie exclut `warMachine`). Jamais vendue (absente de tout
+> `warMachineVendor`) : elle n'existe que posée par le siège. Une garnison **vide**
+> ⇒ capture immédiate inchangée (défense tour-seule = ultérieur). Tour = pile dans
+> `stacks` (aucun champ neuf) ⇒ pas de bump save, golden inchangé. Zéro faction
+> moteur ; rendu client automatique (jeton d'unité).
+
 > 🚧 **État (caravanes inter-villes — T-CARAVAN, livré)** : commande générique
 > **`SendCaravan { fromTownId, toTownId, slot }`** — envoie une pile de garnison
 > d'une ville possédée vers une autre ville du **joueur actif**. La durée de

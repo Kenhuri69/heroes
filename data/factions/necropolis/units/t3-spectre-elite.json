@@ -3,8 +3,32 @@
   "tier": 3,
   "name": "@loc:unit.t3-spectre-elite.name",
   "loreKey": "@loc:unit.t3-spectre-elite.lore",
-  "stats": { "hp": 21, "attack": 7, "defense": 7, "damage": [4, 7], "speed": 8 },
+  "stats": {
+    "hp": 21,
+    "attack": 7,
+    "defense": 7,
+    "damage": [
+      4,
+      7
+    ],
+    "speed": 8
+  },
   "growthPerWeek": 7,
-  "cost": { "gold": 260 },
-  "abilities": [{ "id": "undead" }, { "id": "flying" }]
+  "cost": {
+    "gold": 260
+  },
+  "abilities": [
+    {
+      "id": "undead"
+    },
+    {
+      "id": "flying"
+    },
+    {
+      "id": "incorporeal",
+      "params": {
+        "dodge": 0.2
+      }
+    }
+  ]
 }

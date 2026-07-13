@@ -3,8 +3,37 @@
   "tier": 4,
   "name": "@loc:unit.t4-bibliothecaire-elite.name",
   "loreKey": "@loc:unit.t4-bibliothecaire-elite.lore",
-  "stats": { "hp": 44, "attack": 9, "defense": 13, "damage": [6, 10], "speed": 5 },
+  "stats": {
+    "hp": 44,
+    "attack": 9,
+    "defense": 13,
+    "damage": [
+      6,
+      10
+    ],
+    "speed": 5
+  },
   "growthPerWeek": 5,
-  "cost": { "gold": 612 },
-  "abilities": [{ "id": "mark" }]
+  "cost": {
+    "gold": 612
+  },
+  "abilities": [
+    {
+      "id": "mark"
+    },
+    {
+      "id": "magicResistance",
+      "params": {
+        "value": 0.3
+      }
+    },
+    {
+      "id": "spellcaster",
+      "params": {
+        "spellId": "entraves-runiques",
+        "charges": 2,
+        "power": 3
+      }
+    }
+  ]
 }

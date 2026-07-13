@@ -3,8 +3,40 @@
   "tier": 7,
   "name": "@loc:unit.t7-dragon-os-elite.name",
   "loreKey": "@loc:unit.t7-dragon-os-elite.lore",
-  "stats": { "hp": 210, "attack": 26, "defense": 26, "damage": [39, 65], "speed": 11 },
+  "stats": {
+    "hp": 210,
+    "attack": 26,
+    "defense": 26,
+    "damage": [
+      39,
+      65
+    ],
+    "speed": 11
+  },
   "growthPerWeek": 1,
-  "cost": { "gold": 5000, "sulfur": 3, "gems": 3 },
-  "abilities": [{ "id": "undead" }, { "id": "flying" }]
+  "cost": {
+    "gold": 5000,
+    "sulfur": 3,
+    "gems": 3
+  },
+  "abilities": [
+    {
+      "id": "undead"
+    },
+    {
+      "id": "flying"
+    },
+    {
+      "id": "aura",
+      "params": {
+        "moraleMod": -1
+      }
+    },
+    {
+      "id": "breathAttack",
+      "params": {
+        "pct": 0.6
+      }
+    }
+  ]
 }

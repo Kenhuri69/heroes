@@ -3,8 +3,37 @@
   "tier": 5,
   "name": "@loc:unit.t5-liche-elite.name",
   "loreKey": "@loc:unit.t5-liche-elite.lore",
-  "stats": { "hp": 45, "attack": 12, "defense": 13, "damage": [9, 14], "speed": 6 },
+  "stats": {
+    "hp": 45,
+    "attack": 12,
+    "defense": 13,
+    "damage": [
+      9,
+      14
+    ],
+    "speed": 6
+  },
   "growthPerWeek": 4,
-  "cost": { "gold": 900, "sulfur": 2 },
-  "abilities": [{ "id": "undead" }, { "id": "shooter", "params": { "ammo": 10 } }]
+  "cost": {
+    "gold": 900,
+    "sulfur": 2
+  },
+  "abilities": [
+    {
+      "id": "undead"
+    },
+    {
+      "id": "shooter",
+      "params": {
+        "ammo": 10
+      }
+    },
+    {
+      "id": "areaAttack",
+      "params": {
+        "pct": 0.5,
+        "sparesUndead": true
+      }
+    }
+  ]
 }

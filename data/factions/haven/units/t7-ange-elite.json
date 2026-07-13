@@ -3,11 +3,36 @@
   "tier": 7,
   "name": "@loc:unit.t7-ange-elite.name",
   "loreKey": "@loc:unit.t7-ange-elite.lore",
-  "stats": { "hp": 234, "attack": 29, "defense": 29, "damage": [46, 72], "speed": 12 },
+  "stats": {
+    "hp": 234,
+    "attack": 29,
+    "defense": 29,
+    "damage": [
+      46,
+      72
+    ],
+    "speed": 12
+  },
   "growthPerWeek": 1,
-  "cost": { "gold": 5400, "crystal": 3, "gems": 3 },
+  "cost": {
+    "gold": 5400,
+    "crystal": 3,
+    "gems": 3
+  },
   "abilities": [
-    { "id": "flying" },
-    { "id": "spellcaster", "params": { "spellId": "resurrection", "charges": 1, "power": 5 } }
+    {
+      "id": "flying"
+    },
+    {
+      "id": "spellcaster",
+      "params": {
+        "spellId": "resurrection",
+        "charges": 1,
+        "power": 5
+      }
+    },
+    {
+      "id": "moraleImmune"
+    }
   ]
 }

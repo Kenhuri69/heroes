@@ -6,5 +6,10 @@
   "origin": "canon",
   "source": "Harry Potter",
   "avatar": "vox-arcana-magic",
-  "avatarStyle": "painterly"
+  "avatarStyle": "painterly",
+  "specialty": "@loc:hero.hermione.specialty",
+  "attributes": { "attack": 0, "defense": 1, "power": 3, "knowledge": 2 },
+  "specialtyEffect": { "id": "prodige-academique", "manaCostReductionPct": 15 },
+  "startingSkills": { "wisdom": 1, "economy": 1 },
+  "startingSpells": ["barriere-du-honmoon", "eclair-magique"]
 }

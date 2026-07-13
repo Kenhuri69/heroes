@@ -11,11 +11,12 @@ import { testBuildingCatalog, testTown, testUnitCatalogWithEconomy } from './tow
  * G2 — Guilde des mages : à la construction d'un niveau de guilde, `spellCount`
  * sorts du cercle correspondant sont tirés au RNG seedé dans `town.spellPool` ;
  * un héros du propriétaire posé sur la ville apprend ceux de cercle ≤ son cercle
- * apprenable (base 3, relevé par la compétence Sagesse, H2).
+ * apprenable (base 2, relevé par la compétence Sagesse, H2 — fidélité HoMM3).
  */
 
-// Catalogue de sorts de test : 4 sorts en cercle 1, plus 1 sort en cercle 4
-// (pour exercer le gate de Sagesse — aucun contenu de haut cercle réel encore).
+// Catalogue de sorts de test : 4 sorts en cercle 1, plus 1 sort en cercle 3 et
+// 1 en cercle 4 (pour exercer le gate de Sagesse : cercle 3 gaté par le rang 1,
+// cercle 4 par le rang 2).
 function spellCatalog(): Record<string, SpellDef> {
   const dmg = (id: string, circle: number): SpellDef => ({
     id,
@@ -31,12 +32,13 @@ function spellCatalog(): Record<string, SpellDef> {
     c1b: dmg('c1b', 1),
     c1c: dmg('c1c', 1),
     c1d: dmg('c1d', 1),
+    c3: dmg('c3', 3),
     c4: dmg('c4', 4),
   };
 }
 
-// Guilde niveau 1 enseignant 2 sorts de cercle 1, + une guilde niveau 4 fictive
-// (spellCount 1, cercle 4) pour tester le gate de Sagesse.
+// Guilde niveau 1 enseignant 2 sorts de cercle 1, + des guildes niveau 3/4
+// fictives (spellCount 1) pour tester le gate de Sagesse.
 function guildCatalog(): Record<string, BuildingDef> {
   return {
     ...testBuildingCatalog(),
@@ -44,6 +46,11 @@ function guildCatalog(): Record<string, BuildingDef> {
       id: 'guild1',
       maxLevel: 1,
       levels: [{ cost: { gold: 100 }, requires: [], effect: { type: 'mageGuild', level: 1, spellCount: 2 } }],
+    },
+    guild3: {
+      id: 'guild3',
+      maxLevel: 1,
+      levels: [{ cost: { gold: 100 }, requires: [], effect: { type: 'mageGuild', level: 3, spellCount: 1 } }],
     },
     guild4: {
       id: 'guild4',
@@ -53,9 +60,10 @@ function guildCatalog(): Record<string, BuildingDef> {
   };
 }
 
-// Compétence Sagesse de test : rang 1 débloque l'apprentissage jusqu'au cercle 4.
+// Compétence Sagesse de test — mirroir de `data/core/skills.json` : rang 1 → cercle
+// 3, rang 2 → cercle 4, rang 3 → cercle 5 (base apprenable 2 sans Sagesse).
 function wisdomCatalog(): Record<string, HeroSkillDef> {
-  return { wisdom: { id: 'wisdom', ranks: [{ learnCircle: 4 }, { learnCircle: 5 }, { learnCircle: 5 }] } };
+  return { wisdom: { id: 'wisdom', ranks: [{ learnCircle: 3 }, { learnCircle: 4 }, { learnCircle: 5 }] } };
 }
 
 function started(overrides: {
@@ -128,6 +136,19 @@ describe('Guilde des mages (G2)', () => {
     expect(events).toContainEqual({ type: 'SpellsLearned', heroId: hero?.id, spellIds: pool });
   });
 
+  it('sans Sagesse, un sort de cercle 3 reste dans le pool mais n’est PAS appris (base 2)', () => {
+    const state = started({ heroOnTown: true });
+    const next = apply(state, { type: 'BuildStructure', townId: 'town-1', buildingId: 'guild3' }).state;
+    expect(next.towns[0]?.spellPool).toContain('c3');
+    expect(next.heroes[0]?.spells ?? []).not.toContain('c3');
+  });
+
+  it('avec Sagesse (rang 1, learnCircle 3), le sort de cercle 3 est appris', () => {
+    const state = started({ heroOnTown: true, skills: { wisdom: 1 } });
+    const next = apply(state, { type: 'BuildStructure', townId: 'town-1', buildingId: 'guild3' }).state;
+    expect(next.heroes[0]?.spells ?? []).toContain('c3');
+  });
+
   it('sans Sagesse, un sort de cercle 4 reste dans le pool mais n’est PAS appris', () => {
     const state = started({ heroOnTown: true });
     const next = apply(state, { type: 'BuildStructure', townId: 'town-1', buildingId: 'guild4' }).state;
@@ -135,8 +156,14 @@ describe('Guilde des mages (G2)', () => {
     expect(next.heroes[0]?.spells ?? []).not.toContain('c4');
   });
 
-  it('avec Sagesse (learnCircle 4), le sort de cercle 4 est appris', () => {
+  it('Sagesse rang 1 (learnCircle 3) ne suffit PAS pour un sort de cercle 4', () => {
     const state = started({ heroOnTown: true, skills: { wisdom: 1 } });
+    const next = apply(state, { type: 'BuildStructure', townId: 'town-1', buildingId: 'guild4' }).state;
+    expect(next.heroes[0]?.spells ?? []).not.toContain('c4');
+  });
+
+  it('avec Sagesse avancée (rang 2, learnCircle 4), le sort de cercle 4 est appris', () => {
+    const state = started({ heroOnTown: true, skills: { wisdom: 2 } });
     const next = apply(state, { type: 'BuildStructure', townId: 'town-1', buildingId: 'guild4' }).state;
     expect(next.heroes[0]?.spells ?? []).toContain('c4');
   });

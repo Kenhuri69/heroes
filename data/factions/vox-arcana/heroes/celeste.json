@@ -5,5 +5,10 @@
   "archetype": "might",
   "origin": "original",
   "avatar": "vox-arcana-celeste",
-  "avatarStyle": "photoreal"
+  "avatarStyle": "photoreal",
+  "specialty": "@loc:hero.celeste.specialty",
+  "attributes": { "attack": 2, "defense": 2, "power": 1, "knowledge": 1 },
+  "specialtyEffect": { "id": "lumiere-stellaire", "meleeDamagePct": 10 },
+  "startingSkills": { "melee": 1, "luck": 1 },
+  "startingSpells": []
 }

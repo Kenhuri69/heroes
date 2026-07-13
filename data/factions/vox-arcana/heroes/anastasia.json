@@ -7,5 +7,9 @@
   "avatar": "vox-arcana-anastasia",
   "avatarStyle": "photoreal",
   "startingHouseId": "house-lion",
-  "specialty": "@loc:hero.anastasia.specialty"
+  "specialty": "@loc:hero.anastasia.specialty",
+  "attributes": { "attack": 1, "defense": 1, "power": 3, "knowledge": 2 },
+  "specialtyEffect": { "id": "furie-du-lion", "luckBonus": 1 },
+  "startingSkills": { "wisdom": 1, "magic-fire": 1 },
+  "startingSpells": ["eclair-magique", "trait-de-feu"]
 }

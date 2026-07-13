@@ -2435,6 +2435,11 @@ test('attaque du héros : frappe directe sur une pile ennemie, 1×/combat (C1)',
     return { id: t.id, count: t.count };
   });
 
+  // F-SKILLS.2-UI : le bouton [Prière] existe mais reste DÉSACTIVÉ — le héros de
+  // départ ne porte pas la compétence de Prière de bataille (gating d'absence
+  // vérifié ; le flux actif est couvert en unitaire moteur `combat-hero-rally`).
+  await expect(page.getByTestId('combat-prayer')).toBeDisabled();
+
   // Bouton [Attaque du héros] actif → modale → prévisualisation → cible.
   await expect(page.getByTestId('combat-hero-attack')).toBeEnabled();
   await page.getByTestId('combat-hero-attack').click();

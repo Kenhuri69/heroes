@@ -3,7 +3,8 @@ import type { GameEvent } from '../core/events';
 import type { GameState } from '../core/state';
 import { heroBattlePrayerHp } from '../hero/skills';
 import type { Draft } from './draft';
-import { resurrectStack } from './spell-effect';
+import { resolveResurrect, resurrectStack } from './spell-effect';
+import { collectCasualties } from './state-helpers';
 import type { CombatSideId, CombatState } from './types';
 
 type HeroRallyCmd = { type: 'HeroRally'; targetStackId: string };
@@ -26,6 +27,28 @@ export function heroRallyHp(state: GameState, combat: CombatState, side: CombatS
 /** La pile active du camp joueur peut-elle déclencher la Prière de bataille ? */
 export function canHeroRally(state: GameState): boolean {
   return validateHeroRallyReady(state) === null;
+}
+
+/**
+ * Prévisualisation PURE (sans mutation, sans RNG) de la Prière sur une cible :
+ * PV rendus + créatures ressuscitées si le joueur priait cette pile maintenant.
+ * Consommée par l'UI (préviz obligatoire doc 08 §2.4) — zéro réimplémentation.
+ */
+export function estimateHeroRally(
+  state: GameState,
+  targetStackId: string,
+): { healed: number; revived: number } {
+  const combat = state.combat;
+  if (!combat) return { healed: 0, revived: 0 };
+  const target = combat.stacks.find((s) => s.id === targetStackId);
+  const def = target ? state.unitCatalog[target.unitId] : undefined;
+  if (!target || !def || target.count <= 0) return { healed: 0, revived: 0 };
+  const hp = heroRallyHp(state, combat, combat.playerSide);
+  if (hp <= 0) return { healed: 0, revived: 0 };
+  const lostSoFar =
+    collectCasualties(combat).find((c) => c.side === target.side && c.unitId === target.unitId)?.lost ?? 0;
+  const { healed, revived } = resolveResurrect(def, target, lostSoFar, hp);
+  return { healed, revived };
 }
 
 /** Validation commune (hors cible précise) : combat, tour joueur, compétence, non utilisée. */

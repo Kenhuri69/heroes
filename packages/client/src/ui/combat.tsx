@@ -2,6 +2,8 @@ import { useSyncExternalStore } from 'preact/compat';
 import { useEffect, useState } from 'preact/hooks';
 import {
   heroAttackDamage,
+  canHeroRally,
+  estimateHeroRally,
   initiativeSpeed,
   roundActionOrder,
   surrenderCost,
@@ -51,6 +53,7 @@ export function CombatUi() {
   const spellTarget = useApp((s) => s.combatSpellTarget);
   const [spellBookOpen, setSpellBookOpen] = useState(false);
   const [heroAttackOpen, setHeroAttackOpen] = useState(false);
+  const [prayerOpen, setPrayerOpen] = useState(false);
   const [unitSpellOpen, setUnitSpellOpen] = useState(false);
   const [leaveConfirm, setLeaveConfirm] = useState<'retreat' | 'surrender' | null>(null);
   const [sheetStackId, setSheetStackId] = useState<string | null>(null);
@@ -119,6 +122,9 @@ export function CombatUi() {
     !!hero &&
     !!config?.combat.heroAttack &&
     !combat.heroAttackUsed.includes(combat.playerSide);
+  // F-SKILLS.2-UI : Prière de bataille disponible si le héros du camp joueur porte
+  // la compétence (`battleResurrectHp`), 1×/combat — gating délégué au moteur pur.
+  const canPray = isPlayerTurn && !autoActive && canHeroRally(appStore.getState().game);
   // CAP-CAST : la pile active du joueur est-elle une lanceuse (`spellcaster`)
   // jouable à la main (charges > 0, non silenciée, son sort au catalogue) ? Le
   // moteur supporte déjà `castSpell` ; on n'exposait que l'IA/auto jusqu'ici.
@@ -250,6 +256,9 @@ export function CombatUi() {
         >
           {t('combat.heroAttack')}
         </button>
+        <button data-testid="combat-prayer" disabled={!canPray} onClick={() => setPrayerOpen(true)}>
+          {t('combat.prayer')}
+        </button>
         <button
           data-testid="combat-unit-spell"
           disabled={!unitSpell}
@@ -303,6 +312,7 @@ export function CombatUi() {
       <CombatLog visible={logOpen} />
       {spellBookOpen && hero && <SpellBook hero={hero} onClose={() => setSpellBookOpen(false)} />}
       {heroAttackOpen && <HeroAttackModal combat={combat} onClose={() => setHeroAttackOpen(false)} />}
+      {prayerOpen && <PrayerModal combat={combat} onClose={() => setPrayerOpen(false)} />}
       {unitSpellOpen && unitSpell && active && (
         <UnitSpellModal
           combat={combat}
@@ -418,6 +428,69 @@ function HeroAttackModal({ combat, onClose }: { combat: CombatState; onClose: ()
                 </button>
               </li>
             ))}
+          </ul>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Modale de Prière de bataille (F-SKILLS.2-UI, doc 03 §2/§5 · doc 08 §2.4) : le
+ * héros du camp joueur ressuscite/soigne une pile ALLIÉE vivante, 1×/combat. Miroir
+ * de `HeroAttackModal` mais ciblage allié ; prévisualisation OBLIGATOIRE des
+ * créatures relevées par cible (`estimateHeroRally`, pur, sans RNG) ⇒ `HeroRally`.
+ */
+function PrayerModal({ combat, onClose }: { combat: CombatState; onClose: () => void }) {
+  useApp((s) => s.locale); // réactivité i18n
+  const game = appStore.getState().game;
+  const targets = combat.stacks.filter((s) => s.side === combat.playerSide && s.count > 0);
+
+  const pray = (targetStackId: string): void => {
+    dispatch({ type: 'HeroRally', targetStackId })
+      .then(() => onClose())
+      .catch((err: unknown) => pushToast(commandErrorMessage(err), 'error'));
+  };
+
+  return (
+    <div class="modal-backdrop" onClick={onClose}>
+      <div
+        class="modal spellbook"
+        role="dialog"
+        aria-modal="true"
+        aria-label={t('combat.prayer')}
+        data-testid="prayer-modal"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <header class="modal-header">
+          <h2>{t('combat.prayer')}</h2>
+          <button class="modal-close" aria-label={t('options.close')} onClick={onClose}>
+            ×
+          </button>
+        </header>
+        {targets.length === 0 ? (
+          <p class="spellbook-empty">{t('spellbook.noTargets')}</p>
+        ) : (
+          <ul class="spell-target-list">
+            {targets.map((stack) => {
+              const est = estimateHeroRally(game, stack.id);
+              return (
+                <li key={stack.id}>
+                  <button
+                    class="spell-target"
+                    data-testid={`prayer-target-${stack.id}`}
+                    onClick={() => pray(stack.id)}
+                  >
+                    <span>
+                      {resolveUnitName(stack.unitId)} ×{stack.count}
+                    </span>
+                    <span class="spell-target-preview">
+                      {t('combat.prayerPreview', { revived: est.revived, healed: est.healed })}
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>

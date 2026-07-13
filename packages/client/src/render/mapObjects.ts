@@ -164,6 +164,7 @@ const VISITABLE_COLORS: Record<string, number> = {
   vision: 0x48c9b0, // tour de guet
   levelXp: 0x27ae60, // sanctuaire / arbre du savoir
   learnSpell: 0x8e44ad, // sanctuaire de sort (magie)
+  grantSkill: 0x6c3483, // cabane de la sorcière (compétence)
   resource: 0xb9770e, // moulin
 };
 
@@ -241,6 +242,11 @@ function buildVisitableFallback(kind: string): Container {
       g.poly([c - 16, c + 8, c, c + 2, c, c + 12, c - 16, c + 18]).fill(color).stroke({ width: 2, color: ink })
         .poly([c + 16, c + 8, c, c + 2, c, c + 12, c + 16, c + 18]).fill(color).stroke({ width: 2, color: ink })
         .circle(c, c - 8, 3).fill(0xf4ecf7).stroke({ width: 1.5, color: ink });
+      break;
+    case 'grantSkill': // cabane de la sorcière : hutte (base + toit pentu + étoile)
+      g.rect(c - 12, c - 2, 24, 18).fill(color).stroke({ width: 2, color: ink })
+        .poly([c - 15, c - 2, c + 15, c - 2, c, c - 18]).fill(color).stroke({ width: 2, color: ink })
+        .circle(c, c - 8, 2.5).fill(0xf7dc6f);
       break;
     default: // sanctuaire / levelXp : obélisque runique
       g.poly([c, c - 20, c + 8, c + 12, c - 8, c + 12]).fill(color).stroke({ width: 2, color: ink })

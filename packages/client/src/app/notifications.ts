@@ -98,6 +98,9 @@ export function notify(event: AppEvent, game: GameState): string | null {
       if (effect.kind === 'learnSpell')
         // amount 0 = sort déjà connu ⇒ pas de toast (rien appris).
         return event.amount > 0 ? t('toast.bonusSpell', { spell: resolveSpellName(effect.spellId) }) : null;
+      if (effect.kind === 'grantSkill')
+        // amount 0 = compétence déjà connue ⇒ pas de toast (rien appris).
+        return event.amount > 0 ? t('toast.bonusSkill', { skill: resolveSkillName(effect.skillId) }) : null;
       return t('toast.bonusResource', {
         amount: event.amount,
         resource: t(`resource.${effect.resource}`),

@@ -576,9 +576,15 @@ Source design : doc 02 §2 (carte), §1.5 (multi-héros).
   > client dédiés). Data proto-01 `sanctuaire-1` (7,7) enseigne `eclair-magique`.
   > Golden **inchangé** (le golden-replay n'a pas de visitable). Couvert en unitaire
   > (`map-visitables.test.ts` : apprend le sort + idempotent + visite consommée).
-  > **Différé** : cabane de **compétence** (octroi de compétence hors montée) ;
-  > gating par Savoir (`heroLearnableCircle`) volontairement omis (simplicité —
-  > le sanctuaire enseigne un sort de bas cercle).
+  > **Livré (tranche cabane de compétence)** (plan `m-visit-witch-hut.md`) : effet
+  > visitable **générique** `grantSkill { skillId }` — une **cabane de la sorcière**
+  > (« Witch Hut ») enseigne une compétence (rang 1) au héros visiteur HORS montée
+  > de niveau (ajout **idempotent** à `hero.skills`, champ déjà sérialisé ⇒ **pas de
+  > bump save**). Réutilise le pipeline `visitBonus`/`BonusVisited` (toast + fiche +
+  > silhouette dédiés). Data proto-01 `cabane-1` (8,7) enseigne `scouting`. Golden
+  > **inchangé**. Couvert en unitaire (`map-visitables.test.ts` : apprend + idempotent
+  > + visite consommée). **Différé** : gating par Savoir (`heroLearnableCircle`)
+  > volontairement omis (simplicité — le sanctuaire enseigne un sort de bas cercle).
   Doc : doc 02 §2.2. Code (avant) : 5 kinds seulement.
 
 - **M-DWELLOWN — Habitations de carte capturables** 🕳️ S ✅

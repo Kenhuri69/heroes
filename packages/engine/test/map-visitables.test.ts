@@ -167,6 +167,45 @@ describe('lieux de bonus visitables (doc 02 §2.2)', () => {
     });
   });
 
+  it('la cabane de la sorcière enseigne une compétence au héros, une seule fois (M-VISIT)', () => {
+    const hut = (id: string, x: number): MapObjectDef => ({
+      id,
+      type: 'visitable',
+      pos: { x, y: 0 },
+      effect: { kind: 'grantSkill', skillId: 'test-skill' },
+      frequency: 'oncePerHero',
+      visits: {},
+    });
+    const s0 = startedWith([hut('cabane-a', 2), hut('cabane-b', 3)]);
+    expect(s0.heroes[0]?.skills['test-skill']).toBeUndefined();
+    const { state, events } = move(s0, [
+      { x: 1, y: 0 },
+      { x: 2, y: 0 },
+    ]);
+    expect(state.heroes[0]?.skills['test-skill']).toBe(1);
+    expect(events).toContainEqual({
+      type: 'BonusVisited',
+      heroId: 'hero-p1',
+      playerId: 'p1',
+      objectId: 'cabane-a',
+      effect: { kind: 'grantSkill', skillId: 'test-skill' },
+      amount: 1,
+    });
+    const first = state.map?.objects.find((o) => o.id === 'cabane-a');
+    expect(first?.type === 'visitable' && first.visits['hero-p1']).toBe(-1); // à vie
+    // Une 2ᵉ cabane de la MÊME compétence : idempotent (rang inchangé, amount 0).
+    const second = move(state, [{ x: 3, y: 0 }]);
+    expect(second.state.heroes[0]?.skills['test-skill']).toBe(1);
+    expect(second.events).toContainEqual({
+      type: 'BonusVisited',
+      heroId: 'hero-p1',
+      playerId: 'p1',
+      objectId: 'cabane-b',
+      effect: { kind: 'grantSkill', skillId: 'test-skill' },
+      amount: 0,
+    });
+  });
+
   it('le moulin crédite sa ressource fixe au joueur', () => {
     const mill: MapObjectDef = {
       id: 'moulin',

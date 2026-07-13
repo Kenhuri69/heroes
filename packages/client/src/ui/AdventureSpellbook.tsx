@@ -1,4 +1,4 @@
-import type { HeroState } from '@heroes/engine';
+import { heroKnownSpellIds, type HeroState } from '@heroes/engine';
 import { useApp } from '../app/store';
 import { dispatch } from '../app/dispatch';
 import { t, resolveSpellName, commandErrorMessage } from '../app/i18n';
@@ -13,7 +13,9 @@ import { pushToast } from './toasts';
 export function AdventureSpellbook({ hero }: { hero: HeroState }) {
   useApp((s) => s.locale); // réactivité i18n
   const catalog = useApp((s) => s.game.spellCatalog);
-  const spells = hero.spells
+  const artifactCatalog = useApp((s) => s.game.artifactCatalog);
+  // H-ARTEQUIP.2 : inclut les sorts d'aventure enseignés par les artefacts équipés.
+  const spells = heroKnownSpellIds(hero, artifactCatalog)
     .map((id) => catalog[id])
     .filter((spell): spell is NonNullable<typeof spell> => spell?.kind === 'adventure');
   if (spells.length === 0) return null;

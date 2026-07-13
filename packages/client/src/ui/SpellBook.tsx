@@ -2,7 +2,9 @@ import { useState } from 'preact/hooks';
 import {
   effectiveManaCost,
   estimateSpell,
+  heroKnownSpellIds,
   spellTargetsEnemy,
+  type ArtifactDef,
   type CombatState,
   type CombatStack,
   type HeroSkillDef,
@@ -43,6 +45,7 @@ export function SpellBook({ hero, onClose }: { hero: HeroState; onClose: () => v
   const combat = useApp((s) => s.game.combat);
   const spellCatalog = useApp((s) => s.game.spellCatalog);
   const skillCatalog = useApp((s) => s.game.skillCatalog);
+  const artifactCatalog = useApp((s) => s.game.artifactCatalog);
   const [spellId, setSpellId] = useState<string | null>(null);
   const [targetId, setTargetId] = useState<string | null>(null);
   const [preview, setPreview] = useState<SpellEstimate | null>(null);
@@ -120,7 +123,7 @@ export function SpellBook({ hero, onClose }: { hero: HeroState; onClose: () => v
         <p class="spellbook-mana">{t('hero.mana', { mana: hero.mana, manaMax: hero.manaMax })}</p>
 
         {!def ? (
-          <SpellList hero={hero} spellCatalog={spellCatalog} skillCatalog={skillCatalog} onSelect={selectSpell} />
+          <SpellList hero={hero} spellCatalog={spellCatalog} skillCatalog={skillCatalog} artifactCatalog={artifactCatalog} onSelect={selectSpell} />
         ) : (
           <div class="spellbook-targets">
             <button class="spellbook-back" onClick={backToList}>
@@ -165,14 +168,17 @@ function SpellList({
   hero,
   spellCatalog,
   skillCatalog,
+  artifactCatalog,
   onSelect,
 }: {
   hero: HeroState;
   spellCatalog: Record<string, SpellDef>;
   skillCatalog: Record<string, HeroSkillDef>;
+  artifactCatalog: Record<string, ArtifactDef>;
   onSelect: (spellId: string) => void;
 }) {
-  const known = hero.spells
+  // H-ARTEQUIP.2 : le grimoire liste aussi les sorts enseignés par les artefacts.
+  const known = heroKnownSpellIds(hero, artifactCatalog)
     .map((id) => spellCatalog[id])
     .filter((d): d is SpellDef => d !== undefined);
 

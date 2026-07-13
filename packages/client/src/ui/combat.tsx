@@ -9,6 +9,7 @@ import {
   surrenderCost,
   spellcasterParams,
   isSilenced,
+  heroKnownSpellIds,
   estimateUnitSpell,
   spellTargetsEnemy,
   type CombatStack,
@@ -44,6 +45,7 @@ export function CombatUi() {
   const combatBark = useApp((s) => s.combatBark);
   const hero = useApp((s) => s.game.heroes.find((h) => h.playerId === humanId(s.game)));
   const catalog = useApp((s) => s.game.unitCatalog);
+  const artifactCatalog = useApp((s) => s.game.artifactCatalog);
   const autoActive = useApp((s) => s.combatAutoActive);
   const config = useApp((s) => s.game.config);
   const playerGold = useApp(
@@ -115,7 +117,8 @@ export function CombatUi() {
     !autoActive &&
     !combat.heroCastThisRound.includes(combat.playerSide) &&
     !!hero &&
-    hero.spells.length > 0;
+    // H-ARTEQUIP.2 : un héros sans sort appris peut caster via un artefact équipé.
+    heroKnownSpellIds(hero, artifactCatalog).length > 0;
   // C1 : attaque du héros disponible si la feature est activée (config), un héros
   // est lié au camp joueur et ne l'a pas déjà utilisée ce combat.
   const canHeroStrike =

@@ -47,6 +47,23 @@ export function heroArtifactBonus(
 }
 
 /**
+ * Sorts CASTABLES du héros (H-ARTEQUIP.2) : l'union de ses sorts appris
+ * (`hero.spells`) et des sorts enseignés par les artefacts ÉQUIPÉS
+ * (`grantsSpell`). Pure et sans doublon ; source unique consommée par la
+ * validation (combat + aventure), l'IA et l'UI (grimoire). Un sort d'artefact
+ * cesse d'être castable dès le déséquipement — `hero.spells` n'est jamais muté.
+ */
+export function heroKnownSpellIds(hero: HeroState, catalog: Record<string, ArtifactDef>): string[] {
+  const ids = [...hero.spells];
+  for (const artifactId of hero.artifacts) {
+    if (!artifactId) continue;
+    const granted = catalog[artifactId]?.grantsSpell;
+    if (granted && !ids.includes(granted)) ids.push(granted);
+  }
+  return ids;
+}
+
+/**
  * Mana max effectif (décision plan phase-3.2 #1/#9, A7) : (Savoir + Savoir
  * d'artefacts) × 10 + manaMax d'artefacts. Le bonus `knowledge` d'un artefact
  * (Orbe de savoir) était sommé mais ignoré ici — désormais crédité ×10.

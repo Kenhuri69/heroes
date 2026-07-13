@@ -199,6 +199,13 @@
       "artifactId": "trefle-chance"
     },
     {
+      "id": "artifact-grimoire",
+      "type": "artifact",
+      "x": 6,
+      "y": 5,
+      "artifactId": "grimoire-arcanique"
+    },
+    {
       "id": "ecurie-1",
       "type": "visitable",
       "x": 4,

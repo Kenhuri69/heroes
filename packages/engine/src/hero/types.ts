@@ -232,6 +232,14 @@ export interface ArtifactDef {
   };
   /** Emplacement de poupée (présentation client, jamais lu par le moteur). */
   slot?: ArtifactSlot;
+  /**
+   * Sort ENSEIGNÉ tant que l'artefact est équipé (H-ARTEQUIP.2, doc 02 §1.1 —
+   * « Chapeau du sorcier » HoMM) : le héros peut lancer `grantsSpell` sans
+   * l'avoir appris (union avec `hero.spells` via `heroKnownSpellIds`). Retiré
+   * de l'ensemble castable dès le déséquipement — `hero.spells` n'est jamais muté
+   * (pas de bump save). `spellId` = id opaque (aucune faction).
+   */
+  grantsSpell?: string;
 }
 
 /** Statut temporaire appliqué à une pile par un sort (buff/debuff) ou une capacité (curseOnHit). */

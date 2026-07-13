@@ -1,6 +1,7 @@
 import type { GameEvent } from '../core/events';
 import type { GameState, HeroState } from '../core/state';
 import { castHeroSpell } from '../hero';
+import { heroKnownSpellIds } from '../hero/artifacts';
 import { effectiveManaCost, spellTargetsEnemy } from '../hero/spells';
 import { applyAction, canShoot, canShootTarget, reachableHexes, tauntersAdjacentTo } from './actions';
 import { heroAttackDamage, strikeWithHero } from './hero-attack';
@@ -360,7 +361,8 @@ function chooseHeroSpell(
   enemies: CombatStack[],
   catalog: Record<string, CombatUnitDef>,
 ): { spellId: string; targetStackId: string } | null {
-  const castable = hero.spells
+  // H-ARTEQUIP.2 : l'IA lance aussi les sorts enseignés par ses artefacts équipés.
+  const castable = heroKnownSpellIds(hero, state.artifactCatalog)
     .map((id) => state.spellCatalog[id])
     .filter(
       (sp): sp is NonNullable<typeof sp> =>

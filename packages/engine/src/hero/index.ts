@@ -19,6 +19,7 @@ import type { GameEvent } from '../core/events';
 import type { GameState, HeroState } from '../core/state';
 import type { TownState } from '../town/types';
 import type { SpellKind } from './types';
+import { heroKnownSpellIds } from './artifacts';
 import { heroVisionBonus } from './skills';
 import { effectiveManaCost, effectivePower, spellDamageAmount, spellHealAmount, spellTargetsEnemy } from './spells';
 
@@ -57,7 +58,9 @@ export function validateCastSpell(state: GameState, cmd: CastSpellCmd): CommandE
     return { code: 'heroAlreadyCast', message: 'le héros a déjà lancé un sort ce round' };
   const spell = state.spellCatalog[cmd.spellId];
   if (!spell) return { code: 'unknownSpell', message: `sort inconnu '${cmd.spellId}'` };
-  if (!hero.spells.includes(cmd.spellId))
+  // H-ARTEQUIP.2 : un sort enseigné par un artefact équipé est castable comme un
+  // sort appris (union `hero.spells` ∪ artefacts).
+  if (!heroKnownSpellIds(hero, state.artifactCatalog).includes(cmd.spellId))
     return { code: 'spellNotKnown', message: `sort non appris '${cmd.spellId}'` };
   // A8 : un sort d'aventure (Ville-portail…) ne se lance JAMAIS en combat — il
   // passe par `CastAdventureSpell`. Sinon il posait un faux buff (mods 0) pour sa mana.
@@ -199,7 +202,8 @@ export function validateCastAdventureSpell(
     return { code: 'notYourHero', message: `'${cmd.heroId}' n’appartient pas à ${cmd.playerId}` };
   const spell = state.spellCatalog[cmd.spellId];
   if (!spell) return { code: 'unknownSpell', message: `sort inconnu '${cmd.spellId}'` };
-  if (!hero.spells.includes(cmd.spellId))
+  // H-ARTEQUIP.2 : un sort d'aventure enseigné par un artefact équipé est castable.
+  if (!heroKnownSpellIds(hero, state.artifactCatalog).includes(cmd.spellId))
     return { code: 'spellNotKnown', message: `sort non appris '${cmd.spellId}'` };
   if (spell.kind !== 'adventure' || !spell.adventure)
     return { code: 'invalidAction', message: `'${cmd.spellId}' n’est pas un sort d’aventure` };

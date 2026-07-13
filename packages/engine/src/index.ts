@@ -144,6 +144,9 @@ export { isSilenced } from './combat/state-helpers';
 // Coût de mana effectif (réduction Magie par école, A6) — le grimoire client
 // (C2) affiche/gate sur ce coût, pas sur `spell.manaCost` brut.
 export { effectiveManaCost, spellTargetsEnemy } from './hero/spells';
+// H-ARTEQUIP.2 : sorts castables = sorts appris ∪ sorts d'artefacts équipés.
+// Le grimoire client (combat + aventure) liste sur cette union, comme le moteur.
+export { heroKnownSpellIds } from './hero/artifacts';
 // Bonus de vision (compétence Recherche) — le rendu du brouillard client (C4)
 // dessine « en vision » avec le rayon EFFECTIF par héros, comme la révélation moteur.
 export { heroVisionBonus, heroLearnableCircle } from './hero/skills';

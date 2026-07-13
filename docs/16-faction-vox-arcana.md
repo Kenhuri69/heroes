@@ -107,6 +107,23 @@ Faction #6, produite en **Beta** — elle sert de **test de modularité #4** (do
 > **Différé** (signatures) : peur du Sombral (statut de moral négatif par capacité,
 > croise CAP-MORAL) reste distinct.
 
+> 🚧 **État 16.13 (livré — CAP-LIFE.2 : renaissance du Phénix)** : la signature
+> **renaissance** du Phénix (doc §4/§7), jusqu'ici différée, est câblée via un
+> **point d'extension moteur générique** : la capacité `rebirth` (param `pct`).
+> Une pile qui meurt **renaît UNE fois** à `pct`% de son effectif d'origine au lieu
+> d'être retirée du plateau ; la 2ᵉ mort est définitive. La mort de pile est
+> **centralisée** (`combat/death.ts` : `handleStackDeath`/`tryRebirth`) et routée
+> depuis tous les chemins de dégâts (frappe, sort, souffle/zone, attaque du héros,
+> poison) — comportement identique pour une unité sans `rebirth` (golden inchangé).
+> Suivi 1×/combat par `CombatState.rebornStackIds` (**optionnel** ⇒ pas de bump
+> save, save-shape épargné). Données : Phénix `rebirth(30 %)`, Phénix élite
+> `rebirth(35 %)` — la renaissance étant un gros gain de survie, les stats de base
+> du Phénix ont été **rabaissées en compensation** (hp/dégâts, `faction:sim`) pour
+> tenir la bande d'équilibre (0 déséquilibre béant). Event `StackReborn` (ligne de
+> journal de combat). Zéro nom de faction dans le moteur. **Différé** : renaissance
+> retardée d'un round / à effectif plein (variantes de design) — la version
+> « immédiate à % » suffit à l'identité.
+
 > 🚧 **État 16.6 (livré — avatars des héros)** : les avatars peints des deux
 > héros nommés sont **stagés et intégrés** (doc 12 §10). Le client découvre les
 > avatars par la **convention d'archétype** `heroes/<factionId>-<might|magic>`

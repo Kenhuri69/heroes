@@ -6,6 +6,7 @@ import { rewardHuntContract } from '../town/hunt-contract';
 import type { GameEvent } from '../core/events';
 import { rollRange } from '../core/rng';
 import { evaluateOutcome } from '../scenario/outcome';
+import { tryRebirth } from './death';
 import type { Draft } from './draft';
 import { collectCasualties, collectSurvivors, combatRules, compareInitiative, hasAbility, moraleOf, recordLoss } from './state-helpers';
 import { COMBAT_ROWS } from './hex';
@@ -53,7 +54,9 @@ function applyPoisonTicks(draft: Draft, events: GameEvent[]): boolean {
     stack.firstHp = newCount > 0 ? remaining - (newCount - 1) * def.stats.hp : 0;
     recordLoss(combat, stack.side, stack.unitId, kills);
     events.push({ type: 'StackPoisoned', stackId: stack.id, damage: Math.min(poison, pool), kills });
-    if (newCount <= 0) {
+    if (newCount <= 0 && !tryRebirth(combat, stack, def, events)) {
+      // Renaissance (CAP-LIFE.2) : si la pile ne renaît pas, elle meurt — le splice
+      // reste batché après la boucle (on itère `combat.stacks`).
       events.push({ type: 'StackDied', stackId: stack.id });
       anyDeath = true;
     }

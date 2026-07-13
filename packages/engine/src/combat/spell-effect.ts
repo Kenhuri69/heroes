@@ -1,4 +1,5 @@
 import { killsFromDamage, magicResistanceOf } from './damage';
+import { handleStackDeath } from './death';
 import type { Draft } from './draft';
 import { hexDistance } from './hex';
 import { combatRules, collectCasualties, hasAbility, recordLoss } from './state-helpers';
@@ -65,11 +66,7 @@ export function damageOneStack(
   target.count = newCount;
   target.firstHp = newCount > 0 ? remaining - (newCount - 1) * targetDef.stats.hp : 0;
   recordLoss(combat, target.side, target.unitId, kills);
-  if (target.count <= 0) {
-    events.push({ type: 'StackDied', stackId: target.id });
-    const idx = combat.stacks.findIndex((s) => s.id === target.id);
-    if (idx !== -1) combat.stacks.splice(idx, 1);
-  }
+  if (target.count <= 0) handleStackDeath(combat, target, targetDef, events);
   return { amount, kills };
 }
 

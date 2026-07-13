@@ -3,12 +3,12 @@
   "tier": 7,
   "name": "@loc:unit.t7-phenix.name",
   "stats": {
-    "hp": 142,
+    "hp": 118,
     "attack": 19,
     "defense": 17,
     "damage": [
-      22,
-      34
+      18,
+      28
     ],
     "speed": 11
   },
@@ -23,6 +23,12 @@
     },
     {
       "id": "noRetaliation"
+    },
+    {
+      "id": "rebirth",
+      "params": {
+        "pct": 30
+      }
     }
   ]
 }

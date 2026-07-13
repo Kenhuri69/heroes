@@ -358,6 +358,7 @@
   "combatLog.retaliate": "{attacker} retaliates on {target}: {damage} damage, {kills} killed",
   "combatLog.dodge": "{target} dodges the strike",
   "combatLog.died": "{unit} is wiped out",
+  "combatLog.reborn": "{unit} rises from its ashes ({count})",
   "combatLog.healed": "{unit} recovers {amount} HP",
   "combatLog.poisoned": "{unit} takes {damage} poison damage",
   "combatLog.spell": "Spell {spell} on {target} ({amount})",

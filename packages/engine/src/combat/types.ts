@@ -172,6 +172,13 @@ export interface CombatState {
    * gracieuses (pas de bump de version) et combats sans Curée l'omettent.
    */
   markedNoRetaliation?: { side: CombatSideId; roundsLeft: number };
+  /**
+   * Piles ayant déjà usé de leur **renaissance** (`rebirth`, CAP-LIFE.2 — Phénix,
+   * doc 16 §4/§7) : une pile morte y renaît UNE fois, puis meurt normalement.
+   * **Optionnel** : absent = aucune renaissance ⇒ pas de bump save (save-shape ne
+   * garde que HeroState/CombatStack) et golden inchangé (fixture sans `rebirth`).
+   */
+  rebornStackIds?: string[];
   finished: boolean;
   winner: CombatSideId | null;
 }

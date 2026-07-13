@@ -123,6 +123,7 @@ export type GameEvent =
       ranged: boolean;
     }
   | { type: 'StackDied'; stackId: string }
+  | { type: 'StackReborn'; stackId: string; count: number }
   /** Soin/relève d'une pile (`lifeDrain` Vampire doc 04 §3, ou soin) : PV rendus. */
   | { type: 'StackHealed'; stackId: string; amount: number }
   /** Malédiction appliquée par `curseOnHit` (Zombie/Cavalier funeste, doc 04 §3). */

@@ -3,8 +3,30 @@
   "tier": 1,
   "name": "@loc:unit.t1-eleve-elite.name",
   "loreKey": "@loc:unit.t1-eleve-elite.lore",
-  "stats": { "hp": 6, "attack": 4, "defense": 3, "damage": [2, 4], "speed": 6 },
+  "stats": {
+    "hp": 6,
+    "attack": 4,
+    "defense": 3,
+    "damage": [
+      2,
+      4
+    ],
+    "speed": 6
+  },
   "growthPerWeek": 12,
-  "cost": { "gold": 63 },
-  "abilities": [{ "id": "mark" }]
+  "cost": {
+    "gold": 63
+  },
+  "abilities": [
+    {
+      "id": "mark"
+    },
+    {
+      "id": "swarm",
+      "params": {
+        "bonus": 1,
+        "minAllies": 2
+      }
+    }
+  ]
 }

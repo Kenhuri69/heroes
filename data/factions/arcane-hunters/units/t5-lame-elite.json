@@ -3,8 +3,34 @@
   "tier": 5,
   "name": "@loc:unit.t5-lame-elite.name",
   "loreKey": "@loc:unit.t5-lame-elite.lore",
-  "stats": { "hp": 52, "attack": 16, "defense": 10, "damage": [10, 16], "speed": 9 },
+  "stats": {
+    "hp": 52,
+    "attack": 16,
+    "defense": 10,
+    "damage": [
+      10,
+      16
+    ],
+    "speed": 9
+  },
   "growthPerWeek": 3,
-  "cost": { "gold": 1116, "mercury": 2 },
-  "abilities": [{ "id": "mark" }, { "id": "consumeMarks", "params": { "cost": 3, "damageBonus": 0.4 } }]
+  "cost": {
+    "gold": 1116,
+    "mercury": 2
+  },
+  "abilities": [
+    {
+      "id": "mark"
+    },
+    {
+      "id": "consumeMarks",
+      "params": {
+        "cost": 3,
+        "damageBonus": 0.4
+      }
+    },
+    {
+      "id": "strikeAndReturn"
+    }
+  ]
 }

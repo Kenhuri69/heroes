@@ -3,8 +3,38 @@
   "tier": 6,
   "name": "@loc:unit.t6-cavalier-funeste-elite.name",
   "loreKey": "@loc:unit.t6-cavalier-funeste-elite.lore",
-  "stats": { "hp": 86, "attack": 18, "defense": 16, "damage": [16, 24], "speed": 10 },
+  "stats": {
+    "hp": 86,
+    "attack": 18,
+    "defense": 16,
+    "damage": [
+      16,
+      24
+    ],
+    "speed": 10
+  },
   "growthPerWeek": 2,
-  "cost": { "gold": 1900, "sulfur": 2 },
-  "abilities": [{ "id": "undead" }]
+  "cost": {
+    "gold": 1900,
+    "sulfur": 2
+  },
+  "abilities": [
+    {
+      "id": "undead"
+    },
+    {
+      "id": "charge",
+      "params": {
+        "perHex": 0.04
+      }
+    },
+    {
+      "id": "curseOnHit",
+      "params": {
+        "chance": 1,
+        "damageDealtMod": -0.2,
+        "rounds": 2
+      }
+    }
+  ]
 }

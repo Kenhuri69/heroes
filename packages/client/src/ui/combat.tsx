@@ -9,6 +9,7 @@ import {
   surrenderCost,
   spellcasterParams,
   isSilenced,
+  isSpellImmune,
   heroKnownSpellIds,
   estimateUnitSpell,
   spellTargetsEnemy,
@@ -529,12 +530,16 @@ function UnitSpellModal({
 
   const caster = combat.stacks.find((s) => s.id === casterId);
   const friendly = !spellTargetsEnemy(spellKind);
-  // Cibles : camp allié (soin/buff) ou ennemi ; une pile furtive est inciblable.
+  const unitCatalog = appStore.getState().game.unitCatalog;
+  // Cibles : camp allié (soin/buff) ou ennemi ; une pile furtive est inciblable, et
+  // une pile immunisée aux sorts (CAP-SPELLIMMUNE) l'est pour un sort hostile.
   const targets = combat.stacks.filter(
     (s) =>
       s.count > 0 &&
       !s.stealthed &&
-      (friendly ? s.side === combat.playerSide : s.side !== combat.playerSide),
+      (friendly
+        ? s.side === combat.playerSide
+        : s.side !== combat.playerSide && !isSpellImmune(unitCatalog, s.unitId)),
   );
 
   const select = (id: string): void => {

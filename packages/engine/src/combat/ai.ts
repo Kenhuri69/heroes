@@ -11,7 +11,7 @@ import { estimateDamage, killsFromDamage, symbiosisParams } from './damage';
 import { advanceTurn } from './turns';
 import type { Draft } from './draft';
 import { hexDistance, type OffsetPos } from './hex';
-import { collectCasualties, effectiveSpeed, hasAbility, isSilenced } from './state-helpers';
+import { collectCasualties, effectiveSpeed, hasAbility, isSilenced, isSpellImmune } from './state-helpers';
 import type { CombatActionInput, CombatSideId, CombatStack, CombatState, CombatUnitDef } from './types';
 
 /**
@@ -214,8 +214,9 @@ function chooseSpellcast(
   const targetsEnemy = spellTargetsEnemy(spell.kind);
 
   if (targetsEnemy) {
+    // CAP-SPELLIMMUNE : une pile lanceuse ne gaspille pas son sort sur un immunisé.
     const best = pickBestBy(
-      enemies,
+      enemies.filter((e) => !isSpellImmune(catalog, e.unitId)),
       (e) => { const d = catalog[e.unitId]; return d ? targetValue(d) : 0; },
       (a, b) => compareCodeUnits(a.id, b.id),
     );
@@ -371,8 +372,11 @@ function chooseHeroSpell(
   if (castable.length === 0) return null;
   const firstOfKind = (...kinds: string[]) =>
     castable.find((sp) => kinds.includes(sp.kind));
+  // CAP-SPELLIMMUNE : cible de sort HOSTILE = ennemi non immunisé aux sorts (la
+  // frappe héroïque, elle, reste possible sur une pile immunisée — hors périmètre).
+  const spellEnemies = enemies.filter((e) => !isSpellImmune(catalog, e.unitId));
   const bestEnemy = pickBestBy(
-    enemies,
+    spellEnemies,
     (e) => { const d = catalog[e.unitId]; return d ? targetValue(d) : 0; },
     (a, b) => compareCodeUnits(a.id, b.id),
   );

@@ -893,5 +893,6 @@
   "artifact.trefle-chance.lore": "Plucked from a grave, they say. Luck in the Marches rarely comes but that another has lost it.",
   "resourceDetail.title": "Resources",
   "resourceDetail.perDay": "+{amount}/day",
-  "skill.necromancy": "Necromancy"
+  "skill.necromancy": "Necromancy",
+  "skill.battle-prayer": "Battle Prayer"
 }

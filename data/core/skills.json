@@ -208,6 +208,20 @@
         {}
       ],
       "external": true
+    },
+    {
+      "id": "battle-prayer",
+      "ranks": [
+        {
+          "battleResurrectHp": 30
+        },
+        {
+          "battleResurrectHp": 60
+        },
+        {
+          "battleResurrectHp": 100
+        }
+      ]
     }
   ]
 }

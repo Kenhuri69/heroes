@@ -12,7 +12,9 @@
     { "type": "combatBonus", "morale": 1, "defense": 2 }
   ],
   "spellSchool": "lumiere",
-  "heroSkills": [],
+  "heroSkills": [
+    "battle-prayer"
+  ],
   "heroes": ["aldric", "seraphine", "anton", "freyda", "isabel"],
   "tiers": 7,
   "sharedGrowthGroups": {},

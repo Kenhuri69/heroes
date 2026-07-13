@@ -514,6 +514,8 @@ const skillRankEffectSchema = z.object({
   learnCircle: z.number().int().min(1).max(5).optional(),
   /** Compétence Tactique (C-TACTICS, doc 02 §5.1) : profondeur de la bande de placement pré-combat. */
   tacticsColumns: z.number().int().min(1).max(6).optional(),
+  /** Prière de bataille (F-SKILLS.2, doc 03 §2/§5) : PV soignés/ressuscités 1×/combat. */
+  battleResurrectHp: z.number().int().positive().optional(),
 });
 
 /** data/core/skills.json (doc 02 §1.3) — exactement 3 rangs (Novice/Expert/Maître). */

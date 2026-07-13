@@ -18,7 +18,7 @@
 > générique embarquant le sort `resurrection` (1×/combat, comme la Prêtresse
 > soigne — données pures, aucun code moteur propre à l'Ange) ; côté Haven reste
 > inerte
-> la compétence de héros Prière de bataille ;
+> la compétence de héros Prière de bataille **livrée** (F-SKILLS.2, engine-first) ;
 > bâtiments spéciaux **livrés** : **Écuries** (F-BUILDEFF.1) et **Statue du
 > Jugement** (F-BUILDEFF.2) via `heroAura`, **Cloître** (F-BUILDEFF.3) via
 > `grantSpell` ; **école Lumière livrée** (F-SCHOOLS.1 — `spellSchool: "lumiere"`,
@@ -58,7 +58,7 @@
 
 - **Ferveur** : +1 moral permanent pour les unités Haven.
 - **Formation** : +5 % défense pour l'armée Haven (livré en points plats, cf. note).
-- Compétence de faction ajoutée au pool des héros Haven : **Prière de bataille** (Novice/Expert/Maître : 1 résurrection de X PV par combat sur une pile vivante). *(différée — `resurrectAlly`)*
+- Compétence de faction ajoutée au pool des héros Haven : **Prière de bataille** (Novice/Expert/Maître : 1 résurrection de 30/60/100 PV par combat sur une pile alliée). *(livrée, F-SKILLS.2 — engine-first : point d'extension générique `SkillRankEffect.battleResurrectHp` + action de héros `HeroRally` gatée par la compétence, 1×/combat, cœur `resurrectStack` partagé avec le sort de soin ; pilotée par l'IA/auto-combat, UI joueur différée comme `spellcaster`. `CombatState.heroRallyUsed` optionnel ⇒ pas de bump save, golden inchangé. Compétence gatée Haven via `manifest.heroSkills`.)*
 
 ## 3. Lineup d'unités (T1–T7)
 

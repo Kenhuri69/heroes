@@ -232,6 +232,8 @@ export type GameEvent =
     }
   /** Attaque du héros (C1) : frappe directe sur une pile ennemie, 1×/combat. */
   | { type: 'HeroStruck'; side: 'attacker' | 'defender'; targetId: string; amount: number; kills: number }
+  /** Prière de bataille (F-SKILLS.2) : le héros soigne/ressuscite une pile alliée. */
+  | { type: 'HeroRallied'; side: 'attacker' | 'defender'; targetId: string; healed: number; revived: number }
   | { type: 'SkillLearned'; heroId: string; skillId: string; rank: number }
   /** Sorts appris à la guilde des mages d'une ville visitée (doc 02 §4.1, G2). */
   | { type: 'SpellsLearned'; heroId: string; spellIds: string[] }

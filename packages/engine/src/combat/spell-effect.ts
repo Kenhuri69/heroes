@@ -74,6 +74,33 @@ export function damageOneStack(
 }
 
 /**
+ * Soigne/ressuscite UNE pile alliée de `hp` PV (doc 02 §1.4). La résurrection est
+ * intra-pile : le plafond remonte à `count + pertes déjà subies` (`lostSoFar` du
+ * ledger) ⇒ des créatures tuées reviennent. Cœur PARTAGÉ par le sort de soin et
+ * la Prière de bataille (F-SKILLS.2). Retourne PV réellement rendus + créatures
+ * relevées (Δ effectif).
+ */
+export function resurrectStack(
+  draft: Draft,
+  combat: CombatState,
+  target: CombatStack,
+  hp: number,
+): { healed: number; revived: number } {
+  const def = draft.unitCatalog[target.unitId];
+  if (!def || target.count <= 0) return { healed: 0, revived: 0 };
+  const lostSoFar =
+    collectCasualties(combat).find((c) => c.side === target.side && c.unitId === target.unitId)?.lost ?? 0;
+  const maxCount = target.count + lostSoFar;
+  const beforeCount = target.count;
+  const currentPool = (target.count - 1) * def.stats.hp + target.firstHp;
+  const newPool = Math.min(maxCount * def.stats.hp, currentPool + hp);
+  const newCount = Math.min(maxCount, Math.max(1, Math.ceil(newPool / def.stats.hp)));
+  target.count = newCount;
+  target.firstHp = newPool - (newCount - 1) * def.stats.hp;
+  return { healed: newPool - currentPool, revived: newCount - beforeCount };
+}
+
+/**
  * Applique l'effet d'un sort (damage/heal/applyMarks/buff/debuff) aux piles
  * affectées (cible + adjacentes si `splash`). Le **Pouvoir** (`power`) et la
  * **chance** (`luck`, pour les sorts de dégâts) sont fournis par l'appelant :
@@ -126,18 +153,9 @@ export function applySpellToTargets(
       if (spell.marksDamagePct && t.count > 0) t.marks = 0;
     }
   } else if (spell.kind === 'heal') {
+    const heal = spellHealAmount(spell, power);
     for (const t of targets) {
-      const def = draft.unitCatalog[t.unitId];
-      if (!def) continue;
-      const heal = spellHealAmount(spell, power);
-      const lostSoFar =
-        collectCasualties(combat).find((c) => c.side === t.side && c.unitId === t.unitId)?.lost ?? 0;
-      const maxCount = t.count + lostSoFar;
-      const currentPool = (t.count - 1) * def.stats.hp + t.firstHp;
-      const newPool = Math.min(maxCount * def.stats.hp, currentPool + heal);
-      const newCount = Math.min(maxCount, Math.max(1, Math.ceil(newPool / def.stats.hp)));
-      t.count = newCount;
-      t.firstHp = newPool - (newCount - 1) * def.stats.hp;
+      resurrectStack(draft, combat, t, heal);
       amount += heal;
     }
   } else if (spell.kind === 'applyMarks') {

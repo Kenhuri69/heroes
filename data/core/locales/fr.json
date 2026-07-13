@@ -893,5 +893,6 @@
   "artifact.trefle-chance.lore": "Cueilli sur une tombe, dit-on. La chance des Marches vient rarement sans qu'un autre l'ait perdue.",
   "resourceDetail.title": "Ressources",
   "resourceDetail.perDay": "+{amount}/j",
-  "skill.necromancy": "Nécromancie"
+  "skill.necromancy": "Nécromancie",
+  "skill.battle-prayer": "Prière de bataille"
 }

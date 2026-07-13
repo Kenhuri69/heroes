@@ -667,6 +667,20 @@ test('combat : victoire contre le gardien, retour carte avec pertes appliquées'
   expect(combat?.playerSide).toBe('attacker');
   expect(combat?.stacks.filter((s) => s.side === 'defender')).toHaveLength(1);
 
+  // Amélioration UX champ de bataille : la fiche de stats d'une pile s'ouvre au
+  // tap sur une vignette du bandeau (même fiche que l'appui long sur le plateau,
+  // piloté par `combatInspectId`). Contenu à fort contraste : PV « X/Y » (le
+  // badge d'effectif canvas est un rendu Pixi, non assertable ici — l'effectif
+  // sous-jacent reste couvert par les vignettes DOM).
+  await test.step('fiche de pile : stats consultables', async () => {
+    await page.getByTestId('combat-order').locator('button.stack-chip').first().click();
+    const sheet = page.getByTestId('stack-sheet');
+    await expect(sheet).toBeVisible();
+    await expect(sheet).toContainText('/'); // PV firstHp/maxHp
+    await page.getByTestId('stack-sheet-close').click();
+    await expect(sheet).toHaveCount(0);
+  });
+
   // Auto-résolution : 32 unités contre 4 — victoire, gardien retiré, pertes ≤ effectif.
   await page.evaluate(() => window.__HEROES_TEST__!.dispatch({ type: 'AutoCombat' }));
   await expect

@@ -223,6 +223,14 @@ export interface AppState {
    */
   combatSpellTarget: { spellId: string; targetStackId: string } | null;
   /**
+   * Pile de combat inspectée (amélioration UX champ de bataille) — id de pile
+   * dont la fiche de stats est ouverte. Posé par un appui long / clic maintenu
+   * sur le plateau (`CombatScene`) ou un tap sur une vignette du bandeau
+   * (`StackChip`) ; rendu par `StackSheet`. `null` = aucune fiche. Purement
+   * présentation client (non persisté) ; remis à zéro aux transitions de combat.
+   */
+  combatInspectId: string | null;
+  /**
    * Bilan de fin de combat (retour de jeu 2026-07) : posé par `dispatch` quand un
    * combat FOUILLÉ se termine (annihilation), affiché par `CombatResultScreen`
    * par-dessus la carte jusqu'à ce que le joueur le ferme. `null` = aucun bilan.
@@ -275,6 +283,7 @@ export const appStore = createStore<AppState>(() => ({
   playerColors: {},
   aiTurn: null,
   combatSpellTarget: null,
+  combatInspectId: null,
   combatResult: null,
 }));
 

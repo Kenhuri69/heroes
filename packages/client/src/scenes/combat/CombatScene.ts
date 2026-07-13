@@ -24,7 +24,7 @@ import { dispatch } from '../../app/dispatch';
 import { eventBus, type AppEvent } from '../../app/events';
 import { commandErrorMessage } from '../../app/i18n';
 import { pushToast } from '../../ui/toasts';
-import { onTap } from '../../input/pointer';
+import { onLongPress, onTap } from '../../input/pointer';
 import { Camera } from '../../render/camera';
 import { heroAvatarUrl, unitSpriteUrl } from '../../render/assets';
 import { heroArchetype } from '../../app/game';
@@ -97,6 +97,7 @@ export class CombatScene {
   private readonly unsubscribeStore: () => void;
   private readonly unsubscribeEvents: () => void;
   private readonly unsubscribeTap: () => void;
+  private readonly unsubscribeLongPress: () => void;
 
   constructor(private readonly app: Application) {
     this.boardLayer.addChild(this.boardGfx, this.heroLayer, this.stacksLayer, this.fxLayer);
@@ -119,6 +120,10 @@ export class CombatScene {
     this.unsubscribeStore = appStore.subscribe(() => this.sync());
     this.unsubscribeEvents = eventBus.on((event) => this.onEvent(event));
     this.unsubscribeTap = onTap(app, (global) => void this.handleTap(global));
+    // Inspection tactile/souris (doc 08 §2.1 « appui long = fiche ») : ouvre la
+    // fiche de stats de la pile sous le point pressé, sans consommer le tap
+    // d'action (déplacer/attaquer). Même geste que la carte d'aventure.
+    this.unsubscribeLongPress = onLongPress(app, (global) => this.handleLongPress(global));
 
     this.layout();
     this.sync();
@@ -129,6 +134,7 @@ export class CombatScene {
     this.unsubscribeStore();
     this.unsubscribeEvents();
     this.unsubscribeTap(); // remédiation CL2 : les 3 listeners de tap ne fuient plus
+    this.unsubscribeLongPress();
     this.resizeObserver.disconnect();
     this.container.removeChild(this.camera.world);
     this.camera.destroy(); // retire les listeners + détruit world (plateau, tokens)
@@ -297,6 +303,7 @@ export class CombatScene {
         const { x, y } = offsetToPixel(stack.pos);
         token.position.set(x, y);
       }
+      this.updateCountBadge(token, stack.count);
     }
     this.highlightActive(combat);
   }
@@ -347,7 +354,60 @@ export class CombatScene {
         token.addChildAt(sprite, 1); // au-dessus de la base, sous l'anneau actif
       });
     }
+
+    // Badge d'effectif (doc 08 §2.4, fidélité HoMM) : pastille en bas du jeton
+    // portant le nombre de soldats. Texte à fort contraste (contour) — jamais
+    // porté par la couleur seule (a11y A5). Toujours au-dessus du sprite d'unité,
+    // réf gardée sur le conteneur pour mise à jour à chaque `syncStacks`.
+    token.addChild(this.buildCountBadge(stack.count));
     return token;
+  }
+
+  /**
+   * Pastille d'effectif d'une pile (badge canvas). Un `Container` unique
+   * (fond + libellé) posé au pied du jeton ; nommé pour retrouvaille au resync.
+   */
+  private buildCountBadge(count: number): Container {
+    const badge = new Container();
+    badge.label = 'count-badge';
+    const label = new Text({
+      text: String(count),
+      style: {
+        fontFamily: 'system-ui, sans-serif',
+        fontSize: 15,
+        fontWeight: '700',
+        fill: 0xffffff,
+        stroke: { color: 0x1a1c22, width: 4 },
+        align: 'center',
+      },
+    });
+    label.label = 'count-text';
+    label.anchor.set(0.5);
+    const padX = 6;
+    const bg = new Graphics()
+      .roundRect(-label.width / 2 - padX, -label.height / 2 - 1, label.width + padX * 2, label.height + 2, 6)
+      .fill({ color: 0x1a1c22, alpha: 0.85 })
+      .stroke({ width: 1, color: 0xf2e6c8, alpha: 0.9 });
+    bg.label = 'count-bg';
+    badge.addChild(bg, label);
+    badge.position.set(0, TOKEN_RADIUS * 1.15);
+    return badge;
+  }
+
+  /** Met à jour la pastille d'effectif d'un jeton (redimensionne le fond au texte). */
+  private updateCountBadge(token: Container, count: number): void {
+    const badge = token.getChildByLabel('count-badge') as Container | null;
+    if (!badge) return;
+    const label = badge.getChildByLabel('count-text') as Text | null;
+    const bg = badge.getChildByLabel('count-bg') as Graphics | null;
+    if (!label || !bg) return;
+    if (label.text === String(count)) return; // pas de rework si inchangé
+    label.text = String(count);
+    const padX = 6;
+    bg.clear()
+      .roundRect(-label.width / 2 - padX, -label.height / 2 - 1, label.width + padX * 2, label.height + 2, 6)
+      .fill({ color: 0x1a1c22, alpha: 0.85 })
+      .stroke({ width: 1, color: 0xf2e6c8, alpha: 0.9 });
   }
 
   /**
@@ -474,6 +534,23 @@ export class CombatScene {
   }
 
   // ——— Interaction tap-tap (doc 08 §1, §2.4) ———
+
+  /**
+   * Appui long / clic maintenu (doc 08 §2.1) : ouvre la fiche de stats de la
+   * pile sous le point pressé (n'importe quel camp, y compris pendant le
+   * placement ou le tour adverse — c'est une consultation). Purement
+   * présentation : pose `combatInspectId`, la couche DOM rend la fiche.
+   */
+  private handleLongPress(global: Point): void {
+    if (this.destroyed) return;
+    const combat = appStore.getState().game.combat;
+    if (!combat) return;
+    const local = this.boardLayer.toLocal(global);
+    const hex = pixelToOffset(local.x, local.y);
+    if (!inCombatBounds(hex)) return;
+    const stack = combat.stacks.find((s) => sameHex(s.pos, hex) && s.count > 0);
+    if (stack) appStore.setState({ combatInspectId: stack.id });
+  }
 
   private async handleTap(global: Point): Promise<void> {
     if (this.destroyed) return;

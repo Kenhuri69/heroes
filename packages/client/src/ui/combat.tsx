@@ -56,7 +56,9 @@ export function CombatUi() {
   const [prayerOpen, setPrayerOpen] = useState(false);
   const [unitSpellOpen, setUnitSpellOpen] = useState(false);
   const [leaveConfirm, setLeaveConfirm] = useState<'retreat' | 'surrender' | null>(null);
-  const [sheetStackId, setSheetStackId] = useState<string | null>(null);
+  // Fiche de pile inspectée : source unique dans le store — ouverte par un tap
+  // sur une vignette du bandeau OU un appui long sur le plateau (CombatScene).
+  const inspectId = useApp((s) => s.combatInspectId);
   const [logOpen, setLogOpen] = useState(false);
 
   // Boucle d'auto-combat round par round (lot M4, doc 08 §2.4) : tant que la
@@ -145,7 +147,7 @@ export function CombatUi() {
   // Ordre de passage projeté (lot M1, doc 08 §2.4) : remplace les deux rangées
   // par camp triées par slot — l'actif est la 1ʳᵉ entrée par construction.
   const order = roundActionOrder(combat, catalog, appStore.getState().game);
-  const sheetStack = sheetStackId ? (combat.stacks.find((s) => s.id === sheetStackId) ?? null) : null;
+  const sheetStack = inspectId ? (combat.stacks.find((s) => s.id === inspectId) ?? null) : null;
 
   const act = (action: 'wait' | 'defend'): void => {
     dispatch({ type: 'CombatAction', action: { type: action } }).catch((err: unknown) => {
@@ -181,7 +183,7 @@ export function CombatUi() {
         <ol class="combat-order" data-testid="combat-order" aria-label={t('combat.order.label')}>
           {order.current.map((s) => (
             <li key={s.id}>
-              <StackChip stack={s} active={s.id === combat.activeStackId} onOpen={() => setSheetStackId(s.id)} />
+              <StackChip stack={s} active={s.id === combat.activeStackId} onOpen={() => appStore.setState({ combatInspectId: s.id })} />
             </li>
           ))}
           {order.next.length > 0 && (
@@ -191,7 +193,7 @@ export function CombatUi() {
           )}
           {order.next.map((s) => (
             <li key={`next-${s.id}`} class="combat-order-next">
-              <StackChip stack={s} active={false} onOpen={() => setSheetStackId(s.id)} />
+              <StackChip stack={s} active={false} onOpen={() => appStore.setState({ combatInspectId: s.id })} />
             </li>
           ))}
         </ol>
@@ -326,7 +328,7 @@ export function CombatUi() {
         <LeaveConfirm mode={leaveConfirm} gold={surrenderGold} onClose={() => setLeaveConfirm(null)} />
       )}
       {sheetStack && (
-        <StackSheet stack={sheetStack} combat={combat} catalog={catalog} onClose={() => setSheetStackId(null)} />
+        <StackSheet stack={sheetStack} combat={combat} catalog={catalog} onClose={() => appStore.setState({ combatInspectId: null })} />
       )}
     </div>
   );

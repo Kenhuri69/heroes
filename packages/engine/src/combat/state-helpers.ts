@@ -266,7 +266,8 @@ export function factionCurseDurationBonus(state: GameState, hero: HeroState | un
  * camp (compétence, remédiation R5 CO4) ; morts-vivants exclus du calcul et
  * toujours à moral 0. **A3a** : les capacités `aura` (une pile ennemie module le
  * moral, ex. Dragon d'os `moraleMod:-1`) et `moraleImmune` (le moral ne descend
- * jamais sous 0, ex. Ange) sont interprétées ici. Borné [−3, +3].
+ * jamais sous 0, ex. Ange) sont interprétées ici. **F-SCHOOLS** : les statuts de
+ * sort à `moraleMod` (École de la Scène) s'y ajoutent aussi. Borné [−3, +3].
  */
 export function moraleOf(stack: CombatStack, combat: CombatState, state: GameState): number {
   const catalog = state.unitCatalog;
@@ -300,8 +301,16 @@ export function moraleOf(stack: CombatStack, combat: CombatState, state: GameSta
     if (town?.ownerPlayerId)
       townMoraleAura = townBuildingAura(state, town.ownerPlayerId, town.pos, 'combatMoraleBonus');
   }
+  // F-SCHOOLS (École de la Scène) : statuts de sort portant un moral ± (Chant de
+  // Courage / Dissonance). Somme des statuts actifs de la pile — générique.
+  const statusMoraleMod = stack.statuses.reduce((sum, s) => sum + (s.moraleMod ?? 0), 0);
   const raw =
-    terrainBonus - malus + auraMod + townMoraleAura + heroMoraleForSide(state, combat, stack.side);
+    terrainBonus -
+    malus +
+    auraMod +
+    statusMoraleMod +
+    townMoraleAura +
+    heroMoraleForSide(state, combat, stack.side);
   // `moraleImmune` (A3a, Ange) : immunité au moral NÉGATIF ⇒ plancher à 0.
   const floor = hasAbility(def, 'moraleImmune') ? 0 : -3;
   return clamp(raw, floor, 3);

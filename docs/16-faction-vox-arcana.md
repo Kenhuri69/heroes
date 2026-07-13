@@ -95,6 +95,18 @@ Faction #6, produite en **Beta** — elle sert de **test de modularité #4** (do
 > barrière de zone T8 / peur Sombral / renaissance Phénix (capacités de
 > signature) + héros Hermione & Rumi (lot 16.6).
 
+> 🚧 **État 16.12 (livré — F-SCHOOLS : effets de moral de la Scène)** : le
+> « effet simplifié » noté ci-dessus (Chant de Courage / Dissonance = simple
+> `attackMod`) est complété par un **point d'extension moteur générique** :
+> `SpellDef.moraleMod` / `SpellStatus.moraleMod` (champ **optionnel** ⇒ pas de
+> bump save, garde-fou save-shape épargné) — un statut de sort peut désormais
+> porter un modificateur de **moral** temporaire, sommé dans `moraleOf` avant le
+> bornage [−3, +3] existant. Câblé en données : **Chant de Courage** +1 moral (en
+> plus de +3 Att), **Dissonance** −1 moral (en plus de −3 Att). Zéro nom de
+> faction dans le moteur, golden inchangé (aucun sort de moral dans la fixture).
+> **Différé** (signatures) : peur du Sombral (statut de moral négatif par capacité,
+> croise CAP-MORAL) reste distinct.
+
 > 🚧 **État 16.6 (livré — avatars des héros)** : les avatars peints des deux
 > héros nommés sont **stagés et intégrés** (doc 12 §10). Le client découvre les
 > avatars par la **convention d'archétype** `heroes/<factionId>-<might|magic>`

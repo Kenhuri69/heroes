@@ -50,6 +50,12 @@ export interface SpellDef {
   attackMod?: number;
   defenseMod?: number;
   speedMod?: number;
+  /**
+   * Modificateur de MORAL pendant le statut (F-SCHOOLS, École de la Scène doc 16
+   * §3.3 : Chant de Courage +1, Dissonance −1). Générique — s'ajoute au moral de
+   * la pile porteuse, borné [−3, +3] comme le reste. Absent = neutre.
+   */
+  moraleMod?: number;
   /** Charges de Marque appliquées (sort `applyMarks`, doc 05 §6 — école Traque). */
   marks?: number;
   /**
@@ -225,6 +231,13 @@ export interface SpellStatus {
   attackMod: number;
   defenseMod: number;
   speedMod: number;
+  /**
+   * Modificateur de MORAL pendant le statut (F-SCHOOLS, École de la Scène doc 16
+   * §3.3). **Optionnel** — absent sur les statuts sans effet de moral (poison,
+   * malédiction, buff/debuff purs de stats). Lu `?? 0` par `moraleOf` ⇒ pas de
+   * bump save (les anciennes sauvegardes restent valides).
+   */
+  moraleMod?: number;
   /**
    * Modificateur MULTIPLICATIF des dégâts que la pile INFLIGE (A2c, `curseOnHit`
    * « Faux funeste » : −0,2 = −20 %). 0 = neutre. Distinct des mods additifs

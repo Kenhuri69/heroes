@@ -445,6 +445,8 @@ export const spellSchema = z
     attackMod: z.number().optional(),
     defenseMod: z.number().optional(),
     speedMod: z.number().optional(),
+    /** Modificateur de moral pendant le statut (F-SCHOOLS, École de la Scène doc 16 §3.3). */
+    moraleMod: z.number().optional(),
     /** Charges posées par un sort `applyMarks` (doc 05 §6). */
     marks: z.number().int().positive().optional(),
     /** Sort mange-Marques (F-SCHOOLS.3, doc 05 §6) : %/charge de dégâts, puis consomme. */
@@ -478,10 +480,13 @@ export const spellSchema = z
   .refine(
     (s) =>
       s.kind === 'buff' || s.kind === 'debuff'
-        ? s.attackMod !== undefined || s.defenseMod !== undefined || s.speedMod !== undefined
+        ? s.attackMod !== undefined ||
+          s.defenseMod !== undefined ||
+          s.speedMod !== undefined ||
+          s.moraleMod !== undefined
         : true,
     {
-      message: 'buff/debuff: au moins un modificateur (attackMod/defenseMod/speedMod)',
+      message: 'buff/debuff: au moins un modificateur (attackMod/defenseMod/speedMod/moraleMod)',
       path: ['kind'],
     },
   )

@@ -298,7 +298,8 @@
       "kind": "buff",
       "base": 0,
       "perPower": 0,
-      "attackMod": 3
+      "attackMod": 3,
+      "moraleMod": 1
     },
     {
       "id": "dissonance",
@@ -308,7 +309,8 @@
       "kind": "debuff",
       "base": 0,
       "perPower": 0,
-      "attackMod": -3
+      "attackMod": -3,
+      "moraleMod": -1
     },
     {
       "id": "rappel",

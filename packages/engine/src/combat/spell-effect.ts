@@ -228,6 +228,9 @@ export function applySpellToTargets(
         attackMod: spell.attackMod ?? 0,
         defenseMod: spell.defenseMod ?? 0,
         speedMod: spell.speedMod ?? 0,
+        // F-SCHOOLS (École de la Scène) : ± moral pendant le statut. Omis si absent
+        // ⇒ statut sans champ `moraleMod` (neutre, forme de save inchangée).
+        ...(spell.moraleMod !== undefined && { moraleMod: spell.moraleMod }),
         damageDealtMod: 0,
         damagePerRound: 0,
         silenced: spell.kind === 'silence',

@@ -413,7 +413,9 @@ describe('Lot D — D10 : la Marque amplifie les dégâts de sort', () => {
  */
 describe('F-BONUS.2 — Fléau persistant (curseDurationBonus)', () => {
   const catalog = { def: unit({ id: 'def', stats: { hp: 10, attack: 5, defense: 5, damage: [4, 4], speed: 5 } }) };
-  const CURSE_CATALOG = { necropolis: { bonuses: [{ type: 'curseDurationBonus' as const, rounds: 1 }] } };
+  // Ids de faction OPAQUES (le moteur ne connaît aucun nom de faction — garde-fou
+  // CI : jamais d'id réel dans packages/). `cursed` porte le bonus, `plain` non.
+  const CURSE_CATALOG = { cursed: { bonuses: [{ type: 'curseDurationBonus' as const, rounds: 1 }] } };
 
   function castDebuff(factionId: string, spellId: 'weaken' | 'haste'): number | undefined {
     const h = hero({ factionId, spells: [spellId], attributes: { attack: 0, defense: 0, power: 2, knowledge: 0 } });
@@ -426,15 +428,15 @@ describe('F-BONUS.2 — Fléau persistant (curseDurationBonus)', () => {
     return result.state.combat?.stacks.find((s) => s.id === target)?.statuses[0]?.roundsLeft;
   }
 
-  it('un héros Necropolis prolonge sa malédiction de +1 round (Pouvoir 2 ⇒ 3)', () => {
-    expect(castDebuff('necropolis', 'weaken')).toBe(3); // max(1,2) + 1
+  it('un héros doté du bonus prolonge sa malédiction de +1 round (Pouvoir 2 ⇒ 3)', () => {
+    expect(castDebuff('cursed', 'weaken')).toBe(3); // max(1,2) + 1
   });
 
   it('un héros sans le bonus n’est pas prolongé (Pouvoir 2 ⇒ 2)', () => {
-    expect(castDebuff('haven', 'weaken')).toBe(2);
+    expect(castDebuff('plain', 'weaken')).toBe(2);
   });
 
   it('le bonus ne touche PAS les buffs (seuls les debuffs sont des malédictions)', () => {
-    expect(castDebuff('necropolis', 'haste')).toBe(2); // buff : durée de base
+    expect(castDebuff('cursed', 'haste')).toBe(2); // buff : durée de base
   });
 });

@@ -67,6 +67,14 @@ export interface SpellDef {
    */
   marksDamagePct?: number;
   /**
+   * Chaîne (H-SPELLS.4, doc 02 §1.4 « chaîne ») : un sort `damage` frappe la
+   * cible puis **rebondit** vers l'ennemi vivant le plus proche non encore
+   * touché, jusqu'à `jumps` sauts ; chaque saut multiplie les dégâts par
+   * `(1 − falloffPct/100)`. Absent = sort de dégâts mono/zone normal. Générique :
+   * nombres opaques, aucun nom de faction.
+   */
+  chain?: { jumps: number; falloffPct: number };
+  /**
    * Zone d'effet : `splash` (C7) = la pile ciblée + les piles du même camp qui lui
    * sont adjacentes sur la grille hex (Boule de feu…) ; `all` (H-SPELLS.1, doc 02
    * §1.4) = **toutes** les piles vivantes du camp de la cible (sorts de masse —

@@ -481,7 +481,12 @@ Source design : doc 02 §1 (héros), docs de faction §5/§6/§7 (héros nommés
     `stack.statuses` ⇒ aucun champ neuf). Le sort **Dissipation** (neutre, c3),
     jusqu'ici un debuff −2/−2 déguisé, devient un vrai dispel en données pures.
     Zéro faction moteur, pas de bump save, golden inchangé ; IA ignore `dispel`.
-  - **H-SPELLS.4+** ⬜ : **invocation**, **chaîne**, **résurrection de pile entière**
+  - **H-SPELLS.4 (chaîne)** ✅ (plan `h-spells-chain.md`) : champ générique
+    `SpellDef.chain { jumps, falloffPct }` sur un sort `damage` — rebondit vers
+    les ennemis proches, dégâts décroissants (`chainTargets` pur, partagé
+    résolution/préviz). Sort **Chaîne d'éclairs** (Air, c4). `kind` reste `damage`
+    (IA/ciblage inchangés) ; zéro faction, pas de bump save, golden inchangé.
+  - **H-SPELLS.4+** ⬜ : **invocation**, **résurrection de pile entière**
     (pile à 0 retirée de la grille). Débloque C-SPELLUI.
 
 - **H-ARTEQUIP — Artefacts équipables + effets spéciaux + sets** 🧩/🎨 M 🚧 (.1 livré)

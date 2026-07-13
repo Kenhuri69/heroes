@@ -115,6 +115,16 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 > inchangé** ; l'IA ignore `dispel` (jamais lancé, jamais de crash). Restent
 > (H-SPELLS suite) : invocation, chaîne, résurrection de pile entière.
 
+> 🚧 **État (chaîne, H-SPELLS.4)** : champ déclaratif optionnel
+> `SpellDef.chain: { jumps, falloffPct }` sur un sort `damage` — la foudre frappe
+> la cible puis **rebondit** vers l'ennemi vivant le plus proche non encore
+> touché (jusqu'à `jumps` sauts), chaque saut à `× (1 − falloffPct/100)` des
+> dégâts (`chainTargets` pur, partagé résolution + préviz). `kind` reste `damage`
+> ⇒ ciblage/validation/IA inchangés. Sort livré : **Chaîne d'éclairs** (Air,
+> cercle 4, 2 sauts, −40 %/saut). **Zéro faction, aucun champ d'état ⇒ pas de
+> bump save, golden inchangé.** Restent (H-SPELLS suite) : invocation,
+> résurrection de pile entière.
+
 ### 1.5 Mouvement sur carte d'aventure
 
 - Points de mouvement quotidiens : `base 1500 + 50 × vitesse de la créature la plus lente de l'armée` (encourage les armées homogènes), modifiés par la compétence **Logistique** (`movementBonusPct`), les routes (coût tuile ×0,75) et les terrains (marais ×1,5). *Pas de bonus de terrain natif sur la carte (les terrains ne portent qu'un `moveCost`) ; les artefacts ne donnent **pas** de points de mouvement — différés.*

@@ -430,6 +430,19 @@
       "area": "all"
     },
     {
+      "id": "chaine-d-eclairs",
+      "school": "air",
+      "circle": 4,
+      "manaCost": 20,
+      "kind": "damage",
+      "base": 16,
+      "perPower": 4,
+      "chain": {
+        "jumps": 2,
+        "falloffPct": 40
+      }
+    },
+    {
       "id": "resurrection",
       "school": "water",
       "circle": 4,

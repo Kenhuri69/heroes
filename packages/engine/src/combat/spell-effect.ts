@@ -49,6 +49,34 @@ export function spellTargets(
   );
 }
 
+/**
+ * Cibles d'un sort à **chaîne** (H-SPELLS.4) : la cible `center` puis, à chaque
+ * saut, l'ennemi vivant le plus proche NON encore touché (départage stable par
+ * distance puis id), jusqu'à `jumps` sauts. Pure et déterministe — partagée par
+ * la résolution et la prévisualisation. `center` est une pile ENNEMIE (validé).
+ */
+export function chainTargets(combat: CombatState, center: CombatStack, jumps: number): CombatStack[] {
+  const chosen: CombatStack[] = [center];
+  const pool = combat.stacks.filter((s) => s.count > 0 && s.side === center.side && s.id !== center.id);
+  let from = center;
+  for (let i = 0; i < jumps; i++) {
+    let best: CombatStack | undefined;
+    let bestDist = Infinity;
+    for (const s of pool) {
+      if (chosen.includes(s)) continue;
+      const d = hexDistance(from.pos, s.pos);
+      if (d < bestDist || (d === bestDist && best !== undefined && s.id < best.id)) {
+        best = s;
+        bestDist = d;
+      }
+    }
+    if (!best) break;
+    chosen.push(best);
+    from = best;
+  }
+  return chosen;
+}
+
 /** Applique les dégâts d'un sort à UNE pile (kills, firstHp, bilan, mort) — retourne {amount, kills}. */
 export function damageOneStack(
   draft: Draft,
@@ -150,18 +178,28 @@ export function applySpellToTargets(
     const luckRoll = rollRange(draft.rng, 0, 99);
     draft.rng = luckRoll.state;
     const lucky = luckRoll.value < Math.round(rules.luckChancePerPoint * luck * 100);
-    for (const t of targets) {
+    // H-SPELLS.4 (chaîne) : la cible + les ennemis les plus proches, dégâts
+    // décroissants par saut. Sinon, la/les pile(s) de zone (`spellTargets`) à plein.
+    const hits = spell.chain
+      ? chainTargets(combat, center, spell.chain.jumps).map((t, i) => ({
+          t,
+          mult: Math.pow(1 - spell.chain!.falloffPct / 100, i),
+        }))
+      : targets.map((t) => ({ t, mult: 1 }));
+    for (const { t, mult } of hits) {
       const def = draft.unitCatalog[t.unitId];
       if (!def) continue;
       // F-SCHOOLS.3 : un sort mange-Marques ajoute `marksDamagePct`%/charge au
       // bonus passif de Marque, puis consomme les Marques de la cible.
       const consumeBonus = spell.marksDamagePct ? (spell.marksDamagePct / 100) * t.marks : 0;
-      const dmg = spellDamageAmount(
-        spell,
-        power,
-        lucky,
-        magicResistanceOf(def, t.transformed),
-        rules.markBonusPerStack * t.marks + consumeBonus,
+      const dmg = Math.round(
+        spellDamageAmount(
+          spell,
+          power,
+          lucky,
+          magicResistanceOf(def, t.transformed),
+          rules.markBonusPerStack * t.marks + consumeBonus,
+        ) * mult,
       );
       const r = damageOneStack(draft, combat, t, dmg, events);
       amount += r.amount;

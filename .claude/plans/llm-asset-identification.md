@@ -83,7 +83,15 @@ manque.
 - [x] Régénération des prompts (`gen_prompts.py`).
 - [x] Croisement complet + classement des manques.
 - [x] Ce document consigne l'audit et sert de bon de commande.
-- [ ] Génération des images par l'utilisateur (Gemini) : bloc A puis planche
-      des 8 élites Vox Arcana (`units-vox-arcana-p2.md`).
-- [ ] Extraction (`sheet_extract.py` / `process_sprite.py`) + copie vers
-      `assets/<famille>/…`, QC verte obligatoire (doc 12 §2.4/§4).
+- [x] Génération des images par l'utilisateur (Gemini) : bloc A + planche des
+      8 élites Vox Arcana — reçues.
+- [x] Extraction (`sheet_extract.py`, floodfill déterministe) + QC **verte
+      12/12** + copie vers `assets/<famille>/…` :
+  - `assets/artifacts/grimoire-arcanique.png` (512² RGBA)
+  - `assets/buildings/vox-arcana/vox-arcana-scene.png` (512² RGBA)
+  - `assets/heroes/vox-arcana-hermione.png`, `vox-arcana-rumi.png` (256² RGB,
+    aplatis sur fond sombre pour matcher les avatars existants)
+  - `assets/units/vox-arcana/t{1..8}-…-elite.png` (512² RGBA transparent)
+
+Les IDs de fichiers correspondent aux IDs des données (registre client
+auto-découvert via `import.meta.glob`, aucun câblage requis).

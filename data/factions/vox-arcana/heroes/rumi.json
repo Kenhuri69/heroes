@@ -5,7 +5,7 @@
   "archetype": "might",
   "origin": "canon",
   "source": "KPop Demon Hunters",
-  "avatar": "vox-arcana-might",
+  "avatar": "vox-arcana-rumi",
   "avatarStyle": "painterly",
   "specialty": "@loc:hero.rumi.specialty",
   "attributes": { "attack": 3, "defense": 2, "power": 1, "knowledge": 1 },

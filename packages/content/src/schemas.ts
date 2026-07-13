@@ -600,6 +600,8 @@ export const artifactSchema = z.object({
   bonus: artifactBonusSchema,
   /** Emplacement typé de la poupée (présentation client, UXD-5b) — absent ⇒ sac. */
   slot: artifactSlotSchema.optional(),
+  /** Sort enseigné tant qu'équipé (H-ARTEQUIP.2) — id cross-validé au chargement. */
+  grantsSpell: idSchema.optional(),
 });
 
 export const artifactCatalogSchema = z.object({

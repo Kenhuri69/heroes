@@ -21,6 +21,16 @@ Les **probabilités de gain** par niveau sont data-driven. *État livré (H-NAME
 
 > **Héros nommés (H-NAMED.1, doc §1.2)** : les fiches d'identité `heroes/<id>.json` (doc 16 État 16.9 — avatar/bio/archetype/origine) portent des **champs gameplay optionnels** (`attributes`, `specialtyEffect`, `startingSkills`, `startingSpells`). Une fiche **avec `attributes`** devient **jouée** : `buildHeroRoster` la résout, et le moteur applique nom/attributs/spécialité/compétences/sorts à la création si `PlayerSetup.startingHeroId` la désigne (catalogue `StartGame.heroRoster`, comme `houseCatalog`) ; les champs explicites du scénario (report de campagne) la priment. Une fiche **sans** gameplay reste identity-only (staging avatars). **H-NAMED.2 livré** : à « Nouvelle partie » et « Escarmouche », **chaque siège humain choisit son héros nommé** dans le roster de sa faction (`<select>` par siège) ; défaut = **aléatoire seedé** (RNG moteur, jamais `Math.random`), unicité de pool au sein d'un `StartGame`. La sélection pose `PlayerSetup.startingHeroId` (identité résolue par le moteur, **zéro diff moteur** ⇒ pas de bump save) et omet les attributs génériques ; le loadout de sorts MVP est conservé. Sièges IA = héros génériques. **État livré (H-COND)** : point d'extension moteur **générique** `conditional` sur le vocabulaire d'effets déclaratifs — une spécialité peut être scopée **par unité** (`unitId`) et/ou **par niveau** (`perLevels` ⇒ ×`ceil(niveau/perLevels)`), interprétée au niveau unité en combat (`conditionalUnitBonus` : attaque/défense/vitesse ; jamais agrégée à plat). Aucune faction en dur, **pas de bump save, golden inchangé**. 6 héros nommés différés désormais jouables (Vhalen, Mère Corbeau, Sylwen, Faelar, Evadne, Alwin — cf. docs 04/05/14 §5/§7). **État livré (H-COND-EXACT)** : les 3 variantes différées portent leurs signatures EXACTES via 3 points d'extension génériques dédiés — Mère Corbeau `raiseUndeadPctPerLevel` (Nécromancie +%/niveau), Faelar `startingSymbiosisStacks` (Symbiose de départ), Alwin `startingArmyBonus` (familier T2 gratuit). **État livré (H-NAMED.3)** : profil de gain d'attribut **par archétype** (`attributeWeightsByArchetype`, cf. §1.2). Tous : zéro faction moteur, pas de bump save, golden inchangé.
 
+> **État livré (H-ARTEQUIP.2 — artefact enseignant un sort)** : champ déclaratif
+> générique `ArtifactDef.grantsSpell` (« Chapeau du sorcier » HoMM) — tant que
+> l'artefact est **équipé**, le héros peut lancer ce sort sans l'avoir appris. Un
+> helper pur unique `heroKnownSpellIds(hero, artifactCatalog)` (= sorts appris ∪
+> sorts d'artefacts équipés) alimente **tous** les sites de « sorts connus »
+> (validation combat + aventure, IA, grimoire combat/aventure). `hero.spells`
+> n'est **jamais** muté ⇒ le sort disparaît au déséquipement ; **pas de bump save,
+> golden inchangé**. `grantsSpell` cross-validé au chargement. Artefact livré :
+> **Grimoire arcanique** (Pouvoir +1, enseigne Boule de feu). Zéro faction moteur.
+
 ### 1.2 Progression
 
 - **XP** : combats **gagnés uniquement** (XP = somme des PV des unités ennemies tuées × coefficient — valeur de départ **1**, dans `data/core/config.json` ; seul le héros du camp vainqueur en reçoit), coffres, lieux de savoir.

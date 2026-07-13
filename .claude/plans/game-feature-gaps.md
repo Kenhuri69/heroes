@@ -498,8 +498,13 @@ Source design : doc 02 §1 (héros), docs de faction §5/§6/§7 (héros nommés
     refus si 10 pleins), joueur actif + hors combat ; **débordement de ramassage
     carte → sac** (plus rien perdu au sol) ; UI `HeroInventory` interactive tap-tap
     (poupée typée → déséquiper, section Sac → équiper, ≥ 44px). Zéro faction.
-  - **Reste (H-ARTEQUIP.2+)** ⬜ : slots typés contraignants, effets spéciaux
-    déclaratifs (immunités, +sorts…), sets à seuils ; routage vers le sac de la
+  - **H-ARTEQUIP.2 (sort d'artefact)** ✅ (plan `h-artequip-grant-spell.md`) :
+    effet spécial déclaratif **`ArtifactDef.grantsSpell`** — un artefact équipé
+    enseigne un sort (castable via le helper partagé `heroKnownSpellIds` = sorts
+    appris ∪ sorts d'artefacts ; `hero.spells` jamais muté ⇒ pas de bump save,
+    golden inchangé). Artefact `grimoire-arcanique` (Boule de feu). Zéro faction.
+  - **Reste (H-ARTEQUIP.2+)** ⬜ : slots typés contraignants, autres effets
+    spéciaux déclaratifs (immunités…), sets à seuils ; routage vers le sac de la
     dépouille de combat / récompense de quête (débordement actuellement au sol /
     non attribué).
 

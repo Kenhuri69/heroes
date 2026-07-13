@@ -174,6 +174,11 @@ export async function loadContent(readJson: ReadJson): Promise<LoadReport> {
     checkUniqueIds(errors, 'core/spells.json', coreSpells.map((s) => s.id), 'sort');
     checkUniqueIds(errors, 'core/skills.json', coreSkills.map((s) => s.id), 'compétence');
     checkUniqueIds(errors, 'core/artifacts.json', coreArtifacts.map((a) => a.id), 'artefact');
+    // H-ARTEQUIP.2 : un artefact enseignant un sort (`grantsSpell`) doit viser un sort connu.
+    const coreSpellIds = new Set(coreSpells.map((s) => s.id));
+    for (const a of coreArtifacts)
+      if (a.grantsSpell !== undefined && !coreSpellIds.has(a.grantsSpell))
+        errors.push(`core/artifacts.json: artefact '${a.id}' — grantsSpell vers sort inconnu '${a.grantsSpell}'`);
     checkUniqueIds(errors, 'core/war-machines.json', coreWarMachines.map((w) => w.id), 'machine de guerre');
     checkUniqueIds(errors, 'core/daily-templates.json', dailyTemplates.map((tpl) => tpl.id), 'gabarit journalier');
     if (errors.length > 0) throw new PackError(errors);
@@ -710,7 +715,12 @@ export function buildArtifactCatalog(report: LoadReport): Record<string, Resolve
   for (const a of report.content.coreArtifacts) {
     if (catalog[a.id])
       throw new PackError([`buildArtifactCatalog: id d'artefact en double '${a.id}'`]);
-    catalog[a.id] = { id: a.id, bonus: a.bonus, slot: a.slot };
+    catalog[a.id] = {
+      id: a.id,
+      bonus: a.bonus,
+      slot: a.slot,
+      ...(a.grantsSpell !== undefined ? { grantsSpell: a.grantsSpell } : {}),
+    };
   }
   return catalog;
 }

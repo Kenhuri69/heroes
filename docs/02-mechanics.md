@@ -91,7 +91,7 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 > masse**, **Hâte de masse**, **Affaiblissement de masse**. **Zéro nom de
 > faction, aucun champ d'état nouveau ⇒ pas de bump save, golden inchangé.**
 > Restent (H-SPELLS suite) : autres sorts d'aventure (Vision, Rappel),
-> invocation, chaîne, résurrection de pile entière, dissipation réelle.
+> invocation, chaîne, résurrection de pile entière.
 
 > 🚧 **État (cercles 4-5 & Guilde à 5 niveaux, H-SPELLS.2)** : la **Guilde des
 > mages** monte désormais à **5 niveaux** (cercles 1→5 ; `data/core/buildings.json`)
@@ -102,6 +102,18 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 > déjà un cercle arbitraire (`rollGuildSpells` filtre `circle === level`, testé) —
 > **zéro diff moteur, pas de bump save, golden inchangé**. Un test de contenu
 > garde l'invariant « chaque niveau de guilde a assez de sorts de son cercle ».
+
+> 🚧 **État (dissipation réelle, H-SPELLS.4)** : nouveau **`SpellKind 'dispel'`**
+> générique — un sort **offensif** (vise l'adverse) qui **retire tous les statuts
+> temporaires de sort** (buffs/poison/malédiction/silence) de la pile ennemie
+> ciblée (« on souffle sur les enchantements d'autrui »). Réutilise le tableau
+> `stack.statuses` et le cœur partagé `applySpellToTargets`/`estimateSpell` — la
+> zone (`splash`/`all`) est gratuite pour une future « dissipation de masse ». Le
+> sort **Dissipation** (neutre, cercle 3), jusqu'ici un simple debuff −2/−2
+> déguisé, devient une vraie dissipation en **données pures** (`kind: 'dispel'`).
+> **Zéro nom de faction, aucun champ d'état nouveau ⇒ pas de bump save, golden
+> inchangé** ; l'IA ignore `dispel` (jamais lancé, jamais de crash). Restent
+> (H-SPELLS suite) : invocation, chaîne, résurrection de pile entière.
 
 ### 1.5 Mouvement sur carte d'aventure
 

@@ -437,6 +437,7 @@
   "spellbook.previewBuff": "Beneficial effect applied",
   "spellbook.previewDebuff": "Harmful effect applied",
   "spellbook.previewMarks": "Marks applied to the target",
+  "spellbook.previewDispel": "{count} effect(s) dispelled",
   "spellbook.previewUnavailable": "—",
   "skillChoice.title": "Skill choice",
   "skillChoice.subtitle": "Level up reached: choose a skill.",

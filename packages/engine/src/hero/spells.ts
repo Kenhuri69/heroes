@@ -15,7 +15,9 @@ export function spellTargetsEnemy(kind: SpellKind): boolean {
     kind === 'debuff' ||
     kind === 'applyMarks' ||
     kind === 'silence' ||
-    kind === 'banish'
+    kind === 'banish' ||
+    // H-SPELLS.4 (Dissipation) : offensif — retire les enchantements de l'ENNEMI.
+    kind === 'dispel'
   );
 }
 

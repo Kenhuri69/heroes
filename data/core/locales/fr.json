@@ -437,6 +437,7 @@
   "spellbook.previewBuff": "Effet bénéfique appliqué",
   "spellbook.previewDebuff": "Effet néfaste appliqué",
   "spellbook.previewMarks": "Marques appliquées à la cible",
+  "spellbook.previewDispel": "{count} effet(s) dissipé(s)",
   "spellbook.previewUnavailable": "—",
   "skillChoice.title": "Choix de compétence",
   "skillChoice.subtitle": "Niveau supérieur atteint : choisissez une compétence.",

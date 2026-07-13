@@ -475,8 +475,14 @@ Source design : doc 02 §1 (héros), docs de faction §5/§6/§7 (héros nommés
     sans le déplacer). Schéma `adventure` = union discriminée ; client générique
     inchangé. Sort **Clairvoyance** (Air, cercle 2). **Additif ⇒ pas de bump save,
     golden inchangé.** « Rappel » = déjà couvert par Ville-portail.
+  - **H-SPELLS.4** ✅ (plan `h-spells-dispel.md`) : **dissipation réelle** —
+    nouvelle mécanique générique `SpellKind 'dispel'` (offensif) : retire tous les
+    statuts temporaires de sort de la pile ennemie ciblée (réutilise
+    `stack.statuses` ⇒ aucun champ neuf). Le sort **Dissipation** (neutre, c3),
+    jusqu'ici un debuff −2/−2 déguisé, devient un vrai dispel en données pures.
+    Zéro faction moteur, pas de bump save, golden inchangé ; IA ignore `dispel`.
   - **H-SPELLS.4+** ⬜ : **invocation**, **chaîne**, **résurrection de pile entière**
-    (pile à 0 retirée de la grille), dissipation réelle. Débloque C-SPELLUI.
+    (pile à 0 retirée de la grille). Débloque C-SPELLUI.
 
 - **H-ARTEQUIP — Artefacts équipables + effets spéciaux + sets** 🧩/🎨 M 🚧 (.1 livré)
   Doc : doc 02 §1.1 (10 slots), doc 08 §2.3 (poupée interactive).

@@ -614,6 +614,8 @@ function formatSpellPreview(est: SpellEstimate | null, failed: boolean): string 
       return t('spellbook.previewDebuff');
     case 'applyMarks':
       return t('spellbook.previewMarks');
+    case 'dispel':
+      return t('spellbook.previewDispel', { count: est.amount });
     default:
       return t('spellbook.previewUnavailable');
   }

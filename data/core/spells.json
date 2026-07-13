@@ -92,11 +92,9 @@
       "school": "neutral",
       "circle": 3,
       "manaCost": 12,
-      "kind": "debuff",
+      "kind": "dispel",
       "base": 0,
-      "perPower": 0,
-      "attackMod": -2,
-      "defenseMod": -2
+      "perPower": 0
     },
     {
       "id": "armure-fondue",

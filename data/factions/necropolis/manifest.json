@@ -21,6 +21,10 @@
         15,
         20
       ]
+    },
+    {
+      "type": "curseDurationBonus",
+      "rounds": 1
     }
   ],
   "spellSchool": "prime",

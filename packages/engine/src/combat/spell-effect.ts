@@ -89,6 +89,12 @@ export function applySpellToTargets(
   power: number,
   luck: number,
   events: GameEvent[],
+  /**
+   * F-BONUS (Fléau persistant, doc 04 §2) : rounds ajoutés à la durée des statuts
+   * posés — le CALLER ne le passe (> 0) que pour un sort de malédiction (`debuff`)
+   * d'un héros doté. 0 par défaut (sort ordinaire, sort d'unité).
+   */
+  statusDurationBonus = 0,
 ): { amount: number; kills: number } {
   const targets = spellTargets(combat, spell.area, center);
   let amount = 0;
@@ -186,7 +192,7 @@ export function applySpellToTargets(
         damageDealtMod: 0,
         damagePerRound: 0,
         silenced: spell.kind === 'silence',
-        roundsLeft: spellStatusDuration(power),
+        roundsLeft: spellStatusDuration(power) + statusDurationBonus,
       });
     }
   }

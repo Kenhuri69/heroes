@@ -20,7 +20,7 @@ cell 1: tier 2 unit "Marksman (fr: Archer d'Élite)" — aiming a ranged weapon,
 cell 2: tier 3 unit "Templar (fr: Templier)" — steady stance
 cell 3: tier 4 unit "Royal Griffin (fr: Griffon Royal)" — large spread wings, airborne pose, swift and agile
 cell 4: tier 5 unit "High Priestess (fr: Grande Prêtresse)" — aiming a ranged weapon, steady stance
-cell 5: tier 6 unit "Griffin Champion (fr: Champion du Griffon)" — swift and agile
+cell 5: tier 6 unit "Griffin Champion (fr: Champion du Griffon)" — charging forward, swift and agile
 cell 6: tier 7 unit "Archangel (fr: Archange)" — large spread wings, airborne pose, swift and agile
 flat uniform light grey background (#c8c8c8), no ground shadow,
 no text, no watermark, no signature, no border frame, no ground line, no decorative sparkles, no star glints, no lens flare

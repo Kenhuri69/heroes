@@ -262,9 +262,17 @@ Source design : docs 03 §2/§4/§5, 04 §2/§4, 05 §3/§5/§6/§7, 14 §5/§6,
   propose qu'aux héros de la faction ; (2) compétences **marqueur** (`external`)
   à payoff externe ; (3) **Nécromancie graduée** — `raiseUndeadOnVictory` gagne
   `scaleSkillId`/`percentByRank`, l'effet lit le rang (10/15/20 %). **Pas de save
-  bump** (compétences dans `hero.skills`, `factionId` = catalogue). **Reste
-  (données)** : Prière de bataille (`resurrectAlly`), Chasse rituelle, Sylve —
-  moteur prêt, à câbler par faction ; Amplificateur (F-BUILDEFF).
+  bump** (compétences dans `hero.skills`, `factionId` = catalogue). **F-SKILLS.2
+  livré** (plan `f-skills-battle-prayer.md`) : **Prière de bataille** (Haven) — 1ᵉʳ
+  point d'extension d'**action de héros gatée par compétence** : champ générique
+  `SkillRankEffect.battleResurrectHp` + commande `HeroRally { targetStackId }`
+  (miroir de `HeroAttack`) qui ressuscite 1×/combat une pile alliée via le cœur
+  partagé `resurrectStack` (extrait du sort de soin). Suivi `CombatState.heroRallyUsed`
+  **optionnel** ⇒ pas de bump save, golden inchangé. IA câblée (property « le combat
+  se termine » verte), **UI joueur différée** (engine-first, précédent `spellcaster`).
+  Compétence `battle-prayer` (30/60/100 PV) gatée Haven. `faction:sim` sans blowout.
+  **Reste (données)** : Chasse rituelle, Sylve — moteur prêt, à câbler ; Amplificateur
+  (F-BUILDEFF) ; **UI de la Prière** (bouton combat, avec CAP-CAST/C-SPELLUI).
 
 - **F-BUILDEFF — Effets de bâtiment spéciaux** 🕳️ L 🚧 (**découpé en sous-lots**, décision utilisateur)
   Doc : Statue du Jugement/Cloître/Écuries (doc 03 §4), Amplificateur

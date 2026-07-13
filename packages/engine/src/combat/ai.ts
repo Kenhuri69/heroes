@@ -4,12 +4,13 @@ import { castHeroSpell } from '../hero';
 import { effectiveManaCost, spellTargetsEnemy } from '../hero/spells';
 import { applyAction, canShoot, canShootTarget, reachableHexes, tauntersAdjacentTo } from './actions';
 import { heroAttackDamage, strikeWithHero } from './hero-attack';
+import { heroRallyHp, rallyWithHero } from './hero-rally';
 import { spellcasterParams } from './spell-effect';
 import { estimateDamage, killsFromDamage, symbiosisParams } from './damage';
 import { advanceTurn } from './turns';
 import type { Draft } from './draft';
 import { hexDistance, type OffsetPos } from './hex';
-import { effectiveSpeed, hasAbility, isSilenced } from './state-helpers';
+import { collectCasualties, effectiveSpeed, hasAbility, isSilenced } from './state-helpers';
 import type { CombatActionInput, CombatSideId, CombatStack, CombatState, CombatUnitDef } from './types';
 
 /**
@@ -428,6 +429,35 @@ export function maybeHeroAction(draft: Draft, events: GameEvent[], side: CombatS
     if (cast) {
       castHeroSpell(draft, side, cast.spellId, cast.targetStackId, events);
       return true;
+    }
+  }
+
+  // F-SKILLS.2 : Prière de bataille — un héros doté ressuscite la pile alliée la
+  // plus rentable (créatures relevées × valeur) 1×/combat, si une créature au
+  // moins peut revenir. Bornée (1×) ⇒ property « le combat se termine » préservée.
+  if (!(combat.heroRallyUsed ?? []).includes(side)) {
+    const rallyHp = heroRallyHp(draft, combat, side);
+    if (rallyHp > 0) {
+      const losses = collectCasualties(combat);
+      const revivable = combat.stacks.filter((s) => {
+        const def = catalog[s.unitId];
+        if (s.side !== side || s.count <= 0 || !def) return false;
+        const lost = losses.find((c) => c.side === side && c.unitId === s.unitId)?.lost ?? 0;
+        return lost > 0 && Math.floor(rallyHp / def.stats.hp) >= 1;
+      });
+      const best = pickBestBy(
+        revivable,
+        (a) => {
+          const def = catalog[a.unitId]!;
+          const lost = losses.find((c) => c.side === side && c.unitId === a.unitId)?.lost ?? 0;
+          return Math.min(lost, Math.floor(rallyHp / def.stats.hp)) * targetValue(def);
+        },
+        (a, b) => compareCodeUnits(a.id, b.id),
+      );
+      if (best) {
+        rallyWithHero(draft, side, best.id, events);
+        return true;
+      }
     }
   }
 

@@ -120,6 +120,11 @@ export function heroMorale(hero: HeroState, catalog: Record<string, HeroSkillDef
   return sumRankField(hero, catalog, 'moraleBonus') + sumHouseField(hero, 'moraleBonus');
 }
 
+/** Prière de bataille (F-SKILLS.2) — PV soignés/ressuscités 1×/combat ; 0 ⇒ action indisponible. */
+export function heroBattlePrayerHp(hero: HeroState, catalog: Record<string, HeroSkillDef>): number {
+  return sumRankField(hero, catalog, 'battleResurrectHp') + sumHouseField(hero, 'battleResurrectHp');
+}
+
 /** Attaque au corps : bonus % de dégâts en mêlée — branché dans `combat/damage.ts`. */
 export function heroMeleePct(hero: HeroState, catalog: Record<string, HeroSkillDef>): number {
   return sumRankField(hero, catalog, 'meleeDamagePct') + sumHouseField(hero, 'meleeDamagePct');

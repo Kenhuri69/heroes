@@ -86,6 +86,12 @@ export interface SkillRankEffect {
   /** Compétence Tactique (C-TACTICS, doc 02 §5.1) : profondeur de la bande de placement pré-combat. */
   tacticsColumns?: number;
   /**
+   * Prière de bataille (F-SKILLS.2, doc 03 §2/§5) : PV soignés/ressuscités par le
+   * héros sur une pile alliée, **1×/combat**. Un héros dont une compétence porte
+   * ce champ (> 0) débloque l'action `HeroRally`. Agrégé par `heroBattlePrayerHp`.
+   */
+  battleResurrectHp?: number;
+  /**
    * Effets **town-scoped** d'une Maison (F-HOUSES, doc 16 §3.1 — Le Blaireau).
    * Contrairement aux champs ci-dessus (agrégés PAR HÉROS dans `hero/skills.ts`),
    * ceux-ci s'appliquent à une VILLE : ils ne sont interprétés que par le code de

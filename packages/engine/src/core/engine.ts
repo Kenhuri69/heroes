@@ -5,6 +5,7 @@ import { inBounds, isAdjacent, samePos, type GridPos } from '../adventure/map';
 import { advanceHeroAlongPath } from '../adventure/movement';
 import { revealOwnedStructures } from '../adventure/vision';
 import { handleHeroAttack, validateHeroAttack } from '../combat/hero-attack';
+import { handleHeroRally, validateHeroRally } from '../combat/hero-rally';
 import {
   handleFinishPlacement,
   handlePlaceStack,
@@ -151,6 +152,7 @@ const GAME_OVER_BLOCKED = new Set<Command['type']>([
   'TradeResources',
   'CastSpell',
   'HeroAttack',
+  'HeroRally',
   'PlaceStack',
   'FinishPlacement',
   'Retreat',
@@ -322,6 +324,10 @@ export function validate(state: GameState, cmd: Command): CommandError | null {
     case 'HeroAttack': {
       if (!state.combat) return { code: 'noCombat', message: 'aucun combat en cours' };
       return validateHeroAttack(state, cmd);
+    }
+    case 'HeroRally': {
+      if (!state.combat) return { code: 'noCombat', message: 'aucun combat en cours' };
+      return validateHeroRally(state, cmd);
     }
     case 'PlaceStack': {
       if (!state.combat) return { code: 'noCombat', message: 'aucun combat en cours' };
@@ -739,6 +745,10 @@ const handlers: Handlers = {
 
   HeroAttack(draft, cmd, events) {
     handleHeroAttack(draft, cmd, events);
+  },
+
+  HeroRally(draft, cmd, events) {
+    handleHeroRally(draft, cmd, events);
   },
 
   PlaceStack(draft, cmd, events) {

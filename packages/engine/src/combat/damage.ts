@@ -4,6 +4,7 @@ import { heroArtifactBonus } from '../hero/artifacts';
 import { heroArmorPct, heroLuck, heroMeleePct, heroRangedPct } from '../hero/skills';
 import type { SpellStatus } from '../hero/types';
 import { canShootTarget } from './actions';
+import { handleStackDeath } from './death';
 import { hexBehind, hexDistance, inCombatBounds, sameHex } from './hex';
 import { clamp, collectCasualties, conditionalUnitBonus, factionCombatBonus, hasAbility, isShooterMeleePenalized, recordLoss, siegeEliteDamage } from './state-helpers';
 import type { CombatSideId, CombatStack, CombatUnitDef, CombatState } from './types';
@@ -388,11 +389,7 @@ function applySplashDamage(
     retaliation: false,
     ranged,
   });
-  if (t.count <= 0) {
-    events.push({ type: 'StackDied', stackId: t.id });
-    const idx = combat.stacks.findIndex((x) => x.id === t.id);
-    if (idx !== -1) combat.stacks.splice(idx, 1);
-  }
+  if (t.count <= 0) handleStackDeath(combat, t, tDef, events);
 }
 
 interface StrikeParams {
@@ -724,11 +721,7 @@ export function performStrike(
   }
 
   const targetDied = victim.count <= 0;
-  if (targetDied && combat) {
-    events.push({ type: 'StackDied', stackId: victim.id });
-    const idx = combat.stacks.findIndex((s) => s.id === victim.id);
-    if (idx !== -1) combat.stacks.splice(idx, 1);
-  }
+  if (targetDied && combat) handleStackDeath(combat, victim, victimDef, events);
   return { targetDied };
 }
 

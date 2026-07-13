@@ -358,6 +358,7 @@
   "combatLog.retaliate": "{attacker} riposte sur {target} : {damage} dégâts, {kills} tué(s)",
   "combatLog.dodge": "{target} esquive la frappe",
   "combatLog.died": "{unit} est anéanti",
+  "combatLog.reborn": "{unit} renaît de ses cendres ({count})",
   "combatLog.healed": "{unit} récupère {amount} PV",
   "combatLog.poisoned": "{unit} subit {damage} dégâts de poison",
   "combatLog.spell": "Sort {spell} sur {target} ({amount})",

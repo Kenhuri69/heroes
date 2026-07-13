@@ -3,6 +3,7 @@ import type { GameEvent } from '../core/events';
 import type { GameState } from '../core/state';
 import { effectivePower } from '../hero/spells';
 import { heroAttackOf, killsFromDamage } from './damage';
+import { handleStackDeath } from './death';
 import type { Draft } from './draft';
 import { checkCombatEnd } from './turns';
 import { recordLoss } from './state-helpers';
@@ -100,7 +101,9 @@ export function strikeWithHero(
     amount,
     kills,
   });
-  if (target.count <= 0) events.push({ type: 'StackDied', stackId: target.id });
+  // Mort centralisée (CAP-LIFE.2) : renaissance éventuelle, sinon retrait — corrige
+  // au passage l'absence de splice de ce chemin (la pile morte restait sur le plateau).
+  if (target.count <= 0) handleStackDeath(combat, target, targetDef, events);
   checkCombatEnd(draft, events);
 }
 

@@ -3,10 +3,13 @@
   "tier": 7,
   "name": "@loc:unit.t7-phenix-elite.name",
   "stats": {
-    "hp": 175,
+    "hp": 146,
     "attack": 22,
     "defense": 19,
-    "damage": [26, 40],
+    "damage": [
+      22,
+      33
+    ],
     "speed": 12
   },
   "growthPerWeek": 1,
@@ -15,7 +18,17 @@
     "gems": 2
   },
   "abilities": [
-    { "id": "flying" },
-    { "id": "noRetaliation" }
+    {
+      "id": "flying"
+    },
+    {
+      "id": "noRetaliation"
+    },
+    {
+      "id": "rebirth",
+      "params": {
+        "pct": 35
+      }
+    }
   ]
 }

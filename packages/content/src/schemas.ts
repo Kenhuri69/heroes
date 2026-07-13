@@ -452,6 +452,11 @@ export const spellSchema = z
     /** Sort mange-Marques (F-SCHOOLS.3, doc 05 §6) : %/charge de dégâts, puis consomme. */
     marksDamagePct: z.number().nonnegative().optional(),
     /**
+     * Chaîne (H-SPELLS.4, doc 02 §1.4) : un sort `damage` rebondit vers `jumps`
+     * ennemis proches, dégâts × `(1 − falloffPct/100)` par saut. Générique.
+     */
+    chain: z.object({ jumps: z.number().int().positive(), falloffPct: z.number().min(0).max(100) }).optional(),
+    /**
      * Zone d'effet : `splash` (C7) = cible + piles adjacentes du même camp ;
      * `all` (H-SPELLS.1) = toutes les piles vivantes du camp de la cible (masse).
      */
@@ -493,6 +498,10 @@ export const spellSchema = z
   .refine((s) => (s.kind === 'applyMarks' ? s.marks !== undefined : true), {
     message: 'applyMarks: le champ `marks` (> 0) est requis',
     path: ['marks'],
+  })
+  .refine((s) => (s.chain ? s.kind === 'damage' : true), {
+    message: 'chain: réservé aux sorts de dégâts',
+    path: ['chain'],
   });
 
 /** data/core/spells.json — un fichier = une liste (comme buildingCatalogSchema). */

@@ -3,7 +3,7 @@ import { DIRECTIONS, samePos, type GridPos } from '../adventure/map';
 import { isPassable } from '../adventure/path';
 import { heroLuckOf, killsFromDamage, magicResistanceOf } from '../combat/damage';
 import { checkCombatEnd } from '../combat/turns';
-import { applySpellToTargets, spellTargets, spellcasterParams } from '../combat/spell-effect';
+import { applySpellToTargets, chainTargets, spellTargets, spellcasterParams } from '../combat/spell-effect';
 import { factionCurseDurationBonus, staticBlockedKeys } from '../combat/state-helpers';
 import {
   COMBAT_COLS,
@@ -473,14 +473,23 @@ function estimateSpellWithPower(
   if (spell.kind === 'damage') {
     let amount = 0;
     let kills = 0;
-    for (const t of affected) {
+    // H-SPELLS.4 (chaîne) : la préviz agrège la cible + les rebonds décroissants.
+    const hits = spell.chain
+      ? chainTargets(combat, target, spell.chain.jumps).map((t, i) => ({
+          t,
+          mult: Math.pow(1 - spell.chain!.falloffPct / 100, i),
+        }))
+      : affected.map((t) => ({ t, mult: 1 }));
+    for (const { t, mult } of hits) {
       const def = state.unitCatalog[t.unitId];
       if (!def) continue;
       // D10 : la Marque amplifie les dégâts de sort — la préviz reflète le même bonus.
       // F-SCHOOLS.3 : un sort mange-Marques ajoute `marksDamagePct`%/charge.
       const consumeBonus = spell.marksDamagePct ? (spell.marksDamagePct / 100) * t.marks : 0;
       const markBonus = (state.config?.combat.markBonusPerStack ?? 0) * t.marks + consumeBonus;
-      const dmg = spellDamageAmount(spell, power, false, magicResistanceOf(def, t.transformed), markBonus);
+      const dmg = Math.round(
+        spellDamageAmount(spell, power, false, magicResistanceOf(def, t.transformed), markBonus) * mult,
+      );
       const pool = (t.count - 1) * def.stats.hp + t.firstHp;
       amount += dmg;
       kills += killsFromDamage(pool, def.stats.hp, t.count, dmg);

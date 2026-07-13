@@ -229,6 +229,12 @@ export interface ArtifactDef {
     luck?: number;
     morale?: number;
     manaMax?: number;
+    /**
+     * Points de mouvement quotidiens plats (H-ARTEQUIP, doc 02 §1.5 — « bottes de
+     * vitesse ») ajoutés tant que l'artefact est équipé. Miroir du
+     * `movementBonusFlat` d'aura de bâtiment (F-BUILDEFF.1). Absent = 0.
+     */
+    movementFlat?: number;
   };
   /** Emplacement de poupée (présentation client, jamais lu par le moteur). */
   slot?: ArtifactSlot;

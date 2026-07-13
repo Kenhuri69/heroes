@@ -503,6 +503,11 @@ Source design : doc 02 §1 (héros), docs de faction §5/§6/§7 (héros nommés
     enseigne un sort (castable via le helper partagé `heroKnownSpellIds` = sorts
     appris ∪ sorts d'artefacts ; `hero.spells` jamais muté ⇒ pas de bump save,
     golden inchangé). Artefact `grimoire-arcanique` (Boule de feu). Zéro faction.
+  - **H-ARTEQUIP (mouvement)** ✅ (plan `h-artequip-movement.md`) : différé
+    explicite du doc 02 §1.5 levé — `ArtifactDef.bonus.movementFlat` (« bottes de
+    vitesse ») ajoute des PM quotidiens (agrégé par `heroArtifactBonus`, ajouté dans
+    `heroDailyMovement` ; bonus live ⇒ pas de bump save, golden inchangé). Artefact
+    `bottes-de-sept-lieues` (+300). Zéro faction.
   - **Reste (H-ARTEQUIP.2+)** ⬜ : slots typés contraignants, autres effets
     spéciaux déclaratifs (immunités…), sets à seuils ; routage vers le sac de la
     dépouille de combat / récompense de quête (débordement actuellement au sol /

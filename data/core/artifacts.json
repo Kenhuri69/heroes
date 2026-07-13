@@ -4,6 +4,7 @@
     { "id": "egide-de-pierre", "bonus": { "defense": 2 }, "slot": "shield" },
     { "id": "orbe-de-savoir", "bonus": { "knowledge": 2 }, "slot": "neck" },
     { "id": "trefle-chance", "bonus": { "luck": 1 }, "slot": "ring" },
-    { "id": "grimoire-arcanique", "bonus": { "power": 1 }, "slot": "misc", "grantsSpell": "boule-de-feu" }
+    { "id": "grimoire-arcanique", "bonus": { "power": 1 }, "slot": "misc", "grantsSpell": "boule-de-feu" },
+    { "id": "bottes-de-sept-lieues", "bonus": { "movementFlat": 300 }, "slot": "feet" }
   ]
 }

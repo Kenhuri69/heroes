@@ -206,6 +206,13 @@
       "artifactId": "grimoire-arcanique"
     },
     {
+      "id": "artifact-bottes",
+      "type": "artifact",
+      "x": 7,
+      "y": 5,
+      "artifactId": "bottes-de-sept-lieues"
+    },
+    {
       "id": "ecurie-1",
       "type": "visitable",
       "x": 4,

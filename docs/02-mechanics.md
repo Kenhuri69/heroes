@@ -138,7 +138,7 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 
 ### 1.5 Mouvement sur carte d'aventure
 
-- Points de mouvement quotidiens : `base 1500 + 50 × vitesse de la créature la plus lente de l'armée` (encourage les armées homogènes), modifiés par la compétence **Logistique** (`movementBonusPct`), les routes (coût tuile ×0,75) et les terrains (marais ×1,5). *Pas de bonus de terrain natif sur la carte (les terrains ne portent qu'un `moveCost`) ; les artefacts ne donnent **pas** de points de mouvement — différés.*
+- Points de mouvement quotidiens : `base 1500 + 50 × vitesse de la créature la plus lente de l'armée` (encourage les armées homogènes), modifiés par la compétence **Logistique** (`movementBonusPct`), l'aura d'Écuries (`movementBonusFlat`, F-BUILDEFF.1), un **artefact de mouvement** (H-ARTEQUIP : `ArtifactDef.bonus.movementFlat` — « bottes de vitesse », PM plats tant qu'équipé, agrégé par `heroArtifactBonus`, ajouté dans `heroDailyMovement` ; bonus dérivé live ⇒ pas de bump save, golden inchangé), les routes (coût tuile ×0,75) et les terrains (marais ×1,5). *Pas de bonus de terrain natif sur la carte (les terrains ne portent qu'un `moveCost`).* Artefact livré : **Bottes de sept lieues** (+300 PM/jour).
 - Coût d'entrée d'une tuile : **100 points** en terrain de base (herbe), pas en **diagonale ×1,41** (≈ √2), multiplicateurs cumulés puis arrondis à l'entier — ex. route en diagonale : `round(100 × 0,75 × 1,41) = 106`. Valeurs de départ pour l'équilibrage, stockées dans `data/core/config.json`.
 - **Catalogue de terrains** (data-driven, `adventure.terrains` ; le moteur ne connaît que le `moveCost`, `null` = infranchissable) :
 

@@ -63,7 +63,7 @@ import {
   validateReorderArmy,
   validateSplitStack,
 } from '../hero';
-import { heroManaMax } from '../hero/artifacts';
+import { heroArtifactBonus, heroManaMax } from '../hero/artifacts';
 import { validateRecruitHero, handleRecruitHero } from '../hero/recruit';
 import { validateTransferBetweenHeroes, handleTransferBetweenHeroes } from '../hero/transfer';
 import {
@@ -111,7 +111,9 @@ function heroDailyMovement(draft: Draft, hero: GameState['heroes'][number]): num
   if (!draft.config) return 0;
   const base = dailyMovementPoints(draft.config, hero.army, draft.unitCatalog);
   const scaled = Math.round(base * (1 + heroMovementBonus(hero, draft.skillCatalog) / 100));
-  return scaled + townBuildingAura(draft, hero.playerId, hero.pos, 'movementBonusFlat');
+  // H-ARTEQUIP (doc 02 §1.5) : bottes de vitesse — PM plats d'artefacts équipés.
+  const artifactMove = heroArtifactBonus(hero, draft.artifactCatalog).movementFlat;
+  return scaled + townBuildingAura(draft, hero.playerId, hero.pos, 'movementBonusFlat') + artifactMove;
 }
 
 /** Règle d'or (doc 07 §2) : fonction pure (état, commande) → état + événements. */

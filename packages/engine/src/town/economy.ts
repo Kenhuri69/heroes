@@ -1,7 +1,7 @@
 import type { GameEvent } from '../core/events';
 import type { GameState, ResourceId } from '../core/state';
 import { heroGoldPerDay, townHouseField } from '../hero/skills';
-import { weekGrowthFactor } from '../adventure/calendar';
+import { weekGrowthFactor, weekGrowthTierFactor } from '../adventure/calendar';
 import { builtLevelOf } from './helpers';
 import { sharedGrowthRecipients } from './shared-growth';
 import { unitWithEconomy } from './unit-economy';
@@ -193,7 +193,10 @@ export function weeklyGrowthOf(
   // Calculé ici (helper partagé) ⇒ l'UI de recrutement projette la même croissance.
   if (town.ownerPlayerId)
     bonusFort += townHouseField(state.heroes, town.ownerPlayerId, town.pos, 'garrisonGrowthPct') / 100;
-  const added = Math.floor(growth * (1 + bonusFort) * weekGrowthFactor(state));
+  // M-CALENDAR « Semaine de X » : facteur ciblé sur le palier de l'unité, en plus
+  // du facteur global de l'événement de la semaine.
+  const tierFactor = weekGrowthTierFactor(state, state.unitCatalog[unitId]?.tier);
+  const added = Math.floor(growth * (1 + bonusFort) * weekGrowthFactor(state) * tierFactor);
   return { added, cap: 2 * added };
 }
 
@@ -236,8 +239,10 @@ export function applyWeeklyGrowth(draft: GameState, events: GameEvent[]): void {
     const growth = unitWithEconomy(draft.unitCatalog, obj.unitId)?.growthPerWeek;
     if (!growth) continue;
     // Événement de calendrier de la semaine (M-CALENDAR) : module la croissance
-    // (peste ÷2, abondance ×2…) — 1 hors calendrier, règle inchangée.
-    const added = Math.floor(growth * weekGrowthFactor(draft));
+    // (peste ÷2, abondance ×2…) — 1 hors calendrier, règle inchangée. « Semaine de
+    // X » : facteur ciblé supplémentaire sur le palier de l'unité de l'habitation.
+    const tierFactor = weekGrowthTierFactor(draft, draft.unitCatalog[obj.unitId]?.tier);
+    const added = Math.floor(growth * weekGrowthFactor(draft) * tierFactor);
     obj.stock = Math.max(obj.stock, Math.min(obj.stock + added, 2 * growth));
   }
 }

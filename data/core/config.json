@@ -59,7 +59,8 @@
         { "id": "normal", "weight": 55, "growthFactor": 1 },
         { "id": "harvest", "weight": 18, "growthFactor": 1.5 },
         { "id": "bounty", "weight": 15, "growthFactor": 2 },
-        { "id": "plague", "weight": 12, "growthFactor": 0.5 }
+        { "id": "plague", "weight": 12, "growthFactor": 0.5 },
+        { "id": "recruits", "weight": 10, "growthFactor": 1, "growthTier": { "tier": 1, "factor": 2 } }
       ]
     },
     "guardianReward": {

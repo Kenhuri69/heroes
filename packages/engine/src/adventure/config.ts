@@ -56,6 +56,12 @@ export interface CalendarEventDef {
   weight: number;
   /** Multiplicateur de la croissance hebdomadaire des créatures. */
   growthFactor: number;
+  /**
+   * « Semaine de X » (M-CALENDAR, doc 02 §2.3) : croissance × `factor` pour les
+   * seules unités du palier `tier` (`CombatUnitDef.tier`), EN PLUS de
+   * `growthFactor` global. Absent ⇒ semaine sans ciblage. `tier` = nombre opaque.
+   */
+  growthTier?: { tier: number; factor: number } | undefined;
 }
 
 export interface AdventureConfig {

@@ -96,6 +96,48 @@ describe('M-CALENDAR — événements de calendrier', () => {
     expect(s.towns[0]?.stock['red-grunt']).toBe(20);
   });
 
+  it('« semaine ciblant une créature » (growthTier) double la croissance du palier visé', () => {
+    // red-grunt (T1) : la Semaine des Recrues cible le palier 1 (×2), en plus du fort.
+    const config = testConfig();
+    config.calendar = { events: [{ id: 'recruits', weight: 1, growthFactor: 1, growthTier: { tier: 1, factor: 2 } }] };
+    const catalog = testUnitCatalogWithEconomy();
+    catalog['red-grunt'] = { ...catalog['red-grunt']!, tier: 1 };
+    let s = apply(createEmptyState(), {
+      type: 'StartGame', seed: 1, players: [{ id: 'p1', startingResources: { ...emptyResources() } }],
+      map: testMap(), config, unitCatalog: catalog, buildingCatalog: testBuildingCatalog(),
+      towns: [{ ...testTown(), buildings: { townHall: 1, fort: 2, dwelling1: 1 }, stock: { 'red-grunt': 2 } }],
+    }).state;
+    const growth: number[] = [];
+    for (let day = 1; day <= 7; day++) {
+      const r = apply(s, { type: 'EndTurn', playerId: 'p1' });
+      s = r.state;
+      for (const e of r.events) if (e.type === 'TownGrowth') growth.push(e.added);
+    }
+    expect(s.calendar.weekEventId).toBe('recruits');
+    // floor(6 * 1.5 (fort) * 1 (global) * 2 (palier 1)) = 18.
+    expect(growth).toEqual([18]);
+  });
+
+  it('« semaine ciblant une créature » n’affecte PAS les autres paliers', () => {
+    const config = testConfig();
+    // Cible le palier 2 ; red-grunt est T1 ⇒ croissance normale (9).
+    config.calendar = { events: [{ id: 'recruits', weight: 1, growthFactor: 1, growthTier: { tier: 2, factor: 2 } }] };
+    const catalog = testUnitCatalogWithEconomy();
+    catalog['red-grunt'] = { ...catalog['red-grunt']!, tier: 1 };
+    let s = apply(createEmptyState(), {
+      type: 'StartGame', seed: 1, players: [{ id: 'p1', startingResources: { ...emptyResources() } }],
+      map: testMap(), config, unitCatalog: catalog, buildingCatalog: testBuildingCatalog(),
+      towns: [{ ...testTown(), buildings: { townHall: 1, fort: 2, dwelling1: 1 }, stock: { 'red-grunt': 2 } }],
+    }).state;
+    const growth: number[] = [];
+    for (let day = 1; day <= 7; day++) {
+      const r = apply(s, { type: 'EndTurn', playerId: 'p1' });
+      s = r.state;
+      for (const e of r.events) if (e.type === 'TownGrowth') growth.push(e.added);
+    }
+    expect(growth).toEqual([9]); // floor(6 * 1.5) — palier non ciblé
+  });
+
   it('tirage déterministe : même graine ⇒ même événement', () => {
     const events: CalendarEventDef[] = [
       { id: 'a', weight: 1, growthFactor: 1 },

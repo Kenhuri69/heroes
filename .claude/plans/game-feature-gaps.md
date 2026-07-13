@@ -607,8 +607,14 @@ Source design : doc 02 §2 (carte), §1.5 (multi-héros).
   Livré : `config.calendar.events` (table pondérée déclarative), tirage RNG seedé
   hebdo `rollWeekEvent`, `growthFactor` module `applyWeeklyGrowth`,
   `Calendar.weekEventId` (save v20), `monthOf`, event `CalendarEventStarted`,
-  toast client des semaines spéciales. Différés : mois persistants, semaine
-  ciblant une créature, calendrier persistant à l'écran.
+  toast client des semaines spéciales. **Livré (tranche « semaine ciblant une
+  créature »)** (plan `m-calendar-creature-week.md`) : champ générique
+  `CalendarEventDef.growthTier { tier, factor }` — la croissance des unités d'un
+  **palier** précis est × `factor` en plus du facteur global (helper pur
+  `weekGrowthTierFactor`, partagé villes/habitations/UI de recrutement).
+  Événement `recruits` (T1 ×2). Optionnel ⇒ pas de bump save, golden inchangé.
+  Différés : mois persistants ; calendrier persistant livré (M-CALWIDGET) ;
+  ciblage par `unitId` exact (au-delà du palier).
 
 ### 2.6 Villes & économie (T-*)
 

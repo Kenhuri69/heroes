@@ -115,6 +115,15 @@
   box-shadow: 0 0 0 1px var(--gold) inset;
 }
 
+/* Prière de bataille (F-SKILLS.2-UI) : préviz secondaire (créatures relevées)
+   sous le nom de la cible dans le bouton de ciblage. */
+.spell-target-preview {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.85em;
+  opacity: 0.8;
+}
+
 .spell-preview {
   margin: 10px 0;
   padding: 8px 12px;

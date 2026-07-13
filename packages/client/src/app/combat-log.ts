@@ -54,6 +54,8 @@ function combatLogText(e: AppEvent): string | null {
       });
     case 'HeroStruck':
       return t('combatLog.heroStruck', { target: nameOf(e.targetId), amount: e.amount });
+    case 'HeroRallied':
+      return t('combatLog.rallied', { target: nameOf(e.targetId), revived: e.revived, healed: e.healed });
     case 'MoraleTriggered':
       return t(e.positive ? 'combatLog.moralePos' : 'combatLog.moraleNeg', { unit: nameOf(e.stackId) });
     case 'StackFeared':

@@ -108,6 +108,9 @@ export {
   canHeroAttack,
 } from './hero-attack';
 
+/** Prière de bataille (F-SKILLS.2) — disponibilité + préviz (créatures relevées) pour l'UI. */
+export { canHeroRally, heroRallyHp, estimateHeroRally } from './hero-rally';
+
 /** Reddition & fuite (C3) — handlers + coût de reddition (affiché sur le bouton). */
 export {
   validateRetreat,

@@ -269,6 +269,17 @@
 > ajoutés), remis à zéro à chaque combat, borné à 80 lignes ; les ids de pile sont
 > résolus en noms d'unité localisés.
 
+> 🚧 **État (Prière de bataille — F-SKILLS.2-UI, livré)** : un bouton **« Prière »**
+> de la barre d'actions de combat expose la compétence de faction *Prière de
+> bataille* (doc 03 §2/§5), jusqu'ici pilotée par la seule IA. Il n'est actif que
+> si le héros du camp joueur porte la compétence (`battleResurrectHp`) et ne l'a
+> pas encore invoquée ce combat (gate moteur pur `canHeroRally`). Il ouvre une
+> **modale de ciblage d'une pile ALLIÉE vivante** (miroir de *Attaque du héros* et
+> *Sort (unité)*), avec **prévisualisation par cible** des créatures ressuscitées
+> et PV rendus (`estimateHeroRally`, sans RNG), puis dispatch `HeroRally`. **Client
+> pur** : le moteur (commande, résurrection intra-pile, 1×/combat) était déjà
+> livré — aucun état/save/golden ajouté.
+
 > 🚧 **État M1 (lisibilité d'état — plan `ux-revue-mmho.md` C13/C14/C18)** : le
 > bandeau du haut affiche désormais l'**ordre de passage réel du round** (helper
 > moteur pur `roundActionOrder` : vague normale par vitesse décroissante puis

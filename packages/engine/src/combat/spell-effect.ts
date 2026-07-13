@@ -90,14 +90,35 @@ export function resurrectStack(
   if (!def || target.count <= 0) return { healed: 0, revived: 0 };
   const lostSoFar =
     collectCasualties(combat).find((c) => c.side === target.side && c.unitId === target.unitId)?.lost ?? 0;
+  const r = resolveResurrect(def, target, lostSoFar, hp);
+  target.count = r.newCount;
+  target.firstHp = r.newFirstHp;
+  return { healed: r.healed, revived: r.revived };
+}
+
+/**
+ * Maths PURES de la résurrection intra-pile (sans mutation) — partagées par
+ * l'application (`resurrectStack`) et la prévisualisation (`estimateHeroRally`).
+ * `lostSoFar` = créatures déjà tuées de la pile (plafond de remontée).
+ */
+export function resolveResurrect(
+  def: CombatUnitDef,
+  target: CombatStack,
+  lostSoFar: number,
+  hp: number,
+): { newCount: number; newFirstHp: number; healed: number; revived: number } {
+  if (target.count <= 0) return { newCount: 0, newFirstHp: 0, healed: 0, revived: 0 };
   const maxCount = target.count + lostSoFar;
   const beforeCount = target.count;
   const currentPool = (target.count - 1) * def.stats.hp + target.firstHp;
   const newPool = Math.min(maxCount * def.stats.hp, currentPool + hp);
   const newCount = Math.min(maxCount, Math.max(1, Math.ceil(newPool / def.stats.hp)));
-  target.count = newCount;
-  target.firstHp = newPool - (newCount - 1) * def.stats.hp;
-  return { healed: newPool - currentPool, revived: newCount - beforeCount };
+  return {
+    newCount,
+    newFirstHp: newPool - (newCount - 1) * def.stats.hp,
+    healed: newPool - currentPool,
+    revived: newCount - beforeCount,
+  };
 }
 
 /**

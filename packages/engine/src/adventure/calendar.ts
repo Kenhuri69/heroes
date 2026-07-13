@@ -46,3 +46,15 @@ export function weekGrowthFactor(state: GameState): number {
   if (id === null) return 1;
   return state.config?.calendar?.events.find((e) => e.id === id)?.growthFactor ?? 1;
 }
+
+/**
+ * Facteur de croissance CIBLÉ d'un palier (M-CALENDAR « Semaine de X ») : si
+ * l'événement de la semaine courante cible ce `tier`, son `growthTier.factor`,
+ * sinon 1 (pas de ciblage). Multiplié au facteur global par la croissance hebdo.
+ */
+export function weekGrowthTierFactor(state: GameState, tier: number | undefined): number {
+  const id = state.calendar.weekEventId;
+  if (id === null || tier === undefined) return 1;
+  const gt = state.config?.calendar?.events.find((e) => e.id === id)?.growthTier;
+  return gt && gt.tier === tier ? gt.factor : 1;
+}

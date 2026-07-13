@@ -278,8 +278,14 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
   persistant à l'écran (M-CALWIDGET, livré)** : la barre de statut affiche
   « Mois M · Semaine W · Jour J » et un **badge persistant** de semaine spéciale
   (croissance ≠ normale) tant qu'elle dure — là où il n'y avait qu'un toast
-  transitoire. *Différés :* événements de **mois** persistants, événements
-  ciblant une créature précise (« semaine du Griffon »).
+  transitoire. **Semaine ciblant un palier (M-CALENDAR, livré)** : un événement
+  peut porter `growthTier { tier, factor }` — la croissance des unités de ce
+  **palier** (`CombatUnitDef.tier`) est × `factor` en plus du `growthFactor`
+  global (helper pur `weekGrowthTierFactor`, partagé par la projection de
+  recrutement). Événement livré : **Semaine des Recrues** (T1 ×2). Générique
+  (palier = nombre opaque), champ optionnel ⇒ pas de bump save, golden inchangé.
+  *Différés :* événements de **mois** persistants, semaine ciblant une créature
+  précise par `unitId` (au-delà du palier).
 
 ---
 

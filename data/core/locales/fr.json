@@ -475,6 +475,7 @@
   "calendar.event.harvest.name": "Semaine de la Moisson (croissance +50 %)",
   "calendar.event.bounty.name": "Semaine d'Abondance (croissance ×2)",
   "calendar.event.plague.name": "Semaine de la Peste (croissance ÷2)",
+  "calendar.event.recruits.name": "Semaine des Recrues (croissance des T1 ×2)",
   "toast.combatWon": "Victoire !",
   "toast.combatLost": "Défaite…",
   "toast.undeadRaised": "+{count} {unit} relevé(s) (Nécromancie)",

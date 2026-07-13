@@ -716,6 +716,10 @@ export const gameConfigSchema = z.object({
               weight: z.number().int().positive(),
               /** Multiplicateur de la croissance hebdomadaire (peste < 1, abondance > 1). */
               growthFactor: z.number().positive(),
+              /** « Semaine de X » (M-CALENDAR) : croissance ciblée × factor pour un palier. */
+              growthTier: z
+                .object({ tier: z.number().int().positive(), factor: z.number().positive() })
+                .optional(),
             }),
           )
           .min(1),

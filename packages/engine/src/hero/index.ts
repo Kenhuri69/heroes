@@ -4,7 +4,7 @@ import { isPassable } from '../adventure/path';
 import { heroLuckOf, killsFromDamage, magicResistanceOf } from '../combat/damage';
 import { checkCombatEnd } from '../combat/turns';
 import { applySpellToTargets, spellTargets, spellcasterParams } from '../combat/spell-effect';
-import { staticBlockedKeys } from '../combat/state-helpers';
+import { factionCurseDurationBonus, staticBlockedKeys } from '../combat/state-helpers';
 import {
   COMBAT_COLS,
   COMBAT_ROWS,
@@ -293,9 +293,13 @@ export function castHeroSpell(
     }
   } else {
     const luck = heroLuckOf(draft, combat, side);
+    // F-BONUS (Fléau persistant, doc 04 §2) : un sort de MALÉDICTION (`debuff`)
+    // d'un héros doté dure +N rounds — bonus par-faction calculé ici, passé comme
+    // simple nombre au cœur partagé (qui ignore toute notion de faction).
+    const durationBonus = spell.kind === 'debuff' ? factionCurseDurationBonus(draft, hero) : 0;
     // C7 : effet appliqué à la cible (+ alliées adjacentes en `splash`) via le
     // cœur PARTAGÉ avec le lancer d'unité `spellcaster` (A2h, combat/spell-effect).
-    ({ amount, kills } = applySpellToTargets(draft, combat, spell, target, power, luck, events));
+    ({ amount, kills } = applySpellToTargets(draft, combat, spell, target, power, luck, events, durationBonus));
   }
 
   events.push({

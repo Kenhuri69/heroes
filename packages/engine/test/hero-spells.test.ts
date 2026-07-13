@@ -25,6 +25,7 @@ const SPELLS: Record<string, SpellDef> = {
   heal: { id: 'heal', school: 'water', circle: 1, manaCost: 5, kind: 'heal', base: 10, perPower: 3 },
   haste: { id: 'haste', school: 'air', circle: 1, manaCost: 4, kind: 'buff', base: 0, perPower: 0, speedMod: 3 },
   markspell: { id: 'markspell', school: 'traque', circle: 1, manaCost: 4, kind: 'applyMarks', base: 0, perPower: 0, marks: 2 },
+  weaken: { id: 'weaken', school: 'air', circle: 1, manaCost: 4, kind: 'debuff', base: 0, perPower: 0, attackMod: -2 },
   portal: { id: 'portal', school: 'neutral', circle: 2, manaCost: 8, kind: 'adventure', base: 0, perPower: 0, adventure: { type: 'townPortal' } },
 };
 
@@ -402,5 +403,38 @@ describe('Lot D — D10 : la Marque amplifie les dégâts de sort', () => {
     // bolt = 10 + 2×3 = 16 ; +8 %/marque × 2 ⇒ ×1,16 ⇒ round(18,56) = 19.
     expect(est(0)).toBe(16);
     expect(est(2)).toBe(19);
+  });
+});
+
+/**
+ * F-BONUS.2 — Fléau persistant (doc 04 §2) : les sorts de MALÉDICTION (`debuff`)
+ * d'un héros doté du `curseDurationBonus` durent +N rounds. Générique : le moteur
+ * ajoute un nombre de rounds, jamais un nom de faction.
+ */
+describe('F-BONUS.2 — Fléau persistant (curseDurationBonus)', () => {
+  const catalog = { def: unit({ id: 'def', stats: { hp: 10, attack: 5, defense: 5, damage: [4, 4], speed: 5 } }) };
+  const CURSE_CATALOG = { necropolis: { bonuses: [{ type: 'curseDurationBonus' as const, rounds: 1 }] } };
+
+  function castDebuff(factionId: string, spellId: 'weaken' | 'haste'): number | undefined {
+    const h = hero({ factionId, spells: [spellId], attributes: { attack: 0, defense: 0, power: 2, knowledge: 0 } });
+    const attacker = stack({ id: 'attacker-0', side: 'attacker', slot: 0, unitId: 'def', count: 1, pos: { col: 0, row: 0 } });
+    const enemy = stack({ id: 'defender-0', side: 'defender', slot: 0, unitId: 'def', count: 1, pos: { col: 5, row: 5 } });
+    const combat = combatState([attacker, enemy], { attackerHeroId: h.id, activeStackId: 'attacker-0' });
+    const target = spellId === 'weaken' ? 'defender-0' : 'attacker-0';
+    const state: GameState = { ...baseState(catalog), spellCatalog: SPELLS, factionCatalog: CURSE_CATALOG, heroes: [h], combat };
+    const result = apply(state, { type: 'CastSpell', spellId, targetStackId: target });
+    return result.state.combat?.stacks.find((s) => s.id === target)?.statuses[0]?.roundsLeft;
+  }
+
+  it('un héros Necropolis prolonge sa malédiction de +1 round (Pouvoir 2 ⇒ 3)', () => {
+    expect(castDebuff('necropolis', 'weaken')).toBe(3); // max(1,2) + 1
+  });
+
+  it('un héros sans le bonus n’est pas prolongé (Pouvoir 2 ⇒ 2)', () => {
+    expect(castDebuff('haven', 'weaken')).toBe(2);
+  });
+
+  it('le bonus ne touche PAS les buffs (seuls les debuffs sont des malédictions)', () => {
+    expect(castDebuff('necropolis', 'haste')).toBe(2); // buff : durée de base
   });
 });

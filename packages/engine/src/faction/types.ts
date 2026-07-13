@@ -56,4 +56,18 @@ export interface CombatBonus {
   morale?: number;
 }
 
-export type FactionBonus = RaiseUndeadOnVictoryBonus | GainFactionResourceOnVictoryBonus | CombatBonus;
+/**
+ * Fléau persistant (F-BONUS, doc 04 §2) : les sorts de MALÉDICTION (`debuff`)
+ * lancés par le héros de cette faction durent `rounds` de plus. Générique — le
+ * moteur ajoute un nombre de rounds à la durée du statut, jamais un nom de faction.
+ */
+export interface CurseDurationBonus {
+  type: 'curseDurationBonus';
+  rounds: number;
+}
+
+export type FactionBonus =
+  | RaiseUndeadOnVictoryBonus
+  | GainFactionResourceOnVictoryBonus
+  | CombatBonus
+  | CurseDurationBonus;

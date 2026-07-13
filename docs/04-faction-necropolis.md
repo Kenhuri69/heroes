@@ -49,7 +49,7 @@
 
 - **Morts-vivants** : toutes les unités ont `undead` — insensibles au moral (le leur est toujours 0) et exclues du malus de moral multi-factions. *Le −1 moral **infligé** aux armées vivantes adverses est **livré** (lot A3a) via la capacité générique `aura(moraleMod:-1)` du Dragon d'os, interprétée dans `moraleOf` (doc 02 §5.4).*
 - **Nécromancie** (compétence de faction, signature) : après chaque victoire **en tant qu'attaquant** (remédiation D2 : aucun combat n'a de héros défenseur aujourd'hui — l'extension au défenseur vainqueur suivra la boucle « héros en défense »), relève en **Squelettes** un pourcentage des PV des créatures vivantes ennemies tuées — Novice 10 %, Expert 15 %, Maître 20 % (+ bâtiment Amplificateur). Plafonné par bataille à `2 × effectif **restant** de squelettes + 20` (D7 : le cap lit l'effectif restant après combat, pas l'effectif initial) pour éviter l'explosion exponentielle (levier d'équilibrage en données).
-- **Fléau persistant** : les sorts de malédiction lancés par des héros Necropolis durent +1 round.
+- **Fléau persistant** *(livré, F-BONUS.2)* : les sorts de malédiction (`debuff`) lancés par des héros Necropolis durent **+1 round**. Réalisé par le `FactionBonus` générique `curseDurationBonus { rounds }` (manifeste), interprété par `castHeroSpell` uniquement pour un sort de kind `debuff` — le cœur `applySpellToTargets` ne reçoit qu'un nombre de rounds, jamais un nom de faction. Zéro `if faction` moteur, aucun bump de sauvegarde (le `factionCatalog` est déjà sérialisé), golden inchangé.
 
 ## 3. Lineup d'unités (T1–T7)
 

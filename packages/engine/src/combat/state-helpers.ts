@@ -1,5 +1,5 @@
 import type { CombatRulesConfig } from '../adventure/config';
-import type { GameState } from '../core/state';
+import type { GameState, HeroState } from '../core/state';
 import { heroArtifactBonus } from '../hero/artifacts';
 import { heroMorale } from '../hero/skills';
 import { townBuildingAura, townEliteDamageBonus } from '../town/economy';
@@ -245,6 +245,19 @@ export function factionCombatBonus(
     }
   }
   return { attack, defense, morale };
+}
+
+/**
+ * Fléau persistant (F-BONUS, doc 04 §2) : somme des `curseDurationBonus.rounds`
+ * de la faction du héros — rounds ajoutés à la durée d'un sort de malédiction
+ * (`debuff`) qu'il lance. 0 sans héros / faction / bonus. Générique (aucun nom de
+ * faction) ; consommé par `castHeroSpell` uniquement pour un sort `debuff`.
+ */
+export function factionCurseDurationBonus(state: GameState, hero: HeroState | undefined): number {
+  const bonuses = hero ? state.factionCatalog[hero.factionId]?.bonuses ?? [] : [];
+  let rounds = 0;
+  for (const b of bonuses) if (b.type === 'curseDurationBonus') rounds += b.rounds;
+  return rounds;
 }
 
 /**

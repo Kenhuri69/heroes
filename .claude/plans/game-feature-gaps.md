@@ -246,9 +246,13 @@ Source design : docs 03 §2/§4/§5, 04 §2/§4, 05 §3/§5/§6/§7, 14 §5/§6,
   interprétée en combat par les helpers par-camp (`heroMoraleForSide`,
   `heroAttackOf`, `heroDefenseOf` via `factionCombatBonus`) — **pas de save bump**
   (le `factionCatalog` est déjà sérialisé). Haven doté (Ferveur `morale:1` +
-  Formation `defense:2` ≈ +5 %). **Reste** : Fléau persistant Nécropolis
-  (+1 round de malédiction — modificateur de statut, variante ultérieure) et le
-  câblage des autres factions (données).
+  Formation `defense:2` ≈ +5 %). **F-BONUS.2 livré** (plan `f-bonus-curse-duration.md`) :
+  **Fléau persistant** Necropolis — variante générique `curseDurationBonus { rounds }`
+  ajoutant N rounds à la durée d'un sort de MALÉDICTION (`debuff`) lancé par le héros
+  de la faction (`factionCurseDurationBonus` + param numérique de `applySpellToTargets`,
+  gate `spell.kind === 'debuff'` dans `castHeroSpell`). Necropolis doté (`rounds:1`).
+  Zéro faction moteur, aucun bump save, golden inchangé ; `faction:sim` sans blowout.
+  **Reste** : câblage combatBonus des autres factions (données, à équilibrer).
 
 - **F-SKILLS — Compétences de faction** 🧩 M (mécanisme + Nécromancie **livrés**)
   Doc : Prière de bataille (doc 03 §2/§5), Nécromancie graduée Novice/Expert/

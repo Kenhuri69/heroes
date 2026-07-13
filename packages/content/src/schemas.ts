@@ -108,6 +108,12 @@ export const factionBonusSchema = z.discriminatedUnion('type', [
     defense: z.number().int().nonnegative().default(0),
     morale: z.number().int().nonnegative().default(0),
   }),
+  // F-BONUS : Fléau persistant (doc 04 §2) — les sorts de malédiction (`debuff`)
+  // du héros de la faction durent +`rounds`. Générique, doc 06 §4.
+  z.object({
+    type: z.literal('curseDurationBonus'),
+    rounds: z.number().int().positive(),
+  }),
 ]);
 
 /**

@@ -68,7 +68,14 @@ export type VisitableEffect =
    * Sanctuaire de sort (M-VISIT, doc 02 §2.2) : enseigne `spellId` au héros
    * visiteur (ajout à `hero.spells`, idempotent). `oncePerHero` = gain unique.
    */
-  | { kind: 'learnSpell'; spellId: string };
+  | { kind: 'learnSpell'; spellId: string }
+  /**
+   * Cabane de la sorcière (M-VISIT, doc 02 §2.2 — « Witch Hut ») : enseigne la
+   * compétence `skillId` (rang 1) au héros visiteur, HORS montée de niveau.
+   * Idempotent — s'il la possède déjà, la visite est consommée sans rien
+   * apprendre. `oncePerHero` = gain unique. `skillId` = id opaque (jamais de faction).
+   */
+  | { kind: 'grantSkill'; skillId: string };
 
 /** Lieu de bonus visitable (doc 02 §2.2) : visite en passant, re-visite bornée. */
 export interface VisitableObjectDef {

@@ -329,6 +329,17 @@
       "frequency": "oncePerHero"
     },
     {
+      "id": "cabane-1",
+      "type": "visitable",
+      "x": 8,
+      "y": 7,
+      "effect": {
+        "kind": "grantSkill",
+        "skillId": "scouting"
+      },
+      "frequency": "oncePerHero"
+    },
+    {
       "id": "monolith-a",
       "type": "monolith",
       "x": 20,

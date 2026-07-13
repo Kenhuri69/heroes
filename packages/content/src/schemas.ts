@@ -858,6 +858,8 @@ export const mapFileSchema = z.object({
           }),
           /** Sanctuaire de sort (M-VISIT, doc 02 §2.2) : enseigne `spellId` au héros. */
           z.object({ kind: z.literal('learnSpell'), spellId: idSchema }),
+          /** Cabane de la sorcière (M-VISIT, doc 02 §2.2) : enseigne `skillId` au héros. */
+          z.object({ kind: z.literal('grantSkill'), skillId: idSchema }),
         ]),
         frequency: z.enum(['oncePerHero', 'oncePerHeroPerWeek']),
       }),

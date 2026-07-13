@@ -193,8 +193,10 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 > moulin `resource` fixe, **arène/statue `permanentStat`** (M-VISIT : +attribut
 > primaire **définitif** au héros visiteur), **sanctuaire de sort `learnSpell`**
 > (M-VISIT : enseigne un sort précis au héros — ajout idempotent à `hero.spells`,
-> classique « Sanctuaire de Magie » HoMM) ; re-visite `oncePerHero` ou
-> `oncePerHeroPerWeek`),
+> classique « Sanctuaire de Magie » HoMM), **cabane de la sorcière `grantSkill`**
+> (M-VISIT : enseigne une **compétence** au héros — rang 1, HORS montée de niveau,
+> ajout idempotent à `hero.skills`, classique « Witch Hut » HoMM) ; re-visite
+> `oncePerHero` ou `oncePerHeroPerWeek`),
 > **habitations hors ville** (M-DWELLOWN : **capturables** — la fouler pose le
 > drapeau du joueur et lui réserve le réassort hebdomadaire, façon HoMM ; la
 > visite recrute le maximum abordable ; stock hebdomadaire aux données d'unité)

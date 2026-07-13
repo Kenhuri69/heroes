@@ -56,6 +56,13 @@ export function visitBonus(
       hero.spells.push(effect.spellId);
       amount = 1;
     }
+  } else if (effect.kind === 'grantSkill') {
+    // Cabane de la sorcière (M-VISIT) : enseigne une compétence (rang 1) hors
+    // montée de niveau. Idempotent — déjà connue ⇒ visite consommée sans gain (0).
+    if (hero.skills[effect.skillId] === undefined) {
+      hero.skills[effect.skillId] = 1;
+      amount = 1;
+    }
   } else {
     player.resources[effect.resource as ResourceId] += effect.amount;
     amount = effect.amount;

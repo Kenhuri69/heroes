@@ -439,7 +439,7 @@ export const spellSchema = z
     school: z.enum(SPELL_SCHOOLS),
     circle: z.number().int().min(1).max(5),
     manaCost: z.number().int().positive(),
-    kind: z.enum(['damage', 'heal', 'buff', 'debuff', 'applyMarks', 'silence', 'banish', 'rally', 'stealth', 'teleport', 'adventure']),
+    kind: z.enum(['damage', 'heal', 'buff', 'debuff', 'applyMarks', 'silence', 'banish', 'rally', 'stealth', 'teleport', 'dispel', 'adventure']),
     base: z.number().nonnegative(),
     perPower: z.number().nonnegative(),
     attackMod: z.number().optional(),

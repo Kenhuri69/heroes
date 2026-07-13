@@ -490,5 +490,9 @@ function estimateSpellWithPower(
   if (spell.kind === 'heal') {
     return { amount: spellHealAmount(spell, power) * affected.length, kills: 0, kind: 'heal' };
   }
+  // H-SPELLS.4 (Dissipation) : la préviz annonce le nombre de statuts à retirer.
+  if (spell.kind === 'dispel') {
+    return { amount: affected.reduce((n, t) => n + t.statuses.length, 0), kills: 0, kind: 'dispel' };
+  }
   return { amount: 0, kills: 0, kind: spell.kind };
 }

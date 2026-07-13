@@ -198,6 +198,15 @@ export function applySpellToTargets(
     // riposte en frappant une pile MARQUÉE, pour `max(1, base)` round(s). Effet
     // de camp (global), pas un statut de pile — estampillé sur le combat.
     combat.markedNoRetaliation = { side: center.side, roundsLeft: Math.max(1, spell.base) };
+  } else if (spell.kind === 'dispel') {
+    // H-SPELLS.4 (Dissipation, doc 02 §1.4) : retire TOUS les statuts temporaires
+    // de sort (buffs/debuffs/poison/silence) de la/les pile(s) ennemie(s) visée(s)
+    // — « on souffle sur les enchantements d'autrui ». `amount` = nb de statuts
+    // retirés (journal + préviz). Réutilise le tableau `statuses` : zéro champ neuf.
+    for (const t of targets) {
+      amount += t.statuses.length;
+      t.statuses = [];
+    }
   } else if (spell.kind === 'banish') {
     // F-SCHOOLS.5 : bannit une pile ENNEMIE `banishable` (invoquée/démoniaque)
     // dont le total de PV ≤ seuil (`base + perPower × Pouvoir`) — retrait complet

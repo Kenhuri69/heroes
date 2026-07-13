@@ -141,14 +141,15 @@ export function heroArmorPct(hero: HeroState, catalog: Record<string, HeroSkillD
 }
 
 /**
- * Cercle de base apprenable sans compétence Sagesse (doc 02 §1.3, H2) : les
- * cercles 1 à 3 sont libres ; les hauts cercles (4-5) exigent Sagesse.
+ * Cercle de base apprenable sans compétence Sagesse (doc 02 §1.3, H2, fidélité
+ * HoMM3) : seuls les cercles 1 et 2 sont libres ; les cercles 3 à 5 exigent
+ * Sagesse (basic → 3, avancé → 4, expert → 5).
  */
-export const BASE_LEARNABLE_CIRCLE = 3;
+export const BASE_LEARNABLE_CIRCLE = 2;
 
 /**
  * Cercle de sort le plus élevé que ce héros peut APPRENDRE à la guilde des mages
- * (G2/H2) : base 3, relevé par la compétence Sagesse (`learnCircle` du rang
+ * (G2/H2) : base 2, relevé par la compétence Sagesse (`learnCircle` du rang
  * courant). N'affecte PAS le lancement d'un sort déjà connu — seulement
  * l'apprentissage. Prend le max (pas la somme) : un seul palier de déblocage.
  */

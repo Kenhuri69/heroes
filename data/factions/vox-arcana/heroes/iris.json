@@ -7,5 +7,9 @@
   "avatar": "vox-arcana-iris",
   "avatarStyle": "photoreal",
   "startingHouseId": "house-badger",
-  "specialty": "@loc:hero.iris.specialty"
+  "specialty": "@loc:hero.iris.specialty",
+  "attributes": { "attack": 0, "defense": 2, "power": 2, "knowledge": 2 },
+  "specialtyEffect": { "id": "gardienne-de-la-ville", "garrisonDefense": 2 },
+  "startingSkills": { "wisdom": 1, "armor": 1 },
+  "startingSpells": ["barriere-du-honmoon", "soin"]
 }

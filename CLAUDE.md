@@ -324,6 +324,24 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > pour un départ délibéré). Garde-fou « zéro faction » vert, pas de bump save,
 > golden inchangé ; smoke étendu (abandon + bilan).
 
+> 🎓 **Retours de jeu — héros Vox Arcana & équilibrage sorts/attaque** (plan
+> `.claude/plans/vox-arcana-hero-balance.md`, capture ville Vox Arcana). Quatre
+> correctifs : (1) **héros Vox Arcana recrutables** — les 5 fiches
+> (`data/factions/vox-arcana/heroes/`) étaient *identity-only* (sans `attributes`)
+> ⇒ ignorées par `buildHeroRoster` (« Aucun héros disponible ») ; dotées du gameplay
+> complet (attributs, spécialité, `startingSkills`/`startingSpells`, locales de
+> spécialité fr/en) comme les héros canon Haven/Necropolis — **données pures** ;
+> (2) **attaque du héros en combat** — `combat.heroAttack` re-scalée sur l'ATTAQUE et
+> non le Pouvoir (`{base:8,perPower:6,perAttack:2}` → `{base:3,perPower:0,perAttack:3}`),
+> magnitude ~cercle 1 (data config) ; (3) **sorts** déjà scalés sur le Pouvoir
+> (`castHeroSpell` → `effectivePower`), contraste voulu avec (2) — rien à coder ;
+> (4) **accès cercle 3 gaté par Sagesse (fidélité HoMM3)** — `BASE_LEARNABLE_CIRCLE`
+> 3 → **2** (cercles 1-2 libres, 3+ via Sagesse) + `skills.json` wisdom `learnCircle`
+> [4,5,5] → **[3,4,5]** (basic→3, avancé→4, expert→5) ⇒ seuls les héros magie dotés de
+> Sagesse (ou de `startingSpells`) accèdent tôt au cercle 3. Docs 02 §1.3/§4.1 alignées.
+> Garde-fou « zéro faction » vert, **pas de bump save**, golden inchangé ; mage-guild.test
+> étendu (gate cercle 3/4).
+
 ---
 
 ## Structure des fichiers

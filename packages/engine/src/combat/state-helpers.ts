@@ -49,6 +49,18 @@ export function isSilenced(stack: CombatStack): boolean {
 }
 
 /**
+ * Immunité aux sorts (CAP-SPELLIMMUNE, capacité `spellImmune`) : une pile dotée
+ * ne peut être visée par un sort HOSTILE (dégâts/debuff/silence/marque/bannissement/
+ * dissipation) — ni du héros ni d'une unité lanceuse. Miroir de la furtivité
+ * (`stealthed`) mais côté DÉFINITION d'unité (`catalog[unitId]`). Pure ; `false`
+ * pour un id inconnu. Les sorts amis (soin/buff) ne sont pas concernés.
+ */
+export function isSpellImmune(catalog: Record<string, CombatUnitDef>, unitId: string): boolean {
+  const def = catalog[unitId];
+  return def ? hasAbility(def, 'spellImmune') : false;
+}
+
+/**
  * Paramètres de la capacité `performer` (F-RESON.2, doc 16 §3.2) : ressource de
  * faction générée en combat et montant par round, ou null si non-performeur.
  */

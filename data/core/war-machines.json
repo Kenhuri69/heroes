@@ -18,7 +18,7 @@
       "id": "arrow-tower",
       "name": "@loc:warMachine.arrow-tower.name",
       "stats": { "hp": 400, "attack": 12, "defense": 12, "damage": [10, 20], "speed": 1 },
-      "abilities": [{ "id": "shooter", "params": { "ammo": 999, "noMeleePenalty": true } }, { "id": "warMachine" }, { "id": "immobile" }],
+      "abilities": [{ "id": "shooter", "params": { "ammo": 999, "noMeleePenalty": true } }, { "id": "warMachine" }, { "id": "immobile" }, { "id": "spellImmune" }],
       "cost": { "gold": 1 }
     }
   ]

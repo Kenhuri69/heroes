@@ -178,7 +178,10 @@ Familles, par mécanique moteur commune :
 
 - **CAP-DEF — Défense/riposte** ✅ (A2a : `shieldWall`, `unlimitedRetaliation`,
   `magicResistance` autonome **livrés** ; A2b : `incorporeal` **livré** ;
-  A2e : `taunt` **livré** — dernière capacité défensive) :
+  A2e : `taunt` **livré** ; CAP-SPELLIMMUNE : `spellImmune` **livré** (plan
+  `cap-spell-immune.md`) — pile inciblable par un sort HOSTILE (miroir furtivité
+  côté def), sorts amis/frappes physiques non concernés ; carrier core
+  `arrow-tower` (zéro faction, hors `faction:sim`), pas de bump save, golden inchangé) :
   `taunt` (Conscrit Haven, doc 03 §3) ✅,
   `shieldWall` (Frère-Lame, doc 03 §3), `unlimitedRetaliation` (Griffon,
   doc 03 §3), `incorporeal` 20 % esquive (Spectre, doc 04 §3),

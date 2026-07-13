@@ -8,7 +8,7 @@ import { applySpellToTargets, damageOneStack, spellcasterParams } from './spell-
 import type { Draft } from './draft';
 import { COMBAT_COLS, COMBAT_ROWS, hexDistance, hexLine, hexNeighbors, sameHex, type OffsetPos } from './hex';
 import { advanceTurn, checkCombatEnd } from './turns';
-import { combatRules, hasAbility, isShooterMeleePenalized, isSilenced, moraleOf, moveRange, staticBlockedKeys } from './state-helpers';
+import { combatRules, hasAbility, isShooterMeleePenalized, isSilenced, isSpellImmune, moraleOf, moveRange, staticBlockedKeys } from './state-helpers';
 import { spellTargetsEnemy } from '../hero/spells';
 import type { CombatActionInput, CombatSideId, CombatStack, CombatState, CombatUnitDef } from './types';
 
@@ -272,6 +272,9 @@ export function validateCombatAction(state: GameState, cmd: { action: CombatActi
       // F-SCHOOLS.7 : un sort offensif ne peut viser une pile ennemie furtive.
       if (spellTargetsEnemy(spell.kind) && target.stealthed)
         return { code: 'invalidAction', message: 'cible furtive' };
+      // CAP-SPELLIMMUNE : ni une pile immunisée aux sorts.
+      if (spellTargetsEnemy(spell.kind) && isSpellImmune(state.unitCatalog, target.unitId))
+        return { code: 'invalidAction', message: 'cible immunisée aux sorts' };
       if (spellTargetsEnemy(spell.kind) !== (target.side !== stack.side))
         return { code: 'invalidAction', message: 'cible du mauvais camp pour ce sort' };
       return null;

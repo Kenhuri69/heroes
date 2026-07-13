@@ -3,6 +3,7 @@ import {
   effectiveManaCost,
   estimateSpell,
   heroKnownSpellIds,
+  isSpellImmune,
   spellTargetsEnemy,
   type ArtifactDef,
   type CombatState,
@@ -256,8 +257,13 @@ function TargetList({
   // Un sort qui ne vise pas l'ennemi (soin/buff/rally) cible le camp du joueur —
   // source unique partagée avec le moteur (F-SCHOOLS.6 : `rally` = allié).
   const friendly = !spellTargetsEnemy(def.kind);
+  const unitCatalog = useApp((s) => s.game.unitCatalog);
+  // CAP-SPELLIMMUNE : une pile ennemie immunisée aux sorts n'est pas ciblable par
+  // un sort hostile (parité avec la validation moteur).
   const targets: CombatStack[] = combat.stacks.filter((s) =>
-    friendly ? s.side === combat.playerSide : s.side !== combat.playerSide,
+    friendly
+      ? s.side === combat.playerSide
+      : s.side !== combat.playerSide && !isSpellImmune(unitCatalog, s.unitId),
   );
 
   if (targets.length === 0) {

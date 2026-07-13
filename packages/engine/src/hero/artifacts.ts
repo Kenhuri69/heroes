@@ -15,6 +15,7 @@ export interface ArtifactBonusTotal {
   luck: number;
   morale: number;
   manaMax: number;
+  movementFlat: number;
 }
 
 /** Somme des `bonus` de chaque artefact équipé (slot vide ou id inconnu ignoré). */
@@ -30,6 +31,7 @@ export function heroArtifactBonus(
     luck: 0,
     morale: 0,
     manaMax: 0,
+    movementFlat: 0,
   };
   for (const artifactId of hero.artifacts) {
     if (!artifactId) continue;
@@ -42,6 +44,7 @@ export function heroArtifactBonus(
     total.luck += def.bonus.luck ?? 0;
     total.morale += def.bonus.morale ?? 0;
     total.manaMax += def.bonus.manaMax ?? 0;
+    total.movementFlat += def.bonus.movementFlat ?? 0;
   }
   return total;
 }

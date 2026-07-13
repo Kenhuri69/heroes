@@ -570,6 +570,8 @@ const artifactBonusSchema = z
     luck: z.number().optional(),
     morale: z.number().optional(),
     manaMax: z.number().optional(),
+    /** PM quotidiens plats (H-ARTEQUIP, doc 02 §1.5 — bottes de vitesse). */
+    movementFlat: z.number().optional(),
   })
   .refine((b) => Object.values(b).some((v) => v !== undefined), 'bonus vide');
 

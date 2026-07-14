@@ -130,6 +130,12 @@ les capacités listées **existent déjà** au catalogue générique
   - **Shadya** (Sorcière d'Ombre / magic) — spécialité *Voile Irrésistible* :
     `startingSpells` destructeur + `wisdom` de départ (accès cercle 3 tôt, doc 02
     §1.3), incarne la signature. Attributs type magic (`power`/`knowledge`).
+- **Héros original** (`origin: original`, sans `source`) — création propre au jeu :
+  - **Olivier**, la Coupe Silencieuse (Suzerain / might) — assassin de l'ombre au
+    poison. Spécialité *Poison Certain* : ses **Éclaireurs** (lignée tireuse à
+    `poisonSting`) gagnent attaque + célérité, à échelle de niveau (via le point
+    générique `conditional`/`conditionalUnitBonus`, `perLevels`) — « ne laisse pas
+    de place à la chance ». `archery` de départ (jamais `luck`), attributs might.
 - Les **spécialités conditionnelles avancées** (au-delà de `conditional`) restent
   différées comme pour les autres factions (point d'extension distinct).
 

@@ -31,6 +31,9 @@
   "hero.shadya.name": "Shadya",
   "hero.shadya.bio": "Sorcière d'ombre au talent redouté, Shadya a percé les voiles qui bridaient la magie destructrice.",
   "hero.shadya.specialty": "Voile Irrésistible — sa maîtrise réduit le coût en mana de ses sorts.",
+  "hero.olivier.name": "Olivier",
+  "hero.olivier.bio": "Elfe noir surnommé la Coupe Silencieuse, Olivier enduit chaque lame et chaque trait d'un venin de sa composition. Là où d'autres tueurs s'en remettent au coup de chance, lui ne laisse rien au hasard : la cible est condamnée avant même d'entendre le sifflement.",
+  "hero.olivier.specialty": "Poison Certain — les Éclaireurs sous ses ordres gagnent en attaque et en célérité, un venin qui ne laisse aucune place à la chance et dont la morsure s'aggrave à mesure qu'il progresse.",
 
   "unit.t1-eclaireur.lore": "On ne nous voit jamais deux fois. La première suffit.",
   "unit.t1-eclaireur-elite.lore": "La lumière projette des ombres. Nous vivons dedans, et nous y tuons.",

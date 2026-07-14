@@ -108,12 +108,16 @@ describe('5ᵉ faction (native de `rough`, elfes noirs) — pipeline data-driven
       expect(sig.resistancePierce).toBeGreaterThan(0);
       expect(sig.resistancePierce).toBeLessThanOrEqual(1);
     }
-    // Deux héros nommés canon (Raelag/Shadya), avec gameplay résolu (attributs).
-    expect(pack?.heroes).toHaveLength(2);
+    // Trois héros nommés — deux canon (Raelag/Shadya) + un original (Olivier),
+    // tous avec gameplay résolu (attributs).
+    expect(pack?.heroes).toHaveLength(3);
     for (const h of pack?.heroes ?? []) {
-      expect(h.origin).toBe('canon');
+      expect(['canon', 'original']).toContain(h.origin);
       expect(h.attributes).toBeDefined();
     }
+    const olivier = pack?.heroes.find((h) => h.id === 'olivier');
+    expect(olivier?.origin).toBe('original');
+    expect(olivier?.specialtyEffect?.conditional?.unitId).toBe('t1-eclaireur');
   });
 
   it('résout les capacités attendues du lineup (doc 17 §3, catalogue générique)', async () => {

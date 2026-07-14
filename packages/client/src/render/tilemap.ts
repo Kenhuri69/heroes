@@ -38,8 +38,13 @@ export interface WorldRect {
 }
 
 interface Chunk {
-  node: Container;
+  /** Construit PARESSEUSEMENT sur les grandes cartes (F9) — `null` tant que jamais visible. */
+  node: Container | null;
   bounds: WorldRect;
+  x0: number;
+  y0: number;
+  x1: number;
+  y1: number;
 }
 
 /**
@@ -63,43 +68,50 @@ export class Tilemap {
   /** Culling actif uniquement quand la carte n'est PAS aplatie en une texture. */
   private readonly culled: boolean;
 
-  constructor(map: AdventureMapDef) {
-    for (let cy = 0; cy < map.height; cy += CHUNK) {
-      for (let cx = 0; cx < map.width; cx += CHUNK) {
-        const x1 = Math.min(cx + CHUNK - 1, map.width - 1);
-        const y1 = Math.min(cy + CHUNK - 1, map.height - 1);
-        const node = buildChunk(map, cx, cy, x1, y1);
-        this.container.addChild(node);
-        this.chunks.push({ node, bounds: chunkBounds(cx, cy, x1, y1) });
-      }
-    }
-
+  constructor(private readonly map: AdventureMapDef) {
     // Carte statique assez petite → une seule texture (1 draw call/frame) : rend
     // les ~1000 losanges gratuits par frame (marge anti-gel ×4, doc 01 §5). Garde
     // sur les grandes cartes : l'extent iso ≈ (W+H)·32 px doit rester < taille max
     // de texture ; au-delà on reste en chunks culés (mémoire bornée) plutôt qu'une
     // texture tronquée ou géante.
-    if ((map.width + map.height) * (ISO_TILE_W / 2) < 3968) {
-      this.container.cacheAsTexture(true);
-      this.culled = false;
-    } else {
-      this.culled = true;
+    this.culled = (map.width + map.height) * (ISO_TILE_W / 2) >= 3968;
+
+    for (let cy = 0; cy < map.height; cy += CHUNK) {
+      for (let cx = 0; cx < map.width; cx += CHUNK) {
+        const x1 = Math.min(cx + CHUNK - 1, map.width - 1);
+        const y1 = Math.min(cy + CHUNK - 1, map.height - 1);
+        // F9 (revue 2026-07) : sur une grande carte culée, les sprites d'un chunk
+        // ne sont construits qu'à sa PREMIÈRE entrée dans le viewport (patron
+        // `TerrainProps`) — plus de hitch de ~65 000 sprites au chargement d'une
+        // carte 256², ni de scène-graphe intégral retenu pour des zones jamais vues.
+        const node = this.culled ? null : buildChunk(map, cx, cy, x1, y1);
+        if (node) this.container.addChild(node);
+        this.chunks.push({ node, bounds: chunkBounds(cx, cy, x1, y1), x0: cx, y0: cy, x1, y1 });
+      }
     }
+
+    if (!this.culled) this.container.cacheAsTexture(true);
   }
 
   /**
-   * Masque les chunks hors du viewport (coordonnées MONDE). No-op quand la carte
-   * est aplatie en une texture (rien à culer). Appelée par la scène à chaque frame
-   * — quelques centaines de tests d'intersection AABB, négligeable.
+   * Masque les chunks hors du viewport (coordonnées MONDE) — et construit
+   * paresseusement ceux qui y entrent pour la première fois (F9). No-op quand la
+   * carte est aplatie en une texture (rien à culer). Appelée par la scène à
+   * chaque frame — quelques centaines de tests d'intersection AABB, négligeable.
    */
   updateVisibility(view: WorldRect): void {
     if (!this.culled) return;
     for (const c of this.chunks) {
-      c.node.visible =
+      const visible =
         c.bounds.maxX >= view.minX &&
         c.bounds.minX <= view.maxX &&
         c.bounds.maxY >= view.minY &&
         c.bounds.minY <= view.maxY;
+      if (visible && !c.node) {
+        c.node = buildChunk(this.map, c.x0, c.y0, c.x1, c.y1);
+        this.container.addChild(c.node);
+      }
+      if (c.node) c.node.visible = visible;
     }
   }
 }

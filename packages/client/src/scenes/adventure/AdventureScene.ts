@@ -132,6 +132,7 @@ export class AdventureScene {
     };
     this.tilemap.updateVisibility(view);
     this.terrainProps.updateVisibility(view);
+    this.fog.updateVisibility(view); // F1 : brouillard chunké, culé au même viewport
   }
 
   /**
@@ -157,10 +158,23 @@ export class AdventureScene {
     return [...this.heroSprites.keys()];
   }
 
+  /** Références du dernier sync — dirty-check F1 (revue 2026-07). */
+  private lastSync: { game: unknown; selectedHeroId: unknown; turnAck: unknown } | null = null;
+
   /** Resynchronise le scène-graphe sur l'état (réconciliation simple, doc 10 §2.2). */
   private sync(): void {
     if (this.destroyed) return;
-    const { game } = appStore.getState();
+    // F1 (revue 2026-07) : l'abonnement store se déclenche à CHAQUE setState —
+    // toast, ligne de journal, tick aiTurn… Sans dirty-check, chaque mutation
+    // purement UI reconstruisait brouillard (O(W×H)) + objets + villes. On ne
+    // resynchronise que si les entrées RÉELLES du sync ont changé de référence
+    // (l'état moteur est immuable : même référence ⇒ même contenu).
+    const s = appStore.getState();
+    const last = this.lastSync;
+    if (last && last.game === s.game && last.selectedHeroId === s.selectedHeroId && last.turnAck === s.turnAck)
+      return;
+    this.lastSync = { game: s.game, selectedHeroId: s.selectedHeroId, turnAck: s.turnAck };
+    const { game } = s;
     const { map, config } = game;
     const player = game.players.find((p) => p.id === humanId(game));
     if (!map || !config || !player) return;

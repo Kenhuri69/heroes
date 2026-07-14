@@ -81,21 +81,24 @@ export async function dispatch(cmd: Command): Promise<EngineResult> {
   if (err) throw new EngineError(err);
   const before = appStore.getState().game.combat;
   const result = apply(appStore.getState().game, cmd);
-  appStore.setState({ game: result.state });
   // Écran pré-combat (Lot 1) : armé quand un combat DÉMARRE (null → non-null),
-  // désarmé quand il se termine. La conduite manuelle / l'Auto-Battle le
-  // désarment aussi côté UI (PreBattleScreen).
-  if (!before && result.state.combat) appStore.setState({ preBattlePending: true, combatAutoActive: false, combatSpellTarget: null, combatInspectId: null, combatResult: null });
-  else if (before && !result.state.combat) {
-    // Fin de combat : bilan (retour de jeu 2026-07) pour un combat FOUILLÉ, sinon
-    // `null` (départ délibéré / pas de combat).
+  // désarmé quand il se termine (avec bilan pour un combat FOUILLÉ, sinon null —
+  // départ délibéré). La conduite manuelle / l'Auto-Battle le désarment aussi
+  // côté UI (PreBattleScreen). UN SEUL setState par commande (F1, revue
+  // 2026-07) : le second doublait chaque resync de scène abonnée au store.
+  if (!before && result.state.combat) {
+    appStore.setState({ game: result.state, preBattlePending: true, combatAutoActive: false, combatSpellTarget: null, combatInspectId: null, combatResult: null });
+  } else if (before && !result.state.combat) {
     appStore.setState({
+      game: result.state,
       preBattlePending: false,
       combatAutoActive: false,
       combatSpellTarget: null,
       combatInspectId: null,
       combatResult: buildCombatResult(result.events),
     });
+  } else {
+    appStore.setState({ game: result.state });
   }
   eventBus.emit(result.events);
   await runAiLoop();

@@ -176,10 +176,12 @@ function scoreCandidate(
   combat: CombatState,
   catalog: Record<string, CombatUnitDef>,
   selfPos: OffsetPos,
+  /** F8 (revue 2026-07) : estimation mémoïsée PAR CIBLE — le résultat d'`estimateDamage` ne dépend pas de `from` (bonus de charge explicitement omis de la préviz). */
+  estimate: (targetId: string) => ReturnType<typeof estimateDamage>,
 ): number {
   const targetDef = catalog[candidate.target.unitId];
   if (!targetDef) return -Infinity;
-  const est = estimateDamage(state, stackId, candidate.target.id);
+  const est = estimate(candidate.target.id);
   const avgDamage = (est.damageMin + est.damageMax) / 2;
   const avgKills = (est.killsMin + est.killsMax) / 2;
   const expected = avgDamage + avgKills * targetDef.stats.hp;
@@ -319,9 +321,20 @@ export function chooseAction(state: GameState, stackId: string): CombatActionInp
   });
 
   if (legalCandidates.length > 0) {
+    // F8 : jusqu'à 6 origines de mêlée par cible partageaient le même appel
+    // `estimateDamage` (LoS + scans héros + bonus conditionnels) — mémo par cible.
+    const estCache = new Map<string, ReturnType<typeof estimateDamage>>();
+    const estimate = (targetId: string): ReturnType<typeof estimateDamage> => {
+      let e = estCache.get(targetId);
+      if (!e) {
+        e = estimateDamage(state, stackId, targetId);
+        estCache.set(targetId, e);
+      }
+      return e;
+    };
     const best = pickBestBy(
       legalCandidates,
-      (c) => scoreCandidate(state, stackId, c, enemies, combat, catalog, stack.pos),
+      (c) => scoreCandidate(state, stackId, c, enemies, combat, catalog, stack.pos, estimate),
       (a, b) => compareCodeUnits(a.target.id, b.target.id) || compareHex(a.from ?? stack.pos, b.from ?? stack.pos),
     ) as AttackCandidate;
     return best.from

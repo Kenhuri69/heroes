@@ -458,7 +458,26 @@ les données actuelles** (cross-check scripté des ids) ; garde `readSaveVersion
   `TerrainProps` (plus de destroy/create par frontière de chunk en pan).
   Mesure : smoke @perf (carte ×4 throttlée, rendu logiciel CI) **7,9 → 10,8
   fps** (+37 %). Vérif : @core 19/19, @perf 2/2, suite complète verte.
-- [ ] Lot 7a — perf moteur sans golden (F5–F8)
+- [x] Lot 7a — perf moteur sans golden (F5–F8). Livré (uniquement les
+  optimisations NEUTRES en décision — golden vert sans re-fix) : **F5** —
+  index par tuile (objets/héros/villes + Set d'ids pour `guardedBy`)
+  construits une fois par commande dans `advanceHeroAlongPath`, tenus à jour
+  au ramassage ; buckets en ordre de tableau ⇒ mêmes départages. **F6** —
+  `roamGuardians` : occupation précalculée en COMPTEURS par tuile (pas un
+  Set : deux objets peuvent partager une tuile), mise à jour au fil des pas.
+  **F7** — `findPath(maxCost)` : l'A* abandonne les nœuds au-delà du budget
+  de PM — passé par les 3 pickers IA (qui rejettent déjà cost > PM ⇒
+  équivalent en décision) ; une cible proche inatteignable n'épuise plus la
+  composante. **F8** — `estimateDamage` mémoïsé PAR CIBLE dans le choix
+  d'action (le résultat ne dépend pas de `from`). **Bench consigné** (carte
+  200², ~2 300 objets, 10 répétitions) : mouvement 150 pas **13 979 → 507 ms
+  (×27,6)** ; `roamGuardians` **203 → 121 ms**. Écarts vs plan : Dijkstra
+  mutualisé + « suivre le chemin d'exploration complet » NON retenus en 7a
+  (chemins optimaux à égalité pouvant différer ⇒ écarts de décision ⇒ golden)
+  — reportés en 7b si souhaité ; mémo `heroAttackOf`/`heroDefenseOf`
+  (résolution, pas préviz) aussi laissé à 7b. `validatePath` non indexé
+  (une passe par commande humaine, hors boucle IA). Golden inchangé,
+  758/758, @core 19/19.
 - [ ] Lot 7b — perf moteur avec re-fix golden (F2, F3)
 - [ ] Lot 8 — P2 moteur + décisions design (B18–B32)
 - [ ] Lot 9 — P2 client (B34–B45)

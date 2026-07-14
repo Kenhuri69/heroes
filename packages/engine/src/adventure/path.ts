@@ -46,6 +46,15 @@ export function findPath(
   blocked: readonly GridPos[] = [],
   /** true : autorise une destination occupée (attaque d'un gardien — doc 02 §5). */
   allowBlockedGoal = false,
+  /**
+   * Budget de coût (F7, revue 2026-07) : abandonne les nœuds dont le coût cumulé
+   * dépasse `maxCost` — l'exploration reste bornée au disque de PM au lieu
+   * d'épuiser toute la composante (~65 k tuiles en 256²) pour une cible proche
+   * mais inatteignable. ÉQUIVALENT EN DÉCISION pour un appelant qui rejette de
+   * toute façon les chemins au-delà du budget (les pickers IA) : un chemin
+   * optimal ≤ budget ne traverse que des nœuds ≤ budget (coûts positifs).
+   */
+  maxCost = Infinity,
 ): GridPos[] | null {
   if (!inBounds(map, from) || !isPassable(config, map, to) || samePos(from, to)) return null;
   const blockedSet = new Set(blocked.map((p) => p.y * map.width + p.x));
@@ -82,6 +91,7 @@ export function findPath(
       const nextIdx = next.y * map.width + next.x;
       if (nextIdx !== goal && blockedSet.has(nextIdx)) continue;
       const g = (gScore[current] ?? Infinity) + stepCost(config, map, cur, next);
+      if (g > maxCost) continue; // F7 : au-delà du budget de PM, inatteignable pour l'appelant
       if (g < (gScore[nextIdx] ?? Infinity)) {
         gScore[nextIdx] = g;
         cameFrom[nextIdx] = current;

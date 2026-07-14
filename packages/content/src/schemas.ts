@@ -865,6 +865,8 @@ export const mapFileSchema = z.object({
           z.object({ kind: z.literal('luck'), amount: z.number().int().positive() }),
           z.object({ kind: z.literal('movement'), amount: z.number().int().positive() }),
           z.object({ kind: z.literal('levelXp') }),
+          /** Pierre du Savoir (M-VISIT, doc 02 §2.2) : montant FIXE d'XP au héros. */
+          z.object({ kind: z.literal('experience'), amount: z.number().int().positive() }),
           z.object({
             kind: z.literal('resource'),
             resource: z.enum(COMMON_RESOURCE_IDS),

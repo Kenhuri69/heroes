@@ -41,6 +41,10 @@ export function visitBonus(
     const config = draft.config?.hero;
     amount = config ? Math.max(0, xpForLevel(config, hero.level + 1) - hero.xp) : 0;
     grantXp(draft, events, hero.id, amount);
+  } else if (effect.kind === 'experience') {
+    // Pierre du Savoir (M-VISIT) : montant FIXE d'XP (peut monter de niveau).
+    amount = effect.amount;
+    grantXp(draft, events, hero.id, amount);
   } else if (effect.kind === 'vision') {
     // Tour de guet (F2) : révèle durablement le brouillard autour du lieu.
     if (draft.map) revealAround(player.explored, draft.map, obj.pos, effect.amount);

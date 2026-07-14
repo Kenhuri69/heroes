@@ -906,6 +906,7 @@ export type ResolvedMapObject =
         | { kind: 'luck'; amount: number }
         | { kind: 'movement'; amount: number }
         | { kind: 'levelXp' }
+        | { kind: 'experience'; amount: number }
         | { kind: 'resource'; resource: string; amount: number }
         | { kind: 'vision'; amount: number }
         | { kind: 'permanentStat'; attribute: 'attack' | 'defense' | 'power' | 'knowledge'; amount: number }

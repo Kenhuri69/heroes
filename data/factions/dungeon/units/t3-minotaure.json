@@ -2,6 +2,7 @@
   "id": "t3-minotaure",
   "tier": 3,
   "name": "@loc:unit.t3-minotaure.name",
+  "loreKey": "@loc:unit.t3-minotaure.lore",
   "stats": { "hp": 25, "attack": 9, "defense": 8, "damage": [6, 9], "speed": 6 },
   "growthPerWeek": 6,
   "cost": { "gold": 260, "sulfur": 1 },

@@ -125,11 +125,17 @@
   blowout ; content:check vert ; typecheck vert ; garde-fou faction vert ; budget
   bundle inchangé (aucun asset ajouté). **Aucun diff moteur** (données + docs).
 
-### Lot 17.5 (optionnel, second temps) — Narratif
-- [ ] `loreKey` FR/EN sur tout le contenu (unités/bâtiment/héros) du point de vue
-      du Donjon (doc 13 §8 / doc 17 §8).
-- [ ] Campagne 3 chapitres `data/factions/dungeon/story/` (*La Descente*,
-      *La Couvée d'Ombre*, *La Serrure*). Mêmes garde-fous : zéro diff moteur.
+### Lot 17.5 — Narratif (textes d'ambiance) — ✅ LIVRÉ
+- [x] `loreKey` FR/EN sur les **14 unités** (base + élites) + le **Puits de
+      Malédiction**, voix 1ʳᵉ personne du Donjon (froide, impérieuse). Héros : `bio`
+      FR/EN déjà livrée (17.2).
+- [x] **Vérif** : `content:check` vert (parité lore fr/en OK ; 72/90 unités avec
+      ambiance, +14 Dungeon) ; tests content 129 ; garde-fou faction vert. **Zéro
+      diff moteur** (données pures : `loreKey` + locales).
+- **Campagne différée** (lot narratif distinct) : 3 chapitres
+      `data/factions/dungeon/story/` (*La Descente*, *La Couvée d'Ombre*, *La
+      Serrure*) — chantier de contenu autonome (cartes + scénarios + dialogues),
+      comparable aux PR N3a/N3b ; à ouvrir sur décision utilisateur. Mêmes garde-fous.
 
 ## Différés (notés, hors périmètre initial — cf. autres factions)
 - École de sorts propre `ombre` + sorts dédiés (motif `traque`/`scene` déjà livré).
@@ -153,3 +159,9 @@
   blowout**. Finitions (assets/badge/i18n) satisfaites par construction. **Aucun
   diff moteur** (données + docs). Reste **17.5 — narratif** (optionnel, sur
   décision utilisateur). La faction Donjon est jouable & équilibrée de bout en bout.
+- **2026-07-14** — Lot 17.4 mergé (PR #351, squash). Lot **17.5 — textes
+  d'ambiance** livré sur branche de suivi : `loreKey` FR/EN sur les 14 unités + le
+  Puits de Malédiction (voix du Donjon). Données pures, zéro diff moteur. La
+  **campagne 3 chapitres** reste un lot narratif distinct (cartes/scénarios/
+  dialogues), à ouvrir sur décision. **Faction Donjon complète** (17.1→17.5) :
+  cadrage, données, signature, équilibrage, ambiance.

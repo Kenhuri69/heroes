@@ -2,6 +2,7 @@
   "id": "t1-eclaireur-elite",
   "tier": 1,
   "name": "@loc:unit.t1-eclaireur-elite.name",
+  "loreKey": "@loc:unit.t1-eclaireur-elite.lore",
   "stats": { "hp": 7, "attack": 5, "defense": 4, "damage": [2, 4], "speed": 7 },
   "growthPerWeek": 14,
   "cost": { "gold": 80 },

@@ -30,5 +30,22 @@
   "hero.raelag.specialty": "Shadow Leader — Blood Furies under his command gain attack and defense.",
   "hero.shadya.name": "Shadya",
   "hero.shadya.bio": "A shadow witch of dreaded talent, Shadya pierced the veils that once bridled destructive magic.",
-  "hero.shadya.specialty": "Irresistible Veil — her mastery lowers the mana cost of her spells."
+  "hero.shadya.specialty": "Irresistible Veil — her mastery lowers the mana cost of her spells.",
+
+  "unit.t1-eclaireur.lore": "You never see us twice. Once is enough.",
+  "unit.t1-eclaireur-elite.lore": "Light casts shadows. We live in them, and we kill in them.",
+  "unit.t2-furie-sanglante.lore": "Pain is a prayer. We scream it as we strike.",
+  "unit.t2-furie-sanglante-elite.lore": "Unchain us, then count your dead. We stopped counting long ago.",
+  "unit.t3-minotaure.lore": "The labyrinth only loses those who hope to leave it.",
+  "unit.t3-minotaure-elite.lore": "I guard the gate. None enter. None leave.",
+  "unit.t4-chevaucheur-tenebres.lore": "We ride what the surface flees. The surface is right to flee.",
+  "unit.t4-chevaucheur-tenebres-elite.lore": "Hear the gallop in the dark: it is the last sound they will know.",
+  "unit.t5-sorciere-ombre.lore": "Your wards are wishes. I do not believe in wishes.",
+  "unit.t5-sorciere-ombre-elite.lore": "I taught magic what it refused to do.",
+  "unit.t6-hydre.lore": "Sever a head: we have more. You do not.",
+  "unit.t6-hydre-elite.lore": "What crawls beneath the stone was here before your gods.",
+  "unit.t7-dragon-ombre.lore": "I drink the light as others breathe. Soon none will remain.",
+  "unit.t7-dragon-ombre-elite.lore": "No spell touches me, no wall holds me, no dawn follows me.",
+
+  "building.dungeon-cursed-well.lore": "The water of the deep does not reflect the sky — it denies it."
 }

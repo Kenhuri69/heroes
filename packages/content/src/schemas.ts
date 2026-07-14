@@ -868,6 +868,8 @@ export const mapFileSchema = z.object({
           z.object({ kind: z.literal('learnSpell'), spellId: idSchema }),
           /** Cabane de la sorcière (M-VISIT, doc 02 §2.2) : enseigne `skillId` au héros. */
           z.object({ kind: z.literal('grantSkill'), skillId: idSchema }),
+          /** Fabrique de machines de guerre (M-VISIT, doc 02 §2.2) : donne `machineId` au héros. */
+          z.object({ kind: z.literal('grantWarMachine'), machineId: idSchema }),
         ]),
         frequency: z.enum(['oncePerHero', 'oncePerHeroPerWeek']),
       }),

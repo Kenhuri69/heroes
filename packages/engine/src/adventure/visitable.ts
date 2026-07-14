@@ -63,6 +63,13 @@ export function visitBonus(
       hero.skills[effect.skillId] = 1;
       amount = 1;
     }
+  } else if (effect.kind === 'grantWarMachine') {
+    // Fabrique de machines de guerre (M-VISIT) : donne une machine de guerre au
+    // héros. Idempotent — déjà possédée ⇒ visite consommée sans rien donner (0).
+    if (!hero.warMachines.includes(effect.machineId)) {
+      hero.warMachines.push(effect.machineId);
+      amount = 1;
+    }
   } else {
     player.resources[effect.resource as ResourceId] += effect.amount;
     amount = effect.amount;

@@ -598,6 +598,15 @@ Source design : doc 02 §2 (carte), §1.5 (multi-héros).
   > **inchangé**. Couvert en unitaire (`map-visitables.test.ts` : apprend + idempotent
   > + visite consommée). **Différé** : gating par Savoir (`heroLearnableCircle`)
   > volontairement omis (simplicité — le sanctuaire enseigne un sort de bas cercle).
+  > **Livré (tranche fabrique de machines de guerre)** (plan `m-visit-war-machine.md`) :
+  > effet visitable **générique** `grantWarMachine { machineId }` — une **fabrique
+  > de machines de guerre** donne une machine (baliste/catapulte, catalogue
+  > `core/war-machines.json`) au héros visiteur (ajout **idempotent** à
+  > `hero.warMachines`, champ déjà sérialisé save v6 ⇒ **pas de bump save**).
+  > Réutilise le pipeline `visitBonus`/`BonusVisited` (toast + fiche + silhouette
+  > baliste dédiés). Data proto-01 `fabrique-1` (9,5) donne `ballista`. Golden
+  > **inchangé**. Couvert en unitaire (`map-visitables.test.ts` : donne + idempotent
+  > + visite consommée, ids opaques).
   Doc : doc 02 §2.2. Code (avant) : 5 kinds seulement.
 
 - **M-DWELLOWN — Habitations de carte capturables** 🕳️ S ✅

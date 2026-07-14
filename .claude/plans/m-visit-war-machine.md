@@ -50,12 +50,18 @@ typecheck · lint · vitest engine (golden + save-shape INCHANGÉS) · vitest co
 
 ## Suivi
 
-- [ ] 1 map.ts union
-- [ ] 2 visitable.ts handler
-- [ ] 3 schemas.ts variant Zod
-- [ ] 4 loader.ts union ResolvedMapObject
-- [ ] 5 client (card/toast/render)
-- [ ] 6 locales FR/EN
-- [ ] 7 proto-01 data
-- [ ] 8 test moteur
-- [ ] 9 docs
+- [x] 1 map.ts union
+- [x] 2 visitable.ts handler
+- [x] 3 schemas.ts variant Zod
+- [x] 4 loader.ts union ResolvedMapObject
+- [x] 5 client (card/toast/render)
+- [x] 6 locales FR/EN
+- [x] 7 proto-01 data
+- [x] 8 test moteur
+- [x] 9 docs
+
+## Résultat pipeline (local)
+
+typecheck 5/5 ✓ · lint ✓ · vitest engine 724 (golden + save-shape inchangés) ✓ ·
+vitest content 126 ✓ · content:check ✓ · garde-fou faction ✓ · garde-fou couleur ✓
+· build ✓ · bundle 312448 o < 819200 ✓ · smoke en cours.

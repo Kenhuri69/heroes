@@ -84,6 +84,7 @@ import { EngineError, type Command, type CommandError } from './commands';
 import type { GameEvent } from './events';
 import { seedRng } from './rng';
 import { rollWeekEvent } from '../adventure/calendar';
+import { grantXp } from '../adventure/experience';
 import { RESOURCE_IDS, weekOf, monthOf, areAllies, type GameState, type ResourceId } from './state';
 
 export interface EngineResult {
@@ -848,6 +849,16 @@ const handlers: Handlers = {
                 resource: grant.resource,
                 amount: grant.amount,
               });
+            }
+          }
+          // Semaine du savoir (M-CALENDAR) : XP à CHAQUE héros (tous joueurs) —
+          // générique, la donnée décide du montant. `grantXp` gère les montées.
+          const xpGrant = calEvent.heroXpGrant;
+          if (xpGrant) {
+            // Copie des ids AVANT de muter (grantXp n'ajoute/retire aucun héros).
+            for (const { id: heroId, playerId } of draft.heroes.map((h) => ({ id: h.id, playerId: h.playerId }))) {
+              grantXp(draft, events, heroId, xpGrant.amount);
+              events.push({ type: 'CalendarXpGranted', playerId, heroId, amount: xpGrant.amount });
             }
           }
         }

@@ -185,6 +185,34 @@ describe('M-CALENDAR — événements de calendrier', () => {
     expect(granted).toEqual([]);
   });
 
+  it('« semaine du savoir » (heroXpGrant) crédite de l’XP à chaque héros', () => {
+    let s = startedGame([{ id: 'learning', weight: 1, growthFactor: 1, heroXpGrant: { amount: 500 } }]);
+    const before = s.heroes[0]!.xp;
+    const granted: { playerId: string; heroId: string; amount: number }[] = [];
+    for (let day = 1; day <= 7; day++) {
+      const r = apply(s, { type: 'EndTurn', playerId: 'p1' });
+      s = r.state;
+      for (const e of r.events)
+        if (e.type === 'CalendarXpGranted')
+          granted.push({ playerId: e.playerId, heroId: e.heroId, amount: e.amount });
+    }
+    expect(s.calendar.weekEventId).toBe('learning');
+    expect(s.heroes[0]?.xp).toBe(before + 500);
+    expect(granted).toContainEqual({ playerId: 'p1', heroId: 'hero-p1', amount: 500 });
+  });
+
+  it('sans heroXpGrant : aucun gain d’XP de calendrier émis au passage de semaine', () => {
+    let s = startedGame([{ id: 'harvest', weight: 1, growthFactor: 1.5 }]);
+    const granted: string[] = [];
+    for (let day = 1; day <= 7; day++) {
+      const r = apply(s, { type: 'EndTurn', playerId: 'p1' });
+      s = r.state;
+      for (const e of r.events) if (e.type === 'CalendarXpGranted') granted.push(e.heroId);
+    }
+    expect(s.calendar.weekEventId).toBe('harvest');
+    expect(granted).toEqual([]);
+  });
+
   it('tirage déterministe : même graine ⇒ même événement', () => {
     const events: CalendarEventDef[] = [
       { id: 'a', weight: 1, growthFactor: 1 },

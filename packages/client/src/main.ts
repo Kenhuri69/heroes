@@ -74,6 +74,8 @@ declare global {
       subscribe: (cb: () => void) => () => void;
       /** Chemin A* moteur d'un héros vers (x,y), autres héros/gardiens bloqués, destination permise (smoke H-VS-H). */
       findPath: (heroId: string, x: number, y: number) => GridPos[] | null;
+      /** Ids des héros ayant un jeton RENDU sur la carte (smoke : visibilité des héros adverses en vision). */
+      renderedHeroIds: () => string[];
     };
   }
 }
@@ -411,6 +413,7 @@ async function bootstrap(): Promise<void> {
       ];
       return findPath(game.config, game.map, hero.pos, { x, y }, blocked, true);
     },
+    renderedHeroIds: () => scene?.renderedHeroIds() ?? [],
   };
   window.__HEROES_READY__ = true; // signal pour le smoke test headless
 }

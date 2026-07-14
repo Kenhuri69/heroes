@@ -17,7 +17,7 @@ import { appStore } from '../../app/store';
 import { dispatch } from '../../app/dispatch';
 import { panCameraTo, DEFAULT_PAN_MS } from '../../app/camera-control';
 import { reduceMotion } from '../../app/motion';
-import { humanId, humanHeroes, resolveSelectedHero } from '../../app/game';
+import { humanId, humanHeroes, isHeroVisibleOnMap, resolveSelectedHero } from '../../app/game';
 import type { Camera } from '../../render/camera';
 import { heroMapUrl } from '../../render/assets';
 import { Tilemap, TILE_SIZE } from '../../render/tilemap';
@@ -152,6 +152,12 @@ export class AdventureScene {
     this.container.destroy({ children: true, texture: true });
   }
 
+  /** Ids des héros ayant un jeton rendu sur la carte (surface de test smoke —
+   * couvre la visibilité des héros adverses en vision). */
+  renderedHeroIds(): string[] {
+    return [...this.heroSprites.keys()];
+  }
+
   /** Resynchronise le scène-graphe sur l'état (réconciliation simple, doc 10 §2.2). */
   private sync(): void {
     if (this.destroyed) return;
@@ -185,16 +191,23 @@ export class AdventureScene {
     }
     this.fog.update(player.explored, sightings);
 
+    // Héros À DESSINER : ceux du joueur humain (toujours) + les héros adverses
+    // actuellement en vision (sinon on ne pourrait jamais voir un ennemi pour
+    // lancer un combat héros-vs-héros). La liste `heroes` ci-dessus reste la
+    // source de VISION (brouillard) ; ne pas confondre les deux.
+    const myId = humanId(game);
+    const renderedHeroes = game.heroes.filter((h) => isHeroVisibleOnMap(h, myId, sightings));
+
     // Réconciliation des sprites de héros : supprime ceux disparus, crée ceux
     // manquants, repositionne tous sauf celui en cours d'animation.
-    const heroIds = new Set(heroes.map((h) => h.id));
+    const heroIds = new Set(renderedHeroes.map((h) => h.id));
     for (const [id, sprite] of this.heroSprites) {
       if (!heroIds.has(id)) {
         sprite.destroy();
         this.heroSprites.delete(id);
       }
     }
-    for (const hero of heroes) {
+    for (const hero of renderedHeroes) {
       let sprite = this.heroSprites.get(hero.id);
       if (!sprite) {
         sprite = this.buildHeroToken(hero, playerColor(game.players, hero.playerId));

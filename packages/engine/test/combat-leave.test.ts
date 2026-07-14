@@ -4,7 +4,8 @@ import { seedRng } from '../src/core/rng';
 import { createEmptyState, emptyResources, type GameState, type HeroState } from '../src/core/state';
 import { surrenderCost } from '../src/combat/leave';
 import type { CombatState, CombatStack, CombatUnitDef } from '../src/combat/types';
-import { testConfig } from './fixtures';
+import type { TownState } from '../src/town/types';
+import { testConfig, testMap } from './fixtures';
 
 /**
  * C3 — Reddition & fuite. Fuite : le héros survit, armée abandonnée, combat perdu.
@@ -138,5 +139,41 @@ describe('Abandon pré-combat (AbandonCombat)', () => {
     const state = stateWith(0);
     (state.combat as CombatState).round = 2;
     expect(() => apply(state, { type: 'AbandonCombat' })).toThrowError(/invalidAction/);
+  });
+});
+
+describe('Revue 2026-07 — B21 : le camp adverse garde ses pertes au départ du joueur', () => {
+  // Symétrie avec la défaite normale (`applyConsequences`, turns.ts) : fuir/se
+  // rendre/abandonner ne « soigne » pas le gardien/la garnison à l'effectif initial.
+  it('fuite contre un gardien : l’objet de carte est réécrit à ses survivants', () => {
+    const state = stateWith(0);
+    state.map = {
+      ...testMap(),
+      objects: [{ id: 'guardian-1', type: 'guardian', pos: { x: 3, y: 3 }, unitId: 'foe', count: 10 }],
+    };
+    const combat = state.combat as CombatState;
+    combat.guardianObjectId = 'guardian-1';
+    // 6 créatures du gardien déjà tuées au moment de la fuite.
+    (combat.stacks.find((s) => s.id === 'defender-0') as CombatStack).count = 4;
+    const { state: next } = apply(state, { type: 'Retreat' });
+    const guardian = next.map?.objects.find((o) => o.id === 'guardian-1');
+    expect(guardian && guardian.type === 'guardian' ? guardian.count : -1).toBe(4);
+  });
+
+  it('abandon d’un siège : garnison réécrite aux survivants, sans machine de guerre', () => {
+    const state = stateWith(0);
+    state.unitCatalog['wm'] = { ...unit('wm', 0), abilities: [{ id: 'warMachine' }] };
+    const town: TownState = {
+      id: 't1', ownerPlayerId: 'p2', pos: { x: 5, y: 5 }, factionId: '', buildings: {},
+      builtToday: false, garrison: [{ unitId: 'foe', count: 10 }], stock: {}, spellPool: [], sharedGrowthChoice: {},
+    };
+    state.towns = [town];
+    const combat = state.combat as CombatState;
+    combat.townId = 't1';
+    (combat.stacks.find((s) => s.id === 'defender-0') as CombatStack).count = 4;
+    // Tour de tir de siège (warMachine) côté défenseur : jamais réécrite (B8).
+    combat.stacks.push(stack({ id: 'defender-1', side: 'defender', unitId: 'wm', count: 1, slot: 99, pos: { col: 9, row: 9 } }));
+    const { state: next } = apply(state, { type: 'AbandonCombat' });
+    expect(next.towns[0]?.garrison).toEqual([{ unitId: 'foe', count: 4 }]);
   });
 });

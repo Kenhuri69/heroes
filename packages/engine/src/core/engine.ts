@@ -106,9 +106,10 @@ type Handlers = {
  * (`movementBonusPct`, compétence — décision plan phase-3.2 #5), puis bonus plat
  * d'**aura de bâtiment** (F-BUILDEFF.1, doc 03 §4 — Écuries : +PM/jour au héros
  * qui commence son tour dans la ville). Sans compétence ni aura : bonus 0 ⇒
- * valeur de base inchangée (golden intact).
+ * valeur de base inchangée (golden intact). Exporté (revue 2026-07, B29) : le
+ * recrutement de héros à la Taverne pose les PM du jour avec le même calcul.
  */
-function heroDailyMovement(draft: Draft, hero: GameState['heroes'][number]): number {
+export function heroDailyMovement(draft: GameState, hero: GameState['heroes'][number]): number {
   if (!draft.config) return 0;
   const base = dailyMovementPoints(draft.config, hero.army, draft.unitCatalog);
   const scaled = Math.round(base * (1 + heroMovementBonus(hero, draft.skillCatalog) / 100));
@@ -179,6 +180,12 @@ export function validate(state: GameState, cmd: Command): CommandError | null {
         return { code: 'noPlayers', message: 'au moins un joueur est requis' };
       if (new Set(cmd.players.map((p) => p.id)).size !== cmd.players.length)
         return { code: 'duplicatePlayerId', message: 'IDs de joueurs en double' };
+      // Revue 2026-07 (B28) : un héros du roster ne peut être vivant que chez un
+      // seul joueur (invariant M-TAVERN.4, `rosterId` exclusif) — deux sièges ne
+      // partagent pas un même `startingHeroId` nommé (vide/absent = générique, libre).
+      const namedIds = cmd.players.map((p) => p.startingHeroId).filter((id): id is string => !!id);
+      if (new Set(namedIds).size !== namedIds.length)
+        return { code: 'duplicateStartingHero', message: 'startingHeroId en double entre joueurs' };
       for (const p of cmd.players) {
         const army = p.startingArmy ?? [];
         if (army.length > 7)
@@ -798,6 +805,35 @@ const handlers: Handlers = {
 
   EndTurn(draft, cmd, events) {
     events.push({ type: 'TurnEnded', playerId: cmd.playerId });
+    // B27 (revue 2026-07) : la rotation SAUTE les sièges éliminés — sans ça, un
+    // humain éliminé en hot-seat était re-sollicité chaque jour pour un tour
+    // vide, et une IA éliminée recevait un `AiTurn` complet. La bascule de jour
+    // reste « on repasse par l'index 0 » ; le garde-fou borne la boucle si tous
+    // les sièges sont éliminés (l'outcome est alors déjà posé).
+    let hops = 0;
+    do {
+      advanceSeat(draft, events);
+    } while (draft.players[draft.currentPlayer]?.eliminated && ++hops < draft.players.length);
+    // Conditions de victoire/défaite (doc 02 §6, plan phase-3.5) — no-op hors scénario.
+    evaluateOutcome(draft, events);
+  },
+
+  AiTurn(draft, cmd, events) {
+    // L'IA joue toutes ses actions (héros + villes, combats résolus en auto),
+    // puis le tour est passé comme un EndTurn normal (doc 11 §3.5). Le driver
+    // (client / test) reboucle tant que le joueur courant est une IA.
+    runAiTurn(draft, cmd.playerId, events);
+    if (draft.combat || draft.outcome) return; // sécurité : combat resté ouvert / partie finie
+    handlers.EndTurn(draft, { type: 'EndTurn', playerId: cmd.playerId }, events);
+  },
+
+  AddQuests(draft, cmd, events) {
+    handleAddQuests(draft, cmd, events);
+  },
+};
+
+/** Avance d'UN siège ; au retour à l'index 0, bascule le jour (doc 02 §2.3). */
+function advanceSeat(draft: Draft, events: GameEvent[]): void {
     draft.currentPlayer += 1;
     if (draft.currentPlayer >= draft.players.length) {
       // Un jour = un tour de chaque joueur (doc 02 §2.3).
@@ -880,20 +916,4 @@ const handlers: Handlers = {
       roamGuardians(draft, events);
       tickTownGrace(draft);
     }
-    // Conditions de victoire/défaite (doc 02 §6, plan phase-3.5) — no-op hors scénario.
-    evaluateOutcome(draft, events);
-  },
-
-  AiTurn(draft, cmd, events) {
-    // L'IA joue toutes ses actions (héros + villes, combats résolus en auto),
-    // puis le tour est passé comme un EndTurn normal (doc 11 §3.5). Le driver
-    // (client / test) reboucle tant que le joueur courant est une IA.
-    runAiTurn(draft, cmd.playerId, events);
-    if (draft.combat || draft.outcome) return; // sécurité : combat resté ouvert / partie finie
-    handlers.EndTurn(draft, { type: 'EndTurn', playerId: cmd.playerId }, events);
-  },
-
-  AddQuests(draft, cmd, events) {
-    handleAddQuests(draft, cmd, events);
-  },
-};
+}

@@ -122,3 +122,36 @@ describe('UpgradeUnits', () => {
     expect(validate(state, { type: 'UpgradeUnits', townId: 'town-1', unitId: 'red-grunt' })?.code).toBe('cannotAfford');
   });
 });
+
+describe('Revue 2026-07 — B22 : coût d’upgrade sur une ressource de faction', () => {
+  // Id de ressource de faction OPAQUE (garde-fou CI « zéro faction dans le moteur »).
+  const SPARK = 'spark';
+
+  /** Élite dont le `recruitCost` porte une ressource de faction (4 spark/unité). */
+  function stateWithFactionCost(spark: number): GameState {
+    const base = startedGame(
+      { gold: 1000 },
+      { buildings: { dwelling1: 2 }, garrison: [{ unitId: 'red-grunt', count: 3 }] },
+    );
+    const cat = catalog();
+    return {
+      ...base,
+      unitCatalog: { ...cat, [ELITE]: { ...cat[ELITE]!, recruitCost: { gold: 90, [SPARK]: 4 } } as CombatUnitDef },
+      players: base.players.map((p) => ({ ...p, factionResources: { [SPARK]: spark } })),
+    };
+  }
+
+  it('facture le différentiel de la ressource de faction (union des clés, pas les 7 core seules)', () => {
+    const next = apply(stateWithFactionCost(100), { type: 'UpgradeUnits', townId: 'town-1', unitId: 'red-grunt' }).state;
+    expect(next.towns[0]?.garrison).toEqual([{ unitId: ELITE, count: 3 }]);
+    expect(next.players[0]?.resources.gold).toBe(1000 - 3 * 40); // différentiel or inchangé
+    expect(next.players[0]?.factionResources[SPARK]).toBe(100 - 3 * 4); // 4/unité — escamotés avant B22
+  });
+
+  it('rejette si la ressource de faction manque (cannotAfford)', () => {
+    // 11 < 3 × 4 : l'or suffit mais pas la ressource de faction.
+    expect(
+      validate(stateWithFactionCost(11), { type: 'UpgradeUnits', townId: 'town-1', unitId: 'red-grunt' })?.code,
+    ).toBe('cannotAfford');
+  });
+});

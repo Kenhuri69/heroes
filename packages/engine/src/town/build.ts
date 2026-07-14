@@ -65,6 +65,18 @@ export function validateBuildStructure(state: GameState, cmd: BuildCmd): Command
         message: `choix exclusif '${def.exclusiveGroup}' déjà pris par '${rival}'`,
       };
   }
+  // Revue 2026-07 (B24a) : le choix de Maison est UNIQUE et IRRÉVERSIBLE par
+  // JOUEUR (doc 16 §3.1) — l'exclusivité par ville (`exclusiveGroup`) ne suffit
+  // pas, une 2ᵉ ville permettait de l'écraser. Refus dès qu'un héros du joueur
+  // est déjà stampé d'une Maison.
+  if (nextLevel.effect.type === 'houseChoice') {
+    const chosen = state.heroes.some((h) => h.playerId === player.id && h.houseId !== '');
+    if (chosen)
+      return {
+        code: 'houseAlreadyChosen',
+        message: `une Maison a déjà été choisie par ${player.id} — choix irréversible`,
+      };
+  }
   // D4 : « un seul Capitole par joueur » (doc 02 §4.1) — niveau `uniquePerPlayer`
   // interdit si une AUTRE ville du joueur porte déjà ce bâtiment à ce niveau.
   const targetLevel = currentLevel + 1;

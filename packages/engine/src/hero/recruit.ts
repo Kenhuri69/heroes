@@ -1,5 +1,6 @@
 import { revealAround } from '../adventure/fog';
 import type { Command, CommandError } from '../core/commands';
+import { heroDailyMovement } from '../core/engine';
 import type { GameEvent } from '../core/events';
 import type { GameState, HeroState } from '../core/state';
 import { builtLevelOf } from '../town/helpers';
@@ -103,6 +104,19 @@ export function handleRecruitHero(draft: GameState, cmd: RecruitCmd, events: Gam
   };
   hero.manaMax = heroManaMax(hero, draft.artifactCatalog);
   hero.mana = hero.manaMax;
+  // Revue 2026-07 (B29) : le héros recruté dispose de ses PM du jour même —
+  // même calcul que StartGame/EndTurn (il restait à 0 jusqu'au lendemain).
+  hero.movementPoints = heroDailyMovement(draft, hero);
+  // Revue 2026-07 (B24b) : la Maison est un choix par JOUEUR (doc 16 §3.1) — un
+  // héros recruté après « Le Choixpeau » hérite de la Maison déjà choisie
+  // (effets résolus depuis le catalogue embarqué, copie défensive comme StartGame).
+  const chosenHouseId = draft.heroes.find(
+    (h) => h.playerId === cmd.playerId && h.houseId !== '',
+  )?.houseId;
+  if (chosenHouseId) {
+    hero.houseId = chosenHouseId;
+    hero.houseEffects = (draft.houseCatalog[chosenHouseId]?.effects ?? []).map((e) => ({ ...e }));
+  }
   draft.heroes.push(hero);
   // Le héros recruté éclaire aussitôt son voisinage (comme un héros de départ).
   if (draft.map && draft.config)

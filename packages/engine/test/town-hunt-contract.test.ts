@@ -112,4 +112,22 @@ describe('rewardHuntContract', () => {
     expect(s.players[0]!.resources.gold).toBe(0);
     expect(s.players[0]!.huntContract).not.toBeNull();
   });
+
+  it('Revue 2026-07 — B23 : la récompense respecte le cap de la ressource de faction', () => {
+    const s = stateWith(true);
+    // Cap 30 déclaré par la faction (estampillé par le loader sur le bonus de gain).
+    s.factionCatalog = {
+      'fac-x': { bonuses: [{ type: 'gainFactionResourceOnVictory', resource: 'essence', amount: 1, cap: 30 }] },
+    };
+    s.players[0]!.factionResources['essence'] = 25;
+    s.players[0]!.huntContract = { targetObjectId: 'g1', gold: 300, resource: 'essence', amount: 15 };
+    const events: GameEvent[] = [];
+    rewardHuntContract(s, { ...hero, factionId: 'fac-x' } as HeroState, 'g1', events);
+    // 25 + 15 tronqué au cap (avant B23 : 40, dépassement direct).
+    expect(s.players[0]!.factionResources['essence']).toBe(30);
+    expect(s.players[0]!.resources.gold).toBe(300); // l'or n'est pas plafonné
+    expect(s.players[0]!.huntContract).toBeNull();
+    // L'événement rapporte le gain EFFECTIF (même convention que FactionResourceGained).
+    expect(events).toContainEqual({ type: 'HuntContractCompleted', playerId: 'p1', gold: 300, resource: 'essence', amount: 5 });
+  });
 });

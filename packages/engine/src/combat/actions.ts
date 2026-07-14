@@ -281,6 +281,11 @@ export function validateCombatAction(state: GameState, cmd: { action: CombatActi
     }
     case 'wait':
       if (stack.waited) return { code: 'invalidAction', message: 'attente déjà utilisée ce round' };
+      // B20 : au tour BONUS de moral positif, `acted` est déjà vrai — poser
+      // `waited` ne redonnerait jamais la main (les deux phases du round
+      // filtrent `!acted`) : le tour bonus serait perdu. On refuse l'attente.
+      if (stack.acted)
+        return { code: 'invalidAction', message: 'une pile en tour bonus ne peut pas attendre' };
       return null;
     case 'defend':
       return null;
@@ -455,6 +460,26 @@ function applyAttack(
       const from = { ...attacker.pos };
       attacker.pos = { ...action.from };
       events.push({ type: 'StackMoved', stackId: attacker.id, from, to: { ...attacker.pos } });
+      // C-SIEGE2.4 / B19 : ce repositionnement est un déplacement — s'arrêter
+      // dans la douve mord comme dans `applyMove` (mêmes règles : seul
+      // l'ASSAILLANT la subit, le défenseur vit derrière son rempart). Sans ce
+      // bloc, attaquer depuis la douve contournait ses dégâts.
+      const moatDamage = combat.moatDamage ?? 0;
+      if (
+        moatDamage > 0 &&
+        attacker.side === 'attacker' &&
+        (combat.moat ?? []).some((m) => sameHex(m, attacker.pos))
+      ) {
+        const { amount, kills } = damageOneStack(draft, combat, attacker, moatDamage, events);
+        events.push({ type: 'MoatDamaged', stackId: attacker.id, damage: amount, kills });
+        if (checkCombatEnd(draft, events)) return;
+        // La douve peut TUER l'attaquant avant sa frappe (mort via
+        // `handleStackDeath` dans `damageOneStack`) : le tour se conclut sans frappe.
+        if (attacker.count <= 0) {
+          afterAction(draft, events, attacker.id, wasFirstAction, 'attack');
+          return;
+        }
+      }
     }
     const meleePenalized = isShooterMeleePenalized(attackerDef);
     const first = performStrike(draft, events, {

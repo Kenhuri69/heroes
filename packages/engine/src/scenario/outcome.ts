@@ -81,7 +81,10 @@ export function evaluateOutcome(draft: GameState, events: GameEvent[]): void {
   }
 
   // Évaluation du point de vue du joueur local : le premier `human`, sinon le
-  // premier joueur de la partie.
+  // premier joueur de la partie. LIMITE CONNUE (revue 2026-07 B27, différé) :
+  // en hot-seat, l'élimination du 1er humain termine la partie même si un
+  // autre humain joue encore — basculer le « local » exige de trancher qui
+  // porte quels objectifs par siège (design doc 02 §6), pas un correctif.
   const local = draft.players.find((p) => p.controller === 'human') ?? draft.players[0];
   if (!local) return;
   const objectives = draft.scenario.objectives[local.id];

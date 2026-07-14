@@ -193,3 +193,22 @@ describe('validateCombatAction', () => {
     expect(validateCombatAction(state, { action: { type: 'defend' } })).toBeNull();
   });
 });
+
+describe('Revue 2026-07 — B20 : Attendre refusé pendant un tour bonus de moral', () => {
+  // Tour bonus (moral positif) : la pile active a DÉJÀ agi ce round
+  // (`acted === true`) et rejoue. `applyWait` poserait `waited` sans que les
+  // phases du round (filtrées `!acted`) ne la re-sélectionnent : tour perdu.
+  it('une pile active ayant déjà agi (tour bonus) ne peut pas attendre', () => {
+    const attacker = stack({ id: 'attacker-0', side: 'attacker', slot: 0, unitId: 'atk', count: 1, pos: { col: 0, row: 0 }, acted: true });
+    const defender = stack({ id: 'defender-0', side: 'defender', slot: 0, unitId: 'def', count: 1, pos: { col: 1, row: 0 } });
+    const state = manualState([attacker, defender], 'attacker-0');
+    expect(validateCombatAction(state, { action: { type: 'wait' } })?.code).toBe('invalidAction');
+  });
+
+  it('les autres actions du tour bonus restent permises (défendre)', () => {
+    const attacker = stack({ id: 'attacker-0', side: 'attacker', slot: 0, unitId: 'atk', count: 1, pos: { col: 0, row: 0 }, acted: true });
+    const defender = stack({ id: 'defender-0', side: 'defender', slot: 0, unitId: 'def', count: 1, pos: { col: 1, row: 0 } });
+    const state = manualState([attacker, defender], 'attacker-0');
+    expect(validateCombatAction(state, { action: { type: 'defend' } })).toBeNull();
+  });
+});

@@ -385,7 +385,7 @@ describe('C-SIEGE2 — murs de siège', () => {
     expect(destroyed).toBeLessThanOrEqual(wallsAtStart);
   });
 });
-describe('Revue 2026-07 — B6/B8 (obstacles de siège, garnison réécrite)', () => {
+describe('Revue 2026-07 — B6/B8/B19 (siège : obstacles, garnison réécrite, douve)', () => {
   const WALL_COL = COMBAT_COLS - 4;
   const MOAT_COL = WALL_COL - 1;
 
@@ -410,6 +410,66 @@ describe('Revue 2026-07 — B6/B8 (obstacles de siège, garnison réécrite)', (
         expect(o.col).toBeLessThan(MOAT_COL); // ni douve (MOAT_COL) ni rempart/porte (WALL_COL)
       }
     }
+  });
+
+  it('B19 : attaquer DEPUIS la douve mord comme un déplacement (MoatDamaged avant la frappe)', () => {
+    const GATE_ROW = Math.floor(COMBAT_ROWS / 2) - 1;
+    const s = siegeState([{ unitId: 'red-grunt', count: 50 }], [{ unitId: 'blue-wolf', count: 1 }], { fort: 2 });
+    const next = apply(s, { type: 'CaptureTown', townId: 't1', playerId: 'p1' }).state;
+    const combat = next.combat!;
+    const attacker = combat.stacks.find((st) => st.side === 'attacker')!;
+    const defender = combat.stacks.find((st) => st.side === 'defender')!;
+    // Isolation : défenseur posé sur la PORTE (hex ouvert du rempart), attaquant
+    // à un pas de la douve — l'attaque se repositionne dans la douve pour frapper.
+    const ready = produce(next, (d) => {
+      d.combat!.obstacles = [];
+      d.combat!.stacks = d.combat!.stacks.filter((st) => st.id === attacker.id || st.id === defender.id);
+      d.combat!.stacks.find((st) => st.id === attacker.id)!.pos = { col: MOAT_COL - 1, row: GATE_ROW };
+      d.combat!.stacks.find((st) => st.id === defender.id)!.pos = { col: WALL_COL, row: GATE_ROW };
+      d.combat!.activeStackId = attacker.id;
+      d.combat!.phase = 'battle';
+    });
+    const { events } = apply(ready, {
+      type: 'CombatAction',
+      action: { type: 'attack', targetStackId: defender.id, from: { col: MOAT_COL, row: GATE_ROW } },
+    });
+    // Sous le bug, le repositionnement d'attaque contournait la douve : aucun
+    // MoatDamaged. Désormais la douve mord AVANT la frappe.
+    const moatIdx = events.findIndex((e) => e.type === 'MoatDamaged');
+    const strikeIdx = events.findIndex((e) => e.type === 'StackAttacked');
+    expect(moatIdx).toBeGreaterThanOrEqual(0);
+    expect(events[moatIdx]).toMatchObject({ stackId: attacker.id, damage: 40 }); // Fort 2 × 20
+    expect((events[moatIdx] as { kills: number }).kills).toBeGreaterThan(0); // red-grunt 6 PV
+    expect(strikeIdx).toBeGreaterThan(moatIdx); // la frappe suit, elle a bien lieu (50 grunts survivent)
+  });
+
+  it('B19 : la douve peut tuer l’attaquant AVANT sa frappe — aucune frappe ensuite', () => {
+    const GATE_ROW = Math.floor(COMBAT_ROWS / 2) - 1;
+    // 1 seul red-grunt (6 PV) : les 40 dégâts de douve l'anéantissent avant la frappe.
+    const s = siegeState([{ unitId: 'red-grunt', count: 1 }], [{ unitId: 'blue-wolf', count: 1 }], { fort: 2 });
+    const next = apply(s, { type: 'CaptureTown', townId: 't1', playerId: 'p1' }).state;
+    const combat = next.combat!;
+    const attacker = combat.stacks.find((st) => st.side === 'attacker')!;
+    const defender = combat.stacks.find((st) => st.side === 'defender')!;
+    const ready = produce(next, (d) => {
+      d.combat!.obstacles = [];
+      d.combat!.stacks = d.combat!.stacks.filter((st) => st.id === attacker.id || st.id === defender.id);
+      d.combat!.stacks.find((st) => st.id === attacker.id)!.pos = { col: MOAT_COL - 1, row: GATE_ROW };
+      d.combat!.stacks.find((st) => st.id === defender.id)!.pos = { col: WALL_COL, row: GATE_ROW };
+      d.combat!.activeStackId = attacker.id;
+      d.combat!.phase = 'battle';
+    });
+    const { state: done, events } = apply(ready, {
+      type: 'CombatAction',
+      action: { type: 'attack', targetStackId: defender.id, from: { col: MOAT_COL, row: GATE_ROW } },
+    });
+    expect(events.some((e) => e.type === 'MoatDamaged')).toBe(true);
+    expect(events.some((e) => e.type === 'StackDied')).toBe(true); // mort via handleStackDeath
+    expect(events.some((e) => e.type === 'StackAttacked')).toBe(false); // AUCUNE frappe
+    // Dernière pile assaillante anéantie ⇒ le siège est repoussé proprement.
+    expect(done.combat).toBeNull();
+    expect(events.some((e) => e.type === 'CombatEnded' && e.winner === 'defender')).toBe(true);
+    expect(done.towns[0]?.ownerPlayerId).toBe('p2');
   });
 
   it('B8 : siège repoussé — la tour de tir n’est PAS réécrite dans la garnison', () => {

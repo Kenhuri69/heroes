@@ -1,7 +1,6 @@
 import type { Command, CommandError } from '../core/commands';
 import type { GameEvent } from '../core/events';
 import type { GameState } from '../core/state';
-import { RESOURCE_IDS } from '../core/state';
 import { canAffordCost, spendCost } from './resources';
 import { unitWithEconomy } from './unit-economy';
 import type { BuildingDef, TownState } from './types';
@@ -46,7 +45,10 @@ export function upgradeCost(
   const baseCost = unitWithEconomy(state.unitCatalog, baseUnitId)?.recruitCost ?? {};
   const upCost = unitWithEconomy(state.unitCatalog, upgradedUnitId)?.recruitCost ?? {};
   const diff: Record<string, number> = {};
-  for (const r of RESOURCE_IDS) {
+  // Revue 2026-07 (B22) : union des clés des DEUX coûts — un `recruitCost` peut
+  // porter une ressource de faction (id opaque, doc 05 §3.3), pas seulement les
+  // 7 ressources core. Le paiement route déjà par clé (`spendCost`).
+  for (const r of new Set([...Object.keys(baseCost), ...Object.keys(upCost)])) {
     const d = (upCost[r] ?? 0) - (baseCost[r] ?? 0);
     if (d > 0) diff[r] = d * count;
   }

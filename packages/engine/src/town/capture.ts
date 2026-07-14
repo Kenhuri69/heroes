@@ -84,6 +84,9 @@ export function handleCaptureTown(draft: GameState, cmd: CaptureCmd, events: Gam
     return;
   }
   town.ownerPlayerId = cmd.playerId;
+  // Revue 2026-07 (B25) : le choix de croissance partagée appartenait à l'ANCIEN
+  // propriétaire — remis à zéro au changement de main (le nouveau rechoisira).
+  town.sharedGrowthChoice = {};
   events.push({ type: 'TownCaptured', townId: town.id, playerId: cmd.playerId });
   revealStructure(draft, cmd.playerId, town.pos); // F1 : la ville capturée éclaire son voisinage
   // Une ville peut changer de main (élimination de l'ancien propriétaire) :

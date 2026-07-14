@@ -277,6 +277,31 @@ describe('BuildStructure — choix de Maison (houseChoice, doc 16 §3.1/§5)', (
       validate(state, { type: 'BuildStructure', townId: 'town-1', buildingId: 'houseEagle' })?.code,
     ).toBe('exclusiveChoiceLocked');
   });
+
+  it('Revue 2026-07 — B24a : Maison verrouillée par JOUEUR — une 2ᵉ ville ne l’écrase pas', () => {
+    // Deux villes du même joueur : l'exclusivité par ville (`exclusiveGroup`) ne
+    // protège pas — avant B24a, bâtir un 2ᵉ Choixpeau ailleurs re-stampait les héros.
+    const cmd: Command = {
+      type: 'StartGame',
+      seed: 1,
+      players: setup({ gold: 1000 }),
+      map: testMap(),
+      config: testConfig(),
+      unitCatalog: testUnitCatalogWithEconomy(),
+      buildingCatalog: houseBuildings(),
+      towns: [
+        { ...testTown(), buildings: { townHall: 1 } },
+        { ...testTown(), id: 'town-2', pos: { x: 3, y: 3 }, buildings: { townHall: 1 } },
+      ],
+      houseCatalog: { ...HOUSE_CATALOG, 'house-eagle': { effects: [] } },
+    };
+    const started = apply(createEmptyState(), cmd).state;
+    const chosen = apply(started, { type: 'BuildStructure', townId: 'town-1', buildingId: 'houseLion' }).state;
+    expect(chosen.heroes.find((h) => h.playerId === 'p1')?.houseId).toBe('house-lion');
+    expect(
+      validate(chosen, { type: 'BuildStructure', townId: 'town-2', buildingId: 'houseEagle' })?.code,
+    ).toBe('houseAlreadyChosen');
+  });
 });
 
 describe('D4 — bâtiment unique par joueur (« 1 Capitole »)', () => {

@@ -340,6 +340,10 @@ function applyConsequences(
       if (town) {
         town.ownerPlayerId = hero.playerId;
         town.garrison = [];
+        // B25 : la préférence de croissance partagée du VAINCU ne doit pas
+        // guider la semaine du conquérant (même reset que la capture immédiate,
+        // `town/capture.ts` — le repli « 1er membre présent » couvre le vide).
+        town.sharedGrowthChoice = {};
         events.push({ type: 'TownCaptured', townId: town.id, playerId: hero.playerId });
         revealStructure(draft, hero.playerId, town.pos); // F1 : ville prise = vision de son voisinage
       }
@@ -349,34 +353,44 @@ function applyConsequences(
       const idx = draft.heroes.findIndex((h) => h.id === combat.heroId);
       if (idx !== -1) draft.heroes.splice(idx, 1);
     }
-    if (draft.map && combat.guardianObjectId) {
-      const idx = draft.map.objects.findIndex((o) => o.id === combat.guardianObjectId);
-      const obj = idx !== -1 ? draft.map.objects[idx] : undefined;
-      if (obj && obj.type === 'guardian') {
-        obj.count = combat.stacks
-          .filter((s) => s.side === 'defender' && s.count > 0)
-          .reduce((sum, s) => sum + s.count, 0);
-        // Anéantissement MUTUEL (B17, tick de poison) : la convention déclare le
-        // défenseur vainqueur, mais un gardien réduit à 0 ne doit pas rester sur
-        // la carte — un combat contre ce fantôme serait insoluble (aucune pile à
-        // tuer de part et d'autre, garde-fou d'itérations atteint).
-        if (obj.count <= 0) draft.map.objects.splice(idx, 1);
-      }
+    persistDefenderRemnants(draft, combat);
+  }
+}
+
+/**
+ * Réécrit sur la carte les vestiges du camp DÉFENSEUR d'un combat qu'il n'a pas
+ * perdu — le gardien et la garnison gardent leurs pertes :
+ *  - gardien ramené à ses survivants ; réduit à 0 il est RETIRÉ (B17,
+ *    anéantissement mutuel au tick de poison : un combat contre ce fantôme
+ *    serait insoluble, aucune pile à tuer de part et d'autre) ;
+ *  - garnison réécrite `count > 0` SAUF la tour de tir injectée par le siège
+ *    (B8 : `warMachine` n'est pas une créature de garnison ; sans ce filtre elle
+ *    s'accumulait dans les slots, transférable au héros et dupliquée à chaque
+ *    siège repoussé).
+ * Partagé entre la défaite normale (`applyConsequences` ci-dessus) et le départ
+ * volontaire du joueur (`endLeftCombat`, leave.ts — B21 : fuir/se rendre/
+ * abandonner ne « soigne » pas le camp adverse à son effectif initial).
+ */
+export function persistDefenderRemnants(draft: Draft, combat: CombatState): void {
+  if (draft.map && combat.guardianObjectId) {
+    const idx = draft.map.objects.findIndex((o) => o.id === combat.guardianObjectId);
+    const obj = idx !== -1 ? draft.map.objects[idx] : undefined;
+    if (obj && obj.type === 'guardian') {
+      obj.count = combat.stacks
+        .filter((s) => s.side === 'defender' && s.count > 0)
+        .reduce((sum, s) => sum + s.count, 0);
+      if (obj.count <= 0) draft.map.objects.splice(idx, 1);
     }
-    // Siège repoussé : la garnison survivante est réécrite sur la ville — SAUF
-    // la tour de tir injectée par le siège (B8 : `warMachine` n'est pas une
-    // créature de garnison ; sans ce filtre elle s'accumulait dans les slots,
-    // transférable au héros et dupliquée à chaque siège repoussé).
-    if (combat.townId) {
-      const town = draft.towns.find((t) => t.id === combat.townId);
-      if (town) {
-        town.garrison = combat.stacks
-          .filter((s) => {
-            const def = draft.unitCatalog[s.unitId];
-            return s.side === 'defender' && s.count > 0 && !(def && hasAbility(def, 'warMachine'));
-          })
-          .map((s) => ({ unitId: s.unitId, count: s.count }));
-      }
+  }
+  if (combat.townId) {
+    const town = draft.towns.find((t) => t.id === combat.townId);
+    if (town) {
+      town.garrison = combat.stacks
+        .filter((s) => {
+          const def = draft.unitCatalog[s.unitId];
+          return s.side === 'defender' && s.count > 0 && !(def && hasAbility(def, 'warMachine'));
+        })
+        .map((s) => ({ unitId: s.unitId, count: s.count }));
     }
   }
 }

@@ -37,9 +37,12 @@ Faction #6, produite en **Beta** — elle sert de **test de modularité #4** (do
 > et applique ses effets déclaratifs comme des compétences ; **zéro nom de faction**).
 > Client : `houseCatalog` passé à `StartGame` (3 sites) ; la sélection passe par
 > l'écran de ville existant ; sprites/blasons/avatars auto-découverts (doc 12 §10).
-> Save v10→**v11**, golden re-fixé. **Différé** : atteindre le Choixpeau in-game
-> suppose une ville Vox Arcana (sélecteur de faction / scénario dédié = lot suivant) ;
-> héritage des héros recrutés après le choix ; Résonance + École de la Scène.
+> Save v10→**v11**, golden re-fixé. **Revue 2026-07 (B24)** : le choix est
+> désormais **verrouillé par joueur** (un 2ᵉ Choixpeau dans une autre ville est
+> refusé, `houseAlreadyChosen` — « unique et irréversible » enfin tenu) et les
+> héros **recrutés après coup héritent** de la Maison du joueur. **Différé** :
+> atteindre le Choixpeau in-game suppose une ville Vox Arcana (sélecteur de
+> faction / scénario dédié = lot suivant) ; Résonance + École de la Scène.
 
 > 🚧 **État 16.4 (livré — Résonance, ressource de faction)** : la **Résonance**
 > (Honmoon) est branchée en **pur contenu**, sans aucun diff moteur — elle

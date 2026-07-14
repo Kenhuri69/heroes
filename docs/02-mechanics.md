@@ -616,7 +616,7 @@ Sémantique des **27 capacités** du catalogue (valeurs de départ) :
 
 ### 5.5 Fin de combat & auto-résolution
 
-- Victoire = plus aucune pile adverse. Fuite (perd l'armée, garde héros+artefacts, re-recrutable en taverne) et reddition (idem + coût en or, garde l'armée restante — post-MVP).
+- Victoire = plus aucune pile adverse. Fuite (perd l'armée, garde héros+artefacts, re-recrutable en taverne) et reddition (idem + coût en or, garde l'armée restante — post-MVP). **Décision (revue 2026-07 B21)** : un départ délibéré (fuite/reddition/abandon) **réécrit les survivants du camp adverse** exactement comme une défaite normale — le gardien/la garnison garde ses pertes au lieu de retrouver son effectif entier à la rencontre suivante (symétrie entre les deux façons de « perdre » le même combat).
 - **Abandon pré-combat** (retour de jeu 2026-07, commande `AbandonCombat`) : la puissance ennemie n'étant visible qu'en lançant le combat (écran pré-combat), on peut y **renoncer avant d'échanger le moindre coup** en conservant l'armée survivante, **sans coût** (l'ennemi l'emporte, le gardien/la ville reste). Réservé au premier round ; l'UI n'expose le bouton **que** sur l'écran pré-combat, jamais en bataille (où seules fuite/reddition existent). Distinct de la fuite (qui, elle, abandonne l'armée).
 - **Bilan de fin de combat** (retour de jeu 2026-07) : à l'issue d'un combat *fouillé* (annihilation), un écran récapitule **morts/survivants par armée** et les **gains** (XP + niveaux, or, ressources, artefact, mort-vivants relevés). L'événement `CombatEnded` porte désormais `survivors` (en plus de `casualties`) ; un départ délibéré (fuite/reddition/abandon) n'ouvre pas de bilan.
 - **Combat auto** : la même IA de combat joue les deux camps en accéléré ; résultat déterministe re-simulable (même seed) — indispensable pour le PvP asynchrone futur.
@@ -672,11 +672,19 @@ est par camp (`heroCastThisRound`, save v23).
 > **non nul** = alliés, `areAllies`). Deux alliés **ne s'assiègent pas**
 > (`validateCaptureTown` + IA) et **partagent la victoire** : `eliminateAllEnemies`
 > compte un allié comme non-ennemi, donc dès que tous les non-alliés sont
-> éliminés chaque allié remplit sa condition. Choisi par siège à « Nouvelle
-> partie » ; générique (aucune faction). Un joueur éliminé reste hors-jeu même
-> si son allié continue (MVP).
+> éliminés chaque allié remplit sa condition. Les **structures de carte d'un
+> allié (mines, habitations) ne se capturent pas en passant** et l'IA ne les
+> cible pas (revue 2026-07 B26 — même règle que les villes). Choisi par siège
+> à « Nouvelle partie » ; générique (aucune faction). Un joueur éliminé reste
+> hors-jeu même si son allié continue (MVP) — et la **rotation des tours le
+> saute** (revue 2026-07 B27). Limite connue (différée) : le point de vue
+> « local » des objectifs reste le 1er humain — son élimination termine la
+> partie même en hot-seat (basculer le local exige de trancher les objectifs
+> par siège).
 > **IA d'aventure** déterministe (`engine/ai`, commande `AiTurn`) : chaque
 > joueur `controller:'ai'` explore / ramasse / attaque un gardien battable /
 > capture / construit / recrute puis passe son tour ; heuristique gloutonne de
-> tutoriel (pas de magie ni de planif multi-tours — écart assumé). 3 scénarios
-> solo en données (`data/scenarios/`).
+> tutoriel (pas de magie ni de planif multi-tours — écart assumé). L'IA ne
+> cible que ce que **son joueur a exploré** (revue 2026-07 B31 — plus de
+> triche d'information sous brouillard) et **ignore un butin encore gardé**
+> par sa sentinelle (B30). 3 scénarios solo en données (`data/scenarios/`).

@@ -1,0 +1,70 @@
+{
+  "id": "dungeon",
+  "schemaVersion": 1,
+  "name": "@loc:faction.dungeon.name",
+  "nativeTerrain": "rough",
+  "keyResources": [
+    "sulfur",
+    "gems"
+  ],
+  "factionResources": [],
+  "factionBonuses": [],
+  "spellSchool": null,
+  "heroSkills": [],
+  "tiers": 7,
+  "sharedGrowthGroups": {},
+  "units": [
+    "t1-eclaireur",
+    "t2-furie-sanglante",
+    "t3-minotaure",
+    "t4-chevaucheur-tenebres",
+    "t5-sorciere-ombre",
+    "t6-hydre",
+    "t7-dragon-ombre",
+    "t1-eclaireur-elite",
+    "t2-furie-sanglante-elite",
+    "t3-minotaure-elite",
+    "t4-chevaucheur-tenebres-elite",
+    "t5-sorciere-ombre-elite",
+    "t6-hydre-elite",
+    "t7-dragon-ombre-elite"
+  ],
+  "abilityModules": [],
+  "hooks": [],
+  "aiProfile": {
+    "aggression": 0.7,
+    "focusFire": 0.7,
+    "preferredTargets": "weakest"
+  },
+  "town": {
+    "buildings": [
+      "townHall",
+      "fort",
+      "mageGuild",
+      "forge",
+      "market",
+      "tavern",
+      "dungeon-dwelling-t1",
+      "dungeon-dwelling-t2",
+      "dungeon-dwelling-t3",
+      "dungeon-dwelling-t4",
+      "dungeon-dwelling-t5",
+      "dungeon-dwelling-t6",
+      "dungeon-dwelling-t7",
+      "dungeon-cursed-well"
+    ],
+    "dwellings": [
+      { "tier": 1, "unitId": "t1-eclaireur", "buildingId": "dungeon-dwelling-t1" },
+      { "tier": 2, "unitId": "t2-furie-sanglante", "buildingId": "dungeon-dwelling-t2" },
+      { "tier": 3, "unitId": "t3-minotaure", "buildingId": "dungeon-dwelling-t3" },
+      { "tier": 4, "unitId": "t4-chevaucheur-tenebres", "buildingId": "dungeon-dwelling-t4" },
+      { "tier": 5, "unitId": "t5-sorciere-ombre", "buildingId": "dungeon-dwelling-t5" },
+      { "tier": 6, "unitId": "t6-hydre", "buildingId": "dungeon-dwelling-t6" },
+      { "tier": 7, "unitId": "t7-dragon-ombre", "buildingId": "dungeon-dwelling-t7" }
+    ]
+  },
+  "heroes": [
+    "raelag",
+    "shadya"
+  ]
+}

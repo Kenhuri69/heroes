@@ -1,0 +1,12 @@
+{
+  "id": "t1-eclaireur",
+  "tier": 1,
+  "name": "@loc:unit.t1-eclaireur.name",
+  "stats": { "hp": 6, "attack": 4, "defense": 3, "damage": [2, 3], "speed": 6 },
+  "growthPerWeek": 14,
+  "cost": { "gold": 65 },
+  "abilities": [
+    { "id": "shooter", "params": { "ammo": 10 } },
+    { "id": "poisonSting", "params": { "damagePerRound": 1, "rounds": 2 } }
+  ]
+}

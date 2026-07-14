@@ -1,0 +1,11 @@
+{
+  "id": "t4-chevaucheur-tenebres",
+  "tier": 4,
+  "name": "@loc:unit.t4-chevaucheur-tenebres.name",
+  "stats": { "hp": 32, "attack": 12, "defense": 9, "damage": [8, 12], "speed": 9 },
+  "growthPerWeek": 4,
+  "cost": { "gold": 480 },
+  "abilities": [
+    { "id": "charge", "params": { "perHex": 0.05 } }
+  ]
+}

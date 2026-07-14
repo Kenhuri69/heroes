@@ -1,0 +1,34 @@
+{
+  "faction.dungeon.name": "Dungeon",
+
+  "unit.t1-eclaireur.name": "Scout",
+  "unit.t1-eclaireur-elite.name": "Assassin",
+  "unit.t2-furie-sanglante.name": "Blood Fury",
+  "unit.t2-furie-sanglante-elite.name": "Unleashed Fury",
+  "unit.t3-minotaure.name": "Minotaur",
+  "unit.t3-minotaure-elite.name": "Minotaur Guard",
+  "unit.t4-chevaucheur-tenebres.name": "Dark Raider",
+  "unit.t4-chevaucheur-tenebres-elite.name": "Black Rider",
+  "unit.t5-sorciere-ombre.name": "Shadow Witch",
+  "unit.t5-sorciere-ombre-elite.name": "Shadow Matron",
+  "unit.t6-hydre.name": "Hydra",
+  "unit.t6-hydre-elite.name": "Chthonian Hydra",
+  "unit.t7-dragon-ombre.name": "Shadow Dragon",
+  "unit.t7-dragon-ombre-elite.name": "Black Dragon",
+
+  "building.dungeon-dwelling-t1": "Scouts' Lair",
+  "building.dungeon-dwelling-t2": "Blood Arena",
+  "building.dungeon-dwelling-t3": "Labyrinth",
+  "building.dungeon-dwelling-t4": "Underground Stables",
+  "building.dungeon-dwelling-t5": "Witches' Circle",
+  "building.dungeon-dwelling-t6": "Hydra Pit",
+  "building.dungeon-dwelling-t7": "Dragon Cavern",
+  "building.dungeon-cursed-well": "Cursed Well",
+
+  "hero.raelag.name": "Raelag",
+  "hero.raelag.bio": "An overlord exiled from the surface, Raelag forged his power in the depths, uniting the dark elf clans through fear.",
+  "hero.raelag.specialty": "Shadow Leader — Blood Furies under his command gain attack and defense.",
+  "hero.shadya.name": "Shadya",
+  "hero.shadya.bio": "A shadow witch of dreaded talent, Shadya pierced the veils that once bridled destructive magic.",
+  "hero.shadya.specialty": "Irresistible Veil — her mastery lowers the mana cost of her spells."
+}

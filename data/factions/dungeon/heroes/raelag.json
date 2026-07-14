@@ -1,0 +1,18 @@
+{
+  "id": "raelag",
+  "name": "@loc:hero.raelag.name",
+  "bio": "@loc:hero.raelag.bio",
+  "archetype": "might",
+  "origin": "canon",
+  "source": "Might & Magic",
+  "avatar": "dungeon-might",
+  "avatarStyle": "painterly",
+  "specialty": "@loc:hero.raelag.specialty",
+  "attributes": { "attack": 2, "defense": 2, "power": 1, "knowledge": 1 },
+  "specialtyEffect": {
+    "id": "meneur-ombre",
+    "conditional": { "unitId": "t2-furie-sanglante", "attack": 1, "defense": 1 }
+  },
+  "startingSkills": {},
+  "startingSpells": []
+}

@@ -1,0 +1,12 @@
+{
+  "id": "t5-sorciere-ombre",
+  "tier": 5,
+  "name": "@loc:unit.t5-sorciere-ombre.name",
+  "stats": { "hp": 30, "attack": 11, "defense": 10, "damage": [7, 11], "speed": 7 },
+  "growthPerWeek": 3,
+  "cost": { "gold": 620, "gems": 1 },
+  "abilities": [
+    { "id": "spellcaster", "params": { "spellId": "affaiblissement", "charges": 2, "power": 3 } },
+    { "id": "curseOnHit", "params": { "chance": 0.3, "defenseMod": -1, "rounds": 2 } }
+  ]
+}

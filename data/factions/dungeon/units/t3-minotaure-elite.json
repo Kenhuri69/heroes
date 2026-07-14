@@ -1,0 +1,13 @@
+{
+  "id": "t3-minotaure-elite",
+  "tier": 3,
+  "name": "@loc:unit.t3-minotaure-elite.name",
+  "stats": { "hp": 29, "attack": 10, "defense": 9, "damage": [7, 10], "speed": 6 },
+  "growthPerWeek": 6,
+  "cost": { "gold": 320, "sulfur": 1 },
+  "abilities": [
+    { "id": "moraleImmune" },
+    { "id": "doubleAttack" },
+    { "id": "magicResistance", "params": { "value": 0.2 } }
+  ]
+}

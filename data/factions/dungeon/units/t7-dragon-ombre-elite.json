@@ -1,0 +1,14 @@
+{
+  "id": "t7-dragon-ombre-elite",
+  "tier": 7,
+  "name": "@loc:unit.t7-dragon-ombre-elite.name",
+  "stats": { "hp": 205, "attack": 29, "defense": 27, "damage": [45, 60], "speed": 12 },
+  "growthPerWeek": 1,
+  "cost": { "gold": 3600, "sulfur": 2, "gems": 1 },
+  "abilities": [
+    { "id": "flying" },
+    { "id": "fear", "params": { "chance": 0.3, "rounds": 1 } },
+    { "id": "magicResistance", "params": { "value": 0.4 } },
+    { "id": "spellImmune" }
+  ]
+}

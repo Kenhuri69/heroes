@@ -2,6 +2,7 @@
   "id": "t6-hydre-elite",
   "tier": 6,
   "name": "@loc:unit.t6-hydre-elite.name",
+  "loreKey": "@loc:unit.t6-hydre-elite.lore",
   "stats": { "hp": 78, "attack": 18, "defense": 15, "damage": [12, 17], "speed": 6 },
   "growthPerWeek": 2,
   "cost": { "gold": 1300, "sulfur": 1 },

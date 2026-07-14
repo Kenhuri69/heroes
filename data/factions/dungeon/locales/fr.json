@@ -30,5 +30,22 @@
   "hero.raelag.specialty": "Meneur d'Ombre — les Furies sanglantes sous son commandement gagnent en attaque et en défense.",
   "hero.shadya.name": "Shadya",
   "hero.shadya.bio": "Sorcière d'ombre au talent redouté, Shadya a percé les voiles qui bridaient la magie destructrice.",
-  "hero.shadya.specialty": "Voile Irrésistible — sa maîtrise réduit le coût en mana de ses sorts."
+  "hero.shadya.specialty": "Voile Irrésistible — sa maîtrise réduit le coût en mana de ses sorts.",
+
+  "unit.t1-eclaireur.lore": "On ne nous voit jamais deux fois. La première suffit.",
+  "unit.t1-eclaireur-elite.lore": "La lumière projette des ombres. Nous vivons dedans, et nous y tuons.",
+  "unit.t2-furie-sanglante.lore": "La douleur est une prière. Nous la hurlons en frappant.",
+  "unit.t2-furie-sanglante-elite.lore": "Détachez nos chaînes, puis comptez vos morts. Nous, nous avons cessé de compter.",
+  "unit.t3-minotaure.lore": "Le labyrinthe n'égare que ceux qui espèrent en sortir.",
+  "unit.t3-minotaure-elite.lore": "Je garde la porte. Nul n'entre. Nul ne ressort.",
+  "unit.t4-chevaucheur-tenebres.lore": "Nous montons ce que la surface fuit. La surface a raison.",
+  "unit.t4-chevaucheur-tenebres-elite.lore": "Écoutez le galop dans le noir : c'est le dernier bruit qu'ils entendront.",
+  "unit.t5-sorciere-ombre.lore": "Vos protections sont des vœux. Je ne crois pas aux vœux.",
+  "unit.t5-sorciere-ombre-elite.lore": "J'ai enseigné à la magie ce qu'elle refusait de faire.",
+  "unit.t6-hydre.lore": "Tranchez une tête : il nous en reste. À vous, non.",
+  "unit.t6-hydre-elite.lore": "Ce qui rampe sous la pierre était là avant vos dieux.",
+  "unit.t7-dragon-ombre.lore": "Je bois la lumière comme d'autres respirent. Bientôt, il n'en restera plus.",
+  "unit.t7-dragon-ombre-elite.lore": "Aucun sort ne me touche, aucun mur ne me retient, aucun matin ne me suit.",
+
+  "building.dungeon-cursed-well.lore": "L'eau des profondeurs ne reflète pas le ciel — elle le nie."
 }

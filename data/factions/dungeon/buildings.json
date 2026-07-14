@@ -114,6 +114,7 @@
     },
     {
       "id": "dungeon-cursed-well",
+      "loreKey": "@loc:building.dungeon-cursed-well.lore",
       "maxLevel": 1,
       "levels": [
         {

@@ -2,6 +2,7 @@
   "id": "t2-furie-sanglante",
   "tier": 2,
   "name": "@loc:unit.t2-furie-sanglante.name",
+  "loreKey": "@loc:unit.t2-furie-sanglante.lore",
   "stats": { "hp": 11, "attack": 7, "defense": 4, "damage": [2, 4], "speed": 8 },
   "growthPerWeek": 9,
   "cost": { "gold": 130 },

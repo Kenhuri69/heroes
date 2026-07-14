@@ -181,10 +181,14 @@ par appariement après réglage (comme les 4 factions livrées).
   - *Raelag* : exilé de surface → conquérant souterrain → doute sur le prix payé.
   - *Shadya* : apprentie bridée → maîtresse de la magie irrésistible → tentation
     de briser la serrure elle-même.
-- **Textes d'ambiance** : engagement à fournir un `loreKey` FR/EN par unité,
-  bâtiment propre et héros nommé, écrit du point de vue du Donjon.
-- **Campagne** (optionnelle, 2ᵉ lot narratif) : 3 chapitres — *La Descente*,
-  *La Couvée d'Ombre*, *La Serrure* (format doc 13 §6.1).
+- **Textes d'ambiance** (✅ lot 17.5) : `loreKey` FR/EN livré sur les **14 unités**
+  (base + élites) et le **Puits de Malédiction**, écrits à la 1ʳᵉ personne du point
+  de vue du Donjon (voix froide et impérieuse). Parité FR/EN vérifiée par
+  `content:check`. Les héros nommés portent déjà leur `bio` FR/EN (lot 17.2).
+- **Campagne** (différée, lot narratif distinct) : 3 chapitres — *La Descente*,
+  *La Couvée d'Ombre*, *La Serrure* (format doc 13 §6.1). Chantier de contenu
+  autonome (cartes + scénarios + arcs de dialogue), comparable aux PR de campagne
+  N3a/N3b ; hors périmètre du lot 17.5.
 
 ## 9. Résumé des points d'extension (test de modularité #5)
 

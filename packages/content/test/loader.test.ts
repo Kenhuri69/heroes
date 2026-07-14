@@ -228,6 +228,66 @@ describe('loadContent', () => {
     await expect(loadContent(reader(data))).rejects.toThrow(/globalement uniques/);
   });
 
+  it('rejette une collision d’id de héros entre deux paquets', async () => {
+    const data = makeData();
+    // Deux paquets valides définissant chacun un héros au MÊME id 'hero-x' :
+    // sans garde-fou, `buildHeroRoster` (id-keyed) + fusion des locales n’en
+    // gardent qu’un, l’autre paquet perdant silencieusement son héros.
+    const hero = (avatar: string): unknown => ({
+      id: 'hero-x',
+      name: '@loc:hero.hero-x.name',
+      bio: '@loc:hero.hero-x.bio',
+      archetype: 'might',
+      origin: 'original',
+      avatar,
+    });
+    (data['factions/proto/manifest.json'] as { heroes?: string[] }).heroes = ['hero-x'];
+    data['factions/proto/heroes/hero-x.json'] = hero('a-hero');
+    (data['factions/proto/locales/fr.json'] as Record<string, string>)['hero.hero-x.name'] = 'Héros A';
+    (data['factions/proto/locales/fr.json'] as Record<string, string>)['hero.hero-x.bio'] = 'Bio A';
+    (data['factions/proto/locales/en.json'] as Record<string, string>)['hero.hero-x.name'] = 'Hero A';
+    (data['factions/proto/locales/en.json'] as Record<string, string>)['hero.hero-x.bio'] = 'Bio A';
+
+    data['factions/index.json'] = { factions: ['proto', 'proto2'] };
+    data['factions/proto2/manifest.json'] = {
+      id: 'proto2',
+      schemaVersion: 1,
+      name: '@loc:faction.name',
+      nativeTerrain: 'grass',
+      keyResources: ['crystal', 'gems'],
+      factionResources: [],
+      spellSchool: null,
+      tiers: 7,
+      sharedGrowthGroups: {},
+      units: ['t2-only'],
+      heroes: ['hero-x'],
+      aiProfile: { aggression: 0.5, focusFire: 0.5, preferredTargets: 'nearest' },
+    };
+    data['factions/proto2/units/t2-only.json'] = {
+      id: 't2-only',
+      tier: 1,
+      name: '@loc:unit.t2-only.name',
+      stats: { hp: 6, attack: 3, defense: 2, damage: [1, 2], speed: 4 },
+      growthPerWeek: 14,
+      cost: { gold: 30 },
+      abilities: [],
+    };
+    data['factions/proto2/heroes/hero-x.json'] = hero('b-hero');
+    data['factions/proto2/locales/fr.json'] = {
+      'faction.name': 'P2',
+      'unit.t2-only.name': 'Recrue2',
+      'hero.hero-x.name': 'Héros B',
+      'hero.hero-x.bio': 'Bio B',
+    };
+    data['factions/proto2/locales/en.json'] = {
+      'faction.name': 'P2',
+      'unit.t2-only.name': 'Recruit2',
+      'hero.hero-x.name': 'Hero B',
+      'hero.hero-x.bio': 'Bio B',
+    };
+    await expect(loadContent(reader(data))).rejects.toThrow(/héros 'hero-x'.*globalement uniques/);
+  });
+
   it('R4 CO5 — checkCoreNameKeys détecte les noms fr/en manquants', async () => {
     const report = await loadContent(reader(makeData()));
     const errors = checkCoreNameKeys(report).join();

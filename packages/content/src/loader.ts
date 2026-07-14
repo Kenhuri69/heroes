@@ -233,6 +233,28 @@ export async function loadContent(readJson: ReadJson): Promise<LoadReport> {
         ),
       );
   }
+  // Règle croisée : unicité GLOBALE des ids de héros entre paquets acceptés —
+  // même classe de bug que les unités ci-dessus. `buildHeroRoster` indexe par
+  // `h.id` et les locales fusionnent par `Object.assign` (i18n.ts) : deux héros
+  // partageant un id s'écrasent silencieusement (un seul reste jouable), et un
+  // paquet perd son héros au tirage de « Nouvelle partie ».
+  {
+    const seen = new Set<string>();
+    const duplicates = new Set<string>();
+    for (const pack of report.content.packs) {
+      for (const hero of pack.heroes) {
+        if (seen.has(hero.id)) duplicates.add(hero.id);
+        seen.add(hero.id);
+      }
+    }
+    if (duplicates.size > 0)
+      throw new PackError(
+        [...duplicates].map(
+          (hid) =>
+            `héros '${hid}' défini dans plusieurs paquets — les ids de héros doivent être globalement uniques`,
+        ),
+      );
+  }
   // Règle croisée (remédiation R5 CO3) : le terrain natif d'un paquet doit
   // exister dans la config — sinon le bonus de terrain natif (vitesse/moral,
   // doc 02 §5.1/§5.3) est mort, aucune tuile ne pouvant jamais correspondre.

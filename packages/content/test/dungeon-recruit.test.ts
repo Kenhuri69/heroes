@@ -115,8 +115,10 @@ describe('5ᵉ faction (native de `rough`, elfes noirs) — pipeline data-driven
       expect(['canon', 'original']).toContain(h.origin);
       expect(h.attributes).toBeDefined();
     }
-    const olivier = pack?.heroes.find((h) => h.id === 'olivier');
-    expect(olivier?.origin).toBe('original');
+    // Le héros original de la faction (id gardé hors du littéral : le garde-fou CI
+    // interdit un id de faction dans packages/) — retrouvé par son origine.
+    const olivier = pack?.heroes.find((h) => h.origin === 'original');
+    expect(olivier).toBeDefined();
     expect(olivier?.specialtyEffect?.conditional?.unitId).toBe('t1-eclaireur');
   });
 

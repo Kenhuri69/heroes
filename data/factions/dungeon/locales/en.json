@@ -31,9 +31,9 @@
   "hero.shadya.name": "Shadya",
   "hero.shadya.bio": "A shadow witch of dreaded talent, Shadya pierced the veils that once bridled destructive magic.",
   "hero.shadya.specialty": "Irresistible Veil — her mastery lowers the mana cost of her spells.",
-  "hero.olivier.name": "Olivier",
-  "hero.olivier.bio": "A dark elf known as the Silent Cup, Olivier coats every blade and bolt with a venom of his own making. Where other killers trust a lucky strike, he leaves nothing to chance: the target is doomed before it ever hears the hiss.",
-  "hero.olivier.specialty": "Certain Poison — Scouts under his command gain attack and swiftness, a venom that leaves no room for luck and whose bite deepens as he rises in level.",
+  "hero.olivier-dungeon.name": "Olivier",
+  "hero.olivier-dungeon.bio": "A dark elf known as the Silent Cup, Olivier coats every blade and bolt with a venom of his own making. Where other killers trust a lucky strike, he leaves nothing to chance: the target is doomed before it ever hears the hiss.",
+  "hero.olivier-dungeon.specialty": "Certain Poison — Scouts under his command gain attack and swiftness, a venom that leaves no room for luck and whose bite deepens as he rises in level.",
 
   "unit.t1-eclaireur.lore": "You never see us twice. Once is enough.",
   "unit.t1-eclaireur-elite.lore": "Light casts shadows. We live in them, and we kill in them.",

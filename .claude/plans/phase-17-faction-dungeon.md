@@ -132,10 +132,19 @@
 - [x] **Vérif** : `content:check` vert (parité lore fr/en OK ; 72/90 unités avec
       ambiance, +14 Dungeon) ; tests content 129 ; garde-fou faction vert. **Zéro
       diff moteur** (données pures : `loreKey` + locales).
-- **Campagne différée** (lot narratif distinct) : 3 chapitres
-      `data/factions/dungeon/story/` (*La Descente*, *La Couvée d'Ombre*, *La
-      Serrure*) — chantier de contenu autonome (cartes + scénarios + dialogues),
-      comparable aux PR N3a/N3b ; à ouvrir sur décision utilisateur. Mêmes garde-fous.
+### Lot 17.6 — Campagne du Donjon — 🚧 EN COURS (ch1 livré)
+- [x] **Chapitre 1 — *La Descente*** : `data/factions/dungeon/story/campaign.json`
+      (`manifest.story` branché) + scénario `data/scenarios/dungeon-ch1.scenario.json`
+      (index mis à jour). Le Donjon (humain) prend racine sur `proto-01` face à une
+      IA **Sylvan Court** (parents reniés) ; dialogue d'ouverture Raelag/Shadya,
+      1 quête primaire (bâtir le Fort → or + soufre), 3 barks de combat. Locales
+      FR/EN (`campaign.dungeon.*`, `scenario.dungeon-ch1.name`, `dlg.*`, `quest.*`,
+      `character.raelag/shadya.name`, `bark.dungeon.sylvan.*`) dans `data/core/locales/`.
+- [ ] **Chapitre 2 — *La Couvée d'Ombre*** + **Chapitre 3 — *La Serrure*** : à écrire.
+- **Vérif** : `content:check` vert (campagne `dungeon-campaign` 1 chapitre, scénario
+  `dungeon-ch1` 2 joueurs, cross-refs + parité locales OK) ; tests engine 740 +
+  content 129 ; typecheck vert ; garde-fou faction vert ; smoke `@core` 19/19.
+  **Zéro diff moteur** (données + locales core).
 
 ## Différés (notés, hors périmètre initial — cf. autres factions)
 - École de sorts propre `ombre` + sorts dédiés (motif `traque`/`scene` déjà livré).

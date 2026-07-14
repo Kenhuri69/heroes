@@ -68,6 +68,12 @@ export interface CalendarEventDef {
    * crédit. `resource` = id opaque (ressource commune, jamais de faction).
    */
   resourceGrant?: { resource: string; amount: number } | undefined;
+  /**
+   * « Semaine du savoir » (M-CALENDAR, doc 02 §2.3) : accorde `amount` XP à
+   * CHAQUE héros (tous joueurs) au passage de semaine — miroir de `resourceGrant`
+   * côté progression. Absent ⇒ aucun gain. Réutilise `grantXp` (montées en chaîne).
+   */
+  heroXpGrant?: { amount: number } | undefined;
 }
 
 export interface AdventureConfig {

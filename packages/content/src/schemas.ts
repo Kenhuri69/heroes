@@ -747,6 +747,11 @@ export const gameConfigSchema = z.object({
                   amount: z.number().int().positive(),
                 })
                 .optional(),
+              /**
+               * « Semaine du savoir » (M-CALENDAR) : accorde `amount` XP à chaque
+               * héros (tous joueurs) au passage de semaine.
+               */
+              heroXpGrant: z.object({ amount: z.number().int().positive() }).optional(),
             }),
           )
           .min(1),

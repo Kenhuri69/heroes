@@ -327,6 +327,11 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
   toast humain). Événement livré : **Semaine de la Ruée vers l'Or** (+500 or).
   Générique (ressource = id opaque commun), champ optionnel ⇒ pas de bump save,
   golden inchangé.
+  **Semaine du savoir (M-CALENDAR, livré)** : un événement peut porter
+  `heroXpGrant { amount }` — au passage de semaine, **chaque héros** (tous joueurs)
+  gagne `amount` XP (montées en chaîne via `grantXp` ; event `CalendarXpGranted`,
+  toast humain). Événement livré : **Semaine du Savoir** (+500 XP). Champ optionnel
+  ⇒ pas de bump save, golden inchangé.
   *Différés :* événements de **mois** persistants, semaine ciblant une créature
   précise par `unitId` (au-delà du palier).
 

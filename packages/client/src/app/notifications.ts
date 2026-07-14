@@ -143,6 +143,9 @@ export function notify(event: AppEvent, game: GameState): string | null {
             resource: t(`resource.${event.resource}`),
           })
         : null;
+    // Semaine du savoir (M-CALENDAR) : XP créditée — notifiée au seul humain.
+    case 'CalendarXpGranted':
+      return event.playerId === human ? t('toast.calendarXp', { amount: event.amount }) : null;
     // Trigger de carte (doc 02 §2.1) : message global localisé, ou octroi de
     // ressource notifié au seul joueur humain (comme un ramassage).
     case 'TriggerFired':

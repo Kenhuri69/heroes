@@ -141,5 +141,7 @@ function visitableEffectLine(effect: VisitableEffect): string {
       return t('mapCard.effectLearnSpell', { spell: resolveSpellName(effect.spellId) });
     case 'grantSkill':
       return t('mapCard.effectGrantSkill', { skill: resolveSkillName(effect.skillId) });
+    case 'grantWarMachine':
+      return t('mapCard.effectGrantWarMachine', { machine: resolveUnitName(effect.machineId) });
   }
 }

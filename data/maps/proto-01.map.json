@@ -354,6 +354,17 @@
       "frequency": "oncePerHero"
     },
     {
+      "id": "fabrique-1",
+      "type": "visitable",
+      "x": 9,
+      "y": 5,
+      "effect": {
+        "kind": "grantWarMachine",
+        "machineId": "ballista"
+      },
+      "frequency": "oncePerHero"
+    },
+    {
       "id": "monolith-a",
       "type": "monolith",
       "x": 20,

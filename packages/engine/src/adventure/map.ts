@@ -75,7 +75,14 @@ export type VisitableEffect =
    * Idempotent — s'il la possède déjà, la visite est consommée sans rien
    * apprendre. `oncePerHero` = gain unique. `skillId` = id opaque (jamais de faction).
    */
-  | { kind: 'grantSkill'; skillId: string };
+  | { kind: 'grantSkill'; skillId: string }
+  /**
+   * Fabrique de machines de guerre (M-VISIT, doc 02 §2.2) : donne la machine de
+   * guerre `machineId` (catalogue `core/war-machines.json`) au héros visiteur
+   * (ajout à `hero.warMachines`, idempotent). Déjà possédée ⇒ visite consommée
+   * sans rien donner. `oncePerHero` = gain unique. `machineId` = id opaque.
+   */
+  | { kind: 'grantWarMachine'; machineId: string };
 
 /** Lieu de bonus visitable (doc 02 §2.2) : visite en passant, re-visite bornée. */
 export interface VisitableObjectDef {

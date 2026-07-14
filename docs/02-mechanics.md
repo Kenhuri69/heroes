@@ -205,7 +205,10 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 > (M-VISIT : enseigne un sort précis au héros — ajout idempotent à `hero.spells`,
 > classique « Sanctuaire de Magie » HoMM), **cabane de la sorcière `grantSkill`**
 > (M-VISIT : enseigne une **compétence** au héros — rang 1, HORS montée de niveau,
-> ajout idempotent à `hero.skills`, classique « Witch Hut » HoMM) ; re-visite
+> ajout idempotent à `hero.skills`, classique « Witch Hut » HoMM),
+> **fabrique de machines de guerre `grantWarMachine`** (M-VISIT : donne une
+> machine de guerre — baliste/catapulte, catalogue `core/war-machines.json` — au
+> héros visiteur ; ajout idempotent à `hero.warMachines`) ; re-visite
 > `oncePerHero` ou `oncePerHeroPerWeek`),
 > **habitations hors ville** (M-DWELLOWN : **capturables** — la fouler pose le
 > drapeau du joueur et lui réserve le réassort hebdomadaire, façon HoMM ; la

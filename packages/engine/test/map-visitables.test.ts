@@ -206,6 +206,45 @@ describe('lieux de bonus visitables (doc 02 §2.2)', () => {
     });
   });
 
+  it('la fabrique donne une machine de guerre au héros, une seule fois (M-VISIT)', () => {
+    const workshop = (id: string, x: number): MapObjectDef => ({
+      id,
+      type: 'visitable',
+      pos: { x, y: 0 },
+      effect: { kind: 'grantWarMachine', machineId: 'test-machine' },
+      frequency: 'oncePerHero',
+      visits: {},
+    });
+    const s0 = startedWith([workshop('fabrique-a', 2), workshop('fabrique-b', 3)]);
+    expect(s0.heroes[0]?.warMachines).not.toContain('test-machine');
+    const { state, events } = move(s0, [
+      { x: 1, y: 0 },
+      { x: 2, y: 0 },
+    ]);
+    expect(state.heroes[0]?.warMachines).toContain('test-machine');
+    expect(events).toContainEqual({
+      type: 'BonusVisited',
+      heroId: 'hero-p1',
+      playerId: 'p1',
+      objectId: 'fabrique-a',
+      effect: { kind: 'grantWarMachine', machineId: 'test-machine' },
+      amount: 1,
+    });
+    const first = state.map?.objects.find((o) => o.id === 'fabrique-a');
+    expect(first?.type === 'visitable' && first.visits['hero-p1']).toBe(-1); // à vie
+    // Une 2ᵉ fabrique de la MÊME machine : idempotent (pas de doublon, amount 0).
+    const second = move(state, [{ x: 3, y: 0 }]);
+    expect(second.state.heroes[0]?.warMachines.filter((m) => m === 'test-machine')).toHaveLength(1);
+    expect(second.events).toContainEqual({
+      type: 'BonusVisited',
+      heroId: 'hero-p1',
+      playerId: 'p1',
+      objectId: 'fabrique-b',
+      effect: { kind: 'grantWarMachine', machineId: 'test-machine' },
+      amount: 0,
+    });
+  });
+
   it('le moulin crédite sa ressource fixe au joueur', () => {
     const mill: MapObjectDef = {
       id: 'moulin',

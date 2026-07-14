@@ -132,19 +132,23 @@
 - [x] **Vérif** : `content:check` vert (parité lore fr/en OK ; 72/90 unités avec
       ambiance, +14 Dungeon) ; tests content 129 ; garde-fou faction vert. **Zéro
       diff moteur** (données pures : `loreKey` + locales).
-### Lot 17.6 — Campagne du Donjon — 🚧 EN COURS (ch1 livré)
-- [x] **Chapitre 1 — *La Descente*** : `data/factions/dungeon/story/campaign.json`
-      (`manifest.story` branché) + scénario `data/scenarios/dungeon-ch1.scenario.json`
-      (index mis à jour). Le Donjon (humain) prend racine sur `proto-01` face à une
-      IA **Sylvan Court** (parents reniés) ; dialogue d'ouverture Raelag/Shadya,
-      1 quête primaire (bâtir le Fort → or + soufre), 3 barks de combat. Locales
-      FR/EN (`campaign.dungeon.*`, `scenario.dungeon-ch1.name`, `dlg.*`, `quest.*`,
-      `character.raelag/shadya.name`, `bark.dungeon.sylvan.*`) dans `data/core/locales/`.
-- [ ] **Chapitre 2 — *La Couvée d'Ombre*** + **Chapitre 3 — *La Serrure*** : à écrire.
-- **Vérif** : `content:check` vert (campagne `dungeon-campaign` 1 chapitre, scénario
-  `dungeon-ch1` 2 joueurs, cross-refs + parité locales OK) ; tests engine 740 +
-  content 129 ; typecheck vert ; garde-fou faction vert ; smoke `@core` 19/19.
-  **Zéro diff moteur** (données + locales core).
+### Lot 17.6 — Campagne du Donjon (3 chapitres) — ✅ LIVRÉ
+- [x] **Chapitre 1 — *La Descente*** (`dungeon-ch1`, `proto-01`) : le Donjon prend
+      racine face à la **Sylvan Court** (parents reniés) ; quête « bâtir le Fort ».
+- [x] **Chapitre 2 — *La Couvée d'Ombre*** (`dungeon-ch2`, `proto-01`) : face à la
+      **Necropolis** (rivale respectée sur le terrain de la mort), armée à hydres ;
+      quête « bâtir la Guilde de sorcellerie » (nourrir la couvée).
+- [x] **Chapitre 3 — *La Serrure*** (`dungeon-ch3`, `proto-02`) : climax face au
+      **Havre** (gardiens arrogants du sceau) ; armée apex (dragon d'ombre) ; quête
+      « bâtir le Puits de Malédiction » pour atteindre le sceau de Cendregarde.
+- [x] `campaign.json` = 3 chapitres (`manifest.story` branché) ; les 3 scénarios
+      enregistrés dans `data/scenarios/index.json` ; dialogues Raelag/Shadya,
+      1 quête primaire + 3 barks par chapitre ; locales FR/EN dans
+      `data/core/locales/` (arc narratif doc 17 §8 : descente → couvée → sceau).
+- **Vérif** : `content:check` vert (campagne 3 chapitres, 3 scénarios 2 joueurs,
+      cross-refs + parité locales OK) ; tests engine 740 + content 129 ; typecheck
+      vert ; garde-fou faction vert ; smoke `@core` 19/19. **Zéro diff moteur**
+      (données + locales core). **Faction Donjon 100 % complète (17.1→17.6).**
 
 ## Différés (notés, hors périmètre initial — cf. autres factions)
 - École de sorts propre `ombre` + sorts dédiés (motif `traque`/`scene` déjà livré).

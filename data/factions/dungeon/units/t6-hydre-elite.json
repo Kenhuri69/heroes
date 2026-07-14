@@ -2,11 +2,11 @@
   "id": "t6-hydre-elite",
   "tier": 6,
   "name": "@loc:unit.t6-hydre-elite.name",
-  "stats": { "hp": 85, "attack": 18, "defense": 15, "damage": [14, 22], "speed": 6 },
+  "stats": { "hp": 78, "attack": 18, "defense": 15, "damage": [12, 17], "speed": 6 },
   "growthPerWeek": 2,
   "cost": { "gold": 1300, "sulfur": 1 },
   "abilities": [
-    { "id": "areaAttack", "params": { "pct": 0.55 } },
+    { "id": "areaAttack", "params": { "pct": 0.4 } },
     { "id": "noRetaliation" },
     { "id": "breathAttack", "params": { "pct": 0.6 } }
   ]

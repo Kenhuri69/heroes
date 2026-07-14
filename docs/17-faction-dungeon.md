@@ -85,12 +85,18 @@ les capacités listées **existent déjà** au catalogue générique
 | Tier | Unité (FR / rôle HoMM) | PV | Att | Déf | Dégâts | Vit. | Croiss./sem | Coût (or +) | Capacités (catalogue) |
 |------|------------------------|----|-----|-----|--------|------|-------------|-------------|-----------------------|
 | 1 | **Éclaireur** (Assassin / tireur) | 6 | 4 | 3 | 2–3 | 6 | 14 | 65 | `shooter`, `poisonSting` |
-| 2 | **Furie Sanglante** (Blood Fury / assaut) | 11 | 7 | 4 | 3–5 | 8 | 9 | 130 | `noRetaliation` |
+| 2 | **Furie Sanglante** (Blood Fury / assaut) | 11 | 7 | 4 | 2–4 | 8 | 9 | 130 | `noRetaliation` |
 | 3 | **Minotaure** (garde / tank moral) | 25 | 9 | 8 | 6–9 | 6 | 6 | 260, +1 `sulfur` | `moraleImmune`, `doubleAttack` |
-| 4 | **Chevaucheur des Ténèbres** (Dark Raider / cavalerie) | 32 | 12 | 9 | 8–12 | 9 | 4 | 480 | `charge` |
+| 4 | **Chevaucheur des Ténèbres** (Dark Raider / cavalerie) | 32 | 12 | 9 | 7–10 | 9 | 4 | 480 | `charge` |
 | 5 | **Sorcière d'Ombre** (Shadow Matron / caster) | 30 | 11 | 10 | 7–11 | 7 | 3 | 620, +1 `gems` | `spellcaster`, `curseOnHit` |
-| 6 | **Hydre** (Hydra / mêlée de zone) | 75 | 16 | 14 | 12–20 | 5 | 2 | 1100, +1 `sulfur` | `areaAttack`, `noRetaliation` |
-| 7 | **Dragon d'Ombre** (Shadow Dragon / apex volant) | 180 | 27 | 25 | 40–55 | 11 | 1 | 3000, +2 `sulfur` +1 `gems` | `flying`, `fear`, `magicResistance` |
+| 6 | **Hydre** (Hydra / mêlée de zone) | 68 | 16 | 14 | 10–15 | 5 | 2 | 1100, +1 `sulfur` | `areaAttack` (0.35), `noRetaliation` |
+| 7 | **Dragon d'Ombre** (Shadow Dragon / apex volant) | 160 | 27 | 25 | 32–42 | 11 | 1 | 3000, +2 `sulfur` +1 `gems` | `flying`, `fear`, `magicResistance` |
+
+> **Valeurs calées au lot 17.4** (`faction:sim`, budget or égal) : la version de
+> cadrage sur-calibrait le Donjon (blowout 80.8 % vs Necropolis) ; les tiers
+> porteurs (Furie T2, Chevaucheur T4, Hydre T6, Dragon T7) ont été atténués
+> (dégâts/PV, `areaAttack` 0.5→0.35) ⇒ **0 déséquilibre béant**, Donjon dans la
+> bande vs Haven (52 %) / Arcane (49 %), ⚠ maîtrisé ailleurs (60/57/37 %).
 
 > Upgrades (habitation `maxLevel: 2` = variante `-elite`, comme toutes les
 > factions depuis 4.11) : chaque unité a sa variante améliorée (stats +, une

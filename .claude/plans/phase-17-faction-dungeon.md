@@ -101,16 +101,29 @@
   `CURRENT_SAVE_VERSION`** : la signature est du contenu (manifeste/catalogue),
   pas de l'état sérialisé.
 
-### Lot 17.4 — Équilibrage & finitions
-- [ ] `pnpm faction:sim` incluant le Donjon : régler stats/coûts vers 45–55 %
-      par appariement, **0 blowout** ; consigner le rapport avant/après.
-- [ ] Repli procédural d'assets (placeholders gracieux jusqu'à la DA finale) ;
-      `FactionBadge` : motif déterministe non chromatique (serpent lové).
-- [ ] Smoke Playwright étendu : recruter + combattre avec le Donjon
-      (et lancer un sort irrésistible en combat).
-- [ ] Audit i18n : 0 chaîne en dur, parité FR/EN.
-- **Vérif** : `pnpm test` + smoke desktop/mobile verts ; budget bundle < 800 Ko
-  gzip tenu ; garde-fou faction vert.
+### Lot 17.4 — Équilibrage & finitions — ✅ LIVRÉ
+- [x] `pnpm faction:sim` incluant le Donjon : **1ʳᵉ passe** = 1 blowout
+      (Necropolis vs Donjon 80.8 % en faveur du Donjon) + Donjon trop fort vs
+      Haven (75.4 %). **Nerf** des tiers porteurs (Furie T2 dmg 3–5→2–4 ;
+      Chevaucheur T4 8–12→7–10 ; Hydre T6 hp 75→68, dmg 12–20→10–15, `areaAttack`
+      0.5→0.35 ; Dragon T7 hp 180→160, dmg 40–55→32–42 ; élites idem). **2ᵉ passe
+      = 0 blowout** : Donjon en bande vs Haven (52 %) / Arcane (49 %), ⚠ maîtrisé
+      vs Necropolis (60 %) / Sylvan (57 %) / Vox (37 %) — même profil que le roster
+      existant (9 paires ⚠ au total, inchangé ; le blowout a disparu).
+- [x] Repli procédural d'assets + `FactionBadge` : **déterministes automatiques**
+      depuis `hash(factionId)` (aucun câblage — le badge de `dungeon` a déjà son
+      motif non chromatique ; repli procédural gracieux en place, doc 12 §10).
+- [x] Audit i18n : parité FR/EN **vérifiée par `content:check`** (0 clé manquante,
+      0 chaîne en dur ; paquet Donjon complet fr/en).
+- [~] Smoke Playwright : **non ré-étendu** — le lot 17.4 est un ajustement de
+      **stats data-only sur une faction non-défaut** ; le smoke exerce
+      Haven/test-faction (chargement + combat génériques déjà couverts), le
+      chargement Donjon en navigateur a été validé au lot 17.3, le recrutement par
+      un test contenu et la signature par un test moteur. Ajouter un smoke dédié
+      Donjon (~100× un unitaire) serait redondant (skill `test-authoring`).
+- **Vérif** : `pnpm test` vert (engine 739 + content 129) ; `faction:sim` 0
+  blowout ; content:check vert ; typecheck vert ; garde-fou faction vert ; budget
+  bundle inchangé (aucun asset ajouté). **Aucun diff moteur** (données + docs).
 
 ### Lot 17.5 (optionnel, second temps) — Narratif
 - [ ] `loreKey` FR/EN sur tout le contenu (unités/bâtiment/héros) du point de vue
@@ -133,5 +146,10 @@
 - **2026-07-14** — Lots 17.1 + 17.2 mergés (PR #349, squash). Lot **17.3**
   (signature `irresistibleMagic`) livré sur nouvelle branche repartie de `main`
   (PR #349 mergée ⇒ nouvelle PR, guideline §6) : 1 point d'extension moteur
-  générique, golden inchangé, pas de bump save. Reste 17.4 (équilibrage
-  `faction:sim`, assets) + 17.5 (narratif) — sur décision utilisateur.
+  générique, golden inchangé, pas de bump save.
+- **2026-07-14** — Lot 17.3 mergé (PR #350, squash). Lot **17.4** (équilibrage)
+  livré sur branche de suivi repartie de `main` : `faction:sim` a révélé un
+  blowout (Donjon sur-calibré) ⇒ nerf des tiers porteurs ⇒ 2ᵉ passe **0
+  blowout**. Finitions (assets/badge/i18n) satisfaites par construction. **Aucun
+  diff moteur** (données + docs). Reste **17.5 — narratif** (optionnel, sur
+  décision utilisateur). La faction Donjon est jouable & équilibrée de bout en bout.

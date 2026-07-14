@@ -41,5 +41,11 @@ typecheck · lint · vitest engine (golden + save-shape inchangés) · vitest co
 
 ## Suivi
 
-- [ ] 1 map.ts · [ ] 2 visitable.ts · [ ] 3 schemas.ts · [ ] 4 loader.ts
-- [ ] 5 client · [ ] 6 locales · [ ] 7 proto-01 · [ ] 8 test · [ ] 9 docs
+- [x] 1 map.ts · [x] 2 visitable.ts · [x] 3 schemas.ts · [x] 4 loader.ts
+- [x] 5 client · [x] 6 locales · [x] 7 proto-01 · [x] 8 test · [x] 9 docs
+
+## Résultat pipeline (local)
+
+typecheck 5/5 ✓ · lint ✓ · vitest engine 725 (golden + save-shape inchangés) ✓ ·
+vitest content 126 ✓ · content:check ✓ · garde-fou faction ✓ · garde-fou couleur ✓
+· build ✓ · bundle 312587 o < 819200 ✓ · smoke 101/101 ✓.

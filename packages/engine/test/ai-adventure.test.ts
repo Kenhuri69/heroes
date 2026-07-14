@@ -73,7 +73,10 @@ describe('runAiTurn — propriété « IA vs IA se termine »', () => {
         { numRuns: 20 },
       );
     },
-    20_000,
+    // ~14 s en local : 20 s ne laissait aucune marge aux runners CI (timeouts
+    // intermittents observés) — 40 s couvre la variance sans masquer un vrai gel
+    // (la boucle a son propre garde-fou d'itérations).
+    40_000,
   );
 
   it(

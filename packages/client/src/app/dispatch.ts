@@ -103,6 +103,24 @@ export async function dispatch(cmd: Command): Promise<EngineResult> {
 }
 
 /**
+ * Reprise des tours IA après chargement (revue 2026-07, B3) : une sauvegarde
+ * peut capturer un état où `currentPlayer` est une IA (save manuel pendant le
+ * relais, autosave d'une version antérieure, import `.heroes`). `dispatch`
+ * étant le seul point qui relance la boucle, un tel chargement figeait la
+ * partie : toutes les entrées humaines étaient ignorées, sans recours. On
+ * relance donc la boucle sur `GameLoaded` (restore/import/cloud) — no-op si
+ * c'est déjà à un humain de jouer.
+ */
+export function installAiResume(): void {
+  eventBus.on((event) => {
+    if (event.type !== 'GameLoaded') return;
+    runAiLoop().catch((err: unknown) => {
+      console.error('reprise des tours IA après chargement :', err);
+    });
+  });
+}
+
+/**
  * Garde-fou anti-boucle infinie (plan phase-3.5 §5) : un tour = un `AiTurn`
  * par joueur IA actif, largement suffisant même pour un enchaînement de
  * plusieurs joueurs IA d'affilée.

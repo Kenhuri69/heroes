@@ -1,0 +1,17 @@
+{
+  "id": "olivier",
+  "name": "@loc:hero.olivier.name",
+  "bio": "@loc:hero.olivier.bio",
+  "archetype": "might",
+  "origin": "original",
+  "avatar": "dungeon-olivier",
+  "avatarStyle": "painterly",
+  "specialty": "@loc:hero.olivier.specialty",
+  "attributes": { "attack": 3, "defense": 1, "power": 1, "knowledge": 1 },
+  "specialtyEffect": {
+    "id": "poison-certain",
+    "conditional": { "unitId": "t1-eclaireur", "attack": 1, "speed": 1, "perLevels": 4 }
+  },
+  "startingSkills": { "archery": 1 },
+  "startingSpells": []
+}

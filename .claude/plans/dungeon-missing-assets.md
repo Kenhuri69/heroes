@@ -25,8 +25,15 @@ cultes du serpent, minotaures/hydres/dragons d'ombre.
    → vérif : 8 PNG présents (t1-eclaireur … t7-dragon-ombre + t1-eclaireur-elite) ✅
 6. [x] Commit + push, PR draft #362.
 
+7. [x] **Planche élites p2** intégrée. Planche fournie non conforme (hydre &
+   dragon débordant sur 2 cellules + légendes texte) ⇒ QC 4×2 mécaniquement PASS
+   mais hydre coupée / dragon absent. Récupération : 4 élites du haut extraites
+   proprement (crop rangée sup. 4×1), hydre & dragon **recadrés individuellement**
+   puis extraits en 1×1 (keyer fond plat). → vérif : 6/6 sujets propres, têtes
+   d'hydre et ailes de dragon intactes, texte retiré ✅ ; 14 PNG dans
+   `assets/units/dungeon/` (7 base + 7 élites).
+
 ## Reste à produire (planches suivantes, mêmes étapes)
-- `units-dungeon-p2` (6 élites T2→T7).
 - `buildings-dungeon` (habitations + Puits maudit).
 - Avatars héros (`hero-avatars-p2` : dungeon-might/magic ; + Raelag/Shadya si planche dédiée).
 

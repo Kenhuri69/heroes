@@ -84,7 +84,7 @@ import { EngineError, type Command, type CommandError } from './commands';
 import type { GameEvent } from './events';
 import { seedRng } from './rng';
 import { rollWeekEvent } from '../adventure/calendar';
-import { RESOURCE_IDS, weekOf, monthOf, areAllies, type GameState } from './state';
+import { RESOURCE_IDS, weekOf, monthOf, areAllies, type GameState, type ResourceId } from './state';
 
 export interface EngineResult {
   state: GameState;
@@ -828,13 +828,28 @@ const handlers: Handlers = {
         // Événement de calendrier (M-CALENDAR, doc 02 §2.3) : tiré AVANT la
         // croissance (il la module via `weekGrowthFactor`). No-op hors calendrier.
         const calEvent = rollWeekEvent(draft);
-        if (calEvent)
+        if (calEvent) {
           events.push({
             type: 'CalendarEventStarted',
             eventId: calEvent.id,
             week,
             month: monthOf(draft.calendar.day),
           });
+          // Semaine de ruée (M-CALENDAR) : crédit d'une ressource commune à TOUS
+          // les joueurs (générique — la donnée décide de la ressource/montant).
+          const grant = calEvent.resourceGrant;
+          if (grant) {
+            for (const p of draft.players) {
+              p.resources[grant.resource as ResourceId] += grant.amount;
+              events.push({
+                type: 'CalendarResourceGranted',
+                playerId: p.id,
+                resource: grant.resource,
+                amount: grant.amount,
+              });
+            }
+          }
+        }
         applyWeeklyGrowth(draft, events); // croissance hebdo des habitations
         // Contrats de chasse (doc 05 §3.3) : cible neutre hebdomadaire assignée
         // au propriétaire d'un bâtiment `huntContract`.

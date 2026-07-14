@@ -290,6 +290,12 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
   global (helper pur `weekGrowthTierFactor`, partagé par la projection de
   recrutement). Événement livré : **Semaine des Recrues** (T1 ×2). Générique
   (palier = nombre opaque), champ optionnel ⇒ pas de bump save, golden inchangé.
+  **Semaine de ruée (M-CALENDAR, livré)** : un événement peut porter
+  `resourceGrant { resource, amount }` — au passage de semaine, **tous les joueurs**
+  reçoivent `amount` d'une **ressource commune** (event `CalendarResourceGranted`,
+  toast humain). Événement livré : **Semaine de la Ruée vers l'Or** (+500 or).
+  Générique (ressource = id opaque commun), champ optionnel ⇒ pas de bump save,
+  golden inchangé.
   *Différés :* événements de **mois** persistants, semaine ciblant une créature
   précise par `unitId` (au-delà du palier).
 

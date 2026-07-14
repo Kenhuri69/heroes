@@ -138,6 +138,53 @@ describe('M-CALENDAR — événements de calendrier', () => {
     expect(growth).toEqual([9]); // floor(6 * 1.5) — palier non ciblé
   });
 
+  it('« semaine de ruée » (resourceGrant) crédite la ressource à tous les joueurs', () => {
+    const config = testConfig();
+    config.calendar = {
+      events: [{ id: 'gold-rush', weight: 1, growthFactor: 1, resourceGrant: { resource: 'gold', amount: 500 } }],
+    };
+    // Deux joueurs : le crédit s'applique à TOUS.
+    let s = apply(createEmptyState(), {
+      type: 'StartGame',
+      seed: 1,
+      players: [
+        { id: 'p1', startingResources: { ...emptyResources() } },
+        { id: 'p2', startingResources: { ...emptyResources() } },
+      ],
+      map: testMap(),
+      config,
+      unitCatalog: testUnitCatalogWithEconomy(),
+      buildingCatalog: testBuildingCatalog(),
+      towns: [{ ...testTown(), buildings: { townHall: 1, fort: 2, dwelling1: 1 }, stock: { 'red-grunt': 2 } }],
+    }).state;
+    // Un jour = un tour de CHAQUE joueur ⇒ boucle jusqu'au jour 8 (semaine 2).
+    // p2 ne possède aucune ville ⇒ son or ne vient QUE de la ruée (isole le crédit
+    // du revenu quotidien de ville qui gonfle l'or de p1).
+    const granted: { playerId: string; amount: number }[] = [];
+    while (s.calendar.day < 8) {
+      const r = apply(s, { type: 'EndTurn', playerId: s.players[s.currentPlayer]!.id });
+      s = r.state;
+      for (const e of r.events)
+        if (e.type === 'CalendarResourceGranted') granted.push({ playerId: e.playerId, amount: e.amount });
+    }
+    expect(s.calendar.weekEventId).toBe('gold-rush');
+    expect(s.players[1]?.resources.gold).toBe(500); // p2 sans ville : or = ruée seule
+    expect(granted).toContainEqual({ playerId: 'p1', amount: 500 });
+    expect(granted).toContainEqual({ playerId: 'p2', amount: 500 });
+  });
+
+  it('sans resourceGrant : aucun crédit émis au passage de semaine', () => {
+    let s = startedGame([{ id: 'harvest', weight: 1, growthFactor: 1.5 }]);
+    const granted: string[] = [];
+    for (let day = 1; day <= 7; day++) {
+      const r = apply(s, { type: 'EndTurn', playerId: 'p1' });
+      s = r.state;
+      for (const e of r.events) if (e.type === 'CalendarResourceGranted') granted.push(e.playerId);
+    }
+    expect(s.calendar.weekEventId).toBe('harvest');
+    expect(granted).toEqual([]);
+  });
+
   it('tirage déterministe : même graine ⇒ même événement', () => {
     const events: CalendarEventDef[] = [
       { id: 'a', weight: 1, growthFactor: 1 },

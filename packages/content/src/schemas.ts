@@ -722,6 +722,16 @@ export const gameConfigSchema = z.object({
               growthTier: z
                 .object({ tier: z.number().int().positive(), factor: z.number().positive() })
                 .optional(),
+              /**
+               * « Semaine de ruée » (M-CALENDAR) : crédite `amount` de `resource`
+               * (ressource commune) à TOUS les joueurs au passage de semaine.
+               */
+              resourceGrant: z
+                .object({
+                  resource: z.enum(COMMON_RESOURCE_IDS),
+                  amount: z.number().int().positive(),
+                })
+                .optional(),
             }),
           )
           .min(1),

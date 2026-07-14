@@ -131,6 +131,14 @@ export function notify(event: AppEvent, game: GameState): string | null {
         ? t('toast.calendarEvent', { event: t(`calendar.event.${event.eventId}.name`) })
         : null;
     }
+    // Semaine de ruée (M-CALENDAR) : ressource créditée — notifiée au seul humain.
+    case 'CalendarResourceGranted':
+      return event.playerId === human
+        ? t('toast.calendarResource', {
+            amount: event.amount,
+            resource: t(`resource.${event.resource}`),
+          })
+        : null;
     // Trigger de carte (doc 02 §2.1) : message global localisé, ou octroi de
     // ressource notifié au seul joueur humain (comme un ramassage).
     case 'TriggerFired':

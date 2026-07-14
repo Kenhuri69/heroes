@@ -638,6 +638,12 @@ Source design : doc 02 §2 (carte), §1.5 (multi-héros).
   **palier** précis est × `factor` en plus du facteur global (helper pur
   `weekGrowthTierFactor`, partagé villes/habitations/UI de recrutement).
   Événement `recruits` (T1 ×2). Optionnel ⇒ pas de bump save, golden inchangé.
+  **Livré (tranche « semaine de ruée »)** (plan `m-calendar-resource-windfall.md`) :
+  champ générique `CalendarEventDef.resourceGrant { resource, amount }` — au passage
+  de semaine, TOUS les joueurs reçoivent `amount` d'une ressource commune (event
+  `CalendarResourceGranted`, toast humain). Événement `gold-rush` (+500 or). La
+  config golden n'a aucun `calendar` ⇒ `rollWeekEvent` no-op ⇒ **golden inchangé** ;
+  champ optionnel ⇒ pas de bump save. Zéro faction.
   Différés : mois persistants ; calendrier persistant livré (M-CALWIDGET) ;
   ciblage par `unitId` exact (au-delà du palier).
 

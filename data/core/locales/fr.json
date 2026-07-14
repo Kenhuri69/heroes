@@ -480,6 +480,8 @@
   "calendar.event.bounty.name": "Semaine d'Abondance (croissance ×2)",
   "calendar.event.plague.name": "Semaine de la Peste (croissance ÷2)",
   "calendar.event.recruits.name": "Semaine des Recrues (croissance des T1 ×2)",
+  "calendar.event.gold-rush.name": "Semaine de la Ruée vers l'Or (+or pour tous)",
+  "toast.calendarResource": "Semaine de ruée : +{amount} {resource} !",
   "toast.combatWon": "Victoire !",
   "toast.combatLost": "Défaite…",
   "toast.undeadRaised": "+{count} {unit} relevé(s) (Nécromancie)",

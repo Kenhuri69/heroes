@@ -62,6 +62,12 @@ export interface CalendarEventDef {
    * `growthFactor` global. Absent ⇒ semaine sans ciblage. `tier` = nombre opaque.
    */
   growthTier?: { tier: number; factor: number } | undefined;
+  /**
+   * « Semaine de ruée » (M-CALENDAR, doc 02 §2.3) : crédite `amount` de `resource`
+   * (ressource commune) à TOUS les joueurs au passage de semaine. Absent ⇒ aucun
+   * crédit. `resource` = id opaque (ressource commune, jamais de faction).
+   */
+  resourceGrant?: { resource: string; amount: number } | undefined;
 }
 
 export interface AdventureConfig {

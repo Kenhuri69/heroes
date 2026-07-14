@@ -14,6 +14,8 @@ export type GameEvent =
   | { type: 'WeekStarted'; week: number }
   /** Événement de calendrier tiré au début d'une semaine (M-CALENDAR, doc 02 §2.3). */
   | { type: 'CalendarEventStarted'; eventId: string; week: number; month: number }
+  /** Semaine de ruée (M-CALENDAR) : ressource créditée à un joueur au passage de semaine. */
+  | { type: 'CalendarResourceGranted'; playerId: string; resource: string; amount: number }
   /** Un pas de héros — le rendu anime tuile par tuile (doc 07 §3). */
   | { type: 'MoveStepped'; heroId: string; from: GridPos; to: GridPos; movementPointsLeft: number }
   | {

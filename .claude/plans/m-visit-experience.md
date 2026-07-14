@@ -47,7 +47,7 @@
 - [x] garde-fou faction (statut grep 1)
 - [x] garde-fou couleur CSS (statut grep 1)
 - [x] `pnpm build` + bundle gzip 312839 < 819200
-- [ ] `pnpm smoke` (en cours)
+- [x] `pnpm smoke` (101 passed)
 - faction:sim : **non requis** (aucun équilibrage de faction touché).
 
 ## Écarts constatés

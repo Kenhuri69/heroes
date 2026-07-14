@@ -7,7 +7,7 @@
 ## Prompt (à coller dans Gemini — Nano Banana/Copilot en repli)
 
 ```
-Item sheet, 5 fantasy creature dwelling war-camps in a 4x2 grid,
+Item sheet, 6 fantasy creature dwelling war-camps in a 4x2 grid,
 digital painting, painterly MTG illustration quality,
 rich material detail (timber, hide, iron, cloth),
 soft directional light from upper-left,
@@ -20,6 +20,7 @@ cell 2: a creature dwelling war-camp with arcane-hunters faction architecture id
 cell 3: a creature dwelling war-camp with necropolis faction architecture identity: bone white, ash grey and black, necrotic green glow, tattered cloth, spectral mist — a peaked tent with a pennant, a carved totem and a low campfire
 cell 4: a creature dwelling war-camp with sylvan-court faction architecture identity: muted heroic fantasy palette matching the faction lore — a peaked tent with a pennant, a carved totem and a low campfire
 cell 5: a creature dwelling war-camp with vox-arcana faction architecture identity: black gothic stone with silver/gold filigree, electric cyan and neon magenta, wisteria violet, Korean oni/pagoda accents, concert neon lanterns — a peaked tent with a pennant, a carved totem and a low campfire
+cell 6: a creature dwelling war-camp with dungeon faction architecture identity: muted heroic fantasy palette matching the faction lore — a peaked tent with a pennant, a carved totem and a low campfire
 flat uniform light grey background (#c8c8c8), no ground shadow,
 no text, no watermark, no signature, no border frame, no ground line, no decorative sparkles, no star glints, no lens flare
 ```
@@ -29,7 +30,7 @@ no text, no watermark, no signature, no border frame, no ground line, no decorat
 ```bash
 python3 tools/assets/sheet_extract.py <planche.png> \
   --cols 4 --rows 2 --side 512 \
-  --ids camp-haven,camp-arcane-hunters,camp-necropolis,camp-sylvan-court,camp-vox-arcana \
+  --ids camp-haven,camp-arcane-hunters,camp-necropolis,camp-sylvan-court,camp-vox-arcana,camp-dungeon \
   --out assets/raster_src --qc /tmp/qc-map-dwellings.png
 ```
 

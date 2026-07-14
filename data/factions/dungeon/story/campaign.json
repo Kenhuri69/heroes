@@ -1,0 +1,13 @@
+{
+  "id": "dungeon-campaign",
+  "factionId": "dungeon",
+  "nameKey": "@loc:campaign.dungeon.name",
+  "descriptionKey": "@loc:campaign.dungeon.desc",
+  "chapters": [
+    {
+      "id": "ch1",
+      "scenario": "dungeon-ch1",
+      "titleKey": "@loc:campaign.dungeon.ch1.title"
+    }
+  ]
+}

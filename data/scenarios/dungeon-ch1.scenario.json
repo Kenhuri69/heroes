@@ -1,0 +1,89 @@
+{
+  "id": "dungeon-ch1",
+  "schemaVersion": 1,
+  "name": "@loc:scenario.dungeon-ch1.name",
+  "map": "proto-01",
+  "players": [
+    {
+      "id": "player-1",
+      "controller": "human",
+      "factionId": "dungeon",
+      "startPositionIndex": 0,
+      "startingResources": { "gold": 5000, "wood": 10, "ore": 20, "sulfur": 4, "gems": 2 },
+      "startingArmy": [
+        { "unitId": "t1-eclaireur", "count": 24 },
+        { "unitId": "t2-furie-sanglante", "count": 8 }
+      ],
+      "startingTown": {
+        "id": "start-town",
+        "x": 2,
+        "y": 4,
+        "prebuilt": [
+          { "building": "townHall", "level": 1 },
+          { "building": "dungeon-dwelling-t1", "level": 1 }
+        ]
+      }
+    },
+    {
+      "id": "ai-1",
+      "controller": "ai",
+      "factionId": "sylvan-court",
+      "startPositionIndex": 1,
+      "startingResources": { "gold": 1500 },
+      "startingArmy": [
+        { "unitId": "t1-lucine", "count": 14 },
+        { "unitId": "t2-archer-sylvestre", "count": 5 }
+      ]
+    }
+  ],
+  "objectives": {
+    "player-1": {
+      "victory": { "type": "eliminateAllEnemies" },
+      "defeat": { "type": "defeatHero", "heroId": "hero-player-1" }
+    },
+    "ai-1": {
+      "victory": { "type": "eliminateAllEnemies" },
+      "defeat": { "type": "defeatHero", "heroId": "hero-ai-1" }
+    }
+  },
+  "openingDialog": "dlg-dungeon-ch1-open",
+  "combatBarks": [
+    "@loc:bark.dungeon.sylvan.1",
+    "@loc:bark.dungeon.sylvan.2",
+    "@loc:bark.dungeon.sylvan.3"
+  ],
+  "characters": [
+    { "id": "raelag", "nameKey": "@loc:character.raelag.name" },
+    { "id": "shadya", "nameKey": "@loc:character.shadya.name" }
+  ],
+  "dialogs": [
+    {
+      "id": "dlg-dungeon-ch1-open",
+      "lines": [
+        { "speaker": "raelag", "textKey": "@loc:dlg.dungeon.ch1.open.1" },
+        { "speaker": "shadya", "portrait": "grave", "textKey": "@loc:dlg.dungeon.ch1.open.2" },
+        { "speaker": "raelag", "textKey": "@loc:dlg.dungeon.ch1.open.3" }
+      ]
+    },
+    {
+      "id": "dlg-dungeon-ch1-fort",
+      "lines": [{ "speaker": "shadya", "textKey": "@loc:dlg.dungeon.ch1.fort.1" }]
+    }
+  ],
+  "quests": [
+    {
+      "id": "dungeon-ch1-descent",
+      "kind": "primary",
+      "titleKey": "@loc:quest.dungeon-ch1-descent.title",
+      "descriptionKey": "@loc:quest.dungeon-ch1-descent.desc",
+      "steps": [
+        {
+          "id": "raise-fort",
+          "condition": { "type": "buildStructure", "buildingId": "fort" },
+          "dialogBefore": "dlg-dungeon-ch1-fort"
+        }
+      ],
+      "rewards": [{ "type": "resources", "resources": { "gold": 1500, "sulfur": 2 } }]
+    }
+  ]
+}

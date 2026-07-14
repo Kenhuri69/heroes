@@ -185,10 +185,12 @@ par appariement après réglage (comme les 4 factions livrées).
   (base + élites) et le **Puits de Malédiction**, écrits à la 1ʳᵉ personne du point
   de vue du Donjon (voix froide et impérieuse). Parité FR/EN vérifiée par
   `content:check`. Les héros nommés portent déjà leur `bio` FR/EN (lot 17.2).
-- **Campagne** (différée, lot narratif distinct) : 3 chapitres — *La Descente*,
-  *La Couvée d'Ombre*, *La Serrure* (format doc 13 §6.1). Chantier de contenu
-  autonome (cartes + scénarios + arcs de dialogue), comparable aux PR de campagne
-  N3a/N3b ; hors périmètre du lot 17.5.
+- **Campagne** (lot 17.6, en cours) : **Chapitre 1 — *La Descente*** ✅ livré
+  (`data/factions/dungeon/story/campaign.json` + scénario `dungeon-ch1` sur
+  `proto-01` : le Donjon prend racine face à une incursion de la **Sylvan Court**
+  — les parents reniés ; dialogue d'ouverture Raelag/Shadya, quête « bâtir le Fort »,
+  barks de combat). Chapitres **2 — *La Couvée d'Ombre*** et **3 — *La Serrure***
+  restent à écrire (mêmes garde-fous : données pures, zéro diff moteur).
 
 ## 9. Résumé des points d'extension (test de modularité #5)
 

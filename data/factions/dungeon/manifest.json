@@ -15,6 +15,7 @@
       "resistancePierce": 0.5
     }
   ],
+  "story": "story/campaign.json",
   "spellSchool": null,
   "heroSkills": [],
   "tiers": 7,

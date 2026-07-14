@@ -185,9 +185,20 @@ export class CombatScene {
 
   // ——— Resync depuis le store (réconciliation simple, doc 10 §2.2) ———
 
+  /** Références du dernier sync — dirty-check F1 (revue 2026-07). */
+  private lastSync: { game: unknown; spellTarget: unknown } | null = null;
+
   private sync(): void {
     if (this.destroyed) return;
-    const combat = appStore.getState().game.combat;
+    // F1 : ne resynchronise (reachableHexes + attackableTargets + redraw des
+    // 150 hexes) que si l'état moteur ou le ciblage de sort ont changé — pas à
+    // chaque toast/ligne de journal. Les changements de sélection INTERNES
+    // appellent déjà `redrawBoard()` directement.
+    const st = appStore.getState();
+    const last = this.lastSync;
+    if (last && last.game === st.game && last.spellTarget === st.combatSpellTarget) return;
+    this.lastSync = { game: st.game, spellTarget: st.combatSpellTarget };
+    const combat = st.game.combat;
     if (!combat) {
       this.combatShown = false;
       this.selection = null;

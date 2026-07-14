@@ -443,7 +443,21 @@ les données actuelles** (cross-check scripté des ids) ; garde `readSaveVersion
   (B14) ; B12/B13/B15 et la mini-carte vérifiés par typecheck + suite smoke
   complète (pas de smoke dédié — mise en scène multi-héros/pointercancel/
   2 parties complètes disproportionnée, dit explicitement §7).
-- [ ] Lot 6 — perf rendu (F1, F9, F10)
+- [x] Lot 6 — perf rendu (F1, F9, F10). Livré : **F1** — (a) dirty-check des
+  `sync()` des deux scènes (Adventure : refs `game`/`selectedHeroId`/`turnAck` ;
+  Combat : refs `game`/`combatSpellTarget` — les changements de sélection
+  internes appellent déjà `redrawBoard()` directement) ⇒ un toast/tick aiTurn
+  ne resynchronise plus rien ; (b) `dispatch` fait UN setState par commande
+  (fusion des flags pré-combat/bilan avec `game`) ; (c) brouillard : mémo
+  (référence `explored` + contenu `sightings`) — plus de retessellation
+  O(W×H) hors mouvement — ET découpage en chunks 16² culés au viewport
+  (`fog.updateVisibility` branché sur `cullTilemap`). **F9** — chunks de
+  `Tilemap` construits paresseusement à leur première entrée dans le viewport
+  sur les grandes cartes culées (patron `TerrainProps`) ; petites cartes
+  inchangées (aplaties en une texture). **F10** — pool de sprites pour
+  `TerrainProps` (plus de destroy/create par frontière de chunk en pan).
+  Mesure : smoke @perf (carte ×4 throttlée, rendu logiciel CI) **7,9 → 10,8
+  fps** (+37 %). Vérif : @core 19/19, @perf 2/2, suite complète verte.
 - [ ] Lot 7a — perf moteur sans golden (F5–F8)
 - [ ] Lot 7b — perf moteur avec re-fix golden (F2, F3)
 - [ ] Lot 8 — P2 moteur + décisions design (B18–B32)

@@ -15,15 +15,35 @@ const SHELL = new URL('./', self.location).pathname; // /heroes/
 // préserve cet ordre ; un asset re-servi depuis le cache n'est pas réinséré —
 // LRU approché, suffisant pour borner la croissance). Appliqué à l'activate ET
 // après chaque mise en cache d'un asset.
-const ASSETS_MAX = 100;
+const ASSETS_MAX = 300;
 
 async function pruneAssets() {
-  const cache = await caches.open(CACHE);
-  const assets = (await cache.keys()).filter((req) =>
-    new URL(req.url).pathname.includes('/assets/'),
-  );
-  const excess = assets.slice(0, Math.max(0, assets.length - ASSETS_MAX));
-  await Promise.all(excess.map((req) => cache.delete(req)));
+  // Best-effort : un échec d'élagage ne doit JAMAIS remonter (et surtout pas
+  // dans un respondWith). Les deletes concurrents d'un put en cours peuvent
+  // rejeter selon le navigateur — avalés.
+  try {
+    const cache = await caches.open(CACHE);
+    const assets = (await cache.keys()).filter((req) =>
+      new URL(req.url).pathname.includes('/assets/'),
+    );
+    const excess = assets.slice(0, Math.max(0, assets.length - ASSETS_MAX));
+    await Promise.all(excess.map((req) => cache.delete(req).catch(() => false)));
+  } catch {
+    /* élagage différé au prochain passage */
+  }
+}
+
+// Élagage DIFFÉRÉ et dédoublonné : au boot, ~150 assets s'insèrent en rafale —
+// élaguer après CHAQUE insertion faisait courir des delete concurrents aux put
+// en vol (rejets ⇒ net::ERR_FAILED côté page). Un seul élagage par rafale.
+let prunePending = false;
+function schedulePrune() {
+  if (prunePending) return;
+  prunePending = true;
+  setTimeout(() => {
+    prunePending = false;
+    void pruneAssets();
+  }, 3000);
 }
 
 self.addEventListener('install', (event) => {
@@ -50,7 +70,9 @@ async function networkFirst(request, shellFallback) {
   try {
     const fresh = await fetch(request);
     if (fresh && fresh.ok) {
-      cache.put(request, fresh.clone());
+      // Mise en cache best-effort : un put qui rejette (quota, course avec un
+      // delete) ne doit pas produire d'unhandled rejection dans le SW.
+      cache.put(request, fresh.clone()).catch(() => undefined);
       return fresh;
     }
     // B46c : 404/500 transitoire ⇒ repli sur le cache s'il existe, sinon la
@@ -69,8 +91,14 @@ async function cacheFirst(request) {
   if (hit) return hit;
   const fresh = await fetch(request);
   if (fresh && fresh.ok) {
-    await cache.put(request, fresh.clone());
-    await pruneAssets();
+    // Best-effort + élagage DIFFÉRÉ (une passe par rafale) : la réponse à la
+    // page ne dépend JAMAIS du succès de la mise en cache (B46b, correctif de
+    // revue — l'élagage synchrone après chaque insertion rejetait respondWith
+    // en rafale d'assets ⇒ net::ERR_FAILED intermittents).
+    cache
+      .put(request, fresh.clone())
+      .then(() => schedulePrune())
+      .catch(() => undefined);
   }
   return fresh;
 }

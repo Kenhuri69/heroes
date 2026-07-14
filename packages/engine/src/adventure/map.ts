@@ -54,6 +54,12 @@ export type VisitableEffect =
   | { kind: 'movement'; amount: number }
   /** L'XP manquante pour atteindre le niveau suivant (« +1 niveau »). */
   | { kind: 'levelXp' }
+  /**
+   * Pierre du Savoir (M-VISIT, doc 02 §2.2 — « Learning Stone ») : accorde un
+   * montant FIXE d'XP au héros visiteur (peut faire monter de niveau, comme un
+   * combat). Distinct de `levelXp` (qui vise pile le niveau suivant).
+   */
+  | { kind: 'experience'; amount: number }
   /** Ressource créditée au joueur visiteur. */
   | { kind: 'resource'; resource: string; amount: number }
   /** Tour de guet (F2) : révèle le brouillard sur `amount` tuiles autour du lieu. */

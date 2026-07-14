@@ -95,6 +95,32 @@ describe('lieux de bonus visitables (doc 02 §2.2)', () => {
     expect(obj?.type === 'visitable' && obj.visits['hero-p1']).toBe(-1); // à vie
   });
 
+  it("la pierre du savoir accorde un montant FIXE d'XP, une seule fois par héros (M-VISIT)", () => {
+    const stone: MapObjectDef = {
+      id: 'pierre',
+      type: 'visitable',
+      pos: { x: 2, y: 0 },
+      effect: { kind: 'experience', amount: 1000 },
+      frequency: 'oncePerHero',
+      visits: {},
+    };
+    const { state, events } = move(startedWith([stone]), [
+      { x: 1, y: 0 },
+      { x: 2, y: 0 },
+    ]);
+    expect(state.heroes[0]?.xp).toBe(1000);
+    expect(events).toContainEqual({
+      type: 'BonusVisited',
+      heroId: 'hero-p1',
+      playerId: 'p1',
+      objectId: 'pierre',
+      effect: { kind: 'experience', amount: 1000 },
+      amount: 1000,
+    });
+    const obj = state.map?.objects.find((o) => o.id === 'pierre');
+    expect(obj?.type === 'visitable' && obj.visits['hero-p1']).toBe(-1); // à vie
+  });
+
   it("l'arène accorde un bonus d'attribut PERMANENT, une seule fois par héros (M-VISIT)", () => {
     const arena: MapObjectDef = {
       id: 'arene',

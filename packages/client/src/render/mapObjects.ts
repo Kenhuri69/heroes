@@ -163,6 +163,7 @@ const VISITABLE_COLORS: Record<string, number> = {
   movement: 0xd68910, // écurie
   vision: 0x48c9b0, // tour de guet
   levelXp: 0x27ae60, // sanctuaire / arbre du savoir
+  experience: 0xca8a04, // pierre du savoir (tome doré)
   learnSpell: 0x8e44ad, // sanctuaire de sort (magie)
   grantSkill: 0x6c3483, // cabane de la sorcière (compétence)
   grantWarMachine: 0x7f8c8d, // fabrique de machines de guerre (métal)
@@ -261,6 +262,12 @@ function buildVisitableFallback(kind: string): Container {
         .ellipse(c, c + 2, 12, 4).fill(color).stroke({ width: 2, color: ink })
         .rect(c - 14, c - 12, 28, 4).fill(0x9a6b3f).stroke({ width: 2, color: ink })
         .rect(c - 1, c - 12, 2, 14).fill(ink);
+      break;
+    case 'experience': // pierre du savoir : tome ouvert sur un socle
+      g.rect(c - 14, c + 8, 28, 8).fill(0x6d4c2f).stroke({ width: 2, color: ink })
+        .poly([c - 15, c + 8, c, c + 2, c, c + 10, c - 15, c + 16]).fill(color).stroke({ width: 2, color: ink })
+        .poly([c + 15, c + 8, c, c + 2, c, c + 10, c + 15, c + 16]).fill(color).stroke({ width: 2, color: ink })
+        .rect(c - 1, c + 2, 2, 8).fill(ink);
       break;
     default: // sanctuaire / levelXp : obélisque runique
       g.poly([c, c - 20, c + 8, c + 12, c - 8, c + 12]).fill(color).stroke({ width: 2, color: ink })

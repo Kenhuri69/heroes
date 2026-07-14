@@ -128,6 +128,8 @@ function visitableEffectLine(effect: VisitableEffect): string {
       return t('mapCard.effectMovement', { amount: effect.amount });
     case 'levelXp':
       return t('mapCard.effectLevelXp');
+    case 'experience':
+      return t('mapCard.effectExperience', { amount: effect.amount });
     case 'resource':
       return t('mapCard.effectResource', { amount: effect.amount, name: t(`resource.${effect.resource}`) });
     case 'vision':

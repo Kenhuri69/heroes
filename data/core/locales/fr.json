@@ -415,6 +415,7 @@
   "mapCard.effectLuck": "+{amount} chance jusqu'à la fin du prochain combat",
   "mapCard.effectMovement": "+{amount} points de mouvement immédiats",
   "mapCard.effectLevelXp": "Accorde l'XP manquante pour le niveau suivant",
+  "mapCard.effectExperience": "+{amount} XP au visiteur",
   "mapCard.effectResource": "+{amount} {name} au visiteur",
   "mapCard.effectVision": "Révèle le brouillard sur {amount} tuiles alentour",
   "mapCard.effectPermanentStat": "{attribute} +{amount} (permanent)",

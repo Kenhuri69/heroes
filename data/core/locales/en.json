@@ -415,6 +415,7 @@
   "mapCard.effectLuck": "+{amount} luck until the end of the next battle",
   "mapCard.effectMovement": "+{amount} movement points right away",
   "mapCard.effectLevelXp": "Grants the XP missing for the next level",
+  "mapCard.effectExperience": "+{amount} XP to the visitor",
   "mapCard.effectResource": "+{amount} {name} for the visitor",
   "mapCard.effectVision": "Reveals the fog within {amount} tiles",
   "mapCard.effectPermanentStat": "{attribute} +{amount} (permanent)",

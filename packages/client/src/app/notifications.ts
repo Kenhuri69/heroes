@@ -88,7 +88,8 @@ export function notify(event: AppEvent, game: GameState): string | null {
       const effect = event.effect;
       if (effect.kind === 'luck') return t('toast.bonusLuck', { amount: event.amount });
       if (effect.kind === 'movement') return t('toast.bonusMovement', { amount: event.amount });
-      if (effect.kind === 'levelXp') return t('toast.bonusXp', { amount: event.amount });
+      if (effect.kind === 'levelXp' || effect.kind === 'experience')
+        return t('toast.bonusXp', { amount: event.amount });
       if (effect.kind === 'vision') return t('toast.bonusVision', { amount: event.amount });
       if (effect.kind === 'permanentStat')
         return t('toast.bonusPermanentStat', {

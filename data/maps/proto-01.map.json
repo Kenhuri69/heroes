@@ -375,6 +375,17 @@
       "frequency": "oncePerHeroPerWeek"
     },
     {
+      "id": "pierre-savoir-1",
+      "type": "visitable",
+      "x": 9,
+      "y": 7,
+      "effect": {
+        "kind": "experience",
+        "amount": 1000
+      },
+      "frequency": "oncePerHero"
+    },
+    {
       "id": "monolith-a",
       "type": "monolith",
       "x": 20,

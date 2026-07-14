@@ -214,6 +214,8 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 > laissés au sol si l'inventaire est plein), **lieux de bonus** (effet
 > déclaratif : fontaine `luck` — consommée à la fin du prochain combat,
 > écurie `movement`, arbre du savoir `levelXp` — l'XP du niveau suivant,
+> **pierre du savoir `experience`** (M-VISIT : montant **fixe** d'XP au héros
+> visiteur — classique « Learning Stone » HoMM, distinct de l'arbre `levelXp`),
 > moulin `resource` fixe, **arène/statue `permanentStat`** (M-VISIT : +attribut
 > primaire **définitif** au héros visiteur), **sanctuaire de sort `learnSpell`**
 > (M-VISIT : enseigne un sort précis au héros — ajout idempotent à `hero.spells`,

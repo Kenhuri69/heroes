@@ -493,6 +493,19 @@
         "type": "vision",
         "radius": 12
       }
+    },
+    {
+      "id": "marche-forcee",
+      "school": "air",
+      "circle": 1,
+      "manaCost": 6,
+      "kind": "adventure",
+      "base": 0,
+      "perPower": 0,
+      "adventure": {
+        "type": "movementBonus",
+        "amount": 600
+      }
     }
   ]
 }

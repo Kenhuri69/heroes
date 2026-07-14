@@ -35,7 +35,15 @@ export type SpellKind =
  * ville possédée) ; `vision` (H-SPELLS.3 — révèle le brouillard dans un rayon
  * autour du héros). Ajouter un effet = un cas + données, jamais de faction.
  */
-export type AdventureEffect = { type: 'townPortal' } | { type: 'vision'; radius: number };
+export type AdventureEffect =
+  | { type: 'townPortal' }
+  | { type: 'vision'; radius: number }
+  /**
+   * Marche forcée (H-SPELLS, doc 02 §1.4) : ajoute `amount` points de mouvement
+   * immédiats au héros (sans le déplacer). Réutilise `hero.movementPoints` — pur
+   * additif, aucun état neuf. Miroir du lieu de bonus `movement` (écurie).
+   */
+  | { type: 'movementBonus'; amount: number };
 
 /** Définition résolue d'un sort (doc 02 §1.4), embarquée dans le catalogue. */
 export interface SpellDef {

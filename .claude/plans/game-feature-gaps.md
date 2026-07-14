@@ -489,6 +489,12 @@ Source design : doc 02 §1 (héros), docs de faction §5/§6/§7 (héros nommés
     les ennemis proches, dégâts décroissants (`chainTargets` pur, partagé
     résolution/préviz). Sort **Chaîne d'éclairs** (Air, c4). `kind` reste `damage`
     (IA/ciblage inchangés) ; zéro faction, pas de bump save, golden inchangé.
+  - **H-SPELLS (Marche forcée)** ✅ (plan `h-spells-adventure-march.md`) : 3ᵉ effet
+    d'aventure — variant générique `AdventureEffect { type: 'movementBonus', amount }`
+    ajoutant des PM immédiats au héros (`hero.movementPoints`, miroir du lieu de
+    bonus `movement`). Sort **Marche forcée** (Air, cercle 1, +600 PM). Client
+    inchangé (spellbook + toast génériques). Additif ⇒ pas de bump save, golden
+    inchangé ; zéro faction.
   - **H-SPELLS.4+** ⬜ : **invocation**, **résurrection de pile entière**
     (pile à 0 retirée de la grille). Débloque C-SPELLUI.
 

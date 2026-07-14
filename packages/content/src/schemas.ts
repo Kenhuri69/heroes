@@ -470,6 +470,8 @@ export const spellSchema = z
       .discriminatedUnion('type', [
         z.object({ type: z.literal('townPortal') }),
         z.object({ type: z.literal('vision'), radius: z.number().int().positive() }),
+        /** Marche forcée (H-SPELLS) : +`amount` PM immédiats au héros. */
+        z.object({ type: z.literal('movementBonus'), amount: z.number().int().positive() }),
       ])
       .optional(),
   })

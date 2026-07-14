@@ -1282,6 +1282,13 @@ test('H-VS-H : marcher sur un héros ennemi ⇒ combat ⇒ le perdant meurt (doc
     }
   });
 
+  // Le héros ADVERSE, désormais adjacent (donc dans le rayon de vision), doit
+  // avoir un jeton RENDU sur la carte — sinon on ne pourrait pas le viser pour
+  // déclencher le combat (régression : le rendu ne dessinait que les héros du
+  // joueur humain).
+  const rendered = await page.evaluate(() => window.__HEROES_TEST__!.renderedHeroIds());
+  expect(rendered).toContain('hero-player-2');
+
   // Attaque : marcher sur la tuile du héros ennemi ⇒ combat avec les DEUX hero ids.
   await page.evaluate(() => {
     const T = window.__HEROES_TEST__!;

@@ -11,6 +11,7 @@ import {
   type CombatUnitDef,
   type FactionBonus,
   type GameState,
+  type GridPos,
   type HeroAttributes,
   type HeroSkillDef,
   type HeroState,
@@ -131,6 +132,26 @@ export function humanId(game: GameState): string {
 export function humanHeroes(game: GameState): HeroState[] {
   const id = humanId(game);
   return game.heroes.filter((h) => h.playerId === id);
+}
+
+/**
+ * Un héros doit-il être dessiné sur la carte pour le joueur humain `humanPlayerId` ?
+ * Son propre héros : toujours. Un héros d'un AUTRE joueur (ennemi ou allié sans
+ * vision partagée) : seulement si sa tuile est actuellement dans un rayon de vision
+ * (`sightings`, mêmes sources que le brouillard). Fidélité HoMM : un héros adverse
+ * n'apparaît que sous vision active, sinon le brouillard le masque — sans quoi on
+ * ne pourrait jamais le voir pour déclencher un combat héros-vs-héros. Chebyshev,
+ * aligné sur `FogOverlay.update`.
+ */
+export function isHeroVisibleOnMap(
+  hero: HeroState,
+  humanPlayerId: string,
+  sightings: readonly { pos: GridPos; radius: number }[],
+): boolean {
+  if (hero.playerId === humanPlayerId) return true;
+  return sightings.some(
+    (s) => Math.max(Math.abs(s.pos.x - hero.pos.x), Math.abs(s.pos.y - hero.pos.y)) <= s.radius,
+  );
 }
 
 /**

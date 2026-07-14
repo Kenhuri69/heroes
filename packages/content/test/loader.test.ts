@@ -609,6 +609,62 @@ describe('loadMap', () => {
     expect(all).toContain("terrain inconnu de la config 'lava'");
   });
 
+  it('B48 — rejette lieu learnSpell/grantSkill/grantWarMachine et garnison de ville inconnus', async () => {
+    const data = makeData();
+    const map = data['maps/mini.map.json'] as { objects: unknown[] };
+    map.objects.push(
+      { id: 'sanctuaire', type: 'visitable', x: 1, y: 0, effect: { kind: 'learnSpell', spellId: 'sort-fantome' }, frequency: 'oncePerHero' },
+      { id: 'cabane', type: 'visitable', x: 2, y: 0, effect: { kind: 'grantSkill', skillId: 'skill-fantome' }, frequency: 'oncePerHero' },
+      { id: 'fabrique', type: 'visitable', x: 1, y: 2, effect: { kind: 'grantWarMachine', machineId: 'machine-fantome' }, frequency: 'oncePerHero' },
+      { id: 'ville-n', type: 'town', x: 2, y: 2, factionId: 'proto', garrison: [{ unitId: 't9-fantome', count: 3 }] },
+    );
+    const err = await loadMap(
+      reader(data),
+      'mini',
+      makeConfig(),
+      new Set(['t1-grunt']),
+      new Set(),
+      new Set(['boule-de-feu']),
+      new Set(['logistics']),
+      new Set(['ballista']),
+    ).catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(PackError);
+    const all = (err as PackError).errors.join('\n');
+    expect(all).toContain("lieu 'sanctuaire' — sort inconnu 'sort-fantome'");
+    expect(all).toContain("lieu 'cabane' — compétence inconnue 'skill-fantome'");
+    expect(all).toContain("lieu 'fabrique' — machine de guerre inconnue 'machine-fantome'");
+    expect(all).toContain("ville 'ville-n' — unité de garnison inconnue 't9-fantome'");
+  });
+
+  it('B48 — accepte les ids connus ; sans les ensembles, contrôle non armé (rétro-compat)', async () => {
+    const data = makeData();
+    const map = data['maps/mini.map.json'] as { objects: unknown[] };
+    map.objects.push(
+      { id: 'sanctuaire', type: 'visitable', x: 1, y: 0, effect: { kind: 'learnSpell', spellId: 'boule-de-feu' }, frequency: 'oncePerHero' },
+      { id: 'cabane', type: 'visitable', x: 2, y: 0, effect: { kind: 'grantSkill', skillId: 'logistics' }, frequency: 'oncePerHero' },
+      { id: 'fabrique', type: 'visitable', x: 1, y: 2, effect: { kind: 'grantWarMachine', machineId: 'ballista' }, frequency: 'oncePerHero' },
+      { id: 'ville-n', type: 'town', x: 2, y: 2, factionId: 'proto', garrison: [{ unitId: 't1-grunt', count: 3 }] },
+    );
+    await expect(
+      loadMap(
+        reader(data),
+        'mini',
+        makeConfig(),
+        new Set(['t1-grunt']),
+        new Set(),
+        new Set(['boule-de-feu']),
+        new Set(['logistics']),
+        new Set(['ballista']),
+      ),
+    ).resolves.toBeTruthy();
+    // Ensembles absents (appelants historiques) : mêmes données, pas de rejet.
+    const corrupted = makeData();
+    (corrupted['maps/mini.map.json'] as { objects: unknown[] }).objects.push(
+      { id: 'sanctuaire', type: 'visitable', x: 1, y: 0, effect: { kind: 'learnSpell', spellId: 'sort-fantome' }, frequency: 'oncePerHero' },
+    );
+    await expect(loadMap(reader(corrupted), 'mini', makeConfig())).resolves.toBeTruthy();
+  });
+
   it('rejette objet ou départ infranchissable / hors carte', async () => {
     const data = makeData();
     const map = data['maps/mini.map.json'] as {
@@ -706,6 +762,51 @@ describe('ville de faction (manifest.town / buildings.json)', () => {
     expect(report.rejected[0]?.errors.join()).toContain(
       "dwelling vers unité inconnue 't9-fantome'",
     );
+  });
+
+  it('B49 — rejette un cycle de prérequis entre bâtiments de faction', async () => {
+    const data = makeData();
+    // proto-dwelling-t1 requiert proto-b… qui requiert proto-dwelling-t1 : aucun
+    // des deux n'est jamais constructible (contenu mort silencieux avant B49).
+    withTown(data, [{ building: 'proto-b', level: 1 }]);
+    (data['factions/proto/manifest.json'] as { town: { buildings: string[] } }).town.buildings.push('proto-b');
+    (data['factions/proto/buildings.json'] as { buildings: unknown[] }).buildings.push({
+      id: 'proto-b',
+      maxLevel: 1,
+      levels: [
+        {
+          cost: {},
+          requires: [{ building: 'proto-dwelling-t1', level: 1 }],
+          effect: { type: 'income', resource: 'gold', amount: 100 },
+        },
+      ],
+    });
+    const report = await loadContent(reader(data));
+    const all = (report.rejected[0]?.errors ?? []).join('\n');
+    expect(all).toContain('cycle de prérequis détecté');
+    expect(all).toContain('proto-dwelling-t1');
+    expect(all).toContain('proto-b');
+  });
+
+  it('B49 — un cycle dans les bâtiments communs rejette le chargement (erreur bloquante)', async () => {
+    const data = makeData();
+    (data['core/buildings.json'] as { buildings: unknown[] }).buildings = [
+      {
+        id: 'a',
+        maxLevel: 1,
+        levels: [
+          { cost: {}, requires: [{ building: 'b', level: 1 }], effect: { type: 'income', resource: 'gold', amount: 1 } },
+        ],
+      },
+      {
+        id: 'b',
+        maxLevel: 1,
+        levels: [
+          { cost: {}, requires: [{ building: 'a', level: 1 }], effect: { type: 'income', resource: 'gold', amount: 1 } },
+        ],
+      },
+    ];
+    await expect(loadContent(reader(data))).rejects.toThrow(/cycle de prérequis détecté/);
   });
 
   it('F-BUILDEFF.3 — rejette un grantSpell vers un sort inconnu', async () => {

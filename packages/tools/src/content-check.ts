@@ -8,6 +8,7 @@ import {
   checkCoreNameKeys,
   checkPackNameKeys,
   checkLoreParity,
+  knownArtifactIds,
   knownUnitIds,
   loadContent,
   loadMap,
@@ -115,7 +116,18 @@ let badMaps = 0;
 for (const file of mapFiles.sort()) {
   const id = file.slice(0, -'.map.json'.length);
   try {
-    const map = await loadMap(readJsonFromDisk, id, report.content.config, knownUnitIds(report));
+    // B47/B48 : mêmes ensembles d'ids que le client (`app/content.ts`) — un
+    // artefact/sort/compétence/machine inconnu doit casser ICI, pas au boot.
+    const map = await loadMap(
+      readJsonFromDisk,
+      id,
+      report.content.config,
+      knownUnitIds(report),
+      knownArtifactIds(report),
+      new Set(report.content.coreSpells.map((s) => s.id)),
+      new Set(report.content.coreSkills.map((s) => s.id)),
+      new Set(report.content.coreWarMachines.map((w) => w.id)),
+    );
     console.log(`✓ carte ${id} — ${map.width}×${map.height}, ${map.objects.length} objet(s)`);
   } catch (e) {
     badMaps += 1;

@@ -638,6 +638,36 @@ function checkBuildingRequires(
       }
     });
   }
+  // B49 : cycle de prérequis (A requiert B, B requiert A…) = contenu mort
+  // silencieux, aucun des bâtiments n'étant jamais constructible. DFS tricolore
+  // sur les prérequis entre bâtiments du MÊME fichier : un prérequis vers un
+  // bâtiment d'un autre fichier (core vu depuis un paquet) est une feuille — le
+  // core est validé seul, un cycle inter-fichiers est donc impossible. Les
+  // auto-prérequis (niveau N vers soi-même) relèvent de l'ordre des niveaux,
+  // pas d'un cycle — ignorés.
+  const localIds = new Set(buildings.map((b) => b.id));
+  const requiresOf = new Map(
+    buildings.map((b) => [
+      b.id,
+      [...new Set(b.levels.flatMap((l) => l.requires.map((r) => r.building)))].filter(
+        (req) => req !== b.id && localIds.has(req),
+      ),
+    ]),
+  );
+  const state = new Map<string, 'gray' | 'black'>();
+  const visit = (id: string, trail: string[]): void => {
+    const mark = state.get(id);
+    if (mark === 'black') return;
+    if (mark === 'gray') {
+      const cycle = [...trail.slice(trail.indexOf(id)), id];
+      errors.push(`${path}: cycle de prérequis détecté — ${cycle.join(' → ')}`);
+      return;
+    }
+    state.set(id, 'gray');
+    for (const req of requiresOf.get(id) ?? []) visit(req, [...trail, id]);
+    state.set(id, 'black');
+  };
+  for (const b of buildings) visit(b.id, []);
 }
 
 /**
@@ -1022,10 +1052,16 @@ export async function loadMap(
   readJson: ReadJson,
   id: string,
   config: GameConfig,
-  /** Unités connues des paquets chargés — vérifie les gardiens si fourni. */
+  /** Unités connues des paquets chargés — vérifie gardiens/habitations/garnisons si fourni. */
   knownUnitIds?: ReadonlySet<string>,
   /** Artefacts connus (data/core/artifacts.json) — vérifie les artefacts au sol si fourni. */
   knownArtifactIds?: ReadonlySet<string>,
+  /** Sorts connus (data/core/spells.json) — vérifie les lieux `learnSpell` si fourni (B48). */
+  knownSpellIds?: ReadonlySet<string>,
+  /** Compétences connues (data/core/skills.json) — vérifie les lieux `grantSkill` si fourni (B48). */
+  knownSkillIds?: ReadonlySet<string>,
+  /** Machines de guerre connues (data/core/war-machines.json) — vérifie `grantWarMachine` si fourni (B48). */
+  knownWarMachineIds?: ReadonlySet<string>,
 ): Promise<ResolvedMap> {
   const path = `maps/${id}.map.json`;
   const file = parseFile(mapFileSchema, await readJson(path), path);
@@ -1077,6 +1113,24 @@ export async function loadMap(
     if (obj.type === 'visitable' && obj.effect.kind === 'grantArtifact' && knownArtifactIds &&
         !knownArtifactIds.has(obj.effect.artifactId))
       errors.push(`${path}: lieu '${obj.id}' — artefact inconnu '${obj.effect.artifactId}'`);
+    // B48 : le moteur pousse ces ids tels quels à la visite (hero.spells/skills/
+    // warMachines) — un typo doit casser ici, pas en jeu.
+    if (obj.type === 'visitable' && obj.effect.kind === 'learnSpell' && knownSpellIds &&
+        !knownSpellIds.has(obj.effect.spellId))
+      errors.push(`${path}: lieu '${obj.id}' — sort inconnu '${obj.effect.spellId}'`);
+    if (obj.type === 'visitable' && obj.effect.kind === 'grantSkill' && knownSkillIds &&
+        !knownSkillIds.has(obj.effect.skillId))
+      errors.push(`${path}: lieu '${obj.id}' — compétence inconnue '${obj.effect.skillId}'`);
+    if (obj.type === 'visitable' && obj.effect.kind === 'grantWarMachine' && knownWarMachineIds &&
+        !knownWarMachineIds.has(obj.effect.machineId))
+      errors.push(`${path}: lieu '${obj.id}' — machine de guerre inconnue '${obj.effect.machineId}'`);
+    // B48 : la garnison d'une ville neutre part telle quelle au combat de siège.
+    if (obj.type === 'town' && knownUnitIds) {
+      for (const s of obj.garrison ?? []) {
+        if (!knownUnitIds.has(s.unitId))
+          errors.push(`${path}: ville '${obj.id}' — unité de garnison inconnue '${s.unitId}'`);
+      }
+    }
     // M-GUARDLINK (doc 02 §2.2) : un `guardedBy` doit désigner un gardien de la carte.
     if ('guardedBy' in obj && obj.guardedBy !== undefined &&
         !file.objects.some((g) => g.type === 'guardian' && g.id === obj.guardedBy))
@@ -1132,6 +1186,9 @@ export async function loadScenarios(readJson: ReadJson, report: LoadReport): Pro
   const knownFactionIds = new Set(report.content.packs.map((p) => p.manifest.id));
   const knownUnits = knownUnitIds(report);
   const knownArtifacts = knownArtifactIds(report);
+  const knownSpells = new Set(report.content.coreSpells.map((s) => s.id));
+  const knownSkills = new Set(report.content.coreSkills.map((s) => s.id));
+  const knownMachines = new Set(report.content.coreWarMachines.map((w) => w.id));
   const buildingCatalog = buildBuildingCatalog(report);
 
   const scenarios: Scenario[] = [];
@@ -1146,6 +1203,9 @@ export async function loadScenarios(readJson: ReadJson, report: LoadReport): Pro
           knownFactionIds,
           knownUnits,
           knownArtifacts,
+          knownSpells,
+          knownSkills,
+          knownMachines,
           buildingCatalog,
         ),
       );
@@ -1205,6 +1265,9 @@ async function loadScenario(
   knownFactionIds: ReadonlySet<string>,
   knownUnits: ReadonlySet<string>,
   knownArtifacts: ReadonlySet<string>,
+  knownSpells: ReadonlySet<string>,
+  knownSkills: ReadonlySet<string>,
+  knownMachines: ReadonlySet<string>,
   buildingCatalog: Record<string, ResolvedBuilding>,
 ): Promise<Scenario> {
   const path = `scenarios/${id}.scenario.json`;
@@ -1214,7 +1277,7 @@ async function loadScenario(
 
   let map: ResolvedMap | undefined;
   try {
-    map = await loadMap(readJson, scenario.map, config, knownUnits, knownArtifacts);
+    map = await loadMap(readJson, scenario.map, config, knownUnits, knownArtifacts, knownSpells, knownSkills, knownMachines);
   } catch (e) {
     errors.push(
       `${path}: carte '${scenario.map}' invalide — ${describeError(e).join('; ')}`,
@@ -1273,6 +1336,45 @@ async function loadScenario(
         errors.push(`${path}: objectifs['${playerId}'] — captureTown vers ville inconnue '${cond.townId}'`);
       if (cond.type === 'defeatHero' && !heroIds.has(cond.heroId))
         errors.push(`${path}: objectifs['${playerId}'] — defeatHero vers héros inconnu '${cond.heroId}'`);
+    }
+  }
+
+  // B48 : narration embarquée — le moteur (quêtes N2a) et le client (dialogues/
+  // cutscenes) poussent ces ids tels quels ; un typo casse en jeu, pas au schéma.
+  const dialogIds = new Set((scenario.dialogs ?? []).map((d) => d.id));
+  const cutsceneIds = new Set((scenario.cutscenes ?? []).map((c) => c.id));
+  if (scenario.openingDialog !== undefined && !dialogIds.has(scenario.openingDialog))
+    errors.push(`${path}: openingDialog vers dialogue inconnu '${scenario.openingDialog}'`);
+  if (scenario.openingCutscene !== undefined && !cutsceneIds.has(scenario.openingCutscene))
+    errors.push(`${path}: openingCutscene vers cinématique inconnue '${scenario.openingCutscene}'`);
+  const guardianIds = new Set(
+    (map?.objects ?? []).filter((o) => o.type === 'guardian').map((o) => o.id),
+  );
+  for (const quest of scenario.quests ?? []) {
+    for (const step of quest.steps) {
+      const cond = step.condition;
+      if (cond.type === 'buildStructure' && !buildingCatalog[cond.buildingId])
+        errors.push(
+          `${path}: quête '${quest.id}' — buildStructure vers bâtiment inconnu '${cond.buildingId}'`,
+        );
+      if (cond.type === 'ownUnits' && !knownUnits.has(cond.unitId))
+        errors.push(`${path}: quête '${quest.id}' — ownUnits vers unité inconnue '${cond.unitId}'`);
+      if (cond.type === 'defeatGuardian' && map && !guardianIds.has(cond.objectId))
+        errors.push(
+          `${path}: quête '${quest.id}' — defeatGuardian vers gardien inconnu '${cond.objectId}'`,
+        );
+      if (step.dialogBefore !== undefined && !dialogIds.has(step.dialogBefore))
+        errors.push(
+          `${path}: quête '${quest.id}' — dialogBefore vers dialogue inconnu '${step.dialogBefore}'`,
+        );
+    }
+    for (const reward of quest.rewards) {
+      if (reward.type === 'artifact' && !knownArtifacts.has(reward.artifactId))
+        errors.push(
+          `${path}: quête '${quest.id}' — récompense vers artefact inconnu '${reward.artifactId}'`,
+        );
+      if (reward.type === 'units' && !knownUnits.has(reward.unitId))
+        errors.push(`${path}: quête '${quest.id}' — récompense vers unité inconnue '${reward.unitId}'`);
     }
   }
 

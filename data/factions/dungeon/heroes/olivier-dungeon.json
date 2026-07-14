@@ -1,12 +1,12 @@
 {
-  "id": "olivier",
-  "name": "@loc:hero.olivier.name",
-  "bio": "@loc:hero.olivier.bio",
+  "id": "olivier-dungeon",
+  "name": "@loc:hero.olivier-dungeon.name",
+  "bio": "@loc:hero.olivier-dungeon.bio",
   "archetype": "might",
   "origin": "original",
   "avatar": "dungeon-olivier",
   "avatarStyle": "painterly",
-  "specialty": "@loc:hero.olivier.specialty",
+  "specialty": "@loc:hero.olivier-dungeon.specialty",
   "attributes": { "attack": 3, "defense": 1, "power": 1, "knowledge": 1 },
   "specialtyEffect": {
     "id": "poison-certain",

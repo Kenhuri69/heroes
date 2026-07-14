@@ -49,6 +49,27 @@ describe('tradeQuote (helper pur)', () => {
     expect(tradeQuote(MARKET, 'gold', 'gold', 10)).toBe(0);
     expect(tradeQuote(MARKET, 'wood', 'gold', 0)).toBe(0);
   });
+  it('0 pour l’échange d’une ressource contre elle-même, même à facteur élevé', () => {
+    // Sans ce rejet, bois→bois vaudrait floor(n × 25 × 2² / 50) = 2n : duplication.
+    const M = { sellRate: 25, buyRate: 50, perMarketBonus: 0.1, maxMarketFactor: 2 };
+    expect(tradeQuote(M, 'wood', 'wood', 1000, 20)).toBe(0);
+  });
+  it('aller-retour jamais rentable aux valeurs livrées (sellRate × maxFactor² ≤ buyRate)', () => {
+    // Mêmes valeurs que data/core/config.json — le garde-fou de schéma du
+    // contenu impose cette inégalité ; on vérifie ici sa conséquence moteur.
+    const M = { sellRate: 25, buyRate: 50, perMarketBonus: 0.1, maxMarketFactor: 1.4 };
+    for (const markets of [1, 3, 5, 6, 11, 20]) {
+      for (const amount of [1, 7, 100, 1000]) {
+        const gold = tradeQuote(M, 'wood', 'gold', amount, markets);
+        const back = tradeQuote(M, 'gold', 'wood', gold, markets);
+        expect(back).toBeLessThanOrEqual(amount);
+        // Idem via troc direct bois→minerai→bois.
+        const ore = tradeQuote(M, 'wood', 'ore', amount, markets);
+        const back2 = tradeQuote(M, 'ore', 'wood', ore, markets);
+        expect(back2).toBeLessThanOrEqual(amount);
+      }
+    }
+  });
   it('taux dégressif : plus de marchés ⇒ meilleur ratio (T-MARKETRATE)', () => {
     const M = { sellRate: 25, buyRate: 50, perMarketBonus: 0.1, maxMarketFactor: 2 };
     expect(tradeQuote(M, 'wood', 'gold', 10, 1)).toBe(250); // factor 1 : plat
@@ -97,6 +118,12 @@ describe('TradeResources', () => {
   it('refuse or contre or (invalidTrade)', () => {
     const state = startedGame({ gold: 100 });
     const err = validate(state, { type: 'TradeResources', townId: 'town-1', give: 'gold', receive: 'gold', giveAmount: 10 });
+    expect(err?.code).toBe('invalidTrade');
+  });
+
+  it('refuse l’échange d’une ressource contre elle-même (invalidTrade)', () => {
+    const state = startedGame({ wood: 1000 });
+    const err = validate(state, { type: 'TradeResources', townId: 'town-1', give: 'wood', receive: 'wood', giveAmount: 1000 });
     expect(err?.code).toBe('invalidTrade');
   });
 

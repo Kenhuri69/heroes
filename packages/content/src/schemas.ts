@@ -719,7 +719,14 @@ export const gameConfigSchema = z.object({
         /** Plafond du facteur dégressif (≥ 1) — optionnel. */
         maxMarketFactor: z.number().min(1).optional(),
       })
-      .refine((m) => m.buyRate >= m.sellRate, 'market.buyRate ≥ market.sellRate'),
+      .refine((m) => m.buyRate >= m.sellRate, 'market.buyRate ≥ market.sellRate')
+      // Aller-retour non rentable À TOUT NOMBRE DE MARCHÉS : le troc (et
+      // vente→rachat) vaut `sellRate × factor² / buyRate` — si ce ratio
+      // dépasse 1 au facteur plafond, l'échange duplique les ressources.
+      .refine(
+        (m) => m.sellRate * (m.maxMarketFactor ?? 1) ** 2 <= m.buyRate,
+        'market : sellRate × maxMarketFactor² ≤ buyRate (aller-retour non rentable)',
+      ),
     /**
      * Calendrier (M-CALENDAR, doc 02 §2.3) : événements hebdomadaires tirés au
      * RNG seedé. Optionnel — absent ⇒ aucune semaine spéciale (facteur 1).

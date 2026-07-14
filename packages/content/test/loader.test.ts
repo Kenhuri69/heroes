@@ -19,6 +19,7 @@ import {
   artifactSchema,
   buildingCatalogSchema,
   buildingSchema,
+  gameConfigSchema,
   skillSchema,
   spellSchema,
   type GameConfig,
@@ -962,5 +963,22 @@ describe('H-NAMED.1 — roster de héros nommés (gameplay sur heroIdentitySchem
     withRoster(data, { ...GAMEPLAY_HERO, startingSpells: ['sort-fantome'] });
     const report = await loadContent(reader(data));
     expect(report.rejected[0]?.errors.join()).toContain("sort de départ inconnu 'sort-fantome'");
+  });
+});
+
+describe('gameConfigSchema — garde-fou de marché (aller-retour non rentable)', () => {
+  it('rejette un marché où sellRate × maxMarketFactor² > buyRate (duplication possible)', () => {
+    const cfg = makeConfig();
+    // 25 × 2² = 100 > 50 : dès 6 marchés (factor 1.5), vendre puis racheter
+    // rendrait plus que la mise — exploitable en boucle de commandes.
+    cfg.adventure.market = { sellRate: 25, buyRate: 50, perMarketBonus: 0.1, maxMarketFactor: 2 };
+    const bad = gameConfigSchema.safeParse(cfg);
+    expect(bad.success).toBe(false);
+    if (!bad.success) {
+      expect(bad.error.issues.map((i) => i.message).join()).toContain('aller-retour non rentable');
+    }
+    // 25 × 1.4² = 49 ≤ 50 : valeurs livrées, acceptées.
+    cfg.adventure.market = { sellRate: 25, buyRate: 50, perMarketBonus: 0.1, maxMarketFactor: 1.4 };
+    expect(gameConfigSchema.safeParse(cfg).success).toBe(true);
   });
 });

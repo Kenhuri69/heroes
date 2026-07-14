@@ -1,7 +1,26 @@
 import type { HeroState } from '../core/state';
 import { heroArtifactBonus } from './artifacts';
 import { heroManaCostReduction } from './skills';
-import type { ArtifactDef, HeroSkillDef, SpellDef, SpellKind } from './types';
+import type { ArtifactDef, HeroSkillDef, SpellDef, SpellKind, SpellStatus } from './types';
+
+/**
+ * Un statut de sort est-il NÉFASTE (F-SCHOOLS `cure`) ? Pur, sur les seuls champs
+ * déjà sérialisés — pente d'attaque/défense/vitesse négative, moral négatif,
+ * dégâts infligés réduits (`damageDealtMod < 0`, malédiction), poison
+ * (`damagePerRound > 0`) ou silence. Un buff pur reste (tous ≥ 0, non silencé).
+ * Consommé par le sort `cure` (retire les néfastes d'un allié, garde les buffs).
+ */
+export function isHostileStatus(s: SpellStatus): boolean {
+  return (
+    s.attackMod < 0 ||
+    s.defenseMod < 0 ||
+    s.speedMod < 0 ||
+    (s.moraleMod ?? 0) < 0 ||
+    s.damageDealtMod < 0 ||
+    s.damagePerRound > 0 ||
+    s.silenced
+  );
+}
 
 /**
  * Un sort vise-t-il le camp ADVERSE (dégâts/debuff/marque/silence) plutôt que le

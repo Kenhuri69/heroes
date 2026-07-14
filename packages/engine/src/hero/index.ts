@@ -21,7 +21,7 @@ import type { TownState } from '../town/types';
 import type { SpellKind } from './types';
 import { heroKnownSpellIds } from './artifacts';
 import { heroVisionRadius } from './skills';
-import { effectiveManaCost, effectivePower, spellDamageAmount, spellHealAmount, spellTargetsEnemy } from './spells';
+import { effectiveManaCost, effectivePower, isHostileStatus, spellDamageAmount, spellHealAmount, spellTargetsEnemy } from './spells';
 
 /**
  * Points d'entrée héros (sorts en combat + choix de compétence) appelés par
@@ -535,6 +535,11 @@ function estimateSpellWithPower(
   // H-SPELLS.4 (Dissipation) : la préviz annonce le nombre de statuts à retirer.
   if (spell.kind === 'dispel') {
     return { amount: affected.reduce((n, t) => n + t.statuses.length, 0), kills: 0, kind: 'dispel' };
+  }
+  // F-SCHOOLS (Purification) : la préviz annonce le nombre de statuts NÉFASTES purgés.
+  if (spell.kind === 'cure') {
+    const amount = affected.reduce((n, t) => n + t.statuses.filter(isHostileStatus).length, 0);
+    return { amount, kills: 0, kind: 'cure' };
   }
   return { amount: 0, kills: 0, kind: spell.kind };
 }

@@ -27,6 +27,7 @@ export type SpellKind =
   | 'stealth'
   | 'teleport'
   | 'dispel'
+  | 'cure'
   | 'adventure';
 
 /**

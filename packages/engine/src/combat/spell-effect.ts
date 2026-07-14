@@ -7,7 +7,7 @@ import type { CombatState, CombatStack, CombatUnitDef } from './types';
 import type { GameEvent } from '../core/events';
 import { rollRange } from '../core/rng';
 import type { SpellDef } from '../hero/types';
-import { spellDamageAmount, spellHealAmount, spellStatusDuration } from '../hero/spells';
+import { isHostileStatus, spellDamageAmount, spellHealAmount, spellStatusDuration } from '../hero/spells';
 
 /**
  * Résolution des EFFETS de sort sur les piles de combat — cœur PARTAGÉ entre le
@@ -253,6 +253,15 @@ export function applySpellToTargets(
     for (const t of targets) {
       amount += t.statuses.length;
       t.statuses = [];
+    }
+  } else if (spell.kind === 'cure') {
+    // F-SCHOOLS (Purification, doc 02 §1.4) : retire les statuts NÉFASTES d'une pile
+    // ALLIÉE (debuff/malédiction/poison/silence) en conservant les buffs — miroir
+    // amical de `dispel`. `amount` = nb de statuts purgés. Zéro champ neuf.
+    for (const t of targets) {
+      const before = t.statuses.length;
+      t.statuses = t.statuses.filter((s) => !isHostileStatus(s));
+      amount += before - t.statuses.length;
     }
   } else if (spell.kind === 'banish') {
     // F-SCHOOLS.5 : bannit une pile ENNEMIE `banishable` (invoquée/démoniaque)

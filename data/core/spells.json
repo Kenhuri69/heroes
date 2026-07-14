@@ -97,6 +97,15 @@
       "perPower": 0
     },
     {
+      "id": "purification",
+      "school": "water",
+      "circle": 2,
+      "manaCost": 8,
+      "kind": "cure",
+      "base": 0,
+      "perPower": 0
+    },
+    {
       "id": "armure-fondue",
       "school": "fire",
       "circle": 1,

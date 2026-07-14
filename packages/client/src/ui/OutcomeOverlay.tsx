@@ -1,5 +1,6 @@
 import { createEmptyState, playerPower, weekOf, type GameState } from '@heroes/engine';
 import { appStore, useApp } from '../app/store';
+import { navigate } from '../app/router';
 import { humanId } from '../app/game';
 import { t } from '../app/i18n';
 import { outcomeBackgroundUrl } from '../render/assets';
@@ -20,11 +21,12 @@ export function OutcomeOverlay() {
   if (!outcome) return null;
 
   const backToMenu = (): void => {
-    appStore.setState({
-      game: createEmptyState(),
-      screen: 'menu',
-      modals: [],
-    });
+    appStore.setState({ game: createEmptyState() });
+    // B13 : passer par `navigate('menu')` — le SEUL point qui remet `turnAck`,
+    // `playerColors` et `activeChapter` à zéro. Le setState direct historique
+    // laissait ces résidus fuiter dans la partie suivante (couleurs réutilisées,
+    // 1er overlay de passage hot-seat sauté, progression de campagne corrompue).
+    navigate('menu');
   };
 
   const bg = outcomeBackgroundUrl(outcome.status);

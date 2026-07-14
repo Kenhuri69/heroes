@@ -33,6 +33,12 @@ export class Camera {
     stage.on('pointermove', this.onMove);
     stage.on('pointerup', this.onUp);
     stage.on('pointerupoutside', this.onUp);
+    // B15 (revue 2026-07) : Pixi 8 n'enregistre AUCUN listener DOM
+    // `pointercancel` — après une annulation tactile (rotation d'écran,
+    // notification, palm rejection), ni `pointerup` ni `pointerupoutside`
+    // n'arrivent : un pointeur fantôme restait dans `pointers` et tout drag à
+    // un doigt devenait un pinch figé (pan mort). On purge au niveau DOM.
+    app.canvas.addEventListener('pointercancel', this.onCancel);
     app.canvas.addEventListener('wheel', this.onWheel, { passive: false });
   }
 
@@ -48,6 +54,7 @@ export class Camera {
     stage.off('pointermove', this.onMove);
     stage.off('pointerup', this.onUp);
     stage.off('pointerupoutside', this.onUp);
+    this.app.canvas.removeEventListener('pointercancel', this.onCancel);
     this.app.canvas.removeEventListener('wheel', this.onWheel);
     this.world.destroy({ children: true });
   }
@@ -75,6 +82,11 @@ export class Camera {
   };
 
   private onUp = (e: FederatedPointerEvent): void => {
+    this.pointers.delete(e.pointerId);
+    if (this.pointers.size < 2) this.pinchDist = 0;
+  };
+
+  private onCancel = (e: PointerEvent): void => {
     this.pointers.delete(e.pointerId);
     if (this.pointers.size < 2) this.pinchDist = 0;
   };

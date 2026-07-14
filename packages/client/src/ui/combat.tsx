@@ -44,7 +44,16 @@ export function CombatUi() {
   const combat = useApp((s) => s.game.combat);
   const combatSpeed = useApp((s) => s.combatSpeed);
   const combatBark = useApp((s) => s.combatBark);
-  const hero = useApp((s) => s.game.heroes.find((h) => h.playerId === humanId(s.game)));
+  // B12 (revue 2026-07) : le héros de l'UI est celui LIÉ AU COMBAT (même
+  // résolution que le moteur, `heroForPlayerSide`) — pas le premier héros du
+  // joueur : avec plusieurs héros (Taverne), mana/grimoire/gating affichaient
+  // ceux du mauvais héros. Arène (aucun héros lié) ⇒ undefined, boutons cachés.
+  const hero = useApp((s) => {
+    const c = s.game.combat;
+    if (!c) return undefined;
+    const heroId = c.playerSide === 'attacker' ? c.attackerHeroId : c.defenderHeroId;
+    return heroId ? s.game.heroes.find((h) => h.id === heroId) : undefined;
+  });
   const catalog = useApp((s) => s.game.unitCatalog);
   const artifactCatalog = useApp((s) => s.game.artifactCatalog);
   const autoActive = useApp((s) => s.combatAutoActive);

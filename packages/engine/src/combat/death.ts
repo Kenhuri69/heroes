@@ -1,5 +1,5 @@
 import type { GameEvent } from '../core/events';
-import { collectCasualties } from './state-helpers';
+import { recordRevive, stackLostSoFar } from './state-helpers';
 import type { CombatState, CombatStack, CombatUnitDef } from './types';
 
 /**
@@ -32,11 +32,13 @@ export function tryRebirth(
   const plan = rebirthPlan(def);
   if (!plan) return false;
   if ((combat.rebornStackIds ?? []).includes(stack.id)) return false;
-  const lost =
-    collectCasualties(combat).find((c) => c.side === stack.side && c.unitId === stack.unitId)?.lost ?? 0;
+  // Pertes de CETTE pile (B4) — jamais celles d'une autre pile du même unitId —
+  // et décrément du ledger : les créatures renées puis retuées comptent une fois.
+  const lost = stackLostSoFar(combat, stack);
   const revived = Math.max(1, Math.floor((plan.pct / 100) * lost));
   stack.count = revived;
   stack.firstHp = def.stats.hp;
+  recordRevive(combat, stack, revived);
   combat.rebornStackIds = [...(combat.rebornStackIds ?? []), stack.id];
   events.push({ type: 'StackReborn', stackId: stack.id, count: revived });
   return true;

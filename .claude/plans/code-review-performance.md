@@ -392,7 +392,25 @@ les données actuelles** (cross-check scripté des ids) ; garde `readSaveVersion
   listener `GameLoaded` (installé au bootstrap) plutôt qu'un appel direct dans
   `restoreSavedGame` — évite un import circulaire save ↔ dispatch et couvre
   les trois chemins de chargement d'un coup.
-- [ ] Lot 3 — P1 combat (B4–B6, B8, B17)
+- [x] Lot 3 — P1 combat (B4–B6, B8, B17). Livré : **B4** — ledger double
+  (agrégé `_losses` + par pile `_stackLosses`), `recordLoss(combat, stack, n)`
+  + `recordRevive` décrémentant les deux à toute relève (soin/Prière,
+  lifeDrain, devourMarks, rebirth) ; plafonds de résurrection ET de
+  renaissance désormais INTRA-pile (le doc « intra-pile » devient vrai) ;
+  préviz `estimateHeroRally` alignée. **B5** — `applyFactionVictoryEffects`
+  prend `loserSide` (= `otherSide(winner)` en H-VS-H) ; décision : le gain de
+  ressource de faction reste accordé au défenseur-vainqueur, commentaire de
+  `faction/types.ts` corrigé. **B6** — `drawObstacles(maxCol)` : en siège avec
+  Fort, obstacles strictement à gauche de la douve (plus jamais sur la porte).
+  **B8** — la réécriture de garnison post-siège exclut les piles `warMachine`.
+  **B17** — décision : anéantissement mutuel ⇒ défenseur déclaré vainqueur
+  (convention documentée en code), mais gardien à 0 RETIRÉ de la carte (plus
+  de combat fantôme insoluble) ; somme des survivants filtrée `count > 0`.
+  Tests : 5 nouveaux cas (par bug) + 1 property 100 seeds « porte jamais
+  condamnée » ; anciens tests re-signés (`recordLoss` par pile). Golden
+  INCHANGÉ (aucun siège à Fort dans le replay). Écart vs plan : B17 tranché
+  « défenseur vainqueur + retrait du gardien » plutôt que « vainqueur = camp
+  ayant porté le coup » (ambigu sous tick de poison simultané).
 - [ ] Lot 4 — P1 aventure/commandes (B7, B9, B10)
 - [ ] Lot 5 — P1 client (B11–B16)
 - [ ] Lot 6 — perf rendu (F1, F9, F10)

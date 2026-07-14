@@ -171,7 +171,7 @@ describe('applyFactionVictoryEffects — raiseUndeadOnVictory', () => {
   it('lève des squelettes proportionnels aux PV vivants tués, ajoutés en nouvelle pile', () => {
     const h = hero({ factionId: 'necro' });
     const combat = combatState([attackerAlive('grunt', 50), defenderDead('wolf')]);
-    recordLoss(combat, 'defender', 'wolf', 5); // PV vivants tués = 10 × 5 = 50
+    recordLoss(combat, { id: 'defender-0', side: 'defender', unitId: 'wolf' }, 5); // PV vivants tués = 10 × 5 = 50
     const state = baseState({ factionCatalog: FACTION_CATALOG, heroes: [h], combat });
     const { state: next, events } = runCheckCombatEnd(state);
     const result = next.heroes.find((x) => x.id === 'hero-1');
@@ -186,7 +186,7 @@ describe('applyFactionVictoryEffects — raiseUndeadOnVictory', () => {
   it("les morts d'unités undead ne comptent pas dans les PV vivants tués (aucun effet)", () => {
     const h = hero({ factionId: 'necro' });
     const combat = combatState([attackerAlive('grunt', 50), defenderDead('zombie')]);
-    recordLoss(combat, 'defender', 'zombie', 20); // undead ⇒ 0 PV vivant compté
+    recordLoss(combat, { id: 'defender-0', side: 'defender', unitId: 'zombie' }, 20); // undead ⇒ 0 PV vivant compté
     const state = baseState({ factionCatalog: FACTION_CATALOG, heroes: [h], combat });
     const { state: next, events } = runCheckCombatEnd(state);
     const result = next.heroes.find((x) => x.id === 'hero-1');
@@ -197,7 +197,7 @@ describe('applyFactionVictoryEffects — raiseUndeadOnVictory', () => {
   it('plafonne à capBase + capPerExisting × effectif courant (0 existant ici)', () => {
     const h = hero({ factionId: 'necro' });
     const combat = combatState([attackerAlive('grunt', 10), defenderDead('wolf')]);
-    recordLoss(combat, 'defender', 'wolf', 100); // PV vivants tués = 1000 ⇒ raised naïf 200
+    recordLoss(combat, { id: 'defender-0', side: 'defender', unitId: 'wolf' }, 100); // PV vivants tués = 1000 ⇒ raised naïf 200
     const state = baseState({ factionCatalog: FACTION_CATALOG, heroes: [h], combat });
     const { state: next, events } = runCheckCombatEnd(state);
     const result = next.heroes.find((x) => x.id === 'hero-1');
@@ -212,7 +212,7 @@ describe('applyFactionVictoryEffects — raiseUndeadOnVictory', () => {
       stack({ id: 'attacker-1', side: 'attacker', slot: 1, unitId: 'skel', count: 5, pos: { col: 0, row: 1 } }),
       defenderDead('wolf'),
     ]);
-    recordLoss(combat, 'defender', 'wolf', 100); // raised naïf 200 ; plafond 20+2×5=30
+    recordLoss(combat, { id: 'defender-0', side: 'defender', unitId: 'wolf' }, 100); // raised naïf 200 ; plafond 20+2×5=30
     const state = baseState({ factionCatalog: FACTION_CATALOG, heroes: [h], combat });
     const { state: next, events } = runCheckCombatEnd(state);
     const result = next.heroes.find((x) => x.id === 'hero-1');
@@ -234,7 +234,7 @@ describe('applyFactionVictoryEffects — raiseUndeadOnVictory', () => {
       }),
     );
     const combat = combatState([attackerAlive('grunt', 10), ...fillers, defenderDead('wolf')]);
-    recordLoss(combat, 'defender', 'wolf', 5); // raised naïf > 0
+    recordLoss(combat, { id: 'defender-0', side: 'defender', unitId: 'wolf' }, 5); // raised naïf > 0
     const h = hero({ factionId: 'necro' });
     const state = baseState({ factionCatalog: FACTION_CATALOG, heroes: [h], combat });
     const { state: next, events } = runCheckCombatEnd(state);
@@ -247,7 +247,7 @@ describe('applyFactionVictoryEffects — raiseUndeadOnVictory', () => {
   it("factionId '' : aucun effet même si le catalogue de faction est renseigné", () => {
     const h = hero({ factionId: '' });
     const combat = combatState([attackerAlive('grunt', 50), defenderDead('wolf')]);
-    recordLoss(combat, 'defender', 'wolf', 5);
+    recordLoss(combat, { id: 'defender-0', side: 'defender', unitId: 'wolf' }, 5);
     const state = baseState({ factionCatalog: FACTION_CATALOG, heroes: [h], combat });
     const { state: next, events } = runCheckCombatEnd(state);
     const result = next.heroes.find((x) => x.id === 'hero-1');
@@ -258,7 +258,7 @@ describe('applyFactionVictoryEffects — raiseUndeadOnVictory', () => {
   it('unité ressuscitée absente du catalogue : no-op défensif, pas de crash', () => {
     const h = hero({ factionId: 'necro' });
     const combat = combatState([attackerAlive('grunt', 50), defenderDead('wolf')]);
-    recordLoss(combat, 'defender', 'wolf', 5);
+    recordLoss(combat, { id: 'defender-0', side: 'defender', unitId: 'wolf' }, 5);
     const catalogWithoutSkel = { ...CATALOG };
     delete catalogWithoutSkel.skel;
     const state = baseState({
@@ -303,7 +303,7 @@ describe('applyFactionVictoryEffects — gainFactionResourceOnVictory', () => {
   it('crédite le joueur du héros vainqueur de la ressource déclarée', () => {
     const h = hero({ factionId: 'hunter' });
     const combat = combatState([attackerAlive('grunt', 5), defenderDead('wolf')]);
-    recordLoss(combat, 'defender', 'wolf', 3);
+    recordLoss(combat, { id: 'defender-0', side: 'defender', unitId: 'wolf' }, 3);
     const state = baseState({ factionCatalog: HUNTER_CATALOG, heroes: [h], players: [player()], combat });
     const { state: next, events } = runCheckCombatEnd(state);
     expect(next.players.find((p) => p.id === 'p1')?.factionResources['essence']).toBe(10);
@@ -318,7 +318,7 @@ describe('applyFactionVictoryEffects — gainFactionResourceOnVictory', () => {
   it('accumule sur un stock existant', () => {
     const h = hero({ factionId: 'hunter' });
     const combat = combatState([attackerAlive('grunt', 5), defenderDead('wolf')]);
-    recordLoss(combat, 'defender', 'wolf', 3);
+    recordLoss(combat, { id: 'defender-0', side: 'defender', unitId: 'wolf' }, 3);
     const state = baseState({
       factionCatalog: HUNTER_CATALOG,
       heroes: [h],
@@ -332,7 +332,7 @@ describe('applyFactionVictoryEffects — gainFactionResourceOnVictory', () => {
   it("factionId '' : aucun gain de ressource de faction", () => {
     const h = hero({ factionId: '' });
     const combat = combatState([attackerAlive('grunt', 5), defenderDead('wolf')]);
-    recordLoss(combat, 'defender', 'wolf', 3);
+    recordLoss(combat, { id: 'defender-0', side: 'defender', unitId: 'wolf' }, 3);
     const state = baseState({ factionCatalog: HUNTER_CATALOG, heroes: [h], players: [player()], combat });
     const { state: next, events } = runCheckCombatEnd(state);
     expect(next.players.find((p) => p.id === 'p1')?.factionResources).toEqual({});
@@ -349,7 +349,7 @@ describe('F-RESON.1 — cap de ressource de faction appliqué au gain', () => {
   it('plafonne le gain au cap (le crédit ne dépasse pas la capacité)', () => {
     const h = hero({ factionId: 'hunter' });
     const combat = combatState([attackerAlive('grunt', 5), defenderDead('wolf')]);
-    recordLoss(combat, 'defender', 'wolf', 3);
+    recordLoss(combat, { id: 'defender-0', side: 'defender', unitId: 'wolf' }, 3);
     const state = baseState({
       factionCatalog: CAPPED_CATALOG,
       heroes: [h],
@@ -365,7 +365,7 @@ describe('F-RESON.1 — cap de ressource de faction appliqué au gain', () => {
   it('déjà au cap : aucun gain, jamais de réduction', () => {
     const h = hero({ factionId: 'hunter' });
     const combat = combatState([attackerAlive('grunt', 5), defenderDead('wolf')]);
-    recordLoss(combat, 'defender', 'wolf', 3);
+    recordLoss(combat, { id: 'defender-0', side: 'defender', unitId: 'wolf' }, 3);
     const state = baseState({
       factionCatalog: CAPPED_CATALOG,
       heroes: [h],
@@ -412,7 +412,7 @@ describe('propriété : après relève, l’armée du héros reste ≤ 7 piles',
               ]
             : [];
           const combat = combatState([attackerAlive('grunt', 10), ...fillers, ...skelStack, defenderDead('wolf')]);
-          recordLoss(combat, 'defender', 'wolf', wolfLost);
+          recordLoss(combat, { id: 'defender-0', side: 'defender', unitId: 'wolf' }, wolfLost);
           const h = hero({ factionId: 'necro' });
           const state = baseState({ factionCatalog: FACTION_CATALOG, heroes: [h], combat });
           const { state: next } = runCheckCombatEnd(state);
@@ -422,5 +422,27 @@ describe('propriété : après relève, l’armée du héros reste ≤ 7 piles',
       ),
       { numRuns: 50 },
     );
+  });
+});
+
+describe('Revue 2026-07 — B5 : victoire DÉFENSIVE (H-VS-H), le camp vaincu nourrit les effets', () => {
+  it('un héros nécro ATTAQUÉ qui l’emporte relève sur les pertes de l’attaquant', () => {
+    const foe = hero(); // hero-1, attaquant vaincu
+    const necro = hero({ id: 'hero-2', playerId: 'p2', factionId: 'necro' });
+    const combat = combatState(
+      [
+        stack({ id: 'attacker-0', side: 'attacker', slot: 0, unitId: 'wolf', count: 0, pos: { col: 0, row: 0 } }),
+        stack({ id: 'defender-0', side: 'defender', slot: 0, unitId: 'grunt', count: 30, pos: { col: 7, row: 0 } }),
+      ],
+      { attackerHeroId: 'hero-1', defenderHeroId: 'hero-2' },
+    );
+    recordLoss(combat, { id: 'attacker-0', side: 'attacker', unitId: 'wolf' }, 5); // 50 PV vivants tués côté ATTAQUANT
+    const state = baseState({ factionCatalog: FACTION_CATALOG, heroes: [foe, necro], combat });
+    const { state: next, events } = runCheckCombatEnd(state);
+    // Le vaincu (attaquant) meurt ; le nécro défenseur relève floor(50×100/100/5) = 10 squelettes.
+    expect(next.heroes.find((h) => h.id === 'hero-1')).toBeUndefined();
+    const winner = next.heroes.find((h) => h.id === 'hero-2');
+    expect(winner?.army).toContainEqual({ unitId: 'skel', count: 10 });
+    expect(events).toContainEqual({ type: 'UndeadRaised', heroId: 'hero-2', unitId: 'skel', count: 10 });
   });
 });

@@ -385,25 +385,61 @@ export function siegeEliteDamage(
  */
 export interface CombatLedger {
   _losses?: Record<string, number>;
+  /** Pertes par PILE (id) — plafond de résurrection/renaissance INTRA-pile. */
+  _stackLosses?: Record<string, number>;
 }
 export type CombatStateInternal = CombatState & CombatLedger;
 
 export function initLedger(combat: CombatState): void {
   (combat as CombatStateInternal)._losses = {};
+  (combat as CombatStateInternal)._stackLosses = {};
 }
 
 export function recordLoss(
   combat: CombatState,
-  side: CombatSideId,
-  unitId: string,
+  stack: Pick<CombatStack, 'id' | 'side' | 'unitId'>,
   amount: number,
 ): void {
   if (amount <= 0) return;
   const internal = combat as CombatStateInternal;
   const losses = internal._losses ?? {};
-  const key = `${side}:${unitId}`;
+  const key = `${stack.side}:${stack.unitId}`;
   losses[key] = (losses[key] ?? 0) + amount;
   internal._losses = losses;
+  const stackLosses = internal._stackLosses ?? {};
+  stackLosses[stack.id] = (stackLosses[stack.id] ?? 0) + amount;
+  internal._stackLosses = stackLosses;
+}
+
+/**
+ * Créatures RELEVÉES (résurrection, drain de vie, renaissance) : décrémente les
+ * deux registres — une créature relevée puis retuée ne compte qu'UNE fois dans
+ * les pertes (revue 2026-07, B4). Sans ça, le plafond `effectif + pertes`
+ * remontait au-delà de l'effectif initial (duplication d'armée), et XP /
+ * Nécromancie / bilan comptaient les re-tuées deux fois.
+ */
+export function recordRevive(
+  combat: CombatState,
+  stack: Pick<CombatStack, 'id' | 'side' | 'unitId'>,
+  amount: number,
+): void {
+  if (amount <= 0) return;
+  const internal = combat as CombatStateInternal;
+  const losses = internal._losses ?? {};
+  const key = `${stack.side}:${stack.unitId}`;
+  losses[key] = Math.max(0, (losses[key] ?? 0) - amount);
+  internal._losses = losses;
+  const stackLosses = internal._stackLosses ?? {};
+  stackLosses[stack.id] = Math.max(0, (stackLosses[stack.id] ?? 0) - amount);
+  internal._stackLosses = stackLosses;
+}
+
+/**
+ * Pertes cumulées d'UNE pile (plafond de résurrection/renaissance intra-pile,
+ * revue 2026-07 B4) — jamais celles d'une autre pile du même `unitId`.
+ */
+export function stackLostSoFar(combat: CombatState, stack: Pick<CombatStack, 'id'>): number {
+  return (combat as CombatStateInternal)._stackLosses?.[stack.id] ?? 0;
 }
 
 export function collectCasualties(

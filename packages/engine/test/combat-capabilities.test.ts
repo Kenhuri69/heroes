@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { createEmptyState, type GameState } from '../src/core/state';
 import { seedRng } from '../src/core/rng';
 import { applyAction } from '../src/combat/actions';
+import { recordLoss } from '../src/combat/state-helpers';
 import { estimateDamage, magicResistanceOf } from '../src/combat/damage';
 import type { CombatStack, CombatState, CombatUnitDef } from '../src/combat/types';
 import type { GameEvent } from '../src/core/events';
@@ -164,9 +165,10 @@ describe('A2a — lifeDrain', () => {
     // Vampire à 3/5 créatures (2 pertes déjà enregistrées via un état entamé).
     const attacker = stack({ id: 'attacker-0', side: 'attacker', slot: 0, unitId: 'atk', count: 3, pos: { col: 0, row: 0 }, firstHp: 2 });
     const defender = stack({ id: 'defender-0', side: 'defender', slot: 0, unitId: 'def', count: 1, pos: { col: 1, row: 0 }, firstHp: 1000 });
-    // Enregistre 2 pertes du vampire pour ouvrir le plafond de relève.
-    const combat = combatState([attacker, defender]) as CombatState & { _losses?: Record<string, number> };
-    combat._losses = { 'attacker:atk': 2 };
+    // Enregistre 2 pertes du vampire pour ouvrir le plafond de relève (via
+    // recordLoss : alimente le registre agrégé ET le registre par pile — B4).
+    const combat = combatState([attacker, defender]);
+    recordLoss(combat, attacker, 2);
     const state = { ...baseState(catalog), combat };
     const { events, next } = runAttack(state);
     // 3 créatures × dmg 10 = base 30 ; diff 0 → dégâts 30. drain = floor(30×0,5)=15.

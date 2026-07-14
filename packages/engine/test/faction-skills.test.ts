@@ -45,7 +45,7 @@ function raisedAt(necroRank: number): number {
   const events: GameEvent[] = [];
   const state = { ...createEmptyState(), unitCatalog: CATALOG, factionCatalog: FACTION_CATALOG, heroes: [h] } as GameState;
   const next = produce(state, (draft) => {
-    applyFactionVictoryEffects(draft, combat, draft.heroes[0]!, casualties, events);
+    applyFactionVictoryEffects(draft, combat, draft.heroes[0]!, casualties, 'defender', events);
   });
   return next.heroes[0]?.army.find((s) => s.unitId === 'skel')?.count ?? 0;
 }

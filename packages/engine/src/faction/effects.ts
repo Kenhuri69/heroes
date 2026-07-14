@@ -54,20 +54,23 @@ type Casualty = { side: CombatSideId; unitId: string; lost: number };
  * Interprète les effets de faction déclaratifs du héros vainqueur (doc 06
  * §4) : lit `draft.factionCatalog[hero.factionId]?.bonuses`, jamais un nom de
  * faction. Appelé depuis `applyConsequences` (combat/turns.ts) après la
- * reconstruction de `hero.army`, uniquement quand le héros a gagné en tant
- * qu'attaquant.
+ * reconstruction de `hero.army`, pour le héros VAINQUEUR — attaquant OU
+ * défenseur (H-VS-H, victoire défensive). `loserSide` = camp vaincu, dont les
+ * pertes nourrissent les effets (revue 2026-07, B5 : il était codé en dur
+ * `'defender'`, faux quand le vainqueur défendait).
  */
 export function applyFactionVictoryEffects(
   draft: Draft,
   combat: CombatState,
   hero: HeroState,
   casualties: Casualty[],
+  loserSide: CombatSideId,
   events: GameEvent[],
 ): void {
   const bonuses = draft.factionCatalog[hero.factionId]?.bonuses ?? [];
   for (const bonus of bonuses) {
     if (bonus.type === 'raiseUndeadOnVictory') {
-      applyRaiseUndeadOnVictory(draft, bonus, casualties, hero, events);
+      applyRaiseUndeadOnVictory(draft, bonus, casualties, loserSide, hero, events);
     } else if (bonus.type === 'gainFactionResourceOnVictory') {
       applyGainFactionResourceOnVictory(draft, bonus, hero, events);
     }
@@ -133,17 +136,19 @@ function applyRaiseUndeadOnVictory(
   draft: Draft,
   bonus: Extract<FactionBonus, { type: 'raiseUndeadOnVictory' }>,
   casualties: Casualty[],
+  loserSide: CombatSideId,
   hero: HeroState,
   events: GameEvent[],
 ): void {
   const raisedDef = draft.unitCatalog[bonus.unitId];
   if (!raisedDef || raisedDef.stats.hp <= 0) return; // données absentes/invalides — no-op défensif
 
-  // PV vivants (non-`undead`) tués côté défenseur (doc 04 : « PV des créatures
-  // vivantes ennemies tuées »). Les machines (`warMachine` — ex. tour de tir
-  // C-SIEGE2.5) ne sont pas des créatures : elles ne se relèvent pas.
+  // PV vivants (non-`undead`) tués côté VAINCU (doc 04 : « PV des créatures
+  // vivantes ennemies tuées ») — camp passé par l'appelant, jamais 'defender'
+  // en dur (B5). Les machines (`warMachine` — ex. tour de tir C-SIEGE2.5) ne
+  // sont pas des créatures : elles ne se relèvent pas.
   const hpKilled = casualties
-    .filter((c) => c.side === 'defender')
+    .filter((c) => c.side === loserSide)
     .reduce((sum, c) => {
       const def = draft.unitCatalog[c.unitId];
       if (!def || hasAbility(def, 'undead') || hasAbility(def, 'warMachine')) return sum;

@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import type { GameEvent } from '../src/core/events';
 import { handleStackDeath } from '../src/combat/death';
-import { recordLoss } from '../src/combat/state-helpers';
+import { recordLoss, stackLostSoFar } from '../src/combat/state-helpers';
+import { resurrectStack } from '../src/combat/spell-effect';
 import type { CombatStack, CombatState, CombatUnitDef } from '../src/combat/types';
 
 /**
@@ -44,7 +45,7 @@ describe('CAP-LIFE.2 — rebirth', () => {
     const s = stack('a0', 'phoenix', 10);
     const combat = combatWith({ phoenix: def }, [s]);
     // Simule la mort : 10 créatures perdues, effectif à 0.
-    recordLoss(combat, s.side, s.unitId, 10);
+    recordLoss(combat, s, 10);
     s.count = 0;
     s.firstHp = 0;
     const events: GameEvent[] = [];
@@ -61,11 +62,11 @@ describe('CAP-LIFE.2 — rebirth', () => {
     const def = unit('phoenix', [{ id: 'rebirth', params: { pct: 50 } }]);
     const s = stack('a0', 'phoenix', 10);
     const combat = combatWith({ phoenix: def }, [s]);
-    recordLoss(combat, s.side, s.unitId, 10);
+    recordLoss(combat, s, 10);
     s.count = 0;
     handleStackDeath(combat, s, def, []); // 1ʳᵉ mort ⇒ renaît
     // 2ᵉ mort : la renaissance est consommée.
-    recordLoss(combat, s.side, s.unitId, s.count);
+    recordLoss(combat, s, s.count);
     s.count = 0;
     const events: GameEvent[] = [];
     handleStackDeath(combat, s, def, events);
@@ -77,7 +78,7 @@ describe('CAP-LIFE.2 — rebirth', () => {
     const def = unit('grunt');
     const s = stack('a0', 'grunt', 4);
     const combat = combatWith({ grunt: def }, [s]);
-    recordLoss(combat, s.side, s.unitId, 4);
+    recordLoss(combat, s, 4);
     s.count = 0;
     const events: GameEvent[] = [];
     handleStackDeath(combat, s, def, events);
@@ -90,10 +91,46 @@ describe('CAP-LIFE.2 — rebirth', () => {
     const def = unit('phoenix', [{ id: 'rebirth', params: { pct: 50 } }]);
     const s = stack('a0', 'phoenix', 1);
     const combat = combatWith({ phoenix: def }, [s]);
-    recordLoss(combat, s.side, s.unitId, 1);
+    recordLoss(combat, s, 1);
     s.count = 0;
     handleStackDeath(combat, s, def, []);
     // floor(0,5 × 1) = 0 ⇒ plancher 1.
     expect(s.count).toBe(1);
+  });
+});
+
+describe('Revue 2026-07 — B4 : plafonds intra-pile et ledger décrémenté à la relève', () => {
+  it('la renaissance lit les pertes de SA pile, pas celles d’une autre pile du même unitId', () => {
+    const def = unit('phoenix', [{ id: 'rebirth', params: { pct: 50 } }]);
+    const a = stack('a0', 'phoenix', 4);
+    const b = stack('a1', 'phoenix', 10);
+    const combat = combatWith({ phoenix: def }, [a, b]);
+    recordLoss(combat, b, 10); // l'AUTRE pile a perdu 10
+    recordLoss(combat, a, 4); // celle-ci n'en a perdu que 4
+    a.count = 0;
+    a.firstHp = 0;
+    const events: GameEvent[] = [];
+    handleStackDeath(combat, a, def, events);
+    // 50 % de SES 4 pertes = 2 — jamais floor(0.5 × 14) = 7 (agrégat par unitId).
+    expect(combat.stacks.find((s) => s.id === 'a0')?.count).toBe(2);
+  });
+
+  it('résurrection : jamais au-delà de l’effectif initial après un cycle mort → relève → mort', () => {
+    const def = unit('grunt');
+    const s = stack('a0', 'grunt', 10);
+    const combat = combatWith({ grunt: def }, [s]);
+    const draft = { unitCatalog: { grunt: def } } as never;
+    // Round 1 : 5 meurent, puis un gros soin relève tout.
+    s.count = 5;
+    recordLoss(combat, s, 5);
+    expect(resurrectStack(draft, combat, s, 500).revived).toBe(5);
+    expect(s.count).toBe(10);
+    // Round 2 : 5 meurent à nouveau — le plafond doit rester 10 (pas 15 : sans le
+    // décrément du ledger, les 5 relevées puis retuées comptaient deux fois).
+    s.count = 5;
+    recordLoss(combat, s, 5);
+    resurrectStack(draft, combat, s, 500);
+    expect(s.count).toBe(10);
+    expect(stackLostSoFar(combat, s)).toBe(0);
   });
 });

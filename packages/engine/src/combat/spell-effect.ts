@@ -2,7 +2,7 @@ import { killsFromDamage, magicResistanceOf } from './damage';
 import { handleStackDeath } from './death';
 import type { Draft } from './draft';
 import { hexDistance } from './hex';
-import { combatRules, collectCasualties, hasAbility, recordLoss } from './state-helpers';
+import { combatRules, hasAbility, recordLoss, recordRevive, stackLostSoFar } from './state-helpers';
 import type { CombatState, CombatStack, CombatUnitDef } from './types';
 import type { GameEvent } from '../core/events';
 import { rollRange } from '../core/rng';
@@ -93,7 +93,7 @@ export function damageOneStack(
   const newCount = target.count - kills;
   target.count = newCount;
   target.firstHp = newCount > 0 ? remaining - (newCount - 1) * targetDef.stats.hp : 0;
-  recordLoss(combat, target.side, target.unitId, kills);
+  recordLoss(combat, target, kills);
   if (target.count <= 0) handleStackDeath(combat, target, targetDef, events);
   return { amount, kills };
 }
@@ -113,11 +113,13 @@ export function resurrectStack(
 ): { healed: number; revived: number } {
   const def = draft.unitCatalog[target.unitId];
   if (!def || target.count <= 0) return { healed: 0, revived: 0 };
-  const lostSoFar =
-    collectCasualties(combat).find((c) => c.side === target.side && c.unitId === target.unitId)?.lost ?? 0;
-  const r = resolveResurrect(def, target, lostSoFar, hp);
+  // Plafond INTRA-pile (B4) : les pertes de CETTE pile, pas celles d'une autre
+  // pile du même unitId — et décrément du ledger pour que les créatures relevées
+  // puis retuées ne comptent qu'une fois (XP/Nécromancie/bilan/plafond).
+  const r = resolveResurrect(def, target, stackLostSoFar(combat, target), hp);
   target.count = r.newCount;
   target.firstHp = r.newFirstHp;
+  recordRevive(combat, target, r.revived);
   return { healed: r.healed, revived: r.revived };
 }
 
@@ -262,7 +264,7 @@ export function applySpellToTargets(
       if (!def || !hasAbility(def, 'banishable')) continue;
       const pool = (t.count - 1) * def.stats.hp + t.firstHp;
       if (pool > threshold) continue;
-      recordLoss(combat, t.side, t.unitId, t.count);
+      recordLoss(combat, t, t.count);
       amount += pool;
       t.count = 0;
       t.firstHp = 0;

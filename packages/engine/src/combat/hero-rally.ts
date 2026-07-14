@@ -4,7 +4,7 @@ import type { GameState } from '../core/state';
 import { heroBattlePrayerHp } from '../hero/skills';
 import type { Draft } from './draft';
 import { resolveResurrect, resurrectStack } from './spell-effect';
-import { collectCasualties } from './state-helpers';
+import { stackLostSoFar } from './state-helpers';
 import type { CombatSideId, CombatState } from './types';
 
 type HeroRallyCmd = { type: 'HeroRally'; targetStackId: string };
@@ -45,9 +45,8 @@ export function estimateHeroRally(
   if (!target || !def || target.count <= 0) return { healed: 0, revived: 0 };
   const hp = heroRallyHp(state, combat, combat.playerSide);
   if (hp <= 0) return { healed: 0, revived: 0 };
-  const lostSoFar =
-    collectCasualties(combat).find((c) => c.side === target.side && c.unitId === target.unitId)?.lost ?? 0;
-  const { healed, revived } = resolveResurrect(def, target, lostSoFar, hp);
+  // Parité stricte avec `resurrectStack` (B4) : plafond intra-pile.
+  const { healed, revived } = resolveResurrect(def, target, stackLostSoFar(combat, target), hp);
   return { healed, revived };
 }
 

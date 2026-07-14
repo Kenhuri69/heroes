@@ -8,7 +8,7 @@ import { rollRange } from '../core/rng';
 import { evaluateOutcome } from '../scenario/outcome';
 import { tryRebirth } from './death';
 import type { Draft } from './draft';
-import { collectCasualties, collectSurvivors, combatRules, compareInitiative, hasAbility, moraleOf, recordLoss } from './state-helpers';
+import { collectCasualties, collectSurvivors, combatRules, compareInitiative, hasAbility, moraleOf, otherSide, recordLoss } from './state-helpers';
 import { COMBAT_ROWS } from './hex';
 import type { CombatSideId, CombatStack, CombatState } from './types';
 
@@ -52,7 +52,7 @@ function applyPoisonTicks(draft: Draft, events: GameEvent[]): boolean {
     const kills = stack.count - newCount;
     stack.count = newCount;
     stack.firstHp = newCount > 0 ? remaining - (newCount - 1) * def.stats.hp : 0;
-    recordLoss(combat, stack.side, stack.unitId, kills);
+    recordLoss(combat, stack, kills);
     events.push({ type: 'StackPoisoned', stackId: stack.id, damage: Math.min(poison, pool), kills });
     if (newCount <= 0 && !tryRebirth(combat, stack, def, events)) {
       // Renaissance (CAP-LIFE.2) : si la pile ne renaît pas, elle meurt — le splice
@@ -272,7 +272,8 @@ function applyHeroVsHeroConsequences(
   winnerHero.army = combat.stacks
     .filter((s) => s.side === winner && s.count > 0 && !winnerHero.warMachines.includes(s.unitId))
     .map((s) => ({ unitId: s.unitId, count: s.count }));
-  applyFactionVictoryEffects(draft, combat, winnerHero, _casualties, events);
+  // B5 : le camp vaincu est l'AUTRE camp — le vainqueur peut être défenseur.
+  applyFactionVictoryEffects(draft, combat, winnerHero, _casualties, otherSide(winner), events);
   // Dépouille : artefacts du vaincu → slots libres du vainqueur, surplus au sol.
   const spoils = loserHero.artifacts.filter((a): a is string => a !== null);
   let dropped = 0;
@@ -321,7 +322,7 @@ function applyConsequences(
         .map((s) => ({ unitId: s.unitId, count: s.count }));
       // Effets de faction déclaratifs post-victoire (doc 06 §4) — après la
       // reconstruction de l'armée, jamais un nom de faction dans le moteur.
-      applyFactionVictoryEffects(draft, combat, hero, casualties, events);
+      applyFactionVictoryEffects(draft, combat, hero, casualties, 'defender', events);
     }
     if (draft.map && combat.guardianObjectId) {
       // Butin de gardien (doc 02 §2.2) : or/ressource/artefact gradué par la force
@@ -349,19 +350,31 @@ function applyConsequences(
       if (idx !== -1) draft.heroes.splice(idx, 1);
     }
     if (draft.map && combat.guardianObjectId) {
-      const obj = draft.map.objects.find((o) => o.id === combat.guardianObjectId);
+      const idx = draft.map.objects.findIndex((o) => o.id === combat.guardianObjectId);
+      const obj = idx !== -1 ? draft.map.objects[idx] : undefined;
       if (obj && obj.type === 'guardian') {
         obj.count = combat.stacks
-          .filter((s) => s.side === 'defender')
+          .filter((s) => s.side === 'defender' && s.count > 0)
           .reduce((sum, s) => sum + s.count, 0);
+        // Anéantissement MUTUEL (B17, tick de poison) : la convention déclare le
+        // défenseur vainqueur, mais un gardien réduit à 0 ne doit pas rester sur
+        // la carte — un combat contre ce fantôme serait insoluble (aucune pile à
+        // tuer de part et d'autre, garde-fou d'itérations atteint).
+        if (obj.count <= 0) draft.map.objects.splice(idx, 1);
       }
     }
-    // Siège repoussé : la garnison survivante est réécrite sur la ville.
+    // Siège repoussé : la garnison survivante est réécrite sur la ville — SAUF
+    // la tour de tir injectée par le siège (B8 : `warMachine` n'est pas une
+    // créature de garnison ; sans ce filtre elle s'accumulait dans les slots,
+    // transférable au héros et dupliquée à chaque siège repoussé).
     if (combat.townId) {
       const town = draft.towns.find((t) => t.id === combat.townId);
       if (town) {
         town.garrison = combat.stacks
-          .filter((s) => s.side === 'defender' && s.count > 0)
+          .filter((s) => {
+            const def = draft.unitCatalog[s.unitId];
+            return s.side === 'defender' && s.count > 0 && !(def && hasAbility(def, 'warMachine'));
+          })
           .map((s) => ({ unitId: s.unitId, count: s.count }));
       }
     }

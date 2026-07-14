@@ -6,7 +6,7 @@ import type { SpellStatus } from '../hero/types';
 import { canShootTarget } from './actions';
 import { handleStackDeath } from './death';
 import { hexBehind, hexDistance, inCombatBounds, sameHex } from './hex';
-import { clamp, collectCasualties, conditionalUnitBonus, factionCombatBonus, hasAbility, isShooterMeleePenalized, recordLoss, siegeEliteDamage } from './state-helpers';
+import { clamp, conditionalUnitBonus, factionCombatBonus, hasAbility, isShooterMeleePenalized, recordLoss, recordRevive, siegeEliteDamage, stackLostSoFar } from './state-helpers';
 import type { CombatSideId, CombatStack, CombatUnitDef, CombatState } from './types';
 import type { CombatRulesConfig } from '../adventure/config';
 import type { GameEvent } from '../core/events';
@@ -376,7 +376,7 @@ function applySplashDamage(
   const newCount = t.count - kills;
   t.count = newCount;
   t.firstHp = newCount > 0 ? remaining - (newCount - 1) * tDef.stats.hp : 0;
-  recordLoss(combat, t.side, t.unitId, kills);
+  recordLoss(combat, t, kills);
   events.push({
     type: 'StackAttacked',
     attackerId: striker.id,
@@ -521,7 +521,7 @@ export function performStrike(
   victim.count = newCount;
   victim.firstHp = newCount > 0 ? remaining - (newCount - 1) * victimDef.stats.hp : 0;
 
-  if (combat) recordLoss(combat, victim.side, victim.unitId, kills);
+  if (combat) recordLoss(combat, victim, kills);
 
   // Consommation des charges de Marque (capacité générique `consumeMarks`,
   // doc 05 §3.1) : le burst de dégâts a déjà été appliqué via `mult` ; on retire
@@ -614,12 +614,12 @@ export function performStrike(
     const heal = Math.floor(damage * drainPct);
     if (heal > 0) {
       const strikerPool = (striker.count - 1) * strikerDef.stats.hp + striker.firstHp;
-      const lostSoFar =
-        collectCasualties(combat).find((c) => c.side === striker.side && c.unitId === striker.unitId)?.lost ?? 0;
-      const maxCount = striker.count + lostSoFar;
+      // Plafond intra-pile + décrément du ledger (B4) — même règle que le soin.
+      const maxCount = striker.count + stackLostSoFar(combat, striker);
       const newPool = Math.min(maxCount * strikerDef.stats.hp, strikerPool + heal);
       if (newPool > strikerPool) {
         const drainCount = Math.min(maxCount, Math.max(1, Math.ceil(newPool / strikerDef.stats.hp)));
+        recordRevive(combat, striker, drainCount - striker.count);
         striker.count = drainCount;
         striker.firstHp = newPool - (drainCount - 1) * strikerDef.stats.hp;
         events.push({ type: 'StackHealed', stackId: striker.id, amount: newPool - strikerPool });
@@ -636,12 +636,12 @@ export function performStrike(
     const heal = devouredMarks * devour.healPerMark;
     if (heal > 0) {
       const strikerPool = (striker.count - 1) * strikerDef.stats.hp + striker.firstHp;
-      const lostSoFar =
-        collectCasualties(combat).find((c) => c.side === striker.side && c.unitId === striker.unitId)?.lost ?? 0;
-      const maxCount = striker.count + lostSoFar;
+      // Plafond intra-pile + décrément du ledger (B4) — même règle que `lifeDrain`.
+      const maxCount = striker.count + stackLostSoFar(combat, striker);
       const newPool = Math.min(maxCount * strikerDef.stats.hp, strikerPool + heal);
       if (newPool > strikerPool) {
         const nc = Math.min(maxCount, Math.max(1, Math.ceil(newPool / strikerDef.stats.hp)));
+        recordRevive(combat, striker, nc - striker.count);
         striker.count = nc;
         striker.firstHp = newPool - (nc - 1) * strikerDef.stats.hp;
         events.push({ type: 'StackHealed', stackId: striker.id, amount: newPool - strikerPool });

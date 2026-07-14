@@ -130,7 +130,7 @@ describe('CAP-LIFE.1 — résurrection de l’Ange', () => {
       stack({ id: 'defender-0', side: 'defender', slot: 0, unitId: 'grunt', count: 1, pos: { col: 12, row: 5 } }),
     ];
     const base = angelState(stacks);
-    recordLoss(base.combat!, 'attacker', 'grunt', 3); // 3 grunts déjà tombés
+    recordLoss(base.combat!, { id: 'attacker-1', side: 'attacker', unitId: 'grunt' }, 3); // 3 grunts déjà tombés
     const events: GameEvent[] = [];
     const next = produce(base, (draft) => {
       applyAction(draft, events, 'attacker-0', { type: 'castSpell', targetStackId: 'attacker-1' });

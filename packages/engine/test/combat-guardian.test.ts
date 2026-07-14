@@ -4,6 +4,8 @@ import { apply } from '../src/core/engine';
 import type { PlayerSetup } from '../src/core/commands';
 import { createEmptyState, emptyResources, type GameState } from '../src/core/state';
 import { beginGuardianCombat } from '../src/combat/setup';
+import { checkCombatEnd } from '../src/combat/turns';
+import { recordLoss } from '../src/combat/state-helpers';
 import { runAutoCombat } from '../src/combat/ai';
 import type { AdventureMapDef } from '../src/adventure/map';
 import { testCatalog, testConfig, testMap } from './fixtures';
@@ -92,5 +94,29 @@ describe('beginGuardianCombat', () => {
       expect(guardian.count).toBeLessThanOrEqual(100);
     }
     expect(events.some((e) => e.type === 'CombatEnded' && e.winner === 'defender')).toBe(true);
+  });
+});
+
+describe('Revue 2026-07 — B17 : anéantissement mutuel', () => {
+  it('le gardien réduit à 0 est RETIRÉ de la carte (pas de combat fantôme rejouable)', () => {
+    const state = startedGameWithGuardian('blue-wolf', 10, 'red-grunt', 10);
+    const events: import('../src/core/events').GameEvent[] = [];
+    const next = produce(state, (draft) => {
+      beginGuardianCombat(draft, 'hero-p1', 'guardian-1', events);
+      // Simule un tick de poison qui vide les DEUX camps dans le même round.
+      const combat = draft.combat!;
+      for (const s of combat.stacks) {
+        recordLoss(combat, s, s.count);
+        s.count = 0;
+        s.firstHp = 0;
+      }
+      combat.stacks.splice(0);
+      checkCombatEnd(draft, events);
+    });
+    expect(next.combat).toBeNull();
+    // Convention (documentée) : le défenseur est déclaré vainqueur ⇒ le héros meurt…
+    expect(next.heroes.find((h) => h.id === 'hero-p1')).toBeUndefined();
+    // …mais le gardien anéanti ne reste pas sur la carte à 0 créature.
+    expect(next.map?.objects.some((o) => o.id === 'guardian-1')).toBe(false);
   });
 });

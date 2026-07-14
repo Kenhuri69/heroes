@@ -65,6 +65,22 @@ sur le placeholder générique « muted heroic fantasy palette ». Correction :
       `map/camp-dungeon`. Traitement au retour : fond ⇒ jpg direct ; jetons ⇒
       `process_sprite.py` (détourage alpha) puis copie vers `assets/map/`.
 
+## Intégration des PNG Gemini (retour utilisateur) — livré
+4 PNG fournis par l'utilisateur (générés dans Gemini depuis les prompts ci-dessus) :
+- [x] `backgrounds/town-dungeon.jpg` — cover-crop 1920×1080, JPEG q86 (315 Ko < 500).
+- [x] `map/hero-dungeon.png`, `map/town-dungeon.png`, `map/camp-dungeon.png` —
+      détourés vers 512² RGBA (marge 8 %), 197–243 Ko (< plafond dur 700).
+- [x] Détourage : `process_sprite.py` (rembg) **indisponible** — téléchargement du
+      modèle BiRefNet bloqué par la politique proxy (403 sur releases GitHub, à ne
+      pas contourner). Repli **chroma déterministe** (flood-fill du gris de fond
+      connecté aux bords + suppression des îlots parasites « star glints » +
+      alpha adouci) — QC visuel damier OK (pas de halo, acier interne préservé,
+      totem/feu du camp conservés).
+- [x] Intégration vérifiée : `pnpm --filter @heroes/client build` OK, assets émis
+      hashés hors bundle JS (`town-dungeon-*.jpg` visible), budget JS inchangé.
+      Auto-découverte via `import.meta.glob` (`townBackgroundUrl`/`heroMapUrl`/
+      `townMapUrl`/`mapPropUrl('camp-dungeon')`), plus de repli procédural dungeon.
+
 ## Décisions
 - SILVER plutôt que BRASS : acier froid des elfes noirs, contraste avec l'or
   Vox Arcana (violet lui aussi) → deux écus violets restent distincts.

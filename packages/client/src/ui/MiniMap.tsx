@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'preact/hooks';
 import { useApp } from '../app/store';
-import { humanId, humanHeroes } from '../app/game';
+import { humanId, humanHeroes, isHeroVisibleOnMap, visionSightings } from '../app/game';
 import { t } from '../app/i18n';
 import { playerColor } from '../render/playerColors';
 import { panCameraTo } from '../app/camera-control';
@@ -75,10 +75,17 @@ export function MiniMap({ variant = 'fixed' }: { variant?: 'fixed' | 'drawer' } 
       ctx.fillStyle = color;
       ctx.fillRect(Math.max(0, x - 1), Math.max(0, y - 1), 2, 2);
     };
+    // B11 (revue 2026-07) : mêmes règles de visibilité que la carte principale —
+    // villes en zone EXPLORÉE seulement, héros à soi ou EN VISION (helper partagé
+    // `isHeroVisibleOnMap`). Sans ces filtres, la mini-carte révélait la position
+    // temps réel des héros/villes ennemis sous le brouillard (grave en hot-seat).
+    const sightings = visionSightings(game);
     for (const town of game.towns) {
+      if (!explored[town.pos.y * width + town.pos.x]) continue;
       dot(town.pos.x, town.pos.y, hex(playerColor(game.players, town.ownerPlayerId)));
     }
     for (const hero of game.heroes) {
+      if (!isHeroVisibleOnMap(hero, human, sightings)) continue;
       dot(hero.pos.x, hero.pos.y, hex(playerColor(game.players, hero.playerId)));
     }
   }, [game, map]);

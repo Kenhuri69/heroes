@@ -3,7 +3,6 @@ import {
   areAllies,
   dailyMovementPoints,
   findPath,
-  heroVisionRadius,
   isAdjacent,
   samePos,
   stepCost,
@@ -17,7 +16,7 @@ import { appStore } from '../../app/store';
 import { dispatch } from '../../app/dispatch';
 import { panCameraTo, DEFAULT_PAN_MS } from '../../app/camera-control';
 import { reduceMotion } from '../../app/motion';
-import { humanId, humanHeroes, isHeroVisibleOnMap, resolveSelectedHero } from '../../app/game';
+import { humanId, isHeroVisibleOnMap, resolveSelectedHero, visionSightings } from '../../app/game';
 import type { Camera } from '../../render/camera';
 import { heroMapUrl } from '../../render/assets';
 import { Tilemap, TILE_SIZE } from '../../render/tilemap';
@@ -169,26 +168,9 @@ export class AdventureScene {
       playerColor(game.players, ownerId),
     );
     this.towns.sync(game.towns, humanId(game), (ownerId) => playerColor(game.players, ownerId));
-    const heroes = humanHeroes(game);
-    // C4 : rayon de vision EFFECTIF par héros (base + bonus Recherche + longue-vue),
-    // aligné sur la révélation moteur via le helper partagé `heroVisionRadius`.
-    const sightings = heroes.map((h) => ({
-      pos: h.pos,
-      radius: heroVisionRadius(h, config.visionRadius, game.skillCatalog, game.artifactCatalog),
-    }));
-    // F1 : les villes et mines possédées sont des sources de vision vivante —
-    // halo clair permanent autour d'elles, aligné sur la révélation moteur.
-    const buildingRadius = config.buildingVisionRadius ?? 0;
-    if (buildingRadius > 0) {
-      const hid = humanId(game);
-      for (const town of game.towns) {
-        if (town.ownerPlayerId === hid) sightings.push({ pos: town.pos, radius: buildingRadius });
-      }
-      for (const obj of map.objects) {
-        if (obj.type === 'mine' && obj.ownerId === hid)
-          sightings.push({ pos: obj.pos, radius: buildingRadius });
-      }
-    }
+    // Sources de vision vivante (héros + villes/mines possédées) : helper
+    // PARTAGÉ avec la mini-carte (B11 — une seule implémentation, leçon CL9).
+    const sightings = visionSightings(game);
     this.fog.update(player.explored, sightings);
 
     // Héros À DESSINER : ceux du joueur humain (toujours) + les héros adverses

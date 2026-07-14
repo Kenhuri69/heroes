@@ -423,7 +423,26 @@ les données actuelles** (cross-check scripté des ids) ; garde `readSaveVersion
   tests existantes dotées du joueur propriétaire (états réalistes). Golden
   inchangé, moteur 758/758, smoke @core 19/19 (lot moteur pur — suite
   complète au merge sur main).
-- [ ] Lot 5 — P1 client (B11–B16)
+- [x] Lot 5 — P1 client (B11–B16). Livré : **B11** — écart constaté : la
+  moitié « carte » (héros adverses rendus en vision, `isHeroVisibleOnMap` +
+  hook smoke `renderedHeroIds`) avait été corrigée sur main entre la revue et
+  ce lot ; restait la MINI-CARTE — pastilles de villes filtrées par
+  `explored`, héros par le même `isHeroVisibleOnMap`, sources de vision
+  extraites en helper partagé `visionSightings` (scène + mini-carte, leçon
+  CL9). **B12** — l'UI de combat (mana/grimoire/gating) résout le héros LIÉ
+  au combat (`attackerHeroId`/`defenderHeroId` selon `playerSide`, comme le
+  moteur) ; arène ⇒ boutons héros cachés. **B13** — `navigate('menu')` remet
+  aussi `activeChapter: null` ; `OutcomeOverlay.backToMenu` passe par
+  `navigate()` (fin des résidus `turnAck`/`playerColors`/campagne). **B14** —
+  `HeroSwap.giveAll` relit `appStore.getState()` à chaque itération (piles ET
+  artefacts transférés, plus d'erreur systématique). **B15** — listener DOM
+  `pointercancel` (Pixi 8 ne le délivre pas) purgeant `Camera.pointers` et
+  les compteurs tap/appui long. **B16** — `faction:validate` charge et passe
+  `core/spells.json` + `core/skills.json` ; vérifié en exécution : les 7
+  paquets valident. Couverture : smoke UX-HEROSWAP étendu à « Tout donner »
+  (B14) ; B12/B13/B15 et la mini-carte vérifiés par typecheck + suite smoke
+  complète (pas de smoke dédié — mise en scène multi-héros/pointercancel/
+  2 parties complètes disproportionnée, dit explicitement §7).
 - [ ] Lot 6 — perf rendu (F1, F9, F10)
 - [ ] Lot 7a — perf moteur sans golden (F5–F8)
 - [ ] Lot 7b — perf moteur avec re-fix golden (F2, F3)

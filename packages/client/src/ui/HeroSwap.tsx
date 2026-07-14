@@ -1,6 +1,6 @@
 import { useState } from 'preact/hooks';
 import type { HeroState } from '@heroes/engine';
-import { useApp } from '../app/store';
+import { appStore, useApp } from '../app/store';
 import { dispatch } from '../app/dispatch';
 import { t, resolveUnitName, resolveArtifactName, resolveHeroName, commandErrorMessage } from '../app/i18n';
 import { unitSpriteUrl, artifactUrl } from '../render/assets';
@@ -44,11 +44,17 @@ export function HeroSwap({
   /** « Tout donner » : transfère toutes les piles (slot 0 se décale) puis tous les artefacts. */
   const giveAll = async (from: HeroState, to: string): Promise<void> => {
     setError(null);
+    // B14 (revue 2026-07) : relire l'état APRÈS chaque dispatch — l'état moteur
+    // est immuable (immer), le `game` capturé au rendu ne change jamais : la
+    // boucle ne se terminait que par l'exception `invalidTransfer` (erreur
+    // affichée à tort) et la boucle d'artefacts n'était jamais atteinte.
+    const fresh = (): HeroState | undefined =>
+      appStore.getState().game.heroes.find((h) => h.id === from.id);
     try {
-      while (game.heroes.find((h) => h.id === from.id)!.army.length > 0) {
+      while ((fresh()?.army.length ?? 0) > 0) {
         await dispatch({ type: 'TransferBetweenHeroes', fromHeroId: from.id, toHeroId: to, kind: 'army', slot: 0 });
       }
-      const arts = game.heroes.find((h) => h.id === from.id)!.artifacts;
+      const arts = fresh()?.artifacts ?? [];
       for (let i = 0; i < arts.length; i++) {
         if (arts[i] !== null) {
           await dispatch({ type: 'TransferBetweenHeroes', fromHeroId: from.id, toHeroId: to, kind: 'artifact', slot: i });

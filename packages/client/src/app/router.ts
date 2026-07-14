@@ -58,8 +58,16 @@ export function popModal(stack: readonly Modal[]): Modal[] {
  */
 export function navigate(screen: Screen): void {
   // Retour menu : oublie les couleurs de joueur de la partie précédente (le mode
-  // suivant repart de la palette d'index sauf s'il les repose). Voir `store.playerColors`.
-  appStore.setState({ screen, modals: [], turnAck: null, ...(screen === 'menu' ? { playerColors: {} } : {}) });
+  // suivant repart de la palette d'index sauf s'il les repose), ET le chapitre de
+  // campagne actif (B13, revue 2026-07) — sans ce reset, perdre un chapitre puis
+  // gagner une escarmouche faisait avancer la campagne à tort et capturait le
+  // héros d'escarmouche comme report du chapitre suivant.
+  appStore.setState({
+    screen,
+    modals: [],
+    turnAck: null,
+    ...(screen === 'menu' ? { playerColors: {}, activeChapter: null } : {}),
+  });
 }
 
 /** Ouvre (ou ré-ouvre au sommet) une modale. */

@@ -587,6 +587,19 @@ test('UX-HEROSWAP : recruter un 2ᵉ héros ⇒ transférer une pile (doc 02 §1
     )
     .toBe(1);
 
+  // « Tout donner » (revue 2026-07 B14) : le héros recruté rend TOUTES ses piles
+  // au héros de départ, sans bandeau d'erreur (la boucle lisait un état périmé
+  // et se terminait systématiquement en erreur `invalidTransfer`).
+  await page.getByTestId('heroswap-giveall-hero-player-1-garrick').click();
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () => window.__HEROES_TEST__!.getState().heroes.find((h) => h.id === 'hero-player-1-garrick')?.army.length ?? -1,
+      ),
+    )
+    .toBe(0);
+  await expect(page.getByTestId('heroswap-error')).toHaveCount(0);
+
   expect(errors).toEqual([]);
 });
 

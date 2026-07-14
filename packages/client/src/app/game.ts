@@ -1,5 +1,6 @@
 import {
   emptyResources,
+  heroVisionRadius,
   humanPlayerId,
   isAdjacent,
   rollRange,
@@ -132,6 +133,34 @@ export function humanId(game: GameState): string {
 export function humanHeroes(game: GameState): HeroState[] {
   const id = humanId(game);
   return game.heroes.filter((h) => h.playerId === id);
+}
+
+/**
+ * Sources de vision VIVANTE du joueur humain (héros + villes/mines possédées),
+ * alignées sur la révélation moteur — partagées par le brouillard de la scène
+ * d'aventure ET la mini-carte (B11, revue 2026-07 : la mini-carte dessinait les
+ * pastilles de TOUS les héros/villes, y compris sous brouillard — fuite
+ * d'information, grave en hot-seat). Une seule implémentation (leçon CL9).
+ */
+export function visionSightings(game: GameState): { pos: GridPos; radius: number }[] {
+  const { map, config } = game;
+  if (!map || !config) return [];
+  const sightings = humanHeroes(game).map((h) => ({
+    pos: h.pos,
+    radius: heroVisionRadius(h, config.visionRadius, game.skillCatalog, game.artifactCatalog),
+  }));
+  const buildingRadius = config.buildingVisionRadius ?? 0;
+  if (buildingRadius > 0) {
+    const hid = humanId(game);
+    for (const town of game.towns) {
+      if (town.ownerPlayerId === hid) sightings.push({ pos: town.pos, radius: buildingRadius });
+    }
+    for (const obj of map.objects) {
+      if (obj.type === 'mine' && obj.ownerId === hid)
+        sightings.push({ pos: obj.pos, radius: buildingRadius });
+    }
+  }
+  return sightings;
 }
 
 /**

@@ -41,13 +41,25 @@ export function onTap(app: Application, handler: (global: Point) => void): () =>
     }
   };
 
+  // B15 (revue 2026-07) : Pixi 8 ne délivre pas `pointercancel` — après une
+  // annulation tactile (rotation, notification, palm rejection), `pointers` ne
+  // redescendait jamais à 0 : chaque tap suivant était classé multiTouch et
+  // TOUS les taps étaient ignorés jusqu'au rechargement. Purge au niveau DOM.
+  const onCancel = (): void => {
+    pointers = 0;
+    downId = null;
+    multiTouch = false;
+  };
+
   app.stage.on('pointerdown', onDown);
   app.stage.on('pointerup', release);
   app.stage.on('pointerupoutside', release);
+  app.canvas.addEventListener('pointercancel', onCancel);
   return () => {
     app.stage.off('pointerdown', onDown);
     app.stage.off('pointerup', release);
     app.stage.off('pointerupoutside', release);
+    app.canvas.removeEventListener('pointercancel', onCancel);
   };
 }
 
@@ -99,11 +111,14 @@ export function onLongPress(app: Application, handler: (global: Point) => void):
   app.stage.on('pointermove', onMove);
   app.stage.on('pointerup', release);
   app.stage.on('pointerupoutside', release);
+  // B15 : annulation système ⇒ pas d'appui long (même purge que `onTap`).
+  app.canvas.addEventListener('pointercancel', cancel);
   return () => {
     cancel();
     app.stage.off('pointerdown', onDown);
     app.stage.off('pointermove', onMove);
     app.stage.off('pointerup', release);
     app.stage.off('pointerupoutside', release);
+    app.canvas.removeEventListener('pointercancel', cancel);
   };
 }

@@ -38,5 +38,11 @@ typecheck · lint · vitest engine (golden + save-shape inchangés) · vitest co
 
 ## Suivi
 
-- [ ] 1 types · [ ] 2 handler · [ ] 3 schema · [ ] 4 data spell · [ ] 5 locales
-- [ ] 6 test · [ ] 7 docs
+- [x] 1 types · [x] 2 handler · [x] 3 schema · [x] 4 data spell · [x] 5 locales
+- [x] 6 test · [x] 7 docs
+
+## Résultat pipeline (local)
+
+typecheck 5/5 ✓ · lint ✓ · vitest engine 729 (golden + save-shape inchangés) ✓ ·
+vitest content 126 ✓ · content:check ✓ · garde-fou faction ✓ · garde-fou couleur ✓
+· build ✓ · bundle 312685 o < 819200 ✓ · smoke 101/101 ✓.

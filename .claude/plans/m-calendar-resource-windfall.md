@@ -47,5 +47,11 @@ typecheck · lint · vitest engine (golden + save-shape inchangés) · vitest co
 
 ## Suivi
 
-- [ ] 1 schema · [ ] 2 config type · [ ] 3 event · [ ] 4 engine loop
-- [ ] 5 client toast · [ ] 6 locales · [ ] 7 config data · [ ] 8 test · [ ] 9 docs
+- [x] 1 schema · [x] 2 config type · [x] 3 event · [x] 4 engine loop
+- [x] 5 client toast · [x] 6 locales · [x] 7 config data · [x] 8 test · [x] 9 docs
+
+## Résultat pipeline (local)
+
+typecheck 5/5 ✓ · lint ✓ · vitest engine 727 (golden + save-shape inchangés) ✓ ·
+vitest content 126 ✓ · content:check ✓ · garde-fou faction ✓ · garde-fou couleur ✓
+· build ✓ · bundle 312652 o < 819200 ✓ · smoke 101/101 ✓.

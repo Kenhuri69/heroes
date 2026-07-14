@@ -245,6 +245,62 @@ describe('lieux de bonus visitables (doc 02 §2.2)', () => {
     });
   });
 
+  it('le puits de magie restaure la mana à son max, no-op si déjà pleine (M-VISIT)', () => {
+    const well = (id: string, x: number): MapObjectDef => ({
+      id,
+      type: 'visitable',
+      pos: { x, y: 0 },
+      effect: { kind: 'restoreMana' },
+      frequency: 'oncePerHeroPerWeek',
+      visits: {},
+    });
+    const map = testMap();
+    map.objects = [well('puits-a', 2), well('puits-b', 3)];
+    const started = apply(createEmptyState(), {
+      type: 'StartGame',
+      seed: 42,
+      players: [
+        {
+          id: 'p1',
+          startingResources: emptyResources(),
+          // Savoir 5 ⇒ manaMax = 50 (doc 02 §1.1).
+          startingAttributes: { attack: 0, defense: 0, power: 0, knowledge: 5 },
+        },
+      ],
+      map,
+      config: testConfig(),
+      unitCatalog: catalogWithEconomy(),
+    }).state;
+    expect(started.heroes[0]?.manaMax).toBe(50);
+    // Mana dépensée en cours de tour (la recharge quotidienne n'a pas eu lieu).
+    const drained = structuredClone(started);
+    drained.heroes[0]!.mana = 10;
+    const { state, events } = move(drained, [
+      { x: 1, y: 0 },
+      { x: 2, y: 0 },
+    ]);
+    expect(state.heroes[0]?.mana).toBe(50);
+    expect(events).toContainEqual({
+      type: 'BonusVisited',
+      heroId: 'hero-p1',
+      playerId: 'p1',
+      objectId: 'puits-a',
+      effect: { kind: 'restoreMana' },
+      amount: 40,
+    });
+    // 2ᵉ puits, mana déjà pleine : visite consommée sans gain (amount 0).
+    const second = move(state, [{ x: 3, y: 0 }]);
+    expect(second.state.heroes[0]?.mana).toBe(50);
+    expect(second.events).toContainEqual({
+      type: 'BonusVisited',
+      heroId: 'hero-p1',
+      playerId: 'p1',
+      objectId: 'puits-b',
+      effect: { kind: 'restoreMana' },
+      amount: 0,
+    });
+  });
+
   it('le moulin crédite sa ressource fixe au joueur', () => {
     const mill: MapObjectDef = {
       id: 'moulin',

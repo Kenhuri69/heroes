@@ -607,6 +607,14 @@ Source design : doc 02 §2 (carte), §1.5 (multi-héros).
   > baliste dédiés). Data proto-01 `fabrique-1` (9,5) donne `ballista`. Golden
   > **inchangé**. Couvert en unitaire (`map-visitables.test.ts` : donne + idempotent
   > + visite consommée, ids opaques).
+  > **Livré (tranche puits de magie)** (plan `m-visit-mana-well.md`) : effet
+  > visitable **générique** `restoreMana` — un **puits de magie** restaure
+  > `hero.mana` à `hero.manaMax` (utile en cours de tour, la mana ne se rechargeant
+  > qu'au changement de jour ; classique « Magic Well » HoMM ; champ déjà sérialisé
+  > ⇒ **pas de bump save**). No-op si mana déjà pleine (visite consommée, amount 0).
+  > Réutilise le pipeline `visitBonus`/`BonusVisited` (toast + fiche + silhouette
+  > puits dédiés). Data proto-01 `puits-1` (11,5), `oncePerHeroPerWeek`. Golden
+  > **inchangé**. Couvert en unitaire (`map-visitables.test.ts` : restaure + no-op).
   Doc : doc 02 §2.2. Code (avant) : 5 kinds seulement.
 
 - **M-DWELLOWN — Habitations de carte capturables** 🕳️ S ✅

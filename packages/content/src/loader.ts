@@ -911,7 +911,8 @@ export type ResolvedMapObject =
         | { kind: 'permanentStat'; attribute: 'attack' | 'defense' | 'power' | 'knowledge'; amount: number }
         | { kind: 'learnSpell'; spellId: string }
         | { kind: 'grantSkill'; skillId: string }
-        | { kind: 'grantWarMachine'; machineId: string };
+        | { kind: 'grantWarMachine'; machineId: string }
+        | { kind: 'restoreMana' };
       frequency: 'oncePerHero' | 'oncePerHeroPerWeek';
       /** État initial : personne n'a visité. */
       visits: Record<string, number>;

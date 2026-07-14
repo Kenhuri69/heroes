@@ -870,6 +870,8 @@ export const mapFileSchema = z.object({
           z.object({ kind: z.literal('grantSkill'), skillId: idSchema }),
           /** Fabrique de machines de guerre (M-VISIT, doc 02 §2.2) : donne `machineId` au héros. */
           z.object({ kind: z.literal('grantWarMachine'), machineId: idSchema }),
+          /** Puits de magie (M-VISIT, doc 02 §2.2) : restaure la mana du héros à son max. */
+          z.object({ kind: z.literal('restoreMana') }),
         ]),
         frequency: z.enum(['oncePerHero', 'oncePerHeroPerWeek']),
       }),

@@ -365,6 +365,16 @@
       "frequency": "oncePerHero"
     },
     {
+      "id": "puits-1",
+      "type": "visitable",
+      "x": 11,
+      "y": 5,
+      "effect": {
+        "kind": "restoreMana"
+      },
+      "frequency": "oncePerHeroPerWeek"
+    },
+    {
       "id": "monolith-a",
       "type": "monolith",
       "x": 20,

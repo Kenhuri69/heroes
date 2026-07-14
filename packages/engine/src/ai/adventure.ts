@@ -125,7 +125,9 @@ function pickResourceTarget(
     if (!isCollectible(draft, obj, hero, player)) continue;
     // Pré-filtre O(1) : hors de portée du jour à vol d'oiseau ⇒ pas d'A* (perf).
     if (octileLowerBound(minStep, hero.pos, obj.pos) > hero.movementPoints) continue;
-    const path = findPath(config, map, hero.pos, obj.pos, blocked);
+    // F7 : budget de PM passé à l'A* — une cible proche mais inatteignable
+    // n'épuise plus toute la composante (décision inchangée : cost > PM rejeté).
+    const path = findPath(config, map, hero.pos, obj.pos, blocked, false, hero.movementPoints);
     if (!path) continue;
     const cost = totalPathCost(config, map, hero.pos, path);
     if (cost > hero.movementPoints) continue;
@@ -158,7 +160,7 @@ function pickGuardianTarget(
     // Bloque les AUTRES gardiens (pas la cible) : on ne traverse pas un gardien
     // non ciblé pour en atteindre un autre.
     const pathBlocked = [...blocked, ...guardianPos.filter((p) => !samePos(p, obj.pos))];
-    const path = findPath(config, map, hero.pos, obj.pos, pathBlocked);
+    const path = findPath(config, map, hero.pos, obj.pos, pathBlocked, false, hero.movementPoints); // F7
     if (!path) continue;
     const cost = totalPathCost(config, map, hero.pos, path);
     if (cost > hero.movementPoints) continue;
@@ -198,7 +200,7 @@ function pickEnemyHeroTarget(
     // Route vers la tuile du héros ciblé : elle NE doit PAS être bloquée
     // (contrairement aux autres héros, qui restent des obstacles).
     const pathBlocked = blocked.filter((p) => !samePos(p, enemy.pos));
-    const path = findPath(config, map, hero.pos, enemy.pos, pathBlocked);
+    const path = findPath(config, map, hero.pos, enemy.pos, pathBlocked, false, hero.movementPoints); // F7
     if (!path) continue;
     const cost = totalPathCost(config, map, hero.pos, path);
     if (cost > hero.movementPoints) continue;

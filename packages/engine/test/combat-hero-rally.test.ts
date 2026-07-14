@@ -52,7 +52,7 @@ function rallyState(skills: Record<string, number>): GameState {
     attackerHeroId: 'hero-a', defenderHeroId: null, heroCastThisRound: [], heroAttackUsed: [], finished: false, winner: null,
   };
   initLedger(combat);
-  recordLoss(combat, 'attacker', 'ally', 3); // la pile alliée a déjà perdu 3 créatures
+  recordLoss(combat, { id: 'attacker-0', side: 'attacker', unitId: 'ally' }, 3); // la pile alliée a déjà perdu 3 créatures
   return {
     ...createEmptyState(), started: true, rng: seedRng(1), config: testConfig(),
     unitCatalog: { ally: unit('ally', 10), foe: unit('foe', 10) }, skillCatalog: SKILLS, heroes: [hero(skills)], combat,

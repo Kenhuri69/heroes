@@ -93,7 +93,7 @@ export function strikeWithHero(
   const newCount = target.count - kills;
   target.count = newCount;
   target.firstHp = newCount > 0 ? remaining - (newCount - 1) * targetDef.stats.hp : 0;
-  recordLoss(combat, target.side, target.unitId, kills);
+  recordLoss(combat, target, kills);
   events.push({
     type: 'HeroStruck',
     side,

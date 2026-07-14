@@ -215,7 +215,7 @@ describe('CastSpell — soin', () => {
     // considère le combat déjà gagné et nullifie `combat` avant l'assertion.
     const enemy = stack({ id: 'defender-0', side: 'defender', slot: 0, unitId: 'def', count: 1, pos: { col: 5, row: 5 } });
     const combat = combatState([attacker, ally, enemy], { attackerHeroId: h.id, activeStackId: 'attacker-0' });
-    recordLoss(combat, 'attacker', 'def', 2); // 2 pertes déjà enregistrées pour cette unité/ce camp (plafond documenté, hero/index.ts)
+    recordLoss(combat, { id: 'attacker-1', side: 'attacker', unitId: 'def' }, 2); // 2 pertes déjà enregistrées pour cette unité/ce camp (plafond documenté, hero/index.ts)
     const state: GameState = { ...baseState(catalog), spellCatalog: SPELLS, heroes: [h], combat };
     const result = apply(state, { type: 'CastSpell', spellId: 'heal', targetStackId: 'attacker-1' });
     // amount = round(10+0) = 10 ; pool courant 18, plafond (3+2)×6=30 ⇒ 28 ⇒ 5 créatures, firstHp 4.

@@ -141,7 +141,7 @@ describe('H-COND-EXACT — raiseUndeadPctPerLevel (Nécromancie +%/niveau)', () 
       specialtyEffects: perLevel === undefined ? [] : [{ raiseUndeadPctPerLevel: perLevel }],
     });
     const combat = combatFor();
-    recordLoss(combat, 'defender', 'wolf', 10); // 10 × 10 PV = 100 PV vivants tués
+    recordLoss(combat, { id: 'defender-0', side: 'defender', unitId: 'wolf' }, 10); // 10 × 10 PV = 100 PV vivants tués
     const state: GameState = {
       ...createEmptyState(),
       started: true,

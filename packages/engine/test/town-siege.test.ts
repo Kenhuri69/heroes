@@ -385,3 +385,43 @@ describe('C-SIEGE2 — murs de siège', () => {
     expect(destroyed).toBeLessThanOrEqual(wallsAtStart);
   });
 });
+describe('Revue 2026-07 — B6/B8 (obstacles de siège, garnison réécrite)', () => {
+  const WALL_COL = COMBAT_COLS - 4;
+  const MOAT_COL = WALL_COL - 1;
+
+  const withTower = (s: GameState): GameState => {
+    s.unitCatalog = {
+      ...s.unitCatalog,
+      'arrow-tower': {
+        id: 'arrow-tower', groupId: 'war-machine', nativeTerrain: '',
+        stats: { hp: 400, attack: 12, defense: 12, damage: [10, 20], speed: 1 },
+        abilities: [{ id: 'shooter', params: { ammo: 999, noMeleePenalty: true } }, { id: 'warMachine' }, { id: 'immobile' }],
+      },
+    };
+    return s;
+  };
+
+  it('B6 : sur 100 seeds, aucun obstacle sur/à droite de la douve quand un Fort existe (porte jamais condamnée)', () => {
+    for (let seed = 1; seed <= 100; seed++) {
+      const s = siegeState([{ unitId: 'red-grunt', count: 50 }], [{ unitId: 'blue-wolf', count: 1 }], { fort: 2 });
+      s.rng = seedRng(seed);
+      const next = apply(s, { type: 'CaptureTown', townId: 't1', playerId: 'p1' }).state;
+      for (const o of next.combat!.obstacles) {
+        expect(o.col).toBeLessThan(MOAT_COL); // ni douve (MOAT_COL) ni rempart/porte (WALL_COL)
+      }
+    }
+  });
+
+  it('B8 : siège repoussé — la tour de tir n’est PAS réécrite dans la garnison', () => {
+    const s = withTower(siegeState([{ unitId: 'red-grunt', count: 1 }], [{ unitId: 'blue-wolf', count: 200 }], { fort: 3 }));
+    const events: GameEvent[] = [];
+    const started = apply(s, { type: 'CaptureTown', townId: 't1', playerId: 'p1' }).state;
+    expect(started.combat!.stacks.some((st) => st.id === 'defender-tower')).toBe(true);
+    const done = produce(started, (d) => runAutoCombat(d, events));
+    expect(done.combat).toBeNull();
+    expect(done.towns[0]?.ownerPlayerId).toBe('p2'); // siège repoussé
+    const garrison = done.towns[0]!.garrison;
+    expect(garrison.some((g) => g.unitId === 'arrow-tower')).toBe(false); // la tour reste un équipement de siège
+    expect(garrison.some((g) => g.unitId === 'blue-wolf' && g.count > 0)).toBe(true); // survivants réels réécrits
+  });
+});

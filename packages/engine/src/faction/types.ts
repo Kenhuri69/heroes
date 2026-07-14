@@ -26,9 +26,11 @@ export interface RaiseUndeadOnVictoryBonus {
 }
 
 /**
- * Gain d'une ressource de faction (doc 05 §3.3) à chaque combat gagné en tant
- * qu'attaquant. `resource` est un id opaque (déclaré dans
- * `manifest.factionResources`) — le moteur ne connaît aucun nom de ressource.
+ * Gain d'une ressource de faction (doc 05 §3.3) à chaque combat gagné — en
+ * attaque comme en défense (H-VS-H : le héros attaqué qui l'emporte gagne
+ * aussi ; décision revue 2026-07, B5). `resource` est un id opaque (déclaré
+ * dans `manifest.factionResources`) — le moteur ne connaît aucun nom de
+ * ressource.
  */
 export interface GainFactionResourceOnVictoryBonus {
   type: 'gainFactionResourceOnVictory';

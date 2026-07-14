@@ -144,15 +144,17 @@ function buildTowerStack(fortLevel: number, catalog: Record<string, CombatUnitDe
   };
 }
 
-function drawObstacles(draft: Draft, min: number, max: number): OffsetPos[] {
+function drawObstacles(draft: Draft, min: number, max: number, maxCol = COMBAT_COLS - 4): OffsetPos[] {
   const countRoll = rollRange(draft.rng, min, max);
   draft.rng = countRoll.state;
   const obstacles: OffsetPos[] = [];
   while (obstacles.length < countRoll.value) {
     // Colonnes centrales uniquement : 3 tuiles de marge depuis chaque bord de
     // spawn (0 et COMBAT_COLS-1) ⇒ obstacles symétriques dans le no-man's land,
-    // jamais sur/adjacents à une colonne de départ.
-    const colRoll = rollRange(draft.rng, 3, COMBAT_COLS - 4);
+    // jamais sur/adjacents à une colonne de départ. En SIÈGE, `maxCol` resserre
+    // la plage à gauche de la douve/du rempart (B6) : un obstacle tiré sur la
+    // porte (seule ouverture) rendait le combat insoluble pour la mêlée.
+    const colRoll = rollRange(draft.rng, 3, maxCol);
     draft.rng = colRoll.state;
     const rowRoll = rollRange(draft.rng, 0, COMBAT_ROWS - 1);
     draft.rng = rowRoll.state;
@@ -332,7 +334,10 @@ export function beginTownCombat(
     ...placeSide('defender', defender, draft.unitCatalog, COMBAT_COLS - 1),
     ...(tower ? [tower] : []),
   ];
-  const obstacles = drawObstacles(draft, rules.obstaclesMin, rules.obstaclesMax);
+  // B6 : dès qu'un rempart existe (Fort ≥ 1), les obstacles restent strictement
+  // à gauche de la douve/du rempart — jamais sur la porte ni la douve.
+  const obstacleMaxCol = fortLevel >= 1 ? SIEGE_MOAT_COL - 1 : COMBAT_COLS - 4;
+  const obstacles = drawObstacles(draft, rules.obstaclesMin, rules.obstaclesMax, obstacleMaxCol);
   // C-SIEGE2.2 : une catapulte (machine de guerre `siegeBreaker`) portée par
   // l'assaillant élargit la brèche du rempart au montage du siège.
   const breached = hero.warMachines.some((id) => {

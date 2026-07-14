@@ -386,6 +386,17 @@
       "frequency": "oncePerHero"
     },
     {
+      "id": "temple-1",
+      "type": "visitable",
+      "x": 13,
+      "y": 7,
+      "effect": {
+        "kind": "morale",
+        "amount": 1
+      },
+      "frequency": "oncePerHeroPerWeek"
+    },
+    {
       "id": "pierre-savoir-1",
       "type": "visitable",
       "x": 9,

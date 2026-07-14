@@ -904,6 +904,7 @@ export type ResolvedMapObject =
       pos: { x: number; y: number };
       effect:
         | { kind: 'luck'; amount: number }
+        | { kind: 'morale'; amount: number }
         | { kind: 'movement'; amount: number }
         | { kind: 'levelXp' }
         | { kind: 'experience'; amount: number }

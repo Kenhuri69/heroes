@@ -63,6 +63,7 @@ function hero(over: Partial<HeroState> & { id: string }): HeroState {
     spells: [],
     skills: {},
     visitLuck: 0,
+    visitMorale: 0,
     artifacts: Array.from({ length: 10 }, () => null),
     army: [],
     pendingSkillChoices: [],

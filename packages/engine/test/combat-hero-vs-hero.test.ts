@@ -31,6 +31,7 @@ function hero(
     manaMax: 0,
     skills: {},
     visitLuck: 0,
+    visitMorale: 0,
     spells: [],
     artifacts: over.artifacts ?? Array.from({ length: 10 }, () => null),
     pendingSkillChoices: [],

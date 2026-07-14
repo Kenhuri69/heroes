@@ -267,7 +267,12 @@ const GOLDEN_JOURNAL: Command[] = [
 // 28 (`CombatStack.stealthed` optionnel, furtivité « Mue Éphémère »). Le champ
 // n'est jamais posé dans le golden (aucune Mue lancée) ; seul `saveVersion`
 // change ⇒ hash de FORME seule, simulation/combat inchangés.
-const GOLDEN_HASH = 'af8a45c4';
+// Re-fixé à M-VISIT (save v29→30) : `HeroState.visitMorale:0` s'ajoute à chaque
+// héros sérialisé (moral de temple, miroir de `visitLuck`). Les héros golden ne
+// visitent aucun temple ⇒ valeur 0 partout : hash de FORME seule (+ `saveVersion`),
+// simulation/combat inchangés. (Le passage v28→29, `HeroState.backpack`, avait
+// déjà re-fixé le hash à af8a45c4 sans commentaire dédié.)
+const GOLDEN_HASH = 'e43b1f7e';
 
 describe('golden replay', () => {
   it('le journal scripté produit toujours le même état final', () => {

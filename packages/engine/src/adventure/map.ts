@@ -50,6 +50,11 @@ export interface GuardianObjectDef {
 export type VisitableEffect =
   /** +chance jusqu'à la fin du prochain combat (`HeroState.visitLuck`). */
   | { kind: 'luck'; amount: number }
+  /**
+   * Temple / point d'eau (M-VISIT, doc 02 §2.2 — « Temple »/« Watering Place ») :
+   * +moral jusqu'à la fin du prochain combat (`HeroState.visitMorale`) — miroir de `luck`.
+   */
+  | { kind: 'morale'; amount: number }
   /** +points de mouvement immédiats pour le héros visiteur. */
   | { kind: 'movement'; amount: number }
   /** L'XP manquante pour atteindre le niveau suivant (« +1 niveau »). */

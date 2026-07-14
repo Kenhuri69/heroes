@@ -227,7 +227,9 @@ function heroMoraleForSide(state: GameState, combat: CombatState, side: CombatSi
   return (
     heroMorale(hero, state.skillCatalog) +
     heroArtifactBonus(hero, state.artifactCatalog).morale +
-    factionCombatBonus(state, combat, side).morale
+    factionCombatBonus(state, combat, side).morale +
+    // Moral de temple (M-VISIT, lieu de bonus `morale`) — miroir de `visitLuck`.
+    hero.visitMorale
   );
 }
 

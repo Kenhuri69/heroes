@@ -124,6 +124,8 @@ function visitableEffectLine(effect: VisitableEffect): string {
   switch (effect.kind) {
     case 'luck':
       return t('mapCard.effectLuck', { amount: effect.amount });
+    case 'morale':
+      return t('mapCard.effectMorale', { amount: effect.amount });
     case 'movement':
       return t('mapCard.effectMovement', { amount: effect.amount });
     case 'levelXp':

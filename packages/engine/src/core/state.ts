@@ -108,6 +108,11 @@ export interface HeroState {
    * chance du héros en combat puis est consommée à la fin du prochain combat.
    */
   visitLuck: number;
+  /**
+   * Moral de temple (doc 02 §2.2, lieu de bonus `morale`) — miroir de `visitLuck` :
+   * s'ajoute au moral du héros en combat puis est consommé à la fin du prochain combat.
+   */
+  visitMorale: number;
   /** Sorts connus (ids du catalogue) — lançables selon cercle/mana. */
   spells: string[];
   /** Équipement d'artefacts, 10 slots (doc 08 §2.3) — null = vide. Ces slots
@@ -279,8 +284,12 @@ export interface CaravanState {
  * v28 : `CombatStack.stealthed` (optionnel) — furtivité (Mue Éphémère, doc 05 §6,
  * F-SCHOOLS.7) : une pile furtive est inciblable par l'ennemi jusqu'à sa prochaine
  * action ; absent hors sort.
+ * v29 : `HeroState.backpack` — sac d'artefacts au-delà des 10 slots équipés
+ * (H-ARTEQUIP.1, doc 08 §2.3) : débordement du ramassage/équipement.
+ * v30 : `HeroState.visitMorale` — moral de temple (lieu de bonus `morale`,
+ * M-VISIT, doc 02 §2.2), miroir de `visitLuck` : consommé à la fin du prochain combat.
  */
-export const CURRENT_SAVE_VERSION = 29;
+export const CURRENT_SAVE_VERSION = 30;
 
 export interface GameState {
   saveVersion: number;

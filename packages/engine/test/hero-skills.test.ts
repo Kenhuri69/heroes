@@ -16,7 +16,9 @@ import {
   heroMovementBonus,
   heroRangedPct,
   heroVisionBonus,
+  heroVisionRadius,
 } from '../src/hero/skills';
+import { heroArtifactBonus } from '../src/hero/artifacts';
 import { testCombatRules, testConfig } from './fixtures';
 
 /**
@@ -91,6 +93,31 @@ describe('hero/skills — effets purs par rang (Novice/Expert/Maître)', () => {
     // un sort d'une autre école n'en bénéficie pas.
     expect(heroManaCostReduction(hero, catalog, 'fire')).toBe(10);
     expect(heroManaCostReduction(hero, catalog, 'water')).toBe(0);
+  });
+});
+
+describe('rayon de vision effectif (H-ARTEQUIP — longue-vue)', () => {
+  const skillCatalog: Record<string, HeroSkillDef> = {
+    scouting: { id: 'scouting', ranks: [{ visionBonus: 1 }, { visionBonus: 2 }, { visionBonus: 3 }] },
+  };
+  const artifactCatalog: Record<string, ArtifactDef> = {
+    spyglass: { id: 'spyglass', bonus: { vision: 3 } },
+  };
+  const equipped = (id: string) => Array.from({ length: 10 }, (_, i) => (i === 0 ? id : null));
+
+  it('somme le bonus `vision` des artefacts équipés (0 sans artefact)', () => {
+    expect(heroArtifactBonus(baseHero(), artifactCatalog).vision).toBe(0);
+    expect(heroArtifactBonus(baseHero({ artifacts: equipped('spyglass') }), artifactCatalog).vision).toBe(3);
+  });
+
+  it('heroVisionRadius = base + Recherche + longue-vue', () => {
+    // Sans compétence ni artefact : rayon de base inchangé (comportement historique).
+    expect(heroVisionRadius(baseHero(), 5, skillCatalog, artifactCatalog)).toBe(5);
+    // Recherche rang 2 (+2) seule.
+    expect(heroVisionRadius(baseHero({ skills: { scouting: 2 } }), 5, skillCatalog, artifactCatalog)).toBe(7);
+    // Recherche rang 2 (+2) + longue-vue (+3) = 5 + 2 + 3.
+    const hero = baseHero({ skills: { scouting: 2 }, artifacts: equipped('spyglass') });
+    expect(heroVisionRadius(hero, 5, skillCatalog, artifactCatalog)).toBe(10);
   });
 });
 

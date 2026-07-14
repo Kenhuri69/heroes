@@ -31,6 +31,16 @@ Les **probabilités de gain** par niveau sont data-driven. *État livré (H-NAME
 > golden inchangé**. `grantsSpell` cross-validé au chargement. Artefact livré :
 > **Grimoire arcanique** (Pouvoir +1, enseigne Boule de feu). Zéro faction moteur.
 
+> **État livré (H-ARTEQUIP — artefact de vision)** : champ déclaratif
+> `ArtifactDef.bonus.vision` (« longue-vue ») — un artefact équipé augmente le
+> **rayon de vision** du héros, miroir de la compétence Recherche. Le rayon
+> effectif (base + Recherche/Maison + longue-vue) est dédupliqué en un helper pur
+> unique `heroVisionRadius`, consommé par **tous** les sites de révélation du
+> brouillard (mouvement, téléport, StartGame, recrutement, sort d'aventure) et par
+> le rendu de vision live du client. Bonus **live-calculé** (jamais sérialisé) ⇒
+> **pas de bump save, golden inchangé**. Artefact livré : **Longue-vue**
+> (`vision +3`). Zéro faction moteur.
+
 ### 1.2 Progression
 
 - **XP** : combats **gagnés uniquement** (XP = somme des PV des unités ennemies tuées × coefficient — valeur de départ **1**, dans `data/core/config.json` ; seul le héros du camp vainqueur en reçoit), coffres, lieux de savoir.

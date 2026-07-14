@@ -1,5 +1,6 @@
 import type { HeroState } from '../core/state';
-import type { HeroSkillDef, SkillRankEffect, SpellSchool } from './types';
+import { heroArtifactBonus } from './artifacts';
+import type { ArtifactDef, HeroSkillDef, SkillRankEffect, SpellSchool } from './types';
 
 /**
  * Champs SCALAIRES du vocabulaire d'effets — agrégés à plat. On EXCLUT les champs
@@ -98,6 +99,23 @@ export function heroMovementBonus(hero: HeroState, catalog: Record<string, HeroS
 /** Recherche : bonus de rayon de vision — branché dans la révélation du brouillard (`revealAround`). */
 export function heroVisionBonus(hero: HeroState, catalog: Record<string, HeroSkillDef>): number {
   return sumRankField(hero, catalog, 'visionBonus') + sumHouseField(hero, 'visionBonus');
+}
+
+/**
+ * Rayon de vision EFFECTIF du héros en tuiles (H-ARTEQUIP) : rayon de base +
+ * bonus Recherche/Maison (`heroVisionBonus`) + bonus plat d'artefact équipé
+ * (« longue-vue », `bonus.vision`). Helper UNIQUE consommé par tous les sites de
+ * révélation du brouillard (mouvement, téléport, StartGame, recrutement, sort
+ * d'aventure) et par le rendu de vision live du client — dédup du motif
+ * `baseRadius + heroVisionBonus(…)`.
+ */
+export function heroVisionRadius(
+  hero: HeroState,
+  baseRadius: number,
+  skillCatalog: Record<string, HeroSkillDef>,
+  artifactCatalog: Record<string, ArtifactDef>,
+): number {
+  return baseRadius + heroVisionBonus(hero, skillCatalog) + heroArtifactBonus(hero, artifactCatalog).vision;
 }
 
 /** Tactique (C-TACTICS, doc 02 §5.1) : profondeur de la bande de placement pré-combat (0 = pas de phase). */

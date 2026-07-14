@@ -576,6 +576,8 @@ const artifactBonusSchema = z
     manaMax: z.number().optional(),
     /** PM quotidiens plats (H-ARTEQUIP, doc 02 §1.5 — bottes de vitesse). */
     movementFlat: z.number().optional(),
+    /** Rayon de vision plat (H-ARTEQUIP, doc 02 §1.5 — longue-vue). */
+    vision: z.number().optional(),
   })
   .refine((b) => Object.values(b).some((v) => v !== undefined), 'bonus vide');
 

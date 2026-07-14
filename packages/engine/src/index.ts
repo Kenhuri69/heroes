@@ -149,7 +149,7 @@ export { effectiveManaCost, spellTargetsEnemy } from './hero/spells';
 export { heroKnownSpellIds } from './hero/artifacts';
 // Bonus de vision (compétence Recherche) — le rendu du brouillard client (C4)
 // dessine « en vision » avec le rayon EFFECTIF par héros, comme la révélation moteur.
-export { heroVisionBonus, heroLearnableCircle } from './hero/skills';
+export { heroVisionBonus, heroVisionRadius, heroLearnableCircle } from './hero/skills';
 // Convention d'id d'un héros recruté à la Taverne (M-TAVERN.2) — l'onglet
 // Taverne client marque « déjà recruté » avec la même convention que le moteur.
 export { recruitedHeroId } from './hero/recruit';

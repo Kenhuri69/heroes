@@ -1544,6 +1544,33 @@ test('autosave à la fin de tour puis « Continuer » depuis le menu', { tag: '@
   expect(errors).toEqual([]);
 });
 
+test('sauvegarde dont la main est à une IA : le chargement relance la boucle IA (revue 2026-07 B3)', async ({ page }) => {
+  const errors = await openMenu(page);
+  // Escarmouche vs IA (seed fixe du hook) : il faut un siège IA à qui donner la main.
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.startSkirmish({ humanFactionId: 'haven', aiFactionId: 'necropolis', difficulty: 'normal' }),
+  );
+  await expect(page.getByTestId('end-turn')).toBeVisible();
+
+  // Forge puis importe une sauvegarde « prise en plein relais IA »
+  // (currentPlayer = siège IA) — le cas qui figeait la partie à jamais.
+  expect(await page.evaluate(() => window.__HEROES_TEST__!.importAiTurnSave())).toBe(true);
+
+  // La boucle IA reprend d'elle-même et rend la main au joueur humain.
+  await expect
+    .poll(
+      () =>
+        page.evaluate(() => {
+          const g = window.__HEROES_TEST__!.getState();
+          return g.players[g.currentPlayer]?.controller ?? null;
+        }),
+      { timeout: 20000 },
+    )
+    .toBe('human');
+
+  expect(errors).toEqual([]);
+});
+
 test('options : bascule de langue FR → EN appliquée à l’UI', { tag: '@core' }, async ({ page }) => {
   const errors = await openGame(page);
 

@@ -380,7 +380,18 @@ les données actuelles** (cross-check scripté des ids) ; garde `readSaveVersion
   l'aliasing de B1 mais sans mutation dans le même `produce` (copy-on-write
   Immer ensuite) — seul l'autoFreeze gèle l'objet appelant ; à traiter si un
   jour des quêtes s'évaluent pendant `StartGame`.
-- [ ] Lot 2 — P0 save/relais IA (B3, F4, F11)
+- [x] Lot 2 — P0 save/relais IA (B3, F4, F11). Livré : autosave gaté sur
+  « la main revient à un humain » (une écriture par relais, plus de snapshot
+  `currentPlayer = IA` produit par l'autosave) ; `installAiResume()` — tout
+  `GameLoaded` (restore/import/cloud) relance la boucle IA si la main est à
+  une IA (guérit aussi les sauvegardes existantes) ; `serializeState` =
+  `JSON.stringify` brut, `stableStringify` réservé à `hashState` (golden
+  inchangé). Couverture : hook de test `importAiTurnSave` + smoke desktop
+  « sauvegarde dont la main est à une IA ⇒ la boucle reprend » ; smokes
+  autosave/save-load existants verts. Écart vs plan : la relance passe par un
+  listener `GameLoaded` (installé au bootstrap) plutôt qu'un appel direct dans
+  `restoreSavedGame` — évite un import circulaire save ↔ dispatch et couvre
+  les trois chemins de chargement d'un coup.
 - [ ] Lot 3 — P1 combat (B4–B6, B8, B17)
 - [ ] Lot 4 — P1 aventure/commandes (B7, B9, B10)
 - [ ] Lot 5 — P1 client (B11–B16)

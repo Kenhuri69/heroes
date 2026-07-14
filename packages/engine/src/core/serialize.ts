@@ -18,7 +18,12 @@ function sortKeys(value: Json): Json {
 }
 
 export function serializeState(state: GameState): string {
-  return stableStringify(state);
+  // Sauvegarde : JSON brut. Le tri récursif des clés (`stableStringify`)
+  // reconstruit tout l'arbre d'état (65 k tuiles terrain/route/explored ×
+  // joueurs sur une carte 256²) — coût payé à chaque autosave sur le thread
+  // principal alors que la canonicité n'est utile qu'au HACHAGE (golden,
+  // détection de divergence), pas au round-trip save/load.
+  return JSON.stringify(state);
 }
 
 export function deserializeState(snapshot: string): GameState {
@@ -48,7 +53,7 @@ export function readSaveVersion(snapshot: string): number | null {
  * tests de replay et la détection de divergence de simulation (doc 07 §7).
  */
 export function hashState(state: GameState): string {
-  const text = serializeState(state);
+  const text = stableStringify(state);
   let hash = 0x811c9dc5;
   for (let i = 0; i < text.length; i++) {
     hash ^= text.charCodeAt(i);

@@ -21,7 +21,7 @@ import {
   type NewGameRawConfig,
   type SkirmishConfig,
 } from './app/game';
-import { dispatch } from './app/dispatch';
+import { dispatch, installAiResume } from './app/dispatch';
 import { appStore } from './app/store';
 import { navigate } from './app/router';
 import { exportSave, importSave, saveGame, restoreSavedGame, encodeHeroesFile } from './app/save';
@@ -60,6 +60,8 @@ declare global {
       saveRoundtrip: () => Promise<boolean>;
       /** Import d'une sauvegarde à version de forme incompatible (lot 3.8) — doit échouer. */
       importIncompatibleSave: () => Promise<boolean>;
+      /** Import d'une sauvegarde dont la main est à une IA (revue 2026-07 B3) — la boucle IA doit reprendre. */
+      importAiTurnSave: () => Promise<boolean>;
       /** Démarre un scénario par id, seed fixe (couverture smoke du lot U). */
       startScenario: (scenarioId: string) => Promise<void>;
       /** Démarre une escarmouche vs IA, seed fixe (couverture smoke Alpha 4.14). */
@@ -295,7 +297,8 @@ async function bootstrap(): Promise<void> {
     await startCampaignChapter(report, campaign, chapterIndex, seed);
   };
 
-  installAutosave(); // autosave à chaque fin de tour (doc 07 §4)
+  installAutosave(); // autosave au retour de la main à un humain (doc 07 §4, revue 2026-07 B3/F4)
+  installAiResume(); // un chargement dont la main est à une IA relance la boucle (revue 2026-07 B3)
   installCombatLog(); // journal de combat (UX-COMBATLOG, doc 08 §2.4) — accumule les événements
   initTelemetry(); // télémétrie locale opt-in (doc 09, Alpha 4.19) — no-op si désactivée
   initReduceMotion(); // option « réduire les animations » (lot M8 C3) — miroir localStorage
@@ -394,6 +397,16 @@ async function bootstrap(): Promise<void> {
     importIncompatibleSave: async () => {
       const parsed = JSON.parse(serializeState(appStore.getState().game)) as { saveVersion: number };
       parsed.saveVersion = CURRENT_SAVE_VERSION + 1; // version future non supportée
+      return importSave(await encodeHeroesFile(JSON.stringify(parsed), []));
+    },
+    importAiTurnSave: async () => {
+      // Forge une sauvegarde « prise en plein relais IA » (revue 2026-07 B3) :
+      // même état, mais la main à un siège IA — le chargement doit relancer la
+      // boucle IA au lieu de figer la partie.
+      const parsed = JSON.parse(serializeState(appStore.getState().game)) as GameState;
+      const aiSeat = parsed.players.findIndex((p) => p.controller === 'ai');
+      if (aiSeat < 0) return false;
+      parsed.currentPlayer = aiSeat;
       return importSave(await encodeHeroesFile(JSON.stringify(parsed), []));
     },
     startScenario: (scenarioId) => startScenario(scenarioId, TEST_SCENARIO_SEED),

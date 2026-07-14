@@ -431,3 +431,34 @@ describe('Revue 2026-07 — B9 : sortie de monolithe occupée (jamais deux héro
     expect(state.heroes.find((h) => h.id === 'hero-p2')?.pos).toEqual({ x: 9, y: 9 });
   });
 });
+
+describe('Revue 2026-07 — B26 : les structures d’un allié ne se capturent pas en passant', () => {
+  it('traverser la mine d’un allié ne la re-flagge pas ; celle d’un ennemi si', () => {
+    const map = testMap();
+    map.objects = [
+      { id: 'mine-ally', type: 'mine', pos: { x: 1, y: 0 }, resource: 'wood', amount: 2, ownerId: 'p2' },
+      { id: 'mine-foe', type: 'mine', pos: { x: 2, y: 0 }, resource: 'ore', amount: 2, ownerId: 'p3' },
+    ];
+    const state = apply(createEmptyState(), {
+      type: 'StartGame',
+      seed: 42,
+      players: [
+        { id: 'p1', startingResources: emptyResources(), team: 1 },
+        { id: 'p2', startingResources: emptyResources(), team: 1 }, // allié
+        { id: 'p3', startingResources: emptyResources(), team: 2 }, // ennemi
+      ],
+      map,
+      config: testConfig(),
+      unitCatalog: {},
+    }).state;
+    const next = apply(state, {
+      type: 'MoveHero',
+      heroId: 'hero-p1',
+      path: [{ x: 1, y: 0 }, { x: 2, y: 0 }],
+    }).state;
+    const ally = next.map?.objects.find((o) => o.id === 'mine-ally');
+    const foe = next.map?.objects.find((o) => o.id === 'mine-foe');
+    expect(ally && ally.type === 'mine' && ally.ownerId).toBe('p2'); // intacte
+    expect(foe && foe.type === 'mine' && foe.ownerId).toBe('p1'); // recapturée
+  });
+});

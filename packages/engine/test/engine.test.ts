@@ -1,3 +1,4 @@
+import { produce } from 'immer';
 import { describe, expect, it } from 'vitest';
 import { apply, validate } from '../src/core/engine';
 import { EngineError, type Command, type PlayerSetup } from '../src/core/commands';
@@ -41,6 +42,18 @@ describe('StartGame', () => {
     expect(validate(started, startCmd(['x'], 1))?.code).toBe('gameAlreadyStarted');
     expect(validate(createEmptyState(), startCmd([], 1))?.code).toBe('noPlayers');
     expect(validate(createEmptyState(), startCmd(['a', 'a'], 1))?.code).toBe('duplicatePlayerId');
+  });
+
+  it('Revue 2026-07 — B28 : refuse deux sièges avec le même startingHeroId', () => {
+    const cmd = startCmd(['p1', 'p2']);
+    if (cmd.type !== 'StartGame') throw new Error('unreachable');
+    // Deux joueurs revendiquent le même héros nommé du roster : invariant
+    // M-TAVERN.4 (un héros de roster vivant chez UN seul joueur) violé au départ.
+    cmd.players = cmd.players.map((p) => ({ ...p, startingHeroId: 'named-a' }));
+    expect(validate(createEmptyState(), cmd)?.code).toBe('duplicateStartingHero');
+    // Vide/absent = héros générique : plusieurs sièges sans héros nommé restent valides.
+    cmd.players = cmd.players.map((p) => ({ ...p, startingHeroId: '' }));
+    expect(validate(createEmptyState(), cmd)).toBeNull();
   });
 });
 
@@ -116,5 +129,34 @@ describe('apply', () => {
     const b = apply(state, cmd);
     expect(a.state).toEqual(b.state);
     expect(a.events).toEqual(b.events);
+  });
+});
+
+describe('Revue 2026-07 — B27 : la rotation des tours saute les joueurs éliminés', () => {
+  it('EndTurn passe directement au joueur suivant non éliminé (bascule de jour préservée)', () => {
+    const base = apply(createEmptyState(), {
+      type: 'StartGame',
+      seed: 1,
+      players: [
+        { id: 'p1', startingResources: emptyResources() },
+        { id: 'p2', startingResources: emptyResources() },
+        { id: 'p3', startingResources: emptyResources() },
+      ],
+      map: testMap(),
+      config: testConfig(),
+      unitCatalog: {},
+    }).state;
+    const withElim = produce(base, (d) => {
+      d.players[1]!.eliminated = true; // p2 éliminé
+      d.heroes = d.heroes.filter((h) => h.playerId !== 'p2');
+    });
+    // p1 termine : p2 (éliminé) est sauté ⇒ main à p3, même jour.
+    const afterP1 = apply(withElim, { type: 'EndTurn', playerId: 'p1' }).state;
+    expect(afterP1.players[afterP1.currentPlayer]?.id).toBe('p3');
+    expect(afterP1.calendar.day).toBe(1);
+    // p3 termine : retour à p1 avec bascule de jour (une seule).
+    const afterP3 = apply(afterP1, { type: 'EndTurn', playerId: 'p3' }).state;
+    expect(afterP3.players[afterP3.currentPlayer]?.id).toBe('p1');
+    expect(afterP3.calendar.day).toBe(2);
   });
 });

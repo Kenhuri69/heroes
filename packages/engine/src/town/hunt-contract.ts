@@ -1,6 +1,7 @@
 import type { GameEvent } from '../core/events';
 import { rollRange } from '../core/rng';
 import type { GameState, HeroState } from '../core/state';
+import { creditFactionResource, factionResourceCap } from '../faction/effects';
 import { builtLevelOf } from './helpers';
 
 /**
@@ -71,7 +72,14 @@ export function rewardHuntContract(
   if (!player?.huntContract || player.huntContract.targetObjectId !== guardianObjectId) return;
   const { gold, resource, amount } = player.huntContract;
   player.resources.gold += gold;
-  player.factionResources[resource] = (player.factionResources[resource] ?? 0) + amount;
+  // Revue 2026-07 (B23) : crédit plafonné au cap déclaré de la ressource de
+  // faction (même routage que le gain post-victoire) — plus de dépassement.
+  const gained = creditFactionResource(
+    player,
+    resource,
+    amount,
+    factionResourceCap(draft, hero.factionId, resource),
+  );
   player.huntContract = null;
-  events.push({ type: 'HuntContractCompleted', playerId: player.id, gold, resource, amount });
+  events.push({ type: 'HuntContractCompleted', playerId: player.id, gold, resource, amount: gained });
 }

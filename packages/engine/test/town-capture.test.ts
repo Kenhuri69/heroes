@@ -46,6 +46,15 @@ describe('CaptureTown', () => {
     ).toBe('invalidArmy');
   });
 
+  it('Revue 2026-07 — B25 : la capture remet le choix de croissance partagée à zéro', () => {
+    // Le choix (`sharedGrowthChoice`) appartenait à l'ANCIEN propriétaire : il ne
+    // doit pas survivre au changement de main (ids de groupe/unité opaques).
+    const state = startedGame({ garrison: [], sharedGrowthChoice: { apex: 'unit-x' } });
+    const next = apply(state, { type: 'CaptureTown', townId: 'town-1', playerId: 'p1' }).state;
+    expect(next.towns[0]?.ownerPlayerId).toBe('p1');
+    expect(next.towns[0]?.sharedGrowthChoice).toEqual({});
+  });
+
   it('rejette une ville inconnue', () => {
     const state = startedGame();
     expect(

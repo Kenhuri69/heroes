@@ -326,7 +326,8 @@ export interface GameState {
   /**
    * Catalogue des Maisons résolu par le contenu (doc 16 §3.1), indexé par
    * `houseId` → effets déclaratifs. Embarqué par `StartGame` ; lu à la
-   * construction du « Choixpeau » (effet `houseChoice`) pour stamper les héros —
+   * construction du « Choixpeau » (effet `houseChoice`) pour stamper les héros,
+   * et au recrutement en Taverne (héritage de la Maison du joueur, B24) —
    * le moteur ne connaît que des ids opaques.
    */
   houseCatalog: Record<string, { effects: SkillRankEffect[] }>;

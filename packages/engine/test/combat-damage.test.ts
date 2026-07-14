@@ -2,7 +2,8 @@ import { produce } from 'immer';
 import { describe, expect, it } from 'vitest';
 import { applyAction } from '../src/combat/actions';
 import { advanceTurn } from '../src/combat/turns';
-import { computeMultiplier, killsFromDamage } from '../src/combat/damage';
+import { computeMultiplier, estimateDamage, killsFromDamage } from '../src/combat/damage';
+import type { BuildingDef, TownState } from '../src/town/types';
 import { seedRng } from '../src/core/rng';
 import type { GameEvent } from '../src/core/events';
 import { createEmptyState, type GameState } from '../src/core/state';
@@ -518,6 +519,87 @@ describe('performStrike / applyAction — intégration dégâts', () => {
     expect(strikes[0]?.ranged).toBe(true); // tir ⇒ SFX combat-shoot
     expect(strikes[0]?.damage).toBe(5); // diff 5 → mult 1,25 → round(4*1,25)=5
     expect(next.combat?.stacks.find((s) => s.id === 'attacker-0')?.ammo).toBe(2);
+  });
+});
+
+describe('Revue 2026-07 — B18 : préviz de riposte complète (préviz = résolution, doc 08 §2.4)', () => {
+  /** Riposte réellement résolue (RNG neutre : damage [n,n], aucune chance). */
+  function resolvedRetaliation(s: GameState): number {
+    const events: GameEvent[] = [];
+    produce(s, (draft) => {
+      applyAction(draft, events, 'attacker-0', { type: 'attack', targetStackId: 'defender-0' });
+    });
+    const ret = events.find((e) => e.type === 'StackAttacked' && e.retaliation) as Extract<GameEvent, { type: 'StackAttacked' }>;
+    return ret.damage;
+  }
+
+  // L'attaquant frappe à 0 dégât ([0,0]) : aucun kill ⇒ survivants = effectif
+  // (les bornes min/max de la riposte coïncident, comparaison exacte possible).
+  const harmless = unit({ id: 'atk', stats: { hp: 100, attack: 5, defense: 5, damage: [0, 0], speed: 5 } });
+
+  it('la riposte prévisualisée porte la forme démon du riposteur', () => {
+    const catalog = {
+      atk: harmless,
+      def: unit({
+        id: 'def',
+        stats: { hp: 100, attack: 5, defense: 5, damage: [10, 10], speed: 5 },
+        abilities: [{ id: 'demonform', params: { damageBonus: 0.5, magicResistance: 0.5 } }],
+      }),
+    };
+    const attacker = stack({ id: 'attacker-0', side: 'attacker', slot: 0, unitId: 'atk', count: 1, pos: { col: 0, row: 0 }, firstHp: 100 });
+    const defender = stack({ id: 'defender-0', side: 'defender', slot: 0, unitId: 'def', count: 4, pos: { col: 1, row: 0 }, firstHp: 100 });
+    const state = { ...baseState(catalog), combat: combatState([attacker, defender]) };
+    // Riposte : diff 0, forme démon ×1,5 → round(4 × 10 × 1,5) = 60.
+    const est = estimateDamage(state, 'attacker-0', 'defender-0');
+    expect(est.retaliation).toEqual({ damageMin: 60, damageMax: 60 });
+    expect(resolvedRetaliation(state)).toBe(60); // préviz = résolution
+  });
+
+  it('la riposte prévisualisée porte le bonus swarm du riposteur (∝ survivants)', () => {
+    const catalog = {
+      atk: harmless,
+      def: unit({
+        id: 'def',
+        stats: { hp: 100, attack: 5, defense: 5, damage: [10, 10], speed: 5 },
+        abilities: [{ id: 'swarm', params: { bonus: 1, minAllies: 1 } }],
+      }),
+      pal: unit({ id: 'pal', stats: { hp: 100, attack: 5, defense: 5, damage: [1, 1], speed: 5 } }),
+    };
+    const attacker = stack({ id: 'attacker-0', side: 'attacker', slot: 0, unitId: 'atk', count: 1, pos: { col: 4, row: 5 }, firstHp: 100 });
+    const defender = stack({ id: 'defender-0', side: 'defender', slot: 0, unitId: 'def', count: 3, pos: { col: 5, row: 5 }, firstHp: 100 });
+    // Allié du RIPOSTEUR adjacent à l'attaquant : condition de meute remplie.
+    const pal = stack({ id: 'defender-1', side: 'defender', slot: 1, unitId: 'pal', count: 1, pos: { col: 3, row: 5 }, firstHp: 100 });
+    const state = { ...baseState(catalog), combat: combatState([attacker, defender, pal]) };
+    // Riposte : base 3×10 + swarm 3×1 = 33, diff 0 → 33.
+    const est = estimateDamage(state, 'attacker-0', 'defender-0');
+    expect(est.retaliation).toEqual({ damageMin: 33, damageMax: 33 });
+    expect(resolvedRetaliation(state)).toBe(33); // préviz = résolution
+  });
+
+  it('la riposte prévisualisée porte le bonus « élite » de siège du riposteur', () => {
+    const catalog = {
+      atk: harmless,
+      def: unit({ id: 'def', tier: 8, stats: { hp: 100, attack: 5, defense: 5, damage: [10, 10], speed: 5 } }),
+    };
+    const buildings: Record<string, BuildingDef> = {
+      abyss: {
+        id: 'abyss', maxLevel: 1,
+        levels: [{ cost: {}, requires: [], effect: { type: 'heroAura', eliteDamagePct: 10, eliteMinTier: 7 } }],
+      },
+    };
+    const town: TownState = {
+      id: 't1', ownerPlayerId: 'p1', pos: { x: 5, y: 5 }, factionId: '', buildings: { abyss: 1 },
+      builtToday: false, garrison: [], stock: {}, spellPool: [], sharedGrowthChoice: {},
+    };
+    const attacker = stack({ id: 'attacker-0', side: 'attacker', slot: 0, unitId: 'atk', count: 1, pos: { col: 0, row: 3 }, firstHp: 100 });
+    const defender = stack({ id: 'defender-0', side: 'defender', slot: 0, unitId: 'def', count: 2, pos: { col: 1, row: 3 }, firstHp: 100 });
+    const combat = combatState([attacker, defender]);
+    combat.townId = 't1'; // siège de la ville dotée du Cercle Abîme
+    const state = { ...baseState(catalog), buildingCatalog: buildings, towns: [town], combat };
+    // Riposte du défenseur T8 : diff 0, élite ×1,1 → round(2 × 10 × 1,1) = 22.
+    const est = estimateDamage(state, 'attacker-0', 'defender-0');
+    expect(est.retaliation).toEqual({ damageMin: 22, damageMax: 22 });
+    expect(resolvedRetaliation(state)).toBe(22); // préviz = résolution
   });
 });
 

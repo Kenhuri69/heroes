@@ -304,3 +304,48 @@ describe('Revue 2026-07 — B7 : siège ouvert par la capture IA auto-résolu', 
     expect(next.towns[0]?.ownerPlayerId).toBe('p1');
   });
 });
+
+describe('Revue 2026-07 — B30/B31 : l’IA respecte le butin gardé et le brouillard', () => {
+  it('B30 : un tas gardé par une sentinelle vivante n’est pas ciblé (le tas libre voisin oui)', () => {
+    const map: AdventureMapDef = {
+      ...testMap(),
+      objects: [
+        // Tas gardé À CÔTÉ du héros ; tas libre plus loin — sans le filtre,
+        // l'IA marchait sur le tas gardé (plus proche) sans pouvoir le ramasser.
+        { id: 'gold-guarded', type: 'resource', pos: { x: 1, y: 0 }, resource: 'gold', amount: 999, guardedBy: 'sentinel' },
+        { id: 'sentinel', type: 'guardian', pos: { x: 1, y: 1 }, unitId: 'blue-wolf', count: 999 },
+        { id: 'gold-free', type: 'resource', pos: { x: 3, y: 0 }, resource: 'gold', amount: 100 },
+      ],
+    };
+    const players: PlayerSetup[] = [
+      { id: 'p1', startingResources: emptyResources(), controller: 'ai', startingArmy: [{ unitId: 'red-grunt', count: 1 }] },
+    ];
+    const state = apply(createEmptyState(), { type: 'StartGame', seed: 1, players, map, config, unitCatalog: CATALOG }).state;
+    const events: GameEvent[] = [];
+    const next = produce(state, (draft) => {
+      runAiTurn(draft, 'p1', events);
+    });
+    // Le tas libre est ramassé ; le tas gardé reste sur la carte.
+    expect(next.players[0]?.resources.gold).toBe(100);
+    expect(next.map?.objects.some((o) => o.id === 'gold-guarded')).toBe(true);
+  });
+
+  it('B31 : une ressource sous brouillard (zone jamais explorée) n’est pas ciblée', () => {
+    const map: AdventureMapDef = {
+      ...testMap(),
+      objects: [{ id: 'gold-hidden', type: 'resource', pos: { x: 9, y: 9 }, resource: 'gold', amount: 500 }],
+    };
+    const players: PlayerSetup[] = [{ id: 'p1', startingResources: emptyResources(), controller: 'ai' }];
+    const state = apply(createEmptyState(), { type: 'StartGame', seed: 1, players, map, config, unitCatalog: CATALOG }).state;
+    // (9,9) est hors du rayon de vision initial du héros en (0,0).
+    expect(state.players[0]?.explored[9 * map.width + 9]).toBe(0);
+    const events: GameEvent[] = [];
+    const next = produce(state, (draft) => {
+      runAiTurn(draft, 'p1', events);
+    });
+    // L'or n'est pas ramassé ce tour : l'IA explore au lieu de foncer sur une
+    // cible qu'elle n'a jamais vue (elle pourra la ramasser une fois révélée).
+    expect(next.players[0]?.resources.gold).toBe(0);
+    expect(next.map?.objects.some((o) => o.id === 'gold-hidden')).toBe(true);
+  });
+});

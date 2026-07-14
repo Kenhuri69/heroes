@@ -97,10 +97,22 @@ function isCollectible(
   obj: NonNullable<GameState['map']>['objects'][number],
   hero: HeroState,
   player: PlayerState,
+  /** Ids d'objets encore sur la carte (B30) — un butin `guardedBy` une sentinelle vivante est inerte. */
+  presentObjectIds: ReadonlySet<string>,
 ): boolean {
+  // B30 (revue 2026-07) : l'IA ciblait un butin gardé (M-GUARDLINK) qu'elle ne
+  // peut pas ramasser — PM du jour gaspillés en boucle, en priorité 1.
+  if ('guardedBy' in obj && obj.guardedBy !== undefined && presentObjectIds.has(obj.guardedBy))
+    return false;
   if (obj.type === 'resource' || obj.type === 'treasure') return true;
   if (obj.type === 'artifact') return hero.artifacts.includes(null);
-  if (obj.type === 'mine') return obj.ownerId !== player.id;
+  if (obj.type === 'mine') {
+    if (obj.ownerId === player.id) return false;
+    // B26 : la mine d'un ALLIÉ n'est pas une cible (sinon ping-pong de drapeaux
+    // entre coéquipiers — cohérent avec la capture en passant côté moteur).
+    const owner = obj.ownerId ? draft.players.find((p) => p.id === obj.ownerId) : undefined;
+    return !(owner && areAllies(player, owner));
+  }
   if (obj.type === 'dwelling') {
     if (obj.stock <= 0) return false;
     if (!hero.army.some((s) => s.unitId === obj.unitId) && hero.army.length >= 7) return false;
@@ -120,9 +132,13 @@ function pickResourceTarget(
 ): PathTarget | null {
   const { map, config } = draft;
   if (!map || !config) return null;
+  const presentObjectIds = new Set(map.objects.map((o) => o.id));
   let best: (PathTarget & { id: string }) | null = null;
   for (const obj of map.objects) {
-    if (!isCollectible(draft, obj, hero, player)) continue;
+    // B31 (décision revue 2026-07) : l'IA ne cible que ce que son joueur a
+    // EXPLORÉ — elle routait vers des ressources jamais vues (triche d'info).
+    if (player.explored[tileIndex(map, obj.pos)] === 0) continue;
+    if (!isCollectible(draft, obj, hero, player, presentObjectIds)) continue;
     // Pré-filtre O(1) : hors de portée du jour à vol d'oiseau ⇒ pas d'A* (perf).
     if (octileLowerBound(minStep, hero.pos, obj.pos) > hero.movementPoints) continue;
     // F7 : budget de PM passé à l'A* — une cible proche mais inatteignable
@@ -142,6 +158,7 @@ function pickResourceTarget(
 function pickGuardianTarget(
   draft: GameState,
   hero: HeroState,
+  player: PlayerState,
   blocked: GridPos[],
   guardianPos: GridPos[],
   minStep: number,
@@ -153,6 +170,8 @@ function pickGuardianTarget(
   let best: (PathTarget & { id: string }) | null = null;
   for (const obj of map.objects) {
     if (obj.type !== 'guardian') continue;
+    // B31 : jamais un gardien sous brouillard (force lue = triche d'info).
+    if (player.explored[tileIndex(map, obj.pos)] === 0) continue;
     const guardStrength = armyStrength([{ unitId: obj.unitId, count: obj.count }], unitCatalog);
     if (guardStrength <= 0 || heroStrength < GUARDIAN_STRENGTH_MARGIN * guardStrength) continue;
     // Pré-filtre O(1) : hors de portée du jour à vol d'oiseau ⇒ pas d'A* (perf).
@@ -191,6 +210,8 @@ function pickEnemyHeroTarget(
   let best: (PathTarget & { id: string }) | null = null;
   for (const enemy of draft.heroes) {
     if (enemy.id === hero.id || enemy.playerId === player.id) continue;
+    // B31 : un héros ennemi sous brouillard n'est ni vu ni évalué.
+    if (map && player.explored[tileIndex(map, enemy.pos)] === 0) continue;
     const enemyPlayer = draft.players.find((p) => p.id === enemy.playerId);
     if (enemyPlayer && areAllies(player, enemyPlayer)) continue;
     const enemyStrength = armyStrength(enemy.army, unitCatalog);
@@ -323,7 +344,7 @@ function playHeroTurn(draft: GameState, hero: HeroState, player: PlayerState, ev
     return;
   }
 
-  const guardian = pickGuardianTarget(draft, hero, blocked, guardianPos, minStep);
+  const guardian = pickGuardianTarget(draft, hero, player, blocked, guardianPos, minStep);
   if (guardian) {
     advanceAi(draft, hero, player, guardian.path, events);
     return;

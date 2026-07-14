@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
+import { dailyMovementPoints } from '../src/adventure/config';
 import { apply, validate } from '../src/core/engine';
 import { seedRng } from '../src/core/rng';
-import { createEmptyState, emptyResources, type GameState } from '../src/core/state';
+import { createEmptyState, emptyResources, type GameState, type HeroState } from '../src/core/state';
 import type { ResolvedHeroDef } from '../src/hero/types';
 import type { BuildingDef, TownState } from '../src/town/types';
 import { testConfig, testMap } from './fixtures';
@@ -83,5 +84,45 @@ describe('M-TAVERN.1 — RecruitHero', () => {
     const s = state();
     s.config = { ...testConfig(), hero: { ...testConfig().hero, maxPerPlayer: 0 } };
     expect(validate(s, recruit)?.code).toBe('invalidAction');
+  });
+
+  it('Revue 2026-07 — B29 : le héros recruté a ses PM du jour même (comme StartGame)', () => {
+    const { state: next } = apply(state(), recruit);
+    const hero = next.heroes.find((h) => h.id === 'hero-p1-knight');
+    // Même calcul que StartGame/EndTurn (armée vide ⇒ base seule, sans bonus).
+    expect(hero?.movementPoints).toBe(dailyMovementPoints(testConfig(), [], {}));
+    expect(hero?.movementPoints ?? 0).toBeGreaterThan(0); // il restait à 0 avant B29
+  });
+});
+
+describe('Revue 2026-07 — B24b : héritage de la Maison du joueur au recrutement', () => {
+  // Ids de Maison FICTIFS (garde-fou CI « zéro nom de faction dans le moteur »).
+  function existingHero(houseId: string): HeroState {
+    return {
+      id: 'h-old', playerId: 'p1', name: '', pos: { x: 0, y: 0 }, movementPoints: 0, army: [],
+      xp: 0, level: 1, attributes: { attack: 0, defense: 0, power: 0, knowledge: 0 },
+      mana: 0, manaMax: 0, skills: {}, visitLuck: 0, visitMorale: 0, spells: [],
+      artifacts: Array.from({ length: 10 }, () => null), backpack: [], pendingSkillChoices: [],
+      pendingAttributeChoices: [], factionId: '', houseId,
+      houseEffects: houseId ? [{ goldPerDay: 250 }] : [], specialtyId: '', specialtyEffects: [],
+      warMachines: [], rosterId: '',
+    };
+  }
+
+  it('le héros recruté hérite de la Maison déjà choisie (effets résolus du catalogue)', () => {
+    const s = state();
+    s.houseCatalog = { 'house-lion': { effects: [{ goldPerDay: 250 }] } };
+    s.heroes = [existingHero('house-lion')];
+    const hero = apply(s, recruit).state.heroes.find((h) => h.id === 'hero-p1-knight');
+    expect(hero?.houseId).toBe('house-lion');
+    expect(hero?.houseEffects).toEqual([{ goldPerDay: 250 }]);
+  });
+
+  it('sans Maison choisie : le héros recruté naît sans Maison', () => {
+    const s = state();
+    s.heroes = [existingHero('')];
+    const hero = apply(s, recruit).state.heroes.find((h) => h.id === 'hero-p1-knight');
+    expect(hero?.houseId).toBe('');
+    expect(hero?.houseEffects).toEqual([]);
   });
 });

@@ -10,6 +10,13 @@ import { stepCost } from './path';
 import { fireVisitTrigger } from './triggers';
 import { recruitDwelling, visitBonus } from './visitable';
 
+/** Le propriétaire (id ou null) d'une structure de carte est-il un ALLIÉ du joueur ? (B26) */
+function isAllyOwner(draft: GameState, player: PlayerState, ownerId: string | null): boolean {
+  if (!ownerId) return false;
+  const owner = draft.players.find((p) => p.id === ownerId);
+  return !!owner && areAllies(player, owner);
+}
+
 export interface AdvanceOptions {
   /**
    * Appelé après l'ouverture d'un combat d'interception (gardien OU héros ennemi,
@@ -174,8 +181,11 @@ export function advanceHeroAlongPath(
       else if (obj.type === 'dwelling') {
         // Habitation de carte capturable (M-DWELLOWN, doc 02 §2.2) : la fouler la
         // fait passer au joueur (drapeau + vision), qui touchera son réassort hebdo
-        // (`applyWeeklyGrowth`). Recapturable par un adversaire — comme une mine.
-        if (obj.ownerId !== player.id) {
+        // (`applyWeeklyGrowth`). Recapturable par un ADVERSAIRE — comme une mine ;
+        // le propriétaire ALLIÉ est traité comme soi (B26, revue 2026-07 : les
+        // villes respectaient déjà `areAllies`, pas les structures de carte —
+        // un allié détournait le réassort de son coéquipier en passant).
+        if (obj.ownerId !== player.id && !isAllyOwner(draft, player, obj.ownerId)) {
           obj.ownerId = player.id;
           revealStructure(draft, player.id, obj.pos);
         }
@@ -185,7 +195,7 @@ export function advanceHeroAlongPath(
     // Mine (doc 02 §2.2) : capture en passant — le héros ne s'arrête pas, et
     // une mine adverse est recapturée par le même geste.
     const mine = objectsAt.get(tileKey(hero.pos))?.find((o) => o.type === 'mine');
-    if (mine && mine.type === 'mine' && mine.ownerId !== player.id) {
+    if (mine && mine.type === 'mine' && mine.ownerId !== player.id && !isAllyOwner(draft, player, mine.ownerId)) {
       mine.ownerId = player.id;
       revealStructure(draft, player.id, mine.pos); // F1 : mine capturée = vision de son voisinage
       events.push({

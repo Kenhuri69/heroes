@@ -118,9 +118,9 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > `ChooseSharedGrowth` ; point d'extension générique `GameState.growthGroups` +
 > `TownState.sharedGrowthChoice` — clôt le Lot B de `phase-4-reverify`, dernier
 > vrai trou de l'Alpha AH). Depuis, la forme de sauvegarde a continué d'évoluer :
-> `CURRENT_SAVE_VERSION` vaut désormais **8** (source de vérité
-> `engine/core/state.ts` — v5 huntContract, v6 machines de guerre, v7 quêtes,
-> v8 objets de carte/pendingTreasure/visitLuck).
+> la valeur courante de `CURRENT_SAVE_VERSION` et son changelog par version
+> vivent dans `engine/core/state.ts` (source de vérité — ne pas dupliquer la
+> valeur ici, revue 2026-07 B32 : les copies en dur dérivaient).
 > Systèmes livrés depuis (voir docs à jour) : upgrades d'unités (habitation
 > niveau 2), **marché** ressource↔or, **machines de guerre** (Forge), **contrats
 > de chasse**, **hot-seat** (2 humains/appareil), **quêtes & campagnes** (N1→N3c :

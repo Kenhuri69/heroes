@@ -861,11 +861,23 @@ export function estimateDamage(
       dealtDamageMod: statusModSum(target.statuses, 'damageDealtMod'),
       // D5 : une riposte ne consomme PAS de Marque ⇒ pas de burst `consumeMarks`
       // dans la préviz de riposte non plus (préviz = résolution).
+      // B18 (préviz = résolution, doc 08 §2.4) : `performStrike` applique aussi
+      // au RIPOSTEUR sa forme démon (une riposte transforme comme une attaque)…
+      demonBonus: demonformParams(targetDef)?.damageBonus ?? 0,
+      // …et son bonus « élite » de siège (F-BUILDEFF.5) — mêmes termes ici.
+      eliteDamagePct: siegeEliteDamage(state, combat, target.side, targetDef),
     });
     const [retDmgMin, retDmgMax] = targetDef.stats.damage;
+    // B18 : `performStrike` ajoute le bonus `swarm` du riposteur à ses dégâts de
+    // base (∝ effectif au moment de la riposte = survivants) ⇒ bonus PAR créature
+    // rapporté aux survivants. La position de l'attaquant à la riposte (le `from`
+    // choisi) est inconnue ici : la condition de meute est évaluée sur sa
+    // position actuelle (même limite que `charge`, omis faute de `from`).
+    const retSwarmPerUnit =
+      target.count > 0 ? swarmBonus(targetDef, target, attacker, combat) / target.count : 0;
     retaliation = {
-      damageMin: Math.round(survivorsAfterMaxDamage * retDmgMin * retMult),
-      damageMax: Math.round(survivorsAfterMinDamage * retDmgMax * retMult),
+      damageMin: Math.round(survivorsAfterMaxDamage * (retDmgMin + retSwarmPerUnit) * retMult),
+      damageMax: Math.round(survivorsAfterMinDamage * (retDmgMax + retSwarmPerUnit) * retMult),
     };
   }
 

@@ -4,6 +4,7 @@ import type { GameState, HeroState } from '../core/state';
 import { evaluateOutcome } from '../scenario/outcome';
 import type { Draft } from './draft';
 import { collectCasualties, collectSurvivors } from './state-helpers';
+import { persistDefenderRemnants } from './turns';
 import type { CombatSideId, CombatState } from './types';
 
 /**
@@ -95,6 +96,10 @@ function endLeftCombat(
   combat.activeStackId = null;
   const casualties = collectCasualties(combat);
   const survivors = collectSurvivors(combat);
+  // B21 : comme après une défaite normale (`applyConsequences`, turns.ts), le
+  // camp adverse GARDE ses pertes — gardien et garnison réécrits à leurs
+  // survivants, sinon partir « soignait » l'ennemi à son effectif initial.
+  persistDefenderRemnants(draft, combat);
   // Chance de fontaine consommée pour tout héros engagé encore vivant (comme la fin normale).
   for (const heroId of [combat.attackerHeroId, combat.defenderHeroId]) {
     const hero = heroId ? draft.heroes.find((h) => h.id === heroId) : undefined;

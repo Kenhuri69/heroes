@@ -83,7 +83,9 @@ UI/IA ──commande──► [validation] ──► engine.apply(state, cmd)
     version — « Continuer » se grise, l'import échoue — au lieu d'adopter un
     état malformé. La **migration ascendante** d'anciennes sauvegardes reste
     différée (post-MVP) : au MVP on rejette, on ne migre pas.
-    `CURRENT_SAVE_VERSION` vaut **22** (source de vérité `engine/core/state.ts`).
+    La valeur courante de `CURRENT_SAVE_VERSION` et son changelog par version
+    vivent dans `engine/core/state.ts` (source de vérité) — elle n'est **pas
+    dupliquée ici** (revue 2026-07 B32 : les copies en dur dérivaient).
     Historique : v2 (`factionCatalog`/`scenario`/`outcome`/`controller`/
     `eliminated`, 3.4/3.5) ; v3 (`PlayerState.factionResources`, 4.4) ; v4
     (`townlessDays` grâce de reprise + `AdventureMapDef.triggers`, comblement

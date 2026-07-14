@@ -479,6 +479,31 @@ les données actuelles** (cross-check scripté des ids) ; garde `readSaveVersion
   (une passe par commande humaine, hors boucle IA). Golden inchangé,
   758/758, @core 19/19.
 - [ ] Lot 7b — perf moteur avec re-fix golden (F2, F3)
-- [ ] Lot 8 — P2 moteur + décisions design (B18–B32)
+- [x] Lot 8 — P2 moteur + décisions design (B18–B32). Livré : **B18** préviz
+  de riposte complète (demonform/élite de siège/swarm — préviz = résolution) ;
+  **B19** douve appliquée au repositionnement d'attaque (mort avant frappe
+  gérée) ; **B20** `wait` refusé en tour bonus de moral (validation) ; **B21**
+  décision : fuite/reddition/abandon réécrivent les survivants adverses via le
+  helper factorisé `persistDefenderRemnants` (partagé avec la défaite — B17/B8
+  inclus) ; **B22** coût d'upgrade = union des clés (essence/résonance
+  facturées) ; **B23** contrat de chasse plafonné (`creditFactionResource`,
+  l'événement rapporte le gain effectif) ; **B24** décision : Choixpeau
+  verrouillé par joueur (`houseAlreadyChosen`) + héritage de Maison au
+  recrutement ; **B25** `sharedGrowthChoice` remis à zéro aux DEUX chemins de
+  capture (immédiate + post-siège) ; **B26** décision : mines/habitations d'un
+  allié non capturables en passant, IA alignée ; **B27** la rotation saute les
+  éliminés (bascule de jour préservée, helper `advanceSeat`) — VOLET DIFFÉRÉ :
+  le « local » d'`evaluateOutcome` reste le 1er humain (basculer le point de
+  vue exige de trancher les objectifs par siège — design, documenté doc 02) ;
+  **B28** doublon de `startingHeroId` rejeté (`duplicateStartingHero`) ;
+  **B29** héros recruté doté de ses PM du jour (`heroDailyMovement` exporté) ;
+  **B30** l'IA ignore un butin encore gardé ; **B31** décision : l'IA ne cible
+  que l'EXPLORÉ de son joueur (ressources/gardiens/héros ennemis) ; **B32**
+  les valeurs de version de save en dur dans doc 07/CLAUDE.md remplacées par
+  un renvoi à `state.ts` (le changelog v29/v30 avait été comblé entre-temps).
+  Docs alignées : 02 (fuite, alliés, IA/brouillard, limite hot-seat), 07, 16
+  (Choixpeau), CLAUDE.md. Exécution : 2 sous-agents (combat, ville/héros) +
+  coordination directe (IA/alliances/rotation/docs). ~20 tests ajoutés.
+  Golden INCHANGÉ (vérifié après chaque volet), moteur 780/780, @core 19/19.
 - [ ] Lot 9 — P2 client (B34–B45)
 - [ ] Lot 10 — contenu/validation & PWA (B33, B46–B49)

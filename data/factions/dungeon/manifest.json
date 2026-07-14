@@ -8,7 +8,13 @@
     "gems"
   ],
   "factionResources": [],
-  "factionBonuses": [],
+  "factionBonuses": [
+    {
+      "type": "irresistibleMagic",
+      "spellBonusPercent": 30,
+      "resistancePierce": 0.5
+    }
+  ],
   "spellSchool": null,
   "heroSkills": [],
   "tiers": 7,

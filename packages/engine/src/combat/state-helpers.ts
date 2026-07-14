@@ -273,6 +273,30 @@ export function factionCurseDurationBonus(state: GameState, hero: HeroState | un
 }
 
 /**
+ * Magie Irrésistible (signature du Donjon, doc 17 §2) : mods appliqués aux sorts
+ * de DÉGÂTS du héros — `bonusPct` (fraction, ex. 0.30) majore les dégâts,
+ * `resistancePierce` (0..1) est soustrait de la résistance magique graduée de la
+ * cible. Somme des `irresistibleMagic` de la faction du héros ; {0,0} sans héros/
+ * faction/bonus. Générique (aucun nom de faction) ; consommé par `castHeroSpell`
+ * et la préviz héros uniquement, jamais par le sort d'unité `spellcaster`.
+ */
+export function factionSpellDamageMods(
+  state: GameState,
+  hero: HeroState | undefined,
+): { bonusPct: number; resistancePierce: number } {
+  const bonuses = hero ? state.factionCatalog[hero.factionId]?.bonuses ?? [] : [];
+  let bonusPct = 0;
+  let resistancePierce = 0;
+  for (const b of bonuses) {
+    if (b.type === 'irresistibleMagic') {
+      bonusPct += b.spellBonusPercent / 100;
+      resistancePierce += b.resistancePierce;
+    }
+  }
+  return { bonusPct, resistancePierce: Math.min(1, resistancePierce) };
+}
+
+/**
  * Moral d'une pile (doc 02 §5.3, décisions plan #4/#17) : +1 si terrain natif,
  * −1 par groupId distinct au-delà du premier, + Commandement du héros lié au
  * camp (compétence, remédiation R5 CO4) ; morts-vivants exclus du calcul et

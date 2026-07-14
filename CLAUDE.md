@@ -365,6 +365,7 @@ docs/
   14-faction-sylvan-court.md     Faction Sylvan Court (Beta, 4ᵉ maison) : cadrage — lineup 7 tiers, signature Symbiose, points d'extension
   15-backend-infra.md            Backend coût 0 (Cloudflare Workers + D1) : levier déterministe, modèle de données, auth magic-link, PvP async, déploiement
   16-faction-vox-arcana.md       Faction Vox Arcana (Beta, 6ᵉ maison — Poudlard × KPop Demon Hunters) : livrée — 5 Maisons (signature houseAllegiance), Résonance/Honmoon, École de la Scène, lineup T1–T8, avatars Hermione & Rumi
+  17-faction-shadow-court.md     Faction Shadow Court (Beta, 7ᵉ maison — elfes noirs / Dungeon HoMM) : cadrage — pendant sombre de la Sylvan Court, signature Magie Irrésistible (1 point d'extension générique irresistibleMagic), lineup 7 tiers, ressources sulfur/gems, héros Raelag & Shadya
   templates/faction-template.md  Gabarit pour spécifier une nouvelle maison
 .github/workflows/
   ci.yml                         PR : typecheck, lint, tests, build, smoke headless

@@ -258,6 +258,10 @@ export function handleCastAdventureSpell(
   } else if (spell.adventure.type === 'movementBonus') {
     // H-SPELLS (Marche forcée) : ajoute des PM immédiats (sans déplacer le héros).
     hero.movementPoints += spell.adventure.amount;
+  } else if (spell.adventure.type === 'revealMap') {
+    // H-SPELLS (Cartographie) : révèle TOUT le brouillard — un rayon égal à la
+    // dimension de la carte couvre toute la grille depuis n'importe quelle case.
+    revealAround(player.explored, map, hero.pos, Math.max(map.width, map.height));
   }
 
   events.push({ type: 'AdventureSpellCast', heroId: hero.id, spellId: spell.id, pos: { ...hero.pos } });

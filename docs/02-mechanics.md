@@ -98,6 +98,13 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 > inchangé (aucune cible, toast `AdventureSpellCast` générique). **Additif** ⇒
 > **pas de bump save, golden inchangé** ; zéro faction.
 
+> 🚧 **État (Cartographie, H-SPELLS)** : 4ᵉ effet d'aventure — `adventure: { type:
+> 'revealMap' }`. Sort livré **Cartographie** (Air, cercle 4 — « View Air ») :
+> **révèle TOUT le brouillard** de la carte pour le joueur (réutilise
+> `revealAround` avec un rayon = dimension de la carte). Client inchangé (aucune
+> cible). **Additif** (sur `player.explored`) ⇒ **pas de bump save, golden
+> inchangé** ; zéro faction.
+
 > 🚧 **État (sorts de masse, H-SPELLS.1)** : le champ de zone `SpellDef.area`
 > gagne la valeur **`all`** (à côté de `splash`) — le sort touche **toutes** les
 > piles vivantes du camp de la pile ciblée (le camp visé = celui de la cible :

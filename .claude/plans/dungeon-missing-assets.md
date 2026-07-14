@@ -18,12 +18,17 @@ cultes du serpent, minotaures/hydres/dragons d'ombre.
 2. [x] Installer deps d'extraction (`PIL/numpy/scipy`). → vérif : import OK ✅
 3. [x] Fournir le prompt Gemini enrichi DA pour la planche prioritaire (lignée
    T1→T7). → vérif : prompt posté en chat ✅
-4. [ ] **Intégrer l'image renvoyée par l'utilisateur** (« image 5 ») :
+4. [x] **Intégrer l'image renvoyée par l'utilisateur** (« image 5 ») :
    `sheet_extract.py` (4×2, side 512, ids row-major) → QC verte obligatoire.
-   → vérif : planche `--qc` toute verte, sortie code 0.
-5. [ ] Ranger les PNG validés dans `assets/units/dungeon/`.
-   → vérif : `ls assets/units/dungeon/` = 8 PNG.
-6. [ ] Commit + push, PR draft.
+   → vérif : **8/8 PASS, 0 FAIL, exit 0** ✅ (planche QC toute verte).
+5. [x] Ranger les PNG validés dans `assets/units/dungeon/`.
+   → vérif : 8 PNG présents (t1-eclaireur … t7-dragon-ombre + t1-eclaireur-elite) ✅
+6. [x] Commit + push, PR draft #362.
+
+## Reste à produire (planches suivantes, mêmes étapes)
+- `units-dungeon-p2` (6 élites T2→T7).
+- `buildings-dungeon` (habitations + Puits maudit).
+- Avatars héros (`hero-avatars-p2` : dungeon-might/magic ; + Raelag/Shadya si planche dédiée).
 
 ## Notes / écarts
 - Le générateur laisse la palette générique (« muted heroic fantasy palette

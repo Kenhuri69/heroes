@@ -1,5 +1,5 @@
 import { render } from 'preact';
-import { useEffect, useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import {
   RESOURCE_IDS,
   dailyMovementPoints,
@@ -164,17 +164,46 @@ function Shell() {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, []);
+  // Historique navigateur (revue 2026-07, B39) : UNE entrée d'historique PAR
+  // modale ouverte — le retour matériel Android dépile les modales une à une
+  // avant de quitter la page. Une fermeture programmatique (×, Échap, navigate)
+  // consomme son entrée par un `history.go` compensatoire, sinon elle resterait
+  // en entrée fantôme (le retour suivant ne ferait « rien »).
+  const pushedEntriesRef = useRef(0); // nos entrées encore présentes dans l'historique
+  const ignorePopsRef = useRef(0); // popstate attendus de nos history.go compensatoires
   useEffect(() => {
-    if (modalDepth === 0) return;
-    // Une entrée d'historique tant qu'une modale est ouverte : le retour
-    // matériel Android dépile au lieu de quitter la page.
-    history.pushState(null, '');
     const onPop = (): void => {
+      // Écho d'un history.go compensatoire émis ci-dessous : à ignorer, sinon
+      // il fermerait une modale de plus (boucle fermeture → back → popstate…).
+      if (ignorePopsRef.current > 0) {
+        ignorePopsRef.current -= 1;
+        return;
+      }
+      if (pushedEntriesRef.current === 0) return; // entrée étrangère — laisser filer
+      // Retour matériel : le navigateur a déjà consommé UNE de nos entrées.
+      // Décrémenté AVANT back() pour que l'effet de synchronisation ne
+      // re-compense pas cette fermeture-là.
+      pushedEntriesRef.current -= 1;
       back();
     };
     window.addEventListener('popstate', onPop);
     return () => window.removeEventListener('popstate', onPop);
-  }, [modalDepth === 0]);
+  }, []);
+  useEffect(() => {
+    if (modalDepth > pushedEntriesRef.current) {
+      // Ouverture(s) : une entrée par nouvelle modale.
+      for (let i = pushedEntriesRef.current; i < modalDepth; i++) history.pushState(null, '');
+      pushedEntriesRef.current = modalDepth;
+    } else if (modalDepth < pushedEntriesRef.current) {
+      // Fermeture(s) programmatiques : consommer les entrées correspondantes.
+      // (Une fermeture au retour matériel a déjà décrémenté le compteur dans
+      // onPop : elle arrive ici à l'équilibre, sans compensation.)
+      const excess = pushedEntriesRef.current - modalDepth;
+      pushedEntriesRef.current = modalDepth;
+      ignorePopsRef.current += excess;
+      history.go(-excess);
+    }
+  }, [modalDepth]);
 
   const optionsModal = modals.some((m) => m.kind === 'options');
   const townModal = modals.find((m): m is { kind: 'town'; townId: string } => m.kind === 'town');

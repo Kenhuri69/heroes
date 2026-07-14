@@ -7,11 +7,11 @@ import { eventBus } from '../app/events';
 import { getTelemetry, resetTelemetry, setTelemetryEnabled } from '../app/telemetry';
 import { setMusicVolume, setSfxVolume } from '../app/audio';
 import { applyReduceMotion } from '../app/motion';
+import { applyFontScale, setConfirmEndTurn, FONT_SCALE_PERCENT } from '../app/settings';
 import { COMBAT_SPEEDS } from '../app/ui-constants';
 import { pushToast } from './toasts';
 import './options.css';
 
-const FONT_SCALE_PERCENT: Record<1 | 2 | 3, string> = { 1: '100%', 2: '112.5%', 3: '125%' };
 const FONT_SCALES = [1, 2, 3] as const;
 
 /**
@@ -34,11 +34,6 @@ export function OptionsPanel({ onClose }: { onClose: () => void }) {
   useApp((s) => s.telemetryTick); // re-render des stats après reset
   const screen = useApp((s) => s.screen);
   const [message, setMessage] = useState<string | null>(null);
-
-  const applyFontScale = (scale: 1 | 2 | 3): void => {
-    appStore.setState({ fontScale: scale });
-    document.documentElement.style.fontSize = FONT_SCALE_PERCENT[scale];
-  };
 
   const doExport = (): void => {
     exportSave(appStore.getState().game)
@@ -89,8 +84,14 @@ export function OptionsPanel({ onClose }: { onClose: () => void }) {
       .catch(() => pushToast(t('toast.cloudSaveError'), 'error'));
   };
   const doCloudPull = (): void => {
+    // Trois issues distinctes (revue 2026-07, B42) : chargé / version de forme
+    // incompatible / sauvegarde sans partie démarrée.
     void pullCloudSave()
-      .then((r) => pushToast(t(r === 'ok' ? 'toast.cloudLoaded' : 'toast.cloudIncompatible'), r === 'ok' ? 'success' : 'error'))
+      .then((r) => {
+        if (r === 'ok') pushToast(t('toast.cloudLoaded'), 'success');
+        else if (r === 'incompatible') pushToast(t('toast.cloudIncompatible'), 'error');
+        else pushToast(t('toast.cloudNotStarted'), 'error');
+      })
       .catch(() => pushToast(t('toast.cloudLoadError'), 'error'));
   };
 
@@ -186,14 +187,14 @@ export function OptionsPanel({ onClose }: { onClose: () => void }) {
             <button
               class={confirmEndTurn ? 'active' : ''}
               data-testid="options-confirm-endturn-on"
-              onClick={() => appStore.setState({ confirmEndTurn: true })}
+              onClick={() => setConfirmEndTurn(true)}
             >
               {t('options.on')}
             </button>
             <button
               class={!confirmEndTurn ? 'active' : ''}
               data-testid="options-confirm-endturn-off"
-              onClick={() => appStore.setState({ confirmEndTurn: false })}
+              onClick={() => setConfirmEndTurn(false)}
             >
               {t('options.off')}
             </button>

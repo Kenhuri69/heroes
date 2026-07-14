@@ -178,6 +178,12 @@ const VISITABLE_COLORS: Record<string, number> = {
  * `assets/map/<propId>` (chargé async, hors bundle). Repli gracieux si le sprite
  * est absent/en cours. Garde `node.destroyed` : la scène peut être détruite
  * avant la fin du chargement.
+ *
+ * B43 : le sprite chargé prend la PLACE du fallback (même index) au lieu d'être
+ * ajouté en dernier enfant — le sprite est le FOND pour tous les consommateurs,
+ * les décorations posées après (drapeau de propriétaire d'habitation, médaillon
+ * d'unité) restent AU-DESSUS, et le losange de sol posé par `buildObject` reste
+ * dessous (même intention que `buildKeep`).
  */
 function withMapProp(propId: string, fallback: Container, scale = 1.0): Container {
   const node = new Container();
@@ -186,9 +192,10 @@ function withMapProp(propId: string, fallback: Container, scale = 1.0): Containe
   if (url) {
     void Assets.load(url).then((texture) => {
       if (node.destroyed) return;
+      const index = node.getChildIndex(fallback);
       node.removeChild(fallback);
       fallback.destroy({ children: true });
-      node.addChild(placeSprite(texture, scale));
+      node.addChildAt(placeSprite(texture, scale), index);
     });
   }
   return node;

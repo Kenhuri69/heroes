@@ -510,6 +510,7 @@
   "toast.cloudLoaded": "Game loaded from the cloud.",
   "toast.cloudLoadError": "No cloud save, or load failed.",
   "toast.cloudIncompatible": "Cloud save from another version — cannot load.",
+  "toast.cloudNotStarted": "The cloud save does not contain a started game.",
   "toast.townCaptured": "Town captured!",
   "toast.caravanSent": "Caravan dispatched ({days}d travel).",
   "toast.caravanArrived": "Caravan arrived: +{count} {unit} in the garrison.",

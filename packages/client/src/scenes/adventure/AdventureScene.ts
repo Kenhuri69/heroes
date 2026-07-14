@@ -30,7 +30,8 @@ import { buildHeroSprite } from '../../render/heroSprite';
 import { buildWorldBorder } from '../../render/worldBorder';
 import { PathPreview, type PreviewStep } from '../../render/pathPreview';
 import { onLongPress, onTap } from '../../input/pointer';
-import { t } from '../../app/i18n';
+import { commandErrorMessage, t } from '../../app/i18n';
+import { pushToast } from '../../ui/toasts';
 
 const STEP_ANIMATION_MS = 110;
 
@@ -149,7 +150,17 @@ export class AdventureScene {
     this.unsubscribeTap();
     this.unsubscribeLongPress();
     window.removeEventListener('heroes:cancel-path', this.onCancelPath);
-    this.container.destroy({ children: true, texture: true });
+    // B45 (revue 2026-07) : PAS de `texture: true` — les Sprites de la scène
+    // (tuiles iso, objets de carte, jetons de héros, villes…) partagent les
+    // textures du cache `Assets` : les détruire ici servait des textures
+    // invalides à la partie suivante (`CombatScene` fait déjà correct). Les
+    // textures réellement POSSÉDÉES par la scène sont libérées sans l'option :
+    // les `Text` de `PathPreview` sont ref-comptés par le système de texte
+    // canvas de Pixi 8 et rendus à leur destroy (couvert par `children: true`) ;
+    // le bake `cacheAsTexture` de `Tilemap` (petites cartes) est rendu au
+    // `TexturePool` par `Container.destroy` → `renderGroup.destroy()` →
+    // `disableCacheAsTexture()` (vérifié dans les sources 8.19).
+    this.container.destroy({ children: true });
   }
 
   /** Ids des héros ayant un jeton rendu sur la carte (surface de test smoke —
@@ -210,8 +221,9 @@ export class AdventureScene {
         this.entities.addChild(sprite);
         this.heroSprites.set(hero.id, sprite);
       }
-      sprite.zIndex = isoDepth(hero.pos.x, hero.pos.y);
+      // Position ET profondeur pilotées par le tween pendant l'animation (B44).
       if (hero.id !== this.animatingHeroId) {
+        sprite.zIndex = isoDepth(hero.pos.x, hero.pos.y);
         const a = isoAnchor(hero.pos.x, hero.pos.y);
         sprite.position.set(a.x, a.y);
       }
@@ -318,12 +330,18 @@ export class AdventureScene {
     if (this.previewTarget && samePos(this.previewTarget.target, tile)) {
       const path = this.previewTarget.path;
       this.clearPreview();
-      const result = await dispatch({ type: 'MoveHero', heroId: hero.id, path });
-      await this.animateMove(result);
-      // Ville adverse/neutre atteinte (Alpha 4.13) : capturer ⇒ combat de siège
-      // si elle est défendue, capture immédiate sinon. Le combat prend la main
-      // via le routeur (`game.combat`), comme une interception de gardien.
-      await this.tryCaptureTownAt(tile);
+      try {
+        const result = await dispatch({ type: 'MoveHero', heroId: hero.id, path });
+        await this.animateMove(result);
+        // Ville adverse/neutre atteinte (Alpha 4.13) : capturer ⇒ combat de siège
+        // si elle est défendue, capture immédiate sinon. Le combat prend la main
+        // via le routeur (`game.combat`), comme une interception de gardien.
+        await this.tryCaptureTownAt(tile);
+      } catch (err) {
+        // Commande rejetée (B36, patron CombatScene) : surfacée en toast au lieu
+        // d'un unhandled rejection muet (`void this.handleTap(...)`).
+        pushToast(commandErrorMessage(err), 'error');
+      }
       return;
     }
 
@@ -400,13 +418,20 @@ export class AdventureScene {
    * Si `tile` porte une ville non possédée par le joueur et que le héros
    * sélectionné vient de l'atteindre (dessus ou adjacent), déclenche `CaptureTown`
    * (Alpha 4.13) : capture immédiate d'une ville sans garnison, sinon combat de
-   * siège. No-op si la ville est déjà à nous, hors de portée, ou inexistante.
+   * siège. No-op si la ville est déjà à nous, à un ALLIÉ (on ne s'assiège pas
+   * entre alliés — même règle que `validateCaptureTown`, doc 02 §6 ; B36),
+   * hors de portée, ou inexistante.
    */
   private async tryCaptureTownAt(tile: GridPos): Promise<void> {
     if (this.destroyed) return;
     const { game } = appStore.getState();
     const human = humanId(game);
-    const town = game.towns.find((tw) => tw.ownerPlayerId !== human && samePos(tw.pos, tile));
+    const humanPlayer = game.players.find((p) => p.id === human);
+    const town = game.towns.find((tw) => {
+      if (tw.ownerPlayerId === human || !samePos(tw.pos, tile)) return false;
+      const owner = game.players.find((p) => p.id === tw.ownerPlayerId);
+      return !(owner && humanPlayer && areAllies(owner, humanPlayer));
+    });
     if (!town) return;
     const hero = resolveSelectedHero(game, appStore.getState().selectedHeroId);
     if (!hero || (!samePos(hero.pos, town.pos) && !isAdjacent(hero.pos, town.pos))) return;
@@ -445,8 +470,14 @@ export class AdventureScene {
       const animate = (): void => {
         if (this.destroyed) return resolve(); // scène détruite en cours d'animation
         const t = Math.min(1, (performance.now() - start) / STEP_ANIMATION_MS);
-        const a = isoAnchor(from.x + (to.x - from.x) * t, from.y + (to.y - from.y) * t);
+        const ix = from.x + (to.x - from.x) * t;
+        const iy = from.y + (to.y - from.y) * t;
+        const a = isoAnchor(ix, iy);
         sprite.position.set(a.x, a.y);
+        // B44 : profondeur suivie PENDANT le tween (le sync l'avait figée sur la
+        // case d'arrivée) — le héros passe devant/derrière les props de son
+        // chemin. zIndex flottant accepté : la couche `entities` trie par valeur.
+        sprite.zIndex = isoDepth(ix, iy);
         if (t < 1) requestAnimationFrame(animate);
         else resolve();
       };

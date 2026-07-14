@@ -505,5 +505,28 @@ les données actuelles** (cross-check scripté des ids) ; garde `readSaveVersion
   (Choixpeau), CLAUDE.md. Exécution : 2 sous-agents (combat, ville/héros) +
   coordination directe (IA/alliances/rotation/docs). ~20 tests ajoutés.
   Golden INCHANGÉ (vérifié après chaque volet), moteur 780/780, @core 19/19.
-- [ ] Lot 9 — P2 client (B34–B45)
+- [x] Lot 9 — P2 client (B34–B45). Livré : **B34** voile de passage d'appareil
+  100 % opaque (token `--ink-900`, plus de plateau adverse qui transparaît) ;
+  **B35** `resetNarrativeState()` — purge commune (narrative/quêtes/journal/
+  combatLog) appelée par TOUS les chemins de démarrage/chargement, y compris
+  scénario/campagne qui ne purgeaient pas journal/combatLog ; **B36**
+  `handleTap` catché → toast (patron CombatScene) + `tryCaptureTownAt` exclut
+  les villes alliées ; **B37** `app/settings.ts` (nouveau, patron motion.ts) —
+  `fontScale` (a11y) et `confirmEndTurn` persistés localStorage, relus au
+  boot ; **B38** mort de pile différée (marquage `pendingDeathIds` + multiset
+  d'événements en file + 3 filets anti-fuite) — popups dégâts/☠ sur la CIBLE
+  et fondu de mort joué ; **B39** une entrée d'historique PAR modale +
+  `history.go` compensatoire à la fermeture programmatique (compteurs
+  anti-boucle, 4 parcours vérifiés) ; **B40** filtre du grimoire aligné sur
+  `UnitSpellModal` (mortes/furtives exclues) ; **B41** `yieldToPaint` en
+  `setTimeout` pur quand `document.hidden` (tours IA en arrière-plan) ;
+  **B42** 3 messages distincts pour `pullCloudSave` (+ clé
+  `toast.cloudNotStarted` FR/EN) ; **B43** sprite async inséré à l'index du
+  repli (sous drapeau/médaillon, sur le losange de sol) ; **B44** zIndex
+  interpolé pendant le tween du héros (+ garde animatingHeroId au sync) ;
+  **B45** `destroy({children:true})` SANS texture (textures partagées du
+  cache Assets préservées ; possessions réelles vérifiées dans les sources
+  Pixi 8.19). Exécution : 2 sous-agents (scènes/rendu, app/UI). Couverture :
+  typecheck/lint/build/content:check + suite smoke complète (pas de smoke
+  dédié par point — mise en scène disproportionnée, dit explicitement §7).
 - [ ] Lot 10 — contenu/validation & PWA (B33, B46–B49)

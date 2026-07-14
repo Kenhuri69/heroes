@@ -110,6 +110,8 @@ export function notify(event: AppEvent, game: GameState): string | null {
       if (effect.kind === 'restoreMana')
         // amount 0 = mana déjà pleine ⇒ pas de toast (rien restauré).
         return event.amount > 0 ? t('toast.bonusMana', { amount: event.amount }) : null;
+      if (effect.kind === 'grantArtifact')
+        return t('toast.bonusArtifact', { artifact: resolveArtifactName(effect.artifactId) });
       return t('toast.bonusResource', {
         amount: event.amount,
         resource: t(`resource.${effect.resource}`),

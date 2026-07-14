@@ -913,7 +913,8 @@ export type ResolvedMapObject =
         | { kind: 'learnSpell'; spellId: string }
         | { kind: 'grantSkill'; skillId: string }
         | { kind: 'grantWarMachine'; machineId: string }
-        | { kind: 'restoreMana' };
+        | { kind: 'restoreMana' }
+        | { kind: 'grantArtifact'; artifactId: string };
       frequency: 'oncePerHero' | 'oncePerHeroPerWeek';
       /** État initial : personne n'a visité. */
       visits: Record<string, number>;
@@ -1049,6 +1050,10 @@ export async function loadMap(
       errors.push(`${path}: trésor '${obj.id}' — aucun gain (or et XP à zéro)`);
     if (obj.type === 'artifact' && knownArtifactIds && !knownArtifactIds.has(obj.artifactId))
       errors.push(`${path}: artefact '${obj.id}' — inconnu de core/artifacts.json '${obj.artifactId}'`);
+    // M-VISIT : un lieu `grantArtifact` doit désigner un artefact de core/artifacts.json.
+    if (obj.type === 'visitable' && obj.effect.kind === 'grantArtifact' && knownArtifactIds &&
+        !knownArtifactIds.has(obj.effect.artifactId))
+      errors.push(`${path}: lieu '${obj.id}' — artefact inconnu '${obj.effect.artifactId}'`);
     // M-GUARDLINK (doc 02 §2.2) : un `guardedBy` doit désigner un gardien de la carte.
     if ('guardedBy' in obj && obj.guardedBy !== undefined &&
         !file.objects.some((g) => g.type === 'guardian' && g.id === obj.guardedBy))

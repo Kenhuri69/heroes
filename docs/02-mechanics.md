@@ -237,7 +237,10 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 > héros visiteur ; ajout idempotent à `hero.warMachines`),
 > **puits de magie `restoreMana`** (M-VISIT : restaure la mana du héros à son
 > maximum — utile en cours de tour, la mana ne se rechargeant qu'au changement
-> de jour ; classique « Magic Well » HoMM) ; re-visite
+> de jour ; classique « Magic Well » HoMM),
+> **chariot/dépouille `grantArtifact`** (M-VISIT : donne un artefact précis au
+> héros visiteur — même routage que le ramassage au sol : 1er slot équipé libre,
+> sinon le sac ; classiques « Wagon »/« Corpse » HoMM) ; re-visite
 > `oncePerHero` ou `oncePerHeroPerWeek`),
 > **habitations hors ville** (M-DWELLOWN : **capturables** — la fouler pose le
 > drapeau du joueur et lui réserve le réassort hebdomadaire, façon HoMM ; la

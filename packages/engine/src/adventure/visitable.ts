@@ -79,6 +79,14 @@ export function visitBonus(
     // réellement rendue (0 si déjà pleine ⇒ visite consommée sans gain).
     amount = Math.max(0, hero.manaMax - hero.mana);
     hero.mana = hero.manaMax;
+  } else if (effect.kind === 'grantArtifact') {
+    // Chariot / dépouille (M-VISIT) : donne un artefact. Même routage que le
+    // ramassage au sol (movement.ts) — 1er slot équipé libre, sinon le SAC (le
+    // sac n'a pas de plafond ⇒ toujours placé, amount = 1).
+    const slot = hero.artifacts.indexOf(null);
+    if (slot !== -1) hero.artifacts[slot] = effect.artifactId;
+    else (hero.backpack ??= []).push(effect.artifactId);
+    amount = 1;
   } else {
     player.resources[effect.resource as ResourceId] += effect.amount;
     amount = effect.amount;

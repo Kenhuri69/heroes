@@ -327,6 +327,61 @@ describe('lieux de bonus visitables (doc 02 §2.2)', () => {
     });
   });
 
+  it("le chariot donne un artefact au héros (1er slot libre), une seule fois (M-VISIT)", () => {
+    const wagon: MapObjectDef = {
+      id: 'depouille',
+      type: 'visitable',
+      pos: { x: 2, y: 0 },
+      effect: { kind: 'grantArtifact', artifactId: 'test-relic' },
+      frequency: 'oncePerHero',
+      visits: {},
+    };
+    const s0 = startedWith([wagon]);
+    expect(s0.heroes[0]?.artifacts).not.toContain('test-relic');
+    const { state, events } = move(s0, [
+      { x: 1, y: 0 },
+      { x: 2, y: 0 },
+    ]);
+    // 1er slot équipé libre (héros neuf : tous nuls) ⇒ slot 0.
+    expect(state.heroes[0]?.artifacts[0]).toBe('test-relic');
+    expect(state.heroes[0]?.backpack).toEqual([]);
+    expect(events).toContainEqual({
+      type: 'BonusVisited',
+      heroId: 'hero-p1',
+      playerId: 'p1',
+      objectId: 'depouille',
+      effect: { kind: 'grantArtifact', artifactId: 'test-relic' },
+      amount: 1,
+    });
+    const obj = state.map?.objects.find((o) => o.id === 'depouille');
+    expect(obj?.type === 'visitable' && obj.visits['hero-p1']).toBe(-1); // à vie
+    // Re-visite : aucun second gain (oncePerHero consommé).
+    const back = move(state, [{ x: 1, y: 0 }]).state;
+    const again = move(back, [{ x: 2, y: 0 }]);
+    expect(again.events.some((e) => e.type === 'BonusVisited')).toBe(false);
+  });
+
+  it("le chariot déborde vers le SAC si les 10 slots équipés sont pleins (M-VISIT)", () => {
+    const wagon: MapObjectDef = {
+      id: 'depouille',
+      type: 'visitable',
+      pos: { x: 2, y: 0 },
+      effect: { kind: 'grantArtifact', artifactId: 'test-relic' },
+      frequency: 'oncePerHero',
+      visits: {},
+    };
+    const s0 = startedWith([wagon]);
+    // Sature les 10 slots équipés : le gain doit tomber dans le sac.
+    const full = structuredClone(s0);
+    full.heroes[0]!.artifacts = Array.from({ length: 10 }, (_, i) => `worn-${i}`);
+    const { state } = move(full, [
+      { x: 1, y: 0 },
+      { x: 2, y: 0 },
+    ]);
+    expect(state.heroes[0]?.artifacts).not.toContain('test-relic'); // slots inchangés
+    expect(state.heroes[0]?.backpack).toContain('test-relic'); // débordé au sac
+  });
+
   it('le moulin crédite sa ressource fixe au joueur', () => {
     const mill: MapObjectDef = {
       id: 'moulin',

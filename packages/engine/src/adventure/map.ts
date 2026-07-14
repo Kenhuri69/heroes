@@ -94,7 +94,14 @@ export type VisitableEffect =
    * héros visiteur à son maximum. Utile en cours de tour (la mana ne se recharge
    * qu'au changement de jour). Mana déjà pleine ⇒ visite consommée sans gain.
    */
-  | { kind: 'restoreMana' };
+  | { kind: 'restoreMana' }
+  /**
+   * Chariot / dépouille (M-VISIT, doc 02 §2.2 — « Wagon »/« Corpse ») : donne
+   * l'artefact `artifactId` au héros visiteur. Même routage que le ramassage au
+   * sol — 1er slot équipé libre, sinon le SAC (`hero.backpack`, jamais perdu).
+   * `oncePerHero` = gain unique. `artifactId` = id opaque (jamais de faction).
+   */
+  | { kind: 'grantArtifact'; artifactId: string };
 
 /** Lieu de bonus visitable (doc 02 §2.2) : visite en passant, re-visite bornée. */
 export interface VisitableObjectDef {

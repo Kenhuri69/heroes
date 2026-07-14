@@ -44,7 +44,10 @@ export function tradeQuote(
   giveAmount: number,
   marketCount = 1,
 ): number {
-  if (giveAmount <= 0 || (give === 'gold' && receive === 'gold')) return 0;
+  // Échange d'une ressource contre elle-même rejeté (or↔or inclus) : sans ça,
+  // le troc `sellRate × factor² / buyRate` devient auto-rentable dès que le
+  // facteur dépasse √(buyRate/sellRate) — duplication de ressources en boucle.
+  if (giveAmount <= 0 || give === receive) return 0;
   // Calcul depuis `factor` (multiplier avant diviser) : évite un double arrondi
   // flottant qui pouvait retirer 1 unité à l'achat/troc.
   const { factor } = effectiveMarketRates(market, marketCount);
@@ -81,9 +84,10 @@ export function validateTradeResources(state: GameState, cmd: TradeCmd): Command
     return { code: 'invalidTrade', message: `aucun marché construit dans '${cmd.townId}'` };
   if (!Number.isInteger(cmd.giveAmount) || cmd.giveAmount <= 0)
     return { code: 'invalidTrade', message: `montant d'échange invalide (${cmd.giveAmount})` };
-  // Troc autorisé (T-MARKETRATE) : on rejette seulement or↔or (échange nul).
-  if (cmd.give === 'gold' && cmd.receive === 'gold')
-    return { code: 'invalidTrade', message: 'or contre or : échange sans effet' };
+  // Troc autorisé (T-MARKETRATE) : on rejette l'échange d'une ressource contre
+  // elle-même (or↔or inclus) — sans effet au mieux, duplication au pire.
+  if (cmd.give === cmd.receive)
+    return { code: 'invalidTrade', message: 'échange d’une ressource contre elle-même' };
   const market = state.config?.market;
   if (!market) return { code: 'invalidTrade', message: 'aucun taux de marché configuré' };
   if (player.resources[cmd.give] < cmd.giveAmount)

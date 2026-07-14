@@ -503,7 +503,12 @@ const handlers: Handlers = {
     draft.calendar.weekEventId = null;
     draft.currentPlayer = 0;
     draft.config = cmd.config;
-    draft.map = cmd.map;
+    // La commande EST le format de replay (doc 07 §3) — copie profonde
+    // obligatoire : la carte embarquée est mutée dès ce handler
+    // (`fireDayTriggers` pose `fired`), puis en jeu (gardiens, mines,
+    // visites) ; sans copie, ces écritures muteraient `cmd.map` et
+    // l'autoFreeze d'immer gèlerait la commande de l'appelant.
+    draft.map = structuredClone(cmd.map);
     draft.unitCatalog = cmd.unitCatalog;
     draft.buildingCatalog = cmd.buildingCatalog ?? {};
     draft.spellCatalog = cmd.spellCatalog ?? {};

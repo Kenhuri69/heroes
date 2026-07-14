@@ -370,7 +370,16 @@ les données actuelles** (cross-check scripté des ids) ; garde `readSaveVersion
   doc `docs/0X-*.md` concernée dans le même commit.
 
 ### Suivi
-- [ ] Lot 1 — P0 replay & marché (B1, B2)
+- [x] Lot 1 — P0 replay & marché (B1, B2). Livré : B1 = `structuredClone(cmd.map)`
+  à `StartGame` + test d'immutabilité/re-simulation (`triggers.test.ts`) ; B2 =
+  rejet `give === receive` (helper + validate), garde-fou de schéma
+  `sellRate × maxMarketFactor² ≤ buyRate`, `maxMarketFactor` 2 → 1.4 en données,
+  tests moteur (troc même-ressource, property aller-retour jamais rentable aux
+  valeurs livrées) + test de schéma contenu, doc 02 alignée. Golden inchangé.
+  Écart vs plan : néant. Noté au passage (hors lot) : `cmd.quests` partage
+  l'aliasing de B1 mais sans mutation dans le même `produce` (copy-on-write
+  Immer ensuite) — seul l'autoFreeze gèle l'objet appelant ; à traiter si un
+  jour des quêtes s'évaluent pendant `StartGame`.
 - [ ] Lot 2 — P0 save/relais IA (B3, F4, F11)
 - [ ] Lot 3 — P1 combat (B4–B6, B8, B17)
 - [ ] Lot 4 — P1 aventure/commandes (B7, B9, B10)

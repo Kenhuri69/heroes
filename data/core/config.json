@@ -52,7 +52,7 @@
       "sellRate": 25,
       "buyRate": 50,
       "perMarketBonus": 0.1,
-      "maxMarketFactor": 2
+      "maxMarketFactor": 1.4
     },
     "calendar": {
       "events": [

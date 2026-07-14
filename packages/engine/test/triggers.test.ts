@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { apply } from '../src/core/engine';
-import type { PlayerSetup } from '../src/core/commands';
+import type { Command, PlayerSetup } from '../src/core/commands';
 import { createEmptyState, emptyResources, type GameState } from '../src/core/state';
 import type { AdventureMapDef, MapTriggerDef } from '../src/adventure/map';
 import { testConfig, testMap } from './fixtures';
@@ -119,5 +119,41 @@ describe('triggers de jour', () => {
     expect(b.state.calendar.day).toBe(2);
     expect(b.state.players[0]!.resources.wood).toBe(5);
     expect(b.state.players[1]!.resources.wood).toBe(5);
+  });
+});
+
+describe('immutabilité de la commande StartGame (format de replay, doc 07 §3)', () => {
+  it('ne mute pas cmd.map (trigger jour 1) et ne le gèle pas — rejouable à l’identique', () => {
+    const map: AdventureMapDef = {
+      ...testMap(),
+      triggers: [
+        {
+          id: 't-day1',
+          on: { kind: 'day', day: 1 },
+          effect: { kind: 'grantResource', resource: 'gold', amount: 100 },
+          fired: false,
+        },
+      ],
+    };
+    const cmd: Command = {
+      type: 'StartGame',
+      seed: 1,
+      players: [P1],
+      map,
+      config: testConfig(),
+      unitCatalog: {},
+      buildingCatalog: {},
+      towns: [],
+    };
+    const r1 = apply(createEmptyState(), cmd);
+    // Le trigger a bien tiré dans L'ÉTAT, pas dans la commande de l'appelant.
+    expect(r1.state.map!.triggers[0]!.fired).toBe(true);
+    expect(map.triggers[0]!.fired).toBe(false);
+    expect(Object.isFrozen(map)).toBe(false);
+    expect(Object.isFrozen(map.triggers[0])).toBe(false);
+    // Re-simulation du même journal : résultat identique (l'or du trigger est re-crédité).
+    const r2 = apply(createEmptyState(), cmd);
+    expect(r2.state.players[0]!.resources.gold).toBe(r1.state.players[0]!.resources.gold);
+    expect(r2.state.map!.triggers[0]!.fired).toBe(true);
   });
 });

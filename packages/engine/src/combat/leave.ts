@@ -98,7 +98,10 @@ function endLeftCombat(
   // Chance de fontaine consommée pour tout héros engagé encore vivant (comme la fin normale).
   for (const heroId of [combat.attackerHeroId, combat.defenderHeroId]) {
     const hero = heroId ? draft.heroes.find((h) => h.id === heroId) : undefined;
-    if (hero) hero.visitLuck = 0;
+    if (hero) {
+      hero.visitLuck = 0;
+      hero.visitMorale = 0; // moral de temple consommé avec la chance de fontaine
+    }
   }
   events.push({ type: 'CombatLeft', mode, heroId: combat.heroId ?? '' });
   events.push({ type: 'CombatEnded', winner, playerSide: combat.playerSide, casualties, survivors });

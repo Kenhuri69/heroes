@@ -209,7 +209,10 @@ export function checkCombatEnd(draft: Draft, events: GameEvent[]): boolean {
   // combat, pour chaque héros engagé encore vivant (le vaincu a disparu).
   for (const heroId of [combat.attackerHeroId, combat.defenderHeroId]) {
     const hero = heroId ? draft.heroes.find((h) => h.id === heroId) : undefined;
-    if (hero) hero.visitLuck = 0;
+    if (hero) {
+      hero.visitLuck = 0;
+      hero.visitMorale = 0; // moral de temple consommé avec la chance de fontaine
+    }
   }
   draft.combat = null;
   return true;

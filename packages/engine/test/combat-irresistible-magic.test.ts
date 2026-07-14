@@ -38,7 +38,7 @@ function unit(id: string, opts: { resistance?: number; immune?: boolean } = {}):
 function hero(factionId: string): HeroState {
   return {
     id: 'hero-a', playerId: 'p1', pos: { x: 0, y: 0 }, movementPoints: 0, army: [], xp: 0, level: 1,
-    attributes: { attack: 0, defense: 0, power: 4, knowledge: 3 }, mana: 30, manaMax: 30, skills: {}, visitLuck: 0,
+    attributes: { attack: 0, defense: 0, power: 4, knowledge: 3 }, mana: 30, manaMax: 30, skills: {}, visitLuck: 0, visitMorale: 0,
     spells: ['irr-bolt'], artifacts: Array.from({ length: 10 }, () => null), pendingSkillChoices: [], pendingAttributeChoices: [],
     factionId, houseId: '', houseEffects: [], name: '', specialtyId: '', specialtyEffects: [], warMachines: [], rosterId: '',
   };

@@ -26,7 +26,7 @@ function hero(equipped: (string | null)[]): HeroState {
   const artifacts = Array.from({ length: 10 }, (_, i) => equipped[i] ?? null);
   return {
     id: 'hero-a', playerId: 'p1', pos: { x: 0, y: 0 }, movementPoints: 0, army: [], xp: 0, level: 1,
-    attributes: { attack: 0, defense: 0, power: 0, knowledge: 0 }, mana: 30, manaMax: 30, skills: {}, visitLuck: 0,
+    attributes: { attack: 0, defense: 0, power: 0, knowledge: 0 }, mana: 30, manaMax: 30, skills: {}, visitLuck: 0, visitMorale: 0,
     spells: [], artifacts, pendingSkillChoices: [], pendingAttributeChoices: [],
     factionId: '', houseId: '', houseEffects: [], name: '', specialtyId: '', specialtyEffects: [], warMachines: [], rosterId: '',
   };

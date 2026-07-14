@@ -574,6 +574,7 @@ const handlers: Handlers = {
       manaMax: 0,
       skills: p.startingSkills ? { ...p.startingSkills } : named ? { ...named.startingSkills } : {},
       visitLuck: 0,
+      visitMorale: 0,
       // Sorts connus d'emblée (cercle ≤ Guilde MVP), résolus par le contenu (décision 3.2 #7).
       spells: p.startingSpells ? [...p.startingSpells] : named ? [...named.startingSpells] : [],
       // Artefacts : report par joueur (campagne) sinon dotation globale du scénario.

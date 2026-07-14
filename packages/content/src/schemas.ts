@@ -874,6 +874,8 @@ export const mapFileSchema = z.object({
         y: z.number().int().nonnegative(),
         effect: z.discriminatedUnion('kind', [
           z.object({ kind: z.literal('luck'), amount: z.number().int().positive() }),
+          /** Temple / point d'eau (M-VISIT, doc 02 §2.2) : +moral jusqu'au prochain combat. */
+          z.object({ kind: z.literal('morale'), amount: z.number().int().positive() }),
           z.object({ kind: z.literal('movement'), amount: z.number().int().positive() }),
           z.object({ kind: z.literal('levelXp') }),
           /** Pierre du Savoir (M-VISIT, doc 02 §2.2) : montant FIXE d'XP au héros. */

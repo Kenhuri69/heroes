@@ -39,6 +39,7 @@ type HeroKey =
   | 'manaMax'
   | 'skills'
   | 'visitLuck'
+  | 'visitMorale'
   | 'spells'
   | 'artifacts'
   | 'backpack'
@@ -84,7 +85,7 @@ void _stackExact;
 
 describe('B8 — forme de sauvegarde verrouillée', () => {
   it('CURRENT_SAVE_VERSION correspond à la forme documentée (doc 07 §4)', () => {
-    expect(CURRENT_SAVE_VERSION).toBe(29);
+    expect(CURRENT_SAVE_VERSION).toBe(30);
   });
 
   it('clés top-level de GameState (createEmptyState) inchangées', () => {

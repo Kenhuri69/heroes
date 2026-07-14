@@ -44,6 +44,7 @@ function heroAt(pos: { x: number; y: number }, warMachines: string[] = []): Hero
     manaMax: 0,
     skills: {},
     visitLuck: 0,
+    visitMorale: 0,
     spells: [],
     artifacts: Array.from({ length: 10 }, () => null),
     pendingSkillChoices: [],

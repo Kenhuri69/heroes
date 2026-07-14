@@ -87,6 +87,7 @@ export function handleRecruitHero(draft: GameState, cmd: RecruitCmd, events: Gam
     manaMax: 0,
     skills: { ...def.startingSkills },
     visitLuck: 0,
+    visitMorale: 0,
     spells: [...def.startingSpells],
     artifacts: Array.from({ length: 10 }, () => null),
     backpack: [],

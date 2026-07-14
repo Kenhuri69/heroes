@@ -118,7 +118,10 @@ UI/IA ──commande──► [validation] ──► engine.apply(state, cmd)
     v26 (`HeroState.rosterId`, pool de taverne exclusif, doc 02 §1.5, lot
     M-TAVERN.4) ; v27 (`SpellStatus.silenced`, silence de combat « Silence
     Scellé », doc 05 §6, lot F-SCHOOLS.4) ; v28 (`CombatStack.stealthed`,
-    furtivité « Mue Éphémère », doc 05 §6, lot F-SCHOOLS.7).
+    furtivité « Mue Éphémère », doc 05 §6, lot F-SCHOOLS.7) ; v29
+    (`HeroState.backpack`, sac d'artefacts au-delà des 10 slots, doc 08 §2.3,
+    lot H-ARTEQUIP.1) ; v30 (`HeroState.visitMorale`, moral de temple `morale`,
+    miroir de `visitLuck`, doc 02 §2.2, lot M-VISIT).
 - Une sauvegarde référence les paquets de faction (par id) ; le suivi de
   **version** par paquet est différé avec les migrations (post-MVP).
 

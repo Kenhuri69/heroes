@@ -48,6 +48,7 @@ function baseState(quests: QuestState | null): GameState {
         manaMax: 0,
         skills: {},
         visitLuck: 0,
+        visitMorale: 0,
         spells: [],
         artifacts: [null, null, null],
         pendingSkillChoices: [],

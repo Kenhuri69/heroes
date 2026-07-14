@@ -31,6 +31,10 @@ export function visitBonus(
   if (effect.kind === 'luck') {
     hero.visitLuck += effect.amount;
     amount = effect.amount;
+  } else if (effect.kind === 'morale') {
+    // Temple / point d'eau (M-VISIT) : +moral jusqu'au prochain combat (miroir de `luck`).
+    hero.visitMorale += effect.amount;
+    amount = effect.amount;
   } else if (effect.kind === 'movement') {
     hero.movementPoints += effect.amount;
     amount = effect.amount;

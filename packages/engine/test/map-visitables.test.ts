@@ -3,6 +3,8 @@ import { apply } from '../src/core/engine';
 import { createEmptyState, emptyResources, type GameState } from '../src/core/state';
 import { xpForLevel } from '../src/adventure/experience';
 import type { MapObjectDef } from '../src/adventure/map';
+import { moraleOf } from '../src/combat/state-helpers';
+import type { CombatState } from '../src/combat/types';
 import { testCatalog, testConfig, testMap } from './fixtures';
 
 /**
@@ -439,6 +441,58 @@ describe('lieux de bonus visitables (doc 02 §2.2)', () => {
     state = apply(state, { type: 'AutoCombat' }).state;
     expect(state.combat).toBeNull();
     expect(state.heroes[0]?.visitLuck).toBe(0);
+  });
+
+  it('le temple pose un moral temporaire, nourrit le combat, consommé à la fin du prochain combat (M-VISIT)', () => {
+    const temple: MapObjectDef = {
+      id: 'temple',
+      type: 'visitable',
+      pos: { x: 1, y: 0 },
+      effect: { kind: 'morale', amount: 2 },
+      frequency: 'oncePerHeroPerWeek',
+      visits: {},
+    };
+    const guardian: MapObjectDef = {
+      id: 'guard-1',
+      type: 'guardian',
+      pos: { x: 3, y: 0 },
+      unitId: 'red-grunt',
+      count: 1,
+    };
+    let state = apply(createEmptyState(), {
+      type: 'StartGame',
+      seed: 42,
+      players: [
+        {
+          id: 'p1',
+          startingResources: emptyResources(),
+          startingArmy: [{ unitId: 'red-archer', count: 30 }],
+        },
+      ],
+      map: { ...testMap(), objects: [temple, guardian] },
+      config: testConfig(),
+      unitCatalog: catalogWithEconomy(),
+    }).state;
+    state = move(state, [{ x: 1, y: 0 }]).state;
+    expect(state.heroes[0]?.visitMorale).toBe(2);
+    // Interception du gardien ⇒ combat en cours : le moral du camp du joueur
+    // intègre le +2 (comparé au même combat sans la visite de temple).
+    state = move(state, [
+      { x: 2, y: 0 },
+      { x: 3, y: 0 },
+    ]).state;
+    const combat = state.combat as CombatState;
+    expect(combat).not.toBeNull();
+    const mine = combat.stacks.find((s) => s.side === combat.playerSide)!;
+    const withTemple = moraleOf(mine, combat, state);
+    const zeroed = structuredClone(state);
+    zeroed.heroes[0]!.visitMorale = 0;
+    const without = moraleOf(mine, zeroed.combat as CombatState, zeroed);
+    expect(withTemple - without).toBe(2);
+    // Auto-résolution : le moral de temple est consommé (comme la chance).
+    state = apply(state, { type: 'AutoCombat' }).state;
+    expect(state.combat).toBeNull();
+    expect(state.heroes[0]?.visitMorale).toBe(0);
   });
 });
 

@@ -160,6 +160,7 @@ function buildMonolith(): Container {
 /** Teinte du lieu de bonus par nature d'effet (doc 08 §5 — le glyphe prime, la teinte aide). */
 const VISITABLE_COLORS: Record<string, number> = {
   luck: 0x5dade2, // fontaine (eau)
+  morale: 0xe1b12e, // temple (or/soleil)
   movement: 0xd68910, // écurie
   vision: 0x48c9b0, // tour de guet
   levelXp: 0x27ae60, // sanctuaire / arbre du savoir
@@ -263,6 +264,12 @@ function buildVisitableFallback(kind: string): Container {
         .ellipse(c, c + 2, 12, 4).fill(color).stroke({ width: 2, color: ink })
         .rect(c - 14, c - 12, 28, 4).fill(0x9a6b3f).stroke({ width: 2, color: ink })
         .rect(c - 1, c - 12, 2, 14).fill(ink);
+      break;
+    case 'morale': // temple : fronton triangulaire sur colonnes
+      g.poly([c - 16, c - 4, c + 16, c - 4, c, c - 18]).fill(color).stroke({ width: 2, color: ink })
+        .rect(c - 13, c - 4, 4, 20).fill(0xece0c0).stroke({ width: 2, color: ink })
+        .rect(c - 2, c - 4, 4, 20).fill(0xece0c0).stroke({ width: 2, color: ink })
+        .rect(c + 9, c - 4, 4, 20).fill(0xece0c0).stroke({ width: 2, color: ink });
       break;
     case 'grantArtifact': // chariot / dépouille : coffre au trésor (caisse + couvercle + serrure)
       g.rect(c - 14, c - 2, 28, 16).fill(0x8a5a2b).stroke({ width: 2, color: ink })

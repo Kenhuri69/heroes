@@ -168,6 +168,14 @@ export function applySpellToTargets(
    * d'un héros doté. 0 par défaut (sort ordinaire, sort d'unité).
    */
   statusDurationBonus = 0,
+  /**
+   * Magie Irrésistible (signature du Donjon, doc 17 §2) : mods de dégâts de sort
+   * du héros lanceur — `bonusPct` (fraction) majore les dégâts, `resistancePierce`
+   * (0..1) atténue la résistance magique graduée de la cible. {0,0} par défaut
+   * (sort ordinaire, sort d'unité `spellcaster`). Le caller ne le passe que pour
+   * un sort de dégâts d'un héros doté ; le cœur ignore toute notion de faction.
+   */
+  damageMods: { bonusPct: number; resistancePierce: number } = { bonusPct: 0, resistancePierce: 0 },
 ): { amount: number; kills: number } {
   const targets = spellTargets(combat, spell.area, center);
   let amount = 0;
@@ -192,14 +200,13 @@ export function applySpellToTargets(
       // F-SCHOOLS.3 : un sort mange-Marques ajoute `marksDamagePct`%/charge au
       // bonus passif de Marque, puis consomme les Marques de la cible.
       const consumeBonus = spell.marksDamagePct ? (spell.marksDamagePct / 100) * t.marks : 0;
+      // Magie Irrésistible (doc 17 §2) : la résistance graduée de la cible est
+      // atténuée de `resistancePierce`, puis les dégâts majorés de `bonusPct`.
+      const resistance = Math.max(0, magicResistanceOf(def, t.transformed) - damageMods.resistancePierce);
       const dmg = Math.round(
-        spellDamageAmount(
-          spell,
-          power,
-          lucky,
-          magicResistanceOf(def, t.transformed),
-          rules.markBonusPerStack * t.marks + consumeBonus,
-        ) * mult,
+        spellDamageAmount(spell, power, lucky, resistance, rules.markBonusPerStack * t.marks + consumeBonus) *
+          mult *
+          (1 + damageMods.bonusPct),
       );
       const r = damageOneStack(draft, combat, t, dmg, events);
       amount += r.amount;

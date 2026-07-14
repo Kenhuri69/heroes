@@ -114,6 +114,15 @@ export const factionBonusSchema = z.discriminatedUnion('type', [
     type: z.literal('curseDurationBonus'),
     rounds: z.number().int().positive(),
   }),
+  // Magie Irrésistible (signature du Donjon, doc 17 §2) : les sorts de DÉGÂTS du
+  // héros de la faction gagnent `spellBonusPercent` % de dégâts et ignorent une
+  // fraction `resistancePierce` (0..1) de la résistance magique GRADUÉE de la
+  // cible (l'immunité totale `spellImmune` reste un bloc entier). Générique.
+  z.object({
+    type: z.literal('irresistibleMagic'),
+    spellBonusPercent: z.number().int().nonnegative(),
+    resistancePierce: z.number().min(0).max(1),
+  }),
 ]);
 
 /**

@@ -38,10 +38,12 @@ sceau de Cendregarde non une menace mais une **serrure** : ce qui enferme peut
 ## 2. Mécanique signature (UNE seule) — **Magie Irrésistible**
 
 **Description.** Les sorts **de dégâts** lancés par un héros du Donjon (a)
-**ignorent la résistance magique** de la cible (`magicResistance`, `spellImmune`
-réduit et non annulé — voir plafond) et (b) reçoivent un **bonus de puissance**
-(+X % de dégâts). C'est l'identité *Dungeon / Irresistible Magic* de HoMM : le
-sorcier elfe noir est la meilleure artillerie magique du jeu.
+**ignorent une fraction de la résistance magique GRADUÉE** de la cible
+(`magicResistance`) et (b) reçoivent un **bonus de puissance** (+X % de dégâts).
+C'est l'identité *Dungeon / Irresistible Magic* de HoMM : le sorcier elfe noir
+est la meilleure artillerie magique du jeu. **L'immunité TOTALE aux sorts**
+(`spellImmune`, ex. Dragon d'ombre élite) **reste un bloc de ciblage entier** :
+total = total, la signature ne pierce que la résistance partielle.
 
 **Contre-jeu adverse.** Réduire la **mana** disponible (courses longues, déni
 d'or → moins de Guilde), tuer/immobiliser le héros-sorcier, ou **encaisser** :
@@ -50,10 +52,12 @@ qui survit au barrage initial affronte ensuite un lineup fragile. Les sorts non
 offensifs (buffs/soins) ne bénéficient d'aucun bonus.
 
 **Plafond anti-snowball (obligatoire).** Le bonus est **plat et borné** (pas
-d'effet cumulatif de partie) : +% fixe défini en données, et le contournement de
-résistance est **partiel contre l'immunité totale** (`spellImmune` → dégâts
-réduits, jamais zéro-vs-plein). Aucune boucle de croissance : la puissance vient
-du Savoir/Pouvoir du héros, déjà plafonnés par la courbe de niveau.
+d'effet cumulatif de partie) : +% fixe défini en données (`spellBonusPercent`),
+et le contournement de résistance est **une fraction bornée** (`resistancePierce`
+∈ [0,1], plafonnée à 1) de la seule résistance **graduée** — l'immunité **totale**
+n'est jamais franchie. Aucune boucle de croissance : la puissance vient du
+Savoir/Pouvoir du héros, déjà plafonnés par la courbe de niveau. **Valeurs
+livrées** : `spellBonusPercent: 30`, `resistancePierce: 0.5`.
 
 **Points d'extension nécessaires — UN, générique.**
 - Nouveau **type de `factionBonus` déclaratif** : `irresistibleMagic`

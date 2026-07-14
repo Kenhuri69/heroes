@@ -4,7 +4,7 @@ import { isPassable } from '../adventure/path';
 import { heroLuckOf, killsFromDamage, magicResistanceOf } from '../combat/damage';
 import { checkCombatEnd } from '../combat/turns';
 import { applySpellToTargets, chainTargets, spellTargets, spellcasterParams } from '../combat/spell-effect';
-import { factionCurseDurationBonus, isSpellImmune, staticBlockedKeys } from '../combat/state-helpers';
+import { factionCurseDurationBonus, factionSpellDamageMods, isSpellImmune, staticBlockedKeys } from '../combat/state-helpers';
 import {
   COMBAT_COLS,
   COMBAT_ROWS,
@@ -311,9 +311,13 @@ export function castHeroSpell(
     // d'un héros doté dure +N rounds — bonus par-faction calculé ici, passé comme
     // simple nombre au cœur partagé (qui ignore toute notion de faction).
     const durationBonus = spell.kind === 'debuff' ? factionCurseDurationBonus(draft, hero) : 0;
+    // Magie Irrésistible (doc 17 §2) : mods de dégâts de la faction du héros —
+    // calculés ici, passés comme données au cœur partagé (qui ignore la faction).
+    // Bornés au sort de dégâts (no-op {0,0} pour les autres kinds via le helper).
+    const damageMods = spell.kind === 'damage' ? factionSpellDamageMods(draft, hero) : { bonusPct: 0, resistancePierce: 0 };
     // C7 : effet appliqué à la cible (+ alliées adjacentes en `splash`) via le
     // cœur PARTAGÉ avec le lancer d'unité `spellcaster` (A2h, combat/spell-effect).
-    ({ amount, kills } = applySpellToTargets(draft, combat, spell, target, power, luck, events, durationBonus));
+    ({ amount, kills } = applySpellToTargets(draft, combat, spell, target, power, luck, events, durationBonus, damageMods));
   }
 
   events.push({
@@ -444,7 +448,9 @@ export function estimateSpell(
   if (!target) throw new Error(`estimateSpell: cible introuvable '${targetStackId}'`);
   const hero = heroForPlayerSide(state, combat);
   const power = hero ? effectivePower(hero, state.artifactCatalog) : 0;
-  return estimateSpellWithPower(state, spellId, targetStackId, power);
+  // Magie Irrésistible (doc 17 §2) : la préviz héros reflète les mods de dégâts
+  // de la faction (le sort d'unité `spellcaster` passe par le défaut {0,0}).
+  return estimateSpellWithPower(state, spellId, targetStackId, power, factionSpellDamageMods(state, hero));
 }
 
 /**
@@ -473,6 +479,8 @@ function estimateSpellWithPower(
   spellId: string,
   targetStackId: string,
   power: number,
+  /** Magie Irrésistible (doc 17 §2) — mods de dégâts du héros ; {0,0} pour une unité. */
+  damageMods: { bonusPct: number; resistancePierce: number } = { bonusPct: 0, resistancePierce: 0 },
 ): SpellEstimate {
   const combat = state.combat;
   if (!combat) throw new Error('estimateSpell: aucun combat en cours');
@@ -501,8 +509,10 @@ function estimateSpellWithPower(
       // F-SCHOOLS.3 : un sort mange-Marques ajoute `marksDamagePct`%/charge.
       const consumeBonus = spell.marksDamagePct ? (spell.marksDamagePct / 100) * t.marks : 0;
       const markBonus = (state.config?.combat.markBonusPerStack ?? 0) * t.marks + consumeBonus;
+      // Magie Irrésistible (doc 17 §2) : mêmes maths qu'à la résolution.
+      const resistance = Math.max(0, magicResistanceOf(def, t.transformed) - damageMods.resistancePierce);
       const dmg = Math.round(
-        spellDamageAmount(spell, power, false, magicResistanceOf(def, t.transformed), markBonus) * mult,
+        spellDamageAmount(spell, power, false, resistance, markBonus) * mult * (1 + damageMods.bonusPct),
       );
       const pool = (t.count - 1) * def.stats.hp + t.firstHp;
       amount += dmg;

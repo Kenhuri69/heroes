@@ -99,9 +99,15 @@ describe('5ᵉ faction (native de `rough`, elfes noirs) — pipeline data-driven
     const nameKey = pack?.manifest.name.slice('@loc:'.length) ?? '';
     expect(pack?.locales.fr[nameKey]).toBeTruthy();
     expect(pack?.locales.en[nameKey]).toBeTruthy();
-    // Aucune ressource de faction ; la signature (irresistibleMagic) arrive au lot 17.3.
+    // Aucune ressource de faction ; signature Magie Irrésistible déclarée (lot 17.3).
     expect(pack?.manifest.factionResources).toEqual([]);
-    expect(pack?.manifest.factionBonuses).toEqual([]);
+    const sig = pack?.manifest.factionBonuses.find((b) => b.type === 'irresistibleMagic');
+    expect(sig).toBeDefined();
+    if (sig?.type === 'irresistibleMagic') {
+      expect(sig.spellBonusPercent).toBeGreaterThan(0);
+      expect(sig.resistancePierce).toBeGreaterThan(0);
+      expect(sig.resistancePierce).toBeLessThanOrEqual(1);
+    }
     // Deux héros nommés canon (Raelag/Shadya), avec gameplay résolu (attributs).
     expect(pack?.heroes).toHaveLength(2);
     for (const h of pack?.heroes ?? []) {

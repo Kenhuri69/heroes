@@ -69,25 +69,37 @@
       Spells) — limite pré-existante de l'outil (mêmes faux négatifs sur Sylvan),
       pas un défaut de données ; `content:check` (garde-fou CI réel) est vert.
 
-### Lot 17.3 — Signature `irresistibleMagic` (1 point d'extension générique)
-- [ ] `engine/faction/types.ts` : ajouter le variant `irresistibleMagic`
-      (`spellBonusPercent`, `resistancePierce`) à l'union `FactionBonus` + schéma
-      Zod `@heroes/content` (`schemas.ts`).
-- [ ] Interprétation dans la résolution de sort de combat (`CastSpell` /
-      `castHeroSpell`) : si le héros lanceur porte le bonus (résolu via
-      `hero.factionId` → `factionCatalog`, **jamais** de nom de faction en dur),
-      majorer les dégâts et atténuer la réduction de résistance. Effet **borné**,
-      `spellImmune` réduit non annulé.
-- [ ] Prévisualisation de dégâts (sans RNG) cohérente avec la nouvelle formule.
-- [ ] Données : ajouter le `factionBonus` au manifeste `dungeon`.
-- [ ] Tests **unitaires moteur** : sort de dégâts avec/sans le bonus vs cible
-      résistante ; plafond sur immunité ; un héros d'une autre faction **non**
-      affecté (preuve de généricité).
-- **Vérif** : garde-fou « zéro faction dans le moteur » vert (le diff moteur =
-  un point générique, pas d'`if faction`) ; golden replay — re-fixer **une** fois
-  si la forme d'un cas inline change, sinon inchangé ; typecheck/lint/tests ;
-  décider et documenter tout bump `CURRENT_SAVE_VERSION` (attendu : **aucun**, la
-  signature est du contenu, pas de l'état). Suivre le skill `test-authoring`.
+### Lot 17.3 — Signature `irresistibleMagic` (1 point d'extension générique) — ✅ LIVRÉ
+- [x] `engine/faction/types.ts` : variant `IrresistibleMagicBonus`
+      (`spellBonusPercent` int %, `resistancePierce` fraction 0..1) ajouté à
+      l'union `FactionBonus` + schéma Zod `@heroes/content` (`factionBonusSchema`),
+      formes synchrones.
+- [x] Helper générique `factionSpellDamageMods(state, hero)`
+      (`combat/state-helpers.ts`) — somme les `irresistibleMagic` de la faction du
+      héros (`hero.factionId` → `factionCatalog`, **jamais** de nom de faction),
+      retourne `{ bonusPct, resistancePierce }` borné, {0,0} sinon. Calqué sur le
+      précédent `factionCurseDurationBonus`.
+- [x] Interprétation dans le cœur partagé `applySpellToTargets` (nouveau param
+      `damageMods` défaut {0,0}) : résistance graduée atténuée de `resistancePierce`
+      puis dégâts × (1 + bonusPct). `castHeroSpell` passe les mods (sort de dégâts
+      d'un héros doté) ; le sort d'unité `spellcaster` garde le défaut.
+- [x] Prévisualisation (`estimateSpell`/`estimateSpellWithPower`) : mêmes maths,
+      mods passés côté héros seulement (unité = défaut).
+- [x] `spellImmune` (immunité TOTALE) reste un bloc de ciblage entier — non
+      franchi ; seule la résistance graduée est percée (doc 17 §2 aligné).
+- [x] Données : `factionBonus` `irresistibleMagic` (`spellBonusPercent: 30`,
+      `resistancePierce: 0.5`) ajouté au manifeste `dungeon`.
+- [x] Test unitaire moteur `combat-irresistible-magic.test.ts` : dégâts avec/sans
+      le bonus vs cible résistante (nue 9 / dotée 23), préviz = résolution, héros
+      d'une autre faction **non** affecté (généricité), immunité totale non franchie.
+      Ids de faction synthétiques (garde-fou modularité).
+- **Vérif** : garde-fou « zéro faction dans `packages/` » vert (diff moteur = 1
+  point générique, aucun `if faction`) ; **golden replay inchangé** (aucun cas
+  Dungeon inline ; ajout de variant d'union sans toucher les replays existants) ;
+  typecheck/lint verts ; tests engine 739 (+4) + content 129 ; content:check vert
+  (Dungeon « 1 effet de faction ») ; smoke `@core` 19/19. **Aucun bump
+  `CURRENT_SAVE_VERSION`** : la signature est du contenu (manifeste/catalogue),
+  pas de l'état sérialisé.
 
 ### Lot 17.4 — Équilibrage & finitions
 - [ ] `pnpm faction:sim` incluant le Donjon : régler stats/coûts vers 45–55 %
@@ -118,3 +130,8 @@
   défauts pris faute de confirmation interactive (dialogue coupé techniquement).
   **Renommage** `shadow-court` → `dungeon` (retour utilisateur : garder le nom de
   HoMM, « Donjon » en FR). Suite : 17.2 (données) sur décision utilisateur.
+- **2026-07-14** — Lots 17.1 + 17.2 mergés (PR #349, squash). Lot **17.3**
+  (signature `irresistibleMagic`) livré sur nouvelle branche repartie de `main`
+  (PR #349 mergée ⇒ nouvelle PR, guideline §6) : 1 point d'extension moteur
+  générique, golden inchangé, pas de bump save. Reste 17.4 (équilibrage
+  `faction:sim`, assets) + 17.5 (narratif) — sur décision utilisateur.

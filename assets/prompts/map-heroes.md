@@ -7,7 +7,7 @@
 ## Prompt (à coller dans Gemini — Nano Banana/Copilot en repli)
 
 ```
-Character sheet, 5 mounted fantasy heroes of different armies in a 4x2 grid,
+Character sheet, 6 mounted fantasy heroes of different armies in a 4x2 grid,
 digital painting, heroic fantasy concept art style
 (Heroes of Might and Magic, MTG illustration quality), painterly brush strokes,
 each hero mounted on a steed, dynamic 3/4 view riding pose,
@@ -21,6 +21,7 @@ cell 2: a heroic mounted commander of the arcane-hunters faction riding a capari
 cell 3: a heroic mounted commander of the necropolis faction riding a caparisoned steed, banner or cloak flowing — bone white, ash grey and black, necrotic green glow, tattered cloth, spectral mist
 cell 4: a heroic mounted commander of the sylvan-court faction riding a caparisoned steed, banner or cloak flowing — muted heroic fantasy palette matching the faction lore
 cell 5: a heroic mounted commander of the vox-arcana faction riding a caparisoned steed, banner or cloak flowing — black gothic stone with silver/gold filigree, electric cyan and neon magenta, wisteria violet, Korean oni/pagoda accents, concert neon lanterns
+cell 6: a heroic mounted commander of the dungeon faction riding a caparisoned steed, banner or cloak flowing — muted heroic fantasy palette matching the faction lore
 flat uniform light grey background (#c8c8c8), no ground shadow,
 no text, no watermark, no signature, no border frame, no ground line, no decorative sparkles, no star glints, no lens flare
 ```
@@ -30,7 +31,7 @@ no text, no watermark, no signature, no border frame, no ground line, no decorat
 ```bash
 python3 tools/assets/sheet_extract.py <planche.png> \
   --cols 4 --rows 2 --side 512 \
-  --ids hero-haven,hero-arcane-hunters,hero-necropolis,hero-sylvan-court,hero-vox-arcana \
+  --ids hero-haven,hero-arcane-hunters,hero-necropolis,hero-sylvan-court,hero-vox-arcana,hero-dungeon \
   --out assets/raster_src --qc /tmp/qc-map-heroes.png
 ```
 

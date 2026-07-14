@@ -43,7 +43,13 @@ export type AdventureEffect =
    * immédiats au héros (sans le déplacer). Réutilise `hero.movementPoints` — pur
    * additif, aucun état neuf. Miroir du lieu de bonus `movement` (écurie).
    */
-  | { type: 'movementBonus'; amount: number };
+  | { type: 'movementBonus'; amount: number }
+  /**
+   * Cartographie (H-SPELLS, doc 02 §1.4 — « View Air ») : révèle TOUT le
+   * brouillard de la carte pour le joueur. Réutilise `revealAround` (rayon =
+   * dimension de la carte) — pur additif sur `player.explored`, aucun état neuf.
+   */
+  | { type: 'revealMap' };
 
 /** Définition résolue d'un sort (doc 02 §1.4), embarquée dans le catalogue. */
 export interface SpellDef {

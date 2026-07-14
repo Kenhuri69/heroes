@@ -506,6 +506,18 @@
         "type": "movementBonus",
         "amount": 600
       }
+    },
+    {
+      "id": "cartographie",
+      "school": "air",
+      "circle": 4,
+      "manaCost": 20,
+      "kind": "adventure",
+      "base": 0,
+      "perPower": 0,
+      "adventure": {
+        "type": "revealMap"
+      }
     }
   ]
 }

@@ -495,6 +495,12 @@ Source design : doc 02 §1 (héros), docs de faction §5/§6/§7 (héros nommés
     bonus `movement`). Sort **Marche forcée** (Air, cercle 1, +600 PM). Client
     inchangé (spellbook + toast génériques). Additif ⇒ pas de bump save, golden
     inchangé ; zéro faction.
+  - **H-SPELLS (Cartographie)** ✅ (plan `h-spells-cartography.md`) : 4ᵉ effet
+    d'aventure — variant générique `AdventureEffect { type: 'revealMap' }` révélant
+    TOUT le brouillard pour le joueur (« View Air » ; réutilise `revealAround`,
+    rayon = dimension de la carte). Sort **Cartographie** (Air, cercle 4). Client
+    inchangé. Additif sur `player.explored` ⇒ pas de bump save, golden inchangé ;
+    zéro faction.
   - **H-SPELLS.4+** ⬜ : **invocation**, **résurrection de pile entière**
     (pile à 0 retirée de la grille). Débloque C-SPELLUI.
 

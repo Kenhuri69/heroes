@@ -59,6 +59,17 @@ const MARCH: SpellDef = {
   perPower: 0,
   adventure: { type: 'movementBonus', amount: 600 },
 };
+// H-SPELLS — sort d'aventure « Cartographie » : révèle tout le brouillard.
+const CARTO: SpellDef = {
+  id: 'cartographie',
+  school: 'air',
+  circle: 4,
+  manaCost: 20,
+  kind: 'adventure',
+  base: 0,
+  perPower: 0,
+  adventure: { type: 'revealMap' },
+};
 
 function hero(over: Partial<HeroState> = {}): HeroState {
   return {
@@ -104,7 +115,7 @@ function state(heroOver: Partial<HeroState> = {}, townOwner: string | null = 'pl
   const town: TownState = { id: 't1', ownerPlayerId: townOwner, pos: { x: 8, y: 8 }, factionId: '', buildings: {}, builtToday: false, garrison: [], stock: {}, spellPool: [], sharedGrowthChoice: {} };
   s.towns = [town];
   s.unitCatalog = testCatalog();
-  s.spellCatalog = { 'ville-portail': PORTAL, bolt: BOLT, clairvoyance: VISION, 'marche-forcee': MARCH };
+  s.spellCatalog = { 'ville-portail': PORTAL, bolt: BOLT, clairvoyance: VISION, 'marche-forcee': MARCH, cartographie: CARTO };
   return s;
 }
 
@@ -241,5 +252,27 @@ describe('CastAdventureSpell — Marche forcée (H-SPELLS)', () => {
         playerId: 'player-1',
       })?.code,
     ).toBe('notEnoughMana');
+  });
+});
+
+describe('CastAdventureSpell — Cartographie (H-SPELLS)', () => {
+  it('révèle tout le brouillard de la carte sans déplacer le héros', () => {
+    const { state: next, events } = apply(state({ spells: ['cartographie'], pos: { x: 0, y: 0 } }), {
+      type: 'CastAdventureSpell',
+      heroId: 'hero-player-1',
+      spellId: 'cartographie',
+      playerId: 'player-1',
+    });
+    const h = next.heroes[0]!;
+    const map = next.map!;
+    const explored = next.players[0]!.explored;
+    expect(h.pos).toEqual({ x: 0, y: 0 }); // pas de déplacement
+    // Coin opposé (loin du héros) révélé + case centrale.
+    expect(explored[(map.height - 1) * map.width + (map.width - 1)]).toBe(1);
+    expect(explored[5 * map.width + 5]).toBe(1);
+    // Toute la grille est révélée.
+    expect(explored.filter((v) => v === 1)).toHaveLength(map.width * map.height);
+    expect(h.mana).toBe(20); // 40 − 20
+    expect(events.some((e) => e.type === 'AdventureSpellCast')).toBe(true);
   });
 });

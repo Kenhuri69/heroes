@@ -1,0 +1,93 @@
+{
+  "id": "dungeon-ch3",
+  "schemaVersion": 1,
+  "name": "@loc:scenario.dungeon-ch3.name",
+  "map": "proto-02",
+  "players": [
+    {
+      "id": "player-1",
+      "controller": "human",
+      "factionId": "dungeon",
+      "startPositionIndex": 0,
+      "startingResources": { "gold": 12000, "wood": 20, "ore": 30, "sulfur": 12, "gems": 10 },
+      "startingArmy": [
+        { "unitId": "t2-furie-sanglante", "count": 16 },
+        { "unitId": "t4-chevaucheur-tenebres", "count": 6 },
+        { "unitId": "t6-hydre", "count": 2 },
+        { "unitId": "t7-dragon-ombre", "count": 1 }
+      ],
+      "startingTown": {
+        "id": "start-town",
+        "x": 4,
+        "y": 4,
+        "prebuilt": [
+          { "building": "townHall", "level": 1 },
+          { "building": "fort", "level": 1 },
+          { "building": "dungeon-dwelling-t1", "level": 1 }
+        ]
+      }
+    },
+    {
+      "id": "ai-1",
+      "controller": "ai",
+      "factionId": "haven",
+      "startPositionIndex": 1,
+      "startingResources": { "gold": 5000 },
+      "startingArmy": [
+        { "unitId": "t1-conscrit", "count": 40 },
+        { "unitId": "t2-archer", "count": 16 },
+        { "unitId": "t3-frere-lame", "count": 8 }
+      ]
+    }
+  ],
+  "objectives": {
+    "player-1": {
+      "victory": { "type": "eliminateAllEnemies" },
+      "defeat": { "type": "defeatHero", "heroId": "hero-player-1" }
+    },
+    "ai-1": {
+      "victory": { "type": "eliminateAllEnemies" },
+      "defeat": { "type": "defeatHero", "heroId": "hero-ai-1" }
+    }
+  },
+  "openingDialog": "dlg-dungeon-ch3-open",
+  "combatBarks": [
+    "@loc:bark.dungeon.haven.1",
+    "@loc:bark.dungeon.haven.2",
+    "@loc:bark.dungeon.haven.3"
+  ],
+  "characters": [
+    { "id": "raelag", "nameKey": "@loc:character.raelag.name" },
+    { "id": "shadya", "nameKey": "@loc:character.shadya.name" }
+  ],
+  "dialogs": [
+    {
+      "id": "dlg-dungeon-ch3-open",
+      "lines": [
+        { "speaker": "raelag", "textKey": "@loc:dlg.dungeon.ch3.open.1" },
+        { "speaker": "shadya", "portrait": "grave", "textKey": "@loc:dlg.dungeon.ch3.open.2" },
+        { "speaker": "raelag", "textKey": "@loc:dlg.dungeon.ch3.open.3" }
+      ]
+    },
+    {
+      "id": "dlg-dungeon-ch3-well",
+      "lines": [{ "speaker": "raelag", "textKey": "@loc:dlg.dungeon.ch3.well.1" }]
+    }
+  ],
+  "quests": [
+    {
+      "id": "dungeon-ch3-seal",
+      "kind": "primary",
+      "titleKey": "@loc:quest.dungeon-ch3-seal.title",
+      "descriptionKey": "@loc:quest.dungeon-ch3-seal.desc",
+      "steps": [
+        {
+          "id": "raise-well",
+          "condition": { "type": "buildStructure", "buildingId": "dungeon-cursed-well" },
+          "dialogBefore": "dlg-dungeon-ch3-well"
+        }
+      ],
+      "rewards": [{ "type": "resources", "resources": { "gold": 3000, "sulfur": 4, "gems": 4 } }]
+    }
+  ]
+}

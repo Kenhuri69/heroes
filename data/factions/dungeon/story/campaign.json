@@ -8,6 +8,16 @@
       "id": "ch1",
       "scenario": "dungeon-ch1",
       "titleKey": "@loc:campaign.dungeon.ch1.title"
+    },
+    {
+      "id": "ch2",
+      "scenario": "dungeon-ch2",
+      "titleKey": "@loc:campaign.dungeon.ch2.title"
+    },
+    {
+      "id": "ch3",
+      "scenario": "dungeon-ch3",
+      "titleKey": "@loc:campaign.dungeon.ch3.title"
     }
   ]
 }

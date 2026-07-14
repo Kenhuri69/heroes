@@ -20,7 +20,7 @@ cell 2: a creature dwelling war-camp with arcane-hunters faction architecture id
 cell 3: a creature dwelling war-camp with necropolis faction architecture identity: bone white, ash grey and black, necrotic green glow, tattered cloth, spectral mist — a peaked tent with a pennant, a carved totem and a low campfire
 cell 4: a creature dwelling war-camp with sylvan-court faction architecture identity: muted heroic fantasy palette matching the faction lore — a peaked tent with a pennant, a carved totem and a low campfire
 cell 5: a creature dwelling war-camp with vox-arcana faction architecture identity: black gothic stone with silver/gold filigree, electric cyan and neon magenta, wisteria violet, Korean oni/pagoda accents, concert neon lanterns — a peaked tent with a pennant, a carved totem and a low campfire
-cell 6: a creature dwelling war-camp with dungeon faction architecture identity: muted heroic fantasy palette matching the faction lore — a peaked tent with a pennant, a carved totem and a low campfire
+cell 6: a creature dwelling war-camp with dungeon faction architecture identity: dark violet and black, obsidian stone and cold silver, arcane magenta glow, coiled-serpent motifs, dark-elf sorcery, subterranean cavern ambiance — a peaked tent with a pennant, a carved totem and a low campfire
 flat uniform light grey background (#c8c8c8), no ground shadow,
 no text, no watermark, no signature, no border frame, no ground line, no decorative sparkles, no star glints, no lens flare
 ```

@@ -11,7 +11,7 @@ Character sheet, 6 fantasy creatures of the same army in a 4x2 grid,
 digital painting, heroic fantasy concept art style
 (Heroes of Might and Magic, MTG illustration quality), painterly brush strokes,
 dynamic action pose, 3/4 view, soft directional light from upper-left,
-army visual identity: muted heroic fantasy palette matching the faction lore,
+army visual identity: dark violet and black, obsidian stone and cold silver, arcane magenta glow, coiled-serpent motifs, dark-elf sorcery, subterranean cavern ambiance,
 clear power progression from cell 1 (weakest) to the last cell (mightiest),
 each subject centered in its own cell, not touching cell edges,
 clear spacing between cells,

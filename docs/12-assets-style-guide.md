@@ -91,6 +91,7 @@
 | Haven | Blanc cassé, acier clair, bleu ciel | Or | Lumière sainte, plumes, tabards |
 | Necropolis | Os, gris cendre, noir | Vert nécrotique | Brume spectrale, étoffes en lambeaux |
 | Arcane Hunters | Bleu nuit, violet arcane | Argent + runes cyan | Instruments de traque, glyphes |
+| Dungeon | Violet sombre, noir, obsidienne | Argent froid + magenta arcanique | Serpent lové, sorcellerie elfe noire, cavernes |
 | test-faction | Gris neutre | Orange | Placeholder assumé |
 
 ### 2.4 Production

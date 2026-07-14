@@ -49,6 +49,8 @@ PALETTES = {
     "arcane-hunters": "midnight blue and arcane violet, silver trim, glowing cyan runes, hunter gear",
     "vox-arcana": "black gothic stone with silver/gold filigree, electric cyan and neon magenta, "
     "wisteria violet, Korean oni/pagoda accents, concert neon lanterns",
+    "dungeon": "dark violet and black, obsidian stone and cold silver, arcane magenta glow, "
+    "coiled-serpent motifs, dark-elf sorcery, subterranean cavern ambiance",
     "test-faction": "plain neutral grey with orange accents (placeholder faction)",
 }
 DEFAULT_PALETTE = "muted heroic fantasy palette matching the faction lore"

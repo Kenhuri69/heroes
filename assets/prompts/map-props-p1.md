@@ -20,7 +20,7 @@ cell 2: a grand arcane-hunters faction castle-town seen in slight 3/4 aerial vie
 cell 3: a grand necropolis faction castle-town seen in slight 3/4 aerial view, walls, towers and keep — architecture identity: bone white, ash grey and black, necrotic green glow, tattered cloth, spectral mist
 cell 4: a grand sylvan-court faction castle-town seen in slight 3/4 aerial view, walls, towers and keep — architecture identity: muted heroic fantasy palette matching the faction lore
 cell 5: a grand vox-arcana faction castle-town seen in slight 3/4 aerial view, walls, towers and keep — architecture identity: black gothic stone with silver/gold filigree, electric cyan and neon magenta, wisteria violet, Korean oni/pagoda accents, concert neon lanterns
-cell 6: a grand dungeon faction castle-town seen in slight 3/4 aerial view, walls, towers and keep — architecture identity: muted heroic fantasy palette matching the faction lore
+cell 6: a grand dungeon faction castle-town seen in slight 3/4 aerial view, walls, towers and keep — architecture identity: dark violet and black, obsidian stone and cold silver, arcane magenta glow, coiled-serpent motifs, dark-elf sorcery, subterranean cavern ambiance
 cell 7: a closed wooden treasure chest bound with iron and gold, faint gold glint at the lid seam
 cell 8: a small recruitment war-camp: a peaked tent with a pennant and a low campfire
 flat uniform light grey background (#c8c8c8), no ground shadow,

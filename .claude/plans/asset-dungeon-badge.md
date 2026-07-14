@@ -51,6 +51,20 @@ procédural. Non traités ici : ce lot ne couvre que l'asset générable
 déterministiquement avec l'outillage existant (le blason, comme les 5 autres
 factions).
 
+## Suite — palette dungeon dans les prompts LLM (demande utilisateur)
+La faction dungeon était absente du dict `PALETTES` de `tools/assets/gen_prompts.py`
+⇒ tous ses prompts (fond de ville, jetons de carte, unités, bâtiments) tombaient
+sur le placeholder générique « muted heroic fantasy palette ». Correction :
+- [x] Palette `dungeon` ajoutée à `PALETTES` (doc 17 §1 : violet sombre/noir,
+      obsidienne, magenta arcanique, serpent lové, elfe noir, cavernes).
+- [x] Ligne Dungeon ajoutée au tableau §2.3 du doc 12 (source de vérité).
+- [x] `gen_prompts.py` relancé ⇒ 8 prompts régénérés, **seules les lignes
+      dungeon changent** (vérifié au diff), pièces hand-authored préservées.
+- [x] Prompts focalisés (1 sujet/asset) livrés à l'utilisateur pour Gemini :
+      `backgrounds/town-dungeon`, `map/hero-dungeon`, `map/town-dungeon`,
+      `map/camp-dungeon`. Traitement au retour : fond ⇒ jpg direct ; jetons ⇒
+      `process_sprite.py` (détourage alpha) puis copie vers `assets/map/`.
+
 ## Décisions
 - SILVER plutôt que BRASS : acier froid des elfes noirs, contraste avec l'or
   Vox Arcana (violet lui aussi) → deux écus violets restent distincts.

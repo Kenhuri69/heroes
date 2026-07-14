@@ -33,8 +33,11 @@ cultes du serpent, minotaures/hydres/dragons d'ombre.
    d'hydre et ailes de dragon intactes, texte retiré ✅ ; 14 PNG dans
    `assets/units/dungeon/` (7 base + 7 élites).
 
+8. [x] **Planche bâtiments** intégrée. Grille 4×2 conforme cette fois ; QC 8/8
+   PASS (t5 Cercle des sorcières garde 2 composants = menhirs séparés, attendu).
+   → 8 PNG dans `assets/buildings/dungeon/` (7 habitations + Puits de Malédiction).
+
 ## Reste à produire (planches suivantes, mêmes étapes)
-- `buildings-dungeon` (habitations + Puits maudit).
 - Avatars héros (`hero-avatars-p2` : dungeon-might/magic ; + Raelag/Shadya si planche dédiée).
 
 ## Notes / écarts

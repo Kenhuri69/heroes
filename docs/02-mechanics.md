@@ -91,6 +91,13 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 > bump save, golden inchangé**. « Rappel » = déjà couvert par Ville-portail ;
 > invocation / résurrection de pile entière restent à venir.
 
+> 🚧 **État (Marche forcée, H-SPELLS)** : 3ᵉ effet d'aventure — `adventure: { type:
+> 'movementBonus', amount }`. Sort livré **Marche forcée** (Air, cercle 1) : ajoute
+> `amount` points de mouvement immédiats au héros **sans le déplacer** (miroir du
+> lieu de bonus `movement`/écurie ; réutilise `hero.movementPoints`). Client
+> inchangé (aucune cible, toast `AdventureSpellCast` générique). **Additif** ⇒
+> **pas de bump save, golden inchangé** ; zéro faction.
+
 > 🚧 **État (sorts de masse, H-SPELLS.1)** : le champ de zone `SpellDef.area`
 > gagne la valeur **`all`** (à côté de `splash`) — le sort touche **toutes** les
 > piles vivantes du camp de la pile ciblée (le camp visé = celui de la cible :

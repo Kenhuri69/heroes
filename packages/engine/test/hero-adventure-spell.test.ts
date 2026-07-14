@@ -47,6 +47,18 @@ const VISION: SpellDef = {
   perPower: 0,
   adventure: { type: 'vision', radius: 3 },
 };
+// H-SPELLS — sort d'aventure « Marche forcée » : ajoute des PM immédiats au
+// héros, sans le déplacer.
+const MARCH: SpellDef = {
+  id: 'marche-forcee',
+  school: 'air',
+  circle: 1,
+  manaCost: 6,
+  kind: 'adventure',
+  base: 0,
+  perPower: 0,
+  adventure: { type: 'movementBonus', amount: 600 },
+};
 
 function hero(over: Partial<HeroState> = {}): HeroState {
   return {
@@ -92,7 +104,7 @@ function state(heroOver: Partial<HeroState> = {}, townOwner: string | null = 'pl
   const town: TownState = { id: 't1', ownerPlayerId: townOwner, pos: { x: 8, y: 8 }, factionId: '', buildings: {}, builtToday: false, garrison: [], stock: {}, spellPool: [], sharedGrowthChoice: {} };
   s.towns = [town];
   s.unitCatalog = testCatalog();
-  s.spellCatalog = { 'ville-portail': PORTAL, bolt: BOLT, clairvoyance: VISION };
+  s.spellCatalog = { 'ville-portail': PORTAL, bolt: BOLT, clairvoyance: VISION, 'marche-forcee': MARCH };
   return s;
 }
 
@@ -199,6 +211,33 @@ describe('CastAdventureSpell — Vision (H-SPELLS.3)', () => {
         type: 'CastAdventureSpell',
         heroId: 'hero-player-1',
         spellId: 'clairvoyance',
+        playerId: 'player-1',
+      })?.code,
+    ).toBe('notEnoughMana');
+  });
+});
+
+describe('CastAdventureSpell — Marche forcée (H-SPELLS)', () => {
+  it('ajoute des PM immédiats au héros sans le déplacer, décompte la mana', () => {
+    const { state: next, events } = apply(state({ spells: ['marche-forcee'], movementPoints: 100, pos: { x: 5, y: 5 } }), {
+      type: 'CastAdventureSpell',
+      heroId: 'hero-player-1',
+      spellId: 'marche-forcee',
+      playerId: 'player-1',
+    });
+    const h = next.heroes[0]!;
+    expect(h.pos).toEqual({ x: 5, y: 5 }); // pas de déplacement
+    expect(h.movementPoints).toBe(700); // 100 + 600
+    expect(h.mana).toBe(34); // 40 − 6
+    expect(events.some((e) => e.type === 'AdventureSpellCast')).toBe(true);
+  });
+
+  it('refuse Marche forcée sans mana suffisante', () => {
+    expect(
+      validate(state({ spells: ['marche-forcee'], mana: 2 }), {
+        type: 'CastAdventureSpell',
+        heroId: 'hero-player-1',
+        spellId: 'marche-forcee',
         playerId: 'player-1',
       })?.code,
     ).toBe('notEnoughMana');

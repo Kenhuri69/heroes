@@ -255,6 +255,9 @@ export function handleCastAdventureSpell(
     // H-SPELLS.3 : ouvre le brouillard dans un large rayon autour du héros (sans
     // le déplacer). Le rayon est porté par la donnée du sort.
     revealAround(player.explored, map, hero.pos, spell.adventure.radius);
+  } else if (spell.adventure.type === 'movementBonus') {
+    // H-SPELLS (Marche forcée) : ajoute des PM immédiats (sans déplacer le héros).
+    hero.movementPoints += spell.adventure.amount;
   }
 
   events.push({ type: 'AdventureSpellCast', heroId: hero.id, spellId: spell.id, pos: { ...hero.pos } });

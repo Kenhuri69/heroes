@@ -289,6 +289,11 @@ function captureTown(draft: GameState, town: TownState, player: PlayerState, eve
   const cmd = { type: 'CaptureTown' as const, townId: town.id, playerId: player.id };
   if (validateCaptureTown(draft, cmd)) return; // garde-fou : ne devrait jamais être invalide ici
   handleCaptureTown(draft, cmd, events);
+  // B7 (revue 2026-07) : une ville à garnison vide mais Fort ≥ 3 (tour de tir)
+  // ouvre quand même un siège — l'IA le résout sur-le-champ, comme le chemin de
+  // déplacement (`advanceAi`). Sans ça, `AiTurn` sortait par la garde
+  // `if (draft.combat)` SANS `EndTurn` et laissait son combat au joueur humain.
+  if (draft.combat) runAutoCombat(draft, events);
 }
 
 function playHeroTurn(draft: GameState, hero: HeroState, player: PlayerState, events: GameEvent[]): void {

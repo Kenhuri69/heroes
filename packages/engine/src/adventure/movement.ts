@@ -99,6 +99,23 @@ export function advanceHeroAlongPath(
         (o) => o.type === 'monolith' && o.pairId === monolith.pairId && o.id !== monolith.id,
       );
       if (exit) {
+        // B9 (revue 2026-07) : la tuile de sortie peut être OCCUPÉE — jamais
+        // deux héros superposés (invariant « un héros par tuile » : occupant =
+        // premier `find`, ciblage H-VS-H, rendu). Ennemi ⇒ combat
+        // d'interception à travers le monolithe (comme un pas normal) ;
+        // allié/soi ⇒ passage bloqué, le déplacement s'arrête sur l'entrée.
+        const occupant = draft.heroes.find((h) => h.id !== hero.id && samePos(h.pos, exit.pos));
+        if (occupant) {
+          const occPlayer = draft.players.find((p) => p.id === occupant.playerId);
+          const hostile =
+            occupant.playerId !== player.id && !(occPlayer && areAllies(player, occPlayer));
+          if (hostile) {
+            beginHeroCombat(draft, hero.id, occupant.id, events);
+            options.onCombatEngaged?.();
+            return;
+          }
+          break;
+        }
         const fromPos = { ...hero.pos };
         hero.pos = { ...exit.pos };
         revealAround(

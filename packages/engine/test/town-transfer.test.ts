@@ -1,3 +1,4 @@
+import { produce } from 'immer';
 import { describe, expect, it } from 'vitest';
 import { apply, validate } from '../src/core/engine';
 import type { ArmyStack } from '../src/combat/types';
@@ -103,5 +104,21 @@ describe('GarrisonTransfer', () => {
         slot: 0,
       })?.code,
     ).toBe('invalidTransfer');
+  });
+});
+
+describe('Revue 2026-07 — B10 : GarrisonTransfer ancré sur le joueur actif', () => {
+  it('rejette un transfert dans une ville qui n’appartient pas au joueur actif (notYourTown)', () => {
+    // La ville (et son héros) appartiennent à p2 ; le joueur ACTIF est p1.
+    const state = startedGame({ garrison: [{ unitId: 'red-grunt', count: 5 }] });
+    const rigged = produce(state, (d) => {
+      d.players.push({ ...d.players[0]!, id: 'p2' });
+      d.towns[0]!.ownerPlayerId = 'p2';
+      d.heroes[0]!.playerId = 'p2';
+      // currentPlayer reste 0 (p1) : p2 n'a pas la main.
+    });
+    expect(
+      validate(rigged, { type: 'GarrisonTransfer', townId: 'town-1', heroId: 'hero-p1', from: 'town', slot: 0 })?.code,
+    ).toBe('notYourTown');
   });
 });

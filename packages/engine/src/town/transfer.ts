@@ -16,6 +16,12 @@ const MAX_STACKS = 7;
 export function validateGarrisonTransfer(state: GameState, cmd: TransferCmd): CommandError | null {
   const town = state.towns.find((t) => t.id === cmd.townId);
   if (!town) return { code: 'unknownTown', message: `ville inconnue '${cmd.townId}'` };
+  // B10 (revue 2026-07) : ancre sur le joueur ACTIF comme les autres commandes
+  // de ville — sinon un adversaire réorganisait garnison ↔ héros hors de son
+  // tour (hot-seat / PvP async, le serveur ne fait que rejouer `validate`).
+  const current = state.players[state.currentPlayer];
+  if (!current || town.ownerPlayerId !== current.id)
+    return { code: 'notYourTown', message: `la ville '${cmd.townId}' n'appartient pas au joueur actif` };
   const hero = state.heroes.find((h) => h.id === cmd.heroId);
   if (!hero) return { code: 'invalidTransfer', message: `héros inconnu '${cmd.heroId}'` };
   if (hero.playerId !== town.ownerPlayerId || !samePos(hero.pos, town.pos))

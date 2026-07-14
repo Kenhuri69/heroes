@@ -127,6 +127,11 @@ export function teleportDestinations(state: GameState, spellId: string, targetSt
 export function validateChooseSkill(state: GameState, cmd: ChooseSkillCmd): CommandError | null {
   const hero = state.heroes.find((h) => h.id === cmd.heroId);
   if (!hero) return { code: 'unknownHero', message: `héros inconnu '${cmd.heroId}'` };
+  // B10 (revue 2026-07) : sans ce contrôle, un adversaire pouvait consommer la
+  // montée de niveau d'un héros ennemi (hot-seat / PvP async, doc 15).
+  const current = state.players[state.currentPlayer];
+  if (!current || hero.playerId !== current.id)
+    return { code: 'notYourHero', message: `'${cmd.heroId}' n’appartient pas au joueur actif` };
   if (hero.pendingSkillChoices.length === 0)
     return { code: 'noPendingChoice', message: 'aucune proposition de compétence en attente' };
   if (!hero.pendingSkillChoices.includes(cmd.skillId))
@@ -138,6 +143,10 @@ export function validateChooseSkill(state: GameState, cmd: ChooseSkillCmd): Comm
 export function validateChooseAttribute(state: GameState, cmd: ChooseAttributeCmd): CommandError | null {
   const hero = state.heroes.find((h) => h.id === cmd.heroId);
   if (!hero) return { code: 'unknownHero', message: `héros inconnu '${cmd.heroId}'` };
+  // B10 : même contrôle de propriété/tour que `validateChooseSkill`.
+  const current = state.players[state.currentPlayer];
+  if (!current || hero.playerId !== current.id)
+    return { code: 'notYourHero', message: `'${cmd.heroId}' n’appartient pas au joueur actif` };
   const pending = hero.pendingAttributeChoices[0];
   if (!pending) return { code: 'noPendingChoice', message: 'aucune proposition d’attribut en attente' };
   if (!pending.includes(cmd.attribute))

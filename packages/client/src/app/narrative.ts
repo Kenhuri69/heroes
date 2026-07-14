@@ -16,8 +16,33 @@ type DialogChoice = NonNullable<DialogNode['choices']>[number];
  * `dialogBefore`). Le moteur ignore tout de cette couche (déterminisme intact).
  */
 
+/**
+ * Purge l'état narratif et les journaux de la partie précédente (revue 2026-07,
+ * B35) : narration (catalogue/dialogues/barks), journal de quêtes, journal
+ * d'événements et journal de combat reviennent à leur valeur initiale
+ * (`store.ts`). Point de purge COMMUN : appelé par les chemins de démarrage/
+ * chargement qui ne chargent PAS de narration (« Nouvelle partie », partie
+ * rapide `?seed=`, Continuer/import/cloud) — sans quoi les barks et quêtes de
+ * l'ancienne campagne rejouaient dans la nouvelle partie. Les chemins
+ * scénario/campagne passent par `loadScenarioNarrative`/`loadFreeModeNarrative`
+ * (qui purgent PUIS posent le nouveau catalogue) — ne jamais purger APRÈS eux.
+ */
+export function resetNarrativeState(): void {
+  appStore.setState({
+    narrative: null,
+    dialogue: null,
+    dialogueQueue: [],
+    questJournal: [],
+    combatBark: null,
+    journal: [],
+    combatLog: [],
+    journalUnread: 0,
+  });
+}
+
 /** Charge le catalogue narratif d'un scénario et réinitialise l'état d'UI narratif. */
 export function loadScenarioNarrative(scenario: Scenario): void {
+  resetNarrativeState(); // purge aussi journal/combatLog de la partie précédente (B35)
   const catalog: NarrativeCatalog = {
     dialogs: Object.fromEntries((scenario.dialogs ?? []).map((d) => [d.id, d])),
     characters: Object.fromEntries((scenario.characters ?? []).map((c) => [c.id, c])),
@@ -37,13 +62,7 @@ export function loadScenarioNarrative(scenario: Scenario): void {
     ),
     combatBarks: [...(scenario.combatBarks ?? [])],
   };
-  appStore.setState({
-    narrative: catalog,
-    dialogue: null,
-    dialogueQueue: [],
-    questJournal: [],
-    combatBark: null,
-  });
+  appStore.setState({ narrative: catalog });
   // Dialogue d'ouverture (doc 13 §6.3) : joué avant les `dialogBefore` d'étape 0.
   if (scenario.openingDialog) enqueueDialog(scenario.openingDialog);
 }
@@ -55,6 +74,7 @@ export function loadScenarioNarrative(scenario: Scenario): void {
  * d'escarmouche, comme `loadScenarioNarrative` pour un scénario.
  */
 export function loadFreeModeNarrative(metas: DailyQuestMeta[]): void {
+  resetNarrativeState(); // purge aussi journal/combatLog de la partie précédente (B35)
   const catalog: NarrativeCatalog = {
     dialogs: {},
     characters: {},
@@ -71,13 +91,7 @@ export function loadFreeModeNarrative(metas: DailyQuestMeta[]): void {
     ),
     combatBarks: [],
   };
-  appStore.setState({
-    narrative: catalog,
-    dialogue: null,
-    dialogueQueue: [],
-    questJournal: [],
-    combatBark: null,
-  });
+  appStore.setState({ narrative: catalog });
 }
 
 /**

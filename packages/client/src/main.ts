@@ -30,7 +30,14 @@ import { installCombatLog } from './app/combat-log';
 import { initTelemetry } from './app/telemetry';
 import { initAudio } from './app/audio';
 import { initReduceMotion } from './app/motion';
-import { initNarrative, initCombatBarks, loadScenarioNarrative, loadFreeModeNarrative } from './app/narrative';
+import {
+  initNarrative,
+  initCombatBarks,
+  loadScenarioNarrative,
+  loadFreeModeNarrative,
+  resetNarrativeState,
+} from './app/narrative';
+import { initSettings } from './app/settings';
 import { buildDailyQuests } from './app/daily';
 import { armDailyRefresh, disarmDailyRefresh } from './app/daily-refresh';
 import { registerCamera, unregisterCamera } from './app/camera-control';
@@ -184,6 +191,7 @@ async function bootstrap(): Promise<void> {
   appStore.subscribe(ensureScenes);
 
   const startNewGame = async (seed: number): Promise<void> => {
+    resetNarrativeState(); // partie rapide sans narration (revue 2026-07, B35)
     await dispatch(
       newGameCommand(
         seed,
@@ -254,6 +262,7 @@ async function bootstrap(): Promise<void> {
     const setLoading = (label: string, progress: number): void =>
       appStore.setState({ loading: { label, progress } });
     disarmDailyRefresh(); // « Nouvelle partie » n'embarque pas de contrats journaliers
+    resetNarrativeState(); // pas de narration en « Nouvelle partie » (revue 2026-07, B35)
     try {
       setLoading('newgame.loading.prepare', 0.1);
       await raf();
@@ -302,6 +311,7 @@ async function bootstrap(): Promise<void> {
   installCombatLog(); // journal de combat (UX-COMBATLOG, doc 08 §2.4) — accumule les événements
   initTelemetry(); // télémétrie locale opt-in (doc 09, Alpha 4.19) — no-op si désactivée
   initReduceMotion(); // option « réduire les animations » (lot M8 C3) — miroir localStorage
+  initSettings(); // taille de police + confirmation de fin de tour (revue 2026-07, B37)
   initAudio(); // ambiance sonore (UXD-6B) — silencieuse tant qu'aucun fichier audio
   initNarrative(); // couche narrative branchée sur les événements de quête (doc 13, N2b)
   initCombatBarks(); // barks de combat au début d'un combat de campagne (doc 13, N4b)

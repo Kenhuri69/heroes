@@ -1,0 +1,8 @@
+/* B34 (revue 2026-07) : à `EndTurn`, la scène redessine immédiatement le
+   brouillard/les villes du joueur SUIVANT (seule la caméra attend `turnAck`) —
+   le voile à 60 % (--veil-deep) du backdrop générique laissait transparaître
+   son plateau au joueur précédent (fuite d'information hot-seat). Le fond du
+   passage d'appareil est donc 100 % OPAQUE (encre du thème, pas un noir brut). */
+.modal-backdrop.handoff-backdrop {
+  background: var(--ink-900);
+}

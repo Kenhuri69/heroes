@@ -510,6 +510,7 @@
   "toast.cloudLoaded": "Partie chargée depuis le cloud.",
   "toast.cloudLoadError": "Aucune sauvegarde cloud, ou échec du chargement.",
   "toast.cloudIncompatible": "Sauvegarde cloud d'une autre version — non chargeable.",
+  "toast.cloudNotStarted": "La sauvegarde cloud ne contient pas de partie démarrée.",
   "toast.townCaptured": "Ville capturée !",
   "toast.caravanSent": "Caravane expédiée ({days} j de trajet).",
   "toast.caravanArrived": "Caravane arrivée : +{count} {unit} en garnison.",

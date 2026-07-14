@@ -81,6 +81,16 @@ export class CombatScene {
   private readonly activeRing: Graphics;
   private readonly stackTokens = new Map<string, Container>();
   private readonly animatingIds = new Set<string>();
+  /**
+   * B38 : ids de piles référencés par des événements d'animation encore EN FILE
+   * (multiset id → nb d'événements). `dispatch` fait son setState AVANT d'émettre
+   * les événements : au sync qui suit un coup fatal, les animations de CE coup ne
+   * sont pas encore en file — le compteur sert aux syncs SUIVANTS (auto-combat
+   * qui enchaîne les dispatchs) et au filet anti-fuite `flushPendingDeaths`.
+   */
+  private readonly queuedEventIds = new Map<string, number>();
+  /** B38 : piles mortes dont le jeton est gardé pour la file d'animations — `animateDeath` le détruit en fin de fondu. */
+  private readonly pendingDeathIds = new Set<string>();
   /** C-HEROSPRITE : jeton du héros de chaque camp (absent si camp sans héros). */
   private readonly heroTokens = new Map<CombatSideId, Container>();
   private readonly heroLayer = new Container();
@@ -210,6 +220,9 @@ export class CombatScene {
         token.destroy();
         this.stackTokens.delete(id);
       }
+      // Fin de combat = filet de sécurité B38 : plus de mort différée en attente
+      // (les jetons encore animés se détruisent en fin de `animateDeath`).
+      this.pendingDeathIds.clear();
       this.activeRing.visible = false;
       for (const token of this.heroTokens.values()) token.destroy({ children: true });
       this.heroTokens.clear();
@@ -300,6 +313,18 @@ export class CombatScene {
     const alive = new Set(combat.stacks.map((s) => s.id));
     for (const [id, token] of this.stackTokens) {
       if (alive.has(id) || this.animatingIds.has(id)) continue;
+      // B38 : mort DIFFÉRÉE. Ce sync est déclenché par le setState du dispatch,
+      // AVANT l'émission des événements (`dispatch.ts`) : détruire le jeton ici
+      // privait `animateAttack` de sa cible (chiffres de dégâts et « ☠ » posés
+      // sur l'ATTAQUANT) et `animateDeath` de son fondu. On marque la pile « en
+      // attente de mort » ; `animateDeath` détruira le jeton en fin de fondu.
+      if (!this.pendingDeathIds.has(id) || (this.queuedEventIds.get(id) ?? 0) > 0) {
+        this.pendingDeathIds.add(id);
+        continue;
+      }
+      // Filet de sécurité (fuite) : marquée à un sync précédent et plus aucun
+      // événement en file ne la référence — le fondu n'arrivera jamais, on détruit.
+      this.pendingDeathIds.delete(id);
       token.destroy();
       this.stackTokens.delete(id);
     }
@@ -754,7 +779,40 @@ export class CombatScene {
   // ——— Animations depuis les événements moteur (doc 07 §3) ———
 
   private onEvent(event: AppEvent): void {
-    this.queue = this.queue.then(() => this.animateEvent(event));
+    // B38 : recense les piles référencées par l'événement TANT qu'il est en file
+    // — `syncStacks` sait ainsi qu'un jeton « en attente de mort » sera utilisé.
+    for (const id of eventStackIds(event)) {
+      this.queuedEventIds.set(id, (this.queuedEventIds.get(id) ?? 0) + 1);
+    }
+    this.queue = this.queue.then(async () => {
+      try {
+        await this.animateEvent(event);
+      } finally {
+        for (const id of eventStackIds(event)) {
+          const left = (this.queuedEventIds.get(id) ?? 1) - 1;
+          if (left > 0) this.queuedEventIds.set(id, left);
+          else this.queuedEventIds.delete(id);
+        }
+        this.flushPendingDeaths();
+      }
+    });
+  }
+
+  /**
+   * B38 (filet anti-fuite) : détruit les jetons « en attente de mort » que plus
+   * aucun événement en file ne référence. Le cas nominal passe par
+   * `animateDeath` (fondu puis destruction) ; ce filet couvre une pile retirée
+   * de l'état sans `StackDied` animé (l'événement n'arrive jamais).
+   */
+  private flushPendingDeaths(): void {
+    if (this.destroyed) return;
+    for (const id of this.pendingDeathIds) {
+      if (this.animatingIds.has(id) || (this.queuedEventIds.get(id) ?? 0) > 0) continue;
+      const token = this.stackTokens.get(id);
+      if (token && !token.destroyed) token.destroy();
+      this.stackTokens.delete(id);
+      this.pendingDeathIds.delete(id);
+    }
   }
 
   private async animateEvent(event: AppEvent): Promise<void> {
@@ -1020,6 +1078,32 @@ export class CombatScene {
     this.animatingIds.delete(stackId);
     if (!token.destroyed) token.destroy();
     this.stackTokens.delete(stackId);
+    this.pendingDeathIds.delete(stackId); // mort différée honorée (B38)
+  }
+}
+
+/**
+ * Piles référencées par un événement ANIMÉ par la scène (B38) — la destruction
+ * du jeton d'une pile morte est différée tant que l'un de ces événements est en
+ * file. Aligné sur le switch de `animateEvent` : seuls les événements qui y
+ * touchent un jeton comptent.
+ */
+function eventStackIds(event: AppEvent): string[] {
+  switch (event.type) {
+    case 'StackMoved':
+    case 'StackDied':
+    case 'StackHealed':
+    case 'MoatDamaged':
+      return [event.stackId];
+    case 'StackAttacked':
+      return [event.attackerId, event.targetId];
+    case 'StackCursed':
+    case 'StackFeared':
+    case 'SpellCast':
+    case 'HeroStruck':
+      return [event.targetId];
+    default:
+      return [];
   }
 }
 

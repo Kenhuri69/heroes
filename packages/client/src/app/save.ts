@@ -7,6 +7,7 @@ import {
 } from '@heroes/engine';
 import { appStore } from './store';
 import { eventBus } from './events';
+import { resetNarrativeState } from './narrative';
 import { getSave, putSave } from './net';
 
 /**
@@ -108,6 +109,9 @@ export async function loadGame(slot: SaveSlot): Promise<GameState | null> {
 export async function restoreSavedGame(slot: SaveSlot): Promise<boolean> {
   const state = await loadGame(slot);
   if (!state) return false;
+  // La narration/les journaux de la partie en cours ne concernent pas la partie
+  // chargée (le catalogue narratif n'est pas persisté) — purge (B35).
+  resetNarrativeState();
   // Chargement d'une partie : route aventure + pile de modales vidée (U2).
   appStore.setState({ game: state, screen: 'adventure', modals: [] });
   eventBus.emit([{ type: 'GameLoaded' }]);
@@ -157,6 +161,7 @@ export async function pullCloudSave(slot: SaveSlot = 'manual'): Promise<CloudPul
   if (!isCompatible(r.state)) return 'incompatible';
   const state = deserializeState(r.state);
   if (!state.started) return 'notStarted';
+  resetNarrativeState(); // purge la narration de la partie précédente (B35)
   appStore.setState({ game: state, screen: 'adventure', modals: [] });
   eventBus.emit([{ type: 'GameLoaded' }]);
   return 'ok';
@@ -184,6 +189,7 @@ export async function importSave(file: Blob): Promise<boolean> {
     if (!isCompatible(payload.snapshot)) return false;
     const state = deserializeState(payload.snapshot);
     if (!state.started) return false;
+    resetNarrativeState(); // purge la narration de la partie précédente (B35)
     // Import d'une partie : route aventure + pile de modales vidée (U2).
     appStore.setState({ game: state, screen: 'adventure', modals: [] });
     eventBus.emit([{ type: 'GameLoaded' }]);

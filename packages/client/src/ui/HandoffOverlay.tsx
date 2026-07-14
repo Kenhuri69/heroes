@@ -1,6 +1,7 @@
 import { appStore, useApp } from '../app/store';
 import { t } from '../app/i18n';
 import './OutcomeOverlay.css';
+import './HandoffOverlay.css';
 
 /**
  * Overlay « passez l'appareil » du hot-seat (doc 08 §3, Alpha 4.15) : monté par
@@ -27,7 +28,8 @@ export function HandoffOverlay() {
   const seat = game.players.findIndex((p) => p.id === active.id) + 1;
 
   return (
-    <div class="modal-backdrop">
+    // Backdrop OPAQUE (B34) : le plateau du joueur suivant ne doit pas transparaître.
+    <div class="modal-backdrop handoff-backdrop">
       <div
         class="modal outcome-overlay"
         role="dialog"

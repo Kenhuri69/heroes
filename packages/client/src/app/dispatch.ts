@@ -138,6 +138,11 @@ let aiLoopRunning = false;
 
 /** Cède la main au navigateur le temps d'un repaint (anti-gel), puis attend `ms`. */
 function yieldToPaint(ms: number): Promise<void> {
+  // Onglet masqué (revue 2026-07, B41) : `requestAnimationFrame` ne tire plus —
+  // repli `setTimeout` seul pour que les tours IA avancent en arrière-plan.
+  if (typeof document !== 'undefined' && document.hidden) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
   return new Promise((resolve) => {
     requestAnimationFrame(() => (ms > 0 ? setTimeout(resolve, ms) : resolve()));
   });

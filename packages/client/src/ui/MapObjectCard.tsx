@@ -147,5 +147,7 @@ function visitableEffectLine(effect: VisitableEffect): string {
       return t('mapCard.effectGrantWarMachine', { machine: resolveUnitName(effect.machineId) });
     case 'restoreMana':
       return t('mapCard.effectRestoreMana');
+    case 'grantArtifact':
+      return t('mapCard.effectGrantArtifact', { artifact: resolveArtifactName(effect.artifactId) });
   }
 }

@@ -375,6 +375,17 @@
       "frequency": "oncePerHeroPerWeek"
     },
     {
+      "id": "depouille-1",
+      "type": "visitable",
+      "x": 11,
+      "y": 7,
+      "effect": {
+        "kind": "grantArtifact",
+        "artifactId": "lame-aiguisee"
+      },
+      "frequency": "oncePerHero"
+    },
+    {
       "id": "pierre-savoir-1",
       "type": "visitable",
       "x": 9,

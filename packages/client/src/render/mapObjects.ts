@@ -168,6 +168,7 @@ const VISITABLE_COLORS: Record<string, number> = {
   grantSkill: 0x6c3483, // cabane de la sorcière (compétence)
   grantWarMachine: 0x7f8c8d, // fabrique de machines de guerre (métal)
   restoreMana: 0x2980b9, // puits de magie (eau/mana)
+  grantArtifact: 0xb7950f, // chariot / dépouille (coffre doré)
   resource: 0xb9770e, // moulin
 };
 
@@ -262,6 +263,11 @@ function buildVisitableFallback(kind: string): Container {
         .ellipse(c, c + 2, 12, 4).fill(color).stroke({ width: 2, color: ink })
         .rect(c - 14, c - 12, 28, 4).fill(0x9a6b3f).stroke({ width: 2, color: ink })
         .rect(c - 1, c - 12, 2, 14).fill(ink);
+      break;
+    case 'grantArtifact': // chariot / dépouille : coffre au trésor (caisse + couvercle + serrure)
+      g.rect(c - 14, c - 2, 28, 16).fill(0x8a5a2b).stroke({ width: 2, color: ink })
+        .poly([c - 15, c - 2, c + 15, c - 2, c + 15, c - 8, c - 15, c - 8]).fill(color).stroke({ width: 2, color: ink })
+        .rect(c - 3, c - 4, 6, 8).fill(0xf7dc6f).stroke({ width: 1.5, color: ink });
       break;
     case 'experience': // pierre du savoir : tome ouvert sur un socle
       g.rect(c - 14, c + 8, 28, 8).fill(0x6d4c2f).stroke({ width: 2, color: ink })

@@ -82,7 +82,13 @@ export type VisitableEffect =
    * (ajout à `hero.warMachines`, idempotent). Déjà possédée ⇒ visite consommée
    * sans rien donner. `oncePerHero` = gain unique. `machineId` = id opaque.
    */
-  | { kind: 'grantWarMachine'; machineId: string };
+  | { kind: 'grantWarMachine'; machineId: string }
+  /**
+   * Puits de magie (M-VISIT, doc 02 §2.2 — « Magic Well ») : restaure la mana du
+   * héros visiteur à son maximum. Utile en cours de tour (la mana ne se recharge
+   * qu'au changement de jour). Mana déjà pleine ⇒ visite consommée sans gain.
+   */
+  | { kind: 'restoreMana' };
 
 /** Lieu de bonus visitable (doc 02 §2.2) : visite en passant, re-visite bornée. */
 export interface VisitableObjectDef {

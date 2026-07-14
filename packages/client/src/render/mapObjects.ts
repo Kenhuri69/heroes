@@ -166,6 +166,7 @@ const VISITABLE_COLORS: Record<string, number> = {
   learnSpell: 0x8e44ad, // sanctuaire de sort (magie)
   grantSkill: 0x6c3483, // cabane de la sorcière (compétence)
   grantWarMachine: 0x7f8c8d, // fabrique de machines de guerre (métal)
+  restoreMana: 0x2980b9, // puits de magie (eau/mana)
   resource: 0xb9770e, // moulin
 };
 
@@ -254,6 +255,12 @@ function buildVisitableFallback(kind: string): Container {
         .rect(c - 4, c - 14, 22, 4).fill(0x9a6b3f).stroke({ width: 2, color: ink })
         .circle(c - 8, c + 12, 6).fill(0x5d4037).stroke({ width: 2, color: ink })
         .circle(c + 8, c + 12, 6).fill(0x5d4037).stroke({ width: 2, color: ink });
+      break;
+    case 'restoreMana': // puits de magie : margelle de puits + eau + toit
+      g.rect(c - 12, c + 2, 24, 14).fill(0x8d99a6).stroke({ width: 2, color: ink })
+        .ellipse(c, c + 2, 12, 4).fill(color).stroke({ width: 2, color: ink })
+        .rect(c - 14, c - 12, 28, 4).fill(0x9a6b3f).stroke({ width: 2, color: ink })
+        .rect(c - 1, c - 12, 2, 14).fill(ink);
       break;
     default: // sanctuaire / levelXp : obélisque runique
       g.poly([c, c - 20, c + 8, c + 12, c - 8, c + 12]).fill(color).stroke({ width: 2, color: ink })

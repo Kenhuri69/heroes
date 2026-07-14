@@ -70,6 +70,11 @@ export function visitBonus(
       hero.warMachines.push(effect.machineId);
       amount = 1;
     }
+  } else if (effect.kind === 'restoreMana') {
+    // Puits de magie (M-VISIT) : restaure la mana à son maximum. `amount` = mana
+    // réellement rendue (0 si déjà pleine ⇒ visite consommée sans gain).
+    amount = Math.max(0, hero.manaMax - hero.mana);
+    hero.mana = hero.manaMax;
   } else {
     player.resources[effect.resource as ResourceId] += effect.amount;
     amount = effect.amount;

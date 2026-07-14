@@ -20,7 +20,7 @@ import type { GameState, HeroState } from '../core/state';
 import type { TownState } from '../town/types';
 import type { SpellKind } from './types';
 import { heroKnownSpellIds } from './artifacts';
-import { heroVisionBonus } from './skills';
+import { heroVisionRadius } from './skills';
 import { effectiveManaCost, effectivePower, spellDamageAmount, spellHealAmount, spellTargetsEnemy } from './spells';
 
 /**
@@ -248,7 +248,7 @@ export function handleCastAdventureSpell(
         player.explored,
         map,
         hero.pos,
-        (draft.config?.visionRadius ?? 0) + heroVisionBonus(hero, draft.skillCatalog),
+        heroVisionRadius(hero, draft.config?.visionRadius ?? 0, draft.skillCatalog, draft.artifactCatalog),
       );
     }
   } else if (spell.adventure.type === 'vision') {

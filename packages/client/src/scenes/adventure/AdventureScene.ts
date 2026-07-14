@@ -3,7 +3,7 @@ import {
   areAllies,
   dailyMovementPoints,
   findPath,
-  heroVisionBonus,
+  heroVisionRadius,
   isAdjacent,
   samePos,
   stepCost,
@@ -164,11 +164,11 @@ export class AdventureScene {
     );
     this.towns.sync(game.towns, humanId(game), (ownerId) => playerColor(game.players, ownerId));
     const heroes = humanHeroes(game);
-    // C4 : rayon de vision EFFECTIF par héros (base + bonus Recherche), aligné sur
-    // la révélation moteur (`revealAround` : visionRadius + heroVisionBonus).
+    // C4 : rayon de vision EFFECTIF par héros (base + bonus Recherche + longue-vue),
+    // aligné sur la révélation moteur via le helper partagé `heroVisionRadius`.
     const sightings = heroes.map((h) => ({
       pos: h.pos,
-      radius: config.visionRadius + heroVisionBonus(h, game.skillCatalog),
+      radius: heroVisionRadius(h, config.visionRadius, game.skillCatalog, game.artifactCatalog),
     }));
     // F1 : les villes et mines possédées sont des sources de vision vivante —
     // halo clair permanent autour d'elles, aligné sur la révélation moteur.

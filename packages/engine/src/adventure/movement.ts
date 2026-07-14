@@ -1,7 +1,7 @@
 import { beginGuardianCombat, beginHeroCombat } from '../combat/setup';
 import type { GameEvent } from '../core/events';
 import { areAllies, type GameState, type HeroState, type PlayerState, type ResourceId } from '../core/state';
-import { heroVisionBonus } from '../hero/skills';
+import { heroVisionRadius } from '../hero/skills';
 import { learnGuildSpellsAtTown } from '../town/mage-guild';
 import { revealAround } from './fog';
 import { revealStructure } from './vision';
@@ -80,7 +80,7 @@ export function advanceHeroAlongPath(
       player.explored,
       map,
       hero.pos,
-      config.visionRadius + heroVisionBonus(hero, draft.skillCatalog),
+      heroVisionRadius(hero, config.visionRadius, draft.skillCatalog, draft.artifactCatalog),
     );
     events.push({
       type: 'MoveStepped',
@@ -105,7 +105,7 @@ export function advanceHeroAlongPath(
           player.explored,
           map,
           hero.pos,
-          config.visionRadius + heroVisionBonus(hero, draft.skillCatalog),
+          heroVisionRadius(hero, config.visionRadius, draft.skillCatalog, draft.artifactCatalog),
         );
         events.push({ type: 'HeroTeleported', heroId: hero.id, from: fromPos, to: { ...exit.pos } });
         break;

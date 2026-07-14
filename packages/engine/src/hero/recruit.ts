@@ -4,7 +4,7 @@ import type { GameEvent } from '../core/events';
 import type { GameState, HeroState } from '../core/state';
 import { builtLevelOf } from '../town/helpers';
 import { heroManaMax } from './artifacts';
-import { heroVisionBonus } from './skills';
+import { heroVisionRadius } from './skills';
 
 type RecruitCmd = Extract<Command, { type: 'RecruitHero' }>;
 
@@ -105,6 +105,6 @@ export function handleRecruitHero(draft: GameState, cmd: RecruitCmd, events: Gam
   draft.heroes.push(hero);
   // Le héros recruté éclaire aussitôt son voisinage (comme un héros de départ).
   if (draft.map && draft.config)
-    revealAround(player.explored, draft.map, hero.pos, draft.config.visionRadius + heroVisionBonus(hero, draft.skillCatalog));
+    revealAround(player.explored, draft.map, hero.pos, heroVisionRadius(hero, draft.config.visionRadius, draft.skillCatalog, draft.artifactCatalog));
   events.push({ type: 'HeroRecruited', playerId: cmd.playerId, heroId: cmd.heroId, newHeroId: id });
 }

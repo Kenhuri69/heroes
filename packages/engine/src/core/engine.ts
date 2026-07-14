@@ -72,7 +72,7 @@ import {
   applyEquipArtifact,
   applyUnequipArtifact,
 } from '../hero/equip';
-import { heroGoldPerDay, heroMovementBonus, heroVisionBonus } from '../hero/skills';
+import { heroGoldPerDay, heroMovementBonus, heroVisionRadius } from '../hero/skills';
 import { resolveTreasure } from '../adventure/treasure';
 import { roamGuardians } from '../adventure/roam';
 import { evaluateOutcome, tickTownGrace } from '../scenario/outcome';
@@ -625,7 +625,7 @@ const handlers: Handlers = {
           player.explored,
           cmd.map,
           hero.pos,
-          cmd.config.visionRadius + heroVisionBonus(hero, draft.skillCatalog),
+          heroVisionRadius(hero, cmd.config.visionRadius, draft.skillCatalog, draft.artifactCatalog),
         );
     }
     // Guilde des mages (G2) : tire le pool des niveaux de guilde PRÉBÂTIS (chaque

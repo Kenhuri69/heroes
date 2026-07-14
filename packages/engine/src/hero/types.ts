@@ -249,6 +249,12 @@ export interface ArtifactDef {
      * `movementBonusFlat` d'aura de bâtiment (F-BUILDEFF.1). Absent = 0.
      */
     movementFlat?: number;
+    /**
+     * Rayon de vision plat (H-ARTEQUIP, doc 02 §1.5 — « longue-vue ») ajouté tant
+     * que l'artefact est équipé. Miroir du bonus de la compétence Recherche
+     * (`heroVisionBonus`), agrégé dans `heroVisionRadius`. Absent = 0.
+     */
+    vision?: number;
   };
   /** Emplacement de poupée (présentation client, jamais lu par le moteur). */
   slot?: ArtifactSlot;

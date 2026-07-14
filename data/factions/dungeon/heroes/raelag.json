@@ -5,7 +5,7 @@
   "archetype": "might",
   "origin": "canon",
   "source": "Might & Magic",
-  "avatar": "dungeon-might",
+  "avatar": "dungeon-raelag",
   "avatarStyle": "painterly",
   "specialty": "@loc:hero.raelag.specialty",
   "attributes": { "attack": 2, "defense": 2, "power": 1, "knowledge": 1 },

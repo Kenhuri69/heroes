@@ -37,8 +37,15 @@ cultes du serpent, minotaures/hydres/dragons d'ombre.
    PASS (t5 Cercle des sorcières garde 2 composants = menhirs séparés, attendu).
    → 8 PNG dans `assets/buildings/dungeon/` (7 habitations + Puits de Malédiction).
 
-## Reste à produire (planches suivantes, mêmes étapes)
-- Avatars héros (`hero-avatars-p2` : dungeon-might/magic ; + Raelag/Shadya si planche dédiée).
+9. [x] **Avatars héros** (planche 4×1 : might, magic, Raelag, Shadya) intégrés.
+   QC 4/4 PASS ; 4 bustes dans `assets/heroes/` (dungeon-{might,magic,raelag,shadya}).
+   Champs `avatar` de Raelag → `dungeon-raelag`, Shadya → `dungeon-shadya`
+   (convention héros canon ; schéma `avatar: z.string().min(1)` respecté).
+
+## Faction Dungeon : assets COMPLETS ✅
+- Unités : 14 sprites (7 base + 7 élites).
+- Bâtiments : 8 vignettes.
+- Avatars : 4 bustes.
 
 ## Notes / écarts
 - Le générateur laisse la palette générique (« muted heroic fantasy palette

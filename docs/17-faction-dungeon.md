@@ -1,47 +1,47 @@
-# 17 — Nouvelle Maison : Shadow Court (« la Cour d'Ombre »)
+# 17 — Nouvelle Maison : Dungeon (« le Donjon »)
 
-> **Cadrage de la 5ᵉ faction jouable** (les « elfes noirs » / faction *Dungeon* de
-> Heroes of Might & Magic). Pendant sombre et souterrain de la **Sylvan Court**
-> (doc 14) : là où les elfes sylvestres tissent la vie de la forêt-monde, les
-> elfes d'ombre règnent sous la terre par la peur, l'assassinat et une magie
-> destructrice que rien ne détourne.
+> **Cadrage de la 5ᵉ faction jouable** : le **Donjon** (*Dungeon*), la maison des
+> **elfes noirs** de Heroes of Might & Magic. Nom repris tel quel de HoMM
+> (français : « Donjon » ; anglais : « Dungeon »). Peuple souterrain de cavernes,
+> de cultes du serpent et de sorciers-suzerains, pendant sombre des elfes
+> sylvestres de la **Sylvan Court** (doc 14).
 >
 > Ce document remplit le gabarit `docs/templates/faction-template.md` et suit la
 > structure de la doc 16 (Vox Arcana). Il est la **source de vérité de design**
-> avant `pnpm faction:new shadow-court` (checklist doc 06 §5). Choix de design
+> avant `pnpm faction:new dungeon` (checklist doc 06 §5). Choix de design
 > **réversibles** tant qu'aucune donnée n'est écrite.
 
 ## 1. Identité
 
 | | |
 |---|---|
-| **Thème** | Elfes noirs souterrains : cavernes, cultes du serpent, sorciers-suzerains |
+| **Thème** | Elfes noirs souterrains : cavernes, cultes du serpent, sorciers-suzerains (le *Dungeon* de HoMM) |
 | **Fantasme joueur** | « Ma magie ne connaît pas de rempart, et mes tueurs frappent avant qu'on les voie. » |
 | **Style de jeu** | Tempo agressif + **suprématie magique** : sorts destructeurs à cercle élevé, unités rapides sans riposte, glass-cannon assumé |
 | **Faiblesse assumée** | Fragile en PV/défense (peu de tanks hors Minotaure/Hydre) ; s'effondre contre une faction qui **encaisse le premier tour** et la force à l'attrition longue (Necropolis, Haven en formation) ; dépendante du héros-sorcier (si la magie est neutralisée, le lineup manque de coffre) |
-| **Terrain natif** | `rough` (badlands / cavernes affleurantes) |
-| **Ressources clés** | `sulfur` + `gems` (soufre des profondeurs + gemmes de pouvoir arcanique) |
+| **Terrain natif** | `rough` (badlands / cavernes affleurantes — équivalent souterrain) |
+| **Ressources clés** | `sulfur` + `gems` (soufre des profondeurs + gemmes de pouvoir arcanique — le soufre est la rare historique du Donjon dans HoMM) |
 | **École de magie** | Réutilise les écoles destructrices existantes (`fire`, `neutral`) ; **école propre `ombre` différée** à un sous-lot ultérieur (comme `traque`/`scene`) |
 | **Couleurs / DA** | Violet sombre, noir, éclats de magenta arcanique ; motif de bannière : serpent lové (motif non chromatique, `FactionBadge`) |
 
 **Lore (5–10 lignes)** : Bannis sous la surface après une trahison antique, les
-elfes d'ombre ont troqué la lumière des cimes contre le pouvoir brut des
+elfes noirs ont troqué la lumière des cimes contre le pouvoir brut des
 profondeurs. Leurs **Suzerains** (Overlords) règnent par la crainte ; leurs
 **Sorciers d'Ombre** (Warlocks) ont appris à arracher à la magie destructrice
 tout ce que les autres écoles bridaient — leurs sorts **ignorent les
-protections**. La société est une hiérarchie d'assassins, de furies fanatiques
-et de bêtes domestiquées dans le noir : minotaures gardiens, hydres à têtes
-multiples, dragons d'ombre qui aspirent la lumière. Ils voient dans le sceau de
-Cendregarde non une menace mais une **serrure** : ce qui enferme peut être
-retourné en arme.
+protections**. La société du Donjon est une hiérarchie d'assassins, de furies
+fanatiques et de bêtes domestiquées dans le noir : minotaures gardiens, hydres à
+têtes multiples, dragons d'ombre qui aspirent la lumière. Ils voient dans le
+sceau de Cendregarde non une menace mais une **serrure** : ce qui enferme peut
+être retourné en arme.
 
 ## 2. Mécanique signature (UNE seule) — **Magie Irrésistible**
 
-**Description.** Les sorts **de dégâts** lancés par un héros de la Cour d'Ombre
-(a) **ignorent la résistance magique** de la cible (`magicResistance`,
-`spellImmune` réduit et non annulé — voir plafond) et (b) reçoivent un **bonus de
-puissance** (+X % de dégâts). C'est l'identité *Dungeon / Irresistible Magic* de
-HoMM : le sorcier elfe noir est la meilleure artillerie magique du jeu.
+**Description.** Les sorts **de dégâts** lancés par un héros du Donjon (a)
+**ignorent la résistance magique** de la cible (`magicResistance`, `spellImmune`
+réduit et non annulé — voir plafond) et (b) reçoivent un **bonus de puissance**
+(+X % de dégâts). C'est l'identité *Dungeon / Irresistible Magic* de HoMM : le
+sorcier elfe noir est la meilleure artillerie magique du jeu.
 
 **Contre-jeu adverse.** Réduire la **mana** disponible (courses longues, déni
 d'or → moins de Guilde), tuer/immobiliser le héros-sorcier, ou **encaisser** :
@@ -80,7 +80,7 @@ les capacités listées **existent déjà** au catalogue générique
 
 | Tier | Unité (FR / rôle HoMM) | PV | Att | Déf | Dégâts | Vit. | Croiss./sem | Coût (or +) | Capacités (catalogue) |
 |------|------------------------|----|-----|-----|--------|------|-------------|-------------|-----------------------|
-| 1 | **Éclaireur d'Ombre** (Assassin / tireur) | 6 | 4 | 3 | 2–3 | 6 | 14 | 65 | `shooter`, `poisonSting` |
+| 1 | **Éclaireur** (Assassin / tireur) | 6 | 4 | 3 | 2–3 | 6 | 14 | 65 | `shooter`, `poisonSting` |
 | 2 | **Furie Sanglante** (Blood Fury / assaut) | 11 | 7 | 4 | 3–5 | 8 | 9 | 130 | `noRetaliation` |
 | 3 | **Minotaure** (garde / tank moral) | 25 | 9 | 8 | 6–9 | 6 | 6 | 260, +1 `sulfur` | `moraleImmune`, `doubleAttack` |
 | 4 | **Chevaucheur des Ténèbres** (Dark Raider / cavalerie) | 32 | 12 | 9 | 8–12 | 9 | 4 | 480 | `charge` |
@@ -95,10 +95,10 @@ les capacités listées **existent déjà** au catalogue générique
 
 ## 4. Bâtiments spéciaux (2–3) + chaîne d'habitations
 
-- **7 habitations** `shadow-court-dwelling-t1..t7` (chaîne de prérequis
-  identique au modèle Sylvan : t1 ⇐ `fort`, t(n) ⇐ t(n-1), t5 ⇐ `mageGuild`,
-  chacune `maxLevel: 2` pour l'upgrade).
-- **Puits de Malédiction** (`shadow-court-cursed-well`) — bâtiment propre,
+- **7 habitations** `dungeon-dwelling-t1..t7` (chaîne de prérequis identique au
+  modèle Sylvan : t1 ⇐ `fort`, t(n) ⇐ t(n-1), t5 ⇐ `mageGuild`, chacune
+  `maxLevel: 2` pour l'upgrade).
+- **Puits de Malédiction** (`dungeon-cursed-well`) — bâtiment propre,
   `effect: growthBonus +25 %` (analogue au Bosquet du Cœur Sylvan), prérequis
   `fort@1`. Habillage : source souterraine qui « nourrit » les couvées.
 - **Guilde de Sorcellerie** — la faction s'appuie fortement sur `mageGuild`
@@ -112,7 +112,8 @@ les capacités listées **existent déjà** au catalogue générique
 - **Classes** : **Suzerain** (*Overlord*, might — attaque/défense d'armée) et
   **Sorcier d'Ombre** (*Warlock*, magic — pouvoir/savoir, moteur de la signature).
 - **Héros nommés** (`origin: canon`, `source: "Might & Magic"`, avatars stagés
-  convention client ; **identité seule** au premier lot, cf. doc 06 §2) :
+  convention client ; **identité seule** au premier lot, cf. doc 06 §2) — les deux
+  héros canon du Donjon de HoMM V :
   - **Raelag** (Suzerain / might) — spécialité *Meneur d'Ombre* : bonus aux
     Furies Sanglantes (via le point générique `conditional`/`conditionalUnitBonus`
     déjà livré, scopé `unitId`). Attributs type might.
@@ -135,16 +136,16 @@ déjà livré pour `raiseUndeadOnVictory`) — noté comme évolution, hors prem
 ## 7. Matchups attendus (pourquoi ~50 % ?)
 
 - **vs Haven** : Haven encaisse (défense + Ferveur/Formation) et soigne → force
-  la Cour d'Ombre à dépenser sa mana tôt ; la Cour gagne si elle *burst* avant que
-  la formation Haven se mette en place. Équilibré par la fragilité elfe noir.
+  le Donjon à dépenser sa mana tôt ; le Donjon gagne s'il *burst* avant que la
+  formation Haven se mette en place. Équilibré par la fragilité elfe noir.
 - **vs Necropolis** : mauvais matchup assumé — les morts-vivants sont `moraleImmune`
-  et l'attrition/relève neutralise le tempo ; la Cour compense par la magie de zone
-  (Hydre + sorts) sur les grandes piles de squelettes. ~45 % attendu (faiblesse §1).
+  et l'attrition/relève neutralise le tempo ; le Donjon compense par la magie de
+  zone (Hydre + sorts) sur les grandes piles de squelettes. ~45 % attendu (§1).
 - **vs Arcane Hunters** : course de burst — les Marques AH vs la magie irrésistible ;
-  départage par qui frappe en premier (vitesse Furie/Chevaucheur aide la Cour).
-- **vs Sylvan Court** : miroir thématique — Symbiose récompense l'immobilité, la
-  Cour la **punit** en frappant à distance (Éclaireurs) + magie ; la Cour force le
-  tempo. Équilibré si Sylvan tient ses lignes.
+  départage par qui frappe en premier (vitesse Furie/Chevaucheur aide le Donjon).
+- **vs Sylvan Court** : miroir thématique — Symbiose récompense l'immobilité, le
+  Donjon la **punit** en frappant à distance (Éclaireurs) + magie ; le Donjon force
+  le tempo. Équilibré si Sylvan tient ses lignes.
 - **vs Vox Arcana** : deux factions magiques ; départage par l'école et la mana.
   La signature donne l'avantage offensif, Vox compense par ses Maisons/soutien.
 
@@ -161,7 +162,7 @@ par appariement après réglage (comme les 4 factions livrées).
   qu'elle a perdu en surface.
 - **Lecture de l'arc global** : le sceau de Cendregarde est une **serrure** — donc
   une clé pour qui saura la retourner. Là où Haven veut le préserver et Necropolis
-  le franchir, la Cour veut le **posséder**.
+  le franchir, le Donjon veut le **posséder**.
 - **Relations aux maisons** : Sylvan Court — parents reniés (haine intime) ;
   Haven — proie arrogante ; Necropolis — rivale respectée sur le terrain de la
   mort ; Arcane Hunters — outils utiles à retourner ; Vox Arcana — curiosités à
@@ -171,7 +172,7 @@ par appariement après réglage (comme les 4 factions livrées).
   - *Shadya* : apprentie bridée → maîtresse de la magie irrésistible → tentation
     de briser la serrure elle-même.
 - **Textes d'ambiance** : engagement à fournir un `loreKey` FR/EN par unité,
-  bâtiment propre et héros nommé, écrit du point de vue de la Cour.
+  bâtiment propre et héros nommé, écrit du point de vue du Donjon.
 - **Campagne** (optionnelle, 2ᵉ lot narratif) : 3 chapitres — *La Descente*,
   *La Couvée d'Ombre*, *La Serrure* (format doc 13 §6.1).
 

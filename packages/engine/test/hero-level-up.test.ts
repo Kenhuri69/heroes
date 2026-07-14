@@ -70,6 +70,22 @@ function stateWithHero(hero: HeroState, skillCatalog: Record<string, HeroSkillDe
   state.rng = seedRng(seed);
   state.heroes = [hero];
   state.skillCatalog = skillCatalog;
+  // Comme tout état réel : le héros appartient au joueur ACTIF (B10 —
+  // `ChooseSkill`/`ChooseAttribute` vérifient désormais la propriété).
+  state.players = [
+    {
+      id: hero.playerId,
+      resources: emptyResources(),
+      factionResources: {},
+      explored: [],
+      controller: 'human',
+      eliminated: false,
+      townlessDays: 0,
+      huntContract: null,
+      team: 0,
+    },
+  ];
+  state.currentPlayer = 0;
   return state;
 }
 
@@ -129,10 +145,9 @@ describe('ChooseSkill', () => {
   const catalog = sevenSkills();
 
   function startedState(hero: HeroState): GameState {
-    const state = createEmptyState();
+    // Réutilise stateWithHero (joueur propriétaire ACTIF inclus — B10).
+    const state = stateWithHero(hero, catalog);
     state.started = true;
-    state.skillCatalog = catalog;
-    state.heroes = [hero];
     return state;
   }
 
@@ -223,9 +238,8 @@ describe('grantXp → choix d’attribut (H-LEVELCHOICE)', () => {
 
   it('ChooseAttribute applique +1, défile la file, émet HeroAttributeChosen', () => {
     const hero = baseHero({ playerId: 'p1', level: 2, pendingAttributeChoices: [['attack', 'defense']] });
-    const state = createEmptyState();
+    const state = stateWithHero(hero, {});
     state.started = true;
-    state.heroes = [hero];
     const result = apply(state, { type: 'ChooseAttribute', heroId: 'hero-1', attribute: 'defense' });
     const updated = result.state.heroes[0]!;
     expect(updated.attributes.defense).toBe(1);
@@ -237,9 +251,8 @@ describe('grantXp → choix d’attribut (H-LEVELCHOICE)', () => {
 
   it('ChooseAttribute rejette un attribut hors de la 1ʳᵉ paire', () => {
     const hero = baseHero({ pendingAttributeChoices: [['attack', 'defense']] });
-    const state = createEmptyState();
+    const state = stateWithHero(hero, {});
     state.started = true;
-    state.heroes = [hero];
     expect(() => apply(state, { type: 'ChooseAttribute', heroId: 'hero-1', attribute: 'power' })).toThrowError(
       /invalidAttribute/,
     );
@@ -247,11 +260,45 @@ describe('grantXp → choix d’attribut (H-LEVELCHOICE)', () => {
 
   it('ChooseAttribute sans proposition en attente ⇒ noPendingChoice', () => {
     const hero = baseHero({ pendingAttributeChoices: [] });
-    const state = createEmptyState();
+    const state = stateWithHero(hero, {});
     state.started = true;
-    state.heroes = [hero];
     expect(() => apply(state, { type: 'ChooseAttribute', heroId: 'hero-1', attribute: 'attack' })).toThrowError(
       /noPendingChoice/,
     );
+  });
+});
+
+describe('Revue 2026-07 — B10 : propriété/tour sur ChooseSkill & ChooseAttribute', () => {
+  it('rejette le choix de compétence d’un héros qui n’appartient pas au joueur actif (notYourHero)', () => {
+    const state = stateWithHero(
+      baseHero({ playerId: 'p2', pendingSkillChoices: ['a', 'b'] }),
+      sevenSkills(),
+    );
+    // Le joueur ACTIF est p1 — le héros appartient à p2 (adversaire).
+    state.players = [
+      { ...state.players[0]!, id: 'p1' },
+      { ...state.players[0]!, id: 'p2' },
+    ];
+    state.currentPlayer = 0;
+    state.started = true;
+    expect(() => apply(state, { type: 'ChooseSkill', heroId: 'hero-1', skillId: 'a' })).toThrowError(
+      /notYourHero/,
+    );
+  });
+
+  it('rejette le choix d’attribut d’un héros adverse (notYourHero)', () => {
+    const state = stateWithHero(
+      baseHero({ playerId: 'p2', level: 2, pendingAttributeChoices: [['attack', 'defense']] }),
+      {},
+    );
+    state.players = [
+      { ...state.players[0]!, id: 'p1' },
+      { ...state.players[0]!, id: 'p2' },
+    ];
+    state.currentPlayer = 0;
+    state.started = true;
+    expect(() =>
+      apply(state, { type: 'ChooseAttribute', heroId: 'hero-1', attribute: 'attack' }),
+    ).toThrowError(/notYourHero/);
   });
 });

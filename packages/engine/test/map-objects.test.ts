@@ -383,3 +383,51 @@ describe('M-NAV a — monolithe apparié (doc 02 §2.1)', () => {
     expect(teleports).toHaveLength(1);
   });
 });
+
+describe('Revue 2026-07 — B9 : sortie de monolithe occupée (jamais deux héros superposés)', () => {
+  const monoA: MapObjectDef = { id: 'mono-a', type: 'monolith', pos: { x: 2, y: 0 }, pairId: 'gate' };
+  // Sortie posée SUR la position de départ du héros de p2 (9,9).
+  const monoB: MapObjectDef = { id: 'mono-b', type: 'monolith', pos: { x: 9, y: 9 }, pairId: 'gate' };
+
+  function startTwoPlayers(team: 0 | 1): GameState {
+    const map = testMap();
+    map.objects = [monoA, monoB];
+    return apply(createEmptyState(), {
+      type: 'StartGame',
+      seed: 42,
+      players: [
+        { id: 'p1', startingResources: emptyResources(), startingArmy: [{ unitId: 'red-grunt', count: 10 }], team },
+        { id: 'p2', startingResources: emptyResources(), startingArmy: [{ unitId: 'blue-wolf', count: 1 }], team },
+      ],
+      map,
+      config: testConfig(),
+      unitCatalog: testCatalog(),
+    }).state;
+  }
+
+  it('héros ENNEMI sur la sortie ⇒ combat d’interception à travers le monolithe, pas de superposition', () => {
+    const { state, events } = apply(startTwoPlayers(0), {
+      type: 'MoveHero',
+      heroId: 'hero-p1',
+      path: [{ x: 1, y: 0 }, { x: 2, y: 0 }],
+    });
+    expect(state.combat).not.toBeNull();
+    expect(state.combat?.attackerHeroId).toBe('hero-p1');
+    expect(state.combat?.defenderHeroId).toBe('hero-p2');
+    // Pas de téléport : le héros reste sur l'entrée, jamais superposé au défenseur.
+    expect(events.some((e) => e.type === 'HeroTeleported')).toBe(false);
+    expect(state.heroes.find((h) => h.id === 'hero-p1')?.pos).toEqual({ x: 2, y: 0 });
+  });
+
+  it('héros ALLIÉ sur la sortie ⇒ passage bloqué (pas de téléport, pas de combat)', () => {
+    const { state, events } = apply(startTwoPlayers(1), {
+      type: 'MoveHero',
+      heroId: 'hero-p1',
+      path: [{ x: 1, y: 0 }, { x: 2, y: 0 }],
+    });
+    expect(state.combat).toBeNull();
+    expect(events.some((e) => e.type === 'HeroTeleported')).toBe(false);
+    expect(state.heroes.find((h) => h.id === 'hero-p1')?.pos).toEqual({ x: 2, y: 0 });
+    expect(state.heroes.find((h) => h.id === 'hero-p2')?.pos).toEqual({ x: 9, y: 9 });
+  });
+});

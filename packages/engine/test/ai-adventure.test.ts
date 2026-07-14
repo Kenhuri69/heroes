@@ -255,3 +255,52 @@ describe('runAiTurn — cas ciblés', () => {
     expect(events).toHaveLength(0);
   });
 });
+
+describe('Revue 2026-07 — B7 : siège ouvert par la capture IA auto-résolu', () => {
+  it('capturer une ville tour-défendue (Fort ≥ 3, garnison vide) ne laisse pas de combat orphelin', () => {
+    // Catalogue avec la tour de tir : `wouldSpawnSiegeTower` déclenche un siège
+    // même à garnison vide — exactement le cas que `pickAdjacentCapturableTown`
+    // considère « non défendu ».
+    const catalog = {
+      ...CATALOG,
+      'arrow-tower': {
+        id: 'arrow-tower', groupId: 'war-machine', nativeTerrain: '',
+        stats: { hp: 400, attack: 12, defense: 12, damage: [10, 20] as [number, number], speed: 1 },
+        abilities: [
+          { id: 'shooter', params: { ammo: 999, noMeleePenalty: true } },
+          { id: 'warMachine' }, { id: 'immobile' },
+        ],
+      },
+    };
+    const players: PlayerSetup[] = [
+      {
+        id: 'p1',
+        startingResources: emptyResources(),
+        controller: 'ai',
+        startingArmy: [{ unitId: 'red-grunt', count: 200 }],
+      },
+    ];
+    const town = testTown({ id: 'town-e', ownerPlayerId: null, pos: { x: 1, y: 0 }, buildings: { fort: 3 }, garrison: [] });
+    const state = apply(createEmptyState(), {
+      type: 'StartGame',
+      seed: 1,
+      players,
+      map: { ...testMap(), objects: [] },
+      config,
+      unitCatalog: catalog,
+      towns: [town],
+    }).state;
+
+    const events: GameEvent[] = [];
+    const next = produce(state, (draft) => {
+      runAiTurn(draft, 'p1', events);
+    });
+
+    // Le contrat « AiTurn = tour complet » tient : aucun combat laissé ouvert
+    // (avant le correctif, draft.combat restait posé et le tour sortait sans fin).
+    expect(next.combat).toBeNull();
+    expect(events.some((e) => e.type === 'CombatEnded')).toBe(true);
+    // 200 grunts écrasent la tour seule ⇒ la ville est capturée dans le tour.
+    expect(next.towns[0]?.ownerPlayerId).toBe('p1');
+  });
+});

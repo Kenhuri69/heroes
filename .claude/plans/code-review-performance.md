@@ -411,7 +411,18 @@ les données actuelles** (cross-check scripté des ids) ; garde `readSaveVersion
   INCHANGÉ (aucun siège à Fort dans le replay). Écart vs plan : B17 tranché
   « défenseur vainqueur + retrait du gardien » plutôt que « vainqueur = camp
   ayant porté le coup » (ambigu sous tick de poison simultané).
-- [ ] Lot 4 — P1 aventure/commandes (B7, B9, B10)
+- [x] Lot 4 — P1 aventure/commandes (B7, B9, B10). Livré : **B7** —
+  `captureTown` (IA) auto-résout le siège ouvert (`runAutoCombat`), le contrat
+  « AiTurn = tour complet » tient même contre une ville tour-défendue à
+  garnison vide. **B9** — occupation de la sortie de monolithe : ennemi ⇒
+  combat d'interception à travers le portail (le héros reste sur l'entrée) ;
+  allié/soi ⇒ passage bloqué, déplacement interrompu. **B10** — contrôles
+  `currentPlayer` sur `ChooseSkill`/`ChooseAttribute` (`notYourHero`) et
+  `GarrisonTransfer` (`notYourTown`). Tests : 1 cas B7 (IA vs ville Fort 3
+  vide), 2 cas B9 (ennemi/allié), 3 cas B10 (rejets hors tour) ; fixtures de
+  tests existantes dotées du joueur propriétaire (états réalistes). Golden
+  inchangé, moteur 758/758, smoke @core 19/19 (lot moteur pur — suite
+  complète au merge sur main).
 - [ ] Lot 5 — P1 client (B11–B16)
 - [ ] Lot 6 — perf rendu (F1, F9, F10)
 - [ ] Lot 7a — perf moteur sans golden (F5–F8)

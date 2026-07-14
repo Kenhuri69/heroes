@@ -40,7 +40,7 @@ let prunePending = false;
 function schedulePrune() {
   if (prunePending) return;
   prunePending = true;
-  setTimeout(() => {
+  self.setTimeout(() => {
     prunePending = false;
     void pruneAssets();
   }, 3000);

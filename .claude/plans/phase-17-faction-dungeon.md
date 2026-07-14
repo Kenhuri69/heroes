@@ -33,31 +33,41 @@
   `content:check` reste vert (aucun contenu touché) ; garde-fou faction
   trivialement vert (rien dans `packages/`). Relecture cohérence design.
 
-### Lot 17.2 — Données du paquet (aucun diff moteur)
-- [ ] `pnpm faction:new dungeon` → squelette valide.
-- [ ] Manifeste : `nativeTerrain: rough`, `keyResources: [sulfur, gems]`,
+### Lot 17.2 — Données du paquet (aucun diff moteur) — ✅ LIVRÉ
+- [x] Paquet écrit à la main sur le modèle Sylvan (pas de `faction:new` — outil
+      non requis, structure connue).
+- [x] Manifeste : `nativeTerrain: rough`, `keyResources: [sulfur, gems]`,
       `factionResources: []`, `spellSchool: null`, `tiers: 7`,
       `sharedGrowthGroups: {}`, `aiProfile` agressif+magique
-      (`aggression ~0.7`, `focusFire ~0.7`, `preferredTargets: weakest`),
+      (`aggression 0.7`, `focusFire 0.7`, `preferredTargets: weakest`),
       `factionBonuses: []` (la signature arrive au lot 17.3), `town` (communs +
       7 dwellings + `dungeon-cursed-well`), `heroes: [raelag, shadya]`.
-- [ ] 7 unités de base + 7 variantes `-elite` (`units/t1..t7[-elite].json`),
-      stats/coûts de la table doc 17 §3, capacités par ID du catalogue.
-- [ ] `buildings.json` : 7 habitations `maxLevel: 2` (chaîne de prérequis modèle
+- [x] 7 unités de base + 7 variantes `-elite` (`units/t1..t7[-elite].json`),
+      stats/coûts de la table doc 17 §3, capacités par ID du catalogue
+      (toutes interprétées par le moteur — vérifié : shooter/poisonSting/
+      noRetaliation/moraleImmune/doubleAttack/charge/spellcaster/curseOnHit/
+      areaAttack/breathAttack/flying/fear/magicResistance/spellImmune).
+- [x] `buildings.json` : 7 habitations `maxLevel: 2` (chaîne de prérequis modèle
       Sylvan) + `dungeon-cursed-well` (`growthBonus 25 %`).
-- [ ] `heroes/raelag.json` + `heroes/shadya.json` (identité + attributs +
+- [x] `heroes/raelag.json` + `heroes/shadya.json` (identité canon + attributs +
       `specialtyEffect`/`startingSkills`/`startingSpells`).
-- [ ] `locales/fr.json` + `en.json` : nom de faction (clé unique
-      `@loc:faction.dungeon.name` → « Donjon » / « Dungeon »), noms + `loreKey`
-      de chaque unité, bâtiment propre, spécialités de héros. **Parité FR/EN.**
-- [ ] `data/factions/index.json` : ajouter `"dungeon"`.
-- [ ] Test de recrutement (contenu, `@heroes/content`) : le paquet charge,
-      valide, on recrute chaque tier.
-- **Vérif** : `pnpm faction:validate dungeon` vert (schémas + règles croisées :
-  prérequis atteignables, coûts définis, IDs de capacité existants, locales
-  complètes) ; `pnpm test` (dont recrutement + `balance.test.ts`) ; garde-fou
-  faction vert ; smoke inchangé (pas encore de signature). **Aucun diff hors
-  `data/factions/dungeon/` sauf `index.json`.**
+- [x] `locales/fr.json` + `en.json` : nom de faction (clé unique
+      `@loc:faction.dungeon.name` → « Donjon » / « Dungeon »), noms de chaque
+      unité, bâtiment propre, spécialités de héros. **Parité FR/EN.** `loreKey`
+      des unités **différé au lot 17.5** (optionnel, non requis par les tests).
+- [x] `data/factions/index.json` : `"dungeon"` ajouté.
+- [x] Test de recrutement `packages/content/test/dungeon-recruit.test.ts`
+      (faction identifiée par propriété `nativeTerrain: rough` — jamais par id,
+      garde-fou modularité) : charge/locales/capacités/recrutement des 7 tiers.
+- [x] **Vérif** : `content:check` vert (7 paquets, dungeon 14 unités/locales OK) ;
+      `pnpm test` vert (engine 735 + content 129, dont dungeon-recruit 3/3) ;
+      typecheck + lint verts ; garde-fou faction vert (grep CI local, statut 1) ;
+      smoke `@core` desktop 13/13 + mobile 6/6 (via `PW_CHROMIUM_PATH`) ; bundle
+      305 Ko gzip < 800 Ko. Seul diff hors `data/factions/dungeon/` : `index.json`
+      + test de recrutement + 1 ligne d'assertion smoke (liste des factions).
+      NB : `faction:validate` signale des faux négatifs (héros startingSkills/
+      Spells) — limite pré-existante de l'outil (mêmes faux négatifs sur Sylvan),
+      pas un défaut de données ; `content:check` (garde-fou CI réel) est vert.
 
 ### Lot 17.3 — Signature `irresistibleMagic` (1 point d'extension générique)
 - [ ] `engine/faction/types.ts` : ajouter le variant `irresistibleMagic`

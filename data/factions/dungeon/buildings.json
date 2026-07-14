@@ -1,0 +1,127 @@
+{
+  "buildings": [
+    {
+      "id": "dungeon-dwelling-t1",
+      "maxLevel": 2,
+      "levels": [
+        {
+          "cost": { "gold": 500 },
+          "requires": [{ "building": "fort", "level": 1 }],
+          "effect": { "type": "dwelling", "tier": 1, "unitId": "t1-eclaireur" }
+        },
+        {
+          "cost": { "gold": 350 },
+          "requires": [],
+          "effect": { "type": "dwelling", "tier": 1, "unitId": "t1-eclaireur-elite" }
+        }
+      ]
+    },
+    {
+      "id": "dungeon-dwelling-t2",
+      "maxLevel": 2,
+      "levels": [
+        {
+          "cost": { "gold": 1000, "sulfur": 2 },
+          "requires": [{ "building": "dungeon-dwelling-t1", "level": 1 }],
+          "effect": { "type": "dwelling", "tier": 2, "unitId": "t2-furie-sanglante" }
+        },
+        {
+          "cost": { "gold": 700, "sulfur": 1 },
+          "requires": [],
+          "effect": { "type": "dwelling", "tier": 2, "unitId": "t2-furie-sanglante-elite" }
+        }
+      ]
+    },
+    {
+      "id": "dungeon-dwelling-t3",
+      "maxLevel": 2,
+      "levels": [
+        {
+          "cost": { "gold": 2000, "ore": 5 },
+          "requires": [{ "building": "dungeon-dwelling-t2", "level": 1 }],
+          "effect": { "type": "dwelling", "tier": 3, "unitId": "t3-minotaure" }
+        },
+        {
+          "cost": { "gold": 1400, "ore": 3 },
+          "requires": [],
+          "effect": { "type": "dwelling", "tier": 3, "unitId": "t3-minotaure-elite" }
+        }
+      ]
+    },
+    {
+      "id": "dungeon-dwelling-t4",
+      "maxLevel": 2,
+      "levels": [
+        {
+          "cost": { "gold": 3000, "wood": 10 },
+          "requires": [{ "building": "dungeon-dwelling-t3", "level": 1 }],
+          "effect": { "type": "dwelling", "tier": 4, "unitId": "t4-chevaucheur-tenebres" }
+        },
+        {
+          "cost": { "gold": 2100, "wood": 6 },
+          "requires": [],
+          "effect": { "type": "dwelling", "tier": 4, "unitId": "t4-chevaucheur-tenebres-elite" }
+        }
+      ]
+    },
+    {
+      "id": "dungeon-dwelling-t5",
+      "maxLevel": 2,
+      "levels": [
+        {
+          "cost": { "gold": 3500, "gems": 2 },
+          "requires": [{ "building": "mageGuild", "level": 1 }],
+          "effect": { "type": "dwelling", "tier": 5, "unitId": "t5-sorciere-ombre" }
+        },
+        {
+          "cost": { "gold": 2450, "gems": 1 },
+          "requires": [],
+          "effect": { "type": "dwelling", "tier": 5, "unitId": "t5-sorciere-ombre-elite" }
+        }
+      ]
+    },
+    {
+      "id": "dungeon-dwelling-t6",
+      "maxLevel": 2,
+      "levels": [
+        {
+          "cost": { "gold": 4500, "sulfur": 2 },
+          "requires": [{ "building": "dungeon-dwelling-t5", "level": 1 }],
+          "effect": { "type": "dwelling", "tier": 6, "unitId": "t6-hydre" }
+        },
+        {
+          "cost": { "gold": 3200, "sulfur": 1 },
+          "requires": [],
+          "effect": { "type": "dwelling", "tier": 6, "unitId": "t6-hydre-elite" }
+        }
+      ]
+    },
+    {
+      "id": "dungeon-dwelling-t7",
+      "maxLevel": 2,
+      "levels": [
+        {
+          "cost": { "gold": 6000, "sulfur": 3, "gems": 3 },
+          "requires": [{ "building": "dungeon-dwelling-t6", "level": 1 }],
+          "effect": { "type": "dwelling", "tier": 7, "unitId": "t7-dragon-ombre" }
+        },
+        {
+          "cost": { "gold": 4300, "sulfur": 2, "gems": 2 },
+          "requires": [],
+          "effect": { "type": "dwelling", "tier": 7, "unitId": "t7-dragon-ombre-elite" }
+        }
+      ]
+    },
+    {
+      "id": "dungeon-cursed-well",
+      "maxLevel": 1,
+      "levels": [
+        {
+          "cost": { "gold": 2000, "sulfur": 5 },
+          "requires": [{ "building": "fort", "level": 1 }],
+          "effect": { "type": "growthBonus", "percent": 25 }
+        }
+      ]
+    }
+  ]
+}

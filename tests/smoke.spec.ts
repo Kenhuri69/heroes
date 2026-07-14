@@ -182,6 +182,7 @@ test('le client démarre sans erreur et charge le contenu', { tag: ['@mobile', '
     'necropolis',
     'sylvan-court',
     'vox-arcana',
+    'dungeon',
   ]);
 
   // La partie démarre sur la carte proto : héros à sa position de départ.

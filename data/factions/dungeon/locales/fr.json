@@ -1,0 +1,34 @@
+{
+  "faction.dungeon.name": "Donjon",
+
+  "unit.t1-eclaireur.name": "Éclaireur",
+  "unit.t1-eclaireur-elite.name": "Assassin",
+  "unit.t2-furie-sanglante.name": "Furie sanglante",
+  "unit.t2-furie-sanglante-elite.name": "Furie déchaînée",
+  "unit.t3-minotaure.name": "Minotaure",
+  "unit.t3-minotaure-elite.name": "Gardien minotaure",
+  "unit.t4-chevaucheur-tenebres.name": "Chevaucheur des ténèbres",
+  "unit.t4-chevaucheur-tenebres-elite.name": "Cavalier noir",
+  "unit.t5-sorciere-ombre.name": "Sorcière d'ombre",
+  "unit.t5-sorciere-ombre-elite.name": "Matriarche d'ombre",
+  "unit.t6-hydre.name": "Hydre",
+  "unit.t6-hydre-elite.name": "Hydre chthonienne",
+  "unit.t7-dragon-ombre.name": "Dragon d'ombre",
+  "unit.t7-dragon-ombre-elite.name": "Dragon noir",
+
+  "building.dungeon-dwelling-t1": "Antre des éclaireurs",
+  "building.dungeon-dwelling-t2": "Arène sanglante",
+  "building.dungeon-dwelling-t3": "Labyrinthe",
+  "building.dungeon-dwelling-t4": "Écuries souterraines",
+  "building.dungeon-dwelling-t5": "Cercle des sorcières",
+  "building.dungeon-dwelling-t6": "Fosse aux hydres",
+  "building.dungeon-dwelling-t7": "Caverne des dragons",
+  "building.dungeon-cursed-well": "Puits de Malédiction",
+
+  "hero.raelag.name": "Raelag",
+  "hero.raelag.bio": "Suzerain exilé de la surface, Raelag a forgé son pouvoir dans les profondeurs en unissant les clans d'elfes noirs par la crainte.",
+  "hero.raelag.specialty": "Meneur d'Ombre — les Furies sanglantes sous son commandement gagnent en attaque et en défense.",
+  "hero.shadya.name": "Shadya",
+  "hero.shadya.bio": "Sorcière d'ombre au talent redouté, Shadya a percé les voiles qui bridaient la magie destructrice.",
+  "hero.shadya.specialty": "Voile Irrésistible — sa maîtrise réduit le coût en mana de ses sorts."
+}

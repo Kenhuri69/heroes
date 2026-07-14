@@ -1,0 +1,12 @@
+{
+  "id": "t6-hydre",
+  "tier": 6,
+  "name": "@loc:unit.t6-hydre.name",
+  "stats": { "hp": 75, "attack": 16, "defense": 14, "damage": [12, 20], "speed": 5 },
+  "growthPerWeek": 2,
+  "cost": { "gold": 1100, "sulfur": 1 },
+  "abilities": [
+    { "id": "areaAttack", "params": { "pct": 0.5 } },
+    { "id": "noRetaliation" }
+  ]
+}

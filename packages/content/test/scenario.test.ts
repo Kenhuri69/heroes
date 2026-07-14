@@ -364,6 +364,108 @@ describe('loadScenarios — règles croisées', () => {
   });
 });
 
+/** Greffe une narration valide (quêtes/dialogues/cutscenes) sur le scénario `duel`. */
+function withNarrative(data: Record<string, unknown>, patch: Record<string, unknown> = {}): void {
+  (data['maps/mini.map.json'] as { objects: unknown[] }).objects.push({
+    id: 'guard-1',
+    type: 'guardian',
+    x: 2,
+    y: 1,
+    unitId: 't1-grunt',
+    count: 3,
+  });
+  Object.assign(data['scenarios/duel.scenario.json'] as Record<string, unknown>, {
+    dialogs: [{ id: 'dlg-1', lines: [{ speaker: 'perso', textKey: '@loc:dlg.1' }] }],
+    characters: [{ id: 'perso', nameKey: '@loc:perso.name' }],
+    cutscenes: [{ id: 'cut-1', steps: [{ type: 'dialog', dialog: 'dlg-1' }] }],
+    openingDialog: 'dlg-1',
+    openingCutscene: 'cut-1',
+    quests: [
+      {
+        id: 'q1',
+        steps: [
+          { id: 's1', condition: { type: 'buildStructure', buildingId: 'townHall' }, dialogBefore: 'dlg-1' },
+          { id: 's2', condition: { type: 'ownUnits', unitId: 't1-grunt', count: 5 } },
+          { id: 's3', condition: { type: 'defeatGuardian', objectId: 'guard-1' } },
+        ],
+        rewards: [
+          { type: 'artifact', artifactId: 'art' },
+          { type: 'units', unitId: 't1-grunt', count: 3 },
+        ],
+        titleKey: '@loc:q1.title',
+      },
+    ],
+    ...patch,
+  });
+}
+
+describe('B48 — narration embarquée (quêtes / dialogues / cutscenes)', () => {
+  it('charge un scénario dont les quêtes et références narratives résolvent', async () => {
+    const data = makeData();
+    withNarrative(data);
+    const report = await loadReport(data);
+    const scenarioReport = await loadScenarios(reader(data), report);
+    expect(scenarioReport.rejectedScenarios).toEqual([]);
+    expect(scenarioReport.content.scenarios.map((s) => s.id)).toEqual(['duel']);
+  });
+
+  it('rejette récompenses, conditions et références de dialogue/cutscene inconnues', async () => {
+    const data = makeData();
+    withNarrative(data, {
+      openingDialog: 'dlg-fantome',
+      openingCutscene: 'cut-fantome',
+      quests: [
+        {
+          id: 'q1',
+          steps: [
+            {
+              id: 's1',
+              condition: { type: 'buildStructure', buildingId: 'batiment-fantome' },
+              dialogBefore: 'dlg-fantome',
+            },
+            { id: 's2', condition: { type: 'ownUnits', unitId: 't9-fantome', count: 5 } },
+            { id: 's3', condition: { type: 'defeatGuardian', objectId: 'guard-fantome' } },
+          ],
+          rewards: [
+            { type: 'artifact', artifactId: 'art-fantome' },
+            { type: 'units', unitId: 't9-fantome', count: 3 },
+          ],
+          titleKey: '@loc:q1.title',
+        },
+      ],
+    });
+    const report = await loadReport(data);
+    const scenarioReport = await loadScenarios(reader(data), report);
+    expect(scenarioReport.content.scenarios).toEqual([]);
+    const all = (scenarioReport.rejectedScenarios[0]?.errors ?? []).join('\n');
+    expect(all).toContain("openingDialog vers dialogue inconnu 'dlg-fantome'");
+    expect(all).toContain("openingCutscene vers cinématique inconnue 'cut-fantome'");
+    expect(all).toContain("quête 'q1' — buildStructure vers bâtiment inconnu 'batiment-fantome'");
+    expect(all).toContain("quête 'q1' — ownUnits vers unité inconnue 't9-fantome'");
+    expect(all).toContain("quête 'q1' — defeatGuardian vers gardien inconnu 'guard-fantome'");
+    expect(all).toContain("quête 'q1' — dialogBefore vers dialogue inconnu 'dlg-fantome'");
+    expect(all).toContain("quête 'q1' — récompense vers artefact inconnu 'art-fantome'");
+    expect(all).toContain("quête 'q1' — récompense vers unité inconnue 't9-fantome'");
+  });
+
+  it('B48 — rejette un lieu learnSpell inconnu sur la carte du scénario', async () => {
+    const data = makeData();
+    (data['maps/mini.map.json'] as { objects: unknown[] }).objects.push({
+      id: 'sanctuaire',
+      type: 'visitable',
+      x: 1,
+      y: 1,
+      effect: { kind: 'learnSpell', spellId: 'sort-fantome' },
+      frequency: 'oncePerHero',
+    });
+    const report = await loadReport(data);
+    const scenarioReport = await loadScenarios(reader(data), report);
+    expect(scenarioReport.rejectedScenarios[0]?.errors.join()).toContain(
+      "lieu 'sanctuaire' — sort inconnu 'sort-fantome'",
+    );
+  });
+});
+
 describe('scenarioSchema', () => {
   it('rejette un scénario avec un joueur sans objectifs', () => {
     const scenario = makeScenario() as { objectives: Record<string, unknown> };

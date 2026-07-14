@@ -44,16 +44,33 @@ export async function loadGameContent(): Promise<LoadReport> {
   return report;
 }
 
+/**
+ * Ensembles d'ids connus passés à `loadMap` pour ses règles croisées (B47/B48) :
+ * unités, artefacts, sorts, compétences, machines de guerre — les mêmes que
+ * `content:check` (un typo de carte casse en CI, pas au boot).
+ */
+function mapKnownIds(
+  report: LoadReport,
+): [ReadonlySet<string>, ReadonlySet<string>, ReadonlySet<string>, ReadonlySet<string>, ReadonlySet<string>] {
+  return [
+    knownUnitIds(report),
+    knownArtifactIds(report),
+    new Set(report.content.coreSpells.map((s) => s.id)),
+    new Set(report.content.coreSkills.map((s) => s.id)),
+    new Set(report.content.coreWarMachines.map((w) => w.id)),
+  ];
+}
+
 /** Charge la carte par défaut de la config, validée contre elle (doc 02 §2.1). */
 export async function loadDefaultMap(report: LoadReport): Promise<ResolvedMap> {
   const config = report.content.config;
-  return loadMap(readJsonFromSite, config.newGame.map, config, knownUnitIds(report), knownArtifactIds(report));
+  return loadMap(readJsonFromSite, config.newGame.map, config, ...mapKnownIds(report));
 }
 
 /** Charge la carte d'un scénario (même chemin de résolution que `loadDefaultMap`). */
 export async function loadScenarioMap(report: LoadReport, scenario: Scenario): Promise<ResolvedMap> {
   const config = report.content.config;
-  return loadMap(readJsonFromSite, scenario.map, config, knownUnitIds(report), knownArtifactIds(report));
+  return loadMap(readJsonFromSite, scenario.map, config, ...mapKnownIds(report));
 }
 
 /**
@@ -108,5 +125,5 @@ export async function resolveGeneratedMap(
   });
   const readJson: ReadJson = (path) =>
     path === 'maps/random.map.json' ? Promise.resolve(generated) : readJsonFromSite(path);
-  return loadMap(readJson, 'random', config, units, knownArtifactIds(report));
+  return loadMap(readJson, 'random', config, ...mapKnownIds(report));
 }

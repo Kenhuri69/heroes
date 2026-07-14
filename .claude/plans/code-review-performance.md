@@ -529,4 +529,23 @@ les données actuelles** (cross-check scripté des ids) ; garde `readSaveVersion
   Pixi 8.19). Exécution : 2 sous-agents (scènes/rendu, app/UI). Couverture :
   typecheck/lint/build/content:check + suite smoke complète (pas de smoke
   dédié par point — mise en scène disproportionnée, dit explicitement §7).
-- [ ] Lot 10 — contenu/validation & PWA (B33, B46–B49)
+- [x] Lot 10 — contenu/validation & PWA (B33, B46–B49). Livré : **B47** —
+  `content:check` passe les 5 ensembles d'ids à `loadMap` (mêmes que le
+  client, helper `mapKnownIds`) ; **B48** — cross-validations : lieux
+  visitables (`learnSpell`/`grantSkill`/`grantWarMachine`), garnisons de
+  villes de carte, quêtes de scénario (récompenses, conditions, références
+  de dialogues/cutscene) — paramètres optionnels rétro-compatibles, messages
+  français au style existant ; **B49** — DFS tricolore anti-cycles de
+  prérequis de bâtiments (message listant le cycle) ; **B46** — service
+  worker : JSON de contenu en network-first repli cache (fin du skew code
+  neuf / données périmées), cache bumpé v2 + élagage borné à 100 entrées
+  `/assets/` (LRU approché, à l'activate ET après insertion), repli cache
+  quand `!fresh.ok` ; **B33** — `placeSide` : débordement round-robin
+  déterministe au-delà de COMBAT_ROWS piles (positions n ≤ 10 inchangées ⇒
+  golden intact). 10 tests ajoutés (7 contenu + 3 moteur). Moteur 783/783,
+  contenu 138/138, `content:check` vert, smoke PWA 1/1, suite complète verte.
+
+**CHANTIER TERMINÉ** (lots 1–10). Reste OPTIONNEL : lot 7b (F2 jets RNG
+plafonnés/PCG32 32 bits + F3 auto-combat hors draft Immer — re-fix golden
+assumé, à décider explicitement) ; différés consignés : point de vue « local »
+multi-humains d'`evaluateOutcome` (B27, design), Dijkstra IA mutualisé (7b).

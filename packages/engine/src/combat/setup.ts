@@ -19,16 +19,24 @@ import type { ArmyStack, CombatSideId, CombatState, CombatStack, CombatUnitDef }
  * automatique par slot, obstacles tirés au RNG du combat.
  */
 
-function placeSide(
+export function placeSide(
   side: CombatSideId,
   army: ArmyStack[],
   catalog: Record<string, CombatUnitDef>,
   col: number,
 ): CombatStack[] {
   const n = army.length;
+  // B33 : au-delà de COMBAT_ROWS piles, la formule historique produit des
+  // collisions de spawn. Débordement déterministe sur les colonnes adjacentes
+  // (vers le centre du plateau) : pile i ⇒ rangée i % ROWS, colonne décalée de
+  // floor(i / ROWS). Les positions pour n ≤ COMBAT_ROWS sont INCHANGÉES (golden).
+  const overflow = n > COMBAT_ROWS;
+  const dir = col < COMBAT_COLS / 2 ? 1 : -1;
   return army.map((stack, i) => {
     const def = catalog[stack.unitId];
-    const row = Math.floor((i + 0.5) * (COMBAT_ROWS / n));
+    const pos = overflow
+      ? { col: col + dir * Math.floor(i / COMBAT_ROWS), row: i % COMBAT_ROWS }
+      : { col, row: Math.floor((i + 0.5) * (COMBAT_ROWS / n)) };
     return {
       id: `${side}-${i}`,
       side,
@@ -36,7 +44,7 @@ function placeSide(
       unitId: stack.unitId,
       count: stack.count,
       firstHp: def?.stats.hp ?? 0,
-      pos: { col, row },
+      pos,
       retaliationsLeft: 1,
       waited: false,
       defending: false,

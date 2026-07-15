@@ -136,7 +136,7 @@ export type {
   ArtifactDef,
   ArtifactSlot,
 } from './hero/types';
-export { estimateSpell, estimateUnitSpell, teleportDestinations, type SpellEstimate } from './hero';
+export { estimateSpell, estimateUnitSpell, spellAffectedStacks, teleportDestinations, type SpellEstimate } from './hero';
 // CAP-CAST : le client détecte une pile `spellcaster` jouable à la main + son
 // gate de silence via ces helpers purs (aucune réimplémentation côté client).
 export { spellcasterParams } from './combat/spell-effect';

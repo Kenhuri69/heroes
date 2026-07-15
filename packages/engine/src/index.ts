@@ -153,6 +153,10 @@ export { heroVisionBonus, heroVisionRadius, heroLearnableCircle } from './hero/s
 // Convention d'id d'un héros recruté à la Taverne (M-TAVERN.2) — l'onglet
 // Taverne client marque « déjà recruté » avec la même convention que le moteur.
 export { recruitedHeroId } from './hero/recruit';
+// H-ARTEQUIP typed slots (doc 08 §2.3) : conflit d'emplacement exclusif à
+// l'équipement — la poupée client désactive la case du sac (préviz) avec la même
+// règle que la validation moteur.
+export { artifactSlotConflict } from './hero/equip';
 export type { FactionBonus } from './faction/types';
 export type {
   VictoryCondition,

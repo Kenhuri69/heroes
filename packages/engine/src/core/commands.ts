@@ -339,6 +339,7 @@ export interface CommandError {
     | 'invalidReorder'
     | 'invalidSplit'
     | 'invalidEquip'
+    | 'slotOccupied'
     | 'notAdjacent'
     | 'invalidCaravan'
     | 'invalidTrade'

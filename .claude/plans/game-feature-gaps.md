@@ -523,10 +523,15 @@ Source design : doc 02 §1 (héros), docs de faction §5/§6/§7 (héros nommés
     vitesse ») ajoute des PM quotidiens (agrégé par `heroArtifactBonus`, ajouté dans
     `heroDailyMovement` ; bonus live ⇒ pas de bump save, golden inchangé). Artefact
     `bottes-de-sept-lieues` (+300). Zéro faction.
-  - **Reste (H-ARTEQUIP.2+)** ⬜ : slots typés contraignants, autres effets
-    spéciaux déclaratifs (immunités…), sets à seuils ; routage vers le sac de la
-    dépouille de combat / récompense de quête (débordement actuellement au sol /
-    non attribué).
+  - **H-ARTEQUIP (slots typés contraignants)** ✅ (plan `h-artequip-typed-slots.md`) :
+    `EquipArtifact` respecte `artifact.slot` — refus d'un 2ᵉ artefact d'un
+    emplacement EXCLUSIF (≠ `misc`) déjà porté (helper pur `artifactSlotConflict`
+    partagé moteur+client, aucune faction) ; tableau `hero.artifacts` plat inchangé
+    ⇒ pas de bump save, golden inchangé. Code d'erreur `slotOccupied`. Placement
+    passif (ramassage/transfert) hors périmètre.
+  - **Reste (H-ARTEQUIP.2+)** ⬜ : autres effets spéciaux déclaratifs
+    (immunités…), sets à seuils ; routage vers le sac de la dépouille de combat /
+    récompense de quête (débordement actuellement au sol / non attribué).
 
 - **H-LEVELCHOICE — Choix d'attribut à la montée de niveau** 🎨 S ✅
   > **Livré** : le joueur **humain** choisit +1 attribut parmi 2 propositions à

@@ -62,6 +62,15 @@ Les **probabilités de gain** par niveau sont data-driven. *État livré (H-NAME
 > bump save, golden inchangé**. Artefact livré : **Pendentif de bravoure** (`morale
 > +1` + immunité). Zéro faction moteur.
 
+> **État livré (H-ARTEQUIP — résistance magique d'armée)** : champ déclaratif
+> optionnel `ArtifactDef.armyMagicResistance` (fraction 0..1) — un artefact équipé
+> ajoute cette résistance aux sorts de DÉGÂTS ennemis pour **chaque pile** du camp
+> du héros. Ajouté à la résistance graduée de l'unité dans le cœur de dégâts partagé
+> (résolution + préviz) ; la résistance combinée est **bornée < 1** (jamais
+> d'immunité totale par empilement). Effet **dérivé de l'équipement** (jamais
+> sérialisé) ⇒ **pas de bump save, golden inchangé**. Artefact livré : **Cape du
+> refus** (`Savoir +1` + `−25 %` de dégâts de sort à l'armée). Zéro faction moteur.
+
 ### 1.2 Progression
 
 - **XP** : combats **gagnés uniquement** (XP = somme des PV des unités ennemies tuées × coefficient — valeur de départ **1**, dans `data/core/config.json` ; seul le héros du camp vainqueur en reçoit), coffres, lieux de savoir.

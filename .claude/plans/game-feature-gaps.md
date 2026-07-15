@@ -545,8 +545,12 @@ Source design : doc 02 §1 (héros), docs de faction §5/§6/§7 (héros nommés
     `ArtifactDef.grantsMoraleImmune` — un artefact plancher le moral de l'armée du
     héros à 0 (miroir héros de `moraleImmune`), un hook dans `moraleOf`. Pendentif
     de bravoure livré. Zéro faction, pas de bump save, golden inchangé.
-  - **Reste (H-ARTEQUIP.2+)** ⬜ : autres effets spéciaux déclaratifs (immunité aux
-    sorts / statuts d'armée…) ; sets à seuils ✅ ; routage vers le sac de la
+  - **H-ARTEQUIP (résistance magique d'armée)** ✅ (plan `h-artequip-army-magic-resistance.md`) :
+    `ArtifactDef.armyMagicResistance` (fraction) réduit les dégâts de sort ennemis à
+    l'armée du héros (2 hooks résolution + préviz, `heroArmyMagicResistance`, borné
+    < 1). Cape du refus livrée. Zéro faction, pas de bump save, golden inchangé.
+  - **Reste (H-ARTEQUIP.2+)** ⬜ : effets déclaratifs restants (immunité/résistance
+    aux STATUTS d'armée, immunité de ciblage aux sorts…) ; routage vers le sac de la
     dépouille de combat / récompense de quête (débordement actuellement au sol /
     non attribué).
 

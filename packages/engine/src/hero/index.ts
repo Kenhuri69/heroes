@@ -1,7 +1,7 @@
 import { revealAround } from '../adventure/fog';
 import { DIRECTIONS, samePos, type GridPos } from '../adventure/map';
 import { isPassable } from '../adventure/path';
-import { heroLuckOf, killsFromDamage, magicResistanceOf } from '../combat/damage';
+import { heroArmyMagicResistance, heroLuckOf, killsFromDamage, magicResistanceOf } from '../combat/damage';
 import { checkCombatEnd } from '../combat/turns';
 import { applySpellToTargets, bestGraveEntry, chainTargets, resurrectFullCount, spellTargets, spellcasterParams } from '../combat/spell-effect';
 import { factionCurseDurationBonus, factionSpellDamageMods, isSpellImmune, staticBlockedKeys } from '../combat/state-helpers';
@@ -522,8 +522,10 @@ function estimateSpellWithPower(
       // F-SCHOOLS.3 : un sort mange-Marques ajoute `marksDamagePct`%/charge.
       const consumeBonus = spell.marksDamagePct ? (spell.marksDamagePct / 100) * t.marks : 0;
       const markBonus = (state.config?.combat.markBonusPerStack ?? 0) * t.marks + consumeBonus;
-      // Magie Irrésistible (doc 17 §2) : mêmes maths qu'à la résolution.
-      const resistance = Math.max(0, magicResistanceOf(def, t.transformed) - damageMods.resistancePierce);
+      // Magie Irrésistible (doc 17 §2) + résistance magique d'armée (H-ARTEQUIP.2+) :
+      // mêmes maths qu'à la résolution.
+      const armyMR = heroArmyMagicResistance(state, combat, t.side);
+      const resistance = Math.max(0, Math.min(0.95, magicResistanceOf(def, t.transformed) + armyMR) - damageMods.resistancePierce);
       const dmg = Math.round(
         spellDamageAmount(spell, power, false, resistance, markBonus) * mult * (1 + damageMods.bonusPct),
       );

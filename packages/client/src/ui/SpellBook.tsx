@@ -1,4 +1,4 @@
-import { useState } from 'preact/hooks';
+import { useEffect, useState } from 'preact/hooks';
 import {
   effectiveManaCost,
   estimateSpell,
@@ -53,6 +53,11 @@ export function SpellBook({ hero, onClose }: { hero: HeroState; onClose: () => v
   const [preview, setPreview] = useState<SpellEstimate | null>(null);
   const [previewFailed, setPreviewFailed] = useState(false);
 
+  // C-SPELLUI.3 : à la fermeture du livre (démontage), purge la prévisualisation
+  // de zone sur la grille — filet de sécurité quel que soit le chemin de sortie
+  // (cast, croix, tap hors modale, fin de combat).
+  useEffect(() => () => appStore.setState({ combatSpellZone: null }), []);
+
   if (!combat) return null;
   const def = spellId ? spellCatalog[spellId] : undefined;
 
@@ -61,6 +66,7 @@ export function SpellBook({ hero, onClose }: { hero: HeroState; onClose: () => v
     setTargetId(null);
     setPreview(null);
     setPreviewFailed(false);
+    appStore.setState({ combatSpellZone: null });
   };
 
   const backToList = (): void => {
@@ -68,6 +74,7 @@ export function SpellBook({ hero, onClose }: { hero: HeroState; onClose: () => v
     setTargetId(null);
     setPreview(null);
     setPreviewFailed(false);
+    appStore.setState({ combatSpellZone: null });
   };
 
   const selectTarget = (stackId: string, selectedSpellId: string): void => {
@@ -81,6 +88,12 @@ export function SpellBook({ hero, onClose }: { hero: HeroState; onClose: () => v
       setPreview(null);
       setPreviewFailed(true);
     }
+    // C-SPELLUI.3 : surligne la zone d'effet sur la grille (sauf téléportation,
+    // qui a son propre flux de ciblage d'hex `combatSpellTarget`).
+    appStore.setState({
+      combatSpellZone:
+        spellCatalog[selectedSpellId]?.kind === 'teleport' ? null : { spellId: selectedSpellId, targetStackId: stackId },
+    });
   };
 
   const cast = (selectedSpellId: string, selectedTargetId: string): void => {
@@ -102,10 +115,15 @@ export function SpellBook({ hero, onClose }: { hero: HeroState; onClose: () => v
       });
   };
 
+  // C-SPELLUI.3 : sur l'écran de ciblage, la modale se dock en bas (fond
+  // transparent) pour révéler le plateau où la zone d'effet est surlignée.
+  const targeting = def && def.kind !== 'teleport';
+
   return (
-    <div class="modal-backdrop" onClick={onClose}>
+    <div class={`modal-backdrop${targeting ? ' spellbook-targeting' : ''}`} onClick={onClose}>
       <div
-        class="modal spellbook"
+        class={`modal spellbook${targeting ? ' targeting' : ''}`}
+        data-testid="spellbook-modal"
         role="dialog"
         aria-modal="true"
         aria-label={t('spellbook.title')}

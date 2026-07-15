@@ -11,6 +11,7 @@ import {
   estimateDamage,
   meleeOriginsFor,
   reachableHexes,
+  spellAffectedStacks,
   teleportDestinations,
   type CombatActionInput,
   type CombatSideId,
@@ -196,7 +197,7 @@ export class CombatScene {
   // ——— Resync depuis le store (réconciliation simple, doc 10 §2.2) ———
 
   /** Références du dernier sync — dirty-check F1 (revue 2026-07). */
-  private lastSync: { game: unknown; spellTarget: unknown } | null = null;
+  private lastSync: { game: unknown; spellTarget: unknown; spellZone: unknown } | null = null;
 
   private sync(): void {
     if (this.destroyed) return;
@@ -206,8 +207,14 @@ export class CombatScene {
     // appellent déjà `redrawBoard()` directement.
     const st = appStore.getState();
     const last = this.lastSync;
-    if (last && last.game === st.game && last.spellTarget === st.combatSpellTarget) return;
-    this.lastSync = { game: st.game, spellTarget: st.combatSpellTarget };
+    if (
+      last &&
+      last.game === st.game &&
+      last.spellTarget === st.combatSpellTarget &&
+      last.spellZone === st.combatSpellZone
+    )
+      return;
+    this.lastSync = { game: st.game, spellTarget: st.combatSpellTarget, spellZone: st.combatSpellZone };
     const combat = st.game.combat;
     if (!combat) {
       this.combatShown = false;
@@ -504,6 +511,27 @@ export class CombatScene {
         obstacles: this.blockedKeys(combat),
         moat: this.moatKeys(combat),
         selected: ally?.pos ?? null,
+      });
+      return;
+    }
+
+    // C-SPELLUI.3 : pendant le choix de cible dans le grimoire, surligne la ZONE
+    // d'effet du sort (cible + splash/all/chaîne) — helper moteur pur, aucune
+    // géométrie hex ici. Vue seule : la cible se choisit via les puces texte.
+    const spellZone = appStore.getState().combatSpellZone;
+    if (spellZone) {
+      let zoneHexes: OffsetPos[] = [];
+      try {
+        zoneHexes = spellAffectedStacks(game, spellZone.spellId, spellZone.targetStackId).map((s) => s.pos);
+      } catch {
+        zoneHexes = [];
+      }
+      const center = combat.stacks.find((s) => s.id === spellZone.targetStackId);
+      drawBoard(this.boardGfx, {
+        zone: new Set(zoneHexes.map(hexKey)),
+        obstacles: this.blockedKeys(combat),
+        moat: this.moatKeys(combat),
+        selected: center?.pos ?? null,
       });
       return;
     }

@@ -218,6 +218,22 @@
 > l'en-tête (revenu · croissance · chantier). **(E) mobile** — onglets **collants**
 > (sticky) en haut du scroll de la modale, vue peinte un peu plus courte.
 
+> 🎨 **État UX-TOWNVIEW (plan `.claude/plans/ux-townview.md`)** : la vue de ville
+> passe de la **bande horizontale** de vignettes à une **scène composée** — chaque
+> bâtiment est posé **en absolu à sa place** sur le décor peint, via un layout
+> **déterministe côté client** (`render/townLayout.ts` : position x%/y% dérivée de
+> l'**identité** du bâtiment, jamais de son statut ⇒ un bâtiment ne bouge pas
+> quand on le construit, fidélité HoMM ; répartition en gradins de village +
+> gigue bornée, positions responsives). **Zéro diff moteur, aucun schéma ni donnée
+> de layout** (décision « A ») : les positions data-driven par faction arriveront
+> avec l'art bespoke composable (AS-TOWNBG, jalon Beta). Statut inchangé (2ᵉ canal
+> non chromatique § 4 : pastille de forme + opacité/désaturation ; **verrouillé =
+> vignette grisée en « ombre » discrète**, restant tappable ⇒ prérequis dans
+> Construire). Tap-routing (A/B refonte) et testids (`town-view-building` +
+> `data-status`) conservés ; les positions sont exposées en `left`/`top` inline
+> pour la testabilité DOM (le rendu peint n'étant pas assertable au pixel).
+> Touch-first (cibles ≥ 44 px), 3 crans de police via `rem`.
+
 ### 2.3 Écran héros
 
 - Portrait, attributs, XP ; **poupée d'équipement** 10 slots + sac ; compétences (6 slots, rangs) ; grimoire **feuilletable par onglets d'école** (puis cercles), coût mana visible, sorts indisponibles grisés avec raison.

@@ -440,41 +440,50 @@ button[data-testid='market-trade'] {
   cursor: pointer;
 }
 
-/* Vue de ville « peinte » (doc 08 §2.2/§5, lots UX U5 + UXD-5) : plan de
-   construction sur un décor gouache — chaque bâtiment du catalogue est un
-   emplacement (construit/disponible/verrouillé), défilement horizontal
-   touch-first. */
+/* Vue de ville « peinte » (doc 08 §2.2/§5, lots UX U5 + UXD-5 + UX-TOWNVIEW) :
+   scène COMPOSÉE sur un décor gouache — chaque bâtiment du catalogue est un
+   emplacement posé en absolu à sa place (`townLayout`, position déterministe),
+   portant son statut (construit/disponible/verrouillé). Touch-first. */
 .town-view {
   margin-bottom: 12px;
 }
 .town-view-scene {
-  display: flex;
-  gap: 10px;
-  align-items: flex-end;
-  overflow-x: auto;
-  padding: 10px;
-  min-height: 78px;
+  position: relative;
+  width: 100%;
+  min-height: clamp(180px, 34vh, 300px);
+  padding: 0;
   border-radius: 10px;
   /* Décor peint : dégradé gouache en repli si le fond bespoke (lot U5-B) est absent. */
   background: linear-gradient(180deg, var(--townsky-high) 0%, var(--townsky-mid) 62%, var(--townsky-low) 100%);
   background-size: cover;
   background-position: center;
   border: 1px solid var(--ink-600);
-  scrollbar-width: thin;
+  overflow: hidden;
 }
 .town-view-building {
-  flex: 0 0 auto;
+  position: absolute;
+  transform: translate(-50%, -50%);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
   min-width: 44px;
   min-height: 44px;
-  padding: 4px;
+  padding: 2px;
   background: transparent;
   border: none;
   color: var(--parchment-bright);
   cursor: pointer;
+}
+/* Profondeur de rendu (ordre DOM) : construit devant, verrouillé au fond. */
+.town-view-building.is-constructed {
+  z-index: 3;
+}
+.town-view-building.is-available {
+  z-index: 2;
+}
+.town-view-building.is-locked {
+  z-index: 1;
 }
 .town-view-vignette,
 .town-view-vignette-fallback {
@@ -544,7 +553,11 @@ button[data-testid='market-trade'] {
   text-shadow: 0 1px 2px var(--shadow-60);
 }
 .town-view-empty {
-  margin: auto;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
   color: var(--parchment-dim);
   font: 0.85rem var(--font-ui);
 }

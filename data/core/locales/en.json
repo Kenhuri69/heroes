@@ -512,6 +512,8 @@
   "spellbook.schoolsLabel": "Magic schools",
   "spellbook.zone": "Area:",
   "spellbook.zoneCount": "({count} stacks)",
+  "spellbook.mastery": "Mastery: {rank}",
+  "spellbook.masteryNone": "basic",
   "toast.spellCast": "{hero} casts {spell}",
   "toast.skillLearned": "{skill} rank {rank} learned",
   "toast.saved": "Game saved.",

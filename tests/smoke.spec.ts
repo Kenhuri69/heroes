@@ -2444,6 +2444,9 @@ test('sort : le héros lance un sort en combat et réduit une pile ennemie', { t
   // C-SPELLUI.1 : grimoire feuilletable par onglets d'école (doc 08 §2.3) —
   // « éclair magique » est de l'école neutre ⇒ on ouvre son onglet.
   await page.getByTestId('spellbook-tab-neutral').click();
+  // C-SPELLUI.4 : l'onglet indique la maîtrise du héros dans l'école (le héros
+  // de départ n'a pas de compétence de magie ⇒ maîtrise « de base »).
+  await expect(page.getByTestId('spellbook-mastery-neutral')).toContainText('base');
 
   // Livre → « éclair magique » (cercle 1, 4 mana) → pile ennemie →
   // prévisualisation OBLIGATOIRE (doc 08 §2.4) → confirmation.

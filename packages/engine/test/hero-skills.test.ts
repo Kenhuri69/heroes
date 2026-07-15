@@ -15,6 +15,7 @@ import {
   heroMorale,
   heroMovementBonus,
   heroRangedPct,
+  heroSchoolMastery,
   heroVisionBonus,
   heroVisionRadius,
 } from '../src/hero/skills';
@@ -94,6 +95,15 @@ describe('hero/skills — effets purs par rang (Novice/Expert/Maître)', () => {
     // un sort d'une autre école n'en bénéficie pas.
     expect(heroManaCostReduction(hero, catalog, 'fire')).toBe(10);
     expect(heroManaCostReduction(hero, catalog, 'water')).toBe(0);
+  });
+
+  it('maîtrise d’école = rang de la compétence de cette école, 0 sinon (C-SPELLUI.4)', () => {
+    const hero = baseHero({ skills: { wisdom: 2, logistics: 3 } });
+    // `wisdom` déclare l'école Feu au rang 2 ⇒ maîtrise 2 en Feu.
+    expect(heroSchoolMastery(hero, catalog, 'fire')).toBe(2);
+    // Aucune compétence Eau ⇒ maîtrise de base 0 (logistics n'a pas d'école).
+    expect(heroSchoolMastery(hero, catalog, 'water')).toBe(0);
+    expect(heroSchoolMastery(baseHero(), catalog, 'fire')).toBe(0);
   });
 });
 

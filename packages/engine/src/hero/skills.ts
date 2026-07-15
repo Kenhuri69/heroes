@@ -201,3 +201,22 @@ export function heroManaCostReduction(
   // (contrairement à la compétence Magie par école, A6) : elle s'applique à tout sort.
   return total + sumHouseField(hero, 'manaCostReductionPct');
 }
+
+/**
+ * Maîtrise d'une école de magie (doc 02 §1.3, C-SPELLUI.4) : rang le plus élevé
+ * parmi les compétences DÉCLARANT cette `school` (une Magie du Feu de rang 2 ⇒
+ * maîtrise 2 en Feu). `0` = aucune compétence de cette école (maîtrise de base).
+ * Pure et générique (aucune école en dur) ; le grimoire client l'affiche pour
+ * situer la proficience du héros (qui pilote la réduction de coût de mana, A6).
+ */
+export function heroSchoolMastery(
+  hero: HeroState,
+  catalog: Record<string, HeroSkillDef>,
+  school: SpellSchool,
+): number {
+  let max = 0;
+  for (const [skillId, rank] of Object.entries(hero.skills)) {
+    if (catalog[skillId]?.school === school && rank > max) max = rank;
+  }
+  return max;
+}

@@ -509,6 +509,7 @@
   "toast.skirmishFailed": "Impossible de démarrer l’escarmouche",
   "toast.adventureSpellCast": "{spell} lancé",
   "spellbook.adventureTitle": "Sorts d’aventure",
+  "spellbook.schoolsLabel": "Écoles de magie",
   "toast.spellCast": "{hero} lance {spell}",
   "toast.skillLearned": "{skill} niveau {rank} apprise",
   "toast.saved": "Partie sauvegardée.",

@@ -677,6 +677,7 @@
   "town.at": "Ville ({x}, {y})",
   "town.caravanLine": "{count} unité(s) → {town} · {days} j",
   "town.upgrade": "Améliorer",
+  "town.upgradeAvailable": "Amélioration disponible",
   "town.warMachines": "Machines de guerre",
   "town.buy": "Acheter",
   "town.owned": "Possédée",

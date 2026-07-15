@@ -677,6 +677,7 @@
   "town.at": "Town ({x}, {y})",
   "town.caravanLine": "{count} unit(s) → {town} · {days}d",
   "town.upgrade": "Upgrade",
+  "town.upgradeAvailable": "Upgrade available",
   "town.warMachines": "War machines",
   "town.buy": "Buy",
   "town.owned": "Owned",

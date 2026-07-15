@@ -2450,6 +2450,10 @@ test('sort : le héros lance un sort en combat et réduit une pile ennemie', { t
   // Remédiation R4 (CO5) : le sort porte son NOM localisé, plus l'id brut.
   await expect(page.getByTestId('spell-eclair-magique')).toContainText('Éclair magique');
   await page.getByTestId('spell-eclair-magique').click();
+  // C-SPELLUI.3 : l'écran de ciblage passe la modale en mode dock (fond
+  // transparent, plateau révélé) où la zone d'effet est surlignée en Pixi — le
+  // highlight canvas lui-même n'est pas assertable en smoke DOM.
+  await expect(page.getByTestId('spellbook-modal')).toHaveClass(/targeting/);
   await page.getByTestId(`spell-target-${setup.targetId}`).click();
   await expect(page.getByTestId('spell-preview')).toContainText(/\d/);
   // C-SPELLUI.2 : « éclair magique » est mono-cible ⇒ aucune liste de zone

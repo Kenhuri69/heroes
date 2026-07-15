@@ -69,6 +69,10 @@ const ROCK_LIGHT = 0xa89e8f;
 const ROCK_DARK = 0x4d453c;
 const FILL_MOAT = 0x1f3a52; // fossé bleu-nuit : franchissable mais ralentissant
 const STROKE_MOAT = 0x4a86b8;
+// C-SPELLUI.3 : zone d'effet d'un sort — teinte violette distincte des états
+// atteignable(vert)/attaquable(rouge)/douve(bleu), + losange marqueur (A5).
+const FILL_ZONE = 0x6a3a8a;
+const STROKE_ZONE = 0xd6a8ff;
 const ALPHA_STATE = 0.34; // états : assez opaques pour se lire, décor encore perçu
 const MARKER = 0xe8e2d0;
 const STROKE_SELECTED = 0xf1c40f;
@@ -112,6 +116,8 @@ export interface DrawBoardOptions {
   obstacles?: ReadonlySet<string>;
   /** Hexes de douve de siège (C-SIEGE2.3) : franchissables mais ralentissants. */
   moat?: ReadonlySet<string>;
+  /** C-SPELLUI.3 : hexes touchés par la zone d'effet du sort en cours de ciblage. */
+  zone?: ReadonlySet<string>;
   /** Hex/cible sélectionné en attente du 2ᵉ tap — contour doré. */
   selected?: OffsetPos | null;
 }
@@ -122,6 +128,7 @@ export function drawBoard(g: Graphics, opts: DrawBoardOptions = {}): void {
   const attackable = opts.attackable ?? new Set<string>();
   const obstacles = opts.obstacles ?? new Set<string>();
   const moat = opts.moat ?? new Set<string>();
+  const zone = opts.zone ?? new Set<string>();
   const selected = opts.selected ?? null;
   const r = HEX_SIZE - 1;
 
@@ -132,8 +139,11 @@ export function drawBoard(g: Graphics, opts: DrawBoardOptions = {}): void {
       const { x, y } = offsetToPixel(pos);
 
       const isObstacle = obstacles.has(key);
-      const isAttackable = !isObstacle && attackable.has(key);
-      const isReachable = !isObstacle && !isAttackable && reachable.has(key);
+      // C-SPELLUI.3 : la zone de sort est un mode de ciblage exclusif (reachable/
+      // attackable vides quand elle est active) — sa propre teinte.
+      const isZone = !isObstacle && zone.has(key);
+      const isAttackable = !isObstacle && !isZone && attackable.has(key);
+      const isReachable = !isObstacle && !isZone && !isAttackable && reachable.has(key);
       // C-SIEGE2.3 : la douve est une teinte de FOND (fossé), recouverte par les
       // surbrillances transitoires (atteignable/attaquable/obstacle) quand actives.
       const isMoat = moat.has(key);
@@ -146,6 +156,11 @@ export function drawBoard(g: Graphics, opts: DrawBoardOptions = {}): void {
         fill = FILL_OBSTACLE;
         alpha = ALPHA_OBSTACLE;
         stroke = STROKE_OBSTACLE;
+      } else if (isZone) {
+        fill = FILL_ZONE;
+        alpha = ALPHA_STATE;
+        stroke = STROKE_ZONE;
+        strokeWidth = 2.5; // bord épais : la zone recouvre des piles ciblées
       } else if (isAttackable) {
         fill = FILL_ATTACKABLE;
         alpha = ALPHA_STATE;
@@ -170,6 +185,10 @@ export function drawBoard(g: Graphics, opts: DrawBoardOptions = {}): void {
       // Marqueurs non chromatiques (A5) : lisibles même sans distinction de teinte.
       if (isReachable) {
         g.circle(x, y, 4).fill({ color: MARKER, alpha: 0.9 }); // pip « on peut venir ici »
+      } else if (isZone) {
+        // Losange « touché par la zone » — marqueur non chromatique (A5).
+        const d = 5;
+        g.poly([x, y - d, x + d, y, x, y + d, x - d, y]).fill({ color: MARKER, alpha: 0.9 });
       } else if (isObstacle) {
         drawBoulder(g, x, y, r); // rocher lisible « case bloquée » (bloque le déplacement)
       }

@@ -6,6 +6,19 @@
   overflow-y: auto;
 }
 
+/* C-SPELLUI.3 : écran de ciblage — fond transparent + modale dockée en bas pour
+   révéler le plateau, où la zone d'effet du sort est surlignée. Le fond reste
+   cliquable (tap hors modale = fermeture, comme d'habitude). */
+.modal-backdrop.spellbook-targeting {
+  align-items: flex-end;
+  background: transparent;
+}
+
+.modal.spellbook.targeting {
+  max-height: 46vh;
+  margin-bottom: 8px;
+}
+
 .spellbook-mana {
   margin: 0 0 10px;
   opacity: 0.85;

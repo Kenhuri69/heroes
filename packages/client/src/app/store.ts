@@ -223,6 +223,14 @@ export interface AppState {
    */
   combatSpellTarget: { spellId: string; targetStackId: string } | null;
   /**
+   * C-SPELLUI.3 : sort + cible dont la ZONE d'effet est prévisualisée sur la
+   * grille pendant le choix de cible dans le grimoire. `CombatScene` surligne
+   * les hexes touchés (cible + splash/all/chaîne, via `spellAffectedStacks`).
+   * `null` = aucun ciblage en cours. Purement présentation client (non
+   * persisté) ; remis à zéro aux transitions de combat et au démontage du livre.
+   */
+  combatSpellZone: { spellId: string; targetStackId: string } | null;
+  /**
    * Pile de combat inspectée (amélioration UX champ de bataille) — id de pile
    * dont la fiche de stats est ouverte. Posé par un appui long / clic maintenu
    * sur le plateau (`CombatScene`) ou un tap sur une vignette du bandeau
@@ -283,6 +291,7 @@ export const appStore = createStore<AppState>(() => ({
   playerColors: {},
   aiTurn: null,
   combatSpellTarget: null,
+  combatSpellZone: null,
   combatInspectId: null,
   combatResult: null,
 }));

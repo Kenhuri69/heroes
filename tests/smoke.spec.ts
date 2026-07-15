@@ -2452,6 +2452,10 @@ test('sort : le héros lance un sort en combat et réduit une pile ennemie', { t
   await page.getByTestId('spell-eclair-magique').click();
   await page.getByTestId(`spell-target-${setup.targetId}`).click();
   await expect(page.getByTestId('spell-preview')).toContainText(/\d/);
+  // C-SPELLUI.2 : « éclair magique » est mono-cible ⇒ aucune liste de zone
+  // (le cas multi-piles splash/all/chaîne est couvert par le unit test moteur
+  // combat-spell-affected — le scénario smoke n'a qu'une pile gardien).
+  await expect(page.getByTestId('spell-zone')).toHaveCount(0);
   await page.getByTestId('spell-cast').click();
 
   // Pile ennemie réduite (ou détruite), mana débitée, 1 sort/round consommé.

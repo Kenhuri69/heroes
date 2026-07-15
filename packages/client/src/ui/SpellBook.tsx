@@ -4,6 +4,7 @@ import {
   estimateSpell,
   heroKnownSpellIds,
   isSpellImmune,
+  spellAffectedStacks,
   spellTargetsEnemy,
   type ArtifactDef,
   type CombatState,
@@ -149,6 +150,10 @@ export function SpellBook({ hero, onClose }: { hero: HeroState; onClose: () => v
                   : formatPreview(preview, previewFailed)
                 : t('spellbook.chooseTarget')}
             </div>
+            {/* C-SPELLUI.2 : un sort de zone (splash/all/chaîne) touche plusieurs
+                piles — on liste lesquelles (source moteur pure `spellAffectedStacks`)
+                pour que le joueur voie l'étendue avant de confirmer. */}
+            {targetId && (def.area || def.chain) && <SpellZone spellId={def.id} targetId={targetId} />}
             <button
               class="spellbook-cast"
               data-testid="spell-cast"
@@ -304,6 +309,23 @@ function TargetList({
         </li>
       ))}
     </ul>
+  );
+}
+
+/**
+ * C-SPELLUI.2 : liste des piles touchées par un sort de zone (splash/all/chaîne),
+ * ordre de résolution. Source unique moteur (`spellAffectedStacks`, la même que
+ * la résolution et la préviz agrégée) ⇒ zéro géométrie hex réimplémentée.
+ */
+function SpellZone({ spellId, targetId }: { spellId: string; targetId: string }) {
+  const affected = spellAffectedStacks(appStore.getState().game, spellId, targetId);
+  if (affected.length <= 1) return null; // mono-cible effective : rien à annoncer
+  return (
+    <p class="spell-zone" data-testid="spell-zone">
+      <span class="spell-zone-label">{t('spellbook.zone')}</span>{' '}
+      {affected.map((s) => `${resolveUnitName(s.unitId)} ×${s.count}`).join(', ')}{' '}
+      <span class="spell-zone-count">{t('spellbook.zoneCount', { count: affected.length })}</span>
+    </p>
   );
 }
 

@@ -13,7 +13,7 @@ import {
   sameHex,
   type OffsetPos,
 } from '../combat/hex';
-import type { CombatState } from '../combat/types';
+import type { CombatStack, CombatState } from '../combat/types';
 import type { Command, CommandError } from '../core/commands';
 import type { GameEvent } from '../core/events';
 import type { GameState, HeroState } from '../core/state';
@@ -464,6 +464,29 @@ export function estimateSpell(
   // Magie Irrésistible (doc 17 §2) : la préviz héros reflète les mods de dégâts
   // de la faction (le sort d'unité `spellcaster` passe par le défaut {0,0}).
   return estimateSpellWithPower(state, spellId, targetStackId, power, factionSpellDamageMods(state, hero));
+}
+
+/**
+ * C-SPELLUI.2 : piles réellement AFFECTÉES par un sort visant `centerStackId`,
+ * dans l'ordre de résolution — cible seule (sort simple), cible + alliées
+ * adjacentes (`splash`), tout le camp de la cible (`all`), ou la chaîne de
+ * rebonds (sort `damage` à `chain`). Pure et déterministe (réutilise
+ * `spellTargets`/`chainTargets`, source de la résolution ET de la préviz), donc
+ * hors replay ⇒ golden inchangé. Retourne `[]` sans combat / id inconnus : le
+ * client s'en sert pour surligner/lister la zone sans jamais lever d'exception.
+ */
+export function spellAffectedStacks(
+  state: GameState,
+  spellId: string,
+  centerStackId: string,
+): CombatStack[] {
+  const combat = state.combat;
+  if (!combat) return [];
+  const spell = state.spellCatalog[spellId];
+  const center = combat.stacks.find((s) => s.id === centerStackId);
+  if (!spell || !center) return [];
+  if (spell.kind === 'damage' && spell.chain) return chainTargets(combat, center, spell.chain.jumps);
+  return spellTargets(combat, spell.area, center);
 }
 
 /**

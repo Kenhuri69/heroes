@@ -1,4 +1,4 @@
-import { useState } from 'preact/hooks';
+import { useRef, useState } from 'preact/hooks';
 import {
   RESOURCE_IDS,
   buildStatus,
@@ -33,7 +33,7 @@ import {
   resolveSpecialtyDesc,
 } from '../app/i18n';
 import { buildingUrl, heroAvatarUrl, townBackgroundUrl } from '../render/assets';
-import { townLayout } from '../render/townLayout';
+import { townLayout, type TownSlot } from '../render/townLayout';
 import { AssetImg } from './AssetImg';
 import { FactionBadge } from './FactionBadge';
 import { UiIcon } from './UiIcon';
@@ -313,6 +313,137 @@ function townViewStatus(town: TownState, catalog: Record<string, BuildingDef>, i
 }
 
 /**
+ * Un bâtiment CONSTRUIT peut-il encore être amélioré aujourd'hui ? `buildStatus`
+ * renvoie `available` tant qu'un niveau supérieur est bâtissable (upgrade 1→2…),
+ * `built` une fois au max. On ne signale donc l'upgrade que sur le construit.
+ */
+function isUpgradeable(town: TownState, catalog: Record<string, BuildingDef>, id: string): boolean {
+  return (town.buildings[id] ?? 0) >= 1 && buildStatus(town, catalog, id) === 'available';
+}
+
+const LONG_PRESS_MS = 450;
+const LONG_PRESS_MOVE = 10;
+
+/**
+ * Appui long DOM (parité tactile doc 08 §1.1, lot UX-TOWNVIEW 3) : un pointeur
+ * maintenu ~450 ms sans bouger déclenche `onLong` — l'équivalent tactile du
+ * survol souris. Annulé par un déplacement (scroll/pan) ou une relâche anticipée
+ * (qui redevient un tap normal). Après un appui long, le clic suivant est
+ * neutralisé (`onClickCapture`) pour ne pas déclencher aussi la navigation.
+ * Renvoie des gestionnaires à étaler sur l'élément (souris ET tactile via Pointer
+ * Events).
+ */
+function useLongPress(onLong: () => void): {
+  onPointerDown: (e: PointerEvent) => void;
+  onPointerMove: (e: PointerEvent) => void;
+  onPointerUp: () => void;
+  onPointerLeave: () => void;
+  onClickCapture: (e: Event) => void;
+} {
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const fired = useRef(false);
+  const start = useRef({ x: 0, y: 0 });
+  const clear = (): void => {
+    if (timer.current !== null) clearTimeout(timer.current);
+    timer.current = null;
+  };
+  return {
+    onPointerDown: (e) => {
+      fired.current = false;
+      start.current = { x: e.clientX, y: e.clientY };
+      clear();
+      timer.current = setTimeout(() => {
+        timer.current = null;
+        fired.current = true;
+        onLong();
+      }, LONG_PRESS_MS);
+    },
+    onPointerMove: (e) => {
+      if (timer.current !== null && Math.hypot(e.clientX - start.current.x, e.clientY - start.current.y) > LONG_PRESS_MOVE)
+        clear();
+    },
+    onPointerUp: clear,
+    onPointerLeave: clear,
+    onClickCapture: (e) => {
+      if (fired.current) {
+        e.preventDefault();
+        e.stopPropagation();
+        fired.current = false;
+      }
+    },
+  };
+}
+
+/**
+ * Emplacement d'un bâtiment sur la scène composée (lot UX-TOWNVIEW 3). Composant
+ * dédié pour porter le hook d'appui long (règle des hooks : pas d'appel dans une
+ * boucle `.map`). Rend la vignette + pastille de statut + **badge d'upgrade** non
+ * chromatique (chevron ▲) si le bâtiment construit est encore améliorable. Le
+ * survol (souris), le focus (clavier) et l'appui long (tactile) déclenchent
+ * l'inspection (`onInspect`) — parité tactile doc 08 §1.1 ; le tap navigue
+ * (`onSelect`).
+ */
+function TownSlotButton({
+  id,
+  factionId,
+  status,
+  slot,
+  upgradeable,
+  onSelect,
+  onInspect,
+  onInspectEnd,
+}: {
+  id: string;
+  factionId: string;
+  status: TownViewStatus;
+  slot: TownSlot | undefined;
+  upgradeable: boolean;
+  onSelect: () => void;
+  onInspect: () => void;
+  onInspectEnd: () => void;
+}) {
+  const longPress = useLongPress(onInspect);
+  const label = upgradeable
+    ? `${buildingName(id)} — ${t(VIEW_STATUS_LABEL[status])} — ${t('town.upgradeAvailable')}`
+    : `${buildingName(id)} — ${t(VIEW_STATUS_LABEL[status])}`;
+  return (
+    <button
+      class={`town-view-building is-${status}`}
+      data-testid="town-view-building"
+      data-status={status}
+      data-upgradeable={upgradeable ? 'true' : 'false'}
+      style={slot ? { left: `${slot.x}%`, top: `${slot.y}%` } : undefined}
+      onClick={onSelect}
+      onMouseEnter={onInspect}
+      onMouseLeave={onInspectEnd}
+      onFocus={onInspect}
+      onBlur={onInspectEnd}
+      onPointerDown={longPress.onPointerDown}
+      onPointerMove={longPress.onPointerMove}
+      onPointerUp={longPress.onPointerUp}
+      onPointerLeave={longPress.onPointerLeave}
+      onClickCapture={longPress.onClickCapture}
+      title={buildingName(id)}
+      aria-label={label}
+    >
+      <span class="town-view-figure">
+        <AssetImg
+          src={buildingUrl(id, factionId)}
+          alt=""
+          class="town-view-vignette"
+          fallback={<i class="town-view-vignette-fallback" aria-hidden="true" />}
+        />
+        <span class={`town-view-pip town-view-pip-${status}`} aria-hidden="true" />
+        {upgradeable && (
+          <span class="town-view-upgrade" data-testid="town-view-upgrade" title={t('town.upgradeAvailable')} aria-hidden="true" />
+        )}
+      </span>
+      <span class="town-view-label">{buildingName(id)}</span>
+    </button>
+  );
+}
+
+/**
  * Vue de ville « peinte » (doc 08 §2.2/§5, lots UX U5 + UXD-5 + UX-TOWNVIEW) :
  * **scène composée** sur un décor peint (fond bespoke par faction, lot U5-B —
  * repli sur le dégradé gouache CSS si l'asset est absent). Chaque bâtiment du
@@ -338,11 +469,35 @@ function TownView({
 }) {
   const ids = townBuildingIds(town, catalog);
   const layout = townLayout(ids);
+  // Bâtiment inspecté (survol / focus / appui long — lot UX-TOWNVIEW 3) : l'info
+  // apparaît sous la scène, pas seulement dans le `title` natif (parité tactile).
+  const [inspectId, setInspectId] = useState<string | null>(null);
   const slots = ids
-    .map((id) => ({ id, status: townViewStatus(town, catalog, id), slot: layout.get(id) }))
+    .map((id) => ({
+      id,
+      status: townViewStatus(town, catalog, id),
+      slot: layout.get(id),
+      upgradeable: isUpgradeable(town, catalog, id),
+    }))
     // Ordre de peinture (z via l'ordre DOM) : verrouillé au fond, construit devant.
     .sort((a, b) => VIEW_STATUS_ORDER[b.status] - VIEW_STATUS_ORDER[a.status] || a.id.localeCompare(b.id));
   const bg = townBackgroundUrl(town.factionId);
+
+  const def = inspectId ? catalog[inspectId] : undefined;
+  const inspected = inspectId && def
+    ? {
+        id: inspectId,
+        level: town.buildings[inspectId] ?? 0,
+        max: def.maxLevel,
+        status: townViewStatus(town, catalog, inspectId),
+        // Coût du prochain niveau (construction ou upgrade) si bâtissable maintenant.
+        nextCost:
+          buildStatus(town, catalog, inspectId) === 'available'
+            ? def.levels[town.buildings[inspectId] ?? 0]?.cost
+            : undefined,
+      }
+    : null;
+
   return (
     <div class="town-view" data-testid="town-view">
       <div class="town-view-scene" style={bg ? { backgroundImage: `url(${bg})` } : undefined}>
@@ -351,31 +506,43 @@ function TownView({
             {t('town.viewEmpty')}
           </p>
         ) : (
-          slots.map(({ id, status, slot }) => (
-            <button
+          slots.map(({ id, status, slot, upgradeable }) => (
+            <TownSlotButton
               key={id}
-              class={`town-view-building is-${status}`}
-              data-testid="town-view-building"
-              data-status={status}
-              style={slot ? { left: `${slot.x}%`, top: `${slot.y}%` } : undefined}
-              onClick={() => onSelect(id)}
-              title={buildingName(id)}
-              aria-label={`${buildingName(id)} — ${t(VIEW_STATUS_LABEL[status])}`}
-            >
-              <span class="town-view-figure">
-                <AssetImg
-                  src={buildingUrl(id, town.factionId)}
-                  alt=""
-                  class="town-view-vignette"
-                  fallback={<i class="town-view-vignette-fallback" aria-hidden="true" />}
-                />
-                <span class={`town-view-pip town-view-pip-${status}`} aria-hidden="true" />
-              </span>
-              <span class="town-view-label">{buildingName(id)}</span>
-            </button>
+              id={id}
+              factionId={town.factionId}
+              status={status}
+              slot={slot}
+              upgradeable={upgradeable}
+              onSelect={() => {
+                setInspectId(null);
+                onSelect(id);
+              }}
+              onInspect={() => setInspectId(id)}
+              onInspectEnd={() => setInspectId((cur) => (cur === id ? null : cur))}
+            />
           ))
         )}
       </div>
+      {inspected && (
+        <p class="town-view-inspect" data-testid="town-view-inspect" aria-live="polite">
+          <span class="town-view-inspect-name">{buildingName(inspected.id)}</span>
+          <span class="town-view-inspect-sep" aria-hidden="true">·</span>
+          <span class="town-view-inspect-level" data-testid="town-view-inspect-level">
+            {t('town.level', { level: inspected.level, max: inspected.max })}
+          </span>
+          <span class="town-view-inspect-sep" aria-hidden="true">·</span>
+          <span class="town-view-inspect-status">{t(VIEW_STATUS_LABEL[inspected.status])}</span>
+          {inspected.nextCost && (
+            <span class="town-view-inspect-cost">
+              <span class="town-view-inspect-sep" aria-hidden="true">·</span>
+              {inspected.status === 'constructed' ? t('town.upgrade') : t('town.build')}
+              {' '}
+              <CostList cost={inspected.nextCost} />
+            </span>
+          )}
+        </p>
+      )}
     </div>
   );
 }

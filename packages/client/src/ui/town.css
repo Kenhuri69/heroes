@@ -562,6 +562,45 @@ button[data-testid='market-trade'] {
   font: 0.85rem var(--font-ui);
 }
 
+/* Badge d'upgrade (UX-TOWNVIEW 3) : un bâtiment construit encore améliorable
+   porte un chevron ▲. 2ᵉ canal non chromatique (a11y §4) = FORME (triangle, vs
+   disque/anneau/carré des pastilles de statut) + POSITION (bas-droite, vs
+   haut-droite du pip) — jamais la seule couleur. */
+.town-view-upgrade {
+  position: absolute;
+  bottom: -3px;
+  right: -3px;
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-bottom: 8px solid var(--brass-bright);
+  filter: drop-shadow(0 1px 1px var(--shadow-60));
+}
+
+/* Ligne d'inspection (UX-TOWNVIEW 3) : nom · niveau · statut · coût du prochain
+   niveau, alimentée par survol / focus / appui long (parité tactile §1.1). */
+.town-view-inspect {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 2px 0;
+  font: 0.8rem var(--font-ui);
+  color: var(--parchment-bright);
+}
+.town-view-inspect-name {
+  font-weight: 600;
+}
+.town-view-inspect-sep {
+  color: var(--parchment-dim);
+}
+.town-view-inspect-cost {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
 /* Guilde des mages (G2) — panneau informatif du pool de sorts, groupé par cercle.
    Le statut (Connu / À apprendre / Sagesse requise) est TOUJOURS porté par le
    texte (canal non chromatique, a11y doc 08 §4), la teinte ne fait que renforcer. */

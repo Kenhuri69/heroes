@@ -233,6 +233,18 @@
 > `data-status`) conservés ; les positions sont exposées en `left`/`top` inline
 > pour la testabilité DOM (le rendu peint n'étant pas assertable au pixel).
 > Touch-first (cibles ≥ 44 px), 3 crans de police via `rem`.
+>
+> 🎨 **Lot 3 (polish interactions, client pur)** : (1) **indicateur d'upgrade** —
+> un emplacement **construit** encore améliorable (upgrade de niveau bâtissable
+> aujourd'hui) porte un **badge chevron ▲** (`data-upgradeable`), 2ᵉ canal non
+> chromatique par **forme + position** (distinct des pastilles de statut) ;
+> (2) **infobulle bâtiment** — nom · niveau X/Y · statut · coût du prochain
+> niveau, sous la scène, alimentée par **survol, focus clavier ET appui long**
+> (hook DOM `useLongPress`, 450 ms) : la parité tactile (§ 1.1) ne dépend plus du
+> seul `title` natif ; le tap conserve la navigation. Une clé locale
+> (`town.upgradeAvailable`). **Zéro diff moteur, pas de bump de sauvegarde.**
+> (Lot 2 — layouts data-driven par faction + décors composables AS-TOWNBG —
+> reste subordonné à la production d'art, jalon Beta.)
 
 ### 2.3 Écran héros
 

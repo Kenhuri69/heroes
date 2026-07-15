@@ -1884,6 +1884,16 @@ test('ville : construire + croissance + recruter + transférer → armée du hé
   expect(new Set(slotPositions).size).toBeGreaterThanOrEqual(2); // positions distinctes → composé
   // Statut exposé en DOM (2ᵉ canal a11y) : au moins un emplacement construit.
   expect(await page.locator('.town-view-building[data-status="constructed"]').count()).toBeGreaterThanOrEqual(1);
+  // UX-TOWNVIEW 3 : indicateur d'upgrade — townHall (niveau 1, maxLevel 4, sans
+  // prérequis) est construit ET encore améliorable ⇒ au moins un emplacement
+  // porte data-upgradeable="true" + le badge chevron.
+  expect(await page.locator('.town-view-building[data-upgradeable="true"]').count()).toBeGreaterThanOrEqual(1);
+  await expect(page.getByTestId('town-view-upgrade').first()).toBeVisible();
+  // UX-TOWNVIEW 3 : infobulle bâtiment (parité tactile §1.1) — focus clavier d'un
+  // emplacement ⇒ la ligne d'inspection montre son niveau (X/Y). Purement client.
+  await page.getByTestId('town-view-building').first().focus();
+  await expect(page.getByTestId('town-view-inspect')).toBeVisible();
+  await expect(page.getByTestId('town-view-inspect-level')).toHaveText(/\d+\/\d+/);
   // Texte d'ambiance (doc 13 §3.5, lot N1) : les bâtiments communs (townHall/fort)
   // portent un lore affiché sous leur en-tête dans l'onglet Construire.
   await expect(page.locator('.town-building-lore').first()).toBeVisible();

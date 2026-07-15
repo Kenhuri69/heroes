@@ -56,6 +56,10 @@ export function validateCastSpell(state: GameState, cmd: CastSpellCmd): CommandE
   if (!hero) return { code: 'invalidAction', message: 'aucun héros lié au camp joueur' };
   if (combat.heroCastThisRound.includes(combat.playerSide))
     return { code: 'heroAlreadyCast', message: 'le héros a déjà lancé un sort ce round' };
+  // Une action de héros par round (doc 02 §1) : lancer un sort est exclusif de
+  // la frappe — refus si le héros a déjà frappé ce round.
+  if (combat.heroAttackUsed.includes(combat.playerSide))
+    return { code: 'heroAlreadyCast', message: 'le héros a déjà agi ce round' };
   const spell = state.spellCatalog[cmd.spellId];
   if (!spell) return { code: 'unknownSpell', message: `sort inconnu '${cmd.spellId}'` };
   // H-ARTEQUIP.2 : un sort enseigné par un artefact équipé est castable comme un

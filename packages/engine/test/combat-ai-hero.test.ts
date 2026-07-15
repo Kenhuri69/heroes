@@ -166,14 +166,14 @@ describe('C-AIPARITY — maybeHeroAction', () => {
     expect(run(state, 'defender').acted).toBe(false);
   });
 
-  it('attaque héroïque : 1×/combat, sur la cible qui maximise pertes × valeur', () => {
+  it('attaque héroïque : 1×/round, sur la cible qui maximise pertes × valeur', () => {
     const h = hero({ id: 'hero-ai', spells: [] });
     const state = aiHeroState(h, { heroAttack: { base: 10, perPower: 2, perAttack: 0 } });
     const { acted, events, next } = run(state, 'defender');
     expect(acted).toBe(true);
     expect(events.find((e) => e.type === 'HeroStruck')).toMatchObject({ side: 'defender', targetId: 'attacker-0' });
     expect(next.combat?.heroAttackUsed).toContain('defender');
-    // Déjà utilisée ⇒ no-op.
+    // Déjà frappé ce round ⇒ no-op (le verrou est vidé au round suivant).
     expect(run(next, 'defender').acted).toBe(false);
   });
 

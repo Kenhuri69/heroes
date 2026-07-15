@@ -156,7 +156,12 @@ export interface CombatState {
    * créait une course entre les deux camps.
    */
   heroCastThisRound: CombatSideId[];
-  /** Camps ayant déjà utilisé l'attaque de leur héros ce combat (1×/combat, C1). */
+  /**
+   * Camps dont le héros a déjà frappé CE round — remis à vide au changement de
+   * round, comme `heroCastThisRound`. L'attaque et le sort sont une **seule
+   * action de héros par round** (doc 02 §1 « agit une fois par round, sort OU
+   * attaque ») : ces deux verrous sont mutuellement exclusifs par round.
+   */
   heroAttackUsed: CombatSideId[];
   /**
    * Camps ayant déjà utilisé la **Prière de bataille** de leur héros ce combat

@@ -1056,6 +1056,18 @@ describe('catalogues sorts/compétences/artefacts (plan phase-3.2 lot L)', () =>
     expect(spell?.chain).toEqual({ jumps: 2, falloffPct: 40 });
   });
 
+  it('buildSkillCatalog propage `school` (régression : réduction de mana par école)', async () => {
+    const data = makeData();
+    (data['core/skills.json'] as { skills: unknown[] }).skills[0] = {
+      ...(makeSkill() as Record<string, unknown>),
+      school: 'fire',
+    };
+    const report = await loadContent(reader(data));
+    // Avant le fix : `school` était omis ⇒ `heroManaCostReduction` (A6) comparait
+    // toujours contre `undefined` et n'appliquait jamais la réduction par école.
+    expect(buildSkillCatalog(report)['logistics']?.school).toBe('fire');
+  });
+
   it("R5 CO9 — rapporte (sans throw) des artefacts de départ inconnus", async () => {
     const data = makeData();
     (data['core/config.json'] as GameConfig).newGame.startingArtifacts = ['fantome'];

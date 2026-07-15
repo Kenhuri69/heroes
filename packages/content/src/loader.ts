@@ -752,7 +752,12 @@ export function buildSkillCatalog(report: LoadReport): Record<string, ResolvedSk
   for (const s of report.content.coreSkills) {
     if (catalog[s.id])
       throw new PackError([`buildSkillCatalog: id de compétence en double '${s.id}'`]);
-    catalog[s.id] = { id: s.id, ranks: s.ranks };
+    // `school` (A6, doc 02 §1.3) : école visée par une compétence de magie —
+    // filtre la réduction de mana (`heroManaCostReduction`). Était PERDU ici (le
+    // moteur ne voyait jamais l'école des compétences ⇒ réduction par école morte
+    // pour magic-fire/water/earth/air en jeu réel ; les tests moteur, en
+    // HeroSkillDef inline, la masquaient). Propagé désormais.
+    catalog[s.id] = { id: s.id, ranks: s.ranks, ...(s.school !== undefined && { school: s.school }) };
   }
   // F-SKILLS : estampille chaque compétence listée par un manifeste
   // (`heroSkills`) de l'id de sa faction ⇒ le tirage de niveau ne la propose

@@ -789,6 +789,7 @@ export function buildArtifactCatalog(report: LoadReport): Record<string, Resolve
       ...(a.set !== undefined ? { set: a.set } : {}),
       ...(a.grantsMoraleImmune !== undefined ? { grantsMoraleImmune: a.grantsMoraleImmune } : {}),
       ...(a.armyMagicResistance !== undefined ? { armyMagicResistance: a.armyMagicResistance } : {}),
+      ...(a.grantsStatusImmune !== undefined ? { grantsStatusImmune: a.grantsStatusImmune } : {}),
     };
   }
   return catalog;

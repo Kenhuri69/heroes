@@ -128,14 +128,14 @@ doc 08 §2.4 (écran de combat).
   - **C-SIEGE2.7b+** ⬜ : art de rempart distinct (segments fissurés/détruits) —
     lot **assets/client** (skills `asset-*`), pas moteur.
 
-- **C-SPELLUI — Grimoire & ciblage de sorts** 🎨 M ⬜
+- **C-SPELLUI — Grimoire & ciblage de sorts** 🎨 M ✅ (livré, 4 sous-lots)
   Doc : doc 08 §2.3 (grimoire feuilletable par école), doc 02 §1.4.
-  Code : liste plate groupée école/cercle (`packages/client/src/ui/SpellBook.tsx:170-213`),
-  ciblage = liste texte de piles (`TargetList`), la zone (`splash`) réutilise la
-  sélection de pile centrale. Spec : onglets/feuilletage par école, ciblage
-  d'hex sur la grille (surbrillance de la zone), indication de maîtrise/cercle,
-  séparation sorts combat/aventure. Dépend de H-SPELLS pour masse/chaîne.
-  Vérif : smoke ciblage zone + a11y cibles ≥ 44px.
+  Livré : **.1** onglets d'école (feuilletage, PR #383) ; **.2** liste des piles
+  touchées par un sort de zone (helper moteur pur `spellAffectedStacks`, PR #384) ;
+  **.3** surbrillance Pixi de la zone sur la grille (modale dockée + `combatSpellZone`
+  + `drawBoard({zone})`, PR #385) ; **.4** maîtrise d'école par onglet (helper pur
+  `heroSchoolMastery`, PR #386). Séparation combat/aventure déjà couverte
+  (`AdventureSpellbook`). Zéro faction moteur, pas de bump save, golden inchangé.
 
 - **C-TACTICS — Compétence Tactique & phase de placement** 🕳️ M ✅ (livré)
   Doc : doc 02 §5.1 (« placement initial automatique + phase de placement
@@ -549,10 +549,15 @@ Source design : doc 02 §1 (héros), docs de faction §5/§6/§7 (héros nommés
     `ArtifactDef.armyMagicResistance` (fraction) réduit les dégâts de sort ennemis à
     l'armée du héros (2 hooks résolution + préviz, `heroArmyMagicResistance`, borné
     < 1). Cape du refus livrée. Zéro faction, pas de bump save, golden inchangé.
-  - **Reste (H-ARTEQUIP.2+)** ⬜ : effets déclaratifs restants (immunité/résistance
-    aux STATUTS d'armée, immunité de ciblage aux sorts…) ; routage vers le sac de la
-    dépouille de combat / récompense de quête (débordement actuellement au sol /
-    non attribué).
+  - **H-ARTEQUIP (immunité aux statuts d'armée)** ✅ (plan `h-artequip-status-immune.md`) :
+    `ArtifactDef.grantsStatusImmune` (booléen) — un debuff/silence ennemi ne se
+    pose pas sur l'armée du héros (miroir statut de `armyMagicResistance` ; un hook
+    à la pose de statut via `heroGrantsStatusImmune`). Buffs alliés inchangés.
+    Talisman de constance livré. Zéro faction, pas de bump save, golden inchangé.
+  - **Reste (H-ARTEQUIP.2+)** ⬜ : immunité de CIBLAGE aux sorts d'armée
+    (`grantsSpellImmune` — multi-sites : validateCastSpell + IA + client) ; routage
+    vers le sac de la dépouille de combat / récompense de quête (débordement
+    actuellement au sol / non attribué).
 
 - **H-LEVELCHOICE — Choix d'attribut à la montée de niveau** 🎨 S ✅
   > **Livré** : le joueur **humain** choisit +1 attribut parmi 2 propositions à

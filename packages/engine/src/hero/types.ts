@@ -316,6 +316,16 @@ export interface ArtifactDef {
    * **Optionnel** ⇒ pas de bump save, golden inchangé. Générique — aucune faction.
    */
   armyMagicResistance?: number;
+  /**
+   * Immunité aux STATUTS néfastes de sort accordée à TOUTE l'armée du héros tant
+   * que l'artefact est équipé (H-ARTEQUIP.2+, doc 02 §1.1 — « Talisman de
+   * constance ») : un debuff / silence ennemi ne se pose pas sur les piles du
+   * camp du héros (pendant statut de `armyMagicResistance`, qui atténue les
+   * DÉGÂTS de sort). Les buffs alliés restent appliqués. Lu à la pose de statut
+   * (`applySpellToTargets`). **Optionnel** ⇒ pas de bump save, golden inchangé.
+   * Générique — aucune faction.
+   */
+  grantsStatusImmune?: boolean;
 }
 
 /** Statut temporaire appliqué à une pile par un sort (buff/debuff) ou une capacité (curseOnHit). */

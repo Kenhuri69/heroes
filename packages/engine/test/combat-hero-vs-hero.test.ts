@@ -119,7 +119,7 @@ describe('H-VS-H — combat héros-vs-héros', () => {
     expect(winner.artifacts).toContain('relic');
   });
 
-  it('surplus d’artefacts déposé au sol quand le vainqueur n’a plus de slot', () => {
+  it('surplus d’artefacts rangé au SAC du vainqueur quand il n’a plus de slot (jamais perdu)', () => {
     const winnerFull = Array.from({ length: 10 }, (_, i) => `w${i}`) as (string | null)[];
     const bArts = Array.from({ length: 10 }, () => null) as (string | null)[];
     bArts[0] = 'sword';
@@ -129,9 +129,10 @@ describe('H-VS-H — combat héros-vs-héros', () => {
     );
     const afterMove = apply(s, stepOnto).state;
     const { state: next } = apply(afterMove, { type: 'AutoCombat' });
-    const dropped = next.map?.objects.find((o) => o.type === 'artifact' && samePosLike(o.pos, { x: 3, y: 3 }));
-    expect(dropped).toBeDefined();
-    expect(dropped && dropped.type === 'artifact' ? dropped.artifactId : null).toBe('sword');
+    // Plus de dépôt au sol : le surplus va dans le sac du vainqueur.
+    expect(next.map?.objects.some((o) => o.type === 'artifact')).toBe(false);
+    const winner = next.heroes.find((h) => h.id === 'a');
+    expect(winner?.backpack).toContain('sword');
   });
 
   it('refuse de marcher sur un héros ALLIÉ (même équipe non nulle)', () => {
@@ -151,7 +152,3 @@ describe('H-VS-H — combat héros-vs-héros', () => {
     expect(validate(s, stepOnto)?.code).toBe('invalidArmy');
   });
 });
-
-function samePosLike(a: { x: number; y: number }, b: { x: number; y: number }): boolean {
-  return a.x === b.x && a.y === b.y;
-}

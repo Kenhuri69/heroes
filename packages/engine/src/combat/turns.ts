@@ -256,8 +256,9 @@ function grantHeroCombatXp(
  * - le VAINCU est retiré de la partie (il meurt — règle de disparition déjà en
  *   place pour l'attaquant vaincu) ;
  * - DÉPOUILLE (arbitrage doc silencieux, fidélité HoMM) : les artefacts du vaincu
- *   passent au vainqueur (1ers slots libres) ; le surplus est déposé au sol sur
- *   la tuile du vaincu (objet `artifact` de carte, réutilise le ramassage).
+ *   passent au vainqueur (1ers slots libres) ; le surplus va dans SON SAC
+ *   (`backpack`, jamais perdu), comme tout autre ramassage d'artefact
+ *   (carte/gardien/visitable) — plus de dépôt au sol récupérable par l'ennemi.
  * L'XP du vainqueur est accordée par `grantHeroCombatXp` (PV ennemis tués).
  */
 function applyHeroVsHeroConsequences(
@@ -278,22 +279,13 @@ function applyHeroVsHeroConsequences(
     .map((s) => ({ unitId: s.unitId, count: s.count }));
   // B5 : le camp vaincu est l'AUTRE camp — le vainqueur peut être défenseur.
   applyFactionVictoryEffects(draft, combat, winnerHero, _casualties, otherSide(winner), events);
-  // Dépouille : artefacts du vaincu → slots libres du vainqueur, surplus au sol.
+  // Dépouille : artefacts du vaincu → slots libres du vainqueur, surplus au SAC
+  // (jamais perdu — même routage que le ramassage carte/gardien/visitable).
   const spoils = loserHero.artifacts.filter((a): a is string => a !== null);
-  let dropped = 0;
   for (const artifactId of spoils) {
     const slot = winnerHero.artifacts.indexOf(null);
-    if (slot !== -1) {
-      winnerHero.artifacts[slot] = artifactId;
-    } else if (draft.map) {
-      draft.map.objects.push({
-        id: `spoil-${loserHero.id}-${dropped}`,
-        type: 'artifact',
-        pos: { ...loserHero.pos },
-        artifactId,
-      });
-      dropped += 1;
-    }
+    if (slot !== -1) winnerHero.artifacts[slot] = artifactId;
+    else (winnerHero.backpack ??= []).push(artifactId);
   }
   // Le vaincu meurt (retiré de la partie).
   const idx = draft.heroes.findIndex((h) => h.id === loserHero.id);

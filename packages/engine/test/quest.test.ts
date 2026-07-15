@@ -166,7 +166,7 @@ describe('quêtes — évaluateur générique', () => {
     expect(after.state.heroes[0]!.artifacts[0]).toBe('sceau-terni');
   });
 
-  it('B2 — récompense artefact avec inventaire plein : NON attribuée (jamais de slot supplémentaire)', () => {
+  it('B2 — récompense artefact avec inventaire plein : rangée au SAC (jamais de 11ᵉ slot, jamais perdue)', () => {
     const quests: QuestState = {
       quests: [
         {
@@ -185,7 +185,8 @@ describe('quêtes — évaluateur générique', () => {
     s.map = { width: 4, height: 1, tiles: [], objects: [] } as unknown as GameState['map'];
     s.players[0]!.explored = [0, 1, 0, 0];
     const after = run(s);
-    expect(after.state.heroes[0]!.artifacts).toEqual(['a', 'b', 'c']); // pas de 4ᵉ slot
+    expect(after.state.heroes[0]!.artifacts).toEqual(['a', 'b', 'c']); // pas de 4ᵉ slot équipé
+    expect(after.state.heroes[0]!.backpack).toContain('sceau-terni'); // rangée au sac
   });
 
   it('no-op sans quêtes embarquées (partie libre) — aucun événement', () => {

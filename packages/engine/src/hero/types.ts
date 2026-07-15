@@ -326,6 +326,15 @@ export interface ArtifactDef {
    * Générique — aucune faction.
    */
   grantsStatusImmune?: boolean;
+  /**
+   * Immunité de CIBLAGE aux sorts accordée à TOUTE l'armée du héros tant que
+   * l'artefact est équipé (H-ARTEQUIP.2+, doc 02 §1.1 — « Sceau de l'intouchable ») :
+   * les piles du camp du héros deviennent INCIBLABLES par un sort HOSTILE ennemi
+   * (comme la capacité d'unité `spellImmune`, mais côté HÉROS/armée). Lu par le
+   * prédicat partagé `isStackSpellImmune` (validation héros + unité, IA, grimoire
+   * client). **Optionnel** ⇒ pas de bump save, golden inchangé. Générique — aucune faction.
+   */
+  grantsSpellImmune?: boolean;
 }
 
 /** Statut temporaire appliqué à une pile par un sort (buff/debuff) ou une capacité (curseOnHit). */

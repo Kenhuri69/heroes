@@ -4,7 +4,7 @@ import { isPassable } from '../adventure/path';
 import { heroArmyMagicResistance, heroLuckOf, killsFromDamage, magicResistanceOf } from '../combat/damage';
 import { checkCombatEnd } from '../combat/turns';
 import { applySpellToTargets, bestGraveEntry, chainTargets, resurrectFullCount, spellTargets, spellcasterParams } from '../combat/spell-effect';
-import { factionCurseDurationBonus, factionSpellDamageMods, isSpellImmune, staticBlockedKeys } from '../combat/state-helpers';
+import { factionCurseDurationBonus, factionSpellDamageMods, isStackSpellImmune, staticBlockedKeys } from '../combat/state-helpers';
 import {
   COMBAT_COLS,
   COMBAT_ROWS,
@@ -78,8 +78,9 @@ export function validateCastSpell(state: GameState, cmd: CastSpellCmd): CommandE
   // F-SCHOOLS.7 : un sort offensif ne peut viser une pile ennemie furtive.
   if (spellTargetsEnemy(spell.kind) && target.stealthed)
     return { code: 'invalidTarget', message: 'cible furtive' };
-  // CAP-SPELLIMMUNE : ni une pile ennemie immunisée aux sorts.
-  if (spellTargetsEnemy(spell.kind) && isSpellImmune(state.unitCatalog, target.unitId))
+  // CAP-SPELLIMMUNE / H-ARTEQUIP.2+ : ni une pile immunisée aux sorts (unité OU
+  // immunité de ciblage d'armée via artefact) — prédicat partagé.
+  if (spellTargetsEnemy(spell.kind) && isStackSpellImmune(state, combat, target))
     return { code: 'invalidTarget', message: 'cible immunisée aux sorts' };
   // Remédiation R1 : contrainte de camp selon la nature du sort — dégâts,
   // debuff, marque et silence visent l'adverse ; soin et buff le camp du lanceur

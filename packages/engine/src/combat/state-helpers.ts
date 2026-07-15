@@ -74,6 +74,22 @@ export function isSpellImmune(catalog: Record<string, CombatUnitDef>, unitId: st
 }
 
 /**
+ * H-ARTEQUIP.2+ : une pile est-elle INCIBLABLE par un sort HOSTILE ? Vrai si son
+ * UNITÉ est immunisée (`spellImmune`, CAP-SPELLIMMUNE) OU si le héros lié à son
+ * camp porte un artefact `grantsSpellImmune` (immunité de ciblage d'ARMÉE, miroir
+ * de `grantsStatusImmune`/`armyMagicResistance`). Prédicat PARTAGÉ — source unique
+ * consommée par la validation (héros + unité), l'IA et le grimoire client, pour
+ * qu'aucun site ne diverge. `heroForSide` inséré ici (évite un cycle d'import).
+ */
+export function isStackSpellImmune(state: GameState, combat: CombatState, stack: CombatStack): boolean {
+  if (isSpellImmune(state.unitCatalog, stack.unitId)) return true;
+  const heroId = stack.side === 'attacker' ? combat.attackerHeroId : combat.defenderHeroId;
+  const hero = heroId ? state.heroes.find((h) => h.id === heroId) : undefined;
+  if (!hero) return false;
+  return hero.artifacts.some((id) => id != null && (state.artifactCatalog[id]?.grantsSpellImmune ?? false));
+}
+
+/**
  * Paramètres de la capacité `performer` (F-RESON.2, doc 16 §3.2) : ressource de
  * faction générée en combat et montant par round, ou null si non-performeur.
  */

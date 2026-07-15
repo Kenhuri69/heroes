@@ -4,7 +4,7 @@ import {
   estimateSpell,
   heroKnownSpellIds,
   heroSchoolMastery,
-  isSpellImmune,
+  isStackSpellImmune,
   spellAffectedStacks,
   spellTargetsEnemy,
   type ArtifactDef,
@@ -305,17 +305,18 @@ function TargetList({
   // Un sort qui ne vise pas l'ennemi (soin/buff/rally) cible le camp du joueur —
   // source unique partagée avec le moteur (F-SCHOOLS.6 : `rally` = allié).
   const friendly = !spellTargetsEnemy(def.kind);
-  const unitCatalog = useApp((s) => s.game.unitCatalog);
+  const game = useApp((s) => s.game);
   // Cibles vivantes et non furtives seulement (B40 — même filtre que
-  // `UnitSpellModal`) ; une pile ennemie immunisée aux sorts (CAP-SPELLIMMUNE)
-  // n'est pas ciblable par un sort hostile (parité avec la validation moteur).
+  // `UnitSpellModal`) ; une pile ennemie immunisée aux sorts (unité CAP-SPELLIMMUNE
+  // OU immunité de ciblage d'armée H-ARTEQUIP.2+) n'est pas ciblable par un sort
+  // hostile — prédicat partagé moteur (parité avec la validation).
   const targets: CombatStack[] = combat.stacks.filter(
     (s) =>
       s.count > 0 &&
       !s.stealthed &&
       (friendly
         ? s.side === combat.playerSide
-        : s.side !== combat.playerSide && !isSpellImmune(unitCatalog, s.unitId)),
+        : s.side !== combat.playerSide && !isStackSpellImmune(game, combat, s)),
   );
 
   if (targets.length === 0) {

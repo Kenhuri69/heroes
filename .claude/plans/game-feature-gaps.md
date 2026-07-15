@@ -554,10 +554,14 @@ Source design : doc 02 §1 (héros), docs de faction §5/§6/§7 (héros nommés
     pose pas sur l'armée du héros (miroir statut de `armyMagicResistance` ; un hook
     à la pose de statut via `heroGrantsStatusImmune`). Buffs alliés inchangés.
     Talisman de constance livré. Zéro faction, pas de bump save, golden inchangé.
-  - **Reste (H-ARTEQUIP.2+)** ⬜ : immunité de CIBLAGE aux sorts d'armée
-    (`grantsSpellImmune` — multi-sites : validateCastSpell + IA + client) ; routage
-    vers le sac de la dépouille de combat / récompense de quête (débordement
-    actuellement au sol / non attribué).
+  - **H-ARTEQUIP (immunité de ciblage aux sorts d'armée)** ✅ (plan `h-artequip-spell-immune.md`) :
+    `ArtifactDef.grantsSpellImmune` (booléen) — l'armée du héros devient inciblable
+    par un sort hostile ennemi. Dé-risqué par le **prédicat partagé** `isStackSpellImmune`
+    (immunité d'unité OU d'armée) remplaçant les 6 appels `isSpellImmune(catalog,unitId)`
+    (validate héros + unité, IA ×2, client ×2). Sceau de l'intouchable livré. Zéro
+    faction, pas de bump save, golden inchangé.
+  - **Reste (H-ARTEQUIP.2+)** ⬜ : routage vers le sac de la dépouille de combat /
+    récompense de quête (débordement actuellement au sol / non attribué).
 
 - **H-LEVELCHOICE — Choix d'attribut à la montée de niveau** 🎨 S ✅
   > **Livré** : le joueur **humain** choisit +1 attribut parmi 2 propositions à

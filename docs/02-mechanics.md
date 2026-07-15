@@ -80,6 +80,16 @@ Les **probabilités de gain** par niveau sont data-driven. *État livré (H-NAME
 > (jamais sérialisé) ⇒ **pas de bump save, golden inchangé**. Artefact livré :
 > **Talisman de constance** (`Défense +1` + immunité aux statuts). Zéro faction moteur.
 
+> **État livré (H-ARTEQUIP — immunité de ciblage aux sorts d'armée)** : champ
+> déclaratif optionnel `ArtifactDef.grantsSpellImmune` (booléen) — un artefact
+> équipé rend **chaque pile** du camp du héros INCIBLABLE par un sort HOSTILE
+> ennemi (comme la capacité d'unité `spellImmune`, mais côté armée). Lu par le
+> **prédicat partagé `isStackSpellImmune`** (immunité d'unité OU d'armée), source
+> unique consommée par la validation (héros + unité), l'IA et le grimoire client —
+> aucun site ne diverge. Effet **dérivé de l'équipement** (jamais sérialisé) ⇒
+> **pas de bump save, golden inchangé**. Artefact livré : **Sceau de l'intouchable**
+> (`Pouvoir +1` + inciblabilité de l'armée). Zéro faction moteur.
+
 ### 1.2 Progression
 
 - **XP** : combats **gagnés uniquement** (XP = somme des PV des unités ennemies tuées × coefficient — valeur de départ **1**, dans `data/core/config.json` ; seul le héros du camp vainqueur en reçoit), coffres, lieux de savoir.

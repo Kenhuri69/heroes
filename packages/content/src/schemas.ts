@@ -669,6 +669,11 @@ export const artifactSchema = z.object({
    * ennemis ne se posent pas sur l'armée du héros. Lue à la pose de statut.
    */
   grantsStatusImmune: z.boolean().optional(),
+  /**
+   * Immunité de CIBLAGE aux sorts (H-ARTEQUIP.2+) : l'armée du héros devient
+   * inciblable par un sort hostile ennemi. Lue par le prédicat `isStackSpellImmune`.
+   */
+  grantsSpellImmune: z.boolean().optional(),
 });
 
 export const artifactCatalogSchema = z.object({

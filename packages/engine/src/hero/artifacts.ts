@@ -35,20 +35,33 @@ export function heroArtifactBonus(
     movementFlat: 0,
     vision: 0,
   };
+  const add = (bonus: ArtifactDef['bonus']): void => {
+    total.attack += bonus.attack ?? 0;
+    total.defense += bonus.defense ?? 0;
+    total.power += bonus.power ?? 0;
+    total.knowledge += bonus.knowledge ?? 0;
+    total.luck += bonus.luck ?? 0;
+    total.morale += bonus.morale ?? 0;
+    total.manaMax += bonus.manaMax ?? 0;
+    total.movementFlat += bonus.movementFlat ?? 0;
+    total.vision += bonus.vision ?? 0;
+  };
+  // Panoplies (H-ARTEQUIP sets) : compte les membres équipés par `set.id` en
+  // mémorisant le descripteur (identique sur chaque membre).
+  const sets = new Map<string, { pieces: number; bonus: ArtifactDef['bonus']; count: number }>();
   for (const artifactId of hero.artifacts) {
     if (!artifactId) continue;
     const def = catalog[artifactId];
     if (!def) continue;
-    total.attack += def.bonus.attack ?? 0;
-    total.defense += def.bonus.defense ?? 0;
-    total.power += def.bonus.power ?? 0;
-    total.knowledge += def.bonus.knowledge ?? 0;
-    total.luck += def.bonus.luck ?? 0;
-    total.morale += def.bonus.morale ?? 0;
-    total.manaMax += def.bonus.manaMax ?? 0;
-    total.movementFlat += def.bonus.movementFlat ?? 0;
-    total.vision += def.bonus.vision ?? 0;
+    add(def.bonus);
+    if (def.set) {
+      const entry = sets.get(def.set.id);
+      if (entry) entry.count += 1;
+      else sets.set(def.set.id, { pieces: def.set.pieces, bonus: def.set.bonus, count: 1 });
+    }
   }
+  // Bonus de panoplie accordé UNE fois par panoplie dont l'effectif atteint le seuil.
+  for (const { pieces, bonus, count } of sets.values()) if (count >= pieces) add(bonus);
   return total;
 }
 

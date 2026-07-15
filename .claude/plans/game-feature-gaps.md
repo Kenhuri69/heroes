@@ -529,8 +529,13 @@ Source design : doc 02 §1 (héros), docs de faction §5/§6/§7 (héros nommés
     partagé moteur+client, aucune faction) ; tableau `hero.artifacts` plat inchangé
     ⇒ pas de bump save, golden inchangé. Code d'erreur `slotOccupied`. Placement
     passif (ramassage/transfert) hors périmètre.
+  - **H-ARTEQUIP (panoplies / sets à seuils)** ✅ (plan `h-artequip-sets.md`) :
+    `ArtifactDef.set = { id, pieces, bonus }` — équiper `pieces` membres d'une
+    panoplie accorde `bonus` une fois (agrégé dans `heroArtifactBonus`, signature
+    inchangée) ; tiroir héros affiche `n/seuil`. Optionnel ⇒ pas de bump save,
+    golden inchangé. Panoplie du gladiateur livrée. Zéro faction.
   - **Reste (H-ARTEQUIP.2+)** ⬜ : autres effets spéciaux déclaratifs
-    (immunités…), sets à seuils ; routage vers le sac de la dépouille de combat /
+    (immunités…) ; routage vers le sac de la dépouille de combat /
     récompense de quête (débordement actuellement au sol / non attribué).
 
 - **H-LEVELCHOICE — Choix d'attribut à la montée de niveau** 🎨 S ✅

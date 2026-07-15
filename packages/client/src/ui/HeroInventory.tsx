@@ -73,6 +73,17 @@ export function HeroInventory({
   const backpack = hero.backpack ?? [];
   const artifactsFull = !hero.artifacts.includes(null);
 
+  // Panoplies (H-ARTEQUIP sets) : progression n/seuil des ensembles dont le héros
+  // porte au moins une pièce — le bonus de panoplie s'applique au seuil atteint.
+  const sets = new Map<string, { count: number; pieces: number }>();
+  for (const id of hero.artifacts) {
+    const s = id ? catalog[id]?.set : undefined;
+    if (!s) continue;
+    const entry = sets.get(s.id);
+    if (entry) entry.count += 1;
+    else sets.set(s.id, { count: 1, pieces: s.pieces });
+  }
+
   const unequip = (slot: number): void => {
     dispatch({ type: 'UnequipArtifact', heroId: hero.id, slot }).catch((err: unknown) =>
       pushToast(commandErrorMessage(err), 'error'),
@@ -126,6 +137,26 @@ export function HeroInventory({
           );
         })}
       </ul>
+
+      {sets.size > 0 && (
+        <>
+          <h4 class="hero-bag-title">{t('hero.setsTitle')}</h4>
+          <ul class="hero-set-list" data-testid="hero-sets">
+            {[...sets].map(([id, { count, pieces }]) => {
+              const complete = count >= pieces;
+              return (
+                <li key={id} class="hero-set-entry">
+                  <span class="hero-set-name">{t(`artifactSet.${id}`)}</span>{' '}
+                  <span class="hero-set-count">
+                    {t('hero.setProgress', { count, pieces })}
+                    {complete ? ` ${t('hero.setComplete')}` : ''}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        </>
+      )}
 
       {overflow.length > 0 && (
         <>

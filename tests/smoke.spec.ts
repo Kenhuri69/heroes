@@ -1874,6 +1874,16 @@ test('ville : construire + croissance + recruter + transférer → armée du hé
   // apparaissent en vignettes (la ville de départ a townHall + habitation T1).
   await expect(page.getByTestId('town-view')).toBeVisible();
   expect(await page.getByTestId('town-view-building').count()).toBeGreaterThanOrEqual(2);
+  // UX-TOWNVIEW : scène COMPOSÉE (plus une bande) — chaque emplacement est posé
+  // en absolu à SA place (left/top en %), distincts entre bâtiments. On lit les
+  // styles inline (le rendu peint n'est pas assertable au pixel).
+  const slotPositions = await page
+    .getByTestId('town-view-building')
+    .evaluateAll((els) => els.map((el) => (el as HTMLElement).style.left + '|' + (el as HTMLElement).style.top));
+  expect(slotPositions.every((p) => /%\|.*%/.test(p))).toBe(true); // left ET top en %
+  expect(new Set(slotPositions).size).toBeGreaterThanOrEqual(2); // positions distinctes → composé
+  // Statut exposé en DOM (2ᵉ canal a11y) : au moins un emplacement construit.
+  expect(await page.locator('.town-view-building[data-status="constructed"]').count()).toBeGreaterThanOrEqual(1);
   // Texte d'ambiance (doc 13 §3.5, lot N1) : les bâtiments communs (townHall/fort)
   // portent un lore affiché sous leur en-tête dans l'onglet Construire.
   await expect(page.locator('.town-building-lore').first()).toBeVisible();

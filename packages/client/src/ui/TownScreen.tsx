@@ -33,6 +33,7 @@ import {
   resolveSpecialtyDesc,
 } from '../app/i18n';
 import { buildingUrl, heroAvatarUrl, townBackgroundUrl } from '../render/assets';
+import { townLayout } from '../render/townLayout';
 import { AssetImg } from './AssetImg';
 import { FactionBadge } from './FactionBadge';
 import { UiIcon } from './UiIcon';
@@ -312,14 +313,19 @@ function townViewStatus(town: TownState, catalog: Record<string, BuildingDef>, i
 }
 
 /**
- * Vue de ville « peinte » (doc 08 §2.2/§5, lots UX U5 + UXD-5) : **plan de
- * construction** sur un décor peint (fond bespoke par faction, lot U5-B — repli
- * sur le dégradé gouache CSS si l'asset est absent). Chaque bâtiment du catalogue
- * est un emplacement portant son statut — construit / disponible / verrouillé —
- * marqué par une pastille de forme distincte + opacité/désaturation (2ᵉ canal
- * non chromatique, a11y doc 08 §4). Bande à défilement horizontal (touch-first,
- * mobile). Tap sur un emplacement = bascule vers l'onglet Construire. Réutilise
- * les vignettes existantes (`buildingUrl`, repli dessiné si l'asset manque).
+ * Vue de ville « peinte » (doc 08 §2.2/§5, lots UX U5 + UXD-5 + UX-TOWNVIEW) :
+ * **scène composée** sur un décor peint (fond bespoke par faction, lot U5-B —
+ * repli sur le dégradé gouache CSS si l'asset est absent). Chaque bâtiment du
+ * catalogue est un emplacement **posé en absolu à sa place** (`townLayout`,
+ * position déterministe dérivée de l'identité du bâtiment — un bâtiment ne bouge
+ * pas quand on le construit) portant son statut — construit / disponible /
+ * verrouillé — marqué par une pastille de forme distincte + opacité/désaturation
+ * (2ᵉ canal non chromatique, a11y doc 08 §4 ; verrouillé = vignette grisée en
+ * « ombre » discrète). Tap sur un emplacement route vers l'action pertinente
+ * (`onSelect`). Réutilise les vignettes existantes (`buildingUrl`, repli dessiné
+ * si l'asset manque). Positions exposées en `left`/`top` (%) pour la testabilité
+ * DOM (le rendu peint n'est pas assertable au pixel). Le tri par statut ne sert
+ * plus qu'à la profondeur de rendu (construit au-dessus des verrouillés).
  */
 function TownView({
   town,
@@ -330,9 +336,12 @@ function TownView({
   catalog: Record<string, BuildingDef>;
   onSelect: (id: string) => void;
 }) {
-  const slots = townBuildingIds(town, catalog)
-    .map((id) => ({ id, status: townViewStatus(town, catalog, id) }))
-    .sort((a, b) => VIEW_STATUS_ORDER[a.status] - VIEW_STATUS_ORDER[b.status] || a.id.localeCompare(b.id));
+  const ids = townBuildingIds(town, catalog);
+  const layout = townLayout(ids);
+  const slots = ids
+    .map((id) => ({ id, status: townViewStatus(town, catalog, id), slot: layout.get(id) }))
+    // Ordre de peinture (z via l'ordre DOM) : verrouillé au fond, construit devant.
+    .sort((a, b) => VIEW_STATUS_ORDER[b.status] - VIEW_STATUS_ORDER[a.status] || a.id.localeCompare(b.id));
   const bg = townBackgroundUrl(town.factionId);
   return (
     <div class="town-view" data-testid="town-view">
@@ -342,12 +351,13 @@ function TownView({
             {t('town.viewEmpty')}
           </p>
         ) : (
-          slots.map(({ id, status }) => (
+          slots.map(({ id, status, slot }) => (
             <button
               key={id}
               class={`town-view-building is-${status}`}
               data-testid="town-view-building"
               data-status={status}
+              style={slot ? { left: `${slot.x}%`, top: `${slot.y}%` } : undefined}
               onClick={() => onSelect(id)}
               title={buildingName(id)}
               aria-label={`${buildingName(id)} — ${t(VIEW_STATUS_LABEL[status])}`}

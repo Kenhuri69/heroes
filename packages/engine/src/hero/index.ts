@@ -553,5 +553,9 @@ function estimateSpellWithPower(
     const amount = grave && def ? resurrectFullCount(def, grave.maxCount, spell.base + spell.perPower * power) : 0;
     return { amount, kills: 0, kind: 'resurrectFull' };
   }
+  // H-SPELLS.4+ (Invocation) : la préviz annonce l'effectif invoqué.
+  if (spell.kind === 'summon') {
+    return { amount: Math.max(1, Math.round(spell.base + spell.perPower * power)), kills: 0, kind: 'summon' };
+  }
   return { amount: 0, kills: 0, kind: spell.kind };
 }

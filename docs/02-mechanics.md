@@ -159,8 +159,7 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 > sort **Dissipation** (neutre, cercle 3), jusqu'ici un simple debuff −2/−2
 > déguisé, devient une vraie dissipation en **données pures** (`kind: 'dispel'`).
 > **Zéro nom de faction, aucun champ d'état nouveau ⇒ pas de bump save, golden
-> inchangé** ; l'IA ignore `dispel` (jamais lancé, jamais de crash). Restent
-> (H-SPELLS suite) : invocation, chaîne, résurrection de pile entière.
+> inchangé** ; l'IA ignore `dispel` (jamais lancé, jamais de crash).
 
 > 🚧 **État (chaîne, H-SPELLS.4)** : champ déclaratif optionnel
 > `SpellDef.chain: { jumps, falloffPct }` sur un sort `damage` — la foudre frappe
@@ -169,8 +168,22 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 > dégâts (`chainTargets` pur, partagé résolution + préviz). `kind` reste `damage`
 > ⇒ ciblage/validation/IA inchangés. Sort livré : **Chaîne d'éclairs** (Air,
 > cercle 4, 2 sauts, −40 %/saut). **Zéro faction, aucun champ d'état ⇒ pas de
-> bump save, golden inchangé.** Restent (H-SPELLS suite) : invocation,
-> résurrection de pile entière.
+> bump save, golden inchangé.**
+
+> 🚧 **État (invocation, H-SPELLS.4+)** : nouveau **`SpellKind 'summon'`** générique —
+> un sort **amical** qui place une pile FRAÎCHE de créatures du camp du lanceur. La
+> créature invocable est décrite **inline** dans le sort (`SpellDef.summon.unit` :
+> stats/capacités façon machine de guerre, aucun catalogue core neuf) et enregistrée
+> dans `unitCatalog` au lancer (`groupId` estampillé = son id). Effectif = `round(base
+> + perPower × Pouvoir)`. Sur le modèle de la Résurrection totale, le sort prend une
+> **pile alliée proxy** (seul son camp compte) et toute la logique vit dans
+> `applySpellToTargets` : la pile est **auto-placée** au 1er hex libre de la ligne
+> arrière du lanceur (`firstFreeCombatHex`), slot unique, événement `StackResurrected`
+> réutilisé ⇒ **aucun nouveau mode de ciblage client**. Sort livré : **Invocation
+> d'élémentaires** (Terre, cercle 3 — Élémentaire de terre). **Zéro faction ; `summon`
+> optionnel ⇒ pas de bump save, golden inchangé** ; l'IA ignore `summon`. Les 4
+> divergences H-SPELLS des captures (masse, chaîne, résurrection, invocation) sont
+> désormais couvertes.
 
 ### 1.5 Mouvement sur carte d'aventure
 

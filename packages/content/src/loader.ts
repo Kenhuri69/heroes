@@ -728,6 +728,8 @@ export function buildSpellCatalog(report: LoadReport): Record<string, ResolvedSp
       ...(s.marksDamagePct !== undefined && { marksDamagePct: s.marksDamagePct }),
       // Effet hors combat d'un sort `adventure` (doc 02 §1.4, Alpha 4.16).
       ...(s.adventure !== undefined && { adventure: s.adventure }),
+      // Invocation (H-SPELLS.4+) : créature invocable inline.
+      ...(s.summon !== undefined && { summon: s.summon }),
     };
   }
   return catalog;

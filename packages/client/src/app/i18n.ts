@@ -82,7 +82,13 @@ export function resolveLoc(ref: string): string {
 /** Nom localisé d'une unité depuis son id — pratique pour les vignettes/tiroir. */
 export function resolveUnitName(unitId: string): string {
   const ref = unitNameRefs[unitId];
-  if (!ref) return unitId;
+  if (!ref) {
+    // Unité CORE sans ref de paquet (ex. créature invoquée `summon`, H-SPELLS.4+) :
+    // tente une clé de locale core `unit.<id>` avant de retomber sur l'id brut.
+    const coreKey = `unit.${unitId}`;
+    const core = t(coreKey);
+    return core !== coreKey ? core : unitId;
+  }
   // Repli core → paquet : les unités de faction vivent dans le paquet, les
   // machines de guerre communes dans les locales core (doc 02 §5).
   const key = ref.startsWith('@loc:') ? ref.slice('@loc:'.length) : ref;

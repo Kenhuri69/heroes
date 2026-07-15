@@ -501,8 +501,15 @@ Source design : doc 02 §1 (héros), docs de faction §5/§6/§7 (héros nommés
     rayon = dimension de la carte). Sort **Cartographie** (Air, cercle 4). Client
     inchangé. Additif sur `player.explored` ⇒ pas de bump save, golden inchangé ;
     zéro faction.
-  - **H-SPELLS.4+** ⬜ : **invocation**, **résurrection de pile entière**
-    (pile à 0 retirée de la grille). Débloque C-SPELLUI.
+  - **H-SPELLS.4+ (résurrection de pile entière)** ✅ (PR #373) : `SpellKind
+    'resurrectFull'` — relève une pile alliée anéantie via `CombatState.graveyard`.
+  - **H-SPELLS.4+ (invocation)** ✅ (plan `h-spells-summon.md`) : `SpellKind
+    'summon'` — place une pile fraîche du camp du lanceur (créature inline dans le
+    sort, enregistrée dans `unitCatalog` ; effectif = base + perPower×Pouvoir ;
+    cible-proxy alliée, auto-placement `firstFreeCombatHex`, `StackResurrected`
+    réutilisé ⇒ zéro ciblage client neuf). Sort **Invocation d'élémentaires**
+    (Terre, c3). Optionnel ⇒ pas de bump save, golden inchangé. Zéro faction.
+    Les 4 divergences H-SPELLS (masse/chaîne/résurrection/invocation) couvertes.
 
 - **H-ARTEQUIP — Artefacts équipables + effets spéciaux + sets** 🧩/🎨 M 🚧 (.1 livré)
   Doc : doc 02 §1.1 (10 slots), doc 08 §2.3 (poupée interactive).

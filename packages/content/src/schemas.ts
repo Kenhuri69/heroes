@@ -448,7 +448,7 @@ export const spellSchema = z
     school: z.enum(SPELL_SCHOOLS),
     circle: z.number().int().min(1).max(5),
     manaCost: z.number().int().positive(),
-    kind: z.enum(['damage', 'heal', 'buff', 'debuff', 'applyMarks', 'silence', 'banish', 'rally', 'stealth', 'teleport', 'dispel', 'cure', 'resurrectFull', 'adventure']),
+    kind: z.enum(['damage', 'heal', 'buff', 'debuff', 'applyMarks', 'silence', 'banish', 'rally', 'stealth', 'teleport', 'dispel', 'cure', 'resurrectFull', 'summon', 'adventure']),
     base: z.number().nonnegative(),
     perPower: z.number().nonnegative(),
     attackMod: z.number().optional(),
@@ -485,6 +485,21 @@ export const spellSchema = z
         z.object({ type: z.literal('revealMap') }),
       ])
       .optional(),
+    /**
+     * Invocation (H-SPELLS.4+) : créature INLINE placée par un sort `summon`.
+     * Réutilise la forme de stats/capacités d'une unité (sans tier/croissance/coût,
+     * comme une machine de guerre). `groupId` est estampillé par le moteur au lancer.
+     */
+    summon: z
+      .object({
+        unit: z.object({
+          id: idSchema,
+          nativeTerrain: idSchema,
+          stats: unitSchema.shape.stats,
+          abilities: unitSchema.shape.abilities,
+        }),
+      })
+      .optional(),
   })
   .refine((s) => (s.kind === 'damage' || s.kind === 'heal' || s.kind === 'teleport' ? s.base > 0 : true), {
     // teleport (F-SCHOOLS.8) : `base` = portée en hexes (≥ 1).
@@ -515,6 +530,16 @@ export const spellSchema = z
   .refine((s) => (s.chain ? s.kind === 'damage' : true), {
     message: 'chain: réservé aux sorts de dégâts',
     path: ['chain'],
+  })
+  // Invocation (H-SPELLS.4+) : `summon` requis pour ce kind (et réservé), `base` =
+  // effectif de base invoqué (≥ 1).
+  .refine((s) => (s.kind === 'summon') === (s.summon !== undefined), {
+    message: 'summon: le champ `summon` est requis (et réservé) pour ce kind',
+    path: ['summon'],
+  })
+  .refine((s) => (s.kind === 'summon' ? s.base > 0 : true), {
+    message: 'summon: base (effectif invoqué) doit être > 0',
+    path: ['base'],
   });
 
 /** data/core/spells.json — un fichier = une liste (comme buildingCatalogSchema). */

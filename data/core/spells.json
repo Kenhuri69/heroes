@@ -470,6 +470,23 @@
       "perPower": 12
     },
     {
+      "id": "invocation-elementaire",
+      "school": "earth",
+      "circle": 3,
+      "manaCost": 16,
+      "kind": "summon",
+      "base": 2,
+      "perPower": 1,
+      "summon": {
+        "unit": {
+          "id": "elementaire-de-terre",
+          "nativeTerrain": "grass",
+          "stats": { "hp": 25, "attack": 9, "defense": 9, "damage": [5, 9], "speed": 5 },
+          "abilities": []
+        }
+      }
+    },
+    {
       "id": "meteore",
       "school": "fire",
       "circle": 4,

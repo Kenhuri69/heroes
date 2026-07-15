@@ -509,6 +509,7 @@
   "toast.skirmishFailed": "Could not start the skirmish",
   "toast.adventureSpellCast": "{spell} cast",
   "spellbook.adventureTitle": "Adventure spells",
+  "spellbook.schoolsLabel": "Magic schools",
   "toast.spellCast": "{hero} casts {spell}",
   "toast.skillLearned": "{skill} rank {rank} learned",
   "toast.saved": "Game saved.",

@@ -220,10 +220,12 @@
 
 ### 2.3 Écran héros
 
-- Portrait, attributs, XP ; **poupée d'équipement** 10 slots + sac ; compétences (6 slots, rangs) ; grimoire (filtré par école/cercle, coût mana visible, sorts indisponibles grisés avec raison).
+- Portrait, attributs, XP ; **poupée d'équipement** 10 slots + sac ; compétences (6 slots, rangs) ; grimoire **feuilletable par onglets d'école** (puis cercles), coût mana visible, sorts indisponibles grisés avec raison.
 - Transfert d'armée/artefacts entre 2 héros : écran double-colonne, drag & drop (souris) / tap-tap (mobile), boutons « équilibrer » et « tout donner ».
 
 > 🚧 **État 3.2** : l'« écran héros » est réconcilié avec le **tiroir héros** existant (`shell.tsx`) plutôt qu'un écran plein séparé — sections Compétences (`HeroSkills`) et Inventaire (`HeroInventory`) ajoutées, mana affichée. Le **grimoire** est le livre de sorts **en combat** (`SpellBook`, bouton `[Sort héros]`) : sélection sort → cible → prévisualisation obligatoire → `CastSpell`. La modale de **choix de compétence** à la montée de niveau (`SkillChoice`, non annulable comme HoMM) se monte sur `pendingSkillChoices`.
+>
+> ✅ **État C-SPELLUI.1** : le grimoire de combat est **feuilletable par onglets d'école** (`role="tab"`/`tablist`/`tabpanel`, onglets ≥ 44px) au lieu d'empiler toutes les écoles ; une seule école est visible à la fois, ses sorts restant groupés par cercle. Onglets dérivés du grimoire du héros (écoles universelles puis écoles de faction, même ordre que la liste plate), défaut = 1re école, repli déterministe si l'école active devient invalide. Présentation seule (zéro moteur, pas de bump save).
 >
 > ✅ **État UXD-5b** : la **poupée d'équipement typée par slot** est livrée. Les artefacts portent un champ de données `slot` (`head/neck/torso/weapon/shield/cloak/hands/feet/ring/misc`, doc 02 §1.1). `HeroInventory` affiche **10 emplacements nommés** dans l'ordre tête→pieds (chaque type = une position typée, libellé toujours visible → A5 jamais la couleur seule) + un **sac** de débordement. Le regroupement d'affichage est purement client : le moteur garde son tableau plat `hero.artifacts` (ramassage au 1er slot libre inchangé) et les bonus se somment quel que soit l'emplacement.
 >

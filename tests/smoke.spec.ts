@@ -2441,6 +2441,10 @@ test('sort : le héros lance un sort en combat et réduit une pile ennemie', { t
   await expect(page.getByTestId('combat-spell')).toBeEnabled();
   await page.getByTestId('combat-spell').click();
 
+  // C-SPELLUI.1 : grimoire feuilletable par onglets d'école (doc 08 §2.3) —
+  // « éclair magique » est de l'école neutre ⇒ on ouvre son onglet.
+  await page.getByTestId('spellbook-tab-neutral').click();
+
   // Livre → « éclair magique » (cercle 1, 4 mana) → pile ennemie →
   // prévisualisation OBLIGATOIRE (doc 08 §2.4) → confirmation.
   // Remédiation R4 (CO5) : le sort porte son NOM localisé, plus l'id brut.

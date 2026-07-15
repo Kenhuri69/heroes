@@ -15,6 +15,30 @@
   opacity: 0.75;
 }
 
+/* C-SPELLUI.1 : onglets d'école (feuilletage, doc 08 §2.3). */
+.spellbook-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 4px 0 10px;
+}
+
+.spellbook-tab {
+  min-height: 44px;
+  padding: 6px 14px;
+  border: 1px solid var(--ink-600);
+  border-radius: var(--radius-m);
+  background: var(--ink-700);
+  color: var(--parchment);
+  font: 600 0.8125rem var(--font-ui);
+  cursor: pointer;
+}
+
+.spellbook-tab.active {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 1px var(--gold) inset;
+}
+
 .spellbook-school {
   margin: 14px 0;
 }

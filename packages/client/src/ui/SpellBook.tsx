@@ -178,6 +178,10 @@ function SpellList({
   artifactCatalog: Record<string, ArtifactDef>;
   onSelect: (spellId: string) => void;
 }) {
+  // C-SPELLUI.1 : école affichée (feuilletage par onglets, doc 08 §2.3). `useState`
+  // AVANT tout retour anticipé (règle des hooks) ; le défaut se résout au rendu.
+  const [activeSchool, setActiveSchool] = useState<SpellSchool | null>(null);
+
   // H-ARTEQUIP.2 : le grimoire liste aussi les sorts enseignés par les artefacts.
   const known = heroKnownSpellIds(hero, artifactCatalog)
     .map((id) => spellCatalog[id])
@@ -187,57 +191,69 @@ function SpellList({
     return <p class="spellbook-empty">{t('spellbook.empty')}</p>;
   }
 
+  const schools = orderedSchools(known.map((d) => d.school));
+  // L'école active peut devenir invalide (héros dont le grimoire change) → repli
+  // déterministe sur la 1re école ordonnée.
+  const school = activeSchool && schools.includes(activeSchool) ? activeSchool : schools[0]!;
+  const circles = Array.from(new Set(known.filter((d) => d.school === school).map((d) => d.circle))).sort(
+    (a, b) => a - b,
+  );
+
   return (
     <div class="spellbook-list">
-      {orderedSchools(known.map((d) => d.school)).map((school) => {
-        const circles = Array.from(new Set(known.filter((d) => d.school === school).map((d) => d.circle))).sort(
-          (a, b) => a - b,
-        );
-        return (
-          <section key={school} class="spellbook-school">
-            <h3>{t(`school.${school}`)}</h3>
-            {circles.map((circle) => (
-              <div key={circle} class="spellbook-circle">
-                <h4>{t('spellbook.circle', { circle })}</h4>
-                <ul class="spell-list">
-                  {known
-                    .filter((d) => d.school === school && d.circle === circle)
-                    .map((spellDef) => {
-                      // C2 : coût EFFECTIF (réduction Magie par école, A6) — pas le
-                      // coût brut : sinon un sort lançable s'affiche grisé et le coût est faux.
-                      const cost = effectiveManaCost(hero, skillCatalog, spellDef);
-                      const castable = hero.mana >= cost;
-                      return (
-                        <li key={spellDef.id}>
-                          <button
-                            class={`spell-item${castable ? '' : ' spell-item-disabled'}`}
-                            data-testid={`spell-${spellDef.id}`}
-                            disabled={!castable}
-                            onClick={() => onSelect(spellDef.id)}
-                          >
-                            <span class="spell-name">
-                              {resolveSpellName(spellDef.id)}
-                              {spellDef.area === 'splash' && (
-                                <span class="spell-area" data-testid={`spell-area-${spellDef.id}`}>
-                                  {' '}
-                                  {t('spellbook.area')}
-                                </span>
-                              )}
+      <div class="spellbook-tabs" role="tablist" aria-label={t('spellbook.schoolsLabel')}>
+        {schools.map((s) => (
+          <button
+            key={s}
+            role="tab"
+            aria-selected={s === school}
+            class={`spellbook-tab${s === school ? ' active' : ''}`}
+            data-testid={`spellbook-tab-${s}`}
+            onClick={() => setActiveSchool(s)}
+          >
+            {t(`school.${s}`)}
+          </button>
+        ))}
+      </div>
+      <section class="spellbook-school" role="tabpanel" aria-label={t(`school.${school}`)}>
+        {circles.map((circle) => (
+          <div key={circle} class="spellbook-circle">
+            <h4>{t('spellbook.circle', { circle })}</h4>
+            <ul class="spell-list">
+              {known
+                .filter((d) => d.school === school && d.circle === circle)
+                .map((spellDef) => {
+                  // C2 : coût EFFECTIF (réduction Magie par école, A6) — pas le
+                  // coût brut : sinon un sort lançable s'affiche grisé et le coût est faux.
+                  const cost = effectiveManaCost(hero, skillCatalog, spellDef);
+                  const castable = hero.mana >= cost;
+                  return (
+                    <li key={spellDef.id}>
+                      <button
+                        class={`spell-item${castable ? '' : ' spell-item-disabled'}`}
+                        data-testid={`spell-${spellDef.id}`}
+                        disabled={!castable}
+                        onClick={() => onSelect(spellDef.id)}
+                      >
+                        <span class="spell-name">
+                          {resolveSpellName(spellDef.id)}
+                          {spellDef.area === 'splash' && (
+                            <span class="spell-area" data-testid={`spell-area-${spellDef.id}`}>
+                              {' '}
+                              {t('spellbook.area')}
                             </span>
-                            <span class="spell-cost">
-                              {t('spellbook.manaCost', { cost })}
-                            </span>
-                            {!castable && <span class="spell-reason">{t('spellbook.notEnoughMana')}</span>}
-                          </button>
-                        </li>
-                      );
-                    })}
-                </ul>
-              </div>
-            ))}
-          </section>
-        );
-      })}
+                          )}
+                        </span>
+                        <span class="spell-cost">{t('spellbook.manaCost', { cost })}</span>
+                        {!castable && <span class="spell-reason">{t('spellbook.notEnoughMana')}</span>}
+                      </button>
+                    </li>
+                  );
+                })}
+            </ul>
+          </div>
+        ))}
+      </section>
     </div>
   );
 }

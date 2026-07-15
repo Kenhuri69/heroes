@@ -260,7 +260,7 @@ export interface ArtifactDef {
      */
     vision?: number;
   };
-  /** Emplacement de poupée (présentation client, jamais lu par le moteur). */
+  /** Emplacement de poupée — le moteur ne le lit qu'à l'équipement (H-ARTEQUIP typed slots). */
   slot?: ArtifactSlot;
   /**
    * Sort ENSEIGNÉ tant que l'artefact est équipé (H-ARTEQUIP.2, doc 02 §1.1 —
@@ -270,6 +270,18 @@ export interface ArtifactDef {
    * (pas de bump save). `spellId` = id opaque (aucune faction).
    */
   grantsSpell?: string;
+  /**
+   * Panoplie (H-ARTEQUIP sets, doc 02 §1.1 — « artifact set » HoMM) : membre d'un
+   * ensemble. CHAQUE membre porte le MÊME descripteur ; équiper `pieces` membres de
+   * la même `id` accorde `bonus` UNE fois, en plus des bonus individuels
+   * (`heroArtifactBonus`). `id` = id opaque (aucune faction). **Optionnel** ⇒ pas
+   * de bump save, golden inchangé (fixtures inline sans panoplie).
+   */
+  set?: {
+    id: string;
+    pieces: number;
+    bonus: ArtifactDef['bonus'];
+  };
 }
 
 /** Statut temporaire appliqué à une pile par un sort (buff/debuff) ou une capacité (curseOnHit). */

@@ -619,6 +619,15 @@ export const artifactSchema = z.object({
   slot: artifactSlotSchema.optional(),
   /** Sort enseigné tant qu'équipé (H-ARTEQUIP.2) — id cross-validé au chargement. */
   grantsSpell: idSchema.optional(),
+  /**
+   * Panoplie (H-ARTEQUIP sets, doc 02 §1.1) : membre d'un ensemble d'artefacts.
+   * CHAQUE membre porte le MÊME descripteur `{ id, pieces, bonus }` ; équiper
+   * `pieces` membres de la même `id` accorde `bonus` UNE fois (en plus des bonus
+   * individuels). `id` = id opaque de panoplie (aucune faction). Générique.
+   */
+  set: z
+    .object({ id: idSchema, pieces: z.number().int().min(2), bonus: artifactBonusSchema })
+    .optional(),
 });
 
 export const artifactCatalogSchema = z.object({

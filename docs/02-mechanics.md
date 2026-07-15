@@ -41,6 +41,18 @@ Les **probabilités de gain** par niveau sont data-driven. *État livré (H-NAME
 > **pas de bump save, golden inchangé**. Artefact livré : **Longue-vue**
 > (`vision +3`). Zéro faction moteur.
 
+> **État livré (H-ARTEQUIP — panoplies / sets à seuils)** : champ déclaratif
+> optionnel `ArtifactDef.set = { id, pieces, bonus }` (« artifact set » HoMM) —
+> chaque membre d'une panoplie porte le MÊME descripteur ; équiper `pieces` membres
+> de la même `id` accorde `bonus` UNE fois, EN PLUS des bonus individuels.
+> `heroArtifactBonus` (signature inchangée) groupe les artefacts équipés par
+> panoplie et applique le bonus au seuil ⇒ **tous** les consommateurs (att/déf/
+> mana/PM/vision/moral/chance) en profitent sans câblage neuf. Champ **optionnel**,
+> bonus **live-calculé** (jamais sérialisé) ⇒ **pas de bump save, golden inchangé**.
+> Le tiroir héros affiche la progression `n/seuil` de chaque panoplie portée.
+> Panoplie livrée : **Panoplie du gladiateur** (Lame aiguisée + Égide de pierre ⇒
+> `+1 att / +1 déf / +1 moral`). Zéro faction moteur (`id` de panoplie opaque).
+
 ### 1.2 Progression
 
 - **XP** : combats **gagnés uniquement** (XP = somme des PV des unités ennemies tuées × coefficient — valeur de départ **1**, dans `data/core/config.json` ; seul le héros du camp vainqueur en reçoit), coffres, lieux de savoir.

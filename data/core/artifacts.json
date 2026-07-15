@@ -1,7 +1,7 @@
 {
   "artifacts": [
-    { "id": "lame-aiguisee", "bonus": { "attack": 2 }, "slot": "weapon" },
-    { "id": "egide-de-pierre", "bonus": { "defense": 2 }, "slot": "shield" },
+    { "id": "lame-aiguisee", "bonus": { "attack": 2 }, "slot": "weapon", "set": { "id": "panoplie-gladiateur", "pieces": 2, "bonus": { "attack": 1, "defense": 1, "morale": 1 } } },
+    { "id": "egide-de-pierre", "bonus": { "defense": 2 }, "slot": "shield", "set": { "id": "panoplie-gladiateur", "pieces": 2, "bonus": { "attack": 1, "defense": 1, "morale": 1 } } },
     { "id": "orbe-de-savoir", "bonus": { "knowledge": 2 }, "slot": "neck" },
     { "id": "trefle-chance", "bonus": { "luck": 1 }, "slot": "ring" },
     { "id": "grimoire-arcanique", "bonus": { "power": 1 }, "slot": "misc", "grantsSpell": "boule-de-feu" },

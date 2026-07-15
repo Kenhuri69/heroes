@@ -352,10 +352,22 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > Câblé côté moteur (validations frappe/sort + `advanceTurn` + IA `maybeHeroAction`)
 > et client (désactivation mutuelle des boutons). **Forme de sauvegarde inchangée
 > ⇒ pas de bump `CURRENT_SAVE_VERSION`** ; golden inchangé, garde-fou « zéro faction »
-> vert ; doc 02 §5.6 alignée sur §1. *Note : le second retour (« arbalétriers sans
-> tir ») n'a révélé aucun bug moteur — tir vérifié fonctionnel avec les vraies
-> données ; seuls ennemi au contact / ligne de vue bloquée / munitions épuisées
-> l'empêchent, règles HoMM standard.*
+> vert ; doc 02 §5.6 alignée sur §1.
+
+> 🏹 **Retour de jeu — tir par-dessus les obstacles + obstacles visibles** (plan
+> `.claude/plans/shooter-los-obstacles.md`, suite de la capture « arbalétriers sans
+> tir »). Vraie cause du « aucune attaque à distance possible » : la règle **C-LOS**
+> bloquait le tir dès qu'un **obstacle** de champ était sur la ligne tireur→cible
+> (2–5 obstacles tirés au centre ⇒ ligne souvent coupée) — divergence HoMM, aggravée
+> par des obstacles quasi **invisibles** (brun translucide + fines hachures). Deux
+> correctifs : **(A moteur)** nouveau helper `sightBlockedKeys` (murs de siège
+> **seuls**) consommé par `hasLineOfSight` ⇒ les tireurs tirent **par-dessus les
+> obstacles** (seul un rempart coupe la flèche) ; `staticBlockedKeys` (obstacles +
+> murs) reste pour le **déplacement**/téléportation. **(B client)** `hexgrid.ts`
+> rend chaque obstacle comme un **rocher** dessiné (`drawBoulder`, déterministe) sur
+> fond opaque, à la place des hachures. **Pas de bump `CURRENT_SAVE_VERSION`**, golden
+> **inchangé** (802 tests moteur verts), garde-fou « zéro faction » vert ; doc 02
+> §5.2/§5.4 alignées. `combat-los.test` réécrit (obstacle ⇒ tir OK ; mur ⇒ bloqué).*
 
 ---
 

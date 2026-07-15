@@ -8,7 +8,7 @@ import { applySpellToTargets, damageOneStack, spellcasterParams } from './spell-
 import type { Draft } from './draft';
 import { COMBAT_COLS, COMBAT_ROWS, hexDistance, hexLine, hexNeighbors, sameHex, type OffsetPos } from './hex';
 import { advanceTurn, checkCombatEnd } from './turns';
-import { combatRules, hasAbility, isShooterMeleePenalized, isSilenced, isSpellImmune, moraleOf, moveRange, staticBlockedKeys } from './state-helpers';
+import { combatRules, hasAbility, isShooterMeleePenalized, isSilenced, isSpellImmune, moraleOf, moveRange, sightBlockedKeys, staticBlockedKeys } from './state-helpers';
 import { spellTargetsEnemy } from '../hero/spells';
 import type { CombatActionInput, CombatSideId, CombatStack, CombatState, CombatUnitDef } from './types';
 
@@ -94,13 +94,16 @@ export function canShoot(state: GameState, stackId: string): boolean {
 }
 
 /**
- * Ligne de vue (C-LOS, doc 02 §5.4) : un **obstacle** sur le segment strict
- * entre `from` et `to` bloque la vue ; les **piles** ne bloquent pas (décision
- * design 2026-07-10). Pure (lit `combat.obstacles`), déterministe.
+ * Ligne de vue d'un tireur (C-LOS, doc 02 §5.4) : seul un **mur de siège** sur
+ * le segment strict entre `from` et `to` bloque le tir. Fidélité HoMM (retour de
+ * jeu 2026-07) : les **obstacles** du champ de bataille ne l'interceptent plus
+ * (on tire par-dessus) ; les **piles** n'ont jamais bloqué (décision 2026-07-10).
+ * Pure, déterministe. Hors siège ⇒ toujours dégagée.
  */
 export function hasLineOfSight(combat: CombatState, from: OffsetPos, to: OffsetPos): boolean {
-  // C-SIEGE2 : un mur de siège bloque la vue comme un obstacle (tir par la porte).
-  const blocked = staticBlockedKeys(combat);
+  // Seuls les remparts de siège arrêtent la flèche (tir par la porte) ; les
+  // obstacles de champ de bataille ne gênent que le déplacement.
+  const blocked = sightBlockedKeys(combat);
   const line = hexLine(from, to);
   // Hexes STRICTEMENT intermédiaires (on exclut le tireur et la cible).
   for (let i = 1; i < line.length - 1; i++) {
@@ -113,8 +116,9 @@ export function hasLineOfSight(combat: CombatState, from: OffsetPos, to: OffsetP
  * La pile peut-elle **tirer sur cette cible** (C-LOS) : tireur en mode tir
  * (`canShoot`) ET ligne de vue dégagée jusqu'à la cible. Un tireur sans ligne
  * de vue tombe en mêlée (comme au contact) — jamais de tir « à travers » un
- * obstacle. C'est le critère par cible partagé par la validation, la
- * résolution (`applyAttack`), la préviz (`estimateDamage`) et l'UI/IA.
+ * **rempart de siège** (les obstacles de champ, eux, n'arrêtent plus la flèche).
+ * C'est le critère par cible partagé par la validation, la résolution
+ * (`applyAttack`), la préviz (`estimateDamage`) et l'UI/IA.
  */
 export function canShootTarget(state: GameState, stackId: string, targetId: string): boolean {
   const combat = state.combat;
@@ -237,7 +241,7 @@ export function validateCombatAction(state: GameState, cmd: { action: CombatActi
       if (!target || target.side === stack.side || target.count <= 0 || target.stealthed)
         return { code: 'invalidAction', message: 'cible invalide' };
       // C-LOS : tir autorisé seulement avec ligne de vue sur CETTE cible ;
-      // sinon (obstacle sur le segment) le tireur doit frapper en mêlée.
+      // sinon (rempart de siège sur le segment) le tireur doit frapper en mêlée.
       if (canShootTarget(state, stack.id, target.id)) return null;
       const dist = hexDistance(stack.pos, target.pos);
       const from = action.from;

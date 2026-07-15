@@ -50,12 +50,18 @@ function stack(
   };
 }
 
-function stateWith(stacks: CombatStack[], obstacles: OffsetPos[], activeStackId: string): GameState {
+function stateWith(
+  stacks: CombatStack[],
+  obstacles: OffsetPos[],
+  activeStackId: string,
+  siegeWalls?: OffsetPos[],
+): GameState {
   const combat: CombatState = {
     terrain: 'grass',
     phase: 'battle',
     round: 1,
     obstacles,
+    ...(siegeWalls ? { siegeWalls } : {}),
     stacks,
     activeStackId,
     playerSide: 'attacker',
@@ -103,8 +109,13 @@ describe('hexLine', () => {
 });
 
 describe('hasLineOfSight', () => {
-  it('obstacle sur le segment ⇒ vue bloquée', () => {
+  it('obstacle sur le segment ⇒ vue DÉGAGÉE (fidélité HoMM : tir par-dessus)', () => {
     const combat = stateWith([], [{ col: 4, row: 5 }], 'x').combat as CombatState;
+    expect(hasLineOfSight(combat, { col: 2, row: 5 }, { col: 6, row: 5 })).toBe(true);
+  });
+
+  it('mur de siège sur le segment ⇒ vue bloquée', () => {
+    const combat = stateWith([], [], 'x', [{ col: 4, row: 5 }]).combat as CombatState;
     expect(hasLineOfSight(combat, { col: 2, row: 5 }, { col: 6, row: 5 })).toBe(false);
   });
 
@@ -113,15 +124,15 @@ describe('hasLineOfSight', () => {
     expect(hasLineOfSight(combat, { col: 2, row: 5 }, { col: 6, row: 5 })).toBe(true);
   });
 
-  it('les piles ne bloquent pas la vue (obstacles seuls, décision C-LOS)', () => {
-    // Une pile occupe l'hex intermédiaire, mais aucun OBSTACLE : vue dégagée.
+  it('les piles ne bloquent pas la vue (décision C-LOS)', () => {
+    // Une pile occupe l'hex intermédiaire : vue dégagée (seuls les murs bloquent).
     const midStack = stack({ id: 'mid', side: 'defender', slot: 9, unitId: 'foe', count: 1, pos: { col: 4, row: 5 } });
     const combat = stateWith([midStack], [], 'x').combat as CombatState;
     expect(hasLineOfSight(combat, { col: 2, row: 5 }, { col: 6, row: 5 })).toBe(true);
   });
 
-  it('obstacle hors segment ⇒ vue dégagée', () => {
-    const combat = stateWith([], [{ col: 4, row: 8 }], 'x').combat as CombatState;
+  it('mur de siège hors segment ⇒ vue dégagée', () => {
+    const combat = stateWith([], [], 'x', [{ col: 4, row: 8 }]).combat as CombatState;
     expect(hasLineOfSight(combat, { col: 2, row: 5 }, { col: 6, row: 5 })).toBe(true);
   });
 });
@@ -131,33 +142,38 @@ describe('canShootTarget & tir bloqué (C-LOS)', () => {
   const targetPos = { col: 6, row: 5 };
   const blockPos = { col: 4, row: 5 };
 
-  function scenario(obstacles: OffsetPos[]): GameState {
+  function scenario(obstacles: OffsetPos[], siegeWalls?: OffsetPos[]): GameState {
     const shooter = stack({ id: 'attacker-0', side: 'attacker', slot: 0, unitId: 'shooter', count: 1, ammo: 5, pos: shooterPos });
     const target = stack({ id: 'defender-0', side: 'defender', slot: 0, unitId: 'foe', count: 1, pos: targetPos });
-    return stateWith([shooter, target], obstacles, 'attacker-0');
+    return stateWith([shooter, target], obstacles, 'attacker-0', siegeWalls);
   }
 
   it('ligne de vue dégagée : tir possible', () => {
     expect(canShootTarget(scenario([]), 'attacker-0', 'defender-0')).toBe(true);
   });
 
-  it('obstacle sur la ligne : tir interdit', () => {
-    expect(canShootTarget(scenario([blockPos]), 'attacker-0', 'defender-0')).toBe(false);
+  it('obstacle sur la ligne : tir TOUJOURS possible (par-dessus, fidélité HoMM)', () => {
+    expect(canShootTarget(scenario([blockPos]), 'attacker-0', 'defender-0')).toBe(true);
   });
 
-  it('validateCombatAction : tir bloqué + cible distante sans `from` ⇒ rejet', () => {
-    const state = scenario([blockPos]);
+  it('mur de siège sur la ligne : tir interdit', () => {
+    expect(canShootTarget(scenario([], [blockPos]), 'attacker-0', 'defender-0')).toBe(false);
+  });
+
+  it('validateCombatAction : mur sur la ligne + cible distante sans `from` ⇒ rejet', () => {
+    const state = scenario([], [blockPos]);
     const err = validateCombatAction(state, { action: { type: 'attack', targetStackId: 'defender-0' } });
     expect(err?.code).toBe('invalidAction');
   });
 
-  it('validateCombatAction : ligne dégagée ⇒ tir accepté sans `from`', () => {
-    const state = scenario([]);
+  it('validateCombatAction : obstacle sur la ligne ⇒ tir accepté sans `from`', () => {
+    const state = scenario([blockPos]);
     expect(validateCombatAction(state, { action: { type: 'attack', targetStackId: 'defender-0' } })).toBeNull();
   });
 
-  it('applyAction : ligne dégagée ⇒ tir (munitions décrémentées, ranged)', () => {
-    const state = scenario([]);
+  it('applyAction : obstacle sur la ligne ⇒ tir (munitions décrémentées, ranged)', () => {
+    // Fidélité HoMM : l'obstacle ne coupe plus le tir — le tireur tire par-dessus.
+    const state = scenario([blockPos]);
     const events: GameEvent[] = [];
     const next = produce(state, (draft) => {
       applyAction(draft, events, 'attacker-0', { type: 'attack', targetStackId: 'defender-0' });
@@ -167,8 +183,8 @@ describe('canShootTarget & tir bloqué (C-LOS)', () => {
     expect(next.combat?.stacks.find((s) => s.id === 'attacker-0')?.ammo).toBe(4);
   });
 
-  it('applyAction : tir bloqué ⇒ mêlée forcée (munitions intactes, ranged false)', () => {
-    const state = scenario([blockPos]);
+  it('applyAction : mur sur la ligne ⇒ mêlée forcée (munitions intactes, ranged false)', () => {
+    const state = scenario([], [blockPos]);
     const events: GameEvent[] = [];
     // Le tireur doit se déplacer au contact (from adjacent à la cible).
     const next = produce(state, (draft) => {
@@ -183,10 +199,10 @@ describe('canShootTarget & tir bloqué (C-LOS)', () => {
     expect(next.combat?.stacks.find((s) => s.id === 'attacker-0')?.ammo).toBe(5); // pas de tir
   });
 
-  it('attackableTargets : cible bloquée reste attaquable (par mêlée, cible atteignable)', () => {
-    // Cible à portée de mêlée mais masquée par un obstacle : toujours listée
+  it('attackableTargets : cible derrière un mur reste attaquable (par mêlée, cible atteignable)', () => {
+    // Cible à portée de mêlée mais masquée par un mur : toujours listée
     // (elle sera frappée en mêlée), la LoS ne la retire pas si elle est atteignable.
-    const ids = attackableTargets(scenario([blockPos]), 'attacker-0').map((s) => s.id);
+    const ids = attackableTargets(scenario([], [blockPos]), 'attacker-0').map((s) => s.id);
     expect(ids).toContain('defender-0');
   });
 });

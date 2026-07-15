@@ -1,8 +1,8 @@
 import { killsFromDamage, magicResistanceOf } from './damage';
 import { handleStackDeath } from './death';
 import type { Draft } from './draft';
-import { hexDistance } from './hex';
-import { combatRules, hasAbility, recordLoss, recordRevive, stackLostSoFar } from './state-helpers';
+import { COMBAT_COLS, COMBAT_ROWS, hexDistance, inCombatBounds, sameHex, type OffsetPos } from './hex';
+import { combatRules, hasAbility, recordLoss, recordRevive, shooterAmmo, staticBlockedKeys, stackLostSoFar } from './state-helpers';
 import type { CombatState, CombatStack, CombatUnitDef } from './types';
 import type { GameEvent } from '../core/events';
 import { rollRange } from '../core/rng';
@@ -75,6 +75,43 @@ export function chainTargets(combat: CombatState, center: CombatStack, jumps: nu
     from = best;
   }
   return chosen;
+}
+
+/**
+ * 1re case de combat LIBRE (résurrection de pile entière) : `prefer` si elle est
+ * dans les bornes, non bloquée (obstacle/mur) et non occupée par une pile vivante ;
+ * sinon la 1re case libre en balayage déterministe (col puis row). `null` si le
+ * plateau est plein. Pure — aucun RNG.
+ */
+export function firstFreeCombatHex(combat: CombatState, prefer: OffsetPos): OffsetPos | null {
+  const blocked = staticBlockedKeys(combat);
+  const occupied = (p: OffsetPos): boolean =>
+    blocked.has(`${p.col},${p.row}`) || combat.stacks.some((s) => s.count > 0 && sameHex(s.pos, p));
+  if (inCombatBounds(prefer) && !occupied(prefer)) return prefer;
+  for (let col = 0; col < COMBAT_COLS; col++)
+    for (let row = 0; row < COMBAT_ROWS; row++) {
+      const p = { col, row };
+      if (!occupied(p)) return p;
+    }
+  return null;
+}
+
+/**
+ * Meilleure entrée de cimetière relevable pour le camp `side` (résurrection de
+ * pile entière) : la plus grande d'abord (`maxCount` décroissant, départage id) —
+ * unité connue du catalogue. `null` si aucune. Pure ; partagée résolution/préviz.
+ */
+export function bestGraveEntry(combat: CombatState, catalog: Record<string, CombatUnitDef>, side: CombatStack['side']) {
+  return (
+    (combat.graveyard ?? [])
+      .filter((g) => g.side === side && catalog[g.unitId])
+      .sort((a, b) => b.maxCount - a.maxCount || (a.id < b.id ? -1 : 1))[0] ?? null
+  );
+}
+
+/** Effectif relevé par une résurrection de pile entière (pur, partagé résolution/préviz). */
+export function resurrectFullCount(def: CombatUnitDef, maxCount: number, hpRestored: number): number {
+  return Math.min(maxCount, Math.max(1, Math.floor(hpRestored / def.stats.hp)));
 }
 
 /** Applique les dégâts d'un sort à UNE pile (kills, firstHp, bilan, mort) — retourne {amount, kills}. */
@@ -262,6 +299,30 @@ export function applySpellToTargets(
       const before = t.statuses.length;
       t.statuses = t.statuses.filter((s) => !isHostileStatus(s));
       amount += before - t.statuses.length;
+    }
+  } else if (spell.kind === 'resurrectFull') {
+    // H-SPELLS.4+ (Résurrection totale, doc 02 §1.4) : relève une pile ALLIÉE
+    // entièrement anéantie (cimetière du camp du lanceur), la plus grande d'abord.
+    // Placée à sa position d'origine si libre, sinon 1re case libre. Fizzle si
+    // rien à relever ou plateau plein (amount 0). `center` = pile alliée (validé).
+    const grave = bestGraveEntry(combat, draft.unitCatalog, center.side);
+    if (grave) {
+      const def = draft.unitCatalog[grave.unitId]!;
+      const revived = resurrectFullCount(def, grave.maxCount, spell.base + spell.perPower * power);
+      const pos = firstFreeCombatHex(combat, grave.pos);
+      if (pos) {
+        const newStack: CombatStack = {
+          id: grave.id, side: grave.side, slot: grave.slot, unitId: grave.unitId, count: revived,
+          firstHp: def.stats.hp, pos, retaliationsLeft: 1, waited: false, defending: false,
+          ammo: shooterAmmo(def), spellCharges: spellcasterParams(def)?.charges ?? 0, marks: 0,
+          immobilizedRounds: 0, transformed: false, symbiosisStacks: 0, acted: false, statuses: [],
+        };
+        combat.stacks.push(newStack);
+        recordRevive(combat, newStack, revived);
+        combat.graveyard = (combat.graveyard ?? []).filter((g) => g !== grave);
+        amount = revived;
+        events.push({ type: 'StackResurrected', stackId: newStack.id, unitId: newStack.unitId, count: revived });
+      }
     }
   } else if (spell.kind === 'banish') {
     // F-SCHOOLS.5 : bannit une pile ENNEMIE `banishable` (invoquée/démoniaque)

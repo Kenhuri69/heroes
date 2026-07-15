@@ -461,6 +461,15 @@
       "perPower": 8
     },
     {
+      "id": "resurrection-totale",
+      "school": "earth",
+      "circle": 4,
+      "manaCost": 24,
+      "kind": "resurrectFull",
+      "base": 60,
+      "perPower": 12
+    },
+    {
       "id": "meteore",
       "school": "fire",
       "circle": 4,

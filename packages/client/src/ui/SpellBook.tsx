@@ -309,6 +309,8 @@ function formatPreview(est: SpellEstimate | null, failed: boolean): string {
       return t('spellbook.previewDispel', { count: est.amount });
     case 'cure':
       return t('spellbook.previewCure', { count: est.amount });
+    case 'resurrectFull':
+      return t('spellbook.previewResurrect', { count: est.amount });
     default:
       return t('spellbook.previewUnavailable');
   }

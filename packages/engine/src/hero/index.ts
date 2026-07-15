@@ -3,7 +3,7 @@ import { DIRECTIONS, samePos, type GridPos } from '../adventure/map';
 import { isPassable } from '../adventure/path';
 import { heroLuckOf, killsFromDamage, magicResistanceOf } from '../combat/damage';
 import { checkCombatEnd } from '../combat/turns';
-import { applySpellToTargets, chainTargets, spellTargets, spellcasterParams } from '../combat/spell-effect';
+import { applySpellToTargets, bestGraveEntry, chainTargets, resurrectFullCount, spellTargets, spellcasterParams } from '../combat/spell-effect';
 import { factionCurseDurationBonus, factionSpellDamageMods, isSpellImmune, staticBlockedKeys } from '../combat/state-helpers';
 import {
   COMBAT_COLS,
@@ -540,6 +540,14 @@ function estimateSpellWithPower(
   if (spell.kind === 'cure') {
     const amount = affected.reduce((n, t) => n + t.statuses.filter(isHostileStatus).length, 0);
     return { amount, kills: 0, kind: 'cure' };
+  }
+  // H-SPELLS.4+ (Résurrection totale) : la préviz annonce l'effectif relevé de la
+  // meilleure pile morte du camp de la cible (0 si le cimetière est vide).
+  if (spell.kind === 'resurrectFull') {
+    const grave = bestGraveEntry(combat, state.unitCatalog, target.side);
+    const def = grave ? state.unitCatalog[grave.unitId] : undefined;
+    const amount = grave && def ? resurrectFullCount(def, grave.maxCount, spell.base + spell.perPower * power) : 0;
+    return { amount, kills: 0, kind: 'resurrectFull' };
   }
   return { amount: 0, kills: 0, kind: spell.kind };
 }

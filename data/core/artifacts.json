@@ -6,6 +6,7 @@
     { "id": "trefle-chance", "bonus": { "luck": 1 }, "slot": "ring" },
     { "id": "grimoire-arcanique", "bonus": { "power": 1 }, "slot": "misc", "grantsSpell": "boule-de-feu" },
     { "id": "bottes-de-sept-lieues", "bonus": { "movementFlat": 300 }, "slot": "feet" },
-    { "id": "longue-vue", "bonus": { "vision": 3 }, "slot": "misc" }
+    { "id": "longue-vue", "bonus": { "vision": 3 }, "slot": "misc" },
+    { "id": "pendentif-de-bravoure", "bonus": { "morale": 1 }, "slot": "neck", "grantsMoraleImmune": true }
   ]
 }

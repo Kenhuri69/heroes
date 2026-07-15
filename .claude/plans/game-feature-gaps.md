@@ -541,9 +541,14 @@ Source design : doc 02 §1 (héros), docs de faction §5/§6/§7 (héros nommés
     panoplie accorde `bonus` une fois (agrégé dans `heroArtifactBonus`, signature
     inchangée) ; tiroir héros affiche `n/seuil`. Optionnel ⇒ pas de bump save,
     golden inchangé. Panoplie du gladiateur livrée. Zéro faction.
-  - **Reste (H-ARTEQUIP.2+)** ⬜ : autres effets spéciaux déclaratifs
-    (immunités…) ; routage vers le sac de la dépouille de combat /
-    récompense de quête (débordement actuellement au sol / non attribué).
+  - **H-ARTEQUIP (immunité de moral d'armée)** ✅ (plan `h-artequip-morale-immune.md`) :
+    `ArtifactDef.grantsMoraleImmune` — un artefact plancher le moral de l'armée du
+    héros à 0 (miroir héros de `moraleImmune`), un hook dans `moraleOf`. Pendentif
+    de bravoure livré. Zéro faction, pas de bump save, golden inchangé.
+  - **Reste (H-ARTEQUIP.2+)** ⬜ : autres effets spéciaux déclaratifs (immunité aux
+    sorts / statuts d'armée…) ; sets à seuils ✅ ; routage vers le sac de la
+    dépouille de combat / récompense de quête (débordement actuellement au sol /
+    non attribué).
 
 - **H-LEVELCHOICE — Choix d'attribut à la montée de niveau** 🎨 S ✅
   > **Livré** : le joueur **humain** choisit +1 attribut parmi 2 propositions à

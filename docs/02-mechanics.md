@@ -53,6 +53,15 @@ Les **probabilités de gain** par niveau sont data-driven. *État livré (H-NAME
 > Panoplie livrée : **Panoplie du gladiateur** (Lame aiguisée + Égide de pierre ⇒
 > `+1 att / +1 déf / +1 moral`). Zéro faction moteur (`id` de panoplie opaque).
 
+> **État livré (H-ARTEQUIP — immunité de moral d'armée)** : champ déclaratif
+> optionnel `ArtifactDef.grantsMoraleImmune` — un artefact équipé plancher le moral
+> de TOUTE l'armée du héros à 0 (aucun saut de moral négatif), miroir **côté héros**
+> de la capacité d'unité `moraleImmune` (Ange). Interprété par `moraleOf` (le
+> plancher passe de −3 à 0 si l'unité a `moraleImmune` OU si le héros du camp porte
+> un tel artefact). Effet **dérivé de l'équipement** (jamais sérialisé) ⇒ **pas de
+> bump save, golden inchangé**. Artefact livré : **Pendentif de bravoure** (`morale
+> +1` + immunité). Zéro faction moteur.
+
 ### 1.2 Progression
 
 - **XP** : combats **gagnés uniquement** (XP = somme des PV des unités ennemies tuées × coefficient — valeur de départ **1**, dans `data/core/config.json` ; seul le héros du camp vainqueur en reçoit), coffres, lieux de savoir.

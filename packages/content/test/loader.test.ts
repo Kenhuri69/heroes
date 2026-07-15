@@ -1040,6 +1040,22 @@ describe('catalogues sorts/compétences/artefacts (plan phase-3.2 lot L)', () =>
     });
   });
 
+  it('buildSpellCatalog propage `area` et `chain` (régression : champs perdus au build)', async () => {
+    const data = makeData();
+    (data['core/spells.json'] as { spells: unknown[] }).spells[0] = {
+      ...(makeSpell() as Record<string, unknown>),
+      area: 'splash',
+      chain: { jumps: 2, falloffPct: 40 },
+    };
+    const report = await loadContent(reader(data));
+    const spell = buildSpellCatalog(report)['boule-de-feu'];
+    // Avant le fix : `area`/`chain` étaient omis de l'objet construit ⇒ le moteur
+    // ne voyait jamais la zone d'effet ni la chaîne des données (Boule de feu &
+    // sorts de masse rendus mono-cible en jeu réel).
+    expect(spell?.area).toBe('splash');
+    expect(spell?.chain).toEqual({ jumps: 2, falloffPct: 40 });
+  });
+
   it("R5 CO9 — rapporte (sans throw) des artefacts de départ inconnus", async () => {
     const data = makeData();
     (data['core/config.json'] as GameConfig).newGame.startingArtifacts = ['fantome'];

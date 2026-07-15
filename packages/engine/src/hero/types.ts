@@ -299,6 +299,14 @@ export interface ArtifactDef {
     pieces: number;
     bonus: ArtifactDef['bonus'];
   };
+  /**
+   * Immunité au moral NÉGATIF accordée à TOUTE l'armée du héros tant que l'artefact
+   * est équipé (H-ARTEQUIP.2+, doc 02 §1.1 — « Pendentif de bravoure » HoMM) :
+   * plancher de moral à 0 comme la capacité d'unité `moraleImmune`, mais côté HÉROS
+   * (aura d'armée). Lu par `moraleOf`. **Optionnel** ⇒ pas de bump save, golden
+   * inchangé (les héros du golden n'en portent pas). Générique — aucune faction.
+   */
+  grantsMoraleImmune?: boolean;
 }
 
 /** Statut temporaire appliqué à une pile par un sort (buff/debuff) ou une capacité (curseOnHit). */

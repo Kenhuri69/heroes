@@ -653,6 +653,11 @@ export const artifactSchema = z.object({
   set: z
     .object({ id: idSchema, pieces: z.number().int().min(2), bonus: artifactBonusSchema })
     .optional(),
+  /**
+   * Immunité au moral négatif accordée à l'armée du héros (H-ARTEQUIP.2+) — miroir
+   * côté héros de la capacité d'unité `moraleImmune`. Lu par `moraleOf`.
+   */
+  grantsMoraleImmune: z.boolean().optional(),
 });
 
 export const artifactCatalogSchema = z.object({

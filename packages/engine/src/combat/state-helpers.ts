@@ -233,6 +233,18 @@ export function roundActionOrder(
  * moral d'artefacts (B7 — `bonus.morale` était sommé mais jamais branché).
  * 0 si aucun héros.
  */
+/**
+ * Le héros lié au camp `side` porte-t-il un artefact accordant l'immunité au moral
+ * NÉGATIF à son armée (`grantsMoraleImmune`, H-ARTEQUIP.2+) ? Miroir côté héros de
+ * la capacité d'unité `moraleImmune`. `false` sans héros / sans tel artefact.
+ */
+export function heroGrantsMoraleImmune(state: GameState, combat: CombatState, side: CombatSideId): boolean {
+  const heroId = side === 'attacker' ? combat.attackerHeroId : combat.defenderHeroId;
+  const hero = heroId ? state.heroes.find((h) => h.id === heroId) : undefined;
+  if (!hero) return false;
+  return hero.artifacts.some((id) => id !== null && state.artifactCatalog[id]?.grantsMoraleImmune === true);
+}
+
 function heroMoraleForSide(state: GameState, combat: CombatState, side: CombatSideId): number {
   const heroId = side === 'attacker' ? combat.attackerHeroId : combat.defenderHeroId;
   const hero = heroId ? state.heroes.find((h) => h.id === heroId) : undefined;
@@ -362,8 +374,9 @@ export function moraleOf(stack: CombatStack, combat: CombatState, state: GameSta
     statusMoraleMod +
     townMoraleAura +
     heroMoraleForSide(state, combat, stack.side);
-  // `moraleImmune` (A3a, Ange) : immunité au moral NÉGATIF ⇒ plancher à 0.
-  const floor = hasAbility(def, 'moraleImmune') ? 0 : -3;
+  // Immunité au moral NÉGATIF ⇒ plancher à 0 : capacité d'unité `moraleImmune`
+  // (A3a, Ange) OU artefact du héros du camp (`grantsMoraleImmune`, H-ARTEQUIP.2+).
+  const floor = hasAbility(def, 'moraleImmune') || heroGrantsMoraleImmune(state, combat, stack.side) ? 0 : -3;
   return clamp(raw, floor, 3);
 }
 

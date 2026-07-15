@@ -324,6 +324,58 @@ export function applySpellToTargets(
         events.push({ type: 'StackResurrected', stackId: newStack.id, unitId: newStack.unitId, count: revived });
       }
     }
+  } else if (spell.kind === 'summon' && spell.summon) {
+    // H-SPELLS.4+ (Invocation) : place une pile FRAÎCHE du camp du lanceur (`center`
+    // = pile alliée proxy, seul son CAMP compte). La créature est décrite inline
+    // dans le sort et enregistrée dans `unitCatalog` (idempotent) ; `groupId` =
+    // son id. Effectif = round(base + perPower × Pouvoir). Placée au 1er hex libre
+    // de la ligne arrière du lanceur ; fizzle (amount 0) si le plateau est plein.
+    const u = spell.summon.unit;
+    const def: CombatUnitDef = {
+      id: u.id,
+      groupId: u.id,
+      nativeTerrain: u.nativeTerrain,
+      stats: u.stats,
+      abilities: u.abilities,
+    };
+    if (!draft.unitCatalog[u.id]) draft.unitCatalog[u.id] = def;
+    const count = Math.max(1, Math.round(spell.base + spell.perPower * power));
+    const backCol = center.side === 'attacker' ? 0 : COMBAT_COLS - 1;
+    const pos = firstFreeCombatHex(combat, { col: backCol, row: Math.floor(COMBAT_ROWS / 2) });
+    if (pos) {
+      // Slot unique : au-dessus de tout slot existant (piles vivantes + cimetière),
+      // et > 99 (slot réservé de la tour de siège) ⇒ id `${side}-${slot}` jamais réutilisé.
+      const slot =
+        1 +
+        Math.max(
+          99,
+          ...combat.stacks.filter((s) => s.side === center.side).map((s) => s.slot),
+          ...(combat.graveyard ?? []).filter((g) => g.side === center.side).map((g) => g.slot),
+        );
+      const newStack: CombatStack = {
+        id: `${center.side}-${slot}`,
+        side: center.side,
+        slot,
+        unitId: u.id,
+        count,
+        firstHp: def.stats.hp,
+        pos,
+        retaliationsLeft: 1,
+        waited: false,
+        defending: false,
+        ammo: shooterAmmo(def),
+        spellCharges: spellcasterParams(def)?.charges ?? 0,
+        marks: 0,
+        immobilizedRounds: 0,
+        transformed: false,
+        symbiosisStacks: 0,
+        acted: false,
+        statuses: [],
+      };
+      combat.stacks.push(newStack);
+      amount = count;
+      events.push({ type: 'StackResurrected', stackId: newStack.id, unitId: newStack.unitId, count });
+    }
   } else if (spell.kind === 'banish') {
     // F-SCHOOLS.5 : bannit une pile ENNEMIE `banishable` (invoquée/démoniaque)
     // dont le total de PV ≤ seuil (`base + perPower × Pouvoir`) — retrait complet

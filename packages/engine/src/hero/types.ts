@@ -29,6 +29,7 @@ export type SpellKind =
   | 'dispel'
   | 'cure'
   | 'resurrectFull'
+  | 'summon'
   | 'adventure';
 
 /**
@@ -99,6 +100,22 @@ export interface SpellDef {
   area?: 'splash' | 'all';
   /** Effet hors combat d'un sort `adventure` (doc 02 §1.4, Alpha 4.16). */
   adventure?: AdventureEffect;
+  /**
+   * Invocation (H-SPELLS.4+, doc 02 §1.4) : un sort `summon` place une pile FRAÎCHE
+   * de `unit` du camp du lanceur (effectif = `round(base + perPower × Pouvoir)`).
+   * La créature est décrite INLINE (aucun catalogue core neuf) et enregistrée dans
+   * `unitCatalog` au lancer ; son `groupId` (concept moteur) est estampillé =
+   * `unit.id`. Absent hors sort d'invocation. Générique — `id`/terrain/capacités
+   * opaques (aucune faction).
+   */
+  summon?: {
+    unit: {
+      id: string;
+      nativeTerrain: string;
+      stats: { hp: number; attack: number; defense: number; damage: [number, number]; speed: number };
+      abilities: { id: string; params?: Record<string, unknown> | undefined }[];
+    };
+  };
 }
 
 /** Rangs Novice/Expert/Maître d'une compétence (doc 02 §1.3) — effets par rang. */

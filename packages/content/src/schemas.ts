@@ -664,6 +664,11 @@ export const artifactSchema = z.object({
    * de sort (résolution + préviz).
    */
   armyMagicResistance: z.number().min(0).max(1).optional(),
+  /**
+   * Immunité aux statuts néfastes de sort (H-ARTEQUIP.2+) : les debuffs / silences
+   * ennemis ne se posent pas sur l'armée du héros. Lue à la pose de statut.
+   */
+  grantsStatusImmune: z.boolean().optional(),
 });
 
 export const artifactCatalogSchema = z.object({

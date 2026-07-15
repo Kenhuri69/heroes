@@ -71,6 +71,15 @@ Les **probabilités de gain** par niveau sont data-driven. *État livré (H-NAME
 > sérialisé) ⇒ **pas de bump save, golden inchangé**. Artefact livré : **Cape du
 > refus** (`Savoir +1` + `−25 %` de dégâts de sort à l'armée). Zéro faction moteur.
 
+> **État livré (H-ARTEQUIP — immunité aux statuts d'armée)** : champ déclaratif
+> optionnel `ArtifactDef.grantsStatusImmune` (booléen) — un artefact équipé rend
+> **chaque pile** du camp du héros IMMUNISÉE aux statuts NÉFASTES de sort : un
+> debuff / silence ennemi ne se pose pas (miroir statut de `armyMagicResistance`,
+> qui atténue les DÉGÂTS). Les **buffs alliés restent appliqués**. Lu à la pose de
+> statut (`applySpellToTargets`, un seul hook). Effet **dérivé de l'équipement**
+> (jamais sérialisé) ⇒ **pas de bump save, golden inchangé**. Artefact livré :
+> **Talisman de constance** (`Défense +1` + immunité aux statuts). Zéro faction moteur.
+
 ### 1.2 Progression
 
 - **XP** : combats **gagnés uniquement** (XP = somme des PV des unités ennemies tuées × coefficient — valeur de départ **1**, dans `data/core/config.json` ; seul le héros du camp vainqueur en reçoit), coffres, lieux de savoir.

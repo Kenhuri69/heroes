@@ -340,6 +340,18 @@ export function heroArmyMagicResistance(state: GameState, combat: CombatState, s
   return total;
 }
 
+/**
+ * H-ARTEQUIP.2+ : l'armée du camp `side` est-elle IMMUNISÉE aux statuts néfastes
+ * de sort (debuff / silence ennemis) ? Vrai dès qu'un artefact équipé du héros
+ * lié au camp porte `grantsStatusImmune`. Miroir statut de `heroArmyMagicResistance`
+ * (qui, lui, atténue les DÉGÂTS de sort). Pur, générique — aucune faction.
+ */
+export function heroGrantsStatusImmune(state: GameState, combat: CombatState, side: CombatSideId): boolean {
+  const hero = heroForSide(state, combat, side);
+  if (!hero) return false;
+  return hero.artifacts.some((id) => id != null && (state.artifactCatalog[id]?.grantsStatusImmune ?? false));
+}
+
 /** Bonus % de dégâts mêlée du héros lié au camp (compétence Attaque au corps) — fraction (0,10 = +10 %). */
 function heroMeleePctOf(state: GameState, combat: CombatState, side: CombatSideId): number {
   const hero = heroForSide(state, combat, side);

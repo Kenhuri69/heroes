@@ -1,4 +1,4 @@
-import { heroArmyMagicResistance, killsFromDamage, magicResistanceOf } from './damage';
+import { heroArmyMagicResistance, heroGrantsStatusImmune, killsFromDamage, magicResistanceOf } from './damage';
 import { handleStackDeath } from './death';
 import type { Draft } from './draft';
 import { COMBAT_COLS, COMBAT_ROWS, hexDistance, inCombatBounds, sameHex, type OffsetPos } from './hex';
@@ -7,7 +7,7 @@ import type { CombatState, CombatStack, CombatUnitDef } from './types';
 import type { GameEvent } from '../core/events';
 import { rollRange } from '../core/rng';
 import type { SpellDef } from '../hero/types';
-import { isHostileStatus, spellDamageAmount, spellHealAmount, spellStatusDuration } from '../hero/spells';
+import { isHostileStatus, spellDamageAmount, spellHealAmount, spellStatusDuration, spellTargetsEnemy } from '../hero/spells';
 
 /**
  * Résolution des EFFETS de sort sur les piles de combat — cœur PARTAGÉ entre le
@@ -400,7 +400,12 @@ export function applySpellToTargets(
   } else {
     // buff / debuff / silence (doc 02 §1.4, doc 05 §6) : statut temporaire sur
     // chaque pile affectée. `silence` désactive le sort d'unité (`silenced`).
+    // H-ARTEQUIP.2+ : un statut HOSTILE (debuff/silence, `spellTargetsEnemy`) ne
+    // se pose pas sur une pile dont le camp est doté d'immunité aux statuts
+    // (miroir de `armyMagicResistance` pour les dégâts). Buffs alliés inchangés.
+    const hostile = spellTargetsEnemy(spell.kind);
     for (const t of targets) {
+      if (hostile && heroGrantsStatusImmune(draft, combat, t.side)) continue;
       t.statuses.push({
         spellId: spell.id,
         attackMod: spell.attackMod ?? 0,

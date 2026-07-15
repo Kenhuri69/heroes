@@ -726,6 +726,13 @@ export function buildSpellCatalog(report: LoadReport): Record<string, ResolvedSp
       ...(s.marks !== undefined && { marks: s.marks }),
       // Sort mange-Marques (F-SCHOOLS.3, doc 05 §6 « Volée de Dagues Spectrales »).
       ...(s.marksDamagePct !== undefined && { marksDamagePct: s.marksDamagePct }),
+      // Zone d'effet (C7 `splash` / H-SPELLS.1 `all`) : lue par `spellTargets` — était
+      // PERDUE ici (le moteur ne voyait jamais l'`area` des données ⇒ Boule de feu &
+      // sorts de masse mono-cible en jeu réel, alors que les tests moteur, en SpellDef
+      // inline, la masquaient). Propagée désormais, comme les autres champs.
+      ...(s.area !== undefined && { area: s.area }),
+      // Chaîne (H-SPELLS.4 `chain`) : lue par `chainTargets` — même oubli que `area`.
+      ...(s.chain !== undefined && { chain: s.chain }),
       // Effet hors combat d'un sort `adventure` (doc 02 §1.4, Alpha 4.16).
       ...(s.adventure !== undefined && { adventure: s.adventure }),
       // Invocation (H-SPELLS.4+) : créature invocable inline.

@@ -60,11 +60,12 @@ function applyRewards(draft: GameState, playerId: string, rewards: QuestReward[]
       }
     } else if (r.type === 'artifact') {
       if (!hero) continue;
-      // B2 : 1er slot libre seulement — jamais un 11ᵉ slot (invariant 10 slots,
-      // state.ts). Inventaire plein ⇒ récompense non attribuée, comme le
-      // ramassage au sol (`adventure/movement.ts` : « reste au sol »).
+      // B2 : 1er slot équipé libre (invariant 10 slots, state.ts) ; inventaire
+      // plein ⇒ le SAC (`backpack`, jamais perdu) plutôt que la perte — même
+      // routage que le ramassage carte/gardien/visitable/dépouille.
       const slot = hero.artifacts.indexOf(null);
       if (slot >= 0) hero.artifacts[slot] = r.artifactId;
+      else (hero.backpack ??= []).push(r.artifactId);
     } else {
       if (!hero) continue;
       const existing = hero.army.find((s) => s.unitId === r.unitId);

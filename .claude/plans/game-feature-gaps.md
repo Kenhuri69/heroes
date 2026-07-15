@@ -560,8 +560,12 @@ Source design : doc 02 §1 (héros), docs de faction §5/§6/§7 (héros nommés
     (immunité d'unité OU d'armée) remplaçant les 6 appels `isSpellImmune(catalog,unitId)`
     (validate héros + unité, IA ×2, client ×2). Sceau de l'intouchable livré. Zéro
     faction, pas de bump save, golden inchangé.
-  - **Reste (H-ARTEQUIP.2+)** ⬜ : routage vers le sac de la dépouille de combat /
-    récompense de quête (débordement actuellement au sol / non attribué).
+  - **H-ARTEQUIP (routage du butin vers le sac)** ✅ (plan `h-artequip-loot-backpack.md`) :
+    la **dépouille** de combat (H-VS-H, `combat/turns.ts`) et les **récompenses de
+    quête** (`quest/evaluate.ts`) rangent leur surplus dans `hero.backpack` (jamais
+    perdu) au lieu du sol / non-attribué — cohérent avec le ramassage carte/gardien/
+    visitable. `backpack` existe déjà (v29) ⇒ pas de bump save, golden inchangé.
+    Docs 02 alignées (2 mentions « au sol » corrigées).
 
 - **H-LEVELCHOICE — Choix d'attribut à la montée de niveau** 🎨 S ✅
   > **Livré** : le joueur **humain** choisit +1 attribut parmi 2 propositions à

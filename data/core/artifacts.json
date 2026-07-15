@@ -9,6 +9,7 @@
     { "id": "longue-vue", "bonus": { "vision": 3 }, "slot": "misc" },
     { "id": "pendentif-de-bravoure", "bonus": { "morale": 1 }, "slot": "neck", "grantsMoraleImmune": true },
     { "id": "cape-du-refus", "bonus": { "knowledge": 1 }, "slot": "cloak", "armyMagicResistance": 0.25 },
-    { "id": "talisman-de-constance", "bonus": { "defense": 1 }, "slot": "ring", "grantsStatusImmune": true }
+    { "id": "talisman-de-constance", "bonus": { "defense": 1 }, "slot": "ring", "grantsStatusImmune": true },
+    { "id": "sceau-de-l-intouchable", "bonus": { "power": 1 }, "slot": "neck", "grantsSpellImmune": true }
   ]
 }

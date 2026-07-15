@@ -1098,6 +1098,16 @@ describe('catalogues sorts/compétences/artefacts (plan phase-3.2 lot L)', () =>
     expect(buildArtifactCatalog(report)['lame-aiguisee']?.grantsStatusImmune).toBe(true);
   });
 
+  it('buildArtifactCatalog propage `grantsSpellImmune` (H-ARTEQUIP.2+)', async () => {
+    const data = makeData();
+    (data['core/artifacts.json'] as { artifacts: unknown[] }).artifacts[0] = {
+      ...(makeArtifact() as Record<string, unknown>),
+      grantsSpellImmune: true,
+    };
+    const report = await loadContent(reader(data));
+    expect(buildArtifactCatalog(report)['lame-aiguisee']?.grantsSpellImmune).toBe(true);
+  });
+
   it("R5 CO9 — rapporte (sans throw) des artefacts de départ inconnus", async () => {
     const data = makeData();
     (data['core/config.json'] as GameConfig).newGame.startingArtifacts = ['fantome'];

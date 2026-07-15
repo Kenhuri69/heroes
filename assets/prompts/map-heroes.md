@@ -21,7 +21,7 @@ cell 2: a heroic mounted commander of the arcane-hunters faction riding a capari
 cell 3: a heroic mounted commander of the necropolis faction riding a caparisoned steed, banner or cloak flowing — bone white, ash grey and black, necrotic green glow, tattered cloth, spectral mist
 cell 4: a heroic mounted commander of the sylvan-court faction riding a caparisoned steed, banner or cloak flowing — muted heroic fantasy palette matching the faction lore
 cell 5: a heroic mounted commander of the vox-arcana faction riding a caparisoned steed, banner or cloak flowing — black gothic stone with silver/gold filigree, electric cyan and neon magenta, wisteria violet, Korean oni/pagoda accents, concert neon lanterns
-cell 6: a heroic mounted commander of the dungeon faction riding a caparisoned steed, banner or cloak flowing — muted heroic fantasy palette matching the faction lore
+cell 6: a heroic mounted commander of the dungeon faction riding a caparisoned steed, banner or cloak flowing — dark violet and black, obsidian stone and cold silver, arcane magenta glow, coiled-serpent motifs, dark-elf sorcery, subterranean cavern ambiance
 flat uniform light grey background (#c8c8c8), no ground shadow,
 no text, no watermark, no signature, no border frame, no ground line, no decorative sparkles, no star glints, no lens flare
 ```

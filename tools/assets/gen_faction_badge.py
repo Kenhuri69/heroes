@@ -19,6 +19,7 @@ dérivée de son identité (doc 03/04/05/14/16) :
   - arcane-hunters violet nuit / argent → flèche de traque + anneau runique
   - sylvan-court   verts·ambre / or     → feuille (motif de bannière, doc 14)
   - vox-arcana     noir·violet / or·néon → croissant (honmoon) + étoile (scène)
+  - dungeon        violet sombre·noir / argent·magenta → serpent lové (culte du serpent)
 `test-faction` reste sur le motif procédural (placeholder assumé, doc 12 §2.3).
 
 Sortie : assets/badges/<id>.png (256², RGBA transparent hors écu).
@@ -187,6 +188,71 @@ def _crescent_star(img, d, cx, cy, r, ramp):
     d.line(star + [star[0]], fill=neon, width=2 * SS)
 
 
+def _serpent(img, d, cx, cy, r, ramp):
+    """Serpent lové (motif de bannière Dungeon, doc 17 §1) — spirale d'écailles
+    d'acier effilée, tête + langue fourchue, halo magenta arcanique."""
+    magenta = (206, 74, 196, 255)
+    # Halo magenta diffus (rappel « éclats de magenta arcanique », doc 17 §1).
+    glow = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    ImageDraw.Draw(glow).ellipse([cx - r * 1.5, cy - r * 1.5, cx + r * 1.5, cy + r * 1.5],
+                                 fill=(*magenta[:3], 90))
+    img.alpha_composite(glow.filter(ImageFilter.GaussianBlur(8 * SS)))
+
+    # Corps : spirale d'Archimède (queue au centre → tête à l'extérieur).
+    turns, steps = 2.15, 240
+    theta_max = turns * 2 * math.pi
+    pts = []
+    for i in range(steps + 1):
+        t = i / steps
+        theta = t * theta_max
+        rad = r * 0.20 + (r * 1.30) * t
+        pts.append((cx + rad * math.cos(theta), cy + rad * math.sin(theta)))
+
+    # Épaisseur effilée (fine à la queue → épaisse près de la tête), tracée en
+    # segments : lit d'encre, remplissage argent, rehaut biseau.
+    def stroke(color, pad):
+        for i in range(len(pts) - 1):
+            frac = i / (len(pts) - 1)            # 0 = queue, 1 = tête
+            bw = r * (0.10 + 0.34 * frac)
+            w = max(1, int((bw + pad) * 2))
+            d.line([pts[i], pts[i + 1]], fill=color, width=w)
+            d.ellipse([pts[i][0] - bw - pad, pts[i][1] - bw - pad,
+                       pts[i][0] + bw + pad, pts[i][1] + bw + pad], fill=color)
+
+    stroke(INK, 3 * SS)
+    stroke(ramp["mid"], 0)
+    # Rehaut d'écailles le long du corps (fil clair décalé vers l'intérieur).
+    for i in range(0, len(pts) - 2, 6):
+        d.ellipse([pts[i][0] - r * 0.06, pts[i][1] - r * 0.06,
+                   pts[i][0] + r * 0.06, pts[i][1] + r * 0.06], fill=ramp["lite"])
+
+    # Tête (dernier point) orientée selon la tangente sortante.
+    hx, hy = pts[-1]
+    px, py = pts[-6]
+    ang = math.atan2(hy - py, hx - px)
+    hr = r * 0.5
+    ca, sa = math.cos(ang), math.sin(ang)
+    # Museau triangulaire (biseau argent sur encre).
+    nose = (hx + ca * hr * 1.5, hy + sa * hr * 1.5)
+    base_l = (hx - sa * hr * 0.85, hy + ca * hr * 0.85)
+    base_r = (hx + sa * hr * 0.85, hy - ca * hr * 0.85)
+    d.polygon([base_l, nose, base_r], fill=INK)
+    inl = (hx - sa * hr * 0.6, hy + ca * hr * 0.6)
+    inr = (hx + sa * hr * 0.6, hy - ca * hr * 0.6)
+    d.polygon([inl, (hx + ca * hr * 1.25, hy + sa * hr * 1.25), inr], fill=ramp["lite"])
+    # Langue fourchue (magenta) jaillissant du museau.
+    tongue = (hx + ca * hr * 2.3, hy + sa * hr * 2.3)
+    d.line([nose, tongue], fill=magenta, width=3 * SS)
+    d.line([tongue, (tongue[0] - sa * hr * 0.4 + ca * hr * 0.3,
+                     tongue[1] + ca * hr * 0.4 + sa * hr * 0.3)], fill=magenta, width=3 * SS)
+    d.line([tongue, (tongue[0] + sa * hr * 0.4 + ca * hr * 0.3,
+                     tongue[1] - ca * hr * 0.4 + sa * hr * 0.3)], fill=magenta, width=3 * SS)
+    # Œil (magenta luminescent) sur le crâne.
+    ex, ey = hx - ca * hr * 0.2 - sa * hr * 0.35, hy - sa * hr * 0.2 + ca * hr * 0.35
+    d.ellipse([ex - hr * 0.22, ey - hr * 0.22, ex + hr * 0.22, ey + hr * 0.22], fill=magenta)
+    d.ellipse([ex - hr * 0.09, ey - hr * 0.09, ex + hr * 0.09, ey + hr * 0.09], fill=INK)
+
+
 @dataclass
 class Recipe:
     field_top: tuple
@@ -209,6 +275,8 @@ RECIPES: dict[str, Recipe] = {
                            chef=(210, 190, 96, 40), charge_r=0.155, charge_cy=0.45),
     "vox-arcana": Recipe((52, 34, 84, 255), (18, 12, 32, 255), BRASS, _crescent_star,
                          chef=(180, 130, 220, 40), charge_r=0.16, charge_cy=0.46),
+    "dungeon": Recipe((58, 32, 72, 255), (14, 8, 20, 255), SILVER, _serpent,
+                      chef=(206, 74, 196, 38), charge_r=0.15, charge_cy=0.45),
 }
 
 

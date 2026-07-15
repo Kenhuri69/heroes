@@ -66,7 +66,7 @@ no text, no watermark, no signature, no border frame, no decorative sparkles, no
 ## town-dungeon
 
 ```
-Epic painterly fantasy cityscape of a dungeon faction stronghold, muted heroic fantasy palette matching the faction lore, Heroes of Might and Magic concept art,
+Epic painterly fantasy cityscape of a dungeon faction stronghold, dark violet and black, obsidian stone and cold silver, arcane magenta glow, coiled-serpent motifs, dark-elf sorcery, subterranean cavern ambiance, Heroes of Might and Magic concept art,
 wide 16:9 composition (1920x1080), focal point upper-center,
 darker vignetted edges, lower third kept simple for UI overlay,
 atmospheric depth, volumetric light,

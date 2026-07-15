@@ -10,7 +10,7 @@
 Building sheet, 8 fantasy dwellings of the same town in a 4x2 grid,
 digital painting, painterly HoMM town-screen style,
 each building isolated on its plot, slight 3/4 aerial view,
-architectural identity: muted heroic fantasy palette matching the faction lore,
+architectural identity: dark violet and black, obsidian stone and cold silver, arcane magenta glow, coiled-serpent motifs, dark-elf sorcery, subterranean cavern ambiance,
 soft directional light from upper-left,
 each subject centered in its own cell, not touching cell edges,
 clear spacing between cells,

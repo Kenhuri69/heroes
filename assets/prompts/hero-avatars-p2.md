@@ -17,8 +17,8 @@ clear spacing between cells,
 IMPORTANT: keep every subject fully inside its cell with generous empty margin all around — fully spread wings, weapons, staves and all extremities must NOT be cropped or touch any edge; zoom each subject out enough that nothing is clipped,
 cell 1: a battle-hardened might hero, armored commander of the vox-arcana faction — black gothic stone with silver/gold filigree, electric cyan and neon magenta, wisteria violet, Korean oni/pagoda accents, concert neon lanterns
 cell 2: a wise magic hero, robed spellcaster of the vox-arcana faction — black gothic stone with silver/gold filigree, electric cyan and neon magenta, wisteria violet, Korean oni/pagoda accents, concert neon lanterns
-cell 3: a battle-hardened might hero, armored commander of the dungeon faction — muted heroic fantasy palette matching the faction lore
-cell 4: a wise magic hero, robed spellcaster of the dungeon faction — muted heroic fantasy palette matching the faction lore
+cell 3: a battle-hardened might hero, armored commander of the dungeon faction — dark violet and black, obsidian stone and cold silver, arcane magenta glow, coiled-serpent motifs, dark-elf sorcery, subterranean cavern ambiance
+cell 4: a wise magic hero, robed spellcaster of the dungeon faction — dark violet and black, obsidian stone and cold silver, arcane magenta glow, coiled-serpent motifs, dark-elf sorcery, subterranean cavern ambiance
 flat uniform light grey background (#c8c8c8), no ground shadow,
 no text, no watermark, no signature, no border frame, no ground line, no decorative sparkles, no star glints, no lens flare
 ```

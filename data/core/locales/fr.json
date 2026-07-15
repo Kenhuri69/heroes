@@ -519,6 +519,7 @@
   "toast.caravanLost": "Caravane perdue (ville de destination capturée).",
   "cmdError.default": "Action impossible",
   "cmdError.cannotAfford": "Ressources insuffisantes",
+  "cmdError.slotOccupied": "Emplacement déjà occupé par un artefact de ce type",
   "cmdError.alreadyBuiltToday": "Déjà construit aujourd’hui",
   "cmdError.buildingMaxLevel": "Bâtiment déjà au niveau maximum",
   "cmdError.requirementsNotMet": "Prérequis non satisfaits",

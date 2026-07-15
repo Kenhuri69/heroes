@@ -217,10 +217,12 @@ export interface HeroSkillDef {
 }
 
 /**
- * Emplacement typé de la poupée d'équipement (doc 08 §2.3, lot UXD-5b).
- * Donnée de PRÉSENTATION pure : le moteur ne la lit jamais (aucun
- * `if (slot === …)`), les bonus se somment quel que soit l'emplacement. Elle
- * sert uniquement au regroupement typé de l'écran héros côté client.
+ * Emplacement typé de la poupée d'équipement (doc 08 §2.3, lots UXD-5b +
+ * H-ARTEQUIP typed slots). Le moteur ne lit `slot` que pour UNE contrainte
+ * générique (aucun `if (slot === 'faction…')`) : à l'équipement, un slot EXCLUSIF
+ * (défini et ≠ `misc`) ne porte qu'un artefact à la fois (`artifactSlotConflict`).
+ * Les BONUS, eux, se somment quel que soit l'emplacement. Sert aussi au
+ * regroupement typé de l'écran héros côté client.
  */
 export type ArtifactSlot =
   | 'head'

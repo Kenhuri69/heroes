@@ -519,6 +519,7 @@
   "toast.caravanLost": "Caravan lost (destination town captured).",
   "cmdError.default": "Action not allowed",
   "cmdError.cannotAfford": "Not enough resources",
+  "cmdError.slotOccupied": "That slot is already taken by an artifact of this type",
   "cmdError.alreadyBuiltToday": "Already built today",
   "cmdError.buildingMaxLevel": "Building already at maximum level",
   "cmdError.requirementsNotMet": "Requirements not met",

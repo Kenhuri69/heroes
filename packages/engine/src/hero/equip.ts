@@ -1,11 +1,39 @@
 import type { Command, CommandError } from '../core/commands';
 import type { GameEvent } from '../core/events';
 import type { GameState, HeroState } from '../core/state';
+import type { ArtifactDef, ArtifactSlot } from './types';
 
 type EquipCmd = Extract<Command, { type: 'EquipArtifact' }>;
 type UnequipCmd = Extract<Command, { type: 'UnequipArtifact' }>;
 
 const SLOTS = 10;
+
+/**
+ * Emplacement d'un artefact EXCLUSIF (H-ARTEQUIP typed slots, doc 08 §2.3) : un
+ * type défini autre que `misc` (fourre-tout, multiplicité libre). `slot` absent =
+ * artefact legacy/sans type ⇒ non contraint. Un slot exclusif ne porte qu'UN
+ * artefact à la fois (pas 2 casques). Générique — aucune faction.
+ */
+function exclusiveSlot(slot: ArtifactSlot | undefined): slot is ArtifactSlot {
+  return slot !== undefined && slot !== 'misc';
+}
+
+/**
+ * L'artefact `artifactId` entre-t-il en CONFLIT de slot avec ce que le héros porte
+ * déjà ? (H-ARTEQUIP typed slots) — vrai si son emplacement est exclusif ET déjà
+ * occupé par un artefact équipé du même type. Pur, partagé moteur (validation
+ * d'équipement) + client (préviz : désactiver la case du sac). Le moteur ne lit
+ * `slot` que pour cette contrainte ; les bonus se somment quel que soit le slot.
+ */
+export function artifactSlotConflict(
+  hero: HeroState,
+  catalog: Record<string, ArtifactDef>,
+  artifactId: string,
+): boolean {
+  const slot = catalog[artifactId]?.slot;
+  if (!exclusiveSlot(slot)) return false;
+  return hero.artifacts.some((id) => id !== null && catalog[id]?.slot === slot);
+}
 
 /**
  * Équiper / déséquiper un artefact (H-ARTEQUIP, doc 08 §2.3) — le héros
@@ -51,6 +79,12 @@ export function validateEquipArtifact(state: GameState, cmd: EquipCmd): CommandE
     return { code: 'invalidEquip', message: `case de sac invalide (${cmd.index})` };
   if (!hero.artifacts.includes(null))
     return { code: 'invalidEquip', message: 'aucun emplacement d’artefact libre (10 max)' };
+  // H-ARTEQUIP typed slots (doc 08 §2.3) : un emplacement exclusif (≠ misc) déjà
+  // occupé refuse un 2ᵉ artefact du même type — le moteur lit `artifact.slot`
+  // pour cette SEULE contrainte (les bonus, eux, se somment quel que soit le slot).
+  const artifactId = backpack[cmd.index];
+  if (artifactId !== undefined && artifactSlotConflict(hero, state.artifactCatalog, artifactId))
+    return { code: 'slotOccupied', message: `emplacement ${state.artifactCatalog[artifactId]?.slot} déjà occupé` };
   return null;
 }
 

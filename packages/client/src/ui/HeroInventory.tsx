@@ -1,4 +1,4 @@
-import type { ArtifactDef, ArtifactSlot, HeroState } from '@heroes/engine';
+import { artifactSlotConflict, type ArtifactDef, type ArtifactSlot, type HeroState } from '@heroes/engine';
 import { useApp } from '../app/store';
 import { dispatch } from '../app/dispatch';
 import { t, resolveArtifactName, resolveArtifactLore, commandErrorMessage } from '../app/i18n';
@@ -160,15 +160,20 @@ export function HeroInventory({
         </p>
       ) : (
         <ul class="hero-inventory-bag" data-testid="hero-bag">
-          {backpack.map((id, index) =>
-            manageable ? (
+          {backpack.map((id, index) => {
+            // H-ARTEQUIP typed slots : l'emplacement exclusif de l'artefact est
+            // déjà pris ⇒ on désactive la case (préviz, pas de tap mort) avec la
+            // même règle que la validation moteur.
+            const conflict = artifactSlotConflict(hero, catalog, id);
+            return manageable ? (
               <li key={index}>
                 <button
                   type="button"
                   class="hero-inventory-slot filled hero-inventory-action"
                   data-testid={`hero-bag-item-${index}`}
-                  disabled={artifactsFull}
+                  disabled={artifactsFull || conflict}
                   aria-label={t('hero.equipArtifact', { content: resolveArtifactName(id) })}
+                  title={conflict ? t('cmdError.slotOccupied') : undefined}
                   onClick={() => equip(index)}
                 >
                   <ArtifactContent artifactId={id} />
@@ -178,8 +183,8 @@ export function HeroInventory({
               <li key={index} class="hero-inventory-slot filled">
                 <ArtifactContent artifactId={id} />
               </li>
-            ),
-          )}
+            );
+          })}
         </ul>
       )}
       {backpack.length > 0 && artifactsFull && manageable && (

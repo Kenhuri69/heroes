@@ -28,6 +28,7 @@ export type SpellKind =
   | 'teleport'
   | 'dispel'
   | 'cure'
+  | 'resurrectFull'
   | 'adventure';
 
 /**

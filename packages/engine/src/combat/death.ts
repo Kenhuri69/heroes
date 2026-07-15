@@ -1,5 +1,5 @@
 import type { GameEvent } from '../core/events';
-import { recordRevive, stackLostSoFar } from './state-helpers';
+import { hasAbility, recordRevive, stackLostSoFar } from './state-helpers';
 import type { CombatState, CombatStack, CombatUnitDef } from './types';
 
 /**
@@ -57,6 +57,17 @@ export function handleStackDeath(
 ): void {
   if (tryRebirth(combat, stack, def, events)) return;
   events.push({ type: 'StackDied', stackId: stack.id });
+  // Cimetière (H-SPELLS.4+, résurrection de pile entière) : on garde de quoi
+  // relever la pile (unité, camp, slot, position, effectif perdu) AVANT de la
+  // retirer du plateau. `warMachine`/tour de tir non relevables (comme la Nécromancie).
+  if (!hasAbility(def, 'warMachine')) {
+    const maxCount = stackLostSoFar(combat, stack);
+    if (maxCount > 0)
+      combat.graveyard = [
+        ...(combat.graveyard ?? []),
+        { id: stack.id, unitId: stack.unitId, side: stack.side, slot: stack.slot, pos: { ...stack.pos }, maxCount },
+      ];
+  }
   const idx = combat.stacks.findIndex((s) => s.id === stack.id);
   if (idx !== -1) combat.stacks.splice(idx, 1);
 }

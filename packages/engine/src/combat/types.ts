@@ -179,6 +179,16 @@ export interface CombatState {
    * garde que HeroState/CombatStack) et golden inchangé (fixture sans `rebirth`).
    */
   rebornStackIds?: string[];
+  /**
+   * Cimetière (H-SPELLS.4+, doc 02 §1.4 — résurrection de pile entière) : une pile
+   * ALLIÉE entièrement anéantie (retirée du plateau) y laisse de quoi la relever —
+   * `unitId`, `side`, `slot`, `pos` d'origine, `maxCount` (effectif perdu, plafond
+   * de remontée). Le sort `resurrectFull` relève la meilleure entrée du camp du
+   * lanceur. **Optionnel** : absent = aucun mort à relever ⇒ pas de bump save
+   * (save-shape ne garde que HeroState/CombatStack) et golden inchangé (l'état
+   * final du golden a `combat: null`, donc ce champ n'entre jamais dans son hash).
+   */
+  graveyard?: { id: string; unitId: string; side: CombatSideId; slot: number; pos: OffsetPos; maxCount: number }[];
   finished: boolean;
   winner: CombatSideId | null;
 }

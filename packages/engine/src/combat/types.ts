@@ -105,8 +105,10 @@ export interface CombatState {
   /**
    * Murs de siège (C-SIEGE2, doc 02 §5) — segments d'obstacle sur une colonne
    * devant le défenseur quand la ville a un Fort, laissant une **porte**. Ils
-   * bloquent déplacement + ligne de vue (comme les obstacles) ; les volants les
-   * survolent. **Optionnel** : absent hors siège de ville fortifiée ⇒ pas de bump
+   * bloquent déplacement (`staticBlockedKeys`) ET, seuls, la ligne de vue des
+   * tireurs (`sightBlockedKeys` — les obstacles de champ, eux, laissent passer
+   * le tir depuis le retour de jeu 2026-07) ; les volants les survolent.
+   * **Optionnel** : absent hors siège de ville fortifiée ⇒ pas de bump
    * de sauvegarde (save-shape ne garde que HeroState/CombatStack) et golden
    * inchangé. Non destructibles au .1 (catapulte/PV = C-SIEGE2.2).
    */

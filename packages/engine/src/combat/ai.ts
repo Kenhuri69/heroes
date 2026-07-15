@@ -294,8 +294,8 @@ export function chooseAction(state: GameState, stackId: string): CombatActionInp
 
   // Score normal : tir (sur place, ligne de vue dégagée — C-LOS) ou mêlée (sur
   // place ou après déplacement). La décision se fait PAR CIBLE : un tireur dont
-  // la ligne de vue vers une cible est bloquée génère des candidats de mêlée
-  // (jamais un tir « à travers » l'obstacle).
+  // la ligne de vue vers une cible est bloquée par un rempart génère des
+  // candidats de mêlée (les obstacles de champ, eux, laissent passer le tir).
   const candidates: AttackCandidate[] = [];
   const reachable = reachableHexes(state, stackId);
   for (const e of targetable) {

@@ -58,13 +58,50 @@ const FILL_REACHABLE = 0x3a7a3a;
 const STROKE_REACHABLE = 0x8fe08f;
 const FILL_ATTACKABLE = 0x9a2a2a;
 const STROKE_ATTACKABLE = 0xff8f7a;
-const FILL_OBSTACLE = 0x5a4f45;
+const FILL_OBSTACLE = 0x4a4038;
 const STROKE_OBSTACLE = 0x9a8f80;
+const ALPHA_OBSTACLE = 0.7; // décor STATIQUE (pas une surbrillance transitoire) : bien lisible
+// Rocher dessiné sur les hexes-obstacles (retour de jeu 2026-07 : leur présence
+// n'était pas indiquée). Teintes pierre déterministes, second canal non chromatique
+// (A5) assuré par la forme même du rocher, distincte des pips/bords d'état.
+const ROCK_BODY = 0x7c7266;
+const ROCK_LIGHT = 0xa89e8f;
+const ROCK_DARK = 0x4d453c;
 const FILL_MOAT = 0x1f3a52; // fossé bleu-nuit : franchissable mais ralentissant
 const STROKE_MOAT = 0x4a86b8;
 const ALPHA_STATE = 0.34; // états : assez opaques pour se lire, décor encore perçu
 const MARKER = 0xe8e2d0;
 const STROKE_SELECTED = 0xf1c40f;
+
+/**
+ * Dessine un rocher lisible sur un hex-obstacle (centre `x,y`, rayon d'hex `r`).
+ * Purement géométrique et déterministe (aucun RNG) : ombre au sol + corps de
+ * pierre + facette éclairée en haut-gauche, pour signaler clairement « bloqué ».
+ */
+function drawBoulder(g: Graphics, x: number, y: number, r: number): void {
+  const s = r * 0.62;
+  // Ombre portée au sol (galette sombre translucide).
+  g.ellipse(x, y + s * 0.55, s * 0.95, s * 0.4).fill({ color: ROCK_DARK, alpha: 0.45 });
+  // Corps du rocher — polygone anguleux (silhouette de pierre).
+  g.poly([
+    x - s * 0.9, y + s * 0.35,
+    x - s * 0.7, y - s * 0.35,
+    x - s * 0.15, y - s * 0.75,
+    x + s * 0.5, y - s * 0.6,
+    x + s * 0.9, y - s * 0.05,
+    x + s * 0.7, y + s * 0.45,
+    x - s * 0.2, y + s * 0.6,
+  ])
+    .fill({ color: ROCK_BODY, alpha: 1 })
+    .stroke({ width: 1.5, color: ROCK_DARK, alpha: 0.9 });
+  // Facette éclairée (haut-gauche) — donne du volume, améliore le contraste.
+  g.poly([
+    x - s * 0.7, y - s * 0.35,
+    x - s * 0.15, y - s * 0.75,
+    x + s * 0.15, y - s * 0.35,
+    x - s * 0.35, y - s * 0.05,
+  ]).fill({ color: ROCK_LIGHT, alpha: 0.95 });
+}
 
 export interface DrawBoardOptions {
   /** Hexes atteignables par la pile active (déplacement). */
@@ -107,7 +144,7 @@ export function drawBoard(g: Graphics, opts: DrawBoardOptions = {}): void {
       let strokeWidth = 1;
       if (isObstacle) {
         fill = FILL_OBSTACLE;
-        alpha = ALPHA_STATE;
+        alpha = ALPHA_OBSTACLE;
         stroke = STROKE_OBSTACLE;
       } else if (isAttackable) {
         fill = FILL_ATTACKABLE;
@@ -134,9 +171,7 @@ export function drawBoard(g: Graphics, opts: DrawBoardOptions = {}): void {
       if (isReachable) {
         g.circle(x, y, 4).fill({ color: MARKER, alpha: 0.9 }); // pip « on peut venir ici »
       } else if (isObstacle) {
-        const h = r * 0.5; // hachures diagonales « case bloquée »
-        g.moveTo(x - h, y).lineTo(x, y - h).moveTo(x, y + h).lineTo(x + h, y)
-          .stroke({ width: 2, color: MARKER, alpha: 0.5 });
+        drawBoulder(g, x, y, r); // rocher lisible « case bloquée » (bloque le déplacement)
       }
     }
   }

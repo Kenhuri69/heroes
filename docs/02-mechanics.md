@@ -430,9 +430,10 @@ Chaque faction consomme surtout **une paire de ressources rares** (Haven : crist
 > (`buildings.fort ≥ 1`) assiégée dresse un **rempart** — des segments d'obstacle
 > sur une colonne devant le défenseur (`combat.siegeWalls`, champ **OPTIONNEL** ⇒
 > pas de bump de sauvegarde, golden inchangé), laissant une **porte** centrale
-> ouverte. Le mur **bloque déplacement + ligne de vue** exactement comme un
-> obstacle (helper partagé `staticBlockedKeys`) : la mêlée s'engouffre par la
-> porte, les **volants** le survolent, les **tireurs** tirent par l'ouverture. Une
+> ouverte. Le mur **bloque le déplacement** (`staticBlockedKeys`) et, contrairement
+> aux obstacles de champ, **coupe aussi la ligne de vue** des tireurs
+> (`sightBlockedKeys`) : la mêlée s'engouffre par la porte, les **volants** le
+> survolent, les **tireurs** tirent par l'ouverture. Une
 > ville **sans Fort** ⇒ aucun mur (siège v1 inchangé). **Non destructibles** pour
 > l'instant : PV de segment / destruction par les unités = **C-SIEGE2.2+** ;
 > tour de tir = .3 ; douves = .4. Zéro faction moteur.
@@ -564,7 +565,7 @@ Vue peinte de la ville où les bâtiments construits apparaissent (grande satisf
 
 - **Rounds par vagues** : à chaque round, toutes les piles agissent par ordre de **vitesse décroissante** (égalité : attaquant d'abord, puis ordre de slot). Choix « vagues » plutôt que barre ATB : plus prévisible et lisible sur petit écran.
 - Actions d'une pile : **déplacer**, **attaquer** (mêlée : déplacement+attaque ; distance : tir si pas d'ennemi adjacent **et ligne de vue dégagée**, sinon mêlée à ½ dégâts), **attendre** (rejoue en fin de round, par vitesse **croissante** ; une attente par round), **défendre** (+30 % défense, soit Défense ×1,3 arrondie à l'entier inférieur, jusqu'au prochain tour de la pile).
-- **Ligne de vue** (C-LOS) : un tir exige une ligne de vue dégagée entre le tireur et sa cible. Seuls les **obstacles** de la grille bloquent la vue — les **piles** (alliées ou ennemies) ne la bloquent pas. Une cible masquée par un obstacle **ne peut pas être tirée** (pas de malus : tir simplement interdit) ⇒ le tireur doit la frapper en mêlée. La portée reste illimitée (§5.4). La ligne est tracée en géométrie hexagonale déterministe (linedraw cubique) pour un replay stable.
+- **Ligne de vue** (C-LOS) : un tir exige une ligne de vue dégagée entre le tireur et sa cible. **Fidélité HoMM (retour de jeu 2026-07)** : les **obstacles** du champ de bataille (rochers/décombres) **ne bloquent plus le tir** — le tireur vise par-dessus, ils ne gênent que le *déplacement*. Seuls les **remparts de siège** coupent la ligne de vue (on ne tire pas à travers un mur plein ; le tir passe par la porte). Les **piles** (alliées ou ennemies) n'ont jamais bloqué. Une cible masquée par un rempart **ne peut pas être tirée** (pas de malus : tir simplement interdit) ⇒ le tireur doit la frapper en mêlée. La portée reste illimitée (§5.4). La ligne est tracée en géométrie hexagonale déterministe (linedraw cubique) pour un replay stable.
 - **Riposte** : 1 riposte/round par pile, après application des pertes de la frappe — une pile détruite ne riposte pas, le tir ne déclenche jamais de riposte (des capacités la modifient : `noRetaliation`, `unlimitedRetaliation`).
 - **Le héros** : 1 action/round (sort OU attaque héroïque mineure), ne peut pas être ciblé.
 
@@ -598,7 +599,7 @@ Sémantique des **27 capacités** du catalogue (valeurs de départ) :
 | Capacité | Effet implémenté |
 |---|---|
 | `flying` | le déplacement ignore obstacles et unités (survol), portée = vitesse, atterrissage sur hex libre |
-| `shooter(ammo, noMeleePenalty?)` | tir sans riposte, portée illimitée **avec ligne de vue** (obstacles bloquants, C-LOS §5.2), 1 munition/tir ; à 0 munition, ennemi adjacent **ou vue bloquée** : mêlée à ½ dégâts sauf `noMeleePenalty` |
+| `shooter(ammo, noMeleePenalty?)` | tir sans riposte, **portée illimitée** ; le tir passe **par-dessus les obstacles** du champ (fidélité HoMM, retour de jeu 2026-07) — seuls les **remparts de siège** coupent la ligne de vue (C-LOS §5.2). 1 munition/tir ; à 0 munition, ennemi adjacent **ou** ligne coupée par un rempart : mêlée à ½ dégâts sauf `noMeleePenalty` |
 | `noRetaliation` | la cible ne riposte jamais aux attaques de cette unité |
 | `doubleAttack` | deux frappes ; la riposte éventuelle s'intercale après la 1ʳᵉ |
 | `undead` | moral figé à 0 (ne subit ni ne donne), ne compte pas dans le malus multi-factions |

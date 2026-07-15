@@ -16,13 +16,26 @@ export function clamp(value: number, min: number, max: number): number {
 
 /**
  * Hexes STATIQUEMENT bloqués d'un combat (C-SIEGE2) : obstacles + murs de siège
- * intacts. Clés `col,row`. Partagé par le déplacement (`reachableHexes`), la
- * ligne de vue (`hasLineOfSight`) et le ciblage de téléportation
- * (`teleportDestinations`) — un mur bloque exactement comme un obstacle.
+ * intacts. Clés `col,row`. Partagé par le déplacement (`reachableHexes`) et le
+ * ciblage de téléportation (`teleportDestinations`) — un mur bloque le passage
+ * exactement comme un obstacle.
  */
 export function staticBlockedKeys(combat: CombatState): Set<string> {
   const set = new Set<string>();
   for (const o of combat.obstacles) set.add(`${o.col},${o.row}`);
+  for (const w of combat.siegeWalls ?? []) set.add(`${w.col},${w.row}`);
+  return set;
+}
+
+/**
+ * Hexes bloquant la LIGNE DE VUE d'un tireur (`hasLineOfSight`) : les **murs de
+ * siège** seuls. Fidélité HoMM (retour de jeu 2026-07) : un tireur tire
+ * **par-dessus les obstacles** du champ de bataille (rochers/décombres — ils ne
+ * gênent que le déplacement) ; seul un rempart plein arrête la flèche. Vide hors
+ * siège ⇒ les obstacles n'interceptent plus jamais un tir.
+ */
+export function sightBlockedKeys(combat: CombatState): Set<string> {
+  const set = new Set<string>();
   for (const w of combat.siegeWalls ?? []) set.add(`${w.col},${w.row}`);
   return set;
 }

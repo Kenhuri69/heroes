@@ -658,6 +658,12 @@ export const artifactSchema = z.object({
    * côté héros de la capacité d'unité `moraleImmune`. Lu par `moraleOf`.
    */
   grantsMoraleImmune: z.boolean().optional(),
+  /**
+   * Résistance magique d'armée (H-ARTEQUIP.2+) : fraction (0..1) de réduction des
+   * dégâts de sorts ennemis pour toute l'armée du héros. Lue par le cœur de dégâts
+   * de sort (résolution + préviz).
+   */
+  armyMagicResistance: z.number().min(0).max(1).optional(),
 });
 
 export const artifactCatalogSchema = z.object({

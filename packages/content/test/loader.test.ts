@@ -1078,6 +1078,16 @@ describe('catalogues sorts/compétences/artefacts (plan phase-3.2 lot L)', () =>
     expect(buildArtifactCatalog(report)['lame-aiguisee']?.grantsMoraleImmune).toBe(true);
   });
 
+  it('buildArtifactCatalog propage `armyMagicResistance` (H-ARTEQUIP.2+)', async () => {
+    const data = makeData();
+    (data['core/artifacts.json'] as { artifacts: unknown[] }).artifacts[0] = {
+      ...(makeArtifact() as Record<string, unknown>),
+      armyMagicResistance: 0.25,
+    };
+    const report = await loadContent(reader(data));
+    expect(buildArtifactCatalog(report)['lame-aiguisee']?.armyMagicResistance).toBe(0.25);
+  });
+
   it("R5 CO9 — rapporte (sans throw) des artefacts de départ inconnus", async () => {
     const data = makeData();
     (data['core/config.json'] as GameConfig).newGame.startingArtifacts = ['fantome'];

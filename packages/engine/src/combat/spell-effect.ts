@@ -1,4 +1,4 @@
-import { killsFromDamage, magicResistanceOf } from './damage';
+import { heroArmyMagicResistance, killsFromDamage, magicResistanceOf } from './damage';
 import { handleStackDeath } from './death';
 import type { Draft } from './draft';
 import { COMBAT_COLS, COMBAT_ROWS, hexDistance, inCombatBounds, sameHex, type OffsetPos } from './hex';
@@ -241,7 +241,10 @@ export function applySpellToTargets(
       const consumeBonus = spell.marksDamagePct ? (spell.marksDamagePct / 100) * t.marks : 0;
       // Magie Irrésistible (doc 17 §2) : la résistance graduée de la cible est
       // atténuée de `resistancePierce`, puis les dégâts majorés de `bonusPct`.
-      const resistance = Math.max(0, magicResistanceOf(def, t.transformed) - damageMods.resistancePierce);
+      // H-ARTEQUIP.2+ : résistance magique d'ARMÉE d'un artefact du héros de la
+      // cible s'ajoute (bornée < 1 pour interdire l'immunité totale par empilement).
+      const armyMR = heroArmyMagicResistance(draft, combat, t.side);
+      const resistance = Math.max(0, Math.min(0.95, magicResistanceOf(def, t.transformed) + armyMR) - damageMods.resistancePierce);
       const dmg = Math.round(
         spellDamageAmount(spell, power, lucky, resistance, rules.markBonusPerStack * t.marks + consumeBonus) *
           mult *

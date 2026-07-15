@@ -307,6 +307,15 @@ export interface ArtifactDef {
    * inchangé (les héros du golden n'en portent pas). Générique — aucune faction.
    */
   grantsMoraleImmune?: boolean;
+  /**
+   * Résistance magique d'ARMÉE (H-ARTEQUIP.2+, doc 02 §1.1 — « Pendentif
+   * d'impassibilité » HoMM) : fraction (0..1) ajoutée à la résistance magique de
+   * CHAQUE pile du camp du héros face aux sorts de dégâts ennemis, tant que
+   * l'artefact est équipé. Lu par le cœur de dégâts de sort (résolution + préviz) ;
+   * la résistance combinée est bornée < 1 (jamais d'immunité totale par empilement).
+   * **Optionnel** ⇒ pas de bump save, golden inchangé. Générique — aucune faction.
+   */
+  armyMagicResistance?: number;
 }
 
 /** Statut temporaire appliqué à une pile par un sort (buff/debuff) ou une capacité (curseOnHit). */

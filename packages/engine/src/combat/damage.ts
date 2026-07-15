@@ -326,6 +326,20 @@ export function heroLuckOf(state: GameState, combat: CombatState, side: CombatSi
   return clamp(total, -3, 3);
 }
 
+/**
+ * Résistance magique d'ARMÉE accordée par les artefacts du héros lié au camp
+ * `side` (`armyMagicResistance`, H-ARTEQUIP.2+) : somme des fractions des artefacts
+ * équipés, tant qu'il en porte. 0 sans héros / sans tel artefact. Ajoutée à la
+ * résistance de chaque pile du camp face aux sorts de dégâts (résolution + préviz).
+ */
+export function heroArmyMagicResistance(state: GameState, combat: CombatState, side: CombatSideId): number {
+  const hero = heroForSide(state, combat, side);
+  if (!hero) return 0;
+  let total = 0;
+  for (const id of hero.artifacts) if (id) total += state.artifactCatalog[id]?.armyMagicResistance ?? 0;
+  return total;
+}
+
 /** Bonus % de dégâts mêlée du héros lié au camp (compétence Attaque au corps) — fraction (0,10 = +10 %). */
 function heroMeleePctOf(state: GameState, combat: CombatState, side: CombatSideId): number {
   const hero = heroForSide(state, combat, side);

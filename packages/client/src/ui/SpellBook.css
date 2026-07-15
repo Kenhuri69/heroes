@@ -52,6 +52,16 @@
   box-shadow: 0 0 0 1px var(--gold) inset;
 }
 
+/* C-SPELLUI.4 : maîtrise du héros dans l'école active (rang de compétence). */
+.spellbook-mastery {
+  margin: 0 0 8px;
+  font-size: 0.75rem;
+  font-variant: small-caps;
+  letter-spacing: 0.03em;
+  color: var(--gold);
+  opacity: 0.9;
+}
+
 .spellbook-school {
   margin: 14px 0;
 }

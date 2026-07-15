@@ -512,6 +512,8 @@
   "spellbook.schoolsLabel": "Écoles de magie",
   "spellbook.zone": "Zone :",
   "spellbook.zoneCount": "({count} piles)",
+  "spellbook.mastery": "Maîtrise : {rank}",
+  "spellbook.masteryNone": "de base",
   "toast.spellCast": "{hero} lance {spell}",
   "toast.skillLearned": "{skill} niveau {rank} apprise",
   "toast.saved": "Partie sauvegardée.",

@@ -3,6 +3,7 @@ import {
   effectiveManaCost,
   estimateSpell,
   heroKnownSpellIds,
+  heroSchoolMastery,
   isSpellImmune,
   spellAffectedStacks,
   spellTargetsEnemy,
@@ -221,6 +222,9 @@ function SpellList({
   const circles = Array.from(new Set(known.filter((d) => d.school === school).map((d) => d.circle))).sort(
     (a, b) => a - b,
   );
+  // C-SPELLUI.4 : maîtrise du héros dans l'école active (rang de compétence de
+  // cette école) — pilote la réduction de coût de mana (A6). 0 = maîtrise de base.
+  const mastery = heroSchoolMastery(hero, skillCatalog, school);
 
   return (
     <div class="spellbook-list">
@@ -239,6 +243,11 @@ function SpellList({
         ))}
       </div>
       <section class="spellbook-school" role="tabpanel" aria-label={t(`school.${school}`)}>
+        <p class="spellbook-mastery" data-testid={`spellbook-mastery-${school}`}>
+          {t('spellbook.mastery', {
+            rank: mastery > 0 ? t(`skill.rank.${mastery}`) : t('spellbook.masteryNone'),
+          })}
+        </p>
         {circles.map((circle) => (
           <div key={circle} class="spellbook-circle">
             <h4>{t('spellbook.circle', { circle })}</h4>

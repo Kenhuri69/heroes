@@ -178,7 +178,12 @@ export function drawBoard(g: Graphics, opts: DrawBoardOptions = {}): void {
         strokeWidth = 3;
       }
 
-      g.regularPoly(x, y, r, 6, Math.PI / 6)
+      // Hexagone POINTY-TOP (pointe en haut/bas), aligné sur le layout pointy-top
+      // de `hexToPixel`. PixiJS applique un décalage intégré de −π/2 à `regularPoly`
+      // (`startAngle = -π/2 + rotation`) : rotation 0 ⇒ pointy-top, π/6 ⇒ flat-top.
+      // On passe donc 0 ici — un flat-top sur un lattice pointy-top ne pave pas et
+      // produit un treillis en losanges au lieu d'un nid d'abeille.
+      g.regularPoly(x, y, r, 6, 0)
         .fill({ color: fill, alpha })
         .stroke({ width: strokeWidth, color: stroke });
 

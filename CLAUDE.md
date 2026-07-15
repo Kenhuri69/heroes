@@ -342,6 +342,21 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > Garde-fou « zéro faction » vert, **pas de bump save**, golden inchangé ; mage-guild.test
 > étendu (gate cercle 3/4).
 
+> ⚔️ **Retour de jeu — action de héros par round** (plan `.claude/plans/
+> hero-action-per-round.md`). L'attaque du héros était verrouillée **1×/combat**
+> (`heroAttackUsed` jamais réinitialisé), en contradiction avec le core loop
+> (doc 02 §1 : « le héros agit une fois par round, sort **ou** attaque »).
+> Corrigé : `heroAttackUsed` est vidé **chaque round** comme `heroCastThisRound`,
+> et frappe/sort deviennent **mutuellement exclusifs par round** (une seule
+> action de héros par round ; la Prière de bataille reste un special 1×/combat).
+> Câblé côté moteur (validations frappe/sort + `advanceTurn` + IA `maybeHeroAction`)
+> et client (désactivation mutuelle des boutons). **Forme de sauvegarde inchangée
+> ⇒ pas de bump `CURRENT_SAVE_VERSION`** ; golden inchangé, garde-fou « zéro faction »
+> vert ; doc 02 §5.6 alignée sur §1. *Note : le second retour (« arbalétriers sans
+> tir ») n'a révélé aucun bug moteur — tir vérifié fonctionnel avec les vraies
+> données ; seuls ennemi au contact / ligne de vue bloquée / munitions épuisées
+> l'empêchent, règles HoMM standard.*
+
 ---
 
 ## Structure des fichiers

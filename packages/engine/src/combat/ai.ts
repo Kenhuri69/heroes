@@ -426,12 +426,13 @@ function chooseHeroSpell(
 
 /**
  * C-AIPARITY (doc 02 §5.5) : actions de HÉROS d'un camp joué par l'IA, tentées
- * AVANT l'action de la pile active — sort (1/round par camp, à mana suffisante)
- * puis attaque héroïque (1×/combat, dès que disponible, sur la cible qui
- * maximise pertes × valeur). Retourne true si une action a été jouée :
- * l'appelant réévalue l'état (le combat peut être terminé). Terminaison
- * garantie : sorts bornés par la mana (pas de régénération en combat), frappe
- * unique — la property « un combat se termine toujours » est préservée.
+ * AVANT l'action de la pile active — UNE action de héros par round : sort
+ * (à mana suffisante) OU attaque héroïque (sur la cible maximisant pertes ×
+ * valeur), les deux mutuellement exclusifs et réinitialisés chaque round.
+ * Retourne true si une action a été jouée : l'appelant réévalue l'état (le
+ * combat peut être terminé). Terminaison garantie : sorts bornés par la mana
+ * (pas de régénération en combat), frappe bornée à une par round — la property
+ * « un combat se termine toujours » est préservée.
  */
 export function maybeHeroAction(draft: Draft, events: GameEvent[], side: CombatSideId): boolean {
   const combat = draft.combat;
@@ -443,7 +444,9 @@ export function maybeHeroAction(draft: Draft, events: GameEvent[], side: CombatS
   if (enemies.length === 0) return false;
   const catalog = draft.unitCatalog;
 
-  if (!combat.heroCastThisRound.includes(side)) {
+  // Une action de héros par round (doc 02 §1) : sort et frappe sont exclusifs —
+  // l'IA ne lance un sort que si le héros n'a encore ni lancé ni frappé ce round.
+  if (!combat.heroCastThisRound.includes(side) && !combat.heroAttackUsed.includes(side)) {
     const cast = chooseHeroSpell(draft, combat, hero, side, enemies, catalog);
     if (cast) {
       castHeroSpell(draft, side, cast.spellId, cast.targetStackId, events);
@@ -480,7 +483,11 @@ export function maybeHeroAction(draft: Draft, events: GameEvent[], side: CombatS
     }
   }
 
-  if (draft.config?.combat.heroAttack && !combat.heroAttackUsed.includes(side)) {
+  if (
+    draft.config?.combat.heroAttack &&
+    !combat.heroAttackUsed.includes(side) &&
+    !combat.heroCastThisRound.includes(side)
+  ) {
     const amount = heroAttackDamage(draft, combat, side);
     if (amount > 0) {
       const best = pickBestBy(
@@ -558,8 +565,8 @@ export function runAutoCombat(draft: Draft, events: GameEvent[], rounds?: number
     if (++iterations > MAX_AI_ITERATIONS) {
       throw new Error('runAutoCombat: dépassement d’itérations (boucle infinie suspectée)');
     }
-    // C-AIPARITY : en auto-combat, CHAQUE camp joue les actions de son héros
-    // (sort 1/round, frappe 1×/combat) avant l'action de sa pile active.
+    // C-AIPARITY : en auto-combat, CHAQUE camp joue une action de son héros
+    // (sort OU frappe, une par round) avant l'action de sa pile active.
     const activeAuto = combat.stacks.find((s) => s.id === combat.activeStackId);
     if (activeAuto && maybeHeroAction(draft, events, activeAuto.side)) continue;
     const action = chooseAction(draft, combat.activeStackId);

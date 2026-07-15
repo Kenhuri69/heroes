@@ -47,8 +47,12 @@ function validateHeroAttackTarget(state: GameState): CommandError | null {
     return { code: 'heroAttackUnavailable', message: 'attaque du héros indisponible' };
   if (!heroForSide(state, combat, combat.playerSide))
     return { code: 'heroAttackUnavailable', message: 'aucun héros lié au camp joueur' };
+  // Une action de héros par round (doc 02 §1) : frapper est exclusif du sort —
+  // le héros ne peut frapper s'il a déjà frappé OU lancé un sort ce round.
   if (combat.heroAttackUsed.includes(combat.playerSide))
-    return { code: 'heroAttackUsed', message: 'le héros a déjà frappé ce combat' };
+    return { code: 'heroAttackUsed', message: 'le héros a déjà agi ce round' };
+  if (combat.heroCastThisRound.includes(combat.playerSide))
+    return { code: 'heroAttackUsed', message: 'le héros a déjà lancé un sort ce round' };
   return null;
 }
 
@@ -68,7 +72,8 @@ export function validateHeroAttack(state: GameState, cmd: HeroAttackCmd): Comman
 
 /**
  * Frappe du héros d'un CAMP (C-AIPARITY, doc 02 §5.5) — cœur partagé
- * joueur/IA : dégâts déterministes, 1×/combat par camp. Les validations de la
+ * joueur/IA : dégâts déterministes, une action de héros par round (frappe OU
+ * sort, exclusifs ; réinit chaque round comme le sort). Les validations de la
  * COMMANDE `HeroAttack` restent joueur-only ; l'appelant IA garantit ses
  * préconditions (héros présent, frappe disponible, cible adverse vivante).
  */

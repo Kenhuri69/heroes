@@ -126,6 +126,10 @@ export function advanceTurn(draft: Draft, events: GameEvent[]): void {
       // sort expirent (roundsLeft décrémenté, retirés à 0 — doc 02 §1.4).
       combat.round += 1;
       combat.heroCastThisRound = [];
+      // Retour de jeu 2026-07 : l'attaque du héros est UNE action de héros par
+      // round (doc 02 §1 : « agit une fois par round, sort OU attaque »), donc
+      // réinitialisée chaque round au même titre que le sort — plus 1×/combat.
+      combat.heroAttackUsed = [];
       for (const s of alive) {
         s.acted = false;
         s.waited = false;

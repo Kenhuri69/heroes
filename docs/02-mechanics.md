@@ -628,11 +628,15 @@ Sémantique des **27 capacités** du catalogue (valeurs de départ) :
 Heuristique par pile : score = dégâts espérés × valeur de la cible − risque de riposte − exposition ; les tireurs kitent, les lents défendent. Pas de recherche arborescente au MVP.
 
 **Parité héros (C-AIPARITY)** : l'IA joue aussi les actions du héros de son
-camp — un sort par round (priorité dégâts > soin si un allié est blessé >
-debuff/marques > buff, à mana suffisante) et l'attaque héroïque 1×/combat
-(cible maximisant pertes × valeur), avant l'action de la pile active. En
-auto-combat, les héros des DEUX camps sont joués. Le verrou « 1 sort/round »
-est par camp (`heroCastThisRound`, save v23).
+camp — **une action de héros par round** : soit un sort (priorité dégâts > soin
+si un allié est blessé > debuff/marques > buff, à mana suffisante), soit
+l'attaque héroïque (cible maximisant pertes × valeur), avant l'action de la
+pile active. Sort et frappe sont **mutuellement exclusifs par round** (conforme
+au core loop §1 « le héros agit une fois par round, sort **ou** attaque ») et
+tous deux réinitialisés au changement de round ; la **Prière de bataille**
+(F-SKILLS.2) reste un special 1×/combat indépendant. En auto-combat, les héros
+des DEUX camps sont joués. Les verrous sont par camp (`heroCastThisRound` /
+`heroAttackUsed`, réinit chaque round).
 
 ---
 

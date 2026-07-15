@@ -126,17 +126,21 @@ export function CombatUi() {
     isPlayerTurn &&
     !autoActive &&
     !combat.heroCastThisRound.includes(combat.playerSide) &&
+    // Une action de héros par round (doc 02 §1) : sort exclusif de la frappe.
+    !combat.heroAttackUsed.includes(combat.playerSide) &&
     !!hero &&
     // H-ARTEQUIP.2 : un héros sans sort appris peut caster via un artefact équipé.
     heroKnownSpellIds(hero, artifactCatalog).length > 0;
   // C1 : attaque du héros disponible si la feature est activée (config), un héros
-  // est lié au camp joueur et ne l'a pas déjà utilisée ce combat.
+  // est lié au camp joueur et n'a pas déjà agi ce round (frappe OU sort, exclusifs).
   const canHeroStrike =
     isPlayerTurn &&
     !autoActive &&
     !!hero &&
     !!config?.combat.heroAttack &&
-    !combat.heroAttackUsed.includes(combat.playerSide);
+    !combat.heroAttackUsed.includes(combat.playerSide) &&
+    // Une action de héros par round (doc 02 §1) : frappe exclusive du sort.
+    !combat.heroCastThisRound.includes(combat.playerSide);
   // F-SKILLS.2-UI : Prière de bataille disponible si le héros du camp joueur porte
   // la compétence (`battleResurrectHp`), 1×/combat — gating délégué au moteur pur.
   const canPray = isPlayerTurn && !autoActive && canHeroRally(appStore.getState().game);

@@ -234,6 +234,25 @@
 > pour la testabilité DOM (le rendu peint n'étant pas assertable au pixel).
 > Touch-first (cibles ≥ 44 px), 3 crans de police via `rem`.
 >
+> 🎨 **Lot 2 (bâtiments calés sur le décor peint, client + données)** : les
+> emplacements ne sont plus dispersés plein cadre (ils flottaient sur le ciel /
+> le donjon central des tableaux) mais posés dans la **bande d'avant-plan** du
+> décor — les bâtiments **reposent sur le sol de la peinture**. Défaut « au sol »
+> faction-agnostique (`townLayout`), plus un **override par faction data-driven** :
+> `assets/layouts/town-<factionId>.json` (ancres `{x,y}` en % calées sur le décor,
+> résolues par le registre d'assets comme les fonds — **hors `packages/`, id
+> opaque** ; déposer/retoucher un JSON suffit, zéro code). Livrés bespoke : Haven
+> & Necropolis (épousent terrasses/abords, évitent le donjon lumineux) ; les
+> autres factions prennent le bon défaut « au sol » en attendant leur JSON.
+> **Zéro diff moteur, pas de bump de sauvegarde.** (Les fonds peints eux-mêmes
+> existent déjà — `assets/backgrounds/town-<faction>.jpg` pour les 6 factions.)
+> Les **prompts de génération** de ces fonds (`tools/assets/gen_prompts.py` →
+> `assets/prompts/backgrounds.md`, doc 12 §5) ont été **révisés pour l'objectif
+> composable** : un unique donjon focal en haut, des terrasses / lots vides
+> dégagés descendant vers un avant-plan non encombré (place pour les vignettes de
+> bâtiments), au lieu d'une cité déjà saturée — pour qu'une **future
+> régénération** produise des décors cohérents avec la vue composée.
+>
 > 🎨 **Lot 3 (polish interactions, client pur)** : (1) **indicateur d'upgrade** —
 > un emplacement **construit** encore améliorable (upgrade de niveau bâtissable
 > aujourd'hui) porte un **badge chevron ▲** (`data-upgradeable`), 2ᵉ canal non

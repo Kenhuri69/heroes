@@ -939,11 +939,16 @@ préviz dégâts, raccourcis, a11y 3 crans, audio complet, chrome UI, options.)
   le rail droit desktop porte déjà héros/mini-carte, y dédoubler les ressources
   serait redondant ; l'inline suffit. Villes : restent dans `TurnBar` (inchangé).
 
-- **UX-TOWNVIEW — Vraie vue de ville peinte** 🧩 L ⬜
-  Doc : doc 08 §2.2/§5 + CLAUDE.md (« vue de ville peinte + assets finaux =
-  Beta »). Code : bande horizontale de vignettes sur fond peint
-  (`TownScreen.tsx:247-294`), pas de scène composée où les bâtiments
-  construits apparaissent à leur emplacement. Dépend d'assets (AS-TOWNBG).
+- **UX-TOWNVIEW — Vraie vue de ville peinte** 🧩 L ✅ (lots 1-3)
+  Doc : doc 08 §2.2/§5 + CLAUDE.md. **Lot 1** (#392) : scène composée — bâtiments
+  posés en absolu à leur emplacement (layout déterministe `render/townLayout.ts`),
+  fin de la bande horizontale. **Lot 3** (#393) : polish — indicateur d'upgrade
+  (badge chevron `data-upgradeable`) + infobulle bâtiment (survol/focus/appui long,
+  hook `useLongPress`). **Lot 2** : bâtiments calés « au sol » sur le décor peint
+  (bande d'avant-plan) + override bespoke par faction `assets/layouts/town-
+  <factionId>.json` (data-driven, hors `packages/`) — haven & necropolis livrés,
+  autres factions au défaut « au sol ». Les fonds peints des 6 factions existaient
+  déjà (`assets/backgrounds/town-*.jpg`). Zéro diff moteur sur les 3 lots.
 
 ### 2.10 Assets (AS-*)
 
@@ -967,8 +972,13 @@ sont du **contenu**.
   manquent « Habitation : Recrue », « Tableau des Contrats », et tout
   sylvan-court (cf. AS-SYLVAN).
 
-- **AS-TOWNBG — Décors de ville composables** 🕳️ M ⬜ (pré-requis UX-TOWNVIEW)
-  Spec : fonds + slots d'emplacements par faction (doc 08 §2.2, doc 12 §5).
+- **AS-TOWNBG — Décors de ville composables** 🕳️ M 🟡 (partiel)
+  Spec : fonds + slots d'emplacements par faction (doc 08 §2.2, doc 12 §5). Fait :
+  les fonds peints des 6 factions existent (`assets/backgrounds/town-*.jpg`) et les
+  **slots d'emplacements** sont livrés en data-driven via UX-TOWNVIEW lot 2
+  (`assets/layouts/town-<faction>.json`, défaut « au sol » + bespoke haven/necropolis).
+  Reste optionnel : fonds « à lots vides » dédiés (au lieu d'illustrations pleines)
+  + layouts bespoke des 4 autres factions + fond de test-faction.
 
 - **AS-OVERLAYS — Habillage chargement/cutscenes** 🕳️ S ⬜ (hors promesse
   doc 12 — optionnel). Code : `LoadingOverlay.tsx`/`CutsceneOverlay.tsx` en CSS pur.

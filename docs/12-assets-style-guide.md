@@ -158,6 +158,13 @@ Vérifier la planche QC à l'œil : cadre vert = PASS, rouge = FAIL → regéné
 - Valeurs sombres en périphérie, focal au centre-haut. Poids < 500 Ko (JPEG
   qualité 80-85 accepté — pas d'alpha nécessaire).
 - Staging : `assets/backgrounds/<id>.jpg|png`.
+- **Layout de la vue de ville (UX-TOWNVIEW lot 2)** : sur le fond de ville, les
+  bâtiments interactifs sont posés dans le **tiers inférieur** (bande d'avant-plan
+  « au sol », zone sûre UI ci-dessus) par défaut. Un décor peut recevoir des
+  **emplacements bespoke** calés sur son architecture via `assets/layouts/town-
+  <factionId>.json` (tableau d'ancres `{x,y}` en % ; le i-ᵉ bâtiment en ordre id
+  stable prend la i-ᵉ ancre, débordement → défaut « au sol »). Data-driven,
+  branché par simple dépôt du JSON — aucun code. Livrés : haven, necropolis.
 
 ## 6. Règle E — logo
 

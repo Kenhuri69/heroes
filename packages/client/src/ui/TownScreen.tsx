@@ -32,7 +32,7 @@ import {
   resolveSpecialtyName,
   resolveSpecialtyDesc,
 } from '../app/i18n';
-import { buildingUrl, heroAvatarUrl, townBackgroundUrl } from '../render/assets';
+import { buildingUrl, heroAvatarUrl, townBackgroundUrl, townLayoutAnchors } from '../render/assets';
 import { townLayout, type TownSlot } from '../render/townLayout';
 import { AssetImg } from './AssetImg';
 import { FactionBadge } from './FactionBadge';
@@ -468,7 +468,9 @@ function TownView({
   onSelect: (id: string) => void;
 }) {
   const ids = townBuildingIds(town, catalog);
-  const layout = townLayout(ids);
+  // Lot 2 : ancres bespoke de la faction (calées sur le décor peint) si présentes,
+  // sinon défaut « au sol » de townLayout.
+  const layout = townLayout(ids, townLayoutAnchors(town.factionId));
   // Bâtiment inspecté (survol / focus / appui long — lot UX-TOWNVIEW 3) : l'info
   // apparaît sous la scène, pas seulement dans le `title` natif (parité tactile).
   const [inspectId, setInspectId] = useState<string | null>(null);

@@ -15,6 +15,20 @@
           "effect": { "type": "dwelling", "tier": 1, "unitId": "t1-recruit-elite" }
         }
       ]
+    },
+    {
+      "id": "test-faction-grail",
+      "loreKey": "@loc:building.test-faction-grail.lore",
+      "maxLevel": 1,
+      "requiresGrail": true,
+      "levels": [
+        {
+          "cost": {},
+          "requires": [{ "building": "townHall", "level": 1 }],
+          "effect": { "type": "growthBonus", "percent": 100 },
+          "uniquePerPlayer": true
+        }
+      ]
     }
   ]
 }

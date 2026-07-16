@@ -114,6 +114,20 @@
           "effect": { "type": "dwelling", "tier": 7, "unitId": "t7-dragon-os-elite" }
         }
       ]
+    },
+    {
+      "id": "necropolis-grail",
+      "loreKey": "@loc:building.necropolis-grail.lore",
+      "maxLevel": 1,
+      "requiresGrail": true,
+      "levels": [
+        {
+          "cost": {},
+          "requires": [{ "building": "townHall", "level": 1 }],
+          "effect": { "type": "growthBonus", "percent": 100 },
+          "uniquePerPlayer": true
+        }
+      ]
     }
   ]
 }

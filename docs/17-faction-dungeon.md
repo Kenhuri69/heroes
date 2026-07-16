@@ -111,6 +111,8 @@ les capacités listées **existent déjà** au catalogue générique
 - **Puits de Malédiction** (`dungeon-cursed-well`) — bâtiment propre,
   `effect: growthBonus +25 %` (analogue au Bosquet du Cœur Sylvan), prérequis
   `fort@1`. Habillage : source souterraine qui « nourrit » les couvées.
+- **Graal** (`dungeon-grail`, gaté par le méta-puzzle obélisques → fouille) : or
+  noir mercantile — `income` +1500 or/j. Cf. doc 02 §2.2 (table par-faction).
 - **Guilde de Sorcellerie** — la faction s'appuie fortement sur `mageGuild`
   (accès cercle 3 pour exploiter la signature) ; aucun bâtiment de code
   spécifique, juste priorité de construction reflétée dans `aiProfile`.

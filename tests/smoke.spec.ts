@@ -2359,8 +2359,8 @@ test('T-GRAIL lot 3 : le bâtiment Graal est verrouillé sans Graal, constructib
   // Sans Graal : le bâtiment Graal est verrouillé (message dédié, pas de bouton).
   await page.getByTestId('town-open-start-town').click();
   await page.getByTestId('town-tab-build').click();
-  await expect(page.getByTestId('town-requires-grail-grail')).toBeVisible();
-  await expect(page.getByTestId('town-build-grail')).toHaveCount(0);
+  await expect(page.getByTestId('town-requires-grail-test-faction-grail')).toBeVisible();
+  await expect(page.getByTestId('town-build-test-faction-grail')).toHaveCount(0);
   await page.getByTestId('town-close').click();
   // Obtenir le Graal (fouille en (6,6)) puis rouvrir : le bâtiment devient constructible.
   await page.evaluate(() =>
@@ -2373,8 +2373,8 @@ test('T-GRAIL lot 3 : le bâtiment Graal est verrouillé sans Graal, constructib
   await page.evaluate(() => window.__HEROES_TEST__!.dispatch({ type: 'Dig', heroId: 'hero-player-1' }));
   await page.getByTestId('town-open-start-town').click();
   await page.getByTestId('town-tab-build').click();
-  await expect(page.getByTestId('town-build-grail')).toBeVisible();
-  await expect(page.getByTestId('town-requires-grail-grail')).toHaveCount(0);
+  await expect(page.getByTestId('town-build-test-faction-grail')).toBeVisible();
+  await expect(page.getByTestId('town-requires-grail-test-faction-grail')).toHaveCount(0);
   expect(errors).toEqual([]);
 });
 

@@ -30,10 +30,16 @@
 
 Les cinq plus gros écarts entre le concept et le jeu livré :
 
-1. **~20 capacités d'unités spécifiées mais inertes** (docs 03/04/05/16 §lineup) :
-   le moteur n'interprète que 9 capacités ; `taunt`, `lifeDrain`, `spellcaster`,
-   `aura`, peur, renaissance… n'existent ni au catalogue ni au moteur. C'est le
-   plus gros gisement de « façade données » du combat (§2.2).
+1. ~~**~20 capacités d'unités spécifiées mais inertes**~~ ✅ **résorbé**
+   (mise à jour 2026-07-16) : les **32** capacités du catalogue
+   `data/core/abilities.json` sont désormais **toutes** interprétées par le moteur
+   (`packages/engine/src/combat/*.ts`) — `taunt`, `lifeDrain`, `spellcaster`,
+   `aura`, `fear`, `rebirth`, `swarm`, `firstStrike`, `poisonSting`,
+   `breathAttack`, `areaAttack`, `performer`, `banishable`, `spellImmune`… ont une
+   logique réelle. Reste du câblage **données pures** (attacher une capacité prête
+   à une unité, à équilibrer) : cf. CAP-CAST « Reste » (§2.2). Les vrais gros
+   écarts restants sont désormais le pilier **en ligne** (item 2) et les **assets**
+   (§2.10).
 2. **Le pilier « en ligne » n'est pas jouable** (docs 01 §3, 09 Phase 3, 15) :
    backend déployé + SDK complet, mais côté client seule l'auth existe. Pas
    d'UI PvP, pas de cloud saves câblées, pas d'endpoint de détail de match
@@ -227,9 +233,17 @@ Familles, par mécanique moteur commune :
     `heal` ressuscite déjà intra-pile (`maxCount = count + lostSoFar`). Zéro moteur,
     zéro save, golden inchangé ; `faction:sim` sans blowout (0 béant). Test : l'Ange
     relève une pile alliée décimée.
-  - **Reste** ⬜ : renaissance (Phénix, doc 16 §4/§7 — auto-revive à la mort, point
-    d'extension distinct), `swarm` pour Élève AH / Chœur Vox (données), autres
-    porteurs. Effort : M.
+  - **CAP-LIFE.2** ✅ (plan `cap-life-rebirth.md`) : **renaissance du Phénix**
+    (`rebirth`, Vox, doc 16 §4/§7) — point d'extension moteur générique
+    (`packages/engine/src/combat/death.ts` : `rebirthPlan`/`tryRebirth`,
+    `CombatState.rebornStackIds` optionnel ⇒ pas de bump save, golden inchangé) :
+    une pile qui meurt renaît **1×/combat** à `pct`% de son effectif d'origine.
+    Données : `t7-phenix` / `t7-phenix-elite`.
+  - **`swarm`** ✅ (plan `a3b-swarm.md`, PR #198) : bonus de meute
+    (`packages/engine/src/combat/damage.ts` : `swarmBonus`), câblé **données** sur
+    l'Élève AH (`t1-eleve`) et le Chœur Vox (`t1-choeur`).
+  - **Reste** ⬜ : autres porteurs éventuels (attacher `rebirth`/`swarm`/… à
+    d'autres unités — données pures, à équilibrer). Effort : S.
 - **CAP-DATAFIX — Corrections de données pures** 🐞 S 🧩 (A1 : noMeleePenalty Chasseresse+Idole faits ; le reste — écarts Vit/stats — traité en DOC-STATS) (aucun moteur) :
   `noMeleePenalty` manquant sur Chasseresse AH (`data/factions/arcane-hunters/units/t6-chasseresse.json`,
   doc 05 §4) et sur l'Idole Vox (doc 16 §4) alors que le moteur le supporte

@@ -3,6 +3,8 @@
   "unit.t1-recruit.name": "Recrue",
   "unit.t1-recruit-elite.name": "Recrue d'élite",
   "building.test-faction-dwelling-t1": "Habitation : Recrue",
+  "building.test-faction-grail": "Graal (test)",
+  "building.test-faction-grail.lore": "Graal de test — croissance ×2 (miroir de l'ancien Graal générique).",
   "hero.garrick.name": "Garrick",
   "hero.garrick.bio": "Ancien videur de la taverne du coin, engagé pour de bon le jour où il a mis dehors une bande de pillards à mains nues.",
   "hero.garrick.specialty": "Videur de taverne — +1 Moral à l'armée.",

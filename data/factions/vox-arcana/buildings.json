@@ -204,6 +204,24 @@
           "effect": { "type": "houseChoice", "houseId": "house-venari" }
         }
       ]
+    },
+    {
+      "id": "vox-arcana-grail",
+      "loreKey": "@loc:building.vox-arcana-grail.lore",
+      "maxLevel": 1,
+      "requiresGrail": true,
+      "levels": [
+        {
+          "cost": {},
+          "requires": [{ "building": "townHall", "level": 1 }],
+          "effect": {
+            "type": "factionResourceIncome",
+            "resource": "resonance",
+            "amount": 12
+          },
+          "uniquePerPlayer": true
+        }
+      ]
     }
   ]
 }

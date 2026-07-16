@@ -123,6 +123,20 @@
           "effect": { "type": "growthBonus", "percent": 25 }
         }
       ]
+    },
+    {
+      "id": "dungeon-grail",
+      "loreKey": "@loc:building.dungeon-grail.lore",
+      "maxLevel": 1,
+      "requiresGrail": true,
+      "levels": [
+        {
+          "cost": {},
+          "requires": [{ "building": "townHall", "level": 1 }],
+          "effect": { "type": "income", "resource": "gold", "amount": 1500 },
+          "uniquePerPlayer": true
+        }
+      ]
     }
   ]
 }

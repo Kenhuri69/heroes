@@ -45,3 +45,18 @@ Machines de guerre = contenu **core, faction-agnostique** (pas de `groupId`).
   orphelin. **Non traité ici** (surgical §3) — signalé à l'utilisateur.
 - Intégration client (faire consommer `units/core/<id>` par `unitSpriteUrl`
   pour les machines) = lot séparé, hors de cette demande (produire les prompts).
+
+## Suite (planche livrée par l'utilisateur)
+
+L'utilisateur a généré la planche depuis le prompt. Extraite via
+`sheet_extract.py --cols 3 --rows 1 --side 512` → **QC 3/3 PASS** (texte de
+titre incrusté par Gemini éliminé comme micro-composants ; 1 sujet gardé par
+cellule ; 512² RGBA < 180 Ko chacun). Staging `assets/units/core/{ballista,
+catapulte,arrow-tower}.png`.
+
+Intégration client finalement faite (l'art serait mort sans câblage) :
+- `unitSpriteUrl` : repli faction-agnostique `units/core/<unitId>` (résolu même
+  sans faction), sans faction en dur. Repli élite→base préservé.
+- Doc 12 §10.2 : ligne « Machines de guerre » ajoutée au tableau de nommage.
+- Vérif : typecheck, lint, build OK ; smoke desktop « machine de guerre » +
+  « PNG servis sans 404 » verts (chromium local via `PW_CHROMIUM_PATH`).

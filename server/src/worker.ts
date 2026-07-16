@@ -190,6 +190,16 @@ export default {
       }
 
       // — Cloud saves —
+      // Liste des slots du profil (NET-CLOUDSAVES.2, doc 15 §5.2) : slot + version
+      // de forme + horodatage, SANS le blob `state` (requête légère pour l'UI).
+      if (path === '/saves' && request.method === 'GET') {
+        const rows = await env.DB.prepare(
+          'SELECT slot, save_version, updated_at FROM saves WHERE profile_id = ? ORDER BY updated_at DESC',
+        )
+          .bind(profileId)
+          .all<{ slot: string; save_version: number; updated_at: number }>();
+        return json({ saves: rows.results }, 200, env);
+      }
       const saveMatch = path.match(/^\/saves\/([\w-]+)$/);
       if (saveMatch) {
         const slot = saveMatch[1]!;

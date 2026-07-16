@@ -542,16 +542,6 @@ button[data-testid='market-trade'] {
   opacity: 0.4;
   filter: grayscale(1);
 }
-.town-view-building.is-locked .town-view-label {
-  opacity: 0.6;
-}
-.town-view-label {
-  font: 600 0.75rem var(--font-ui);
-  text-align: center;
-  max-width: 76px;
-  line-height: 1.1;
-  text-shadow: 0 1px 2px var(--shadow-60);
-}
 .town-view-empty {
   position: absolute;
   top: 50%;

@@ -3,7 +3,7 @@
   "tier": 7,
   "name": "@loc:unit.t7-dragon-ombre-elite.name",
   "loreKey": "@loc:unit.t7-dragon-ombre-elite.lore",
-  "stats": { "hp": 185, "attack": 29, "defense": 27, "damage": [37, 48], "speed": 12 },
+  "stats": { "hp": 185, "attack": 24, "defense": 23, "damage": [37, 48], "speed": 12 },
   "growthPerWeek": 1,
   "cost": { "gold": 3600, "sulfur": 2, "gems": 1 },
   "abilities": [

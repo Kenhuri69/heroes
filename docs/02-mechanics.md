@@ -273,7 +273,7 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 | Artefacts | gardés selon rareté | équipement héros (10 slots) |
 | Gardiens neutres | pile de créatures | combat ; force affichée en fourchette (« quelques », « horde »…) |
 | Villes | capturables | cf. §4 |
-| Obélisques/Graal | méta-puzzle | obélisques + révélation + fouille livrés (T-GRAIL lots 1-2) ; bâtiment Graal à suivre |
+| Obélisques/Graal | méta-puzzle | **livré** (T-GRAIL lots 1-3) : obélisques → révélation → fouille → bâtiment Graal |
 
 > **État (comblement post-MVP)** : ressources au sol (7 types), **mines**
 > capturables (fouler la tuile ⇒ drapeau à la couleur du joueur, revenu/jour
@@ -320,8 +320,11 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 > posé sur la tuile du Graal la fouille (consomme la journée) et le joueur
 > **obtient le Graal** (`PlayerState.hasGrail`, événement `GrailFound`) — un
 > marqueur guide vers la tuile une fois révélée, bouton **Fouiller** dans la
-> barre de tour. Le **bâtiment Graal** (constructible si possession) est le lot
-> suivant.
+> barre de tour. Le **bâtiment Graal** (T-GRAIL lot 3, `data/core/buildings.json`
+> `grail`) est alors **constructible** en ville (point d'extension générique
+> `requiresGrail` sur `BuildingDef`, gaté par `hasGrail` du propriétaire ;
+> `uniquePerPlayer`), effet majeur via un effet de bâtiment **existant**
+> (`growthBonus`) — zéro nom de faction dans le moteur.
 
 > **Sémantique de parcours** : ressources, artefacts au sol et mines sont
 > ramassés/capturés **en passant** — le héros ne s'arrête pas et poursuit son

@@ -362,6 +362,7 @@ export interface CommandError {
     | 'notOnGrail'
     | 'alreadyHasGrail'
     | 'noMovement'
+    | 'grailRequired'
     | 'gameOver';
   message: string;
 }

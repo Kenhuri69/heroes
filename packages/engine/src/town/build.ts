@@ -56,6 +56,13 @@ export function validateBuildStructure(state: GameState, cmd: BuildCmd): Command
       code: 'requirementsNotMet',
       message: `prérequis manquant '${firstMissing.building}'@${firstMissing.level}`,
     };
+  // Bâtiment du Graal (T-GRAIL lot 3) : constructible seulement si le joueur
+  // possède le Graal (`Dig` sur sa tuile). Générique — aucun id de bâtiment en dur.
+  if (def.requiresGrail && !player.hasGrail)
+    return {
+      code: 'grailRequired',
+      message: `'${cmd.buildingId}' nécessite le Graal (fouiller sa tuile d'abord)`,
+    };
   // Choix exclusif (doc 05 §3.2) : un seul bâtiment par groupe et par ville.
   if (def.exclusiveGroup) {
     const rival = exclusiveRivalId(town, state.buildingCatalog, cmd.buildingId);

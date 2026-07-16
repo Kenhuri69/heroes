@@ -2352,6 +2352,32 @@ test('T-GRAIL lot 2 : fouiller la tuile du Graal donne le Graal (doc 02 §2.2)',
   expect(errors).toEqual([]);
 });
 
+test('T-GRAIL lot 3 : le bâtiment Graal est verrouillé sans Graal, constructible ensuite (doc 02 §2.2)', { tag: ['@core'] }, async ({
+  page,
+}) => {
+  const errors = await openGame(page);
+  // Sans Graal : le bâtiment Graal est verrouillé (message dédié, pas de bouton).
+  await page.getByTestId('town-open-start-town').click();
+  await page.getByTestId('town-tab-build').click();
+  await expect(page.getByTestId('town-requires-grail-grail')).toBeVisible();
+  await expect(page.getByTestId('town-build-grail')).toHaveCount(0);
+  await page.getByTestId('town-close').click();
+  // Obtenir le Graal (fouille en (6,6)) puis rouvrir : le bâtiment devient constructible.
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({
+      type: 'MoveHero',
+      heroId: 'hero-player-1',
+      path: [{ x: 4, y: 4 }, { x: 5, y: 5 }, { x: 6, y: 6 }],
+    }),
+  );
+  await page.evaluate(() => window.__HEROES_TEST__!.dispatch({ type: 'Dig', heroId: 'hero-player-1' }));
+  await page.getByTestId('town-open-start-town').click();
+  await page.getByTestId('town-tab-build').click();
+  await expect(page.getByTestId('town-build-grail')).toBeVisible();
+  await expect(page.getByTestId('town-requires-grail-grail')).toHaveCount(0);
+  expect(errors).toEqual([]);
+});
+
 test('upgrade : bâtir le dwelling amélioré puis améliorer une pile de garnison (Alpha 4.11)', async ({
   page,
 }) => {

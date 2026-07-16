@@ -90,6 +90,29 @@ describe('BuildStructure', () => {
     ).toBe('cannotAfford');
   });
 
+  it('T-GRAIL lot 3 : le bâtiment Graal exige le Graal (hasGrail)', () => {
+    const catalog = testBuildingCatalog();
+    catalog['grail'] = {
+      id: 'grail',
+      maxLevel: 1,
+      requiresGrail: true,
+      levels: [{ cost: {}, requires: [], effect: { type: 'growthBonus', percent: 100 }, uniquePerPlayer: true }],
+    };
+    const state = apply(createEmptyState(), { ...startCmd({ gold: 5000 }), buildingCatalog: catalog } as Command).state;
+    // Sans Graal : construction refusée.
+    expect(
+      validate(state, { type: 'BuildStructure', townId: 'town-1', buildingId: 'grail' })?.code,
+    ).toBe('grailRequired');
+    // Avec Graal : acceptée et bâtie.
+    const withGrail: GameState = {
+      ...state,
+      players: state.players.map((p, i) => (i === 0 ? { ...p, hasGrail: true } : p)),
+    };
+    expect(validate(withGrail, { type: 'BuildStructure', townId: 'town-1', buildingId: 'grail' })).toBeNull();
+    const built = apply(withGrail, { type: 'BuildStructure', townId: 'town-1', buildingId: 'grail' }).state;
+    expect(built.towns[0]?.buildings.grail).toBe(1);
+  });
+
   it('rejette au niveau maximum (buildingMaxLevel)', () => {
     const town = { ...testTown(), buildings: { townHall: 4, fort: 1, dwelling1: 1 } };
     const s2 = apply(createEmptyState(), {

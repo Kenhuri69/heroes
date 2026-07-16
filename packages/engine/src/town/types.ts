@@ -120,6 +120,12 @@ export interface BuildingDef {
    * `factionId` avec `town.factionId` (égalité de chaîne, aucun nom en dur).
    */
   factionId?: string | undefined;
+  /**
+   * Bâtiment du Graal (T-GRAIL lot 3, doc 02 §2.2) : constructible seulement si
+   * le propriétaire de la ville POSSÈDE le Graal (`PlayerState.hasGrail`, obtenu
+   * par `Dig`). Générique — le moteur ne connaît aucun id de bâtiment en dur.
+   */
+  requiresGrail?: boolean | undefined;
 }
 
 export interface TownState {

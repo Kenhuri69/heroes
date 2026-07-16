@@ -712,9 +712,14 @@ Source design : doc 02 §3/§4.
   **Décision design : non interceptable** (convention HoMM3). Différés :
   interception, caravanes de héros (multi-héros non livré), annulation en route.
 
-- **T-GRAIL — Graal & obélisques** 🕳️ L ⬜ (post-MVP assumé doc 02 §2.2/§4.1)
-  Code : zéro occurrence. Spec : obélisques (visitables révélant une carte au
-  trésor), fouille, bâtiment Graal à effet majeur par faction (données).
+- **T-GRAIL — Graal & obélisques** 🕳️ L ✅ (lots 1-3, PR #397/#398/…)
+  Doc 02 §2.2/§4.1. **Lot 1** : obélisques (`obelisk`) + `grailPos` + révélation
+  (`grailRevealedTo`, événement `ObeliskVisited`). **Lot 2** : fouille (`Dig` →
+  `PlayerState.hasGrail`, `GrailFound`) + bouton Fouiller + marqueur Pixi. **Lot 3** :
+  bâtiment Graal (`data/core/buildings.json` `grail`, point d'extension générique
+  `requiresGrail`, gaté par `hasGrail`, `uniquePerPlayer`, effet `growthBonus`
+  existant). Save v30→v32 (obelisksVisited/grailPos, puis hasGrail). Zéro faction
+  moteur. Différé (option) : effets de Graal spécifiques par faction (données).
 
 - **T-GROWTHUI — Affichage croissance base/accumulée** 🎨 S ✅ (livré)
   Doc : doc 02 §4.1. Livré : helper pur `weeklyGrowthOf` (moteur, partagé avec

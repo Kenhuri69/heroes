@@ -32,3 +32,12 @@ Verif: typecheck lint vitest(engine golden re-fix + content propagation) content
 - proto-01 grailPos -> (6,6) atteignable pour smoke intégration.
 - Tests: engine map-grail (+3 Dig), smoke lot2 (MoveHero->Dig->hasGrail).
 - Reste Lot 3: bâtiment Graal (données par faction + gate hasGrail, effets existants).
+
+## Lot 3 (livré)
+- Point extension générique BuildingDef.requiresGrail (schema content + moteur + loader propagé + test).
+- validateBuildStructure gate grailRequired si !player.hasGrail.
+- Data: core building grail (uniquePerPlayer, effet growthBonus 100%, requires townHall@1, cost {}).
+- Client: gate affichage BuildTab + townViewStatus (grailLocked), message town.requiresGrail, cmdError.grailRequired.
+- PAS de bump save (hasGrail deja v32, requiresGrail optionnel), golden INCHANGE.
+- Tests: engine town-build (+1 gate), content loader (+1 propagation), smoke lot3 (verrouille -> Dig -> constructible).
+- Epic T-GRAIL COMPLET (lots 1-3). Différé: effets Graal par faction (données).

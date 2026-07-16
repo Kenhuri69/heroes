@@ -118,6 +118,10 @@ export function TownScreen({ townId, onClose }: { townId: string; onClose: () =>
   const close = onClose;
 
   const town = game.towns.find((tw) => tw.id === townId);
+  // T-GRAIL lot 3 : le bâtiment Graal n'est constructible que si le PROPRIÉTAIRE
+  // de la ville possède le Graal (`hasGrail`). Gate d'affichage côté client
+  // (miroir de `validateBuildStructure`) — évite un cul-de-sac.
+  const ownerHasGrail = game.players.find((p) => p.id === town?.ownerPlayerId)?.hasGrail ?? false;
 
   // Lot A (refonte UX) : les onglets Marché/Guilde ne s'affichent que si le
   // bâtiment correspondant est CONSTRUIT — sinon le moteur refuse l'action
@@ -197,7 +201,7 @@ export function TownScreen({ townId, onClose }: { townId: string; onClose: () =>
           </p>
         ) : (
           <>
-            <TownView town={town} catalog={game.buildingCatalog} onSelect={selectBuilding} />
+            <TownView town={town} catalog={game.buildingCatalog} ownerHasGrail={ownerHasGrail} onSelect={selectBuilding} />
             <nav class="town-tabs" role="tablist">
               <button
                 class={activeTab === 'build' ? 'active' : ''}
@@ -256,7 +260,7 @@ export function TownScreen({ townId, onClose }: { townId: string; onClose: () =>
             )}
 
             {activeTab === 'build' && (
-              <BuildTab town={town} catalog={game.buildingCatalog} onError={setError} />
+              <BuildTab town={town} catalog={game.buildingCatalog} ownerHasGrail={ownerHasGrail} onError={setError} />
             )}
             {activeTab === 'recruit' && (
               <RecruitTab town={town} catalog={game.buildingCatalog} unitCatalog={game.unitCatalog} onError={setError} />
@@ -307,8 +311,23 @@ function townBuildingIds(town: TownState, catalog: Record<string, BuildingDef>):
   });
 }
 
-function townViewStatus(town: TownState, catalog: Record<string, BuildingDef>, id: string): TownViewStatus {
+/**
+ * Le bâtiment est-il verrouillé faute de Graal (T-GRAIL lot 3) ? `buildStatus`
+ * moteur est town-scoped et ignore `hasGrail` (player-scoped) ; le gate est donc
+ * appliqué côté client pour ne pas mener à un cul-de-sac (le moteur refuserait).
+ */
+function grailLocked(catalog: Record<string, BuildingDef>, id: string, ownerHasGrail: boolean): boolean {
+  return !!catalog[id]?.requiresGrail && !ownerHasGrail;
+}
+
+function townViewStatus(
+  town: TownState,
+  catalog: Record<string, BuildingDef>,
+  id: string,
+  ownerHasGrail: boolean,
+): TownViewStatus {
   if ((town.buildings[id] ?? 0) >= 1) return 'constructed';
+  if (grailLocked(catalog, id, ownerHasGrail)) return 'locked';
   return buildStatus(town, catalog, id) === 'available' ? 'available' : 'locked';
 }
 
@@ -460,10 +479,12 @@ function TownSlotButton({
 function TownView({
   town,
   catalog,
+  ownerHasGrail,
   onSelect,
 }: {
   town: TownState;
   catalog: Record<string, BuildingDef>;
+  ownerHasGrail: boolean;
   onSelect: (id: string) => void;
 }) {
   const ids = townBuildingIds(town, catalog);
@@ -476,7 +497,7 @@ function TownView({
   const slots = ids
     .map((id) => ({
       id,
-      status: townViewStatus(town, catalog, id),
+      status: townViewStatus(town, catalog, id, ownerHasGrail),
       slot: layout.get(id),
       upgradeable: isUpgradeable(town, catalog, id),
     }))
@@ -490,7 +511,7 @@ function TownView({
         id: inspectId,
         level: town.buildings[inspectId] ?? 0,
         max: def.maxLevel,
-        status: townViewStatus(town, catalog, inspectId),
+        status: townViewStatus(town, catalog, inspectId, ownerHasGrail),
         // Coût du prochain niveau (construction ou upgrade) si bâtissable maintenant.
         nextCost:
           buildStatus(town, catalog, inspectId) === 'available'
@@ -719,10 +740,12 @@ function TavernTab({ town, onError }: { town: TownState; onError: (msg: string |
 function BuildTab({
   town,
   catalog,
+  ownerHasGrail,
   onError,
 }: {
   town: TownState;
   catalog: Record<string, BuildingDef>;
+  ownerHasGrail: boolean;
   onError: (msg: string | null) => void;
 }) {
   // C20 : tri par statut (disponible → construit → verrouillé) puis id — même
@@ -732,10 +755,12 @@ function BuildTab({
     built: 1,
     locked: 2,
   };
+  // Statut effectif = statut moteur, mais le bâtiment du Graal est verrouillé
+  // tant que le propriétaire n'a pas le Graal (gate player-scoped, T-GRAIL lot 3).
+  const effStatus = (id: string): ReturnType<typeof buildStatus> =>
+    grailLocked(catalog, id, ownerHasGrail) ? 'locked' : buildStatus(town, catalog, id);
   const buildingIds = townBuildingIds(town, catalog).sort(
-    (a, b) =>
-      buildStatusOrder[buildStatus(town, catalog, a)] - buildStatusOrder[buildStatus(town, catalog, b)] ||
-      a.localeCompare(b),
+    (a, b) => buildStatusOrder[effStatus(a)] - buildStatusOrder[effStatus(b)] || a.localeCompare(b),
   );
 
   const build = (buildingId: string): void => {
@@ -755,7 +780,8 @@ function BuildTab({
           const def = catalog[buildingId];
           if (!def) return null;
           const currentLevel = town.buildings[buildingId] ?? 0;
-          const status = buildStatus(town, catalog, buildingId);
+          const status = effStatus(buildingId);
+          const grailGated = grailLocked(catalog, buildingId, ownerHasGrail);
           const nextLevel = def.levels[currentLevel];
           return (
             <li key={buildingId} class={`town-building town-building-${status}`}>
@@ -776,11 +802,17 @@ function BuildTab({
               )}
               {status === 'locked' && nextLevel && (
                 <ul class="town-requirements">
-                  {missingRequirements(town, catalog, buildingId).map((req) => (
-                    <li key={req.building} class="town-requirement-missing">
-                      {t('town.requirementMissing', { building: buildingName(req.building), level: req.level })}
+                  {grailGated ? (
+                    <li class="town-requirement-missing" data-testid={`town-requires-grail-${buildingId}`}>
+                      {t('town.requiresGrail')}
                     </li>
-                  ))}
+                  ) : (
+                    missingRequirements(town, catalog, buildingId).map((req) => (
+                      <li key={req.building} class="town-requirement-missing">
+                        {t('town.requirementMissing', { building: buildingName(req.building), level: req.level })}
+                      </li>
+                    ))
+                  )}
                 </ul>
               )}
               {status === 'available' && nextLevel && (

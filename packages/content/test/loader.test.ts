@@ -857,6 +857,20 @@ describe('ville de faction (manifest.town / buildings.json)', () => {
     expect(catalog['townHall']?.factionId).toBeUndefined();
   });
 
+  it('T-GRAIL lot 3 : buildBuildingCatalog propage requiresGrail', async () => {
+    const data = makeData();
+    withTown(data);
+    (data['core/buildings.json'] as { buildings: unknown[] }).buildings.push({
+      id: 'grail',
+      maxLevel: 1,
+      requiresGrail: true,
+      levels: [{ cost: {}, requires: [], effect: { type: 'growthBonus', percent: 100 }, uniquePerPlayer: true }],
+    });
+    const report = await loadContent(reader(data));
+    const catalog = buildBuildingCatalog(report);
+    expect(catalog['grail']?.requiresGrail).toBe(true);
+  });
+
   it('résout la ville de départ (owner, prebuilt appliqués)', async () => {
     const data = makeData();
     withTown(data);

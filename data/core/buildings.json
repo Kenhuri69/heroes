@@ -208,6 +208,19 @@
           }
         }
       ]
+    },
+    {
+      "id": "grail",
+      "maxLevel": 1,
+      "requiresGrail": true,
+      "levels": [
+        {
+          "cost": {},
+          "requires": [{ "building": "townHall", "level": 1 }],
+          "effect": { "type": "growthBonus", "percent": 100 },
+          "uniquePerPlayer": true
+        }
+      ]
     }
   ]
 }

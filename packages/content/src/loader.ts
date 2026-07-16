@@ -689,6 +689,7 @@ export function buildBuildingCatalog(report: LoadReport): Record<string, Resolve
         maxLevel: b.maxLevel,
         levels: b.levels,
         ...(b.exclusiveGroup !== undefined ? { exclusiveGroup: b.exclusiveGroup } : {}),
+        ...(b.requiresGrail !== undefined ? { requiresGrail: b.requiresGrail } : {}),
         ...(factionId !== undefined ? { factionId } : {}),
       };
     }

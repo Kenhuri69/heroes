@@ -774,13 +774,19 @@ SDK `packages/client/src/app/net.ts` sans autre appelant).
   `VITE_BACKEND_URL` ⇒ smoke non-régressé). Pas de harness de test Worker ⇒
   vérifié par typecheck server+client + intégration à NET-PVPUI.
 
-- **NET-PVPUI — Écrans PvP asynchrones jouables** 🕳️ L ⬜
-  Doc : doc 01 §3 (PvP async = Beta), doc 09 Phase 3 (jalon « PvP asynchrone
-  stable »), doc 15 §5.3/§9, doc 08 §2.5. Code : `createMatch`/`joinMatch`/
-  `listMatches`/`getMoves`/`postMove` = code mort côté UI. Spec : lobby
-  (créer/lister/rejoindre), boucle de tour (rejouer le journal via
-  `engine/net`, jouer son tour hors-ligne, `postMove`), polling « c'est ton
-  tour » (doc 15 §5.3.4), reprise/refresh. Dépend de NET-MATCHDETAIL.
+- **NET-PVPUI — Écrans PvP asynchrones jouables** 🕳️ L 🚧 (**découpé A/B/C**)
+  Doc : doc 01 §3 (PvP async = Beta), doc 09 Phase 3, doc 15 §5.3/§9, doc 08 §2.5.
+  Backend + SDK + `engine/net` **déjà complets** (l'audit a montré que le backlog
+  « code mort côté UI » était exact : il ne manquait QUE l'UI).
+  - **Slice A ✅** (plan `net-pvpui-lobby.md`) : **lobby** — `OnlinePanel` expose
+    « Parties en ligne » : Créer (pipeline « nouvelle partie » routé par le drapeau
+    `online` ⇒ `createMatch`), lister (statut i18n + date), Rejoindre (`joinMatch`),
+    Abandonner (`forfeitMatch`) ; rafraîchi au montage / sur `heroes:matches-changed`
+    / bouton. Client only, zéro moteur/serveur, pas de bump save. Chemin en ligne
+    non couvert par le smoke (pas de backend en CI).
+  - **Slice B ⬜** : boucle de tour jouable (`getMatch`+`getMoves` → `replayCommands`
+    → jouer hors-ligne → `postMove`). **Slice C ⬜** : polling « c'est ton tour » +
+    reprise + fin de partie.
 
 - **NET-CLOUDSAVES — Cloud saves câblées** 🕳️ M ✅
   Doc : doc 15 §5.2, doc 09 Phase 3. **Cœur livré** (backlog ⬜ était périmé) :

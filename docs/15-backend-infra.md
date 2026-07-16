@@ -97,6 +97,14 @@ rejet **413** (garde-fou anti-épuisement mémoire du Worker).
 
 ### 5.3 PvP asynchrone
 
+> **UI client (NET-PVPUI, slice A — lobby)** : le panneau **En ligne**
+> (`OnlinePanel`, connecté) expose « Parties en ligne » — **Créer** (réutilise le
+> pipeline « nouvelle partie » via le drapeau `online` ⇒ le `StartGame` devient le
+> `setup` du match, `createMatch`), **liste** avec statut, **Rejoindre** (siège
+> libre) et **Abandonner**. La **boucle de tour** jouable (reconstruction par
+> `replayCommands`, `postMove`) et le **polling** « c'est ton tour » sont les
+> slices B/C (à suivre).
+
 1. `POST /matches { seed, setup(StartGame), seats }` → `matches` + `match_players`.
 2. Un adversaire rejoint un siège libre (`POST /matches/:id/join`).
 3. À son tour, un joueur `POST /matches/:id/moves { seq, commands }`. Le Worker

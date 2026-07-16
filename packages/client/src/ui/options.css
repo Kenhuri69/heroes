@@ -231,3 +231,11 @@
 .online-save-info {
   font: 500 0.8125rem var(--font-ui);
 }
+
+/* Lobby PvP (NET-PVPUI slice A) — rangée d'actions créer/rafraîchir. */
+.online-match-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+}

@@ -1,10 +1,41 @@
 import { useEffect, useState } from 'preact/hooks';
 import { t } from '../app/i18n';
-import { isLoggedIn, listSaves, logout, requestMagicLink, verifyMagicLink } from '../app/net';
+import {
+  forfeitMatch,
+  isLoggedIn,
+  joinMatch,
+  listMatches,
+  listSaves,
+  logout,
+  requestMagicLink,
+  verifyMagicLink,
+  type MatchSummary,
+} from '../app/net';
 import { appStore } from '../app/store';
 import { pullCloudSave, pushCloudSave } from '../app/save';
+import { RANDOM, type NewGameRawConfig } from '../app/game';
+import { PLAYER_COLORS } from '../render/playerColors';
 import { pushToast } from './toasts';
 import './options.css';
+
+/** Preset async 2 sièges humains (NET-PVPUI slice A) — tirages seedés. */
+function onlineMatchPreset(seed: number): NewGameRawConfig {
+  return {
+    slots: [
+      { controller: 'human', factionId: RANDOM, color: PLAYER_COLORS[0] ?? 0, team: 0 },
+      { controller: 'human', factionId: RANDOM, color: PLAYER_COLORS[1] ?? 0, team: 0 },
+    ],
+    mapSize: 'small',
+    resourceLevel: 'standard',
+    guardians: RANDOM,
+    mines: RANDOM,
+    eventBuildings: RANDOM,
+    pickups: RANDOM,
+    difficulty: 'normal',
+    seed,
+    online: true,
+  };
+}
 
 type CloudSlot = { slot: string; save_version: number; updated_at: number };
 
@@ -59,6 +90,48 @@ export function OnlinePanel({ onClose }: { onClose: () => void }) {
         else pushToast(t('toast.cloudNotStarted'), 'error');
       })
       .catch(() => pushToast(t('toast.cloudLoadError'), 'error'));
+  };
+
+  // Lobby PvP asynchrone (NET-PVPUI slice A) : `null` = pas encore chargé.
+  const [matches, setMatches] = useState<MatchSummary[] | null>(null);
+  const refreshMatches = (): void => {
+    listMatches()
+      .then((r) => setMatches(r.matches))
+      .catch(() => setMatches([]));
+  };
+  // Charge au montage (si connecté) et quand une partie est créée/rejointe/abandonnée.
+  useEffect(() => {
+    if (!loggedIn) {
+      setMatches(null);
+      return;
+    }
+    refreshMatches();
+    const onChanged = (): void => refreshMatches();
+    window.addEventListener('heroes:matches-changed', onChanged);
+    return () => window.removeEventListener('heroes:matches-changed', onChanged);
+  }, [loggedIn]);
+
+  const doCreateMatch = (): void => {
+    // La création passe par le pipeline « nouvelle partie » (résolution + carte),
+    // routé vers `createMatch` par le drapeau `online` (main.ts). Ferme le panneau
+    // pendant la génération ; l'événement `heroes:matches-changed` rafraîchira.
+    window.dispatchEvent(new CustomEvent('heroes:start-newgame', { detail: onlineMatchPreset(Date.now()) }));
+  };
+  const doJoin = (id: string): void => {
+    void joinMatch(id)
+      .then(() => {
+        pushToast(t('toast.matchJoined'), 'success');
+        refreshMatches();
+      })
+      .catch(() => pushToast(t('toast.matchError'), 'error'));
+  };
+  const doForfeit = (id: string): void => {
+    void forfeitMatch(id)
+      .then(() => {
+        pushToast(t('toast.matchForfeited'), 'success');
+        refreshMatches();
+      })
+      .catch(() => pushToast(t('toast.matchError'), 'error'));
   };
 
   const request = (): void => {
@@ -127,6 +200,49 @@ export function OnlinePanel({ onClose }: { onClose: () => void }) {
                       >
                         {t('online.saves.load')}
                       </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+            <section class="options-section" data-testid="online-matches">
+              <h3>{t('online.matches.title')}</h3>
+              <div class="online-match-actions">
+                <button class="menu-button" data-testid="online-match-create" onClick={doCreateMatch}>
+                  {t('online.matches.create')}
+                </button>
+                <button class="menu-button" data-testid="online-match-refresh" onClick={refreshMatches}>
+                  {t('online.matches.refresh')}
+                </button>
+              </div>
+              {matches !== null && matches.length === 0 && (
+                <p data-testid="online-matches-empty">{t('online.matches.empty')}</p>
+              )}
+              {matches !== null && matches.length > 0 && (
+                <ul class="online-saves">
+                  {matches.map((m) => (
+                    <li key={m.id} class="online-save-row" data-testid={`online-match-${m.id}`}>
+                      <span class="online-save-info">
+                        {t(`online.matches.status.${m.status}`)} · {new Date(m.created_at).toLocaleString()}
+                      </span>
+                      {m.status === 'open' && (
+                        <button
+                          class="menu-button"
+                          data-testid={`online-match-join-${m.id}`}
+                          onClick={() => doJoin(m.id)}
+                        >
+                          {t('online.matches.join')}
+                        </button>
+                      )}
+                      {m.status === 'active' && (
+                        <button
+                          class="menu-button"
+                          data-testid={`online-match-forfeit-${m.id}`}
+                          onClick={() => doForfeit(m.id)}
+                        >
+                          {t('online.matches.forfeit')}
+                        </button>
+                      )}
                     </li>
                   ))}
                 </ul>

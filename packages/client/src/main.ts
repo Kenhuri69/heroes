@@ -23,6 +23,7 @@ import {
 } from './app/game';
 import { dispatch, installAiResume } from './app/dispatch';
 import { appStore } from './app/store';
+import { createMatch } from './app/net';
 import { navigate } from './app/router';
 import { exportSave, importSave, saveGame, restoreSavedGame, encodeHeroesFile } from './app/save';
 import { installAutosave } from './app/autosave';
@@ -261,8 +262,12 @@ async function bootstrap(): Promise<void> {
     const raf = (): Promise<void> => new Promise((r) => requestAnimationFrame(() => r()));
     const setLoading = (label: string, progress: number): void =>
       appStore.setState({ loading: { label, progress } });
-    disarmDailyRefresh(); // « Nouvelle partie » n'embarque pas de contrats journaliers
-    resetNarrativeState(); // pas de narration en « Nouvelle partie » (revue 2026-07, B35)
+    // En mode « en ligne » (NET-PVPUI slice A) on CRÉE un match sans démarrer de
+    // partie locale : ne pas toucher l'état local (narration / contrats du jour).
+    if (!raw.online) {
+      disarmDailyRefresh(); // « Nouvelle partie » n'embarque pas de contrats journaliers
+      resetNarrativeState(); // pas de narration en « Nouvelle partie » (revue 2026-07, B35)
+    }
     try {
       setLoading('newgame.loading.prepare', 0.1);
       await raf();
@@ -288,6 +293,15 @@ async function bootstrap(): Promise<void> {
 
       setLoading('newgame.loading.init', 0.95);
       await raf();
+      // NET-PVPUI (slice A) : en mode « en ligne », la même config sert à CRÉER une
+      // partie async (le `command` StartGame — carte comprise — devient le `setup`
+      // du match) au lieu de démarrer localement. Pas de dispatch ni de navigation.
+      if (raw.online) {
+        await createMatch(raw.seed, command);
+        pushToast(t('toast.matchCreated'), 'success');
+        window.dispatchEvent(new CustomEvent('heroes:matches-changed'));
+        return;
+      }
       // Couleurs de joueur choisies (lot 6.4) — présentation client, posée avant le
       // rendu de la scène ; `navigate('menu')` les oubliera au retour menu.
       appStore.setState({ playerColors: resolved.colors });

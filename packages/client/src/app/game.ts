@@ -924,6 +924,12 @@ export interface NewGameRawConfig {
   pickups: ContentLevel | typeof RANDOM;
   difficulty: SkirmishDifficulty | typeof RANDOM;
   seed: number;
+  /**
+   * NET-PVPUI (slice A) : si `true`, la configuration est utilisée pour CRÉER une
+   * partie async en ligne (`createMatch`) au lieu de démarrer une partie locale.
+   * Absent/`false` = partie locale (chemin inchangé). Présentation client.
+   */
+  online?: boolean;
 }
 
 /** Configuration résolue : sièges + réglages moteur, + options de génération de carte. */

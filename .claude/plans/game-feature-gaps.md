@@ -784,9 +784,14 @@ SDK `packages/client/src/app/net.ts` sans autre appelant).
     Abandonner (`forfeitMatch`) ; rafraîchi au montage / sur `heroes:matches-changed`
     / bouton. Client only, zéro moteur/serveur, pas de bump save. Chemin en ligne
     non couvert par le smoke (pas de backend en CI).
-  - **Slice B ⬜** : boucle de tour jouable (`getMatch`+`getMoves` → `replayCommands`
-    → jouer hors-ligne → `postMove`). **Slice C ⬜** : polling « c'est ton tour » +
-    reprise + fin de partie.
+  - **Slice B ✅** (plan `net-pvpui-turnloop.md`) : **boucle de tour jouable** —
+    `openOnlineMatch` (`getMatch`+`getMoves` → `replayCommands`) ; `dispatch`
+    capture les commandes de mon tour et poste le lot (`postMove`) à l'`EndTurn` ;
+    `OnlineWaitOverlay` bloquant hors de mon tour (Rafraîchir/Quitter) ; `profileId`
+    persisté identifie mon siège ; Handoff hot-seat supprimé en ligne. Client only,
+    zéro moteur/serveur. Chemin en ligne non couvert par le smoke.
+  - **Slice C ⬜** : polling auto « c'est ton tour » + notification + fin de partie
+    par statut serveur (abandon/timeout ; refresh MANUEL pour l'instant).
 
 - **NET-CLOUDSAVES — Cloud saves câblées** 🕳️ M ✅
   Doc : doc 15 §5.2, doc 09 Phase 3. **Cœur livré** (backlog ⬜ était périmé) :

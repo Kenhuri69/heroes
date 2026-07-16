@@ -58,6 +58,7 @@ import { SkillChoice } from './SkillChoice';
 import { AttributeChoice } from './AttributeChoice';
 import { TreasureChoice } from './TreasureChoice';
 import { HandoffOverlay } from './HandoffOverlay';
+import { OnlineWaitOverlay } from './OnlineWaitOverlay';
 import { OutcomeOverlay } from './OutcomeOverlay';
 import { CombatResultScreen } from './CombatResultScreen';
 import { FactionBadge } from './FactionBadge';
@@ -277,6 +278,7 @@ function Shell() {
       {pendingTreasure && <TreasureChoice pending={pendingTreasure} />}
       <EndTurnConfirm />
       {screen === 'adventure' && <HandoffOverlay />}
+      {screen === 'adventure' && <OnlineWaitOverlay />}
       {started && !inCombat && <CutsceneOverlay />}
       {started && !inCombat && <DialogueBox />}
       <OutcomeOverlay />

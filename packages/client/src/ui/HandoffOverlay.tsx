@@ -14,10 +14,14 @@ export function HandoffOverlay() {
   useApp((s) => s.locale); // réactivité i18n
   const game = useApp((s) => s.game);
   const turnAck = useApp((s) => s.turnAck);
+  // En PvP asynchrone (NET-PVPUI) l'adversaire est DISTANT : pas de « passez
+  // l'appareil » — l'`OnlineWaitOverlay` gère l'attente du tour adverse.
+  const online = useApp((s) => s.onlineMatch !== null);
 
   const humans = game.players.filter((p) => p.controller === 'human');
   const active = game.players[game.currentPlayer];
   const show =
+    !online &&
     humans.length >= 2 &&
     !game.combat &&
     !game.outcome &&

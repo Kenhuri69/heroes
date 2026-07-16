@@ -9,6 +9,17 @@ import type { Command } from '@heroes/engine';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const SESSION_KEY = 'heroes.session';
+const PROFILE_KEY = 'heroes.profile';
+
+/** Id de profil du joueur connecté (persisté à la vérification) — pour identifier
+ * MON siège dans une partie async (NET-PVPUI). `null` hors connexion. */
+export function profileId(): string | null {
+  try {
+    return localStorage.getItem(PROFILE_KEY);
+  } catch {
+    return null;
+  }
+}
 
 /** Le backend est-il configuré ? (flag de build). */
 export function isOnline(): boolean {
@@ -41,6 +52,7 @@ export function logout(): void {
   }
   try {
     localStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem(PROFILE_KEY);
   } catch {
     /* stockage indisponible */
   }
@@ -71,9 +83,13 @@ export function requestMagicLink(email: string): Promise<{ ok: true; verifyLink:
 
 /** Vérifie un token magic-link et ouvre la session (bearer persisté). */
 export async function verifyMagicLink(token: string): Promise<void> {
-  const r = await api<{ session: string }>(`/auth/verify?token=${encodeURIComponent(token)}`, { method: 'GET' });
+  const r = await api<{ session: string; profileId: string }>(
+    `/auth/verify?token=${encodeURIComponent(token)}`,
+    { method: 'GET' },
+  );
   try {
     localStorage.setItem(SESSION_KEY, r.session);
+    localStorage.setItem(PROFILE_KEY, r.profileId);
   } catch {
     /* stockage indisponible : session non persistée */
   }

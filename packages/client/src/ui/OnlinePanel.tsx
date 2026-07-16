@@ -13,6 +13,7 @@ import {
 } from '../app/net';
 import { appStore } from '../app/store';
 import { pullCloudSave, pushCloudSave } from '../app/save';
+import { openOnlineMatch } from '../app/online-match';
 import { RANDOM, type NewGameRawConfig } from '../app/game';
 import { PLAYER_COLORS } from '../render/playerColors';
 import { pushToast } from './toasts';
@@ -133,6 +134,11 @@ export function OnlinePanel({ onClose }: { onClose: () => void }) {
       })
       .catch(() => pushToast(t('toast.matchError'), 'error'));
   };
+  const doPlay = (id: string): void => {
+    void openOnlineMatch(id)
+      .then(() => onClose())
+      .catch(() => pushToast(t('toast.matchError'), 'error'));
+  };
 
   const request = (): void => {
     setError(null);
@@ -235,13 +241,22 @@ export function OnlinePanel({ onClose }: { onClose: () => void }) {
                         </button>
                       )}
                       {m.status === 'active' && (
-                        <button
-                          class="menu-button"
-                          data-testid={`online-match-forfeit-${m.id}`}
-                          onClick={() => doForfeit(m.id)}
-                        >
-                          {t('online.matches.forfeit')}
-                        </button>
+                        <span class="online-match-buttons">
+                          <button
+                            class="menu-button"
+                            data-testid={`online-match-play-${m.id}`}
+                            onClick={() => doPlay(m.id)}
+                          >
+                            {t('online.matches.play')}
+                          </button>
+                          <button
+                            class="menu-button"
+                            data-testid={`online-match-forfeit-${m.id}`}
+                            onClick={() => doForfeit(m.id)}
+                          >
+                            {t('online.matches.forfeit')}
+                          </button>
+                        </span>
                       )}
                     </li>
                   ))}

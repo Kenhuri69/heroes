@@ -588,7 +588,8 @@ def singles_files() -> dict[str, str]:
         return "\n".join([
             f"Epic painterly fantasy {scene}, Heroes of Might and Magic concept art,",
             "wide 16:9 composition (1920x1080), focal point upper-center,",
-            "darker vignetted edges, lower third kept simple for UI overlay,",
+            "darker vignetted edges, lower third and foreground kept open and "
+            "uncluttered for UI and building overlays,",
             "atmospheric depth, volumetric light,",
             "no text, no watermark, no signature, no border frame, "
             "no decorative sparkles, no star glints, no lens flare",
@@ -598,8 +599,20 @@ def singles_files() -> dict[str, str]:
                         "a kingdom of castles at dawn")]
     for fid in factions:
         palette = PALETTES.get(fid, DEFAULT_PALETTE)
+        # Décor de ville COMPOSABLE (UX-TOWNVIEW lot 2) : le client pose les
+        # bâtiments interactifs dans la bande d'avant-plan. Le fond doit donc
+        # offrir des terrasses / lots vides dégagés au premier plan (et NON une
+        # cité déjà saturée de bâtiments qui rivalisent avec les vignettes),
+        # avec un unique donjon focal en haut.
         scenes.append((f"town-{fid}",
-                       f"cityscape of a {fid} faction stronghold, {palette}"))
+                       f"{fid} faction town built on a terraced hillside seen "
+                       f"from a gentle elevation: one grand central keep as the "
+                       f"single focal landmark upper-center, open stepped terraces "
+                       f"and vacant building plots descending toward a wide "
+                       f"uncluttered foreground courtyard with room to place "
+                       f"building icons, only a few sparse structures hinted in "
+                       f"the mid-ground, no dense crowd of buildings in the "
+                       f"foreground, {palette}"))
     for t in terrains:
         scenes.append((f"combat-{t}",
                        f"battlefield clearing on {t} terrain seen from a slight "

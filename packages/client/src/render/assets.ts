@@ -48,6 +48,29 @@ export function townBackgroundUrl(factionId: string): string | undefined {
   return registry.get(`backgrounds/town-${factionId}`);
 }
 
+/**
+ * Layout des emplacements de la vue de ville par faction (UX-TOWNVIEW lot 2) :
+ * ancres `{x,y}` en % calées sur le décor peint, chargées depuis
+ * `assets/layouts/town-<factionId>.json`. Data-driven (hors `packages/`,
+ * faction-agnostique — id opaque comme `townBackgroundUrl`) : déposer un JSON
+ * ajoute/retouche un layout sans toucher au code. `undefined` ⇒ défaut « au sol »
+ * de `townLayout`. Chargé EAGER (petits fichiers, hors bundle image).
+ */
+const townLayoutModules = import.meta.glob('../../../../assets/layouts/town-*.json', {
+  eager: true,
+  import: 'default',
+}) as Record<string, { x: number; y: number }[]>;
+
+const townLayoutRegistry = new Map<string, { x: number; y: number }[]>();
+for (const [path, anchors] of Object.entries(townLayoutModules)) {
+  const m = path.match(/\/town-(.+)\.json$/);
+  if (m && m[1] && Array.isArray(anchors)) townLayoutRegistry.set(m[1], anchors);
+}
+
+export function townLayoutAnchors(factionId: string): { x: number; y: number }[] | undefined {
+  return townLayoutRegistry.get(factionId);
+}
+
 /** Toile de combat par terrain (`backgrounds/combat-<terrain>`, doc 08 §2.4). */
 export function combatBackgroundUrl(terrain: string): string | undefined {
   return registry.get(`backgrounds/combat-${terrain}`);

@@ -59,6 +59,14 @@ export interface PlayerState {
    * alliés (`areAllies`) : ils ne s'assiègent pas et partagent la victoire.
    */
   team: number;
+  /**
+   * Obélisques visités par ce joueur (T-GRAIL, doc 02 §2.2) — ids d'objets
+   * `obelisk`, dédup. Quand leur nombre atteint le total d'obélisques de la
+   * carte, la tuile du Graal (`AdventureMapDef.grailPos`) lui est révélée. `[]`
+   * sur une carte sans obélisque. Optionnel (absent ⇒ `[]`) — évite la churn des
+   * états construits à la main ; le moteur lit toujours `?? []`.
+   */
+  obelisksVisited?: string[];
 }
 
 /**
@@ -288,8 +296,11 @@ export interface CaravanState {
  * (H-ARTEQUIP.1, doc 08 §2.3) : débordement du ramassage/équipement.
  * v30 : `HeroState.visitMorale` — moral de temple (lieu de bonus `morale`,
  * M-VISIT, doc 02 §2.2), miroir de `visitLuck` : consommé à la fin du prochain combat.
+ * v31 : `PlayerState.obelisksVisited` + `AdventureMapDef.grailPos` + objet de carte
+ * `obelisk` (T-GRAIL lot 1, doc 02 §2.2) : méta-puzzle du Graal — visiter tous les
+ * obélisques révèle la tuile enterrée du Graal.
  */
-export const CURRENT_SAVE_VERSION = 30;
+export const CURRENT_SAVE_VERSION = 31;
 
 export interface GameState {
   saveVersion: number;

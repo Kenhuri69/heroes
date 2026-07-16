@@ -444,6 +444,8 @@ function validateMap(cmd: Extract<Command, { type: 'StartGame' }>): CommandError
     } else if (obj.type === 'monolith') {
       // Monolithe apparié (M-NAV a) : l'appariement 2-à-2 est validé au load du
       // contenu (`loadMap`) ; le moteur n'a rien de plus à vérifier ici.
+    } else if (obj.type === 'obelisk') {
+      // Obélisque (T-GRAIL) : objet neutre sans donnée à valider.
     } else {
       if (!(obj.unitId in cmd.unitCatalog))
         return bad(`gardien '${obj.id}' : unité inconnue du catalogue '${obj.unitId}'`);

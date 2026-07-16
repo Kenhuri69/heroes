@@ -2307,6 +2307,28 @@ test('ville : parité tactile du lore (X2) — un tap déplie le texte tronqué'
   expect(errors).toEqual([]);
 });
 
+test('T-GRAIL : visiter un obélisque affiche la progression (doc 02 §2.2)', { tag: ['@core'] }, async ({
+  page,
+}) => {
+  const errors = await openGame(page);
+  // proto-01 porte 3 obélisques ; obelisk-1 est en (5,6). Chemin propre depuis
+  // (3,3) évitant les autres objets (pas de toast parasite).
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({
+      type: 'MoveHero',
+      heroId: 'hero-player-1',
+      path: [{ x: 3, y: 4 }, { x: 4, y: 5 }, { x: 5, y: 6 }],
+    }),
+  );
+  // L'obélisque est compté pour le joueur humain (le hook de test dispatch
+  // directement le moteur ; le toast, câblé dans `notifications.ts`, passe par
+  // l'UI et n'est pas exercé ici).
+  await expect
+    .poll(() => page.evaluate(() => window.__HEROES_TEST__!.getState().players[0]?.obelisksVisited ?? []))
+    .toContain('obelisk-1');
+  expect(errors).toEqual([]);
+});
+
 test('upgrade : bâtir le dwelling amélioré puis améliorer une pile de garnison (Alpha 4.11)', async ({
   page,
 }) => {

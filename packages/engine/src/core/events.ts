@@ -40,6 +40,19 @@ export type GameEvent =
     }
   /** Revenu quotidien d'une mine possédée (appliqué au `DayStarted`). */
   | { type: 'MineIncome'; playerId: string; objectId: string; resource: string; amount: number }
+  /**
+   * Obélisque visité (T-GRAIL, doc 02 §2.2) — `visited`/`total` = progression du
+   * joueur ; `grailRevealed` passe à `true` à la visite qui complète le puzzle
+   * (tuile du Graal désormais révélée à ce joueur).
+   */
+  | {
+      type: 'ObeliskVisited';
+      playerId: string;
+      objectId: string;
+      visited: number;
+      total: number;
+      grailRevealed: boolean;
+    }
   /** Trésor foulé : le choix or/XP est en attente (`ResolveTreasure`). */
   | {
       type: 'TreasureFound';

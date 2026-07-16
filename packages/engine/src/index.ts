@@ -35,9 +35,11 @@ export {
 } from './core/serialize';
 export {
   DIRECTIONS,
+  grailRevealedTo,
   inBounds,
   isAdjacent,
   isDiagonal,
+  obeliskCount,
   samePos,
   terrainAt,
   tileIndex,
@@ -48,6 +50,7 @@ export {
   type GuardianObjectDef,
   type MapObjectDef,
   type MineObjectDef,
+  type ObeliskObjectDef,
   type ResourceObjectDef,
   type TreasureObjectDef,
   type VisitableEffect,

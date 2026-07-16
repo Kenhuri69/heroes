@@ -18,3 +18,10 @@ Verif: typecheck lint vitest(engine golden re-fix + content propagation) content
 
 ## Lot 2 — Dig + obtention (à venir)
 ## Lot 3 — bâtiment Graal (données + gate hasGrail) (à venir)
+
+## Notes Lot 1 (livré)
+- Champs optionnels (obelisksVisited?/grailPos?) => zéro churn fixtures ; save v30->31 ; golden re-fixé (e43b1f7e->01e60459, saveVersion seul).
+- Client: rendu obélisque (buildObelisk), MapObjectCard obélisque, toast progression/révélation, locales FR/EN.
+- MARQUEUR Graal visuel REPORTÉ au Lot 2 (avec Dig — il y devient actionnable) ; Lot 1 = mécanique + toast de révélation.
+- Data: proto-01 (3 obélisques + grailPos) ; mapgen (obélisques scalés + grailPos, connectés).
+- Tests: engine map-grail (3), content propagation (loadMap), smoke (visite obelisk-1).

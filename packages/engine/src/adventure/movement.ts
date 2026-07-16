@@ -178,7 +178,24 @@ export function advanceHeroAlongPath(
     // Lieu de bonus / habitation (doc 02 §2.2) : visite en passant, comme la mine.
     for (const obj of objectsAt.get(tileKey(hero.pos)) ?? []) {
       if (obj.type === 'visitable') visitBonus(draft, hero, player, obj, events);
-      else if (obj.type === 'dwelling') {
+      else if (obj.type === 'obelisk') {
+        // Obélisque (T-GRAIL, doc 02 §2.2) : compte une visite par joueur (dédup).
+        // Quand le joueur les a TOUS visités, la tuile du Graal lui est révélée.
+        const visited = player.obelisksVisited ?? (player.obelisksVisited = []);
+        if (!visited.includes(obj.id)) {
+          visited.push(obj.id);
+          const total = map.objects.reduce((n, o) => n + (o.type === 'obelisk' ? 1 : 0), 0);
+          const revealed = total > 0 && visited.length >= total && map.grailPos != null;
+          events.push({
+            type: 'ObeliskVisited',
+            playerId: player.id,
+            objectId: obj.id,
+            visited: visited.length,
+            total,
+            grailRevealed: revealed,
+          });
+        }
+      } else if (obj.type === 'dwelling') {
         // Habitation de carte capturable (M-DWELLOWN, doc 02 §2.2) : la fouler la
         // fait passer au joueur (drapeau + vision), qui touchera son réassort hebdo
         // (`applyWeeklyGrowth`). Recapturable par un ADVERSAIRE — comme une mine ;

@@ -273,7 +273,7 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 | Artefacts | gardés selon rareté | équipement héros (10 slots) |
 | Gardiens neutres | pile de créatures | combat ; force affichée en fourchette (« quelques », « horde »…) |
 | Villes | capturables | cf. §4 |
-| Obélisques/Graal | méta-puzzle | post-MVP |
+| Obélisques/Graal | méta-puzzle | obélisques + révélation livrés (T-GRAIL lot 1) ; fouille & bâtiment à suivre |
 
 > **État (comblement post-MVP)** : ressources au sol (7 types), **mines**
 > capturables (fouler la tuile ⇒ drapeau à la couleur du joueur, revenu/jour
@@ -313,7 +313,11 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 > **errants** (`roamRadius` : 1 pas/jour vers le héros le plus proche à
 > portée, arrêt au contact) — sont livrés (`data/maps/*.map.json` :
 > `resource`/`mine`/`treasure`/`artifact`/`visitable`/`dwelling`/`guardian`/
-> `town`). Obélisques/Graal restent post-MVP.
+> `town`). **Obélisques & Graal (T-GRAIL lot 1)** : des **obélisques** (`obelisk`)
+> parsemés révèlent, une fois **tous** visités par un joueur, la **tuile enterrée
+> du Graal** (`AdventureMapDef.grailPos`, `PlayerState.obelisksVisited`,
+> événement `ObeliskVisited`). La **fouille** (`Dig`) pour obtenir le Graal et le
+> **bâtiment Graal** (constructible si possession) sont les lots suivants.
 
 > **Sémantique de parcours** : ressources, artefacts au sol et mines sont
 > ramassés/capturés **en passant** — le héros ne s'arrête pas et poursuit son

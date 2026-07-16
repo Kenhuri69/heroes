@@ -132,10 +132,29 @@ function buildObject(obj: MapObjectDef, catalog: UnitCatalog, ownerColor: OwnerC
     if (obj.type === 'visitable') return buildVisitable(obj.effect.kind);
     if (obj.type === 'dwelling') return buildDwelling(obj.unitId, catalog, ownerColor(obj.ownerId));
     if (obj.type === 'monolith') return buildMonolith();
+    if (obj.type === 'obelisk') return buildObelisk();
     return buildGuardian(obj.unitId, catalog);
   })();
   // Sous le visuel : la case exacte à viser (les sprites debout débordent du losange).
   node.addChildAt(groundDiamond(), 0);
+  return node;
+}
+
+/** Obélisque (T-GRAIL) : haute stèle sombre effilée à glyphe gravé, sur socle. */
+function buildObelisk(): Container {
+  const node = new Container();
+  const c = TILE_SIZE / 2;
+  const stone = 0x3b4250;
+  const ink = 0x14161c;
+  const glyph = 0xe1c16e;
+  const g = new Graphics();
+  // Socle + fût effilé (trapèze) + pyramidion.
+  g.rect(c - 14, c + 14, 28, 6).fill(0x2a2f39).stroke({ width: 2, color: ink })
+    .poly([c - 9, c + 14, c + 9, c + 14, c + 6, c - 20, c - 6, c - 20]).fill(stone).stroke({ width: 2, color: ink })
+    .poly([c - 6, c - 20, c + 6, c - 20, c, c - 30]).fill(stone).stroke({ width: 2, color: ink })
+    // Glyphe gravé (losange doré) au centre du fût.
+    .poly([c, c - 8, c + 3, c - 2, c, c + 4, c - 3, c - 2]).fill(glyph);
+  node.addChild(g);
   return node;
 }
 

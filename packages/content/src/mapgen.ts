@@ -594,6 +594,16 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
     }
   }
 
+  // Obélisques & Graal (T-GRAIL, doc 02 §2.2) : quelques obélisques répartis +
+  // une tuile enterrée du Graal (libre, en profondeur). Visiter TOUS les
+  // obélisques révèle la tuile ; y fouiller obtient le Graal (lots 2/3).
+  const obeliskWanted = Math.max(2, Math.min(6, scaled(randBetween(2, 3))));
+  for (let i = 0; i < obeliskWanted; i++) {
+    place((x, y, n) => ({ id: `obelisk-${n}`, type: 'obelisk', x, y }), true);
+  }
+  const grailTile = freeTile(true);
+  const grailPos = grailTile ? { x: grailTile.x, y: grailTile.y } : null;
+
   // ── Connexité (plan map-design-issues P2) : le bruit d'élévation peut fermer
   // des poches (montagnes/rochers/eau) contenant des départs ou des objets. On
   // relie tout ce qui compte à la composante du premier départ en CREUSANT des
@@ -656,6 +666,7 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
   };
   for (const s of startPositions.slice(1)) connect(s.x, s.y);
   for (const o of objects) connect(o.x, o.y);
+  if (grailPos) connect(grailPos.x, grailPos.y); // la tuile du Graal doit être atteignable
 
   // Légende : uniquement les terrains réellement présents dans la grille.
   const usedChars = new Set<string>();
@@ -676,5 +687,6 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
     roads: Array.from({ length: height }, () => zeros),
     objects,
     startPositions,
+    ...(grailPos ? { grailPos } : {}),
   };
 }

@@ -195,6 +195,19 @@ export interface MonolithObjectDef {
   pairId: string;
 }
 
+/**
+ * Obélisque (T-GRAIL, doc 02 §2.2 « méta-puzzle ») : objet de carte permanent
+ * dont la visite fait progresser la découverte du Graal. Chaque joueur ne compte
+ * qu'une visite par obélisque (dédup par id dans `PlayerState.obelisksVisited`) ;
+ * quand un joueur les a TOUS visités, la tuile du Graal (`AdventureMapDef.grailPos`)
+ * lui est révélée. Le moteur ne connaît aucune faction — l'obélisque est neutre.
+ */
+export interface ObeliskObjectDef {
+  id: string;
+  type: 'obelisk';
+  pos: GridPos;
+}
+
 export type MapObjectDef =
   | ResourceObjectDef
   | GuardianObjectDef
@@ -203,7 +216,8 @@ export type MapObjectDef =
   | ArtifactObjectDef
   | VisitableObjectDef
   | DwellingObjectDef
-  | MonolithObjectDef;
+  | MonolithObjectDef
+  | ObeliskObjectDef;
 
 /**
  * Effet déclaratif d'un trigger de carte (doc 02 §2.1 « scripts d'événements
@@ -241,6 +255,31 @@ export interface AdventureMapDef {
   triggers: MapTriggerDef[];
   /** Positions de départ des héros, une par joueur dans l'ordre des joueurs. */
   startPositions: GridPos[];
+  /**
+   * Tuile enterrée du Graal (T-GRAIL, doc 02 §2.2). `null`/absent = la carte n'a
+   * pas de puzzle du Graal. Révélée à un joueur quand il a visité tous les
+   * obélisques, puis fouillée (`Dig`) pour obtenir le Graal. Optionnel pour
+   * éviter la churn des cartes construites à la main (le moteur lit `?? null`).
+   */
+  grailPos?: GridPos | null;
+}
+
+/** Nombre d'obélisques sur la carte (T-GRAIL, doc 02 §2.2). */
+export function obeliskCount(map: AdventureMapDef): number {
+  return map.objects.reduce((n, o) => (o.type === 'obelisk' ? n + 1 : n), 0);
+}
+
+/**
+ * La tuile du Graal est-elle révélée à ce joueur ? Vrai quand la carte a un
+ * Graal (`grailPos`) et au moins un obélisque, et que le joueur les a **tous**
+ * visités. Pur — consommé par le client (marqueur) comme par le moteur.
+ */
+export function grailRevealedTo(
+  map: AdventureMapDef,
+  obelisksVisited: readonly string[] | undefined,
+): boolean {
+  const total = obeliskCount(map);
+  return total > 0 && map.grailPos != null && (obelisksVisited?.length ?? 0) >= total;
 }
 
 export function inBounds(map: AdventureMapDef, pos: GridPos): boolean {

@@ -1028,6 +1028,16 @@ export const mapFileSchema = z.object({
         pairId: idSchema,
       }),
       /**
+       * Obélisque (T-GRAIL, doc 02 §2.2) : objet neutre du méta-puzzle du Graal.
+       * Aucune donnée propre — visiter tous les obélisques révèle `grailPos`.
+       */
+      z.object({
+        id: idSchema,
+        type: z.literal('obelisk'),
+        x: z.number().int().nonnegative(),
+        y: z.number().int().nonnegative(),
+      }),
+      /**
        * Ville (doc 02 §4, plan phase-3.1) — la ville de départ y référence son id.
        * `factionId`/`garrison` optionnels : une ville **neutre** (Alpha 4.13) posée
        * sur la carte, assiégeable par un héros (combat contre sa garnison). Une
@@ -1076,6 +1086,13 @@ export const mapFileSchema = z.object({
         ]),
       }),
     )
+    .optional(),
+  /**
+   * Tuile enterrée du Graal (T-GRAIL, doc 02 §2.2) — optionnelle. Absente = carte
+   * sans puzzle du Graal. Résolue en `AdventureMapDef.grailPos`.
+   */
+  grailPos: z
+    .object({ x: z.number().int().nonnegative(), y: z.number().int().nonnegative() })
     .optional(),
 });
 

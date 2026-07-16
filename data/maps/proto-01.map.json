@@ -420,7 +420,10 @@
       "x": 6,
       "y": 26,
       "pairId": "gate-1"
-    }
+    },
+    { "id": "obelisk-1", "type": "obelisk", "x": 5, "y": 6 },
+    { "id": "obelisk-2", "type": "obelisk", "x": 4, "y": 20 },
+    { "id": "obelisk-3", "type": "obelisk", "x": 28, "y": 4 }
   ],
   "triggers": [
     {
@@ -444,5 +447,6 @@
       "x": 28,
       "y": 28
     }
-  ]
+  ],
+  "grailPos": { "x": 26, "y": 26 }
 }

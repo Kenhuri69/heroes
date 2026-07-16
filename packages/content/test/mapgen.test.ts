@@ -75,6 +75,17 @@ describe('generateMap', () => {
     }
   });
 
+  it('T-GRAIL : émet des obélisques + une tuile du Graal, propagés par loadMap', async () => {
+    const map = generateMap('random', 7, { guardianUnits: ['t1-guard'] });
+    const obelisks = map.objects.filter((o) => o.type === 'obelisk');
+    expect(obelisks.length).toBeGreaterThanOrEqual(2);
+    expect(map.grailPos).toBeDefined();
+    const resolved = await loadMap(readerFor(map), 'random', config(), KNOWN_UNITS);
+    // Propagation (leçon loader) : obélisques + grailPos survivent à la résolution.
+    expect(resolved.objects.filter((o) => o.type === 'obelisk').length).toBe(obelisks.length);
+    expect(resolved.grailPos).toEqual(map.grailPos);
+  });
+
   it('est déterministe : même graine ⇒ carte identique', () => {
     const a = generateMap('r', 123, { guardianUnits: ['t1-guard'] });
     const b = generateMap('r', 123, { guardianUnits: ['t1-guard'] });

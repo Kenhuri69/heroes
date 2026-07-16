@@ -28,6 +28,7 @@ const OBJECT_TOOLS = [
   'dwelling',
   'visitable',
   'monolith',
+  'obelisk',
 ] as const;
 type ObjectKind = (typeof OBJECT_TOOLS)[number];
 
@@ -42,6 +43,7 @@ const OBJECT_GLYPHS: Record<ObjectKind, string> = {
   dwelling: '⛺',
   visitable: '✚',
   monolith: '⛩',
+  obelisk: '🗿',
 };
 
 type Tool = (typeof TERRAINS)[number]['id'] | 'start' | ObjectKind | 'erase';

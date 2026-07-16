@@ -272,7 +272,7 @@ const GOLDEN_JOURNAL: Command[] = [
 // visitent aucun temple ⇒ valeur 0 partout : hash de FORME seule (+ `saveVersion`),
 // simulation/combat inchangés. (Le passage v28→29, `HeroState.backpack`, avait
 // déjà re-fixé le hash à af8a45c4 sans commentaire dédié.)
-const GOLDEN_HASH = 'e43b1f7e';
+const GOLDEN_HASH = '01e60459';
 
 describe('golden replay', () => {
   it('le journal scripté produit toujours le même état final', () => {

@@ -56,6 +56,13 @@ export function notify(event: AppEvent, game: GameState): string | null {
       return event.playerId === human
         ? t('toast.mineIncome', { amount: event.amount, resource: t(`resource.${event.resource}`) })
         : null;
+    // Obélisque visité (T-GRAIL) : progression, puis message de révélation du Graal.
+    case 'ObeliskVisited':
+      return event.playerId === human
+        ? event.grailRevealed
+          ? t('toast.grailRevealed')
+          : t('toast.obeliskVisited', { visited: event.visited, total: event.total })
+        : null;
     case 'TreasureTaken':
       return event.playerId === human
         ? t(event.choice === 'gold' ? 'toast.treasureGold' : 'toast.treasureXp', {

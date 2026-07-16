@@ -201,6 +201,48 @@ def units_sheets() -> dict[str, str]:
     return files
 
 
+def war_machines_sheet() -> dict[str, str]:
+    """Machines de guerre communes (data/core/war-machines.json, doc 02 §5) —
+    pièces de combat achetées à la Forge, **faction-agnostiques** (aucun
+    `groupId`) : engins de siège mécaniques, pas des créatures. Règle A
+    (sprites 512² painterly, alpha strict). Palette bois/fer neutre, aucune
+    identité de faction. Staging core parallèle à `buildings/core/`."""
+    loc_en, loc_fr = _locales(DATA / "core" / "locales")
+    machines = _load(DATA / "core" / "war-machines.json")["warMachines"]
+    # Indices visuels dérivés des capacités (data/core/abilities.json) — les
+    # machines ne sont pas dans ABILITY_HINTS (pensé pour des créatures).
+    cue = {
+        "ballista": "a large wheeled bolt-thrower ballista, taut torsion springs "
+                    "and a heavy iron-tipped bolt loaded, crew rigging",
+        "catapulte": "a heavy timber catapult / trebuchet with a loaded boulder "
+                     "in its sling arm and counterweight, siege-breaking bulk",
+        "arrow-tower": "a fixed fortified arrow tower of stone and timber, "
+                       "arrow-slits and a crenellated top, planted on the ground "
+                       "(immobile defensive structure)",
+    }
+    ids, cells = [], []
+    for w in machines:
+        name = _name(loc_en, loc_fr, f"warMachine.{w['id']}", w["id"])
+        ids.append(w["id"])
+        cells.append(f"\"{name}\" — {cue.get(w['id'], 'a fantasy war machine')}")
+    return _sheets(
+        slug="war-machines",
+        title="machines de guerre communes (Forge, faction-agnostiques)",
+        rule="A (sprites 512² painterly, alpha strict après extraction)",
+        ids=ids,
+        cells=cells,
+        subject_fmt="Character sheet, {n} medieval fantasy war machines and siege engines",
+        style_lines=[
+            "digital painting, heroic fantasy concept art style",
+            "(Heroes of Might and Magic, MTG illustration quality), painterly brush strokes,",
+            "mechanical constructs of timber, iron and rope, NOT living creatures,",
+            "3/4 view, ready-for-battle stance, soft directional light from upper-left,",
+            "neutral weathered wood-and-iron palette, no faction heraldry,",
+        ],
+        dest="assets/units/core/",
+    )
+
+
 def artifacts_sheet() -> dict[str, str]:
     loc_en, loc_fr = _locales(DATA / "core" / "locales")
     arts = _load(DATA / "core" / "artifacts.json")["artifacts"]
@@ -647,6 +689,7 @@ def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     files: dict[str, str] = {}
     files.update(units_sheets())
+    files.update(war_machines_sheet())
     files.update(artifacts_sheet())
     files.update(buildings_sheets())
     files.update(mines_sheets())

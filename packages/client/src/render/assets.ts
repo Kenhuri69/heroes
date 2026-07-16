@@ -107,15 +107,20 @@ export function logoUrl(): string | undefined {
  * sprite propre réutilise le sprite peint de son unité de base (`<base>`) plutôt
  * que le repli procédural — les armées améliorées restent peintes tant qu'un art
  * d'élite dédié n'est pas produit (doc 12 §10).
+ *
+ * Repli **core** : les pièces faction-agnostiques (machines de guerre — pas de
+ * `groupId`, doc 02 §5) sont rangées sous `units/core/<unitId>` et résolues même
+ * sans faction. Aucune faction en dur (clé opaque, guidelines §8.1).
  */
 export function unitSpriteUrl(unitId: string, factionId?: string): string | undefined {
-  if (!factionId) return undefined;
-  const direct = registry.get(`units/${factionId}/${unitId}`);
+  const direct = factionId ? registry.get(`units/${factionId}/${unitId}`) : undefined;
   if (direct) return direct;
   const ELITE = '-elite';
-  return unitId.endsWith(ELITE)
-    ? registry.get(`units/${factionId}/${unitId.slice(0, -ELITE.length)}`)
-    : undefined;
+  const elite =
+    factionId && unitId.endsWith(ELITE)
+      ? registry.get(`units/${factionId}/${unitId.slice(0, -ELITE.length)}`)
+      : undefined;
+  return elite ?? registry.get(`units/core/${unitId}`);
 }
 
 /**

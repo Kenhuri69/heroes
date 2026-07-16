@@ -239,3 +239,10 @@
   flex-wrap: wrap;
   margin-bottom: 0.5rem;
 }
+
+/* Boutons Jouer/Abandonner d'une partie active (NET-PVPUI slice B). */
+.online-match-buttons {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}

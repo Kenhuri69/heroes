@@ -2,6 +2,7 @@ import { apply, validate, EngineError, type Command, type EngineResult, type Gam
 import { appStore, type CombatResult, type CombatResultUnit } from './store';
 import { eventBus } from './events';
 import { reduceMotion } from './motion';
+import { recordOnlineTurn } from './online-match';
 
 /**
  * Bilan de fin de combat (retour de jeu 2026-07) : agrège les événements du
@@ -77,10 +78,11 @@ export function buildCombatResult(events: readonly GameEvent[]): CombatResult | 
  * (remédiation R2b CL6), au lieu d'une `Error` opaque « code: message ».
  */
 export async function dispatch(cmd: Command): Promise<EngineResult> {
-  const err = validate(appStore.getState().game, cmd);
+  const gameBefore = appStore.getState().game;
+  const err = validate(gameBefore, cmd);
   if (err) throw new EngineError(err);
-  const before = appStore.getState().game.combat;
-  const result = apply(appStore.getState().game, cmd);
+  const before = gameBefore.combat;
+  const result = apply(gameBefore, cmd);
   // Écran pré-combat (Lot 1) : armé quand un combat DÉMARRE (null → non-null),
   // désarmé quand il se termine (avec bilan pour un combat FOUILLÉ, sinon null —
   // départ délibéré). La conduite manuelle / l'Auto-Battle le désarment aussi
@@ -102,6 +104,9 @@ export async function dispatch(cmd: Command): Promise<EngineResult> {
     appStore.setState({ game: result.state });
   }
   eventBus.emit(result.events);
+  // NET-PVPUI (slice B) : capture/poste le tour en ligne (no-op hors match). Avant
+  // `runAiLoop` (de toute façon no-op en PvP 2 humains).
+  await recordOnlineTurn(cmd, gameBefore);
   await runAiLoop();
   return result;
 }

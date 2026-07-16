@@ -97,13 +97,17 @@ rejet **413** (garde-fou anti-épuisement mémoire du Worker).
 
 ### 5.3 PvP asynchrone
 
-> **UI client (NET-PVPUI, slice A — lobby)** : le panneau **En ligne**
-> (`OnlinePanel`, connecté) expose « Parties en ligne » — **Créer** (réutilise le
-> pipeline « nouvelle partie » via le drapeau `online` ⇒ le `StartGame` devient le
-> `setup` du match, `createMatch`), **liste** avec statut, **Rejoindre** (siège
-> libre) et **Abandonner**. La **boucle de tour** jouable (reconstruction par
-> `replayCommands`, `postMove`) et le **polling** « c'est ton tour » sont les
-> slices B/C (à suivre).
+> **UI client (NET-PVPUI)** : le panneau **En ligne** (`OnlinePanel`, connecté)
+> expose « Parties en ligne » — **slice A (lobby)** : Créer (réutilise le pipeline
+> « nouvelle partie » via le drapeau `online` ⇒ le `StartGame` devient le `setup`
+> du match, `createMatch`), liste avec statut, Rejoindre, Abandonner. **slice B
+> (boucle de tour)** : **Jouer** une partie `active` → `openOnlineMatch`
+> (`getMatch`+`getMoves` → `replayCommands` reconstruit l'état) ; à mon tour je
+> joue hors-ligne, `dispatch` **capture** mes commandes et poste le lot
+> (`postMove`) à l'`EndTurn` ; sinon un **overlay bloquant** (`OnlineWaitOverlay`)
+> masque le plateau avec **Rafraîchir** (re-synchro du journal) / **Quitter**.
+> `profileId` persisté à la connexion identifie mon siège. Le **polling** auto
+> « c'est ton tour » est la slice C (refresh manuel pour l'instant).
 
 1. `POST /matches { seed, setup(StartGame), seats }` → `matches` + `match_players`.
 2. Un adversaire rejoint un siège libre (`POST /matches/:id/join`).

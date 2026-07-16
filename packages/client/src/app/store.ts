@@ -215,6 +215,13 @@ export interface AppState {
    */
   aiTurn: { seat: number; done: number; total: number } | null;
   /**
+   * Partie PvP asynchrone en cours (NET-PVPUI slice B) — `null` en partie locale.
+   * `id` = match serveur ; `nextSeq` = prochain n° de lot à poster ; `myPlayerId`
+   * = id moteur de MON siège (pour savoir quand c'est mon tour). Présentation/
+   * pilotage client (non persisté dans le snapshot moteur).
+   */
+  onlineMatch: { id: string; nextSeq: number; myPlayerId: string | null } | null;
+  /**
    * F-SCHOOLS.8 (Pas de Brume) : ciblage d'hex de combat en attente. Posé par le
    * grimoire quand le joueur a choisi un sort de téléportation et sa pile alliée ;
    * `CombatScene` surligne alors les destinations et le tap dispatche
@@ -290,6 +297,7 @@ export const appStore = createStore<AppState>(() => ({
   loading: null,
   playerColors: {},
   aiTurn: null,
+  onlineMatch: null,
   combatSpellTarget: null,
   combatSpellZone: null,
   combatInspectId: null,

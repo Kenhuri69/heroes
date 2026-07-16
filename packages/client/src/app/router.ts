@@ -66,7 +66,7 @@ export function navigate(screen: Screen): void {
     screen,
     modals: [],
     turnAck: null,
-    ...(screen === 'menu' ? { playerColors: {}, activeChapter: null } : {}),
+    ...(screen === 'menu' ? { playerColors: {}, activeChapter: null, onlineMatch: null } : {}),
   });
 }
 

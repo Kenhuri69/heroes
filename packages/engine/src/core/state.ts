@@ -67,6 +67,12 @@ export interface PlayerState {
    * états construits à la main ; le moteur lit toujours `?? []`.
    */
   obelisksVisited?: string[];
+  /**
+   * Le joueur possède-t-il le Graal (T-GRAIL lot 2) ? Posé par `Dig` sur la tuile
+   * du Graal ; débloque le bâtiment Graal en ville (lot 3). Optionnel (absent ⇒
+   * `false`).
+   */
+  hasGrail?: boolean;
 }
 
 /**
@@ -299,8 +305,10 @@ export interface CaravanState {
  * v31 : `PlayerState.obelisksVisited` + `AdventureMapDef.grailPos` + objet de carte
  * `obelisk` (T-GRAIL lot 1, doc 02 §2.2) : méta-puzzle du Graal — visiter tous les
  * obélisques révèle la tuile enterrée du Graal.
+ * v32 : `PlayerState.hasGrail` (T-GRAIL lot 2) : possession du Graal après fouille
+ * (`Dig`) de sa tuile, débloque le bâtiment Graal en ville.
  */
-export const CURRENT_SAVE_VERSION = 31;
+export const CURRENT_SAVE_VERSION = 32;
 
 export interface GameState {
   saveVersion: number;

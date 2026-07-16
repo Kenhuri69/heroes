@@ -272,7 +272,12 @@ const GOLDEN_JOURNAL: Command[] = [
 // visitent aucun temple ⇒ valeur 0 partout : hash de FORME seule (+ `saveVersion`),
 // simulation/combat inchangés. (Le passage v28→29, `HeroState.backpack`, avait
 // déjà re-fixé le hash à af8a45c4 sans commentaire dédié.)
-const GOLDEN_HASH = '01e60459';
+// Re-fixé à T-GRAIL lot 1 (save v30→31, hash → 01e60459) : `saveVersion` passe à
+// 31 (`PlayerState.obelisksVisited`/`AdventureMapDef.grailPos` optionnels, absents
+// des fixtures golden). Puis lot 2 (save v31→32, hash → 04cb6e08) :
+// `PlayerState.hasGrail` optionnel, jamais posé dans le golden (aucune fouille) ⇒
+// seul `saveVersion` change : hash de FORME seule, simulation inchangée.
+const GOLDEN_HASH = '04cb6e08';
 
 describe('golden replay', () => {
   it('le journal scripté produit toujours le même état final', () => {

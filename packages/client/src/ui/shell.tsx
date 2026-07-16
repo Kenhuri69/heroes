@@ -4,6 +4,7 @@ import {
   RESOURCE_IDS,
   dailyMovementPoints,
   dailyIncome,
+  grailRevealedTo,
   xpForLevel,
   weekOf,
   monthOf,
@@ -1068,7 +1069,22 @@ function TurnBar({ onOpenOptions }: { onOpenOptions: () => void }) {
   // Réf `s.game` stable puis dérivation dans le corps (cf. HeroStrip) : un
   // sélecteur `humanTowns(s.game)` renverrait un nouveau tableau → boucle infinie.
   const towns = humanTowns(useApp((s) => s.game));
+  const game = useApp((s) => s.game);
   const unread = useApp((s) => s.journalUnread);
+  // Fouille du Graal (T-GRAIL lot 2) : bouton visible seulement quand le héros
+  // sélectionné du joueur humain est sur la tuile du Graal RÉVÉLÉE (tous les
+  // obélisques visités) et que le joueur ne possède pas encore le Graal.
+  const canDig = (() => {
+    const gp = game.map?.grailPos;
+    if (!hero || !gp) return false;
+    const human = game.players.find((p) => p.id === humanId(game));
+    return (
+      !human?.hasGrail &&
+      grailRevealedTo(game.map!, human?.obelisksVisited) &&
+      hero.pos.x === gp.x &&
+      hero.pos.y === gp.y
+    );
+  })();
   return (
     <div class="turn-row">
       <div class="status-bar">
@@ -1165,6 +1181,18 @@ function TurnBar({ onOpenOptions }: { onOpenOptions: () => void }) {
             {t('town.open')}
           </button>
         ))}
+        {canDig && hero && (
+          <button
+            class="dig-grail"
+            data-testid="dig-grail"
+            title={t('adventure.digTitle')}
+            onClick={() => {
+              void dispatch({ type: 'Dig', heroId: hero.id });
+            }}
+          >
+            {t('adventure.dig')}
+          </button>
+        )}
         <button
           class="end-turn"
           data-testid="end-turn"

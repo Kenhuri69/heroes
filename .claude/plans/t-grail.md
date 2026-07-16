@@ -25,3 +25,10 @@ Verif: typecheck lint vitest(engine golden re-fix + content propagation) content
 - MARQUEUR Graal visuel REPORTÉ au Lot 2 (avec Dig — il y devient actionnable) ; Lot 1 = mécanique + toast de révélation.
 - Data: proto-01 (3 obélisques + grailPos) ; mapgen (obélisques scalés + grailPos, connectés).
 - Tests: engine map-grail (3), content propagation (loadMap), smoke (visite obelisk-1).
+
+## Lot 2 (livré)
+- Commande Dig (validate+handler), PlayerState.hasGrail? (save v31->v32, golden re-fixé 01e60459->04cb6e08), event GrailFound.
+- Client: bouton Fouiller (TurnBar, gaté hero-sur-grailPos-révélé), marqueur Pixi buildGrailMarker sur grailPos révélé, toast GrailFound, locales FR/EN, CSS .dig-grail (tokens).
+- proto-01 grailPos -> (6,6) atteignable pour smoke intégration.
+- Tests: engine map-grail (+3 Dig), smoke lot2 (MoveHero->Dig->hasGrail).
+- Reste Lot 3: bâtiment Graal (données par faction + gate hasGrail, effets existants).

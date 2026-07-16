@@ -3,6 +3,7 @@ import {
   areAllies,
   dailyMovementPoints,
   findPath,
+  grailRevealedTo,
   isAdjacent,
   samePos,
   stepCost,
@@ -36,6 +37,27 @@ import { pushToast } from '../../ui/toasts';
 const STEP_ANIMATION_MS = 110;
 
 /**
+ * Marqueur « fouiller ici » du Graal (T-GRAIL lot 2) : croix rayonnante dorée
+ * sur socle losange, posée sur la tuile révélée. Procédural (déterministe),
+ * couleurs Pixi hors périmètre du garde-fou couleur (ui/*.css seulement).
+ */
+function buildGrailMarker(): Container {
+  const node = new Container();
+  const c = TILE_SIZE / 2;
+  const gold = 0xf2c14e;
+  const glow = 0xfff2c4;
+  const ink = 0x3a2e12;
+  const g = new Graphics();
+  // Halo losange + croix de fouille dorée.
+  g.poly([c, c - 14, c + 16, c, c, c + 14, c - 16, c]).fill({ color: gold, alpha: 0.18 }).stroke({ width: 1.5, color: gold, alpha: 0.5 })
+    .rect(c - 2, c - 12, 4, 24).fill(gold).stroke({ width: 1, color: ink })
+    .rect(c - 12, c - 2, 24, 4).fill(gold).stroke({ width: 1, color: ink })
+    .circle(c, c, 3).fill(glow).stroke({ width: 1, color: ink });
+  node.addChild(g);
+  return node;
+}
+
+/**
  * Scène carte d'aventure : rendu depuis l'état moteur, animations depuis les
  * événements (doc 07 §3), interaction tap-tap (doc 08 §2.1) — 1er tap =
  * prévisualisation du chemin avec jours, 2ᵉ tap sur la même tuile = exécution.
@@ -52,6 +74,8 @@ export class AdventureScene {
    */
   private readonly entities = new Container();
   private readonly objects = new MapObjectsLayer(this.entities);
+  /** Marqueur « fouiller ici » posé sur la tuile du Graal une fois révélée (T-GRAIL lot 2). */
+  private grailMarker: Container | null = null;
   private readonly towns = new TownsLayer(this.entities);
   private readonly fog: FogOverlay;
   private readonly tilemap: Tilemap;
@@ -193,6 +217,23 @@ export class AdventureScene {
       playerColor(game.players, ownerId),
     );
     this.towns.sync(game.towns, humanId(game), (ownerId) => playerColor(game.players, ownerId));
+    // Marqueur du Graal (T-GRAIL lot 2) : posé sur `grailPos` une fois révélé au
+    // joueur (tous obélisques visités) et tant que non obtenu — guide vers la
+    // tuile à fouiller (`Dig`).
+    const gp = map.grailPos;
+    const showGrail = !!gp && !player.hasGrail && grailRevealedTo(map, player.obelisksVisited);
+    if (showGrail && gp) {
+      if (!this.grailMarker) {
+        this.grailMarker = buildGrailMarker();
+        this.entities.addChild(this.grailMarker);
+      }
+      const a = isoAnchor(gp.x, gp.y);
+      this.grailMarker.position.set(a.x, a.y);
+      this.grailMarker.zIndex = isoDepth(gp.x, gp.y);
+      this.grailMarker.visible = true;
+    } else if (this.grailMarker) {
+      this.grailMarker.visible = false;
+    }
     // Sources de vision vivante (héros + villes/mines possédées) : helper
     // PARTAGÉ avec la mini-carte (B11 — une seule implémentation, leçon CL9).
     const sightings = visionSightings(game);

@@ -81,3 +81,29 @@ describe('T-GRAIL — obélisques & révélation du Graal (doc 02 §2.2)', () =>
     );
   });
 });
+
+describe('T-GRAIL lot 2 — fouille (Dig) & obtention du Graal', () => {
+  it('fouiller la tuile du Graal donne le Graal au joueur et consomme la journée', () => {
+    const onGrail = move(started([], { x: 1, y: 0 }), [{ x: 1, y: 0 }]).state;
+    const r = apply(onGrail, { type: 'Dig', heroId: 'hero-p1' });
+    expect(r.state.players[0]!.hasGrail).toBe(true);
+    expect(r.state.heroes[0]!.movementPoints).toBe(0);
+    expect(r.events).toContainEqual({
+      type: 'GrailFound',
+      playerId: 'p1',
+      heroId: 'hero-p1',
+      pos: { x: 1, y: 0 },
+    });
+  });
+
+  it('fouiller hors de la tuile du Graal est refusé', () => {
+    const s0 = started([], { x: 5, y: 5 }); // héros en (0,0), Graal ailleurs
+    expect(() => apply(s0, { type: 'Dig', heroId: 'hero-p1' })).toThrow(/Graal/);
+  });
+
+  it('fouiller deux fois est refusé (Graal déjà possédé)', () => {
+    const onGrail = move(started([], { x: 1, y: 0 }), [{ x: 1, y: 0 }]).state;
+    const after = apply(onGrail, { type: 'Dig', heroId: 'hero-p1' }).state;
+    expect(() => apply(after, { type: 'Dig', heroId: 'hero-p1' })).toThrow();
+  });
+});

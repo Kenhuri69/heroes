@@ -53,6 +53,8 @@ export type GameEvent =
       total: number;
       grailRevealed: boolean;
     }
+  /** Graal obtenu (T-GRAIL lot 2) : le héros a fouillé la tuile du Graal pour ce joueur. */
+  | { type: 'GrailFound'; playerId: string; heroId: string; pos: GridPos }
   /** Trésor foulé : le choix or/XP est en attente (`ResolveTreasure`). */
   | {
       type: 'TreasureFound';

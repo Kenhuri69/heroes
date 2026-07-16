@@ -136,6 +136,7 @@ export function apply(state: GameState, cmd: Command): EngineResult {
 const GAME_OVER_BLOCKED = new Set<Command['type']>([
   'MoveHero',
   'EndTurn',
+  'Dig',
   'StartCombat',
   'CombatAction',
   'AutoCombat',
@@ -236,6 +237,26 @@ export function validate(state: GameState, cmd: Command): CommandError | null {
       const current = state.players[state.currentPlayer];
       if (!current || current.id !== cmd.playerId)
         return { code: 'notYourTurn', message: `ce n’est pas le tour de ${cmd.playerId}` };
+      return null;
+    }
+    case 'Dig': {
+      // Fouille du Graal (T-GRAIL lot 2) : le héros du joueur actif, posé sur la
+      // tuile du Graal et disposant encore de mouvement, obtient le Graal.
+      if (!state.started)
+        return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
+      if (state.combat) return { code: 'combatActive', message: 'un combat est en cours' };
+      if (state.pendingTreasure)
+        return { code: 'treasurePending', message: 'un trésor attend son choix or/XP' };
+      const hero = state.heroes.find((h) => h.id === cmd.heroId);
+      if (!hero) return { code: 'unknownHero', message: `héros inconnu '${cmd.heroId}'` };
+      const current = state.players[state.currentPlayer];
+      if (!current || hero.playerId !== current.id)
+        return { code: 'notYourHero', message: `'${cmd.heroId}' n’appartient pas au joueur actif` };
+      if (current.hasGrail) return { code: 'alreadyHasGrail', message: 'le Graal est déjà possédé' };
+      if (!state.map?.grailPos || !samePos(hero.pos, state.map.grailPos))
+        return { code: 'notOnGrail', message: 'le héros n’est pas sur la tuile du Graal' };
+      if (hero.movementPoints <= 0)
+        return { code: 'noMovement', message: 'plus de mouvement pour fouiller aujourd’hui' };
       return null;
     }
     case 'StartCombat': {
@@ -683,6 +704,15 @@ const handlers: Handlers = {
     // Le joueur humain ne résout pas le combat de gardien ici : l'interception
     // laisse `draft.combat` posé pour un combat interactif.
     advanceHeroAlongPath(draft, hero, player, cmd.path, events);
+  },
+
+  Dig(draft, cmd, events) {
+    const hero = draft.heroes.find((h) => h.id === cmd.heroId);
+    const player = draft.players.find((p) => hero && p.id === hero.playerId);
+    if (!hero || !player) return; // exclu par validate
+    player.hasGrail = true;
+    hero.movementPoints = 0; // la fouille consomme la journée (fidélité HoMM)
+    events.push({ type: 'GrailFound', playerId: player.id, heroId: hero.id, pos: { ...hero.pos } });
   },
 
   StartCombat(draft, cmd, events) {

@@ -220,7 +220,7 @@ export interface AppState {
    * = id moteur de MON siège (pour savoir quand c'est mon tour). Présentation/
    * pilotage client (non persisté dans le snapshot moteur).
    */
-  onlineMatch: { id: string; nextSeq: number; myPlayerId: string | null } | null;
+  onlineMatch: { id: string; nextSeq: number; myPlayerId: string | null; status: string } | null;
   /**
    * F-SCHOOLS.8 (Pas de Brume) : ciblage d'hex de combat en attente. Posé par le
    * grimoire quand le joueur a choisi un sort de téléportation et sa pile alliée ;

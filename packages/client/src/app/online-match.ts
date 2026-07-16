@@ -29,7 +29,7 @@ export async function openOnlineMatch(id: string): Promise<void> {
   turnBuffer = [];
   appStore.setState({
     game,
-    onlineMatch: { id, nextSeq: moves.length, myPlayerId },
+    onlineMatch: { id, nextSeq: moves.length, myPlayerId, status: detail.status },
     screen: 'adventure',
     modals: [],
   });
@@ -41,6 +41,27 @@ export async function openOnlineMatch(id: string): Promise<void> {
 export async function refreshOnlineMatch(): Promise<void> {
   const om = appStore.getState().onlineMatch;
   if (om) await openOnlineMatch(om.id);
+}
+
+/**
+ * Sondage périodique (NET-PVPUI slice C) : tant que j'attends l'adversaire,
+ * détecte son coup (`seq` avancé ⇒ re-synchro/rebuild, l'overlay se lève quand
+ * c'est mon tour) ou un changement de statut serveur (fin/abandon). Erreurs
+ * réseau avalées — nouvel essai au tick suivant. No-op hors match.
+ */
+export async function pollOnlineMatch(): Promise<void> {
+  const om = appStore.getState().onlineMatch;
+  if (!om) return;
+  try {
+    const d = await getMatch(om.id);
+    if (d.seq >= om.nextSeq) {
+      await refreshOnlineMatch(); // l'adversaire a joué → rebuild
+    } else if (d.status !== om.status) {
+      appStore.setState({ onlineMatch: { ...om, status: d.status } });
+    }
+  } catch {
+    /* réseau : on réessaiera au prochain tick */
+  }
 }
 
 /** Est-ce à MON tour de jouer dans le match en ligne courant ? */

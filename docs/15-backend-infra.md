@@ -106,8 +106,11 @@ rejet **413** (garde-fou anti-épuisement mémoire du Worker).
 > joue hors-ligne, `dispatch` **capture** mes commandes et poste le lot
 > (`postMove`) à l'`EndTurn` ; sinon un **overlay bloquant** (`OnlineWaitOverlay`)
 > masque le plateau avec **Rafraîchir** (re-synchro du journal) / **Quitter**.
-> `profileId` persisté à la connexion identifie mon siège. Le **polling** auto
-> « c'est ton tour » est la slice C (refresh manuel pour l'instant).
+> `profileId` persisté à la connexion identifie mon siège. **slice C (polling)** :
+> tant que l'overlay d'attente est monté, `pollOnlineMatch` sonde `GET /matches/:id`
+> (~12 s, coupé si l'onglet est masqué) ; dès que l'adversaire a joué (`seq`
+> avancé) l'état se re-synchronise et l'overlay se lève seul ; la fin/abandon
+> (statut serveur `finished`/`abandoned`) est surfacée à l'écran.
 
 1. `POST /matches { seed, setup(StartGame), seats }` → `matches` + `match_players`.
 2. Un adversaire rejoint un siège libre (`POST /matches/:id/join`).

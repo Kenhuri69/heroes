@@ -38,6 +38,8 @@
   "online.wait.leave": "Quitter",
   "online.wait.over": "Partie terminée",
   "online.wait.overHint": "Cette partie en ligne est terminée.",
+  "online.wait.abandoned": "Adversaire absent",
+  "online.wait.abandonedHint": "L’adversaire a abandonné ou dépassé le délai — la partie est terminée.",
   "menu.scenarios": "Scénarios",
   "menu.events": "Événements",
   "menu.event.active": "Événement",

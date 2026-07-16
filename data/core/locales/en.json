@@ -38,6 +38,8 @@
   "online.wait.leave": "Leave",
   "online.wait.over": "Game over",
   "online.wait.overHint": "This online game has ended.",
+  "online.wait.abandoned": "Opponent gone",
+  "online.wait.abandonedHint": "The opponent forfeited or timed out — the game is over.",
   "menu.scenarios": "Scenarios",
   "menu.events": "Events",
   "menu.event.active": "Event",

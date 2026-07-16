@@ -75,9 +75,14 @@ sérialisé + statut) ; `match_players` (sièges = ordre de tour) ; `moves`
 
 ### 5.2 Cloud saves
 
-`PUT /saves/:slot { state, save_version }` (upsert) · `GET /saves/:slot`. Le
+`PUT /saves/:slot { state, save_version }` (upsert) · `GET /saves/:slot` ·
+`GET /saves` (**liste** des slots du profil : `slot`, `save_version`, `updated_at`,
+sans le blob `state` — requête légère pour l'UI, NET-CLOUDSAVES.2). Le
 client réutilise `serializeState`/`deserializeState` et la **garde de version**
 (doc 07 §4, 3.8) déjà en place — un save d'une autre version est rejeté proprement.
+Le panneau **En ligne** (`OnlinePanel`) affiche la liste des sauvegardes cloud
+(libellé de slot, horodatage, version) avec **Charger** par slot et **Téléverser
+la partie en cours** ; le tout gaté par `isOnline()+isLoggedIn()`.
 **Garde serveur (NET-SRVGUARD)** : le Worker applique aussi une garde
 **anti-downgrade** — un `PUT /saves` dont le `save_version` est **antérieur** à
 celui déjà stocké pour ce slot est rejeté (**409**), un client obsolète ne peut

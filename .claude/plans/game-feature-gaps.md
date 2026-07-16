@@ -782,10 +782,16 @@ SDK `packages/client/src/app/net.ts` sans autre appelant).
   `engine/net`, jouer son tour hors-ligne, `postMove`), polling « c'est ton
   tour » (doc 15 §5.3.4), reprise/refresh. Dépend de NET-MATCHDETAIL.
 
-- **NET-CLOUDSAVES — Cloud saves câblées** 🕳️ M ⬜
-  Doc : doc 15 §5.2, doc 09 Phase 3. Code : `putSave`/`getSave` SDK sans
-  appelant ; aucune UI. Spec : section « En ligne » des sauvegardes (liste de
-  slots, upload/download, horodatage), garde de version client déjà en place.
+- **NET-CLOUDSAVES — Cloud saves câblées** 🕳️ M ✅
+  Doc : doc 15 §5.2, doc 09 Phase 3. **Cœur livré** (backlog ⬜ était périmé) :
+  `pushCloudSave`/`pullCloudSave` (`app/save.ts`, même sérialisation + garde de
+  version que le local) appelés depuis `OptionsPanel`, gatés `isOnline()+
+  isLoggedIn()`, toasts (chargé/incompatible/non démarré/erreur).
+  **NET-CLOUDSAVES.2 livré** (plan `net-cloudsaves-list.md`) : **liste + horodatage**
+  — serveur `GET /saves` (slots du profil : slot/version/updated_at, sans blob),
+  SDK `listSaves()`, panneau **En ligne** avec liste des slots (libellé + date +
+  version), **Charger** par slot et **Téléverser la partie en cours**. Zéro moteur,
+  pas de bump save. Chemin en ligne non couvert par le smoke (pas de backend en CI).
 
 - **NET-SRVGUARD — Garde de version & conflits côté serveur** 🧩 S 🧩 (garde livrée ; backup différé)
   Doc : doc 15 §5.2, doc 07 §4. Livré (plan `net-srvguard.md`) : **garde

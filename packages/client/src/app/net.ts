@@ -94,6 +94,13 @@ export function putSave(slot: string, state: string, saveVersion: number): Promi
 export function getSave(slot: string): Promise<{ save_version: number; state: string; updated_at: number }> {
   return api(`/saves/${slot}`, { method: 'GET' });
 }
+/**
+ * Liste les slots de sauvegarde cloud du profil (NET-CLOUDSAVES.2) : slot +
+ * version de forme + horodatage, sans le blob d'état (requête légère pour l'UI).
+ */
+export function listSaves(): Promise<{ saves: { slot: string; save_version: number; updated_at: number }[] }> {
+  return api('/saves', { method: 'GET' });
+}
 
 // — Parties asynchrones —
 

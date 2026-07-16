@@ -972,13 +972,13 @@ sont du **contenu**.
   manquent « Habitation : Recrue », « Tableau des Contrats », et tout
   sylvan-court (cf. AS-SYLVAN).
 
-- **AS-TOWNBG — Décors de ville composables** 🕳️ M 🟡 (partiel)
+- **AS-TOWNBG — Décors de ville composables** 🕳️ M ✅
   Spec : fonds + slots d'emplacements par faction (doc 08 §2.2, doc 12 §5). Fait :
-  les fonds peints des 6 factions existent (`assets/backgrounds/town-*.jpg`) et les
-  **slots d'emplacements** sont livrés en data-driven via UX-TOWNVIEW lot 2
-  (`assets/layouts/town-<faction>.json`, défaut « au sol » + bespoke haven/necropolis).
-  Reste optionnel : fonds « à lots vides » dédiés (au lieu d'illustrations pleines)
-  + layouts bespoke des 4 autres factions + fond de test-faction.
+  les **6 fonds ont été régénérés** en décors **à lots de construction vides**
+  (prompts révisés doc 12 §5) et **les 6 layouts d'emplacements** sont calés dessus
+  (`assets/layouts/town-<faction>.json`, data-driven). Libellés permanents retirés
+  (look HoMM). Reste optionnel : layout dédié + fond de test-faction (au défaut
+  « au sol » + dégradé gouache), ré-affinage fin des ancres.
 
 - **AS-OVERLAYS — Habillage chargement/cutscenes** 🕳️ S ⬜ (hors promesse
   doc 12 — optionnel). Code : `LoadingOverlay.tsx`/`CutsceneOverlay.tsx` en CSS pur.

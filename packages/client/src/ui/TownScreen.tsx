@@ -438,7 +438,6 @@ function TownSlotButton({
           <span class="town-view-upgrade" data-testid="town-view-upgrade" title={t('town.upgradeAvailable')} aria-hidden="true" />
         )}
       </span>
-      <span class="town-view-label">{buildingName(id)}</span>
     </button>
   );
 }

@@ -250,8 +250,14 @@
 > `assets/prompts/backgrounds.md`, doc 12 §5) ont été **révisés pour l'objectif
 > composable** : un unique donjon focal en haut, des terrasses / lots vides
 > dégagés descendant vers un avant-plan non encombré (place pour les vignettes de
-> bâtiments), au lieu d'une cité déjà saturée — pour qu'une **future
-> régénération** produise des décors cohérents avec la vue composée.
+> bâtiments), au lieu d'une cité déjà saturée. Les **6 fonds ont été régénérés**
+> sur ces prompts (chacun présente désormais des **lots de construction vides**
+> au premier plan) et **les emplacements des 6 factions sont calés dessus**
+> (`assets/layouts/town-<faction>.json`). Dans la foulée, les **libellés
+> permanents** sous chaque vignette ont été **retirés** (ils encombraient le
+> décor à 13-20 bâtiments) : l'identité passe par la vignette peinte + la **ligne
+> d'inspection** (survol/focus/appui long, lot 3) + `title`/`aria-label` — look
+> d'écran de ville HoMM, découvrabilité et accessibilité préservées.
 >
 > 🎨 **Lot 3 (polish interactions, client pur)** : (1) **indicateur d'upgrade** —
 > un emplacement **construit** encore améliorable (upgrade de niveau bâtissable

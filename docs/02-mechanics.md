@@ -273,7 +273,7 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 | Artefacts | gardés selon rareté | équipement héros (10 slots) |
 | Gardiens neutres | pile de créatures | combat ; force affichée en fourchette (« quelques », « horde »…) |
 | Villes | capturables | cf. §4 |
-| Obélisques/Graal | méta-puzzle | obélisques + révélation livrés (T-GRAIL lot 1) ; fouille & bâtiment à suivre |
+| Obélisques/Graal | méta-puzzle | obélisques + révélation + fouille livrés (T-GRAIL lots 1-2) ; bâtiment Graal à suivre |
 
 > **État (comblement post-MVP)** : ressources au sol (7 types), **mines**
 > capturables (fouler la tuile ⇒ drapeau à la couleur du joueur, revenu/jour
@@ -316,8 +316,12 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 > `town`). **Obélisques & Graal (T-GRAIL lot 1)** : des **obélisques** (`obelisk`)
 > parsemés révèlent, une fois **tous** visités par un joueur, la **tuile enterrée
 > du Graal** (`AdventureMapDef.grailPos`, `PlayerState.obelisksVisited`,
-> événement `ObeliskVisited`). La **fouille** (`Dig`) pour obtenir le Graal et le
-> **bâtiment Graal** (constructible si possession) sont les lots suivants.
+> événement `ObeliskVisited`). La **fouille** (`Dig`, T-GRAIL lot 2) : un héros
+> posé sur la tuile du Graal la fouille (consomme la journée) et le joueur
+> **obtient le Graal** (`PlayerState.hasGrail`, événement `GrailFound`) — un
+> marqueur guide vers la tuile une fois révélée, bouton **Fouiller** dans la
+> barre de tour. Le **bâtiment Graal** (constructible si possession) est le lot
+> suivant.
 
 > **Sémantique de parcours** : ressources, artefacts au sol et mines sont
 > ramassés/capturés **en passant** — le héros ne s'arrête pas et poursuit son

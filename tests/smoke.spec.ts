@@ -2329,6 +2329,29 @@ test('T-GRAIL : visiter un obélisque affiche la progression (doc 02 §2.2)', { 
   expect(errors).toEqual([]);
 });
 
+test('T-GRAIL lot 2 : fouiller la tuile du Graal donne le Graal (doc 02 §2.2)', { tag: ['@core'] }, async ({
+  page,
+}) => {
+  const errors = await openGame(page);
+  // grailPos de proto-01 est en (6,6), atteignable. Amener le héros dessus.
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({
+      type: 'MoveHero',
+      heroId: 'hero-player-1',
+      path: [{ x: 4, y: 4 }, { x: 5, y: 5 }, { x: 6, y: 6 }],
+    }),
+  );
+  await expect.poll(() => heroPos(page)).toEqual({ x: 6, y: 6 });
+  // Fouiller : le joueur obtient le Graal (débloque le bâtiment Graal, lot 3).
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({ type: 'Dig', heroId: 'hero-player-1' }),
+  );
+  await expect
+    .poll(() => page.evaluate(() => window.__HEROES_TEST__!.getState().players[0]?.hasGrail ?? false))
+    .toBe(true);
+  expect(errors).toEqual([]);
+});
+
 test('upgrade : bâtir le dwelling amélioré puis améliorer une pile de garnison (Alpha 4.11)', async ({
   page,
 }) => {

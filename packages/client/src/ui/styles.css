@@ -194,6 +194,17 @@
   font: 700 1rem var(--font-display); /* voix display UXD-1 (action majeure) */
 }
 
+/* Bouton Fouiller (T-GRAIL lot 2) : action ponctuelle mise en avant en laiton
+   (accent doré du Graal), distinct de « Fin de tour » (sang). */
+.actions .dig-grail {
+  min-height: 56px;
+  padding: 8px 20px;
+  background: var(--brass);
+  border-color: var(--brass-bright);
+  color: var(--ink-900);
+  font: 700 1rem var(--font-display);
+}
+
 .options-toggle {
   font-size: 1.125rem;
 }

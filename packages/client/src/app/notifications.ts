@@ -63,6 +63,8 @@ export function notify(event: AppEvent, game: GameState): string | null {
           ? t('toast.grailRevealed')
           : t('toast.obeliskVisited', { visited: event.visited, total: event.total })
         : null;
+    case 'GrailFound':
+      return event.playerId === human ? t('toast.grailFound') : null;
     case 'TreasureTaken':
       return event.playerId === human
         ? t(event.choice === 'gold' ? 'toast.treasureGold' : 'toast.treasureXp', {

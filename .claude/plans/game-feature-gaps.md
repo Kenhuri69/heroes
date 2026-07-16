@@ -774,7 +774,7 @@ SDK `packages/client/src/app/net.ts` sans autre appelant).
   `VITE_BACKEND_URL` ⇒ smoke non-régressé). Pas de harness de test Worker ⇒
   vérifié par typecheck server+client + intégration à NET-PVPUI.
 
-- **NET-PVPUI — Écrans PvP asynchrones jouables** 🕳️ L 🚧 (**découpé A/B/C**)
+- **NET-PVPUI — Écrans PvP asynchrones jouables** 🕳️ L ✅ (**A+B+C livrés**)
   Doc : doc 01 §3 (PvP async = Beta), doc 09 Phase 3, doc 15 §5.3/§9, doc 08 §2.5.
   Backend + SDK + `engine/net` **déjà complets** (l'audit a montré que le backlog
   « code mort côté UI » était exact : il ne manquait QUE l'UI).
@@ -790,8 +790,11 @@ SDK `packages/client/src/app/net.ts` sans autre appelant).
     `OnlineWaitOverlay` bloquant hors de mon tour (Rafraîchir/Quitter) ; `profileId`
     persisté identifie mon siège ; Handoff hot-seat supprimé en ligne. Client only,
     zéro moteur/serveur. Chemin en ligne non couvert par le smoke.
-  - **Slice C ⬜** : polling auto « c'est ton tour » + notification + fin de partie
-    par statut serveur (abandon/timeout ; refresh MANUEL pour l'instant).
+  - **Slice C ✅** (plan `net-pvpui-polling.md`) : **polling auto** — tant que
+    l'`OnlineWaitOverlay` est monté, `pollOnlineMatch` sonde `GET /matches/:id`
+    (~12 s, coupé onglet masqué) : coup adverse (`seq` avancé) ⇒ re-synchro +
+    l'overlay se lève seul ; fin/abandon (statut serveur) surfacée. Client only,
+    zéro moteur/serveur. **NET-PVPUI complet (A+B+C).**
 
 - **NET-CLOUDSAVES — Cloud saves câblées** 🕳️ M ✅
   Doc : doc 15 §5.2, doc 09 Phase 3. **Cœur livré** (backlog ⬜ était périmé) :

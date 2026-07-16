@@ -320,11 +320,27 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 > posé sur la tuile du Graal la fouille (consomme la journée) et le joueur
 > **obtient le Graal** (`PlayerState.hasGrail`, événement `GrailFound`) — un
 > marqueur guide vers la tuile une fois révélée, bouton **Fouiller** dans la
-> barre de tour. Le **bâtiment Graal** (T-GRAIL lot 3, `data/core/buildings.json`
-> `grail`) est alors **constructible** en ville (point d'extension générique
-> `requiresGrail` sur `BuildingDef`, gaté par `hasGrail` du propriétaire ;
-> `uniquePerPlayer`), effet majeur via un effet de bâtiment **existant**
-> (`growthBonus`) — zéro nom de faction dans le moteur.
+> barre de tour. Le **bâtiment Graal** est alors **constructible** en ville
+> (point d'extension générique `requiresGrail` sur `BuildingDef`, gaté par
+> `hasGrail` du propriétaire ; `uniquePerPlayer`) — zéro nom de faction dans le
+> moteur.
+>
+> **Graal signature par faction** (données pures, zéro diff moteur — chaque
+> maison ships son propre bâtiment `<faction>-grail` dans `data/factions/<f>/`,
+> `factionId` town-scoped) : le Graal **double la signature** de sa faction via un
+> effet de bâtiment **générique existant**. Magnitudes = 1ère calibration,
+> ajustable via `faction:sim`. Rappel : les champs `heroAura` (moral/déf/mvt) sont
+> **town-scoped** (héros sur la tuile de ville / défense de siège).
+>
+> | Faction | Effet du Graal | Signature |
+> |---|---|---|
+> | Haven | `heroAura` moral +2 / déf garnison +5 / mvt +400 | bastion sacré, défense (Ferveur/Formation, doc 03 §2) |
+> | Necropolis | `growthBonus` +100 % | nuée mort-vivante (Nécromancie, doc 04 §2) |
+> | Arcane Hunters | `factionResourceIncome` Essence +12/j | ressource Essence (doc 05) |
+> | Sylvan Court | `heroAura` mvt +700 | sentiers de la sylve (Symbiose, doc 14) |
+> | Vox Arcana | `factionResourceIncome` Résonance +12/j | Honmoon résonnant (doc 16) |
+> | Dungeon | `income` +1500 or/j | or noir mercantile (doc 17) |
+> | test-faction | `growthBonus` +100 % | neutre (miroir de l'ancien Graal générique) |
 
 > **Sémantique de parcours** : ressources, artefacts au sol et mines sont
 > ramassés/capturés **en passant** — le héros ne s'arrête pas et poursuit son

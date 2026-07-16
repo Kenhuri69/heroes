@@ -94,6 +94,9 @@ implacable, car la forêt ne charge pas — elle *encercle*.
     `applyWeeklyGrowth` somme le `growthBonus` de tous les bâtiments construits).
     Coût 2000 or + 5 cristaux, prérequis Fort niveau 1. Le « Cercle des Anciens »
     de l'ébauche est abandonné (redondant avec la `mageGuild` commune).
+  - **Graal** (`sylvan-court-grail`, gaté par le méta-puzzle obélisques →
+    fouille) : sentiers de la sylve — `heroAura` mouvement +700 (town-scoped).
+    Cf. doc 02 §2.2 (table par-faction).
 - **Aucune ressource de faction propre** (choix de cadrage : Sylvan valide que la
   modularité tient *sans* rouvrir le point d'extension « ressource de faction »
   déjà prouvé par Essence — variété de preuve).

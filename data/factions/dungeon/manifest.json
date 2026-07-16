@@ -58,7 +58,8 @@
       "dungeon-dwelling-t5",
       "dungeon-dwelling-t6",
       "dungeon-dwelling-t7",
-      "dungeon-cursed-well"
+      "dungeon-cursed-well",
+      "dungeon-grail"
     ],
     "dwellings": [
       { "tier": 1, "unitId": "t1-eclaireur", "buildingId": "dungeon-dwelling-t1" },

@@ -266,6 +266,23 @@
           }
         }
       ]
+    },
+    {
+      "id": "sylvan-court-grail",
+      "loreKey": "@loc:building.sylvan-court-grail.lore",
+      "maxLevel": 1,
+      "requiresGrail": true,
+      "levels": [
+        {
+          "cost": {},
+          "requires": [{ "building": "townHall", "level": 1 }],
+          "effect": {
+            "type": "heroAura",
+            "movementBonusFlat": 700
+          },
+          "uniquePerPlayer": true
+        }
+      ]
     }
   ]
 }

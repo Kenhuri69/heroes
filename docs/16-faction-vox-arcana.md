@@ -334,7 +334,10 @@ gagne par l'usure, les buffs de la Scène et le bon choix de Maison.
 
 ## 5. Arbre de bâtiments
 
-Bâtiments communs : cf. doc 02 §4.1 (skins « académie gothique »). Spécifiques :
+Bâtiments communs : cf. doc 02 §4.1 (skins « académie gothique »). **Graal**
+(`vox-arcana-grail`, gaté par le méta-puzzle obélisques → fouille) : Honmoon
+résonnant — `factionResourceIncome` Résonance +12/j. Cf. doc 02 §2.2 (table
+par-faction). Spécifiques :
 
 | Bâtiment | Prérequis | Effet |
 |----------|-----------|-------|

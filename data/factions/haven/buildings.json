@@ -147,6 +147,25 @@
           "effect": { "type": "grantSpell", "spellId": "benediction" }
         }
       ]
+    },
+    {
+      "id": "haven-grail",
+      "loreKey": "@loc:building.haven-grail.lore",
+      "maxLevel": 1,
+      "requiresGrail": true,
+      "levels": [
+        {
+          "cost": {},
+          "requires": [{ "building": "townHall", "level": 1 }],
+          "effect": {
+            "type": "heroAura",
+            "combatMoraleBonus": 2,
+            "garrisonDefense": 5,
+            "movementBonusFlat": 400
+          },
+          "uniquePerPlayer": true
+        }
+      ]
     }
   ]
 }

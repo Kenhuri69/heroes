@@ -404,6 +404,24 @@
           }
         }
       ]
+    },
+    {
+      "id": "arcane-hunters-grail",
+      "loreKey": "@loc:building.arcane-hunters-grail.lore",
+      "maxLevel": 1,
+      "requiresGrail": true,
+      "levels": [
+        {
+          "cost": {},
+          "requires": [{ "building": "townHall", "level": 1 }],
+          "effect": {
+            "type": "factionResourceIncome",
+            "resource": "essence",
+            "amount": 12
+          },
+          "uniquePerPlayer": true
+        }
+      ]
     }
   ]
 }

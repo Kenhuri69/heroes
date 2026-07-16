@@ -31,7 +31,8 @@
       "fort",
       "mageGuild",
       "forge",
-      "test-faction-dwelling-t1"
+      "test-faction-dwelling-t1",
+      "test-faction-grail"
     ],
     "dwellings": [
       {

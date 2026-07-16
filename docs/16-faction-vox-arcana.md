@@ -302,24 +302,31 @@ existants** (bouclier / buff / debuff / soin) — zéro nouveau moteur :
 
 | Tier | Unité | Ancrage | PV | Att | Déf | Dégâts | Vit. | Cr./sem | Coût | Capacités |
 |------|-------|---------|----|-----|-----|--------|------|---------|------|-----------|
-| 1 | **Chœur d'apprentis** | élèves / chant | 5 | 3 | 2 | 1–2 | 4 | 14 | 34 or | `swarm` ; *(performeur : gain de Résonance — différé)* |
+| 1 | **Chœur d'apprentis** | élèves / chant | 5 | 3 | 2 | 1–2 | 4 | 14 | 34 or | `swarm`, `performer(+1 Résonance/round)` |
 | 2 | **Duelliste** | défense contre les Forces du Mal | 10 | 5 | 3 | 2–4 | 5 | 9 | 100 or | `shooter(9)` (baguette) |
 | 3 | **Hippogriffe** | créature Poudlard | 18 | 7 | 5 | 4–7 | 7 | 6 | 200 or | `flying` |
-| 4 | **Chasseuse-Idole** | HUNTR/X | 33 | 10 | 8 | 7–11 | 6 | 4 | 450 or + 1 cristal | `shooter(7, noMeleePenalty)` ; *(performeur — différé)* |
+| 4 | **Chasseuse-Idole** | HUNTR/X | 33 | 10 | 8 | 7–11 | 6 | 4 | 450 or + 1 cristal | `shooter(7, noMeleePenalty)`, `performer(+2 Résonance/round)` |
 | 5 | **Sombral** | créature Poudlard | 38 | 11 | 9 | 7–11 | 9 | 3 | 720 or | `flying`, `fear(20 %, 1 round)` |
-| 6 | **Maître de Sortilèges** | professeur | 55 | 14 | 12 | 10–16 | 5 | 2 | 1150 or + 1 gemme | `spellcaster(Dissonance/Chant, ×2)` |
-| 7 | **Phénix** | créature Poudlard | 142 | 19 | 17 | 22–34 | 11 | 1 | 2750 or + 2 gemmes | `flying`, `noRetaliation` ; *(renaissance — différé)* |
+| 6 | **Maître de Sortilèges** | professeur | 55 | 14 | 12 | 10–16 | 5 | 2 | 1150 or + 1 gemme | *(spellcaster Dissonance/Chant ×2 — différé, équilibrage CAP-CAST)* |
+| 7 | **Phénix** | créature Poudlard | 118 | 19 | 17 | 18–28 | 11 | 1 | 2750 or + 2 gemmes | `flying`, `noRetaliation`, `rebirth(30 %)` (élite 35 %) |
 | 8 | **Avatar du Honmoon** | fusion scène+magie | 210 | 24 | 20 | 38–56 | 8 | 1 | 3600 or + 3 gemmes + **40 Résonance** | `flying`, `noRetaliation` ; *(spellcaster Barrière du Honmoon / barrière de zone au max de Résonance — différé)* |
 
-> 📊 **DOC-STATS / CAP-DATAFIX (lot A1)** : la table ci-dessus est réalignée sur
-> les **données livrées** (`data/factions/vox-arcana/units/`), équilibrées par
+> 📊 **DOC-STATS / CAP-DATAFIX** : la table ci-dessus est réalignée sur les
+> **données livrées** (`data/factions/vox-arcana/units/`), équilibrées par
 > `faction:sim` — celles-ci font foi pour les **stats** (décision design
-> 2026-07-10 : PV/Att/Dégâts/coûts/munitions T1–T5,T7 ajustés). Pour les
+> 2026-07-10 : PV/Att/Dégâts/coûts/munitions ajustés ; **finition 2026-07-16** :
+> **T7 Phénix** corrigé dans la table à ses valeurs de données réelles — PV 118,
+> dégâts 18–28, abaissés en compensation du `rebirth`, cf. §7). Pour les
 > **capacités**, les docs font foi : l'Idole reçoit `noMeleePenalty` en données.
 > L'Avatar conserve `flying`+`noRetaliation` (présents en données, budget de
 > puissance figé par `faction:sim`) — divergence doc↔données tranchée **côté
 > données** par prudence (ne pas nerfer un T8 livré) ; le `spellcaster(Barrière
 > du Honmoon)` et la barrière de zone restent différés (doc 16 §7).
+> **Capacités désormais LIVRÉES** (table mise à jour, marqueurs « différé »
+> retirés) : `performer` (Chœur T1 +1 / Idole T4 +2 Résonance/round, F-RESON.2)
+> et `rebirth` (Phénix, CAP-LIFE.2). **Encore différé** (câblage données gaté par
+> l'équilibrage `faction:sim`, CAP-CAST) : le `spellcaster` du **Maître de
+> Sortilèges** (T6) — l'unité combat normalement en attendant.
 
 **Faiblesses assumées** (équilibre) : peu de dégâts bruts « canon » avant le T6 ;
 la faction paie sa polyvalence par l'absence d'un tueur de pile précoce — elle

@@ -244,13 +244,21 @@ Familles, par mécanique moteur commune :
     l'Élève AH (`t1-eleve`) et le Chœur Vox (`t1-choeur`).
   - **Reste** ⬜ : autres porteurs éventuels (attacher `rebirth`/`swarm`/… à
     d'autres unités — données pures, à équilibrer). Effort : S.
-- **CAP-DATAFIX — Corrections de données pures** 🐞 S 🧩 (A1 : noMeleePenalty Chasseresse+Idole faits ; le reste — écarts Vit/stats — traité en DOC-STATS) (aucun moteur) :
-  `noMeleePenalty` manquant sur Chasseresse AH (`data/factions/arcane-hunters/units/t6-chasseresse.json`,
-  doc 05 §4) et sur l'Idole Vox (doc 16 §4) alors que le moteur le supporte
-  (`state-helpers.ts:32`) ; capacités non prévues au doc sur l'Avatar Vox
-  (`flying`+`noRetaliation` à réconcilier, doc 16 §4) ; écart Vit. 9/10 du
-  Cavalier funeste (doc 04 §3 vs données) ; stats placeholder Vox divergentes
-  (T2/T3/T4/T5/T7, doc 16 §4) — réconcilier données ↔ doc (ou doc ↔ `faction:sim`).
+- **CAP-DATAFIX — Corrections de données pures** 🐞 S ✅ (finition 2026-07-16,
+  plan `cap-datafix-doc-reconcile.md`) : **audit** données réelles ↔ doc — les
+  **données étaient déjà correctes** (sim-tuned) ; les écarts restants étaient des
+  **entrées de doc périmées**, réconciliées :
+  - `noMeleePenalty` Chasseresse AH (`t6-chasseresse`) + Idole Vox (`t4-idole`) :
+    ✅ déjà en données (`shooter{ammo,noMeleePenalty}`).
+  - Avatar Vox `flying`+`noRetaliation` : ✅ données ET doc alignés.
+  - Cavalier funeste : doc 04 §3 = Vit **10** = données (déjà aligné).
+  - Stats Vox T2–T5 : ✅ données == doc ; **T7 Phénix** : doc corrigé (PV 142→118,
+    dmg 22–34→18–28, valeurs de données abaissées pour compenser `rebirth`).
+  - Marqueurs « différé » périmés retirés de la table doc 16 §4 : `performer`
+    (Chœur/Idole, F-RESON.2) et `rebirth` (Phénix, CAP-LIFE.2) désormais LIVE.
+  - Façade inverse tracée : `spellcaster` du **Maître de Sortilèges** Vox listé au
+    doc mais absent des données ⇒ marqué « (différé — équilibrage) » (câblage =
+    CAP-CAST, gaté `faction:sim`, hors périmètre d'une réconciliation).
 
 ### 2.3 Systèmes de faction (F-*)
 

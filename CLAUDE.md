@@ -393,6 +393,7 @@ docs/
   15-backend-infra.md            Backend coût 0 (Cloudflare Workers + D1) : levier déterministe, modèle de données, auth magic-link, PvP async, déploiement
   16-faction-vox-arcana.md       Faction Vox Arcana (Beta, 6ᵉ maison — Poudlard × KPop Demon Hunters) : livrée — 5 Maisons (signature houseAllegiance), Résonance/Honmoon, École de la Scène, lineup T1–T8, avatars Hermione & Rumi
   17-faction-dungeon.md          Faction Dungeon / Donjon (Beta, 7ᵉ maison — elfes noirs de HoMM) : cadrage — pendant sombre de la Sylvan Court, signature Magie Irrésistible (1 point d'extension générique irresistibleMagic), lineup 7 tiers, ressources sulfur/gems, héros canon Raelag & Shadya
+  18-audit-fonctionnalites-vs-heroes-online.md  Audit complet vs Might & Magic: Heroes Online (2014-2020) : écarts priorisés P1/P2/P3 (moteur/données/client/assets), gradation visuelle des gardiens (§3), plan de comblement en 5 étapes (étape 5 = décisions de cadrage)
   templates/faction-template.md  Gabarit pour spécifier une nouvelle maison
 .github/workflows/
   ci.yml                         PR : typecheck, lint, tests, build, smoke headless

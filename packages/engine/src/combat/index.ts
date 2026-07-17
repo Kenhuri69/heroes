@@ -100,6 +100,13 @@ export { initiativeSpeed, roundActionOrder, type RoundActionOrder } from './stat
 /** Auto-combat déterministe → camp vainqueur (brique de `faction:sim`, Alpha 4.17). */
 export { simulateAutoCombat } from './simulate';
 
+/** Combat héros-vs-héros simulé (report d'armée + effets de faction) — brique d'attrition/gauntlet. */
+export {
+  simulateHeroCombat,
+  type HeroCombatSide,
+  type HeroCombatResult,
+} from './simulate';
+
 /** Attaque du héros (C1) — validation/handler + dégâts (preview) + disponibilité pour l'UI. */
 export {
   validateHeroAttack,

@@ -711,6 +711,58 @@ test('combat : victoire contre le gardien, retour carte avec pertes appliquées'
   expect(errors).toEqual([]);
 });
 
+test('B6 : un tir produit un projectile visible (sprint 1)', { tag: '@core' }, async ({ page }) => {
+  const errors = await openGame(page);
+  // Combat direct (arène) avec un TIREUR : l'archer tire à travers le plateau,
+  // ce qui doit émettre un projectile (avant B6 : le tireur se « ruait » à vide).
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({
+      type: 'StartCombat',
+      attacker: [{ unitId: 't2-archer', count: 6 }],
+      defender: [{ unitId: 't1-recruit', count: 8 }],
+      terrain: 'grass',
+    }),
+  );
+  await passPreBattle(page);
+  await expect(page.getByTestId('combat-round')).toBeVisible();
+  // Attendre que le TIREUR (seul stack attaquant) soit actif (l'IA adverse joue
+  // d'abord le cas échéant), puis le faire tirer MANUELLEMENT sur la pile ennemie.
+  // Le combat reste actif ⇒ la scène est vivante et le projectile s'anime.
+  // (L'auto-combat, lui, résout instantanément et détruit la scène : aucune
+  // animation, par design — c'est en combat manuel que le tir doit se lire.)
+  await expect
+    .poll(() =>
+      page.evaluate(() => {
+        const c = window.__HEROES_TEST__!.getState().combat;
+        return c?.stacks.find((s) => s.id === c.activeStackId)?.side;
+      }),
+    )
+    .toBe('attacker');
+  const targetId = await page.evaluate(
+    () => window.__HEROES_TEST__!.getState().combat!.stacks.find((s) => s.side === 'defender')!.id,
+  );
+  await page.evaluate(
+    (tid) => window.__HEROES_TEST__!.dispatch({ type: 'CombatAction', action: { type: 'attack', targetStackId: tid } }),
+    targetId,
+  );
+  await expect
+    .poll(() => page.evaluate(() => window.__HEROES_TEST__!.combatFx().projectiles))
+    .toBeGreaterThan(0);
+  expect(errors).toEqual([]);
+});
+
+test('A1 : un gardien de carte est rendu comme un cluster gradué (sprint 2)', { tag: '@core' }, async ({ page }) => {
+  const errors = await openGame(page);
+  // Le gardien de départ (guard-camp, effectif « few » ⇒ cran solitaire) compose
+  // son nœud : losange de visée + 1 instance de créature. La gradation rend
+  // 1/3/4 instances selon le cran (groupe/horde vérifiés au verify manuel — aucune
+  // carte de test ne porte un gardien > 99, et le client n'a pas de harnais unitaire).
+  await expect
+    .poll(() => page.evaluate(() => window.__HEROES_TEST__!.objectChildCount('guard-camp')))
+    .toBeGreaterThanOrEqual(2);
+  expect(errors).toEqual([]);
+});
+
 test('écran pré-combat : puissances comparées + Auto-Battle résout (Lot 1)', { tag: '@core' }, async ({ page }) => {
   const errors = await openGame(page);
 
@@ -2572,6 +2624,12 @@ test('sort : le héros lance un sort en combat et réduit une pile ennemie', { t
   expect(after.remaining).toBeLessThan(setup.count);
   // C-AIPARITY : verrou 1 sort/round PAR CAMP (liste des camps ayant lancé).
   expect(after.cast).toContain('attacker');
+
+  // B6 (sprint 1) : le sort a produit un FX d'impact DISTINCT de la frappe
+  // (retour visuel avant B6 : aucun). Compteur cumulé exposé au test.
+  await expect
+    .poll(() => page.evaluate(() => window.__HEROES_TEST__!.combatFx().impacts))
+    .toBeGreaterThan(0);
 
   expect(errors).toEqual([]);
 });

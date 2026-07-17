@@ -677,3 +677,40 @@ describe('performStrike — plafond de jets F2 (moyenne préservée, bornes tenu
     }
   });
 });
+
+/**
+ * B1 — pénalité de portée de tir (sprint 1, doc 02 §5.3, fidélité HoMM3) : un
+ * tir au-delà de `rangePenalty.hexes` inflige ×`factor`. Opt-in par config
+ * (absente ⇒ inchangé). Préviz = résolution (même critère de distance).
+ */
+describe('B1 — pénalité de portée de tir', () => {
+  const rulesRange = { ...testCombatRules(), rangePenalty: { hexes: 10, factor: 0.5 } };
+
+  it('computeMultiplier : tir pénalisé ⇒ ×factor ; non pénalisé ⇒ plein', () => {
+    const base = { strikerAttack: 5, targetDefense: 5, targetDefending: false, targetMarks: 0, meleePenalized: false } as const;
+    expect(computeMultiplier({ ...base, rangePenalized: false, rules: rulesRange })).toBeCloseTo(1);
+    expect(computeMultiplier({ ...base, rangePenalized: true, rules: rulesRange })).toBeCloseTo(0.5);
+  });
+
+  it('computeMultiplier : config SANS rangePenalty ⇒ flag ignoré (opt-in, non-régression)', () => {
+    const m = computeMultiplier({
+      strikerAttack: 5, targetDefense: 5, targetDefending: false, targetMarks: 0,
+      meleePenalized: false, rangePenalized: true, rules: testCombatRules(),
+    });
+    expect(m).toBeCloseTo(1);
+  });
+
+  it('estimateDamage : tir > seuil = ½ dégâts, ≤ seuil = plein (préviz)', () => {
+    const catalog = {
+      arch: unit({ id: 'arch', stats: { hp: 10, attack: 5, defense: 0, damage: [10, 10], speed: 5 }, abilities: [{ id: 'shooter', params: { ammo: 10 } }] }),
+      dummy: unit({ id: 'dummy', stats: { hp: 100000, attack: 0, defense: 5, damage: [1, 1], speed: 1 } }),
+    };
+    const arch = stack({ id: 'attacker-0', side: 'attacker', slot: 0, unitId: 'arch', count: 1, pos: { col: 0, row: 5 }, ammo: 10 });
+    const near = stack({ id: 'near-0', side: 'defender', slot: 0, unitId: 'dummy', count: 1, pos: { col: 5, row: 5 }, firstHp: 100000 });
+    const far = stack({ id: 'far-0', side: 'defender', slot: 1, unitId: 'dummy', count: 1, pos: { col: 12, row: 5 }, firstHp: 100000 });
+    const state = { ...baseState(catalog), config: { ...testConfig(), combat: rulesRange }, combat: combatState([arch, near, far]) };
+    // atk 5 = def 5 ⇒ mult 1 ; dégât fixe 10.
+    expect(estimateDamage(state, 'attacker-0', 'near-0').damageMax).toBe(10); // dist 5 ≤ 10 : plein
+    expect(estimateDamage(state, 'attacker-0', 'far-0').damageMax).toBe(5);   // dist 12 > 10 : ½
+  });
+});

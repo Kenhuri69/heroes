@@ -9,6 +9,7 @@ import {
   unitSpriteUrl,
 } from './assets';
 import { NEUTRAL_COLOR } from './playerColors';
+import { bandTier, strengthBandKey, type BandTier } from './strengthBand';
 import { TILE_SIZE } from './tilemap';
 import { ISO_TILE_H, ISO_TILE_W, isoAnchor, isoDepth, isoGroundSeatY } from './projection';
 
@@ -87,6 +88,7 @@ export class MapObjectsLayer {
     objects: readonly MapObjectDef[],
     catalog: UnitCatalog,
     ownerColor: OwnerColor = () => NEUTRAL_COLOR,
+    bands: { max: number | null; key: string }[] = [],
   ): void {
     const alive = new Set(objects.map((o) => o.id));
     for (const [id, node] of this.byId) {
@@ -97,10 +99,20 @@ export class MapObjectsLayer {
       }
     }
     for (const obj of objects) {
+      // Gradation visuelle des gardiens (A1) : le CRAN de force entre dans la
+      // signature ⇒ une croissance hebdo (A2) franchissant un seuil de bande, ou
+      // des pertes après un combat abandonné, force la reconstruction du jeton
+      // (nombre d'instances + étendard) ; un simple déplacement d'errant reste
+      // une resynchro de position (même cran ⇒ même signature).
+      const guardianTier = obj.type === 'guardian' ? bandTier(strengthBandKey(obj.count, bands)) : null;
       // Mine ET habitation (M-DWELLOWN) : la couleur du propriétaire fait partie
       // de la signature ⇒ une (re)capture force la reconstruction du drapeau.
       const signature =
-        obj.type === 'mine' || obj.type === 'dwelling' ? `${obj.type}:${obj.ownerId ?? ''}` : obj.type;
+        obj.type === 'mine' || obj.type === 'dwelling'
+          ? `${obj.type}:${obj.ownerId ?? ''}`
+          : guardianTier
+            ? `guardian:${guardianTier}`
+            : obj.type;
       const existing = this.byId.get(obj.id);
       if (existing && this.signatures.get(obj.id) === signature) {
         // Position resynchronisée à chaque passage : les gardiens ERRANTS
@@ -111,7 +123,7 @@ export class MapObjectsLayer {
         continue;
       }
       existing?.destroy({ children: true });
-      const node = buildObject(obj, catalog, ownerColor);
+      const node = buildObject(obj, catalog, ownerColor, guardianTier);
       const a = isoAnchor(obj.pos.x, obj.pos.y);
       node.position.set(a.x, a.y);
       node.zIndex = isoDepth(obj.pos.x, obj.pos.y);
@@ -120,10 +132,23 @@ export class MapObjectsLayer {
       this.layer.addChild(node);
     }
   }
+
+  /**
+   * Hook de test (A1 gradation) : nombre d'enfants du nœud d'un objet rendu
+   * (losange de visée + instances de créature + éventuel étendard), 0 si absent.
+   */
+  childCountOf(id: string): number {
+    return this.byId.get(id)?.children.length ?? 0;
+  }
 }
 
 /** Vignette de mine si la texture est préchargée, sinon picto procédural (repli). */
-function buildObject(obj: MapObjectDef, catalog: UnitCatalog, ownerColor: OwnerColor): Container {
+function buildObject(
+  obj: MapObjectDef,
+  catalog: UnitCatalog,
+  ownerColor: OwnerColor,
+  guardianTier: BandTier | null = null,
+): Container {
   const node = ((): Container => {
     if (obj.type === 'resource') return buildResourcePile(obj.resource);
     if (obj.type === 'mine') return buildMine(obj, ownerColor(obj.ownerId));
@@ -133,7 +158,7 @@ function buildObject(obj: MapObjectDef, catalog: UnitCatalog, ownerColor: OwnerC
     if (obj.type === 'dwelling') return buildDwelling(obj.unitId, catalog, ownerColor(obj.ownerId));
     if (obj.type === 'monolith') return buildMonolith();
     if (obj.type === 'obelisk') return buildObelisk();
-    return buildGuardian(obj.unitId, catalog);
+    return buildGuardian(obj.unitId, catalog, guardianTier ?? 'lone', obj.pos.x * 997 + obj.pos.y);
   })();
   // Sous le visuel : la case exacte à viser (les sprites debout débordent du losange).
   node.addChildAt(groundDiamond(), 0);
@@ -468,51 +493,98 @@ function buildGroundArtifact(artifactId: string): Container {
 }
 
 /**
- * Gardien neutre : la créature qui garde la case (HoMM montre l'unité gardienne).
- * Fanion procédural en repli, remplacé par le **sprite de l'unité** dès qu'il est
- * chargé (faction résolue via `catalog[unitId].groupId`, même chemin que le
- * combat). Chargement async gardé (`node.destroyed`) : pas de fuite si le gardien
- * disparaît (combat gagné) avant la fin du chargement.
+ * UNE créature gardienne, base ancrée à l'origine locale `(0,0)` (silhouette de
+ * repli remplacée par le sprite de l'unité dès chargement — faction résolue via
+ * `catalog[unitId].groupId`). Chargement async gardé (`destroyed`). Le losange
+ * de visée et le positionnement de cluster sont gérés par l'appelant.
  */
-function buildGuardian(unitId: string, catalog: UnitCatalog): Container {
-  const node = new Container();
-  const c = TILE_SIZE / 2;
-  // Repli : silhouette de créature (ombre + torse + tête griffue) — doit se lire
-  // « un monstre garde cette case », jamais comme un drapeau de ville/mine
-  // (l'ancien fanion gris était pris pour une ville neutre — plan
-  // map-design-issues P1).
+function buildCreatureVisual(unitId: string, catalog: UnitCatalog): Container {
+  const g = new Container();
+  // Repli : silhouette de créature (ombre + torse + tête cornue) — doit se lire
+  // « un monstre garde cette case », jamais un drapeau de ville/mine.
   const ink = 0x1a1c22;
   const body = 0x5d6470;
   const fallback = new Graphics()
-    .ellipse(c, c + 16, 15, 5)
+    .ellipse(0, 2, 15, 5)
     .fill({ color: ink, alpha: 0.35 })
-    .roundRect(c - 11, c - 4, 22, 20, 7)
+    .roundRect(-11, -18, 22, 20, 7)
     .fill(body)
     .stroke({ width: 2, color: ink })
-    .poly([c - 8, c - 14, c - 4, c - 20, c, c - 14, c + 4, c - 20, c + 8, c - 14]) // crête cornue
+    .poly([-8, -28, -4, -34, 0, -28, 4, -34, 8, -28]) // crête cornue
     .fill(body)
     .stroke({ width: 2, color: ink })
-    .circle(c, c - 8, 8)
+    .circle(0, -22, 8)
     .fill(body)
     .stroke({ width: 2, color: ink });
-  fallback.circle(c - 3, c - 9, 1.8).fill(0xf1c40f).circle(c + 3, c - 9, 1.8).fill(0xf1c40f);
-  node.addChild(fallback);
+  fallback.circle(-3, -23, 1.8).fill(0xf1c40f).circle(3, -23, 1.8).fill(0xf1c40f);
+  g.addChild(fallback);
 
   const url = unitSpriteUrl(unitId, catalog[unitId]?.groupId);
   if (url) {
     void Assets.load(url).then((texture) => {
-      if (node.destroyed) return;
-      node.removeChild(fallback);
+      if (g.destroyed) return;
+      g.removeChild(fallback);
       fallback.destroy();
       const sprite = new Sprite(texture);
       sprite.setSize(TILE_SIZE, TILE_SIZE);
-      // Base CENTRÉE (comme le héros et les props de relief) : la créature se DRESSE
-      // depuis le sol de sa case au lieu d'être centrée dessus — ancré au centre, elle
-      // débordait de part et d'autre du losange et paraissait « entre quatre cases ».
+      // Base ancrée en bas-centre (comme le héros/props) : la créature se DRESSE
+      // depuis son point d'ancrage (0,0) au lieu d'être centrée dessus.
       sprite.anchor.set(0.5, 1);
-      sprite.position.set(TILE_SIZE / 2, TILE_SIZE / 2);
-      node.addChild(sprite);
+      g.addChild(sprite);
     });
   }
+  return g;
+}
+
+/** Disposition de cluster par cran (offsets relatifs au centre de case + échelle, arrière→avant). */
+const GUARDIAN_CLUSTER: Record<BandTier, { dx: number; dy: number; s: number }[]> = {
+  lone: [{ dx: 0, dy: 0, s: 1 }],
+  group: [
+    { dx: -11, dy: -6, s: 0.82 },
+    { dx: 11, dy: -5, s: 0.82 },
+    { dx: 0, dy: 0, s: 1 },
+  ],
+  horde: [
+    { dx: -16, dy: -8, s: 0.74 },
+    { dx: 0, dy: -11, s: 0.78 },
+    { dx: 16, dy: -8, s: 0.74 },
+    { dx: 0, dy: 1, s: 1 },
+  ],
+};
+
+/** Léger décalage déterministe (hashé sur `(seed, i)`) — jamais `Math.random`. */
+function guardianJitter(seed: number, i: number, range: number): number {
+  const h = (Math.imul(seed + 1, 73856093) ^ Math.imul(i + 1, 19349663)) >>> 0;
+  return ((h % 1000) / 1000 - 0.5) * range;
+}
+
+/** Étendard planté derrière une horde (marqueur de FORME, jamais la couleur seule — a11y). */
+function buildHordeBanner(c: number): Graphics {
+  return new Graphics()
+    .moveTo(c + 19, c + 3)
+    .lineTo(c + 19, c - 34)
+    .stroke({ width: 2.5, color: 0x2a2320 }) // hampe
+    .poly([c + 19, c - 34, c + 39, c - 30, c + 25, c - 25, c + 39, c - 21, c + 19, c - 17])
+    .fill(0x7a1f2b)
+    .stroke({ width: 1.5, color: 0x3a0f16 }); // flamme effilée
+}
+
+/**
+ * Gardien neutre gradué (A1, doc 18 §3) : selon le cran de force (`tier`), 1
+ * (solitaire) / 3 (groupe) / 4 (horde) instances de la créature en cluster, plus
+ * un **étendard** au cran horde. Les décalages/échelles sont hashés sur `seed`
+ * (= position) ⇒ déterministe, jamais `Math.random`. Les instances vivent dans le
+ * nœud du gardien ⇒ culées avec son chunk. L'effectif exact n'est jamais révélé.
+ */
+function buildGuardian(unitId: string, catalog: UnitCatalog, tier: BandTier, seed: number): Container {
+  const node = new Container();
+  const c = TILE_SIZE / 2;
+  if (tier === 'horde') node.addChild(buildHordeBanner(c)); // derrière (ajouté en premier)
+  GUARDIAN_CLUSTER[tier].forEach((slot, i) => {
+    const inst = buildCreatureVisual(unitId, catalog);
+    inst.position.set(c + slot.dx + guardianJitter(seed, i * 2, 4), c + slot.dy + guardianJitter(seed, i * 2 + 1, 3));
+    inst.scale.set(slot.s);
+    node.addChild(inst); // ordre du tableau = arrière → avant (l'instance de front en dernier)
+  });
   return node;
 }

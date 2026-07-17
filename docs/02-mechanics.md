@@ -364,6 +364,19 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 > forts vers le centre. Générique et faction-agnostique (aucun cas particulier
 > de faction).
 
+> **Croissance hebdo des gardiens (A2, sprint 2)** : au passage de semaine, chaque
+> pile neutre grossit de `×weeklyFactor` (plancher **+1** pour que les petites
+> piles progressent malgré l'arrondi), plafonnée à `maxCount` absolu — pression
+> temporelle du core loop HoMM (nettoyer tôt coûte moins cher). **Opt-in par
+> données** (`adventure.guardianGrowth { weeklyFactor, maxCount }`, optionnel ;
+> valeurs livrées **1.1 / 300**) : bloc absent ⇒ gardiens figés (comportement
+> historique). Arithmétique pure (aucun RNG) ; le `count` étant déjà sérialisé,
+> **pas de bump `CURRENT_SAVE_VERSION`**. Côté client, la **gradation visuelle**
+> (A1) mappe les 7 bandes de force sur **3 crans** (solitaire / groupe / horde,
+> nombre d'instances du jeton + étendard au cran horde) : le danger se lit sans
+> survol, l'effectif exact restant masqué (le libellé de bande reste la source au
+> survol/appui long). Respawn de gardiens (`respawnDays`) : différé.
+
 > **Butin de gardien** : vaincre un gardien neutre **crédite un butin** gradué
 > par sa **force** (PV totaux = `hp × count`), tiré au **RNG seedé** — piloté par
 > le bloc de config optionnel `adventure.guardianReward` (`goldPerHp`,
@@ -657,6 +670,7 @@ dégâts = Σ(dmg aléatoire min–max par créature de la pile)
 - Les pertes retirent des créatures entières + PV entamés sur la première.
 - **Moral** (−3..+3) : proba d'un **tour bonus** (moral positif : 4 %/point) ou d'un **tour sauté** (négatif : 4 %/point, symétrique). Armée multi-factions : −1 moral par faction supplémentaire (les morts-vivants ne subissent/ne donnent pas de moral).
 - **Chance** (−3..+3, C-BADLUCK) : un seul jet par frappe, |chance| × 4 %/point de déclencher — selon le signe — soit un **coup de chance** (dégâts ×2), soit un **coup de malchance** (demi-dégâts, ×0,5). Symétrique du moral. Chance nulle ⇒ jamais de déclenchement.
+- **Pénalité de portée** (B1, fidélité HoMM3) : un **tir** au-delà de `combat.rangePenalty.hexes` cases inflige `×combat.rangePenalty.factor` (valeurs livrées : **10 hexes, ×0,5** — ½ dégâts à longue portée) ⇒ les tireurs ont un contre-jeu (se rapprocher les affaiblit… ou pas). Jamais cumulée avec la pénalité de mêlée (un tir long n'est pas au contact). **Opt-in par données** (`adventure.combat.rangePenalty`, optionnel) : bloc absent ⇒ portée illimitée sans falloff (comportement historique, golden inchangé). La préviz de dégâts reflète la pénalité (préviz = résolution).
 - Note (Phase 2.4) : en combat, la formule symétrique ±0,05/point s'applique
   telle quelle aux stats des unités ; la pente défensive −2,5 %/point de §1.1
   concerne l'attribut **Défense du héros**, qui s'ajoutera au MVP (les bornes

@@ -2,6 +2,7 @@ import { Application, Point } from 'pixi.js';
 import type { Command, GameState, GridPos } from '@heroes/engine';
 import { CURRENT_SAVE_VERSION, findPath, serializeState } from '@heroes/engine';
 import { Camera } from './render/camera';
+import { combatFxStats } from './render/combatFx';
 import { isoTileCenter } from './render/projection';
 import { WORLD_OCEAN_CSS } from './render/worldBorder';
 import { loadGameContent, loadDefaultMap, loadScenarioMap, resolveGeneratedMap } from './app/content';
@@ -86,6 +87,10 @@ declare global {
       findPath: (heroId: string, x: number, y: number) => GridPos[] | null;
       /** Ids des héros ayant un jeton RENDU sur la carte (smoke : visibilité des héros adverses en vision). */
       renderedHeroIds: () => string[];
+      /** Compteurs cumulés de FX de combat (B6 — smoke « projectile/impact visible »). */
+      combatFx: () => { projectiles: number; impacts: number };
+      /** Nb d'enfants du nœud d'un objet de carte rendu (A1 — gradation des gardiens). */
+      objectChildCount: (id: string) => number;
     };
   }
 }
@@ -451,6 +456,8 @@ async function bootstrap(): Promise<void> {
       return findPath(game.config, game.map, hero.pos, { x, y }, blocked, true);
     },
     renderedHeroIds: () => scene?.renderedHeroIds() ?? [],
+    combatFx: () => ({ ...combatFxStats }),
+    objectChildCount: (id: string) => scene?.objectChildCount(id) ?? 0,
   };
   window.__HEROES_READY__ = true; // signal pour le smoke test headless
 }

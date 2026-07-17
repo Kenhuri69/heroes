@@ -193,6 +193,11 @@ export class AdventureScene {
     return [...this.heroSprites.keys()];
   }
 
+  /** Nombre d'enfants du nœud d'un objet de carte (surface de test — gradation A1). */
+  objectChildCount(id: string): number {
+    return this.objects.childCountOf(id);
+  }
+
   /** Références du dernier sync — dirty-check F1 (revue 2026-07). */
   private lastSync: { game: unknown; selectedHeroId: unknown; turnAck: unknown } | null = null;
 
@@ -213,8 +218,11 @@ export class AdventureScene {
     const { map, config } = game;
     const player = game.players.find((p) => p.id === humanId(game));
     if (!map || !config || !player) return;
-    this.objects.sync(map.objects, game.unitCatalog, (ownerId) =>
-      playerColor(game.players, ownerId),
+    this.objects.sync(
+      map.objects,
+      game.unitCatalog,
+      (ownerId) => playerColor(game.players, ownerId),
+      appStore.getState().strengthBands,
     );
     this.towns.sync(game.towns, humanId(game), (ownerId) => playerColor(game.players, ownerId));
     // Marqueur du Graal (T-GRAIL lot 2) : posé sur `grailPos` une fois révélé au

@@ -763,6 +763,13 @@ export const gameConfigSchema = z.object({
           perAttack: z.number().nonnegative(),
         })
         .optional(),
+      /** Pénalité de portée de tir (B1) — optionnel : absent ⇒ pas de falloff. */
+      rangePenalty: z
+        .object({
+          hexes: z.number().int().positive(),
+          factor: z.number().positive().max(1),
+        })
+        .optional(),
     }).refine((c) => c.obstaclesMin <= c.obstaclesMax, 'obstaclesMin ≤ obstaclesMax'),
     /** Marché (doc 02 §4.1, lot UX U6a) : taux d'échange ressource ↔ or au bâtiment marché. */
     market: z
@@ -840,6 +847,13 @@ export const gameConfigSchema = z.object({
         artifactChancePercent: z.number().int().min(0).max(100),
       })
       .refine((r) => r.resourceAmount.min <= r.resourceAmount.max, 'resourceAmount.min ≤ max')
+      .optional(),
+    /** Croissance hebdo des gardiens (A2) — optionnel : absent ⇒ gardiens figés. */
+    guardianGrowth: z
+      .object({
+        weeklyFactor: z.number().min(1),
+        maxCount: z.number().int().positive(),
+      })
       .optional(),
   }),
   newGame: z.object({

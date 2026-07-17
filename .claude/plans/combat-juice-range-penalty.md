@@ -143,8 +143,25 @@ la préviz de dégâts affiche la pénalité de portée quand elle s'applique.
 ## 6. Suivi
 
 - [x] Plan rédigé (2026-07-17)
-- [ ] 3.1 moteur `rangePenalty`
-- [ ] 3.2 préviz
-- [ ] 3.3 `combatFx.ts` + branchements
-- [ ] 3.4 tests
-- [ ] 3.5 vérifs + PR
+- [x] 3.1 moteur `rangePenalty` — champ opt-in `CombatRulesConfig.rangePenalty`
+      `{hexes,factor}` + Zod content ; `computeMultiplier` gagne `rangePenalized`
+      (×factor, jamais cumulé avec `meleePenalized`) ; calculé dans `performStrike`
+      ET `estimateDamage` (préviz = résolution) sur `hexDistance`. Données :
+      `{hexes:10,factor:0.5}` (HoMM3). Golden **inchangé** (le journal golden n'a
+      pas de tir long ; config opt-in).
+- [x] 3.2 préviz — automatique via `estimateDamage` (branché de longue date) ;
+      couvert par le test de parité `estimateDamage` ci-dessous.
+- [x] 3.3 `render/combatFx.ts` (pur présentation, déterministe) : `spawnProjectile`
+      (trait lumineux étiré + léger arc, plafond 350 ms, coupé en reduce-motion) et
+      `spawnSpellImpact` (4 familles : onde `damage` / étincelles `heal` / halo
+      montant `buff` / descendant `debuff`). Branchés : `animateAttack` route le
+      TIR (`event.ranged`) vers micro-recul + projectile + impact (mêlée inchangée) ;
+      `SpellCast` et **nouveau** `UnitSpellCast` (spellcaster : AUCUN visuel avant)
+      appellent `spawnSpellImpact`. `UnitSpellCast` ajouté à `eventStackIds` (B38).
+- [x] 3.4 tests — moteur : 3 cas B1 (`computeMultiplier` ×factor / opt-in ignoré /
+      `estimateDamage` ½ à > seuil). Smoke : impact de sort (`combatFx().impacts>0`
+      dans le test de sort existant) + **projectile** (tir manuel d'un archer ⇒
+      `combatFx().projectiles>0` ; l'auto-combat détruit la scène ⇒ animations en
+      combat MANUEL, documenté).
+- [x] 3.5 vérifs + PR — typecheck/lint/838 moteur (golden `04cb6e08` inchangé)/
+      148 contenu/content:check/garde-fous/bundle 325 Ko/smoke @core. PR à ouvrir.

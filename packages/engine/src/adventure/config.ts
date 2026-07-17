@@ -26,6 +26,13 @@ export interface CombatRulesConfig {
   defendDefenseMultiplier: number;
   /** Tireur au contact : mêlée à ½ dégâts (doc 02 §5.2). */
   rangedMeleePenalty: number;
+  /**
+   * Pénalité de portée du tir (B1, doc 02 §5.3, fidélité HoMM3) : un tir au-delà
+   * de `hexes` cases inflige `×factor` (ex. `{ hexes: 10, factor: 0.5 }` = ½
+   * dégâts à longue portée). **Optionnel & opt-in par données** : absent ⇒ portée
+   * illimitée sans falloff (comportement historique ⇒ golden inchangé).
+   */
+  rangePenalty?: { hexes: number; factor: number } | undefined;
   /** Moral : 4 %/point de tour bonus (ou sauté, symétrique — décision n°8). */
   moraleChancePerPoint: number;
   /** Chance : 4 %/point de dégâts doublés (doc 02 §5.3). */
@@ -116,6 +123,15 @@ export interface AdventureConfig {
    * ids de ressource/artefact opaques, jamais un nom de faction.
    */
   guardianReward?: GuardianRewardConfig | undefined;
+  /**
+   * Croissance hebdomadaire des gardiens neutres (A2, doc 02 §2.2, fidélité
+   * HoMM — pression temporelle du core loop) : au passage de semaine, chaque
+   * pile neutre de la carte grossit de `×weeklyFactor` (plancher +1 si l'arrondi
+   * n'augmente pas), plafonnée à `maxCount` absolu. **Optionnel & opt-in par
+   * données** : absent ⇒ gardiens figés (comportement historique ⇒ golden
+   * inchangé). Le `count` du gardien est déjà sérialisé ⇒ pas de bump save.
+   */
+  guardianGrowth?: { weeklyFactor: number; maxCount: number } | undefined;
 }
 
 /**

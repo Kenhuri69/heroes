@@ -307,8 +307,8 @@ existants** (bouclier / buff / debuff / soin) — zéro nouveau moteur :
 | 3 | **Hippogriffe** | créature Poudlard | 18 | 7 | 5 | 4–7 | 7 | 6 | 200 or | `flying` |
 | 4 | **Chasseuse-Idole** | HUNTR/X | 33 | 10 | 8 | 7–11 | 6 | 4 | 450 or + 1 cristal | `shooter(7, noMeleePenalty)`, `performer(+2 Résonance/round)` |
 | 5 | **Sombral** | créature Poudlard | 38 | 11 | 9 | 7–11 | 9 | 3 | 720 or | `flying`, `fear(20 %, 1 round)` |
-| 6 | **Maître de Sortilèges** | professeur | 55 | 14 | 12 | 10–16 | 5 | 2 | 1150 or + 1 gemme | *(spellcaster Dissonance/Chant ×2 — différé, équilibrage CAP-CAST)* |
-| 7 | **Phénix** | créature Poudlard | 118 | 19 | 17 | 18–28 | 11 | 1 | 2750 or + 2 gemmes | `flying`, `noRetaliation`, `rebirth(30 %)` (élite 35 %) |
+| 6 | **Maître de Sortilèges** | professeur | 62 | 14 | 12 | 10–16 | 5 | 2 | 1150 or + 1 gemme | *(spellcaster Dissonance/Chant ×2 — différé, équilibrage CAP-CAST)* |
+| 7 | **Phénix** | créature Poudlard | 130 | 19 | 17 | 18–28 | 11 | 1 | 2750 or + 2 gemmes | `flying`, `noRetaliation`, `rebirth(30 %)` (élite 35 %) |
 | 8 | **Avatar du Honmoon** | fusion scène+magie | 210 | 24 | 20 | 38–56 | 8 | 1 | 3600 or + 3 gemmes + **40 Résonance** | `flying`, `noRetaliation` ; *(spellcaster Barrière du Honmoon / barrière de zone au max de Résonance — différé)* |
 
 > 📊 **DOC-STATS / CAP-DATAFIX** : la table ci-dessus est réalignée sur les

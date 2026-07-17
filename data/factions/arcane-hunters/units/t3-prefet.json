@@ -5,7 +5,7 @@
   "loreKey": "@loc:unit.t3-prefet.lore",
   "stats": {
     "hp": 17,
-    "attack": 6,
+    "attack": 5,
     "defense": 6,
     "damage": [
       3,

@@ -422,6 +422,28 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > sort de la bande, aucun nouveau > 80 % ; Dungeon remonte vs Haven/Vox). Docs 14
 > §6 (Licorne) / 17 §lineup (Furie T2) alignées ; `dungeon-recruit.test` étendu.*
 
+> ⚖️ **Équilibrage passe 2** (plan `.claude/plans/faction-balance-pass-2.md`,
+> décision utilisateur : scope « Crushers + Sylvan », levier AH « trim mark
+> amplification » puis « trim AH kit »). Tuning subjectif désormais **fondé** sur
+> le sim fidèle (passe 1). Mesure duel : **6 → 1 déséquilibre béant** (la seule
+> restante = AH-vs-dungeon 83 %, contre-pied thématique tir-vs-mêlée-pure,
+> assumé) ; écart de puissance inter-factions **divisé par ~2** (63 → 27 pts),
+> gauntlet resserré. Leviers **données pures** (sauf UN champ config) : (1) AH
+> `markBonusPerStack` 0.08 → **0.05** (règle AH vs ses vrais rivaux ; `marksMax`
+> gardé à 3 — le baisser désactivait `consumeMarks` coût 3, casse furtive
+> refusée) ; (2) AH kit rabaissé (tankiness T4-T7, tireur T3) ⇒ AH cesse de crush
+> le trio faible (85.8 % → **60.3 %** moyen) ; (3) Necro durabilité (hors
+> nécromancie/capacités) ⇒ necro-vs-haven 88→72 ; (4) **Sylvan** +déf/PV sur les
+> 3 unités `symbiosis` (capacité qui ne monte jamais en combat agressif — reset à
+> l'action) ⇒ 22.8 % → **48.3 %**, plus le punching-bag ; (5) Vox/Dungeon (les 2
+> nouveaux planchers) +PV ciblés ⇒ necro-vs-vox résolu. Duels valeur-égale
+> **sensibles au seuil** (basculent en bloc à un palier de kills) ⇒ tuning
+> empirique itératif sur sim déterministe, reverts des pas non-positifs. **Zéro
+> faction en dur, pas de bump `CURRENT_SAVE_VERSION`, golden 04cb6e08 inchangé**
+> (config mark = no-op sur le replay sans marques ; unités de faction ≠ unités
+> synthétiques). `balance.test`/`elite-parity` verts, `faction-recruit` (Sylvan
+> T7 PV) mis à jour ; docs 02/04/05/14/16/17 alignées (tables stats + mark 8→5 %).*
+
 ---
 
 ## Structure des fichiers

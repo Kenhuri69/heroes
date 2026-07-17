@@ -4,7 +4,7 @@
   "name": "@loc:unit.t5-lame-elite.name",
   "loreKey": "@loc:unit.t5-lame-elite.lore",
   "stats": {
-    "hp": 52,
+    "hp": 45,
     "attack": 16,
     "defense": 10,
     "damage": [

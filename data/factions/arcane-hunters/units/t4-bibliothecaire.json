@@ -3,7 +3,7 @@
   "tier": 4,
   "name": "@loc:unit.t4-bibliothecaire.name",
   "loreKey": "@loc:unit.t4-bibliothecaire.lore",
-  "stats": { "hp": 34, "attack": 7, "defense": 10, "damage": [5, 8], "speed": 4 },
+  "stats": { "hp": 30, "attack": 7, "defense": 8, "damage": [5, 8], "speed": 4 },
   "growthPerWeek": 5,
   "cost": { "gold": 340 },
   "abilities": [

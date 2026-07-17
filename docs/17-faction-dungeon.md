@@ -87,8 +87,8 @@ les capacités listées **existent déjà** au catalogue générique
 | 1 | **Éclaireur** (Assassin / tireur) | 6 | 4 | 3 | 2–3 | 6 | 14 | 65 | `shooter`, `poisonSting` |
 | 2 | **Furie Sanglante** (Blood Fury / assaut) | 11 | 7 | 4 | 2–4 | 8 | 9 | 130 | `noRetaliation`, `firstStrike` ² |
 | 3 | **Minotaure** (garde / tank moral) | 25 | 9 | 8 | 6–9 | 6 | 6 | 260, +1 `sulfur` | `moraleImmune`, `doubleAttack` |
-| 4 | **Chevaucheur des Ténèbres** (Dark Raider / cavalerie) | 32 | 12 | 9 | 7–10 | 9 | 4 | 480 | `charge` |
-| 5 | **Sorcière d'Ombre** (Shadow Matron / caster) | 30 | 11 | 10 | 7–11 | 7 | 3 | 620, +1 `gems` | `spellcaster`, `curseOnHit` |
+| 4 | **Chevaucheur des Ténèbres** (Dark Raider / cavalerie) | 36 | 12 | 9 | 7–10 | 9 | 4 | 480 | `charge` |
+| 5 | **Sorcière d'Ombre** (Shadow Matron / caster) | 34 | 11 | 10 | 7–11 | 7 | 3 | 620, +1 `gems` | `spellcaster`, `curseOnHit` |
 | 6 | **Hydre** (Hydra / mêlée de zone) | 68 | 16 | 14 | 10–15 | 5 | 2 | 1100, +1 `sulfur` | `areaAttack` (0.35), `noRetaliation` |
 | 7 | **Dragon d'Ombre** (Shadow Dragon / apex volant) | 160 | 27 | 25 | 32–42 | 11 | 1 | 3000, +2 `sulfur` +1 `gems` | `flying`, `fear`, `magicResistance` |
 

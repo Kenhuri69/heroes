@@ -510,8 +510,9 @@ describe('4ᵉ faction (native de l’eau) — pipeline data-driven', () => {
     expect(byTier.get(1)?.abilities).toEqual([{ id: 'flying' }]);
     expect(byTier.get(2)?.abilities).toEqual([{ id: 'shooter', params: { ammo: 12 } }]);
     expect(byTier.get(4)?.abilities).toEqual([{ id: 'doubleAttack' }]);
-    // T7 « colosse » après équilibrage 5.4 (profil escarmouche mobile, doc 14 §3).
-    expect(byTier.get(7)?.stats.hp).toBe(125);
+    // T7 « colosse » après équilibrage 5.4 (profil escarmouche mobile, doc 14 §3),
+    // durabilité relevée à la passe 2 (Sylvan sous-statté défensivement, doc 14 §6).
+    expect(byTier.get(7)?.stats.hp).toBe(150);
     // Signature Symbiose (doc 14 §2, Beta 5.3) : T3/T6/T7 portent la capacité
     // générique `symbiosis` (bonus Att/Déf cumulatif tant que la pile Défend).
     expect(byTier.get(3)?.abilities).toEqual([

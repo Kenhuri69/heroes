@@ -4,7 +4,7 @@
   "name": "@loc:unit.t5-liche.name",
   "loreKey": "@loc:unit.t5-liche.lore",
   "stats": {
-    "hp": 34,
+    "hp": 30,
     "attack": 9,
     "defense": 10,
     "damage": [

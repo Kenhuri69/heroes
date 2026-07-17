@@ -64,11 +64,11 @@ implacable, car la forêt ne charge pas — elle *encercle*.
 |------|-------|----|-----|-----|--------|------|-------------|------|-----------|
 | 1 | **Lucine** (fée) | 3 | 2 | 1 | 1–2 | 6 | 16 | 28 or | `flying` |
 | 2 | **Archer Sylvestre** | 9 | 5 | 3 | 2–4 | 5 | 9 | 76 or | `shooter(12)` |
-| 3 | **Dryade** | 13 | 6 | 3 | 3–5 | 6 | 7 | 150 or | `symbiosis(atk +1, déf +1, max 4)` ¹ |
+| 3 | **Dryade** | 16 | 6 | 5 | 3–5 | 6 | 7 | 150 or | `symbiosis(atk +1, déf +1, max 4)` ¹ |
 | 4 | **Loup d'Argent** | 28 | 8 | 6 | 5–8 | 8 | 5 | 300 or | `doubleAttack` |
 | 5 | **Licorne** | 29 | 11 | 7 | 7–11 | 8 | 4 | 520 or + 1 cristal | `magicResistance(0.25)` ² |
-| 6 | **Tréant** | 59 | 15 | 11 | 12–18 | 6 | 2 | 1150 or + 1 mercure | `symbiosis(atk +2, déf +2, max 4)` ¹ |
-| 7 | **Aïeul de la Forêt** | 125 | 22 | 14 | 28–48 | 10 | 1 | 3000 or + 2 cristal + 2 mercure | `symbiosis(atk +2, déf +3, max 4)` ¹ |
+| 6 | **Tréant** | 68 | 15 | 13 | 12–18 | 6 | 2 | 1150 or + 1 mercure | `symbiosis(atk +2, déf +2, max 4)` ¹ |
+| 7 | **Aïeul de la Forêt** | 150 | 22 | 17 | 28–48 | 10 | 1 | 3000 or + 2 cristal + 2 mercure | `symbiosis(atk +2, déf +3, max 4)` ¹ |
 
 > ¹ **Symbiose livrée (5.3)** : le module moteur générique `symbiosis` est ouvert et
 > les unités T3/T6/T7 portent la capacité **en données** (paliers Att/Déf ci-dessus,

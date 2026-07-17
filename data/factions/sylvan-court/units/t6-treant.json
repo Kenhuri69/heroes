@@ -4,9 +4,9 @@
   "name": "@loc:unit.t6-treant.name",
   "loreKey": "@loc:unit.t6-treant.lore",
   "stats": {
-    "hp": 59,
+    "hp": 68,
     "attack": 15,
-    "defense": 11,
+    "defense": 13,
     "damage": [
       12,
       18

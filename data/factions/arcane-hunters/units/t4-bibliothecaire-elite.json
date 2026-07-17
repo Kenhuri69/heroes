@@ -4,9 +4,9 @@
   "name": "@loc:unit.t4-bibliothecaire-elite.name",
   "loreKey": "@loc:unit.t4-bibliothecaire-elite.lore",
   "stats": {
-    "hp": 44,
+    "hp": 39,
     "attack": 9,
-    "defense": 13,
+    "defense": 11,
     "damage": [
       6,
       10

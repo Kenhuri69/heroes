@@ -227,7 +227,13 @@ export type MapObjectDef =
  */
 export type TriggerEffect =
   | { kind: 'grantResource'; resource: string; amount: number }
-  | { kind: 'message'; textKey: string };
+  | { kind: 'message'; textKey: string }
+  /** Don d'artefact au héros visiteur (doc 18 A5) : 1er slot libre, sinon le sac. */
+  | { kind: 'grantArtifact'; artifactId: string }
+  /** Don d'armée au héros visiteur : fusion même unité, sinon nouveau slot (cap 7). */
+  | { kind: 'grantArmy'; unitId: string; count: number }
+  /** Embuscade : combat scripté contre l'armée déclarée — interrompt le chemin. */
+  | { kind: 'ambush'; army: { unitId: string; count: number }[] };
 
 /**
  * Trigger de carte (doc 02 §2.1) : un effet déclaratif déclenché soit à la

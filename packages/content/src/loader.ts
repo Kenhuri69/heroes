@@ -1044,10 +1044,13 @@ export type ResolvedMapObject =
       garrison?: { unitId: string; count: number }[];
     };
 
-/** Effet de trigger résolu — identique à `TriggerEffect` du moteur (doc 02 §2.1). */
+/** Effet de trigger résolu — identique à `TriggerEffect` du moteur (doc 02 §2.1, doc 18 A5). */
 export type ResolvedTriggerEffect =
   | { kind: 'grantResource'; resource: string; amount: number }
-  | { kind: 'message'; textKey: string };
+  | { kind: 'message'; textKey: string }
+  | { kind: 'grantArtifact'; artifactId: string }
+  | { kind: 'grantArmy'; unitId: string; count: number }
+  | { kind: 'ambush'; army: { unitId: string; count: number }[] };
 
 /** Trigger résolu — forme moteur `MapTriggerDef` (`pos` déplié, `fired` initial). */
 export interface ResolvedMapTrigger {

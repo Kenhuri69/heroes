@@ -492,6 +492,8 @@
   "attributeChoice.subtitle": "Niveau supérieur atteint : choisissez un attribut à augmenter.",
   "toast.resourcePicked": "+{amount} {resource}",
   "toast.triggerResource": "+{amount} {resource}",
+  "toast.triggerArtifact": "Trouvé : {artifact}",
+  "toast.triggerArmy": "{count} {unit} rejoignent votre armée",
   "toast.obeliskVisited": "Obélisque visité ({visited}/{total})",
   "toast.grailRevealed": "Tous les obélisques visités — la tuile du Graal est révélée !",
   "toast.grailFound": "Le Graal est découvert !",

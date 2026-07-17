@@ -7,7 +7,7 @@ import { revealAround } from './fog';
 import type { DwellingObjectDef, VisitableObjectDef } from './map';
 
 /** Cap d'armée du héros (doc 02 §5.1) — même limite que la garnison de ville. */
-const MAX_ARMY_STACKS = 7;
+export const MAX_ARMY_STACKS = 7;
 
 /**
  * Visite d'un lieu de bonus (doc 02 §2.2) — appelée en passant par le

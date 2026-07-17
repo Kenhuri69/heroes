@@ -769,9 +769,16 @@ des DEUX camps sont joués. Les verrous sont par camp (`heroCastThisRound` /
 > 🚧 **État (comblement MVP)** : la **grâce de reprise de ville** (7 jours) et
 > les **triggers de carte** `onVisit`/`onDay` (doc §2.1) sont désormais
 > implémentés. Triggers = point d'extension **générique** (`AdventureMapDef.
-> triggers`, effets déclaratifs `grantResource`/`message`, one-shot, événement
-> `TriggerFired`) — jamais un nom de faction/scénario dans le moteur.
-> `collectArtifact`/`accumulateResource` et `onFlagCaptured` restent différés.
+> triggers`, effets déclaratifs, one-shot, événement `TriggerFired`) — jamais un
+> nom de faction/scénario dans le moteur. **Effets (doc 18 A5, lot 2.4)** :
+> `grantResource`, `message`, `grantArtifact` (1er slot libre puis sac, comme le
+> butin de gardien), `grantArmy` (fusion même unité, sinon nouveau slot — cap 7,
+> sinon perdu), `ambush` (combat scripté contre l'armée déclarée ; le héros est
+> SUR la tuile piégée, le chemin s'interrompt ; un héros sans armée ne consomme
+> pas le piège). Les effets liés au héros visiteur sont des **no-ops sur un
+> trigger `onDay`** (pas de héros cible). Différés : message à choix (exige un
+> état d'attente + bump de sauvegarde — lot dédié), téléport scripté, retrait
+> d'artefact/armée, `collectArtifact`/`accumulateResource`, `onFlagCaptured`.
 >
 > 🚧 **État (M-NAV a — monolithes appariés, doc §2.1)** : nouvel objet de carte
 > `monolith` portant un `pairId`. **Exactement 2** monolithes partagent un `pairId`

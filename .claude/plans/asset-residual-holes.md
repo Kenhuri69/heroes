@@ -60,3 +60,29 @@ Vrais positifs repérés côté non-unités pour une future passe : `trefle-chan
 - Pas de changement moteur, pas de bump `CURRENT_SAVE_VERSION`.
 - Outillage Python asset hors CI (généré hors-ligne via skills) ⇒ patch source
   validé par test synthétique inline, pas de nouveau harnais de test Python.
+
+---
+
+## Passe curée non-unités (PR #2, branche `-curated`)
+Revue visuelle fichier par fichier (overlays QC magenta haute résolution) des
+31 assets non-unités signalés. **21 corrigés**, **10 écartés** (faux positifs /
+borderline : pierre/verre/métal/brume gris LÉGITIMES).
+
+FIX (21) — re-scan → 0 résidu, PNG 512²/natifs intègres, sujets préservés :
+- Bâtiments (10) : `market`, `vox-arcana-dwelling-t3` (grandes arches = fond,
+  petites fenêtres roses chromatiques épargnées), `-t4` (arc de la statue),
+  `-t7`, `necropolis-dwelling-t3`/`-t7` (entre les os, vert glow épargné),
+  `arcane-hunters-dwelling-t6`/`-t8`/`-circle-abime`, `haven-cloister`.
+- Artefacts (5) : `bottes-de-sept-lieues`, `orbe-de-savoir`,
+  `sceau-de-l-intouchable`, `talisman-de-constance` (boucle), `trefle-chance`
+  (intérieur du fer à cheval).
+- Map (5) : `camp-arcane-hunters`, `hero-arcane-hunters`, `hero-necropolis`,
+  `hero-vox-arcana`, `signpost` (entre les panneaux).
+- Héros (1) : `dungeon-shadya` (entre les mains levées).
+
+SKIP (10) — art gris légitime ou ambigu :
+- `haven-statue` (socle de pierre), `dungeon-dwelling-t2` (paroi de grotte),
+  `dungeon-dwelling-t5` (reflets du vortex), `sylvan-court-dwelling-t6` (brume
+  de forêt), `arcane-hunters-dwelling-t7` (plancher de terrasse),
+  `haven-dwelling-t4` (creux d'auvent), `mine-essence` (creux métallique),
+  `mine-mercury` (verrerie), `pile-mercury` (flacon), `pile-ore` (minerai gris).

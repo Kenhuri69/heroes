@@ -1,22 +1,21 @@
-# Planche — bâtiments test-faction
+# Planche — bâtiments dungeon — planche 2/2
 
 > Générée par `tools/assets/gen_prompts.py` — ne pas éditer à la main.
-> Règle C (planche de vignettes, fond gris clair plat) de `docs/12-assets-style-guide.md`. Grille **2×1**,
-> ordre row-major. Planche cible ≥ 1024×512 px.
+> Règle C (planche de vignettes, fond gris clair plat) de `docs/12-assets-style-guide.md`. Grille **1×1**,
+> ordre row-major. Planche cible ≥ 512×512 px.
 
 ## Prompt (à coller dans Gemini — Nano Banana/Copilot en repli)
 
 ```
-Building sheet, 2 fantasy dwellings of the same town in a 2x1 grid,
+Building sheet, 1 fantasy dwellings of the same town in a 1x1 grid,
 digital painting, painterly HoMM town-screen style,
 each building isolated on its plot, slight 3/4 aerial view,
-architectural identity: plain neutral grey with orange accents (placeholder faction),
+architectural identity: dark violet and black, obsidian stone and cold silver, arcane magenta glow, coiled-serpent motifs, dark-elf sorcery, subterranean cavern ambiance,
 soft directional light from upper-left,
 each subject centered in its own cell, not touching cell edges,
 clear spacing between cells,
 IMPORTANT: keep every subject fully inside its cell with generous empty margin all around — fully spread wings, weapons, staves and all extremities must NOT be cropped or touch any edge; zoom each subject out enough that nothing is clipped,
-cell 1: "Recruit dwelling (fr: Habitation : Recrue)" — the dwelling where "Recruit (fr: Recrue)" creatures are recruited
-cell 2: "Grail (test) (fr: Graal (test))" — a faction-specific town building
+cell 1: "Grail: Abyssal Hoard (fr: Graal : Trésor des Abysses)" — a faction-specific town building
 flat uniform light grey background (#c8c8c8), no ground shadow,
 no text, no watermark, no signature, no border frame, no ground line, no decorative sparkles, no star glints, no lens flare
 ```
@@ -25,9 +24,9 @@ no text, no watermark, no signature, no border frame, no ground line, no decorat
 
 ```bash
 python3 tools/assets/sheet_extract.py <planche.png> \
-  --cols 2 --rows 1 --side 512 \
-  --ids test-faction-dwelling-t1,test-faction-grail \
-  --out assets/raster_src --qc /tmp/qc-buildings-test-faction.png
+  --cols 1 --rows 1 --side 512 \
+  --ids dungeon-grail \
+  --out assets/raster_src --qc /tmp/qc-buildings-dungeon-p2.png
 ```
 
-Puis copier les PNG validés de `assets/raster_src/` vers `assets/buildings/test-faction/`.
+Puis copier les PNG validés de `assets/raster_src/` vers `assets/buildings/dungeon/`.

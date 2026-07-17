@@ -58,6 +58,23 @@ def _floodfill_alpha(cell, tol):
     keep = set(lbl[0]).union(lbl[-1]).union(lbl[:, 0]).union(lbl[:, -1])
     keep.discard(0)
     fg = ~np.isin(lbl, list(keep))
+    # Trous de fond ENCLAVÉS : une poche de fond entièrement entourée par le
+    # sujet (triangle intérieur d'un arc, espace entre les jambes d'une monture)
+    # n'est pas reliée au bord ⇒ survivrait en opaque. On la reclasse en fond si
+    # elle est de la couleur du fond (déjà vrai : `bg`) ET PLATE — le fond de
+    # planche est plat #c8c8c8 (docs/12 §4), un détail gris du sujet est peint/
+    # dégradé (variance locale plus élevée), donc préservé. cf. declutter_holes.py.
+    interior = bg & fg
+    if interior.any():
+        cf = cell.astype(np.float32)
+        ilbl, ino = label(interior)
+        for li in range(1, ino + 1):
+            comp = ilbl == li
+            if int(comp.sum()) < 64:
+                continue
+            spread = float(cf[comp].reshape(-1, 3).std(0).max())
+            if spread < 8.0:  # poche plate (fond) ; un détail peint est dégradé
+                fg &= ~comp
     return (fg * 255).astype(np.uint8), tuple(int(x) for x in ref)
 
 

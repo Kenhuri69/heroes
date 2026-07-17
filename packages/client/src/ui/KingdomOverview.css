@@ -103,6 +103,12 @@
   min-width: 7rem;
 }
 
+.kingdom-town-income {
+  font-size: 0.85rem;
+  opacity: 0.85;
+  white-space: nowrap;
+}
+
 .kingdom-town-build {
   display: inline-flex;
   align-items: center;

@@ -136,3 +136,6 @@ décisions de cadrage).
       caméra). Client pur (`dailyIncome`/`armyStrength` réutilisés), zéro diff
       moteur. Détail dans `kingdom-overview.md`. **Roadmap MVP « boucle complète
       et agréable » — 3/3 sprints livrés.**
+- [x] Réconciliation PR #416 : sprint 3 livré en parallèle par deux sessions ;
+      la version PR #414 est conservée, la PR #416 rebasée n'y greffe que le
+      revenu or/jour par ville et les PM restants/max (cf. `kingdom-overview.md`).

@@ -1042,6 +1042,6 @@
   "kingdom.heroes": "Heroes ({count})",
   "kingdom.noHeroes": "No hero",
   "kingdom.level": "Lv. {level}",
-  "kingdom.movement": "{pm} MP",
+  "kingdom.movement": "MP {pm}/{max}",
   "kingdom.strength": "Power {power}"
 }

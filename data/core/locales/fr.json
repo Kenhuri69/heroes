@@ -1042,6 +1042,6 @@
   "kingdom.heroes": "Héros ({count})",
   "kingdom.noHeroes": "Aucun héros",
   "kingdom.level": "Niv. {level}",
-  "kingdom.movement": "{pm} PM",
+  "kingdom.movement": "PM {pm}/{max}",
   "kingdom.strength": "Puissance {power}"
 }

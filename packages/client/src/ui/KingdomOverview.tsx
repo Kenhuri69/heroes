@@ -1,4 +1,11 @@
-import { armyStrength, dailyIncome, RESOURCE_IDS, type HeroState } from '@heroes/engine';
+import {
+  armyStrength,
+  dailyIncome,
+  dailyMovementPoints,
+  townIncome,
+  RESOURCE_IDS,
+  type HeroState,
+} from '@heroes/engine';
 import { appStore, useApp } from '../app/store';
 import { t, resolveHeroName, resolveLoc } from '../app/i18n';
 import { closeModalKind, openModal } from '../app/router';
@@ -98,6 +105,10 @@ export function KingdomOverview({ onClose }: { onClose: () => void }) {
                     >
                       <FactionBadge factionId={tn.factionId} />
                       <span class="kingdom-town-name">{resolveLoc(`faction.${tn.factionId}.name`)}</span>
+                      {/* Greffe PR #416 : revenu or/jour de LA ville (même helper/clé que TownScreen). */}
+                      <span class="kingdom-town-income">
+                        {t('town.incomeGold', { amount: townIncome(tn, game.buildingCatalog).gold ?? 0 })}
+                      </span>
                       <span class={`kingdom-town-build ${tn.builtToday ? 'is-used' : 'is-free'}`}>
                         <UiIcon id="tab-build" fallback="⚒" />{' '}
                         {t(tn.builtToday ? 'town.buildQueueUsed' : 'town.buildQueueFree')}
@@ -151,7 +162,14 @@ export function KingdomOverview({ onClose }: { onClose: () => void }) {
                             {h.name ? resolveHeroName(h.name) : t('hero.genericName')}
                           </span>
                           <span class="kingdom-hero-stats">
-                            {t('kingdom.level', { level: h.level })} · {t('kingdom.movement', { pm: h.movementPoints })}{' '}
+                            {/* Greffe PR #416 : PM restants/MAX du jour (même helper que la jauge du HUD). */}
+                            {t('kingdom.level', { level: h.level })} ·{' '}
+                            {t('kingdom.movement', {
+                              pm: h.movementPoints,
+                              max: game.config
+                                ? dailyMovementPoints(game.config, h.army, game.unitCatalog)
+                                : h.movementPoints,
+                            })}{' '}
                             · {t('kingdom.strength', { power: armyStrength(h.army, game.unitCatalog) })}
                           </span>
                         </span>

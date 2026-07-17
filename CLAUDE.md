@@ -369,6 +369,27 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > **inchangé** (802 tests moteur verts), garde-fou « zéro faction » vert ; doc 02
 > §5.2/§5.4 alignées. `combat-los.test` réécrit (obstacle ⇒ tir OK ; mur ⇒ bloqué).*
 
+> ⚖️ **Fidélité de `faction:sim` (équilibrage passe 2, prérequis)** (plan
+> `.claude/plans/faction-sim-fidelity.md`, docs 06 §5.6). Constat : le sim ne
+> résolvait qu'**un duel valeur-égale sans héros** ⇒ aveugle aux mécaniques
+> **inter-combat** (nécromancie surtout — il classait Necropolis **dernière** alors
+> que c'est son identité). Correctif **outillage seul** (zéro tuning de stats) :
+> **UN** primitif moteur pur `simulateHeroCombat` (combat **héros-vs-héros**
+> auto-résolu, 2 joueurs + 2 héros liés ⇒ effets de faction post-victoire réels ;
+> rend le vainqueur + **l'armée reconstruite du challenger, relève incluse**),
+> exporté et faction-agnostique (`factionId` opaques). `faction:sim` gagne deux
+> lectures qui **reportent l'armée d'une vague à l'autre** ⇒ valorisent
+> sustain/nécromancie : **matrice d'attrition** (vagues fraîches croissantes
+> vaincues avant wipe) et **gauntlet de survie** (rotation escaladante des autres
+> factions ; même yardstick). Le **duel** reste le seul gate (code sortie non-nul
+> sur béance). Résultat mesuré : au gauntlet, Necro remonte **2ᵉ/3ᵉ** (plus jamais
+> dernière) et la domination duel de Vox (71.5 %) **n'est pas confirmée sur le
+> sustain** — la passe 2 (tuning subjectif) part désormais d'un avis juste.
+> *Limitation assumée* : résonance/essence (dépense hors combat) hors périmètre —
+> sous-estime seulement Vox, déjà la plus forte. **Pas de bump `CURRENT_SAVE_VERSION`**
+> (état ad hoc, rien de sérialisé), golden **inchangé** (833 tests moteur, +4 ;
+> unités synthétiques), garde-fous faction/couleurs verts.*
+
 ---
 
 ## Structure des fichiers

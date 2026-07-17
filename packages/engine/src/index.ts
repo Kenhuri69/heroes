@@ -95,7 +95,10 @@ export {
   reachableHexes,
   roundActionOrder,
   simulateAutoCombat,
+  simulateHeroCombat,
   type DamageEstimate,
+  type HeroCombatSide,
+  type HeroCombatResult,
   type RoundActionOrder,
 } from './combat';
 export { combatTacticsColumns } from './combat/setup';

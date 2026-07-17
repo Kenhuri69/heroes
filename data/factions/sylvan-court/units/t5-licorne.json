@@ -18,5 +18,12 @@
     "gold": 520,
     "crystal": 1
   },
-  "abilities": []
+  "abilities": [
+    {
+      "id": "magicResistance",
+      "params": {
+        "value": 0.25
+      }
+    }
+  ]
 }

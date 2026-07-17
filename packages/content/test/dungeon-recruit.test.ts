@@ -126,10 +126,11 @@ describe('5ᵉ faction (native de `rough`, elfes noirs) — pipeline data-driven
     const report = await loadContent(readJsonFromDisk);
     const pack = findRoughFaction(report.content.packs);
     const byTier = new Map(baseUnits(pack!).map((u) => [u.tier, u]));
-    // T1 tireur empoisonné, T2 sans riposte, T3 immunité au moral, T6 attaque de zone,
-    // T7 dragon volant apeurant, résistant à la magie.
+    // T1 tireur empoisonné, T2 assaut frénétique (sans riposte + frappe d'abord),
+    // T3 immunité au moral, T6 attaque de zone, T7 dragon volant apeurant/résistant.
     expect(byTier.get(1)?.abilities.map((a) => a.id).sort()).toEqual(['poisonSting', 'shooter']);
-    expect(byTier.get(2)?.abilities).toEqual([{ id: 'noRetaliation' }]);
+    // T2 Furie Sanglante : `firstStrike` ajouté (câblage de contenu, doc 17).
+    expect(byTier.get(2)?.abilities.map((a) => a.id).sort()).toEqual(['firstStrike', 'noRetaliation']);
     expect(byTier.get(3)?.abilities.map((a) => a.id)).toContain('moraleImmune');
     expect(byTier.get(6)?.abilities.map((a) => a.id)).toContain('areaAttack');
     const t7 = byTier.get(7)?.abilities.map((a) => a.id) ?? [];

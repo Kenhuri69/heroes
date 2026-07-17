@@ -407,6 +407,21 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > mapgen — hors proportion). Pas de bump `CURRENT_SAVE_VERSION`, garde-fous
 > faction/couleurs verts, moteur 835/835.*
 
+> 🎨 **Câblage de contenu — capacités thématiques** (plan `.claude/plans/
+> cap-content-wiring.md`, décision utilisateur « câblage de contenu » / « les deux »).
+> Deux unités jusque-là sous-dotées reçoivent une capacité **déjà au catalogue**
+> (`data/core/abilities.json` — engine-ready, aucun nouveau module moteur), choisie
+> pour la fidélité ET l'équilibrage : **Sylvan T5 Licorne → `magicResistance` 0.25**
+> (la SEULE unité Sylvan sans capacité ; la licorne est l'anti-magie canonique de
+> HoMM) et **Dungeon T2 Furie Sanglante → `firstStrike`** (assaut frénétique ;
+> Dungeon = faction la plus faible au sim). Capacité posée sur les DEUX variantes
+> (base + elite) ⇒ parité `elite-ability-parity` tenue. **Données + doc uniquement,
+> zéro moteur, zéro faction en dur, pas de bump `CURRENT_SAVE_VERSION`, golden
+> inchangé** (unités de faction ≠ unités synthétiques du replay). Mesure
+> `faction:sim` : **7 → 6 déséquilibres béants** (sylvan-vs-dungeon 80.8 %→79.6 %
+> sort de la bande, aucun nouveau > 80 % ; Dungeon remonte vs Haven/Vox). Docs 14
+> §6 (Licorne) / 17 §lineup (Furie T2) alignées ; `dungeon-recruit.test` étendu.*
+
 ---
 
 ## Structure des fichiers

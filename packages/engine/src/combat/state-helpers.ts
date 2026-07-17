@@ -1,7 +1,7 @@
 import type { CombatRulesConfig } from '../adventure/config';
 import type { GameState, HeroState } from '../core/state';
 import { heroArtifactBonus } from '../hero/artifacts';
-import { heroMorale } from '../hero/skills';
+import { heroActionsAllowed, heroMorale } from '../hero/skills';
 import { townBuildingAura, townEliteDamageBonus } from '../town/economy';
 import type { CombatSideId, CombatStack, CombatState, CombatUnitDef } from './types';
 
@@ -482,6 +482,30 @@ export function recordRevive(
  */
 export function stackLostSoFar(combat: CombatState, stack: Pick<CombatStack, 'id'>): number {
   return (combat as CombatStateInternal)._stackLosses?.[stack.id] ?? 0;
+}
+
+/**
+ * Actions de héros CONSOMMÉES ce round par un camp (doc 18 C1, lot 3.1) —
+ * occurrences dans `heroCastThisRound` + `heroAttackUsed` (les doublons de side
+ * comptent : forme des tableaux inchangée, pas de bump save).
+ */
+export function heroActionsUsed(combat: CombatState, side: CombatSideId): number {
+  let used = 0;
+  for (const s of combat.heroCastThisRound) if (s === side) used += 1;
+  for (const s of combat.heroAttackUsed) if (s === side) used += 1;
+  return used;
+}
+
+/**
+ * Le héros lié au camp peut-il encore agir ce round (doc 02 §1 « sort OU
+ * frappe », généralisé doc 18 C1 : 1 + `heroActionsPerRound`) ? Consommé par
+ * les validations sort/frappe, l'IA et l'UI (helper pur, patron R7).
+ */
+export function heroActionLeft(state: GameState, combat: CombatState, side: CombatSideId): boolean {
+  const heroId = side === 'attacker' ? combat.attackerHeroId : combat.defenderHeroId;
+  const hero = state.heroes.find((h) => h.id === heroId);
+  if (!hero) return false;
+  return heroActionsUsed(combat, side) < heroActionsAllowed(hero);
 }
 
 export function collectCasualties(

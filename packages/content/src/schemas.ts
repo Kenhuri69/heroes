@@ -143,6 +143,10 @@ const heroEffectFields = {
   luckBonus: z.number().optional(),
   moraleBonus: z.number().optional(),
   manaCostReductionPct: z.number().optional(),
+  // Perks structurels (doc 18 C1, lot 3.1) : slots d'armée supplémentaires /
+  // actions de héros par round — agrégés comme tout champ numérique.
+  armySlotsBonus: z.number().int().positive().optional(),
+  heroActionsPerRound: z.number().int().positive().optional(),
   // Effets TOWN-SCOPED (F-HOUSES, doc 16 §3.1 — Le Blaireau) : interprétés par le
   // code de ville (croissance hebdo / défense de siège) via `townHouseField`,
   // pas par les accesseurs par-héros. Branchés ⇒ pas un mensonge de contenu.
@@ -570,6 +574,9 @@ const skillRankEffectSchema = z.object({
   tacticsColumns: z.number().int().min(1).max(6).optional(),
   /** Prière de bataille (F-SKILLS.2, doc 03 §2/§5) : PV soignés/ressuscités 1×/combat. */
   battleResurrectHp: z.number().int().positive().optional(),
+  /** Perks structurels (doc 18 C1, lot 3.1) : slots d'armée / actions de héros par round. */
+  armySlotsBonus: z.number().int().positive().optional(),
+  heroActionsPerRound: z.number().int().positive().optional(),
 });
 
 /** data/core/skills.json (doc 02 §1.3) — exactement 3 rangs (Novice/Expert/Maître). */
@@ -740,6 +747,32 @@ export const gameConfigSchema = z.object({
       /** Recrutement de héros à la Taverne (M-TAVERN.1, doc 02 §1.5/§4.1). `.default` (bridge exactOptional → engine `?:`). */
       recruitCost: z.number().int().nonnegative().default(2500),
       maxPerPlayer: z.number().int().positive().default(8),
+      /**
+       * Perks structurels par archétype (doc 18 C1, lot 3.1 — signature MMHO) :
+       * effets déclaratifs SCALAIRES posés sur les héros nommés de cet archétype
+       * à la création. Clés OPAQUES (le moteur ne les compare jamais). Optionnel.
+       * Vocabulaire volontairement plat (pas de `conditional`/`startingArmyBonus`
+       * — ces signatures restent l'apanage des spécialités).
+       */
+      archetypeEffects: z
+        .record(
+          z.string(),
+          z
+            .array(
+              z.object({
+                armySlotsBonus: z.number().int().positive().optional(),
+                heroActionsPerRound: z.number().int().positive().optional(),
+                movementBonusPct: z.number().optional(),
+                visionBonus: z.number().optional(),
+                goldPerDay: z.number().optional(),
+                luckBonus: z.number().optional(),
+                moraleBonus: z.number().optional(),
+                manaCostReductionPct: z.number().optional(),
+              }),
+            )
+            .min(1),
+        )
+        .optional(),
     }),
     /** Règles de combat (doc 02 §5 + plan phase-2.4) — même forme que le moteur. */
     combat: z.object({

@@ -4,7 +4,7 @@ import { isPassable } from '../adventure/path';
 import { heroArmyMagicResistance, heroLuckOf, killsFromDamage, magicResistanceOf } from '../combat/damage';
 import { checkCombatEnd } from '../combat/turns';
 import { applySpellToTargets, bestGraveEntry, chainTargets, resurrectFullCount, spellTargets, spellcasterParams } from '../combat/spell-effect';
-import { factionCurseDurationBonus, factionSpellDamageMods, isStackSpellImmune, staticBlockedKeys } from '../combat/state-helpers';
+import { factionCurseDurationBonus, factionSpellDamageMods, heroActionLeft, isStackSpellImmune, staticBlockedKeys } from '../combat/state-helpers';
 import {
   COMBAT_COLS,
   COMBAT_ROWS,
@@ -20,7 +20,7 @@ import type { GameState, HeroState } from '../core/state';
 import type { TownState } from '../town/types';
 import type { SpellKind } from './types';
 import { heroKnownSpellIds } from './artifacts';
-import { heroVisionRadius } from './skills';
+import { heroArmyCap, heroVisionRadius } from './skills';
 import { effectiveManaCost, effectivePower, isHostileStatus, spellDamageAmount, spellHealAmount, spellTargetsEnemy } from './spells';
 
 /**
@@ -54,12 +54,10 @@ export function validateCastSpell(state: GameState, cmd: CastSpellCmd): CommandE
     return { code: 'invalidAction', message: 'ce n’est pas au joueur de jouer' };
   const hero = heroForPlayerSide(state, combat);
   if (!hero) return { code: 'invalidAction', message: 'aucun héros lié au camp joueur' };
-  if (combat.heroCastThisRound.includes(combat.playerSide))
-    return { code: 'heroAlreadyCast', message: 'le héros a déjà lancé un sort ce round' };
-  // Une action de héros par round (doc 02 §1) : lancer un sort est exclusif de
-  // la frappe — refus si le héros a déjà frappé ce round.
-  if (combat.heroAttackUsed.includes(combat.playerSide))
-    return { code: 'heroAlreadyCast', message: 'le héros a déjà agi ce round' };
+  // Actions de héros par round (doc 02 §1, généralisé doc 18 C1) : sort et
+  // frappe consomment le MÊME budget — 1 de base, + perk `heroActionsPerRound`.
+  if (!heroActionLeft(state, combat, combat.playerSide))
+    return { code: 'heroAlreadyCast', message: 'le héros a déjà épuisé ses actions ce round' };
   const spell = state.spellCatalog[cmd.spellId];
   if (!spell) return { code: 'unknownSpell', message: `sort inconnu '${cmd.spellId}'` };
   // H-ARTEQUIP.2 : un sort enseigné par un artefact équipé est castable comme un
@@ -403,7 +401,7 @@ export function handleReorderArmy(draft: Draft, cmd: ReorderArmyCmd, events: Gam
 
 type SplitStackCmd = Extract<Command, { type: 'SplitStack' }>;
 
-const MAX_ARMY_STACKS = 7;
+
 
 /**
  * UX-SPLIT (doc 08 §2.1/§2.3) : sépare une pile de l'armée du héros du joueur
@@ -417,8 +415,8 @@ export function validateSplitStack(state: GameState, cmd: SplitStackCmd): Comman
   const current = state.players[state.currentPlayer];
   if (!current || hero.playerId !== current.id)
     return { code: 'notYourHero', message: `'${cmd.heroId}' n’appartient pas au joueur actif` };
-  if (hero.army.length >= MAX_ARMY_STACKS)
-    return { code: 'invalidSplit', message: 'armée pleine (7 piles max)' };
+  if (hero.army.length >= heroArmyCap(hero))
+    return { code: 'invalidSplit', message: 'armée pleine (cap de piles atteint)' };
   if (!Number.isInteger(cmd.from) || cmd.from < 0 || cmd.from >= hero.army.length)
     return { code: 'invalidSplit', message: `pile source invalide (${cmd.from})` };
   const source = hero.army[cmd.from];

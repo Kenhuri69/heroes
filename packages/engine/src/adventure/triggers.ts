@@ -1,7 +1,7 @@
 import { beginAmbushCombat } from '../combat/setup';
 import type { GameEvent } from '../core/events';
 import type { GameState, HeroState, PlayerState, ResourceId } from '../core/state';
-import { MAX_ARMY_STACKS } from './visitable';
+import { heroArmyCap } from '../hero/skills';
 import { samePos, type GridPos, type TriggerEffect } from './map';
 
 /**
@@ -37,7 +37,7 @@ function applyEffect(
     // trigger est consommé : la caravane est passée).
     const existing = hero.army.find((s) => s.unitId === effect.unitId);
     if (existing) existing.count += effect.count;
-    else if (hero.army.length < MAX_ARMY_STACKS)
+    else if (hero.army.length < heroArmyCap(hero))
       hero.army.push({ unitId: effect.unitId, count: effect.count });
   }
   // Clone l'effet : le stocké est un proxy immer révoqué après `produce`, un

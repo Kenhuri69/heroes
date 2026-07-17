@@ -2,11 +2,12 @@ import type { GameEvent } from '../core/events';
 import { weekOf, type GameState, type HeroState, type PlayerState, type ResourceId } from '../core/state';
 import { maxAffordableCount, scaleCost, spendCost } from '../town/resources';
 import { unitWithEconomy } from '../town/unit-economy';
+import { heroArmyCap } from '../hero/skills';
 import { grantXp, xpForLevel } from './experience';
 import { revealAround } from './fog';
 import type { DwellingObjectDef, VisitableObjectDef } from './map';
 
-/** Cap d'armée du héros (doc 02 §5.1) — même limite que la garnison de ville. */
+/** Cap d'armée du héros (doc 02 §5.1) — base 7, étendu par `heroArmyCap` (doc 18 C1). */
 export const MAX_ARMY_STACKS = 7;
 
 /**
@@ -124,7 +125,7 @@ export function recruitDwelling(
 ): void {
   if (obj.stock <= 0) return;
   const existing = hero.army.find((s) => s.unitId === obj.unitId);
-  if (!existing && hero.army.length >= MAX_ARMY_STACKS) return;
+  if (!existing && hero.army.length >= heroArmyCap(hero)) return;
   const cost = unitWithEconomy(draft.unitCatalog, obj.unitId)?.recruitCost ?? {};
   const count = maxAffordableCount(player, cost, obj.stock);
   if (count <= 0) return;

@@ -6,6 +6,7 @@ import type { GameState, HeroState } from '../core/state';
 import { builtLevelOf } from '../town/helpers';
 import { heroManaMax } from './artifacts';
 import { heroVisionRadius } from './skills';
+import { sanitizeEffect } from './types';
 
 type RecruitCmd = Extract<Command, { type: 'RecruitHero' }>;
 
@@ -101,6 +102,10 @@ export function handleRecruitHero(draft: GameState, cmd: RecruitCmd, events: Gam
     specialtyEffects: def.specialtyEffects.map((e) => ({ ...e })),
     warMachines: [],
     rosterId: cmd.heroId, // pool exclusif (M-TAVERN.4) : marque l'entrée de roster occupée
+    // Perks d'archétype (doc 18 C1, lot 3.1) — même régime paresseux que StartGame.
+    ...(def.archetype && (draft.config?.hero.archetypeEffects?.[def.archetype]?.length ?? 0) > 0
+      ? { archetypeEffects: draft.config!.hero.archetypeEffects![def.archetype]!.map(sanitizeEffect) }
+      : {}),
   };
   hero.manaMax = heroManaMax(hero, draft.artifactCatalog);
   hero.mana = hero.manaMax;

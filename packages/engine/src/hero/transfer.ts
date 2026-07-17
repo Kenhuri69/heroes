@@ -2,10 +2,11 @@ import { isAdjacent } from '../adventure/map';
 import type { Command, CommandError } from '../core/commands';
 import type { GameEvent } from '../core/events';
 import type { GameState } from '../core/state';
+import { heroArmyCap } from './skills';
 
 type TransferCmd = Extract<Command, { type: 'TransferBetweenHeroes' }>;
 
-const MAX_STACKS = 7;
+
 
 /**
  * Transfert d'armée/artefacts entre deux héros (UX-HEROSWAP, doc 02 §1.5, doc
@@ -35,8 +36,8 @@ export function validateTransferBetweenHeroes(
     const stack = from.army[cmd.slot];
     if (!stack) return { code: 'invalidTransfer', message: `case d'armée invalide (${cmd.slot})` };
     const mergesIntoExisting = to.army.some((s) => s.unitId === stack.unitId);
-    if (!mergesIntoExisting && to.army.length >= MAX_STACKS)
-      return { code: 'invalidTransfer', message: 'armée cible pleine (7 piles max)' };
+    if (!mergesIntoExisting && to.army.length >= heroArmyCap(to))
+      return { code: 'invalidTransfer', message: 'armée cible pleine (cap de piles atteint)' };
   } else {
     const artifactId = from.artifacts[cmd.slot];
     if (cmd.slot < 0 || cmd.slot >= from.artifacts.length || artifactId === null || artifactId === undefined)

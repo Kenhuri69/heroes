@@ -166,6 +166,14 @@ export interface HeroState {
    */
   houseEffects: SkillRankEffect[];
   /**
+   * Perks structurels d'ARCHÉTYPE (doc 18 C1, lot 3.1) — effets déclaratifs
+   * résolus depuis `config.hero.archetypeEffects[roster.archetype]` à la
+   * création d'un héros nommé, agrégés comme les compétences/Maison/spécialité.
+   * **Optionnel, écrit paresseusement** (patron calendrier lot 2.5) : jamais
+   * posé pour un héros générique ou sans config ⇒ pas de bump save.
+   */
+  archetypeEffects?: SkillRankEffect[];
+  /**
    * Spécialité du héros (doc 02 §1.2, H-NAMED) — id opaque, '' = aucune. Le
    * client résout son nom/description localisés (`hero.specialty.<id>.*`) ; le
    * moteur ne compare jamais qu'un id.
@@ -325,8 +333,13 @@ export interface CaravanState {
  * (sans bump, lot 2.5 doc 18 A4) : `Calendar.weekEventUnitId?` /
  * `Calendar.monthEventId?` — optionnels, écrits paresseusement quand la config
  * calendrier les active ; une v32 sans ces champs reste un état valide.
+ * v33 : `HeroState.archetypeEffects?` — perks structurels d'archétype (doc 18
+ * C1, lot 3.1 : Might +1 slot d'armée, Magic +1 action de héros/round).
+ * Optionnel (posé à la création d'un héros nommé quand
+ * `config.hero.archetypeEffects` fournit des perks), mais la FORME de héros
+ * évolue ⇒ bump (garde `save-shape.test.ts`).
  */
-export const CURRENT_SAVE_VERSION = 32;
+export const CURRENT_SAVE_VERSION = 33;
 
 export interface GameState {
   saveVersion: number;

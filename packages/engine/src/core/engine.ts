@@ -73,6 +73,7 @@ import {
   applyUnequipArtifact,
 } from '../hero/equip';
 import { heroGoldPerDay, heroMovementBonus, heroVisionRadius } from '../hero/skills';
+import { sanitizeEffect } from '../hero/types';
 import { resolveTreasure } from '../adventure/treasure';
 import { roamGuardians } from '../adventure/roam';
 import { evaluateOutcome, tickTownGrace } from '../scenario/outcome';
@@ -659,6 +660,11 @@ const handlers: Handlers = {
       // Origine roster (M-TAVERN.4) : un héros de DÉPART nommé occupe l'entrée de
       // pool correspondante (exclusivité inter-joueurs). '' pour un héros générique.
       rosterId: p.startingHeroId ?? '',
+      // Perks d'archétype (doc 18 C1, lot 3.1) — posés PARESSEUSEMENT (pas de
+      // bump save) : héros nommé à archétype ET config qui déclare des perks.
+      ...(named?.archetype && (cmd.config.hero.archetypeEffects?.[named.archetype]?.length ?? 0) > 0
+        ? { archetypeEffects: cmd.config.hero.archetypeEffects![named.archetype]!.map(sanitizeEffect) }
+        : {}),
       };
     });
     for (const hero of draft.heroes) {

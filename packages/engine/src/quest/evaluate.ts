@@ -1,5 +1,6 @@
 import type { GameEvent } from '../core/events';
 import { humanPlayerId, type GameState, type ResourceId } from '../core/state';
+import { heroArmyCap } from '../hero/skills';
 import { conditionMet } from '../scenario/outcome';
 import type { QuestCondition, QuestReward } from './types';
 
@@ -70,7 +71,7 @@ function applyRewards(draft: GameState, playerId: string, rewards: QuestReward[]
       if (!hero) continue;
       const existing = hero.army.find((s) => s.unitId === r.unitId);
       if (existing) existing.count += r.count;
-      else if (hero.army.length < 7) hero.army.push({ unitId: r.unitId, count: r.count });
+      else if (hero.army.length < heroArmyCap(hero)) hero.army.push({ unitId: r.unitId, count: r.count });
     }
   }
 }

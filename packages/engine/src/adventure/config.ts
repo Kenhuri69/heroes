@@ -9,6 +9,8 @@ export interface TerrainRule {
   moveCost: number | null;
 }
 
+import type { SkillRankEffectInput } from '../hero/types';
+
 /** Constantes des règles de combat (doc 02 §5 + décisions plan phase-2.4). */
 export interface CombatRulesConfig {
   /** ±0,05 × (AttTotale − DéfTotale) sur les stats d'UNITÉS (doc 02 §5.3). */
@@ -215,6 +217,14 @@ export interface HeroProgressionConfig {
         magic?: { attack: number; defense: number; power: number; knowledge: number } | undefined;
       }
     | undefined;
+  /**
+   * Perks structurels par archétype (doc 18 C1, lot 3.1 — signature MMHO) :
+   * effets déclaratifs du pot commun `SkillRankEffect`, posés sur
+   * `HeroState.archetypeEffects` à la création d'un héros nommé dont le roster
+   * porte cet archétype. Clés OPAQUES pour le moteur (aucun `if (archetype)`
+   * en dur) ; optionnel ⇒ aucun perk (fixtures/golden inchangés).
+   */
+  archetypeEffects?: Record<string, SkillRankEffectInput[]> | undefined;
   /** Coût en or d'un recrutement de héros à la Taverne (M-TAVERN.1). Défaut 2500. */
   recruitCost?: number;
   /** Nombre maximum de héros par joueur (doc 02 §1.5). Défaut 8. */

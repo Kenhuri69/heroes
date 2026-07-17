@@ -66,7 +66,7 @@ implacable, car la forêt ne charge pas — elle *encercle*.
 | 2 | **Archer Sylvestre** | 9 | 5 | 3 | 2–4 | 5 | 9 | 76 or | `shooter(12)` |
 | 3 | **Dryade** | 13 | 6 | 3 | 3–5 | 6 | 7 | 150 or | `symbiosis(atk +1, déf +1, max 4)` ¹ |
 | 4 | **Loup d'Argent** | 28 | 8 | 6 | 5–8 | 8 | 5 | 300 or | `doubleAttack` |
-| 5 | **Licorne** | 29 | 11 | 7 | 7–11 | 8 | 4 | 520 or + 1 cristal | *(aucune ; rapide)* |
+| 5 | **Licorne** | 29 | 11 | 7 | 7–11 | 8 | 4 | 520 or + 1 cristal | `magicResistance(0.25)` ² |
 | 6 | **Tréant** | 59 | 15 | 11 | 12–18 | 6 | 2 | 1150 or + 1 mercure | `symbiosis(atk +2, déf +2, max 4)` ¹ |
 | 7 | **Aïeul de la Forêt** | 125 | 22 | 14 | 28–48 | 10 | 1 | 3000 or + 2 cristal + 2 mercure | `symbiosis(atk +2, déf +3, max 4)` ¹ |
 
@@ -77,10 +77,16 @@ implacable, car la forêt ne charge pas — elle *encercle*.
 > a **7 variantes améliorées** (`-elite`, dwelling niveau 2, Alpha 4.11), stats
 > renforcées, mêmes capacités.
 >
+> ² **Câblage de contenu (2026-07)** : la Licorne — seule unité Sylvan sans
+> capacité — reçoit `magicResistance(0.25)`, trait canonique de la licorne HoMM
+> (réduit les dégâts de sort subis). Base + elite (parité). Sylvan mi-tableau au
+> `faction:sim` ⇒ buff défensif modeste, aucun nouveau déséquilibre. La promesse
+> « **1 module moteur total** » (§9) tient : `magicResistance` est une capacité de
+> **catalogue existante** (autonome depuis A2a), pas un nouveau module moteur.
+>
 > Le lineup n'utilise que des **capacités existantes** (`flying`, `shooter`,
-> `doubleAttack`) hors Symbiose — la promesse « **1 module moteur total** » (§9)
-> est ainsi tenue (pas de `magicResistance`/`taunt`/`unlimitedRetaliation`
-> nouveaux, contrairement à une première ébauche).
+> `doubleAttack`, `magicResistance`) hors Symbiose — aucune nouvelle capacité de
+> code (la Symbiose reste l'unique module moteur de la faction).
 
 ## 4. Bâtiments spéciaux (2–3) + chaîne d'habitations
 

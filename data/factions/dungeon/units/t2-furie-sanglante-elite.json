@@ -3,11 +3,32 @@
   "tier": 2,
   "name": "@loc:unit.t2-furie-sanglante-elite.name",
   "loreKey": "@loc:unit.t2-furie-sanglante-elite.lore",
-  "stats": { "hp": 13, "attack": 8, "defense": 5, "damage": [3, 5], "speed": 9 },
+  "stats": {
+    "hp": 13,
+    "attack": 8,
+    "defense": 5,
+    "damage": [
+      3,
+      5
+    ],
+    "speed": 9
+  },
   "growthPerWeek": 9,
-  "cost": { "gold": 160 },
+  "cost": {
+    "gold": 160
+  },
   "abilities": [
-    { "id": "noRetaliation" },
-    { "id": "charge", "params": { "perHex": 0.05 } }
+    {
+      "id": "noRetaliation"
+    },
+    {
+      "id": "charge",
+      "params": {
+        "perHex": 0.05
+      }
+    },
+    {
+      "id": "firstStrike"
+    }
   ]
 }

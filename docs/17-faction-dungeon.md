@@ -85,7 +85,7 @@ les capacités listées **existent déjà** au catalogue générique
 | Tier | Unité (FR / rôle HoMM) | PV | Att | Déf | Dégâts | Vit. | Croiss./sem | Coût (or +) | Capacités (catalogue) |
 |------|------------------------|----|-----|-----|--------|------|-------------|-------------|-----------------------|
 | 1 | **Éclaireur** (Assassin / tireur) | 6 | 4 | 3 | 2–3 | 6 | 14 | 65 | `shooter`, `poisonSting` |
-| 2 | **Furie Sanglante** (Blood Fury / assaut) | 11 | 7 | 4 | 2–4 | 8 | 9 | 130 | `noRetaliation` |
+| 2 | **Furie Sanglante** (Blood Fury / assaut) | 11 | 7 | 4 | 2–4 | 8 | 9 | 130 | `noRetaliation`, `firstStrike` ² |
 | 3 | **Minotaure** (garde / tank moral) | 25 | 9 | 8 | 6–9 | 6 | 6 | 260, +1 `sulfur` | `moraleImmune`, `doubleAttack` |
 | 4 | **Chevaucheur des Ténèbres** (Dark Raider / cavalerie) | 32 | 12 | 9 | 7–10 | 9 | 4 | 480 | `charge` |
 | 5 | **Sorcière d'Ombre** (Shadow Matron / caster) | 30 | 11 | 10 | 7–11 | 7 | 3 | 620, +1 `gems` | `spellcaster`, `curseOnHit` |

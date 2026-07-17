@@ -68,8 +68,11 @@ Dérivée d'un diff données ↔ `assets/` reproduisant les résolveurs de
 1. [x] Inventaire + classification (ce document). → *vérif : tableau §1 exhaustif vs doc 12*
 2. [x] Régénération des prompts depuis les données (`gen_prompts.py`). → *vérif : `git status assets/prompts` ; artefacts 11 sujets couverts, grail présent par faction*
 3. [x] Suppression de l'orphelin `assets/prompts/artifacts.md` (remplacé par `-p1/-p2`).
-4. [ ] **Handoff G1 (artefacts)** → l'utilisateur génère les 2 planches dans Gemini.
-5. [ ] Intégration G1 : `sheet_extract.py` (QC verte) → `assets/artifacts/` → smoke.
+4. [x] **Handoff G1 (artefacts)** → l'utilisateur a généré les 2 planches dans Gemini.
+5. [x] Intégration G1 : `sheet_extract.py` (QC 11/11 verte) → 6 manquants copiés dans
+       `assets/artifacts/` → build (budget vert) + smoke « assets sans 404 » vert.
+       *Note p2 : planche à cadres par cellule → `--inset 0.09 --tol 55` pour
+       démarrer le remplissage à l'intérieur du cadre (halo gris sinon).*
 6. [ ] Handoff/intégration G2 (grail) puis G3 (fonds) au même schéma.
 
 ## 4. Journal

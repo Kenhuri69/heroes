@@ -118,6 +118,10 @@ décisions de cadrage).
 
 - [x] Analyse de l'état réel du code (client + doc 18) — 2026-07-17
 - [x] Roadmap priorisée rédigée et poussée (ce fichier)
-- [ ] Sprint 1 lancé (plan vivant `.claude/plans/combat-juice-range-penalty.md`)
-- [ ] Sprint 2 lancé (plan vivant `.claude/plans/guardian-visual-gradation.md`)
-- [ ] Sprint 3 lancé (plan vivant `.claude/plans/kingdom-overview.md`)
+- [x] Plans détaillés des 3 sprints rédigés — 2026-07-17 :
+      `combat-juice-range-penalty.md` (S1), `guardian-visual-gradation.md`
+      (S2), `kingdom-overview.md` (S3) — étapes, points d'ancrage code
+      vérifiés, tests par niveau, risques, hors-périmètre
+- [ ] Sprint 1 : implémentation lancée
+- [ ] Sprint 2 : implémentation lancée
+- [ ] Sprint 3 : implémentation lancée

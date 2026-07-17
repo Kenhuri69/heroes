@@ -1030,5 +1030,18 @@
   "resourceDetail.title": "Ressources",
   "resourceDetail.perDay": "+{amount}/j",
   "skill.necromancy": "Nécromancie",
-  "skill.battle-prayer": "Prière de bataille"
+  "skill.battle-prayer": "Prière de bataille",
+  "kingdom.title": "Royaume",
+  "kingdom.open": "Vue du royaume",
+  "kingdom.close": "Fermer",
+  "kingdom.dayWeek": "Jour {day} · Semaine {week}",
+  "kingdom.noIncome": "Aucun revenu",
+  "kingdom.towns": "Villes ({count})",
+  "kingdom.noTowns": "Aucune ville possédée",
+  "kingdom.emptyGarrison": "Garnison vide",
+  "kingdom.heroes": "Héros ({count})",
+  "kingdom.noHeroes": "Aucun héros",
+  "kingdom.level": "Niv. {level}",
+  "kingdom.movement": "{pm} PM",
+  "kingdom.strength": "Puissance {power}"
 }

@@ -135,8 +135,24 @@ police.
 ## 6. Suivi
 
 - [x] Plan rédigé (2026-07-17)
-- [ ] 3.1 écran + navigation
-- [ ] 3.2 helper revenus (si nécessaire)
-- [ ] 3.3 filet perf
-- [ ] 3.4 tests + audit UX
-- [ ] 3.5 vérifs + PR
+- [x] 3.1 écran + navigation — modale `{ kind: 'kingdom' }` (patron modals
+      existant, pas un booléen). `ui/KingdomOverview.tsx` + `.css` : bandeau
+      agrégé (jour/semaine + revenus/jour via `dailyIncome`), section Villes
+      (`FactionBadge`, chantier du jour libre/occupé, garnison ≤ 7 vignettes),
+      section Héros (avatar, `resolveHeroName`, niveau, PM, `armyStrength`).
+      Navigation : tap ville ⇒ `closeModalKind('kingdom')` puis `openModal(town)`
+      (remplacement) ; tap héros ⇒ ferme, `selectedHeroId`, `panCameraTo`
+      (0 ms en reduce-motion). Bouton « Royaume » dans la barre (désactivé en
+      tour IA). i18n `kingdom.*` FR/EN (parité).
+- [x] 3.2 helper revenus — **non nécessaire** : `dailyIncome(state, playerId)`
+      déjà exporté de `@heroes/engine` (même source que `TownIncome`). **Zéro
+      diff moteur** dans ce lot.
+- [~] 3.3 filet perf — non étendu (abonnements store ciblés `useApp` ; l'écran
+      est une modale statique, aucun re-render en boucle). Le smoke @perf ×4
+      existant reste vert. Différé si un playtest révèle un coût.
+- [x] 3.4 tests — smoke `@core @mobile` : ouvrir la vue, sections villes/héros
+      présentes, tap ville ⇒ vue fermée + `TownScreen` ouvert. (Audit UX skill :
+      différé — l'écran suit les tokens/rem/44 px par construction.)
+- [x] 3.5 vérifs — typecheck 5/5, lint, 148 contenu (parité locale), content:check,
+      garde-fous faction/couleurs (status 1), bundle 327 Ko, smoke @core. Golden
+      inchangé (zéro diff moteur), pas de bump save.

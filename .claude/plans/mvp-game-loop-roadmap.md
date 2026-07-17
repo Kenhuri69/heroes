@@ -130,4 +130,9 @@ décisions de cadrage).
       hebdo opt-in + F4 README) — helper `strengthBand`, cluster 1/3/4 instances +
       étendard de horde (procédural), `guardianGrowth` moteur (golden inchangé,
       pas de bump save). Détail dans `guardian-visual-gradation.md`.
-- [ ] Sprint 3 : implémentation lancée
+- [x] Sprint 3 : **livré** (E1 vue de royaume) — modale `KingdomOverview`
+      (villes : chantier/garnison ; héros : niveau/PM/puissance ; revenus/jour
+      agrégés) + navigation directe (tap ville ⇒ TownScreen, tap héros ⇒ centrage
+      caméra). Client pur (`dailyIncome`/`armyStrength` réutilisés), zéro diff
+      moteur. Détail dans `kingdom-overview.md`. **Roadmap MVP « boucle complète
+      et agréable » — 3/3 sprints livrés.**

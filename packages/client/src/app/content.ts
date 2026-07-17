@@ -120,6 +120,11 @@ export async function resolveGeneratedMap(
     guardianUnits: painted.length > 0 ? painted : [...units],
     unitTiers: knownUnitTiers(report),
     artifactIds: [...knownArtifactIds(report)],
+    // Rareté graduée en profondeur (doc 18 C2, lot 3.2) : commun près du départ,
+    // rare au fond — lue depuis le catalogue core (défaut 1 si absente).
+    artifactRarity: Object.fromEntries(
+      report.content.coreArtifacts.map((a) => [a.id, a.rarity ?? 1]),
+    ),
     townFactionIds: townFactions,
     ...opts,
   });

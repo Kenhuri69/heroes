@@ -61,6 +61,12 @@ export interface MapGenOptions {
    */
   artifactIds?: string[];
   /**
+   * Rareté par artefact (doc 18 C2, lot 3.2) — 1..3, absent ⇒ 1. Le placement
+   * devient GRADUÉ par la profondeur (`artifactIdForDepth`) : commun près du
+   * départ, rare au fond. Sans ce champ, tous égaux ⇒ tri stable par id.
+   */
+  artifactRarity?: Record<string, number>;
+  /**
    * Factions candidates pour les **villes neutres** (vide ⇒ aucune ville
    * neutre, comme `guardianUnits`). 1–2 villes assiégeables sont posées en
    * zone médiane/profonde, garnison graduée par la profondeur — le client les
@@ -163,6 +169,22 @@ function landBiome(e: number, m: number, t: number, detail: number): string {
   if (m > WET) return e < SEA + 0.1 ? 'swamp' : 'forest';
   if (m < DRY) return e < SEA + 0.1 ? 'sand' : 'rough';
   return detail > 0.66 ? 'dirt' : 'grass'; // plaine, quelques plaques de terre
+}
+
+/**
+ * Tirage d'artefact gradué par la profondeur (doc 18 C2, lot 3.2) — PUR et
+ * déterministe : `sortedIds` est trié par rareté croissante (puis id stable),
+ * l'index suit `depth` (0 = bord de carte, 1 = fond) avec un `jitter` borné
+ * (±1 attendu, seedé par l'appelant). Exporté pour le test unitaire.
+ */
+export function artifactIdForDepth(
+  sortedIds: readonly string[],
+  depth: number,
+  jitter: number,
+): string {
+  const last = sortedIds.length - 1;
+  const idx = Math.round(Math.min(1, Math.max(0, depth)) * last) + jitter;
+  return sortedIds[Math.min(last, Math.max(0, idx))]!;
 }
 
 export function generateMap(id: string, seed: number, opts: MapGenOptions = {}): MapFile {
@@ -502,11 +524,23 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
     }
   }
 
-  // Artefacts : récompense premium, posée en profondeur et gardée par une sentinelle.
+  // Artefacts : récompense premium, posée en profondeur et gardée par une
+  // sentinelle. Tirage GRADUÉ par la rareté (doc 18 C2, lot 3.2) : l'index dans
+  // la palette triée par rareté suit la profondeur de la case, jitter ±1 seedé.
   if (artifactIds.length > 0) {
+    const rarityOf = (id: string): number => opts.artifactRarity?.[id] ?? 1;
+    const sortedArtifacts = [...artifactIds].sort(
+      (a, b) => rarityOf(a) - rarityOf(b) || (a < b ? -1 : a > b ? 1 : 0),
+    );
     for (let i = 0; i < scaledCat(randBetween(1, 2), pickupDensity); i++) {
       const t = place(
-        (x, y, n) => ({ id: `artifact-${n}`, type: 'artifact', x, y, artifactId: artifactIds[randInt(artifactIds.length)]! }),
+        (x, y, n) => ({
+          id: `artifact-${n}`,
+          type: 'artifact',
+          x,
+          y,
+          artifactId: artifactIdForDepth(sortedArtifacts, depthAt(x, y), randBetween(-1, 1)),
+        }),
         true,
       );
       if (t) placeSentinel(t.x, t.y);

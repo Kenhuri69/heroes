@@ -118,11 +118,31 @@ export function heroDailyMovement(draft: GameState, hero: GameState['heroes'][nu
   return scaled + townBuildingAura(draft, hero.playerId, hero.pos, 'movementBonusFlat') + artifactMove;
 }
 
+/**
+ * Commandes résolvant un COMBAT auto (jusqu'à 20 000 itérations dans le hot loop) :
+ * exécutées sur un **clone plat** plutôt que sous proxy Immer (perf F3, revue perf
+ * lot 7b). Chaque lecture/écriture du hot loop traverserait sinon les traps de
+ * Proxy (surcoût ×5-20). Le résultat est identique en CONTENU (mêmes mutations sur
+ * les mêmes données) ⇒ golden inchangé ; le clone rompt tout aliasing avec `state`,
+ * qui reste immuable comme avec Immer. `AiTurn` inclut ses combats + le pathfinding
+ * A* (aussi chauds), même bénéfice.
+ */
+const IMMER_BYPASS = new Set<Command['type']>(['AutoCombat', 'AiTurn']);
+
 /** Règle d'or (doc 07 §2) : fonction pure (état, commande) → état + événements. */
 export function apply(state: GameState, cmd: Command): EngineResult {
   const err = validate(state, cmd);
   if (err) throw new EngineError(err);
   const events: GameEvent[] = [];
+  if (IMMER_BYPASS.has(cmd.type)) {
+    // structuredClone : `GameState` est un arbre JSON-sérialisable pur (doc 07 §3)
+    // ⇒ clonage fidèle sans Proxy. `state` (potentiellement gelé par un produce
+    // antérieur) n'est jamais muté.
+    const draft = structuredClone(state);
+    handlers[cmd.type](draft, cmd as never, events);
+    evaluateQuests(draft, events);
+    return { state: draft, events };
+  }
   const next = produce(state, (draft) => {
     handlers[cmd.type](draft, cmd as never, events);
     // Point d'appel unique des quêtes (doc 13 §6.2, N2a) : toute commande qui

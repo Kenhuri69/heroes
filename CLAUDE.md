@@ -390,6 +390,23 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > (état ad hoc, rien de sérialisé), golden **inchangé** (833 tests moteur, +4 ;
 > unités synthétiques), garde-fous faction/couleurs verts.*
 
+> ⚡ **Perf moteur — lot 7b** (plan `.claude/plans/code-review-performance.md`,
+> dernier item de la revue perf ; décision utilisateur « perf max »). Deux
+> optimisations du hot loop de combat, **zéro nouvelle règle** : **F3** —
+> l'auto-combat (`AutoCombat`/`AiTurn`) s'exécute sur un **clone plat**
+> (`structuredClone`) plutôt que sous proxy Immer (surcoût ×5-20 par lecture/
+> écriture, jusqu'à 20 000 itérations) ; mêmes mutations sur les mêmes données ⇒
+> **golden inchangé** ; `simulateHeroCombat` perd aussi son `produce`. **F2** —
+> plafond de jets de dégâts par frappe (`MAX_DAMAGE_ROLLS = 10` × échelle de
+> l'effectif, moyenne préservée & bornes tenues) : une pile de N créatures tirait
+> N dés PCG32/BigInt par frappe ⇒ désormais O(min(N,10)). Golden **finalement
+> inchangé** (le seul stack > 10 du replay ne frappe jamais) ; test dédié du
+> plafond ajouté (dégât fixe ⇒ `count × d` exact ; variable ⇒ borne). **Mesure :
+> `faction:sim` ~300 s → 47 s (×6,3)** ; le lot 7a (F5–F8) avait déjà donné
+> mouvement 150 pas ×27. PCG32-32 bits **non** fait (changerait tout le RNG dont
+> mapgen — hors proportion). Pas de bump `CURRENT_SAVE_VERSION`, garde-fous
+> faction/couleurs verts, moteur 835/835.*
+
 ---
 
 ## Structure des fichiers

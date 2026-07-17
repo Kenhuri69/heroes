@@ -1099,6 +1099,19 @@ export const mapFileSchema = z.object({
             amount: z.number().int().positive(),
           }),
           z.object({ kind: z.literal('message'), textKey: z.string().min(1) }),
+          // Doc 18 A5 — effets liés au héros visiteur (no-op sur trigger `day`).
+          z.object({ kind: z.literal('grantArtifact'), artifactId: idSchema }),
+          z.object({
+            kind: z.literal('grantArmy'),
+            unitId: idSchema,
+            count: z.number().int().positive(),
+          }),
+          z.object({
+            kind: z.literal('ambush'),
+            army: z
+              .array(z.object({ unitId: idSchema, count: z.number().int().positive() }))
+              .min(1),
+          }),
         ]),
       }),
     )

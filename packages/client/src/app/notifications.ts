@@ -155,17 +155,35 @@ export function notify(event: AppEvent, game: GameState): string | null {
     // Semaine du savoir (M-CALENDAR) : XP créditée — notifiée au seul humain.
     case 'CalendarXpGranted':
       return event.playerId === human ? t('toast.calendarXp', { amount: event.amount }) : null;
-    // Trigger de carte (doc 02 §2.1) : message global localisé, ou octroi de
-    // ressource notifié au seul joueur humain (comme un ramassage).
+    // Trigger de carte (doc 02 §2.1 + doc 18 A5) : message global localisé, ou
+    // effet notifié au seul joueur humain (comme un ramassage). Une embuscade
+    // n'a pas de toast — l'ouverture du combat EST le feedback.
     case 'TriggerFired':
-      return event.effect.kind === 'message'
-        ? t(event.effect.textKey)
-        : event.playerId === human
-          ? t('toast.triggerResource', {
-              amount: event.effect.amount,
-              resource: t(`resource.${event.effect.resource}`),
-            })
-          : null;
+      switch (event.effect.kind) {
+        case 'message':
+          return t(event.effect.textKey);
+        case 'grantResource':
+          return event.playerId === human
+            ? t('toast.triggerResource', {
+                amount: event.effect.amount,
+                resource: t(`resource.${event.effect.resource}`),
+              })
+            : null;
+        case 'grantArtifact':
+          return event.playerId === human
+            ? t('toast.triggerArtifact', { artifact: resolveArtifactName(event.effect.artifactId) })
+            : null;
+        case 'grantArmy':
+          return event.playerId === human
+            ? t('toast.triggerArmy', {
+                count: event.effect.count,
+                unit: resolveUnitName(event.effect.unitId),
+              })
+            : null;
+        case 'ambush':
+          return null;
+      }
+      return null; // inatteignable (switch exhaustif) — satisfait no-fallthrough
     case 'CombatEnded':
       return event.winner === event.playerSide ? t('toast.combatWon') : t('toast.combatLost');
     // Nécromancie (doc 04 §2) : relève post-victoire (effet de faction).

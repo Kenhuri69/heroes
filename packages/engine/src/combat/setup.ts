@@ -311,6 +311,61 @@ export function beginGuardianCombat(
 }
 
 /**
+ * Ouvre un combat d'**embuscade** (trigger `ambush`, doc 18 A5) : le héros qui a
+ * foulé la tuile piégée affronte l'armée SCRIPTÉE déclarée par le trigger —
+ * jumeau de `beginGuardianCombat` sans objet de carte (`guardianObjectId: null` ;
+ * la fin de combat générique gère XP/survivants/mort du héros). Le terrain est
+ * celui de la tuile du héros (il est DESSUS — piège, pas interception).
+ */
+export function beginAmbushCombat(
+  draft: Draft,
+  heroId: string,
+  army: readonly { unitId: string; count: number }[],
+  events: GameEvent[],
+): void {
+  const hero = draft.heroes.find((h) => h.id === heroId);
+  const map = draft.map;
+  const rules = draft.config?.combat;
+  if (!hero || !map || !rules) throw new Error('beginAmbushCombat: héros, carte ou config absents');
+  const terrain = terrainAt(map, hero.pos);
+  const attacker: ArmyStack[] = [
+    ...hero.army,
+    ...hero.warMachines.map((unitId) => ({ unitId, count: 1 })),
+  ];
+  const defender: ArmyStack[] = army.filter((s) => s.count > 0).map((s) => ({ ...s }));
+  if (attacker.length === 0 || defender.length === 0) return; // gardés par l'appelant/le schéma
+  const stacks = [
+    ...placeSide('attacker', attacker, draft.unitCatalog, 0),
+    ...placeSide('defender', defender, draft.unitCatalog, COMBAT_COLS - 1),
+  ];
+  const obstacles = drawObstacles(draft, rules.obstaclesMin, rules.obstaclesMax);
+  draft.combat = {
+    terrain,
+    phase: 'battle',
+    round: 1,
+    obstacles,
+    stacks,
+    activeStackId: null,
+    playerSide: 'attacker',
+    heroId,
+    guardianObjectId: null,
+    townId: null,
+    wallDefenseBonus: 0,
+    attackerHeroId: heroId,
+    defenderHeroId: null,
+    heroCastThisRound: [],
+    heroAttackUsed: [],
+    finished: false,
+    winner: null,
+  };
+  initLedger(draft.combat);
+  initHeroMana(draft, draft.combat);
+  events.push({ type: 'CombatStarted', terrain, heroId, guardianObjectId: null });
+  events.push({ type: 'CombatRoundStarted', round: 1 });
+  openPlacementOrBattle(draft, events);
+}
+
+/**
  * Ouvre un combat de siège héros ↔ garnison de ville (doc 02 §4.1, Alpha 4.13).
  * Jumeau de `beginGuardianCombat` : attaquant = armée du héros + machines de
  * guerre, défenseur = garnison ; le Fort accorde un bonus de défense « murs ».

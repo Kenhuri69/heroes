@@ -159,9 +159,26 @@ son cran visuel a suivi si un seuil de bande est franchi).
 ## 6. Suivi
 
 - [x] Plan rédigé (2026-07-17)
-- [ ] 3.1 gradation client
-- [ ] 3.2 étendard (repli + asset)
-- [ ] 3.3 croissance moteur
-- [ ] 3.4 F4 README
-- [ ] 3.5 tests
-- [ ] 3.6 vérifs + PR
+- [x] 3.1 gradation client — helper partagé `render/strengthBand.ts`
+      (`strengthBandKey` + `bandTier` : 7 bandes → 3 crans lone/group/horde),
+      consommé par `shell.tsx` (libellé) et `mapObjects.ts`. `buildGuardian`
+      refactoré : `buildCreatureVisual` (base ancrée à l'origine) × 1/3/4 instances
+      en cluster (`GUARDIAN_CLUSTER`, offsets/échelle + jitter **hashé sur la
+      position**, jamais `Math.random`). Signature de reconstruction `guardian:<tier>`
+      (croissance franchissant un seuil ⇒ rebuild ; errant qui bouge ⇒ resync).
+- [x] 3.2 étendard — **repli dessiné** `buildHordeBanner` (hampe + flamme effilée)
+      planté derrière la horde (marqueur de FORME, a11y). PNG dédié différé
+      (le repli EST le livrable ; se branchera par simple dépôt).
+- [x] 3.3 croissance moteur — bloc opt-in `adventure.guardianGrowth
+      { weeklyFactor, maxCount }` appliqué au passage de semaine (`WeekStarted`) :
+      `count = min(floor(count×factor), maxCount)`, plancher +1. Données 1.1/300.
+      Absent ⇒ figé (golden inchangé). Pas de bump save (`count` déjà sérialisé).
+- [x] 3.4 F4 — `assets/README.md` corrigé (intégration auto-découverte réelle).
+- [x] 3.5 tests — moteur : `guardian-growth.test.ts` (4 cas : opt-in/facteur/
+      plancher/cap). Smoke : gardien de départ rendu comme cluster gradué
+      (`objectChildCount`). Golden inchangé. **Limite** : group/horde visuels =
+      verify manuel (aucune carte de test > 99 gardiens, pas de harnais unitaire
+      client) — documenté dans le smoke.
+- [x] 3.6 vérifs — typecheck 5/5, lint, 842 moteur (golden `04cb6e08`), 148
+      contenu, content:check, garde-fous faction/couleurs, bundle 326 Ko, smoke
+      @core. PR à ouvrir.

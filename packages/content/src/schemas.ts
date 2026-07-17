@@ -848,6 +848,13 @@ export const gameConfigSchema = z.object({
       })
       .refine((r) => r.resourceAmount.min <= r.resourceAmount.max, 'resourceAmount.min ≤ max')
       .optional(),
+    /** Croissance hebdo des gardiens (A2) — optionnel : absent ⇒ gardiens figés. */
+    guardianGrowth: z
+      .object({
+        weeklyFactor: z.number().min(1),
+        maxCount: z.number().int().positive(),
+      })
+      .optional(),
   }),
   newGame: z.object({
     map: idSchema,

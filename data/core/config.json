@@ -74,7 +74,8 @@
       "resourceAmount": { "min": 2, "max": 5 },
       "artifactThresholdHp": 1200,
       "artifactChancePercent": 50
-    }
+    },
+    "guardianGrowth": { "weeklyFactor": 1.1, "maxCount": 300 }
   },
   "newGame": {
     "map": "proto-01",

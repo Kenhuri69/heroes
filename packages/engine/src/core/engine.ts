@@ -956,6 +956,18 @@ function advanceSeat(draft: Draft, events: GameEvent[]): void {
           }
         }
         applyWeeklyGrowth(draft, events); // croissance hebdo des habitations
+        // Croissance hebdo des gardiens neutres (A2, doc 02 §2.2, fidélité HoMM) —
+        // OPT-IN par données : bloc absent ⇒ gardiens figés (golden inchangé). Le
+        // `count` est déjà sérialisé ⇒ pas de bump save ; arithmétique pure (aucun
+        // RNG). Plancher +1 pour que les petites piles progressent malgré l'arrondi.
+        const gg = draft.config?.guardianGrowth;
+        if (gg && draft.map) {
+          for (const obj of draft.map.objects) {
+            if (obj.type !== 'guardian' || obj.count >= gg.maxCount) continue;
+            const grown = Math.floor(obj.count * gg.weeklyFactor);
+            obj.count = Math.min(gg.maxCount, Math.max(grown, obj.count + 1));
+          }
+        }
         // Contrats de chasse (doc 05 §3.3) : cible neutre hebdomadaire assignée
         // au propriétaire d'un bâtiment `huntContract`.
         assignHuntContracts(draft, events);

@@ -25,6 +25,7 @@ import {
   resolveSelectedHero,
 } from '../app/game';
 import { RESOURCE_COLORS } from '../render/mapObjects';
+import { strengthBandKey } from '../render/strengthBand';
 import { playerColor } from '../render/playerColors';
 import { heroAvatarUrl, resourceIconUrl, unitSpriteUrl } from '../render/assets';
 import {
@@ -425,8 +426,9 @@ function ResourceDetail() {
 }
 
 function guardianBand(count: number, bands: { max: number | null; key: string }[]): string {
-  const band = bands.find((b) => b.max === null || count <= b.max);
-  return band ? t(`guardianBand.${band.key}`) : '';
+  // Helper de bande partagé avec la gradation visuelle du jeton (A1, `render/strengthBand`).
+  const key = strengthBandKey(count, bands);
+  return key ? t(`guardianBand.${key}`) : '';
 }
 
 /**

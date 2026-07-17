@@ -1,10 +1,11 @@
 # assets/ — staging des assets générés
 
-⚠️ **Zone de staging, PAS d'intégration** : rien dans `packages/client` ne
-référence ce dossier. Le branchement dans le jeu (loader Pixi, lazy-loading,
-révision du budget bundle < 800 Ko gzip) est un lot séparé, non ouvert —
-voir `docs/12-assets-style-guide.md` §10 et
-`.claude/plans/game-assets-generation.md`.
+**Zone de staging, intégration auto-découverte** (F4, doc 18) : le client
+consomme ce dossier via un registre `import.meta.glob('.../*.png', ?url)`
+(`packages/client/src/render/assets.ts` pour les visuels, `app/audio.ts` pour le
+son), **hors bundle JS** (`assetsInlineLimit: 0` — budget < 800 Ko gzip tenu) avec
+**repli procédural gracieux** quand un PNG manque. Déposer un asset au bon chemin
+suffit à le brancher — voir `docs/12-assets-style-guide.md` §10.
 
 | Dossier | Contenu | Produit par |
 |---|---|---|

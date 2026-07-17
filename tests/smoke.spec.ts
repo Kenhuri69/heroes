@@ -751,6 +751,18 @@ test('B6 : un tir produit un projectile visible (sprint 1)', { tag: '@core' }, a
   expect(errors).toEqual([]);
 });
 
+test('A1 : un gardien de carte est rendu comme un cluster gradué (sprint 2)', { tag: '@core' }, async ({ page }) => {
+  const errors = await openGame(page);
+  // Le gardien de départ (guard-camp, effectif « few » ⇒ cran solitaire) compose
+  // son nœud : losange de visée + 1 instance de créature. La gradation rend
+  // 1/3/4 instances selon le cran (groupe/horde vérifiés au verify manuel — aucune
+  // carte de test ne porte un gardien > 99, et le client n'a pas de harnais unitaire).
+  await expect
+    .poll(() => page.evaluate(() => window.__HEROES_TEST__!.objectChildCount('guard-camp')))
+    .toBeGreaterThanOrEqual(2);
+  expect(errors).toEqual([]);
+});
+
 test('écran pré-combat : puissances comparées + Auto-Battle résout (Lot 1)', { tag: '@core' }, async ({ page }) => {
   const errors = await openGame(page);
 

@@ -126,5 +126,8 @@ décisions de cadrage).
       (projectiles + FX de sorts, procédural), `rangePenalty` opt-in moteur,
       tests moteur + 2 smokes. Golden inchangé, pas de bump save. Détail dans
       `combat-juice-range-penalty.md`.
-- [ ] Sprint 2 : implémentation lancée
+- [x] Sprint 2 : **livré** (A1 gradation visuelle des gardiens + A2 croissance
+      hebdo opt-in + F4 README) — helper `strengthBand`, cluster 1/3/4 instances +
+      étendard de horde (procédural), `guardianGrowth` moteur (golden inchangé,
+      pas de bump save). Détail dans `guardian-visual-gradation.md`.
 - [ ] Sprint 3 : implémentation lancée

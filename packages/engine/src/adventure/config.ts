@@ -123,6 +123,15 @@ export interface AdventureConfig {
    * ids de ressource/artefact opaques, jamais un nom de faction.
    */
   guardianReward?: GuardianRewardConfig | undefined;
+  /**
+   * Croissance hebdomadaire des gardiens neutres (A2, doc 02 §2.2, fidélité
+   * HoMM — pression temporelle du core loop) : au passage de semaine, chaque
+   * pile neutre de la carte grossit de `×weeklyFactor` (plancher +1 si l'arrondi
+   * n'augmente pas), plafonnée à `maxCount` absolu. **Optionnel & opt-in par
+   * données** : absent ⇒ gardiens figés (comportement historique ⇒ golden
+   * inchangé). Le `count` du gardien est déjà sérialisé ⇒ pas de bump save.
+   */
+  guardianGrowth?: { weeklyFactor: number; maxCount: number } | undefined;
 }
 
 /**

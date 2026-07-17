@@ -89,6 +89,8 @@ declare global {
       renderedHeroIds: () => string[];
       /** Compteurs cumulés de FX de combat (B6 — smoke « projectile/impact visible »). */
       combatFx: () => { projectiles: number; impacts: number };
+      /** Nb d'enfants du nœud d'un objet de carte rendu (A1 — gradation des gardiens). */
+      objectChildCount: (id: string) => number;
     };
   }
 }
@@ -455,6 +457,7 @@ async function bootstrap(): Promise<void> {
     },
     renderedHeroIds: () => scene?.renderedHeroIds() ?? [],
     combatFx: () => ({ ...combatFxStats }),
+    objectChildCount: (id: string) => scene?.objectChildCount(id) ?? 0,
   };
   window.__HEROES_READY__ = true; // signal pour le smoke test headless
 }

@@ -364,6 +364,19 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 > forts vers le centre. Générique et faction-agnostique (aucun cas particulier
 > de faction).
 
+> **Croissance hebdo des gardiens (A2, sprint 2)** : au passage de semaine, chaque
+> pile neutre grossit de `×weeklyFactor` (plancher **+1** pour que les petites
+> piles progressent malgré l'arrondi), plafonnée à `maxCount` absolu — pression
+> temporelle du core loop HoMM (nettoyer tôt coûte moins cher). **Opt-in par
+> données** (`adventure.guardianGrowth { weeklyFactor, maxCount }`, optionnel ;
+> valeurs livrées **1.1 / 300**) : bloc absent ⇒ gardiens figés (comportement
+> historique). Arithmétique pure (aucun RNG) ; le `count` étant déjà sérialisé,
+> **pas de bump `CURRENT_SAVE_VERSION`**. Côté client, la **gradation visuelle**
+> (A1) mappe les 7 bandes de force sur **3 crans** (solitaire / groupe / horde,
+> nombre d'instances du jeton + étendard au cran horde) : le danger se lit sans
+> survol, l'effectif exact restant masqué (le libellé de bande reste la source au
+> survol/appui long). Respawn de gardiens (`respawnDays`) : différé.
+
 > **Butin de gardien** : vaincre un gardien neutre **crédite un butin** gradué
 > par sa **force** (PV totaux = `hp × count`), tiré au **RNG seedé** — piloté par
 > le bloc de config optionnel `adventure.guardianReward` (`goldPerHp`,

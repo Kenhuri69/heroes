@@ -40,6 +40,8 @@ function combatLogText(e: AppEvent): string | null {
       return t('combatLog.healed', { unit: nameOf(e.stackId), amount: e.amount });
     case 'StackPoisoned':
       return t('combatLog.poisoned', { unit: nameOf(e.stackId), damage: e.damage });
+    case 'StackAmmoReplenished':
+      return t('combatLog.ammoReplenished', { unit: nameOf(e.stackId), amount: e.amount });
     case 'SpellCast':
       return t('combatLog.spell', {
         spell: resolveSpellName(e.spellId),

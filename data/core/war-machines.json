@@ -20,6 +20,20 @@
       "stats": { "hp": 400, "attack": 12, "defense": 12, "damage": [10, 20], "speed": 1 },
       "abilities": [{ "id": "shooter", "params": { "ammo": 999, "noMeleePenalty": true } }, { "id": "warMachine" }, { "id": "immobile" }, { "id": "spellImmune" }],
       "cost": { "gold": 1 }
+    },
+    {
+      "id": "first-aid-tent",
+      "name": "@loc:warMachine.first-aid-tent.name",
+      "stats": { "hp": 75, "attack": 0, "defense": 10, "damage": [1, 1], "speed": 1 },
+      "abilities": [{ "id": "warMachine" }, { "id": "immobile" }, { "id": "healPerRound", "params": { "amount": 30 } }],
+      "cost": { "gold": 1000, "wood": 5 }
+    },
+    {
+      "id": "ammo-cart",
+      "name": "@loc:warMachine.ammo-cart.name",
+      "stats": { "hp": 100, "attack": 0, "defense": 10, "damage": [1, 1], "speed": 1 },
+      "abilities": [{ "id": "warMachine" }, { "id": "immobile" }, { "id": "replenishAmmo", "params": { "amount": 6 } }],
+      "cost": { "gold": 1000, "wood": 5 }
     }
   ]
 }

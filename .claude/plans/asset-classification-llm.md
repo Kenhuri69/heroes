@@ -78,7 +78,11 @@ Dérivée d'un diff données ↔ `assets/` reproduisant les résolveurs de
        auto-détectées** (hors grille fixe) + **keep-largest-component** (éclats
        parasites supprimés), QC 6/6 verte → `assets/buildings/<faction>/<faction>-grail.png`
        (6 factions hors test) → build + smoke « assets » vert.
-7. [ ] Handoff/intégration G3 (fonds de combat rough/snow/river) au même schéma.
+7. [x] **G3 (fonds de combat)** intégré : 3 pièces uniques Gemini (Règle D)
+       `rough`/`snow`/`river` → cover-resize 1920×1080 + crop centré + JPEG q85
+       (< 500 Ko) → `assets/backgrounds/combat-{rough,snow,river}.jpg` → build +
+       smoke « assets » vert. **Boucle d'assets terminée** (tous les manques d'art
+       peint identifiés au §2 sont comblés).
 
 ## 4. Journal
 - 2026-07-17 : classification établie ; prompts régénérés (artefacts éclatés en

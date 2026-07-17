@@ -1,6 +1,6 @@
 # Plan — Sprint 3 : « gérer son royaume sans friction » (E1 + filet perf)
 
-> **Statut** : plan détaillé rédigé, implémentation non lancée.
+> **Statut** : ✅ livré (2026-07-17). Écarts au plan notés au §6.
 > Parent : `.claude/plans/mvp-game-loop-roadmap.md` (Sprint 3).
 > Écart couvert : **E1** (vue de royaume / kingdom overview) de
 > `docs/18-audit-fonctionnalites-vs-heroes-online.md` — « P1, confort majeur,
@@ -156,3 +156,11 @@ police.
 - [x] 3.5 vérifs — typecheck 5/5, lint, 148 contenu (parité locale), content:check,
       garde-fous faction/couleurs (status 1), bundle 327 Ko, smoke @core. Golden
       inchangé (zéro diff moteur), pas de bump save.
+
+### Réconciliation (PR #416, 2026-07-17)
+
+Deux sessions ont livré ce sprint en parallèle ; la version mergée en premier
+(PR #414) est conservée comme base. La PR #416 est rebasée dessus et n'apporte
+plus que deux greffes à la vue : **revenu or/jour par ville** (`townIncome`,
+clé `town.incomeGold` existante) et **PM affichés restants/max**
+(`dailyMovementPoints`, clé `kingdom.movement` étendue `{pm}/{max}`).

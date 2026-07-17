@@ -122,6 +122,9 @@ décisions de cadrage).
       `combat-juice-range-penalty.md` (S1), `guardian-visual-gradation.md`
       (S2), `kingdom-overview.md` (S3) — étapes, points d'ancrage code
       vérifiés, tests par niveau, risques, hors-périmètre
-- [ ] Sprint 1 : implémentation lancée
+- [x] Sprint 1 : **livré** (B6 juice + B1 pénalité de portée) — `combatFx.ts`
+      (projectiles + FX de sorts, procédural), `rangePenalty` opt-in moteur,
+      tests moteur + 2 smokes. Golden inchangé, pas de bump save. Détail dans
+      `combat-juice-range-penalty.md`.
 - [ ] Sprint 2 : implémentation lancée
 - [ ] Sprint 3 : implémentation lancée

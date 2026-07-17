@@ -31,6 +31,7 @@ import { heroAvatarUrl, unitSpriteUrl } from '../../render/assets';
 import { heroArchetype } from '../../app/game';
 import { HEX_SIZE, computeBoardBounds, drawBoard, hexKey, offsetToPixel, pixelToOffset } from '../../render/hexgrid';
 import { combatPreview } from './preview';
+import { spawnProjectile, spawnSpellImpact } from '../../render/combatFx';
 import { reduceMotion } from '../../app/motion';
 
 const ATTACKER_COLOR = 0xc0392b;
@@ -902,11 +903,31 @@ export class CombatScene {
           combat && event.heroId === combat.defenderHeroId ? 'defender' : 'attacker';
         await this.lungeHero(side, speed);
         const target = this.stackTokens.get(event.targetId);
-        if (target && !target.destroyed && event.amount > 0) {
+        if (target && !target.destroyed) {
           const at = new Point(target.position.x, target.position.y);
           const kind = appStore.getState().game.spellCatalog[event.spellId]?.kind;
-          if (kind === 'heal') this.spawnHealNumber(at, event.amount);
-          else this.spawnDamageNumber(at, event.amount, event.kills, false, false);
+          // B6 : retour visuel du sort DISTINCT de la frappe (onde/étincelles/halo
+          // par famille) — même pour un buff/debuff sans nombre flottant.
+          if (kind) await spawnSpellImpact(this.fxLayer, at, kind, { speed, reduced: prefersReducedMotion() });
+          if (event.amount > 0) {
+            if (kind === 'heal') this.spawnHealNumber(at, event.amount);
+            else this.spawnDamageNumber(at, event.amount, event.kills, false, false);
+          }
+        }
+        return;
+      }
+      case 'UnitSpellCast': {
+        // A2h + B6 : une pile lanceuse (`spellcaster`) — FX de sort sur la cible
+        // (jusqu'ici AUCUN retour visuel) + nombre de dégâts/soin.
+        const target = this.stackTokens.get(event.targetId);
+        if (target && !target.destroyed) {
+          const at = new Point(target.position.x, target.position.y);
+          const kind = appStore.getState().game.spellCatalog[event.spellId]?.kind;
+          if (kind) await spawnSpellImpact(this.fxLayer, at, kind, { speed, reduced: prefersReducedMotion() });
+          if (event.amount > 0) {
+            if (kind === 'heal') this.spawnHealNumber(at, event.amount);
+            else this.spawnDamageNumber(at, event.amount, event.kills, false, false);
+          }
         }
         return;
       }
@@ -955,40 +976,54 @@ export class CombatScene {
     event: Extract<AppEvent, { type: 'StackAttacked' }>,
     speed: number,
   ): Promise<void> {
-    const { attackerId, targetId, damage, kills, lucky, unlucky, dodged } = event;
+    const { attackerId, targetId, damage, kills, lucky, unlucky, dodged, ranged } = event;
     const attacker = this.stackTokens.get(attackerId);
     if (!attacker) return;
     const target = this.stackTokens.get(targetId);
     const origin = new Point(attacker.position.x, attacker.position.y);
-    const dest = target ? target.position : origin;
-    const mid = new Point(
-      origin.x + (dest.x - origin.x) * 0.35,
-      origin.y + (dest.y - origin.y) * 0.35,
-    );
-    const half = ATTACK_LUNGE_MS / 2 / speed;
+    const dest = target ? new Point(target.position.x, target.position.y) : origin;
+    const reduced = prefersReducedMotion();
     this.animatingIds.add(attackerId);
-    // Gardes `destroyed` (lot M4) : l'auto par rounds enchaîne les animations —
-    // la scène et ses jetons peuvent être détruits pendant un tween en vol.
-    await tween(half, (t) => {
-      if (attacker.destroyed) return;
-      attacker.position.set(origin.x + (mid.x - origin.x) * t, origin.y + (mid.y - origin.y) * t);
-    });
-    // Impact : flash sur la cible + chiffres de dégâts flottants + micro-secousse.
-    // Une frappe esquivée (`incorporeal`, A2b) affiche « esquive » sans dégâts.
-    if (target && !target.destroyed) {
+    // Impact commun (tir & mêlée) : flash + chiffres + micro-secousse. Une frappe
+    // esquivée (`incorporeal`, A2b) affiche « esquive » sans dégâts.
+    const impact = (): void => {
+      if (!target || target.destroyed) return;
       if (dodged) {
         this.spawnFloatingLabel(dest, 'esquive', 0x8fb3d9);
       } else {
         target.tint = 0xff6666;
         this.spawnDamageNumber(dest, damage, kills, lucky, unlucky);
-        if (!prefersReducedMotion()) void this.shakeToken(target, dest);
+        if (!reduced) void this.shakeToken(target, dest);
       }
+    };
+    if (ranged) {
+      // Tir (B6) : micro-recul du tireur → projectile traverse le plateau →
+      // impact. Le SFX `combat-shoot` coïncide enfin avec un visuel qui vole.
+      const recoil = new Point(origin.x - (dest.x - origin.x) * 0.06, origin.y - (dest.y - origin.y) * 0.06);
+      await tween(ATTACK_LUNGE_MS / 3 / speed, (t) => {
+        if (attacker.destroyed) return;
+        attacker.position.set(origin.x + (recoil.x - origin.x) * t, origin.y + (recoil.y - origin.y) * t);
+      });
+      await spawnProjectile(this.fxLayer, origin, dest, { speed, reduced });
+      impact();
+      if (!attacker.destroyed) attacker.position.set(origin.x, origin.y);
+    } else {
+      // Mêlée : ruée à 35 % du chemin puis retour (inchangé).
+      const mid = new Point(origin.x + (dest.x - origin.x) * 0.35, origin.y + (dest.y - origin.y) * 0.35);
+      const half = ATTACK_LUNGE_MS / 2 / speed;
+      // Gardes `destroyed` (lot M4) : l'auto par rounds enchaîne les animations —
+      // la scène et ses jetons peuvent être détruits pendant un tween en vol.
+      await tween(half, (t) => {
+        if (attacker.destroyed) return;
+        attacker.position.set(origin.x + (mid.x - origin.x) * t, origin.y + (mid.y - origin.y) * t);
+      });
+      impact();
+      await tween(half, (t) => {
+        if (attacker.destroyed) return;
+        attacker.position.set(mid.x + (origin.x - mid.x) * t, mid.y + (origin.y - mid.y) * t);
+      });
+      if (!attacker.destroyed) attacker.position.set(origin.x, origin.y);
     }
-    await tween(half, (t) => {
-      if (attacker.destroyed) return;
-      attacker.position.set(mid.x + (origin.x - mid.x) * t, mid.y + (origin.y - mid.y) * t);
-    });
-    if (!attacker.destroyed) attacker.position.set(origin.x, origin.y);
     if (target && !target.destroyed) target.tint = 0xffffff;
     this.animatingIds.delete(attackerId);
   }
@@ -1128,6 +1163,7 @@ function eventStackIds(event: AppEvent): string[] {
     case 'StackCursed':
     case 'StackFeared':
     case 'SpellCast':
+    case 'UnitSpellCast':
     case 'HeroStruck':
       return [event.targetId];
     default:

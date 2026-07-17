@@ -38,6 +38,8 @@ interface MultiplierInput {
   targetDefending: boolean;
   targetMarks: number;
   meleePenalized: boolean;
+  /** Tir au-delà de `rules.rangePenalty.hexes` (B1) : ×`factor`. Faux hors config/mêlée. */
+  rangePenalized?: boolean;
   rules: CombatRulesConfig;
   /** Bonus % de dégâts (compétence Attaque au corps/Tir du héros attaquant) — 0 hors héros. */
   heroDamagePct?: number;
@@ -254,6 +256,7 @@ export function computeMultiplier(input: MultiplierInput): number {
     targetDefending,
     targetMarks,
     meleePenalized,
+    rangePenalized,
     rules,
     heroDamagePct,
     heroArmorPct: armorPct,
@@ -274,6 +277,9 @@ export function computeMultiplier(input: MultiplierInput): number {
   const factor = clamp(raw, -rules.damageReductionMax, rules.damageBonusMax);
   let mult = 1 + factor;
   if (meleePenalized) mult *= rules.rangedMeleePenalty;
+  // Pénalité de portée (B1) : tir long à ½ dégâts (opt-in ; jamais cumulée avec
+  // `meleePenalized` — un tir pénalisé de portée n'est pas au contact).
+  if (rangePenalized && rules.rangePenalty) mult *= rules.rangePenalty.factor;
   mult *= 1 + rules.markBonusPerStack * targetMarks;
   mult *= 1 + (markConsumeBonus ?? 0);
   mult *= 1 + (demonBonus ?? 0);
@@ -519,6 +525,9 @@ export function performStrike(
     targetDefending: victim.defending,
     targetMarks: victim.marks,
     meleePenalized,
+    // Pénalité de portée (B1) : tir au-delà du seuil (opt-in par config).
+    rangePenalized:
+      ranged && !!rules.rangePenalty && hexDistance(striker.pos, victim.pos) > rules.rangePenalty.hexes,
     rules,
     heroDamagePct,
     heroArmorPct: heroArmor,
@@ -818,6 +827,9 @@ export function estimateDamage(
     targetDefending: target.defending,
     targetMarks: target.marks,
     meleePenalized,
+    // Pénalité de portée (B1) : préviz = résolution — même critère de distance.
+    rangePenalized:
+      ranged && !!rules.rangePenalty && hexDistance(attacker.pos, target.pos) > rules.rangePenalty.hexes,
     rules,
     heroDamagePct,
     heroArmorPct: heroArmor,

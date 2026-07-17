@@ -763,6 +763,13 @@ export const gameConfigSchema = z.object({
           perAttack: z.number().nonnegative(),
         })
         .optional(),
+      /** Pénalité de portée de tir (B1) — optionnel : absent ⇒ pas de falloff. */
+      rangePenalty: z
+        .object({
+          hexes: z.number().int().positive(),
+          factor: z.number().positive().max(1),
+        })
+        .optional(),
     }).refine((c) => c.obstaclesMin <= c.obstaclesMax, 'obstaclesMin ≤ obstaclesMax'),
     /** Marché (doc 02 §4.1, lot UX U6a) : taux d'échange ressource ↔ or au bâtiment marché. */
     market: z

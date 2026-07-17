@@ -26,6 +26,13 @@ export interface CombatRulesConfig {
   defendDefenseMultiplier: number;
   /** Tireur au contact : mêlée à ½ dégâts (doc 02 §5.2). */
   rangedMeleePenalty: number;
+  /**
+   * Pénalité de portée du tir (B1, doc 02 §5.3, fidélité HoMM3) : un tir au-delà
+   * de `hexes` cases inflige `×factor` (ex. `{ hexes: 10, factor: 0.5 }` = ½
+   * dégâts à longue portée). **Optionnel & opt-in par données** : absent ⇒ portée
+   * illimitée sans falloff (comportement historique ⇒ golden inchangé).
+   */
+  rangePenalty?: { hexes: number; factor: number } | undefined;
   /** Moral : 4 %/point de tour bonus (ou sauté, symétrique — décision n°8). */
   moraleChancePerPoint: number;
   /** Chance : 4 %/point de dégâts doublés (doc 02 §5.3). */

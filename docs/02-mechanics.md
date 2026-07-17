@@ -657,6 +657,7 @@ dégâts = Σ(dmg aléatoire min–max par créature de la pile)
 - Les pertes retirent des créatures entières + PV entamés sur la première.
 - **Moral** (−3..+3) : proba d'un **tour bonus** (moral positif : 4 %/point) ou d'un **tour sauté** (négatif : 4 %/point, symétrique). Armée multi-factions : −1 moral par faction supplémentaire (les morts-vivants ne subissent/ne donnent pas de moral).
 - **Chance** (−3..+3, C-BADLUCK) : un seul jet par frappe, |chance| × 4 %/point de déclencher — selon le signe — soit un **coup de chance** (dégâts ×2), soit un **coup de malchance** (demi-dégâts, ×0,5). Symétrique du moral. Chance nulle ⇒ jamais de déclenchement.
+- **Pénalité de portée** (B1, fidélité HoMM3) : un **tir** au-delà de `combat.rangePenalty.hexes` cases inflige `×combat.rangePenalty.factor` (valeurs livrées : **10 hexes, ×0,5** — ½ dégâts à longue portée) ⇒ les tireurs ont un contre-jeu (se rapprocher les affaiblit… ou pas). Jamais cumulée avec la pénalité de mêlée (un tir long n'est pas au contact). **Opt-in par données** (`adventure.combat.rangePenalty`, optionnel) : bloc absent ⇒ portée illimitée sans falloff (comportement historique, golden inchangé). La préviz de dégâts reflète la pénalité (préviz = résolution).
 - Note (Phase 2.4) : en combat, la formule symétrique ±0,05/point s'applique
   telle quelle aux stats des unités ; la pente défensive −2,5 %/point de §1.1
   concerne l'attribut **Défense du héros**, qui s'ajoutera au MVP (les bornes

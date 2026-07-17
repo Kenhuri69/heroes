@@ -46,7 +46,8 @@
       "marksMax": 3,
       "obstaclesMin": 2,
       "obstaclesMax": 5,
-      "heroAttack": { "base": 3, "perPower": 0, "perAttack": 3 }
+      "heroAttack": { "base": 3, "perPower": 0, "perAttack": 3 },
+      "rangePenalty": { "hexes": 10, "factor": 0.5 }
     },
     "market": {
       "sellRate": 25,

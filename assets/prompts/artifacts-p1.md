@@ -1,4 +1,4 @@
-# Planche — icônes d'artefacts
+# Planche — icônes d'artefacts — planche 1/2
 
 > Générée par `tools/assets/gen_prompts.py` — ne pas éditer à la main.
 > Règle C (planche d'icônes, fond gris clair plat) de `docs/12-assets-style-guide.md`. Grille **4×2**,
@@ -7,7 +7,7 @@
 ## Prompt (à coller dans Gemini — Nano Banana/Copilot en repli)
 
 ```
-Item sheet, 7 magical fantasy artifacts in a 4x2 grid,
+Item sheet, 8 magical fantasy artifacts in a 4x2 grid,
 digital painting, painterly MTG illustration quality,
 rich material detail (metal, leather, gem, parchment),
 soft directional light from upper-left,
@@ -21,6 +21,7 @@ cell 4: "Lucky Clover (fr: Trèfle de chance)" — a lucky charm relic (+1 luck)
 cell 5: "Arcane Grimoire (fr: Grimoire arcanique)" — a relic crackling with raw magic (+1 power)
 cell 6: "Seven-League Boots (fr: Bottes de sept lieues)" — movementFlat (+300 movementFlat)
 cell 7: "Spyglass (fr: Longue-vue)" — vision (+3 vision)
+cell 8: "Pendant of Valor (fr: Pendentif de bravoure)" — an inspiring banner-like relic (+1 morale)
 flat uniform light grey background (#c8c8c8), no ground shadow,
 no text, no watermark, no signature, no border frame, no ground line, no decorative sparkles, no star glints, no lens flare
 ```
@@ -30,8 +31,8 @@ no text, no watermark, no signature, no border frame, no ground line, no decorat
 ```bash
 python3 tools/assets/sheet_extract.py <planche.png> \
   --cols 4 --rows 2 --side 512 \
-  --ids lame-aiguisee,egide-de-pierre,orbe-de-savoir,trefle-chance,grimoire-arcanique,bottes-de-sept-lieues,longue-vue \
-  --out assets/raster_src --qc /tmp/qc-artifacts.png
+  --ids lame-aiguisee,egide-de-pierre,orbe-de-savoir,trefle-chance,grimoire-arcanique,bottes-de-sept-lieues,longue-vue,pendentif-de-bravoure \
+  --out assets/raster_src --qc /tmp/qc-artifacts-p1.png
 ```
 
 Puis copier les PNG validés de `assets/raster_src/` vers `assets/artifacts/`.

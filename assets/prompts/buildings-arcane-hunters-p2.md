@@ -7,7 +7,7 @@
 ## Prompt (à coller dans Gemini — Nano Banana/Copilot en repli)
 
 ```
-Building sheet, 5 fantasy dwellings of the same town in a 4x2 grid,
+Building sheet, 6 fantasy dwellings of the same town in a 4x2 grid,
 digital painting, painterly HoMM town-screen style,
 each building isolated on its plot, slight 3/4 aerial view,
 architectural identity: midnight blue and arcane violet, silver trim, glowing cyan runes, hunter gear,
@@ -20,6 +20,7 @@ cell 2: "Circle of the Hunt (fr: Cercle de la Traque)" — a faction-specific to
 cell 3: "Circle of the Seal (fr: Cercle du Sceau)" — a faction-specific town building
 cell 4: "Circle of the Abyss (fr: Cercle de l’Abîme)" — a faction-specific town building
 cell 5: "Contract Board (fr: Tableau des Contrats)" — a faction-specific town building
+cell 6: "Grail: Essence Font (fr: Graal : Source d'Essence)" — a faction-specific town building
 flat uniform light grey background (#c8c8c8), no ground shadow,
 no text, no watermark, no signature, no border frame, no ground line, no decorative sparkles, no star glints, no lens flare
 ```
@@ -29,7 +30,7 @@ no text, no watermark, no signature, no border frame, no ground line, no decorat
 ```bash
 python3 tools/assets/sheet_extract.py <planche.png> \
   --cols 4 --rows 2 --side 512 \
-  --ids arcane-hunters-circle-vigile,arcane-hunters-circle-traque,arcane-hunters-circle-sceau,arcane-hunters-circle-abime,arcane-hunters-contracts \
+  --ids arcane-hunters-circle-vigile,arcane-hunters-circle-traque,arcane-hunters-circle-sceau,arcane-hunters-circle-abime,arcane-hunters-contracts,arcane-hunters-grail \
   --out assets/raster_src --qc /tmp/qc-buildings-arcane-hunters-p2.png
 ```
 

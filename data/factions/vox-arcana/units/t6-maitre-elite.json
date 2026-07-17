@@ -3,7 +3,7 @@
   "tier": 6,
   "name": "@loc:unit.t6-maitre-elite.name",
   "stats": {
-    "hp": 70,
+    "hp": 78,
     "attack": 16,
     "defense": 14,
     "damage": [12, 19],

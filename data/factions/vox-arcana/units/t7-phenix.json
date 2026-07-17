@@ -3,7 +3,7 @@
   "tier": 7,
   "name": "@loc:unit.t7-phenix.name",
   "stats": {
-    "hp": 118,
+    "hp": 130,
     "attack": 19,
     "defense": 17,
     "damage": [

@@ -3,7 +3,7 @@
   "tier": 5,
   "name": "@loc:unit.t5-sorciere-ombre-elite.name",
   "loreKey": "@loc:unit.t5-sorciere-ombre-elite.lore",
-  "stats": { "hp": 34, "attack": 12, "defense": 11, "damage": [8, 12], "speed": 7 },
+  "stats": { "hp": 38, "attack": 12, "defense": 11, "damage": [8, 12], "speed": 7 },
   "growthPerWeek": 3,
   "cost": { "gold": 740, "gems": 1 },
   "abilities": [

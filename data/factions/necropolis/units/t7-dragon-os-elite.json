@@ -4,9 +4,9 @@
   "name": "@loc:unit.t7-dragon-os-elite.name",
   "loreKey": "@loc:unit.t7-dragon-os-elite.lore",
   "stats": {
-    "hp": 210,
+    "hp": 198,
     "attack": 26,
-    "defense": 26,
+    "defense": 24,
     "damage": [
       39,
       65

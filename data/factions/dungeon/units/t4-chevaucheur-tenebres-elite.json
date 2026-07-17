@@ -3,7 +3,7 @@
   "tier": 4,
   "name": "@loc:unit.t4-chevaucheur-tenebres-elite.name",
   "loreKey": "@loc:unit.t4-chevaucheur-tenebres-elite.lore",
-  "stats": { "hp": 37, "attack": 14, "defense": 10, "damage": [8, 11], "speed": 10 },
+  "stats": { "hp": 41, "attack": 14, "defense": 10, "damage": [8, 11], "speed": 10 },
   "growthPerWeek": 4,
   "cost": { "gold": 580 },
   "abilities": [

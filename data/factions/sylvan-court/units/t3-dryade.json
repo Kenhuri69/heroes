@@ -4,9 +4,9 @@
   "name": "@loc:unit.t3-dryade.name",
   "loreKey": "@loc:unit.t3-dryade.lore",
   "stats": {
-    "hp": 13,
+    "hp": 16,
     "attack": 6,
-    "defense": 3,
+    "defense": 5,
     "damage": [
       3,
       5

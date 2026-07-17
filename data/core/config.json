@@ -46,7 +46,7 @@
       "rangedMeleePenalty": 0.5,
       "moraleChancePerPoint": 0.04,
       "luckChancePerPoint": 0.04,
-      "markBonusPerStack": 0.08,
+      "markBonusPerStack": 0.05,
       "marksMax": 3,
       "obstaclesMin": 2,
       "obstaclesMax": 5,

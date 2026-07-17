@@ -4,7 +4,7 @@
   "name": "@loc:unit.t7-manticore-elite.name",
   "loreKey": "@loc:unit.t7-manticore-elite.lore",
   "stats": {
-    "hp": 169,
+    "hp": 158,
     "attack": 23,
     "defense": 21,
     "damage": [

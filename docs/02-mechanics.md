@@ -715,7 +715,7 @@ Sémantique des **27 capacités** du catalogue (valeurs de départ) :
 | `noRetaliation` | la cible ne riposte jamais aux attaques de cette unité |
 | `doubleAttack` | deux frappes ; la riposte éventuelle s'intercale après la 1ʳᵉ |
 | `undead` | moral figé à 0 (ne subit ni ne donne), ne compte pas dans le malus multi-factions |
-| `mark` | chaque frappe applique 1 charge à la cible (max 3, persistantes) ; +8 %/charge de dégâts subis |
+| `mark` | chaque frappe applique 1 charge à la cible (max 3, persistantes) ; +5 %/charge de dégâts subis |
 | `consumeMarks(...)` | sur une frappe **volontaire** (jamais en riposte), consomme les charges de Marque pour un effet paramétré : bonus de dégâts, suppression de riposte (`suppressRetaliation`, « expose ») ou immobilisation (`immobilizeRounds`, « pinningShot ») |
 | `demonform` | T8 : commence en forme humaine (`magicResistance` 50 %), bascule 1×/combat en forme démon (+dégâts, attaque de zone) mais perd la résistance |
 | `symbiosis` | une pile qui **ne bouge pas** accumule un buff croissant round après round (signature Sylvan Court) |

@@ -4,7 +4,7 @@
   "name": "@loc:unit.t6-chasseresse.name",
   "loreKey": "@loc:unit.t6-chasseresse.lore",
   "stats": {
-    "hp": 62,
+    "hp": 55,
     "attack": 15,
     "defense": 11,
     "damage": [

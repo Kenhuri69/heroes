@@ -4,7 +4,7 @@
   "name": "@loc:unit.t4-vampire.name",
   "loreKey": "@loc:unit.t4-vampire.lore",
   "stats": {
-    "hp": 32,
+    "hp": 28,
     "attack": 8,
     "defense": 7,
     "damage": [

@@ -651,6 +651,12 @@ export const artifactSchema = z.object({
   bonus: artifactBonusSchema,
   /** Emplacement typé de la poupée (présentation client, UXD-5b) — absent ⇒ sac. */
   slot: artifactSlotSchema.optional(),
+  /**
+   * Rareté 1–3 (doc 18 C2, lot 3.2) — consommée par le SEUL mapgen (placement
+   * gradué en profondeur : commun près du départ, rare au fond). Jamais
+   * sérialisée dans l'état moteur. Absent ⇒ 1 (commun).
+   */
+  rarity: z.number().int().min(1).max(3).optional(),
   /** Sort enseigné tant qu'équipé (H-ARTEQUIP.2) — id cross-validé au chargement. */
   grantsSpell: idSchema.optional(),
   /**

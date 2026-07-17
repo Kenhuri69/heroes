@@ -51,8 +51,17 @@ Les **probabilités de gain** par niveau sont data-driven. *État livré (H-NAME
 > mana/PM/vision/moral/chance) en profitent sans câblage neuf. Champ **optionnel**,
 > bonus **live-calculé** (jamais sérialisé) ⇒ **pas de bump save, golden inchangé**.
 > Le tiroir héros affiche la progression `n/seuil` de chaque panoplie portée.
-> Panoplie livrée : **Panoplie du gladiateur** (Lame aiguisée + Égide de pierre ⇒
-> `+1 att / +1 déf / +1 moral`). Zéro faction moteur (`id` de panoplie opaque).
+> Panoplies livrées (doc 18 C2, lot 3.2 — une par style) : **Panoplie du
+> gladiateur** (might — Lame aiguisée + Égide de pierre ⇒ `+1 att / +1 déf /
+> +1 moral`), **Regalia de l'Archimage** (magic, 3 pièces — Couronne + Robe des
+> arcanes + Anneau de mana ⇒ `+2 pou / +2 sav`), **Attirail du Grand Voyageur**
+> (logistique, 2 pièces — Boussole + Éperons ⇒ `+150 PM / +1 chance`). 16
+> artefacts au catalogue. **Rareté graduée (lot 3.2)** : champ de contenu
+> optionnel `rarity` 1–3 (jamais sérialisé dans l'état) — le mapgen place les
+> artefacts par profondeur (`artifactIdForDepth` : commun près du départ, rare
+> au fond, jitter ±1 seedé). *Différé* : panoplie « économie » — exige un
+> `goldPerDay` d'artefact (nouveau point d'extension moteur, câblage du revenu
+> quotidien). Zéro faction moteur (`id` de panoplie opaque).
 
 > **État livré (H-ARTEQUIP — immunité de moral d'armée)** : champ déclaratif
 > optionnel `ArtifactDef.grantsMoraleImmune` — un artefact équipé plancher le moral

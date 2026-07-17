@@ -1,15 +1,20 @@
 {
   "artifacts": [
-    { "id": "lame-aiguisee", "bonus": { "attack": 2 }, "slot": "weapon", "set": { "id": "panoplie-gladiateur", "pieces": 2, "bonus": { "attack": 1, "defense": 1, "morale": 1 } } },
-    { "id": "egide-de-pierre", "bonus": { "defense": 2 }, "slot": "shield", "set": { "id": "panoplie-gladiateur", "pieces": 2, "bonus": { "attack": 1, "defense": 1, "morale": 1 } } },
-    { "id": "orbe-de-savoir", "bonus": { "knowledge": 2 }, "slot": "neck" },
-    { "id": "trefle-chance", "bonus": { "luck": 1 }, "slot": "ring" },
-    { "id": "grimoire-arcanique", "bonus": { "power": 1 }, "slot": "misc", "grantsSpell": "boule-de-feu" },
-    { "id": "bottes-de-sept-lieues", "bonus": { "movementFlat": 300 }, "slot": "feet" },
-    { "id": "longue-vue", "bonus": { "vision": 3 }, "slot": "misc" },
-    { "id": "pendentif-de-bravoure", "bonus": { "morale": 1 }, "slot": "neck", "grantsMoraleImmune": true },
-    { "id": "cape-du-refus", "bonus": { "knowledge": 1 }, "slot": "cloak", "armyMagicResistance": 0.25 },
-    { "id": "talisman-de-constance", "bonus": { "defense": 1 }, "slot": "ring", "grantsStatusImmune": true },
-    { "id": "sceau-de-l-intouchable", "bonus": { "power": 1 }, "slot": "neck", "grantsSpellImmune": true }
+    { "id": "lame-aiguisee", "rarity": 1, "bonus": { "attack": 2 }, "slot": "weapon", "set": { "id": "panoplie-gladiateur", "pieces": 2, "bonus": { "attack": 1, "defense": 1, "morale": 1 } } },
+    { "id": "egide-de-pierre", "rarity": 1, "bonus": { "defense": 2 }, "slot": "shield", "set": { "id": "panoplie-gladiateur", "pieces": 2, "bonus": { "attack": 1, "defense": 1, "morale": 1 } } },
+    { "id": "orbe-de-savoir", "rarity": 1, "bonus": { "knowledge": 2 }, "slot": "neck" },
+    { "id": "trefle-chance", "rarity": 1, "bonus": { "luck": 1 }, "slot": "ring" },
+    { "id": "grimoire-arcanique", "rarity": 2, "bonus": { "power": 1 }, "slot": "misc", "grantsSpell": "boule-de-feu" },
+    { "id": "bottes-de-sept-lieues", "rarity": 2, "bonus": { "movementFlat": 300 }, "slot": "feet" },
+    { "id": "longue-vue", "rarity": 1, "bonus": { "vision": 3 }, "slot": "misc" },
+    { "id": "pendentif-de-bravoure", "rarity": 2, "bonus": { "morale": 1 }, "slot": "neck", "grantsMoraleImmune": true },
+    { "id": "cape-du-refus", "rarity": 3, "bonus": { "knowledge": 1 }, "slot": "cloak", "armyMagicResistance": 0.25 },
+    { "id": "talisman-de-constance", "rarity": 2, "bonus": { "defense": 1 }, "slot": "ring", "grantsStatusImmune": true },
+    { "id": "sceau-de-l-intouchable", "rarity": 3, "bonus": { "power": 1 }, "slot": "neck", "grantsSpellImmune": true },
+    { "id": "couronne-de-l-archimage", "rarity": 3, "bonus": { "knowledge": 2 }, "slot": "head", "set": { "id": "regalia-archimage", "pieces": 3, "bonus": { "power": 2, "knowledge": 2 } } },
+    { "id": "robe-des-arcanes", "rarity": 2, "bonus": { "power": 2 }, "slot": "torso", "set": { "id": "regalia-archimage", "pieces": 3, "bonus": { "power": 2, "knowledge": 2 } } },
+    { "id": "anneau-de-mana", "rarity": 2, "bonus": { "manaMax": 10 }, "slot": "ring", "set": { "id": "regalia-archimage", "pieces": 3, "bonus": { "power": 2, "knowledge": 2 } } },
+    { "id": "boussole-du-voyageur", "rarity": 1, "bonus": { "vision": 1 }, "slot": "misc", "set": { "id": "attirail-voyageur", "pieces": 2, "bonus": { "movementFlat": 150, "luck": 1 } } },
+    { "id": "eperons-du-vagabond", "rarity": 2, "bonus": { "movementFlat": 200 }, "slot": "feet", "set": { "id": "attirail-voyageur", "pieces": 2, "bonus": { "movementFlat": 150, "luck": 1 } } }
   ]
 }

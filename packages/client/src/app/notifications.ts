@@ -139,9 +139,26 @@ export function notify(event: AppEvent, game: GameState): string | null {
     // croissance diffère de la normale (les semaines « normales » ne toastent pas
     // — décidé par le facteur, pas un id en dur).
     case 'CalendarEventStarted': {
-      const factor = game.config?.calendar?.events.find((e) => e.id === event.eventId)?.growthFactor;
-      return factor !== undefined && factor !== 1
+      const def = game.config?.calendar?.events.find((e) => e.id === event.eventId);
+      // « Semaine de X » d'une unité (doc 18 A4) : toast avec le nom de l'unité
+      // tirée — affiché même à facteur global 1 (le ciblage EST l'événement).
+      if (def?.growthUnit) {
+        const unitId = game.calendar.weekEventUnitId;
+        return unitId
+          ? t('toast.calendarEvent', {
+              event: t(`calendar.event.${event.eventId}.name`, { unit: resolveUnitName(unitId) }),
+            })
+          : null;
+      }
+      return def !== undefined && def.growthFactor !== 1
         ? t('toast.calendarEvent', { event: t(`calendar.event.${event.eventId}.name`) })
+        : null;
+    }
+    // Événement de MOIS (doc 18 A4, lot 2.5) : même gate que la semaine.
+    case 'CalendarMonthStarted': {
+      const factor = game.config?.calendar?.monthEvents?.find((e) => e.id === event.eventId)?.growthFactor;
+      return factor !== undefined && factor !== 1
+        ? t('toast.calendarMonth', { event: t(`calendar.month.${event.eventId}.name`) })
         : null;
     }
     // Semaine de ruée (M-CALENDAR) : ressource créditée — notifiée au seul humain.

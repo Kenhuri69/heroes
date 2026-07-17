@@ -1,7 +1,7 @@
 import type { GameEvent } from '../core/events';
 import type { GameState, ResourceId } from '../core/state';
 import { heroGoldPerDay, townHouseField } from '../hero/skills';
-import { weekGrowthFactor, weekGrowthTierFactor } from '../adventure/calendar';
+import { monthGrowthFactor, weekGrowthFactor, weekGrowthTierFactor, weekGrowthUnitFactor } from '../adventure/calendar';
 import { builtLevelOf } from './helpers';
 import { sharedGrowthRecipients } from './shared-growth';
 import { unitWithEconomy } from './unit-economy';
@@ -193,10 +193,14 @@ export function weeklyGrowthOf(
   // Calculé ici (helper partagé) ⇒ l'UI de recrutement projette la même croissance.
   if (town.ownerPlayerId)
     bonusFort += townHouseField(state.heroes, town.ownerPlayerId, town.pos, 'garrisonGrowthPct') / 100;
-  // M-CALENDAR « Semaine de X » : facteur ciblé sur le palier de l'unité, en plus
-  // du facteur global de l'événement de la semaine.
+  // M-CALENDAR « Semaine de X » : facteurs ciblés (palier de l'unité, unité
+  // précise — doc 18 A4) en plus du facteur global, le tout multiplié par le
+  // facteur du MOIS courant (lot 2.5).
   const tierFactor = weekGrowthTierFactor(state, state.unitCatalog[unitId]?.tier);
-  const added = Math.floor(growth * (1 + bonusFort) * weekGrowthFactor(state) * tierFactor);
+  const unitFactor = weekGrowthUnitFactor(state, unitId);
+  const added = Math.floor(
+    growth * (1 + bonusFort) * weekGrowthFactor(state) * tierFactor * unitFactor * monthGrowthFactor(state),
+  );
   return { added, cap: 2 * added };
 }
 
@@ -240,9 +244,12 @@ export function applyWeeklyGrowth(draft: GameState, events: GameEvent[]): void {
     if (!growth) continue;
     // Événement de calendrier de la semaine (M-CALENDAR) : module la croissance
     // (peste ÷2, abondance ×2…) — 1 hors calendrier, règle inchangée. « Semaine de
-    // X » : facteur ciblé supplémentaire sur le palier de l'unité de l'habitation.
+    // X » : facteurs ciblés supplémentaires (palier, unité précise) + facteur du
+    // MOIS courant (doc 18 A4, lot 2.5).
     const tierFactor = weekGrowthTierFactor(draft, draft.unitCatalog[obj.unitId]?.tier);
-    const added = Math.floor(growth * weekGrowthFactor(draft) * tierFactor);
+    const added = Math.floor(
+      growth * weekGrowthFactor(draft) * tierFactor * weekGrowthUnitFactor(draft, obj.unitId) * monthGrowthFactor(draft),
+    );
     obj.stock = Math.max(obj.stock, Math.min(obj.stock + added, 2 * growth));
   }
 }

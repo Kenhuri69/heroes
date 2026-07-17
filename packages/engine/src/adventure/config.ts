@@ -81,6 +81,28 @@ export interface CalendarEventDef {
    * côté progression. Absent ⇒ aucun gain. Réutilise `grantXp` (montées en chaîne).
    */
   heroXpGrant?: { amount: number } | undefined;
+  /**
+   * « Semaine de X » ciblant une UNITÉ précise (doc 18 A4, lot 2.5) : croissance
+   * × `factor` pour la seule unité TIRÉE au RNG seedé parmi les recrutables du
+   * catalogue (`growthPerWeek` > 0, clés triées) — l'unité n'est JAMAIS nommée
+   * dans la config core (zéro couplage core → paquet). Stockée dans
+   * `Calendar.weekEventUnitId` le temps de la semaine.
+   */
+  growthUnit?: { factor: number } | undefined;
+}
+
+/**
+ * Événement de calendrier MENSUEL (doc 18 A4, lot 2.5) — tiré au RNG seedé à
+ * chaque bascule de mois (jour 29, 57, …), son `growthFactor` module la
+ * croissance de TOUTES les semaines du mois (cumulé aux facteurs de semaine).
+ * `id` opaque ⇒ nom localisé (`calendar.month.<id>.name`).
+ */
+export interface CalendarMonthEventDef {
+  id: string;
+  /** Poids relatif du tirage pondéré. */
+  weight: number;
+  /** Multiplicateur mensuel de la croissance (« peste » 0,5, « abondance » 1,5). */
+  growthFactor: number;
 }
 
 export interface AdventureConfig {
@@ -115,7 +137,7 @@ export interface AdventureConfig {
    * seedé. Optionnel : absent ⇒ aucune semaine spéciale (facteur 1 partout ;
    * fixtures/golden inchangés).
    */
-  calendar?: { events: CalendarEventDef[] } | undefined;
+  calendar?: { events: CalendarEventDef[]; monthEvents?: CalendarMonthEventDef[] | undefined } | undefined;
   /**
    * Butin de gardien (doc 02 §2.2) : vaincre un gardien neutre crédite un butin
    * gradué par sa **force** (PV totaux = `hp × count`). Optionnel — absent ⇒

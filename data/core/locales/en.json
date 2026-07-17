@@ -1030,5 +1030,18 @@
   "resourceDetail.title": "Resources",
   "resourceDetail.perDay": "+{amount}/day",
   "skill.necromancy": "Necromancy",
-  "skill.battle-prayer": "Battle Prayer"
+  "skill.battle-prayer": "Battle Prayer",
+  "kingdom.title": "Kingdom",
+  "kingdom.open": "Kingdom overview",
+  "kingdom.close": "Close",
+  "kingdom.dayWeek": "Day {day} · Week {week}",
+  "kingdom.noIncome": "No income",
+  "kingdom.towns": "Towns ({count})",
+  "kingdom.noTowns": "No town owned",
+  "kingdom.emptyGarrison": "Empty garrison",
+  "kingdom.heroes": "Heroes ({count})",
+  "kingdom.noHeroes": "No hero",
+  "kingdom.level": "Lv. {level}",
+  "kingdom.movement": "{pm} MP",
+  "kingdom.strength": "Power {power}"
 }

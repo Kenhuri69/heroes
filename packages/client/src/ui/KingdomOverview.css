@@ -1,0 +1,178 @@
+/* Vue de royaume (E1, sprint 3) — lecture + navigation. Couleurs via tokens
+   UNIQUEMENT (garde-fou design system) ; tailles en rem (3 crans de police) ;
+   cibles ≥ 44 px (touch-first, doc 08). */
+
+.kingdom-panel {
+  width: min(46rem, 94vw);
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.kingdom-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--ink-700);
+}
+
+.kingdom-date {
+  font-family: var(--font-display);
+  color: var(--brass-text);
+  font-size: 1.05rem;
+}
+
+.kingdom-income {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.9rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.kingdom-income-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.kingdom-income-val {
+  color: var(--gain);
+  font-variant-numeric: tabular-nums;
+}
+
+.kingdom-income-none,
+.kingdom-empty,
+.kingdom-garrison-empty {
+  color: var(--ink-500);
+  font-style: italic;
+}
+
+.kingdom-body {
+  overflow-y: auto;
+  padding: 0.5rem 0.75rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.kingdom-section h3 {
+  margin: 0 0 0.4rem;
+  font-family: var(--font-display);
+  color: var(--brass);
+  font-size: 1rem;
+}
+
+.kingdom-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.kingdom-town,
+.kingdom-hero {
+  width: 100%;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.4rem 0.6rem;
+  background: var(--parchment-dim);
+  border: 1px solid var(--ink-700);
+  border-radius: var(--radius-m);
+  color: var(--ink-900);
+  font-family: var(--font-ui);
+  text-align: left;
+  cursor: pointer;
+}
+
+.kingdom-town:hover,
+.kingdom-hero:hover {
+  background: var(--parchment-bright);
+  border-color: var(--brass);
+}
+
+.kingdom-town-name {
+  font-weight: 600;
+  min-width: 7rem;
+}
+
+.kingdom-town-build {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+}
+
+.kingdom-town-build.is-free {
+  color: var(--gain); /* chantier libre (glyphe ⚒ + libellé — jamais la couleur seule) */
+}
+
+.kingdom-town-build.is-used {
+  color: var(--ink-500);
+}
+
+.kingdom-town-garrison {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.kingdom-unit {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.1rem;
+}
+
+.kingdom-unit-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--ink-600);
+  display: inline-block;
+}
+
+.kingdom-unit-count {
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-800);
+}
+
+.kingdom-hero-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-s);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.kingdom-hero-avatar.placeholder {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--parchment);
+}
+
+.kingdom-hero-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.kingdom-hero-name {
+  font-weight: 600;
+}
+
+.kingdom-hero-stats {
+  font-size: 0.85rem;
+  color: var(--ink-700);
+  font-variant-numeric: tabular-nums;
+}

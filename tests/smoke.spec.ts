@@ -763,6 +763,20 @@ test('A1 : un gardien de carte est rendu comme un cluster gradué (sprint 2)', {
   expect(errors).toEqual([]);
 });
 
+test('E1 : la vue de royaume liste villes/héros et navigue vers une ville (sprint 3)', { tag: ['@core', '@mobile'] }, async ({ page }) => {
+  const errors = await openGame(page);
+  await page.getByTestId('kingdom-open').click();
+  await expect(page.getByTestId('kingdom-panel')).toBeVisible();
+  await expect(page.getByTestId('kingdom-towns')).toBeVisible();
+  await expect(page.getByTestId('kingdom-heroes')).toBeVisible();
+  // Tap sur la première ville ⇒ la vue se ferme (remplacement, pile ≤ 2) et
+  // l'écran de ville s'ouvre — navigation directe, cœur du confort E1.
+  await page.locator('[data-testid^="kingdom-town-"]').first().click();
+  await expect(page.getByTestId('kingdom-panel')).toHaveCount(0);
+  await expect(page.getByTestId('town-close')).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
 test('écran pré-combat : puissances comparées + Auto-Battle résout (Lot 1)', { tag: '@core' }, async ({ page }) => {
   const errors = await openGame(page);
 

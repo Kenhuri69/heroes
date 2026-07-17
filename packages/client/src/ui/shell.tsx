@@ -51,6 +51,7 @@ import { ToastHost } from './toasts';
 import { CombatUi } from './combat';
 import { PreBattleScreen } from './PreBattleScreen';
 import { TownScreen } from './TownScreen';
+import { KingdomOverview } from './KingdomOverview';
 import { HeroSwap } from './HeroSwap';
 import { HeroSkills } from './HeroSkills';
 import { HeroInventory } from './HeroInventory';
@@ -217,6 +218,7 @@ function Shell() {
     (m): m is { kind: 'briefing'; scenarioId: string } => m.kind === 'briefing',
   );
   const shortcutsModal = modals.some((m) => m.kind === 'shortcuts');
+  const kingdomModal = modals.some((m) => m.kind === 'kingdom');
   const heroswapModal = modals.find(
     (m): m is { kind: 'heroswap'; fromHeroId: string; toHeroId: string } => m.kind === 'heroswap',
   );
@@ -262,6 +264,7 @@ function Shell() {
       {briefingModal && (
         <BriefingScreen scenarioId={briefingModal.scenarioId} onClose={() => closeModalKind('briefing')} />
       )}
+      {kingdomModal && <KingdomOverview onClose={() => closeModalKind('kingdom')} />}
       {townModal && <TownScreen townId={townModal.townId} onClose={() => closeModalKind('town')} />}
       {heroswapModal && (
         <HeroSwap
@@ -1075,6 +1078,7 @@ function TurnBar({ onOpenOptions }: { onOpenOptions: () => void }) {
   const towns = humanTowns(useApp((s) => s.game));
   const game = useApp((s) => s.game);
   const unread = useApp((s) => s.journalUnread);
+  const aiTurn = useApp((s) => s.aiTurn);
   // Fouille du Graal (T-GRAIL lot 2) : bouton visible seulement quand le héros
   // sélectionné du joueur humain est sur la tuile du Graal RÉVÉLÉE (tous les
   // obélisques visités) et que le joueur ne possède pas encore le Graal.
@@ -1156,6 +1160,16 @@ function TurnBar({ onOpenOptions }: { onOpenOptions: () => void }) {
           onClick={onOpenOptions}
         >
           <UiIcon id="act-options" fallback="⚙" />
+        </button>
+        <button
+          class="kingdom-toggle"
+          data-testid="kingdom-open"
+          aria-label={t('kingdom.open')}
+          title={t('kingdom.open')}
+          disabled={aiTurn !== null}
+          onClick={() => openModal({ kind: 'kingdom' })}
+        >
+          <UiIcon id="act-kingdom" fallback="🏰" />
         </button>
         <button
           class="journal-toggle"

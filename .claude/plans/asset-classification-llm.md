@@ -73,7 +73,12 @@ Dérivée d'un diff données ↔ `assets/` reproduisant les résolveurs de
        `assets/artifacts/` → build (budget vert) + smoke « assets sans 404 » vert.
        *Note p2 : planche à cadres par cellule → `--inset 0.09 --tol 55` pour
        démarrer le remplissage à l'intérieur du cadre (halo gris sinon).*
-6. [ ] Handoff/intégration G2 (grail) puis G3 (fonds) au même schéma.
+6. [x] **G2 (grail)** intégré : planche Gemini irrégulière (7 sujets, tour Arcane
+       **dupliquée**, disposition non-grille) → extraction par **boîtes englobantes
+       auto-détectées** (hors grille fixe) + **keep-largest-component** (éclats
+       parasites supprimés), QC 6/6 verte → `assets/buildings/<faction>/<faction>-grail.png`
+       (6 factions hors test) → build + smoke « assets » vert.
+7. [ ] Handoff/intégration G3 (fonds de combat rough/snow/river) au même schéma.
 
 ## 4. Journal
 - 2026-07-17 : classification établie ; prompts régénérés (artefacts éclatés en

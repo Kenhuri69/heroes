@@ -696,6 +696,15 @@ export const artifactCatalogSchema = z.object({
 });
 
 /**
+ * Mort subite (doc 18 B4, MMHO) : résolution forcée d'un combat au round donné.
+ * `round ≥ 2` (le round 1 doit se jouer) ; `resolution` extensible (un mode au MVP).
+ */
+const suddenDeathSchema = z.object({
+  round: z.number().int().min(2),
+  resolution: z.literal('strongestArmy'),
+});
+
+/**
  * data/core/config.json — constantes d'équilibrage (doc 02 : jamais en dur).
  * `adventure` a la même forme que l'`AdventureConfig` du moteur (duplication
  * structurelle à dessein, comme les ressources : `content` valide des données,
@@ -809,6 +818,14 @@ export const gameConfigSchema = z.object({
           factor: z.number().positive().max(1),
         })
         .optional(),
+      /**
+       * Mort subite (doc 18 B4) : résolution forcée au round donné — optionnel,
+       * absent ⇒ aucune borne. `suddenDeath` = règle active (auteur de scénario) ;
+       * `suddenDeathOnline` = valeur copiée par le CLIENT vers `suddenDeath` à la
+       * création d'un match PvP en ligne (le moteur ne lit jamais cette clé-ci).
+       */
+      suddenDeath: suddenDeathSchema.optional(),
+      suddenDeathOnline: suddenDeathSchema.optional(),
     }).refine((c) => c.obstaclesMin <= c.obstaclesMax, 'obstaclesMin ≤ obstaclesMax'),
     /** Marché (doc 02 §4.1, lot UX U6a) : taux d'échange ressource ↔ or au bâtiment marché. */
     market: z

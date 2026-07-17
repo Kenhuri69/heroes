@@ -5,6 +5,7 @@ import { revealStructure } from '../adventure/vision';
 import { applyFactionVictoryEffects } from '../faction/effects';
 import { rewardHuntContract } from '../town/hunt-contract';
 import type { GameEvent } from '../core/events';
+import { armyStrength } from '../core/power';
 import { rollRange } from '../core/rng';
 import { evaluateOutcome } from '../scenario/outcome';
 import { tryRebirth } from './death';
@@ -191,6 +192,25 @@ export function advanceTurn(draft: Draft, events: GameEvent[]): void {
       // regagne son sort (décision plan phase-3.2 #2) et les statuts de
       // sort expirent (roundsLeft décrémenté, retirés à 0 — doc 02 §1.4).
       combat.round += 1;
+      // Mort subite (doc 18 B4, MMHO) : à l'ATTEINTE du round configuré, le
+      // combat est résolu de force — le camp au plus fort `armyStrength`
+      // restant l'emporte (égalité ⇒ défenseur, convention B17), conséquences
+      // normales. Opt-in par données (PvP en ligne) ; absent ⇒ aucune borne.
+      const sd = rules.suddenDeath;
+      if (sd && combat.round >= sd.round) {
+        const strengthOf = (side: CombatSideId): number =>
+          armyStrength(
+            combat.stacks
+              .filter((s) => s.side === side && s.count > 0)
+              .map((s) => ({ unitId: s.unitId, count: s.count })),
+            draft.unitCatalog,
+          );
+        const winner: CombatSideId =
+          strengthOf('attacker') > strengthOf('defender') ? 'attacker' : 'defender';
+        events.push({ type: 'CombatSuddenDeath', round: combat.round, winner });
+        finishCombat(draft, combat, winner, events);
+        return;
+      }
       combat.heroCastThisRound = [];
       // Retour de jeu 2026-07 : l'attaque du héros est UNE action de héros par
       // round (doc 02 §1 : « agit une fois par round, sort OU attaque »), donc
@@ -265,7 +285,23 @@ export function checkCombatEnd(draft: Draft, events: GameEvent[]): boolean {
   const attackerAlive = combat.stacks.some((s) => s.side === 'attacker' && s.count > 0);
   const defenderAlive = combat.stacks.some((s) => s.side === 'defender' && s.count > 0);
   if (attackerAlive && defenderAlive) return false;
-  const winner: CombatSideId = attackerAlive ? 'attacker' : 'defender';
+  finishCombat(draft, combat, attackerAlive ? 'attacker' : 'defender', events);
+  return true;
+}
+
+/**
+ * Termine le combat avec un vainqueur DÉSIGNÉ et les conséquences normales
+ * (armée reconstruite, gardien/ville/héros, XP, effets de faction). Partagé
+ * entre la fin par anéantissement (`checkCombatEnd`) et la résolution forcée
+ * de mort subite (doc 18 B4) — à ne pas confondre avec `endLeftCombat`
+ * (leave.ts : le héros SURVIT, aucune conséquence de vainqueur).
+ */
+function finishCombat(
+  draft: Draft,
+  combat: CombatState,
+  winner: CombatSideId,
+  events: GameEvent[],
+): void {
   combat.finished = true;
   combat.winner = winner;
   combat.activeStackId = null;
@@ -287,7 +323,6 @@ export function checkCombatEnd(draft: Draft, events: GameEvent[]): boolean {
     }
   }
   draft.combat = null;
-  return true;
 }
 
 /**

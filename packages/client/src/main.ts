@@ -302,6 +302,14 @@ async function bootstrap(): Promise<void> {
       // partie async (le `command` StartGame — carte comprise — devient le `setup`
       // du match) au lieu de démarrer localement. Pas de dispatch ni de navigation.
       if (raw.online) {
+        // Mort subite (doc 18 B4) : activée UNIQUEMENT en ligne — la règle data
+        // `combat.suddenDeathOnline` (config.json) devient le `suddenDeath` du
+        // match. Le `StartGame` étant le `setup` rejoué par les deux joueurs et
+        // la re-simulation serveur, la borne vaut pour tout le monde.
+        const sd = report.content.config.adventure.combat.suddenDeathOnline;
+        if (command.type === 'StartGame' && sd) {
+          command.config = { ...command.config, combat: { ...command.config.combat, suddenDeath: sd } };
+        }
         await createMatch(raw.seed, command);
         pushToast(t('toast.matchCreated'), 'success');
         window.dispatchEvent(new CustomEvent('heroes:matches-changed'));

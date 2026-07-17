@@ -203,7 +203,9 @@
             "type": "warMachineVendor",
             "units": [
               "ballista",
-              "catapulte"
+              "catapulte",
+              "first-aid-tent",
+              "ammo-cart"
             ]
           }
         }

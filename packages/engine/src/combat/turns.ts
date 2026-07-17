@@ -8,7 +8,7 @@ import { rollRange } from '../core/rng';
 import { evaluateOutcome } from '../scenario/outcome';
 import { tryRebirth } from './death';
 import type { Draft } from './draft';
-import { collectCasualties, collectSurvivors, combatRules, compareInitiative, hasAbility, moraleOf, otherSide, recordLoss } from './state-helpers';
+import { collectCasualties, collectSurvivors, combatRules, compareInitiative, hasAbility, moraleOf, otherSide, recordLoss, recordRevive, stackLostSoFar } from './state-helpers';
 import { COMBAT_ROWS } from './hex';
 import type { CombatSideId, CombatStack, CombatState } from './types';
 
@@ -110,6 +110,71 @@ function bombardWalls(draft: Draft, events: GameEvent[]): void {
   }
 }
 
+/**
+ * Machines de soutien (doc 18 B2, doc 02 §5) : au début de chaque round (dès le
+ * 2ᵉ — les transitions seulement, comme le poison), toute pile vivante portant
+ * une capacité de soutien agit passivement :
+ * - `healPerRound { amount }` : soigne la pile ALLIÉE la plus blessée (manque
+ *   de PV maximal, égalité départagée par l'ordre du tableau — déterministe),
+ *   plafonnée à son effectif initial (même patron que `lifeDrain`) ;
+ * - `replenishAmmo { amount }` : recharge chaque tireur allié entamé, plafonné
+ *   à sa réserve initiale (param `ammo` de sa capacité `shooter`).
+ * Générique : aucune notion de « machine » ici — la capacité fait foi.
+ */
+function applySupportTicks(draft: Draft, events: GameEvent[]): void {
+  const combat = draft.combat;
+  if (!combat) return;
+  for (const support of combat.stacks) {
+    if (support.count <= 0) continue;
+    const supportDef = draft.unitCatalog[support.unitId];
+    if (!supportDef) continue;
+    const healAmount = Number(supportDef.abilities.find((a) => a.id === 'healPerRound')?.params?.['amount'] ?? 0);
+    if (healAmount > 0) {
+      let target: CombatStack | undefined;
+      let worstMissing = 0;
+      for (const s of combat.stacks) {
+        if (s.side !== support.side || s.id === support.id || s.count <= 0) continue;
+        const def = draft.unitCatalog[s.unitId];
+        if (!def) continue;
+        const pool = (s.count - 1) * def.stats.hp + s.firstHp;
+        const missing = (s.count + stackLostSoFar(combat, s)) * def.stats.hp - pool;
+        if (missing > worstMissing) {
+          worstMissing = missing;
+          target = s;
+        }
+      }
+      if (target) {
+        const def = draft.unitCatalog[target.unitId]!;
+        const pool = (target.count - 1) * def.stats.hp + target.firstHp;
+        // Plafond intra-pile + relève dans la limite de l'effectif initial —
+        // même règle que `lifeDrain`/le soin de sort (combat/damage.ts).
+        const maxCount = target.count + stackLostSoFar(combat, target);
+        const newPool = Math.min(maxCount * def.stats.hp, pool + healAmount);
+        if (newPool > pool) {
+          const newCount = Math.min(maxCount, Math.max(1, Math.ceil(newPool / def.stats.hp)));
+          recordRevive(combat, target, newCount - target.count);
+          target.count = newCount;
+          target.firstHp = newPool - (newCount - 1) * def.stats.hp;
+          events.push({ type: 'StackHealed', stackId: target.id, amount: newPool - pool });
+        }
+      }
+    }
+    const ammoAmount = Number(supportDef.abilities.find((a) => a.id === 'replenishAmmo')?.params?.['amount'] ?? 0);
+    if (ammoAmount > 0) {
+      for (const s of combat.stacks) {
+        if (s.side !== support.side || s.id === support.id || s.count <= 0 || s.ammo === null) continue;
+        const def = draft.unitCatalog[s.unitId];
+        if (!def) continue;
+        const initial = Number(def.abilities.find((a) => a.id === 'shooter')?.params?.['ammo'] ?? 0);
+        if (initial <= 0 || s.ammo >= initial) continue;
+        const restored = Math.min(initial, s.ammo + ammoAmount) - s.ammo;
+        s.ammo += restored;
+        events.push({ type: 'StackAmmoReplenished', stackId: s.id, amount: restored });
+      }
+    }
+  }
+}
+
 export function advanceTurn(draft: Draft, events: GameEvent[]): void {
   const combat = draft.combat;
   if (!combat || combat.finished) return;
@@ -155,6 +220,8 @@ export function advanceTurn(draft: Draft, events: GameEvent[]): void {
       // C-SIEGE2.6 : la catapulte assaillante érode le rempart en début de round.
       bombardWalls(draft, events);
       events.push({ type: 'CombatRoundStarted', round: combat.round });
+      // Doc 18 B2 : tente de soins / chariot de munitions — tick passif de round.
+      applySupportTicks(draft, events);
       continue;
     }
     // Immobilisation (doc 05 §3.1 `pinningShot`) : la pile saute son tour, la

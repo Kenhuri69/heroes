@@ -149,6 +149,8 @@ export type GameEvent =
   | { type: 'StackCursed'; targetId: string; spellId: string }
   /** Dégâts de poison au début de round (`poisonSting` Manticore, doc 05 §4, A2f). */
   | { type: 'StackPoisoned'; stackId: string; damage: number; kills: number }
+  /** Munitions rendues à un tireur par `replenishAmmo` (chariot de munitions, doc 02 §5). */
+  | { type: 'StackAmmoReplenished'; stackId: string; amount: number }
   /** Dégâts de douve à une pile qui s'y arrête (C-SIEGE2.4, doc 02 §5). */
   | { type: 'MoatDamaged'; stackId: string; damage: number; kills: number }
   /** Tir de catapulte sur un segment de rempart (C-SIEGE2.6, doc 02 §5) ; `destroyed` = segment ouvert. */

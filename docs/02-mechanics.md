@@ -500,8 +500,15 @@ Chaque faction consomme surtout **une paire de ressources rares** (Haven : crist
 > (effet de bâtiment générique `warMachineVendor` listant les machines vendues)
 > par le héros présent (`BuyWarMachine`, `HeroState.warMachines`). En combat, les
 > machines rejoignent le camp du héros comme piles supplémentaires (hors cap 7) et
-> ne sont jamais absorbées dans l'armée. First Aid Tent / Ammo Cart = différés.
-> `CURRENT_SAVE_VERSION` → 6.
+> ne sont jamais absorbées dans l'armée. `CURRENT_SAVE_VERSION` → 6.
+> **Machines de soutien (doc 18 B2)** : la **Tente de premiers soins** et le
+> **Chariot de munitions** sont vendus à la Forge comme les autres. Deux capacités
+> **génériques** interprétées au début de chaque round (dès le 2ᵉ — transitions de
+> round seulement, comme le poison) : `healPerRound {amount}` soigne la pile
+> alliée la plus blessée (manque de PV maximal, égalité = ordre des piles ; plafond
+> = effectif initial, même règle que `lifeDrain`/soin) ; `replenishAmmo {amount}`
+> recharge les munitions des tireurs alliés entamés (plafond = réserve initiale du
+> `shooter`). Aucune référence aux machines dans le moteur — la capacité fait foi.
 
 > 🚧 **État (sièges v1 — fondation, Alpha 4.13)** : attaquer une ville **défendue**
 > (`CaptureTown`) n'est plus rejeté — elle ouvre un **combat de siège** générique

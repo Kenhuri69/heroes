@@ -21,7 +21,7 @@ comblement organisé par étapes.
       d'assets 0/1/2), plan de comblement en 5 étapes (dont étape 5 =
       décisions de cadrage réservées à l'utilisateur), non-écarts explicités.
 - [x] Mise à jour `CLAUDE.md` (structure des fichiers : doc 18).
-- [ ] Commit + push `claude/game-features-audit-2asmdy` + PR draft.
+- [x] Commit + push `claude/game-features-audit-2asmdy` + PR draft (#408).
 
 ## Décisions prises
 

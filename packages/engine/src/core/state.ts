@@ -204,6 +204,21 @@ export interface Calendar {
    * `config.calendar.events`.
    */
   weekEventId: string | null;
+  /**
+   * Unité ciblée par la « semaine de X » courante (doc 18 A4, lot 2.5) — tirée
+   * au RNG seedé quand l'événement de semaine porte `growthUnit`. **Optionnel,
+   * écrit paresseusement** (patron `obelisksVisited`) : jamais posé sans un tel
+   * événement configuré ⇒ vieilles sauvegardes valides et forme d'état des
+   * fixtures/golden inchangée — pas de bump `CURRENT_SAVE_VERSION`.
+   */
+  weekEventUnitId?: string | null;
+  /**
+   * Événement de MOIS courant (doc 18 A4, lot 2.5) — id tiré au RNG seedé à
+   * chaque bascule de mois, son `growthFactor` (dans `config.calendar.
+   * monthEvents`) module la croissance tout le mois. Même régime optionnel
+   * paresseux que `weekEventUnitId` (pas de bump).
+   */
+  monthEventId?: string | null;
 }
 
 /**
@@ -307,6 +322,9 @@ export interface CaravanState {
  * obélisques révèle la tuile enterrée du Graal.
  * v32 : `PlayerState.hasGrail` (T-GRAIL lot 2) : possession du Graal après fouille
  * (`Dig`) de sa tuile, débloque le bâtiment Graal en ville.
+ * (sans bump, lot 2.5 doc 18 A4) : `Calendar.weekEventUnitId?` /
+ * `Calendar.monthEventId?` — optionnels, écrits paresseusement quand la config
+ * calendrier les active ; une v32 sans ces champs reste un état valide.
  */
 export const CURRENT_SAVE_VERSION = 32;
 

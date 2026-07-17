@@ -434,8 +434,21 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
   gagne `amount` XP (montées en chaîne via `grantXp` ; event `CalendarXpGranted`,
   toast humain). Événement livré : **Semaine du Savoir** (+500 XP). Champ optionnel
   ⇒ pas de bump save, golden inchangé.
-  *Différés :* événements de **mois** persistants, semaine ciblant une créature
-  précise par `unitId` (au-delà du palier).
+  **Événements de MOIS (doc 18 A4, lot 2.5 — livré)** : `calendar.monthEvents`
+  (config, optionnel) — un événement tiré au RNG seedé à chaque bascule de mois
+  (`Calendar.monthEventId`, champ optionnel paresseux ⇒ pas de bump save), son
+  `growthFactor` module la croissance de TOUTES les semaines du mois (multiplié
+  aux facteurs de semaine). Livrés : mois ordinaire / **Mois d'Abondance**
+  (×1,5) / **Mois de la Peste** (÷2). Le mois 1 est ordinaire (aucun tirage à
+  StartGame, comme la semaine 1). Événement `CalendarMonthStarted` + toast.
+  **Semaine d'une unité précise (doc 18 A4, lot 2.5 — livré)** : un événement de
+  semaine peut porter `growthUnit { factor }` — l'unité ciblée est **tirée au
+  RNG seedé** parmi les recrutables du catalogue (`growthPerWeek` > 0, clés
+  triées ; jamais nommée dans la config core — zéro couplage core → paquet),
+  stockée dans `Calendar.weekEventUnitId` (optionnel paresseux), croissance
+  × factor pour ELLE seule. Badge/toast interpolent le nom localisé de l'unité.
+  *Différé :* « mois des créatures » façon HoMM3 avec apparition de piles sur
+  la carte (spawn — mécanique distincte).
 
 ---
 

@@ -63,7 +63,13 @@
         { "id": "plague", "weight": 12, "growthFactor": 0.5 },
         { "id": "recruits", "weight": 10, "growthFactor": 1, "growthTier": { "tier": 1, "factor": 2 } },
         { "id": "gold-rush", "weight": 8, "growthFactor": 1, "resourceGrant": { "resource": "gold", "amount": 500 } },
-        { "id": "learning", "weight": 8, "growthFactor": 1, "heroXpGrant": { "amount": 500 } }
+        { "id": "learning", "weight": 8, "growthFactor": 1, "heroXpGrant": { "amount": 500 } },
+        { "id": "unit-week", "weight": 10, "growthFactor": 1, "growthUnit": { "factor": 2 } }
+      ],
+      "monthEvents": [
+        { "id": "ordinary-month", "weight": 12, "growthFactor": 1 },
+        { "id": "bounty-month", "weight": 2, "growthFactor": 1.5 },
+        { "id": "plague-month", "weight": 2, "growthFactor": 0.5 }
       ]
     },
     "guardianReward": {

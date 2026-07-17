@@ -823,9 +823,29 @@ export const gameConfigSchema = z.object({
                * héros (tous joueurs) au passage de semaine.
                */
               heroXpGrant: z.object({ amount: z.number().int().positive() }).optional(),
+              /**
+               * « Semaine de X » ciblant une UNITÉ précise (doc 18 A4, lot 2.5) :
+               * l'unité est tirée au RNG seedé parmi les recrutables du catalogue —
+               * jamais nommée ici (zéro couplage core → paquet de faction).
+               */
+              growthUnit: z.object({ factor: z.number().positive() }).optional(),
             }),
           )
           .min(1),
+        /**
+         * Événements de MOIS (doc 18 A4, lot 2.5) : tirés au RNG seedé à chaque
+         * bascule de mois, `growthFactor` module la croissance tout le mois.
+         */
+        monthEvents: z
+          .array(
+            z.object({
+              id: idSchema,
+              weight: z.number().int().positive(),
+              growthFactor: z.number().positive(),
+            }),
+          )
+          .min(1)
+          .optional(),
       })
       .optional(),
     /**

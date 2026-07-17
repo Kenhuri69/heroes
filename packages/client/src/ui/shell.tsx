@@ -1067,6 +1067,7 @@ function TurnBar({ onOpenOptions }: { onOpenOptions: () => void }) {
   useApp((s) => s.locale);
   const day = useApp((s) => s.game.calendar.day);
   const weekEventId = useApp((s) => s.game.calendar.weekEventId);
+  const weekEventUnitId = useApp((s) => s.game.calendar.weekEventUnitId ?? null);
   const hero = useApp((s) => resolveSelectedHero(s.game, s.selectedHeroId));
   const hint = useApp((s) => s.guardianHint);
   const bands = useApp((s) => s.strengthBands);
@@ -1105,8 +1106,13 @@ function TurnBar({ onOpenOptions }: { onOpenOptions: () => void }) {
             !== 1` comme le toast (`notifications.ts`) — jamais un id en dur. */}
         {(() => {
           const event = config?.calendar?.events.find((e) => e.id === weekEventId);
-          if (!event || event.growthFactor === 1) return null;
-          const name = t(`calendar.event.${event.id}.name`);
+          // « Semaine de X » d'une unité (doc 18 A4) : badge affiché aussi quand le
+          // facteur global vaut 1 mais qu'une unité précise est ciblée.
+          if (!event || (event.growthFactor === 1 && !(event.growthUnit && weekEventUnitId))) return null;
+          const name = t(
+            `calendar.event.${event.id}.name`,
+            event.growthUnit && weekEventUnitId ? { unit: resolveUnitName(weekEventUnitId) } : undefined,
+          );
           return (
             <span
               class="week-event-badge"

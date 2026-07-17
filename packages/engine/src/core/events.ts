@@ -14,6 +14,8 @@ export type GameEvent =
   | { type: 'WeekStarted'; week: number }
   /** Événement de calendrier tiré au début d'une semaine (M-CALENDAR, doc 02 §2.3). */
   | { type: 'CalendarEventStarted'; eventId: string; week: number; month: number }
+  /** Événement de MOIS tiré à la bascule de mois (doc 18 A4, lot 2.5). */
+  | { type: 'CalendarMonthStarted'; eventId: string; month: number }
   /** Semaine de ruée (M-CALENDAR) : ressource créditée à un joueur au passage de semaine. */
   | { type: 'CalendarResourceGranted'; playerId: string; resource: string; amount: number }
   | { type: 'CalendarXpGranted'; playerId: string; heroId: string; amount: number }

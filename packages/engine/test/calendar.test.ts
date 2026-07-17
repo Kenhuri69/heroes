@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { apply } from '../src/core/engine';
 import type { Command, PlayerSetup } from '../src/core/commands';
-import type { CalendarEventDef } from '../src/adventure/config';
+import type { CalendarEventDef, CalendarMonthEventDef } from '../src/adventure/config';
 import { createEmptyState, emptyResources, monthOf, weekOf, type GameState } from '../src/core/state';
-import { rollWeekEvent, weekGrowthFactor } from '../src/adventure/calendar';
+import { rollWeekEvent, weekGrowthFactor, weekGrowthUnitFactor } from '../src/adventure/calendar';
 import { testConfig, testMap } from './fixtures';
 import { testBuildingCatalog, testTown, testUnitCatalogWithEconomy } from './town-fixtures';
 
@@ -13,10 +13,10 @@ import { testBuildingCatalog, testTown, testUnitCatalogWithEconomy } from './tow
  * module la croissance (`applyWeeklyGrowth`). Purement data-driven via
  * `config.calendar.events`.
  */
-function startedGame(events?: CalendarEventDef[]): GameState {
+function startedGame(events?: CalendarEventDef[], monthEvents?: CalendarMonthEventDef[]): GameState {
   const players: PlayerSetup[] = [{ id: 'p1', startingResources: { ...emptyResources() } }];
   const config = testConfig();
-  if (events) config.calendar = { events };
+  if (events) config.calendar = { events, ...(monthEvents ? { monthEvents } : {}) };
   const cmd: Command = {
     type: 'StartGame',
     seed: 1,
@@ -234,5 +234,63 @@ describe('M-CALENDAR — événements de calendrier', () => {
     expect(s.calendar.weekEventId).toBeNull();
     expect(s.rng).toEqual(rngBefore);
     expect(weekGrowthFactor(s)).toBe(1);
+  });
+});
+
+/** Avance `days` jours en accumulant croissance et événements de calendrier. */
+function advanceDays(state: GameState, days: number) {
+  let s = state;
+  const growth: { day: number; added: number }[] = [];
+  const monthEvents: { day: number; eventId: string }[] = [];
+  for (let i = 0; i < days; i++) {
+    const r = apply(s, { type: 'EndTurn', playerId: 'p1' });
+    s = r.state;
+    for (const e of r.events) {
+      if (e.type === 'TownGrowth') growth.push({ day: s.calendar.day, added: e.added });
+      if (e.type === 'CalendarMonthStarted') monthEvents.push({ day: s.calendar.day, eventId: e.eventId });
+    }
+  }
+  return { state: s, growth, monthEvents };
+}
+
+describe('lot 2.5 (doc 18 A4) — événements de mois', () => {
+  const NORMAL: CalendarEventDef[] = [{ id: 'normal', weight: 1, growthFactor: 1 }];
+  const PLAGUE_MONTH: CalendarMonthEventDef[] = [{ id: 'plague-month', weight: 1, growthFactor: 0.5 }];
+
+  it('tiré à la bascule de mois, persiste tout le mois, re-tiré au mois suivant', () => {
+    // 56 jours : mois 2 commence au jour 29, mois 3 au jour 57.
+    const { state, growth, monthEvents } = advanceDays(startedGame(NORMAL, PLAGUE_MONTH), 56);
+    expect(monthEvents).toEqual([
+      { day: 29, eventId: 'plague-month' },
+      { day: 57, eventId: 'plague-month' },
+    ]);
+    expect(state.calendar.monthEventId).toBe('plague-month');
+    // Croissance : semaines du mois 1 (jours 8/15/22) à plein régime
+    // floor(6 × 1,5) = 9 ; semaines du mois 2 (jours 29/36/43/50) et du jour 57
+    // sous peste mensuelle : floor(6 × 1,5 × 0,5) = 4.
+    expect(growth.map((g) => g.added)).toEqual([9, 9, 9, 4, 4, 4, 4, 4]);
+  });
+
+  it('sans `monthEvents` configuré : aucun tirage, forme d’état inchangée', () => {
+    const { state, monthEvents } = advanceDays(startedGame(NORMAL), 28);
+    expect(monthEvents).toEqual([]);
+    expect('monthEventId' in state.calendar).toBe(false);
+    expect('weekEventUnitId' in state.calendar).toBe(false);
+  });
+});
+
+describe('lot 2.5 (doc 18 A4) — « semaine de X » (unité précise)', () => {
+  it('l’unité est tirée parmi les recrutables du catalogue et SA croissance double', () => {
+    const events: CalendarEventDef[] = [
+      { id: 'unit-week', weight: 1, growthFactor: 1, growthUnit: { factor: 2 } },
+    ];
+    const { state, growth } = advanceToWeek2(startedGame(events));
+    // Seule unité recrutable du catalogue de test (growthPerWeek > 0).
+    expect(state.calendar.weekEventUnitId).toBe('red-grunt');
+    // floor(6 × 1,5 (fort) × 2 (semaine de l'unité)) = 18.
+    expect(growth).toEqual([18]);
+    // Ciblage STRICT : toute autre unité reste à facteur 1.
+    expect(weekGrowthUnitFactor(state, 'blue-wolf')).toBe(1);
+    expect(weekGrowthUnitFactor(state, 'red-grunt')).toBe(2);
   });
 });

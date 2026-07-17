@@ -83,7 +83,7 @@ import { runAiTurn } from '../ai/adventure';
 import { EngineError, type Command, type CommandError } from './commands';
 import type { GameEvent } from './events';
 import { seedRng } from './rng';
-import { rollWeekEvent } from '../adventure/calendar';
+import { rollMonthEvent, rollWeekEvent } from '../adventure/calendar';
 import { grantXp } from '../adventure/experience';
 import { RESOURCE_IDS, weekOf, monthOf, areAllies, type GameState, type ResourceId } from './state';
 
@@ -920,6 +920,14 @@ function advanceSeat(draft: Draft, events: GameEvent[]): void {
       const week = weekOf(draft.calendar.day);
       if (week !== weekOf(draft.calendar.day - 1)) {
         events.push({ type: 'WeekStarted', week });
+        // Événement de MOIS (doc 18 A4, lot 2.5) : tiré à la bascule de mois,
+        // AVANT le tirage de semaine — son facteur module toutes les semaines
+        // du mois. No-op total sans `calendar.monthEvents` (RNG non consommé).
+        const month = monthOf(draft.calendar.day);
+        if (month !== monthOf(draft.calendar.day - 1)) {
+          const monthEvent = rollMonthEvent(draft);
+          if (monthEvent) events.push({ type: 'CalendarMonthStarted', eventId: monthEvent.id, month });
+        }
         // Événement de calendrier (M-CALENDAR, doc 02 §2.3) : tiré AVANT la
         // croissance (il la module via `weekGrowthFactor`). No-op hors calendrier.
         const calEvent = rollWeekEvent(draft);

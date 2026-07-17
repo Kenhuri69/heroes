@@ -1,5 +1,6 @@
 import { grantXp } from '../adventure/experience';
 import { rewardGuardianDefeat } from '../adventure/guardian-reward';
+import { queueGuardianRespawn } from '../adventure/respawn';
 import { revealStructure } from '../adventure/vision';
 import { applyFactionVictoryEffects } from '../faction/effects';
 import { rewardHuntContract } from '../town/hunt-contract';
@@ -394,6 +395,10 @@ function applyConsequences(
       if (hero) rewardGuardianDefeat(draft, hero, combat.guardianObjectId, events);
       if (hero) rewardHuntContract(draft, hero, combat.guardianObjectId, events);
       const idx = draft.map.objects.findIndex((o) => o.id === combat.guardianObjectId);
+      const gobj = idx !== -1 ? draft.map.objects[idx] : undefined;
+      // Respawn opt-in (doc 18 A2b) : mis en file AVANT le retrait — `count`
+      // porte encore l'effectif pré-combat (le butin ci-dessus le lit intact).
+      if (gobj && gobj.type === 'guardian') queueGuardianRespawn(draft, gobj, gobj.count);
       if (idx !== -1) draft.map.objects.splice(idx, 1);
     }
     // Siège gagné (doc 02 §4.1, Alpha 4.13) : la garnison est anéantie ⇒ la ville
@@ -439,10 +444,16 @@ export function persistDefenderRemnants(draft: Draft, combat: CombatState): void
     const idx = draft.map.objects.findIndex((o) => o.id === combat.guardianObjectId);
     const obj = idx !== -1 ? draft.map.objects[idx] : undefined;
     if (obj && obj.type === 'guardian') {
+      // Respawn opt-in (doc 18 A2b) : le count pré-combat est capturé AVANT
+      // l'écrasement — l'anéantissement mutuel (B17) ne doit pas queuer un 0.
+      const preCombatCount = obj.count;
       obj.count = combat.stacks
         .filter((s) => s.side === 'defender' && s.count > 0)
         .reduce((sum, s) => sum + s.count, 0);
-      if (obj.count <= 0) draft.map.objects.splice(idx, 1);
+      if (obj.count <= 0) {
+        queueGuardianRespawn(draft, obj, preCombatCount);
+        draft.map.objects.splice(idx, 1);
+      }
     }
   }
   if (combat.townId) {

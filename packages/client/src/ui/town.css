@@ -713,3 +713,47 @@ button[data-testid='market-trade'] {
   font: 600 0.85rem var(--font-ui);
   color: var(--parchment-dim);
 }
+
+/* Guilde des voleurs (doc 18 E3, lot 3.3) — comparatif inter-joueurs de
+   l'onglet Taverne. Tableau compact, scroll horizontal conteneurisé. */
+.town-thieves-guild {
+  margin-top: 1rem;
+  border-top: 1px solid var(--ink-600);
+  padding-top: 0.75rem;
+}
+.town-thieves-guild h3 {
+  margin: 0 0 0.5rem;
+  font-size: 0.9rem;
+}
+.town-thieves-level {
+  font-weight: 400;
+  opacity: 0.75;
+  font-size: 0.8rem;
+}
+.town-thieves-scroll {
+  overflow-x: auto;
+}
+.town-thieves-guild table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.8125rem;
+}
+.town-thieves-guild th,
+.town-thieves-guild td {
+  text-align: left;
+  padding: 0.25rem 0.5rem;
+  border-bottom: 1px solid var(--ink-600);
+  white-space: nowrap;
+}
+.town-thieves-guild tr.is-eliminated {
+  opacity: 0.45;
+}
+.town-thieves-chip {
+  display: inline-block;
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  margin-right: 0.35rem;
+  border: 1px solid var(--ink-600);
+  vertical-align: baseline;
+}

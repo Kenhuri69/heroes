@@ -2069,6 +2069,14 @@ test('taverne : construire ⇒ onglet Taverne ⇒ recruter un héros nommé (M-T
   await expect(recruitBtn).toBeVisible();
   await expect(recruitBtn).toBeDisabled();
 
+  await test.step('guilde des voleurs (doc 18 E3) : comparatif visible, rangs seuls à 1 Taverne', async () => {
+    await expect(page.getByTestId('town-thieves-guild')).toBeVisible();
+    const row = page.getByTestId('town-thieves-row-player-1');
+    await expect(row).toBeVisible();
+    // 1 Taverne ⇒ précision graduée au rang : `#1` affiché, pas la valeur exacte.
+    await expect(row).toContainText('#1');
+  });
+
   // Deux fins de tour : +500 or/jour (hôtel de ville) ⇒ 2500 = coût exact.
   await page.getByTestId('town-close').click();
   for (let i = 0; i < 2; i++) {

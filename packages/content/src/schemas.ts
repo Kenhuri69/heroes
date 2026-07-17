@@ -994,7 +994,8 @@ export const mapFileSchema = z.object({
       /**
        * Gardien neutre : pile unique, combat à l'interception (doc 02 §2.2).
        * `roamRadius` (optionnel) = gardien **errant** : 1 pas/jour vers le héros
-       * le plus proche dans ce rayon.
+       * le plus proche dans ce rayon. `respawnDays` (optionnel, doc 18 A2b) =
+       * vaincu, il réapparaît N jours plus tard (effectif pré-combat).
        */
       z.object({
         id: idSchema,
@@ -1004,6 +1005,7 @@ export const mapFileSchema = z.object({
         unitId: idSchema,
         count: z.number().int().positive(),
         roamRadius: z.number().int().positive().optional(),
+        respawnDays: z.number().int().positive().optional(),
       }),
       /**
        * Lieu de bonus visitable (doc 02 §2.2) — effet déclaratif générique

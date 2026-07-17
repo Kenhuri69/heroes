@@ -437,6 +437,17 @@ interface StrikeParams {
   chargeBonus?: number;
 }
 
+/**
+ * Plafond de jets de dégâts par frappe (perf F2, revue perf lot 7b, patron HoMM) :
+ * une pile de N créatures tirait N dés (chacun un jet PCG32 en BigInt, ~10-50× une
+ * arithmétique double) — point chaud dominant de l'auto-combat et des simulations.
+ * Au-delà de ce plafond, on tire `MAX_DAMAGE_ROLLS` dés et on met à l'échelle par
+ * l'effectif : **moyenne préservée** (jets non biaisés), variance à peine accrue
+ * pour de grandes piles (déjà à faible variance par la loi des grands nombres).
+ * Une pile ≤ ce plafond tire EXACTEMENT `count` dés ⇒ résultat inchangé.
+ */
+const MAX_DAMAGE_ROLLS = 10;
+
 /** Une frappe réelle (RNG threadé via `draft.rng`) : dégâts, pertes, marque, mort éventuelle. */
 export function performStrike(
   draft: Draft,
@@ -444,12 +455,15 @@ export function performStrike(
   params: StrikeParams,
 ): { targetDied: boolean } {
   const { striker, victim, strikerDef, victimDef, meleePenalized, retaliation, ranged, rules, chargeBonus } = params;
-  let base = 0;
-  for (let i = 0; i < striker.count; i++) {
+  const rolls = Math.min(striker.count, MAX_DAMAGE_ROLLS);
+  let sum = 0;
+  for (let i = 0; i < rolls; i++) {
     const r = rollRange(draft.rng, strikerDef.stats.damage[0], strikerDef.stats.damage[1]);
     draft.rng = r.state;
-    base += r.value;
+    sum += r.value;
   }
+  // ≤ plafond : `sum` EST le total (identité). Au-delà : moyenne × effectif.
+  let base = rolls === striker.count ? sum : Math.round((sum / rolls) * striker.count);
   const combat = draft.combat;
   // `swarm` (A3b) : bonus plat de meute quand la cible est cernée par les alliés.
   if (combat) base += swarmBonus(strikerDef, striker, victim, combat);

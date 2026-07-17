@@ -478,7 +478,22 @@ les données actuelles** (cross-check scripté des ids) ; garde `readSaveVersion
   (résolution, pas préviz) aussi laissé à 7b. `validatePath` non indexé
   (une passe par commande humaine, hors boucle IA). Golden inchangé,
   758/758, @core 19/19.
-- [ ] Lot 7b — perf moteur avec re-fix golden (F2, F3)
+- [x] Lot 7b — perf moteur (F2, F3). Livré (décision utilisateur 2026-07-17,
+  « perf max »). **F3** — l'auto-combat (`AutoCombat`/`AiTurn`) tourne sur un
+  **clone plat** (`structuredClone`) au lieu du proxy Immer (mêmes mutations ⇒
+  **golden INCHANGÉ**, `04cb6e08` — checkpoint de neutralité vérifié seul) ;
+  `simulateHeroCombat` perd son `produce`. **F2** — plafond de jets de dégâts par
+  frappe `MAX_DAMAGE_ROLLS = 10` × échelle de l'effectif (moyenne préservée,
+  bornes tenues) ⇒ O(count)→O(10) tirages BigInt/frappe. **Golden finalement
+  INCHANGÉ** : le seul stack > 10 du replay (15 gruntes) ne FRAPPE jamais (les 8
+  archers, ≤ plafond, résolvent le gardien avant). Un test dédié couvre le plafond
+  (`combat-damage` : dégât fixe ⇒ `count × d` exact ; variable ⇒ borne
+  [count×min, count×max] sur 5 graines). Écart vs plan : PCG32-32bit délibérément
+  NON fait (changerait TOUT le RNG, dont mapgen — hors proportion) ; F2 a rendu
+  marginal le siège `C-SIEGE2.7a` (100 gruntes vs tour HP 400 derrière rempart,
+  variance sur le fil) ⇒ effectif du test porté à 200 (le point « assaillant fort
+  ⇒ pas de stalemate » tient). **Mesure : `faction:sim` ~300 s → 47 s (×6,3).**
+  Moteur 835/835, golden inchangé, garde-fous verts.
 - [x] Lot 8 — P2 moteur + décisions design (B18–B32). Livré : **B18** préviz
   de riposte complète (demonform/élite de siège/swarm — préviz = résolution) ;
   **B19** douve appliquée au repositionnement d'attaque (mort avant frappe
@@ -545,7 +560,8 @@ les données actuelles** (cross-check scripté des ids) ; garde `readSaveVersion
   golden intact). 10 tests ajoutés (7 contenu + 3 moteur). Moteur 783/783,
   contenu 138/138, `content:check` vert, smoke PWA 1/1, suite complète verte.
 
-**CHANTIER TERMINÉ** (lots 1–10). Reste OPTIONNEL : lot 7b (F2 jets RNG
-plafonnés/PCG32 32 bits + F3 auto-combat hors draft Immer — re-fix golden
-assumé, à décider explicitement) ; différés consignés : point de vue « local »
-multi-humains d'`evaluateOutcome` (B27, design), Dijkstra IA mutualisé (7b).
+**CHANTIER TERMINÉ** (lots 1–10 **+ 7b**, 2026-07-17). Différés consignés
+(design, non-perf) : point de vue « local » multi-humains d'`evaluateOutcome`
+(B27, design), Dijkstra IA mutualisé + « suivre le chemin d'exploration complet »
+(écarts de décision IA potentiels ⇒ golden ; non retenus). PCG32-32 bits laissé
+de côté (changerait tout le RNG dont mapgen — hors proportion pour le gain).

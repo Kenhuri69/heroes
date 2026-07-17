@@ -291,7 +291,12 @@ describe('C-SIEGE2 — murs de siège', () => {
   });
 
   it('C-SIEGE2.7a : un Château (Fort ≥ 3) à garnison vide se défend par sa seule tour', () => {
-    const s = withTower(siegeState([{ unitId: 'red-grunt', count: 100 }], [], { fort: 3 }));
+    // Effectif porté à 200 (perf F2, lot 7b) : le plafond de jets de dégâts a
+    // rendu marginale la course « 100 gruntes vs tour HP 400 derrière un rempart »
+    // (attaque 3 vs défense 12+9 ⇒ dégâts fortement réduits, issue sur le fil du
+    // rasoir sensible à la variance). 200 gruntes capturent sans ambiguïté ⇒ le
+    // point du test (assaillant fort ⇒ pas de stalemate, la tour tombe) tient.
+    const s = withTower(siegeState([{ unitId: 'red-grunt', count: 200 }], [], { fort: 3 }));
     const events: GameEvent[] = [];
     const started = apply(s, { type: 'CaptureTown', townId: 't1', playerId: 'p1' }).state;
     // Siège ouvert malgré la garnison vide : la tour seule défend.

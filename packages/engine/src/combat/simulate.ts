@@ -1,9 +1,8 @@
-import { produce } from 'immer';
 import { apply } from '../core/engine';
 import { seedRng } from '../core/rng';
 import { createEmptyState } from '../core/state';
 import type { GameEvent } from '../core/events';
-import type { GameState, HeroState, PlayerState } from '../core/state';
+import type { HeroState, PlayerState } from '../core/state';
 import type { FactionBonus } from '../faction/types';
 import type { AdventureConfig } from '../adventure/config';
 import { runAutoCombat } from './ai';
@@ -126,27 +125,27 @@ export function simulateHeroCombat(
   opponent: HeroCombatSide,
   seed: number,
 ): HeroCombatResult {
-  const base = createEmptyState();
-  base.started = true;
-  base.config = config;
-  base.unitCatalog = catalog;
-  base.factionCatalog = factionCatalog;
-  base.rng = seedRng(seed);
-  base.players = [simPlayer('p-att'), simPlayer('p-def')];
-  base.heroes = [
+  // État ad hoc PLAT (fraîchement créé, jamais partagé) : on mute directement,
+  // sans proxy Immer (perf F3 — c'est la brique chaude de `faction:sim`).
+  const draft = createEmptyState();
+  draft.started = true;
+  draft.config = config;
+  draft.unitCatalog = catalog;
+  draft.factionCatalog = factionCatalog;
+  draft.rng = seedRng(seed);
+  draft.players = [simPlayer('p-att'), simPlayer('p-def')];
+  draft.heroes = [
     simHero('h-att', 'p-att', challenger.factionId, challenger.army),
     simHero('h-def', 'p-def', opponent.factionId, opponent.army),
   ];
 
   const events: GameEvent[] = [];
-  const next: GameState = produce(base, (draft) => {
-    beginHeroCombat(draft, 'h-att', 'h-def', events);
-    runAutoCombat(draft, events);
-  });
+  beginHeroCombat(draft, 'h-att', 'h-def', events);
+  runAutoCombat(draft, events);
 
   const ended = events.find((e) => e.type === 'CombatEnded');
   const winner: CombatSideId = ended && ended.type === 'CombatEnded' ? ended.winner : 'defender';
-  const att = next.heroes.find((h) => h.id === 'h-att');
+  const att = draft.heroes.find((h) => h.id === 'h-att');
   const challengerArmy =
     winner === 'attacker' && att ? att.army.map((s) => ({ unitId: s.unitId, count: s.count })) : [];
   return { winner, challengerArmy };

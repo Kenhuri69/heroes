@@ -628,3 +628,52 @@ describe('Lot D — D5 : la riposte ne consomme pas les Marques', () => {
     expect(events.some((e) => e.type === 'MarksConsumed')).toBe(false);
   });
 });
+
+/**
+ * Perf F2 (revue perf lot 7b) : une frappe plafonne ses jets de dégâts à
+ * `MAX_DAMAGE_ROLLS` (10) et met la moyenne à l'échelle de l'effectif, au lieu
+ * de tirer un dé par créature (O(count) BigInt → O(10)). Invariants vérifiés :
+ * (a) à dégâts FIXES [d,d], le résultat reste EXACTEMENT `count × d` quel que
+ * soit l'effectif (jets non biaisés) ; (b) à dégâts variables, la borne
+ * mathématique [count×min, count×max] est préservée (pas de débordement/0/NaN).
+ */
+describe('performStrike — plafond de jets F2 (moyenne préservée, bornes tenues)', () => {
+  it('dégâts fixes : une pile de 1000 inflige exactement count × dégât (mult 1)', () => {
+    const catalog = {
+      atk: unit({ id: 'atk', stats: { hp: 10, attack: 5, defense: 0, damage: [3, 3], speed: 5 } }),
+      def: unit({ id: 'def', stats: { hp: 1_000_000, attack: 0, defense: 5, damage: [1, 1], speed: 1 } }),
+    };
+    const attacker = stack({ id: 'attacker-0', side: 'attacker', slot: 0, unitId: 'atk', count: 1000, pos: { col: 0, row: 0 }, firstHp: 10 });
+    const defender = stack({ id: 'defender-0', side: 'defender', slot: 0, unitId: 'def', count: 1, pos: { col: 1, row: 0 }, firstHp: 1_000_000 });
+    const state = { ...baseState(catalog), combat: combatState([attacker, defender]) };
+    const events: GameEvent[] = [];
+    produce(state, (draft) => {
+      applyAction(draft, events, 'attacker-0', { type: 'attack', targetStackId: 'defender-0' });
+    });
+    // atk 5 = def 5 → multiplicateur 1 ; dégât fixe 3 × 1000 = 3000, exact malgré
+    // le plafond de 10 jets (chaque jet vaut 3 ⇒ round(30/10 × 1000) = 3000).
+    const strike = events.find((e) => e.type === 'StackAttacked') as Extract<GameEvent, { type: 'StackAttacked' }>;
+    expect(strike.damage).toBe(3000);
+  });
+
+  it('dégâts variables : une grande pile reste dans la borne [count×min, count×max]', () => {
+    const catalog = {
+      atk: unit({ id: 'atk', stats: { hp: 10, attack: 5, defense: 0, damage: [1, 2], speed: 5 } }),
+      def: unit({ id: 'def', stats: { hp: 10_000_000, attack: 0, defense: 5, damage: [1, 1], speed: 1 } }),
+    };
+    const attacker = stack({ id: 'attacker-0', side: 'attacker', slot: 0, unitId: 'atk', count: 2000, pos: { col: 0, row: 0 }, firstHp: 10 });
+    const defender = stack({ id: 'defender-0', side: 'defender', slot: 0, unitId: 'def', count: 1, pos: { col: 1, row: 0 }, firstHp: 10_000_000 });
+    // Plusieurs graines : la borne tient toujours, jamais 0/NaN.
+    for (const seed of [1, 2, 3, 7, 42]) {
+      const state = { ...baseState(catalog), rng: seedRng(seed), combat: combatState([attacker, defender]) };
+      const events: GameEvent[] = [];
+      produce(state, (draft) => {
+        applyAction(draft, events, 'attacker-0', { type: 'attack', targetStackId: 'defender-0' });
+      });
+      const strike = events.find((e) => e.type === 'StackAttacked') as Extract<GameEvent, { type: 'StackAttacked' }>;
+      // mult 1 (atk 5 = def 5) : dégâts ∈ [2000×1, 2000×2].
+      expect(strike.damage).toBeGreaterThanOrEqual(2000);
+      expect(strike.damage).toBeLessThanOrEqual(4000);
+    }
+  });
+});

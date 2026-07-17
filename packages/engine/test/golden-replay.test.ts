@@ -277,7 +277,12 @@ const GOLDEN_JOURNAL: Command[] = [
 // des fixtures golden). Puis lot 2 (save v31→32, hash → 04cb6e08) :
 // `PlayerState.hasGrail` optionnel, jamais posé dans le golden (aucune fouille) ⇒
 // seul `saveVersion` change : hash de FORME seule, simulation inchangée.
-const GOLDEN_HASH = '04cb6e08';
+// Re-fixé au lot 3.1 doc 18 C1 (save v32→33, hash → d2f06bdb) :
+// `HeroState.archetypeEffects?` optionnel, jamais posé dans le golden (héros
+// génériques, `config.hero.archetypeEffects` absent des fixtures) ⇒ seul
+// `saveVersion` change : hash de FORME seule, simulation inchangée (toutes les
+// assertions de valeurs ci-dessous restent vertes).
+const GOLDEN_HASH = 'd2f06bdb';
 
 describe('golden replay', () => {
   it('le journal scripté produit toujours le même état final', () => {

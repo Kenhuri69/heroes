@@ -31,7 +31,11 @@
         "magic": { "attack": 15, "defense": 15, "power": 35, "knowledge": 35 }
       },
       "recruitCost": 2500,
-      "maxPerPlayer": 8
+      "maxPerPlayer": 8,
+      "archetypeEffects": {
+        "might": [{ "armySlotsBonus": 1 }],
+        "magic": [{ "heroActionsPerRound": 1 }]
+      }
     },
     "combat": {
       "attackDefenseStep": 0.05,

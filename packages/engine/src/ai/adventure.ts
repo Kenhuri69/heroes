@@ -6,6 +6,7 @@ import { advanceHeroAlongPath } from '../adventure/movement';
 import { resolveTreasure } from '../adventure/treasure';
 import { DIRECTIONS, isAdjacent, samePos, tileIndex, type GridPos } from '../adventure/map';
 import { findPath, isPassable, minStepCost, octileLowerBound, stepCost } from '../adventure/path';
+import { heroArmyCap } from '../hero/skills';
 import { validateCaptureTown, handleCaptureTown } from '../town';
 import { maxAffordableCount } from '../town/resources';
 import { unitWithEconomy } from '../town/unit-economy';
@@ -115,7 +116,7 @@ function isCollectible(
   }
   if (obj.type === 'dwelling') {
     if (obj.stock <= 0) return false;
-    if (!hero.army.some((s) => s.unitId === obj.unitId) && hero.army.length >= 7) return false;
+    if (!hero.army.some((s) => s.unitId === obj.unitId) && hero.army.length >= heroArmyCap(hero)) return false;
     const cost = unitWithEconomy(draft.unitCatalog, obj.unitId)?.recruitCost ?? {};
     return maxAffordableCount(player, cost, obj.stock) > 0;
   }

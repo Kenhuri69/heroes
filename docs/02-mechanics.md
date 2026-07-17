@@ -18,6 +18,7 @@ Le héros est le pion central : il transporte l'armée, lance les sorts, porte l
 | **Savoir** | Mana max = Savoir × 10 |
 
 Les **probabilités de gain** par niveau sont data-driven. *État livré (H-NAMED.3) : un **profil global** `30/30/20/20` (A/D/P/S, `config.json`) s'applique par défaut, mais un **profil déclaratif par archétype** (`config.hero.attributeWeightsByArchetype`) le prime pour un héros dont le roster porte un archétype — **might** `35/30/15/20` (favorise Attaque/Défense) et **magic** `15/15/35/35` (favorise Pouvoir/Savoir). Sélection via `heroRoster[rosterId].archetype` à la montée de niveau (`experience.ts`), repli global pour un héros sans archétype. Générique, zéro faction moteur ; champs OPTIONNELS ⇒ **pas de bump save, golden inchangé** (vieux save = repli global). Profils par CLASSE plus fins (ex. Nécromancien 15/15/30/40) réalisables en données ultérieurement.*
+*État livré (doc 18 C1, lot 3.1 — **perks structurels d'archétype**, signature MMHO) : `config.hero.archetypeEffects` (clés opaques) pose à la création d'un héros nommé des effets déclaratifs du pot commun (`HeroState.archetypeEffects?`, optionnel paresseux ⇒ pas de bump save), agrégés comme compétences/Maison/spécialité. Livrés en données : **might** = `armySlotsBonus: 1` (8ᵉ slot d'armée, cap via `heroArmyCap` — la garnison de ville reste à 7) ; **magic** = `heroActionsPerRound: 1` (2 actions de héros par round, cf. §5.6). Héros génériques : comportements historiques.*
 
 > **Héros nommés (H-NAMED.1, doc §1.2)** : les fiches d'identité `heroes/<id>.json` (doc 16 État 16.9 — avatar/bio/archetype/origine) portent des **champs gameplay optionnels** (`attributes`, `specialtyEffect`, `startingSkills`, `startingSpells`). Une fiche **avec `attributes`** devient **jouée** : `buildHeroRoster` la résout, et le moteur applique nom/attributs/spécialité/compétences/sorts à la création si `PlayerSetup.startingHeroId` la désigne (catalogue `StartGame.heroRoster`, comme `houseCatalog`) ; les champs explicites du scénario (report de campagne) la priment. Une fiche **sans** gameplay reste identity-only (staging avatars). **H-NAMED.2 livré** : à « Nouvelle partie » et « Escarmouche », **chaque siège humain choisit son héros nommé** dans le roster de sa faction (`<select>` par siège) ; défaut = **aléatoire seedé** (RNG moteur, jamais `Math.random`), unicité de pool au sein d'un `StartGame`. La sélection pose `PlayerSetup.startingHeroId` (identité résolue par le moteur, **zéro diff moteur** ⇒ pas de bump save) et omet les attributs génériques ; le loadout de sorts MVP est conservé. Sièges IA = héros génériques. **État livré (H-COND)** : point d'extension moteur **générique** `conditional` sur le vocabulaire d'effets déclaratifs — une spécialité peut être scopée **par unité** (`unitId`) et/ou **par niveau** (`perLevels` ⇒ ×`ceil(niveau/perLevels)`), interprétée au niveau unité en combat (`conditionalUnitBonus` : attaque/défense/vitesse ; jamais agrégée à plat). Aucune faction en dur, **pas de bump save, golden inchangé**. 6 héros nommés différés désormais jouables (Vhalen, Mère Corbeau, Sylwen, Faelar, Evadne, Alwin — cf. docs 04/05/14 §5/§7). **État livré (H-COND-EXACT)** : les 3 variantes différées portent leurs signatures EXACTES via 3 points d'extension génériques dédiés — Mère Corbeau `raiseUndeadPctPerLevel` (Nécromancie +%/niveau), Faelar `startingSymbiosisStacks` (Symbiose de départ), Alwin `startingArmyBonus` (familier T2 gratuit). **État livré (H-NAMED.3)** : profil de gain d'attribut **par archétype** (`attributeWeightsByArchetype`, cf. §1.2). Tous : zéro faction moteur, pas de bump save, golden inchangé.
 
@@ -755,12 +756,16 @@ Heuristique par pile : score = dégâts espérés × valeur de la cible − risq
 camp — **une action de héros par round** : soit un sort (priorité dégâts > soin
 si un allié est blessé > debuff/marques > buff, à mana suffisante), soit
 l'attaque héroïque (cible maximisant pertes × valeur), avant l'action de la
-pile active. Sort et frappe sont **mutuellement exclusifs par round** (conforme
-au core loop §1 « le héros agit une fois par round, sort **ou** attaque ») et
-tous deux réinitialisés au changement de round ; la **Prière de bataille**
-(F-SKILLS.2) reste un special 1×/combat indépendant. En auto-combat, les héros
-des DEUX camps sont joués. Les verrous sont par camp (`heroCastThisRound` /
-`heroAttackUsed`, réinit chaque round).
+pile active. Sort et frappe consomment le **même budget d'actions du round**
+(conforme au core loop §1 « le héros agit une fois par round, sort **ou**
+attaque ») et tous deux réinitialisés au changement de round ; la **Prière de
+bataille** (F-SKILLS.2) reste un special 1×/combat indépendant. En auto-combat,
+les héros des DEUX camps sont joués. Les verrous sont par camp
+(`heroCastThisRound` / `heroAttackUsed`, réinit chaque round).
+**Perk Magic (doc 18 C1, lot 3.1)** : le budget est **1 + `heroActionsPerRound`
+agrégé** (`heroActionLeft`, comptage d'occurrences par camp — forme des
+tableaux inchangée) — un héros nommé d'archétype **magic** agit DEUX fois par
+round (sort ET frappe, ou deux sorts), joueur comme IA.
 
 ---
 

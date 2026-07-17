@@ -63,7 +63,31 @@ export function sumHeroEffectField(hero: HeroState, field: NumericEffectField): 
   let total = 0;
   for (const effect of hero.houseEffects) total += effect[field] ?? 0;
   for (const effect of hero.specialtyEffects) total += effect[field] ?? 0;
+  // Perks d'archétype (doc 18 C1, lot 3.1) — même vocabulaire, même agrégation.
+  for (const effect of hero.archetypeEffects ?? []) total += effect[field] ?? 0;
   return total;
+}
+
+/** Cap de base des piles d'armée d'un héros (doc 02 §5.1). */
+export const BASE_ARMY_STACKS = 7;
+
+/**
+ * Cap de piles de l'armée d'UN héros (doc 18 C1, lot 3.1) : 7 de base +
+ * `armySlotsBonus` agrégé (perk Might via archétype, cumulable avec une
+ * compétence/Maison future). Consommé par TOUS les sites qui ajoutent une pile
+ * à une armée de héros — la garnison de ville reste à 7 (trait de héros).
+ */
+export function heroArmyCap(hero: HeroState): number {
+  return BASE_ARMY_STACKS + Math.max(0, sumHeroEffectField(hero, 'armySlotsBonus'));
+}
+
+/**
+ * Actions de héros autorisées par round de combat (doc 18 C1, lot 3.1) :
+ * 1 de base (doc 02 §1 « sort OU frappe ») + `heroActionsPerRound` agrégé
+ * (perk Magic). À 2, le héros peut sort ET frappe dans le même round.
+ */
+export function heroActionsAllowed(hero: HeroState): number {
+  return 1 + Math.max(0, sumHeroEffectField(hero, 'heroActionsPerRound'));
 }
 
 /**

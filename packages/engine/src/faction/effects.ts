@@ -3,7 +3,7 @@ import { hasAbility, performerParams } from '../combat/state-helpers';
 import type { CombatSideId, CombatStack, CombatState } from '../combat/types';
 import type { GameEvent } from '../core/events';
 import type { GameState, HeroState, PlayerState } from '../core/state';
-import { sumHeroEffectField } from '../hero/skills';
+import { heroArmyCap, sumHeroEffectField } from '../hero/skills';
 import type { FactionBonus } from './types';
 
 /**
@@ -46,7 +46,7 @@ export function factionResourceCap(
 }
 
 /** Capacité d'armée du héros (doc 02 §5.1) — ≤ 7 piles distinctes. */
-const MAX_ARMY_STACKS = 7;
+
 
 type Casualty = { side: CombatSideId; unitId: string; lost: number };
 
@@ -175,7 +175,7 @@ function applyRaiseUndeadOnVictory(
   if (existingStack) {
     existingStack.count += raised;
   } else {
-    if (hero.army.length >= MAX_ARMY_STACKS) return; // armée pleine : pas d'ajout (documenté, lot O)
+    if (hero.army.length >= heroArmyCap(hero)) return; // armée pleine : pas d'ajout (documenté, lot O)
     hero.army.push({ unitId: bonus.unitId, count: raised });
   }
   events.push({ type: 'UndeadRaised', heroId: hero.id, unitId: bonus.unitId, count: raised });

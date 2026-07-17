@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from 'preact/compat';
 import { useEffect, useState } from 'preact/hooks';
 import {
+  heroActionLeft,
   heroAttackDamage,
   canHeroRally,
   estimateHeroRally,
@@ -122,25 +123,20 @@ export function CombatUi() {
 
   const active = combat.stacks.find((s) => s.id === combat.activeStackId);
   const isPlayerTurn = !combat.finished && !isPlacement && active?.side === combat.playerSide;
+  // Budget d'actions de héros du round (doc 02 §1, généralisé doc 18 C1 : un
+  // héros Magic agit deux fois) — helper moteur pur partagé validations/IA/UI.
+  const heroCanAct = heroActionLeft(appStore.getState().game, combat, combat.playerSide);
   const canCastSpell =
     isPlayerTurn &&
     !autoActive &&
-    !combat.heroCastThisRound.includes(combat.playerSide) &&
-    // Une action de héros par round (doc 02 §1) : sort exclusif de la frappe.
-    !combat.heroAttackUsed.includes(combat.playerSide) &&
+    heroCanAct &&
     !!hero &&
     // H-ARTEQUIP.2 : un héros sans sort appris peut caster via un artefact équipé.
     heroKnownSpellIds(hero, artifactCatalog).length > 0;
   // C1 : attaque du héros disponible si la feature est activée (config), un héros
-  // est lié au camp joueur et n'a pas déjà agi ce round (frappe OU sort, exclusifs).
+  // est lié au camp joueur et a encore une action ce round.
   const canHeroStrike =
-    isPlayerTurn &&
-    !autoActive &&
-    !!hero &&
-    !!config?.combat.heroAttack &&
-    !combat.heroAttackUsed.includes(combat.playerSide) &&
-    // Une action de héros par round (doc 02 §1) : frappe exclusive du sort.
-    !combat.heroCastThisRound.includes(combat.playerSide);
+    isPlayerTurn && !autoActive && !!hero && !!config?.combat.heroAttack && heroCanAct;
   // F-SKILLS.2-UI : Prière de bataille disponible si le héros du camp joueur porte
   // la compétence (`battleResurrectHp`), 1×/combat — gating délégué au moteur pur.
   const canPray = isPlayerTurn && !autoActive && canHeroRally(appStore.getState().game);

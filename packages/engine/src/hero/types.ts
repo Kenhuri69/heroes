@@ -134,6 +134,19 @@ export interface SkillRankEffect {
   /** Compétence Tactique (C-TACTICS, doc 02 §5.1) : profondeur de la bande de placement pré-combat. */
   tacticsColumns?: number;
   /**
+   * Perk structurel Might (doc 18 C1, lot 3.1 — signature MMHO) : slots d'armée
+   * SUPPLÉMENTAIRES au-delà des 7 de base (`heroArmyCap`). Porté par
+   * l'archétype via `config.hero.archetypeEffects` (clé opaque), agrégé comme
+   * tout champ numérique — cumulable avec une compétence/Maison future.
+   */
+  armySlotsBonus?: number;
+  /**
+   * Perk structurel Magic (doc 18 C1, lot 3.1) : actions de héros
+   * SUPPLÉMENTAIRES par round de combat (base 1 — doc 02 §1 « sort OU
+   * frappe ») ; à 1, le héros peut sort ET frappe dans le même round.
+   */
+  heroActionsPerRound?: number;
+  /**
    * Prière de bataille (F-SKILLS.2, doc 03 §2/§5) : PV soignés/ressuscités par le
    * héros sur une pile alliée, **1×/combat**. Un héros dont une compétence porte
    * ce champ (> 0) débloque l'action `HeroRally`. Agrégé par `heroBattlePrayerHp`.
@@ -188,6 +201,22 @@ export interface SkillRankEffect {
    * EXCLU de `NumericEffectField` (comme `conditional`). `unitId` = id opaque.
    */
   startingArmyBonus?: { unitId: string; count: number };
+}
+
+/**
+ * Pont zod → moteur (exactOptionalPropertyTypes) : la forme inférée par les
+ * schémas de contenu ajoute `| undefined` à chaque champ optionnel. Utilisé
+ * par les entrées de config (`hero.archetypeEffects`) ; normalisé en
+ * `SkillRankEffect` strict par `sanitizeEffect` à la création du héros — même
+ * patron que le `Object.fromEntries(...) as SkillRankEffect` du client.
+ */
+export type SkillRankEffectInput = { [K in keyof SkillRankEffect]?: SkillRankEffect[K] | undefined };
+
+/** Copie un effet en écartant les membres `undefined` (bridge exactOptional). */
+export function sanitizeEffect(effect: SkillRankEffectInput): SkillRankEffect {
+  return Object.fromEntries(
+    Object.entries(effect).filter(([, v]) => v !== undefined),
+  ) as SkillRankEffect;
 }
 
 /**

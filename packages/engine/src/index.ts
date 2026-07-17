@@ -146,7 +146,7 @@ export { estimateSpell, estimateUnitSpell, spellAffectedStacks, teleportDestinat
 // CAP-CAST : le client détecte une pile `spellcaster` jouable à la main + son
 // gate de silence via ces helpers purs (aucune réimplémentation côté client).
 export { spellcasterParams } from './combat/spell-effect';
-export { isSilenced, isSpellImmune, isStackSpellImmune } from './combat/state-helpers';
+export { heroActionLeft, isSilenced, isSpellImmune, isStackSpellImmune } from './combat/state-helpers';
 // Coût de mana effectif (réduction Magie par école, A6) — le grimoire client
 // (C2) affiche/gate sur ce coût, pas sur `spell.manaCost` brut.
 export { effectiveManaCost, spellTargetsEnemy } from './hero/spells';
@@ -155,7 +155,7 @@ export { effectiveManaCost, spellTargetsEnemy } from './hero/spells';
 export { heroKnownSpellIds } from './hero/artifacts';
 // Bonus de vision (compétence Recherche) — le rendu du brouillard client (C4)
 // dessine « en vision » avec le rayon EFFECTIF par héros, comme la révélation moteur.
-export { heroVisionBonus, heroVisionRadius, heroLearnableCircle, heroSchoolMastery } from './hero/skills';
+export { heroArmyCap, heroVisionBonus, heroVisionRadius, heroLearnableCircle, heroSchoolMastery } from './hero/skills';
 // Convention d'id d'un héros recruté à la Taverne (M-TAVERN.2) — l'onglet
 // Taverne client marque « déjà recruté » avec la même convention que le moteur.
 export { recruitedHeroId } from './hero/recruit';

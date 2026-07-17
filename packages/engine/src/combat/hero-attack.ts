@@ -6,7 +6,7 @@ import { heroAttackOf, killsFromDamage } from './damage';
 import { handleStackDeath } from './death';
 import type { Draft } from './draft';
 import { checkCombatEnd } from './turns';
-import { recordLoss } from './state-helpers';
+import { heroActionLeft, recordLoss } from './state-helpers';
 import type { CombatSideId, CombatState } from './types';
 
 type HeroAttackCmd = { type: 'HeroAttack'; targetStackId: string };
@@ -47,12 +47,10 @@ function validateHeroAttackTarget(state: GameState): CommandError | null {
     return { code: 'heroAttackUnavailable', message: 'attaque du héros indisponible' };
   if (!heroForSide(state, combat, combat.playerSide))
     return { code: 'heroAttackUnavailable', message: 'aucun héros lié au camp joueur' };
-  // Une action de héros par round (doc 02 §1) : frapper est exclusif du sort —
-  // le héros ne peut frapper s'il a déjà frappé OU lancé un sort ce round.
-  if (combat.heroAttackUsed.includes(combat.playerSide))
-    return { code: 'heroAttackUsed', message: 'le héros a déjà agi ce round' };
-  if (combat.heroCastThisRound.includes(combat.playerSide))
-    return { code: 'heroAttackUsed', message: 'le héros a déjà lancé un sort ce round' };
+  // Actions de héros par round (doc 02 §1, généralisé doc 18 C1) : frappe et
+  // sort consomment le même budget — 1 de base, + perk `heroActionsPerRound`.
+  if (!heroActionLeft(state, combat, combat.playerSide))
+    return { code: 'heroAttackUsed', message: 'le héros a déjà épuisé ses actions ce round' };
   return null;
 }
 

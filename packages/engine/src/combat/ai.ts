@@ -11,7 +11,7 @@ import { estimateDamage, killsFromDamage, symbiosisParams } from './damage';
 import { advanceTurn } from './turns';
 import type { Draft } from './draft';
 import { hexDistance, type OffsetPos } from './hex';
-import { collectCasualties, effectiveSpeed, hasAbility, isSilenced, isStackSpellImmune } from './state-helpers';
+import { collectCasualties, effectiveSpeed, hasAbility, heroActionLeft, isSilenced, isStackSpellImmune } from './state-helpers';
 import type { CombatActionInput, CombatSideId, CombatStack, CombatState, CombatUnitDef } from './types';
 
 /**
@@ -444,9 +444,9 @@ export function maybeHeroAction(draft: Draft, events: GameEvent[], side: CombatS
   if (enemies.length === 0) return false;
   const catalog = draft.unitCatalog;
 
-  // Une action de héros par round (doc 02 §1) : sort et frappe sont exclusifs —
-  // l'IA ne lance un sort que si le héros n'a encore ni lancé ni frappé ce round.
-  if (!combat.heroCastThisRound.includes(side) && !combat.heroAttackUsed.includes(side)) {
+  // Actions de héros par round (doc 02 §1, généralisé doc 18 C1) : l'IA lance un
+  // sort tant que le budget d'actions du round n'est pas épuisé (1 + perk).
+  if (heroActionLeft(draft, combat, side)) {
     const cast = chooseHeroSpell(draft, combat, hero, side, enemies, catalog);
     if (cast) {
       castHeroSpell(draft, side, cast.spellId, cast.targetStackId, events);
@@ -483,11 +483,7 @@ export function maybeHeroAction(draft: Draft, events: GameEvent[], side: CombatS
     }
   }
 
-  if (
-    draft.config?.combat.heroAttack &&
-    !combat.heroAttackUsed.includes(side) &&
-    !combat.heroCastThisRound.includes(side)
-  ) {
+  if (draft.config?.combat.heroAttack && heroActionLeft(draft, combat, side)) {
     const amount = heroAttackDamage(draft, combat, side);
     if (amount > 0) {
       const best = pickBestBy(

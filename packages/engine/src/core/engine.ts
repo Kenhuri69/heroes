@@ -75,6 +75,7 @@ import {
 import { heroGoldPerDay, heroMovementBonus, heroVisionRadius } from '../hero/skills';
 import { sanitizeEffect } from '../hero/types';
 import { resolveTreasure } from '../adventure/treasure';
+import { respawnDueGuardians } from '../adventure/respawn';
 import { roamGuardians } from '../adventure/roam';
 import { evaluateOutcome, tickTownGrace } from '../scenario/outcome';
 import { evaluateQuests } from '../quest/evaluate';
@@ -494,6 +495,8 @@ function validateMap(cmd: Extract<Command, { type: 'StartGame' }>): CommandError
       if (obj.count <= 0) return bad(`gardien '${obj.id}' : effectif non positif`);
       if (obj.roamRadius !== undefined && obj.roamRadius <= 0)
         return bad(`gardien '${obj.id}' : roamRadius non positif`);
+      if (obj.respawnDays !== undefined && obj.respawnDays <= 0)
+        return bad(`gardien '${obj.id}' : respawnDays non positif`);
     }
   }
   return null;
@@ -989,6 +992,10 @@ function advanceSeat(draft: Draft, events: GameEvent[]): void {
       // Triggers de carte « onDay » (doc 02 §2.1) puis avancée de la grâce de
       // reprise de ville (doc 02 §4.1) — une fois par jour, avant l'évaluation.
       fireDayTriggers(draft, events);
+      // Respawn de gardiens (doc 18 A2b) : les gardiens `respawnDays` vaincus
+      // et dus réapparaissent — avant l'errance (un revenant peut roamer le
+      // jour même). No-op total sans file (opt-in par données).
+      respawnDueGuardians(draft);
       // Gardiens errants (doc 02 §2.2) : un pas quotidien vers le héros le plus
       // proche à portée — après les triggers, avant l'évaluation de fin.
       roamGuardians(draft, events);

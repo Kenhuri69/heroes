@@ -40,6 +40,13 @@ export interface GuardianObjectDef {
    * Absent = gardien statique (comportement historique).
    */
   roamRadius?: number;
+  /**
+   * Respawn (doc 18 A2b, fidélité MMHO) : vaincu, le gardien réapparaît au
+   * même endroit `respawnDays` jours plus tard avec son effectif d'avant le
+   * combat (file `AdventureMapDef.respawns`). Absent = disparition définitive
+   * (comportement historique) — utile aux scénarios survival / quotidiennes.
+   */
+  respawnDays?: number;
 }
 
 /**
@@ -268,6 +275,13 @@ export interface AdventureMapDef {
    * éviter la churn des cartes construites à la main (le moteur lit `?? null`).
    */
   grailPos?: GridPos | null;
+  /**
+   * File des gardiens à faire réapparaître (doc 18 A2b) : snapshot de l'objet
+   * (effectif pré-combat) + jour dû. **Lazy** — jamais créée tant qu'aucun
+   * gardien `respawnDays` n'est vaincu ⇒ forme d'état bit-identique sans la
+   * mécanique (golden intact, pas de bump save ; précédent `grailPos`).
+   */
+  respawns?: { day: number; object: GuardianObjectDef }[];
 }
 
 /** Nombre d'obélisques sur la carte (T-GRAIL, doc 02 §2.2). */

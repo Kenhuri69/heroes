@@ -385,7 +385,17 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 > (A1) mappe les 7 bandes de force sur **3 crans** (solitaire / groupe / horde,
 > nombre d'instances du jeton + étendard au cran horde) : le danger se lit sans
 > survol, l'effectif exact restant masqué (le libellé de bande reste la source au
-> survol/appui long). Respawn de gardiens (`respawnDays`) : différé.
+> survol/appui long). **Respawn de gardiens (A2b, lot 3.4)** : un gardien doté
+> du champ optionnel `respawnDays: N` (données de carte) **réapparaît N jours
+> après sa disparition** (vaincu, ou anéanti mutuellement), au même endroit,
+> avec son **effectif pré-combat** — utile aux scénarios survival et aux
+> quotidiennes (fidélité MMHO « re-farmer les planques »). Tuile occupée au
+> jour dû (héros, ville, errant qui a dérivé dessus) ⇒ report quotidien
+> jusqu'à libération. File `map.respawns` **lazy** (créée au premier retrait
+> d'un gardien `respawnDays`) ⇒ sans la donnée, forme d'état bit-identique :
+> **opt-in pur, pas de bump `CURRENT_SAVE_VERSION`**, aucun RNG (FIFO
+> déterministe). Les cartes livrées n'en posent pas encore (`proto-01` est
+> partagée par tous les scénarios) — champ offert aux auteurs de cartes.
 
 > **Butin de gardien** : vaincre un gardien neutre **crédite un butin** gradué
 > par sa **force** (PV totaux = `hp × count`), tiré au **RNG seedé** — piloté par

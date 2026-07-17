@@ -969,6 +969,8 @@ export type ResolvedMapObject =
       count: number;
       /** Gardien errant (doc 02 §2.2) — absent = statique. */
       roamRadius?: number;
+      /** Respawn opt-in (doc 18 A2b) — absent = disparition définitive. */
+      respawnDays?: number;
     }
   | {
       id: string;
@@ -1448,6 +1450,7 @@ function resolveMap(file: MapFile): ResolvedMap {
           unitId: obj.unitId,
           count: obj.count,
           ...(obj.roamRadius !== undefined ? { roamRadius: obj.roamRadius } : {}),
+          ...(obj.respawnDays !== undefined ? { respawnDays: obj.respawnDays } : {}),
         };
       if (obj.type === 'visitable')
         return { id: obj.id, type: obj.type, pos, effect: obj.effect, frequency: obj.frequency, visits: {} };

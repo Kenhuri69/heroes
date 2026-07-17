@@ -447,9 +447,11 @@ interface StrikeParams {
  * Plafond de jets de dégâts par frappe (perf F2, revue perf lot 7b, patron HoMM) :
  * une pile de N créatures tirait N dés (chacun un jet PCG32 en BigInt, ~10-50× une
  * arithmétique double) — point chaud dominant de l'auto-combat et des simulations.
- * Au-delà de ce plafond, on tire `MAX_DAMAGE_ROLLS` dés et on met à l'échelle par
- * l'effectif : **moyenne préservée** (jets non biaisés), variance à peine accrue
- * pour de grandes piles (déjà à faible variance par la loi des grands nombres).
+ * Au-delà de ce plafond, on tire `MAX_DAMAGE_ROLLS` dés et on reconstruit le total :
+ * l'écart échantillonné à la moyenne est mis à l'échelle en **√(N/rolls)** (et non
+ * linéairement) ⇒ **moyenne ET variance préservées** (l'écart-type suit √N, donc le
+ * CV décroît en 1/√N — loi des grands nombres, comme la vraie somme de N dés). Une
+ * mise à l'échelle linéaire gonflait l'écart-type de √(N/rolls) (×10 à N=1000).
  * Une pile ≤ ce plafond tire EXACTEMENT `count` dés ⇒ résultat inchangé.
  */
 const MAX_DAMAGE_ROLLS = 10;
@@ -468,8 +470,19 @@ export function performStrike(
     draft.rng = r.state;
     sum += r.value;
   }
-  // ≤ plafond : `sum` EST le total (identité). Au-delà : moyenne × effectif.
-  let base = rolls === striker.count ? sum : Math.round((sum / rolls) * striker.count);
+  // ≤ plafond : `sum` EST le total (identité). Au-delà : on reconstruit le total
+  // en mettant l'écart échantillonné à l'échelle en √(N/rolls) (variance juste,
+  // cf. `MAX_DAMAGE_ROLLS`), borné aux extrêmes [count·min, count·max].
+  let base: number;
+  if (rolls === striker.count) {
+    base = sum;
+  } else {
+    const [dmin, dmax] = strikerDef.stats.damage;
+    const mid = (dmin + dmax) / 2;
+    const dev = sum - rolls * mid;
+    const scaled = striker.count * mid + dev * Math.sqrt(striker.count / rolls);
+    base = Math.round(clamp(scaled, striker.count * dmin, striker.count * dmax));
+  }
   const combat = draft.combat;
   // `swarm` (A3b) : bonus plat de meute quand la cible est cernée par les alliés.
   if (combat) base += swarmBonus(strikerDef, striker, victim, combat);

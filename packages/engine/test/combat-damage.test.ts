@@ -631,11 +631,13 @@ describe('Lot D — D5 : la riposte ne consomme pas les Marques', () => {
 
 /**
  * Perf F2 (revue perf lot 7b) : une frappe plafonne ses jets de dégâts à
- * `MAX_DAMAGE_ROLLS` (10) et met la moyenne à l'échelle de l'effectif, au lieu
- * de tirer un dé par créature (O(count) BigInt → O(10)). Invariants vérifiés :
- * (a) à dégâts FIXES [d,d], le résultat reste EXACTEMENT `count × d` quel que
- * soit l'effectif (jets non biaisés) ; (b) à dégâts variables, la borne
- * mathématique [count×min, count×max] est préservée (pas de débordement/0/NaN).
+ * `MAX_DAMAGE_ROLLS` (10) et reconstruit le total en mettant l'écart échantillonné
+ * à l'échelle en √(N/rolls), au lieu de tirer un dé par créature (O(count) BigInt
+ * → O(10)). Invariants vérifiés : (a) à dégâts FIXES [d,d], le résultat reste
+ * EXACTEMENT `count × d` quel que soit l'effectif (jets non biaisés) ; (b) à
+ * dégâts variables, la borne mathématique [count×min, count×max] est préservée ;
+ * (c) la **variance** du total suit √N (SD ≈ √(count)·σ_dé), et non l'inflation
+ * linéaire (×√(N/rolls)) de l'ancienne mise à l'échelle moyenne × effectif.
  */
 describe('performStrike — plafond de jets F2 (moyenne préservée, bornes tenues)', () => {
   it('dégâts fixes : une pile de 1000 inflige exactement count × dégât (mult 1)', () => {
@@ -675,6 +677,37 @@ describe('performStrike — plafond de jets F2 (moyenne préservée, bornes tenu
       expect(strike.damage).toBeGreaterThanOrEqual(2000);
       expect(strike.damage).toBeLessThanOrEqual(4000);
     }
+  });
+
+  it('dégâts variables : la variance suit √N (pas d\'inflation linéaire)', () => {
+    // Dé [1,6] : σ_dé = √(((6−1+1)²−1)/12) = √2.9167 ≈ 1.708 ; count 1000 ⇒ la
+    // VRAIE somme de 1000 dés a moyenne 3500 et SD √1000·1.708 ≈ 54. L'ancienne
+    // mise à l'échelle (écart × N/rolls) donnait SD ≈ 540 (×10). La √-échelle
+    // corrigée restitue SD ≈ 54 : on borne largement sous 540 tout en restant
+    // au-dessus de 0 (variance non écrasée).
+    const catalog = {
+      atk: unit({ id: 'atk', stats: { hp: 10, attack: 5, defense: 0, damage: [1, 6], speed: 5 } }),
+      def: unit({ id: 'def', stats: { hp: 100_000_000, attack: 0, defense: 5, damage: [1, 1], speed: 1 } }),
+    };
+    const attacker = stack({ id: 'attacker-0', side: 'attacker', slot: 0, unitId: 'atk', count: 1000, pos: { col: 0, row: 0 }, firstHp: 10 });
+    const defender = stack({ id: 'defender-0', side: 'defender', slot: 0, unitId: 'def', count: 1, pos: { col: 1, row: 0 }, firstHp: 100_000_000 });
+    const samples: number[] = [];
+    for (let seed = 1; seed <= 120; seed++) {
+      const state = { ...baseState(catalog), rng: seedRng(seed), combat: combatState([attacker, defender]) };
+      const events: GameEvent[] = [];
+      produce(state, (draft) => {
+        applyAction(draft, events, 'attacker-0', { type: 'attack', targetStackId: 'defender-0' });
+      });
+      const strike = events.find((e) => e.type === 'StackAttacked') as Extract<GameEvent, { type: 'StackAttacked' }>;
+      samples.push(strike.damage);
+    }
+    const mean = samples.reduce((s, v) => s + v, 0) / samples.length;
+    const sd = Math.sqrt(samples.reduce((s, v) => s + (v - mean) ** 2, 0) / samples.length);
+    expect(mean).toBeGreaterThan(3400);
+    expect(mean).toBeLessThan(3600);
+    // Variance juste (~54) : bien au-dessus de 0, TRÈS en dessous de l'ancien ~540.
+    expect(sd).toBeGreaterThan(20);
+    expect(sd).toBeLessThan(150);
   });
 });
 

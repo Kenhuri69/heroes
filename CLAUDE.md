@@ -444,6 +444,27 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > synthétiques). `balance.test`/`elite-parity` verts, `faction-recruit` (Sylvan
 > T7 PV) mis à jour ; docs 02/04/05/14/16/17 alignées (tables stats + mark 8→5 %).*
 
+> 🎯 **F2 revisit — correction de la variance des jets de dégâts** (plan
+> `.claude/plans/f2-variance-fix.md`, décision utilisateur « f2 revisit »). Le
+> plafond F2 (revue perf 7b : ≤ `MAX_DAMAGE_ROLLS`=10 dés puis mise à l'échelle)
+> avait un **bug de variance** : il multipliait l'écart échantillonné par
+> `N/rolls` (**linéaire**) au lieu de `√(N/rolls)`, gonflant l'écart-type de
+> √(N/10) (mesuré : ×2.2 à N=50, ×4.4 à N=200, ×10 à N=1000). La moyenne restait
+> juste mais le **CV** devenait constant (~0.078) au lieu de décroître en 1/√N ⇒
+> une pile de 1000 frappait aussi « swingy » qu'une pile de 10 (anti-loi des
+> grands nombres, divergence HoMM). **Correctif 1 expression** (`performStrike`) :
+> écart × **√(count/rolls)**, borné `[count·min, count·max]` ⇒ moyenne ET variance
+> restituées (Monte-Carlo : SD ratio 0.98–1.01× vs somme exacte à N=10..1000),
+> **même coût** (10 tirages), déterministe (arithmétique + `sqrt` IEEE, zéro
+> transcendantal). `estimateDamage` (préviz min/max) non concerné. **Golden
+> inchangé** (branche N>10 non exercée par le replay), **pas de bump save**, garde
+> faction vert ; test de variance ajouté (`combat-damage.test`). Impact
+> équilibrage mesuré : `faction:sim` **toujours 1 béance** (la passe 2, pourtant
+> calibrée sur le F2 bogué, tient sous le modèle corrigé — aucun re-tuning),
+> gauntlet marginalement resserré. Le cap F2 n'étant pas documenté (approximation
+> perf), le fix **rapproche** l'implémentation du modèle « somme de N dés » du doc
+> 02 ⇒ aucune divergence à corriger.*
+
 ---
 
 ## Structure des fichiers

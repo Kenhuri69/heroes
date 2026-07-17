@@ -1,4 +1,6 @@
 import {
+  armyStrength,
+  dailyIncome,
   emptyResources,
   heroVisionRadius,
   humanPlayerId,
@@ -209,6 +211,54 @@ export function adjacentFriendlyHeroes(game: GameState, hero: HeroState): HeroSt
 export function humanTowns(game: GameState): TownState[] {
   const id = humanId(game);
   return game.towns.filter((t) => t.ownerPlayerId === id);
+}
+
+/** Ligne du comparatif de la guilde des voleurs (doc 18 E3, lot 3.3). */
+export interface ThievesGuildRow {
+  playerId: string;
+  /** N° de siège (1-based, ordre moteur) — identité affichée avec la couleur. */
+  seat: number;
+  controller: 'human' | 'ai';
+  eliminated: boolean;
+  towns: number;
+  heroes: number;
+  /** Force totale des armées de héros (`armyStrength`) — les garnisons restent secrètes. */
+  strength: number;
+  goldPerDay: number;
+}
+
+/**
+ * Guilde des voleurs (doc 18 E3, lot 3.3) — projection PURE de l'état pour le
+ * comparatif inter-joueurs de l'onglet Taverne : villes/héros/force/or-jour par
+ * joueur, dans l'ordre des sièges. Réutilise les helpers purs `@heroes/engine`
+ * (`armyStrength`, `dailyIncome`) — aucune formule dupliquée (R7).
+ */
+export function thievesGuildRows(game: GameState): ThievesGuildRow[] {
+  return game.players.map((p, i) => {
+    const heroes = game.heroes.filter((h) => h.playerId === p.id);
+    return {
+      playerId: p.id,
+      seat: i + 1,
+      controller: p.controller,
+      eliminated: p.eliminated,
+      towns: game.towns.filter((t) => t.ownerPlayerId === p.id).length,
+      heroes: heroes.length,
+      strength: heroes.reduce((sum, h) => sum + armyStrength(h.army, game.unitCatalog), 0),
+      goldPerDay: dailyIncome(game, p.id).gold ?? 0,
+    };
+  });
+}
+
+/**
+ * Rang 1-based d'une valeur dans le comparatif (rang 1 = meilleur ; les ex
+ * æquo partagent le rang). Les joueurs éliminés ne concourent pas.
+ */
+export function thievesGuildRank(
+  rows: readonly ThievesGuildRow[],
+  row: ThievesGuildRow,
+  metric: 'towns' | 'heroes' | 'strength' | 'goldPerDay',
+): number {
+  return 1 + rows.filter((r) => !r.eliminated && r[metric] > row[metric]).length;
 }
 
 /**

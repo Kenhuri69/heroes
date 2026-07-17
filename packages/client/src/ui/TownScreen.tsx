@@ -14,10 +14,11 @@ import {
   weekOf,
   weeklyGrowthOf,
 } from '@heroes/engine';
-import type { BuildingDef, CombatUnitDef, GameEvent, ResourceId, TownState } from '@heroes/engine';
+import type { BuildingDef, CombatUnitDef, GameEvent, GameState, ResourceId, TownState } from '@heroes/engine';
 import { useApp, appStore } from '../app/store';
 import { dispatch } from '../app/dispatch';
-import { heroArchetype, humanId } from '../app/game';
+import { heroArchetype, humanId, thievesGuildRank, thievesGuildRows } from '../app/game';
+import { playerColor } from '../render/playerColors';
 import {
   t,
   resolveLoc,
@@ -733,7 +734,80 @@ function TavernTab({ town, onError }: { town: TownState; onError: (msg: string |
           })}
         </ul>
       )}
+      <ThievesGuild game={game} playerId={playerId} />
     </div>
+  );
+}
+
+/**
+ * Guilde des voleurs (doc 18 E3, lot 3.3 — fidélité HoMM : elle vit à la
+ * Taverne) : comparatif inter-joueurs villes/héros/force/or-jour, précision
+ * GRADUÉE par le nombre de Tavernes possédées par le joueur humain actif —
+ * 1 Taverne = rangs seulement (#1, #2…), ≥ 2 = valeurs exactes. Identité des
+ * lignes : n° de siège + pastille couleur + « Vous »/« IA » (jamais la couleur
+ * seule, doc 08) ; les éliminés sont grisés et ne concourent pas aux rangs.
+ */
+function ThievesGuild({ game, playerId }: { game: GameState; playerId: string }) {
+  const guildLevel = game.towns.filter(
+    (tn) => tn.ownerPlayerId === playerId && hasBuiltEffect(tn, game.buildingCatalog, 'tavern'),
+  ).length;
+  const exact = guildLevel >= 2;
+  const rows = thievesGuildRows(game);
+  const metrics = ['towns', 'heroes', 'strength', 'goldPerDay'] as const;
+  return (
+    <section class="town-thieves-guild" data-testid="town-thieves-guild">
+      <h3>
+        {t('town.thievesGuild.title')}{' '}
+        <span class="town-thieves-level">{t('town.thievesGuild.level', { level: guildLevel })}</span>
+      </h3>
+      <div class="town-thieves-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>{t('town.thievesGuild.player')}</th>
+              <th>{t('town.thievesGuild.towns')}</th>
+              <th>{t('town.thievesGuild.heroes')}</th>
+              <th>{t('town.thievesGuild.strength')}</th>
+              <th>{t('town.thievesGuild.goldPerDay')}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row) => (
+              <tr
+                key={row.playerId}
+                class={row.eliminated ? 'is-eliminated' : ''}
+                data-testid={`town-thieves-row-${row.playerId}`}
+              >
+                <td>
+                  <i
+                    class="town-thieves-chip"
+                    aria-hidden="true"
+                    style={{ background: `#${playerColor(game.players, row.playerId).toString(16).padStart(6, '0')}` }}
+                  />
+                  {t('town.thievesGuild.seat', { seat: row.seat })}{' '}
+                  {row.eliminated
+                    ? t('town.thievesGuild.eliminated')
+                    : row.playerId === playerId
+                      ? t('town.thievesGuild.you')
+                      : row.controller === 'ai'
+                        ? t('town.thievesGuild.ai')
+                        : ''}
+                </td>
+                {metrics.map((metric) => (
+                  <td key={metric}>
+                    {row.eliminated
+                      ? '—'
+                      : exact
+                        ? row[metric]
+                        : t('town.thievesGuild.rank', { rank: thievesGuildRank(rows, row, metric) })}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
   );
 }
 

@@ -175,6 +175,7 @@ function basePlayer(id: string) {
   void empty;
   return {
     id,
+    controller: 'human' as const,
     resources: { gold: 0, wood: 0, ore: 0, crystal: 0, gems: 0, sulfur: 0, mercury: 0 },
     factionResources: {}, explored: [], eliminated: false, townlessDays: -1, huntContract: null,
     obelisksVisited: [], hasGrail: false, team: 0,

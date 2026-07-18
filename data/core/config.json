@@ -17,7 +17,7 @@
       "snow": { "moveCost": 150 },
       "swamp": { "moveCost": 150 },
       "river": { "moveCost": 200 },
-      "water": { "moveCost": null },
+      "water": { "moveCost": null, "navalCost": 100 },
       "mountain": { "moveCost": null },
       "rocks": { "moveCost": null }
     },

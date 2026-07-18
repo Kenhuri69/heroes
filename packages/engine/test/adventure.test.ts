@@ -82,6 +82,41 @@ describe('findPath (A* 8 directions)', () => {
   });
 });
 
+describe('navigation navale (A3.1 — pathfinding domain-aware)', () => {
+  // Config où l'eau devient navigable au bateau (navalCost) — domaines disjoints :
+  // l'eau reste `moveCost:null` (bloquante à pied), la terre n'a pas de navalCost.
+  const naval = {
+    ...config,
+    terrains: { ...config.terrains, water: { moveCost: null, navalCost: 100 } },
+  };
+  // La carte de test a de l'eau en (1,7) et (2,7) (rangée « gwwggggggg »).
+
+  it('un héros embarqué franchit l’eau (stepCost naval)', () => {
+    expect(stepCost(naval, map, { x: 1, y: 7 }, { x: 2, y: 7 }, true)).toBe(100);
+  });
+
+  it('à pied, l’eau reste infranchissable même avec un navalCost défini', () => {
+    expect(() => stepCost(naval, map, { x: 1, y: 7 }, { x: 2, y: 7 }, false)).toThrow(RangeError);
+    // findPath terrestre contourne toujours l’eau (non-régression).
+    const land = findPath(naval, map, { x: 0, y: 7 }, { x: 3, y: 7 });
+    expect(land).not.toBeNull();
+    for (const step of land ?? []) {
+      expect(map.terrain[step.y * map.width + step.x]).not.toBe('water');
+    }
+  });
+
+  it('un chemin naval relie deux tuiles d’eau adjacentes', () => {
+    expect(findPath(naval, map, { x: 1, y: 7 }, { x: 2, y: 7 }, [], false, Infinity, true)).toEqual([
+      { x: 2, y: 7 },
+    ]);
+  });
+
+  it('un héros embarqué ne peut pas rejoindre la terre (domaines disjoints)', () => {
+    // (0,0) est de l’herbe : hors-domaine naval ⇒ aucune route.
+    expect(findPath(naval, map, { x: 1, y: 7 }, { x: 0, y: 0 }, [], false, Infinity, true)).toBeNull();
+  });
+});
+
 describe('StartGame (aventure)', () => {
   it('crée un héros par joueur à sa position de départ, points de mouvement pleins', () => {
     const state = started(['p1', 'p2']);

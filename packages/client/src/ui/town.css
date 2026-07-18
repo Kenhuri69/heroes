@@ -40,6 +40,21 @@
 .town-subheader-sep {
   opacity: 0.5;
 }
+/* V-3 : au cran 3 mobile le sous-titre passe sur plusieurs lignes et un « · »
+   pouvait rester orphelin en bout de ligne. En dessous du seuil étroit, on passe
+   en flex-wrap avec espacement et on masque les séparateurs (le retour à la ligne
+   fait office de séparation). Desktop/large : ponctuation « · » conservée. */
+@media (max-width: 480px) {
+  .town-subheader {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 10px;
+    align-items: baseline;
+  }
+  .town-subheader-sep {
+    display: none;
+  }
+}
 
 /* Bouton « Tout recruter » (lot M7 C19) : action globale de l'onglet Recruter. */
 .town-recruit-all {
@@ -520,11 +535,12 @@ button[data-testid='market-trade'] {
   background: var(--brass-bright);
   border: 1px solid var(--ink-900);
 }
-/* disponible : anneau creux en pointillé (2ᵉ forme) */
+/* disponible : anneau creux à trait PLEIN (2ᵉ forme) — trait continu, pas
+   pointillé, pour ne pas évoquer un spinner de chargement (V-4). */
 .town-view-pip-available {
   border-radius: 50%;
   background: transparent;
-  border: 2px dashed var(--parchment-bright);
+  border: 2px solid var(--parchment-bright);
 }
 /* verrouillé : carré plein sombre (3ᵉ forme) */
 .town-view-pip-locked {

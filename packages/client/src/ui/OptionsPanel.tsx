@@ -10,6 +10,7 @@ import { applyReduceMotion } from '../app/motion';
 import { applyFontScale, setConfirmEndTurn, FONT_SCALE_PERCENT } from '../app/settings';
 import { COMBAT_SPEEDS } from '../app/ui-constants';
 import { pushToast } from './toasts';
+import { ShortcutsOverlay } from './ShortcutsOverlay';
 import './options.css';
 
 const FONT_SCALES = [1, 2, 3] as const;
@@ -34,6 +35,10 @@ export function OptionsPanel({ onClose }: { onClose: () => void }) {
   useApp((s) => s.telemetryTick); // re-render des stats après reset
   const screen = useApp((s) => s.screen);
   const [message, setMessage] = useState<string | null>(null);
+  // E15 : l'aide des raccourcis, jusque-là atteignable au seul clavier (« ? »),
+  // devient découvrable via un bouton ici. Overlay rendu en local (indépendant de
+  // la pile de modales) ⇒ marche aussi bien depuis le menu qu'en jeu.
+  const [showShortcuts, setShowShortcuts] = useState(false);
 
   const doExport = (): void => {
     exportSave(appStore.getState().game)
@@ -200,6 +205,14 @@ export function OptionsPanel({ onClose }: { onClose: () => void }) {
             </button>
           </div>
           <p class="options-hint">{t('options.shortcutsHint')}</p>
+          <button
+            type="button"
+            class="options-shortcuts-button"
+            data-testid="options-shortcuts"
+            onClick={() => setShowShortcuts(true)}
+          >
+            {t('options.shortcutsButton')}
+          </button>
         </section>
 
         <section class="options-section">
@@ -315,6 +328,7 @@ export function OptionsPanel({ onClose }: { onClose: () => void }) {
           </section>
         )}
       </div>
+      {showShortcuts && <ShortcutsOverlay onClose={() => setShowShortcuts(false)} />}
     </div>
   );
 }

@@ -289,7 +289,7 @@ export function CombatUi() {
           disabled={!canSurrender}
           onClick={() => setLeaveConfirm('surrender')}
         >
-          {t('combat.surrender', { gold: surrenderGold })}
+          {surrenderGold === 0 ? t('combat.surrenderFree') : t('combat.surrender', { gold: surrenderGold })}
         </button>
         <button
           data-testid="combat-auto"

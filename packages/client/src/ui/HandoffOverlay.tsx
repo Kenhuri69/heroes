@@ -1,5 +1,7 @@
 import { appStore, useApp } from '../app/store';
 import { t } from '../app/i18n';
+import { playerColor } from '../render/playerColors';
+import { FactionBadge } from './FactionBadge';
 import './OutcomeOverlay.css';
 import './HandoffOverlay.css';
 
@@ -30,17 +32,30 @@ export function HandoffOverlay() {
   if (!show || !active) return null;
 
   const seat = game.players.findIndex((p) => p.id === active.id) + 1;
+  // I9 : identité du siège — couleur du joueur (voile + pastille) et blason de
+  // faction (motif non chromatique = second canal a11y). La faction du siège est
+  // portée par son héros, à défaut par sa ville.
+  const color = playerColor(game.players, active.id);
+  const colorCss = `#${color.toString(16).padStart(6, '0')}`;
+  const factionId =
+    game.heroes.find((h) => h.playerId === active.id)?.factionId ??
+    game.towns.find((tn) => tn.ownerPlayerId === active.id)?.factionId;
 
   return (
     // Backdrop OPAQUE (B34) : le plateau du joueur suivant ne doit pas transparaître.
-    <div class="modal-backdrop handoff-backdrop">
+    // La teinte est posée SUR l'encre opaque (color-mix), jamais une transparence.
+    <div class="modal-backdrop handoff-backdrop" style={{ '--seat-color': colorCss }}>
       <div
-        class="modal outcome-overlay"
+        class="modal outcome-overlay handoff-tinted"
         role="dialog"
         aria-modal="true"
         aria-label={t('handoff.title')}
         data-testid="handoff-overlay"
       >
+        <div class="handoff-seat-crest">
+          {factionId && <FactionBadge factionId={factionId} />}
+          <span class="handoff-seat-swatch" style={{ background: colorCss }} aria-hidden="true" />
+        </div>
         <h2 data-testid="handoff-player">{t('handoff.turnOf', { n: seat })}</h2>
         <p>{t('handoff.pass')}</p>
         <button

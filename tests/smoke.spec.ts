@@ -3662,6 +3662,8 @@ test('scénario : gagner « survie » contre l’IA (surviveDays)', { tag: '@cor
   // Récapitulatif de fin de partie (UX-ENDSTATS, doc 08 §2.5) : durée + avoirs.
   await expect(page.getByTestId('outcome-stats')).toBeVisible();
   await expect(page.getByTestId('outcome-duration')).toHaveText(/Jour \d+ · Semaine \d+/);
+  // Pertes cumulées (7.3) : ligne « Unités perdues » = compteur moteur `unitsLost`.
+  await expect(page.getByTestId('outcome-units-lost')).toHaveText(/^\d+$/);
 
   // Retour au menu depuis l'overlay (bouton, doc 08).
   await page.getByTestId('outcome-back-to-menu').click();

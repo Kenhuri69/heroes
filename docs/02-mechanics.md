@@ -857,7 +857,9 @@ round (sort ET frappe, ou deux sorts), joueur comme IA.
 > PvE). **Décision retenue (cadrage)** : coop **local, offline-signifiant** — un
 > **héros allié adjacent** à la tuile où un héros engage un **combat PvE** (gardien
 > / siège ; **jamais** en héros-vs-héros) peut faire **rejoindre son armée** au même
-> camp. Cohérent avec notre modèle hot-seat + alliances (`team`) sans exiger le
+> camp, **sur invite** (le joueur choisit ; pas de jonction auto), **7 slots de
+> piles partagés** entre alliés et **XP partagée à égalité** entre les héros du camp
+> vainqueur. Cohérent avec notre modèle hot-seat + alliances (`team`) sans exiger le
 > temps réel en ligne (le cadre « MMHO online » de l'audit est écarté). *Point
 > d'extension moteur générique visé* : **attribution de pile par héros
 > propriétaire** — chaque `CombatStack` porte son héros d'origine, de sorte que les

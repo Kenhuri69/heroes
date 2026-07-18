@@ -45,19 +45,24 @@ décomposition) ; l'implémentation suit par lots atomiques après validation.
 - **E4.5** : client — invite/consentement de l'allié (ou auto si IA/hot-seat) +
   rendu « à qui appartient la pile » (liseré couleur du propriétaire) ; IA alliée.
 
-## Questions ouvertes (à trancher avec l'utilisateur avant E4.2)
+## Décisions confirmées (utilisateur, 2026-07)
 
-1. **Modèle confirmé** : coop local adjacent-ally (proposé) vs report total online ?
-2. **Consentement** : l'allié adjacent rejoint-il **automatiquement**, ou sur
-   **invite** (le joueur choisit) ? (hot-seat : l'allié est un autre humain/IA.)
-3. **Cap de plateau** : 7 slots **partagés** entre alliés, ou 7 **par héros** (plus
-   fidèle mais change le placement/l'équilibrage) ?
-4. **XP** : partage **égal** entre héros du camp, ou **au prorata** des dégâts/PV tués ?
+1. **Modèle** : ✅ **coop local adjacent-ally** (pas de report online).
+2. **Consentement** : ✅ **sur invite** — le joueur choisit d'inviter l'allié
+   adjacent (pas de jonction automatique). Le moteur reçoit l'id de l'allié invité ;
+   l'UI de choix est E4.5.
+3. **Cap de plateau** : ✅ **7 slots partagés** entre alliés (zéro changement de
+   placement/équilibrage ; les armées combinées sont tronquées/priorisées à 7 piles).
+4. **XP** : ✅ **partage égal** entre les héros du camp vainqueur (déterministe,
+   pas de suivi de kills par propriétaire).
 
 ## Statut
 
 - [x] Cadrage écrit (doc 02 §6, ce plan, doc 18 E4). Zéro code.
-- [ ] Confirmation utilisateur des 4 questions ⇒ E4.2 (moteur).
+- [x] Décisions confirmées (les 4 ci-dessus).
+- [ ] E4.2 (moteur) : `CombatStack.ownerHeroId` (bump save) ; primitive de jonction
+      d'un allié invité en combat PvE (`beginGuardianCombat`/`beginTownCombat` +
+      `MoveHero.allyHeroId?`) ; pertes routées par owner. 7 slots partagés (troncature).
 
 ## Note
 Lot **documentaire** : pas de code, pas de bump save, golden intact. Le smoke n'est

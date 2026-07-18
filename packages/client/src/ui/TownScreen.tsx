@@ -1391,6 +1391,9 @@ function MarketTab({ town, onError }: { town: TownState; onError: (msg: string |
   // propriétaire de la ville — helper moteur (pas de réimplémentation, leçon CL9).
   const marketCount = ownedMarketCount(game, town.ownerPlayerId ?? '');
   const received = market ? tradeQuote(market, give, receive, amount, marketCount) : 0;
+  // E6 : stock de la ressource DONNÉE (`gold` en achat, la ressource sinon) — cible
+  // du bouton « Max » (troquer/vendre/acheter au maximum de ce qu'on possède).
+  const giveStock = game.players.find((p) => p.id === town.ownerPlayerId)?.resources[give] ?? 0;
 
   const trade = (): void => {
     onError(null);
@@ -1457,13 +1460,40 @@ function MarketTab({ town, onError }: { town: TownState; onError: (msg: string |
       </p>
       <label class="town-market-field">
         {t('town.marketAmount')}
-        <input
-          type="number"
-          min={1}
-          data-testid="market-amount"
-          value={amount}
-          onInput={(e) => setAmount(Math.max(1, Number((e.currentTarget as HTMLInputElement).value) || 1))}
-        />
+        {/* E6 : steppers tactiles − / + / Max (l'input reste pour la saisie directe). */}
+        <span class="town-market-stepper">
+          <button
+            type="button"
+            data-testid="market-amount-dec"
+            aria-label={t('town.marketDec')}
+            onClick={() => setAmount((a) => Math.max(1, a - 1))}
+          >
+            −
+          </button>
+          <input
+            type="number"
+            min={1}
+            data-testid="market-amount"
+            value={amount}
+            onInput={(e) => setAmount(Math.max(1, Number((e.currentTarget as HTMLInputElement).value) || 1))}
+          />
+          <button
+            type="button"
+            data-testid="market-amount-inc"
+            aria-label={t('town.marketInc')}
+            onClick={() => setAmount((a) => a + 1)}
+          >
+            +
+          </button>
+          <button
+            type="button"
+            data-testid="market-amount-max"
+            disabled={giveStock < 1}
+            onClick={() => setAmount(Math.max(1, giveStock))}
+          >
+            {t('town.marketMax')}
+          </button>
+        </span>
       </label>
       <p class="town-market-preview" data-testid="market-received">
         {t('town.marketReceive', { amount: received })}

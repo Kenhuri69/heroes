@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { AppEvent } from './events';
-import { sfxIdForEvent, type SfxContext } from './audio';
+import { sfxIdForEvent, factionTrack, type SfxContext } from './audio';
 
 /**
  * Mapping événement moteur → SFX (Lot 9b). Fonction pure : le gating au joueur
@@ -49,5 +49,29 @@ describe('sfxIdForEvent', () => {
 
   it('événement sans SFX ⇒ null', () => {
     expect(sfxIdForEvent(ev({ type: 'WeekStarted', week: 2 }), ctx)).toBeNull();
+  });
+});
+
+/**
+ * Thème musical par faction (Lot 9c) : piste `<base>-<faction>` si elle existe,
+ * repli sur la générique sinon.
+ */
+describe('factionTrack', () => {
+  // Ids de faction OPAQUES (garde-fou « zéro faction dans packages/ ») : le
+  // résolveur est faction-agnostique, n'importe quelle chaîne fait foi.
+  const has = (k: string): boolean => k === 'music/town-alpha';
+
+  it('renvoie la piste de faction quand elle existe', () => {
+    expect(factionTrack('music/town', 'alpha', has)).toBe('music/town-alpha');
+  });
+
+  it('repli sur la générique si la piste de faction manque', () => {
+    expect(factionTrack('music/town', 'beta', has)).toBe('music/town');
+    expect(factionTrack('music/combat', 'alpha', has)).toBe('music/combat');
+  });
+
+  it('repli sur la générique si aucune faction', () => {
+    expect(factionTrack('music/town', null, has)).toBe('music/town');
+    expect(factionTrack('music/town', undefined, has)).toBe('music/town');
   });
 });

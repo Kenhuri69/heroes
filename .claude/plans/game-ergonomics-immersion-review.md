@@ -445,8 +445,12 @@ Zéro asset, zéro moteur : uniquement `CombatScene` + `motion.ts`.
         musique+SFX, persisté, icône barrée + `aria-pressed`). **9b livré**
         (`ux-lot9b-missing-sfx.md`, item 9.4) : **SFX d'accomplissement** —
         construction/recrutement/montée de niveau/amélioration → `ui-confirm`
-        (mapping pur `sfxIdForEvent`, gardé au joueur humain, unit-testé). Reste :
-        thèmes par faction (9.2, infra sans piste), ambiances par biome (9.3).
+        (mapping pur `sfxIdForEvent`, gardé au joueur humain, unit-testé). **9c
+        livré** (`ux-lot9c-faction-music.md`, item 9.2) : **thèmes musicaux par
+        faction** — `music/{town,combat}-<faction>` résolus (défenseur en combat,
+        faction de la ville ouverte) avec **repli générique** (`factionTrack` pur,
+        unit-testé) ; infra prête, se branche au dépôt d'une piste. Reste :
+        ambiances par biome (9.3, optionnel).
   - [ ] **Lot 6 tail** (asset-lourd) : fonds de combat (8 terrains) + vignettes
         core/événement — planches à générer (prompts fournis).
   - [ ] **Lot 3 tail différé** : E8 (confirmer attaque perdue), E14 (filtres journal)

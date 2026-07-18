@@ -70,6 +70,48 @@ if (music) {
   music.volume = musicVolume;
 }
 
+/**
+ * Piste de faction si elle existe (`<base>-<faction>`), sinon la piste générique
+ * (Lot 9c). **Pur** — repli gracieux identique au patron des assets peints : zéro
+ * churn tant que la piste de faction n'est pas déposée.
+ */
+export function factionTrack(
+  base: string,
+  faction: string | null | undefined,
+  has: (key: string) => boolean,
+): string {
+  if (faction) {
+    const specific = `${base}-${faction}`;
+    if (has(specific)) return specific;
+  }
+  return base;
+}
+
+type StoreState = ReturnType<typeof appStore.getState>;
+
+/** Faction de la ville ouverte (thème de ville), ou null. */
+function openTownFaction(s: StoreState): string | null {
+  const modal = s.modals.find((m) => m.kind === 'town');
+  const townId = modal?.kind === 'town' ? modal.townId : null;
+  if (!townId) return null;
+  return s.game.towns.find((t) => t.id === townId)?.factionId ?? null;
+}
+
+/** Faction du défenseur du combat (thème de combat) : héros lié, sinon pile dominante. */
+function combatDefenderFaction(s: StoreState): string | null {
+  const combat = s.game.combat;
+  if (!combat) return null;
+  if (combat.defenderHeroId) {
+    const hero = s.game.heroes.find((h) => h.id === combat.defenderHeroId);
+    if (hero?.factionId) return hero.factionId;
+  }
+  let top: { unitId: string; count: number } | null = null;
+  for (const st of combat.stacks) {
+    if (st.side === 'defender' && (top === null || st.count > top.count)) top = st;
+  }
+  return top ? (s.game.unitCatalog[top.unitId]?.groupId ?? null) : null;
+}
+
 /** Contexte → piste musicale (fichier `music/<retour>`). null = silence. */
 function musicContextKey(): string | null {
   const s = appStore.getState();
@@ -78,8 +120,10 @@ function musicContextKey(): string | null {
   // Fin de partie : on coupe la boucle de fond pour laisser respirer le jingle
   // victoire/défaite (joué en one-shot par `playJingle` sur `GameEnded`).
   if (s.game.outcome) return null;
-  if (s.game.combat) return 'music/combat';
-  if (s.modals.some((m) => m.kind === 'town')) return 'music/town';
+  // Lot 9c : thème par faction (défenseur en combat, ville ouverte), repli générique.
+  if (s.game.combat) return factionTrack('music/combat', combatDefenderFaction(s), (k) => registry.has(k));
+  if (s.modals.some((m) => m.kind === 'town'))
+    return factionTrack('music/town', openTownFaction(s), (k) => registry.has(k));
   if (s.screen === 'adventure') return 'music/adventure';
   return null;
 }

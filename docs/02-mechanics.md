@@ -866,9 +866,13 @@ round (sort ET frappe, ou deux sorts), joueur comme IA.
 > **pertes** reviennent au bon héros et l'**XP** se partage à la victoire. Le siège
 > fusionne déjà garnison + héros sur un camp (même joueur) ; le coop généralise à
 > **plusieurs héros de joueurs alliés** (le vrai coût : réattribution pertes/XP).
-> *Découpage* (plan `.claude/plans/phase-E4-coop-combat.md`) : **E4.1** ce cadrage ;
-> **E4.2** moteur — l'armée d'un allié adjacent rejoint un combat PvE + pertes
-> routées par héros propriétaire (bump save, golden re-fixé) ; **E4.3** partage
-> d'XP/butin entre alliés ; **E4.4** actions de héros en coop (chaque héros allié
-> agit) ; **E4.5** client (invite/consentement + rendu « à qui appartient la pile »).
-> **Priorité P3** (audit) : chantier lourd, livré par lots atomiques après ce cadrage.
+> *Découpage* (plan `.claude/plans/phase-E4-coop-combat.md`) : **E4.1** cadrage ;
+> **E4.2 moteur (GARDIEN) ✅ livré** — `CombatStack.ownerHeroId?` (save **v35**) ;
+> `beginGuardianCombat(…, allyHeroId?)` invite un allié adjacent (`MoveHero.allyHeroId?`
+> threadé), armée combinée **cap 7 partagé** (lead prioritaire), piles alliées
+> taguées et **armée de l'allié vidée** à l'engagement ; à la victoire les survivants
+> reviennent **par héros propriétaire** et l'**XP se partage à égalité** ; à la défaite
+> le lead meurt, l'allié survit sans armée. Hors coop = bit-identique. **Différés** :
+> **E4.2b** siège coop ; **E4.3** butin partagé ; **E4.4** actions de héros par-héros
+> (chaque allié agit) ; **E4.5** client (invite/consentement + rendu propriétaire).
+> **Priorité P3** (audit) : chantier lourd, livré par lots atomiques.

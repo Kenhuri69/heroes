@@ -1,8 +1,8 @@
-import { terrainAt } from '../adventure/map';
+import { isAdjacent, terrainAt } from '../adventure/map';
 import type { CommandError } from '../core/commands';
 import type { GameEvent } from '../core/events';
 import { rollRange } from '../core/rng';
-import type { GameState } from '../core/state';
+import { areAllies, type GameState, type HeroState } from '../core/state';
 import { heroManaMax } from '../hero/artifacts';
 import { heroTacticsColumns, sumHeroEffectField } from '../hero/skills';
 import { symbiosisParams } from './damage';
@@ -254,11 +254,32 @@ export function handleStartCombat(
 }
 
 /** Ouvre un combat d'interception héros ↔ gardien (câblage `MoveHero` au lot D). */
+/** Cap de piles d'armée d'un camp (doc 02 §5.1) — 7 slots, PARTAGÉS en coop. */
+const COOP_ARMY_CAP = 7;
+
+/**
+ * Résout un allié invité VALIDE pour un combat coopératif PvE (E4.2, doc 18 E4) :
+ * un autre héros, **allié** (`areAllies`), **adjacent** à la tuile du lead, à
+ * l'armée non vide. Sinon `undefined` (le combat se joue en solo — invite ignorée).
+ */
+function resolveCoopAlly(draft: GameState, hero: HeroState, allyHeroId: string | undefined): HeroState | undefined {
+  if (!allyHeroId || allyHeroId === hero.id) return undefined;
+  const ally = draft.heroes.find((h) => h.id === allyHeroId);
+  if (!ally || ally.army.length === 0) return undefined;
+  const heroPlayer = draft.players.find((p) => p.id === hero.playerId);
+  const allyPlayer = draft.players.find((p) => p.id === ally.playerId);
+  if (!heroPlayer || !allyPlayer || !areAllies(heroPlayer, allyPlayer)) return undefined;
+  if (!isAdjacent(hero.pos, ally.pos)) return undefined;
+  return ally;
+}
+
 export function beginGuardianCombat(
   draft: Draft,
   heroId: string,
   guardianObjectId: string,
   events: GameEvent[],
+  /** Coop (E4.2, doc 18 E4) : héros allié invité dont l'armée rejoint le camp. */
+  allyHeroId?: string,
 ): void {
   const hero = draft.heroes.find((h) => h.id === heroId);
   const map = draft.map;
@@ -268,20 +289,41 @@ export function beginGuardianCombat(
   if (!guardian || guardian.type !== 'guardian')
     throw new Error(`beginGuardianCombat: gardien introuvable '${guardianObjectId}'`);
   const terrain = terrainAt(map, guardian.pos);
-  // Les machines de guerre du héros (doc 02 §5, Alpha 4.12) rejoignent son camp
-  // comme piles supplémentaires (count 1), hors cap 7 de l'armée.
-  const attacker: ArmyStack[] = [
-    ...hero.army,
-    ...hero.warMachines.map((unitId) => ({ unitId, count: 1 })),
-  ];
+  // Coop (E4.2) : armée combinée lead + allié invité, cap 7 PARTAGÉ (lead
+  // prioritaire). Chaque pile porte son héros propriétaire (`owners`) pour router
+  // les survivants à la fin. Machines de guerre du lead HORS cap (piles extra).
+  const ally = resolveCoopAlly(draft, hero, allyHeroId);
+  const armyStacks: ArmyStack[] = [];
+  const owners: (string | undefined)[] = [];
+  for (const s of hero.army) {
+    armyStacks.push(s);
+    owners.push(undefined); // lead : owner implicite = combat.heroId
+  }
+  if (ally) for (const s of ally.army.filter((a) => a.count > 0)) {
+    armyStacks.push(s);
+    owners.push(ally.id);
+  }
+  const capped = armyStacks.slice(0, COOP_ARMY_CAP);
+  const cappedOwners = owners.slice(0, COOP_ARMY_CAP);
+  const attacker: ArmyStack[] = [...capped, ...hero.warMachines.map((unitId) => ({ unitId, count: 1 }))];
   // B5 : armée vide ⇒ refus d'engager (garde-fou parallèle au validateur humain,
   // remédiation R1 E1) — un héros sans troupe ne déclenche pas de combat de gardien.
   if (attacker.length === 0) return;
   const defender: ArmyStack[] = [{ unitId: guardian.unitId, count: guardian.count }];
-  const stacks = [
-    ...placeSide('attacker', attacker, draft.unitCatalog, 0),
-    ...placeSide('defender', defender, draft.unitCatalog, COMBAT_COLS - 1),
-  ];
+  const attackerStacks = placeSide('attacker', attacker, draft.unitCatalog, 0);
+  // Marque les piles issues de l'allié (owner défini) — jamais celles du lead
+  // (champ omis ⇒ combat mono-héros bit-identique, golden épargné).
+  attackerStacks.forEach((st, i) => {
+    const owner = cappedOwners[i];
+    if (owner) st.ownerHeroId = owner;
+  });
+  if (ally) {
+    // L'allié engage son armée dans le combat : vidée sur la carte (reconstruite
+    // depuis ses survivants à la victoire, `applyConsequences`). Symétrique au lead.
+    ally.army = [];
+    events.push({ type: 'AllyJoinedCombat', heroId, allyHeroId: ally.id });
+  }
+  const stacks = [...attackerStacks, ...placeSide('defender', defender, draft.unitCatalog, COMBAT_COLS - 1)];
   const obstacles = drawObstacles(draft, rules.obstaclesMin, rules.obstaclesMax);
   draft.combat = {
     terrain,

@@ -75,7 +75,8 @@ type StackKey =
   | 'symbiosisStacks'
   | 'acted'
   | 'stealthed'
-  | 'statuses';
+  | 'statuses'
+  | 'ownerHeroId';
 
 // Gardes à la COMPILATION : `true` seulement si l'union des clés du type est
 // EXACTEMENT celle listée. Un champ ajouté à HeroState/CombatStack ⇒ `false` ⇒
@@ -87,7 +88,7 @@ void _stackExact;
 
 describe('B8 — forme de sauvegarde verrouillée', () => {
   it('CURRENT_SAVE_VERSION correspond à la forme documentée (doc 07 §4)', () => {
-    expect(CURRENT_SAVE_VERSION).toBe(34);
+    expect(CURRENT_SAVE_VERSION).toBe(35);
   });
 
   it('clés top-level de GameState (createEmptyState) inchangées', () => {

@@ -261,7 +261,7 @@ de cet audit)*
   bâtiment taverne déjà existant).
 - **Nature** : client (+ éventuel helper pur moteur de projection). **Priorité** : P2.
 
-**E4 — Combats coopératifs (signature MMHO)** 🚧 *(cadrage E4.1 livré)*
+**E4 — Combats coopératifs (signature MMHO)** 🚧 *(cadrage E4.1 + moteur gardien E4.2 livrés)*
 - **Réf.** : MMHO permettait d'inviter un ami dans sa bataille (2 armées côte à
   côte contre les PvE).
 - **État** : structurellement mono-héros par camp (`CombatSide` à un héros ;
@@ -271,9 +271,11 @@ de cet audit)*
   **héros allié adjacent** rejoint un **combat PvE** ; point d'extension générique
   = **attribution de pile par héros propriétaire** (`CombatStack.ownerHeroId`,
   bump save au lot moteur). Le cadre « online temps réel » de l'audit est écarté.
-- **Décomposition** : E4.1 cadrage (fait) → E4.2 moteur (jonction + pertes routées,
-  bump save) → E4.3 XP/butin partagés → E4.4 actions de héros par-héros → E4.5
-  client (invite + rendu propriétaire). **Priorité** P3, par lots atomiques.
+- **Décomposition** : E4.1 cadrage (fait) → **E4.2 moteur gardien (fait)** :
+  `CombatStack.ownerHeroId?` (save v35), invite d'un allié adjacent en combat de
+  gardien, survivants routés par owner, XP partagée à égalité → E4.2b siège coop →
+  E4.3 butin partagé → E4.4 actions par-héros → E4.5 client (invite + rendu owner).
+  **Priorité** P3, par lots atomiques.
 - **4 questions ouvertes** (consentement, cap de plateau, partage XP…) à trancher
   avant E4.2 (cf. plan §« Questions ouvertes »).
 

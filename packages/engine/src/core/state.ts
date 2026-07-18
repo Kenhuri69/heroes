@@ -347,8 +347,11 @@ export interface CaravanState {
  * évolue ⇒ bump (garde `save-shape.test.ts`).
  * v34 : `HeroState.naval` (A3.2, doc 18 A3) — domaine de déplacement terre/mer,
  * requis (défaut `false` à la création) ⇒ la forme de héros évolue ⇒ bump.
+ * v35 : `CombatStack.ownerHeroId?` (E4.2, doc 18 E4) — combat coopératif :
+ * propriétaire d'une pile quand l'armée d'un allié rejoint le camp. Optionnel
+ * (omis hors coop) mais `CombatStack` est sous garde `Exact` ⇒ bump.
  */
-export const CURRENT_SAVE_VERSION = 34;
+export const CURRENT_SAVE_VERSION = 35;
 
 export interface GameState {
   saveVersion: number;

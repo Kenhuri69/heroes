@@ -88,6 +88,14 @@ export interface CombatStack {
   stealthed?: boolean;
   /** Statuts temporaires de sorts (buff/debuff, doc 02 §1.4) — vide par défaut. */
   statuses: SpellStatus[];
+  /**
+   * Héros PROPRIÉTAIRE de la pile en combat coopératif (E4.2, doc 18 E4) : quand
+   * l'armée d'un allié invité rejoint le camp, ses piles portent son id afin que
+   * les **survivants** reviennent au bon héros à la fin. **Optionnel** : absent
+   * ⇒ la pile appartient au héros-lead du camp (`combat.heroId`) — combat mono-héros
+   * historique bit-identique (champ omis du JSON ⇒ golden inchangé).
+   */
+  ownerHeroId?: string;
 }
 
 export interface CombatState {

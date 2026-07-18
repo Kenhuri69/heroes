@@ -1,4 +1,4 @@
-import { useRef, useState } from 'preact/hooks';
+import { useState } from 'preact/hooks';
 import {
   RESOURCE_IDS,
   buildStatus,
@@ -17,6 +17,7 @@ import {
 import type { BuildingDef, CombatUnitDef, GameEvent, GameState, ResourceId, TownState } from '@heroes/engine';
 import { useApp, appStore } from '../app/store';
 import { dispatch } from '../app/dispatch';
+import { useLongPress } from './useLongPress';
 import { heroArchetype, humanId, thievesGuildRank, thievesGuildRows } from '../app/game';
 import { playerColor } from '../render/playerColors';
 import {
@@ -341,58 +342,6 @@ function isUpgradeable(town: TownState, catalog: Record<string, BuildingDef>, id
   return (town.buildings[id] ?? 0) >= 1 && buildStatus(town, catalog, id) === 'available';
 }
 
-const LONG_PRESS_MS = 450;
-const LONG_PRESS_MOVE = 10;
-
-/**
- * Appui long DOM (parité tactile doc 08 §1.1, lot UX-TOWNVIEW 3) : un pointeur
- * maintenu ~450 ms sans bouger déclenche `onLong` — l'équivalent tactile du
- * survol souris. Annulé par un déplacement (scroll/pan) ou une relâche anticipée
- * (qui redevient un tap normal). Après un appui long, le clic suivant est
- * neutralisé (`onClickCapture`) pour ne pas déclencher aussi la navigation.
- * Renvoie des gestionnaires à étaler sur l'élément (souris ET tactile via Pointer
- * Events).
- */
-function useLongPress(onLong: () => void): {
-  onPointerDown: (e: PointerEvent) => void;
-  onPointerMove: (e: PointerEvent) => void;
-  onPointerUp: () => void;
-  onPointerLeave: () => void;
-  onClickCapture: (e: Event) => void;
-} {
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const fired = useRef(false);
-  const start = useRef({ x: 0, y: 0 });
-  const clear = (): void => {
-    if (timer.current !== null) clearTimeout(timer.current);
-    timer.current = null;
-  };
-  return {
-    onPointerDown: (e) => {
-      fired.current = false;
-      start.current = { x: e.clientX, y: e.clientY };
-      clear();
-      timer.current = setTimeout(() => {
-        timer.current = null;
-        fired.current = true;
-        onLong();
-      }, LONG_PRESS_MS);
-    },
-    onPointerMove: (e) => {
-      if (timer.current !== null && Math.hypot(e.clientX - start.current.x, e.clientY - start.current.y) > LONG_PRESS_MOVE)
-        clear();
-    },
-    onPointerUp: clear,
-    onPointerLeave: clear,
-    onClickCapture: (e) => {
-      if (fired.current) {
-        e.preventDefault();
-        e.stopPropagation();
-        fired.current = false;
-      }
-    },
-  };
-}
 
 /**
  * Emplacement d'un bâtiment sur la scène composée (lot UX-TOWNVIEW 3). Composant

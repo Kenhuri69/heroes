@@ -439,6 +439,8 @@
   "combat.sheet.marks": "Marks: {marks}",
   "combat.sheet.close": "Close",
   "adventure.cancelPath": "Cancel move",
+  "adventure.centerTownHint": "long-press: center the map",
+  "adventure.nextHero": "Next hero (with moves)",
   "adventure.dig": "Dig",
   "adventure.digTitle": "Dig the Grail tile",
   "adventure.pathDay": "D{day}",

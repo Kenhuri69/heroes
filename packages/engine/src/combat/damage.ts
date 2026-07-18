@@ -1,5 +1,5 @@
 import { rollRange } from '../core/rng';
-import type { GameState } from '../core/state';
+import type { GameState, HeroState } from '../core/state';
 import { heroArtifactBonus } from '../hero/artifacts';
 import { heroArmorPct, heroLuck, heroMeleePct, heroRangedPct } from '../hero/skills';
 import type { SpellStatus } from '../hero/types';
@@ -324,7 +324,15 @@ export function heroDefenseOf(state: GameState, combat: CombatState, side: Comba
  */
 export function heroLuckOf(state: GameState, combat: CombatState, side: CombatSideId): number {
   const hero = heroForSide(state, combat, side);
-  if (!hero) return 0;
+  return hero ? heroLuckValue(state, hero) : 0;
+}
+
+/**
+ * Chance d'un HÉROS précis (E4.4 : en coop, la chance du sort vient du héros
+ * AGISSANT, pas seulement du lead), bornée [-3,3] (C-BADLUCK). Compétence +
+ * artefacts + fontaine.
+ */
+export function heroLuckValue(state: GameState, hero: HeroState): number {
   const total =
     heroLuck(hero, state.skillCatalog) +
     heroArtifactBonus(hero, state.artifactCatalog).luck +

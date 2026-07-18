@@ -140,7 +140,7 @@ describe('C-AIPARITY — maybeHeroAction', () => {
     const cast = events.find((e) => e.type === 'SpellCast');
     expect(cast).toMatchObject({ heroId: 'hero-ai', spellId: 'bolt', targetId: 'attacker-0' });
     expect(next.heroes[0]?.mana).toBe(15); // 20 − 5
-    expect(next.combat?.heroCastThisRound).toContain('defender');
+    expect(next.combat?.heroCastThisRound).toContain('hero-ai'); // suivi par-héros (E4.4)
     // Même round : plus de sort (et pas d'attaque héroïque configurée) ⇒ no-op.
     const again = run(next, 'defender');
     expect(again.acted).toBe(false);
@@ -172,7 +172,7 @@ describe('C-AIPARITY — maybeHeroAction', () => {
     const { acted, events, next } = run(state, 'defender');
     expect(acted).toBe(true);
     expect(events.find((e) => e.type === 'HeroStruck')).toMatchObject({ side: 'defender', targetId: 'attacker-0' });
-    expect(next.combat?.heroAttackUsed).toContain('defender');
+    expect(next.combat?.heroAttackUsed).toContain('hero-ai'); // suivi par-héros (E4.4)
     // Déjà frappé ce round ⇒ no-op (le verrou est vidé au round suivant).
     expect(run(next, 'defender').acted).toBe(false);
   });
@@ -188,10 +188,11 @@ describe('C-AIPARITY — maybeHeroAction', () => {
         ...(state.combat as CombatState),
         attackerHeroId: 'hero-player',
         activeStackId: 'attacker-0',
-        heroCastThisRound: ['defender'], // l'IA a déjà lancé ce round
+        heroCastThisRound: ['hero-ai'], // l'IA (défenseur) a déjà lancé ce round
       },
     };
-    // La COMMANDE joueur reste valide : le verrou est par camp, plus partagé.
+    // La COMMANDE joueur reste valide : le verrou est PAR HÉROS (E4.4) — le lancer
+    // du héros IA n'épuise pas l'action du héros joueur.
     expect(
       validateCastSpell(withPlayer, { type: 'CastSpell', spellId: 'bolt', targetStackId: 'defender-0' }),
     ).toBeNull();
@@ -203,5 +204,48 @@ describe('C-AIPARITY — maybeHeroAction', () => {
     const combat = state.combat as CombatState;
     const noHero: GameState = { ...state, combat: { ...combat, defenderHeroId: null } };
     expect(run(noHero, 'defender').acted).toBe(false);
+  });
+});
+
+/**
+ * E4.4 — actions de héros par-héros en coop : un camp portant plusieurs héros
+ * (lead + allié coop, pile taguée `ownerHeroId`) voit CHACUN agir une fois par
+ * round. L'IA d'auto-combat les fait tous jouer.
+ */
+describe('E4.4 — héros alliés coop agissent chacun', () => {
+  it('lead puis allié lancent tous deux leur sort le même round', () => {
+    const lead = hero({ id: 'hero-lead', spells: ['bolt'] });
+    const ally = hero({ id: 'hero-ally', spells: ['bolt'] });
+    const combat: CombatState = {
+      terrain: 'grass', phase: 'battle', round: 1, obstacles: [],
+      stacks: [
+        stack({ id: 'attacker-0', side: 'attacker', slot: 0, unitId: 'u', count: 20, pos: { col: 0, row: 0 } }),
+        stack({ id: 'defender-0', side: 'defender', slot: 0, unitId: 'u', count: 5, pos: { col: 5, row: 5 } }),
+        // Pile de l'allié coop (taguée à son héros) sur le même camp.
+        stack({ id: 'defender-ally', side: 'defender', slot: 1, unitId: 'u', count: 5, pos: { col: 6, row: 5 }, ownerHeroId: 'hero-ally' }),
+      ],
+      activeStackId: 'defender-0', playerSide: 'attacker',
+      heroId: null, guardianObjectId: null, townId: null, wallDefenseBonus: 0,
+      finished: false, attackerHeroId: null, defenderHeroId: 'hero-lead',
+      heroCastThisRound: [], heroAttackUsed: [], winner: null,
+    };
+    const base = testConfig();
+    const state: GameState = {
+      ...createEmptyState(), started: true, rng: seedRng(1),
+      config: { ...base, combat: { ...base.combat } },
+      unitCatalog: { u: unit({ id: 'u' }) }, spellCatalog: SPELLS,
+      heroes: [lead, ally], combat,
+    };
+    // 1er appel : le lead agit. 2ᵉ : l'allié agit. 3ᵉ : les deux épuisés ⇒ no-op.
+    const r1 = run(state, 'defender');
+    expect(r1.acted).toBe(true);
+    const r2 = run(r1.next, 'defender');
+    expect(r2.acted).toBe(true);
+    const r3 = run(r2.next, 'defender');
+    expect(r3.acted).toBe(false);
+    // Les DEUX héros ont lancé leur sort ce round (suivi par-héros).
+    expect(r2.next.combat?.heroCastThisRound).toEqual(expect.arrayContaining(['hero-lead', 'hero-ally']));
+    const casters = [...r1.events, ...r2.events].filter((e) => e.type === 'SpellCast').map((e) => (e as { heroId: string }).heroId);
+    expect(casters).toEqual(expect.arrayContaining(['hero-lead', 'hero-ally']));
   });
 });

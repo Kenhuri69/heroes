@@ -314,9 +314,9 @@ export type Command =
    * (`kind: 'teleport'`, Pas de Brume) ; ignoré par les autres sorts. Champ de
    * commande (pas d'état persisté) ⇒ aucun bump de sauvegarde.
    */
-  | { type: 'CastSpell'; spellId: string; targetStackId: string; targetHex?: OffsetPos }
+  | { type: 'CastSpell'; spellId: string; targetStackId: string; targetHex?: OffsetPos; heroId?: string }
   /** Attaque du héros (C1) : dégâts directs sur une pile ennemie, 1×/combat. */
-  | { type: 'HeroAttack'; targetStackId: string }
+  | { type: 'HeroAttack'; targetStackId: string; heroId?: string }
   /** Prière de bataille (F-SKILLS.2) : le héros soigne/ressuscite une pile alliée, 1×/combat. */
   | { type: 'HeroRally'; targetStackId: string }
   /** Renforts (doc 18 B3) : en PvE, ajoute une pile fraîche d'une unité commandée, contre or. */

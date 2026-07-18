@@ -70,7 +70,7 @@ describe('F-SCHOOLS.8 — Pas de Brume (téléportation)', () => {
     const moved = next.combat!.stacks.find((x) => x.id === 'attacker-0')!;
     expect(moved.pos).toEqual({ col: 3, row: 3 });
     expect(next.heroes[0]!.mana).toBe(30 - 4);
-    expect(next.combat!.heroCastThisRound).toContain('attacker');
+    expect(next.combat!.heroCastThisRound).toContain('hero-a'); // suivi par-héros (E4.4)
   });
 
   it('teleportDestinations : à portée, dans le plateau, hors obstacle et cases occupées', () => {

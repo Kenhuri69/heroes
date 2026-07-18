@@ -102,4 +102,31 @@ copié de `BuyWarMachine` (achat gaté par un bâtiment de ville).
 - [x] Vérif : typecheck ✓, lint ✓, test 890 ✓, content:check ✓, garde-fou faction
       vert, i18n ✓, build ✓, budget 332 Ko ✓, smoke @core 20/20 ✓.
 
-### Prochain : A3.4 (mapgen mers + connectivité navale) — ou A3.5 (rendu/UX client).
+### Prochain : A3.5 (rendu/UX client) — choisi avant A3.4 pour rendre la nav visible.
+
+## A3.5 — Rendu & UX client de la navigation — EN COURS
+
+Dépendance découverte : le bâtiment `shipyard` (A3.3) n'est listé dans AUCUN
+`manifest.town.buildings` de faction ⇒ non constructible en partie réelle. À
+ajouter dans ce lot (données) pour rendre le chantier naval utilisable.
+
+Découpé en deux tranches (UX client, vérif headless faible) :
+
+### A3.5a — Chantier naval jouable (données + bouton ville) ← CE PR
+- [x] `shipyard` ajouté aux 7 `manifest.town.buildings` (constructible en partie ;
+      ajout chirurgical après l'entrée grail, zéro reformatage).
+- [x] `TownScreen` : `hasBuiltEffect` étendu `'shipyard'` + helpers `shipyardBoatCost`
+      / `adjacentFreeWater` (miroir client de `validateBuildBoat`) ; bouton
+      « Construire un bateau » (coût affiché) gaté par shipyard bâti + ville du
+      joueur humain, désactivé avec indice si pas d'eau libre adjacente ou or
+      insuffisant ⇒ `dispatch(BuildBoat)`.
+- [x] Locales `town.buildBoat`/`boatNoWater`/`boatNoGold` FR/EN.
+- Zéro moteur, zéro bump save, golden inchangé. Smoke : le bouton n'apparaît
+      qu'avec un shipyard bâti sur une ville côtière (pas dans la partie smoke par
+      défaut) ⇒ non couvert par smoke ; vérifié par typecheck + content:check + build.
+
+### A3.5b — Embarquer/débarquer + préviz navale (carte) — À SUIVRE
+- Carte d'aventure : tap sur un `boat` adjacent ⇒ `BoardBoat` ; héros naval, tap
+  sur une tuile terre adjacente ⇒ `DisembarkBoat` ; prévisualisation de chemin
+  passant `hero.naval` à `findPath`/`stepCost` (`AdventureScene.handleTap` L413/L432).
+- Jeton de héros : repère visuel « embarqué » (`buildHeroToken` L325 branche `naval`).

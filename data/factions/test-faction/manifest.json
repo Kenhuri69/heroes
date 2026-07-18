@@ -32,7 +32,8 @@
       "mageGuild",
       "forge",
       "test-faction-dwelling-t1",
-      "test-faction-grail"
+      "test-faction-grail",
+      "shipyard"
     ],
     "dwellings": [
       {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { apply } from '../src/core/engine';
+import { apply, validate } from '../src/core/engine';
 import type { Command, PlayerSetup } from '../src/core/commands';
 import { createEmptyState, emptyResources, type GameState } from '../src/core/state';
 import type { AdventureMapDef, MapTriggerDef } from '../src/adventure/map';
@@ -319,6 +319,80 @@ describe('lot 2.4 (doc 18 A5) — effets liés au héros visiteur', () => {
     expect(r.state.heroes[0]!.pos).toEqual({ x: 1, y: 0 });
     expect(r.events.some((e) => e.type === 'HeroTeleported')).toBe(false);
     expect(r.state.map!.triggers[0]!.fired).toBe(false);
+  });
+
+  it('choice : pose un choix en attente (interrompt le chemin), résolu par ResolveTriggerChoice', () => {
+    const state = startWith(
+      [
+        {
+          id: 't-choice',
+          on: { kind: 'visit', pos: { x: 1, y: 0 } },
+          effect: {
+            kind: 'choice',
+            textKey: 'q.body',
+            options: [
+              { labelKey: 'q.gold', effect: { kind: 'grantResource', resource: 'gold', amount: 100 } },
+              { labelKey: 'q.wood', effect: { kind: 'grantResource', resource: 'wood', amount: 5 } },
+            ],
+          },
+          fired: false,
+        },
+      ],
+      [ARMED],
+    );
+    const gold0 = state.players[0]!.resources.gold;
+    const r = apply(state, {
+      type: 'MoveHero',
+      heroId: 'hero-p1',
+      path: [
+        { x: 1, y: 0 },
+        { x: 2, y: 0 },
+      ],
+    });
+    // Choix posé, chemin interrompu SUR la tuile, trigger consommé, aucun octroi encore.
+    expect(r.state.pendingTriggerChoice).toBeDefined();
+    expect(r.state.pendingTriggerChoice!.options).toHaveLength(2);
+    expect(r.state.heroes[0]!.pos).toEqual({ x: 1, y: 0 });
+    expect(r.state.map!.triggers[0]!.fired).toBe(true);
+    expect(r.events.some((e) => e.type === 'TriggerChoiceOffered')).toBe(true);
+    // `MoveHero` refusé tant que le choix n'est pas tranché.
+    expect(
+      validate(r.state, { type: 'MoveHero', heroId: 'hero-p1', path: [{ x: 2, y: 0 }] })?.code,
+    ).toBe('choicePending');
+    // Résolution de l'option 1 (bois) : effet appliqué, option 0 ignorée, pending vidé.
+    const done = apply(r.state, { type: 'ResolveTriggerChoice', heroId: 'hero-p1', optionIndex: 1 });
+    expect(done.state.pendingTriggerChoice).toBeUndefined();
+    expect(done.state.players[0]!.resources.wood).toBe(5);
+    expect(done.state.players[0]!.resources.gold).toBe(gold0); // option 0 non appliquée
+    expect(done.events.some((e) => e.type === 'TriggerChoiceResolved')).toBe(true);
+  });
+
+  it('ResolveTriggerChoice : index hors bornes refusé (invalidTarget)', () => {
+    const state = startWith(
+      [
+        {
+          id: 't-choice',
+          on: { kind: 'visit', pos: { x: 1, y: 0 } },
+          effect: {
+            kind: 'choice',
+            textKey: 'q.body',
+            options: [
+              { labelKey: 'q.a', effect: { kind: 'grantResource', resource: 'gold', amount: 50 } },
+              { labelKey: 'q.b', effect: { kind: 'message', textKey: 'q.msg' } },
+            ],
+          },
+          fired: false,
+        },
+      ],
+      [ARMED],
+    );
+    const offered = apply(state, { type: 'MoveHero', heroId: 'hero-p1', path: [{ x: 1, y: 0 }] });
+    expect(
+      validate(offered.state, { type: 'ResolveTriggerChoice', heroId: 'hero-p1', optionIndex: 9 })?.code,
+    ).toBe('invalidTarget');
+    // Option 0 (choix de l'IA, déterministe) : accepté et appliqué.
+    const done = apply(offered.state, { type: 'ResolveTriggerChoice', heroId: 'hero-p1', optionIndex: 0 });
+    expect(done.state.players[0]!.resources.gold).toBe(state.players[0]!.resources.gold + 50);
   });
 
   it('trigger de jour à effet héros (grantArtifact) : no-op tracé (fired + événement, aucun octroi)', () => {

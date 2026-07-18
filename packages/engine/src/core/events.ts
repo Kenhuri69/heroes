@@ -117,6 +117,10 @@ export type GameEvent =
    * message global (`onDay`).
    */
   | { type: 'TriggerFired'; triggerId: string; playerId: string | null; effect: TriggerEffect }
+  /** Message à choix proposé (doc 18 A5) — `pendingTriggerChoice` posé, en attente. */
+  | { type: 'TriggerChoiceOffered'; triggerId: string; playerId: string }
+  /** Message à choix résolu (doc 18 A5) — l'effet de `optionIndex` a été appliqué. */
+  | { type: 'TriggerChoiceResolved'; triggerId: string; playerId: string | null; optionIndex: number }
   // ——— Combat (doc 02 §5) — surface figée en cadrage phase 2.4 ———
   | {
       type: 'CombatStarted';

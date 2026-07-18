@@ -4,6 +4,7 @@ import { armyStrength } from '../core/power';
 import { areAllies, type GameState, type HeroState, type PlayerState } from '../core/state';
 import { advanceHeroAlongPath } from '../adventure/movement';
 import { resolveTreasure } from '../adventure/treasure';
+import { resolveTriggerChoice } from '../adventure/trigger-choice';
 import { DIRECTIONS, isAdjacent, samePos, tileIndex, type GridPos } from '../adventure/map';
 import { findPath, isPassable, minStepCost, octileLowerBound, stepCost } from '../adventure/path';
 import { heroArmyCap } from '../hero/skills';
@@ -306,6 +307,8 @@ function advanceAi(
     onCombatEngaged: () => runAutoCombat(draft, events),
     // L'IA résout le trésor sur-le-champ : toujours l'or (déterministe, MVP).
     onTreasureFound: () => resolveTreasure(draft, 'gold', events),
+    // L'IA résout un message à choix sur-le-champ : option 0 (déterministe, MVP).
+    onTriggerChoice: () => resolveTriggerChoice(draft, 0, events),
   });
 }
 

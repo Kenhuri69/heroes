@@ -10,7 +10,7 @@ import { inBounds, samePos, type GridPos, type TriggerEffect } from './map';
  * le chemin se poursuit) · `combat` (embuscade ⇒ l'appelant ouvre le combat) ·
  * `teleport` (le héros a été déplacé ⇒ le chemin s'interrompt SANS combat).
  */
-export type TriggerOutcome = 'continue' | 'combat' | 'teleport';
+export type TriggerOutcome = 'continue' | 'combat' | 'teleport' | 'choice';
 
 /**
  * Interprétation des triggers de carte (doc 02 §2.1) — **générique** : le moteur
@@ -24,7 +24,7 @@ export type TriggerOutcome = 'continue' | 'combat' | 'teleport';
  * jour : les effets liés à un héros (`grantArtifact`/`grantArmy`/`ambush`)
  * sont alors des no-ops silencieux (documenté doc 02 §2.1). Pur.
  */
-function applyEffect(
+export function applyTriggerEffect(
   effect: TriggerEffect,
   player: PlayerState | null,
   hero: HeroState | null,
@@ -65,6 +65,12 @@ function applyEffect(
         return { kind: 'ambush', army: effect.army.map((s) => ({ unitId: s.unitId, count: s.count })) };
       case 'teleport':
         return { kind: 'teleport', to: { x: effect.to.x, y: effect.to.y } };
+      case 'choice':
+        return {
+          kind: 'choice',
+          textKey: effect.textKey,
+          options: effect.options.map((o) => ({ labelKey: o.labelKey, effect: { ...o.effect } })),
+        };
     }
   })();
   events.push({ type: 'TriggerFired', triggerId, playerId: player?.id ?? null, effect: copy });
@@ -95,7 +101,7 @@ export function fireVisitTrigger(
     // combat — le piège n'est PAS consommé, il attend une proie.
     if (hero.army.length === 0) return 'continue';
     trig.fired = true;
-    applyEffect(trig.effect, player, hero, trig.id, events);
+    applyTriggerEffect(trig.effect, player, hero, trig.id, events);
     beginAmbushCombat(draft, hero.id, trig.effect.army, events);
     return 'combat';
   }
@@ -107,7 +113,7 @@ export function fireVisitTrigger(
     const to = trig.effect.to;
     if (!inBounds(map, to)) return 'continue';
     trig.fired = true;
-    applyEffect(trig.effect, player, hero, trig.id, events);
+    applyTriggerEffect(trig.effect, player, hero, trig.id, events);
     const from = { ...hero.pos };
     hero.pos = { x: to.x, y: to.y };
     const config = draft.config;
@@ -121,8 +127,24 @@ export function fireVisitTrigger(
     events.push({ type: 'HeroTeleported', heroId: hero.id, from, to: { x: to.x, y: to.y } });
     return 'teleport';
   }
+  if (trig.effect.kind === 'choice') {
+    // Message à choix (doc 18 A5) : le trigger est consommé et un état d'attente
+    // (`pendingTriggerChoice`) est posé — le chemin s'interrompt. Le joueur humain
+    // tranche via `ResolveTriggerChoice` (l'IA via un callback de mouvement).
+    // L'effet de l'option choisie s'applique à la RÉSOLUTION, pas ici.
+    trig.fired = true;
+    draft.pendingTriggerChoice = {
+      heroId: hero.id,
+      playerId: player.id,
+      triggerId: trig.id,
+      textKey: trig.effect.textKey,
+      options: trig.effect.options.map((o) => ({ labelKey: o.labelKey, effect: { ...o.effect } })),
+    };
+    events.push({ type: 'TriggerChoiceOffered', triggerId: trig.id, playerId: player.id });
+    return 'choice';
+  }
   trig.fired = true;
-  applyEffect(trig.effect, player, hero, trig.id, events);
+  applyTriggerEffect(trig.effect, player, hero, trig.id, events);
   return 'continue';
 }
 
@@ -141,10 +163,10 @@ export function fireDayTriggers(draft: GameState, events: GameEvent[]): void {
     trig.fired = true;
     if (trig.effect.kind === 'grantResource') {
       for (const p of draft.players) {
-        if (!p.eliminated) applyEffect(trig.effect, p, null, trig.id, events);
+        if (!p.eliminated) applyTriggerEffect(trig.effect, p, null, trig.id, events);
       }
     } else {
-      applyEffect(trig.effect, null, null, trig.id, events);
+      applyTriggerEffect(trig.effect, null, null, trig.id, events);
     }
   }
 }

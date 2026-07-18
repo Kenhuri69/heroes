@@ -32,6 +32,12 @@ export interface AdvanceOptions {
    */
   onTreasureFound?: () => void;
   /**
+   * Appelé quand un message à choix vient d'être foulé (`pendingTriggerChoice`
+   * posé, doc 18 A5). Le handler humain le laisse indéfini : le choix reste
+   * interactif. L'IA d'aventure y résout le choix immédiatement (option 0).
+   */
+  onTriggerChoice?: () => void;
+  /**
    * Coop PvE (doc 18 E4) : héros allié invité à rejoindre un combat de GARDIEN
    * déclenché par ce déplacement. Passé tel quel à `beginGuardianCombat`, qui
    * revalide (allié/adjacent/armée) et ignore une invite caduque.
@@ -184,6 +190,10 @@ export function advanceHeroAlongPath(
       return;
     }
     if (trigOutcome === 'teleport') return; // héros déplacé : trajet restant caduc
+    if (trigOutcome === 'choice') {
+      options.onTriggerChoice?.(); // IA : résout tout de suite ; humain : reste en attente
+      return; // chemin interrompu tant que le choix n'est pas tranché
+    }
     // Guilde des mages (G2) : fouler une de ses villes fait apprendre les sorts
     // du pool que le héros peut apprendre (cercle ≤ Sagesse).
     const townHere = townsAt.get(tileKey(hero.pos));

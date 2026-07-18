@@ -1225,6 +1225,32 @@ export const mapFileSchema = z.object({
             kind: z.literal('teleport'),
             to: z.object({ x: z.number().int().nonnegative(), y: z.number().int().nonnegative() }),
           }),
+          // Doc 18 A5 — message à choix : ≥ 2 options, chacune un effet-feuille.
+          z.object({
+            kind: z.literal('choice'),
+            textKey: z.string().min(1),
+            options: z
+              .array(
+                z.object({
+                  labelKey: z.string().min(1),
+                  effect: z.discriminatedUnion('kind', [
+                    z.object({
+                      kind: z.literal('grantResource'),
+                      resource: z.enum(COMMON_RESOURCE_IDS),
+                      amount: z.number().int().positive(),
+                    }),
+                    z.object({ kind: z.literal('message'), textKey: z.string().min(1) }),
+                    z.object({ kind: z.literal('grantArtifact'), artifactId: idSchema }),
+                    z.object({
+                      kind: z.literal('grantArmy'),
+                      unitId: idSchema,
+                      count: z.number().int().positive(),
+                    }),
+                  ]),
+                }),
+              )
+              .min(2),
+          }),
         ]),
       }),
     )

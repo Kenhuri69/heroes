@@ -823,6 +823,14 @@ export const gameConfigSchema = z.object({
           perAttack: z.number().nonnegative(),
         })
         .optional(),
+      /** Renforts en combat (doc 18 B3) — optionnel : absent ⇒ commande refusée. */
+      reinforcements: z
+        .object({
+          maxCallsPerCombat: z.number().int().positive(),
+          maxUnitsPerCall: z.number().int().positive(),
+          costMultiplier: z.number().positive(),
+        })
+        .optional(),
       /** Pénalité de portée de tir (B1) — optionnel : absent ⇒ pas de falloff. */
       rangePenalty: z
         .object({

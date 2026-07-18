@@ -286,6 +286,8 @@ export type Command =
   | { type: 'HeroAttack'; targetStackId: string }
   /** Prière de bataille (F-SKILLS.2) : le héros soigne/ressuscite une pile alliée, 1×/combat. */
   | { type: 'HeroRally'; targetStackId: string }
+  /** Renforts (doc 18 B3) : en PvE, ajoute une pile fraîche d'une unité commandée, contre or. */
+  | { type: 'CallReinforcements'; unitId: string; count: number }
   /** Placement d'une pile pendant la phase de placement tactique (C-TACTICS, doc 02 §5.1). */
   | { type: 'PlaceStack'; stackId: string; to: OffsetPos }
   /** Clôt la phase de placement et démarre la bataille (C-TACTICS). */
@@ -384,6 +386,7 @@ export interface CommandError {
     | 'tileOccupied'
     | 'noShipyard'
     | 'noAdjacentWater'
+    | 'reinforcementsUnavailable'
     | 'gameOver';
   message: string;
 }

@@ -140,17 +140,18 @@ de cet audit)*
 - **Nature** : moteur générique (2 variantes d'effet) + données + assets (2
   sprites, repli procédural). **Priorité** : P2.
 
-**B3 — Renforts en cours de combat (signature MMHO)**
+**B3 — Renforts en cours de combat (signature MMHO)** ✅ *(retenue — moteur livré)*
 - **Réf.** : MMHO permettait de **recruter des renforts pendant la bataille**
   (PvE uniquement), contre or — l'une de ses mécaniques distinctives.
-- **État** : absent ; le sort `summon` (invocation) couvre un cas voisin côté
-  magie ; la garnison + héros fusionnent déjà en défense de siège.
-- **Manque** : action de combat « appeler des renforts » (gatée : PvE, ville liée
-  ou stock d'habitation, coût, limite/round).
-- **Nature** : moteur générique (commande + config opt-in) + client (UI d'appel).
-- **Priorité** : P3 — mécanique clivante (casse la lecture « armée engagée =
-  armée risquée ») ; à trancher : fidélité MMHO vs pureté HoMM. Décision de
-  design **avant** implémentation (mettre à jour doc 02 si retenue).
+- **Décision** (arbitrage utilisateur 2026-07) : **retenue** en fidélité MMHO,
+  **strictement opt-in par config et PvE only** (mécanique clivante ⇒ activée par
+  scénario/mode, jamais globalement par défaut).
+- **Livré (moteur)** : commande `CallReinforcements { unitId, count }` +
+  `config.combat.reinforcements` opt-in (cf. doc 02 §5) — ajoute une pile fraîche
+  d'une unité commandée, contre or (`recruitCost × count × costMultiplier`),
+  plafonnée (`maxCallsPerCombat`/`maxUnitsPerCall`), n'agit qu'au round suivant ;
+  gate PvE (`defenderHeroId` null + héros lié). Champ lazy `reinforcementsUsed` ⇒
+  pas de bump save, golden inchangé. **Différé (B3-client)** : UI d'appel en combat.
 
 **B4 — Mort subite / borne de fin en PvP (MMHO « Sudden Death »)**
 - **Réf.** : MMHO : au-delà d'un délai, l'équipe avec le plus d'unités gagne.

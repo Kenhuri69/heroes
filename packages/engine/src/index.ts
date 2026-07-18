@@ -25,6 +25,7 @@ export {
   appendTurn,
   type AppendResult,
 } from './net/match';
+export { computeEloUpdate, expectedScore, DEFAULT_ELO, DEFAULT_ELO_K } from './net/elo';
 export { seedRng, nextU32, rollRange, type RngState } from './core/rng';
 export {
   serializeState,

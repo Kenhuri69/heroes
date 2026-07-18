@@ -67,6 +67,20 @@ CREATE TABLE IF NOT EXISTS moves (
   PRIMARY KEY (match_id, seq)
 );
 
+-- Classement Elo PvP (doc 18 lot 4.2, doc 15 §6) — une note par profil ET par
+-- saison (`season` = fenêtre de dates 'YYYY-MM', cf. worker `seasonKey`). Mise à
+-- jour à la résolution d'un match `finished` (engine `computeEloUpdate`).
+CREATE TABLE IF NOT EXISTS ratings (
+  profile_id TEXT NOT NULL REFERENCES profiles(id),
+  season     TEXT NOT NULL,             -- ex. '2026-07'
+  rating     INTEGER NOT NULL,          -- Elo courant (départ 1200)
+  wins       INTEGER NOT NULL DEFAULT 0,
+  losses     INTEGER NOT NULL DEFAULT 0,
+  updated_at INTEGER NOT NULL,
+  PRIMARY KEY (profile_id, season)
+);
+
+CREATE INDEX IF NOT EXISTS idx_ratings_season   ON ratings(season, rating DESC);
 CREATE INDEX IF NOT EXISTS idx_moves_match     ON moves(match_id, seq);
 CREATE INDEX IF NOT EXISTS idx_matches_status  ON matches(status);
 CREATE INDEX IF NOT EXISTS idx_match_players_p ON match_players(profile_id);

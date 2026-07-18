@@ -48,11 +48,14 @@ Helpers **purs et déterministes** de `@heroes/engine`, utilisés par le serveur
 
 ## 4. Modèle de données (D1 — `server/schema.sql`)
 
-7 tables : `profiles`, `auth_tokens`, `sessions` (comptes) ; `saves` (cloud
+8 tables : `profiles`, `auth_tokens`, `sessions` (comptes) ; `saves` (cloud
 saves : `serializeState` + `save_version`) ; `matches` (seed + `StartGame`
 sérialisé + statut) ; `match_players` (sièges = ordre de tour) ; `moves`
-(journal **append-only** : une ligne = un lot de commandes d'un joueur). La base
-`heroes` est **provisionnée** (région WEUR) et le schéma appliqué.
+(journal **append-only** : une ligne = un lot de commandes d'un joueur) ;
+`ratings` (classement Elo PvP — note par profil ET par saison, lot 4.2, cf. §6b).
+La base `heroes` est **provisionnée** (région WEUR) et le schéma appliqué. **Un
+ajout de table (ex. `ratings`) exige de ré-appliquer `server/schema.sql`** (les
+`CREATE TABLE IF NOT EXISTS` sont idempotents) — voir §10.
 
 ## 5. Flux
 
@@ -145,6 +148,27 @@ externe en CI). D'où :
 - **Client `@heroes/net`** → **derrière un flag de config** (URL backend absente
   par défaut) : le jeu hors-ligne et le smoke ne touchent **jamais** le réseau.
 
+## 6b. Classement Elo saisonnier (lot 4.2, écart E2)
+
+- **Math Elo pure** (`engine/net/elo.ts` : `expectedScore`, `computeEloUpdate`,
+  départ 1200, K=32) — déterministe, sans RNG ni date, **couverte par la suite
+  moteur** (`engine/test/elo.test.ts`) et tree-shakée hors du bundle client.
+- **Saisons = fenêtres de dates** : clé `'YYYY-MM'` (fenêtre mensuelle) dérivée
+  du timestamp de résolution par `seasonKey` (worker). Une note vit par
+  `(profile_id, season)` ⇒ chaque mois repart d'un classement propre, sans purge.
+- **Mise à jour** : à la transition d'un match vers `finished` (rejeu ⇒ `outcome`),
+  le worker résout le `profile_id` gagnant via `match_players.player_id ==
+  outcome.winnerPlayerId` et applique `computeEloUpdate` **pairwise** contre chaque
+  autre participant humain inscrit (séquentiel pour N>2). Vainqueur non inscrit
+  (IA / siège libre) ⇒ aucun classement. Forfait/abandon : **pas** de mise à jour
+  (pas de vainqueur déterminé stocké). Exécuté **une seule fois** (garde de statut).
+- **Endpoint** `GET /leaderboard[?season=YYYY-MM]` → top 50 (`rating DESC`) avec
+  handle + bilan V/D. **Écran** : section « Classement » du panneau En ligne
+  (`OnlinePanel`), rang numéroté (jamais la couleur seule).
+- **Limite de couverture** : l'endpoint `/leaderboard` et l'écran ne sont **pas**
+  smoke-couverts — le panneau En ligne n'est monté qu'avec `VITE_BACKEND_URL`
+  (absent du build smoke hors-ligne) ; le risque (la math Elo) est en unitaire.
+
 ## 7. Déploiement (Live 7.2/7.3, hors MCP)
 
 L'MCP Cloudflare crée/query D1 mais **ne déploie pas de Worker**. Le déploiement
@@ -190,6 +214,9 @@ GitHub**, jamais en clair. Étapes de l'utilisateur (une fois) :
    - `CLOUDFLARE_API_TOKEN` = le token ;
    - `CLOUDFLARE_ACCOUNT_ID` = l'id de compte (Cloudflare → Workers & Pages →
      colonne de droite « Account ID »).
+2b. **Schéma D1** — après tout ajout de table (ex. `ratings`, lot 4.2),
+   ré-appliquer le schéma (idempotent) :
+   `pnpm --filter @heroes/server exec wrangler d1 execute heroes --remote --file=./schema.sql`.
 3. **Déployer le Worker** — Actions → **Deploy Worker** → *Run workflow*. Si le
    compte n'a **jamais enregistré de sous-domaine workers.dev**, le Worker se
    téléverse mais n'a aucune URL publique (erreur *« register a workers.dev

@@ -130,7 +130,7 @@ L'événement moteur `WallBombarded { col, row, destroyed }` existe
 Seul lot moteur. Les machines (`warMachine`) sont placées comme des piles
 ordinaires par `placeSide` (débordement du chariot en 1ʳᵉ ligne, capture 2).
 
-- [ ] S5b.1 `placeSide`/appelants (`combat/setup.ts`) : les piles dont la déf
+- [x] S5b.1 `placeSide`/appelants (`combat/setup.ts`) : les piles dont la déf
       porte `warMachine` sont placées sur des **emplacements réservés hors
       formation** — colonne derrière la ligne de départ du camp (attaquant :
       col 0 reste aux créatures, machines en « rangée arrière » : mêmes hexes
@@ -138,10 +138,10 @@ ordinaires par `placeSide` (débordement du chariot en 1ʳᵉ ligne, capture 2).
       colonne de front ; choix simple : caper la formation créatures à
       `COMBAT_ROWS − nbMachines`). Générique : décision par capacité
       `warMachine` (donnée), aucun id en dur.
-- [ ] S5b.2 Tests moteur : placement avec 7 piles + 4 machines ⇒ aucune
+- [x] S5b.2 Tests moteur : placement avec 7 piles + 4 machines ⇒ aucune
       machine en colonne de front ; ordre de la formation créatures inchangé
       sans machines (non-régression guardian/héros-vs-héros).
-- [ ] S5b.3 Docs : doc 02 §5 (placement) aligné.
+- [x] S5b.3 Docs : doc 02 §5 (placement) aligné.
 - Vérif : golden **inchangé** (replay sans machines) ; 835+ tests moteur
   verts ; pas de bump save (aucune forme nouvelle) ; captures avant/après.
 - ⚠️ Si l'implémentation révèle un impact replay/golden : s'arrêter et

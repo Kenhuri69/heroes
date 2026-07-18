@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { placeSide } from '../src/combat/setup';
 import { COMBAT_COLS, COMBAT_ROWS } from '../src/combat/hex';
-import type { ArmyStack } from '../src/combat/types';
+import type { ArmyStack, CombatUnitDef } from '../src/combat/types';
 
 /**
  * B33 (plan code-review-performance) : `placeSide` produisait des collisions de
@@ -57,5 +57,58 @@ describe('placeSide — B33 (collisions de spawn)', () => {
     const keys = new Set(stacks.map((s) => `${s.pos.col},${s.pos.row}`));
     expect(keys.size).toBe(n);
     for (const s of stacks) expect(s.pos.col).toBeGreaterThanOrEqual(COMBAT_COLS - 3);
+  });
+});
+
+/**
+ * S5b (plan siege-visual-remediation, audit doc 19 §2.5) : une machine de guerre
+ * (`warMachine`) est placée HORS formation, en fin de colonne de départ — jamais
+ * dans la colonne de front (avant : le chariot débordait en 1ʳᵉ ligne). Décision
+ * GÉNÉRIQUE par capacité, aucun id d'unité en dur.
+ */
+describe('placeSide — S5b (machines de guerre hors formation)', () => {
+  const machineDef = (id: string): CombatUnitDef =>
+    ({ id, groupId: 'wm', nativeTerrain: '', stats: { hp: 100, attack: 0, defense: 10, damage: [1, 1], speed: 1 }, abilities: [{ id: 'warMachine' }] }) as CombatUnitDef;
+  const troopDef = (id: string): CombatUnitDef =>
+    ({ id, groupId: 'g', nativeTerrain: '', stats: { hp: 10, attack: 5, defense: 5, damage: [1, 2], speed: 4 }, abilities: [] }) as CombatUnitDef;
+
+  it('7 créatures + 4 machines ⇒ aucune machine hors colonne de départ, positions distinctes', () => {
+    const creatures: ArmyStack[] = Array.from({ length: 7 }, (_, i) => ({ unitId: `c-${i}`, count: 10 }));
+    const machines: ArmyStack[] = ['catapult', 'ballista', 'tent', 'cart'].map((id) => ({ unitId: id, count: 1 }));
+    const army = [...creatures, ...machines];
+    const catalog: Record<string, CombatUnitDef> = {};
+    for (const c of creatures) catalog[c.unitId] = troopDef(c.unitId);
+    for (const m of machines) catalog[m.unitId] = machineDef(m.unitId);
+
+    for (const [col, side] of [
+      [0, 'attacker'],
+      [COMBAT_COLS - 1, 'defender'],
+    ] as const) {
+      const stacks = placeSide(side, army, catalog, col);
+      const machineIds = new Set(machines.map((m) => m.unitId));
+      const machineStacks = stacks.filter((s) => machineIds.has(s.unitId));
+      // Toutes les machines restent dans la colonne de départ (jamais en front).
+      expect(machineStacks).toHaveLength(4);
+      for (const s of machineStacks) expect(s.pos.col).toBe(col);
+      // Positions toutes distinctes et dans les bornes (aucune collision).
+      const keys = new Set(stacks.map((s) => `${s.pos.col},${s.pos.row}`));
+      expect(keys.size).toBe(army.length);
+      for (const s of stacks) {
+        expect(s.pos.row).toBeGreaterThanOrEqual(0);
+        expect(s.pos.row).toBeLessThan(COMBAT_ROWS);
+      }
+      // Les ids/slots restent indexés sur l'armée (ordre inchangé).
+      stacks.forEach((s, i) => expect(s.slot).toBe(i));
+    }
+  });
+
+  it('armée SANS machine mais catalogue peuplé ⇒ formule historique (no-op, golden)', () => {
+    const army: ArmyStack[] = Array.from({ length: 6 }, (_, i) => ({ unitId: `c-${i}`, count: 10 }));
+    const catalog: Record<string, CombatUnitDef> = {};
+    for (const c of army) catalog[c.unitId] = troopDef(c.unitId);
+    const stacks = placeSide('attacker', army, catalog, 0);
+    stacks.forEach((s, i) => {
+      expect(s.pos).toEqual({ col: 0, row: legacyRow(i, army.length) });
+    });
   });
 });

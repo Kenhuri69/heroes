@@ -80,6 +80,14 @@ const DEATH_TIP_RAD = Math.PI / 2; // bascule finale (~90°)
 const SHAKE_PX = 4; // amplitude crête de la secousse
 const SHAKE_MS = 120;
 
+// HoMM3 : recul en perspective de la muraille de siège. `LEAN` = décalage
+// horizontal de l'extrémité LOIN (haut) vers la droite ; `FAR`/`NEAR` = échelle
+// de profondeur (loin plus petit, près plus grand). L'extrémité près reste sur
+// la colonne (alignée à la douve).
+const ISO_WALL_LEAN = HEX_SIZE * 1.5;
+const ISO_WALL_FAR = 0.82;
+const ISO_WALL_NEAR = 1.12;
+
 const MARGIN_TOP = 96; // bandeau armées + round (doc 08 §2.4)
 // S9.4 : marge basse élargie — la barre d'actions peut passer à 2 rangées et le
 // badge d'effectif déborde SOUS le jeton ; sans marge, les piles de la rangée 9
@@ -384,40 +392,65 @@ export class CombatScene {
     const curtainUrl = siegeCurtainUrl();
     const towerUrl = siegeTowerUrl();
 
-    // B2 : le plateau ENTIER est iso (grille aplatie, `offsetToPixel`) ⇒ la
-    // muraille posée droit sur la colonne suit l'iso et reste alignée sur la douve
-    // (plus de décalage mur/douve). Pièces peintes, sinon repli procédural.
+    // HoMM3 : la muraille FILE EN PERSPECTIVE sur le plateau iso — extrémité HAUTE
+    // = LOIN (recule vers le haut-droite, plus petite), extrémité BASSE = PRÈS
+    // (reste sur la colonne, alignée à la douve, plus grande). L'extrémité près
+    // ancrée à `wallX` ⇒ le mur ne croise jamais la douve (à sa gauche).
+    const yTop = Math.min(...layout.runs.map((r) => r.yTop));
+    const yBot = Math.max(...layout.runs.map((r) => r.yBot));
+    const span = Math.max(1, yBot - yTop);
+    const iso = {
+      xAt: (y: number) => layout.wallX + ISO_WALL_LEAN * (1 - (y - yTop) / span),
+      scaleAt: (y: number) => ISO_WALL_FAR + (ISO_WALL_NEAR - ISO_WALL_FAR) * ((y - yTop) / span),
+    };
+
+    // Courtines : sprite peint incliné le long de l'axe iso, sinon procédural droit.
     for (const run of layout.runs) {
-      if (curtainUrl) this.placeCurtain(curtainUrl, layout.wallX, layout.halfW, run.yTop, run.yBot);
+      if (curtainUrl) this.placeCurtainIso(curtainUrl, iso, layout.halfW, run.yTop, run.yBot);
       else drawCurtain(this.wallBase, layout.wallX, run.yTop, run.yBot);
     }
     for (const ty of layout.towers) {
-      if (towerUrl) this.placeTower(towerUrl, layout.wallX, ty, layout.towerH);
+      if (towerUrl) this.placeTowerIso(towerUrl, iso.xAt(ty), ty, iso.scaleAt(ty), layout.towerH);
       else drawTower(this.wallBase, layout.wallX, ty);
     }
-    if (layout.gateY != null) drawGate(this.wallBase, layout.wallX, layout.gateY);
-    for (const d of layout.damage) drawDamage(this.wallDamage, d.x, d.y, d.ratio, d.seed);
+    if (layout.gateY != null) drawGate(this.wallBase, iso.xAt(layout.gateY), layout.gateY);
+    for (const d of layout.damage) drawDamage(this.wallDamage, iso.xAt(d.y), d.y, d.ratio, d.seed);
   }
 
-  /** Courtine PEINTE tuilée verticalement sur un tronçon [yTop,yBot] (`TilingSprite`). */
-  private placeCurtain(url: string, x: number, halfW: number, yTop: number, yBot: number): void {
-    const w = halfW * 2;
+  /**
+   * Courtine PEINTE tuilée le long de l'axe iso penché [yTop,yBot] (`TilingSprite`
+   * pivoté en tête + mis à l'échelle profondeur) ⇒ muraille qui file en perspective.
+   */
+  private placeCurtainIso(
+    url: string,
+    iso: { xAt: (y: number) => number; scaleAt: (y: number) => number },
+    halfW: number,
+    yTop: number,
+    yBot: number,
+  ): void {
+    const topX = iso.xAt(yTop);
+    const botX = iso.xAt(yBot);
+    const len = Math.hypot(botX - topX, yBot - yTop);
+    const w = halfW * 2 * iso.scaleAt((yTop + yBot) / 2);
+    const angle = Math.atan2(yBot - yTop, botX - topX) - Math.PI / 2; // local +y (bas) → direction d'axe
     void Assets.load(url).then((texture) => {
       if (this.destroyed || this.wallSpriteLayer.destroyed) return;
-      const tile = new TilingSprite({ texture, width: w, height: yBot - yTop });
+      const tile = new TilingSprite({ texture, width: w, height: len });
       tile.tileScale.set(w / texture.width);
-      tile.position.set(x - halfW, yTop);
+      tile.pivot.set(w / 2, 0);
+      tile.rotation = angle;
+      tile.position.set(topX, yTop);
       this.wallSpriteLayer.addChild(tile);
     });
   }
 
-  /** Tour PEINTE centrée en (x,y), base posée au point, calée à `towerH`. */
-  private placeTower(url: string, x: number, y: number, towerH: number): void {
+  /** Tour PEINTE posée en (x,y) sur l'axe, base au point, échelle profondeur. */
+  private placeTowerIso(url: string, x: number, y: number, depthScale: number, towerH: number): void {
     void Assets.load(url).then((texture) => {
       if (this.destroyed || this.wallSpriteLayer.destroyed) return;
       const sprite = new Sprite(texture);
       sprite.anchor.set(0.5, 0.82);
-      sprite.scale.set((towerH * 1.7) / texture.height);
+      sprite.scale.set(((towerH * 1.7) / texture.height) * depthScale);
       sprite.position.set(x, y);
       this.wallSpriteLayer.addChild(sprite);
     });

@@ -456,4 +456,8 @@ Zéro asset, zéro moteur : uniquement `CombatScene` + `motion.ts`.
         core/événement — planches à générer (prompts fournis).
   - [ ] **Lot 3 tail différé** : E8 (confirmer attaque perdue), E14 (filtres journal)
         — 🟡 à faible valeur / plomberie disproportionnée.
-  - [ ] Lots 7.3 (moteur) / 10 : à cadrer séparément.
+  - [x] **I15 haptique mobile** (`ux-lot-i15-haptics.md`) : `navigator.vibrate` sur
+        kills (combat affiché) & confirmations, **opt-in** Options (défaut OFF,
+        persisté), mapping pur réutilisant `sfxIdForEvent` (unit-testé).
+  - [ ] Lots 7.3 (moteur, pertes cumulées) / 9.3 (ambiances biome, dépend pistes) /
+        Lot 6 assets (planches) / Lot 10 (gros chantiers) : à cadrer séparément.

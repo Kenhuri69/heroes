@@ -32,6 +32,7 @@ import { installAutosave } from './app/autosave';
 import { installCombatLog } from './app/combat-log';
 import { initTelemetry } from './app/telemetry';
 import { initAudio } from './app/audio';
+import { initHaptics, hapticStats } from './app/haptics';
 import { initReduceMotion } from './app/motion';
 import {
   initNarrative,
@@ -96,6 +97,8 @@ declare global {
       combatShake: () => { count: number };
       /** Alpha courant du miroitement d'eau (I12 — smoke « eau vivante, coupée en reduce-motion »). */
       waterSheen: () => { alpha: number };
+      /** Nb cumulé de vibrations déclenchées (I15 — smoke « haptique opt-in »). */
+      haptic: () => { count: number };
       /** Nb d'enfants du nœud d'un objet de carte rendu (A1 — gradation des gardiens). */
       objectChildCount: (id: string) => number;
     };
@@ -347,6 +350,7 @@ async function bootstrap(): Promise<void> {
   initReduceMotion(); // option « réduire les animations » (lot M8 C3) — miroir localStorage
   initSettings(); // taille de police + confirmation de fin de tour (revue 2026-07, B37)
   initAudio(); // ambiance sonore (UXD-6B) — silencieuse tant qu'aucun fichier audio
+  initHaptics(); // retour haptique mobile (I15) — opt-in, no-op tant que non activé
   initNarrative(); // couche narrative branchée sur les événements de quête (doc 13, N2b)
   initCombatBarks(); // barks de combat au début d'un combat de campagne (doc 13, N4b)
   initCampaign(report); // avancement de campagne branché sur les événements (doc 13, N3a)
@@ -475,6 +479,7 @@ async function bootstrap(): Promise<void> {
     combatIdle: () => ({ ...combatIdleStats }),
     combatShake: () => ({ ...combatShakeStats }),
     waterSheen: () => ({ ...waterSheenStats }),
+    haptic: () => ({ ...hapticStats }),
     objectChildCount: (id: string) => scene?.objectChildCount(id) ?? 0,
   };
   window.__HEROES_READY__ = true; // signal pour le smoke test headless

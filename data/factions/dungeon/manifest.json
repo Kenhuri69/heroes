@@ -59,7 +59,8 @@
       "dungeon-dwelling-t6",
       "dungeon-dwelling-t7",
       "dungeon-cursed-well",
-      "dungeon-grail"
+      "dungeon-grail",
+      "shipyard"
     ],
     "dwellings": [
       { "tier": 1, "unitId": "t1-eclaireur", "buildingId": "dungeon-dwelling-t1" },

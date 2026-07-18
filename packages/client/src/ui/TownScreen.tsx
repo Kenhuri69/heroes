@@ -3,6 +3,7 @@ import {
   RESOURCE_IDS,
   buildStatus,
   builtDwellings,
+  isPassable,
   heroLearnableCircle,
   missingRequirements,
   scaleCost,
@@ -82,11 +83,43 @@ function buildingName(id: string): string {
 function hasBuiltEffect(
   town: TownState,
   catalog: Record<string, BuildingDef>,
-  effectType: 'market' | 'mageGuild' | 'tavern',
+  effectType: 'market' | 'mageGuild' | 'tavern' | 'shipyard',
 ): boolean {
   for (const [id, level] of Object.entries(town.buildings)) {
     if (level < 1) continue;
     if (catalog[id]?.levels[level - 1]?.effect?.type === effectType) return true;
+  }
+  return false;
+}
+
+/** Coût `boatCost` du chantier naval construit dans la ville (A3.3), ou `null`. */
+function shipyardBoatCost(
+  town: TownState,
+  catalog: Record<string, BuildingDef>,
+): Record<string, number> | null {
+  for (const [id, level] of Object.entries(town.buildings)) {
+    if (level < 1) continue;
+    const effect = catalog[id]?.levels[level - 1]?.effect;
+    if (effect?.type === 'shipyard') return effect.boatCost as Record<string, number>;
+  }
+  return null;
+}
+
+/** Y a-t-il une tuile d'eau navigable LIBRE adjacente à `pos` ? (miroir de `validateBuildBoat`) */
+function adjacentFreeWater(game: GameState, pos: { x: number; y: number }): boolean {
+  const map = game.map;
+  const config = game.config;
+  if (!map || !config) return false;
+  for (let dy = -1; dy <= 1; dy++) {
+    for (let dx = -1; dx <= 1; dx++) {
+      if (dx === 0 && dy === 0) continue;
+      const p = { x: pos.x + dx, y: pos.y + dy };
+      if (!isPassable(config, map, p, true)) continue; // eau navigable (domaine naval)
+      const taken =
+        game.heroes.some((h) => h.pos.x === p.x && h.pos.y === p.y) ||
+        map.objects.some((o) => o.type === 'boat' && o.pos.x === p.x && o.pos.y === p.y);
+      if (!taken) return true;
+    }
   }
   return false;
 }
@@ -132,6 +165,14 @@ export function TownScreen({ townId, onClose }: { townId: string; onClose: () =>
   const hasMarket = town ? hasBuiltEffect(town, game.buildingCatalog, 'market') : false;
   const hasGuild = town ? hasBuiltEffect(town, game.buildingCatalog, 'mageGuild') : false;
   const hasTavern = town ? hasBuiltEffect(town, game.buildingCatalog, 'tavern') : false;
+  // Chantier naval (A3.5) : bouton « Construire un bateau » si un `shipyard` est
+  // bâti. On reflète les gardes moteur (`validateBuildBoat`) pour ne pas mener à un
+  // cul-de-sac : eau navigable adjacente LIBRE + or suffisant.
+  const boatCost = town ? shipyardBoatCost(town, game.buildingCatalog) : null;
+  const townOwner = town ? game.players.find((p) => p.id === town.ownerPlayerId) : undefined;
+  const hasFreeAdjacentWater = !!town && !!game.map && !!game.config && adjacentFreeWater(game, town.pos);
+  const canAffordBoat =
+    !!boatCost && !!townOwner && Object.entries(boatCost).every(([id, amt]) => (townOwner.resources[id as ResourceId] ?? 0) >= amt);
   // Onglet effectif : si l'onglet mémorisé n'est plus disponible (bâtiment non
   // construit), repli sur Construire — jamais un panneau vide/inaccessible.
   const activeTab =
@@ -194,6 +235,32 @@ export function TownScreen({ townId, onClose }: { townId: string; onClose: () =>
             >
               {t(town.builtToday ? 'town.buildQueueUsed' : 'town.buildQueueFree')}
             </span>
+          </p>
+        )}
+
+        {/* Chantier naval (A3.5) : construire un bateau sur l'eau adjacente. */}
+        {town && boatCost && town.ownerPlayerId === humanId(game) && (
+          <p class="town-shipyard-action" data-testid="town-shipyard">
+            <button
+              class="menu-button"
+              data-testid="town-build-boat"
+              disabled={!hasFreeAdjacentWater || !canAffordBoat}
+              title={
+                !hasFreeAdjacentWater
+                  ? t('town.boatNoWater')
+                  : !canAffordBoat
+                    ? t('town.boatNoGold')
+                    : undefined
+              }
+              onClick={() => {
+                setError(null);
+                dispatch({ type: 'BuildBoat', townId: town.id }).catch((err: unknown) =>
+                  setError((err as Error).message),
+                );
+              }}
+            >
+              {t('town.buildBoat')} <CostList cost={boatCost} />
+            </button>
           </p>
         )}
 

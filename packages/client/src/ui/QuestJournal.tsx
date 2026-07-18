@@ -1,5 +1,6 @@
 import { useApp } from '../app/store';
 import { t } from '../app/i18n';
+import { useCollapsed, SectionToggle } from './CollapsibleSection';
 import './QuestJournal.css';
 
 /**
@@ -9,11 +10,18 @@ import './QuestJournal.css';
  */
 export function QuestJournal() {
   const entries = useApp((s) => s.questJournal);
+  const [collapsed, toggle] = useCollapsed('quests');
   if (entries.length === 0) return null;
 
   return (
     <section class="quest-journal" data-testid="quest-journal">
-      <h3 class="hero-section-title">{t('journal.title')}</h3>
+      <SectionToggle
+        title={t('journal.title')}
+        collapsed={collapsed}
+        onToggle={toggle}
+        testId="quest-journal-toggle"
+      />
+      {!collapsed && (
       <ul class="quest-journal-list">
         {entries.map((q) => {
           const title = resolveKey(q.titleKey);
@@ -43,6 +51,7 @@ export function QuestJournal() {
           );
         })}
       </ul>
+      )}
     </section>
   );
 }

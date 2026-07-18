@@ -1,0 +1,36 @@
+/* En-tête de section repliable du tiroir héros (lot 4c, E7 ; doc 08 §2.5).
+   Reprend le style de `.hero-section-title` (majuscules discrètes) mais en
+   bouton pleine largeur, cible ≥ 44 px, avec chevron. */
+.hero-section-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  min-height: 44px;
+  margin: 0 0 6px;
+  padding: 6px 8px;
+  border: 1px solid var(--ink-600);
+  border-radius: var(--radius-s);
+  background: var(--ink-800);
+  color: inherit;
+  font: inherit;
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  text-align: left;
+  cursor: pointer;
+}
+
+.hero-section-toggle:hover {
+  background: var(--ink-700);
+}
+
+.hero-section-toggle-label {
+  opacity: 0.85;
+}
+
+.hero-section-toggle-chevron {
+  opacity: 0.6;
+  font-size: 0.75rem;
+}

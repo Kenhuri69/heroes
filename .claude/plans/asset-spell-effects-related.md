@@ -128,6 +128,27 @@ OU repli non suffixé à ajouter aux résolveurs (choix d'implémentation). **Mu
 > l'art LLM est mipmappé au post-traitement (fourni), soit on ajoute un repli non
 > suffixé aux deux résolveurs (petit diff client, à décider en ouvrant la phase 2).
 
+### Phase 2 — 1ʳᵉ passe d'art LLM (planches reçues)
+
+Extraction via `sheet_extract.py` (QC verte) + circular-mask ad hoc pour les
+médaillons. **Intégré** (remplace le procédural / ajoute) :
+- **Badges d'effet** (7/7, planche 7×1 propre) → `assets/ui/status-*_{32,24,16}` mipmappés.
+- **Mur de siège** (image unique) → `assets/combat/siege-wall.png` (floodfill tol 42,
+  pierre chaude ≠ gris de fond).
+- **Élémentaires** terre/feu/eau (planche 4×1, `--tol 55` pour ôter les panneaux gris
+  internes) → `assets/units/core/`. Seul `elementaire-de-terre` est câblé ; feu/eau stagés.
+
+**Différé (re-génération nécessaire)** — planches non conformes au découpage auto :
+- **Icônes de sorts p1/p2** : la planche p1 a des **libellés texte incrustés**, des
+  **doublons** (Earth-Buff, Fire-Damage) et **fire-debuff manquant** ; p2 = grille 7 col.
+  avec icônes en trop et **sans libellé** (mapping impossible). Livrer un grimoire
+  moitié-LLM/moitié-procédural serait incohérent ⇒ **on garde le procédural (36/36)**
+  et on **re-génère** avec prompts durcis (« aucun texte, grille stricte, pas de
+  doublon/manquant » — `spells-icons-p1/p2.md` mis à jour).
+- **Élémentaire d'air** : corps trop translucide/pâle sur panneau gris ⇒ mangé au
+  détourage (rembg indisponible : téléchargement du modèle bloqué 403 via le proxy).
+  Re-gen sur fond plat unique + corps plus dense (`units-summoned.md` durci).
+
 ---
 
 ## Journal

@@ -17,6 +17,7 @@ soft directional light from upper-left,
 colour identifies the magic school, the engraved motif identifies the spell effect,
 each subject centered in its own cell, not touching cell edges, clear spacing between cells,
 IMPORTANT: keep every emblem fully inside its cell with generous empty margin — nothing cropped or touching an edge,
+CRITICAL: render ONLY the artwork — do NOT paint any text, caption, label, letters or numbers anywhere (the quoted "school-kind" strings are internal references, NOT to be drawn); produce EXACTLY 20 medallions, one per grid cell, all the same diameter, no repeated icon, no extra icon, no empty cell,
 cell 1: "lumiere-buff" — radiant holy-gold light spell rune emblem showing an ascending upward-arrow blessing
 cell 2: "lumiere-damage" — radiant holy-gold light spell rune emblem showing a violent blast / jagged bolt
 cell 3: "lumiere-heal" — radiant holy-gold light spell rune emblem showing a radiant healing cross

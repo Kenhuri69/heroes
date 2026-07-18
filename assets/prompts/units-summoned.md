@@ -16,6 +16,7 @@ painterly brush strokes, dynamic conjured-spirit pose, 3/4 view, soft directiona
 each is a raw elemental spirit made purely of its element, no armour and no weapons,
 each subject centered in its own cell, not touching cell edges, clear spacing between cells,
 IMPORTANT: keep every subject fully inside its cell with generous empty margin — nothing cropped or touching an edge,
+CRITICAL: ONE single continuous flat uniform light-grey background across the whole sheet — NO inner panels, frames, boxes or rectangles behind the subjects; keep each elemental's body dense and opaque enough to read on grey (avoid faint near-white wispy edges that vanish when cut out — the air and water elementals must still read as a solid silhouette),
 cell 1: "elementaire-de-terre" — a summoned earth elemental of rock and amber with glowing molten cracks — a stocky boulder-golem elemental, elemental spirit (no armour, no weapons)
 cell 2: "elementaire-d-air" — a summoned air elemental of pale swirling wind and cloud with faint lightning — an airy vortex elemental, elemental spirit (no armour, no weapons)
 cell 3: "elementaire-de-feu" — a summoned fire elemental of living flame and ember with a molten core — a blazing fire elemental, elemental spirit (no armour, no weapons)

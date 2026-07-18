@@ -85,6 +85,8 @@ export type GameEvent =
       artifactId: string;
       pos: GridPos;
     }
+  /** Artefact vendu au marchand (doc 18 D2) — `gold` = or crédité au joueur. */
+  | { type: 'ArtifactSold'; heroId: string; playerId: string; artifactId: string; gold: number }
   /** Lieu de bonus visité (doc 02 §2.2) — `amount` = gain effectif appliqué. */
   | {
       type: 'BonusVisited';

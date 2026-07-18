@@ -59,7 +59,9 @@
       "sellRate": 25,
       "buyRate": 50,
       "perMarketBonus": 0.1,
-      "maxMarketFactor": 1.4
+      "maxMarketFactor": 1.4,
+      "artifactValuePerPoint": 500,
+      "artifactSellFactor": 0.5
     },
     "calendar": {
       "events": [

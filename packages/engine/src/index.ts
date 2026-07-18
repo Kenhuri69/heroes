@@ -127,6 +127,7 @@ export {
   scaleCost,
   tradeQuote,
   ownedMarketCount,
+  artifactSellPrice,
   unitIsRecruitable,
   upgradedUnitFor,
   upgradeCost,

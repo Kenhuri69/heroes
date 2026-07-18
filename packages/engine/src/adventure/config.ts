@@ -234,6 +234,17 @@ export interface MarketConfig {
   perMarketBonus?: number | undefined;
   /** Plafond du facteur de taux dégressif (≥ 1). Optionnel : absent ⇒ 1 (plat). */
   maxMarketFactor?: number | undefined;
+  /**
+   * Marchand d'artefacts (doc 18 D2) : or de base par POINT de bonus d'un
+   * artefact sans `value` explicite (`Σ|bonus| × artifactValuePerPoint`).
+   * Optionnel : absent ⇒ vente d'artefacts désactivée (marché ressources seul).
+   */
+  artifactValuePerPoint?: number | undefined;
+  /**
+   * Fraction de la valeur de base rendue à la VENTE d'un artefact (spread
+   * marchand, ex. 0,5). Optionnel : absent ⇒ `1` (revente au prix plein).
+   */
+  artifactSellFactor?: number | undefined;
 }
 
 /** Progression du héros (doc 02 §1.2 + décisions plan phase-2.5). */

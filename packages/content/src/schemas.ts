@@ -1220,6 +1220,11 @@ export const mapFileSchema = z.object({
               .array(z.object({ unitId: idSchema, count: z.number().int().positive() }))
               .min(1),
           }),
+          // Doc 18 A5 — téléport scripté du héros visiteur (no-op sur trigger `day`).
+          z.object({
+            kind: z.literal('teleport'),
+            to: z.object({ x: z.number().int().nonnegative(), y: z.number().int().nonnegative() }),
+          }),
         ]),
       }),
     )

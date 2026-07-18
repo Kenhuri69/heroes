@@ -253,7 +253,9 @@ export type TriggerEffect =
   /** Don d'armée au héros visiteur : fusion même unité, sinon nouveau slot (cap 7). */
   | { kind: 'grantArmy'; unitId: string; count: number }
   /** Embuscade : combat scripté contre l'armée déclarée — interrompt le chemin. */
-  | { kind: 'ambush'; army: { unitId: string; count: number }[] };
+  | { kind: 'ambush'; army: { unitId: string; count: number }[] }
+  /** Téléport scripté (doc 18 A5) : déplace le héros visiteur en `to` — interrompt le chemin. */
+  | { kind: 'teleport'; to: GridPos };
 
 /**
  * Trigger de carte (doc 02 §2.1) : un effet déclaratif déclenché soit à la

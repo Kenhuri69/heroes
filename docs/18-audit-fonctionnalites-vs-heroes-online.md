@@ -93,11 +93,13 @@ de cet audit)*
 
 **A5 — Triggers de carte limités** 🚧 *(partiellement livré)*
 - **Livré** : `TriggerEffect` enrichi (`map.ts`/`triggers.ts`) — au-delà de
-  `grantResource`/`message` : **combat scripté** sur tuile (`ambush`, doc 18 A5),
-  **don d'artefact** (`grantArtifact`) et **don d'armée** (`grantArmy`).
-- **Reste** (P2) : **message à choix** (branches), **téléport scripté**, retrait
-  d'artefact/armée — utiles aux campagnes N3/N4. Chaque effet = une variante
-  d'union `TriggerEffect` + un cas dans `triggers.ts` (moteur générique).
+  `grantResource`/`message` : **combat scripté** sur tuile (`ambush`), **don
+  d'artefact** (`grantArtifact`), **don d'armée** (`grantArmy`) et **téléport
+  scripté** (`teleport` : déplace le héros visiteur, révèle la vision, interrompt
+  le chemin sans combat ; garde-fou hors-carte).
+- **Reste** (P2) : **message à choix** (branches — exige un état d'attente moteur
+  + UI, lot dédié), retrait d'artefact/armée — utiles aux campagnes N3/N4. Chaque
+  effet = une variante d'union `TriggerEffect` + un cas dans `triggers.ts`.
 
 **A6 — Villes neutres hors `MapObjectDef`**
 - **État** : le mapgen émet des villes neutres, mais elles sont instanciées au
@@ -353,8 +355,8 @@ M ≈ 2-3 j, L = semaine(s).
 > (A1, B6, E1, F4, B1, A2/A2b, B2, A4, C1, C2, **E3** ✅) ; l'Étape 4 en ligne est
 > livrée (B4, E2, E6 ✅). Les décisions de cadrage (Étape 5) sont tranchées :
 > B3, A3, E4 **retenus et livrés** (reste **E4.4** pour E4). **Items encore
-> ouverts** : **E4.4** (actions de héros par-héros en coop, P3) · **A5** (triggers
-> message-à-choix/téléport, P2 partiel — ambush/grants livrés) · **A6** (ville
+> ouverts** : **E4.4** (actions de héros par-héros en coop, P3) · **A5** (trigger
+> message-à-choix, P2 — ambush/grants/téléport livrés) · **A6** (ville
 > neutre en `MapObjectDef`, P3) · **D1** (vue de ville peinte, Beta) · **D2**
 > (marchand d'artefacts, P3 — le troc ressource↔ressource est livré). Les fiches
 > §2 portent le détail par item.
@@ -375,7 +377,7 @@ M ≈ 2-3 j, L = semaine(s).
 | 2.1 | ✅ Pénalité de portée de tir (`combat.rangePenalty`, sprint 1) | B1 | S | unitaires dégâts + préviz ; config absente ⇒ golden inchangé |
 | 2.2 | ✅ Croissance hebdo des gardiens (`adventure.guardianGrowth`) | A2 | S | unitaires `WeekStarted` ; opt-in ⇒ golden inchangé |
 | 2.3 | ✅ Tente de soins + chariot de munitions (2 effets `warMachine`) | B2 | M | unitaires combat ; données + 2 sprites (repli procédural) |
-| 2.4 | Triggers enrichis (combat scripté ✅, message à choix, téléport restants) | A5 | M | unitaires + 1 usage campagne |
+| 2.4 | Triggers enrichis (combat scripté ✅, téléport ✅ ; message à choix restant) | A5 | M | unitaires + 1 usage campagne |
 | 2.5 | ✅ Événements de calendrier au mois (`calendar.monthEvents`) | A4 | S | unitaires calendrier |
 
 ### Étape 3 — Différenciation & contenu (équilibrage requis)

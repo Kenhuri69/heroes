@@ -270,6 +270,57 @@ describe('lot 2.4 (doc 18 A5) — effets liés au héros visiteur', () => {
     expect(r.state.map!.triggers[0]!.fired).toBe(false);
   });
 
+  it('teleport : déplace le héros visiteur en `to`, interrompt le chemin, révèle la vision, one-shot', () => {
+    const dest = { x: 7, y: 6 };
+    const state = startWith(
+      [
+        {
+          id: 't-tp',
+          on: { kind: 'visit', pos: { x: 1, y: 0 } },
+          effect: { kind: 'teleport', to: dest },
+          fired: false,
+        },
+      ],
+      [ARMED],
+    );
+    // La destination n'est pas explorée au départ (le héros voit autour de (0,0)).
+    expect(state.players[0]!.explored[dest.y * state.map!.width + dest.x]).toBeFalsy();
+    const r = apply(state, {
+      type: 'MoveHero',
+      heroId: 'hero-p1',
+      path: [
+        { x: 1, y: 0 },
+        { x: 2, y: 0 },
+      ],
+    });
+    // Téléporté en `to` (SUR la tuile piège, le reste du chemin est abandonné), aucun combat.
+    expect(r.state.heroes[0]!.pos).toEqual(dest);
+    expect(r.state.combat).toBeNull();
+    expect(r.events.some((e) => e.type === 'HeroTeleported')).toBe(true);
+    expect(r.state.map!.triggers[0]!.fired).toBe(true);
+    // Vision révélée autour de la destination.
+    expect(r.state.players[0]!.explored[dest.y * r.state.map!.width + dest.x]).toBe(1);
+  });
+
+  it('teleport : cible hors carte ⇒ garde-fou (héros immobile, trigger NON consommé)', () => {
+    const state = startWith(
+      [
+        {
+          id: 't-tp-oob',
+          on: { kind: 'visit', pos: { x: 1, y: 0 } },
+          effect: { kind: 'teleport', to: { x: 999, y: 999 } },
+          fired: false,
+        },
+      ],
+      [ARMED],
+    );
+    const r = apply(state, { type: 'MoveHero', heroId: 'hero-p1', path: [{ x: 1, y: 0 }] });
+    // Cible hors bornes : aucun déplacement de téléport, trigger pas consommé.
+    expect(r.state.heroes[0]!.pos).toEqual({ x: 1, y: 0 });
+    expect(r.events.some((e) => e.type === 'HeroTeleported')).toBe(false);
+    expect(r.state.map!.triggers[0]!.fired).toBe(false);
+  });
+
   it('trigger de jour à effet héros (grantArtifact) : no-op tracé (fired + événement, aucun octroi)', () => {
     const state = startWith(
       [

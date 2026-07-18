@@ -472,6 +472,36 @@ test('E9 : les revenus du jour sont agrégés en une seule entrée de journal', 
   expect(errors).toEqual([]);
 });
 
+// Tag @core (desktop) : la LOGIQUE E7 (repli/dépli d'une section + persistance
+// localStorage) est indépendante du viewport ; sur desktop le tiroir héros est
+// toujours visible ⇒ pas de dépendance au bouton hamburger mobile.
+test('E7 : les sections du tiroir héros se replient et l’état persiste', { tag: '@core' }, async ({ page }) => {
+  const errors = await openGame(page);
+
+  // Corps de la section Compétences (liste de compétences OU état « aucune »).
+  const toggle = page.getByTestId('hero-skills-toggle');
+  const body = page.locator(
+    '[data-testid="hero-skills"] .hero-skill-list, [data-testid="hero-skills"] .hero-skills-empty',
+  );
+  await expect(toggle).toBeVisible();
+  await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+  await expect(body).toHaveCount(1);
+
+  // Replier : le corps disparaît, `aria-expanded=false`, préférence persistée.
+  await toggle.click();
+  await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  await expect(body).toHaveCount(0);
+  const stored = await page.evaluate(() => localStorage.getItem('heroes.section.skills'));
+  expect(stored).toBe('1');
+
+  // Déplier : le corps réapparaît (aucune perte de contenu).
+  await toggle.click();
+  await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+  await expect(body).toHaveCount(1);
+
+  expect(errors).toEqual([]);
+});
+
 test('fin de tour : jour suivant, points de mouvement restaurés', async ({ page }) => {
   const errors = await openGame(page);
 

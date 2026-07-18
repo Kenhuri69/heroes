@@ -5,6 +5,7 @@ import { t, resolveArtifactName, resolveArtifactLore, commandErrorMessage } from
 import { artifactUrl } from '../render/assets';
 import { pushToast } from './toasts';
 import { AssetImg } from './AssetImg';
+import { useCollapsed, SectionToggle } from './CollapsibleSection';
 import './HeroInventory.css';
 
 /**
@@ -95,9 +96,17 @@ export function HeroInventory({
     );
   };
 
+  const [collapsed, toggle] = useCollapsed('equipment');
   return (
     <section class="hero-inventory" data-testid="hero-inventory">
-      <h3 class="hero-section-title">{t('hero.equipmentTitle')}</h3>
+      <SectionToggle
+        title={t('hero.equipmentTitle')}
+        collapsed={collapsed}
+        onToggle={toggle}
+        testId="hero-equipment-toggle"
+      />
+      {!collapsed && (
+        <>
       <ul class="hero-equipment-doll">
         {SLOT_ORDER.map((slot) => {
           const entry = equipped[slot];
@@ -220,6 +229,8 @@ export function HeroInventory({
       )}
       {backpack.length > 0 && artifactsFull && manageable && (
         <p class="hero-bag-empty">{t('hero.equipFull')}</p>
+      )}
+        </>
       )}
     </section>
   );

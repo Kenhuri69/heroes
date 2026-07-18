@@ -3,6 +3,7 @@ import { useApp } from '../app/store';
 import { dispatch } from '../app/dispatch';
 import { t, resolveSpellName, commandErrorMessage } from '../app/i18n';
 import { pushToast } from './toasts';
+import { useCollapsed, SectionToggle } from './CollapsibleSection';
 
 /**
  * Livre des sorts d'**aventure** (doc 02 §1.4, Alpha 4.16) dans le tiroir héros :
@@ -18,6 +19,7 @@ export function AdventureSpellbook({ hero }: { hero: HeroState }) {
   const spells = heroKnownSpellIds(hero, artifactCatalog)
     .map((id) => catalog[id])
     .filter((spell): spell is NonNullable<typeof spell> => spell?.kind === 'adventure');
+  const [collapsed, toggle] = useCollapsed('spellbook');
   if (spells.length === 0) return null;
 
   const cast = (spellId: string): void => {
@@ -30,22 +32,29 @@ export function AdventureSpellbook({ hero }: { hero: HeroState }) {
 
   return (
     <section class="adventure-spellbook" data-testid="adventure-spellbook">
-      <h3>{t('spellbook.adventureTitle')}</h3>
-      <ul class="adventure-spell-list">
-        {spells.map((spell) => (
-          <li key={spell.id}>
-            <button
-              class="adventure-spell-cast"
-              data-testid={`adventure-spell-${spell.id}`}
-              disabled={hero.mana < spell.manaCost}
-              onClick={() => cast(spell.id)}
-            >
-              {resolveSpellName(spell.id)}
-              <span class="adventure-spell-cost">{t('spellbook.manaCost', { cost: spell.manaCost })}</span>
-            </button>
-          </li>
-        ))}
-      </ul>
+      <SectionToggle
+        title={t('spellbook.adventureTitle')}
+        collapsed={collapsed}
+        onToggle={toggle}
+        testId="adventure-spellbook-toggle"
+      />
+      {!collapsed && (
+        <ul class="adventure-spell-list">
+          {spells.map((spell) => (
+            <li key={spell.id}>
+              <button
+                class="adventure-spell-cast"
+                data-testid={`adventure-spell-${spell.id}`}
+                disabled={hero.mana < spell.manaCost}
+                onClick={() => cast(spell.id)}
+              >
+                {resolveSpellName(spell.id)}
+                <span class="adventure-spell-cost">{t('spellbook.manaCost', { cost: spell.manaCost })}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
     </section>
   );
 }

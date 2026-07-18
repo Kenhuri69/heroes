@@ -58,6 +58,7 @@ import { HeroSwap } from './HeroSwap';
 import { HeroSkills } from './HeroSkills';
 import { HeroInventory } from './HeroInventory';
 import { AdventureSpellbook } from './AdventureSpellbook';
+import { useCollapsed, SectionToggle } from './CollapsibleSection';
 import { SkillChoice } from './SkillChoice';
 import { AttributeChoice } from './AttributeChoice';
 import { TreasureChoice } from './TreasureChoice';
@@ -877,6 +878,7 @@ function HeroDrawer() {
   const config = useApp((s) => s.game.config);
   const artifactCatalog = useApp((s) => s.game.artifactCatalog);
   const [open, setOpen] = useState(false);
+  const [armyCollapsed, toggleArmy] = useCollapsed('army');
   // Raccourci `H` (lot M8 C2) : bascule le tiroir depuis le handler clavier global.
   useEffect(() => {
     const toggle = (): void => setOpen((o) => !o);
@@ -959,9 +961,18 @@ function HeroDrawer() {
             <dd>{hero.attributes.knowledge}</dd>
           </div>
         </dl>
-        <h3 class="hero-army-title">{t('army.title')}</h3>
-        <ArmySlots army={hero.army} heroId={hero.id} />
-        <HeroSwapButton hero={hero} />
+        <SectionToggle
+          title={t('army.title')}
+          collapsed={armyCollapsed}
+          onToggle={toggleArmy}
+          testId="hero-army-toggle"
+        />
+        {!armyCollapsed && (
+          <>
+            <ArmySlots army={hero.army} heroId={hero.id} />
+            <HeroSwapButton hero={hero} />
+          </>
+        )}
         <HeroSkills hero={hero} />
         <HeroInventory hero={hero} catalog={artifactCatalog} />
         <AdventureSpellbook hero={hero} />

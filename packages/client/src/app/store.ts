@@ -1,6 +1,6 @@
 import { createStore } from 'zustand/vanilla';
 import { useSyncExternalStore } from 'preact/compat';
-import type { GameState, MapObjectDef, ResourceId } from '@heroes/engine';
+import type { GameState, GridPos, MapObjectDef, ResourceId } from '@heroes/engine';
 import { createEmptyState } from '@heroes/engine';
 import type { Campaign, DialogNode, Scenario, StoryCharacter } from '@heroes/content';
 import type { Modal, Screen } from './router';
@@ -194,6 +194,12 @@ export interface AppState {
   /** Confirmation de fin de tour en attente (lot M8 C12) — overlay tap-tap ; null = aucune. */
   pendingEndTurn: { playerId: string } | null;
   /**
+   * Invite coop en attente (E4.5, doc 18 E4) : un déplacement va engager un
+   * gardien et un héros allié est adjacent ⇒ overlay Oui (rejoint)/Non (solo).
+   * `path` est le chemin à dispatcher ; null = aucune invite en cours.
+   */
+  pendingCoopInvite: { heroId: string; allyHeroId: string; allyName: string; path: GridPos[] } | null;
+  /**
    * Chargement en cours (« Nouvelle partie » : génération de carte). `label` =
    * clé i18n de l'étape ; `progress` ∈ [0,1]. `null` = aucun chargement. Rendu
    * par `LoadingOverlay` (overlay bloquant à barre de progression).
@@ -294,6 +300,7 @@ export const appStore = createStore<AppState>(() => ({
   reduceMotionOption: false,
   confirmEndTurn: true,
   pendingEndTurn: null,
+  pendingCoopInvite: null,
   loading: null,
   playerColors: {},
   aiTurn: null,

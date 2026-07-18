@@ -33,7 +33,8 @@ import { buildHeroSprite } from '../../render/heroSprite';
 import { buildWorldBorder } from '../../render/worldBorder';
 import { PathPreview, type PreviewStep } from '../../render/pathPreview';
 import { onLongPress, onTap } from '../../input/pointer';
-import { commandErrorMessage, t } from '../../app/i18n';
+import { commandErrorMessage, resolveHeroName, t } from '../../app/i18n';
+import { requestCoopInvite } from '../../app/coop-invite';
 import { pushToast } from '../../ui/toasts';
 
 const STEP_ANIMATION_MS = 110;
@@ -377,6 +378,27 @@ export class AdventureScene {
     return token;
   }
 
+  /**
+   * Coop (E4.5) : si `path` (cible `target`) engage un GARDIEN et qu'un héros
+   * ALLIÉ (autre joueur, `areAllies`) à l'armée non vide est adjacent à la tuile
+   * d'ENGAGEMENT (avant-dernière du chemin — là où le héros s'arrête pour frapper
+   * le gardien), le retourne pour proposer une invite. Sinon `undefined`. Miroir
+   * client de `resolveCoopAlly` moteur (qui revalide au dispatch).
+   */
+  private coopAllyForGuardianMove(hero: HeroState, path: GridPos[], target: GridPos): HeroState | undefined {
+    const game = appStore.getState().game;
+    const map = game.map;
+    if (!map || !map.objects.some((o) => o.type === 'guardian' && samePos(o.pos, target))) return undefined;
+    const engageTile = path.length >= 2 ? path[path.length - 2]! : hero.pos;
+    const player = game.players.find((p) => p.id === hero.playerId);
+    if (!player) return undefined;
+    return game.heroes.find((h) => {
+      if (h.id === hero.id || h.army.length === 0) return false;
+      const hp = game.players.find((p) => p.id === h.playerId);
+      return !!hp && areAllies(player, hp) && isAdjacent(engageTile, h.pos);
+    });
+  }
+
   private async handleTap(global: Point): Promise<void> {
     if (this.destroyed || this.animatingHeroId !== null) return;
     const { game } = appStore.getState();
@@ -434,6 +456,15 @@ export class AdventureScene {
     // 2ᵉ tap sur la même destination = confirmation (doc 08 §2.1).
     if (this.previewTarget && samePos(this.previewTarget.target, tile)) {
       const path = this.previewTarget.path;
+      // Coop (E4.5) : si ce déplacement engage un GARDIEN et qu'un héros allié est
+      // adjacent à la tuile d'engagement (avant-dernière du chemin), proposer de
+      // l'inviter avant de dispatcher (`MoveHero.allyHeroId`). Sinon, flux normal.
+      const ally = this.coopAllyForGuardianMove(hero, path, tile);
+      if (ally) {
+        this.clearPreview();
+        requestCoopInvite(hero.id, ally.id, resolveHeroName(ally.name), path);
+        return;
+      }
       this.clearPreview();
       try {
         const result = await dispatch({ type: 'MoveHero', heroId: hero.id, path });

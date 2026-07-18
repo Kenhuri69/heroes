@@ -872,7 +872,11 @@ round (sort ET frappe, ou deux sorts), joueur comme IA.
 > threadé), armée combinée **cap 7 partagé** (lead prioritaire), piles alliées
 > taguées et **armée de l'allié vidée** à l'engagement ; à la victoire les survivants
 > reviennent **par héros propriétaire** et l'**XP se partage à égalité** ; à la défaite
-> le lead meurt, l'allié survit sans armée. Hors coop = bit-identique. **Différés** :
-> **E4.2b** siège coop ; **E4.3** butin partagé ; **E4.4** actions de héros par-héros
-> (chaque allié agit) ; **E4.5** client (invite/consentement + rendu propriétaire).
+> le lead meurt, l'allié survit sans armée. Hors coop = bit-identique. **E4.5 client
+> ✅ livré** — à la confirmation d'un déplacement engageant un gardien, si un héros
+> allié est adjacent à la tuile d'engagement, un overlay propose de **l'inviter**
+> (Oui = rejoint, Non = solo) et câble `MoveHero.allyHeroId` ; en combat, les piles
+> de l'allié portent un **liseré de la couleur de son joueur** (propriété visible).
+> Coop désormais **jouable**. **Différés** : **E4.2b** siège coop ; **E4.3** butin
+> partagé ; **E4.4** actions de héros par-héros (chaque allié agit).
 > **Priorité P3** (audit) : chantier lourd, livré par lots atomiques.

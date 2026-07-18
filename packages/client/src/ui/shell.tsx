@@ -16,6 +16,7 @@ import {
 import { useApp, appStore } from '../app/store';
 import { back, closeModalKind, openModal, useModals, useScreen } from '../app/router';
 import { requestEndTurn, confirmPendingEndTurn, cancelPendingEndTurn } from '../app/end-turn';
+import { confirmCoopInvite, declineCoopInvite, cancelCoopInvite } from '../app/coop-invite';
 import { dispatch } from '../app/dispatch';
 import {
   adjacentFriendlyHeroes,
@@ -284,6 +285,7 @@ function Shell() {
       {!pendingSkillHero && pendingAttributeHero && <AttributeChoice hero={pendingAttributeHero} />}
       {pendingTreasure && <TreasureChoice pending={pendingTreasure} />}
       <EndTurnConfirm />
+      {screen === 'adventure' && <CoopInviteConfirm />}
       {screen === 'adventure' && <HandoffOverlay />}
       {screen === 'adventure' && <OnlineWaitOverlay />}
       {started && !inCombat && <CutsceneOverlay />}
@@ -442,6 +444,42 @@ function guardianBand(count: number, bands: { max: number | null; key: string }[
  * pas bougé (`pendingEndTurn` posé par `requestEndTurn`). Tap-tap : Confirmer /
  * Annuler ; Échap annule. Désactivable via l'option « Confirmer la fin de tour ».
  */
+/** Overlay d'invite coop (E4.5, doc 18 E4) : inviter un allié adjacent avant un combat de gardien. */
+function CoopInviteConfirm() {
+  useApp((s) => s.locale);
+  const pending = useApp((s) => s.pendingCoopInvite);
+  useEffect(() => {
+    if (!pending) return;
+    const onKey = (e: KeyboardEvent): void => {
+      if (e.key === 'Escape') cancelCoopInvite();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [pending]);
+  if (!pending) return null;
+  return (
+    <div class="map-card-backdrop" onClick={cancelCoopInvite}>
+      <section
+        class="map-card end-turn-confirm"
+        data-testid="coop-invite"
+        role="dialog"
+        aria-label={t('coop.inviteTitle')}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <p class="map-card-line">{t('coop.inviteBody', { name: pending.allyName })}</p>
+        <div class="end-turn-confirm-actions">
+          <button data-testid="coop-invite-no" onClick={declineCoopInvite}>
+            {t('coop.inviteNo')}
+          </button>
+          <button class="end-turn-confirm-go" data-testid="coop-invite-yes" onClick={confirmCoopInvite}>
+            {t('coop.inviteYes')}
+          </button>
+        </div>
+      </section>
+    </div>
+  );
+}
+
 function EndTurnConfirm() {
   useApp((s) => s.locale);
   const pending = useApp((s) => s.pendingEndTurn);

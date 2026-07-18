@@ -27,6 +27,7 @@ import { commandErrorMessage } from '../../app/i18n';
 import { pushToast } from '../../ui/toasts';
 import { onLongPress, onTap } from '../../input/pointer';
 import { Camera } from '../../render/camera';
+import { playerColor } from '../../render/playerColors';
 import { heroAvatarUrl, unitSpriteUrl, siegeWallUrl, statusIconUrl } from '../../render/assets';
 import { heroArchetype } from '../../app/game';
 import { HEX_SIZE, computeBoardBounds, drawBoard, hexKey, offsetToPixel, pixelToOffset } from '../../render/hexgrid';
@@ -559,6 +560,20 @@ export class CombatScene {
         .fill({ color: side === 'attacker' ? ATTACKER_COLOR : DEFENDER_COLOR, alpha: 0.85 })
         .stroke({ width: 2, color: 0x1a1c22 }),
     );
+    // Coop (E4.5b, doc 18 E4) : une pile issue d'un héros ALLIÉ invité (owner
+    // explicite) porte un liseré de la couleur de son joueur — signal « à qui
+    // appartient la pile ». Piles du lead (owner absent) : aucun anneau (rendu
+    // mono-héros inchangé).
+    if (stack.ownerHeroId) {
+      const game = appStore.getState().game;
+      const owner = game.heroes.find((h) => h.id === stack.ownerHeroId);
+      const color = owner ? playerColor(game.players, owner.playerId) : 0xffffff;
+      token.addChild(
+        new Graphics()
+          .ellipse(0, TOKEN_RADIUS * 0.7, TOKEN_RADIUS * 0.98, TOKEN_RADIUS * 0.48)
+          .stroke({ width: 3, color }),
+      );
+    }
     // I2 : le visuel d'unité (repli polygone puis sprite) vit dans un conteneur
     // `bob` que la boucle idle fait osciller ; l'ellipse de sol et le badge
     // d'effectif (ajoutés hors de `bob`) restent fixes.

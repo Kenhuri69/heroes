@@ -28,7 +28,8 @@ import { pushToast } from '../../ui/toasts';
 import { onLongPress, onTap } from '../../input/pointer';
 import { Camera } from '../../render/camera';
 import { playerColor } from '../../render/playerColors';
-import { heroAvatarUrl, unitSpriteUrl, siegeWallUrl, siegeWallCrackedUrl, siegeWallBreachedUrl, statusIconUrl } from '../../render/assets';
+import { heroAvatarUrl, unitSpriteUrl, statusIconUrl } from '../../render/assets';
+import { drawSiegeWall } from '../../render/siegeWall';
 import { heroArchetype } from '../../app/game';
 import { HEX_SIZE, computeBoardBounds, drawBoard, hexKey, offsetToPixel, pixelToOffset } from '../../render/hexgrid';
 import { isContentPointVisible, type Rect } from '../../render/cameraClamp';
@@ -79,11 +80,6 @@ const DEATH_TIP_RAD = Math.PI / 2; // bascule finale (~90°)
 const SHAKE_PX = 4; // amplitude crête de la secousse
 const SHAKE_MS = 120;
 
-// Largeur de dessin d'un segment de rempart de siège. > pas vertical d'hex
-// (1,5·HEX_SIZE) pour que les segments d'une même colonne se chevauchent
-// verticalement ⇒ muraille continue (limite le zigzag de l'offset hex, S1).
-const SIEGE_WALL_DRAW = HEX_SIZE * 2.6;
-
 const MARGIN_TOP = 96; // bandeau armées + round (doc 08 §2.4)
 // S9.4 : marge basse élargie — la barre d'actions peut passer à 2 rangées et le
 // badge d'effectif déborde SOUS le jeton ; sans marge, les piles de la rangée 9
@@ -114,12 +110,10 @@ export class CombatScene {
   private readonly camera: Camera;
   private readonly boardLayer = new Container();
   private readonly boardGfx = new Graphics();
-  /** C-SIEGE2 : sprites de rempart posés sur les hexes `siegeWalls` (repli = rocher). */
-  private readonly wallLayer = new Container();
-  /** Signature des remparts déjà rendus (hexes + PV) — évite de reconstruire à chaque sync. */
+  /** S1 : muraille de siège CONTINUE (courtine + tours + porte + dégâts), dessinée en une passe (`drawSiegeWall`). */
+  private readonly wallGfx = new Graphics();
+  /** Signature des remparts déjà rendus (hexes + PV) — évite de redessiner à chaque sync. */
   private wallKeys = '';
-  /** S2 : conteneur de rempart par hex (`"col,row"`) — cracks d'usure + chute animée du segment bombardé. */
-  private readonly wallSprites = new Map<string, Container>();
   private readonly stacksLayer = new Container();
   /** UXD-4 : effets éphémères (chiffres de dégâts flottants) au-dessus des piles. */
   private readonly fxLayer = new Container();
@@ -160,8 +154,8 @@ export class CombatScene {
   private readonly unsubscribeLongPress: () => void;
 
   constructor(private readonly app: Application) {
-    this.boardLayer.addChild(this.boardGfx, this.wallLayer, this.heroLayer, this.stacksLayer, this.fxLayer);
-    this.wallLayer.eventMode = 'none'; // décor de rempart : ne capte jamais le tap
+    this.boardLayer.addChild(this.boardGfx, this.wallGfx, this.heroLayer, this.stacksLayer, this.fxLayer);
+    this.wallGfx.eventMode = 'none'; // décor de rempart : ne capte jamais le tap
     this.fxLayer.eventMode = 'none'; // purement décoratif : ne capte jamais le tap
     this.heroLayer.eventMode = 'none'; // jetons de héros décoratifs (C-HEROSPRITE)
     // Le plateau vit dans la caméra de combat (pan/pinch/molette, plancher tactile).
@@ -310,8 +304,7 @@ export class CombatScene {
       this.selection = null;
       combatPreview.set(null);
       this.boardGfx.clear();
-      this.wallLayer.removeChildren().forEach((c) => c.destroy());
-      this.wallSprites.clear();
+      this.wallGfx.clear();
       this.wallKeys = '';
       this.fxLayer.removeChildren().forEach((c) => c.destroy()); // purge des chiffres flottants
       for (const [id, token] of this.stackTokens) {
@@ -339,113 +332,28 @@ export class CombatScene {
   }
 
   /**
-   * C-SIEGE2 + S2 : pose un sprite de rempart (`combat/siege-wall`) sur chaque
-   * hex de `combat.siegeWalls`, distinct des obstacles de champ. Le sprite
-   * RECOUVRE le rocher procédural de `drawBoard` ; s'il est absent (asset non
-   * produit) le rocher reste — repli gracieux, jamais d'image cassée.
-   *
-   * Rendu par MAP keyée (S2) au lieu d'un rebuild total : un segment retiré par la
-   * catapulte (C-SIEGE2.6) tombe avec un fondu/bascule (S2.3) au lieu de
-   * disparaître sèchement ; un segment entamé (`siegeWallHp` sous le maximum
-   * courant) reçoit un overlay de fissures / un assombrissement (S2.2). La
-   * signature intègre les PV ⇒ les cracks suivent l'usure round après round.
+   * C-SIEGE2 + S1/S2 : dessine la muraille de siège comme UNE structure continue
+   * (`drawSiegeWall` — courtine + tours aux extrémités + porte à l'ouverture +
+   * fissures/brèche au niveau des segments entamés), au lieu d'un sprite par hex
+   * (blocs épars, gaps ; audit doc 19 §2.1). Procédural, déterministe, redessiné
+   * seulement quand la signature (hexes + PV) change — l'érosion de la catapulte
+   * (C-SIEGE2.6) ouvre la brèche au redraw ; le FX de bombardement (projectile +
+   * éclats) reste joué par `WallBombarded`.
    */
   private syncWalls(combat: CombatState): void {
     const walls = combat.siegeWalls ?? [];
     const hp = combat.siegeWallHp ?? {};
-    // Un segment est « endommagé » si ses PV sont sous le maximum courant des
-    // segments encore debout (le pilonnage entame un hex à la fois ⇒ des segments
-    // intacts servent de référence). Purement cosmétique : zéro couplage moteur.
-    const maxHp = Object.keys(hp).length ? Math.max(...Object.values(hp)) : 0;
+    // Signature = hexes + PV : redessine quand la muraille change (segment ouvert
+    // par la catapulte, usure d'un segment) mais pas à chaque toast.
     const sig = walls
       .map((w) => `${hexKey(w)}:${hp[hexKey(w)] ?? ''}`)
       .sort()
       .join('|');
     if (sig === this.wallKeys) return;
     this.wallKeys = sig;
-    const desired = new Set(walls.map(hexKey));
-
-    // Segments retirés (bombardés) : chute animée puis destruction (S2.3).
-    for (const [key, entry] of this.wallSprites) {
-      if (desired.has(key)) continue;
-      this.wallSprites.delete(key);
-      void this.animateWallFall(entry);
-    }
-
-    const url = siegeWallUrl();
-    if (!url) return; // pas de sprite de rempart : repli rocher (drawBoard)
-    for (const pos of walls) {
-      const key = hexKey(pos);
-      const ratio = maxHp > 0 ? (hp[key] ?? maxHp) / maxHp : 1;
-      let entry = this.wallSprites.get(key);
-      if (!entry) {
-        entry = new Container();
-        const { x, y } = offsetToPixel(pos);
-        entry.position.set(x, y);
-        this.wallLayer.addChild(entry);
-        this.wallSprites.set(key, entry);
-        const segment = entry;
-        void Assets.load(url).then((texture) => {
-          if (this.destroyed || segment.destroyed) return;
-          const sprite = new Sprite(texture);
-          sprite.label = 'wall';
-          sprite.anchor.set(0.5, 0.6);
-          const scale = (SIEGE_WALL_DRAW) / Math.max(texture.width, texture.height);
-          sprite.scale.set(scale);
-          segment.addChildAt(sprite, 0);
-          this.applyWallDamage(segment, ratio);
-        });
-      } else {
-        this.applyWallDamage(entry, ratio);
-      }
-    }
-  }
-
-  /**
-   * S2.2 : matérialise l'usure d'un segment de rempart en 3 paliers pilotés par le
-   * ratio de PV — intact / fissuré (`siege-wall-cracked`, < max) / percé
-   * (`siege-wall-breached`, < ~40 %). L'overlay opaque recouvre le rempart intact.
-   * Repli gracieux si l'asset manque : assombrissement (teinte) du sprite de base.
-   */
-  private applyWallDamage(entry: Container, ratio: number): void {
-    const stage = ratio >= 1 ? 'intact' : ratio > 0.4 ? 'cracked' : 'breached';
-    const wall = entry.getChildByLabel('wall') as Sprite | null;
-    const url = stage === 'cracked' ? siegeWallCrackedUrl() : stage === 'breached' ? siegeWallBreachedUrl() : undefined;
-    // Repli sans overlay : assombrir le rempart proportionnellement à l'usure.
-    if (wall) wall.tint = stage === 'intact' || url ? 0xffffff : 0x9a8f80;
-    const existing = entry.getChildByLabel('damage') as (Sprite & { _stage?: string }) | null;
-    if (existing?._stage === stage) return; // pas de rework si palier inchangé
-    if (existing) existing.destroy();
-    if (!url) return;
-    void Assets.load(url).then((tex) => {
-      if (this.destroyed || entry.destroyed) return;
-      const cur = entry.getChildByLabel('damage') as (Sprite & { _stage?: string }) | null;
-      if (cur?._stage === stage) return;
-      if (cur) cur.destroy();
-      const s = new Sprite(tex) as Sprite & { _stage?: string };
-      s.label = 'damage';
-      s._stage = stage;
-      s.anchor.set(0.5, 0.6);
-      s.scale.set((SIEGE_WALL_DRAW) / Math.max(tex.width, tex.height));
-      entry.addChild(s);
-    });
-  }
-
-  /** S2.3 : chute d'un segment bombardé — fondu + bascule + affaissement, puis destruction. */
-  private async animateWallFall(entry: Container): Promise<void> {
-    if (entry.destroyed) return;
-    if (prefersReducedMotion()) {
-      entry.destroy();
-      return;
-    }
-    const y0 = entry.position.y;
-    await tween(320, (t) => {
-      if (entry.destroyed) return;
-      entry.alpha = 1 - t;
-      entry.rotation = t * 0.5;
-      entry.position.y = y0 + t * HEX_SIZE * 0.4;
-    });
-    if (!entry.destroyed) entry.destroy();
+    this.wallGfx.clear();
+    // S1 : muraille CONTINUE (courtine + tours + porte + dégâts) en une passe.
+    drawSiegeWall(this.wallGfx, combat);
   }
 
   /**

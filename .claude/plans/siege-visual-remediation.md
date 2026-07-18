@@ -103,11 +103,11 @@ L'événement moteur `WallBombarded { col, row, destroyed }` existe
       `siege-wall-top / -mid / -bottom / -stub` (moignon détruit) + **porte**
       `siege-gate` (et variante brisée `siege-gate-breached`), même gouache
       (skill `asset-sheet`, prompts doc 12 §7).
-- [~] S1.2 (PARTIEL : `SIEGE_WALL_DRAW` élargi ferme les gaps verticaux ; sélection par orientation encore à faire) `syncWalls` : choisir le sprite par position dans la colonne
+- [x] S1.2 (RÉSOLU autrement : muraille CONTINUE procédurale `drawSiegeWall` — courtine + tours, plus de per-hex) `syncWalls` : choisir le sprite par position dans la colonne
       (extrémités/segments), ancrer bord-à-bord pour absorber le zigzag de
       l'offset hex (léger décalage x par parité de rangée, chevauchement
       vertical) ⇒ muraille visuellement continue.
-- [~] S1.3 (asset-gated, différé) Habiller l'OUVERTURE : hexes de porte (`SIEGE_GATE_ROWS`) avec le
+- [x] S1.3 (porte + tours procédurales à l'ouverture, brèche = trou+gravats) Habiller l'OUVERTURE : hexes de porte (`SIEGE_GATE_ROWS`) avec le
       sprite de porte (ouverte = franchissable) ; hexes de brèche catapulte
       avec des gravats/moignons — la porte légitime et la brèche deviennent
       discernables. Les positions viennent de l'état (`siegeWalls` absents +

@@ -11,6 +11,7 @@
   "online.email": "Adresse e-mail",
   "online.request": "Recevoir le lien",
   "online.linkHint": "Lien de vérification :",
+  "online.emailSent": "Un lien de connexion a été envoyé à votre adresse e-mail. Il expire dans 1 heure.",
   "online.token": "Jeton de vérification",
   "online.verify": "Se connecter",
   "online.connected": "Connecté.",

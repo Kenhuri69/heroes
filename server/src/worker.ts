@@ -25,6 +25,10 @@ interface D1Database {
 interface Env {
   DB: D1Database;
   APP_ORIGIN?: string;
+  // E-mail magic-link réel (doc 15 §10 pt 6) : opt-in par secret. Absent ⇒ le
+  // worker renvoie le lien dans la réponse (dev/beta), aucun envoi.
+  RESEND_API_KEY?: string;
+  AUTH_EMAIL_FROM?: string;
 }
 
 const HOUR = 3_600_000;
@@ -71,6 +75,29 @@ function json(body: unknown, status = 200, env?: Env): Response {
   });
 }
 const fail = (status: number, reason: string, env?: Env): Response => json({ error: reason }, status, env);
+
+/**
+ * Envoie le lien magic-link par e-mail via l'API Resend (doc 15 §10 pt 6).
+ * Appelé uniquement si `RESEND_API_KEY` est défini. Lève HttpError 502 sur échec
+ * (on ne retombe PAS sur le renvoi du lien : ce serait ré-ouvrir la fuite).
+ */
+async function sendMagicLinkEmail(env: Env, to: string, link: string): Promise<void> {
+  const from = env.AUTH_EMAIL_FROM ?? 'Heroes <onboarding@resend.dev>';
+  const res = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${env.RESEND_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      from,
+      to,
+      subject: 'Heroes — votre lien de connexion',
+      text: `Bonjour,\n\nCliquez sur ce lien pour vous connecter à Heroes :\n${link}\n\nCe lien expire dans 1 heure. Si vous n'êtes pas à l'origine de cette demande, ignorez cet e-mail.`,
+    }),
+  });
+  if (!res.ok) throw new HttpError(502, "échec de l'envoi de l'e-mail");
+}
 
 /** Profil authentifié depuis le bearer de session (ou null). */
 async function authProfile(request: Request, env: Env): Promise<string | null> {
@@ -134,9 +161,14 @@ export default {
         await env.DB.prepare('INSERT INTO auth_tokens (token, email, expires_at, used) VALUES (?, ?, ?, 0)')
           .bind(t, email, now() + HOUR)
           .run();
-        // E-mail PLUGGABLE (doc 15 §5.1) : ici on renvoie le lien plutôt que de
-        // l'envoyer (brancher Resend/MailChannels au déploiement).
+        // E-mail PLUGGABLE (doc 15 §5.1/§10 pt 6) : si `RESEND_API_KEY` est
+        // branché, on envoie réellement le lien et on ne le renvoie PAS (sinon
+        // fuite) ; sinon on le renvoie pour dev/beta.
         const link = `${url.origin}/auth/verify?token=${t}`;
+        if (env.RESEND_API_KEY) {
+          await sendMagicLinkEmail(env, email, link);
+          return json({ ok: true, emailed: true }, 200, env);
+        }
         return json({ ok: true, verifyLink: link }, 200, env);
       }
       if (path === '/auth/verify' && request.method === 'GET') {

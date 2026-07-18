@@ -385,9 +385,9 @@ M ≈ 2-3 j, L = semaine(s).
 
 | Lot | Contenu | Écart | Taille | Vérification |
 |---|---|---|---|---|
-| 4.1 | Mort subite PvP (`combat.suddenDeath`, activée en ligne) | B4 | S | unitaires ; replay stable |
+| 4.1 | ✅ Mort subite PvP (`combat.suddenDeath`, activée en ligne) | B4 | S | unitaires ; replay stable |
 | 4.2 | Classement Elo + saisons (D1 + écran) | E2 | L | tests worker + smoke panneau En ligne |
-| 4.3 | E-mails magic-link réels (Resend) | E6 | S | runbook doc 15 §10 |
+| 4.3 | ✅ E-mails magic-link réels (Resend, opt-in `RESEND_API_KEY`) | E6 | S | runbook doc 15 §10 pt 6 |
 
 ### Étape 5 — Décisions de cadrage (aucun code avant arbitrage utilisateur)
 

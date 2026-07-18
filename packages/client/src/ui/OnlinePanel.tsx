@@ -56,6 +56,7 @@ export function OnlinePanel({ onClose }: { onClose: () => void }) {
   useState(0); // hook d'ancrage (i18n réactif via re-render parent)
   const [email, setEmail] = useState('');
   const [verifyLink, setVerifyLink] = useState<string | null>(null);
+  const [emailed, setEmailed] = useState(false);
   const [token, setToken] = useState('');
   const [loggedIn, setLoggedIn] = useState(isLoggedIn());
   const [error, setError] = useState<string | null>(null);
@@ -143,7 +144,10 @@ export function OnlinePanel({ onClose }: { onClose: () => void }) {
   const request = (): void => {
     setError(null);
     requestMagicLink(email)
-      .then((r) => setVerifyLink(r.verifyLink))
+      .then((r) => {
+        setVerifyLink(r.verifyLink ?? null);
+        setEmailed(r.emailed ?? false);
+      })
       .catch((e: unknown) => setError((e as Error).message));
   };
   const verify = (): void => {
@@ -282,6 +286,11 @@ export function OnlinePanel({ onClose }: { onClose: () => void }) {
               {verifyLink && (
                 <p class="online-link" data-testid="online-verify-link">
                   {t('online.linkHint')} <code>{verifyLink}</code>
+                </p>
+              )}
+              {emailed && (
+                <p class="online-link" data-testid="online-emailed">
+                  {t('online.emailSent')}
                 </p>
               )}
             </section>

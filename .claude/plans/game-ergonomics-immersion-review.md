@@ -417,8 +417,13 @@ Zéro asset, zéro moteur : uniquement `CombatScene` + `motion.ts`.
   - [~] **Lot 6** — chasse aux placeholders. **6a livré** (`ux-lot6a-herostrip-avatar.md`,
         I7) : le portrait du **HeroStrip** monte le **vrai avatar** du héros (même
         source que le tiroir : `heroAvatarUrl`), repli gracieux sur le cercle mini.
-        Reste : composition des armées en pré-combat (item 2), vignettes de
-        bâtiments événement (item 3), planches d'assets (items 4-6, skills `asset-*`).
+        **6b livré** (`ux-lot6b-prebattle-composition.md`, item 2) : **composition
+        des deux armées** en pré-combat (rangée de vignettes/effectifs par camp ;
+        exact côté joueur `combat.playerSide`, **approximatif** bucketisé façon HoMM
+        côté ennemi — zéro fuite au-delà de la puissance déjà arrondie). Le
+        remplacement des pavés hachurés par avatar/sprite était déjà livré.
+        Reste : vignettes de bâtiments événement (item 3), planches d'assets
+        (items 4-6, skills `asset-*`).
   - [ ] **Lot 3 tail différé** : E8 (confirmer attaque perdue), E14 (filtres journal)
         — 🟡 à faible valeur / plomberie disproportionnée.
   - [ ] Lots 7→10 : à suivre.

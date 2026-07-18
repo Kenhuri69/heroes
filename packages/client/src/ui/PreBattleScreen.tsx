@@ -30,6 +30,10 @@ export function PreBattleScreen() {
   const defenders = combat.stacks.filter((s) => s.side === 'defender');
   const attackerPower = armyStrength(attackers, game.unitCatalog);
   const defenderPower = armyStrength(defenders, game.unitCatalog);
+  // Fidélité HoMM : on voit SON armée à l'effectif exact, l'ennemi en quantités
+  // approximatives (aucune fuite au-delà de la puissance déjà arrondie).
+  const attackerApprox = combat.playerSide !== 'attacker';
+  const defenderApprox = combat.playerSide !== 'defender';
 
   const hero = combat.attackerHeroId
     ? game.heroes.find((h) => h.id === combat.attackerHeroId)
@@ -80,6 +84,12 @@ export function PreBattleScreen() {
             <span class="pre-battle-power" data-testid="pre-battle-power-attacker">
               {attackerPower}
             </span>
+            <CompositionRow
+              stacks={attackers}
+              catalog={game.unitCatalog}
+              approximate={attackerApprox}
+              side="attacker"
+            />
           </div>
 
           <div class="pre-battle-versus">
@@ -106,6 +116,12 @@ export function PreBattleScreen() {
             <span class="pre-battle-power" data-testid="pre-battle-power-defender">
               {defenderPower}
             </span>
+            <CompositionRow
+              stacks={defenders}
+              catalog={game.unitCatalog}
+              approximate={defenderApprox}
+              side="defender"
+            />
           </div>
         </div>
 
@@ -125,6 +141,53 @@ export function PreBattleScreen() {
       </div>
     </div>
   );
+}
+
+/**
+ * Rangée de composition d'une armée (Lot 6b, I7 — fidélité HoMM) : une vignette
+ * par pile (sprite d'unité, repli gracieux) + effectif. Côté joueur : exact ;
+ * côté ennemi (`approximate`) : quantité bucketisée (« Quelques », « Foule »…),
+ * pas de fuite au-delà de la puissance déjà arrondie.
+ */
+function CompositionRow({
+  stacks,
+  catalog,
+  approximate,
+  side,
+}: {
+  stacks: CombatStack[];
+  catalog: Record<string, { groupId: string }>;
+  approximate: boolean;
+  side: 'attacker' | 'defender';
+}) {
+  if (stacks.length === 0) return null;
+  return (
+    <ul class="pre-battle-comp" data-testid={`pre-battle-comp-${side}`}>
+      {stacks.map((s) => {
+        const name = resolveUnitName(s.unitId);
+        return (
+          <li key={s.id} class="pre-battle-comp-unit" title={name}>
+            <AssetImg
+              src={unitSpriteUrl(s.unitId, catalog[s.unitId]?.groupId)}
+              alt={name}
+              class="pre-battle-comp-icon"
+              fallback={<span class="pre-battle-comp-fallback" aria-hidden="true" />}
+            />
+            <span class="pre-battle-comp-count">
+              {approximate ? approxQuantity(s.count) : s.count}
+            </span>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+/** Bucket de quantité façon HoMM (ennemi non scouté) — jamais l'effectif exact. */
+function approxQuantity(n: number): string {
+  const key =
+    n < 5 ? 'few' : n < 10 ? 'several' : n < 20 ? 'pack' : n < 50 ? 'lots' : n < 100 ? 'horde' : 'throng';
+  return t(`preBattle.qty.${key}`);
 }
 
 /** Pile la plus nombreuse d'un camp (portrait représentatif) — undefined si vide. */

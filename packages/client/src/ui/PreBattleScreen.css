@@ -82,6 +82,46 @@
   color: var(--gold);
 }
 
+/* Rangée de composition d'armée (Lot 6b) : vignettes d'unités + effectifs. */
+.pre-battle-comp {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+  max-width: 100%;
+}
+
+.pre-battle-comp-unit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  width: 40px;
+}
+
+.pre-battle-comp-icon,
+.pre-battle-comp-fallback {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+}
+
+.pre-battle-comp-fallback {
+  border-radius: var(--radius-s);
+  background: var(--ink-700);
+  border: 1px solid var(--ink-600);
+}
+
+.pre-battle-comp-count {
+  font-size: 0.7rem;
+  color: var(--parchment);
+  text-align: center;
+  line-height: 1.1;
+}
+
 .pre-battle-versus {
   display: flex;
   flex-direction: column;

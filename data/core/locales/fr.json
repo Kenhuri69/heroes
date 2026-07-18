@@ -396,6 +396,7 @@
   "combat.auto": "Auto ▶▶",
   "combat.resume": "Reprendre la main",
   "combat.log": "Journal",
+  "combat.more": "Plus d’actions",
   "combatLog.empty": "Aucune action pour l'instant.",
   "combatLog.round": "— Round {round} —",
   "combatLog.attack": "{attacker} frappe {target} : {damage} dégâts, {kills} tué(s)",

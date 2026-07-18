@@ -2,8 +2,10 @@ import type { MarketConfig } from '../adventure/config';
 import { samePos } from '../adventure/map';
 import type { Command, CommandError } from '../core/commands';
 import type { GameEvent } from '../core/events';
+import { rollRange, seedRng } from '../core/rng';
 import type { GameState } from '../core/state';
 import type { ArtifactDef } from '../hero/types';
+import type { TownState } from './types';
 import { townHasMarket } from './market';
 
 /**
@@ -13,6 +15,46 @@ import { townHasMarket } from './market';
  */
 
 type SellCmd = Extract<Command, { type: 'SellArtifact' }>;
+type BuyCmd = Extract<Command, { type: 'BuyArtifact' }>;
+
+/** Hash déterministe d'une chaîne (FNV-1a 32 bits) — graine du stock de marchand. */
+function hashString(s: string): number {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  return h >>> 0;
+}
+
+/**
+ * Stock d'ACHAT dérivé (doc 18 D2) : `artifactStockSize` artefacts distincts
+ * tirés du catalogue, **déterministe** par `townId` (RNG LOCAL seedé — jamais
+ * `draft.rng`, donc aucune perturbation de la séquence ni du golden). Fixe pour
+ * la partie ; le disponible réel = ce stock moins `town.artifactsBought`. Vide si
+ * le marchand d'achat n'est pas configuré.
+ */
+export function merchantBuyStock(game: GameState, town: TownState): string[] {
+  const market = game.config?.market;
+  const size = market?.artifactStockSize ?? 0;
+  if (!market || market.artifactValuePerPoint === undefined || size <= 0) return [];
+  const pool = Object.keys(game.artifactCatalog).sort();
+  let rng = seedRng(hashString(town.id));
+  const stock: string[] = [];
+  const n = Math.min(size, pool.length);
+  for (let i = 0; i < n; i++) {
+    const roll = rollRange(rng, 0, pool.length - 1);
+    rng = roll.state;
+    stock.push(pool.splice(roll.value, 1)[0]!);
+  }
+  return stock;
+}
+
+/** Artefacts encore ACHETABLES à cette ville (stock dérivé moins déjà achetés). */
+export function merchantAvailable(game: GameState, town: TownState): string[] {
+  const bought = town.artifactsBought ?? [];
+  return merchantBuyStock(game, town).filter((id) => !bought.includes(id));
+}
 
 /** Somme des points de bonus (valeurs absolues) d'un artefact — mesure de puissance. */
 function bonusPoints(def: ArtifactDef): number {
@@ -94,4 +136,49 @@ export function handleSellArtifact(draft: GameState, cmd: SellCmd, events: GameE
   else hero.backpack?.splice(cmd.index, 1);
   player.resources.gold += price;
   events.push({ type: 'ArtifactSold', heroId: hero.id, playerId: player.id, artifactId, gold: price });
+}
+
+export function validateBuyArtifact(state: GameState, cmd: BuyCmd): CommandError | null {
+  if (state.combat) return { code: 'combatActive', message: 'un combat est en cours' };
+  const market = state.config?.market;
+  if (!market || market.artifactValuePerPoint === undefined || (market.artifactStockSize ?? 0) <= 0)
+    return { code: 'invalidTrade', message: 'aucun marchand d’artefacts à l’achat configuré' };
+  const town = state.towns.find((t) => t.id === cmd.townId);
+  if (!town) return { code: 'unknownTown', message: `ville inconnue '${cmd.townId}'` };
+  const player = state.players[state.currentPlayer];
+  if (!player || town.ownerPlayerId !== player.id)
+    return { code: 'notYourTown', message: `la ville '${cmd.townId}' n'appartient pas au joueur actif` };
+  if (!townHasMarket(state, town))
+    return { code: 'invalidTrade', message: `aucun marché construit dans '${cmd.townId}'` };
+  const hero = state.heroes.find((h) => h.id === cmd.heroId);
+  if (!hero || hero.playerId !== player.id)
+    return { code: 'notYourHero', message: `'${cmd.heroId}' n'appartient pas au joueur actif` };
+  if (!samePos(hero.pos, town.pos))
+    return { code: 'invalidAction', message: `'${cmd.heroId}' n'est pas dans la ville` };
+  if (!merchantAvailable(state, town).includes(cmd.artifactId))
+    return { code: 'invalidTarget', message: `'${cmd.artifactId}' n'est pas au stock du marchand` };
+  const def = state.artifactCatalog[cmd.artifactId];
+  if (!def) return { code: 'invalidTarget', message: `artefact inconnu '${cmd.artifactId}'` };
+  if (player.resources.gold < artifactBaseValue(def, market))
+    return { code: 'cannotAfford', message: 'or insuffisant pour cet artefact' };
+  return null;
+}
+
+export function handleBuyArtifact(draft: GameState, cmd: BuyCmd, events: GameEvent[]): void {
+  const market = draft.config?.market;
+  const town = draft.towns.find((t) => t.id === cmd.townId);
+  const player = draft.players[draft.currentPlayer];
+  const hero = draft.heroes.find((h) => h.id === cmd.heroId);
+  if (!market || !town || !player || !hero) return; // exclu par validate
+  const def = draft.artifactCatalog[cmd.artifactId];
+  if (!def) return;
+  const price = artifactBaseValue(def, market);
+  player.resources.gold -= price;
+  // Remise de l'artefact : 1er slot équipé libre, sinon le sac (comme grantArtifact).
+  const slot = hero.artifacts.indexOf(null);
+  if (slot !== -1) hero.artifacts[slot] = cmd.artifactId;
+  else (hero.backpack ??= []).push(cmd.artifactId);
+  // Marque l'artefact comme acheté (retiré du stock disponible de la ville).
+  (town.artifactsBought ??= []).push(cmd.artifactId);
+  events.push({ type: 'ArtifactBought', heroId: hero.id, playerId: player.id, artifactId: cmd.artifactId, gold: price });
 }

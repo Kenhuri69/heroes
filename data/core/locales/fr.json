@@ -829,6 +829,7 @@
   "town.artifactMerchant": "Marchand d'artefacts",
   "town.artifactMerchantEmpty": "Le héros présent ne porte aucun artefact à vendre.",
   "town.artifactSell": "Vendre pour {gold} or",
+  "town.artifactBuy": "Acheter pour {gold} or",
   "toast.townIncome": "+{amount} {resource} (revenu de ville)",
   "toast.townGrowth": "+{added} {unit} (croissance)",
   "toast.townBuilt": "{building} construit (niveau {level})",

@@ -37,6 +37,8 @@ import {
   handleTradeResources,
   handleSellArtifact,
   validateSellArtifact,
+  handleBuyArtifact,
+  validateBuyArtifact,
   resetBuiltToday,
   validateBuildStructure,
   validateCaptureTown,
@@ -187,6 +189,7 @@ const GAME_OVER_BLOCKED = new Set<Command['type']>([
   'RecruitHero',
   'TradeResources',
   'SellArtifact',
+  'BuyArtifact',
   'CastSpell',
   'HeroAttack',
   'CallReinforcements',
@@ -445,6 +448,10 @@ export function validate(state: GameState, cmd: Command): CommandError | null {
     case 'SellArtifact': {
       if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
       return validateSellArtifact(state, cmd);
+    }
+    case 'BuyArtifact': {
+      if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
+      return validateBuyArtifact(state, cmd);
     }
     case 'CastSpell': {
       if (!state.combat) return { code: 'noCombat', message: 'aucun combat en cours' };
@@ -956,6 +963,10 @@ const handlers: Handlers = {
 
   SellArtifact(draft, cmd, events) {
     handleSellArtifact(draft, cmd, events);
+  },
+
+  BuyArtifact(draft, cmd, events) {
+    handleBuyArtifact(draft, cmd, events);
   },
 
   TradeResources(draft, cmd, events) {

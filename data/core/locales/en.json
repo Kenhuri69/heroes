@@ -829,6 +829,7 @@
   "town.artifactMerchant": "Artifact merchant",
   "town.artifactMerchantEmpty": "The hero here carries no artifact to sell.",
   "town.artifactSell": "Sell for {gold} gold",
+  "town.artifactBuy": "Buy for {gold} gold",
   "toast.townIncome": "+{amount} {resource} (town income)",
   "toast.townGrowth": "+{added} {unit} (growth)",
   "toast.townBuilt": "{building} built (level {level})",

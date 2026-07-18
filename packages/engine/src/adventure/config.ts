@@ -245,6 +245,12 @@ export interface MarketConfig {
    * marchand, ex. 0,5). Optionnel : absent ⇒ `1` (revente au prix plein).
    */
   artifactSellFactor?: number | undefined;
+  /**
+   * Nombre d'artefacts offerts à l'ACHAT par le marchand d'une ville (stock
+   * dérivé déterministe du `townId`, doc 18 D2). Optionnel : absent/0 ⇒ achat
+   * désactivé (marché vente seule).
+   */
+  artifactStockSize?: number | undefined;
 }
 
 /** Progression du héros (doc 02 §1.2 + décisions plan phase-2.5). */

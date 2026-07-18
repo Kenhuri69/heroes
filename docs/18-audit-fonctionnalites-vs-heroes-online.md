@@ -117,17 +117,17 @@ de cet audit)*
 
 ### 2.B Combat
 
-**B1 — Pénalité de portée de tir**
+**B1 — Pénalité de portée de tir** ✅ *(sprint 1 — moteur + config + préviz livrés)*
 - **Réf.** : HoMM3 : ½ dégâts au-delà de 10 hexes ; MMHO avait des tireurs à
   portée bornée.
-- **État** : portée de tir **illimitée sans falloff** (`combat/damage.ts` — seule
-  la pénalité de mêlée ½ existe ; les murs de siège bloquent la LoS, doc 02
-  §5.2/§5.4).
-- **Manque** : pénalité de distance (½ dégâts au-delà d'un seuil de hexes,
-  configurable `combat.rangePenalty`).
-- **Nature** : moteur générique (data config, absente ⇒ inchangé) + prévisualisation
-  client déjà branchée sur `estimateDamage`. **Priorité** : **P1** (équilibrage :
-  les tireurs sont aujourd'hui structurellement surpuissants).
+- **Livré** (commit « sprint 1 ») : règle générique `combat.rangePenalty
+  { hexes, factor }` — un **tir** au-delà de `hexes` cases inflige `×factor`,
+  jamais cumulé avec la pénalité de mêlée ; branchée dans `computeMultiplier`/
+  `performStrike`/`estimateDamage` (`combat/damage.ts`, préviz = résolution),
+  validée par schéma (`content/schemas.ts`). **Activée en données** à
+  `{ hexes: 10, factor: 0.5 }` (fidélité HoMM3, ½ dégâts au-delà de 10 hexes),
+  doc 02 §5.3. **Opt-in** : bloc absent ⇒ portée illimitée sans falloff (golden
+  inchangé). Répond au déséquilibre « tireurs structurellement surpuissants ».
 
 **B2 — Machines de guerre : tente de premiers soins & chariot de munitions**
 - **Réf.** : suite HoMM ; MMHO avait des consommables de soin.
@@ -175,17 +175,14 @@ de cet audit)*
   position, pathing hex, souffle, sièges).
 - **Priorité** : P3 (documentation immédiate, mécanique non planifiée).
 
-**B6 — « Juice » de combat : projectiles & effets de sorts**
+**B6 — « Juice » de combat : projectiles & effets de sorts** ✅ *(sprint 1 — projectiles + FX de sorts livrés)*
 - **Réf.** : MMHO (Flash) animait tirs et sorts — lisibilité et plaisir de jeu.
-- **État** : animations tween livrées (ruée, flash, secousse, fondu de mort,
-  chiffres flottants, vitesse réglable, reduce-motion), mais **aucun projectile**
-  (une flèche ne traverse pas le plateau) ni **effet visuel de sort** (pas
-  d'impact/AoE dédié) ; sprites statiques (pas d'idle/walk).
-- **Manque** : sprite de projectile interpolé tireur→cible (flèche/carreau/
-  boulet), flash/onde d'impact de sort par `SpellKind`, éventuel idle 2 frames.
-- **Nature** : client + assets (pipeline `tools/assets/` ; repli procédural :
-  trait lumineux). Zéro moteur. **Priorité** : **P1** (rapport lisibilité/coût
-  excellent ; le SFX `combat-shoot` existe déjà, il « tire dans le vide »).
+- **Livré** (commit « sprint 1 ») : module `render/combatFx.ts` (client pur, zéro
+  moteur) — **projectile interpolé** tireur→cible sur un tir (le SFX
+  `combat-shoot` ne « tire » plus dans le vide) et **effet visuel de sort**
+  (flash/onde d'impact), branchés dans `CombatScene`. Repli procédural (trait
+  lumineux) ⇒ aucune dépendance d'assets bloquante.
+- **Reste (P3, non bloquant)** : sprites idle/walk animés (le statique demeure).
 
 ### 2.C Héros
 

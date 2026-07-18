@@ -73,7 +73,28 @@ décomposition) ; l'implémentation suit par lots atomiques après validation.
       content ✓, content:check ✓, garde-fou vert, build ✓, budget 341 Ko ✓, smoke
       @core 28/28 ✓. **Siège coop différé** (E4.2b) : ce lot couvre le gardien.
 
-## Note
-Lot **documentaire** : pas de code, pas de bump save, golden intact. Le smoke n'est
-pas requis (guidelines §7, changement doc). Vérif : parité FR/EN n/a (pas de locale),
-liens docs cohérents.
+## E4.5 — Client : invite + rendu propriétaire (rend le coop JOUABLE) — LIVRÉ
+
+- [x] **E4.5a — flux d'invite (aventure)** : `AdventureScene.coopAllyForGuardianMove`
+      (miroir client de `resolveCoopAlly` : gardien en cible + allié `areAllies`
+      adjacent à la tuile d'engagement `path[len-2]`, armée non vide) ⇒ à la
+      confirmation, `requestCoopInvite` pose `store.pendingCoopInvite` au lieu de
+      dispatcher. Module `app/coop-invite.ts` (patron `end-turn.ts`) : Oui
+      (`confirmCoopInvite` ⇒ `MoveHero` + `allyHeroId`), Non (`declineCoopInvite`
+      ⇒ solo), Annuler/Échap (`cancelCoopInvite` ⇒ abandon). Overlay
+      `CoopInviteConfirm` (shell.tsx, patron `EndTurnConfirm`). Locales `coop.invite*`.
+- [x] **E4.5b — rendu propriétaire (combat)** : liseré de la couleur du joueur
+      propriétaire (`stack.ownerHeroId` → héros → `playerColor`) autour du socle,
+      **seulement** pour les piles alliées (owner explicite) ⇒ combats mono-héros
+      inchangés (`CombatScene.buildStackToken`).
+- Client + locales uniquement, zéro moteur, pas de bump save, golden intact.
+      Vérif : typecheck ✓, lint ✓, 901 engine + 154 content ✓, content:check ✓,
+      i18n parité ✓, garde-fou vert, build ✓, budget 341 Ko ✓, smoke @core 29/29 ✓.
+      **Non smoke-couvert** : l'invite exige un état gardien+allié adjacent
+      déterministe (absent du smoke) ; gate mirroré + logique moteur testée (E4.2).
+
+## Coop A3 — état : E4.1 cadrage · E4.2 moteur gardien · E4.5 client — JOUABLE.
+Différés : E4.2b siège coop · E4.3 butin partagé · E4.4 actions de héros par-héros.
+
+## Note (E4.1)
+Lot **documentaire** : pas de code, pas de bump save, golden intact.

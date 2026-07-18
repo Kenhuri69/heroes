@@ -140,7 +140,7 @@ de cet audit)*
 - **Nature** : moteur générique (2 variantes d'effet) + données + assets (2
   sprites, repli procédural). **Priorité** : P2.
 
-**B3 — Renforts en cours de combat (signature MMHO)** ✅ *(retenue — moteur livré)*
+**B3 — Renforts en cours de combat (signature MMHO)** ✅ *(retenue — moteur + client livrés)*
 - **Réf.** : MMHO permettait de **recruter des renforts pendant la bataille**
   (PvE uniquement), contre or — l'une de ses mécaniques distinctives.
 - **Décision** (arbitrage utilisateur 2026-07) : **retenue** en fidélité MMHO,
@@ -151,7 +151,9 @@ de cet audit)*
   d'une unité commandée, contre or (`recruitCost × count × costMultiplier`),
   plafonnée (`maxCallsPerCombat`/`maxUnitsPerCall`), n'agit qu'au round suivant ;
   gate PvE (`defenderHeroId` null + héros lié). Champ lazy `reinforcementsUsed` ⇒
-  pas de bump save, golden inchangé. **Différé (B3-client)** : UI d'appel en combat.
+  pas de bump save, golden inchangé. **Client livré** : bouton « Renforts » + modale
+  sélection unité/effectif (coût prévisualisé) ; feature **activée globalement** en
+  PvE via `config.json` (2 appels max, ×2 le coût), le PvP restant intact (gate).
 
 **B4 — Mort subite / borne de fin en PvP (MMHO « Sudden Death »)**
 - **Réf.** : MMHO : au-delà d'un délai, l'équipe avec le plus d'unités gagne.

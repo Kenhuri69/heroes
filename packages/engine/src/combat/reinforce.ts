@@ -28,7 +28,12 @@ function reinforcementHex(combat: CombatState, side: CombatSideId) {
   return firstFreeCombatHex(combat, { col: backCol, row: Math.floor(COMBAT_ROWS / 2) });
 }
 
-export function validateCallReinforcements(state: GameState, cmd: ReinforceCmd): CommandError | null {
+/**
+ * Gate INDÉPENDANT de l'unité/effectif (feature, PvE, tour joueur, plafond,
+ * plateau) — partagé par `validateCallReinforcements` et `canCallReinforcements`
+ * (le client n'affiche le bouton « Renforts » que si ce gate passe).
+ */
+function reinforcementsGate(state: GameState): CommandError | null {
   const combat = state.combat;
   if (!combat) return { code: 'noCombat', message: 'aucun combat en cours' };
   if (combat.phase !== 'battle')
@@ -38,14 +43,30 @@ export function validateCallReinforcements(state: GameState, cmd: ReinforceCmd):
   // PvE only (doc 18 B3) : jamais en hero-vs-hero, jamais en arène.
   if (combat.defenderHeroId !== null)
     return { code: 'reinforcementsUnavailable', message: 'renforts interdits en combat de héros' };
-  const hero = playerHero(state, combat);
-  if (!hero) return { code: 'reinforcementsUnavailable', message: 'aucun héros lié au camp joueur' };
+  if (!playerHero(state, combat))
+    return { code: 'reinforcementsUnavailable', message: 'aucun héros lié au camp joueur' };
   // C'est au joueur de jouer (pile active de son camp) — même gate que HeroAttack.
   const active = combat.stacks.find((s) => s.id === combat.activeStackId);
   if (!active || active.side !== combat.playerSide)
     return { code: 'invalidAction', message: 'ce n’est pas au joueur de jouer' };
   if ((combat.reinforcementsUsed ?? 0) >= cfg.maxCallsPerCombat)
     return { code: 'reinforcementsUnavailable', message: 'plafond de renforts atteint pour ce combat' };
+  if (!reinforcementHex(combat, combat.playerSide))
+    return { code: 'reinforcementsUnavailable', message: 'plateau plein : aucun hex libre pour le renfort' };
+  return null;
+}
+
+/** Le camp joueur peut-il ouvrir l'action « Renforts » ? (gate hors unité/effectif, pour l'UI). */
+export function canCallReinforcements(state: GameState): boolean {
+  return reinforcementsGate(state) === null;
+}
+
+export function validateCallReinforcements(state: GameState, cmd: ReinforceCmd): CommandError | null {
+  const gate = reinforcementsGate(state);
+  if (gate) return gate;
+  const combat = state.combat as CombatState;
+  const cfg = state.config!.combat.reinforcements!;
+  const hero = playerHero(state, combat)!;
   if (cmd.count < 1 || cmd.count > cfg.maxUnitsPerCall)
     return { code: 'invalidAction', message: `effectif de renfort hors bornes (1..${cfg.maxUnitsPerCall})` };
   if (!hero.army.some((s) => s.unitId === cmd.unitId))
@@ -56,8 +77,6 @@ export function validateCallReinforcements(state: GameState, cmd: ReinforceCmd):
   if (!player) return { code: 'reinforcementsUnavailable', message: 'joueur du héros introuvable' };
   if (!canAffordCost(player, scaleCost(recruitCost, cmd.count * cfg.costMultiplier)))
     return { code: 'cannotAfford', message: 'or insuffisant pour appeler des renforts' };
-  if (!reinforcementHex(combat, combat.playerSide))
-    return { code: 'reinforcementsUnavailable', message: 'plateau plein : aucun hex libre pour le renfort' };
   return null;
 }
 

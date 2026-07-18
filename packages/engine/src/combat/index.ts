@@ -118,8 +118,8 @@ export {
 /** Prière de bataille (F-SKILLS.2) — disponibilité + préviz (créatures relevées) pour l'UI. */
 export { canHeroRally, heroRallyHp, estimateHeroRally } from './hero-rally';
 
-/** Renforts en combat (doc 18 B3) — validation + handler (PvE, opt-in). */
-export { validateCallReinforcements, handleCallReinforcements } from './reinforce';
+/** Renforts en combat (doc 18 B3) — validation + handler + gate d'affichage UI (PvE, opt-in). */
+export { validateCallReinforcements, handleCallReinforcements, canCallReinforcements } from './reinforce';
 
 /** Reddition & fuite (C3) — handlers + coût de reddition (affiché sur le bouton). */
 export {

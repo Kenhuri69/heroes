@@ -5,7 +5,7 @@ import { exportSave, importSave, saveGame, restoreSavedGame, pushCloudSave, pull
 import { isOnline, isLoggedIn } from '../app/net';
 import { eventBus } from '../app/events';
 import { getTelemetry, resetTelemetry, setTelemetryEnabled } from '../app/telemetry';
-import { setMusicVolume, setSfxVolume } from '../app/audio';
+import { setMusicVolume, setSfxVolume, setMuted } from '../app/audio';
 import { applyReduceMotion } from '../app/motion';
 import { applyFontScale, setConfirmEndTurn, FONT_SCALE_PERCENT } from '../app/settings';
 import { COMBAT_SPEEDS } from '../app/ui-constants';
@@ -31,6 +31,7 @@ export function OptionsPanel({ onClose }: { onClose: () => void }) {
   const confirmEndTurn = useApp((s) => s.confirmEndTurn);
   const musicVolume = useApp((s) => s.musicVolume);
   const sfxVolume = useApp((s) => s.sfxVolume);
+  const audioMuted = useApp((s) => s.audioMuted);
   const telemetryEnabled = useApp((s) => s.telemetryEnabled);
   useApp((s) => s.telemetryTick); // re-render des stats après reset
   const screen = useApp((s) => s.screen);
@@ -217,6 +218,23 @@ export function OptionsPanel({ onClose }: { onClose: () => void }) {
 
         <section class="options-section">
           <h3>{t('options.audio')}</h3>
+          <div class="segmented" role="group" aria-label={t('options.audioMute')}>
+            <span class="options-toggle-label">{t('options.audioMute')}</span>
+            <button
+              class={audioMuted ? 'active' : ''}
+              data-testid="options-mute-on"
+              onClick={() => setMuted(true)}
+            >
+              {t('options.on')}
+            </button>
+            <button
+              class={!audioMuted ? 'active' : ''}
+              data-testid="options-mute-off"
+              onClick={() => setMuted(false)}
+            >
+              {t('options.off')}
+            </button>
+          </div>
           <label class="audio-slider">
             <span>{t('options.audioMusic')}</span>
             <input

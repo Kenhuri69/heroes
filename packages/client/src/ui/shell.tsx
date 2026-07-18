@@ -76,6 +76,7 @@ import { MapObjectCard } from './MapObjectCard';
 import { ShortcutsOverlay } from './ShortcutsOverlay';
 import { panCameraTo, DEFAULT_PAN_MS } from '../app/camera-control';
 import { reduceMotion } from '../app/motion';
+import { toggleMute } from '../app/audio';
 import './tokens.css'; // design tokens UXD-1 — à charger avant toute feuille
 import './interactions.css'; // micro-interactions & transitions UXD-7
 import './styles.css';
@@ -1160,6 +1161,29 @@ function TownButton({ town }: { town: TownState }) {
   );
 }
 
+/**
+ * Mute rapide (I8, doc 08) : coupe/rétablit musique + SFX en un geste. L'état muet
+ * est porté par l'icône (🔇/🔊) ET `aria-pressed` (jamais la couleur seule).
+ */
+function MuteToggle() {
+  useApp((s) => s.locale);
+  const muted = useApp((s) => s.audioMuted);
+  const label = muted ? t('options.audioUnmute') : t('options.audioMute');
+  return (
+    <button
+      type="button"
+      class={`mute-toggle${muted ? ' muted' : ''}`}
+      data-testid="mute-toggle"
+      aria-pressed={muted}
+      aria-label={label}
+      title={label}
+      onClick={() => toggleMute()}
+    >
+      <span aria-hidden="true">{muted ? '🔇' : '🔊'}</span>
+    </button>
+  );
+}
+
 function TurnBar({ onOpenOptions }: { onOpenOptions: () => void }) {
   useApp((s) => s.locale);
   const day = useApp((s) => s.game.calendar.day);
@@ -1258,6 +1282,7 @@ function TurnBar({ onOpenOptions }: { onOpenOptions: () => void }) {
         )}
       </div>
       <div class="actions">
+        <MuteToggle />
         <button
           class="options-toggle"
           data-testid="options-open"

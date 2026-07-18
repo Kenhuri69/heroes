@@ -187,6 +187,8 @@ export interface AppState {
   musicVolume: number;
   /** Volume effets 0-1 (UXD-6B) — miroir du localStorage. */
   sfxVolume: number;
+  /** Mute rapide (I8) — override coupant musique + SFX, miroir du localStorage. */
+  audioMuted: boolean;
   /** Option « réduire les animations » (lot M8 C3) — union avec le réglage OS. */
   reduceMotionOption: boolean;
   /** Confirmer la fin de tour si un héros n'a pas bougé (lot M8 C12) — défaut on. */
@@ -297,6 +299,7 @@ export const appStore = createStore<AppState>(() => ({
   combatAutoActive: false,
   musicVolume: 0.35,
   sfxVolume: 0.6,
+  audioMuted: false,
   reduceMotionOption: false,
   confirmEndTurn: true,
   pendingEndTurn: null,

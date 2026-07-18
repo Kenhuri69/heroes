@@ -513,6 +513,22 @@ test('I7 : le portrait du HeroStrip monte un avatar (ou son repli)', { tag: '@co
   expect(errors).toEqual([]);
 });
 
+test('I8 : le mute rapide coupe le son (aria-pressed) et persiste', { tag: '@core' }, async ({ page }) => {
+  const errors = await openGame(page);
+  const mute = page.getByTestId('mute-toggle');
+  await expect(mute).toBeVisible();
+  await expect(mute).toHaveAttribute('aria-pressed', 'false');
+  // Couper : `aria-pressed` bascule (2ᵉ canal a11y) et la préférence persiste.
+  await mute.click();
+  await expect(mute).toHaveAttribute('aria-pressed', 'true');
+  expect(await page.evaluate(() => localStorage.getItem('heroes:audio:muted'))).toBe('1');
+  // Rétablir.
+  await mute.click();
+  await expect(mute).toHaveAttribute('aria-pressed', 'false');
+  expect(await page.evaluate(() => localStorage.getItem('heroes:audio:muted'))).toBe('0');
+  expect(errors).toEqual([]);
+});
+
 test('fin de tour : jour suivant, points de mouvement restaurés', async ({ page }) => {
   const errors = await openGame(page);
 

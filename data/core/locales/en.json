@@ -179,6 +179,8 @@
   "shortcuts.escClose": "Close the topmost window",
   "options.audioMusic": "Music",
   "options.audioSfx": "Sound effects",
+  "options.audioMute": "Mute sound",
+  "options.audioUnmute": "Unmute sound",
   "options.telemetry": "Telemetry (local)",
   "options.telemetryOff": "Off",
   "options.telemetryOn": "On",

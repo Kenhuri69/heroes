@@ -5,8 +5,16 @@
  */
 
 export interface TerrainRule {
-  /** Coût d'entrée sur la tuile en points de mouvement ; null = infranchissable. */
+  /** Coût d'entrée sur la tuile en points de mouvement ; null = infranchissable à pied. */
   moveCost: number | null;
+  /**
+   * Coût d'entrée pour un héros EMBARQUÉ (bateau), en points de mouvement (A3,
+   * doc 02 §1.5 / doc 18 A3). Absent ou `null` ⇒ tuile infranchissable en mer.
+   * Les domaines terre (`moveCost`) et mer (`navalCost`) sont **disjoints** :
+   * l'eau navigable a `moveCost:null` + `navalCost`, la terre l'inverse. Opt-in
+   * par données : absent partout ⇒ pathfinding terrestre bit-identique.
+   */
+  navalCost?: number | null | undefined;
 }
 
 import type { SkillRankEffectInput } from '../hero/types';

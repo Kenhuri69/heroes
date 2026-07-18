@@ -236,23 +236,24 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 
 - Points de mouvement quotidiens : `base 1500 + 50 × vitesse de la créature la plus lente de l'armée` (encourage les armées homogènes), modifiés par la compétence **Logistique** (`movementBonusPct`), l'aura d'Écuries (`movementBonusFlat`, F-BUILDEFF.1), un **artefact de mouvement** (H-ARTEQUIP : `ArtifactDef.bonus.movementFlat` — « bottes de vitesse », PM plats tant qu'équipé, agrégé par `heroArtifactBonus`, ajouté dans `heroDailyMovement` ; bonus dérivé live ⇒ pas de bump save, golden inchangé), les routes (coût tuile ×0,75) et les terrains (marais ×1,5). *Pas de bonus de terrain natif sur la carte (les terrains ne portent qu'un `moveCost`).* Artefact livré : **Bottes de sept lieues** (+300 PM/jour).
 - Coût d'entrée d'une tuile : **100 points** en terrain de base (herbe), pas en **diagonale ×1,41** (≈ √2), multiplicateurs cumulés puis arrondis à l'entier — ex. route en diagonale : `round(100 × 0,75 × 1,41) = 106`. Valeurs de départ pour l'équilibrage, stockées dans `data/core/config.json`.
-- **Catalogue de terrains** (data-driven, `adventure.terrains` ; le moteur ne connaît que le `moveCost`, `null` = infranchissable) :
+- **Catalogue de terrains** (data-driven, `adventure.terrains` ; le moteur connaît le `moveCost` **à pied**, `null` = infranchissable, et un `navalCost` **par bateau** optionnel — cf. « Navigation » ci-dessous) :
 
-  | Terrain | `moveCost` | Nature |
-  |---|---|---|
-  | `grass` (herbe) | 100 | base franchissable |
-  | `dirt` (terre) | 100 | plaine sèche |
-  | `rough` (broussaille) | 125 | hauteurs érodées |
-  | `sand` (sable) | 150 | plages / zones arides |
-  | `forest` (forêt) | 150 | sous-bois (relief) |
-  | `snow` (neige) | 150 | froid |
-  | `swamp` (marais) | 150 | creux humides |
-  | `river` (rivière) | 200 | eau vive **franchissable** (gué) |
-  | `water` (eau) | `null` | mer/lac infranchissable |
-  | `mountain` (montagne) | `null` | relief infranchissable |
-  | `rocks` (éboulis) | `null` | obstacle plat infranchissable |
+  | Terrain | `moveCost` | `navalCost` | Nature |
+  |---|---|---|---|
+  | `grass` (herbe) | 100 | — | base franchissable |
+  | `dirt` (terre) | 100 | — | plaine sèche |
+  | `rough` (broussaille) | 125 | — | hauteurs érodées |
+  | `sand` (sable) | 150 | — | plages / zones arides |
+  | `forest` (forêt) | 150 | — | sous-bois (relief) |
+  | `snow` (neige) | 150 | — | froid |
+  | `swamp` (marais) | 150 | — | creux humides |
+  | `river` (rivière) | 200 | — | eau vive **franchissable à pied** (gué) |
+  | `water` (eau) | `null` | 100 | mer/lac — infranchissable à pied, **navigable en bateau** |
+  | `mountain` (montagne) | `null` | — | relief infranchissable |
+  | `rocks` (éboulis) | `null` | — | obstacle plat infranchissable |
 
   Ajouter un terrain = données (`config.json` + recette de tuile `gen_tiles.py`), **zéro diff moteur** (schéma terrain = chaîne opaque validée au load contre la config).
+- **Navigation (A3, doc 18 A3 — chantier multi-lots)**. *🚧 État A3.1 (fondation) livré* : le pathfinding A\* est **domain-aware** — chaque tuile a un coût **terrestre** (`moveCost`) et un coût **naval** (`navalCost`), les deux domaines étant **disjoints** (l'eau navigable a `moveCost:null` + `navalCost` ; la terre l'inverse). `findPath`/`stepCost`/`isPassable` prennent un paramètre `naval` (défaut `false`) sélectionnant le domaine du héros. **Opt-in par données** : un `navalCost` posé sur un terrain déjà `moveCost:null` est un no-op côté terre ⇒ **golden inchangé, pas de bump save**. *Différés (lots suivants)* : état `naval` du héros (A3.2, bump save), objet **bateau** + embarquement/débarquement au rivage (A3.2), **chantier naval** (A3.3), génération de mers + connectivité navale (A3.4), rendu client (A3.5).
 - Portée de vision de base du héros : **5 tuiles** (distance de Tchebychev), avant bonus (Recherche +2/4/6).
 - Pathfinding A* avec préviualisation du chemin et des jours nécessaires (points verts/jaunes comme HoMM).
 - *État livré (M-TAVERN.1 + .2) : **multi-héros par recrutement à la Taverne** — la commande `RecruitHero` (moteur) crée un **héros nommé** du roster de la faction de la ville (`GameState.heroRoster`, H-NAMED.1) contre or (`config.hero.recruitCost` = 2500), plafonné à `config.hero.maxPerPlayer` (**8**, doc §1.5) ; le héros apparaît sur la ville, armée vide. **M-TAVERN.2 (client)** : onglet **Taverne** de l'écran de ville (visible seulement si le bâtiment est construit, comme Marché/Guilde) — liste du roster de la faction de la ville (avatar, nom, bio, spécialité, attributs, coût), bouton Recruter, états « Recruté »/cap/or insuffisant ; le héros recruté devient le héros **sélectionné**. Le roster est embarqué à `StartGame` par **tous** les chemins client (partie rapide, Nouvelle partie, escarmouche, scénario). **État livré (UX-HEROSWAP)** : deux héros du **même joueur** sur des **tuiles adjacentes** (8 directions) échangent piles d'armée et artefacts via la commande GÉNÉRIQUE `TransferBetweenHeroes` (`kind: 'army' | 'artifact'`, une entité par commande — fusion des piles de même unité, cap 7 respecté ; artefact vers le 1er slot libre) ; UI de rencontre double-colonne tap-tap (`HeroSwap`) avec « Tout donner ». Purement déterministe (aucun RNG), aucun champ d'état nouveau ⇒ **pas de bump save, golden inchangé**. **État livré (H-VS-H)** : marcher sur un héros **ennemi** (autre joueur, non allié) déclenche un **combat héros-vs-héros** — `beginHeroCombat` (jumeau de l'interception de gardien), **les deux camps portent un héros** (`defenderHeroId` enfin non-null) ; le héros mouvant reste adjacent (n'entre pas). Le **perdant meurt** (retiré de la partie) ; **dépouille** : les artefacts du vaincu passent au vainqueur (slots libres ; surplus rangé dans le **sac** du vainqueur, jamais perdu — même routage que tout autre ramassage), l'XP du vainqueur venant des PV ennemis tués. Aucun champ d'état nouveau ⇒ **pas de bump save, golden inchangé**. **État livré (M-TAVERN.4)** : **pool de Taverne exclusif inter-joueurs** — un héros du roster ne peut être **vivant que chez UN joueur à la fois** (`HeroState.rosterId` marque l'origine roster ; `validateRecruitHero` refuse un héros déjà en jeu) ; un héros **mort** (retiré de `heroes`) redevient recrutable par tous. Bump `CURRENT_SAVE_VERSION` **25→26** (nouveau champ `rosterId`, golden re-fixé — forme). **IA recruteuse** : l'IA d'aventure recrute un héros à une ville dotée d'une Taverne quand elle est **riche** (or ≥ coût × 2) et **sous le cap** (`engine/ai/town-ai.ts`). Client : l'onglet Taverne affiche « Indisponible » pour un héros vivant chez un adversaire. **État livré (H-NAMED.2)** : à « Nouvelle partie »/« Escarmouche », chaque siège humain **choisit son héros de départ** (`startingHeroId`, défaut aléatoire seedé). **Différés** : split de pile « Équilibrer » (UX-SPLIT), ciblage des héros ennemis par l'IA d'aventure. **État livré (doc 18 E3, lot 3.3 — Guilde des voleurs)** : section comparative de l'onglet Taverne (fidélité HoMM — elle vit à la taverne) : villes / héros / force d'armées de héros / or-jour par joueur actif, **précision graduée** par le nombre de Tavernes possédées du joueur humain actif (1 = rangs seulement `#N`, ≥ 2 = valeurs exactes) ; éliminés grisés hors classement ; identité par n° de siège + pastille couleur (jamais la couleur seule) ; les **garnisons restent secrètes**. Client pur (projection `thievesGuildRows` sur les helpers moteur existants) ⇒ pas de bump save, golden inchangé.*

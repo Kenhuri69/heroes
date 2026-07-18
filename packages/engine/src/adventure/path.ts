@@ -1,4 +1,4 @@
-import type { AdventureConfig } from './config';
+import type { AdventureConfig, TerrainRule } from './config';
 import {
   DIRECTIONS,
   inBounds,
@@ -10,27 +10,39 @@ import {
   type GridPos,
 } from './map';
 
-/** Coût d'un pas `from → to` (tuiles adjacentes) : terrain d'arrivée × route × diagonale. */
+/**
+ * Coût d'entrée d'une tuile selon le DOMAINE du héros (A3) : `moveCost` à pied,
+ * `navalCost` embarqué. `null`/absent ⇒ tuile hors-domaine (infranchissable).
+ */
+function domainCost(rule: TerrainRule | undefined, naval: boolean): number | null {
+  if (!rule) return null;
+  return naval ? (rule.navalCost ?? null) : rule.moveCost;
+}
+
+/**
+ * Coût d'un pas `from → to` (tuiles adjacentes) : terrain d'arrivée × route ×
+ * diagonale. `naval` (défaut `false`) sélectionne le domaine terre/mer.
+ */
 export function stepCost(
   config: AdventureConfig,
   map: AdventureMapDef,
   from: GridPos,
   to: GridPos,
+  naval = false,
 ): number {
-  const rule = config.terrains[terrainAt(map, to)];
-  if (!rule || rule.moveCost === null) {
+  const cost = domainCost(config.terrains[terrainAt(map, to)], naval);
+  if (cost === null) {
     throw new RangeError(`pas vers une tuile infranchissable (${to.x},${to.y})`);
   }
-  let cost = rule.moveCost;
-  if (map.road[tileIndex(map, to)]) cost *= config.movement.roadMultiplier;
-  if (isDiagonal(from, to)) cost *= config.movement.diagonalMultiplier;
-  return Math.round(cost);
+  let c = cost;
+  if (map.road[tileIndex(map, to)]) c *= config.movement.roadMultiplier;
+  if (isDiagonal(from, to)) c *= config.movement.diagonalMultiplier;
+  return Math.round(c);
 }
 
-export function isPassable(config: AdventureConfig, map: AdventureMapDef, pos: GridPos): boolean {
+export function isPassable(config: AdventureConfig, map: AdventureMapDef, pos: GridPos, naval = false): boolean {
   if (!inBounds(map, pos)) return false;
-  const rule = config.terrains[terrainAt(map, pos)];
-  return rule !== undefined && rule.moveCost !== null;
+  return domainCost(config.terrains[terrainAt(map, pos)], naval) !== null;
 }
 
 /**
@@ -55,15 +67,19 @@ export function findPath(
    * optimal ≤ budget ne traverse que des nœuds ≤ budget (coûts positifs).
    */
   maxCost = Infinity,
+  /** Domaine du héros (A3) : `true` = embarqué (mer), `false` = à pied (terre). */
+  naval = false,
 ): GridPos[] | null {
-  if (!inBounds(map, from) || !isPassable(config, map, to) || samePos(from, to)) return null;
+  if (!inBounds(map, from) || !isPassable(config, map, to, naval) || samePos(from, to)) return null;
   const blockedSet = new Set(blocked.map((p) => p.y * map.width + p.x));
   if (!allowBlockedGoal && blockedSet.has(to.y * map.width + to.x)) return null;
 
-  // Heuristique octile admissible : distance × coût de pas minimal possible.
+  // Heuristique octile admissible : distance × coût de pas minimal possible
+  // (dans le domaine du héros).
   let minCost = Infinity;
   for (const rule of Object.values(config.terrains)) {
-    if (rule.moveCost !== null) minCost = Math.min(minCost, rule.moveCost);
+    const c = domainCost(rule, naval);
+    if (c !== null) minCost = Math.min(minCost, c);
   }
   minCost = Math.round(minCost * Math.min(1, config.movement.roadMultiplier));
   const h = (p: GridPos): number => {
@@ -87,10 +103,10 @@ export function findPath(
     const cur: GridPos = { x: current % map.width, y: Math.floor(current / map.width) };
     for (const dir of DIRECTIONS) {
       const next: GridPos = { x: cur.x + dir.x, y: cur.y + dir.y };
-      if (!isPassable(config, map, next)) continue;
+      if (!isPassable(config, map, next, naval)) continue;
       const nextIdx = next.y * map.width + next.x;
       if (nextIdx !== goal && blockedSet.has(nextIdx)) continue;
-      const g = (gScore[current] ?? Infinity) + stepCost(config, map, cur, next);
+      const g = (gScore[current] ?? Infinity) + stepCost(config, map, cur, next, naval);
       if (g > maxCost) continue; // F7 : au-delà du budget de PM, inatteignable pour l'appelant
       if (g < (gScore[nextIdx] ?? Infinity)) {
         gScore[nextIdx] = g;
@@ -113,10 +129,11 @@ export function findPath(
  * multiplicateur de route, arrondi) — base de l'heuristique octile de `findPath`
  * et borne inférieure admissible du coût d'un chemin (cf. `octileLowerBound`).
  */
-export function minStepCost(config: AdventureConfig): number {
+export function minStepCost(config: AdventureConfig, naval = false): number {
   let min = Infinity;
   for (const rule of Object.values(config.terrains)) {
-    if (rule.moveCost !== null) min = Math.min(min, rule.moveCost);
+    const c = domainCost(rule, naval);
+    if (c !== null) min = Math.min(min, c);
   }
   return Math.round(min * Math.min(1, config.movement.roadMultiplier));
 }

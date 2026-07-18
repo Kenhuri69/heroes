@@ -722,7 +722,14 @@ export const gameConfigSchema = z.object({
     /** Vision d'une structure possédée (ville/mine), F1 — optionnel (0 si absent). */
     buildingVisionRadius: z.number().int().nonnegative().optional(),
     terrains: z
-      .record(idSchema, z.object({ moveCost: z.number().int().positive().nullable() }))
+      .record(
+        idSchema,
+        z.object({
+          moveCost: z.number().int().positive().nullable(),
+          // Coût par bateau (A3) — absent/null = infranchissable en mer. Opt-in.
+          navalCost: z.number().int().positive().nullable().optional(),
+        }),
+      )
       .refine(
         (t) => Object.values(t).some((r) => r.moveCost !== null),
         'au moins un terrain franchissable',

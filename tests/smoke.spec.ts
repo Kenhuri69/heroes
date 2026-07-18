@@ -529,6 +529,18 @@ test('I8 : le mute rapide coupe le son (aria-pressed) et persiste', { tag: '@cor
   expect(errors).toEqual([]);
 });
 
+test('I12 : l’eau miroite sur la carte, coupé en reduce-motion', { tag: '@core' }, async ({ page }) => {
+  const errors = await openGame(page);
+  // Motion ON : la surface d'eau respire ⇒ l'alpha du miroitement oscille > 0.
+  await expect
+    .poll(() => page.evaluate(() => window.__HEROES_TEST__!.waterSheen().alpha))
+    .toBeGreaterThan(0);
+  // Reduce-motion : surface figée ⇒ alpha ramené à 0 par la boucle.
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await expect.poll(() => page.evaluate(() => window.__HEROES_TEST__!.waterSheen().alpha)).toBe(0);
+  expect(errors).toEqual([]);
+});
+
 test('fin de tour : jour suivant, points de mouvement restaurés', async ({ page }) => {
   const errors = await openGame(page);
 

@@ -164,16 +164,18 @@ ordinaires par `placeSide` (débordement du chariot en 1ʳᵉ ligne, capture 2).
 
 ## Lot S7 — Pré-combat « Siège » (P2, client seul)
 
-- [ ] S7.1 `PreBattleScreen` : si `combat.townId != null`, titre
-      « Siège de {ville} » (nom localisé existant de la ville), blason/bandeau
-      de la faction de la ville, et rangée « défenses » : Fort niveau N ⇒
-      icônes rempart/douve/tour (données déjà dans l'état :
-      `town.buildings.fort`, `combat.siegeWalls/moat`, tour présente).
-- [ ] S7.2 Locales FR/EN (`preBattle.siegeTitle`, libellés défenses).
-- [ ] S7.3 Améliorer le repli d'avatar héros (constat 3.2 du doc 19) : le
-      médaillon vide reprend le motif `FactionBadge` (pattern déterministe)
-      au lieu du disque noir — même repli qu'ailleurs dans l'UI.
+- [x] S7.1 `PreBattleScreen` : si `combat.townId != null`, titre
+      « Siège de {faction} », blason de la faction de la ville (prioritaire sur
+      la pile dominante), et rangée « défenses » : Fort niv. N + Rempart/Douve/
+      Tour selon l'état (`town.buildings.fort`, `combat.siegeWalls/moat`, pile
+      `defender-tower`).
+- [x] S7.2 Locales FR/EN (`preBattle.siegeTitle`, `defenseFort/Wall/Moat/Tower`).
+- [x] S7.3 Repli d'avatar héros (constat 3.2 du doc 19) : le médaillon de héros
+      en combat affiche **l'initiale du héros** (nom localisé) au lieu du disque
+      noir nu ; l'avatar chargé la recouvre. (Le repli du pré-combat utilisait
+      déjà `FactionBadge`.)
 - Vérif : capture avant/après ; audit i18n (0 chaîne en dur) ; doc 08 §2.4.
+  **Livré** (détail : `siege-s7-precombat.md`).
 
 ## Lot S9 — Polish & investigation (P3)
 

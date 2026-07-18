@@ -23,7 +23,7 @@ import {
 import { appStore } from '../../app/store';
 import { dispatch } from '../../app/dispatch';
 import { eventBus, type AppEvent } from '../../app/events';
-import { commandErrorMessage } from '../../app/i18n';
+import { commandErrorMessage, resolveHeroName } from '../../app/i18n';
 import { pushToast } from '../../ui/toasts';
 import { onLongPress, onTap } from '../../input/pointer';
 import { Camera } from '../../render/camera';
@@ -394,6 +394,21 @@ export class CombatScene {
           .fill(0x232630)
           .stroke({ width: 3, color }),
       );
+      // S7.3 (doc 19 §3.2) : repli lisible — l'initiale du héros au centre du
+      // médaillon, au lieu d'un disque noir nu quand l'avatar n'existe pas /
+      // n'est pas encore chargé. L'avatar (chargé plus bas) la recouvre.
+      const initial = new Text({
+        text: heroInitial(hero.name),
+        style: {
+          fontFamily: 'system-ui, sans-serif',
+          fontSize: HERO_TOKEN_RADIUS,
+          fontWeight: '700',
+          fill: 0xe8e2d6,
+          stroke: { color: 0x1a1c22, width: 3 },
+        },
+      });
+      initial.anchor.set(0.5);
+      token.addChild(initial);
       const url = heroAvatarUrl(hero.factionId, heroArchetype(hero.attributes), hero.name);
       if (url) {
         void Assets.load(url).then((texture) => {
@@ -1447,6 +1462,12 @@ function eventStackIds(event: AppEvent): string[] {
     default:
       return [];
   }
+}
+
+/** Initiale d'un héros (nom localisé) pour le repli de médaillon (S7.3). */
+function heroInitial(name: string): string {
+  const first = [...resolveHeroName(name).trim()][0];
+  return first ? first.toUpperCase() : '?';
 }
 
 /** Polygone de repli par pile — forme distincte par camp (sprite d'unité absent/en cours). */

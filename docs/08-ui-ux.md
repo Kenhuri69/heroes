@@ -410,6 +410,19 @@
 > L'événement moteur `CombatEnded` porte désormais `survivors` en plus de
 > `casualties` (état haché inchangé ⇒ golden épargné).
 
+> 🏰 **Siège — pré-combat & médaillon héros (siège S7, plan
+> `siege-visual-remediation.md`)** : deux finitions *client seul* (zéro moteur,
+> pas de bump save). (1) **Pré-combat « Siège »** — quand le combat cible une
+> ville (`combat.townId`), l'écran pré-combat titre **« Siège de {faction} »**,
+> arbore le blason de la faction **de la ville** (et non plus seulement la pile
+> défensive dominante) et affiche une **rangée de défenses** — *Fort niv. N*,
+> *Rempart*, *Douve*, *Tour de tir* — dérivée de l'état existant
+> (`town.buildings.fort`, `combat.siegeWalls`/`moat`, pile `defender-tower`).
+> (2) **Repli du médaillon de héros en combat** — le jeton de héros au flanc de
+> la grille affiche désormais **l'initiale du héros** (nom localisé) au centre
+> quand l'avatar n'existe pas ou n'est pas encore chargé, au lieu d'un disque
+> noir nu (doc 19 §3.2) ; l'avatar chargé la recouvre.
+
 ### 2.5 Autres écrans
 
 Menu principal (Continuer / Scénarios / Escarmouche / **Éditeur de carte** / Options), fiche de scénario (objectifs), fin de partie (stats, graphique de puissance), options (langue FR/EN, vitesse anims, taille UI, audio, réduction des animations, confirmation de fin de tour : cf. §4).

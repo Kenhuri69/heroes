@@ -31,6 +31,7 @@ import { TownsLayer } from '../../render/townsLayer';
 import { FogOverlay } from '../../render/fog';
 import { buildHeroSprite } from '../../render/heroSprite';
 import { buildWorldBorder } from '../../render/worldBorder';
+import { buildWaterSheen, waterSheenAlpha, waterSheenStats } from '../../render/waterSheen';
 import { PathPreview, type PreviewStep } from '../../render/pathPreview';
 import { onLongPress, onTap } from '../../input/pointer';
 import { commandErrorMessage, resolveHeroName, t } from '../../app/i18n';
@@ -82,6 +83,8 @@ export class AdventureScene {
   private readonly towns = new TownsLayer(this.entities);
   private readonly fog: FogOverlay;
   private readonly tilemap: Tilemap;
+  /** Voile de miroitement d'eau (I12) — présent seulement sur une carte aplatie. */
+  private readonly waterSheen: Container | null;
   private readonly terrainProps: TerrainProps;
   private readonly preview = new PathPreview();
   private readonly heroSprites = new Map<string, Container>();
@@ -119,6 +122,9 @@ export class AdventureScene {
 
     const tilemap = new Tilemap(map);
     this.tilemap = tilemap;
+    // I12 : miroitement d'eau — seulement sur une carte APLATIE (petite/moyenne).
+    // Sur une grande carte culée, la mer périmétrique suffit (anti-gel ×4 protégé).
+    this.waterSheen = tilemap.flattened ? buildWaterSheen(map) : null;
     // Props de relief dans la couche d'entités triée (occlusion héros ↔ forêt/montagne).
     this.terrainProps = new TerrainProps(map, this.entities);
     this.fog = new FogOverlay(map);
@@ -128,6 +134,7 @@ export class AdventureScene {
     this.container.addChild(
       buildWorldBorder(map), // UXD-3A : mer + rivage sous la tuile (plus de letterbox noir)
       tilemap.container,
+      ...(this.waterSheen ? [this.waterSheen] : []), // miroitement au-dessus de la tuile d'eau
       this.preview.container,
       this.selectionRing, // marqueur au sol, sous les entités
       this.entities,
@@ -145,8 +152,16 @@ export class AdventureScene {
     this.cullTilemap();
   }
 
-  /** Recalcule les chunks visibles à chaque frame (suit pan/zoom de la caméra). */
-  private readonly onTick = (): void => this.cullTilemap();
+  /** Recalcule les chunks visibles à chaque frame (suit pan/zoom de la caméra) + anime l'eau. */
+  private readonly onTick = (): void => {
+    this.cullTilemap();
+    // I12 : respiration de l'eau — n'ajuste qu'un `alpha` (aucune re-tesselation).
+    if (this.waterSheen && !this.waterSheen.destroyed) {
+      const alpha = waterSheenAlpha(performance.now() / 1000, reduceMotion());
+      this.waterSheen.alpha = alpha;
+      waterSheenStats.alpha = alpha;
+    }
+  };
 
   /** Viewport écran → rectangle MONDE (avec marge) puis masque les chunks hors champ. */
   private cullTilemap(): void {
@@ -174,6 +189,7 @@ export class AdventureScene {
   destroy(): void {
     this.destroyed = true;
     this.app.ticker.remove(this.onTick);
+    waterSheenStats.alpha = 0; // I12 : le hook ne garde pas une valeur périmée hors aventure
     this.terrainProps.destroy();
     this.unsubscribeStore();
     this.unsubscribeTap();

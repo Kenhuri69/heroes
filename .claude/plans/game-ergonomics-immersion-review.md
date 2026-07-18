@@ -435,11 +435,12 @@ Zéro asset, zéro moteur : uniquement `CombatScene` + `motion.ts`.
         crossfade/titre vivant (items 4-5, optionnels).
   - [ ] **Lot 6 tail** (asset-lourd) : vignettes de bâtiments événement (item 3) +
         planches unités/avatars/ville (items 4-6) — via skills `asset-*`, session dédiée.
-  - [~] **Lot 8** — un monde qui respire. **Constaté déjà livré** : 8.1 bord de
-        monde (rivage iso `worldBorder.ts` + mer DOM non-noire + vignette
-        `.map-vignette`) — reste juste un dégradé thématique optionnel. **Différé** :
-        8.2 eau vivante (tint animé des chunks d'eau — tâche render sensible à
-        l'anti-gel ×4, à cadrer).
+  - [x] **Lot 8** — un monde qui respire. **8.1 déjà livré** (rivage iso
+        `worldBorder.ts` + mer DOM non-noire + vignette `.map-vignette`). **8b livré**
+        (`ux-lot8b-living-water.md`, I12) : **eau vivante** — voile de miroitement
+        sur les tuiles d'eau dont l'alpha respire (`waterSheen.ts`, géométrie cuite
+        en texture ⇒ un blit/frame), coupé en reduce-motion, **uniquement sur carte
+        aplatie** (anti-gel ×4 protégé ; perf-neutralité vérifiée par A/B).
   - [~] **Lot 9** — audio d'identité. **9a livré** (`ux-lot9a-quick-mute.md`, I8) :
         **mute rapide** (bouton haut-parleur TurnBar + bascule Options, coupe
         musique+SFX, persisté, icône barrée + `aria-pressed`). **9b livré**

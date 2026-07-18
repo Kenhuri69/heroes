@@ -67,6 +67,10 @@ export class Tilemap {
   private readonly chunks: Chunk[] = [];
   /** Culling actif uniquement quand la carte n'est PAS aplatie en une texture. */
   private readonly culled: boolean;
+  /** Vrai si la carte est aplatie en une seule texture (petite/moyenne) — inverse de `culled`. */
+  get flattened(): boolean {
+    return !this.culled;
+  }
 
   constructor(private readonly map: AdventureMapDef) {
     // Carte statique assez petite → une seule texture (1 draw call/frame) : rend

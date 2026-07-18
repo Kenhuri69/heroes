@@ -394,4 +394,10 @@ Zéro asset, zéro moteur : uniquement `CombatScene` + `motion.ts`.
         (`ux-lot3b-combat-reasons.md`, E2) : chaque bouton de combat désactivé porte
         une raison (sous-libellé + title/aria) — « Déjà agi », « Aucun sort », « Or
         manquant »… Reste : E8 (confirmer attaque perdue), E14 (filtres de journal).
-  - [ ] Lots 4→10 : à suivre.
+  - [~] **Lot 4** — gestion. **4a livré** (`ux-lot4a-garrison-bulk.md`, E5) : boutons
+        « Tout vers le héros » / « Tout vers la garnison » (transfert en un geste,
+        boucle sur état frais). Reste : marché tactile (E6), tiroir héros repliable
+        (E7), grimoire par école (E11), équiper/déséquiper (E12), + « Équilibrer ».
+  - [ ] **Lot 3 tail différé** : E8 (confirmer attaque perdue), E14 (filtres journal)
+        — 🟡 à faible valeur / plomberie disproportionnée.
+  - [ ] Lots 5→10 : à suivre.

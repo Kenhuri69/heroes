@@ -56,6 +56,30 @@
   }
 }
 
+/* E5 : « tout transférer » garnison ↔ héros en un geste (au lieu du slot par slot). */
+.town-garrison-bulk {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.town-garrison-bulk button {
+  flex: 1 1 auto;
+  min-width: 8em;
+  min-height: 44px;
+  padding: 6px 12px;
+  border: 1px solid var(--ink-600);
+  border-radius: var(--radius-m);
+  background: var(--ink-700);
+  color: var(--parchment);
+  font: 600 0.875rem var(--font-ui);
+  cursor: pointer;
+}
+.town-garrison-bulk button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
 /* Bouton « Tout recruter » (lot M7 C19) : action globale de l'onglet Recruter. */
 .town-recruit-all {
   display: block;

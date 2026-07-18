@@ -2167,6 +2167,34 @@ test('ville : construire + croissance + recruter + transférer → armée du hé
   expect(errors).toEqual([]);
 });
 
+test('E5 : « tout transférer » garnison ↔ héros en un geste', { tag: '@core' }, async ({ page }) => {
+  const errors = await openGame(page);
+  // Héros de départ (2 piles) amené sur sa ville (2,4) ; garnison vide au départ.
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({ type: 'MoveHero', heroId: 'hero-player-1', path: [{ x: 2, y: 4 }] }),
+  );
+  await expect.poll(() => heroPos(page)).toEqual({ x: 2, y: 4 });
+  const heroStacks = (): Promise<number> =>
+    page.evaluate(() => window.__HEROES_TEST__!.getState().heroes[0]!.army.length);
+  const garrStacks = (): Promise<number> =>
+    page.evaluate(() => window.__HEROES_TEST__!.getState().towns[0]!.garrison.length);
+  expect(await heroStacks()).toBeGreaterThan(1);
+  expect(await garrStacks()).toBe(0);
+
+  await page.getByTestId('town-open-start-town').click();
+  await page.getByTestId('town-tab-garrison').click();
+  // Lot 4a (E5) : « Tout vers la garnison » vide l'armée du héros en UN clic.
+  await page.getByTestId('garrison-all-to-town').click();
+  await expect.poll(heroStacks).toBe(0);
+  await expect.poll(garrStacks).toBeGreaterThan(1);
+  // Aller-retour : « Tout vers le héros » les ramène toutes.
+  await page.getByTestId('garrison-all-to-hero').click();
+  await expect.poll(heroStacks).toBeGreaterThan(1);
+  await expect.poll(garrStacks).toBe(0);
+
+  expect(errors).toEqual([]);
+});
+
 test('taverne : construire ⇒ onglet Taverne ⇒ recruter un héros nommé (M-TAVERN.2)', async ({
   page,
 }) => {

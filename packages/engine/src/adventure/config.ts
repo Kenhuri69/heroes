@@ -51,6 +51,29 @@ export interface CombatRulesConfig {
    * commande `HeroAttack` est refusée (feature désactivée, fixtures/golden épargnés).
    */
   heroAttack?: { base: number; perPower: number; perAttack: number } | undefined;
+  /**
+   * Mort subite (doc 18 B4, MMHO « Sudden Death ») : à l'ATTEINTE du round
+   * `round`, le combat est résolu de force — `strongestArmy` : le camp au plus
+   * fort `armyStrength` restant l'emporte (égalité ⇒ défenseur, convention
+   * B17), avec les conséquences NORMALES de fin de combat. **Optionnel &
+   * opt-in** : absent ⇒ aucune borne (comportement historique ⇒ golden
+   * inchangé). Activée en PvP en ligne via `suddenDeathOnline` (client).
+   */
+  suddenDeath?: SuddenDeathConfig | undefined;
+  /**
+   * Valeur de `suddenDeath` à appliquer aux MATCHS EN LIGNE (doc 18 B4 :
+   * « activée par le mode en ligne ») : donnée de `config.json` copiée vers
+   * `suddenDeath` par le CLIENT à la création d'un match PvP async — le
+   * moteur ne la lit JAMAIS (il ignore la notion de « en ligne »).
+   */
+  suddenDeathOnline?: SuddenDeathConfig | undefined;
+}
+
+/** Règle de mort subite (doc 18 B4) — `resolution` extensible (un seul mode au MVP). */
+export interface SuddenDeathConfig {
+  /** Round dont le DÉBUT déclenche la résolution forcée (les rounds 1..round-1 se jouent). */
+  round: number;
+  resolution: 'strongestArmy';
 }
 
 /**

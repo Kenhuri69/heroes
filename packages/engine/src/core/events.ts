@@ -188,6 +188,8 @@ export type GameEvent =
     }
   /** Le joueur a quitté le combat (C3) : `retreat` (armée abandonnée), `surrender` (armée gardée, payante) ou `abandon` (pré-combat, armée survivante gardée, gratuit). */
   | { type: 'CombatLeft'; mode: 'retreat' | 'surrender' | 'abandon'; heroId: string }
+  /** Mort subite (doc 18 B4) : résolution forcée au round configuré — le camp au plus fort `armyStrength` restant l'emporte. */
+  | { type: 'CombatSuddenDeath'; round: number; winner: CombatSideId }
   // ——— Progression du héros (doc 02 §1.2) — surface figée en cadrage 2.5 ———
   | { type: 'XpGained'; heroId: string; amount: number; xp: number }
   | {

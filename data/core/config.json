@@ -51,7 +51,8 @@
       "obstaclesMin": 2,
       "obstaclesMax": 5,
       "heroAttack": { "base": 3, "perPower": 0, "perAttack": 3 },
-      "rangePenalty": { "hexes": 10, "factor": 0.5 }
+      "rangePenalty": { "hexes": 10, "factor": 0.5 },
+      "suddenDeathOnline": { "round": 20, "resolution": "strongestArmy" }
     },
     "market": {
       "sellRate": 25,

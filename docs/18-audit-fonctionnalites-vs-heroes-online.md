@@ -274,9 +274,12 @@ de cet audit)*
   (`heroCastThisRound`/`heroAttackUsed` = ids de héros ; `heroesOnSide`,
   `heroActionLeftFor`), `castHeroSpell`/`strikeWithHero` par héros agissant,
   `CastSpell`/`HeroAttack.heroId?` (défaut lead) ; l'IA d'auto-combat fait jouer
-  **chaque héros allié** d'un camp. Mono-héros bit-identique (golden inchangé).
-  Reste **E4.4b** : sélecteur de héros du combat **manuel** (client). **Priorité**
-  P3, par lots atomiques.
+  **chaque héros allié** d'un camp. Mono-héros bit-identique (golden inchangé) →
+  **E4.4b client (fait)** : **sélecteur de héros** dans la barre d'action du
+  combat manuel (chips visibles seulement en coop — plusieurs héros du joueur sur
+  son camp) ; le héros choisi (`store.combatActingHeroId`) est threadé en `heroId`
+  dans `CastSpell`/`HeroAttack` (SpellBook, ciblage `CombatScene`, `HeroAttackModal`),
+  préviz par-héros (`heroAttackDamageFor`). **E4 clôturé.** **Priorité** P3.
 - **4 questions ouvertes** (consentement, cap de plateau, partage XP…) à trancher
   avant E4.2 (cf. plan §« Questions ouvertes »).
 
@@ -367,10 +370,10 @@ M ≈ 2-3 j, L = semaine(s).
 > **État de comblement (mise à jour 2026-07)** : les Étapes 1–3 sont **livrées**
 > (A1, B6, E1, F4, B1, A2/A2b, B2, A4, C1, C2, **E3** ✅) ; l'Étape 4 en ligne est
 > livrée (B4, E2, E6 ✅). Les décisions de cadrage (Étape 5) sont tranchées :
-> B3, A3, E4 **retenus et livrés** (E4.4a moteur+IA fait ; reste **E4.4b**
-> client). **Items encore ouverts** : **E4.4b** (sélecteur de héros du combat
-> manuel coop, P3) · **A6** (ville neutre en `MapObjectDef`, P3) · **D1** (vue
-> de ville peinte, Beta). Les fiches §2 portent le détail par item.
+> B3, A3, E4 **retenus et livrés** (E4 clôturé : E4.4a moteur+IA + E4.4b client).
+> **Items encore ouverts** : **A6** (ville neutre en `MapObjectDef`, P3, dette de
+> forme sans impact joueur) · **D1** (vue de ville peinte, Beta). Les fiches §2
+> portent le détail par item.
 
 ### Étape 1 — Lisibilité de la carte & du combat (client/assets, zéro moteur)
 
@@ -414,7 +417,7 @@ M ≈ 2-3 j, L = semaine(s).
 |---|---|---|
 | Renforts en cours de combat | B3 | ✅ **retenu** — fidélité MMHO opt-in PvE (moteur + client livrés) |
 | Eau navigable & bateaux | A3 | ✅ **retenu** — chantier multi-lots livré (déplacement naval, `boat`/`shipyard`, mapgen, client) |
-| Combats coopératifs | E4 | ✅ **retenu (local)** — cadrage + gardien/siège/butin/client + E4.4a (actions par-héros moteur+IA) livrés ; **reste E4.4b** (sélecteur de héros du combat manuel, P3) |
+| Combats coopératifs | E4 | ✅ **retenu (local) — clôturé** : cadrage + gardien/siège/butin/client + E4.4a (par-héros moteur+IA) + E4.4b (sélecteur de héros du combat manuel) |
 | Guildes/clans & chat | E5 | phase Live uniquement |
 | Arbre d'aptitudes MMHO vs compétences HoMM | C3 | recommandation : divergence assumée (acter en doc 02 §1.3) |
 | Créatures 2-hex | B5 | recommandation : non (fidèle MMHO) — acter en doc 02 §5.1 |

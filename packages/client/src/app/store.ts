@@ -238,7 +238,14 @@ export interface AppState {
    * `CastSpell{…, targetHex}`. `null` = aucun ciblage en cours. Purement
    * présentation client (non persisté) ; remis à zéro aux transitions de combat.
    */
-  combatSpellTarget: { spellId: string; targetStackId: string } | null;
+  combatSpellTarget: { spellId: string; targetStackId: string; heroId?: string } | null;
+  /**
+   * Héros AGISSANT sélectionné en combat manuel coop (E4.4b) — `null` = le lead
+   * du camp joueur. Sélecteur affiché seulement si plusieurs héros du joueur
+   * peuvent agir. Présentation client (non persisté), remis à `null` aux
+   * transitions de combat.
+   */
+  combatActingHeroId: string | null;
   /**
    * C-SPELLUI.3 : sort + cible dont la ZONE d'effet est prévisualisée sur la
    * grille pendant le choix de cible dans le grimoire. `CombatScene` surligne
@@ -312,6 +319,7 @@ export const appStore = createStore<AppState>(() => ({
   aiTurn: null,
   onlineMatch: null,
   combatSpellTarget: null,
+  combatActingHeroId: null,
   combatSpellZone: null,
   combatInspectId: null,
   combatResult: null,

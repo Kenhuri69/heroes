@@ -395,6 +395,7 @@
   "combat.placementHint": "Placement tactique : touchez une pile, puis une case de votre bande.",
   "combat.spell": "Sort héros",
   "combat.heroPresent": "Votre héros mène l’armée",
+  "combat.actingHero": "Héros actif :",
   "combat.heroAttack": "Attaque du héros",
   "combat.unitSpell": "Sort (unité)",
   "combat.prayer": "Prière",

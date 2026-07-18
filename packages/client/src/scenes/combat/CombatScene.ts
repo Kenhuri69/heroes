@@ -930,7 +930,7 @@ export class CombatScene {
     }
     appStore.setState({ combatSpellTarget: null });
     try {
-      await dispatch({ type: 'CastSpell', spellId: target.spellId, targetStackId: target.targetStackId, targetHex: hex });
+      await dispatch({ type: 'CastSpell', spellId: target.spellId, targetStackId: target.targetStackId, targetHex: hex, ...(target.heroId ? { heroId: target.heroId } : {}) });
     } catch (err) {
       pushToast(commandErrorMessage(err), 'error'); // rejeté (CL3) — surfacé
     }

@@ -414,7 +414,7 @@ export class CombatScene {
       else drawTower(this.wallBase, layout.wallX, ty);
     }
     if (layout.gateY != null) drawGate(this.wallBase, iso.xAt(layout.gateY), layout.gateY);
-    for (const d of layout.damage) drawDamage(this.wallDamage, iso.xAt(d.y), d.y, d.ratio, d.seed);
+    for (const d of layout.damage) drawDamage(this.wallDamage, iso.xAt(d.y), d.y, d.ratio, d.seed, iso.scaleAt(d.y));
   }
 
   /**

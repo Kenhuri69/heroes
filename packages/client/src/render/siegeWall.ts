@@ -1,5 +1,5 @@
 import type { Graphics } from 'pixi.js';
-import { COMBAT_ROWS, type CombatState, type OffsetPos } from '@heroes/engine';
+import { COMBAT_ROWS, type CombatState } from '@heroes/engine';
 import { HEX_SIZE, offsetToPixel } from './hexgrid';
 
 /**
@@ -165,23 +165,27 @@ export function drawGate(g: Graphics, x: number, yc: number): void {
   drawMerlons(g, left, w, top);
 }
 
-/** Dégâts d'un segment : fissures (usure) / trou + gravats (brèche). */
-export function drawDamage(g: Graphics, x: number, y: number, ratio: number, seed: number): void {
-  if (ratio > 0.4) drawCracks(g, x, y, seed);
-  else drawBreach(g, x, y);
+/**
+ * Dégâts d'un segment : fissures (usure) / trou + gravats (brèche). `scale`
+ * (défaut 1) suit le recul iso ⇒ une brèche loin (petit bout de mur) est plus
+ * petite qu'une brèche près, au lieu d'un gros disque à taille fixe.
+ */
+export function drawDamage(g: Graphics, x: number, y: number, ratio: number, seed: number, scale = 1): void {
+  if (ratio > 0.4) drawCracks(g, x, y, seed, scale);
+  else drawBreach(g, x, y, seed, scale);
 }
 
-function drawCracks(g: Graphics, x: number, y: number, seed: number): void {
+function drawCracks(g: Graphics, x: number, y: number, seed: number, scale = 1): void {
   const arms = 5;
   for (let k = 0; k < arms; k++) {
     const ang = ((k * 73 + seed * 29) % 360) * (Math.PI / 180);
-    const len = HEX_SIZE * (0.5 + ((k * 17) % 5) / 10);
+    const len = HEX_SIZE * (0.5 + ((k * 17) % 5) / 10) * scale;
     let px = x;
     let py = y;
     g.moveTo(px, py);
     const segs = 3;
     for (let s = 1; s <= segs; s++) {
-      const jitter = (((k + s) * 41) % 10 - 5) * 0.8;
+      const jitter = (((k + s) * 41) % 10 - 5) * 0.8 * scale;
       px = x + (Math.cos(ang) * (len * s)) / segs + jitter;
       py = y + (Math.sin(ang) * (len * s)) / segs;
       g.lineTo(px, py);
@@ -190,13 +194,40 @@ function drawCracks(g: Graphics, x: number, y: number, seed: number): void {
   }
 }
 
-function drawBreach(g: Graphics, x: number, y: number): void {
-  drawCracks(g, x, y, 3);
-  g.ellipse(x, y, HEX_SIZE * 0.42, HEX_SIZE * 0.5).fill({ color: DARK_HOLE });
-  g.ellipse(x, y, HEX_SIZE * 0.42, HEX_SIZE * 0.5).stroke({ width: 2, color: STONE_DARK, alpha: 0.7 });
-  const chunks: OffsetPos[] = [];
-  for (let k = 0; k < 6; k++) chunks.push({ col: (k * 23) % 40 - 20, row: (k * 13) % 12 });
-  for (const c of chunks) {
-    g.rect(x + c.col * 0.7, y + HEX_SIZE * 0.5 + c.row, 6, 5).fill({ color: RUBBLE }).stroke({ width: 0.8, color: STONE_DARK, alpha: 0.6 });
+/**
+ * Brèche = trou DÉCHIQUETÉ dans la maçonnerie (polygone à rayon bruité, jamais
+ * une ellipse nette « peinte dessus ») : rebord sombre en retrait (profondeur du
+ * percement), vide au centre, dents de pierre claires sur le pourtour, et tas de
+ * gravats débordant à la base. Déterministe (bruit dérivé de `seed`).
+ */
+function drawBreach(g: Graphics, x: number, y: number, seed: number, scale = 1): void {
+  drawCracks(g, x, y, seed, scale);
+  const rx = HEX_SIZE * 0.46 * scale;
+  const ry = HEX_SIZE * 0.54 * scale;
+  const n = 14;
+  const noise: number[] = [];
+  for (let k = 0; k < n; k++) noise.push(0.7 + (((k * 47 + seed * 31) % 11) / 11) * 0.5);
+  const ring = (f: number): number[] => {
+    const p: number[] = [];
+    for (let k = 0; k < n; k++) {
+      const a = (k / n) * Math.PI * 2;
+      p.push(x + Math.cos(a) * rx * noise[k]! * f, y + Math.sin(a) * ry * noise[k]! * f);
+    }
+    return p;
+  };
+  g.poly(ring(1.15)).fill({ color: STONE_DARK, alpha: 0.85 }); // rebord éclaté = profondeur
+  g.poly(ring(1)).fill({ color: DARK_HOLE }); // vide du percement
+  for (let k = 0; k < n; k += 2) {
+    const a = (k / n) * Math.PI * 2;
+    const f = noise[k]!;
+    g.moveTo(x + Math.cos(a) * rx * f * 1.15, y + Math.sin(a) * ry * f * 1.15)
+      .lineTo(x + Math.cos(a) * rx * f * 0.82, y + Math.sin(a) * ry * f * 0.82)
+      .stroke({ width: 1.3 * scale, color: STONE_LIGHT, alpha: 0.45 }); // dents de pierre brisée
+  }
+  for (let k = 0; k < 9; k++) {
+    const sz = (3 + ((k * 13) % 4)) * scale;
+    const cx = x + (((k * 29) % 40) - 20) * 0.9 * scale;
+    const cy = y + ry * 0.7 + ((k * 17) % 9) * scale;
+    g.rect(cx, cy, sz, sz * 0.8).fill({ color: k % 2 ? RUBBLE : STONE_BODY }).stroke({ width: 0.8, color: STONE_DARK, alpha: 0.55 });
   }
 }

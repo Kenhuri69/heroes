@@ -87,6 +87,7 @@ export {
   hasLineOfSight,
   canHeroAttack,
   canHeroRally,
+  canCallReinforcements,
   heroRallyHp,
   estimateHeroRally,
   estimateDamage,

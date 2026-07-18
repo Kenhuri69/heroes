@@ -466,3 +466,20 @@
   color: var(--parchment-dim, var(--parchment));
   opacity: 0.7;
 }
+
+/* Renforts (B3-client) : ligne effectif + bouton d'appel sous la liste d'unités. */
+.reinforcements-confirm {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+  flex-wrap: wrap;
+}
+.reinforcements-confirm label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.reinforcements-confirm input {
+  width: 4rem;
+}

@@ -49,7 +49,17 @@ risquée » ⇒ strictement **opt-in par config** et **PvE only**.
       insertion `acted:true`, débit `scaleCost`, incrément lazy). Champ `reinforcementsUsed?` (types.ts).
 - [x] 4 Enregistrement engine.ts + combat/index.ts.
 - [x] 5 7 tests `combat-reinforcements.test.ts` (succès + 6 refus). Engine 897, golden intact.
-- [ ] 6 **Client (B3.2, différé)** : bouton « Renforts » + sélecteur d'unité en combat, gaté opt-in+PvE.
+- [x] 6 **Client (B3.2) LIVRÉ** : helper moteur pur `canCallReinforcements` (gate hors
+      unité/effectif) exporté ; bouton « Renforts » (secondary actions, visible si
+      `config.combat.reinforcements`) + `ReinforcementsModal` (sélection unité de
+      l'armée + effectif borné `maxUnitsPerCall`, coût prévisualisé `scaleCost`) ⇒
+      `dispatch(CallReinforcements)` ; raison de désactivation `combat.reason.reinforcements`.
+      Config **activée globalement** en PvE (`config.json` : 2 appels, ×2 coût).
+      Locales `combat.reinforcements*` FR/EN. CSS `.reinforcements-confirm`.
+      Vérif : typecheck ✓, lint ✓, 897 engine (golden intact) ✓, content:check ✓,
+      i18n ✓, garde-fou vert, build ✓, budget 336 Ko ✓, smoke @core 26/26 ✓.
+      **Non smoke-couvert** : le clic d'appel exige un combat PvE avec armée costée +
+      or (état non déterministe dans le smoke) ⇒ logique couverte par unitaires + gate mirroré.
 - [x] 7 Docs 02 §5 + doc 18 B3 (retenue, moteur livré).
 - [x] 8 Vérif : typecheck, tests, (lint/content/build/smoke en cours).
 

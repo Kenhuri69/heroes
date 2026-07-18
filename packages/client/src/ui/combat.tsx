@@ -4,6 +4,8 @@ import {
   heroActionLeft,
   heroAttackDamage,
   canHeroRally,
+  canCallReinforcements,
+  scaleCost,
   estimateHeroRally,
   initiativeSpeed,
   roundActionOrder,
@@ -17,6 +19,7 @@ import {
   type CombatStack,
   type CombatState,
   type CombatUnitDef,
+  type HeroState,
   type SpellEstimate,
 } from '@heroes/engine';
 import { useApp, appStore } from '../app/store';
@@ -67,6 +70,7 @@ export function CombatUi() {
   const [spellBookOpen, setSpellBookOpen] = useState(false);
   const [heroAttackOpen, setHeroAttackOpen] = useState(false);
   const [prayerOpen, setPrayerOpen] = useState(false);
+  const [reinforceOpen, setReinforceOpen] = useState(false);
   const [unitSpellOpen, setUnitSpellOpen] = useState(false);
   const [leaveConfirm, setLeaveConfirm] = useState<'retreat' | 'surrender' | null>(null);
   // E1 : sur mobile, les actions secondaires (Prière/Sort d'unité/Fuir/Se rendre/
@@ -155,6 +159,9 @@ export function CombatUi() {
   // F-SKILLS.2-UI : Prière de bataille disponible si le héros du camp joueur porte
   // la compétence (`battleResurrectHp`), 1×/combat — gating délégué au moteur pur.
   const canPray = isPlayerTurn && !autoActive && canHeroRally(appStore.getState().game);
+  // B3-client : « Renforts » en combat PvE — gate d'affichage délégué au moteur pur
+  // (`canCallReinforcements` : feature opt-in, PvE, tour joueur, plafond, hex libre).
+  const canReinforce = isPlayerTurn && !autoActive && canCallReinforcements(appStore.getState().game);
   // CAP-CAST : la pile active du joueur est-elle une lanceuse (`spellcaster`)
   // jouable à la main (charges > 0, non silenciée, son sort au catalogue) ? Le
   // moteur supporte déjà `castSpell` ; on n'exposait que l'IA/auto jusqu'ici.
@@ -191,6 +198,7 @@ export function CombatUi() {
     'hero-attack': canHeroStrike ? null : heroReason,
     spell: canCastSpell ? null : (heroReason ?? 'noSpell'),
     prayer: canPray ? null : (commonReason ?? 'prayer'),
+    reinforcements: canReinforce ? null : (commonReason ?? 'reinforcements'),
     'unit-spell': unitSpellReason,
     retreat: canLeave ? null : (!combat.heroId ? 'noHero' : commonReason),
     surrender: canSurrender ? null : !canLeave ? (!combat.heroId ? 'noHero' : commonReason) : 'gold',
@@ -356,6 +364,17 @@ export function CombatUi() {
           {t('combat.prayer')}
           {reasonNode(reason['prayer'])}
         </button>
+        {config?.combat.reinforcements && (
+          <button
+            data-testid="combat-reinforcements"
+            disabled={!canReinforce}
+            title={reasonTitle(reason['reinforcements'])}
+            onClick={() => setReinforceOpen(true)}
+          >
+            {t('combat.reinforcements')}
+            {reasonNode(reason['reinforcements'])}
+          </button>
+        )}
         <button
           data-testid="combat-unit-spell"
           disabled={!unitSpell}
@@ -413,6 +432,9 @@ export function CombatUi() {
       {spellBookOpen && hero && <SpellBook hero={hero} onClose={() => setSpellBookOpen(false)} />}
       {heroAttackOpen && <HeroAttackModal combat={combat} onClose={() => setHeroAttackOpen(false)} />}
       {prayerOpen && <PrayerModal combat={combat} onClose={() => setPrayerOpen(false)} />}
+      {reinforceOpen && hero && (
+        <ReinforcementsModal hero={hero} onClose={() => setReinforceOpen(false)} />
+      )}
       {unitSpellOpen && unitSpell && active && (
         <UnitSpellModal
           combat={combat}
@@ -592,6 +614,106 @@ function PrayerModal({ combat, onClose }: { combat: CombatState; onClose: () => 
               );
             })}
           </ul>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Modale de renforts (B3-client, doc 18 B3) : en combat PvE, le héros ajoute une
+ * pile fraîche d'une unité qu'il commande déjà, contre or. Sélection unité +
+ * effectif (borné `maxUnitsPerCall`), coût prévisualisé (`recruitCost × count ×
+ * costMultiplier`, miroir du moteur) ⇒ `CallReinforcements`.
+ */
+function ReinforcementsModal({ hero, onClose }: { hero: HeroState; onClose: () => void }) {
+  useApp((s) => s.locale); // réactivité i18n
+  const game = appStore.getState().game;
+  const cfg = game.config?.combat.reinforcements;
+  const player = game.players.find((p) => p.id === hero.playerId);
+  const resources = (player?.resources ?? {}) as Record<string, number>;
+  const maxUnits = cfg?.maxUnitsPerCall ?? 1;
+  const mult = cfg?.costMultiplier ?? 1;
+  const [sel, setSel] = useState<string | null>(null);
+  const [qty, setQty] = useState(1);
+
+  const recruitCostOf = (unitId: string): Record<string, number> | undefined =>
+    (game.unitCatalog[unitId] as { recruitCost?: Record<string, number> } | undefined)?.recruitCost;
+  // Unités que le héros commande ET qui ont un coût (renforçables).
+  const units = hero.army.filter((s) => s.count > 0 && recruitCostOf(s.unitId));
+  const selCost = sel ? scaleCost(recruitCostOf(sel)!, Math.max(1, Math.min(qty, maxUnits)) * mult) : null;
+  const affordable = !!selCost && Object.entries(selCost).every(([id, amt]) => (resources[id] ?? 0) >= amt);
+
+  const call = (): void => {
+    if (!sel) return;
+    dispatch({ type: 'CallReinforcements', unitId: sel, count: Math.max(1, Math.min(qty, maxUnits)) })
+      .then(() => onClose())
+      .catch((err: unknown) => pushToast(commandErrorMessage(err), 'error'));
+  };
+
+  return (
+    <div class="modal-backdrop" onClick={onClose}>
+      <div
+        class="modal spellbook"
+        role="dialog"
+        aria-modal="true"
+        aria-label={t('combat.reinforcements')}
+        data-testid="reinforcements-modal"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <header class="modal-header">
+          <h2>{t('combat.reinforcements')}</h2>
+          <button class="modal-close" aria-label={t('options.close')} onClick={onClose}>
+            ×
+          </button>
+        </header>
+        {units.length === 0 ? (
+          <p class="spellbook-empty">{t('combat.reinforcementsNone')}</p>
+        ) : (
+          <>
+            <ul class="spell-target-list">
+              {units.map((s) => (
+                <li key={s.unitId}>
+                  <button
+                    class={`spell-target${sel === s.unitId ? ' active' : ''}`}
+                    aria-pressed={sel === s.unitId}
+                    data-testid={`reinforce-unit-${s.unitId}`}
+                    onClick={() => setSel(s.unitId)}
+                  >
+                    <span>{resolveUnitName(s.unitId)}</span>
+                    <span class="spell-target-preview">
+                      {t('combat.reinforcementsUnitCost', { gold: (recruitCostOf(s.unitId)?.gold ?? 0) * mult })}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+            {sel && (
+              <div class="reinforcements-confirm">
+                <label>
+                  {t('combat.reinforcementsCount')}
+                  <input
+                    type="number"
+                    min={1}
+                    max={maxUnits}
+                    value={qty}
+                    data-testid="reinforce-qty"
+                    onInput={(e) =>
+                      setQty(Math.max(1, Math.min(maxUnits, Number((e.currentTarget as HTMLInputElement).value) || 1)))
+                    }
+                  />
+                </label>
+                <button
+                  class="menu-button"
+                  data-testid="reinforce-confirm"
+                  disabled={!affordable}
+                  onClick={call}
+                >
+                  {t('combat.reinforcementsConfirm', { gold: selCost?.gold ?? 0 })}
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

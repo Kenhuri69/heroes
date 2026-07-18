@@ -784,12 +784,20 @@ pile active. Sort et frappe consomment le **même budget d'actions du round**
 (conforme au core loop §1 « le héros agit une fois par round, sort **ou**
 attaque ») et tous deux réinitialisés au changement de round ; la **Prière de
 bataille** (F-SKILLS.2) reste un special 1×/combat indépendant. En auto-combat,
-les héros des DEUX camps sont joués. Les verrous sont par camp
-(`heroCastThisRound` / `heroAttackUsed`, réinit chaque round).
+les héros des DEUX camps sont joués. Les verrous sont **par HÉROS** (E4.4,
+doc 18 : `heroCastThisRound` / `heroAttackUsed` stockent des **ids de héros**,
+réinit chaque round) — voir **coop** ci-dessous.
 **Perk Magic (doc 18 C1, lot 3.1)** : le budget est **1 + `heroActionsPerRound`
-agrégé** (`heroActionLeft`, comptage d'occurrences par camp — forme des
-tableaux inchangée) — un héros nommé d'archétype **magic** agit DEUX fois par
-round (sort ET frappe, ou deux sorts), joueur comme IA.
+agrégé** (`heroActionLeftFor`, comptage d'occurrences par héros) — un héros nommé
+d'archétype **magic** agit DEUX fois par round (sort ET frappe, ou deux sorts),
+joueur comme IA.
+**Coop — actions par-héros (E4.4a, doc 18 E4)** : un camp portant **plusieurs
+héros** (lead + héros alliés coop, piles taguées `ownerHeroId`) voit **chacun**
+disposer de SA propre action de héros par round, avec SES ressources (mana,
+Pouvoir, Chance, Attaque) — `castHeroSpell`/`strikeWithHero` prennent le héros
+agissant ; `CastSpell`/`HeroAttack` un `heroId?` optionnel (**défaut = lead** ⇒
+combat mono-héros inchangé). L'IA d'auto-combat fait jouer tous les héros d'un
+camp (lead puis alliés). Sélecteur de héros du **combat manuel** = suite E4.4b.
 
 ---
 

@@ -160,19 +160,20 @@ export interface CombatState {
   attackerHeroId: string | null;
   defenderHeroId: string | null;
   /**
-   * Camps dont le héros a déjà lancé un sort CE round (1/round par camp,
-   * doc 02 §5.2) — remis à vide au changement de round. Liste par camp (comme
-   * `heroAttackUsed`) depuis C-AIPARITY : l'IA lance aussi, un booléen partagé
-   * créait une course entre les deux camps.
+   * **Héros** (id) ayant déjà lancé un sort CE round — remis à vide au changement
+   * de round. Par-HÉROS depuis E4.4 (coop : chaque héros allié d'un camp a sa
+   * propre action ; hors coop = le seul lead). Auparavant par camp (`CombatSideId`) ;
+   * même clé/forme (tableau de strings) ⇒ pas de bump save.
    */
-  heroCastThisRound: CombatSideId[];
+  heroCastThisRound: string[];
   /**
-   * Camps dont le héros a déjà frappé CE round — remis à vide au changement de
+   * **Héros** (id) ayant déjà frappé CE round — remis à vide au changement de
    * round, comme `heroCastThisRound`. L'attaque et le sort sont une **seule
    * action de héros par round** (doc 02 §1 « agit une fois par round, sort OU
-   * attaque ») : ces deux verrous sont mutuellement exclusifs par round.
+   * attaque ») : ces deux verrous sont mutuellement exclusifs par round et PAR
+   * héros (E4.4).
    */
-  heroAttackUsed: CombatSideId[];
+  heroAttackUsed: string[];
   /**
    * Camps ayant déjà utilisé la **Prière de bataille** de leur héros ce combat
    * (1×/combat, F-SKILLS.2 — résurrection d'une pile alliée). **Optionnel** : absent

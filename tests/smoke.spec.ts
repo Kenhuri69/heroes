@@ -3013,8 +3013,9 @@ test('sort : le héros lance un sort en combat et réduit une pile ennemie', { t
   // (H-NAMED) ⇒ round(4 × 0,8) = 3 : la spécialité agit bien EN COMBAT.
   expect(after.mana).toBe(setup.mana - 3);
   expect(after.remaining).toBeLessThan(setup.count);
-  // C-AIPARITY : verrou 1 sort/round PAR CAMP (liste des camps ayant lancé).
-  expect(after.cast).toContain('attacker');
+  // E4.4 : verrou 1 sort/round PAR HÉROS (liste des héros ayant lancé) — ici le
+  // héros joueur lead `hero-player-1`.
+  expect(after.cast).toContain('hero-player-1');
 
   // B6 (sprint 1) : le sort a produit un FX d'impact DISTINCT de la frappe
   // (retour visuel avant B6 : aucun). Compteur cumulé exposé au test.
@@ -3074,9 +3075,9 @@ test('attaque du héros : frappe directe sur une pile ennemie, 1×/combat (C1)',
   }, target.id);
   // La frappe a porté : pile réduite (0 si l'attaque a résolu le combat).
   expect(after.remaining).toBeLessThan(target.count);
-  // Tant que le combat continue : camp marqué (1×/combat) + bouton désactivé.
+  // Tant que le combat continue : héros marqué (E4.4, par-héros) + bouton désactivé.
   if (after.active) {
-    expect(after.used).toContain('attacker');
+    expect(after.used).toContain('hero-player-1');
     await expect(page.getByTestId('combat-hero-attack')).toBeDisabled();
   }
 

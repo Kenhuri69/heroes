@@ -484,28 +484,58 @@ export function stackLostSoFar(combat: CombatState, stack: Pick<CombatStack, 'id
   return (combat as CombatStateInternal)._stackLosses?.[stack.id] ?? 0;
 }
 
-/**
- * Actions de héros CONSOMMÉES ce round par un camp (doc 18 C1, lot 3.1) —
- * occurrences dans `heroCastThisRound` + `heroAttackUsed` (les doublons de side
- * comptent : forme des tableaux inchangée, pas de bump save).
- */
-export function heroActionsUsed(combat: CombatState, side: CombatSideId): number {
-  let used = 0;
-  for (const s of combat.heroCastThisRound) if (s === side) used += 1;
-  for (const s of combat.heroAttackUsed) if (s === side) used += 1;
-  return used;
+/** Héros lead d'un camp (`attackerHeroId`/`defenderHeroId`), ou `null` (arène). */
+function sideLeadHeroId(combat: CombatState, side: CombatSideId): string | null {
+  return side === 'attacker' ? combat.attackerHeroId : combat.defenderHeroId;
 }
 
 /**
- * Le héros lié au camp peut-il encore agir ce round (doc 02 §1 « sort OU
- * frappe », généralisé doc 18 C1 : 1 + `heroActionsPerRound`) ? Consommé par
- * les validations sort/frappe, l'IA et l'UI (helper pur, patron R7).
+ * Héros pouvant agir pour un camp (E4.4) : le **lead** plus tout héros allié coop
+ * dont une pile VIVANTE est sur ce camp (`ownerHeroId`). Hors coop ⇒ juste le lead.
+ * Pur (lit `combat` seul). L'ordre place le lead d'abord (flux IA/golden préservé).
  */
-export function heroActionLeft(state: GameState, combat: CombatState, side: CombatSideId): boolean {
-  const heroId = side === 'attacker' ? combat.attackerHeroId : combat.defenderHeroId;
+export function heroesOnSide(combat: CombatState, side: CombatSideId): string[] {
+  const out: string[] = [];
+  const lead = sideLeadHeroId(combat, side);
+  if (lead) out.push(lead);
+  for (const s of combat.stacks) {
+    if (s.side === side && s.count > 0 && s.ownerHeroId && !out.includes(s.ownerHeroId)) out.push(s.ownerHeroId);
+  }
+  return out;
+}
+
+/** Actions de héros CONSOMMÉES ce round par un HÉROS donné (E4.4) — occurrences de son id. */
+export function heroActionsUsedBy(combat: CombatState, heroId: string): number {
+  let used = 0;
+  for (const s of combat.heroCastThisRound) if (s === heroId) used += 1;
+  for (const s of combat.heroAttackUsed) if (s === heroId) used += 1;
+  return used;
+}
+
+/** Un HÉROS peut-il encore agir ce round (doc 02 §1, 1 + `heroActionsPerRound`) ? (E4.4, par-héros) */
+export function heroActionLeftFor(state: GameState, combat: CombatState, heroId: string): boolean {
   const hero = state.heroes.find((h) => h.id === heroId);
   if (!hero) return false;
-  return heroActionsUsed(combat, side) < heroActionsAllowed(hero);
+  return heroActionsUsedBy(combat, heroId) < heroActionsAllowed(hero);
+}
+
+/**
+ * Actions consommées ce round par le **lead** d'un camp (doc 18 C1) — rétro-compat
+ * (client, préviz) : délègue au lead. Le suivi réel est par-héros (E4.4).
+ */
+export function heroActionsUsed(combat: CombatState, side: CombatSideId): number {
+  const lead = sideLeadHeroId(combat, side);
+  return lead ? heroActionsUsedBy(combat, lead) : 0;
+}
+
+/**
+ * Le héros **lead** du camp peut-il encore agir ce round ? Rétro-compat (client,
+ * UI) : délègue à `heroActionLeftFor(lead)`. Le moteur/IA passe l'id du héros
+ * agissant à `heroActionLeftFor` (E4.4, chaque allié a son budget).
+ */
+export function heroActionLeft(state: GameState, combat: CombatState, side: CombatSideId): boolean {
+  const lead = sideLeadHeroId(combat, side);
+  return lead ? heroActionLeftFor(state, combat, lead) : false;
 }
 
 export function collectCasualties(

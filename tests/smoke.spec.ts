@@ -541,6 +541,52 @@ test('I12 : l’eau miroite sur la carte, coupé en reduce-motion', { tag: '@cor
   expect(errors).toEqual([]);
 });
 
+test('I15 : le retour haptique est opt-in et se déclenche sur un kill', { tag: '@core' }, async ({ page }) => {
+  const errors = await openGame(page);
+  // Défaut OFF : une confirmation (construction) ne déclenche aucune vibration.
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({ type: 'BuildStructure', townId: 'start-town', buildingId: 'tavern' }),
+  );
+  expect(await page.evaluate(() => window.__HEROES_TEST__!.haptic().count)).toBe(0);
+  // Opt-in via les Options : activer le retour tactile (persisté).
+  await page.getByTestId('options-open').click();
+  await page.getByTestId('options-haptics-on').click();
+  await page.getByTestId('options-close').click();
+  expect(await page.evaluate(() => localStorage.getItem('heroes:haptics'))).toBe('1');
+  // Un kill dans un combat AFFICHÉ ⇒ tentative de vibration. Tireur ×40 one-shot
+  // une pile fragile (le défenseur garde une 2ᵉ pile ⇒ le combat continue).
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({
+      type: 'StartCombat',
+      attacker: [{ unitId: 't2-archer', count: 40 }],
+      defender: [
+        { unitId: 't1-recruit', count: 1 },
+        { unitId: 't1-recruit', count: 1 },
+      ],
+      terrain: 'grass',
+    }),
+  );
+  await passPreBattle(page);
+  await expect(page.getByTestId('combat-round')).toBeVisible();
+  await expect
+    .poll(() =>
+      page.evaluate(() => {
+        const c = window.__HEROES_TEST__!.getState().combat;
+        return c?.stacks.find((s) => s.id === c.activeStackId)?.side;
+      }),
+    )
+    .toBe('attacker');
+  const targetId = await page.evaluate(
+    () => window.__HEROES_TEST__!.getState().combat!.stacks.find((s) => s.side === 'defender')!.id,
+  );
+  await page.evaluate(
+    (tid) => window.__HEROES_TEST__!.dispatch({ type: 'CombatAction', action: { type: 'attack', targetStackId: tid } }),
+    targetId,
+  );
+  await expect.poll(() => page.evaluate(() => window.__HEROES_TEST__!.haptic().count)).toBeGreaterThan(0);
+  expect(errors).toEqual([]);
+});
+
 test('fin de tour : jour suivant, points de mouvement restaurés', async ({ page }) => {
   const errors = await openGame(page);
 

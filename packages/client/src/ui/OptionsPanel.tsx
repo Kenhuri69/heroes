@@ -6,6 +6,7 @@ import { isOnline, isLoggedIn } from '../app/net';
 import { eventBus } from '../app/events';
 import { getTelemetry, resetTelemetry, setTelemetryEnabled } from '../app/telemetry';
 import { setMusicVolume, setSfxVolume, setMuted } from '../app/audio';
+import { setHaptics } from '../app/haptics';
 import { applyReduceMotion } from '../app/motion';
 import { applyFontScale, setConfirmEndTurn, FONT_SCALE_PERCENT } from '../app/settings';
 import { COMBAT_SPEEDS } from '../app/ui-constants';
@@ -32,6 +33,7 @@ export function OptionsPanel({ onClose }: { onClose: () => void }) {
   const musicVolume = useApp((s) => s.musicVolume);
   const sfxVolume = useApp((s) => s.sfxVolume);
   const audioMuted = useApp((s) => s.audioMuted);
+  const hapticsEnabled = useApp((s) => s.hapticsEnabled);
   const telemetryEnabled = useApp((s) => s.telemetryEnabled);
   useApp((s) => s.telemetryTick); // re-render des stats après reset
   const screen = useApp((s) => s.screen);
@@ -201,6 +203,23 @@ export function OptionsPanel({ onClose }: { onClose: () => void }) {
               class={!confirmEndTurn ? 'active' : ''}
               data-testid="options-confirm-endturn-off"
               onClick={() => setConfirmEndTurn(false)}
+            >
+              {t('options.off')}
+            </button>
+          </div>
+          <div class="segmented" role="group" aria-label={t('options.haptics')}>
+            <span class="options-toggle-label">{t('options.haptics')}</span>
+            <button
+              class={hapticsEnabled ? 'active' : ''}
+              data-testid="options-haptics-on"
+              onClick={() => setHaptics(true)}
+            >
+              {t('options.on')}
+            </button>
+            <button
+              class={!hapticsEnabled ? 'active' : ''}
+              data-testid="options-haptics-off"
+              onClick={() => setHaptics(false)}
             >
               {t('options.off')}
             </button>

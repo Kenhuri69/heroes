@@ -189,6 +189,8 @@ export interface AppState {
   sfxVolume: number;
   /** Mute rapide (I8) — override coupant musique + SFX, miroir du localStorage. */
   audioMuted: boolean;
+  /** Retour haptique mobile (I15) — opt-in (défaut OFF), miroir du localStorage. */
+  hapticsEnabled: boolean;
   /** Option « réduire les animations » (lot M8 C3) — union avec le réglage OS. */
   reduceMotionOption: boolean;
   /** Confirmer la fin de tour si un héros n'a pas bougé (lot M8 C12) — défaut on. */
@@ -300,6 +302,7 @@ export const appStore = createStore<AppState>(() => ({
   musicVolume: 0.35,
   sfxVolume: 0.6,
   audioMuted: false,
+  hapticsEnabled: false,
   reduceMotionOption: false,
   confirmEndTurn: true,
   pendingEndTurn: null,

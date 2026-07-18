@@ -165,36 +165,59 @@ export function toggleMute(): void {
   setMuted(!muted);
 }
 
-/** Événement moteur → effet ponctuel. Gardé au joueur humain hors combat. */
-function sfxForEvent(event: AppEvent): void {
-  const game = appStore.getState().game;
-  const human = humanId(game);
+/** Contexte de résolution d'un SFX (injecté ⇒ `sfxIdForEvent` reste pur/testable). */
+export interface SfxContext {
+  humanId: string;
+  townOwner: (townId: string) => string | null | undefined;
+  heroPlayer: (heroId: string) => string | null | undefined;
+}
+
+/**
+ * Effet ponctuel associé à un événement moteur (`null` = aucun) — **pur**, gardé
+ * au joueur humain. Les accomplissements (construction/recrutement/montée de
+ * niveau/amélioration) réutilisent `ui-confirm` (Lot 9b, aucun asset dédié requis).
+ */
+export function sfxIdForEvent(event: AppEvent, ctx: SfxContext): string | null {
+  const { humanId: human } = ctx;
   switch (event.type) {
     case 'StackAttacked':
-      playSfx(event.ranged ? 'combat-shoot' : 'combat-hit');
-      return;
+      return event.ranged ? 'combat-shoot' : 'combat-hit';
     case 'StackDied':
-      playSfx('combat-death');
-      return;
+      return 'combat-death';
     case 'SpellCast':
-      playSfx('combat-spell');
-      return;
+      return 'combat-spell';
     case 'TurnEnded':
-      if (event.playerId === human) playSfx('end-turn');
-      return;
-    case 'MoveStepped': {
-      const hero = game.heroes.find((h) => h.id === event.heroId);
-      if (hero?.playerId === human) playSfx('map-step');
-      return;
-    }
+      return event.playerId === human ? 'end-turn' : null;
+    case 'MoveStepped':
+      return ctx.heroPlayer(event.heroId) === human ? 'map-step' : null;
     case 'ResourcePicked':
     case 'TreasureTaken':
     case 'ArtifactPicked':
-      if (event.playerId === human) playSfx('map-pickup');
-      return;
+      return event.playerId === human ? 'map-pickup' : null;
+    // Lot 9b : retour sonore des accomplissements (réutilise `ui-confirm`).
+    case 'TownBuilt':
+    case 'UnitsRecruited':
+    case 'UnitsUpgraded':
+      return ctx.townOwner(event.townId) === human ? 'ui-confirm' : null;
+    case 'DwellingRecruited':
+    case 'HeroRecruited':
+      return event.playerId === human ? 'ui-confirm' : null;
+    case 'HeroLevelUp':
+      return ctx.heroPlayer(event.heroId) === human ? 'ui-confirm' : null;
     default:
-      return;
+      return null;
   }
+}
+
+/** Événement moteur → effet ponctuel (branche `sfxIdForEvent` sur l'état courant). */
+function sfxForEvent(event: AppEvent): void {
+  const game = appStore.getState().game;
+  const id = sfxIdForEvent(event, {
+    humanId: humanId(game),
+    townOwner: (townId) => game.towns.find((t) => t.id === townId)?.ownerPlayerId,
+    heroPlayer: (heroId) => game.heroes.find((h) => h.id === heroId)?.playerId,
+  });
+  if (id) playSfx(id);
 }
 
 /**

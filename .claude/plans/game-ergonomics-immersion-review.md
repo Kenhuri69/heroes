@@ -442,8 +442,11 @@ Zéro asset, zéro moteur : uniquement `CombatScene` + `motion.ts`.
         l'anti-gel ×4, à cadrer).
   - [~] **Lot 9** — audio d'identité. **9a livré** (`ux-lot9a-quick-mute.md`, I8) :
         **mute rapide** (bouton haut-parleur TurnBar + bascule Options, coupe
-        musique+SFX, persisté, icône barrée + `aria-pressed`). Reste : thèmes par
-        faction (9.2), ambiances par biome (9.3), SFX manquants (9.4).
+        musique+SFX, persisté, icône barrée + `aria-pressed`). **9b livré**
+        (`ux-lot9b-missing-sfx.md`, item 9.4) : **SFX d'accomplissement** —
+        construction/recrutement/montée de niveau/amélioration → `ui-confirm`
+        (mapping pur `sfxIdForEvent`, gardé au joueur humain, unit-testé). Reste :
+        thèmes par faction (9.2, infra sans piste), ambiances par biome (9.3).
   - [ ] **Lot 6 tail** (asset-lourd) : fonds de combat (8 terrains) + vignettes
         core/événement — planches à générer (prompts fournis).
   - [ ] **Lot 3 tail différé** : E8 (confirmer attaque perdue), E14 (filtres journal)

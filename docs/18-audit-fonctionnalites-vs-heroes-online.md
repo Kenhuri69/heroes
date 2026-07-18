@@ -207,13 +207,12 @@ de cet audit)*
   tracé en roadmap, rappelé ici pour complétude. **Nature** : client + assets.
 - **Priorité** : P2 (identité visuelle forte de la série).
 
-**D2 — Commerce avancé**
-- **État** : marché ressource↔or à taux dégressifs livré.
-- **Manque** : échange ressource↔ressource direct, marchand d'artefacts
-  (achat/vente), commerce inter-joueurs (MMHO n'en avait pas non plus —
-  non-écart sur ce dernier point).
-- **Nature** : moteur générique léger (le `TradeResources` se généralise) +
-  données. **Priorité** : P3.
+**D2 — Commerce avancé** 🚧 *(troc ressource↔ressource livré ; marchand d'artefacts restant)*
+- **Livré** : `TradeResources` accepte **toute paire** `give`/`receive` de
+  ressources (or↔ressource **et** ressource↔ressource direct, taux `config.market`
+  dégressif par nombre de marchés, refus du troc identité) — `town/market.ts`.
+- **Reste** (P3) : **marchand d'artefacts** (achat/vente). Commerce inter-joueurs
+  = non-écart vs MMHO (exclu).
 
 ### 2.E Multijoueur & social (l'identité MMHO)
 
@@ -233,13 +232,13 @@ de cet audit)*
   pairwise à la résolution d'un match `finished`, endpoint `GET /leaderboard`,
   section « Classement » du panneau En ligne. **Reste** : matchmaking (P3 Live).
 
-**E3 — Guilde des voleurs / comparatif inter-joueurs**
+**E3 — Guilde des voleurs / comparatif inter-joueurs** ✅ *(lot 3.3 — livré)*
 - **Réf.** : HoMM (thieves guild) ; MMHO vendait l'espionnage (exclu, premium).
-- **État** : seuls comparatifs : pré-combat (`armyStrength`) et fin de partie.
-- **Manque** : panneau de classement **en partie** (nb de villes, force totale,
-  revenus — précision graduée façon thieves guild, éventuellement gatée par le
-  bâtiment taverne déjà existant).
-- **Nature** : client (+ éventuel helper pur moteur de projection). **Priorité** : P2.
+- **Livré** (lot 3.3) : comparatif **en partie** à l'onglet Taverne de
+  `TownScreen` — table par joueur (siège+couleur, villes, héros, **force
+  d'armée**, or/jour, rang) avec **précision graduée** par niveau du bâtiment
+  (garnisons secrètes). Projections **pures** `thievesGuildRows`/`thievesGuildRank`
+  (`app/game.ts`, réutilisent `armyStrength`/`dailyIncome`), zéro diff moteur.
 
 **E4 — Combats coopératifs (signature MMHO)** 🚧 *(E4.1 cadrage + E4.2 gardien + E4.2b siège + E4.3 butin + E4.5 client livrés — coop PvE JOUABLE, butin partagé)*
 - **Réf.** : MMHO permettait d'inviter un ami dans sa bataille (2 armées côte à
@@ -350,15 +349,15 @@ Ordonné par rapport impact/coût et par dépendances. Chaque lot = un plan viva
 tests, golden, garde-fou « zéro faction », budget, smoke). Taille : S < 1 j,
 M ≈ 2-3 j, L = semaine(s).
 
-> **État de comblement (mise à jour 2026-07)** : les Étapes 1–2 sont **livrées**
-> (A1, B6, E1, F4, B1, A2/A2b, B2, A4 ✅) ; l'Étape 3 est livrée sauf E3 (C1, C2
-> ✅ ; **E3** ouvert) ; l'Étape 4 en ligne est livrée (B4, E2, E6 ✅). Les
-> décisions de cadrage (Étape 5) sont tranchées : B3, A3, E4 **retenus et livrés**
-> (reste **E4.4** pour E4). **Items encore ouverts** : **E3** (comparatif
-> inter-joueurs, P2) · **E4.4** (actions de héros par-héros en coop, P3) · **A5**
-> (triggers message-à-choix/téléport, P2 partiel) · **A6** (ville neutre en
-> `MapObjectDef`, P3) · **D1** (vue de ville peinte, Beta) · **D2** (commerce
-> avancé, P3). Les fiches §2 portent le détail par item.
+> **État de comblement (mise à jour 2026-07)** : les Étapes 1–3 sont **livrées**
+> (A1, B6, E1, F4, B1, A2/A2b, B2, A4, C1, C2, **E3** ✅) ; l'Étape 4 en ligne est
+> livrée (B4, E2, E6 ✅). Les décisions de cadrage (Étape 5) sont tranchées :
+> B3, A3, E4 **retenus et livrés** (reste **E4.4** pour E4). **Items encore
+> ouverts** : **E4.4** (actions de héros par-héros en coop, P3) · **A5** (triggers
+> message-à-choix/téléport, P2 partiel — ambush/grants livrés) · **A6** (ville
+> neutre en `MapObjectDef`, P3) · **D1** (vue de ville peinte, Beta) · **D2**
+> (marchand d'artefacts, P3 — le troc ressource↔ressource est livré). Les fiches
+> §2 portent le détail par item.
 
 ### Étape 1 — Lisibilité de la carte & du combat (client/assets, zéro moteur)
 
@@ -385,7 +384,7 @@ M ≈ 2-3 j, L = semaine(s).
 |---|---|---|---|---|
 | 3.1 | ✅ Perks de classe Might/Magic (`armySlotsBonus`, `heroActionsPerRound`) | C1 | M | unitaires + `faction:sim` (pas de blowout) + UI 8ᵉ slot |
 | 3.2 | ✅ Panoplies d'artefacts (3 sets livrés) | C2 | S | données + contenu ; icônes pipeline |
-| 3.3 | Guilde des voleurs (comparatif en partie, précision graduée) | E3 | M | smoke : panneau ouvert, données cohérentes |
+| 3.3 | ✅ Guilde des voleurs (comparatif en partie, précision graduée) | E3 | M | smoke : panneau ouvert, données cohérentes |
 | 3.4 | ✅ Respawn de gardiens (`queueGuardianRespawn`, survival/dailies) | A2b | S | unitaires ; opt-in |
 
 ### Étape 4 — En ligne (dépend du backend déployé)

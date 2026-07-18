@@ -465,6 +465,19 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > perf), le fix **rapproche** l'implémentation du modèle « somme de N dés » du doc
 > 02 ⇒ aucune divergence à corriger.*
 
+> 🏹 **Sprint 1 — pénalité de portée (B1) & juice de combat (B6/F3)** (doc 18
+> §2.B). Deux écarts P1 de l'audit livrés ensemble : **B1** — règle générique
+> `combat.rangePenalty { hexes, factor }` : un **tir** au-delà de `hexes` cases
+> inflige `×factor` (jamais cumulé avec la pénalité de mêlée), branchée dans
+> `computeMultiplier`/`performStrike`/`estimateDamage` (préviz = résolution),
+> validée par schéma, **activée en données** à `{ 10, 0.5 }` (fidélité HoMM3 :
+> ½ dégâts au-delà de 10 hexes, doc 02 §5.3) ; **opt-in** (bloc absent ⇒ portée
+> illimitée, golden inchangé) — répond aux tireurs structurellement surpuissants.
+> **B6/F3** — module client pur `render/combatFx.ts` : **projectile** interpolé
+> tireur→cible (le SFX `combat-shoot` ne tire plus dans le vide) et **FX de sort**
+> (flash/onde d'impact), repli procédural, zéro moteur. (Résumé de cohérence :
+> code livré en commit « sprint 1 » ; ce fichier + doc 18 mis à niveau après coup.)*
+
 ---
 
 ## Structure des fichiers

@@ -396,7 +396,7 @@ Zéro asset, zéro moteur : uniquement `CombatScene` + `motion.ts`.
         manquant »… Reste : E8 (confirmer attaque perdue), E14 (filtres de journal).
   - [~] **Lot 4** — gestion. **4a livré** (`ux-lot4a-garrison-bulk.md`, E5) : boutons
         « Tout vers le héros » / « Tout vers la garnison » (transfert en un geste,
-        boucle sur état frais). Reste : marché tactile (E6), tiroir héros repliable
+        boucle sur état frais). **4b** (E6) : marché tactile (steppers −/+/Max). Reste : tiroir héros repliable
         (E7), grimoire par école (E11), équiper/déséquiper (E12), + « Équilibrer ».
   - [ ] **Lot 3 tail différé** : E8 (confirmer attaque perdue), E14 (filtres journal)
         — 🟡 à faible valeur / plomberie disproportionnée.

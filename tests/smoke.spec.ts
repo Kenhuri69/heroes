@@ -2167,6 +2167,27 @@ test('ville : construire + croissance + recruter + transférer → armée du hé
   expect(errors).toEqual([]);
 });
 
+test('E6 : le marché a des steppers tactiles (− / + / Max)', { tag: '@core' }, async ({ page }) => {
+  const errors = await openGame(page);
+  // Construire le marché (start-town n'en a pas) puis ouvrir son onglet.
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({ type: 'BuildStructure', townId: 'start-town', buildingId: 'market' }),
+  );
+  await page.getByTestId('town-open-start-town').click();
+  await page.getByTestId('town-tab-market').click();
+  const amount = page.getByTestId('market-amount');
+  await expect(amount).toHaveValue('1');
+  // Lot 4b (E6) : + / − ajustent la quantité (le total reçu suit déjà).
+  await page.getByTestId('market-amount-inc').click();
+  await expect(amount).toHaveValue('2');
+  await page.getByTestId('market-amount-dec').click();
+  await expect(amount).toHaveValue('1');
+  // « Max » porte la quantité au stock de la ressource donnée (bois > 1 au départ).
+  await page.getByTestId('market-amount-max').click();
+  await expect.poll(() => amount.inputValue()).not.toBe('1');
+  expect(errors).toEqual([]);
+});
+
 test('E5 : « tout transférer » garnison ↔ héros en un geste', { tag: '@core' }, async ({ page }) => {
   const errors = await openGame(page);
   // Héros de départ (2 piles) amené sur sa ville (2,4) ; garnison vide au départ.

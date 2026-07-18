@@ -47,6 +47,7 @@ export {
   type AdventureMapDef,
   type GridPos,
   type ArtifactObjectDef,
+  type BoatObjectDef,
   type DwellingObjectDef,
   type GuardianObjectDef,
   type MapObjectDef,

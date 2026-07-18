@@ -125,8 +125,18 @@ Découpé en deux tranches (UX client, vérif headless faible) :
       qu'avec un shipyard bâti sur une ville côtière (pas dans la partie smoke par
       défaut) ⇒ non couvert par smoke ; vérifié par typecheck + content:check + build.
 
-### A3.5b — Embarquer/débarquer + préviz navale (carte) — À SUIVRE
-- Carte d'aventure : tap sur un `boat` adjacent ⇒ `BoardBoat` ; héros naval, tap
-  sur une tuile terre adjacente ⇒ `DisembarkBoat` ; prévisualisation de chemin
-  passant `hero.naval` à `findPath`/`stepCost` (`AdventureScene.handleTap` L413/L432).
-- Jeton de héros : repère visuel « embarqué » (`buildHeroToken` L325 branche `naval`).
+### A3.5b — Embarquer/débarquer + préviz navale (carte) — LIVRÉ
+- [x] `AdventureScene.handleTap` : branches embarquer (tap bateau adjacent, héros à
+      pied) / débarquer (héros naval, tap terre adjacente libre) ⇒ `dispatch(Board/
+      DisembarkBoat)`, placées avant la préviz (hors-domaine jamais une cible A*).
+- [x] Préviz de chemin domain-aware : `hero.naval` passé à `findPath` (8ᵉ arg) et
+      `stepCost` (5ᵉ arg) ⇒ prévisualisation correcte sur l'eau.
+- [x] Jeton héros embarqué : coque sous le sprite (`buildHeroToken`), reconstruit
+      au changement d'état (`heroNaval` dirty-check dans `sync`). Repère non chromatique.
+- [x] `BoatObjectDef` ré-exporté depuis `@heroes/engine` (type-only, golden épargné).
+- Zéro règle moteur (seul un ré-export de type), pas de bump save, golden inchangé
+      (890). Vérif : typecheck ✓, lint ✓, build ✓, budget 333 Ko ✓, smoke @core 21/21 ✓
+      (non-régression mouvement/préviz terre). **Non smoke-couvert** : board/disembark
+      exige un bateau adjacent déterministe, absent de la partie smoke ⇒ signalé.
+
+## Reste du chantier A3 : A3.4 (mapgen mers + connectivité navale).

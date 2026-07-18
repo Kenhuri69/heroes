@@ -5,8 +5,10 @@ import {
   findPath,
   grailRevealedTo,
   isAdjacent,
+  isPassable,
   samePos,
   stepCost,
+  type BoatObjectDef,
   type EngineResult,
   type GameState,
   type GridPos,
@@ -82,6 +84,8 @@ export class AdventureScene {
   private readonly terrainProps: TerrainProps;
   private readonly preview = new PathPreview();
   private readonly heroSprites = new Map<string, Container>();
+  /** Dernier état d'embarquement rendu par héros (A3.5b) : reconstruit le jeton au changement. */
+  private readonly heroNaval = new Map<string, boolean>();
   /**
    * Anneau de sélection (doc 08 §2.1, accessibilité A5 — pas la couleur seule).
    * Ellipse 2:1 : anneau « au sol » cohérent avec la projection iso (Lot A1).
@@ -261,15 +265,28 @@ export class AdventureScene {
       if (!heroIds.has(id)) {
         sprite.destroy();
         this.heroSprites.delete(id);
+        this.heroNaval.delete(id);
       }
     }
     for (const hero of renderedHeroes) {
       let sprite = this.heroSprites.get(hero.id);
+      // Embarquement/débarquement (A3.5b) : l'état naval a changé ⇒ reconstruire
+      // le jeton pour (dé)poser la coque. Jamais pendant une animation de pas.
+      if (
+        sprite &&
+        hero.id !== this.animatingHeroId &&
+        this.heroNaval.get(hero.id) !== hero.naval
+      ) {
+        sprite.destroy();
+        this.heroSprites.delete(hero.id);
+        sprite = undefined;
+      }
       if (!sprite) {
         sprite = this.buildHeroToken(hero, playerColor(game.players, hero.playerId));
         this.entities.addChild(sprite);
         this.heroSprites.set(hero.id, sprite);
       }
+      this.heroNaval.set(hero.id, hero.naval);
       // Position ET profondeur pilotées par le tween pendant l'animation (B44).
       if (hero.id !== this.animatingHeroId) {
         sprite.zIndex = isoDepth(hero.pos.x, hero.pos.y);
@@ -324,6 +341,16 @@ export class AdventureScene {
    */
   private buildHeroToken(hero: HeroState, color: number): Container {
     const token = new Container();
+    // Héros EMBARQUÉ (A3.5b) : coque de bateau sous le jeton (repère non
+    // chromatique de l'état naval — le héros se dresse dessus, pieds au sol).
+    if (hero.naval) {
+      const c = TILE_SIZE / 2;
+      const hull = new Graphics()
+        .poly([c - 15, c + 8, c + 15, c + 8, c + 10, c + 17, c - 10, c + 17])
+        .fill(0x7a4a25)
+        .stroke({ width: 2, color: 0x2a1a0e });
+      token.addChild(hull);
+    }
     const fallback = buildHeroSprite(color);
     token.addChild(fallback);
     const url = heroMapUrl(hero.factionId);
@@ -375,6 +402,35 @@ export class AdventureScene {
       return;
     }
 
+    // Navigation (A3.5b) : action immédiate au tap sur une tuile ADJACENTE.
+    // Embarquer (héros à pied → bateau adjacent) / débarquer (héros naval →
+    // terre adjacente libre). Placé AVANT la préviz de chemin : l'eau/la terre
+    // hors-domaine n'est de toute façon jamais une cible de `findPath`.
+    if (isAdjacent(hero.pos, tile)) {
+      const boat = map.objects.find(
+        (o): o is BoatObjectDef => o.type === 'boat' && samePos(o.pos, tile),
+      );
+      const occupied = game.heroes.some((h) => h.id !== hero.id && samePos(h.pos, tile));
+      if (!hero.naval && boat) {
+        this.clearPreview();
+        try {
+          await dispatch({ type: 'BoardBoat', heroId: hero.id, boatId: boat.id });
+        } catch (err) {
+          pushToast(commandErrorMessage(err), 'error');
+        }
+        return;
+      }
+      if (hero.naval && !boat && !occupied && isPassable(config, map, tile, false)) {
+        this.clearPreview();
+        try {
+          await dispatch({ type: 'DisembarkBoat', heroId: hero.id, target: tile });
+        } catch (err) {
+          pushToast(commandErrorMessage(err), 'error');
+        }
+        return;
+      }
+    }
+
     // 2ᵉ tap sur la même destination = confirmation (doc 08 §2.1).
     if (this.previewTarget && samePos(this.previewTarget.target, tile)) {
       const path = this.previewTarget.path;
@@ -410,7 +466,18 @@ export class AdventureScene {
       ...game.heroes.filter((h) => h.id !== hero.id).map((h) => h.pos),
       ...map.objects.filter((o) => o.type === 'guardian').map((o) => o.pos),
     ];
-    const path = findPath(config, map, hero.pos, tile, blocked, guardian !== undefined || enemyHero !== undefined);
+    // `hero.naval` sélectionne le domaine (mer/terre) pour la préviz — cohérent
+    // avec le coût réellement appliqué par le moteur (`advanceHeroAlongPath`).
+    const path = findPath(
+      config,
+      map,
+      hero.pos,
+      tile,
+      blocked,
+      guardian !== undefined || enemyHero !== undefined,
+      Infinity,
+      hero.naval,
+    );
     // Fourchette de force affichée (comme un gardien) : effectif total du héros ennemi.
     const enemyCount = enemyHero ? enemyHero.army.reduce((n, s) => n + s.count, 0) : 0;
     appStore.setState({
@@ -429,7 +496,7 @@ export class AdventureScene {
     let remaining = hero.movementPoints;
     let prev = hero.pos;
     for (const step of path) {
-      const cost = stepCost(config, map, prev, step);
+      const cost = stepCost(config, map, prev, step, hero.naval);
       if (remaining < cost && dailyPM > 0) {
         day += 1;
         remaining = dailyPM;

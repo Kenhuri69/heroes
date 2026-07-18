@@ -41,14 +41,19 @@ export function OutcomeOverlay() {
       : t(outcome.status === 'won' ? 'outcome.won' : 'outcome.lost');
 
   return (
-    <div class="modal-backdrop">
+    // I10 : fond victoire/défaite en PLEIN ÉCRAN (backdrop), panneau chrome
+    // par-dessus — plus une image confinée au petit panneau.
+    <div
+      class="modal-backdrop outcome-backdrop"
+      data-testid="outcome-backdrop"
+      style={bg ? { backgroundImage: `url(${bg})` } : undefined}
+    >
       <div
-        class="modal outcome-overlay"
+        class="modal outcome-overlay chrome-framed"
         role="dialog"
         aria-modal="true"
         aria-label={title}
         data-testid="outcome-overlay"
-        style={bg ? { backgroundImage: `url(${bg})` } : undefined}
       >
         <h2 data-testid="outcome-status">{title}</h2>
         <StatsSummary game={game} />

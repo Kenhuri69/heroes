@@ -3541,7 +3541,7 @@ test('campagne : 3ᵉ chapitre Haven sur sa carte dédiée proto-02 (doc 13 N3c.
   expect(errors).toEqual([]);
 });
 
-test('scénario : gagner « survie » contre l’IA (surviveDays)', async ({ page }) => {
+test('scénario : gagner « survie » contre l’IA (surviveDays)', { tag: '@core' }, async ({ page }) => {
   const errors = await openMenu(page);
 
   await page.evaluate(() => window.__HEROES_TEST__!.startScenario('survival'));
@@ -3572,6 +3572,13 @@ test('scénario : gagner « survie » contre l’IA (surviveDays)', async ({ pag
   expect(state.calendar.day).toBeGreaterThanOrEqual(15);
   await expect(page.getByTestId('outcome-overlay')).toBeVisible();
   await expect(page.getByTestId('outcome-status')).toHaveText('Victoire !');
+
+  // Lot 7b (I10) : le fond victoire/défaite est PLEIN ÉCRAN (porté par le
+  // backdrop), pas confiné au panneau ; le panneau chrome flotte par-dessus.
+  const backdropBg = await page
+    .getByTestId('outcome-backdrop')
+    .evaluate((el) => getComputedStyle(el).backgroundImage);
+  expect(backdropBg).toContain('url(');
 
   // Graphique de puissance de fin de partie (doc 08 §2.5, lot U6b) : une barre
   // par joueur (ici humain + IA), rendu depuis l'état final avant le reset.

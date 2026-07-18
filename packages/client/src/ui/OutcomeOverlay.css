@@ -1,32 +1,34 @@
 /* Overlay victoire/défaite (doc 02 §6, plan phase-3.5) — réutilise
    .modal-backdrop / .modal (options.css, chargé globalement) et .menu-button
    (menu.css, idem) pour le bouton de retour. */
-.modal.outcome-overlay {
-  position: relative;
-  width: min(92vw, 360px);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-  text-align: center;
+/* I10 : fond victoire/défaite en PLEIN ÉCRAN sur le backdrop (image posée en
+   style inline), voile de lisibilité au-dessus, panneau chrome centré par-dessus. */
+.modal-backdrop.outcome-backdrop {
   background-size: cover;
   background-position: center;
-  overflow: hidden;
 }
-
-/* Voile sombre au-dessus du fond peint (sous le contenu) : garde le titre, le
-   graphique et le bouton lisibles quel que soit le fond victoire/défaite. */
-.modal.outcome-overlay::before {
+.modal-backdrop.outcome-backdrop::before {
   content: '';
   position: absolute;
   inset: 0;
   background: var(--veil-deep);
   z-index: 0;
 }
-
-.modal.outcome-overlay > * {
+.modal-backdrop.outcome-backdrop > .outcome-overlay {
   position: relative;
   z-index: 1;
+}
+
+.modal.outcome-overlay {
+  width: min(92vw, 360px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 16px;
+  text-align: center;
+  /* Panneau quasi opaque : le graphique/récap restent lisibles par-dessus l'art. */
+  background: var(--veil-92);
 }
 
 .modal.outcome-overlay h2 {

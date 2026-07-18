@@ -163,6 +163,20 @@ planche de contrôle relue avant intégration.
   `fire-debuff` — à combler par une petite planche de 3 ultérieurement.
 Budget 332/800 Ko, smoke grimoire OK (l'icône du sort est bien rendue).
 
+### Phase 2 — 3ᵉ passe (complément : 3 icônes + air) — CLÔTURE
+
+Planches de complément (`spells-icons-p3.md` 3×1, `units-air-elemental.md`) reçues et
+intégrées :
+- **earth-damage / earth-summon / fire-debuff** (planche 3×1 propre, QC verte) →
+  **grimoire désormais 36/36 en art LLM** (plus aucune icône procédurale).
+- **élémentaire d'air** (image unique, corps dense) détouré au floodfill `--tol 30`
+  (rembg toujours indisponible) → `assets/units/core/elementaire-d-air.png` (staged).
+  Cut correct mais imparfait au sommet (le cloud pâle ≈ le gris de fond, inséparable
+  sans segmentation sémantique) — suffisant pour un asset non câblé.
+
+**Famille S close** : icônes de sorts 36/36, badges 7/7, mur de siège, 4 élémentaires.
+Budget 333/800 Ko, golden inchangé, garde-fous verts, smoke grimoire OK.
+
 ---
 
 ## Journal

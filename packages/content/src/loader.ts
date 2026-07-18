@@ -1057,7 +1057,8 @@ export type ResolvedTriggerEffect =
   | { kind: 'message'; textKey: string }
   | { kind: 'grantArtifact'; artifactId: string }
   | { kind: 'grantArmy'; unitId: string; count: number }
-  | { kind: 'ambush'; army: { unitId: string; count: number }[] };
+  | { kind: 'ambush'; army: { unitId: string; count: number }[] }
+  | { kind: 'teleport'; to: { x: number; y: number } };
 
 /** Trigger résolu — forme moteur `MapTriggerDef` (`pos` déplié, `fired` initial). */
 export interface ResolvedMapTrigger {

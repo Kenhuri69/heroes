@@ -176,12 +176,14 @@ export function advanceHeroAlongPath(
       }
     }
     // Trigger de visite (doc 02 §2.1) — la tuile foulée peut porter un effet.
-    // Une embuscade (doc 18 A5) ouvre un combat : le chemin s'interrompt LÀ (le
-    // héros est déjà SUR la tuile piégée, à la différence de l'interception).
-    if (fireVisitTrigger(draft, player, hero, hero.pos, events)) {
+    // Une embuscade (doc 18 A5) ouvre un combat, un téléport déplace le héros :
+    // les deux interrompent le chemin LÀ (le héros est déjà SUR la tuile piégée).
+    const trigOutcome = fireVisitTrigger(draft, player, hero, hero.pos, events);
+    if (trigOutcome === 'combat') {
       options.onCombatEngaged?.();
       return;
     }
+    if (trigOutcome === 'teleport') return; // héros déplacé : trajet restant caduc
     // Guilde des mages (G2) : fouler une de ses villes fait apprendre les sorts
     // du pool que le héros peut apprendre (cercle ≤ Sagesse).
     const townHere = townsAt.get(tileKey(hero.pos));

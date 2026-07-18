@@ -816,9 +816,12 @@ round (sort ET frappe, ou deux sorts), joueur comme IA.
 > butin de gardien), `grantArmy` (fusion même unité, sinon nouveau slot — cap 7,
 > sinon perdu), `ambush` (combat scripté contre l'armée déclarée ; le héros est
 > SUR la tuile piégée, le chemin s'interrompt ; un héros sans armée ne consomme
-> pas le piège). Les effets liés au héros visiteur sont des **no-ops sur un
+> pas le piège), **`teleport`** (déplace le héros visiteur en `to` — vision
+> révélée à destination, événement `HeroTeleported`, chemin interrompu sans
+> combat ; cible hors carte ⇒ garde-fou no-op non consommé). Les effets liés au
+> héros visiteur sont des **no-ops sur un
 > trigger `onDay`** (pas de héros cible). Différés : message à choix (exige un
-> état d'attente + bump de sauvegarde — lot dédié), téléport scripté, retrait
+> état d'attente + bump de sauvegarde — lot dédié), retrait
 > d'artefact/armée, `collectArtifact`/`accumulateResource`, `onFlagCaptured`.
 >
 > 🚧 **État (M-NAV a — monolithes appariés, doc §2.1)** : nouvel objet de carte

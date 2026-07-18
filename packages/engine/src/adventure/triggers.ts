@@ -1,8 +1,16 @@
 import { beginAmbushCombat } from '../combat/setup';
 import type { GameEvent } from '../core/events';
 import type { GameState, HeroState, PlayerState, ResourceId } from '../core/state';
-import { heroArmyCap } from '../hero/skills';
-import { samePos, type GridPos, type TriggerEffect } from './map';
+import { heroArmyCap, heroVisionRadius } from '../hero/skills';
+import { revealAround } from './fog';
+import { inBounds, samePos, type GridPos, type TriggerEffect } from './map';
+
+/**
+ * Issue d'un trigger de visite (doc 18 A5) : `continue` (aucun / effet appliqué,
+ * le chemin se poursuit) · `combat` (embuscade ⇒ l'appelant ouvre le combat) ·
+ * `teleport` (le héros a été déplacé ⇒ le chemin s'interrompt SANS combat).
+ */
+export type TriggerOutcome = 'continue' | 'combat' | 'teleport';
 
 /**
  * Interprétation des triggers de carte (doc 02 §2.1) — **générique** : le moteur
@@ -55,6 +63,8 @@ function applyEffect(
         return { kind: 'grantArmy', unitId: effect.unitId, count: effect.count };
       case 'ambush':
         return { kind: 'ambush', army: effect.army.map((s) => ({ unitId: s.unitId, count: s.count })) };
+      case 'teleport':
+        return { kind: 'teleport', to: { x: effect.to.x, y: effect.to.y } };
     }
   })();
   events.push({ type: 'TriggerFired', triggerId, playerId: player?.id ?? null, effect: copy });
@@ -63,8 +73,9 @@ function applyEffect(
 /**
  * Déclenche le trigger de **visite** non encore tiré posé sur la tuile du héros
  * (one-shot) — appelé pas à pas depuis `advanceHeroAlongPath`. L'effet s'applique
- * au joueur/héros qui visite. Retourne `true` si un COMBAT a été ouvert
- * (embuscade, doc 18 A5) — l'appelant doit alors interrompre le chemin.
+ * au joueur/héros qui visite. Retourne un `TriggerOutcome` : `combat` (embuscade
+ * ouverte) ou `teleport` (héros déplacé) imposent à l'appelant d'interrompre le
+ * chemin ; `continue` le laisse se poursuivre.
  */
 export function fireVisitTrigger(
   draft: GameState,
@@ -72,25 +83,47 @@ export function fireVisitTrigger(
   hero: HeroState,
   pos: GridPos,
   events: GameEvent[],
-): boolean {
+): TriggerOutcome {
   const map = draft.map;
-  if (!map) return false;
+  if (!map) return 'continue';
   const trig = map.triggers.find(
     (t) => !t.fired && t.on.kind === 'visit' && samePos(t.on.pos, pos),
   );
-  if (!trig) return false;
+  if (!trig) return 'continue';
   if (trig.effect.kind === 'ambush') {
     // Garde-fou B5 (comme le gardien) : un héros sans armée ne déclenche pas de
     // combat — le piège n'est PAS consommé, il attend une proie.
-    if (hero.army.length === 0) return false;
+    if (hero.army.length === 0) return 'continue';
     trig.fired = true;
     applyEffect(trig.effect, player, hero, trig.id, events);
     beginAmbushCombat(draft, hero.id, trig.effect.army, events);
-    return true;
+    return 'combat';
+  }
+  if (trig.effect.kind === 'teleport') {
+    // Téléport scripté (doc 18 A5) : cible hors carte ⇒ garde-fou (trigger non
+    // consommé, aucun déplacement). Sinon : déplace, révèle la vision autour de
+    // la destination, émet `HeroTeleported` (réutilisé du monolithe) et interrompt
+    // le chemin (le reste du trajet, calculé depuis l'ancienne position, est caduc).
+    const to = trig.effect.to;
+    if (!inBounds(map, to)) return 'continue';
+    trig.fired = true;
+    applyEffect(trig.effect, player, hero, trig.id, events);
+    const from = { ...hero.pos };
+    hero.pos = { x: to.x, y: to.y };
+    const config = draft.config;
+    if (config)
+      revealAround(
+        player.explored,
+        map,
+        hero.pos,
+        heroVisionRadius(hero, config.visionRadius, draft.skillCatalog, draft.artifactCatalog),
+      );
+    events.push({ type: 'HeroTeleported', heroId: hero.id, from, to: { x: to.x, y: to.y } });
+    return 'teleport';
   }
   trig.fired = true;
   applyEffect(trig.effect, player, hero, trig.id, events);
-  return false;
+  return 'continue';
 }
 
 /**

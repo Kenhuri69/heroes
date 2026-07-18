@@ -400,8 +400,17 @@ Zéro asset, zéro moteur : uniquement `CombatScene` + `motion.ts`.
         **4c livré** (`ux-lot4c-hero-drawer-accordion.md`, E7) : tiroir héros
         **repliable** (5 sections accordéon armée/équipement/compétences/grimoire/
         quêtes, état persisté `localStorage`, ouvertes par défaut ; `CollapsibleSection`).
-        **E12 constaté déjà livré** (équiper/déséquiper interactif dans `HeroInventory`,
-        H-ARTEQUIP). Reste : grimoire par école (E11), + « Équilibrer » garnison.
+        **E12 ET E11 constatés déjà livrés** : E12 = équiper/déséquiper interactif
+        (`HeroInventory`, H-ARTEQUIP) ; E11 = grimoire déjà par **école (onglets) +
+        cercle**, coût mana par tuile, `notEnoughMana` motivé, maîtrise affichée
+        (C-SPELLUI.*), l'état « déjà agi ce round » étant surfacé en amont sur le
+        bouton d'ouverture (Lot 3b/E2). **Lot 4 clos** au sens roadmap ; seul reste
+        le **« Équilibrer »** garnison (nicety optionnelle, périmètre ambigu — repoussé).
+  - [~] **Lot 5** — le combat prend vie. **5a livré** (`ux-lot5a-combat-idle.md`,
+        I2) : **idle procédural** des jetons (respiration verticale désync, coupée
+        en reduce-motion ; conteneur `bob` interne, hook `combatIdle()`). Constaté
+        déjà livrés : projectiles (item 2), impacts de sorts (item 3). Reste :
+        **rotation** de mort (item 4, fondu déjà là), **screen-shake** kill (item 5).
   - [ ] **Lot 3 tail différé** : E8 (confirmer attaque perdue), E14 (filtres journal)
         — 🟡 à faible valeur / plomberie disproportionnée.
-  - [ ] Lots 5→10 : à suivre.
+  - [ ] Lots 6→10 : à suivre.

@@ -12,6 +12,13 @@ import type { SpellKind } from '@heroes/engine';
 /** Compteur de FX émis — hook de test headless (smoke « projectile visible »). */
 export const combatFxStats = { projectiles: 0, impacts: 0 };
 
+/**
+ * Amplitude max courante (px) de l'oscillation idle des jetons (I2) — hook de
+ * test headless (« les jetons respirent, coupé en reduce-motion »). Mis à jour
+ * par la boucle `ticker` de `CombatScene` ; 0 tant qu'aucun jeton ne bouge.
+ */
+export const combatIdleStats = { bob: 0 };
+
 const MS_PER_PX = 0.6; // vitesse de vol du projectile
 const MIN_FLIGHT_MS = 90;
 const MAX_FLIGHT_MS = 350; // plafond : n'allonge pas les combats auto

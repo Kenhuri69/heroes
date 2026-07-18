@@ -32,7 +32,7 @@ import { heroArchetype } from '../../app/game';
 import { HEX_SIZE, computeBoardBounds, drawBoard, hexKey, offsetToPixel, pixelToOffset } from '../../render/hexgrid';
 import { isContentPointVisible, type Rect } from '../../render/cameraClamp';
 import { combatPreview } from './preview';
-import { spawnProjectile, spawnSpellImpact } from '../../render/combatFx';
+import { spawnProjectile, spawnSpellImpact, combatIdleStats } from '../../render/combatFx';
 import { reduceMotion } from '../../app/motion';
 
 const ATTACKER_COLOR = 0xc0392b;
@@ -50,6 +50,11 @@ const HERO_TOKEN_RADIUS = HEX_SIZE * 0.85;
 const HERO_FLANK_OFFSET = HEX_SIZE * 1.3; // du bord du plateau au centre du jeton
 const HERO_LUNGE_MS = 260;
 const HERO_LUNGE_PX = HEX_SIZE * 0.6;
+
+// Idle procédural (I2, doc 08) : respiration verticale subtile des jetons entre
+// deux actions, désynchronisée par pile ⇒ le plateau « vit » sans nouvel asset.
+const IDLE_BOB_PX = 1.5; // amplitude crête (px)
+const IDLE_BOB_HZ = 0.5; // ~un demi-cycle/seconde (respiration lente)
 
 const MARGIN_TOP = 96; // bandeau armées + round (doc 08 §2.4)
 const MARGIN_BOTTOM = 96; // barre d'actions
@@ -141,12 +146,17 @@ export class CombatScene {
     // d'action (déplacer/attaquer). Même geste que la carte d'aventure.
     this.unsubscribeLongPress = onLongPress(app, (global) => this.handleLongPress(global));
 
+    // I2 : respiration idle des jetons, pilotée par la boucle de rendu Pixi.
+    this.app.ticker.add(this.idleTick, this);
+
     this.layout();
     this.sync();
   }
 
   destroy(): void {
     this.destroyed = true;
+    this.app.ticker.remove(this.idleTick, this);
+    combatIdleStats.bob = 0;
     this.unsubscribeStore();
     this.unsubscribeEvents();
     this.unsubscribeTap(); // remédiation CL2 : les 3 listeners de tap ne fuient plus
@@ -420,21 +430,27 @@ export class CombatScene {
         .fill({ color: side === 'attacker' ? ATTACKER_COLOR : DEFENDER_COLOR, alpha: 0.85 })
         .stroke({ width: 2, color: 0x1a1c22 }),
     );
+    // I2 : le visuel d'unité (repli polygone puis sprite) vit dans un conteneur
+    // `bob` que la boucle idle fait osciller ; l'ellipse de sol et le badge
+    // d'effectif (ajoutés hors de `bob`) restent fixes.
+    const bob = new Container();
+    bob.label = 'bob';
+    token.addChild(bob);
     const fallback = buildStackTokenGraphic(side);
-    token.addChild(fallback);
+    bob.addChild(fallback);
 
     const catalog = appStore.getState().game.unitCatalog;
     const url = unitSpriteUrl(stack.unitId, catalog[stack.unitId]?.groupId);
     if (url) {
       void Assets.load(url).then((texture) => {
         if (this.destroyed || token.destroyed) return;
-        token.removeChild(fallback);
+        bob.removeChild(fallback);
         fallback.destroy();
         const sprite = new Sprite(texture);
         sprite.anchor.set(0.5, 0.72); // pieds posés sur la base de camp
         const scale = (TOKEN_RADIUS * 2.4) / Math.max(texture.width, texture.height);
         sprite.scale.set(scale);
-        token.addChildAt(sprite, 1); // au-dessus de la base, sous l'anneau actif
+        bob.addChild(sprite);
       });
     }
 
@@ -1169,6 +1185,32 @@ export class CombatScene {
     if (!token.destroyed) token.position.set(home.x, home.y);
   }
 
+  /**
+   * I2 — respiration idle : chaque jeton oscille verticalement d'une amplitude
+   * subtile, désynchronisé par un déphasage déterministe (hash de l'id). Coupé
+   * en `reduce-motion` (tous les `bob` remis à 0). Purement présentation : ne
+   * touche jamais `token.position` (placement hex / animations d'action) — seul
+   * le conteneur `bob` interne bouge. Expose l'amplitude max pour le smoke.
+   */
+  private idleTick(): void {
+    if (this.destroyed) return;
+    const reduced = prefersReducedMotion();
+    const time = performance.now() / 1000;
+    let maxBob = 0;
+    for (const [id, token] of this.stackTokens) {
+      const bob = token.getChildByLabel('bob');
+      if (!bob) continue;
+      if (reduced) {
+        bob.y = 0;
+        continue;
+      }
+      const y = Math.sin(time * IDLE_BOB_HZ * Math.PI * 2 + idlePhase(id)) * IDLE_BOB_PX;
+      bob.y = y;
+      maxBob = Math.max(maxBob, Math.abs(y));
+    }
+    combatIdleStats.bob = reduced ? 0 : maxBob;
+  }
+
   private async animateDeath(stackId: string, speed: number): Promise<void> {
     const token = this.stackTokens.get(stackId);
     if (!token) return;
@@ -1238,6 +1280,13 @@ function buildStackTokenGraphic(side: CombatSideId): Graphics {
  */
 function prefersReducedMotion(): boolean {
   return reduceMotion();
+}
+
+/** Déphasage idle déterministe d'une pile (0..2π) dérivé de son id — désynchronise les jetons. */
+function idlePhase(id: string): number {
+  let h = 0;
+  for (let i = 0; i < id.length; i += 1) h = (h * 31 + id.charCodeAt(i)) % 997;
+  return (h / 997) * Math.PI * 2;
 }
 
 function tween(durationMs: number, onProgress: (t: number) => void): Promise<void> {

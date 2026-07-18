@@ -47,7 +47,7 @@ import { registerCamera, unregisterCamera } from './app/camera-control';
 import { playOpeningCutscene } from './app/cutscene';
 import { initCampaign, startCampaignChapter, campaignFlags } from './app/campaign';
 import { initI18n, t } from './app/i18n';
-import { preloadPixiTextures, combatBackgroundUrl, chromeFrameUrl, chromeRibbonUrl, initHeroAvatars } from './render/assets';
+import { preloadPixiTextures, combatBackgroundUrl, siegeBackgroundUrl, chromeFrameUrl, chromeRibbonUrl, initHeroAvatars } from './render/assets';
 import { AdventureScene } from './scenes/adventure/AdventureScene';
 import { CombatScene } from './scenes/combat/CombatScene';
 import { mountUi } from './ui/shell';
@@ -190,8 +190,14 @@ async function bootstrap(): Promise<void> {
       app.stage.addChild(combatScene.container);
       camera.world.visible = false;
       camera.setEnabled(false); // libère les gestes app.stage pour la caméra de combat
-      // Toile de combat peinte du terrain en fond DOM (U5-E) — coût par-frame nul.
-      const url = game.combat ? combatBackgroundUrl(game.combat.terrain) : undefined;
+      // Toile de combat peinte en fond DOM (U5-E) — coût par-frame nul. S4 : un
+      // SIÈGE de ville (`combat.townId`) prend une toile de siège (ambiance de la
+      // faction assiégée → générique → repli terrain), zéro moteur, id opaque.
+      let url = game.combat ? combatBackgroundUrl(game.combat.terrain) : undefined;
+      if (game.combat?.townId != null) {
+        const town = game.towns.find((tw) => tw.id === game.combat!.townId);
+        url = siegeBackgroundUrl(town?.factionId) ?? url;
+      }
       root.style.backgroundImage = url ? `url(${url})` : '';
       root.style.backgroundSize = 'cover';
       root.style.backgroundPosition = 'center';

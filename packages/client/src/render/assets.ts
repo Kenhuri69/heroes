@@ -76,6 +76,20 @@ export function combatBackgroundUrl(terrain: string): string | undefined {
   return registry.get(`backgrounds/combat-${terrain}`);
 }
 
+/**
+ * S4 — toile de fond d'un SIÈGE de ville (doc 08 §2.4) : silhouette urbaine
+ * derrière les murailles au lieu de la prairie du terrain. Chaîne de repli :
+ * `backgrounds/siege-<factionId>` (ambiance de la faction assiégée) →
+ * `backgrounds/siege` (générique) → `undefined` (l'appelant retombe sur le fond
+ * de terrain). Id de faction opaque ; aucun asset ⇒ repli gracieux au terrain.
+ */
+export function siegeBackgroundUrl(factionId?: string): string | undefined {
+  return (
+    (factionId ? registry.get(`backgrounds/siege-${factionId}`) : undefined) ??
+    registry.get('backgrounds/siege')
+  );
+}
+
 /** Fond de fin de partie victoire/défaite (doc 08 §2.5). */
 export function outcomeBackgroundUrl(status: 'won' | 'lost'): string | undefined {
   return registry.get(status === 'won' ? 'backgrounds/victory' : 'backgrounds/defeat');

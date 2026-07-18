@@ -32,6 +32,25 @@
   color: var(--parchment-bright);
 }
 
+/* S7 — rangée de défenses d'un siège (Fort / rempart / douve / tour). */
+.pre-battle-defenses {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin: -6px 0 16px;
+}
+
+.pre-battle-defense {
+  padding: 3px 10px;
+  border: 1px solid var(--brass, #9a7b3f);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--parchment-bright);
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
 .pre-battle-sides {
   display: grid;
   grid-template-columns: 1fr auto 1fr;

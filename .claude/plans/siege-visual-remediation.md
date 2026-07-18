@@ -84,22 +84,22 @@ L'événement moteur `WallBombarded { col, row, destroyed }` existe
 
 ## Lot S4 — Fond de ville de siège (P1, assets + client)
 
-- [ ] S4.1 Assets : toiles `backgrounds/siege-<factionId>.jpg` pour les
+- [~] S4.1 Assets (prompts déposés — `combat-siege-backgrounds.md` ; art à générer) : toiles `backgrounds/siege-<factionId>.jpg` pour les
       factions livrées + une générique `backgrounds/siege.jpg` (skill
       `asset-sheet`/prompts doc 12 ; cadrage : champ devant des murailles,
       silhouette de la ville de la faction à l'horizon, gouache du projet).
       Prompts déposés dans `assets/prompts/`.
-- [ ] S4.2 Client : `combatBackgroundUrl` prend un contexte — si
+- [x] S4.2 Client : `combatBackgroundUrl` prend un contexte — si
       `combat.townId != null`, résoudre `backgrounds/siege-<factionDeLaVille>`
       → repli `backgrounds/siege` → repli terrain actuel (`main.ts`, câblage
       du fond DOM existant, zéro moteur, id de faction opaque).
-- [ ] S4.3 Doc 12 (guide assets) + doc 08 §2.4 : documenter la convention.
+- [x] S4.3 Doc 12 (guide assets) + doc 08 §2.4 : documenter la convention.
 - Vérif : recette doc 19 ⇒ le siège Necropolis n'est plus sur prairie ;
   combats de plaine inchangés ; budget bundle inchangé (JPEG hors bundle).
 
 ## Lot S1 — Rempart continu (P1, assets + client)
 
-- [ ] S1.1 Assets : jeu de sprites de rempart orientés colonne —
+- [~] S1.1 Assets (prompts déposés — `combat-siege-set.md` ; art à générer) : jeu de sprites de rempart orientés colonne —
       `siege-wall-top / -mid / -bottom / -stub` (moignon détruit) + **porte**
       `siege-gate` (et variante brisée `siege-gate-breached`), même gouache
       (skill `asset-sheet`, prompts doc 12 §7).
@@ -118,10 +118,10 @@ L'événement moteur `WallBombarded { col, row, destroyed }` existe
 
 ## Lot S5a — Sprites des machines manquantes (P1, assets seuls)
 
-- [ ] S5a.1 Produire `assets/units/core/first-aid-tent.png` et
+- [~] S5a.1 (prompt déposé — `war-machines-support.md` ; art à générer) `assets/units/core/first-aid-tent.png` et
       `assets/units/core/ammo-cart.png` (skill `asset-sheet`, planche
       « machines de guerre » cohérente avec catapulte/baliste existantes).
-- [ ] S5a.2 QC : vignettes pré-combat + jetons en bataille remplacent cases
+- [~] S5a.2 QC (à faire au retour de l'art) : vignettes pré-combat + jetons en bataille remplacent cases
       vides/fanions (aucun code à changer — le registre auto-découvre).
 - Vérif : recette doc 19, écran pré-combat sans case vide.
 
@@ -149,25 +149,25 @@ ordinaires par `placeSide` (débordement du chariot en 1ʳᵉ ligne, capture 2).
 
 ## Lot S6 — Tour de tir = structure (P2, client seul)
 
-- [ ] S6.1 `buildStackToken` : une pile dont la déf porte `warMachine` +
+- [x] S6.1 `buildStackToken` : une pile dont la déf porte `warMachine` +
       `immobile` côté défenseur de siège (ou marqueur d'habillage générique
       dans les données de l'unité, ex. `presentation: "structure"` — décision
       à l'implémentation, zéro id en dur) est rendue SANS ellipse de camp ni
       socle « créature » : socle de pierre procédural + sprite, badge
       d'effectif remplacé par une jauge/omission (une tour n'est pas « 1 »).
-- [ ] S6.2 La tour reste ciblable/inspectable comme aujourd'hui (aucune règle
+- [x] S6.2 La tour reste ciblable/inspectable comme aujourd'hui (aucune règle
       changée) ; l'appui long garde la fiche.
 - Vérif : capture avant/après ; smoke siège vert.
 
 ## Lot S7 — Pré-combat « Siège » (P2, client seul)
 
-- [ ] S7.1 `PreBattleScreen` : si `combat.townId != null`, titre
+- [x] S7.1 `PreBattleScreen` : si `combat.townId != null`, titre
       « Siège de {ville} » (nom localisé existant de la ville), blason/bandeau
       de la faction de la ville, et rangée « défenses » : Fort niveau N ⇒
       icônes rempart/douve/tour (données déjà dans l'état :
       `town.buildings.fort`, `combat.siegeWalls/moat`, tour présente).
-- [ ] S7.2 Locales FR/EN (`preBattle.siegeTitle`, libellés défenses).
-- [ ] S7.3 Améliorer le repli d'avatar héros (constat 3.2 du doc 19) : le
+- [x] S7.2 Locales FR/EN (`preBattle.siegeTitle`, libellés défenses).
+- [x] S7.3 Améliorer le repli d'avatar héros (constat 3.2 du doc 19) : le
       médaillon vide reprend le motif `FactionBadge` (pattern déterministe)
       au lieu du disque noir — même repli qu'ailleurs dans l'UI.
 - Vérif : capture avant/après ; audit i18n (0 chaîne en dur) ; doc 08 §2.4.
@@ -238,4 +238,33 @@ ordinaires par `placeSide` (débordement du chariot en 1ʳᵉ ligne, capture 2).
   passe le pré-combat → Combattre → `AutoCombat{rounds:1}` → assert
   `combatFx().projectiles > 0` (tir catapulte OU tir garnison) + combat vivant.
 
-**Statut :** Vague 1 en cours.
+**Statut :** Vague 1 livrée (commit « Siège Vague 1 », PR #477 draft).
+
+### 2026-07-18 — Vague 2/3 client (S4 wiring, S6, S7)
+
+Deuxième lot **client pur** sur la même branche/PR (aucun art requis, repli
+gracieux partout) :
+- **S4** — `siegeBackgroundUrl(factionId)` (`assets.ts`) + câblage du fond DOM
+  `main.ts` : un siège (`combat.townId`) prend `backgrounds/siege-<faction>` →
+  `siege` → repli terrain. Prompts d'art déposés (`combat-siege-backgrounds.md`).
+  Sans JPEG ⇒ comportement **inchangé** (terrain), donc sûr à livrer avant l'art.
+- **S6** — tour de tir rendue en **structure** (`buildStackToken`) : détection
+  GÉNÉRIQUE `warMachine`+`immobile` côté défenseur (zéro id en dur), socle de
+  pierre + sprite figé hors idle + pas de badge « 1 ». Repli procédural
+  `buildStructureGraphic` (tourelle) si le sprite `arrow-tower` manque.
+- **S7** — pré-combat siège : titre « Siège de \<ville\> » + rangée de défenses
+  (Fort N / rempart / douve / tour, lues dans l'état) ; locales FR/EN. **S7.3** :
+  médaillon de héros canvas = teinte déterministe (hash faction, `factionTint`) +
+  initiale, au lieu du disque noir (constat 3.2). Vérifié en capture
+  (`after-vague2-prebattle.jpg` : « SIÈGE DE LA VILLE » + Fort 3/Rempart/Douve/
+  Tour + médaillon « H » ; `after-vague2-combat.jpg` : tour = structure de pierre).
+- **Assets art (S4.1/S5a.1/S1.1)** : je ne peux pas peindre les PNG en headless
+  ⇒ **prompts déposés** dans `assets/prompts/` (conventions doc 12), à générer et
+  déposer plus tard (substitution par simple dépôt, clés stables). Le code
+  consommateur (S4 câblé, S2.2 cracks câblé) est prêt ; le repli gracieux tient.
+- **Restant** : S1.2/S1.3 (sélection de sprite de rempart par position — code
+  client, mais visible seulement une fois l'art `siege-wall-*` produit) ; **S5b**
+  (seul lot moteur, placement des machines — à traiter avec soin, golden) ; **S9**
+  (polish/investigation). Docs 08 §2.4 + 12 §9 alignées dans ce lot.
+
+**Statut :** Vagues 1 + 2/3(client) livrées.

@@ -652,6 +652,31 @@ Menu principal (Continuer / Scénarios / Escarmouche / **Éditeur de carte** / O
 > et au retour menu. Anti-gel ×4 re-vérifié (arène ~23 fps, carte ~14 fps, rendu
 > logiciel CI, plancher ≥ 5).
 
+> 🏰 **État Siège — habillage (plan `.claude/plans/siege-visual-remediation.md`,
+> audit doc 19)** : lots **client purs** (zéro moteur, golden inchangé, pas de
+> bump save) qui rendent le siège lisible. (S2) le **bombardement** est visible —
+> l'événement moteur `WallBombarded` joue un boulet de catapulte en arc +
+> impact « éclats de pierre » (coupés en reduce-motion), un segment entamé
+> (`siegeWallHp` sous le max courant) reçoit fissures/assombrissement et un
+> segment détruit **tombe** (fondu + bascule) au lieu de disparaître ; ligne de
+> journal FR/EN. (S3) la **douve** est un décor (fossé + vaguelettes dessinées)
+> qui reste visible SOUS la surbrillance atteignable (canaux **cumulés**, plus
+> substitués), et sélectionner une case de douve annonce « Entrer dans la
+> douve : −N PV » (lecture de `combat.moatDamage`). (S4) un siège
+> (`combat.townId != null`) prend une **toile de fond de siège** — silhouette
+> urbaine de la faction assiégée — au lieu de la prairie du terrain (résolveur
+> `siegeBackgroundUrl(factionId)` : `backgrounds/siege-<faction>` → `siege` →
+> repli terrain ; id opaque, JPEG hors bundle). (S6) la **tour de tir** est
+> rendue en **structure** (socle de pierre, sprite figé hors idle, pas de badge
+> « 1 ») — détection **générique** par capacités `warMachine`+`immobile` côté
+> défenseur, aucun id en dur. (S7) l'écran **pré-combat** d'un siège titre
+> « Siège de \<ville\> » et affiche une rangée de **défenses** (Fort N, rempart,
+> douve, tour) ; le repli du **médaillon de héros** (canvas) reprend une teinte
+> déterministe (hash faction) + l'initiale au lieu du disque noir vide. (S8) les
+> **chiffres de dégâts** flottent au-dessus du sprite (ne recouvrent plus le
+> badge d'effectif) et s'écourtent quand la pile meurt (plus de « −N » sur herbe
+> nue). Popups avant/après : `docs/captures/siege/`.
+
 > 🚧 **État DA Beta (gardiens illustrés + nommage des sprites)** : sur la carte
 > d'aventure, un **gardien** affiche désormais le **sprite de sa créature**
 > (`unitSpriteUrl(unitId, catalog[unitId].groupId)`, chargé async, même chemin

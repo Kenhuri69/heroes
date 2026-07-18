@@ -306,6 +306,16 @@ fidélité par simple substitution de PNG homonyme, aucun code — cf.
 - **Mur de siège** (`assets/combat/siege-wall.png`, 512²) : segment de rempart de
   pierre crénelé, distinct des obstacles de champ. Posé sur les hexes
   `combat.siegeWalls` (`siegeWallUrl()`) ; **repli** = rocher `drawBoulder`.
+- **Habillage de siège** (S1/S2/S4, plan `siege-visual-remediation`, prompts
+  `combat-siege-set.md`, `combat-siege-backgrounds.md`, `war-machines-support.md`) :
+  jeu de rempart continu (`combat/siege-wall-{top,mid,bottom,stub}`), **porte**
+  (`combat/siege-gate`, `combat/siege-gate-breached`) et overlay de **fissures**
+  (`combat/siege-wall-cracked`, `siegeWallCrackedUrl()`) ; **toiles de siège**
+  (`backgrounds/siege-<factionId>.jpg` → `backgrounds/siege.jpg`,
+  `siegeBackgroundUrl()`) ; **machines de soutien** (`units/core/first-aid-tent.png`,
+  `units/core/ammo-cart.png`). **Mêmes clés ⇒ dépôt de PNG suffit** ; **repli
+  gracieux** conservé partout (rempart→pan unique→rocher ; siège→terrain ;
+  machine→fanion).
 - **Unité invoquée** (`assets/units/core/elementaire-de-terre.png`, 512²) :
   élémentaire de terre rocheux, résolu par `unitSpriteUrl` via le repli **core**
   (`units/core/<unitId>`, faction-agnostique) ; **repli** = jeton procédural.

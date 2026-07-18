@@ -457,17 +457,32 @@ export class CombatScene {
       if (!hero) continue;
       const token = new Container();
       const color = side === 'attacker' ? ATTACKER_COLOR : DEFENDER_COLOR;
-      // Socle + cadre circulaire au liseré du camp (repli visible tant que
-      // l'avatar n'est pas chargé — ou s'il n'existe pas).
+      // S7.3 : repli du médaillon = teinte déterministe (hash faction) + initiale
+      // du héros, au lieu du disque noir vide (audit doc 19 §3.2) — même esprit
+      // que le `FactionBadge` de l'UI DOM. L'avatar, s'il existe, recouvre.
       token.addChild(
         new Graphics()
           .ellipse(0, HERO_TOKEN_RADIUS * 0.9, HERO_TOKEN_RADIUS * 0.8, HERO_TOKEN_RADIUS * 0.3)
           .fill({ color, alpha: 0.85 })
           .stroke({ width: 2, color: 0x1a1c22 })
           .circle(0, 0, HERO_TOKEN_RADIUS)
-          .fill(0x232630)
+          .fill(factionTint(hero.factionId))
           .stroke({ width: 3, color }),
       );
+      const initial = (hero.name || hero.factionId || '?').trim().charAt(0).toUpperCase() || '?';
+      const initialText = new Text({
+        text: initial,
+        style: {
+          fontFamily: 'Georgia, "Times New Roman", serif',
+          fontSize: HERO_TOKEN_RADIUS * 1.1,
+          fontWeight: '700',
+          fill: 0xf2e6c8,
+          stroke: { color: 0x1a1c22, width: 3 },
+          align: 'center',
+        },
+      });
+      initialText.anchor.set(0.5);
+      token.addChild(initialText);
       const url = heroAvatarUrl(hero.factionId, heroArchetype(hero.attributes), hero.name);
       if (url) {
         void Assets.load(url).then((texture) => {
@@ -631,13 +646,27 @@ export class CombatScene {
   private buildStackToken(stack: CombatStack): Container {
     const token = new Container();
     const side = stack.side;
-    // Base de camp (ellipse au sol) : distingue attaquant/défenseur.
-    token.addChild(
-      new Graphics()
-        .ellipse(0, TOKEN_RADIUS * 0.7, TOKEN_RADIUS * 0.85, TOKEN_RADIUS * 0.35)
-        .fill({ color: side === 'attacker' ? ATTACKER_COLOR : DEFENDER_COLOR, alpha: 0.85 })
-        .stroke({ width: 2, color: 0x1a1c22 }),
-    );
+    const catalog = appStore.getState().game.unitCatalog;
+    const abilities = catalog[stack.unitId]?.abilities ?? [];
+    const hasAbility = (id: string): boolean => abilities.some((a) => a.id === id);
+    // S6 : une machine de guerre défensive IMMOBILE (tour de tir de siège) est une
+    // STRUCTURE de la ville, pas une créature — détection générique par capacités
+    // (`warMachine` + `immobile` côté défenseur), zéro id d'unité/faction en dur.
+    // Rendu : socle de pierre (pas d'ellipse de camp), sprite figé (hors idle),
+    // aucun badge d'effectif (une tour n'est pas « 1 »).
+    const isSiegeStructure = side === 'defender' && hasAbility('warMachine') && hasAbility('immobile');
+
+    if (isSiegeStructure) {
+      token.addChild(buildStructureBase());
+    } else {
+      // Base de camp (ellipse au sol) : distingue attaquant/défenseur.
+      token.addChild(
+        new Graphics()
+          .ellipse(0, TOKEN_RADIUS * 0.7, TOKEN_RADIUS * 0.85, TOKEN_RADIUS * 0.35)
+          .fill({ color: side === 'attacker' ? ATTACKER_COLOR : DEFENDER_COLOR, alpha: 0.85 })
+          .stroke({ width: 2, color: 0x1a1c22 }),
+      );
+    }
     // Coop (E4.5b, doc 18 E4) : une pile issue d'un héros ALLIÉ invité (owner
     // explicite) porte un liseré de la couleur de son joueur — signal « à qui
     // appartient la pile ». Piles du lead (owner absent) : aucun anneau (rendu
@@ -654,33 +683,34 @@ export class CombatScene {
     }
     // I2 : le visuel d'unité (repli polygone puis sprite) vit dans un conteneur
     // `bob` que la boucle idle fait osciller ; l'ellipse de sol et le badge
-    // d'effectif (ajoutés hors de `bob`) restent fixes.
-    const bob = new Container();
-    bob.label = 'bob';
-    token.addChild(bob);
-    const fallback = buildStackTokenGraphic(side);
-    bob.addChild(fallback);
+    // d'effectif (ajoutés hors de `bob`) restent fixes. Une STRUCTURE (S6) ne
+    // respire pas : son visuel est hors `bob` (conteneur non labellisé).
+    const visual = new Container();
+    if (!isSiegeStructure) visual.label = 'bob';
+    token.addChild(visual);
+    const fallback = isSiegeStructure ? buildStructureGraphic() : buildStackTokenGraphic(side);
+    visual.addChild(fallback);
 
-    const catalog = appStore.getState().game.unitCatalog;
     const url = unitSpriteUrl(stack.unitId, catalog[stack.unitId]?.groupId);
     if (url) {
       void Assets.load(url).then((texture) => {
         if (this.destroyed || token.destroyed) return;
-        bob.removeChild(fallback);
+        visual.removeChild(fallback);
         fallback.destroy();
         const sprite = new Sprite(texture);
-        sprite.anchor.set(0.5, 0.72); // pieds posés sur la base de camp
+        sprite.anchor.set(0.5, 0.72); // pieds posés sur la base
         const scale = (TOKEN_RADIUS * 2.4) / Math.max(texture.width, texture.height);
         sprite.scale.set(scale);
-        bob.addChild(sprite);
+        visual.addChild(sprite);
       });
     }
 
     // Badge d'effectif (doc 08 §2.4, fidélité HoMM) : pastille en bas du jeton
     // portant le nombre de soldats. Texte à fort contraste (contour) — jamais
     // porté par la couleur seule (a11y A5). Toujours au-dessus du sprite d'unité,
-    // réf gardée sur le conteneur pour mise à jour à chaque `syncStacks`.
-    token.addChild(this.buildCountBadge(stack.count));
+    // réf gardée sur le conteneur pour mise à jour à chaque `syncStacks`. Omis
+    // pour une structure (S6) : « 1 » n'a pas de sens pour une tour.
+    if (!isSiegeStructure) token.addChild(this.buildCountBadge(stack.count));
     return token;
   }
 
@@ -1532,6 +1562,46 @@ function eventStackIds(event: AppEvent): string[] {
   }
 }
 
+/**
+ * S6 — socle de pierre d'une structure de siège (tour de tir) : galette de
+ * fondation crénelée au sol, à la place de l'ellipse de camp. Procédural et
+ * déterministe (aucun RNG), teintes pierre cohérentes avec `drawBoulder`.
+ */
+function buildStructureBase(): Graphics {
+  const g = new Graphics();
+  const w = TOKEN_RADIUS * 0.95;
+  const h = TOKEN_RADIUS * 0.42;
+  const y = TOKEN_RADIUS * 0.72;
+  // Ombre au sol + assise de pierre rectangulaire (fondation d'ouvrage).
+  g.ellipse(0, y + h * 0.25, w, h * 0.5).fill({ color: 0x2a2620, alpha: 0.4 });
+  g.roundRect(-w, y - h, w * 2, h * 1.4, 4)
+    .fill({ color: 0x6f665a })
+    .stroke({ width: 2, color: 0x3a332b });
+  // Créneaux d'assise (2ᵉ canal non chromatique : c'est un ouvrage, pas un socle).
+  for (let i = -2; i <= 2; i++) {
+    g.rect(i * (w * 0.42) - w * 0.14, y - h - 5, w * 0.28, 6).fill({ color: 0x847a6b });
+  }
+  return g;
+}
+
+/** S6 — repli procédural d'une tour de tir (sprite absent/en cours) : tourelle de pierre. */
+function buildStructureGraphic(): Graphics {
+  const g = new Graphics();
+  const w = TOKEN_RADIUS * 0.62;
+  const top = -TOKEN_RADIUS * 0.95;
+  const bottom = TOKEN_RADIUS * 0.5;
+  g.rect(-w, top, w * 2, bottom - top)
+    .fill({ color: 0x7c7266 })
+    .stroke({ width: 2, color: 0x4d453c });
+  // Créneaux du sommet.
+  for (let i = -1; i <= 1; i++) {
+    g.rect(i * w - w * 0.35, top - 7, w * 0.7, 8).fill({ color: 0x9a8f80 });
+  }
+  // Meurtrière (fente de tir).
+  g.rect(-w * 0.22, top + w * 0.5, w * 0.44, bottom - top - w * 0.9).fill({ color: 0x2a2620 });
+  return g;
+}
+
 /** Polygone de repli par pile — forme distincte par camp (sprite d'unité absent/en cours). */
 function buildStackTokenGraphic(side: CombatSideId): Graphics {
   const g = new Graphics();
@@ -1560,6 +1630,41 @@ function buildStackTokenGraphic(side: CombatSideId): Graphics {
  */
 function prefersReducedMotion(): boolean {
   return reduceMotion();
+}
+
+/**
+ * S7.3 — teinte de médaillon déterministe dérivée d'un id de faction (FNV-1a),
+ * même esprit que le `FactionBadge` de l'UI DOM : couleur sombre mais lisible
+ * (jamais noir pur) sous l'initiale claire du héros. Ids de faction opaques.
+ */
+function factionTint(factionId: string): number {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < factionId.length; i += 1) {
+    h ^= factionId.charCodeAt(i);
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  // Teinte HSL déterministe → RGB, luminosité bornée basse (fond de médaillon).
+  const hue = h % 360;
+  return hslToHex(hue, 0.4, 0.28);
+}
+
+/** Conversion HSL→hex 0xRRGGBB (déterministe, pour la teinte de médaillon S7.3). */
+function hslToHex(hDeg: number, s: number, l: number): number {
+  const c = (1 - Math.abs(2 * l - 1)) * s;
+  const hp = hDeg / 60;
+  const x = c * (1 - Math.abs((hp % 2) - 1));
+  let r = 0;
+  let g = 0;
+  let b = 0;
+  if (hp < 1) [r, g, b] = [c, x, 0];
+  else if (hp < 2) [r, g, b] = [x, c, 0];
+  else if (hp < 3) [r, g, b] = [0, c, x];
+  else if (hp < 4) [r, g, b] = [0, x, c];
+  else if (hp < 5) [r, g, b] = [x, 0, c];
+  else [r, g, b] = [c, 0, x];
+  const m = l - c / 2;
+  const to = (v: number): number => Math.round((v + m) * 255) & 0xff;
+  return (to(r) << 16) | (to(g) << 8) | to(b);
 }
 
 /** Déphasage idle déterministe d'une pile (0..2π) dérivé de son id — désynchronise les jetons. */

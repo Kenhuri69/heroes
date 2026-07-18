@@ -53,22 +53,22 @@ L'événement moteur `WallBombarded { col, row, destroyed }` existe
   reste à construire comme **harnais partagé de la vague** (couvrira S1/S2/S3/S6
   en non-régression) ; noté ci-dessous. Golden inchangé (client seul).
 
-## Lot S3 — Douve lisible (P1, client seul)
+## Lot S3 — Douve lisible (P1, client seul) — LIVRÉ (S3.1/S3.2)
 
-- [ ] S3.1 `drawBoard` (`render/hexgrid.ts`) : **cumuler** les canaux au lieu
-      de remplacer — un hex douve atteignable garde sa teinte/texture douve
-      SOUS le pip vert (fill douve d'abord, surbrillance en calque
-      translucide par-dessus, pip conservé). Un hex douve garde TOUJOURS son
-      marqueur non chromatique propre (vaguelettes dessinées, pattern A5).
-- [ ] S3.2 Rendre la douve comme un décor : fill plus opaque + vaguelettes
-      procédurales déterministes (patron `drawBoulder`), ou sprite
-      `combat/moat` s'il est produit (repli procédural gracieux).
-- [ ] S3.3 Dégâts annoncés : quand la destination sélectionnée (tap 1) est un
-      hex de douve, afficher « −{moatDamage} PV » dans la prévisualisation
-      (readout existant de `combatPreview`) — lecture de `combat.moatDamage`,
-      aucune règle nouvelle.
-- Vérif : capture avant/après (douve visible même sous surbrillance) ; test
-  unitaire de `drawBoard`? non — smoke visuel + assertion préviz (S-TEST).
+- [x] S3.1 `drawBoard` (`render/hexgrid.ts`) : **cumule** — le fond de douve
+      (`FILL_MOAT` à `ALPHA_MOAT_DECOR` 0.5) est posé SOUS l'hex d'état ⇒ un hex
+      douve atteignable garde sa teinte fossé sous la surbrillance verte, le pip
+      reste dessiné. Chemin non-douve **byte-identique** (additions gardées
+      `isMoat && !isObstacle`).
+- [x] S3.2 Décor + marqueur : `drawWaves` (vaguelettes déterministes, patron
+      `drawBoulder`, couleur écume `WAVE_COLOR`) dessiné TOUJOURS sur un hex douve
+      (2ᵉ canal non chromatique A5), même sous surbrillance.
+- [ ] S3.3 Dégâts annoncés (readout « −{moatDamage} » au tap-1 sur douve) —
+      **différé** : nécessite un nouvel état de prévisualisation de déplacement
+      (le `combatPreview` actuel ne porte que l'estimation d'ATTAQUE). Follow-up.
+- Vérif : chemin non-douve inchangé (smokes combat @core rendent le plateau) ;
+  additions strictement gardées `isMoat`. Rendu douve : capture au smoke siège
+  (S-TEST partagé, à venir).
 
 ## Lot S8 — Popups de dégâts (P2, client seul, trivial)
 

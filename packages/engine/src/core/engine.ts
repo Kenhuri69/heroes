@@ -799,7 +799,7 @@ const handlers: Handlers = {
     // Logique de pas partagée avec l'IA d'aventure (cf. `adventure/movement`).
     // Le joueur humain ne résout pas le combat de gardien ici : l'interception
     // laisse `draft.combat` posé pour un combat interactif.
-    advanceHeroAlongPath(draft, hero, player, cmd.path, events);
+    advanceHeroAlongPath(draft, hero, player, cmd.path, events, { allyHeroId: cmd.allyHeroId });
   },
 
   Dig(draft, cmd, events) {

@@ -225,6 +225,8 @@ export type GameEvent =
   | { type: 'BoatBuilt'; townId: string; boatId: string; pos: GridPos }
   /** Renforts appelés en combat (doc 18 B3) : une pile fraîche rejoint le camp `side`. */
   | { type: 'ReinforcementsCalled'; side: CombatSideId; stackId: string; unitId: string; count: number }
+  /** Combat coopératif (doc 18 E4) : l'armée d'un héros allié invité rejoint le camp du joueur. */
+  | { type: 'AllyJoinedCombat'; heroId: string; allyHeroId: string }
   | { type: 'TownIncome'; playerId: string; resource: string; amount: number }
   | { type: 'TownGrowth'; townId: string; unitId: string; added: number }
   /** Choix du destinataire d'une croissance partagée (doc 05 §3.1/§8). */

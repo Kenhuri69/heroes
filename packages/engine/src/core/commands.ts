@@ -113,6 +113,12 @@ export type Command =
       type: 'MoveHero';
       heroId: string;
       path: GridPos[];
+      /**
+       * Coop PvE (doc 18 E4) : héros allié invité dont l'armée rejoint le camp si
+       * ce déplacement engage un combat de gardien. Ignoré si l'allié n'est plus
+       * valide (adjacent/allié/armée) à l'engagement. Absent = combat solo.
+       */
+      allyHeroId?: string;
     }
   | { type: 'EndTurn'; playerId: string }
   /** Fouille de la tuile du Graal (T-GRAIL lot 2) — le héros sur `grailPos` obtient le Graal. */

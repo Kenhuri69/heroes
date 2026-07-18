@@ -60,9 +60,18 @@ décomposition) ; l'implémentation suit par lots atomiques après validation.
 
 - [x] Cadrage écrit (doc 02 §6, ce plan, doc 18 E4). Zéro code.
 - [x] Décisions confirmées (les 4 ci-dessus).
-- [ ] E4.2 (moteur) : `CombatStack.ownerHeroId` (bump save) ; primitive de jonction
-      d'un allié invité en combat PvE (`beginGuardianCombat`/`beginTownCombat` +
-      `MoveHero.allyHeroId?`) ; pertes routées par owner. 7 slots partagés (troncature).
+- [x] **E4.2 (moteur, GARDIEN) LIVRÉ** : `CombatStack.ownerHeroId?` (bump save
+      **34→35**, StackKey mis à jour, golden re-fixé « forme seule » `7c1cdc04`→
+      `a4a17d37` — seul `saveVersion` change) ; `beginGuardianCombat(..., allyHeroId?)`
+      + `resolveCoopAlly` (allié/adjacent/armée) ; armée combinée cap **7 partagé**
+      (lead prioritaire), piles alliées taguées, **armée de l'allié vidée** à
+      l'engagement ; `MoveHero.allyHeroId?` threadé via `AdvanceOptions` ;
+      `applyConsequences` route les survivants **par owner**, XP **partagée à
+      égalité** (`coopAttackerOwners`) ; défaite = lead meurt, allié survit sans
+      armée ; événement `AllyJoinedCombat`. 4 tests `combat-coop.test.ts`. Hors
+      coop = **bit-identique**. Vérif : typecheck ✓, lint ✓, 901 engine + 154
+      content ✓, content:check ✓, garde-fou vert, build ✓, budget 341 Ko ✓, smoke
+      @core 28/28 ✓. **Siège coop différé** (E4.2b) : ce lot couvre le gardien.
 
 ## Note
 Lot **documentaire** : pas de code, pas de bump save, golden intact. Le smoke n'est

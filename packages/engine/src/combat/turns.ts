@@ -348,7 +348,13 @@ function grantHeroCombatXp(
   const hpLost = casualties
     .filter((c) => c.side === loserSide)
     .reduce((sum, c) => sum + (draft.unitCatalog[c.unitId]?.stats.hp ?? 0) * c.lost, 0);
-  grantXp(draft, events, winnerHeroId, Math.round(hpLost * xpPerHpKilled));
+  const xp = Math.round(hpLost * xpPerHpKilled);
+  // Coop (E4.2, doc 18 E4) : partage ÉGAL de l'XP entre les héros propriétaires
+  // du camp attaquant vainqueur. Hors coop (ou victoire en défense) ⇒ un seul
+  // héros ⇒ part = total (bit-identique).
+  const owners = winner === 'attacker' ? [...coopAttackerOwners(combat)] : [winnerHeroId];
+  const share = Math.round(xp / owners.length);
+  for (const id of owners) grantXp(draft, events, id, share);
 }
 
 /**
@@ -413,14 +419,26 @@ function applyConsequences(
   const hero = draft.heroes.find((h) => h.id === combat.heroId);
   if (winner === 'attacker') {
     if (hero) {
-      // Reconstruit l'armée depuis les survivants — SAUF les machines de guerre
-      // (doc 02 §5) : elles persistent sur `hero.warMachines`, jamais dans l'armée
-      // (sinon elles seraient absorbées comme pile normale après le combat).
-      hero.army = combat.stacks
-        .filter((s) => s.side === 'attacker' && s.count > 0 && !hero.warMachines.includes(s.unitId))
-        .map((s) => ({ unitId: s.unitId, count: s.count }));
-      // Effets de faction déclaratifs post-victoire (doc 06 §4) — après la
-      // reconstruction de l'armée, jamais un nom de faction dans le moteur.
+      // Reconstruit l'armée depuis les survivants — routés vers leur héros
+      // PROPRIÉTAIRE (coop E4.2 : lead sans `ownerHeroId` ⇒ `combat.heroId`).
+      // Machines de guerre exclues (doc 02 §5) : elles persistent sur
+      // `hero.warMachines`, jamais dans l'armée. Un allié sans survivant ⇒ armée
+      // vide (il a tout engagé). Hors coop : un seul owner ⇒ bit-identique.
+      for (const ownerId of coopAttackerOwners(combat)) {
+        const owner = draft.heroes.find((h) => h.id === ownerId);
+        if (!owner) continue;
+        owner.army = combat.stacks
+          .filter(
+            (s) =>
+              s.side === 'attacker' &&
+              s.count > 0 &&
+              (s.ownerHeroId ?? combat.heroId) === ownerId &&
+              !owner.warMachines.includes(s.unitId),
+          )
+          .map((s) => ({ unitId: s.unitId, count: s.count }));
+      }
+      // Effets de faction déclaratifs post-victoire (doc 06 §4) — pour le lead ;
+      // après la reconstruction de l'armée, jamais un nom de faction dans le moteur.
       applyFactionVictoryEffects(draft, combat, hero, casualties, 'defender', events);
     }
     if (draft.map && combat.guardianObjectId) {
@@ -456,8 +474,26 @@ function applyConsequences(
       const idx = draft.heroes.findIndex((h) => h.id === combat.heroId);
       if (idx !== -1) draft.heroes.splice(idx, 1);
     }
+    // Coop (E4.2) : le lead meurt (ci-dessus) ; un allié invité SURVIT mais perd
+    // l'armée engagée — déjà vidée à l'engagement (`beginGuardianCombat`).
     persistDefenderRemnants(draft, combat);
   }
+}
+
+/**
+ * Ensemble des héros PROPRIÉTAIRES de piles VIVANTES du camp attaquant (coop
+ * E4.2) : le lead (`combat.heroId`) plus tout allié dont une pile a survécu.
+ * Hors coop ⇒ juste le lead (comportement historique). L'armée d'un allié est
+ * vidée à l'engagement (engagée dans le combat) ⇒ un allié entièrement anéanti
+ * termine avec une armée vide sans traitement dédié.
+ */
+function coopAttackerOwners(combat: CombatState): Set<string> {
+  const owners = new Set<string>();
+  if (combat.heroId) owners.add(combat.heroId);
+  for (const s of combat.stacks) {
+    if (s.side === 'attacker' && s.count > 0 && s.ownerHeroId) owners.add(s.ownerHeroId);
+  }
+  return owners;
 }
 
 /**

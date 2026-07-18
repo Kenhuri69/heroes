@@ -31,6 +31,12 @@ export interface AdvanceOptions {
    * d'aventure y résout le choix immédiatement (déterministe).
    */
   onTreasureFound?: () => void;
+  /**
+   * Coop PvE (doc 18 E4) : héros allié invité à rejoindre un combat de GARDIEN
+   * déclenché par ce déplacement. Passé tel quel à `beginGuardianCombat`, qui
+   * revalide (allié/adjacent/armée) et ignore une invite caduque.
+   */
+  allyHeroId?: string | undefined;
 }
 
 /**
@@ -96,7 +102,7 @@ export function advanceHeroAlongPath(
     const guardian = objectsAt.get(tileKey(step))?.find((o) => o.type === 'guardian');
     if (guardian) {
       hero.movementPoints -= cost;
-      beginGuardianCombat(draft, hero.id, guardian.id, events);
+      beginGuardianCombat(draft, hero.id, guardian.id, events, options.allyHeroId);
       options.onCombatEngaged?.();
       return;
     }

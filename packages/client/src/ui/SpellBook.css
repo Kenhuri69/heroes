@@ -115,6 +115,23 @@
   cursor: default;
 }
 
+/* Icône de sort (famille S, gen_spell_assets.py) — dimensionnée en rem pour
+   suivre les 3 crans de police (a11y doc 08 §4) ; absente ⇒ repli sans icône. */
+.spell-icon {
+  flex: 0 0 auto;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: var(--radius-s);
+  image-rendering: auto;
+}
+
+.spell-icon-lg {
+  width: 2.25rem;
+  height: 2.25rem;
+  vertical-align: middle;
+  margin-right: 0.5rem;
+}
+
 .spell-cost {
   margin-left: auto;
   font-weight: 400;

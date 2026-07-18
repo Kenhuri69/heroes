@@ -27,7 +27,7 @@ import { commandErrorMessage } from '../../app/i18n';
 import { pushToast } from '../../ui/toasts';
 import { onLongPress, onTap } from '../../input/pointer';
 import { Camera } from '../../render/camera';
-import { heroAvatarUrl, unitSpriteUrl } from '../../render/assets';
+import { heroAvatarUrl, unitSpriteUrl, siegeWallUrl, statusIconUrl } from '../../render/assets';
 import { heroArchetype } from '../../app/game';
 import { HEX_SIZE, computeBoardBounds, drawBoard, hexKey, offsetToPixel, pixelToOffset } from '../../render/hexgrid';
 import { isContentPointVisible, type Rect } from '../../render/cameraClamp';
@@ -39,6 +39,22 @@ const ATTACKER_COLOR = 0xc0392b;
 const DEFENDER_COLOR = 0x2e6da4;
 const TOKEN_RADIUS = HEX_SIZE * 0.62;
 const ACTIVE_RING_COLOR = 0xf1c40f;
+
+// Badges d'effet posés sur les jetons (famille S, gen_spell_assets.py). Ordre
+// d'affichage stable + couleur de repli procédural (disque) si l'asset manque —
+// aligné sur STATUS_COLORS du générateur.
+const STATUS_BADGE_ORDER = ['buff', 'debuff', 'mark', 'immobilized', 'silence', 'poison', 'stealth'] as const;
+type StatusBadge = (typeof STATUS_BADGE_ORDER)[number];
+const STATUS_BADGE_COLOR: Record<StatusBadge, number> = {
+  buff: 0x56b060,
+  debuff: 0x9650b0,
+  mark: 0xc4463c,
+  immobilized: 0x96783c,
+  silence: 0x787882,
+  poison: 0x6ea03c,
+  stealth: 0x506e96,
+};
+const STATUS_BADGE_RADIUS = HEX_SIZE * 0.16;
 
 // Durées de base (ms) à vitesse ×1 — divisées par `combatSpeed` (doc 08 §2.4).
 const MOVE_MS_PER_HEX = 140;
@@ -89,6 +105,10 @@ export class CombatScene {
   private readonly camera: Camera;
   private readonly boardLayer = new Container();
   private readonly boardGfx = new Graphics();
+  /** C-SIEGE2 : sprites de rempart posés sur les hexes `siegeWalls` (repli = rocher). */
+  private readonly wallLayer = new Container();
+  /** Signature des hexes de rempart déjà rendus (évite de reconstruire à chaque sync). */
+  private wallKeys = '';
   private readonly stacksLayer = new Container();
   /** UXD-4 : effets éphémères (chiffres de dégâts flottants) au-dessus des piles. */
   private readonly fxLayer = new Container();
@@ -129,7 +149,8 @@ export class CombatScene {
   private readonly unsubscribeLongPress: () => void;
 
   constructor(private readonly app: Application) {
-    this.boardLayer.addChild(this.boardGfx, this.heroLayer, this.stacksLayer, this.fxLayer);
+    this.boardLayer.addChild(this.boardGfx, this.wallLayer, this.heroLayer, this.stacksLayer, this.fxLayer);
+    this.wallLayer.eventMode = 'none'; // décor de rempart : ne capte jamais le tap
     this.fxLayer.eventMode = 'none'; // purement décoratif : ne capte jamais le tap
     this.heroLayer.eventMode = 'none'; // jetons de héros décoratifs (C-HEROSPRITE)
     // Le plateau vit dans la caméra de combat (pan/pinch/molette, plancher tactile).
@@ -278,6 +299,8 @@ export class CombatScene {
       this.selection = null;
       combatPreview.set(null);
       this.boardGfx.clear();
+      this.wallLayer.removeChildren().forEach((c) => c.destroy());
+      this.wallKeys = '';
       this.fxLayer.removeChildren().forEach((c) => c.destroy()); // purge des chiffres flottants
       for (const [id, token] of this.stackTokens) {
         if (this.animatingIds.has(id)) continue;
@@ -299,7 +322,38 @@ export class CombatScene {
       this.buildHeroTokens(combat);
     }
     this.syncStacks(combat);
+    this.syncWalls(combat);
     this.redrawBoard();
+  }
+
+  /**
+   * C-SIEGE2 : pose un sprite de rempart (`combat/siege-wall`) sur chaque hex de
+   * `combat.siegeWalls`, distinct des obstacles de champ. Le sprite RECOUVRE le
+   * rocher procédural dessiné par `drawBoard` ; s'il est absent (asset non
+   * produit) le rocher reste — repli gracieux, jamais d'image cassée. Reconstruit
+   * seulement quand l'ensemble des remparts change (un segment ouvert par la
+   * catapulte disparaît, C-SIEGE2.6).
+   */
+  private syncWalls(combat: CombatState): void {
+    const walls = combat.siegeWalls ?? [];
+    const sig = walls.map(hexKey).sort().join('|');
+    if (sig === this.wallKeys) return;
+    this.wallKeys = sig;
+    this.wallLayer.removeChildren().forEach((c) => c.destroy());
+    const url = siegeWallUrl();
+    if (!url || walls.length === 0) return;
+    for (const pos of walls) {
+      const { x, y } = offsetToPixel(pos);
+      void Assets.load(url).then((texture) => {
+        if (this.destroyed || this.wallLayer.destroyed) return;
+        const sprite = new Sprite(texture);
+        sprite.anchor.set(0.5, 0.6);
+        const scale = (HEX_SIZE * 2.1) / Math.max(texture.width, texture.height);
+        sprite.scale.set(scale);
+        sprite.position.set(x, y);
+        this.wallLayer.addChild(sprite);
+      });
+    }
   }
 
   /**
@@ -405,8 +459,75 @@ export class CombatScene {
         token.position.set(x, y);
       }
       this.updateCountBadge(token, stack.count);
+      this.updateStatusBadges(token, stack);
     }
     this.highlightActive(combat);
+  }
+
+  /**
+   * Effets actifs sur une pile → liste ordonnée de badges (famille S). Dérivé de
+   * l'état PUR de la pile (aucune règle : lecture seule) : buff/debuff nets des
+   * statuts de sorts, silence, poison (`damagePerRound`), Marque, immobilisation,
+   * furtivité. Ordre stable pour une rangée sans scintillement.
+   */
+  private activeStatusBadges(stack: CombatStack): StatusBadge[] {
+    const active = new Set<StatusBadge>();
+    for (const s of stack.statuses) {
+      if (s.silenced) active.add('silence');
+      if (s.damagePerRound > 0) active.add('poison');
+      const net = s.attackMod + s.defenseMod + s.speedMod + (s.moraleMod ?? 0);
+      if (net > 0) active.add('buff');
+      else if (net < 0) active.add('debuff');
+    }
+    if (stack.marks > 0) active.add('mark');
+    if (stack.immobilizedRounds > 0) active.add('immobilized');
+    if (stack.stealthed) active.add('stealth');
+    return STATUS_BADGE_ORDER.filter((b) => active.has(b));
+  }
+
+  /**
+   * Rangée de badges d'effet au-dessus du jeton. Rebâtie seulement quand la
+   * signature d'effets change (évite le scintillement au resync). Chaque badge :
+   * disque coloré procédural IMMÉDIAT (repli, jamais d'image cassée) remplacé par
+   * l'icône `ui/status-<name>` dès son chargement (patron du sprite d'unité).
+   */
+  private updateStatusBadges(token: Container, stack: CombatStack): void {
+    const badges = this.activeStatusBadges(stack);
+    const sig = badges.join(',');
+    const existing = token.getChildByLabel('status-badges') as (Container & { _sig?: string }) | null;
+    if (existing?._sig === sig) return;
+    if (existing) existing.destroy({ children: true });
+    if (badges.length === 0) return;
+
+    const row = new Container() as Container & { _sig?: string };
+    row.label = 'status-badges';
+    row._sig = sig;
+    const d = STATUS_BADGE_RADIUS;
+    const step = d * 2.2;
+    const totalW = step * (badges.length - 1);
+    badges.forEach((name, i) => {
+      const bx = -totalW / 2 + i * step;
+      const cell = new Container();
+      cell.position.set(bx, -TOKEN_RADIUS * 1.15);
+      const disc = new Graphics()
+        .circle(0, 0, d)
+        .fill({ color: STATUS_BADGE_COLOR[name] })
+        .stroke({ width: 1.5, color: 0x1e1814 });
+      cell.addChild(disc);
+      const url = statusIconUrl(name);
+      if (url) {
+        void Assets.load(url).then((texture) => {
+          if (this.destroyed || cell.destroyed) return;
+          const sprite = new Sprite(texture);
+          sprite.anchor.set(0.5);
+          sprite.scale.set((d * 2.2) / Math.max(texture.width, texture.height));
+          cell.removeChildren().forEach((c) => c.destroy());
+          cell.addChild(sprite);
+        });
+      }
+      row.addChild(cell);
+    });
+    token.addChild(row);
   }
 
   private highlightActive(combat: CombatState): void {

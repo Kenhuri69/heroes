@@ -2878,6 +2878,11 @@ test('sort : le héros lance un sort en combat et réduit une pile ennemie', { t
   // de départ n'a pas de compétence de magie ⇒ maîtrise « de base »).
   await expect(page.getByTestId('spellbook-mastery-neutral')).toContainText('base');
 
+  // Famille S (gen_spell_assets.py) : l'entrée de sort porte son icône `spell-icon`
+  // (couple école/type `spells/neutral-damage`) — intégration DOM du grimoire, le
+  // repli (sans image) laisserait 0 `<img>`.
+  await expect(page.getByTestId('spell-eclair-magique').locator('img.spell-icon')).toBeVisible();
+
   // Livre → « éclair magique » (cercle 1, 4 mana) → pile ennemie →
   // prévisualisation OBLIGATOIRE (doc 08 §2.4) → confirmation.
   // Remédiation R4 (CO5) : le sort porte son NOM localisé, plus l'id brut.

@@ -1,7 +1,7 @@
 import { useEffect } from 'preact/hooks';
 import { appStore, useApp, type ToastKind } from '../app/store';
 import { eventBus, type AppEvent } from '../app/events';
-import { notify, appendJournal } from '../app/notifications';
+import { notify, appendJournal, aggregateDailyIncome } from '../app/notifications';
 import { playSfx } from '../app/audio';
 import './toasts.css';
 
@@ -60,11 +60,27 @@ export function ToastHost() {
   const toasts = useApp((s) => s.toasts);
 
   useEffect(() => {
-    return eventBus.on((event) => {
-      const message = notify(event, appStore.getState().game);
-      if (message) {
-        pushToast(message, toastKind(event));
-        appendJournal(message);
+    // E9 : traitement PAR LOT — un lot de dispatch = un « moment » de jeu.
+    return eventBus.onBatch((events, meta) => {
+      const game = appStore.getState().game;
+      // (1) Revenus du jour agrégés en UN toast/entrée (au lieu d'un par source).
+      const income = aggregateDailyIncome(events, game);
+      if (income) {
+        pushToast(income, 'success');
+        appendJournal(income);
+      }
+      // (2) Reste des événements, un message chacun.
+      for (const event of events) {
+        // Revenus déjà agrégés ci-dessus.
+        if (event.type === 'MineIncome' || event.type === 'TownIncome') continue;
+        // Combats de l'IA (vs neutres/entre eux) : pas de toast — le joueur ne les
+        // voit pas ; seuls SES combats (écran posé) notifient (E9).
+        if (event.type === 'CombatEnded' && !meta.humanCombat) continue;
+        const message = notify(event, game);
+        if (message) {
+          pushToast(message, toastKind(event));
+          appendJournal(message);
+        }
       }
     });
   }, []);

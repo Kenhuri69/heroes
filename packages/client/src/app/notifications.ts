@@ -300,6 +300,34 @@ export function notify(event: AppEvent, game: GameState): string | null {
 }
 
 /**
+ * Agrège les revenus RÉCURRENTS du jour (E9) — `MineIncome` + `TownIncome` du
+ * joueur humain d'un même lot — en UN message « Revenus du jour : +N or, +X bois… »
+ * (somme par ressource, or en tête). Renvoie `null` si le lot n'en contient aucun.
+ * Pur (testable) : remplace la pluie de toasts un-par-source à l'aube.
+ */
+export function sumDailyIncome(
+  events: readonly AppEvent[],
+  humanPlayerId: string,
+): Array<{ resource: string; amount: number }> {
+  const sums = new Map<string, number>();
+  for (const e of events) {
+    if ((e.type === 'MineIncome' || e.type === 'TownIncome') && e.playerId === humanPlayerId)
+      sums.set(e.resource, (sums.get(e.resource) ?? 0) + e.amount);
+  }
+  const order = (r: string): number => (r === 'gold' ? 0 : 1); // or en tête, reste stable
+  return [...sums.entries()]
+    .sort(([a], [b]) => order(a) - order(b))
+    .map(([resource, amount]) => ({ resource, amount }));
+}
+
+export function aggregateDailyIncome(events: readonly AppEvent[], game: GameState): string | null {
+  const parts = sumDailyIncome(events, humanId(game));
+  if (parts.length === 0) return null;
+  const list = parts.map((p) => `+${p.amount} ${t(`resource.${p.resource}`)}`).join(', ');
+  return t('toast.dailyIncome', { list });
+}
+
+/**
  * Ajoute une entrée au journal consultable (doc 08 §3), datée du jour courant.
  * Incrémente le compteur de non-lus SAUF si la modale journal est déjà ouverte
  * (l'utilisateur la lit en direct).

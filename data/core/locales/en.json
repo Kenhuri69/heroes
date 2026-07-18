@@ -515,6 +515,7 @@
   "toast.grailFound": "The Grail is found!",
   "toast.mineCaptured": "{resource} mine captured (+{amount}/day)",
   "toast.mineIncome": "+{amount} {resource} (mine)",
+  "toast.dailyIncome": "Daily income: {list}",
   "toast.treasureGold": "Treasure: +{amount} gold",
   "toast.treasureXp": "Treasure: +{amount} XP",
   "toast.artifactPicked": "Artifact found: {artifact}",

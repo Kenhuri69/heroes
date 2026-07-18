@@ -458,6 +458,20 @@ test("appui long sur la mine (3,6) : fiche d'objet de carte (doc 08 §2.1, lot M
   expect(errors).toEqual([]);
 });
 
+test('E9 : les revenus du jour sont agrégés en une seule entrée de journal', { tag: '@core' }, async ({ page }) => {
+  const errors = await openGame(page);
+  // Fin de tour ⇒ (tours IA) ⇒ nouveau jour ⇒ revenus crédités (start-town…).
+  await endTurn(page);
+  await page.getByTestId('journal-open').click();
+  // Lot 3a (E9) : UNE entrée « Revenus du jour : … » agrégée, et AUCUNE entrée
+  // par-source (l'ancien `toast.townIncome`/`mineIncome`) — la pluie est éteinte.
+  const income = page.getByTestId('journal-entry').filter({ hasText: /Revenus du jour|Daily income/ });
+  await expect(income).toHaveCount(1);
+  const perSource = page.getByTestId('journal-entry').filter({ hasText: /\(mine\)|\(revenu de ville\)|\(town income\)/ });
+  await expect(perSource).toHaveCount(0);
+  expect(errors).toEqual([]);
+});
+
 test('fin de tour : jour suivant, points de mouvement restaurés', async ({ page }) => {
   const errors = await openGame(page);
 

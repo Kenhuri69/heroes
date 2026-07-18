@@ -103,7 +103,11 @@ export async function dispatch(cmd: Command): Promise<EngineResult> {
   } else {
     appStore.setState({ game: result.state });
   }
-  eventBus.emit(result.events);
+  // E9 : un combat du JOUEUR vient de se terminer dans ce dispatch (l'écran de
+  // combat était posé) ⇒ contexte pour ne toaster QUE ses combats (pas ceux de
+  // l'IA, résolus dans `AiTurn` sans jamais poser `game.combat` côté client).
+  const humanCombat = Boolean(before) && !result.state.combat;
+  eventBus.emit(result.events, { humanCombat });
   // NET-PVPUI (slice B) : capture/poste le tour en ligne (no-op hors match). Avant
   // `runAiLoop` (de toute façon no-op en PvP 2 humains).
   await recordOnlineTurn(cmd, gameBefore);

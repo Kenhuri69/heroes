@@ -822,6 +822,34 @@ test('combat : victoire contre le gardien, retour carte avec pertes appliquées'
   expect(errors).toEqual([]);
 });
 
+test('I2 : les jetons de combat respirent (idle procédural), coupé en reduce-motion', { tag: '@core' }, async ({ page }) => {
+  const errors = await openGame(page);
+  // Combat MANUEL (la scène reste vivante ⇒ la boucle idle tourne). D'abord en
+  // reduce-motion : aucune respiration ; puis motion ON : les jetons oscillent.
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({
+      type: 'StartCombat',
+      attacker: [{ unitId: 't1-recruit', count: 6 }],
+      defender: [{ unitId: 't1-recruit', count: 6 }],
+      terrain: 'grass',
+    }),
+  );
+  await passPreBattle(page);
+  await expect(page.getByTestId('combat-round')).toBeVisible();
+
+  // Reduce-motion : la boucle idle remet tout `bob` à 0 — jamais d'oscillation.
+  await expect.poll(() => page.evaluate(() => window.__HEROES_TEST__!.combatIdle().bob)).toBe(0);
+
+  // Motion ON : les jetons respirent ⇒ amplitude idle > 0.
+  await page.emulateMedia({ reducedMotion: null });
+  await expect
+    .poll(() => page.evaluate(() => window.__HEROES_TEST__!.combatIdle().bob))
+    .toBeGreaterThan(0);
+
+  expect(errors).toEqual([]);
+});
+
 test('B6 : un tir produit un projectile visible (sprint 1)', { tag: '@core' }, async ({ page }) => {
   const errors = await openGame(page);
   // Combat direct (arène) avec un TIREUR : l'archer tire à travers le plateau,

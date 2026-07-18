@@ -406,11 +406,14 @@ Zéro asset, zéro moteur : uniquement `CombatScene` + `motion.ts`.
         (C-SPELLUI.*), l'état « déjà agi ce round » étant surfacé en amont sur le
         bouton d'ouverture (Lot 3b/E2). **Lot 4 clos** au sens roadmap ; seul reste
         le **« Équilibrer »** garnison (nicety optionnelle, périmètre ambigu — repoussé).
-  - [~] **Lot 5** — le combat prend vie. **5a livré** (`ux-lot5a-combat-idle.md`,
+  - [x] **Lot 5** — le combat prend vie. **5a livré** (`ux-lot5a-combat-idle.md`,
         I2) : **idle procédural** des jetons (respiration verticale désync, coupée
-        en reduce-motion ; conteneur `bob` interne, hook `combatIdle()`). Constaté
-        déjà livrés : projectiles (item 2), impacts de sorts (item 3). Reste :
-        **rotation** de mort (item 4, fondu déjà là), **screen-shake** kill (item 5).
+        en reduce-motion ; conteneur `bob` interne, hook `combatIdle()`).
+        **5b livré** (`ux-lot5b-combat-death-shake.md`, I4+I5) : **mort habillée**
+        (bascule ~90° du jeton en plus du fondu) + **micro-secousse** du plateau
+        sur kill (`shakeBoard`, hook `combatShake()`), coupées en reduce-motion.
+        Items 2 (projectiles) & 3 (impacts de sorts) étaient déjà livrés ⇒ **Lot 5
+        complet**.
   - [ ] **Lot 3 tail différé** : E8 (confirmer attaque perdue), E14 (filtres journal)
         — 🟡 à faible valeur / plomberie disproportionnée.
   - [ ] Lots 6→10 : à suivre.

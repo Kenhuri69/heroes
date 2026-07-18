@@ -32,7 +32,7 @@ import { heroArchetype } from '../../app/game';
 import { HEX_SIZE, computeBoardBounds, drawBoard, hexKey, offsetToPixel, pixelToOffset } from '../../render/hexgrid';
 import { isContentPointVisible, type Rect } from '../../render/cameraClamp';
 import { combatPreview } from './preview';
-import { spawnProjectile, spawnSpellImpact, combatIdleStats } from '../../render/combatFx';
+import { spawnProjectile, spawnSpellImpact, combatIdleStats, combatShakeStats } from '../../render/combatFx';
 import { reduceMotion } from '../../app/motion';
 
 const ATTACKER_COLOR = 0xc0392b;
@@ -55,6 +55,12 @@ const HERO_LUNGE_PX = HEX_SIZE * 0.6;
 // deux actions, désynchronisée par pile ⇒ le plateau « vit » sans nouvel asset.
 const IDLE_BOB_PX = 1.5; // amplitude crête (px)
 const IDLE_BOB_HZ = 0.5; // ~un demi-cycle/seconde (respiration lente)
+
+// Mort habillée (I4) : bascule du jeton ~90° en plus du fondu. Micro-secousse du
+// plateau (I5) sur kill de pile entière — impact ressenti sans nouvel asset.
+const DEATH_TIP_RAD = Math.PI / 2; // bascule finale (~90°)
+const SHAKE_PX = 4; // amplitude crête de la secousse
+const SHAKE_MS = 120;
 
 const MARGIN_TOP = 96; // bandeau armées + round (doc 08 §2.4)
 const MARGIN_BOTTOM = 96; // barre d'actions
@@ -113,6 +119,8 @@ export class CombatScene {
   /** E10 : une mise en page initiale (échelle + centrage) a-t-elle eu lieu avec un
    *  combat ? Distingue l'ouverture (centrage) du resize (pan préservé). */
   private laidOut = false;
+  /** I5 : verrou anti-cumul de la micro-secousse de plateau (kills en rafale). */
+  private boardShaking = false;
 
   private readonly resizeObserver: ResizeObserver;
   private readonly unsubscribeStore: () => void;
@@ -1211,13 +1219,38 @@ export class CombatScene {
     combatIdleStats.bob = reduced ? 0 : maxBob;
   }
 
+  /**
+   * I5 — micro-secousse du plateau sur kill de pile entière (~4 px, 120 ms).
+   * Décale la RACINE de scène (`this.container`, toujours à l'origine — le
+   * `camera.world` en dessous garde son pan/zoom) puis la restaure. Un verrou
+   * évite le cumul quand plusieurs piles meurent d'affilée (auto par rounds).
+   */
+  private async shakeBoard(): Promise<void> {
+    if (this.boardShaking) return;
+    this.boardShaking = true;
+    combatShakeStats.count += 1;
+    await tween(SHAKE_MS, (t) => {
+      if (this.destroyed || this.container.destroyed) return;
+      const amp = (1 - t) * SHAKE_PX;
+      this.container.position.set(Math.sin(t * Math.PI * 8) * amp, 0);
+    });
+    if (!this.destroyed && !this.container.destroyed) this.container.position.set(0, 0);
+    this.boardShaking = false;
+  }
+
   private async animateDeath(stackId: string, speed: number): Promise<void> {
     const token = this.stackTokens.get(stackId);
     if (!token) return;
+    const reduced = prefersReducedMotion();
+    const bob = token.getChildByLabel('bob');
     this.animatingIds.add(stackId);
+    // I5 : la pile meurt (kill entier) ⇒ le plateau tressaille (hors reduce-motion).
+    if (!reduced) void this.shakeBoard();
     await tween(DEATH_FADE_MS / speed, (t) => {
       if (token.destroyed) return; // scène détruite pendant le fondu (lot M4)
       token.alpha = 1 - t;
+      // I4 : la mort n'est plus un simple fondu — le jeton bascule (~90°).
+      if (bob && !reduced) bob.rotation = t * DEATH_TIP_RAD;
     });
     this.animatingIds.delete(stackId);
     if (!token.destroyed) token.destroy();

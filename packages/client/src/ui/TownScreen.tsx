@@ -1162,6 +1162,29 @@ function GarrisonTab({ town, onError }: { town: TownState; onError: (msg: string
     });
   };
 
+  // E5 : « tout transférer » d'un côté à l'autre en UN geste. Boucle sur l'état
+  // FRAIS (transfère la 1ʳᵉ pile restante à chaque tour — évite le bug « lecture
+  // d'état périmé » de HeroSwap B14) ; s'arrête sur erreur (ex. destination pleine).
+  const transferAll = async (from: 'town' | 'hero'): Promise<void> => {
+    if (!hero) return;
+    onError(null);
+    for (let guard = 0; guard < GARRISON_SLOTS * 2; guard++) {
+      const g = appStore.getState().game;
+      const source =
+        from === 'town'
+          ? g.towns.find((tw) => tw.id === town.id)?.garrison
+          : g.heroes.find((h) => h.id === hero.id)?.army;
+      const slot = source?.findIndex((s) => s != null) ?? -1;
+      if (slot < 0) break; // source vide
+      try {
+        await dispatch({ type: 'GarrisonTransfer', townId: town.id, heroId: hero.id, from, slot });
+      } catch (err: unknown) {
+        onError(commandErrorMessage(err)); // destination pleine / invalide ⇒ stop
+        break;
+      }
+    }
+  };
+
   const sendCaravan = (slot: number): void => {
     if (!destId) return;
     onError(null);
@@ -1198,6 +1221,24 @@ function GarrisonTab({ town, onError }: { town: TownState; onError: (msg: string
         <p class="town-no-hero" data-testid="town-no-hero">
           {t('town.noHero')}
         </p>
+      )}
+      {hero && (
+        <div class="town-garrison-bulk">
+          <button
+            data-testid="garrison-all-to-hero"
+            disabled={!town.garrison.some((s) => s != null)}
+            onClick={() => void transferAll('town')}
+          >
+            {t('town.allToHero')}
+          </button>
+          <button
+            data-testid="garrison-all-to-town"
+            disabled={!hero.army.some((s) => s != null)}
+            onClick={() => void transferAll('hero')}
+          >
+            {t('town.allToTown')}
+          </button>
+        </div>
       )}
       <div class="town-garrison-columns">
         <div class="town-garrison-column">

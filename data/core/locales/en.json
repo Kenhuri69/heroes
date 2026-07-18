@@ -749,6 +749,8 @@
   "town.noTown": "No town",
   "town.noHero": "No hero in town",
   "town.toHero": "→ hero",
+  "town.allToTown": "All to garrison",
+  "town.allToHero": "All to hero",
   "town.toTown": "← town",
   "town.sendCaravan": "Caravan",
   "town.caravanTo": "Caravan to",

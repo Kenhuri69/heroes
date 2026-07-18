@@ -39,6 +39,10 @@ import { reduceMotion } from '../../app/motion';
 const ATTACKER_COLOR = 0xc0392b;
 const DEFENDER_COLOR = 0x2e6da4;
 const TOKEN_RADIUS = HEX_SIZE * 0.62;
+// S8.1 : les popups (dégâts/soin/étiquettes) montent au-DESSUS de la tête du
+// sprite (ancre haute du jeton) pour ne plus recouvrir badges d'effectif (posés
+// à +TOKEN_RADIUS·1.15) ni voisins immédiats.
+const POPUP_HEAD_OFFSET = TOKEN_RADIUS * 1.55;
 const ACTIVE_RING_COLOR = 0xf1c40f;
 
 // Badges d'effet posés sur les jetons (famille S, gen_spell_assets.py). Ordre
@@ -1072,7 +1076,7 @@ export class CombatScene {
         // C-SIEGE2.4 : dégâts de douve — chiffre de dégâts flottant sur la pile.
         const token = this.stackTokens.get(event.stackId);
         if (token && event.damage > 0) {
-          this.spawnDamageNumber(new Point(token.position.x, token.position.y), event.damage, event.kills, false, false);
+          this.spawnDamageNumber(new Point(token.position.x, token.position.y), event.damage, event.kills, false, false, token);
         }
         return;
       }
@@ -1123,7 +1127,7 @@ export class CombatScene {
           if (kind) await spawnSpellImpact(this.fxLayer, at, kind, { speed, reduced: prefersReducedMotion() });
           if (event.amount > 0) {
             if (kind === 'heal') this.spawnHealNumber(at, event.amount);
-            else this.spawnDamageNumber(at, event.amount, event.kills, false, false);
+            else this.spawnDamageNumber(at, event.amount, event.kills, false, false, target);
           }
         }
         return;
@@ -1138,7 +1142,7 @@ export class CombatScene {
           if (kind) await spawnSpellImpact(this.fxLayer, at, kind, { speed, reduced: prefersReducedMotion() });
           if (event.amount > 0) {
             if (kind === 'heal') this.spawnHealNumber(at, event.amount);
-            else this.spawnDamageNumber(at, event.amount, event.kills, false, false);
+            else this.spawnDamageNumber(at, event.amount, event.kills, false, false, target);
           }
         }
         return;
@@ -1154,6 +1158,7 @@ export class CombatScene {
             event.kills,
             false,
             false,
+            target,
           );
         }
         return;
@@ -1204,7 +1209,7 @@ export class CombatScene {
         this.spawnFloatingLabel(dest, 'esquive', 0x8fb3d9);
       } else {
         target.tint = 0xff6666;
-        this.spawnDamageNumber(dest, damage, kills, lucky, unlucky);
+        this.spawnDamageNumber(dest, damage, kills, lucky, unlucky, target);
         if (!reduced) void this.shakeToken(target, dest);
       }
     };
@@ -1253,6 +1258,7 @@ export class CombatScene {
     kills: number,
     lucky: boolean,
     unlucky = false,
+    token?: Container,
   ): void {
     const group = new Container();
     // Marqueurs a11y (glyphe + couleur) : ★ chance (or), ⚑ malchance (bleu-gris).
@@ -1286,14 +1292,23 @@ export class CombatScene {
       killsText.anchor.set(0.5, 0);
       group.addChild(killsText);
     }
-    group.position.set(at.x, at.y - TOKEN_RADIUS * 0.6);
+    group.position.set(at.x, at.y - POPUP_HEAD_OFFSET);
     this.fxLayer.addChild(group);
     const reduced = prefersReducedMotion();
     const startY = group.position.y;
+    // S8.2 : durée liée au jeton — si la pile meurt (jeton détruit) pendant le
+    // vol, on écourte le fondu du popup orphelin (~120 ms) au lieu de le laisser
+    // planer 700 ms au-dessus d'une case vide.
+    let orphanFrom: number | null = null;
     void tween(700, (t) => {
       if (group.destroyed) return; // scène détruite pendant le vol (lot M4)
       if (!reduced) group.position.y = startY - 30 * t;
-      group.alpha = t < 0.6 ? 1 : 1 - (t - 0.6) / 0.4; // plein puis fondu
+      let alpha = t < 0.6 ? 1 : 1 - (t - 0.6) / 0.4; // plein puis fondu
+      if (token && token.destroyed) {
+        if (orphanFrom === null) orphanFrom = t;
+        alpha = Math.min(alpha, Math.max(0, 1 - (t - orphanFrom) / 0.17));
+      }
+      group.alpha = alpha;
     }).then(() => {
       if (!group.destroyed) group.destroy({ children: true });
     });
@@ -1319,7 +1334,7 @@ export class CombatScene {
       },
     });
     text.anchor.set(0.5, 1);
-    text.position.set(at.x, at.y - TOKEN_RADIUS * 0.6);
+    text.position.set(at.x, at.y - POPUP_HEAD_OFFSET);
     this.fxLayer.addChild(text);
     const reduced = prefersReducedMotion();
     const startY = text.position.y;

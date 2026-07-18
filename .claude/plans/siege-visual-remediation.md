@@ -16,7 +16,7 @@
 
 ## Ordre d'exécution recommandé
 
-1. **Vague 1 — câblages purs client, gros impact/petit coût** : S2, S3, S8
+1. **Vague 1 — câblages purs client, gros impact/petit coût** : S2, S3, S8 ✅ (livrée)
 2. **Vague 2 — assets & habillage** : S4, S1, S5a, S6
 3. **Vague 3 — moteur générique + UI** : S5b, S7
 4. **Vague 4 — polish & investigation** : S9
@@ -72,14 +72,18 @@ L'événement moteur `WallBombarded { col, row, destroyed }` existe
 
 ## Lot S8 — Popups de dégâts (P2, client seul, trivial)
 
-- [ ] S8.1 Décaler le spawn des chiffres flottants au-DESSUS du sprite
+- [x] S8.1 Décaler le spawn des chiffres flottants au-DESSUS du sprite
       (ancre haute du jeton) pour ne plus recouvrir badges d'effectif ni
-      voisins immédiats.
-- [ ] S8.2 Lier la durée de vie du popup au jeton : si la pile meurt et que
+      voisins immédiats. → `POPUP_HEAD_OFFSET = TOKEN_RADIUS·1.55`, appliqué à
+      `spawnDamageNumber` + `spawnFloatingLabel`.
+- [x] S8.2 Lier la durée de vie du popup au jeton : si la pile meurt et que
       son fondu se termine, accélérer/écourter le popup orphelin (plus de
-      « −38 » flottant sur herbe nue).
+      « −38 » flottant sur herbe nue). → `spawnDamageNumber(token?)` : fondu
+      écourté (~120 ms) dès `token.destroyed` ; câblé aux 5 sites (frappe,
+      MoatDamaged, SpellCast, UnitSpellCast, HeroStruck).
 - Vérif : captures avant/après sur la mêlée à la brèche ; aucun test dédié
-  (FX purs), le smoke anti-gel couvre la non-régression.
+  (FX purs), le smoke anti-gel couvre la non-régression. **Livré** (détail :
+  `siege-s8-damage-popups.md`).
 
 ## Lot S4 — Fond de ville de siège (P1, assets + client)
 

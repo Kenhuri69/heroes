@@ -99,11 +99,11 @@ L'événement moteur `WallBombarded { col, row, destroyed }` existe
 
 ## Lot S1 — Rempart continu (P1, assets + client)
 
-- [~] S1.1 Assets (prompts déposés — `combat-siege-set.md` ; art à générer) : jeu de sprites de rempart orientés colonne —
+- [x] S1.1 Assets (ART LIVRÉ : siege-wall + -cracked + -breached + -gate) : jeu de sprites de rempart orientés colonne —
       `siege-wall-top / -mid / -bottom / -stub` (moignon détruit) + **porte**
       `siege-gate` (et variante brisée `siege-gate-breached`), même gouache
       (skill `asset-sheet`, prompts doc 12 §7).
-- [~] S1.2 (asset-gated : sélection visible seulement avec l'art `siege-wall-*` ; prompts déposés, différé) `syncWalls` : choisir le sprite par position dans la colonne
+- [~] S1.2 (PARTIEL : `SIEGE_WALL_DRAW` élargi ferme les gaps verticaux ; sélection par orientation encore à faire) `syncWalls` : choisir le sprite par position dans la colonne
       (extrémités/segments), ancrer bord-à-bord pour absorber le zigzag de
       l'offset hex (léger décalage x par parité de rangée, chevauchement
       vertical) ⇒ muraille visuellement continue.
@@ -118,10 +118,10 @@ L'événement moteur `WallBombarded { col, row, destroyed }` existe
 
 ## Lot S5a — Sprites des machines manquantes (P1, assets seuls)
 
-- [~] S5a.1 (prompt déposé — `war-machines-support.md` ; art à générer) `assets/units/core/first-aid-tent.png` et
+- [x] S5a.1 (ART LIVRÉ : tente + chariot extraits vers units/core/) `assets/units/core/first-aid-tent.png` et
       `assets/units/core/ammo-cart.png` (skill `asset-sheet`, planche
       « machines de guerre » cohérente avec catapulte/baliste existantes).
-- [~] S5a.2 QC (à faire au retour de l'art) : vignettes pré-combat + jetons en bataille remplacent cases
+- [x] S5a.2 QC (contact-sheet vérifié : détourage propre, sparkle retiré) : vignettes pré-combat + jetons en bataille remplacent cases
       vides/fanions (aucun code à changer — le registre auto-découvre).
 - Vérif : recette doc 19, écran pré-combat sans case vide.
 

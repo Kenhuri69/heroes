@@ -343,6 +343,16 @@ export function siegeWallCrackedUrl(): string | undefined {
   return registry.get('combat/siege-wall-cracked');
 }
 
+/**
+ * Overlay de rempart fortement endommagé / percé (`combat/siege-wall-breached`,
+ * S2) — 2ᵉ palier d'usure sous `siege-wall-cracked`, posé quand les PV du segment
+ * passent sous ~40 %. `undefined` ⇒ repli sur l'overlay de fissures puis
+ * assombrissement (jamais d'image cassée).
+ */
+export function siegeWallBreachedUrl(): string | undefined {
+  return registry.get('combat/siege-wall-breached');
+}
+
 // --- Chemin PixiJS : préchargement + lecture synchrone du cache ---
 
 /** URLs rendues dans PixiJS (tuiles + mines + tas) — préchargées au bootstrap. */

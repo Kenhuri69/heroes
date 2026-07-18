@@ -28,7 +28,7 @@ import { pushToast } from '../../ui/toasts';
 import { onLongPress, onTap } from '../../input/pointer';
 import { Camera } from '../../render/camera';
 import { playerColor } from '../../render/playerColors';
-import { heroAvatarUrl, unitSpriteUrl, siegeWallUrl, siegeWallCrackedUrl, statusIconUrl } from '../../render/assets';
+import { heroAvatarUrl, unitSpriteUrl, siegeWallUrl, siegeWallCrackedUrl, siegeWallBreachedUrl, statusIconUrl } from '../../render/assets';
 import { heroArchetype } from '../../app/game';
 import { HEX_SIZE, computeBoardBounds, drawBoard, hexKey, offsetToPixel, pixelToOffset } from '../../render/hexgrid';
 import { isContentPointVisible, type Rect } from '../../render/cameraClamp';
@@ -78,6 +78,11 @@ const IDLE_BOB_HZ = 0.5; // ~un demi-cycle/seconde (respiration lente)
 const DEATH_TIP_RAD = Math.PI / 2; // bascule finale (~90°)
 const SHAKE_PX = 4; // amplitude crête de la secousse
 const SHAKE_MS = 120;
+
+// Largeur de dessin d'un segment de rempart de siège. > pas vertical d'hex
+// (1,5·HEX_SIZE) pour que les segments d'une même colonne se chevauchent
+// verticalement ⇒ muraille continue (limite le zigzag de l'offset hex, S1).
+const SIEGE_WALL_DRAW = HEX_SIZE * 2.6;
 
 const MARGIN_TOP = 96; // bandeau armées + round (doc 08 §2.4)
 // S9.4 : marge basse élargie — la barre d'actions peut passer à 2 rangées et le
@@ -371,7 +376,7 @@ export class CombatScene {
     if (!url) return; // pas de sprite de rempart : repli rocher (drawBoard)
     for (const pos of walls) {
       const key = hexKey(pos);
-      const damaged = (hp[key] ?? maxHp) < maxHp;
+      const ratio = maxHp > 0 ? (hp[key] ?? maxHp) / maxHp : 1;
       let entry = this.wallSprites.get(key);
       if (!entry) {
         entry = new Container();
@@ -385,40 +390,45 @@ export class CombatScene {
           const sprite = new Sprite(texture);
           sprite.label = 'wall';
           sprite.anchor.set(0.5, 0.6);
-          const scale = (HEX_SIZE * 2.1) / Math.max(texture.width, texture.height);
+          const scale = (SIEGE_WALL_DRAW) / Math.max(texture.width, texture.height);
           sprite.scale.set(scale);
           segment.addChildAt(sprite, 0);
-          this.applyWallDamage(segment, damaged);
+          this.applyWallDamage(segment, ratio);
         });
       } else {
-        this.applyWallDamage(entry, damaged);
+        this.applyWallDamage(entry, ratio);
       }
     }
   }
 
   /**
-   * S2.2 : matérialise l'usure d'un segment de rempart — overlay de fissures
-   * (`combat/siege-wall-cracked`) s'il est produit, sinon repli par
-   * assombrissement du sprite de rempart (teinte). Réversible (segment réparé =
-   * cas improbable, mais géré : retrait de l'overlay + teinte neutre).
+   * S2.2 : matérialise l'usure d'un segment de rempart en 3 paliers pilotés par le
+   * ratio de PV — intact / fissuré (`siege-wall-cracked`, < max) / percé
+   * (`siege-wall-breached`, < ~40 %). L'overlay opaque recouvre le rempart intact.
+   * Repli gracieux si l'asset manque : assombrissement (teinte) du sprite de base.
    */
-  private applyWallDamage(entry: Container, damaged: boolean): void {
+  private applyWallDamage(entry: Container, ratio: number): void {
+    const stage = ratio >= 1 ? 'intact' : ratio > 0.4 ? 'cracked' : 'breached';
     const wall = entry.getChildByLabel('wall') as Sprite | null;
-    if (wall) wall.tint = damaged ? 0x9a8f80 : 0xffffff; // repli : assombrissement
-    const existing = entry.getChildByLabel('cracked');
-    const crackedUrl = siegeWallCrackedUrl();
-    if (damaged && crackedUrl && !existing) {
-      void Assets.load(crackedUrl).then((tex) => {
-        if (this.destroyed || entry.destroyed || entry.getChildByLabel('cracked')) return;
-        const s = new Sprite(tex);
-        s.label = 'cracked';
-        s.anchor.set(0.5, 0.6);
-        s.scale.set((HEX_SIZE * 2.1) / Math.max(tex.width, tex.height));
-        entry.addChild(s);
-      });
-    } else if (!damaged && existing) {
-      existing.destroy();
-    }
+    const url = stage === 'cracked' ? siegeWallCrackedUrl() : stage === 'breached' ? siegeWallBreachedUrl() : undefined;
+    // Repli sans overlay : assombrir le rempart proportionnellement à l'usure.
+    if (wall) wall.tint = stage === 'intact' || url ? 0xffffff : 0x9a8f80;
+    const existing = entry.getChildByLabel('damage') as (Sprite & { _stage?: string }) | null;
+    if (existing?._stage === stage) return; // pas de rework si palier inchangé
+    if (existing) existing.destroy();
+    if (!url) return;
+    void Assets.load(url).then((tex) => {
+      if (this.destroyed || entry.destroyed) return;
+      const cur = entry.getChildByLabel('damage') as (Sprite & { _stage?: string }) | null;
+      if (cur?._stage === stage) return;
+      if (cur) cur.destroy();
+      const s = new Sprite(tex) as Sprite & { _stage?: string };
+      s.label = 'damage';
+      s._stage = stage;
+      s.anchor.set(0.5, 0.6);
+      s.scale.set((SIEGE_WALL_DRAW) / Math.max(tex.width, tex.height));
+      entry.addChild(s);
+    });
   }
 
   /** S2.3 : chute d'un segment bombardé — fondu + bascule + affaissement, puis destruction. */

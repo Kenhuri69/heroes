@@ -1,91 +1,30 @@
 # Fonds de combat — SIÈGE de ville (S4, Règle D — pièces uniques)
 
-> Toiles de fond DOM affichées quand `combat.townId != null` (siège réel), à la
-> place du fond de terrain (`combat-<terrain>`). Résolveur : `siegeBackgroundUrl()`
-> — chaîne de repli `backgrounds/siege-<factionId>` → `backgrounds/siege` →
-> fond de terrain. **Aucun asset ⇒ repli gracieux au terrain** (le client tourne
-> déjà sans ces images ; les déposer améliore la cohérence sans changement de code).
->
-> Staging : `assets/backgrounds/siege-<id>.jpg` (et `siege.jpg`), 1920×1080,
-> JPEG q80-85 (< 500 Ko, hors bundle). Cadrage doc 08 §2.4 : **champ de bataille
-> devant des murailles**, silhouette de la ville de la faction assiégée à
-> l'horizon, tiers inférieur/premier plan dégagés pour la grille hex et les
-> jetons. Gouache du projet (Heroes of Might & Magic concept art).
+> **Style validé** (réf. capture du jeu d'origine, 2026-07) : **vraie vue
+> cinématique large** d'une cité assiégée — remparts/guérites/flèches au
+> milieu-droite, **champ de bataille boueux dégagé** au premier plan, ciel d'orage
+> percé de rayons, fumées. Affichés en fond DOM quand `combat.townId != null`
+> (`siegeBackgroundUrl()` : `backgrounds/siege-<factionId>` → `siege` → repli
+> terrain). **Art à générer** — code câblé, repli gracieux au terrain sans JPEG.
+> Staging `assets/backgrounds/siege-<id>.jpg`, 1920×1080, q80-85 (< 500 Ko).
 
-## siege (générique — repli toutes factions)
-
+## siege (générique)
 ```
-Epic painterly fantasy battlefield seen from a low angle just outside a besieged walled town: tall grey stone ramparts and a gatehouse fill the upper-right background, a wide trampled open field in the foreground and lower half kept empty for a hex battle grid, distant town towers and rooftops rising behind the walls, siege atmosphere with smoke haze, overcast dramatic sky, Heroes of Might and Magic concept art,
-wide 16:9 composition (1920x1080), focal point upper-right ramparts,
-darker vignetted edges, lower half and foreground kept open and uncluttered for the hex grid and unit tokens,
-atmospheric depth, volumetric light,
-no text, no watermark, no signature, no border frame, no hex grid drawn, no soldiers, no decorative sparkles, no lens flare
+A besieged medieval fantasy walled city seen across a battlefield — wide cinematic matte painting, Might & Magic Heroes Online concept-art style, semi-realistic and painterly.
+A long grey stone curtain wall with battlements, round towers and a fortified gatehouse runs across the middle and right distance; pointed castle spires and rooftops rise behind it; columns of dark smoke drift up from fires on the ramparts.
+The foreground and left are a wide churned muddy battlefield — puddles, cart ruts, scattered broken timber — open and empty, ready for troops.
+Heavy overcast sky with dramatic shafts of light breaking through the clouds, atmospheric haze and depth, muted grey-brown-green palette.
+16:9 (1920x1080), horizon in the upper third, foreground kept clear.
+No text, no watermark, no UI, no characters, no hex grid.
 ```
 
-## siege-haven
+## Par faction — garder le prompt ci-dessus, remplacer la phrase du mur
+- **siege-haven** : `a long white-stone wall with a gilded gatehouse and holy banners; blue-roofed spires; warmer sunlit haze`
+- **siege-necropolis** : `a long bone-white and blackened wall with a skull-carved gatehouse; spectral green mist and cold fires; dead grey ground`
+- **siege-arcane-hunters** : `a long dark-blue stone wall etched with glowing cyan runes and a rune-lit gatehouse; violet dusk`
+- **siege-sylvan-court** : `a long living wall of grown timber and mossy stone with a vine-wreathed gatehouse; golden-leaf canopies; verdant green`
+- **siege-vox-arcana** : `a long scholarly grey wall with tall arched stained-glass windows and a collegiate gatehouse; clock towers; drifting light motes`
+- **siege-dungeon** : `a long jagged black-obsidian wall lit by sulfurous red glow with a spiked gatehouse; cave-mouth spires; ash-grey ground`
 
-```
-Epic painterly fantasy battlefield outside a besieged Haven town: gleaming white-stone ramparts with a gilded gatehouse upper-right, holy banners, distant cathedral spires and blue-roofed keeps behind the walls, sunlit but tense siege atmosphere, off-white masonry, sky-blue and gold accents, Heroes of Might and Magic concept art,
-wide 16:9 composition (1920x1080), focal point upper-right ramparts,
-darker vignetted edges, lower half and foreground kept open and uncluttered for the hex grid and unit tokens,
-atmospheric depth, volumetric light,
-no text, no watermark, no signature, no border frame, no hex grid drawn, no soldiers, no decorative sparkles, no lens flare
-```
-
-## siege-necropolis
-
-```
-Epic painterly fantasy battlefield outside a besieged Necropolis town: cracked bone-white and blackened ramparts upper-right, a skull-carved gatehouse, distant crypt spires and mausoleums under necrotic green mist, dead grey ground, tattered black banners, ominous siege atmosphere, Heroes of Might and Magic concept art,
-wide 16:9 composition (1920x1080), focal point upper-right ramparts,
-darker vignetted edges, lower half and foreground kept open and uncluttered for the hex grid and unit tokens,
-atmospheric depth, volumetric light,
-no text, no watermark, no signature, no border frame, no hex grid drawn, no soldiers, no decorative sparkles, no lens flare
-```
-
-## siege-arcane-hunters
-
-```
-Epic painterly fantasy battlefield outside a besieged Arcane Hunters town: midnight-blue stone ramparts inlaid with glowing cyan runes upper-right, a rune-lit gatehouse, distant silver-trimmed towers behind the walls, arcane violet dusk sky, tense siege atmosphere, Heroes of Might and Magic concept art,
-wide 16:9 composition (1920x1080), focal point upper-right ramparts,
-darker vignetted edges, lower half and foreground kept open and uncluttered for the hex grid and unit tokens,
-atmospheric depth, volumetric light,
-no text, no watermark, no signature, no border frame, no hex grid drawn, no soldiers, no decorative sparkles, no lens flare
-```
-
-## siege-sylvan-court
-
-```
-Epic painterly fantasy battlefield outside a besieged Sylvan Court town: living green ramparts of grown timber and mossy stone upper-right, a vine-wreathed gatehouse, distant treetop spires and golden-leaf canopies behind the walls, verdant forest siege atmosphere, emerald and amber accents, Heroes of Might and Magic concept art,
-wide 16:9 composition (1920x1080), focal point upper-right ramparts,
-darker vignetted edges, lower half and foreground kept open and uncluttered for the hex grid and unit tokens,
-atmospheric depth, volumetric light,
-no text, no watermark, no signature, no border frame, no hex grid drawn, no soldiers, no decorative sparkles, no lens flare
-```
-
-## siege-vox-arcana
-
-```
-Epic painterly fantasy battlefield outside a besieged Vox Arcana town: scholarly grey-stone ramparts with arched stained-glass windows upper-right, a grand collegiate gatehouse, distant clock towers and banners of five houses behind the walls, magical dusk with drifting light motes, tense siege atmosphere, Heroes of Might and Magic concept art,
-wide 16:9 composition (1920x1080), focal point upper-right ramparts,
-darker vignetted edges, lower half and foreground kept open and uncluttered for the hex grid and unit tokens,
-atmospheric depth, volumetric light,
-no text, no watermark, no signature, no border frame, no hex grid drawn, no soldiers, no decorative sparkles, no lens flare
-```
-
-## siege-dungeon
-
-```
-Epic painterly fantasy battlefield outside a besieged Dungeon town: jagged black-obsidian ramparts upper-right lit by sulfurous red glow, a barbed spiked gatehouse, distant spire-fangs and cave mouths behind the walls, ash-grey ground, dark-elf banners, menacing subterranean siege atmosphere, Heroes of Might and Magic concept art,
-wide 16:9 composition (1920x1080), focal point upper-right ramparts,
-darker vignetted edges, lower half and foreground kept open and uncluttered for the hex grid and unit tokens,
-atmospheric depth, volumetric light,
-no text, no watermark, no signature, no border frame, no hex grid drawn, no soldiers, no decorative sparkles, no lens flare
-```
-
-## Extraction au retour (JPEG opaque, pas de détourage)
-
-```bash
-# Redimensionner/compresser vers le staging (hors bundle, budget < 500 Ko).
-python3 tools/assets/process_background.py --src <img> --id siege-necropolis --dest assets/backgrounds
-# → assets/backgrounds/siege-necropolis.jpg (résolveur siegeBackgroundUrl(), drop-in)
-```
+> Astuce : si le générateur accepte une **image de référence**, lui passer la
+> capture « cité assiégée » du jeu d'origine (image-to-image) — le rendu colle mieux.

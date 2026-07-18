@@ -306,16 +306,18 @@ fidélité par simple substitution de PNG homonyme, aucun code — cf.
 - **Mur de siège** (`assets/combat/siege-wall.png`, 512²) : segment de rempart de
   pierre crénelé, distinct des obstacles de champ. Posé sur les hexes
   `combat.siegeWalls` (`siegeWallUrl()`) ; **repli** = rocher `drawBoulder`.
-- **Habillage de siège** (S1/S2/S4, plan `siege-visual-remediation`, prompts
-  `combat-siege-set.md`, `combat-siege-backgrounds.md`, `war-machines-support.md`) :
-  jeu de rempart continu (`combat/siege-wall-{top,mid,bottom,stub}`), **porte**
-  (`combat/siege-gate`, `combat/siege-gate-breached`) et overlay de **fissures**
-  (`combat/siege-wall-cracked`, `siegeWallCrackedUrl()`) ; **toiles de siège**
+- **Habillage de siège** (S1/S2/S5a, plan `siege-visual-remediation`, prompts
+  `combat-siege-set.md`, `war-machines-support.md`) — **art LIVRÉ** (style peint
+  semi-réaliste HoMM Online, réf. captures du jeu d'origine) : rempart en 3
+  paliers d'usure `combat/siege-wall` / `siege-wall-cracked` / `siege-wall-breached`
+  (`siegeWallUrl`/`siegeWallCrackedUrl`/`siegeWallBreachedUrl`, sélection par ratio
+  de PV) ; **porte** `combat/siege-gate` (staged, câblage géométrique S1.2/S1.3 à
+  venir) ; **machines de soutien** `units/core/first-aid-tent.png` +
+  `ammo-cart.png` (S5a, auto-découvertes). **Toiles de siège**
   (`backgrounds/siege-<factionId>.jpg` → `backgrounds/siege.jpg`,
-  `siegeBackgroundUrl()`) ; **machines de soutien** (`units/core/first-aid-tent.png`,
-  `units/core/ammo-cart.png`). **Mêmes clés ⇒ dépôt de PNG suffit** ; **repli
-  gracieux** conservé partout (rempart→pan unique→rocher ; siège→terrain ;
-  machine→fanion).
+  `siegeBackgroundUrl()`, prompt `combat-siege-backgrounds.md`) : **art à générer**
+  (code câblé). **Mêmes clés ⇒ dépôt de PNG suffit** ; **repli gracieux** partout
+  (rempart→pan unique→rocher ; siège→terrain ; machine→fanion).
 - **Unité invoquée** (`assets/units/core/elementaire-de-terre.png`, 512²) :
   élémentaire de terre rocheux, résolu par `unitSpriteUrl` via le repli **core**
   (`units/core/<unitId>`, faction-agnostique) ; **repli** = jeton procédural.

@@ -28,7 +28,7 @@ import { recordCombatAuto } from '../app/telemetry';
 import { humanId } from '../app/game';
 import { t, resolveUnitName, resolveSpellName, resolveLoc, commandErrorMessage } from '../app/i18n';
 import { COMBAT_SPEEDS } from '../app/ui-constants';
-import { combatPreview, type DamagePreview } from '../scenes/combat/preview';
+import { combatPreview, type CombatPreview } from '../scenes/combat/preview';
 import { pushToast } from './toasts';
 import { SpellBook } from './SpellBook';
 import { CombatLog } from './CombatLog';
@@ -960,7 +960,8 @@ function StackSheet({
   );
 }
 
-function formatPreview(p: DamagePreview): string {
+function formatPreview(p: CombatPreview): string {
+  if (p.kind === 'moat') return t('combat.moatMovePreview', { damage: p.damage });
   const damage = t('combat.damage', { min: p.damageMin, max: p.damageMax });
   const kills = p.killsMin === p.killsMax ? `${p.killsMin}` : `${p.killsMin}–${p.killsMax}`;
   const retal = p.retaliation

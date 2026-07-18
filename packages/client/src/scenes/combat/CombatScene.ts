@@ -28,12 +28,12 @@ import { pushToast } from '../../ui/toasts';
 import { onLongPress, onTap } from '../../input/pointer';
 import { Camera } from '../../render/camera';
 import { playerColor } from '../../render/playerColors';
-import { heroAvatarUrl, unitSpriteUrl, siegeWallUrl, statusIconUrl } from '../../render/assets';
+import { heroAvatarUrl, unitSpriteUrl, siegeWallUrl, siegeWallCrackedUrl, statusIconUrl } from '../../render/assets';
 import { heroArchetype } from '../../app/game';
 import { HEX_SIZE, computeBoardBounds, drawBoard, hexKey, offsetToPixel, pixelToOffset } from '../../render/hexgrid';
 import { isContentPointVisible, type Rect } from '../../render/cameraClamp';
 import { combatPreview } from './preview';
-import { spawnProjectile, spawnSpellImpact, combatIdleStats, combatShakeStats } from '../../render/combatFx';
+import { spawnProjectile, spawnSpellImpact, spawnRubbleImpact, combatIdleStats, combatShakeStats } from '../../render/combatFx';
 import { reduceMotion } from '../../app/motion';
 
 const ATTACKER_COLOR = 0xc0392b;
@@ -108,8 +108,10 @@ export class CombatScene {
   private readonly boardGfx = new Graphics();
   /** C-SIEGE2 : sprites de rempart posés sur les hexes `siegeWalls` (repli = rocher). */
   private readonly wallLayer = new Container();
-  /** Signature des hexes de rempart déjà rendus (évite de reconstruire à chaque sync). */
+  /** Signature des remparts déjà rendus (hexes + PV) — évite de reconstruire à chaque sync. */
   private wallKeys = '';
+  /** S2 : conteneur de rempart par hex (`"col,row"`) — cracks d'usure + chute animée du segment bombardé. */
+  private readonly wallSprites = new Map<string, Container>();
   private readonly stacksLayer = new Container();
   /** UXD-4 : effets éphémères (chiffres de dégâts flottants) au-dessus des piles. */
   private readonly fxLayer = new Container();
@@ -301,6 +303,7 @@ export class CombatScene {
       combatPreview.set(null);
       this.boardGfx.clear();
       this.wallLayer.removeChildren().forEach((c) => c.destroy());
+      this.wallSprites.clear();
       this.wallKeys = '';
       this.fxLayer.removeChildren().forEach((c) => c.destroy()); // purge des chiffres flottants
       for (const [id, token] of this.stackTokens) {
@@ -328,33 +331,108 @@ export class CombatScene {
   }
 
   /**
-   * C-SIEGE2 : pose un sprite de rempart (`combat/siege-wall`) sur chaque hex de
-   * `combat.siegeWalls`, distinct des obstacles de champ. Le sprite RECOUVRE le
-   * rocher procédural dessiné par `drawBoard` ; s'il est absent (asset non
-   * produit) le rocher reste — repli gracieux, jamais d'image cassée. Reconstruit
-   * seulement quand l'ensemble des remparts change (un segment ouvert par la
-   * catapulte disparaît, C-SIEGE2.6).
+   * C-SIEGE2 + S2 : pose un sprite de rempart (`combat/siege-wall`) sur chaque
+   * hex de `combat.siegeWalls`, distinct des obstacles de champ. Le sprite
+   * RECOUVRE le rocher procédural de `drawBoard` ; s'il est absent (asset non
+   * produit) le rocher reste — repli gracieux, jamais d'image cassée.
+   *
+   * Rendu par MAP keyée (S2) au lieu d'un rebuild total : un segment retiré par la
+   * catapulte (C-SIEGE2.6) tombe avec un fondu/bascule (S2.3) au lieu de
+   * disparaître sèchement ; un segment entamé (`siegeWallHp` sous le maximum
+   * courant) reçoit un overlay de fissures / un assombrissement (S2.2). La
+   * signature intègre les PV ⇒ les cracks suivent l'usure round après round.
    */
   private syncWalls(combat: CombatState): void {
     const walls = combat.siegeWalls ?? [];
-    const sig = walls.map(hexKey).sort().join('|');
+    const hp = combat.siegeWallHp ?? {};
+    // Un segment est « endommagé » si ses PV sont sous le maximum courant des
+    // segments encore debout (le pilonnage entame un hex à la fois ⇒ des segments
+    // intacts servent de référence). Purement cosmétique : zéro couplage moteur.
+    const maxHp = Object.keys(hp).length ? Math.max(...Object.values(hp)) : 0;
+    const sig = walls
+      .map((w) => `${hexKey(w)}:${hp[hexKey(w)] ?? ''}`)
+      .sort()
+      .join('|');
     if (sig === this.wallKeys) return;
     this.wallKeys = sig;
-    this.wallLayer.removeChildren().forEach((c) => c.destroy());
-    const url = siegeWallUrl();
-    if (!url || walls.length === 0) return;
-    for (const pos of walls) {
-      const { x, y } = offsetToPixel(pos);
-      void Assets.load(url).then((texture) => {
-        if (this.destroyed || this.wallLayer.destroyed) return;
-        const sprite = new Sprite(texture);
-        sprite.anchor.set(0.5, 0.6);
-        const scale = (HEX_SIZE * 2.1) / Math.max(texture.width, texture.height);
-        sprite.scale.set(scale);
-        sprite.position.set(x, y);
-        this.wallLayer.addChild(sprite);
-      });
+    const desired = new Set(walls.map(hexKey));
+
+    // Segments retirés (bombardés) : chute animée puis destruction (S2.3).
+    for (const [key, entry] of this.wallSprites) {
+      if (desired.has(key)) continue;
+      this.wallSprites.delete(key);
+      void this.animateWallFall(entry);
     }
+
+    const url = siegeWallUrl();
+    if (!url) return; // pas de sprite de rempart : repli rocher (drawBoard)
+    for (const pos of walls) {
+      const key = hexKey(pos);
+      const damaged = (hp[key] ?? maxHp) < maxHp;
+      let entry = this.wallSprites.get(key);
+      if (!entry) {
+        entry = new Container();
+        const { x, y } = offsetToPixel(pos);
+        entry.position.set(x, y);
+        this.wallLayer.addChild(entry);
+        this.wallSprites.set(key, entry);
+        const segment = entry;
+        void Assets.load(url).then((texture) => {
+          if (this.destroyed || segment.destroyed) return;
+          const sprite = new Sprite(texture);
+          sprite.label = 'wall';
+          sprite.anchor.set(0.5, 0.6);
+          const scale = (HEX_SIZE * 2.1) / Math.max(texture.width, texture.height);
+          sprite.scale.set(scale);
+          segment.addChildAt(sprite, 0);
+          this.applyWallDamage(segment, damaged);
+        });
+      } else {
+        this.applyWallDamage(entry, damaged);
+      }
+    }
+  }
+
+  /**
+   * S2.2 : matérialise l'usure d'un segment de rempart — overlay de fissures
+   * (`combat/siege-wall-cracked`) s'il est produit, sinon repli par
+   * assombrissement du sprite de rempart (teinte). Réversible (segment réparé =
+   * cas improbable, mais géré : retrait de l'overlay + teinte neutre).
+   */
+  private applyWallDamage(entry: Container, damaged: boolean): void {
+    const wall = entry.getChildByLabel('wall') as Sprite | null;
+    if (wall) wall.tint = damaged ? 0x9a8f80 : 0xffffff; // repli : assombrissement
+    const existing = entry.getChildByLabel('cracked');
+    const crackedUrl = siegeWallCrackedUrl();
+    if (damaged && crackedUrl && !existing) {
+      void Assets.load(crackedUrl).then((tex) => {
+        if (this.destroyed || entry.destroyed || entry.getChildByLabel('cracked')) return;
+        const s = new Sprite(tex);
+        s.label = 'cracked';
+        s.anchor.set(0.5, 0.6);
+        s.scale.set((HEX_SIZE * 2.1) / Math.max(tex.width, tex.height));
+        entry.addChild(s);
+      });
+    } else if (!damaged && existing) {
+      existing.destroy();
+    }
+  }
+
+  /** S2.3 : chute d'un segment bombardé — fondu + bascule + affaissement, puis destruction. */
+  private async animateWallFall(entry: Container): Promise<void> {
+    if (entry.destroyed) return;
+    if (prefersReducedMotion()) {
+      entry.destroy();
+      return;
+    }
+    const y0 = entry.position.y;
+    await tween(320, (t) => {
+      if (entry.destroyed) return;
+      entry.alpha = 1 - t;
+      entry.rotation = t * 0.5;
+      entry.position.y = y0 + t * HEX_SIZE * 0.4;
+    });
+    if (!entry.destroyed) entry.destroy();
   }
 
   /**
@@ -871,7 +949,11 @@ export class CombatScene {
     }
 
     this.selection = { kind: 'move', to: hex };
-    combatPreview.set(null);
+    // S3.3 : si la destination est un hex de douve, annoncer les dégâts de fossé
+    // (lecture de `combat.moatDamage`, aucune règle nouvelle) au lieu de rien.
+    const moatDamage = combat.moatDamage ?? 0;
+    const intoMoat = moatDamage > 0 && (combat.moat ?? []).some((m) => sameHex(m, hex));
+    combatPreview.set(intoMoat ? { kind: 'moat', damage: moatDamage } : null);
     this.redrawBoard();
   }
 
@@ -1065,20 +1147,30 @@ export class CombatScene {
       case 'StackHealed': {
         // lifeDrain / soin (A2a) : chiffre vert flottant sur la pile soignée.
         const token = this.stackTokens.get(event.stackId);
-        if (token) this.spawnHealNumber(new Point(token.position.x, token.position.y), event.amount);
+        if (token) this.spawnHealNumber(new Point(token.position.x, token.position.y), event.amount, token);
         return;
       }
       case 'MoatDamaged': {
         // C-SIEGE2.4 : dégâts de douve — chiffre de dégâts flottant sur la pile.
         const token = this.stackTokens.get(event.stackId);
         if (token && event.damage > 0) {
-          this.spawnDamageNumber(new Point(token.position.x, token.position.y), event.damage, event.kills, false, false);
+          this.spawnDamageNumber(new Point(token.position.x, token.position.y), event.damage, event.kills, false, false, token);
         }
         return;
       }
       case 'WallBombarded': {
-        // C-SIEGE2.6 : tir de catapulte — quand un segment tombe, l'état a déjà
-        // retiré le mur ⇒ redessiner le plateau ouvre l'hex (la brèche s'élargit).
+        // S2.1 : tir de catapulte VISIBLE — boulet en arc balistique depuis le
+        // flanc attaquant vers le segment visé, puis impact « éclats de pierre ».
+        const target = offsetToPixel({ col: event.col, row: event.row });
+        const bounds = computeBoardBounds();
+        const origin = new Point(bounds.minX - HERO_FLANK_OFFSET, target.y);
+        const to = new Point(target.x, target.y);
+        const reduced = prefersReducedMotion();
+        await spawnProjectile(this.fxLayer, origin, to, { speed, reduced });
+        await spawnRubbleImpact(this.fxLayer, to, { speed, reduced });
+        // C-SIEGE2.6 : quand un segment tombe, l'état a déjà retiré le mur ⇒
+        // redessiner le plateau ouvre l'hex (la brèche s'élargit) ; `syncWalls`
+        // anime la chute du sprite (S2.3).
         if (event.destroyed) this.redrawBoard();
         return;
       }
@@ -1109,8 +1201,8 @@ export class CombatScene {
           // par famille) — même pour un buff/debuff sans nombre flottant.
           if (kind) await spawnSpellImpact(this.fxLayer, at, kind, { speed, reduced: prefersReducedMotion() });
           if (event.amount > 0) {
-            if (kind === 'heal') this.spawnHealNumber(at, event.amount);
-            else this.spawnDamageNumber(at, event.amount, event.kills, false, false);
+            if (kind === 'heal') this.spawnHealNumber(at, event.amount, target);
+            else this.spawnDamageNumber(at, event.amount, event.kills, false, false, target);
           }
         }
         return;
@@ -1124,8 +1216,8 @@ export class CombatScene {
           const kind = appStore.getState().game.spellCatalog[event.spellId]?.kind;
           if (kind) await spawnSpellImpact(this.fxLayer, at, kind, { speed, reduced: prefersReducedMotion() });
           if (event.amount > 0) {
-            if (kind === 'heal') this.spawnHealNumber(at, event.amount);
-            else this.spawnDamageNumber(at, event.amount, event.kills, false, false);
+            if (kind === 'heal') this.spawnHealNumber(at, event.amount, target);
+            else this.spawnDamageNumber(at, event.amount, event.kills, false, false, target);
           }
         }
         return;
@@ -1141,6 +1233,7 @@ export class CombatScene {
             event.kills,
             false,
             false,
+            target,
           );
         }
         return;
@@ -1188,10 +1281,10 @@ export class CombatScene {
     const impact = (): void => {
       if (!target || target.destroyed) return;
       if (dodged) {
-        this.spawnFloatingLabel(dest, 'esquive', 0x8fb3d9);
+        this.spawnFloatingLabel(dest, 'esquive', 0x8fb3d9, target);
       } else {
         target.tint = 0xff6666;
-        this.spawnDamageNumber(dest, damage, kills, lucky, unlucky);
+        this.spawnDamageNumber(dest, damage, kills, lucky, unlucky, target);
         if (!reduced) void this.shakeToken(target, dest);
       }
     };
@@ -1240,6 +1333,7 @@ export class CombatScene {
     kills: number,
     lucky: boolean,
     unlucky = false,
+    follow?: Container | null,
   ): void {
     const group = new Container();
     // Marqueurs a11y (glyphe + couleur) : ★ chance (or), ⚑ malchance (bleu-gris).
@@ -1273,12 +1367,22 @@ export class CombatScene {
       killsText.anchor.set(0.5, 0);
       group.addChild(killsText);
     }
-    group.position.set(at.x, at.y - TOKEN_RADIUS * 0.6);
+    // S8.1 : ancré bien AU-DESSUS du sprite (≈1,5 rayon) — ne recouvre plus le
+    // badge d'effectif (posé sous le jeton) ni les voisins immédiats.
+    group.position.set(at.x, at.y - TOKEN_RADIUS * 1.5);
     this.fxLayer.addChild(group);
     const reduced = prefersReducedMotion();
     const startY = group.position.y;
+    // S8.2 : si la pile suivie meurt (fondu du jeton terminé), écourter le popup
+    // orphelin — plus de « −38 » flottant sur de l'herbe nue.
+    let deadT: number | null = null;
     void tween(700, (t) => {
       if (group.destroyed) return; // scène détruite pendant le vol (lot M4)
+      if (deadT === null && follow?.destroyed) deadT = t;
+      if (deadT !== null) {
+        group.alpha = Math.max(0, 1 - (t - deadT) / 0.15); // fondu rapide (~150 ms)
+        return;
+      }
       if (!reduced) group.position.y = startY - 30 * t;
       group.alpha = t < 0.6 ? 1 : 1 - (t - 0.6) / 0.4; // plein puis fondu
     }).then(() => {
@@ -1287,13 +1391,13 @@ export class CombatScene {
   }
 
   /** Chiffre de soin flottant (vert, `+N`) — lifeDrain / soin (A2a). */
-  private spawnHealNumber(at: Point, amount: number): void {
+  private spawnHealNumber(at: Point, amount: number, follow?: Container | null): void {
     if (amount <= 0) return;
-    this.spawnFloatingLabel(at, `+${amount}`, 0x6fe08a); // vert soin (a11y : signe + couleur)
+    this.spawnFloatingLabel(at, `+${amount}`, 0x6fe08a, follow); // vert soin (a11y : signe + couleur)
   }
 
   /** Étiquette flottante générique (montée + fondu) — soin, esquive, etc. */
-  private spawnFloatingLabel(at: Point, label: string, color: number): void {
+  private spawnFloatingLabel(at: Point, label: string, color: number, follow?: Container | null): void {
     const text = new Text({
       text: label,
       style: {
@@ -1306,12 +1410,19 @@ export class CombatScene {
       },
     });
     text.anchor.set(0.5, 1);
-    text.position.set(at.x, at.y - TOKEN_RADIUS * 0.6);
+    // S8.1 : ancré au-dessus du sprite (cohérent avec spawnDamageNumber).
+    text.position.set(at.x, at.y - TOKEN_RADIUS * 1.5);
     this.fxLayer.addChild(text);
     const reduced = prefersReducedMotion();
     const startY = text.position.y;
+    let deadT: number | null = null;
     void tween(700, (t) => {
       if (text.destroyed) return;
+      if (deadT === null && follow?.destroyed) deadT = t; // S8.2 : suit la mort du jeton
+      if (deadT !== null) {
+        text.alpha = Math.max(0, 1 - (t - deadT) / 0.15);
+        return;
+      }
       if (!reduced) text.position.y = startY - 30 * t;
       text.alpha = t < 0.6 ? 1 : 1 - (t - 0.6) / 0.4;
     }).then(() => {

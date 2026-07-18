@@ -69,6 +69,11 @@ const ROCK_LIGHT = 0xa89e8f;
 const ROCK_DARK = 0x4d453c;
 const FILL_MOAT = 0x1f3a52; // fossé bleu-nuit : franchissable mais ralentissant
 const STROKE_MOAT = 0x4a86b8;
+const MOAT_WAVE = 0x7fbfe0; // crête de vaguelette (lisible sous surbrillance)
+// S3 : la douve est un DÉCOR (fossé texturé) sous les surbrillances — assez
+// opaque pour rester visible même quand un pip vert « atteignable » la recouvre.
+const ALPHA_MOAT_DECOR = 0.6;
+const ALPHA_MOAT_OVERLAY = 0.28; // surbrillance posée SUR la douve : translucide, la douve transparaît
 // C-SPELLUI.3 : zone d'effet d'un sort — teinte violette distincte des états
 // atteignable(vert)/attaquable(rouge)/douve(bleu), + losange marqueur (A5).
 const FILL_ZONE = 0x6a3a8a;
@@ -105,6 +110,24 @@ function drawBoulder(g: Graphics, x: number, y: number, r: number): void {
     x + s * 0.15, y - s * 0.35,
     x - s * 0.35, y - s * 0.05,
   ]).fill({ color: ROCK_LIGHT, alpha: 0.95 });
+}
+
+/**
+ * S3 — vaguelettes de douve sur un hex-fossé (centre `x,y`, rayon d'hex `r`).
+ * Marqueur non chromatique (A5) : trois crêtes ondulées dessinées, lisibles même
+ * quand une surbrillance translucide (atteignable/attaquable) recouvre la douve.
+ * Purement géométrique et déterministe (aucun RNG).
+ */
+function drawWavelets(g: Graphics, x: number, y: number, r: number): void {
+  const w = r * 0.62; // demi-largeur des crêtes
+  const amp = r * 0.1;
+  for (let i = 0; i < 3; i++) {
+    const cy = y + (i - 1) * r * 0.34;
+    g.moveTo(x - w, cy)
+      .quadraticCurveTo(x - w / 2, cy - amp, x, cy)
+      .quadraticCurveTo(x + w / 2, cy + amp, x + w, cy)
+      .stroke({ width: 1.5, color: MOAT_WAVE, alpha: 0.85 });
+  }
 }
 
 export interface DrawBoardOptions {
@@ -144,48 +167,63 @@ export function drawBoard(g: Graphics, opts: DrawBoardOptions = {}): void {
       const isZone = !isObstacle && zone.has(key);
       const isAttackable = !isObstacle && !isZone && attackable.has(key);
       const isReachable = !isObstacle && !isZone && !isAttackable && reachable.has(key);
-      // C-SIEGE2.3 : la douve est une teinte de FOND (fossé), recouverte par les
-      // surbrillances transitoires (atteignable/attaquable/obstacle) quand actives.
+      // S3 : la douve est un DÉCOR de fond (fossé + vaguelettes) qui reste TOUJOURS
+      // visible — la surbrillance (atteignable/attaquable) est CUMULÉE en calque
+      // translucide par-dessus, jamais substituée (audit doc 19 §2.3).
       const isMoat = moat.has(key);
 
-      let fill = isMoat ? FILL_MOAT : FILL_BASE;
-      let alpha = isMoat ? ALPHA_STATE : ALPHA_BASE;
-      let stroke = isMoat ? STROKE_MOAT : STROKE_BASE;
+      // Teinte/marqueur de la surbrillance transitoire éventuelle (état actif).
+      let stateFill: number | null = null;
+      let stateStroke = STROKE_BASE;
       let strokeWidth = 1;
       if (isObstacle) {
-        fill = FILL_OBSTACLE;
-        alpha = ALPHA_OBSTACLE;
-        stroke = STROKE_OBSTACLE;
+        stateFill = FILL_OBSTACLE;
+        stateStroke = STROKE_OBSTACLE;
       } else if (isZone) {
-        fill = FILL_ZONE;
-        alpha = ALPHA_STATE;
-        stroke = STROKE_ZONE;
+        stateFill = FILL_ZONE;
+        stateStroke = STROKE_ZONE;
         strokeWidth = 2.5; // bord épais : la zone recouvre des piles ciblées
       } else if (isAttackable) {
-        fill = FILL_ATTACKABLE;
-        alpha = ALPHA_STATE;
-        stroke = STROKE_ATTACKABLE;
+        stateFill = FILL_ATTACKABLE;
+        stateStroke = STROKE_ATTACKABLE;
         strokeWidth = 2.5; // bord épais = 2ᵉ canal (la cible occupe l'hex)
       } else if (isReachable) {
-        fill = FILL_REACHABLE;
-        alpha = ALPHA_STATE;
-        stroke = STROKE_REACHABLE;
+        stateFill = FILL_REACHABLE;
+        stateStroke = STROKE_REACHABLE;
       }
 
       const isSelected = selected != null && selected.col === col && selected.row === row;
-      if (isSelected) {
-        stroke = STROKE_SELECTED;
-        strokeWidth = 3;
-      }
 
       // Hexagone POINTY-TOP (pointe en haut/bas), aligné sur le layout pointy-top
       // de `hexToPixel`. PixiJS applique un décalage intégré de −π/2 à `regularPoly`
       // (`startAngle = -π/2 + rotation`) : rotation 0 ⇒ pointy-top, π/6 ⇒ flat-top.
       // On passe donc 0 ici — un flat-top sur un lattice pointy-top ne pave pas et
       // produit un treillis en losanges au lieu d'un nid d'abeille.
-      g.regularPoly(x, y, r, 6, 0)
-        .fill({ color: fill, alpha })
-        .stroke({ width: strokeWidth, color: stroke });
+      if (isMoat) {
+        // 1) Décor de douve (fossé opaque + vaguelettes) — toujours dessiné.
+        g.regularPoly(x, y, r, 6, 0)
+          .fill({ color: FILL_MOAT, alpha: ALPHA_MOAT_DECOR })
+          .stroke({ width: 1, color: STROKE_MOAT });
+        drawWavelets(g, x, y, r);
+        // 2) Surbrillance CUMULÉE (translucide) : la douve transparaît dessous.
+        if (stateFill != null) {
+          g.regularPoly(x, y, r, 6, 0)
+            .fill({ color: stateFill, alpha: ALPHA_MOAT_OVERLAY })
+            .stroke({ width: strokeWidth, color: stateStroke });
+        }
+        if (isSelected) {
+          g.regularPoly(x, y, r, 6, 0).stroke({ width: 3, color: STROKE_SELECTED });
+        }
+      } else {
+        // Chemin non-douve : rendu inchangé (une seule couche teinte état/base).
+        const fill = stateFill ?? FILL_BASE;
+        const alpha = stateFill != null ? (isObstacle ? ALPHA_OBSTACLE : ALPHA_STATE) : ALPHA_BASE;
+        const stroke = isSelected ? STROKE_SELECTED : stateFill != null ? stateStroke : STROKE_BASE;
+        const sw = isSelected ? 3 : strokeWidth;
+        g.regularPoly(x, y, r, 6, 0)
+          .fill({ color: fill, alpha })
+          .stroke({ width: sw, color: stroke });
+      }
 
       // Marqueurs non chromatiques (A5) : lisibles même sans distinction de teinte.
       if (isReachable) {

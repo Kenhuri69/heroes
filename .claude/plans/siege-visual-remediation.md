@@ -35,19 +35,19 @@ comparer aux captures de référence.
 L'événement moteur `WallBombarded { col, row, destroyed }` existe
 (`engine/combat/turns.ts`, `bombardWalls`) mais n'est écouté nulle part.
 
-- [ ] S2.1 `CombatScene.onEvent` : sur `WallBombarded`, jouer un **projectile**
+- [x] S2.1 `CombatScene.onEvent` : sur `WallBombarded`, jouer un **projectile**
       catapulte → hex du mur (réutiliser `spawnProjectile` de
       `render/combatFx.ts`, arc balistique simple) puis un impact
       (`spawnSpellImpact` ou variante « éclats de pierre »). Coupé en
       reduce-motion comme les autres FX.
-- [ ] S2.2 État « mur endommagé » : superposer au sprite de rempart un overlay
+- [x] S2.2 État « mur endommagé » : superposer au sprite de rempart un overlay
       de fissures (asset `combat/siege-wall-cracked`, repli teinte assombrie)
       dès que `combat.siegeWallHp[key] < SIEGE_WALL_HP`. `syncWalls` doit
       intégrer les PV dans sa signature de reconstruction.
-- [ ] S2.3 `destroyed: true` : le segment tombe avec un petit fondu/secousse
+- [x] S2.3 `destroyed: true` : le segment tombe avec un petit fondu/secousse
       (patron `animateDeath`/`boardShake` existants) au lieu de disparaître au
       sync.
-- [ ] S2.4 Journal de combat : ligne i18n FR/EN « La catapulte frappe le
+- [x] S2.4 Journal de combat : ligne i18n FR/EN « La catapulte frappe le
       rempart (−N) / Le rempart s'effondre » (`app/combat-log.ts` + locales
       core).
 - Vérif : test smoke siège (voir S-TEST ci-dessous) — le compteur
@@ -56,15 +56,15 @@ L'événement moteur `WallBombarded { col, row, destroyed }` existe
 
 ## Lot S3 — Douve lisible (P1, client seul)
 
-- [ ] S3.1 `drawBoard` (`render/hexgrid.ts`) : **cumuler** les canaux au lieu
+- [x] S3.1 `drawBoard` (`render/hexgrid.ts`) : **cumuler** les canaux au lieu
       de remplacer — un hex douve atteignable garde sa teinte/texture douve
       SOUS le pip vert (fill douve d'abord, surbrillance en calque
       translucide par-dessus, pip conservé). Un hex douve garde TOUJOURS son
       marqueur non chromatique propre (vaguelettes dessinées, pattern A5).
-- [ ] S3.2 Rendre la douve comme un décor : fill plus opaque + vaguelettes
+- [x] S3.2 Rendre la douve comme un décor : fill plus opaque + vaguelettes
       procédurales déterministes (patron `drawBoulder`), ou sprite
       `combat/moat` s'il est produit (repli procédural gracieux).
-- [ ] S3.3 Dégâts annoncés : quand la destination sélectionnée (tap 1) est un
+- [x] S3.3 Dégâts annoncés : quand la destination sélectionnée (tap 1) est un
       hex de douve, afficher « −{moatDamage} PV » dans la prévisualisation
       (readout existant de `combatPreview`) — lecture de `combat.moatDamage`,
       aucune règle nouvelle.
@@ -73,10 +73,10 @@ L'événement moteur `WallBombarded { col, row, destroyed }` existe
 
 ## Lot S8 — Popups de dégâts (P2, client seul, trivial)
 
-- [ ] S8.1 Décaler le spawn des chiffres flottants au-DESSUS du sprite
+- [x] S8.1 Décaler le spawn des chiffres flottants au-DESSUS du sprite
       (ancre haute du jeton) pour ne plus recouvrir badges d'effectif ni
       voisins immédiats.
-- [ ] S8.2 Lier la durée de vie du popup au jeton : si la pile meurt et que
+- [x] S8.2 Lier la durée de vie du popup au jeton : si la pile meurt et que
       son fondu se termine, accélérer/écourter le popup orphelin (plus de
       « −38 » flottant sur herbe nue).
 - Vérif : captures avant/après sur la mêlée à la brèche ; aucun test dédié
@@ -188,13 +188,54 @@ ordinaires par `placeSide` (débordement du chariot en 1ʳᵉ ligne, capture 2).
 
 ## S-TEST — Couverture de test transverse (avec la vague 1)
 
-- [ ] Un test smoke « siège » dédié (`@core`, skill `test-authoring`) : forge
+- [x] Un test smoke « siège » dédié (`@core`, skill `test-authoring`) : forge
       l'état de l'annexe doc 19 via `__HEROES_TEST__` (même recette IndexedDB),
       déclenche `CaptureTown`, assert : écran pré-combat visible → « Combattre »
       → un round auto → `combatFx.projectiles > 0` (S2), combat toujours
       vivant, pas de gel. Coût ~1 smoke ; couvre S1/S2/S3/S6 en non-régression.
-- [ ] Étendre la recette en helper partagé si plusieurs tests l'utilisent.
+- [x] Étendre la recette en helper partagé si plusieurs tests l'utilisent.
 
 ## Journal des décisions
 
-- (à remplir au fil des lots)
+### 2026-07-18 — Cadrage & Vague 1 (S2, S3, S8, S-TEST)
+
+**État réel du code vs audit doc 19** (relevé au démarrage) :
+- `CombatScene.animateEvent` écoute DÉJÀ `WallBombarded` — mais uniquement
+  `if (event.destroyed) this.redrawBoard()` (ouvre l'hex sur le plateau). **Aucun
+  FX, aucun overlay de fissures, aucune ligne de journal** ⇒ S2.1/S2.2/S2.3/S2.4
+  restent à faire. `MoatDamaged` est déjà loggé en chiffre flottant (≠ S3).
+- Le contrat harness impose la branche unique `claude/siege-visual-remediation-fcr6cf`
+  (« NEVER push to a different branch »). Je livre donc les **vagues en commits
+  successifs** sur cette branche + **une PR draft** (le plan autorise « par vague
+  cohérente »), au lieu d'une branche par lot.
+
+**Décisions Vague 1 :**
+- **S2.4 sans « −N »** : l'événement moteur `WallBombarded { col,row,destroyed }`
+  ne porte PAS la valeur des dégâts (calculée dans `bombardWalls` mais non
+  exposée). S2 est cadré « client seul » ⇒ je logue « la catapulte pilonne le
+  rempart » / « un pan de rempart s'effondre » sans le nombre, plutôt que d'ouvrir
+  l'événement moteur (hors scope de la vague). Réévaluable si on veut le chiffre.
+- **S2 impact = éclats de pierre** : nouveau `spawnRubbleImpact` dans
+  `combatFx.ts` (anneau pierre + éclats déterministes) plutôt que de détourner
+  `spawnSpellImpact` (familles de sorts). Projectile catapulte = `spawnProjectile`
+  existant (arc balistique), origine = flanc attaquant à la hauteur de l'hex visé.
+- **S2.2/S2.3 = `syncWalls` refactoré en map keyée par hex** : diff par clé
+  (ajout/retrait/conservation) au lieu d'un rebuild total. Permet (a) l'overlay de
+  fissures sur les segments à `siegeWallHp < SIEGE_WALL_HP`, (b) l'animation de
+  chute (fondu + bascule) d'un segment retiré — seul cas de retrait de mur en
+  combat = bombardement. Signature de reconstruction intègre les PV.
+- **S3 cumul canaux** : dans `drawBoard`, l'hex de douve garde TOUJOURS son décor
+  (fill douve + vaguelettes déterministes, patron `drawBoulder`) SOUS l'overlay de
+  surbrillance translucide et le pip vert. Chemin non-douve **inchangé au pixel**
+  (deux couches uniquement pour la douve) ⇒ combats de plaine intacts.
+- **S3.3 préviz douve** : `combatPreview` devient une union
+  `DamagePreview | MoatMovePreview` ; à la sélection d'une destination de douve
+  (tap 1), lecture de `combat.moatDamage` ⇒ « Entrer dans la douve : −N PV ».
+- **S-TEST = hook `__HEROES_TEST__.startSiege()`** (test-scaffold client, patron
+  des forges existantes `importAiTurnSave`) : reprend la partie `?seed=42` vivante,
+  dote le héros d'un `siege-cat` (catalogue + `warMachines`), pousse une ville
+  neutre `fort:3` + garnison à la position du héros, puis `CaptureTown`. Le smoke
+  passe le pré-combat → Combattre → `AutoCombat{rounds:1}` → assert
+  `combatFx().projectiles > 0` (tir catapulte OU tir garnison) + combat vivant.
+
+**Statut :** Vague 1 en cours.

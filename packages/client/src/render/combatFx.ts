@@ -81,6 +81,42 @@ export async function spawnProjectile(
   if (!g.destroyed) g.destroy();
 }
 
+/**
+ * Impact « éclats de pierre » d'un tir de catapulte sur un segment de rempart
+ * (S2, siège) : anneau de poussière expansif + quelques éclats projetés à des
+ * angles déterministes. DISTINCT du `spawnSpellImpact` (familles de sorts) —
+ * teintes pierre, aucun `Math.random`. Compté comme un impact (hook de test).
+ */
+export async function spawnRubbleImpact(
+  layer: Container,
+  at: Point,
+  opts: { speed: number; reduced: boolean },
+): Promise<void> {
+  combatFxStats.impacts += 1;
+  if (opts.reduced) return;
+  const g = new Graphics();
+  g.position.set(at.x, at.y);
+  layer.addChild(g);
+  const SHARDS = 6;
+  await fxTween(IMPACT_MS / Math.max(1, opts.speed), (t) => {
+    if (g.destroyed) return;
+    g.clear();
+    const alpha = 1 - t;
+    // Anneau de poussière (pierre claire) + flash central bref.
+    g.circle(0, 0, 5 + 26 * t).stroke({ width: 3, color: 0xbcae97, alpha });
+    if (t < 0.25) g.circle(0, 0, 8).fill({ color: 0xe8dcc4, alpha: (0.25 - t) * 3 });
+    // Éclats de pierre projetés (angles fixes, gravité légère).
+    for (let i = 0; i < SHARDS; i++) {
+      const ang = (i / SHARDS) * Math.PI * 2;
+      const d = (10 + 22 * t);
+      const px = Math.cos(ang) * d;
+      const py = Math.sin(ang) * d + 14 * t * t; // retombée
+      g.rect(px - 2, py - 2, 4, 4).fill({ color: 0x8a7d68, alpha });
+    }
+  });
+  if (!g.destroyed) g.destroy();
+}
+
 type FxFamily = 'damage' | 'heal' | 'buff' | 'debuff';
 
 /** Réduit les ~15 `SpellKind` à 4 familles visuelles distinctes. */

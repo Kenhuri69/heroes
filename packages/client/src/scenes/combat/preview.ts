@@ -4,6 +4,7 @@
  * `useSyncExternalStore` (même pattern que `app/events.ts`).
  */
 export interface DamagePreview {
+  kind?: 'attack';
   attackerId: string;
   targetId: string;
   damageMin: number;
@@ -14,9 +15,21 @@ export interface DamagePreview {
   retaliation: { damageMin: number; damageMax: number } | null;
 }
 
+/**
+ * S3.3 : prévisualisation d'un déplacement DANS la douve — annonce les dégâts de
+ * fossé (`combat.moatDamage`) avant que le joueur ne confirme la destination.
+ * Aucune règle nouvelle : simple lecture de l'état.
+ */
+export interface MoatMovePreview {
+  kind: 'moat';
+  damage: number;
+}
+
+export type CombatPreview = DamagePreview | MoatMovePreview;
+
 type Listener = () => void;
 
-let current: DamagePreview | null = null;
+let current: CombatPreview | null = null;
 const listeners = new Set<Listener>();
 
 export const combatPreview = {
@@ -24,11 +37,11 @@ export const combatPreview = {
     listeners.add(fn);
     return () => listeners.delete(fn);
   },
-  set(p: DamagePreview | null): void {
+  set(p: CombatPreview | null): void {
     current = p;
     for (const l of listeners) l();
   },
-  get(): DamagePreview | null {
+  get(): CombatPreview | null {
     return current;
   },
 };

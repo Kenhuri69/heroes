@@ -319,6 +319,16 @@ export function siegeWallUrl(): string | undefined {
   return registry.get('combat/siege-wall');
 }
 
+/**
+ * Overlay de rempart endommagé (`combat/siege-wall-cracked`, S2) posé sur un
+ * segment dont les PV sont entamés (`siegeWallHp < SIEGE_WALL_HP`). `undefined`
+ * ⇒ repli : assombrissement procédural du sprite de rempart (jamais d'image
+ * cassée).
+ */
+export function siegeWallCrackedUrl(): string | undefined {
+  return registry.get('combat/siege-wall-cracked');
+}
+
 // --- Chemin PixiJS : préchargement + lecture synchrone du cache ---
 
 /** URLs rendues dans PixiJS (tuiles + mines + tas) — préchargées au bootstrap. */

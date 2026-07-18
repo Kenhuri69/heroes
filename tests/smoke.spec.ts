@@ -3847,3 +3847,36 @@ test('PWA : manifeste installable + service worker ⇒ démarrage hors-ligne', {
     await page.context().setOffline(false);
   }
 });
+
+test('siège : forge un combat de ville → catapulte/tir visible, combat vivant (S-TEST)', { tag: '@core' }, async ({ page }) => {
+  const errors = await openGame(page); // ?seed=42 : partie vivante reproductible
+
+  // S-TEST (doc 19 annexe) : forge un siège via le hook dédié (héros + catapulte
+  // vs Château neutre défendu), puis `CaptureTown` ⇒ écran pré-combat.
+  await page.evaluate(() => window.__HEROES_TEST__!.startSiege());
+  await passPreBattle(page, 'fight');
+  await expect(page.getByTestId('combat-round')).toBeVisible();
+
+  // Le siège est bien monté (rempart + douve dressés par le Fort 3).
+  const siege = await page.evaluate(() => {
+    const c = window.__HEROES_TEST__!.getState().combat;
+    return c ? { townId: c.townId, walls: (c.siegeWalls ?? []).length, moat: (c.moat ?? []).length } : null;
+  });
+  expect(siege?.townId).toBe('siege-town');
+  expect(siege!.walls).toBeGreaterThan(0);
+  expect(siege!.moat).toBeGreaterThan(0);
+
+  // Un round auto : la catapulte pilonne le rempart (WallBombarded ⇒ projectile,
+  // S2) et/ou la tour/garnison tire — le compteur de FX s'incrémente.
+  const before = await page.evaluate(() => window.__HEROES_TEST__!.combatFx().projectiles);
+  await page.evaluate(() => window.__HEROES_TEST__!.dispatch({ type: 'AutoCombat', rounds: 1 }));
+  await expect
+    .poll(() => page.evaluate(() => window.__HEROES_TEST__!.combatFx().projectiles))
+    .toBeGreaterThan(before);
+
+  // Le combat n'est pas résolu en un round (anti-gel : la scène reste vivante).
+  const stillFighting = await page.evaluate(() => window.__HEROES_TEST__!.getState().combat !== null);
+  expect(stillFighting).toBe(true);
+
+  expect(errors).toEqual([]);
+});

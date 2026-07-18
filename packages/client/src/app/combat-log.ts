@@ -72,6 +72,10 @@ function combatLogText(e: AppEvent): string | null {
         amount: e.amount,
         resource: resolveFactionResourceName(e.resource),
       });
+    case 'WallBombarded':
+      // S2.4 : l'événement moteur ne porte pas la valeur des dégâts (calculée
+      // dans `bombardWalls`, non exposée) ⇒ message qualitatif, pas de « −N ».
+      return t(e.destroyed ? 'combatLog.wallDestroyed' : 'combatLog.wallBombarded');
     case 'CombatEnded':
       return e.winner === e.playerSide ? t('combatLog.won') : t('combatLog.lost');
     default:

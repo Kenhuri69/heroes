@@ -321,6 +321,8 @@ export type Command =
   | { type: 'ChooseAttribute'; heroId: string; attribute: 'attack' | 'defense' | 'power' | 'knowledge' }
   // ——— Trésor de carte (doc 02 §2.2) : choix or/XP après avoir foulé un coffre ———
   | { type: 'ResolveTreasure'; heroId: string; choice: 'gold' | 'xp' }
+  // ——— Message à choix d'un trigger de carte (doc 18 A5) : option choisie ———
+  | { type: 'ResolveTriggerChoice'; heroId: string; optionIndex: number }
   // ——— Quêtes ajoutées en cours de partie (N-DAILYREFRESH, doc 13 §4.2) ———
   | {
       /**
@@ -389,6 +391,7 @@ export interface CommandError {
     | 'invalidAttribute'
     | 'noPendingChoice'
     | 'treasurePending'
+    | 'choicePending'
     | 'invalidRounds'
     | 'notOnGrail'
     | 'alreadyHasGrail'

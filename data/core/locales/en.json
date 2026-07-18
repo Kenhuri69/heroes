@@ -540,6 +540,7 @@
   "toast.guardianRewardGold": "Guardian spoils: +{gold} gold",
   "toast.guardianRewardResource": "+{amount} {resource}",
   "toast.guardianRewardArtifact": "Artifact: {artifact}!",
+  "triggerChoice.title": "A choice to make",
   "treasure.title": "Treasure found!",
   "treasure.subtitle": "What to do with the loot?",
   "treasure.takeGold": "Take {gold} gold",

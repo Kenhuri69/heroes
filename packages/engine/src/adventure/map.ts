@@ -245,17 +245,30 @@ export type MapObjectDef =
  * de faction ni de scénario. Ajouter un effet = une variante ici + son
  * interprétation dans `adventure/triggers.ts` (même idiome que `FactionBonus`).
  */
-export type TriggerEffect =
+/**
+ * Effet-feuille (doc 18 A5) : appliqué directement, sans interruption ni
+ * imbrication. Sert d'octroi simple ET d'option d'un `choice` (message à choix).
+ */
+export type SimpleTriggerEffect =
   | { kind: 'grantResource'; resource: string; amount: number }
   | { kind: 'message'; textKey: string }
   /** Don d'artefact au héros visiteur (doc 18 A5) : 1er slot libre, sinon le sac. */
   | { kind: 'grantArtifact'; artifactId: string }
   /** Don d'armée au héros visiteur : fusion même unité, sinon nouveau slot (cap 7). */
-  | { kind: 'grantArmy'; unitId: string; count: number }
+  | { kind: 'grantArmy'; unitId: string; count: number };
+
+export type TriggerEffect =
+  | SimpleTriggerEffect
   /** Embuscade : combat scripté contre l'armée déclarée — interrompt le chemin. */
   | { kind: 'ambush'; army: { unitId: string; count: number }[] }
   /** Téléport scripté (doc 18 A5) : déplace le héros visiteur en `to` — interrompt le chemin. */
-  | { kind: 'teleport'; to: GridPos };
+  | { kind: 'teleport'; to: GridPos }
+  /**
+   * Message à choix (doc 18 A5) : présente `textKey` et des `options` au héros
+   * visiteur — l'effet-feuille de l'option choisie s'applique à la résolution
+   * (`ResolveTriggerChoice`). Interrompt le chemin (état d'attente moteur).
+   */
+  | { kind: 'choice'; textKey: string; options: { labelKey: string; effect: SimpleTriggerEffect }[] };
 
 /**
  * Trigger de carte (doc 02 §2.1) : un effet déclaratif déclenché soit à la

@@ -540,6 +540,7 @@
   "toast.guardianRewardGold": "Butin du gardien : +{gold} or",
   "toast.guardianRewardResource": "+{amount} {resource}",
   "toast.guardianRewardArtifact": "Artefact : {artifact} !",
+  "triggerChoice.title": "Un choix à faire",
   "treasure.title": "Trésor découvert !",
   "treasure.subtitle": "Que faire du butin ?",
   "treasure.takeGold": "Prendre {gold} or",

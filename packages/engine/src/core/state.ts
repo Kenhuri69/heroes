@@ -1,5 +1,5 @@
 import type { AdventureConfig } from '../adventure/config';
-import type { AdventureMapDef, GridPos } from '../adventure/map';
+import type { AdventureMapDef, GridPos, SimpleTriggerEffect } from '../adventure/map';
 import type { ArmyStack, CombatState, CombatUnitDef } from '../combat/types';
 import type { BuildingDef, TownState } from '../town/types';
 import type { ArtifactDef, HeroSkillDef, ResolvedHeroDef, SkillRankEffect, SpellDef } from '../hero/types';
@@ -429,6 +429,20 @@ export interface GameState {
     gold: number;
     xp: number;
   } | null;
+  /**
+   * Message à choix d'un trigger de carte en attente (doc 18 A5) — posé par le
+   * mouvement quand un `choice` est foulé, résolu par `ResolveTriggerChoice`.
+   * `MoveHero`/`EndTurn` sont refusés tant qu'il est posé. **Optionnel non
+   * initialisé** (jamais présent en partie sans trigger à choix) ⇒ omis du JSON
+   * ⇒ forme de sauvegarde et golden inchangés ; hors garde `save-shape`.
+   */
+  pendingTriggerChoice?: {
+    heroId: string;
+    playerId: string;
+    triggerId: string;
+    textKey: string;
+    options: { labelKey: string; effect: SimpleTriggerEffect }[];
+  };
   /**
    * Quêtes de campagne (doc 13 §6.2, N2a) — embarquées par `StartGame`, `null`
    * hors campagne (partie libre / scénario nu). Le moteur évalue des conditions

@@ -1058,7 +1058,19 @@ export type ResolvedTriggerEffect =
   | { kind: 'grantArtifact'; artifactId: string }
   | { kind: 'grantArmy'; unitId: string; count: number }
   | { kind: 'ambush'; army: { unitId: string; count: number }[] }
-  | { kind: 'teleport'; to: { x: number; y: number } };
+  | { kind: 'teleport'; to: { x: number; y: number } }
+  | {
+      kind: 'choice';
+      textKey: string;
+      options: { labelKey: string; effect: ResolvedSimpleTriggerEffect }[];
+    };
+
+/** Effet-feuille d'une option de `choice` (doc 18 A5) — sous-ensemble sans interruption. */
+export type ResolvedSimpleTriggerEffect =
+  | { kind: 'grantResource'; resource: string; amount: number }
+  | { kind: 'message'; textKey: string }
+  | { kind: 'grantArtifact'; artifactId: string }
+  | { kind: 'grantArmy'; unitId: string; count: number };
 
 /** Trigger résolu — forme moteur `MapTriggerDef` (`pos` déplié, `fired` initial). */
 export interface ResolvedMapTrigger {

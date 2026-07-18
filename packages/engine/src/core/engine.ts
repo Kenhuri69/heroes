@@ -78,6 +78,7 @@ import {
 import { heroGoldPerDay, heroMovementBonus, heroVisionRadius } from '../hero/skills';
 import { sanitizeEffect } from '../hero/types';
 import { resolveTreasure } from '../adventure/treasure';
+import { resolveTriggerChoice } from '../adventure/trigger-choice';
 import { respawnDueGuardians } from '../adventure/respawn';
 import { roamGuardians } from '../adventure/roam';
 import { evaluateOutcome, tickTownGrace } from '../scenario/outcome';
@@ -195,6 +196,7 @@ const GAME_OVER_BLOCKED = new Set<Command['type']>([
   'ChooseSkill',
   'ChooseAttribute',
   'ResolveTreasure',
+  'ResolveTriggerChoice',
   'AiTurn',
   'AddQuests',
 ]);
@@ -234,6 +236,8 @@ export function validate(state: GameState, cmd: Command): CommandError | null {
         return { code: 'combatActive', message: 'un combat est en cours' };
       if (state.pendingTreasure)
         return { code: 'treasurePending', message: 'un trésor attend son choix or/XP' };
+      if (state.pendingTriggerChoice)
+        return { code: 'choicePending', message: 'un message à choix attend sa réponse' };
       const hero = state.heroes.find((h) => h.id === cmd.heroId);
       if (!hero) return { code: 'unknownHero', message: `héros inconnu '${cmd.heroId}'` };
       const current = state.players[state.currentPlayer];
@@ -263,6 +267,8 @@ export function validate(state: GameState, cmd: Command): CommandError | null {
         return { code: 'combatActive', message: 'un combat est en cours' };
       if (state.pendingTreasure)
         return { code: 'treasurePending', message: 'un trésor attend son choix or/XP' };
+      if (state.pendingTriggerChoice)
+        return { code: 'choicePending', message: 'un message à choix attend sa réponse' };
       const current = state.players[state.currentPlayer];
       if (!current || current.id !== cmd.playerId)
         return { code: 'notYourTurn', message: `ce n’est pas le tour de ${cmd.playerId}` };
@@ -276,6 +282,8 @@ export function validate(state: GameState, cmd: Command): CommandError | null {
       if (state.combat) return { code: 'combatActive', message: 'un combat est en cours' };
       if (state.pendingTreasure)
         return { code: 'treasurePending', message: 'un trésor attend son choix or/XP' };
+      if (state.pendingTriggerChoice)
+        return { code: 'choicePending', message: 'un message à choix attend sa réponse' };
       const hero = state.heroes.find((h) => h.id === cmd.heroId);
       if (!hero) return { code: 'unknownHero', message: `héros inconnu '${cmd.heroId}'` };
       const current = state.players[state.currentPlayer];
@@ -293,6 +301,8 @@ export function validate(state: GameState, cmd: Command): CommandError | null {
       if (state.combat) return { code: 'combatActive', message: 'un combat est en cours' };
       if (state.pendingTreasure)
         return { code: 'treasurePending', message: 'un trésor attend son choix or/XP' };
+      if (state.pendingTriggerChoice)
+        return { code: 'choicePending', message: 'un message à choix attend sa réponse' };
       const hero = state.heroes.find((h) => h.id === cmd.heroId);
       if (!hero) return { code: 'unknownHero', message: `héros inconnu '${cmd.heroId}'` };
       const current = state.players[state.currentPlayer];
@@ -314,6 +324,8 @@ export function validate(state: GameState, cmd: Command): CommandError | null {
       if (state.combat) return { code: 'combatActive', message: 'un combat est en cours' };
       if (state.pendingTreasure)
         return { code: 'treasurePending', message: 'un trésor attend son choix or/XP' };
+      if (state.pendingTriggerChoice)
+        return { code: 'choicePending', message: 'un message à choix attend sa réponse' };
       const hero = state.heroes.find((h) => h.id === cmd.heroId);
       if (!hero) return { code: 'unknownHero', message: `héros inconnu '${cmd.heroId}'` };
       const current = state.players[state.currentPlayer];
@@ -484,6 +496,16 @@ export function validate(state: GameState, cmd: Command): CommandError | null {
           code: 'invalidTarget',
           message: `le trésor en attente n’appartient pas à '${cmd.heroId}'`,
         };
+      return null;
+    }
+    case 'ResolveTriggerChoice': {
+      if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
+      const pending = state.pendingTriggerChoice;
+      if (!pending) return { code: 'noPendingChoice', message: 'aucun message à choix en attente' };
+      if (pending.heroId !== cmd.heroId)
+        return { code: 'invalidTarget', message: `le choix en attente n’appartient pas à '${cmd.heroId}'` };
+      if (cmd.optionIndex < 0 || cmd.optionIndex >= pending.options.length)
+        return { code: 'invalidTarget', message: `option de choix invalide (${cmd.optionIndex})` };
       return null;
     }
     case 'AiTurn': {
@@ -979,6 +1001,10 @@ const handlers: Handlers = {
 
   ResolveTreasure(draft, cmd, events) {
     resolveTreasure(draft, cmd.choice, events);
+  },
+
+  ResolveTriggerChoice(draft, cmd, events) {
+    resolveTriggerChoice(draft, cmd.optionIndex, events);
   },
 
   EndTurn(draft, cmd, events) {

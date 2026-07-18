@@ -63,6 +63,7 @@ import { useCollapsed, SectionToggle } from './CollapsibleSection';
 import { SkillChoice } from './SkillChoice';
 import { AttributeChoice } from './AttributeChoice';
 import { TreasureChoice } from './TreasureChoice';
+import { TriggerChoice } from './TriggerChoice';
 import { HandoffOverlay } from './HandoffOverlay';
 import { OnlineWaitOverlay } from './OnlineWaitOverlay';
 import { OutcomeOverlay } from './OutcomeOverlay';
@@ -125,6 +126,12 @@ function Shell() {
   // uniquement — l'IA résout son choix dans son propre tour.
   const pendingTreasure = useApp((s) => {
     const pending = s.game.pendingTreasure;
+    return pending && pending.playerId === humanId(s.game) ? pending : null;
+  });
+  // Message à choix d'un trigger (doc 18 A5) : modale forcée pour le joueur
+  // humain uniquement — l'IA résout son choix dans son propre tour.
+  const pendingTriggerChoice = useApp((s) => {
+    const pending = s.game.pendingTriggerChoice;
     return pending && pending.playerId === humanId(s.game) ? pending : null;
   });
 
@@ -285,6 +292,7 @@ function Shell() {
           après la compétence si les deux sont en attente. */}
       {!pendingSkillHero && pendingAttributeHero && <AttributeChoice hero={pendingAttributeHero} />}
       {pendingTreasure && <TreasureChoice pending={pendingTreasure} />}
+      {pendingTriggerChoice && <TriggerChoice pending={pendingTriggerChoice} />}
       <EndTurnConfirm />
       {screen === 'adventure' && <CoopInviteConfirm />}
       {screen === 'adventure' && <HandoffOverlay />}

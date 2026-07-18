@@ -818,11 +818,14 @@ round (sort ET frappe, ou deux sorts), joueur comme IA.
 > SUR la tuile piégée, le chemin s'interrompt ; un héros sans armée ne consomme
 > pas le piège), **`teleport`** (déplace le héros visiteur en `to` — vision
 > révélée à destination, événement `HeroTeleported`, chemin interrompu sans
-> combat ; cible hors carte ⇒ garde-fou no-op non consommé). Les effets liés au
-> héros visiteur sont des **no-ops sur un
-> trigger `onDay`** (pas de héros cible). Différés : message à choix (exige un
-> état d'attente + bump de sauvegarde — lot dédié), retrait
-> d'artefact/armée, `collectArtifact`/`accumulateResource`, `onFlagCaptured`.
+> combat ; cible hors carte ⇒ garde-fou no-op non consommé), **`choice`**
+> (message à choix : présente `textKey` + ≥ 2 `options` à effet-feuille ; pose un
+> **état d'attente** `pendingTriggerChoice` — comme le trésor — qui interrompt le
+> chemin et bloque `MoveHero`/`EndTurn`, tranché par `ResolveTriggerChoice`
+> (humain) ou l'IA d'aventure qui prend l'option 0 ; **champ optionnel non
+> initialisé ⇒ pas de bump de sauvegarde**). Les effets liés au héros visiteur
+> sont des **no-ops sur un trigger `onDay`** (pas de héros cible). Différés :
+> retrait d'artefact/armée, `collectArtifact`/`accumulateResource`, `onFlagCaptured`.
 >
 > 🚧 **État (M-NAV a — monolithes appariés, doc §2.1)** : nouvel objet de carte
 > `monolith` portant un `pairId`. **Exactement 2** monolithes partagent un `pairId`

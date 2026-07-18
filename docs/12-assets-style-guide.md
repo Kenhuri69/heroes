@@ -23,6 +23,7 @@
 | **E** | Logo du jeu | Pièce unique LLM | ≥ 1024² | Transparent |
 | **G** | Chrome d'UI (cadres de panneau, rubans d'en-tête) | Procédural (Pillow, formes fixes) | 160² (cadre), 320×72 (ruban) | Transparent (centre) |
 | **H** | Blasons de faction (écus héraldiques) | Procédural (Pillow, formes fixes) | 256² | Transparent (hors écu) |
+| **S** | Icônes de sorts, badges d'effet, mur de siège, unités invoquées | Procédural (Pillow, formes fixes) — phase 2 planche LLM | 256→24 (icônes/badges), 512² (mur/invocation) | Transparent |
 
 > Erreur classique observée sur Hogwarth : appliquer le template d'une famille
 > à une autre (ex. style sprite transparent pour un portrait). Identifier la
@@ -281,6 +282,36 @@ l'en-tête de ville (le « dé » générique jadis affiché pour Havre).
   **hors bundle**) → résolveur `factionBadgeUrl(factionId)` → `FactionBadge` rend
   l'`<img>` du blason si présent, sinon le motif SVG (le `data-pattern` reste
   posé → le canal non chromatique survit au repli).
+
+## 6quinquies. Règle S — sorts, effets, murs, invocations
+
+Famille **S** : le retour visuel des SORTS et des éléments de combat qui en
+découlent — jusqu'ici tous procéduraux au trait (grimoire en texte seul, effets
+sans badge, remparts et invocations en repli). **Phase 1 procédurale** (livrée,
+`tools/assets/gen_spell_assets.py`) ; **phase 2 LLM** planifiée (montée en
+fidélité par simple substitution de PNG homonyme, aucun code — cf.
+`.claude/plans/asset-spell-effects-related.md`).
+
+- **Icônes de sorts** (`assets/spells/<school>-<kind>_<64|48|32|24>.png`) : une
+  **gemme** par couple (école, type) — fond teinté par l'**école** (fire/water/
+  earth/air/neutral/traque/scene/lumiere/prime, doc 02 §1.4), glyphe clair par
+  **type** (`kind` : damage/heal/buff/debuff/dispel/cure/applyMarks/silence/
+  banish/rally/stealth/teleport/summon/resurrectFull/adventure). Les couples sont
+  **lus dans `data/core/spells.json`** → jamais de doublon ni d'orphelin. Rendu
+  dans `SpellBook` (`spellIconUrl(school, kind)`) ; **repli** = liste texte seule.
+- **Badges d'effet** (`assets/ui/status-<name>_<32|24|16>.png`) : disque + picto
+  d'état, lisible ≥16px — `buff`, `debuff`, `silence`, `poison`, `mark`,
+  `immobilized`, `stealth`. Posés en rangée au-dessus du jeton par `CombatScene`
+  (`statusIconUrl(name)`) ; **repli** = disque coloré procédural.
+- **Mur de siège** (`assets/combat/siege-wall.png`, 512²) : segment de rempart de
+  pierre crénelé, distinct des obstacles de champ. Posé sur les hexes
+  `combat.siegeWalls` (`siegeWallUrl()`) ; **repli** = rocher `drawBoulder`.
+- **Unité invoquée** (`assets/units/core/elementaire-de-terre.png`, 512²) :
+  élémentaire de terre rocheux, résolu par `unitSpriteUrl` via le repli **core**
+  (`units/core/<unitId>`, faction-agnostique) ; **repli** = jeton procédural.
+- **Déterminisme** : formes vectorielles fixes → LANCZOS, aucun aléa (guidelines
+  §8.2). **Clés opaques** : aucune faction/école connue du moteur (guidelines §8.1).
+  `python3 tools/assets/gen_spell_assets.py`.
 
 ## 7. Prompts-types
 

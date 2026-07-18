@@ -284,6 +284,41 @@ export function uiIconUrl(id: string, px = 24): string | undefined {
   return registry.get(`ui/${id}_${pickIconSize(px)}`);
 }
 
+// --- Famille S : sorts, effets, murs, invocations (doc 12 Règle S, gen_spell_assets.py) ---
+
+const SPELL_ICON_SIZES = [24, 32, 48, 64] as const;
+const STATUS_ICON_SIZES = [16, 24, 32] as const;
+
+function pickFromSizes(sizes: readonly number[], px: number): number {
+  return sizes.find((s) => s >= px) ?? sizes[sizes.length - 1]!;
+}
+
+/**
+ * Icône de sort du grimoire (`spells/<school>-<kind>`) — une par couple
+ * (école, type). Clés opaques (aucune faction en dur). `undefined` ⇒ repli =
+ * pas d'icône (liste texte seule, état d'avant l'intégration).
+ */
+export function spellIconUrl(school: string, kind: string, px = 40): string | undefined {
+  return registry.get(`spells/${school}-${kind}_${pickFromSizes(SPELL_ICON_SIZES, px)}`);
+}
+
+/**
+ * Badge d'effet posé sur un jeton de combat (`ui/status-<name>` :
+ * buff/debuff/silence/poison/mark/immobilized/stealth). `undefined` ⇒ repli
+ * disque coloré procédural (jamais d'image cassée).
+ */
+export function statusIconUrl(name: string, px = 20): string | undefined {
+  return registry.get(`ui/status-${name}_${pickFromSizes(STATUS_ICON_SIZES, px)}`);
+}
+
+/**
+ * Sprite du mur de siège (`combat/siege-wall`, C-SIEGE2) — rempart distinct des
+ * obstacles de champ. `undefined` ⇒ repli rocher procédural (`drawBoulder`).
+ */
+export function siegeWallUrl(): string | undefined {
+  return registry.get('combat/siege-wall');
+}
+
 // --- Chemin PixiJS : préchargement + lecture synchrone du cache ---
 
 /** URLs rendues dans PixiJS (tuiles + mines + tas) — préchargées au bootstrap. */

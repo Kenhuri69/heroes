@@ -19,6 +19,8 @@ import {
 import { useApp, appStore } from '../app/store';
 import { dispatch } from '../app/dispatch';
 import { t, resolveUnitName, resolveSpellName, resolveSpellLore, commandErrorMessage } from '../app/i18n';
+import { spellIconUrl } from '../render/assets';
+import { AssetImg } from './AssetImg';
 import { pushToast } from './toasts';
 import './SpellBook.css';
 
@@ -150,7 +152,15 @@ export function SpellBook({ hero, onClose }: { hero: HeroState; onClose: () => v
             <button class="spellbook-back" onClick={backToList}>
               {t('spellbook.back')}
             </button>
-            <h3>{resolveSpellName(def.id)}</h3>
+            <h3>
+              <AssetImg
+                src={spellIconUrl(def.school, def.kind)}
+                alt=""
+                class="spell-icon spell-icon-lg"
+                fallback={null}
+              />
+              {resolveSpellName(def.id)}
+            </h3>
             {resolveSpellLore(def.id) && (
               <p class="content-lore" data-testid="spell-lore">
                 {resolveSpellLore(def.id)}
@@ -267,6 +277,12 @@ function SpellList({
                         disabled={!castable}
                         onClick={() => onSelect(spellDef.id)}
                       >
+                        <AssetImg
+                          src={spellIconUrl(spellDef.school, spellDef.kind)}
+                          alt=""
+                          class="spell-icon"
+                          fallback={null}
+                        />
                         <span class="spell-name">
                           {resolveSpellName(spellDef.id)}
                           {spellDef.area === 'splash' && (

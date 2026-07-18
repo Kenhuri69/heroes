@@ -1,0 +1,151 @@
+# Plan — Assets « sort effet icône & éléments liés » (murs, unités invoquées)
+
+Branche : `claude/asset-sort-related-elements-rdr8jq`
+
+## Contexte
+
+Le combat rend aujourd'hui :
+- le **grimoire** (`SpellBook.tsx`) en **liste texte seule** (aucune icône de sort) ;
+- les **effets de sorts** (buff/debuff/silence/poison/marque/immobilisation/furtivité)
+  sans **aucun badge visible** sur le jeton d'unité (`CombatScene.ts` ne pose que la
+  pastille d'effectif) ;
+- les **murs de siège** (`combat.siegeWalls`) comme de simples **rochers** d'obstacle
+  (`drawBoulder` de `hexgrid.ts`), indistincts des obstacles de champ ;
+- l'**unité invoquée** (`elementaire-de-terre` de `invocation-elementaire`) via le
+  **repli procédural** de jeton (aucun sprite dédié `units/core/`).
+
+Aucune famille d'asset « sorts / effets / murs / invocations » n'existe dans
+`docs/12-assets-style-guide.md` : c'est un **nouveau lot d'assets**.
+
+Le registre `packages/client/src/render/assets.ts` auto-découvre tout PNG de `assets/`
+(`import.meta.glob ?url`, hors bundle JS) ⇒ déposer un fichier nommé par convention le
+branche, avec **repli procédural gracieux** (patron `AssetImg` / `getTexture`).
+
+## Décision utilisateur
+
+- **Périmètre** : les 4 familles (icônes de sorts, badges d'effet sur unités, murs de
+  siège, unités invoquées).
+- **Méthode** : **procédural (Python/PIL) d'abord** (ce plan, phase 1), **phase 2 LLM**
+  tracée ci-dessous.
+
+## Invariants (guidelines §8)
+
+- **Zéro diff moteur** : données/assets + client uniquement. Le moteur ne gagne aucune
+  règle ni aucune faction en dur.
+- **Pas de bump `CURRENT_SAVE_VERSION`** (aucune forme sérialisée touchée).
+- **Golden inchangé** (aucun replay ne dépend du rendu).
+- **Garde-fou « zéro faction dans `packages/` »** vert (clés d'asset opaques).
+- **Repli procédural** : tout asset absent retombe sur l'affichage procédural existant
+  (jamais d'image cassée).
+
+---
+
+## Phase 1 — Procédural (Python/PIL) + câblage client
+
+### Étape 1 — Générateur procédural `tools/assets/gen_spell_assets.py`
+Style `gen_ui_icons.py` (déterministe, mipmaps LANCZOS, silhouette + liseré + rehaut).
+Produit 4 familles :
+
+1. **Icônes de sorts** `assets/spells/<school>-<kind>.png` (mipmaps 64/48/32/24).
+   - Palette **par école** (fire/water/earth/air/neutral/traque/scene/lumiere/prime) ;
+   - glyphe **par type** (`kind` : damage/heal/buff/debuff/dispel/cure/applyMarks/
+     silence/banish/rally/stealth/teleport/summon/resurrectFull/adventure) ;
+   - un fichier par couple `(school, kind)` **réellement présent** dans
+     `data/core/spells.json` (art unique par fichier, pas de doublon).
+2. **Badges d'effet** `assets/ui/status-<name>.png` (mipmaps 32/24/16, lisibles ≥16px) :
+   `buff`, `debuff`, `silence`, `poison`, `mark`, `immobilized`, `stealth`.
+3. **Mur de siège** `assets/combat/siege-wall.png` (512²) — segment de rempart en pierre.
+4. **Unité invoquée** `assets/units/core/elementaire-de-terre.png` (512²) — élémentaire
+   de terre rocheux, cohérent avec les sprites d'unité core (512²).
+
+- Vérif : `python3 tools/assets/gen_spell_assets.py` génère les PNG + `_preview.png`
+  sans erreur ; tailles conformes.
+
+### Étape 2 — Résolveurs de registre (`render/assets.ts`)
+- `spellIconUrl(school, kind, px)` → `spells/<school>-<kind>` (mipmap).
+- `statusIconUrl(name, px)` → `ui/status-<name>` (mipmap).
+- `siegeWallUrl()` → `combat/siege-wall`.
+- (`unitSpriteUrl` couvre déjà `units/core/elementaire-de-terre` — rien à ajouter.)
+- Vérif : `pnpm --filter @heroes/client typecheck`.
+
+### Étape 3 — Grimoire : icône par sort (`SpellBook.tsx`)
+- Poser `<AssetImg src={spellIconUrl(def.school, def.kind)} …>` devant chaque entrée
+  de sort et sur l'en-tête de l'écran de ciblage ; repli = aucune image (état actuel).
+- CSS `.spell-icon` (taille via `rem`, a11y 3 crans).
+- Vérif : typecheck + lint ; le repli laisse le grimoire fonctionnel.
+
+### Étape 4 — Badges d'effet sur jetons (`CombatScene.ts`)
+- Dériver de la pile les statuts actifs (net buff/debuff des `statuses`, `silenced`,
+  `damagePerRound`>0 ⇒ poison, `marks`>0, `immobilizedRounds`>0, `stealthed`).
+- Rangée de petits sprites au-dessus du jeton (texture `statusIconUrl`, repli disque
+  coloré procédural), mise à jour à chaque `syncStacks`.
+- Vérif : smoke (les badges apparaissent quand un statut est actif ; pas de crash sans
+  asset).
+
+### Étape 5 — Mur de siège rendu distinct (`CombatScene.ts`)
+- Calque « murs » : sur chaque hex de `combat.siegeWalls`, poser le sprite
+  `siegeWallUrl()` (repli = rocher actuel `drawBoulder`, inchangé pour les obstacles
+  de champ).
+- Vérif : smoke siège (le rempart s'affiche ; les obstacles de champ restent rochers).
+
+### Étape 6 — Doc 12 + smoke + vérifs finales
+- `docs/12-assets-style-guide.md` : nouvelle **famille S** (sorts/effets/murs/invocations),
+  conventions de nommage, note « repli procédural » + renvoi phase 2 LLM.
+- Étendre `tests/smoke.spec.ts` : présence d'au moins une icône de sort dans le grimoire
+  et d'un badge d'effet (ou repli) sans erreur.
+- Vérifs : `typecheck`, `lint`, `pnpm --filter @heroes/engine test` (golden + garde-fous),
+  `content:check`, budget bundle, smoke headless.
+- Commit + push + PR draft.
+
+---
+
+## Phase 2 — Montée en fidélité par LLM (planches d'images) — À FAIRE ULTÉRIEUREMENT
+
+Le procédural (phase 1) donne des placeholders lisibles et branchés ; la fidélité
+visuelle finale passera par des **planches LLM** (skill `asset-sheet`, doc 12 §10),
+**sans aucun changement de code** (mêmes clés de fichier ⇒ substitution par simple
+dépôt de PNG, repli procédural en attendant).
+
+Prompts à préparer (staging `assets/prompts/`) :
+- `spells-icons.md` — planche d'icônes de sorts par couple (école, type), cadre visuel
+  doc 12 (silhouette pleine, liseré, lisible 32px), 1 case = 1 sort/effet.
+- `combat-status-badges.md` — pictos d'état (bénédiction, malédiction, silence, poison,
+  marque, entraves, brume) façon badges HoMM, fond transparent.
+- `combat-siege-wall.md` — segment de rempart de pierre (vue combat isométrique légère),
+  cohérent avec les vignettes de bâtiments.
+- `units-summoned.md` — élémentaire de terre invoqué (+ variantes futures d'invocations :
+  élémentaires air/feu/eau si le contenu en ajoute), style planche d'unités.
+
+QC/découpe via `sheet_extract.py` → `assets/spells/`, `assets/ui/`, `assets/combat/`,
+`assets/units/core/` (mêmes noms qu'en phase 1). Aucun câblage : phase 2 = art seul.
+
+---
+
+## Journal
+- **Étape 1 ✅** — `tools/assets/gen_spell_assets.py` : 36 icônes de sorts
+  (couples école/type lus dans `spells.json`) × 4 mipmaps, 7 badges d'effet × 3
+  mipmaps, `combat/siege-wall.png` (512²), `units/core/elementaire-de-terre.png`
+  (512²), + `_preview.png`. Généré sans erreur.
+- **Étape 2 ✅** — résolveurs `spellIconUrl` / `statusIconUrl` / `siegeWallUrl`
+  dans `render/assets.ts` (clés opaques ; `unitSpriteUrl` couvre déjà l'invocation
+  via le repli core).
+- **Étape 3 ✅** — `SpellBook.tsx` : `<AssetImg class="spell-icon">` par entrée de
+  sort + en-tête de ciblage ; CSS `.spell-icon` en `rem` (a11y). Repli = sans icône.
+- **Étape 4 ✅** — `CombatScene.updateStatusBadges` : rangée de badges au-dessus du
+  jeton (buff/debuff/mark/immobilized/silence/poison/stealth), dérivée de l'état pur
+  de la pile ; repli disque coloré. Reconstruite sur changement de signature.
+- **Étape 5 ✅** — `CombatScene.syncWalls` : `wallLayer` pose le sprite de rempart
+  sur les hexes `siegeWalls` (recouvre le rocher) ; repli = rocher `drawBoulder`.
+- **Étape 6 ✅** — doc 12 : famille **S** ajoutée (table §0 + section §6quinquies).
+  Smoke `@core` du grimoire étendu (assertion `img.spell-icon`).
+- **Vérifs** : `typecheck` ✓, `lint` ✓, engine `897 tests` ✓ (golden inchangé,
+  garde-fous verts), `content:check` ✓, garde-fou faction (aucun ID dans
+  `packages/src`) ✓, build ✓ + budget bundle **331 Ko / 800 Ko** ✓, smoke combat
+  (`grimoire` + 5 combats) ✓.
+- **Couverture** : les murs de siège et l'unité invoquée ne sont exercés par aucun
+  smoke existant (pas de scénario de siège ni de sort d'invocation dans la suite) —
+  ils résolvent via les résolveurs (repli gracieux vérifié au typecheck/lint/build),
+  non via une assertion de rendu Pixi (non assertable en smoke DOM, cf. skill
+  test-authoring). Le grimoire est couvert en DOM ; les badges d'effet transitent par
+  les combats smoke sans crash.
+- **Phase 2 (LLM)** : non entamée — tracée ci-dessus, art seul, mêmes clés de fichier.

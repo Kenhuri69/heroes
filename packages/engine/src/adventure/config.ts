@@ -60,6 +60,16 @@ export interface CombatRulesConfig {
    */
   heroAttack?: { base: number; perPower: number; perAttack: number } | undefined;
   /**
+   * Renforts en combat (doc 18 B3, signature MMHO) : en PvE, le héros dépense de
+   * l'or pour ajouter une pile FRAÎCHE d'une unité qu'il commande déjà (coût =
+   * `recruitCost × count × costMultiplier`). Plafonné à `maxCallsPerCombat` appels
+   * et `maxUnitsPerCall` unités/appel ; le renfort se déploie et n'agit qu'au round
+   * SUIVANT. **Optionnel & opt-in** : absent ⇒ la commande `CallReinforcements` est
+   * refusée (feature désactivée, fixtures/golden épargnés). Générique : aucun nom
+   * de faction (l'unité vient de l'armée du héros).
+   */
+  reinforcements?: { maxCallsPerCombat: number; maxUnitsPerCall: number; costMultiplier: number } | undefined;
+  /**
    * Mort subite (doc 18 B4, MMHO « Sudden Death ») : à l'ATTEINTE du round
    * `round`, le combat est résolu de force — `strongestArmy` : le camp au plus
    * fort `armyStrength` restant l'emporte (égalité ⇒ défenseur, convention

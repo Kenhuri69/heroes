@@ -223,6 +223,8 @@ export type GameEvent =
   | { type: 'WarMachineBought'; townId: string; heroId: string; unitId: string }
   /** Bateau construit au chantier naval (A3.3) : posé sur une tuile d'eau adjacente. */
   | { type: 'BoatBuilt'; townId: string; boatId: string; pos: GridPos }
+  /** Renforts appelés en combat (doc 18 B3) : une pile fraîche rejoint le camp `side`. */
+  | { type: 'ReinforcementsCalled'; side: CombatSideId; stackId: string; unitId: string; count: number }
   | { type: 'TownIncome'; playerId: string; resource: string; amount: number }
   | { type: 'TownGrowth'; townId: string; unitId: string; added: number }
   /** Choix du destinataire d'une croissance partagée (doc 05 §3.1/§8). */

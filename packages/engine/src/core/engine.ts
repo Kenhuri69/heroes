@@ -5,6 +5,7 @@ import { inBounds, isAdjacent, samePos, type GridPos } from '../adventure/map';
 import { advanceHeroAlongPath } from '../adventure/movement';
 import { revealOwnedStructures } from '../adventure/vision';
 import { handleHeroAttack, validateHeroAttack } from '../combat/hero-attack';
+import { handleCallReinforcements, validateCallReinforcements } from '../combat/reinforce';
 import { handleHeroRally, validateHeroRally } from '../combat/hero-rally';
 import {
   handleFinishPlacement,
@@ -184,6 +185,7 @@ const GAME_OVER_BLOCKED = new Set<Command['type']>([
   'TradeResources',
   'CastSpell',
   'HeroAttack',
+  'CallReinforcements',
   'HeroRally',
   'PlaceStack',
   'FinishPlacement',
@@ -432,6 +434,10 @@ export function validate(state: GameState, cmd: Command): CommandError | null {
     case 'HeroAttack': {
       if (!state.combat) return { code: 'noCombat', message: 'aucun combat en cours' };
       return validateHeroAttack(state, cmd);
+    }
+    case 'CallReinforcements': {
+      if (!state.combat) return { code: 'noCombat', message: 'aucun combat en cours' };
+      return validateCallReinforcements(state, cmd);
     }
     case 'HeroRally': {
       if (!state.combat) return { code: 'noCombat', message: 'aucun combat en cours' };
@@ -925,6 +931,10 @@ const handlers: Handlers = {
 
   CastSpell(draft, cmd, events) {
     handleCastSpell(draft, cmd, events);
+  },
+
+  CallReinforcements(draft, cmd, events) {
+    handleCallReinforcements(draft, cmd, events);
   },
 
   HeroAttack(draft, cmd, events) {

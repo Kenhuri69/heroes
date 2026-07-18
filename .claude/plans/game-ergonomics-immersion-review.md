@@ -414,6 +414,11 @@ Zéro asset, zéro moteur : uniquement `CombatScene` + `motion.ts`.
         sur kill (`shakeBoard`, hook `combatShake()`), coupées en reduce-motion.
         Items 2 (projectiles) & 3 (impacts de sorts) étaient déjà livrés ⇒ **Lot 5
         complet**.
+  - [~] **Lot 6** — chasse aux placeholders. **6a livré** (`ux-lot6a-herostrip-avatar.md`,
+        I7) : le portrait du **HeroStrip** monte le **vrai avatar** du héros (même
+        source que le tiroir : `heroAvatarUrl`), repli gracieux sur le cercle mini.
+        Reste : composition des armées en pré-combat (item 2), vignettes de
+        bâtiments événement (item 3), planches d'assets (items 4-6, skills `asset-*`).
   - [ ] **Lot 3 tail différé** : E8 (confirmer attaque perdue), E14 (filtres journal)
         — 🟡 à faible valeur / plomberie disproportionnée.
-  - [ ] Lots 6→10 : à suivre.
+  - [ ] Lots 7→10 : à suivre.

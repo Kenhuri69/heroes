@@ -365,6 +365,14 @@
   background: var(--ink-500);
 }
 
+/* I7 : avatar du héros dans le bandeau HeroStrip (remplit l'écusson, rond). */
+.hero-portrait-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
 .hero-portrait-level {
   position: absolute;
   right: -2px;

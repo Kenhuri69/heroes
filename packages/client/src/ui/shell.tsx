@@ -11,6 +11,7 @@ import {
   type ArmyStack,
   type CombatUnitDef,
   type HeroState,
+  type TownState,
 } from '@heroes/engine';
 import { useApp, appStore } from '../app/store';
 import { back, closeModalKind, openModal, useModals, useScreen } from '../app/router';
@@ -39,6 +40,7 @@ import {
 } from '../app/i18n';
 import { AssetImg } from './AssetImg';
 import { UiIcon } from './UiIcon';
+import { useLongPress } from './useLongPress';
 import { MenuScreen } from './MenuScreen';
 import { MapEditor } from './MapEditor';
 import { OptionsPanel } from './OptionsPanel';
@@ -814,7 +816,16 @@ function HeroStrip() {
             data-testid={`hero-select-${h.id}`}
             aria-pressed={h.id === selectedId}
             aria-label={t('hero.select', { level: h.level })}
-            onClick={() => appStore.setState({ selectedHeroId: h.id })}
+            onClick={() => {
+              // E4 tap-tap : 1er tap = sélectionne + recentre la caméra sur le héros ;
+              // re-tap (déjà sélectionné) = ouvre le tiroir héros (même geste que H).
+              if (h.id === selectedId) {
+                window.dispatchEvent(new CustomEvent('heroes:toggle-drawer'));
+              } else {
+                appStore.setState({ selectedHeroId: h.id });
+                void panCameraTo(h.pos.x, h.pos.y, reduceMotion() ? 0 : DEFAULT_PAN_MS);
+              }
+            }}
           >
             <span class="hero-portrait-mini" aria-hidden="true" />
             <span class="hero-portrait-level">{h.level}</span>
@@ -1063,6 +1074,36 @@ function TurnIndicator() {
 }
 
 /** Jour/semaine, points de mouvement, sauvegarde et gros bouton fin de tour (doc 08 §2.1). */
+/**
+ * Bouton de ville de la barre de tour (E4) : tap = ouvrir la modale (inchangé) ;
+ * appui long = recentrer la caméra sur la ville (« aller à la ville » sans
+ * l'ouvrir) — accès au pouce, parité tactile du survol (doc 08 §1.1/§2.1).
+ */
+function TownButton({ town }: { town: TownState }) {
+  const longPress = useLongPress(() => {
+    void panCameraTo(town.pos.x, town.pos.y, reduceMotion() ? 0 : DEFAULT_PAN_MS);
+  });
+  return (
+    <button
+      class="town-open"
+      data-testid={`town-open-${town.id}`}
+      title={`${t('town.open')} (T) · ${t('adventure.centerTownHint')}`}
+      onClick={() => {
+        // Un appui long (recentrage) vient de se produire ⇒ ne pas AUSSI ouvrir.
+        if (longPress.wasLongPress()) return;
+        openModal({ kind: 'town', townId: town.id });
+      }}
+      onPointerDown={longPress.onPointerDown}
+      onPointerMove={longPress.onPointerMove}
+      onPointerUp={longPress.onPointerUp}
+      onPointerLeave={longPress.onPointerLeave}
+    >
+      <FactionBadge factionId={town.factionId} />
+      {t('town.open')}
+    </button>
+  );
+}
+
 function TurnBar({ onOpenOptions }: { onOpenOptions: () => void }) {
   useApp((s) => s.locale);
   const day = useApp((s) => s.game.calendar.day);
@@ -1080,6 +1121,8 @@ function TurnBar({ onOpenOptions }: { onOpenOptions: () => void }) {
   const game = useApp((s) => s.game);
   const unread = useApp((s) => s.journalUnread);
   const aiTurn = useApp((s) => s.aiTurn);
+  // E4 : nombre de héros encore mobiles (badge du bouton « héros suivant »).
+  const heroesWithMoves = humanHeroes(game).filter((h) => h.movementPoints > 0).length;
   // Fouille du Graal (T-GRAIL lot 2) : bouton visible seulement quand le héros
   // sélectionné du joueur humain est sur la tuile du Graal RÉVÉLÉE (tous les
   // obélisques visités) et que le joueur ne possède pas encore le Graal.
@@ -1177,6 +1220,23 @@ function TurnBar({ onOpenOptions }: { onOpenOptions: () => void }) {
         >
           <UiIcon id="act-kingdom" fallback="🏰" />
         </button>
+        {/* E4 : « héros suivant avec PM » au pouce (équivalent de la touche N) —
+            cycle + recentrage caméra, badge = héros encore mobiles, grisé si 0. */}
+        <button
+          class="next-hero-toggle"
+          data-testid="next-hero"
+          aria-label={t('adventure.nextHero')}
+          title={t('adventure.nextHero')}
+          disabled={aiTurn !== null || heroesWithMoves === 0}
+          onClick={() => selectNextHeroWithMoves(appStore.getState())}
+        >
+          <UiIcon id="act-hero" fallback="🚩" />
+          {heroesWithMoves > 0 && (
+            <span class="next-hero-badge" data-testid="next-hero-count">
+              {heroesWithMoves}
+            </span>
+          )}
+        </button>
         <button
           class="journal-toggle"
           data-testid="journal-open"
@@ -1194,16 +1254,7 @@ function TurnBar({ onOpenOptions }: { onOpenOptions: () => void }) {
             de fin de tour couvre le cas courant ; la barre de tour ne garde que
             le geste le plus fréquent (Fin de tour) et les entrées de contexte. */}
         {towns.map((town) => (
-          <button
-            key={town.id}
-            class="town-open"
-            data-testid={`town-open-${town.id}`}
-            title={`${t('town.open')} (T)`}
-            onClick={() => openModal({ kind: 'town', townId: town.id })}
-          >
-            <FactionBadge factionId={town.factionId} />
-            {t('town.open')}
-          </button>
+          <TownButton key={town.id} town={town} />
         ))}
         {canDig && hero && (
           <button

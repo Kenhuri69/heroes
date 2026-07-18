@@ -230,6 +230,69 @@ test('HUD mobile : bandeau d’armée replié par défaut, dépliable (X3)', { t
   expect(errors).toEqual([]);
 });
 
+// Tag @core (desktop) : la LOGIQUE E4 (handlers, appui long via Pointer Events) est
+// indépendante du viewport ; la simulation d'appui long TACTILE sous charge est
+// intrinsèquement flaky (course du minuteur). Le rendu tactile mobile est vérifié
+// en capture manuelle. Le garde `hero-drawer-toggle` reste (no-op sur desktop).
+test('E4 : navigation au pouce — héros suivant, tap portrait, appui long ville (sans clavier)', { tag: '@core' }, async ({ page }) => {
+  // Recentrages INSTANTANÉS (reduce-motion) : pas d'animation rAF qui retarderait le
+  // minuteur d'appui long, et la caméra bouge d'un coup ⇒ assertions déterministes.
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  const errors = await openGame(page);
+  // Deux héros mobiles : recruter Garrick (même prépa que UX-HEROSWAP, via le hook
+  // moteur — le sujet est la NAVIGATION, pas le recrutement).
+  await page.evaluate(async () => {
+    const d = window.__HEROES_TEST__!.dispatch;
+    await d({ type: 'BuildStructure', townId: 'start-town', buildingId: 'tavern' });
+    await d({ type: 'EndTurn', playerId: 'player-1' });
+    await d({ type: 'EndTurn', playerId: 'player-1' });
+    await d({ type: 'RecruitHero', townId: 'start-town', heroId: 'garrick', playerId: 'player-1' });
+  });
+  // Empreinte caméra : position écran d'une tuile fixe (un recentrage la déplace).
+  const camFingerprint = (): Promise<{ x: number; y: number }> =>
+    page.evaluate(() => window.__HEROES_TEST__!.tileToScreen(0, 0));
+  const movedFrom = async (before: { x: number; y: number }): Promise<number> => {
+    const c = await camFingerprint();
+    return Math.hypot(c.x - before.x, c.y - before.y);
+  };
+  // La sélection se lit sur l'état ARIA du portrait (le store racine n'est pas exposé).
+  const garrick = page.getByTestId('hero-select-hero-player-1-garrick');
+  const starter = page.getByTestId('hero-select-hero-player-1');
+
+  await test.step('bouton « héros suivant » : badge = 2, cycle la sélection + recentre', async () => {
+    const btn = page.getByTestId('next-hero');
+    await expect(btn).toBeVisible();
+    await expect(page.getByTestId('next-hero-count')).toHaveText('2');
+    await expect(starter).toHaveAttribute('aria-pressed', 'true'); // héros de départ sélectionné
+    const before = await camFingerprint();
+    await btn.click();
+    await expect(garrick).toHaveAttribute('aria-pressed', 'true'); // cycle vers l'autre héros
+    await expect.poll(() => movedFrom(before)).toBeGreaterThan(5); // caméra recentrée
+  });
+
+  await test.step('tap portrait : sélectionne le héros + recentre la caméra', async () => {
+    // Mobile : le bandeau de portraits (HeroStrip) est dans le tiroir héros, replié
+    // par défaut ⇒ l'ouvrir d'abord (sur desktop il est déjà visible, no-op).
+    const drawerToggle = page.getByTestId('hero-drawer-toggle');
+    if (await drawerToggle.isVisible().catch(() => false)) await drawerToggle.click();
+    const before = await camFingerprint();
+    await starter.click();
+    await expect(starter).toHaveAttribute('aria-pressed', 'true');
+    await expect.poll(() => movedFrom(before)).toBeGreaterThan(5);
+  });
+
+  await test.step('appui long ville : recentre la carte SANS ouvrir la modale', async () => {
+    const before = await camFingerprint();
+    // `click({ delay })` = pointerdown, maintien > seuil (450 ms), pointerup —
+    // simulation d'appui long fiable (événements pointer réels).
+    await page.getByTestId('town-open-start-town').click({ delay: 900 });
+    await expect(page.locator('.town-screen')).toHaveCount(0); // appui long ≠ tap
+    await expect.poll(() => movedFrom(before)).toBeGreaterThan(5);
+  });
+
+  expect(errors).toEqual([]);
+});
+
 test("bandeau d'armée : tap sur une vignette ⇒ fiche d'unité (stats + capacités)", { tag: '@mobile' }, async ({
   page,
 }) => {

@@ -209,6 +209,30 @@
   font-size: 1.125rem;
 }
 
+/* Bouton « héros suivant avec PM » (E4) : icône + pastille du nombre de héros
+   encore mobiles (laiton, distinct du badge sang du journal). */
+.next-hero-toggle {
+  position: relative;
+  font-size: 1.125rem;
+}
+.next-hero-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--brass);
+  border: 1px solid var(--brass-bright);
+  color: var(--ink-900);
+  font: 700 0.6875rem var(--font-ui);
+  line-height: 1;
+}
+
 /* Bouton d'ouverture de ville (doc 08 §2.1, lot UX U4) : un par ville
    possédée, badge de faction + libellé alignés (2ᵉ ville capturée ⇒ 2
    badges distincts). */

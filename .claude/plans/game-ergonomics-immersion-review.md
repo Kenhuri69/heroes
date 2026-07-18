@@ -385,4 +385,7 @@ Zéro asset, zéro moteur : uniquement `CombatScene` + `motion.ts`.
         auto-scroll de la file d'initiative). **1b** (`ux-lot1b-combat-camera.md`) :
         E10 (pan de combat borné + re-fit conservateur au resize) + **harnais de
         tests unitaires client** (vitest) monté au passage.
-  - [ ] Lots 2→10 : à suivre.
+  - [x] **Lot 2** — navigation au pouce (`ux-lot2-thumb-nav.md`, E4) : bouton HUD
+        « héros suivant avec PM » (badge), tap portrait = recentrage caméra, appui
+        long ville = recentrage (tap = ouvrir). `useLongPress` extrait/partagé.
+  - [ ] Lots 3→10 : à suivre.

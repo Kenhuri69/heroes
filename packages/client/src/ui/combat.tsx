@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'preact/compat';
-import { useEffect, useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import {
   heroActionLeft,
   heroAttackDamage,
@@ -69,6 +69,14 @@ export function CombatUi() {
   const [prayerOpen, setPrayerOpen] = useState(false);
   const [unitSpellOpen, setUnitSpellOpen] = useState(false);
   const [leaveConfirm, setLeaveConfirm] = useState<'retreat' | 'surrender' | null>(null);
+  // E1 : sur mobile, les actions secondaires (Prière/Sort d'unité/Fuir/Se rendre/
+  // Journal/vitesses) sont repliées derrière « ⋯ » pour rendre le plateau au
+  // joueur. Sur desktop elles restent inline (CSS) — cet état ne sert qu'au tiroir.
+  const [showMoreActions, setShowMoreActions] = useState(false);
+  // E3 : la file d'initiative défile horizontalement (overflow) ; on ramène la
+  // puce active dans la vue à chaque changement de tour (elle n'est plus coupée
+  // au bord droit sans qu'on sache où elle est).
+  const orderRef = useRef<HTMLOListElement>(null);
   // Fiche de pile inspectée : source unique dans le store — ouverte par un tap
   // sur une vignette du bandeau OU un appui long sur le plateau (CombatScene).
   const inspectId = useApp((s) => s.combatInspectId);
@@ -114,6 +122,13 @@ export function CombatUi() {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, []);
+
+  // E3 : ramène la puce active dans la vue de la file d'initiative (défilement
+  // horizontal borné à son conteneur — inline center, jamais de scroll vertical).
+  useEffect(() => {
+    const el = orderRef.current?.querySelector('.stack-chip-active');
+    el?.scrollIntoView({ inline: 'center', block: 'nearest' });
+  }, [combat?.activeStackId]);
 
   if (!combat) return null;
 
@@ -193,7 +208,7 @@ export function CombatUi() {
             <span class="combat-hero-mana">{t('hero.mana', { mana: hero.mana, manaMax: hero.manaMax })}</span>
           </div>
         )}
-        <ol class="combat-order" data-testid="combat-order" aria-label={t('combat.order.label')}>
+        <ol ref={orderRef} class="combat-order" data-testid="combat-order" aria-label={t('combat.order.label')}>
           {order.current.map((s) => (
             <li key={s.id}>
               <StackChip stack={s} active={s.id === combat.activeStackId} onOpen={() => appStore.setState({ combatInspectId: s.id })} />
@@ -255,14 +270,13 @@ export function CombatUi() {
           </footer>
         ) : (
         <footer class="combat-actions">
+        {/* Primaires : toujours visibles (E1). */}
+        <div class="combat-actions-primary">
         <button data-testid="combat-wait" disabled={!isPlayerTurn || autoActive} onClick={() => act('wait')}>
           {t('combat.wait')}
         </button>
         <button data-testid="combat-defend" disabled={!isPlayerTurn || autoActive} onClick={() => act('defend')}>
           {t('combat.defend')}
-        </button>
-        <button data-testid="combat-spell" disabled={!canCastSpell} onClick={() => setSpellBookOpen(true)}>
-          {t('combat.spell')}
         </button>
         <button
           data-testid="combat-hero-attack"
@@ -271,6 +285,30 @@ export function CombatUi() {
         >
           {t('combat.heroAttack')}
         </button>
+        <button data-testid="combat-spell" disabled={!canCastSpell} onClick={() => setSpellBookOpen(true)}>
+          {t('combat.spell')}
+        </button>
+        <button
+          data-testid="combat-auto"
+          class={autoActive ? 'combat-auto-active' : ''}
+          disabled={!isPlayerTurn && !autoActive}
+          onClick={auto}
+        >
+          {autoActive ? t('combat.resume') : t('combat.auto')}
+        </button>
+        {/* « ⋯ » : révèle les secondaires (mobile uniquement — masqué en CSS sur desktop). */}
+        <button
+          data-testid="combat-more"
+          class={`combat-more-toggle${showMoreActions ? ' active' : ''}`}
+          aria-label={t('combat.more')}
+          aria-expanded={showMoreActions}
+          onClick={() => setShowMoreActions((v) => !v)}
+        >
+          ⋯
+        </button>
+        </div>
+        {/* Secondaires : repliées derrière « ⋯ » sur mobile, inline sur desktop. */}
+        <div class={`combat-actions-secondary${showMoreActions ? ' open' : ''}`}>
         <button data-testid="combat-prayer" disabled={!canPray} onClick={() => setPrayerOpen(true)}>
           {t('combat.prayer')}
         </button>
@@ -292,14 +330,6 @@ export function CombatUi() {
           {surrenderGold === 0 ? t('combat.surrenderFree') : t('combat.surrender', { gold: surrenderGold })}
         </button>
         <button
-          data-testid="combat-auto"
-          class={autoActive ? 'combat-auto-active' : ''}
-          disabled={!isPlayerTurn && !autoActive}
-          onClick={auto}
-        >
-          {autoActive ? t('combat.resume') : t('combat.auto')}
-        </button>
-        <button
           data-testid="combat-log-toggle"
           class={logOpen ? 'active' : ''}
           aria-pressed={logOpen}
@@ -317,6 +347,7 @@ export function CombatUi() {
               ×{speed}
             </button>
           ))}
+        </div>
         </div>
       </footer>
         )}

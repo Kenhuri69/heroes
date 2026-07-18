@@ -673,7 +673,11 @@ test('combat : victoire contre le gardien, retour carte avec pertes appliquées'
   await expect.poll(() => heroPos(page)).toEqual({ x: 8, y: 2 });
 
   // Journal de combat (UX-COMBATLOG) : le bouton bascule le panneau ; le journal
-  // est alimenté dès l'ouverture du combat (« Round 1 » déjà présent).
+  // est alimenté dès l'ouverture du combat (« Round 1 » déjà présent). Lot 1a :
+  // sur mobile, le Journal est une action secondaire ⇒ ouvrir le tiroir « ⋯ »
+  // d'abord (sur desktop « ⋯ » est masqué et les secondaires sont inline).
+  const moreActions = page.getByTestId('combat-more');
+  if (await moreActions.isVisible()) await moreActions.click();
   await page.getByTestId('combat-log-toggle').click();
   await expect(page.getByTestId('combat-log')).toBeVisible();
   await expect(page.getByTestId('combat-log-lines')).toContainText(/Round/i);
@@ -954,6 +958,31 @@ test('auto-combat : bascule round par round et reprise de main (doc 08 §2.4, lo
   await expect(page.getByTestId('combat-wait')).toBeEnabled();
   const combat = await page.evaluate(() => window.__HEROES_TEST__!.getState().combat);
   expect(combat).not.toBeNull();
+
+  expect(errors).toEqual([]);
+});
+
+test('E1 : sur mobile, la barre de combat est compacte (secondaires derrière « ⋯ »)', { tag: '@core' }, async ({
+  page,
+}) => {
+  const errors = collectErrors(page);
+  await page.setViewportSize({ width: 360, height: 640 });
+  await page.goto('./?seed=42#arena');
+  await page.waitForFunction(() => window.__HEROES_READY__ === true);
+  await passPreBattle(page); // écran pré-combat → plateau
+
+  await expect(page.getByTestId('combat-wait')).toBeVisible();
+  // Lot 1a (E1) : la barre tient sur ~2 rangées ⇒ < 30 % du viewport 640 (avant :
+  // ~5 rangées ≈ la moitié basse de l'écran, le plateau était réduit à un bandeau).
+  const box = await page.locator('.combat-actions').boundingBox();
+  expect(box).not.toBeNull();
+  expect(box!.height).toBeLessThan(640 * 0.3);
+  // Les secondaires (Se rendre…) sont repliées derrière « ⋯ » ; le tiroir les révèle.
+  const more = page.getByTestId('combat-more');
+  await expect(more).toBeVisible();
+  await expect(page.getByTestId('combat-surrender')).toBeHidden();
+  await more.click();
+  await expect(page.getByTestId('combat-surrender')).toBeVisible();
 
   expect(errors).toEqual([]);
 });

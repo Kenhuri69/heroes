@@ -391,6 +391,7 @@
   "combat.auto": "Auto ▶▶",
   "combat.resume": "Take back control",
   "combat.log": "Log",
+  "combat.more": "More actions",
   "combatLog.empty": "No action yet.",
   "combatLog.round": "— Round {round} —",
   "combatLog.attack": "{attacker} strikes {target}: {damage} damage, {kills} killed",

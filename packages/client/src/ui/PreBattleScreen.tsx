@@ -34,6 +34,11 @@ export function PreBattleScreen() {
   // approximatives (aucune fuite au-delà de la puissance déjà arrondie).
   const attackerApprox = combat.playerSide !== 'attacker';
   const defenderApprox = combat.playerSide !== 'defender';
+  // E8 — garde-fou « combat très défavorable » : l'écran affiche déjà les deux
+  // puissances ; on rend explicite le cas où l'ennemi ÉCRASE le joueur (≥ ×2).
+  const playerPower = combat.playerSide === 'attacker' ? attackerPower : defenderPower;
+  const enemyPower = combat.playerSide === 'attacker' ? defenderPower : attackerPower;
+  const overwhelmed = playerPower > 0 && enemyPower >= playerPower * 2;
 
   const hero = combat.attackerHeroId
     ? game.heroes.find((h) => h.id === combat.attackerHeroId)
@@ -149,6 +154,11 @@ export function PreBattleScreen() {
           </div>
         </div>
 
+        {overwhelmed && (
+          <p class="pre-battle-warning" data-testid="pre-battle-warning" role="alert">
+            {t('preBattle.overwhelmWarning')}
+          </p>
+        )}
         <div class="pre-battle-actions">
           <button class="pre-battle-fight" data-testid="pre-battle-fight" onClick={fight}>
             {t('preBattle.fight')}

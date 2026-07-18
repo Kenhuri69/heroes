@@ -375,6 +375,7 @@
   "preBattle.fight": "Fight",
   "preBattle.auto": "Auto-Battle",
   "preBattle.abandon": "Withdraw",
+  "preBattle.overwhelmWarning": "⚠ Overwhelming odds — the enemy is far stronger.",
   "preBattle.composition": "Composition",
   "preBattle.qty.few": "A few",
   "preBattle.qty.several": "Several",

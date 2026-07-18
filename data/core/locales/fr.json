@@ -375,6 +375,7 @@
   "preBattle.fight": "Combattre",
   "preBattle.auto": "Combat auto",
   "preBattle.abandon": "Abandonner",
+  "preBattle.overwhelmWarning": "⚠ Combat très défavorable — l'ennemi est bien plus puissant.",
   "preBattle.composition": "Composition",
   "preBattle.qty.few": "Quelques",
   "preBattle.qty.several": "Plusieurs",

@@ -28,7 +28,7 @@
 |---|---|---|
 | A1 | Cibles ≥ 44 px | ✅ 0 warning (DOM) ; hexes combat couverts par min-scale U1 (`CombatScene.ts:55-57`). Le bug V-1 (`.resource` ~36 px) signalé par `ux-audit-accueil-ville.md` est **déjà corrigé** (`styles.css:56-59`) — l'ancien audit est périmé sur ce point. |
 | A2 | Parité hover / appui long | ✅ appui long 450 ms souris+tactile (`input/pointer.ts:63-109`) ; aucun `title=`/`:hover` porteur d'info exclusive repéré. |
-| A3 | Tap-tap avant action irréversible | ✅ déplacement/attaque/sort/placement (préviz chemin+jours, aperçu dégâts). ⚠️ nuance E8 : pas de garde-fou supplémentaire sur une attaque « suicidaire ». |
+| A3 | Tap-tap avant action irréversible | ✅ déplacement/attaque/sort/placement (préviz chemin+jours, aperçu dégâts) + **alerte pré-combat « combat très défavorable »** (E8, puissance ennemie ≥ ×2). ⚠️ reste différé : garde-fou d'une frappe « suicidaire » en cours de combat (riposte estimée). |
 | A4 | Pile de modales ≤ 2 | ✅ `MAX_MODAL_DEPTH = 2` structurel (`app/router.ts:33-45`), retour Android/Échap unifiés. |
 | A5 | Jamais la couleur seule | ✅ généralisé (FactionBadge à motifs, formes de camp, glyphes ★/⚑/☠, pastilles + libellés). |
 | A6 | 3 crans de police | ✅ 100/112,5/125 % en `rem`, aucun débordement bloquant constaté sur les captures cran 3. 🟡 nuances : libellés de vignettes de ville qui s'empilent sur l'art (I6), astuce raccourcis coupée au bord du cadre Options mobile cran 3 (scrollable). |
@@ -454,8 +454,12 @@ Zéro asset, zéro moteur : uniquement `CombatScene` + `motion.ts`.
         ambiances par biome (9.3, optionnel).
   - [ ] **Lot 6 tail** (asset-lourd) : fonds de combat (8 terrains) + vignettes
         core/événement — planches à générer (prompts fournis).
-  - [ ] **Lot 3 tail différé** : E8 (confirmer attaque perdue), E14 (filtres journal)
-        — 🟡 à faible valeur / plomberie disproportionnée.
+  - [~] **Lot 3 tail** : **E8 moitié pré-combat livrée** (`e8-prebattle-overwhelm-warning.md`)
+        — bandeau d'alerte `role="alert"` sur `PreBattleScreen` quand la puissance
+        ennemie écrase celle du joueur (≥ ×2), clôt le seul trou du pilier A3.
+        **Différés** 🟡 : E8 moitié in-combat (frappe « suicidaire » via riposte
+        estimée), E14 (filtres de journal) — faible valeur / plomberie
+        disproportionnée.
   - [x] **I15 haptique mobile** (`ux-lot-i15-haptics.md`) : `navigator.vibrate` sur
         kills (combat affiché) & confirmations, **opt-in** Options (défaut OFF,
         persisté), mapping pur réutilisant `sfxIdForEvent` (unit-testé).

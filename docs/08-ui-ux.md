@@ -410,6 +410,13 @@
 > L'événement moteur `CombatEnded` porte désormais `survivors` en plus de
 > `casualties` (état haché inchangé ⇒ golden épargné).
 
+> ⚠️ **Garde-fou « combat très défavorable » (E8, pré-combat)** : quand la
+> puissance ennemie **écrase** celle du joueur (≥ ×2, les deux `armyStrength`
+> déjà affichées), l'écran pré-combat montre un bandeau `role="alert"` (glyphe ⚠
+> + libellé = double canal, jamais la couleur seule) au-dessus des actions —
+> rendant l'engagement défavorable explicite au point de décision (le joueur
+> garde *Combattre* / *Combat auto* / *Abandonner*). Client seul, zéro moteur.
+
 ### 2.5 Autres écrans
 
 Menu principal (Continuer / Scénarios / Escarmouche / **Éditeur de carte** / Options), fiche de scénario (objectifs), fin de partie (stats, graphique de puissance), options (langue FR/EN, vitesse anims, taille UI, audio, réduction des animations, confirmation de fin de tour : cf. §4).

@@ -1,4 +1,5 @@
 import { Application, Container, FederatedPointerEvent, Point } from 'pixi.js';
+import { clampWorldPosition, type ContentBounds, type Rect } from './cameraClamp';
 
 const MIN_ZOOM = 0.5;
 const MAX_ZOOM = 2;
@@ -22,6 +23,9 @@ export class Camera {
   private readonly maxZoom: number;
   /** Désactivée pendant le combat (remédiation U1) : la caméra de combat prend la main sur `app.stage`. */
   private enabled = true;
+  /** Bornage du pan (E10) : opt-in — non défini ⇒ pan libre (carte d'aventure). */
+  private clampContent: ContentBounds | null = null;
+  private clampView: Rect | null = null;
 
   constructor(private readonly app: Application, opts: CameraOptions = {}) {
     this.minZoom = opts.minZoom ?? MIN_ZOOM;
@@ -45,6 +49,29 @@ export class Camera {
   /** Active/désactive les gestes (pan/pinch/molette) — remédiation U1 (bascule aventure ↔ combat). */
   setEnabled(enabled: boolean): void {
     this.enabled = enabled;
+  }
+
+  /**
+   * Borne le pan au contenu (E10) : `content` = bornes du plateau (repère local),
+   * `view` = aire de jeu à l'écran. `null`/`null` ⇒ pan libre (défaut carte).
+   * Réappliqué immédiatement (utile au resize : la vue change).
+   */
+  setClampBounds(content: ContentBounds | null, view: Rect | null): void {
+    this.clampContent = content;
+    this.clampView = view;
+    this.applyClamp();
+  }
+
+  private applyClamp(): void {
+    if (!this.clampContent || !this.clampView) return;
+    const p = clampWorldPosition(
+      { x: this.world.x, y: this.world.y },
+      this.world.scale.x,
+      this.clampContent,
+      this.clampView,
+    );
+    this.world.x = p.x;
+    this.world.y = p.y;
   }
 
   /** Retire les listeners (stage + molette) et détruit le monde — remédiation CL1. */
@@ -79,6 +106,7 @@ export class Camera {
       if (this.pinchDist > 0) this.zoomAt(this.pinchCenter(), dist / this.pinchDist);
       this.pinchDist = dist;
     }
+    this.applyClamp(); // E10 : le pan/pinch ne peut pas sortir le plateau de l'aire.
   };
 
   private onUp = (e: FederatedPointerEvent): void => {
@@ -95,6 +123,7 @@ export class Camera {
     if (!this.enabled) return;
     e.preventDefault();
     this.zoomAt(new Point(e.offsetX, e.offsetY), e.deltaY < 0 ? 1.1 : 1 / 1.1);
+    this.applyClamp(); // E10 : après un dézoom, recadrer si le plateau ne couvre plus l'aire.
   };
 
   /** Zoom multiplicatif centré sur un point écran (le point reste sous le geste). */

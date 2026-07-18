@@ -30,6 +30,7 @@ import { Camera } from '../../render/camera';
 import { heroAvatarUrl, unitSpriteUrl } from '../../render/assets';
 import { heroArchetype } from '../../app/game';
 import { HEX_SIZE, computeBoardBounds, drawBoard, hexKey, offsetToPixel, pixelToOffset } from '../../render/hexgrid';
+import { isContentPointVisible, type Rect } from '../../render/cameraClamp';
 import { combatPreview } from './preview';
 import { spawnProjectile, spawnSpellImpact } from '../../render/combatFx';
 import { reduceMotion } from '../../app/motion';
@@ -104,6 +105,9 @@ export class CombatScene {
   private destroyed = false;
   /** UXD-0 R5b : vrai tant qu'un combat est affiché — sert à détecter l'ouverture. */
   private combatShown = false;
+  /** E10 : une mise en page initiale (échelle + centrage) a-t-elle eu lieu avec un
+   *  combat ? Distingue l'ouverture (centrage) du resize (pan préservé). */
+  private laidOut = false;
 
   private readonly resizeObserver: ResizeObserver;
   private readonly unsubscribeStore: () => void;
@@ -155,44 +159,77 @@ export class CombatScene {
 
   // ——— Layout ———
 
-  private layout(): void {
-    const bounds = computeBoardBounds();
+  /** Aire de jeu à l'écran (hors en-tête armées + barre d'actions). */
+  private viewRect(): Rect {
     const availW = Math.max(1, this.app.screen.width - MARGIN_SIDE * 2);
     const availH = Math.max(1, this.app.screen.height - MARGIN_TOP - MARGIN_BOTTOM);
+    return { x: MARGIN_SIDE, y: MARGIN_TOP, width: availW, height: availH };
+  }
+
+  private layout(): void {
+    const bounds = computeBoardBounds();
+    const view = this.viewRect();
     // Plancher d'échelle : hexes ≥ 44 px même en portrait (le plateau déborde
     // alors et se déplace au pan/pinch, doc 08 §1/§2.4). Cap à MAX_SCALE.
-    const fit = Math.min(availW / bounds.width, availH / bounds.height, MAX_SCALE);
+    const fit = Math.min(view.width / bounds.width, view.height / bounds.height, MAX_SCALE);
     const scale = Math.max(fit, MIN_COMBAT_SCALE);
-    this.camera.world.scale.set(scale);
-    this.camera.world.position.set(
-      MARGIN_SIDE + (availW - bounds.width * scale) / 2 - bounds.minX * scale,
-      MARGIN_TOP + (availH - bounds.height * scale) / 2 - bounds.minY * scale,
-    );
-    // Un resize recentrait déjà la caméra (pan perdu) : recadrer sur la pile
-    // active plutôt que sur le centre du plateau quand il déborde (R5b).
     const combat = appStore.getState().game.combat;
-    if (combat) this.centerOnActive(combat);
+
+    if (!combat || !this.laidOut) {
+      // Ouverture (ou hors combat) : échelle + centrage géométrique du plateau.
+      this.camera.world.scale.set(scale);
+      this.camera.world.position.set(
+        view.x + (view.width - bounds.width * scale) / 2 - bounds.minX * scale,
+        view.y + (view.height - bounds.height * scale) / 2 - bounds.minY * scale,
+      );
+      this.camera.setClampBounds(bounds, view);
+      if (combat) {
+        this.centerOnActive(combat);
+        this.laidOut = true;
+      }
+      return;
+    }
+
+    // E10 — re-fit conservateur au RESIZE : préserver le cadrage de l'utilisateur
+    // (le point de contenu au centre de l'aire y reste au changement d'échelle),
+    // borner, puis ne recentrer sur la pile active QUE si le resize l'a rendue
+    // invisible (avant : chaque resize réinitialisait le pan).
+    const oldScale = this.camera.world.scale.x;
+    const cx = view.x + view.width / 2;
+    const cy = view.y + view.height / 2;
+    const centerContent = {
+      x: (cx - this.camera.world.x) / oldScale,
+      y: (cy - this.camera.world.y) / oldScale,
+    };
+    this.camera.world.scale.set(scale);
+    this.camera.world.position.set(cx - centerContent.x * scale, cy - centerContent.y * scale);
+    this.camera.setClampBounds(bounds, view);
+    const active = combat.stacks.find((s) => s.id === combat.activeStackId) ?? combat.stacks[0];
+    if (active) {
+      const p = offsetToPixel(active.pos);
+      const pos = { x: this.camera.world.x, y: this.camera.world.y };
+      if (!isContentPointVisible(p, pos, this.camera.world.scale.x, view)) this.centerOnActive(combat);
+    }
   }
 
   /**
-   * UXD-0 R5b : à l'OUVERTURE du combat seulement, si le plateau déborde de
-   * l'écran (échelle plancher 44 px en portrait), centre la vue sur l'hex de
-   * la pile active — sinon aucune unité n'était visible au 1er round. Le
-   * pan/pinch de l'utilisateur reste maître ensuite (pas de recentrage).
+   * UXD-0 R5b : à l'OUVERTURE (ou si le resize l'a rendue invisible), si le
+   * plateau déborde de l'aire (échelle plancher 44 px en portrait), centre la vue
+   * sur l'hex de la pile active — sinon aucune unité n'était visible. Le pan/pinch
+   * de l'utilisateur reste maître ensuite (pas de recentrage). Borne toujours.
    */
   private centerOnActive(combat: CombatState): void {
     const bounds = computeBoardBounds();
+    const view = this.viewRect();
     const scale = this.camera.world.scale.x;
-    const availW = Math.max(1, this.app.screen.width - MARGIN_SIDE * 2);
-    const availH = Math.max(1, this.app.screen.height - MARGIN_TOP - MARGIN_BOTTOM);
-    if (bounds.width * scale <= availW && bounds.height * scale <= availH) return; // layout() centré suffit
-    const active = combat.stacks.find((s) => s.id === combat.activeStackId) ?? combat.stacks[0];
-    if (!active) return;
-    const { x, y } = offsetToPixel(active.pos);
-    this.camera.world.position.set(
-      this.app.screen.width / 2 - x * scale,
-      MARGIN_TOP + availH / 2 - y * scale,
-    );
+    if (bounds.width * scale > view.width || bounds.height * scale > view.height) {
+      const active = combat.stacks.find((s) => s.id === combat.activeStackId) ?? combat.stacks[0];
+      if (active) {
+        const { x, y } = offsetToPixel(active.pos);
+        this.camera.world.position.set(view.x + view.width / 2 - x * scale, view.y + view.height / 2 - y * scale);
+      }
+    }
+    this.camera.setClampBounds(bounds, view); // (re)borne — centré ou recadré
   }
 
   // ——— Resync depuis le store (réconciliation simple, doc 10 §2.2) ———
@@ -219,6 +256,7 @@ export class CombatScene {
     const combat = st.game.combat;
     if (!combat) {
       this.combatShown = false;
+      this.laidOut = false; // E10 : le prochain combat repart d'un centrage propre.
       this.selection = null;
       combatPreview.set(null);
       this.boardGfx.clear();
@@ -239,6 +277,7 @@ export class CombatScene {
     if (!this.combatShown) {
       this.combatShown = true;
       this.centerOnActive(combat);
+      this.laidOut = true; // E10 : combat visible ⇒ les resizes suivants préservent le pan.
       this.buildHeroTokens(combat);
     }
     this.syncStacks(combat);

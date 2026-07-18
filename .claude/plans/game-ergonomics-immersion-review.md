@@ -380,8 +380,9 @@ Zéro asset, zéro moteur : uniquement `CombatScene` + `motion.ts`.
         sans montant), M-1 (« Continuer » grisé → « Aucune sauvegarde »), V-3/V-4
         (pip disponible plein + séparateurs ville mobile), E15 (bouton « Voir les
         raccourcis » + fond opaque du panneau raccourcis). **Livré.**
-  - [~] **Lot 1** — combat mobile. **1a livré** (`ux-lot1a-combat-mobile.md`) :
-        E1 (barre compacte, secondaires derrière « ⋯ », 50 %→18 % du viewport) +
-        E3 (fondu + auto-scroll de la file d'initiative). Reste **1b** : E10 (pan de
-        combat borné + re-fit conservateur, sous-système CombatScene).
+  - [x] **Lot 1** — combat mobile. **1a** (`ux-lot1a-combat-mobile.md`) : E1 (barre
+        compacte, secondaires derrière « ⋯ », 50 %→18 % du viewport) + E3 (fondu +
+        auto-scroll de la file d'initiative). **1b** (`ux-lot1b-combat-camera.md`) :
+        E10 (pan de combat borné + re-fit conservateur au resize) + **harnais de
+        tests unitaires client** (vitest) monté au passage.
   - [ ] Lots 2→10 : à suivre.

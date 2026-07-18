@@ -4,5 +4,33 @@
    son plateau au joueur précédent (fuite d'information hot-seat). Le fond du
    passage d'appareil est donc 100 % OPAQUE (encre du thème, pas un noir brut). */
 .modal-backdrop.handoff-backdrop {
-  background: var(--ink-900);
+  /* I9 : voile teinté aux couleurs du siège, POSÉ sur l'encre opaque (reste 100 %
+     opaque — B34) via color-mix ; `--seat-color` fourni en style inline. */
+  background:
+    radial-gradient(
+      circle at 50% 38%,
+      color-mix(in srgb, var(--seat-color, transparent) 20%, transparent),
+      transparent 62%
+    ),
+    var(--ink-900);
+}
+
+/* I9 : liseré supérieur teinté + crête d'identité du siège. */
+.outcome-overlay.handoff-tinted {
+  border-top: 4px solid var(--seat-color, var(--brass-bright));
+}
+
+.handoff-seat-crest {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.handoff-seat-swatch {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--parchment);
 }

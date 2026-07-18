@@ -1518,7 +1518,7 @@ test('N-DAILYREFRESH : la fin de tour humain ajoute les contrats du nouveau jour
   expect(errors).toEqual([]);
 });
 
-test('hot-seat : deux humains locaux alternent avec l’overlay de passage (Alpha 4.15)', async ({
+test('hot-seat : deux humains locaux alternent avec l’overlay de passage (Alpha 4.15)', { tag: '@core' }, async ({
   page,
 }) => {
   const errors = collectErrors(page);
@@ -1533,6 +1533,10 @@ test('hot-seat : deux humains locaux alternent avec l’overlay de passage (Alph
 
   // Tour du joueur 1 : overlay de passage d'abord, plateau du J1 ensuite.
   await expect(page.getByTestId('handoff-overlay')).toBeVisible();
+  // Lot 7a (I9) : l'overlay porte l'identité du siège — blason de faction (motif
+  // = second canal non chromatique) + pastille de couleur du joueur.
+  await expect(page.getByTestId('handoff-overlay').getByTestId('faction-badge')).toBeVisible();
+  await expect(page.getByTestId('handoff-overlay').locator('.handoff-seat-swatch')).toBeVisible();
   await page.getByTestId('handoff-continue').click();
   await expect(page.getByTestId('handoff-overlay')).toHaveCount(0);
   let state = await page.evaluate(() => window.__HEROES_TEST__!.getState());

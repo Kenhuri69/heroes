@@ -30,29 +30,28 @@ comparer aux captures de référence.
 
 ---
 
-## Lot S2 — Bombardement visible (P1, client seul) ✅ priorité 1
+## Lot S2 — Bombardement visible (P1, client seul) ✅ priorité 1 — LIVRÉ (2.1/2.3/2.4)
 
 L'événement moteur `WallBombarded { col, row, destroyed }` existe
-(`engine/combat/turns.ts`, `bombardWalls`) mais n'est écouté nulle part.
+(`engine/combat/turns.ts`, `bombardWalls`) mais n'était pas rendu.
 
-- [ ] S2.1 `CombatScene.onEvent` : sur `WallBombarded`, jouer un **projectile**
-      catapulte → hex du mur (réutiliser `spawnProjectile` de
-      `render/combatFx.ts`, arc balistique simple) puis un impact
-      (`spawnSpellImpact` ou variante « éclats de pierre »). Coupé en
-      reduce-motion comme les autres FX.
-- [ ] S2.2 État « mur endommagé » : superposer au sprite de rempart un overlay
-      de fissures (asset `combat/siege-wall-cracked`, repli teinte assombrie)
-      dès que `combat.siegeWallHp[key] < SIEGE_WALL_HP`. `syncWalls` doit
-      intégrer les PV dans sa signature de reconstruction.
-- [ ] S2.3 `destroyed: true` : le segment tombe avec un petit fondu/secousse
-      (patron `animateDeath`/`boardShake` existants) au lieu de disparaître au
-      sync.
-- [ ] S2.4 Journal de combat : ligne i18n FR/EN « La catapulte frappe le
-      rempart (−N) / Le rempart s'effondre » (`app/combat-log.ts` + locales
-      core).
-- Vérif : test smoke siège (voir S-TEST ci-dessous) — le compteur
-  `combatFx.projectiles` s'incrémente à chaque round avec catapulte ; golden
-  inchangé ; captures avant/après.
+- [x] S2.1 `CombatScene` `animateEvent` case `WallBombarded` : **projectile**
+      lobé (origine hors-champ haut-gauche du camp attaquant → hex du mur via
+      `offsetToPixel`, `spawnProjectile`) + **impact** « éclats de pierre »
+      (`spawnSpellImpact(..., 'damage', …)`). Coupé en reduce-motion.
+- [ ] S2.2 État « mur endommagé » (overlay de fissures) — **différé** : nécessite
+      un asset `combat/siege-wall-cracked` + `syncWalls` intégrant les PV dans sa
+      signature (vague 2 assets).
+- [x] S2.3 `destroyed: true` : `redrawBoard` (brèche élargie) + `shakeBoard`
+      (effondrement), hors reduce-motion.
+- [x] S2.4 Journal de combat : `combatLogText` case `WallBombarded` →
+      `combatLog.wallHit` / `combatLog.wallDestroyed` (FR/EN), **unit-testé**
+      (`combat-log.test.ts`).
+- Vérif LIVRÉE : `combat-log.test` (mapping hit/destroyed distincts) ; le rendu
+  FX réutilise `spawnProjectile` (couvert B6) + `spawnSpellImpact`. Le **smoke
+  siège dédié (S-TEST)** — forge d'état lourde (IndexedDB, doc 19 annexe) —
+  reste à construire comme **harnais partagé de la vague** (couvrira S1/S2/S3/S6
+  en non-régression) ; noté ci-dessous. Golden inchangé (client seul).
 
 ## Lot S3 — Douve lisible (P1, client seul)
 

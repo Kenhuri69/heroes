@@ -434,6 +434,8 @@
   "combatLog.moraleNeg": "{unit} hésite (moral) et saute son tour",
   "combatLog.feared": "{unit} est effrayé",
   "combatLog.immobilized": "{unit} est immobilisé et saute son tour",
+  "combatLog.wallHit": "La catapulte frappe le rempart",
+  "combatLog.wallDestroyed": "Un segment de rempart s'effondre",
   "combatLog.resonated": "{unit} se produit et génère {amount} {resource}",
   "combatLog.won": "Victoire !",
   "combatLog.lost": "Défaite…",

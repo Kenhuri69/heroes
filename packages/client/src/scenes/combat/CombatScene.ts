@@ -1077,9 +1077,22 @@ export class CombatScene {
         return;
       }
       case 'WallBombarded': {
-        // C-SIEGE2.6 : tir de catapulte — quand un segment tombe, l'état a déjà
-        // retiré le mur ⇒ redessiner le plateau ouvre l'hex (la brèche s'élargit).
-        if (event.destroyed) this.redrawBoard();
+        // S2 (siege-visual) : tir de catapulte VISIBLE — projectile lobé depuis
+        // l'arrière du camp attaquant vers le segment de rempart, puis impact
+        // (éclats de pierre = famille `damage`). Coupé en reduce-motion.
+        const reduced = prefersReducedMotion();
+        const dest = offsetToPixel({ col: event.col, row: event.row });
+        const to = new Point(dest.x, dest.y);
+        // Origine hors-champ, en retrait (haut-gauche) du camp attaquant.
+        const origin = new Point(to.x - HEX_SIZE * 5, to.y - HEX_SIZE * 4);
+        await spawnProjectile(this.fxLayer, origin, to, { speed, reduced });
+        await spawnSpellImpact(this.fxLayer, to, 'damage', { speed, reduced });
+        // Quand un segment tombe, l'état a déjà retiré le mur ⇒ redessiner ouvre
+        // l'hex (la brèche s'élargit) + le plateau tressaille (effondrement).
+        if (event.destroyed) {
+          this.redrawBoard();
+          if (!reduced) void this.shakeBoard();
+        }
         return;
       }
       case 'StackCursed': {

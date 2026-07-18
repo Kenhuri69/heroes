@@ -877,6 +877,12 @@ round (sort ET frappe, ou deux sorts), joueur comme IA.
 > allié est adjacent à la tuile d'engagement, un overlay propose de **l'inviter**
 > (Oui = rejoint, Non = solo) et câble `MoveHero.allyHeroId` ; en combat, les piles
 > de l'allié portent un **liseré de la couleur de son joueur** (propriété visible).
-> Coop désormais **jouable**. **Différés** : **E4.2b** siège coop ; **E4.3** butin
-> partagé ; **E4.4** actions de héros par-héros (chaque allié agit).
+> **E4.2b moteur (SIÈGE) ✅ livré** — `beginTownCombat(…, allyHeroId?)` +
+> `CaptureTown.allyHeroId?` (threadé via `capture.ts`) : même mécanique que le
+> gardien, factorisée (`combineCoopArmy`/`tagCoopOwners`/`engageCoopAlly` ; le
+> gardien migre dessus sans changement de comportement). La branche victoire
+> commune route déjà survivants et prise de ville par propriétaire ⇒ **capture
+> partagée + XP égale** gratuites. Zéro bump save (`ownerHeroId` existe), golden
+> inchangé. Coop **PvE (gardien & siège)** désormais **jouable**. **Différés** :
+> **E4.3** butin partagé ; **E4.4** actions de héros par-héros (chaque allié agit).
 > **Priorité P3** (audit) : chantier lourd, livré par lots atomiques.

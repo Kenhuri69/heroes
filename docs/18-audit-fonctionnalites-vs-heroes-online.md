@@ -261,7 +261,7 @@ de cet audit)*
   bâtiment taverne déjà existant).
 - **Nature** : client (+ éventuel helper pur moteur de projection). **Priorité** : P2.
 
-**E4 — Combats coopératifs (signature MMHO)** 🚧 *(E4.1 cadrage + E4.2 moteur gardien + E4.5 client livrés — coop gardien JOUABLE)*
+**E4 — Combats coopératifs (signature MMHO)** 🚧 *(E4.1 cadrage + E4.2 gardien + E4.2b siège + E4.5 client livrés — coop PvE JOUABLE)*
 - **Réf.** : MMHO permettait d'inviter un ami dans sa bataille (2 armées côte à
   côte contre les PvE).
 - **État** : structurellement mono-héros par camp (`CombatSide` à un héros ;
@@ -275,8 +275,12 @@ de cet audit)*
   `CombatStack.ownerHeroId?` (save v35), invite d'un allié adjacent en combat de
   gardien, survivants routés par owner, XP partagée à égalité → **E4.5 client
   (fait)** : overlay d'invite (câble `MoveHero.allyHeroId`) + liseré propriétaire
-  des piles ⇒ **coop gardien jouable**. Différés : E4.2b siège coop → E4.3 butin
-  partagé → E4.4 actions par-héros. **Priorité** P3, par lots atomiques.
+  des piles ⇒ **coop gardien jouable** → **E4.2b moteur siège (fait)** :
+  `beginTownCombat(..., allyHeroId?)` + `CaptureTown.allyHeroId?` (même mécanique
+  factorisée que le gardien : `combineCoopArmy`/`tagCoopOwners`/`engageCoopAlly`),
+  capture + survivants + XP partagés par owner ⇒ **coop PvE (gardien & siège)
+  jouable**. Différés : E4.3 butin partagé → E4.4 actions par-héros. **Priorité**
+  P3, par lots atomiques.
 - **4 questions ouvertes** (consentement, cap de plateau, partage XP…) à trancher
   avant E4.2 (cf. plan §« Questions ouvertes »).
 

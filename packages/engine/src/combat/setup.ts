@@ -273,6 +273,55 @@ function resolveCoopAlly(draft: GameState, hero: HeroState, allyHeroId: string |
   return ally;
 }
 
+/**
+ * Armée coop combinée (E4.2/E4.2b) : piles du lead puis de l'allié invité valide,
+ * cap **7 PARTAGÉ** (lead prioritaire). Retourne le tableau parallèle des
+ * propriétaires (`undefined` = lead ⇒ owner implicite `combat.heroId`) et l'allié
+ * résolu (ou `undefined`). PUR : aucun effet de bord (l'appelant garde le contrôle
+ * de l'ordre entre garde-fou d'armée vide et engagement de l'allié).
+ */
+function combineCoopArmy(
+  draft: GameState,
+  hero: HeroState,
+  allyHeroId: string | undefined,
+): { capped: ArmyStack[]; cappedOwners: (string | undefined)[]; ally: HeroState | undefined } {
+  const ally = resolveCoopAlly(draft, hero, allyHeroId);
+  const army: ArmyStack[] = [];
+  const owners: (string | undefined)[] = [];
+  for (const s of hero.army) {
+    army.push(s);
+    owners.push(undefined); // lead : owner implicite = combat.heroId
+  }
+  if (ally) for (const s of ally.army.filter((a) => a.count > 0)) {
+    army.push(s);
+    owners.push(ally.id);
+  }
+  return { capped: army.slice(0, COOP_ARMY_CAP), cappedOwners: owners.slice(0, COOP_ARMY_CAP), ally };
+}
+
+/**
+ * Marque chaque pile d'attaque de son héros propriétaire coop — jamais celles du
+ * lead (`owner` undefined ⇒ champ omis ⇒ combat mono-héros bit-identique, golden
+ * épargné). Les piles au-delà de `owners` (machines de guerre du lead) restent au lead.
+ */
+function tagCoopOwners(stacks: CombatStack[], owners: (string | undefined)[]): void {
+  stacks.forEach((st, i) => {
+    const owner = owners[i];
+    if (owner) st.ownerHeroId = owner;
+  });
+}
+
+/**
+ * Engage l'armée d'un allié coop dans le combat : vidée sur la carte (reconstruite
+ * depuis ses survivants à la victoire, `applyConsequences`, symétrique au lead) et
+ * émission de `AllyJoinedCombat`. No-op sans allié.
+ */
+function engageCoopAlly(ally: HeroState | undefined, heroId: string, events: GameEvent[]): void {
+  if (!ally) return;
+  ally.army = [];
+  events.push({ type: 'AllyJoinedCombat', heroId, allyHeroId: ally.id });
+}
+
 export function beginGuardianCombat(
   draft: Draft,
   heroId: string,
@@ -292,37 +341,15 @@ export function beginGuardianCombat(
   // Coop (E4.2) : armée combinée lead + allié invité, cap 7 PARTAGÉ (lead
   // prioritaire). Chaque pile porte son héros propriétaire (`owners`) pour router
   // les survivants à la fin. Machines de guerre du lead HORS cap (piles extra).
-  const ally = resolveCoopAlly(draft, hero, allyHeroId);
-  const armyStacks: ArmyStack[] = [];
-  const owners: (string | undefined)[] = [];
-  for (const s of hero.army) {
-    armyStacks.push(s);
-    owners.push(undefined); // lead : owner implicite = combat.heroId
-  }
-  if (ally) for (const s of ally.army.filter((a) => a.count > 0)) {
-    armyStacks.push(s);
-    owners.push(ally.id);
-  }
-  const capped = armyStacks.slice(0, COOP_ARMY_CAP);
-  const cappedOwners = owners.slice(0, COOP_ARMY_CAP);
+  const { capped, cappedOwners, ally } = combineCoopArmy(draft, hero, allyHeroId);
   const attacker: ArmyStack[] = [...capped, ...hero.warMachines.map((unitId) => ({ unitId, count: 1 }))];
   // B5 : armée vide ⇒ refus d'engager (garde-fou parallèle au validateur humain,
   // remédiation R1 E1) — un héros sans troupe ne déclenche pas de combat de gardien.
   if (attacker.length === 0) return;
   const defender: ArmyStack[] = [{ unitId: guardian.unitId, count: guardian.count }];
   const attackerStacks = placeSide('attacker', attacker, draft.unitCatalog, 0);
-  // Marque les piles issues de l'allié (owner défini) — jamais celles du lead
-  // (champ omis ⇒ combat mono-héros bit-identique, golden épargné).
-  attackerStacks.forEach((st, i) => {
-    const owner = cappedOwners[i];
-    if (owner) st.ownerHeroId = owner;
-  });
-  if (ally) {
-    // L'allié engage son armée dans le combat : vidée sur la carte (reconstruite
-    // depuis ses survivants à la victoire, `applyConsequences`). Symétrique au lead.
-    ally.army = [];
-    events.push({ type: 'AllyJoinedCombat', heroId, allyHeroId: ally.id });
-  }
+  tagCoopOwners(attackerStacks, cappedOwners);
+  engageCoopAlly(ally, heroId, events);
   const stacks = [...attackerStacks, ...placeSide('defender', defender, draft.unitCatalog, COMBAT_COLS - 1)];
   const obstacles = drawObstacles(draft, rules.obstaclesMin, rules.obstaclesMax);
   draft.combat = {
@@ -420,22 +447,28 @@ export function beginTownCombat(
   wallDefenseBonus: number,
   fortLevel: number,
   events: GameEvent[],
+  /** Coop (E4.2b, doc 18 E4) : héros allié invité dont l'armée rejoint l'assaut. */
+  allyHeroId?: string,
 ): void {
   const hero = draft.heroes.find((h) => h.id === heroId);
   const town = draft.towns.find((t) => t.id === townId);
   const rules = draft.config?.combat;
   if (!hero || !town || !rules) throw new Error('beginTownCombat: héros, ville ou config absents');
   const terrain = draft.map ? terrainAt(draft.map, town.pos) : 'grass';
-  const attacker: ArmyStack[] = [
-    ...hero.army,
-    ...hero.warMachines.map((unitId) => ({ unitId, count: 1 })),
-  ];
+  // Coop (E4.2b) : mêmes règles que le gardien — armée combinée lead + allié
+  // invité, cap 7 PARTAGÉ, piles alliées taguées, armée de l'allié vidée à
+  // l'engagement (survivants routés par owner à la victoire, `applyConsequences`).
+  const { capped, cappedOwners, ally } = combineCoopArmy(draft, hero, allyHeroId);
+  const attacker: ArmyStack[] = [...capped, ...hero.warMachines.map((unitId) => ({ unitId, count: 1 }))];
   const defender: ArmyStack[] = town.garrison.map((s) => ({ ...s }));
   // C-SIEGE2.5 : une ville très fortifiée (Fort ≥ 3) ajoute une tour de tir au
   // camp défenseur (pile immobile derrière la porte). Absente sinon.
   const tower = buildTowerStack(fortLevel, draft.unitCatalog);
+  const attackerStacks = placeSide('attacker', attacker, draft.unitCatalog, 0);
+  tagCoopOwners(attackerStacks, cappedOwners);
+  engageCoopAlly(ally, heroId, events);
   const stacks = [
-    ...placeSide('attacker', attacker, draft.unitCatalog, 0),
+    ...attackerStacks,
     ...placeSide('defender', defender, draft.unitCatalog, COMBAT_COLS - 1),
     ...(tower ? [tower] : []),
   ];

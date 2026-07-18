@@ -1,6 +1,7 @@
 {
   "menu.title": "Heroes",
   "menu.continue": "Continue",
+  "menu.continueEmpty": "No saved game",
   "menu.newGame": "New game",
   "menu.skirmish": "Skirmish",
   "menu.editor": "Map editor",
@@ -159,6 +160,7 @@
   "options.on": "On",
   "options.off": "Off",
   "options.shortcutsHint": "Shortcuts (desktop): E end turn · H hero · N next hero · T town · Space wait · D defend · ? help · Esc close.",
+  "options.shortcutsButton": "View shortcuts",
   "shortcuts.title": "Keyboard shortcuts",
   "shortcuts.hint": "Desktop only — never required (everything is playable with the mouse).",
   "shortcuts.close": "Close",
@@ -381,6 +383,7 @@
   "combat.heroAttackPreview": "≈ {amount} damage to the chosen target (once per combat)",
   "combat.retreat": "Retreat",
   "combat.surrender": "Surrender ({gold} gold)",
+  "combat.surrenderFree": "Surrender",
   "combat.retreatBody": "The hero flees and ABANDONS the whole army, but survives. The battle is lost.",
   "combat.surrenderBody": "Pay {gold} gold to leave the battle KEEPING the surviving army. The battle is lost.",
   "combat.leaveCancel": "Cancel",

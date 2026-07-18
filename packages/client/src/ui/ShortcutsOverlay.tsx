@@ -1,5 +1,6 @@
 import { useApp } from '../app/store';
 import { t } from '../app/i18n';
+import './ShortcutsOverlay.css';
 
 /**
  * Aide des raccourcis clavier (lot X7, plan `ux-enrichissement-2026-07`) — les

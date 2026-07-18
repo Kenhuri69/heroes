@@ -99,7 +99,8 @@
 }
 
 .options-save-actions button,
-.options-import-label {
+.options-import-label,
+.options-shortcuts-button {
   min-height: 44px;
   display: flex;
   align-items: center;
@@ -145,6 +146,11 @@
   margin: 6px 0 0;
   font-size: 0.75rem;
   opacity: 0.75;
+}
+/* Bouton « Voir les raccourcis » (E15) : rend l'aide découvrable sans clavier.
+   Style hérité des boutons de la section Données (thème sombre parchemin). */
+.options-shortcuts-button {
+  margin: 8px 0 0;
 }
 .telemetry-stats {
   margin: 8px 0 0;

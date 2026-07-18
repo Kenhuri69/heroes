@@ -66,14 +66,21 @@ export function MenuScreen() {
         />
       </div>
       <nav class="menu-actions">
-        <button
-          class="menu-button"
-          data-testid="menu-continue"
-          disabled={!canContinue}
-          onClick={() => void restoreLatestSave()}
-        >
-          {t('menu.continue')}
-        </button>
+        <div class="menu-continue-slot">
+          <button
+            class="menu-button"
+            data-testid="menu-continue"
+            disabled={!canContinue}
+            onClick={() => void restoreLatestSave()}
+          >
+            {t('menu.continue')}
+          </button>
+          {!canContinue && (
+            <span class="menu-continue-hint" data-testid="menu-continue-hint">
+              {t('menu.continueEmpty')}
+            </span>
+          )}
+        </div>
         <button
           class="menu-button"
           data-testid="menu-new-game"

@@ -373,5 +373,11 @@ Zéro asset, zéro moteur : uniquement `CombatScene` + `motion.ts`.
 - [x] Inventaires ergonomie / immersion / différés consolidés
 - [x] Constats E1-E15, I1-I15 consignés avec preuves
 - [x] Plan par lots avec étapes et critères de vérification
-- [ ] Arbitrage utilisateur : validation des priorités P0→P3 (ou re-priorisation)
-- [ ] Ouverture des plans dédiés par lot au fil des implémentations
+- [x] Arbitrage utilisateur : « reprends le plan » ⇒ implémentation dans l'ordre
+      recommandé, en commençant par le Lot 0.
+- [~] Ouverture des plans dédiés par lot au fil des implémentations
+  - [x] **Lot 0 (P0)** — micro-correctifs (`ux-lot0-microfixes.md`) : E2 (« Se rendre »
+        sans montant), M-1 (« Continuer » grisé → « Aucune sauvegarde »), V-3/V-4
+        (pip disponible plein + séparateurs ville mobile), E15 (bouton « Voir les
+        raccourcis » + fond opaque du panneau raccourcis). **Livré.**
+  - [ ] Lots 1→10 : à suivre.

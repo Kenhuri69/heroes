@@ -209,6 +209,15 @@
   font-size: 1.125rem;
 }
 
+/* Mute rapide (I8) : icône 🔊/🔇 ; l'état muet est déjà porté par l'icône barrée
+   + `aria-pressed`, l'atténuation n'est qu'un 2ᵉ canal décoratif. */
+.mute-toggle {
+  font-size: 1.125rem;
+}
+.mute-toggle.muted {
+  opacity: 0.6;
+}
+
 /* Bouton « héros suivant avec PM » (E4) : icône + pastille du nombre de héros
    encore mobiles (laiton, distinct du badge sang du journal). */
 .next-hero-toggle {

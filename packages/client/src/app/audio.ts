@@ -34,6 +34,19 @@ for (const [path, url] of Object.entries(modules)) {
 
 const K_MUSIC = 'heroes:audio:music';
 const K_SFX = 'heroes:audio:sfx';
+const K_MUTED = 'heroes:audio:muted';
+
+function readMuted(): boolean {
+  try {
+    return localStorage.getItem(K_MUTED) === '1';
+  } catch {
+    return false;
+  }
+}
+
+// Mute rapide (I8) : OVERRIDE global — coupe musique ET SFX sans toucher aux
+// volumes réglés aux Options (restaurés au dé-mute). Persisté.
+let muted = readMuted();
 
 function readVolume(key: string, fallback: number): number {
   try {
@@ -76,7 +89,7 @@ function applyMusic(): void {
   const want = currentContext;
   const url = want ? registry.get(want) : undefined;
   music.volume = musicVolume;
-  if (!url || musicVolume === 0 || !unlocked) {
+  if (!url || musicVolume === 0 || muted || !unlocked) {
     if (!music.paused) music.pause();
     return;
   }
@@ -91,7 +104,7 @@ function applyMusic(): void {
 
 /** Joue un effet ponctuel (`sfx/<id>`) — no-op si absent, muet ou non débloqué. */
 export function playSfx(id: string): void {
-  if (!unlocked || sfxVolume === 0) return;
+  if (!unlocked || sfxVolume === 0 || muted) return;
   const url = registry.get(`sfx/${id}`);
   if (!url || typeof Audio === 'undefined') return;
   const a = new Audio(url); // instance jetable : autorise les recouvrements
@@ -105,7 +118,7 @@ export function playSfx(id: string): void {
  * coupée par `musicContextKey` (outcome ⇒ null). No-op si absent/muet/non débloqué.
  */
 function playJingle(id: string): void {
-  if (!unlocked || musicVolume === 0) return;
+  if (!unlocked || musicVolume === 0 || muted) return;
   const url = registry.get(`music/${id}`);
   if (!url || typeof Audio === 'undefined') return;
   const a = new Audio(url);
@@ -132,6 +145,24 @@ export function setSfxVolume(v: number): void {
     /* ignore */
   }
   appStore.setState({ sfxVolume });
+}
+
+/** Fixe le mute rapide (I8) : coupe/rétablit musique + SFX, persisté. */
+export function setMuted(v: boolean): void {
+  if (muted === v) return;
+  muted = v;
+  try {
+    localStorage.setItem(K_MUTED, muted ? '1' : '0');
+  } catch {
+    /* quota / navigation privée : le mute n'est jamais critique */
+  }
+  appStore.setState({ audioMuted: muted });
+  applyMusic();
+}
+
+/** Bascule le mute rapide (bouton haut-parleur de la TurnBar). */
+export function toggleMute(): void {
+  setMuted(!muted);
 }
 
 /** Événement moteur → effet ponctuel. Gardé au joueur humain hors combat. */
@@ -171,7 +202,7 @@ function sfxForEvent(event: AppEvent): void {
  * au store), SFX par événement (abonné au bus). Idempotent au bootstrap.
  */
 export function initAudio(): void {
-  appStore.setState({ musicVolume, sfxVolume });
+  appStore.setState({ musicVolume, sfxVolume, audioMuted: muted });
 
   const unlock = (): void => {
     if (unlocked) return;

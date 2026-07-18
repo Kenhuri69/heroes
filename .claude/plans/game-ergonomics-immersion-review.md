@@ -435,6 +435,17 @@ Zéro asset, zéro moteur : uniquement `CombatScene` + `motion.ts`.
         crossfade/titre vivant (items 4-5, optionnels).
   - [ ] **Lot 6 tail** (asset-lourd) : vignettes de bâtiments événement (item 3) +
         planches unités/avatars/ville (items 4-6) — via skills `asset-*`, session dédiée.
+  - [~] **Lot 8** — un monde qui respire. **Constaté déjà livré** : 8.1 bord de
+        monde (rivage iso `worldBorder.ts` + mer DOM non-noire + vignette
+        `.map-vignette`) — reste juste un dégradé thématique optionnel. **Différé** :
+        8.2 eau vivante (tint animé des chunks d'eau — tâche render sensible à
+        l'anti-gel ×4, à cadrer).
+  - [~] **Lot 9** — audio d'identité. **9a livré** (`ux-lot9a-quick-mute.md`, I8) :
+        **mute rapide** (bouton haut-parleur TurnBar + bascule Options, coupe
+        musique+SFX, persisté, icône barrée + `aria-pressed`). Reste : thèmes par
+        faction (9.2), ambiances par biome (9.3), SFX manquants (9.4).
+  - [ ] **Lot 6 tail** (asset-lourd) : fonds de combat (8 terrains) + vignettes
+        core/événement — planches à générer (prompts fournis).
   - [ ] **Lot 3 tail différé** : E8 (confirmer attaque perdue), E14 (filtres journal)
         — 🟡 à faible valeur / plomberie disproportionnée.
-  - [ ] Lots 8→10 : à suivre.
+  - [ ] Lots 7.3 (moteur) / 10 : à cadrer séparément.

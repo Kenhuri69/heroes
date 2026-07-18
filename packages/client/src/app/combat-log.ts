@@ -22,7 +22,7 @@ const nameOf = (stackId: string): string => {
   return unitId ? resolveUnitName(unitId) : stackId;
 };
 
-function combatLogText(e: AppEvent): string | null {
+export function combatLogText(e: AppEvent): string | null {
   switch (e.type) {
     case 'CombatRoundStarted':
       return t('combatLog.round', { round: e.round });
@@ -66,6 +66,9 @@ function combatLogText(e: AppEvent): string | null {
       return t('combatLog.feared', { unit: nameOf(e.targetId) });
     case 'StackImmobilized':
       return t('combatLog.immobilized', { unit: nameOf(e.stackId) });
+    case 'WallBombarded':
+      // S2 (siège) : bombardement du rempart par la catapulte.
+      return t(e.destroyed ? 'combatLog.wallDestroyed' : 'combatLog.wallHit');
     case 'StackResonated':
       return t('combatLog.resonated', {
         unit: nameOf(e.stackId),

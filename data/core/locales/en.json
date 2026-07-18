@@ -434,6 +434,8 @@
   "combatLog.moraleNeg": "{unit} hesitates (morale) and skips its turn",
   "combatLog.feared": "{unit} is frightened",
   "combatLog.immobilized": "{unit} is immobilized and skips its turn",
+  "combatLog.wallHit": "The catapult strikes the rampart",
+  "combatLog.wallDestroyed": "A rampart segment collapses",
   "combatLog.resonated": "{unit} performs and generates {amount} {resource}",
   "combatLog.won": "Victory!",
   "combatLog.lost": "Defeat…",

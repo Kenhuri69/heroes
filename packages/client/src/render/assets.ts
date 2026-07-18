@@ -326,31 +326,23 @@ export function statusIconUrl(name: string, px = 20): string | undefined {
 }
 
 /**
- * Sprite du mur de siège (`combat/siege-wall`, C-SIEGE2) — rempart distinct des
- * obstacles de champ. `undefined` ⇒ repli rocher procédural (`drawBoulder`).
+ * Muraille de siège PEINTE (S1, composition `drawSiegeWall`) — pièces qui
+ * s'assemblent le long de la colonne de murs. Toutes `undefined` ⇒ **repli
+ * procédural** (dessin vectoriel de la courtine/tour/porte), jamais d'image
+ * cassée.
+ * - `siegeCurtainUrl` : bande de courtine verticale, **tuilable verticalement**
+ *   (`TilingSprite`), face de mur crénelée.
+ * - `siegeTowerUrl` : tour crénelée posée aux extrémités des tronçons.
+ * - `siegeGateUrl` : porte de ville posée à l'ouverture centrale.
  */
-export function siegeWallUrl(): string | undefined {
-  return registry.get('combat/siege-wall');
+export function siegeCurtainUrl(): string | undefined {
+  return registry.get('combat/siege-curtain');
 }
-
-/**
- * Overlay de rempart endommagé (`combat/siege-wall-cracked`, S2) posé sur un
- * segment dont les PV sont entamés (`siegeWallHp < SIEGE_WALL_HP`). `undefined`
- * ⇒ repli : assombrissement procédural du sprite de rempart (jamais d'image
- * cassée).
- */
-export function siegeWallCrackedUrl(): string | undefined {
-  return registry.get('combat/siege-wall-cracked');
+export function siegeTowerUrl(): string | undefined {
+  return registry.get('combat/siege-tower');
 }
-
-/**
- * Overlay de rempart fortement endommagé / percé (`combat/siege-wall-breached`,
- * S2) — 2ᵉ palier d'usure sous `siege-wall-cracked`, posé quand les PV du segment
- * passent sous ~40 %. `undefined` ⇒ repli sur l'overlay de fissures puis
- * assombrissement (jamais d'image cassée).
- */
-export function siegeWallBreachedUrl(): string | undefined {
-  return registry.get('combat/siege-wall-breached');
+export function siegeGateUrl(): string | undefined {
+  return registry.get('combat/siege-gate');
 }
 
 // --- Chemin PixiJS : préchargement + lecture synchrone du cache ---

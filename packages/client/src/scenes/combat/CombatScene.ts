@@ -1,4 +1,4 @@
-import { Application, Assets, Container, Graphics, Point, Sprite, Text } from 'pixi.js';
+import { Application, Assets, Container, Graphics, Point, Sprite, Text, TilingSprite } from 'pixi.js';
 import {
   hexDistance,
   inCombatBounds,
@@ -28,8 +28,8 @@ import { pushToast } from '../../ui/toasts';
 import { onLongPress, onTap } from '../../input/pointer';
 import { Camera } from '../../render/camera';
 import { playerColor } from '../../render/playerColors';
-import { heroAvatarUrl, unitSpriteUrl, statusIconUrl } from '../../render/assets';
-import { drawSiegeWall } from '../../render/siegeWall';
+import { heroAvatarUrl, unitSpriteUrl, statusIconUrl, siegeCurtainUrl, siegeTowerUrl } from '../../render/assets';
+import { computeWallLayout, drawCurtain, drawTower, drawGate, drawDamage } from '../../render/siegeWall';
 import { heroArchetype } from '../../app/game';
 import { HEX_SIZE, computeBoardBounds, drawBoard, hexKey, offsetToPixel, pixelToOffset } from '../../render/hexgrid';
 import { isContentPointVisible, type Rect } from '../../render/cameraClamp';
@@ -110,8 +110,15 @@ export class CombatScene {
   private readonly camera: Camera;
   private readonly boardLayer = new Container();
   private readonly boardGfx = new Graphics();
-  /** S1 : muraille de siège CONTINUE (courtine + tours + porte + dégâts), dessinée en une passe (`drawSiegeWall`). */
-  private readonly wallGfx = new Graphics();
+  /**
+   * S1 : muraille de siège CONTINUE, en 3 sous-couches (du fond vers le dessus) :
+   * `wallBase` (repli procédural courtine/tour/porte), `wallSpriteLayer` (pièces
+   * PEINTES `siege-curtain`/`-tower`/`-gate` si fournies), `wallDamage` (fissures/
+   * brèche, toujours au-dessus). Une pièce peinte recouvre son repli procédural.
+   */
+  private readonly wallBase = new Graphics();
+  private readonly wallSpriteLayer = new Container();
+  private readonly wallDamage = new Graphics();
   /** Signature des remparts déjà rendus (hexes + PV) — évite de redessiner à chaque sync. */
   private wallKeys = '';
   private readonly stacksLayer = new Container();
@@ -154,8 +161,19 @@ export class CombatScene {
   private readonly unsubscribeLongPress: () => void;
 
   constructor(private readonly app: Application) {
-    this.boardLayer.addChild(this.boardGfx, this.wallGfx, this.heroLayer, this.stacksLayer, this.fxLayer);
-    this.wallGfx.eventMode = 'none'; // décor de rempart : ne capte jamais le tap
+    this.boardLayer.addChild(
+      this.boardGfx,
+      this.wallBase,
+      this.wallSpriteLayer,
+      this.wallDamage,
+      this.heroLayer,
+      this.stacksLayer,
+      this.fxLayer,
+    );
+    // Décor de rempart : ne capte jamais le tap.
+    this.wallBase.eventMode = 'none';
+    this.wallSpriteLayer.eventMode = 'none';
+    this.wallDamage.eventMode = 'none';
     this.fxLayer.eventMode = 'none'; // purement décoratif : ne capte jamais le tap
     this.heroLayer.eventMode = 'none'; // jetons de héros décoratifs (C-HEROSPRITE)
     // Le plateau vit dans la caméra de combat (pan/pinch/molette, plancher tactile).
@@ -304,7 +322,9 @@ export class CombatScene {
       this.selection = null;
       combatPreview.set(null);
       this.boardGfx.clear();
-      this.wallGfx.clear();
+      this.wallBase.clear();
+      this.wallDamage.clear();
+      this.wallSpriteLayer.removeChildren().forEach((c) => c.destroy());
       this.wallKeys = '';
       this.fxLayer.removeChildren().forEach((c) => c.destroy()); // purge des chiffres flottants
       for (const [id, token] of this.stackTokens) {
@@ -351,9 +371,62 @@ export class CombatScene {
       .join('|');
     if (sig === this.wallKeys) return;
     this.wallKeys = sig;
-    this.wallGfx.clear();
-    // S1 : muraille CONTINUE (courtine + tours + porte + dégâts) en une passe.
-    drawSiegeWall(this.wallGfx, combat);
+    this.wallBase.clear();
+    this.wallDamage.clear();
+    this.wallSpriteLayer.removeChildren().forEach((c) => c.destroy());
+
+    const layout = computeWallLayout(combat);
+    if (!layout) return;
+    const curtainUrl = siegeCurtainUrl();
+    const towerUrl = siegeTowerUrl();
+
+    // Courtines : sprite peint tuilé verticalement, sinon dessin procédural.
+    for (const run of layout.runs) {
+      if (curtainUrl) this.placeCurtain(curtainUrl, layout.wallX, layout.halfW, run.yTop, run.yBot);
+      else drawCurtain(this.wallBase, layout.wallX, run.yTop, run.yBot);
+    }
+    // Tours aux extrémités de chaque tronçon.
+    for (const ty of layout.towers) {
+      if (towerUrl) this.placeWallSprite(towerUrl, layout.wallX, ty, layout.towerW * 2, layout.towerH * 1.5);
+      else drawTower(this.wallBase, layout.wallX, ty);
+    }
+    // Porte : procédurale (arche + vantaux), calée sur l'ouverture verticale — la
+    // planche `siege-gate` horizontale existante n'y tiendrait pas ; un futur art
+    // de porte vertical pourra s'y substituer.
+    if (layout.gateY != null) drawGate(this.wallBase, layout.wallX, layout.gateY);
+    // Dégâts (fissures / brèche) — toujours procéduraux, au-dessus.
+    for (const d of layout.damage) drawDamage(this.wallDamage, d.x, d.y, d.ratio, d.seed);
+  }
+
+  /**
+   * S1 : courtine PEINTE tuilée VERTICALEMENT sur un tronçon [yTop,yBot] via un
+   * `TilingSprite` (une seule tuile de large, répétée en hauteur ⇒ muraille
+   * continue). L'échelle de tuile cale la largeur de texture sur `2·halfW`.
+   */
+  private placeCurtain(url: string, x: number, halfW: number, yTop: number, yBot: number): void {
+    const w = halfW * 2;
+    void Assets.load(url).then((texture) => {
+      if (this.destroyed || this.wallSpriteLayer.destroyed) return;
+      const tile = new TilingSprite({ texture, width: w, height: yBot - yTop });
+      const s = w / texture.width;
+      tile.tileScale.set(s);
+      tile.position.set(x - halfW, yTop);
+      this.wallSpriteLayer.addChild(tile);
+    });
+  }
+
+  /** S1 : pièce PEINTE (tour / porte) centrée en (x,y), calée à une taille cible. */
+  private placeWallSprite(url: string, x: number, y: number, targetW: number, targetH: number): void {
+    void Assets.load(url).then((texture) => {
+      if (this.destroyed || this.wallSpriteLayer.destroyed) return;
+      const sprite = new Sprite(texture);
+      sprite.anchor.set(0.5);
+      // Cale sur la hauteur cible (l'ouvrage monte au-dessus du mur), largeur ∝.
+      const scale = Math.min(targetH / texture.height, (targetW * 1.6) / texture.width);
+      sprite.scale.set(scale);
+      sprite.position.set(x, y);
+      this.wallSpriteLayer.addChild(sprite);
+    });
   }
 
   /**

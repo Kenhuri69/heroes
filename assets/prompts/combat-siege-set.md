@@ -1,16 +1,49 @@
-# Planche — rempart de siège (S1/S2, famille S)
+# Planche — rempart de siège (S1, muraille CONTINUE peinte)
 
-> **Style validé** (réf. captures du jeu d'origine, 2026-07) : illustration
-> peinte semi-réaliste type *Might & Magic Heroes Online* — pierre claire,
-> lumière douce, formes lisibles, sur **fond gris plat** `#c8c8c8` (détourage).
-> **Art LIVRÉ** pour `siege-wall`, `siege-wall-cracked`, `siege-wall-breached`,
-> `siege-gate` (extraits via `tools/assets/*` → alpha strict). Regénérer =
-> reprendre ces prompts. Mêmes clés `combat/<id>` ⇒ substitution par dépôt de PNG.
+> **Décision (2026-07) : muraille COMPOSÉE, pas de sprite horizontal par hex.**
+> `drawSiegeWall` place le long de la colonne de murs : **courtine** (tuilée
+> verticalement) + **tours** aux extrémités + **porte** à l'ouverture, avec un
+> **repli procédural** intégral (dessin vectoriel) tant que l'art peint manque.
+> Le client consomme ces clés PEINTES si présentes, sinon procédural :
+> - `combat/siege-curtain` → `TilingSprite` VERTICAL (doit **tuiler haut↔bas**) ;
+> - `combat/siege-tower` → sprite posé aux extrémités de tronçon ;
+> - `combat/siege-gate` → **procédural pour l'instant** (l'ancienne planche porte
+>   horizontale ne tient pas dans l'ouverture verticale de 2 hex ; un art de porte
+>   VERTICAL pourra être câblé plus tard).
 >
-> Ligne de style à garder dans chaque prompt :
+> Style validé (réf. captures du jeu d'origine) : peinture semi-réaliste *Might &
+> Magic Heroes Online*, pierre claire, lumière douce, sur **fond gris plat**
+> `#c8c8c8` (détourage `tools/assets/*` → alpha strict). Les anciennes planches
+> HORIZONTALES (`siege-wall`/`-cracked`/`-breached`/`-gate`) restent stagées mais
+> **superposées par la composition** (elles ne tuilent pas verticalement).
+
+## siege-curtain (courtine VERTICALE, tuilable haut↔bas — À GÉNÉRER)
+```
+A vertical run of medieval castle curtain wall, viewed slightly from the attacker's side so it runs top-to-bottom of the frame — painterly game asset, Might & Magic Heroes Online concept-art style, semi-realistic.
+A tall stone wall band running vertically; a crenellated battlement (merlons + walkway) along the LEFT edge facing the viewer, the ashlar wall face to the right; light beige-grey stone, mortar joints, moss.
+The stone reaches the TOP and BOTTOM edges of the frame so vertical copies stack seamlessly (tileable vertically); no feature that would break the seam at top/bottom.
+Front elevation, evenly lit, crisp readable forms. Flat uniform light grey background (#c8c8c8), no cast shadow.
+No text, no watermark, no border, no ground line, no banners.
+```
+
+## siege-tower (tour crénelée, plus haute que le mur — À GÉNÉRER)
+```
+A single medieval round defensive stone tower, tall, painterly game asset, Might & Magic Heroes Online concept-art style, semi-realistic.
+Cylindrical grey ashlar tower with a crenellated top, narrow arrow-slits, a flat battlemented roof, subtle weathering and moss, standing taller than a wall.
+Front 3/4 view, evenly lit, crisp readable silhouette. Centered with generous margin, flat uniform light grey background (#c8c8c8), no cast shadow.
+No text, no watermark, no border, no ground line, no banners.
+```
+
+> Extraction → `assets/combat/siege-curtain.png` & `siege-tower.png`
+> (`process_sprite.py` ou détourage fond-connecté). Dépôt ⇒ la composition passe
+> automatiquement au peint (repli procédural sinon).
+>
+> Ligne de style commune :
 > `painterly digital game illustration, Might & Magic Heroes Online concept-art
 > style, semi-realistic, muted natural stone palette, soft cinematic light, crisp
 > readable forms, subtle hand-painted texture, no cartoon outlines, no cel shading`
+
+## Anciennes planches horizontales (stagées, superposées) — pour mémoire
 
 ## siege-wall (segment intact)
 ```

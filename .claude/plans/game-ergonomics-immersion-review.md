@@ -390,7 +390,8 @@ Zéro asset, zéro moteur : uniquement `CombatScene` + `motion.ts`.
         long ville = recentrage (tap = ouvrir). `useLongPress` extrait/partagé.
   - [~] **Lot 3** — feedback. **3a livré** (`ux-lot3a-toast-noise.md`, E9) : revenus
         du jour agrégés en UN toast/entrée (au lieu d'un par mine/ville) + combats de
-        l'IA filtrés des toasts (bus `onBatch` + `meta.humanCombat`). Reste : E2
-        (raisons des boutons de combat désactivés), E8 (confirmer attaque perdue),
-        E14 (filtres de journal).
+        l'IA filtrés des toasts (bus `onBatch` + `meta.humanCombat`). **3b livré**
+        (`ux-lot3b-combat-reasons.md`, E2) : chaque bouton de combat désactivé porte
+        une raison (sous-libellé + title/aria) — « Déjà agi », « Aucun sort », « Or
+        manquant »… Reste : E8 (confirmer attaque perdue), E14 (filtres de journal).
   - [ ] Lots 4→10 : à suivre.

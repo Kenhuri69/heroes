@@ -172,6 +172,36 @@ export function CombatUi() {
   const surrenderGold = canLeave ? surrenderCost(appStore.getState().game, combat) : 0;
   const canSurrender = canLeave && playerGold >= surrenderGold;
 
+  // E2 : RAISON courte de désactivation par bouton (null = activé) — mêmes
+  // sous-conditions que les gates ci-dessus, source unique. Le bouton l'affiche en
+  // sous-libellé + `title`/`aria` (plus de « grisé sans explication », doc 08 §2.4).
+  const commonReason = autoActive ? 'auto' : !isPlayerTurn ? 'enemyTurn' : null;
+  const heroReason = !hero ? 'noHero' : (commonReason ?? (!heroCanAct ? 'heroActed' : null));
+  const unitSpellReason = ((): string | null => {
+    if (unitSpell) return null;
+    if (commonReason) return commonReason;
+    if (!active) return 'enemyTurn';
+    const def = catalog[active.unitId];
+    if (!def || !spellcasterParams(def)) return 'notCaster';
+    if (isSilenced(active)) return 'silenced';
+    if (active.spellCharges <= 0) return 'noCharges';
+    return 'notCaster';
+  })();
+  const reason: Record<string, string | null> = {
+    'hero-attack': canHeroStrike ? null : heroReason,
+    spell: canCastSpell ? null : (heroReason ?? 'noSpell'),
+    prayer: canPray ? null : (commonReason ?? 'prayer'),
+    'unit-spell': unitSpellReason,
+    retreat: canLeave ? null : (!combat.heroId ? 'noHero' : commonReason),
+    surrender: canSurrender ? null : !canLeave ? (!combat.heroId ? 'noHero' : commonReason) : 'gold',
+  };
+  // Sous-libellé court (visible) + explication complète en `title` (survol/appui
+  // long/lecteur d'écran) pour un bouton désactivé (E2). `null` ⇒ rien.
+  const reasonNode = (key: string | null | undefined) =>
+    key ? <span class="combat-btn-reason">{t(`combat.reason.${key}`)}</span> : null;
+  const reasonTitle = (key: string | null | undefined): string | undefined =>
+    key ? t(`combat.reason.${key}.hint`) : undefined;
+
   // Ordre de passage projeté (lot M1, doc 08 §2.4) : remplace les deux rangées
   // par camp triées par slot — l'actif est la 1ʳᵉ entrée par construction.
   const order = roundActionOrder(combat, catalog, appStore.getState().game);
@@ -281,12 +311,20 @@ export function CombatUi() {
         <button
           data-testid="combat-hero-attack"
           disabled={!canHeroStrike}
+          title={reasonTitle(reason['hero-attack'])}
           onClick={() => setHeroAttackOpen(true)}
         >
           {t('combat.heroAttack')}
+          {reasonNode(reason['hero-attack'])}
         </button>
-        <button data-testid="combat-spell" disabled={!canCastSpell} onClick={() => setSpellBookOpen(true)}>
+        <button
+          data-testid="combat-spell"
+          disabled={!canCastSpell}
+          title={reasonTitle(reason['spell'])}
+          onClick={() => setSpellBookOpen(true)}
+        >
           {t('combat.spell')}
+          {reasonNode(reason['spell'])}
         </button>
         <button
           data-testid="combat-auto"
@@ -309,25 +347,41 @@ export function CombatUi() {
         </div>
         {/* Secondaires : repliées derrière « ⋯ » sur mobile, inline sur desktop. */}
         <div class={`combat-actions-secondary${showMoreActions ? ' open' : ''}`}>
-        <button data-testid="combat-prayer" disabled={!canPray} onClick={() => setPrayerOpen(true)}>
+        <button
+          data-testid="combat-prayer"
+          disabled={!canPray}
+          title={reasonTitle(reason['prayer'])}
+          onClick={() => setPrayerOpen(true)}
+        >
           {t('combat.prayer')}
+          {reasonNode(reason['prayer'])}
         </button>
         <button
           data-testid="combat-unit-spell"
           disabled={!unitSpell}
+          title={reasonTitle(reason['unit-spell'])}
           onClick={() => setUnitSpellOpen(true)}
         >
           {t('combat.unitSpell')}
+          {reasonNode(reason['unit-spell'])}
         </button>
-        <button data-testid="combat-retreat" disabled={!canLeave} onClick={() => setLeaveConfirm('retreat')}>
+        <button
+          data-testid="combat-retreat"
+          disabled={!canLeave}
+          title={reasonTitle(reason['retreat'])}
+          onClick={() => setLeaveConfirm('retreat')}
+        >
           {t('combat.retreat')}
+          {reasonNode(reason['retreat'])}
         </button>
         <button
           data-testid="combat-surrender"
           disabled={!canSurrender}
+          title={reasonTitle(reason['surrender'])}
           onClick={() => setLeaveConfirm('surrender')}
         >
           {surrenderGold === 0 ? t('combat.surrenderFree') : t('combat.surrender', { gold: surrenderGold })}
+          {reasonNode(reason['surrender'])}
         </button>
         <button
           data-testid="combat-log-toggle"

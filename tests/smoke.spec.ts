@@ -1039,6 +1039,19 @@ test('auto-combat : bascule round par round et reprise de main (doc 08 §2.4, lo
   expect(errors).toEqual([]);
 });
 
+test('E2 : un bouton de combat désactivé affiche sa raison (sous-libellé + title)', { tag: '@core' }, async ({ page }) => {
+  const errors = collectErrors(page);
+  await page.goto('./?seed=42#arena');
+  await page.waitForFunction(() => window.__HEROES_READY__ === true);
+  await passPreBattle(page); // arène : aucun héros lié ⇒ actions de héros désactivées
+  const heroAttack = page.getByTestId('combat-hero-attack');
+  await expect(heroAttack).toBeDisabled();
+  // Lot 3b (E2) : plus de « grisé sans explication » — sous-libellé + title.
+  await expect(heroAttack.locator('.combat-btn-reason')).toBeVisible();
+  await expect(heroAttack).toHaveAttribute('title', /.+/);
+  expect(errors).toEqual([]);
+});
+
 test('E1 : sur mobile, la barre de combat est compacte (secondaires derrière « ⋯ »)', { tag: '@core' }, async ({
   page,
 }) => {

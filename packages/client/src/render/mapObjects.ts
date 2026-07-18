@@ -156,9 +156,9 @@ function buildObject(
     if (obj.type === 'artifact') return buildGroundArtifact(obj.artifactId);
     if (obj.type === 'visitable') return buildVisitable(obj.effect.kind);
     if (obj.type === 'dwelling') return buildDwelling(obj.unitId, catalog, ownerColor(obj.ownerId));
-    if (obj.type === 'monolith') return buildMonolith();
-    if (obj.type === 'obelisk') return buildObelisk();
-    if (obj.type === 'boat') return buildBoat();
+    if (obj.type === 'monolith') return withMapProp('monolith', buildMonolith());
+    if (obj.type === 'obelisk') return withMapProp('obelisk', buildObelisk());
+    if (obj.type === 'boat') return withMapProp('boat', buildBoat());
     return buildGuardian(obj.unitId, catalog, guardianTier ?? 'lone', obj.pos.x * 997 + obj.pos.y);
   })();
   // Sous le visuel : la case exacte à viser (les sprites debout débordent du losange).
@@ -279,6 +279,11 @@ const VISITABLE_PROP: Record<string, string> = {
   levelXp: 'shrine', // sanctuaire / arbre du savoir
   learnSpell: 'shrine', // sanctuaire de sort
   resource: 'mill', // moulin
+  morale: 'temple', // temple
+  experience: 'knowledge-stone', // pierre du savoir
+  grantSkill: 'witch-hut', // hutte de la sorcière
+  grantWarMachine: 'warmachine-factory', // fabrique de machines de guerre
+  restoreMana: 'magic-well', // puits de magie
 };
 
 /** Lieu de bonus : structure peinte (UXD-3B), repli procédural distinct par nature. */

@@ -303,6 +303,11 @@ export type Command =
       source: 'equipped' | 'backpack';
       index: number;
     }
+  /**
+   * Marchand d'artefacts (doc 18 D2) : ACHAT d'un artefact du stock dérivé de la
+   * ville (marché construit, héros présent) contre or. Prix `artifactBaseValue`.
+   */
+  | { type: 'BuyArtifact'; townId: string; heroId: string; artifactId: string }
   // ——— Héros : sorts & compétences (doc 02 §1.2–§1.4) — surface figée 3.2 ———
   /**
    * F-SCHOOLS.8 : `targetHex` = destination d'un sort de téléportation

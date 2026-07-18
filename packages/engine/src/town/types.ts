@@ -163,4 +163,11 @@ export interface TownState {
    * moteur retombe sur le 1er membre présent). Posé par `ChooseSharedGrowth`.
    */
   sharedGrowthChoice: Record<string, string>;
+  /**
+   * Marchand d'artefacts (doc 18 D2 — ACHAT) : ids déjà ACHETÉS au stock dérivé
+   * de cette ville (le stock offert = `merchantBuyStock` moins ces ids). **Optionnel
+   * non initialisé** (créé au 1er achat) ⇒ omis du JSON tant qu'aucun achat ⇒ forme
+   * de sauvegarde et golden inchangés ; hors garde `save-shape` (TownState).
+   */
+  artifactsBought?: string[];
 }

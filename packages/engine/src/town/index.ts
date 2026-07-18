@@ -18,8 +18,12 @@ export { validateCaptureTown, handleCaptureTown } from './capture';
 export {
   validateSellArtifact,
   handleSellArtifact,
+  validateBuyArtifact,
+  handleBuyArtifact,
   artifactBaseValue,
   artifactSellPrice,
+  merchantBuyStock,
+  merchantAvailable,
 } from './artifact-merchant';
 export {
   validateTradeResources,

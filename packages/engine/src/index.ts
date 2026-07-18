@@ -128,6 +128,8 @@ export {
   tradeQuote,
   ownedMarketCount,
   artifactSellPrice,
+  artifactBaseValue,
+  merchantAvailable,
   unitIsRecruitable,
   upgradedUnitFor,
   upgradeCost,

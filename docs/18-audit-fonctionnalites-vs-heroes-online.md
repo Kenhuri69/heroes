@@ -211,16 +211,17 @@ de cet audit)*
   tracé en roadmap, rappelé ici pour complétude. **Nature** : client + assets.
 - **Priorité** : P2 (identité visuelle forte de la série).
 
-**D2 — Commerce avancé** 🚧 *(troc + vente d'artefacts livrés ; achat d'artefacts restant)*
+**D2 — Commerce avancé** ✅ *(troc + marchand d'artefacts achat/vente livrés)*
 - **Livré** : `TradeResources` accepte **toute paire** `give`/`receive` de
   ressources (or↔ressource **et** ressource↔ressource direct, taux `config.market`
   dégressif par nombre de marchés, refus du troc identité) — `town/market.ts`.
-  **Marchand d'artefacts — VENTE** (`SellArtifact`, `town/artifact-merchant.ts`) :
-  un héros présent à une ville à marché vend un artefact contre or, prix dérivé
-  des bonus (`config.market.artifactValuePerPoint`/`artifactSellFactor`, override
-  `ArtifactDef.value`) ; section « Marchand » de l'onglet Marché.
-- **Reste** (P3) : **achat** d'artefacts (exige un stock de ville = nouvel état).
-  Commerce inter-joueurs = non-écart vs MMHO (exclu).
+  **Marchand d'artefacts** (`town/artifact-merchant.ts`, section « Marchand » de
+  l'onglet Marché) : **VENTE** (`SellArtifact`) d'un artefact d'un héros présent
+  contre or (prix dérivé des bonus, `artifactSellFactor`) ; **ACHAT** (`BuyArtifact`)
+  depuis un **stock dérivé déterministe** par `townId` (`merchantBuyStock`,
+  `artifactStockSize`, RNG local hors `draft.rng`) au prix plein, l'acheté quittant
+  le stock (`TownState.artifactsBought`). Prix data-driven, override `ArtifactDef.value`.
+- Commerce inter-joueurs = non-écart vs MMHO (exclu). **D2 clôturé.**
 
 ### 2.E Multijoueur & social (l'identité MMHO)
 
@@ -362,8 +363,7 @@ M ≈ 2-3 j, L = semaine(s).
 > livrée (B4, E2, E6 ✅). Les décisions de cadrage (Étape 5) sont tranchées :
 > B3, A3, E4 **retenus et livrés** (reste **E4.4** pour E4). **Items encore
 > ouverts** : **E4.4** (actions de héros par-héros en coop, P3) · **A6** (ville
-> neutre en `MapObjectDef`, P3) · **D1** (vue de ville peinte, Beta) · **D2**
-> (**achat** d'artefacts, P3 — troc + vente d'artefacts livrés). Les fiches
+> neutre en `MapObjectDef`, P3) · **D1** (vue de ville peinte, Beta). Les fiches
 > §2 portent le détail par item.
 
 ### Étape 1 — Lisibilité de la carte & du combat (client/assets, zéro moteur)

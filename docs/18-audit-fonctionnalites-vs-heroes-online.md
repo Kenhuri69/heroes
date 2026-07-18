@@ -243,13 +243,12 @@ de cet audit)*
 - **Nature** : client pur (l'état expose déjà tout : `dailyIncome`,
   `TownState`, `HeroState`). **Priorité** : **P1** (confort majeur, coût faible).
 
-**E2 — Classement / ligues saisonnières PvP (MMHO : arène + ligues)**
-- **État** : PvP async fonctionnel (matches, re-simulation serveur, forfait,
-  expiration) ; **aucun classement, aucune saison, aucun matchmaking** ;
-  la roadmap Beta mentionne un « classement saisonnier expérimental ».
-- **Manque** : table `ratings` (Elo simple) + endpoint classement + écran ;
-  saisons = fenêtres de dates (réutiliser le pattern `availability` de N4d).
-- **Nature** : backend (D1) + client. **Priorité** : P2 (post-stabilisation PvP).
+**E2 — Classement / ligues saisonnières PvP (MMHO : arène + ligues)** ✅ *(lot 4.2)*
+- **État initial** : PvP async fonctionnel ; aucun classement/saison/matchmaking.
+- **Livré** : table `ratings` (Elo par profil ET par saison mensuelle 'YYYY-MM'),
+  math Elo pure `engine/net/elo.ts` (départ 1200, K=32, unitaire), mise à jour
+  pairwise à la résolution d'un match `finished`, endpoint `GET /leaderboard`,
+  section « Classement » du panneau En ligne. **Reste** : matchmaking (P3 Live).
 
 **E3 — Guilde des voleurs / comparatif inter-joueurs**
 - **Réf.** : HoMM (thieves guild) ; MMHO vendait l'espionnage (exclu, premium).
@@ -386,7 +385,7 @@ M ≈ 2-3 j, L = semaine(s).
 | Lot | Contenu | Écart | Taille | Vérification |
 |---|---|---|---|---|
 | 4.1 | ✅ Mort subite PvP (`combat.suddenDeath`, activée en ligne) | B4 | S | unitaires ; replay stable |
-| 4.2 | Classement Elo + saisons (D1 + écran) | E2 | L | tests worker + smoke panneau En ligne |
+| 4.2 | ✅ Classement Elo + saisons (D1 `ratings` + endpoint + écran) | E2 | L | Elo pur unitaire ; screen non smoke-couvert (backend-gated) |
 | 4.3 | ✅ E-mails magic-link réels (Resend, opt-in `RESEND_API_KEY`) | E6 | S | runbook doc 15 §10 pt 6 |
 
 ### Étape 5 — Décisions de cadrage (aucun code avant arbitrage utilisateur)

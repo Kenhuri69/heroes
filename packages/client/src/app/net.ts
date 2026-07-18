@@ -173,3 +173,18 @@ export function getMoves(id: string, since = -1): Promise<{ moves: { seq: number
 export function postMove(id: string, seq: number, commands: Command[]): Promise<{ ok: true; seq: number }> {
   return api(`/matches/${id}/moves`, { method: 'POST', body: JSON.stringify({ seq, commands }) });
 }
+
+// — Classement Elo (doc 18 lot 4.2) —
+
+/** Une ligne de classement : profil, note Elo et bilan de la saison. */
+export interface LeaderboardEntry {
+  profileId: string;
+  handle: string;
+  rating: number;
+  wins: number;
+  losses: number;
+}
+/** Classement d'une saison (courante par défaut, `season` = 'YYYY-MM'). */
+export function fetchLeaderboard(season?: string): Promise<{ season: string; entries: LeaderboardEntry[] }> {
+  return api(`/leaderboard${season ? `?season=${encodeURIComponent(season)}` : ''}`, { method: 'GET' });
+}

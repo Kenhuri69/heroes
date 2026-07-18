@@ -1,4 +1,4 @@
-import { appendTurn, replayCommands, type Command } from '@heroes/engine';
+import { appendTurn, replayCommands, computeEloUpdate, DEFAULT_ELO, type Command } from '@heroes/engine';
 
 /**
  * Worker backend Heroes (doc 07 §5, doc 15) — API HTTP sur Cloudflare Workers +
@@ -109,6 +109,64 @@ async function authProfile(request: Request, env: Env): Promise<string | null> {
     .first<{ profile_id: string; expires_at: number }>();
   if (!row || row.expires_at < now()) return null;
   return row.profile_id;
+}
+
+// — Classement Elo (doc 18 lot 4.2) —
+
+/** Clé de saison = fenêtre mensuelle 'YYYY-MM' (date-window déterministe). */
+function seasonKey(ts: number): string {
+  return new Date(ts).toISOString().slice(0, 7);
+}
+
+/** Note Elo courante d'un profil pour une saison (défaut si aucune ligne). */
+async function loadRating(env: Env, profileId: string, season: string): Promise<number> {
+  const row = await env.DB.prepare('SELECT rating FROM ratings WHERE profile_id = ? AND season = ?')
+    .bind(profileId, season)
+    .first<{ rating: number }>();
+  return row?.rating ?? DEFAULT_ELO;
+}
+
+/** Upsert d'une note + incrément des compteurs victoires/défaites. */
+async function writeRating(
+  env: Env,
+  profileId: string,
+  season: string,
+  rating: number,
+  dWins: number,
+  dLosses: number,
+  ts: number,
+): Promise<void> {
+  await env.DB.prepare(
+    'INSERT INTO ratings (profile_id, season, rating, wins, losses, updated_at) VALUES (?, ?, ?, ?, ?, ?) ' +
+      'ON CONFLICT(profile_id, season) DO UPDATE SET rating=excluded.rating, ' +
+      'wins=ratings.wins+excluded.wins, losses=ratings.losses+excluded.losses, updated_at=excluded.updated_at',
+  )
+    .bind(profileId, season, rating, dWins, dLosses, ts)
+    .run();
+}
+
+/**
+ * Met à jour l'Elo à la résolution d'un match : le vainqueur (résolu depuis
+ * `winnerPlayerId` moteur via `match_players`) bat chaque autre participant
+ * humain inscrit (mise à jour Elo pairwise séquentielle). Vainqueur non inscrit
+ * (IA / siège libre) ⇒ aucun classement. Appelé une seule fois, à la transition
+ * `finished`.
+ */
+async function applyMatchElo(env: Env, matchId: string, winnerPlayerId: string, ts: number): Promise<void> {
+  const season = seasonKey(ts);
+  const rows = (
+    await env.DB.prepare('SELECT player_id, profile_id FROM match_players WHERE match_id = ? AND profile_id IS NOT NULL')
+      .bind(matchId)
+      .all<{ player_id: string; profile_id: string }>()
+  ).results;
+  const winner = rows.find((r) => r.player_id === winnerPlayerId);
+  if (!winner) return;
+  const losers = rows.filter((r) => r.profile_id !== winner.profile_id);
+  for (const loser of losers) {
+    const upd = computeEloUpdate(await loadRating(env, winner.profile_id, season), await loadRating(env, loser.profile_id, season));
+    await writeRating(env, winner.profile_id, season, upd.winner, 1, 0, ts);
+    await writeRating(env, loser.profile_id, season, upd.loser, 0, 1, ts);
+  }
 }
 
 // NET-LIFECYCLE : une partie `active` sans activité depuis ce délai est
@@ -408,12 +466,27 @@ export default {
           await env.DB.prepare('INSERT INTO moves (match_id, seq, profile_id, commands, created_at) VALUES (?, ?, ?, ?, ?)')
             .bind(matchId, seq, profileId, JSON.stringify(commands), now())
             .run();
-          // Fin de partie détectée au rejeu → statut.
-          if (replayCommands(result.commands).outcome) {
+          // Fin de partie détectée au rejeu → statut + classement Elo (lot 4.2).
+          const outcome = replayCommands(result.commands).outcome;
+          if (outcome) {
             await env.DB.prepare("UPDATE matches SET status = 'finished' WHERE id = ?").bind(matchId).run();
+            await applyMatchElo(env, matchId, outcome.winnerPlayerId, now());
           }
           return json({ ok: true, seq }, 200, env);
         }
+      }
+
+      // — Classement Elo (doc 18 lot 4.2) : top 50 d'une saison (courante par
+      // défaut, `?season=YYYY-MM` sinon). Authentifié comme le reste du panneau. —
+      if (path === '/leaderboard' && request.method === 'GET') {
+        const season = url.searchParams.get('season') || seasonKey(now());
+        const rows = await env.DB.prepare(
+          'SELECT p.id AS profileId, p.handle, r.rating, r.wins, r.losses FROM ratings r ' +
+            'JOIN profiles p ON p.id = r.profile_id WHERE r.season = ? ORDER BY r.rating DESC, p.handle LIMIT 50',
+        )
+          .bind(season)
+          .all<{ profileId: string; handle: string; rating: number; wins: number; losses: number }>();
+        return json({ season, entries: rows.results }, 200, env);
       }
 
       return fail(404, 'route inconnue', env);

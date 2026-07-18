@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'preact/hooks';
 import { t } from '../app/i18n';
 import {
+  fetchLeaderboard,
   forfeitMatch,
   isLoggedIn,
   joinMatch,
@@ -9,6 +10,7 @@ import {
   logout,
   requestMagicLink,
   verifyMagicLink,
+  type LeaderboardEntry,
   type MatchSummary,
 } from '../app/net';
 import { appStore } from '../app/store';
@@ -101,14 +103,30 @@ export function OnlinePanel({ onClose }: { onClose: () => void }) {
       .then((r) => setMatches(r.matches))
       .catch(() => setMatches([]));
   };
+  // Classement Elo (lot 4.2) : top de la saison courante.
+  const [board, setBoard] = useState<LeaderboardEntry[] | null>(null);
+  const [boardSeason, setBoardSeason] = useState('');
+  const refreshBoard = (): void => {
+    fetchLeaderboard()
+      .then((r) => {
+        setBoard(r.entries);
+        setBoardSeason(r.season);
+      })
+      .catch(() => setBoard([]));
+  };
   // Charge au montage (si connecté) et quand une partie est créée/rejointe/abandonnée.
   useEffect(() => {
     if (!loggedIn) {
       setMatches(null);
+      setBoard(null);
       return;
     }
     refreshMatches();
-    const onChanged = (): void => refreshMatches();
+    refreshBoard();
+    const onChanged = (): void => {
+      refreshMatches();
+      refreshBoard();
+    };
     window.addEventListener('heroes:matches-changed', onChanged);
     return () => window.removeEventListener('heroes:matches-changed', onChanged);
   }, [loggedIn]);
@@ -266,6 +284,34 @@ export function OnlinePanel({ onClose }: { onClose: () => void }) {
                   ))}
                 </ul>
               )}
+            </section>
+            <section class="options-section" data-testid="online-leaderboard">
+              <h3>{t('online.elo.title')}</h3>
+              <p class="online-elo-season" data-testid="online-elo-season">
+                {t('online.elo.season')} {boardSeason}
+              </p>
+              {board !== null && board.length === 0 && (
+                <p data-testid="online-elo-empty">{t('online.elo.empty')}</p>
+              )}
+              {board !== null && board.length > 0 && (
+                <ol class="online-saves online-elo-list">
+                  {board.map((e, i) => (
+                    <li key={e.profileId} class="online-save-row" data-testid={`online-elo-${e.profileId}`}>
+                      <span class="online-save-info">
+                        <span class="online-elo-rank" aria-hidden="true">
+                          #{i + 1}
+                        </span>{' '}
+                        {e.handle} — {e.rating} ({e.wins}
+                        {t('online.elo.wins')} · {e.losses}
+                        {t('online.elo.losses')})
+                      </span>
+                    </li>
+                  ))}
+                </ol>
+              )}
+              <button class="menu-button" data-testid="online-elo-refresh" onClick={refreshBoard}>
+                {t('online.matches.refresh')}
+              </button>
             </section>
           </>
         ) : (

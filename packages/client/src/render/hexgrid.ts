@@ -69,6 +69,8 @@ const ROCK_LIGHT = 0xa89e8f;
 const ROCK_DARK = 0x4d453c;
 const FILL_MOAT = 0x1f3a52; // fossé bleu-nuit : franchissable mais ralentissant
 const STROKE_MOAT = 0x4a86b8;
+const ALPHA_MOAT_DECOR = 0.5; // S3 : douve = DÉCOR bien lisible (pas une surbrillance transitoire)
+const WAVE_COLOR = 0x8fc7e8; // écume claire : marqueur non chromatique (A5) de la douve
 // C-SPELLUI.3 : zone d'effet d'un sort — teinte violette distincte des états
 // atteignable(vert)/attaquable(rouge)/douve(bleu), + losange marqueur (A5).
 const FILL_ZONE = 0x6a3a8a;
@@ -105,6 +107,22 @@ function drawBoulder(g: Graphics, x: number, y: number, r: number): void {
     x + s * 0.15, y - s * 0.35,
     x - s * 0.35, y - s * 0.05,
   ]).fill({ color: ROCK_LIGHT, alpha: 0.95 });
+}
+
+/**
+ * S3 (siège) : vaguelettes d'écume sur un hex de douve (centre `x,y`, rayon `r`) —
+ * marqueur NON CHROMATIQUE (A5) distinct des pips/losanges/rochers d'état, lisible
+ * même sous une surbrillance (atteignable/attaquable). Déterministe (aucun RNG).
+ */
+function drawWaves(g: Graphics, x: number, y: number, r: number): void {
+  const s = r * 0.55;
+  for (let i = -1; i <= 1; i++) {
+    const yy = y + i * s * 0.42;
+    g.moveTo(x - s, yy)
+      .quadraticCurveTo(x - s * 0.5, yy - s * 0.22, x, yy)
+      .quadraticCurveTo(x + s * 0.5, yy + s * 0.22, x + s, yy)
+      .stroke({ width: 1.5, color: WAVE_COLOR, alpha: 0.85 });
+  }
 }
 
 export interface DrawBoardOptions {
@@ -178,6 +196,15 @@ export function drawBoard(g: Graphics, opts: DrawBoardOptions = {}): void {
         strokeWidth = 3;
       }
 
+      // S3 : la douve est un DÉCOR de fond (fossé) posé SOUS l'hex d'état — un hex
+      // douve atteignable garde sa teinte fossé même sous la surbrillance verte
+      // (fill cumulé, plus « remplacé »). L'obstacle a sa propre priorité (rocher).
+      if (isMoat && !isObstacle) {
+        g.regularPoly(x, y, r, 6, 0)
+          .fill({ color: FILL_MOAT, alpha: ALPHA_MOAT_DECOR })
+          .stroke({ width: 1, color: STROKE_MOAT });
+      }
+
       // Hexagone POINTY-TOP (pointe en haut/bas), aligné sur le layout pointy-top
       // de `hexToPixel`. PixiJS applique un décalage intégré de −π/2 à `regularPoly`
       // (`startAngle = -π/2 + rotation`) : rotation 0 ⇒ pointy-top, π/6 ⇒ flat-top.
@@ -196,6 +223,11 @@ export function drawBoard(g: Graphics, opts: DrawBoardOptions = {}): void {
         g.poly([x, y - d, x + d, y, x, y + d, x - d, y]).fill({ color: MARKER, alpha: 0.9 });
       } else if (isObstacle) {
         drawBoulder(g, x, y, r); // rocher lisible « case bloquée » (bloque le déplacement)
+      }
+      // S3 : vaguelettes de douve TOUJOURS au-dessus (marqueur A5), même sur un hex
+      // douve atteignable/attaquable (le pip vert reste dessiné juste au-dessus).
+      if (isMoat && !isObstacle) {
+        drawWaves(g, x, y, r);
       }
     }
   }

@@ -59,7 +59,9 @@ sérialisé + statut) ; `match_players` (sièges = ordre de tour) ; `moves`
 ### 5.1 Auth (magic-link)
 
 1. `POST /auth/request { email }` → le Worker crée un `auth_tokens` (aléatoire,
-   expirant) et envoie un lien `…/auth/verify?token=…`.
+   expirant) et **envoie** un lien `…/auth/verify?token=…` par e-mail dès que
+   `RESEND_API_KEY` est branché (lot 4.3, §10 pt 6) ; sinon il le renvoie dans la
+   réponse (`verifyLink`, dev/beta).
 2. `GET /auth/verify?token` → jeton valide & non utilisé ⇒ crée/retrouve le
    `profiles`, ouvre une `sessions` (bearer), marque le jeton `used`. **NET-SEC.1** :
    le `handle` (partie locale de l'e-mail, `UNIQUE`) est **désambiguïsé** sur
@@ -201,10 +203,19 @@ GitHub**, jamais en clair. Étapes de l'utilisateur (une fois) :
    (ou tout push sur `main`). Le client déployé est rebuild AVEC `VITE_BACKEND_URL`
    (le smoke, lui, tourne sur un build hors-ligne) → le bouton **« En ligne »**
    apparaît. `wrangler.toml` référence déjà la base D1 `heroes` (schéma appliqué).
-6. **Option e-mail** — brancher Resend (free) : ajouter un secret Worker
-   (`wrangler secret put RESEND_API_KEY`) et remplacer, dans `/auth/request`, le
-   renvoi du lien par un envoi d'e-mail. Tant que ce n'est pas fait, le lien de
-   vérification est renvoyé/affiché (dev/beta).
+6. **Option e-mail (Resend, lot 4.3)** — le worker envoie **réellement** le lien
+   dès que le secret `RESEND_API_KEY` est présent ; sinon il renvoie le lien dans
+   la réponse (dev/beta, défaut sûr). Runbook :
+   - Créer un compte Resend (free) et une clé API (*API Keys → Create*).
+   - `wrangler secret put RESEND_API_KEY` (depuis `server/`, via pnpm) et coller la clé.
+   - **Expéditeur** : par défaut `Heroes <onboarding@resend.dev>` (domaine de test
+     Resend, fonctionne sans vérification). Pour un domaine propre, le vérifier
+     dans Resend puis `wrangler secret put AUTH_EMAIL_FROM` (ex.
+     `Heroes <login@mon-domaine.tld>`).
+   - Effet : `POST /auth/request` renvoie `{ ok: true, emailed: true }` (plus de
+     `verifyLink`) ; le client affiche « lien envoyé par e-mail ». Un échec d'envoi
+     Resend ⇒ `502` (on ne retombe pas sur le renvoi du lien pour ne pas ré-ouvrir
+     la fuite). **Reste NET-SEC différé** : rate-limit e-mail/IP (state KV).
 
 - Ultérieur : notifications push (au lieu du polling), classement saisonnier
   (doc 09 Beta), re-sim de litige (comparaison de `replayHash`), écrans PvP async

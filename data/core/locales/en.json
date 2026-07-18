@@ -11,6 +11,7 @@
   "online.email": "Email address",
   "online.request": "Send the link",
   "online.linkHint": "Verification link:",
+  "online.emailSent": "A sign-in link has been sent to your email. It expires in 1 hour.",
   "online.token": "Verification token",
   "online.verify": "Sign in",
   "online.connected": "Signed in.",

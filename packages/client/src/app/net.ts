@@ -76,8 +76,12 @@ async function api<T>(path: string, init?: RequestInit): Promise<T> {
 
 // — Auth magic-link —
 
-/** Demande un lien magic-link. `verifyLink` est renvoyé tant que l'e-mail n'est pas branché. */
-export function requestMagicLink(email: string): Promise<{ ok: true; verifyLink: string }> {
+/**
+ * Demande un lien magic-link. Si l'e-mail est branché côté serveur (Resend),
+ * le lien est envoyé par mail (`emailed: true`) et non renvoyé ; sinon
+ * `verifyLink` est renvoyé pour dev/beta.
+ */
+export function requestMagicLink(email: string): Promise<{ ok: true; verifyLink?: string; emailed?: boolean }> {
   return api('/auth/request', { method: 'POST', body: JSON.stringify({ email }) });
 }
 

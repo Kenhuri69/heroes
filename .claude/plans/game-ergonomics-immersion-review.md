@@ -428,9 +428,11 @@ Zéro asset, zéro moteur : uniquement `CombatScene` + `motion.ts`.
         I9) : l'overlay hot-seat « passez l'appareil » prend l'**identité du siège**
         — voile teinté aux couleurs du joueur (`playerColor`, sur encre opaque =
         B34 préservé), **blason de faction** (motif non chromatique) + pastille.
-        Reste : fin de partie plein écran (item 2), pertes cumulées (item 3 = **seul
-        point moteur**, à cadrer séparément — `ux-endstats.md`), crossfade/titre
-        vivant (items 4-5, optionnels).
+        **7b livré** (`ux-lot7b-outcome-fullscreen.md`, I10) : **fin de partie plein
+        écran** — `victory/defeat.jpg` en fond intégral du backdrop, panneau chrome
+        flottant par-dessus (graphique + récap conservés). Reste : pertes cumulées
+        (item 3 = **seul point moteur**, à cadrer séparément — `ux-endstats.md`),
+        crossfade/titre vivant (items 4-5, optionnels).
   - [ ] **Lot 6 tail** (asset-lourd) : vignettes de bâtiments événement (item 3) +
         planches unités/avatars/ville (items 4-6) — via skills `asset-*`, session dédiée.
   - [ ] **Lot 3 tail différé** : E8 (confirmer attaque perdue), E14 (filtres journal)

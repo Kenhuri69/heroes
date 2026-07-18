@@ -59,27 +59,20 @@ de cet audit)*
   affichées au survol (`shell.tsx → guardianBand`) et sur la fiche d'appui long
   (`MapObjectCard.tsx`). L'effectif exact n'est jamais révélé (choix assumé),
   compensé par l'abandon gratuit au pré-combat.
-- **Manque** : **visuellement**, un gardien de 2 unités et une légion de 300 sont
-  le même sprite unique (`render/mapObjects.ts → buildGuardian`). La lecture du
-  danger au premier coup d'œil (sans survol) est perdue.
-- **Nature** : client + assets — **zéro diff moteur** (le `count` exact est déjà
-  dans l'état client, la bande est déjà calculée). Proposition détaillée au §3.
-- **Priorité** : **P1** (lisibilité de la carte, item explicitement demandé).
+- **Livré** (sprint 2) : **gradation visuelle** du jeton — `render/strengthBand.ts`
+  réduit les 7 bandes à **3 crans** (`lone`/`group`/`horde`, `bandTier`) pilotant
+  le rendu du gardien sans jamais révéler l'effectif exact (paliers 0+1 du §3).
+  Client pur, **zéro diff moteur**. *Reste (P3)* : art dédié par cran (repli
+  procédural en place).
 
-**A2 — Croissance des gardiens dans le temps**
+**A2 — Croissance des gardiens dans le temps** ✅ *(croissance + respawn livrés)*
 - **Réf.** : HoMM : les piles neutres croissent (~+10 %/semaine) ; MMHO :
   les gardes **réapparaissent** après un délai pour re-farmer les planques.
-- **État** : `GuardianObjectDef.count` est figé à la pose ; seuls les gardiens
-  errants (`roamRadius`) bougent. Aucune croissance, aucun respawn.
-- **Manque** : (a) croissance hebdomadaire optionnelle ; (b) respawn optionnel
-  façon MMHO (utile aux scénarios `survival` et aux quotidiennes).
-- **Nature** : moteur **générique** — bloc de config optionnel
-  `adventure.guardianGrowth` (facteur/semaine, plafond) appliqué au
-  `WeekStarted`, et champ optionnel `respawnDays` sur le gardien. Config absente
-  ⇒ comportement inchangé (fixtures/golden épargnés, pas de bump save : `count`
-  existe déjà dans l'état).
-- **Priorité** : **P1** pour la croissance (pression temporelle classique du
-  core loop), P2 pour le respawn.
+- **Livré** : (a) **croissance hebdomadaire** opt-in — `config.guardianGrowth
+  { weeklyFactor, maxCount }` appliqué au `WeekStarted` (`engine.ts`) ; (b)
+  **respawn** opt-in façon MMHO — `respawn.ts`/`queueGuardianRespawn` remet en
+  file un gardien vaincu (utile aux scénarios `survival`/quotidiennes). Config
+  absente ⇒ inchangé (golden épargné, pas de bump save : `count` déjà dans l'état).
 
 **A3 — Eau navigable & bateaux**
 - **Réf.** : HoMM (chantier naval, embarquement, tourbillons) ; MMHO n'en avait
@@ -91,22 +84,20 @@ de cet audit)*
   + assets — chantier **lourd**.
 - **Priorité** : P3 — décision de cadrage requise avant tout travail.
 
-**A4 — Effets de calendrier au mois**
-- **État** : semaines à événements seedés livrées (M-CALENDAR : croissance,
-  palier ciblé, ruée, savoir) ; le **mois** est calculé mais purement informatif.
-- **Manque** : « mois des créatures » / « mois de la peste » persistants, semaine
-  ciblant un `unitId` précis (différés notés doc 02 §2.3).
-- **Nature** : moteur générique (extension de `CalendarEventDef`) + données.
-- **Priorité** : P2.
+**A4 — Effets de calendrier au mois** ✅ *(événements mensuels livrés)*
+- **Livré** : `calendar.monthEvents` (`CalendarMonthEventDef`) — un événement de
+  **mois** persistant tiré au seed et stocké dans `calendar.monthEventId`
+  (`calendar.ts`), à côté des semaines seedées (M-CALENDAR). No-op sans
+  `monthEvents` configuré (parties/golden inchangés). *Reste (P3, données)* :
+  contenu supplémentaire de mois thématiques.
 
-**A5 — Triggers de carte limités**
-- **État** : `MapTriggerDef` one-shot `visit`/`day`, 2 effets (`grantResource`,
-  `message`).
-- **Manque** : combat scripté sur tuile (embuscade), message à choix,
-  don/retrait d'artefact ou d'armée, téléport scripté — la richesse
-  « événement de carte » HoMM utile aux campagnes.
-- **Nature** : moteur générique (variantes d'union `TriggerEffect`) + données.
-- **Priorité** : P2 (les campagnes N3/N4 en profiteraient directement).
+**A5 — Triggers de carte limités** 🚧 *(partiellement livré)*
+- **Livré** : `TriggerEffect` enrichi (`map.ts`/`triggers.ts`) — au-delà de
+  `grantResource`/`message` : **combat scripté** sur tuile (`ambush`, doc 18 A5),
+  **don d'artefact** (`grantArtifact`) et **don d'armée** (`grantArmy`).
+- **Reste** (P2) : **message à choix** (branches), **téléport scripté**, retrait
+  d'artefact/armée — utiles aux campagnes N3/N4. Chaque effet = une variante
+  d'union `TriggerEffect` + un cas dans `triggers.ts` (moteur générique).
 
 **A6 — Villes neutres hors `MapObjectDef`**
 - **État** : le mapgen émet des villes neutres, mais elles sont instanciées au
@@ -129,16 +120,13 @@ de cet audit)*
   doc 02 §5.3. **Opt-in** : bloc absent ⇒ portée illimitée sans falloff (golden
   inchangé). Répond au déséquilibre « tireurs structurellement surpuissants ».
 
-**B2 — Machines de guerre : tente de premiers soins & chariot de munitions**
+**B2 — Machines de guerre : tente de premiers soins & chariot de munitions** ✅ *(2 machines livrées)*
 - **Réf.** : suite HoMM ; MMHO avait des consommables de soin.
-- **État** : 3 machines (`data/core/war-machines.json` : baliste, catapulte, tour
-  de tir) ; les tireurs ont déjà des munitions finies (`ammo`).
-- **Manque** : tente (soin périodique de la pile la plus blessée) et chariot
-  (recharge `ammo`) — 2 nouvelles entrées de catalogue + 2 comportements
-  génériques de machine (`warMachine` à effet déclaratif `healPerRound` /
-  `replenishAmmo`).
-- **Nature** : moteur générique (2 variantes d'effet) + données + assets (2
-  sprites, repli procédural). **Priorité** : P2.
+- **Livré** : deux comportements génériques de machine appliqués en début de
+  round (`turns.ts`) — `healPerRound` (soigne la pile alliée la plus blessée) et
+  `replenishAmmo` (recharge les tireurs entamés) — portés par deux nouvelles
+  entrées `first-aid-tent` / `ammo-cart` (`data/core/war-machines.json`, piles
+  immobiles). Repli procédural pour les sprites. **Priorité** : P2 → clôturé.
 
 **B3 — Renforts en cours de combat (signature MMHO)** ✅ *(retenue — moteur + client livrés)*
 - **Réf.** : MMHO permettait de **recruter des renforts pendant la bataille**
@@ -155,15 +143,12 @@ de cet audit)*
   sélection unité/effectif (coût prévisualisé) ; feature **activée globalement** en
   PvE via `config.json` (2 appels max, ×2 le coût), le PvP restant intact (gate).
 
-**B4 — Mort subite / borne de fin en PvP (MMHO « Sudden Death »)**
+**B4 — Mort subite / borne de fin en PvP (MMHO « Sudden Death »)** ✅ *(règle opt-in livrée)*
 - **Réf.** : MMHO : au-delà d'un délai, l'équipe avec le plus d'unités gagne.
-- **État** : `runAutoCombat` sait borner les rounds ; aucun mécanisme de
-  résolution forcée d'un combat interactif interminable (pertinent en PvP async
-  où un match ne doit pas s'éterniser).
-- **Manque** : règle déclarative `combat.suddenDeath { round, resolution }`
-  (résolution : camp au plus fort `armyStrength` restant).
-- **Nature** : moteur générique (config opt-in, activée par le mode en ligne).
-- **Priorité** : P2 (préalable utile au classement PvP, cf. F2).
+- **Livré** : règle déclarative `combat.suddenDeath { round, resolution }`
+  (`turns.ts`) — au-delà de `round`, le combat est tranché en faveur du camp au
+  plus fort `armyStrength` restant. **Opt-in par config** (absente ⇒ combat non
+  borné, comportement historique/golden inchangé), destinée au mode en ligne.
 
 **B5 — Créatures 2-hex**
 - **Réf.** : HoMM classique (dragons, cavalerie). **MMHO : toutes les créatures
@@ -186,25 +171,22 @@ de cet audit)*
 
 ### 2.C Héros
 
-**C1 — Effets structurels de classe Might / Magic (signature MMHO)**
+**C1 — Effets structurels de classe Might / Magic (signature MMHO)** ✅ *(perks d'archétype livrés)*
 - **Réf.** : MMHO — classe **Might** : slot d'armée **supplémentaire** ; classe
   **Magic** : **2 actions de héros par round** en combat.
-- **État** : l'archétype `might/magic` existe mais ne pondère que les gains
-  d'attributs à la montée de niveau (`hero/level-up.ts`) ; 7 slots d'armée pour
-  tous ; 1 action de héros/round pour tous (plan `hero-action-per-round`).
-- **Manque** : perks structurels différenciant réellement les deux archétypes.
-- **Nature** : moteur générique — 2 nouveaux effets déclaratifs dans le pot
-  commun `SkillRankEffect`/spécialités (`armySlotsBonus`, `heroActionsPerRound`),
-  portés par l'archétype via données ; **aucun `if (archetype)` en dur**.
-  Attention équilibrage (`faction:sim`) et UI (8ᵉ slot mobile).
-- **Priorité** : P2 — différenciation de build fidèle à MMHO.
+- **Livré** (lot 3.1, doc 02 §1) : `config.hero.archetypeEffects` (clés opaques)
+  pose à la création d'un héros nommé des effets déclaratifs du pot commun
+  (`HeroState.archetypeEffects?`, optionnel paresseux ⇒ pas de bump save) :
+  **might** = `armySlotsBonus: 1` (8ᵉ slot, cap via `heroArmyCap`) ; **magic** =
+  `heroActionsPerRound: 1` (2 actions/round). **Zéro `if (archetype)` en dur**
+  (agrégés comme compétences/Maison/spécialité). Héros génériques inchangés.
 
-**C2 — Panoplies d'artefacts supplémentaires**
-- **État** : le système de sets est livré (`ArtifactDef.set`), mais **une seule
-  panoplie** existe (`panoplie-gladiateur`, 2 pièces) sur 11 artefacts.
-- **Manque** : contenu — 2-3 panoplies (dont une par « style » : might, magic,
-  économie), artefacts de rareté graduée en profondeur de carte.
-- **Nature** : **données pures** + assets (icônes). **Priorité** : P2.
+**C2 — Panoplies d'artefacts supplémentaires** ✅ *(3 panoplies livrées)*
+- **Livré** : trois panoplies en données (`artifacts.json`) — `panoplie-gladiateur`
+  (might), `regalia-archimage` (magic, 3 pièces), `attirail-voyageur`
+  (économie/mobilité) — le tiroir héros affiche la progression `n/seuil` (doc 02
+  §1.1). **Données pures**, zéro moteur. *Reste (P3)* : rareté graduée en
+  profondeur de carte + icônes finales.
 
 **C3 — Arbre d'aptitudes à points (modèle MMHO)**
 - **Réf.** : MMHO : ~20 points d'aptitude répartis dans 6 arbres par faction,
@@ -235,13 +217,14 @@ de cet audit)*
 
 ### 2.E Multijoueur & social (l'identité MMHO)
 
-**E1 — Vue de royaume (kingdom overview)**
+**E1 — Vue de royaume (kingdom overview)** ✅ *(sprint 3 — vue agrégée livrée)*
 - **Réf.** : indispensable dès 2+ villes (MMHO avait la gestion mono-cité ; HoMM
   a l'écran de royaume).
-- **État** : **absent** — gestion ville par ville via la modale `TownScreen` ;
-  aucune vue agrégée (villes, garnisons, revenus/jour, héros, chantiers du jour).
-- **Nature** : client pur (l'état expose déjà tout : `dailyIncome`,
-  `TownState`, `HeroState`). **Priorité** : **P1** (confort majeur, coût faible).
+- **Livré** (sprint 3) : modale `KingdomOverview` (`ui/KingdomOverview.tsx`,
+  toggle dans la barre, `router` modal `kingdom`) — vue agrégée du royaume du
+  **joueur humain** : villes (chantier du jour, garnison résumée, revenu or/jour),
+  héros (PM restants/max), totaux. **Client pur** (lit `dailyIncome`/`TownState`/
+  `HeroState`), zéro moteur. *Voir E3* pour le comparatif inter-joueurs (distinct).
 
 **E2 — Classement / ligues saisonnières PvP (MMHO : arène + ligues)** ✅ *(lot 4.2)*
 - **État initial** : PvP async fonctionnel ; aucun classement/saison/matchmaking.
@@ -299,9 +282,9 @@ de cet audit)*
 (staging LLM en cours, repli procédural systématique) — chantier continu doc 12.
 **F2 — Variantes visuelles de gardiens** : cf. §3 (proposition dédiée).
 **F3 — Projectiles & FX de sorts** : cf. B6.
-**F4 — `assets/README.md` obsolète** : il affirme « aucune intégration client »
-alors que `render/assets.ts` et `app/audio.ts` consomment `assets/` — correctif
-documentaire une ligne, à glisser dans le premier lot assets venu. *(P3)*
+**F4 — `assets/README.md`** ✅ *(corrigé)* : le README reflète désormais que
+`render/assets.ts` (visuels) et `app/audio.ts` (sons) consomment `assets/`
+(il affirmait auparavant « aucune intégration client »). *(P3 clôturé)*
 
 ### 2.G Non-écarts (pour clore les questions récurrentes)
 
@@ -367,33 +350,43 @@ Ordonné par rapport impact/coût et par dépendances. Chaque lot = un plan viva
 tests, golden, garde-fou « zéro faction », budget, smoke). Taille : S < 1 j,
 M ≈ 2-3 j, L = semaine(s).
 
+> **État de comblement (mise à jour 2026-07)** : les Étapes 1–2 sont **livrées**
+> (A1, B6, E1, F4, B1, A2/A2b, B2, A4 ✅) ; l'Étape 3 est livrée sauf E3 (C1, C2
+> ✅ ; **E3** ouvert) ; l'Étape 4 en ligne est livrée (B4, E2, E6 ✅). Les
+> décisions de cadrage (Étape 5) sont tranchées : B3, A3, E4 **retenus et livrés**
+> (reste **E4.4** pour E4). **Items encore ouverts** : **E3** (comparatif
+> inter-joueurs, P2) · **E4.4** (actions de héros par-héros en coop, P3) · **A5**
+> (triggers message-à-choix/téléport, P2 partiel) · **A6** (ville neutre en
+> `MapObjectDef`, P3) · **D1** (vue de ville peinte, Beta) · **D2** (commerce
+> avancé, P3). Les fiches §2 portent le détail par item.
+
 ### Étape 1 — Lisibilité de la carte & du combat (client/assets, zéro moteur)
 
 | Lot | Contenu | Écart | Taille | Vérification |
 |---|---|---|---|---|
-| 1.1 | Gradation visuelle des gardiens (paliers 0+1 du §3) | A1 | M | smoke : jeton multi-instances + bannière ; budget intact |
-| 1.2 | Projectiles de tir + FX d'impact de sort | B6 | M | smoke arène : projectile visible ; reduce-motion le coupe |
-| 1.3 | Vue de royaume (villes/héros/revenus agrégés) | E1 | M | smoke : ouvrir la vue, y naviguer vers une ville |
-| 1.4 | Correctif `assets/README.md` | F4 | S | relecture |
+| 1.1 | ✅ Gradation visuelle des gardiens (3 crans, sprint 2) | A1 | M | smoke : jeton multi-instances + bannière ; budget intact |
+| 1.2 | ✅ Projectiles de tir + FX d'impact de sort (sprint 1) | B6 | M | smoke arène : projectile visible ; reduce-motion le coupe |
+| 1.3 | ✅ Vue de royaume (villes/héros/revenus agrégés, sprint 3) | E1 | M | smoke : ouvrir la vue, y naviguer vers une ville |
+| 1.4 | ✅ Correctif `assets/README.md` | F4 | S | relecture |
 
 ### Étape 2 — Profondeur de règles à faible risque (moteur générique opt-in)
 
 | Lot | Contenu | Écart | Taille | Vérification |
 |---|---|---|---|---|
-| 2.1 | Pénalité de portée de tir (`combat.rangePenalty`, config data) | B1 | S | unitaires dégâts + préviz ; config absente ⇒ golden inchangé |
-| 2.2 | Croissance hebdo des gardiens (`adventure.guardianGrowth`) | A2 | S | unitaires `WeekStarted` ; opt-in ⇒ golden inchangé |
-| 2.3 | Tente de soins + chariot de munitions (2 effets `warMachine`) | B2 | M | unitaires combat ; données + 2 sprites (repli procédural) |
-| 2.4 | Triggers enrichis (combat scripté, message à choix, don d'objet) | A5 | M | unitaires + 1 usage campagne |
-| 2.5 | Événements de calendrier au mois + ciblage `unitId` | A4 | S | unitaires calendrier |
+| 2.1 | ✅ Pénalité de portée de tir (`combat.rangePenalty`, sprint 1) | B1 | S | unitaires dégâts + préviz ; config absente ⇒ golden inchangé |
+| 2.2 | ✅ Croissance hebdo des gardiens (`adventure.guardianGrowth`) | A2 | S | unitaires `WeekStarted` ; opt-in ⇒ golden inchangé |
+| 2.3 | ✅ Tente de soins + chariot de munitions (2 effets `warMachine`) | B2 | M | unitaires combat ; données + 2 sprites (repli procédural) |
+| 2.4 | Triggers enrichis (combat scripté ✅, message à choix, téléport restants) | A5 | M | unitaires + 1 usage campagne |
+| 2.5 | ✅ Événements de calendrier au mois (`calendar.monthEvents`) | A4 | S | unitaires calendrier |
 
 ### Étape 3 — Différenciation & contenu (équilibrage requis)
 
 | Lot | Contenu | Écart | Taille | Vérification |
 |---|---|---|---|---|
-| 3.1 | Perks de classe Might/Magic (`armySlotsBonus`, `heroActionsPerRound`) | C1 | M | unitaires + `faction:sim` (pas de blowout) + UI 8ᵉ slot |
-| 3.2 | 2-3 panoplies d'artefacts + rareté graduée en profondeur | C2 | S | données + contenu ; icônes pipeline |
+| 3.1 | ✅ Perks de classe Might/Magic (`armySlotsBonus`, `heroActionsPerRound`) | C1 | M | unitaires + `faction:sim` (pas de blowout) + UI 8ᵉ slot |
+| 3.2 | ✅ Panoplies d'artefacts (3 sets livrés) | C2 | S | données + contenu ; icônes pipeline |
 | 3.3 | Guilde des voleurs (comparatif en partie, précision graduée) | E3 | M | smoke : panneau ouvert, données cohérentes |
-| 3.4 | Respawn de gardiens (`respawnDays`, scénarios survival/dailies) | A2b | S | unitaires ; opt-in |
+| 3.4 | ✅ Respawn de gardiens (`queueGuardianRespawn`, survival/dailies) | A2b | S | unitaires ; opt-in |
 
 ### Étape 4 — En ligne (dépend du backend déployé)
 
@@ -405,11 +398,11 @@ M ≈ 2-3 j, L = semaine(s).
 
 ### Étape 5 — Décisions de cadrage (aucun code avant arbitrage utilisateur)
 
-| Sujet | Écart | Options |
+| Sujet | Écart | Options / décision |
 |---|---|---|
-| Renforts en cours de combat | B3 | (a) fidélité MMHO opt-in PvE ; (b) écarter (pureté HoMM) — mettre à jour doc 02 dans les deux cas |
-| Eau navigable & bateaux | A3 | (a) chantier L multi-lots ; (b) divergence assumée documentée |
-| Combats coopératifs | E4 | phase Live uniquement ; cadrage dédié si retenu |
+| Renforts en cours de combat | B3 | ✅ **retenu** — fidélité MMHO opt-in PvE (moteur + client livrés) |
+| Eau navigable & bateaux | A3 | ✅ **retenu** — chantier multi-lots livré (déplacement naval, `boat`/`shipyard`, mapgen, client) |
+| Combats coopératifs | E4 | ✅ **retenu (local)** — cadrage + gardien/siège/butin/client livrés ; **reste E4.4** (actions par-héros, P3) |
 | Guildes/clans & chat | E5 | phase Live uniquement |
 | Arbre d'aptitudes MMHO vs compétences HoMM | C3 | recommandation : divergence assumée (acter en doc 02 §1.3) |
 | Créatures 2-hex | B5 | recommandation : non (fidèle MMHO) — acter en doc 02 §5.1 |

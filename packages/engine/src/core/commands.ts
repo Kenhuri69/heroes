@@ -262,7 +262,17 @@ export type Command =
       toTownId: string;
       slot: number;
     }
-  | { type: 'CaptureTown'; townId: string; playerId: string }
+  | {
+      type: 'CaptureTown';
+      townId: string;
+      playerId: string;
+      /**
+       * Coop PvE (doc 18 E4.2b) : héros allié invité dont l'armée rejoint le camp
+       * si cette capture déclenche un siège. Ignoré si l'allié n'est plus valide
+       * (adjacent/allié/armée) à l'engagement. Absent = siège solo.
+       */
+      allyHeroId?: string;
+    }
   /**
    * Recruter un héros nommé à la Taverne (M-TAVERN.1, doc 02 §1.5/§4.1) : `heroId`
    * = id du roster (`GameState.heroRoster`), résolu contre or à la ville. Le héros

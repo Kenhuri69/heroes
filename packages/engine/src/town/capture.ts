@@ -80,7 +80,8 @@ export function handleCaptureTown(draft: GameState, cmd: CaptureCmd, events: Gam
   // (C-SIEGE2.7a) ⇒ siège. La capture suit la victoire (`applyConsequences`).
   if (town.garrison.length > 0 || wouldSpawnSiegeTower(fortLevel, draft.unitCatalog)) {
     const hero = attackingHero(draft, town, cmd.playerId);
-    if (hero) beginTownCombat(draft, hero.id, town.id, wallDefenseBonus(draft, town), fortLevel, events);
+    if (hero)
+      beginTownCombat(draft, hero.id, town.id, wallDefenseBonus(draft, town), fortLevel, events, cmd.allyHeroId);
     return;
   }
   town.ownerPlayerId = cmd.playerId;

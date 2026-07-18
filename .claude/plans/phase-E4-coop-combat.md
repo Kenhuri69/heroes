@@ -72,6 +72,20 @@ décomposition) ; l'implémentation suit par lots atomiques après validation.
       coop = **bit-identique**. Vérif : typecheck ✓, lint ✓, 901 engine + 154
       content ✓, content:check ✓, garde-fou vert, build ✓, budget 341 Ko ✓, smoke
       @core 28/28 ✓. **Siège coop différé** (E4.2b) : ce lot couvre le gardien.
+- [x] **E4.2b (moteur, SIÈGE) LIVRÉ** : `beginTownCombat(..., allyHeroId?)` +
+      `CaptureTown.allyHeroId?` (threadé via `capture.ts`). Même mécanique que le
+      gardien, factorisée : helpers `combineCoopArmy` (pur : armée combinée cap 7
+      partagé + owners + allié résolu), `tagCoopOwners`, `engageCoopAlly` — le
+      gardien migre dessus **sans changement de comportement**. `applyConsequences`
+      (branche victoire attaquant) route déjà les survivants **par owner** sans
+      distinguer gardien/ville, et gère la prise de ville (`combat.townId`) ⇒ la
+      capture partagée + XP égale marchent gratuitement. Défaite = lead meurt,
+      allié survit sans armée, garnison réécrite (inchangé). **Zéro bump save**
+      (`ownerHeroId` existe déjà), **golden inchangé** (opt-in : sans allié =
+      bit-identique). 3 tests `combat-coop.test.ts` (siège via commande) : agrégation
+      taguée + armée alliée vidée, capture partagée + survivants/XP par owner,
+      solo inchangé. Vérif : typecheck ✓, lint ✓, **904 engine** + 154 content ✓,
+      content:check ✓, garde-fou faction vert.
 
 ## E4.5 — Client : invite + rendu propriétaire (rend le coop JOUABLE) — LIVRÉ
 
@@ -93,8 +107,8 @@ décomposition) ; l'implémentation suit par lots atomiques après validation.
       **Non smoke-couvert** : l'invite exige un état gardien+allié adjacent
       déterministe (absent du smoke) ; gate mirroré + logique moteur testée (E4.2).
 
-## Coop A3 — état : E4.1 cadrage · E4.2 moteur gardien · E4.5 client — JOUABLE.
-Différés : E4.2b siège coop · E4.3 butin partagé · E4.4 actions de héros par-héros.
+## Coop — état : E4.1 cadrage · E4.2 moteur gardien · E4.2b moteur siège · E4.5 client — JOUABLE.
+Différés : E4.3 butin partagé · E4.4 actions de héros par-héros.
 
 ## Note (E4.1)
 Lot **documentaire** : pas de code, pas de bump save, golden intact.

@@ -211,12 +211,16 @@ de cet audit)*
   tracé en roadmap, rappelé ici pour complétude. **Nature** : client + assets.
 - **Priorité** : P2 (identité visuelle forte de la série).
 
-**D2 — Commerce avancé** 🚧 *(troc ressource↔ressource livré ; marchand d'artefacts restant)*
+**D2 — Commerce avancé** 🚧 *(troc + vente d'artefacts livrés ; achat d'artefacts restant)*
 - **Livré** : `TradeResources` accepte **toute paire** `give`/`receive` de
   ressources (or↔ressource **et** ressource↔ressource direct, taux `config.market`
   dégressif par nombre de marchés, refus du troc identité) — `town/market.ts`.
-- **Reste** (P3) : **marchand d'artefacts** (achat/vente). Commerce inter-joueurs
-  = non-écart vs MMHO (exclu).
+  **Marchand d'artefacts — VENTE** (`SellArtifact`, `town/artifact-merchant.ts`) :
+  un héros présent à une ville à marché vend un artefact contre or, prix dérivé
+  des bonus (`config.market.artifactValuePerPoint`/`artifactSellFactor`, override
+  `ArtifactDef.value`) ; section « Marchand » de l'onglet Marché.
+- **Reste** (P3) : **achat** d'artefacts (exige un stock de ville = nouvel état).
+  Commerce inter-joueurs = non-écart vs MMHO (exclu).
 
 ### 2.E Multijoueur & social (l'identité MMHO)
 
@@ -359,7 +363,7 @@ M ≈ 2-3 j, L = semaine(s).
 > B3, A3, E4 **retenus et livrés** (reste **E4.4** pour E4). **Items encore
 > ouverts** : **E4.4** (actions de héros par-héros en coop, P3) · **A6** (ville
 > neutre en `MapObjectDef`, P3) · **D1** (vue de ville peinte, Beta) · **D2**
-> (marchand d'artefacts, P3 — le troc ressource↔ressource est livré). Les fiches
+> (**achat** d'artefacts, P3 — troc + vente d'artefacts livrés). Les fiches
 > §2 portent le détail par item.
 
 ### Étape 1 — Lisibilité de la carte & du combat (client/assets, zéro moteur)

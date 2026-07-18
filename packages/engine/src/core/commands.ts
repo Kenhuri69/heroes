@@ -291,6 +291,18 @@ export type Command =
       receive: ResourceId;
       giveAmount: number;
     }
+  /**
+   * Marchand d'artefacts (doc 18 D2) : VENTE d'un artefact d'un héros présent à
+   * la ville (marché construit) contre or. `source` = slot équipé ou sac,
+   * `index` = position. Prix `config.market` (dérivé des bonus), déterministe.
+   */
+  | {
+      type: 'SellArtifact';
+      townId: string;
+      heroId: string;
+      source: 'equipped' | 'backpack';
+      index: number;
+    }
   // ——— Héros : sorts & compétences (doc 02 §1.2–§1.4) — surface figée 3.2 ———
   /**
    * F-SCHOOLS.8 : `targetHex` = destination d'un sort de téléportation

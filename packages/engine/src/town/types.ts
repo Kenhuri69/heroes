@@ -33,6 +33,13 @@ export type BuildingEffect =
   /** Vend les machines de guerre listées (`units`) au héros présent (doc 02 §5, Alpha 4.12). */
   | { type: 'warMachineVendor'; units: string[] }
   /**
+   * Chantier naval (A3.3, doc 18 A3) : la ville peut construire un **bateau**
+   * (`BuildBoat`) sur une tuile d'eau navigable adjacente, contre `boatCost`
+   * (coût porté par l'effet, patron `huntContract`). Le moteur ne connaît aucune
+   * faction — l'eau est un terrain à `navalCost` (doc 02 §1.5).
+   */
+  | { type: 'shipyard'; boatCost: Partial<Resources> }
+  /**
    * Contrat de chasse (doc 05 §3.3) : cible neutre hebdomadaire assignée au
    * propriétaire ; la vaincre crédite `gold` + `amount` de la ressource de
    * faction `resource` (id opaque — le moteur ne connaît aucune faction).

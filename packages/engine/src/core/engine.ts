@@ -45,6 +45,8 @@ import {
   handleUpgradeUnits,
   validateBuyWarMachine,
   handleBuyWarMachine,
+  validateBuildBoat,
+  handleBuildBoat,
   validateChooseSharedGrowth,
   handleChooseSharedGrowth,
 } from '../town';
@@ -169,6 +171,7 @@ const GAME_OVER_BLOCKED = new Set<Command['type']>([
   'ChooseSharedGrowth',
   'UpgradeUnits',
   'BuyWarMachine',
+  'BuildBoat',
   'GarrisonTransfer',
   'ReorderArmy',
   'SplitStack',
@@ -370,6 +373,11 @@ export function validate(state: GameState, cmd: Command): CommandError | null {
       if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
       if (state.combat) return { code: 'combatActive', message: 'un combat est en cours' };
       return validateBuyWarMachine(state, cmd);
+    }
+    case 'BuildBoat': {
+      if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
+      if (state.combat) return { code: 'combatActive', message: 'un combat est en cours' };
+      return validateBuildBoat(state, cmd);
     }
     case 'GarrisonTransfer': {
       if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
@@ -869,6 +877,10 @@ const handlers: Handlers = {
 
   BuyWarMachine(draft, cmd, events) {
     handleBuyWarMachine(draft, cmd, events);
+  },
+
+  BuildBoat(draft, cmd, events) {
+    handleBuildBoat(draft, cmd, events);
   },
 
   GarrisonTransfer(draft, cmd, events) {

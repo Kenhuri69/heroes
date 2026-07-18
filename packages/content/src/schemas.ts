@@ -356,6 +356,11 @@ const buildingEffectSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('market') }),
   /** Vend les machines de guerre listées au héros présent (doc 02 §5, Alpha 4.12 — la Forge). */
   z.object({ type: z.literal('warMachineVendor'), units: z.array(idSchema).min(1) }),
+  /** Chantier naval (A3.3, doc 18 A3) : construit un bateau sur l'eau adjacente contre `boatCost`. */
+  z.object({
+    type: z.literal('shipyard'),
+    boatCost: z.record(z.enum(COMMON_RESOURCE_IDS), z.number().int().positive()),
+  }),
   /**
    * Contrat de chasse (doc 05 §3.3) : au passage de semaine, le propriétaire se
    * voit assigner une cible neutre ; la vaincre crédite `gold` + `amount` de la

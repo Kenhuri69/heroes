@@ -221,6 +221,8 @@ export type GameEvent =
   | { type: 'UnitsUpgraded'; townId: string; fromUnitId: string; toUnitId: string; count: number }
   /** Achat d'une machine de guerre par le héros présent (doc 02 §5, Alpha 4.12). */
   | { type: 'WarMachineBought'; townId: string; heroId: string; unitId: string }
+  /** Bateau construit au chantier naval (A3.3) : posé sur une tuile d'eau adjacente. */
+  | { type: 'BoatBuilt'; townId: string; boatId: string; pos: GridPos }
   | { type: 'TownIncome'; playerId: string; resource: string; amount: number }
   | { type: 'TownGrowth'; townId: string; unitId: string; added: number }
   /** Choix du destinataire d'une croissance partagée (doc 05 §3.1/§8). */

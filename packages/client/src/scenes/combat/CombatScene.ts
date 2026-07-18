@@ -80,6 +80,13 @@ const DEATH_TIP_RAD = Math.PI / 2; // bascule finale (~90°)
 const SHAKE_PX = 4; // amplitude crête de la secousse
 const SHAKE_MS = 120;
 
+// S1 iso (option B) : la muraille file en perspective. `LEAN` = dérive
+// horizontale totale du haut (loin) vers le bas (près) ; `FAR`/`NEAR` = échelle
+// de profondeur aux deux extrémités (loin plus petit, près plus grand).
+const ISO_WALL_LEAN = HEX_SIZE * 2.6; // ≈ 2.6 hexes de dérive
+const ISO_WALL_FAR = 0.72;
+const ISO_WALL_NEAR = 1.18;
+
 const MARGIN_TOP = 96; // bandeau armées + round (doc 08 §2.4)
 // S9.4 : marge basse élargie — la barre d'actions peut passer à 2 rangées et le
 // badge d'effectif déborde SOUS le jeton ; sans marge, les piles de la rangée 9
@@ -380,50 +387,71 @@ export class CombatScene {
     const curtainUrl = siegeCurtainUrl();
     const towerUrl = siegeTowerUrl();
 
-    // Courtines : sprite peint tuilé verticalement, sinon dessin procédural.
+    // ISO (option B) : la muraille FILE EN PERSPECTIVE le long d'un axe penché —
+    // extrémité HAUTE = loin (plus petite, décalée à droite), extrémité BASSE =
+    // près (plus grande, décalée à gauche). Chaque pièce est posée sur cet axe,
+    // mise à l'échelle selon la profondeur (haut→bas), dans l'ordre loin→près.
+    const yTop = Math.min(...layout.runs.map((r) => r.yTop));
+    const yBot = Math.max(...layout.runs.map((r) => r.yBot));
+    const span = Math.max(1, yBot - yTop);
+    const iso = {
+      t: (y: number) => (y - yTop) / span,
+      xAt: (y: number) => layout.wallX + ISO_WALL_LEAN * (0.5 - (y - yTop) / span),
+      scaleAt: (y: number) => ISO_WALL_FAR + (ISO_WALL_NEAR - ISO_WALL_FAR) * ((y - yTop) / span),
+    };
+
+    // Courtines : sprite peint incliné le long de l'axe iso, sinon procédural.
     for (const run of layout.runs) {
-      if (curtainUrl) this.placeCurtain(curtainUrl, layout.wallX, layout.halfW, run.yTop, run.yBot);
+      if (curtainUrl) this.placeCurtainIso(curtainUrl, iso, layout.halfW, run.yTop, run.yBot);
       else drawCurtain(this.wallBase, layout.wallX, run.yTop, run.yBot);
     }
-    // Tours aux extrémités de chaque tronçon.
+    // Tours aux extrémités de chaque tronçon (posées sur l'axe, échelle profondeur).
     for (const ty of layout.towers) {
-      if (towerUrl) this.placeWallSprite(towerUrl, layout.wallX, ty, layout.towerW * 2, layout.towerH * 1.5);
+      if (towerUrl) this.placeTowerIso(towerUrl, iso.xAt(ty), ty, iso.scaleAt(ty), layout.towerH);
       else drawTower(this.wallBase, layout.wallX, ty);
     }
-    // Porte : procédurale (arche + vantaux), calée sur l'ouverture verticale — la
-    // planche `siege-gate` horizontale existante n'y tiendrait pas ; un futur art
-    // de porte vertical pourra s'y substituer.
-    if (layout.gateY != null) drawGate(this.wallBase, layout.wallX, layout.gateY);
-    // Dégâts (fissures / brèche) — toujours procéduraux, au-dessus.
-    for (const d of layout.damage) drawDamage(this.wallDamage, d.x, d.y, d.ratio, d.seed);
+    // Porte : procédurale (arche + vantaux), posée sur l'axe iso.
+    if (layout.gateY != null) drawGate(this.wallBase, iso.xAt(layout.gateY), layout.gateY);
+    // Dégâts (fissures / brèche) — procéduraux, sur l'axe iso, au-dessus.
+    for (const d of layout.damage) drawDamage(this.wallDamage, iso.xAt(d.y), d.y, d.ratio, d.seed);
   }
 
   /**
-   * S1 : courtine PEINTE tuilée VERTICALEMENT sur un tronçon [yTop,yBot] via un
-   * `TilingSprite` (une seule tuile de large, répétée en hauteur ⇒ muraille
-   * continue). L'échelle de tuile cale la largeur de texture sur `2·halfW`.
+   * S1 iso : courtine PEINTE tuilée le long de l'axe penché [yTop,yBot] via un
+   * `TilingSprite` incliné (pivot en tête, rotation = direction de l'axe). Une
+   * tuile de large (répétée en longueur) ⇒ courtine continue qui file en
+   * perspective. Largeur ∝ échelle de profondeur.
    */
-  private placeCurtain(url: string, x: number, halfW: number, yTop: number, yBot: number): void {
-    const w = halfW * 2;
+  private placeCurtainIso(
+    url: string,
+    iso: { xAt: (y: number) => number; scaleAt: (y: number) => number },
+    halfW: number,
+    yTop: number,
+    yBot: number,
+  ): void {
+    const topX = iso.xAt(yTop);
+    const botX = iso.xAt(yBot);
+    const len = Math.hypot(botX - topX, yBot - yTop);
+    const w = halfW * 2 * iso.scaleAt((yTop + yBot) / 2);
+    const angle = Math.atan2(yBot - yTop, botX - topX) - Math.PI / 2; // local +y (bas) → direction d'axe
     void Assets.load(url).then((texture) => {
       if (this.destroyed || this.wallSpriteLayer.destroyed) return;
-      const tile = new TilingSprite({ texture, width: w, height: yBot - yTop });
-      const s = w / texture.width;
-      tile.tileScale.set(s);
-      tile.position.set(x - halfW, yTop);
+      const tile = new TilingSprite({ texture, width: w, height: len });
+      tile.tileScale.set(w / texture.width);
+      tile.pivot.set(w / 2, 0);
+      tile.rotation = angle;
+      tile.position.set(topX, yTop);
       this.wallSpriteLayer.addChild(tile);
     });
   }
 
-  /** S1 : pièce PEINTE (tour / porte) centrée en (x,y), calée à une taille cible. */
-  private placeWallSprite(url: string, x: number, y: number, targetW: number, targetH: number): void {
+  /** S1 iso : tour PEINTE posée en (x,y) sur l'axe, base au point, échelle profondeur. */
+  private placeTowerIso(url: string, x: number, y: number, depthScale: number, towerH: number): void {
     void Assets.load(url).then((texture) => {
       if (this.destroyed || this.wallSpriteLayer.destroyed) return;
       const sprite = new Sprite(texture);
-      sprite.anchor.set(0.5);
-      // Cale sur la hauteur cible (l'ouvrage monte au-dessus du mur), largeur ∝.
-      const scale = Math.min(targetH / texture.height, (targetW * 1.6) / texture.width);
-      sprite.scale.set(scale);
+      sprite.anchor.set(0.5, 0.82); // base de la tour près du point d'axe
+      sprite.scale.set(((towerH * 1.7) / texture.height) * depthScale);
       sprite.position.set(x, y);
       this.wallSpriteLayer.addChild(sprite);
     });

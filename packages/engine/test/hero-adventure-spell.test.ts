@@ -76,7 +76,7 @@ function hero(over: Partial<HeroState> = {}): HeroState {
     id: 'hero-player-1',
     playerId: 'player-1',
     pos: { x: 0, y: 0 },
-    movementPoints: 100,
+    movementPoints: 100, naval: false,
     army: [{ unitId: 'red-grunt', count: 5 }],
     xp: 0,
     level: 1,

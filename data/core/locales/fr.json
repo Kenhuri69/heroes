@@ -452,6 +452,8 @@
   "mapCard.monolithLine": "Téléporte vers son jumeau.",
   "mapCard.obeliskTitle": "Obélisque",
   "mapCard.obeliskLine": "Visitez tous les obélisques pour révéler le Graal.",
+  "mapCard.boatTitle": "Bateau",
+  "mapCard.boatLine": "Embarquez depuis un rivage adjacent pour naviguer.",
   "mapCard.resourceLine": "{amount} × {name} — ramassé en passant",
   "mapCard.mineIncome": "+{amount} {name}/jour pour son propriétaire",
   "mapCard.mineNeutral": "Neutre — la fouler la capture",

@@ -25,7 +25,7 @@ function unit(id: string): CombatUnitDef {
 
 function hero(id: string, artifacts: (string | null)[]): HeroState {
   return {
-    id, playerId: id, pos: { x: 0, y: 0 }, movementPoints: 0, army: [], xp: 0, level: 1,
+    id, playerId: id, pos: { x: 0, y: 0 }, movementPoints: 0, naval: false, army: [], xp: 0, level: 1,
     attributes: { attack: 0, defense: 0, power: 0, knowledge: 0 }, mana: 40, manaMax: 40, skills: {}, visitLuck: 0, visitMorale: 0,
     spells: [], artifacts, backpack: [], pendingSkillChoices: [], pendingAttributeChoices: [],
     factionId: '', houseId: '', houseEffects: [], name: '', specialtyId: '', specialtyEffects: [], warMachines: [], rosterId: '',

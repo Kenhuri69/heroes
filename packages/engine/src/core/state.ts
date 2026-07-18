@@ -106,6 +106,13 @@ export interface HeroState {
   pos: GridPos;
   /** Points de mouvement restants aujourd'hui (doc 02 §1.5), restaurés chaque jour. */
   movementPoints: number;
+  /**
+   * Domaine de déplacement (A3, doc 18 A3) : `true` = héros EMBARQUÉ sur un
+   * bateau (navigue l'eau, `navalCost`), `false` = à pied (terre, `moveCost`).
+   * Bascule via `BoardBoat`/`DisembarkBoat` au rivage. Champ requis (défaut
+   * `false` à la création) ⇒ save v34.
+   */
+  naval: boolean;
   /** Armée du héros, ≤ 7 piles (doc 02 §5.1) — vide tant que rien n'est recruté. */
   army: ArmyStack[];
   /** Progression (doc 02 §1.2) : XP cumulée, niveau (cap en config), attributs. */
@@ -338,8 +345,10 @@ export interface CaravanState {
  * Optionnel (posé à la création d'un héros nommé quand
  * `config.hero.archetypeEffects` fournit des perks), mais la FORME de héros
  * évolue ⇒ bump (garde `save-shape.test.ts`).
+ * v34 : `HeroState.naval` (A3.2, doc 18 A3) — domaine de déplacement terre/mer,
+ * requis (défaut `false` à la création) ⇒ la forme de héros évolue ⇒ bump.
  */
-export const CURRENT_SAVE_VERSION = 33;
+export const CURRENT_SAVE_VERSION = 34;
 
 export interface GameState {
   saveVersion: number;

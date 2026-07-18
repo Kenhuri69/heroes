@@ -158,7 +158,7 @@ function combatState(heroEffects: { heroActionsPerRound?: number }[] | undefined
     currentPlayer: 0,
     heroes: [
       {
-        id: 'hero-1', playerId: 'p1', name: '', pos: { x: 0, y: 0 }, movementPoints: 0,
+        id: 'hero-1', playerId: 'p1', name: '', pos: { x: 0, y: 0 }, movementPoints: 0, naval: false,
         army: [{ unitId: 'grunt', count: 5 }], xp: 0, level: 1,
         attributes: { attack: 0, defense: 0, power: 0, knowledge: 0 }, mana: 0, manaMax: 0,
         skills: {}, visitLuck: 0, visitMorale: 0, spells: [], artifacts: Array.from({ length: 10 }, () => null),

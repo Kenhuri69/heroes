@@ -29,7 +29,7 @@ function baseHero(over: Partial<HeroState> = {}): HeroState {
     id: 'hero-1',
     playerId: 'p1',
     pos: { x: 0, y: 0 },
-    movementPoints: 0,
+    movementPoints: 0, naval: false,
     army: [],
     xp: 0,
     level: 1,

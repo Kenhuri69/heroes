@@ -31,7 +31,7 @@ function hero(attack: number, power: number): HeroState {
     id: 'hero-a',
     playerId: 'p1',
     pos: { x: 0, y: 0 },
-    movementPoints: 0,
+    movementPoints: 0, naval: false,
     level: 1,
     xp: 0,
     attributes: { attack, defense: 0, power, knowledge: 0 },

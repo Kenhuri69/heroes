@@ -42,7 +42,7 @@ const SHROUD: SpellDef = { id: 'shroud', school: 'traque', circle: 3, manaCost: 
 
 function hero(): HeroState {
   return {
-    id: 'hero-a', playerId: 'p1', pos: { x: 0, y: 0 }, movementPoints: 0, army: [], xp: 0, level: 1,
+    id: 'hero-a', playerId: 'p1', pos: { x: 0, y: 0 }, movementPoints: 0, naval: false, army: [], xp: 0, level: 1,
     attributes: { attack: 2, defense: 0, power: 0, knowledge: 0 }, mana: 30, manaMax: 30, skills: {},
     visitLuck: 0, spells: ['zap', 'shroud'], artifacts: Array.from({ length: 10 }, () => null), pendingSkillChoices: [],
     visitMorale: 0,

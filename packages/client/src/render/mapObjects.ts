@@ -158,6 +158,7 @@ function buildObject(
     if (obj.type === 'dwelling') return buildDwelling(obj.unitId, catalog, ownerColor(obj.ownerId));
     if (obj.type === 'monolith') return buildMonolith();
     if (obj.type === 'obelisk') return buildObelisk();
+    if (obj.type === 'boat') return buildBoat();
     return buildGuardian(obj.unitId, catalog, guardianTier ?? 'lone', obj.pos.x * 997 + obj.pos.y);
   })();
   // Sous le visuel : la case exacte à viser (les sprites debout débordent du losange).
@@ -179,6 +180,28 @@ function buildObelisk(): Container {
     .poly([c - 6, c - 20, c + 6, c - 20, c, c - 30]).fill(stone).stroke({ width: 2, color: ink })
     // Glyphe gravé (losange doré) au centre du fût.
     .poly([c, c - 8, c + 3, c - 2, c, c + 4, c - 3, c - 2]).fill(glyph);
+  node.addChild(g);
+  return node;
+}
+
+/** Bateau (A3.2) : coque de bois à voile blanche, posée sur la tuile d'eau. */
+function buildBoat(): Container {
+  const node = new Container();
+  const c = TILE_SIZE / 2;
+  const hull = 0x7a4a25;
+  const ink = 0x2a1a0e;
+  const sail = 0xf0ede4;
+  const mast = 0x4a3418;
+  const g = new Graphics();
+  // Coque (trapèze), mât et voile triangulaire.
+  g.poly([c - 16, c + 6, c + 16, c + 6, c + 11, c + 16, c - 11, c + 16])
+    .fill(hull)
+    .stroke({ width: 2, color: ink })
+    .rect(c - 1, c - 20, 2, 26)
+    .fill(mast)
+    .poly([c + 1, c - 19, c + 13, c + 3, c + 1, c + 3])
+    .fill(sail)
+    .stroke({ width: 1, color: ink });
   node.addChild(g);
   return node;
 }

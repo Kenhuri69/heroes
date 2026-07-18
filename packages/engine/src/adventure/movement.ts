@@ -90,7 +90,8 @@ export function advanceHeroAlongPath(
     objectIds.delete(o.id);
   };
   for (const step of path) {
-    const cost = stepCost(config, map, hero.pos, step);
+    // Domaine du héros (A3) : coût terrestre ou naval selon `hero.naval`.
+    const cost = stepCost(config, map, hero.pos, step, hero.naval);
     if (cost > hero.movementPoints) break;
     const guardian = objectsAt.get(tileKey(step))?.find((o) => o.type === 'guardian');
     if (guardian) {

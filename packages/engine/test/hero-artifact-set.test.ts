@@ -20,7 +20,7 @@ function heroWith(equipped: (string | null)[]): HeroState {
   const arts = Array.from({ length: 10 }, () => null) as (string | null)[];
   equipped.forEach((id, i) => (arts[i] = id));
   return {
-    id: 'h', playerId: 'p1', pos: { x: 0, y: 0 }, movementPoints: 0, army: [], xp: 0, level: 1,
+    id: 'h', playerId: 'p1', pos: { x: 0, y: 0 }, movementPoints: 0, naval: false, army: [], xp: 0, level: 1,
     attributes: { attack: 0, defense: 0, power: 0, knowledge: 0 }, mana: 0, manaMax: 0, skills: {},
     visitLuck: 0, visitMorale: 0, spells: [], artifacts: arts, backpack: [], pendingSkillChoices: [],
     pendingAttributeChoices: [], factionId: '', houseId: '', houseEffects: [], name: '', specialtyId: '',

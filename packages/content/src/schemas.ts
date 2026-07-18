@@ -1139,6 +1139,16 @@ export const mapFileSchema = z.object({
         y: z.number().int().nonnegative(),
       }),
       /**
+       * Bateau (A3.2, doc 18 A3) : posé sur une tuile d'eau, un héros à pied
+       * adjacent l'embarque (`BoardBoat`). Aucune donnée propre (neutre).
+       */
+      z.object({
+        id: idSchema,
+        type: z.literal('boat'),
+        x: z.number().int().nonnegative(),
+        y: z.number().int().nonnegative(),
+      }),
+      /**
        * Ville (doc 02 §4, plan phase-3.1) — la ville de départ y référence son id.
        * `factionId`/`garrison` optionnels : une ville **neutre** (Alpha 4.13) posée
        * sur la carte, assiégeable par un héros (combat contre sa garnison). Une

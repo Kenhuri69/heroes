@@ -22,7 +22,7 @@ function hero(army: ArmyStack[]): HeroState {
     id: 'hero-p1',
     playerId: 'p1',
     pos: { x: 5, y: 5 },
-    movementPoints: 100,
+    movementPoints: 100, naval: false,
     army,
     xp: 0,
     level: 1,

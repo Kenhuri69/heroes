@@ -54,7 +54,7 @@ function hero(over: Partial<HeroState> & { id: string }): HeroState {
   return {
     playerId: 'p2',
     pos: { x: 0, y: 0 },
-    movementPoints: 0,
+    movementPoints: 0, naval: false,
     level: 1,
     xp: 0,
     attributes: { attack: 0, defense: 0, power: 3, knowledge: 2 },

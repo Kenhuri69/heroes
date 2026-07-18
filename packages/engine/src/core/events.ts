@@ -107,6 +107,10 @@ export type GameEvent =
   | { type: 'GuardianMoved'; objectId: string; from: GridPos; to: GridPos }
   /** Téléport par monolithe apparié (M-NAV a, doc 02 §2.1) — le déplacement s'interrompt à l'arrivée. */
   | { type: 'HeroTeleported'; heroId: string; from: GridPos; to: GridPos }
+  /** Embarquement sur un bateau (A3.2) : le héros devient naval, à la tuile du bateau. */
+  | { type: 'BoardedBoat'; heroId: string; boatId: string; pos: GridPos }
+  /** Débarquement (A3.2) : le héros redevient terrestre ; un bateau reste sur `boatPos`. */
+  | { type: 'Disembarked'; heroId: string; to: GridPos; boatPos: GridPos }
   /**
    * Trigger de carte déclenché (doc 02 §2.1) — l'UI notifie/journalise selon
    * `effect`. `playerId` = joueur affecté (visite / octroi), `null` pour un

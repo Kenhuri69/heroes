@@ -53,7 +53,8 @@ type HeroKey =
   | 'specialtyEffects'
   | 'warMachines'
   | 'rosterId'
-  | 'archetypeEffects';
+  | 'archetypeEffects'
+  | 'naval';
 
 type StackKey =
   | 'id'
@@ -86,7 +87,7 @@ void _stackExact;
 
 describe('B8 — forme de sauvegarde verrouillée', () => {
   it('CURRENT_SAVE_VERSION correspond à la forme documentée (doc 07 §4)', () => {
-    expect(CURRENT_SAVE_VERSION).toBe(33);
+    expect(CURRENT_SAVE_VERSION).toBe(34);
   });
 
   it('clés top-level de GameState (createEmptyState) inchangées', () => {

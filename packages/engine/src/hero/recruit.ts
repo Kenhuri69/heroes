@@ -81,6 +81,7 @@ export function handleRecruitHero(draft: GameState, cmd: RecruitCmd, events: Gam
     name: def.name,
     pos: { ...town.pos },
     movementPoints: 0,
+    naval: false,
     army: [],
     xp: 0,
     level: 1,

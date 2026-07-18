@@ -65,6 +65,7 @@ function simHero(id: string, playerId: string, factionId: string, army: ArmyStac
     name: '',
     pos: { x: 0, y: 0 },
     movementPoints: 0,
+    naval: false,
     army: army.map((s) => ({ ...s })),
     xp: 0,
     level: 1,

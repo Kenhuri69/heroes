@@ -65,4 +65,20 @@ Plomberie golden-safe, aucun effet visible, aucun bump save.
       content:check ✓, garde-fou faction vert, build ✓, budget 330 Ko < 800 ✓,
       smoke @core 19/19 ✓.
 
-### Prochain : A3.2 (état naval du héros + bateaux, bump save 34).
+## Statut A3.2 — LIVRÉ
+
+- [x] `HeroState.naval: boolean` (requis, défaut false) + save v33→**v34** +
+      `HeroKey` mis à jour + golden re-fixé `d2f06bdb`→`7c1cdc04` (forme seule).
+- [x] `BoatObjectDef` (`type:'boat'`) dans `MapObjectDef` + schéma content + loader
+      + narrowing engine/client (MapEditor, MapObjectCard, mapObjects `buildBoat`).
+- [x] Commandes `BoardBoat`/`DisembarkBoat` (validate + handlers) + codes d'erreur
+      (`alreadyNaval`/`notNaval`/`unknownBoat`/`boatNotAdjacent`/`tileOccupied`) +
+      événements `BoardedBoat`/`Disembarked` (non hachés). Embarquer/débarquer ⇒ PM=0.
+- [x] Domaine câblé : `validatePath` + `advanceHeroAlongPath` (stepCost `hero.naval`).
+      IA inchangée (naval=false par défaut, ne navigue pas encore).
+- [x] 5 tests `boat.test.ts` (embarquer/naviguer/débarquer + refus). Locales
+      `mapCard.boat*` FR/EN.
+- [x] Vérif : typecheck -r ✓, lint ✓, test **885** ✓, content:check ✓, garde-fou
+      faction vert, i18n parité ✓, build ✓, budget 332 Ko < 800 ✓, smoke @core 20/20 ✓.
+
+### Prochain : A3.3 (chantier naval — bâtiment data-driven produisant un bateau).

@@ -21,7 +21,7 @@ function hero(
     playerId: over.playerId ?? 'p1',
     name: '',
     pos,
-    movementPoints: 1500,
+    movementPoints: 1500, naval: false,
     army: over.army ?? [],
     xp: 0,
     level: 1,

@@ -322,8 +322,20 @@
 }
 
 .combat-actions button:disabled {
-  opacity: 0.45;
+  opacity: 0.55;
   cursor: default;
+}
+
+/* E2 : sous-libellé de RAISON sous un bouton de combat désactivé (« Déjà agi »,
+   « Aucun sort », « Or manquant »…). En laiton pour rester lisible malgré le
+   grisé du bouton ; l'explication complète est dans le `title`/`aria`. */
+.combat-btn-reason {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--gold);
 }
 
 .combat-speeds {

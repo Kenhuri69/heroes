@@ -364,6 +364,13 @@ export interface ArtifactDef {
    * client). **Optionnel** ⇒ pas de bump save, golden inchangé. Générique — aucune faction.
    */
   grantsSpellImmune?: boolean;
+  /**
+   * Valeur marchande de base en or (doc 18 D2 — marchand d'artefacts) : override
+   * du prix dérivé des bonus. **Optionnel** ⇒ absent, le marché dérive la valeur
+   * de `Σ|bonus| × market.artifactValuePerPoint`. Non sérialisé (catalogue) ⇒
+   * pas de bump save, golden inchangé. Générique — aucune faction.
+   */
+  value?: number;
 }
 
 /** Statut temporaire appliqué à une pile par un sort (buff/debuff) ou une capacité (curseOnHit). */

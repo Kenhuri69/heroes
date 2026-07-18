@@ -46,6 +46,15 @@ export interface PlayerState {
    */
   townlessDays: number;
   /**
+   * Cumul d'unités perdues en combat (UX-ENDSTATS, doc 08 §2.5) — alimenté au
+   * commit de chaque combat en attribuant les pertes de chaque camp au joueur de
+   * ce camp (`attackerHeroId`/`defenderHeroId` → `hero.playerId`) ; un camp neutre
+   * (gardien) n'est attribué à personne. **Optionnel (absent ⇒ 0)** : évite la
+   * churn des états construits à la main et rend une sauvegarde antérieure valide
+   * (compteur repart à 0) ⇒ pas de bump `CURRENT_SAVE_VERSION`. Bilan de fin de partie.
+   */
+  unitsLost?: number;
+  /**
    * Contrat de chasse actif (doc 05 §3.3) — assigné au passage de semaine si le
    * joueur possède un bâtiment `huntContract` ; `null` sinon. La cible est un
    * objet neutre de la carte ; la vaincre crédite la récompense puis remet à
@@ -350,6 +359,9 @@ export interface CaravanState {
  * v35 : `CombatStack.ownerHeroId?` (E4.2, doc 18 E4) — combat coopératif :
  * propriétaire d'une pile quand l'armée d'un allié rejoint le camp. Optionnel
  * (omis hors coop) mais `CombatStack` est sous garde `Exact` ⇒ bump.
+ * (sans bump, UX-ENDSTATS doc 08 §2.5) : `PlayerState.unitsLost?` — cumul d'unités
+ * perdues en combat, OPTIONNEL (absent ⇒ 0) ⇒ une sauvegarde antérieure reste
+ * valide (compteur repart à 0), pas de bump.
  */
 export const CURRENT_SAVE_VERSION = 35;
 

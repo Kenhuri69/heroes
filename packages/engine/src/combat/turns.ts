@@ -307,6 +307,9 @@ function finishCombat(
   combat.activeStackId = null;
   const casualties = collectCasualties(combat);
   const survivors = collectSurvivors(combat);
+  // UX-ENDSTATS : attribuer les pertes de chaque camp au joueur de ce camp AVANT
+  // `applyConsequences` (qui peut retirer le héros vaincu, cassant le lien camp→joueur).
+  accumulateUnitsLost(draft, combat, casualties);
   applyConsequences(draft, combat, winner, casualties, events);
   // Un héros peut disparaître (défaite) : conditions de victoire/défaite
   // (doc 02 §6, plan phase-3.5) — no-op hors scénario.
@@ -399,6 +402,31 @@ function applyHeroVsHeroConsequences(
   // Le vaincu meurt (retiré de la partie).
   const idx = draft.heroes.findIndex((h) => h.id === loserHero.id);
   if (idx !== -1) draft.heroes.splice(idx, 1);
+}
+
+/**
+ * UX-ENDSTATS (doc 08 §2.5) : cumule les unités perdues par joueur. Les pertes
+ * d'un camp reviennent au joueur du héros lié à ce camp (`attackerHeroId`/
+ * `defenderHeroId` → `hero.playerId`) ; un camp neutre (gardien, sans héros)
+ * n'est attribué à personne. Générique — aucune faction, aucun `if` de faction.
+ */
+function accumulateUnitsLost(
+  draft: Draft,
+  combat: CombatState,
+  casualties: { side: CombatSideId; unitId: string; lost: number }[],
+): void {
+  const playerForSide = (side: CombatSideId): string | undefined => {
+    const heroId = side === 'attacker' ? combat.attackerHeroId : combat.defenderHeroId;
+    return heroId ? draft.heroes.find((h) => h.id === heroId)?.playerId : undefined;
+  };
+  const attackerPlayer = playerForSide('attacker');
+  const defenderPlayer = playerForSide('defender');
+  for (const c of casualties) {
+    const pid = c.side === 'attacker' ? attackerPlayer : defenderPlayer;
+    if (!pid) continue; // camp neutre (gardien) : aucune attribution
+    const player = draft.players.find((p) => p.id === pid);
+    if (player) player.unitsLost = (player.unitsLost ?? 0) + c.lost;
+  }
 }
 
 function applyConsequences(

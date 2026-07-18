@@ -488,6 +488,7 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 Chaque faction consomme surtout **une paire de ressources rares** (Haven : cristal+gemmes ; Necropolis : soufre+gemmes ; Arcane Hunters : mercure+gemmes), ce qui crée la compétition territoriale.
 
 > **État livré (marché, T-MARKETRATE)** : `TradeResources` échange **ressource ↔ or** ET **ressource ↔ ressource** (troc, via équivalence or). Le taux est **dégressif** selon le nombre de marchés possédés par le joueur : `factor = min(maxMarketFactor, 1 + perMarketBonus × (nbMarchés − 1))`, `sellRate × factor` / `buyRate ÷ factor` (`config.market`, valeurs de départ vente 25 / achat 50, `perMarketBonus 0.1` / `maxMarketFactor 1.4`). Un seul marché ⇒ facteur 1 (taux plat). L'échange d'une ressource **contre elle-même** est rejeté, et le schéma de contenu impose `sellRate × maxMarketFactor² ≤ buyRate` : l'aller-retour vente→rachat n'est **jamais rentable**, quel que soit le nombre de marchés (sinon, duplication de ressources en boucle de commandes). Déterministe (aucun RNG), aucun nouvel état (pas de bump save). *Différés : courbe HoMM3 exacte non linéaire, taux de troc pénalisé distinct de l'équivalence or.*
+> **État livré (marchand d'artefacts, doc 18 D2 — VENTE)** : au bâtiment marché, un **héros présent** à la ville **vend un artefact** (équipé ou du sac) contre or via `SellArtifact`. Prix **dérivé** des bonus de l'artefact — `Σ|bonus| × config.market.artifactValuePerPoint` (override `ArtifactDef.value`), rendu à `artifactSellFactor` (valeurs de départ 500/point, ½ à la revente). Marchand **opt-in** (`artifactValuePerPoint` absent ⇒ vente désactivée). Déterministe, mute des champs existants (`hero.artifacts`/`backpack`) ⇒ pas de bump save, golden inchangé. **ACHAT** (`BuyArtifact`) : le marchand offre un **stock dérivé** déterministe (`merchantBuyStock` — `artifactStockSize` artefacts tirés du catalogue, seedés par le `townId` via un RNG **local** jamais mêlé au `draft.rng`, donc golden intact) ; le héros achète au prix plein (`artifactBaseValue`), l'id passe dans `TownState.artifactsBought` (optionnel, créé au 1er achat ⇒ pas de bump save) et disparaît du stock. Achat opt-in (`artifactStockSize` absent/0 ⇒ vente seule).
 
 ---
 
@@ -792,12 +793,22 @@ pile active. Sort et frappe consomment le **même budget d'actions du round**
 (conforme au core loop §1 « le héros agit une fois par round, sort **ou**
 attaque ») et tous deux réinitialisés au changement de round ; la **Prière de
 bataille** (F-SKILLS.2) reste un special 1×/combat indépendant. En auto-combat,
-les héros des DEUX camps sont joués. Les verrous sont par camp
-(`heroCastThisRound` / `heroAttackUsed`, réinit chaque round).
+les héros des DEUX camps sont joués. Les verrous sont **par HÉROS** (E4.4,
+doc 18 : `heroCastThisRound` / `heroAttackUsed` stockent des **ids de héros**,
+réinit chaque round) — voir **coop** ci-dessous.
 **Perk Magic (doc 18 C1, lot 3.1)** : le budget est **1 + `heroActionsPerRound`
-agrégé** (`heroActionLeft`, comptage d'occurrences par camp — forme des
-tableaux inchangée) — un héros nommé d'archétype **magic** agit DEUX fois par
-round (sort ET frappe, ou deux sorts), joueur comme IA.
+agrégé** (`heroActionLeftFor`, comptage d'occurrences par héros) — un héros nommé
+d'archétype **magic** agit DEUX fois par round (sort ET frappe, ou deux sorts),
+joueur comme IA.
+**Coop — actions par-héros (E4.4a, doc 18 E4)** : un camp portant **plusieurs
+héros** (lead + héros alliés coop, piles taguées `ownerHeroId`) voit **chacun**
+disposer de SA propre action de héros par round, avec SES ressources (mana,
+Pouvoir, Chance, Attaque) — `castHeroSpell`/`strikeWithHero` prennent le héros
+agissant ; `CastSpell`/`HeroAttack` un `heroId?` optionnel (**défaut = lead** ⇒
+combat mono-héros inchangé). L'IA d'auto-combat fait jouer tous les héros d'un
+camp (lead puis alliés). **Combat manuel (E4.4b)** : un **sélecteur de héros**
+(barre d'action, chips visibles seulement en coop) choisit le héros agissant,
+threadé en `heroId` dans `CastSpell`/`HeroAttack` — sinon le lead par défaut.
 
 ---
 

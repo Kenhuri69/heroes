@@ -1,8 +1,9 @@
 import { useSyncExternalStore } from 'preact/compat';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import {
-  heroActionLeft,
-  heroAttackDamage,
+  heroActionLeftFor,
+  heroesOnSide,
+  heroAttackDamageFor,
   canHeroRally,
   canCallReinforcements,
   scaleCost,
@@ -26,7 +27,7 @@ import { useApp, appStore } from '../app/store';
 import { dispatch } from '../app/dispatch';
 import { recordCombatAuto } from '../app/telemetry';
 import { humanId } from '../app/game';
-import { t, resolveUnitName, resolveSpellName, resolveLoc, commandErrorMessage } from '../app/i18n';
+import { t, resolveUnitName, resolveSpellName, resolveLoc, resolveHeroName, commandErrorMessage } from '../app/i18n';
 import { COMBAT_SPEEDS } from '../app/ui-constants';
 import { combatPreview, type CombatPreview } from '../scenes/combat/preview';
 import { pushToast } from './toasts';
@@ -52,12 +53,27 @@ export function CombatUi() {
   // résolution que le moteur, `heroForPlayerSide`) — pas le premier héros du
   // joueur : avec plusieurs héros (Taverne), mana/grimoire/gating affichaient
   // ceux du mauvais héros. Arène (aucun héros lié) ⇒ undefined, boutons cachés.
+  // E4.4b : héros AGISSANT — le sélectionné (coop) sinon le lead du camp joueur.
+  const actingHeroId = useApp((s) => s.combatActingHeroId);
   const hero = useApp((s) => {
     const c = s.game.combat;
     if (!c) return undefined;
-    const heroId = c.playerSide === 'attacker' ? c.attackerHeroId : c.defenderHeroId;
-    return heroId ? s.game.heroes.find((h) => h.id === heroId) : undefined;
+    const leadId = c.playerSide === 'attacker' ? c.attackerHeroId : c.defenderHeroId;
+    const id = s.combatActingHeroId ?? leadId;
+    return id ? s.game.heroes.find((h) => h.id === id) : undefined;
   });
+  // Héros du joueur HUMAIN pouvant agir sur son camp (lead + alliés coop) — le
+  // sélecteur n'apparaît qu'à plusieurs (coop). Dérivé de `combat` (déjà abonné)
+  // + snapshot du store : PAS un sélecteur `useApp` (renverrait un nouveau tableau
+  // à chaque rendu ⇒ boucle de re-rendu). Helpers moteur purs (E4.4).
+  const actingHeroes: HeroState[] = (() => {
+    if (!combat) return [];
+    const game = appStore.getState().game;
+    const hid = humanId(game);
+    return heroesOnSide(combat, combat.playerSide)
+      .map((id) => game.heroes.find((h) => h.id === id))
+      .filter((h): h is HeroState => !!h && h.playerId === hid);
+  })();
   const catalog = useApp((s) => s.game.unitCatalog);
   const artifactCatalog = useApp((s) => s.game.artifactCatalog);
   const autoActive = useApp((s) => s.combatAutoActive);
@@ -142,9 +158,9 @@ export function CombatUi() {
 
   const active = combat.stacks.find((s) => s.id === combat.activeStackId);
   const isPlayerTurn = !combat.finished && !isPlacement && active?.side === combat.playerSide;
-  // Budget d'actions de héros du round (doc 02 §1, généralisé doc 18 C1 : un
-  // héros Magic agit deux fois) — helper moteur pur partagé validations/IA/UI.
-  const heroCanAct = heroActionLeft(appStore.getState().game, combat, combat.playerSide);
+  // Budget d'actions du HÉROS AGISSANT ce round (doc 02 §1 ; E4.4 par-héros) —
+  // helper moteur pur partagé validations/IA/UI.
+  const heroCanAct = !!hero && heroActionLeftFor(appStore.getState().game, combat, hero.id);
   const canCastSpell =
     isPlayerTurn &&
     !autoActive &&
@@ -308,6 +324,29 @@ export function CombatUi() {
           </footer>
         ) : (
         <footer class="combat-actions">
+        {/* E4.4b : sélecteur du héros agissant — coop uniquement (plusieurs héros
+            du joueur sur son camp). Mono-héros ⇒ masqué (comportement inchangé). */}
+        {actingHeroes.length > 1 && (
+          <div class="combat-hero-picker" data-testid="combat-hero-picker">
+            <span class="combat-hero-picker-label">{t('combat.actingHero')}</span>
+            {actingHeroes.map((h) => {
+              const leadId = combat.playerSide === 'attacker' ? combat.attackerHeroId : combat.defenderHeroId;
+              const selected = (actingHeroId ?? leadId) === h.id;
+              const canAct = heroActionLeftFor(appStore.getState().game, combat, h.id);
+              return (
+                <button
+                  key={h.id}
+                  class={`combat-hero-chip${selected ? ' active' : ''}`}
+                  data-testid={`combat-hero-chip-${h.id}`}
+                  disabled={!canAct}
+                  onClick={() => appStore.setState({ combatActingHeroId: h.id })}
+                >
+                  {resolveHeroName(h.name) || t('hero.genericName')}
+                </button>
+              );
+            })}
+          </div>
+        )}
         {/* Primaires : toujours visibles (E1). */}
         <div class="combat-actions-primary">
         <button data-testid="combat-wait" disabled={!isPlayerTurn || autoActive} onClick={() => act('wait')}>
@@ -430,7 +469,9 @@ export function CombatUi() {
           les événements même masqué ; le bouton bascule seulement sa visibilité. */}
       <CombatLog visible={logOpen} />
       {spellBookOpen && hero && <SpellBook hero={hero} onClose={() => setSpellBookOpen(false)} />}
-      {heroAttackOpen && <HeroAttackModal combat={combat} onClose={() => setHeroAttackOpen(false)} />}
+      {heroAttackOpen && hero && (
+        <HeroAttackModal combat={combat} hero={hero} onClose={() => setHeroAttackOpen(false)} />
+      )}
       {prayerOpen && <PrayerModal combat={combat} onClose={() => setPrayerOpen(false)} />}
       {reinforceOpen && hero && (
         <ReinforcementsModal hero={hero} onClose={() => setReinforceOpen(false)} />
@@ -505,14 +546,15 @@ function LeaveConfirm({
  * indépendants de la cible) + liste des piles ennemies vivantes ; le choix d'une
  * cible confirme et dispatch `HeroAttack`. La feature est gatée par `combat-hero-attack`.
  */
-function HeroAttackModal({ combat, onClose }: { combat: CombatState; onClose: () => void }) {
+function HeroAttackModal({ combat, hero, onClose }: { combat: CombatState; hero: HeroState; onClose: () => void }) {
   useApp((s) => s.locale); // réactivité i18n
   const game = appStore.getState().game;
-  const damage = heroAttackDamage(game, combat, combat.playerSide);
+  // E4.4b : dégâts du HÉROS AGISSANT (coop : allié possible), pas seulement le lead.
+  const damage = heroAttackDamageFor(game, combat, combat.playerSide, hero);
   const targets = combat.stacks.filter((s) => s.side !== combat.playerSide && s.count > 0);
 
   const strike = (targetStackId: string): void => {
-    dispatch({ type: 'HeroAttack', targetStackId })
+    dispatch({ type: 'HeroAttack', targetStackId, heroId: hero.id })
       .then(() => onClose())
       .catch((err: unknown) => pushToast(commandErrorMessage(err), 'error'));
   };

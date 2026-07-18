@@ -89,7 +89,7 @@ export async function dispatch(cmd: Command): Promise<EngineResult> {
   // côté UI (PreBattleScreen). UN SEUL setState par commande (F1, revue
   // 2026-07) : le second doublait chaque resync de scène abonnée au store.
   if (!before && result.state.combat) {
-    appStore.setState({ game: result.state, preBattlePending: true, combatAutoActive: false, combatSpellTarget: null, combatSpellZone: null, combatInspectId: null, combatResult: null });
+    appStore.setState({ game: result.state, preBattlePending: true, combatAutoActive: false, combatSpellTarget: null, combatSpellZone: null, combatInspectId: null, combatResult: null, combatActingHeroId: null });
   } else if (before && !result.state.combat) {
     appStore.setState({
       game: result.state,
@@ -99,6 +99,7 @@ export async function dispatch(cmd: Command): Promise<EngineResult> {
       combatSpellZone: null,
       combatInspectId: null,
       combatResult: buildCombatResult(result.events),
+      combatActingHeroId: null,
     });
   } else {
     appStore.setState({ game: result.state });

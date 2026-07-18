@@ -1,10 +1,10 @@
 import { revealAround } from '../adventure/fog';
 import { DIRECTIONS, samePos, type GridPos } from '../adventure/map';
 import { isPassable } from '../adventure/path';
-import { heroArmyMagicResistance, heroLuckOf, killsFromDamage, magicResistanceOf } from '../combat/damage';
+import { heroArmyMagicResistance, heroLuckValue, killsFromDamage, magicResistanceOf } from '../combat/damage';
 import { checkCombatEnd } from '../combat/turns';
 import { applySpellToTargets, bestGraveEntry, chainTargets, resurrectFullCount, spellTargets, spellcasterParams } from '../combat/spell-effect';
-import { factionCurseDurationBonus, factionSpellDamageMods, heroActionLeft, isStackSpellImmune, staticBlockedKeys } from '../combat/state-helpers';
+import { factionCurseDurationBonus, factionSpellDamageMods, heroActionLeftFor, heroesOnSide, isStackSpellImmune, staticBlockedKeys } from '../combat/state-helpers';
 import {
   COMBAT_COLS,
   COMBAT_ROWS,
@@ -46,17 +46,26 @@ function heroForPlayerSide(state: GameState, combat: CombatState) {
   return heroForSide(state, combat, combat.playerSide);
 }
 
+/** Héros AGISSANT résolu (E4.4) : `heroId` (coop) sinon le lead du camp joueur. */
+function actingHeroForCast(state: GameState, combat: CombatState, heroId?: string) {
+  if (heroId) return state.heroes.find((h) => h.id === heroId);
+  return heroForPlayerSide(state, combat);
+}
+
 export function validateCastSpell(state: GameState, cmd: CastSpellCmd): CommandError | null {
   const combat = state.combat;
   if (!combat) return { code: 'noCombat', message: 'aucun combat en cours' };
   const activeStack = combat.stacks.find((s) => s.id === combat.activeStackId);
   if (!activeStack || activeStack.side !== combat.playerSide)
     return { code: 'invalidAction', message: 'ce n’est pas au joueur de jouer' };
-  const hero = heroForPlayerSide(state, combat);
-  if (!hero) return { code: 'invalidAction', message: 'aucun héros lié au camp joueur' };
-  // Actions de héros par round (doc 02 §1, généralisé doc 18 C1) : sort et
-  // frappe consomment le MÊME budget — 1 de base, + perk `heroActionsPerRound`.
-  if (!heroActionLeft(state, combat, combat.playerSide))
+  // E4.4 : héros agissant = `cmd.heroId` (coop) sinon le lead ; il doit être sur
+  // le camp joueur (lead ou allié coop d'une pile vivante).
+  const hero = actingHeroForCast(state, combat, cmd.heroId);
+  if (!hero || !heroesOnSide(combat, combat.playerSide).includes(hero.id))
+    return { code: 'invalidAction', message: 'aucun héros lié au camp joueur' };
+  // Actions de héros par round (doc 02 §1, généralisé doc 18 C1) : sort et frappe
+  // consomment le MÊME budget PAR HÉROS — 1 de base, + perk `heroActionsPerRound`.
+  if (!heroActionLeftFor(state, combat, hero.id))
     return { code: 'heroAlreadyCast', message: 'le héros a déjà épuisé ses actions ce round' };
   const spell = state.spellCatalog[cmd.spellId];
   if (!spell) return { code: 'unknownSpell', message: `sort inconnu '${cmd.spellId}'` };
@@ -289,6 +298,7 @@ export function handleCastAdventureSpell(
 export function castHeroSpell(
   draft: Draft,
   side: CombatState['playerSide'],
+  heroId: string,
   spellId: string,
   targetStackId: string,
   events: GameEvent[],
@@ -296,13 +306,13 @@ export function castHeroSpell(
 ): void {
   const combat = draft.combat;
   if (!combat) return;
-  const hero = heroForSide(draft, combat, side);
+  const hero = draft.heroes.find((h) => h.id === heroId);
   const spell = draft.spellCatalog[spellId];
   const target = combat.stacks.find((s) => s.id === targetStackId);
   if (!hero || !spell || !target) return;
 
   hero.mana -= effectiveManaCost(hero, draft.skillCatalog, spell);
-  combat.heroCastThisRound.push(side);
+  combat.heroCastThisRound.push(heroId); // suivi PAR HÉROS (E4.4)
   const power = effectivePower(hero, draft.artifactCatalog);
 
   let amount = 0;
@@ -318,7 +328,7 @@ export function castHeroSpell(
       events.push({ type: 'StackMoved', stackId: target.id, from, to: { ...targetHex } });
     }
   } else {
-    const luck = heroLuckOf(draft, combat, side);
+    const luck = heroLuckValue(draft, hero);
     // F-BONUS (Fléau persistant, doc 04 §2) : un sort de MALÉDICTION (`debuff`)
     // d'un héros doté dure +N rounds — bonus par-faction calculé ici, passé comme
     // simple nombre au cœur partagé (qui ignore toute notion de faction).
@@ -349,7 +359,9 @@ export function castHeroSpell(
 export function handleCastSpell(draft: Draft, cmd: CastSpellCmd, events: GameEvent[]): void {
   const combat = draft.combat;
   if (!combat) return; // exclu par validate
-  castHeroSpell(draft, combat.playerSide, cmd.spellId, cmd.targetStackId, events, cmd.targetHex);
+  const hero = actingHeroForCast(draft, combat, cmd.heroId);
+  if (!hero) return;
+  castHeroSpell(draft, combat.playerSide, hero.id, cmd.spellId, cmd.targetStackId, events, cmd.targetHex);
 }
 
 export function handleChooseSkill(draft: Draft, cmd: ChooseSkillCmd, events: GameEvent[]): void {

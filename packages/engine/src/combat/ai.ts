@@ -4,14 +4,14 @@ import { castHeroSpell } from '../hero';
 import { heroKnownSpellIds } from '../hero/artifacts';
 import { effectiveManaCost, spellTargetsEnemy } from '../hero/spells';
 import { applyAction, canShoot, canShootTarget, reachableHexes, tauntersAdjacentTo } from './actions';
-import { heroAttackDamage, strikeWithHero } from './hero-attack';
+import { heroAttackDamageFor, strikeWithHero } from './hero-attack';
 import { heroRallyHp, rallyWithHero } from './hero-rally';
 import { spellcasterParams } from './spell-effect';
 import { estimateDamage, killsFromDamage, symbiosisParams } from './damage';
 import { advanceTurn } from './turns';
 import type { Draft } from './draft';
 import { hexDistance, type OffsetPos } from './hex';
-import { collectCasualties, effectiveSpeed, hasAbility, heroActionLeft, isSilenced, isStackSpellImmune } from './state-helpers';
+import { collectCasualties, effectiveSpeed, hasAbility, heroActionLeftFor, heroesOnSide, isSilenced, isStackSpellImmune } from './state-helpers';
 import type { CombatActionInput, CombatSideId, CombatStack, CombatState, CombatUnitDef } from './types';
 
 /**
@@ -445,11 +445,11 @@ export function maybeHeroAction(draft: Draft, events: GameEvent[], side: CombatS
   const catalog = draft.unitCatalog;
 
   // Actions de héros par round (doc 02 §1, généralisé doc 18 C1) : l'IA lance un
-  // sort tant que le budget d'actions du round n'est pas épuisé (1 + perk).
-  if (heroActionLeft(draft, combat, side)) {
+  // sort tant que le budget d'actions du round du LEAD n'est pas épuisé (1 + perk).
+  if (heroActionLeftFor(draft, combat, hero.id)) {
     const cast = chooseHeroSpell(draft, combat, hero, side, enemies, catalog);
     if (cast) {
-      castHeroSpell(draft, side, cast.spellId, cast.targetStackId, events);
+      castHeroSpell(draft, side, hero.id, cast.spellId, cast.targetStackId, events);
       return true;
     }
   }
@@ -483,27 +483,58 @@ export function maybeHeroAction(draft: Draft, events: GameEvent[], side: CombatS
     }
   }
 
-  if (draft.config?.combat.heroAttack && heroActionLeft(draft, combat, side)) {
-    const amount = heroAttackDamage(draft, combat, side);
+  if (draft.config?.combat.heroAttack && heroActionLeftFor(draft, combat, hero.id)) {
+    const amount = heroAttackDamageFor(draft, combat, side, hero);
     if (amount > 0) {
-      const best = pickBestBy(
-        enemies,
-        (e) => {
-          const def = catalog[e.unitId];
-          if (!def) return -Infinity;
-          const pool = (e.count - 1) * def.stats.hp + e.firstHp;
-          const kills = killsFromDamage(pool, def.stats.hp, e.count, amount);
-          return Math.min(amount, pool) + kills * targetValue(def);
-        },
-        (a, b) => compareCodeUnits(a.id, b.id),
-      );
+      const best = bestHeroAttackTarget(enemies, amount, catalog);
       if (best) {
-        strikeWithHero(draft, side, best.id, events);
+        strikeWithHero(draft, side, hero.id, best.id, events);
+        return true;
+      }
+    }
+  }
+
+  // E4.4 : héros ALLIÉS coop du camp (hors lead, déjà traité) — chacun dispose de
+  // SON action (sort puis frappe). N'entre en jeu qu'en coop (heroesOnSide > lead)
+  // ⇒ flux mono-héros (golden/property) inchangé.
+  for (const allyId of heroesOnSide(combat, side)) {
+    if (allyId === hero.id) continue;
+    const ally = draft.heroes.find((h) => h.id === allyId);
+    if (!ally || !heroActionLeftFor(draft, combat, allyId)) continue;
+    const cast = chooseHeroSpell(draft, combat, ally, side, enemies, catalog);
+    if (cast) {
+      castHeroSpell(draft, side, allyId, cast.spellId, cast.targetStackId, events);
+      return true;
+    }
+    if (draft.config?.combat.heroAttack) {
+      const amount = heroAttackDamageFor(draft, combat, side, ally);
+      const best = amount > 0 ? bestHeroAttackTarget(enemies, amount, catalog) : undefined;
+      if (best) {
+        strikeWithHero(draft, side, allyId, best.id, events);
         return true;
       }
     }
   }
   return false;
+}
+
+/** Meilleure cible d'une frappe de héros (dégâts + valeur des kills), départage stable. */
+function bestHeroAttackTarget(
+  enemies: CombatStack[],
+  amount: number,
+  catalog: Record<string, CombatUnitDef>,
+): CombatStack | null {
+  return pickBestBy(
+    enemies,
+    (e) => {
+      const def = catalog[e.unitId];
+      if (!def) return -Infinity;
+      const pool = (e.count - 1) * def.stats.hp + e.firstHp;
+      const kills = killsFromDamage(pool, def.stats.hp, e.count, amount);
+      return Math.min(amount, pool) + kills * targetValue(def);
+    },
+    (a, b) => compareCodeUnits(a.id, b.id),
+  );
 }
 
 /** Garde-fou : une vraie boucle infinie serait un bug de règles, pas un cas à masquer. */

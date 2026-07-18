@@ -313,9 +313,11 @@
 > 🚧 **État (récapitulatif de fin — UX-ENDSTATS, livré)** : l'overlay de fin de
 > partie (`OutcomeOverlay`, §2.5) affiche, au-dessus du graphique de puissance, un
 > **récapitulatif** lu de l'état final : **durée** (`Jour N · Semaine W`), **villes
-> possédées**, **héros** (nombre + niveau max), **unités en armée**. Client pur
-> (aucun suivi moteur). *Différé : pertes cumulées (suivi moteur requis pour
-> l'exactitude multi-joueurs/IA).*
+> possédées**, **héros** (nombre + niveau max), **unités en armée**, **unités
+> perdues**. Les **pertes cumulées** (`PlayerState.unitsLost`, Lot 7.3) sont
+> désormais suivies **côté moteur** — attribuées par camp→joueur au commit de
+> chaque combat (`turns.ts`), exactes en multi-joueurs/IA (un camp neutre/gardien
+> n'est attribué à personne). Champ **optionnel** ⇒ pas de bump `CURRENT_SAVE_VERSION`.
 
 > 🚧 **État (fiche de scénario — N-BRIEFING, livré)** : cliquer un **scénario** ou
 > un **événement** du menu ouvre d'abord une **fiche** (`BriefingScreen`, modale

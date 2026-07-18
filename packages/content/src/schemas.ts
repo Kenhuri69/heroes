@@ -694,6 +694,8 @@ export const artifactSchema = z.object({
    * inciblable par un sort hostile ennemi. Lue par le prédicat `isStackSpellImmune`.
    */
   grantsSpellImmune: z.boolean().optional(),
+  /** Valeur marchande de base en or (doc 18 D2) — override du prix dérivé des bonus. */
+  value: z.number().int().nonnegative().optional(),
 });
 
 export const artifactCatalogSchema = z.object({
@@ -858,6 +860,12 @@ export const gameConfigSchema = z.object({
         perMarketBonus: z.number().nonnegative().optional(),
         /** Plafond du facteur dégressif (≥ 1) — optionnel. */
         maxMarketFactor: z.number().min(1).optional(),
+        /** Marchand d'artefacts (doc 18 D2) : or de base par point de bonus — optionnel. */
+        artifactValuePerPoint: z.number().nonnegative().optional(),
+        /** Fraction rendue à la vente d'un artefact (spread) — optionnel (défaut 1). */
+        artifactSellFactor: z.number().min(0).max(1).optional(),
+        /** Nombre d'artefacts offerts à l'achat par ville (doc 18 D2) — optionnel. */
+        artifactStockSize: z.number().int().nonnegative().optional(),
       })
       .refine((m) => m.buyRate >= m.sellRate, 'market.buyRate ≥ market.sellRate')
       // Aller-retour non rentable À TOUT NOMBRE DE MARCHÉS : le troc (et

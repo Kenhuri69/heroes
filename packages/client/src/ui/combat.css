@@ -483,3 +483,25 @@
 .reinforcements-confirm input {
   width: 4rem;
 }
+
+/* E4.4b : sélecteur du héros agissant en combat coop (masqué hors coop). */
+.combat-hero-picker {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.4rem;
+}
+.combat-hero-picker-label {
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+.combat-hero-chip {
+  min-height: 44px;
+  padding: 0.3rem 0.7rem;
+  border-radius: 0.4rem;
+}
+.combat-hero-chip.active {
+  outline: 2px solid currentColor;
+  font-weight: 600;
+}

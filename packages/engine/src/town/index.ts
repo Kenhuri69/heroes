@@ -16,6 +16,16 @@ export { validateGarrisonTransfer, handleGarrisonTransfer } from './transfer';
 export { validateSendCaravan, handleSendCaravan, tickCaravans } from './caravan';
 export { validateCaptureTown, handleCaptureTown } from './capture';
 export {
+  validateSellArtifact,
+  handleSellArtifact,
+  validateBuyArtifact,
+  handleBuyArtifact,
+  artifactBaseValue,
+  artifactSellPrice,
+  merchantBuyStock,
+  merchantAvailable,
+} from './artifact-merchant';
+export {
   validateTradeResources,
   handleTradeResources,
   tradeQuote,

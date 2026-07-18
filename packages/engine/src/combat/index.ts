@@ -112,6 +112,7 @@ export {
   validateHeroAttack,
   handleHeroAttack,
   heroAttackDamage,
+  heroAttackDamageFor,
   canHeroAttack,
 } from './hero-attack';
 

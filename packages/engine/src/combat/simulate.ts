@@ -102,6 +102,7 @@ function simPlayer(id: string): PlayerState {
     townlessDays: -1,
     huntContract: null,
     team: 0,
+    unitsLost: 0,
   };
 }
 

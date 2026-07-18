@@ -541,6 +541,52 @@ test('I12 : l’eau miroite sur la carte, coupé en reduce-motion', { tag: '@cor
   expect(errors).toEqual([]);
 });
 
+test('I15 : le retour haptique est opt-in et se déclenche sur un kill', { tag: '@core' }, async ({ page }) => {
+  const errors = await openGame(page);
+  // Défaut OFF : une confirmation (construction) ne déclenche aucune vibration.
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({ type: 'BuildStructure', townId: 'start-town', buildingId: 'tavern' }),
+  );
+  expect(await page.evaluate(() => window.__HEROES_TEST__!.haptic().count)).toBe(0);
+  // Opt-in via les Options : activer le retour tactile (persisté).
+  await page.getByTestId('options-open').click();
+  await page.getByTestId('options-haptics-on').click();
+  await page.getByTestId('options-close').click();
+  expect(await page.evaluate(() => localStorage.getItem('heroes:haptics'))).toBe('1');
+  // Un kill dans un combat AFFICHÉ ⇒ tentative de vibration. Tireur ×40 one-shot
+  // une pile fragile (le défenseur garde une 2ᵉ pile ⇒ le combat continue).
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({
+      type: 'StartCombat',
+      attacker: [{ unitId: 't2-archer', count: 40 }],
+      defender: [
+        { unitId: 't1-recruit', count: 1 },
+        { unitId: 't1-recruit', count: 1 },
+      ],
+      terrain: 'grass',
+    }),
+  );
+  await passPreBattle(page);
+  await expect(page.getByTestId('combat-round')).toBeVisible();
+  await expect
+    .poll(() =>
+      page.evaluate(() => {
+        const c = window.__HEROES_TEST__!.getState().combat;
+        return c?.stacks.find((s) => s.id === c.activeStackId)?.side;
+      }),
+    )
+    .toBe('attacker');
+  const targetId = await page.evaluate(
+    () => window.__HEROES_TEST__!.getState().combat!.stacks.find((s) => s.side === 'defender')!.id,
+  );
+  await page.evaluate(
+    (tid) => window.__HEROES_TEST__!.dispatch({ type: 'CombatAction', action: { type: 'attack', targetStackId: tid } }),
+    targetId,
+  );
+  await expect.poll(() => page.evaluate(() => window.__HEROES_TEST__!.haptic().count)).toBeGreaterThan(0);
+  expect(errors).toEqual([]);
+});
+
 test('fin de tour : jour suivant, points de mouvement restaurés', async ({ page }) => {
   const errors = await openGame(page);
 
@@ -2967,8 +3013,9 @@ test('sort : le héros lance un sort en combat et réduit une pile ennemie', { t
   // (H-NAMED) ⇒ round(4 × 0,8) = 3 : la spécialité agit bien EN COMBAT.
   expect(after.mana).toBe(setup.mana - 3);
   expect(after.remaining).toBeLessThan(setup.count);
-  // C-AIPARITY : verrou 1 sort/round PAR CAMP (liste des camps ayant lancé).
-  expect(after.cast).toContain('attacker');
+  // E4.4 : verrou 1 sort/round PAR HÉROS (liste des héros ayant lancé) — ici le
+  // héros joueur lead `hero-player-1`.
+  expect(after.cast).toContain('hero-player-1');
 
   // B6 (sprint 1) : le sort a produit un FX d'impact DISTINCT de la frappe
   // (retour visuel avant B6 : aucun). Compteur cumulé exposé au test.
@@ -3028,9 +3075,9 @@ test('attaque du héros : frappe directe sur une pile ennemie, 1×/combat (C1)',
   }, target.id);
   // La frappe a porté : pile réduite (0 si l'attaque a résolu le combat).
   expect(after.remaining).toBeLessThan(target.count);
-  // Tant que le combat continue : camp marqué (1×/combat) + bouton désactivé.
+  // Tant que le combat continue : héros marqué (E4.4, par-héros) + bouton désactivé.
   if (after.active) {
-    expect(after.used).toContain('attacker');
+    expect(after.used).toContain('hero-player-1');
     await expect(page.getByTestId('combat-hero-attack')).toBeDisabled();
   }
 
@@ -3616,6 +3663,8 @@ test('scénario : gagner « survie » contre l’IA (surviveDays)', { tag: '@cor
   // Récapitulatif de fin de partie (UX-ENDSTATS, doc 08 §2.5) : durée + avoirs.
   await expect(page.getByTestId('outcome-stats')).toBeVisible();
   await expect(page.getByTestId('outcome-duration')).toHaveText(/Jour \d+ · Semaine \d+/);
+  // Pertes cumulées (7.3) : ligne « Unités perdues » = compteur moteur `unitsLost`.
+  await expect(page.getByTestId('outcome-units-lost')).toHaveText(/^\d+$/);
 
   // Retour au menu depuis l'overlay (bouton, doc 08).
   await page.getByTestId('outcome-back-to-menu').click();

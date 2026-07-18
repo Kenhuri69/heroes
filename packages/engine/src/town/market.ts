@@ -60,7 +60,7 @@ export function tradeQuote(
 }
 
 /** La ville a-t-elle un bâtiment construit portant l'effet `market` ? */
-function townHasMarket(state: GameState, town: GameState['towns'][number]): boolean {
+export function townHasMarket(state: GameState, town: GameState['towns'][number]): boolean {
   for (const [id, level] of Object.entries(town.buildings)) {
     if (level < 1) continue;
     const effect = state.buildingCatalog[id]?.levels[level - 1]?.effect;

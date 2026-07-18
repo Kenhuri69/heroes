@@ -10,6 +10,9 @@ import {
   townIncome,
   tradeQuote,
   ownedMarketCount,
+  artifactSellPrice,
+  artifactBaseValue,
+  merchantAvailable,
   upgradedUnitFor,
   upgradeCost,
   weekOf,
@@ -34,6 +37,7 @@ import {
   resolveHeroBio,
   resolveSpecialtyName,
   resolveSpecialtyDesc,
+  resolveArtifactName,
 } from '../app/i18n';
 import { buildingUrl, heroAvatarUrl, townBackgroundUrl, townLayoutAnchors } from '../render/assets';
 import { townLayout, type TownSlot } from '../render/townLayout';
@@ -1501,6 +1505,96 @@ function MarketTab({ town, onError }: { town: TownState; onError: (msg: string |
       <button data-testid="market-trade" onClick={trade}>
         {t('town.marketConfirm')}
       </button>
+      <ArtifactMerchant town={town} onError={onError} />
     </div>
+  );
+}
+
+/**
+ * Marchand d'artefacts (doc 18 D2) — VENTE. Affiché dans l'onglet Marché quand
+ * le marchand est configuré (`config.market.artifactValuePerPoint`) ET qu'un
+ * héros du joueur est présent sur la ville. Liste ses artefacts (équipés + sac)
+ * avec le prix de revente (`artifactSellPrice`, helper moteur — pas de
+ * réimplémentation) et un bouton Vendre ⇒ `SellArtifact`. L'achat est différé.
+ */
+function ArtifactMerchant({ town, onError }: { town: TownState; onError: (msg: string | null) => void }) {
+  const game = useApp((s) => s.game);
+  const market = game.config?.market;
+  if (!market || market.artifactValuePerPoint === undefined) return null;
+  const hero = game.heroes.find(
+    (h) => h.playerId === town.ownerPlayerId && h.pos.x === town.pos.x && h.pos.y === town.pos.y,
+  );
+  if (!hero) return null;
+
+  const entries: { source: 'equipped' | 'backpack'; index: number; id: string }[] = [];
+  hero.artifacts.forEach((id, index) => {
+    if (id) entries.push({ source: 'equipped', index, id });
+  });
+  (hero.backpack ?? []).forEach((id, index) => entries.push({ source: 'backpack', index, id }));
+
+  const sell = (source: 'equipped' | 'backpack', index: number): void => {
+    onError(null);
+    dispatch({ type: 'SellArtifact', townId: town.id, heroId: hero.id, source, index }).catch(
+      (err: unknown) => onError(commandErrorMessage(err)),
+    );
+  };
+  const buy = (artifactId: string): void => {
+    onError(null);
+    dispatch({ type: 'BuyArtifact', townId: town.id, heroId: hero.id, artifactId }).catch(
+      (err: unknown) => onError(commandErrorMessage(err)),
+    );
+  };
+
+  // Stock d'achat (doc 18 D2) : offert si `artifactStockSize` configuré ; disponible
+  // = dérivé moins déjà acheté (helper moteur, pas de réimplémentation).
+  const forSale = market.artifactStockSize ? merchantAvailable(game, town) : [];
+  const gold = game.players.find((p) => p.id === town.ownerPlayerId)?.resources.gold ?? 0;
+
+  return (
+    <section class="town-artifact-merchant" data-testid="town-artifact-merchant">
+      <h3>{t('town.artifactMerchant')}</h3>
+      {forSale.length > 0 && (
+        <ul class="town-artifact-list" data-testid="town-artifact-buy-list">
+          {forSale.map((id) => {
+            const def = game.artifactCatalog[id];
+            const price = def ? artifactBaseValue(def, market) : 0;
+            return (
+              <li key={id}>
+                <span class="town-artifact-name">{resolveArtifactName(id)}</span>
+                <button
+                  data-testid={`artifact-buy-${id}`}
+                  disabled={price > gold}
+                  onClick={() => buy(id)}
+                >
+                  {t('town.artifactBuy', { gold: price })}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+      {entries.length === 0 ? (
+        <p class="town-market-preview">{t('town.artifactMerchantEmpty')}</p>
+      ) : (
+        <ul class="town-artifact-list">
+          {entries.map((e) => {
+            const def = game.artifactCatalog[e.id];
+            const price = def ? artifactSellPrice(def, market) : 0;
+            return (
+              <li key={`${e.source}-${e.index}`}>
+                <span class="town-artifact-name">{resolveArtifactName(e.id)}</span>
+                <button
+                  data-testid={`artifact-sell-${e.source}-${e.index}`}
+                  disabled={price <= 0}
+                  onClick={() => sell(e.source, e.index)}
+                >
+                  {t('town.artifactSell', { gold: price })}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </section>
   );
 }

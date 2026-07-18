@@ -261,15 +261,21 @@ de cet audit)*
   bâtiment taverne déjà existant).
 - **Nature** : client (+ éventuel helper pur moteur de projection). **Priorité** : P2.
 
-**E4 — Combats coopératifs (signature MMHO)**
+**E4 — Combats coopératifs (signature MMHO)** 🚧 *(cadrage E4.1 livré)*
 - **Réf.** : MMHO permettait d'inviter un ami dans sa bataille (2 armées côte à
   côte contre les PvE).
 - **État** : structurellement mono-héros par camp (`CombatSide` à un héros ;
   la garnison fusionne déjà en siège).
-- **Manque** : multi-armées par camp. Chantier moteur **lourd** (setup, tours,
-  moral par armée, XP partagée) qui n'a de sens qu'avec le PvP/coop en ligne
-  temps quasi réel.
-- **Priorité** : P3 — reporter à la phase Live ; décision de cadrage préalable.
+- **Cadrage retenu** (arbitrage utilisateur, cf. doc 02 §6 + plan
+  `phase-E4-coop-combat.md`) : coop **local offline-signifiant** — l'armée d'un
+  **héros allié adjacent** rejoint un **combat PvE** ; point d'extension générique
+  = **attribution de pile par héros propriétaire** (`CombatStack.ownerHeroId`,
+  bump save au lot moteur). Le cadre « online temps réel » de l'audit est écarté.
+- **Décomposition** : E4.1 cadrage (fait) → E4.2 moteur (jonction + pertes routées,
+  bump save) → E4.3 XP/butin partagés → E4.4 actions de héros par-héros → E4.5
+  client (invite + rendu propriétaire). **Priorité** P3, par lots atomiques.
+- **4 questions ouvertes** (consentement, cap de plateau, partage XP…) à trancher
+  avant E4.2 (cf. plan §« Questions ouvertes »).
 
 **E5 — Guildes / clans & chat**
 - **Réf.** : MMHO (guildes, social hub). **État** : rien (le modèle async s'y

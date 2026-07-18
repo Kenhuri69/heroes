@@ -851,3 +851,22 @@ round (sort ET frappe, ou deux sorts), joueur comme IA.
 > cible que ce que **son joueur a exploré** (revue 2026-07 B31 — plus de
 > triche d'information sous brouillard) et **ignore un butin encore gardé**
 > par sa sentinelle (B30). 3 scénarios solo en données (`data/scenarios/`).
+
+> 🤝 **Combats coopératifs (E4, doc 18 — cadrage E4.1, décision de design)**. MMHO
+> permettait d'inviter un allié dans sa bataille (2 armées côte à côte contre le
+> PvE). **Décision retenue (cadrage)** : coop **local, offline-signifiant** — un
+> **héros allié adjacent** à la tuile où un héros engage un **combat PvE** (gardien
+> / siège ; **jamais** en héros-vs-héros) peut faire **rejoindre son armée** au même
+> camp. Cohérent avec notre modèle hot-seat + alliances (`team`) sans exiger le
+> temps réel en ligne (le cadre « MMHO online » de l'audit est écarté). *Point
+> d'extension moteur générique visé* : **attribution de pile par héros
+> propriétaire** — chaque `CombatStack` porte son héros d'origine, de sorte que les
+> **pertes** reviennent au bon héros et l'**XP** se partage à la victoire. Le siège
+> fusionne déjà garnison + héros sur un camp (même joueur) ; le coop généralise à
+> **plusieurs héros de joueurs alliés** (le vrai coût : réattribution pertes/XP).
+> *Découpage* (plan `.claude/plans/phase-E4-coop-combat.md`) : **E4.1** ce cadrage ;
+> **E4.2** moteur — l'armée d'un allié adjacent rejoint un combat PvE + pertes
+> routées par héros propriétaire (bump save, golden re-fixé) ; **E4.3** partage
+> d'XP/butin entre alliés ; **E4.4** actions de héros en coop (chaque héros allié
+> agit) ; **E4.5** client (invite/consentement + rendu « à qui appartient la pile »).
+> **Priorité P3** (audit) : chantier lourd, livré par lots atomiques après ce cadrage.

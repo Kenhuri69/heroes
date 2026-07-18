@@ -1136,7 +1136,9 @@ export async function loadMap(
     if (seen.has(obj.id)) errors.push(`${path}: objects — id en double '${obj.id}'`);
     seen.add(obj.id);
     if (!inBounds(obj.x, obj.y)) errors.push(`${path}: objet '${obj.id}' hors carte`);
-    else if (!passable(obj.x, obj.y))
+    // Un bateau (A3.4) vit sur l'EAU (infranchissable à pied) par conception — on
+    // l'embarque depuis le rivage ; exempté de la garde « tuile franchissable ».
+    else if (obj.type !== 'boat' && !passable(obj.x, obj.y))
       errors.push(`${path}: objet '${obj.id}' sur tuile infranchissable (${obj.x},${obj.y})`);
     if (obj.type === 'guardian' && knownUnitIds && !knownUnitIds.has(obj.unitId))
       errors.push(`${path}: gardien '${obj.id}' — unité inconnue des paquets '${obj.unitId}'`);

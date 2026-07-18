@@ -294,9 +294,63 @@ describe('generateMap', () => {
           }
         }
         for (const s of map.startPositions) expect(reached.has(`${s.x},${s.y}`)).toBe(true);
-        for (const o of map.objects) expect(reached.has(`${o.x},${o.y}`)).toBe(true);
+        // Les bateaux (A3.4) vivent sur l'eau par conception : on les embarque du
+        // rivage, ils ne sont pas atteignables À PIED — exemptés du test terrestre.
+        for (const o of map.objects)
+          if (o.type !== 'boat') expect(reached.has(`${o.x},${o.y}`)).toBe(true);
       }
     }
+  });
+
+  it('bateaux (A3.4) : posés sur de l’eau côtière, adjacente à la terre atteignable', async () => {
+    const impassable = new Set(['water', 'mountain', 'rocks']);
+    const map = generateMap('boat', 5, { width: 48, height: 48, guardianUnits: ['t1-guard'] });
+    const boats = map.objects.filter((o) => o.type === 'boat');
+    expect(boats.length).toBeGreaterThanOrEqual(1);
+    const terrainAt = (x: number, y: number): string => map.legend[map.tiles[y]![x]!]!;
+    // Composante terrestre atteignable depuis le 1er départ (mêmes règles que le jeu).
+    const reached = new Set<string>();
+    const queue = [map.startPositions[0]!];
+    reached.add(`${queue[0]!.x},${queue[0]!.y}`);
+    for (let head = 0; head < queue.length; head++) {
+      const { x, y } = queue[head]!;
+      for (let dy = -1; dy <= 1; dy++)
+        for (let dx = -1; dx <= 1; dx++) {
+          const nx = x + dx;
+          const ny = y + dy;
+          if ((dx === 0 && dy === 0) || nx < 0 || ny < 0 || nx >= 48 || ny >= 48) continue;
+          const key = `${nx},${ny}`;
+          if (reached.has(key) || impassable.has(terrainAt(nx, ny))) continue;
+          reached.add(key);
+          queue.push({ x: nx, y: ny });
+        }
+    }
+    for (const b of boats) {
+      // Sur de l'eau…
+      expect(terrainAt(b.x, b.y)).toBe('water');
+      // …et bordant une case de terre ATTEIGNABLE (embarquement depuis le rivage).
+      let coastal = false;
+      for (let dy = -1; dy <= 1 && !coastal; dy++)
+        for (let dx = -1; dx <= 1; dx++) {
+          if (dx === 0 && dy === 0) continue;
+          if (reached.has(`${b.x + dx},${b.y + dy}`)) {
+            coastal = true;
+            break;
+          }
+        }
+      expect(coastal).toBe(true);
+    }
+    // La carte reste valide de bout en bout (le loader accepte les bateaux).
+    await loadMap(readerFor(map), 'boat', config(), KNOWN_UNITS);
+  });
+
+  it('bateaux : densité 0 ⇒ aucun ; densité 2 ⇒ au moins autant que le défaut', () => {
+    const base = { width: 48, height: 48, guardianUnits: ['t1-guard'] };
+    const none = generateMap('boat', 9, { ...base, boatDensity: 0 });
+    expect(none.objects.some((o) => o.type === 'boat')).toBe(false);
+    const std = generateMap('boat', 9, base).objects.filter((o) => o.type === 'boat').length;
+    const many = generateMap('boat', 9, { ...base, boatDensity: 2 }).objects.filter((o) => o.type === 'boat').length;
+    expect(many).toBeGreaterThanOrEqual(std);
   });
 
   it('villes neutres (si palette de factions) : posées, garnies et validées par loadMap', async () => {

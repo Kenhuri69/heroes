@@ -176,6 +176,15 @@ export type Command =
       unitId: string;
     }
   | {
+      /**
+       * Construit un bateau (A3.3, doc 18 A3) à une ville dotée d'un chantier
+       * naval (`shipyard`), sur une tuile d'eau navigable adjacente libre ;
+       * débite le `boatCost` de l'effet.
+       */
+      type: 'BuildBoat';
+      townId: string;
+    }
+  | {
       /** Échange une pile entre garnison de ville et armée du héros présent. */
       type: 'GarrisonTransfer';
       townId: string;
@@ -367,12 +376,14 @@ export interface CommandError {
     | 'alreadyHasGrail'
     | 'noMovement'
     | 'grailRequired'
-    // Navigation (A3.2) : embarquement/débarquement.
+    // Navigation (A3.2/A3.3) : embarquement, débarquement, chantier naval.
     | 'alreadyNaval'
     | 'notNaval'
     | 'unknownBoat'
     | 'boatNotAdjacent'
     | 'tileOccupied'
+    | 'noShipyard'
+    | 'noAdjacentWater'
     | 'gameOver';
   message: string;
 }

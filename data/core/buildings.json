@@ -210,6 +210,25 @@
           }
         }
       ]
+    },
+    {
+      "id": "shipyard",
+      "maxLevel": 1,
+      "levels": [
+        {
+          "cost": {
+            "gold": 2000,
+            "wood": 20
+          },
+          "requires": [],
+          "effect": {
+            "type": "shipyard",
+            "boatCost": {
+              "gold": 1000
+            }
+          }
+        }
+      ]
     }
   ]
 }

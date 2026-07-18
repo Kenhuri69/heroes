@@ -81,4 +81,25 @@ Plomberie golden-safe, aucun effet visible, aucun bump save.
 - [x] Vérif : typecheck -r ✓, lint ✓, test **885** ✓, content:check ✓, garde-fou
       faction vert, i18n parité ✓, build ✓, budget 332 Ko < 800 ✓, smoke @core 20/20 ✓.
 
-### Prochain : A3.3 (chantier naval — bâtiment data-driven produisant un bateau).
+## A3.3 — Chantier naval (shipyard) — LIVRÉ
+
+Bâtiment data-driven produisant un bateau sur une tuile d'eau adjacente. Patron
+copié de `BuyWarMachine` (achat gaté par un bâtiment de ville).
+
+- [x] `BuildingEffect` `{ type:'shipyard'; boatCost: Partial<Resources> }` (types.ts)
+      + schéma Zod (mirror).
+- [x] Bâtiment `shipyard` dans `data/core/buildings.json` (coût gold 2000/wood 20,
+      `boatCost` gold 1000) + locales `building.shipyard`(.lore) FR/EN.
+- [x] Commande `BuildBoat { townId }` + codes `noShipyard`/`noAdjacentWater` +
+      événement `BoatBuilt` (non haché).
+- [x] `town/shipyard.ts` : validate (ville possédée, effet shipyard, eau navigable
+      adjacente LIBRE via `DIRECTIONS`, or suffisant `canAfford`) + handler (débit
+      `payCost`, pose le bateau sur la 1ʳᵉ tuile libre) ; ré-export index.
+- [x] Enregistrement engine.ts (import, GAME_OVER_BLOCKED, validate, handler).
+- [x] 5 tests `town-shipyard.test.ts`. **Pas de bump save** (bateau = objet de
+      carte déjà sérialisé), **golden inchangé** (890 tests).
+- [x] Docs 02 §1.5 (navigation A3.3) + §4.1 (table bâtiments).
+- [x] Vérif : typecheck ✓, lint ✓, test 890 ✓, content:check ✓, garde-fou faction
+      vert, i18n ✓, build ✓, budget 332 Ko ✓, smoke @core 20/20 ✓.
+
+### Prochain : A3.4 (mapgen mers + connectivité navale) — ou A3.5 (rendu/UX client).

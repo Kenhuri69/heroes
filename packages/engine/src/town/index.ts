@@ -11,6 +11,7 @@ export { validateBuildStructure, handleBuildStructure } from './build';
 export { validateRecruitUnits, handleRecruitUnits } from './recruit';
 export { validateUpgradeUnits, handleUpgradeUnits, upgradedUnitFor, upgradeCost } from './upgrade';
 export { validateBuyWarMachine, handleBuyWarMachine } from './war-machine';
+export { validateBuildBoat, handleBuildBoat } from './shipyard';
 export { validateGarrisonTransfer, handleGarrisonTransfer } from './transfer';
 export { validateSendCaravan, handleSendCaravan, tickCaravans } from './caravan';
 export { validateCaptureTown, handleCaptureTown } from './capture';

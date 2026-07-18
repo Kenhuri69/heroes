@@ -106,18 +106,62 @@ visuelle finale passera par des **planches LLM** (skill `asset-sheet`, doc 12 §
 **sans aucun changement de code** (mêmes clés de fichier ⇒ substitution par simple
 dépôt de PNG, repli procédural en attendant).
 
-Prompts à préparer (staging `assets/prompts/`) :
-- `spells-icons.md` — planche d'icônes de sorts par couple (école, type), cadre visuel
-  doc 12 (silhouette pleine, liseré, lisible 32px), 1 case = 1 sort/effet.
-- `combat-status-badges.md` — pictos d'état (bénédiction, malédiction, silence, poison,
-  marque, entraves, brume) façon badges HoMM, fond transparent.
-- `combat-siege-wall.md` — segment de rempart de pierre (vue combat isométrique légère),
-  cohérent avec les vignettes de bâtiments.
-- `units-summoned.md` — élémentaire de terre invoqué (+ variantes futures d'invocations :
-  élémentaires air/feu/eau si le contenu en ajoute), style planche d'unités.
+Prompts **rédigés** (staging `assets/prompts/`, prêts à coller — grille, ids row-major,
+commande d'extraction exacte + post-traitement mipmaps) :
+- `spells-icons-p1.md` — 16 icônes de sorts (écoles fire/water/earth/air), grille 4×4.
+- `spells-icons-p2.md` — 20 icônes (neutral/traque/scene/lumiere/prime), grille 5×4.
+  (Couples (école, type) dérivés de `data/core/spells.json` → 36 icônes au total.)
+- `combat-status-badges.md` — 7 badges d'état (buff/debuff/silence/poison/mark/
+  immobilized/stealth), grille 7×1, façon badges de jeu lisibles à 16px.
+- `combat-siege-wall.md` — segment de rempart de pierre (image unique, `process_sprite.py`).
+- `units-summoned.md` — 4 élémentaires (terre câblé aujourd'hui ; air/feu/eau stagés
+  en avance), grille 4×1, style planche d'unités.
 
 QC/découpe via `sheet_extract.py` → `assets/spells/`, `assets/ui/`, `assets/combat/`,
-`assets/units/core/` (mêmes noms qu'en phase 1). Aucun câblage : phase 2 = art seul.
+`assets/units/core/` (mêmes noms qu'en phase 1). **Icônes** (spells/status) : mipmaps à
+générer après extraction (`_<64|48|32|24>` / `_<32|24|16>`, snippet dans chaque prompt)
+OU repli non suffixé à ajouter aux résolveurs (choix d'implémentation). **Mur/invocation**
+(512² uniques) : drop-in direct. Aucun câblage : phase 2 = art seul.
+
+> ⚠️ **Un point de câblage restant pour un drop-in 100 % « déposer le PNG »** : les
+> résolveurs `spellIconUrl`/`statusIconUrl` exigent le suffixe de mipmap. Soit
+> l'art LLM est mipmappé au post-traitement (fourni), soit on ajoute un repli non
+> suffixé aux deux résolveurs (petit diff client, à décider en ouvrant la phase 2).
+
+### Phase 2 — 1ʳᵉ passe d'art LLM (planches reçues)
+
+Extraction via `sheet_extract.py` (QC verte) + circular-mask ad hoc pour les
+médaillons. **Intégré** (remplace le procédural / ajoute) :
+- **Badges d'effet** (7/7, planche 7×1 propre) → `assets/ui/status-*_{32,24,16}` mipmappés.
+- **Mur de siège** (image unique) → `assets/combat/siege-wall.png` (floodfill tol 42,
+  pierre chaude ≠ gris de fond).
+- **Élémentaires** terre/feu/eau (planche 4×1, `--tol 55` pour ôter les panneaux gris
+  internes) → `assets/units/core/`. Seul `elementaire-de-terre` est câblé ; feu/eau stagés.
+
+**Différé (re-génération nécessaire)** — planches non conformes au découpage auto :
+- **Icônes de sorts p1/p2** : la planche p1 a des **libellés texte incrustés**, des
+  **doublons** (Earth-Buff, Fire-Damage) et **fire-debuff manquant** ; p2 = grille 7 col.
+  avec icônes en trop et **sans libellé** (mapping impossible). Livrer un grimoire
+  moitié-LLM/moitié-procédural serait incohérent ⇒ **on garde le procédural (36/36)**
+  et on **re-génère** avec prompts durcis (« aucun texte, grille stricte, pas de
+  doublon/manquant » — `spells-icons-p1/p2.md` mis à jour).
+- **Élémentaire d'air** : corps trop translucide/pâle sur panneau gris ⇒ mangé au
+  détourage (rembg indisponible : téléchargement du modèle bloqué 403 via le proxy).
+  Re-gen sur fond plat unique + corps plus dense (`units-summoned.md` durci).
+
+### Phase 2 — 2ᵉ passe (icônes de sorts re-générées)
+
+Planches p1/p2 re-générées (prompts durcis). L'image LLM ne respecte **toujours pas**
+le compte/l'ordre exacts (p1 = 15 au lieu de 16 ; p2 = 29 avec doublons), mais **sans
+libellé externe** ⇒ détourables. Méthode : détection de médaillons (composantes
+connexes rondes) + **masque circulaire géométrique** (robuste : garde tout le jeton
+quelle que soit sa couleur, ôte les voisins par un rayon serré) + **mapping index→id
+vérifié à l'œil** (couleur d'école + motif d'effet, doublons/spurious filtrés) →
+planche de contrôle relue avant intégration.
+- **33/36 icônes de sorts** intégrées (mipmaps 64/48/32/24, remplacent le procédural).
+- **3 gardent le procédural** (absentes des planches) : `earth-damage`, `earth-summon`,
+  `fire-debuff` — à combler par une petite planche de 3 ultérieurement.
+Budget 332/800 Ko, smoke grimoire OK (l'icône du sort est bien rendue).
 
 ---
 

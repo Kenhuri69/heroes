@@ -997,6 +997,16 @@ test('écran pré-combat : puissances comparées + Auto-Battle résout (Lot 1)',
   expect(def).toBeGreaterThan(0);
   expect(atk).toBeGreaterThan(def); // 32 unités vs 4 : le joueur domine
 
+  // Lot 6b : composition des deux armées (rangées de vignettes). Côté joueur
+  // (attaquant) l'effectif est EXACT (un chiffre) ; côté ennemi il est
+  // APPROXIMATIF (un descripteur façon HoMM, jamais le nombre brut).
+  await expect(page.getByTestId('pre-battle-comp-attacker')).toBeVisible();
+  await expect(page.getByTestId('pre-battle-comp-defender')).toBeVisible();
+  await expect(page.getByTestId('pre-battle-comp-attacker')).toContainText(/\d/);
+  await expect(page.getByTestId('pre-battle-comp-defender')).toContainText(
+    /Quelques|A few|Plusieurs|Several|Groupe|Pack|Nombreux|Lots|Foule|Horde|Nuée|Throng/,
+  );
+
   // Auto-Battle : résolution déterministe immédiate, retour à l'aventure.
   await page.getByTestId('pre-battle-auto').click();
   await expect

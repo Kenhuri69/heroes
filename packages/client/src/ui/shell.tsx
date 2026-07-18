@@ -828,7 +828,14 @@ function HeroStrip() {
               }
             }}
           >
-            <span class="hero-portrait-mini" aria-hidden="true" />
+            {/* I7 : vrai avatar du héros (même source que le tiroir), repli
+                gracieux sur le cercle mini si l'asset n'est pas encore staggé. */}
+            <AssetImg
+              src={heroAvatarUrl(h.factionId, heroArchetype(h.attributes), h.name)}
+              alt=""
+              class="hero-portrait-avatar"
+              fallback={<span class="hero-portrait-mini" aria-hidden="true" />}
+            />
             <span class="hero-portrait-level">{h.level}</span>
           </button>
         </li>

@@ -502,6 +502,17 @@ test('E7 : les sections du tiroir héros se replient et l’état persiste', { t
   expect(errors).toEqual([]);
 });
 
+test('I7 : le portrait du HeroStrip monte un avatar (ou son repli)', { tag: '@core' }, async ({ page }) => {
+  const errors = await openGame(page);
+  // Le bouton de portrait doit contenir soit l'avatar (`img.hero-portrait-avatar`)
+  // soit son repli gracieux (`.hero-portrait-mini`) — jamais le cercle gris nu
+  // en dur. Prouve que le chemin AssetImg (I7) s'est monté sans régression.
+  const portrait = page.getByTestId('hero-select-hero-player-1');
+  await expect(portrait).toBeVisible();
+  await expect(portrait.locator('.hero-portrait-avatar, .hero-portrait-mini')).toHaveCount(1);
+  expect(errors).toEqual([]);
+});
+
 test('fin de tour : jour suivant, points de mouvement restaurés', async ({ page }) => {
   const errors = await openGame(page);
 

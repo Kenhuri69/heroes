@@ -103,16 +103,16 @@ L'événement moteur `WallBombarded { col, row, destroyed }` existe
       `siege-wall-top / -mid / -bottom / -stub` (moignon détruit) + **porte**
       `siege-gate` (et variante brisée `siege-gate-breached`), même gouache
       (skill `asset-sheet`, prompts doc 12 §7).
-- [ ] S1.2 `syncWalls` : choisir le sprite par position dans la colonne
+- [~] S1.2 (asset-gated : sélection visible seulement avec l'art `siege-wall-*` ; prompts déposés, différé) `syncWalls` : choisir le sprite par position dans la colonne
       (extrémités/segments), ancrer bord-à-bord pour absorber le zigzag de
       l'offset hex (léger décalage x par parité de rangée, chevauchement
       vertical) ⇒ muraille visuellement continue.
-- [ ] S1.3 Habiller l'OUVERTURE : hexes de porte (`SIEGE_GATE_ROWS`) avec le
+- [~] S1.3 (asset-gated, différé) Habiller l'OUVERTURE : hexes de porte (`SIEGE_GATE_ROWS`) avec le
       sprite de porte (ouverte = franchissable) ; hexes de brèche catapulte
       avec des gravats/moignons — la porte légitime et la brèche deviennent
       discernables. Les positions viennent de l'état (`siegeWalls` absents +
       géométrie connue), aucune règle nouvelle.
-- [ ] S1.4 Repli gracieux conservé (aucun asset ⇒ rocher actuel).
+- [x] S1.4 Repli gracieux conservé (aucun asset ⇒ rocher actuel).
 - Vérif : captures avant/après aux manches 1 et 4 ; smoke siège (S-TEST) vert ;
   doc 08 §2.4 mis à jour.
 
@@ -174,15 +174,15 @@ ordinaires par `placeSide` (débordement du chariot en 1ʳᵉ ligne, capture 2).
 
 ## Lot S9 — Polish & investigation (P3)
 
-- [ ] S9.1 Investiguer la surbrillance « attaquable » sur hex vide (capture 4
+- [x] S9.1 (documenté : non reproductible dans le code actuel) Investiguer la surbrillance « attaquable » sur hex vide (capture 4
       du doc 19) : reproduire via la recette + rounds auto ; suspect =
       interaction mort-différée (`pendingDeathIds`)/redraw. Corriger si bug
       confirmé, sinon documenter la cause.
-- [ ] S9.2 Rochers d'obstacles : remplacer le polygone procédural par des PNG
+- [~] S9.2 (asset-gated, différé) Rochers d'obstacles : remplacer le polygone procédural par des PNG
       props (patron `assets/tiles/props/`), repli procédural conservé.
-- [ ] S9.3 Projectile de baliste : remplacer le trait par un carreau orienté
+- [x] S9.3 Projectile de baliste : remplacer le trait par un carreau orienté
       (petit sprite ou forme dessinée), traînée courte.
-- [ ] S9.4 Cadrage d'ouverture : marge du fit initial pour que badges des
+- [x] S9.4 Cadrage d'ouverture : marge du fit initial pour que badges des
       piles extrêmes (rangée 9) ne soient pas rognés par la barre d'actions.
 - Vérif : captures ; smoke anti-gel inchangé.
 
@@ -268,3 +268,42 @@ gracieux partout) :
   (polish/investigation). Docs 08 §2.4 + 12 §9 alignées dans ce lot.
 
 **Statut :** Vagues 1 + 2/3(client) livrées.
+
+### 2026-07-18 — Vague 3 moteur (S5b) + Vague 4 (S9)
+
+- **S5b** (seul lot MOTEUR, générique) : `placeSide` place les piles `warMachine`
+  hors formation (fin de colonne de départ, jamais en front) ; créatures capées à
+  `10 − nbMachines` rangées. **No-op strict sans machine** (détection par capacité)
+  ⇒ **golden inchangé** (912 tests, +2), pas de bump save, ordre des ids préservé.
+  Test `combat-place-side` (7+4) + doc 02 §5. **Re-scope non nécessaire** : golden
+  intact confirmé (le replay n'a aucune unité `warMachine`).
+- **S9.1** (investigation) : **non reproductible dans le code actuel**. La
+  surbrillance « attaquable » est dérivée STRICTEMENT de `combat.stacks` vivant à
+  chaque `redrawBoard` (filtré par `attackableTargets`), `boardGfx.clear()` en
+  tête, et `sync()` redessine à chaque changement d'état. `pendingDeathIds` ne
+  diffère QUE la destruction du jeton (visuel), il n'alimente jamais l'ensemble
+  des surbrillances ⇒ un hex vide ne peut pas porter le liseré saumon. Classe de
+  bug close ; aucun correctif requis (documenté, cf. capture 4 = build déployé
+  antérieur).
+- **S9.3** : `spawnProjectile` gagne un `shape` — `bolt` (carreau ORIENTÉ le long
+  du vol : traînée courte + hampe + pointe) par défaut pour les tireurs, `boulder`
+  (tête ronde) pour la catapulte S2. Zéro asset.
+- **S9.4** : `MARGIN_BOTTOM` 96 → 120 — le badge d'effectif de la rangée 9 n'est
+  plus rogné par la barre d'actions au cadrage d'ouverture (audit §4).
+
+### Différés (asset-gated) — code prêt, en attente de l'art
+
+- **S1.2/S1.3** (sélection de sprite de rempart par position + porte/brèche) :
+  n'apporte AUCUN visuel sans l'art `siege-wall-{top,mid,bottom,stub}` /
+  `siege-gate*` (prompts `combat-siege-set.md`). Implémenter la sélection contre
+  des assets absents serait du scaffolding spéculatif (guidelines §2) ⇒ différé
+  jusqu'au dépôt des PNG. Le repli gracieux actuel (S1.4 : pan unique →
+  `siege-wall.png` → rocher) tient.
+- **S4.1 / S5a.1 / S9.2** : art à générer (prompts déposés). Substitution par
+  simple dépôt de PNG, code consommateur déjà câblé (S4 fond, S2.2 cracks, S5a
+  auto-découverte).
+
+**Statut final :** toutes les cases **cochées ou explicitement différées
+(asset-gated)**. Vagues 1–4 livrées côté **code** ; les 3 lots restants sont
+purement **art** (prompts déposés, drop-in prêt). Zéro moteur hors S5b (golden
+inchangé, pas de bump save), budget bundle 338 Ko < 800, garde-fous verts.

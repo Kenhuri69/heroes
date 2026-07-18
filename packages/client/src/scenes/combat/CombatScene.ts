@@ -80,7 +80,10 @@ const SHAKE_PX = 4; // amplitude crête de la secousse
 const SHAKE_MS = 120;
 
 const MARGIN_TOP = 96; // bandeau armées + round (doc 08 §2.4)
-const MARGIN_BOTTOM = 96; // barre d'actions
+// S9.4 : marge basse élargie — la barre d'actions peut passer à 2 rangées et le
+// badge d'effectif déborde SOUS le jeton ; sans marge, les piles de la rangée 9
+// (bas du plateau) étaient rognées au cadrage d'ouverture (audit doc 19 §4).
+const MARGIN_BOTTOM = 120; // barre d'actions + dépassement du badge d'effectif
 const MARGIN_SIDE = 16;
 const MAX_SCALE = 1.5;
 // Plancher tactile doc 08 §1 : hexes ≥ 44 px (~0,706 pour HEX_SIZE=36).
@@ -1196,7 +1199,7 @@ export class CombatScene {
         const origin = new Point(bounds.minX - HERO_FLANK_OFFSET, target.y);
         const to = new Point(target.x, target.y);
         const reduced = prefersReducedMotion();
-        await spawnProjectile(this.fxLayer, origin, to, { speed, reduced });
+        await spawnProjectile(this.fxLayer, origin, to, { speed, reduced, shape: 'boulder' });
         await spawnRubbleImpact(this.fxLayer, to, { speed, reduced });
         // C-SIEGE2.6 : quand un segment tombe, l'état a déjà retiré le mur ⇒
         // redessiner le plateau ouvre l'hex (la brèche s'élargit) ; `syncWalls`

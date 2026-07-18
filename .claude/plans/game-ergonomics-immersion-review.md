@@ -388,4 +388,9 @@ Zéro asset, zéro moteur : uniquement `CombatScene` + `motion.ts`.
   - [x] **Lot 2** — navigation au pouce (`ux-lot2-thumb-nav.md`, E4) : bouton HUD
         « héros suivant avec PM » (badge), tap portrait = recentrage caméra, appui
         long ville = recentrage (tap = ouvrir). `useLongPress` extrait/partagé.
-  - [ ] Lots 3→10 : à suivre.
+  - [~] **Lot 3** — feedback. **3a livré** (`ux-lot3a-toast-noise.md`, E9) : revenus
+        du jour agrégés en UN toast/entrée (au lieu d'un par mine/ville) + combats de
+        l'IA filtrés des toasts (bus `onBatch` + `meta.humanCombat`). Reste : E2
+        (raisons des boutons de combat désactivés), E8 (confirmer attaque perdue),
+        E14 (filtres de journal).
+  - [ ] Lots 4→10 : à suivre.

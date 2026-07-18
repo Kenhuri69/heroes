@@ -652,6 +652,18 @@ Menu principal (Continuer / Scénarios / Escarmouche / **Éditeur de carte** / O
 > et au retour menu. Anti-gel ×4 re-vérifié (arène ~23 fps, carte ~14 fps, rendu
 > logiciel CI, plancher ≥ 5).
 
+> 🧭 **État Combat ISOMÉTRIQUE (B2, plan `siege-visual-remediation`)** : le
+> plateau de combat est désormais rendu en **vue isométrique façon Heroes III** —
+> la grille hex est **aplatie verticalement** (`ISO_SQUASH`, `render/hexgrid.ts`)
+> ⇒ hexes larges vus de biais ; les jetons d'unité restent des sprites **debout**
+> (billboards) **triés par profondeur** (`zIndex = y`, le plus proche masque le
+> plus lointain). La **grille moteur** (offset carré 15×10) est **inchangée** :
+> seuls la projection de rendu et le picking (`pixelToHex` désaplati) portent
+> l'iso — même principe que la carte d'aventure (doc 02 §2.1). Conséquence pour le
+> siège : le rempart et la douve reposent sur la MÊME grille iso ⇒ **alignés**
+> (plus de décalage mur/douve). Zéro moteur, golden inchangé, anti-gel ×4 tenu
+> (arène ~16 fps). Captures : `docs/captures/siege/after-iso-*.jpg`.
+
 > 🏰 **État Siège — habillage (plan `.claude/plans/siege-visual-remediation.md`,
 > audit doc 19)** : lots **client purs** (zéro moteur, golden inchangé, pas de
 > bump save) qui rendent le siège lisible. (S2) le **bombardement** est visible —

@@ -31,7 +31,7 @@ import { playerColor } from '../../render/playerColors';
 import { heroAvatarUrl, unitSpriteUrl, statusIconUrl, siegeCurtainUrl, siegeTowerUrl } from '../../render/assets';
 import { computeWallLayout, drawCurtain, drawTower, drawGate, drawDamage } from '../../render/siegeWall';
 import { heroArchetype } from '../../app/game';
-import { HEX_SIZE, computeBoardBounds, drawBoard, hexKey, offsetToPixel, pixelToOffset } from '../../render/hexgrid';
+import { HEX_SIZE, ISO_SQUASH, computeBoardBounds, drawBoard, hexKey, offsetToPixel, pixelToOffset } from '../../render/hexgrid';
 import { isContentPointVisible, type Rect } from '../../render/cameraClamp';
 import { combatPreview } from './preview';
 import { spawnProjectile, spawnSpellImpact, spawnRubbleImpact, combatIdleStats, combatShakeStats } from '../../render/combatFx';
@@ -79,13 +79,6 @@ const IDLE_BOB_HZ = 0.5; // ~un demi-cycle/seconde (respiration lente)
 const DEATH_TIP_RAD = Math.PI / 2; // bascule finale (~90°)
 const SHAKE_PX = 4; // amplitude crête de la secousse
 const SHAKE_MS = 120;
-
-// S1 iso (option B) : la muraille file en perspective. `LEAN` = dérive
-// horizontale totale du haut (loin) vers le bas (près) ; `FAR`/`NEAR` = échelle
-// de profondeur aux deux extrémités (loin plus petit, près plus grand).
-const ISO_WALL_LEAN = HEX_SIZE * 2.6; // ≈ 2.6 hexes de dérive
-const ISO_WALL_FAR = 0.72;
-const ISO_WALL_NEAR = 1.18;
 
 const MARGIN_TOP = 96; // bandeau armées + round (doc 08 §2.4)
 // S9.4 : marge basse élargie — la barre d'actions peut passer à 2 rangées et le
@@ -188,8 +181,12 @@ export class CombatScene {
     this.camera.world.addChild(this.boardLayer);
     this.container.addChild(this.camera.world);
 
+    // B2 iso : tri par profondeur — un jeton plus BAS à l'écran (plus proche)
+    // masque un jeton plus haut (plus lointain). `zIndex = y` posé au sync.
+    this.stacksLayer.sortableChildren = true;
+
     this.activeRing = new Graphics()
-      .circle(0, 0, TOKEN_RADIUS + 6)
+      .ellipse(0, TOKEN_RADIUS * 0.7, TOKEN_RADIUS + 6, (TOKEN_RADIUS + 6) * ISO_SQUASH)
       .stroke({ width: 3, color: ACTIVE_RING_COLOR });
     this.activeRing.visible = false;
     this.stacksLayer.addChild(this.activeRing);
@@ -387,71 +384,40 @@ export class CombatScene {
     const curtainUrl = siegeCurtainUrl();
     const towerUrl = siegeTowerUrl();
 
-    // ISO (option B) : la muraille FILE EN PERSPECTIVE le long d'un axe penché —
-    // extrémité HAUTE = loin (plus petite, décalée à droite), extrémité BASSE =
-    // près (plus grande, décalée à gauche). Chaque pièce est posée sur cet axe,
-    // mise à l'échelle selon la profondeur (haut→bas), dans l'ordre loin→près.
-    const yTop = Math.min(...layout.runs.map((r) => r.yTop));
-    const yBot = Math.max(...layout.runs.map((r) => r.yBot));
-    const span = Math.max(1, yBot - yTop);
-    const iso = {
-      t: (y: number) => (y - yTop) / span,
-      xAt: (y: number) => layout.wallX + ISO_WALL_LEAN * (0.5 - (y - yTop) / span),
-      scaleAt: (y: number) => ISO_WALL_FAR + (ISO_WALL_NEAR - ISO_WALL_FAR) * ((y - yTop) / span),
-    };
-
-    // Courtines : sprite peint incliné le long de l'axe iso, sinon procédural.
+    // B2 : le plateau ENTIER est iso (grille aplatie, `offsetToPixel`) ⇒ la
+    // muraille posée droit sur la colonne suit l'iso et reste alignée sur la douve
+    // (plus de décalage mur/douve). Pièces peintes, sinon repli procédural.
     for (const run of layout.runs) {
-      if (curtainUrl) this.placeCurtainIso(curtainUrl, iso, layout.halfW, run.yTop, run.yBot);
+      if (curtainUrl) this.placeCurtain(curtainUrl, layout.wallX, layout.halfW, run.yTop, run.yBot);
       else drawCurtain(this.wallBase, layout.wallX, run.yTop, run.yBot);
     }
-    // Tours aux extrémités de chaque tronçon (posées sur l'axe, échelle profondeur).
     for (const ty of layout.towers) {
-      if (towerUrl) this.placeTowerIso(towerUrl, iso.xAt(ty), ty, iso.scaleAt(ty), layout.towerH);
+      if (towerUrl) this.placeTower(towerUrl, layout.wallX, ty, layout.towerH);
       else drawTower(this.wallBase, layout.wallX, ty);
     }
-    // Porte : procédurale (arche + vantaux), posée sur l'axe iso.
-    if (layout.gateY != null) drawGate(this.wallBase, iso.xAt(layout.gateY), layout.gateY);
-    // Dégâts (fissures / brèche) — procéduraux, sur l'axe iso, au-dessus.
-    for (const d of layout.damage) drawDamage(this.wallDamage, iso.xAt(d.y), d.y, d.ratio, d.seed);
+    if (layout.gateY != null) drawGate(this.wallBase, layout.wallX, layout.gateY);
+    for (const d of layout.damage) drawDamage(this.wallDamage, d.x, d.y, d.ratio, d.seed);
   }
 
-  /**
-   * S1 iso : courtine PEINTE tuilée le long de l'axe penché [yTop,yBot] via un
-   * `TilingSprite` incliné (pivot en tête, rotation = direction de l'axe). Une
-   * tuile de large (répétée en longueur) ⇒ courtine continue qui file en
-   * perspective. Largeur ∝ échelle de profondeur.
-   */
-  private placeCurtainIso(
-    url: string,
-    iso: { xAt: (y: number) => number; scaleAt: (y: number) => number },
-    halfW: number,
-    yTop: number,
-    yBot: number,
-  ): void {
-    const topX = iso.xAt(yTop);
-    const botX = iso.xAt(yBot);
-    const len = Math.hypot(botX - topX, yBot - yTop);
-    const w = halfW * 2 * iso.scaleAt((yTop + yBot) / 2);
-    const angle = Math.atan2(yBot - yTop, botX - topX) - Math.PI / 2; // local +y (bas) → direction d'axe
+  /** Courtine PEINTE tuilée verticalement sur un tronçon [yTop,yBot] (`TilingSprite`). */
+  private placeCurtain(url: string, x: number, halfW: number, yTop: number, yBot: number): void {
+    const w = halfW * 2;
     void Assets.load(url).then((texture) => {
       if (this.destroyed || this.wallSpriteLayer.destroyed) return;
-      const tile = new TilingSprite({ texture, width: w, height: len });
+      const tile = new TilingSprite({ texture, width: w, height: yBot - yTop });
       tile.tileScale.set(w / texture.width);
-      tile.pivot.set(w / 2, 0);
-      tile.rotation = angle;
-      tile.position.set(topX, yTop);
+      tile.position.set(x - halfW, yTop);
       this.wallSpriteLayer.addChild(tile);
     });
   }
 
-  /** S1 iso : tour PEINTE posée en (x,y) sur l'axe, base au point, échelle profondeur. */
-  private placeTowerIso(url: string, x: number, y: number, depthScale: number, towerH: number): void {
+  /** Tour PEINTE centrée en (x,y), base posée au point, calée à `towerH`. */
+  private placeTower(url: string, x: number, y: number, towerH: number): void {
     void Assets.load(url).then((texture) => {
       if (this.destroyed || this.wallSpriteLayer.destroyed) return;
       const sprite = new Sprite(texture);
-      sprite.anchor.set(0.5, 0.82); // base de la tour près du point d'axe
-      sprite.scale.set(((towerH * 1.7) / texture.height) * depthScale);
+      sprite.anchor.set(0.5, 0.82);
+      sprite.scale.set((towerH * 1.7) / texture.height);
       sprite.position.set(x, y);
       this.wallSpriteLayer.addChild(sprite);
     });
@@ -573,6 +539,7 @@ export class CombatScene {
       if (!this.animatingIds.has(stack.id)) {
         const { x, y } = offsetToPixel(stack.pos);
         token.position.set(x, y);
+        token.zIndex = y; // B2 iso : profondeur = position à l'écran
       }
       this.updateCountBadge(token, stack.count);
       this.updateStatusBadges(token, stack);
@@ -651,7 +618,8 @@ export class CombatScene {
     if (token) {
       this.activeRing.visible = true;
       this.activeRing.position.copyFrom(token.position);
-      this.stacksLayer.addChild(this.activeRing); // reste au-dessus
+      this.activeRing.zIndex = token.position.y - 0.5; // juste sous la pile active (iso)
+      this.stacksLayer.addChild(this.activeRing);
     } else {
       this.activeRing.visible = false;
     }

@@ -15,18 +15,30 @@ import {
  */
 export const HEX_SIZE = 36; // rayon ; ≥ 44 px de cible tactile au zoom 1
 
-/** Centre pixel d'un hex en coordonnées axiales (doc 10 §5.5). */
+/**
+ * B2 — vue ISOMÉTRIQUE du plateau de combat (comme Heroes III) : la grille est
+ * APLATIE verticalement (`ISO_SQUASH`) ⇒ hexes larges façon champ de bataille vu
+ * de biais. Les jetons d'unité restent des sprites DEBOUT (billboards), triés par
+ * profondeur (`zIndex = y`) pour que le plus proche masque le plus lointain. La
+ * grille MOTEUR (offset carré 15×10) est INCHANGÉE : seule la projection de rendu
+ * et le picking (`pixelToHex`) portent l'aplatissement — comme la carte
+ * d'aventure (doc 02 §2.1, `render/projection.ts`).
+ */
+export const ISO_SQUASH = 0.68;
+
+/** Centre pixel d'un hex en coordonnées axiales (doc 10 §5.5) — Y aplati (iso). */
 export function hexToPixel(q: number, r: number): { x: number; y: number } {
   return {
     x: HEX_SIZE * Math.sqrt(3) * (q + r / 2),
-    y: HEX_SIZE * 1.5 * r,
+    y: HEX_SIZE * 1.5 * r * ISO_SQUASH,
   };
 }
 
-/** Hex axial (arrondi) le plus proche d'un point pixel. */
+/** Hex axial (arrondi) le plus proche d'un point pixel (picking iso — Y désaplati). */
 export function pixelToHex(x: number, y: number): { q: number; r: number } {
-  const q = ((Math.sqrt(3) / 3) * x - y / 3) / HEX_SIZE;
-  const r = ((2 / 3) * y) / HEX_SIZE;
+  const yy = y / ISO_SQUASH; // désaplatit avant l'inversion axiale
+  const q = ((Math.sqrt(3) / 3) * x - yy / 3) / HEX_SIZE;
+  const r = ((2 / 3) * yy) / HEX_SIZE;
   return hexRound(q, r);
 }
 
@@ -145,6 +157,19 @@ export interface DrawBoardOptions {
   selected?: OffsetPos | null;
 }
 
+/**
+ * Sommets d'un hexagone POINTY-TOP APLATI (iso) autour de (x,y), rayon `r`.
+ * Les hexes du plateau iso sont larges (Y × `ISO_SQUASH`) façon Heroes III.
+ */
+function flatHexPoints(x: number, y: number, r: number): number[] {
+  const pts: number[] = [];
+  for (let k = 0; k < 6; k++) {
+    const a = ((-90 + k * 60) * Math.PI) / 180; // pointy-top : sommet en haut
+    pts.push(x + r * Math.cos(a), y + r * Math.sin(a) * ISO_SQUASH);
+  }
+  return pts;
+}
+
 /** Dessine les 150 hexes du plateau avec leurs surbrillances (doc 10 §5.5). */
 export function drawBoard(g: Graphics, opts: DrawBoardOptions = {}): void {
   const reachable = opts.reachable ?? new Set<string>();
@@ -201,18 +226,18 @@ export function drawBoard(g: Graphics, opts: DrawBoardOptions = {}): void {
       // produit un treillis en losanges au lieu d'un nid d'abeille.
       if (isMoat) {
         // 1) Décor de douve (fossé opaque + vaguelettes) — toujours dessiné.
-        g.regularPoly(x, y, r, 6, 0)
+        g.poly(flatHexPoints(x, y, r))
           .fill({ color: FILL_MOAT, alpha: ALPHA_MOAT_DECOR })
           .stroke({ width: 1, color: STROKE_MOAT });
         drawWavelets(g, x, y, r);
         // 2) Surbrillance CUMULÉE (translucide) : la douve transparaît dessous.
         if (stateFill != null) {
-          g.regularPoly(x, y, r, 6, 0)
+          g.poly(flatHexPoints(x, y, r))
             .fill({ color: stateFill, alpha: ALPHA_MOAT_OVERLAY })
             .stroke({ width: strokeWidth, color: stateStroke });
         }
         if (isSelected) {
-          g.regularPoly(x, y, r, 6, 0).stroke({ width: 3, color: STROKE_SELECTED });
+          g.poly(flatHexPoints(x, y, r)).stroke({ width: 3, color: STROKE_SELECTED });
         }
       } else {
         // Chemin non-douve : rendu inchangé (une seule couche teinte état/base).
@@ -220,7 +245,7 @@ export function drawBoard(g: Graphics, opts: DrawBoardOptions = {}): void {
         const alpha = stateFill != null ? (isObstacle ? ALPHA_OBSTACLE : ALPHA_STATE) : ALPHA_BASE;
         const stroke = isSelected ? STROKE_SELECTED : stateFill != null ? stateStroke : STROKE_BASE;
         const sw = isSelected ? 3 : strokeWidth;
-        g.regularPoly(x, y, r, 6, 0)
+        g.poly(flatHexPoints(x, y, r))
           .fill({ color: fill, alpha })
           .stroke({ width: sw, color: stroke });
       }
@@ -257,8 +282,10 @@ export function computeBoardBounds(): BoardBounds {
       const { x, y } = offsetToPixel({ col, row });
       minX = Math.min(minX, x - HEX_SIZE);
       maxX = Math.max(maxX, x + HEX_SIZE);
-      minY = Math.min(minY, y - HEX_SIZE);
-      maxY = Math.max(maxY, y + HEX_SIZE);
+      // Iso : les jetons/tours sont DEBOUT et dépassent vers le haut de leur hex ;
+      // marge haute élargie pour ne pas les rogner. Hex aplati en bas (× SQUASH).
+      minY = Math.min(minY, y - HEX_SIZE * 2);
+      maxY = Math.max(maxY, y + HEX_SIZE * ISO_SQUASH);
     }
   }
   return { minX, minY, width: maxX - minX, height: maxY - minY };

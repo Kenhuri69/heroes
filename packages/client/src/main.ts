@@ -1,6 +1,6 @@
 import { Application, Point } from 'pixi.js';
 import type { Command, GameState, GridPos } from '@heroes/engine';
-import { CURRENT_SAVE_VERSION, findPath, serializeState } from '@heroes/engine';
+import { CURRENT_SAVE_VERSION, findPath, humanPlayerId, serializeState } from '@heroes/engine';
 import { Camera } from './render/camera';
 import { combatFxStats, combatIdleStats, combatShakeStats } from './render/combatFx';
 import { waterSheenStats } from './render/waterSheen';
@@ -48,7 +48,7 @@ import { registerCamera, unregisterCamera } from './app/camera-control';
 import { playOpeningCutscene } from './app/cutscene';
 import { initCampaign, startCampaignChapter, campaignFlags } from './app/campaign';
 import { initI18n, t } from './app/i18n';
-import { preloadPixiTextures, combatBackgroundUrl, chromeFrameUrl, chromeRibbonUrl, initHeroAvatars } from './render/assets';
+import { preloadPixiTextures, combatBackgroundUrl, siegeBackgroundUrl, chromeFrameUrl, chromeRibbonUrl, initHeroAvatars } from './render/assets';
 import { AdventureScene } from './scenes/adventure/AdventureScene';
 import { CombatScene } from './scenes/combat/CombatScene';
 import { mountUi } from './ui/shell';
@@ -79,6 +79,8 @@ declare global {
       startSkirmish: (config: SkirmishConfig) => Promise<void>;
       /** Démarre un chapitre de campagne, seed fixe (couverture smoke N3a). */
       startCampaignChapter: (campaignId: string, chapterIndex: number) => Promise<void>;
+      /** Forge un siège reproductible (S-TEST, doc 19 annexe) : héros doté d'une catapulte vs Château neutre défendu, puis `CaptureTown`. */
+      startSiege: () => Promise<void>;
       /** Drapeaux de campagne posés par les choix de dialogue (couverture smoke N3c.2). */
       campaignFlags: () => Record<string, boolean>;
       /** Progression des tours IA (UX multi-joueurs) — non-null pendant qu'une IA joue. */
@@ -191,8 +193,14 @@ async function bootstrap(): Promise<void> {
       app.stage.addChild(combatScene.container);
       camera.world.visible = false;
       camera.setEnabled(false); // libère les gestes app.stage pour la caméra de combat
-      // Toile de combat peinte du terrain en fond DOM (U5-E) — coût par-frame nul.
-      const url = game.combat ? combatBackgroundUrl(game.combat.terrain) : undefined;
+      // Toile de combat peinte en fond DOM (U5-E) — coût par-frame nul. S4 : un
+      // SIÈGE de ville (`combat.townId`) prend une toile de siège (ambiance de la
+      // faction assiégée → générique → repli terrain), zéro moteur, id opaque.
+      let url = game.combat ? combatBackgroundUrl(game.combat.terrain) : undefined;
+      if (game.combat?.townId != null) {
+        const town = game.towns.find((tw) => tw.id === game.combat!.townId);
+        url = siegeBackgroundUrl(town?.factionId) ?? url;
+      }
       root.style.backgroundImage = url ? `url(${url})` : '';
       root.style.backgroundSize = 'cover';
       root.style.backgroundPosition = 'center';
@@ -459,6 +467,7 @@ async function bootstrap(): Promise<void> {
     },
     startScenario: (scenarioId) => startScenario(scenarioId, TEST_SCENARIO_SEED),
     startSkirmish: (config) => startSkirmish(config, TEST_SCENARIO_SEED),
+    startSiege: () => forgeSiege(),
     startCampaignChapter: (campaignId, chapterIndex) =>
       startChapter(campaignId, chapterIndex, TEST_SCENARIO_SEED),
     campaignFlags,
@@ -483,6 +492,62 @@ async function bootstrap(): Promise<void> {
     objectChildCount: (id: string) => scene?.objectChildCount(id) ?? 0,
   };
   window.__HEROES_READY__ = true; // signal pour le smoke test headless
+}
+
+/**
+ * S-TEST (doc 19 annexe) : forge un combat de SIÈGE reproductible depuis la
+ * partie `?seed` vivante, sans passer par IndexedDB (le forge des remparts/douve/
+ * tour est piloté par le moteur au `CaptureTown`). Dote le héros humain d'une
+ * catapulte (`siege-cat` : `warMachine` + `siegeBreaker`, câblée au catalogue),
+ * pousse une ville neutre **Château (Fort 3)** défendue à sa position, puis
+ * déclenche le siège. Test-scaffold client (patron des forges `importAiTurnSave`)
+ * — aucune règle moteur, ids de faction opaques.
+ */
+async function forgeSiege(): Promise<void> {
+  const base = appStore.getState().game;
+  const humanId = humanPlayerId(base);
+  if (!humanId) throw new Error('startSiege : aucun joueur humain');
+  const g = structuredClone(base) as GameState;
+  const hero = g.heroes.find((h) => h.playerId === humanId);
+  if (!hero) throw new Error('startSiege : aucun héros humain');
+  // Unité de garnison / d'armée prise dans le catalogue vivant (hors machines).
+  const troopId =
+    Object.keys(g.unitCatalog).find(
+      (id) => !(g.unitCatalog[id]?.abilities ?? []).some((a) => a.id === 'warMachine'),
+    ) ?? hero.army[0]?.unitId;
+  if (!troopId) throw new Error('startSiege : aucune unité disponible');
+  if (hero.army.length === 0) hero.army = [{ unitId: troopId, count: 40 }];
+  // Catapulte de siège (siegeBreaker ⇒ brèche + PV de segments érodables).
+  g.unitCatalog = {
+    ...g.unitCatalog,
+    'siege-cat': {
+      id: 'siege-cat',
+      groupId: 'wm',
+      nativeTerrain: 'grass',
+      stats: { hp: 300, attack: 8, defense: 10, damage: [8, 15], speed: 1 },
+      abilities: [{ id: 'warMachine' }, { id: 'siegeBreaker' }],
+    },
+  };
+  hero.warMachines = ['siege-cat'];
+  // Ville neutre défendue : Château (Fort 3 ⇒ rempart + douve + tour de tir).
+  const townId = 'siege-town';
+  g.towns = [
+    ...g.towns.filter((t) => t.id !== townId),
+    {
+      id: townId,
+      ownerPlayerId: null,
+      pos: { ...hero.pos },
+      factionId: '',
+      buildings: { fort: 3 },
+      builtToday: false,
+      garrison: [{ unitId: troopId, count: 30 }],
+      stock: {},
+      spellPool: [],
+      sharedGrowthChoice: {},
+    },
+  ];
+  appStore.setState({ game: g });
+  await dispatch({ type: 'CaptureTown', townId, playerId: humanId });
 }
 
 /**

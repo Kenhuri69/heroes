@@ -683,6 +683,15 @@ Vue peinte de la ville où les bâtiments construits apparaissent (grande satisf
 - Attaquant à gauche, défenseur à droite ; jusqu'à **7 piles** par armée, placement initial automatique + phase de placement tactique si compétence Tactique.
 - Placement automatique (valeur de départ, Phase 2) : attaquant colonne 0, défenseur colonne 14 ; pour n piles, rangée du slot i = `floor((i + 0,5) × 10 / n)`.
 
+> **Machines de guerre hors formation (S5b, plan siege-visual-remediation)** : une
+> pile dont l'unité porte la capacité `warMachine` (catapulte, baliste, tente,
+> chariot, tour) est placée sur des **emplacements réservés** en fin de colonne de
+> départ — **jamais dans la colonne de front** (avant : le chariot débordait en
+> 1ʳᵉ ligne). Les créatures sont capées aux `10 − nbMachines` rangées de tête, les
+> machines occupent les dernières rangées de la MÊME colonne de spawn. Décision
+> **générique** par capacité (donnée), aucun id d'unité/faction en dur ; **sans
+> machine, la formule historique est inchangée** (golden préservé, pas de bump save).
+
 > **Phase de placement (C-TACTICS, livré)** : un héros doté de la compétence
 > **Tactique** ouvre le combat en `phase: 'placement'` — le camp joueur
 > repositionne ses piles dans une **bande** de `tacticsColumns` colonnes depuis

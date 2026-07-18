@@ -4,7 +4,7 @@ import { appStore, useApp } from '../app/store';
 import { dispatch } from '../app/dispatch';
 import { recordCombatAuto } from '../app/telemetry';
 import { heroArchetype } from '../app/game';
-import { t, resolveUnitName, commandErrorMessage } from '../app/i18n';
+import { t, resolveUnitName, resolveLoc, commandErrorMessage } from '../app/i18n';
 import { heroAvatarUrl, unitSpriteUrl } from '../render/assets';
 import { AssetImg } from './AssetImg';
 import { FactionBadge } from './FactionBadge';
@@ -42,6 +42,20 @@ export function PreBattleScreen() {
   const defTop = dominant(defenders);
   const defenderFaction = factionOf(defenders, game.unitCatalog);
 
+  // S7 — Siège de ville : titre et rangée de défenses (données déjà dans l'état).
+  const town = combat.townId ? game.towns.find((tw) => tw.id === combat.townId) : undefined;
+  const isSiege = combat.townId != null;
+  const townLabel =
+    town?.factionId ? resolveLoc(`faction.${town.factionId}.name`) : t('preBattle.siegeGenericTown');
+  const fortLevel = town?.buildings['fort'] ?? 0;
+  const hasWalls = (combat.siegeWalls?.length ?? 0) > 0;
+  const hasMoat = (combat.moat?.length ?? 0) > 0;
+  const hasTower = defenders.some((s) => {
+    const ab = game.unitCatalog[s.unitId]?.abilities ?? [];
+    return ab.some((a) => a.id === 'warMachine') && ab.some((a) => a.id === 'immobile');
+  });
+  const title = isSiege ? t('preBattle.siegeTitle', { town: townLabel }) : t('preBattle.title');
+
   const fight = (): void => {
     appStore.setState({ preBattlePending: false });
   };
@@ -61,8 +75,18 @@ export function PreBattleScreen() {
 
   return (
     <div class="pre-battle-backdrop" data-testid="pre-battle">
-      <div class="pre-battle chrome-framed" role="dialog" aria-modal="true" aria-label={t('preBattle.title')}>
-        <h2 class="pre-battle-title">{t('preBattle.title')}</h2>
+      <div class="pre-battle chrome-framed" role="dialog" aria-modal="true" aria-label={title}>
+        <h2 class="pre-battle-title">{title}</h2>
+        {isSiege && (
+          <div class="pre-battle-defenses" data-testid="pre-battle-defenses">
+            {fortLevel > 0 && (
+              <span class="pre-battle-defense">{t('preBattle.defenseFort', { level: fortLevel })}</span>
+            )}
+            {hasWalls && <span class="pre-battle-defense">{t('preBattle.defenseWalls')}</span>}
+            {hasMoat && <span class="pre-battle-defense">{t('preBattle.defenseMoat')}</span>}
+            {hasTower && <span class="pre-battle-defense">{t('preBattle.defenseTower')}</span>}
+          </div>
+        )}
         <div class="pre-battle-sides">
           <div class="pre-battle-side">
             <div class="pre-battle-portrait">

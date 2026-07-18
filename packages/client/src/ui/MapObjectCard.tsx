@@ -77,6 +77,8 @@ function cardTitle(object: MapObjectDef): string {
       return t('mapCard.monolithTitle');
     case 'obelisk':
       return t('mapCard.obeliskTitle');
+    case 'boat':
+      return t('mapCard.boatTitle');
   }
 }
 
@@ -121,6 +123,8 @@ function cardLines(
       return [t('mapCard.monolithLine')];
     case 'obelisk':
       return [t('mapCard.obeliskLine')];
+    case 'boat':
+      return [t('mapCard.boatLine')];
   }
 }
 

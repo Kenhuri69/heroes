@@ -451,6 +451,8 @@
   "mapCard.monolithTitle": "Monolith",
   "mapCard.obeliskTitle": "Obelisk",
   "mapCard.obeliskLine": "Visit every obelisk to reveal the Grail.",
+  "mapCard.boatTitle": "Boat",
+  "mapCard.boatLine": "Board from an adjacent shore to sail the sea.",
   "mapCard.monolithLine": "Teleports to its twin.",
   "mapCard.resourceLine": "{amount} × {name} — picked up in passing",
   "mapCard.mineIncome": "+{amount} {name}/day for its owner",

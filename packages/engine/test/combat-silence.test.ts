@@ -43,7 +43,7 @@ const CATALOG: Record<string, CombatUnitDef> = { caster: CASTER, foe: unit({ id:
 
 function hero(): HeroState {
   return {
-    id: 'hero-a', playerId: 'p1', pos: { x: 0, y: 0 }, movementPoints: 0, army: [], xp: 0, level: 1,
+    id: 'hero-a', playerId: 'p1', pos: { x: 0, y: 0 }, movementPoints: 0, naval: false, army: [], xp: 0, level: 1,
     attributes: { attack: 0, defense: 0, power: 0, knowledge: 0 }, mana: 30, manaMax: 30, skills: {},
     visitLuck: 0, spells: ['sil'], artifacts: Array.from({ length: 10 }, () => null), pendingSkillChoices: [],
     visitMorale: 0,

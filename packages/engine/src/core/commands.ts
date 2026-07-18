@@ -117,6 +117,10 @@ export type Command =
   | { type: 'EndTurn'; playerId: string }
   /** Fouille de la tuile du Graal (T-GRAIL lot 2) — le héros sur `grailPos` obtient le Graal. */
   | { type: 'Dig'; heroId: string }
+  /** Embarque un héros à pied sur un bateau adjacent (A3.2) — il devient naval. */
+  | { type: 'BoardBoat'; heroId: string; boatId: string }
+  /** Débarque un héros naval sur une tuile terrestre adjacente (A3.2). */
+  | { type: 'DisembarkBoat'; heroId: string; target: GridPos }
   | {
       /** Ouvre un combat hors aventure (arène `/#arena`, tests). */
       type: 'StartCombat';
@@ -363,6 +367,12 @@ export interface CommandError {
     | 'alreadyHasGrail'
     | 'noMovement'
     | 'grailRequired'
+    // Navigation (A3.2) : embarquement/débarquement.
+    | 'alreadyNaval'
+    | 'notNaval'
+    | 'unknownBoat'
+    | 'boatNotAdjacent'
+    | 'tileOccupied'
     | 'gameOver';
   message: string;
 }

@@ -18,7 +18,7 @@ import { testConfig, testCatalog } from './fixtures';
 
 function hero(over: Partial<HeroState>): HeroState {
   return {
-    id: 'h1', playerId: 'p1', pos: { x: 5, y: 5 }, movementPoints: 0,
+    id: 'h1', playerId: 'p1', pos: { x: 5, y: 5 }, movementPoints: 0, naval: false,
     army: [{ unitId: 'red-grunt', count: 1 }], xp: 0, level: 1,
     attributes: { attack: 0, defense: 0, power: 0, knowledge: 0 }, mana: 0, manaMax: 0, skills: {},
     visitLuck: 0, spells: [], artifacts: Array.from({ length: 10 }, () => null), pendingSkillChoices: [],

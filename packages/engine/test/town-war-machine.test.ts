@@ -35,7 +35,7 @@ function heroAt(pos: { x: number; y: number }, warMachines: string[] = []): Hero
     id: 'hero-p1',
     playerId: 'p1',
     pos,
-    movementPoints: 100,
+    movementPoints: 100, naval: false,
     army: [{ unitId: 'red-grunt', count: 20 }],
     xp: 0,
     level: 1,

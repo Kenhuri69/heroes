@@ -282,7 +282,7 @@ const GOLDEN_JOURNAL: Command[] = [
 // génériques, `config.hero.archetypeEffects` absent des fixtures) ⇒ seul
 // `saveVersion` change : hash de FORME seule, simulation inchangée (toutes les
 // assertions de valeurs ci-dessous restent vertes).
-const GOLDEN_HASH = 'd2f06bdb';
+const GOLDEN_HASH = '7c1cdc04';
 
 describe('golden replay', () => {
   it('le journal scripté produit toujours le même état final', () => {

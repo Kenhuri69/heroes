@@ -1039,6 +1039,11 @@ export type ResolvedMapObject =
     }
   | {
       id: string;
+      type: 'boat';
+      pos: { x: number; y: number };
+    }
+  | {
+      id: string;
       type: 'town';
       pos: { x: number; y: number };
       /** Ville neutre (Alpha 4.13) : faction + garnison assiégeable. Absents = ville de départ. */
@@ -1485,6 +1490,7 @@ function resolveMap(file: MapFile): ResolvedMap {
       if (obj.type === 'monolith')
         return { id: obj.id, type: obj.type, pos, pairId: obj.pairId };
       if (obj.type === 'obelisk') return { id: obj.id, type: obj.type, pos };
+      if (obj.type === 'boat') return { id: obj.id, type: obj.type, pos };
       return {
         id: obj.id,
         type: obj.type,

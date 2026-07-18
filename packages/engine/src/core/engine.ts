@@ -159,6 +159,8 @@ const GAME_OVER_BLOCKED = new Set<Command['type']>([
   'MoveHero',
   'EndTurn',
   'Dig',
+  'BoardBoat',
+  'DisembarkBoat',
   'StartCombat',
   'CombatAction',
   'AutoCombat',
@@ -279,6 +281,51 @@ export function validate(state: GameState, cmd: Command): CommandError | null {
         return { code: 'notOnGrail', message: 'le héros n’est pas sur la tuile du Graal' };
       if (hero.movementPoints <= 0)
         return { code: 'noMovement', message: 'plus de mouvement pour fouiller aujourd’hui' };
+      return null;
+    }
+    case 'BoardBoat': {
+      if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
+      if (state.combat) return { code: 'combatActive', message: 'un combat est en cours' };
+      if (state.pendingTreasure)
+        return { code: 'treasurePending', message: 'un trésor attend son choix or/XP' };
+      const hero = state.heroes.find((h) => h.id === cmd.heroId);
+      if (!hero) return { code: 'unknownHero', message: `héros inconnu '${cmd.heroId}'` };
+      const current = state.players[state.currentPlayer];
+      if (!current || hero.playerId !== current.id)
+        return { code: 'notYourHero', message: `'${cmd.heroId}' n’appartient pas au joueur actif` };
+      if (hero.naval) return { code: 'alreadyNaval', message: 'le héros est déjà embarqué' };
+      if (hero.movementPoints <= 0)
+        return { code: 'noMovement', message: 'plus de mouvement pour embarquer aujourd’hui' };
+      const boat = state.map?.objects.find((o) => o.type === 'boat' && o.id === cmd.boatId);
+      if (!boat) return { code: 'unknownBoat', message: `bateau inconnu '${cmd.boatId}'` };
+      if (!isAdjacent(hero.pos, boat.pos))
+        return { code: 'boatNotAdjacent', message: 'le bateau n’est pas adjacent au héros' };
+      if (state.heroes.some((h) => h.id !== hero.id && samePos(h.pos, boat.pos)))
+        return { code: 'tileOccupied', message: 'la tuile du bateau est occupée' };
+      return null;
+    }
+    case 'DisembarkBoat': {
+      if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
+      if (state.combat) return { code: 'combatActive', message: 'un combat est en cours' };
+      if (state.pendingTreasure)
+        return { code: 'treasurePending', message: 'un trésor attend son choix or/XP' };
+      const hero = state.heroes.find((h) => h.id === cmd.heroId);
+      if (!hero) return { code: 'unknownHero', message: `héros inconnu '${cmd.heroId}'` };
+      const current = state.players[state.currentPlayer];
+      if (!current || hero.playerId !== current.id)
+        return { code: 'notYourHero', message: `'${cmd.heroId}' n’appartient pas au joueur actif` };
+      if (!hero.naval) return { code: 'notNaval', message: 'le héros n’est pas embarqué' };
+      if (hero.movementPoints <= 0)
+        return { code: 'noMovement', message: 'plus de mouvement pour débarquer aujourd’hui' };
+      if (!isAdjacent(hero.pos, cmd.target))
+        return { code: 'invalidPath', message: 'la tuile de débarquement n’est pas adjacente' };
+      // Débarquement sur la TERRE ferme (domaine à pied) uniquement.
+      if (!state.map || !state.config || !isPassable(state.config, state.map, cmd.target, false))
+        return { code: 'invalidPath', message: 'tuile de débarquement non terrestre' };
+      if (state.heroes.some((h) => h.id !== hero.id && samePos(h.pos, cmd.target)))
+        return { code: 'tileOccupied', message: 'la tuile de débarquement est occupée' };
+      if (state.map.objects.some((o) => o.type === 'guardian' && samePos(o.pos, cmd.target)))
+        return { code: 'invalidPath', message: 'tuile de débarquement gardée' };
       return null;
     }
     case 'StartCombat': {
@@ -489,6 +536,8 @@ function validateMap(cmd: Extract<Command, { type: 'StartGame' }>): CommandError
       // contenu (`loadMap`) ; le moteur n'a rien de plus à vérifier ici.
     } else if (obj.type === 'obelisk') {
       // Obélisque (T-GRAIL) : objet neutre sans donnée à valider.
+    } else if (obj.type === 'boat') {
+      // Bateau (A3.2) : objet neutre sans donnée propre à valider.
     } else {
       if (!(obj.unitId in cmd.unitCatalog))
         return bad(`gardien '${obj.id}' : unité inconnue du catalogue '${obj.unitId}'`);
@@ -515,11 +564,13 @@ function validatePath(
   if (path.length === 0) return { code: 'invalidPath', message: 'chemin vide' };
   const mover = state.heroes.find((h) => h.id === heroId);
   const moverPlayer = state.players.find((p) => p.id === mover?.playerId);
+  // Domaine du héros (A3) : un héros embarqué navigue l'eau, un héros à pied la terre.
+  const naval = mover?.naval ?? false;
   let prev = start;
   for (const step of path) {
     if (!isAdjacent(prev, step))
       return { code: 'invalidPath', message: `pas non adjacent (${step.x},${step.y})` };
-    if (!isPassable(config, map, step))
+    if (!isPassable(config, map, step, naval))
       return { code: 'invalidPath', message: `tuile infranchissable (${step.x},${step.y})` };
     // Héros occupant : un héros ENNEMI (autre joueur, non allié) est ciblable en
     // DERNIER pas (combat héros-vs-héros, doc 02 §5, H-VS-H) ; un allié ou soi
@@ -544,7 +595,7 @@ function validatePath(
     prev = step;
   }
   const first = path[0];
-  if (first && stepCost(config, map, start, first) > movementPoints)
+  if (first && stepCost(config, map, start, first, naval) > movementPoints)
     return { code: 'noMovementPoints', message: 'points de mouvement insuffisants' };
   return null;
 }
@@ -619,6 +670,8 @@ const handlers: Handlers = {
       pos: cmd.map.startPositions[i] as GridPos,
       // PM/mana posés dans la boucle suivante (nécessitent l'objet héros complet).
       movementPoints: 0,
+      // Domaine de départ : à pied (A3). Bascule via BoardBoat/DisembarkBoat.
+      naval: false,
       army: (p.startingArmy ?? []).map((s) => ({ ...s })),
       // Progression (doc 02 §1.2) — attributs de base fournis par le scénario (défaut 0).
       // Report de campagne (doc 13 §4.1, N3a) : niveau/XP/compétences repris si fournis.
@@ -742,6 +795,48 @@ const handlers: Handlers = {
     player.hasGrail = true;
     hero.movementPoints = 0; // la fouille consomme la journée (fidélité HoMM)
     events.push({ type: 'GrailFound', playerId: player.id, heroId: hero.id, pos: { ...hero.pos } });
+  },
+
+  BoardBoat(draft, cmd, events) {
+    const hero = draft.heroes.find((h) => h.id === cmd.heroId);
+    const player = draft.players.find((p) => hero && p.id === hero.playerId);
+    const map = draft.map;
+    const config = draft.config;
+    if (!hero || !player || !map || !config) return; // exclu par validate
+    const boatIdx = map.objects.findIndex((o) => o.type === 'boat' && o.id === cmd.boatId);
+    const boat = map.objects[boatIdx];
+    if (!boat) return;
+    hero.pos = { ...boat.pos };
+    hero.naval = true;
+    map.objects.splice(boatIdx, 1); // le bateau est consommé (le héros l'occupe)
+    hero.movementPoints = 0; // embarquer consomme la journée (fidélité HoMM3)
+    revealAround(
+      player.explored,
+      map,
+      hero.pos,
+      heroVisionRadius(hero, config.visionRadius, draft.skillCatalog, draft.artifactCatalog),
+    );
+    events.push({ type: 'BoardedBoat', heroId: hero.id, boatId: cmd.boatId, pos: { ...hero.pos } });
+  },
+
+  DisembarkBoat(draft, cmd, events) {
+    const hero = draft.heroes.find((h) => h.id === cmd.heroId);
+    const player = draft.players.find((p) => hero && p.id === hero.playerId);
+    const map = draft.map;
+    const config = draft.config;
+    if (!hero || !player || !map || !config) return; // exclu par validate
+    const boatPos = { ...hero.pos }; // la tuile d'eau quittée reçoit un bateau réutilisable
+    map.objects.push({ id: `boat@${boatPos.x},${boatPos.y}`, type: 'boat', pos: boatPos });
+    hero.pos = { ...cmd.target };
+    hero.naval = false;
+    hero.movementPoints = 0; // débarquer consomme la journée (fidélité HoMM3)
+    revealAround(
+      player.explored,
+      map,
+      hero.pos,
+      heroVisionRadius(hero, config.visionRadius, draft.skillCatalog, draft.artifactCatalog),
+    );
+    events.push({ type: 'Disembarked', heroId: hero.id, to: { ...hero.pos }, boatPos });
   },
 
   StartCombat(draft, cmd, events) {

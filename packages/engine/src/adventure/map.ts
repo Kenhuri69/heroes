@@ -215,6 +215,18 @@ export interface ObeliskObjectDef {
   pos: GridPos;
 }
 
+/**
+ * Bateau posé sur une tuile d'eau (A3.2, doc 18 A3) : un héros à pied adjacent
+ * l'embarque (`BoardBoat`) et devient naval ; débarquer (`DisembarkBoat`) repose
+ * un bateau sur la tuile d'eau quittée (réutilisable). Neutre, sans propriétaire
+ * — le premier héros adjacent qui l'embarque le prend (fidélité HoMM).
+ */
+export interface BoatObjectDef {
+  id: string;
+  type: 'boat';
+  pos: GridPos;
+}
+
 export type MapObjectDef =
   | ResourceObjectDef
   | GuardianObjectDef
@@ -224,7 +236,8 @@ export type MapObjectDef =
   | VisitableObjectDef
   | DwellingObjectDef
   | MonolithObjectDef
-  | ObeliskObjectDef;
+  | ObeliskObjectDef
+  | BoatObjectDef;
 
 /**
  * Effet déclaratif d'un trigger de carte (doc 02 §2.1 « scripts d'événements

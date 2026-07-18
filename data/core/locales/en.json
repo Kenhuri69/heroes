@@ -1047,6 +1047,7 @@
   "outcome.heroesOwned": "Heroes",
   "outcome.heroesValue": "{count} (max lvl {level})",
   "outcome.armyUnits": "Army units",
+  "outcome.unitsLost": "Units lost",
   "handoff.title": "Turn change",
   "handoff.turnOf": "Player {n}’s turn",
   "handoff.pass": "Pass the device to the next player.",

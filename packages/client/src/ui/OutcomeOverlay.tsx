@@ -68,9 +68,9 @@ export function OutcomeOverlay() {
 
 /**
  * Récapitulatif de fin de partie (UX-ENDSTATS, doc 08 §2.5) : durée + avoirs
- * finaux du joueur humain, lus DIRECTEMENT de l'état final (aucun suivi moteur).
- * Les pertes cumulées (nécessitant un suivi côté moteur pour être exactes en
- * multi-joueurs/IA) restent différées.
+ * finaux du joueur humain, lus DIRECTEMENT de l'état final. Les **pertes cumulées**
+ * (`PlayerState.unitsLost`) sont désormais suivies côté MOTEUR — attribuées par
+ * camp→joueur au commit de chaque combat (exactes en multi-joueurs/IA).
  */
 function StatsSummary({ game }: { game: GameState }) {
   const human = humanId(game);
@@ -82,6 +82,7 @@ function StatsSummary({ game }: { game: GameState }) {
   const armyUnits =
     heroes.reduce((sum, h) => sum + h.army.reduce((n, s) => n + s.count, 0), 0) +
     ownTowns.reduce((sum, tw) => sum + tw.garrison.reduce((n, s) => n + s.count, 0), 0);
+  const unitsLost = game.players.find((p) => p.id === human)?.unitsLost ?? 0;
   return (
     <dl class="outcome-stats" data-testid="outcome-stats">
       <div>
@@ -99,6 +100,10 @@ function StatsSummary({ game }: { game: GameState }) {
       <div>
         <dt>{t('outcome.armyUnits')}</dt>
         <dd>{armyUnits}</dd>
+      </div>
+      <div>
+        <dt>{t('outcome.unitsLost')}</dt>
+        <dd data-testid="outcome-units-lost">{unitsLost}</dd>
       </div>
     </dl>
   );

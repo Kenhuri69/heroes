@@ -1047,6 +1047,7 @@
   "outcome.heroesOwned": "Héros",
   "outcome.heroesValue": "{count} (niv. max {level})",
   "outcome.armyUnits": "Unités en armée",
+  "outcome.unitsLost": "Unités perdues",
   "handoff.title": "Changement de tour",
   "handoff.turnOf": "Au tour du joueur {n}",
   "handoff.pass": "Passez l’appareil au joueur suivant.",

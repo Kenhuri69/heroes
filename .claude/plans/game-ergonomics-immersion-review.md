@@ -459,5 +459,10 @@ Zéro asset, zéro moteur : uniquement `CombatScene` + `motion.ts`.
   - [x] **I15 haptique mobile** (`ux-lot-i15-haptics.md`) : `navigator.vibrate` sur
         kills (combat affiché) & confirmations, **opt-in** Options (défaut OFF,
         persisté), mapping pur réutilisant `sfxIdForEvent` (unit-testé).
-  - [ ] Lots 7.3 (moteur, pertes cumulées) / 9.3 (ambiances biome, dépend pistes) /
+  - [x] **7.3 pertes cumulées** (`ux-endstats-losses.md`, **seul point moteur**) :
+        `PlayerState.unitsLost?` attribué par camp→joueur au commit du combat
+        (`turns.ts`, générique zéro faction) ; ligne « Unités perdues » à la fin de
+        partie. Champ optionnel ⇒ **pas de bump save** ; golden re-fixé une fois ;
+        unit-testé (gardien exclu, héros-vs-héros comptés). Doc 08 §2.5 alignée.
+  - [ ] Reste hors périmètre client-direct : 9.3 (ambiances biome, dépend pistes) /
         Lot 6 assets (planches) / Lot 10 (gros chantiers) : à cadrer séparément.

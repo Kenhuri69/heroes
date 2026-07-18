@@ -103,12 +103,17 @@ de cet audit)*
 - **Reste** (P3, non prioritaire) : retrait d'artefact/armée, `onFlagCaptured` —
   chacun = une variante d'union `TriggerEffect` + un cas dans `triggers.ts`.
 
-**A6 — Villes neutres hors `MapObjectDef`**
-- **État** : le mapgen émet des villes neutres, mais elles sont instanciées au
-  niveau contenu/client, pas comme objet de carte moteur.
-- **Manque** : dette de forme (asymétrie avec les autres objets), sans impact
-  joueur visible.
-- **Nature** : moteur (refactor de forme). **Priorité** : P3.
+**A6 — Villes neutres hors `MapObjectDef`** ⛔ *(non retenu — frontière de design)*
+- **État** : le mapgen émet des villes neutres comme objets `type: 'town'`
+  (schéma + `assets/layouts/`), que le **client** convertit en `TownState`
+  (owner `null`) à `StartGame` et **filtre** hors des objets passés au moteur
+  (`game.ts`). Le moteur modélise les villes en `TownState`, pas en `MapObjectDef`.
+- **Verdict** (revue 2026-07) : **non retenu**. « Instancier comme objet de carte
+  moteur » = déplacer cette création dans le handler `StartGame` (cœur) + variante
+  `MapObjectDef.town` + loader — un **refactor du cœur à risque de régression pour
+  zéro impact joueur** (l'audit le note lui-même). La frontière contenu↔moteur
+  actuelle n'est pas cassée ; la refactoriser viole les guidelines §2/§3. **Clos
+  comme choix de design assumé.**
 
 ### 2.B Combat
 
@@ -204,12 +209,16 @@ de cet audit)*
 
 ### 2.D Villes & économie
 
-**D1 — Vue de ville peinte**
-- **État** : écran de ville en liste + onglets, ancres de layout par faction
-  (`assets/layouts/`), fonds `town-<faction>` partiels.
-- **Manque** : la vue peinte cliquable (« Beta » depuis doc 11) — item déjà
-  tracé en roadmap, rappelé ici pour complétude. **Nature** : client + assets.
-- **Priorité** : P2 (identité visuelle forte de la série).
+**D1 — Vue de ville peinte** ✅ *(lots UX U5 + UXD-5 + UX-TOWNVIEW — livré)*
+- **Livré** : `TownScreen` ouvre une **vue peinte** (`TownView`) — décor de fond
+  par faction (`townBackgroundUrl`, repli gouache CSS si l'asset manque) sur lequel
+  chaque bâtiment est **posé en absolu à sa place** (`townLayout` + ancres bespoke
+  `assets/layouts/town-<faction>.json`), **cliquable** (tap ⇒ construire/action),
+  statut construit/disponible/verrouillé marqué par pastille non chromatique +
+  opacité (a11y doc 08 §4), inspection au survol/appui long. Repli dessiné si une
+  vignette manque. L'onglet **liste** reste (entrée mobile). Doc 08 §2.2/§5.
+- *Reste (chantier assets continu, doc 12)* : fonds/vignettes peints finaux par
+  faction (repli procédural en place partout).
 
 **D2 — Commerce avancé** ✅ *(troc + marchand d'artefacts achat/vente livrés)*
 - **Livré** : `TradeResources` accepte **toute paire** `give`/`receive` de
@@ -371,9 +380,12 @@ M ≈ 2-3 j, L = semaine(s).
 > (A1, B6, E1, F4, B1, A2/A2b, B2, A4, C1, C2, **E3** ✅) ; l'Étape 4 en ligne est
 > livrée (B4, E2, E6 ✅). Les décisions de cadrage (Étape 5) sont tranchées :
 > B3, A3, E4 **retenus et livrés** (E4 clôturé : E4.4a moteur+IA + E4.4b client).
-> **Items encore ouverts** : **A6** (ville neutre en `MapObjectDef`, P3, dette de
-> forme sans impact joueur) · **D1** (vue de ville peinte, Beta). Les fiches §2
-> portent le détail par item.
+> **Sweep terminé** : **D1** (vue de ville peinte) était **déjà livré** (lots UX
+> U5/UXD-5/UX-TOWNVIEW — `TownView`) ; **A6** (ville neutre en `MapObjectDef`) est
+> **clos comme choix de design assumé** (refactor de cœur à risque pour zéro
+> impact joueur — guidelines §2/§3). **Plus aucun écart P1/P2 ouvert** ; le reste
+> est du chantier assets continu (doc 12, repli procédural en place) et des
+> décisions de cadrage déjà tranchées. Les fiches §2 portent le détail par item.
 
 ### Étape 1 — Lisibilité de la carte & du combat (client/assets, zéro moteur)
 

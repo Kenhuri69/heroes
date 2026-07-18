@@ -149,6 +149,20 @@ médaillons. **Intégré** (remplace le procédural / ajoute) :
   détourage (rembg indisponible : téléchargement du modèle bloqué 403 via le proxy).
   Re-gen sur fond plat unique + corps plus dense (`units-summoned.md` durci).
 
+### Phase 2 — 2ᵉ passe (icônes de sorts re-générées)
+
+Planches p1/p2 re-générées (prompts durcis). L'image LLM ne respecte **toujours pas**
+le compte/l'ordre exacts (p1 = 15 au lieu de 16 ; p2 = 29 avec doublons), mais **sans
+libellé externe** ⇒ détourables. Méthode : détection de médaillons (composantes
+connexes rondes) + **masque circulaire géométrique** (robuste : garde tout le jeton
+quelle que soit sa couleur, ôte les voisins par un rayon serré) + **mapping index→id
+vérifié à l'œil** (couleur d'école + motif d'effet, doublons/spurious filtrés) →
+planche de contrôle relue avant intégration.
+- **33/36 icônes de sorts** intégrées (mipmaps 64/48/32/24, remplacent le procédural).
+- **3 gardent le procédural** (absentes des planches) : `earth-damage`, `earth-summon`,
+  `fire-debuff` — à combler par une petite planche de 3 ultérieurement.
+Budget 332/800 Ko, smoke grimoire OK (l'icône du sort est bien rendue).
+
 ---
 
 ## Journal

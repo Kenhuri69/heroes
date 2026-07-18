@@ -850,6 +850,45 @@ test('I2 : les jetons de combat respirent (idle procédural), coupé en reduce-m
   expect(errors).toEqual([]);
 });
 
+test('I5 : la mort d’une pile entière fait tressaillir le plateau', { tag: '@core' }, async ({ page }) => {
+  const errors = await openGame(page);
+  // Combat MANUEL : un gros paquet de tireurs one-shot une pile fragile d'UN
+  // soldat ⇒ `StackDied` ⇒ `animateDeath` déclenche la micro-secousse (I5). Le
+  // défenseur garde une 2ᵉ pile ⇒ le kill NE termine PAS le combat (la scène
+  // reste vivante et l'animation de mort — donc la secousse — se joue).
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({
+      type: 'StartCombat',
+      attacker: [{ unitId: 't2-archer', count: 40 }],
+      defender: [
+        { unitId: 't1-recruit', count: 1 },
+        { unitId: 't1-recruit', count: 1 },
+      ],
+      terrain: 'grass',
+    }),
+  );
+  await passPreBattle(page);
+  await expect(page.getByTestId('combat-round')).toBeVisible();
+  // Attendre le tour du tireur, puis tirer sur la pile ennemie (la tue).
+  await expect
+    .poll(() =>
+      page.evaluate(() => {
+        const c = window.__HEROES_TEST__!.getState().combat;
+        return c?.stacks.find((s) => s.id === c.activeStackId)?.side;
+      }),
+    )
+    .toBe('attacker');
+  const targetId = await page.evaluate(
+    () => window.__HEROES_TEST__!.getState().combat!.stacks.find((s) => s.side === 'defender')!.id,
+  );
+  await page.evaluate(
+    (tid) => window.__HEROES_TEST__!.dispatch({ type: 'CombatAction', action: { type: 'attack', targetStackId: tid } }),
+    targetId,
+  );
+  await expect.poll(() => page.evaluate(() => window.__HEROES_TEST__!.combatShake().count)).toBeGreaterThan(0);
+  expect(errors).toEqual([]);
+});
+
 test('B6 : un tir produit un projectile visible (sprint 1)', { tag: '@core' }, async ({ page }) => {
   const errors = await openGame(page);
   // Combat direct (arène) avec un TIREUR : l'archer tire à travers le plateau,

@@ -19,6 +19,12 @@ export const combatFxStats = { projectiles: 0, impacts: 0 };
  */
 export const combatIdleStats = { bob: 0 };
 
+/**
+ * Nombre de micro-secousses du plateau émises (I5, kill de pile entière) — hook
+ * de test headless. Incrémenté par `CombatScene.shakeBoard`.
+ */
+export const combatShakeStats = { count: 0 };
+
 const MS_PER_PX = 0.6; // vitesse de vol du projectile
 const MIN_FLIGHT_MS = 90;
 const MAX_FLIGHT_MS = 350; // plafond : n'allonge pas les combats auto

@@ -139,4 +139,19 @@ Découpé en deux tranches (UX client, vérif headless faible) :
       (non-régression mouvement/préviz terre). **Non smoke-couvert** : board/disembark
       exige un bateau adjacent déterministe, absent de la partie smoke ⇒ signalé.
 
-## Reste du chantier A3 : A3.4 (mapgen mers + connectivité navale).
+## A3.4 — mapgen mers + bateaux côtiers — LIVRÉ
+
+- [x] `MapGenOptions.boatDensity?` (défaut 1, `0` ⇒ aucun bateau).
+- [x] Passe de placement des bateaux APRÈS la connexité : eau côtière (tuile `water`
+      adjacente à `inMain` = terre atteignable), `wanted ≈ 2 × areaFactor × boatDensity`.
+      Ne déclenche pas `connect()` (mers préservées) ni ne décale la séquence RNG des
+      objets terrestres (mêmes cartes à graine égale hors bateaux).
+- [x] Loader : exemption des bateaux de la garde « objet sur tuile franchissable »
+      (un bateau vit sur l'eau par conception).
+- [x] Tests mapgen : bateaux sur eau côtière atteignable + densité 0/2 ; test de
+      connexité exempte les bateaux (24/24). Loader valide les cartes générées.
+- [x] Vérif : typecheck ✓, lint ✓, test 890 engine + content ✓, content:check ✓,
+      garde-fou faction vert, build ✓, budget ✓, smoke @core (en cours).
+- Zéro moteur, pas de bump save, golden inchangé (mapgen = contenu, hors replay).
+
+## Chantier A3 « eau navigable & bateaux » : COMPLET (A3.1 → A3.5).

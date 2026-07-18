@@ -55,6 +55,13 @@ export interface MapGenOptions {
   eventBuildingDensity?: number;
   pickupDensity?: number;
   /**
+   * Densité de bateaux (A3.4, doc 18 A3) posés sur l'eau CÔTIÈRE (adjacente à la
+   * terre atteignable) — un héros les embarque depuis le rivage. Défaut 1 ; `0`
+   * ⇒ aucune (carte sans navigation gratuite). Placés APRÈS la connexité pour ne
+   * pas déclencher le creusement de corridors (qui bouche l'eau).
+   */
+  boatDensity?: number;
+  /**
    * Palette d'artefacts connus posables au sol (vide ⇒ aucun artefact, comme
    * `guardianUnits`). Les artefacts sont placés **en profondeur** et gardés par
    * une sentinelle — la récompense premium de la carte.
@@ -199,6 +206,7 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
   const mineDensity = opts.mineDensity ?? 1;
   const eventBuildingDensity = opts.eventBuildingDensity ?? 1;
   const pickupDensity = opts.pickupDensity ?? 1;
+  const boatDensity = opts.boatDensity ?? 1;
   const artifactIds = opts.artifactIds ?? [];
   const townFactionIds = opts.townFactionIds ?? [];
   // Densité constante quelle que soit la taille : les compteurs d'objets calés
@@ -701,6 +709,35 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
   for (const s of startPositions.slice(1)) connect(s.x, s.y);
   for (const o of objects) connect(o.x, o.y);
   if (grailPos) connect(grailPos.x, grailPos.y); // la tuile du Graal doit être atteignable
+
+  // ── Bateaux (A3.4, doc 18 A3) : posés sur des tuiles d'EAU CÔTIÈRES — de l'eau
+  // navigable adjacente à la composante terrestre atteignable (`inMain`), qu'un
+  // héros embarque depuis le rivage. Placés APRÈS la connexité : ils ne déclenchent
+  // pas `connect()` (qui boucherait l'eau) et ne perturbent pas la séquence RNG des
+  // objets terrestres (mêmes cartes à graine égale hors bateaux). `0` ⇒ aucun. ──
+  if (boatDensity > 0) {
+    const wanted = Math.max(1, Math.round(2 * areaFactor * boatDensity));
+    let placed = 0;
+    for (let tries = 0; tries < wanted * 40 && placed < wanted; tries++) {
+      const x = randInt(width);
+      const y = randInt(height);
+      if (grid[y]![x] !== waterChar || occupied.has(`${x},${y}`)) continue;
+      let coastal = false;
+      for (const [dx, dy] of neighborOffsets) {
+        const nx = x + dx;
+        const ny = y + dy;
+        if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
+        if (inMain[tileIdx(nx, ny)] === 1) {
+          coastal = true;
+          break;
+        }
+      }
+      if (!coastal) continue;
+      occupied.add(`${x},${y}`);
+      objects.push({ id: `boat-${objects.length}`, type: 'boat', x, y });
+      placed++;
+    }
+  }
 
   // Légende : uniquement les terrains réellement présents dans la grille.
   const usedChars = new Set<string>();

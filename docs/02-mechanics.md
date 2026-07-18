@@ -797,7 +797,9 @@ disposer de SA propre action de héros par round, avec SES ressources (mana,
 Pouvoir, Chance, Attaque) — `castHeroSpell`/`strikeWithHero` prennent le héros
 agissant ; `CastSpell`/`HeroAttack` un `heroId?` optionnel (**défaut = lead** ⇒
 combat mono-héros inchangé). L'IA d'auto-combat fait jouer tous les héros d'un
-camp (lead puis alliés). Sélecteur de héros du **combat manuel** = suite E4.4b.
+camp (lead puis alliés). **Combat manuel (E4.4b)** : un **sélecteur de héros**
+(barre d'action, chips visibles seulement en coop) choisit le héros agissant,
+threadé en `heroId` dans `CastSpell`/`HeroAttack` — sinon le lead par défaut.
 
 ---
 

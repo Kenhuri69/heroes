@@ -395,6 +395,7 @@
   "combat.placementHint": "Tactical setup: tap a stack, then a tile in your band.",
   "combat.spell": "Hero spell",
   "combat.heroPresent": "Your hero leads the army",
+  "combat.actingHero": "Acting hero:",
   "combat.heroAttack": "Hero attack",
   "combat.unitSpell": "Unit spell",
   "combat.prayer": "Prayer",

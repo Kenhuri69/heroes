@@ -104,11 +104,12 @@ export function SpellBook({ hero, onClose }: { hero: HeroState; onClose: () => v
     // sur la grille. On n'a que la pile alliée ici — on entre en mode ciblage
     // d'hex (le tap sur le plateau dispatchera `CastSpell{…, targetHex}`).
     if (spellCatalog[selectedSpellId]?.kind === 'teleport') {
-      appStore.setState({ combatSpellTarget: { spellId: selectedSpellId, targetStackId: selectedTargetId } });
+      // E4.4b : mémorise le héros AGISSANT pour le tap de ciblage d'hex (CombatScene).
+      appStore.setState({ combatSpellTarget: { spellId: selectedSpellId, targetStackId: selectedTargetId, heroId: hero.id } });
       onClose();
       return;
     }
-    dispatch({ type: 'CastSpell', spellId: selectedSpellId, targetStackId: selectedTargetId })
+    dispatch({ type: 'CastSpell', spellId: selectedSpellId, targetStackId: selectedTargetId, heroId: hero.id })
       .then(() => onClose())
       .catch((err: unknown) => {
         // Remédiation CL3 : le sort a été REJETÉ (mana, cible, déjà lancé…) — on

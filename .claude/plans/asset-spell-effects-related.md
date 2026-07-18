@@ -106,18 +106,27 @@ visuelle finale passera par des **planches LLM** (skill `asset-sheet`, doc 12 §
 **sans aucun changement de code** (mêmes clés de fichier ⇒ substitution par simple
 dépôt de PNG, repli procédural en attendant).
 
-Prompts à préparer (staging `assets/prompts/`) :
-- `spells-icons.md` — planche d'icônes de sorts par couple (école, type), cadre visuel
-  doc 12 (silhouette pleine, liseré, lisible 32px), 1 case = 1 sort/effet.
-- `combat-status-badges.md` — pictos d'état (bénédiction, malédiction, silence, poison,
-  marque, entraves, brume) façon badges HoMM, fond transparent.
-- `combat-siege-wall.md` — segment de rempart de pierre (vue combat isométrique légère),
-  cohérent avec les vignettes de bâtiments.
-- `units-summoned.md` — élémentaire de terre invoqué (+ variantes futures d'invocations :
-  élémentaires air/feu/eau si le contenu en ajoute), style planche d'unités.
+Prompts **rédigés** (staging `assets/prompts/`, prêts à coller — grille, ids row-major,
+commande d'extraction exacte + post-traitement mipmaps) :
+- `spells-icons-p1.md` — 16 icônes de sorts (écoles fire/water/earth/air), grille 4×4.
+- `spells-icons-p2.md` — 20 icônes (neutral/traque/scene/lumiere/prime), grille 5×4.
+  (Couples (école, type) dérivés de `data/core/spells.json` → 36 icônes au total.)
+- `combat-status-badges.md` — 7 badges d'état (buff/debuff/silence/poison/mark/
+  immobilized/stealth), grille 7×1, façon badges de jeu lisibles à 16px.
+- `combat-siege-wall.md` — segment de rempart de pierre (image unique, `process_sprite.py`).
+- `units-summoned.md` — 4 élémentaires (terre câblé aujourd'hui ; air/feu/eau stagés
+  en avance), grille 4×1, style planche d'unités.
 
 QC/découpe via `sheet_extract.py` → `assets/spells/`, `assets/ui/`, `assets/combat/`,
-`assets/units/core/` (mêmes noms qu'en phase 1). Aucun câblage : phase 2 = art seul.
+`assets/units/core/` (mêmes noms qu'en phase 1). **Icônes** (spells/status) : mipmaps à
+générer après extraction (`_<64|48|32|24>` / `_<32|24|16>`, snippet dans chaque prompt)
+OU repli non suffixé à ajouter aux résolveurs (choix d'implémentation). **Mur/invocation**
+(512² uniques) : drop-in direct. Aucun câblage : phase 2 = art seul.
+
+> ⚠️ **Un point de câblage restant pour un drop-in 100 % « déposer le PNG »** : les
+> résolveurs `spellIconUrl`/`statusIconUrl` exigent le suffixe de mipmap. Soit
+> l'art LLM est mipmappé au post-traitement (fourni), soit on ajoute un repli non
+> suffixé aux deux résolveurs (petit diff client, à décider en ouvrant la phase 2).
 
 ---
 

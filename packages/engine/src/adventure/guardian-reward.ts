@@ -1,6 +1,51 @@
 import type { GameEvent } from '../core/events';
 import { rollRange } from '../core/rng';
-import type { GameState, HeroState, ResourceId } from '../core/state';
+import type { GameState, HeroState, PlayerState, ResourceId } from '../core/state';
+
+/**
+ * Joueurs co-participants d'un butin coop (E4.3) : le lead d'abord, puis les
+ * joueurs DISTINCTS des héros propriétaires survivants (`coopHeroIds`). Hors coop
+ * (`coopHeroIds` vide/absent) ⇒ le seul lead ⇒ split trivial bit-identique.
+ */
+function rewardPlayers(
+  draft: GameState,
+  lead: HeroState,
+  coopHeroIds: readonly string[] | undefined,
+): PlayerState[] {
+  const leadPlayer = draft.players.find((p) => p.id === lead.playerId);
+  if (!leadPlayer) return [];
+  const result: PlayerState[] = [leadPlayer];
+  const seen = new Set<string>([leadPlayer.id]);
+  for (const heroId of coopHeroIds ?? []) {
+    const ally = draft.heroes.find((h) => h.id === heroId);
+    if (!ally || seen.has(ally.playerId)) continue;
+    const player = draft.players.find((p) => p.id === ally.playerId);
+    if (player) {
+      result.push(player);
+      seen.add(player.id);
+    }
+  }
+  return result;
+}
+
+/**
+ * Partage égal d'un montant divisible (or/ressource) entre les joueurs
+ * participants — reste au **lead** (index 0), somme exacte préservée,
+ * déterministe. n=1 ⇒ le lead reçoit tout (bit-identique).
+ */
+function distributeEqually(
+  players: PlayerState[],
+  total: number,
+  credit: (p: PlayerState, amount: number) => void,
+): void {
+  const n = players.length;
+  if (n === 0 || total <= 0) return;
+  const share = Math.floor(total / n);
+  players.forEach((p, i) => {
+    const amount = i === 0 ? total - share * (n - 1) : share;
+    if (amount > 0) credit(p, amount);
+  });
+}
 
 /**
  * Butin de gardien (doc 02 §2.2) — crédité à la **victoire** d'un combat de
@@ -22,6 +67,12 @@ export function rewardGuardianDefeat(
   hero: HeroState,
   guardianObjectId: string,
   events: GameEvent[],
+  /**
+   * Coop (E4.3) : héros co-participants (survivants) dont le butin DIVISIBLE
+   * (or/ressource) se partage également entre leurs joueurs ; l'artefact
+   * (indivisible) reste au lead. Absent/solo ⇒ tout au lead (bit-identique).
+   */
+  coopHeroIds?: readonly string[],
 ): void {
   const reward = draft.config?.guardianReward;
   if (!reward) return;
@@ -29,6 +80,7 @@ export function rewardGuardianDefeat(
   if (!guardian || guardian.type !== 'guardian') return;
   const player = draft.players.find((p) => p.id === hero.playerId);
   if (!player) return;
+  const players = rewardPlayers(draft, hero, coopHeroIds);
   const unitDef = draft.unitCatalog[guardian.unitId];
   const strength = (unitDef?.stats.hp ?? 0) * guardian.count;
   if (strength <= 0) return;
@@ -37,7 +89,11 @@ export function rewardGuardianDefeat(
   const varRoll = rollRange(draft.rng, -reward.variancePercent, reward.variancePercent);
   draft.rng = varRoll.state;
   const gold = Math.max(0, Math.round(strength * reward.goldPerHp * (1 + varRoll.value / 100)));
-  player.resources.gold += gold;
+  // Coop (E4.3) : or partagé également entre les joueurs participants (reste au
+  // lead) ; solo ⇒ tout au lead (bit-identique).
+  distributeEqually(players, gold, (p, amount) => {
+    p.resources.gold += amount;
+  });
 
   // Ressource : au-delà du seuil, une ressource non-or tirée dans la liste.
   let resource: string | null = null;
@@ -49,7 +105,13 @@ export function rewardGuardianDefeat(
     const amt = rollRange(draft.rng, reward.resourceAmount.min, reward.resourceAmount.max);
     draft.rng = amt.state;
     resourceAmount = amt.value;
-    if (resource) player.resources[resource as ResourceId] += resourceAmount;
+    // Coop (E4.3) : ressource partagée comme l'or (reste au lead).
+    if (resource) {
+      const rid = resource as ResourceId;
+      distributeEqually(players, resourceAmount, (p, amount) => {
+        p.resources[rid] += amount;
+      });
+    }
   }
 
   // Artefact : au-delà d'un seuil plus haut, une chance de tomber un artefact du

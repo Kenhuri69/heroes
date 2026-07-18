@@ -445,7 +445,9 @@ function applyConsequences(
       // Butin de gardien (doc 02 §2.2) : or/ressource/artefact gradué par la force
       // du gardien — avant le retrait (lit encore `guardian.count`). Puis contrat
       // de chasse (doc 05 §3.3) si ce gardien était la cible assignée.
-      if (hero) rewardGuardianDefeat(draft, hero, combat.guardianObjectId, events);
+      // Coop (E4.3) : or/ressource partagés entre les joueurs des héros
+      // propriétaires survivants (mêmes participants que le partage d'XP).
+      if (hero) rewardGuardianDefeat(draft, hero, combat.guardianObjectId, events, [...coopAttackerOwners(combat)]);
       if (hero) rewardHuntContract(draft, hero, combat.guardianObjectId, events);
       const idx = draft.map.objects.findIndex((o) => o.id === combat.guardianObjectId);
       const gobj = idx !== -1 ? draft.map.objects[idx] : undefined;

@@ -127,3 +127,66 @@ describe('rewardGuardianDefeat', () => {
     expect(a).toBe(b);
   });
 });
+
+/**
+ * E4.3 — Butin partagé en coop : or & ressource (divisibles) répartis également
+ * entre les joueurs des héros co-participants ; l'artefact (indivisible) au lead.
+ */
+describe('rewardGuardianDefeat — coop (E4.3)', () => {
+  it('or & ressource partagés également ; artefact au lead ; événement = total', () => {
+    const events: GameEvent[] = [];
+    // hp10 × 130 = 1300 PV ≥ tous les seuils ⇒ or + ressource + artefact.
+    const state = startedGame(130, REWARD);
+    const next = produce(state, (draft) => {
+      draft.players.push({
+        id: 'p2', resources: emptyResources(), factionResources: {}, explored: [],
+        controller: 'human', eliminated: false, townlessDays: 0, huntContract: null, team: 1,
+      });
+      draft.players[0]!.team = 1; // p1 & p2 alliés
+      // Fresh artifacts array (le spread est superficiel — sinon l'allié partage
+      // le tableau du lead et « voit » son artefact).
+      draft.heroes.push({
+        ...draft.heroes[0]!, id: 'hero-ally', playerId: 'p2',
+        artifacts: Array.from({ length: 10 }, () => null),
+      });
+      draft.artifactCatalog = { 'test-relic': { id: 'test-relic', bonus: { attack: 1 } } };
+      const hero = draft.heroes.find((h) => h.id === 'hero-p1')!;
+      rewardGuardianDefeat(draft, hero, 'guardian-1', events, ['hero-p1', 'hero-ally']);
+    });
+    const p1 = next.players.find((p) => p.id === 'p1')!;
+    const p2 = next.players.find((p) => p.id === 'p2')!;
+    // Or partagé ~moitié : les deux en reçoivent, écart ≤ 1 (reste au lead), total conservé.
+    expect(p1.resources.gold).toBeGreaterThan(0);
+    expect(p2.resources.gold).toBeGreaterThan(0);
+    expect(p1.resources.gold - p2.resources.gold).toBeLessThanOrEqual(1);
+    // Ressource idem : l'allié en reçoit sa part.
+    const p2res = p2.resources.wood + p2.resources.ore + p2.resources.crystal;
+    expect(p2res).toBeGreaterThan(0);
+    // Artefact (indivisible) au lead ; l'allié n'en reçoit pas.
+    expect(next.heroes.find((h) => h.id === 'hero-p1')!.artifacts[0]).toBe('test-relic');
+    expect(next.heroes.find((h) => h.id === 'hero-ally')!.artifacts.every((a) => a === null)).toBe(true);
+    // L'événement rapporte le TOTAL lâché par le gardien (sémantique « drop »).
+    const ev = events.find((e) => e.type === 'GuardianVanquished');
+    if (ev && ev.type === 'GuardianVanquished') {
+      expect(ev.gold).toBe(p1.resources.gold + p2.resources.gold);
+      const p1res = p1.resources.wood + p1.resources.ore + p1.resources.crystal;
+      expect(ev.resourceAmount).toBe(p1res + p2res);
+    }
+  });
+
+  it('solo (coopHeroIds au seul lead) : tout au lead, bit-identique', () => {
+    const withList: GameEvent[] = [];
+    const withoutList: GameEvent[] = [];
+    const base = startedGame(130, REWARD);
+    const a = produce(base, (d) => {
+      d.artifactCatalog = { 'r': { id: 'r', bonus: { attack: 1 } } };
+      rewardGuardianDefeat(d, d.heroes.find((h) => h.id === 'hero-p1')!, 'guardian-1', withList, ['hero-p1']);
+    });
+    const b = produce(base, (d) => {
+      d.artifactCatalog = { 'r': { id: 'r', bonus: { attack: 1 } } };
+      rewardGuardianDefeat(d, d.heroes.find((h) => h.id === 'hero-p1')!, 'guardian-1', withoutList);
+    });
+    expect(a.players[0]!.resources).toEqual(b.players[0]!.resources);
+    expect(a.rng).toEqual(b.rng); // même séquence RNG (aucun tirage ajouté)
+  });
+});

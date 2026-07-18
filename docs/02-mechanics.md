@@ -883,6 +883,13 @@ round (sort ET frappe, ou deux sorts), joueur comme IA.
 > gardien migre dessus sans changement de comportement). La branche victoire
 > commune route déjà survivants et prise de ville par propriétaire ⇒ **capture
 > partagée + XP égale** gratuites. Zéro bump save (`ownerHeroId` existe), golden
-> inchangé. Coop **PvE (gardien & siège)** désormais **jouable**. **Différés** :
-> **E4.3** butin partagé ; **E4.4** actions de héros par-héros (chaque allié agit).
-> **Priorité P3** (audit) : chantier lourd, livré par lots atomiques.
+> inchangé. **E4.3 butin partagé ✅ livré** — le butin **divisible** d'un gardien
+> (or, ressource) se partage **également** entre les joueurs des héros
+> co-participants survivants (mêmes participants que l'XP, `coopAttackerOwners` ;
+> reste au lead) ; l'**artefact** (indivisible) revient au lead/invitant.
+> `rewardGuardianDefeat(…, coopHeroIds?)` : aucun tirage RNG ajouté (distribution
+> post-tirage) ⇒ golden épargné, solo bit-identique ; l'événement
+> `GuardianVanquished` rapporte le **total** lâché (sémantique « drop »). Coop
+> **PvE (gardien & siège)** désormais **jouable**. **Différés** : **E4.4** actions
+> de héros par-héros (chaque allié agit). **Priorité P3** (audit) : chantier
+> lourd, livré par lots atomiques.

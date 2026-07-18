@@ -1222,6 +1222,13 @@ export const mapFileSchema = z.object({
             unitId: idSchema,
             count: z.number().int().positive(),
           }),
+          // Doc 18 A5 — retraits (péage/tribut), miroirs des octrois.
+          z.object({ kind: z.literal('removeArtifact'), artifactId: idSchema }),
+          z.object({
+            kind: z.literal('removeArmy'),
+            unitId: idSchema,
+            count: z.number().int().positive(),
+          }),
           z.object({
             kind: z.literal('ambush'),
             army: z
@@ -1251,6 +1258,12 @@ export const mapFileSchema = z.object({
                     z.object({ kind: z.literal('grantArtifact'), artifactId: idSchema }),
                     z.object({
                       kind: z.literal('grantArmy'),
+                      unitId: idSchema,
+                      count: z.number().int().positive(),
+                    }),
+                    z.object({ kind: z.literal('removeArtifact'), artifactId: idSchema }),
+                    z.object({
+                      kind: z.literal('removeArmy'),
                       unitId: idSchema,
                       count: z.number().int().positive(),
                     }),

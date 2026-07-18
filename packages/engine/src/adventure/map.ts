@@ -255,7 +255,19 @@ export type SimpleTriggerEffect =
   /** Don d'artefact au héros visiteur (doc 18 A5) : 1er slot libre, sinon le sac. */
   | { kind: 'grantArtifact'; artifactId: string }
   /** Don d'armée au héros visiteur : fusion même unité, sinon nouveau slot (cap 7). */
-  | { kind: 'grantArmy'; unitId: string; count: number };
+  | { kind: 'grantArmy'; unitId: string; count: number }
+  /**
+   * Retrait d'artefact au héros visiteur (doc 18 A5, péage/malédiction) : ôte
+   * l'artefact nommé d'un slot équipé, sinon du sac. Absent ⇒ no-op. Miroir de
+   * `grantArtifact`.
+   */
+  | { kind: 'removeArtifact'; artifactId: string }
+  /**
+   * Retrait d'armée au héros visiteur (doc 18 A5, tribut) : réduit la pile
+   * `unitId` de `count` ; slot supprimé si l'effectif tombe à 0. Absent ⇒ no-op.
+   * Miroir de `grantArmy`.
+   */
+  | { kind: 'removeArmy'; unitId: string; count: number };
 
 export type TriggerEffect =
   | SimpleTriggerEffect

@@ -39,6 +39,8 @@ import {
   siegeSceneLayout,
   siegeMoatStripUrl,
   siegeWallPieceUrl,
+  siegeCourtTileUrl,
+  siegeSceneTowerUrl,
 } from '../../render/assets';
 import { computeWallLayout, drawCurtain, drawTower, drawGate, drawDamage } from '../../render/siegeWall';
 import { heroArchetype } from '../../app/game';
@@ -434,6 +436,26 @@ export class CombatScene {
         this.sceneLayer.addChild(sprite);
       });
     }
+    // « Effet ville » : pavage hexagonal des cases de COUR (dans l'enceinte,
+    // entre le rempart et le bord défenseur) — 3 variantes déterministes.
+    const wallCol = walls[0]!.col;
+    for (let col = wallCol + 1; col < COMBAT_COLS; col++) {
+      for (let row = 0; row < COMBAT_ROWS; row++) {
+        const tileUrl = siegeCourtTileUrl(((col * 31 + row * 17) % 3) + 1);
+        if (!tileUrl) break;
+        const { x, y } = offsetToPixel({ col, row });
+        void Assets.load(tileUrl).then((texture) => {
+          if (this.destroyed || this.sceneKey !== key) return;
+          const sprite = new Sprite(texture);
+          sprite.anchor.set(0.5);
+          sprite.position.set(x, y);
+          sprite.width = layout.courtTile.w;
+          sprite.height = layout.courtTile.h;
+          sprite.zIndex = 2;
+          this.sceneLayer.addChild(sprite);
+        });
+      }
+    }
   }
 
   /**
@@ -621,7 +643,7 @@ export class CombatScene {
 
     layout.towers.forEach((t, i) => {
       ensure(`tower:${i}`, 'tower', () => {
-        const url = siegeTowerUrl();
+        const url = siegeSceneTowerUrl();
         if (!url) return null;
         const sprite = new Sprite();
         sprite.position.set(t.x, t.y);

@@ -329,11 +329,14 @@ fidélité par simple substitution de PNG homonyme, aucun code — cf.
   + cour + ville assiégée estompée), `combat/siege-moat.png` (bande d'eau
   RGBA posée seulement si douve moteur, Fort ≥ 2), pièces de rempart **par
   rangée** empilables `combat/siege-piece-wall[-2|-cracked|-razed].png`
-  (états mappés sur `siegeWallHp`, brèche = rangée rasée + gravats), et le
-  layout de calage `assets/layouts/siege-scene.json` (consommé par
-  `siegeSceneLayout()`). Client : sprites dans `stacksLayer` (zIndex = y ⇒
-  occlusion unités/mur correcte), porte `siege-gate` + tours `siege-tower`
-  aux extrémités. **Mêmes clés ⇒ un art Gemini supérieur se substitue par
+  (états mappés sur `siegeWallHp`, brèche = rangée rasée + gravats), **sol
+  hexagonal de cour** `combat/siege-tile-court-<1|2|3>.png` (« effet ville » :
+  pavés par hex dans l'enceinte, variante déterministe par case), **tour
+  d'extrémité recolorée** `combat/siege-piece-tower.png` (pierre grise
+  assortie au gatehouse, repli `siege-tower` crème), et le layout de calage
+  `assets/layouts/siege-scene.json` (consommé par `siegeSceneLayout()`).
+  Client : sprites dans `stacksLayer` (zIndex = y ⇒ occlusion unités/mur
+  correcte), porte `siege-gate` aux rangées d'ouverture. **Mêmes clés ⇒ un art Gemini supérieur se substitue par
   simple dépôt** ; **repli gracieux** = habillage procédural historique
   complet si un asset manque. Déterministe (`random.Random(SEED)`).
 - **Unité invoquée** (`assets/units/core/elementaire-de-terre.png`, 512²) :

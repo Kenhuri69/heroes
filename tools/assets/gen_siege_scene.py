@@ -486,6 +486,77 @@ def build_wall_piece(rng: random.Random, state: str, variant: int = 1) -> Image.
     return piece
 
 
+# --- Sol hexagonal de cour (« effet ville » : pavés PAR HEX dans l'enceinte) ---
+
+# Dimensions d'un hex de plateau (pointy-top APLATI iso, cf. hexgrid.ts) + un
+# léger débord pour absorber les jointures entre tuiles voisines.
+COURT_TILE_BLEED = 1.2
+COURT_TILE_W = HEX_W + 2 * COURT_TILE_BLEED
+COURT_TILE_H = 2 * HEX * SQUASH + 2 * COURT_TILE_BLEED
+
+
+def hex_mask(w: int, h: int, feather_px: int) -> Image.Image:
+    """Masque alpha d'un hex pointy-top aplati (bords adoucis)."""
+    m = Image.new("L", (w, h), 0)
+    d = ImageDraw.Draw(m)
+    cx0, cy0 = w / 2, h / 2
+    pts = []
+    for k in range(6):
+        a = math.radians(-90 + k * 60)
+        pts.append((cx0 + (HEX + COURT_TILE_BLEED) * math.cos(a) * S, cy0 + (HEX + COURT_TILE_BLEED) * math.sin(a) * SQUASH * S))
+    d.polygon(pts, fill=255)
+    return m.filter(ImageFilter.GaussianBlur(feather_px))
+
+
+def build_court_tile(variant: int) -> Image.Image:
+    """Tuile de sol PAVÉ d'une case de cour (pierre grise du gatehouse) — pose
+    l'« effet ville » hex par hex à l'intérieur de l'enceinte. Peinte : pavés
+    irréguliers, joints sombres, éclat haut-gauche, usure. Déterministe."""
+    rng = random.Random(SEED * 100 + variant)
+    w, h = img_px(COURT_TILE_W), img_px(COURT_TILE_H)
+    base = Image.new("RGB", (w, h), (124, 120, 112))
+    d = ImageDraw.Draw(base)
+    # Pavés en quinconce (ellipses aplaties), teinte pierre jitterée.
+    cob_w = img_px(11.0)
+    cob_h = img_px(7.2)
+    for j, y in enumerate(range(-cob_h, h + cob_h, int(cob_h * 0.92))):
+        off = (j % 2) * cob_w // 2
+        for x in range(-cob_w + off, w + cob_w, int(cob_w * 1.02)):
+            t = rng.randint(-16, 16)
+            jx = rng.randint(-2 * S, 2 * S)
+            jy = rng.randint(-S, S)
+            tone = (132 + t, 128 + t, 120 + t)
+            box = [x + jx, y + jy, x + jx + cob_w - 2 * S, y + jy + cob_h - S]
+            d.ellipse(box, fill=tone, outline=(78, 74, 66), width=S)
+            # Éclat haut-gauche (volume, lumière cohérente avec la scène).
+            d.arc([box[0] + S, box[1] + S, box[2] - S, box[3] - S], 150, 300, fill=(178 + t // 2, 174 + t // 2, 164 + t // 2), width=S)
+    # Usure : lavis sombre lisse par plaques.
+    n = smooth_noise(rng, w, h, 5, blur=8 * S)
+    dark = ImageEnhance.Brightness(base).enhance(0.8)
+    base = blend_mask(base, dark, n * 0.5)
+    out = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    out.paste(base, (0, 0), hex_mask(w, h, feather_px=int(1.2 * S)))
+    return out
+
+
+def recolor_scene_tower() -> Image.Image:
+    """Tour d'extrémité recolorée dans la pierre GRISE du gatehouse (l'art
+    `siege-tower.png` est crème — il jurait avec les pièces de mur). Le modelé
+    peint est conservé (désaturation + refroidissement), l'alpha intact."""
+    src = Image.open(OUT_COMBAT / "siege-tower.png").convert("RGBA")
+    alpha = src.split()[3]
+    rgb = src.convert("RGB")
+    rgb = ImageEnhance.Color(rgb).enhance(0.3)
+    rgb = ImageEnhance.Brightness(rgb).enhance(0.88)
+    arr = np.asarray(rgb, dtype=np.float32)
+    arr[..., 0] *= 0.94  # refroidit : moins de rouge, un peu plus de bleu
+    arr[..., 1] *= 0.97
+    arr[..., 2] *= 1.04
+    out = Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8), "RGB").convert("RGBA")
+    out.putalpha(alpha)
+    return out
+
+
 # --- Assemblage & sorties ---
 
 
@@ -534,12 +605,22 @@ def main() -> None:
     piece2.save(OUT_COMBAT / "siege-piece-wall-2.png")
     print(f"siege-piece-wall-2.png {piece2.size}")
 
+    # Sol hexagonal de cour (« effet ville ») + tour d'extrémité recolorée.
+    for v in (1, 2, 3):
+        tile = build_court_tile(v)
+        tile.save(OUT_COMBAT / f"siege-tile-court-{v}.png")
+        print(f"siege-tile-court-{v}.png {tile.size}")
+    tower = recolor_scene_tower()
+    tower.save(OUT_COMBAT / "siege-piece-tower.png")
+    print(f"siege-piece-tower.png {tower.size}")
+
     layout = {
         "scale": S,
         "scene": {"x0": SCENE_X0, "y0": SCENE_Y0, "w": SCENE_W, "h": SCENE_H},
         "wallX": round(WALL_X, 2),
         "piece": {"w": PIECE_W, "hAbove": PIECE_H_ABOVE, "hBelow": PIECE_H_BELOW},
         "moatStrip": {"x0": round(MOAT_STRIP_X0, 2), "y0": SCENE_Y0},
+        "courtTile": {"w": round(COURT_TILE_W, 2), "h": round(COURT_TILE_H, 2)},
         "gate": {
             "x": round(WALL_X + 2, 2),
             "yBottom": round(GATE_Y_BOTTOM, 2),

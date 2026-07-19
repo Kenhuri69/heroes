@@ -156,3 +156,10 @@ y compris plaine, validable en 1 capture) ; **Lot 1** = scène peinte génériqu
   bundle 356 Ko gzip < 800, smoke siège+arène 4/4, captures
   `after-scene-*.jpg`. **Pas de bump `CURRENT_SAVE_VERSION`, zéro moteur.**
   Restant : retour visuel du porteur ⇒ Lot 3 (polish) ou itération scène.
+- 2026-07-19 — Retour porteur (itération 1) : « sol hexagonal pour l'effet
+  ville » + « tour à la bonne couleur ». Livré : pavage PAR HEX de la cour
+  (`siege-tile-court-1..3`, hex aplati iso + débord anti-jointure, variante
+  déterministe par case, posé dans `sceneLayer` z2 pour les cols à l'est du
+  rempart) et tour d'extrémité recolorée pierre grise du gatehouse
+  (`siege-piece-tower`, désaturation + refroidissement, alpha conservé,
+  repli sur l'art crème). Clés stables ⇒ substituables par dépôt.

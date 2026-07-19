@@ -381,6 +381,21 @@ export function siegeWallPieceUrl(state: 'intact' | 'cracked' | 'razed', variant
   return registry.get(`combat/siege-piece-wall-${state}`);
 }
 
+/**
+ * Tuile de sol PAVÉ d'une case de cour (« effet ville » hex par hex dans
+ * l'enceinte), 3 variantes déterministes. Repli variante 1, puis `undefined`
+ * (⇒ pas de pavage, la cour peinte de la scène suffit).
+ */
+export function siegeCourtTileUrl(variant: number): string | undefined {
+  return registry.get(`combat/siege-tile-court-${variant}`) ?? registry.get('combat/siege-tile-court-1');
+}
+
+/** Tour d'extrémité du rempart recolorée pierre grise (assortie au gatehouse) ;
+ *  repli sur l'art d'origine `siege-tower` (crème). */
+export function siegeSceneTowerUrl(): string | undefined {
+  return registry.get('combat/siege-piece-tower') ?? registry.get('combat/siege-tower');
+}
+
 /** Layout de calage de la scène de siège (board-space), émis par le générateur. */
 export interface SiegeSceneLayout {
   scale: number;
@@ -388,6 +403,7 @@ export interface SiegeSceneLayout {
   wallX: number;
   piece: { w: number; hAbove: number; hBelow: number };
   moatStrip: { x0: number; y0: number };
+  courtTile: { w: number; h: number };
   gate: { x: number; yBottom: number; w: number; h: number };
   towers: { x: number; y: number; h: number }[];
 }

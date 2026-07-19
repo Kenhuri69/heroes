@@ -87,11 +87,14 @@ def main() -> None:
         x1, y1 = tpx(cx_bp + r_bp, cy_bp + r_bp)
         d.ellipse([x0, y0, x1, y1], fill=fill, outline=GUIDE_D, width=width)
 
-    # --- COURTINE : bande continue en plan, brèche r7 taillée dedans. ---
+    # --- COURTINE : bande continue DE BORD À BORD de l'image (fidélité
+    # HoMM3 : l'enceinte se referme HORS CHAMP — le mur entre par le haut,
+    # sort par le bas, les tours sont des points de passage SUR le mur).
+    # Brèche r7 taillée dedans.
     bx0 = tpx(WALL_X - BAND_HALF_W, 0)[0]
     bx1 = tpx(WALL_X + BAND_HALF_W, 0)[0]
-    by0 = tpx(0, -30.0)[1]
-    by1 = tpx(0, 396.0)[1]
+    by0 = 0
+    by1 = CANVAS[1]
     breach_y = 7 * Y_STEP
     gap_top = tpx(0, breach_y - 13.0)[1]
     gap_bot = tpx(0, breach_y + 15.0)[1]
@@ -100,12 +103,17 @@ def main() -> None:
     # Chemin de ronde (bande intérieure plus claire, file d'une traite).
     in0 = bx0 + (bx1 - bx0) // 4
     in1 = bx1 - (bx1 - bx0) // 4
-    for y0, y1 in ((by0 + 4, gap_top - 2), (gap_bot + 2, by1 - 4)):
+    for y0, y1 in ((by0, gap_top - 2), (gap_bot + 2, by1)):
         d.rectangle([in0, y0, in1, y1], fill=GUIDE_L)
-    # Merlons : dents régulières sur le bord OUEST (assaillant), en plan.
-    t = by0 + 8
+    # Merlons : dents régulières sur le bord OUEST (assaillant), en plan —
+    # interrompues seulement par la brèche et sous les tours (couronnes).
+    tower_pxs = [tpx(0, cy)[1] for cy in (-30.0, 396.0)]
+    tower_r_px = int(TOWER_R * T)
+    t = by0 + 6
     while t < by1 - 20:
-        if not (gap_top - 24 <= t <= gap_bot + 2):
+        in_breach = gap_top - 24 <= t <= gap_bot + 2
+        in_tower = any(cy - tower_r_px - 4 <= t <= cy + tower_r_px - 12 for cy in tower_pxs)
+        if not in_breach and not in_tower:
             d.rectangle([bx0 - 16, t, bx0 + 3, t + 16], fill=GUIDE, outline=GUIDE_D, width=2)
         t += 34
     # Lèvres déchiquetées de la brèche + gravats (blobs) déversés vers l'ouest.
@@ -190,10 +198,19 @@ def main() -> None:
     d.line([(rcx - int(rr * 0.8), rcy - int(rr * 0.3)), (rcx + int(rr * 0.5), rcy + int(rr * 0.4))], fill=WOOD_D, width=5)
     d.line([(rcx - int(rr * 0.2), rcy + int(rr * 0.5)), (rcx + int(rr * 0.3), rcy - int(rr * 0.55))], fill=WOOD_D, width=5)
 
-    # Annotations dans la marge BASSE (hors régions d'extraction).
-    d.text((10, CANVAS[1] - 62), "PLAN VUE DE DESSUS (empreintes) - fond magenta UNI - peindre avec profondeur + LEGERE inclinaison", fill=INK)
-    d.text((10, CANVAS[1] - 44), "cercles = tours FUSIONNEES au mur - r1 fissuree, r7 CASSEE (breche) - porte + PONT-LEVIS bois", fill=INK)
-    d.text((10, CANVAS[1] - 26), "tours de tir EN RETRAIT (baliste vers la gauche) : intacte derriere la porte, RUINE derriere la breche", fill=INK)
+    # Annotations dans la marge OUEST (hors régions d'extraction — la bande
+    # atteint désormais les bords haut/bas).
+    for i, line in enumerate(
+        (
+            "PLAN VUE DE DESSUS (empreintes au sol) - fond magenta UNI",
+            "peindre avec profondeur + LEGERE inclinaison",
+            "le mur TRAVERSE les tours et continue jusqu'aux bords",
+            "haut/bas (enceinte fermee hors champ)",
+            "r1 fissuree - r7 CASSEE (breche) - porte + PONT-LEVIS bois",
+            "tours de tir EN RETRAIT : intacte / RUINE",
+        )
+    ):
+        d.text((10, 8 + i * 18), line, fill=INK)
 
     tpl.save(OUT_TPL)
     cuts = {

@@ -61,14 +61,18 @@ Online battle screen), grey weathered ashlar stone with subtle moss, warm
 light from the upper-left.
 
 What the plan shows — ONE SINGLE connected fortification:
-- the long vertical band is ONE CONTINUOUS curtain wall; the small teeth
-  along its LEFT edge are its merlons (battlements facing the attacker) —
-  paint the parapet as ONE unbroken line from the north tower to the south
-  tower, never divided into stacked blocks, with no crenellated rim or seam
-  ACROSS the wall;
-- the two big circles are round defensive towers FUSED to the wall: the
-  wall runs into them, their crenellated crowns (tick marks) continue the
-  wall's battlement line;
+- the long vertical band is ONE CONTINUOUS curtain wall that enters the
+  picture from the TOP edge and leaves at the BOTTOM edge — the town's
+  enceinte continues beyond the image and closes off-screen, so the wall is
+  simply CUT by the image borders (do not cap or finish its ends); the
+  small teeth along its LEFT edge are its merlons (battlements facing the
+  attacker) — paint the parapet as ONE unbroken line across the whole
+  image, never divided into stacked blocks, with no crenellated rim or
+  seam ACROSS the wall;
+- the two big circles are round defensive towers standing ON the wall: the
+  wall passes THROUGH each tower and continues on the other side (no seam,
+  no gap), and their crenellated crowns (tick marks) carry the wall's
+  battlement line around them;
 - the X-shaped cracks near the top mark a DAMAGED stretch: deep cracks,
   chipped merlons, small debris — then the wall resumes clean;
 - the jagged gap with the boulder shapes is a collapsed BREACH: broken
@@ -92,11 +96,12 @@ painted element within the plan's footprints.
 
 ## Critères d'acceptation v8
 
-- La muraille est d'UN SEUL TENANT : parapet ininterrompu de tour à tour ;
-  AUCUNE couronne/corniche crénelée EN TRAVERS du mur (les blocs empilés de
-  la v6 sont LE motif de rejet).
-- Les tours sont FONDUES au mur (le mur y entre, les couronnes prolongent
-  la ligne de créneaux) ; pont-levis rattaché à la porte.
+- La muraille est d'UN SEUL TENANT et va de BORD À BORD de l'image
+  (l'enceinte se referme hors champ, fidélité HoMM3) : parapet ininterrompu
+  sur toute la hauteur ; AUCUNE couronne/corniche crénelée EN TRAVERS du
+  mur (les blocs empilés de la v6 sont LE motif de rejet).
+- Le mur TRAVERSE les tours et ressort de l'autre côté (tout fermé en
+  visuel) ; pont-levis rattaché à la porte.
 - Profondeur DISCRÈTE : dessus dominants + fine bande de face sud — pas de
   fausse perspective violente, les bases restent sur les empreintes.
 - Le fond reste magenta UNI (chroma-key) : rien de peint hors des guides.

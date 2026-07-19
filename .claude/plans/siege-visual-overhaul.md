@@ -318,3 +318,11 @@ y compris plaine, validable en 1 capture) ; **Lot 1** = scène peinte génériqu
   dessus dominants + fine bande de face sud, bases sur les empreintes.
   Géométrie d'extraction inchangée (mêmes boîtes, mêmes clés). En attente :
   peinture v8 du porteur.
+- 2026-07-19 — Précision porteur (référence capture HoMM3) : « la tour doit
+  aussi connecter APRÈS, pour un tout fermé en visuel ». v8b : la bande du
+  plan va désormais de BORD À BORD de l'image (le mur entre par le haut,
+  sort par le bas — l'enceinte se referme hors champ) ; les tours sont des
+  points de passage SUR le mur (il les traverse), merlons interrompus
+  seulement sous les couronnes et à la brèche ; annotations déplacées en
+  marge ouest. Prompt aligné (ne pas terminer les extrémités du mur, le mur
+  traverse les tours). Extraction inchangée.

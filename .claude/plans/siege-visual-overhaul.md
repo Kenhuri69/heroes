@@ -171,3 +171,11 @@ y compris plaine, validable en 1 capture) ; **Lot 1** = scène peinte génériqu
   (c) **esplanade pavée bakée** sur toute la bande de ville (les tuiles hex
   s'y fondent, plus de terre nue au-delà des cases), (d) vignettage adouci
   (70→44) — le sol côté ville n'est plus mangé par le cadre sombre.
+- 2026-07-19 — Retour porteur (itération 3) : « la porte n'est pas calée
+  dans le bon sens » (sol validé). Cause : gatehouse frontal étalé EN
+  TRAVERS de l'enceinte verticale. Livré : **pièce de porte VERTICALE**
+  `siege-piece-gate` (courtine double hauteur rangées 4–5, même appareil/
+  merlons que les pièces, ARCHE + vantaux de l'art peint incrustés dans la
+  face, 72 bp de large), z entre les 2 rangées d'ouverture (une unité entre
+  dans le tunnel par le nord, en ressort par le sud) ; ombre de contact
+  resserrée. Repli = art frontal si la pièce manque.

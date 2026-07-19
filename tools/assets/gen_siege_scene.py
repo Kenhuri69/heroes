@@ -624,8 +624,8 @@ def gate_contact_shadow(ground: Image.Image) -> Image.Image:
     w, h = ground.size
     shadow = Image.new("RGBA", (w, h), (0, 0, 0, 0))
     d = ImageDraw.Draw(shadow)
-    cx0, cy0 = to_img(WALL_X + 6, GATE_Y_BOTTOM - 3)
-    rx, ry = img_px(66.0), img_px(11.0)
+    cx0, cy0 = to_img(WALL_X, GATE_Y_BOTTOM - 2)
+    rx, ry = img_px(38.0), img_px(9.0)
     d.ellipse([cx0 - rx, cy0 - ry, cx0 + rx, cy0 + ry], fill=(14, 14, 12, 96))
     shadow = shadow.filter(ImageFilter.GaussianBlur(4 * S))
     return Image.alpha_composite(ground.convert("RGBA"), shadow).convert("RGB")
@@ -647,15 +647,57 @@ def build_scene(faction: str | None) -> tuple[Image.Image, Image.Image]:
 
 FACTIONS = ["haven", "necropolis", "arcane-hunters", "sylvan-court", "vox-arcana", "dungeon"]
 
-# Porte : art `siege-gate.png` (640×385) posé en travers de l'ouverture
-# centrale (rangées 4–5). Recadrée (retour porteur itération 2) : plus
-# IMPOSANTE que la courtine (un gatehouse domine le mur), assise sur la
-# chaussée qui franchit la douve (sa tour ouest mord sur le tablier, plus
-# jamais sur l'eau nue), ombre de contact bakée dans la scène.
-GATE_W = 140.0
-GATE_H = GATE_W * 385.0 / 640.0  # ≈ 84.2 — domine les pièces de courtine
-GATE_X = WALL_X + 6.0
-GATE_Y_BOTTOM = cy(GATE_ROWS[1]) + Y_STEP * 0.68
+# Porte (retour porteur itération 3 : « pas calée dans le bon sens ») : le
+# gatehouse frontal étalé EN TRAVERS du mur jurait — l'enceinte court
+# verticalement, la porte doit s'insérer DANS son axe. La porte devient une
+# **pièce de courtine verticale double hauteur** (rangées 4–5) : même
+# appareil/merlons que les pièces de mur, ARCHE + vantaux de l'art peint
+# incrustés dans la face, à peine plus large que la courtine.
+GATE_PIECE_W = 72.0
+GATE_PIECE_FACE_W = 56.0
+GATE_PIECE_H = PIECE_H_ABOVE + Y_STEP + PIECE_H_BELOW  # couvre les 2 rangées
+GATE_X = WALL_X
+GATE_Y_BOTTOM = cy(GATE_ROWS[1]) + PIECE_H_BELOW
+
+
+def build_gate_piece(rng: random.Random) -> Image.Image:
+    """Segment de porte VERTICAL : courtine double hauteur percée de l'arche
+    peinte (vantaux + herse du gatehouse), empilable entre les pièces des
+    rangées 3 et 6 — la porte suit enfin l'axe du mur."""
+    gate = gate_art()
+    gw, gh = gate.size
+    crenel_src = gate.crop((int(gw * 0.055), int(gh * 0.02), int(gw * 0.27), int(gh * 0.145)))
+    face_src = gate.crop((int(gw * 0.05), int(gh * 0.56), int(gw * 0.245), int(gh * 0.75)))
+    arch_src = gate.crop((int(gw * 0.335), int(gh * 0.285), int(gw * 0.665), int(gh * 0.965)))
+
+    w_img, h_img = img_px(GATE_PIECE_W), img_px(GATE_PIECE_H)
+    piece = Image.new("RGBA", (w_img, h_img), (0, 0, 0, 0))
+    face_w = img_px(GATE_PIECE_FACE_W)
+    fx0 = (w_img - face_w) // 2
+
+    crenel_h = img_px(12)
+    strip = face_strip(face_src, face_w, h_img - crenel_h)
+    piece.paste(strip, (fx0, crenel_h))
+    crenel = crenel_src.resize((face_w + 6 * S, crenel_h + 2 * S), Image.LANCZOS)
+    piece.paste(crenel, (fx0 - 3 * S, 0), crenel)
+
+    # Arche + vantaux incrustés dans la face (bas de la pièce = seuil).
+    arch_w = img_px(46.0)
+    arch_h = int(arch_w * arch_src.height / arch_src.width)
+    arch = arch_src.resize((arch_w, arch_h), Image.LANCZOS)
+    ax = (w_img - arch_w) // 2
+    ay = h_img - arch_h - img_px(3)
+    piece.paste(arch, (ax, ay), arch)
+
+    # Volume : arête éclairée / ombre latérale / AO au seuil (comme les pièces).
+    overlay = Image.new("RGBA", (w_img, h_img), (0, 0, 0, 0))
+    od = ImageDraw.Draw(overlay)
+    od.rectangle([fx0, crenel_h, fx0 + int(face_w * 0.1), h_img], fill=(255, 250, 230, 34))
+    od.rectangle([fx0 + int(face_w * 0.84), crenel_h, fx0 + face_w, h_img], fill=(24, 22, 18, 68))
+    for i in range(img_px(5)):
+        a = int(80 * (1 - i / img_px(5)))
+        od.line([(fx0, h_img - 1 - i), (fx0 + face_w, h_img - 1 - i)], fill=(20, 18, 14, a))
+    return Image.alpha_composite(piece, overlay)
 
 
 def main() -> None:
@@ -691,6 +733,9 @@ def main() -> None:
     tower = recolor_scene_tower()
     tower.save(OUT_COMBAT / "siege-piece-tower.png")
     print(f"siege-piece-tower.png {tower.size}")
+    gate_piece = build_gate_piece(random.Random(SEED + 17))
+    gate_piece.save(OUT_COMBAT / "siege-piece-gate.png")
+    print(f"siege-piece-gate.png {gate_piece.size}")
 
     layout = {
         "scale": S,
@@ -702,8 +747,8 @@ def main() -> None:
         "gate": {
             "x": round(GATE_X, 2),
             "yBottom": round(GATE_Y_BOTTOM, 2),
-            "w": GATE_W,
-            "h": round(GATE_H, 2),
+            "w": GATE_PIECE_W,
+            "h": round(GATE_PIECE_H, 2),
         },
         "towers": [
             {"x": round(WALL_X + 2, 2), "y": round(cy(-0.8), 2), "h": 76.0},

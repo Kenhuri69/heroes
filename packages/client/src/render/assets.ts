@@ -396,6 +396,12 @@ export function siegeSceneTowerUrl(): string | undefined {
   return registry.get('combat/siege-piece-tower') ?? registry.get('combat/siege-tower');
 }
 
+/** Segment de PORTE vertical (double hauteur, dans l'axe du mur) — courtine
+ *  percée de l'arche peinte, posée sur les rangées d'ouverture. */
+export function siegeGatePieceUrl(): string | undefined {
+  return registry.get('combat/siege-piece-gate');
+}
+
 /** Layout de calage de la scène de siège (board-space), émis par le générateur. */
 export interface SiegeSceneLayout {
   scale: number;

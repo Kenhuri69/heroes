@@ -41,6 +41,7 @@ import {
   siegeWallPieceUrl,
   siegeCourtTileUrl,
   siegeSceneTowerUrl,
+  siegeGatePieceUrl,
 } from '../../render/assets';
 import { computeWallLayout, drawCurtain, drawTower, drawGate, drawDamage } from '../../render/siegeWall';
 import { heroArchetype } from '../../app/game';
@@ -625,12 +626,17 @@ export class CombatScene {
       });
     }
 
-    ensure('gate', 'gate', () => {
-      const url = siegeGateUrl();
+    // Porte = segment VERTICAL dans l'axe du mur (retour porteur : le
+    // gatehouse frontal étalé en travers jurait) ; repli = art frontal.
+    ensure('gate', 'gate-piece', () => {
+      const url = siegeGatePieceUrl() ?? siegeGateUrl();
       if (!url) return null;
       const sprite = new Sprite();
       sprite.position.set(layout.gate.x, layout.gate.yBottom);
-      sprite.zIndex = layout.gate.yBottom - 8;
+      // Profondeur : entre les 2 rangées d'ouverture — une unité sur la rangée
+      // NORD passe derrière le segment (elle entre dans le tunnel), sur la
+      // rangée SUD devant (elle en ressort).
+      sprite.zIndex = layout.gate.yBottom - 37;
       void Assets.load(url).then((texture) => {
         if (sprite.destroyed) return;
         sprite.texture = texture;

@@ -17,8 +17,12 @@
 > externe, `external`), estampillée `factionId` par le loader depuis
 > `manifest.heroSkills` ⇒ **proposée au tirage de niveau aux seuls héros
 > Necropolis**. **École Prime livrée** (F-SCHOOLS.2 — `spellSchool: "prime"`, 4
-> sorts génériques, patron Lumière/Scène). **Différé** : bâtiment Amplificateur
-> (+% cumulable, §2/§4) ; « Fléau persistant », héros nommés (Vhalen/Mère Corbeau).
+> sorts génériques, patron Lumière/Scène). **Livré (F-SKILLS, scaling bâtiment)** :
+> `raiseUndeadOnVictory` gagne `scaleBuildingId: 'necromancy-amplifier'` +
+> `percentPerBuildingLevel: 3` — l'effet **ajoute** +3 %/niveau de l'Amplificateur
+> de Nécromancie, **sommé sur les villes du joueur vainqueur** (générique : le
+> moteur ne lit qu'un id de bâtiment opaque + des niveaux). **Différé** : « Fléau
+> persistant » (livré depuis, cf. `curseDurationBonus`), héros nommés (livrés).
 > **Livré depuis** : `lifeDrain` (Vampire) et `charge` (Cavalier funeste) en A2a ;
 > `incorporeal` (Spectre, 20 % d'esquive) en A2b ; `curseOnHit` (Zombie
 > « Affaiblissement » −Défense 20 %, Cavalier funeste « Faux funeste » −20 %
@@ -48,7 +52,7 @@
 ## 2. Bonus et mécaniques de faction
 
 - **Morts-vivants** : toutes les unités ont `undead` — insensibles au moral (le leur est toujours 0) et exclues du malus de moral multi-factions. *Le −1 moral **infligé** aux armées vivantes adverses est **livré** (lot A3a) via la capacité générique `aura(moraleMod:-1)` du Dragon d'os, interprétée dans `moraleOf` (doc 02 §5.4).*
-- **Nécromancie** (compétence de faction, signature) : après chaque victoire **en tant qu'attaquant** (remédiation D2 : aucun combat n'a de héros défenseur aujourd'hui — l'extension au défenseur vainqueur suivra la boucle « héros en défense »), relève en **Squelettes** un pourcentage des PV des créatures vivantes ennemies tuées — Novice 10 %, Expert 15 %, Maître 20 % (+ bâtiment Amplificateur). Plafonné par bataille à `2 × effectif **restant** de squelettes + 20` (D7 : le cap lit l'effectif restant après combat, pas l'effectif initial) pour éviter l'explosion exponentielle (levier d'équilibrage en données).
+- **Nécromancie** (compétence de faction, signature) : après chaque victoire **en tant qu'attaquant** (remédiation D2 : aucun combat n'a de héros défenseur aujourd'hui — l'extension au défenseur vainqueur suivra la boucle « héros en défense »), relève en **Squelettes** un pourcentage des PV des créatures vivantes ennemies tuées — Novice 10 %, Expert 15 %, Maître 20 % (**+3 %/niveau de l'Amplificateur de Nécromancie**, sommé sur les villes du joueur — livré). Plafonné par bataille à `2 × effectif **restant** de squelettes + 20` (D7 : le cap lit l'effectif restant après combat, pas l'effectif initial) pour éviter l'explosion exponentielle (levier d'équilibrage en données).
 - **Fléau persistant** *(livré, F-BONUS.2)* : les sorts de malédiction (`debuff`) lancés par des héros Necropolis durent **+1 round**. Réalisé par le `FactionBonus` générique `curseDurationBonus { rounds }` (manifeste), interprété par `castHeroSpell` uniquement pour un sort de kind `debuff` — le cœur `applySpellToTargets` ne reçoit qu'un nombre de rounds, jamais un nom de faction. Zéro `if faction` moteur, aucun bump de sauvegarde (le `factionCatalog` est déjà sérialisé), golden inchangé.
 
 ## 3. Lineup d'unités (T1–T7)
@@ -88,7 +92,7 @@ Spécifiques Necropolis :
 
 | Bâtiment | Coût | Prérequis | Effet |
 |----------|------|-----------|-------|
-| **Amplificateur nécromantique** | 1500 or, 5 minerai, 2 soufre | Guilde des mages 1 | +5 % à la Nécromancie de tous les héros du joueur (cumulable entre villes, plafonné +15 %) |
+| **Amplificateur de Nécromancie** (`necromancy-amplifier`, 2 niveaux) | N1 1000 or, 2 soufre ; N2 1500 or, 3 soufre | Guilde des mages 1 | **+3 % à la Nécromancie par niveau**, sommé sur les villes du joueur vainqueur (bâtiment-drapeau `none`, lu par `raiseUndeadOnVictory.scaleBuildingId` ; livré). La relève reste bornée par le plafond de bataille |
 | **Croisée des âmes** | 1000 or, 5 bois, 5 minerai | Fort | Convertit des créatures vivantes recrutables en squelettes (taux 1:1 en PV, arrondi bas) |
 | **Puits d'ombre** | 2000 or, 3 gemmes, 3 soufre | Guilde des mages 2 | +3 mana/j aux héros visiteurs ; les sorts de malédiction coûtent −20 % en défense de ville |
 

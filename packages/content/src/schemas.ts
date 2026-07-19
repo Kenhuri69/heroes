@@ -94,6 +94,11 @@ export const factionBonusSchema = z.discriminatedUnion('type', [
     // requis assignable au champ moteur optionnel (exactOptionalPropertyTypes).
     scaleSkillId: idSchema.default(''),
     percentByRank: z.array(z.number().int().positive()).default([]),
+    // Nécromancie graduée par BÂTIMENT (F-SKILLS, doc 04 §2) : +N %/niveau du
+    // bâtiment `scaleBuildingId`, sommé sur les villes du vainqueur. Défauts
+    // neutres ('' / 0) ⇒ aucun bonus (comportement historique).
+    scaleBuildingId: idSchema.default(''),
+    percentPerBuildingLevel: z.number().int().nonnegative().default(0),
   }),
   z.object({
     type: z.literal('gainFactionResourceOnVictory'),

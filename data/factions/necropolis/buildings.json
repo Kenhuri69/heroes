@@ -116,6 +116,23 @@
       ]
     },
     {
+      "id": "necromancy-amplifier",
+      "loreKey": "@loc:building.necromancy-amplifier.lore",
+      "maxLevel": 2,
+      "levels": [
+        {
+          "cost": { "gold": 1000, "sulfur": 2 },
+          "requires": [{ "building": "mageGuild", "level": 1 }],
+          "effect": { "type": "none" }
+        },
+        {
+          "cost": { "gold": 1500, "sulfur": 3 },
+          "requires": [],
+          "effect": { "type": "none" }
+        }
+      ]
+    },
+    {
       "id": "necropolis-grail",
       "loreKey": "@loc:building.necropolis-grail.lore",
       "maxLevel": 1,

@@ -20,7 +20,9 @@
         10,
         15,
         20
-      ]
+      ],
+      "scaleBuildingId": "necromancy-amplifier",
+      "percentPerBuildingLevel": 3
     },
     {
       "type": "curseDurationBonus",
@@ -78,6 +80,7 @@
       "necropolis-dwelling-t5",
       "necropolis-dwelling-t6",
       "necropolis-dwelling-t7",
+      "necromancy-amplifier",
       "necropolis-grail",
       "shipyard"
     ],

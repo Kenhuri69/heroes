@@ -168,7 +168,21 @@ function applyRaiseUndeadOnVictory(
   // Spécialité EXACTE Mère Corbeau (H-COND-EXACT, doc 04 §5) : +N %/niveau du
   // héros, additionné au pourcentage de base. Générique (0 si aucun héros n'a
   // l'effet) ⇒ comportement historique préservé.
-  const percent = basePercent + sumHeroEffectField(hero, 'raiseUndeadPctPerLevel') * hero.level;
+  const specialtyPercent = sumHeroEffectField(hero, 'raiseUndeadPctPerLevel') * hero.level;
+  // Nécromancie graduée par BÂTIMENT (F-SKILLS, doc 04 §2) : +N %/niveau du
+  // bâtiment `scaleBuildingId`, sommé sur les villes du vainqueur. Générique —
+  // le moteur ne lit qu'un id opaque + des niveaux (0 si champ/bâtiment absent).
+  const buildingPercent =
+    bonus.scaleBuildingId && bonus.percentPerBuildingLevel
+      ? draft.towns.reduce(
+          (sum, t) =>
+            t.ownerPlayerId === hero.playerId
+              ? sum + (t.buildings[bonus.scaleBuildingId!] ?? 0) * bonus.percentPerBuildingLevel!
+              : sum,
+          0,
+        )
+      : 0;
+  const percent = basePercent + specialtyPercent + buildingPercent;
   const raised = Math.min(Math.floor((hpKilled * percent) / 100 / raisedDef.stats.hp), cap);
   if (raised <= 0) return;
 

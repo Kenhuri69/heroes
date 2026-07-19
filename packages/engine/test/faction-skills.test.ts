@@ -7,6 +7,7 @@ import { rollSkillChoices } from '../src/hero/level-up';
 import type { CombatState, CombatUnitDef } from '../src/combat/types';
 import type { GameEvent } from '../src/core/events';
 import type { HeroSkillDef } from '../src/hero/types';
+import type { TownState } from '../src/town/types';
 
 /**
  * Lot F-SKILLS — compétences de faction (faction de TEST générique) :
@@ -60,6 +61,45 @@ describe('F-SKILLS — Nécromancie graduée', () => {
     expect(master).toBe(16);
     expect(novice).toBeLessThan(flat);
     expect(flat).toBeLessThan(master);
+  });
+});
+
+// Bonus gradué compétence ET bâtiment : +3 %/niveau du bâtiment `amp`.
+const FACTION_CATALOG_BLD = {
+  facA: { bonuses: [{ type: 'raiseUndeadOnVictory' as const, unitId: 'skel', percentHpRaised: 15, capBase: 20, capPerExisting: 2, scaleSkillId: 'necromancy', percentByRank: [10, 15, 20], scaleBuildingId: 'amp', percentPerBuildingLevel: 3 }] },
+};
+
+/**
+ * Relève après victoire avec un Amplificateur de niveau `ampLevel` dans une ville
+ * appartenant à `townOwner` (héros = joueur 'p1'). Rang de Nécromancie 0 (repli
+ * plat 15 %) pour garder de la marge sous le plafond.
+ */
+function raisedWithAmplifier(ampLevel: number, townOwner: string): number {
+  const combat = { attackerHeroId: 'h1', defenderHeroId: null } as unknown as CombatState;
+  const h = hero({ factionId: 'facA' });
+  const casualties = [{ side: 'defender' as const, unitId: 'grunt', lost: 50 }]; // 500 PV vivants tués
+  const towns =
+    ampLevel > 0
+      ? [{ ownerPlayerId: townOwner, buildings: { amp: ampLevel } } as unknown as TownState]
+      : [];
+  const events: GameEvent[] = [];
+  const state = { ...createEmptyState(), unitCatalog: CATALOG, factionCatalog: FACTION_CATALOG_BLD, heroes: [h], towns } as GameState;
+  const next = produce(state, (draft) => {
+    applyFactionVictoryEffects(draft, combat, draft.heroes[0]!, casualties, 'defender', events);
+  });
+  return next.heroes[0]?.army.find((s) => s.unitId === 'skel')?.count ?? 0;
+}
+
+describe('F-SKILLS — Nécromancie graduée par bâtiment', () => {
+  it('l’Amplificateur augmente la relève par niveau (15 % → 18 % → 21 %)', () => {
+    // floor(500 × p% / 6), plafond 20 : 15 %→12, 18 %→15, 21 %→17.
+    expect(raisedWithAmplifier(0, 'p1')).toBe(12);
+    expect(raisedWithAmplifier(1, 'p1')).toBe(15);
+    expect(raisedWithAmplifier(2, 'p1')).toBe(17);
+  });
+
+  it('seules les villes du VAINQUEUR comptent (amplificateur adverse ignoré)', () => {
+    expect(raisedWithAmplifier(2, 'p2')).toBe(12); // ville de p2 ⇒ aucun bonus
   });
 });
 

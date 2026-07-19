@@ -464,6 +464,14 @@ export async function loadFactionPack(
           `manifest.json: factionBonuses(raiseUndeadOnVictory) — unité '${bonus.unitId}' sans capacité 'undead'`,
         );
       }
+      // Nécromancie graduée par bâtiment (F-SKILLS) : le bâtiment de scaling doit
+      // être un bâtiment de la ville — sinon la relève lirait un niveau 0 en
+      // silence (typo). Vide = pas de scaling par bâtiment (rien à vérifier).
+      if (bonus.scaleBuildingId && !manifest.town?.buildings.includes(bonus.scaleBuildingId)) {
+        errors.push(
+          `manifest.json: factionBonuses(raiseUndeadOnVictory) — scaleBuildingId '${bonus.scaleBuildingId}' absent de town.buildings`,
+        );
+      }
     } else if (bonus.type === 'gainFactionResourceOnVictory') {
       if (!manifest.factionResources.some((r) => r.id === bonus.resource)) {
         errors.push(

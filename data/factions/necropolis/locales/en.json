@@ -23,6 +23,8 @@
   "building.necropolis-dwelling-t5": "Lich dwelling",
   "building.necropolis-dwelling-t6": "Doom Knight dwelling",
   "building.necropolis-dwelling-t7": "Bone Dragon dwelling",
+  "building.necromancy-amplifier": "Necromancy Amplifier",
+  "building.necromancy-amplifier.lore": "An obelisk of bone amplifies the necromancer's call: each victory tears a few more dead from their rest.",
   "unit.t1-squelette.lore": "We call him the simplified brother: stripped of fear, doubt and hunger, he keeps only obedience. The Wheel will reclaim the rest, in time.",
   "unit.t1-squelette-elite.lore": "We gave him back a blade and a discipline. He remembers nothing of the war that killed him; that, our priests say, is Asha's first mercy.",
   "unit.t2-zombie.lore": "The flesh still rots, yes. We do not hide it. Still it walks, patient, toward the foe: decay is only a stage, never an end.",

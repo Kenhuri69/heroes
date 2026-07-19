@@ -23,6 +23,8 @@
   "building.necropolis-dwelling-t5": "Habitation : Liche",
   "building.necropolis-dwelling-t6": "Habitation : Cavalier funeste",
   "building.necropolis-dwelling-t7": "Habitation : Dragon d'os",
+  "building.necromancy-amplifier": "Amplificateur de Nécromancie",
+  "building.necromancy-amplifier.lore": "Un obélisque d'ossements amplifie l'appel du nécromant : chaque victoire arrache un peu plus de morts à leur repos.",
   "unit.t1-squelette.lore": "Nous l'appelons le frère simplifié : débarrassé de la peur, du doute et de la faim, il ne garde que l'obéissance. La Roue lui reprendra le reste plus tard.",
   "unit.t1-squelette-elite.lore": "On lui a rendu une lame et une discipline. Il ne se souvient pas de la guerre qui l'a tué ; c'est là, disent nos prêtres, la première grâce d'Asha.",
   "unit.t2-zombie.lore": "La chair pourrit encore, oui. Nous ne le cachons pas. Elle marche quand même, patiente, vers l'ennemi : la putréfaction n'est qu'une étape, jamais une fin.",

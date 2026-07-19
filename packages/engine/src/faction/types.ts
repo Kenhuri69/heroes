@@ -23,6 +23,15 @@ export interface RaiseUndeadOnVictoryBonus {
    */
   scaleSkillId?: string;
   percentByRank?: number[];
+  /**
+   * Nécromancie graduée par BÂTIMENT (F-SKILLS, doc 04 §2 — Amplificateur de
+   * Nécromancie, fidélité HoMM3) : `percentPerBuildingLevel` points de %
+   * **ajoutés** au pourcentage de relève **par niveau** du bâtiment
+   * `scaleBuildingId`, **sommés sur les villes du vainqueur**. Absents ⇒ aucun
+   * bonus de bâtiment (comportement historique). `scaleBuildingId` = id opaque.
+   */
+  scaleBuildingId?: string;
+  percentPerBuildingLevel?: number;
 }
 
 /**

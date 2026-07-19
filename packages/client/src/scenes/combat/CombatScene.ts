@@ -1119,7 +1119,15 @@ export class CombatScene {
     if (!runUrl) return;
     const x0 = run.x - run.xWest;
 
-    const place = (key: string, sig: string, topBp: number, hBp: number, tex: () => Promise<Texture | null>, z = topBp + hBp): void => {
+    const place = (
+      key: string,
+      sig: string,
+      topBp: number,
+      hBp: number,
+      tex: () => Promise<Texture | null>,
+      z = topBp + hBp,
+      flip = false,
+    ): void => {
       const existing = this.wallStructures.get(key);
       if (existing && !existing.destroyed && existing.label === sig) return;
       existing?.destroy();
@@ -1134,6 +1142,15 @@ export class CombatScene {
         sprite.texture = texture;
         sprite.width = run.w;
         sprite.height = hBp;
+        // Item 2 (raccords de bandes) : une rangée sur deux remplacée par sa
+        // bande-étalon est rendue MIROIR VERTICAL ⇒ chaque couture rencontre un
+        // bord identique (bas↔bas, haut↔haut), la phase des merlons ne « saute »
+        // plus (tuilage miroir, façon vtile). Ancre en haut (0,0) ⇒ on décale de
+        // hBp vers le bas pour garder la même boîte.
+        if (flip) {
+          sprite.scale.y = -Math.abs(sprite.scale.y);
+          sprite.y = topBp + hBp;
+        }
       });
       this.stacksLayer.addChild(sprite);
       this.wallStructures.set(key, sprite);
@@ -1185,7 +1202,21 @@ export class CombatScene {
         const ext = ((rbRows - 1) / 2) * period;
         place(`slice:${row}`, 'razed:band', topBp - ext, period * rbRows, bandTex('razed'), topBp + period);
       } else {
-        place(`slice:${row}`, `${state}:${useRun ? 'run' : 'band'}`, topBp, period, useRun ? runFrame(topBp, period) : bandTex(state as 'intact' | 'cracked' | 'razed'));
+        // Tuilage miroir des bandes-étalons : parité de rangée ⇒ deux bandes
+        // adjacentes alternent normal/miroir, couture toujours continue. Les
+        // tranches du RUN (matière du tableau, naturellement variée) ne sont
+        // jamais retournées.
+        const band = !useRun;
+        const flip = band && row % 2 === 1;
+        place(
+          `slice:${row}`,
+          `${state}:${useRun ? 'run' : 'band'}${flip ? ':f' : ''}`,
+          topBp,
+          period,
+          useRun ? runFrame(topBp, period) : bandTex(state as 'intact' | 'cracked' | 'razed'),
+          topBp + period,
+          flip,
+        );
       }
     }
     // Extrémités du tableau (tours comprises) : toujours depuis le run.

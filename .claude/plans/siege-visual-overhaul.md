@@ -416,9 +416,29 @@ d'amélioration reconnue. À traiter dans l'ordre :
      (aucun id dans `packages/`), garde-fou couleurs ✓ (aucune couleur hors
      tokens.css), smoke `@core` desktop + mobile **42/42**. **Zéro moteur,
      pas de bump `CURRENT_SAVE_VERSION`, golden inchangé.**
-2. **Raccords de bandes** : quand plusieurs rangées adjacentes sont
+2. [x] **Raccords de bandes** : quand plusieurs rangées adjacentes sont
    remplacées par des bandes-étalons, la phase des merlons saute d'une
    copie à l'autre — fondu/roll type `vtile` ou 2-3 variantes d'étalon.
+
+   **LIVRÉ (2026-07-19, même branche)** — technique retenue : **tuilage
+   miroir** (une variante de `vtile`), plutôt que des variantes d'étalon
+   (asset-lourd, ×7 avec les teintes de faction, et la seule rangée fissurée
+   peinte n'offrait qu'une source). Client pur, **zéro nouvel asset** : dans
+   `syncRunSlices`, une rangée-bande sur deux (parité de `row`) est rendue en
+   **miroir vertical** (`place(..., flip)` ⇒ `scale.y` négatif, ancre décalée
+   de `hBp`). Deux rangées ADJACENTES alternant normal/miroir, chaque couture
+   rencontre un bord IDENTIQUE (bas↔bas, haut↔haut) ⇒ la phase des merlons ne
+   saute plus, tuilage sans couture par construction. Les tranches du RUN
+   (matière du tableau, naturellement variée) et la bande RASÉE étendue
+   (`razedBandRows > 1`, purge ouest asymétrique) ne sont jamais retournées.
+   Marche automatiquement avec les bandes teintées par faction (item 1) — le
+   flip est appliqué après résolution d'URL. Comparaison hors-ligne
+   (`scratchpad/seam-{intact,cracked}.png`) : couture dure supprimée, cracks/
+   merlons continus. Capture in-app `docs/captures/siege/after-band-seams.jpg`
+   (siège bombardé manche 3, teinte haven, mur continu).
+   **Vérifs VERTES** : typecheck, lint, vitest 935 (golden inchangé) + 163 + 33,
+   build, budget 352.8 Ko ≤ 800, garde-fous faction + couleurs, smoke `@core`
+   desktop + mobile 42/42. **Zéro moteur/asset/save.**
 3. **FX de bombardement recalés** : l'impact `WallBombarded` (éclats,
    secousse) doit viser la matière peinte de la rangée touchée (aujourd'hui
    calé sur l'ancienne géométrie de pièces).

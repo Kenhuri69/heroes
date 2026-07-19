@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { apply, validate } from '../src/core/engine';
 import type { Command, PlayerSetup } from '../src/core/commands';
 import { createEmptyState, emptyResources, type GameState } from '../src/core/state';
-import type { AdventureMapDef, MapTriggerDef } from '../src/adventure/map';
+import type { AdventureMapDef, MapObjectDef, MapTriggerDef } from '../src/adventure/map';
 import { testCatalog, testConfig, testMap } from './fixtures';
 
 /**
@@ -464,6 +464,81 @@ describe('lot 2.4 (doc 18 A5) — effets liés au héros visiteur', () => {
     const r2 = apply(r1.state, { type: 'MoveHero', heroId: 'hero-p1', path: [{ x: 2, y: 0 }] });
     expect(r2.state.heroes[0]!.army).toEqual([]);
     expect(r2.state.map!.triggers[1]!.fired).toBe(true);
+  });
+
+  it('flagCaptured : capturer une mine déclenche l’effet scripté (octroi), one-shot', () => {
+    const map: AdventureMapDef = {
+      ...testMap(),
+      objects: [
+        ...testMap().objects,
+        { id: 'mine-1', type: 'mine', pos: { x: 1, y: 0 }, resource: 'wood', amount: 2, ownerId: null },
+      ],
+      triggers: [
+        {
+          id: 't-flag',
+          on: { kind: 'flagCaptured', objectId: 'mine-1' },
+          effect: { kind: 'grantResource', resource: 'gold', amount: 250 },
+          fired: false,
+        },
+      ],
+    };
+    const state = apply(createEmptyState(), {
+      type: 'StartGame',
+      seed: 1,
+      players: [ARMED],
+      map,
+      config: testConfig(),
+      unitCatalog: testCatalog(),
+      buildingCatalog: {},
+      towns: [],
+    }).state;
+    const gold0 = state.players[0]!.resources.gold;
+    const r = apply(state, { type: 'MoveHero', heroId: 'hero-p1', path: [{ x: 1, y: 0 }] });
+    // Mine passée au joueur ET effet scripté appliqué au captureur.
+    const mine1 = r.state.map!.objects.find(
+      (o): o is Extract<MapObjectDef, { type: 'mine' }> => o.type === 'mine' && o.id === 'mine-1',
+    );
+    expect(mine1!.ownerId).toBe('p1');
+    expect(r.state.players[0]!.resources.gold).toBe(gold0 + 250);
+    expect(r.state.map!.triggers[0]!.fired).toBe(true);
+    expect(r.events.some((e) => e.type === 'TriggerFired' && e.triggerId === 't-flag')).toBe(true);
+  });
+
+  it('flagCaptured : aucun trigger pour l’objet ⇒ capture normale sans effet (no-op)', () => {
+    const map: AdventureMapDef = {
+      ...testMap(),
+      objects: [
+        ...testMap().objects,
+        { id: 'mine-2', type: 'mine', pos: { x: 1, y: 0 }, resource: 'wood', amount: 2, ownerId: null },
+      ],
+      // Trigger visant une AUTRE mine : ne doit pas se déclencher sur mine-2.
+      triggers: [
+        {
+          id: 't-other',
+          on: { kind: 'flagCaptured', objectId: 'mine-999' },
+          effect: { kind: 'grantResource', resource: 'gold', amount: 250 },
+          fired: false,
+        },
+      ],
+    };
+    const state = apply(createEmptyState(), {
+      type: 'StartGame',
+      seed: 1,
+      players: [ARMED],
+      map,
+      config: testConfig(),
+      unitCatalog: testCatalog(),
+      buildingCatalog: {},
+      towns: [],
+    }).state;
+    const gold0 = state.players[0]!.resources.gold;
+    const r = apply(state, { type: 'MoveHero', heroId: 'hero-p1', path: [{ x: 1, y: 0 }] });
+    const mine2 = r.state.map!.objects.find(
+      (o): o is Extract<MapObjectDef, { type: 'mine' }> => o.type === 'mine' && o.id === 'mine-2',
+    );
+    expect(mine2!.ownerId).toBe('p1');
+    expect(r.state.players[0]!.resources.gold).toBe(gold0); // aucun octroi
+    expect(r.state.map!.triggers[0]!.fired).toBe(false);
   });
 
   it('trigger de jour à effet héros (grantArtifact) : no-op tracé (fired + événement, aucun octroi)', () => {

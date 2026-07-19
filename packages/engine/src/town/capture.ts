@@ -1,4 +1,5 @@
 import { isAdjacent, samePos } from '../adventure/map';
+import { fireFlagCaptureTrigger } from '../adventure/triggers';
 import { revealStructure } from '../adventure/vision';
 import { beginTownCombat, wouldSpawnSiegeTower } from '../combat/setup';
 import type { Command, CommandError } from '../core/commands';
@@ -90,6 +91,10 @@ export function handleCaptureTown(draft: GameState, cmd: CaptureCmd, events: Gam
   town.sharedGrowthChoice = {};
   events.push({ type: 'TownCaptured', townId: town.id, playerId: cmd.playerId });
   revealStructure(draft, cmd.playerId, town.pos); // F1 : la ville capturée éclaire son voisinage
+  // Trigger de capture de drapeau (doc 18 A5) : effet scripté pour le captureur.
+  const capturer = draft.players.find((p) => p.id === cmd.playerId);
+  if (capturer)
+    fireFlagCaptureTrigger(draft, town.id, capturer, attackingHero(draft, town, cmd.playerId) ?? null, events);
   // Une ville peut changer de main (élimination de l'ancien propriétaire) :
   // conditions de victoire/défaite (doc 02 §6, plan phase-3.5) — no-op hors scénario.
   evaluateOutcome(draft, events);

@@ -1079,7 +1079,10 @@ export type ResolvedSimpleTriggerEffect =
 /** Trigger résolu — forme moteur `MapTriggerDef` (`pos` déplié, `fired` initial). */
 export interface ResolvedMapTrigger {
   id: string;
-  on: { kind: 'visit'; pos: { x: number; y: number } } | { kind: 'day'; day: number };
+  on:
+    | { kind: 'visit'; pos: { x: number; y: number } }
+    | { kind: 'day'; day: number }
+    | { kind: 'flagCaptured'; objectId: string };
   effect: ResolvedTriggerEffect;
   fired: boolean;
 }
@@ -1523,7 +1526,9 @@ function resolveMap(file: MapFile): ResolvedMap {
       on:
         t.on.kind === 'visit'
           ? { kind: 'visit', pos: { x: t.on.x, y: t.on.y } }
-          : { kind: 'day', day: t.on.day },
+          : t.on.kind === 'day'
+            ? { kind: 'day', day: t.on.day }
+            : { kind: 'flagCaptured', objectId: t.on.objectId },
       effect: t.effect,
       fired: false,
     })),

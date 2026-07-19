@@ -170,6 +170,30 @@ export function fireVisitTrigger(
 }
 
 /**
+ * Déclenche le trigger de **capture de drapeau** (doc 18 A5) posé sur l'objet/
+ * ville d'id `objectId` — appelé depuis chaque site de capture (mine, habitation,
+ * ville) une fois le changement de main effectué. One-shot ; l'effet (restreint
+ * aux `SimpleTriggerEffect` par le schéma) s'applique **sans interruption** au
+ * joueur/héros captureur. No-op si aucun trigger `flagCaptured` ne vise `objectId`.
+ */
+export function fireFlagCaptureTrigger(
+  draft: GameState,
+  objectId: string,
+  player: PlayerState,
+  hero: HeroState | null,
+  events: GameEvent[],
+): void {
+  const map = draft.map;
+  if (!map) return;
+  const trig = map.triggers.find(
+    (t) => !t.fired && t.on.kind === 'flagCaptured' && t.on.objectId === objectId,
+  );
+  if (!trig) return;
+  trig.fired = true;
+  applyTriggerEffect(trig.effect, player, hero, trig.id, events);
+}
+
+/**
  * Déclenche les triggers de **jour** dus au jour courant (one-shot) — appelé au
  * `DayStarted`. Un octroi de ressource `onDay` est symétrique (tous les joueurs
  * actifs, déterministe) ; un message est global (`playerId: null`) ; les effets

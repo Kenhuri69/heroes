@@ -1207,6 +1207,9 @@ export const mapFileSchema = z.object({
             y: z.number().int().nonnegative(),
           }),
           z.object({ kind: z.literal('day'), day: z.number().int().positive() }),
+          // Doc 18 A5 — capture de drapeau : déclenché quand l'objet/ville
+          // `objectId` change de main (effet restreint aux simples, cf. superRefine).
+          z.object({ kind: z.literal('flagCaptured'), objectId: idSchema }),
         ]),
         effect: z.discriminatedUnion('kind', [
           z.object({
@@ -1273,6 +1276,19 @@ export const mapFileSchema = z.object({
               .min(2),
           }),
         ]),
+      }).superRefine((trig, ctx) => {
+        // Doc 18 A5 — un trigger `flagCaptured` s'applique SANS interruption : son
+        // effet doit être un effet-feuille simple (pas d'ambush/teleport/choice,
+        // qui exigent d'interrompre le chemin). Le moteur ne les jouerait qu'à
+        // moitié — on le refuse au chargement plutôt que de l'ignorer en silence.
+        const INTERRUPTING = ['ambush', 'teleport', 'choice'];
+        if (trig.on.kind === 'flagCaptured' && INTERRUPTING.includes(trig.effect.kind)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['effect', 'kind'],
+            message: `un trigger 'flagCaptured' ne peut pas porter l'effet '${trig.effect.kind}' (effet-feuille simple requis)`,
+          });
+        }
       }),
     )
     .optional(),

@@ -289,7 +289,16 @@ export type TriggerEffect =
  */
 export interface MapTriggerDef {
   id: string;
-  on: { kind: 'visit'; pos: GridPos } | { kind: 'day'; day: number };
+  on:
+    | { kind: 'visit'; pos: GridPos }
+    | { kind: 'day'; day: number }
+    /**
+     * Capture de drapeau (doc 18 A5) : déclenché quand l'objet/ville d'id
+     * `objectId` (mine/habitation `MapObjectDef.id` ou `TownState.id`) change de
+     * main. L'effet — **restreint aux `SimpleTriggerEffect`** (appliqué sans
+     * interruption) — s'applique au joueur/héros captureur.
+     */
+    | { kind: 'flagCaptured'; objectId: string };
   effect: TriggerEffect;
   fired: boolean;
 }

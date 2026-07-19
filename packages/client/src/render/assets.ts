@@ -345,6 +345,133 @@ export function siegeGateUrl(): string | undefined {
   return registry.get('combat/siege-gate');
 }
 
+// --- Refonte visuelle du siège (plan siege-visual-overhaul) : la SCÈNE peinte
+// possède l'image, la grille s'y pose. Générée par gen_siege_scene.py ;
+// substituable par simple dépôt de fichiers homonymes (art Gemini). ---
+
+/**
+ * Scène de siège peinte plein-cadre (sol complet : champ, boue d'approche,
+ * fossé, cour, ville assiégée) ancrée sur la géométrie moteur via
+ * `siegeSceneLayout()`. Chaîne : `combat/siege-scene-<factionId>` (ville de la
+ * faction) → `combat/siege-scene` (générique) → `undefined` (repli : habillage
+ * mur/douve procédural historique). Id de faction opaque.
+ */
+export function siegeSceneUrl(factionId?: string): string | undefined {
+  return (
+    (factionId ? registry.get(`combat/siege-scene-${factionId}`) : undefined) ??
+    registry.get('combat/siege-scene')
+  );
+}
+
+/** Bande d'eau de la douve (RGBA) — posée sur la scène SEULEMENT si le siège a
+ *  une douve moteur (Fort ≥ 2) ; le fossé de la scène reste sec sinon. */
+export function siegeMoatStripUrl(): string | undefined {
+  return registry.get('combat/siege-moat');
+}
+
+/**
+ * Pièce de rempart d'une rangée (empilable, période = pas de rangée) par état
+ * (`intact`/`cracked`/`razed` — mappés sur `siegeWallHp`) ; `variant` 2 =
+ * appareil alterné (rangées paires/impaires) avec repli variante 1.
+ */
+export function siegeWallPieceUrl(state: 'intact' | 'cracked' | 'razed', variant = 1): string | undefined {
+  if (state === 'intact') {
+    return (variant === 2 ? registry.get('combat/siege-piece-wall-2') : undefined) ?? registry.get('combat/siege-piece-wall');
+  }
+  return registry.get(`combat/siege-piece-wall-${state}`);
+}
+
+/**
+ * Tuile de sol PAVÉ d'une case de cour (« effet ville » hex par hex dans
+ * l'enceinte), 3 variantes déterministes. Repli variante 1, puis `undefined`
+ * (⇒ pas de pavage, la cour peinte de la scène suffit).
+ */
+export function siegeCourtTileUrl(variant: number): string | undefined {
+  return registry.get(`combat/siege-tile-court-${variant}`) ?? registry.get('combat/siege-tile-court-1');
+}
+
+/** Tour d'extrémité du rempart recolorée pierre grise (assortie au gatehouse) ;
+ *  repli sur l'art d'origine `siege-tower` (crème). */
+export function siegeSceneTowerUrl(): string | undefined {
+  return registry.get('combat/siege-piece-tower') ?? registry.get('combat/siege-tower');
+}
+
+/** Segment de PORTE vertical (double hauteur, dans l'axe du mur) — courtine
+ *  percée de l'arche peinte, posée sur les rangées d'ouverture. */
+export function siegeGatePieceUrl(): string | undefined {
+  return registry.get('combat/siege-piece-gate');
+}
+
+/** TOUR DE TIR de la ville (structure S6 en mode scène) : tour de pierre grise
+ *  surmontée d'une baliste pointée vers l'assaillant — l'arme se voit. Replis :
+ *  tour grise nue → art crème d'origine. */
+export function siegeArrowTowerUrl(): string | undefined {
+  return registry.get('combat/siege-piece-arrow-tower') ?? siegeSceneTowerUrl();
+}
+
+/** TOUR DE TIR CASSÉE (ruine peinte du gabarit ensemble v6) : ruine laissée
+ *  sur l'hex de la structure quand la pile `warMachine`+`immobile` est
+ *  détruite. Sans asset : undefined ⇒ comportement historique (la tour
+ *  disparaît). */
+export function siegeArrowTowerRazedUrl(): string | undefined {
+  return registry.get('combat/siege-piece-arrow-tower-razed');
+}
+
+/** RUN ensembliste peint (tableau Gemini découpé) : la fortification complète
+ *  en une bande verticale, affichée par TRANCHES d'une rangée. */
+export function siegeRunUrl(): string | undefined {
+  return registry.get('combat/siege-run');
+}
+
+/** Bande-étalon d'une rangée pour un état donné (remplace la tranche du run
+ *  quand l'état réel de la rangée diffère de l'état peint dans le tableau). */
+export function siegeRunBandUrl(state: 'intact' | 'cracked' | 'razed'): string | undefined {
+  return registry.get(`combat/siege-run-band-${state}`);
+}
+
+/** Bloc "run" du layout (écrit par extract_siege_ensemble.py). */
+export interface SiegeRunLayout {
+  x: number;
+  xWest: number;
+  topBp: number;
+  w: number;
+  h: number;
+  period: number;
+  painted: Record<string, 'cracked' | 'razed'>;
+  gateRows: number[];
+  /** Zones de dégât peintes EN SITUATION (bornes de rangées inclusives) : le
+   *  dégât du tableau déborde autour de sa rangée-étalon ⇒ la zone bascule
+   *  d'un bloc entre tableau et bandes-étalons. */
+  zones?: Partial<Record<'cracked' | 'razed', [number, number]>>;
+  /** Hauteur (en rangées) de la bande-étalon RASÉE : > 1 ⇒ la bande embarque
+   *  le tas de gravats entier déversé à l'ouest (les rangées haute/basse ne
+   *  contiennent que le déversement) — posée centrée sur la rangée rasée. */
+  razedBandRows?: number;
+}
+
+/** Layout de calage de la scène de siège (board-space), émis par le générateur. */
+export interface SiegeSceneLayout {
+  run?: SiegeRunLayout;
+  scale: number;
+  scene: { x0: number; y0: number; w: number; h: number };
+  wallX: number;
+  piece: { w: number; hAbove: number; hBelow: number };
+  moatStrip: { x0: number; y0: number };
+  courtTile: { w: number; h: number };
+  gate: { x: number; yBottom: number; w: number; h: number };
+  towers: { x: number; y: number; h: number }[];
+}
+
+const siegeLayoutModules = import.meta.glob('../../../../assets/layouts/siege-scene.json', {
+  eager: true,
+  import: 'default',
+}) as Record<string, SiegeSceneLayout>;
+
+export function siegeSceneLayout(): SiegeSceneLayout | undefined {
+  const values = Object.values(siegeLayoutModules);
+  return values[0];
+}
+
 // --- Chemin PixiJS : préchargement + lecture synchrone du cache ---
 
 /** URLs rendues dans PixiJS (tuiles + mines + tas) — préchargées au bootstrap. */

@@ -64,8 +64,17 @@ export function hexKey(pos: OffsetPos): string {
 // non chromatique (A5, doc 08 §4) en plus de sa teinte : couleur de contour
 // distincte + un marqueur (pip / bord épais / hachures) dessiné par-dessus.
 const FILL_BASE = 0x1a1c22;
-const ALPHA_BASE = 0.16; // très transparent : le décor peint domine
+const ALPHA_BASE = 0.08; // très transparent : le décor peint domine
 const STROKE_BASE = 0x3a3d47;
+// Refonte siège (R3) : la grille ne doit plus CRIER — les états transitoires
+// larges (portée de déplacement ≈ 60 hexes) sont des teintes DISCRÈTES posées
+// sur le décor peint, pas des aplats de surligneur. Le second canal non
+// chromatique (A5) reste : pip + liseré teinté, simplement atténués. Les états
+// RARES et critiques (attaquable, zone de sort, sélection) gardent leur force.
+const ALPHA_REACHABLE = 0.13; // aplat de portée : discret, le décor transparaît
+const ALPHA_STROKE_QUIET = 0.55; // liserés de base/portée : présents sans dominer
+const PIP_RADIUS = 2.5; // pip « on peut venir ici » (A5) — réduit (était 4)
+const PIP_ALPHA = 0.55;
 const FILL_REACHABLE = 0x3a7a3a;
 const STROKE_REACHABLE = 0x8fe08f;
 const FILL_ATTACKABLE = 0x9a2a2a;
@@ -130,7 +139,7 @@ function drawBoulder(g: Graphics, x: number, y: number, r: number): void {
  * quand une surbrillance translucide (atteignable/attaquable) recouvre la douve.
  * Purement géométrique et déterministe (aucun RNG).
  */
-function drawWavelets(g: Graphics, x: number, y: number, r: number): void {
+function drawWavelets(g: Graphics, x: number, y: number, r: number, alpha = 0.85): void {
   const w = r * 0.62; // demi-largeur des crêtes
   const amp = r * 0.1;
   for (let i = 0; i < 3; i++) {
@@ -138,7 +147,7 @@ function drawWavelets(g: Graphics, x: number, y: number, r: number): void {
     g.moveTo(x - w, cy)
       .quadraticCurveTo(x - w / 2, cy - amp, x, cy)
       .quadraticCurveTo(x + w / 2, cy + amp, x + w, cy)
-      .stroke({ width: 1.5, color: MOAT_WAVE, alpha: 0.85 });
+      .stroke({ width: 1.5, color: MOAT_WAVE, alpha });
   }
 }
 
@@ -151,6 +160,12 @@ export interface DrawBoardOptions {
   obstacles?: ReadonlySet<string>;
   /** Hexes de douve de siège (C-SIEGE2.3) : franchissables mais ralentissants. */
   moat?: ReadonlySet<string>;
+  /**
+   * Refonte siège : `false` quand la SCÈNE peinte fournit déjà l'eau de la douve
+   * — l'hex garde alors une grille fine + le marqueur vaguelettes (A5) discret,
+   * sans aplat opaque qui recouvrirait le décor. Défaut `true` (décor dessiné).
+   */
+  moatDecor?: boolean;
   /** C-SPELLUI.3 : hexes touchés par la zone d'effet du sort en cours de ciblage. */
   zone?: ReadonlySet<string>;
   /** Hex/cible sélectionné en attente du 2ᵉ tap — contour doré. */
@@ -225,11 +240,21 @@ export function drawBoard(g: Graphics, opts: DrawBoardOptions = {}): void {
       // On passe donc 0 ici — un flat-top sur un lattice pointy-top ne pave pas et
       // produit un treillis en losanges au lieu d'un nid d'abeille.
       if (isMoat) {
-        // 1) Décor de douve (fossé opaque + vaguelettes) — toujours dessiné.
-        g.poly(flatHexPoints(x, y, r))
-          .fill({ color: FILL_MOAT, alpha: ALPHA_MOAT_DECOR })
-          .stroke({ width: 1, color: STROKE_MOAT });
-        drawWavelets(g, x, y, r);
+        const decor = opts.moatDecor ?? true;
+        if (decor) {
+          // 1) Décor de douve (fossé opaque + vaguelettes) — repli sans scène peinte.
+          g.poly(flatHexPoints(x, y, r))
+            .fill({ color: FILL_MOAT, alpha: ALPHA_MOAT_DECOR })
+            .stroke({ width: 1, color: STROKE_MOAT });
+          drawWavelets(g, x, y, r);
+        } else {
+          // Scène peinte : l'eau est déjà dans le décor — grille fine + marqueur
+          // vaguelettes (A5) discret, jamais d'aplat qui recouvre la peinture.
+          g.poly(flatHexPoints(x, y, r))
+            .fill({ color: FILL_BASE, alpha: ALPHA_BASE })
+            .stroke({ width: 1, color: STROKE_MOAT, alpha: ALPHA_STROKE_QUIET });
+          drawWavelets(g, x, y, r, 0.5);
+        }
         // 2) Surbrillance CUMULÉE (translucide) : la douve transparaît dessous.
         if (stateFill != null) {
           g.poly(flatHexPoints(x, y, r))
@@ -240,19 +265,28 @@ export function drawBoard(g: Graphics, opts: DrawBoardOptions = {}): void {
           g.poly(flatHexPoints(x, y, r)).stroke({ width: 3, color: STROKE_SELECTED });
         }
       } else {
-        // Chemin non-douve : rendu inchangé (une seule couche teinte état/base).
+        // Chemin non-douve : une seule couche teinte état/base. R3 : les états
+        // LARGES (base, portée) sont discrets ; les états rares restent forts.
         const fill = stateFill ?? FILL_BASE;
-        const alpha = stateFill != null ? (isObstacle ? ALPHA_OBSTACLE : ALPHA_STATE) : ALPHA_BASE;
+        const alpha =
+          stateFill != null
+            ? isObstacle
+              ? ALPHA_OBSTACLE
+              : isReachable
+                ? ALPHA_REACHABLE
+                : ALPHA_STATE
+            : ALPHA_BASE;
         const stroke = isSelected ? STROKE_SELECTED : stateFill != null ? stateStroke : STROKE_BASE;
         const sw = isSelected ? 3 : strokeWidth;
+        const strokeAlpha = isSelected || isAttackable || isZone || isObstacle ? 1 : ALPHA_STROKE_QUIET;
         g.poly(flatHexPoints(x, y, r))
           .fill({ color: fill, alpha })
-          .stroke({ width: sw, color: stroke });
+          .stroke({ width: sw, color: stroke, alpha: strokeAlpha });
       }
 
       // Marqueurs non chromatiques (A5) : lisibles même sans distinction de teinte.
       if (isReachable) {
-        g.circle(x, y, 4).fill({ color: MARKER, alpha: 0.9 }); // pip « on peut venir ici »
+        g.circle(x, y, PIP_RADIUS).fill({ color: MARKER, alpha: PIP_ALPHA }); // pip « on peut venir ici »
       } else if (isZone) {
         // Losange « touché par la zone » — marqueur non chromatique (A5).
         const d = 5;

@@ -1,4 +1,4 @@
-import { Application, Assets, Container, Graphics, Point, Sprite, Text, TilingSprite } from 'pixi.js';
+import { Application, Assets, Container, Graphics, Point, Rectangle, Sprite, Text, Texture, TilingSprite } from 'pixi.js';
 import {
   hexDistance,
   inCombatBounds,
@@ -28,7 +28,26 @@ import { pushToast } from '../../ui/toasts';
 import { onLongPress, onTap } from '../../input/pointer';
 import { Camera } from '../../render/camera';
 import { playerColor } from '../../render/playerColors';
-import { heroAvatarUrl, unitSpriteUrl, statusIconUrl, siegeCurtainUrl, siegeTowerUrl } from '../../render/assets';
+import {
+  heroAvatarUrl,
+  unitSpriteUrl,
+  statusIconUrl,
+  siegeCurtainUrl,
+  siegeTowerUrl,
+  siegeGateUrl,
+  siegeSceneUrl,
+  siegeSceneLayout,
+  siegeMoatStripUrl,
+  siegeWallPieceUrl,
+  siegeCourtTileUrl,
+  siegeSceneTowerUrl,
+  siegeGatePieceUrl,
+  siegeArrowTowerUrl,
+  siegeArrowTowerRazedUrl,
+  siegeRunUrl,
+  siegeRunBandUrl,
+  type SiegeRunLayout,
+} from '../../render/assets';
 import { computeWallLayout, drawCurtain, drawTower, drawGate, drawDamage } from '../../render/siegeWall';
 import { heroArchetype } from '../../app/game';
 import { HEX_SIZE, ISO_SQUASH, computeBoardBounds, drawBoard, hexKey, offsetToPixel, pixelToOffset } from '../../render/hexgrid';
@@ -87,6 +106,9 @@ const SHAKE_MS = 120;
 const ISO_WALL_LEAN = HEX_SIZE * 1.5;
 const ISO_WALL_FAR = 0.82;
 const ISO_WALL_NEAR = 1.12;
+// Tour de tir en mode scène : hauteur affichée (board px) — domine la courtine
+// et les tours d'angle (baliste au sommet comprise, kit procédural).
+const STRUCTURE_TOWER_H = HEX_SIZE * 3.0;
 
 const MARGIN_TOP = 96; // bandeau armées + round (doc 08 §2.4)
 // S9.4 : marge basse élargie — la barre d'actions peut passer à 2 rangées et le
@@ -129,6 +151,24 @@ export class CombatScene {
   private readonly wallDamage = new Graphics();
   /** Signature des remparts déjà rendus (hexes + PV) — évite de redessiner à chaque sync. */
   private wallKeys = '';
+  /**
+   * Refonte siège : SCÈNE peinte plein-cadre (sol champ/fossé/cour/ville) posée
+   * DANS le monde sous la grille, ancrée à la géométrie moteur via le layout du
+   * générateur. Les remparts deviennent des sprites PAR RANGÉE (intact/fissuré/
+   * rasé) placés dans `stacksLayer` (tri de profondeur ⇒ occlusion correcte
+   * unités/mur). `sceneActive` gouverne le repli : sans assets, l'habillage
+   * procédural historique (wallBase/wallSpriteLayer) reprend la main.
+   */
+  private readonly sceneLayer = new Container();
+  private sceneKey = '';
+  private sceneActive = false;
+  private readonly wallStructures = new Map<string, Sprite>();
+  /**
+   * Itération 9 : hex des STRUCTURES de siège vues vivantes (tour de tir) —
+   * quand la pile meurt, sa ruine peinte (`siege-piece-arrow-tower-razed`)
+   * reste sur place au lieu d'un hex vide. Vidé à la fin du combat.
+   */
+  private readonly structureSpots = new Map<string, OffsetPos>();
   private readonly stacksLayer = new Container();
   /** UXD-4 : effets éphémères (chiffres de dégâts flottants) au-dessus des piles. */
   private readonly fxLayer = new Container();
@@ -170,6 +210,7 @@ export class CombatScene {
 
   constructor(private readonly app: Application) {
     this.boardLayer.addChild(
+      this.sceneLayer,
       this.boardGfx,
       this.wallBase,
       this.wallSpriteLayer,
@@ -178,6 +219,9 @@ export class CombatScene {
       this.stacksLayer,
       this.fxLayer,
     );
+    // Scène peinte : pur décor sous la grille, ne capte jamais le tap.
+    this.sceneLayer.eventMode = 'none';
+    this.sceneLayer.sortableChildren = true;
     // Décor de rempart : ne capte jamais le tap.
     this.wallBase.eventMode = 'none';
     this.wallSpriteLayer.eventMode = 'none';
@@ -338,6 +382,12 @@ export class CombatScene {
       this.wallDamage.clear();
       this.wallSpriteLayer.removeChildren().forEach((c) => c.destroy());
       this.wallKeys = '';
+      this.sceneLayer.removeChildren().forEach((c) => c.destroy());
+      this.sceneKey = '';
+      this.sceneActive = false;
+      for (const s of this.wallStructures.values()) s.destroy();
+      this.wallStructures.clear();
+      this.structureSpots.clear();
       this.fxLayer.removeChildren().forEach((c) => c.destroy()); // purge des chiffres flottants
       for (const [id, token] of this.stackTokens) {
         if (this.animatingIds.has(id)) continue;
@@ -358,9 +408,70 @@ export class CombatScene {
       this.laidOut = true; // E10 : combat visible ⇒ les resizes suivants préservent le pan.
       this.buildHeroTokens(combat);
     }
+    this.syncSiegeScene(combat, st.game);
     this.syncStacks(combat);
     this.syncWalls(combat);
     this.redrawBoard();
+  }
+
+  /**
+   * Refonte siège : pose la SCÈNE peinte (sol) et la bande d'eau de douve dans
+   * le monde, ancrées board-space via le layout du générateur. Décide
+   * `sceneActive` (⇒ `syncWalls` bascule en sprites par rangée). Sans asset ni
+   * layout : no-op, repli intégral sur l'habillage historique.
+   */
+  private syncSiegeScene(combat: CombatState, game: GameState): void {
+    const layout = siegeSceneLayout();
+    const walls = combat.siegeWalls ?? [];
+    const town = combat.townId != null ? game.towns.find((t) => t.id === combat.townId) : undefined;
+    const url = walls.length > 0 && layout ? siegeSceneUrl(town?.factionId) : undefined;
+    this.sceneActive = url != null && siegeWallPieceUrl('intact') != null;
+    const hasMoat = (combat.moat ?? []).length > 0;
+    const key = this.sceneActive ? `${url}|${hasMoat ? 'wet' : 'dry'}` : '';
+    if (key === this.sceneKey) return;
+    this.sceneKey = key;
+    this.sceneLayer.removeChildren().forEach((c) => c.destroy());
+    if (!this.sceneActive || !url || !layout) return;
+    const invScale = 1 / layout.scale;
+    void Assets.load(url).then((texture) => {
+      if (this.destroyed || this.sceneKey !== key) return;
+      const sprite = new Sprite(texture);
+      sprite.scale.set(invScale);
+      sprite.position.set(layout.scene.x0, layout.scene.y0);
+      sprite.zIndex = 0;
+      this.sceneLayer.addChild(sprite);
+    });
+    const moatUrl = hasMoat ? siegeMoatStripUrl() : undefined;
+    if (moatUrl) {
+      void Assets.load(moatUrl).then((texture) => {
+        if (this.destroyed || this.sceneKey !== key) return;
+        const sprite = new Sprite(texture);
+        sprite.scale.set(invScale);
+        sprite.position.set(layout.moatStrip.x0, layout.moatStrip.y0);
+        sprite.zIndex = 1;
+        this.sceneLayer.addChild(sprite);
+      });
+    }
+    // « Effet ville » : pavage hexagonal des cases de COUR (dans l'enceinte,
+    // entre le rempart et le bord défenseur) — 3 variantes déterministes.
+    const wallCol = walls[0]!.col;
+    for (let col = wallCol + 1; col < COMBAT_COLS; col++) {
+      for (let row = 0; row < COMBAT_ROWS; row++) {
+        const tileUrl = siegeCourtTileUrl(((col * 31 + row * 17) % 3) + 1);
+        if (!tileUrl) break;
+        const { x, y } = offsetToPixel({ col, row });
+        void Assets.load(tileUrl).then((texture) => {
+          if (this.destroyed || this.sceneKey !== key) return;
+          const sprite = new Sprite(texture);
+          sprite.anchor.set(0.5);
+          sprite.position.set(x, y);
+          sprite.width = layout.courtTile.w;
+          sprite.height = layout.courtTile.h;
+          sprite.zIndex = 2;
+          this.sceneLayer.addChild(sprite);
+        });
+      }
+    }
   }
 
   /**
@@ -373,6 +484,20 @@ export class CombatScene {
    * éclats) reste joué par `WallBombarded`.
    */
   private syncWalls(combat: CombatState): void {
+    if (this.sceneActive) {
+      // Mode SCÈNE peinte : le rempart est un jeu de sprites PAR RANGÉE dans
+      // `stacksLayer` (profondeur correcte) — l'habillage procédural se tait.
+      this.wallBase.clear();
+      this.wallDamage.clear();
+      this.wallSpriteLayer.removeChildren().forEach((c) => c.destroy());
+      this.wallKeys = '';
+      this.syncWallStructures(combat);
+      return;
+    }
+    if (this.wallStructures.size > 0) {
+      for (const s of this.wallStructures.values()) s.destroy();
+      this.wallStructures.clear();
+    }
     const walls = combat.siegeWalls ?? [];
     const hp = combat.siegeWallHp ?? {};
     // Signature = hexes + PV : redessine quand la muraille change (segment ouvert
@@ -454,6 +579,155 @@ export class CombatScene {
       sprite.position.set(x, y);
       this.wallSpriteLayer.addChild(sprite);
     });
+  }
+
+  /**
+   * Mode scène : rempart en sprites PAR RANGÉE (`siege-piece-wall*`), état lu
+   * dans `siegeWalls`/`siegeWallHp` (intact / fissuré / rasé — une rangée
+   * absente hors porte = brèche rasée), + porte et tours d'extrémité peintes.
+   * Les sprites vivent dans `stacksLayer` avec `zIndex = y` de leur base ⇒ une
+   * unité au sud passe DEVANT le mur, au nord DERRIÈRE (occlusion réelle).
+   * Diff par signature (`label`) — pas de rebuild à chaque sync.
+   */
+  private syncWallStructures(combat: CombatState): void {
+    const layout = siegeSceneLayout();
+    const walls = combat.siegeWalls ?? [];
+    if (!layout || walls.length === 0) return;
+    // Itération 9 : la tour de tir détruite laisse sa ruine peinte sur l'hex.
+    this.syncStructureRuins(combat);
+    // Mode RUN ensembliste (tableau peint découpé) : la fortification est un
+    // seul artwork affiché par tranches — prioritaire quand l'asset existe.
+    if (layout.run && siegeRunUrl()) {
+      this.syncRunSlices(combat, layout.run);
+      return;
+    }
+    const wallCol = walls[0]!.col;
+    const hp = combat.siegeWallHp ?? {};
+    const maxHp = Object.keys(hp).length ? Math.max(...Object.values(hp)) : 0;
+    const walled = new Set(walls.map((w) => w.row));
+    const gateA = Math.floor(COMBAT_ROWS / 2) - 1;
+    const gateB = Math.floor(COMBAT_ROWS / 2);
+    const yOf = (row: number): number => offsetToPixel({ col: wallCol, row }).y;
+    const pieceH = layout.piece.hAbove + layout.piece.hBelow;
+
+    const ensure = (key: string, sig: string, make: () => Sprite | null): void => {
+      const existing = this.wallStructures.get(key);
+      if (existing && !existing.destroyed && existing.label === sig) return;
+      existing?.destroy();
+      this.wallStructures.delete(key);
+      const sprite = make();
+      if (sprite) {
+        sprite.label = sig;
+        sprite.eventMode = 'none';
+        this.stacksLayer.addChild(sprite);
+        this.wallStructures.set(key, sprite);
+      }
+    };
+
+    for (let row = 0; row < COMBAT_ROWS; row++) {
+      if (row === gateA || row === gateB) continue;
+      let state: 'intact' | 'cracked' | 'razed' = 'razed';
+      if (walled.has(row)) {
+        const ratio = maxHp > 0 ? (hp[`${wallCol},${row}`] ?? maxHp) / maxHp : 1;
+        state = ratio < 1 ? 'cracked' : 'intact';
+      }
+      const variant = row % 2 === 0 ? 1 : 2;
+      ensure(`piece:${row}`, `${state}:${variant}`, () => {
+        const url = siegeWallPieceUrl(state, variant);
+        if (!url) return null;
+        const sprite = new Sprite();
+        // Kit « run » (v2) : pièces de RACCORD tuilables une rangée — colonne
+        // DROITE sur l'axe lissé du mur, l'empilement est continu par
+        // construction (le zigzag par hex isolait les blocs, retour porteur).
+        sprite.position.set(layout.wallX, yOf(row));
+        sprite.zIndex = yOf(row) + layout.piece.hBelow;
+        void Assets.load(url).then((texture) => {
+          if (sprite.destroyed) return;
+          sprite.texture = texture;
+          sprite.anchor.set(0.5, layout.piece.hAbove / pieceH);
+          sprite.width = layout.piece.w;
+          sprite.height = pieceH;
+        });
+        return sprite;
+      });
+    }
+
+    // Porte = segment VERTICAL dans l'axe du mur (retour porteur : le
+    // gatehouse frontal étalé en travers jurait) ; repli = art frontal.
+    ensure('gate', 'gate-piece', () => {
+      const url = siegeGatePieceUrl() ?? siegeGateUrl();
+      if (!url) return null;
+      const sprite = new Sprite();
+      sprite.position.set(layout.gate.x, layout.gate.yBottom);
+      // Profondeur : entre les 2 rangées d'ouverture — une unité sur la rangée
+      // NORD passe derrière le segment (elle entre dans le tunnel), sur la
+      // rangée SUD devant (elle en ressort).
+      sprite.zIndex = layout.gate.yBottom - 37;
+      void Assets.load(url).then((texture) => {
+        if (sprite.destroyed) return;
+        sprite.texture = texture;
+        sprite.anchor.set(0.5, 1);
+        sprite.width = layout.gate.w;
+        sprite.height = layout.gate.h;
+      });
+      return sprite;
+    });
+
+    layout.towers.forEach((t, i) => {
+      ensure(`tower:${i}`, 'tower-piece', () => {
+        const url = siegeSceneTowerUrl();
+        if (!url) return null;
+        const sprite = new Sprite();
+        sprite.position.set(t.x, t.y);
+        sprite.zIndex = t.y;
+        void Assets.load(url).then((texture) => {
+          if (sprite.destroyed) return;
+          sprite.texture = texture;
+          sprite.anchor.set(0.5, 0.96);
+          sprite.scale.set(t.h / texture.height);
+        });
+        return sprite;
+      });
+    });
+  }
+
+  /**
+   * Itération 9 : une STRUCTURE de siège détruite (tour de tir) laisse une
+   * RUINE peinte (`siege-piece-arrow-tower-razed`) plantée sur son hex — la
+   * défense abattue reste lisible au lieu de disparaître du plateau. Positions
+   * mémorisées au fil des syncs (`structureSpots`) ; sans asset : no-op.
+   */
+  private syncStructureRuins(combat: CombatState): void {
+    const url = siegeArrowTowerRazedUrl();
+    if (!url) return;
+    const alive = new Set(combat.stacks.map((s) => s.id));
+    for (const [id, pos] of this.structureSpots) {
+      if (alive.has(id)) continue;
+      const key = `ruin:${id}`;
+      const existing = this.wallStructures.get(key);
+      if (existing && !existing.destroyed) continue;
+      const { x, y } = offsetToPixel(pos);
+      const sprite = new Sprite();
+      sprite.label = 'ruin';
+      sprite.eventMode = 'none';
+      sprite.position.set(x, y);
+      sprite.zIndex = y;
+      void Assets.load(url).then((texture) => {
+        if (sprite.destroyed) return;
+        sprite.texture = texture;
+        const layout = siegeSceneLayout();
+        if (layout?.run) {
+          // Ruine du tableau v8 (vue de dessus) : échelle vraie, centrée.
+          sprite.anchor.set(0.5, 0.6);
+          sprite.scale.set(1 / layout.scale);
+        } else {
+          sprite.anchor.set(0.5, 0.94); // même assise au sol que la tour vivante
+          sprite.scale.set((STRUCTURE_TOWER_H * 0.55) / texture.height);
+        }
+      });
+      this.stacksLayer.addChild(sprite);
+      this.wallStructures.set(key, sprite);
+    }
   }
 
   /**
@@ -563,6 +837,7 @@ export class CombatScene {
       this.stackTokens.delete(id);
     }
     for (const stack of combat.stacks) {
+      if (this.isSiegeStructure(stack)) this.structureSpots.set(stack.id, { ...stack.pos });
       let token = this.stackTokens.get(stack.id);
       if (!token) {
         token = this.buildStackToken(stack);
@@ -666,21 +941,37 @@ export class CombatScene {
    * distinct par camp est affiché. Garde `destroyed`/`destroyed` du conteneur :
    * un combat peut finir avant la fin du chargement.
    */
+  /**
+   * S6 : une machine de guerre défensive IMMOBILE (tour de tir de siège) est une
+   * STRUCTURE de la ville, pas une créature — détection générique par capacités
+   * (`warMachine` + `immobile` côté défenseur), zéro id d'unité/faction en dur.
+   */
+  private isSiegeStructure(stack: CombatStack): boolean {
+    const abilities = appStore.getState().game.unitCatalog[stack.unitId]?.abilities ?? [];
+    return stack.side === 'defender' && abilities.some((a) => a.id === 'warMachine') && abilities.some((a) => a.id === 'immobile');
+  }
+
   private buildStackToken(stack: CombatStack): Container {
     const token = new Container();
     const side = stack.side;
     const catalog = appStore.getState().game.unitCatalog;
-    const abilities = catalog[stack.unitId]?.abilities ?? [];
-    const hasAbility = (id: string): boolean => abilities.some((a) => a.id === id);
-    // S6 : une machine de guerre défensive IMMOBILE (tour de tir de siège) est une
-    // STRUCTURE de la ville, pas une créature — détection générique par capacités
-    // (`warMachine` + `immobile` côté défenseur), zéro id d'unité/faction en dur.
-    // Rendu : socle de pierre (pas d'ellipse de camp), sprite figé (hors idle),
-    // aucun badge d'effectif (une tour n'est pas « 1 »).
-    const isSiegeStructure = side === 'defender' && hasAbility('warMachine') && hasAbility('immobile');
+    // Rendu structure (S6) : socle de pierre (pas d'ellipse de camp), sprite figé
+    // (hors idle), aucun badge d'effectif (une tour n'est pas « 1 »).
+    const isSiegeStructure = this.isSiegeStructure(stack);
 
     if (isSiegeStructure) {
-      token.addChild(buildStructureBase());
+      // Mode scène : la vraie tour (sprite pierre grise plein pied) est plantée
+      // par une OMBRE de contact au sol — le socle procédural ne sert qu'au
+      // repli hors scène.
+      if (this.sceneActive) {
+        token.addChild(
+          new Graphics()
+            .ellipse(0, HEX_SIZE * 0.18, HEX_SIZE * 0.52, HEX_SIZE * 0.17)
+            .fill({ color: 0x12120e, alpha: 0.42 }),
+        );
+      } else {
+        token.addChild(buildStructureBase());
+      }
     } else {
       // Base de camp (ellipse au sol) : distingue attaquant/défenseur.
       token.addChild(
@@ -714,16 +1005,33 @@ export class CombatScene {
     const fallback = isSiegeStructure ? buildStructureGraphic() : buildStackTokenGraphic(side);
     visual.addChild(fallback);
 
-    const url = unitSpriteUrl(stack.unitId, catalog[stack.unitId]?.groupId);
+    // Tour de tir en mode SCÈNE (retour porteur) : le jeton-tourelle crème
+    // jurait avec l'enceinte et restait minuscule. On pose la tour PIERRE
+    // GRISE de la muraille (même famille que les tours d'extrémité), plantée
+    // à sa base et PLUS HAUTE que la courtine — une défense de ville, pas une
+    // créature. Hors scène : rendu structure historique inchangé.
+    const sceneTower = isSiegeStructure && this.sceneActive;
+    const url = (sceneTower ? siegeArrowTowerUrl() : undefined) ?? unitSpriteUrl(stack.unitId, catalog[stack.unitId]?.groupId);
     if (url) {
       void Assets.load(url).then((texture) => {
         if (this.destroyed || token.destroyed) return;
         visual.removeChild(fallback);
         fallback.destroy();
         const sprite = new Sprite(texture);
-        sprite.anchor.set(0.5, 0.72); // pieds posés sur la base
-        const scale = (TOKEN_RADIUS * 2.4) / Math.max(texture.width, texture.height);
-        sprite.scale.set(scale);
+        const sceneScale = siegeSceneLayout()?.scale ?? 2;
+        if (sceneTower && siegeSceneLayout()?.run) {
+          // Pièce du tableau v8 (vue de dessus, `scale` px/bp) : posée à
+          // l'échelle vraie du tableau, empreinte centrée sur l'hex.
+          sprite.anchor.set(0.5, 0.6);
+          sprite.scale.set(1 / sceneScale);
+        } else if (sceneTower) {
+          sprite.anchor.set(0.5, 0.94); // assise au sol de l'hex
+          sprite.scale.set(STRUCTURE_TOWER_H / texture.height);
+        } else {
+          sprite.anchor.set(0.5, 0.72); // pieds posés sur la base
+          const scale = (TOKEN_RADIUS * 2.4) / Math.max(texture.width, texture.height);
+          sprite.scale.set(scale);
+        }
         visual.addChild(sprite);
       });
     }
@@ -785,6 +1093,102 @@ export class CombatScene {
   }
 
   /**
+   * Mode RUN ensembliste : la fortification est UN tableau peint (tour nord,
+   * courtine, porte + seuil, tour sud — jonctions dans l'art), affiché par
+   * TRANCHES d'une rangée (frames de texture) pour garder la profondeur et
+   * la destruction par segment. L'état réel d'une rangée qui diffère de
+   * l'état PEINT à cette rangée est remplacé par la bande-étalon de l'état
+   * (`siege-run-band-*`), découpée du même tableau ⇒ matière identique.
+   */
+  private syncRunSlices(combat: CombatState, run: SiegeRunLayout): void {
+    const walls = combat.siegeWalls ?? [];
+    const wallCol = walls[0]!.col;
+    const hp = combat.siegeWallHp ?? {};
+    const maxHp = Object.keys(hp).length ? Math.max(...Object.values(hp)) : 0;
+    const walled = new Set(walls.map((w) => w.row));
+    const gateRows = new Set(run.gateRows);
+    const period = run.period;
+    const runUrl = siegeRunUrl();
+    if (!runUrl) return;
+    const x0 = run.x - run.xWest;
+
+    const place = (key: string, sig: string, topBp: number, hBp: number, tex: () => Promise<Texture | null>, z = topBp + hBp): void => {
+      const existing = this.wallStructures.get(key);
+      if (existing && !existing.destroyed && existing.label === sig) return;
+      existing?.destroy();
+      this.wallStructures.delete(key);
+      const sprite = new Sprite();
+      sprite.label = sig;
+      sprite.eventMode = 'none';
+      sprite.position.set(x0, topBp);
+      sprite.zIndex = z;
+      void tex().then((texture) => {
+        if (sprite.destroyed || !texture) return;
+        sprite.texture = texture;
+        sprite.width = run.w;
+        sprite.height = hBp;
+      });
+      this.stacksLayer.addChild(sprite);
+      this.wallStructures.set(key, sprite);
+    };
+
+    const runFrame = (topBp: number, hBp: number) => async (): Promise<Texture | null> => {
+      const base = (await Assets.load(runUrl)) as Texture;
+      const s = base.height / run.h;
+      return new Texture({
+        source: base.source,
+        frame: new Rectangle(0, (topBp - run.topBp) * s, base.width, hBp * s),
+      });
+    };
+    const bandTex = (state: 'intact' | 'cracked' | 'razed') => async (): Promise<Texture | null> => {
+      const url = siegeRunBandUrl(state);
+      return url ? ((await Assets.load(url)) as Texture) : null;
+    };
+
+    const stateOf = (row: number): 'gate' | 'intact' | 'cracked' | 'razed' => {
+      if (gateRows.has(row)) return 'gate';
+      if (!walled.has(row)) return 'razed';
+      return (hp[`${wallCol},${row}`] ?? maxHp) < maxHp ? 'cracked' : 'intact';
+    };
+    const zones = Object.entries(run.zones ?? {}) as ['cracked' | 'razed', [number, number]][];
+    for (let row = 0; row < COMBAT_ROWS; row++) {
+      const topBp = row * period - period / 2;
+      const state = stateOf(row);
+      // Zone de dégât peinte EN SITUATION : le dégât du tableau déborde sur
+      // les rangées voisines de sa rangée-étalon ⇒ la zone bascule d'un BLOC.
+      // Active (l'étalon a vraiment l'état peint) : toute la zone montre le
+      // tableau ; inactive : chaque rangée montre la bande de son état réel
+      // (mur propre au round 1, plus de gravats fantômes).
+      const zone = zones.find(([, [a, b]]) => row >= a && row <= b);
+      let useRun: boolean;
+      if (state === 'gate') useRun = true;
+      else if (zone) {
+        const [zState, [a, b]] = zone;
+        let center = a;
+        for (let r = a; r <= b; r++) if (run.painted[String(r)] === zState) center = r;
+        useRun = stateOf(center) === zState;
+      } else {
+        useRun = state === (run.painted[String(row)] ?? 'intact');
+      }
+      // Bande RASÉE étendue (razedBandRows > 1) : le tas de gravats entier
+      // déborde par transparence sur les rangées voisines — posée centrée,
+      // profondeur au bas de la rangée rasée elle-même.
+      const rbRows = run.razedBandRows ?? 1;
+      if (!useRun && state === 'razed' && rbRows > 1) {
+        const ext = ((rbRows - 1) / 2) * period;
+        place(`slice:${row}`, 'razed:band', topBp - ext, period * rbRows, bandTex('razed'), topBp + period);
+      } else {
+        place(`slice:${row}`, `${state}:${useRun ? 'run' : 'band'}`, topBp, period, useRun ? runFrame(topBp, period) : bandTex(state as 'intact' | 'cracked' | 'razed'));
+      }
+    }
+    // Extrémités du tableau (tours comprises) : toujours depuis le run.
+    const capTopH = -period / 2 - run.topBp;
+    place('cap:top', 'cap', run.topBp, capTopH, runFrame(run.topBp, capTopH));
+    const botTop = (COMBAT_ROWS - 1) * period + period / 2;
+    place('cap:bot', 'cap', botTop, run.topBp + run.h - botTop, runFrame(botTop, run.topBp + run.h - botTop));
+  }
+
+  /**
    * C-SIEGE2 : hexes bloqués rendus comme obstacles = obstacles + murs de siège
    * (`combat.siegeWalls`). Le rempart apparaît donc comme bloqueur sur la grille
    * (art de rempart distinct = polish .2) et la surbrillance d'atteignabilité,
@@ -792,7 +1196,9 @@ export class CombatScene {
    */
   private blockedKeys(combat: CombatState): Set<string> {
     const set = new Set(combat.obstacles.map(hexKey));
-    for (const w of combat.siegeWalls ?? []) set.add(hexKey(w));
+    // Mode scène : les sprites de rempart marquent déjà leurs hexes — la teinte
+    // « obstacle » + rocher dessinés dessous ne feraient que doubler le mur.
+    if (!this.sceneActive) for (const w of combat.siegeWalls ?? []) set.add(hexKey(w));
     return set;
   }
 
@@ -820,6 +1226,7 @@ export class CombatScene {
         attackable: new Set(),
         obstacles: this.blockedKeys(combat),
         moat: this.moatKeys(combat),
+        moatDecor: !this.sceneActive,
         selected: selectedStack?.pos ?? null,
       });
       return;
@@ -841,6 +1248,7 @@ export class CombatScene {
         attackable: new Set(),
         obstacles: this.blockedKeys(combat),
         moat: this.moatKeys(combat),
+        moatDecor: !this.sceneActive,
         selected: ally?.pos ?? null,
       });
       return;
@@ -862,6 +1270,7 @@ export class CombatScene {
         zone: new Set(zoneHexes.map(hexKey)),
         obstacles: this.blockedKeys(combat),
         moat: this.moatKeys(combat),
+        moatDecor: !this.sceneActive,
         selected: center?.pos ?? null,
       });
       return;
@@ -891,6 +1300,7 @@ export class CombatScene {
       attackable: attackableHexes,
       obstacles: this.blockedKeys(combat),
       moat: this.moatKeys(combat),
+      moatDecor: !this.sceneActive,
       selected: this.selectionHex(combat),
     });
   }

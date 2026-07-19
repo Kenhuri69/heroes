@@ -439,9 +439,26 @@ d'amélioration reconnue. À traiter dans l'ordre :
    **Vérifs VERTES** : typecheck, lint, vitest 935 (golden inchangé) + 163 + 33,
    build, budget 352.8 Ko ≤ 800, garde-fous faction + couleurs, smoke `@core`
    desktop + mobile 42/42. **Zéro moteur/asset/save.**
-3. **FX de bombardement recalés** : l'impact `WallBombarded` (éclats,
+3. [x] **FX de bombardement recalés** : l'impact `WallBombarded` (éclats,
    secousse) doit viser la matière peinte de la rangée touchée (aujourd'hui
    calé sur l'ancienne géométrie de pièces).
+
+   **LIVRÉ (2026-07-19, même branche)** — cause exacte mesurée : le FX visait
+   `offsetToPixel(col,row)` (centre de l'hex GRILLE), dont le X **zigzague de
+   ±¼ hex** (±15.6 px, cisaillement offset→axial `q = col - (row>>1)`) autour
+   de l'axe du mur PEINT `layout.wallX` (701.5) — les tranches du run ET les
+   pièces par rangée sont toutes dessinées à ce X FIXE. Résultat : les éclats
+   tombaient alternativement à l'ouest (rangées paires, 685.9) / à l'est
+   (rangées impaires, 717.1) du rempart, jamais dessus. **Correctif** (client
+   pur, `WallBombarded` dans `animateEvent`) : en mode scène (`this.sceneActive`
+   + layout), l'impact ET la cible du boulet sont recalés sur `layout.wallX`
+   (X fixe du mur peint), la rangée (Y = centre d'hex) inchangée ; hors scène
+   (rempart procédural) la géométrie hex historique est conservée. FX transitoire
+   ⇒ preuve géométrique (±15.6 → 0) + smoke siège (projectile incrémente, pas de
+   crash), pas de capture (frame d'animation non fiable).
+   **Vérifs VERTES** : typecheck, lint, vitest 935 (golden inchangé) + 163 + 33,
+   build, budget 352.8 Ko ≤ 800, garde-fous faction + couleurs, smoke `@core`
+   desktop + mobile 42/42. **Zéro moteur/asset/save.**
 4. Lot 3 historique (inchangé) : rochers d'obstacles peints, sprites des
    machines de guerre assaillantes, porte ouverte/brisée, marqueurs de
    douve aux rangées impaires.

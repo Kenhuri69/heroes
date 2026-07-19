@@ -1662,10 +1662,18 @@ export class CombatScene {
       case 'WallBombarded': {
         // S2.1 : tir de catapulte VISIBLE — boulet en arc balistique depuis le
         // flanc attaquant vers le segment visé, puis impact « éclats de pierre ».
-        const target = offsetToPixel({ col: event.col, row: event.row });
+        // Item 3 : viser la MATIÈRE PEINTE du rempart. En mode scène (tranches
+        // du run OU pièces par rangée), la courtine est dessinée à `layout.wallX`
+        // FIXE, alors que `offsetToPixel(col,row).x` zigzague de ±¼ hex (cisaille-
+        // ment offset→axial) ⇒ les éclats tombaient alternativement à l'ouest/est
+        // du mur peint. On recale l'impact sur l'axe du mur ; la rangée (Y) est
+        // inchangée. Hors scène (rempart procédural) : géométrie hex historique.
+        const layout = siegeSceneLayout();
+        const hex = offsetToPixel({ col: event.col, row: event.row });
+        const impactX = this.sceneActive && layout ? layout.wallX : hex.x;
         const bounds = computeBoardBounds();
-        const origin = new Point(bounds.minX - HERO_FLANK_OFFSET, target.y);
-        const to = new Point(target.x, target.y);
+        const origin = new Point(bounds.minX - HERO_FLANK_OFFSET, hex.y);
+        const to = new Point(impactX, hex.y);
         const reduced = prefersReducedMotion();
         await spawnProjectile(this.fxLayer, origin, to, { speed, reduced, shape: 'boulder' });
         await spawnRubbleImpact(this.fxLayer, to, { speed, reduced });

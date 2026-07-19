@@ -61,6 +61,14 @@ lequel la grille se glisse discrètement.
   si bien que chaque couture rencontre un bord identique (bas↔bas / haut↔haut)
   et la crénelure devient continue. Les tranches du run et la bande rasée
   étendue ne sont pas retournées.
+- **FX de bombardement recalé sur le mur peint** (backlog item 3) : l'impact
+  `WallBombarded` (boulet + éclats) visait le centre de l'hex GRILLE, dont le X
+  zigzague de ±¼ hex (cisaillement offset→axial) autour de l'axe du mur peint
+  `layout.wallX` — les éclats tombaient à côté du rempart, jamais dessus. En
+  mode scène, l'impact et la cible du boulet sont désormais recalés sur
+  `layout.wallX` (X fixe partagé par les tranches du run et les pièces par
+  rangée) ; la rangée touchée (Y) est inchangée. Hors scène (rempart
+  procédural) : géométrie hex historique conservée.
 - **Repli gracieux intégral** : sans assets de scène, l'habillage procédural
   historique reprend la main ; un art supérieur (Gemini) se substitue par
   simple dépôt de fichiers homonymes.

@@ -263,3 +263,33 @@ y compris plaine, validable en 1 capture) ; **Lot 1** = scène peinte génériqu
   l'asset existe, replis intacts. En attente : peinture 1152×2048 du porteur
   (prompt v3 : « les blocs empilés = guide de masse, peindre UNE muraille
   continue », décor à ne pas repeindre).
+- 2026-07-19 — Retour porteur (itération 9, en trois temps) : (1) capture du
+  gabarit v2 — « un gabarit qui prévoit TOUS les éléments de la muraille —
+  tour et tour de tir cassées » ; (2) rejet de l'extension du tableau sur
+  décor (« cette approche ne marche pas ») ; (3) cadrage ferme : « gabarit
+  complet sur fond violet présentant tous les cas possibles — porte,
+  pont-levis, tour connectée au mur, mur cassé, tour de tir en retrait ; la
+  tour seule c'est de la merde ; je veux une approche ENSEMBLE de la
+  muraille ». Une planche à cellules v5 (objets isolés) a été écrite puis
+  JETÉE en cours de route (rejet explicite des tours en cellules).
+  **Livré — gabarit v6 = l'ENSEMBLE sur MAGENTA** (`gen_siege_ensemble_template.py`
+  réécrit, `siege-ensemble-template.png` 1152×2048 + cuts JSON ; le masque
+  d'extraction disparaît — chroma-key) : muraille d'un seul tenant ancrée sur
+  la géométrie moteur — tours d'extrémité FUSIONNÉES au mur, rangée 1
+  fissurée et rangée 7 CASSÉE (brèche) en situation, porte + **PONT-LEVIS**
+  (tablier bois + chaînes, dans la région du run), **tour de tir EN RETRAIT**
+  derrière la porte + sa **RUINE** derrière la brèche (hors région du run —
+  la v3 bakait la tour dans les tranches). **Extraction**
+  (`extract_siege_ensemble.py` réécrit : chroma-key `keyed_cutout(crop=False)`
+  partagé + découpes géométriques) : `siege-run.png`, bandes-étalons
+  intact/cracked/razed, `siege-piece-arrow-tower.png` + **nouvelle clé**
+  `siege-piece-arrow-tower-razed.png`, patch layout bloc `run` (mode
+  tranches client existant, zéro diff). **Client** : une tour de tir
+  DÉTRUITE laisse sa ruine peinte sur son hex (`structureSpots` +
+  `syncStructureRuins`, sprite `ruin:<id>` dans `wallStructures`, zIndex
+  profondeur, purgé fin de combat ; no-op sans asset) ; détection structure
+  factorisée `isSiegeStructure(stack)` (capacités `warMachine`+`immobile`,
+  zéro id en dur). Prompt/procédure `combat-siege-kit.md` réécrits v6.
+  Dry-run d'extraction validé sur le gabarit lui-même (run 340×1132, bandes
+  73 px = 1 rangée, 2 tours de tir détourées). En attente : peinture
+  1152×2048 du porteur sur le gabarit v6.

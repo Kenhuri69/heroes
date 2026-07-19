@@ -1,21 +1,28 @@
 #!/usr/bin/env python3
 """
-gen_siege_ensemble_template.py — GABARIT ENSEMBLISTE (itération 8, la bonne).
+gen_siege_ensemble_template.py — GABARIT v6 : l'ENSEMBLE de la muraille sur
+fond MAGENTA (itération 9, exigence porteur).
 
-Exigence porteur : la méthode gabarit→LLM marche, mais le gabarit doit
-représenter **l'ensemble** — mur + porte + tours + tour de tir AVEC les états
-abîmé/détruit, assemblés avec leurs connexions, DANS le contexte réel (douve,
-chaussée, esplanade). Le modèle peint alors les jonctions dans le tableau.
+Exigences croisées des retours porteur :
+  - approche ENSEMBLE (itération 8) : tout dessiner assemblé, avec les
+    connexions — jamais d'objet isolé (« la tour seule c'est de la merde ») ;
+  - fond UNI magenta (itération 9) : pas de décor à préserver — le tableau
+    sur décor réel ne marche pas ; l'extraction redevient un chroma-key
+    (le pipeline qui a donné la planche v1 réussie).
+
+Le gabarit présente TOUS les cas possibles de la muraille, CONNECTÉS :
+  - tours d'extrémité FUSIONNÉES au mur (le mur entre dans la tour) ;
+  - courtine continue avec les états EN SITUATION — rangée 1 fissurée,
+    rangée 7 CASSÉE (brèche effondrée) ;
+  - porte (gatehouse dans l'axe du mur) + PONT-LEVIS abaissé vers
+    l'assaillant (tablier de bois + chaînes) ;
+  - tour de tir EN RETRAIT dans la cour (derrière la porte), et sa RUINE
+    en retrait derrière la brèche (tour de tir cassée).
 
 Sorties :
-  assets/prompts/siege-ensemble-template.png — le tableau-gabarit : fond =
-    VRAI décor du jeu (scène + eau + pavage) ; par-dessus, en silhouettes
-    pâles, la fortification COMPLÈTE assemblée : tour nord, courtine (rangée 1
-    fissurée, rangée 7 en brèche), porte + seuil vers la chaussée, tour sud,
-    tour de tir dans la cour. Silhouettes = découpes de la planche v1 validée
-    (proportions du porteur conservées).
-  assets/prompts/siege-ensemble-mask.png — masque d'extraction (zones à
-    découper dans la peinture, dilaté).
+  assets/prompts/siege-ensemble-template.png — le gabarit 1152×2048 : fond
+    magenta, silhouettes-guides opaques de l'ensemble, ancrées exactement sur
+    la géométrie moteur (rangées, porte rangées 4-5, axe du mur).
   assets/layouts/siege-ensemble-cuts.json — géométrie de découpe consommée
     par extract_siege_ensemble.py (aucune constante dupliquée).
 
@@ -26,12 +33,11 @@ from __future__ import annotations
 
 import json
 
-from PIL import Image, ImageDraw, ImageFilter, ImageOps
+from PIL import Image, ImageChops, ImageDraw, ImageOps
 
-from siege_kit_common import GATE_ROWS, HEX_W, ROOT, ROWS, WALL_X, Y_STEP, load_v1_cells
+from siege_kit_common import GATE_ROWS, ROOT, ROWS, WALL_X, Y_STEP, load_v1_cells
 
 OUT_TPL = ROOT / "assets" / "prompts" / "siege-ensemble-template.png"
-OUT_MASK = ROOT / "assets" / "prompts" / "siege-ensemble-mask.png"
 OUT_CUTS = ROOT / "assets" / "layouts" / "siege-ensemble-cuts.json"
 
 # Fenêtre du tableau (board-space) — aspect 9:16 pour le générateur.
@@ -42,69 +48,82 @@ WIN_W_BP = CANVAS[0] / T
 WIN_X0 = WALL_X - 170.5
 WIN_Y0 = -130.0
 
-# Région du RUN (extraction) et boîte de la tour de tir (board-space).
+BG = (255, 0, 255)
+GUIDE = (188, 178, 188)
+GUIDE_D = (120, 108, 120)
+INK = (70, 0, 70)
+
+# Région du RUN (extraction) et boîtes des tours de tir (board-space).
+# Le pont-levis reste DANS la région du run ; les tours de tir en retrait
+# restent À L'EST de la région (jamais bakées dans les tranches du run).
 RUN_X0, RUN_X1 = WALL_X - 96.0, WALL_X + 74.0
 RUN_Y0, RUN_Y1 = -122.0, 444.0
-ARROW_BOX = (720.0, 28.0, 776.0, 162.0)
+ARROW_BOX = (778.0, 96.0, 838.0, 232.0)  # tour de tir, en retrait derrière la porte
+ARROW_RAZED_BOX = (778.0, 292.0, 838.0, 400.0)  # sa ruine, en retrait derrière la brèche
 
 # États peints dans l'ensemble + rangée-étalon de chaque état.
 PAINTED = {"1": "cracked", "7": "razed"}
 EXEMPLAR = {"intact": 8, "cracked": 1, "razed": 7}
-
-GUIDE_ALPHA = 170
-SCENE_X0, SCENE_Y0 = -186.0, -202.0  # origine de siege-scene.jpg (2 px/bp)
 
 
 def tpx(x_bp: float, y_bp: float) -> tuple[int, int]:
     return int(round((x_bp - WIN_X0) * T)), int(round((y_bp - WIN_Y0) * T))
 
 
-def build_context() -> Image.Image:
-    """Fond = le VRAI décor in-game (scène + bande d'eau + pavage hex)."""
-    scene = Image.open(ROOT / "assets" / "combat" / "siege-scene.jpg").convert("RGB")
-    layout = json.loads((ROOT / "assets" / "layouts" / "siege-scene.json").read_text())
-    moat = Image.open(ROOT / "assets" / "combat" / "siege-moat.png").convert("RGBA")
-    comp = scene.convert("RGBA")
-    comp.alpha_composite(moat, (int((layout["moatStrip"]["x0"] - SCENE_X0) * 2), 0))
-    # Pavage hexagonal de cour (cols 12..14), comme le client.
-    tiles = {v: Image.open(ROOT / "assets" / "combat" / f"siege-tile-court-{v}.png").convert("RGBA") for v in (1, 2, 3)}
-    tw, th = layout["courtTile"]["w"], layout["courtTile"]["h"]
-    for col in (12, 13, 14):
-        for row in range(-1, ROWS + 2):
-            v = ((col * 31 + row * 17) % 3) + 1
-            tile = tiles[v].resize((int(tw * 2), int(th * 2)), Image.LANCZOS)
-            cx_bp = HEX_W * (col + (0.5 if row % 2 else 0.0))
-            comp.alpha_composite(tile, (int((cx_bp - tw / 2 - SCENE_X0) * 2), int((row * Y_STEP - th / 2 - SCENE_Y0) * 2)))
-    # Recadre la fenêtre du tableau puis monte à l'échelle du gabarit.
-    x0 = int((WIN_X0 - SCENE_X0) * 2)
-    y0 = int((WIN_Y0 - SCENE_Y0) * 2)
-    crop = comp.crop((x0, y0, x0 + int(WIN_W_BP * 2), y0 + int(WIN_H_BP * 2)))
-    return crop.resize(CANVAS, Image.LANCZOS).convert("RGB")
-
-
 def ghost(piece: Image.Image, w_bp: float) -> Image.Image:
+    """Silhouette-guide OPAQUE (fond magenta ⇒ rien à préserver dessous)."""
     scale = (w_bp * T) / piece.width
     g = piece.resize((max(1, int(piece.width * scale)), max(1, int(piece.height * scale))), Image.LANCZOS)
     grey = ImageOps.grayscale(g)
     pale = ImageOps.colorize(grey, black=(64, 56, 64), white=(232, 226, 232)).convert("RGBA")
-    pale.putalpha(g.getchannel("A").point(lambda a: min(a, GUIDE_ALPHA)))
+    pale.putalpha(g.getchannel("A"))
     return pale
+
+
+def broken(piece: Image.Image, keep: float) -> Image.Image:
+    """Silhouette-RUINE d'une pièce v1 : tronc bas (fraction `keep`), arête
+    supérieure déchiquetée (dents déterministes) + gravats débordant au pied."""
+    w, h = piece.size
+    stump = piece.crop((0, int(h * (1 - keep)), w, h))
+    sw, sh = stump.size
+    out = Image.new("RGBA", (int(sw * 1.45), sh + max(8, sh // 8)), (0, 0, 0, 0))
+    ox = (out.width - sw) // 2
+    out.alpha_composite(stump, (ox, 0))
+    jag = Image.new("L", out.size, 255)
+    jd = ImageDraw.Draw(jag)
+    teeth = [0.30, 0.10, 0.42, 0.16, 0.34, 0.08, 0.38]
+    pts: list[tuple[int, int]] = [(ox - 2, 0)]
+    for i, t in enumerate(teeth):
+        pts.append((ox + int(sw * i / (len(teeth) - 1)), int(sh * t)))
+    pts.append((ox + sw + 2, 0))
+    jd.polygon(pts, fill=0)
+    out.putalpha(ImageChops.multiply(out.getchannel("A"), jag))
+    d = ImageDraw.Draw(out)
+    base = out.height - 4
+    for fx, fw, fh in ((0.04, 0.32, 0.15), (0.56, 0.38, 0.19), (0.28, 0.28, 0.11)):
+        x0 = int(out.width * fx)
+        d.ellipse(
+            [x0, base - int(sh * fh), x0 + int(out.width * fw), base],
+            fill=(168, 160, 168, 235),
+            outline=(96, 86, 96, 255),
+            width=3,
+        )
+    return out
 
 
 def main() -> None:
     cells = load_v1_cells()
-    tpl = build_context()
-    mask = Image.new("L", CANVAS, 0)
+    tpl = Image.new("RGB", CANVAS, BG)
+    d = ImageDraw.Draw(tpl)
 
     def place(piece: Image.Image, w_bp: float, cx_bp: float, bottom_bp: float) -> None:
         g = ghost(piece, w_bp)
         x, y = tpx(cx_bp, bottom_bp)
-        pos = (x - g.width // 2, y - g.height)
-        tpl.paste(g, pos, g)
-        mask.paste(g.getchannel("A").point(lambda a: 255 if a > 30 else 0), pos, g.getchannel("A").point(lambda a: 255 if a > 30 else 0))
+        tpl.paste(g, (x - g.width // 2, y - g.height), g)
 
-    # Tour NORD (cape l'extrémité du run), courtine rangée par rangée avec les
-    # ÉTATS en situation, porte + seuil, tour SUD, tour de tir dans la cour.
+    # Tour NORD fusionnée à l'extrémité du run (le mur entre dans la tour),
+    # courtine rangée par rangée avec les ÉTATS en situation, porte +
+    # pont-levis, tour SUD fusionnée, tours de tir en retrait dans la cour.
     place(cells["tower"], 34.0, WALL_X + 2, -18.0)
     for row in range(ROWS):
         if row in GATE_ROWS:
@@ -112,36 +131,53 @@ def main() -> None:
         state = PAINTED.get(str(row), "intact")
         piece = {"intact": cells["wall"], "cracked": cells["cracked"], "razed": cells["razed"]}[state]
         place(piece, 66.0, WALL_X, (row + 0.7) * Y_STEP)
-    # Seuil de porte : trapèze-guide qui rejoint la chaussée sur l'eau.
-    d = ImageDraw.Draw(tpl, "RGBA")
-    md = ImageDraw.Draw(mask)
+
+    # PONT-LEVIS abaissé : tablier de bois qui descend de la porte vers
+    # l'assaillant (bas-gauche) + chaînes vers le haut du gatehouse.
     gate_y = (GATE_ROWS[0] + GATE_ROWS[1]) / 2 * Y_STEP
-    apron = [
-        tpx(WALL_X - 34, gate_y + 2),
-        tpx(WALL_X - 96, gate_y + 8),
-        tpx(WALL_X - 96, gate_y + 30),
-        tpx(WALL_X - 34, gate_y + 26),
+    deck = [
+        tpx(WALL_X - 34, gate_y - 8),
+        tpx(WALL_X - 92, gate_y + 2),
+        tpx(WALL_X - 92, gate_y + 26),
+        tpx(WALL_X - 34, gate_y + 16),
     ]
-    d.polygon(apron, fill=(210, 205, 210, 150), outline=(90, 80, 90, 220))
-    md.polygon(apron, fill=255)
+    d.polygon(deck, fill=(150, 120, 92), outline=(84, 62, 44), width=4)
+    for f in (0.25, 0.5, 0.75):  # planches du tablier
+        x0, y0 = deck[0]
+        x1, y1 = deck[1]
+        x3, y3 = deck[3]
+        x2, y2 = deck[2]
+        d.line(
+            [
+                (int(x0 + (x1 - x0) * f), int(y0 + (y1 - y0) * f)),
+                (int(x3 + (x2 - x3) * f), int(y3 + (y2 - y3) * f)),
+            ],
+            fill=(84, 62, 44),
+            width=3,
+        )
+    for corner in (deck[1], deck[2]):  # chaînes vers le gatehouse
+        d.line([corner, tpx(WALL_X - 26, gate_y - 34)], fill=GUIDE_D, width=4)
+
     place(cells["gate"], 96.0, WALL_X + 2, (GATE_ROWS[1] + 0.68) * Y_STEP)
     place(cells["tower"], 34.0, WALL_X + 2, (ROWS - 1 + 1.9) * Y_STEP)
-    place(cells["arrow"], 46.0, (ARROW_BOX[0] + ARROW_BOX[2]) / 2, ARROW_BOX[3] - 4)
+    # Tour de tir EN RETRAIT (cour, derrière la porte) + sa RUINE (derrière la
+    # brèche) — à l'est de la région du run, jamais dans ses tranches.
+    place(cells["arrow"], 50.0, (ARROW_BOX[0] + ARROW_BOX[2]) / 2, ARROW_BOX[3] - 4)
+    place(broken(cells["arrow"], 0.55), 52.0, (ARROW_RAZED_BOX[0] + ARROW_RAZED_BOX[2]) / 2, ARROW_RAZED_BOX[3] - 4)
 
-    # Dilatation du masque (la peinture peut déborder légèrement des guides).
-    mask = mask.filter(ImageFilter.MaxFilter(13))
-    # Annotations DANS les marges (hors masque ⇒ jetées à l'extraction).
-    d.text((10, 8), "REPEINDRE les silhouettes pales EN PLACE - le decor reste tel quel", fill=(255, 255, 255))
-    d.text((10, 26), "rangee fissuree et breche EN SITUATION - porte + seuil relies a la chaussee", fill=(255, 255, 255))
+    # Annotations dans la marge BASSE (hors régions d'extraction).
+    d.text((10, CANVAS[1] - 62), "PEINDRE l'ENSEMBLE en place - fond magenta UNI partout ailleurs", fill=INK)
+    d.text((10, CANVAS[1] - 44), "tours FUSIONNEES au mur - r1 fissuree, r7 CASSEE (breche) - porte + PONT-LEVIS + chaines", fill=INK)
+    d.text((10, CANVAS[1] - 26), "tours de tir EN RETRAIT (baliste au sommet) : intacte derriere la porte, RUINE derriere la breche", fill=INK)
 
     tpl.save(OUT_TPL)
-    mask.save(OUT_MASK)
     cuts = {
         "canvas": list(CANVAS),
         "scalePxPerBp": round(T, 5),
         "window": {"x0": WIN_X0, "y0": WIN_Y0, "w": round(WIN_W_BP, 2), "h": WIN_H_BP},
         "run": {"x0": RUN_X0, "y0": RUN_Y0, "x1": RUN_X1, "y1": RUN_Y1},
         "arrow": list(ARROW_BOX),
+        "arrowRazed": list(ARROW_RAZED_BOX),
         "wallX": round(WALL_X, 2),
         "period": round(Y_STEP, 2),
         "gateRows": list(GATE_ROWS),
@@ -149,7 +185,7 @@ def main() -> None:
         "exemplar": EXEMPLAR,
     }
     OUT_CUTS.write_text(json.dumps(cuts, indent=2) + "\n")
-    print(f"{OUT_TPL.name} {CANVAS} · masque · cuts JSON")
+    print(f"{OUT_TPL.name} {CANVAS} · cuts JSON")
 
 
 if __name__ == "__main__":

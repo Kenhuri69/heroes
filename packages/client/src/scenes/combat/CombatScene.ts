@@ -43,6 +43,7 @@ import {
   siegeSceneTowerUrl,
   siegeGatePieceUrl,
   siegeArrowTowerUrl,
+  siegeArrowTowerRazedUrl,
   siegeRunUrl,
   siegeRunBandUrl,
   type SiegeRunLayout,
@@ -162,6 +163,12 @@ export class CombatScene {
   private sceneKey = '';
   private sceneActive = false;
   private readonly wallStructures = new Map<string, Sprite>();
+  /**
+   * Itération 9 : hex des STRUCTURES de siège vues vivantes (tour de tir) —
+   * quand la pile meurt, sa ruine peinte (`siege-piece-arrow-tower-razed`)
+   * reste sur place au lieu d'un hex vide. Vidé à la fin du combat.
+   */
+  private readonly structureSpots = new Map<string, OffsetPos>();
   private readonly stacksLayer = new Container();
   /** UXD-4 : effets éphémères (chiffres de dégâts flottants) au-dessus des piles. */
   private readonly fxLayer = new Container();
@@ -380,6 +387,7 @@ export class CombatScene {
       this.sceneActive = false;
       for (const s of this.wallStructures.values()) s.destroy();
       this.wallStructures.clear();
+      this.structureSpots.clear();
       this.fxLayer.removeChildren().forEach((c) => c.destroy()); // purge des chiffres flottants
       for (const [id, token] of this.stackTokens) {
         if (this.animatingIds.has(id)) continue;
@@ -585,6 +593,8 @@ export class CombatScene {
     const layout = siegeSceneLayout();
     const walls = combat.siegeWalls ?? [];
     if (!layout || walls.length === 0) return;
+    // Itération 9 : la tour de tir détruite laisse sa ruine peinte sur l'hex.
+    this.syncStructureRuins(combat);
     // Mode RUN ensembliste (tableau peint découpé) : la fortification est un
     // seul artwork affiché par tranches — prioritaire quand l'asset existe.
     if (layout.run && siegeRunUrl()) {
@@ -679,6 +689,38 @@ export class CombatScene {
         return sprite;
       });
     });
+  }
+
+  /**
+   * Itération 9 : une STRUCTURE de siège détruite (tour de tir) laisse une
+   * RUINE peinte (`siege-piece-arrow-tower-razed`) plantée sur son hex — la
+   * défense abattue reste lisible au lieu de disparaître du plateau. Positions
+   * mémorisées au fil des syncs (`structureSpots`) ; sans asset : no-op.
+   */
+  private syncStructureRuins(combat: CombatState): void {
+    const url = siegeArrowTowerRazedUrl();
+    if (!url) return;
+    const alive = new Set(combat.stacks.map((s) => s.id));
+    for (const [id, pos] of this.structureSpots) {
+      if (alive.has(id)) continue;
+      const key = `ruin:${id}`;
+      const existing = this.wallStructures.get(key);
+      if (existing && !existing.destroyed) continue;
+      const { x, y } = offsetToPixel(pos);
+      const sprite = new Sprite();
+      sprite.label = 'ruin';
+      sprite.eventMode = 'none';
+      sprite.position.set(x, y);
+      sprite.zIndex = y;
+      void Assets.load(url).then((texture) => {
+        if (sprite.destroyed) return;
+        sprite.texture = texture;
+        sprite.anchor.set(0.5, 0.94); // même assise au sol que la tour vivante
+        sprite.scale.set((STRUCTURE_TOWER_H * 0.55) / texture.height);
+      });
+      this.stacksLayer.addChild(sprite);
+      this.wallStructures.set(key, sprite);
+    }
   }
 
   /**
@@ -788,6 +830,7 @@ export class CombatScene {
       this.stackTokens.delete(id);
     }
     for (const stack of combat.stacks) {
+      if (this.isSiegeStructure(stack)) this.structureSpots.set(stack.id, { ...stack.pos });
       let token = this.stackTokens.get(stack.id);
       if (!token) {
         token = this.buildStackToken(stack);
@@ -891,18 +934,23 @@ export class CombatScene {
    * distinct par camp est affiché. Garde `destroyed`/`destroyed` du conteneur :
    * un combat peut finir avant la fin du chargement.
    */
+  /**
+   * S6 : une machine de guerre défensive IMMOBILE (tour de tir de siège) est une
+   * STRUCTURE de la ville, pas une créature — détection générique par capacités
+   * (`warMachine` + `immobile` côté défenseur), zéro id d'unité/faction en dur.
+   */
+  private isSiegeStructure(stack: CombatStack): boolean {
+    const abilities = appStore.getState().game.unitCatalog[stack.unitId]?.abilities ?? [];
+    return stack.side === 'defender' && abilities.some((a) => a.id === 'warMachine') && abilities.some((a) => a.id === 'immobile');
+  }
+
   private buildStackToken(stack: CombatStack): Container {
     const token = new Container();
     const side = stack.side;
     const catalog = appStore.getState().game.unitCatalog;
-    const abilities = catalog[stack.unitId]?.abilities ?? [];
-    const hasAbility = (id: string): boolean => abilities.some((a) => a.id === id);
-    // S6 : une machine de guerre défensive IMMOBILE (tour de tir de siège) est une
-    // STRUCTURE de la ville, pas une créature — détection générique par capacités
-    // (`warMachine` + `immobile` côté défenseur), zéro id d'unité/faction en dur.
-    // Rendu : socle de pierre (pas d'ellipse de camp), sprite figé (hors idle),
-    // aucun badge d'effectif (une tour n'est pas « 1 »).
-    const isSiegeStructure = side === 'defender' && hasAbility('warMachine') && hasAbility('immobile');
+    // Rendu structure (S6) : socle de pierre (pas d'ellipse de camp), sprite figé
+    // (hors idle), aucun badge d'effectif (une tour n'est pas « 1 »).
+    const isSiegeStructure = this.isSiegeStructure(stack);
 
     if (isSiegeStructure) {
       // Mode scène : la vraie tour (sprite pierre grise plein pied) est plantée

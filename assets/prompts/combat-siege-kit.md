@@ -1,57 +1,90 @@
 # Kit de siège PEINT — planche Gemini (option A, refonte visuelle du siège)
 
-> **v3 — TABLEAU ENSEMBLISTE (méthode retenue).** Exigence porteur : le
-> gabarit doit représenter **l'ensemble** — mur + porte + tours + tour de tir
-> avec les états abîmé/détruit, assemblés avec leurs connexions, DANS le vrai
-> décor. Gabarit : `assets/prompts/siege-ensemble-template.png` (généré par
-> `gen_siege_ensemble_template.py` : fond = décor réel du jeu — douve en eau,
-> chaussée, esplanade pavée — et silhouettes pâles de la fortification
-> complète, fissures rangée 1 et brèche rangée 7 EN SITUATION). Le modèle
-> peint toutes les jonctions dans le tableau ; l'extraction
-> (`extract_siege_ensemble.py` + masque `siege-ensemble-mask.png`) découpe le
-> run complet + les bandes-étalons d'état + la tour de tir, et bascule le
-> client en mode « tranches » (aucun code à toucher au dépôt).
+> **v6 — L'ENSEMBLE DE LA MURAILLE SUR FOND MAGENTA (méthode retenue,
+> itération 9).** Exigences croisées du porteur : une **approche ensemble**
+> (tout dessiner assemblé, avec les connexions — jamais d'objet isolé) sur un
+> **fond magenta uni** (pas de décor à préserver ; l'extraction est un
+> chroma-key, le pipeline de la planche v1 réussie). Gabarit :
+> `assets/prompts/siege-ensemble-template.png` (1152×2048, généré par
+> `gen_siege_ensemble_template.py`), qui présente **tous les cas possibles,
+> connectés** :
+>
+> - tours d'extrémité **FUSIONNÉES** au mur (le mur entre dans la tour) ;
+> - courtine continue avec les états EN SITUATION — rangée 1 **fissurée**,
+>   rangée 7 **CASSÉE** (brèche effondrée) ;
+> - **porte** (gatehouse dans l'axe du mur) + **PONT-LEVIS** abaissé vers
+>   l'assaillant (tablier de bois + chaînes) ;
+> - **tour de tir EN RETRAIT** dans la cour (derrière la porte) et sa
+>   **RUINE** en retrait derrière la brèche (tour de tir cassée).
+>
+> L'extraction (`extract_siege_ensemble.py`, chroma-key + découpes
+> géométriques du cuts JSON) sort : le **run** complet (tranches par rangée
+> côté client), les **bandes-étalons** d'état (intact/fissuré/rasé), la
+> **tour de tir** et sa **ruine** (`siege-piece-arrow-tower{,-razed}.png`),
+> et patche le layout `siege-scene.json` (bloc `run`) — aucun code à toucher
+> au dépôt. Côté client, une tour de tir DÉTRUITE laisse sa ruine sur l'hex.
 
-## Procédure v3
+## Procédure v6
 
 1. Générer UNE image **1152×2048** avec le prompt ci-dessous + le gabarit
    `siege-ensemble-template.png` joint en référence (image-to-image).
-2. Déposer la peinture (ex. `assets/prompts/_incoming/siege-ensemble.png`)
+2. Vérifier à l'œil : fond magenta uni partout, la muraille d'un seul tenant
+   (pas de segments isolés), pont-levis rattaché à la porte, lumière
+   haut-gauche.
+3. Déposer la peinture (ex. `assets/prompts/_incoming/siege-ensemble.png`)
    puis `python3 tools/assets/extract_siege_ensemble.py <chemin> --dry-run`
-   (aperçu), puis sans `--dry-run`.
+   (aperçu), puis sans `--dry-run` pour écrire dans `assets/combat/`.
 
-## Prompt v3 (à coller tel quel, gabarit joint)
+## Prompt v6 (à coller tel quel, gabarit joint)
 
 ```
-Repaint the pale ghost fortification of the attached image as finished painted
-game art, IN PLACE, on top of the existing terrain. Do not repaint the
-terrain: the grass field, the water moat, the stone causeway and the paved
-courtyard must stay exactly as they are — paint only the fortification and
-its soft contact shadows.
+Repaint the grey guide fortification of the attached image as finished
+painted game art, keeping EXACTLY the same position, size and footprint as
+the guides. Flat solid magenta (#FF00FF) background everywhere else — no
+shadows, no ground, no text on the background.
 
-The pale stacked blocks are only a massing guide: paint ONE CONTINUOUS
+Style: semi-realistic painterly fantasy game art (Might & Magic Heroes
+Online battle screen), grey weathered ashlar stone with subtle moss, warm
+light from the upper-left, high three-quarter bird's-eye view (the ground
+plane is flattened, seen from about 45° above) — NOT a frontal elevation.
+
+The stacked grey blocks are only a massing guide: paint ONE CONTINUOUS
 crenellated stone rampart running from the top of the image to the bottom,
-following the ghost's footprint and height. Grey weathered ashlar stone with
-subtle moss, warm light from the upper-left, semi-realistic painterly style
-(Might & Magic Heroes Online), high three-quarter bird's-eye view. The wall
-rises from the moat bank on its left side; the paved courtyard meets its base
-on the right side.
+merlons along its LEFT edge (battlements facing the attacker), with
+everything CONNECTED into a single ensemble:
+- both ends of the rampart are crowned by round defensive towers FUSED into
+  the wall (the wall enters the tower, no seam);
+- near the top (where the cracked guide is): a DAMAGED stretch — deep
+  cracks, chipped merlons, small debris — then the wall resumes clean;
+- below the gate (where the broken guide is): a collapsed BREACH — jagged
+  broken stumps, a heap of rubble spilling toward the field — then the wall
+  resumes;
+- at the centre: a fortified GATEHOUSE fused into the rampart, tall pointed
+  arch with closed wooden double doors facing the LEFT, and a lowered
+  wooden DRAWBRIDGE attached under the door, its plank deck reaching toward
+  the lower-left, held by two chains rising to the gatehouse wall;
+- set back on the right (courtyard side), behind the gate: a round tower
+  with a wooden BALLISTA (giant crossbow war machine) mounted on the top
+  platform, aimed toward the left, its arms and bolt clearly visible;
+- set back on the right, behind the breach: the SAME ballista tower BROKEN —
+  only its lower half remains, jagged shattered crown, splintered wooden
+  wreckage of the ballista on the stump, rubble around the base.
 
-Along the rampart, exactly where the ghosts show them:
-- near the top (row with the cracked ghost): a DAMAGED stretch — deep cracks,
-  chipped merlons, small debris — then the wall resumes clean;
-- where the ruin ghost is (below the gate): a collapsed BREACH — jagged broken
-  stumps, a heap of rubble spilling toward the field — then the wall resumes;
-- at the causeway: a fortified GATEHOUSE fused into the rampart, tall pointed
-  arch with closed wooden double doors facing the causeway, and a stone
-  threshold connecting the door to the causeway across the water;
-- both ends of the rampart are crowned by the round towers shown by the
-  ghosts, merged with the wall;
-- on the courtyard, right of the gate: the round tower with a wooden BALLISTA
-  mounted on top, aimed toward the left, as ghosted.
-
-No text, no watermark. Keep every painted element within the ghost footprints.
+Same stone and same lighting everywhere. No text, no watermark. Keep every
+painted element within the guide footprints.
 ```
+
+## Critères d'acceptation v6
+
+- La muraille est d'UN SEUL TENANT (tours fusionnées, porte dans l'axe,
+  pont-levis rattaché) — aucun élément isolé hormis les deux tours de tir
+  en retrait (qui sont des structures de cour dans le jeu).
+- Le fond reste magenta UNI (chroma-key) : rien de peint hors des guides.
+- Les extrémités hautes/basses des rangées fissurée et cassée se raccordent
+  au mur intact (le mur « reprend » après le dégât).
+- Pas de sol/ombre portée peinte SOUS les pièces (le client pose les ombres).
+- Si un élément est raté : régénérer la peinture entière (cohérence de
+  matière) plutôt que de mixer deux peintures.
 
 ---
 

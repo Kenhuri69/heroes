@@ -409,6 +409,14 @@ export function siegeArrowTowerUrl(): string | undefined {
   return registry.get('combat/siege-piece-arrow-tower') ?? siegeSceneTowerUrl();
 }
 
+/** TOUR DE TIR CASSÉE (ruine peinte du gabarit ensemble v6) : ruine laissée
+ *  sur l'hex de la structure quand la pile `warMachine`+`immobile` est
+ *  détruite. Sans asset : undefined ⇒ comportement historique (la tour
+ *  disparaît). */
+export function siegeArrowTowerRazedUrl(): string | undefined {
+  return registry.get('combat/siege-piece-arrow-tower-razed');
+}
+
 /** RUN ensembliste peint (tableau Gemini découpé) : la fortification complète
  *  en une bande verticale, affichée par TRANCHES d'une rangée. */
 export function siegeRunUrl(): string | undefined {

@@ -75,6 +75,8 @@ export function combatLogText(e: AppEvent): string | null {
         amount: e.amount,
         resource: resolveFactionResourceName(e.resource),
       });
+    case 'BarrierProjected':
+      return t('combatLog.barrier', { absorb: e.absorb, stacks: e.stacks });
     case 'CombatEnded':
       return e.winner === e.playerSide ? t('combatLog.won') : t('combatLog.lost');
     default:

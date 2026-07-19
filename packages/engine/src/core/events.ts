@@ -182,6 +182,8 @@ export type GameEvent =
   | { type: 'FactionResourceGained'; playerId: string; resource: string; amount: number }
   /** Résonance générée intra-combat par un performeur (F-RESON.2, doc 16 §3.2). */
   | { type: 'StackResonated'; stackId: string; playerId: string; resource: string; amount: number }
+  /** Barrière du Honmoon projetée au début du combat (doc 16 §7, capacité `barrier`). */
+  | { type: 'BarrierProjected'; side: CombatSideId; unitId: string; absorb: number; stacks: number }
   /** Pile immobilisée (doc 05 §3.1 `pinningShot`) : son tour est sauté. */
   | { type: 'StackImmobilized'; stackId: string }
   /** Pile effrayée par `fear` (Sombral, doc 16 §4) : elle sautera son prochain tour. */

@@ -957,6 +957,7 @@ function StackSheet({
     stack.waited ? t('combat.sheet.waited') : null,
     stack.immobilizedRounds > 0 ? t('combat.sheet.immobilized', { rounds: stack.immobilizedRounds }) : null,
     stack.marks > 0 ? t('combat.sheet.marks', { marks: stack.marks }) : null,
+    stack.shield ? t('combat.sheet.shield', { shield: stack.shield }) : null,
   ].filter((f): f is string => f !== null);
   return (
     <div class="stack-sheet-backdrop" onClick={onClose}>

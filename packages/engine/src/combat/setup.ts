@@ -5,10 +5,10 @@ import { rollRange } from '../core/rng';
 import { areAllies, type GameState, type HeroState } from '../core/state';
 import { heroManaMax } from '../hero/artifacts';
 import { heroTacticsColumns, sumHeroEffectField } from '../hero/skills';
-import { symbiosisParams } from './damage';
+import { barrierParams, symbiosisParams } from './damage';
 import { runAiIfNeeded } from './ai';
 import type { Draft } from './draft';
-import { COMBAT_COLS, COMBAT_ROWS, inCombatBounds, sameHex, type OffsetPos } from './hex';
+import { COMBAT_COLS, COMBAT_ROWS, hexDistance, inCombatBounds, sameHex, type OffsetPos } from './hex';
 import { advanceTurn } from './turns';
 import { hasAbility, initLedger, shooterAmmo } from './state-helpers';
 import { spellcasterParams } from './spell-effect';
@@ -660,10 +660,51 @@ function applyStartingSymbiosis(draft: Draft, combat: CombatState): void {
   }
 }
 
+/**
+ * Barrière du Honmoon (doc 16 §7, capacité `barrier`) : à l'entrée en lice, une
+ * pile dotée de `barrier` PROJETTE un bouclier absorbant sur les piles alliées de
+ * sa zone (`radius` hex, ou tout le camp), si le joueur du héros du camp passe le
+ * gate de ressource (`requiresResource`). Générique : aucun nom de faction, seule
+ * la capacité `barrier` et un id de ressource opaque sont lus. Pur, déterministe.
+ */
+export function applyStartingBarrier(draft: Draft, combat: CombatState, events: GameEvent[]): void {
+  const sides: [CombatSideId, string | null][] = [
+    ['attacker', combat.attackerHeroId],
+    ['defender', combat.defenderHeroId],
+  ];
+  for (const [side, heroId] of sides) {
+    const hero = heroId ? draft.heroes.find((h) => h.id === heroId) : undefined;
+    if (!hero) continue;
+    const player = draft.players.find((p) => p.id === hero.playerId);
+    for (const bearer of combat.stacks) {
+      if (bearer.side !== side) continue;
+      const def = draft.unitCatalog[bearer.unitId];
+      const params = def ? barrierParams(def) : null;
+      if (!params) continue;
+      // Gate de ressource de faction (id opaque + seuil). Sans joueur lié
+      // (arène/gardien/garnison), un gate présent bloque la projection.
+      if (params.requiresResource) {
+        const have = player?.factionResources[params.requiresResource.id] ?? 0;
+        if (have < params.requiresResource.atLeast) continue;
+      }
+      let shielded = 0;
+      for (const ally of combat.stacks) {
+        if (ally.side !== side) continue;
+        if (params.radius !== undefined && hexDistance(bearer.pos, ally.pos) > params.radius) continue;
+        ally.shield = Math.max(ally.shield ?? 0, params.absorb);
+        shielded += 1;
+      }
+      if (shielded > 0)
+        events.push({ type: 'BarrierProjected', side, unitId: bearer.unitId, absorb: params.absorb, stacks: shielded });
+    }
+  }
+}
+
 function openPlacementOrBattle(draft: Draft, events: GameEvent[]): void {
   const combat = draft.combat;
   if (!combat) return;
   applyStartingSymbiosis(draft, combat);
+  applyStartingBarrier(draft, combat, events);
   if (combatTacticsColumns(draft, combat) > 0) {
     combat.phase = 'placement'; // activeStackId reste null : aucun tour tant que FinishPlacement
     return;

@@ -75,6 +75,7 @@ type StackKey =
   | 'symbiosisStacks'
   | 'acted'
   | 'stealthed'
+  | 'shield'
   | 'statuses'
   | 'ownerHeroId';
 

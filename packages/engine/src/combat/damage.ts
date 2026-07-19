@@ -207,6 +207,42 @@ export function curseOnHitPlan(
   };
 }
 
+/**
+ * Barrière du Honmoon (capacité `barrier`, doc 16 §7) : consomme le bouclier de
+ * la pile AVANT ses PV et retourne les dégâts absorbés (mute `stack.shield`,
+ * supprimé à 0 ⇒ pile de nouveau bit-identique à une pile jamais protégée). No-op
+ * (0) pour toute pile sans bouclier ⇒ flux de dégâts historique inchangé.
+ */
+export function absorbShield(stack: CombatStack, damage: number): number {
+  if (damage <= 0 || !stack.shield) return 0;
+  const absorbed = Math.min(stack.shield, damage);
+  stack.shield -= absorbed;
+  if (stack.shield <= 0) delete stack.shield;
+  return absorbed;
+}
+
+/**
+ * Paramètres de la Barrière du Honmoon (`barrier`, doc 16 §7), ou `null`.
+ * `absorb` = PV de bouclier posés par pile alliée protégée ; `radius` (hex) =
+ * zone autour du porteur (absent ⇒ tout le camp) ; `requiresResource` = gate de
+ * ressource de faction (id opaque + seuil ; absent ⇒ aucun gate).
+ */
+export function barrierParams(
+  def: CombatUnitDef,
+): { absorb: number; radius?: number; requiresResource?: { id: string; atLeast: number } } | null {
+  const ability = def.abilities.find((a) => a.id === 'barrier');
+  if (!ability) return null;
+  const absorb = Number(ability.params?.['absorb'] ?? 0);
+  if (absorb <= 0) return null;
+  const out: { absorb: number; radius?: number; requiresResource?: { id: string; atLeast: number } } = { absorb };
+  const radius = ability.params?.['radius'];
+  if (radius !== undefined) out.radius = Number(radius);
+  const req = ability.params?.['requiresResource'] as { id?: unknown; atLeast?: unknown } | undefined;
+  if (req && typeof req.id === 'string' && typeof req.atLeast === 'number')
+    out.requiresResource = { id: req.id, atLeast: req.atLeast };
+  return out;
+}
+
 /** Peur infligée par `fear` (Sombral, doc 16 §4), ou `null`. `chance` ∈ [0,1]. */
 export function fearPlan(def: CombatUnitDef): { chance: number; rounds: number } | null {
   const ability = def.abilities.find((a) => a.id === 'fear');
@@ -582,7 +618,9 @@ export function performStrike(
     draft.rng = dodgeRoll.state;
     dodged = dodgeRoll.value < Math.round(dodgeChance * 100);
   }
-  const damage = dodged ? 0 : Math.round(base * mult * (lucky ? 2 : unlucky ? 0.5 : 1));
+  let damage = dodged ? 0 : Math.round(base * mult * (lucky ? 2 : unlucky ? 0.5 : 1));
+  // Barrière du Honmoon (doc 16 §7) : le bouclier absorbe avant les PV (no-op si absent).
+  damage -= absorbShield(victim, damage);
 
   const pool = (victim.count - 1) * victimDef.stats.hp + victim.firstHp;
   const remaining = Math.max(0, pool - damage);

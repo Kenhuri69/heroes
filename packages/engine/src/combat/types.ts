@@ -86,6 +86,13 @@ export interface CombatStack {
    * non furtive (jamais posé hors sort).
    */
   stealthed?: boolean;
+  /**
+   * Bouclier absorbant (capacité `barrier` — Barrière du Honmoon, doc 16 §7) :
+   * réserve de PV consommée AVANT les PV réels à chaque coup encaissé. **Optionnel**
+   * : absent pour toute pile non protégée (jamais posé hors projection de barrière),
+   * omis du JSON ⇒ combat historique bit-identique (golden inchangé).
+   */
+  shield?: number;
   /** Statuts temporaires de sorts (buff/debuff, doc 02 §1.4) — vide par défaut. */
   statuses: SpellStatus[];
   /**

@@ -24,6 +24,17 @@
     },
     {
       "id": "noRetaliation"
+    },
+    {
+      "id": "barrier",
+      "params": {
+        "absorb": 30,
+        "radius": 2,
+        "requiresResource": {
+          "id": "resonance",
+          "atLeast": 40
+        }
+      }
     }
   ]
 }

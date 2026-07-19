@@ -2308,6 +2308,26 @@ test('sauvegarde à version de forme incompatible : import rejeté proprement (l
   expect(errors).toEqual([]);
 });
 
+// S1.4 (plan phase-alpha-e2e-ergonomics) : robustesse d'import — un fichier
+// CORROMPU (pas un gzip valide, ex. mauvais fichier choisi par le joueur) doit
+// être rejeté PROPREMENT. Complète le cas « version incompatible » ci-dessus :
+// ici l'échec survient dans le try/catch de `importSave` (décompression), une
+// branche distincte. Aucune exception ne doit filer, aucun état ne doit changer.
+test('sauvegarde corrompue : import rejeté proprement sans crash (S1.4)', async ({ page }) => {
+  const errors = await openGame(page);
+
+  await moveHeroToGold(page);
+  await expect.poll(() => heroPos(page)).toEqual({ x: 6, y: 3 });
+  const rejected = await page.evaluate(() => window.__HEROES_TEST__!.importCorruptedSave());
+  expect(rejected).toBe(false); // fichier illisible ⇒ import refusé (pas de throw)
+  // Partie en cours intacte : le rejet n'a ni navigué ni chargé un état partiel.
+  const state = await page.evaluate(() => window.__HEROES_TEST__!.getState());
+  expect(state.started).toBe(true);
+  await expect.poll(() => heroPos(page)).toEqual({ x: 6, y: 3 });
+
+  expect(errors).toEqual([]); // le rejet passe par try/catch : aucune erreur console
+});
+
 test('ville : construire + croissance + recruter + transférer → armée du héros', { tag: ['@mobile', '@core'] }, async ({ page }) => {
   const errors = await openGame(page);
 

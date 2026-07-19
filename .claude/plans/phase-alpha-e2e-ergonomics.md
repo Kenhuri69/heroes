@@ -99,12 +99,24 @@ chiffré ». Priorité absolue avant toute nouvelle finition.
 - **Vérif (faite) :** 3 tests `@e2e` verts + I12 (eau) + les 2 `@perf` existants
   verts (aucune régression) ; `pnpm lint` + `pnpm typecheck` verts.
 
-### 1.4 Robustesse sauvegarde — confirmer, pas reconstruire *(S)*
-- La versioning/export/import/autosave/`SaveFailed` **existent**. Ajouter les
-  cas de non-régression manquants : reload cross-version rejeté proprement,
-  import `.heroes` corrompu → toast (pas de crash), autosave en quota plein →
-  `SaveFailed`.
-- **Vérif :** unitaires `app/save.*` + un cas smoke reload.
+### 1.4 Robustesse sauvegarde — confirmer, pas reconstruire *(S)* — ✅ LIVRÉ
+- **État des lieux (déjà couvert)** : autosave→Continuer (happy), aller-retour
+  export/import `.heroes` (happy), **import version incompatible → rejeté** (lot
+  3.8), **échec de stockage (navigation privée/quota) → toast d'erreur**
+  (`SaveFailed`, lot 3.9). ⇒ la cible « quota plein → `SaveFailed` » est **déjà
+  tenue**, ne pas dupliquer (guideline §3, skill test-authoring).
+- **Trou réel comblé** : import d'un **fichier corrompu** (pas un gzip valide —
+  mauvais fichier choisi) → l'échec survient dans le `try/catch` de `importSave`
+  (branche DISTINCTE du rejet de version). Nouveau hook `importCorruptedSave` +
+  smoke « sauvegarde corrompue : import rejeté proprement sans crash » : rendu
+  `false`, **aucune exception**, partie en cours **intacte** (ni navigation ni
+  chargement partiel), zéro erreur console.
+- **Reload cross-version (chemin IndexedDB)** : la garde `isCompatible` du chemin
+  de chargement (`decodeStoredValue`) est la MÊME que celle de l'import (testée)
+  et le câblage IndexedDB read/decode est exercé par le smoke autosave→Continuer
+  ⇒ couvert par composition, pas de smoke redondant ajouté (discipline skill).
+- **Vérif (faite) :** 3 tests de robustesse save verts (corrompu + incompatible +
+  échec stockage) ; `pnpm lint` + `pnpm typecheck` verts.
 
 **Milestone S1 :** *« Une partie complète se joue, se sauvegarde, se recharge et
 se re-joue sans rupture ; perf chiffrée sur carte Immense + mobile ; toutes les
@@ -185,7 +197,8 @@ séparé, hors périmètre Alpha.
 - [x] S1.1 harnais E2E (test `@e2e` + job CI non bloquant ; vérifié local)
 - [x] S1.2 audit transitions (aucune fuite ; verrou `@e2e` return-to-baseline)
 - [x] S1.3 perf : throttle cullTilemap + skip combat + verrou culling 256²
-- [ ] S1.4 non-régressions save
+- [x] S1.4 non-régressions save (import corrompu ; quota/version déjà couverts)
+- ✅ **Sprint 1 (durcissement E2E) TERMINÉ** → suite : Sprint 2 (ergo P0)
 - [ ] S2 ergo P0 (lots 0-2)
 - [ ] S3 ergo P1 (lots 3-4)
 - [ ] S4 immersion (lots 5-7)

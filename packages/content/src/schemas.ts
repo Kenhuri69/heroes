@@ -1024,8 +1024,8 @@ export const gameConfigSchema = z.object({
 export const mapFileSchema = z.object({
   id: idSchema,
   schemaVersion: z.literal(1),
-  width: z.number().int().min(1).max(256),
-  height: z.number().int().min(1).max(256),
+  width: z.number().int().min(1).max(512),
+  height: z.number().int().min(1).max(512),
   legend: z.record(z.string().length(1), idSchema),
   tiles: z.array(z.string()).min(1),
   roads: z.array(z.string()).min(1),

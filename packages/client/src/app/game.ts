@@ -911,12 +911,12 @@ export const NEWGAME_DIFFICULTIES: SkirmishDifficulty[] = ['facile', 'normal', '
 
 /**
  * Taille de carte → dimension carrée (tuiles). Rendu chunké + culling au viewport
- * (`Tilemap`) rend les grandes cartes jouables ; plafond schéma = 256 (`schemas.ts`).
+ * (`Tilemap`) rend les grandes cartes jouables ; plafond schéma = 512 (`schemas.ts`).
  */
-export const MAP_SIZE_DIMENSIONS = { small: 64, medium: 96, large: 128, huge: 256 } as const;
+export const MAP_SIZE_DIMENSIONS = { small: 64, medium: 96, large: 128, huge: 256, colossal: 512 } as const;
 export type MapSize = keyof typeof MAP_SIZE_DIMENSIONS;
 /** Ordre d'affichage / tirage aléatoire des tailles. */
-export const MAP_SIZE_ORDER = ['small', 'medium', 'large', 'huge'] as const;
+export const MAP_SIZE_ORDER = ['small', 'medium', 'large', 'huge', 'colossal'] as const;
 
 /**
  * Réglage bas/standard/riche : `start` = échelle du stock de départ ; `mapDensity`

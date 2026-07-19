@@ -92,6 +92,27 @@ describe('generateMap', () => {
     expect(a).toEqual(b);
   });
 
+  // Cran « Colossale » de MAP_SIZE_DIMENSIONS = plafond de mapFileSchema (512).
+  // Génération + validation loadMap d'une carte 512² = ~10 s sur runner CI lent ⇒
+  // timeout explicite (le coût vient de la taille, pas d'un blocage). Le
+  // déterminisme du générateur ne dépend pas de la taille (couvert plus haut) —
+  // ici on prouve seulement que 512² passe le schéma (borne 512) + loadMap.
+  it('COLOSSAL 512² : carte valide (loadMap) au plafond du schéma', async () => {
+    const map = generateMap('random', 512, {
+      width: 512,
+      height: 512,
+      startPositionCount: 4,
+      guardianUnits: ['t1-guard'],
+      artifactIds: ['trefle-chance'],
+    });
+    // Valide de bout en bout : loadMap applique le schéma (borne 512) + les règles
+    // croisées (franchissabilité des départs/objets, ids connus).
+    const resolved = await loadMap(readerFor(map), 'random', config(), KNOWN_UNITS);
+    expect(resolved.width).toBe(512);
+    expect(resolved.height).toBe(512);
+    expect(resolved.startPositions).toHaveLength(4);
+  }, 30_000);
+
   it('graines différentes ⇒ cartes différentes', () => {
     const a = generateMap('r', 1);
     const b = generateMap('r', 2);

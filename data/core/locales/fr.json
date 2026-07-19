@@ -124,6 +124,7 @@
   "newgame.mapSize.medium": "Moyenne (96²)",
   "newgame.mapSize.large": "Grande (128²)",
   "newgame.mapSize.huge": "Immense (256²)",
+  "newgame.mapSize.colossal": "Colossale (512²)",
   "newgame.mapSize.random": "Aléatoire",
   "newgame.resources": "Ressources",
   "newgame.resources.bas": "Bas",

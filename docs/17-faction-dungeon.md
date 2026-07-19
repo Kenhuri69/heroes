@@ -21,7 +21,7 @@
 | **Faiblesse assumée** | Fragile en PV/défense (peu de tanks hors Minotaure/Hydre) ; s'effondre contre une faction qui **encaisse le premier tour** et la force à l'attrition longue (Necropolis, Haven en formation) ; dépendante du héros-sorcier (si la magie est neutralisée, le lineup manque de coffre) |
 | **Terrain natif** | `rough` (badlands / cavernes affleurantes — équivalent souterrain) |
 | **Ressources clés** | `sulfur` + `gems` (soufre des profondeurs + gemmes de pouvoir arcanique — le soufre est la rare historique du Donjon dans HoMM) |
-| **École de magie** | Réutilise les écoles destructrices existantes (`fire`, `neutral`) ; **école propre `ombre` différée** à un sous-lot ultérieur (comme `traque`/`scene`) |
+| **École de magie** | **École propre `ombre` (Ténèbres) livrée** (comme `traque`/`scene`) : 4 sorts data-driven — `trait-d-ombre` (c1 dégâts), `cecite` (c2 −Attaque), `nuee-d-ombre` (c2 dégâts), `fleau-des-tenebres` (c3 dégâts splash) ; `manifest.spellSchool: "ombre"` ⇒ seuls les héros du Donjon les apprennent. Les 3 sorts de dégâts synergisent avec `irresistibleMagic`. En plus des écoles universelles (`fire`, `neutral`…) |
 | **Couleurs / DA** | Violet sombre, noir, éclats de magenta arcanique ; motif de bannière : serpent lové (motif non chromatique, `FactionBadge`) |
 
 **Lore (5–10 lignes)** : Bannis sous la surface après une trahison antique, les

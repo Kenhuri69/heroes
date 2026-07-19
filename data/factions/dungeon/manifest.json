@@ -16,7 +16,7 @@
     }
   ],
   "story": "story/campaign.json",
-  "spellSchool": null,
+  "spellSchool": "ombre",
   "heroSkills": [],
   "tiers": 7,
   "sharedGrowthGroups": {},

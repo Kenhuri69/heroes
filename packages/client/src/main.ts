@@ -113,6 +113,8 @@ declare global {
        * aller-retour Aventure↔Combat — toute croissance signale une fuite CL1/CL2.
        */
       sceneGraphStats: () => { stageChildren: number; stagePointerListeners: number };
+      /** Empreinte de culling du tilemap (S1.3) : chunks totaux / construits (lazy) / visibles au viewport. */
+      tilemapStats: () => { total: number; built: number; visible: number };
     };
   }
 }
@@ -514,6 +516,7 @@ async function bootstrap(): Promise<void> {
       stageChildren: app.stage.children.length,
       stagePointerListeners: app.stage.listenerCount('pointerdown'),
     }),
+    tilemapStats: () => scene?.tilemapStats() ?? { total: 0, built: 0, visible: 0 },
   };
   window.__HEROES_READY__ = true; // signal pour le smoke test headless
 }

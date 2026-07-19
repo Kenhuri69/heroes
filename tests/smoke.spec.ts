@@ -1369,6 +1369,78 @@ test('carte d’aventure : fluidité sous throttling CPU ×4 (doc 01 §5 critèr
   expect(fps).toBeGreaterThanOrEqual(5);
 });
 
+// Perf grande carte (Sprint 1.3, plan phase-alpha-e2e-ergonomics) : génère une
+// carte **256²** (Immense) par le VRAI chemin de production et prouve que le
+// CULLING borne le travail de rendu — seule une poignée de chunks (au viewport)
+// est construite/visible sur les 256 que compte la carte. C'est la garantie
+// perf DÉTERMINISTE (contrairement au fps sous rendu logiciel CI, trop bruité
+// sur une si grande carte : mesuré ~1 fps sous throttle ×4, il est LOGGÉ comme
+// repère, jamais asserté). Tag `@e2e` : optionnel en CI (une génération 256²
+// lourde ne doit pas gater la fusion — même politique que le harnais E2E).
+test('perf 256² : le culling borne les chunks rendus (S1.3)', { tag: '@e2e' }, async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'desktop', 'mesure unique, desktop');
+  const errors = collectErrors(page);
+  await page.goto('./'); // menu — on démarre une « Nouvelle partie » Immense
+  await page.waitForFunction(() => window.__HEROES_READY__ === true);
+
+  // Carte 256² via l'événement `heroes:start-newgame` (chemin réel : génération +
+  // rendu chunké/culé). Factions `random` (tirées du seed) ⇒ zéro id de faction.
+  await page.evaluate(() => {
+    window.dispatchEvent(
+      new CustomEvent('heroes:start-newgame', {
+        detail: {
+          slots: [
+            { controller: 'human', factionId: 'random', color: 0xcc4444, team: 0 },
+            { controller: 'ai', factionId: 'random', color: 0x4466cc, team: 0 },
+          ],
+          mapSize: 'huge',
+          resourceLevel: 'standard',
+          guardians: 'standard',
+          mines: 'standard',
+          eventBuildings: 'standard',
+          pickups: 'standard',
+          difficulty: 'normal',
+          seed: 42,
+        },
+      }),
+    );
+  });
+  // La génération d'une carte 256² prend du temps (overlay de progression) :
+  // attendre le démarrage sur une carte de 256 de large.
+  await expect
+    .poll(
+      () =>
+        page.evaluate(() => {
+          const g = window.__HEROES_TEST__?.getState();
+          return g?.started ? (g.map?.width ?? 0) : 0;
+        }),
+      { timeout: 30000 },
+    )
+    .toBe(256);
+
+  // Cœur du test — le culling tient l'échelle : 256² = 16×16 = 256 chunks, mais le
+  // viewport n'en voit qu'une poignée. On attend qu'un passage de culling ait eu
+  // lieu (visible > 0), puis on lit l'empreinte.
+  await expect
+    .poll(() => page.evaluate(() => window.__HEROES_TEST__!.tilemapStats().visible))
+    .toBeGreaterThan(0);
+  const stats = await page.evaluate(() => window.__HEROES_TEST__!.tilemapStats());
+  expect(stats.total).toBe(256); // 16×16 chunks pour 256²
+  expect(stats.visible).toBeLessThan(stats.total / 2); // culling actif : pas tout affiché
+  expect(stats.built).toBeLessThan(stats.total); // construction paresseuse : pas tout bâti
+  testInfo.annotations.push({
+    type: 'cull-256',
+    description: `total=${stats.total} built=${stats.built} visible=${stats.visible}`,
+  });
+
+  // Repère de fluidité (LOGGÉ, non asserté — bruité sous rendu logiciel CI sur 256²).
+  const fps = await measureFpsUnderThrottle(page);
+  testInfo.annotations.push({ type: 'fps-huge256', description: fps.toFixed(1) });
+  console.log(`[smoke] 256² : culling ${stats.built}/${stats.total} bâtis, ${stats.visible} visibles ; ~${fps.toFixed(1)} fps (repère)`);
+
+  expect(errors).toEqual([]);
+});
+
 test('menu : Nouvelle partie démarre, Continuer grisé sans sauvegarde', { tag: ['@mobile', '@core'] }, async ({ page }) => {
   const errors = collectErrors(page);
   await page.goto('./'); // sans ?seed : le menu s'affiche (doc 08 §2.5)

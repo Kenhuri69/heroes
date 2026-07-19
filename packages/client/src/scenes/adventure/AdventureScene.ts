@@ -152,8 +152,20 @@ export class AdventureScene {
     this.cullTilemap();
   }
 
+  /**
+   * Dernière empreinte caméra/viewport traitée par `cullTilemap` (S1.3). La
+   * visibilité des chunks ne dépend QUE du viewport (position/zoom caméra + taille
+   * écran) : inutile de la recalculer tant que rien de tout ça n'a bougé.
+   * `NaN` force le 1er passage.
+   */
+  private lastCull = { x: NaN, y: NaN, s: NaN, w: 0, h: 0 };
+
   /** Recalcule les chunks visibles à chaque frame (suit pan/zoom de la caméra) + anime l'eau. */
   private readonly onTick = (): void => {
+    // Pendant le combat la carte est masquée (`camera.world.visible=false`, posé
+    // par `main.ts`) : ni culling ni miroitement — c'était du travail par-frame
+    // invisible (trouvaille S1.2). Reprend dès le retour à l'aventure.
+    if (!this.camera.world.visible) return;
     this.cullTilemap();
     // I12 : respiration de l'eau — n'ajuste qu'un `alpha` (aucune re-tesselation).
     if (this.waterSheen && !this.waterSheen.destroyed) {
@@ -163,17 +175,36 @@ export class AdventureScene {
     }
   };
 
-  /** Viewport écran → rectangle MONDE (avec marge) puis masque les chunks hors champ. */
+  /**
+   * Viewport écran → rectangle MONDE (avec marge) puis masque les chunks hors
+   * champ. **Throttlé** (S1.3) : sort tôt tant que la caméra (x/y/zoom) ET la
+   * taille écran n'ont pas bougé au-delà d'un seuil — sur une grande carte (256²)
+   * cela supprime des centaines de tests d'intersection AABB par frame quand la
+   * vue est immobile, sans jamais laisser un chunk périmé (toute cause de
+   * changement de viewport rouvre le recalcul, y compris le resize).
+   */
   private cullTilemap(): void {
     if (this.destroyed) return;
     const { x: wx, y: wy, scale } = this.camera.world;
     const s = scale.x || 1;
+    const sw = this.app.screen.width;
+    const sh = this.app.screen.height;
+    const last = this.lastCull;
+    if (
+      Math.abs(wx - last.x) < 8 &&
+      Math.abs(wy - last.y) < 8 &&
+      s === last.s &&
+      sw === last.w &&
+      sh === last.h
+    )
+      return;
+    this.lastCull = { x: wx, y: wy, s, w: sw, h: sh };
     const margin = 256; // px écran : anticipe le pan, évite le « pop » de chunks
     const view = {
       minX: (-margin - wx) / s,
       minY: (-margin - wy) / s,
-      maxX: (this.app.screen.width + margin - wx) / s,
-      maxY: (this.app.screen.height + margin - wy) / s,
+      maxX: (sw + margin - wx) / s,
+      maxY: (sh + margin - wy) / s,
     };
     this.tilemap.updateVisibility(view);
     this.terrainProps.updateVisibility(view);
@@ -217,6 +248,11 @@ export class AdventureScene {
   /** Nombre d'enfants du nœud d'un objet de carte (surface de test — gradation A1). */
   objectChildCount(id: string): number {
     return this.objects.childCountOf(id);
+  }
+
+  /** Empreinte de culling du tilemap (surface de test perf S1.3 — chunks totaux/construits/visibles). */
+  tilemapStats(): { total: number; built: number; visible: number } {
+    return this.tilemap.stats();
   }
 
   /** Références du dernier sync — dirty-check F1 (revue 2026-07). */

@@ -22,7 +22,7 @@ import sys
 from pathlib import Path
 
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageFilter
 
 ROOT = Path(__file__).resolve().parents[2]
 COMBAT = ROOT / "assets" / "combat"
@@ -51,9 +51,25 @@ def keyed_cutout(cell: Image.Image) -> Image.Image:
     bg = np.median(corners, axis=0)
     dist = np.sqrt(((arr[..., :3] - bg[None, None, :]) ** 2).sum(axis=-1))
     alpha = np.clip((dist - KEY_TOLERANCE * 0.55) / (KEY_TOLERANCE * 0.45), 0, 1)
+    # Décontamination du fond (anti-liseré magenta) : sur les pixels
+    # semi-transparents, retire la contribution du fond puis renormalise.
+    a3 = alpha[..., None]
+    rgb = arr[..., :3].astype(np.float64)
+    despilled = np.where(a3 > 0.02, np.clip((rgb - (1 - a3) * bg[None, None, :]) / np.maximum(a3, 0.02), 0, 255), rgb)
+    # Suppression de dominante magenta résiduelle (pixels opaques contaminés en
+    # bord d'objet) : l'excès de min(R,B) sur G est rabattu — sûr ici, le kit
+    # est pierre/bois sans contenu pourpre légitime.
+    r, g, b = despilled[..., 0], despilled[..., 1], despilled[..., 2]
+    spill = np.clip(np.minimum(r, b) - g, 0, None)
+    despilled[..., 0] = np.clip(r - spill * 0.72, 0, 255)
+    despilled[..., 2] = np.clip(b - spill * 0.72, 0, 255)
     out = arr.copy()
+    out[..., :3] = despilled.astype(np.int16)
     out[..., 3] = (alpha * 255).astype(np.int16)
     img = Image.fromarray(out.astype(np.uint8), "RGBA")
+    # Érosion 1 px de l'alpha : coupe le halo externe résiduel.
+    a_img = img.getchannel("A").filter(ImageFilter.MinFilter(3))
+    img.putalpha(a_img)
     bbox = img.getbbox()
     if bbox is None:
         raise SystemExit("cellule vide après détourage — planche invalide ?")
@@ -107,6 +123,10 @@ def main() -> None:
     for key, r in results:
         r.save(COMBAT / key)
         print(f"écrit : assets/combat/{key}")
+    # Marqueur : pièces désormais PEINTES — gen_siege_scene.py ne les ré-émet
+    # plus (le kit procédural n'est qu'un repli d'avant-art).
+    (COMBAT / "siege-kit-source.json").write_text('{"source": "planche Gemini (combat-siege-kit.md)"}\n')
+    print("écrit : assets/combat/siege-kit-source.json (gel des pièces)")
 
 
 if __name__ == "__main__":

@@ -227,3 +227,12 @@ y compris plaine, validable en 1 capture) ; **Lot 1** = scène peinte génériqu
   au dépôt de l'art). En attente : génération de la planche par le porteur
   (2048×1536, gabarit joint en image de référence), puis extraction +
   capture de vérification.
+- 2026-07-19 — **Planche Gemini livrée par le porteur** (option A) : qualité
+  au niveau du reste du jeu. Extraction appliquée (`extract_siege_kit.py` +
+  décontamination magenta : unpremultiply, suppression de dominante,
+  érosion 1 px) → les 6 pièces peintes remplacent le kit procédural dans
+  les canvas/ancres EXISTANTS (zéro diff client). Garde anti-écrasement :
+  `assets/combat/siege-kit-source.json` ⇒ `gen_siege_scene.py` ne ré-émet
+  plus les pièces (le procédural reste le repli d'avant-art). Planche
+  source committée (`assets/prompts/_incoming/siege-kit.png`, filigrane
+  effacé). Smoke siège vert, captures rafraîchies.

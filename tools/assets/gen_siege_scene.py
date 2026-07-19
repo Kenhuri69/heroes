@@ -869,7 +869,12 @@ def main() -> None:
         s.save(OUT_COMBAT / f"siege-scene-{f}.jpg", quality=84)
         print(f"siege-scene-{f}.jpg {s.size}")
 
-    for state in ("intact", "cracked", "razed"):
+    if (OUT_COMBAT / "siege-kit-source.json").exists():
+        print("pièces PEINTES présentes (siege-kit-source.json) — kit procédural non ré-émis")
+        emit_pieces = False
+    else:
+        emit_pieces = True
+    for state in ("intact", "cracked", "razed") if emit_pieces else ():
         rng = random.Random(SEED + 7)
         piece = build_wall_piece(rng, state)
         suffix = "" if state == "intact" else f"-{state}"
@@ -884,15 +889,19 @@ def main() -> None:
         tile = build_court_tile(v)
         tile.save(OUT_COMBAT / f"siege-tile-court-{v}.png")
         print(f"siege-tile-court-{v}.png {tile.size}")
-    tower = build_corner_tower()
-    tower.save(OUT_COMBAT / "siege-piece-tower.png")
-    print(f"siege-piece-tower.png {tower.size}")
-    gate_piece = build_gate_piece(random.Random(SEED + 17))
-    gate_piece.save(OUT_COMBAT / "siege-piece-gate.png")
-    print(f"siege-piece-gate.png {gate_piece.size}")
-    arrow_tower = build_arrow_tower()
-    arrow_tower.save(OUT_COMBAT / "siege-piece-arrow-tower.png")
-    print(f"siege-piece-arrow-tower.png {arrow_tower.size}")
+    if not emit_pieces:
+        pass
+    tower = None if not emit_pieces else build_corner_tower()
+    if tower is not None:
+        tower.save(OUT_COMBAT / "siege-piece-tower.png")
+        print(f"siege-piece-tower.png {tower.size}")
+    if emit_pieces:
+        gate_piece = build_gate_piece(random.Random(SEED + 17))
+        gate_piece.save(OUT_COMBAT / "siege-piece-gate.png")
+        print(f"siege-piece-gate.png {gate_piece.size}")
+        arrow_tower = build_arrow_tower()
+        arrow_tower.save(OUT_COMBAT / "siege-piece-arrow-tower.png")
+        print(f"siege-piece-arrow-tower.png {arrow_tower.size}")
 
     layout = {
         "scale": S,

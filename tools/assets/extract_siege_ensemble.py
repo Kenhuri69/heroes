@@ -56,12 +56,24 @@ def main() -> None:
     # découpes qui suivent sont géométriques, dans le repère du gabarit).
     rgba = keyed_cutout(painted, crop=False)
 
-    def crop_bp(box: tuple[float, float, float, float], tight: bool = False) -> Image.Image:
+    # Source du RUN : les boîtes des tours de tir en sont EXCLUES (la pointe
+    # de baliste et les débris de la ruine chevauchent la frontière — sans
+    # cela ils fuiraient dans les tranches de rangée du run).
+    run_src = rgba.copy()
+    for key in ("arrow", "arrowRazed"):
+        if key in cuts:
+            b = cuts[key]
+            run_src.paste(
+                (0, 0, 0, 0),
+                (int((b[0] - win["x0"]) * t), int((b[1] - win["y0"]) * t), int((b[2] - win["x0"]) * t), int((b[3] - win["y0"]) * t)),
+            )
+
+    def crop_bp(box: tuple[float, float, float, float], tight: bool = False, src: Image.Image | None = None) -> Image.Image:
         x0 = int((box[0] - win["x0"]) * t)
         y0 = int((box[1] - win["y0"]) * t)
         x1 = int((box[2] - win["x0"]) * t)
         y1 = int((box[3] - win["y0"]) * t)
-        part = rgba.crop((x0, y0, x1, y1))
+        part = (src or rgba).crop((x0, y0, x1, y1))
         w_out = int(round((box[2] - box[0]) * OUT_SCALE))
         h_out = int(round((box[3] - box[1]) * OUT_SCALE))
         part = part.resize((w_out, h_out), Image.LANCZOS)
@@ -72,7 +84,7 @@ def main() -> None:
         return part
 
     run_box = (cuts["run"]["x0"], cuts["run"]["y0"], cuts["run"]["x1"], cuts["run"]["y1"])
-    run = crop_bp(run_box)
+    run = crop_bp(run_box, src=run_src)
     period = cuts["period"]
 
     bands: dict[str, Image.Image] = {}
@@ -121,6 +133,7 @@ def main() -> None:
         "period": period,
         "painted": cuts["painted"],
         "gateRows": cuts["gateRows"],
+        **({"zones": cuts["zones"]} if "zones" in cuts else {}),
     }
     LAYOUT.write_text(json.dumps(layout, indent=2) + "\n")
     print("layout : bloc run écrit — le client passe en mode tranches")

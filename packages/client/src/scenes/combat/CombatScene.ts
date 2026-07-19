@@ -715,8 +715,15 @@ export class CombatScene {
       void Assets.load(url).then((texture) => {
         if (sprite.destroyed) return;
         sprite.texture = texture;
-        sprite.anchor.set(0.5, 0.94); // même assise au sol que la tour vivante
-        sprite.scale.set((STRUCTURE_TOWER_H * 0.55) / texture.height);
+        const layout = siegeSceneLayout();
+        if (layout?.run) {
+          // Ruine du tableau v8 (vue de dessus) : échelle vraie, centrée.
+          sprite.anchor.set(0.5, 0.6);
+          sprite.scale.set(1 / layout.scale);
+        } else {
+          sprite.anchor.set(0.5, 0.94); // même assise au sol que la tour vivante
+          sprite.scale.set((STRUCTURE_TOWER_H * 0.55) / texture.height);
+        }
       });
       this.stacksLayer.addChild(sprite);
       this.wallStructures.set(key, sprite);
@@ -1011,7 +1018,13 @@ export class CombatScene {
         visual.removeChild(fallback);
         fallback.destroy();
         const sprite = new Sprite(texture);
-        if (sceneTower) {
+        const sceneScale = siegeSceneLayout()?.scale ?? 2;
+        if (sceneTower && siegeSceneLayout()?.run) {
+          // Pièce du tableau v8 (vue de dessus, `scale` px/bp) : posée à
+          // l'échelle vraie du tableau, empreinte centrée sur l'hex.
+          sprite.anchor.set(0.5, 0.6);
+          sprite.scale.set(1 / sceneScale);
+        } else if (sceneTower) {
           sprite.anchor.set(0.5, 0.94); // assise au sol de l'hex
           sprite.scale.set(STRUCTURE_TOWER_H / texture.height);
         } else {
@@ -1132,14 +1145,31 @@ export class CombatScene {
       return url ? ((await Assets.load(url)) as Texture) : null;
     };
 
+    const stateOf = (row: number): 'gate' | 'intact' | 'cracked' | 'razed' => {
+      if (gateRows.has(row)) return 'gate';
+      if (!walled.has(row)) return 'razed';
+      return (hp[`${wallCol},${row}`] ?? maxHp) < maxHp ? 'cracked' : 'intact';
+    };
+    const zones = Object.entries(run.zones ?? {}) as ['cracked' | 'razed', [number, number]][];
     for (let row = 0; row < COMBAT_ROWS; row++) {
       const topBp = row * period - period / 2;
-      let state: 'gate' | 'intact' | 'cracked' | 'razed';
-      if (gateRows.has(row)) state = 'gate';
-      else if (!walled.has(row)) state = 'razed';
-      else state = (hp[`${wallCol},${row}`] ?? maxHp) < maxHp ? 'cracked' : 'intact';
-      const painted = gateRows.has(row) ? 'gate' : (run.painted[String(row)] ?? 'intact');
-      const useRun = state === painted;
+      const state = stateOf(row);
+      // Zone de dégât peinte EN SITUATION : le dégât du tableau déborde sur
+      // les rangées voisines de sa rangée-étalon ⇒ la zone bascule d'un BLOC.
+      // Active (l'étalon a vraiment l'état peint) : toute la zone montre le
+      // tableau ; inactive : chaque rangée montre la bande de son état réel
+      // (mur propre au round 1, plus de gravats fantômes).
+      const zone = zones.find(([, [a, b]]) => row >= a && row <= b);
+      let useRun: boolean;
+      if (state === 'gate') useRun = true;
+      else if (zone) {
+        const [zState, [a, b]] = zone;
+        let center = a;
+        for (let r = a; r <= b; r++) if (run.painted[String(r)] === zState) center = r;
+        useRun = stateOf(center) === zState;
+      } else {
+        useRun = state === (run.painted[String(row)] ?? 'intact');
+      }
       place(`slice:${row}`, `${state}:${useRun ? 'run' : 'band'}`, topBp, period, useRun ? runFrame(topBp, period) : bandTex(state as 'intact' | 'cracked' | 'razed'));
     }
     // Extrémités du tableau (tours comprises) : toujours depuis le run.

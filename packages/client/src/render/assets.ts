@@ -439,6 +439,10 @@ export interface SiegeRunLayout {
   period: number;
   painted: Record<string, 'cracked' | 'razed'>;
   gateRows: number[];
+  /** Zones de dégât peintes EN SITUATION (bornes de rangées inclusives) : le
+   *  dégât du tableau déborde autour de sa rangée-étalon ⇒ la zone bascule
+   *  d'un bloc entre tableau et bandes-étalons. */
+  zones?: Partial<Record<'cracked' | 'razed', [number, number]>>;
 }
 
 /** Layout de calage de la scène de siège (board-space), émis par le générateur. */

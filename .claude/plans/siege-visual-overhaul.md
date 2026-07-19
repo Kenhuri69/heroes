@@ -326,3 +326,23 @@ y compris plaine, validable en 1 capture) ; **Lot 1** = scène peinte génériqu
   seulement sous les couronnes et à la brèche ; annotations déplacées en
   marge ouest. Prompt aligné (ne pas terminer les extrémités du mur, le mur
   traverse les tours). Extraction inchangée.
+- 2026-07-19 — **Peinture v8 du porteur INTÉGRÉE** (plan vue de dessus →
+  Gemini : muraille d'un seul tenant de bord à bord, tours traversées, porte
+  + pont-levis à chaînes, brèche, tours de tir — qualité au niveau du jeu).
+  Intégration mesurée au pixel : (a) filigrane-étincelle effacé au masque
+  (pas au rectangle — première tentative rognait l'épave) ; (b) boîtes de
+  découpe RECALÉES sur la peinture (frontière porte 759.5 / baliste 765.2 bp,
+  gravats ouest jusqu'à 569 bp, ruine 752..858×312..420) ; (c) l'extracteur
+  EXCLUT les boîtes des tours de tir de la source du run (la pointe de
+  baliste chevauchait la frontière) ; (d) étalon INTACT déplacé r8→r3 (r8
+  contaminé par les gravats de brèche — les rangées « propres » recevaient
+  des gravats) ; (e) **zones d'état** (`run.zones` : cracked [1,3], razed
+  [6,9]) — le dégât peint déborde de sa rangée-étalon, la zone bascule d'un
+  BLOC (tableau si l'étalon a vraiment l'état, bandes propres sinon) ⇒ mur
+  net au round 1, brèche peinte de retour quand r7 tombe ; (f) client :
+  pièces de tour de tir en VUE DE DESSUS posées à l'échelle du tableau
+  (1/layout.scale, empreinte centrée) en mode run — ruine comprise.
+  Vérifs : typecheck/lint/build, smoke siège+capture+gardien 3/3, captures
+  `after-plan-v8-round1.jpg` / `after-plan-v8-auto.jpg` (rangées rasées par
+  la catapulte = matière de brèche, intactes = bandes propres). Planche
+  source committée (`_incoming/siege-ensemble.png`, filigrane effacé).

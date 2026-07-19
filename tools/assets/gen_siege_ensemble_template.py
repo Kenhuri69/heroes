@@ -58,15 +58,26 @@ WOOD_D = (84, 62, 44)
 INK = (70, 0, 70)
 
 # Région du RUN (extraction) et boîtes des tours de tir (board-space).
-# Les tours de tir en retrait restent À L'EST de la région du run.
-RUN_X0, RUN_X1 = WALL_X - 96.0, WALL_X + 74.0
-RUN_Y0, RUN_Y1 = -122.0, 444.0
-ARROW_BOX = (778.0, 96.0, 838.0, 232.0)  # tour de tir, en retrait derrière la porte
-ARROW_RAZED_BOX = (778.0, 292.0, 838.0, 400.0)  # sa ruine, en retrait derrière la brèche
+# Calées sur la peinture v8 mesurée : le run va de BORD À BORD (l'enceinte se
+# referme hors champ), s'étend à l'ouest jusqu'aux gravats déversés de la
+# brèche et s'arrête à l'est entre la porte (759.5) et la pointe de baliste
+# (765.2). Les boîtes des tours de tir sont EXCLUES du run à l'extraction.
+RUN_X0, RUN_X1 = WALL_X - 136.0, WALL_X + 61.0
+RUN_Y0, RUN_Y1 = -130.0, 470.0
+ARROW_BOX = (763.0, 118.0, 858.0, 224.0)  # tour de tir, en retrait derrière la porte
+ARROW_RAZED_BOX = (752.0, 312.0, 858.0, 420.0)  # sa ruine, en retrait derrière la brèche
 
-# États peints dans l'ensemble + rangée-étalon de chaque état.
+# États peints dans l'ensemble + rangée-étalon de chaque état. L'étalon
+# INTACT est la rangée 3 : la seule hors de toute contamination (fissures
+# jusqu'à ~90 bp, porte dès 130, gravats de brèche 214..312 bp).
 PAINTED = {"1": "cracked", "7": "razed"}
-EXEMPLAR = {"intact": 8, "cracked": 1, "razed": 7}
+EXEMPLAR = {"intact": 3, "cracked": 1, "razed": 7}
+# Zones de dégât peintes EN SITUATION : le dégât du tableau déborde sur les
+# rangées voisines de sa rangée-étalon (gravats, lèvres, cailloux épars) ⇒
+# côté client la zone entière bascule d'un bloc (tableau si l'étalon a
+# VRAIMENT cet état, bandes propres sinon). Bornes mesurées sur la peinture
+# v8 ; r3 (étalon intact) peut appartenir à la zone fissurée : bande = elle-même.
+ZONES = {"cracked": [1, 3], "razed": [6, 9]}
 
 # Empreintes (board-space).
 BAND_HALF_W = 30.0  # demi-largeur de la courtine en plan
@@ -225,6 +236,7 @@ def main() -> None:
         "gateRows": list(GATE_ROWS),
         "painted": PAINTED,
         "exemplar": EXEMPLAR,
+        "zones": ZONES,
     }
     OUT_CUTS.write_text(json.dumps(cuts, indent=2) + "\n")
     print(f"{OUT_TPL.name} {CANVAS} · cuts JSON")

@@ -206,8 +206,15 @@ de cet audit)*
 - **Livré** : trois panoplies en données (`artifacts.json`) — `panoplie-gladiateur`
   (might), `regalia-archimage` (magic, 3 pièces), `attirail-voyageur`
   (économie/mobilité) — le tiroir héros affiche la progression `n/seuil` (doc 02
-  §1.1). **Données pures**, zéro moteur. *Reste (P3)* : rareté graduée en
-  profondeur de carte + icônes finales.
+  §1.1). **Données pures**, zéro moteur.
+- **Complété (lot 3.2)** : la **rareté graduée en profondeur** est **livrée** —
+  champ `rarity` (1–3) sur `artifactSchema`, porté par 16 artefacts de
+  `core/artifacts.json` ; `mapgen.ts` place les artefacts au sol via
+  `artifactIdForDepth` (tri par rareté croissante, index ∝ profondeur `depthAt` =
+  distance au départ le plus proche, jitter seedé) ⇒ commun près du départ, rare
+  au fond ; le client lit `artifact.rarity` du catalogue (`content.ts`,
+  `artifactRarity`). Tests `artifact-sets.test.ts`/`mapgen.test.ts`. *Reste (P3)* :
+  **icônes finales** (chantier assets doc 12, repli procédural en place).
 
 **C3 — Arbre d'aptitudes à points (modèle MMHO)**
 - **Réf.** : MMHO : ~20 points d'aptitude répartis dans 6 arbres par faction,
@@ -395,9 +402,18 @@ M ≈ 2-3 j, L = semaine(s).
 > **Sweep terminé** : **D1** (vue de ville peinte) était **déjà livré** (lots UX
 > U5/UXD-5/UX-TOWNVIEW — `TownView`) ; **A6** (ville neutre en `MapObjectDef`) est
 > **clos comme choix de design assumé** (refactor de cœur à risque pour zéro
-> impact joueur — guidelines §2/§3). **Plus aucun écart P1/P2 ouvert** ; le reste
-> est du chantier assets continu (doc 12, repli procédural en place) et des
-> décisions de cadrage déjà tranchées. Les fiches §2 portent le détail par item.
+> impact joueur — guidelines §2/§3). **Plus aucun écart P1/P2 ouvert.** La famille
+> de triggers **A5** est **close** (A5c retraits `removeArtifact`/`removeArmy` +
+> A5d condition `flagCaptured`). Vérification 2026-07 : **C2** (rareté d'artefacts
+> graduée en profondeur) était **déjà livré** (lot 3.2 — `artifactIdForDepth` +
+> champ `rarity`), fiche re-marquée ✅.
+>
+> **Le backlog de code de l'audit est épuisé.** Tout ce qui reste est : chantiers
+> **assets** (icônes/sprites/art dédié — doc 12, repli procédural en place),
+> **contenu de flair** optionnel (mois thématiques A4), **décisions déjà tranchées
+> à documenter** (B5 mono-hex, C3 arbre HoMM) et des items **Live/hors périmètre**
+> (A3 naval, E2 matchmaking, E5 clans). Aucun n'est un écart de fonctionnalité
+> jouable ouvert. Les fiches §2 portent le détail par item.
 
 ### Étape 1 — Lisibilité de la carte & du combat (client/assets, zéro moteur)
 

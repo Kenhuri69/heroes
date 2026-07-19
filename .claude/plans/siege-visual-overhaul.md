@@ -305,3 +305,16 @@ y compris plaine, validable en 1 capture) ; **Lot 1** = scène peinte génériqu
   v7 durci : interdiction explicite des blocs empilés et de toute couronne
   crénelée EN TRAVERS du mur (critère d'acceptation dédié). Géométrie
   d'extraction inchangée (mêmes boîtes). En attente : peinture v7.
+- 2026-07-19 — Guides v7/v7b (bande + volumes pseudo-3D dessinés) REJETÉS en
+  bloc par le porteur (« tout est dégueulasse — revois pour une vue de
+  dessus, et dans le prompt demande la profondeur avec petite
+  inclinaison »). **Gabarit v8** : le gabarit devient un **PLAN vue de
+  dessus** (empreintes au sol, géométrie pure sans volume) — bande de
+  courtine continue à merlons marqués, **cercles de tours à cheval sur la
+  bande** (fusion évidente en plan), fissures r1, brèche r7 déchiquetée +
+  gravats, porte en travers de l'axe (tunnel + vantaux) + pont-levis bois,
+  tours de tir en retrait (baliste vue de dessus) + ruine. La 3D est
+  déléguée au **prompt v8** : caméra quasi zénithale, PETITE inclinaison,
+  dessus dominants + fine bande de face sud, bases sur les empreintes.
+  Géométrie d'extraction inchangée (mêmes boîtes, mêmes clés). En attente :
+  peinture v8 du porteur.

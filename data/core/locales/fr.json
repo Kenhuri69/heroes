@@ -457,6 +457,7 @@
   "combat.damage": "{min}–{max} dégâts",
   "combat.retaliationEstimate": "riposte estimée : {min}–{max}",
   "combat.noRetaliation": "pas de riposte",
+  "combat.lethalRetaliationWarning": "⚠ Riposte mortelle — cette pile serait anéantie.",
   "combat.previewSummary": "{damage}, ~{kills} morts · {retal}",
   "combat.order.label": "Ordre de passage",
   "combat.order.next": "round suivant",

@@ -420,6 +420,11 @@
 > + libellé = double canal, jamais la couleur seule) au-dessus des actions —
 > rendant l'engagement défavorable explicite au point de décision (le joueur
 > garde *Combattre* / *Combat auto* / *Abandonner*). Client seul, zéro moteur.
+> **Pendant en combat (E8b)** : la préviz de dégâts affiche un avertissement
+> `role="alert"` « ⚠ Riposte mortelle » quand la **riposte minimale estimée** de
+> la cible (`estimateDamage.retaliation`, déjà calculée) anéantirait la pile
+> attaquante — signalé avant le 2ᵉ tap de confirmation, sans bloquer. Réutilise
+> l'estimation existante ⇒ zéro moteur.
 
 ### 2.5 Autres écrans
 

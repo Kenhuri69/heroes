@@ -457,6 +457,7 @@
   "combat.damage": "{min}–{max} damage",
   "combat.retaliationEstimate": "estimated retaliation: {min}–{max}",
   "combat.noRetaliation": "no retaliation",
+  "combat.lethalRetaliationWarning": "⚠ Lethal retaliation — this stack would be wiped out.",
   "combat.previewSummary": "{damage}, ~{kills} killed · {retal}",
   "combat.order.label": "Turn order",
   "combat.order.next": "next round",

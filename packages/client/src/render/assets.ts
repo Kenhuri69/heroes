@@ -402,6 +402,13 @@ export function siegeGatePieceUrl(): string | undefined {
   return registry.get('combat/siege-piece-gate');
 }
 
+/** TOUR DE TIR de la ville (structure S6 en mode scène) : tour de pierre grise
+ *  surmontée d'une baliste pointée vers l'assaillant — l'arme se voit. Replis :
+ *  tour grise nue → art crème d'origine. */
+export function siegeArrowTowerUrl(): string | undefined {
+  return registry.get('combat/siege-piece-arrow-tower') ?? siegeSceneTowerUrl();
+}
+
 /** Layout de calage de la scène de siège (board-space), émis par le générateur. */
 export interface SiegeSceneLayout {
   scale: number;

@@ -326,17 +326,22 @@ fidélité par simple substitution de PNG homonyme, aucun code — cf.
   `town-<id>.jpg`), un **sol complet ancré sur la géométrie moteur** (douve
   col 10, remparts col 11, porte rangées 4–5) :
   `combat/siege-scene[-<factionId>].jpg` (champ + boue d'approche + fossé sec
-  + cour + ville assiégée estompée), `combat/siege-moat.png` (bande d'eau
-  RGBA posée seulement si douve moteur, Fort ≥ 2), pièces de rempart **par
-  rangée** empilables `combat/siege-piece-wall[-2|-cracked|-razed].png`
-  (états mappés sur `siegeWallHp`, brèche = rangée rasée + gravats), **sol
-  hexagonal de cour** `combat/siege-tile-court-<1|2|3>.png` (« effet ville » :
-  pavés par hex dans l'enceinte, variante déterministe par case), **tour
-  d'extrémité recolorée** `combat/siege-piece-tower.png` (pierre grise
-  assortie au gatehouse, repli `siege-tower` crème), et le layout de calage
+  + chaussée de porte + cour/esplanade pavée + ville assiégée estompée),
+  `combat/siege-moat.png` (bande d'eau RGBA posée seulement si douve moteur,
+  Fort ≥ 2), pièces de rempart **par rangée** `combat/siege-piece-wall
+  [-cracked|-razed].png` — **bande strictement périodique** (période = pas de
+  rangée : façade continue pleine masse + crête crénelée côté assaillant ⇒
+  raccords invisibles par construction, états mappés sur `siegeWallHp`,
+  brèche = bande percée + gravats), **porte verticale**
+  `combat/siege-piece-gate.png` (courtine double hauteur percée de l'arche
+  peinte, dans l'axe du mur), **tour de tir** `combat/siege-piece-arrow-tower.png`
+  (tour grise + baliste montée sur la plateforme — l'arme se voit), **tour
+  d'extrémité** `combat/siege-piece-tower.png` (art `siege-tower` recoloré
+  pierre grise), **sol hexagonal de cour** `combat/siege-tile-court-<1|2|3>.png`
+  (« effet ville » : pavés par hex dans l'enceinte), et le layout de calage
   `assets/layouts/siege-scene.json` (consommé par `siegeSceneLayout()`).
   Client : sprites dans `stacksLayer` (zIndex = y ⇒ occlusion unités/mur
-  correcte), porte `siege-gate` aux rangées d'ouverture. **Mêmes clés ⇒ un art Gemini supérieur se substitue par
+  correcte). **Mêmes clés ⇒ un art Gemini supérieur se substitue par
   simple dépôt** ; **repli gracieux** = habillage procédural historique
   complet si un asset manque. Déterministe (`random.Random(SEED)`).
 - **Unité invoquée** (`assets/units/core/elementaire-de-terre.png`, 512²) :

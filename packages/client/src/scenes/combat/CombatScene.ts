@@ -42,6 +42,7 @@ import {
   siegeCourtTileUrl,
   siegeSceneTowerUrl,
   siegeGatePieceUrl,
+  siegeArrowTowerUrl,
 } from '../../render/assets';
 import { computeWallLayout, drawCurtain, drawTower, drawGate, drawDamage } from '../../render/siegeWall';
 import { heroArchetype } from '../../app/game';
@@ -943,7 +944,7 @@ export class CombatScene {
     // à sa base et PLUS HAUTE que la courtine — une défense de ville, pas une
     // créature. Hors scène : rendu structure historique inchangé.
     const sceneTower = isSiegeStructure && this.sceneActive;
-    const url = (sceneTower ? siegeSceneTowerUrl() : undefined) ?? unitSpriteUrl(stack.unitId, catalog[stack.unitId]?.groupId);
+    const url = (sceneTower ? siegeArrowTowerUrl() : undefined) ?? unitSpriteUrl(stack.unitId, catalog[stack.unitId]?.groupId);
     if (url) {
       void Assets.load(url).then((texture) => {
         if (this.destroyed || token.destroyed) return;

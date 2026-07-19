@@ -186,3 +186,16 @@ y compris plaine, validable en 1 capture) ; **Lot 1** = scène peinte génériqu
   **86 bp** (elle domine la courtine, échelle des tours d'extrémité) + ombre
   de contact au sol. Hors scène : rendu structure historique inchangé
   (socle + arrow-tower). Zéro moteur (habillage pur, ciblage/stats intacts).
+- 2026-07-19 — Retour porteur (itération 5, exigence de qualité globale) :
+  « pas une tour de tir » + « intégration tours/murs = quick win moyen bof ».
+  Deux refontes de fond : (a) **tour de tir dédiée**
+  `siege-piece-arrow-tower` — tour grise + BALISTE peinte montée sur la
+  plateforme (couronne re-superposée devant le châssis), l'arme se voit ;
+  (b) **courtine re-conçue en bande strictement périodique** (période = pas
+  de rangée, façade continue pleine masse + crête crénelée côté assaillant,
+  ombre portée sur la cour) ⇒ raccords entre rangées invisibles PAR
+  CONSTRUCTION, fini l'effet « tourelles empilées » ; brèche = bande PERCÉE
+  (trou d'alpha déchiqueté + lèvres brisées + gravats). Variante -2
+  supprimée (la périodicité exige des pièces identiques ; repli client déjà
+  en place). Première passe « vue de dessus » (face/dents/chemin de ronde
+  étroits) auto-rejetée au QC : rendu frise abstraite — non livrée.

@@ -3929,3 +3929,123 @@ test('siège : forge un combat de ville → catapulte/tir visible, combat vivant
 
   expect(errors).toEqual([]);
 });
+
+/**
+ * Attend que l'autosave IndexedDB (clé `auto`) soit DURABLE avant de naviguer —
+ * l'écriture est asynchrone (mirroir de la vérif du test « autosave … Continuer »).
+ * Sans ce point de synchro, un `reload` couperait l'écriture en cours.
+ */
+async function expectAutosaveDurable(page: Page): Promise<void> {
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          new Promise<boolean>((resolve) => {
+            const req = indexedDB.open('heroes');
+            req.onsuccess = () => {
+              const db = req.result;
+              try {
+                const get = db.transaction('saves', 'readonly').objectStore('saves').get('auto');
+                get.onsuccess = () => {
+                  db.close();
+                  resolve(get.result !== undefined);
+                };
+                get.onerror = () => {
+                  db.close();
+                  resolve(false);
+                };
+              } catch {
+                db.close();
+                resolve(false);
+              }
+            };
+            req.onerror = () => resolve(false);
+          }),
+      ),
+    )
+    .toBe(true);
+}
+
+// Harnais E2E (Sprint 1.1, plan .claude/plans/phase-alpha-e2e-ergonomics.md) :
+// UNE session continue prouvant que la boucle end-to-end s'enchaîne sans rupture
+// ni désync route/état — New Game → exploration/ramassage (tap-tap réel) →
+// aller-retour Ville → combat de gardien (pré-combat → Auto-Battle → bilan) →
+// retour carte → fin de tour/autosave → rechargement → l'état persiste. Les
+// smokes shardés démarrent CHACUN à neuf ⇒ ils ne prouvent jamais l'enchaînement
+// des TRANSITIONS dans une même session : c'est la valeur propre de ce harnais.
+// Tag `@e2e` (jamais `@core`/`@mobile`) : OPTIONNEL en CI — joué dans un job
+// dédié NON bloquant et exclu des runs bloquants (voir .github/workflows/ci.yml
+// et deploy.yml). Le siège (autre entrée de combat) reste couvert par S-TEST.
+test('E2E : boucle complète New Game → exploration → ville → combat → sauvegarde → reload', { tag: '@e2e' }, async ({
+  page,
+}) => {
+  const errors = await openGame(page); // ?seed=42 : partie reproductible
+
+  await test.step('New Game : la carte démarre sur proto-01, héros au départ', async () => {
+    await expect(page.locator('#canvas-root canvas')).toBeVisible();
+    const state = await page.evaluate(() => window.__HEROES_TEST__!.getState());
+    expect(state.started).toBe(true);
+    expect(state.map?.id).toBe('proto-01');
+    expect(await heroPos(page)).toEqual({ x: 3, y: 3 });
+  });
+
+  await test.step('Exploration : tap-tap réel jusqu’au tas d’or (6,3) ⇒ ramassage', async () => {
+    await tapTapTile(page, 6, 3);
+    await expect.poll(() => heroPos(page)).toEqual({ x: 6, y: 3 });
+    await expect(page.getByTestId('resource-gold')).toHaveText('2500'); // 2000 + 500
+  });
+
+  await test.step('Transition Ville : ouvrir la ville de départ puis revenir à la carte', async () => {
+    await page.getByTestId('town-open-start-town').click();
+    await expect(page.getByTestId('town-close')).toBeVisible();
+    await page.getByTestId('town-close').click();
+    await expect(page.getByTestId('town-close')).toHaveCount(0);
+    await expect(page.getByTestId('end-turn')).toBeVisible(); // de retour sur la carte
+  });
+
+  await test.step('Combat : marcher sur le gardien (9,3) ⇒ pré-combat ⇒ Auto-Battle ⇒ retour', async () => {
+    // Approche par la rangée 2 (le tas d'or de la rangée 3 est déjà ramassé) ;
+    // le dernier pas déclenche l'interception, le héros s'arrête en (8,2).
+    await page.evaluate(() =>
+      window.__HEROES_TEST__!.dispatch({
+        type: 'MoveHero',
+        heroId: 'hero-player-1',
+        path: [
+          { x: 6, y: 2 },
+          { x: 7, y: 2 },
+          { x: 8, y: 2 },
+          { x: 9, y: 3 },
+        ],
+      }),
+    );
+    await passPreBattle(page, 'auto'); // résolution déterministe immédiate
+    await expect.poll(() => page.evaluate(() => window.__HEROES_TEST__!.getState().combat)).toBeNull();
+    await dismissCombatResult(page); // bilan de fin de combat (fouillé)
+    const state = await page.evaluate(() => window.__HEROES_TEST__!.getState());
+    expect(state.map?.objects.some((o) => o.id === 'guard-camp')).toBe(false); // gardien vaincu
+    expect(await heroPos(page)).toEqual({ x: 8, y: 2 });
+    await expect(page.getByTestId('end-turn')).toBeVisible(); // de retour sur la carte
+  });
+
+  // État de référence AVANT rechargement (l'or dépend du revenu du jour 2).
+  let goldBefore = 0;
+  await test.step('Fin de tour : jour suivant + autosave durable', async () => {
+    await endTurn(page);
+    await expect(page.getByTestId('calendar')).toContainText('2');
+    goldBefore = await page.evaluate(() => window.__HEROES_TEST__!.getState().players[0]!.resources.gold);
+    await expectAutosaveDurable(page);
+  });
+
+  await test.step('Rechargement : « Continuer » restaure l’état à l’identique', async () => {
+    await page.goto('./'); // sans seed : repart du menu, sauvegarde restaurée
+    await page.waitForFunction(() => window.__HEROES_READY__ === true);
+    await expect(page.getByTestId('menu-continue')).toBeEnabled();
+    await page.getByTestId('menu-continue').click();
+    await expect.poll(() => heroPos(page)).toEqual({ x: 8, y: 2 });
+    const state = await page.evaluate(() => window.__HEROES_TEST__!.getState());
+    expect(state.calendar.day).toBe(2);
+    expect(state.players[0]?.resources.gold).toBe(goldBefore);
+  });
+
+  expect(errors).toEqual([]);
+});

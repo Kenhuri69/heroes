@@ -61,7 +61,9 @@ jobs:
       - run: pnpm exec playwright install chromium --with-deps
       # Appel direct de Playwright (le script `pnpm smoke` ne transmet pas les
       # arguments après `--`).
-      - run: pnpm exec playwright test --grep-invert=@perf
+      # `@e2e` exclu ici aussi : le harnais end-to-end est OPTIONNEL (job dédié
+      # non bloquant sur PR, ci.yml) — il ne doit pas gater un déploiement.
+      - run: pnpm exec playwright test --grep-invert='@perf|@e2e'
       - run: pnpm exec playwright test --project=desktop --grep=@perf --workers=1
 
       # Backend (Live 7.4) : REBUILD du client avec l'URL du Worker AVANT publication

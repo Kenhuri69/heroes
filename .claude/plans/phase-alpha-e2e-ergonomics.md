@@ -31,16 +31,21 @@
 **But :** transformer « ça devrait marcher » en « c'est vérifié bout-en-bout et
 chiffré ». Priorité absolue avant toute nouvelle finition.
 
-### 1.1 Harnais de vérification E2E jouée *(S/M)*
-- Étendre `tests/smoke.spec.ts` (ou ajouter `tests/e2e-loop.spec.ts`, tag `@core`)
-  pour dérouler **une partie complète pilotée** : New Game (config déterministe,
-  graine fixe) → explorer → ramasser une ressource → combat contre un gardien →
-  résultat → siège d'une ville → écran de résultat → retour carte → fin de tour
-  → autosave → reload → l'état correspond.
-- Suivre le skill `test-authoring` (niveau smoke = ~100× un unitaire : un seul
-  parcours long, pas dix courts).
-- **Vérif :** `pnpm smoke` vert desktop + mobile ; le parcours atteint chaque
-  transition d'écran sans exception console.
+### 1.1 Harnais de vérification E2E jouée *(S/M)* — ✅ LIVRÉ
+- Test `@e2e` ajouté dans `tests/smoke.spec.ts` (réutilise les helpers existants,
+  guideline §3 — pas de duplication) : **une session continue** New Game →
+  exploration/ramassage (tap-tap réel) → aller-retour Ville → combat de gardien
+  (pré-combat → Auto-Battle → bilan) → retour carte → fin de tour/autosave →
+  rechargement « Continuer » → l'état persiste à l'identique. Helper
+  `expectAutosaveDurable`. Siège couvert séparément par S-TEST.
+- **Décision utilisateur : `@e2e` OPTIONNEL en CI.** Job `e2e` dédié dans
+  `ci.yml` avec `continue-on-error: true` (tourne + visible sur chaque PR, ne
+  bloque jamais la fusion) ; `@e2e` exclu des runs bloquants (job `smoke` en
+  workflow_dispatch + `deploy.yml`) via `--grep-invert='@perf|@e2e'`. `@e2e`
+  n'est ni `@core` ni `@mobile` ⇒ absent du noyau PR par construction.
+- **Vérif (faite) :** test vert en local (12 s, Chromium local) ; `--list`
+  confirme l'isolation de tag (dans `@e2e`, absent de `@core`) ; `pnpm lint` +
+  `pnpm typecheck` verts ; YAML des 2 workflows valide.
 
 ### 1.2 Audit des transitions Adventure ↔ Town ↔ Combat ↔ Siège *(M)*
 - Piloter à la main (skill `run`) chaque transition et son retour, chercher :
@@ -146,7 +151,7 @@ séparé, hors périmètre Alpha.
 - Pas de refactor spéculatif (guideline §2/§3) : n'ouvrir que sur mesure.
 
 ## Suivi
-- [ ] S1.1 harnais E2E
+- [x] S1.1 harnais E2E (test `@e2e` + job CI non bloquant ; vérifié local)
 - [ ] S1.2 audit transitions
 - [ ] S1.3 perf chiffrée
 - [ ] S1.4 non-régressions save

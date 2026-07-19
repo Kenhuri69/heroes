@@ -217,3 +217,13 @@ y compris plaine, validable en 1 capture) ; **Lot 1** = scène peinte génériqu
   pixel-alignée) — sans nouvel art, plafond = art existant.
   Ce commit fige l'état kit procédural comme BASE TECHNIQUE (non validée
   visuellement) ; aucun nouveau changement visuel avant l'arbitrage.
+- 2026-07-19 — **Option A validée par le porteur** (planche Gemini dédiée).
+  Livré : gabarit `assets/prompts/siege-kit-template.png` (grille 3×2, les
+  volumes EXACTS du kit actuel en silhouettes-guides contrastées ⇒ le modèle
+  repeint une géométrie déjà câblée, calage garanti), prompt + procédure
+  `assets/prompts/combat-siege-kit.md`, extracteur
+  `tools/assets/extract_siege_kit.py` (chroma-key, ajustement dans les
+  canvas/ancres EXISTANTS, `--dry-run` avec aperçu ⇒ zéro changement client
+  au dépôt de l'art). En attente : génération de la planche par le porteur
+  (2048×1536, gabarit joint en image de référence), puis extraction +
+  capture de vérification.

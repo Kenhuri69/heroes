@@ -562,6 +562,42 @@ describe('loadMap', () => {
     );
   });
 
+  it('résout un trigger flagCaptured vers la forme moteur (doc 18 A5)', async () => {
+    const data = makeData();
+    const map = data['maps/mini.map.json'] as { triggers?: unknown[] };
+    map.triggers = [
+      {
+        id: 't-flag',
+        on: { kind: 'flagCaptured', objectId: 'mine-1' },
+        effect: { kind: 'grantResource', resource: 'gold', amount: 250 },
+      },
+    ];
+    const resolved = await loadMap(reader(data), 'mini', makeConfig(), new Set(['t1-grunt']));
+    expect(resolved.triggers).toContainEqual({
+      id: 't-flag',
+      on: { kind: 'flagCaptured', objectId: 'mine-1' },
+      effect: { kind: 'grantResource', resource: 'gold', amount: 250 },
+      fired: false,
+    });
+  });
+
+  it('rejette un trigger flagCaptured portant un effet interrompant (doc 18 A5)', async () => {
+    const data = makeData();
+    const map = data['maps/mini.map.json'] as { triggers?: unknown[] };
+    map.triggers = [
+      {
+        id: 't-bad',
+        on: { kind: 'flagCaptured', objectId: 'mine-1' },
+        effect: { kind: 'ambush', army: [{ unitId: 't1-grunt', count: 1 }] },
+      },
+    ];
+    const err = await loadMap(reader(data), 'mini', makeConfig(), new Set(['t1-grunt'])).catch(
+      (e: unknown) => e,
+    );
+    expect(err).toBeInstanceOf(PackError);
+    expect((err as PackError).errors.join()).toContain("'flagCaptured'");
+  });
+
   it('rejette un trésor sans aucun gain et un artefact inconnu du catalogue', async () => {
     const data = makeData();
     const map = data['maps/mini.map.json'] as { objects: unknown[] };

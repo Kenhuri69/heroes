@@ -1,6 +1,7 @@
 import { grantXp } from '../adventure/experience';
 import { rewardGuardianDefeat } from '../adventure/guardian-reward';
 import { queueGuardianRespawn } from '../adventure/respawn';
+import { fireFlagCaptureTrigger } from '../adventure/triggers';
 import { revealStructure } from '../adventure/vision';
 import { applyFactionVictoryEffects } from '../faction/effects';
 import { rewardHuntContract } from '../town/hunt-contract';
@@ -497,6 +498,9 @@ function applyConsequences(
         town.sharedGrowthChoice = {};
         events.push({ type: 'TownCaptured', townId: town.id, playerId: hero.playerId });
         revealStructure(draft, hero.playerId, town.pos); // F1 : ville prise = vision de son voisinage
+        // Trigger de capture de drapeau (doc 18 A5) : effet scripté pour le vainqueur.
+        const capturer = draft.players.find((p) => p.id === hero.playerId);
+        if (capturer) fireFlagCaptureTrigger(draft, town.id, capturer, hero, events);
       }
     }
   } else {

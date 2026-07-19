@@ -106,9 +106,14 @@ de cet audit)*
   `SimpleTriggerEffect` (donc utilisables aussi comme branche d'un `choice`),
   péage/tribut/malédiction scriptés. Opt-in par données ⇒ golden inchangé, pas de
   bump save.
-- **Reste** (P3, non prioritaire) : `onFlagCaptured` — c'est une nouvelle
-  *condition* de trigger (`on.kind`, hook au site de capture), pas un effet ;
-  forme distincte, non ouverte.
+- **Complété (A5d)** : `flagCaptured` — nouvelle **condition** de trigger
+  (`on: { kind: 'flagCaptured'; objectId }`) déclenchée quand une mine/habitation/
+  ville change de main (hooks aux 4 sites de capture : `movement.ts` mine +
+  habitation, `town/capture.ts` ville non défendue, `combat/turns.ts` ville prise
+  au siège). Effet **restreint aux `SimpleTriggerEffect`** (appliqué sans
+  interruption ; garde-fou schéma superRefine rejetant ambush/teleport/choice).
+  One-shot ; ignoré par `fireVisitTrigger`/`fireDayTriggers`. Opt-in par données
+  ⇒ golden inchangé, pas de bump save. **La famille de triggers A5 est close.**
 
 **A6 — Villes neutres hors `MapObjectDef`** ⛔ *(non retenu — frontière de design)*
 - **État** : le mapgen émet des villes neutres comme objets `type: 'town'`

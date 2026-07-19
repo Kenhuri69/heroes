@@ -831,7 +831,10 @@ threadé en `heroId` dans `CastSpell`/`HeroAttack` — sinon le lead par défaut
 > les **triggers de carte** `onVisit`/`onDay` (doc §2.1) sont désormais
 > implémentés. Triggers = point d'extension **générique** (`AdventureMapDef.
 > triggers`, effets déclaratifs, one-shot, événement `TriggerFired`) — jamais un
-> nom de faction/scénario dans le moteur. **Effets (doc 18 A5, lot 2.4)** :
+> nom de faction/scénario dans le moteur. **Conditions** (`on.kind`) : `visit`
+> (tuile), `day` (jour) et **`flagCaptured`** (doc 18 A5d — quand la mine/
+> habitation/ville `objectId` change de main ; effet restreint aux effets-feuille
+> simples, appliqué sans interruption, garde-fou schéma). **Effets (doc 18 A5, lot 2.4)** :
 > `grantResource`, `message`, `grantArtifact` (1er slot libre puis sac, comme le
 > butin de gardien), `grantArmy` (fusion même unité, sinon nouveau slot — cap 7,
 > sinon perdu), **`removeArtifact`**/**`removeArmy`** (doc 18 A5c — miroirs des
@@ -848,8 +851,7 @@ threadé en `heroId` dans `CastSpell`/`HeroAttack` — sinon le lead par défaut
 > (humain) ou l'IA d'aventure qui prend l'option 0 ; **champ optionnel non
 > initialisé ⇒ pas de bump de sauvegarde**). Les effets liés au héros visiteur
 > sont des **no-ops sur un trigger `onDay`** (pas de héros cible). Différés :
-> `collectArtifact`/`accumulateResource`, `onFlagCaptured` (nouvelle *condition*
-> de trigger, pas un effet).
+> `collectArtifact`/`accumulateResource`.
 >
 > 🚧 **État (M-NAV a — monolithes appariés, doc §2.1)** : nouvel objet de carte
 > `monolith` portant un `pairId`. **Exactement 2** monolithes partagent un `pairId`

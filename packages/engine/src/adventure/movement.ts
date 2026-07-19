@@ -7,7 +7,7 @@ import { revealAround } from './fog';
 import { revealStructure } from './vision';
 import { samePos, type GridPos } from './map';
 import { stepCost } from './path';
-import { fireVisitTrigger } from './triggers';
+import { fireFlagCaptureTrigger, fireVisitTrigger } from './triggers';
 import { recruitDwelling, visitBonus } from './visitable';
 
 /** Le propriétaire (id ou null) d'une structure de carte est-il un ALLIÉ du joueur ? (B26) */
@@ -229,6 +229,7 @@ export function advanceHeroAlongPath(
         if (obj.ownerId !== player.id && !isAllyOwner(draft, player, obj.ownerId)) {
           obj.ownerId = player.id;
           revealStructure(draft, player.id, obj.pos);
+          fireFlagCaptureTrigger(draft, obj.id, player, hero, events); // doc 18 A5
         }
         recruitDwelling(draft, hero, player, obj, events);
       }
@@ -247,6 +248,7 @@ export function advanceHeroAlongPath(
         amount: mine.amount,
         pos: { ...hero.pos },
       });
+      fireFlagCaptureTrigger(draft, mine.id, player, hero, events); // doc 18 A5
     }
     const obj = objectsAt
       .get(tileKey(hero.pos))

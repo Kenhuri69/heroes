@@ -123,7 +123,7 @@ jobs:
       # script `pnpm smoke` ne transmet pas les arguments après `--`).
       - run: >
           pnpm exec playwright test --shard=${{ matrix.shard }}/2
-          ${{ github.event_name == 'workflow_dispatch' && '--grep-invert=@perf' || '--grep=@core' }}
+          "${{ github.event_name == 'workflow_dispatch' && '--grep-invert=@perf|@e2e' || '--grep=@core' }}"
 
   # Tests de fluidité (@perf) isolés : mono-worker, seuls sur le runner, pour
   # une mesure FPS non perturbée par la charge parallèle.
@@ -148,3 +148,32 @@ jobs:
       - run: pnpm build
 
       - run: pnpm exec playwright test --project=desktop --grep=@perf --workers=1
+
+  # Harnais E2E (@e2e) : boucle end-to-end complète jouée en UNE session
+  # (New Game → exploration → ville → combat → sauvegarde → reload). OPTIONNEL :
+  # `continue-on-error` ⇒ ce job tourne et reste VISIBLE sur chaque PR mais ne
+  # bloque JAMAIS la fusion (choix : un parcours long est plus sujet au flake que
+  # le noyau `@core`, on veut le signal sans le gate). Exclu des runs bloquants
+  # (job `smoke` en workflow_dispatch, deploy.yml) via `--grep-invert`.
+  e2e:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      - name: Cache des navigateurs Playwright
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+      - run: pnpm exec playwright install chromium --with-deps
+
+      - run: pnpm build
+
+      - run: pnpm exec playwright test --project=desktop --grep=@e2e

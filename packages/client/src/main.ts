@@ -106,6 +106,13 @@ declare global {
       haptic: () => { count: number };
       /** Nb d'enfants du nœud d'un objet de carte rendu (A1 — gradation des gardiens). */
       objectChildCount: (id: string) => number;
+      /**
+       * Empreinte du scène-graphe pour la non-régression de fuite (S1.2) : enfants
+       * de `app.stage` et nombre de listeners `pointerdown` (= nb de scènes vivantes
+       * × leurs abonnements caméra/tap). Doit revenir à l'identique après chaque
+       * aller-retour Aventure↔Combat — toute croissance signale une fuite CL1/CL2.
+       */
+      sceneGraphStats: () => { stageChildren: number; stagePointerListeners: number };
     };
   }
 }
@@ -503,6 +510,10 @@ async function bootstrap(): Promise<void> {
     waterSheen: () => ({ ...waterSheenStats }),
     haptic: () => ({ ...hapticStats }),
     objectChildCount: (id: string) => scene?.objectChildCount(id) ?? 0,
+    sceneGraphStats: () => ({
+      stageChildren: app.stage.children.length,
+      stagePointerListeners: app.stage.listenerCount('pointerdown'),
+    }),
   };
   window.__HEROES_READY__ = true; // signal pour le smoke test headless
 }

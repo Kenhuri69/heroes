@@ -38,6 +38,12 @@ affiche la **clé brute** (« school.traque »…) pour 4 factions :
 - **Test de régression** (`packages/content`) : toute école de sort référencée
   par un sort core a une clé `school.<id>` en core FR **et** EN — empêche la
   réapparition (une nouvelle école sans libellé casse le test).
+- **2ᵉ garde `@loc:` (suite d'audit)** : `loc-refs-resolve.test.ts` — TOUTE
+  référence `@loc:` d'un paquet (récursif sur ses JSON) résout dans ses locales
+  ou en core, FR **et** EN. Le loader (`content:check`) n'imposait que les noms
+  d'unités/héros/faction/maison + loreKey d'unité ; ce test **généralise** aux
+  refs non couvertes (**lore de bâtiment**, **campagnes**). Mutation-testé
+  (retrait d'une clé ⇒ échec ciblé), puis restauré.
 
 ## Vérification
 

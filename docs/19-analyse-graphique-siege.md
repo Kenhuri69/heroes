@@ -52,6 +52,15 @@ lequel la grille se glisse discrètement.
   sur la palette des écus. Résolution client `<clé>-<factionId>` ?? générique
   (id opaque, même motif que `siegeSceneUrl`) ⇒ **repli générique inchangé**
   pour toute faction sans variante.
+- **Raccords de bandes sans couture** (backlog item 2) : quand une rangée voit
+  son état réel différer de l'état peint, elle est remplacée par une
+  bande-étalon d'1 rangée (`siege-run-band-<état>`) ; plusieurs rangées
+  adjacentes de même état empilaient des copies identiques ⇒ la phase des
+  merlons « sautait » à chaque couture. Corrigé par **tuilage miroir** (client
+  pur, zéro asset) : une rangée-bande sur deux est rendue en miroir vertical,
+  si bien que chaque couture rencontre un bord identique (bas↔bas / haut↔haut)
+  et la crénelure devient continue. Les tranches du run et la bande rasée
+  étendue ne sont pas retournées.
 - **Repli gracieux intégral** : sans assets de scène, l'habillage procédural
   historique reprend la main ; un art supérieur (Gemini) se substitue par
   simple dépôt de fichiers homonymes.

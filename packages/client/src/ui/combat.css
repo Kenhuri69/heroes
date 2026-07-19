@@ -446,6 +446,39 @@
 .combat-log.closed {
   display: none;
 }
+/* E14 : en-tête filtre + copie du journal. */
+.combat-log-tools {
+  display: flex;
+  gap: 0.4rem;
+  padding: 0.4rem 0.6rem;
+  border-bottom: 1px solid var(--brass);
+  align-items: center;
+}
+.combat-log-filter {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--ink-600);
+  border-radius: var(--radius-s);
+  background: var(--ink-800);
+  color: var(--parchment);
+  font: 0.8rem/1.4 var(--font-ui);
+}
+.combat-log-copy {
+  flex: 0 0 auto;
+  min-height: 44px;
+  padding: 0 0.7rem;
+  border: 1px solid var(--brass-bright);
+  border-radius: var(--radius-s);
+  background: transparent;
+  color: var(--parchment-bright);
+  font: 0.8rem/1 var(--font-ui);
+  cursor: pointer;
+}
+.combat-log-copy:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
 .combat-log-lines {
   margin: 0;
   padding: 0.4rem 0.6rem;

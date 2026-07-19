@@ -334,7 +334,11 @@
 > peur, immobilisation, fin). **Client pur** : un listener global alimente
 > `store.combatLog` depuis les **événements moteur déjà émis** (aucun état ni règle
 > ajoutés), remis à zéro à chaque combat, borné à 80 lignes ; les ids de pile sont
-> résolus en noms d'unité localisés.
+> résolus en noms d'unité localisés. **E14 (filtre & copie)** : le panneau porte
+> un **champ de recherche** (filtre les lignes par sous-chaîne, insensible à la
+> casse) et un bouton **« Copier »** (les lignes visibles → presse-papier, toast
+> de confirmation) — client seul, sans tagger les événements. Le filtre **par
+> catégorie** reste différé (plomberie disproportionnée).
 
 > 🚧 **État (Prière de bataille — F-SKILLS.2-UI, livré)** : un bouton **« Prière »**
 > de la barre d'actions de combat expose la compétence de faction *Prière de

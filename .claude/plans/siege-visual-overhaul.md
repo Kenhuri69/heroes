@@ -346,3 +346,18 @@ y compris plaine, validable en 1 capture) ; **Lot 1** = scène peinte génériqu
   `after-plan-v8-round1.jpg` / `after-plan-v8-auto.jpg` (rangées rasées par
   la catapulte = matière de brèche, intactes = bandes propres). Planche
   source committée (`_incoming/siege-ensemble.png`, filigrane effacé).
+- 2026-07-19 — Retour porteur (« pas vu le mur sain ; les éléments cassés
+  semblent coupés ; marge d'amélioration ») — trois causes distinctes
+  corrigées : (1) le « mur jamais sain » venait du COMBAT FORGÉ S-TEST
+  (héros à catapulte ⇒ C-SIEGE2.2 retire les rangées 3/6 dès le départ —
+  comportement moteur voulu, pas un bug d'affichage) ⇒ hook
+  `startSiege({ catapult: false })` (muraille complète indestructible) +
+  capture `after-plan-v8-intact.jpg` ; (2) l'étalon INTACT (r3) était
+  contaminé par une écornure peinte au-dessus de la porte ⇒ déplacé r9 +
+  purge du déversement ouest à l'extraction (`wallWestBp`) — étalon
+  garanti sain ; (3) BANDE RASÉE ÉTENDUE (`razedBandRows: 3`, layout +
+  client) : une rangée rasée hors zone peinte tamponne désormais le TAS de
+  gravats ENTIER (rangées haute/basse de la bande = déversement ouest
+  seul, mur limité à sa rangée, profondeur au bas de la rangée rasée) —
+  fini les tas coupés net. Captures rafraîchies (intact / round 1 avec
+  catapulte / manche 7). Vérifs : typecheck, build, smoke siège 2/2.

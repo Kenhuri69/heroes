@@ -39,7 +39,7 @@
     "7": "razed"
   },
   "exemplar": {
-    "intact": 3,
+    "intact": 9,
     "cracked": 1,
     "razed": 7
   },
@@ -52,5 +52,7 @@
       6,
       9
     ]
-  }
+  },
+  "wallWestBp": 640.0,
+  "razedBandRows": 3
 }

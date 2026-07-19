@@ -1112,7 +1112,7 @@ export class CombatScene {
     if (!runUrl) return;
     const x0 = run.x - run.xWest;
 
-    const place = (key: string, sig: string, topBp: number, hBp: number, tex: () => Promise<Texture | null>): void => {
+    const place = (key: string, sig: string, topBp: number, hBp: number, tex: () => Promise<Texture | null>, z = topBp + hBp): void => {
       const existing = this.wallStructures.get(key);
       if (existing && !existing.destroyed && existing.label === sig) return;
       existing?.destroy();
@@ -1121,7 +1121,7 @@ export class CombatScene {
       sprite.label = sig;
       sprite.eventMode = 'none';
       sprite.position.set(x0, topBp);
-      sprite.zIndex = topBp + hBp;
+      sprite.zIndex = z;
       void tex().then((texture) => {
         if (sprite.destroyed || !texture) return;
         sprite.texture = texture;
@@ -1170,7 +1170,16 @@ export class CombatScene {
       } else {
         useRun = state === (run.painted[String(row)] ?? 'intact');
       }
-      place(`slice:${row}`, `${state}:${useRun ? 'run' : 'band'}`, topBp, period, useRun ? runFrame(topBp, period) : bandTex(state as 'intact' | 'cracked' | 'razed'));
+      // Bande RASÉE étendue (razedBandRows > 1) : le tas de gravats entier
+      // déborde par transparence sur les rangées voisines — posée centrée,
+      // profondeur au bas de la rangée rasée elle-même.
+      const rbRows = run.razedBandRows ?? 1;
+      if (!useRun && state === 'razed' && rbRows > 1) {
+        const ext = ((rbRows - 1) / 2) * period;
+        place(`slice:${row}`, 'razed:band', topBp - ext, period * rbRows, bandTex('razed'), topBp + period);
+      } else {
+        place(`slice:${row}`, `${state}:${useRun ? 'run' : 'band'}`, topBp, period, useRun ? runFrame(topBp, period) : bandTex(state as 'intact' | 'cracked' | 'razed'));
+      }
     }
     // Extrémités du tableau (tours comprises) : toujours depuis le run.
     const capTopH = -period / 2 - run.topBp;

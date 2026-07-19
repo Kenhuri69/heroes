@@ -443,6 +443,10 @@ export interface SiegeRunLayout {
    *  dégât du tableau déborde autour de sa rangée-étalon ⇒ la zone bascule
    *  d'un bloc entre tableau et bandes-étalons. */
   zones?: Partial<Record<'cracked' | 'razed', [number, number]>>;
+  /** Hauteur (en rangées) de la bande-étalon RASÉE : > 1 ⇒ la bande embarque
+   *  le tas de gravats entier déversé à l'ouest (les rangées haute/basse ne
+   *  contiennent que le déversement) — posée centrée sur la rangée rasée. */
+  razedBandRows?: number;
 }
 
 /** Layout de calage de la scène de siège (board-space), émis par le générateur. */

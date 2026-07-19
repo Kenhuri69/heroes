@@ -68,10 +68,19 @@ ARROW_BOX = (763.0, 118.0, 858.0, 224.0)  # tour de tir, en retrait derrière la
 ARROW_RAZED_BOX = (752.0, 312.0, 858.0, 420.0)  # sa ruine, en retrait derrière la brèche
 
 # États peints dans l'ensemble + rangée-étalon de chaque état. L'étalon
-# INTACT est la rangée 3 : la seule hors de toute contamination (fissures
-# jusqu'à ~90 bp, porte dès 130, gravats de brèche 214..312 bp).
+# INTACT est la rangée 9 : la peinture v8 écorne le mur jusqu'à r3 (patch
+# fissuré au-dessus de la porte) et les gravats de brèche courent 214..312 bp
+# — r9 n'a que la traîne de gravats à l'OUEST du mur, masquée à l'extraction
+# (`wallWestBp`).
 PAINTED = {"1": "cracked", "7": "razed"}
-EXEMPLAR = {"intact": 3, "cracked": 1, "razed": 7}
+EXEMPLAR = {"intact": 9, "cracked": 1, "razed": 7}
+# Bord OUEST du corps de mur peint (mesuré) : à l'ouest = champ/déversements.
+WALL_WEST_BP = 640.0
+# La bande RASÉE est étendue à 3 rangées : le mur reste limité à sa rangée
+# mais le TAS de gravats déversé à l'ouest est gardé entier (les rangées
+# haute/basse de la bande ne conservent que x < WALL_WEST_BP) — sans cela,
+# une rangée rasée hors zone peinte montrait un tas coupé net.
+RAZED_BAND_ROWS = 3
 # Zones de dégât peintes EN SITUATION : le dégât du tableau déborde sur les
 # rangées voisines de sa rangée-étalon (gravats, lèvres, cailloux épars) ⇒
 # côté client la zone entière bascule d'un bloc (tableau si l'étalon a
@@ -237,6 +246,8 @@ def main() -> None:
         "painted": PAINTED,
         "exemplar": EXEMPLAR,
         "zones": ZONES,
+        "wallWestBp": WALL_WEST_BP,
+        "razedBandRows": RAZED_BAND_ROWS,
     }
     OUT_CUTS.write_text(json.dumps(cuts, indent=2) + "\n")
     print(f"{OUT_TPL.name} {CANVAS} · cuts JSON")

@@ -87,11 +87,24 @@ def main() -> None:
     run = crop_bp(run_box, src=run_src)
     period = cuts["period"]
 
+    period_px = int(round(period * OUT_SCALE))
+    # Bord ouest du corps de mur dans le repère du run (masquages ci-dessous).
+    wx = int(round((cuts["wallWestBp"] - cuts["run"]["x0"]) * OUT_SCALE)) if "wallWestBp" in cuts else 0
     bands: dict[str, Image.Image] = {}
     for state, row in cuts["exemplar"].items():
         y_r = row * period
         top_px = int(round((y_r - period / 2 - cuts["run"]["y0"]) * OUT_SCALE))
-        bands[state] = run.crop((0, top_px, run.width, top_px + int(round(period * OUT_SCALE))))
+        rows = int(cuts.get("razedBandRows", 1)) if state == "razed" else 1
+        band = run.crop((0, top_px - (rows // 2) * period_px, run.width, top_px + period_px + (rows // 2) * period_px))
+        if state == "razed" and rows > 1 and wx:
+            # Rangées haute/basse de la bande étendue : seul le TAS déversé à
+            # l'ouest est conservé (le mur des voisines reste à elles).
+            band.paste((0, 0, 0, 0), (wx, 0, band.width, (rows // 2) * period_px))
+            band.paste((0, 0, 0, 0), (wx, band.height - (rows // 2) * period_px, band.width, band.height))
+        if state == "intact" and wx:
+            # Étalon SAIN garanti : purge tout déversement à l'ouest du mur.
+            band.paste((0, 0, 0, 0), (0, 0, wx, band.height))
+        bands[state] = band
 
     arrow = crop_bp(tuple(cuts["arrow"]), tight=True)
     arrow_razed = crop_bp(tuple(cuts["arrowRazed"]), tight=True)
@@ -134,6 +147,7 @@ def main() -> None:
         "painted": cuts["painted"],
         "gateRows": cuts["gateRows"],
         **({"zones": cuts["zones"]} if "zones" in cuts else {}),
+        **({"razedBandRows": cuts["razedBandRows"]} if "razedBandRows" in cuts else {}),
     }
     LAYOUT.write_text(json.dumps(layout, indent=2) + "\n")
     print("layout : bloc run écrit — le client passe en mode tranches")

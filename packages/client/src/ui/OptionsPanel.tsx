@@ -1,4 +1,4 @@
-import { useState } from 'preact/hooks';
+import { useState, useEffect } from 'preact/hooks';
 import { appStore, useApp } from '../app/store';
 import { t, setLocale } from '../app/i18n';
 import { exportSave, importSave, saveGame, restoreSavedGame, pushCloudSave, pullCloudSave } from '../app/save';
@@ -12,6 +12,7 @@ import { applyFontScale, setConfirmEndTurn, FONT_SCALE_PERCENT } from '../app/se
 import { COMBAT_SPEEDS } from '../app/ui-constants';
 import { pushToast } from './toasts';
 import { ShortcutsOverlay } from './ShortcutsOverlay';
+import { fullscreenSupported, isFullscreen, toggleFullscreen } from '../app/fullscreen';
 import './options.css';
 
 const FONT_SCALES = [1, 2, 3] as const;
@@ -42,6 +43,14 @@ export function OptionsPanel({ onClose }: { onClose: () => void }) {
   // devient découvrable via un bouton ici. Overlay rendu en local (indépendant de
   // la pile de modales) ⇒ marche aussi bien depuis le menu qu'en jeu.
   const [showShortcuts, setShowShortcuts] = useState(false);
+  // E15 (reliquat) : bascule plein écran, synchronisée sur l'événement navigateur
+  // `fullscreenchange` (l'utilisateur peut aussi sortir via Échap/F11).
+  const [fullscreen, setFullscreen] = useState(isFullscreen());
+  useEffect(() => {
+    const onChange = (): void => setFullscreen(isFullscreen());
+    document.addEventListener('fullscreenchange', onChange);
+    return () => document.removeEventListener('fullscreenchange', onChange);
+  }, []);
 
   const doExport = (): void => {
     exportSave(appStore.getState().game)
@@ -233,6 +242,17 @@ export function OptionsPanel({ onClose }: { onClose: () => void }) {
           >
             {t('options.shortcutsButton')}
           </button>
+          {fullscreenSupported() && (
+            <button
+              type="button"
+              class="options-shortcuts-button"
+              data-testid="options-fullscreen"
+              aria-pressed={fullscreen}
+              onClick={toggleFullscreen}
+            >
+              {t(fullscreen ? 'options.fullscreenExit' : 'options.fullscreenEnter')}
+            </button>
+          )}
         </section>
 
         <section class="options-section">

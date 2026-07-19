@@ -441,7 +441,10 @@ Menu principal (Continuer / Scénarios / Escarmouche / **Éditeur de carte** / O
 > suivant ayant des points de mouvement** et recentre la caméra (cyclique,
 > no-op à un seul héros — utile en multi-héros U4) ; les boutons « Fin de tour »
 > et « Ville » portent un `title` d'appoint rappelant leur touche (« Fin de tour
-> (E) »), info **complémentaire** jamais exclusive (A2).
+> (E) »), info **complémentaire** jamais exclusive (A2). **E15 clos** : Options porte aussi
+> une **bascule plein écran** (Fullscreen API, `app/fullscreen.ts`, synchronisée
+> sur `fullscreenchange`, `aria-pressed`), masquée quand l'API n'est pas
+> supportée ; état navigateur, non persisté.
 > Option **« Réduire les animations »** (`app/motion.ts`) : s'**unit** au réglage
 > système `prefers-reduced-motion` (l'un OU l'autre coupe le mouvement, DOM via
 > `<html data-reduce-motion>` + rendu Pixi via `reduceMotion()`), persistée.

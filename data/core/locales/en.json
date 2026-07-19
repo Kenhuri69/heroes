@@ -167,6 +167,8 @@
   "options.off": "Off",
   "options.shortcutsHint": "Shortcuts (desktop): E end turn · H hero · N next hero · T town · Space wait · D defend · ? help · Esc close.",
   "options.shortcutsButton": "View shortcuts",
+  "options.fullscreenEnter": "Enter fullscreen",
+  "options.fullscreenExit": "Exit fullscreen",
   "shortcuts.title": "Keyboard shortcuts",
   "shortcuts.hint": "Desktop only — never required (everything is playable with the mouse).",
   "shortcuts.close": "Close",

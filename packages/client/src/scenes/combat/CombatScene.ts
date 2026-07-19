@@ -28,7 +28,18 @@ import { pushToast } from '../../ui/toasts';
 import { onLongPress, onTap } from '../../input/pointer';
 import { Camera } from '../../render/camera';
 import { playerColor } from '../../render/playerColors';
-import { heroAvatarUrl, unitSpriteUrl, statusIconUrl, siegeCurtainUrl, siegeTowerUrl } from '../../render/assets';
+import {
+  heroAvatarUrl,
+  unitSpriteUrl,
+  statusIconUrl,
+  siegeCurtainUrl,
+  siegeTowerUrl,
+  siegeGateUrl,
+  siegeSceneUrl,
+  siegeSceneLayout,
+  siegeMoatStripUrl,
+  siegeWallPieceUrl,
+} from '../../render/assets';
 import { computeWallLayout, drawCurtain, drawTower, drawGate, drawDamage } from '../../render/siegeWall';
 import { heroArchetype } from '../../app/game';
 import { HEX_SIZE, ISO_SQUASH, computeBoardBounds, drawBoard, hexKey, offsetToPixel, pixelToOffset } from '../../render/hexgrid';
@@ -129,6 +140,18 @@ export class CombatScene {
   private readonly wallDamage = new Graphics();
   /** Signature des remparts déjà rendus (hexes + PV) — évite de redessiner à chaque sync. */
   private wallKeys = '';
+  /**
+   * Refonte siège : SCÈNE peinte plein-cadre (sol champ/fossé/cour/ville) posée
+   * DANS le monde sous la grille, ancrée à la géométrie moteur via le layout du
+   * générateur. Les remparts deviennent des sprites PAR RANGÉE (intact/fissuré/
+   * rasé) placés dans `stacksLayer` (tri de profondeur ⇒ occlusion correcte
+   * unités/mur). `sceneActive` gouverne le repli : sans assets, l'habillage
+   * procédural historique (wallBase/wallSpriteLayer) reprend la main.
+   */
+  private readonly sceneLayer = new Container();
+  private sceneKey = '';
+  private sceneActive = false;
+  private readonly wallStructures = new Map<string, Sprite>();
   private readonly stacksLayer = new Container();
   /** UXD-4 : effets éphémères (chiffres de dégâts flottants) au-dessus des piles. */
   private readonly fxLayer = new Container();
@@ -170,6 +193,7 @@ export class CombatScene {
 
   constructor(private readonly app: Application) {
     this.boardLayer.addChild(
+      this.sceneLayer,
       this.boardGfx,
       this.wallBase,
       this.wallSpriteLayer,
@@ -178,6 +202,9 @@ export class CombatScene {
       this.stacksLayer,
       this.fxLayer,
     );
+    // Scène peinte : pur décor sous la grille, ne capte jamais le tap.
+    this.sceneLayer.eventMode = 'none';
+    this.sceneLayer.sortableChildren = true;
     // Décor de rempart : ne capte jamais le tap.
     this.wallBase.eventMode = 'none';
     this.wallSpriteLayer.eventMode = 'none';
@@ -338,6 +365,11 @@ export class CombatScene {
       this.wallDamage.clear();
       this.wallSpriteLayer.removeChildren().forEach((c) => c.destroy());
       this.wallKeys = '';
+      this.sceneLayer.removeChildren().forEach((c) => c.destroy());
+      this.sceneKey = '';
+      this.sceneActive = false;
+      for (const s of this.wallStructures.values()) s.destroy();
+      this.wallStructures.clear();
       this.fxLayer.removeChildren().forEach((c) => c.destroy()); // purge des chiffres flottants
       for (const [id, token] of this.stackTokens) {
         if (this.animatingIds.has(id)) continue;
@@ -358,9 +390,50 @@ export class CombatScene {
       this.laidOut = true; // E10 : combat visible ⇒ les resizes suivants préservent le pan.
       this.buildHeroTokens(combat);
     }
+    this.syncSiegeScene(combat, st.game);
     this.syncStacks(combat);
     this.syncWalls(combat);
     this.redrawBoard();
+  }
+
+  /**
+   * Refonte siège : pose la SCÈNE peinte (sol) et la bande d'eau de douve dans
+   * le monde, ancrées board-space via le layout du générateur. Décide
+   * `sceneActive` (⇒ `syncWalls` bascule en sprites par rangée). Sans asset ni
+   * layout : no-op, repli intégral sur l'habillage historique.
+   */
+  private syncSiegeScene(combat: CombatState, game: GameState): void {
+    const layout = siegeSceneLayout();
+    const walls = combat.siegeWalls ?? [];
+    const town = combat.townId != null ? game.towns.find((t) => t.id === combat.townId) : undefined;
+    const url = walls.length > 0 && layout ? siegeSceneUrl(town?.factionId) : undefined;
+    this.sceneActive = url != null && siegeWallPieceUrl('intact') != null;
+    const hasMoat = (combat.moat ?? []).length > 0;
+    const key = this.sceneActive ? `${url}|${hasMoat ? 'wet' : 'dry'}` : '';
+    if (key === this.sceneKey) return;
+    this.sceneKey = key;
+    this.sceneLayer.removeChildren().forEach((c) => c.destroy());
+    if (!this.sceneActive || !url || !layout) return;
+    const invScale = 1 / layout.scale;
+    void Assets.load(url).then((texture) => {
+      if (this.destroyed || this.sceneKey !== key) return;
+      const sprite = new Sprite(texture);
+      sprite.scale.set(invScale);
+      sprite.position.set(layout.scene.x0, layout.scene.y0);
+      sprite.zIndex = 0;
+      this.sceneLayer.addChild(sprite);
+    });
+    const moatUrl = hasMoat ? siegeMoatStripUrl() : undefined;
+    if (moatUrl) {
+      void Assets.load(moatUrl).then((texture) => {
+        if (this.destroyed || this.sceneKey !== key) return;
+        const sprite = new Sprite(texture);
+        sprite.scale.set(invScale);
+        sprite.position.set(layout.moatStrip.x0, layout.moatStrip.y0);
+        sprite.zIndex = 1;
+        this.sceneLayer.addChild(sprite);
+      });
+    }
   }
 
   /**
@@ -373,6 +446,20 @@ export class CombatScene {
    * éclats) reste joué par `WallBombarded`.
    */
   private syncWalls(combat: CombatState): void {
+    if (this.sceneActive) {
+      // Mode SCÈNE peinte : le rempart est un jeu de sprites PAR RANGÉE dans
+      // `stacksLayer` (profondeur correcte) — l'habillage procédural se tait.
+      this.wallBase.clear();
+      this.wallDamage.clear();
+      this.wallSpriteLayer.removeChildren().forEach((c) => c.destroy());
+      this.wallKeys = '';
+      this.syncWallStructures(combat);
+      return;
+    }
+    if (this.wallStructures.size > 0) {
+      for (const s of this.wallStructures.values()) s.destroy();
+      this.wallStructures.clear();
+    }
     const walls = combat.siegeWalls ?? [];
     const hp = combat.siegeWallHp ?? {};
     // Signature = hexes + PV : redessine quand la muraille change (segment ouvert
@@ -453,6 +540,100 @@ export class CombatScene {
       sprite.scale.set(((towerH * 1.7) / texture.height) * depthScale);
       sprite.position.set(x, y);
       this.wallSpriteLayer.addChild(sprite);
+    });
+  }
+
+  /**
+   * Mode scène : rempart en sprites PAR RANGÉE (`siege-piece-wall*`), état lu
+   * dans `siegeWalls`/`siegeWallHp` (intact / fissuré / rasé — une rangée
+   * absente hors porte = brèche rasée), + porte et tours d'extrémité peintes.
+   * Les sprites vivent dans `stacksLayer` avec `zIndex = y` de leur base ⇒ une
+   * unité au sud passe DEVANT le mur, au nord DERRIÈRE (occlusion réelle).
+   * Diff par signature (`label`) — pas de rebuild à chaque sync.
+   */
+  private syncWallStructures(combat: CombatState): void {
+    const layout = siegeSceneLayout();
+    const walls = combat.siegeWalls ?? [];
+    if (!layout || walls.length === 0) return;
+    const wallCol = walls[0]!.col;
+    const hp = combat.siegeWallHp ?? {};
+    const maxHp = Object.keys(hp).length ? Math.max(...Object.values(hp)) : 0;
+    const walled = new Set(walls.map((w) => w.row));
+    const gateA = Math.floor(COMBAT_ROWS / 2) - 1;
+    const gateB = Math.floor(COMBAT_ROWS / 2);
+    const yOf = (row: number): number => offsetToPixel({ col: wallCol, row }).y;
+    const pieceH = layout.piece.hAbove + layout.piece.hBelow;
+
+    const ensure = (key: string, sig: string, make: () => Sprite | null): void => {
+      const existing = this.wallStructures.get(key);
+      if (existing && !existing.destroyed && existing.label === sig) return;
+      existing?.destroy();
+      this.wallStructures.delete(key);
+      const sprite = make();
+      if (sprite) {
+        sprite.label = sig;
+        sprite.eventMode = 'none';
+        this.stacksLayer.addChild(sprite);
+        this.wallStructures.set(key, sprite);
+      }
+    };
+
+    for (let row = 0; row < COMBAT_ROWS; row++) {
+      if (row === gateA || row === gateB) continue;
+      let state: 'intact' | 'cracked' | 'razed' = 'razed';
+      if (walled.has(row)) {
+        const ratio = maxHp > 0 ? (hp[`${wallCol},${row}`] ?? maxHp) / maxHp : 1;
+        state = ratio < 1 ? 'cracked' : 'intact';
+      }
+      const variant = row % 2 === 0 ? 1 : 2;
+      ensure(`piece:${row}`, `${state}:${variant}`, () => {
+        const url = siegeWallPieceUrl(state, variant);
+        if (!url) return null;
+        const sprite = new Sprite();
+        sprite.position.set(layout.wallX, yOf(row));
+        sprite.zIndex = yOf(row) + layout.piece.hBelow;
+        void Assets.load(url).then((texture) => {
+          if (sprite.destroyed) return;
+          sprite.texture = texture;
+          sprite.anchor.set(0.5, layout.piece.hAbove / pieceH);
+          sprite.width = layout.piece.w;
+          sprite.height = pieceH;
+        });
+        return sprite;
+      });
+    }
+
+    ensure('gate', 'gate', () => {
+      const url = siegeGateUrl();
+      if (!url) return null;
+      const sprite = new Sprite();
+      sprite.position.set(layout.gate.x, layout.gate.yBottom);
+      sprite.zIndex = layout.gate.yBottom - 8;
+      void Assets.load(url).then((texture) => {
+        if (sprite.destroyed) return;
+        sprite.texture = texture;
+        sprite.anchor.set(0.5, 1);
+        sprite.width = layout.gate.w;
+        sprite.height = layout.gate.h;
+      });
+      return sprite;
+    });
+
+    layout.towers.forEach((t, i) => {
+      ensure(`tower:${i}`, 'tower', () => {
+        const url = siegeTowerUrl();
+        if (!url) return null;
+        const sprite = new Sprite();
+        sprite.position.set(t.x, t.y);
+        sprite.zIndex = t.y;
+        void Assets.load(url).then((texture) => {
+          if (sprite.destroyed) return;
+          sprite.texture = texture;
+          sprite.anchor.set(0.5, 0.96);
+          sprite.scale.set(t.h / texture.height);
+        });
+        return sprite;
+      });
     });
   }
 
@@ -792,7 +973,9 @@ export class CombatScene {
    */
   private blockedKeys(combat: CombatState): Set<string> {
     const set = new Set(combat.obstacles.map(hexKey));
-    for (const w of combat.siegeWalls ?? []) set.add(hexKey(w));
+    // Mode scène : les sprites de rempart marquent déjà leurs hexes — la teinte
+    // « obstacle » + rocher dessinés dessous ne feraient que doubler le mur.
+    if (!this.sceneActive) for (const w of combat.siegeWalls ?? []) set.add(hexKey(w));
     return set;
   }
 
@@ -820,6 +1003,7 @@ export class CombatScene {
         attackable: new Set(),
         obstacles: this.blockedKeys(combat),
         moat: this.moatKeys(combat),
+        moatDecor: !this.sceneActive,
         selected: selectedStack?.pos ?? null,
       });
       return;
@@ -841,6 +1025,7 @@ export class CombatScene {
         attackable: new Set(),
         obstacles: this.blockedKeys(combat),
         moat: this.moatKeys(combat),
+        moatDecor: !this.sceneActive,
         selected: ally?.pos ?? null,
       });
       return;
@@ -862,6 +1047,7 @@ export class CombatScene {
         zone: new Set(zoneHexes.map(hexKey)),
         obstacles: this.blockedKeys(combat),
         moat: this.moatKeys(combat),
+        moatDecor: !this.sceneActive,
         selected: center?.pos ?? null,
       });
       return;
@@ -891,6 +1077,7 @@ export class CombatScene {
       attackable: attackableHexes,
       obstacles: this.blockedKeys(combat),
       moat: this.moatKeys(combat),
+      moatDecor: !this.sceneActive,
       selected: this.selectionHex(combat),
     });
   }

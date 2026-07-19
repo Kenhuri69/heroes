@@ -7,6 +7,52 @@
 > machines de guerre contre ville défendue par rempart, douve, tour de tir et
 > garnison.
 
+## 0. Refonte (2026-07) — la scène possède l'image
+
+Après ~10 retouches pièce par pièce restées insuffisantes (historique en
+`docs/captures/siege/after-*.jpg`), le rendu a été **repensé en composition**
+(plan `.claude/plans/siege-visual-overhaul.md`). Diagnostic des racines : la
+grille de gameplay possédait l'image et le décor y était boulonné (sprites
+frontaux sur plateau iso, procédural vectoriel sur toile peinte, grille
+criarde, aucune ville visible, échelles incohérentes). La refonte inverse le
+rapport, façon HoMM3 : un **champ de bataille peint d'un seul tenant** dans
+lequel la grille se glisse discrètement.
+
+- **Scène peinte plein-cadre** (`combat/siege-scene[-<factionId>].jpg`,
+  générateur déterministe `tools/assets/gen_siege_scene.py`, doc 12 Règle S) :
+  sol complet — prairie peinte (toile `combat-grass` réutilisée ⇒ cohérence
+  avec les combats de plaine), boue d'approche + chemin vers la porte, fossé
+  creusé, cour intérieure en terre battue, **ville de la faction assiégée**
+  estompée à l'horizon droit (recadrage de `town-<id>.jpg`). Posée DANS le
+  monde (elle panne/zoome avec le plateau), ancrée à la géométrie moteur via
+  `assets/layouts/siege-scene.json`.
+- **Douve** : chenal continu peint dans la scène (fossé sec) + **bande d'eau**
+  (`combat/siege-moat.png`) posée seulement si le siège a une douve moteur
+  (Fort ≥ 2) ; les hexes de douve gardent le marqueur vaguelettes (A5) et la
+  préviz « −N PV » (§2.3 résolu).
+- **Rempart en sprites par rangée** (`combat/siege-piece-wall*`) : pièces
+  empilables découpées dans l'art peint de la porte, 3 états mappés sur
+  `siegeWallHp` (intact / fissuré / **rasé** = moignon + gravats), variante
+  d'appareil par parité de rangée. Elles vivent dans la couche des jetons
+  avec tri de profondeur (`zIndex = y`) ⇒ une unité passe DEVANT le mur au
+  sud, DERRIÈRE au nord (§2.1/§2.2 résolus). Porte `siege-gate` (gatehouse
+  peint) sur l'ouverture centrale, tours `siege-tower` aux extrémités.
+- **Grille apaisée** (tous combats) : aplat/pip de portée atténués, liserés
+  discrets — les états rares (attaquable, zone, sélection) gardent leur force ;
+  double canal A5 conservé (§ racine « la grille crie »).
+- **Repli gracieux intégral** : sans assets de scène, l'habillage procédural
+  historique reprend la main ; un art supérieur (Gemini) se substitue par
+  simple dépôt de fichiers homonymes.
+
+| Capture | Moment |
+| --- | --- |
+| ![Refonte manche 1](captures/siege/after-scene-round1.jpg) | Refonte — ouverture (scène peinte, muraille, porte, douve en eau) |
+| ![Refonte après auto](captures/siege/after-scene-auto.jpg) | Refonte — manche 3 (fissures, brèches rasées, sortie de garnison) |
+
+Les sections ci-dessous documentent l'état AVANT refonte (audit d'origine) ;
+les constats §2.1/§2.2/§2.3/§2.4 sont adressés par la refonte, §2.5/§3.x
+restent suivis dans le plan.
+
 ## 1. Scénario capturé
 
 - **Assaillant** : héros (partie rapide `?seed=42`, faction test) portant une

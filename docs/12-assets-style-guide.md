@@ -318,6 +318,24 @@ fidélité par simple substitution de PNG homonyme, aucun code — cf.
   `siegeBackgroundUrl()`, prompt `combat-siege-backgrounds.md`) : **art à générer**
   (code câblé). **Mêmes clés ⇒ dépôt de PNG suffit** ; **repli gracieux** partout
   (rempart→pan unique→rocher ; siège→terrain ; machine→fanion).
+- **Scène de siège composée** (refonte visuelle du siège, plan
+  `siege-visual-overhaul`, générateur `tools/assets/gen_siege_scene.py`) : la
+  scène POSSÈDE l'image (composition façon HoMM3), la grille s'y pose. Le
+  script compose hors-ligne, depuis la matière peinte existante
+  (`backgrounds/combat-grass.jpg`/`combat-dirt.jpg`, `combat/siege-gate.png`,
+  `town-<id>.jpg`), un **sol complet ancré sur la géométrie moteur** (douve
+  col 10, remparts col 11, porte rangées 4–5) :
+  `combat/siege-scene[-<factionId>].jpg` (champ + boue d'approche + fossé sec
+  + cour + ville assiégée estompée), `combat/siege-moat.png` (bande d'eau
+  RGBA posée seulement si douve moteur, Fort ≥ 2), pièces de rempart **par
+  rangée** empilables `combat/siege-piece-wall[-2|-cracked|-razed].png`
+  (états mappés sur `siegeWallHp`, brèche = rangée rasée + gravats), et le
+  layout de calage `assets/layouts/siege-scene.json` (consommé par
+  `siegeSceneLayout()`). Client : sprites dans `stacksLayer` (zIndex = y ⇒
+  occlusion unités/mur correcte), porte `siege-gate` + tours `siege-tower`
+  aux extrémités. **Mêmes clés ⇒ un art Gemini supérieur se substitue par
+  simple dépôt** ; **repli gracieux** = habillage procédural historique
+  complet si un asset manque. Déterministe (`random.Random(SEED)`).
 - **Unité invoquée** (`assets/units/core/elementaire-de-terre.png`, 512²) :
   élémentaire de terre rocheux, résolu par `unitSpriteUrl` via le repli **core**
   (`units/core/<unitId>`, faction-agnostique) ; **repli** = jeton procédural.

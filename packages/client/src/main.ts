@@ -48,7 +48,7 @@ import { registerCamera, unregisterCamera } from './app/camera-control';
 import { playOpeningCutscene } from './app/cutscene';
 import { initCampaign, startCampaignChapter, campaignFlags } from './app/campaign';
 import { initI18n, t } from './app/i18n';
-import { preloadPixiTextures, combatBackgroundUrl, siegeBackgroundUrl, chromeFrameUrl, chromeRibbonUrl, initHeroAvatars } from './render/assets';
+import { preloadPixiTextures, combatBackgroundUrl, siegeBackgroundUrl, siegeSceneUrl, chromeFrameUrl, chromeRibbonUrl, initHeroAvatars } from './render/assets';
 import { AdventureScene } from './scenes/adventure/AdventureScene';
 import { CombatScene } from './scenes/combat/CombatScene';
 import { mountUi } from './ui/shell';
@@ -196,10 +196,19 @@ async function bootstrap(): Promise<void> {
       // Toile de combat peinte en fond DOM (U5-E) — coût par-frame nul. S4 : un
       // SIÈGE de ville (`combat.townId`) prend une toile de siège (ambiance de la
       // faction assiégée → générique → repli terrain), zéro moteur, id opaque.
+      // Refonte siège : quand la SCÈNE peinte in-world est disponible (murs +
+      // assets), le fond DOM reste un aplat sombre neutre — une seconde toile
+      // plein écran derrière la scène recréerait l'incohérence de l'audit.
       let url = game.combat ? combatBackgroundUrl(game.combat.terrain) : undefined;
       if (game.combat?.townId != null) {
         const town = game.towns.find((tw) => tw.id === game.combat!.townId);
-        url = siegeBackgroundUrl(town?.factionId) ?? url;
+        const scene = (game.combat.siegeWalls ?? []).length > 0 ? siegeSceneUrl(town?.factionId) : undefined;
+        if (scene) {
+          url = undefined;
+          root.style.backgroundColor = '#181a15';
+        } else {
+          url = siegeBackgroundUrl(town?.factionId) ?? url;
+        }
       }
       root.style.backgroundImage = url ? `url(${url})` : '';
       root.style.backgroundSize = 'cover';
@@ -210,6 +219,7 @@ async function bootstrap(): Promise<void> {
       camera.world.visible = true;
       camera.setEnabled(true);
       root.style.backgroundImage = ''; // retour carte : retire la toile (U5-E)
+      root.style.backgroundColor = ''; // retire l'aplat de scène de siège
     }
   };
   appStore.subscribe(ensureScenes);

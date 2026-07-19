@@ -345,6 +345,63 @@ export function siegeGateUrl(): string | undefined {
   return registry.get('combat/siege-gate');
 }
 
+// --- Refonte visuelle du siège (plan siege-visual-overhaul) : la SCÈNE peinte
+// possède l'image, la grille s'y pose. Générée par gen_siege_scene.py ;
+// substituable par simple dépôt de fichiers homonymes (art Gemini). ---
+
+/**
+ * Scène de siège peinte plein-cadre (sol complet : champ, boue d'approche,
+ * fossé, cour, ville assiégée) ancrée sur la géométrie moteur via
+ * `siegeSceneLayout()`. Chaîne : `combat/siege-scene-<factionId>` (ville de la
+ * faction) → `combat/siege-scene` (générique) → `undefined` (repli : habillage
+ * mur/douve procédural historique). Id de faction opaque.
+ */
+export function siegeSceneUrl(factionId?: string): string | undefined {
+  return (
+    (factionId ? registry.get(`combat/siege-scene-${factionId}`) : undefined) ??
+    registry.get('combat/siege-scene')
+  );
+}
+
+/** Bande d'eau de la douve (RGBA) — posée sur la scène SEULEMENT si le siège a
+ *  une douve moteur (Fort ≥ 2) ; le fossé de la scène reste sec sinon. */
+export function siegeMoatStripUrl(): string | undefined {
+  return registry.get('combat/siege-moat');
+}
+
+/**
+ * Pièce de rempart d'une rangée (empilable, période = pas de rangée) par état
+ * (`intact`/`cracked`/`razed` — mappés sur `siegeWallHp`) ; `variant` 2 =
+ * appareil alterné (rangées paires/impaires) avec repli variante 1.
+ */
+export function siegeWallPieceUrl(state: 'intact' | 'cracked' | 'razed', variant = 1): string | undefined {
+  if (state === 'intact') {
+    return (variant === 2 ? registry.get('combat/siege-piece-wall-2') : undefined) ?? registry.get('combat/siege-piece-wall');
+  }
+  return registry.get(`combat/siege-piece-wall-${state}`);
+}
+
+/** Layout de calage de la scène de siège (board-space), émis par le générateur. */
+export interface SiegeSceneLayout {
+  scale: number;
+  scene: { x0: number; y0: number; w: number; h: number };
+  wallX: number;
+  piece: { w: number; hAbove: number; hBelow: number };
+  moatStrip: { x0: number; y0: number };
+  gate: { x: number; yBottom: number; w: number; h: number };
+  towers: { x: number; y: number; h: number }[];
+}
+
+const siegeLayoutModules = import.meta.glob('../../../../assets/layouts/siege-scene.json', {
+  eager: true,
+  import: 'default',
+}) as Record<string, SiegeSceneLayout>;
+
+export function siegeSceneLayout(): SiegeSceneLayout | undefined {
+  const values = Object.values(siegeLayoutModules);
+  return values[0];
+}
+
 // --- Chemin PixiJS : préchargement + lecture synchrone du cache ---
 
 /** URLs rendues dans PixiJS (tuiles + mines + tas) — préchargées au bootstrap. */

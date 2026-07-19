@@ -409,6 +409,14 @@ export function siegeArrowTowerUrl(): string | undefined {
   return registry.get('combat/siege-piece-arrow-tower') ?? siegeSceneTowerUrl();
 }
 
+/** TOUR DE TIR CASSÉE (ruine peinte du gabarit ensemble v6) : ruine laissée
+ *  sur l'hex de la structure quand la pile `warMachine`+`immobile` est
+ *  détruite. Sans asset : undefined ⇒ comportement historique (la tour
+ *  disparaît). */
+export function siegeArrowTowerRazedUrl(): string | undefined {
+  return registry.get('combat/siege-piece-arrow-tower-razed');
+}
+
 /** RUN ensembliste peint (tableau Gemini découpé) : la fortification complète
  *  en une bande verticale, affichée par TRANCHES d'une rangée. */
 export function siegeRunUrl(): string | undefined {
@@ -431,6 +439,14 @@ export interface SiegeRunLayout {
   period: number;
   painted: Record<string, 'cracked' | 'razed'>;
   gateRows: number[];
+  /** Zones de dégât peintes EN SITUATION (bornes de rangées inclusives) : le
+   *  dégât du tableau déborde autour de sa rangée-étalon ⇒ la zone bascule
+   *  d'un bloc entre tableau et bandes-étalons. */
+  zones?: Partial<Record<'cracked' | 'razed', [number, number]>>;
+  /** Hauteur (en rangées) de la bande-étalon RASÉE : > 1 ⇒ la bande embarque
+   *  le tas de gravats entier déversé à l'ouest (les rangées haute/basse ne
+   *  contiennent que le déversement) — posée centrée sur la rangée rasée. */
+  razedBandRows?: number;
 }
 
 /** Layout de calage de la scène de siège (board-space), émis par le générateur. */

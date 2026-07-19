@@ -79,8 +79,11 @@ declare global {
       startSkirmish: (config: SkirmishConfig) => Promise<void>;
       /** Démarre un chapitre de campagne, seed fixe (couverture smoke N3a). */
       startCampaignChapter: (campaignId: string, chapterIndex: number) => Promise<void>;
-      /** Forge un siège reproductible (S-TEST, doc 19 annexe) : héros doté d'une catapulte vs Château neutre défendu, puis `CaptureTown`. */
-      startSiege: () => Promise<void>;
+      /** Forge un siège reproductible (S-TEST, doc 19 annexe) : héros doté d'une
+       *  catapulte vs Château neutre défendu, puis `CaptureTown`.
+       *  `{ catapult: false }` : héros SANS catapulte ⇒ muraille complète et
+       *  indestructible (capture « mur sain » / C-SIEGE2.2 non déclenché). */
+      startSiege: (opts?: { catapult?: boolean }) => Promise<void>;
       /** Drapeaux de campagne posés par les choix de dialogue (couverture smoke N3c.2). */
       campaignFlags: () => Record<string, boolean>;
       /** Progression des tours IA (UX multi-joueurs) — non-null pendant qu'une IA joue. */
@@ -477,7 +480,7 @@ async function bootstrap(): Promise<void> {
     },
     startScenario: (scenarioId) => startScenario(scenarioId, TEST_SCENARIO_SEED),
     startSkirmish: (config) => startSkirmish(config, TEST_SCENARIO_SEED),
-    startSiege: () => forgeSiege(),
+    startSiege: (opts) => forgeSiege(opts),
     startCampaignChapter: (campaignId, chapterIndex) =>
       startChapter(campaignId, chapterIndex, TEST_SCENARIO_SEED),
     campaignFlags,
@@ -513,7 +516,7 @@ async function bootstrap(): Promise<void> {
  * déclenche le siège. Test-scaffold client (patron des forges `importAiTurnSave`)
  * — aucune règle moteur, ids de faction opaques.
  */
-async function forgeSiege(): Promise<void> {
+async function forgeSiege(opts?: { catapult?: boolean }): Promise<void> {
   const base = appStore.getState().game;
   const humanId = humanPlayerId(base);
   if (!humanId) throw new Error('startSiege : aucun joueur humain');
@@ -527,18 +530,23 @@ async function forgeSiege(): Promise<void> {
     ) ?? hero.army[0]?.unitId;
   if (!troopId) throw new Error('startSiege : aucune unité disponible');
   if (hero.army.length === 0) hero.army = [{ unitId: troopId, count: 40 }];
-  // Catapulte de siège (siegeBreaker ⇒ brèche + PV de segments érodables).
-  g.unitCatalog = {
-    ...g.unitCatalog,
-    'siege-cat': {
-      id: 'siege-cat',
-      groupId: 'wm',
-      nativeTerrain: 'grass',
-      stats: { hp: 300, attack: 8, defense: 10, damage: [8, 15], speed: 1 },
-      abilities: [{ id: 'warMachine' }, { id: 'siegeBreaker' }],
-    },
-  };
-  hero.warMachines = ['siege-cat'];
+  // Catapulte de siège (siegeBreaker ⇒ brèche + PV de segments érodables) —
+  // omise avec `{ catapult: false }` : muraille complète, indestructible.
+  if (opts?.catapult !== false) {
+    g.unitCatalog = {
+      ...g.unitCatalog,
+      'siege-cat': {
+        id: 'siege-cat',
+        groupId: 'wm',
+        nativeTerrain: 'grass',
+        stats: { hp: 300, attack: 8, defense: 10, damage: [8, 15], speed: 1 },
+        abilities: [{ id: 'warMachine' }, { id: 'siegeBreaker' }],
+      },
+    };
+    hero.warMachines = ['siege-cat'];
+  } else {
+    hero.warMachines = [];
+  }
   // Ville neutre défendue : Château (Fort 3 ⇒ rempart + douve + tour de tir).
   const townId = 'siege-town';
   g.towns = [

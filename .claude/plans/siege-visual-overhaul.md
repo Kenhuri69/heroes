@@ -263,3 +263,123 @@ y compris plaine, validable en 1 capture) ; **Lot 1** = scène peinte génériqu
   l'asset existe, replis intacts. En attente : peinture 1152×2048 du porteur
   (prompt v3 : « les blocs empilés = guide de masse, peindre UNE muraille
   continue », décor à ne pas repeindre).
+- 2026-07-19 — Retour porteur (itération 9, en trois temps) : (1) capture du
+  gabarit v2 — « un gabarit qui prévoit TOUS les éléments de la muraille —
+  tour et tour de tir cassées » ; (2) rejet de l'extension du tableau sur
+  décor (« cette approche ne marche pas ») ; (3) cadrage ferme : « gabarit
+  complet sur fond violet présentant tous les cas possibles — porte,
+  pont-levis, tour connectée au mur, mur cassé, tour de tir en retrait ; la
+  tour seule c'est de la merde ; je veux une approche ENSEMBLE de la
+  muraille ». Une planche à cellules v5 (objets isolés) a été écrite puis
+  JETÉE en cours de route (rejet explicite des tours en cellules).
+  **Livré — gabarit v6 = l'ENSEMBLE sur MAGENTA** (`gen_siege_ensemble_template.py`
+  réécrit, `siege-ensemble-template.png` 1152×2048 + cuts JSON ; le masque
+  d'extraction disparaît — chroma-key) : muraille d'un seul tenant ancrée sur
+  la géométrie moteur — tours d'extrémité FUSIONNÉES au mur, rangée 1
+  fissurée et rangée 7 CASSÉE (brèche) en situation, porte + **PONT-LEVIS**
+  (tablier bois + chaînes, dans la région du run), **tour de tir EN RETRAIT**
+  derrière la porte + sa **RUINE** derrière la brèche (hors région du run —
+  la v3 bakait la tour dans les tranches). **Extraction**
+  (`extract_siege_ensemble.py` réécrit : chroma-key `keyed_cutout(crop=False)`
+  partagé + découpes géométriques) : `siege-run.png`, bandes-étalons
+  intact/cracked/razed, `siege-piece-arrow-tower.png` + **nouvelle clé**
+  `siege-piece-arrow-tower-razed.png`, patch layout bloc `run` (mode
+  tranches client existant, zéro diff). **Client** : une tour de tir
+  DÉTRUITE laisse sa ruine peinte sur son hex (`structureSpots` +
+  `syncStructureRuins`, sprite `ruin:<id>` dans `wallStructures`, zIndex
+  profondeur, purgé fin de combat ; no-op sans asset) ; détection structure
+  factorisée `isSiegeStructure(stack)` (capacités `warMachine`+`immobile`,
+  zéro id en dur). Prompt/procédure `combat-siege-kit.md` réécrits v6.
+  Dry-run d'extraction validé sur le gabarit lui-même (run 340×1132, bandes
+  73 px = 1 rangée, 2 tours de tir détourées). En attente : peinture
+  1152×2048 du porteur sur le gabarit v6.
+- 2026-07-19 — Peinture v6 du porteur REJETÉE (« les murs ne se connectent
+  pas ») : les guides de courtine par rangée (pièces v1 empilées, chacune
+  avec sa plateforme crénelée) ont fait peindre des BLOCS EMPILÉS — défaut
+  du gabarit, pas de la peinture. Extraction v6 annulée (aucun asset
+  écrit au dépôt). **Gabarit v7** : le guide de courtine devient UNE BANDE
+  CONTINUE dessinée (66 bp, créneaux en ligne ininterrompue côté
+  assaillant, ligne de parapet filante, fissures r1 EN SITUATION, brèche r7
+  taillée DANS la bande — lèvres déchiquetées + gravats) ; tours/porte/
+  pont-levis/tours de tir inchangés (validés dans la peinture v6). Prompt
+  v7 durci : interdiction explicite des blocs empilés et de toute couronne
+  crénelée EN TRAVERS du mur (critère d'acceptation dédié). Géométrie
+  d'extraction inchangée (mêmes boîtes). En attente : peinture v7.
+- 2026-07-19 — Guides v7/v7b (bande + volumes pseudo-3D dessinés) REJETÉS en
+  bloc par le porteur (« tout est dégueulasse — revois pour une vue de
+  dessus, et dans le prompt demande la profondeur avec petite
+  inclinaison »). **Gabarit v8** : le gabarit devient un **PLAN vue de
+  dessus** (empreintes au sol, géométrie pure sans volume) — bande de
+  courtine continue à merlons marqués, **cercles de tours à cheval sur la
+  bande** (fusion évidente en plan), fissures r1, brèche r7 déchiquetée +
+  gravats, porte en travers de l'axe (tunnel + vantaux) + pont-levis bois,
+  tours de tir en retrait (baliste vue de dessus) + ruine. La 3D est
+  déléguée au **prompt v8** : caméra quasi zénithale, PETITE inclinaison,
+  dessus dominants + fine bande de face sud, bases sur les empreintes.
+  Géométrie d'extraction inchangée (mêmes boîtes, mêmes clés). En attente :
+  peinture v8 du porteur.
+- 2026-07-19 — Précision porteur (référence capture HoMM3) : « la tour doit
+  aussi connecter APRÈS, pour un tout fermé en visuel ». v8b : la bande du
+  plan va désormais de BORD À BORD de l'image (le mur entre par le haut,
+  sort par le bas — l'enceinte se referme hors champ) ; les tours sont des
+  points de passage SUR le mur (il les traverse), merlons interrompus
+  seulement sous les couronnes et à la brèche ; annotations déplacées en
+  marge ouest. Prompt aligné (ne pas terminer les extrémités du mur, le mur
+  traverse les tours). Extraction inchangée.
+- 2026-07-19 — **Peinture v8 du porteur INTÉGRÉE** (plan vue de dessus →
+  Gemini : muraille d'un seul tenant de bord à bord, tours traversées, porte
+  + pont-levis à chaînes, brèche, tours de tir — qualité au niveau du jeu).
+  Intégration mesurée au pixel : (a) filigrane-étincelle effacé au masque
+  (pas au rectangle — première tentative rognait l'épave) ; (b) boîtes de
+  découpe RECALÉES sur la peinture (frontière porte 759.5 / baliste 765.2 bp,
+  gravats ouest jusqu'à 569 bp, ruine 752..858×312..420) ; (c) l'extracteur
+  EXCLUT les boîtes des tours de tir de la source du run (la pointe de
+  baliste chevauchait la frontière) ; (d) étalon INTACT déplacé r8→r3 (r8
+  contaminé par les gravats de brèche — les rangées « propres » recevaient
+  des gravats) ; (e) **zones d'état** (`run.zones` : cracked [1,3], razed
+  [6,9]) — le dégât peint déborde de sa rangée-étalon, la zone bascule d'un
+  BLOC (tableau si l'étalon a vraiment l'état, bandes propres sinon) ⇒ mur
+  net au round 1, brèche peinte de retour quand r7 tombe ; (f) client :
+  pièces de tour de tir en VUE DE DESSUS posées à l'échelle du tableau
+  (1/layout.scale, empreinte centrée) en mode run — ruine comprise.
+  Vérifs : typecheck/lint/build, smoke siège+capture+gardien 3/3, captures
+  `after-plan-v8-round1.jpg` / `after-plan-v8-auto.jpg` (rangées rasées par
+  la catapulte = matière de brèche, intactes = bandes propres). Planche
+  source committée (`_incoming/siege-ensemble.png`, filigrane effacé).
+- 2026-07-19 — Retour porteur (« pas vu le mur sain ; les éléments cassés
+  semblent coupés ; marge d'amélioration ») — trois causes distinctes
+  corrigées : (1) le « mur jamais sain » venait du COMBAT FORGÉ S-TEST
+  (héros à catapulte ⇒ C-SIEGE2.2 retire les rangées 3/6 dès le départ —
+  comportement moteur voulu, pas un bug d'affichage) ⇒ hook
+  `startSiege({ catapult: false })` (muraille complète indestructible) +
+  capture `after-plan-v8-intact.jpg` ; (2) l'étalon INTACT (r3) était
+  contaminé par une écornure peinte au-dessus de la porte ⇒ déplacé r9 +
+  purge du déversement ouest à l'extraction (`wallWestBp`) — étalon
+  garanti sain ; (3) BANDE RASÉE ÉTENDUE (`razedBandRows: 3`, layout +
+  client) : une rangée rasée hors zone peinte tamponne désormais le TAS de
+  gravats ENTIER (rangées haute/basse de la bande = déversement ouest
+  seul, mur limité à sa rangée, profondeur au bas de la rangée rasée) —
+  fini les tas coupés net. Captures rafraîchies (intact / round 1 avec
+  catapulte / manche 7). Vérifs : typecheck, build, smoke siège 2/2.
+
+## Suite (backlog validé porteur, post-merge — 2026-07-19)
+
+Base actée : peinture v8 intégrée (« globalement on est bon »), marge
+d'amélioration reconnue. À traiter dans l'ordre :
+
+1. **Coloration de la muraille par FACTION assiégée** (demande porteur) :
+   donner une identité visuelle par maison — variantes teintées du run et
+   des pièces (`siege-run-<factionId>` etc., repli générique inchangé),
+   par recoloration déterministe hors-ligne façon `siege-piece-tower`
+   (désaturation + LUT de teinte par faction : toits/bannières/liserés
+   plutôt que la pierre entière) ; zéro moteur, clés registry + chaîne de
+   repli déjà en place (`siegeSceneUrl` fait déjà ce motif par faction).
+2. **Raccords de bandes** : quand plusieurs rangées adjacentes sont
+   remplacées par des bandes-étalons, la phase des merlons saute d'une
+   copie à l'autre — fondu/roll type `vtile` ou 2-3 variantes d'étalon.
+3. **FX de bombardement recalés** : l'impact `WallBombarded` (éclats,
+   secousse) doit viser la matière peinte de la rangée touchée (aujourd'hui
+   calé sur l'ancienne géométrie de pièces).
+4. Lot 3 historique (inchangé) : rochers d'obstacles peints, sprites des
+   machines de guerre assaillantes, porte ouverte/brisée, marqueurs de
+   douve aux rangées impaires.

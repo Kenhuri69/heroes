@@ -28,9 +28,10 @@ GATE_ROWS = (4, 5)
 KEY_TOLERANCE = 92
 
 
-def keyed_cutout(cell: Image.Image) -> Image.Image:
+def keyed_cutout(cell: Image.Image, crop: bool = True) -> Image.Image:
     """Chroma-key fond uni (couleur des coins) + décontamination magenta
-    (unpremultiply + suppression de dominante) + érosion 1 px, recadré."""
+    (unpremultiply + suppression de dominante) + érosion 1 px, recadré
+    (`crop=False` : garde le canvas entier — découpes géométriques ensuite)."""
     arr = np.asarray(cell.convert("RGBA")).astype(np.int16)
     corners = np.concatenate(
         [arr[:8, :8, :3].reshape(-1, 3), arr[:8, -8:, :3].reshape(-1, 3), arr[-8:, :8, :3].reshape(-1, 3), arr[-8:, -8:, :3].reshape(-1, 3)]
@@ -50,6 +51,8 @@ def keyed_cutout(cell: Image.Image) -> Image.Image:
     out[..., 3] = (alpha * 255).astype(np.int16)
     img = Image.fromarray(out.astype(np.uint8), "RGBA")
     img.putalpha(img.getchannel("A").filter(ImageFilter.MinFilter(3)))
+    if not crop:
+        return img
     bbox = img.getbbox()
     return img.crop(bbox) if bbox else img
 

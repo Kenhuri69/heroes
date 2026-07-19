@@ -101,6 +101,9 @@ const SHAKE_MS = 120;
 const ISO_WALL_LEAN = HEX_SIZE * 1.5;
 const ISO_WALL_FAR = 0.82;
 const ISO_WALL_NEAR = 1.12;
+// Tour de tir en mode scène : hauteur affichée (board px) — domine la courtine
+// (dont la face culmine ~62 bp), cohérente avec les tours d'extrémité (76 bp).
+const STRUCTURE_TOWER_H = HEX_SIZE * 2.4;
 
 const MARGIN_TOP = 96; // bandeau armées + round (doc 08 §2.4)
 // S9.4 : marge basse élargie — la barre d'actions peut passer à 2 rangées et le
@@ -889,7 +892,18 @@ export class CombatScene {
     const isSiegeStructure = side === 'defender' && hasAbility('warMachine') && hasAbility('immobile');
 
     if (isSiegeStructure) {
-      token.addChild(buildStructureBase());
+      // Mode scène : la vraie tour (sprite pierre grise plein pied) est plantée
+      // par une OMBRE de contact au sol — le socle procédural ne sert qu'au
+      // repli hors scène.
+      if (this.sceneActive) {
+        token.addChild(
+          new Graphics()
+            .ellipse(0, HEX_SIZE * 0.18, HEX_SIZE * 0.52, HEX_SIZE * 0.17)
+            .fill({ color: 0x12120e, alpha: 0.42 }),
+        );
+      } else {
+        token.addChild(buildStructureBase());
+      }
     } else {
       // Base de camp (ellipse au sol) : distingue attaquant/défenseur.
       token.addChild(
@@ -923,16 +937,27 @@ export class CombatScene {
     const fallback = isSiegeStructure ? buildStructureGraphic() : buildStackTokenGraphic(side);
     visual.addChild(fallback);
 
-    const url = unitSpriteUrl(stack.unitId, catalog[stack.unitId]?.groupId);
+    // Tour de tir en mode SCÈNE (retour porteur) : le jeton-tourelle crème
+    // jurait avec l'enceinte et restait minuscule. On pose la tour PIERRE
+    // GRISE de la muraille (même famille que les tours d'extrémité), plantée
+    // à sa base et PLUS HAUTE que la courtine — une défense de ville, pas une
+    // créature. Hors scène : rendu structure historique inchangé.
+    const sceneTower = isSiegeStructure && this.sceneActive;
+    const url = (sceneTower ? siegeSceneTowerUrl() : undefined) ?? unitSpriteUrl(stack.unitId, catalog[stack.unitId]?.groupId);
     if (url) {
       void Assets.load(url).then((texture) => {
         if (this.destroyed || token.destroyed) return;
         visual.removeChild(fallback);
         fallback.destroy();
         const sprite = new Sprite(texture);
-        sprite.anchor.set(0.5, 0.72); // pieds posés sur la base
-        const scale = (TOKEN_RADIUS * 2.4) / Math.max(texture.width, texture.height);
-        sprite.scale.set(scale);
+        if (sceneTower) {
+          sprite.anchor.set(0.5, 0.94); // assise au sol de l'hex
+          sprite.scale.set(STRUCTURE_TOWER_H / texture.height);
+        } else {
+          sprite.anchor.set(0.5, 0.72); // pieds posés sur la base
+          const scale = (TOKEN_RADIUS * 2.4) / Math.max(texture.width, texture.height);
+          sprite.scale.set(scale);
+        }
         visual.addChild(sprite);
       });
     }

@@ -179,3 +179,10 @@ y compris plaine, validable en 1 capture) ; **Lot 1** = scène peinte génériqu
   face, 72 bp de large), z entre les 2 rangées d'ouverture (une unité entre
   dans le tunnel par le nord, en ressort par le sud) ; ombre de contact
   resserrée. Repli = art frontal si la pièce manque.
+- 2026-07-19 — Retour porteur (itération 4) : « la tour derrière la porte
+  n'est pas cohérente avec le mur et bien trop petite ». En mode scène, la
+  tour de tir (structure S6) est rendue avec le sprite de TOUR PIERRE GRISE
+  de la muraille (`siegeSceneTowerUrl`), plantée à sa base (ancre 0.94) à
+  **86 bp** (elle domine la courtine, échelle des tours d'extrémité) + ombre
+  de contact au sol. Hors scène : rendu structure historique inchangé
+  (socle + arrow-tower). Zéro moteur (habillage pur, ciblage/stats intacts).

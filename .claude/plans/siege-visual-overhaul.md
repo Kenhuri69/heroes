@@ -163,3 +163,11 @@ y compris plaine, validable en 1 capture) ; **Lot 1** = scène peinte génériqu
   rempart) et tour d'extrémité recolorée pierre grise du gatehouse
   (`siege-piece-tower`, désaturation + refroidissement, alpha conservé,
   repli sur l'art crème). Clés stables ⇒ substituables par dépôt.
+- 2026-07-19 — Retour porteur (itération 2) : « la porte ne va pas, mal
+  cadrée » + « il manque du sol côté ville ». Livré : (a) **chaussée de
+  pierre bakée** qui franchit la douve devant l'ouverture (scène + bande
+  d'eau — la tour ouest du gatehouse ne mord plus sur l'eau nue), (b) porte
+  recadrée **140 bp** (domine la courtine) avec **ombre de contact** bakée,
+  (c) **esplanade pavée bakée** sur toute la bande de ville (les tuiles hex
+  s'y fondent, plus de terre nue au-delà des cases), (d) vignettage adouci
+  (70→44) — le sol côté ville n'est plus mangé par le cadre sombre.

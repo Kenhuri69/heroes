@@ -165,6 +165,13 @@ def build_ground(rng: random.Random) -> Image.Image:
     court_m = band_mask(w, h, WALL_X - 14, SCENE_X1 + 50, feather=12.0)
     ground = blend_mask(grass, court, court_m * 0.96)
 
+    # Esplanade PAVÉE bakée sur toute la bande de ville (du mur jusqu'à la
+    # cité) : le sol côté ville est continu — les tuiles hex par case posées
+    # par le client s'y fondent au lieu de flotter sur la terre nue.
+    cobbles = paint_cobbles(rng, w, h)
+    esplanade_m = band_mask(w, h, WALL_X + 6, SCENE_X1 + 50, feather=14.0)
+    ground = blend_mask(ground, cobbles, esplanade_m * 0.8)
+
     # 3. Boue d'approche : lavis brun translucide (le grain peint de la prairie
     #    transparaît = herbe piétinée), renforcé de flaques organiques + chemin
     #    de terre incurvé vers la porte.
@@ -345,15 +352,17 @@ def add_wall_ao(ground: Image.Image) -> Image.Image:
 
 
 def vignette(im: Image.Image) -> Image.Image:
+    """Vignettage DOUX (cadre cinématique) — assez léger pour ne pas manger le
+    sol côté ville (retour porteur itération 2)."""
     w, h = im.size
     m = Image.new("L", (w, h), 0)
     d = ImageDraw.Draw(m)
     steps = 42
     for i in range(steps):
-        a = int(70 * (i / steps) ** 2)
+        a = int(44 * (i / steps) ** 2)
         d.rectangle([i * 3 * S, i * 2 * S, w - i * 3 * S, h - i * 2 * S], outline=a, width=3 * S)
     m = m.filter(ImageFilter.GaussianBlur(8 * S))
-    dark = ImageEnhance.Brightness(im).enhance(0.66)
+    dark = ImageEnhance.Brightness(im).enhance(0.74)
     out = im.copy()
     out.paste(dark, (0, 0), m)
     return out
@@ -508,15 +517,12 @@ def hex_mask(w: int, h: int, feather_px: int) -> Image.Image:
     return m.filter(ImageFilter.GaussianBlur(feather_px))
 
 
-def build_court_tile(variant: int) -> Image.Image:
-    """Tuile de sol PAVÉ d'une case de cour (pierre grise du gatehouse) — pose
-    l'« effet ville » hex par hex à l'intérieur de l'enceinte. Peinte : pavés
-    irréguliers, joints sombres, éclat haut-gauche, usure. Déterministe."""
-    rng = random.Random(SEED * 100 + variant)
-    w, h = img_px(COURT_TILE_W), img_px(COURT_TILE_H)
-    base = Image.new("RGB", (w, h), (124, 120, 112))
+def paint_cobbles(rng: random.Random, w: int, h: int, base_tone: tuple[int, int, int] = (124, 120, 112)) -> Image.Image:
+    """Nappe de PAVÉS peints (quinconce, joints sombres, éclat haut-gauche,
+    usure par plaques) — partagée par la tuile hex de cour, l'esplanade bakée
+    de la scène et la chaussée de la porte. Déterministe."""
+    base = Image.new("RGB", (w, h), base_tone)
     d = ImageDraw.Draw(base)
-    # Pavés en quinconce (ellipses aplaties), teinte pierre jitterée.
     cob_w = img_px(11.0)
     cob_h = img_px(7.2)
     for j, y in enumerate(range(-cob_h, h + cob_h, int(cob_h * 0.92))):
@@ -530,13 +536,65 @@ def build_court_tile(variant: int) -> Image.Image:
             d.ellipse(box, fill=tone, outline=(78, 74, 66), width=S)
             # Éclat haut-gauche (volume, lumière cohérente avec la scène).
             d.arc([box[0] + S, box[1] + S, box[2] - S, box[3] - S], 150, 300, fill=(178 + t // 2, 174 + t // 2, 164 + t // 2), width=S)
-    # Usure : lavis sombre lisse par plaques.
     n = smooth_noise(rng, w, h, 5, blur=8 * S)
     dark = ImageEnhance.Brightness(base).enhance(0.8)
-    base = blend_mask(base, dark, n * 0.5)
+    return blend_mask(base, dark, n * 0.5)
+
+
+def build_court_tile(variant: int) -> Image.Image:
+    """Tuile de sol PAVÉ d'une case de cour (pierre grise du gatehouse) — pose
+    l'« effet ville » hex par hex à l'intérieur de l'enceinte."""
+    rng = random.Random(SEED * 100 + variant)
+    w, h = img_px(COURT_TILE_W), img_px(COURT_TILE_H)
+    base = paint_cobbles(rng, w, h)
     out = Image.new("RGBA", (w, h), (0, 0, 0, 0))
     out.paste(base, (0, 0), hex_mask(w, h, feather_px=int(1.2 * S)))
     return out
+
+
+# Chaussée de la porte : tablier de pierre qui FRANCHIT la douve devant
+# l'ouverture (rangées 4–5) — légitime le gatehouse qui mord sur le fossé et
+# prolonge le chemin d'approche. Bakée dans la scène (fossé sec) ET dans la
+# bande d'eau (elle passe PAR-DESSUS l'eau).
+CAUSEWAY_X0 = MOAT_X - 46.0
+CAUSEWAY_X1 = WALL_X + 6.0
+CAUSEWAY_Y0 = cy(GATE_ROWS[0]) - 17.0
+CAUSEWAY_Y1 = cy(GATE_ROWS[1]) + 17.0
+
+
+def build_causeway(rng: random.Random) -> Image.Image:
+    w = img_px(CAUSEWAY_X1 - CAUSEWAY_X0)
+    h = img_px(CAUSEWAY_Y1 - CAUSEWAY_Y0)
+    cobb = paint_cobbles(rng, w, h, base_tone=(118, 112, 102))
+    out = cobb.convert("RGBA")
+    d = ImageDraw.Draw(out)
+    # Margelles : rangs de pierre plus sombres le long des bords.
+    edge_h = img_px(3.2)
+    d.rectangle([0, 0, w, edge_h], fill=(88, 84, 76, 255))
+    d.rectangle([0, h - edge_h, w, h], fill=(70, 66, 58, 255))
+    d.rectangle([0, edge_h, w, edge_h + S], fill=(160, 154, 140, 255))
+    # Fondu du raccord OUEST (la chaussée naît du chemin de terre).
+    mask = Image.new("L", (w, h), 255)
+    md = ImageDraw.Draw(mask)
+    fade = img_px(14)
+    for i in range(fade):
+        md.line([(i, 0), (i, h)], fill=int(255 * i / fade))
+    out.putalpha(mask)
+    return out
+
+
+def paste_causeway(target: Image.Image, causeway: Image.Image, origin_x_bp: float) -> None:
+    """Pose le tablier dans `target` dont l'origine board-space X est donnée
+    (scène : SCENE_X0 ; bande d'eau : MOAT_STRIP_X0), avec ombre portée sur
+    l'eau/le fossé le long des bords nord et sud."""
+    x = img_px(CAUSEWAY_X0 - origin_x_bp)
+    y = img_px(CAUSEWAY_Y0 - SCENE_Y0)
+    shadow = Image.new("RGBA", (causeway.width, causeway.height + img_px(8)), (0, 0, 0, 0))
+    sd = ImageDraw.Draw(shadow)
+    sd.rectangle([0, causeway.height - img_px(1), causeway.width, causeway.height + img_px(6)], fill=(12, 16, 18, 110))
+    shadow = shadow.filter(ImageFilter.GaussianBlur(2 * S))
+    target.paste(shadow, (x, y + img_px(2)), shadow)
+    target.paste(causeway, (x, y), causeway)
 
 
 def recolor_scene_tower() -> Image.Image:
@@ -560,24 +618,44 @@ def recolor_scene_tower() -> Image.Image:
 # --- Assemblage & sorties ---
 
 
+def gate_contact_shadow(ground: Image.Image) -> Image.Image:
+    """Ombre de contact au pied du gatehouse — la porte est PLANTÉE dans la
+    scène au lieu d'y être collée (retour porteur itération 2)."""
+    w, h = ground.size
+    shadow = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    d = ImageDraw.Draw(shadow)
+    cx0, cy0 = to_img(WALL_X + 6, GATE_Y_BOTTOM - 3)
+    rx, ry = img_px(66.0), img_px(11.0)
+    d.ellipse([cx0 - rx, cy0 - ry, cx0 + rx, cy0 + ry], fill=(14, 14, 12, 96))
+    shadow = shadow.filter(ImageFilter.GaussianBlur(4 * S))
+    return Image.alpha_composite(ground.convert("RGBA"), shadow).convert("RGB")
+
+
 def build_scene(faction: str | None) -> tuple[Image.Image, Image.Image]:
     rng = random.Random(SEED if faction is None else SEED + sum(ord(c) for c in faction))
     ground = build_ground(rng)
     ground, water = carve_moat(rng, ground)
+    causeway = build_causeway(random.Random(SEED + 31))
+    paste_causeway(ground, causeway, SCENE_X0)  # fossé sec : tablier baké
+    paste_causeway(water, causeway, MOAT_STRIP_X0)  # douve en eau : PAR-DESSUS
     ground = paste_city(rng, ground, faction)
     ground = add_wall_ao(ground)
+    ground = gate_contact_shadow(ground)
     ground = vignette(ground)
     return ground, water
 
 
 FACTIONS = ["haven", "necropolis", "arcane-hunters", "sylvan-court", "vox-arcana", "dungeon"]
 
-# Porte : art `siege-gate.png` (640×385) posé en travers de l'ouverture centrale
-# (rangées 4–5). Largeur choisie pour que les tours flanquantes de l'art mordent
-# légèrement sur les pièces des rangées 3/6 (raccord naturel), sans les couvrir.
-GATE_W = 124.0
-GATE_H = GATE_W * 385.0 / 640.0  # ≈ 74.6 — couvre les 2 rangées de porte
-GATE_Y_BOTTOM = cy(GATE_ROWS[1]) + Y_STEP * 0.62
+# Porte : art `siege-gate.png` (640×385) posé en travers de l'ouverture
+# centrale (rangées 4–5). Recadrée (retour porteur itération 2) : plus
+# IMPOSANTE que la courtine (un gatehouse domine le mur), assise sur la
+# chaussée qui franchit la douve (sa tour ouest mord sur le tablier, plus
+# jamais sur l'eau nue), ombre de contact bakée dans la scène.
+GATE_W = 140.0
+GATE_H = GATE_W * 385.0 / 640.0  # ≈ 84.2 — domine les pièces de courtine
+GATE_X = WALL_X + 6.0
+GATE_Y_BOTTOM = cy(GATE_ROWS[1]) + Y_STEP * 0.68
 
 
 def main() -> None:
@@ -622,7 +700,7 @@ def main() -> None:
         "moatStrip": {"x0": round(MOAT_STRIP_X0, 2), "y0": SCENE_Y0},
         "courtTile": {"w": round(COURT_TILE_W, 2), "h": round(COURT_TILE_H, 2)},
         "gate": {
-            "x": round(WALL_X + 2, 2),
+            "x": round(GATE_X, 2),
             "yBottom": round(GATE_Y_BOTTOM, 2),
             "w": GATE_W,
             "h": round(GATE_H, 2),

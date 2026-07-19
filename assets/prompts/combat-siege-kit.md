@@ -61,7 +61,9 @@ ledge or seam ACROSS the wall — the only interruptions along the wall are
 the two end towers, the gatehouse and the breach. Everything is CONNECTED
 into a single ensemble:
 - both ends of the rampart are crowned by round defensive towers FUSED into
-  the wall (the wall enters the tower, no seam);
+  the wall: the wall runs INTO the tower shaft and disappears inside it (no
+  seam, no gap), and the wall's battlement line CONTINUES into the tower's
+  crenellated crown;
 - near the top (where the cracked guide is): a DAMAGED stretch — deep
   cracks, chipped merlons, small debris — then the wall resumes clean;
 - below the gate (where the broken guide is): a collapsed BREACH — jagged

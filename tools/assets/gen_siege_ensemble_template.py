@@ -200,9 +200,39 @@ def main() -> None:
         d.line([corner, tpx(WALL_X - 26, gate_y - 34)], fill=GUIDE_D, width=4)
 
     place(cells["gate"], 96.0, WALL_X + 2, (GATE_ROWS[1] + 0.68) * Y_STEP)
-    # Tours d'extrémité posées PAR-DESSUS la bande (le mur entre dans la tour).
-    place(cells["tower"], 34.0, WALL_X + 2, -18.0)
-    place(cells["tower"], 34.0, WALL_X + 2, (ROWS - 1 + 1.9) * Y_STEP)
+
+    # Tours d'extrémité FUSIONNÉES, dessinées (leçon v7 : la tour-objet de la
+    # planche v1, plus étroite que la bande et sans raccord, n'offrait aucune
+    # notion de connexion). Ici : fût PLUS LARGE que la bande, posé sur son
+    # axe — le mur disparaît DEDANS — et couronne crénelée qui prolonge la
+    # ligne de créneaux du parapet.
+    def fused_tower(bottom_bp: float) -> None:
+        w_bp, h_bp = 84.0, 82.0
+        x0 = tpx(WALL_X - w_bp / 2, 0)[0]
+        x1 = tpx(WALL_X + w_bp / 2, 0)[0]
+        y1 = tpx(0, bottom_bp)[1]
+        y0 = tpx(0, bottom_bp - h_bp)[1]
+        cx = (x0 + x1) // 2
+        # Socle évasé, puis fût (léger fuselage), puis couronne débordante.
+        d.ellipse([x0 - 12, y1 - 20, x1 + 12, y1 + 14], fill=GUIDE, outline=GUIDE_D, width=3)
+        shaft_w = x1 - x0
+        d.polygon(
+            [(x0, y1), (cx - int(shaft_w * 0.42), y0 + 30), (cx + int(shaft_w * 0.42), y0 + 30), (x1, y1)],
+            fill=GUIDE,
+            outline=GUIDE_D,
+        )
+        cw = int(shaft_w * 1.05)
+        cx0 = cx - cw // 2
+        d.rectangle([cx0, y0 + 6, cx0 + cw, y0 + 34], fill=GUIDE, outline=GUIDE_D, width=3)
+        m = cw // 7
+        for i in range(4):
+            mx = cx0 + int((0.4 + i * 1.8) * m)
+            d.rectangle([mx, y0 - 14, mx + m, y0 + 8], fill=GUIDE, outline=GUIDE_D, width=2)
+        # Meurtrière (repère d'orientation : face à l'assaillant, comme le mur).
+        d.rectangle([cx - 6, y0 + 52, cx + 6, y0 + 92], fill=GUIDE_D)
+
+    fused_tower(-8.0)
+    fused_tower(406.0)
     # Tour de tir EN RETRAIT (cour, derrière la porte) + sa RUINE (derrière la
     # brèche) — à l'est de la région du run, jamais dans ses tranches.
     place(cells["arrow"], 50.0, (ARROW_BOX[0] + ARROW_BOX[2]) / 2, ARROW_BOX[3] - 4)

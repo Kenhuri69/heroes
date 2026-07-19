@@ -1,4 +1,4 @@
-import { Application, Assets, Container, Graphics, Point, Sprite, Text } from 'pixi.js';
+import { Application, Assets, Container, Graphics, Point, Sprite, Text, TilingSprite } from 'pixi.js';
 import {
   hexDistance,
   inCombatBounds,
@@ -28,12 +28,13 @@ import { pushToast } from '../../ui/toasts';
 import { onLongPress, onTap } from '../../input/pointer';
 import { Camera } from '../../render/camera';
 import { playerColor } from '../../render/playerColors';
-import { heroAvatarUrl, unitSpriteUrl, siegeWallUrl, statusIconUrl } from '../../render/assets';
+import { heroAvatarUrl, unitSpriteUrl, statusIconUrl, siegeCurtainUrl, siegeTowerUrl } from '../../render/assets';
+import { computeWallLayout, drawCurtain, drawTower, drawGate, drawDamage } from '../../render/siegeWall';
 import { heroArchetype } from '../../app/game';
-import { HEX_SIZE, computeBoardBounds, drawBoard, hexKey, offsetToPixel, pixelToOffset } from '../../render/hexgrid';
+import { HEX_SIZE, ISO_SQUASH, computeBoardBounds, drawBoard, hexKey, offsetToPixel, pixelToOffset } from '../../render/hexgrid';
 import { isContentPointVisible, type Rect } from '../../render/cameraClamp';
 import { combatPreview } from './preview';
-import { spawnProjectile, spawnSpellImpact, combatIdleStats, combatShakeStats } from '../../render/combatFx';
+import { spawnProjectile, spawnSpellImpact, spawnRubbleImpact, combatIdleStats, combatShakeStats } from '../../render/combatFx';
 import { reduceMotion } from '../../app/motion';
 
 const ATTACKER_COLOR = 0xc0392b;
@@ -79,8 +80,19 @@ const DEATH_TIP_RAD = Math.PI / 2; // bascule finale (~90°)
 const SHAKE_PX = 4; // amplitude crête de la secousse
 const SHAKE_MS = 120;
 
+// HoMM3 : recul en perspective de la muraille de siège. `LEAN` = décalage
+// horizontal de l'extrémité LOIN (haut) vers la droite ; `FAR`/`NEAR` = échelle
+// de profondeur (loin plus petit, près plus grand). L'extrémité près reste sur
+// la colonne (alignée à la douve).
+const ISO_WALL_LEAN = HEX_SIZE * 1.5;
+const ISO_WALL_FAR = 0.82;
+const ISO_WALL_NEAR = 1.12;
+
 const MARGIN_TOP = 96; // bandeau armées + round (doc 08 §2.4)
-const MARGIN_BOTTOM = 96; // barre d'actions
+// S9.4 : marge basse élargie — la barre d'actions peut passer à 2 rangées et le
+// badge d'effectif déborde SOUS le jeton ; sans marge, les piles de la rangée 9
+// (bas du plateau) étaient rognées au cadrage d'ouverture (audit doc 19 §4).
+const MARGIN_BOTTOM = 120; // barre d'actions + dépassement du badge d'effectif
 const MARGIN_SIDE = 16;
 const MAX_SCALE = 1.5;
 // Plancher tactile doc 08 §1 : hexes ≥ 44 px (~0,706 pour HEX_SIZE=36).
@@ -106,9 +118,16 @@ export class CombatScene {
   private readonly camera: Camera;
   private readonly boardLayer = new Container();
   private readonly boardGfx = new Graphics();
-  /** C-SIEGE2 : sprites de rempart posés sur les hexes `siegeWalls` (repli = rocher). */
-  private readonly wallLayer = new Container();
-  /** Signature des hexes de rempart déjà rendus (évite de reconstruire à chaque sync). */
+  /**
+   * S1 : muraille de siège CONTINUE, en 3 sous-couches (du fond vers le dessus) :
+   * `wallBase` (repli procédural courtine/tour/porte), `wallSpriteLayer` (pièces
+   * PEINTES `siege-curtain`/`-tower`/`-gate` si fournies), `wallDamage` (fissures/
+   * brèche, toujours au-dessus). Une pièce peinte recouvre son repli procédural.
+   */
+  private readonly wallBase = new Graphics();
+  private readonly wallSpriteLayer = new Container();
+  private readonly wallDamage = new Graphics();
+  /** Signature des remparts déjà rendus (hexes + PV) — évite de redessiner à chaque sync. */
   private wallKeys = '';
   private readonly stacksLayer = new Container();
   /** UXD-4 : effets éphémères (chiffres de dégâts flottants) au-dessus des piles. */
@@ -150,8 +169,19 @@ export class CombatScene {
   private readonly unsubscribeLongPress: () => void;
 
   constructor(private readonly app: Application) {
-    this.boardLayer.addChild(this.boardGfx, this.wallLayer, this.heroLayer, this.stacksLayer, this.fxLayer);
-    this.wallLayer.eventMode = 'none'; // décor de rempart : ne capte jamais le tap
+    this.boardLayer.addChild(
+      this.boardGfx,
+      this.wallBase,
+      this.wallSpriteLayer,
+      this.wallDamage,
+      this.heroLayer,
+      this.stacksLayer,
+      this.fxLayer,
+    );
+    // Décor de rempart : ne capte jamais le tap.
+    this.wallBase.eventMode = 'none';
+    this.wallSpriteLayer.eventMode = 'none';
+    this.wallDamage.eventMode = 'none';
     this.fxLayer.eventMode = 'none'; // purement décoratif : ne capte jamais le tap
     this.heroLayer.eventMode = 'none'; // jetons de héros décoratifs (C-HEROSPRITE)
     // Le plateau vit dans la caméra de combat (pan/pinch/molette, plancher tactile).
@@ -159,8 +189,12 @@ export class CombatScene {
     this.camera.world.addChild(this.boardLayer);
     this.container.addChild(this.camera.world);
 
+    // B2 iso : tri par profondeur — un jeton plus BAS à l'écran (plus proche)
+    // masque un jeton plus haut (plus lointain). `zIndex = y` posé au sync.
+    this.stacksLayer.sortableChildren = true;
+
     this.activeRing = new Graphics()
-      .circle(0, 0, TOKEN_RADIUS + 6)
+      .ellipse(0, TOKEN_RADIUS * 0.7, TOKEN_RADIUS + 6, (TOKEN_RADIUS + 6) * ISO_SQUASH)
       .stroke({ width: 3, color: ACTIVE_RING_COLOR });
     this.activeRing.visible = false;
     this.stacksLayer.addChild(this.activeRing);
@@ -300,7 +334,9 @@ export class CombatScene {
       this.selection = null;
       combatPreview.set(null);
       this.boardGfx.clear();
-      this.wallLayer.removeChildren().forEach((c) => c.destroy());
+      this.wallBase.clear();
+      this.wallDamage.clear();
+      this.wallSpriteLayer.removeChildren().forEach((c) => c.destroy());
       this.wallKeys = '';
       this.fxLayer.removeChildren().forEach((c) => c.destroy()); // purge des chiffres flottants
       for (const [id, token] of this.stackTokens) {
@@ -328,33 +364,96 @@ export class CombatScene {
   }
 
   /**
-   * C-SIEGE2 : pose un sprite de rempart (`combat/siege-wall`) sur chaque hex de
-   * `combat.siegeWalls`, distinct des obstacles de champ. Le sprite RECOUVRE le
-   * rocher procédural dessiné par `drawBoard` ; s'il est absent (asset non
-   * produit) le rocher reste — repli gracieux, jamais d'image cassée. Reconstruit
-   * seulement quand l'ensemble des remparts change (un segment ouvert par la
-   * catapulte disparaît, C-SIEGE2.6).
+   * C-SIEGE2 + S1/S2 : dessine la muraille de siège comme UNE structure continue
+   * (`drawSiegeWall` — courtine + tours aux extrémités + porte à l'ouverture +
+   * fissures/brèche au niveau des segments entamés), au lieu d'un sprite par hex
+   * (blocs épars, gaps ; audit doc 19 §2.1). Procédural, déterministe, redessiné
+   * seulement quand la signature (hexes + PV) change — l'érosion de la catapulte
+   * (C-SIEGE2.6) ouvre la brèche au redraw ; le FX de bombardement (projectile +
+   * éclats) reste joué par `WallBombarded`.
    */
   private syncWalls(combat: CombatState): void {
     const walls = combat.siegeWalls ?? [];
-    const sig = walls.map(hexKey).sort().join('|');
+    const hp = combat.siegeWallHp ?? {};
+    // Signature = hexes + PV : redessine quand la muraille change (segment ouvert
+    // par la catapulte, usure d'un segment) mais pas à chaque toast.
+    const sig = walls
+      .map((w) => `${hexKey(w)}:${hp[hexKey(w)] ?? ''}`)
+      .sort()
+      .join('|');
     if (sig === this.wallKeys) return;
     this.wallKeys = sig;
-    this.wallLayer.removeChildren().forEach((c) => c.destroy());
-    const url = siegeWallUrl();
-    if (!url || walls.length === 0) return;
-    for (const pos of walls) {
-      const { x, y } = offsetToPixel(pos);
-      void Assets.load(url).then((texture) => {
-        if (this.destroyed || this.wallLayer.destroyed) return;
-        const sprite = new Sprite(texture);
-        sprite.anchor.set(0.5, 0.6);
-        const scale = (HEX_SIZE * 2.1) / Math.max(texture.width, texture.height);
-        sprite.scale.set(scale);
-        sprite.position.set(x, y);
-        this.wallLayer.addChild(sprite);
-      });
+    this.wallBase.clear();
+    this.wallDamage.clear();
+    this.wallSpriteLayer.removeChildren().forEach((c) => c.destroy());
+
+    const layout = computeWallLayout(combat);
+    if (!layout) return;
+    const curtainUrl = siegeCurtainUrl();
+    const towerUrl = siegeTowerUrl();
+
+    // HoMM3 : la muraille FILE EN PERSPECTIVE sur le plateau iso — extrémité HAUTE
+    // = LOIN (recule vers le haut-droite, plus petite), extrémité BASSE = PRÈS
+    // (reste sur la colonne, alignée à la douve, plus grande). L'extrémité près
+    // ancrée à `wallX` ⇒ le mur ne croise jamais la douve (à sa gauche).
+    const yTop = Math.min(...layout.runs.map((r) => r.yTop));
+    const yBot = Math.max(...layout.runs.map((r) => r.yBot));
+    const span = Math.max(1, yBot - yTop);
+    const iso = {
+      xAt: (y: number) => layout.wallX + ISO_WALL_LEAN * (1 - (y - yTop) / span),
+      scaleAt: (y: number) => ISO_WALL_FAR + (ISO_WALL_NEAR - ISO_WALL_FAR) * ((y - yTop) / span),
+    };
+
+    // Courtines : sprite peint incliné le long de l'axe iso, sinon procédural droit.
+    for (const run of layout.runs) {
+      if (curtainUrl) this.placeCurtainIso(curtainUrl, iso, layout.halfW, run.yTop, run.yBot);
+      else drawCurtain(this.wallBase, layout.wallX, run.yTop, run.yBot);
     }
+    for (const ty of layout.towers) {
+      if (towerUrl) this.placeTowerIso(towerUrl, iso.xAt(ty), ty, iso.scaleAt(ty), layout.towerH);
+      else drawTower(this.wallBase, layout.wallX, ty);
+    }
+    if (layout.gateY != null) drawGate(this.wallBase, iso.xAt(layout.gateY), layout.gateY);
+    for (const d of layout.damage) drawDamage(this.wallDamage, iso.xAt(d.y), d.y, d.ratio, d.seed, iso.scaleAt(d.y));
+  }
+
+  /**
+   * Courtine PEINTE tuilée le long de l'axe iso penché [yTop,yBot] (`TilingSprite`
+   * pivoté en tête + mis à l'échelle profondeur) ⇒ muraille qui file en perspective.
+   */
+  private placeCurtainIso(
+    url: string,
+    iso: { xAt: (y: number) => number; scaleAt: (y: number) => number },
+    halfW: number,
+    yTop: number,
+    yBot: number,
+  ): void {
+    const topX = iso.xAt(yTop);
+    const botX = iso.xAt(yBot);
+    const len = Math.hypot(botX - topX, yBot - yTop);
+    const w = halfW * 2 * iso.scaleAt((yTop + yBot) / 2);
+    const angle = Math.atan2(yBot - yTop, botX - topX) - Math.PI / 2; // local +y (bas) → direction d'axe
+    void Assets.load(url).then((texture) => {
+      if (this.destroyed || this.wallSpriteLayer.destroyed) return;
+      const tile = new TilingSprite({ texture, width: w, height: len });
+      tile.tileScale.set(w / texture.width);
+      tile.pivot.set(w / 2, 0);
+      tile.rotation = angle;
+      tile.position.set(topX, yTop);
+      this.wallSpriteLayer.addChild(tile);
+    });
+  }
+
+  /** Tour PEINTE posée en (x,y) sur l'axe, base au point, échelle profondeur. */
+  private placeTowerIso(url: string, x: number, y: number, depthScale: number, towerH: number): void {
+    void Assets.load(url).then((texture) => {
+      if (this.destroyed || this.wallSpriteLayer.destroyed) return;
+      const sprite = new Sprite(texture);
+      sprite.anchor.set(0.5, 0.82);
+      sprite.scale.set(((towerH * 1.7) / texture.height) * depthScale);
+      sprite.position.set(x, y);
+      this.wallSpriteLayer.addChild(sprite);
+    });
   }
 
   /**
@@ -379,17 +478,32 @@ export class CombatScene {
       if (!hero) continue;
       const token = new Container();
       const color = side === 'attacker' ? ATTACKER_COLOR : DEFENDER_COLOR;
-      // Socle + cadre circulaire au liseré du camp (repli visible tant que
-      // l'avatar n'est pas chargé — ou s'il n'existe pas).
+      // S7.3 : repli du médaillon = teinte déterministe (hash faction) + initiale
+      // du héros, au lieu du disque noir vide (audit doc 19 §3.2) — même esprit
+      // que le `FactionBadge` de l'UI DOM. L'avatar, s'il existe, recouvre.
       token.addChild(
         new Graphics()
           .ellipse(0, HERO_TOKEN_RADIUS * 0.9, HERO_TOKEN_RADIUS * 0.8, HERO_TOKEN_RADIUS * 0.3)
           .fill({ color, alpha: 0.85 })
           .stroke({ width: 2, color: 0x1a1c22 })
           .circle(0, 0, HERO_TOKEN_RADIUS)
-          .fill(0x232630)
+          .fill(factionTint(hero.factionId))
           .stroke({ width: 3, color }),
       );
+      const initial = (hero.name || hero.factionId || '?').trim().charAt(0).toUpperCase() || '?';
+      const initialText = new Text({
+        text: initial,
+        style: {
+          fontFamily: 'Georgia, "Times New Roman", serif',
+          fontSize: HERO_TOKEN_RADIUS * 1.1,
+          fontWeight: '700',
+          fill: 0xf2e6c8,
+          stroke: { color: 0x1a1c22, width: 3 },
+          align: 'center',
+        },
+      });
+      initialText.anchor.set(0.5);
+      token.addChild(initialText);
       const url = heroAvatarUrl(hero.factionId, heroArchetype(hero.attributes), hero.name);
       if (url) {
         void Assets.load(url).then((texture) => {
@@ -458,6 +572,7 @@ export class CombatScene {
       if (!this.animatingIds.has(stack.id)) {
         const { x, y } = offsetToPixel(stack.pos);
         token.position.set(x, y);
+        token.zIndex = y; // B2 iso : profondeur = position à l'écran
       }
       this.updateCountBadge(token, stack.count);
       this.updateStatusBadges(token, stack);
@@ -536,7 +651,8 @@ export class CombatScene {
     if (token) {
       this.activeRing.visible = true;
       this.activeRing.position.copyFrom(token.position);
-      this.stacksLayer.addChild(this.activeRing); // reste au-dessus
+      this.activeRing.zIndex = token.position.y - 0.5; // juste sous la pile active (iso)
+      this.stacksLayer.addChild(this.activeRing);
     } else {
       this.activeRing.visible = false;
     }
@@ -553,13 +669,27 @@ export class CombatScene {
   private buildStackToken(stack: CombatStack): Container {
     const token = new Container();
     const side = stack.side;
-    // Base de camp (ellipse au sol) : distingue attaquant/défenseur.
-    token.addChild(
-      new Graphics()
-        .ellipse(0, TOKEN_RADIUS * 0.7, TOKEN_RADIUS * 0.85, TOKEN_RADIUS * 0.35)
-        .fill({ color: side === 'attacker' ? ATTACKER_COLOR : DEFENDER_COLOR, alpha: 0.85 })
-        .stroke({ width: 2, color: 0x1a1c22 }),
-    );
+    const catalog = appStore.getState().game.unitCatalog;
+    const abilities = catalog[stack.unitId]?.abilities ?? [];
+    const hasAbility = (id: string): boolean => abilities.some((a) => a.id === id);
+    // S6 : une machine de guerre défensive IMMOBILE (tour de tir de siège) est une
+    // STRUCTURE de la ville, pas une créature — détection générique par capacités
+    // (`warMachine` + `immobile` côté défenseur), zéro id d'unité/faction en dur.
+    // Rendu : socle de pierre (pas d'ellipse de camp), sprite figé (hors idle),
+    // aucun badge d'effectif (une tour n'est pas « 1 »).
+    const isSiegeStructure = side === 'defender' && hasAbility('warMachine') && hasAbility('immobile');
+
+    if (isSiegeStructure) {
+      token.addChild(buildStructureBase());
+    } else {
+      // Base de camp (ellipse au sol) : distingue attaquant/défenseur.
+      token.addChild(
+        new Graphics()
+          .ellipse(0, TOKEN_RADIUS * 0.7, TOKEN_RADIUS * 0.85, TOKEN_RADIUS * 0.35)
+          .fill({ color: side === 'attacker' ? ATTACKER_COLOR : DEFENDER_COLOR, alpha: 0.85 })
+          .stroke({ width: 2, color: 0x1a1c22 }),
+      );
+    }
     // Coop (E4.5b, doc 18 E4) : une pile issue d'un héros ALLIÉ invité (owner
     // explicite) porte un liseré de la couleur de son joueur — signal « à qui
     // appartient la pile ». Piles du lead (owner absent) : aucun anneau (rendu
@@ -576,33 +706,34 @@ export class CombatScene {
     }
     // I2 : le visuel d'unité (repli polygone puis sprite) vit dans un conteneur
     // `bob` que la boucle idle fait osciller ; l'ellipse de sol et le badge
-    // d'effectif (ajoutés hors de `bob`) restent fixes.
-    const bob = new Container();
-    bob.label = 'bob';
-    token.addChild(bob);
-    const fallback = buildStackTokenGraphic(side);
-    bob.addChild(fallback);
+    // d'effectif (ajoutés hors de `bob`) restent fixes. Une STRUCTURE (S6) ne
+    // respire pas : son visuel est hors `bob` (conteneur non labellisé).
+    const visual = new Container();
+    if (!isSiegeStructure) visual.label = 'bob';
+    token.addChild(visual);
+    const fallback = isSiegeStructure ? buildStructureGraphic() : buildStackTokenGraphic(side);
+    visual.addChild(fallback);
 
-    const catalog = appStore.getState().game.unitCatalog;
     const url = unitSpriteUrl(stack.unitId, catalog[stack.unitId]?.groupId);
     if (url) {
       void Assets.load(url).then((texture) => {
         if (this.destroyed || token.destroyed) return;
-        bob.removeChild(fallback);
+        visual.removeChild(fallback);
         fallback.destroy();
         const sprite = new Sprite(texture);
-        sprite.anchor.set(0.5, 0.72); // pieds posés sur la base de camp
+        sprite.anchor.set(0.5, 0.72); // pieds posés sur la base
         const scale = (TOKEN_RADIUS * 2.4) / Math.max(texture.width, texture.height);
         sprite.scale.set(scale);
-        bob.addChild(sprite);
+        visual.addChild(sprite);
       });
     }
 
     // Badge d'effectif (doc 08 §2.4, fidélité HoMM) : pastille en bas du jeton
     // portant le nombre de soldats. Texte à fort contraste (contour) — jamais
     // porté par la couleur seule (a11y A5). Toujours au-dessus du sprite d'unité,
-    // réf gardée sur le conteneur pour mise à jour à chaque `syncStacks`.
-    token.addChild(this.buildCountBadge(stack.count));
+    // réf gardée sur le conteneur pour mise à jour à chaque `syncStacks`. Omis
+    // pour une structure (S6) : « 1 » n'a pas de sens pour une tour.
+    if (!isSiegeStructure) token.addChild(this.buildCountBadge(stack.count));
     return token;
   }
 
@@ -871,7 +1002,11 @@ export class CombatScene {
     }
 
     this.selection = { kind: 'move', to: hex };
-    combatPreview.set(null);
+    // S3.3 : si la destination est un hex de douve, annoncer les dégâts de fossé
+    // (lecture de `combat.moatDamage`, aucune règle nouvelle) au lieu de rien.
+    const moatDamage = combat.moatDamage ?? 0;
+    const intoMoat = moatDamage > 0 && (combat.moat ?? []).some((m) => sameHex(m, hex));
+    combatPreview.set(intoMoat ? { kind: 'moat', damage: moatDamage } : null);
     this.redrawBoard();
   }
 
@@ -1065,20 +1200,30 @@ export class CombatScene {
       case 'StackHealed': {
         // lifeDrain / soin (A2a) : chiffre vert flottant sur la pile soignée.
         const token = this.stackTokens.get(event.stackId);
-        if (token) this.spawnHealNumber(new Point(token.position.x, token.position.y), event.amount);
+        if (token) this.spawnHealNumber(new Point(token.position.x, token.position.y), event.amount, token);
         return;
       }
       case 'MoatDamaged': {
         // C-SIEGE2.4 : dégâts de douve — chiffre de dégâts flottant sur la pile.
         const token = this.stackTokens.get(event.stackId);
         if (token && event.damage > 0) {
-          this.spawnDamageNumber(new Point(token.position.x, token.position.y), event.damage, event.kills, false, false);
+          this.spawnDamageNumber(new Point(token.position.x, token.position.y), event.damage, event.kills, false, false, token);
         }
         return;
       }
       case 'WallBombarded': {
-        // C-SIEGE2.6 : tir de catapulte — quand un segment tombe, l'état a déjà
-        // retiré le mur ⇒ redessiner le plateau ouvre l'hex (la brèche s'élargit).
+        // S2.1 : tir de catapulte VISIBLE — boulet en arc balistique depuis le
+        // flanc attaquant vers le segment visé, puis impact « éclats de pierre ».
+        const target = offsetToPixel({ col: event.col, row: event.row });
+        const bounds = computeBoardBounds();
+        const origin = new Point(bounds.minX - HERO_FLANK_OFFSET, target.y);
+        const to = new Point(target.x, target.y);
+        const reduced = prefersReducedMotion();
+        await spawnProjectile(this.fxLayer, origin, to, { speed, reduced, shape: 'boulder' });
+        await spawnRubbleImpact(this.fxLayer, to, { speed, reduced });
+        // C-SIEGE2.6 : quand un segment tombe, l'état a déjà retiré le mur ⇒
+        // redessiner le plateau ouvre l'hex (la brèche s'élargit) ; `syncWalls`
+        // anime la chute du sprite (S2.3).
         if (event.destroyed) this.redrawBoard();
         return;
       }
@@ -1109,8 +1254,8 @@ export class CombatScene {
           // par famille) — même pour un buff/debuff sans nombre flottant.
           if (kind) await spawnSpellImpact(this.fxLayer, at, kind, { speed, reduced: prefersReducedMotion() });
           if (event.amount > 0) {
-            if (kind === 'heal') this.spawnHealNumber(at, event.amount);
-            else this.spawnDamageNumber(at, event.amount, event.kills, false, false);
+            if (kind === 'heal') this.spawnHealNumber(at, event.amount, target);
+            else this.spawnDamageNumber(at, event.amount, event.kills, false, false, target);
           }
         }
         return;
@@ -1124,8 +1269,8 @@ export class CombatScene {
           const kind = appStore.getState().game.spellCatalog[event.spellId]?.kind;
           if (kind) await spawnSpellImpact(this.fxLayer, at, kind, { speed, reduced: prefersReducedMotion() });
           if (event.amount > 0) {
-            if (kind === 'heal') this.spawnHealNumber(at, event.amount);
-            else this.spawnDamageNumber(at, event.amount, event.kills, false, false);
+            if (kind === 'heal') this.spawnHealNumber(at, event.amount, target);
+            else this.spawnDamageNumber(at, event.amount, event.kills, false, false, target);
           }
         }
         return;
@@ -1141,6 +1286,7 @@ export class CombatScene {
             event.kills,
             false,
             false,
+            target,
           );
         }
         return;
@@ -1188,10 +1334,10 @@ export class CombatScene {
     const impact = (): void => {
       if (!target || target.destroyed) return;
       if (dodged) {
-        this.spawnFloatingLabel(dest, 'esquive', 0x8fb3d9);
+        this.spawnFloatingLabel(dest, 'esquive', 0x8fb3d9, target);
       } else {
         target.tint = 0xff6666;
-        this.spawnDamageNumber(dest, damage, kills, lucky, unlucky);
+        this.spawnDamageNumber(dest, damage, kills, lucky, unlucky, target);
         if (!reduced) void this.shakeToken(target, dest);
       }
     };
@@ -1240,6 +1386,7 @@ export class CombatScene {
     kills: number,
     lucky: boolean,
     unlucky = false,
+    follow?: Container | null,
   ): void {
     const group = new Container();
     // Marqueurs a11y (glyphe + couleur) : ★ chance (or), ⚑ malchance (bleu-gris).
@@ -1273,12 +1420,22 @@ export class CombatScene {
       killsText.anchor.set(0.5, 0);
       group.addChild(killsText);
     }
-    group.position.set(at.x, at.y - TOKEN_RADIUS * 0.6);
+    // S8.1 : ancré bien AU-DESSUS du sprite (≈1,5 rayon) — ne recouvre plus le
+    // badge d'effectif (posé sous le jeton) ni les voisins immédiats.
+    group.position.set(at.x, at.y - TOKEN_RADIUS * 1.5);
     this.fxLayer.addChild(group);
     const reduced = prefersReducedMotion();
     const startY = group.position.y;
+    // S8.2 : si la pile suivie meurt (fondu du jeton terminé), écourter le popup
+    // orphelin — plus de « −38 » flottant sur de l'herbe nue.
+    let deadT: number | null = null;
     void tween(700, (t) => {
       if (group.destroyed) return; // scène détruite pendant le vol (lot M4)
+      if (deadT === null && follow?.destroyed) deadT = t;
+      if (deadT !== null) {
+        group.alpha = Math.max(0, 1 - (t - deadT) / 0.15); // fondu rapide (~150 ms)
+        return;
+      }
       if (!reduced) group.position.y = startY - 30 * t;
       group.alpha = t < 0.6 ? 1 : 1 - (t - 0.6) / 0.4; // plein puis fondu
     }).then(() => {
@@ -1287,13 +1444,13 @@ export class CombatScene {
   }
 
   /** Chiffre de soin flottant (vert, `+N`) — lifeDrain / soin (A2a). */
-  private spawnHealNumber(at: Point, amount: number): void {
+  private spawnHealNumber(at: Point, amount: number, follow?: Container | null): void {
     if (amount <= 0) return;
-    this.spawnFloatingLabel(at, `+${amount}`, 0x6fe08a); // vert soin (a11y : signe + couleur)
+    this.spawnFloatingLabel(at, `+${amount}`, 0x6fe08a, follow); // vert soin (a11y : signe + couleur)
   }
 
   /** Étiquette flottante générique (montée + fondu) — soin, esquive, etc. */
-  private spawnFloatingLabel(at: Point, label: string, color: number): void {
+  private spawnFloatingLabel(at: Point, label: string, color: number, follow?: Container | null): void {
     const text = new Text({
       text: label,
       style: {
@@ -1306,12 +1463,19 @@ export class CombatScene {
       },
     });
     text.anchor.set(0.5, 1);
-    text.position.set(at.x, at.y - TOKEN_RADIUS * 0.6);
+    // S8.1 : ancré au-dessus du sprite (cohérent avec spawnDamageNumber).
+    text.position.set(at.x, at.y - TOKEN_RADIUS * 1.5);
     this.fxLayer.addChild(text);
     const reduced = prefersReducedMotion();
     const startY = text.position.y;
+    let deadT: number | null = null;
     void tween(700, (t) => {
       if (text.destroyed) return;
+      if (deadT === null && follow?.destroyed) deadT = t; // S8.2 : suit la mort du jeton
+      if (deadT !== null) {
+        text.alpha = Math.max(0, 1 - (t - deadT) / 0.15);
+        return;
+      }
       if (!reduced) text.position.y = startY - 30 * t;
       text.alpha = t < 0.6 ? 1 : 1 - (t - 0.6) / 0.4;
     }).then(() => {
@@ -1421,6 +1585,46 @@ function eventStackIds(event: AppEvent): string[] {
   }
 }
 
+/**
+ * S6 — socle de pierre d'une structure de siège (tour de tir) : galette de
+ * fondation crénelée au sol, à la place de l'ellipse de camp. Procédural et
+ * déterministe (aucun RNG), teintes pierre cohérentes avec `drawBoulder`.
+ */
+function buildStructureBase(): Graphics {
+  const g = new Graphics();
+  const w = TOKEN_RADIUS * 0.95;
+  const h = TOKEN_RADIUS * 0.42;
+  const y = TOKEN_RADIUS * 0.72;
+  // Ombre au sol + assise de pierre rectangulaire (fondation d'ouvrage).
+  g.ellipse(0, y + h * 0.25, w, h * 0.5).fill({ color: 0x2a2620, alpha: 0.4 });
+  g.roundRect(-w, y - h, w * 2, h * 1.4, 4)
+    .fill({ color: 0x6f665a })
+    .stroke({ width: 2, color: 0x3a332b });
+  // Créneaux d'assise (2ᵉ canal non chromatique : c'est un ouvrage, pas un socle).
+  for (let i = -2; i <= 2; i++) {
+    g.rect(i * (w * 0.42) - w * 0.14, y - h - 5, w * 0.28, 6).fill({ color: 0x847a6b });
+  }
+  return g;
+}
+
+/** S6 — repli procédural d'une tour de tir (sprite absent/en cours) : tourelle de pierre. */
+function buildStructureGraphic(): Graphics {
+  const g = new Graphics();
+  const w = TOKEN_RADIUS * 0.62;
+  const top = -TOKEN_RADIUS * 0.95;
+  const bottom = TOKEN_RADIUS * 0.5;
+  g.rect(-w, top, w * 2, bottom - top)
+    .fill({ color: 0x7c7266 })
+    .stroke({ width: 2, color: 0x4d453c });
+  // Créneaux du sommet.
+  for (let i = -1; i <= 1; i++) {
+    g.rect(i * w - w * 0.35, top - 7, w * 0.7, 8).fill({ color: 0x9a8f80 });
+  }
+  // Meurtrière (fente de tir).
+  g.rect(-w * 0.22, top + w * 0.5, w * 0.44, bottom - top - w * 0.9).fill({ color: 0x2a2620 });
+  return g;
+}
+
 /** Polygone de repli par pile — forme distincte par camp (sprite d'unité absent/en cours). */
 function buildStackTokenGraphic(side: CombatSideId): Graphics {
   const g = new Graphics();
@@ -1449,6 +1653,41 @@ function buildStackTokenGraphic(side: CombatSideId): Graphics {
  */
 function prefersReducedMotion(): boolean {
   return reduceMotion();
+}
+
+/**
+ * S7.3 — teinte de médaillon déterministe dérivée d'un id de faction (FNV-1a),
+ * même esprit que le `FactionBadge` de l'UI DOM : couleur sombre mais lisible
+ * (jamais noir pur) sous l'initiale claire du héros. Ids de faction opaques.
+ */
+function factionTint(factionId: string): number {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < factionId.length; i += 1) {
+    h ^= factionId.charCodeAt(i);
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  // Teinte HSL déterministe → RGB, luminosité bornée basse (fond de médaillon).
+  const hue = h % 360;
+  return hslToHex(hue, 0.4, 0.28);
+}
+
+/** Conversion HSL→hex 0xRRGGBB (déterministe, pour la teinte de médaillon S7.3). */
+function hslToHex(hDeg: number, s: number, l: number): number {
+  const c = (1 - Math.abs(2 * l - 1)) * s;
+  const hp = hDeg / 60;
+  const x = c * (1 - Math.abs((hp % 2) - 1));
+  let r = 0;
+  let g = 0;
+  let b = 0;
+  if (hp < 1) [r, g, b] = [c, x, 0];
+  else if (hp < 2) [r, g, b] = [x, c, 0];
+  else if (hp < 3) [r, g, b] = [0, c, x];
+  else if (hp < 4) [r, g, b] = [0, x, c];
+  else if (hp < 5) [r, g, b] = [x, 0, c];
+  else [r, g, b] = [c, 0, x];
+  const m = l - c / 2;
+  const to = (v: number): number => Math.round((v + m) * 255) & 0xff;
+  return (to(r) << 16) | (to(g) << 8) | to(b);
 }
 
 /** Déphasage idle déterministe d'une pile (0..2π) dérivé de son id — désynchronise les jetons. */

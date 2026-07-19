@@ -303,15 +303,20 @@ export type Command =
       source: 'equipped' | 'backpack';
       index: number;
     }
+  /**
+   * Marchand d'artefacts (doc 18 D2) : ACHAT d'un artefact du stock dérivé de la
+   * ville (marché construit, héros présent) contre or. Prix `artifactBaseValue`.
+   */
+  | { type: 'BuyArtifact'; townId: string; heroId: string; artifactId: string }
   // ——— Héros : sorts & compétences (doc 02 §1.2–§1.4) — surface figée 3.2 ———
   /**
    * F-SCHOOLS.8 : `targetHex` = destination d'un sort de téléportation
    * (`kind: 'teleport'`, Pas de Brume) ; ignoré par les autres sorts. Champ de
    * commande (pas d'état persisté) ⇒ aucun bump de sauvegarde.
    */
-  | { type: 'CastSpell'; spellId: string; targetStackId: string; targetHex?: OffsetPos }
+  | { type: 'CastSpell'; spellId: string; targetStackId: string; targetHex?: OffsetPos; heroId?: string }
   /** Attaque du héros (C1) : dégâts directs sur une pile ennemie, 1×/combat. */
-  | { type: 'HeroAttack'; targetStackId: string }
+  | { type: 'HeroAttack'; targetStackId: string; heroId?: string }
   /** Prière de bataille (F-SKILLS.2) : le héros soigne/ressuscite une pile alliée, 1×/combat. */
   | { type: 'HeroRally'; targetStackId: string }
   /** Renforts (doc 18 B3) : en PvE, ajoute une pile fraîche d'une unité commandée, contre or. */

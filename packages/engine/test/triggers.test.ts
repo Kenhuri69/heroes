@@ -395,6 +395,77 @@ describe('lot 2.4 (doc 18 A5) — effets liés au héros visiteur', () => {
     expect(done.state.players[0]!.resources.gold).toBe(state.players[0]!.resources.gold + 50);
   });
 
+  it('removeArtifact : ôte l’artefact porté par le héros visiteur (péage), one-shot', () => {
+    // Octroi en (1,0), retrait en (2,0) : à la fin l'artefact n'est plus porté.
+    const state = startWith(
+      [
+        {
+          id: 't-grant',
+          on: { kind: 'visit', pos: { x: 1, y: 0 } },
+          effect: { kind: 'grantArtifact', artifactId: 'amulette-test' },
+          fired: false,
+        },
+        {
+          id: 't-remove',
+          on: { kind: 'visit', pos: { x: 2, y: 0 } },
+          effect: { kind: 'removeArtifact', artifactId: 'amulette-test' },
+          fired: false,
+        },
+      ],
+      [ARMED],
+    );
+    const r1 = apply(state, { type: 'MoveHero', heroId: 'hero-p1', path: [{ x: 1, y: 0 }] });
+    const carried1 = [...r1.state.heroes[0]!.artifacts, ...(r1.state.heroes[0]!.backpack ?? [])];
+    expect(carried1).toContain('amulette-test');
+    const r2 = apply(r1.state, { type: 'MoveHero', heroId: 'hero-p1', path: [{ x: 2, y: 0 }] });
+    const carried2 = [...r2.state.heroes[0]!.artifacts, ...(r2.state.heroes[0]!.backpack ?? [])];
+    expect(carried2).not.toContain('amulette-test');
+    expect(r2.state.map!.triggers[1]!.fired).toBe(true);
+  });
+
+  it('removeArtifact : artefact absent ⇒ no-op, trigger tout de même consommé', () => {
+    const state = startWith(
+      [
+        {
+          id: 't-remove-absent',
+          on: { kind: 'visit', pos: { x: 1, y: 0 } },
+          effect: { kind: 'removeArtifact', artifactId: 'amulette-test' },
+          fired: false,
+        },
+      ],
+      [ARMED],
+    );
+    const r = apply(state, { type: 'MoveHero', heroId: 'hero-p1', path: [{ x: 1, y: 0 }] });
+    // L'armée est intacte, aucun slot mystérieusement vidé, le trigger est tiré.
+    expect(r.state.heroes[0]!.army).toEqual([{ unitId: 'red-grunt', count: 10 }]);
+    expect(r.state.map!.triggers[0]!.fired).toBe(true);
+  });
+
+  it('removeArmy : réduit la pile (tribut) ; slot supprimé si l’effectif tombe à 0', () => {
+    const state = startWith(
+      [
+        {
+          id: 't-tribut',
+          on: { kind: 'visit', pos: { x: 1, y: 0 } },
+          effect: { kind: 'removeArmy', unitId: 'red-grunt', count: 4 },
+          fired: false,
+        },
+        {
+          id: 't-wipe',
+          on: { kind: 'visit', pos: { x: 2, y: 0 } },
+          effect: { kind: 'removeArmy', unitId: 'red-grunt', count: 10 },
+          fired: false,
+        },
+      ],
+      [ARMED],
+    );
+    const r1 = apply(state, { type: 'MoveHero', heroId: 'hero-p1', path: [{ x: 1, y: 0 }] });
+    expect(r1.state.heroes[0]!.army).toEqual([{ unitId: 'red-grunt', count: 6 }]);
+    const r2 = apply(r1.state, { type: 'MoveHero', heroId: 'hero-p1', path: [{ x: 2, y: 0 }] });
+    expect(r2.state.heroes[0]!.army).toEqual([]);
+    expect(r2.state.map!.triggers[1]!.fired).toBe(true);
+  });
+
   it('trigger de jour à effet héros (grantArtifact) : no-op tracé (fired + événement, aucun octroi)', () => {
     const state = startWith(
       [

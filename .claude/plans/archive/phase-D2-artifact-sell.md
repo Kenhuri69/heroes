@@ -48,3 +48,12 @@ ville) est différé (D2-buy).
       18 D2. Vérif : typecheck ✓, lint ✓, 915 engine + content ✓, content:check ✓,
       garde-fou ✓, build ✓, budget 332 Ko ✓, smoke @core 32/32 ✓, golden + save-shape
       **inchangés**. **Achat différé** (stock de ville).
+- [x] **ACHAT LIVRÉ (D2-buy)** : `merchantBuyStock` (stock dérivé déterministe par
+      `townId`, RNG **local** hors `draft.rng` ⇒ golden intact) + `merchantAvailable`
+      (moins `TownState.artifactsBought?`, optionnel ⇒ pas de bump save) ;
+      `market.artifactStockSize` (config.json 4) ; commande `BuyArtifact` + event
+      `ArtifactBought` + validate/handle (or, marché, héros présent, stock). Client :
+      liste d'achat de la section « Marchand » + locales. 3 tests. Docs 02/18 (**D2
+      clôturé**). Vérif : typecheck ✓, lint ✓, **918 engine** + content ✓, content:check
+      ✓, garde-fou ✓, build ✓, budget 333 Ko ✓, smoke @core 33/33 ✓, golden + save-shape
+      **inchangés**.

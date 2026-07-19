@@ -92,6 +92,7 @@ export {
   estimateHeroRally,
   estimateDamage,
   heroAttackDamage,
+  heroAttackDamageFor,
   surrenderCost,
   initiativeSpeed,
   meleeOriginsFor,
@@ -128,6 +129,8 @@ export {
   tradeQuote,
   ownedMarketCount,
   artifactSellPrice,
+  artifactBaseValue,
+  merchantAvailable,
   unitIsRecruitable,
   upgradedUnitFor,
   upgradeCost,
@@ -150,7 +153,7 @@ export { estimateSpell, estimateUnitSpell, spellAffectedStacks, teleportDestinat
 // CAP-CAST : le client détecte une pile `spellcaster` jouable à la main + son
 // gate de silence via ces helpers purs (aucune réimplémentation côté client).
 export { spellcasterParams } from './combat/spell-effect';
-export { heroActionLeft, isSilenced, isSpellImmune, isStackSpellImmune } from './combat/state-helpers';
+export { heroActionLeft, heroActionLeftFor, heroesOnSide, isSilenced, isSpellImmune, isStackSpellImmune } from './combat/state-helpers';
 // Coût de mana effectif (réduction Magie par école, A6) — le grimoire client
 // (C2) affiche/gate sur ce coût, pas sur `spell.manaCost` brut.
 export { effectiveManaCost, spellTargetsEnemy } from './hero/spells';

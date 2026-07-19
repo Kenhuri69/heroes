@@ -187,7 +187,7 @@ describe('heroActionsPerRound — 2 actions de héros par round (Magic)', () => 
     const state = combatState([{ heroActionsPerRound: 1 }]);
     const r1 = apply(state, { type: 'HeroAttack', targetStackId: 'defender-0' });
     const r2 = apply(r1.state, { type: 'HeroAttack', targetStackId: 'defender-0' });
-    expect(r2.state.combat?.heroAttackUsed).toEqual(['attacker', 'attacker']);
+    expect(r2.state.combat?.heroAttackUsed).toEqual(['hero-1', 'hero-1']); // suivi par-héros (E4.4)
     expect(() => apply(r2.state, { type: 'HeroAttack', targetStackId: 'defender-0' })).toThrowError(
       /heroAttackUsed|épuisé/,
     );

@@ -313,9 +313,11 @@
 > 🚧 **État (récapitulatif de fin — UX-ENDSTATS, livré)** : l'overlay de fin de
 > partie (`OutcomeOverlay`, §2.5) affiche, au-dessus du graphique de puissance, un
 > **récapitulatif** lu de l'état final : **durée** (`Jour N · Semaine W`), **villes
-> possédées**, **héros** (nombre + niveau max), **unités en armée**. Client pur
-> (aucun suivi moteur). *Différé : pertes cumulées (suivi moteur requis pour
-> l'exactitude multi-joueurs/IA).*
+> possédées**, **héros** (nombre + niveau max), **unités en armée**, **unités
+> perdues**. Les **pertes cumulées** (`PlayerState.unitsLost`, Lot 7.3) sont
+> désormais suivies **côté moteur** — attribuées par camp→joueur au commit de
+> chaque combat (`turns.ts`), exactes en multi-joueurs/IA (un camp neutre/gardien
+> n'est attribué à personne). Champ **optionnel** ⇒ pas de bump `CURRENT_SAVE_VERSION`.
 
 > 🚧 **État (fiche de scénario — N-BRIEFING, livré)** : cliquer un **scénario** ou
 > un **événement** du menu ouvre d'abord une **fiche** (`BriefingScreen`, modale
@@ -651,6 +653,43 @@ Menu principal (Continuer / Scénarios / Escarmouche / **Éditeur de carte** / O
 > apparaît autour du plateau (hexes semi-opaques) ; retiré à la sortie du combat
 > et au retour menu. Anti-gel ×4 re-vérifié (arène ~23 fps, carte ~14 fps, rendu
 > logiciel CI, plancher ≥ 5).
+
+> 🧭 **État Combat ISOMÉTRIQUE (B2, plan `siege-visual-remediation`)** : le
+> plateau de combat est désormais rendu en **vue isométrique façon Heroes III** —
+> la grille hex est **aplatie verticalement** (`ISO_SQUASH`, `render/hexgrid.ts`)
+> ⇒ hexes larges vus de biais ; les jetons d'unité restent des sprites **debout**
+> (billboards) **triés par profondeur** (`zIndex = y`, le plus proche masque le
+> plus lointain). La **grille moteur** (offset carré 15×10) est **inchangée** :
+> seuls la projection de rendu et le picking (`pixelToHex` désaplati) portent
+> l'iso — même principe que la carte d'aventure (doc 02 §2.1). Conséquence pour le
+> siège : le rempart et la douve reposent sur la MÊME grille iso ⇒ **alignés**
+> (plus de décalage mur/douve). Zéro moteur, golden inchangé, anti-gel ×4 tenu
+> (arène ~16 fps). Captures : `docs/captures/siege/after-iso-*.jpg`.
+
+> 🏰 **État Siège — habillage (plan `.claude/plans/siege-visual-remediation.md`,
+> audit doc 19)** : lots **client purs** (zéro moteur, golden inchangé, pas de
+> bump save) qui rendent le siège lisible. (S2) le **bombardement** est visible —
+> l'événement moteur `WallBombarded` joue un boulet de catapulte en arc +
+> impact « éclats de pierre » (coupés en reduce-motion), un segment entamé
+> (`siegeWallHp` sous le max courant) reçoit fissures/assombrissement et un
+> segment détruit **tombe** (fondu + bascule) au lieu de disparaître ; ligne de
+> journal FR/EN. (S3) la **douve** est un décor (fossé + vaguelettes dessinées)
+> qui reste visible SOUS la surbrillance atteignable (canaux **cumulés**, plus
+> substitués), et sélectionner une case de douve annonce « Entrer dans la
+> douve : −N PV » (lecture de `combat.moatDamage`). (S4) un siège
+> (`combat.townId != null`) prend une **toile de fond de siège** — silhouette
+> urbaine de la faction assiégée — au lieu de la prairie du terrain (résolveur
+> `siegeBackgroundUrl(factionId)` : `backgrounds/siege-<faction>` → `siege` →
+> repli terrain ; id opaque, JPEG hors bundle). (S6) la **tour de tir** est
+> rendue en **structure** (socle de pierre, sprite figé hors idle, pas de badge
+> « 1 ») — détection **générique** par capacités `warMachine`+`immobile` côté
+> défenseur, aucun id en dur. (S7) l'écran **pré-combat** d'un siège titre
+> « Siège de \<ville\> » et affiche une rangée de **défenses** (Fort N, rempart,
+> douve, tour) ; le repli du **médaillon de héros** (canvas) reprend une teinte
+> déterministe (hash faction) + l'initiale au lieu du disque noir vide. (S8) les
+> **chiffres de dégâts** flottent au-dessus du sprite (ne recouvrent plus le
+> badge d'effectif) et s'écourtent quand la pile meurt (plus de « −N » sur herbe
+> nue). Popups avant/après : `docs/captures/siege/`.
 
 > 🚧 **État DA Beta (gardiens illustrés + nommage des sprites)** : sur la carte
 > d'aventure, un **gardien** affiche désormais le **sprite de sa créature**

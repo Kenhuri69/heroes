@@ -124,7 +124,7 @@ describe('C1 — attaque du héros', () => {
     const foe = next.combat?.stacks.find((s) => s.id === 'defender-0');
     // 38 dégâts sur une pile 10×10 PV ⇒ 3 tués (30 PV), reste 7 unités.
     expect(foe?.count).toBe(7);
-    expect(next.combat?.heroAttackUsed).toContain('attacker');
+    expect(next.combat?.heroAttackUsed).toContain('hero-a'); // suivi par-héros (E4.4)
     expect(events).toContainEqual({
       type: 'HeroStruck',
       side: 'attacker',
@@ -149,7 +149,7 @@ describe('C1 — attaque du héros', () => {
     // Le héros a lancé un sort ce round ⇒ plus d'action de héros disponible.
     const state: GameState = {
       ...base,
-      combat: { ...(base.combat as CombatState), heroCastThisRound: ['attacker'] },
+      combat: { ...(base.combat as CombatState), heroCastThisRound: ['hero-a'] },
     };
     expect(canHeroAttack(state)).toBe(false);
     expect(() => apply(state, { type: 'HeroAttack', targetStackId: 'defender-0' })).toThrowError(
@@ -164,7 +164,7 @@ describe('C1 — attaque du héros', () => {
       type: 'HeroAttack',
       targetStackId: 'defender-0',
     }).state;
-    expect(struck.combat?.heroAttackUsed).toContain('attacker');
+    expect(struck.combat?.heroAttackUsed).toContain('hero-a');
     const events: GameEvent[] = [];
     const next = produce(struck, (draft) => {
       const combat = (draft as Draft).combat as CombatState;

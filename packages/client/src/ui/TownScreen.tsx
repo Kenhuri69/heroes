@@ -11,6 +11,8 @@ import {
   tradeQuote,
   ownedMarketCount,
   artifactSellPrice,
+  artifactBaseValue,
+  merchantAvailable,
   upgradedUnitFor,
   upgradeCost,
   weekOf,
@@ -1536,10 +1538,41 @@ function ArtifactMerchant({ town, onError }: { town: TownState; onError: (msg: s
       (err: unknown) => onError(commandErrorMessage(err)),
     );
   };
+  const buy = (artifactId: string): void => {
+    onError(null);
+    dispatch({ type: 'BuyArtifact', townId: town.id, heroId: hero.id, artifactId }).catch(
+      (err: unknown) => onError(commandErrorMessage(err)),
+    );
+  };
+
+  // Stock d'achat (doc 18 D2) : offert si `artifactStockSize` configuré ; disponible
+  // = dérivé moins déjà acheté (helper moteur, pas de réimplémentation).
+  const forSale = market.artifactStockSize ? merchantAvailable(game, town) : [];
+  const gold = game.players.find((p) => p.id === town.ownerPlayerId)?.resources.gold ?? 0;
 
   return (
     <section class="town-artifact-merchant" data-testid="town-artifact-merchant">
       <h3>{t('town.artifactMerchant')}</h3>
+      {forSale.length > 0 && (
+        <ul class="town-artifact-list" data-testid="town-artifact-buy-list">
+          {forSale.map((id) => {
+            const def = game.artifactCatalog[id];
+            const price = def ? artifactBaseValue(def, market) : 0;
+            return (
+              <li key={id}>
+                <span class="town-artifact-name">{resolveArtifactName(id)}</span>
+                <button
+                  data-testid={`artifact-buy-${id}`}
+                  disabled={price > gold}
+                  onClick={() => buy(id)}
+                >
+                  {t('town.artifactBuy', { gold: price })}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
       {entries.length === 0 ? (
         <p class="town-market-preview">{t('town.artifactMerchantEmpty')}</p>
       ) : (

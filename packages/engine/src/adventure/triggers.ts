@@ -47,6 +47,23 @@ export function applyTriggerEffect(
     if (existing) existing.count += effect.count;
     else if (hero.army.length < heroArmyCap(hero))
       hero.army.push({ unitId: effect.unitId, count: effect.count });
+  } else if (effect.kind === 'removeArtifact' && hero) {
+    // Miroir de `grantArtifact` (péage/malédiction) : ôte l'artefact d'un slot
+    // équipé, sinon du sac. Absent ⇒ no-op (le trigger est quand même consommé).
+    const slot = hero.artifacts.indexOf(effect.artifactId);
+    if (slot !== -1) hero.artifacts[slot] = null;
+    else {
+      const bag = hero.backpack?.indexOf(effect.artifactId) ?? -1;
+      if (bag !== -1) hero.backpack!.splice(bag, 1);
+    }
+  } else if (effect.kind === 'removeArmy' && hero) {
+    // Miroir de `grantArmy` (tribut) : réduit la pile ; slot supprimé à 0.
+    const idx = hero.army.findIndex((s) => s.unitId === effect.unitId);
+    if (idx !== -1) {
+      const stack = hero.army[idx]!;
+      if (stack.count > effect.count) stack.count -= effect.count;
+      else hero.army.splice(idx, 1);
+    }
   }
   // Clone l'effet : le stocké est un proxy immer révoqué après `produce`, un
   // événement doit être un objet nu (comme `pos: {...}` des autres événements).
@@ -61,6 +78,10 @@ export function applyTriggerEffect(
         return { kind: 'grantArtifact', artifactId: effect.artifactId };
       case 'grantArmy':
         return { kind: 'grantArmy', unitId: effect.unitId, count: effect.count };
+      case 'removeArtifact':
+        return { kind: 'removeArtifact', artifactId: effect.artifactId };
+      case 'removeArmy':
+        return { kind: 'removeArmy', unitId: effect.unitId, count: effect.count };
       case 'ambush':
         return { kind: 'ambush', army: effect.army.map((s) => ({ unitId: s.unitId, count: s.count })) };
       case 'teleport':

@@ -26,17 +26,50 @@ export function placeSide(
   col: number,
 ): CombatStack[] {
   const n = army.length;
-  // B33 : au-delà de COMBAT_ROWS piles, la formule historique produit des
-  // collisions de spawn. Débordement déterministe sur les colonnes adjacentes
-  // (vers le centre du plateau) : pile i ⇒ rangée i % ROWS, colonne décalée de
-  // floor(i / ROWS). Les positions pour n ≤ COMBAT_ROWS sont INCHANGÉES (golden).
-  const overflow = n > COMBAT_ROWS;
   const dir = col < COMBAT_COLS / 2 ? 1 : -1;
+  // S5b : une machine de guerre (`warMachine`) est placée HORS formation, sur des
+  // emplacements réservés en fin de colonne de départ — jamais dans la colonne de
+  // front (audit doc 19 §2.5 : le chariot débordait en 1ʳᵉ ligne). Décision
+  // GÉNÉRIQUE par capacité (donnée), aucun id d'unité/faction en dur.
+  const isMachine = (s: ArmyStack): boolean =>
+    (catalog[s.unitId]?.abilities ?? []).some((a) => a.id === 'warMachine');
+  const machineCount = army.reduce((k, s) => (isMachine(s) ? k + 1 : k), 0);
+
+  // Positions par index d'armée (l'ordre des piles/ids `${side}-${i}` est
+  // INCHANGÉ — seul `pos` diffère). SANS machine ⇒ formule historique EXACTE
+  // (B33 : n ≤ ROWS bande pleine, sinon débordement round-robin) ⇒ golden intact.
+  const positions: OffsetPos[] = new Array<OffsetPos>(n);
+  if (machineCount === 0) {
+    const overflow = n > COMBAT_ROWS;
+    for (let i = 0; i < n; i++) {
+      positions[i] = overflow
+        ? { col: col + dir * Math.floor(i / COMBAT_ROWS), row: i % COMBAT_ROWS }
+        : { col, row: Math.floor((i + 0.5) * (COMBAT_ROWS / n)) };
+    }
+  } else {
+    // Créatures capées à `ROWS − machineCount` rangées de tête ; machines dans les
+    // dernières rangées du MÊME `col` (rangée arrière, hors colonne de front).
+    const creatureRows = Math.max(1, COMBAT_ROWS - machineCount);
+    const nc = n - machineCount;
+    let ci = 0;
+    let mi = 0;
+    for (let i = 0; i < n; i++) {
+      if (isMachine(army[i]!)) {
+        positions[i] = { col, row: COMBAT_ROWS - machineCount + mi };
+        mi++;
+      } else {
+        positions[i] =
+          nc <= creatureRows
+            ? { col, row: Math.floor((ci + 0.5) * (creatureRows / nc)) }
+            : { col: col + dir * Math.floor(ci / creatureRows), row: ci % creatureRows };
+        ci++;
+      }
+    }
+  }
+
   return army.map((stack, i) => {
     const def = catalog[stack.unitId];
-    const pos = overflow
-      ? { col: col + dir * Math.floor(i / COMBAT_ROWS), row: i % COMBAT_ROWS }
-      : { col, row: Math.floor((i + 0.5) * (COMBAT_ROWS / n)) };
+    const pos = positions[i]!;
     return {
       id: `${side}-${i}`,
       side,

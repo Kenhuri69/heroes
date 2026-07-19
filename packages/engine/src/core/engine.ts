@@ -37,6 +37,8 @@ import {
   handleTradeResources,
   handleSellArtifact,
   validateSellArtifact,
+  handleBuyArtifact,
+  validateBuyArtifact,
   resetBuiltToday,
   validateBuildStructure,
   validateCaptureTown,
@@ -187,6 +189,7 @@ const GAME_OVER_BLOCKED = new Set<Command['type']>([
   'RecruitHero',
   'TradeResources',
   'SellArtifact',
+  'BuyArtifact',
   'CastSpell',
   'HeroAttack',
   'CallReinforcements',
@@ -446,6 +449,10 @@ export function validate(state: GameState, cmd: Command): CommandError | null {
       if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
       return validateSellArtifact(state, cmd);
     }
+    case 'BuyArtifact': {
+      if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
+      return validateBuyArtifact(state, cmd);
+    }
     case 'CastSpell': {
       if (!state.combat) return { code: 'noCombat', message: 'aucun combat en cours' };
       return validateCastSpell(state, cmd);
@@ -698,6 +705,7 @@ const handlers: Handlers = {
       townlessDays: (cmd.towns ?? []).some((t) => t.ownerPlayerId === p.id) ? 0 : -1,
       huntContract: null,
       team: p.team ?? 0,
+      unitsLost: 0,
     }));
     // Un héros par joueur à sa position de départ, armée de scénario (doc 02 §1.5, §5.1).
     draft.heroes = cmd.players.map((p, i) => {
@@ -956,6 +964,10 @@ const handlers: Handlers = {
 
   SellArtifact(draft, cmd, events) {
     handleSellArtifact(draft, cmd, events);
+  },
+
+  BuyArtifact(draft, cmd, events) {
+    handleBuyArtifact(draft, cmd, events);
   },
 
   TradeResources(draft, cmd, events) {

@@ -56,10 +56,11 @@ export async function spawnProjectile(
   layer: Container,
   from: Point,
   to: Point,
-  opts: { speed: number; reduced: boolean },
+  opts: { speed: number; reduced: boolean; shape?: 'bolt' | 'boulder' },
 ): Promise<void> {
   combatFxStats.projectiles += 1;
   if (opts.reduced) return; // a11y : pas de vol animé
+  const shape = opts.shape ?? 'bolt';
   const dx = to.x - from.x;
   const dy = to.y - from.y;
   const dist = Math.hypot(dx, dy) || 1;
@@ -75,8 +76,68 @@ export async function spawnProjectile(
     const tailX = from.x + dx * tailT;
     const tailY = from.y + dy * tailT - arc * Math.sin(Math.PI * tailT);
     g.clear();
-    g.moveTo(tailX, tailY).lineTo(headX, headY).stroke({ width: 3, color: 0xffe08a, alpha: 0.85 });
-    g.circle(headX, headY, 3.5).fill({ color: 0xfff3cf });
+    if (shape === 'boulder') {
+      // Boulet de catapulte : traînée + tête ronde (S2).
+      g.moveTo(tailX, tailY).lineTo(headX, headY).stroke({ width: 3, color: 0xffe08a, alpha: 0.85 });
+      g.circle(headX, headY, 4.5).fill({ color: 0xd8cbb0 });
+      return;
+    }
+    // S9.3 — carreau de baliste ORIENTÉ : traînée courte + hampe + pointe le long
+    // de la direction de vol (tangente à l'arc), au lieu d'un simple trait.
+    const ang = Math.atan2(headY - tailY, headX - tailX);
+    const ca = Math.cos(ang);
+    const sa = Math.sin(ang);
+    const shaft = 12; // longueur de la hampe (px)
+    const bx = headX - ca * shaft;
+    const by = headY - sa * shaft;
+    g.moveTo(tailX, tailY).lineTo(bx, by).stroke({ width: 2, color: 0xffe08a, alpha: 0.6 }); // traînée
+    g.moveTo(bx, by).lineTo(headX, headY).stroke({ width: 2.5, color: 0xcdb98a }); // hampe
+    // Pointe (triangle) orientée vers la cible.
+    const hx = headX;
+    const hy = headY;
+    const px = -sa;
+    const py = ca; // perpendiculaire
+    g.poly([
+      hx + ca * 5, hy + sa * 5,
+      hx - ca * 3 + px * 3, hy - sa * 3 + py * 3,
+      hx - ca * 3 - px * 3, hy - sa * 3 - py * 3,
+    ]).fill({ color: 0xfff3cf });
+  });
+  if (!g.destroyed) g.destroy();
+}
+
+/**
+ * Impact « éclats de pierre » d'un tir de catapulte sur un segment de rempart
+ * (S2, siège) : anneau de poussière expansif + quelques éclats projetés à des
+ * angles déterministes. DISTINCT du `spawnSpellImpact` (familles de sorts) —
+ * teintes pierre, aucun `Math.random`. Compté comme un impact (hook de test).
+ */
+export async function spawnRubbleImpact(
+  layer: Container,
+  at: Point,
+  opts: { speed: number; reduced: boolean },
+): Promise<void> {
+  combatFxStats.impacts += 1;
+  if (opts.reduced) return;
+  const g = new Graphics();
+  g.position.set(at.x, at.y);
+  layer.addChild(g);
+  const SHARDS = 6;
+  await fxTween(IMPACT_MS / Math.max(1, opts.speed), (t) => {
+    if (g.destroyed) return;
+    g.clear();
+    const alpha = 1 - t;
+    // Anneau de poussière (pierre claire) + flash central bref.
+    g.circle(0, 0, 5 + 26 * t).stroke({ width: 3, color: 0xbcae97, alpha });
+    if (t < 0.25) g.circle(0, 0, 8).fill({ color: 0xe8dcc4, alpha: (0.25 - t) * 3 });
+    // Éclats de pierre projetés (angles fixes, gravité légère).
+    for (let i = 0; i < SHARDS; i++) {
+      const ang = (i / SHARDS) * Math.PI * 2;
+      const d = (10 + 22 * t);
+      const px = Math.cos(ang) * d;
+      const py = Math.sin(ang) * d + 14 * t * t; // retombée
+      g.rect(px - 2, py - 2, 4, 4).fill({ color: 0x8a7d68, alpha });
+    }
   });
   if (!g.destroyed) g.destroy();
 }

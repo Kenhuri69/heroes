@@ -15,18 +15,30 @@ import {
  */
 export const HEX_SIZE = 36; // rayon ; ≥ 44 px de cible tactile au zoom 1
 
-/** Centre pixel d'un hex en coordonnées axiales (doc 10 §5.5). */
+/**
+ * B2 — vue ISOMÉTRIQUE du plateau de combat (comme Heroes III) : la grille est
+ * APLATIE verticalement (`ISO_SQUASH`) ⇒ hexes larges façon champ de bataille vu
+ * de biais. Les jetons d'unité restent des sprites DEBOUT (billboards), triés par
+ * profondeur (`zIndex = y`) pour que le plus proche masque le plus lointain. La
+ * grille MOTEUR (offset carré 15×10) est INCHANGÉE : seule la projection de rendu
+ * et le picking (`pixelToHex`) portent l'aplatissement — comme la carte
+ * d'aventure (doc 02 §2.1, `render/projection.ts`).
+ */
+export const ISO_SQUASH = 0.68;
+
+/** Centre pixel d'un hex en coordonnées axiales (doc 10 §5.5) — Y aplati (iso). */
 export function hexToPixel(q: number, r: number): { x: number; y: number } {
   return {
     x: HEX_SIZE * Math.sqrt(3) * (q + r / 2),
-    y: HEX_SIZE * 1.5 * r,
+    y: HEX_SIZE * 1.5 * r * ISO_SQUASH,
   };
 }
 
-/** Hex axial (arrondi) le plus proche d'un point pixel. */
+/** Hex axial (arrondi) le plus proche d'un point pixel (picking iso — Y désaplati). */
 export function pixelToHex(x: number, y: number): { q: number; r: number } {
-  const q = ((Math.sqrt(3) / 3) * x - y / 3) / HEX_SIZE;
-  const r = ((2 / 3) * y) / HEX_SIZE;
+  const yy = y / ISO_SQUASH; // désaplatit avant l'inversion axiale
+  const q = ((Math.sqrt(3) / 3) * x - yy / 3) / HEX_SIZE;
+  const r = ((2 / 3) * yy) / HEX_SIZE;
   return hexRound(q, r);
 }
 
@@ -69,6 +81,11 @@ const ROCK_LIGHT = 0xa89e8f;
 const ROCK_DARK = 0x4d453c;
 const FILL_MOAT = 0x1f3a52; // fossé bleu-nuit : franchissable mais ralentissant
 const STROKE_MOAT = 0x4a86b8;
+const MOAT_WAVE = 0x7fbfe0; // crête de vaguelette (lisible sous surbrillance)
+// S3 : la douve est un DÉCOR (fossé texturé) sous les surbrillances — assez
+// opaque pour rester visible même quand un pip vert « atteignable » la recouvre.
+const ALPHA_MOAT_DECOR = 0.6;
+const ALPHA_MOAT_OVERLAY = 0.28; // surbrillance posée SUR la douve : translucide, la douve transparaît
 // C-SPELLUI.3 : zone d'effet d'un sort — teinte violette distincte des états
 // atteignable(vert)/attaquable(rouge)/douve(bleu), + losange marqueur (A5).
 const FILL_ZONE = 0x6a3a8a;
@@ -107,6 +124,24 @@ function drawBoulder(g: Graphics, x: number, y: number, r: number): void {
   ]).fill({ color: ROCK_LIGHT, alpha: 0.95 });
 }
 
+/**
+ * S3 — vaguelettes de douve sur un hex-fossé (centre `x,y`, rayon d'hex `r`).
+ * Marqueur non chromatique (A5) : trois crêtes ondulées dessinées, lisibles même
+ * quand une surbrillance translucide (atteignable/attaquable) recouvre la douve.
+ * Purement géométrique et déterministe (aucun RNG).
+ */
+function drawWavelets(g: Graphics, x: number, y: number, r: number): void {
+  const w = r * 0.62; // demi-largeur des crêtes
+  const amp = r * 0.1;
+  for (let i = 0; i < 3; i++) {
+    const cy = y + (i - 1) * r * 0.34;
+    g.moveTo(x - w, cy)
+      .quadraticCurveTo(x - w / 2, cy - amp, x, cy)
+      .quadraticCurveTo(x + w / 2, cy + amp, x + w, cy)
+      .stroke({ width: 1.5, color: MOAT_WAVE, alpha: 0.85 });
+  }
+}
+
 export interface DrawBoardOptions {
   /** Hexes atteignables par la pile active (déplacement). */
   reachable?: ReadonlySet<string>;
@@ -120,6 +155,19 @@ export interface DrawBoardOptions {
   zone?: ReadonlySet<string>;
   /** Hex/cible sélectionné en attente du 2ᵉ tap — contour doré. */
   selected?: OffsetPos | null;
+}
+
+/**
+ * Sommets d'un hexagone POINTY-TOP APLATI (iso) autour de (x,y), rayon `r`.
+ * Les hexes du plateau iso sont larges (Y × `ISO_SQUASH`) façon Heroes III.
+ */
+function flatHexPoints(x: number, y: number, r: number): number[] {
+  const pts: number[] = [];
+  for (let k = 0; k < 6; k++) {
+    const a = ((-90 + k * 60) * Math.PI) / 180; // pointy-top : sommet en haut
+    pts.push(x + r * Math.cos(a), y + r * Math.sin(a) * ISO_SQUASH);
+  }
+  return pts;
 }
 
 /** Dessine les 150 hexes du plateau avec leurs surbrillances (doc 10 §5.5). */
@@ -144,48 +192,63 @@ export function drawBoard(g: Graphics, opts: DrawBoardOptions = {}): void {
       const isZone = !isObstacle && zone.has(key);
       const isAttackable = !isObstacle && !isZone && attackable.has(key);
       const isReachable = !isObstacle && !isZone && !isAttackable && reachable.has(key);
-      // C-SIEGE2.3 : la douve est une teinte de FOND (fossé), recouverte par les
-      // surbrillances transitoires (atteignable/attaquable/obstacle) quand actives.
+      // S3 : la douve est un DÉCOR de fond (fossé + vaguelettes) qui reste TOUJOURS
+      // visible — la surbrillance (atteignable/attaquable) est CUMULÉE en calque
+      // translucide par-dessus, jamais substituée (audit doc 19 §2.3).
       const isMoat = moat.has(key);
 
-      let fill = isMoat ? FILL_MOAT : FILL_BASE;
-      let alpha = isMoat ? ALPHA_STATE : ALPHA_BASE;
-      let stroke = isMoat ? STROKE_MOAT : STROKE_BASE;
+      // Teinte/marqueur de la surbrillance transitoire éventuelle (état actif).
+      let stateFill: number | null = null;
+      let stateStroke = STROKE_BASE;
       let strokeWidth = 1;
       if (isObstacle) {
-        fill = FILL_OBSTACLE;
-        alpha = ALPHA_OBSTACLE;
-        stroke = STROKE_OBSTACLE;
+        stateFill = FILL_OBSTACLE;
+        stateStroke = STROKE_OBSTACLE;
       } else if (isZone) {
-        fill = FILL_ZONE;
-        alpha = ALPHA_STATE;
-        stroke = STROKE_ZONE;
+        stateFill = FILL_ZONE;
+        stateStroke = STROKE_ZONE;
         strokeWidth = 2.5; // bord épais : la zone recouvre des piles ciblées
       } else if (isAttackable) {
-        fill = FILL_ATTACKABLE;
-        alpha = ALPHA_STATE;
-        stroke = STROKE_ATTACKABLE;
+        stateFill = FILL_ATTACKABLE;
+        stateStroke = STROKE_ATTACKABLE;
         strokeWidth = 2.5; // bord épais = 2ᵉ canal (la cible occupe l'hex)
       } else if (isReachable) {
-        fill = FILL_REACHABLE;
-        alpha = ALPHA_STATE;
-        stroke = STROKE_REACHABLE;
+        stateFill = FILL_REACHABLE;
+        stateStroke = STROKE_REACHABLE;
       }
 
       const isSelected = selected != null && selected.col === col && selected.row === row;
-      if (isSelected) {
-        stroke = STROKE_SELECTED;
-        strokeWidth = 3;
-      }
 
       // Hexagone POINTY-TOP (pointe en haut/bas), aligné sur le layout pointy-top
       // de `hexToPixel`. PixiJS applique un décalage intégré de −π/2 à `regularPoly`
       // (`startAngle = -π/2 + rotation`) : rotation 0 ⇒ pointy-top, π/6 ⇒ flat-top.
       // On passe donc 0 ici — un flat-top sur un lattice pointy-top ne pave pas et
       // produit un treillis en losanges au lieu d'un nid d'abeille.
-      g.regularPoly(x, y, r, 6, 0)
-        .fill({ color: fill, alpha })
-        .stroke({ width: strokeWidth, color: stroke });
+      if (isMoat) {
+        // 1) Décor de douve (fossé opaque + vaguelettes) — toujours dessiné.
+        g.poly(flatHexPoints(x, y, r))
+          .fill({ color: FILL_MOAT, alpha: ALPHA_MOAT_DECOR })
+          .stroke({ width: 1, color: STROKE_MOAT });
+        drawWavelets(g, x, y, r);
+        // 2) Surbrillance CUMULÉE (translucide) : la douve transparaît dessous.
+        if (stateFill != null) {
+          g.poly(flatHexPoints(x, y, r))
+            .fill({ color: stateFill, alpha: ALPHA_MOAT_OVERLAY })
+            .stroke({ width: strokeWidth, color: stateStroke });
+        }
+        if (isSelected) {
+          g.poly(flatHexPoints(x, y, r)).stroke({ width: 3, color: STROKE_SELECTED });
+        }
+      } else {
+        // Chemin non-douve : rendu inchangé (une seule couche teinte état/base).
+        const fill = stateFill ?? FILL_BASE;
+        const alpha = stateFill != null ? (isObstacle ? ALPHA_OBSTACLE : ALPHA_STATE) : ALPHA_BASE;
+        const stroke = isSelected ? STROKE_SELECTED : stateFill != null ? stateStroke : STROKE_BASE;
+        const sw = isSelected ? 3 : strokeWidth;
+        g.poly(flatHexPoints(x, y, r))
+          .fill({ color: fill, alpha })
+          .stroke({ width: sw, color: stroke });
+      }
 
       // Marqueurs non chromatiques (A5) : lisibles même sans distinction de teinte.
       if (isReachable) {
@@ -219,8 +282,10 @@ export function computeBoardBounds(): BoardBounds {
       const { x, y } = offsetToPixel({ col, row });
       minX = Math.min(minX, x - HEX_SIZE);
       maxX = Math.max(maxX, x + HEX_SIZE);
-      minY = Math.min(minY, y - HEX_SIZE);
-      maxY = Math.max(maxY, y + HEX_SIZE);
+      // Iso : les jetons/tours sont DEBOUT et dépassent vers le haut de leur hex ;
+      // marge haute élargie pour ne pas les rogner. Hex aplati en bas (× SQUASH).
+      minY = Math.min(minY, y - HEX_SIZE * 2);
+      maxY = Math.max(maxY, y + HEX_SIZE * ISO_SQUASH);
     }
   }
   return { minX, minY, width: maxX - minX, height: maxY - minY };

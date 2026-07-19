@@ -864,6 +864,8 @@ export const gameConfigSchema = z.object({
         artifactValuePerPoint: z.number().nonnegative().optional(),
         /** Fraction rendue à la vente d'un artefact (spread) — optionnel (défaut 1). */
         artifactSellFactor: z.number().min(0).max(1).optional(),
+        /** Nombre d'artefacts offerts à l'achat par ville (doc 18 D2) — optionnel. */
+        artifactStockSize: z.number().int().nonnegative().optional(),
       })
       .refine((m) => m.buyRate >= m.sellRate, 'market.buyRate ≥ market.sellRate')
       // Aller-retour non rentable À TOUT NOMBRE DE MARCHÉS : le troc (et
@@ -1220,6 +1222,13 @@ export const mapFileSchema = z.object({
             unitId: idSchema,
             count: z.number().int().positive(),
           }),
+          // Doc 18 A5 — retraits (péage/tribut), miroirs des octrois.
+          z.object({ kind: z.literal('removeArtifact'), artifactId: idSchema }),
+          z.object({
+            kind: z.literal('removeArmy'),
+            unitId: idSchema,
+            count: z.number().int().positive(),
+          }),
           z.object({
             kind: z.literal('ambush'),
             army: z
@@ -1249,6 +1258,12 @@ export const mapFileSchema = z.object({
                     z.object({ kind: z.literal('grantArtifact'), artifactId: idSchema }),
                     z.object({
                       kind: z.literal('grantArmy'),
+                      unitId: idSchema,
+                      count: z.number().int().positive(),
+                    }),
+                    z.object({ kind: z.literal('removeArtifact'), artifactId: idSchema }),
+                    z.object({
+                      kind: z.literal('removeArmy'),
                       unitId: idSchema,
                       count: z.number().int().positive(),
                     }),

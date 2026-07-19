@@ -100,15 +100,27 @@ de cet audit)*
   `pendingTriggerChoice` — état d'attente jumeau du trésor, modale forcée
   `TriggerChoice`, `ResolveTriggerChoice` / IA option 0 ; l'effet-feuille de
   l'option choisie s'applique à la résolution).
-- **Reste** (P3, non prioritaire) : retrait d'artefact/armée, `onFlagCaptured` —
-  chacun = une variante d'union `TriggerEffect` + un cas dans `triggers.ts`.
+- **Complété (A5c)** : effets de **retrait** miroirs des octrois — `removeArtifact`
+  (ôte l'artefact d'un slot équipé, sinon du sac ; absent ⇒ no-op) et `removeArmy`
+  (réduit la pile `unitId` de `count`, slot supprimé à 0) — deux variantes
+  `SimpleTriggerEffect` (donc utilisables aussi comme branche d'un `choice`),
+  péage/tribut/malédiction scriptés. Opt-in par données ⇒ golden inchangé, pas de
+  bump save.
+- **Reste** (P3, non prioritaire) : `onFlagCaptured` — c'est une nouvelle
+  *condition* de trigger (`on.kind`, hook au site de capture), pas un effet ;
+  forme distincte, non ouverte.
 
-**A6 — Villes neutres hors `MapObjectDef`**
-- **État** : le mapgen émet des villes neutres, mais elles sont instanciées au
-  niveau contenu/client, pas comme objet de carte moteur.
-- **Manque** : dette de forme (asymétrie avec les autres objets), sans impact
-  joueur visible.
-- **Nature** : moteur (refactor de forme). **Priorité** : P3.
+**A6 — Villes neutres hors `MapObjectDef`** ⛔ *(non retenu — frontière de design)*
+- **État** : le mapgen émet des villes neutres comme objets `type: 'town'`
+  (schéma + `assets/layouts/`), que le **client** convertit en `TownState`
+  (owner `null`) à `StartGame` et **filtre** hors des objets passés au moteur
+  (`game.ts`). Le moteur modélise les villes en `TownState`, pas en `MapObjectDef`.
+- **Verdict** (revue 2026-07) : **non retenu**. « Instancier comme objet de carte
+  moteur » = déplacer cette création dans le handler `StartGame` (cœur) + variante
+  `MapObjectDef.town` + loader — un **refactor du cœur à risque de régression pour
+  zéro impact joueur** (l'audit le note lui-même). La frontière contenu↔moteur
+  actuelle n'est pas cassée ; la refactoriser viole les guidelines §2/§3. **Clos
+  comme choix de design assumé.**
 
 ### 2.B Combat
 
@@ -204,23 +216,28 @@ de cet audit)*
 
 ### 2.D Villes & économie
 
-**D1 — Vue de ville peinte**
-- **État** : écran de ville en liste + onglets, ancres de layout par faction
-  (`assets/layouts/`), fonds `town-<faction>` partiels.
-- **Manque** : la vue peinte cliquable (« Beta » depuis doc 11) — item déjà
-  tracé en roadmap, rappelé ici pour complétude. **Nature** : client + assets.
-- **Priorité** : P2 (identité visuelle forte de la série).
+**D1 — Vue de ville peinte** ✅ *(lots UX U5 + UXD-5 + UX-TOWNVIEW — livré)*
+- **Livré** : `TownScreen` ouvre une **vue peinte** (`TownView`) — décor de fond
+  par faction (`townBackgroundUrl`, repli gouache CSS si l'asset manque) sur lequel
+  chaque bâtiment est **posé en absolu à sa place** (`townLayout` + ancres bespoke
+  `assets/layouts/town-<faction>.json`), **cliquable** (tap ⇒ construire/action),
+  statut construit/disponible/verrouillé marqué par pastille non chromatique +
+  opacité (a11y doc 08 §4), inspection au survol/appui long. Repli dessiné si une
+  vignette manque. L'onglet **liste** reste (entrée mobile). Doc 08 §2.2/§5.
+- *Reste (chantier assets continu, doc 12)* : fonds/vignettes peints finaux par
+  faction (repli procédural en place partout).
 
-**D2 — Commerce avancé** 🚧 *(troc + vente d'artefacts livrés ; achat d'artefacts restant)*
+**D2 — Commerce avancé** ✅ *(troc + marchand d'artefacts achat/vente livrés)*
 - **Livré** : `TradeResources` accepte **toute paire** `give`/`receive` de
   ressources (or↔ressource **et** ressource↔ressource direct, taux `config.market`
   dégressif par nombre de marchés, refus du troc identité) — `town/market.ts`.
-  **Marchand d'artefacts — VENTE** (`SellArtifact`, `town/artifact-merchant.ts`) :
-  un héros présent à une ville à marché vend un artefact contre or, prix dérivé
-  des bonus (`config.market.artifactValuePerPoint`/`artifactSellFactor`, override
-  `ArtifactDef.value`) ; section « Marchand » de l'onglet Marché.
-- **Reste** (P3) : **achat** d'artefacts (exige un stock de ville = nouvel état).
-  Commerce inter-joueurs = non-écart vs MMHO (exclu).
+  **Marchand d'artefacts** (`town/artifact-merchant.ts`, section « Marchand » de
+  l'onglet Marché) : **VENTE** (`SellArtifact`) d'un artefact d'un héros présent
+  contre or (prix dérivé des bonus, `artifactSellFactor`) ; **ACHAT** (`BuyArtifact`)
+  depuis un **stock dérivé déterministe** par `townId` (`merchantBuyStock`,
+  `artifactStockSize`, RNG local hors `draft.rng`) au prix plein, l'acheté quittant
+  le stock (`TownState.artifactsBought`). Prix data-driven, override `ArtifactDef.value`.
+- Commerce inter-joueurs = non-écart vs MMHO (exclu). **D2 clôturé.**
 
 ### 2.E Multijoueur & social (l'identité MMHO)
 
@@ -269,7 +286,16 @@ de cet audit)*
   jouable** → **E4.3 butin partagé (fait)** : or/ressource d'un gardien répartis
   également entre les joueurs co-participants (reste au lead), artefact
   indivisible au lead (`rewardGuardianDefeat(…, coopHeroIds?)`, zéro tirage RNG
-  ajouté). Différé : E4.4 actions par-héros. **Priorité** P3, par lots atomiques.
+  ajouté) → **E4.4a moteur + IA (fait)** : suivi des actions de héros **par-héros**
+  (`heroCastThisRound`/`heroAttackUsed` = ids de héros ; `heroesOnSide`,
+  `heroActionLeftFor`), `castHeroSpell`/`strikeWithHero` par héros agissant,
+  `CastSpell`/`HeroAttack.heroId?` (défaut lead) ; l'IA d'auto-combat fait jouer
+  **chaque héros allié** d'un camp. Mono-héros bit-identique (golden inchangé) →
+  **E4.4b client (fait)** : **sélecteur de héros** dans la barre d'action du
+  combat manuel (chips visibles seulement en coop — plusieurs héros du joueur sur
+  son camp) ; le héros choisi (`store.combatActingHeroId`) est threadé en `heroId`
+  dans `CastSpell`/`HeroAttack` (SpellBook, ciblage `CombatScene`, `HeroAttackModal`),
+  préviz par-héros (`heroAttackDamageFor`). **E4 clôturé.** **Priorité** P3.
 - **4 questions ouvertes** (consentement, cap de plateau, partage XP…) à trancher
   avant E4.2 (cf. plan §« Questions ouvertes »).
 
@@ -360,11 +386,13 @@ M ≈ 2-3 j, L = semaine(s).
 > **État de comblement (mise à jour 2026-07)** : les Étapes 1–3 sont **livrées**
 > (A1, B6, E1, F4, B1, A2/A2b, B2, A4, C1, C2, **E3** ✅) ; l'Étape 4 en ligne est
 > livrée (B4, E2, E6 ✅). Les décisions de cadrage (Étape 5) sont tranchées :
-> B3, A3, E4 **retenus et livrés** (reste **E4.4** pour E4). **Items encore
-> ouverts** : **E4.4** (actions de héros par-héros en coop, P3) · **A6** (ville
-> neutre en `MapObjectDef`, P3) · **D1** (vue de ville peinte, Beta) · **D2**
-> (**achat** d'artefacts, P3 — troc + vente d'artefacts livrés). Les fiches
-> §2 portent le détail par item.
+> B3, A3, E4 **retenus et livrés** (E4 clôturé : E4.4a moteur+IA + E4.4b client).
+> **Sweep terminé** : **D1** (vue de ville peinte) était **déjà livré** (lots UX
+> U5/UXD-5/UX-TOWNVIEW — `TownView`) ; **A6** (ville neutre en `MapObjectDef`) est
+> **clos comme choix de design assumé** (refactor de cœur à risque pour zéro
+> impact joueur — guidelines §2/§3). **Plus aucun écart P1/P2 ouvert** ; le reste
+> est du chantier assets continu (doc 12, repli procédural en place) et des
+> décisions de cadrage déjà tranchées. Les fiches §2 portent le détail par item.
 
 ### Étape 1 — Lisibilité de la carte & du combat (client/assets, zéro moteur)
 
@@ -408,7 +436,7 @@ M ≈ 2-3 j, L = semaine(s).
 |---|---|---|
 | Renforts en cours de combat | B3 | ✅ **retenu** — fidélité MMHO opt-in PvE (moteur + client livrés) |
 | Eau navigable & bateaux | A3 | ✅ **retenu** — chantier multi-lots livré (déplacement naval, `boat`/`shipyard`, mapgen, client) |
-| Combats coopératifs | E4 | ✅ **retenu (local)** — cadrage + gardien/siège/butin/client livrés ; **reste E4.4** (actions par-héros, P3) |
+| Combats coopératifs | E4 | ✅ **retenu (local) — clôturé** : cadrage + gardien/siège/butin/client + E4.4a (par-héros moteur+IA) + E4.4b (sélecteur de héros du combat manuel) |
 | Guildes/clans & chat | E5 | phase Live uniquement |
 | Arbre d'aptitudes MMHO vs compétences HoMM | C3 | recommandation : divergence assumée (acter en doc 02 §1.3) |
 | Créatures 2-hex | B5 | recommandation : non (fidèle MMHO) — acter en doc 02 §5.1 |

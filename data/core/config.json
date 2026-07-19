@@ -61,7 +61,8 @@
       "perMarketBonus": 0.1,
       "maxMarketFactor": 1.4,
       "artifactValuePerPoint": 500,
-      "artifactSellFactor": 0.5
+      "artifactSellFactor": 0.5,
+      "artifactStockSize": 4
     },
     "calendar": {
       "events": [

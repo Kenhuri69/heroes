@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { apply, validate } from '../src/core/engine';
 import type { Command, PlayerSetup } from '../src/core/commands';
 import { createEmptyState, emptyResources, type GameState } from '../src/core/state';
-import type { AdventureMapDef, MapTriggerDef } from '../src/adventure/map';
+import type { AdventureMapDef, MapObjectDef, MapTriggerDef } from '../src/adventure/map';
 import { testCatalog, testConfig, testMap } from './fixtures';
 
 /**
@@ -495,7 +495,10 @@ describe('lot 2.4 (doc 18 A5) — effets liés au héros visiteur', () => {
     const gold0 = state.players[0]!.resources.gold;
     const r = apply(state, { type: 'MoveHero', heroId: 'hero-p1', path: [{ x: 1, y: 0 }] });
     // Mine passée au joueur ET effet scripté appliqué au captureur.
-    expect(r.state.map!.objects.find((o) => o.id === 'mine-1')!.ownerId).toBe('p1');
+    const mine1 = r.state.map!.objects.find(
+      (o): o is Extract<MapObjectDef, { type: 'mine' }> => o.type === 'mine' && o.id === 'mine-1',
+    );
+    expect(mine1!.ownerId).toBe('p1');
     expect(r.state.players[0]!.resources.gold).toBe(gold0 + 250);
     expect(r.state.map!.triggers[0]!.fired).toBe(true);
     expect(r.events.some((e) => e.type === 'TriggerFired' && e.triggerId === 't-flag')).toBe(true);
@@ -530,7 +533,10 @@ describe('lot 2.4 (doc 18 A5) — effets liés au héros visiteur', () => {
     }).state;
     const gold0 = state.players[0]!.resources.gold;
     const r = apply(state, { type: 'MoveHero', heroId: 'hero-p1', path: [{ x: 1, y: 0 }] });
-    expect(r.state.map!.objects.find((o) => o.id === 'mine-2')!.ownerId).toBe('p1');
+    const mine2 = r.state.map!.objects.find(
+      (o): o is Extract<MapObjectDef, { type: 'mine' }> => o.type === 'mine' && o.id === 'mine-2',
+    );
+    expect(mine2!.ownerId).toBe('p1');
     expect(r.state.players[0]!.resources.gold).toBe(gold0); // aucun octroi
     expect(r.state.map!.triggers[0]!.fired).toBe(false);
   });

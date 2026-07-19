@@ -100,8 +100,15 @@ de cet audit)*
   `pendingTriggerChoice` — état d'attente jumeau du trésor, modale forcée
   `TriggerChoice`, `ResolveTriggerChoice` / IA option 0 ; l'effet-feuille de
   l'option choisie s'applique à la résolution).
-- **Reste** (P3, non prioritaire) : retrait d'artefact/armée, `onFlagCaptured` —
-  chacun = une variante d'union `TriggerEffect` + un cas dans `triggers.ts`.
+- **Complété (A5c)** : effets de **retrait** miroirs des octrois — `removeArtifact`
+  (ôte l'artefact d'un slot équipé, sinon du sac ; absent ⇒ no-op) et `removeArmy`
+  (réduit la pile `unitId` de `count`, slot supprimé à 0) — deux variantes
+  `SimpleTriggerEffect` (donc utilisables aussi comme branche d'un `choice`),
+  péage/tribut/malédiction scriptés. Opt-in par données ⇒ golden inchangé, pas de
+  bump save.
+- **Reste** (P3, non prioritaire) : `onFlagCaptured` — c'est une nouvelle
+  *condition* de trigger (`on.kind`, hook au site de capture), pas un effet ;
+  forme distincte, non ouverte.
 
 **A6 — Villes neutres hors `MapObjectDef`** ⛔ *(non retenu — frontière de design)*
 - **État** : le mapgen émet des villes neutres comme objets `type: 'town'`

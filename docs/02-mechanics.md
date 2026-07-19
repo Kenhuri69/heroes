@@ -834,7 +834,10 @@ threadé en `heroId` dans `CastSpell`/`HeroAttack` — sinon le lead par défaut
 > nom de faction/scénario dans le moteur. **Effets (doc 18 A5, lot 2.4)** :
 > `grantResource`, `message`, `grantArtifact` (1er slot libre puis sac, comme le
 > butin de gardien), `grantArmy` (fusion même unité, sinon nouveau slot — cap 7,
-> sinon perdu), `ambush` (combat scripté contre l'armée déclarée ; le héros est
+> sinon perdu), **`removeArtifact`**/**`removeArmy`** (doc 18 A5c — miroirs des
+> octrois : ôte l'artefact équipé/du sac, ou réduit la pile `unitId` de `count`
+> et supprime le slot à 0 ; absent ⇒ no-op ; péage/tribut/malédiction, aussi
+> utilisables comme branche d'un `choice`), `ambush` (combat scripté contre l'armée déclarée ; le héros est
 > SUR la tuile piégée, le chemin s'interrompt ; un héros sans armée ne consomme
 > pas le piège), **`teleport`** (déplace le héros visiteur en `to` — vision
 > révélée à destination, événement `HeroTeleported`, chemin interrompu sans
@@ -845,7 +848,8 @@ threadé en `heroId` dans `CastSpell`/`HeroAttack` — sinon le lead par défaut
 > (humain) ou l'IA d'aventure qui prend l'option 0 ; **champ optionnel non
 > initialisé ⇒ pas de bump de sauvegarde**). Les effets liés au héros visiteur
 > sont des **no-ops sur un trigger `onDay`** (pas de héros cible). Différés :
-> retrait d'artefact/armée, `collectArtifact`/`accumulateResource`, `onFlagCaptured`.
+> `collectArtifact`/`accumulateResource`, `onFlagCaptured` (nouvelle *condition*
+> de trigger, pas un effet).
 >
 > 🚧 **État (M-NAV a — monolithes appariés, doc §2.1)** : nouvel objet de carte
 > `monolith` portant un `pairId`. **Exactement 2** monolithes partagent un `pairId`

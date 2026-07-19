@@ -1057,6 +1057,8 @@ export type ResolvedTriggerEffect =
   | { kind: 'message'; textKey: string }
   | { kind: 'grantArtifact'; artifactId: string }
   | { kind: 'grantArmy'; unitId: string; count: number }
+  | { kind: 'removeArtifact'; artifactId: string }
+  | { kind: 'removeArmy'; unitId: string; count: number }
   | { kind: 'ambush'; army: { unitId: string; count: number }[] }
   | { kind: 'teleport'; to: { x: number; y: number } }
   | {
@@ -1070,7 +1072,9 @@ export type ResolvedSimpleTriggerEffect =
   | { kind: 'grantResource'; resource: string; amount: number }
   | { kind: 'message'; textKey: string }
   | { kind: 'grantArtifact'; artifactId: string }
-  | { kind: 'grantArmy'; unitId: string; count: number };
+  | { kind: 'grantArmy'; unitId: string; count: number }
+  | { kind: 'removeArtifact'; artifactId: string }
+  | { kind: 'removeArmy'; unitId: string; count: number };
 
 /** Trigger résolu — forme moteur `MapTriggerDef` (`pos` déplié, `fired` initial). */
 export interface ResolvedMapTrigger {

@@ -361,3 +361,25 @@ y compris plaine, validable en 1 capture) ; **Lot 1** = scène peinte génériqu
   seul, mur limité à sa rangée, profondeur au bas de la rangée rasée) —
   fini les tas coupés net. Captures rafraîchies (intact / round 1 avec
   catapulte / manche 7). Vérifs : typecheck, build, smoke siège 2/2.
+
+## Suite (backlog validé porteur, post-merge — 2026-07-19)
+
+Base actée : peinture v8 intégrée (« globalement on est bon »), marge
+d'amélioration reconnue. À traiter dans l'ordre :
+
+1. **Coloration de la muraille par FACTION assiégée** (demande porteur) :
+   donner une identité visuelle par maison — variantes teintées du run et
+   des pièces (`siege-run-<factionId>` etc., repli générique inchangé),
+   par recoloration déterministe hors-ligne façon `siege-piece-tower`
+   (désaturation + LUT de teinte par faction : toits/bannières/liserés
+   plutôt que la pierre entière) ; zéro moteur, clés registry + chaîne de
+   repli déjà en place (`siegeSceneUrl` fait déjà ce motif par faction).
+2. **Raccords de bandes** : quand plusieurs rangées adjacentes sont
+   remplacées par des bandes-étalons, la phase des merlons saute d'une
+   copie à l'autre — fondu/roll type `vtile` ou 2-3 variantes d'étalon.
+3. **FX de bombardement recalés** : l'impact `WallBombarded` (éclats,
+   secousse) doit viser la matière peinte de la rangée touchée (aujourd'hui
+   calé sur l'ancienne géométrie de pièces).
+4. Lot 3 historique (inchangé) : rochers d'obstacles peints, sprites des
+   machines de guerre assaillantes, porte ouverte/brisée, marqueurs de
+   douve aux rangées impaires.

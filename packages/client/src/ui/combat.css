@@ -278,6 +278,18 @@
   pointer-events: none;
 }
 
+/* E8 (in-combat) : avertissement de riposte mortelle — couleur doublée du
+   libellé ⚠ (jamais la couleur seule, doc 08 §4). */
+.damage-preview-warning {
+  margin: 4px 0 0;
+  max-width: min(92vw, 480px);
+  text-align: center;
+  color: var(--danger-text);
+  font-size: 0.85rem;
+  font-weight: 600;
+  pointer-events: none;
+}
+
 .combat-actions {
   align-self: stretch;
   display: flex;

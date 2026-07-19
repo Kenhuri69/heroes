@@ -82,6 +82,17 @@ export function CombatUi() {
     (s) => s.game.players.find((p) => p.id === humanId(s.game))?.resources.gold ?? 0,
   );
   const preview = useSyncExternalStore(combatPreview.subscribe, combatPreview.get);
+  // E8 (moitié in-combat) : la riposte estimée de la cible anéantirait-elle la
+  // pile attaquante ? Seuil = riposte MINIMALE ≥ PV totaux ⇒ perte certaine
+  // (`retaliation` déjà null pour un tir / une cible qui ne riposte pas).
+  const lethalRetaliation = ((): boolean => {
+    if (!preview || preview.kind === 'moat' || !preview.retaliation || !combat) return false;
+    const attacker = combat.stacks.find((s) => s.id === preview.attackerId);
+    const hp = attacker ? catalog[attacker.unitId]?.stats.hp ?? 0 : 0;
+    if (!attacker || hp <= 0) return false;
+    const pool = (attacker.count - 1) * hp + attacker.firstHp;
+    return preview.retaliation.damageMin >= pool;
+  })();
   const spellTarget = useApp((s) => s.combatSpellTarget);
   const [spellBookOpen, setSpellBookOpen] = useState(false);
   const [heroAttackOpen, setHeroAttackOpen] = useState(false);
@@ -308,6 +319,11 @@ export function CombatUi() {
         <div class="damage-preview" data-testid="damage-preview">
           {preview ? formatPreview(preview) : t('combat.damagePreviewPlaceholder')}
         </div>
+        {lethalRetaliation && (
+          <p class="damage-preview-warning" data-testid="damage-preview-warning" role="alert">
+            {t('combat.lethalRetaliationWarning')}
+          </p>
+        )}
 
         {isPlacement ? (
           <footer class="combat-actions combat-placement" data-testid="combat-placement">

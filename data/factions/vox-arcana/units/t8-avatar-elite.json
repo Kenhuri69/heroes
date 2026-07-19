@@ -17,6 +17,7 @@
   },
   "abilities": [
     { "id": "flying" },
-    { "id": "noRetaliation" }
+    { "id": "noRetaliation" },
+    { "id": "barrier", "params": { "absorb": 40, "radius": 2, "requiresResource": { "id": "resonance", "atLeast": 50 } } }
   ]
 }

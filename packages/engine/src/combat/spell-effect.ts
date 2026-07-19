@@ -1,4 +1,4 @@
-import { heroArmyMagicResistance, heroGrantsStatusImmune, killsFromDamage, magicResistanceOf } from './damage';
+import { absorbShield, heroArmyMagicResistance, heroGrantsStatusImmune, killsFromDamage, magicResistanceOf } from './damage';
 import { handleStackDeath } from './death';
 import type { Draft } from './draft';
 import { COMBAT_COLS, COMBAT_ROWS, hexDistance, inCombatBounds, sameHex, type OffsetPos } from './hex';
@@ -124,15 +124,18 @@ export function damageOneStack(
 ): { amount: number; kills: number } {
   const targetDef = draft.unitCatalog[target.unitId];
   if (!targetDef) return { amount: 0, kills: 0 };
+  // Barrière du Honmoon (doc 16 §7) : le bouclier absorbe les dégâts de sort
+  // AVANT les PV (no-op si absent ⇒ flux historique inchangé).
+  const dealt = amount - absorbShield(target, amount);
   const pool = (target.count - 1) * targetDef.stats.hp + target.firstHp;
-  const kills = killsFromDamage(pool, targetDef.stats.hp, target.count, amount);
-  const remaining = Math.max(0, pool - amount);
+  const kills = killsFromDamage(pool, targetDef.stats.hp, target.count, dealt);
+  const remaining = Math.max(0, pool - dealt);
   const newCount = target.count - kills;
   target.count = newCount;
   target.firstHp = newCount > 0 ? remaining - (newCount - 1) * targetDef.stats.hp : 0;
   recordLoss(combat, target, kills);
   if (target.count <= 0) handleStackDeath(combat, target, targetDef, events);
-  return { amount, kills };
+  return { amount: dealt, kills };
 }
 
 /**

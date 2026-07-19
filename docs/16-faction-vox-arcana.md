@@ -94,9 +94,26 @@ Faction #6, produite en **Beta** — elle sert de **test de modularité #4** (do
 > `game.ts` ajoute au pool de départ les sorts de `manifest.spellSchool`) ⇒ un
 > héros Vox Arcana connaît les sorts de la Scène, un héros d'une autre faction
 > non. `SPELL_SCHOOLS` (liste contrôlée de contenu, anti-typo) étendue de `scene`
-> — un **nom d'école**, pas un id de faction (garde-fou vert). **Différé** :
-> barrière de zone T8 / peur Sombral / renaissance Phénix (capacités de
-> signature) + héros Hermione & Rumi (lot 16.6).
+> — un **nom d'école**, pas un id de faction (garde-fou vert). **Signatures
+> livrées depuis** : peur Sombral (`fear`), renaissance Phénix (`rebirth`, 16.13)
+> et **barrière de zone T8 Honmoon** (`barrier` — cf. encart CAP-BARRIER
+> ci-dessous). **Différé** : héros Hermione & Rumi (lot 16.6).
+>
+> 🚧 **État CAP-BARRIER (livré — Barrière du Honmoon, doc §7)** : la barrière de
+> zone de l'Avatar T8, jusqu'ici différée, est câblée via **UN point d'extension
+> moteur générique** : la capacité `barrier` `{ absorb, radius?, requiresResource? }`.
+> À l'entrée en lice (`applyStartingBarrier`, une fois par combat), une pile
+> `barrier` **projette un bouclier absorbant** (`CombatStack.shield?`, optionnel
+> paresseux) de `absorb` PV sur les piles alliées dans `radius` hex (ou tout le
+> camp), **si** le joueur du héros du camp passe le gate de ressource
+> (`requiresResource: { id, atLeast }`). Le bouclier **absorbe avant les PV** aux
+> deux voies de dégât (frappe + sort d'unité). Générique : le moteur ne lit qu'un
+> id de ressource opaque — **zéro nom de faction**. Données : Avatar `barrier
+> { absorb: 30, radius: 2, requiresResource: { resonance, 40 } }` (élite 40/50).
+> Event `BarrierProjected` (journal de combat) ; bouclier affiché sur la fiche de
+> pile. `shield?` optionnel omis ⇒ **golden inchangé**, **pas de bump save**
+> (save-shape guard mis à jour). **Limite MVP** : projection au SETUP (pas de
+> lancer ciblé mid-combat) ; splash/poison passent outre. Différé : lancer actif.
 
 > 🚧 **État 16.12 (livré — F-SCHOOLS : effets de moral de la Scène)** : le
 > « effet simplifié » noté ci-dessus (Chant de Courage / Dissonance = simple
@@ -107,8 +124,9 @@ Faction #6, produite en **Beta** — elle sert de **test de modularité #4** (do
 > bornage [−3, +3] existant. Câblé en données : **Chant de Courage** +1 moral (en
 > plus de +3 Att), **Dissonance** −1 moral (en plus de −3 Att). Zéro nom de
 > faction dans le moteur, golden inchangé (aucun sort de moral dans la fixture).
-> **Différé** (signatures) : peur du Sombral (statut de moral négatif par capacité,
-> croise CAP-MORAL) reste distinct.
+> **Livré depuis** : la **peur du Sombral** est câblée via la capacité générique
+> `fear` (immobilisation probabiliste à la frappe, doc §4), présente sur les deux
+> variantes du Sombral T5.
 
 > 🚧 **État 16.13 (livré — CAP-LIFE.2 : renaissance du Phénix)** : la signature
 > **renaissance** du Phénix (doc §4/§7), jusqu'ici différée, est câblée via un
@@ -309,7 +327,7 @@ existants** (bouclier / buff / debuff / soin) — zéro nouveau moteur :
 | 5 | **Sombral** | créature Poudlard | 38 | 11 | 9 | 7–11 | 9 | 3 | 720 or | `flying`, `fear(20 %, 1 round)` |
 | 6 | **Maître de Sortilèges** | professeur | 62 | 14 | 12 | 10–16 | 5 | 2 | 1150 or + 1 gemme | *(spellcaster Dissonance/Chant ×2 — différé, équilibrage CAP-CAST)* |
 | 7 | **Phénix** | créature Poudlard | 130 | 19 | 17 | 18–28 | 11 | 1 | 2750 or + 2 gemmes | `flying`, `noRetaliation`, `rebirth(30 %)` (élite 35 %) |
-| 8 | **Avatar du Honmoon** | fusion scène+magie | 210 | 24 | 20 | 38–56 | 8 | 1 | 3600 or + 3 gemmes + **40 Résonance** | `flying`, `noRetaliation` ; *(spellcaster Barrière du Honmoon / barrière de zone au max de Résonance — différé)* |
+| 8 | **Avatar du Honmoon** | fusion scène+magie | 210 | 24 | 20 | 38–56 | 8 | 1 | 3600 or + 3 gemmes + **40 Résonance** | `flying`, `noRetaliation`, `barrier(30 PV, rayon 2, gate 40 Résonance)` (élite 40 PV/50) — projette un bouclier absorbant sur les alliés à l'entrée en lice (cf. CAP-BARRIER) |
 
 > 📊 **DOC-STATS / CAP-DATAFIX** : la table ci-dessus est réalignée sur les
 > **données livrées** (`data/factions/vox-arcana/units/`), équilibrées par
@@ -320,8 +338,10 @@ existants** (bouclier / buff / debuff / soin) — zéro nouveau moteur :
 > **capacités**, les docs font foi : l'Idole reçoit `noMeleePenalty` en données.
 > L'Avatar conserve `flying`+`noRetaliation` (présents en données, budget de
 > puissance figé par `faction:sim`) — divergence doc↔données tranchée **côté
-> données** par prudence (ne pas nerfer un T8 livré) ; le `spellcaster(Barrière
-> du Honmoon)` et la barrière de zone restent différés (doc 16 §7).
+> données** par prudence (ne pas nerfer un T8 livré). La **barrière de zone**
+> (`barrier`) est désormais **livrée** (bouclier absorbant projeté au setup, cf.
+> CAP-BARRIER) ; seul le `spellcaster(Barrière du Honmoon)` en **lancer actif
+> mid-combat** reste différé (doc 16 §7).
 > **Capacités désormais LIVRÉES** (table mise à jour, marqueurs « différé »
 > retirés) : `performer` (Chœur T1 +1 / Idole T4 +2 Résonance/round, F-RESON.2)
 > et `rebirth` (Phénix, CAP-LIFE.2). **Encore différé** (câblage données gaté par

@@ -47,15 +47,33 @@ chiffré ». Priorité absolue avant toute nouvelle finition.
   confirme l'isolation de tag (dans `@e2e`, absent de `@core`) ; `pnpm lint` +
   `pnpm typecheck` verts ; YAML des 2 workflows valide.
 
-### 1.2 Audit des transitions Adventure ↔ Town ↔ Combat ↔ Siège *(M)*
-- Piloter à la main (skill `run`) chaque transition et son retour, chercher :
-  cycles de vie de scène (fuite `AdventureScene`/`CombatScene`, cf. CL1/B45),
-  caméra mal recentrée, brouillard périmé, sprites orphelins, route désynchro de
-  `game.combat`.
-- Fichiers sous surveillance : `app/router.ts`, `scenes/adventure/AdventureScene.ts`
-  (`destroy()`), `scenes/combat/CombatScene.ts`, `app/game.ts` (`ensureScenes`).
-- **Vérif :** aucune fuite mémoire sur 10 allers-retours (heap stable via DevTools),
-  aucun warning console, caméra centrée sur le bon héros à chaque main.
+### 1.2 Audit des transitions Adventure ↔ Town ↔ Combat ↔ Siège *(M)* — ✅ LIVRÉ
+- **Audit lu ligne à ligne** du cycle de vie : `main.ts` (`ensureScenes`/
+  `teardownScenes` — l'orchestration vit là, pas dans `app/game.ts`),
+  `AdventureScene.destroy()`, `CombatScene` (constructeur/`destroy`), `camera.ts`
+  (`destroy`), `camera-control.ts` (register/unregister), `input/pointer.ts`
+  (`onTap`/`onLongPress`).
+- **Verdict : aucune fuite.** Cycle de vie déjà durci (CL1/CL2/B45) — symétrie
+  add/remove complète : chaque scène libère ses 4 abonnements (store/eventBus/
+  tap/longPress), son ticker, sa caméra (listeners `app.stage` + canvas `wheel`/
+  `pointercancel`) ; `onTap`/`onLongPress` retirent tous leurs listeners et
+  `onLongPress` purge son `setTimeout` ; `panCameraTo` s'arrête via la garde
+  `registered !== reg` si la caméra meurt en vol. La scène de COMBAT n'est pas une
+  route : dérivée de `game.combat` ⇒ zéro désync route/état. La vue de Ville est
+  une **modale DOM** (aucune scène Pixi démontée). Route désync / sprites
+  orphelins / brouillard périmé : non reproduits.
+- **Non-régression automatisée** (verrou anti-régression) : test `@e2e`
+  « allers-retours Aventure↔Combat sans fuite » — 5 A/R dans une session,
+  empreinte du scène-graphe (`app.stage.children` + `listenerCount('pointerdown')`
+  via le nouveau hook `sceneGraphStats`) qui **revient exactement à la ligne de
+  base** après chaque cycle (et croît pendant le combat = preuve de montage).
+- **Trouvaille mineure (perf, PAS une fuite) → S1.3 :** l'`onTick` de
+  `AdventureScene` (culling + waterSheen) continue pendant le combat alors que
+  `camera.world` est masqué — travail par-frame gaspillé. À couper/throttler dans
+  le lot perf 1.3 (le throttle `cullTilemap` sur delta caméra le neutralise déjà
+  en partie).
+- **Vérif (faite) :** test `@e2e` vert en local (Chromium local) ; `pnpm lint` +
+  `pnpm typecheck` verts.
 
 ### 1.3 Perf grande carte + mobile, chiffrée *(M)*
 - Générer une carte **256²** (Immense) riche en objets/props, mesurer FPS
@@ -152,7 +170,7 @@ séparé, hors périmètre Alpha.
 
 ## Suivi
 - [x] S1.1 harnais E2E (test `@e2e` + job CI non bloquant ; vérifié local)
-- [ ] S1.2 audit transitions
+- [x] S1.2 audit transitions (aucune fuite ; verrou `@e2e` return-to-baseline)
 - [ ] S1.3 perf chiffrée
 - [ ] S1.4 non-régressions save
 - [ ] S2 ergo P0 (lots 0-2)

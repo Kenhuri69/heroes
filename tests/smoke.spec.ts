@@ -4049,3 +4049,53 @@ test('E2E : boucle complète New Game → exploration → ville → combat → s
 
   expect(errors).toEqual([]);
 });
+
+// Non-régression de FUITE de scène (Sprint 1.2, plan phase-alpha-e2e-ergonomics) :
+// les remédiations CL1/CL2/B45 ont durci le cycle de vie des scènes (chaque scène
+// détruit ses listeners caméra/tap + son ticker). Ce test le VERROUILLE : N
+// allers-retours Aventure↔Combat dans UNE session doivent laisser l'empreinte du
+// scène-graphe (`app.stage`) INCHANGÉE — toute croissance des enfants ou des
+// listeners `pointerdown` trahit un listener/conteneur non libéré. La scène
+// d'aventure et sa caméra PERSISTENT pendant le combat (seule la scène de combat
+// est créée/détruite), donc la valeur d'aventure est une vraie ligne de base
+// stable. (La vue de Ville est une modale DOM : aucune scène Pixi n'est
+// démontée ⇒ hors périmètre de ce test de fuite.) Tag `@e2e` : optionnel en CI.
+test('E2E : allers-retours Aventure↔Combat sans fuite de scène (CL1/CL2)', { tag: '@e2e' }, async ({ page }) => {
+  const errors = await openGame(page);
+
+  const stats = () => page.evaluate(() => window.__HEROES_TEST__!.sceneGraphStats());
+  const inCombat = () => page.evaluate(() => window.__HEROES_TEST__!.getState().combat !== null);
+
+  // Ligne de base en aventure (scène + caméra vivantes, aucun combat).
+  const baseline = await stats();
+  expect(baseline.stageChildren).toBeGreaterThan(0);
+  expect(baseline.stagePointerListeners).toBeGreaterThan(0);
+
+  for (let i = 0; i < 5; i++) {
+    // Entrer en combat (arène directe, déterministe) : la scène de combat se monte.
+    await page.evaluate(() =>
+      window.__HEROES_TEST__!.dispatch({
+        type: 'StartCombat',
+        attacker: [{ unitId: 't2-archer', count: 40 }],
+        defender: [{ unitId: 't1-recruit', count: 4 }],
+        terrain: 'grass',
+      }),
+    );
+    await expect.poll(inCombat).toBe(true);
+    // Pendant le combat, une seconde scène + sa caméra/taps s'ajoutent : l'empreinte
+    // dépasse strictement la ligne de base (preuve que le combat est bien monté).
+    const during = await stats();
+    expect(during.stageChildren).toBeGreaterThan(baseline.stageChildren);
+    expect(during.stagePointerListeners).toBeGreaterThan(baseline.stagePointerListeners);
+
+    // Résoudre le combat ⇒ la scène de combat se démonte, retour à l'aventure.
+    await page.evaluate(() => window.__HEROES_TEST__!.dispatch({ type: 'AutoCombat' }));
+    await expect.poll(inCombat).toBe(false);
+
+    // Cœur du test : l'empreinte revient EXACTEMENT à la ligne de base — aucun
+    // conteneur ni listener orphelin après l'aller-retour n°(i+1).
+    await expect.poll(stats).toEqual(baseline);
+  }
+
+  expect(errors).toEqual([]);
+});

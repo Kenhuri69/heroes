@@ -617,9 +617,10 @@ export class CombatScene {
         const url = siegeWallPieceUrl(state, variant);
         if (!url) return null;
         const sprite = new Sprite();
-        // Kit « bloc par hex » : la pièce s'emboîte sur son VRAI hex (zigzag du
-        // nid d'abeille assumé, comme les tuiles de sol) — plus de x lissé.
-        sprite.position.set(offsetToPixel({ col: wallCol, row }).x, yOf(row));
+        // Kit « run » (v2) : pièces de RACCORD tuilables une rangée — colonne
+        // DROITE sur l'axe lissé du mur, l'empilement est continu par
+        // construction (le zigzag par hex isolait les blocs, retour porteur).
+        sprite.position.set(layout.wallX, yOf(row));
         sprite.zIndex = yOf(row) + layout.piece.hBelow;
         void Assets.load(url).then((texture) => {
           if (sprite.destroyed) return;

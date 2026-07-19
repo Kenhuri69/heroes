@@ -925,7 +925,15 @@ def main() -> None:
             {"x": round(cx(WALL_COL, 0), 2), "y": round(cy(ROWS - 1 + 0.9), 2), "h": 92.0},
         ],
     }
-    (OUT_LAYOUT / "siege-scene.json").write_text(json.dumps(layout, indent=2) + "\n")
+    # Kit PEINT présent : les dimensions piece/gate appartiennent à
+    # l'extracteur (elles suivent l'art déposé) — on les préserve.
+    layout_path = OUT_LAYOUT / "siege-scene.json"
+    if not emit_pieces and layout_path.exists():
+        prev = json.loads(layout_path.read_text())
+        for k in ("piece", "gate", "towers"):
+            if k in prev:
+                layout[k] = prev[k]
+    layout_path.write_text(json.dumps(layout, indent=2) + "\n")
     print("layouts/siege-scene.json")
 
 

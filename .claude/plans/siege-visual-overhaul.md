@@ -236,3 +236,15 @@ y compris plaine, validable en 1 capture) ; **Lot 1** = scène peinte génériqu
   plus les pièces (le procédural reste le repli d'avant-art). Planche
   source committée (`assets/prompts/_incoming/siege-kit.png`, filigrane
   effacé). Smoke siège vert, captures rafraîchies.
+- 2026-07-19 — Retour porteur (itération 7) : approche palette Gemini
+  VALIDÉE, mais « les hexagones n'ont pas été réfléchis pour se
+  connecter » — exact : le gabarit v1 faisait dessiner des OBJETS finis
+  (4 côtés fermés), pas des pièces de raccord ⇒ porte déconnectée de l'eau
+  et du mur, segments isolés. **v2 « run de muraille »** : gabarit
+  `siege-run-template.png` (4 cellules, le mur SORT des cellules haut/bas,
+  brèche aux extrémités raccordables, porte DANS le run + seuil vers la
+  chaussée), extracteur `extract_siege_run.py` (échelle commune, courtine
+  rendue tuilable verticalement, fenêtres d'exactement 1 rangée, layout
+  patché piece/gate), client recalé en colonne DROITE (le zigzag par hex
+  isolait les blocs). Tours v1 conservées (validées). En attente :
+  planche v2 du porteur.

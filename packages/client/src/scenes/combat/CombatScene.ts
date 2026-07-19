@@ -162,6 +162,9 @@ export class CombatScene {
   private readonly sceneLayer = new Container();
   private sceneKey = '';
   private sceneActive = false;
+  /** Faction assiégée (backlog siège item 1) : teinte les sprites de rempart.
+   *  Fixée dans `syncSiegeScene`, consommée par les syncs de mur. Id opaque. */
+  private siegeFactionId: string | undefined;
   private readonly wallStructures = new Map<string, Sprite>();
   /**
    * Itération 9 : hex des STRUCTURES de siège vues vivantes (tour de tir) —
@@ -385,6 +388,7 @@ export class CombatScene {
       this.sceneLayer.removeChildren().forEach((c) => c.destroy());
       this.sceneKey = '';
       this.sceneActive = false;
+      this.siegeFactionId = undefined;
       for (const s of this.wallStructures.values()) s.destroy();
       this.wallStructures.clear();
       this.structureSpots.clear();
@@ -424,6 +428,9 @@ export class CombatScene {
     const layout = siegeSceneLayout();
     const walls = combat.siegeWalls ?? [];
     const town = combat.townId != null ? game.towns.find((t) => t.id === combat.townId) : undefined;
+    // Faction assiégée : mémorisée pour teinter les sprites de rempart (item 1).
+    // `|| undefined` : le siège de test forge une ville à `factionId: ''`.
+    this.siegeFactionId = town?.factionId || undefined;
     const url = walls.length > 0 && layout ? siegeSceneUrl(town?.factionId) : undefined;
     this.sceneActive = url != null && siegeWallPieceUrl('intact') != null;
     const hasMoat = (combat.moat ?? []).length > 0;
@@ -597,7 +604,7 @@ export class CombatScene {
     this.syncStructureRuins(combat);
     // Mode RUN ensembliste (tableau peint découpé) : la fortification est un
     // seul artwork affiché par tranches — prioritaire quand l'asset existe.
-    if (layout.run && siegeRunUrl()) {
+    if (layout.run && siegeRunUrl(this.siegeFactionId)) {
       this.syncRunSlices(combat, layout.run);
       return;
     }
@@ -632,8 +639,8 @@ export class CombatScene {
         state = ratio < 1 ? 'cracked' : 'intact';
       }
       const variant = row % 2 === 0 ? 1 : 2;
-      ensure(`piece:${row}`, `${state}:${variant}`, () => {
-        const url = siegeWallPieceUrl(state, variant);
+      ensure(`piece:${row}`, `${state}:${variant}:${this.siegeFactionId ?? ''}`, () => {
+        const url = siegeWallPieceUrl(state, variant, this.siegeFactionId);
         if (!url) return null;
         const sprite = new Sprite();
         // Kit « run » (v2) : pièces de RACCORD tuilables une rangée — colonne
@@ -654,8 +661,8 @@ export class CombatScene {
 
     // Porte = segment VERTICAL dans l'axe du mur (retour porteur : le
     // gatehouse frontal étalé en travers jurait) ; repli = art frontal.
-    ensure('gate', 'gate-piece', () => {
-      const url = siegeGatePieceUrl() ?? siegeGateUrl();
+    ensure('gate', `gate-piece:${this.siegeFactionId ?? ''}`, () => {
+      const url = siegeGatePieceUrl(this.siegeFactionId) ?? siegeGateUrl();
       if (!url) return null;
       const sprite = new Sprite();
       sprite.position.set(layout.gate.x, layout.gate.yBottom);
@@ -674,8 +681,8 @@ export class CombatScene {
     });
 
     layout.towers.forEach((t, i) => {
-      ensure(`tower:${i}`, 'tower-piece', () => {
-        const url = siegeSceneTowerUrl();
+      ensure(`tower:${i}`, `tower-piece:${this.siegeFactionId ?? ''}`, () => {
+        const url = siegeSceneTowerUrl(this.siegeFactionId);
         if (!url) return null;
         const sprite = new Sprite();
         sprite.position.set(t.x, t.y);
@@ -698,7 +705,7 @@ export class CombatScene {
    * mémorisées au fil des syncs (`structureSpots`) ; sans asset : no-op.
    */
   private syncStructureRuins(combat: CombatState): void {
-    const url = siegeArrowTowerRazedUrl();
+    const url = siegeArrowTowerRazedUrl(this.siegeFactionId);
     if (!url) return;
     const alive = new Set(combat.stacks.map((s) => s.id));
     for (const [id, pos] of this.structureSpots) {
@@ -1011,7 +1018,7 @@ export class CombatScene {
     // à sa base et PLUS HAUTE que la courtine — une défense de ville, pas une
     // créature. Hors scène : rendu structure historique inchangé.
     const sceneTower = isSiegeStructure && this.sceneActive;
-    const url = (sceneTower ? siegeArrowTowerUrl() : undefined) ?? unitSpriteUrl(stack.unitId, catalog[stack.unitId]?.groupId);
+    const url = (sceneTower ? siegeArrowTowerUrl(this.siegeFactionId) : undefined) ?? unitSpriteUrl(stack.unitId, catalog[stack.unitId]?.groupId);
     if (url) {
       void Assets.load(url).then((texture) => {
         if (this.destroyed || token.destroyed) return;
@@ -1108,7 +1115,7 @@ export class CombatScene {
     const walled = new Set(walls.map((w) => w.row));
     const gateRows = new Set(run.gateRows);
     const period = run.period;
-    const runUrl = siegeRunUrl();
+    const runUrl = siegeRunUrl(this.siegeFactionId);
     if (!runUrl) return;
     const x0 = run.x - run.xWest;
 
@@ -1141,7 +1148,7 @@ export class CombatScene {
       });
     };
     const bandTex = (state: 'intact' | 'cracked' | 'razed') => async (): Promise<Texture | null> => {
-      const url = siegeRunBandUrl(state);
+      const url = siegeRunBandUrl(state, this.siegeFactionId);
       return url ? ((await Assets.load(url)) as Texture) : null;
     };
 

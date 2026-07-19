@@ -83,7 +83,7 @@ declare global {
        *  catapulte vs Château neutre défendu, puis `CaptureTown`.
        *  `{ catapult: false }` : héros SANS catapulte ⇒ muraille complète et
        *  indestructible (capture « mur sain » / C-SIEGE2.2 non déclenché). */
-      startSiege: (opts?: { catapult?: boolean }) => Promise<void>;
+      startSiege: (opts?: { catapult?: boolean; factionId?: string }) => Promise<void>;
       /** Drapeaux de campagne posés par les choix de dialogue (couverture smoke N3c.2). */
       campaignFlags: () => Record<string, boolean>;
       /** Progression des tours IA (UX multi-joueurs) — non-null pendant qu'une IA joue. */
@@ -527,7 +527,7 @@ async function bootstrap(): Promise<void> {
  * déclenche le siège. Test-scaffold client (patron des forges `importAiTurnSave`)
  * — aucune règle moteur, ids de faction opaques.
  */
-async function forgeSiege(opts?: { catapult?: boolean }): Promise<void> {
+async function forgeSiege(opts?: { catapult?: boolean; factionId?: string }): Promise<void> {
   const base = appStore.getState().game;
   const humanId = humanPlayerId(base);
   if (!humanId) throw new Error('startSiege : aucun joueur humain');
@@ -566,7 +566,9 @@ async function forgeSiege(opts?: { catapult?: boolean }): Promise<void> {
       id: townId,
       ownerPlayerId: null,
       pos: { ...hero.pos },
-      factionId: '',
+      // Item 1 (coloration par faction) : `factionId` opaque optionnel ⇒ QC
+      // d'une muraille teintée ; défaut `''` = muraille générique (smoke).
+      factionId: opts?.factionId ?? '',
       buildings: { fort: 3 },
       builtToday: false,
       garrison: [{ unitId: troopId, count: 30 }],

@@ -34,7 +34,7 @@ import random
 from pathlib import Path
 
 import numpy as np
-from PIL import Image, ImageDraw, ImageEnhance, ImageFilter
+from PIL import Image, ImageChops, ImageDraw, ImageEnhance, ImageFilter
 
 ROOT = Path(__file__).resolve().parents[2]
 ASSETS = ROOT / "assets"
@@ -83,23 +83,8 @@ CITY_X0 = 962.0  # la ville commence après la colonne défenseur (col 14 ≈ 93
 MOAT_HALF = 27.0  # demi-largeur du chenal de douve
 MUD_X0, MUD_X1 = 500.0, WALL_X - 26  # bande d'approche piétinée
 
-# Pièce de rempart (board-space) : bande STRICTEMENT PÉRIODIQUE (période =
-# Y_STEP, hauteur du canvas = 1 période, ancrée au centre de rangée) — les
-# raccords entre rangées sont invisibles PAR CONSTRUCTION (itération 5 : fini
-# l'effet « tourelles empilées » des segments à chapiteau crénelé).
-# Lecture oblique cohérente avec le plateau : face OUEST éclairée (côté
-# assaillant), ligne de créneaux continue, chemin de ronde, parapet est +
-# ombre portée sur la cour.
-PIECE_W = 56.0  # largeur du canvas
-PIECE_H_ABOVE = Y_STEP / 2
-PIECE_H_BELOW = Y_STEP / 2
-# Bande du rempart (dans le canvas, centrée) : x relatifs au bord ouest.
-BAND_W = 46.0
-BAND_FACE_W = 12.0  # face ouest (maçonnerie éclairée)
-BAND_TEETH_W = 8.0  # ligne de créneaux (dents périodiques)
-BAND_WALK_W = 20.0  # chemin de ronde (dalles)
-BAND_LIP_W = 3.0  # parapet intérieur (est)
-TEETH_PER_PERIOD = 3
+# Pièces de rempart : voir le KIT DE FORTIFICATION PROCÉDURAL plus bas
+# (WALL_H, GATE_WALL_H, TOWER_H_BP… — un seul langage pour tout le vertical).
 
 
 def img_px(v: float) -> int:
@@ -379,177 +364,185 @@ def vignette(im: Image.Image) -> Image.Image:
     return out
 
 
-# --- Pièces de rempart (sprites par rangée, période Y_STEP) ---
+# --- KIT DE FORTIFICATION PROCÉDURAL (itération 6 — retour porteur) ---
+#
+# TOUT le vertical (courtine, porte, tours d'angle, tour de tir) est dessiné
+# dans UN SEUL langage : celui du sol validé (pavés de cour) — blocs épais à
+# contour sombre, palette pierre unifiée, lumière haut-gauche, formes franches.
+# Plus AUCUN sprite peint plaqué (le mélange procédural/peint/collage était la
+# racine du rejet). Le mur est « une image par hexagone qui s'emboîte », comme
+# le sol : chaque pièce est un BLOC-PRISME au footprint de son hex (zigzag du
+# nid d'abeille assumé, fidèle à Heroes Online), état intact/fissuré/rasé.
+
+WALL_H = 30.0  # élévation de la courtine (bp)
+GATE_WALL_H = 38.0  # la porte est plus haute que la courtine
+TOWER_H_BP = 88.0  # tour d'angle
+ARROW_TOWER_H_BP = 100.0  # tour de tir (domine tout)
+
+# Palette pierre UNIFIÉE (même famille que paint_cobbles / tuiles de cour).
+K_STONE = (134, 129, 119)
+K_STONE_L = (174, 168, 156)
+K_STONE_XL = (204, 198, 186)
+K_STONE_D = (98, 93, 85)
+K_STONE_XD = (66, 62, 55)
+K_OUT = (52, 48, 43)
+K_WOOD = (102, 78, 54)
+K_WOOD_D = (64, 50, 36)
+K_IRON = (60, 58, 55)
 
 
-def gate_art() -> Image.Image:
-    return Image.open(OUT_COMBAT / "siege-gate.png").convert("RGBA")
+def hex_pts_img(cxp_bp: float, cyp_bp: float, r_bp: float) -> list[tuple[float, float]]:
+    """Sommets IMG d'un hex pointy-top APLATI (ordre N, NE, SE, S, SW, NW)."""
+    pts = []
+    for deg in (-90, -30, 30, 90, 150, 210):
+        a = math.radians(deg)
+        pts.append((img_px(cxp_bp + r_bp * math.cos(a)), img_px(cyp_bp + r_bp * math.sin(a) * SQUASH)))
+    return pts
 
 
-def make_vtile(im: Image.Image) -> Image.Image:
-    """Rend une texture TUILABLE verticalement (roll + fondu des bords) — les
-    pièces de rempart empilées se raccordent alors sans couture."""
-    w, h = im.size
-    rolled = Image.new("RGB", (w, h))
-    rolled.paste(im.crop((0, h // 2, w, h)), (0, 0))
-    rolled.paste(im.crop((0, 0, w, h // 2)), (0, h - h // 2))
-    mask = Image.new("L", (w, h), 0)
-    md = ImageDraw.Draw(mask)
-    edge = max(1, h // 4)
-    for y in range(h):
-        dist = min(y, h - 1 - y)
-        md.line([(0, y), (w, y)], fill=int(255 * min(1.0, dist / edge)))
-    out = rolled.copy()
-    out.paste(im, (0, 0), mask)
-    return out
+def stone_panel(rng: random.Random, w: int, h: int, base: tuple[int, int, int], course_bp: float = 7.5) -> Image.Image:
+    """Appareil de pierre de taille (assises décalées, ton jitteré, arête
+    éclairée, joint sombre) — même écriture que les pavés de cour."""
+    im = Image.new("RGB", (w, h), base)
+    d = ImageDraw.Draw(im)
+    ch = img_px(course_bp)
+    bw = img_px(course_bp * 1.9)
+    for j, y in enumerate(range(-ch, h + ch, ch)):
+        off = (j % 2) * bw // 2
+        for x in range(-bw + off, w + bw, bw):
+            t = rng.randint(-11, 11)
+            tone = (base[0] + t, base[1] + t, base[2] + t)
+            d.rectangle([x, y, x + bw - S, y + ch - S], fill=tone, outline=K_OUT, width=1)
+            d.line([(x + S, y + S), (x + bw - 2 * S, y + S)], fill=(min(255, base[0] + 34 + t), min(255, base[1] + 34 + t), min(255, base[2] + 30 + t)), width=1)
+    return im
 
 
-def face_strip(face_src: Image.Image, face_w: int, height: int) -> Image.Image:
-    """Empile la texture de face avec chevauchements fondus (pas de couture)."""
-    tile = face_src.convert("RGB").resize((face_w, img_px(22)), Image.LANCZOS)
-    flip = tile.transpose(Image.FLIP_LEFT_RIGHT)
-    fade = Image.new("L", tile.size, 255)
-    fd = ImageDraw.Draw(fade)
-    ov = tile.height // 3
-    for i in range(ov):
-        fd.line([(0, i), (tile.width, i)], fill=int(255 * i / ov))
-    strip = Image.new("RGB", (face_w, height))
-    step = tile.height - ov
-    for k, ty in enumerate(range(0, height + step, step)):
-        t = tile if k % 2 == 0 else flip
-        strip.paste(t, (0, ty), fade if ty > 0 else None)
-    return strip
+def shade_lr_masked(im: Image.Image, mask: Image.Image, box: tuple[int, int, int, int], light_w: float, dark_w: float) -> None:
+    """Modelé gauche-clair / droite-sombre CLIPPÉ au masque (lumière haut-gauche)
+    — jamais de halo sur l'alpha hors de la forme."""
+    x0, y0, x1, y1 = box
+    w = max(1, x1 - x0)
+    overlay = Image.new("RGBA", im.size, (0, 0, 0, 0))
+    od = ImageDraw.Draw(overlay)
+    lw = int(w * light_w)
+    dw = int(w * dark_w)
+    for i in range(lw):
+        od.line([(x0 + i, y0), (x0 + i, y1)], fill=(255, 250, 236, int(46 * (1 - i / max(1, lw)))))
+    for i in range(dw):
+        od.line([(x1 - 1 - i, y0), (x1 - 1 - i, y1)], fill=(20, 18, 15, int(70 * (1 - i / max(1, dw)))))
+    overlay.putalpha(ImageChops.multiply(overlay.getchannel("A"), mask))
+    im.alpha_composite(overlay)
 
 
-def build_band_period(rng: random.Random) -> Image.Image:
-    """UNE période (Y_STEP) de la bande de rempart, périodique en Y — toute
-    pièce est une fenêtre de ce motif ⇒ l'empilement par rangée est sans
-    couture quel que soit l'état des voisins (itération 5 : fini l'effet
-    « tourelles empilées »). Lecture : **façade continue pleine masse**
-    (maçonnerie peinte raccordée verticalement) avec **crête crénelée courant
-    le long du bord ouest** (la ligne de bataille du rempart, côté assaillant)
-    et ombre portée sur la cour à l'est."""
-    gate = gate_art()
-    gw, gh = gate.size
-    face_src = gate.crop((int(gw * 0.05), int(gh * 0.56), int(gw * 0.245), int(gh * 0.75))).convert("RGB")
+def draw_merlon(d: ImageDraw.ImageDraw, cx_i: int, cy_i: int, w_bp: float = 7.0, h_bp: float = 6.5) -> None:
+    """Merlon-bloc (dent de créneau) posé debout, base en (cx, cy) IMG."""
+    hw = img_px(w_bp / 2)
+    hh = img_px(h_bp)
+    d.rounded_rectangle([cx_i - hw, cy_i - hh, cx_i + hw, cy_i], radius=S, fill=K_STONE_L, outline=K_OUT, width=1)
+    d.rectangle([cx_i - hw + S, cy_i - hh + S, cx_i + hw - S, cy_i - hh + 2 * S], fill=K_STONE_XL)
+    d.rectangle([cx_i + hw - 2 * S, cy_i - hh + S, cx_i + hw - S, cy_i - S], fill=K_STONE_D)
 
-    w_img, p_img = img_px(PIECE_W), img_px(Y_STEP)
-    band = Image.new("RGBA", (w_img, p_img), (0, 0, 0, 0))
-    d = ImageDraw.Draw(band)
-    bx0 = img_px((PIECE_W - BAND_W) / 2)
-    band_w = img_px(BAND_W)
 
-    # 1. FAÇADE continue : maçonnerie peinte tuilable (aucune couture entre
-    #    rangées), pleine masse. Modelé : éclairée côté ouest, s'assombrit en
-    #    s'enroulant vers la cour.
-    face = make_vtile(face_src.resize((band_w, p_img), Image.LANCZOS))
-    band.paste(face, (bx0, 0))
-    shade = Image.new("L", (band_w, 1))
-    for i in range(band_w):
-        t = i / band_w
-        shade.putpixel((i, 0), int(18 + 92 * max(0.0, t - 0.35) / 0.65))
-    shade = shade.resize((band_w, p_img))
-    dark_col = Image.new("RGBA", (band_w, p_img), (22, 20, 17, 255))
-    dark_col.putalpha(shade)
-    band.paste(Image.alpha_composite(band.crop((bx0, 0, bx0 + band_w, p_img)), dark_col), (bx0, 0))
-    # Arête ouest éclairée (contact avec la lumière du champ).
-    d.rectangle([bx0, 0, bx0 + 2 * S, p_img], fill=(206, 200, 186, 120))
-
-    # 2. CRÊTE CRÉNELÉE le long du bord ouest : merlons périodiques en léger
-    #    surplomb (la ligne de bataille du rempart), embrasures sombres entre
-    #    les dents laissant voir la façade.
-    tooth_h = p_img / TEETH_PER_PERIOD
-    tw_ = img_px(9.0)  # profondeur de la crête
-    tx0 = bx0 - img_px(3.0)  # léger débord côté champ
-    for k in range(TEETH_PER_PERIOD):
-        ty = int(k * tooth_h + tooth_h * 0.10)
-        tb = int(k * tooth_h + tooth_h * 0.68)
-        # Merlon : bloc clair, chant supérieur éclairé, chant droit en ombre.
-        d.rounded_rectangle([tx0, ty, tx0 + tw_, tb], radius=S, fill=(170, 165, 152, 255))
-        d.rectangle([tx0, ty, tx0 + tw_, ty + max(1, int((tb - ty) * 0.28))], fill=(204, 199, 186, 255))
-        d.rectangle([tx0 + tw_ - 2 * S, ty + S, tx0 + tw_, tb], fill=(104, 99, 90, 255))
-        d.rectangle([tx0, tb - S, tx0 + tw_, tb], fill=(84, 79, 70, 255))
-        # Ombre du merlon sur la façade (accroche la crête au mur).
-        d.rectangle([tx0 + tw_, ty + 2 * S, tx0 + tw_ + 2 * S, tb + 2 * S], fill=(30, 27, 23, 90))
-    # Fine lisse d'appui continue reliant les merlons (parapet).
-    d.rectangle([tx0 + int(tw_ * 0.25), 0, tx0 + int(tw_ * 0.55), p_img], fill=(148, 143, 132, 255))
-    d.rectangle([tx0 + int(tw_ * 0.25), 0, tx0 + int(tw_ * 0.33), p_img], fill=(184, 179, 166, 255))
-
-    # 3. Ombre portée du rempart sur la cour (est) — assoit la masse.
-    sh_w = img_px(7.0)
-    for i in range(sh_w):
-        a = int(96 * (1 - i / sh_w))
-        d.rectangle([bx0 + band_w + i, 0, bx0 + band_w + i + 1, p_img], fill=(10, 10, 8, a))
-
-    return band
+def prism(canvas: Image.Image, top_c: tuple[float, float], r_bp: float, h_bp: float, rng: random.Random) -> list[tuple[float, float]]:
+    """Bloc-prisme hexagonal : jupe extrudée (appareil clippé + modelé) puis
+    face supérieure (dalles + contour). Rend les sommets IMG du toit."""
+    top = hex_pts_img(top_c[0], top_c[1], r_bp)
+    n_, ne, se, s_, sw, nw = top
+    dh = img_px(h_bp)
+    skirt = [nw, sw, s_, se, ne, (ne[0], ne[1] + dh), (se[0], se[1] + dh), (s_[0], s_[1] + dh), (sw[0], sw[1] + dh), (nw[0], nw[1] + dh)]
+    xs = [p[0] for p in skirt]
+    ys = [p[1] for p in skirt]
+    box = (min(xs), min(ys), max(xs), max(ys))
+    mask = Image.new("L", canvas.size, 0)
+    ImageDraw.Draw(mask).polygon(skirt, fill=255)
+    panel = stone_panel(rng, canvas.width, canvas.height, K_STONE).convert("RGBA")
+    canvas.paste(panel, (0, 0), mask)
+    shade_lr_masked(canvas, mask, box, 0.22, 0.3)
+    d = ImageDraw.Draw(canvas)
+    d.line([sw, (sw[0], sw[1] + dh)], fill=K_OUT, width=1)
+    d.line([se, (se[0], se[1] + dh)], fill=K_OUT, width=1)
+    d.line([(nw[0], nw[1] + dh), (sw[0], sw[1] + dh), (s_[0], s_[1] + dh), (se[0], se[1] + dh), (ne[0], ne[1] + dh)], fill=K_OUT, width=2)
+    d.line([(nw[0] + S, nw[1] + dh - S), (sw[0] + S, sw[1] + dh - S), (s_[0], s_[1] + dh - S)], fill=K_STONE_XD, width=S)
+    # Face supérieure : dalles claires (chemin de ronde) + contour.
+    top_mask = Image.new("L", canvas.size, 0)
+    ImageDraw.Draw(top_mask).polygon(top, fill=255)
+    slabs = stone_panel(rng, canvas.width, canvas.height, (156, 151, 139), course_bp=12.0).convert("RGBA")
+    canvas.paste(slabs, (0, 0), top_mask)
+    d.polygon(top, outline=K_OUT)
+    d.line([nw, n_, ne], fill=K_STONE_XL, width=S)
+    return top
 
 
 def build_wall_piece(rng: random.Random, state: str, variant: int = 1) -> Image.Image:
-    """Pièce de rempart d'UNE rangée = une fenêtre (1 période) de la bande
-    périodique ; `state` : intact | cracked | razed. `variant` conservé pour
-    compat d'appel (la bande périodique n'a plus besoin de variantes)."""
+    """Bloc de courtine d'UN hex (s'emboîte comme les tuiles de sol, zigzag du
+    nid d'abeille assumé) ; `state` : intact | cracked | razed."""
     del variant
-    piece = build_band_period(rng)
-    w_img, h_img = piece.size
-
-    if state == "cracked":
-        cd = ImageDraw.Draw(piece)
-        cx0, cy0 = int(w_img * 0.52), int(h_img * 0.5)
-        for k in range(5):
-            ang = (k * 73 + 20) % 360 * math.pi / 180
-            ln = w_img * (0.22 + (k * 17 % 5) / 14)
-            px, py = cx0, cy0
-            for s_ in range(1, 4):
-                jit = ((k + s_) * 41 % 10 - 5) * 0.9 * S
-                nx = cx0 + math.cos(ang) * ln * s_ / 3 + jit
-                ny = cy0 + math.sin(ang) * ln * s_ / 3
-                cd.line([px, py, nx, ny], fill=(26, 22, 18, 220), width=max(1, S))
-                px, py = nx, ny
-        dark = Image.new("RGBA", (w_img, h_img), (0, 0, 0, 0))
-        dd = ImageDraw.Draw(dark)
-        dd.ellipse([cx0 - 15 * S, cy0 - 10 * S, cx0 + 15 * S, cy0 + 10 * S], fill=(30, 24, 18, 80))
-        piece = Image.alpha_composite(piece, dark.filter(ImageFilter.GaussianBlur(3 * S)))
+    rng = random.Random(SEED + 41)  # blocs identiques ⇒ mur régulier
+    w_bp, h_bp = COURT_TILE_W, WALL_H + COURT_TILE_H
+    canvas = Image.new("RGBA", (img_px(w_bp), img_px(h_bp)), (0, 0, 0, 0))
+    top_c = (w_bp / 2, COURT_TILE_H / 2)
+    r_bp = HEX + COURT_TILE_BLEED
 
     if state == "razed":
-        # Brèche : la bande est PERCÉE (trou d'alpha déchiqueté sur ~70 % de la
-        # période), arases brisées claires sur les lèvres, gravats en tas qui
-        # débordent côté assaillant.
-        bx0 = img_px((PIECE_W - BAND_W) / 2)
-        band_w = img_px(BAND_W)
-        hole = Image.new("L", (w_img, h_img), 0)
-        hd = ImageDraw.Draw(hole)
-        y0, y1 = int(h_img * 0.14), int(h_img * 0.86)
-        pts: list[tuple[int, int]] = []
-        for x in range(bx0 - 2 * S, bx0 + band_w + 2 * S, 3 * S):
-            pts.append((x, y0 + rng.randint(-int(h_img * 0.08), int(h_img * 0.08))))
-        for x in range(bx0 + band_w + 2 * S, bx0 - 2 * S, -3 * S):
-            pts.append((x, y1 + rng.randint(-int(h_img * 0.08), int(h_img * 0.08))))
-        hd.polygon(pts, fill=255)
-        alpha = piece.split()[3]
-        alpha = Image.composite(Image.new("L", alpha.size, 0), alpha, hole)
-        piece.putalpha(alpha)
-        jag = ImageDraw.Draw(piece)
-        # Lèvres de pierre brisée le long du trou (haut et bas).
-        for edge_y, sign in ((y0, -1), (y1, 1)):
-            px = bx0
-            while px < bx0 + band_w:
-                step_w = rng.randint(3 * S, 7 * S)
-                hgt = rng.randint(S, 5 * S)
-                ey = edge_y + sign * rng.randint(-int(h_img * 0.06), int(h_img * 0.06))
-                jag.rectangle([px, ey - hgt, px + step_w, ey + hgt], fill=(146, 140, 128, 255))
-                jag.rectangle([px, ey - hgt, px + max(1, step_w // 3), ey], fill=(182, 176, 162, 255))
-                px += step_w
-        # Gravats : tas dense au centre, débord côté ouest (assaillant).
-        for k in range(52):
-            spread = rng.random()
-            gx = bx0 + int(band_w * (0.15 + 0.7 * rng.random())) - (img_px(8) if spread < 0.3 else 0)
-            gy = int(h_img * 0.25) + int(rng.random() * h_img * 0.5)
-            sz = rng.randint(3 * S, 8 * S) if spread > 0.3 else rng.randint(5 * S, 10 * S)
-            tone = rng.choice([(150, 144, 130), (128, 120, 104), (168, 160, 140), (108, 102, 92)])
-            jag.rounded_rectangle([gx, gy, gx + sz, gy + int(sz * 0.75)], radius=S, fill=(*tone, 255), outline=(66, 60, 52, 220), width=1)
-            jag.rectangle([gx, gy, gx + max(1, sz // 3), gy + max(1, int(sz * 0.3))], fill=(196, 190, 174, 255))
+        # Moignon rasé : socle bas déchiqueté + cratère de gravats.
+        rr = random.Random(SEED + 43)
+        stub_h = WALL_H * 0.22
+        foot_c = (top_c[0], top_c[1] + WALL_H - stub_h)
+        prism(canvas, foot_c, r_bp * 0.98, stub_h, rr)
+        d = ImageDraw.Draw(canvas)
+        # Arase brisée : dents claires le long du toit du moignon.
+        top_pts = hex_pts_img(foot_c[0], foot_c[1], r_bp * 0.98)
+        for k in range(9):
+            t = k / 8
+            xa = top_pts[5][0] + (top_pts[1][0] - top_pts[5][0]) * t
+            ya = top_pts[5][1] + (top_pts[1][1] - top_pts[5][1]) * t + rr.randint(-3 * S, 3 * S)
+            sz = rr.randint(2 * S, 5 * S)
+            d.rectangle([xa, ya - sz, xa + sz, ya], fill=K_STONE_L, outline=K_OUT, width=1)
+        # Cratère + éboulis (pierres façon pavés, gros au centre).
+        crater = hex_pts_img(foot_c[0], foot_c[1] - stub_h, r_bp * 0.8)
+        d.polygon(crater, fill=(74, 68, 58, 200))
+        for k in range(34):
+            ang = rr.random() * math.tau
+            dist = rr.random() ** 0.6 * r_bp * 0.85
+            gx = img_px(foot_c[0] + math.cos(ang) * dist)
+            gy = img_px(foot_c[1] - stub_h + math.sin(ang) * dist * SQUASH)
+            sz = rr.randint(3 * S, 8 * S)
+            tone = rr.choice([K_STONE, K_STONE_L, K_STONE_D, (118, 112, 102)])
+            d.rounded_rectangle([gx, gy, gx + sz, gy + int(sz * 0.75)], radius=S, fill=tone, outline=K_OUT, width=1)
+            d.rectangle([gx + S, gy + S, gx + max(2 * S, sz // 2), gy + 2 * S], fill=K_STONE_XL)
+        return canvas
 
-    return piece
+    top = prism(canvas, top_c, r_bp, WALL_H, rng)
+    n_, ne, se, s_, sw, nw = top
+    d = ImageDraw.Draw(canvas)
+    # Créneaux face à l'assaillant : merlons le long du flanc OUEST (NW→SW)
+    # + un au sommet nord — la ligne continue de bloc en bloc.
+    for t in (0.14, 0.5, 0.86):
+        mx = int(nw[0] + (sw[0] - nw[0]) * t)
+        my = int(nw[1] + (sw[1] - nw[1]) * t) + img_px(1.4)
+        draw_merlon(d, mx, my, 8.4, 8.0)
+    draw_merlon(d, int((nw[0] + n_[0]) / 2), int((nw[1] + n_[1]) / 2) + img_px(1.2), 7.2, 7.0)
+
+    if state == "cracked":
+        cd = ImageDraw.Draw(canvas)
+        cx0, cy0 = img_px(top_c[0]), img_px(top_c[1] + WALL_H * 0.45)
+        for k in range(5):
+            ang = math.radians((k * 71 + 15) % 360)
+            ln = img_px(16 + (k * 17 % 5) * 2)
+            px, py = cx0, cy0
+            for s_i in range(1, 4):
+                jit = ((k + s_i) * 41 % 10 - 5) * S
+                nx2 = cx0 + math.cos(ang) * ln * s_i / 3 + jit
+                ny2 = cy0 + math.sin(ang) * ln * s_i / 3 * SQUASH
+                cd.line([px, py, nx2, ny2], fill=(30, 26, 21, 230), width=max(1, S))
+                px, py = nx2, ny2
+        blot = Image.new("RGBA", canvas.size, (0, 0, 0, 0))
+        ImageDraw.Draw(blot).ellipse([cx0 - 13 * S, cy0 - 9 * S, cx0 + 13 * S, cy0 + 9 * S], fill=(34, 29, 23, 84))
+        canvas = Image.alpha_composite(canvas, blot.filter(ImageFilter.GaussianBlur(3 * S)))
+
+    return canvas
+
+
 
 
 
@@ -654,53 +647,174 @@ def paste_causeway(target: Image.Image, causeway: Image.Image, origin_x_bp: floa
     shadow = shadow.filter(ImageFilter.GaussianBlur(2 * S))
     target.paste(shadow, (x, y + img_px(2)), shadow)
     target.paste(causeway, (x, y), causeway)
+def build_round_tower(h_bp: float, r_bp: float, seed: int) -> Image.Image:
+    """Tour ronde PROCÉDURALE (même langage que la courtine : appareil de
+    pierre, contour sombre, lumière haut-gauche, couronne de merlons)."""
+    rng = random.Random(seed)
+    w_bp = r_bp * 2 + 10
+    canvas = Image.new("RGBA", (img_px(w_bp), img_px(h_bp + 8)), (0, 0, 0, 0))
+    d = ImageDraw.Draw(canvas)
+    cx_i = img_px(w_bp / 2)
+    top_y = img_px(7.0)
+    base_y = img_px(h_bp + 3)
+    rx = img_px(r_bp)
+    ry = img_px(r_bp * 0.42)
+
+    # Ombre de contact au sol.
+    d.ellipse([cx_i - int(rx * 1.15), base_y - int(ry * 1.1), cx_i + int(rx * 1.15), base_y + int(ry * 1.3)], fill=(16, 16, 12, 96))
+    # Fût : appareil clippé au profil (rectangle + base élargie arrondie).
+    mask = Image.new("L", canvas.size, 0)
+    md = ImageDraw.Draw(mask)
+    md.rectangle([cx_i - rx, top_y, cx_i + rx, base_y - ry], fill=255)
+    md.ellipse([cx_i - rx, base_y - 2 * ry, cx_i + rx, base_y], fill=255)
+    panel = stone_panel(rng, canvas.width, canvas.height, K_STONE, course_bp=8.0).convert("RGBA")
+    canvas.paste(panel, (0, 0), mask)
+    shade_lr_masked(canvas, mask, (cx_i - rx, top_y, cx_i + rx, base_y), 0.3, 0.38)
+    d.arc([cx_i - rx, base_y - 2 * ry, cx_i + rx, base_y], 0, 180, fill=K_OUT, width=2)
+    d.line([(cx_i - rx, top_y), (cx_i - rx, base_y - ry)], fill=K_OUT, width=2)
+    d.line([(cx_i + rx, top_y), (cx_i + rx, base_y - ry)], fill=K_OUT, width=2)
+
+    # Couronne : plateau elliptique (dalles) + anneau de merlons.
+    d.ellipse([cx_i - rx - 2 * S, top_y - ry, cx_i + rx + 2 * S, top_y + ry], fill=(146, 141, 130, 255), outline=K_OUT, width=2)
+    d.arc([cx_i - rx - 2 * S, top_y - ry, cx_i + rx + 2 * S, top_y + ry], 180, 360, fill=K_STONE_XL, width=S)
+    for k in range(8):
+        ang = math.pi * (0.08 + 0.84 * k / 7)
+        mx = cx_i - int(math.cos(ang) * (rx + S))
+        my = top_y + int(math.sin(ang) * ry * (1 if k % 2 == 0 else 1.0))
+        draw_merlon(d, mx, my + img_px(1.2), 5.6, 5.2)
+    # Meurtrières (2) sur le fût.
+    for fy in (0.42, 0.66):
+        sy = int(top_y + (base_y - top_y) * fy)
+        d.rounded_rectangle([cx_i - 2 * S, sy, cx_i + 2 * S, sy + img_px(6)], radius=S, fill=(38, 34, 29, 255))
+        d.rectangle([cx_i - 2 * S, sy + img_px(6) - S, cx_i + 2 * S, sy + img_px(6)], fill=K_STONE_XL)
+    return canvas
 
 
-def recolor_scene_tower() -> Image.Image:
-    """Tour d'extrémité recolorée dans la pierre GRISE du gatehouse (l'art
-    `siege-tower.png` est crème — il jurait avec les pièces de mur). Le modelé
-    peint est conservé (désaturation + refroidissement), l'alpha intact."""
-    src = Image.open(OUT_COMBAT / "siege-tower.png").convert("RGBA")
-    alpha = src.split()[3]
-    rgb = src.convert("RGB")
-    rgb = ImageEnhance.Color(rgb).enhance(0.3)
-    rgb = ImageEnhance.Brightness(rgb).enhance(0.88)
-    arr = np.asarray(rgb, dtype=np.float32)
-    arr[..., 0] *= 0.94  # refroidit : moins de rouge, un peu plus de bleu
-    arr[..., 1] *= 0.97
-    arr[..., 2] *= 1.04
-    out = Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8), "RGB").convert("RGBA")
-    out.putalpha(alpha)
-    return out
+def build_corner_tower() -> Image.Image:
+    """Tour d'angle du rempart (extrémités de la courtine)."""
+    return build_round_tower(TOWER_H_BP, 15.0, SEED + 47)
 
 
 def build_arrow_tower() -> Image.Image:
-    """TOUR DE TIR dédiée (itération 5) : tour de pierre grise + BALISTE peinte
-    montée sur la plateforme, pointée vers l'assaillant — on voit l'arme qui
-    tire, ce n'est plus une tour d'extrémité copiée-collée. La couronne de
-    créneaux est re-composée DEVANT la baliste (l'engin est posé dans la
-    plateforme, pas dessus)."""
-    tower = recolor_scene_tower()
-    tw, th = tower.size
-    ball = Image.open(ASSETS / "units" / "core" / "ballista.png").convert("RGBA")
-    bw = int(tw * 0.92)
-    bh = int(bw * ball.height / ball.width)
-    ball = ball.resize((bw, bh), Image.LANCZOS)
-    # Légère mise à l'ombre : l'engin est en retrait derrière les merlons.
-    arr = np.asarray(ball.convert("RGB"), dtype=np.float32) * 0.94
-    shaded = Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8), "RGB").convert("RGBA")
-    shaded.putalpha(ball.split()[3])
+    """TOUR DE TIR : tour du kit, plus haute, avec BALISTE PROCÉDURALE montée
+    sur la plateforme, pointée vers l'assaillant (ouest) — l'arme se voit, dans
+    le même langage que tout le reste (bois/fer stylisés, contour sombre)."""
+    tower = build_round_tower(ARROW_TOWER_H_BP, 16.0, SEED + 53)
+    w, h = tower.size
+    head = img_px(16.0)
+    canvas = Image.new("RGBA", (w + img_px(10), h + head), (0, 0, 0, 0))
+    canvas.paste(tower, (img_px(10), head), tower)
+    d = ImageDraw.Draw(canvas)
+    cx_i = img_px(10) + w // 2
+    deck_y = head + img_px(7.0)  # plateau de la couronne
 
-    head = int(bh * 0.62)  # dépassement de la baliste au-dessus de la couronne
-    canvas = Image.new("RGBA", (tw, th + head), (0, 0, 0, 0))
-    canvas.paste(tower, (0, head), tower)
-    # Baliste : assise sur la plateforme (sous la ligne de couronne).
-    platform_y = head + int(th * 0.115)
-    canvas.paste(shaded, ((tw - bw) // 2, platform_y - bh, ), shaded)
-    # Couronne re-superposée : les merlons passent DEVANT le châssis.
-    crown = tower.crop((0, 0, tw, int(th * 0.16)))
-    canvas.paste(crown, (0, head), crown)
+    # — Baliste (profil, pointée à gauche/ouest) —
+    beam_y = deck_y - img_px(4.0)
+    x_tail = cx_i + img_px(12)
+    x_head = cx_i - img_px(20)
+    # Chevalet (A-frame) planté dans le plateau.
+    d.line([(cx_i - img_px(3), deck_y + img_px(2)), (cx_i + img_px(2), beam_y)], fill=K_WOOD_D, width=3 * S)
+    d.line([(cx_i + img_px(7), deck_y + img_px(2)), (cx_i + img_px(2), beam_y)], fill=K_WOOD_D, width=3 * S)
+    # Poutre-affût inclinée vers le haut-ouest.
+    tip_y = beam_y - img_px(6.0)
+    d.line([(x_tail, beam_y + img_px(1.5)), (x_head, tip_y)], fill=K_WOOD, width=4 * S)
+    d.line([(x_tail, beam_y + img_px(1.5)), (x_head, tip_y)], fill=K_WOOD_D, width=S)
+    # Arcs (bras) à la tête, corde tendue vers le treuil.
+    d.arc([x_head - img_px(4), tip_y - img_px(9), x_head + img_px(8), tip_y + img_px(2)], 200, 340, fill=K_WOOD_D, width=2 * S)
+    d.arc([x_head - img_px(4), tip_y - img_px(2), x_head + img_px(8), tip_y + img_px(9)], 20, 160, fill=K_WOOD_D, width=2 * S)
+    d.line([(x_head + img_px(6), tip_y - img_px(7)), (x_tail - img_px(2), beam_y), (x_head + img_px(6), tip_y + img_px(7))], fill=(224, 216, 198, 255), width=1)
+    # Carreau + pointe de fer.
+    d.line([(x_head + img_px(2), tip_y - img_px(0.6)), (x_tail - img_px(4), beam_y - img_px(0.5))], fill=(224, 216, 198, 255), width=S)
+    d.polygon([(x_head - img_px(3), tip_y), (x_head + img_px(2), tip_y - img_px(2)), (x_head + img_px(2), tip_y + img_px(2))], fill=K_IRON, outline=K_OUT)
+    # Treuil (tambour) à l'arrière.
+    d.ellipse([x_tail - img_px(2), beam_y - img_px(2), x_tail + img_px(3), beam_y + img_px(3)], fill=K_WOOD, outline=K_OUT, width=1)
+    d.line([(x_tail - img_px(3.4), beam_y - img_px(3.4)), (x_tail + img_px(4.4), beam_y + img_px(4.4))], fill=K_IRON, width=S)
+
+    # Merlons AVANT re-superposés : l'engin est posé DANS la plateforme.
+    rx = img_px(16.0)
+    ry = img_px(16.0 * 0.42)
+    for k in range(4):
+        ang = math.pi * (0.16 + 0.68 * k / 3)
+        mx = cx_i - int(math.cos(ang) * (rx + S))
+        my = head + img_px(7.0) + int(math.sin(ang) * ry * 0.5)
+        draw_merlon(d, mx, my + img_px(1.4), 5.6, 5.2)
     return canvas
+
+
+def build_gate_piece(rng: random.Random) -> Image.Image:
+    """PORTE du kit : grand bloc-prisme couvrant les DEUX hexes d'ouverture
+    (footprint allongé nid-d'abeille), plus haut que la courtine, percé d'une
+    arche à vantaux de bois — même appareil, mêmes merlons, même lumière."""
+    del rng
+    rr = random.Random(SEED + 59)
+    w_bp = COURT_TILE_W + HEX_W / 2
+    h_bp = GATE_WALL_H + COURT_TILE_H + Y_STEP
+    canvas = Image.new("RGBA", (img_px(w_bp), img_px(h_bp)), (0, 0, 0, 0))
+    r_bp = HEX + COURT_TILE_BLEED
+    # Hex A (rangée haute, à l'ouest) et hex B (rangée basse, décalée est).
+    a_c = (COURT_TILE_W / 2, COURT_TILE_H / 2)
+    b_c = (a_c[0] + HEX_W / 2, a_c[1] + Y_STEP)
+
+    # Footprint fusionné : contour capsule des deux hexes.
+    pa = hex_pts_img(a_c[0], a_c[1], r_bp)
+    pb = hex_pts_img(b_c[0], b_c[1], r_bp)
+    top_outline = [pa[5], pa[0], pa[1], pb[1], pb[2], pb[3], pb[4], pa[4]]  # NW,N,NE(A), NE,SE,S,SW(B), SW(A)
+    dh = img_px(GATE_WALL_H)
+    lower = [pb[1], pb[2], pb[3], pb[4], pa[4], pa[5]]
+    skirt = lower + [(p[0], p[1] + dh) for p in reversed(lower)]
+    mask = Image.new("L", canvas.size, 0)
+    ImageDraw.Draw(mask).polygon(skirt, fill=255)
+    panel = stone_panel(rr, canvas.width, canvas.height, K_STONE).convert("RGBA")
+    canvas.paste(panel, (0, 0), mask)
+    xs = [p[0] for p in skirt]
+    ys = [p[1] for p in skirt]
+    shade_lr_masked(canvas, mask, (min(xs), min(ys), max(xs), max(ys)), 0.2, 0.28)
+    d = ImageDraw.Draw(canvas)
+    d.line([(pa[4][0], pa[4][1] + dh), (pb[4][0], pb[4][1] + dh), (pb[3][0], pb[3][1] + dh), (pb[2][0], pb[2][1] + dh)], fill=K_OUT, width=2)
+
+    # Face supérieure fusionnée (dalles) + contour.
+    top_mask = Image.new("L", canvas.size, 0)
+    ImageDraw.Draw(top_mask).polygon(top_outline, fill=255)
+    slabs = stone_panel(rr, canvas.width, canvas.height, (156, 151, 139), course_bp=12.0).convert("RGBA")
+    canvas.paste(slabs, (0, 0), top_mask)
+    d.polygon(top_outline, outline=K_OUT)
+    d.line([pa[5], pa[0], pa[1]], fill=K_STONE_XL, width=S)
+
+    # ARCHE + vantaux : percée dans la jupe, centrée sur la couture des 2 hexes.
+    gx = img_px((a_c[0] + b_c[0]) / 2)
+    gfoot = img_px((a_c[1] + b_c[1]) / 2 + GATE_WALL_H + HEX * SQUASH * 0.45)
+    aw = img_px(13.0)  # demi-largeur de l'arche
+    ah = img_px(32.0)  # hauteur de l'arche
+    d.rounded_rectangle([gx - aw - 3 * S, gfoot - ah - 4 * S, gx + aw + 3 * S, gfoot], radius=4 * S, fill=K_STONE_D, outline=K_OUT, width=2)
+    d.rounded_rectangle([gx - aw, gfoot - ah, gx + aw, gfoot], radius=3 * S, fill=(26, 23, 19, 255))
+    # Vantaux de bois (planches + bandes de fer), légèrement en retrait.
+    px0, px1 = gx - aw + 2 * S, gx + aw - 2 * S
+    py0 = gfoot - ah + 3 * S
+    d.rounded_rectangle([px0, py0, px1, gfoot], radius=2 * S, fill=K_WOOD)
+    for i in range(1, 4):
+        vx = px0 + (px1 - px0) * i // 4
+        d.line([(vx, py0), (vx, gfoot)], fill=K_WOOD_D, width=1)
+    for fy in (0.3, 0.62):
+        by = int(py0 + (gfoot - py0) * fy)
+        d.rectangle([px0, by, px1, by + 2 * S], fill=K_IRON)
+    d.line([(gx, py0), (gx, gfoot)], fill=(40, 32, 24, 255), width=S)
+    # Claveaux clairs autour de l'arche.
+    for k in range(5):
+        t = k / 4
+        vx = int(gx - aw - 2 * S + (2 * aw + 4 * S) * t)
+        vy = gfoot - ah - 2 * S + int(abs(t - 0.5) * 5 * S)
+        d.rectangle([vx - 2 * S, vy - 2 * S, vx + 2 * S, vy + S], fill=K_STONE_L, outline=K_OUT, width=1)
+
+    # Merlons : flanc ouest des deux hexes + sommet.
+    for hexpts in (pa, pb):
+        for t in (0.2, 0.65):
+            mx = int(hexpts[5][0] + (hexpts[4][0] - hexpts[5][0]) * t)
+            my = int(hexpts[5][1] + (hexpts[4][1] - hexpts[5][1]) * t) + img_px(1.2)
+            draw_merlon(d, mx, my)
+    draw_merlon(d, int((pa[5][0] + pa[0][0]) / 2), int((pa[5][1] + pa[0][1]) / 2) + img_px(1.0), 6.0, 5.5)
+    return canvas
+
+
 
 
 # --- Assemblage & sorties ---
@@ -734,60 +848,12 @@ def build_scene(faction: str | None) -> tuple[Image.Image, Image.Image]:
 
 
 FACTIONS = ["haven", "necropolis", "arcane-hunters", "sylvan-court", "vox-arcana", "dungeon"]
-
-# Porte (retour porteur itération 3 : « pas calée dans le bon sens ») : le
-# gatehouse frontal étalé EN TRAVERS du mur jurait — l'enceinte court
-# verticalement, la porte doit s'insérer DANS son axe. La porte devient une
-# **pièce de courtine verticale double hauteur** (rangées 4–5) : même
-# appareil/merlons que les pièces de mur, ARCHE + vantaux de l'art peint
-# incrustés dans la face, à peine plus large que la courtine.
-GATE_PIECE_W = 72.0
-GATE_PIECE_FACE_W = 56.0
-# Hauteur PROPRE (billboard) : le gatehouse s'élève au-dessus de la bande de
-# rempart basse — ne dérive plus des demi-hauteurs de pièce.
-GATE_PIECE_H = 100.0
+# Porte du kit : constantes de calage (le bloc couvre les 2 rangées 4–5).
 GATE_X = WALL_X
-GATE_Y_BOTTOM = cy(GATE_ROWS[1]) + PIECE_H_BELOW
+GATE_Y_BOTTOM = cy(GATE_ROWS[1]) + (HEX + COURT_TILE_BLEED) * SQUASH
 
 
-def build_gate_piece(rng: random.Random) -> Image.Image:
-    """Segment de porte VERTICAL : courtine double hauteur percée de l'arche
-    peinte (vantaux + herse du gatehouse), empilable entre les pièces des
-    rangées 3 et 6 — la porte suit enfin l'axe du mur."""
-    gate = gate_art()
-    gw, gh = gate.size
-    crenel_src = gate.crop((int(gw * 0.055), int(gh * 0.02), int(gw * 0.27), int(gh * 0.145)))
-    face_src = gate.crop((int(gw * 0.05), int(gh * 0.56), int(gw * 0.245), int(gh * 0.75)))
-    arch_src = gate.crop((int(gw * 0.335), int(gh * 0.285), int(gw * 0.665), int(gh * 0.965)))
 
-    w_img, h_img = img_px(GATE_PIECE_W), img_px(GATE_PIECE_H)
-    piece = Image.new("RGBA", (w_img, h_img), (0, 0, 0, 0))
-    face_w = img_px(GATE_PIECE_FACE_W)
-    fx0 = (w_img - face_w) // 2
-
-    crenel_h = img_px(12)
-    strip = face_strip(face_src, face_w, h_img - crenel_h)
-    piece.paste(strip, (fx0, crenel_h))
-    crenel = crenel_src.resize((face_w + 6 * S, crenel_h + 2 * S), Image.LANCZOS)
-    piece.paste(crenel, (fx0 - 3 * S, 0), crenel)
-
-    # Arche + vantaux incrustés dans la face (bas de la pièce = seuil).
-    arch_w = img_px(46.0)
-    arch_h = int(arch_w * arch_src.height / arch_src.width)
-    arch = arch_src.resize((arch_w, arch_h), Image.LANCZOS)
-    ax = (w_img - arch_w) // 2
-    ay = h_img - arch_h - img_px(3)
-    piece.paste(arch, (ax, ay), arch)
-
-    # Volume : arête éclairée / ombre latérale / AO au seuil (comme les pièces).
-    overlay = Image.new("RGBA", (w_img, h_img), (0, 0, 0, 0))
-    od = ImageDraw.Draw(overlay)
-    od.rectangle([fx0, crenel_h, fx0 + int(face_w * 0.1), h_img], fill=(255, 250, 230, 34))
-    od.rectangle([fx0 + int(face_w * 0.84), crenel_h, fx0 + face_w, h_img], fill=(24, 22, 18, 68))
-    for i in range(img_px(5)):
-        a = int(80 * (1 - i / img_px(5)))
-        od.line([(fx0, h_img - 1 - i), (fx0 + face_w, h_img - 1 - i)], fill=(20, 18, 14, a))
-    return Image.alpha_composite(piece, overlay)
 
 
 def main() -> None:
@@ -818,7 +884,7 @@ def main() -> None:
         tile = build_court_tile(v)
         tile.save(OUT_COMBAT / f"siege-tile-court-{v}.png")
         print(f"siege-tile-court-{v}.png {tile.size}")
-    tower = recolor_scene_tower()
+    tower = build_corner_tower()
     tower.save(OUT_COMBAT / "siege-piece-tower.png")
     print(f"siege-piece-tower.png {tower.size}")
     gate_piece = build_gate_piece(random.Random(SEED + 17))
@@ -832,18 +898,22 @@ def main() -> None:
         "scale": S,
         "scene": {"x0": SCENE_X0, "y0": SCENE_Y0, "w": SCENE_W, "h": SCENE_H},
         "wallX": round(WALL_X, 2),
-        "piece": {"w": PIECE_W, "hAbove": PIECE_H_ABOVE, "hBelow": PIECE_H_BELOW},
+        "piece": {
+            "w": round(COURT_TILE_W, 2),
+            "hAbove": round(WALL_H + COURT_TILE_H / 2, 2),
+            "hBelow": round(COURT_TILE_H / 2, 2),
+        },
         "moatStrip": {"x0": round(MOAT_STRIP_X0, 2), "y0": SCENE_Y0},
         "courtTile": {"w": round(COURT_TILE_W, 2), "h": round(COURT_TILE_H, 2)},
         "gate": {
             "x": round(GATE_X, 2),
             "yBottom": round(GATE_Y_BOTTOM, 2),
-            "w": GATE_PIECE_W,
-            "h": round(GATE_PIECE_H, 2),
+            "w": round(COURT_TILE_W + HEX_W / 2, 2),
+            "h": round(GATE_WALL_H + COURT_TILE_H + Y_STEP, 2),
         },
         "towers": [
-            {"x": round(WALL_X + 2, 2), "y": round(cy(-0.8), 2), "h": 76.0},
-            {"x": round(WALL_X + 2, 2), "y": round(cy(ROWS - 1 + 0.8), 2), "h": 76.0},
+            {"x": round(cx(WALL_COL, 1), 2), "y": round(cy(-0.9), 2), "h": 92.0},
+            {"x": round(cx(WALL_COL, 0), 2), "y": round(cy(ROWS - 1 + 0.9), 2), "h": 92.0},
         ],
     }
     (OUT_LAYOUT / "siege-scene.json").write_text(json.dumps(layout, indent=2) + "\n")

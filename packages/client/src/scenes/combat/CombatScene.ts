@@ -103,8 +103,8 @@ const ISO_WALL_LEAN = HEX_SIZE * 1.5;
 const ISO_WALL_FAR = 0.82;
 const ISO_WALL_NEAR = 1.12;
 // Tour de tir en mode scène : hauteur affichée (board px) — domine la courtine
-// (dont la face culmine ~62 bp), cohérente avec les tours d'extrémité (76 bp).
-const STRUCTURE_TOWER_H = HEX_SIZE * 2.4;
+// et les tours d'angle (baliste au sommet comprise, kit procédural).
+const STRUCTURE_TOWER_H = HEX_SIZE * 3.0;
 
 const MARGIN_TOP = 96; // bandeau armées + round (doc 08 §2.4)
 // S9.4 : marge basse élargie — la barre d'actions peut passer à 2 rangées et le
@@ -617,7 +617,9 @@ export class CombatScene {
         const url = siegeWallPieceUrl(state, variant);
         if (!url) return null;
         const sprite = new Sprite();
-        sprite.position.set(layout.wallX, yOf(row));
+        // Kit « bloc par hex » : la pièce s'emboîte sur son VRAI hex (zigzag du
+        // nid d'abeille assumé, comme les tuiles de sol) — plus de x lissé.
+        sprite.position.set(offsetToPixel({ col: wallCol, row }).x, yOf(row));
         sprite.zIndex = yOf(row) + layout.piece.hBelow;
         void Assets.load(url).then((texture) => {
           if (sprite.destroyed) return;

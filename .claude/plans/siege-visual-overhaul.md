@@ -199,3 +199,21 @@ y compris plaine, validable en 1 capture) ; **Lot 1** = scène peinte génériqu
   supprimée (la périodicité exige des pièces identiques ; repli client déjà
   en place). Première passe « vue de dessus » (face/dents/chemin de ronde
   étroits) auto-rejetée au QC : rendu frise abstraite — non livrée.
+- 2026-07-19 — Itération 6 INTERROMPUE par le porteur (« résultat laid, la
+  porte encore une approche dégueulasse — trouve une solution qualitative
+  avant de faire quoi que ce soit »). Kit procédural unifié (blocs-prismes
+  par hex, porte 2-hex, tours rondes, baliste dessinée) : langage cohérent
+  mais **plafond de qualité du dessin procédural < niveau de l'art peint du
+  jeu** — constat racine de tous les rejets. STOP art/code. Deux voies
+  qualitatives proposées au porteur, décision attendue :
+  **A (recommandée)** — planche Gemini dédiée « kit de siège » via LE
+  pipeline d'art du projet (gabarit géométrique + prompt de bande murale
+  continue avec gatehouse/tours/baliste intégrés + jumelle « brèches »
+  pixel-alignée + script d'extraction vers les clés existantes) ; toute
+  l'architecture de rendu livrée (états par rangée, ancrage layout,
+  profondeur, replis) sert telle quelle.
+  **B** — bake hors-ligne UNIQUE et continu depuis les pièces peintes
+  existantes (courtine+gatehouse+tours fusionnés, jumelle détruite
+  pixel-alignée) — sans nouvel art, plafond = art existant.
+  Ce commit fige l'état kit procédural comme BASE TECHNIQUE (non validée
+  visuellement) ; aucun nouveau changement visuel avant l'arbitrage.

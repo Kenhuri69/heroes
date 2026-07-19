@@ -71,6 +71,8 @@ declare global {
       saveRoundtrip: () => Promise<boolean>;
       /** Import d'une sauvegarde à version de forme incompatible (lot 3.8) — doit échouer. */
       importIncompatibleSave: () => Promise<boolean>;
+      /** Import d'un fichier CORROMPU (non-gzip) — doit être rejeté proprement (false, aucun crash). S1.4. */
+      importCorruptedSave: () => Promise<boolean>;
       /** Import d'une sauvegarde dont la main est à une IA (revue 2026-07 B3) — la boucle IA doit reprendre. */
       importAiTurnSave: () => Promise<boolean>;
       /** Démarre un scénario par id, seed fixe (couverture smoke du lot U). */
@@ -113,6 +115,8 @@ declare global {
        * aller-retour Aventure↔Combat — toute croissance signale une fuite CL1/CL2.
        */
       sceneGraphStats: () => { stageChildren: number; stagePointerListeners: number };
+      /** Empreinte de culling du tilemap (S1.3) : chunks totaux / construits (lazy) / visibles au viewport. */
+      tilemapStats: () => { total: number; built: number; visible: number };
     };
   }
 }
@@ -475,6 +479,10 @@ async function bootstrap(): Promise<void> {
       parsed.saveVersion = CURRENT_SAVE_VERSION + 1; // version future non supportée
       return importSave(await encodeHeroesFile(JSON.stringify(parsed), []));
     },
+    importCorruptedSave: () =>
+      // Fichier illisible (pas un gzip valide) : `importSave` doit tomber dans son
+      // try/catch et rendre `false` — jamais laisser filer une exception (S1.4).
+      importSave(new Blob(['ceci n’est pas un gzip valide — fichier corrompu'], { type: 'application/gzip' })),
     importAiTurnSave: async () => {
       // Forge une sauvegarde « prise en plein relais IA » (revue 2026-07 B3) :
       // même état, mais la main à un siège IA — le chargement doit relancer la
@@ -514,6 +522,7 @@ async function bootstrap(): Promise<void> {
       stageChildren: app.stage.children.length,
       stagePointerListeners: app.stage.listenerCount('pointerdown'),
     }),
+    tilemapStats: () => scene?.tilemapStats() ?? { total: 0, built: 0, visible: 0 },
   };
   window.__HEROES_READY__ = true; // signal pour le smoke test headless
 }

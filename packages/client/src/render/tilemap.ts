@@ -98,6 +98,26 @@ export class Tilemap {
   }
 
   /**
+   * Empreinte de culling (S1.3 — surface de test perf) : nombre total de chunks,
+   * combien sont réellement construits (lazy, F9) et combien sont visibles. Sur une
+   * grande carte culée, `visible`/`built` restent bornés au viewport ; sur une
+   * petite carte aplatie, tous les chunks existent et sont visibles.
+   */
+  stats(): { total: number; built: number; visible: number } {
+    let built = 0;
+    let visible = 0;
+    for (const c of this.chunks) {
+      if (c.node) {
+        built += 1;
+        if (c.node.visible) visible += 1;
+      }
+    }
+    // Carte aplatie : le culling ne s'applique pas ⇒ tous les chunks sont « visibles ».
+    if (!this.culled) return { total: this.chunks.length, built: this.chunks.length, visible: this.chunks.length };
+    return { total: this.chunks.length, built, visible };
+  }
+
+  /**
    * Masque les chunks hors du viewport (coordonnées MONDE) — et construit
    * paresseusement ceux qui y entrent pour la première fois (F9). No-op quand la
    * carte est aplatie en une texture (rien à culer). Appelée par la scène à

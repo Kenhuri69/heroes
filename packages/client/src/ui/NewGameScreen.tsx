@@ -20,7 +20,7 @@ function hex(color: number): string {
   return `#${color.toString(16).padStart(6, '0')}`;
 }
 
-const MAP_SIZES: (MapSize | typeof RANDOM)[] = ['small', 'medium', 'large', 'huge', RANDOM];
+const MAP_SIZES: (MapSize | typeof RANDOM)[] = ['small', 'medium', 'large', 'huge', 'colossal', RANDOM];
 const RESOURCE_LEVELS: (ResourceLevel | typeof RANDOM)[] = ['bas', 'standard', 'riche', RANDOM];
 const CONTENT_LEVELS: (ContentLevel | typeof RANDOM)[] = ['none', 'rare', 'standard', 'abundant', RANDOM];
 /** Curseurs de quantité par catégorie d'objets de carte (doc 09) : clé i18n ↔ champ de config. */

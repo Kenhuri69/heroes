@@ -92,6 +92,32 @@ describe('generateMap', () => {
     expect(a).toEqual(b);
   });
 
+  it('COLOSSAL 512² : carte valide (loadMap) et déterministe au plafond du schéma', async () => {
+    // Cran « Colossale » de MAP_SIZE_DIMENSIONS = plafond de mapFileSchema (512).
+    const a = generateMap('random', 512, {
+      width: 512,
+      height: 512,
+      startPositionCount: 4,
+      guardianUnits: ['t1-guard'],
+      artifactIds: ['trefle-chance'],
+    });
+    // Déterminisme au plafond (même graine ⇒ octets identiques).
+    const b = generateMap('random', 512, {
+      width: 512,
+      height: 512,
+      startPositionCount: 4,
+      guardianUnits: ['t1-guard'],
+      artifactIds: ['trefle-chance'],
+    });
+    expect(a).toEqual(b);
+    // Valide de bout en bout : loadMap applique le schéma (borne 512) + les règles
+    // croisées (franchissabilité des départs/objets, ids connus).
+    const resolved = await loadMap(readerFor(a), 'random', config(), KNOWN_UNITS);
+    expect(resolved.width).toBe(512);
+    expect(resolved.height).toBe(512);
+    expect(resolved.startPositions).toHaveLength(4);
+  });
+
   it('graines différentes ⇒ cartes différentes', () => {
     const a = generateMap('r', 1);
     const b = generateMap('r', 2);

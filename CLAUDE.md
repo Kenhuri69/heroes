@@ -241,7 +241,18 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > **5** — **props de relief** forêt/montagne (billboards `assets/tiles/props/` qui
 > dépassent la tuile, 3 variantes procédurales, culés avec leur chunk ; art Gemini
 > varié se branche par simple dépôt de PNG, prompts doc 12 §7.5). Terrains plats =
-> tuile procédurale seule.
+> tuile procédurale seule. **Cran « Colossale » 512²** (plan `.claude/plans/
+> phase-map-size-512.md`) : 5ᵉ taille de carte, **zéro diff moteur** (moteur
+> size-agnostique `y*width+x`, A\* déjà borné par budget de PM `maxCost`/
+> `octileLowerBound`), **pas de bump `CURRENT_SAVE_VERSION`** — seul le plafond
+> `mapFileSchema` passe de 256 à 512 (`schemas.ts`), + un cran
+> `MAP_SIZE_DIMENSIONS`/`MAP_SIZE_ORDER` + locales FR/EN. Rendu déjà couvert par le
+> chunking/culling (Lot 3 ci-dessus). Mesures : save gzip ~130 Ko même 512² tout
+> exploré à 4 joueurs (32× sous le cap cloud 4 Mo) ; génération 512² ~45 s en rendu
+> logiciel conteneur (couverte par l'overlay de progression). Test contenu 512²
+> (valide via `loadMap` + déterministe) ; vérif headless one-off du chemin colossal
+> (non ajoutée au smoke CI — génération 512² coûteuse). Sous-sol/multi-niveaux
+> reporté (chantier moteur transversal + bump save).
 >
 > 🎓 **Beta — faction Vox Arcana** (6ᵉ maison, doc 16 ; plan `.claude/plans/
 > phase-16-faction-vox-arcana.md`). **Test de modularité #4 : livré.** Sous-lots

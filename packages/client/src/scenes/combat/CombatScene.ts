@@ -1,4 +1,4 @@
-import { Application, Assets, Container, Graphics, Point, Sprite, Text, TilingSprite } from 'pixi.js';
+import { Application, Assets, Container, Graphics, Point, Rectangle, Sprite, Text, Texture, TilingSprite } from 'pixi.js';
 import {
   hexDistance,
   inCombatBounds,
@@ -43,6 +43,9 @@ import {
   siegeSceneTowerUrl,
   siegeGatePieceUrl,
   siegeArrowTowerUrl,
+  siegeRunUrl,
+  siegeRunBandUrl,
+  type SiegeRunLayout,
 } from '../../render/assets';
 import { computeWallLayout, drawCurtain, drawTower, drawGate, drawDamage } from '../../render/siegeWall';
 import { heroArchetype } from '../../app/game';
@@ -582,6 +585,12 @@ export class CombatScene {
     const layout = siegeSceneLayout();
     const walls = combat.siegeWalls ?? [];
     if (!layout || walls.length === 0) return;
+    // Mode RUN ensembliste (tableau peint découpé) : la fortification est un
+    // seul artwork affiché par tranches — prioritaire quand l'asset existe.
+    if (layout.run && siegeRunUrl()) {
+      this.syncRunSlices(combat, layout.run);
+      return;
+    }
     const wallCol = walls[0]!.col;
     const hp = combat.siegeWallHp ?? {};
     const maxHp = Object.keys(hp).length ? Math.max(...Object.values(hp)) : 0;
@@ -655,7 +664,7 @@ export class CombatScene {
     });
 
     layout.towers.forEach((t, i) => {
-      ensure(`tower:${i}`, 'tower', () => {
+      ensure(`tower:${i}`, 'tower-piece', () => {
         const url = siegeSceneTowerUrl();
         if (!url) return null;
         const sprite = new Sprite();
@@ -1020,6 +1029,76 @@ export class CombatScene {
       .roundRect(-label.width / 2 - padX, -label.height / 2 - 1, label.width + padX * 2, label.height + 2, 6)
       .fill({ color: 0x1a1c22, alpha: 0.85 })
       .stroke({ width: 1, color: 0xf2e6c8, alpha: 0.9 });
+  }
+
+  /**
+   * Mode RUN ensembliste : la fortification est UN tableau peint (tour nord,
+   * courtine, porte + seuil, tour sud — jonctions dans l'art), affiché par
+   * TRANCHES d'une rangée (frames de texture) pour garder la profondeur et
+   * la destruction par segment. L'état réel d'une rangée qui diffère de
+   * l'état PEINT à cette rangée est remplacé par la bande-étalon de l'état
+   * (`siege-run-band-*`), découpée du même tableau ⇒ matière identique.
+   */
+  private syncRunSlices(combat: CombatState, run: SiegeRunLayout): void {
+    const walls = combat.siegeWalls ?? [];
+    const wallCol = walls[0]!.col;
+    const hp = combat.siegeWallHp ?? {};
+    const maxHp = Object.keys(hp).length ? Math.max(...Object.values(hp)) : 0;
+    const walled = new Set(walls.map((w) => w.row));
+    const gateRows = new Set(run.gateRows);
+    const period = run.period;
+    const runUrl = siegeRunUrl();
+    if (!runUrl) return;
+    const x0 = run.x - run.xWest;
+
+    const place = (key: string, sig: string, topBp: number, hBp: number, tex: () => Promise<Texture | null>): void => {
+      const existing = this.wallStructures.get(key);
+      if (existing && !existing.destroyed && existing.label === sig) return;
+      existing?.destroy();
+      this.wallStructures.delete(key);
+      const sprite = new Sprite();
+      sprite.label = sig;
+      sprite.eventMode = 'none';
+      sprite.position.set(x0, topBp);
+      sprite.zIndex = topBp + hBp;
+      void tex().then((texture) => {
+        if (sprite.destroyed || !texture) return;
+        sprite.texture = texture;
+        sprite.width = run.w;
+        sprite.height = hBp;
+      });
+      this.stacksLayer.addChild(sprite);
+      this.wallStructures.set(key, sprite);
+    };
+
+    const runFrame = (topBp: number, hBp: number) => async (): Promise<Texture | null> => {
+      const base = (await Assets.load(runUrl)) as Texture;
+      const s = base.height / run.h;
+      return new Texture({
+        source: base.source,
+        frame: new Rectangle(0, (topBp - run.topBp) * s, base.width, hBp * s),
+      });
+    };
+    const bandTex = (state: 'intact' | 'cracked' | 'razed') => async (): Promise<Texture | null> => {
+      const url = siegeRunBandUrl(state);
+      return url ? ((await Assets.load(url)) as Texture) : null;
+    };
+
+    for (let row = 0; row < COMBAT_ROWS; row++) {
+      const topBp = row * period - period / 2;
+      let state: 'gate' | 'intact' | 'cracked' | 'razed';
+      if (gateRows.has(row)) state = 'gate';
+      else if (!walled.has(row)) state = 'razed';
+      else state = (hp[`${wallCol},${row}`] ?? maxHp) < maxHp ? 'cracked' : 'intact';
+      const painted = gateRows.has(row) ? 'gate' : (run.painted[String(row)] ?? 'intact');
+      const useRun = state === painted;
+      place(`slice:${row}`, `${state}:${useRun ? 'run' : 'band'}`, topBp, period, useRun ? runFrame(topBp, period) : bandTex(state as 'intact' | 'cracked' | 'razed'));
+    }
+    // Extrémités du tableau (tours comprises) : toujours depuis le run.
+    const capTopH = -period / 2 - run.topBp;
+    place('cap:top', 'cap', run.topBp, capTopH, runFrame(run.topBp, capTopH));
+    const botTop = (COMBAT_ROWS - 1) * period + period / 2;
+    place('cap:bot', 'cap', botTop, run.topBp + run.h - botTop, runFrame(botTop, run.topBp + run.h - botTop));
   }
 
   /**

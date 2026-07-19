@@ -409,8 +409,33 @@ export function siegeArrowTowerUrl(): string | undefined {
   return registry.get('combat/siege-piece-arrow-tower') ?? siegeSceneTowerUrl();
 }
 
+/** RUN ensembliste peint (tableau Gemini découpé) : la fortification complète
+ *  en une bande verticale, affichée par TRANCHES d'une rangée. */
+export function siegeRunUrl(): string | undefined {
+  return registry.get('combat/siege-run');
+}
+
+/** Bande-étalon d'une rangée pour un état donné (remplace la tranche du run
+ *  quand l'état réel de la rangée diffère de l'état peint dans le tableau). */
+export function siegeRunBandUrl(state: 'intact' | 'cracked' | 'razed'): string | undefined {
+  return registry.get(`combat/siege-run-band-${state}`);
+}
+
+/** Bloc "run" du layout (écrit par extract_siege_ensemble.py). */
+export interface SiegeRunLayout {
+  x: number;
+  xWest: number;
+  topBp: number;
+  w: number;
+  h: number;
+  period: number;
+  painted: Record<string, 'cracked' | 'razed'>;
+  gateRows: number[];
+}
+
 /** Layout de calage de la scène de siège (board-space), émis par le générateur. */
 export interface SiegeSceneLayout {
+  run?: SiegeRunLayout;
   scale: number;
   scene: { x0: number; y0: number; w: number; h: number };
   wallX: number;

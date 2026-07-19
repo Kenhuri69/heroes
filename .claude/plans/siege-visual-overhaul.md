@@ -248,3 +248,18 @@ y compris plaine, validable en 1 capture) ; **Lot 1** = scène peinte génériqu
   patché piece/gate), client recalé en colonne DROITE (le zigzag par hex
   isolait les blocs). Tours v1 conservées (validées). En attente :
   planche v2 du porteur.
+- 2026-07-19 — Retour porteur (itération 8, ferme) : la méthode gabarit→LLM
+  est la bonne MAIS le gabarit doit être **ensembliste** — tout dessiner
+  ensemble (mur+porte+tours+tour de tir+états) avec les connexions, puis
+  seulement repasser au LLM. Bake intermédiaire jeté (rejeté à raison).
+  Livré : **gabarit-tableau** `siege-ensemble-template.png` (fond = vrai
+  décor du jeu : douve/chaussée/esplanade ; silhouettes v1 assemblées EN
+  SITUATION — fissures r1, brèche r7, porte+seuil sur la chaussée, tours,
+  tour de tir) + masque + cuts JSON ; **extracteur**
+  `extract_siege_ensemble.py` (masque → run complet 2 px/bp + bandes-étalons
+  d'état + tour de tir, layout "run") ; **client mode tranches**
+  (`syncRunSlices` : frames du tableau par rangée, bande-étalon quand l'état
+  réel diffère de l'état peint, caps/tours du tableau) — prioritaire dès que
+  l'asset existe, replis intacts. En attente : peinture 1152×2048 du porteur
+  (prompt v3 : « les blocs empilés = guide de masse, peindre UNE muraille
+  continue », décor à ne pas repeindre).

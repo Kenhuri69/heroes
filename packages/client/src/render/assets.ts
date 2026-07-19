@@ -370,15 +370,35 @@ export function siegeMoatStripUrl(): string | undefined {
 }
 
 /**
+ * Coloration par FACTION assiégée (backlog siège item 1) : préfère la variante
+ * teintée `<clé>-<factionId>` (recoloration hors-ligne `tint_siege_faction.py`),
+ * sinon retombe sur la clé générique. Id de faction OPAQUE — même motif que
+ * `siegeSceneUrl` ; aucune variante ⇒ repli générique inchangé.
+ */
+function factionTinted(baseKey: string, factionId?: string): string | undefined {
+  return (
+    (factionId ? registry.get(`${baseKey}-${factionId}`) : undefined) ?? registry.get(baseKey)
+  );
+}
+
+/**
  * Pièce de rempart d'une rangée (empilable, période = pas de rangée) par état
  * (`intact`/`cracked`/`razed` — mappés sur `siegeWallHp`) ; `variant` 2 =
- * appareil alterné (rangées paires/impaires) avec repli variante 1.
+ * appareil alterné (rangées paires/impaires) avec repli variante 1. `factionId`
+ * optionnel ⇒ variante teintée de la faction assiégée.
  */
-export function siegeWallPieceUrl(state: 'intact' | 'cracked' | 'razed', variant = 1): string | undefined {
+export function siegeWallPieceUrl(
+  state: 'intact' | 'cracked' | 'razed',
+  variant = 1,
+  factionId?: string,
+): string | undefined {
   if (state === 'intact') {
-    return (variant === 2 ? registry.get('combat/siege-piece-wall-2') : undefined) ?? registry.get('combat/siege-piece-wall');
+    return (
+      (variant === 2 ? factionTinted('combat/siege-piece-wall-2', factionId) : undefined) ??
+      factionTinted('combat/siege-piece-wall', factionId)
+    );
   }
-  return registry.get(`combat/siege-piece-wall-${state}`);
+  return factionTinted(`combat/siege-piece-wall-${state}`, factionId);
 }
 
 /**
@@ -391,42 +411,49 @@ export function siegeCourtTileUrl(variant: number): string | undefined {
 }
 
 /** Tour d'extrémité du rempart recolorée pierre grise (assortie au gatehouse) ;
- *  repli sur l'art d'origine `siege-tower` (crème). */
-export function siegeSceneTowerUrl(): string | undefined {
-  return registry.get('combat/siege-piece-tower') ?? registry.get('combat/siege-tower');
+ *  `factionId` optionnel ⇒ variante teintée ; repli sur l'art d'origine
+ *  `siege-tower` (crème). */
+export function siegeSceneTowerUrl(factionId?: string): string | undefined {
+  return factionTinted('combat/siege-piece-tower', factionId) ?? registry.get('combat/siege-tower');
 }
 
 /** Segment de PORTE vertical (double hauteur, dans l'axe du mur) — courtine
- *  percée de l'arche peinte, posée sur les rangées d'ouverture. */
-export function siegeGatePieceUrl(): string | undefined {
-  return registry.get('combat/siege-piece-gate');
+ *  percée de l'arche peinte, posée sur les rangées d'ouverture. `factionId`
+ *  optionnel ⇒ variante teintée. */
+export function siegeGatePieceUrl(factionId?: string): string | undefined {
+  return factionTinted('combat/siege-piece-gate', factionId);
 }
 
 /** TOUR DE TIR de la ville (structure S6 en mode scène) : tour de pierre grise
  *  surmontée d'une baliste pointée vers l'assaillant — l'arme se voit. Replis :
- *  tour grise nue → art crème d'origine. */
-export function siegeArrowTowerUrl(): string | undefined {
-  return registry.get('combat/siege-piece-arrow-tower') ?? siegeSceneTowerUrl();
+ *  tour grise nue → art crème d'origine. `factionId` optionnel ⇒ teinte. */
+export function siegeArrowTowerUrl(factionId?: string): string | undefined {
+  return factionTinted('combat/siege-piece-arrow-tower', factionId) ?? siegeSceneTowerUrl(factionId);
 }
 
 /** TOUR DE TIR CASSÉE (ruine peinte du gabarit ensemble v6) : ruine laissée
  *  sur l'hex de la structure quand la pile `warMachine`+`immobile` est
  *  détruite. Sans asset : undefined ⇒ comportement historique (la tour
- *  disparaît). */
-export function siegeArrowTowerRazedUrl(): string | undefined {
-  return registry.get('combat/siege-piece-arrow-tower-razed');
+ *  disparaît). `factionId` optionnel ⇒ variante teintée. */
+export function siegeArrowTowerRazedUrl(factionId?: string): string | undefined {
+  return factionTinted('combat/siege-piece-arrow-tower-razed', factionId);
 }
 
 /** RUN ensembliste peint (tableau Gemini découpé) : la fortification complète
- *  en une bande verticale, affichée par TRANCHES d'une rangée. */
-export function siegeRunUrl(): string | undefined {
-  return registry.get('combat/siege-run');
+ *  en une bande verticale, affichée par TRANCHES d'une rangée. `factionId`
+ *  optionnel ⇒ variante teintée de la faction assiégée. */
+export function siegeRunUrl(factionId?: string): string | undefined {
+  return factionTinted('combat/siege-run', factionId);
 }
 
 /** Bande-étalon d'une rangée pour un état donné (remplace la tranche du run
- *  quand l'état réel de la rangée diffère de l'état peint dans le tableau). */
-export function siegeRunBandUrl(state: 'intact' | 'cracked' | 'razed'): string | undefined {
-  return registry.get(`combat/siege-run-band-${state}`);
+ *  quand l'état réel de la rangée diffère de l'état peint dans le tableau).
+ *  `factionId` optionnel ⇒ variante teintée. */
+export function siegeRunBandUrl(
+  state: 'intact' | 'cracked' | 'razed',
+  factionId?: string,
+): string | undefined {
+  return factionTinted(`combat/siege-run-band-${state}`, factionId);
 }
 
 /** Bloc "run" du layout (écrit par extract_siege_ensemble.py). */

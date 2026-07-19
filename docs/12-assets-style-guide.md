@@ -344,6 +344,20 @@ fidélité par simple substitution de PNG homonyme, aucun code — cf.
   correcte). **Mêmes clés ⇒ un art Gemini supérieur se substitue par
   simple dépôt** ; **repli gracieux** = habillage procédural historique
   complet si un asset manque. Déterministe (`random.Random(SEED)`).
+- **Coloration de la muraille par faction assiégée** (backlog
+  `siege-visual-overhaul` item 1, générateur `tools/assets/tint_siege_faction.py`) :
+  recoloration déterministe HORS-LIGNE des assets peints du rempart (run,
+  bandes-étalons, tour de tir, ruine, pièces de repli) en variantes
+  `combat/<clé>-<factionId>.png`. **Split-tone pondéré par la luminance** :
+  désaturation légère + teinte de faction injectée surtout dans les hautes
+  lumières (crêtes de merlons / liserés / arêtes éclairées), la masse de
+  pierre restant neutre ⇒ identité de maison sans repeindre le mur. 6 teintes
+  distinctes (bleu roi / vert spectral / indigo / ambre / turquoise / magenta),
+  alignées sur `gen_faction_badge.py` ; `test-faction` exclue (placeholder).
+  **Mêmes clés `<clé>-<factionId>` ⇒ un art peint par faction se substitue par
+  simple dépôt** ; côté client, résolution `<clé>-<factionId>` ?? générique
+  (id opaque) ⇒ repli générique inchangé sans variante. Aucun RNG (arithmétique
+  pure) ⇒ reproductible.
 - **Unité invoquée** (`assets/units/core/elementaire-de-terre.png`, 512²) :
   élémentaire de terre rocheux, résolu par `unitSpriteUrl` via le repli **core**
   (`units/core/<unitId>`, faction-agnostique) ; **repli** = jeton procédural.

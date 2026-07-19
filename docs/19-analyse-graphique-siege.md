@@ -40,6 +40,18 @@ lequel la grille se glisse discrètement.
 - **Grille apaisée** (tous combats) : aplat/pip de portée atténués, liserés
   discrets — les états rares (attaquable, zone, sélection) gardent leur force ;
   double canal A5 conservé (§ racine « la grille crie »).
+- **Coloration de la muraille par FACTION assiégée** (backlog item 1) : la
+  fortification peinte (run + bandes-étalons + tour de tir + ruine, et les
+  pièces de repli) reçoit une **variante teintée par maison**
+  (`combat/siege-run-<factionId>` etc.), produite hors-ligne par
+  `tools/assets/tint_siege_faction.py` — un **split-tone pondéré par la
+  luminance** : les hautes lumières (crêtes de merlons, liserés de blocs,
+  arêtes éclairées) prennent la teinte de faction, la masse de pierre reste
+  neutre ⇒ identité de maison sans repeindre le mur. 6 teintes distinctes
+  (bleu roi / vert spectral / indigo / ambre / turquoise / magenta), alignées
+  sur la palette des écus. Résolution client `<clé>-<factionId>` ?? générique
+  (id opaque, même motif que `siegeSceneUrl`) ⇒ **repli générique inchangé**
+  pour toute faction sans variante.
 - **Repli gracieux intégral** : sans assets de scène, l'habillage procédural
   historique reprend la main ; un art supérieur (Gemini) se substitue par
   simple dépôt de fichiers homonymes.
@@ -48,6 +60,8 @@ lequel la grille se glisse discrètement.
 | --- | --- |
 | ![Refonte manche 1](captures/siege/after-scene-round1.jpg) | Refonte — ouverture (scène peinte, muraille, porte, douve en eau) |
 | ![Refonte après auto](captures/siege/after-scene-auto.jpg) | Refonte — manche 3 (fissures, brèches rasées, sortie de garnison) |
+| ![Teinte Necropolis](captures/siege/after-faction-tint-necropolis.jpg) | Coloration par faction — muraille Necropolis (vert spectral) |
+| ![Teinte Dungeon](captures/siege/after-faction-tint-dungeon.jpg) | Coloration par faction — muraille Dungeon (magenta) |
 
 Les sections ci-dessous documentent l'état AVANT refonte (audit d'origine) ;
 les constats §2.1/§2.2/§2.3/§2.4 sont adressés par la refonte, §2.5/§3.x

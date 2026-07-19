@@ -367,13 +367,55 @@ y compris plaine, validable en 1 capture) ; **Lot 1** = scène peinte génériqu
 Base actée : peinture v8 intégrée (« globalement on est bon »), marge
 d'amélioration reconnue. À traiter dans l'ordre :
 
-1. **Coloration de la muraille par FACTION assiégée** (demande porteur) :
+1. [x] **Coloration de la muraille par FACTION assiégée** (demande porteur) :
    donner une identité visuelle par maison — variantes teintées du run et
    des pièces (`siege-run-<factionId>` etc., repli générique inchangé),
    par recoloration déterministe hors-ligne façon `siege-piece-tower`
    (désaturation + LUT de teinte par faction : toits/bannières/liserés
    plutôt que la pierre entière) ; zéro moteur, clés registry + chaîne de
    repli déjà en place (`siegeSceneUrl` fait déjà ce motif par faction).
+
+   **LIVRÉ (2026-07-19, branche `claude/siege-wall-faction-colors-zbg4ql`)** —
+   décisions au fil de l'eau :
+   - Vérif préalable : branche = `main`, aucune PR ouverte, aucune session
+     parallèle sur cet item ⇒ démarrage.
+   - Le run peint (`siege-run.png`) est de la pierre grise pure (aucun toit /
+     bannière ; seuls accents = pont-levis bois + mousse). « Toits/bannières/
+     liserés, pas la pierre entière » se réalise donc en **split-tone pondéré
+     par la luminance** : les HAUTES LUMIÈRES (crêtes de merlons, liserés de
+     blocs, arêtes qui accrochent la lumière) prennent la teinte de faction,
+     la pierre mi-ton reste neutre ⇒ identité de maison sans repeindre le mur.
+   - LUT de teinte par faction (`tools/assets/tint_siege_faction.py`, hors
+     `packages/` ⇒ ids opaques autorisés) : 6 teintes bien séparées en teinte
+     (haven bleu roi · necropolis vert spectral · arcane-hunters indigo ·
+     sylvan ambre · vox-arcana turquoise néon · dungeon magenta), dérivées de
+     la palette des écus (`gen_faction_badge.py`). `test-faction` exclue
+     (placeholder, comme les scènes `siege-scene-*`).
+   - Assets teintés : run + 3 bandes-étalons + tour de tir + ruine (chemin
+     RUN live) ET pièces de repli (mur ×3, tour, porte). Variantes
+     `<name>-<factionId>.png` déposées dans `assets/combat/` (auto-découvertes,
+     hors bundle JS ⇒ budget épargné).
+   - Client : résolveurs `siege*Url` gagnent un `factionId?` opaque
+     (résolution `<clé>-<factionId>` ?? générique, calquée sur `siegeSceneUrl`) ;
+     `this.siegeFactionId` mémorisé dans `syncSiegeScene`, consommé par
+     `syncWalls`/`syncWallStructures`/`syncRunSlices` + jeton tour de tir + ruine.
+   - Hook de test `startSiege({ factionId })` : param opaque optionnel (défaut
+     `''`) pour capturer une muraille teintée en QC (aucune règle moteur).
+   - Calibrage QC : split-tone sur pierre grise pure ⇒ variance perceptuelle
+     forte selon la teinte (magenta/ambre ressortent, bleu/vert/turquoise
+     s'effacent). Correctif : amplification de chroma (×1.35) autour du gris ⇒
+     parité inter-faction. Réglages finaux : desat 0.78, force teinte
+     0.12→0.50 (montée luminance 0.42→0.95). Captures in-app
+     `docs/captures/siege/after-faction-tint-{necropolis,dungeon,haven}.jpg`
+     (les 3 hues lisibles et distincts, pierre crédible, bois du pont-levis
+     préservé). Tuiles de cour (`siege-tile-court-*`) laissées neutres (sol,
+     pas muraille) — contraste avec le mur teinté.
+   - **Vérifs (recette complète) VERTES** : `pnpm -r typecheck`, `pnpm lint`,
+     vitest engine **935** (golden inchangé) + content **163** + client **33**,
+     build OK, budget bundle **352.7 Ko** gzip ≤ 800, garde-fou faction ✓
+     (aucun id dans `packages/`), garde-fou couleurs ✓ (aucune couleur hors
+     tokens.css), smoke `@core` desktop + mobile **42/42**. **Zéro moteur,
+     pas de bump `CURRENT_SAVE_VERSION`, golden inchangé.**
 2. **Raccords de bandes** : quand plusieurs rangées adjacentes sont
    remplacées par des bandes-étalons, la phase des merlons saute d'une
    copie à l'autre — fondu/roll type `vtile` ou 2-3 variantes d'étalon.

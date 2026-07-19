@@ -1,7 +1,14 @@
 #!/usr/bin/env python3
 """
-gen_siege_ensemble_template.py — GABARIT v6 : l'ENSEMBLE de la muraille sur
-fond MAGENTA (itération 9, exigence porteur).
+gen_siege_ensemble_template.py — GABARIT v7 : l'ENSEMBLE de la muraille sur
+fond MAGENTA, courtine d'UN SEUL TENANT (itération 9, exigence porteur).
+
+Leçon de la peinture v6 (rejetée : « les murs ne se connectent pas ») : les
+silhouettes-guides par rangée (pièces v1 empilées) montraient une plateforme
+crénelée PAR RANGÉE ⇒ le modèle a peint des blocs empilés. Le guide de
+courtine est désormais UNE BANDE CONTINUE (créneaux uniquement sur le bord
+assaillant, aucune couronne entre les rangées) — le modèle ne peut plus
+peindre autre chose qu'un mur d'un seul tenant.
 
 Exigences croisées des retours porteur :
   - approche ENSEMBLE (itération 8) : tout dessiner assemblé, avec les
@@ -121,16 +128,50 @@ def main() -> None:
         x, y = tpx(cx_bp, bottom_bp)
         tpl.paste(g, (x - g.width // 2, y - g.height), g)
 
-    # Tour NORD fusionnée à l'extrémité du run (le mur entre dans la tour),
-    # courtine rangée par rangée avec les ÉTATS en situation, porte +
-    # pont-levis, tour SUD fusionnée, tours de tir en retrait dans la cour.
-    place(cells["tower"], 34.0, WALL_X + 2, -18.0)
-    for row in range(ROWS):
-        if row in GATE_ROWS:
-            continue
-        state = PAINTED.get(str(row), "intact")
-        piece = {"intact": cells["wall"], "cracked": cells["cracked"], "razed": cells["razed"]}[state]
-        place(piece, 66.0, WALL_X, (row + 0.7) * Y_STEP)
+    # COURTINE = UNE BANDE CONTINUE (leçon v6 : des pièces par rangée font
+    # peindre des blocs empilés). Créneaux en ligne ininterrompue sur le bord
+    # gauche (assaillant), fissures r1 et brèche r7 taillées DANS la bande.
+    bx0 = tpx(WALL_X - 33.0, 0)[0]
+    bx1 = tpx(WALL_X + 33.0, 0)[0]
+    by0 = tpx(0, -26.0)[1]
+    by1 = tpx(0, 382.0)[1]
+    breach_y = 7 * Y_STEP
+    gap_top = tpx(0, breach_y - 14.0)[1]
+    gap_bot = tpx(0, breach_y + 16.0)[1]
+    for y0, y1 in ((by0, gap_top), (gap_bot, by1)):
+        d.rectangle([bx0, y0, bx1, y1], fill=GUIDE, outline=GUIDE_D, width=3)
+    # Ligne de parapet continue (chemin de ronde), interrompue à la brèche.
+    px = bx0 + (bx1 - bx0) // 3
+    for y0, y1 in ((by0 + 6, gap_top - 4), (gap_bot + 4, by1 - 6)):
+        d.line([(px, y0), (px, y1)], fill=GUIDE_D, width=3)
+    # Dents de créneaux ininterrompues, bord gauche, hors brèche.
+    t = by0 + 10
+    while t < by1 - 26:
+        if not (gap_top - 28 <= t <= gap_bot + 4):
+            d.rectangle([bx0 - 24, t, bx0 + 2, t + 22], fill=GUIDE, outline=GUIDE_D, width=2)
+        t += 48
+    # Lèvres DÉCHIQUETÉES de la brèche (dents magenta taillées dans la bande)
+    # + gravats qui se déversent vers le champ (ouest).
+    bw = bx1 - bx0
+    for edge_y, sign in ((gap_top, 1), (gap_bot, -1)):
+        pts = [(bx0 - 2, edge_y)]
+        for i, f in enumerate((0.28, 0.10, 0.36, 0.14, 0.30, 0.08)):
+            pts.append((bx0 + int(bw * i / 5), edge_y - sign * int(bw * f * 0.5)))
+        pts.append((bx1 + 2, edge_y))
+        d.polygon(pts, fill=BG)
+    for fx, fw, fh in ((-0.55, 0.5, 22), (0.15, 0.55, 28), (-0.2, 0.45, 16)):
+        x0 = bx0 + int(bw * fx)
+        d.ellipse(
+            [x0, (gap_top + gap_bot) // 2 - fh, x0 + int(bw * fw), (gap_top + gap_bot) // 2 + fh],
+            fill=GUIDE,
+            outline=GUIDE_D,
+            width=3,
+        )
+    # Fissures-guides EN SITUATION sur la rangée 1 (dans la bande).
+    c_y = tpx(0, 1 * Y_STEP)[1]
+    cxm = (bx0 + bx1) // 2
+    for dx, dy in ((-40, -46), (44, -18), (-26, 42), (36, 56)):
+        d.line([(cxm, c_y), (cxm + dx, c_y + dy)], fill=GUIDE_D, width=4)
 
     # PONT-LEVIS abaissé : tablier de bois qui descend de la porte vers
     # l'assaillant (bas-gauche) + chaînes vers le haut du gatehouse.
@@ -159,6 +200,8 @@ def main() -> None:
         d.line([corner, tpx(WALL_X - 26, gate_y - 34)], fill=GUIDE_D, width=4)
 
     place(cells["gate"], 96.0, WALL_X + 2, (GATE_ROWS[1] + 0.68) * Y_STEP)
+    # Tours d'extrémité posées PAR-DESSUS la bande (le mur entre dans la tour).
+    place(cells["tower"], 34.0, WALL_X + 2, -18.0)
     place(cells["tower"], 34.0, WALL_X + 2, (ROWS - 1 + 1.9) * Y_STEP)
     # Tour de tir EN RETRAIT (cour, derrière la porte) + sa RUINE (derrière la
     # brèche) — à l'est de la région du run, jamais dans ses tranches.

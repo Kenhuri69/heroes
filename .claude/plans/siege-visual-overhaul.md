@@ -293,3 +293,15 @@ y compris plaine, validable en 1 capture) ; **Lot 1** = scène peinte génériqu
   Dry-run d'extraction validé sur le gabarit lui-même (run 340×1132, bandes
   73 px = 1 rangée, 2 tours de tir détourées). En attente : peinture
   1152×2048 du porteur sur le gabarit v6.
+- 2026-07-19 — Peinture v6 du porteur REJETÉE (« les murs ne se connectent
+  pas ») : les guides de courtine par rangée (pièces v1 empilées, chacune
+  avec sa plateforme crénelée) ont fait peindre des BLOCS EMPILÉS — défaut
+  du gabarit, pas de la peinture. Extraction v6 annulée (aucun asset
+  écrit au dépôt). **Gabarit v7** : le guide de courtine devient UNE BANDE
+  CONTINUE dessinée (66 bp, créneaux en ligne ininterrompue côté
+  assaillant, ligne de parapet filante, fissures r1 EN SITUATION, brèche r7
+  taillée DANS la bande — lèvres déchiquetées + gravats) ; tours/porte/
+  pont-levis/tours de tir inchangés (validés dans la peinture v6). Prompt
+  v7 durci : interdiction explicite des blocs empilés et de toute couronne
+  crénelée EN TRAVERS du mur (critère d'acceptation dédié). Géométrie
+  d'extraction inchangée (mêmes boîtes). En attente : peinture v7.

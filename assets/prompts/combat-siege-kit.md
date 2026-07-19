@@ -1,7 +1,10 @@
 # Kit de siège PEINT — planche Gemini (option A, refonte visuelle du siège)
 
-> **v6 — L'ENSEMBLE DE LA MURAILLE SUR FOND MAGENTA (méthode retenue,
-> itération 9).** Exigences croisées du porteur : une **approche ensemble**
+> **v7 — L'ENSEMBLE DE LA MURAILLE SUR FOND MAGENTA, COURTINE D'UN SEUL
+> TENANT (méthode retenue, itération 9).** Leçon de la peinture v6 (rejetée :
+> « les murs ne se connectent pas ») : les guides par rangée faisaient
+> peindre des blocs empilés — le guide de courtine est désormais UNE BANDE
+> CONTINUE et le prompt interdit explicitement l'empilement. Exigences croisées du porteur : une **approche ensemble**
 > (tout dessiner assemblé, avec les connexions — jamais d'objet isolé) sur un
 > **fond magenta uni** (pas de décor à préserver ; l'extraction est un
 > chroma-key, le pipeline de la planche v1 réussie). Gabarit :
@@ -24,7 +27,7 @@
 > et patche le layout `siege-scene.json` (bloc `run`) — aucun code à toucher
 > au dépôt. Côté client, une tour de tir DÉTRUITE laisse sa ruine sur l'hex.
 
-## Procédure v6
+## Procédure v7
 
 1. Générer UNE image **1152×2048** avec le prompt ci-dessous + le gabarit
    `siege-ensemble-template.png` joint en référence (image-to-image).
@@ -35,7 +38,7 @@
    puis `python3 tools/assets/extract_siege_ensemble.py <chemin> --dry-run`
    (aperçu), puis sans `--dry-run` pour écrire dans `assets/combat/`.
 
-## Prompt v6 (à coller tel quel, gabarit joint)
+## Prompt v7 (à coller tel quel, gabarit joint)
 
 ```
 Repaint the grey guide fortification of the attached image as finished
@@ -48,10 +51,15 @@ Online battle screen), grey weathered ashlar stone with subtle moss, warm
 light from the upper-left, high three-quarter bird's-eye view (the ground
 plane is flattened, seen from about 45° above) — NOT a frontal elevation.
 
-The stacked grey blocks are only a massing guide: paint ONE CONTINUOUS
-crenellated stone rampart running from the top of the image to the bottom,
-merlons along its LEFT edge (battlements facing the attacker), with
-everything CONNECTED into a single ensemble:
+The long grey band is the footprint of ONE SINGLE continuous curtain wall:
+paint it as ONE unbroken crenellated stone rampart running from the top of
+the image to the bottom. The crenellated parapet runs in ONE continuous
+line along the wall's LEFT edge (battlements facing the attacker), from the
+north tower all the way to the south tower. Do NOT divide the wall into
+stacked blocks or platforms. Do NOT paint any horizontal crenellated rim,
+ledge or seam ACROSS the wall — the only interruptions along the wall are
+the two end towers, the gatehouse and the breach. Everything is CONNECTED
+into a single ensemble:
 - both ends of the rampart are crowned by round defensive towers FUSED into
   the wall (the wall enters the tower, no seam);
 - near the top (where the cracked guide is): a DAMAGED stretch — deep
@@ -74,11 +82,14 @@ Same stone and same lighting everywhere. No text, no watermark. Keep every
 painted element within the guide footprints.
 ```
 
-## Critères d'acceptation v6
+## Critères d'acceptation v7
 
 - La muraille est d'UN SEUL TENANT (tours fusionnées, porte dans l'axe,
   pont-levis rattaché) — aucun élément isolé hormis les deux tours de tir
   en retrait (qui sont des structures de cour dans le jeu).
+- AUCUNE couronne/corniche crénelée EN TRAVERS du mur entre les tours : le
+  parapet file d'une traite ; toute peinture « en blocs empilés » est un
+  motif de rejet (c'est ce qui a tué la v6).
 - Le fond reste magenta UNI (chroma-key) : rien de peint hors des guides.
 - Les extrémités hautes/basses des rangées fissurée et cassée se raccordent
   au mur intact (le mur « reprend » après le dégât).

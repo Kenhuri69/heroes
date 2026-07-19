@@ -156,6 +156,15 @@
   opacity: 0.75;
 }
 
+/* E8 — bandeau d'alerte « combat très défavorable » (couleur doublée du libellé
+   ⚠, jamais la couleur seule §4). */
+.pre-battle-warning {
+  margin: 0 0 12px;
+  color: var(--danger-text);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
 .pre-battle-actions {
   display: flex;
   gap: 12px;

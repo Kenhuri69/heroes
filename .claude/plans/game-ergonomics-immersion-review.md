@@ -457,9 +457,12 @@ Zéro asset, zéro moteur : uniquement `CombatScene` + `motion.ts`.
   - [~] **Lot 3 tail** : **E8 moitié pré-combat livrée** (`e8-prebattle-overwhelm-warning.md`)
         — bandeau d'alerte `role="alert"` sur `PreBattleScreen` quand la puissance
         ennemie écrase celle du joueur (≥ ×2), clôt le seul trou du pilier A3.
-        **Différés** 🟡 : E8 moitié in-combat (frappe « suicidaire » via riposte
-        estimée), E14 (filtres de journal) — faible valeur / plomberie
-        disproportionnée.
+        **E14 livré** (`e14-combatlog-filter-copy.md`) — filtre texte + copie/export
+        des lignes visibles du journal de combat, **sans tagger les événements**
+        (basse plomberie : `CombatLogLine` inchangé). **Différés** 🟡 : E8 moitié
+        in-combat (frappe « suicidaire » via riposte estimée), E14 filtre **par
+        catégorie** d'event (tag par event = plomberie disproportionnée, le filtre
+        texte couvre le besoin).
   - [x] **I15 haptique mobile** (`ux-lot-i15-haptics.md`) : `navigator.vibrate` sur
         kills (combat affiché) & confirmations, **opt-in** Options (défaut OFF,
         persisté), mapping pur réutilisant `sfxIdForEvent` (unit-testé).

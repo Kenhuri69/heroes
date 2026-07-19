@@ -553,6 +553,44 @@
       "adventure": {
         "type": "revealMap"
       }
+    },
+    {
+      "id": "trait-d-ombre",
+      "school": "ombre",
+      "circle": 1,
+      "manaCost": 5,
+      "kind": "damage",
+      "base": 6,
+      "perPower": 2
+    },
+    {
+      "id": "cecite",
+      "school": "ombre",
+      "circle": 2,
+      "manaCost": 8,
+      "kind": "debuff",
+      "base": 0,
+      "perPower": 0,
+      "attackMod": -4
+    },
+    {
+      "id": "nuee-d-ombre",
+      "school": "ombre",
+      "circle": 2,
+      "manaCost": 9,
+      "kind": "damage",
+      "base": 12,
+      "perPower": 3
+    },
+    {
+      "id": "fleau-des-tenebres",
+      "school": "ombre",
+      "circle": 3,
+      "manaCost": 15,
+      "kind": "damage",
+      "base": 16,
+      "perPower": 4,
+      "area": "splash"
     }
   ]
 }

@@ -108,5 +108,31 @@
 - 2026-07-20 — Ouverture de l'audit après merge #512. Skill ux-audit lancé.
 - 2026-07-20 — Audit exécuté : 96 captures (A1 vert), inventaire code. Constats
   consignés ci-dessus. Le retour « création lourde » est confirmé
-  empiriquement (NG-P0a/b). Recommandations priorisées. Décision d'implémentation
-  attendue de l'utilisateur (audit-only vs. quel lot d'abord).
+  empiriquement (NG-P0a/b). Recommandations priorisées. Audit poussé (PR #513).
+- 2026-07-20 — Décision utilisateur : **option 3 (les deux, séquencés)**. Lot 1 =
+  NG-P0 (alléger Nouvelle partie), lot 2 = menu (contraste + résidu). Empilé sur
+  la branche `claude/session-842v9w` (PR #513).
+
+## Lot 1 — Alléger « Nouvelle partie » (NG-P0) — ✅ LIVRÉ
+
+Client pur, zéro moteur, pas de bump save, golden inchangé. Périmètre :
+1. [x] **Partie rapide** : bouton primaire en tête (2 joueurs, vous vs 1 IA,
+   carte moyenne, tout standard, graine fraîche) ⇒ lance en 1 tap. Respecte la
+   faction déjà choisie au siège 0 (`quickStart` → `launch`).
+2. [x] **Options avancées** repliable (`useCollapsed('newgame.advanced', true)` +
+   `SectionToggle`, repliée par défaut) : Ressources + 4 densités + Difficulté +
+   Graine. Ne restent visibles que Partie rapide, Nb joueurs, Sièges, Taille.
+3. [x] **Pied collant** (`.newgame-footer position:sticky; bottom:0`, marges
+   négatives pour annuler le padding) avec « Lancer » toujours visible.
+4. [x] **aria-label** sur les 2 selects de siège (faction/héros).
+5. [x] Locales FR/EN, CSS (tokens only), smoke `nouvelle partie …` étendu
+   (déplie l'accordéon + assert « Partie rapide » visible).
+
+**Vérifs VERTES** : typecheck, lint, vitest content **164** + client **33**,
+build, budget **354.1 Ko** ≤ 800, garde-fous faction + couleurs, smoke `@core`
+desktop + mobile **43/43**. Capture `ux-captures/after-newgame-mobile.png` (CTA
+Partie rapide en tête, avancées repliées, Lancer collant). **Zéro moteur/save,
+golden inchangé.**
+
+Différé (NG-P1a) : compaction des sièges (couleur/équipe derrière un « détails »
+par siège) — plus gros, churn de test, hors lot 1 pour rester atomique.

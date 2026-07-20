@@ -304,12 +304,27 @@
   }
 }
 
+/* Repli procédural du portrait de héros (I7a) : médaillon serti de laiton avec
+   initiale dorée, au lieu du cercle gris nu — donne une identité tant qu'aucun
+   avatar dédié n'existe. Mêmes dimensions que `.hero-avatar` (aucun saut de mise
+   en page à l'apparition de l'asset réel). */
 .hero-portrait-placeholder {
   width: 64px;
   height: 64px;
   margin: 0 auto 10px;
   border-radius: 50%;
-  background: var(--ink-600);
+  background: radial-gradient(circle at 50% 38%, var(--ink-700), var(--ink-950));
+  border: 2px solid var(--brass-bright);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-portrait-initial {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.9rem;
+  font-weight: 600;
+  color: var(--brass-text);
 }
 
 /* Avatar réel du héros sélectionné (lot UX U5-D) : mêmes dimensions/coins

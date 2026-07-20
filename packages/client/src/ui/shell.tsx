@@ -964,7 +964,17 @@ function HeroDrawer() {
           src={heroAvatarUrl(hero.factionId, heroArchetype(hero.attributes), hero.name)}
           alt=""
           class="hero-avatar"
-          fallback={<div class="hero-portrait-placeholder" aria-hidden="true" />}
+          fallback={
+            // Repli procédural (I7a) : plus le cercle gris nu — médaillon serti de
+            // laiton portant l'initiale du héros (résolue du nom), lisible et
+            // identitaire tant qu'aucun avatar dédié n'est déposé. Vide (générique
+            // sans nom) ⇒ juste le médaillon serti.
+            <div class="hero-portrait-placeholder" aria-hidden="true">
+              <span class="hero-portrait-initial">
+                {resolveHeroName(hero.name).trim().charAt(0).toUpperCase()}
+              </span>
+            </div>
+          }
         />
         {hero.factionId && (
           <div class="hero-faction" data-testid="hero-faction-badge">

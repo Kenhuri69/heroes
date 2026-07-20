@@ -22,11 +22,24 @@ via une spec Playwright jetable, revue visuelle.
   les objets remplissent la vue, le noir recule. `@core` (43 tests, dont tap-tap réel
   via `tileToScreen` qui suit le zoom) vert ; lint + typecheck verts.
 
+## Correctif 2 — portrait de héros (I7a)
+Le grand portrait du tiroir héros (toujours visible) était un **cercle gris nu**
+quand aucun avatar dédié n'existe (test-faction, factions sans avatar). Remplacé
+par un **repli procédural** : médaillon serti de laiton portant l'**initiale**
+dorée du héros (résolue via `resolveHeroName`), mêmes dimensions que l'avatar réel
+(aucun saut de mise en page). Générique sans nom ⇒ juste le médaillon serti.
+- `shell.tsx` : contenu du `fallback` de l'`AssetImg` du tiroir.
+- `styles.css` : `.hero-portrait-placeholder` (dégradé radial + anneau laiton) +
+  `.hero-portrait-initial` — **tokens `var(--…)` uniquement** (garde-fou couleur OK).
+- **Vérifié** : capture (médaillon « A » pour Aldric) ; garde couleur, lint,
+  typecheck verts ; smokes I7 + E7 verts (le `.hero-portrait-avatar/-mini` du
+  HeroStrip intact).
+
 ## Reste noté (non fait ici)
-- I7a portrait héros = cercle gris (placeholder) → repli procédural (badge/initiales)
-  ou avatar — lot séparé.
+- Repli mini du HeroStrip (28px) encore gris nu — moins proéminent, laissé tel quel.
 - I6 fond de ville plat → chantier d'assets (doc 12), déféré.
 
 ## Suivi
 - [x] Playtest captures + revue
 - [x] Zoom initial carte d'aventure (vérifié captures + @core)
+- [x] Portrait héros — repli procédural à initiale (vérifié capture + smokes)

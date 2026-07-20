@@ -462,3 +462,23 @@ d'amélioration reconnue. À traiter dans l'ordre :
 4. Lot 3 historique (inchangé) : rochers d'obstacles peints, sprites des
    machines de guerre assaillantes, porte ouverte/brisée, marqueurs de
    douve aux rangées impaires.
+
+   **EN COURS (2026-07-20, empilé sur #508 — décision porteur)** — item 4
+   découpé (sous-items indépendants), traités un par un :
+   - (b) **machines de guerre assaillantes** : déjà couvert — elles entrent en
+     combat comme piles (`setup.ts` : `hero.warMachines → stacks`) et sont
+     rendues par le chemin sprite d'unité générique (`unitSpriteUrl`), les PNG
+     `assets/units/core/{catapulte,ballista,arrow-tower,first-aid-tent}.png`
+     existent ⇒ les vraies machines s'affichent (seul le `siege-cat` SYNTHÉTIQUE
+     du S-TEST retombe sur le jeton procédural). Rien à coder.
+   - (a) **rochers d'obstacles peints** [EN COURS] : les obstacles (TOUS les
+     combats, pas que le siège) sont dessinés par `drawBoulder` (vectoriel
+     plat). Générateur déterministe `tools/assets/gen_combat_obstacles.py` →
+     sprites `combat/obstacle-rock-<n>.png` (peints procéduralement, façon
+     `gen_tiles`, upgradables par dépôt Gemini via clés stables) ; câblage
+     `CombatScene.syncObstacles` (sprites triés en profondeur dans `stacksLayer`,
+     variante déterministe par hex), `drawBoulder` conservé en **repli gracieux**
+     (option `paintedObstacles` de `drawBoard` : saute le rocher vectoriel + la
+     teinte forte quand l'asset existe). Zéro moteur.
+   - (c) **porte ouverte/brisée** et (d) **marqueurs de douve rangées impaires** :
+     différés (c = art peint requis, dépôt Gemini ; d = tweak mineur).

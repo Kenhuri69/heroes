@@ -77,6 +77,18 @@ export function combatBackgroundUrl(terrain: string): string | undefined {
 }
 
 /**
+ * Rocher d'obstacle de combat peint (backlog siège item 4a) —
+ * `combat/obstacle-rock-<variant>`, généré par `gen_combat_obstacles.py`,
+ * substituable par dépôt d'art. Repli variante 1, puis `undefined` (⇒ le client
+ * retombe sur le rocher vectoriel `drawBoulder`). Nombre de variantes exposé
+ * pour un choix déterministe par hex.
+ */
+export const COMBAT_OBSTACLE_VARIANTS = 3;
+export function combatObstacleUrl(variant: number): string | undefined {
+  return registry.get(`combat/obstacle-rock-${variant}`) ?? registry.get('combat/obstacle-rock-1');
+}
+
+/**
  * S4 — toile de fond d'un SIÈGE de ville (doc 08 §2.4) : silhouette urbaine
  * derrière les murailles au lieu de la prairie du terrain. Chaîne de repli :
  * `backgrounds/siege-<factionId>` (ambiance de la faction assiégée) →

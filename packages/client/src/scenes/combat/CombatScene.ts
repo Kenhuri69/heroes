@@ -46,6 +46,8 @@ import {
   siegeArrowTowerRazedUrl,
   siegeRunUrl,
   siegeRunBandUrl,
+  combatObstacleUrl,
+  COMBAT_OBSTACLE_VARIANTS,
   type SiegeRunLayout,
 } from '../../render/assets';
 import { computeWallLayout, drawCurtain, drawTower, drawGate, drawDamage } from '../../render/siegeWall';
@@ -166,6 +168,8 @@ export class CombatScene {
    *  Fixée dans `syncSiegeScene`, consommée par les syncs de mur. Id opaque. */
   private siegeFactionId: string | undefined;
   private readonly wallStructures = new Map<string, Sprite>();
+  /** Item 4a : sprites de rocher peint par hex-obstacle (repli `drawBoulder`). */
+  private readonly obstacleSprites = new Map<string, Sprite>();
   /**
    * Itération 9 : hex des STRUCTURES de siège vues vivantes (tour de tir) —
    * quand la pile meurt, sa ruine peinte (`siege-piece-arrow-tower-razed`)
@@ -391,6 +395,8 @@ export class CombatScene {
       this.siegeFactionId = undefined;
       for (const s of this.wallStructures.values()) s.destroy();
       this.wallStructures.clear();
+      for (const s of this.obstacleSprites.values()) s.destroy();
+      this.obstacleSprites.clear();
       this.structureSpots.clear();
       this.fxLayer.removeChildren().forEach((c) => c.destroy()); // purge des chiffres flottants
       for (const [id, token] of this.stackTokens) {
@@ -415,7 +421,56 @@ export class CombatScene {
     this.syncSiegeScene(combat, st.game);
     this.syncStacks(combat);
     this.syncWalls(combat);
+    this.syncObstacles(combat);
     this.redrawBoard();
+  }
+
+  /**
+   * Item 4a : pose un SPRITE de rocher peint (`combat/obstacle-rock-<n>`) sur
+   * chaque hex-obstacle, dans `stacksLayer` avec tri de profondeur (`zIndex = y`)
+   * ⇒ une pile au sud passe DEVANT le rocher. Variante déterministe par hex.
+   * Sans asset : no-op ⇒ `drawBoard` garde le rocher vectoriel `drawBoulder`
+   * (repli gracieux, `paintedObstacleKeys` reste vide).
+   */
+  private syncObstacles(combat: CombatState): void {
+    const want = new Set((combat.obstacles ?? []).map(hexKey));
+    for (const [key, sprite] of this.obstacleSprites) {
+      if (!want.has(key)) {
+        sprite.destroy();
+        this.obstacleSprites.delete(key);
+      }
+    }
+    if (combatObstacleUrl(1) == null) return; // aucun art ⇒ repli vectoriel
+    for (const pos of combat.obstacles ?? []) {
+      const key = hexKey(pos);
+      if (this.obstacleSprites.has(key)) continue;
+      const variant = ((pos.col * 7 + pos.row * 13) % COMBAT_OBSTACLE_VARIANTS) + 1;
+      const url = combatObstacleUrl(variant);
+      if (!url) continue;
+      const { x, y } = offsetToPixel(pos);
+      const sprite = new Sprite();
+      sprite.eventMode = 'none';
+      sprite.position.set(x, y);
+      sprite.zIndex = y;
+      void Assets.load(url).then((texture) => {
+        if (sprite.destroyed) return;
+        sprite.texture = texture;
+        // Ancre au SOL (bas de la galette d'ombre) ⇒ le rocher est posé sur
+        // l'hex, largeur ≈ hex, hauteur proportionnelle.
+        sprite.anchor.set(0.5, 0.72);
+        sprite.width = HEX_SIZE * 2.0;
+        sprite.height = HEX_SIZE * 2.0;
+      });
+      this.stacksLayer.addChild(sprite);
+      this.obstacleSprites.set(key, sprite);
+    }
+  }
+
+  /** Item 4a : hexes-obstacles portant un rocher PEINT (vide sans asset ⇒
+   *  `drawBoard` retombe sur le rocher vectoriel). */
+  private paintedObstacleKeys(combat: CombatState): Set<string> {
+    if (combatObstacleUrl(1) == null) return new Set();
+    return new Set((combat.obstacles ?? []).map(hexKey));
   }
 
   /**
@@ -1263,6 +1318,7 @@ export class CombatScene {
         reachable: new Set(band.map(hexKey)),
         attackable: new Set(),
         obstacles: this.blockedKeys(combat),
+        paintedObstacles: this.paintedObstacleKeys(combat),
         moat: this.moatKeys(combat),
         moatDecor: !this.sceneActive,
         selected: selectedStack?.pos ?? null,
@@ -1285,6 +1341,7 @@ export class CombatScene {
         reachable: new Set(dests.map(hexKey)),
         attackable: new Set(),
         obstacles: this.blockedKeys(combat),
+        paintedObstacles: this.paintedObstacleKeys(combat),
         moat: this.moatKeys(combat),
         moatDecor: !this.sceneActive,
         selected: ally?.pos ?? null,
@@ -1307,6 +1364,7 @@ export class CombatScene {
       drawBoard(this.boardGfx, {
         zone: new Set(zoneHexes.map(hexKey)),
         obstacles: this.blockedKeys(combat),
+        paintedObstacles: this.paintedObstacleKeys(combat),
         moat: this.moatKeys(combat),
         moatDecor: !this.sceneActive,
         selected: center?.pos ?? null,
@@ -1337,6 +1395,7 @@ export class CombatScene {
       reachable: new Set(reachable.map(hexKey)),
       attackable: attackableHexes,
       obstacles: this.blockedKeys(combat),
+      paintedObstacles: this.paintedObstacleKeys(combat),
       moat: this.moatKeys(combat),
       moatDecor: !this.sceneActive,
       selected: this.selectionHex(combat),

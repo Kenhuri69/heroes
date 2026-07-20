@@ -136,3 +136,20 @@ golden inchangé.**
 
 Différé (NG-P1a) : compaction des sièges (couleur/équipe derrière un « détails »
 par siège) — plus gros, churn de test, hors lot 1 pour rester atomique.
+
+## Lot 2 — Menu : contraste (M-P1a) — ✅ LIVRÉ
+
+Client pur (CSS seul), zéro moteur, pas de bump save, golden inchangé.
+- [x] **M-P1a** : `.menu-actions` passe de `--veil-55` (0.55, trop faible) à
+  `--veil-85` + liseré `--ink-700` + ombre portée + `backdrop-filter: blur(3px)`
+  ⇒ « Continuer » désactivé, « Aucune sauvegarde » et les titres de section
+  (Campagnes/Scénarios) redeviennent lisibles sur l'art de fond. Tokens
+  existants uniquement (garde-fou couleurs vert). Bénéficie aux 3 colonnes
+  `.menu-actions` (actions + campagnes + scénarios).
+- [x] **M-P1b RECLASSÉ — faux positif** : le résidu « Chargement des
+  ressources… » n'est PAS un bug de prod mais un **artefact de capture** — le
+  `#boot-loader` (`index.html`) se fond (0.45s) puis est retiré du DOM 500 ms
+  après `__HEROES_READY__` (`hideBootLoader`, `main.ts`) ; la capture font1
+  shoote pendant le fondu (font2/3 propres). Rien à corriger.
+- **M-P2 (clarté Nouvelle partie/Escarmouche, hiérarchie)** : différé — subjectif,
+  hors périmètre lisibilité pure ; à cadrer si besoin.

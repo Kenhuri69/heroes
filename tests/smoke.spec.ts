@@ -1498,12 +1498,18 @@ test('nouvelle partie : configuration 3 joueurs + taille + ressources génèrent
 
   await page.getByTestId('menu-new-game').click();
   await expect(page.getByTestId('newgame-screen')).toBeVisible();
+  // Divulgation progressive : le CTA « Partie rapide » est présent d'emblée.
+  await expect(page.getByTestId('newgame-quick-start')).toBeVisible();
 
   // 3 joueurs : un 3ᵉ siège apparaît, réglé en IA ; carte grande, ressources riches.
   await page.getByTestId('newgame-players-3').click();
   await expect(page.getByTestId('newgame-seat-2')).toBeVisible();
   await page.getByTestId('newgame-seat-2-ai').click();
   await page.getByTestId('newgame-size-large').click();
+  // Ressources/densités vivent sous « Options avancées » (repliées par défaut,
+  // divulgation progressive) : déplier avant d'y accéder.
+  await page.getByTestId('newgame-advanced-toggle').click();
+  await expect(page.getByTestId('newgame-advanced')).toBeVisible();
   await page.getByTestId('newgame-resources-riche').click();
   // Quantités par catégorie (« Nouvelle partie ») : plus de gardiens, aucune mine.
   await page.getByTestId('newgame-guardians-abundant').click();

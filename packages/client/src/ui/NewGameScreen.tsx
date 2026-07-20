@@ -12,6 +12,7 @@ import {
 } from '../app/game';
 import { resolveHeroName } from '../app/i18n';
 import { PLAYER_COLORS } from '../render/playerColors';
+import { SectionToggle, useCollapsed } from './CollapsibleSection';
 import './options.css';
 import './newgame.css';
 
@@ -118,8 +119,18 @@ export function NewGameScreen({ onClose }: { onClose: () => void }) {
   const setSlotTeam = (i: number, value: number): void =>
     setSlotTeams((prev) => prev.map((tm, j) => (j === i ? value : tm)));
 
+  // « Options avancées » repliées par défaut (divulgation progressive, doc 08 §2.5) :
+  // l'essentiel (joueurs, sièges, taille) reste visible ; densités/difficulté/graine
+  // sont derrière un pli. Présentation pure (localStorage), hors GameState.
+  const [advancedCollapsed, toggleAdvanced] = useCollapsed('newgame.advanced', true);
+
   // Au moins un humain requis (hot-seat) : le siège 0 l'est toujours, donc OK.
   const canStart = factions.length > 0;
+
+  const launch = (config: NewGameRawConfig): void => {
+    window.dispatchEvent(new CustomEvent('heroes:start-newgame', { detail: config }));
+    onClose();
+  };
 
   const start = (): void => {
     const slots: NewGameSlot[] = Array.from({ length: playerCount }, (_, i) => ({
@@ -129,7 +140,7 @@ export function NewGameScreen({ onClose }: { onClose: () => void }) {
       team: slotTeams[i]!,
       heroId: slotHeroes[i] ?? RANDOM,
     }));
-    const config: NewGameRawConfig = {
+    launch({
       slots,
       mapSize,
       resourceLevel,
@@ -139,9 +150,27 @@ export function NewGameScreen({ onClose }: { onClose: () => void }) {
       pickups: contentLevels.pickups!,
       difficulty,
       seed,
-    };
-    window.dispatchEvent(new CustomEvent('heroes:start-newgame', { detail: config }));
-    onClose();
+    });
+  };
+
+  // Départ rapide (doc 08 §2.5) : duel standard sans configuration — 2 joueurs
+  // (vous vs 1 IA), carte moyenne, tout standard, graine fraîche. Respecte la
+  // faction déjà choisie au siège 0. Ignore les autres réglages du formulaire.
+  const quickStart = (): void => {
+    launch({
+      slots: [
+        { controller: 'human', factionId: slotFactions[0] ?? RANDOM, color: PLAYER_COLORS[0]!, team: 0, heroId: RANDOM },
+        { controller: 'ai', factionId: RANDOM, color: PLAYER_COLORS[1]!, team: 0, heroId: RANDOM },
+      ],
+      mapSize: 'medium',
+      resourceLevel: 'standard',
+      guardians: 'standard',
+      mines: 'standard',
+      eventBuildings: 'standard',
+      pickups: 'standard',
+      difficulty: 'normal',
+      seed: rollSeed(seed),
+    });
   };
 
   return (
@@ -165,6 +194,13 @@ export function NewGameScreen({ onClose }: { onClose: () => void }) {
             ×
           </button>
         </header>
+
+        <section class="options-section newgame-quick-section">
+          <button class="menu-button newgame-quick" data-testid="newgame-quick-start" onClick={quickStart}>
+            {t('newgame.quickStart')}
+          </button>
+          <p class="options-hint">{t('newgame.quickStartHint')}</p>
+        </section>
 
         <section class="options-section">
           <h3>{t('newgame.players')}</h3>
@@ -213,6 +249,7 @@ export function NewGameScreen({ onClose }: { onClose: () => void }) {
                 <select
                   class="skirmish-select newgame-seat-faction"
                   data-testid={`newgame-seat-${i}-faction`}
+                  aria-label={t('newgame.factionLabel')}
                   value={slotFactions[i]}
                   onChange={(e) => setSlotFaction(i, (e.currentTarget as HTMLSelectElement).value)}
                 >
@@ -226,6 +263,7 @@ export function NewGameScreen({ onClose }: { onClose: () => void }) {
                   <select
                     class="skirmish-select newgame-seat-hero"
                     data-testid={`newgame-seat-${i}-hero`}
+                    aria-label={t('newgame.heroLabel')}
                     value={slotHeroes[i]}
                     onChange={(e) => setSlotHero(i, (e.currentTarget as HTMLSelectElement).value)}
                   >
@@ -286,6 +324,14 @@ export function NewGameScreen({ onClose }: { onClose: () => void }) {
           </div>
         </section>
 
+        <SectionToggle
+          title={t('newgame.advanced')}
+          collapsed={advancedCollapsed}
+          onToggle={toggleAdvanced}
+          testId="newgame-advanced-toggle"
+        />
+        {!advancedCollapsed && (
+        <div class="newgame-advanced" data-testid="newgame-advanced">
         <section class="options-section">
           <h3>{t('newgame.resources')}</h3>
           <div class="segmented" role="group">
@@ -361,8 +407,10 @@ export function NewGameScreen({ onClose }: { onClose: () => void }) {
           </div>
           <p class="options-hint">{t('newgame.seedHint')}</p>
         </section>
+        </div>
+        )}
 
-        <section class="options-section">
+        <footer class="newgame-footer">
           <button
             class="menu-button"
             data-testid="newgame-start"
@@ -371,7 +419,7 @@ export function NewGameScreen({ onClose }: { onClose: () => void }) {
           >
             {t('newgame.start')}
           </button>
-        </section>
+        </footer>
       </div>
     </div>
   );

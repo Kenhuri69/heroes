@@ -42,10 +42,16 @@
   flex-direction: column;
   gap: 12px;
   width: min(80vw, 320px);
-  /* Voile sombre derrière les boutons pour rester lisible sur le fond peint. */
+  /* Voile sombre OPAQUE derrière les boutons : le fond peint (héros/château)
+     rendait « Continuer » désactivé, l'astuce « Aucune sauvegarde » et les titres
+     de section illisibles (audit UX, M-P1a). Voile renforcé + liseré + ombre
+     portée ⇒ le panneau se lit comme une surface distincte de l'illustration. */
   padding: 16px;
   border-radius: var(--radius-l);
-  background: var(--veil-55);
+  background: var(--veil-85);
+  border: 1px solid var(--ink-700);
+  box-shadow: 0 8px 30px var(--shadow-40);
+  backdrop-filter: blur(3px);
 }
 
 /* « Continuer » + son sous-libellé (M-1) : groupés pour que l'astuce « Aucune

@@ -8,3 +8,6 @@ playwright-report/
 # Python (outillage assets tools/assets/*)
 __pycache__/
 *.pyc
+
+# Captures d'audit UX (ux-audit skill) — référence locale, hors dépôt
+ux-captures/

@@ -1265,6 +1265,9 @@ test('E1 : sur mobile, la barre de combat est compacte (secondaires derrière «
   await expect(page.getByTestId('combat-surrender')).toBeHidden();
   await more.click();
   await expect(page.getByTestId('combat-surrender')).toBeVisible();
+  // Lot 0.1 (verrou S2) : le libellé n'affiche JAMAIS « (0 or) » — un coût nul
+  // donne « Se rendre » sec (surrenderFree), jamais le montant absurde à zéro.
+  await expect(page.getByTestId('combat-surrender')).not.toContainText(/\(\s*0\b/);
 
   expect(errors).toEqual([]);
 });
@@ -1448,6 +1451,9 @@ test('menu : Nouvelle partie démarre, Continuer grisé sans sauvegarde', { tag:
 
   await expect(page.getByTestId('menu-new-game')).toBeVisible();
   await expect(page.getByTestId('menu-continue')).toBeDisabled(); // IndexedDB vierge
+  // Lot 0.2 (P0 ergonomie, verrou S2) : « Continuer » désactivé n'est plus muet —
+  // un sous-libellé explicite « Aucune sauvegarde » lève l'ambiguïté (M-1).
+  await expect(page.getByTestId('menu-continue-hint')).toBeVisible();
   // Le bouton « En ligne » (Live 7.3) est masqué sans VITE_BACKEND_URL : le smoke
   // tourne hors-ligne, le réseau n'est jamais touché (flag de config).
   await expect(page.getByTestId('menu-online')).toHaveCount(0);
@@ -2047,6 +2053,13 @@ test('options : bascule de langue FR → EN appliquée à l’UI', { tag: '@core
   // un passage de semaine + un tirage RNG ≠ normal, non forçable ici).
   await expect(page.getByTestId('week-event')).toHaveCount(0);
   await page.getByTestId('options-open').click();
+  // Lot 0.4 (P0 ergonomie, verrou S2) : les raccourcis sont atteignables SANS
+  // clavier depuis Options (desktop) — un bouton, pas seulement une astuce texte.
+  await expect(page.getByTestId('options-shortcuts')).toBeVisible();
+  await page.getByTestId('options-shortcuts').click();
+  await expect(page.getByTestId('shortcuts-panel')).toBeVisible();
+  await page.getByTestId('shortcuts-close').click(); // referme l'aide, Options reste ouvert
+  await expect(page.getByTestId('shortcuts-panel')).toHaveCount(0);
   await page.getByTestId('options-locale-en').click();
   await page.getByTestId('options-close').click();
   await expect(page.getByTestId('calendar')).toHaveText('Month 1 · Week 1 · Day 1');

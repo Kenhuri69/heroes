@@ -237,6 +237,7 @@ const VISITABLE_COLORS: Record<string, number> = {
   grantWarMachine: 0x7f8c8d, // fabrique de machines de guerre (métal)
   restoreMana: 0x2980b9, // puits de magie (eau/mana)
   grantArtifact: 0xb7950f, // chariot / dépouille (coffre doré)
+  permanentStat: 0xc0392b, // lieu d'entraînement (acier martial cramoisi)
   resource: 0xb9770e, // moulin
 };
 
@@ -284,6 +285,7 @@ const VISITABLE_PROP: Record<string, string> = {
   grantSkill: 'witch-hut', // hutte de la sorcière
   grantWarMachine: 'warmachine-factory', // fabrique de machines de guerre
   restoreMana: 'magic-well', // puits de magie
+  permanentStat: 'training-ground', // lieu d'entraînement (boost d'attribut)
 };
 
 /** Lieu de bonus : structure peinte (UXD-3B), repli procédural distinct par nature. */
@@ -360,6 +362,12 @@ function buildVisitableFallback(kind: string): Container {
         .poly([c - 15, c + 8, c, c + 2, c, c + 10, c - 15, c + 16]).fill(color).stroke({ width: 2, color: ink })
         .poly([c + 15, c + 8, c, c + 2, c, c + 10, c + 15, c + 16]).fill(color).stroke({ width: 2, color: ink })
         .rect(c - 1, c + 2, 2, 8).fill(ink);
+      break;
+    case 'permanentStat': // lieu d'entraînement : épée dressée sur un socle (monument martial)
+      g.rect(c - 12, c + 8, 24, 8).fill(0x8d8477).stroke({ width: 2, color: ink }) // socle de pierre
+        .rect(c - 2, c - 16, 4, 24).fill(color).stroke({ width: 2, color: ink }) // lame vers le haut
+        .rect(c - 8, c - 4, 16, 4).fill(color).stroke({ width: 2, color: ink }) // garde
+        .circle(c, c - 18, 3).fill(color).stroke({ width: 1.5, color: ink }); // pommeau
       break;
     default: // sanctuaire / levelXp : obélisque runique
       g.poly([c, c - 20, c + 8, c + 12, c - 8, c + 12]).fill(color).stroke({ width: 2, color: ink })

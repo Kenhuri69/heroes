@@ -517,6 +517,24 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
     place((x, y, n) => maker(x, y, n));
   }
 
+  // Lieux d'entraînement (doc 02 §2.2) — boost DÉFINITIF d'un attribut primaire du
+  // héros visiteur (`permanentStat`, une fois par héros) : pilier HoMM (Camp de
+  // mercenaires +Attaque, Marletto Tower +Défense, Axe stellaire +Pouvoir, Jardin
+  // de la révélation +Savoir). Bornés et peu nombreux car permanents ; comptés sur
+  // `eventBuildingDensity` comme les autres lieux de bonus (⇒ 0 à densité 0).
+  const statAttributes = ['attack', 'defense', 'power', 'knowledge'] as const;
+  const statSiteCount = scaledCat(randBetween(1, 2), eventBuildingDensity);
+  for (let i = 0; i < statSiteCount; i++) {
+    place((x, y, n) => ({
+      id: `training-${n}`,
+      type: 'visitable',
+      x,
+      y,
+      effect: { kind: 'permanentStat', attribute: statAttributes[randInt(statAttributes.length)]!, amount: 1 },
+      frequency: 'oncePerHero',
+    }));
+  }
+
   // Habitations hors ville (renfort d'armée) : tier gradué par la profondeur (bas
   // tier près des départs, haut tier au centre), placées en profondeur et gardées.
   if (byTier.length > 0) {

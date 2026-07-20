@@ -247,6 +247,22 @@ describe('generateMap', () => {
     expect(kinds.size).toBeGreaterThanOrEqual(3);
   });
 
+  it('pose des lieux d’entraînement (permanentStat) qui boostent un attribut du héros', () => {
+    // Grande carte pour garantir au moins un lieu d'entraînement (comptés sur la
+    // même densité que les autres lieux de bonus, échelle ≈ habitations).
+    const map = generateMap('r', 314, { width: 48, height: 48 });
+    const statSites = map.objects.filter(
+      (o) => o.type === 'visitable' && (o as { effect: { kind: string } }).effect.kind === 'permanentStat',
+    ) as { effect: { attribute: string; amount: number }; frequency: string }[];
+    expect(statSites.length).toBeGreaterThanOrEqual(1);
+    for (const s of statSites) {
+      expect(['attack', 'defense', 'power', 'knowledge']).toContain(s.effect.attribute);
+      expect(s.effect.amount).toBeGreaterThanOrEqual(1);
+      // Boost DÉFINITIF ⇒ une seule visite par héros (jamais récurrent).
+      expect(s.frequency).toBe('oncePerHero');
+    }
+  });
+
   it('pose des artefacts (si palette) gardés par une sentinelle en profondeur', () => {
     const map = generateMap('r', 88, {
       width: 40,

@@ -154,6 +154,7 @@
   "newgame.loading.players": "Positionnement des joueurs…",
   "newgame.loading.init": "Initialisation…",
   "loading.title": "Chargement",
+  "boot.assets": "Chargement des ressources…",
   "options.title": "Options",
   "options.close": "Fermer",
   "options.language": "Langue",

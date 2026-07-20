@@ -514,10 +514,24 @@ function pixiUrls(): string[] {
 /**
  * Réchauffe le cache de textures PixiJS une fois au démarrage. Best-effort et
  * tolérant : une texture qui échoue ne bloque pas les autres (repli procédural
- * au rendu, cf. `getTexture`). Idempotent.
+ * au rendu, cf. `getTexture`). Idempotent. `onProgress(done, total)` est appelé
+ * après CHAQUE texture (réussie ou non) pour piloter le boot loader — c'est la
+ * phase de démarrage la plus longue (tous les PNG téléchargés).
  */
-export async function preloadPixiTextures(): Promise<void> {
-  await Promise.allSettled(pixiUrls().map((url) => Assets.load(url)));
+export async function preloadPixiTextures(
+  onProgress?: (done: number, total: number) => void,
+): Promise<void> {
+  const urls = pixiUrls();
+  let done = 0;
+  onProgress?.(0, urls.length);
+  await Promise.allSettled(
+    urls.map((url) =>
+      Assets.load(url).finally(() => {
+        done += 1;
+        onProgress?.(done, urls.length);
+      }),
+    ),
+  );
 }
 
 /** Texture préchargée si disponible, sinon `undefined` (⇒ repli procédural). */

@@ -196,6 +196,25 @@ test('le client démarre sans erreur et charge le contenu', { tag: ['@mobile', '
   expect(errors).toEqual([]);
 });
 
+// Retour de jeu : le démarrage télécharge tout le contenu + les textures ⇒ un
+// écran de chargement doit couvrir ce temps (avant, écran noir muet). Le boot
+// loader est peint par le HTML STATIQUE (instantané, avant le JS) puis retiré au
+// `__HEROES_READY__`. On verrouille les deux propriétés : présent sans JS, et
+// jamais collé après (sinon il bloquerait l'input).
+test('boot loader : présent dans le HTML statique, retiré une fois le jeu prêt', { tag: '@core' }, async ({ page }) => {
+  // Le HTML SERVI (sans exécuter le bundle) contient déjà le loader ⇒ peinture
+  // immédiate, pas d'écran noir pendant le fetch du contenu/des textures.
+  const html = await (await page.request.get('./')).text();
+  expect(html).toContain('id="boot-loader"');
+
+  await page.goto('./');
+  await page.waitForFunction(() => window.__HEROES_READY__ === true);
+  // Une fois prêt : le loader est retiré du DOM (aucun overlay bloquant résiduel)
+  // et l'UI est interactive.
+  await expect(page.locator('#boot-loader')).toHaveCount(0);
+  await expect(page.getByTestId('menu-new-game')).toBeVisible();
+});
+
 test('tap-tap : déplacement scripté, ramassage, points décomptés', { tag: ['@mobile', '@core'] }, async ({ page }) => {
   const errors = await openGame(page);
 

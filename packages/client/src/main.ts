@@ -124,8 +124,32 @@ declare global {
 /** Seed fixe pour un démarrage de scénario reproductible (hook de test). */
 const TEST_SCENARIO_SEED = 42;
 
+/**
+ * Boot loader (retour de jeu) : l'écran de chargement `#boot-loader` est peint
+ * par `index.html` avant tout JS. On l'avance par phase (barre + statut) puis on
+ * le retire quand le jeu est prêt — sinon le démarrage (fetch contenu +
+ * téléchargement des textures) laisse un écran noir muet.
+ */
+function setBoot(progress: number, status?: string): void {
+  const fill = document.getElementById('boot-loader-fill');
+  if (fill) fill.style.width = `${Math.round(Math.min(1, Math.max(0, progress)) * 100)}%`;
+  if (status !== undefined) {
+    const s = document.getElementById('boot-loader-status');
+    if (s) s.textContent = status;
+  }
+}
+
+/** Retire le boot loader (fondu puis suppression du DOM) une fois le jeu prêt. */
+function hideBootLoader(): void {
+  const el = document.getElementById('boot-loader');
+  if (!el) return;
+  el.classList.add('boot-hidden');
+  window.setTimeout(() => el.remove(), 500); // après le fondre (0.45s) : libère l'input
+}
+
 async function bootstrap(): Promise<void> {
   const report = await loadGameContent();
+  setBoot(0.15);
   window.__HEROES_CONTENT__ = {
     factions: report.content.packs.map((p) => p.manifest.id),
     rejected: report.rejected.map((r) => r.id),
@@ -134,6 +158,7 @@ async function bootstrap(): Promise<void> {
   // Avatars dédiés des héros nommés (M-TAVERN.3) : réf de nom → clé de fiche.
   initHeroAvatars(report.content.packs.flatMap((p) => p.heroes));
   const map = await loadDefaultMap(report);
+  setBoot(0.25);
 
   const app = new Application();
   await app.init({
@@ -156,7 +181,9 @@ async function bootstrap(): Promise<void> {
   // Réchauffe le cache de textures PixiJS (tuiles + objets de carte) avant la
   // 1ʳᵉ scène : les surfaces de rendu lisent le cache en synchrone et retombent
   // sur les placeholders procéduraux si une texture manque (lot intégration).
-  await preloadPixiTextures();
+  // Phase de démarrage la plus longue ⇒ progression réelle sur le boot loader.
+  setBoot(0.3, t('boot.assets'));
+  await preloadPixiTextures((done, total) => setBoot(0.3 + (total ? done / total : 1) * 0.65));
 
   // Scènes construites paresseusement : une partie peut démarrer depuis le
   // menu (Nouvelle partie), une sauvegarde (Continuer/­import) ou `?seed=N`.
@@ -525,6 +552,7 @@ async function bootstrap(): Promise<void> {
     tilemapStats: () => scene?.tilemapStats() ?? { total: 0, built: 0, visible: 0 },
   };
   window.__HEROES_READY__ = true; // signal pour le smoke test headless
+  hideBootLoader(); // jeu prêt (menu/partie affichés) : retire l'écran de chargement
 }
 
 /**
@@ -598,6 +626,7 @@ async function forgeSiege(opts?: { catapult?: boolean; factionId?: string }): Pr
  */
 function showFatalError(err: unknown): void {
   console.error('bootstrap', err);
+  document.getElementById('boot-loader')?.remove(); // le bandeau d'erreur remplace le loader
   const banner = document.createElement('div');
   banner.setAttribute('role', 'alert');
   banner.style.cssText =

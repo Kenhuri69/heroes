@@ -154,6 +154,7 @@
   "newgame.loading.players": "Placing players…",
   "newgame.loading.init": "Initializing…",
   "loading.title": "Loading",
+  "boot.assets": "Loading assets…",
   "options.title": "Options",
   "options.close": "Close",
   "options.language": "Language",

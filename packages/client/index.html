@@ -17,11 +17,40 @@
     /* touch-action none : pan/pinch gérés par la caméra, pas par le navigateur */
     #canvas-root { position: fixed; inset: 0; touch-action: none; }
     #ui-root { position: fixed; inset: 0; pointer-events: none; }
+    /* Boot loader (retour de jeu) : peint INSTANTANÉMENT — HTML + CSS inline, avant
+       même le bundle JS — pour couvrir tout le bootstrap (fetch du contenu +
+       téléchargement des textures), sinon l'écran reste noir et muet. Retiré par
+       main.ts au `__HEROES_READY__`. Couleurs d'identité (or sur ardoise). */
+    #boot-loader {
+      position: fixed; inset: 0; z-index: 100;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.25rem;
+      background: #1a1c22; color: #e8e8ea; font-family: system-ui, -apple-system, sans-serif;
+      transition: opacity .45s ease;
+    }
+    #boot-loader.boot-hidden { opacity: 0; pointer-events: none; }
+    #boot-loader .bl-title { font-size: 2rem; letter-spacing: .18em; text-transform: uppercase; color: #f2c14e; }
+    #boot-loader .bl-ring {
+      width: 48px; height: 48px; border-radius: 50%;
+      border: 4px solid rgba(242, 193, 78, .22); border-top-color: #f2c14e;
+      animation: bl-spin 1s linear infinite;
+    }
+    #boot-loader .bl-bar { width: min(260px, 60vw); height: 6px; border-radius: 3px; background: rgba(255, 255, 255, .1); overflow: hidden; }
+    #boot-loader .bl-fill { height: 100%; width: 8%; background: linear-gradient(90deg, #c9962f, #f2c14e); transition: width .3s ease; }
+    #boot-loader .bl-status { font-size: .95rem; color: #b8b8be; min-height: 1.2em; }
+    @keyframes bl-spin { to { transform: rotate(360deg); } }
+    @media (prefers-reduced-motion: reduce) { #boot-loader .bl-ring { animation: none; } }
   </style>
 </head>
 <body>
   <div id="canvas-root"></div>
   <div id="ui-root"></div>
+  <!-- Écran de chargement initial (retiré dès que le jeu est prêt). -->
+  <div id="boot-loader" role="status" aria-live="polite">
+    <div class="bl-title">Heroes</div>
+    <div class="bl-ring"></div>
+    <div class="bl-bar"><div class="bl-fill" id="boot-loader-fill"></div></div>
+    <div class="bl-status" id="boot-loader-status">Chargement…</div>
+  </div>
   <script type="module" src="/src/main.ts"></script>
 </body>
 </html>

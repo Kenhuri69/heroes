@@ -158,6 +158,13 @@ export interface DrawBoardOptions {
   attackable?: ReadonlySet<string>;
   /** Hexes bloqués par un obstacle (doc 02 §5.1). */
   obstacles?: ReadonlySet<string>;
+  /**
+   * Item 4a : hexes-obstacles portant un SPRITE de rocher peint (posé par
+   * `CombatScene`). Pour ceux-là, on saute le rocher vectoriel `drawBoulder` et
+   * l'aplat « obstacle » fort (le sprite peint suffit) — repli sur le vectoriel
+   * pour tout obstacle absent de ce set (aucun asset).
+   */
+  paintedObstacles?: ReadonlySet<string>;
   /** Hexes de douve de siège (C-SIEGE2.3) : franchissables mais ralentissants. */
   moat?: ReadonlySet<string>;
   /**
@@ -190,6 +197,7 @@ export function drawBoard(g: Graphics, opts: DrawBoardOptions = {}): void {
   const reachable = opts.reachable ?? new Set<string>();
   const attackable = opts.attackable ?? new Set<string>();
   const obstacles = opts.obstacles ?? new Set<string>();
+  const paintedObstacles = opts.paintedObstacles ?? new Set<string>();
   const moat = opts.moat ?? new Set<string>();
   const zone = opts.zone ?? new Set<string>();
   const selected = opts.selected ?? null;
@@ -213,10 +221,13 @@ export function drawBoard(g: Graphics, opts: DrawBoardOptions = {}): void {
       const isMoat = moat.has(key);
 
       // Teinte/marqueur de la surbrillance transitoire éventuelle (état actif).
+      // Item 4a : un obstacle avec sprite peint garde une case NEUTRE (le rocher
+      // porte l'info) ; sans sprite, l'aplat + rocher vectoriel historique.
+      const paintedRock = isObstacle && paintedObstacles.has(key);
       let stateFill: number | null = null;
       let stateStroke = STROKE_BASE;
       let strokeWidth = 1;
-      if (isObstacle) {
+      if (isObstacle && !paintedRock) {
         stateFill = FILL_OBSTACLE;
         stateStroke = STROKE_OBSTACLE;
       } else if (isZone) {
@@ -278,7 +289,8 @@ export function drawBoard(g: Graphics, opts: DrawBoardOptions = {}): void {
             : ALPHA_BASE;
         const stroke = isSelected ? STROKE_SELECTED : stateFill != null ? stateStroke : STROKE_BASE;
         const sw = isSelected ? 3 : strokeWidth;
-        const strokeAlpha = isSelected || isAttackable || isZone || isObstacle ? 1 : ALPHA_STROKE_QUIET;
+        const strokeAlpha =
+          isSelected || isAttackable || isZone || (isObstacle && !paintedRock) ? 1 : ALPHA_STROKE_QUIET;
         g.poly(flatHexPoints(x, y, r))
           .fill({ color: fill, alpha })
           .stroke({ width: sw, color: stroke, alpha: strokeAlpha });
@@ -291,8 +303,8 @@ export function drawBoard(g: Graphics, opts: DrawBoardOptions = {}): void {
         // Losange « touché par la zone » — marqueur non chromatique (A5).
         const d = 5;
         g.poly([x, y - d, x + d, y, x, y + d, x - d, y]).fill({ color: MARKER, alpha: 0.9 });
-      } else if (isObstacle) {
-        drawBoulder(g, x, y, r); // rocher lisible « case bloquée » (bloque le déplacement)
+      } else if (isObstacle && !paintedRock) {
+        drawBoulder(g, x, y, r); // rocher VECTORIEL (repli) — sinon sprite peint (item 4a)
       }
     }
   }

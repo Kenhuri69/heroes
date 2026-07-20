@@ -125,21 +125,28 @@ transitions vérifiées. »*
 ---
 
 ## Sprint 2 (5-7 j) — Ergonomie P0 : le combat mobile & la carte au pouce
-Source : `game-ergonomics-immersion-review.md` Lots 0→2 (vague 1). Certains items
-(E13/E14/E15/E8) sont déjà tombés en commits récents — **re-vérifier l'état exact
-avant d'attaquer**, ne pas refaire.
+Source : `game-ergonomics-immersion-review.md` Lots 0→2 (vague 1).
 
-### 2.1 Lot 0 — micro-correctifs sans risque *(reliquat E2/E13 — ½ j)*
-### 2.2 Lot 1 — combat mobile : rendre le plateau au joueur *(E1/E3/E10 — 2-3 j)*
-- Hexes de combat sous 44 px en mobile (cf. skill `ux-audit` CL7), zoom/pan du
-  plateau, lisibilité de la file d'initiative. Fichiers : `scenes/combat/*`,
-  `ui/combat.tsx`, `render/hexgrid.ts`.
-### 2.3 Lot 2 — navigation au pouce sur la carte *(E4 — 1-2 j)*
-- Confort du tap-tap, taille des cibles d'objets, gestes. Fichiers :
-  `input/pointer.ts`, `AdventureScene.handleTap/handleLongPress`.
+### ⚠️ Découverte (audit vs `main`, 2026-07) : **les Lots 0/1/2 P0 sont DÉJÀ LIVRÉS.**
+Audit item par item (agent Explore, preuves `fichier:ligne`) : 0.1 « Se rendre »
+sans « (0 or) » ✅, 0.2 sous-libellé « Aucune sauvegarde » ✅, 0.3 pip ville non
+chromatique ✅, 0.4 bouton « raccourcis » dans Options ✅ ; 1.1 barre compacte + « ⋯ »
+(5 primaires) ✅, 1.2 bandeau d'aide ancré ✅, 1.3 fondu + auto-scroll initiative ✅,
+1.4 pan de combat borné (clamp, ≥44 px) ✅ ; 2.1 « héros suivant » HUD ✅, 2.2 tap
+portrait = centrer ✅, 2.3 accès villes (bouton/ville plutôt que popup-liste —
+objectif joueur atteint, écart de forme). ⇒ **aucune construction P0 à faire.**
 
-**Milestone S2 :** *« Le combat et la carte se pilotent confortablement au pouce
-sur mobile (audit ux-audit vert sur les écrans concernés). »*
+### 2.x Verrou de non-régression P0 (fait) *(½ j)*
+Les micro-correctifs P0 n'avaient **pas** de test de non-régression (ils pouvaient
+régresser en silence). Ajout d'assertions aux tests de même état (pas de smoke
+redondant, skill test-authoring) : **0.2** `menu-continue-hint` visible quand
+« Continuer » est grisé ; **0.4** `options-shortcuts` atteignable sans clavier →
+ouvre `ShortcutsOverlay` ; **0.1** le libellé « Se rendre » ne contient **jamais**
+« (0 » (verrou robuste du bug corrigé). **Vérif :** 3 tests étendus verts,
+`pnpm lint`/`typecheck` verts.
+
+**Milestone S2 (P0) :** *atteint AVANT ce sprint — verrouillé ici.* La vraie
+friction restante est en P1 (Lot 4 confort de gestion) — voir Sprint 3.
 
 ---
 

@@ -301,8 +301,12 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 > écurie `movement`, arbre du savoir `levelXp` — l'XP du niveau suivant,
 > **pierre du savoir `experience`** (M-VISIT : montant **fixe** d'XP au héros
 > visiteur — classique « Learning Stone » HoMM, distinct de l'arbre `levelXp`),
-> moulin `resource` fixe, **arène/statue `permanentStat`** (M-VISIT : +attribut
-> primaire **définitif** au héros visiteur), **sanctuaire de sort `learnSpell`**
+> moulin `resource` fixe, **arène/lieu d'entraînement `permanentStat`** (M-VISIT :
+> +attribut primaire **définitif** au héros visiteur — pilier HoMM : Camp de
+> mercenaires +Attaque, Marletto Tower +Défense, Axe stellaire +Pouvoir, Jardin de
+> la révélation +Savoir ; **posés aussi par `generateMap`** depuis les cartes
+> aléatoires, plus seulement les cartes écrites — attribut tiré à la graine,
+> `oncePerHero`), **sanctuaire de sort `learnSpell`**
 > (M-VISIT : enseigne un sort précis au héros — ajout idempotent à `hero.spells`,
 > classique « Sanctuaire de Magie » HoMM), **cabane de la sorcière `grantSkill`**
 > (M-VISIT : enseigne une **compétence** au héros — rang 1, HORS montée de niveau,

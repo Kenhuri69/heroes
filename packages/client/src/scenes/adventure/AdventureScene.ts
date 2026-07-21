@@ -41,6 +41,13 @@ import { pushToast } from '../../ui/toasts';
 const STEP_ANIMATION_MS = 110;
 
 /**
+ * Zoom initial de la carte d'aventure (retour de jeu) : > 1 pour que le terrain
+ * remplisse la vue au démarrage plutôt que de flotter dans le brouillard. Borné
+ * par le zoom max de la caméra (2×) ; le joueur reste libre de dézoomer.
+ */
+const INITIAL_ADVENTURE_ZOOM = 1.6;
+
+/**
  * Marqueur « fouiller ici » du Graal (T-GRAIL lot 2) : croix rayonnante dorée
  * sur socle losange, posée sur la tuile révélée. Procédural (déterministe),
  * couleurs Pixi hors périmètre du garde-fou couleur (ui/*.css seulement).
@@ -684,11 +691,18 @@ export class AdventureScene {
     });
   }
 
-  /** Centre la caméra sur le héros sélectionné (appelé au démarrage). */
+  /**
+   * Centre la caméra sur le héros sélectionné (appelé au démarrage). Applique un
+   * **zoom initial rapproché** (retour de jeu) : au zoom 1, en début de partie
+   * (grande part de brouillard, petite carte proto), la zone explorée flottait au
+   * milieu du noir — premier écran peu engageant. On démarre plus près pour que le
+   * terrain remplisse la vue ; le joueur dézoome librement (le zoom reste borné).
+   */
   centerOnHero(app: Application): void {
     const { game } = appStore.getState();
     const hero = resolveSelectedHero(game, appStore.getState().selectedHeroId);
     if (!hero) return;
+    this.camera.world.scale.set(INITIAL_ADVENTURE_ZOOM);
     const scale = this.camera.world.scale.x;
     const c = isoTileCenter(hero.pos.x, hero.pos.y);
     this.camera.world.position.set(

@@ -96,7 +96,9 @@ jobs:
       - name: Vérifier l'absence d'assets de génération dans dist/assets
         run: |
           fail=0
+          seen=0
           while IFS= read -r src; do
+            seen=$((seen + 1))
             # Nom émis par Vite : <base>-<hash 8>.<ext> (le glob de hash évite de
             # confondre `siege-kit.png` avec `siege-kit-template.png`).
             base=$(basename "$src")
@@ -106,8 +108,15 @@ jobs:
               fail=1
             fi
           done < <(find assets/prompts -type f \( -name '*.png' -o -name '*.jpg' \))
+          # Non-vacuité : un garde-fou dérivé de l'arborescence passe « vert » pour
+          # de mauvaises raisons si l'arborescence disparaît (répertoire renommé,
+          # checkout partiel). On exige au moins une source à confronter.
+          if [ "$seen" -eq 0 ]; then
+            echo "::error::aucune image trouvée dans assets/prompts/ — garde-fou vacant, vérifier le chemin"
+            exit 1
+          fi
           [ "$fail" -eq 0 ]
-          echo "aucun asset de assets/prompts/ dans dist/assets ✓"
+          echo "aucun des ${seen} assets de assets/prompts/ n'est dans dist/assets ✓"
 
       # Budget d'images (doc 07 §6, R7/P2) — deux bornes chiffrées :
       #  1. poids TOTAL de dist/assets ≤ 96 Mio : mesuré 84 Mio, marge calibrée sur

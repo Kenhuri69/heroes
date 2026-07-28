@@ -36,6 +36,14 @@ describe('buildingInitials', () => {
     expect(buildingInitials('Sous-sol')).toBe('SS');
   });
 
+  it('ignore la ponctuation au lieu d’en faire une initiale', () => {
+    // Régression observée en capture : « Graal (test) » rendait « G( » sur le
+    // marqueur — une parenthèse lue comme un glyphe cassé, alors que le repli
+    // est justement là pour NOMMER le bâtiment (constat H2).
+    expect(buildingInitials('Graal (test)')).toBe('GT');
+    expect(buildingInitials('« Choixpeau »')).toBe('CH');
+  });
+
   it('ne rend jamais un marqueur vide', () => {
     expect(buildingInitials('')).toBe('?');
     expect(buildingInitials('   ')).toBe('?');

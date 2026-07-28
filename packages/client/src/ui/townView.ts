@@ -58,7 +58,10 @@ export function writeTownViewCollapsed(collapsed: boolean): void {
  * marqueur sans aucun contenu).
  */
 export function buildingInitials(name: string): string {
-  const words = name.split(/[\s'’\-—·]+/).filter((w) => w.length > 0);
+  // Découpe sur TOUT ce qui n'est ni lettre ni chiffre (et non sur une liste de
+  // séparateurs) : sinon un nom parenthésé comme « Graal (test) » rendait « G( »,
+  // une initiale de ponctuation qui se lit comme un défaut d'affichage.
+  const words = name.split(/[^\p{L}\p{N}]+/u).filter((w) => w.length > 0);
   if (words.length === 0) return '?';
   const letters = words.length >= 2 ? `${words[0]![0]!}${words[1]![0]!}` : words[0]!.slice(0, 2);
   return letters.toLocaleUpperCase();

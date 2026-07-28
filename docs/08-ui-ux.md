@@ -550,6 +550,11 @@ Menu principal (Continuer / Scénarios / Escarmouche / **Éditeur de carte** / O
   clavier) = ferme la modale du dessus.
 - Toutes les actions du tour sont annulables **tant qu'aucune information n'a été révélée** (déplacement sans découverte ni combat) — bouton « Annuler le déplacement » ; construction/recrutement non annulables (simplicité économique).
 - Notifications de jeu : file de **toasts** éphémères (croissance hebdo, revenus, ramassage, construction/recrutement, niveau, fin de combat…) **filtrées au joueur humain** (les actions des IA ne notifient pas), doublées d'un **journal consultable** (bouton cloche du HUD avec badge de non-lus) — modale de la pile listant l'historique daté, la plus récente en tête. Le feedback positif inclut la **sauvegarde manuelle réussie**.
+- **Aucune action ne peut échouer en silence** (lot R0). Trois règles :
+  1. **Tout rejet de commande est affiché** en toast d'erreur — y compris « Fin de tour » (le bouton le plus utilisé) et « Réorganiser »/« Séparer ». Seule exception, **explicitement testée** : une réorganisation refusée parce que ce n'est pas le tour du joueur (sans conséquence) reste muette.
+  2. **Une action ignorée est dite, sobrement** : destination inatteignable (« Destination inaccessible » — et la **prévisualisation en cours est conservée** : un tap raté ne fait pas perdre le chemin déjà posé), tap pendant un tour adverse, tap pendant l'animation d'un déplacement. Taper hors carte ou sur son propre héros reste sans message : c'est une annulation de préviz, pas un refus.
+  3. **Anti-spam** : ces retours étant déclenchables en rafale (taps répétés), un message identique déjà affiché n'est **pas empilé** — dix taps sur une montagne = un toast. Les toasts d'**événement** ne sont pas dédupliqués (deux gains identiques restent deux informations).
+- **Blocage de partie signalé, avec porte de sortie** : si un tour adverse (IA) échoue, la main revient au joueur (son tour est à rejouer, cf. doc 02 §6) ; quand c'est impossible, un overlay non ambigu annonce l'état bloqué et propose de **recharger la dernière sauvegarde** — jamais d'écran figé sans explication.
 
 ## 4. Accessibilité
 

@@ -3,19 +3,23 @@ import { appStore } from './store';
 import { dispatch } from './dispatch';
 import { humanHeroes, humanId } from './game';
 import { refreshDailiesForCurrentDay } from './daily-refresh';
+import { reportCommandError } from './command-error';
 
 /**
  * Fin de tour humain (un seul point de sortie) : dispatch `EndTurn` — qui joue
  * aussi les tours IA jusqu'au prochain humain (le jour a alors avancé) — puis
  * rafraîchit les contrats journaliers du nouveau jour (N-DAILYREFRESH ; no-op
- * hors mode libre). Erreurs avalées comme l'ancien `void dispatch`.
+ * hors mode libre).
+ *
+ * Lot R0 (B3) : un rejet n'est plus avalé. Le bouton le plus utilisé du jeu ne
+ * doit jamais être un no-op muet — le rejet part en toast d'erreur (patron
+ * standard `AdventureScene`/`combat.tsx`), dédupliqué pour l'appui insistant. Le
+ * tour n'est alors pas consommé : l'état reste celui du joueur.
  */
 function endHumanTurn(playerId: string): void {
   void dispatch({ type: 'EndTurn', playerId })
     .then(() => refreshDailiesForCurrentDay())
-    .catch(() => {
-      /* rejet de validate/apply ou refresh — non bloquant (comportement historique) */
-    });
+    .catch((err: unknown) => reportCommandError(err));
 }
 
 /**

@@ -443,6 +443,39 @@ test("préviz de chemin : « Annuler le déplacement » efface l'aperçu (doc 08
   expect(errors).toEqual([]);
 });
 
+test(
+  'R0/B5 : tap sur une destination inatteignable ⇒ retour explicite, préviz conservée',
+  { tag: '@core' },
+  async ({ page }) => {
+    const errors = await openGame(page);
+
+    // Préviz posée sur une destination VALIDE (1er tap, doc 08 §2.1).
+    const ok = await page.evaluate(() => window.__HEROES_TEST__!.tileToScreen(6, 3));
+    const cancel = page.getByTestId('cancel-path');
+    await expect(async () => {
+      await page.mouse.click(ok.x, ok.y);
+      await expect(cancel).toBeVisible({ timeout: 1000 });
+    }).toPass({ timeout: 10000 });
+
+    // Dézoom molette pour amener une tuile de MONTAGNE (14,4) de proto-01 —
+    // infranchissable, `findPath` rend `null` — dans le viewport, puis 3 taps.
+    await page.mouse.move(640, 300);
+    for (let i = 0; i < 12; i++) await page.mouse.wheel(0, 120);
+    const blocked = await page.evaluate(() => window.__HEROES_TEST__!.tileToScreen(14, 4));
+    for (let i = 0; i < 3; i++) await page.mouse.click(blocked.x, blocked.y);
+
+    // Le refus est DIT (avant R0 : zéro message) — et une seule fois malgré 3 taps.
+    const toast = page.getByTestId('toast');
+    await expect(toast).toBeVisible();
+    await expect(toast).toHaveCount(1);
+    await expect(toast).toHaveAttribute('data-kind', 'error');
+    // …et la préviz déjà posée survit au tap raté (avant R0 : effacée).
+    await expect(cancel).toBeVisible();
+
+    expect(errors).toEqual([]);
+  },
+);
+
 test("appui long sur la mine (3,6) : fiche d'objet de carte (doc 08 §2.1, lot M2)", async ({
   page,
 }) => {

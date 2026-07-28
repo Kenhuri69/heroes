@@ -112,8 +112,9 @@ export async function restoreSavedGame(slot: SaveSlot): Promise<boolean> {
   // La narration/les journaux de la partie en cours ne concernent pas la partie
   // chargée (le catalogue narratif n'est pas persisté) — purge (B35).
   resetNarrativeState();
-  // Chargement d'une partie : route aventure + pile de modales vidée (U2).
-  appStore.setState({ game: state, screen: 'adventure', modals: [] });
+  // Chargement d'une partie : route aventure + pile de modales vidée (U2), et
+  // signalement d'échec de tour IA levé (R0/B1 : le rechargement EST la sortie).
+  appStore.setState({ game: state, screen: 'adventure', modals: [], aiFailure: false });
   eventBus.emit([{ type: 'GameLoaded' }]);
   return true;
 }

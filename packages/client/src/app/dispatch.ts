@@ -3,6 +3,8 @@ import { appStore, type CombatResult, type CombatResultUnit } from './store';
 import { eventBus } from './events';
 import { reduceMotion } from './motion';
 import { recordOnlineTurn } from './online-match';
+import { t } from './i18n';
+import { pushToastOnce } from '../ui/toasts';
 
 /**
  * Bilan de fin de combat (retour de jeu 2026-07) : agrège les événements du
@@ -112,7 +114,9 @@ export async function dispatch(cmd: Command): Promise<EngineResult> {
   // NET-PVPUI (slice B) : capture/poste le tour en ligne (no-op hors match). Avant
   // `runAiLoop` (de toute façon no-op en PvP 2 humains).
   await recordOnlineTurn(cmd, gameBefore);
-  await runAiLoop();
+  // `gameBefore` = état de REPLI si un tour IA échoue (lot R0/B1) : c'est un état
+  // produit par le moteur où la main est encore au joueur humain.
+  await runAiLoop(gameBefore);
   return result;
 }
 
@@ -159,6 +163,32 @@ function yieldToPaint(ms: number): Promise<void> {
   });
 }
 
+/**
+ * Échec d'un tour IA (lot R0/B1) : la boucle s'arrête, le joueur est PRÉVENU et
+ * récupère la main quand c'est possible — au lieu du gel silencieux (l'exception
+ * traversait `dispatch` jusqu'à un `catch` vide, laissant `currentPlayer` sur
+ * l'IA et toutes les entrées humaines gardées).
+ *
+ * `currentPlayer` est un champ MOTEUR : il n'est jamais bricolé côté client
+ * (guidelines §8 — ce serait un état que le moteur n'a pas produit, qu'un autosave
+ * pourrait figer). Deux issues, toutes deux côté client :
+ * 1. **rollback** sur `fallback` — l'état d'avant le dispatch, où c'est encore au
+ *    joueur humain de jouer : la main revient, son tour n'est pas consommé ;
+ * 2. sans repli humain (reprise `installAiResume` d'une sauvegarde « prise en
+ *    plein relais IA ») : état **explicitement signalé** (`aiFailure`) avec
+ *    action de récupération — recharger la dernière sauvegarde.
+ */
+function handleAiTurnFailure(err: unknown, fallback: GameState | undefined): void {
+  console.error('runAiLoop : tour IA en échec —', err);
+  if (fallback && fallback.players[fallback.currentPlayer]?.controller === 'human') {
+    appStore.setState({ game: fallback, aiFailure: false });
+    pushToastOnce(t('toast.aiTurnFailed'), 'error');
+    return;
+  }
+  appStore.setState({ aiFailure: true });
+  pushToastOnce(t('toast.aiTurnBlocked'), 'error');
+}
+
 /** Nombre de tours IA consécutifs à venir depuis le joueur courant (même ordre que le moteur : index croissant, cyclique) jusqu'au prochain joueur humain. */
 function countPendingAiTurns(game: GameState): number {
   const n = game.players.length;
@@ -192,7 +222,7 @@ function countPendingAiTurns(game: GameState): number {
  * commande → moteur (doc 07 §3), donc le seul endroit où « l'état vient de
  * changer » sans ambiguïté.
  */
-async function runAiLoop(): Promise<void> {
+async function runAiLoop(fallback?: GameState): Promise<void> {
   if (aiLoopRunning) return;
   const total = countPendingAiTurns(appStore.getState().game);
   if (total === 0) return;
@@ -206,13 +236,23 @@ async function runAiLoop(): Promise<void> {
       const current = game.players[game.currentPlayer];
       if (!current || current.controller !== 'ai') return;
       if (done >= MAX_AI_TURNS_PER_DISPATCH) {
-        throw new Error('runAiLoop : trop de tours IA d’affilée, boucle infinie suspectée');
+        // Traité comme un échec de tour IA (R0/B1) : le `throw` d'avant traversait
+        // `dispatch` et finissait dans un `catch` vide ⇒ partie figée sans message.
+        handleAiTurnFailure(new Error('trop de tours IA d’affilée, boucle infinie suspectée'), fallback);
+        return;
       }
       // Annonce le tour de CETTE IA puis laisse l'UI se peindre avant de calculer
       // (le calcul du tour IA est synchrone côté moteur — le yield doit précéder).
       appStore.setState({ aiTurn: { seat: game.currentPlayer + 1, done, total: Math.max(total, done + 1) } });
       await yieldToPaint(pacing);
-      const result = apply(appStore.getState().game, { type: 'AiTurn', playerId: current.id });
+      let result: EngineResult;
+      try {
+        result = apply(appStore.getState().game, { type: 'AiTurn', playerId: current.id });
+      } catch (err) {
+        // Échec ISOLÉ dans la boucle (R0/B1) : on arrête là, on prévient, on rend la main.
+        handleAiTurnFailure(err, fallback);
+        return;
+      }
       appStore.setState({ game: result.state });
       eventBus.emit(result.events);
       done += 1;

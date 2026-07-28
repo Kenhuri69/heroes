@@ -887,6 +887,18 @@ threadé en `heroId` dans `CastSpell`/`HeroAttack` — sinon le lead par défaut
 > cible que ce que **son joueur a exploré** (revue 2026-07 B31 — plus de
 > triche d'information sous brouillard) et **ignore un butin encore gardé**
 > par sa sentinelle (B30). 3 scénarios solo en données (`data/scenarios/`).
+>
+> **Fin de tour & relais IA — jamais d'échec muet (lot R0, doc 08 §3)** : la fin
+> de tour humain enchaîne les tours IA jusqu'au prochain humain. Si `EndTurn` est
+> **rejetée**, le tour n'est pas consommé et le refus est **affiché** (le bouton
+> n'est plus un no-op muet). Si un **tour IA échoue** (erreur moteur, ou garde-fou
+> anti-boucle de 200 tours d'affilée), le relais s'arrête et la partie **revient à
+> l'état d'avant la fin de tour** — la main est au joueur, son tour est à rejouer.
+> Quand aucun état de repli humain n'existe (sauvegarde reprise en plein relais
+> IA), l'état bloqué est **signalé explicitement** avec une porte de sortie
+> (recharger la dernière sauvegarde) : plus aucun chemin ne mène à une partie
+> figée sans message. `currentPlayer` reste un champ **moteur** — le client ne le
+> réécrit jamais.
 
 > 🤝 **Combats coopératifs (E4, doc 18 — cadrage E4.1, décision de design)**. MMHO
 > permettait d'inviter un allié dans sa bataille (2 armées côte à côte contre le

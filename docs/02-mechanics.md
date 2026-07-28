@@ -887,6 +887,28 @@ threadé en `heroId` dans `CastSpell`/`HeroAttack` — sinon le lead par défaut
 > cible que ce que **son joueur a exploré** (revue 2026-07 B31 — plus de
 > triche d'information sous brouillard) et **ignore un butin encore gardé**
 > par sa sentinelle (B30). 3 scénarios solo en données (`data/scenarios/`).
+>
+> **Fin de tour & relais IA — jamais d'échec muet (lot R0, doc 08 §3)** : la fin
+> de tour humain enchaîne les tours IA jusqu'au prochain humain. Si `EndTurn` est
+> **rejetée**, le tour n'est pas consommé et le refus est **affiché** (le bouton
+> n'est plus un no-op muet). Si un **tour IA échoue** (erreur moteur, ou garde-fou
+> anti-boucle de 200 tours d'affilée), le relais s'arrête et la partie **revient à
+> l'état d'avant la fin de tour** — la main est au joueur, son tour est à rejouer.
+> Quand aucun état de repli humain n'existe (sauvegarde reprise en plein relais
+> IA), l'état bloqué est **signalé explicitement** avec une porte de sortie
+> (recharger la dernière sauvegarde) : plus aucun chemin ne mène à une partie
+> figée sans message. Cette porte de sortie **ne peut pas échouer en silence**
+> non plus : aucune sauvegarde disponible ou stockage inaccessible ⇒ le refus est
+> affiché et le signalement reste posé. Un **abonné de présentation** qui lève
+> pendant un tour IA (journal, audio, campagne…) est traité comme le tour IA
+> lui-même : arrêt du relais, message, main rendue. `currentPlayer` reste un
+> champ **moteur** — le client ne le réécrit jamais.
+> *Limite connue (assumée)* : le retour à l'état d'avant la fin de tour ne
+> rollbacke **que l'état moteur**. Les événements du tour humain et des tours IA
+> déjà réussis ont été **présentés** (journal narratif, campagne, quêtes,
+> combat-log) ; en rejouant son tour, le joueur peut voir certains de ces
+> messages une seconde fois. Aucune divergence avec la sauvegarde (l'autosave
+> n'écrit que quand la main est à un humain).
 
 > 🤝 **Combats coopératifs (E4, doc 18 — cadrage E4.1, décision de design)**. MMHO
 > permettait d'inviter un allié dans sa bataille (2 armées côte à côte contre le

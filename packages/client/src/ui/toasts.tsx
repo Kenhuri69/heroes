@@ -25,6 +25,20 @@ export function pushToast(message: string, kind: ToastKind = 'info'): void {
 }
 
 /**
+ * Variante **dédupliquée** de `pushToast` (lot R0, doc 08 §3) : n'ajoute rien si
+ * un toast identique (même message, même `kind`) est encore affiché. Réservée aux
+ * retours d'action déclenchables **en rafale** — dix taps sur une montagne ne
+ * doivent pas empiler dix toasts « Destination inaccessible ». Les toasts
+ * d'ÉVÉNEMENT gardent `pushToast` : deux gains identiques dans un même lot
+ * restent deux informations distinctes.
+ */
+export function pushToastOnce(message: string, kind: ToastKind = 'info'): void {
+  const shown = appStore.getState().toasts;
+  if (shown.some((toast) => toast.message === message && toast.kind === kind)) return;
+  pushToast(message, kind);
+}
+
+/**
  * Classe un toast événementiel (doc 08 §3, UXD-6b) : **succès** = action
  * positive confirmée du joueur (construction, recrutement, capture, gains de
  * combat/partie…) ; **erreur** = échec de stockage d'une sauvegarde ; le reste

@@ -36,7 +36,7 @@ import { PathPreview, type PreviewStep } from '../../render/pathPreview';
 import { onLongPress, onTap } from '../../input/pointer';
 import { commandErrorMessage, resolveHeroName, t } from '../../app/i18n';
 import { requestCoopInvite } from '../../app/coop-invite';
-import { pushToast } from '../../ui/toasts';
+import { pushToast, pushToastOnce } from '../../ui/toasts';
 
 const STEP_ANIMATION_MS = 110;
 
@@ -459,20 +459,33 @@ export class AdventureScene {
   }
 
   private async handleTap(global: Point): Promise<void> {
-    if (this.destroyed || this.animatingHeroId !== null) return;
+    if (this.destroyed) return;
+    // Déplacement en cours d'animation : le tap est ignoré, mais on le DIT (R0/B5)
+    // — retour discret dédupliqué, le joueur ne croit pas son appui perdu.
+    if (this.animatingHeroId !== null) {
+      pushToastOnce(t('toast.heroMoving'));
+      return;
+    }
     const { game } = appStore.getState();
     // En combat, la scène de combat a la main — la carte ignore les taps.
     if (game.combat) return;
     // Tour d'un adversaire (IA) en cours : les actions du héros humain sont
     // ignorées (le moteur les rejetterait). La caméra (pan/zoom) reste libre —
-    // le joueur peut observer la carte pendant que l'IA joue.
-    if (game.players[game.currentPlayer]?.controller !== 'human') return;
+    // le joueur peut observer la carte pendant que l'IA joue. Retour discret
+    // dédupliqué (R0/B5) : taper 10 fois pendant le relais ne fait pas 10 toasts.
+    if (game.players[game.currentPlayer]?.controller !== 'human') {
+      pushToastOnce(t('toast.aiTurnInProgress'));
+      return;
+    }
     const { map, config } = game;
     const hero = resolveSelectedHero(game, appStore.getState().selectedHeroId);
     if (!map || !config || !hero) return;
 
     const local = this.container.toLocal(global);
     const tile: GridPos = isoWorldToTile(local.x, local.y);
+    // Ces deux sorties restent volontairement SANS message (R0/B5) : taper hors
+    // carte ou sur son propre héros n'est pas une action refusée mais une
+    // annulation de préviz — un toast y serait du bruit.
     if (tile.x < 0 || tile.y < 0 || tile.x >= map.width || tile.y >= map.height) {
       this.clearPreview();
       return;
@@ -568,15 +581,20 @@ export class AdventureScene {
       Infinity,
       hero.naval,
     );
+    if (!path) {
+      // Destination inatteignable (R0/B5) : le joueur est prévenu (toast dédupliqué
+      // — dix taps sur une montagne ne font pas dix toasts) et la préviz déjà posée
+      // est CONSERVÉE : un tap raté ne fait plus perdre le chemin en cours. Placé
+      // AVANT la mise à jour de `guardianHint` : la fourchette de force de la préviz
+      // en cours ne doit pas être effacée non plus (écart de vérification R0 #5).
+      pushToastOnce(t('toast.destinationUnreachable'), 'error');
+      return;
+    }
     // Fourchette de force affichée (comme un gardien) : effectif total du héros ennemi.
     const enemyCount = enemyHero ? enemyHero.army.reduce((n, s) => n + s.count, 0) : 0;
     appStore.setState({
-      guardianHint: path && (guardian || enemyHero) ? { count: guardian ? guardian.count : enemyCount } : null,
+      guardianHint: guardian || enemyHero ? { count: guardian ? guardian.count : enemyCount } : null,
     });
-    if (!path) {
-      this.clearPreview();
-      return;
-    }
     // Préviz du COMPTE DE JOURS (doc 02 §1.5/:76, C5) : on consomme les PM du jour,
     // et quand un pas ne rentre plus dans le budget on passe au jour suivant en
     // rechargeant l'allocation quotidienne (`dailyMovementPoints`). Couleur par jour.

@@ -67,7 +67,10 @@ export function navigate(screen: Screen): void {
     screen,
     modals: [],
     turnAck: null,
-    ...(screen === 'menu' ? { playerColors: {}, activeChapter: null, onlineMatch: null } : {}),
+    // `aiFailure` (R0/B1) est lié à la partie quittée : le menu repart propre.
+    ...(screen === 'menu'
+      ? { playerColors: {}, activeChapter: null, onlineMatch: null, aiFailure: false }
+      : {}),
   });
 }
 

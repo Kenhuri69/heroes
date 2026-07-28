@@ -225,6 +225,14 @@ export interface AppState {
    */
   aiTurn: { seat: number; done: number; total: number } | null;
   /**
+   * Tour IA en échec **sans état de repli** (lot R0/B1) : la main reste à une IA
+   * et le client ne peut pas la rendre sans fabriquer un état moteur ⇒ overlay
+   * explicite « partie bloquée » proposant de recharger la dernière sauvegarde.
+   * `false` = rien à signaler (cas normal, et cas où le rollback a suffi).
+   * Purement présentation client (non persisté) ; remis à `false` au retour menu.
+   */
+  aiFailure: boolean;
+  /**
    * Partie PvP asynchrone en cours (NET-PVPUI slice B) — `null` en partie locale.
    * `id` = match serveur ; `nextSeq` = prochain n° de lot à poster ; `myPlayerId`
    * = id moteur de MON siège (pour savoir quand c'est mon tour). Présentation/
@@ -317,6 +325,7 @@ export const appStore = createStore<AppState>(() => ({
   loading: null,
   playerColors: {},
   aiTurn: null,
+  aiFailure: false,
   onlineMatch: null,
   combatSpellTarget: null,
   combatActingHeroId: null,

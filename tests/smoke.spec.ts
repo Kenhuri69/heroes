@@ -443,6 +443,78 @@ test("préviz de chemin : « Annuler le déplacement » efface l'aperçu (doc 08
   expect(errors).toEqual([]);
 });
 
+test(
+  'R0/B5 : tap sur une destination inatteignable ⇒ retour explicite, préviz conservée',
+  { tag: '@core' },
+  async ({ page }) => {
+    const errors = await openGame(page);
+
+    // Dézoom molette : amène dans le viewport le gardien (9,3) ET la tuile de
+    // MONTAGNE (14,4) de proto-01 (infranchissable, `findPath` rend `null`).
+    await page.mouse.move(640, 300);
+    for (let i = 0; i < 12; i++) await page.mouse.wheel(0, 120);
+
+    // Préviz posée sur une destination VALIDE (1er tap, doc 08 §2.1) — un
+    // GARDIEN, pour que la fourchette de force soit affichée avec le chemin.
+    const ok = await page.evaluate(() => window.__HEROES_TEST__!.tileToScreen(9, 3));
+    const cancel = page.getByTestId('cancel-path');
+    const hint = page.getByTestId('guardian-hint');
+    await expect(async () => {
+      await page.mouse.click(ok.x, ok.y);
+      await expect(cancel).toBeVisible({ timeout: 1000 });
+    }).toPass({ timeout: 10000 });
+    await expect(hint).toBeVisible();
+
+    const blocked = await page.evaluate(() => window.__HEROES_TEST__!.tileToScreen(14, 4));
+    for (let i = 0; i < 3; i++) await page.mouse.click(blocked.x, blocked.y);
+
+    // Le refus est DIT (avant R0 : zéro message) — et une seule fois malgré 3 taps.
+    const toast = page.getByTestId('toast');
+    await expect(toast).toBeVisible();
+    await expect(toast).toHaveCount(1);
+    await expect(toast).toHaveAttribute('data-kind', 'error');
+    // …et la préviz déjà posée survit au tap raté (avant R0 : effacée) — chemin
+    // ET fourchette de force (écart de vérification R0 #5 : conservation TOTALE,
+    // plus d'état mixte « chemin affiché, force effacée »).
+    await expect(cancel).toBeVisible();
+    await expect(hint).toBeVisible();
+
+    expect(errors).toEqual([]);
+  },
+);
+
+test(
+  'R0/B1 : overlay « partie bloquée » — la porte de sortie ne peut pas échouer en silence',
+  { tag: '@core' },
+  async ({ page }) => {
+    const errors = await openGame(page);
+    const notice = page.getByTestId('ai-failure');
+    const errorToast = page.locator('[data-testid="toast"][data-kind="error"]');
+
+    // L'overlay se pose sur l'état de signalement (posé ici par le hook de test :
+    // la TRANSITION échec de tour IA → `aiFailure` est couverte en unitaire,
+    // `dispatch.test.ts` — elle exige un moteur qui lève).
+    await page.evaluate(() => window.__HEROES_TEST__!.setAiFailure(true));
+    await expect(notice).toBeVisible();
+
+    // Aucune sauvegarde en base ⇒ le rechargement ÉCHOUE : il est DIT (toast
+    // d'erreur) et l'overlay reste — plus de clic sans effet ni message.
+    await page.getByTestId('ai-failure-reload').click();
+    await expect(errorToast).toBeVisible();
+    await expect(notice).toBeVisible();
+
+    // Avec une sauvegarde, la porte de sortie fonctionne : overlay levé.
+    await page.getByTestId('ai-failure-dismiss').click();
+    await expect(notice).toHaveCount(0);
+    await clickSaveAction(page, 'save');
+    await page.evaluate(() => window.__HEROES_TEST__!.setAiFailure(true));
+    await page.getByTestId('ai-failure-reload').click();
+    await expect(notice).toHaveCount(0);
+
+    expect(errors).toEqual([]);
+  },
+);
+
 test("appui long sur la mine (3,6) : fiche d'objet de carte (doc 08 §2.1, lot M2)", async ({
   page,
 }) => {

@@ -18,6 +18,8 @@ import { back, closeModalKind, openModal, useModals, useScreen } from '../app/ro
 import { requestEndTurn, confirmPendingEndTurn, cancelPendingEndTurn } from '../app/end-turn';
 import { confirmCoopInvite, declineCoopInvite, cancelCoopInvite } from '../app/coop-invite';
 import { dispatch } from '../app/dispatch';
+import { reportArmyCommandError } from '../app/command-error';
+import { restoreLatestSave } from '../app/save';
 import {
   adjacentFriendlyHeroes,
   heroArchetype,
@@ -50,7 +52,7 @@ import { NewGameScreen } from './NewGameScreen';
 import { BriefingScreen } from './BriefingScreen';
 import { LoadingOverlay } from './LoadingOverlay';
 import { Journal } from './Journal';
-import { ToastHost } from './toasts';
+import { ToastHost, pushToast } from './toasts';
 import { CombatUi } from './combat';
 import { PreBattleScreen } from './PreBattleScreen';
 import { TownScreen } from './TownScreen';
@@ -294,6 +296,8 @@ function Shell() {
       {pendingTreasure && <TreasureChoice pending={pendingTreasure} />}
       {pendingTriggerChoice && <TriggerChoice pending={pendingTriggerChoice} />}
       <EndTurnConfirm />
+      {/* Partie bloquée par un tour IA en échec (R0/B1) — signalement + récupération. */}
+      {screen === 'adventure' && <AiFailureNotice />}
       {screen === 'adventure' && <CoopInviteConfirm />}
       {screen === 'adventure' && <HandoffOverlay />}
       {screen === 'adventure' && <OnlineWaitOverlay />}
@@ -489,6 +493,56 @@ function CoopInviteConfirm() {
   );
 }
 
+/**
+ * Partie bloquée par un tour IA en échec (lot R0/B1) : quand le client ne peut
+ * PAS rendre la main (aucun état de repli humain — typiquement une sauvegarde
+ * reprise en plein relais IA), l'état est **explicitement signalé** au joueur avec
+ * une action de récupération : recharger la dernière sauvegarde. Plus jamais de
+ * partie figée sans message. « Fermer » laisse l'écran consultable (export,
+ * options) sans ré-armer le signalement : la sortie reste le rechargement — ici
+ * ou par Menu → Continuer (écart de vérification R0 #4).
+ *
+ * La porte de sortie elle-même ne peut pas échouer en silence (#2) : aucune
+ * sauvegarde disponible (`false`) ou stockage inaccessible (rejet) ⇒ toast
+ * d'erreur, overlay laissé en place.
+ */
+function AiFailureNotice() {
+  useApp((s) => s.locale);
+  const blocked = useApp((s) => s.aiFailure);
+  const reload = (): void => {
+    restoreLatestSave()
+      .then((ok) => {
+        if (!ok) pushToast(t('aiFailure.reloadError'), 'error');
+      })
+      .catch(() => pushToast(t('aiFailure.reloadError'), 'error'));
+  };
+  if (!blocked) return null;
+  return (
+    <div class="map-card-backdrop">
+      <section
+        class="map-card end-turn-confirm"
+        data-testid="ai-failure"
+        role="dialog"
+        aria-label={t('aiFailure.title')}
+      >
+        <p class="map-card-line">{t('aiFailure.body')}</p>
+        <div class="end-turn-confirm-actions">
+          <button data-testid="ai-failure-dismiss" onClick={() => appStore.setState({ aiFailure: false })}>
+            {t('aiFailure.dismiss')}
+          </button>
+          <button
+            class="end-turn-confirm-go"
+            data-testid="ai-failure-reload"
+            onClick={reload}
+          >
+            {t('aiFailure.reload')}
+          </button>
+        </div>
+      </section>
+    </div>
+  );
+}
+
 function EndTurnConfirm() {
   useApp((s) => s.locale);
   const pending = useApp((s) => s.pendingEndTurn);
@@ -570,9 +624,10 @@ function ArmySlots({ army, heroId }: { army: ArmyStack[]; heroId?: string }) {
       setPicked(null);
       return;
     }
-    dispatch({ type: 'ReorderArmy', heroId: heroId!, from: picked, to: i }).catch(() => {
-      /* réorg invalide (hors tour) — sans conséquence, ignorée */
-    });
+    dispatch({ type: 'ReorderArmy', heroId: heroId!, from: picked, to: i }).catch(
+      // R0/B6 : seul le rejet « pas votre tour » reste silencieux ; le reste est toasté.
+      (err: unknown) => reportArmyCommandError(err),
+    );
     setPicked(null);
   };
 
@@ -649,9 +704,10 @@ function ArmySlots({ army, heroId }: { army: ArmyStack[]; heroId?: string }) {
           stack={army[splitSlot]!}
           onConfirm={(count) => {
             const from = splitSlot;
-            dispatch({ type: 'SplitStack', heroId, from, count }).catch(() => {
-              /* split invalide (hors tour) — sans conséquence, ignorée */
-            });
+            dispatch({ type: 'SplitStack', heroId, from, count }).catch(
+              // R0/B6 : idem réorg — « pas votre tour » silencieux, tout autre rejet visible.
+              (err: unknown) => reportArmyCommandError(err),
+            );
             setSplitSlot(null);
             setMode('none');
           }}

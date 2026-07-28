@@ -10,6 +10,7 @@ import {
   resolveBuildingName,
   resolveFactionResourceName,
   resolveArtifactName,
+  heroDisplayName,
 } from './i18n';
 
 /** Plafond d'entrées conservées dans le journal (doc 08 §3) — ring buffer léger. */
@@ -222,9 +223,14 @@ export function notify(event: AppEvent, game: GameState): string | null {
       return ownHero(event.heroId)
         ? t('toast.heroAttributeChosen', { attribute: t(`attribute.${event.attribute}`) })
         : null;
+    // B4 (lot R6) : le lanceur est NOMMÉ — l'événement ne porte que `heroId`, le
+    // nom se résout depuis l'état (repli « Le héros » pour un héros sans nom).
     case 'SpellCast':
       return ownHero(event.heroId)
-        ? t('toast.spellCast', { hero: t('hero.genericName'), spell: resolveSpellName(event.spellId) })
+        ? t('toast.spellCast', {
+            hero: heroDisplayName(game.heroes.find((h) => h.id === event.heroId)?.name ?? ''),
+            spell: resolveSpellName(event.spellId),
+          })
         : null;
     // Sort d'aventure (doc 02 §1.4, Alpha 4.16) — lancé hors combat sur la carte.
     case 'AdventureSpellCast':

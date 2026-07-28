@@ -205,6 +205,17 @@ export function resolveHeroName(name: string): string {
 }
 
 /**
+ * Libellé AFFICHABLE d'un héros (lot R6 / B4) : son nom localisé, ou « Le héros »
+ * générique s'il n'en porte pas (`HeroState.name === ''`). Source unique des
+ * surfaces qui montrent le héros au joueur (bandeau de combat, sélecteur de héros
+ * agissant, toasts) — elles affichaient sinon le générique quel qu'il soit, alors
+ * que le joueur mène des héros nommés depuis M-TAVERN.2.
+ */
+export function heroDisplayName(name: string): string {
+  return resolveHeroName(name) || t('hero.genericName');
+}
+
+/**
  * Nom/description localisés d'une spécialité de héros
  * (`hero.specialty.<id>.name/.desc`) : CORE pour la spécialité du héros de
  * départ (`arcanist`), locales de PAQUET pour celles des héros nommés

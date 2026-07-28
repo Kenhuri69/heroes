@@ -955,6 +955,19 @@ test('combat : victoire contre le gardien, retour carte avec pertes appliquées'
   await expect(page.getByTestId('combat-round')).toBeVisible();
   await expect.poll(() => heroPos(page)).toEqual({ x: 8, y: 2 });
 
+  // B4 (lot R6) : le bandeau de combat porte le NOM du héros — il affichait
+  // TOUJOURS « Le héros » alors que le joueur mène des héros nommés. Attendu
+  // dérivé des locales SERVIES (aucune chaîne traduite en dur) : le libellé vaut
+  // le nom du héros de l'état, et surtout PAS le générique.
+  const heroLabel = await page.evaluate(async () => {
+    const key = window.__HEROES_TEST__!.getState().heroes[0]!.name;
+    const fr = (await (await fetch('core/locales/fr.json')).json()) as Record<string, string>;
+    return { expected: fr[key], generic: fr['hero.genericName'] };
+  });
+  expect(heroLabel.expected).toBeTruthy();
+  expect(heroLabel.expected).not.toBe(heroLabel.generic);
+  await expect(page.getByTestId('combat-hero-name')).toHaveText(heroLabel.expected!);
+
   // Journal de combat (UX-COMBATLOG) : le bouton bascule le panneau ; le journal
   // est alimenté dès l'ouverture du combat (« Round 1 » déjà présent). Lot 1a :
   // sur mobile, le Journal est une action secondaire ⇒ ouvrir le tiroir « ⋯ »
@@ -1443,6 +1456,45 @@ for (const scale of [1, 2, 3] as const) {
         await expect(heroAttack).toBeHidden();
         await page.getByTestId('combat-more').click();
         await expect(heroAttack).toBeVisible();
+
+        // Lot R6 (a11y) : au-delà du cran 1 en portrait, R1 masque le
+        // sous-libellé de raison (budget de hauteur). L'information ne doit pas
+        // devenir exclusive au SURVOL (doc 08 §1.1/§4) : un appui — long ou
+        // court — sur le bouton grisé l'affiche à l'écran, avec EXACTEMENT le
+        // texte du `title` réservé à la souris.
+        await expect(heroAttack).toBeDisabled(); // arène : aucun héros lié
+        await expect(heroAttack.locator('.combat-btn-reason')).toBeHidden(); // masqué au cran > 1
+        const hint = await heroAttack.getAttribute('title');
+        expect(hint).toBeTruthy();
+        const box = (await heroAttack.boundingBox())!;
+        await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+        await page.mouse.down();
+        await page.waitForTimeout(600); // > LONG_PRESS_MS (450 ms)
+        await page.mouse.up();
+        const reasonNode = page.getByTestId('combat-reason-hint');
+        await expect(reasonNode).toBeVisible();
+        await expect(reasonNode).toHaveText(hint!);
+
+        // Non-régression H5 dans le MÊME run. (1) La raison est HORS FLUX : elle
+        // se pose AU-DESSUS du bloc bas, donc ne lui ajoute pas un pixel — la
+        // marge sur le plafond H5 n'est que de ~6 px au cran 3.
+        const geom = await page.evaluate(() => {
+          const r = (sel: string): DOMRect =>
+            document.querySelector(sel)!.getBoundingClientRect();
+          return {
+            hintBottom: r('[data-testid="combat-reason-hint"]').bottom,
+            bottomTop: r('.combat-bottom').top,
+          };
+        });
+        expect(geom.hintBottom).toBeLessThanOrEqual(geom.bottomTop + 1);
+
+        // (2) Barre repliée (état nominal, celui du budget R1) : ≤ 25 % du viewport.
+        await page.getByTestId('combat-more').click();
+        await expect(heroAttack).toBeHidden();
+        const bottomAfter = await page.evaluate(
+          () => document.querySelector('.combat-bottom')!.getBoundingClientRect().height,
+        );
+        expect(bottomAfter).toBeLessThanOrEqual(m.viewportH * 0.25);
       }
 
       expect(errors).toEqual([]);
@@ -1454,6 +1506,7 @@ test("combat : la file d'ordre s'affiche (actif en tête) et la fiche de pile s'
   page,
 }) => {
   const errors = collectErrors(page);
+  await page.setViewportSize({ width: 1280, height: 800 }); // viewport de la mesure U6
   await page.goto('./?seed=42#arena');
   await page.waitForFunction(() => window.__HEROES_READY__ === true);
   await passPreBattle(page); // écran pré-combat (Lot 1) → plateau
@@ -1479,6 +1532,27 @@ test("combat : la file d'ordre s'affiche (actif en tête) et la fiche de pile s'
   await expect(sheet).toContainText('Dégâts');
   await page.getByTestId('stack-sheet-close').click();
   await expect(sheet).toBeHidden();
+
+  // U6 (lot R6) : sur viewport LARGE la file tient ENTIÈREMENT — elle passe à la
+  // ligne au lieu de déborder derrière le fondu de bord. Avant le lot (mesuré
+  // 1280×800, arène `?seed=42`) : débordement de 51 px au cran 1 (278 px au
+  // cran 3) et dernière vignette à droite du conteneur (+51 px / +278,4 px).
+  await test.step("U6 : la file d'initiative n'est plus tranchée (desktop)", async () => {
+    const fit = await page.evaluate(() => {
+      const el = document.querySelector('.combat-order')!;
+      const right = el.getBoundingClientRect().right;
+      return {
+        overflow: el.scrollWidth - el.clientWidth,
+        items: [...el.querySelectorAll('li')].length,
+        beyond: [...el.querySelectorAll('li')].filter(
+          (li) => li.getBoundingClientRect().right > right + 1,
+        ).length,
+      };
+    });
+    expect(fit.items).toBeGreaterThan(0); // garde anti-test vide
+    expect(fit.overflow).toBeLessThanOrEqual(1);
+    expect(fit.beyond).toBe(0);
+  });
 
   expect(errors).toEqual([]);
 });

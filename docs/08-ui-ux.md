@@ -459,6 +459,37 @@
 >    **troisième** rangée, au-delà du budget « 2 rangées maximum ». Au cran 1, la
 >    barre est **inchangée** (actions de héros primaires, raisons visibles).
 
+> ✅ **État R6 (incarnation & finition — plan `.claude/plans/r6-incarnation-finition.md`,
+> constats B4/U6 de la revue 2026-07)**. Trois décisions d'interaction, **client
+> seul** :
+>
+> 1. **Le bandeau de combat porte le NOM du héros.** Il affichait *toujours* le
+>    libellé générique « Le héros », alors que le joueur mène des héros **nommés**
+>    depuis M-TAVERN.2 (héros canon, Taverne, choix du héros de départ) — au moment
+>    le plus incarné du jeu. Le nom localisé est désormais la règle **partout où le
+>    héros s'adresse au joueur** : bandeau de combat, sélecteur de héros agissant
+>    (coop) et **toast de sort**. Le générique n'est plus qu'un **repli**, pour un
+>    héros qui n'a réellement pas de nom (`HeroState.name` vide).
+> 2. **La file d'initiative TIENT sur viewport large, au lieu d'être masquée.** Le
+>    fondu de bord et l'auto-scroll (E3) sont la réponse **portrait**, où la largeur
+>    ne permet pas de tout montrer. Sur desktop, ils ne faisaient que **trancher la
+>    dernière vignette** (mesuré 1280×800, arène : débordement de **51 px au cran 1**
+>    et **278 px au cran 3**, dernière vignette hors du conteneur). Règle retenue :
+>    **au-delà de 640 px, la file passe à la ligne** — aucune information n'est
+>    perdue et aucun geste n'est requis. La hauteur supplémentaire est sans risque
+>    pour le plateau : la marge de caméra étant **mesurée** (point 1 de l'État R1),
+>    elle est absorbée automatiquement.
+> 3. **La raison de désactivation d'une action est accessible au DOIGT.** Le
+>    point 3(a) de l'État R1 masque le sous-libellé de raison au-delà du cran 1 en
+>    portrait : l'information ne survivait alors qu'en `title` (**survol souris**) et
+>    en nom accessible d'un bouton `disabled`, **donc non focusable** — soit
+>    exactement rien pour l'utilisateur tactile qui agrandit la police. Les boutons
+>    porteurs d'une raison sont donc `aria-disabled` et non `disabled` : **les taper
+>    n'agit pas, cela affiche la raison** (même texte que le `title`), en
+>    **surimpression** au-dessus du panneau bas — donc **sans lui ajouter un pixel**
+>    de hauteur (le budget de 25 % du point 3 reste tenu). L'affichage s'efface de
+>    lui-même : c'est une information, pas une modale.
+
 ### 2.5 Autres écrans
 
 Menu principal (Continuer / Scénarios / Escarmouche / **Éditeur de carte** / Options), fiche de scénario (objectifs), fin de partie (stats, graphique de puissance), options (langue FR/EN, vitesse anims, taille UI, audio, réduction des animations, confirmation de fin de tour : cf. §4).
@@ -594,7 +625,7 @@ Menu principal (Continuer / Scénarios / Escarmouche / **Éditeur de carte** / O
 - Daltonisme : **pas d'option** — l'accessibilité chromatique est **toujours active** (choix M8/C4, plus sûr qu'un réglage) : couleurs de joueur doublées de **motifs de bannière**, statuts de combat doublés d'icônes/formes, jamais la couleur seule.
 - **Réduire les animations** : option en jeu (M8/C3) qui s'unit au réglage système `prefers-reduced-motion` — coupe transitions DOM et mouvement Pixi (le contour de focus reste).
 - Texte UI en DOM → zoom navigateur et lecteurs d'écran fonctionnent sur toute la gestion ; taille de police réglable (3 crans). Le cran courant est publié sur `<html data-font-scale>` : une surcouche **serrée en hauteur** peut alors alléger son contenu au-delà du cran 1 **sans jamais perdre l'information** (voir §2.4 « État R1 » : la barre d'actions de combat replie les sous-libellés en `title`/nom accessible et déborde ses actions secondaires dans le tiroir « ⋯ », plutôt que de manger le plateau).
-- Toutes les infos « hover » accessibles à l'appui long ; aucune action à double-clic ou clic droit obligatoire.
+- Toutes les infos « hover » accessibles à l'appui long ; aucune action à double-clic ou clic droit obligatoire. **Corollaire (R6)** : une commande **grisée dont l'état porte une raison** n'est jamais `disabled` — un élément `disabled` n'est ni focusable ni « tapable », donc sa raison n'existerait qu'au survol souris. Elle est `aria-disabled` et **répond au tap en affichant sa raison** (voir §2.4 « État R6 »).
 
 ## 5. Direction artistique (cadrage)
 

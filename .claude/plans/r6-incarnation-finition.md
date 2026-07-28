@@ -130,17 +130,53 @@ exclusive au hover ») et §4 (« toutes les infos hover accessibles à l'appui 
       (retour à la ligne desktop / défilement + fondu portrait), raison de
       désactivation accessible au **tap** en portrait agrandi.
 
-## 5. Pipeline (à rejouer, tout doit être vert)
+## 5. Pipeline (rejoué intégralement en 2ᵉ passe — tout vert)
 
-1. [ ] `pnpm typecheck`
-2. [ ] `pnpm lint`
-3. [ ] `pnpm test`
-4. [ ] `pnpm content:check`
-5. [ ] `pnpm build`
-6. [ ] garde-fou zéro id de faction dans `packages/` (statut grep = 1)
-7. [ ] garde-fou zéro couleur en dur hors `tokens.css` (statut grep = 1)
-8. [ ] budget bundle < 800 Ko gzip
-9. [ ] smoke Playwright (`@core` + les nouveaux tests)
+1. [x] `pnpm typecheck` — OK
+2. [x] `pnpm lint` — OK
+3. [x] `pnpm test` — moteur **935/935**, contenu **164/164**, client vitest
+       **63/63** (dont les 4 cas `heroDisplayName`). *Un faux échec au 1ᵉʳ passage* :
+       `combat-property.test.ts` a dépassé les 5 s de timeout vitest sous contention
+       CPU (4 vCPU partagés) ; rejoué isolément ⇒ **2/2 en 1,8 s**. Aucun fichier
+       moteur n'est touché par le lot.
+4. [x] `pnpm content:check` — 7 paquets, 2 cartes, 16 scénarios valides
+5. [x] `pnpm build` — OK
+6. [x] garde-fou zéro id de faction dans `packages/` — `statut=1`
+7. [x] garde-fou zéro couleur en dur hors `tokens.css` — `statut=1`
+8. [x] budget bundle — **363 654 octets** gzip (cap 819 200 ; inchangé vs `main`)
+9. [x] smoke Playwright — **49/49 `@core`** (`--workers=1`) + le test U6
+       (`la file d'ordre s'affiche`, non tagué) **1/1**
+
+## 5 bis. Preuves chiffrées de la 2ᵉ passe
+
+**Contre-épreuve** (les 3 assertions rejouées contre un build **`origin/main`** —
+sources client remises à `origin/main`, suite de tests gardée) : **les 3 échouent**,
+donc elles mordent.
+
+| Assertion | Sur `origin/main` (AVANT) | Sur la branche (APRÈS) |
+|---|---|---|
+| B4 `combat-hero-name` = nom du héros | `element(s) not found` (attendu « Aldric l'Érudit ») | vert |
+| U6 `scrollWidth − clientWidth ≤ 1` (desktop 1280×800) | **111** | **0** |
+| a11y `combat-reason-hint` visible après appui long | `element(s) not found` | vert |
+
+**Mesure U6 sur le build de la branche** (arène `?seed=42`, 1280×800, 9 vignettes) :
+
+| | cran 1 | cran 3 |
+|---|---|---|
+| `scrollWidth` / `clientWidth` | 1144 / 1144 | 1124 / 1124 |
+| **débordement** | **0** | **0** |
+| `right` de la dernière vignette / du conteneur | 302,7 / 1268,0 | 700,8 / 1268,0 |
+| vignettes hors conteneur | **0** | **0** |
+| hauteur `.combat-armies` (2 rangées) | 110,0 px | 118,8 px |
+
+Non-régression R1 : la hauteur du bandeau passe de 60 à ~110 px, **absorbée par la
+caméra** (marge mesurée `combatInsets`) — les assertions R1 (« bas réel ≤ marge
+réservée », « bloc bas ≤ 25 % aux 3 crans ») sont dans les 49 tests `@core` verts.
+
+**Captures** (hors dépôt, `…/scratchpad/captures/r6-{avant,apres}/`, script
+`ux-audit`, 0 cible < 44 px des deux côtés) : `combat-desktop-font3.png` montre
+AVANT la dernière vignette **tranchée au bord droit**, APRÈS la file **sur 2
+rangées, complète**, plateau toujours entier.
 
 ## 6. Journal des écarts
 
@@ -172,3 +208,31 @@ exclusive au hover ») et §4 (« toutes les infos hover accessibles à l'appui 
   `index-CEi3-Wrz.js`), un aperçu orphelin d'un autre worktree squattant 4173
   depuis 2 h. Toutes les mesures ont été refaites sur un port dédié **après
   vérification du hash servi**.
+- **Écart 6** (2ᵉ passe) — **le piège de port a re-mordu** : la 1ʳᵉ série de captures
+  APRÈS a été servie par l'aperçu d'un **autre worktree** (`wf_…-544-17`) resté sur
+  4173. Il est passé inaperçu au hash **parce que les hashs se ressemblent par
+  construction** : leur build valait `origin/main`, dont le `index-*.js` est
+  exactement celui de mon build AVANT (`index-CEi3-Wrz.js`, hash de contenu). Seule
+  la comparaison **hash servi vs `dist/` courant** l'a révélé. Le `flock` ne protège
+  pas d'un agent qui ne le prend pas. Toutes les mesures et le smoke ont donc été
+  rejoués sur un **port dédié 4199** (aperçu à moi, hash servi vérifié =
+  `index-Bfgv11XP.js`), via une copie hors dépôt du script de capture et une config
+  Playwright identique au dépôt à la seule URL près (`CI=1` conservé : `forbidOnly`,
+  `retries=2`). Corollaire : mon propre aperçu est désormais tué par **groupe de
+  processus** (`setsid` + `kill -- -PGID`) — le simple `kill` de `pnpm` laissait
+  l'enfant `vite` vivant, ce qui avait fait échouer bruyamment ma 1ʳᵉ contre-épreuve.
+- **Écart 7** (2ᵉ passe) — l'assertion U6 vit dans le test **non tagué**
+  `combat : la file d'ordre s'affiche…` : la CI de **PR** ne joue que `@core`, elle
+  ne la verra donc **pas** ; elle tourne sur `main` (`deploy.yml`) et au dispatch.
+  Choix assumé (skill `test-authoring` §2.3 : `@core` réservé aux parcours vitaux,
+  ~15-20 max) — l'assertion est ajoutée au test qui EXISTE déjà pour cette file
+  plutôt que de gonfler le noyau ; elle a été jouée localement (verte) et sa
+  contre-épreuve est faite. Les deux autres assertions (B4, a11y) sont, elles, dans
+  des tests `@core`.
+- **Écart 8** (2ᵉ passe) — le script de captures `ux-audit` change le cran de police
+  en posant `font-size` sur `<html>`, **sans** poser `data-font-scale` : ses
+  `*-font3.png` **n'exercent pas** les règles R1/R6 conditionnées au cran (repli des
+  actions de héros dans « ⋯ », masquage de `.combat-btn-reason`). Ces règles-là ne
+  sont donc prouvées que par le smoke (qui, lui, passe par
+  `localStorage.heroes.fontScale`). Les captures restent valables pour ce qu'elles
+  montrent : la file d'initiative qui tient, et la mesure A1 des cibles.

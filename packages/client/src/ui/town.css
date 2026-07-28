@@ -180,10 +180,20 @@
   border-color: var(--blood-bright);
 }
 
-/* Lot D (refonte UX) : le créneau « 1 construction/jour » (doc 02 §4.2, ex-ruban
-   B1) est condensé en badge compact dans l'en-tête de ville. */
+/* Créneau « 1 construction/jour » (doc 02 §4.2, ex-ruban B1) : badge compact,
+   posé dans l'onglet Construire depuis le lot R2 (U8) — le seul où il conditionne
+   une action. « Occupé » est un état NORMAL du jeu : il perd le rouge d'erreur au
+   profit d'un ton neutre, le glyphe portant l'information (a11y doc 08 §4). */
 .town-build-queue-state {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin: 0 0 8px;
   font-weight: 600;
+}
+
+.town-build-queue-glyph {
+  font-weight: 700;
 }
 
 .town-build-queue-state.is-free {
@@ -191,7 +201,7 @@
 }
 
 .town-build-queue-state.is-used {
-  color: var(--blood-bright);
+  color: var(--parchment-dim);
 }
 
 .town-building-list,
@@ -541,7 +551,9 @@ button[data-testid='market-trade'] {
   color: var(--parchment-bright);
   cursor: pointer;
 }
-/* Profondeur de rendu (ordre DOM) : construit devant, verrouillé au fond. */
+/* Profondeur de rendu (ordre DOM) : construit devant, verrouillé au fond.
+   L'emplacement INSPECTÉ (survol / focus / appui long) passe au tout premier plan
+   — c'est ce qui rend les libellés lisibles quand le catalogue est dense. */
 .town-view-building.is-constructed {
   z-index: 3;
 }
@@ -551,12 +563,59 @@ button[data-testid='market-trade'] {
 .town-view-building.is-locked {
   z-index: 1;
 }
+.town-view-building.is-inspected {
+  z-index: 4;
+}
+
+/* Libellé permanent (lot R2, H2) : plus aucun marqueur anonyme. Tronqué à ~7 em
+   (le nom complet reste dans `title`/`aria-label`), sur une plaque d'encre pour
+   rester lisible par-dessus le décor peint. */
+.town-view-name {
+  /* 5 em : à 7 emplacements par rangée (Vox Arcana), l'écart horizontal vaut
+     ~11 % de la scène ≈ 65 px — le libellé doit rester en deçà. */
+  max-width: 5em;
+  overflow: hidden;
+  padding: 1px 4px;
+  border-radius: var(--radius-s);
+  background: var(--shadow-60);
+  color: var(--parchment-bright);
+  font: 600 0.65rem/1.2 var(--font-ui);
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.town-view-building.is-locked .town-view-name {
+  color: var(--parchment-dim);
+}
+.town-view-building.is-inspected .town-view-name {
+  max-width: none;
+  background: var(--ink-900);
+  outline: 1px solid var(--brass-bright);
+}
+
+/* Portrait étroit : à ~316 px de large, 7 emplacements par rangée ne laissent
+   que ~36 px par nom — les libellés permanents s'y chevaucheraient au lieu
+   d'informer. Le panorama y est de toute façon un DÉCOR replié par défaut (lot
+   R2 §1.1) : le nom reste accessible au tap/appui long (ligne d'inspection,
+   parité doc 08 §1.1) et la liste de l'onglet Construire nomme tout. */
+@media (max-width: 640px) {
+  .town-view-name {
+    display: none;
+  }
+}
 .town-view-vignette,
 .town-view-vignette-fallback {
-  width: 56px;
-  height: 56px;
+  /* 44 px depuis le lot R2 : l'emplacement porte désormais son NOM sous la
+     vignette ; à 56 px le bloc ne tenait plus dans l'écart entre deux rangées.
+     La cible tactile reste ≥ 44 px (min-width/min-height du bouton). */
+  width: 44px;
+  height: 44px;
   object-fit: contain;
-  filter: drop-shadow(0 2px 3px var(--shadow-40));
+  /* Lot R2 (H2) : plaque sombre sous la vignette — sur un décor peint chargé, la
+     seule ombre portée ne suffisait pas à détacher l'icône du fond. */
+  border-radius: var(--radius-m);
+  background: var(--shadow-60);
+  box-shadow: 0 2px 4px var(--shadow-60);
 }
 .town-view-vignette-fallback {
   display: block;
@@ -572,42 +631,53 @@ button[data-testid='market-trade'] {
   position: relative;
   display: block;
 }
+/* Pastille de statut : forme (disque/anneau/carré) + GLYPHE (✓/＋/✕, lot R2) —
+   deux canaux non chromatiques superposés. */
 .town-view-pip {
   position: absolute;
-  top: -3px;
-  right: -3px;
-  width: 12px;
-  height: 12px;
+  top: -5px;
+  right: -5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
   box-sizing: border-box;
+  font: 700 10px/1 var(--font-ui);
 }
 /* construit : disque plein laiton */
 .town-view-pip-constructed {
   border-radius: 50%;
   background: var(--brass-bright);
   border: 1px solid var(--ink-900);
+  color: var(--ink-900);
 }
 /* disponible : anneau creux à trait PLEIN (2ᵉ forme) — trait continu, pas
    pointillé, pour ne pas évoquer un spinner de chargement (V-4). */
 .town-view-pip-available {
   border-radius: 50%;
-  background: transparent;
+  background: var(--ink-900);
   border: 2px solid var(--parchment-bright);
+  color: var(--parchment-bright);
 }
 /* verrouillé : carré plein sombre (3ᵉ forme) */
 .town-view-pip-locked {
   border-radius: 2px;
   background: var(--ink-500);
   border: 1px solid var(--ink-900);
+  color: var(--parchment-dim);
 }
 /* Vignette selon statut : opacité (+ désaturation si verrouillé) = 2ᵉ canal. */
 .town-view-building.is-available .town-view-vignette,
 .town-view-building.is-available .town-view-vignette-fallback {
   opacity: 0.82;
 }
+/* Verrouillé : estompé mais TOUJOURS identifiable (lot R2, H2 — à 0.4/grayscale(1)
+   la vignette n'était plus qu'une tache sombre anonyme sur le décor). */
 .town-view-building.is-locked .town-view-vignette,
 .town-view-building.is-locked .town-view-vignette-fallback {
-  opacity: 0.4;
-  filter: grayscale(1);
+  opacity: 0.72;
+  filter: grayscale(0.8);
 }
 .town-view-empty {
   position: absolute;

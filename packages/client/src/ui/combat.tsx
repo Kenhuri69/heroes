@@ -32,6 +32,7 @@ import { COMBAT_SPEEDS } from '../app/ui-constants';
 import { combatPreview, type CombatPreview } from '../scenes/combat/preview';
 import { combatInsets } from '../scenes/combat/insets';
 import { pushToast } from './toasts';
+import { useNarrowViewport } from './useNarrowViewport';
 import { SpellBook } from './SpellBook';
 import { CombatLog } from './CombatLog';
 import './combat.css';
@@ -47,30 +48,6 @@ const AUTO_ROUND_PAUSE_MS = 500;
 
 /** Durée d'affichage de la raison de désactivation demandée au tap (lot R6). */
 const REASON_HINT_MS = 5000;
-
-/** Seuil « portrait étroit » — MÊME valeur que la media query de `combat.css`. */
-const NARROW_VIEWPORT_QUERY = '(max-width: 640px)';
-
-/**
- * Portrait étroit (lot R1 / H5) : la barre d'actions de combat y replie les
- * actions de héros dans le tiroir « ⋯ » au-delà du cran de police 1. Seul cas du
- * client où la largeur doit être connue en JS — le reste de la responsivité
- * reste en CSS.
- */
-function useNarrowViewport(): boolean {
-  const query = (): MediaQueryList | null =>
-    typeof matchMedia === 'function' ? matchMedia(NARROW_VIEWPORT_QUERY) : null;
-  const [narrow, setNarrow] = useState(() => query()?.matches ?? false);
-  useEffect(() => {
-    const mq = query();
-    if (!mq) return;
-    const onChange = (): void => setNarrow(mq.matches);
-    onChange();
-    mq.addEventListener('change', onChange);
-    return () => mq.removeEventListener('change', onChange);
-  }, []);
-  return narrow;
-}
 
 export function CombatUi() {
   useApp((s) => s.locale); // réactivité i18n

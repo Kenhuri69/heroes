@@ -52,6 +52,17 @@ async function endTurn(page) {
   await aiIdle(page);
 }
 
+/**
+ * Déplie une section repliable (`SectionToggle`) — IDEMPOTENT : l'état plié
+ * persiste en `localStorage`, un flux ultérieur retrouve donc la section déjà
+ * ouverte et un clic aveugle la refermerait. On lit `aria-expanded`.
+ */
+async function expandSection(page, testId) {
+  const toggle = page.getByTestId(testId);
+  await toggle.waitFor({ timeout: 5000 });
+  if ((await toggle.getAttribute('aria-expanded')) !== 'true') await toggle.click();
+}
+
 /** Mesure les cibles tactiles DOM visibles ; renvoie celles sous 44 px.
  *  Interactifs seulement (X1.3) : les textes de statut (spans) ne sont pas des
  *  cibles — les cartes cliquables du jeu sont toutes des <button>. */
@@ -235,6 +246,9 @@ const FLOWS = [
           await page.getByTestId('menu-new-game').click();
           await page.getByTestId('newgame-screen').waitFor({ timeout: 5000 });
           await page.getByTestId('newgame-seat-0-faction').selectOption('haven');
+          // Lot R4 : « Carte & contenu » est une section repliée par défaut —
+          // la déplier avant d'atteindre la taille de carte / la graine.
+          await expandSection(page, 'newgame-section-map');
           await page.getByTestId('newgame-size-small').click();
           await page.getByTestId('newgame-seed').fill('42');
           await page.getByTestId('newgame-start').click();
@@ -273,7 +287,10 @@ const FLOWS = [
           await ready(page);
           await page.getByTestId('menu-new-game').click();
           await page.getByTestId('newgame-screen').waitFor({ timeout: 5000 });
+          // Lot R4 : « Adversaires » et « Carte & contenu » sont repliées par défaut.
+          await expandSection(page, 'newgame-section-opponents');
           await page.getByTestId('newgame-seat-1-human').click();
+          await expandSection(page, 'newgame-section-map');
           await page.getByTestId('newgame-size-small').click();
           await page.getByTestId('newgame-seed').fill('42');
           await page.getByTestId('newgame-start').click();

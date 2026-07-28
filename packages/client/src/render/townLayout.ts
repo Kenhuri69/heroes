@@ -34,6 +34,13 @@ function jitter(seed: string, salt: number): number {
 // le tiers inférieur (le donjon héroïque occupe le haut) — on y ancre les rangées.
 const BAND_TOP = 52;
 const BAND_BOTTOM = 88;
+/**
+ * Écart vertical MINIMAL entre deux rangées, en % de la hauteur de la scène
+ * (lot R2, constat H2). Un emplacement mesure vignette + libellé ≈ 60 px ; à la
+ * hauteur de scène du panneau (~270 px) il lui faut donc ~22 %. En dessous, les
+ * noms se chevauchaient et l'emplacement redevenait illisible.
+ */
+const MIN_ROW_GAP = 26;
 
 /** Position par défaut du i-ᵉ bâtiment (sur n) dans la bande d'avant-plan. */
 function bandSlot(id: string, index: number, count: number): TownSlot {
@@ -44,25 +51,51 @@ function bandSlot(id: string, index: number, count: number): TownSlot {
   const inRow = Math.min(perRow, count - row * perRow);
   // Décalage d'une demi-cellule sur les rangées impaires (aspect masonry).
   const stagger = row % 2 === 1 ? 40 / perRow : 0;
+  // La bande remonte autant qu'il le faut pour tenir l'écart minimal : peu de
+  // bâtiments ⇒ ils restent au sol (intention d'origine), catalogue dense ⇒ ils
+  // occupent la hauteur du tableau plutôt que de s'empiler.
+  const bandTop = Math.min(BAND_TOP, BAND_BOTTOM - (rows - 1) * MIN_ROW_GAP);
   let x = 10 + (col + 0.5) * (80 / inRow) + stagger;
-  let y = rows === 1 ? (BAND_TOP + BAND_BOTTOM) / 2 : BAND_TOP + row * ((BAND_BOTTOM - BAND_TOP) / (rows - 1));
+  let y = rows === 1 ? (bandTop + BAND_BOTTOM) / 2 : bandTop + row * ((BAND_BOTTOM - bandTop) / (rows - 1));
   x = Math.max(8, Math.min(92, x + jitter(id, 1) * 2.5));
-  y = Math.max(BAND_TOP - 4, Math.min(BAND_BOTTOM + 2, y + jitter(id, 2) * 2));
+  y = Math.max(Math.max(6, bandTop - 4), Math.min(BAND_BOTTOM + 2, y + jitter(id, 2) * 2));
   return { x, y };
+}
+
+/**
+ * Rangée haute réservée aux bâtiments qui débordent des ancres d'une faction.
+ * Ils sont peu nombreux (le layout bespoke couvre le catalogue de la faction,
+ * le débordement vient des bâtiments communs ajoutés depuis) : une seule rangée
+ * suffit, et elle reste à `MIN_ROW_GAP` de la première rangée d'ancres (30).
+ */
+const SPILL_Y = 6;
+
+/** Position du k-ᵉ (sur `count`) bâtiment débordant, sur la rangée haute. */
+function spillSlot(id: string, k: number, count: number): TownSlot {
+  const x = 10 + (k + 0.5) * (80 / count);
+  return { x: Math.max(8, Math.min(92, x + jitter(id, 1) * 2)), y: SPILL_Y };
 }
 
 /**
  * Répartit les bâtiments sur le décor. Ordre id stable ⇒ positions stables. Si
  * `anchors` est fourni (layout bespoke de la faction), chaque bâtiment prend
- * l'ancre de même rang ; les bâtiments au-delà du nombre d'ancres retombent sur
- * la bande d'avant-plan (le catalogue peut croître sans casser le layout).
+ * l'ancre de même rang ; les bâtiments au-delà du nombre d'ancres sont posés dans
+ * une bande HAUTE qui leur est propre (le catalogue peut croître sans casser le
+ * layout — lot R2 : les poser dans la bande par défaut les faisait atterrir
+ * **sur** la rangée basse des ancres, noms superposés).
  */
 export function townLayout(buildingIds: readonly string[], anchors?: readonly TownSlot[]): Map<string, TownSlot> {
   const ids = [...buildingIds].sort((a, b) => a.localeCompare(b));
+  const anchorCount = Math.min(anchors?.length ?? 0, ids.length);
+  const spill = ids.length - anchorCount;
   const map = new Map<string, TownSlot>();
   ids.forEach((id, i) => {
     const anchor = anchors?.[i];
-    map.set(id, anchor ?? bandSlot(id, i, ids.length));
+    if (anchor) return void map.set(id, anchor);
+    map.set(
+      id,
+      anchorCount > 0 ? spillSlot(id, i - anchorCount, spill) : bandSlot(id, i, ids.length),
+    );
   });
   return map;
 }

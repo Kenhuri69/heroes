@@ -582,7 +582,7 @@ glisser à tout moment (aucune dépendance).
 - [ ] Ouverture des plans dédiés par lot au fil des implémentations
   - [ ] R0 — ne plus échouer en silence
   - [x] R1 — plateau de combat visible (`.claude/plans/r1-plateau-combat-visible.md`)
-  - [ ] R2 — écran de ville
+  - [x] R2 — écran de ville (`.claude/plans/r2-ecran-ville-outil.md`)
   - [ ] R3 — HUD d'aventure
   - [x] R4 — nouvelle partie (`.claude/plans/r4-nouvelle-partie-trois-taps.md`)
   - [ ] R5 — lisibilité de la carte

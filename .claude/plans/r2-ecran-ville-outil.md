@@ -230,3 +230,97 @@ sur SON build (`git stash` pour la baseline).
   dehors du `flock`, faisant mesurer le build d'un autre agent. Terminé sous
   verrou. Le port 4173 étant `strictPort` et partagé, ce type de fuite fausse
   silencieusement mesures et smoke de tout le monde.
+
+## 4. Reprise après interruption (2ᵉ agent)
+
+Le 1ᵉʳ agent a été coupé par une limite d'usage **avant d'avoir rejoué le
+pipeline et poussé**. Son travail a été récupéré tel quel au commit `cda0855`
+(« wip »). Rien n'a été jeté : la relecture du diff a confirmé que les 3 points
+du périmètre étaient implémentés et cohérents. Ce qui suit est ce que la reprise
+a **ajouté ou corrigé**.
+
+### 4.1 Pipeline rejoué de zéro (il ne l'avait jamais été)
+
+Les 9 étapes sont vertes sur `e5026b3` — détail dans le rapport final. Les
+chiffres annoncés par le 1ᵉʳ agent se confirment (bundle **362 989** o gzip,
+smoke `@core` **43/43**, content 164, client 40→**41**).
+
+- [x] **Faux positif de suite de tests élucidé.** `pnpm test` a d'abord échoué
+      sur `engine/test/combat-property.test.ts` (« Test timed out in 5000ms »),
+      ce qui aurait pu passer pour une régression du lot. Investigation :
+      c'est un **flake d'ambiance CPU**, sans rapport avec ce lot (qui a
+      **zéro diff `packages/engine`**). Preuves :
+
+      | Condition | Charge (`uptime`) | Résultat |
+      |---|---|---|
+      | `origin/main`, machine calme (×3) | ~5 | ✅ vert (test à **3632 ms**) |
+      | `origin/main`, machine chargée | **10,67** | ❌ **rouge** (5146 ms) |
+      | branche, machine chargée (×3) | ~10 | ❌ rouge |
+      | branche **sans** mon fichier de test | ~10 | ❌ rouge |
+      | le test seul, en isolation (×3) | — | ✅ vert (2,4–2,8 s) |
+
+      L'expérience décisive est la 4ᵉ ligne : **retirer mon nouveau fichier de
+      test ne change rien**, ce qui réfute l'hypothèse « mes 7 tests ajoutent un
+      worker vitest et font déborder le timeout ». Et la 2ᵉ ligne montre
+      `origin/main` **rouge lui aussi** sous la même charge. Cause réelle :
+      ce test dispose de 5 s pour ~3,6 s de travail (27 % de marge) sur une
+      boîte 4 vCPU partagée par plusieurs agents ; `pnpm test` lance les 3
+      paquets **en parallèle**. Suite verte en séquentiel : engine **935/935**.
+      *Fragilité préexistante, hors périmètre (interdiction de toucher
+      `packages/engine`) — signalée en caveat, non « corrigée » en déplaçant mes
+      tests, ce qui n'aurait masqué qu'un symptôme.*
+
+### 4.2 Défaut trouvé en relisant les captures — corrigé
+
+- [x] **`buildingInitials` produisait une initiale de PONCTUATION.** La capture
+      `town-desktop-font1.png` montrait un marqueur portant **« G( »**. Cause :
+      le repli découpait le nom sur une liste de séparateurs
+      (`/[\s'’\-—·]+/`), donc « Graal (test) » → `["Graal", "(test)"]` → `G` + `(`.
+      Le repli **nommé** est précisément ce qui doit rendre un marqueur
+      identifiable quand l'asset manque (constat H2) : « G( » se lit comme un
+      glyphe cassé et **rate l'objectif du point 1 du lot**.
+      Correctif (1 expression) : découpe sur tout ce qui n'est **ni lettre ni
+      chiffre** (`/[^\p{L}\p{N}]+/u`) ⇒ **« GT »**. Les cas déjà couverts sont
+      inchangés (`Hôtel de ville`→HD, `Guilde d'or`→GD, `Sous-sol`→SS, `Forge`→FO).
+      → *vérifié en direct* : `replis: ["GT"]`, `ponctuation: []` ; **confirmé
+      visuellement** sur la capture regénérée. Test de régression ajouté
+      (`Graal (test)`→GT, `« Choixpeau »`→CH) ⇒ 7→**8** tests dans le fichier.
+
+### 4.3 Mesures re-jouées par la reprise (ne pas croire sur parole)
+
+Les mesures du §2 ont été **reproduites indépendamment**, chaque état sur SON
+build (`origin/main` rebuild pour l'AVANT), avec vérification que le hash du
+`index-*.js` servi par le preview est bien celui du `dist` local (le port 4173
+est partagé — un écart = mesures d'un autre agent, jetées).
+
+| Mesure (mobile 360×640, pli = 640) | AVANT (re-mesuré) | APRÈS (re-mesuré) |
+|---|---|---|
+| En-tête, hauteur (cran 1 / cran 3) | **59** / **99** px (3 lignes) | **17** / **22** px (1 ligne) |
+| Panorama `.town-view`, hauteur | **220** px | **44** px (replié) |
+| Construire — 1ᵉʳ contrôle (cran 1) | **644** ❌ | **471** ✅ |
+| Construire — 1ʳᵉ action (cran 1) | **696** ❌ | **523** ✅ |
+| Construire — 1ʳᵉ action (cran 3) | **787** ❌ | **588** ✅ |
+| Marché — 1ᵉʳ contrôle (cran 1 / cran 3) | 591 / **641** ❌ | **374** / **388** ✅ |
+| Badge chantier dans l'en-tête / sur Marché | **oui / oui** | **non / non** |
+| Marqueurs au texte vide (anonymes) | **9 / 9** | **0 / 9** |
+
+| Desktop 1280×800 | AVANT | APRÈS |
+|---|---|---|
+| Hauteur `.town-view` (déplié) | **274** px | **273** px (inchangé à 1 px près) |
+| Hauteur modale `.town-screen` | 704 px | 704 px |
+| Part du panorama | **38,9 %** | 38,9 % (déplié) / **6,3 %** (replié) |
+
+> Les chiffres AVANT tombent **exactement** sur le constat H1 du plan de revue
+> (« 270 px des ~700 px » ⇒ 274/704 = 38,9 % ; Marché tronqué sous le pli) et sur
+> H2 (**9 marqueurs sur 9** au `textContent` vide). Le desktop ne paie **pas**
+> la bascule (274→273 px) : elle est en surimpression.
+
+- [x] **Point 1 re-vérifié en direct** (sonde DOM, mobile **et** desktop) :
+      9 marqueurs, **0 sans nom**, **0 sans glyphe** de statut, **0 sous 44 px**,
+      **0 initiale de ponctuation** ; étiquette au **focus clavier** ET à
+      l'**appui long** (PointerEvent 700 ms) = « Grail (test) · Locked » ⇒
+      parité tactile A2 tenue sur les deux viewports.
+- [x] **Point 3 (U8) re-vérifié en direct**, crans 1 **et** 3 : l'état occupé rend
+      « ⏳ Used — next construction tomorrow » en **`rgb(195,194,183)`**
+      (= `--parchment-dim`) et **non** `#a0503f` (`--blood-bright`) ; badge
+      **absent** de l'onglet Garnison (`count = 0`).

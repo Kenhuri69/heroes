@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
+import { useMemo, useState } from 'preact/hooks';
 import { useApp } from '../app/store';
 import { t, resolveLoc } from '../app/i18n';
 import {
@@ -52,74 +52,6 @@ function factionName(id: string): string {
 /** Graine pseudo-unique côté client (jamais dans le moteur) — horloge mêlée. */
 function rollSeed(prev: number): number {
   return (Date.now() ^ Math.imul(prev || 1, 2654435761)) >>> 0;
-}
-
-/**
- * Rangée de pastilles de couleur d'un siège (A5 : nom localisé visible + motif
- * non chromatique, jamais la couleur seule). Le fondu de bord n'est une
- * affordance QUE tant qu'il reste du contenu à droite : la classe
- * `is-scrollable` suit l'état réel de défilement, sinon la dernière pastille
- * d'une rangée qui tient (ou défilée en fin de course) serait effacée en
- * dégradé — pastille coupée ET fausse promesse de défilement.
- */
-function ColorRow({
-  seat,
-  selected,
-  onPick,
-}: {
-  seat: number;
-  selected: number | undefined;
-  onPick: (color: number) => void;
-}) {
-  const ref = useRef<HTMLDivElement>(null);
-  const syncFade = (): void => {
-    const row = ref.current;
-    if (!row) return;
-    row.classList.toggle('is-scrollable', row.scrollWidth - row.clientWidth - row.scrollLeft > 1);
-  };
-  // Sans tableau de dépendances : la largeur des libellés change aussi avec le
-  // cran de police et la locale, sans qu'aucune prop ne bouge.
-  useEffect(() => {
-    syncFade();
-    window.addEventListener('resize', syncFade);
-    return () => window.removeEventListener('resize', syncFade);
-  });
-
-  return (
-    <div
-      class="newgame-seat-colors"
-      data-testid={`newgame-seat-${seat}-colors`}
-      role="group"
-      aria-label={t('newgame.color')}
-      ref={ref}
-      onScroll={syncFade}
-    >
-      {PLAYER_COLORS.map((c, ci) => {
-        const nameKey = PLAYER_COLOR_NAMES[ci] ?? String(ci);
-        const name = t(`newgame.colorName.${nameKey}`);
-        // Motif cyclique sur la palette : deux pastilles voisines diffèrent toujours.
-        const pattern = PATTERNS[ci % PATTERNS.length]!;
-        return (
-          <button
-            key={c}
-            type="button"
-            class={`newgame-swatch${selected === c ? ' active' : ''}`}
-            data-testid={`newgame-seat-${seat}-color-${hex(c).slice(1)}`}
-            data-pattern={pattern}
-            aria-label={name}
-            aria-pressed={selected === c}
-            onClick={() => onPick(c)}
-          >
-            <svg class="newgame-swatch-chip" viewBox="0 0 32 32" aria-hidden="true">
-              <rect x="0" y="0" width="32" height="32" rx="5" fill={hex(c)} />
-              <PatternMark pattern={pattern} />
-            </svg>
-            <span class="newgame-swatch-name">{name}</span>
-          </button>
-        );
-      })}
-    </div>
-  );
 }
 
 /**
@@ -281,8 +213,39 @@ export function NewGameScreen({ onClose }: { onClose: () => void }) {
         </select>
       )}
       {/* Pastilles de couleur : nom localisé visible + motif non chromatique
-          (A5, jamais la couleur seule) ; rangée défilante à fondu de bord. */}
-      <ColorRow seat={i} selected={slotColors[i]} onPick={(c) => setSlotColor(i, c)} />
+          (A5, jamais la couleur seule) ; la rangée passe à la ligne (jamais de
+          pastille rognée par un défilement horizontal). */}
+      <div
+        class="newgame-seat-colors"
+        data-testid={`newgame-seat-${i}-colors`}
+        role="group"
+        aria-label={t('newgame.color')}
+      >
+        {PLAYER_COLORS.map((c, ci) => {
+          const nameKey = PLAYER_COLOR_NAMES[ci] ?? String(ci);
+          const name = t(`newgame.colorName.${nameKey}`);
+          // Motif cyclique sur la palette : deux pastilles voisines diffèrent toujours.
+          const pattern = PATTERNS[ci % PATTERNS.length]!;
+          return (
+            <button
+              key={c}
+              type="button"
+              class={`newgame-swatch${slotColors[i] === c ? ' active' : ''}`}
+              data-testid={`newgame-seat-${i}-color-${hex(c).slice(1)}`}
+              data-pattern={pattern}
+              aria-label={name}
+              aria-pressed={slotColors[i] === c}
+              onClick={() => setSlotColor(i, c)}
+            >
+              <svg class="newgame-swatch-chip" viewBox="0 0 32 32" aria-hidden="true">
+                <rect x="0" y="0" width="32" height="32" rx="5" fill={hex(c)} />
+                <PatternMark pattern={pattern} />
+              </svg>
+              <span class="newgame-swatch-name">{name}</span>
+            </button>
+          );
+        })}
+      </div>
       <div class="segmented newgame-seat-team" role="group" aria-label={t('newgame.team')}>
         {TEAM_OPTIONS.map((tm) => (
           <button

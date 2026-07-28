@@ -518,9 +518,13 @@ Menu principal (Continuer / Scénarios / Escarmouche / **Éditeur de carte** / O
 >    localisé visible** (Rouge, Bleu, Vert, Violet, Orange, Sarcelle, Lilas,
 >    Ardoise) **et un motif** non chromatique (jeu de motifs de `FactionBadge`,
 >    cyclique sur l'index ⇒ deux pastilles voisines diffèrent toujours) — plus
->    jamais la couleur seule. La rangée **défile** avec **fondu de bord** (même
->    patron que la file d'initiative) : plus aucune pastille coupée sans
->    affordance. **Zéro diff moteur**, pas de bump de sauvegarde.
+>    jamais la couleur seule. Les libellés élargissant la rangée au-delà de la
+>    largeur du siège, elle **passe à la ligne** au lieu de défiler
+>    horizontalement : mesuré **0 px** de débordement et **8/8** pastilles
+>    entièrement visibles, à tous les crans de police, en desktop comme en
+>    portrait. (Un défilement horizontal laissait au contraire **une** pastille
+>    rognée dans tous les états — à droite au repos, à gauche en fin de course.)
+>    **Zéro diff moteur**, pas de bump de sauvegarde.
 
 > 🚧 **État (hot-seat, Alpha 4.15)** : l'écran d'escarmouche propose un
 > **adversaire** « IA » ou « Joueur 2 » (hot-seat local ; la difficulté ne
@@ -583,7 +587,7 @@ Menu principal (Continuer / Scénarios / Escarmouche / **Éditeur de carte** / O
 ## 4. Accessibilité
 
 - Daltonisme : **pas d'option** — l'accessibilité chromatique est **toujours active** (choix M8/C4, plus sûr qu'un réglage) : couleurs de joueur doublées de **motifs de bannière**, statuts de combat doublés d'icônes/formes, jamais la couleur seule.
-- **Choisir une couleur** n'échappe pas à la règle (lot R4) : les pastilles de la palette de joueur portent leur **nom localisé visible** *et* un **motif** non chromatique — une pastille n'est jamais identifiée par sa seule teinte, ni par le seul anneau de sélection. Une rangée trop large **défile** avec fondu de bord plutôt que de couper une pastille.
+- **Choisir une couleur** n'échappe pas à la règle (lot R4) : les pastilles de la palette de joueur portent leur **nom localisé visible** *et* un **motif** non chromatique — une pastille n'est jamais identifiée par sa seule teinte, ni par le seul anneau de sélection. Une rangée trop large **passe à la ligne** plutôt que de couper une pastille (jamais de défilement horizontal, qui en rognerait toujours une).
 - **Réduire les animations** : option en jeu (M8/C3) qui s'unit au réglage système `prefers-reduced-motion` — coupe transitions DOM et mouvement Pixi (le contour de focus reste).
 - Texte UI en DOM → zoom navigateur et lecteurs d'écran fonctionnent sur toute la gestion ; taille de police réglable (3 crans).
 - Toutes les infos « hover » accessibles à l'appui long ; aucune action à double-clic ou clic droit obligatoire.

@@ -1536,23 +1536,14 @@ test(
     await page.getByTestId('newgame-section-opponents').click();
 
     // (3) Contrôle A5 : chaque pastille de couleur porte un NOM localisé (aria +
-    // libellé visible) et un MOTIF non chromatique ; aucune n'est coupée. Les
-    // mesures de découpe sont prises AU PREMIER RENDU (aucun `scrollIntoView`
-    // préalable : sinon l'assertion ne mesure que l'atteignabilité par
-    // défilement, pas la découpe) puis EN FIN DE COURSE de défilement.
-    const colors = await page.getByTestId('newgame-seat-0-colors').evaluate(async (row) => {
+    // libellé visible) et un MOTIF non chromatique ; AUCUNE n'est coupée. La
+    // rangée passe à la ligne au lieu de défiler : les mesures sont donc prises
+    // TELLES QUELLES au premier rendu (aucun `scrollIntoView` préalable, qui ne
+    // mesurerait que l'atteignabilité par défilement, pas la découpe), et les
+    // assertions sont INCONDITIONNELLES (pas de branche `if` jamais exécutée).
+    const colors = await page.getByTestId('newgame-seat-0-colors').evaluate((row) => {
       const swatches = [...row.querySelectorAll('button')];
-      const inside = (b: Element): boolean => {
-        const br = b.getBoundingClientRect();
-        const cr = row.getBoundingClientRect();
-        return br.left >= cr.left - 1 && br.right <= cr.right + 1;
-      };
-      const scrollable = row.scrollWidth > row.clientWidth;
-      const insideAtRest = swatches.filter(inside).length;
-      const fadedAtRest = getComputedStyle(row).maskImage !== 'none';
-      // Fin de course : plus rien à droite ⇒ plus de fondu, dernière pastille nette.
-      row.scrollLeft = row.scrollWidth;
-      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+      const cr = row.getBoundingClientRect();
       return {
         count: swatches.length,
         named: swatches.filter((b) => {
@@ -1562,29 +1553,25 @@ test(
         }).length,
         withText: swatches.filter((b) => (b.textContent ?? '').trim().length > 0).length,
         patterned: swatches.filter((b) => (b.getAttribute('data-pattern') ?? '') !== '').length,
-        scrollable,
-        insideAtRest,
-        fadedAtRest,
-        lastInsideAtEnd: inside(swatches[swatches.length - 1]!),
-        fadedAtEnd: getComputedStyle(row).maskImage !== 'none',
+        // Débordement horizontal : 0 px attendu (rangée qui passe à la ligne).
+        overflowX: row.scrollWidth - row.clientWidth,
+        // Pastilles ENTIÈREMENT dans le rect du conteneur, sans défilement.
+        inside: swatches.filter((b) => {
+          const br = b.getBoundingClientRect();
+          return br.left >= cr.left - 1 && br.right <= cr.right + 1;
+        }).length,
+        // Aucun fondu de bord : il n'y a plus rien à masquer (il rognerait une
+        // pastille tout en promettant un défilement qui n'existe pas).
+        faded: getComputedStyle(row).maskImage !== 'none',
       };
     });
     expect(colors.count).toBeGreaterThanOrEqual(7);
     expect(colors.named).toBe(colors.count);
     expect(colors.withText).toBe(colors.count);
     expect(colors.patterned).toBe(colors.count);
-    // Rangée qui tient : AUCUNE pastille rognée au premier rendu, et PAS de
-    // fondu (ce serait une pastille coupée + une fausse affordance).
-    if (!colors.scrollable) {
-      expect(colors.insideAtRest).toBe(colors.count);
-      expect(colors.fadedAtRest).toBe(false);
-    } else {
-      // Rangée défilante ⇒ fondu de bord au repos comme affordance (doc 08 §4).
-      expect(colors.fadedAtRest).toBe(true);
-    }
-    // Fin de course : la dernière pastille est entière et n'est plus fondue.
-    expect(colors.lastInsideAtEnd).toBe(true);
-    expect(colors.fadedAtEnd).toBe(false);
+    expect(colors.overflowX).toBeLessThanOrEqual(1);
+    expect(colors.inside).toBe(colors.count);
+    expect(colors.faded).toBe(false);
 
     // (1) Démarrage rapide : lance directement la partie — 2 taps depuis le menu.
     await tap('newgame-quickstart'); // tap 2

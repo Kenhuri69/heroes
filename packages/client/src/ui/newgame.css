@@ -50,24 +50,16 @@
   flex: 1 1 100%;
 }
 
-/* Rangée de couleurs par siège : chips ≥ 44px, défile horizontalement si étroit
-   (jamais de débordement de page — doc 08 §4) avec FONDU DE BORD comme affordance
-   de défilement (même patron que la file d'initiative, lot R4). */
+/* Rangée de couleurs par siège : chips ≥ 44px. Les pastilles portent un NOM
+   visible (A5) et ne tiennent donc plus sur une ligne : la rangée PASSE À LA
+   LIGNE plutôt que de défiler — un défilement horizontal laisserait toujours une
+   pastille rognée d'un côté ou de l'autre (doc 08 §4, lot R4). */
 .newgame-seat-colors {
   flex: 1 1 100%;
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
-  overflow-x: auto;
   padding-bottom: 2px;
-}
-
-/* Le fondu n'est posé QUE tant qu'il reste du contenu à droite (classe posée par
-   `ColorRow`) : une rangée qui tient entièrement — ou défilée en fin de course —
-   ne doit jamais voir sa dernière pastille effacée en dégradé (pastille coupée +
-   fausse affordance de défilement). */
-.newgame-seat-colors.is-scrollable {
-  -webkit-mask-image: linear-gradient(to right, black calc(100% - 22px), transparent);
-  mask-image: linear-gradient(to right, black calc(100% - 22px), transparent);
 }
 
 /* Pastille de couleur : le NOM localisé et le MOTIF sont les 2ᵉ/3ᵉ canaux —

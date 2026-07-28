@@ -1,3 +1,6 @@
+import { readFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
+import { join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { MAP_SIZE_DIMENSIONS, quickStartConfig, RANDOM, resolveNewGameConfig } from './game';
 import { PLAYER_COLORS, PLAYER_COLOR_NAMES } from '../render/playerColors';
@@ -52,5 +55,31 @@ describe('quickStartConfig', () => {
     ]).toEqual([1, 1, 1, 1]);
     // Les factions restent tirées dans le catalogue fourni (aucun id en dur).
     for (const seat of a.setup.seats) expect(FACTIONS).toContain(seat.factionId);
+  });
+});
+
+/**
+ * Parité nom ↔ couleur (lot R4, A5) : la pastille de couleur est nommée via
+ * `newgame.colorName.<PLAYER_COLOR_NAMES[i]>`, couplé PAR INDEX à
+ * `PLAYER_COLORS`. Sans ce garde-fou, une 9ᵉ couleur ajoutée à la palette
+ * afficherait l'`aria-label` brut « newgame.colorName.8 » — exactement la
+ * régression que le lot corrige.
+ */
+const DATA_DIR = resolve(fileURLToPath(import.meta.url), '../../../../../data');
+
+describe('palette de joueur — parité nom localisé', () => {
+  it('chaque couleur a un suffixe de nom non vide', () => {
+    expect(PLAYER_COLOR_NAMES).toHaveLength(PLAYER_COLORS.length);
+    for (const name of PLAYER_COLOR_NAMES) expect(name.trim().length).toBeGreaterThan(0);
+  });
+
+  it('chaque nom a sa clé `newgame.colorName.<nom>` en FR et EN', async () => {
+    const read = async (lang: string): Promise<Record<string, string>> =>
+      JSON.parse(await readFile(join(DATA_DIR, `core/locales/${lang}.json`), 'utf8')) as Record<string, string>;
+    const [fr, en] = await Promise.all([read('fr'), read('en')]);
+    for (const name of PLAYER_COLOR_NAMES) {
+      expect(fr[`newgame.colorName.${name}`], `fr: ${name}`).toBeTruthy();
+      expect(en[`newgame.colorName.${name}`], `en: ${name}`).toBeTruthy();
+    }
   });
 });

@@ -18,6 +18,22 @@ export const PLAYER_COLORS: readonly number[] = [
   0x5d6d7e, // ardoise
 ];
 
+/**
+ * Suffixes de clé i18n des NOMS de couleur (`newgame.colorName.<suffixe>`), dans
+ * le même ordre que `PLAYER_COLORS`. Sert de 2ᵉ canal (A5, doc 08 §4) au choix de
+ * couleur : une pastille est toujours nommée, jamais « la couleur seule ».
+ */
+export const PLAYER_COLOR_NAMES: readonly string[] = [
+  'red',
+  'blue',
+  'green',
+  'purple',
+  'orange',
+  'teal',
+  'lilac',
+  'slate',
+];
+
 /** Gris des objets neutres (même teinte que le fanion de gardien). */
 export const NEUTRAL_COLOR = 0x8a8f98;
 

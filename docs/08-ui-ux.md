@@ -493,6 +493,35 @@ Menu principal (Continuer / Scénarios / Escarmouche / **Éditeur de carte** / O
 > génère la carte (overlay de progression) et joue le `StartGame`. **Zéro diff
 > moteur** (données + client).
 
+> ✅ **État (lot R4 — « jouer en trois taps », H4/U1)** : l'écran ci-dessus
+> exposait ~28 réglages d'affilée, sans préréglage — « Lancer » était à plusieurs
+> écrans de défilement (mesuré : panneau **2,5×** sa hauteur visible à 2 sièges en
+> portrait, **3,3×** à 4 sièges). Trois décisions d'interaction :
+> 1. **« Démarrage rapide »** en **tête** de la modale (action principale, pleine
+>    largeur) : 2 joueurs (vous + une IA), **factions aléatoires**, carte
+>    **moyenne**, ressources / densités / difficulté **standard**, héros tiré,
+>    **graine fraîche** — et **lance directement**. Depuis le menu, une partie
+>    démarre en **2 taps** (menu → Nouvelle partie → Démarrage rapide). La graine
+>    est tirée à l'horloge **côté client** ; tous les « Aléatoire » restent résolus
+>    par le RNG **seedé** ⇒ à graine égale, la partie est identique.
+> 2. **Progressive disclosure** : deux sections **repliables fermées par défaut**
+>    (composant `CollapsibleSection`, état persisté en `localStorage`) —
+>    **« Adversaires (N) »** (les sièges au-delà du vôtre) et **« Carte & contenu »**
+>    (taille, ressources, les 4 curseurs de densité et la **graine**, paramètre de
+>    génération). Restent visibles : Démarrage rapide, nombre de joueurs, **votre
+>    siège** (faction / héros / couleur / équipe), difficulté IA, « Lancer ».
+>    **Aucun réglage ne disparaît** — tout se déplie d'un tap. Mesure : panneau
+>    ramené à **1,4×** sa hauteur visible en portrait (**1,1×** en desktop) ⇒
+>    « Lancer » atteignable en **au plus un écran** de défilement, à tous les crans
+>    de police.
+> 3. **Couleurs nommées (A5)** : chaque pastille de la palette porte son **nom
+>    localisé visible** (Rouge, Bleu, Vert, Violet, Orange, Sarcelle, Lilas,
+>    Ardoise) **et un motif** non chromatique (jeu de motifs de `FactionBadge`,
+>    cyclique sur l'index ⇒ deux pastilles voisines diffèrent toujours) — plus
+>    jamais la couleur seule. La rangée **défile** avec **fondu de bord** (même
+>    patron que la file d'initiative) : plus aucune pastille coupée sans
+>    affordance. **Zéro diff moteur**, pas de bump de sauvegarde.
+
 > 🚧 **État (hot-seat, Alpha 4.15)** : l'écran d'escarmouche propose un
 > **adversaire** « IA » ou « Joueur 2 » (hot-seat local ; la difficulté ne
 > s'affiche qu'en mode IA). En multi-humain, tout le plateau (héros, villes,
@@ -554,6 +583,7 @@ Menu principal (Continuer / Scénarios / Escarmouche / **Éditeur de carte** / O
 ## 4. Accessibilité
 
 - Daltonisme : **pas d'option** — l'accessibilité chromatique est **toujours active** (choix M8/C4, plus sûr qu'un réglage) : couleurs de joueur doublées de **motifs de bannière**, statuts de combat doublés d'icônes/formes, jamais la couleur seule.
+- **Choisir une couleur** n'échappe pas à la règle (lot R4) : les pastilles de la palette de joueur portent leur **nom localisé visible** *et* un **motif** non chromatique — une pastille n'est jamais identifiée par sa seule teinte, ni par le seul anneau de sélection. Une rangée trop large **défile** avec fondu de bord plutôt que de couper une pastille.
 - **Réduire les animations** : option en jeu (M8/C3) qui s'unit au réglage système `prefers-reduced-motion` — coupe transitions DOM et mouvement Pixi (le contour de focus reste).
 - Texte UI en DOM → zoom navigateur et lecteurs d'écran fonctionnent sur toute la gestion ; taille de police réglable (3 crans).
 - Toutes les infos « hover » accessibles à l'appui long ; aucune action à double-clic ou clic droit obligatoire.

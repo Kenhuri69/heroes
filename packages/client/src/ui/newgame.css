@@ -51,28 +51,62 @@
 }
 
 /* Rangée de couleurs par siège : chips ≥ 44px, défile horizontalement si étroit
-   (jamais de débordement de page — doc 08 §4). */
+   (jamais de débordement de page — doc 08 §4) avec FONDU DE BORD comme affordance
+   de défilement (même patron que la file d'initiative, lot R4). */
 .newgame-seat-colors {
   flex: 1 1 100%;
   display: flex;
   gap: 6px;
   overflow-x: auto;
   padding-bottom: 2px;
+  -webkit-mask-image: linear-gradient(to right, black calc(100% - 22px), transparent);
+  mask-image: linear-gradient(to right, black calc(100% - 22px), transparent);
 }
 
+/* Pastille de couleur : le NOM localisé et le MOTIF sont les 2ᵉ/3ᵉ canaux —
+   jamais la couleur seule (doc 08 §4, A5). */
 .newgame-swatch {
   flex: 0 0 auto;
-  width: 44px;
-  height: 44px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 3px 5px;
   border: 2px solid var(--ink-600);
   border-radius: var(--radius-s);
+  background: var(--ink-700);
+  color: var(--parchment);
   cursor: pointer;
-  padding: 0;
+}
+
+.newgame-swatch-chip {
+  width: 26px;
+  height: 26px;
+  flex: none;
+}
+
+.newgame-swatch-name {
+  font-size: 0.6875rem;
+  line-height: 1.1;
+  white-space: nowrap;
+  color: var(--parchment-dim);
 }
 
 .newgame-swatch.active {
   border-color: var(--parchment-bright);
   box-shadow: 0 0 0 2px var(--gold-veil);
+}
+
+.newgame-swatch.active .newgame-swatch-name {
+  color: var(--parchment-bright);
+  font-weight: 700;
+}
+
+/* Démarrage rapide (lot R4) : action principale en tête de la modale. */
+.newgame-quickstart {
+  width: 100%;
 }
 
 /* Sélecteur d'équipe par siège (alliances) : segmented pleine largeur. */

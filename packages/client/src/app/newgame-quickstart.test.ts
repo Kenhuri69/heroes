@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { MAP_SIZE_DIMENSIONS, quickStartConfig, RANDOM, resolveNewGameConfig } from './game';
+import { PLAYER_COLORS, PLAYER_COLOR_NAMES } from '../render/playerColors';
 
 /**
  * Préréglage « Démarrage rapide » (lot R4) : logique pure — 2 joueurs, factions

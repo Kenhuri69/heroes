@@ -59,6 +59,13 @@
   gap: 6px;
   overflow-x: auto;
   padding-bottom: 2px;
+}
+
+/* Le fondu n'est posé QUE tant qu'il reste du contenu à droite (classe posée par
+   `ColorRow`) : une rangée qui tient entièrement — ou défilée en fin de course —
+   ne doit jamais voir sa dernière pastille effacée en dégradé (pastille coupée +
+   fausse affordance de défilement). */
+.newgame-seat-colors.is-scrollable {
   -webkit-mask-image: linear-gradient(to right, black calc(100% - 22px), transparent);
   mask-image: linear-gradient(to right, black calc(100% - 22px), transparent);
 }

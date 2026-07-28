@@ -210,3 +210,96 @@ avant lecture, port 4173 partagé) — identiques au §3 :
 Captures de contrôle : `<scratchpad>/captures/r4-apres-verif/` (inspectées à
 l'œil : bouton « Démarrage rapide » en tête, sections « Adversaires (N) » et
 « Carte & contenu » repliées, pastilles nommées + motifs distincts).
+
+---
+
+## 7. Écarts de la vérification adversariale (3ᵉ passe) & leur fermeture
+
+Une re-vérification adversariale indépendante a relevé **4 écarts**. Les deux
+premiers sont bloquants (le critère 3 « aucune pastille coupée » était à la fois
+**régressé** et **non prouvé**). Périmètre de la correction : client + locales +
+doc 08 — toujours **zéro diff `packages/engine`**, pas de bump
+`CURRENT_SAVE_VERSION`, aucune fixture golden touchée.
+
+### Diagnostic accepté
+
+- **É1 (bloquant)** — `newgame.css:62-63` posait le fondu de bord
+  **inconditionnellement**. Preuve du vérificateur (desktop 1280×800) : la rangée
+  `.newgame-seat-colors` **ne défile pas** (`scrollWidth` 406 = `clientWidth` 406)
+  et porte pourtant `mask-image: linear-gradient(...)` ⇒ la zone de fondu démarre
+  à x=821 alors que la dernière pastille (« Ardoise ») s'étend jusqu'à x=840 :
+  **19 px effacés en dégradé sur une pastille de 44 px**, sans aucun défilement
+  possible. Double défaut : (a) pastille coupée — ce que le critère interdit —
+  et (b) **fausse affordance** de défilement. Même défaut en mobile **une fois
+  la rangée défilée en fin de course** (plus rien à droite, fondu maintenu).
+  → Le prédicat correct n'est pas « la rangée déborde » mais **« il reste du
+  contenu à droite »** : `scrollWidth − clientWidth − scrollLeft > 1`. Il couvre
+  les deux cas d'un coup (rangée non défilante ⇒ 0 > 1 faux).
+- **É2 (bloquant)** — `smoke.spec.ts:1568` `expect(colors.allInside).toBe(true)`
+  était **tautologique** : précédé d'un `scrollIntoView` par pastille, il ne
+  mesurait que l'atteignabilité par défilement (vérifié : l'assertion passe aussi
+  sur `origin/main`, sans le correctif). Le seul garde-fou restant
+  (`if (scrollable) expect(faded).toBe(true)`) ne se déclenchait jamais sur le cas
+  défaillant (rangée non défilante).
+- **É3 (mineur)** — clé `newgame.seats` orpheline depuis la suppression du `<h3>`
+  de la section « Vous » par **ce lot** (`origin/main:NewGameScreen.tsx:186`
+  la consommait).
+- **É4 (mineur)** — `PLAYER_COLOR_NAMES` couplé **par index** à `PLAYER_COLORS`
+  sans test de parité : une 9ᵉ couleur produirait l'`aria-label` brut
+  `newgame.colorName.8` — la régression U1 que ce lot corrige.
+
+Aucun des 4 écarts n'est jugé faux.
+
+### Étapes & critères de vérification chiffrés
+
+- [x] **F1 (É1)** — fondu **piloté par l'état de défilement** : nouveau
+      sous-composant `ColorRow` (`NewGameScreen.tsx`) qui pose la classe
+      `is-scrollable` **ssi** `scrollWidth − clientWidth − scrollLeft > 1`
+      (re-synchronisée au `scroll`, au `resize` et à chaque rendu) ; le
+      `mask-image` de `newgame.css` passe sous `.newgame-seat-colors.is-scrollable`.
+      *Vérif chiffrée* : desktop (rangée non défilante) `maskImage === 'none'` **et**
+      **8/8** pastilles entièrement dans le rect du conteneur **au premier rendu,
+      sans défilement** ; mobile (rangée défilante) fondu présent au repos puis
+      `maskImage === 'none'` **en fin de course**, dernière pastille entièrement
+      dans le rect.
+- [x] **F2 (É2)** — smoke réécrit : les mesures sont prises **au premier rendu**
+      (plus de `scrollIntoView` préalable) puis **après défilement en fin de
+      course**. Assertions **discriminantes** (elles échouent sur le code d'avant
+      F1) : `if (!scrollable) expect(faded).toBe(false)` +
+      `if (!scrollable) expect(insideAtRest).toBe(count)` + en fin de course
+      `expect(fadedAtEnd).toBe(false)` et `expect(lastInsideAtEnd).toBe(true)`.
+      *Preuve de discrimination* : rejouées contre le CSS d'avant F1 (§ « Preuve »).
+- [x] **F3 (É3)** — `newgame.seats` supprimée de `data/core/locales/{fr,en}.json`
+      (parité conservée). Guidelines §3 : c'est **ce lot** qui a créé l'orphelin
+      (« Remove … that YOUR changes made unused »), la demande de fermeture d'écart
+      vaut autorisation ; aucune autre clé morte pré-existante n'est touchée.
+- [x] **F4 (É4)** — `expect(PLAYER_COLOR_NAMES).toHaveLength(PLAYER_COLORS.length)`
+      (+ chaque nom non vide) dans `packages/client/src/app/newgame-quickstart.test.ts`
+      — unitaire client, niveau le moins cher (`test-authoring`).
+- [x] **F5** — `docs/08-ui-ux.md` aligné : le fondu de bord n'apparaît **que**
+      tant qu'il reste du contenu à droite (§3 encart « Nouvelle partie » et §4 A5).
+- [x] **F6** — pipeline 9 étapes vert (§8).
+
+### Décisions & écarts constatés pendant la correction
+
+- **Pourquoi un sous-composant plutôt que du CSS pur** : aucune requête CSS ne
+  connaît l'état de défilement (`@container` ne le voit pas ; les
+  scroll-driven animations ne sont pas portables). Les crochets Preact ne
+  pouvant être appelés dans `seatRow(i)` (appelé en boucle/conditionnellement,
+  règle des hooks), la rangée devient un composant à part entière — 20 lignes,
+  aucune abstraction spéculative.
+- **Piste écartée** : `padding-right: 22px` sur la rangée. Mesuré : la rangée
+  tient à **406 px pour 406 px** de large ; ajouter 22 px de padding la rend
+  *artificiellement* défilante et laisse le fondu mordre la dernière pastille —
+  le remède aggrave le symptôme.
+- **`useEffect` sans tableau de dépendances** (resync à chaque rendu) : le
+  changement de cran de police ou de locale modifie la largeur des libellés sans
+  qu'aucune prop ne change. Coût = 2 lectures de layout par rendu de siège.
+- **Événement `scroll` asynchrone** : le smoke règle `scrollLeft` puis **attend
+  deux rAF** avant de relire `maskImage` (sinon la classe n'est pas encore
+  synchronisée — faux négatif du test, pas du produit).
+
+### Preuve de discrimination des nouvelles assertions (É2)
+
+Le CSS d'avant F1 (mask inconditionnel) réintroduit dans le build, smoke rejoué :
+les assertions **échouent** — voir §8, ligne « contre-épreuve ».

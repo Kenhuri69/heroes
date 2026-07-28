@@ -194,12 +194,23 @@
 .action-nav {
   display: flex;
   align-items: center;
+  /* Au-delà du portrait, la hauteur ne manque pas : le groupe revient à la ligne
+     DANS le panneau plutôt que de cacher une entrée derrière le fondu (les
+     libellés U7 le feraient déborder dès 1280 px avec la colonne héros). */
+  flex-wrap: wrap;
   gap: 8px;
   min-width: 0;
   padding-right: 22px;
   overflow-x: auto;
   -webkit-mask-image: linear-gradient(to right, black calc(100% - 22px), transparent);
   mask-image: linear-gradient(to right, black calc(100% - 22px), transparent);
+}
+
+/* Les boutons ne se compriment jamais : c'est le groupe qui défile. Sans cela
+   le manque de place écrasait leur largeur et renvoyait le libellé sous
+   l'icône (boutons à 2 lignes, panneau à 70 px au lieu de 62). */
+.action-nav > button {
+  flex: none;
 }
 
 /* Filet entre navigation et action majeure (2ᵉ canal de la hiérarchie, en plus
@@ -218,6 +229,7 @@
 .action-label {
   display: none;
   margin-left: 6px;
+  white-space: nowrap; /* « Héros suiv. » sur une ligne : sinon le bouton double de haut */
 }
 
 @media (min-width: 900px) {
@@ -1078,8 +1090,13 @@
     padding: 4px 8px;
   }
 
+  /* Rangée UNIQUE en portrait : 6 cibles de 44 px + « Fin de tour » demandent
+     ≥ 420 px pour 328 px disponibles à 360 px — le débordement défile (fondu de
+     bord) au lieu de revenir à la ligne, la hauteur du panneau étant le sujet
+     du constat H3. */
   .action-nav {
     flex: 1 1 auto;
+    flex-wrap: nowrap;
     gap: 6px;
   }
 

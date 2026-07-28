@@ -277,13 +277,18 @@ test('HUD mobile : panneau d’actions opaque sur une rangée + ressources défi
       return {
         background: getComputedStyle(actions).backgroundColor,
         panelHeight: ar.height,
-        // Un bouton hors du rect du panneau = un bouton posé sur du terrain nu.
+        // Un pixel de bouton PEINT hors du panneau = un bouton posé sur du
+        // terrain nu. En portrait le groupe navigation défile : ce qui en sort
+        // est rogné (`overflow-x`) donc jamais peint — on compare donc la
+        // portion réellement visible, pas le rect brut.
         outside: buttons
           .filter((b) => {
             const r = b.getBoundingClientRect();
-            return (
-              r.left < ar.left - 1 || r.right > ar.right + 1 || r.top < ar.top - 1 || r.bottom > ar.bottom + 1
-            );
+            const clip = b.closest('.action-nav')?.getBoundingClientRect() ?? ar;
+            const left = Math.max(r.left, clip.left);
+            const right = Math.min(r.right, clip.right);
+            if (right <= left) return false; // entièrement rogné : rien de peint
+            return left < ar.left - 1 || right > ar.right + 1 || r.top < ar.top - 1 || r.bottom > ar.bottom + 1;
           })
           .map((b) => b.getAttribute('data-testid') ?? b.className),
         // A1 : non-régression des cibles tactiles du panneau.

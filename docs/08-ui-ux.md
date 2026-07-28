@@ -111,7 +111,8 @@
 > l'interaction carte ; la carte rend **un sprite par héros** avec un anneau sur
 > le sélectionné. La barre d'actions liste **toutes les villes possédées** (une
 > entrée par ville, badge de faction) — la 2ᵉ ville capturée est donc
-> accessible. Depuis **M-TAVERN.2**, le recrutement de héros à la **Taverne**
+> accessible ; **plafonné à 2 boutons depuis R3** (au-delà : « Villes (N) » →
+> écran Royaume, voir « État R3 » plus bas). Depuis **M-TAVERN.2**, le recrutement de héros à la **Taverne**
 > alimente réellement ce multi-héros (le héros recruté devient le héros
 > sélectionné et apparaît dans le bandeau). Le **transfert d'armée/artefacts**
 > entre héros (doc §2.3) reste différé à U6.
@@ -144,6 +145,44 @@
 > toutes deux confinées à gauche du rail — un déplacement dans le rail est
 > volontairement non retenu (faible valeur, casse de surfaces testées). La
 > **mini-map** est livrée desktop (widget du rail) et mobile (dans le tiroir).
+
+> ✅ **État R3 (le HUD d'aventure se range — plan `.claude/plans/r3-hud-aventure-se-range.md`,
+> constats H3/H6/H7/U7 de la revue 2026-07)**. Quatre décisions d'interaction :
+>
+> 1. **Panneau de barre d'actions.** Les sept contrôles (son, options, royaume,
+>    héros suivant, journal, ville(s), fin de tour) ne flottent plus sur le
+>    terrain : ils sont posés sur **un panneau d'encre opaque** (`--veil-95`)
+>    qui ré-active `pointer-events` pour lui seul. Trois niveaux hiérarchiques
+>    **distincts** : le **statut** (jour/PM, indicateur de tour) reste au-dessus,
+>    hors panneau ; la **navigation** forme un groupe ; l'**action majeure**
+>    (« Fin de tour ») en est séparée par un filet, en plus de sa couleur sang et
+>    de sa voix display. Mesure portrait 360 × 640 : le HUD passe de **212-286 px
+>    sur 4-5 rangées** (33-45 % du viewport, fond transparent) à **62 px sur une
+>    rangée**, aux trois crans de police.
+> 2. **Rangée unique en portrait, retour à la ligne au-delà.** Sept contrôles à
+>    ≥ 44 px ne tiennent pas dans 328 px utiles : en portrait le groupe de
+>    navigation **défile horizontalement** avec un **fondu de bord** (même patron
+>    que la file d'initiative) plutôt que de revenir à la ligne — la hauteur du
+>    HUD est le sujet du constat. « Fin de tour » ne défile jamais. Au-delà de
+>    640 px, où la hauteur ne manque pas, le groupe **revient à la ligne** dans
+>    le panneau : rien n'y est jamais caché derrière le fondu.
+> 3. **Barre de ressources : affordance de défilement.** Le défilement portrait
+>    existait (état M5) mais rien ne le signalait — la 7ᵉ ressource semblait
+>    simplement coupée. Même **fondu de bord** ; le padding latéral de 52 px
+>    (déjà là pour dégager le bouton du tiroir) garantit qu'au défilement maximal
+>    la dernière ressource est **entièrement lisible**. Le repli par retour à la
+>    ligne est écarté : il coûterait une à deux rangées (7 × 44 px + gouttières
+>    = 460 px > 360 px) et défairait l'état M5.
+> 4. **Plafond des boutons de ville, libellés desktop.** Au-delà de **2 villes**
+>    possédées, la barre rend **un seul** bouton « Villes (N) » qui ouvre l'écran
+>    **Royaume** (déjà livré, il couvre ce besoin) — fini le débordement en
+>    milieu de partie. Jusqu'à 2 villes, les boutons individuels sont inchangés.
+>    Enfin, les cinq boutons icône-seule (son, options, royaume, héros suivant,
+>    journal) **portent leur libellé à côté de l'icône à partir de 900 px**
+>    (seuil du tiroir héros persistant) : l'information n'existait qu'en
+>    `title`/`aria-label`, et « Ville »/« Fin de tour » étaient textuels — la
+>    hiérarchie visuelle est enfin cohérente. Sous 900 px, le libellé est masqué
+>    et ne coûte rien en portrait ; l'`aria-label` reste le nom accessible.
 
 ### 2.2 Écran de ville
 

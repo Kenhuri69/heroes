@@ -249,6 +249,115 @@ test('HUD mobile : bandeau d’armée replié par défaut, dépliable (X3)', { t
   expect(errors).toEqual([]);
 });
 
+/**
+ * Lot R3 (constats H3, H6, U7). Viewport forcé à 360×640 : le projet `mobile`
+ * est un Pixel 7 (412×915), or les mesures de référence de la revue — et les
+ * seuils ci-dessous — sont exprimées en 360 px de large, le cas le plus étroit.
+ * Un seul démarrage, les 3 crans de police sont mesurés dessus (skill
+ * test-authoring §2.2).
+ */
+test('HUD mobile : panneau d’actions opaque sur une rangée + ressources défilantes (R3)', { tag: '@mobile' }, async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 360, height: 640 });
+  const errors = await openGame(page);
+  await expect(page.locator('.actions')).toBeVisible();
+
+  /** Géométrie du panneau d'actions + de la barre de ressources, en un aller-retour. */
+  const measure = () =>
+    page.evaluate(() => {
+      const actions = document.querySelector('.actions')!;
+      const ar = actions.getBoundingClientRect();
+      const buttons = [...actions.querySelectorAll('button')];
+      const bar = document.querySelector('.resource-bar')!;
+      bar.scrollLeft = bar.scrollWidth; // défilement maximal
+      const items = [...bar.querySelectorAll('.resource')];
+      const barRect = bar.getBoundingClientRect();
+      const lastRect = items[items.length - 1]!.getBoundingClientRect();
+      return {
+        background: getComputedStyle(actions).backgroundColor,
+        panelHeight: ar.height,
+        // Un bouton hors du rect du panneau = un bouton posé sur du terrain nu.
+        outside: buttons
+          .filter((b) => {
+            const r = b.getBoundingClientRect();
+            return (
+              r.left < ar.left - 1 || r.right > ar.right + 1 || r.top < ar.top - 1 || r.bottom > ar.bottom + 1
+            );
+          })
+          .map((b) => b.getAttribute('data-testid') ?? b.className),
+        // A1 : non-régression des cibles tactiles du panneau.
+        under44: buttons
+          .map((b) => b.getBoundingClientRect())
+          .filter((r) => r.width < 44 || r.height < 44).length,
+        // U7 : aucun libellé desktop ne doit être affiché en portrait.
+        visibleLabels: [...actions.querySelectorAll('.action-label')].filter(
+          (l) => getComputedStyle(l).display !== 'none',
+        ).length,
+        resourceOverflow: bar.scrollWidth - bar.clientWidth,
+        resourceMask: getComputedStyle(bar).maskImage,
+        // H6 : au bout du défilement, la dernière ressource est entièrement lisible.
+        lastResourceOverhang: lastRect.right - barRect.right,
+        resourcesUnder44: items
+          .map((el) => el.getBoundingClientRect())
+          .filter((r) => r.width < 44 || r.height < 44).length,
+      };
+    });
+
+  for (const scale of [1, 2, 3] as const) {
+    await page.getByTestId('options-open').click();
+    await page.getByTestId(`options-fontscale-${scale}`).click();
+    await page.getByTestId('options-close').click();
+    const m = await measure();
+
+    // (a) H3 — fond OPAQUE : alpha ≥ 0.85 (avant le lot : `rgba(0, 0, 0, 0)`).
+    const alpha = Number(/^rgba\(.*,\s*([\d.]+)\)$/.exec(m.background)?.[1] ?? '1');
+    expect(alpha, `cran ${scale} : fond du panneau ${m.background}`).toBeGreaterThanOrEqual(0.85);
+    // (b) H3 — plus aucun bouton posé sur du terrain nu.
+    expect(m.outside, `cran ${scale}`).toEqual([]);
+    // (c) H3 — rangée UNIQUE (avant le lot : 212 → 286 px sur 4-5 rangées).
+    expect(m.panelHeight, `cran ${scale}`).toBeLessThanOrEqual(64);
+    // (d) A1 — cibles ≥ 44 px conservées.
+    expect(m.under44, `cran ${scale}`).toBe(0);
+    // U7 — le gain desktop ne coûte rien en portrait.
+    expect(m.visibleLabels, `cran ${scale}`).toBe(0);
+
+    // H6 — affordance de défilement, et aucune ressource coupée au bout.
+    if (m.resourceOverflow > 0) {
+      expect(m.resourceMask, `cran ${scale}`).not.toBe('none');
+    }
+    expect(m.lastResourceOverhang, `cran ${scale}`).toBeLessThanOrEqual(1);
+    expect(m.resourcesUnder44, `cran ${scale}`).toBe(0);
+  }
+
+  // Revenir au cran 1 (même précaution que le test d'accessibilité §4).
+  await page.getByTestId('options-open').click();
+  await page.getByTestId('options-fontscale-1').click();
+  await page.getByTestId('options-close').click();
+
+  expect(errors).toEqual([]);
+});
+
+/** Lot R3 (constat U7) : sur desktop, les 5 boutons icône-seule portent enfin un libellé. */
+test('HUD desktop : les boutons d’action portent leur libellé (R3/U7)', { tag: '@core' }, async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  const errors = await openGame(page);
+  await expect(page.locator('.actions')).toBeVisible();
+
+  for (const testid of ['mute-toggle', 'options-open', 'kingdom-open', 'next-hero', 'journal-open']) {
+    const button = page.getByTestId(testid);
+    // Libellé RENDU (pas seulement présent dans le DOM) à côté de l'icône…
+    const labelWidth = await button
+      .locator('.action-label')
+      .evaluate((el) => el.getBoundingClientRect().width);
+    expect(labelWidth, testid).toBeGreaterThan(0);
+    // …sans perdre l'`aria-label`, qui reste le nom accessible du bouton.
+    expect(await button.getAttribute('aria-label'), testid).toBeTruthy();
+  }
+
+  expect(errors).toEqual([]);
+});
+
 // Tag @core (desktop) : la LOGIQUE E4 (handlers, appui long via Pointer Events) est
 // indépendante du viewport ; la simulation d'appui long TACTILE sous charge est
 // intrinsèquement flaky (course du minuteur). Le rendu tactile mobile est vérifié

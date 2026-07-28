@@ -164,14 +164,66 @@
   pointer-events: none;
 }
 
+/* Panneau de barre d'actions (lot R3, constat H3) : les sept contrôles
+   flottaient SANS fond sur le terrain, en grille irrégulière à 2 colonnes
+   (mesuré 212→286 px de haut en portrait, soit 33→45 % du viewport). Ils sont
+   désormais posés sur UN panneau d'encre opaque, sur UNE rangée, avec les trois
+   niveaux hiérarchiques séparés : statut (`.status-bar`, au-dessus, hors
+   panneau) │ navigation (`.action-nav`) │ action majeure (`.end-turn`).
+   `pointer-events: auto` obligatoire : le parent `.bottom-hud` est en `none`. */
 .actions {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: flex-end;
-  flex-wrap: wrap; /* mobile étroit : la barre passe à la ligne au lieu de déborder */
+  flex-wrap: nowrap; /* rangée unique : le débordement défile (cf. .action-nav) */
   gap: 8px;
   min-width: 0;
+  padding: 6px 8px;
+  border: 1px solid var(--ink-600);
+  border-radius: var(--radius-m);
+  background: var(--veil-95);
   pointer-events: auto;
+}
+
+/* Groupe « navigation » (statut audio, options, royaume, héros suivant,
+   journal, villes). À 360 px, 6 cibles de 44 px + « Fin de tour » demandent
+   ≥ 420 px : la rangée unique impose donc un défilement horizontal. Fondu de
+   bord = affordance (même patron que la file d'initiative, `combat.css`) ; le
+   `padding-right` égal à la largeur du fondu garantit qu'au défilement maximal
+   la dernière entrée est ENTIÈREMENT visible (leçon du lot R4). */
+.action-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding-right: 22px;
+  overflow-x: auto;
+  -webkit-mask-image: linear-gradient(to right, black calc(100% - 22px), transparent);
+  mask-image: linear-gradient(to right, black calc(100% - 22px), transparent);
+}
+
+/* Filet entre navigation et action majeure (2ᵉ canal de la hiérarchie, en plus
+   de la couleur sang et de la voix display de « Fin de tour »). */
+.action-sep {
+  flex: none;
+  align-self: stretch;
+  width: 1px;
+  background: var(--ink-600);
+}
+
+/* Libellé des boutons icône-seule (lot R3, constat U7) : l'information
+   n'existait qu'en `title`/`aria-label`. Affiché à partir de 900 px — seuil
+   déjà utilisé par le tiroir héros ; masqué en dessous pour ne rien coûter en
+   portrait. */
+.action-label {
+  display: none;
+  margin-left: 6px;
+}
+
+@media (min-width: 900px) {
+  .action-label {
+    display: inline;
+  }
 }
 
 .actions button {
@@ -187,6 +239,11 @@
 }
 
 .actions .end-turn {
+  /* `flex: none` (lot R3) : dans la rangée unique, le shrink par défaut
+     comprimait le bouton jusqu'à faire passer « Fin de tour » sur deux lignes
+     (panneau mesuré à 72 px au lieu de 60). L'action majeure ne se comprime
+     pas ; c'est `.action-nav` (min-width: 0) qui absorbe le manque de place. */
+  flex: none;
   min-height: 56px;
   padding: 8px 22px;
   background: var(--blood);
@@ -197,6 +254,7 @@
 /* Bouton Fouiller (T-GRAIL lot 2) : action ponctuelle mise en avant en laiton
    (accent doré du Graal), distinct de « Fin de tour » (sang). */
 .actions .dig-grail {
+  flex: none; /* cf. `.end-turn` : action ponctuelle mise en avant, jamais comprimée */
   min-height: 56px;
   padding: 8px 20px;
   background: var(--brass);
@@ -224,10 +282,13 @@
   position: relative;
   font-size: 1.125rem;
 }
+/* Pastille ANCRÉE DANS le bouton (lot R3) : le groupe navigation défile
+   (`overflow-x: auto`), qui rogne tout débordement — un ancrage négatif
+   amputait la pastille. */
 .next-hero-badge {
   position: absolute;
-  top: -6px;
-  right: -6px;
+  top: 2px;
+  right: 2px;
   min-width: 18px;
   height: 18px;
   padding: 0 4px;
@@ -989,10 +1050,47 @@
     gap: 4px 8px;
     padding: 4px 52px;
     font-size: 0.8rem;
+    /* Lot R3 (constat H6) : le défilement existait, l'AFFORDANCE manquait — la
+       7ᵉ ressource était coupée au bord droit sans rien signaler. Fondu de bord
+       (patron de la file d'initiative). Le padding droit de 52 px, déjà présent
+       pour dégager le bouton du tiroir, dépasse largement les 22 px de fondu :
+       au défilement maximal la dernière ressource est entièrement lisible. */
+    -webkit-mask-image: linear-gradient(to right, black calc(100% - 22px), transparent);
+    mask-image: linear-gradient(to right, black calc(100% - 22px), transparent);
   }
 
   .resource {
     flex: none;
+  }
+
+  /* Panneau d'actions en portrait (lot R3, H3) : `.turn-row` passe en colonne
+     pour que le panneau prenne TOUTE la largeur (la `.status-bar` lui volait la
+     moitié gauche), et les rembourrages se resserrent pour tenir sous 64 px. */
+  .turn-row {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 6px 8px 8px;
+  }
+
+  .actions {
+    justify-content: space-between;
+    gap: 6px;
+    padding: 4px 8px;
+  }
+
+  .action-nav {
+    flex: 1 1 auto;
+    gap: 6px;
+  }
+
+  .actions button {
+    padding: 8px 10px;
+  }
+
+  .actions .end-turn,
+  .actions .dig-grail {
+    min-height: 52px;
+    padding: 8px 12px;
   }
 
   /* Portrait compact : le revenu inline masqué (la barre tient sur une rangée ;

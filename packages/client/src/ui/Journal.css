@@ -54,10 +54,12 @@
   font-size: 1.125rem;
 }
 
+/* Ancrage DANS le bouton (lot R3) : le groupe navigation de la barre d'actions
+   défile (`overflow-x: auto`) et rognerait un débordement négatif. */
 .journal-badge {
   position: absolute;
-  top: -6px;
-  right: -6px;
+  top: 2px;
+  right: 2px;
   min-width: 18px;
   height: 18px;
   padding: 0 4px;

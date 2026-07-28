@@ -51,21 +51,22 @@
   opacity: 0.8;
 }
 
-/* File d'ordre de passage (lot M1, doc 08 §2.4) : une rangée dans l'ordre
-   d'action, défilement horizontal quand elle déborde (mobile). */
+/* File d'ordre de passage (lot M1, doc 08 §2.4) : l'ordre d'action complet.
+   Lot R6 (U6) : sur viewport LARGE la file passe à la ligne au lieu de déborder —
+   la dernière vignette était tranchée au bord de l'écran (mesuré 1280×800 :
+   +51 px au cran 1, +278 px au cran 3). La hauteur gagnée est sans risque pour le
+   plateau : depuis R1, `.combat-armies` est MESURÉE (`combatInsets`) et réservée
+   par la caméra. En portrait (≤ 640 px) la largeur ne permet pas de tenir : on y
+   garde la rangée unique à défilement + fondu de bord (voir media query). */
 .combat-order {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 6px;
   flex: 1;
   margin: 0;
   padding: 0;
   list-style: none;
-  overflow-x: auto;
-  /* E3 : fondu au bord droit = affordance « ça défile » quand la file déborde.
-     Masque le dernier segment ⇒ signal visuel qu'il y a d'autres piles à droite. */
-  -webkit-mask-image: linear-gradient(to right, black calc(100% - 22px), transparent);
-  mask-image: linear-gradient(to right, black calc(100% - 22px), transparent);
 }
 
 .combat-order li {
@@ -274,6 +275,26 @@
   pointer-events: none;
 }
 
+/* Lot R6 (a11y) : raison de désactivation demandée au tap d'un bouton grisé.
+   POSITIONNÉE HORS FLUX (au-dessus du bloc bas, qui est `position: fixed`) : elle
+   n'ajoute aucune hauteur au bloc bas ⇒ le budget H5 (≤ 25 % du viewport, marge
+   mesurée ~6 px au cran 3) reste tenu, et la caméra n'a rien à recalculer. */
+.combat-reason-hint {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: 100%;
+  margin: 0 0 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--gold);
+  border-radius: var(--radius-s);
+  background: var(--veil-90);
+  color: var(--parchment-bright);
+  text-align: center;
+  font-size: 0.8rem;
+  pointer-events: none;
+}
+
 .damage-preview {
   max-width: min(92vw, 480px);
   padding: 8px 14px;
@@ -339,7 +360,12 @@
   cursor: pointer;
 }
 
-.combat-actions button:disabled {
+/* Lot R6 (a11y) : un bouton PORTEUR D'UNE RAISON est `aria-disabled` et non
+   `disabled` — il reste focusable et « tapable » pour livrer sa raison (doc 08
+   §1.1 : aucune information exclusive au survol). Même grisé qu'un vrai
+   `disabled`, dont les boutons sans raison (Attendre/Défendre/Auto) relèvent. */
+.combat-actions button:disabled,
+.combat-actions button[aria-disabled='true'] {
   opacity: 0.55;
   cursor: default;
 }
@@ -391,6 +417,17 @@
     width: 100%;
     padding: 0;
     text-align: center;
+  }
+
+  /* Lot R6 (U6) : en portrait la file reste sur UNE rangée à défilement
+     horizontal — le retour à la ligne y coûterait la moitié de l'écran.
+     E3 : fondu au bord droit = affordance « ça défile » (+ auto-scroll de la
+     puce active, `combat.tsx`). */
+  .combat-order {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-mask-image: linear-gradient(to right, black calc(100% - 22px), transparent);
+    mask-image: linear-gradient(to right, black calc(100% - 22px), transparent);
   }
 
   /* Lot R1 (U5) : la consigne n'est PLUS tronquée — le retour à la ligne est

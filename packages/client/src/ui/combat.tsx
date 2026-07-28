@@ -27,7 +27,7 @@ import { useApp, appStore } from '../app/store';
 import { dispatch } from '../app/dispatch';
 import { recordCombatAuto } from '../app/telemetry';
 import { humanId } from '../app/game';
-import { t, resolveUnitName, resolveSpellName, resolveLoc, resolveHeroName, commandErrorMessage } from '../app/i18n';
+import { t, resolveUnitName, resolveSpellName, resolveLoc, heroDisplayName, commandErrorMessage } from '../app/i18n';
 import { COMBAT_SPEEDS } from '../app/ui-constants';
 import { combatPreview, type CombatPreview } from '../scenes/combat/preview';
 import { combatInsets } from '../scenes/combat/insets';
@@ -44,6 +44,9 @@ import './combat.css';
  */
 /** Pause entre deux rounds auto (lot M4) — divisée par la vitesse ×1/×2/×4. */
 const AUTO_ROUND_PAUSE_MS = 500;
+
+/** Durée d'affichage de la raison de désactivation demandée au tap (lot R6). */
+const REASON_HINT_MS = 5000;
 
 /** Seuil « portrait étroit » — MÊME valeur que la media query de `combat.css`. */
 const NARROW_VIEWPORT_QUERY = '(max-width: 640px)';
@@ -129,6 +132,10 @@ export function CombatUi() {
   const [reinforceOpen, setReinforceOpen] = useState(false);
   const [unitSpellOpen, setUnitSpellOpen] = useState(false);
   const [leaveConfirm, setLeaveConfirm] = useState<'retreat' | 'surrender' | null>(null);
+  // Lot R6 (a11y) : raison de désactivation demandée en tapant un bouton grisé —
+  // seul canal tactile depuis que R1 masque le sous-libellé au-delà du cran 1 en
+  // portrait (le `title` est réservé à la souris). Affichée en SURIMPRESSION.
+  const [reasonHint, setReasonHint] = useState<string | null>(null);
   // E1 : sur mobile, les actions secondaires (Prière/Sort d'unité/Fuir/Se rendre/
   // Journal/vitesses) sont repliées derrière « ⋯ » pour rendre le plateau au
   // joueur. Sur desktop elles restent inline (CSS) — cet état ne sert qu'au tiroir.
@@ -210,6 +217,14 @@ export function CombatUi() {
       combatInsets.reset();
     };
   }, [combat != null]);
+
+  // Lot R6 (a11y) : la raison affichée s'efface d'elle-même — c'est une info, pas
+  // une modale (aucun geste de fermeture à apprendre).
+  useEffect(() => {
+    if (!reasonHint) return;
+    const id = setTimeout(() => setReasonHint(null), REASON_HINT_MS);
+    return () => clearTimeout(id);
+  }, [reasonHint]);
 
   // E3 : ramène la puce active dans la vue de la file d'initiative (défilement
   // horizontal borné à son conteneur — inline center, jamais de scroll vertical).
@@ -299,6 +314,17 @@ export function CombatUi() {
   // dans le nom accessible du bouton (lecteurs d'écran).
   const reasonLabel = (label: string, key: string | null | undefined): string | undefined =>
     key ? `${label} — ${t(`combat.reason.${key}.hint`)}` : undefined;
+  // Lot R6 (a11y) : un bouton à raison n'est plus `disabled` (donc ni focusable ni
+  // « tapable ») mais `aria-disabled` — le taper n'agit pas, il AFFICHE la raison.
+  // Rétablit la parité survol/tactile du doc 08 §1.1 sans rendre un octet de
+  // hauteur au bloc bas (la raison s'affiche hors flux, cf. `combat-reason-hint`).
+  // Le gate reste la SEULE autorité sur l'action (une raison peut être `null`
+  // alors que le gate est fermé — p. ex. `combat.heroAttack` absent des données,
+  // le schéma l'autorise) : sans raison à montrer, le tap ne fait simplement rien.
+  const actOr = (can: boolean, key: string, run: () => void) => (): void => {
+    if (can) run();
+    else setReasonHint(reason[key] ?? null);
+  };
 
   // Ordre de passage projeté (lot M1, doc 08 §2.4) : remplace les deux rangées
   // par camp triées par slot — l'actif est la 1ʳᵉ entrée par construction.
@@ -316,20 +342,20 @@ export function CombatUi() {
     <>
       <button
         data-testid="combat-hero-attack"
-        disabled={!canHeroStrike}
+        aria-disabled={!canHeroStrike}
         title={reasonTitle(reason['hero-attack'])}
         aria-label={reasonLabel(t('combat.heroAttack'), reason['hero-attack'])}
-        onClick={() => setHeroAttackOpen(true)}
+        onClick={actOr(canHeroStrike, 'hero-attack', () => setHeroAttackOpen(true))}
       >
         {t('combat.heroAttack')}
         {reasonNode(reason['hero-attack'])}
       </button>
       <button
         data-testid="combat-spell"
-        disabled={!canCastSpell}
+        aria-disabled={!canCastSpell}
         title={reasonTitle(reason['spell'])}
         aria-label={reasonLabel(t('combat.spell'), reason['spell'])}
-        onClick={() => setSpellBookOpen(true)}
+        onClick={actOr(canCastSpell, 'spell', () => setSpellBookOpen(true))}
       >
         {t('combat.spell')}
         {reasonNode(reason['spell'])}
@@ -364,7 +390,11 @@ export function CombatUi() {
             <span class="combat-hero-badge" aria-hidden="true">
               ⚔
             </span>
-            <span class="combat-hero-name">{t('hero.genericName')}</span>
+            {/* B4 (lot R6) : le NOM du héros, plus « Le héros » en toutes circonstances
+                — même résolution que le sélecteur de héros agissant plus bas. */}
+            <span class="combat-hero-name" data-testid="combat-hero-name">
+              {heroDisplayName(hero.name)}
+            </span>
             <span class="combat-hero-mana">{t('hero.mana', { mana: hero.mana, manaMax: hero.manaMax })}</span>
           </div>
         )}
@@ -411,6 +441,14 @@ export function CombatUi() {
       {/* UXD-0 R5a : préviz + actions dans un conteneur colonne (plus de
           recouvrement de la consigne quand la barre passe à 2 rangées). */}
       <div ref={bottomRef} class="combat-bottom">
+        {/* Lot R6 (a11y) : raison de désactivation demandée au tap. EN
+            SURIMPRESSION (hors flux) — le bloc bas ne doit pas regrossir d'un
+            pixel, son budget de hauteur R1/H5 (≤ 25 % du viewport) est tenu. */}
+        {reasonHint && (
+          <p class="combat-reason-hint" data-testid="combat-reason-hint" role="status">
+            {t(`combat.reason.${reasonHint}.hint`)}
+          </p>
+        )}
         <div class="damage-preview" data-testid="damage-preview">
           {preview ? formatPreview(preview) : t('combat.damagePreviewPlaceholder')}
         </div>
@@ -452,7 +490,7 @@ export function CombatUi() {
                   disabled={!canAct}
                   onClick={() => appStore.setState({ combatActingHeroId: h.id })}
                 >
-                  {resolveHeroName(h.name) || t('hero.genericName')}
+                  {heroDisplayName(h.name)}
                 </button>
               );
             })}
@@ -491,10 +529,10 @@ export function CombatUi() {
         {compactBar && heroActionButtons}
         <button
           data-testid="combat-prayer"
-          disabled={!canPray}
+          aria-disabled={!canPray}
           title={reasonTitle(reason['prayer'])}
           aria-label={reasonLabel(t('combat.prayer'), reason['prayer'])}
-          onClick={() => setPrayerOpen(true)}
+          onClick={actOr(canPray, 'prayer', () => setPrayerOpen(true))}
         >
           {t('combat.prayer')}
           {reasonNode(reason['prayer'])}
@@ -502,10 +540,10 @@ export function CombatUi() {
         {config?.combat.reinforcements && (
           <button
             data-testid="combat-reinforcements"
-            disabled={!canReinforce}
+            aria-disabled={!canReinforce}
             title={reasonTitle(reason['reinforcements'])}
             aria-label={reasonLabel(t('combat.reinforcements'), reason['reinforcements'])}
-            onClick={() => setReinforceOpen(true)}
+            onClick={actOr(canReinforce, 'reinforcements', () => setReinforceOpen(true))}
           >
             {t('combat.reinforcements')}
             {reasonNode(reason['reinforcements'])}
@@ -513,33 +551,33 @@ export function CombatUi() {
         )}
         <button
           data-testid="combat-unit-spell"
-          disabled={!unitSpell}
+          aria-disabled={!unitSpell}
           title={reasonTitle(reason['unit-spell'])}
           aria-label={reasonLabel(t('combat.unitSpell'), reason['unit-spell'])}
-          onClick={() => setUnitSpellOpen(true)}
+          onClick={actOr(!!unitSpell, 'unit-spell', () => setUnitSpellOpen(true))}
         >
           {t('combat.unitSpell')}
           {reasonNode(reason['unit-spell'])}
         </button>
         <button
           data-testid="combat-retreat"
-          disabled={!canLeave}
+          aria-disabled={!canLeave}
           title={reasonTitle(reason['retreat'])}
           aria-label={reasonLabel(t('combat.retreat'), reason['retreat'])}
-          onClick={() => setLeaveConfirm('retreat')}
+          onClick={actOr(canLeave, 'retreat', () => setLeaveConfirm('retreat'))}
         >
           {t('combat.retreat')}
           {reasonNode(reason['retreat'])}
         </button>
         <button
           data-testid="combat-surrender"
-          disabled={!canSurrender}
+          aria-disabled={!canSurrender}
           title={reasonTitle(reason['surrender'])}
           aria-label={reasonLabel(
             surrenderGold === 0 ? t('combat.surrenderFree') : t('combat.surrender', { gold: surrenderGold }),
             reason['surrender'],
           )}
-          onClick={() => setLeaveConfirm('surrender')}
+          onClick={actOr(canSurrender, 'surrender', () => setLeaveConfirm('surrender'))}
         >
           {surrenderGold === 0 ? t('combat.surrenderFree') : t('combat.surrender', { gold: surrenderGold })}
           {reasonNode(reason['surrender'])}

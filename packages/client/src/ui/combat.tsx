@@ -318,10 +318,12 @@ export function CombatUi() {
   // « tapable ») mais `aria-disabled` — le taper n'agit pas, il AFFICHE la raison.
   // Rétablit la parité survol/tactile du doc 08 §1.1 sans rendre un octet de
   // hauteur au bloc bas (la raison s'affiche hors flux, cf. `combat-reason-hint`).
-  const actOr = (key: string, run: () => void) => (): void => {
-    const why = reason[key];
-    if (why) setReasonHint(why);
-    else run();
+  // Le gate reste la SEULE autorité sur l'action (une raison peut être `null`
+  // alors que le gate est fermé — p. ex. `combat.heroAttack` absent des données,
+  // le schéma l'autorise) : sans raison à montrer, le tap ne fait simplement rien.
+  const actOr = (can: boolean, key: string, run: () => void) => (): void => {
+    if (can) run();
+    else setReasonHint(reason[key] ?? null);
   };
 
   // Ordre de passage projeté (lot M1, doc 08 §2.4) : remplace les deux rangées
@@ -343,7 +345,7 @@ export function CombatUi() {
         aria-disabled={!canHeroStrike}
         title={reasonTitle(reason['hero-attack'])}
         aria-label={reasonLabel(t('combat.heroAttack'), reason['hero-attack'])}
-        onClick={actOr('hero-attack', () => setHeroAttackOpen(true))}
+        onClick={actOr(canHeroStrike, 'hero-attack', () => setHeroAttackOpen(true))}
       >
         {t('combat.heroAttack')}
         {reasonNode(reason['hero-attack'])}
@@ -353,7 +355,7 @@ export function CombatUi() {
         aria-disabled={!canCastSpell}
         title={reasonTitle(reason['spell'])}
         aria-label={reasonLabel(t('combat.spell'), reason['spell'])}
-        onClick={actOr('spell', () => setSpellBookOpen(true))}
+        onClick={actOr(canCastSpell, 'spell', () => setSpellBookOpen(true))}
       >
         {t('combat.spell')}
         {reasonNode(reason['spell'])}
@@ -530,7 +532,7 @@ export function CombatUi() {
           aria-disabled={!canPray}
           title={reasonTitle(reason['prayer'])}
           aria-label={reasonLabel(t('combat.prayer'), reason['prayer'])}
-          onClick={actOr('prayer', () => setPrayerOpen(true))}
+          onClick={actOr(canPray, 'prayer', () => setPrayerOpen(true))}
         >
           {t('combat.prayer')}
           {reasonNode(reason['prayer'])}
@@ -541,7 +543,7 @@ export function CombatUi() {
             aria-disabled={!canReinforce}
             title={reasonTitle(reason['reinforcements'])}
             aria-label={reasonLabel(t('combat.reinforcements'), reason['reinforcements'])}
-            onClick={actOr('reinforcements', () => setReinforceOpen(true))}
+            onClick={actOr(canReinforce, 'reinforcements', () => setReinforceOpen(true))}
           >
             {t('combat.reinforcements')}
             {reasonNode(reason['reinforcements'])}
@@ -552,7 +554,7 @@ export function CombatUi() {
           aria-disabled={!unitSpell}
           title={reasonTitle(reason['unit-spell'])}
           aria-label={reasonLabel(t('combat.unitSpell'), reason['unit-spell'])}
-          onClick={actOr('unit-spell', () => setUnitSpellOpen(true))}
+          onClick={actOr(!!unitSpell, 'unit-spell', () => setUnitSpellOpen(true))}
         >
           {t('combat.unitSpell')}
           {reasonNode(reason['unit-spell'])}
@@ -562,7 +564,7 @@ export function CombatUi() {
           aria-disabled={!canLeave}
           title={reasonTitle(reason['retreat'])}
           aria-label={reasonLabel(t('combat.retreat'), reason['retreat'])}
-          onClick={actOr('retreat', () => setLeaveConfirm('retreat'))}
+          onClick={actOr(canLeave, 'retreat', () => setLeaveConfirm('retreat'))}
         >
           {t('combat.retreat')}
           {reasonNode(reason['retreat'])}
@@ -575,7 +577,7 @@ export function CombatUi() {
             surrenderGold === 0 ? t('combat.surrenderFree') : t('combat.surrender', { gold: surrenderGold }),
             reason['surrender'],
           )}
-          onClick={actOr('surrender', () => setLeaveConfirm('surrender'))}
+          onClick={actOr(canSurrender, 'surrender', () => setLeaveConfirm('surrender'))}
         >
           {surrenderGold === 0 ? t('combat.surrenderFree') : t('combat.surrender', { gold: surrenderGold })}
           {reasonNode(reason['surrender'])}

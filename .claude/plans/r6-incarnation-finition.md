@@ -55,13 +55,13 @@ départ porte le nom `hero.name.default` (« Aldric l'Érudit » en FR), et non
 touchés (guidelines §3 — chirurgie) ; ils ne sont pas en défaut, seulement
 redondants.
 
-- [ ] `heroDisplayName` ajouté (`app/i18n.ts`)
-- [ ] `combat.tsx` bandeau + sélecteur
-- [ ] `notifications.ts` (SpellCast)
-- [ ] **Vérif (a)** — test unitaire client `app/i18n.test.ts` : héros nommé ⇒ nom
+- [x] `heroDisplayName` ajouté (`app/i18n.ts`)
+- [x] `combat.tsx` bandeau + sélecteur
+- [x] `notifications.ts` (SpellCast)
+- [x] **Vérif (a)** — test unitaire client `app/i18n.test.ts` : héros nommé ⇒ nom
       résolu (paquet **et** core) ; `name: ''` ⇒ `hero.genericName` ; clé inconnue
       ⇒ la clé brute (pas le générique).
-- [ ] **Vérif (b)** — smoke `@core` : dans le test **existant** « combat : victoire
+- [x] **Vérif (b)** — smoke `@core` : dans le test **existant** « combat : victoire
       contre le gardien » (aucun démarrage de navigateur supplémentaire),
       `combat-hero-name` ≠ « Le héros » **et** = le nom du héros de la partie.
 
@@ -85,11 +85,11 @@ Raison du choix parmi les trois options offertes :
   **absorbée automatiquement** — depuis R1, `.combat-armies` est **mesurée**
   (`scenes/combat/insets.ts`) et réservée par la caméra ⇒ **aucune régression B2**.
 
-- [ ] `combat.css` : `flex-wrap: wrap` en base ; `nowrap` + `overflow-x` + masque
+- [x] `combat.css` : `flex-wrap: wrap` en base ; `nowrap` + `overflow-x` + masque
       déplacés dans `@media (max-width: 640px)`
-- [ ] **Vérif chiffrée** — smoke desktop 1280×800, arène : `scrollWidth − clientWidth ≤ 1`
+- [x] **Vérif chiffrée** — smoke desktop 1280×800, arène : `scrollWidth − clientWidth ≤ 1`
       **et** `li.right ≤ conteneur.right + 1` pour **chaque** `li`.
-- [ ] **Contre-épreuve** — ces deux assertions échouent sur `origin/main`
+- [x] **Contre-épreuve** — ces deux assertions échouent sur `origin/main`
       (mesuré : 51 px / 278 px de débordement, dernière vignette à +51 / +278 px).
 
 ## 3. Bonus R6 — réparer la régression a11y introduite par R1
@@ -115,18 +115,18 @@ exclusive au hover ») et §4 (« toutes les infos hover accessibles à l'appui 
   la non-régression H5 (`bottomH ≤ 25 % du viewport`, marge réelle ~6,6 px) est
   structurellement garantie, et vérifiée dans le **même run**.
 
-- [ ] `combat.tsx` : `aria-disabled` + `actOr(key, run)` sur les 7 boutons à raison
-- [ ] `combat.tsx` : état `reasonHint` + nœud `combat-reason-hint` (auto-effacé)
-- [ ] `combat.css` : `[aria-disabled='true']` récupère le grisé ; style du bandeau
-- [ ] **Vérif (a)** — smoke `@core`/`@mobile` 360×640 cran 3 : appui long sur
+- [x] `combat.tsx` : `aria-disabled` + `actOr(can, key, run)` sur les 7 boutons à raison
+- [x] `combat.tsx` : état `reasonHint` + nœud `combat-reason-hint` (auto-effacé)
+- [x] `combat.css` : `[aria-disabled='true']` récupère le grisé ; style du bandeau
+- [x] **Vérif (a)** — smoke `@core`/`@mobile` 360×640 cran 3 : appui long sur
       `combat-hero-attack` (grisé) ⇒ `combat-reason-hint` **visible** et portant
       **exactement** le texte du `title` du bouton (`combat.reason.<key>.hint`).
-- [ ] **Vérif (b)** — non-régression H5 dans le **même test** : `bottomH ≤ 25 %`
+- [x] **Vérif (b)** — non-régression H5 dans le **même test** : `bottomH ≤ 25 %`
       (assertion R1 déjà en place, rejouée après le geste).
 
 ## 4. Docs (même commit)
 
-- [ ] `docs/08-ui-ux.md` : bandeau de combat (nom du héros), file d'initiative
+- [x] `docs/08-ui-ux.md` : bandeau de combat (nom du héros), file d'initiative
       (retour à la ligne desktop / défilement + fondu portrait), raison de
       désactivation accessible au **tap** en portrait agrandi.
 
@@ -156,6 +156,17 @@ exclusive au hover ») et §4 (« toutes les infos hover accessibles à l'appui 
   rapide du smoke. La cohérence des deux surfaces est prouvée **par construction**
   (même helper `heroDisplayName`) et par le test unitaire ; le smoke assert le nom
   réel du héros dans le bandeau.
+- **Écart 5** (2ᵉ passe, re-vérification) — le `actOr(key, run)` de la 1ʳᵉ passe
+  déduisait le blocage de la **raison** (`if (reason[key]) …`), pas du **gate**.
+  Or une raison peut être `null` alors que le gate est fermé : `canHeroStrike`
+  vaut `false` si `config.combat.heroAttack` est **absent** (le schéma le déclare
+  `optional` — `packages/content/src/schemas.ts:825` « absent ⇒ feature
+  désactivée »), et `heroReason` vaut alors `null`. Le bouton grisé aurait donc
+  **ouvert la modale d'attaque du héros** sur un paquet de données sans la
+  feature — régression fonctionnelle furtive introduite par le passage de
+  `disabled` à `aria-disabled`. Corrigé : `actOr(can, key, run)` prend le **gate**
+  en argument (source d'autorité unique, celle de `aria-disabled`) ; sans raison à
+  montrer, le tap ne fait simplement rien.
 - **Écart 4** — piège de port : la 1ʳᵉ série de mesures a porté sur le build d'un
   **autre agent** (`index-CBp4fZJw.js` servi alors que mon `dist/` contenait
   `index-CEi3-Wrz.js`), un aperçu orphelin d'un autre worktree squattant 4173

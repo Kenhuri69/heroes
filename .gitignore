@@ -8,3 +8,7 @@ playwright-report/
 # Python (outillage assets tools/assets/*)
 __pycache__/
 *.pyc
+
+# Worktrees jetables créés dans le dépôt par les agents (orchestration
+# multi-agents) : checkouts transitoires, jamais du contenu de projet.
+.claude/worktrees/

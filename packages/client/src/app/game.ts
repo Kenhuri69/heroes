@@ -1003,6 +1003,35 @@ export interface ResolvedNewGame {
 }
 
 /**
+ * Préréglage « Démarrage rapide » (lot R4, doc 08 §2.5) : 2 joueurs (vous + une
+ * IA), **factions aléatoires**, carte moyenne, ressources / densités / difficulté
+ * au standard, héros tiré. Fonction pure (testable hors DOM) ; `colors` vient de
+ * la palette client (`PLAYER_COLORS`) pour ne pas faire dépendre cette couche du
+ * rendu. La graine est fournie par l'appelant (horloge client) : tous les `RANDOM`
+ * sont ensuite résolus par `resolveNewGameConfig` sur le RNG **seedé** ⇒ à graine
+ * égale, la partie est identique.
+ */
+export function quickStartConfig(seed: number, colors: readonly number[]): NewGameRawConfig {
+  return {
+    slots: Array.from({ length: 2 }, (_, i) => ({
+      controller: i === 0 ? ('human' as const) : ('ai' as const),
+      factionId: RANDOM,
+      color: colors[i % colors.length]!,
+      team: 0,
+      heroId: RANDOM,
+    })),
+    mapSize: 'medium',
+    resourceLevel: 'standard',
+    guardians: 'standard',
+    mines: 'standard',
+    eventBuildings: 'standard',
+    pickups: 'standard',
+    difficulty: 'normal',
+    seed,
+  };
+}
+
+/**
  * Résout une config brute : chaque paramètre laissé sur `RANDOM` est tiré
  * **déterministiquement** depuis `seed` (RNG seedé moteur — reproductible, jamais
  * `Math.random`). Les slots fermés sont écartés. Fonction pure (testable) : le

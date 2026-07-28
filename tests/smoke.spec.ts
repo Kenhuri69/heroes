@@ -1648,6 +1648,107 @@ test('menu : Nouvelle partie démarre, Continuer grisé sans sauvegarde', { tag:
   expect(errors).toEqual([]);
 });
 
+test(
+  'nouvelle partie : démarrage rapide en 2 taps, réglages repliés, couleurs nommées (lot R4)',
+  { tag: ['@mobile', '@core'] },
+  async ({ page }) => {
+    const errors = collectErrors(page);
+    await page.goto('./');
+    await page.waitForFunction(() => window.__HEROES_READY__ === true);
+
+    // On COMPTE les interactions depuis le menu (critère : partie lancée en ≤ 3).
+    let taps = 0;
+    const tap = async (testId: string): Promise<void> => {
+      taps++;
+      await page.getByTestId(testId).click();
+    };
+
+    await tap('menu-new-game'); // tap 1
+    await expect(page.getByTestId('newgame-screen')).toBeVisible();
+
+    // (2) Progressive disclosure : à la config par défaut, « Lancer » tient dans
+    // le premier écran de défilement du panneau (mesure chiffrée : le panneau ne
+    // dépasse pas 2× sa hauteur visible, et le bouton est au-dessus du pli).
+    const metrics = await page.getByTestId('newgame-screen').evaluate((panel) => {
+      const start = panel.querySelector('[data-testid="newgame-start"]') as HTMLElement;
+      return {
+        scrollHeight: panel.scrollHeight,
+        clientHeight: panel.clientHeight,
+        startOffsetTop: start.offsetTop,
+      };
+    });
+    // Critère du lot : le panneau ne dépasse pas 2× sa hauteur visible ⇒ « Lancer »
+    // est atteignable en AU PLUS un écran de défilement (avant le lot : 2,5-3,3×).
+    expect(metrics.scrollHeight).toBeLessThanOrEqual(2 * metrics.clientHeight);
+    expect(metrics.startOffsetTop).toBeLessThanOrEqual(2 * metrics.clientHeight);
+
+    // Les sections sont FERMÉES par défaut : ni siège adverse ni taille de carte.
+    await expect(page.getByTestId('newgame-seat-1')).toHaveCount(0);
+    await expect(page.getByTestId('newgame-size-large')).toHaveCount(0);
+    // …mais RIEN n'a disparu : un tap sur chaque en-tête les ramène.
+    await page.getByTestId('newgame-section-opponents').click();
+    await expect(page.getByTestId('newgame-seat-1')).toBeVisible();
+    await page.getByTestId('newgame-section-map').click();
+    await expect(page.getByTestId('newgame-size-large')).toBeVisible();
+    await expect(page.getByTestId('newgame-seed')).toBeVisible();
+    await page.getByTestId('newgame-section-map').click(); // on replie
+    await page.getByTestId('newgame-section-opponents').click();
+
+    // (3) Contrôle A5 : chaque pastille de couleur porte un NOM localisé (aria +
+    // libellé visible) et un MOTIF non chromatique ; AUCUNE n'est coupée. La
+    // rangée passe à la ligne au lieu de défiler : les mesures sont donc prises
+    // TELLES QUELLES au premier rendu (aucun `scrollIntoView` préalable, qui ne
+    // mesurerait que l'atteignabilité par défilement, pas la découpe), et les
+    // assertions sont INCONDITIONNELLES (pas de branche `if` jamais exécutée).
+    const colors = await page.getByTestId('newgame-seat-0-colors').evaluate((row) => {
+      const swatches = [...row.querySelectorAll('button')];
+      const cr = row.getBoundingClientRect();
+      return {
+        count: swatches.length,
+        named: swatches.filter((b) => {
+          const label = b.getAttribute('aria-label') ?? '';
+          // Un code hexa n'est PAS un nom (état d'avant le lot R4).
+          return label.trim().length > 0 && !/^#[0-9a-f]{3,8}$/i.test(label);
+        }).length,
+        withText: swatches.filter((b) => (b.textContent ?? '').trim().length > 0).length,
+        patterned: swatches.filter((b) => (b.getAttribute('data-pattern') ?? '') !== '').length,
+        // Débordement horizontal : 0 px attendu (rangée qui passe à la ligne).
+        overflowX: row.scrollWidth - row.clientWidth,
+        // Pastilles ENTIÈREMENT dans le rect du conteneur, sans défilement.
+        inside: swatches.filter((b) => {
+          const br = b.getBoundingClientRect();
+          return br.left >= cr.left - 1 && br.right <= cr.right + 1;
+        }).length,
+        // Aucun fondu de bord : il n'y a plus rien à masquer (il rognerait une
+        // pastille tout en promettant un défilement qui n'existe pas).
+        faded: getComputedStyle(row).maskImage !== 'none',
+      };
+    });
+    expect(colors.count).toBeGreaterThanOrEqual(7);
+    expect(colors.named).toBe(colors.count);
+    expect(colors.withText).toBe(colors.count);
+    expect(colors.patterned).toBe(colors.count);
+    expect(colors.overflowX).toBeLessThanOrEqual(1);
+    expect(colors.inside).toBe(colors.count);
+    expect(colors.faded).toBe(false);
+
+    // (1) Démarrage rapide : lance directement la partie — 2 taps depuis le menu.
+    await tap('newgame-quickstart'); // tap 2
+    await expect(page.getByTestId('end-turn')).toBeVisible({ timeout: 60000 });
+    expect(taps).toBeLessThanOrEqual(3);
+    expect(taps).toBe(2);
+
+    const state = await page.evaluate(() => window.__HEROES_TEST__!.getState());
+    expect(state.started).toBe(true);
+    expect(state.players).toHaveLength(2); // 2 joueurs : vous + une IA
+    expect(state.players[0]?.controller).toBe('human');
+    expect(state.players[1]?.controller).toBe('ai');
+    expect(state.map?.width).toBe(96); // carte moyenne du préréglage
+
+    expect(errors).toEqual([]);
+  },
+);
+
 test('nouvelle partie : configuration 3 joueurs + taille + ressources génèrent la partie', { tag: '@core' }, async ({
   page,
 }) => {
@@ -1657,6 +1758,11 @@ test('nouvelle partie : configuration 3 joueurs + taille + ressources génèrent
 
   await page.getByTestId('menu-new-game').click();
   await expect(page.getByTestId('newgame-screen')).toBeVisible();
+
+  // Lot R4 (progressive disclosure) : « Adversaires » et « Carte & contenu » sont
+  // repliés par défaut — on les déplie pour atteindre les mêmes réglages qu'avant.
+  await page.getByTestId('newgame-section-opponents').click();
+  await page.getByTestId('newgame-section-map').click();
 
   // 3 joueurs : un 3ᵉ siège apparaît, réglé en IA ; carte grande, ressources riches.
   await page.getByTestId('newgame-players-3').click();

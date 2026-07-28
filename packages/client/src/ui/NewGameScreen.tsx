@@ -2,6 +2,7 @@ import { useMemo, useState } from 'preact/hooks';
 import { useApp } from '../app/store';
 import { t, resolveLoc } from '../app/i18n';
 import {
+  quickStartConfig,
   RANDOM,
   type ContentLevel,
   type MapSize,
@@ -11,7 +12,9 @@ import {
   type SkirmishDifficulty,
 } from '../app/game';
 import { resolveHeroName } from '../app/i18n';
-import { PLAYER_COLORS } from '../render/playerColors';
+import { PLAYER_COLORS, PLAYER_COLOR_NAMES } from '../render/playerColors';
+import { PATTERNS, PatternMark } from './FactionBadge';
+import { SectionToggle, useCollapsed } from './CollapsibleSection';
 import './options.css';
 import './newgame.css';
 
@@ -95,6 +98,10 @@ export function NewGameScreen({ onClose }: { onClose: () => void }) {
     setContentLevels((prev) => ({ ...prev, [field]: value }));
   const [difficulty, setDifficulty] = useState<SkirmishDifficulty | typeof RANDOM>('normal');
   const [seed, setSeed] = useState<number>(() => rollSeed(0));
+  // Progressive disclosure (lot R4) : adversaires et réglages de carte sont
+  // repliés PAR DÉFAUT — aucun réglage ne disparaît, tout se déplie d'un tap.
+  const [oppCollapsed, toggleOpp] = useCollapsed('newgame.opponents', true);
+  const [mapCollapsed, toggleMap] = useCollapsed('newgame.map', true);
 
   const factionOptions = useMemo(
     () => [
@@ -121,6 +128,11 @@ export function NewGameScreen({ onClose }: { onClose: () => void }) {
   // Au moins un humain requis (hot-seat) : le siège 0 l'est toujours, donc OK.
   const canStart = factions.length > 0;
 
+  const launch = (config: NewGameRawConfig): void => {
+    window.dispatchEvent(new CustomEvent('heroes:start-newgame', { detail: config }));
+    onClose();
+  };
+
   const start = (): void => {
     const slots: NewGameSlot[] = Array.from({ length: playerCount }, (_, i) => ({
       controller: i === 0 ? 'human' : controllers[i]!,
@@ -129,7 +141,7 @@ export function NewGameScreen({ onClose }: { onClose: () => void }) {
       team: slotTeams[i]!,
       heroId: slotHeroes[i] ?? RANDOM,
     }));
-    const config: NewGameRawConfig = {
+    launch({
       slots,
       mapSize,
       resourceLevel,
@@ -139,10 +151,115 @@ export function NewGameScreen({ onClose }: { onClose: () => void }) {
       pickups: contentLevels.pickups!,
       difficulty,
       seed,
-    };
-    window.dispatchEvent(new CustomEvent('heroes:start-newgame', { detail: config }));
-    onClose();
+    });
   };
+
+  /** Démarrage rapide (lot R4) : préréglage + graine fraîche, lance directement. */
+  const quickStart = (): void => launch(quickStartConfig(rollSeed(seed), PLAYER_COLORS));
+
+  /** Un siège : contrôleur, faction, héros, couleur, équipe. */
+  const seatRow = (i: number) => (
+    <li class="newgame-seat" key={i} data-testid={`newgame-seat-${i}`}>
+      <span class="newgame-seat-label">
+        {i === 0 ? t('newgame.you') : t('newgame.seat', { n: i + 1 })}
+      </span>
+      {i === 0 ? (
+        <span class="newgame-seat-controller newgame-seat-human">{t('newgame.human')}</span>
+      ) : (
+        <div class="segmented newgame-seat-controller" role="group">
+          <button
+            class={controllers[i] === 'human' ? 'active' : ''}
+            data-testid={`newgame-seat-${i}-human`}
+            onClick={() => setController(i, 'human')}
+          >
+            {t('newgame.human')}
+          </button>
+          <button
+            class={controllers[i] === 'ai' ? 'active' : ''}
+            data-testid={`newgame-seat-${i}-ai`}
+            onClick={() => setController(i, 'ai')}
+          >
+            {t('newgame.ai')}
+          </button>
+        </div>
+      )}
+      <select
+        class="skirmish-select newgame-seat-faction"
+        data-testid={`newgame-seat-${i}-faction`}
+        value={slotFactions[i]}
+        onChange={(e) => setSlotFaction(i, (e.currentTarget as HTMLSelectElement).value)}
+      >
+        {factionOptions.map((o) => (
+          <option key={o.id} value={o.id}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+      {(i === 0 || controllers[i] === 'human') && (
+        <select
+          class="skirmish-select newgame-seat-hero"
+          data-testid={`newgame-seat-${i}-hero`}
+          value={slotHeroes[i]}
+          onChange={(e) => setSlotHero(i, (e.currentTarget as HTMLSelectElement).value)}
+        >
+          <option value={RANDOM}>{t('newgame.random')}</option>
+          {rosterHeroes
+            .filter((h) => h.factionId === slotFactions[i])
+            .map((h) => (
+              <option key={h.id} value={h.id}>
+                {resolveHeroName(h.name)}
+              </option>
+            ))}
+        </select>
+      )}
+      {/* Pastilles de couleur : nom localisé visible + motif non chromatique
+          (A5, jamais la couleur seule) ; la rangée passe à la ligne (jamais de
+          pastille rognée par un défilement horizontal). */}
+      <div
+        class="newgame-seat-colors"
+        data-testid={`newgame-seat-${i}-colors`}
+        role="group"
+        aria-label={t('newgame.color')}
+      >
+        {PLAYER_COLORS.map((c, ci) => {
+          const nameKey = PLAYER_COLOR_NAMES[ci] ?? String(ci);
+          const name = t(`newgame.colorName.${nameKey}`);
+          // Motif cyclique sur la palette : deux pastilles voisines diffèrent toujours.
+          const pattern = PATTERNS[ci % PATTERNS.length]!;
+          return (
+            <button
+              key={c}
+              type="button"
+              class={`newgame-swatch${slotColors[i] === c ? ' active' : ''}`}
+              data-testid={`newgame-seat-${i}-color-${hex(c).slice(1)}`}
+              data-pattern={pattern}
+              aria-label={name}
+              aria-pressed={slotColors[i] === c}
+              onClick={() => setSlotColor(i, c)}
+            >
+              <svg class="newgame-swatch-chip" viewBox="0 0 32 32" aria-hidden="true">
+                <rect x="0" y="0" width="32" height="32" rx="5" fill={hex(c)} />
+                <PatternMark pattern={pattern} />
+              </svg>
+              <span class="newgame-swatch-name">{name}</span>
+            </button>
+          );
+        })}
+      </div>
+      <div class="segmented newgame-seat-team" role="group" aria-label={t('newgame.team')}>
+        {TEAM_OPTIONS.map((tm) => (
+          <button
+            key={tm}
+            class={slotTeams[i] === tm ? 'active' : ''}
+            data-testid={`newgame-seat-${i}-team-${tm}`}
+            onClick={() => setSlotTeam(i, tm)}
+          >
+            {teamLabel(tm)}
+          </button>
+        ))}
+      </div>
+    </li>
+  );
 
   return (
     <div class="modal-backdrop" onClick={onClose}>
@@ -166,6 +283,19 @@ export function NewGameScreen({ onClose }: { onClose: () => void }) {
           </button>
         </header>
 
+        {/* Démarrage rapide (lot R4) : en TÊTE, lance sans traverser le paramétrage. */}
+        <section class="options-section">
+          <button
+            class="menu-button newgame-quickstart"
+            data-testid="newgame-quickstart"
+            disabled={!canStart}
+            onClick={quickStart}
+          >
+            {t('newgame.quickstart')}
+          </button>
+          <p class="options-hint">{t('newgame.quickstartHint')}</p>
+        </section>
+
         <section class="options-section">
           <h3>{t('newgame.players')}</h3>
           <div class="segmented" role="group">
@@ -182,143 +312,118 @@ export function NewGameScreen({ onClose }: { onClose: () => void }) {
           </div>
         </section>
 
+        {/* Votre siège, toujours visible (la ligne porte déjà le libellé « Vous »
+            — pas de titre de section redondant, chaque pixel compte au portrait). */}
         <section class="options-section">
-          <h3>{t('newgame.seats')}</h3>
           <ol class="newgame-seats" data-testid="newgame-seats">
-            {Array.from({ length: playerCount }, (_, i) => (
-              <li class="newgame-seat" key={i} data-testid={`newgame-seat-${i}`}>
-                <span class="newgame-seat-label">
-                  {i === 0 ? t('newgame.you') : t('newgame.seat', { n: i + 1 })}
-                </span>
-                {i === 0 ? (
-                  <span class="newgame-seat-controller newgame-seat-human">{t('newgame.human')}</span>
-                ) : (
-                  <div class="segmented newgame-seat-controller" role="group">
-                    <button
-                      class={controllers[i] === 'human' ? 'active' : ''}
-                      data-testid={`newgame-seat-${i}-human`}
-                      onClick={() => setController(i, 'human')}
-                    >
-                      {t('newgame.human')}
-                    </button>
-                    <button
-                      class={controllers[i] === 'ai' ? 'active' : ''}
-                      data-testid={`newgame-seat-${i}-ai`}
-                      onClick={() => setController(i, 'ai')}
-                    >
-                      {t('newgame.ai')}
-                    </button>
-                  </div>
-                )}
-                <select
-                  class="skirmish-select newgame-seat-faction"
-                  data-testid={`newgame-seat-${i}-faction`}
-                  value={slotFactions[i]}
-                  onChange={(e) => setSlotFaction(i, (e.currentTarget as HTMLSelectElement).value)}
-                >
-                  {factionOptions.map((o) => (
-                    <option key={o.id} value={o.id}>
-                      {o.label}
-                    </option>
-                  ))}
-                </select>
-                {(i === 0 || controllers[i] === 'human') && (
-                  <select
-                    class="skirmish-select newgame-seat-hero"
-                    data-testid={`newgame-seat-${i}-hero`}
-                    value={slotHeroes[i]}
-                    onChange={(e) => setSlotHero(i, (e.currentTarget as HTMLSelectElement).value)}
-                  >
-                    <option value={RANDOM}>{t('newgame.random')}</option>
-                    {rosterHeroes
-                      .filter((h) => h.factionId === slotFactions[i])
-                      .map((h) => (
-                        <option key={h.id} value={h.id}>
-                          {resolveHeroName(h.name)}
-                        </option>
-                      ))}
-                  </select>
-                )}
-                <div class="newgame-seat-colors" role="group" aria-label={t('newgame.color')}>
-                  {PLAYER_COLORS.map((c) => (
-                    <button
-                      key={c}
-                      type="button"
-                      class={`newgame-swatch${slotColors[i] === c ? ' active' : ''}`}
-                      data-testid={`newgame-seat-${i}-color-${hex(c).slice(1)}`}
-                      style={{ background: hex(c) }}
-                      aria-label={hex(c)}
-                      aria-pressed={slotColors[i] === c}
-                      onClick={() => setSlotColor(i, c)}
-                    />
-                  ))}
-                </div>
-                <div class="segmented newgame-seat-team" role="group" aria-label={t('newgame.team')}>
-                  {TEAM_OPTIONS.map((tm) => (
-                    <button
-                      key={tm}
-                      class={slotTeams[i] === tm ? 'active' : ''}
-                      data-testid={`newgame-seat-${i}-team-${tm}`}
-                      onClick={() => setSlotTeam(i, tm)}
-                    >
-                      {teamLabel(tm)}
-                    </button>
-                  ))}
-                </div>
-              </li>
-            ))}
+            {seatRow(0)}
           </ol>
         </section>
 
+        {/* Adversaires (sièges 2..N) — replié par défaut (lot R4). */}
         <section class="options-section">
-          <h3>{t('newgame.mapSize')}</h3>
-          <div class="segmented" role="group">
-            {MAP_SIZES.map((size) => (
-              <button
-                key={size}
-                class={mapSize === size ? 'active' : ''}
-                data-testid={`newgame-size-${size}`}
-                onClick={() => setMapSize(size)}
-              >
-                {t(`newgame.mapSize.${size}`)}
-              </button>
-            ))}
-          </div>
+          <SectionToggle
+            title={t('newgame.section.opponents', { n: playerCount - 1 })}
+            collapsed={oppCollapsed}
+            onToggle={toggleOpp}
+            testId="newgame-section-opponents"
+          />
+          {!oppCollapsed && (
+            <ol class="newgame-seats" data-testid="newgame-opponent-seats">
+              {Array.from({ length: playerCount - 1 }, (_, k) => seatRow(k + 1))}
+            </ol>
+          )}
         </section>
 
+        {/* Carte & contenu — replié par défaut (lot R4) : taille, ressources,
+            densités par catégorie et graine restent tous accessibles ici. */}
         <section class="options-section">
-          <h3>{t('newgame.resources')}</h3>
-          <div class="segmented" role="group">
-            {RESOURCE_LEVELS.map((level) => (
-              <button
-                key={level}
-                class={resourceLevel === level ? 'active' : ''}
-                data-testid={`newgame-resources-${level}`}
-                onClick={() => setResourceLevel(level)}
-              >
-                {t(`newgame.resources.${level}`)}
-              </button>
-            ))}
-          </div>
-        </section>
+          <SectionToggle
+            title={t('newgame.section.map')}
+            collapsed={mapCollapsed}
+            onToggle={toggleMap}
+            testId="newgame-section-map"
+          />
+          {!mapCollapsed && (
+            <>
+              <section class="options-section">
+                <h3>{t('newgame.mapSize')}</h3>
+                <div class="segmented" role="group">
+                  {MAP_SIZES.map((size) => (
+                    <button
+                      key={size}
+                      class={mapSize === size ? 'active' : ''}
+                      data-testid={`newgame-size-${size}`}
+                      onClick={() => setMapSize(size)}
+                    >
+                      {t(`newgame.mapSize.${size}`)}
+                    </button>
+                  ))}
+                </div>
+              </section>
 
-        {CONTENT_CATEGORIES.map((cat) => (
-          <section class="options-section" key={cat.field}>
-            <h3>{t(`newgame.content.${cat.key}`)}</h3>
-            <div class="segmented" role="group">
-              {CONTENT_LEVELS.map((level) => (
-                <button
-                  key={level}
-                  class={contentLevels[cat.field] === level ? 'active' : ''}
-                  data-testid={`newgame-${cat.field}-${level}`}
-                  onClick={() => setContentLevel(cat.field, level)}
-                >
-                  {t(`newgame.contentLevel.${level}`)}
-                </button>
+              <section class="options-section">
+                <h3>{t('newgame.resources')}</h3>
+                <div class="segmented" role="group">
+                  {RESOURCE_LEVELS.map((level) => (
+                    <button
+                      key={level}
+                      class={resourceLevel === level ? 'active' : ''}
+                      data-testid={`newgame-resources-${level}`}
+                      onClick={() => setResourceLevel(level)}
+                    >
+                      {t(`newgame.resources.${level}`)}
+                    </button>
+                  ))}
+                </div>
+              </section>
+
+              {CONTENT_CATEGORIES.map((cat) => (
+                <section class="options-section" key={cat.field}>
+                  <h3>{t(`newgame.content.${cat.key}`)}</h3>
+                  <div class="segmented" role="group">
+                    {CONTENT_LEVELS.map((level) => (
+                      <button
+                        key={level}
+                        class={contentLevels[cat.field] === level ? 'active' : ''}
+                        data-testid={`newgame-${cat.field}-${level}`}
+                        onClick={() => setContentLevel(cat.field, level)}
+                      >
+                        {t(`newgame.contentLevel.${level}`)}
+                      </button>
+                    ))}
+                  </div>
+                </section>
               ))}
-            </div>
-          </section>
-        ))}
+
+              <section class="options-section">
+                <h3>{t('newgame.seed')}</h3>
+                <div class="newgame-seed-row">
+                  <input
+                    class="skirmish-select newgame-seed-input"
+                    type="number"
+                    inputMode="numeric"
+                    data-testid="newgame-seed"
+                    value={seed}
+                    onInput={(e) => {
+                      const v = Number((e.currentTarget as HTMLInputElement).value);
+                      if (Number.isFinite(v)) setSeed(Math.max(0, Math.floor(v)));
+                    }}
+                  />
+                  <button
+                    class="newgame-reroll"
+                    data-testid="newgame-reroll"
+                    aria-label={t('newgame.reroll')}
+                    onClick={() => setSeed((prev) => rollSeed(prev))}
+                  >
+                    🎲
+                  </button>
+                </div>
+                <p class="options-hint">{t('newgame.seedHint')}</p>
+              </section>
+            </>
+          )}
+        </section>
 
         <section class="options-section">
           <h3>{t('newgame.difficulty')}</h3>
@@ -334,32 +439,6 @@ export function NewGameScreen({ onClose }: { onClose: () => void }) {
               </button>
             ))}
           </div>
-        </section>
-
-        <section class="options-section">
-          <h3>{t('newgame.seed')}</h3>
-          <div class="newgame-seed-row">
-            <input
-              class="skirmish-select newgame-seed-input"
-              type="number"
-              inputMode="numeric"
-              data-testid="newgame-seed"
-              value={seed}
-              onInput={(e) => {
-                const v = Number((e.currentTarget as HTMLInputElement).value);
-                if (Number.isFinite(v)) setSeed(Math.max(0, Math.floor(v)));
-              }}
-            />
-            <button
-              class="newgame-reroll"
-              data-testid="newgame-reroll"
-              aria-label={t('newgame.reroll')}
-              onClick={() => setSeed((prev) => rollSeed(prev))}
-            >
-              🎲
-            </button>
-          </div>
-          <p class="options-hint">{t('newgame.seedHint')}</p>
         </section>
 
         <section class="options-section">

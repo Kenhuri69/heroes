@@ -584,7 +584,7 @@ glisser à tout moment (aucune dépendance).
   - [x] R1 — plateau de combat visible (`.claude/plans/r1-plateau-combat-visible.md`)
   - [ ] R2 — écran de ville
   - [ ] R3 — HUD d'aventure
-  - [ ] R4 — nouvelle partie
+  - [x] R4 — nouvelle partie (`.claude/plans/r4-nouvelle-partie-trois-taps.md`)
   - [ ] R5 — lisibilité de la carte
   - [ ] R6 — incarnation & finition
   - [x] R7 — hygiène de build *(livré : `.claude/plans/r7-hygiene-build-charge.md`)*

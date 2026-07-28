@@ -8,10 +8,12 @@ import './FactionBadge.css';
  * distinction NON chromatique (daltoniens) — chaque faction porte un motif
  * géométrique en plus de sa couleur. Dérivés déterministes de `factionId`
  * par hachage, aucun asset externe, aucune faction connue en dur ici (le
- * moteur/contenu ne sont jamais consultés).
+ * moteur/contenu ne sont jamais consultés). Le jeu de motifs est **exporté** :
+ * toute surface qui doit doubler une couleur d'un canal non chromatique le
+ * réutilise (pastilles de couleur de joueur à « Nouvelle partie », lot R4).
  */
-const PATTERNS = ['stripes', 'checker', 'diamonds', 'dots'] as const;
-type FactionPattern = (typeof PATTERNS)[number];
+export const PATTERNS = ['stripes', 'checker', 'diamonds', 'dots'] as const;
+export type FactionPattern = (typeof PATTERNS)[number];
 
 /** Petite palette de couleurs lisibles sur fond sombre — la couleur ne fait
  * que compléter le motif, jamais le seul signal (doc 08 §4). */
@@ -69,7 +71,7 @@ export function FactionBadge({ factionId }: { factionId: string }) {
   );
 }
 
-function PatternMark({ pattern }: { pattern: FactionPattern }) {
+export function PatternMark({ pattern }: { pattern: FactionPattern }) {
   switch (pattern) {
     case 'stripes':
       return (

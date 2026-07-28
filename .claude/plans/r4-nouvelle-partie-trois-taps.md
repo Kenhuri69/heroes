@@ -168,3 +168,45 @@ plutôt que « strictement au-dessus du pli », qui dépendrait du viewport exac
 Invariants du diff : **aucun fichier de `packages/engine`**,
 `CURRENT_SAVE_VERSION` inchangé (35), aucune fixture golden touchée, parité FR/EN
 des locales vérifiée (1199 = 1199 clés).
+
+## 6. Re-vérification indépendante (2ᵉ passe, même commit)
+
+Pipeline rejoué intégralement sur un worktree neuf, à partir du même arbre.
+
+| # | Étape | Résultat de la re-passe |
+|---|---|---|
+| 1 | `pnpm typecheck` | ✅ |
+| 2 | `pnpm lint` | ✅ |
+| 3 | `pnpm test` | ⚠️ puis ✅ — voir note de flakiness ci-dessous (935 moteur / 164 contenu / 35 client) |
+| 4 | `pnpm content:check` | ✅ 7 paquets, 2 cartes, 16 scénarios |
+| 5 | `pnpm build` | ✅ |
+| 6 | garde-fou zéro id de faction dans `packages/` | ✅ aucune correspondance |
+| 7 | garde-fou zéro couleur en dur hors `tokens.css` | ✅ seules les définitions de `tokens.css` |
+| 8 | budget bundle | ✅ **362 935 o** gzip / 819 200 (44 %) |
+| 9 | smoke `--grep=@core --workers=1` (flock, `CI=1`) | ✅ **45/45** (7,1 min) |
+
+**Note de flakiness (étape 3)** — en lançant les trois paquets *en parallèle*
+(`pnpm test` à la racine), `test/combat-property.test.ts` (property-based, 500
+rounds) dépasse le `testTimeout` de 5 s **deux fois de suite** sur ce conteneur.
+Cause : contention CPU (load average **8** sur **4 vCPU**, plusieurs agents
+concurrents), pas le diff — ce lot ne touche **aucun** fichier de
+`packages/engine`. Preuves : le fichier seul passe en **2,0 s** (marge ×2,5), et
+la suite moteur complète lancée seule passe **935/935**, golden replay inclus.
+
+**Mesures re-mesurées sur le build de cette passe** (hash JS du serveur vérifié
+avant lecture, port 4173 partagé) — identiques au §3 :
+
+| Mesure | desktop 1280×800 | mobile 360×640 |
+|---|---|---|
+| `scrollHeight / clientHeight`, défaut (2 sièges) | **1.12** (805/720) | **1.41** (822/582) |
+| idem cran 2 / cran 3 | 1.16 / 1.17 | 1.43 / **1.45** |
+| idem, 4 sièges (sections fermées) | **1.12** | **1.41** |
+| idem, 4 sièges **dépliés** (rien ne disparaît) | 2.91 | 3.63 |
+| pastilles nommées / à motif / à libellé texte | 8/8 · 8/8 · 8/8 | 8/8 · 8/8 · 8/8 |
+| pastille coupée après défilement | **aucune** (`toutesAtteignables=true`) | **aucune** |
+| fondu de bord de la rangée | `linear-gradient(...)` | `linear-gradient(...)` |
+| cibles interactives < 44 px | **0** | **0** |
+
+Captures de contrôle : `<scratchpad>/captures/r4-apres-verif/` (inspectées à
+l'œil : bouton « Démarrage rapide » en tête, sections « Adversaires (N) » et
+« Carte & contenu » repliées, pastilles nommées + motifs distincts).

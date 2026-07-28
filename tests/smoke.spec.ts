@@ -340,6 +340,23 @@ test('HUD mobile : panneau d’actions opaque sur une rangée + ressources défi
   await page.getByTestId('options-fontscale-1').click();
   await page.getByTestId('options-close').click();
 
+  // H7 — la rangée ne déborde jamais EN HAUTEUR, quel que soit le nombre
+  // d'entrées. Le plafond `townBarLayout` borne leur NOMBRE (couvert en
+  // unitaire, `townButtons.test.ts` : 5 villes ⇒ 1 seul bouton) ; ce qui reste à
+  // prouver ici est la propriété CSS de la rangée unique. On injecte donc les
+  // 4 boutons de ville excédentaires du cas « 5 villes » d'AVANT le plafond —
+  // le pire cas que le lot supprime — et on vérifie que même là, rien ne
+  // déborde sur une 2ᵉ rangée.
+  const heightWithFiveTowns = await page.evaluate(() => {
+    const nav = document.querySelector('.action-nav')!;
+    const model = nav.querySelector('button')!;
+    const clones = Array.from({ length: 4 }, () => nav.appendChild(model.cloneNode(true)));
+    const height = document.querySelector('.actions')!.getBoundingClientRect().height;
+    for (const clone of clones) clone.remove();
+    return height;
+  });
+  expect(heightWithFiveTowns).toBeLessThanOrEqual(64);
+
   expect(errors).toEqual([]);
 });
 

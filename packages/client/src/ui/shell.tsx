@@ -1364,28 +1364,31 @@ function TurnBar({ onOpenOptions }: { onOpenOptions: () => void }) {
           elle déborde), action majeure (« Fin de tour », jamais poussée hors
           écran). */}
       <div class="actions">
+        {/* Ordre stable, du plus fréquent au plus rare : en portrait le groupe
+            défile, donc ce qui passe derrière le fondu doit être ce qu'on ouvre
+            le moins (son, options) — jamais la ville ni le journal. */}
         <div class="action-nav">
-          <MuteToggle />
-          <button
-            class="options-toggle"
-            data-testid="options-open"
-            aria-label={t('options.title')}
-            onClick={onOpenOptions}
-          >
-            <UiIcon id="act-options" fallback="⚙" />
-            <span class="action-label">{t('turnBar.label.options')}</span>
-          </button>
-          <button
-            class="kingdom-toggle"
-            data-testid="kingdom-open"
-            aria-label={t('kingdom.open')}
-            title={t('kingdom.open')}
-            disabled={aiTurn !== null}
-            onClick={() => openModal({ kind: 'kingdom' })}
-          >
-            <UiIcon id="act-kingdom" fallback="🏰" />
-            <span class="action-label">{t('turnBar.label.kingdom')}</span>
-          </button>
+          {/* Sauvegarder/Charger déplacés vers Options (lot M5, C11) : l'autosave
+              de fin de tour couvre le cas courant ; la barre de tour ne garde que
+              le geste le plus fréquent (Fin de tour) et les entrées de contexte. */}
+          {townLayout.buttons.map((town) => (
+            <TownButton key={town.id} town={town} />
+          ))}
+          {/* H7 : au-delà du plafond, un bouton unique renvoie vers l'écran
+              Royaume plutôt que d'aligner un bouton par ville. */}
+          {townLayout.aggregate !== null && (
+            <button
+              class="town-open towns-open-all"
+              data-testid="towns-open-all"
+              aria-label={t('turnBar.townsAll', { count: townLayout.aggregate })}
+              title={t('kingdom.open')}
+              disabled={aiTurn !== null}
+              onClick={() => openModal({ kind: 'kingdom' })}
+            >
+              <UiIcon id="act-kingdom" fallback="🏰" />
+              {t('turnBar.townsAll', { count: townLayout.aggregate })}
+            </button>
+          )}
           {/* E4 : « héros suivant avec PM » au pouce (équivalent de la touche N) —
               cycle + recentrage caméra, badge = héros encore mobiles, grisé si 0. */}
           <button
@@ -1418,27 +1421,27 @@ function TurnBar({ onOpenOptions }: { onOpenOptions: () => void }) {
               </span>
             )}
           </button>
-          {/* Sauvegarder/Charger déplacés vers Options (lot M5, C11) : l'autosave
-              de fin de tour couvre le cas courant ; la barre de tour ne garde que
-              le geste le plus fréquent (Fin de tour) et les entrées de contexte. */}
-          {townLayout.buttons.map((town) => (
-            <TownButton key={town.id} town={town} />
-          ))}
-          {/* H7 : au-delà du plafond, un bouton unique renvoie vers l'écran
-              Royaume plutôt que d'aligner un bouton par ville. */}
-          {townLayout.aggregate !== null && (
-            <button
-              class="town-open towns-open-all"
-              data-testid="towns-open-all"
-              aria-label={t('turnBar.townsAll', { count: townLayout.aggregate })}
-              title={t('kingdom.open')}
-              disabled={aiTurn !== null}
-              onClick={() => openModal({ kind: 'kingdom' })}
-            >
-              <UiIcon id="act-kingdom" fallback="🏰" />
-              {t('turnBar.townsAll', { count: townLayout.aggregate })}
-            </button>
-          )}
+          <button
+            class="kingdom-toggle"
+            data-testid="kingdom-open"
+            aria-label={t('kingdom.open')}
+            title={t('kingdom.open')}
+            disabled={aiTurn !== null}
+            onClick={() => openModal({ kind: 'kingdom' })}
+          >
+            <UiIcon id="act-kingdom" fallback="🏰" />
+            <span class="action-label">{t('turnBar.label.kingdom')}</span>
+          </button>
+          <button
+            class="options-toggle"
+            data-testid="options-open"
+            aria-label={t('options.title')}
+            onClick={onOpenOptions}
+          >
+            <UiIcon id="act-options" fallback="⚙" />
+            <span class="action-label">{t('turnBar.label.options')}</span>
+          </button>
+          <MuteToggle />
         </div>
         <span class="action-sep" aria-hidden="true" />
         {canDig && hero && (

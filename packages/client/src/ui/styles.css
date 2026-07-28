@@ -185,30 +185,24 @@
   pointer-events: auto;
 }
 
-/* Groupe « navigation » (statut audio, options, royaume, héros suivant,
-   journal, villes). À 360 px, 6 cibles de 44 px + « Fin de tour » demandent
-   ≥ 420 px : la rangée unique impose donc un défilement horizontal. Fondu de
-   bord = affordance (même patron que la file d'initiative, `combat.css`) ; le
-   `padding-right` égal à la largeur du fondu garantit qu'au défilement maximal
-   la dernière entrée est ENTIÈREMENT visible (leçon du lot R4). */
+/* Groupe « navigation » (villes, héros suivant, journal, royaume, options,
+   son — dans cet ordre : le plus fréquent d'abord, cf. § portrait). Au-delà du
+   portrait la hauteur ne manque pas : le groupe revient à la ligne DANS le
+   panneau, sans fondu — rien n'y est jamais caché (les libellés U7 le feraient
+   déborder dès 1280 px avec la colonne héros). Le défilement + le fondu de bord
+   sont réservés au portrait (média ≤ 640 px). */
 .action-nav {
   display: flex;
   align-items: center;
-  /* Au-delà du portrait, la hauteur ne manque pas : le groupe revient à la ligne
-     DANS le panneau plutôt que de cacher une entrée derrière le fondu (les
-     libellés U7 le feraient déborder dès 1280 px avec la colonne héros). */
   flex-wrap: wrap;
   gap: 8px;
   min-width: 0;
-  padding-right: 22px;
-  overflow-x: auto;
-  -webkit-mask-image: linear-gradient(to right, black calc(100% - 22px), transparent);
-  mask-image: linear-gradient(to right, black calc(100% - 22px), transparent);
 }
 
-/* Les boutons ne se compriment jamais : c'est le groupe qui défile. Sans cela
-   le manque de place écrasait leur largeur et renvoyait le libellé sous
-   l'icône (boutons à 2 lignes, panneau à 70 px au lieu de 62). */
+/* Les boutons ne se compriment jamais : c'est le groupe qui défile (portrait) ou
+   revient à la ligne (desktop). Sans cela le manque de place écrasait leur
+   largeur et renvoyait le libellé sous l'icône (boutons à 2 lignes, panneau à
+   70 px au lieu de 62). */
 .action-nav > button {
   flex: none;
 }
@@ -235,6 +229,13 @@
 @media (min-width: 900px) {
   .action-label {
     display: inline;
+  }
+
+  /* Réserve à droite la place de la pastille (18 px + 2 px d'ancrage) : sans
+     elle, le libellé passait SOUS le compteur d'événements non lus. */
+  .actions .next-hero-toggle,
+  .actions .journal-toggle {
+    padding-right: 28px;
   }
 }
 
@@ -1092,12 +1093,20 @@
 
   /* Rangée UNIQUE en portrait : 6 cibles de 44 px + « Fin de tour » demandent
      ≥ 420 px pour 328 px disponibles à 360 px — le débordement défile (fondu de
-     bord) au lieu de revenir à la ligne, la hauteur du panneau étant le sujet
-     du constat H3. */
+     bord = affordance, patron de la file d'initiative) au lieu de revenir à la
+     ligne, la hauteur du panneau étant le sujet du constat H3. Le
+     `padding-right` égal à la largeur du fondu garantit qu'au défilement
+     maximal la dernière entrée est ENTIÈREMENT visible (leçon du lot R4).
+     L'ordre du DOM place les entrées les plus fréquentes (ville, héros suivant,
+     journal) en tête : ce sont son et options qui passent derrière le fondu. */
   .action-nav {
     flex: 1 1 auto;
     flex-wrap: nowrap;
     gap: 6px;
+    padding-right: 22px;
+    overflow-x: auto;
+    -webkit-mask-image: linear-gradient(to right, black calc(100% - 22px), transparent);
+    mask-image: linear-gradient(to right, black calc(100% - 22px), transparent);
   }
 
   .actions button {

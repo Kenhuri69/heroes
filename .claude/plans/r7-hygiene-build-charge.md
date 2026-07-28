@@ -146,7 +146,12 @@ Les 5 fichiers de `assets/prompts/` embarqués :
 | 6 | garde-fou zéro faction dans `packages/` | ✅ statut=1 |
 | 7 | garde-fou zéro couleur en dur hors `tokens.css` | ✅ statut=1 |
 | 8 | budget bundle < 800 Ko gzip | ✅ **362 245 o** (44 % du budget) |
-| 9 | smoke Playwright `@core` | ✅ (cf. §3 — protocole `CI=1` + `flock`, hash du JS servi confronté au build local) |
+| 9 | smoke Playwright `@core` | ✅ **43 tests / 43**, 5,3 min, **0 rejeu** (cf. §3.2 — protocole `CI=1` + `flock`) |
+
+Invariants du diff (contrôlés) : **0 fichier `packages/engine`** modifié ·
+`CURRENT_SAVE_VERSION = 35` **identique** à `origin/main` · **0 fixture golden**
+touchée · **0 clé de locale** ajoutée (le lot n'introduit aucune chaîne visible :
+tout est build, CI, SW et identité de joueur).
 
 Mesures spécifiques au lot (**re-mesurées à la reprise**) :
 
@@ -233,3 +238,37 @@ Mesures spécifiques au lot (**re-mesurées à la reprise**) :
 - **`assets/prompts/` reste versionné** (seulement exclu du *build*) : les
   planches brutes de `_incoming/` alimentent `tools/assets/extract_*.py`. Sortir
   le répertoire du dépôt serait un autre débat (hors périmètre R7).
+
+### 3.2 Hygiène de port du smoke (piège avéré du projet)
+
+Le port 4173 est partagé entre agents concurrents et `playwright.config.ts`
+porte `reuseExistingServer: !CI` — un smoke lancé sans précaution peut mesurer le
+build d'un **autre** agent, sans la moindre erreur visible. Protocole appliqué :
+
+1. `CI=1` sur l'appel Playwright ⇒ `reuseExistingServer: false` : une collision
+   de port devient une **erreur bruyante** au lieu d'un silencieux « je teste le
+   build du voisin ». (`CI=1` active aussi `forbidOnly` et `retries: 2`.)
+2. Sérialisation par `flock` sur le verrou partagé, `--workers=1`.
+3. Le serveur est démarré **et arrêté** par Playwright lui-même (jamais de
+   preview en tâche de fond sous le verrou, qui hériterait du descripteur et
+   bloquerait les autres agents). Vérifié après coup : aucun processus résiduel
+   de cette session. Un `vite preview` **appartenant à un autre agent** tournait
+   au moment du contrôle — laissé en vie, comme le veut la règle.
+
+Résultat : 43/43 en 5,3 min, **aucun rejeu** (les 2 `retries` de `CI=1` n'ont
+jamais été consommés).
+
+## 4. Bilan du lot
+
+Les 4 points du périmètre sont livrés et vérifiés :
+
+| Point | Constat | Livré | Vérification |
+|---|---|---|---|
+| 1 | **P1** — 2,86 Mo de planches de génération dans le build | `'!…/assets/prompts/**'` au glob | garde-fou **CI réel** (`ci.yml`), non vacant, testé dans les deux sens ; −5 fichiers, −3,44 Mo mesurés |
+| 2 | **P2** — logo de 821 Ko sur le premier écran | 512² RGBA, **242 604 o** | 2 bornes CI chiffrées (total 96 Mio, chemin critique 300 Ko), justifiées en §1.2 ; netteté contrôlée **à l'image** |
+| 3 | **P3** — cache SW borné en entrées seulement | `ASSETS_MAX_BYTES = 50 Mio` cumulé, ordre d'insertion **inchangé** | 7 tests unitaires de `selectAssetEvictions` (plafonds séparés, cumulés, ordre, bornes) |
+| 4 | **B7** — `'player-1'` en dur dans les contrats | `playerId` en paramètre requis ; `humanPlayerId(game)` au rafraîchissement | 3 tests unitaires — les contrats visent le joueur **passé** |
+
+Reste hors périmètre, assumé : les 83 Mo d'art *lazy* ne sont pas réduits (c'est
+le prix de 7 maisons, et il est désormais **sous garde-fou** plutôt que non
+mesuré) ; aucun autre asset du chemin non-critique n'a été recompressé.

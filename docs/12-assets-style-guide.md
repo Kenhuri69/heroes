@@ -174,6 +174,15 @@ Vérifier la planche QC à l'œil : cadre vert = PASS, rouge = FAIL → regéné
 - Déclinaisons (favicon 32/16, icônes PWA 192/512, bannière) : **procédurales**
   à partir du master — script à écrire au lot intégration.
 - Staging : `assets/logo/`.
+- **Le fichier stagé est à la taille d'AFFICHAGE, pas à la taille de génération**
+  (lot R7/P2) : le logo est la seule image du **premier écran** (avant toute
+  interaction), donc du chemin critique borné à 300 Ko en CI (doc 07 §6).
+  `heroes-master.png` est livré en **512²** (`.menu-logo { max-width: 240px }`
+  ⇒ 480 px à DPR 2, marge 2,13×), RGBA `optimize`, **242 Ko** au lieu des 821 Ko
+  du rendu 1024² d'origine. Quantification 256 couleurs écartée (56 Ko mais
+  banding sur les dégradés du halo). Le rendu LLM ≥ 1024² reste récupérable dans
+  l'historique git ; s'il faut le conserver en clair, le déposer dans un
+  répertoire de travail (ci-dessous), jamais dans `assets/logo/`.
 
 ## 6bis. Règle F — audio (musiques & effets) (UXD-6)
 
@@ -464,9 +473,22 @@ no text, no watermark, no signature, no border frame
 ### 10.1 Stratégie de service retenue
 
 Registre **auto-découvert** par Vite : `import.meta.glob(['…/assets/**/*.png',
-'!**/_preview.png'], { eager, query:'?url' })` construit une map
-`clé → URL hashée`. **Ajouter un asset = déposer le PNG nommé par convention**
-(§10.2) ; il est repris sans câblage manuel.
+'!**/_preview.png', '!…/assets/prompts/**'], { eager, query:'?url' })` construit
+une map `clé → URL hashée`. **Ajouter un asset = déposer le PNG nommé par
+convention** (§10.2) ; il est repris sans câblage manuel.
+
+- **Répertoires de travail exclus du build** (lot R7/P1) : `assets/prompts/` est
+  l'**atelier de génération** (gabarits de prompt, planches brutes non découpées
+  de `_incoming/`, consommées par `tools/assets/extract_*.py`). Ces fichiers ne
+  sont **jamais lus par le jeu** : auto-découverte oblige, le glob les embarquait
+  pourtant dans `dist/` (**2,86 Mo** déployés sur Pages et éligibles au cache du
+  service worker, dont deux planches brutes de ~1,2 Mo). Ils sont désormais
+  exclus, et un **garde-fou CI** (`ci.yml`) vérifie qu'aucun fichier de
+  `assets/prompts/` n'apparaît dans `dist/assets` — le motif est dérivé de
+  l'arborescence réelle, un nouveau gabarit est donc couvert automatiquement.
+  **Tout nouveau répertoire de travail** (planches brutes, sources de retouche,
+  masters de génération) se crée sous `assets/prompts/` — ou s'ajoute aux
+  exclusions du glob dans le même commit.
 
 - **Hors bundle JS** : `build.assetsInlineLimit: 0` (vite.config.ts) force
   l'émission de **chaque** PNG en fichier séparé hashé (`dist/assets/*.png`).

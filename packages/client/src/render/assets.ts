@@ -13,9 +13,20 @@ import { Assets, type Texture } from 'pixi.js';
  * d'URL entrent dans le JS. Le garde-fou budget CI ne mesure que `*.js`/`*.css`
  * de `dist/assets` → les PNG en sont exclus. Les octets sont **fetchés à la
  * demande** par `<img>` (DOM) ou `Assets.load` (PixiJS) — lazy, doc 07 §6.
+ *
+ * **Répertoires de travail exclus** (R7/P1, doc 12 §10) : `assets/prompts/` est
+ * l'atelier de génération (gabarits de prompt, planches brutes non découpées de
+ * `_incoming/`) — jamais lu par le jeu, donc jamais émis dans `dist/`. Tout
+ * nouveau répertoire de travail doit être ajouté ici ; un garde-fou CI vérifie
+ * qu'aucun fichier de `assets/prompts/` ne se retrouve dans `dist/assets`.
  */
 const modules = import.meta.glob(
-  ['../../../../assets/**/*.png', '../../../../assets/**/*.jpg', '!**/_preview.png'],
+  [
+    '../../../../assets/**/*.png',
+    '../../../../assets/**/*.jpg',
+    '!**/_preview.png',
+    '!../../../../assets/prompts/**',
+  ],
   {
     eager: true,
     query: '?url',

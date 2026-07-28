@@ -1,5 +1,7 @@
 import type { LoadReport } from '@heroes/content';
+import { humanPlayerId } from '@heroes/engine';
 import { appStore } from './store';
+import { PLAYER_ID } from './game';
 import { dispatch } from './dispatch';
 import { buildDailyQuests } from './daily';
 import { appendFreeModeQuests } from './narrative';
@@ -44,11 +46,16 @@ function daySeed(baseSeed: number, day: number): number {
  */
 export async function refreshDailiesForCurrentDay(): Promise<void> {
   if (!ctx) return;
-  const day = appStore.getState().game.calendar.day;
+  const game = appStore.getState().game;
+  const day = game.calendar.day;
   if (day < 2) return;
+  // Identité humaine RÉELLE de la partie en cours (B7 / remédiation R3) : l'état
+  // existe ici (jour ≥ 2), il est la source de vérité — plus de `'player-1'` en
+  // dur. Repli sur la convention du client si la partie n'a aucun humain.
   const { questState, metas } = buildDailyQuests(
     ctx.report,
     ctx.humanFactionId,
+    humanPlayerId(game) ?? PLAYER_ID,
     daySeed(ctx.baseSeed, day),
     2,
     `d${day}-`,

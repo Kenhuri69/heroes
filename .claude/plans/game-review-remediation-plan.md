@@ -587,4 +587,4 @@ glisser à tout moment (aucune dépendance).
   - [ ] R4 — nouvelle partie
   - [ ] R5 — lisibilité de la carte
   - [ ] R6 — incarnation & finition
-  - [ ] R7 — hygiène de build
+  - [x] R7 — hygiène de build *(livré : `.claude/plans/r7-hygiene-build-charge.md`)*

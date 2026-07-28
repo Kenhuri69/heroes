@@ -87,6 +87,62 @@ jobs:
           echo "bundle gzip: ${total} octets"
           [ "$total" -le 819200 ]
 
+      # Hygiène de build (R7/P1, doc 12 §10) : `assets/prompts/` est l'ATELIER de
+      # génération (gabarits de prompt, planches brutes de `_incoming/`) — jamais
+      # lu par le jeu, donc jamais émis dans `dist/`. La liste des noms interdits
+      # est DÉRIVÉE de l'arborescence réelle (même esprit que le garde-fou faction
+      # dérivé de data/factions/index.json) : un futur gabarit déposé dans
+      # `prompts/` est couvert sans toucher ce workflow.
+      - name: Vérifier l'absence d'assets de génération dans dist/assets
+        run: |
+          fail=0
+          seen=0
+          while IFS= read -r src; do
+            seen=$((seen + 1))
+            # Nom émis par Vite : <base>-<hash 8>.<ext> (le glob de hash évite de
+            # confondre `siege-kit.png` avec `siege-kit-template.png`).
+            base=$(basename "$src")
+            hits=$(find packages/client/dist/assets -maxdepth 1 -name "${base%.*}-????????.${base##*.}" -printf '%f ')
+            if [ -n "$hits" ]; then
+              echo "::error::asset de génération émis dans dist/assets : ${src} → ${hits}"
+              fail=1
+            fi
+          done < <(find assets/prompts -type f \( -name '*.png' -o -name '*.jpg' \))
+          # Non-vacuité : un garde-fou dérivé de l'arborescence passe « vert » pour
+          # de mauvaises raisons si l'arborescence disparaît (répertoire renommé,
+          # checkout partiel). On exige au moins une source à confronter.
+          if [ "$seen" -eq 0 ]; then
+            echo "::error::aucune image trouvée dans assets/prompts/ — garde-fou vacant, vérifier le chemin"
+            exit 1
+          fi
+          [ "$fail" -eq 0 ]
+          echo "aucun des ${seen} assets de assets/prompts/ n'est dans dist/assets ✓"
+
+      # Budget d'images (doc 07 §6, R7/P2) — deux bornes chiffrées :
+      #  1. poids TOTAL de dist/assets ≤ 96 Mio : mesuré 84 Mio, marge calibrée sur
+      #     l'empreinte art de la plus grosse maison livrée (11 Mio) ⇒ une faction
+      #     de plus passe, un saut plus gros devient une décision explicite ;
+      #  2. plus gros fichier du CHEMIN CRITIQUE ≤ 300 Ko : les images du PREMIER
+      #     écran, chargées avant toute interaction (logo `logoUrl` + fond de titre
+      #     `titleBackgroundUrl`, cf. render/assets.ts).
+      - name: Budget images (dist/assets ≤ 96 Mio, chemin critique ≤ 300 Ko)
+        run: |
+          total=$(du -sb packages/client/dist/assets | cut -f1)
+          echo "dist/assets: ${total} octets"
+          [ "$total" -le 100663296 ]
+          crit=0
+          while IFS= read -r f; do
+            size=$(stat -c%s "$f")
+            echo "chemin critique: $(basename "$f") ${size} octets"
+            if [ "$size" -gt "$crit" ]; then crit=$size; fi
+          done < <(find packages/client/dist/assets -maxdepth 1 \
+            \( -name 'heroes-master-*.png' -o -name 'title-*.jpg' \))
+          if [ "$crit" -eq 0 ]; then
+            echo "::error::aucune image du chemin critique trouvée dans dist/assets"
+            exit 1
+          fi
+          [ "$crit" -le 307200 ]
+
   # Smoke headless sur le build de prod (guideline §7), shardé en 2 lots
   # parallèles + fully-parallel intra-lot (playwright.config.ts). Les tests de
   # throttling FPS (@perf) sont exclus ici — ils mesurent des FPS sous rendu

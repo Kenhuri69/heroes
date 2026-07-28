@@ -24,8 +24,6 @@ export interface DailyQuests {
   metas: DailyQuestMeta[];
 }
 
-const HUMAN_PLAYER_ID = 'player-1';
-
 /** Unité de tier N d'une faction, dérivée **génériquement** du manifeste (dwellings). */
 function factionUnitAtTier(report: LoadReport, factionId: string, tier: number): string | null {
   const pack = report.content.packs.find((p) => p.manifest.id === factionId);
@@ -53,6 +51,13 @@ function resolveCondition(
 export function buildDailyQuests(
   report: LoadReport,
   humanFactionId: string,
+  /**
+   * Joueur à qui les contrats sont attribués (B7, remédiation R3) — jamais une
+   * constante `'player-1'` : l'appelant fournit l'identité humaine réelle, ce qui
+   * rend la génération correcte en hot-seat / « Nouvelle partie » où le siège 1
+   * peut être une IA.
+   */
+  playerId: string,
   seed: number,
   count = 2,
   /**
@@ -83,7 +88,7 @@ export function buildDailyQuests(
     quests: chosen.map(({ tpl, condition }) => ({
       def: {
         id: questId(tpl.id),
-        playerId: HUMAN_PLAYER_ID,
+        playerId,
         steps: [{ id: stepId(tpl.id), condition }],
         rewards: [tpl.reward],
       },

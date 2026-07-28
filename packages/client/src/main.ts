@@ -90,6 +90,13 @@ declare global {
       campaignFlags: () => Record<string, boolean>;
       /** Progression des tours IA (UX multi-joueurs) — non-null pendant qu'une IA joue. */
       getAiTurn: () => { seat: number; done: number; total: number } | null;
+      /**
+       * Pose le signalement « partie bloquée » (R0/B1) pour couvrir en smoke
+       * l'overlay de récupération et sa porte de sortie. La TRANSITION vers cet
+       * état (échec d'un tour IA) est couverte en unitaire (`dispatch.test.ts`) —
+       * elle exige un moteur qui lève, hors de portée d'un navigateur.
+       */
+      setAiFailure: (blocked: boolean) => void;
       /** Abonnement au store (couverture smoke) : observe l'état d'UI transitoire (ex. `aiTurn`). */
       subscribe: (cb: () => void) => () => void;
       /** Chemin A* moteur d'un héros vers (x,y), autres héros/gardiens bloqués, destination permise (smoke H-VS-H). */
@@ -527,6 +534,7 @@ async function bootstrap(): Promise<void> {
       startChapter(campaignId, chapterIndex, TEST_SCENARIO_SEED),
     campaignFlags,
     getAiTurn: () => appStore.getState().aiTurn,
+    setAiFailure: (blocked) => appStore.setState({ aiFailure: blocked }),
     subscribe: (cb) => appStore.subscribe(cb),
     findPath: (heroId, x, y) => {
       const game = appStore.getState().game;

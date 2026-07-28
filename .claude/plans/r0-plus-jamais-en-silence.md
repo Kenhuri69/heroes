@@ -130,3 +130,17 @@
 - **Invariants du diff** : `git diff origin/main -- packages/engine` = **0 ligne**,
   `CURRENT_SAVE_VERSION` inchangé (35), **aucune** fixture golden touchée, locales
   **1196 clés FR = 1196 EN** (0 manquante de part et d'autre).
+
+## 4. Vérification adversariale — écarts relevés & résolution
+
+Une relecture adversariale du lot a trouvé **6 écarts** ; tous fermés dans
+`.claude/plans/r0-verification-gaps.md` (même branche). Résumé :
+
+| # | Écart | Résolution |
+|---|---|---|
+| 1 | **Critère 2 non tenu** : le `try/catch` n'entourait que `apply` ; `eventBus.emit` (9 abonnés, aucun isolé) restait dehors ⇒ un abonné qui lève rejouait le triple interdit (`aiTurn:null` + `currentPlayer` IA + zéro message). `installAiResume` avalait le rejet en `console.error`. | `try` élargi à `setState` + `emit` ; `installAiResume` → `handleAiTurnFailure`. Test unitaire dédié (abonné qui lève). |
+| 2 | **Défaut introduit** : la porte de sortie (« Recharger la dernière sauvegarde ») échouait elle-même en silence (`false` sans message, rejet non capté). | Toast d'erreur i18n (`aiFailure.reloadError`) sur `false` **et** sur rejet ; l'overlay reste affiché. |
+| 3 | **Couverture absente** : `ai-failure*` n'apparaissait dans aucun test (seul le champ de store était asserté). | Smoke `@core` : overlay rendu, sortie en échec dite, sortie réussie ⇒ overlay levé (hook `setAiFailure`). |
+| 4 | **Commentaire ≠ comportement** : « le signalement reviendra à la prochaine tentative » est faux. | Commentaire corrigé (+ doc 08 §3) ; comportement inchangé. |
+| 5 | **Régression mineure** : `guardianHint` effacé juste avant le retour « destination inatteignable » ⇒ conservation *partielle* de la préviz. | Retour anticipé placé **avant** la mise à jour ; assertion ajoutée au smoke B5. |
+| 6 | **Effet de bord non tracé** : le rollback ne rejoue pas l'état client (journal/quêtes/campagne) déjà alimenté par les événements émis. | Tracé (doc 02 §6 + plan) ; assumé pour R0. |

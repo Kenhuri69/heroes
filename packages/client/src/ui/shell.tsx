@@ -52,7 +52,7 @@ import { NewGameScreen } from './NewGameScreen';
 import { BriefingScreen } from './BriefingScreen';
 import { LoadingOverlay } from './LoadingOverlay';
 import { Journal } from './Journal';
-import { ToastHost } from './toasts';
+import { ToastHost, pushToast } from './toasts';
 import { CombatUi } from './combat';
 import { PreBattleScreen } from './PreBattleScreen';
 import { TownScreen } from './TownScreen';
@@ -499,11 +499,23 @@ function CoopInviteConfirm() {
  * reprise en plein relais IA), l'état est **explicitement signalé** au joueur avec
  * une action de récupération : recharger la dernière sauvegarde. Plus jamais de
  * partie figée sans message. « Fermer » laisse l'écran consultable (export,
- * options) — le signalement reviendra à la prochaine tentative.
+ * options) sans ré-armer le signalement : la sortie reste le rechargement — ici
+ * ou par Menu → Continuer (écart de vérification R0 #4).
+ *
+ * La porte de sortie elle-même ne peut pas échouer en silence (#2) : aucune
+ * sauvegarde disponible (`false`) ou stockage inaccessible (rejet) ⇒ toast
+ * d'erreur, overlay laissé en place.
  */
 function AiFailureNotice() {
   useApp((s) => s.locale);
   const blocked = useApp((s) => s.aiFailure);
+  const reload = (): void => {
+    restoreLatestSave()
+      .then((ok) => {
+        if (!ok) pushToast(t('aiFailure.reloadError'), 'error');
+      })
+      .catch(() => pushToast(t('aiFailure.reloadError'), 'error'));
+  };
   if (!blocked) return null;
   return (
     <div class="map-card-backdrop">
@@ -521,7 +533,7 @@ function AiFailureNotice() {
           <button
             class="end-turn-confirm-go"
             data-testid="ai-failure-reload"
-            onClick={() => void restoreLatestSave()}
+            onClick={reload}
           >
             {t('aiFailure.reload')}
           </button>

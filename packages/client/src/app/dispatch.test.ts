@@ -79,6 +79,34 @@ describe('runAiLoop — échec d’un tour IA isolé (B1)', () => {
     expect(after.aiFailure).toBe(false); // rollback suffisant : pas d'overlay bloquant
   });
 
+  it('un abonné du bus qui lève pendant un tour IA ⇒ même traitement (pas de gel muet)', async () => {
+    // Écart de vérification R0 #1 : `eventBus.emit` n'isole PAS ses abonnés
+    // (audio, campagne, journal, autosave…). Hors du `try`, l'exception laissait
+    // `currentPlayer` sur l'IA, `aiTurn` à `null` et AUCUN message — le triple
+    // interdit que le lot prétend éliminer.
+    const humanState = appStore.getState().game;
+    applyMock.mockImplementation((state: GameState, cmd: Command) => {
+      if (cmd.type === 'AiTurn') return { state: stateWith(1), events: [{ type: 'TurnEnded', playerId: 'p2' }] };
+      return { state: stateWith(1), events: [] }; // EndTurn ⇒ la main passe à l'IA
+    });
+    const off = eventBus.on((event) => {
+      if (event.type === 'TurnEnded') throw new Error('abonné en erreur');
+    });
+
+    try {
+      await expect(dispatch({ type: 'EndTurn', playerId: 'p1' })).resolves.toBeTruthy();
+    } finally {
+      off(); // le bus est un singleton de module : ne pas polluer les autres cas
+    }
+
+    const after = appStore.getState();
+    expect(after.game).toBe(humanState); // rollback : la main est rendue au joueur
+    expect(after.game.players[after.game.currentPlayer]?.controller).toBe('human');
+    expect(after.toasts).toHaveLength(1);
+    expect(after.toasts[0]?.kind).toBe('error');
+    expect(after.aiTurn).toBeNull();
+  });
+
   it('sans état de repli humain (reprise après chargement) ⇒ état bloqué SIGNALÉ', async () => {
     installAiResume();
     appStore.setState({ game: stateWith(1) }); // sauvegarde reprise en plein relais IA

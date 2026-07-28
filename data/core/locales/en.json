@@ -622,6 +622,7 @@
   "aiFailure.body": "The opponent's turn failed and control cannot be handed back to you. Reload the latest save to resume.",
   "aiFailure.reload": "Reload latest save",
   "aiFailure.dismiss": "Close",
+  "aiFailure.reloadError": "Reload failed — no save available",
   "toast.newGameFailed": "Could not start the game",
   "toast.matchCreated": "Online game created.",
   "toast.matchJoined": "Joined the game.",

@@ -581,18 +581,20 @@ export class AdventureScene {
       Infinity,
       hero.naval,
     );
-    // Fourchette de force affichée (comme un gardien) : effectif total du héros ennemi.
-    const enemyCount = enemyHero ? enemyHero.army.reduce((n, s) => n + s.count, 0) : 0;
-    appStore.setState({
-      guardianHint: path && (guardian || enemyHero) ? { count: guardian ? guardian.count : enemyCount } : null,
-    });
     if (!path) {
       // Destination inatteignable (R0/B5) : le joueur est prévenu (toast dédupliqué
       // — dix taps sur une montagne ne font pas dix toasts) et la préviz déjà posée
-      // est CONSERVÉE : un tap raté ne fait plus perdre le chemin en cours.
+      // est CONSERVÉE : un tap raté ne fait plus perdre le chemin en cours. Placé
+      // AVANT la mise à jour de `guardianHint` : la fourchette de force de la préviz
+      // en cours ne doit pas être effacée non plus (écart de vérification R0 #5).
       pushToastOnce(t('toast.destinationUnreachable'), 'error');
       return;
     }
+    // Fourchette de force affichée (comme un gardien) : effectif total du héros ennemi.
+    const enemyCount = enemyHero ? enemyHero.army.reduce((n, s) => n + s.count, 0) : 0;
+    appStore.setState({
+      guardianHint: guardian || enemyHero ? { count: guardian ? guardian.count : enemyCount } : null,
+    });
     // Préviz du COMPTE DE JOURS (doc 02 §1.5/:76, C5) : on consomme les PM du jour,
     // et quand un pas ne rentre plus dans le budget on passe au jour suivant en
     // rechargeant l'allocation quotidienne (`dailyMovementPoints`). Couleur par jour.

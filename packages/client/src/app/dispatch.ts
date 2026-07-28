@@ -132,9 +132,10 @@ export async function dispatch(cmd: Command): Promise<EngineResult> {
 export function installAiResume(): void {
   eventBus.on((event) => {
     if (event.type !== 'GameLoaded') return;
-    runAiLoop().catch((err: unknown) => {
-      console.error('reprise des tours IA après chargement :', err);
-    });
+    // Un rejet ici est un échec de relais IA comme un autre (écart de
+    // vérification R0 #1) : sans état de repli humain, il est SIGNALÉ avec sa
+    // porte de sortie — plus de `console.error` seul, invisible du joueur.
+    runAiLoop().catch((err: unknown) => handleAiTurnFailure(err, undefined));
   });
 }
 
@@ -245,16 +246,18 @@ async function runAiLoop(fallback?: GameState): Promise<void> {
       // (le calcul du tour IA est synchrone côté moteur — le yield doit précéder).
       appStore.setState({ aiTurn: { seat: game.currentPlayer + 1, done, total: Math.max(total, done + 1) } });
       await yieldToPaint(pacing);
-      let result: EngineResult;
       try {
-        result = apply(appStore.getState().game, { type: 'AiTurn', playerId: current.id });
+        const result = apply(appStore.getState().game, { type: 'AiTurn', playerId: current.id });
+        appStore.setState({ game: result.state });
+        // `emit` DANS le `try` : le bus n'isole pas ses abonnés (audio, campagne,
+        // journal, autosave…) — un abonné qui lève est un échec de tour IA comme
+        // un autre, pas un gel silencieux (écart de vérification R0 #1).
+        eventBus.emit(result.events);
       } catch (err) {
         // Échec ISOLÉ dans la boucle (R0/B1) : on arrête là, on prévient, on rend la main.
         handleAiTurnFailure(err, fallback);
         return;
       }
-      appStore.setState({ game: result.state });
-      eventBus.emit(result.events);
       done += 1;
     }
   } finally {

@@ -622,6 +622,7 @@
   "aiFailure.body": "Le tour de l'adversaire a échoué et la main ne peut pas vous être rendue. Rechargez la dernière sauvegarde pour reprendre.",
   "aiFailure.reload": "Recharger la dernière sauvegarde",
   "aiFailure.dismiss": "Fermer",
+  "aiFailure.reloadError": "Rechargement impossible — aucune sauvegarde disponible",
   "toast.newGameFailed": "Impossible de démarrer la partie",
   "toast.matchCreated": "Partie en ligne créée.",
   "toast.matchJoined": "Partie rejointe.",

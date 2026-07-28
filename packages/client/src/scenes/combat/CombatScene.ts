@@ -55,6 +55,7 @@ import { heroArchetype } from '../../app/game';
 import { HEX_SIZE, ISO_SQUASH, computeBoardBounds, drawBoard, hexKey, offsetToPixel, pixelToOffset } from '../../render/hexgrid';
 import { isContentPointVisible, type Rect } from '../../render/cameraClamp';
 import { combatPreview } from './preview';
+import { combatInsets } from './insets';
 import { spawnProjectile, spawnSpellImpact, spawnRubbleImpact, combatIdleStats, combatShakeStats } from '../../render/combatFx';
 import { reduceMotion } from '../../app/motion';
 
@@ -112,11 +113,10 @@ const ISO_WALL_NEAR = 1.12;
 // et les tours d'angle (baliste au sommet comprise, kit procédural).
 const STRUCTURE_TOWER_H = HEX_SIZE * 3.0;
 
-const MARGIN_TOP = 96; // bandeau armées + round (doc 08 §2.4)
-// S9.4 : marge basse élargie — la barre d'actions peut passer à 2 rangées et le
-// badge d'effectif déborde SOUS le jeton ; sans marge, les piles de la rangée 9
-// (bas du plateau) étaient rognées au cadrage d'ouverture (audit doc 19 §4).
-const MARGIN_BOTTOM = 120; // barre d'actions + dépassement du badge d'effectif
+// Lot R1 (B2) : les marges haute/basse ne sont plus figées — elles valent les
+// hauteurs RÉELLES des surcouches DOM, publiées par `CombatUi` dans
+// `combatInsets` (repli sur les constantes historiques 96/120 quand le DOM n'est
+// pas monté : arène headless, test unitaire, rendu avant montage).
 const MARGIN_SIDE = 16;
 const MAX_SCALE = 1.5;
 // Plancher tactile doc 08 §1 : hexes ≥ 44 px (~0,706 pour HEX_SIZE=36).
@@ -210,6 +210,7 @@ export class CombatScene {
   private boardShaking = false;
 
   private readonly resizeObserver: ResizeObserver;
+  private readonly unsubscribeInsets: () => void;
   private readonly unsubscribeStore: () => void;
   private readonly unsubscribeEvents: () => void;
   private readonly unsubscribeTap: () => void;
@@ -252,6 +253,10 @@ export class CombatScene {
 
     this.resizeObserver = new ResizeObserver(() => this.layout());
     this.resizeObserver.observe(app.canvas);
+    // Lot R1 (B2) : le bloc bas grandit/rétrécit sans que le canvas change de
+    // taille (cran de police, avertissement de riposte, tiroir « ⋯ ») ⇒ re-layout
+    // à chaque hauteur publiée par la couche DOM.
+    this.unsubscribeInsets = combatInsets.subscribe(() => this.layout());
 
     this.unsubscribeStore = appStore.subscribe(() => this.sync());
     this.unsubscribeEvents = eventBus.on((event) => this.onEvent(event));
@@ -276,19 +281,44 @@ export class CombatScene {
     this.unsubscribeEvents();
     this.unsubscribeTap(); // remédiation CL2 : les 3 listeners de tap ne fuient plus
     this.unsubscribeLongPress();
+    this.unsubscribeInsets();
     this.resizeObserver.disconnect();
     this.container.removeChild(this.camera.world);
     this.camera.destroy(); // retire les listeners + détruit world (plateau, tokens)
     this.container.destroy({ children: true });
   }
 
+  /**
+   * Coordonnées ÉCRAN du centre de l'hex de chaque pile vivante (surface de test
+   * smoke — lot R1 : prouver qu'aucune pile ne finit sous les surcouches DOM).
+   * Même projection que le rendu, via `camera.world.toGlobal` comme
+   * `__HEROES_TEST__.tileToScreen` pour la carte d'aventure.
+   */
+  stackScreenPoints(): { id: string; x: number; y: number }[] {
+    const combat = appStore.getState().game.combat;
+    if (!combat) return [];
+    return combat.stacks
+      .filter((s) => s.count > 0)
+      .map((s) => {
+        const p = offsetToPixel(s.pos);
+        const g = this.camera.world.toGlobal(new Point(p.x, p.y));
+        return { id: s.id, x: g.x, y: g.y };
+      });
+  }
+
   // ——— Layout ———
 
-  /** Aire de jeu à l'écran (hors en-tête armées + barre d'actions). */
+  /**
+   * Aire de jeu à l'écran : ce qui reste sous le bandeau d'armées et au-dessus du
+   * bloc bas (préviz + avertissement + barre d'actions). Lot R1 (B2) : hauteurs
+   * MESURÉES sur le DOM (`combatInsets`), plus des constantes figées — le bas
+   * pouvait mesurer 217 px pour 120 réservés au cran 3.
+   */
   private viewRect(): Rect {
+    const { top, bottom } = combatInsets.get();
     const availW = Math.max(1, this.app.screen.width - MARGIN_SIDE * 2);
-    const availH = Math.max(1, this.app.screen.height - MARGIN_TOP - MARGIN_BOTTOM);
-    return { x: MARGIN_SIDE, y: MARGIN_TOP, width: availW, height: availH };
+    const availH = Math.max(1, this.app.screen.height - top - bottom);
+    return { x: MARGIN_SIDE, y: top, width: availW, height: availH };
   }
 
   private layout(): void {

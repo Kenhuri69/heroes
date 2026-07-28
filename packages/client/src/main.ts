@@ -51,6 +51,7 @@ import { initI18n, t } from './app/i18n';
 import { preloadPixiTextures, combatBackgroundUrl, siegeBackgroundUrl, siegeSceneUrl, chromeFrameUrl, chromeRibbonUrl, initHeroAvatars } from './render/assets';
 import { AdventureScene } from './scenes/adventure/AdventureScene';
 import { CombatScene } from './scenes/combat/CombatScene';
+import { combatInsets } from './scenes/combat/insets';
 import { mountUi } from './ui/shell';
 import { pushToast } from './ui/toasts';
 
@@ -117,6 +118,10 @@ declare global {
       sceneGraphStats: () => { stageChildren: number; stagePointerListeners: number };
       /** Empreinte de culling du tilemap (S1.3) : chunks totaux / construits (lazy) / visibles au viewport. */
       tilemapStats: () => { total: number; built: number; visible: number };
+      /** Coordonnées écran des piles de combat vivantes (lot R1 — smoke « aucune pile sous les surcouches DOM »). */
+      combatStackScreenPoints: () => { id: string; x: number; y: number }[];
+      /** Marges d'écran RÉSERVÉES par la scène de combat (lot R1 — smoke « bas réel ≤ marge réservée »). */
+      combatReservedInsets: () => { top: number; bottom: number };
     };
   }
 }
@@ -550,6 +555,8 @@ async function bootstrap(): Promise<void> {
       stagePointerListeners: app.stage.listenerCount('pointerdown'),
     }),
     tilemapStats: () => scene?.tilemapStats() ?? { total: 0, built: 0, visible: 0 },
+    combatStackScreenPoints: () => combatScene?.stackScreenPoints() ?? [],
+    combatReservedInsets: () => combatInsets.get(),
   };
   window.__HEROES_READY__ = true; // signal pour le smoke test headless
   hideBootLoader(); // jeu prêt (menu/partie affichés) : retire l'écran de chargement

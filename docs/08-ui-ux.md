@@ -511,7 +511,8 @@ Menu principal (Continuer / Scénarios / Escarmouche / **Éditeur de carte** / O
 >    génération). Restent visibles : Démarrage rapide, nombre de joueurs, **votre
 >    siège** (faction / héros / couleur / équipe), difficulté IA, « Lancer ».
 >    **Aucun réglage ne disparaît** — tout se déplie d'un tap. Mesure : panneau
->    ramené à **1,4×** sa hauteur visible en portrait (**1,1×** en desktop) ⇒
+>    ramené à **1,51×** sa hauteur visible en portrait 360×640 au cran 1
+>    (**1,55×** au cran 3 ; **1,12×** en desktop, **1,26×** au cran 3) ⇒
 >    « Lancer » atteignable en **au plus un écran** de défilement, à tous les crans
 >    de police.
 > 3. **Couleurs nommées (A5)** : chaque pastille de la palette porte son **nom

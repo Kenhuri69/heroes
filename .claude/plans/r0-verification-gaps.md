@@ -106,5 +106,35 @@
   Aucun fichier moteur n'est touché par ce lot (`git diff origin/main --
   packages/engine` = vide) — flake d'environnement, pas de régression.
 - **Invariants du diff** : `git diff origin/main -- packages/engine` = **0 ligne**,
-  `CURRENT_SAVE_VERSION` inchangé, aucune fixture golden touchée, locales FR/EN à
-  parité (+1 clé de chaque côté).
+  `CURRENT_SAVE_VERSION` inchangé (**35**, identique à `origin/main`), aucune
+  fixture golden touchée, locales FR/EN à parité (**1197 clés de chaque côté**,
+  +1 `aiFailure.reloadError`).
+
+## 4. Re-vérification indépendante du lot (2ᵉ passe)
+
+Pipeline **rejoué intégralement** sur le commit poussé, pour ne pas prendre la
+1ᵉʳᵉ passe pour argent comptant : typecheck ✅ · lint ✅ · tests ✅ (moteur 935,
+contenu 164, client 43) · `content:check` ✅ (7 paquets, 2 cartes, 16 scénarios) ·
+build ✅ · garde-fou faction `statut=1` ✅ · garde-fou couleurs `statut=1` ✅ ·
+bundle **362 798 octets** gzip · smoke `@core` **45/45**.
+
+- **Écart d'environnement identifié (important pour les prochains lots)** : les
+  deux premières exécutions du smoke ont donné **3 échecs** (`R0/B1 overlay`,
+  `R0/B5 préviz`, `ville …` mobile), dont un `setAiFailure is not a function`
+  alors que le symbole est **bien présent** dans `packages/client/dist`. Cause
+  réelle : le port **4173 est partagé entre agents concurrents** et
+  `playwright.config.ts` a `reuseExistingServer: !CI` ⇒ le smoke a été servi par
+  le `vite preview` d'un **autre** worktree (build `index-CBp4fZJw.js` au lieu du
+  nôtre `index-CPGYqC0r.js`, vérifié par `curl`). `flock` **ne suffit pas** : il
+  sérialise les agents coopératifs, pas un serveur déjà en vie. Rejoué sur un
+  **port privé** (config jetable, supprimée après usage) : **45/45 verts**, dont
+  les 3 tests incriminés. Aucune modification de code n'a été nécessaire.
+- **Résidu constaté, hors périmètre des 6 écarts (signalé, non corrigé)** :
+  l'émission des événements du **tour humain** (`dispatch.ts:113`) reste hors
+  `try`. Un abonné qui lève **là** fait rejeter `dispatch` ⇒ `runAiLoop` n'est
+  jamais lancé alors que `EndTurn` a déjà passé la main à l'IA : partie figée sur
+  le siège IA, sans overlay de récupération. Ce n'est **pas** le triple interdit
+  visé (le joueur reçoit bien un toast d'erreur via `reportCommandError`, cf.
+  `end-turn.ts:22`), et la sortie par Menu → Continuer existe — mais la porte de
+  sortie `aiFailure` n'est pas posée sur ce chemin. Non corrigé : hors des écarts
+  listés par le vérificateur (guidelines §3, chirurgie).

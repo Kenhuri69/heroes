@@ -303,3 +303,80 @@ Aucun des 4 écarts n'est jugé faux.
 
 Le CSS d'avant F1 (mask inconditionnel) réintroduit dans le build, smoke rejoué :
 les assertions **échouent** — voir §8, ligne « contre-épreuve ».
+
+---
+
+## 8. Reprise après interruption : fermeture des 8 écarts de la 4ᵉ passe
+
+> ⚠️ **Lecture de l'état réel.** Le commit `1ddf7e3a` (« wip(r4) ») a coché
+> F1→F6 au §7 **sans que le pipeline ait jamais tourné**, et F3/F4 n'étaient
+> même pas implémentées. Le §7 est donc **factuellement faux** sur plusieurs
+> points ; il est conservé tel quel comme historique, et **corrigé ci-dessous**
+> (les cases du §7 sont à lire « annoncées », pas « livrées »).
+
+### 8.1 État réel de chaque case du §7 (audit avant de coder)
+
+| Case §7 | Annoncé | Constaté sur `1ddf7e3a` |
+|---|---|---|
+| F1 fondu piloté par l'état | livré | **partiel** : `ColorRow`/`is-scrollable` en place, mais la mesure « 406 = 406 » du §7 est **irreproductible** — la rangée déborde réellement (**422 > 406** desktop) ⇒ 1 pastille rognée dans TOUS les états |
+| F2 smoke discriminant | livré | **mort** : la branche `if (!scrollable)` ne s'exécute sur AUCUNE des 9 configurations mesurées (`scrollable` toujours vrai) |
+| F3 clé `newgame.seats` supprimée | livré | **non fait** : clé toujours présente en `fr.json:116` / `en.json:116` |
+| F4 parité `PLAYER_COLOR_NAMES` | livré | **non fait** : seul l'`import` a été ajouté ⇒ 2 erreurs `no-unused-vars` (pipeline étape 2 ROUGE) |
+| F5 doc 08 alignée | livré | **faux** : la doc affirme « plus aucune pastille coupée » alors qu'il en reste une |
+| F6 pipeline vert | livré | **jamais joué** |
+
+### 8.2 Décision de conception (écarts 5/6/7) — on cesse de défiler, on **passe à la ligne**
+
+Le fondu de bord conditionnel (F1) traite le symptôme secondaire (fausse
+affordance) mais **pas** le critère du lot : « aucune pastille coupée ». Tant que
+la rangée déborde (422 px de pastilles nommées pour 406 px de large), **une**
+pastille est rognée à chaque instant — au repos « Ardoise » à droite, en fin de
+course « Rouge » à gauche, sans même de fondu de ce côté.
+
+Correctif retenu : `.newgame-seat-colors` passe de `overflow-x: auto` à
+**`flex-wrap: wrap`**. Conséquences :
+
+- plus **aucun** débordement horizontal possible ⇒ zéro pastille coupée, à
+  **tout** viewport, **tout** cran de police et dans **les deux** locales ;
+- le fondu, la classe `is-scrollable` et le sous-composant `ColorRow`
+  (créé uniquement pour porter le hook de synchronisation) **disparaissent** :
+  le code revient au JSX inline d'avant le wip — moins de code que le §7 ;
+- la mesure devient **binaire et non conditionnelle** dans le smoke : plus de
+  branche morte (écart 6).
+
+Coût accepté : la rangée occupe 2 lignes (desktop **et** mobile). Le critère de
+hauteur du lot (`scrollHeight ≤ 2 × clientHeight`) reste asserté par le smoke.
+
+### 8.3 Étapes & critères de vérification chiffrés
+
+- [ ] **G1 (écart 1)** — `pnpm lint` vert : 0 erreur (l'import orphelin de
+      `newgame-quickstart.test.ts:3` devient utilisé par G2, il n'est PAS supprimé).
+- [ ] **G2 (écart 2, F4)** — parité nom↔couleur assertée en unitaire client
+      (`newgame-quickstart.test.ts`) : `PLAYER_COLOR_NAMES.length === PLAYER_COLORS.length`,
+      chaque nom non vide, **et** chaque clé `newgame.colorName.<nom>` présente en
+      `fr.json` ET `en.json` (c'est ce dernier point qui interdit l'`aria-label`
+      brut `newgame.colorName.8`). *Contre-épreuve exigée* : ajouter une 9ᵉ couleur
+      sans nom ⇒ le test échoue (rapportée au §8.5).
+- [ ] **G3 (écart 3, F3)** — `newgame.seats` supprimée de `fr.json` et `en.json`
+      (parité conservée : 0 clé en écart entre les deux fichiers).
+- [ ] **G4 (écarts 5/6/7)** — `flex-wrap: wrap` (§8.2) ; smoke réécrit en
+      assertions **inconditionnelles** : `scrollWidth ≤ clientWidth + 1`,
+      `insideAtRest === count` (8/8 au premier rendu, sans défilement),
+      `maskImage === 'none'`. *Contre-épreuve exigée* : rejouer le smoke sur le
+      CSS d'avant G4 ⇒ échec (rapportée au §8.5).
+- [ ] **G5 (écarts 7/8)** — `docs/08-ui-ux.md` : remplacer l'affirmation
+      « défile avec fondu de bord » par la règle réellement implémentée
+      (« passe à la ligne plutôt que de couper une pastille ») aux 2 endroits
+      (encart R4 point 3, §4 Accessibilité).
+- [ ] **G6 (écart 4)** — ce §8 tenu à jour jusqu'au bout, avec le tableau du
+      pipeline 9 étapes et les 2 contre-épreuves.
+
+### 8.4 Invariants du lot (inchangés)
+
+Client + locales + docs uniquement : **zéro diff `packages/engine`**, pas de bump
+`CURRENT_SAVE_VERSION`, aucune fixture golden touchée, parité FR/EN, aucune
+couleur en dur hors `tokens.css`.
+
+### 8.5 Journal d'exécution
+
+*(rempli au fil des étapes)*

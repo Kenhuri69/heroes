@@ -30,6 +30,7 @@ import { humanId } from '../app/game';
 import { t, resolveUnitName, resolveSpellName, resolveLoc, resolveHeroName, commandErrorMessage } from '../app/i18n';
 import { COMBAT_SPEEDS } from '../app/ui-constants';
 import { combatPreview, type CombatPreview } from '../scenes/combat/preview';
+import { combatInsets } from '../scenes/combat/insets';
 import { pushToast } from './toasts';
 import { SpellBook } from './SpellBook';
 import { CombatLog } from './CombatLog';
@@ -44,10 +45,38 @@ import './combat.css';
 /** Pause entre deux rounds auto (lot M4) — divisée par la vitesse ×1/×2/×4. */
 const AUTO_ROUND_PAUSE_MS = 500;
 
+/** Seuil « portrait étroit » — MÊME valeur que la media query de `combat.css`. */
+const NARROW_VIEWPORT_QUERY = '(max-width: 640px)';
+
+/**
+ * Portrait étroit (lot R1 / H5) : la barre d'actions de combat y replie les
+ * actions de héros dans le tiroir « ⋯ » au-delà du cran de police 1. Seul cas du
+ * client où la largeur doit être connue en JS — le reste de la responsivité
+ * reste en CSS.
+ */
+function useNarrowViewport(): boolean {
+  const query = (): MediaQueryList | null =>
+    typeof matchMedia === 'function' ? matchMedia(NARROW_VIEWPORT_QUERY) : null;
+  const [narrow, setNarrow] = useState(() => query()?.matches ?? false);
+  useEffect(() => {
+    const mq = query();
+    if (!mq) return;
+    const onChange = (): void => setNarrow(mq.matches);
+    onChange();
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+  return narrow;
+}
+
 export function CombatUi() {
   useApp((s) => s.locale); // réactivité i18n
   const combat = useApp((s) => s.game.combat);
   const combatSpeed = useApp((s) => s.combatSpeed);
+  // Lot R1 (H5) : cran de police + portrait étroit — la barre d'actions y replie
+  // les actions de héros dans le tiroir « ⋯ » pour tenir son budget de hauteur.
+  const fontScale = useApp((s) => s.fontScale);
+  const narrowViewport = useNarrowViewport();
   const combatBark = useApp((s) => s.combatBark);
   // B12 (revue 2026-07) : le héros de l'UI est celui LIÉ AU COMBAT (même
   // résolution que le moteur, `heroForPlayerSide`) — pas le premier héros du
@@ -108,6 +137,11 @@ export function CombatUi() {
   // puce active dans la vue à chaque changement de tour (elle n'est plus coupée
   // au bord droit sans qu'on sache où elle est).
   const orderRef = useRef<HTMLOListElement>(null);
+  // Lot R1 (B2) : hauteurs RÉELLES des deux surcouches DOM, publiées à la scène —
+  // elle réservait deux constantes figées et laissait le bas du plateau (jusqu'à
+  // l'unique pile ennemie) sous la barre d'actions.
+  const armiesRef = useRef<HTMLElement>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
   // Fiche de pile inspectée : source unique dans le store — ouverte par un tap
   // sur une vignette du bandeau OU un appui long sur le plateau (CombatScene).
   const inspectId = useApp((s) => s.combatInspectId);
@@ -153,6 +187,29 @@ export function CombatUi() {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, []);
+
+  // Lot R1 (B2) : publie les hauteurs mesurées du bandeau haut et du bloc bas
+  // (`ResizeObserver` : cran de police, avertissement de riposte, tiroir « ⋯ »,
+  // retour à la ligne de la préviz). Au démontage, retour aux marges de repli —
+  // jamais 0, qui recadrerait le plateau sur toute la hauteur de l'écran.
+  useEffect(() => {
+    const top = armiesRef.current;
+    const bottom = bottomRef.current;
+    if (!top || !bottom) return;
+    const publish = (): void =>
+      combatInsets.set({
+        top: top.getBoundingClientRect().height,
+        bottom: bottom.getBoundingClientRect().height,
+      });
+    const observer = new ResizeObserver(publish);
+    observer.observe(top);
+    observer.observe(bottom);
+    publish();
+    return () => {
+      observer.disconnect();
+      combatInsets.reset();
+    };
+  }, [combat != null]);
 
   // E3 : ramène la puce active dans la vue de la file d'initiative (défilement
   // horizontal borné à son conteneur — inline center, jamais de scroll vertical).
@@ -236,11 +293,49 @@ export function CombatUi() {
     key ? <span class="combat-btn-reason">{t(`combat.reason.${key}`)}</span> : null;
   const reasonTitle = (key: string | null | undefined): string | undefined =>
     key ? t(`combat.reason.${key}.hint`) : undefined;
+  // Lot R1 (H5) : au-delà du cran 1 en portrait, le sous-libellé VISIBLE est
+  // masqué (CSS) pour rendre de la hauteur au plateau. L'information ne doit pas
+  // disparaître pour autant : elle reste dans `title` (survol / appui long) ET
+  // dans le nom accessible du bouton (lecteurs d'écran).
+  const reasonLabel = (label: string, key: string | null | undefined): string | undefined =>
+    key ? `${label} — ${t(`combat.reason.${key}.hint`)}` : undefined;
 
   // Ordre de passage projeté (lot M1, doc 08 §2.4) : remplace les deux rangées
   // par camp triées par slot — l'actif est la 1ʳᵉ entrée par construction.
   const order = roundActionOrder(combat, catalog, appStore.getState().game);
   const sheetStack = inspectId ? (combat.stacks.find((s) => s.id === inspectId) ?? null) : null;
+
+  // Lot R1 (H5) : au-delà du cran 1 en portrait, les deux actions de HÉROS
+  // débordent dans le tiroir « ⋯ ». Leurs libellés (« Attaque du héros », « Sort
+  // du héros ») imposaient sinon une TROISIÈME rangée à la barre — mesure arène
+  // 360×640 en français : 154 px de barre et 32 % du viewport pour le bloc bas,
+  // au-delà du budget « 2 rangées / ≤ 25 % ». Le tiroir est le débordement prévu
+  // par le lot 1a (E1) ; au cran 1 la barre tient sur 2 rangées, rien ne bouge.
+  const compactBar = narrowViewport && fontScale > 1;
+  const heroActionButtons = (
+    <>
+      <button
+        data-testid="combat-hero-attack"
+        disabled={!canHeroStrike}
+        title={reasonTitle(reason['hero-attack'])}
+        aria-label={reasonLabel(t('combat.heroAttack'), reason['hero-attack'])}
+        onClick={() => setHeroAttackOpen(true)}
+      >
+        {t('combat.heroAttack')}
+        {reasonNode(reason['hero-attack'])}
+      </button>
+      <button
+        data-testid="combat-spell"
+        disabled={!canCastSpell}
+        title={reasonTitle(reason['spell'])}
+        aria-label={reasonLabel(t('combat.spell'), reason['spell'])}
+        onClick={() => setSpellBookOpen(true)}
+      >
+        {t('combat.spell')}
+        {reasonNode(reason['spell'])}
+      </button>
+    </>
+  );
 
   const act = (action: 'wait' | 'defend'): void => {
     dispatch({ type: 'CombatAction', action: { type: action } }).catch((err: unknown) => {
@@ -260,7 +355,7 @@ export function CombatUi() {
 
   return (
     <div class="combat-ui">
-      <header class="combat-armies">
+      <header ref={armiesRef} class="combat-armies">
         <div class="combat-round" data-testid="combat-round">
           {t('combat.round', { round: combat.round })}
         </div>
@@ -315,7 +410,7 @@ export function CombatUi() {
 
       {/* UXD-0 R5a : préviz + actions dans un conteneur colonne (plus de
           recouvrement de la consigne quand la barre passe à 2 rangées). */}
-      <div class="combat-bottom">
+      <div ref={bottomRef} class="combat-bottom">
         <div class="damage-preview" data-testid="damage-preview">
           {preview ? formatPreview(preview) : t('combat.damagePreviewPlaceholder')}
         </div>
@@ -371,24 +466,7 @@ export function CombatUi() {
         <button data-testid="combat-defend" disabled={!isPlayerTurn || autoActive} onClick={() => act('defend')}>
           {t('combat.defend')}
         </button>
-        <button
-          data-testid="combat-hero-attack"
-          disabled={!canHeroStrike}
-          title={reasonTitle(reason['hero-attack'])}
-          onClick={() => setHeroAttackOpen(true)}
-        >
-          {t('combat.heroAttack')}
-          {reasonNode(reason['hero-attack'])}
-        </button>
-        <button
-          data-testid="combat-spell"
-          disabled={!canCastSpell}
-          title={reasonTitle(reason['spell'])}
-          onClick={() => setSpellBookOpen(true)}
-        >
-          {t('combat.spell')}
-          {reasonNode(reason['spell'])}
-        </button>
+        {!compactBar && heroActionButtons}
         <button
           data-testid="combat-auto"
           class={autoActive ? 'combat-auto-active' : ''}
@@ -410,10 +488,12 @@ export function CombatUi() {
         </div>
         {/* Secondaires : repliées derrière « ⋯ » sur mobile, inline sur desktop. */}
         <div class={`combat-actions-secondary${showMoreActions ? ' open' : ''}`}>
+        {compactBar && heroActionButtons}
         <button
           data-testid="combat-prayer"
           disabled={!canPray}
           title={reasonTitle(reason['prayer'])}
+          aria-label={reasonLabel(t('combat.prayer'), reason['prayer'])}
           onClick={() => setPrayerOpen(true)}
         >
           {t('combat.prayer')}
@@ -424,6 +504,7 @@ export function CombatUi() {
             data-testid="combat-reinforcements"
             disabled={!canReinforce}
             title={reasonTitle(reason['reinforcements'])}
+            aria-label={reasonLabel(t('combat.reinforcements'), reason['reinforcements'])}
             onClick={() => setReinforceOpen(true)}
           >
             {t('combat.reinforcements')}
@@ -434,6 +515,7 @@ export function CombatUi() {
           data-testid="combat-unit-spell"
           disabled={!unitSpell}
           title={reasonTitle(reason['unit-spell'])}
+          aria-label={reasonLabel(t('combat.unitSpell'), reason['unit-spell'])}
           onClick={() => setUnitSpellOpen(true)}
         >
           {t('combat.unitSpell')}
@@ -443,6 +525,7 @@ export function CombatUi() {
           data-testid="combat-retreat"
           disabled={!canLeave}
           title={reasonTitle(reason['retreat'])}
+          aria-label={reasonLabel(t('combat.retreat'), reason['retreat'])}
           onClick={() => setLeaveConfirm('retreat')}
         >
           {t('combat.retreat')}
@@ -452,6 +535,10 @@ export function CombatUi() {
           data-testid="combat-surrender"
           disabled={!canSurrender}
           title={reasonTitle(reason['surrender'])}
+          aria-label={reasonLabel(
+            surrenderGold === 0 ? t('combat.surrenderFree') : t('combat.surrender', { gold: surrenderGold }),
+            reason['surrender'],
+          )}
           onClick={() => setLeaveConfirm('surrender')}
         >
           {surrenderGold === 0 ? t('combat.surrenderFree') : t('combat.surrender', { gold: surrenderGold })}

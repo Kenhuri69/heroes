@@ -16,6 +16,9 @@ export const FONT_SCALE_PERCENT: Record<1 | 2 | 3, string> = { 1: '100%', 2: '11
 
 function syncFontSize(scale: 1 | 2 | 3): void {
   document.documentElement.style.fontSize = FONT_SCALE_PERCENT[scale];
+  // Lot R1 (H5) : crochet CSS du cran courant — les surcouches serrées en hauteur
+  // (barre d'actions de combat) peuvent alléger leur contenu au-delà du cran 1.
+  document.documentElement.dataset.fontScale = String(scale);
 }
 
 /** Applique et persiste le cran de police. */

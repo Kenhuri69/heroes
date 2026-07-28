@@ -1291,6 +1291,93 @@ test('E1 : sur mobile, la barre de combat est compacte (secondaires derrière «
   expect(errors).toEqual([]);
 });
 
+/**
+ * Lot R1 (B2/H5/U5) : le plateau de combat n'est JAMAIS caché par les surcouches
+ * DOM. Encode en assertions les mesures du plan de remédiation (arène mobile
+ * 360×640, `getBoundingClientRect()` de `.combat-armies` et `.combat-bottom`) :
+ *
+ * - avant le lot, la scène réservait 96/120 px figés alors que le bas mesurait
+ *   **157 px au cran 1** et **217 px au cran 3** (25 % puis 34 % du viewport) ⇒
+ *   jusqu'à deux rangées d'hexes, dont l'unique pile ennemie, sous la barre ;
+ * - le cran de police est posé en `localStorage` (le boot le relit) : le réglage
+ *   par l'UI a son propre test, ici seule la MESURE compte.
+ */
+for (const scale of [1, 2, 3] as const) {
+  // Crans 1 et 3 = ceux chiffrés par le plan de remédiation ⇒ joués sur chaque PR
+  // (`@core`) ; le cran 2 complète la couverture dans le projet mobile.
+  const tag = scale === 2 ? '@mobile' : ['@core', '@mobile'];
+  test(
+    `R1 : le plateau de combat reste visible sous les surcouches DOM (mobile 360×640, cran ${scale})`,
+    { tag },
+    async ({ page }) => {
+      const errors = collectErrors(page);
+      await page.setViewportSize({ width: 360, height: 640 });
+      // Cran de police posé avant le boot (le réglage par l'UI a son propre
+      // test) — ici seule la MESURE est le sujet.
+      await page.addInitScript((s) => localStorage.setItem('heroes.fontScale', String(s)), scale);
+      await page.goto('./?seed=42#arena');
+      await page.waitForFunction(() => window.__HEROES_READY__ === true);
+      await passPreBattle(page);
+      await expect(page.getByTestId('combat-round')).toBeVisible();
+      await expect(page.getByTestId('damage-preview')).toBeVisible();
+
+      const m = await page.evaluate(() => {
+        const h = (sel: string): number =>
+          document.querySelector(sel)?.getBoundingClientRect().height ?? 0;
+        const preview = document.querySelector('.damage-preview');
+        return {
+          viewportH: window.innerHeight,
+          headerH: h('.combat-armies'),
+          bottomH: h('.combat-bottom'),
+          reserved: window.__HEROES_TEST__!.combatReservedInsets(),
+          stacks: window.__HEROES_TEST__!.combatStackScreenPoints(),
+          previewOverflowPx: preview ? preview.scrollWidth - preview.clientWidth : 0,
+        };
+      });
+
+      // Garde anti-test vide : l'arène pose bien des piles et deux surcouches.
+      expect(m.stacks.length).toBeGreaterThan(0);
+      expect(m.headerH).toBeGreaterThan(0);
+      expect(m.bottomH).toBeGreaterThan(0);
+
+      // B2 — la marge RÉSERVÉE par la scène couvre la hauteur RÉELLE des
+      // surcouches (avant : 120 px réservés pour 157 puis 217 px réels).
+      expect(m.reserved.top).toBeGreaterThanOrEqual(m.headerH);
+      expect(m.reserved.bottom).toBeGreaterThanOrEqual(m.bottomH);
+
+      // B2 — conséquence observable : aucune pile vivante ne tombe sous le
+      // bandeau haut ni sous le bloc bas (occlusion verticale). Le débordement
+      // HORIZONTAL est voulu (plancher tactile 44 px ⇒ pan/pinch, doc 08 §2.4).
+      const covered = m.stacks
+        .filter((p) => p.y < m.headerH || p.y > m.viewportH - m.bottomH)
+        .map((p) => p.id);
+      expect(covered).toEqual([]);
+
+      // H5 — budget de hauteur du bloc bas : ≤ 25 % du viewport aux 3 crans
+      // (avant : 24,5 % / 26,3 % / 33,9 %).
+      expect(m.bottomH).toBeLessThanOrEqual(m.viewportH * 0.25);
+
+      // U5 — la consigne n'est plus tronquée par ellipse (elle revient à la
+      // ligne) : aucun débordement horizontal du texte.
+      expect(m.previewOverflowPx).toBeLessThanOrEqual(1);
+
+      // H5 — au-delà du cran 1, les actions de héros débordent dans « ⋯ » (leurs
+      // libellés imposaient une 3ᵉ rangée) ; au cran 1 elles restent primaires.
+      // Dans les deux cas elles restent atteignables.
+      const heroAttack = page.getByTestId('combat-hero-attack');
+      if (scale === 1) {
+        await expect(heroAttack).toBeVisible();
+      } else {
+        await expect(heroAttack).toBeHidden();
+        await page.getByTestId('combat-more').click();
+        await expect(heroAttack).toBeVisible();
+      }
+
+      expect(errors).toEqual([]);
+    },
+  );
+}
+
 test("combat : la file d'ordre s'affiche (actif en tête) et la fiche de pile s'ouvre au tap", async ({
   page,
 }) => {

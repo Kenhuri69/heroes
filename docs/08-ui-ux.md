@@ -364,7 +364,7 @@
 > immobilisation/marques). La projection n'anticipe pas les aléas résolus au
 > moment du tour (saut de moral négatif, immobilisation). Le tap sur le jeton
 > du plateau (canvas) est différé au geste d'appui long générique (lot M2).
-- Mobile : combat **jouable en portrait** de plein droit — le plateau est rendu à une **échelle plancher** garantissant des hexes ≥ 44 px (touch-first, §1), puis **déplaçable au pan et zoomable au pinch** (parité avec la carte d'aventure) quand il déborde de l'écran. Le paysage reste possible mais n'est plus imposé par un overlay de suggestion de rotation. Quand le plateau déborde, la vue s'ouvre **centrée sur la pile active** (pas sur le centre du plateau, qui n'affichait aucune unité) ; le pan/pinch du joueur reste ensuite maître (UXD-0). En viewport étroit, le bandeau du haut empile round puis une rangée par camp, et la prévisualisation de dégâts est groupée au-dessus de la barre d'actions (jamais recouverte).
+- Mobile : combat **jouable en portrait** de plein droit — le plateau est rendu à une **échelle plancher** garantissant des hexes ≥ 44 px (touch-first, §1), puis **déplaçable au pan et zoomable au pinch** (parité avec la carte d'aventure) quand il déborde de l'écran. Le paysage reste possible mais n'est plus imposé par un overlay de suggestion de rotation. Quand le plateau déborde, la vue s'ouvre **centrée sur la pile active** (pas sur le centre du plateau, qui n'affichait aucune unité) ; le pan/pinch du joueur reste ensuite maître (UXD-0). En viewport étroit, le bandeau du haut empile round puis une rangée par camp, et la prévisualisation de dégâts est groupée au-dessus de la barre d'actions **dans le même panneau opaque** — l'aire de jeu réservée à la caméra vaut la hauteur **mesurée** de ce panneau, jamais une constante (voir « État R1 » plus bas).
 - Vitesses d'animation ×1/×2/×4 + « combat auto » avec possibilité de reprendre la main à tout round (rejoue depuis l'état courant — gratuit grâce au déterminisme).
 
 > 🚧 **État M4 (plan `ux-revue-mmho.md` C15)** : la promesse ci-dessus est
@@ -425,6 +425,39 @@
 > la cible (`estimateDamage.retaliation`, déjà calculée) anéantirait la pile
 > attaquante — signalé avant le 2ᵉ tap de confirmation, sans bloquer. Réutilise
 > l'estimation existante ⇒ zéro moteur.
+
+> ✅ **État R1 (plateau visible — plan `.claude/plans/r1-plateau-combat-visible.md`,
+> constats B2/H5/U5 de la revue 2026-07)**. Trois décisions d'interaction, **client
+> seul** :
+>
+> 1. **Les marges de caméra sont MESURÉES, plus figées.** L'aire de jeu réservée
+>    par la scène vaut désormais la **hauteur réelle** des deux surcouches DOM —
+>    bandeau d'armées en haut, **bloc bas** (préviz + avertissement de riposte +
+>    barre d'actions) en bas — publiée par la couche DOM (`ResizeObserver`) et
+>    relue à chaque changement : **cran de police, apparition de l'avertissement,
+>    ouverture du tiroir « ⋯ »**. Avant, deux constantes (96/120 px) laissaient le
+>    bas du plateau **sous** la barre : mesure arène 360×640, bas réel **157 px au
+>    cran 1** et **217 px au cran 3** pour 120 réservés, soit jusqu'à deux rangées
+>    d'hexes — dont l'unique pile ennemie — invisibles et inciblables. Repli sur
+>    les constantes historiques quand le DOM n'est pas monté (arène headless,
+>    rendu avant montage) : **jamais 0**, qui recadrerait le plateau sur toute la
+>    hauteur de l'écran. *Invariant testé* : la marge réservée ≥ la hauteur réelle,
+>    et **aucune pile vivante sous une surcouche** (le débordement **horizontal**
+>    reste voulu — plancher tactile 44 px ⇒ pan/pinch).
+> 2. **Le bandeau d'aide fait partie du panneau bas et n'est plus tronqué.** La
+>    consigne de prévisualisation était une **pastille flottante posée sur les
+>    jetons**, à texte coupé par ellipse (« … prévisualis… ») en portrait. Le bloc
+>    bas porte maintenant le fond opaque du panneau, et le texte a le droit de
+>    **revenir à la ligne** — la marge étant mesurée, la place lui est réservée.
+> 3. **Budget de hauteur du bloc bas : ≤ 25 % du viewport aux trois crans** (mesuré
+>    360×640, français, état de repos ; **avant : 24,5 / 26,3 / 33,9 %**). Deux
+>    leviers : au-delà du **cran 1** en portrait, (a) les **sous-libellés de raison**
+>    de désactivation (E2) passent en `title` **et** nom accessible du bouton — ils
+>    ne sont plus affichés, deux lignes par bouton refaisant grossir la barre ; et
+>    (b) les deux actions de **héros** (*Attaque du héros*, *Sort du héros*)
+>    **débordent dans le tiroir « ⋯ »** — leurs libellés imposaient sinon une
+>    **troisième** rangée, au-delà du budget « 2 rangées maximum ». Au cran 1, la
+>    barre est **inchangée** (actions de héros primaires, raisons visibles).
 
 ### 2.5 Autres écrans
 
@@ -555,7 +588,7 @@ Menu principal (Continuer / Scénarios / Escarmouche / **Éditeur de carte** / O
 
 - Daltonisme : **pas d'option** — l'accessibilité chromatique est **toujours active** (choix M8/C4, plus sûr qu'un réglage) : couleurs de joueur doublées de **motifs de bannière**, statuts de combat doublés d'icônes/formes, jamais la couleur seule.
 - **Réduire les animations** : option en jeu (M8/C3) qui s'unit au réglage système `prefers-reduced-motion` — coupe transitions DOM et mouvement Pixi (le contour de focus reste).
-- Texte UI en DOM → zoom navigateur et lecteurs d'écran fonctionnent sur toute la gestion ; taille de police réglable (3 crans).
+- Texte UI en DOM → zoom navigateur et lecteurs d'écran fonctionnent sur toute la gestion ; taille de police réglable (3 crans). Le cran courant est publié sur `<html data-font-scale>` : une surcouche **serrée en hauteur** peut alors alléger son contenu au-delà du cran 1 **sans jamais perdre l'information** (voir §2.4 « État R1 » : la barre d'actions de combat replie les sous-libellés en `title`/nom accessible et déborde ses actions secondaires dans le tiroir « ⋯ », plutôt que de manger le plateau).
 - Toutes les infos « hover » accessibles à l'appui long ; aucune action à double-clic ou clic droit obligatoire.
 
 ## 5. Direction artistique (cadrage)

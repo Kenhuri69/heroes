@@ -255,7 +255,11 @@
 
 /* Bas de l'écran de combat (UXD-0 R5a) : prévisualisation + barre d'actions
    dans UN conteneur en colonne — la consigne n'est plus recouverte/tronquée
-   quand la barre passe sur plusieurs rangées (mobile × cran 3). */
+   quand la barre passe sur plusieurs rangées (mobile × cran 3).
+   Lot R1 (U5) : le bloc porte le FOND OPAQUE du panneau bas. La préviz cessait
+   d'être une pastille flottante posée sur les jetons ; et la scène réserve
+   désormais la hauteur RÉELLE de ce bloc (`combatInsets`) ⇒ le plateau ne passe
+   plus dessous. */
 .combat-bottom {
   position: fixed;
   left: 0;
@@ -264,7 +268,9 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  padding-top: 6px;
+  background: var(--veil-85);
   pointer-events: none;
 }
 
@@ -387,15 +393,44 @@
     text-align: center;
   }
 
-  /* C18 : consigne compacte — elle ne recouvre plus le plateau. Une seule ligne
-     tronquée (E1) : jamais de retour à la ligne qui remonterait sur les jetons. */
+  /* Lot R1 (U5) : la consigne n'est PLUS tronquée — le retour à la ligne est
+     autorisé (elle passe sur 2 lignes en français). Le plateau n'y perd rien :
+     la scène réserve la hauteur mesurée du bloc bas, ce qui remplace l'ellipse
+     « … prévisualis… » constatée aux crans 1 et 3. */
   .damage-preview {
-    padding: 4px 10px;
-    font-size: 0.8rem;
+    padding: 3px 10px;
+    font-size: 0.7rem;
+    line-height: 1.3;
     max-width: 92vw;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  }
+
+  /* Lot R1 (H5) : bloc bas resserré en portrait — objectif chiffré « ≤ 25 % du
+     viewport aux 3 crans » (mesuré 32,5 → 33,4 % en français avant le lot). */
+  .combat-bottom {
+    gap: 3px;
+    padding-top: 3px;
+  }
+  .combat-actions {
+    padding: 5px 6px;
+    gap: 5px;
+  }
+  .combat-actions-primary,
+  .combat-actions-secondary {
+    gap: 5px;
+  }
+  /* Boutons plus serrés HORIZONTALEMENT (la cible tactile reste ≥ 44 px, cf.
+     `min-height`/`min-width` hors media query) : les 6 primaires tiennent alors
+     sur 2 rangées au lieu de 3, même au cran 3 en français. */
+  .combat-actions button {
+    padding: 6px 10px;
+    font-size: 0.8rem;
+  }
+
+  /* Lot R1 (H5) : au-delà du cran 1, le sous-libellé de raison (E2) passe en
+     `title`/nom accessible seul — deux lignes par bouton refaisaient grossir la
+     barre de ~50 px, soit une rangée d'hexes perdue. */
+  :root:not([data-font-scale='1']) .combat-btn-reason {
+    display: none;
   }
 
   /* E1 : le « ⋯ » apparaît et les actions secondaires se replient derrière lui —

@@ -581,7 +581,7 @@ glisser à tout moment (aucune dépendance).
 - [ ] Arbitrage utilisateur sur l'ordre des vagues
 - [ ] Ouverture des plans dédiés par lot au fil des implémentations
   - [ ] R0 — ne plus échouer en silence
-  - [ ] R1 — plateau de combat visible
+  - [x] R1 — plateau de combat visible (`.claude/plans/r1-plateau-combat-visible.md`)
   - [ ] R2 — écran de ville
   - [ ] R3 — HUD d'aventure
   - [ ] R4 — nouvelle partie

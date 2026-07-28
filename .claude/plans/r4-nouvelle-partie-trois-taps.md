@@ -349,26 +349,26 @@ hauteur du lot (`scrollHeight ≤ 2 × clientHeight`) reste asserté par le smok
 
 ### 8.3 Étapes & critères de vérification chiffrés
 
-- [ ] **G1 (écart 1)** — `pnpm lint` vert : 0 erreur (l'import orphelin de
+- [x] **G1 (écart 1)** — `pnpm lint` vert : 0 erreur (l'import orphelin de
       `newgame-quickstart.test.ts:3` devient utilisé par G2, il n'est PAS supprimé).
-- [ ] **G2 (écart 2, F4)** — parité nom↔couleur assertée en unitaire client
+- [x] **G2 (écart 2, F4)** — parité nom↔couleur assertée en unitaire client
       (`newgame-quickstart.test.ts`) : `PLAYER_COLOR_NAMES.length === PLAYER_COLORS.length`,
       chaque nom non vide, **et** chaque clé `newgame.colorName.<nom>` présente en
       `fr.json` ET `en.json` (c'est ce dernier point qui interdit l'`aria-label`
       brut `newgame.colorName.8`). *Contre-épreuve exigée* : ajouter une 9ᵉ couleur
       sans nom ⇒ le test échoue (rapportée au §8.5).
-- [ ] **G3 (écart 3, F3)** — `newgame.seats` supprimée de `fr.json` et `en.json`
+- [x] **G3 (écart 3, F3)** — `newgame.seats` supprimée de `fr.json` et `en.json`
       (parité conservée : 0 clé en écart entre les deux fichiers).
-- [ ] **G4 (écarts 5/6/7)** — `flex-wrap: wrap` (§8.2) ; smoke réécrit en
+- [x] **G4 (écarts 5/6/7)** — `flex-wrap: wrap` (§8.2) ; smoke réécrit en
       assertions **inconditionnelles** : `scrollWidth ≤ clientWidth + 1`,
       `insideAtRest === count` (8/8 au premier rendu, sans défilement),
       `maskImage === 'none'`. *Contre-épreuve exigée* : rejouer le smoke sur le
       CSS d'avant G4 ⇒ échec (rapportée au §8.5).
-- [ ] **G5 (écarts 7/8)** — `docs/08-ui-ux.md` : remplacer l'affirmation
+- [x] **G5 (écarts 7/8)** — `docs/08-ui-ux.md` : remplacer l'affirmation
       « défile avec fondu de bord » par la règle réellement implémentée
       (« passe à la ligne plutôt que de couper une pastille ») aux 2 endroits
       (encart R4 point 3, §4 Accessibilité).
-- [ ] **G6 (écart 4)** — ce §8 tenu à jour jusqu'au bout, avec le tableau du
+- [x] **G6 (écart 4)** — ce §8 tenu à jour jusqu'au bout, avec le tableau du
       pipeline 9 étapes et les 2 contre-épreuves.
 
 ### 8.4 Invariants du lot (inchangés)
@@ -379,4 +379,69 @@ couleur en dur hors `tokens.css`.
 
 ### 8.5 Journal d'exécution
 
-*(rempli au fil des étapes)*
+**Décisions & écarts constatés pendant la reprise**
+
+- **G4 remplace F1, il ne le complète pas.** Le `ColorRow` + la classe
+  `is-scrollable` du wip sont **supprimés** (retour au JSX inline du lot) :
+  sans défilement horizontal, le hook de synchronisation du fondu n'a plus
+  d'objet. Net : `NewGameScreen.tsx` redevient identique au commit `c4c7d258`
+  à un commentaire près, `newgame.css` perd 7 lignes.
+- **Écart 8 confirmé, pas faux.** La mesure « 406 = 406 » du §7 est bien
+  irreproductible : rejouée sur le build de la branche avec l'ancien CSS, la
+  rangée déborde de **16 px** en desktop (et **60 px** en mobile Pixel 7) —
+  cf. contre-épreuve ci-dessous, qui reproduit au pixel le 422 − 406 du
+  vérificateur.
+- **Écart 6 fermé par construction** : les 3 assertions de découpe sont
+  désormais **inconditionnelles** (plus de `if (scrollable)`), donc exécutées
+  sur les 2 projets Playwright (desktop + mobile).
+- **Aucun écart jugé faux** : les 8 sont réels et corrigés.
+
+**Mesures après correctif** (`MESURE_R4`, instrumentation temporaire retirée
+depuis ; build de CETTE branche servi sur un **port dédié 4183**, cf. note
+d'hygiène ci-dessous) :
+
+| Mesure (siège 0) | desktop 1280×800 | mobile Pixel 7 |
+|---|---|---|
+| débordement horizontal `scrollWidth − clientWidth` | **0 px** (avant : 16) | **0 px** (avant : 60) |
+| pastilles entières dans le rect, **sans défilement** | **8/8** (avant : 7/8) | **8/8** |
+| `maskImage` (fondu qui rognait une pastille) | **none** | **none** |
+| pastilles nommées / à motif / à libellé texte | 8/8 · 8/8 · 8/8 | 8/8 · 8/8 · 8/8 |
+
+**Contre-épreuves (les tests ÉCHOUENT si on remet le défaut)**
+
+1. *G2 — parité par index* : 9ᵉ couleur ajoutée à `PLAYER_COLORS` sans nom ⇒
+   `newgame-quickstart.test.ts` échoue — « expected [ 'red', … ] to have a
+   length of 9 but got 8 ».
+2. *G2 — clé de locale manquante* : 9ᵉ nom `cyan` sans `newgame.colorName.cyan`
+   ⇒ échec « fr: cyan: expected undefined to be truthy ». C'est **cette**
+   assertion qui interdit l'`aria-label` brut de l'écart 4/É4.
+3. *G4 — découpe* : CSS d'avant G4 (`overflow-x: auto` + `mask-image`
+   inconditionnel) réintroduit et **rebuild**, smoke rejoué ⇒ **2 échecs**
+   (desktop `overflowX` **16** attendu ≤ 1 ; mobile **60**). L'ancienne
+   assertion `if (!scrollable) …` du wip, elle, ne se déclenchait sur aucun des
+   deux.
+
+**Pipeline de vérification (9 étapes, toutes vertes)**
+
+| # | Étape | Résultat |
+|---|---|---|
+| 1 | `pnpm typecheck` | ✅ 5 projets |
+| 2 | `pnpm lint` | ✅ **0 erreur** (était 2 : import orphelin, écart 1) |
+| 3 | `pnpm test` | ✅ moteur **935/935** (golden inclus), contenu **164**, client **37** (+2 nouveaux) |
+| 4 | `pnpm content:check` | ✅ 7 paquets, 2 cartes, 16 scénarios |
+| 5 | `pnpm build` | ✅ |
+| 6 | garde-fou « zéro id de faction dans `packages/` » | ✅ `statut=1` |
+| 7 | garde-fou « zéro couleur en dur hors `tokens.css` » | ✅ `statut=1` |
+| 8 | budget bundle gzip | ✅ **362 921 o** (354 Ko) < 819 200 |
+| 9 | smoke Playwright `@core` | ✅ **45/45** (desktop + mobile), 3,4 min, 0 rejeu |
+
+**Note d'hygiène de port** : le 4173 était squatté par un `vite preview`
+orphelin d'un **autre worktree** (63 min, aucun navigateur attaché). Plutôt que
+de le tuer, le smoke a tourné sur une copie de `playwright.config.ts` pointant
+un **port dédié 4183** avec `reuseExistingServer: false` (fichier temporaire,
+hors dépôt, supprimé après ; aucun preview laissé vivant). Toutes les mesures
+portent donc, par construction, sur le build de CETTE branche.
+
+**Invariants du diff** (`git diff origin/main...HEAD`) : `packages/engine`
+**intouché**, `CURRENT_SAVE_VERSION` = 35 inchangé, aucune fixture golden
+touchée, locales FR/EN à parité (1 clé retirée des deux côtés).

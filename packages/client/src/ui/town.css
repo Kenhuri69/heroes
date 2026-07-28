@@ -26,33 +26,34 @@
   padding: 8px 0;
 }
 
-/* En-tête de décision (lot M7 C21) : revenu + prochaine croissance. */
+/* En-tête de décision (lot M7 C21) : revenu + prochaine croissance.
+   Lot R2 (constat H1) : le créneau de chantier est descendu dans l'onglet
+   Construire ⇒ il ne reste que deux mentions, tenues sur UNE SEULE LIGNE même en
+   portrait (`nowrap` par mention + rétrécissement du corps sous le seuil étroit).
+   Le `flex-wrap` reste en filet de sécurité : au pire on passe à la ligne plutôt
+   que de déborder. */
 .town-subheader {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
+  align-items: baseline;
+  gap: 0 8px;
   margin: 0 0 10px;
   font-size: 0.85rem;
   opacity: 0.85;
 }
 
+.town-subheader > span {
+  white-space: nowrap;
+}
+
 .town-subheader-sep {
   opacity: 0.5;
 }
-/* V-3 : au cran 3 mobile le sous-titre passe sur plusieurs lignes et un « · »
-   pouvait rester orphelin en bout de ligne. En dessous du seuil étroit, on passe
-   en flex-wrap avec espacement et on masque les séparateurs (le retour à la ligne
-   fait office de séparation). Desktop/large : ponctuation « · » conservée. */
+
 @media (max-width: 480px) {
   .town-subheader {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 2px 10px;
-    align-items: baseline;
-  }
-  .town-subheader-sep {
-    display: none;
+    gap: 0 6px;
+    font-size: 0.78rem;
   }
 }
 
@@ -180,10 +181,18 @@
   border-color: var(--blood-bright);
 }
 
-/* Lot D (refonte UX) : le créneau « 1 construction/jour » (doc 02 §4.2, ex-ruban
-   B1) est condensé en badge compact dans l'en-tête de ville. */
+/* Créneau « 1 construction/jour » (doc 02 §4.2, ex-ruban B1) : badge compact, en
+   tête de l'onglet Construire depuis le lot R2 (constats H1/U8). Le statut n'est
+   jamais porté par la seule couleur — glyphe ✓ / ⏳ + libellé. « Occupé » est un
+   état NORMAL : ton neutre, plus le rouge d'erreur d'avant (constat U8). */
 .town-build-queue-state {
+  margin: 0 0 8px;
   font-weight: 600;
+  font-size: 0.8125rem;
+}
+
+.town-build-queue-glyph {
+  font-weight: 400;
 }
 
 .town-build-queue-state.is-free {
@@ -191,7 +200,7 @@
 }
 
 .town-build-queue-state.is-used {
-  color: var(--blood-bright);
+  color: var(--parchment-dim);
 }
 
 .town-building-list,
@@ -511,7 +520,36 @@ button[data-testid='market-trade'] {
    emplacement posé en absolu à sa place (`townLayout`, position déterministe),
    portant son statut (construit/disponible/verrouillé). Touch-first. */
 .town-view {
+  position: relative;
   margin-bottom: 12px;
+}
+/* Bascule « Voir / Masquer la ville » (lot R2, constat H1) : le panorama reste
+   (rejet acté §5 du plan de revue) mais cesse d'imposer sa hauteur — replié par
+   défaut en portrait, préférence persistée. Replié, l'écran de ville ne paie plus
+   qu'une rangée de 44 px avant les onglets ; DÉPLIÉ, la bascule se pose EN
+   SURIMPRESSION sur la scène (coin haut-droit) afin de ne rien coûter en hauteur
+   — sans quoi on aurait allégé le mobile en alourdissant le desktop. */
+.town-view-toggle {
+  min-height: 44px;
+  padding: 6px 12px;
+  border: 1px solid var(--brass-bright);
+  border-radius: var(--radius-m);
+  background: var(--veil-92);
+  color: var(--parchment);
+  font: 600 0.8125rem var(--font-ui);
+  cursor: pointer;
+}
+.town-view:not(.is-collapsed) .town-view-toggle {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 4;
+}
+.town-view.is-collapsed .town-view-toggle {
+  display: block;
+  width: 100%;
+  background: var(--ink-700);
+  border-color: var(--ink-600);
 }
 .town-view-scene {
   position: relative;
@@ -551,63 +589,119 @@ button[data-testid='market-trade'] {
 .town-view-building.is-locked {
   z-index: 1;
 }
+/* Marqueur inspecté (survol / focus / appui long) : au-dessus de tous, pour que
+   son étiquette de nom ne passe pas sous un voisin. */
+.town-view-building.is-inspected {
+  z-index: 6;
+}
+/* Lot R2 (constat H2) : les vignettes faisaient 56 px pour un pas d'ancre de
+   ~26-29 px en portrait ⇒ elles se chevauchaient en bouillie et, translucides,
+   se noyaient dans le décor peint. Elles rétrécissent et reposent sur une PLAQUE
+   OPAQUE : l'icône du bâtiment redevient identifiable sur n'importe quel fond. */
 .town-view-vignette,
 .town-view-vignette-fallback {
-  width: 56px;
-  height: 56px;
+  width: 40px;
+  height: 40px;
   object-fit: contain;
-  filter: drop-shadow(0 2px 3px var(--shadow-40));
 }
 .town-view-vignette-fallback {
-  display: block;
-  border-radius: var(--radius-m);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-s);
   background: var(--town-flag);
-  border: 1px solid var(--brass-bright);
+  color: var(--parchment-bright);
+  font: 700 0.875rem var(--font-ui);
+}
+@media (max-width: 480px) {
+  .town-view-vignette,
+  .town-view-vignette-fallback {
+    width: 34px;
+    height: 34px;
+  }
 }
 
 /* Emplacement + pastille de statut (UXD-5, a11y doc 08 §4) : le statut n'est
    JAMAIS porté par la seule couleur — pastille de forme distincte (disque /
-   anneau pointillé / carré) + opacité/désaturation de la vignette. */
+   anneau / carré) PORTANT UN GLYPHE (✓ / + / ×, lot R2) + opacité/désaturation
+   de la vignette. */
 .town-view-figure {
   position: relative;
   display: block;
+  padding: 2px;
+  border: 1px solid var(--brass);
+  border-radius: var(--radius-m);
+  background: var(--veil-90);
+  box-shadow: 0 2px 3px var(--shadow-40);
 }
 .town-view-pip {
   position: absolute;
-  top: -3px;
-  right: -3px;
-  width: 12px;
-  height: 12px;
+  top: -5px;
+  right: -5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
   box-sizing: border-box;
+  font: 700 0.625rem/1 var(--font-ui);
 }
 /* construit : disque plein laiton */
 .town-view-pip-constructed {
   border-radius: 50%;
   background: var(--brass-bright);
   border: 1px solid var(--ink-900);
+  color: var(--ink-900);
 }
 /* disponible : anneau creux à trait PLEIN (2ᵉ forme) — trait continu, pas
    pointillé, pour ne pas évoquer un spinner de chargement (V-4). */
 .town-view-pip-available {
   border-radius: 50%;
-  background: transparent;
+  background: var(--veil-90);
   border: 2px solid var(--parchment-bright);
+  color: var(--parchment-bright);
 }
 /* verrouillé : carré plein sombre (3ᵉ forme) */
 .town-view-pip-locked {
   border-radius: 2px;
   background: var(--ink-500);
   border: 1px solid var(--ink-900);
+  color: var(--parchment-bright);
 }
-/* Vignette selon statut : opacité (+ désaturation si verrouillé) = 2ᵉ canal. */
+/* Vignette selon statut : opacité (+ désaturation si verrouillé) = 2ᵉ canal.
+   Le verrouillé remonte de 0,4 à 0,65 : il doit rester IDENTIFIABLE (constat H2
+   — à 0,4 sur un décor peint chargé, l'icône disparaissait), la désaturation et
+   le glyphe × portant déjà la distinction. */
 .town-view-building.is-available .town-view-vignette,
 .town-view-building.is-available .town-view-vignette-fallback {
-  opacity: 0.82;
+  opacity: 0.9;
 }
 .town-view-building.is-locked .town-view-vignette,
 .town-view-building.is-locked .town-view-vignette-fallback {
-  opacity: 0.4;
+  opacity: 0.65;
   filter: grayscale(1);
+}
+
+/* Étiquette de nom ancrée au marqueur (lot R2, constat H2 « pastilles anonymes »
+   + parité tactile A2) : NOM + STATUT NOMMÉ, affichés au survol, au focus clavier
+   ET à l'appui long — l'information ne vit plus dans un `title` inatteignable au
+   doigt. Non interactive pour ne pas voler le tap du marqueur. */
+.town-view-label {
+  position: absolute;
+  bottom: calc(100% + 3px);
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 40vw;
+  padding: 2px 6px;
+  border: 1px solid var(--brass-bright);
+  border-radius: var(--radius-s);
+  background: var(--veil-95);
+  color: var(--parchment-bright);
+  font: 600 0.6875rem/1.2 var(--font-ui);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
 }
 .town-view-empty {
   position: absolute;

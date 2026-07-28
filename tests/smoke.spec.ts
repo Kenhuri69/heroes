@@ -2375,10 +2375,78 @@ test('ville : construire + croissance + recruter + transférer → armée du hé
   // Scopé à l'écran de ville : depuis U4, la liste de villes du HUD porte aussi
   // un `faction-badge` par bouton (plusieurs villes possibles).
   await expect(page.locator('.town-screen').getByTestId('faction-badge')).toBeVisible();
+
+  // Lot R2 (constat H1) — l'écran de ville est un OUTIL avant d'être un décor.
+  // Assertions CHIFFRÉES à l'ouverture, avant toute interaction :
+  await test.step('R2 : le panneau actif est au-dessus du pli dès l’ouverture', async () => {
+    // (a) En-tête condensé : revenu + croissance sur UNE SEULE ligne (le créneau
+    //     de chantier a quitté l'en-tête) ⇒ tous les enfants partagent un `top`.
+    const headerTops = await page
+      .getByTestId('town-subheader')
+      .evaluate((el) =>
+        Array.from(el.children).map((c) => Math.round(c.getBoundingClientRect().top)),
+      );
+    expect(new Set(headerTops).size).toBe(1);
+    // (b) Le panorama est REPLIÉ par défaut en portrait (le smoke mobile tourne en
+    //     portrait ; en desktop paysage il reste déplié — d'où la bascule lue).
+    const portrait = await page.evaluate(() => window.innerHeight > window.innerWidth);
+    await expect(page.getByTestId('town-view-toggle')).toBeVisible();
+    await expect(page.getByTestId('town-view-scene')).toHaveCount(portrait ? 0 : 1);
+    // (c) Le PREMIER CONTRÔLE de l'onglet actif est au-dessus du pli. Mesure du
+    //     constat H1 : avant ce lot, 644 px (1er contrôle) et 696 px (1ʳᵉ action)
+    //     pour un pli à 640 px en 360×640.
+    const foldOk = async (panel: string): Promise<{ first: number; action: number; fold: number }> =>
+      page.evaluate((id) => {
+        const p = document.querySelector(`[data-testid="${id}"]`);
+        if (!p) throw new Error(`panneau absent : ${id}`);
+        const b = (sel: string): number => {
+          const el = p.querySelector(sel);
+          if (!el) throw new Error(`aucun contrôle « ${sel} » dans ${id}`);
+          return Math.round(el.getBoundingClientRect().bottom);
+        };
+        return {
+          first: b('button, a, input, select, [role="button"]'),
+          action: b('button:not(.lore-toggle), a, input, select, [role="button"]'),
+          fold: window.innerHeight,
+        };
+      }, panel);
+    const build = await foldOk('town-panel-build');
+    expect(build.first).toBeLessThanOrEqual(build.fold);
+    expect(build.action).toBeLessThanOrEqual(build.fold);
+    // (d) Constat U8 : le créneau de chantier ne s'affiche QUE dans Construire —
+    //     il polluait les 6 onglets (Marché/Garnison/Guilde/Taverne inclus).
+    await expect(page.getByTestId('town-build-queue-state')).toHaveCount(1);
+    await page.getByTestId('town-tab-recruit').click();
+    await expect(page.getByTestId('town-panel-recruit')).toBeVisible();
+    await expect(page.getByTestId('town-build-queue-state')).toHaveCount(0);
+    const recruit = await foldOk('town-panel-recruit');
+    expect(recruit.first).toBeLessThanOrEqual(recruit.fold);
+    expect(recruit.action).toBeLessThanOrEqual(recruit.fold);
+    await page.getByTestId('town-tab-garrison').click();
+    await expect(page.getByTestId('town-panel-garrison')).toBeVisible();
+    await expect(page.getByTestId('town-build-queue-state')).toHaveCount(0);
+    await page.getByTestId('town-tab-build').click();
+    await expect(page.getByTestId('town-panel-build')).toBeVisible();
+  });
+
   // Vue de ville peinte (doc 08 §2.2/§5, lot U5) : les bâtiments construits
   // apparaissent en vignettes (la ville de départ a townHall + habitation T1).
+  // Lot R2 : la déplier si elle est repliée (défaut portrait), et vérifier que la
+  // préférence est bien persistée (patron ARMY_BAND_KEY, hors GameState).
   await expect(page.getByTestId('town-view')).toBeVisible();
+  if ((await page.getByTestId('town-view-scene').count()) === 0) {
+    await page.getByTestId('town-view-toggle').click();
+    await expect(page.getByTestId('town-view-scene')).toBeVisible();
+    expect(await page.evaluate(() => localStorage.getItem('heroes.townViewCollapsed'))).toBe('0');
+  }
   expect(await page.getByTestId('town-view-building').count()).toBeGreaterThanOrEqual(2);
+  // Lot R2 (constat H2) : plus AUCUN marqueur anonyme — chacun expose son nom
+  // localisé (data-name non vide, repris en aria-label) et son statut.
+  const markerNames = await page
+    .getByTestId('town-view-building')
+    .evaluateAll((els) => els.map((el) => el.getAttribute('data-name') ?? ''));
+  expect(markerNames.length).toBeGreaterThanOrEqual(2);
+  expect(markerNames.filter((n) => n.trim() === '')).toEqual([]);
   // UX-TOWNVIEW : scène COMPOSÉE (plus une bande) — chaque emplacement est posé
   // en absolu à SA place (left/top en %), distincts entre bâtiments. On lit les
   // styles inline (le rendu peint n'est pas assertable au pixel).
@@ -2396,15 +2464,27 @@ test('ville : construire + croissance + recruter + transférer → armée du hé
   await expect(page.getByTestId('town-view-upgrade').first()).toBeVisible();
   // UX-TOWNVIEW 3 : infobulle bâtiment (parité tactile §1.1) — focus clavier d'un
   // emplacement ⇒ la ligne d'inspection montre son niveau (X/Y). Purement client.
-  await page.getByTestId('town-view-building').first().focus();
+  // Lot R2 (constat H2, test A5) : le focus fait aussi apparaître l'ÉTIQUETTE
+  // ancrée au marqueur, qui NOMME le bâtiment ET son statut (2ᵉ canal, jamais la
+  // seule couleur) — même chemin que le survol souris et l'appui long tactile.
+  const firstMarker = page.getByTestId('town-view-building').first();
+  const firstName = (await firstMarker.getAttribute('data-name')) ?? '';
+  const firstStatus = await firstMarker.getAttribute('data-status');
+  await firstMarker.focus();
   await expect(page.getByTestId('town-view-inspect')).toBeVisible();
   await expect(page.getByTestId('town-view-inspect-level')).toHaveText(/\d+\/\d+/);
+  await expect(page.getByTestId('town-view-label')).toBeVisible();
+  await expect(page.getByTestId('town-view-label')).toContainText(firstName);
+  expect(['constructed', 'available', 'locked']).toContain(firstStatus);
   // Texte d'ambiance (doc 13 §3.5, lot N1) : les bâtiments communs (townHall/fort)
   // portent un lore affiché sous leur en-tête dans l'onglet Construire.
   await expect(page.locator('.town-building-lore').first()).toBeVisible();
   // Chantier du jour (doc 02 §4.2) : au 1er jour rien n'est bâti, le créneau du
-  // jour est LIBRE — badge compact dans l'en-tête (refonte UX lot D).
-  await expect(page.getByTestId('town-build-queue-state')).toHaveText(/Libre/);
+  // jour est LIBRE — badge compact en tête de l'onglet Construire (lot R2 ; il
+  // était auparavant dans l'en-tête de ville, donc visible dans les 6 onglets).
+  await expect(page.getByTestId('town-panel-build').getByTestId('town-build-queue-state')).toHaveText(
+    /Libre/,
+  );
   // Cohérence des onglets (refonte UX lot A) : la ville de départ n'a ni marché
   // ni guilde ⇒ ces onglets sont MASQUÉS (le moteur refuserait l'action sinon).
   await expect(page.getByTestId('town-tab-market')).toHaveCount(0);

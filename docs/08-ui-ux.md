@@ -148,7 +148,7 @@
 ### 2.2 Écran de ville
 
 - Vue peinte interactive (les bâtiments construits apparaissent) + **onglet liste** : `Construire · Recruter · Garnison · Marché · Guilde · Taverne` (les trois derniers seulement si le bâtiment est construit). Sur mobile, la liste est l'entrée principale (la vue peinte reste, en scroll horizontal).
-- Panneau construction : arbre visuel avec états (construit / disponible / verrouillé + prérequis manquants en rouge / plus tard : file du jour suivant). 1 bâtiment/jour → le bouton global affiche « Construction du jour utilisée ».
+- Panneau construction : arbre visuel avec états (construit / disponible / verrouillé + prérequis manquants en rouge / plus tard : file du jour suivant). 1 bâtiment/jour → **l'onglet Construire, et lui seul,** affiche l'état du créneau du jour (libre / occupé, ton neutre — voir État R2).
 - Recrutement : slider quantité + boutons min/max, coût total live, « tout recruter » (achat max multi-tiers).
 
 > 🚧 **État M7 (plan `ux-revue-mmho.md` C19/C20/C21)** : décision au premier
@@ -270,6 +270,48 @@
 > (`town.upgradeAvailable`). **Zéro diff moteur, pas de bump de sauvegarde.**
 > (Lot 2 — layouts data-driven par faction + décors composables AS-TOWNBG —
 > reste subordonné à la production d'art, jalon Beta.)
+>
+> ✅ **État R2 — « l'écran de ville redevient un outil »** (plan
+> `.claude/plans/r2-ecran-ville-outil.md`, constats **H1/H2/U8** de
+> `.claude/plans/game-review-remediation-plan.md`). **Client + locales
+> uniquement** — zéro diff moteur, pas de bump de sauvegarde. Trois décisions
+> d'interaction :
+>
+> 1. **Bascule « Voir / Masquer la ville »** — le panorama est **repliable**, son
+>    état persiste en `localStorage` (`heroes.townViewCollapsed`, même patron que
+>    le bandeau d'armée §2.1 : préférence de présentation, hors `GameState`) et il
+>    est **replié par défaut en portrait**, **déplié par défaut en paysage /
+>    desktop** (là où la hauteur existe). Le panorama **n'est pas supprimé** (rejet
+>    acté §5 du plan de revue) : il cesse d'imposer sa hauteur avant la moindre
+>    action. Mesure du défaut corrigé (360×640) : le panneau de l'onglet actif
+>    commençait à **y = 547 px** pour un pli à 640 px — 1ᵉʳ contrôle à **644 px**,
+>    1ʳᵉ action (« Construire ») à **696 px**, donc **hors écran** ; replié, la
+>    ville ne paie plus que la rangée de bascule (44 px).
+> 2. **Marqueurs identifiables** (fin des « pastilles anonymes ») — chaque
+>    emplacement pose l'**icône du bâtiment** sur une **plaque opaque** (sans elle,
+>    des vignettes de 56 px à un pas d'ancre de ~27 px, translucides à 0,4 sur un
+>    décor peint chargé, se lisaient comme de vagues rondelles) ; la vignette
+>    rétrécit à 40 px (34 px sous 480 px) et le verrouillé remonte à 0,65
+>    d'opacité — **identifiable** tout en restant en retrait. La pastille de statut
+>    porte désormais un **glyphe** (`✓` construit / `+` disponible / `×`
+>    verrouillé) **en plus** de sa forme (disque / anneau / carré) : 3ᵉ canal non
+>    chromatique (§4). Une **étiquette ancrée au marqueur** affiche
+>    « **nom · statut nommé** » au **survol**, au **focus clavier** ET à l'**appui
+>    long** (parité tactile §1.1) — l'information ne vit plus dans un `title`
+>    inatteignable au doigt ; la ligne d'inspection sous la scène garde niveau et
+>    coût. Repli d'asset manquant : **initiales du nom localisé** au lieu d'un
+>    carré muet. Le nom reste **hors du décor à l'état de repos** — décision du
+>    lot 2 ci-dessus (les libellés permanents encombraient la scène à 13-20
+>    bâtiments) **confirmée** : à un pas d'ancre de ~27 px en portrait, 18 libellés
+>    permanents se chevauchent et deviennent illisibles.
+> 3. **En-tête condensé** — le bandeau de ville se réduit à **revenu · croissance**
+>    sur **une seule ligne** en portrait (l'empilement en 3 lignes coûtait 59 px au
+>    cran 1 et **99 px au cran 3**). Le **créneau de chantier du jour** descend
+>    dans l'onglet **Construire** — le seul où il a une incidence ; il s'affichait
+>    dans les 6 onglets, Marché / Garnison / Guilde / Taverne compris. Son état
+>    « Occupé — prochain chantier demain » **perd le rouge d'erreur** (constat U8 :
+>    il se lisait comme une panne) au profit d'un **ton neutre + glyphe** (`⏳`
+>    occupé / `✓` libre) : c'est l'état normal d'une journée où l'on a déjà bâti.
 
 ### 2.3 Écran héros
 

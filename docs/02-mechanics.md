@@ -677,6 +677,17 @@ Vue peinte de la ville où les bâtiments construits apparaissent (grande satisf
 > en jours (= tours), **jamais** en secondes (interdit anti-timers, doc 01 §4) ;
 > aucun changement moteur ni de forme de sauvegarde (le déterministe reste intact).
 
+> **Où s'affiche l'état du créneau (arbitrage lot R2, constats H1/U8)** : le
+> bandeau « Chantier du jour » n'a d'incidence que là où l'on **construit**. Il
+> vit donc **dans l'onglet Construire, et nulle part ailleurs** — il occupait
+> auparavant l'en-tête de ville, donc les 6 onglets (Marché / Garnison / Guilde /
+> Taverne compris, où il n'informe sur rien). Son état **« occupé »** est l'état
+> **normal** d'une journée où le joueur a déjà bâti : il s'affiche en **ton neutre
+> + glyphe** (`⏳`), **pas** en rouge d'erreur. La **croissance hebdomadaire**
+> (§4.1) reste, elle, une information de ville permanente : elle demeure dans
+> l'en-tête, aux côtés du revenu, sur une seule ligne. Arbitrage de présentation
+> pur — règle moteur « 1 construction/ville/jour » inchangée.
+
 ---
 
 ## 5. Système de combat

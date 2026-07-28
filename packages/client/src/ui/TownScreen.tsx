@@ -41,6 +41,7 @@ import {
 } from '../app/i18n';
 import { buildingUrl, heroAvatarUrl, townBackgroundUrl, townLayoutAnchors } from '../render/assets';
 import { townLayout, type TownSlot } from '../render/townLayout';
+import { buildingInitials, readTownViewCollapsed, writeTownViewCollapsed } from './townView';
 import { AssetImg } from './AssetImg';
 import { FactionBadge } from './FactionBadge';
 import { UiIcon } from './UiIcon';
@@ -219,9 +220,11 @@ export function TownScreen({ townId, onClose }: { townId: string; onClose: () =>
           </button>
         </header>
 
-        {/* En-tête de décision (lot M7 C21) : revenu or/jour + prochaine croissance
-            + créneau de chantier du jour (lot D refonte UX : le grand ruban est
-            condensé ici en badge compact — testid conservé). */}
+        {/* En-tête de décision (lot M7 C21) : revenu or/jour + prochaine croissance.
+            Lot R2 (constat H1) : le créneau de chantier a QUITTÉ cet en-tête pour
+            l'onglet Construire — le seul endroit où il a une incidence (il
+            s'affichait dans les 6 onglets, dont Marché/Garnison/Guilde/Taverne).
+            Il ne reste que deux mentions, qui tiennent sur UNE ligne en portrait. */}
         {town && town.ownerPlayerId && (
           <p class="town-subheader" data-testid="town-subheader">
             <span data-testid="town-income">
@@ -230,14 +233,6 @@ export function TownScreen({ townId, onClose }: { townId: string; onClose: () =>
             <span class="town-subheader-sep" aria-hidden="true">·</span>
             <span data-testid="town-growth">
               {t('town.growthIn', { days: weekOf(game.calendar.day) * 7 + 1 - game.calendar.day })}
-            </span>
-            <span class="town-subheader-sep" aria-hidden="true">·</span>
-            <span
-              class={`town-build-queue-state ${town.builtToday ? 'is-used' : 'is-free'}`}
-              data-testid="town-build-queue-state"
-              title={t('town.buildQueueTitle')}
-            >
-              {t(town.builtToday ? 'town.buildQueueUsed' : 'town.buildQueueFree')}
             </span>
           </p>
         )}
@@ -372,6 +367,18 @@ const VIEW_STATUS_LABEL: Record<TownViewStatus, string> = {
 };
 
 /**
+ * Glyphe de statut porté par la pastille (lot R2, constat H2 / a11y doc 08 §4) :
+ * 3ᵉ canal non chromatique **en plus** de la forme (disque / anneau / carré) et
+ * du libellé nommé de l'étiquette. Décoratif (`aria-hidden`) : l'information
+ * textuelle passe par `aria-label` et par l'étiquette d'inspection.
+ */
+const VIEW_STATUS_GLYPH: Record<TownViewStatus, string> = {
+  constructed: '✓',
+  available: '+',
+  locked: '×',
+};
+
+/**
  * Bâtiments constructibles dans cette ville : les communs (core, sans
  * `factionId`) + ceux de la faction de la ville. Miroir de la règle moteur
  * (`validateBuildStructure`) : on n'affiche jamais les habitations d'autres
@@ -415,12 +422,18 @@ function isUpgradeable(town: TownState, catalog: Record<string, BuildingDef>, id
 
 
 /**
- * Emplacement d'un bâtiment sur la scène composée (lot UX-TOWNVIEW 3). Composant
- * dédié pour porter le hook d'appui long (règle des hooks : pas d'appel dans une
- * boucle `.map`). Rend la vignette + pastille de statut + **badge d'upgrade** non
- * chromatique (chevron ▲) si le bâtiment construit est encore améliorable. Le
- * survol (souris), le focus (clavier) et l'appui long (tactile) déclenchent
- * l'inspection (`onInspect`) — parité tactile doc 08 §1.1 ; le tap navigue
+ * Emplacement d'un bâtiment sur la scène composée (lot UX-TOWNVIEW 3, durci par
+ * le lot R2 / constat H2). Composant dédié pour porter le hook d'appui long
+ * (règle des hooks : pas d'appel dans une boucle `.map`).
+ *
+ * Rend, sur une **plaque opaque** (sans elle les vignettes se noyaient dans le
+ * décor peint et se lisaient comme de vagues pastilles) : l'**icône du bâtiment**
+ * — repli **nommé** (initiales du nom localisé) si l'asset manque, plus de carré
+ * muet —, la **pastille de statut** (forme + glyphe) et le **badge d'upgrade**
+ * (chevron ▲). Le survol (souris), le focus (clavier) et l'appui long (tactile)
+ * déclenchent l'inspection (`onInspect`) — parité tactile doc 08 §1.1 — qui
+ * affiche l'**étiquette de nom** ancrée au marqueur (nom + statut nommé, l'info
+ * ne vit plus seulement dans un `title` invisible au doigt) ; le tap navigue
  * (`onSelect`).
  */
 function TownSlotButton({
@@ -429,6 +442,7 @@ function TownSlotButton({
   status,
   slot,
   upgradeable,
+  inspected,
   onSelect,
   onInspect,
   onInspectEnd,
@@ -438,19 +452,23 @@ function TownSlotButton({
   status: TownViewStatus;
   slot: TownSlot | undefined;
   upgradeable: boolean;
+  inspected: boolean;
   onSelect: () => void;
   onInspect: () => void;
   onInspectEnd: () => void;
 }) {
   const longPress = useLongPress(onInspect);
+  const name = buildingName(id);
+  const statusLabel = t(VIEW_STATUS_LABEL[status]);
   const label = upgradeable
-    ? `${buildingName(id)} — ${t(VIEW_STATUS_LABEL[status])} — ${t('town.upgradeAvailable')}`
-    : `${buildingName(id)} — ${t(VIEW_STATUS_LABEL[status])}`;
+    ? `${name} — ${statusLabel} — ${t('town.upgradeAvailable')}`
+    : `${name} — ${statusLabel}`;
   return (
     <button
-      class={`town-view-building is-${status}`}
+      class={`town-view-building is-${status}${inspected ? ' is-inspected' : ''}`}
       data-testid="town-view-building"
       data-status={status}
+      data-name={name}
       data-upgradeable={upgradeable ? 'true' : 'false'}
       style={slot ? { left: `${slot.x}%`, top: `${slot.y}%` } : undefined}
       onClick={onSelect}
@@ -463,7 +481,7 @@ function TownSlotButton({
       onPointerUp={longPress.onPointerUp}
       onPointerLeave={longPress.onPointerLeave}
       onClickCapture={longPress.onClickCapture}
-      title={buildingName(id)}
+      title={label}
       aria-label={label}
     >
       <span class="town-view-figure">
@@ -471,13 +489,24 @@ function TownSlotButton({
           src={buildingUrl(id, factionId)}
           alt=""
           class="town-view-vignette"
-          fallback={<i class="town-view-vignette-fallback" aria-hidden="true" />}
+          fallback={
+            <i class="town-view-vignette-fallback" aria-hidden="true">
+              {buildingInitials(name)}
+            </i>
+          }
         />
-        <span class={`town-view-pip town-view-pip-${status}`} aria-hidden="true" />
+        <span class={`town-view-pip town-view-pip-${status}`} aria-hidden="true">
+          {VIEW_STATUS_GLYPH[status]}
+        </span>
         {upgradeable && (
           <span class="town-view-upgrade" data-testid="town-view-upgrade" title={t('town.upgradeAvailable')} aria-hidden="true" />
         )}
       </span>
+      {inspected && (
+        <span class="town-view-label" data-testid="town-view-label" aria-hidden="true">
+          {name} · {statusLabel}
+        </span>
+      )}
     </button>
   );
 }
@@ -496,6 +525,12 @@ function TownSlotButton({
  * si l'asset manque). Positions exposées en `left`/`top` (%) pour la testabilité
  * DOM (le rendu peint n'est pas assertable au pixel). Le tri par statut ne sert
  * plus qu'à la profondeur de rendu (construit au-dessus des verrouillés).
+ *
+ * Lot R2 (constat H1) : la scène est **repliable** via une bascule « Voir / Masquer la ville »
+ * dont l'état persiste (`townView.ts` — `localStorage`, patron `ARMY_BAND_KEY`),
+ * **replié par défaut en portrait**. Le panorama n'est pas supprimé (rejet acté
+ * §5 du plan de revue) : il cesse simplement d'imposer ~220 px avant le premier
+ * contrôle de l'onglet actif sur mobile.
  */
 function TownView({
   town,
@@ -515,6 +550,17 @@ function TownView({
   // Bâtiment inspecté (survol / focus / appui long — lot UX-TOWNVIEW 3) : l'info
   // apparaît sous la scène, pas seulement dans le `title` natif (parité tactile).
   const [inspectId, setInspectId] = useState<string | null>(null);
+  // Lot R2 : panorama replié / déplié, préférence persistée (replié par défaut
+  // en portrait — le premier contrôle de l'onglet actif doit être au-dessus du pli).
+  const [collapsed, setCollapsed] = useState(readTownViewCollapsed);
+  const toggle = (): void => {
+    setInspectId(null);
+    setCollapsed((c) => {
+      const next = !c;
+      writeTownViewCollapsed(next);
+      return next;
+    });
+  };
   const slots = ids
     .map((id) => ({
       id,
@@ -542,32 +588,47 @@ function TownView({
     : null;
 
   return (
-    <div class="town-view" data-testid="town-view">
-      <div class="town-view-scene" style={bg ? { backgroundImage: `url(${bg})` } : undefined}>
-        {slots.length === 0 ? (
-          <p class="town-view-empty" data-testid="town-view-empty">
-            {t('town.viewEmpty')}
-          </p>
-        ) : (
-          slots.map(({ id, status, slot, upgradeable }) => (
-            <TownSlotButton
-              key={id}
-              id={id}
-              factionId={town.factionId}
-              status={status}
-              slot={slot}
-              upgradeable={upgradeable}
-              onSelect={() => {
-                setInspectId(null);
-                onSelect(id);
-              }}
-              onInspect={() => setInspectId(id)}
-              onInspectEnd={() => setInspectId((cur) => (cur === id ? null : cur))}
-            />
-          ))
-        )}
-      </div>
-      {inspected && (
+    <div class={`town-view${collapsed ? ' is-collapsed' : ''}`} data-testid="town-view">
+      <button
+        class="town-view-toggle"
+        data-testid="town-view-toggle"
+        aria-expanded={!collapsed}
+        onClick={toggle}
+      >
+        {t(collapsed ? 'town.viewShow' : 'town.viewHide')}
+      </button>
+      {!collapsed && (
+        <div
+          class="town-view-scene"
+          data-testid="town-view-scene"
+          style={bg ? { backgroundImage: `url(${bg})` } : undefined}
+        >
+          {slots.length === 0 ? (
+            <p class="town-view-empty" data-testid="town-view-empty">
+              {t('town.viewEmpty')}
+            </p>
+          ) : (
+            slots.map(({ id, status, slot, upgradeable }) => (
+              <TownSlotButton
+                key={id}
+                id={id}
+                factionId={town.factionId}
+                status={status}
+                slot={slot}
+                upgradeable={upgradeable}
+                inspected={inspectId === id}
+                onSelect={() => {
+                  setInspectId(null);
+                  onSelect(id);
+                }}
+                onInspect={() => setInspectId(id)}
+                onInspectEnd={() => setInspectId((cur) => (cur === id ? null : cur))}
+              />
+            ))
+          )}
+        </div>
+      )}
+      {!collapsed && inspected && (
         <p class="town-view-inspect" data-testid="town-view-inspect" aria-live="polite">
           <span class="town-view-inspect-name">{buildingName(inspected.id)}</span>
           <span class="town-view-inspect-sep" aria-hidden="true">·</span>
@@ -866,9 +927,22 @@ function BuildTab({
 
   return (
     <div class="town-tab-panel" data-testid="town-panel-build">
-      {/* Lot D (refonte UX) : le créneau « 1 construction/jour » (doc 02 §4.1) est
-          désormais un badge compact dans l'en-tête de ville, plus un grand ruban
-          ornemental qui poussait le contenu hors écran sur mobile. */}
+      {/* Créneau « 1 construction/jour » (doc 02 §4.1). Lot D (refonte UX) l'avait
+          condensé du grand ruban en badge compact ; lot R2 (constats H1/U8) le
+          descend de l'en-tête de ville vers CE panneau — le seul où il a une
+          incidence — et lui retire le rouge d'erreur au profit d'un ton neutre +
+          glyphe (« Occupé » n'est pas une erreur, c'est l'état normal après avoir
+          bâti). */}
+      <p
+        class={`town-build-queue-state ${town.builtToday ? 'is-used' : 'is-free'}`}
+        data-testid="town-build-queue-state"
+        title={t('town.buildQueueTitle')}
+      >
+        <span class="town-build-queue-glyph" aria-hidden="true">
+          {town.builtToday ? '⏳' : '✓'}
+        </span>{' '}
+        {t(town.builtToday ? 'town.buildQueueUsed' : 'town.buildQueueFree')}
+      </p>
       <ul class="town-building-list">
         {buildingIds.map((buildingId) => {
           const def = catalog[buildingId];

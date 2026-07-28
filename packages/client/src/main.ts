@@ -8,6 +8,7 @@ import { isoTileCenter } from './render/projection';
 import { WORLD_OCEAN_CSS } from './render/worldBorder';
 import { loadGameContent, loadDefaultMap, loadScenarioMap, resolveGeneratedMap } from './app/content';
 import {
+  PLAYER_ID,
   buildFactionSetup,
   buildGrowthGroupSetup,
   buildHeroRosterSetup,
@@ -315,7 +316,10 @@ async function bootstrap(): Promise<void> {
     const skirmishMap = config.randomMap ? await resolveGeneratedMap(report, seed) : map;
     // Quêtes journalières (doc 13 §4.2, N4c) : générées déterministiquement depuis
     // le seed, embarquées dans le StartGame ; leur narration alimente le journal.
-    const daily = buildDailyQuests(report, config.humanFactionId, seed);
+    // Le siège humain d'une escarmouche est `PLAYER_ID` (convention matérialisée
+    // par `skirmishStartCommand`) — passé EXPLICITEMENT : `buildDailyQuests` ne
+    // connaît plus aucun id en dur (B7).
+    const daily = buildDailyQuests(report, config.humanFactionId, PLAYER_ID, seed);
     loadFreeModeNarrative(daily.metas);
     await dispatch(skirmishStartCommand(report, config, seed, skirmishMap, daily.questState));
     // Rafraîchissement quotidien (N-DAILYREFRESH) : armé avec le contexte de mode

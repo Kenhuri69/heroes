@@ -29,9 +29,15 @@ export default tseslint.config(
   {
     // Service worker PWA (lot 8.1) : contexte worker (ni DOM, ni Node) — déclare
     // les globals du SW pour `no-undef`.
-    files: ['data/sw.js'],
+    files: ['data/sw.js', 'data/sw-prune.js'],
     languageOptions: {
-      globals: { self: 'readonly', caches: 'readonly', fetch: 'readonly', URL: 'readonly' },
+      globals: {
+        self: 'readonly',
+        caches: 'readonly',
+        fetch: 'readonly',
+        URL: 'readonly',
+        importScripts: 'readonly',
+      },
     },
   },
 );

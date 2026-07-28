@@ -6,6 +6,10 @@
 // périmées ⇒ rejets Zod), cache versionné + élagage borné des assets, repli
 // cache sur réponse réseau non-ok.
 
+// Décision d'élagage extraite (R7/P3) : fonction pure `selectAssetEvictions`,
+// testée en unitaire (`packages/client/src/app/sw-prune.test.ts`).
+importScripts('./sw-prune.js');
+
 const CACHE = 'heroes-cache-v2'; // bump ⇒ purge des versions précédentes à l'activate
 const SHELL = new URL('./', self.location).pathname; // /heroes/
 
@@ -17,6 +21,12 @@ const SHELL = new URL('./', self.location).pathname; // /heroes/
 // après chaque mise en cache d'un asset.
 const ASSETS_MAX = 300;
 
+// R7/P3 : le plafond d'ENTRÉES seul ne borne pas le POIDS — avec des fonds de
+// siège à ~620 Ko et des toiles de combat à ~400 Ko, 300 entrées dépassent
+// largement les quotas d'origine usuels sur mobile (éviction navigateur
+// imprévisible). Second plafond, en octets, cumulé au premier (doc 07 §6).
+const ASSETS_MAX_BYTES = 50 * 1024 * 1024;
+
 async function pruneAssets() {
   // Best-effort : un échec d'élagage ne doit JAMAIS remonter (et surtout pas
   // dans un respondWith). Les deletes concurrents d'un put en cours peuvent
@@ -26,8 +36,18 @@ async function pruneAssets() {
     const assets = (await cache.keys()).filter((req) =>
       new URL(req.url).pathname.includes('/assets/'),
     );
-    const excess = assets.slice(0, Math.max(0, assets.length - ASSETS_MAX));
-    await Promise.all(excess.map((req) => cache.delete(req).catch(() => false)));
+    // Poids par entrée via `content-length` : pas de relecture des corps (300 ×
+    // `blob()` dans le SW coûterait plus que l'élagage lui-même). En-tête absent
+    // ⇒ entrée comptée 0 o : le budget en octets est une borne best-effort, le
+    // plafond d'entrées reste le filet de sécurité.
+    const sizes = await Promise.all(
+      assets.map(async (req) => {
+        const res = await cache.match(req);
+        return Number(res && res.headers.get('content-length')) || 0;
+      }),
+    );
+    const drop = self.selectAssetEvictions(sizes, ASSETS_MAX, ASSETS_MAX_BYTES);
+    await Promise.all(assets.slice(0, drop).map((req) => cache.delete(req).catch(() => false)));
   } catch {
     /* élagage différé au prochain passage */
   }

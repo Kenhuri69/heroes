@@ -146,11 +146,14 @@ UI/IA ──commande──► [validation] ──► engine.apply(state, cmd)
 
 ## 6. Assets & performance
 
-- **Budgets** : bundle JS initial < 800 Ko gzip ; atlas de la faction jouée chargé à la demande (lazy par paquet de faction — la modularité paie aussi ici) ; première partie jouable < 5 s en 4G.
+- **Budgets** (tous **vérifiés en CI**, `ci.yml` job `quality` — lot R7) : bundle JS+CSS initial **< 800 Ko gzip** ; **poids total de `dist/assets` ≤ 96 Mio** ; **plus gros fichier du chemin critique ≤ 300 Ko** (les images du PREMIER écran, chargées avant toute interaction : logo + fond de titre) ; atlas de la faction jouée chargé à la demande (lazy par paquet de faction — la modularité paie aussi ici) ; première partie jouable < 5 s en 4G.
+  - *Justification des bornes* : mesuré 84 Mio de `dist/assets` à 7 maisons. La marge de +12 Mio est calibrée sur l'empreinte art de la plus grosse maison livrée (11 Mio) — une faction de plus atterrit sans toucher la CI, un saut plus gros devient une décision explicite (bump du budget assumé). Le chemin critique est borné séparément parce qu'un total de 84 Mio *lazy* est sain, alors qu'un seul fichier de 821 Ko sur le premier écran ne l'était pas.
+  - Les **répertoires de travail** du staging d'assets (`assets/prompts/`, cf. doc 12 §10) sont exclus du glob `render/assets.ts` et un garde-fou CI vérifie qu'aucun de leurs fichiers n'atterrit dans `dist/assets`.
 - Spritesheets atlassées (TexturePacker ou packer maison dans `tools/`), 2 résolutions (@1x/@2x) servies selon `devicePixelRatio`.
 - Carte d'aventure : rendu par chunks avec culling ; brouillard en texture dédiée mise à jour incrémentalement.
 - Cible : 60 fps en combat sur mobile milieu de gamme (test CI Playwright avec throttling CPU ×4).
 - **PWA** (lot 8.1 livré) : service worker **hand-rolled** `data/sw.js` (offline-first, sans dépendance Workbox — hors budget bundle) + manifeste installable `data/manifest.webmanifest` → jeu solo jouable hors-ligne, icône sur l'écran d'accueil.
+  - **Cache d'assets borné en entrées ET en octets** (lot R7) : au-delà de **300 entrées** `/assets/` **ou** de **50 Mio** cumulés, éviction **par ordre d'insertion** (les plus anciennes d'abord). Le plafond d'entrées seul autorisait plusieurs dizaines de Mo (fonds de siège ~620 Ko, toiles de combat ~400 Ko), au-delà des quotas d'origine usuels sur mobile où l'éviction navigateur devient imprévisible. Le poids d'une entrée est lu dans `content-length` (pas de relecture des corps) : borne **best-effort**, le plafond d'entrées reste le filet de sécurité. La décision d'éviction est une fonction **pure** isolée dans `data/sw-prune.js` (chargée par `importScripts`, le SW reste un script classique) et **testée en unitaire**.
 
 ## 7. Qualité & CI
 

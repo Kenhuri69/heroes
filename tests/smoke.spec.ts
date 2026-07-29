@@ -2714,6 +2714,29 @@ test('ville : construire + croissance + recruter + transférer → armée du hé
   // Scopé à l'écran de ville : depuis U4, la liste de villes du HUD porte aussi
   // un `faction-badge` par bouton (plusieurs villes possibles).
   await expect(page.locator('.town-screen').getByTestId('faction-badge')).toBeVisible();
+  // Lot R2 (H1) : la rangée d'onglets — donc le premier contrôle utile — est
+  // AU-DESSUS DU PLI dès l'ouverture, y compris en portrait (le panorama y est
+  // replié par défaut). C'est le critère du lot : plus de défilement obligatoire
+  // avant d'agir.
+  const tabsBox = await page.getByTestId('town-tab-build').boundingBox();
+  const viewportH = page.viewportSize()?.height ?? 0;
+  expect(tabsBox).not.toBeNull();
+  expect(tabsBox!.y + tabsBox!.height).toBeLessThanOrEqual(viewportH);
+
+  // Lot R2 (U8) : le créneau de chantier n'est plus affiché que dans l'onglet où
+  // il conditionne une action. Au 1er jour rien n'est bâti ⇒ créneau LIBRE.
+  await expect(page.getByTestId('town-build-queue-state')).toHaveText(/Libre/);
+  await page.getByTestId('town-tab-garrison').click();
+  await expect(page.getByTestId('town-panel-garrison')).toBeVisible();
+  await expect(page.getByTestId('town-build-queue-state')).toHaveCount(0);
+  await page.getByTestId('town-tab-build').click();
+  await expect(page.getByTestId('town-build-queue-state')).toHaveText(/Libre/);
+
+  // Panorama repliable et mémorisé (lot R2) : on le déplie pour inspecter la
+  // scène peinte (déplié par défaut sur grand écran, replié en portrait).
+  const viewToggle = page.getByTestId('town-view-toggle');
+  await expect(viewToggle).toBeVisible();
+  if ((await viewToggle.getAttribute('aria-expanded')) !== 'true') await viewToggle.click();
   // Vue de ville peinte (doc 08 §2.2/§5, lot U5) : les bâtiments construits
   // apparaissent en vignettes (la ville de départ a townHall + habitation T1).
   await expect(page.getByTestId('town-view')).toBeVisible();
@@ -2741,13 +2764,24 @@ test('ville : construire + croissance + recruter + transférer → armée du hé
   // Texte d'ambiance (doc 13 §3.5, lot N1) : les bâtiments communs (townHall/fort)
   // portent un lore affiché sous leur en-tête dans l'onglet Construire.
   await expect(page.locator('.town-building-lore').first()).toBeVisible();
-  // Chantier du jour (doc 02 §4.2) : au 1er jour rien n'est bâti, le créneau du
-  // jour est LIBRE — badge compact dans l'en-tête (refonte UX lot D).
-  await expect(page.getByTestId('town-build-queue-state')).toHaveText(/Libre/);
+  // Lot R2 (H2) : aucun emplacement ANONYME — chacun porte le nom localisé de son
+  // bâtiment dans le DOM (masqué en portrait étroit, où il ne tiendrait pas :
+  // le nom y reste accessible au tap/appui long et par la liste Construire).
+  const slotCount = await page.getByTestId('town-view-building').count();
+  expect(await page.getByTestId('town-view-name').count()).toBe(slotCount);
+  expect((await page.getByTestId('town-view-name').first().textContent())?.trim().length).toBeGreaterThan(0);
+
   // Cohérence des onglets (refonte UX lot A) : la ville de départ n'a ni marché
   // ni guilde ⇒ ces onglets sont MASQUÉS (le moteur refuserait l'action sinon).
   await expect(page.getByTestId('town-tab-market')).toHaveCount(0);
   await expect(page.getByTestId('town-tab-guild')).toHaveCount(0);
+  await page.getByTestId('town-close').click();
+
+  // Lot R2 : la préférence « panorama déplié » PERSISTE d'une ouverture à l'autre
+  // (localStorage, présentation pure — hors GameState, pas de bump de save).
+  await page.getByTestId('town-open-start-town').click();
+  await expect(page.getByTestId('town-view-toggle')).toHaveAttribute('aria-expanded', 'true');
+  await expect(page.getByTestId('town-view')).toBeVisible();
   await page.getByTestId('town-close').click();
 
   const armyTotal = (): Promise<number> =>

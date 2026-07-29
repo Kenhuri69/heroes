@@ -268,6 +268,46 @@
 > (hook DOM `useLongPress`, 450 ms) : la parité tactile (§ 1.1) ne dépend plus du
 > seul `title` natif ; le tap conserve la navigation. Une clé locale
 > (`town.upgradeAvailable`). **Zéro diff moteur, pas de bump de sauvegarde.**
+
+> 🧰 **État R2 — « l'écran de ville redevient un outil »** (revue 2026-07,
+> constats **H1**, **H2**, **U8** ; plan `.claude/plans/r2-ecran-ville-outil.md`).
+> **Client + locales + ancres de layout** : zéro diff moteur, pas de bump de
+> sauvegarde. Quatre décisions :
+>
+> 1. **Le panorama est un décor, la liste est l'outil.** Il devient une **section
+>    repliable** (`SectionToggle`, même composant que le tiroir héros et
+>    « Nouvelle partie »), état persisté en `localStorage`
+>    (`heroes.section.town.view`), **replié par défaut en portrait étroit**
+>    (≤ 640 px) et déplié au-dessus. Mesuré avant : sur 360×640 la première fiche
+>    de bâtiment était **coupée par le bas du viewport** ; après : la rangée
+>    d'onglets — donc le premier contrôle utile — est **au-dessus du pli** dès
+>    l'ouverture (assertion smoke `@mobile`).
+> 2. **Aucun emplacement anonyme.** Chaque marqueur porte sa **vignette sur une
+>    plaque d'encre** (lisible sur un décor chargé), un **glyphe de statut**
+>    (`✓` construit / `＋` disponible / `✕` verrouillé) *en plus* de la forme de
+>    pastille, et — **revirement assumé du lot UX-TOWNVIEW 2** — de nouveau son
+>    **nom en libellé permanent**. Ce libellé avait été retiré parce qu'il
+>    « encombrait le décor à 13-20 bâtiments » ; la cause réelle était
+>    l'**espacement des ancres** (3 rangées à ~13 % d'écart, et jusqu'à deux
+>    ancres à 2 % l'une de l'autre — deux bâtiments littéralement superposés).
+>    Les 6 layouts `assets/layouts/town-<faction>.json` sont donc **ré-étalés**
+>    (rangées 30 / 56 / 82 %, pas horizontal constant), la vignette passe de 56 à
+>    **44 px** (la cible tactile reste ≥ 44 px) et le débordement au-delà des
+>    ancres a sa **rangée haute** propre. Mesure après : **0 chevauchement** de
+>    libellé sur les trois catalogues les plus denses (Haven 18, Vox Arcana 22,
+>    Necropolis 16). Le verrouillé est estompé mais reste **identifiable**
+>    (`opacity .72`, `grayscale .8` — il n'était plus qu'une tache sombre).
+>    *Limite assumée* : en **portrait étroit** les libellés sont masqués (≈ 36 px
+>    par emplacement : ils se chevaucheraient au lieu d'informer) — le nom y reste
+>    accessible au tap/appui long (ligne d'inspection, § 1.1) et par la liste de
+>    l'onglet Construire, que le point 1 remonte justement au-dessus du pli.
+> 3. **En-tête condensé** : revenu et croissance passent en **forme courte** en
+>    portrait (`town.incomeGoldShort` / `town.growthInShort`) — trois lignes
+>    ramenées à une.
+> 4. **« Occupé » n'est pas une erreur** (U8) : l'état du chantier du jour quitte
+>    l'en-tête pour le **seul onglet Construire**, où il conditionne l'action, et
+>    perd le rouge d'erreur au profit d'un **ton neutre + glyphe** (`✓` fait /
+>    `✦` libre) — 2ᵉ canal non chromatique (§ 4).
 > (Lot 2 — layouts data-driven par faction + décors composables AS-TOWNBG —
 > reste subordonné à la production d'art, jalon Beta.)
 

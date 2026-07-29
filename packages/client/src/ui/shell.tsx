@@ -22,6 +22,7 @@ import { reportArmyCommandError } from '../app/command-error';
 import { restoreLatestSave } from '../app/save';
 import {
   adjacentFriendlyHeroes,
+  collapseTownButtons,
   heroArchetype,
   humanHeroes,
   humanId,
@@ -44,6 +45,7 @@ import {
 import { AssetImg } from './AssetImg';
 import { UiIcon } from './UiIcon';
 import { useLongPress } from './useLongPress';
+import { useNarrowViewport } from './useNarrowViewport';
 import { MenuScreen } from './MenuScreen';
 import { MapEditor } from './MapEditor';
 import { OptionsPanel } from './OptionsPanel';
@@ -329,6 +331,12 @@ function formatResourceShort(value: number): string {
 /** Bandeau haut compact, tap = détail au lot M6 (doc 08 §2.1 mobile). */
 function ResourceBar() {
   const game = useApp((s) => s.game);
+  // Lot R3 (H6) : en portrait étroit, les 7 ressources ne tiennent pas sur
+  // 360 px (mesuré : 477 px de contenu) — deux d'entre elles étaient coupées au
+  // bord sans affordance. On y masque les ressources À ZÉRO : elles ne portent
+  // aucune décision, et la fiche détaillée (tap sur n'importe quelle ressource)
+  // continue de les lister TOUTES avec leur revenu.
+  const narrow = useNarrowViewport();
   const player = game.players.find((p) => p.id === humanId(game));
   if (!player) return null;
   // Ressources de faction (doc 05 §3.3) : affichées après les 7 communes, seulement
@@ -340,7 +348,7 @@ function ResourceBar() {
   const income = dailyIncome(game, player.id);
   return (
     <header class="resource-bar">
-      {RESOURCE_IDS.map((id) => (
+      {RESOURCE_IDS.filter((id) => !narrow || (player.resources[id] ?? 0) !== 0).map((id) => (
         <button
           type="button"
           class="resource"
@@ -1254,6 +1262,7 @@ function MuteToggle() {
       onClick={() => toggleMute()}
     >
       <span aria-hidden="true">{muted ? '🔇' : '🔊'}</span>
+      <span class="action-label">{label}</span>
     </button>
   );
 }
@@ -1355,26 +1364,34 @@ function TurnBar({ onOpenOptions }: { onOpenOptions: () => void }) {
           </button>
         )}
       </div>
+      {/* Lot R3 (H3) : la barre d'actions est un PANNEAU à trois zones d'ordre
+          stable — statut (ci-dessus), navigation (rangée d'icônes, défilante en
+          portrait) et action principale, ÉPINGLÉE hors du défilement pour qu'elle
+          ne puisse jamais sortir de l'écran. */}
       <div class="actions">
-        <MuteToggle />
-        <button
-          class="options-toggle"
-          data-testid="options-open"
-          aria-label={t('options.title')}
-          onClick={onOpenOptions}
-        >
-          <UiIcon id="act-options" fallback="⚙" />
-        </button>
-        <button
-          class="kingdom-toggle"
-          data-testid="kingdom-open"
-          aria-label={t('kingdom.open')}
-          title={t('kingdom.open')}
-          disabled={aiTurn !== null}
-          onClick={() => openModal({ kind: 'kingdom' })}
-        >
-          <UiIcon id="act-kingdom" fallback="🏰" />
-        </button>
+        <div class="actions-nav" data-testid="actions-nav">
+        {/* Lot R3 (H3) : ordre par FRÉQUENCE d'usage — la rangée défile en
+            portrait, donc ce qu'on ouvre le plus (villes, héros suivant,
+            journal) doit rester visible sans défiler ; réglages et son, les
+            plus rares, ferment la marche. */}
+        {/* Lot R3 (H7) : au-delà de 2 villes, un bouton unique « Villes (N) »
+            ouvrant l'écran Royaume (qui liste et centre chaque ville) — la rangée
+            ne peut plus déborder en milieu/fin de partie. */}
+        {collapseTownButtons(towns.length) ? (
+          <button
+            class="town-open town-open-all"
+            data-testid="towns-open-all"
+            title={t('adventure.townsAll', { count: towns.length })}
+            aria-label={t('adventure.townsAll', { count: towns.length })}
+            disabled={aiTurn !== null}
+            onClick={() => openModal({ kind: 'kingdom' })}
+          >
+            <UiIcon id="act-kingdom" fallback="🏰" />
+            <span class="action-label">{t('adventure.townsAll', { count: towns.length })}</span>
+          </button>
+        ) : (
+          towns.map((town) => <TownButton key={town.id} town={town} />)
+        )}
         {/* E4 : « héros suivant avec PM » au pouce (équivalent de la touche N) —
             cycle + recentrage caméra, badge = héros encore mobiles, grisé si 0. */}
         <button
@@ -1386,6 +1403,7 @@ function TurnBar({ onOpenOptions }: { onOpenOptions: () => void }) {
           onClick={() => selectNextHeroWithMoves(appStore.getState())}
         >
           <UiIcon id="act-hero" fallback="🚩" />
+          <span class="action-label">{t('adventure.nextHero')}</span>
           {heroesWithMoves > 0 && (
             <span class="next-hero-badge" data-testid="next-hero-count">
               {heroesWithMoves}
@@ -1399,18 +1417,35 @@ function TurnBar({ onOpenOptions }: { onOpenOptions: () => void }) {
           onClick={() => openModal({ kind: 'journal' })}
         >
           <UiIcon id="act-journal" fallback="🔔" />
+          <span class="action-label">{t('journal.open')}</span>
           {unread > 0 && (
             <span class="journal-badge" data-testid="journal-unread">
               {unread}
             </span>
           )}
         </button>
-        {/* Sauvegarder/Charger déplacés vers Options (lot M5, C11) : l'autosave
-            de fin de tour couvre le cas courant ; la barre de tour ne garde que
-            le geste le plus fréquent (Fin de tour) et les entrées de contexte. */}
-        {towns.map((town) => (
-          <TownButton key={town.id} town={town} />
-        ))}
+        <button
+          class="kingdom-toggle"
+          data-testid="kingdom-open"
+          aria-label={t('kingdom.open')}
+          title={t('kingdom.open')}
+          disabled={aiTurn !== null}
+          onClick={() => openModal({ kind: 'kingdom' })}
+        >
+          <UiIcon id="act-kingdom" fallback="🏰" />
+          <span class="action-label">{t('kingdom.open')}</span>
+        </button>
+        <button
+          class="options-toggle"
+          data-testid="options-open"
+          aria-label={t('options.title')}
+          onClick={onOpenOptions}
+        >
+          <UiIcon id="act-options" fallback="⚙" />
+          <span class="action-label">{t('options.title')}</span>
+        </button>
+        <MuteToggle />
+        </div>
         {canDig && hero && (
           <button
             class="dig-grail"

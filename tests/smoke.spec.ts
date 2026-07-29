@@ -1377,6 +1377,92 @@ test('E1 : sur mobile, la barre de combat est compacte (secondaires derrière «
 });
 
 /**
+ * Lot R3 (H3/H6/U7) : le HUD d'aventure est un PANNEAU rangé, pas des boutons
+ * flottants. Encode en assertions les mesures du plan de remédiation (aventure
+ * mobile 360×640) :
+ *
+ * - avant le lot, `.actions` avait un fond TRANSPARENT et débordait sur 4 rangées
+ *   au cran 1 (33 % du viewport), 5 au cran 3 (45 %) — des boutons posés sur du
+ *   terrain nu ;
+ * - la barre de ressources mesurait 477 px de contenu pour 360 px de large ⇒
+ *   2 ressources sur 7 tranchées par le bord, sans affordance ;
+ * - les 5 boutons icône-seule n'avaient aucun libellé, y compris en desktop.
+ */
+for (const scale of [1, 3] as const) {
+  test(
+    `R3 : le HUD d'aventure tient dans un panneau rangé (mobile 360×640, cran ${scale})`,
+    { tag: scale === 1 ? ['@core', '@mobile'] : '@mobile' },
+    async ({ page }) => {
+      const errors = collectErrors(page);
+      await page.setViewportSize({ width: 360, height: 640 });
+      await page.addInitScript((s) => localStorage.setItem('heroes.fontScale', String(s)), scale);
+      await page.goto('./?seed=42');
+      await page.waitForFunction(() => window.__HEROES_READY__ === true);
+      await expect(page.getByTestId('end-turn')).toBeVisible();
+
+      const m = await page.evaluate(() => {
+        const opaque = (el: Element): boolean => {
+          const bg = getComputedStyle(el).backgroundColor;
+          const a = /rgba?\(([^)]+)\)/.exec(bg)?.[1]?.split(',')[3];
+          return a === undefined ? bg !== 'transparent' : Number(a) >= 0.99;
+        };
+        const barEl = document.querySelector('.resource-bar')!;
+        const bar = barEl.getBoundingClientRect();
+        const nav = document.querySelector('.actions-nav')!;
+        const btns = [...nav.querySelectorAll('button')];
+        const row = document.querySelector('.turn-row')!;
+        const endTurn = document.querySelector('[data-testid="end-turn"]')!.getBoundingClientRect();
+        return {
+          viewportH: window.innerHeight,
+          viewportW: window.innerWidth,
+          turnRowOpaque: opaque(row),
+          turnRowH: row.getBoundingClientRect().height,
+          navButtons: btns.length,
+          // Rangée UNIQUE : la hauteur de défilement ne dépasse pas un bouton.
+          navScrollH: nav.scrollHeight,
+          navMaxButtonH: Math.max(...btns.map((b) => b.getBoundingClientRect().height)),
+          // Une ressource « coupée » franchit un bord de la barre visible.
+          cutResources: [...document.querySelectorAll('.resource')].filter((e) => {
+            const r = e.getBoundingClientRect();
+            return (
+              (r.left < bar.left - 0.5 && r.right > bar.left + 0.5) ||
+              (r.left < bar.right - 0.5 && r.right > bar.right + 0.5)
+            );
+          }).length,
+          resourcesShown: document.querySelectorAll('.resource').length,
+          endTurnRight: endTurn.right,
+          endTurnLeft: endTurn.left,
+          // U7 : pas de libellé en portrait (place) — le desktop a son seuil 900 px.
+          visibleLabels: [...document.querySelectorAll('.action-label')].filter(
+            (e) => e.getBoundingClientRect().width > 0,
+          ).length,
+        };
+      });
+
+      // Garde anti-test vide : le HUD est bien rendu.
+      expect(m.navButtons).toBeGreaterThan(0);
+      expect(m.resourcesShown).toBeGreaterThan(0);
+
+      // H3 — panneau opaque : plus aucun contrôle posé sur du terrain nu.
+      expect(m.turnRowOpaque).toBe(true);
+      // H3 — rangée de navigation UNIQUE (avant : 4 rangées au cran 1, 5 au cran 3).
+      expect(m.navScrollH).toBeLessThanOrEqual(Math.ceil(m.navMaxButtonH) + 2);
+      // H3 — le bloc de barre d'actions repasse sous 25 % du viewport (33 % / 45 %).
+      expect(m.turnRowH / m.viewportH).toBeLessThan(0.25);
+      // H3 — l'action principale est ÉPINGLÉE hors du défilement : jamais hors champ.
+      expect(m.endTurnRight).toBeLessThanOrEqual(m.viewportW + 0.5);
+      expect(m.endTurnLeft).toBeGreaterThanOrEqual(-0.5);
+      // H6 — aucune ressource tranchée par le bord (avant : 2 sur 7).
+      expect(m.cutResources).toBe(0);
+      // U7 — en portrait, l'icône seule reste la règle.
+      expect(m.visibleLabels).toBe(0);
+
+      expect(errors).toEqual([]);
+    },
+  );
+}
+
+/**
  * Lot R1 (B2/H5/U5) : le plateau de combat n'est JAMAIS caché par les surcouches
  * DOM. Encode en assertions les mesures du plan de remédiation (arène mobile
  * 360×640, `getBoundingClientRect()` de `.combat-armies` et `.combat-bottom`) :

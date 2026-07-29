@@ -583,7 +583,7 @@ glisser à tout moment (aucune dépendance).
   - [ ] R0 — ne plus échouer en silence
   - [x] R1 — plateau de combat visible (`.claude/plans/r1-plateau-combat-visible.md`)
   - [x] R2 — écran de ville (`.claude/plans/r2-ecran-ville-outil.md`)
-  - [ ] R3 — HUD d'aventure
+  - [x] R3 — HUD d'aventure (`.claude/plans/r3-hud-aventure-se-range.md`)
   - [x] R4 — nouvelle partie (`.claude/plans/r4-nouvelle-partie-trois-taps.md`)
   - [ ] R5 — lisibilité de la carte
   - [ ] R6 — incarnation & finition

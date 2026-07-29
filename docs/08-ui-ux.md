@@ -96,6 +96,42 @@
 > chacun sur **une** ligne insécable (fini l'étalement sur 3-4 lignes), valeurs
 > inchangées.
 
+> 🧰 **État R3 — « le HUD d'aventure se range »** (revue 2026-07, constats **H3**,
+> **H6**, **H7**, **U7** ; plan `.claude/plans/r3-hud-aventure-se-range.md`).
+> **Client + locales** : zéro diff moteur, pas de bump de sauvegarde. Quatre
+> décisions :
+>
+> 1. **Le HUD bas est un panneau, pas des boutons flottants** (H3). `.turn-row`
+>    (et le bandeau d'armée qui le coiffe) porte l'**encre opaque** du design
+>    system et un liseré haut : plus aucun contrôle posé sur du terrain nu. Trois
+>    zones d'ordre stable — **statut** (calendrier, PM, indices) → **navigation**
+>    (icônes) → **action principale** (« Fin de tour », « Fouiller »), séparées
+>    visuellement. Mesuré avant : le bloc débordait sur **4 rangées au cran 1**
+>    (33 % du viewport) et **5 au cran 3** (45 %) ; après : **1 rangée**, 20 % et
+>    23 %.
+> 2. **Une seule rangée d'icônes en portrait.** La navigation défile
+>    horizontalement avec **fondu de bord** (patron de la file d'initiative de
+>    combat) et **accrochage**, pendant que l'action principale reste **épinglée
+>    hors du défilement** — « Fin de tour » ne peut jamais sortir de l'écran. Les
+>    icônes sont rangées par **fréquence d'usage** (villes → héros suivant →
+>    journal → royaume → options → son) : ce qu'on ouvre le plus reste visible
+>    sans défiler. En desktop, où la hauteur ne manque pas, la rangée **revient à
+>    la ligne** plutôt que de défiler.
+> 3. **Barre de ressources : rien de tranché** (H6). Les 7 ressources demandaient
+>    477 px sur 360 ⇒ deux d'entre elles étaient coupées par le bord sans
+>    affordance. En portrait, les ressources **à zéro** sont masquées (elles ne
+>    portent aucune décision) et la barre garde fondu + accrochage : **0 ressource
+>    coupée** aux 3 crans. La **fiche détaillée** (tap sur n'importe quelle
+>    ressource) continue de lister **toutes** les ressources avec leur revenu — rien
+>    n'est devenu inaccessible.
+> 4. **Plafond de villes et libellés desktop** (H7, U7). Au-delà de **2** villes
+>    possédées, la rangée n'affiche plus qu'un bouton **« Villes (N) »** ouvrant
+>    l'écran Royaume (qui liste et centre chaque ville) : la navigation est bornée
+>    à 6 boutons quelle que soit la partie — c'est ce qui garantit la rangée
+>    unique. À partir de **900 px** (seuil où la colonne héros est déjà
+>    permanente), les 5 boutons icône-seule affichent leur **libellé** ; l'icône
+>    nue n'était une nécessité que faute de place en portrait.
+
 > 🚧 **État X6 (tiroir héros mobile, plan `ux-enrichissement-2026-07`)** : le
 > tiroir défile (attributs → armée → compétences → équipement → sorts d'aventure
 > → mini-carte) ; sous 900 px un **fondu bas** (masque alpha CSS) signale qu'il

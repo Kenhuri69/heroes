@@ -213,6 +213,20 @@ export function humanTowns(game: GameState): TownState[] {
   return game.towns.filter((t) => t.ownerPlayerId === id);
 }
 
+/**
+ * Plafond de boutons de ville dans la barre d'actions (lot R3, constat H7).
+ * Au-delà, la rangée affiche un bouton unique « Villes (N) » ouvrant l'écran
+ * Royaume : sans ce plafond, une partie à 5-10 villes faisait déborder la rangée
+ * ou écrasait « Fin de tour ». Borne le nombre de boutons de navigation à 6,
+ * quelle que soit la partie — c'est ce qui garantit la rangée unique.
+ */
+export const MAX_TOWN_BUTTONS = 2;
+
+/** La rangée doit-elle replier ses villes derrière « Villes (N) » ? */
+export function collapseTownButtons(townCount: number): boolean {
+  return townCount > MAX_TOWN_BUTTONS;
+}
+
 /** Ligne du comparatif de la guilde des voleurs (doc 18 E3, lot 3.3). */
 export interface ThievesGuildRow {
   playerId: string;

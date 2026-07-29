@@ -145,18 +145,28 @@
   pointer-events: none; /* chaque bloc interactif ré-active les siens */
 }
 
+/* Lot R3 (H3) : le HUD bas est un PANNEAU, plus des boutons flottants posés sur
+   du terrain nu. Fond opaque (encre du design system) + liseré haut ; trois zones
+   d'ordre stable — statut, navigation, action principale. */
 .turn-row {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
   gap: 8px;
   padding: 8px 12px 12px;
+  background: var(--ink-800);
+  border-top: 1px solid var(--ink-600);
+  pointer-events: auto;
 }
 
 .status-bar {
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
+  /* Lot R3 : le statut ne se comprime pas au profit de la navigation — sinon
+     « Mois 1 · Semaine 1 · Jour 1 » se coupait en plein milieu. */
+  flex: none;
+  white-space: nowrap;
   gap: 2px;
   color: var(--parchment);
   font: 0.875rem/1.5 var(--font-ui);
@@ -168,10 +178,42 @@
   display: flex;
   align-items: flex-end;
   justify-content: flex-end;
-  flex-wrap: wrap; /* mobile étroit : la barre passe à la ligne au lieu de déborder */
   gap: 8px;
   min-width: 0;
   pointer-events: auto;
+}
+
+/* Zone NAVIGATION : la rangée d'icônes. Elle seule défile quand la place manque
+   — l'action principale (« Fin de tour », « Fouiller ») reste épinglée à sa
+   droite et ne peut jamais sortir de l'écran (lot R3, H3). */
+.actions-nav {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: nowrap;
+  gap: 8px;
+  min-width: 0;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  /* Fondu de bord = affordance « ça défile » (même patron que la file
+     d'initiative de combat). Nécessaire à toutes les largeurs : au cran de
+     police 3, la rangée déborde aussi en desktop. */
+  -webkit-mask-image: linear-gradient(to right, black calc(100% - 22px), transparent);
+  mask-image: linear-gradient(to right, black calc(100% - 22px), transparent);
+  /* Séparateur visuel navigation | action principale (2ᵉ canal du regroupement,
+     en plus de l'espacement) — porté par le CONTENEUR, donc il ne défile pas. */
+  border-right: 1px solid var(--ink-600);
+  padding-right: 8px;
+}
+
+.actions-nav button {
+  flex: none;
+  scroll-snap-align: end;
+}
+
+/* Libellé des boutons icône-seule (lot R3, U7) — masqué par défaut, révélé en
+   desktop où la place existe (media query ≥ 900 px plus bas). */
+.action-label {
+  display: none;
 }
 
 .actions button {
@@ -665,13 +707,23 @@
 
 /* Bandeau d'armée bas, repliable en portrait (doc 08 §2.1) — posé dans le
    flux de `.bottom-hud` (UXD-0 R3), plus jamais sous la barre d'actions. */
+/* Lot R3 (H3) : le bandeau d'armée partage l'encre du panneau de barre d'actions
+   — replié, il formait une seconde « bande noire pleine largeur » posée sur la
+   carte, au lieu de se lire comme le haut d'un même panneau. */
 .army-band {
   display: flex;
   flex-direction: column;
   gap: 6px;
   padding: 6px 12px;
-  background: var(--veil-85);
+  background: var(--ink-800);
+  border-top: 1px solid var(--ink-600);
   pointer-events: auto;
+}
+
+/* Le liseré du panneau n'apparaît qu'UNE fois : si le bandeau d'armée est là,
+   c'est lui qui le porte. */
+.army-band + .turn-row {
+  border-top: none;
 }
 
 .army-band-toggle {
@@ -962,6 +1014,35 @@
     display: none; /* colonne toujours ouverte : pas de bascule */
   }
 
+  /* Lot R3 (U7) : à partir du seuil où la colonne héros est permanente, les
+     boutons icône-seule affichent leur libellé — l'icône seule n'était une
+     nécessité que faute de place en portrait. */
+  .action-label {
+    display: inline;
+  }
+
+  /* Desktop : la hauteur ne manque pas, la largeur si (6 boutons LIBELLÉS à
+     droite de la colonne héros). On y préfère le retour à la ligne au défilement
+     — cacher la moitié des entrées derrière un fondu n'a de sens qu'en portrait,
+     où la hauteur est la ressource rare. */
+  .actions-nav {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    overflow-x: visible;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
+  .actions button {
+    gap: 6px;
+  }
+
+  .actions-nav button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
   .hero-drawer {
     left: auto;
     right: 0;
@@ -989,10 +1070,29 @@
     gap: 4px 8px;
     padding: 4px 52px;
     font-size: 0.8rem;
+    /* Lot R3 (H6) : fondu de bord = affordance « ça défile » (même patron que la
+       file d'initiative de combat), et ACCROCHAGE — à toute position de
+       défilement on ne voit que des ressources entières, jamais une valeur
+       tranchée par le bord. */
+    -webkit-mask-image: linear-gradient(to right, black calc(100% - 22px), transparent);
+    mask-image: linear-gradient(to right, black calc(100% - 22px), transparent);
+    scroll-snap-type: x mandatory;
   }
 
   .resource {
     flex: none;
+    scroll-snap-align: end;
+  }
+
+  .turn-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    padding: 6px 8px 8px;
+  }
+
+  .actions {
+    justify-content: space-between;
   }
 
   /* Portrait compact : le revenu inline masqué (la barre tient sur une rangée ;

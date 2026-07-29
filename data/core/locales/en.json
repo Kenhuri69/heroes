@@ -499,6 +499,7 @@
   "adventure.cancelPath": "Cancel move",
   "adventure.centerTownHint": "long-press: center the map",
   "adventure.nextHero": "Next hero (with moves)",
+  "adventure.townsAll": "Towns ({count})",
   "adventure.dig": "Dig",
   "adventure.digTitle": "Dig the Grail tile",
   "adventure.pathDay": "D{day}",

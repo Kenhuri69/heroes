@@ -499,6 +499,7 @@
   "adventure.cancelPath": "Annuler le déplacement",
   "adventure.centerTownHint": "appui long : centrer la carte",
   "adventure.nextHero": "Héros suivant (mobile)",
+  "adventure.townsAll": "Villes ({count})",
   "adventure.dig": "Fouiller",
   "adventure.digTitle": "Fouiller la tuile du Graal",
   "adventure.pathDay": "J{day}",

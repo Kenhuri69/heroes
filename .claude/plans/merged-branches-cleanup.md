@@ -1,93 +1,92 @@
 # Nettoyage des branches fusionnées sur `main`
 
-**Demande** : fermer toutes les branches fusionnées sur `main`, et lister celles
-qui ont encore des commits à remonter.
+**Demande** : fermer toutes les branches fusionnées sur `main`, lister celles qui
+ont encore des commits à remonter, puis **récupérer le code** qui risquait d'être
+perdu.
 
-**État** : analyse terminée et vérifiée. **La suppression n'a pas pu être exécutée
-depuis cette session** (politique du proxy, voir §4) — la commande prête à jouer
-est fournie. Ce lot est **purement documentaire** : zéro diff code/données, donc
-pas de smoke test (guidelines §7, dernier point).
+**Résultat** : sur **210** branches distantes, **209 sont intégralement couvertes
+par `main`** et **1 seule** porte du travail en attente (`claude/session-842v9w`,
+PR #513 ouverte). **Il n'y a aucun code à récupérer** — voir §3, qui corrige la
+première version de ce document.
 
-## 1. Méthode (et pourquoi la première mesure était fausse)
+**La suppression n'a pas pu être exécutée depuis la session** (politique du proxy,
+§5) ; la commande prête à jouer est fournie. Lot **purement documentaire** : zéro
+diff code/données, donc pas de smoke test (guidelines §7, dernier point).
 
-Le clone de session était **shallow** (`.git/shallow`, 127 commits visibles sur
-`main` pour 525 PR) : `git branch -r --merged origin/main` ne rendait que
-**12** branches. Après `git fetch --unshallow` (1029 commits sur `main`), la
-classification devient fiable.
+## 1. Méthode
 
-Trois critères combinés, parce que le dépôt mélange merges et **squash merges**
-(un squash rend la branche non-ancêtre de `main` alors que son contenu y est) :
+Deux pièges ont faussé les mesures naïves.
+
+**Clone shallow** : `.git/shallow` présent, 127 commits visibles sur `main` pour
+525 PR ⇒ `git branch -r --merged origin/main` ne rendait que **12** branches.
+Après `git fetch --unshallow` (1029 commits), la classification devient fiable.
+
+**Squash merges** : le dépôt mélange merges classiques et squash. Une branche
+squash-mergée n'est pas ancêtre de `main` alors que son contenu y est. Critères
+combinés :
 
 1. **Ancêtre de `main`** (`git merge-base --is-ancestor`) ⇒ entièrement contenue.
-2. **Squash-mergée** : tip de la branche == `head.sha` d'une PR `merged` (métadonnées
-   GitHub des 525 PR, agrégées et dédupliquées).
-3. **Contenu présent** : pour les branches restantes, part des lignes ajoutées
-   (`> 25` car.) retrouvées dans l'arbre de `main` (`git grep -F`).
+2. **Squash-mergée** : tip == `head.sha` d'une PR `merged` (métadonnées des 525 PR).
+3. **Réimplémentée** : pour le reste, comparaison **fonctionnelle** — pas
+   textuelle (§3).
 
-Résultat sur **209** branches distantes (hors `main`) :
+## 2. Inventaire
 
 | Catégorie | Nb |
 | --- | --- |
-| Ancêtre de `main` (fusion classique) | 176 |
+| Ancêtre de `main` (dont la branche du lot d'inventaire, PR #526) | 178 |
 | Squash-mergée (tip == head d'une PR mergée) | 25 |
-| Contenu déjà dans `main`, sans PR (`plan-mvp-implementation`, 110/111 lignes) | 1 |
-| **Total à supprimer** | **202** |
-| **À garder — commits non remontés** | **7** |
+| Contenu déjà dans `main`, sans PR | 1 |
+| **Réimplémentée puis mergée sous une autre forme** (§3) | **5** |
+| **Total à supprimer** | **209** |
+| **À garder** — `claude/session-842v9w`, PR #513 ouverte | **1** |
 
-Côté PR : 517 mergées, 6 fermées sans merge, 2 ouvertes (aucune PR mergée ne
-reste à fermer — un merge ferme la PR).
+Côté PR : 519 mergées, 6 fermées sans merge, 1 ouverte. Aucune PR mergée ne reste
+à fermer — un merge ferme la PR.
 
-## 2. Les 7 branches ayant des commits à remonter sur `main`
+## 3. Correction : les 5 branches « à récupérer » sont en fait réimplémentées
 
-Classées par ce qu'il reste à en faire.
+La première version de ce document annonçait que 5 branches portaient du code
+non remonté, dont 2 « perdues si on les supprime ». **C'était faux.** Le critère
+n°3 employé alors était la part des **lignes ajoutées** retrouvées dans `main`
+(`git grep -F`) : 8 % pour R2, 11 % pour R3, 23 % pour N-ARCS.2. Une métrique
+**textuelle** ne voit pas une **réimplémentation** — même fonction, autre code.
+La vérification par *fonctionnalité* renverse la conclusion :
 
-### En cours — PR ouverte, à merger normalement
+| Branche | Ce que `main` contient à la place |
+| --- | --- |
+| `r2-ecran-ville-outil` | Le lot R2 **entier** (H1/H2/U8) via PR #522, autrement factorisé : repli du panorama par le helper **partagé** `useCollapsed('town.view', narrow)` + `SectionToggle` (la branche refaisait `localStorage` + `matchMedia` en local), nom de marqueur **permanent** `town-view-name` (la branche l'affichait à l'inspection), et clés `town.incomeGoldShort` / `town.growthInShort` (la branche abrégeait les clés de base). Plan R2 versionné dans `main`. |
+| `r3-hud-aventure-se-range` | Le lot R3 **entier** via PR #523 : plan `main` R3.1→R3.4 = exactement les constats **H3 / H6 / H7 / U7** des étapes A→D de la branche. |
+| `map-design-issues-jhjdy6` | L'arc personnel de Vhalen, sous l'id `vhalen-sceau` (`kind: personal`, 3 étapes, dialogues `dlg-vhalen-1` / `-2` / `-choice`, choix à 2 branches) — structure identique au `vhalen-archives` de la branche. Livré par la vague `n-arcs-*` (PR #302/#303 et voisines). |
+| `h-named-roster` | Refaite par `h-named-roster-v2`, **PR #255 mergée** (même lot H-NAMED.1). |
+| `code-doc-coherence-remediation` | Lots A→E redécoupés en PR atomiques déjà mergées (cf. `CLAUDE.md`). |
 
-| Branche | PR | Commits | Contenu |
-| --- | --- | --- | --- |
-| `claude/premier-plan-finaliser-cesdux` | **#525 ouverte** | 1 (à jour avec `main`, 0 en retard) | Lot R5b — jeton de héros de repli dans le décor |
-| `claude/session-842v9w` | **#513 ouverte** | 3 (37 en retard) | UX menus de départ : audit + allègement « Nouvelle partie » (NG-P0) + contraste du menu |
+**Leçon** : pour juger si une branche est remontée, comparer les
+**fonctionnalités** (symboles, ids de données, constats du plan), jamais la
+similarité ligne à ligne — un lot refait proprement ailleurs affiche un
+recouvrement textuel faible tout en étant intégralement couvert.
 
-### Travail réel jamais remonté — décision requise
+`claude/premier-plan-finaliser-cesdux` (PR #525) a été mergée depuis : elle est
+désormais ancêtre de `main`.
 
-| Branche | PR | Commits | Contenu |
-| --- | --- | --- | --- |
-| `claude/r2-ecran-ville-outil` | aucune | 3 (`wip`, 842+/92−, 10 fichiers) | `TownScreen.tsx`, `town.css`, `townView.ts` + test, smoke, docs 02/08 |
-| `claude/r3-hud-aventure-se-range` | aucune | 4 (`wip`, 578+/61−, 10 fichiers) | HUD d'aventure : barre d'actions, fondu de ressources, plafond de villes |
-| `claude/map-design-issues-jhjdy6` | #289 fermée sans merge | 1 (155+/8−, 7 fichiers) | N-ARCS.2 — arc personnel de Vhalen (Necropolis) |
-
-⚠️ **Piège sur R2/R3** : `main` contient bien des commits « lot R2 » (`3c703b43`)
-et « lot R3 » (`37395265`), mais ils viennent de `premier-plan-finaliser-cesdux`
-(PR #522/#523) et **portent sur d'autres fichiers** (`assets/layouts/town-*.json`)
-— pas sur `TownScreen.tsx`/`town.css`. Ce sont deux implémentations distinctes du
-même lot : seulement 8 % (R2) et 11 % (R3) des lignes de ces branches existent
-dans `main`. Le code de ces deux branches est donc **perdu si on les supprime**.
-
-### Superseded — contenu refait ailleurs, suppression probablement sans risque
-
-| Branche | PR | Pourquoi |
-| --- | --- | --- |
-| `claude/h-named-roster` | #253 fermée sans merge | Refaite par `claude/h-named-roster-v2` (**PR #255 mergée**, même lot H-NAMED.1) |
-| `claude/code-doc-coherence-remediation` | #136 & #156 fermées sans merge | Lots A→E redécoupés en PR atomiques déjà mergées (cf. `CLAUDE.md`) ; 21 % des lignes retrouvées dans `main`, 64 fichiers, 802 commits de retard |
-
-## 3. Vérifications de sûreté passées
+## 4. Vérifications de sûreté
 
 - `main` absent de la liste de suppression.
-- Aucune des 7 branches à garder n'est dans la liste de suppression.
-- Aucune branche portant une PR **ouverte** dans la liste de suppression.
-- Sauvegarde des 210 tips (`branche <TAB> sha`) prise avant l'opération.
+- `claude/session-842v9w` (seule PR ouverte) absente de la liste.
+- Aucune autre branche portant une PR ouverte.
+- Sauvegarde des tips (`branche <TAB> sha`) prise avant l'opération.
 
-## 4. Blocage : la suppression est refusée à cette session
+## 5. La suppression est refusée à la session
 
-Les deux voies renvoient **403**, ce n'est pas une erreur réseau à réessayer :
+Les deux voies renvoient **403** — refus de politique, pas une erreur réseau :
 
-- `git push origin --delete …` via le relais git de session
-  (`127.0.0.1/git/…`) ⇒ `RPC failed; HTTP 403`. Le proxy d'egress ne
-  rapporte aucun échec (`recentRelayFailures: []`) : le refus vient du relais.
-- `DELETE /repos/…/git/refs/heads/…` ⇒
-  `Write access to this GitHub API path is not permitted through this proxy.`
+- `git push origin --delete …` via le relais git de session (`127.0.0.1/git/…`)
+  ⇒ `RPC failed; HTTP 403`, sans échec côté proxy d'egress
+  (`recentRelayFailures: []`).
+- `DELETE /repos/…/git/refs/heads/…` ⇒ `Write access to this GitHub API path is
+  not permitted through this proxy.`
 
-Commande à jouer depuis un poste ayant les droits (la liste est en §5) :
+Commande à jouer depuis un poste habilité :
 
 ```sh
 # xargs -n 20 : par lots de 20 refs, pour ne pas dépasser la ligne de commande
@@ -95,7 +94,7 @@ xargs -n 20 git push origin --delete \
   < .claude/plans/merged-branches-cleanup.branches.txt
 ```
 
-## 5. Les 202 branches à supprimer
+## 6. Les 209 branches à supprimer
 
 ```
 claude/a1-rules-data-fixes
@@ -148,6 +147,7 @@ claude/cap-spell-immune
 claude/checkerboard-field-mismatch-g14qac
 claude/cities-screen-ux-rem6er
 claude/cities-screen-ux-wemh1n
+claude/code-doc-coherence-remediation
 claude/code-review-performance-hv0uel
 claude/code-review-remediation-plan-ukl5n9
 claude/coffre-gold-xp-ratio-tn22pj
@@ -217,6 +217,7 @@ claude/h-cond
 claude/h-cond-exact
 claude/h-named-2
 claude/h-named-3
+claude/h-named-roster
 claude/h-named-roster-v2
 claude/h-spells-adventure-march
 claude/h-spells-cartography
@@ -251,10 +252,12 @@ claude/m-visit-morale
 claude/m-visit-war-machine
 claude/m-visit-witch-hut
 claude/map-assets-monster-layout-skcwgu
+claude/map-design-issues-jhjdy6
 claude/map-extension-options-8xt11c
 claude/map-generation-resources-5mh7ei
 claude/map-missing-elements-5j8ozw
 claude/map-tiles-expansion-8kaqr1
+claude/merged-branches-cleanup-tptm7m
 claude/missing-assets-dungeon-dawo4p
 claude/missing-game-asset-o64og2
 claude/mm-heroes-phase-2-plan-rht00n
@@ -275,8 +278,11 @@ claude/plan-mvp-implementation
 claude/plan-to-finish-iqrgfp
 claude/plans-en-cours-faire-gou8ca
 claude/pr-490-muraille-gabarit-htkbu7
+claude/premier-plan-finaliser-cesdux
 claude/r0-plus-jamais-en-silence
 claude/r1-plateau-combat-visible
+claude/r2-ecran-ville-outil
+claude/r3-hud-aventure-se-range
 claude/r4-nouvelle-partie-trois-taps
 claude/r6-incarnation-finition
 claude/r7-hygiene-build-charge

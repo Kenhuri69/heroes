@@ -48,6 +48,7 @@ claude/cap-spell-immune
 claude/checkerboard-field-mismatch-g14qac
 claude/cities-screen-ux-rem6er
 claude/cities-screen-ux-wemh1n
+claude/code-doc-coherence-remediation
 claude/code-review-performance-hv0uel
 claude/code-review-remediation-plan-ukl5n9
 claude/coffre-gold-xp-ratio-tn22pj
@@ -117,6 +118,7 @@ claude/h-cond
 claude/h-cond-exact
 claude/h-named-2
 claude/h-named-3
+claude/h-named-roster
 claude/h-named-roster-v2
 claude/h-spells-adventure-march
 claude/h-spells-cartography
@@ -151,10 +153,12 @@ claude/m-visit-morale
 claude/m-visit-war-machine
 claude/m-visit-witch-hut
 claude/map-assets-monster-layout-skcwgu
+claude/map-design-issues-jhjdy6
 claude/map-extension-options-8xt11c
 claude/map-generation-resources-5mh7ei
 claude/map-missing-elements-5j8ozw
 claude/map-tiles-expansion-8kaqr1
+claude/merged-branches-cleanup-tptm7m
 claude/missing-assets-dungeon-dawo4p
 claude/missing-game-asset-o64og2
 claude/mm-heroes-phase-2-plan-rht00n
@@ -175,8 +179,11 @@ claude/plan-mvp-implementation
 claude/plan-to-finish-iqrgfp
 claude/plans-en-cours-faire-gou8ca
 claude/pr-490-muraille-gabarit-htkbu7
+claude/premier-plan-finaliser-cesdux
 claude/r0-plus-jamais-en-silence
 claude/r1-plateau-combat-visible
+claude/r2-ecran-ville-outil
+claude/r3-hud-aventure-se-range
 claude/r4-nouvelle-partie-trois-taps
 claude/r6-incarnation-finition
 claude/r7-hygiene-build-charge

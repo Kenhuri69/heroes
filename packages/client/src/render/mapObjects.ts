@@ -11,7 +11,7 @@ import {
 import { NEUTRAL_COLOR } from './playerColors';
 import { bandTier, strengthBandKey, type BandTier } from './strengthBand';
 import { TILE_SIZE } from './tilemap';
-import { ISO_TILE_H, ISO_TILE_W, isoAnchor, isoDepth, isoGroundSeatY } from './projection';
+import { ISO_TILE_H, ISO_TILE_W, isoAnchor, isoDepth, isoGroundSeatY, isoTokenScale } from './projection';
 
 /** Catalogue d'unités (id → def) — sert à résoudre la faction d'un gardien. */
 type UnitCatalog = Record<string, CombatUnitDef>;
@@ -28,17 +28,26 @@ type OwnerColor = (ownerId: string | null) => number;
 const COLLECTIBLE_SCALE = 0.8;
 
 /**
+ * Hauteur allouée à un jeton d'objet ou de gardien, en RANGÉES de losange
+ * (lot R5, constat U3) : il déborde d'une demi-rangée vers le haut — comme dans
+ * HoMM — sans avaler la case derrière lui. L'ancienne boîte carrée de 64 px en
+ * faisait 2 pleines.
+ */
+const OBJECT_ROWS = 1.5;
+
+/**
  * Sprite d'un objet de carte qui EMBARQUE son propre socle isométrique (mine,
  * coffre, fontaine, écurie, camp…). Ancré par son bord bas `anchor(0.5, 1)`,
  * posé par {@link isoGroundSeatY} pour que le socle peint recouvre exactement le
  * losange de la case au lieu de flotter au-dessus (captures « asset pas centré
- * sur la case »). Ratio d'aspect préservé (la plus grande dimension est ajustée
- * à `TILE_SIZE * scale`).
+ * sur la case »). Ratio d'aspect préservé, hauteur ET largeur bornées dans le
+ * repère du LOSANGE ({@link isoTokenScale}) — `scale` reste le facteur d'empreinte
+ * relatif de l'objet (un coffre lit plus petit qu'un gardien).
  */
 function placeSprite(texture: Texture, scale: number): Sprite {
   const sprite = new Sprite(texture);
   sprite.anchor.set(0.5, 1);
-  sprite.scale.set((TILE_SIZE * scale) / Math.max(texture.width, texture.height));
+  sprite.scale.set(isoTokenScale(texture, OBJECT_ROWS * scale, scale));
   sprite.position.set(TILE_SIZE / 2, isoGroundSeatY(sprite.height));
   return sprite;
 }

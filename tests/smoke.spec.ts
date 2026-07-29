@@ -1377,6 +1377,61 @@ test('E1 : sur mobile, la barre de combat est compacte (secondaires derrière «
 });
 
 /**
+ * Lot R5 (U2/U3) : la carte d'aventure redevient lisible. Encode en assertions
+ * les mesures du plan de remédiation (portrait 360×640) :
+ *
+ * - le zoom initial (1,6, réglé en desktop) ne laissait voir que **7 tuiles** de
+ *   large, largement recouvertes par des jetons hauts de 2 à 2,7 rangées ;
+ * - le tiroir héros était **translucide** (`--veil-95`) et large de `min(80vw,
+ *   280px)` : la carte, les boutons du HUD et « Fin de tour » restaient lisibles
+ *   au travers, et le HUD débordait à droite du panneau ouvert.
+ */
+test(
+  "R5 : la carte d'aventure reste lisible en portrait (zoom utile, tiroir opaque)",
+  { tag: ['@core', '@mobile'] },
+  async ({ page }) => {
+    const errors = collectErrors(page);
+    await page.setViewportSize({ width: 360, height: 640 });
+    await page.goto('./?seed=42');
+    await page.waitForFunction(() => window.__HEROES_READY__ === true);
+    await expect(page.getByTestId('end-turn')).toBeVisible();
+
+    // U3 — champ de vision : le pas horizontal entre deux tuiles voisines vaut la
+    // demi-largeur du losange projeté ; on compte combien en tiennent à l'écran.
+    const view = await page.evaluate(() => {
+      const t = window.__HEROES_TEST__!;
+      const a = t.tileToScreen(0, 0);
+      const b = t.tileToScreen(1, 0);
+      const halfTileW = Math.abs(b.x - a.x);
+      return { halfTileW, tilesAcross: window.innerWidth / halfTileW };
+    });
+    expect(view.halfTileW).toBeGreaterThan(0); // garde anti-test vide
+    expect(view.tilesAcross).toBeGreaterThanOrEqual(11); // avant : 7
+
+    // U2 — tiroir héros : fond OPAQUE et pleine largeur en portrait.
+    await page.getByTestId('hero-drawer-toggle').click();
+    const drawer = await page.evaluate(() => {
+      const el = document.querySelector('.hero-drawer')!;
+      const cs = getComputedStyle(el);
+      const rect = el.getBoundingClientRect();
+      const alpha = /rgba\(([^)]+)\)/.exec(cs.backgroundColor)?.[1]?.split(',')[3];
+      return {
+        opaque: alpha === undefined || Number(alpha) >= 0.99,
+        maskNone: cs.maskImage === 'none' || cs.maskImage === '',
+        width: rect.width,
+        viewportW: window.innerWidth,
+      };
+    });
+    expect(drawer.opaque).toBe(true);
+    // Le fondu de pli ne doit plus être un MASQUE ALPHA (il laissait voir le HUD).
+    expect(drawer.maskNone).toBe(true);
+    expect(drawer.width).toBeCloseTo(drawer.viewportW, 0);
+
+    expect(errors).toEqual([]);
+  },
+);
+
+/**
  * Lot R3 (H3/H6/U7) : le HUD d'aventure est un PANNEAU rangé, pas des boutons
  * flottants. Encode en assertions les mesures du plan de remédiation (aventure
  * mobile 360×640) :

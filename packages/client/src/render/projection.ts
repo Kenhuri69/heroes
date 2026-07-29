@@ -49,6 +49,31 @@ export function isoAnchor(tx: number, ty: number): WorldPoint {
 export const CONTENT_BOTTOM_MARGIN = 0.13;
 
 /**
+ * Échelle d'un jeton de carte, calée sur le LOSANGE (lot R5, constat U3).
+ *
+ * L'ancienne formule ajustait la plus grande dimension à une boîte **carrée** de
+ * `TILE_SIZE` (64 px) : un sprite carré occupait donc 64 px de haut, soit **deux
+ * rangées** de tuiles (le losange n'en fait que 32) — le jeton du héros
+ * recouvrait la ville sous ses pieds et un groupe de gardiens masquait trois
+ * cases. On borne ici les DEUX dimensions dans le repère du losange, en
+ * préservant le ratio d'aspect :
+ *
+ * - hauteur ≤ `rows × ISO_TILE_H` (allocation verticale, en rangées de losange) ;
+ * - largeur ≤ `cols × ISO_TILE_W`.
+ *
+ * `rows` est le vrai réglage : 1,5 pour un objet/gardien/héros (il déborde un peu
+ * vers le haut, comme dans HoMM, sans avaler la case derrière), davantage pour un
+ * point de repère majeur comme la ville.
+ */
+export function isoTokenScale(
+  texture: { width: number; height: number },
+  rows: number,
+  cols = 1,
+): number {
+  return Math.min((ISO_TILE_W * cols) / texture.width, (ISO_TILE_H * rows) / texture.height);
+}
+
+/**
  * Ordonnée LOCALE (dans la boîte de contenu) où poser le BORD BAS `anchor(0.5, 1)`
  * d'un asset qui EMBARQUE son propre socle isométrique (mine, coffre, fontaine,
  * château…) pour que ce socle recouvre exactement le losange de la case. Le

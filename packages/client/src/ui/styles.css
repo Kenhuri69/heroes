@@ -319,7 +319,10 @@
   width: min(80vw, 280px);
   padding: 56px 14px 14px;
   overflow-y: auto;
-  background: var(--veil-95);
+  /* Lot R5 (U2) : fond OPAQUE. À `--veil-95` la carte, les boutons du HUD et
+     « Fin de tour » restaient lisibles au travers, et au cran 3 le texte des
+     attributs se superposait au terrain. */
+  background: var(--ink-800);
   color: var(--parchment);
   font: 0.875rem/1.4 var(--font-ui);
   pointer-events: auto;
@@ -338,11 +341,35 @@
    ne colle au bord de l'écran (et au HUD bas qui flotte au-dessus). La zone
    fondue couvre la marge vide ⇒ le dernier contenu reste net une fois défilé à
    fond. `black`/`transparent` = masque alpha (aucune couleur de thème). */
+@media (max-width: 640px) {
+  /* Lot R5 (U2) : en portrait le tiroir prend TOUTE la largeur — à `min(80vw,
+     280px)` le HUD sous-jacent débordait sur la droite du panneau ouvert. */
+  .hero-drawer {
+    width: 100%;
+    box-sizing: border-box; /* le padding est COMPRIS : 100 % = largeur du viewport */
+  }
+}
+
 @media (max-width: 899px) {
   .hero-drawer {
     padding-bottom: 72px;
-    -webkit-mask-image: linear-gradient(to bottom, black calc(100% - 28px), transparent);
-    mask-image: linear-gradient(to bottom, black calc(100% - 28px), transparent);
+  }
+
+  /* Lot R5 (U2) : le fondu du lot X6 était un MASQUE ALPHA — il rendait le bas du
+     tiroir transparent, laissant lire « Fin de tour » et le HUD au travers (le
+     constat U2 n'était donc pas seulement le fond du panneau). Même signal
+     « le contenu continue », mais peint dans l'ENCRE du tiroir : rien ne
+     transparaît. Le tiroir portant un `transform`, il est le bloc conteneur de ce
+     `fixed` : le dégradé se cale donc sur SON bord bas et ne défile pas. */
+  .hero-drawer::after {
+    content: '';
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 28px;
+    pointer-events: none;
+    background: linear-gradient(to bottom, transparent, var(--ink-800));
   }
 }
 

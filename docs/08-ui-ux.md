@@ -132,6 +132,39 @@
 >    permanente), les 5 boutons icône-seule affichent leur **libellé** ; l'icône
 >    nue n'était une nécessité que faute de place en portrait.
 
+> 🗺️ **État R5 — « la carte redevient lisible »** (revue 2026-07, constats **U2**,
+> **U3**, **U4** ; plan `.claude/plans/r5-carte-lisible.md`). **Client (rendu Pixi
+> + CSS)** : zéro diff moteur, pas de bump de sauvegarde. Quatre décisions :
+>
+> 1. **L'échelle des jetons se calcule sur le losange, pas sur un carré** (U3).
+>    Les sprites étaient ajustés à une boîte **carrée** de 64 px alors qu'un
+>    losange mesure **64 × 32** : objets et gardiens occupaient **2 rangées** de
+>    tuiles, le héros **2,5** (il recouvrait la ville sous ses pieds), la ville
+>    **2,7**. Un helper partagé `isoTokenScale(texture, rows, cols)`
+>    (`render/projection.ts`) borne **hauteur** (`rows × ISO_TILE_H`) **et**
+>    largeur (`cols × ISO_TILE_W`) en préservant le ratio. Allocations : **1,5
+>    rangée** pour objets, gardiens et héros — il déborde un peu vers le haut,
+>    comme dans HoMM, sans avaler la case derrière — et **2 rangées** pour la
+>    ville, seul point de repère majeur.
+> 2. **Zoom initial adapté au viewport** (U3). Le zoom rapproché (1,6) avait été
+>    réglé en desktop ; en portrait 360 px il ne laissait voir que **7 tuiles**.
+>    Le zoom initial est désormais **plafonné par la largeur d'écran** de façon à
+>    garantir un champ minimal (11 tuiles) : **desktop inchangé** (le plafond y
+>    est bien au-dessus de 1,6), portrait ramené à ~1,0. Le joueur reste libre de
+>    zoomer/dézoomer.
+> 3. **Tiroir héros opaque et pleine largeur en portrait** (U2). Fond `--ink-800`
+>    plein (au lieu de `--veil-95`) et largeur **100 %** sous 640 px. Le **fondu
+>    bas** du lot X6 était un **masque alpha** : il rendait le bas du panneau
+>    transparent, ce qui laissait lire « Fin de tour » et le HUD au travers — le
+>    constat U2 n'était donc pas seulement une affaire de fond. Même signal « le
+>    contenu continue », désormais peint dans l'**encre du tiroir**.
+> 4. **Marqueur de ville : chaîne de replis peinte** (U4). `map/town-<faction>`
+>    (art dédié) → **vignette d'hôtel de ville** (`buildings/…/townHall`, présente
+>    pour toutes les factions via le paquet core) → repli dessiné. Le liseré doré
+>    « assiégeable » (2ᵉ canal a11y) est conservé mais **épouse le losange** au
+>    lieu d'un carré de 48 px — le carré jaune posé de travers sur une carte iso
+>    était l'autre moitié du « glyphe gris encadré jaune » relevé par la revue.
+
 > 🚧 **État X6 (tiroir héros mobile, plan `ux-enrichissement-2026-07`)** : le
 > tiroir défile (attributs → armée → compétences → équipement → sorts d'aventure
 > → mini-carte) ; sous 900 px un **fondu bas** (masque alpha CSS) signale qu'il

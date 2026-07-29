@@ -585,6 +585,6 @@ glisser à tout moment (aucune dépendance).
   - [x] R2 — écran de ville (`.claude/plans/r2-ecran-ville-outil.md`)
   - [x] R3 — HUD d'aventure (`.claude/plans/r3-hud-aventure-se-range.md`)
   - [x] R4 — nouvelle partie (`.claude/plans/r4-nouvelle-partie-trois-taps.md`)
-  - [ ] R5 — lisibilité de la carte
+  - [x] R5 — lisibilité de la carte (`.claude/plans/r5-carte-lisible.md`)
   - [ ] R6 — incarnation & finition
   - [x] R7 — hygiène de build *(livré : `.claude/plans/r7-hygiene-build-charge.md`)*

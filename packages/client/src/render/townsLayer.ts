@@ -1,8 +1,8 @@
 import { Assets, Container, Graphics, Sprite } from 'pixi.js';
 import type { TownState } from '@heroes/engine';
 import { TILE_SIZE } from './tilemap';
-import { isoAnchor, isoDepth, isoGroundSeatY } from './projection';
-import { townMapUrl } from './assets';
+import { ISO_TILE_H, ISO_TILE_W, isoAnchor, isoDepth, isoGroundSeatY, isoTokenScale } from './projection';
+import { buildingUrl, townMapUrl } from './assets';
 
 /** Résout la couleur de bannière d'un propriétaire (id joueur ou null = neutre). */
 type OwnerColor = (ownerId: string | null) => number;
@@ -57,11 +57,29 @@ export class TownsLayer {
  * procédural** de repli si le sprite est absent/en cours. Le liseré doré
  * d'« assiégeable » (2ᵉ canal A5) est posé PAR-DESSUS dans les deux cas.
  */
+/** Hauteur du donjon de ville, en RANGÉES de losange (lot R5, U3). */
+const TOWN_ROWS = 2;
+
+/**
+ * Chaîne de replis PEINTS du marqueur de ville (lot R5, constat U4) : le glyphe
+ * procédural détonnait au milieu d'assets peints (coffre, étable, obélisque) dès
+ * qu'une faction n'avait pas d'art de carte dédié. Ordre : art de carte de la
+ * faction → **vignette d'hôtel de ville** (présente pour toutes les factions via
+ * le paquet core) → repli dessiné. Aucun id de faction dans le code : les deux
+ * URLs sont résolues par le registre d'assets.
+ */
+function keepSpriteUrl(factionId: string): string | undefined {
+  return townMapUrl(factionId) ?? buildingUrl(TOWN_MARKER_BUILDING, factionId);
+}
+
+/** Bâtiment dont la vignette sert de marqueur de repli (commun à toutes les factions). */
+const TOWN_MARKER_BUILDING = 'townHall';
+
 function buildKeep(factionId: string, owned: boolean, ownerColor: number): Container {
   const node = new Container();
   const fallback = buildKeepFallback(ownerColor);
   node.addChild(fallback);
-  const url = townMapUrl(factionId);
+  const url = keepSpriteUrl(factionId);
   if (url) {
     void Assets.load(url).then((texture) => {
       if (node.destroyed) return;
@@ -73,17 +91,26 @@ function buildKeep(factionId: string, owned: boolean, ownerColor: number): Conta
       // sa case au lieu de flotter au-dessus (l'ancien réglage posait le bord bas au
       // centre → tout le château remontait d'un demi-losange).
       sprite.anchor.set(0.5, 1);
-      const scale = (TILE_SIZE * 1.35) / Math.max(texture.width, texture.height);
-      sprite.scale.set(scale);
+      // Lot R5 (U3) : échelle calée sur le LOSANGE — à ×1,35 d'une boîte carrée
+      // de 64 px la ville faisait 86 px, soit 2,7 rangées de tuiles. Deux rangées :
+      // elle reste le point de repère majeur de la carte sans avaler ses voisines.
+      sprite.scale.set(isoTokenScale(texture, TOWN_ROWS));
       sprite.position.set(TILE_SIZE / 2, isoGroundSeatY(sprite.height));
       node.addChildAt(sprite, 0); // sous le liseré de siège
     });
   }
   if (!owned) {
     // Liseré doré : cette ville peut être assiégée (doc 08 §5, 2ᵉ canal A5).
+    // Lot R5 (U4) : il épouse le LOSANGE de la case au lieu d'un carré de 48 px —
+    // le carré jaune, posé de travers sur une carte iso, était l'autre moitié du
+    // « glyphe gris encadré jaune » relevé par la revue.
     const c = TILE_SIZE / 2;
+    const hw = ISO_TILE_W / 2 - 2;
+    const hh = ISO_TILE_H / 2 - 1;
     node.addChild(
-      new Graphics().rect(c - 24, c - 24, 48, 48).stroke({ width: 2, color: 0xf1c40f }),
+      new Graphics()
+        .poly([c, c - hh, c + hw, c, c, c + hh, c - hw, c])
+        .stroke({ width: 2, color: 0xf1c40f }),
     );
   }
   return node;

@@ -270,9 +270,14 @@ export function artifactUrl(id: string): string | undefined {
   return registry.get(`artifacts/${id}`);
 }
 
-/** Jeton de héros sur la carte (`map/hero-<factionId>`, UXD-3B). */
+/**
+ * Jeton de héros sur la carte (UXD-3B) : art de la faction, sinon **jeton
+ * générique** `map/hero` (lot R5b — même patron que les habitations,
+ * `camp-<faction>` → `camp` : déposer UN fichier couvre toutes les factions sans
+ * art dédié, sans toucher au code). `undefined` ⇒ repli dessiné.
+ */
 export function heroMapUrl(factionId: string): string | undefined {
-  return factionId ? registry.get(`map/hero-${factionId}`) : undefined;
+  return (factionId ? registry.get(`map/hero-${factionId}`) : undefined) ?? registry.get('map/hero');
 }
 
 /** Château de ville sur la carte (`map/town-<factionId>`, UXD-3B). */

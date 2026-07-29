@@ -24,7 +24,14 @@ import type { Camera } from '../../render/camera';
 import { heroMapUrl } from '../../render/assets';
 import { Tilemap, TILE_SIZE } from '../../render/tilemap';
 import { TerrainProps } from '../../render/terrainProps';
-import { isoAnchor, isoDepth, isoTileCenter, isoWorldToTile } from '../../render/projection';
+import {
+  ISO_TILE_W,
+  isoAnchor,
+  isoDepth,
+  isoTileCenter,
+  isoTokenScale,
+  isoWorldToTile,
+} from '../../render/projection';
 import { MapObjectsLayer } from '../../render/mapObjects';
 import { playerColor } from '../../render/playerColors';
 import { TownsLayer } from '../../render/townsLayer';
@@ -41,11 +48,33 @@ import { pushToast, pushToastOnce } from '../../ui/toasts';
 const STEP_ANIMATION_MS = 110;
 
 /**
+ * Hauteur du jeton de héros, en RANGÉES de losange (lot R5, U3). À 2,5 rangées
+ * (ancien ×1,25 d'une boîte carrée de 64 px) il recouvrait la ville sous ses pieds.
+ */
+const HERO_TOKEN_ROWS = 1.5;
+
+/**
  * Zoom initial de la carte d'aventure (retour de jeu) : > 1 pour que le terrain
  * remplisse la vue au démarrage plutôt que de flotter dans le brouillard. Borné
  * par le zoom max de la caméra (2×) ; le joueur reste libre de dézoomer.
  */
 const INITIAL_ADVENTURE_ZOOM = 1.6;
+
+/**
+ * Champ de vision MINIMAL garanti au démarrage, en tuiles sur la largeur (lot R5,
+ * U3). Le zoom rapproché a été réglé en desktop ; en portrait 360 px il ne
+ * laissait voir que **7 tuiles**, largement recouvertes par les jetons. On plafonne
+ * donc le zoom initial par ce que le viewport peut afficher — desktop inchangé
+ * (le plafond y est bien au-dessus de 1,6), portrait ramené à un champ jouable.
+ * Le pas horizontal entre deux tuiles voisines vaut `ISO_TILE_W / 2`.
+ */
+const MIN_VISIBLE_TILES_ACROSS = 11;
+
+/** Zoom initial effectif pour une largeur d'écran donnée. */
+function initialAdventureZoom(screenWidth: number): number {
+  const fitting = screenWidth / (MIN_VISIBLE_TILES_ACROSS * (ISO_TILE_W / 2));
+  return Math.min(INITIAL_ADVENTURE_ZOOM, fitting);
+}
 
 /**
  * Marqueur « fouiller ici » du Graal (T-GRAIL lot 2) : croix rayonnante dorée
@@ -426,10 +455,11 @@ export class AdventureScene {
         // « entre quatre cases » et son bas empiétait sur la tuile avant (occlusion
         // = problème d'ordre perçu). Pieds au centre-sol de la tuile.
         sprite.anchor.set(0.5, 1);
-        // Ajuste la plus grande dimension à ~1,25 tuile (jeton lisible, le héros
-        // « occupe » sa case et déborde un peu vers le haut comme dans HoMM).
-        const scale = (TILE_SIZE * 1.25) / Math.max(texture.width, texture.height);
-        sprite.scale.set(scale);
+        // Lot R5 (U3) : échelle calée sur le LOSANGE, pas sur une boîte carrée —
+        // à ×1,25 de `TILE_SIZE` le jeton faisait 80 px, soit 2,5 rangées de
+        // tuiles, et recouvrait entièrement la ville sous ses pieds. Une rangée
+        // et demie : il « occupe » sa case et déborde un peu vers le haut.
+        sprite.scale.set(isoTokenScale(texture, HERO_TOKEN_ROWS));
         sprite.position.set(TILE_SIZE / 2, TILE_SIZE / 2);
         token.addChild(sprite);
       });
@@ -715,12 +745,15 @@ export class AdventureScene {
    * (grande part de brouillard, petite carte proto), la zone explorée flottait au
    * milieu du noir — premier écran peu engageant. On démarre plus près pour que le
    * terrain remplisse la vue ; le joueur dézoome librement (le zoom reste borné).
+   * Lot R5 (U3) : ce zoom est plafonné par la largeur d'écran
+   * ({@link initialAdventureZoom}) — réglé en desktop, il ne laissait voir que
+   * 7 tuiles en portrait.
    */
   centerOnHero(app: Application): void {
     const { game } = appStore.getState();
     const hero = resolveSelectedHero(game, appStore.getState().selectedHeroId);
     if (!hero) return;
-    this.camera.world.scale.set(INITIAL_ADVENTURE_ZOOM);
+    this.camera.world.scale.set(initialAdventureZoom(app.screen.width));
     const scale = this.camera.world.scale.x;
     const c = isoTileCenter(hero.pos.x, hero.pos.y);
     this.camera.world.position.set(

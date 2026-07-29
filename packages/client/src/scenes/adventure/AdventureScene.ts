@@ -447,7 +447,9 @@ export class AdventureScene {
       void Assets.load(url).then((texture) => {
         if (this.destroyed || token.destroyed) return;
         token.removeChild(fallback);
-        fallback.destroy();
+        // `children: true` : depuis le lot R5b le repli est un CONTENEUR (ombre,
+        // hampe, écu, épée) — un `destroy()` nu laisserait ses 4 enfants en vie.
+        fallback.destroy({ children: true });
         const sprite = new Sprite(texture);
         // Base CENTRÉE (comme les props de relief) : le héros se DRESSE depuis le
         // sol de sa case au lieu d'être centré dessus. Ancré au centre, un sprite

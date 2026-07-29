@@ -164,6 +164,21 @@
 >    « assiégeable » (2ᵉ canal a11y) est conservé mais **épouse le losange** au
 >    lieu d'un carré de 48 px — le carré jaune posé de travers sur une carte iso
 >    était l'autre moitié du « glyphe gris encadré jaune » relevé par la revue.
+>
+> 🧭 **État R5b — le jeton de héros de repli** (suite du lot R5 ; plan
+> `.claude/plans/r5b-jeton-heros-procedural.md`). Le pendant du point 4 pour le
+> **héros**. Chaîne de replis : `map/hero-<faction>` → **`map/hero`** (jeton
+> générique — même patron que `camp-<faction>` → `camp` : déposer UN fichier
+> couvre toutes les factions sans art dédié, sans toucher au code) → dessin. Le
+> **dessin de dernier repli** garde la forme d'**écu** — une silhouette humanoïde
+> de 48 px se réduit à une tache — mais cesse de flotter parmi des assets peints
+> et ombrés : **ombre au sol** sur le losange + **hampe plantée**, et une **épée
+> en pal** à la place du disque nu (elle dit « héros/armée » ; c'est la garde
+> épaisse et le pommeau qui font basculer la lecture de « flèche » à « épée » à
+> cette taille). Couleur du joueur conservée comme canal d'appartenance, doublée
+> par la forme (2ᵉ canal, §4). Borné au même budget de **1,5 rangée** de losange
+> que les jetons peints. **Aucun asset n'est produit** : le cran générique est
+> ouvert, pas rempli.
 
 > 🚧 **État X6 (tiroir héros mobile, plan `ux-enrichissement-2026-07`)** : le
 > tiroir défile (attributs → armée → compétences → équipement → sorts d'aventure

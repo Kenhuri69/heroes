@@ -99,6 +99,28 @@ mesures DOM (`getBoundingClientRect`) aux crans de police 1 et 3.
   et non simulé : le plafond borne la navigation à **6 boutons quelle que soit la
   partie**, et c'est cette configuration à 6 boutons que le smoke mesure.
 
+- **Fausse alerte de performance, tranchée par la mesure.** Le run smoke local a
+  échoué sur le test `@perf` « fluidité sous throttling CPU ×4 » (3,5 fps pour un
+  seuil de 5) et la comparaison CI-à-CI semblait l'aggraver : la carte d'aventure
+  passait de **13,7 fps** (run de la PR #522) à **6,6 fps** (run de la PR #523),
+  soit un facteur 2 — juste là où ce lot ajoute deux `mask-image` sur des couches
+  DOM composées au-dessus du canvas. Contre-épreuve, machine au repos, 3 runs par
+  variante :
+
+  | Carte d'aventure ×4 | Runs | Moyenne |
+  |---|---|---|
+  | `main` avant R3 | 7,1 / 6,7 / 5,9 | **6,6 fps** |
+  | R3 | 7,8 / 6,9 / 7,3 | **7,3 fps** |
+  | R3, masques neutralisés | 7,4 / 6,9 / 7,8 | 7,4 fps |
+
+  **Aucune régression** : R3 est au niveau de `main` (marginalement au-dessus), et
+  les masques ne coûtent rien de mesurable. L'échec local venait d'un **audit UX
+  lancé en parallèle** du run (contention CPU sur une mesure throttlée), et l'écart
+  CI-à-CI de la **variance des runners** — cette métrique va de 5,9 à 7,8 fps sur
+  un code identique. À noter pour la prochaine alerte : le seuil (≥ 5) est proche
+  du plancher observé (5,9 sur `main` ici), c'est une fragilité **préexistante**
+  de ce test, pas un effet de ce lot ; elle n'est pas traitée ici (hors périmètre).
+
 ## 4. Bilan
 
 Livré.
@@ -111,7 +133,7 @@ Livré.
 | `pnpm content:check` | ✅ 7 paquets, 2 cartes, 16 scénarios |
 | Garde-fous CI (faction, couleurs) | ✅ |
 | `pnpm build` + budget bundle | ✅ **355 Ko gzip** / 800 |
-| Smoke Playwright | ✅ (desktop + mobile) |
+| Smoke Playwright | ✅ 141/141 (desktop + mobile) — voir la fausse alerte `@perf` au §3 |
 | Audit `ux-audit` (96 captures) | ✅ 0 warning A1, 0 échec |
 
 ### Avant / après mesurés (aventure, 360×640)

@@ -61,6 +61,14 @@ distance**, comme dans une des versions de la série (HoMM V : *Skeleton* →
    **image unique** `assets/prompts/units-necropolis-skeleton-archer.md`
    → vérif : diff des prompts limité à la cellule 8, commande d'extraction
    pointant `assets/units/necropolis/`.
+5bis. [x] **Sprite généré et intégré** (image Gemini fournie par l'utilisateur) :
+   glint IA repeint + marge de fond ajoutée (le sujet touchait quasi les bords ⇒
+   la porte anti-bave de `sheet_extract.py` l'aurait supprimé en entier), puis
+   extraction → **QC PASS** (marge 0,10, couverture 12 %) →
+   `assets/units/necropolis/t1-squelette-elite.png` (512², 120 Ko), nom de
+   fichier inchangé ⇒ zéro câblage client
+   → vérif : `pnpm build` (asset émis `t1-squelette-elite-<hash>.png`,
+   dist/assets 83,4 Mio ≤ 96 Mio), smoke `@core` re-joué vert.
 6. [x] Équilibrage : `pnpm faction:sim` avant/après **+ lecture ad hoc**
    (le sim n'oppose que les unités de base ⇒ aveugle aux élites)
    → vérif : pas de **nouvelle** béance (> 80 %) introduite — cf. mesures.
@@ -88,9 +96,9 @@ distance**, comme dans une des versions de la série (HoMM V : *Skeleton* →
   prompts générés (artefacts, bâtiments core, machines de guerre, planches
   bâtiments de la faction éclatées en p1/p2 depuis un lot antérieur) — **revertée**
   (§3 des guidelines) : seule la cellule 8 de `units-necropolis-p1.md` est
-  committée. Le PNG lui-même reste **à générer** par l'utilisateur (prompt
-  `assets/prompts/units-necropolis-skeleton-archer.md`, image unique, extraction
-  QC) ; l'ancien sprite « guerrier » tient la place d'ici là.
+  committée. Le PNG a ensuite été **généré, extrait (QC PASS) et intégré**
+  (étape 5bis) ; la source brute est conservée dans `assets/prompts/_incoming/`
+  comme les planches précédentes.
 - Constat **hors périmètre** (non corrigé, signalé) : la colonne « Capacités »
   du tableau des élites (doc 04 §3bis) est périmée pour T2/T4/T5/T6 — les
   données portent bien `curseOnHit`, `lifeDrain`, `areaAttack`, `charge` sur les

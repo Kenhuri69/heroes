@@ -54,6 +54,22 @@ cp assets/raster_src/t1-squelette-elite.png assets/units/necropolis/
 
 Le nom de fichier est **inchangé** (l'id de l'unité est resté
 `t1-squelette-elite`) ⇒ le registre d'assets du client le reprend sans aucune
-modification de code (doc 12 §10.2). En attendant la génération, l'ancien PNG
-« guerrier » reste en place : le sprite est daté mais l'affichage n'est jamais
-vide.
+modification de code (doc 12 §10.2).
+
+## ✅ Généré et intégré
+
+Planche source retournée par Gemini : `_incoming/units-necropolis-skeleton-archer.png`.
+Deux retouches déterministes avant extraction (le générateur ne respecte jamais
+tout à fait la consigne) :
+
+1. **glint IA** en bas à droite (un « sparkle » hors sujet, malgré le
+   `no star glints`) repeint à la couleur du fond — sinon il survit comme
+   composant parasite ;
+2. **marge de fond ajoutée** (140 px sur les 4 côtés) : le sujet était cadré à
+   16 px du haut (arc) et 19 px du bas (pieds), or `sheet_extract.py` **supprime
+   tout composant qui touche le bord de cellule** (porte anti-bave) ⇒ sans
+   marge, le sujet entier partait à la poubelle.
+
+QC : **PASS** (marge réelle 0,10, couverture 12 %, 1 composant gardé — les 72
+« specks » retirés sont les volutes de brume détachées, sous l'aire minimale).
+→ `assets/units/necropolis/t1-squelette-elite.png` (512², 120 Ko).

@@ -505,8 +505,9 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > version retenue tient **57 %** (base 56 %, ancienne élite 50 %, aucun duel
 > > 80 %). Invariant de contenu ajouté : une élite ne passe **sous** aucune stat
 > de sa base et tout `shooter` a des munitions > 0. Asset : prompt Gemini dédié
-> **image unique** (`assets/prompts/units-necropolis-skeleton-archer.md`) — le
-> PNG « guerrier à la lame » reste en place jusqu'à sa régénération.*
+> **image unique** (`assets/prompts/units-necropolis-skeleton-archer.md`) →
+> sprite **généré, extrait (QC PASS) et intégré** en remplacement du « guerrier à
+> la lame », nom de fichier inchangé ⇒ zéro câblage client.*
 
 ---
 

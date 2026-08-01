@@ -73,13 +73,32 @@ Chaque habitation se **gradue au niveau 2** (Alpha 4.11) : le dwelling amélior�
 
 | Tier | Élite | PV | Att | Déf | Dégâts | Vit. | Cr./sem | Coût | Capacités |
 |------|-------|----|-----|-----|--------|------|---------|------|-----------|
-| 1 | **Squelette guerrier** | 7 | 3 | 3 | 1–3 | 5 | 16 | 40 or | `undead` |
+| 1 | **Squelette archer** | 6 | 3 | 2 | 1–2 | 4 | 16 | 45 or | `undead`, `banishable`, `shooter(4)` |
 | 2 | **Zombie infect** | 18 | 4 | 5 | 3–4 | 4 | 9 | 115 or | `undead` |
 | 3 | **Spectre supérieur** | 21 | 7 | 7 | 4–7 | 8 | 7 | 260 or | `undead`, `flying` |
 | 4 | **Vampire seigneur** | 33 | 10 | 9 | 7–11 | 7 | 5 | 550 or | `undead`, `noRetaliation` |
 | 5 | **Liche-mage** | 40 | 12 | 13 | 9–14 | 6 | 4 | 900 or, 2 soufre | `undead`, `shooter` |
 | 6 | **Chevalier de la mort** | 86 | 18 | 16 | 16–24 | 10 | 2 | 1900 or, 2 soufre | `undead` |
 | 7 | **Dragon fantôme** | 198 | 26 | 24 | 39–65 | 11 | 1 | 5000 or, 3 soufre, 3 gemmes | `undead`, `flying` |
+
+> 🏹 **Squelette archer (T1 élite)** — fidélité série : l'amélioration du
+> Squelette est un **tireur** (HoMM V : *Skeleton* → *Skeleton Archer*), pas un
+> squelette « un peu meilleur ». Réalisé en **données pures** via la capacité
+> générique `shooter { ammo }` (zéro diff moteur). Profil assumé : l'archer
+> **troque la robustesse de mêlée** de l'ancien « Squelette guerrier » (PV 7→6,
+> Déf 3→2, Vit. 5→4) et garde les **dégâts de la base** (1–2) contre la portée ;
+> son levier est la **cadence limitée** — un **carquois court de 4 tirs**, puis
+> il combat au corps à corps avec la pénalité de tireur (doc 02 §5.3). Calage
+> mesuré (armée complète, T1 substitué, budget or égal) : ~57 % de winrate moyen
+> contre les autres factions, soit la bande de la base (56 %) et de l'ancienne
+> élite (50 %), aucun duel > 80 %. Sans ce bridage (1–3 dégâts, 6 tirs), la même
+> unité montait à **83 %** de moyenne avec deux duels > 90 % : un T1 tireur à
+> 16/semaine est le levier le plus sensible de la faction.
+> ⚠️ La **Nécromancie relève des Squelettes de base** (`raiseUndeadOnVictory.
+> unitId`), jamais des archers — la relève reste une masse de mêlée.
+> ⚠️ `faction:sim` n'oppose que les unités de **base** (`manifest.town.dwellings`)
+> ⇒ il est **aveugle** aux changements d'élite ; ce calage a été mesuré par une
+> lecture ad hoc substituant le T1 (armée complète, mêmes graines).
 
 > ⚖️ **Coûts élites (D12, à arbitrer)** : premium en or élite/base = 1,60–1,72× (régulier). À comparer avec Haven (~1,25–1,69×) et Arcane Hunters (**1,80× uniforme**) — asymétrie relevée par l'audit factions. Les élites conservent `undead` mais **perdent** les capacités actives de leur base (ex. Vampire seigneur sans `lifeDrain`, Liche-mage sans `areaAttack`, Chevalier de la mort sans `curseOnHit`/`charge`) : à revoir. Arbitrage coûts + parité de capacités **renvoyé à une passe `faction:sim`** (non tranché ici).
 

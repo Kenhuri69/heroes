@@ -41,4 +41,42 @@ describe('parité des capacités base → elite (CAP-DATAFIX.2)', () => {
     // Garde-fou : au moins quelques paires existent (sinon le test ne prouve rien).
     expect(pairs).toBeGreaterThan(0);
   });
+
+  /**
+   * Corollaire chiffré de la même règle : une amélioration peut être re-profilée
+   * (troquer de la robustesse contre une capacité — ex. une élite T1 qui devient
+   * un tireur perd des PV/de la défense), mais **jamais** au point de passer
+   * SOUS sa version de base. Et une capacité `shooter` sans munitions
+   * utilisables serait une capacité morte (`shooterAmmo` → 0 ⇒ aucun tir).
+   */
+  it('une unité améliorée ne régresse sous sa base, et tout tireur a des munitions', async () => {
+    const { content } = await loadContent(readJsonFromDisk);
+    let shooters = 0;
+    for (const pack of content.packs) {
+      const byId = new Map(pack.units.map((u) => [u.id, u]));
+      for (const unit of pack.units) {
+        for (const shooter of unit.abilities.filter((a) => a.id === 'shooter')) {
+          shooters++;
+          const ammo = shooter.params?.['ammo'];
+          expect(typeof ammo, `${unit.id} : shooter sans munitions déclarées`).toBe('number');
+          expect(ammo as number, `${unit.id} : munitions non utilisables`).toBeGreaterThan(0);
+        }
+        if (!unit.id.endsWith('-elite')) continue;
+        const base = byId.get(unit.id.slice(0, -'-elite'.length));
+        if (!base) continue;
+        for (const key of ['hp', 'attack', 'defense', 'speed'] as const) {
+          expect(unit.stats[key], `${unit.id}.${key} sous ${base.id}`).toBeGreaterThanOrEqual(
+            base.stats[key],
+          );
+        }
+        for (const i of [0, 1] as const) {
+          expect(
+            unit.stats.damage[i],
+            `${unit.id}.damage[${i}] sous ${base.id}`,
+          ).toBeGreaterThanOrEqual(base.stats.damage[i]);
+        }
+      }
+    }
+    expect(shooters).toBeGreaterThan(0);
+  });
 });

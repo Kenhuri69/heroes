@@ -4,18 +4,18 @@
   "name": "@loc:unit.t1-squelette-elite.name",
   "loreKey": "@loc:unit.t1-squelette-elite.lore",
   "stats": {
-    "hp": 7,
+    "hp": 6,
     "attack": 3,
-    "defense": 3,
+    "defense": 2,
     "damage": [
       1,
-      3
+      2
     ],
-    "speed": 5
+    "speed": 4
   },
   "growthPerWeek": 16,
   "cost": {
-    "gold": 40
+    "gold": 45
   },
   "abilities": [
     {
@@ -23,6 +23,12 @@
     },
     {
       "id": "banishable"
+    },
+    {
+      "id": "shooter",
+      "params": {
+        "ammo": 4
+      }
     }
   ]
 }

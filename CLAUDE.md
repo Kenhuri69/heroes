@@ -489,6 +489,26 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > (flash/onde d'impact), repli procédural, zéro moteur. (Résumé de cohérence :
 > code livré en commit « sprint 1 » ; ce fichier + doc 18 mis à niveau après coup.)*
 
+> 🏹 **Retour de jeu — Squelette archer** (plan `.claude/plans/
+> necropolis-skeleton-archer.md`, doc 04 §3bis). L'élite T1 de la Nécropole
+> n'était qu'un squelette « un peu meilleur » ; elle devient un **tireur**
+> (fidélité série : HoMM V *Skeleton* → *Skeleton Archer*) — `shooter { ammo: 4 }`
+> sur `t1-squelette-elite`, **id conservé** (sérialisé en sauvegarde) donc
+> **données pures : zéro diff moteur/client, pas de bump `CURRENT_SAVE_VERSION`,
+> golden inchangé**. Profil calibré : troque la robustesse de mêlée (PV 7→6,
+> Déf 3→2, Vit. 5→4) et garde les dégâts de la base (1–2) contre la portée,
+> carquois court de 4 tirs, 45 or. **La Nécromancie relève toujours des
+> Squelettes de base.** Constat d'outillage : `faction:sim` n'oppose que les
+> unités de **base** (`manifest.town.dwellings`) ⇒ **aveugle aux élites** ;
+> calage mesuré par une lecture ad hoc (armée complète, T1 substitué) — la
+> version non bridée montait à **83 %** de winrate moyen (deux duels > 90 %), la
+> version retenue tient **57 %** (base 56 %, ancienne élite 50 %, aucun duel
+> > 80 %). Invariant de contenu ajouté : une élite ne passe **sous** aucune stat
+> de sa base et tout `shooter` a des munitions > 0. Asset : prompt Gemini dédié
+> **image unique** (`assets/prompts/units-necropolis-skeleton-archer.md`) →
+> sprite **généré, extrait (QC PASS) et intégré** en remplacement du « guerrier à
+> la lame », nom de fichier inchangé ⇒ zéro câblage client.*
+
 ---
 
 ## Structure des fichiers

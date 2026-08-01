@@ -23,7 +23,7 @@ cell 4: tier 4 unit "Vampire" — unmistakably undead, steady stance
 cell 5: tier 5 unit "Lich (fr: Liche)" — unmistakably undead, aiming a ranged weapon, steady stance
 cell 6: tier 6 unit "Doom Knight (fr: Cavalier funeste)" — unmistakably undead, charging forward, swift and agile
 cell 7: tier 7 unit "Bone Dragon (fr: Dragon d'os)" — unmistakably undead, large spread wings, airborne pose, swift and agile
-cell 8: tier 1 unit "Skeleton Warrior (fr: Squelette guerrier)" — unmistakably undead, steady stance
+cell 8: tier 1 unit "Skeleton Archer (fr: Squelette archer)" — unmistakably undead, aiming a ranged weapon, slow and massive
 flat uniform light grey background (#c8c8c8), no ground shadow,
 no text, no watermark, no signature, no border frame, no ground line, no decorative sparkles, no star glints, no lens flare
 ```

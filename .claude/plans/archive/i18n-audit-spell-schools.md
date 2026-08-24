@@ -47,9 +47,21 @@ affiche la **clé brute** (« school.traque »…) pour 4 factions :
 
 ## Vérification
 
-- [ ] typecheck / lint / content vitest (+ nouveau test) verts
-- [ ] parité FR/EN maintenue (content:check / parité)
-- [ ] build + budget bundle ≤ 800 Ko gzip
-- [ ] garde-fous faction / couleurs verts
-- [ ] smoke @core desktop + mobile
-- [ ] golden inchangé
+- [x] typecheck / lint / content vitest (+ nouveau test) verts
+- [x] parité FR/EN maintenue (content:check / parité)
+- [x] build + budget bundle ≤ 800 Ko gzip
+- [x] garde-fous faction / couleurs verts
+- [x] smoke @core desktop + mobile
+- [x] golden inchangé
+
+## Clôture (2026-08-24)
+
+Plan **clos** par la passe `close-open-plans.md` : le code décrit ci-dessus était
+déjà sur `main`, seule la trace de vérification manquait. Pipeline rejoué en
+entier ce jour — typecheck ✓ · lint ✓ · tests **935 moteur / 165 contenu / 74
+client** ✓ · `content:check` (7 paquets, 2 cartes, 16 scénarios) ✓ · garde-fous
+faction & couleurs ✓ · build + budget bundle **364 866 o gzip** (cap 819 200) ✓ ·
+smoke `@core` desktop + mobile **55/55** ✓ (54 au 1ᵉʳ passage : le test `ville`
+mobile a dépassé le timeout **local** de 30 s sous contention CPU du conteneur —
+rejoué seul : **22,1 s, vert** ; la CI utilise 45 s pour cette raison) · golden inchangé (aucun fichier
+moteur touché).

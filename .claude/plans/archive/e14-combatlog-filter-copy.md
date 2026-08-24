@@ -32,15 +32,27 @@ Le plan flaggait E14 comme *plomberie disproportionnée* : tagger chaque
 
 ## Vérification
 
-- [ ] typecheck / lint verts
-- [ ] client + content vitest verts (parité locale)
-- [ ] build + budget bundle ≤ 800 Ko gzip
-- [ ] garde-fous faction / couleurs verts
-- [ ] smoke @core desktop + mobile
-- [ ] golden inchangé (aucun fichier moteur touché)
+- [x] typecheck / lint verts
+- [x] client + content vitest verts (parité locale)
+- [x] build + budget bundle ≤ 800 Ko gzip
+- [x] garde-fous faction / couleurs verts
+- [x] smoke @core desktop + mobile
+- [x] golden inchangé (aucun fichier moteur touché)
 
 ## Différé
 
 Filtre **par catégorie** d'événement (attaques / sorts / morts) — nécessiterait
 de tagger chaque event, plomberie disproportionnée pour la valeur ; le filtre
 texte couvre le besoin courant.
+
+## Clôture (2026-08-24)
+
+Plan **clos** par la passe `close-open-plans.md` : le code décrit ci-dessus était
+déjà sur `main`, seule la trace de vérification manquait. Pipeline rejoué en
+entier ce jour — typecheck ✓ · lint ✓ · tests **935 moteur / 165 contenu / 74
+client** ✓ · `content:check` (7 paquets, 2 cartes, 16 scénarios) ✓ · garde-fous
+faction & couleurs ✓ · build + budget bundle **364 866 o gzip** (cap 819 200) ✓ ·
+smoke `@core` desktop + mobile **55/55** ✓ (54 au 1ᵉʳ passage : le test `ville`
+mobile a dépassé le timeout **local** de 30 s sous contention CPU du conteneur —
+rejoué seul : **22,1 s, vert** ; la CI utilise 45 s pour cette raison) · golden inchangé (aucun fichier
+moteur touché).

@@ -132,7 +132,7 @@ y compris plaine, validable en 1 capture) ; **Lot 1** = scène peinte génériqu
 - [x] **Lot 2 — Variantes par faction assiégée** : les 6 scènes
       `siege-scene-<factionId>.jpg` sortent du même générateur (bande de
       ville par faction). Livré avec le Lot 1 (même script).
-- [ ] **Lot 3 — Polish** (après retour porteur) : props d'obstacles peints,
+- [ ] **Lot 3 — Polish** (après retour porteur, **différé** ⇒ `reliquats-differes.md` §3) : props d'obstacles peints,
       FX de bombardement calés sur la scène, tour de tir intégrée à
       l'enceinte, porte ouverte/brisée, machines de guerre.
 
@@ -482,3 +482,13 @@ d'amélioration reconnue. À traiter dans l'ordre :
      teinte forte quand l'asset existe). Zéro moteur.
    - (c) **porte ouverte/brisée** et (d) **marqueurs de douve rangées impaires** :
      différés (c = art peint requis, dépôt Gemini ; d = tweak mineur).
+
+## Clôture (2026-08-24)
+
+Plan **clos** par la passe `close-open-plans.md` : les lots livrés tiennent
+(enceinte, douve, fond de ville, machines visibles au smoke `siège` @core). Le
+**Lot 3 (polish)** était conditionné à un retour porteur qui n'est pas venu ⇒
+consigné dans `reliquats-differes.md` §3 plutôt que gardé ouvert ici. Pipeline
+rejoué ce jour : typecheck ✓ · lint ✓ · tests 935 / 165 / 74 ✓ · `content:check` ✓ ·
+garde-fous ✓ · budget bundle 364 866 o gzip ✓ · smoke `@core` 55/55 ✓ (le test `ville` mobile, en dépassement du timeout local de
+30 s sous contention CPU du conteneur, rejoué seul : vert en 22,1 s ; la CI accorde 45 s).

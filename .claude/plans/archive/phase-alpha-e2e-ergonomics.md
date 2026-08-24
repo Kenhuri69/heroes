@@ -206,7 +206,25 @@ séparé, hors périmètre Alpha.
 - [x] S1.3 perf : throttle cullTilemap + skip combat + verrou culling 256²
 - [x] S1.4 non-régressions save (import corrompu ; quota/version déjà couverts)
 - ✅ **Sprint 1 (durcissement E2E) TERMINÉ** → suite : Sprint 2 (ergo P0)
-- [ ] S2 ergo P0 (lots 0-2)
-- [ ] S3 ergo P1 (lots 3-4)
-- [ ] S4 immersion (lots 5-7)
-- [ ] S5 (optionnel) monde/audio
+- [x] S2 ergo P0 (lots 0-2) — **atteint avant le sprint** (audit item par item vs
+      `main`) puis **verrouillé** par les 3 tests de non-régression P0 (§2.x).
+- [x] S3 ergo P1 (lots 3-4) — Lot 3 livré (`ux-lot3a`/`ux-lot3b`, puis E8 pré-combat
+      + in-combat et E14 filtre/copie) ; Lot 4 clos (`ux-lot4a`/`4b`/`4c`, E11/E12
+      constatés déjà livrés).
+- [x] S4 immersion (lots 5-7) — Lot 5 complet (`ux-lot5a`/`5b` + projectiles/impacts),
+      Lot 6 livré côté client (`ux-lot6a`/`6b`), Lot 7 livré (`ux-lot7a`/`7b` +
+      `ux-endstats-losses`). Reste **uniquement** les planches d'assets ⇒
+      `reliquats-differes.md` §1.
+- [ ] S5 (optionnel) monde/audio — **différé, jamais arbitré** ; Lot 8 et Lot 9
+      livrés entre-temps (eau vivante, mute rapide, SFX, thèmes de faction) ⇒ il ne
+      reste que les **ambiances par biome** (dépend de pistes) : `reliquats-differes.md` §2.
+
+## Clôture (2026-08-24)
+
+Plan **clos** par la passe `close-open-plans.md`. Sprints S1→S4 livrés ; S5 reste
+optionnel et non arbitré, son seul contenu résiduel (ambiances audio par biome)
+est consigné dans `reliquats-differes.md`. Pipeline rejoué ce jour : typecheck ✓ ·
+lint ✓ · tests 935 / 165 / 74 ✓ · `content:check` ✓ · garde-fous faction & couleurs ✓ ·
+budget bundle 364 866 o gzip ✓ · smoke `@core` desktop + mobile 55/55 ✓ (dont le test `ville` mobile rejoué seul :
+timeout local 30 s dépassé sous contention CPU du conteneur, vert en 22,1 s isolé —
+la CI accorde 45 s pour ce motif).

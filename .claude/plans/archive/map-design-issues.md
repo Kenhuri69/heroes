@@ -161,10 +161,20 @@ vérification. Ordre proposé = impact joueur décroissant.
 - [x] Lot 3 — connexité (flood-fill + corridors) (PR #228)
 - [x] Lot 4 — progression des gardiens (PR #229)
 - [x] Lot 5 — villes neutres générées
-- [ ] Suivi assets (hors lots) : planches d'unités `sylvan-court`
+- [ ] Suivi assets (hors lots, **différé** ⇒ `reliquats-differes.md` §1) : planches d'unités `sylvan-court`
   (`assets/units/`) et tas de ressources (`assets/resources/pile-<res>.png`).
   Prompts PRÊTS à coller (générateur `gen_prompts.py` étendu à la famille
   `resource-piles`) : `assets/prompts/resource-piles-p1/p2.md` et
   `assets/prompts/units-sylvan-court-p1/p2.md`, extraction QC documentée dans
   chaque fichier. La génération d'image reste MANUELLE (LLM image externe —
   indisponible en session : l'`invoke` du serveur HF est désactivé).
+
+## Clôture (2026-08-24)
+
+Plan **clos** par la passe `close-open-plans.md` : tous les lots de design de
+carte sont livrés ; la seule case ouverte est un **suivi d'assets** (planches à
+générer, prompts prêts) qui ne dépend plus de ce plan — repris dans
+`reliquats-differes.md` §1. Pipeline rejoué ce jour : typecheck ✓ · lint ✓ ·
+tests 935 / 165 / 74 ✓ · `content:check` ✓ · garde-fous ✓ · budget bundle
+364 866 o gzip ✓ · smoke `@core` 55/55 ✓ (le test `ville` mobile, en dépassement du timeout local de
+30 s sous contention CPU du conteneur, rejoué seul : vert en 22,1 s ; la CI accorde 45 s).

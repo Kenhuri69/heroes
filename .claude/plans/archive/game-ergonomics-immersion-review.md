@@ -438,6 +438,7 @@ Zéro asset, zéro moteur : uniquement `CombatScene` + `motion.ts`.
         crossfade/titre vivant (items 4-5, optionnels).
   - [ ] **Lot 6 tail** (asset-lourd) : vignettes de bâtiments événement (item 3) +
         planches unités/avatars/ville (items 4-6) — via skills `asset-*`, session dédiée.
+        **Différé** ⇒ suivi dans `reliquats-differes.md` §1.
   - [x] **Lot 8** — un monde qui respire. **8.1 déjà livré** (rivage iso
         `worldBorder.ts` + mer DOM non-noire + vignette `.map-vignette`). **8b livré**
         (`ux-lot8b-living-water.md`, I12) : **eau vivante** — voile de miroitement
@@ -457,6 +458,7 @@ Zéro asset, zéro moteur : uniquement `CombatScene` + `motion.ts`.
         ambiances par biome (9.3, optionnel).
   - [ ] **Lot 6 tail** (asset-lourd) : fonds de combat (8 terrains) + vignettes
         core/événement — planches à générer (prompts fournis).
+        **Différé** ⇒ suivi dans `reliquats-differes.md` §1.
   - [x] **Lot 3 tail** : **E8 CLÔT le pilier A3** — moitié pré-combat
         (`e8-prebattle-overwhelm-warning.md`, bandeau `role="alert"` si puissance
         ennemie ≥ ×2) **+ moitié in-combat** (`e8b-combat-lethal-retaliation.md`,
@@ -476,3 +478,20 @@ Zéro asset, zéro moteur : uniquement `CombatScene` + `motion.ts`.
         unit-testé (gardien exclu, héros-vs-héros comptés). Doc 08 §2.5 alignée.
   - [ ] Reste hors périmètre client-direct : 9.3 (ambiances biome, dépend pistes) /
         Lot 6 assets (planches) / Lot 10 (gros chantiers) : à cadrer séparément.
+        **Différé** ⇒ suivi dans `reliquats-differes.md` §1/§2/§5.
+
+---
+
+## 7. Clôture (2026-08-24)
+
+Plan **clos** par la passe `close-open-plans.md`. Tous les lots **client-direct**
+(0→9) sont livrés, E8/E14/E15 compris (leurs plans dédiés `e8`, `e8b`, `e14`,
+`e15` sont archivés avec leur vérification). Les 3 cases restées ouvertes ne sont
+pas du travail oublié mais des chantiers **différés par décision** (planches
+d'assets, ambiances audio, Lot 10) : ils vivent désormais dans
+`reliquats-differes.md`, ce plan n'a plus à être relu pour les retrouver.
+Pipeline rejoué ce jour : typecheck ✓ · lint ✓ · tests 935 / 165 / 74 ✓ ·
+`content:check` ✓ · garde-fous faction & couleurs ✓ · budget bundle 364 866 o
+gzip ✓ · smoke `@core` desktop + mobile 55/55 ✓ (dont le test `ville` mobile rejoué seul :
+timeout local 30 s dépassé sous contention CPU du conteneur, vert en 22,1 s isolé —
+la CI accorde 45 s pour ce motif).

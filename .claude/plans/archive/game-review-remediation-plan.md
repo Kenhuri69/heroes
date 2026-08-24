@@ -578,13 +578,28 @@ glisser à tout moment (aucune dépendance).
 - [x] Constats B1-B7 / H1-H7 / U1-U8 / P1-P3 consignés avec preuve
       (`fichier:ligne` et/ou capture)
 - [x] Plan par lots avec étapes et critères de vérification chiffrés
-- [ ] Arbitrage utilisateur sur l'ordre des vagues
-- [ ] Ouverture des plans dédiés par lot au fil des implémentations
-  - [ ] R0 — ne plus échouer en silence
+- [x] Arbitrage utilisateur sur l'ordre des vagues : **l'ordre recommandé a été
+      suivi tel quel** (vagues 1→4, R0 → R7) — arbitrage sans objet a posteriori.
+- [x] Ouverture des plans dédiés par lot au fil des implémentations — **les 8 lots
+      ont leur plan, tous livrés**
+  - [x] R0 — ne plus échouer en silence (`.claude/plans/r0-plus-jamais-en-silence.md`,
+        complété par `r0-verification-gaps.md`)
   - [x] R1 — plateau de combat visible (`.claude/plans/r1-plateau-combat-visible.md`)
   - [x] R2 — écran de ville (`.claude/plans/r2-ecran-ville-outil.md`)
   - [x] R3 — HUD d'aventure (`.claude/plans/r3-hud-aventure-se-range.md`)
   - [x] R4 — nouvelle partie (`.claude/plans/r4-nouvelle-partie-trois-taps.md`)
   - [x] R5 — lisibilité de la carte (`.claude/plans/r5-carte-lisible.md`)
-  - [ ] R6 — incarnation & finition
+  - [x] R6 — incarnation & finition (`.claude/plans/r6-incarnation-finition.md`)
   - [x] R7 — hygiène de build *(livré : `.claude/plans/r7-hygiene-build-charge.md`)*
+
+---
+
+## 8. Clôture (2026-08-24)
+
+Plan **clos** par la passe `close-open-plans.md` : les 8 lots R0→R7 sont livrés
+(chacun avec son plan dédié et sa vérification chiffrée), et les constats P1/P2/P3/B7
+du §6 le sont avec R7. Les 4 cases encore ouvertes n'étaient qu'un **suivi périmé**
+— aucun travail restant identifié dans ce plan. Pipeline rejoué ce jour : typecheck ✓ ·
+lint ✓ · tests 935 / 165 / 74 ✓ · `content:check` ✓ · garde-fous ✓ · budget bundle
+364 866 o gzip ✓ · smoke `@core` 55/55 ✓ (le test `ville` mobile, en dépassement du timeout local de
+30 s sous contention CPU du conteneur, rejoué seul : vert en 22,1 s ; la CI accorde 45 s).

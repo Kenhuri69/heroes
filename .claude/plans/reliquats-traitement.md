@@ -84,14 +84,44 @@ héros actif** du joueur humain. Pistes synthétisées par
 → verify: unitaires du résolveur (terrain → clé, repli, mute), poids des OGG
 mesuré sous le budget images.
 
-## 6. Vérification (à rejouer en entier avant push)
+## 6. Journal d'exécution
 
-- [ ] typecheck / lint verts
-- [ ] tests moteur / contenu / client verts (+ nouveaux unitaires)
-- [ ] `content:check` vert
-- [ ] garde-fous faction & couleurs verts
-- [ ] build + budget bundle ≤ 800 Ko gzip
-- [ ] budget images (`dist/assets` ≤ 96 Mio, chemin critique ≤ 300 Ko)
-- [ ] smoke `@core` desktop + mobile
-- [ ] golden inchangé (aucun fichier moteur touché)
-- [ ] `reliquats-differes.md` mis à jour (§2, §3 avec preuves, §4)
+- **Lot A livré** — `gen_siege_gate_broken.py` (7 déclinaisons : générique + 6
+  maisons) ; `isGateBroken` pur + 4 unitaires ; bascule des tranches de porte
+  dans `CombatScene` (bande redécoupée en deux moitiés ⇒ `zIndex` inchangés).
+  *Écart au plan* : la rupture du **tablier du pont-levis** a été essayée puis
+  **abandonnée** — la découpe des planches se lisait comme un accident de rendu
+  (le défaut que le plan de refonte reprochait aux itérations précédentes) ; le
+  vantail défoncé + les gravats portent le message. *Limite assumée* : la bascule
+  d'art est du rendu canvas ⇒ non assertable en smoke (le prédicat, lui, est
+  testé ; le smoke siège garde la non-régression).
+- **Lot B livré** — 4 keyframes dans `OutcomeOverlay.css` (art, voile, panneau,
+  titre) + gardes `prefers-reduced-motion` **et** `[data-reduce-motion]`.
+  *Écart* : le zoom léger du fond a été retiré — `background-size: 108% → cover`
+  n'est pas interpolable (saut au lieu d'un mouvement), le fondu suffit.
+- **Lot C livré** — `gen_ambience.py` : 5 nappes (forest/snow/sand/swamp/river),
+  ~22 s bouclées (queue fondue dans la tête), crête 0.22, encodage 64 kbps ⇒
+  ~195 Ko/OGG. Contrôle objectif faute d'écoute possible : RMS 0.02–0.06 et
+  brillance (ZCR) 0.13 (vent) → 0.34 (eau vive) ⇒ les 5 nappes sont bien
+  distinctes et discrètes. Client : 2ᵉ canal + `ambienceKey` pur (3 unitaires).
+  *Choix* : l'ambiance suit le volume MUSIQUE (×0.45) au lieu d'un 3ᵉ réglage —
+  un curseur de plus pour une nappe à −7 dB ne se justifiait pas.
+
+## 7. Vérification (rejouée en entier)
+
+- [x] typecheck (5 projets) / lint verts
+- [x] tests **935 moteur / 165 contenu / 81 client** (+7 nouveaux : 4 `isGateBroken`,
+      3 `ambienceKey`)
+- [x] `content:check` vert (7 paquets, 2 cartes, 16 scénarios)
+- [x] garde-fous faction & couleurs verts
+- [x] build + budget bundle **365 969 o gzip** (cap 819 200) — les OGG/M4A
+      d'ambiance sont hors bundle (`?url`), comme les images
+- [x] budget images : `dist/assets` **82 Mio** (cap 96) — +1,9 Mio d'ambiances ;
+      chemin critique **242 604 o** (cap 307 200)
+- [x] smoke `@core` desktop + mobile **55/55** (2 exécutions intermédiaires ont
+      perdu 1 test chacune — `ville` mobile puis `tap-tap` desktop — par
+      dépassement de timeout sous contention CPU du conteneur : chacun **rejoué
+      seul est vert** (22,1 s / 5,0 s), et la 3ᵉ exécution complète passe 55/55)
+- [x] golden inchangé (aucun fichier moteur touché)
+- [x] `reliquats-differes.md` mis à jour (§2 et §3 traités, §4 crossfade livré,
+      §1/§5 inchangés avec leur motif de blocage)

@@ -231,3 +231,23 @@ function drawBreach(g: Graphics, x: number, y: number, seed: number, scale = 1):
     g.rect(cx, cy, sz, sz * 0.8).fill({ color: k % 2 ? RUBBLE : STONE_BODY }).stroke({ width: 0.8, color: STONE_DARK, alpha: 0.55 });
   }
 }
+
+/**
+ * Porte BRISÉE (dernier item du Lot 3 de `siege-visual-overhaul`) : le gatehouse
+ * passe à son art défoncé dès que l'assaut a réellement percé l'enceinte — une
+ * rangée qui portait un rempart au **début du combat** n'en porte plus (segment
+ * abattu par la catapulte, `WallBombarded`). Les rangées ouvertes AU SETUP (la
+ * brèche que la catapulte ouvre d'entrée, doc 02 §5) ne comptent pas : elles ne
+ * sont jamais dans `initialWalled`.
+ *
+ * Pur (deux ensembles ⇒ un booléen) : `null` = état initial pas encore relevé
+ * ⇒ porte intacte, aucun faux positif au premier sync.
+ */
+export function isGateBroken(
+  initialWalled: ReadonlySet<number> | null,
+  walledNow: ReadonlySet<number>,
+): boolean {
+  if (!initialWalled) return false;
+  for (const row of initialWalled) if (!walledNow.has(row)) return true;
+  return false;
+}

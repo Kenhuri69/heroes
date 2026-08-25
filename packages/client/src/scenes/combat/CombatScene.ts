@@ -50,7 +50,7 @@ import {
   COMBAT_OBSTACLE_VARIANTS,
   type SiegeRunLayout,
 } from '../../render/assets';
-import { computeWallLayout, drawCurtain, drawTower, drawGate, drawDamage } from '../../render/siegeWall';
+import { computeWallLayout, drawCurtain, drawTower, drawGate, drawDamage, isGateBroken } from '../../render/siegeWall';
 import { heroArchetype } from '../../app/game';
 import { HEX_SIZE, ISO_SQUASH, computeBoardBounds, drawBoard, hexKey, offsetToPixel, pixelToOffset } from '../../render/hexgrid';
 import { isContentPointVisible, type Rect } from '../../render/cameraClamp';
@@ -176,6 +176,15 @@ export class CombatScene {
    * reste sur place au lieu d'un hex vide. Vidé à la fin du combat.
    */
   private readonly structureSpots = new Map<string, OffsetPos>();
+  /**
+   * Porte brisée (backlog siège, dernier item du Lot 3) : rangées PORTANT un
+   * rempart au premier sync de ce combat. Une rangée qui en sort ⇒ l'assaut a
+   * réellement percé (les rangées ouvertes AU SETUP par la catapulte, elles, ne
+   * comptent pas) ⇒ le gatehouse passe à son art défoncé. Vidé en fin de combat
+   * comme `structureSpots` ; sur une partie rechargée en pleine bataille le
+   * relevé repart de l'état restauré (présentation seule, zéro état moteur).
+   */
+  private initialWalledRows: Set<number> | null = null;
   private readonly stacksLayer = new Container();
   /** UXD-4 : effets éphémères (chiffres de dégâts flottants) au-dessus des piles. */
   private readonly fxLayer = new Container();
@@ -428,6 +437,7 @@ export class CombatScene {
       for (const s of this.obstacleSprites.values()) s.destroy();
       this.obstacleSprites.clear();
       this.structureSpots.clear();
+      this.initialWalledRows = null;
       this.fxLayer.removeChildren().forEach((c) => c.destroy()); // purge des chiffres flottants
       for (const [id, token] of this.stackTokens) {
         if (this.animatingIds.has(id)) continue;
@@ -687,16 +697,21 @@ export class CombatScene {
     if (!layout || walls.length === 0) return;
     // Itération 9 : la tour de tir détruite laisse sa ruine peinte sur l'hex.
     this.syncStructureRuins(combat);
+    // Porte brisée : relevé des rangées murées AU DÉBUT du combat (une seule
+    // fois), puis comparaison à l'état courant.
+    const walledRows = new Set((combat.siegeWalls ?? []).map((w) => w.row));
+    this.initialWalledRows ??= walledRows;
+    const gateBroken = isGateBroken(this.initialWalledRows, walledRows);
     // Mode RUN ensembliste (tableau peint découpé) : la fortification est un
     // seul artwork affiché par tranches — prioritaire quand l'asset existe.
     if (layout.run && siegeRunUrl(this.siegeFactionId)) {
-      this.syncRunSlices(combat, layout.run);
+      this.syncRunSlices(combat, layout.run, gateBroken);
       return;
     }
     const wallCol = walls[0]!.col;
     const hp = combat.siegeWallHp ?? {};
     const maxHp = Object.keys(hp).length ? Math.max(...Object.values(hp)) : 0;
-    const walled = new Set(walls.map((w) => w.row));
+    const walled = walledRows;
     const gateA = Math.floor(COMBAT_ROWS / 2) - 1;
     const gateB = Math.floor(COMBAT_ROWS / 2);
     const yOf = (row: number): number => offsetToPixel({ col: wallCol, row }).y;
@@ -746,8 +761,8 @@ export class CombatScene {
 
     // Porte = segment VERTICAL dans l'axe du mur (retour porteur : le
     // gatehouse frontal étalé en travers jurait) ; repli = art frontal.
-    ensure('gate', `gate-piece:${this.siegeFactionId ?? ''}`, () => {
-      const url = siegeGatePieceUrl(this.siegeFactionId) ?? siegeGateUrl();
+    ensure('gate', `gate-piece:${gateBroken ? 'broken' : 'intact'}:${this.siegeFactionId ?? ''}`, () => {
+      const url = siegeGatePieceUrl(this.siegeFactionId, gateBroken) ?? siegeGateUrl();
       if (!url) return null;
       const sprite = new Sprite();
       sprite.position.set(layout.gate.x, layout.gate.yBottom);
@@ -1192,7 +1207,7 @@ export class CombatScene {
    * l'état PEINT à cette rangée est remplacé par la bande-étalon de l'état
    * (`siege-run-band-*`), découpée du même tableau ⇒ matière identique.
    */
-  private syncRunSlices(combat: CombatState, run: SiegeRunLayout): void {
+  private syncRunSlices(combat: CombatState, run: SiegeRunLayout, gateBroken: boolean): void {
     const walls = combat.siegeWalls ?? [];
     const wallCol = walls[0]!.col;
     const hp = combat.siegeWallHp ?? {};
@@ -1253,6 +1268,21 @@ export class CombatScene {
       const url = siegeRunBandUrl(state, this.siegeFactionId);
       return url ? ((await Assets.load(url)) as Texture) : null;
     };
+    // Porte BRISÉE : bande des 2 rangées de porte, découpée par
+    // `gen_siege_gate_broken.py` au MÊME rect que les tranches du run ⇒ on la
+    // redécoupe en deux moitiés (une par rangée) pour garder EXACTEMENT les
+    // `zIndex` d'aujourd'hui — l'occlusion des unités dans le porche ne bouge
+    // pas. Sans l'asset, `gateBandUrl` est `undefined` ⇒ porte intacte (repli).
+    const gateBandUrl = gateBroken ? siegeRunBandUrl('gate-broken', this.siegeFactionId) : undefined;
+    const gateBandTex = (half: number) => async (): Promise<Texture | null> => {
+      if (!gateBandUrl) return null;
+      const base = (await Assets.load(gateBandUrl)) as Texture;
+      const h = base.height / run.gateRows.length;
+      return new Texture({
+        source: base.source,
+        frame: new Rectangle(0, half * h, base.width, h),
+      });
+    };
 
     const stateOf = (row: number): 'gate' | 'intact' | 'cracked' | 'razed' => {
       if (gateRows.has(row)) return 'gate';
@@ -1269,6 +1299,17 @@ export class CombatScene {
       // tableau ; inactive : chaque rangée montre la bande de son état réel
       // (mur propre au round 1, plus de gravats fantômes).
       const zone = zones.find(([, [a, b]]) => row >= a && row <= b);
+      if (state === 'gate' && gateBandUrl) {
+        place(
+          `slice:${row}`,
+          'gate:broken',
+          topBp,
+          period,
+          gateBandTex(run.gateRows.indexOf(row)),
+          topBp + period,
+        );
+        continue;
+      }
       let useRun: boolean;
       if (state === 'gate') useRun = true;
       else if (zone) {

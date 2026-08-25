@@ -1,6 +1,7 @@
+import { terrainAt } from '@heroes/engine';
 import { appStore } from './store';
 import { eventBus, type AppEvent } from './events';
-import { humanId } from './game';
+import { humanId, resolveSelectedHero } from './game';
 
 /**
  * Ambiance sonore (UXD-6B). Architecture **jouable silencieuse** : tant qu'aucun
@@ -71,6 +72,16 @@ if (music) {
 }
 
 /**
+ * Lot 9.3 — **ambiance de biome** : 2ᵉ canal, SOUS la musique (jamais à sa
+ * place). Boucle discrète choisie d'après le terrain foulé par le héros actif ;
+ * aucune piste pour ce terrain ⇒ silence (repli gracieux, comme les images).
+ */
+const ambience = typeof Audio !== 'undefined' ? new Audio() : null;
+if (ambience) ambience.loop = true;
+let currentAmbience: string | null = null;
+const AMBIENCE_MIX = 0.45; // fraction du volume musique
+
+/**
  * Piste de faction si elle existe (`<base>-<faction>`), sinon la piste générique
  * (Lot 9c). **Pur** — repli gracieux identique au patron des assets peints : zéro
  * churn tant que la piste de faction n'est pas déposée.
@@ -85,6 +96,19 @@ export function factionTrack(
     if (has(specific)) return specific;
   }
   return base;
+}
+
+/**
+ * Terrain → clé d'ambiance si la piste existe. **Pur** (même patron que
+ * `factionTrack`) : `null` = silence, jamais d'URL cassée.
+ */
+export function ambienceKey(
+  terrain: string | null | undefined,
+  has: (key: string) => boolean,
+): string | null {
+  if (!terrain) return null;
+  const key = `ambience/${terrain}`;
+  return has(key) ? key : null;
 }
 
 type StoreState = ReturnType<typeof appStore.getState>;
@@ -126,6 +150,37 @@ function musicContextKey(): string | null {
     return factionTrack('music/town', openTownFaction(s), (k) => registry.has(k));
   if (s.screen === 'adventure') return 'music/adventure';
   return null;
+}
+
+/**
+ * Terrain sous le héros actif du joueur humain, ou `null` — l'ambiance ne joue
+ * que sur la CARTE (en combat/ville, la musique de contexte prend le relais).
+ */
+function activeTerrain(s: StoreState): string | null {
+  if (s.screen !== 'adventure' || !s.game.started || s.game.combat) return null;
+  if (s.modals.some((m) => m.kind === 'town')) return null;
+  const hero = resolveSelectedHero(s.game, s.selectedHeroId);
+  if (!hero || !s.game.map) return null;
+  try {
+    return terrainAt(s.game.map, hero.pos);
+  } catch {
+    return null; // héros hors carte (état transitoire) ⇒ silence
+  }
+}
+
+function applyAmbience(): void {
+  if (!ambience) return;
+  const url = currentAmbience ? registry.get(currentAmbience) : undefined;
+  ambience.volume = musicVolume * AMBIENCE_MIX;
+  if (!url || musicVolume === 0 || muted || !unlocked) {
+    if (!ambience.paused) ambience.pause();
+    return;
+  }
+  if (ambience.dataset.key !== currentAmbience) {
+    ambience.src = url;
+    ambience.dataset.key = currentAmbience ?? '';
+  }
+  if (ambience.paused) void ambience.play().catch(() => undefined);
 }
 
 function applyMusic(): void {
@@ -179,6 +234,7 @@ export function setMusicVolume(v: number): void {
   }
   appStore.setState({ musicVolume });
   applyMusic();
+  applyAmbience();
 }
 
 export function setSfxVolume(v: number): void {
@@ -202,6 +258,7 @@ export function setMuted(v: boolean): void {
   }
   appStore.setState({ audioMuted: muted });
   applyMusic();
+  applyAmbience();
 }
 
 /** Bascule le mute rapide (bouton haut-parleur de la TurnBar). */
@@ -275,6 +332,7 @@ export function initAudio(): void {
     if (unlocked) return;
     unlocked = true;
     applyMusic();
+    applyAmbience();
   };
   if (typeof window !== 'undefined') {
     window.addEventListener('pointerdown', unlock, { once: true });
@@ -292,6 +350,11 @@ export function initAudio(): void {
     if (want !== currentContext) {
       currentContext = want;
       applyMusic();
+    }
+    const wantAmbience = ambienceKey(activeTerrain(appStore.getState()), (k) => registry.has(k));
+    if (wantAmbience !== currentAmbience) {
+      currentAmbience = wantAmbience;
+      applyAmbience();
     }
   });
 

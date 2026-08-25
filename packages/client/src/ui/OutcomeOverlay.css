@@ -6,6 +6,10 @@
 .modal-backdrop.outcome-backdrop {
   background-size: cover;
   background-position: center;
+  /* Fin de partie VIVANTE (reliquat Lot 7, items 4-5) : l'art arrive en fondu
+     LONG au lieu du fondu générique de modale (--dur-fast) — la partie se
+     termine, on lui laisse une respiration. */
+  animation: outcome-art-in 900ms ease-out both;
 }
 .modal-backdrop.outcome-backdrop::before {
   content: '';
@@ -13,10 +17,58 @@
   inset: 0;
   background: var(--veil-deep);
   z-index: 0;
+  /* Le voile de lisibilité se pose APRÈS l'art : l'image est lue en clair une
+     fraction de seconde, puis s'assombrit sous le panneau. */
+  animation: outcome-veil-in 1100ms ease-out both;
 }
 .modal-backdrop.outcome-backdrop > .outcome-overlay {
   position: relative;
   z-index: 1;
+  /* Le panneau entre après ce battement (le fondu générique .modal est
+     remplacé, pas cumulé : même propriété, sélecteur plus spécifique). */
+  animation: outcome-panel-in 520ms 380ms ease-out both;
+}
+
+@keyframes outcome-art-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes outcome-veil-in {
+  0% {
+    opacity: 0;
+  }
+  35% {
+    opacity: 0.35;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes outcome-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes outcome-title-in {
+  from {
+    opacity: 0;
+    letter-spacing: 0.28em;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    letter-spacing: normal;
+    transform: none;
+  }
 }
 
 .modal.outcome-overlay {
@@ -34,6 +86,25 @@
 .modal.outcome-overlay h2 {
   margin: 0;
   font-size: 1.75rem;
+  /* Titre VIVANT : le mot se resserre en place au lieu d'apparaître à plat. */
+  animation: outcome-title-in 700ms 520ms ease-out both;
+}
+
+/* Accessibilité (doc 08 §4) : aucun mouvement si le système OU l'option en jeu
+   le demandent. Le backdrop et le panneau sont déjà couverts par les règles
+   `.modal-backdrop`/`.modal` d'interactions.css ; le titre et le voile ont
+   besoin de leur propre garde. */
+@media (prefers-reduced-motion: reduce) {
+  .modal.outcome-overlay h2,
+  .modal-backdrop.outcome-backdrop,
+  .modal-backdrop.outcome-backdrop::before {
+    animation: none !important;
+  }
+}
+:root[data-reduce-motion='true'] .modal.outcome-overlay h2,
+:root[data-reduce-motion='true'] .modal-backdrop.outcome-backdrop,
+:root[data-reduce-motion='true'] .modal-backdrop.outcome-backdrop::before {
+  animation: none !important;
 }
 
 /* Graphique de puissance de fin de partie (doc 08 §2.5, lot U6b). */

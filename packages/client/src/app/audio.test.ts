@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { AppEvent } from './events';
-import { sfxIdForEvent, factionTrack, type SfxContext } from './audio';
+import { sfxIdForEvent, factionTrack, ambienceKey, type SfxContext } from './audio';
 
 /**
  * Mapping événement moteur → SFX (Lot 9b). Fonction pure : le gating au joueur
@@ -73,5 +73,30 @@ describe('factionTrack', () => {
   it('repli sur la générique si aucune faction', () => {
     expect(factionTrack('music/town', null, has)).toBe('music/town');
     expect(factionTrack('music/town', undefined, has)).toBe('music/town');
+  });
+});
+
+/**
+ * Lot 9.3 — ambiance de biome : le résolveur est PUR (terrain → clé), donc
+ * testable sans `Audio` ni store. Les cas qui comptent : piste absente ⇒
+ * silence (repli gracieux, jamais d'URL cassée), terrain nul ⇒ silence.
+ */
+describe('ambienceKey', () => {
+  const has = (k: string): boolean => k === 'ambience/forest' || k === 'ambience/snow';
+
+  it('rend la clé du terrain quand la piste existe', () => {
+    expect(ambienceKey('forest', has)).toBe('ambience/forest');
+    expect(ambienceKey('snow', has)).toBe('ambience/snow');
+  });
+
+  it('rend null quand aucune piste n’est déposée pour ce terrain', () => {
+    expect(ambienceKey('grass', has)).toBeNull();
+    expect(ambienceKey('rocks', has)).toBeNull();
+  });
+
+  it('rend null sans terrain (hors carte, combat, ville)', () => {
+    expect(ambienceKey(null, has)).toBeNull();
+    expect(ambienceKey(undefined, has)).toBeNull();
+    expect(ambienceKey('', has)).toBeNull();
   });
 });

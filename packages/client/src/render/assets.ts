@@ -448,8 +448,13 @@ export function siegeSceneTowerUrl(factionId?: string): string | undefined {
 /** Segment de PORTE vertical (double hauteur, dans l'axe du mur) — courtine
  *  percée de l'arche peinte, posée sur les rangées d'ouverture. `factionId`
  *  optionnel ⇒ variante teintée. */
-export function siegeGatePieceUrl(factionId?: string): string | undefined {
-  return factionTinted('combat/siege-piece-gate', factionId);
+export function siegeGatePieceUrl(factionId?: string, broken = false): string | undefined {
+  return (
+    // Porte BRISÉE (`gen_siege_gate_broken.py`) : variante dérivée de l'art
+    // intact — repli gracieux sur la porte intacte si elle n'est pas déposée.
+    (broken ? factionTinted('combat/siege-piece-gate-broken', factionId) : undefined) ??
+    factionTinted('combat/siege-piece-gate', factionId)
+  );
 }
 
 /** TOUR DE TIR de la ville (structure S6 en mode scène) : tour de pierre grise
@@ -478,7 +483,7 @@ export function siegeRunUrl(factionId?: string): string | undefined {
  *  quand l'état réel de la rangée diffère de l'état peint dans le tableau).
  *  `factionId` optionnel ⇒ variante teintée. */
 export function siegeRunBandUrl(
-  state: 'intact' | 'cracked' | 'razed',
+  state: 'intact' | 'cracked' | 'razed' | 'gate-broken',
   factionId?: string,
 ): string | undefined {
   return factionTinted(`combat/siege-run-band-${state}`, factionId);

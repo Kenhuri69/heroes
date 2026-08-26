@@ -125,6 +125,27 @@ describe('UX-HEROSWAP — TransferBetweenHeroes', () => {
     expect(validate(s, artifactTransfer(0))?.code).toBe('invalidTransfer');
   });
 
+  // Revue 2026-08 : la règle des slots EXCLUSIFS (H-ARTEQUIP) ne valait que pour
+  // `EquipArtifact` — un transfert permettait de cumuler 2 artefacts du même
+  // emplacement exclusif chez la cible (les bonus se somment sur tous les slots).
+  it('refuse le transfert si l’emplacement exclusif est déjà occupé chez la cible', () => {
+    const s = state([
+      hero('a', { x: 3, y: 3 }, { artifacts: ['helm-a', ...Array.from({ length: 9 }, () => null)] }),
+      hero('b', { x: 4, y: 3 }, { artifacts: ['helm-b', ...Array.from({ length: 9 }, () => null)] }),
+    ]);
+    s.artifactCatalog = {
+      'helm-a': { id: 'helm-a', bonus: {}, slot: 'head' },
+      'helm-b': { id: 'helm-b', bonus: {}, slot: 'head' },
+    };
+    expect(validate(s, artifactTransfer(0))?.code).toBe('slotOccupied');
+    // Slot NON exclusif (`misc`) : le transfert reste permis (cumul légitime).
+    s.artifactCatalog = {
+      'helm-a': { id: 'helm-a', bonus: {}, slot: 'misc' },
+      'helm-b': { id: 'helm-b', bonus: {}, slot: 'misc' },
+    };
+    expect(validate(s, artifactTransfer(0))).toBeNull();
+  });
+
   it('refuse un slot d’armée vide', () => {
     const s = state([hero('a', { x: 3, y: 3 }), hero('b', { x: 4, y: 3 })]);
     expect(validate(s, armyTransfer(0))?.code).toBe('invalidTransfer');

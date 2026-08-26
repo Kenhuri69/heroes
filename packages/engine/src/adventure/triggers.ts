@@ -4,6 +4,8 @@ import type { GameState, HeroState, PlayerState, ResourceId } from '../core/stat
 import { heroArmyCap, heroVisionRadius } from '../hero/skills';
 import { revealAround } from './fog';
 import { inBounds, samePos, type GridPos, type TriggerEffect } from './map';
+import { grantArtifact } from '../hero/equip';
+import type { ArtifactDef } from '../hero/types';
 
 /**
  * Issue d'un trigger de visite (doc 18 A5) : `continue` (aucun / effet appliqué,
@@ -30,15 +32,19 @@ export function applyTriggerEffect(
   hero: HeroState | null,
   triggerId: string,
   events: GameEvent[],
+  /**
+   * Catalogue d'artefacts : requis pour appliquer la règle des slots exclusifs au
+   * don d'artefact (revue 2026-08). Injecté plutôt que lu d'un état — la fonction
+   * reste pure.
+   */
+  artifactCatalog: Record<string, ArtifactDef> = {},
 ): void {
   if (effect.kind === 'grantResource' && player) {
     player.resources[effect.resource as ResourceId] += effect.amount;
   } else if (effect.kind === 'grantArtifact' && hero) {
-    // Comme le butin de gardien (guardian-reward.ts) : 1er slot équipé libre,
-    // sinon le SAC (rien de perdu).
-    const slot = hero.artifacts.indexOf(null);
-    if (slot !== -1) hero.artifacts[slot] = effect.artifactId;
-    else (hero.backpack ??= []).push(effect.artifactId);
+    // Comme le butin de gardien (guardian-reward.ts) : 1er slot équipé libre
+    // SANS conflit de slot, sinon le SAC (rien de perdu).
+    grantArtifact(hero, artifactCatalog, effect.artifactId);
   } else if (effect.kind === 'grantArmy' && hero) {
     // Comme le recrutement d'habitation (visitable.ts) : fusion même unité,
     // sinon nouveau slot si le cap le permet — sinon le don est perdu (mais le
@@ -122,7 +128,7 @@ export function fireVisitTrigger(
     // combat — le piège n'est PAS consommé, il attend une proie.
     if (hero.army.length === 0) return 'continue';
     trig.fired = true;
-    applyTriggerEffect(trig.effect, player, hero, trig.id, events);
+    applyTriggerEffect(trig.effect, player, hero, trig.id, events, draft.artifactCatalog);
     beginAmbushCombat(draft, hero.id, trig.effect.army, events);
     return 'combat';
   }
@@ -134,7 +140,7 @@ export function fireVisitTrigger(
     const to = trig.effect.to;
     if (!inBounds(map, to)) return 'continue';
     trig.fired = true;
-    applyTriggerEffect(trig.effect, player, hero, trig.id, events);
+    applyTriggerEffect(trig.effect, player, hero, trig.id, events, draft.artifactCatalog);
     const from = { ...hero.pos };
     hero.pos = { x: to.x, y: to.y };
     const config = draft.config;
@@ -165,7 +171,7 @@ export function fireVisitTrigger(
     return 'choice';
   }
   trig.fired = true;
-  applyTriggerEffect(trig.effect, player, hero, trig.id, events);
+  applyTriggerEffect(trig.effect, player, hero, trig.id, events, draft.artifactCatalog);
   return 'continue';
 }
 
@@ -190,7 +196,7 @@ export function fireFlagCaptureTrigger(
   );
   if (!trig) return;
   trig.fired = true;
-  applyTriggerEffect(trig.effect, player, hero, trig.id, events);
+  applyTriggerEffect(trig.effect, player, hero, trig.id, events, draft.artifactCatalog);
 }
 
 /**
@@ -208,10 +214,10 @@ export function fireDayTriggers(draft: GameState, events: GameEvent[]): void {
     trig.fired = true;
     if (trig.effect.kind === 'grantResource') {
       for (const p of draft.players) {
-        if (!p.eliminated) applyTriggerEffect(trig.effect, p, null, trig.id, events);
+        if (!p.eliminated) applyTriggerEffect(trig.effect, p, null, trig.id, events, draft.artifactCatalog);
       }
     } else {
-      applyTriggerEffect(trig.effect, null, null, trig.id, events);
+      applyTriggerEffect(trig.effect, null, null, trig.id, events, draft.artifactCatalog);
     }
   }
 }

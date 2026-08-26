@@ -9,6 +9,7 @@ import { samePos, type GridPos } from './map';
 import { stepCost } from './path';
 import { fireFlagCaptureTrigger, fireVisitTrigger } from './triggers';
 import { recruitDwelling, visitBonus } from './visitable';
+import { grantArtifact } from '../hero/equip';
 
 /** Le propriétaire (id ou null) d'une structure de carte est-il un ALLIÉ du joueur ? (B26) */
 function isAllyOwner(draft: GameState, player: PlayerState, ownerId: string | null): boolean {
@@ -301,9 +302,7 @@ export function advanceHeroAlongPath(
       // s'il n'y en a aucun, il tombe dans le SAC (H-ARTEQUIP — plus rien de
       // perdu au sol). Ramassé en passant (D6) : le héros ne s'arrête pas.
       if (obj && obj.type === 'artifact') {
-        const slot = hero.artifacts.indexOf(null);
-        if (slot !== -1) hero.artifacts[slot] = obj.artifactId;
-        else (hero.backpack ??= []).push(obj.artifactId);
+        grantArtifact(hero, draft.artifactCatalog, obj.artifactId);
         removeObject(obj);
         events.push({
           type: 'ArtifactPicked',

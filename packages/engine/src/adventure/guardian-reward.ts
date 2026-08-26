@@ -1,6 +1,7 @@
 import type { GameEvent } from '../core/events';
 import { rollRange } from '../core/rng';
 import type { GameState, HeroState, PlayerState, ResourceId } from '../core/state';
+import { grantArtifact } from '../hero/equip';
 
 /**
  * Joueurs co-participants d'un butin coop (E4.3) : le lead d'abord, puis les
@@ -128,9 +129,7 @@ export function rewardGuardianDefeat(
       if (artifactId) {
         // Comme le ramassage d'artefact au sol (movement.ts) : 1er slot équipé
         // libre, sinon le SAC (rien de perdu).
-        const slot = hero.artifacts.indexOf(null);
-        if (slot !== -1) hero.artifacts[slot] = artifactId;
-        else (hero.backpack ??= []).push(artifactId);
+        grantArtifact(hero, draft.artifactCatalog, artifactId);
       }
     }
   }

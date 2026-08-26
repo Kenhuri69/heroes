@@ -400,6 +400,13 @@ export default {
       const joinMatch = path.match(/^\/matches\/([\w-]+)\/join$/);
       if (joinMatch && request.method === 'POST') {
         const matchId = joinMatch[1]!;
+        // Revue 2026-08 : sans cette garde, un même profil pouvait réclamer TOUS
+        // les sièges libres d'une partie et jouer les deux camps (le POST de coups
+        // ne vérifie que l'appartenance au match, pas l'unicité du siège).
+        const mine = await env.DB.prepare('SELECT seat FROM match_players WHERE match_id = ? AND profile_id = ?')
+          .bind(matchId, profileId)
+          .first<{ seat: number }>();
+        if (mine) return fail(409, 'vous occupez déjà un siège dans cette partie', env);
         const free = await env.DB.prepare('SELECT seat FROM match_players WHERE match_id = ? AND profile_id IS NULL ORDER BY seat LIMIT 1')
           .bind(matchId)
           .first<{ seat: number }>();
@@ -407,7 +414,12 @@ export default {
         await env.DB.prepare('UPDATE match_players SET profile_id = ? WHERE match_id = ? AND seat = ?')
           .bind(profileId, matchId, free.seat)
           .run();
-        await env.DB.prepare("UPDATE matches SET status = 'active' WHERE id = ?").bind(matchId).run();
+        // Revue 2026-08 : borné à `open` — sans filtre de statut, rejoindre un
+        // siège libéré RESSUSCITAIT une partie `abandoned`/`finished` en `active`
+        // (le `/forfeit` juste en dessous, lui, était correctement borné).
+        await env.DB.prepare("UPDATE matches SET status = 'active' WHERE id = ? AND status = 'open'")
+          .bind(matchId)
+          .run();
         return json({ ok: true, seat: free.seat }, 200, env);
       }
 

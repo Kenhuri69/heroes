@@ -44,3 +44,17 @@ export function rollSkillChoices(draft: Draft, hero: HeroState): string[] {
   }
   return picks;
 }
+
+/**
+ * Applique une compétence choisie : nouvelle au rang 1, sinon +1 rang (plafond 3),
+ * et vide la file de propositions. Règle de rang UNIQUE, partagée par le choix du
+ * joueur (`handleChooseSkill`) et l'application automatique côté IA — sans quoi
+ * les deux chemins pourraient dériver.
+ */
+export function applySkillChoice(hero: HeroState, skillId: string): number {
+  const current = hero.skills[skillId];
+  const rank = current !== undefined ? Math.min(3, current + 1) : 1;
+  hero.skills[skillId] = rank;
+  hero.pendingSkillChoices = [];
+  return rank;
+}

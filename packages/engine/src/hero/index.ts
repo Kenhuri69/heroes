@@ -1,4 +1,5 @@
 import { revealAround } from '../adventure/fog';
+import { applySkillChoice } from './level-up';
 import { DIRECTIONS, samePos, type GridPos } from '../adventure/map';
 import { isPassable } from '../adventure/path';
 import { heroArmyMagicResistance, heroLuckValue, killsFromDamage, magicResistanceOf } from '../combat/damage';
@@ -367,10 +368,7 @@ export function handleCastSpell(draft: Draft, cmd: CastSpellCmd, events: GameEve
 export function handleChooseSkill(draft: Draft, cmd: ChooseSkillCmd, events: GameEvent[]): void {
   const hero = draft.heroes.find((h) => h.id === cmd.heroId);
   if (!hero) return; // exclu par validate
-  const current = hero.skills[cmd.skillId];
-  const rank = current !== undefined ? Math.min(3, current + 1) : 1;
-  hero.skills[cmd.skillId] = rank;
-  hero.pendingSkillChoices = [];
+  const rank = applySkillChoice(hero, cmd.skillId);
   events.push({ type: 'SkillLearned', heroId: hero.id, skillId: cmd.skillId, rank });
 }
 

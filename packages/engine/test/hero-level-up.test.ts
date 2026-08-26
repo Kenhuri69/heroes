@@ -236,6 +236,33 @@ describe('grantXp → choix d’attribut (H-LEVELCHOICE)', () => {
     expect(hero.pendingAttributeChoices).toEqual([]);
   });
 
+  // Revue 2026-08 : l'IA n'a jamais résolu `ChooseSkill` (aucun chemin dans
+  // `engine/ai/`) ⇒ ses héros finissaient la partie SANS aucune compétence, alors
+  // que la branche attributs traitait bien l'IA. Symétrie rétablie.
+  it('héros IA : la montée applique aussi une compétence (file vidée, SkillLearned émis)', () => {
+    const state = stateWithHero(baseHero({ playerId: 'ai1', xp: 15 }), sevenSkills());
+    state.players = [{ ...humanPlayer('ai1'), controller: 'ai' }];
+    const events: GameEvent[] = [];
+    grantXp(state, events, 'hero-1', 10);
+    const hero = state.heroes[0]!;
+    expect(Object.keys(hero.skills)).toHaveLength(1);
+    expect(Object.values(hero.skills)).toEqual([1]);
+    expect(hero.pendingSkillChoices).toEqual([]);
+    expect(events.some((e) => e.type === 'SkillLearned')).toBe(true);
+  });
+
+  it('héros IA : montées en chaîne ⇒ les rangs montent, rien ne reste en attente', () => {
+    // Catalogue à UNE compétence : toutes les montées la visent ⇒ rangs 1→3.
+    const state = stateWithHero(baseHero({ playerId: 'ai1', xp: 0 }), { a: { id: 'a', ranks: [{}, {}, {}] } });
+    state.players = [{ ...humanPlayer('ai1'), controller: 'ai' }];
+    const events: GameEvent[] = [];
+    grantXp(state, events, 'hero-1', 100); // plusieurs paliers d'un coup
+    const hero = state.heroes[0]!;
+    expect(hero.level).toBeGreaterThan(2);
+    expect(hero.skills.a).toBe(3); // plafonné au rang 3
+    expect(hero.pendingSkillChoices).toEqual([]);
+  });
+
   it('ChooseAttribute applique +1, défile la file, émet HeroAttributeChosen', () => {
     const hero = baseHero({ playerId: 'p1', level: 2, pendingAttributeChoices: [['attack', 'defense']] });
     const state = stateWithHero(hero, {});

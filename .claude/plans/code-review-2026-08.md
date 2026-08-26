@@ -22,7 +22,7 @@ Choixpeau » stampe `hero.houseId` mais résout `houseEffects` à `[]`
 **irréversiblement** (la garde `houseAlreadyChosen`, `build.ts:79`, refuse ensuite
 tout autre choix).
 
-- [ ] `game.ts` : passer `houseCatalog: buildHouseSetup(report)` → verify: test
+- [x] `game.ts` : passer `houseCatalog: buildHouseSetup(report)` → verify: test
       client qui compare les **clés** des 3 builders (garde-fou générique : tout
       futur champ oublié par un builder est détecté, pas seulement celui-ci).
 
@@ -34,7 +34,7 @@ tout autre choix).
 combat ⇒ `coopAttackerOwners` (`turns.ts:457`) ne le voit pas ⇒ armée jamais
 reconstruite. Perte sèche.
 
-- [ ] `setup.ts` : n'engager (vider) que les piles **réellement embarquées** ;
+- [x] `setup.ts` : n'engager (vider) que les piles **réellement embarquées** ;
       celles écartées par le cap restent sur la carte → verify: unitaire « lead à
       7 piles + allié ⇒ l'armée de l'allié est intacte », et « cap partagé ⇒
       seules les piles retenues quittent l'allié ».
@@ -52,7 +52,7 @@ la 1ʳᵉ proposition déjà tirée, par symétrie avec les attributs — *aucun
 heuristique* et surtout **aucun tirage RNG supplémentaire** (`rollSkillChoices`
 consomme déjà le RNG pour l'IA aujourd'hui) ⇒ le flux RNG est inchangé.
 
-- [ ] `experience.ts` : brancher l'application auto côté IA (helper partagé avec
+- [x] `experience.ts` : brancher l'application auto côté IA (helper partagé avec
       `handleChooseSkill` pour ne pas dupliquer la règle de rang) → verify:
       unitaire « héros IA monte de niveau ⇒ `skills` non vide,
       `pendingSkillChoices` vide » + golden **inchangé** (aucun tirage en plus).
@@ -67,7 +67,7 @@ contrôle : `adventure/movement.ts:304`, `visitable.ts:91`, `triggers.ts:39`,
 `heroArtifactBonus` somme **tous** les slots, N artefacts d'un même slot exclusif
 se cumulent.
 
-- [ ] `hero/equip.ts` : helper pur `grantArtifact(hero, catalog, id)` — slot libre
+- [x] `hero/equip.ts` : helper pur `grantArtifact(hero, catalog, id)` — slot libre
       **sans conflit** sinon le SAC (jamais de perte) ; les 8 sites l'appellent →
       verify: unitaire par famille de site (ramassage carte, butin de gardien,
       dépouille, quête, marchand, transfert) + golden (les artefacts du replay
@@ -82,7 +82,7 @@ périmètre** : un bouclier qui absorbe un poison persistant est un choix de des
 pas une incohérence de code (à trancher dans le doc 16 si un jour la question se
 pose).
 
-- [ ] `damage.ts` : absorption au même titre que la frappe → verify: unitaire
+- [x] `damage.ts` : absorption au même titre que la frappe → verify: unitaire
       « splash sur une pile protégée ⇒ dégâts réduits du bouclier » + golden
       (aucun `barrier` dans le replay ⇒ attendu inchangé).
 
@@ -94,7 +94,7 @@ camps ; (b) `UPDATE matches SET status='active' WHERE id = ?` sans filtre de
 statut — contrairement à `/forfeit` juste en dessous, borné à `('open','active')`
 ⇒ rejoindre **ressuscite** une partie `abandoned`/`finished`.
 
-- [ ] `worker.ts` : refus 409 si le profil occupe déjà un siège ; `UPDATE … AND
+- [x] `worker.ts` : refus 409 si le profil occupe déjà un siège ; `UPDATE … AND
       status = 'open'` → verify: `typecheck` (le Worker n'a pas de harnais de
       test ; à dire explicitement dans la PR) + relecture du SQL contre le schéma.
 
@@ -107,17 +107,42 @@ scaledCat(randBetween(a,b), d); i++)` réévalue le tirage **à chaque itératio
 5,0 attendu pour le pire cas, **identique** pour les plages à 2 valeurs ⇒
 fragilité latente + RNG consommé pour rien, pas un défaut de génération visible.
 
-- [ ] `mapgen.ts` : sortir les 5 comptes en `const` → verify: test contenu de
+- [x] `mapgen.ts` : sortir les 5 comptes en `const` → verify: test contenu de
       génération déterministe (déjà là) + **la carte change à graine égale**
       (moins de tirages consommés) : c'est attendu et sans impact sauvegarde
       (options jetées après génération), à consigner.
 
-## Vérification globale (à rejouer en entier avant push)
+## Journal d'exécution — écarts au plan
 
-- [ ] typecheck / lint verts
-- [ ] tests moteur / contenu / client verts (+ nouveaux unitaires)
-- [ ] `content:check` vert
-- [ ] garde-fous faction & couleurs verts
-- [ ] build + budget bundle ≤ 800 Ko gzip ; budget images
-- [ ] smoke `@core` desktop + mobile
-- [ ] golden : inchangé, ou re-fixé **une fois** avec la justification écrite
+- **Lot 1** : le verrou n'est pas un test « `houseCatalog` est là » mais l'invariant
+  générique « tous les builders embarquent les mêmes CATALOGUES »
+  (`startgame-parity.test.ts`, contrôle au niveau de la source comme les
+  garde-fous CI faction/couleurs) — tout futur catalogue oublié est couvert.
+  Mutation-testé.
+- **Lot 3** : retenu le tirage **auto de la 1ʳᵉ proposition** (symétrie avec les
+  attributs) plutôt qu'une heuristique de sélection — et surtout **zéro tirage RNG
+  supplémentaire** (les propositions étaient déjà tirées pour l'IA) ⇒ golden
+  épargné. Règle de rang extraite en helper partagé `applySkillChoice` pour que le
+  chemin joueur et le chemin IA ne puissent pas dériver.
+- **Lot 4** : **8** sites concernés (la revue en citait 3). 7 passent par le helper
+  `grantArtifact` ; le 8ᵉ (transfert entre héros) reçoit un **refus explicite**
+  `slotOccupied` au validateur, pas un basculement silencieux au sac — le joueur a
+  désigné une cible. `applyTriggerEffect` prend le catalogue en paramètre pour
+  rester pure.
+- **Lot 5** : le poison persistant est laissé **délibérément** hors périmètre (choix
+  de design, pas incohérence de code) — écrit dans le commit et le plan.
+- **Lot 6** : aucun harnais de test pour le Worker dans ce dépôt ⇒ ces deux gardes
+  ne sont **pas** couvertes par un test automatisé. Dit explicitement.
+- **Lot 7** : effet de bord assumé — à graine égale, une carte générée diffère de
+  celle d'avant (moins de tirages consommés). Sans impact sauvegarde ni golden.
+
+## Vérification globale (rejouée en entier)
+
+- [x] typecheck (5 projets) / lint verts
+- [x] tests **947 moteur** (+12) / **165 contenu** / **82 client** (+1) verts
+- [x] `content:check` vert (7 paquets, 2 cartes, 16 scénarios)
+- [x] garde-fous faction & couleurs verts
+- [x] build + budget bundle **365 895 o gzip** (cap 819 200)
+- [x] smoke `@core` desktop + mobile
+- [x] **golden inchangé** sur les 5 lots moteur — aucun re-fix nécessaire (vérifié
+      à chaque lot, pas seulement à la fin)

@@ -104,7 +104,7 @@ Les **probabilités de gain** par niveau sont data-driven. *État livré (H-NAME
 
 - **XP** : combats **gagnés uniquement** (XP = somme des PV des unités ennemies tuées × coefficient — valeur de départ **1**, dans `data/core/config.json` ; seul le héros du camp vainqueur en reçoit), coffres, lieux de savoir.
 - Courbe : `xp(niveau) = base × niveau^1.9` avec `base = 268` (`config.json`) ⇒ **premier palier au niveau 2 ≈ 1000 XP** ; héros max niveau 30 au MVP.
-- À chaque niveau : +1 attribut primaire (tirage pondéré par un **profil global unique** `attack:30 / defense:30 / power:20 / knowledge:20`, `config.json` — les **classes de héros** distinctes sont différées) + **choix entre 2 propositions de compétence** (nouvelle compétence ou montée d'une existante). Un **seul** choix est visible à la fois : plusieurs niveaux gagnés d'un coup n'empilent pas les choix (le dernier écrase le précédent, `experience.ts`).
+- À chaque niveau : +1 attribut primaire (tirage pondéré par un **profil global unique** `attack:30 / defense:30 / power:20 / knowledge:20`, `config.json` — les **classes de héros** distinctes sont différées) + **choix entre 2 propositions de compétence** (nouvelle compétence ou montée d'une existante). Un **seul** choix est visible à la fois : plusieurs niveaux gagnés d'un coup n'empilent pas les choix (le dernier écrase le précédent, `experience.ts`). Ces deux choix sont ceux du joueur **humain** ; pour un héros **IA**, le moteur applique automatiquement l'attribut tiré ET la 1ʳᵉ proposition de compétence (*revue 2026-08 : l'IA n'appliquait que l'attribut, ses héros finissaient donc la partie sans aucune compétence secondaire*).
 
 ### 1.3 Compétences secondaires
 
@@ -413,6 +413,12 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 > ids de ressource/artefact **opaques**, jamais un nom de faction ; config absente
 > ⇒ aucun butin (aucun tirage RNG — fixtures/golden épargnés). L'artefact rejoint
 > le 1er slot équipé libre, sinon le SAC (comme un ramassage au sol).
+> **Règle des slots exclusifs** (revue 2026-08) : un emplacement typé ≠ `misc` ne
+> porte qu'UN artefact — la règle vaut à **toute acquisition** (ramassage, butin,
+> trigger, lieu visitable, dépouille, quête, marchand), pas seulement à
+> l'équipement manuel ; un artefact en conflit part au SAC. Un **transfert entre
+> héros**, lui, est refusé explicitement (`slotOccupied`) : la cible est désignée
+> par le joueur, il doit voir pourquoi l'artefact n'entre pas.
 
 > **Panel & progression d'objets (cartes générées)** : `generateMap` peuple la
 > carte de toutes les catégories du §2.2, pas seulement des tas de ressources et

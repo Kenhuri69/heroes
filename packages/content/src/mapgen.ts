@@ -449,13 +449,17 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
   };
 
   const resAmount = (res: string): number => (res === 'gold' ? randBetween(200, 900) : randBetween(2, 6));
-  for (let i = 0; i < scaledCat(randBetween(4, 6), pickupDensity); i++) {
+  // Revue 2026-08 : compte tiré UNE fois (comme `visitableCount`/`statSiteCount`). Dans la condition de boucle, `randBetween` était réévalué à CHAQUE itération : RNG consommé pour rien, compte effectif dérivé d'une suite de tirages.
+  const pickupCount = scaledCat(randBetween(4, 6), pickupDensity);
+  for (let i = 0; i < pickupCount; i++) {
     place((x, y, n) => {
       const resource = RESOURCE_IDS[randInt(RESOURCE_IDS.length)]!;
       return { id: `res-${n}`, type: 'resource', x, y, resource, amount: resAmount(resource) };
     });
   }
-  for (let i = 0; i < scaledCat(randBetween(2, 3), mineDensity); i++) {
+  // Compte tiré une fois (revue 2026-08, cf. `pickupCount`).
+  const mineCount = scaledCat(randBetween(2, 3), mineDensity);
+  for (let i = 0; i < mineCount; i++) {
     place((x, y, n) => {
       const resource = RESOURCE_IDS[randInt(RESOURCE_IDS.length)]!;
       return {
@@ -472,7 +476,9 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
   // coffres loin des départs sont plus riches. « Random parfait » (doc 02 §2.2) :
   // l'or est la seule magnitude aléatoire ; l'XP en dérive au ratio 1 or : 0,8 XP
   // ⇒ le dilemme or/XP reste équilibré à chaque coffre.
-  for (let i = 0; i < scaledCat(randBetween(1, 2), pickupDensity); i++) {
+  // Compte tiré une fois (revue 2026-08, cf. `pickupCount`).
+  const treasureCount = scaledCat(randBetween(1, 2), pickupDensity);
+  for (let i = 0; i < treasureCount; i++) {
     place((x, y, n) => {
       const depth = depthAt(x, y);
       const gold = Math.round(randBetween(500, 1500) * (1 + depth));
@@ -538,7 +544,9 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
   // Habitations hors ville (renfort d'armée) : tier gradué par la profondeur (bas
   // tier près des départs, haut tier au centre), placées en profondeur et gardées.
   if (byTier.length > 0) {
-    for (let i = 0; i < scaled(randBetween(1, 2)); i++) {
+    // Compte tiré une fois (revue 2026-08, cf. `pickupCount`).
+    const dwellingCount = scaled(randBetween(1, 2));
+    for (let i = 0; i < dwellingCount; i++) {
       const t = place((x, y, n) => {
         const depth = depthAt(x, y);
         const idx = clampIdx(Math.round(depth * (byTier.length - 1)));
@@ -558,7 +566,9 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
     const sortedArtifacts = [...artifactIds].sort(
       (a, b) => rarityOf(a) - rarityOf(b) || (a < b ? -1 : a > b ? 1 : 0),
     );
-    for (let i = 0; i < scaledCat(randBetween(1, 2), pickupDensity); i++) {
+    // Compte tiré une fois (revue 2026-08, cf. `pickupCount`).
+    const artifactCount = scaledCat(randBetween(1, 2), pickupDensity);
+    for (let i = 0; i < artifactCount; i++) {
       const t = place(
         (x, y, n) => ({
           id: `artifact-${n}`,

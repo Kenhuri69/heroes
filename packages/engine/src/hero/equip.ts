@@ -36,6 +36,31 @@ export function artifactSlotConflict(
 }
 
 /**
+ * Remet un artefact ACQUIS à un héros (ramassage carte, butin de gardien, trigger,
+ * lieu visitable, dépouille héros-vs-héros, récompense de quête, achat au marchand) :
+ * 1ᵉʳ emplacement libre **sans conflit de slot**, sinon le SAC — jamais de perte.
+ *
+ * Revue 2026-08 : chacun de ces chemins posait l'artefact dans le 1er slot libre
+ * SANS consulter `artifactSlotConflict`, alors que `EquipArtifact` l'impose. Comme
+ * `heroArtifactBonus` somme TOUS les slots, un héros cumulait N artefacts d'un
+ * même emplacement exclusif — la règle des slots typés n'existait donc qu'à
+ * l'équipement manuel. Un seul point d'entrée l'applique désormais partout.
+ */
+export function grantArtifact(
+  hero: HeroState,
+  catalog: Record<string, ArtifactDef>,
+  artifactId: string,
+): 'equipped' | 'backpack' {
+  const slot = artifactSlotConflict(hero, catalog, artifactId) ? -1 : hero.artifacts.indexOf(null);
+  if (slot !== -1) {
+    hero.artifacts[slot] = artifactId;
+    return 'equipped';
+  }
+  (hero.backpack ??= []).push(artifactId);
+  return 'backpack';
+}
+
+/**
  * Équiper / déséquiper un artefact (H-ARTEQUIP, doc 08 §2.3) — le héros
  * appartient au **joueur actif**, jamais en combat. `artifacts` (10 slots)
  * contribue aux bonus, `backpack` non : équiper remonte du sac vers un slot

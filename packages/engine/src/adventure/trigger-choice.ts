@@ -17,7 +17,7 @@ export function resolveTriggerChoice(draft: GameState, optionIndex: number, even
   if (!option) return;
   const player = draft.players.find((p) => p.id === pending.playerId) ?? null;
   const hero = draft.heroes.find((h) => h.id === pending.heroId) ?? null;
-  applyTriggerEffect(option.effect, player, hero, pending.triggerId, events);
+  applyTriggerEffect(option.effect, player, hero, pending.triggerId, events, draft.artifactCatalog);
   events.push({
     type: 'TriggerChoiceResolved',
     triggerId: pending.triggerId,

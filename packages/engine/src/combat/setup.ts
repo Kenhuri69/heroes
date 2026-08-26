@@ -317,7 +317,17 @@ function combineCoopArmy(
   draft: GameState,
   hero: HeroState,
   allyHeroId: string | undefined,
-): { capped: ArmyStack[]; cappedOwners: (string | undefined)[]; ally: HeroState | undefined } {
+): {
+  capped: ArmyStack[];
+  cappedOwners: (string | undefined)[];
+  ally: HeroState | undefined;
+  /**
+   * Nombre de piles de l'allié RÉELLEMENT embarquées : le cap est partagé et le
+   * lead prioritaire, donc les piles au-delà n'entrent PAS au combat (revue
+   * 2026-08 : `engageCoopAlly` les vidait quand même — perte sèche).
+   */
+  engagedAllyCount: number;
+} {
   const ally = resolveCoopAlly(draft, hero, allyHeroId);
   const army: ArmyStack[] = [];
   const owners: (string | undefined)[] = [];
@@ -329,7 +339,14 @@ function combineCoopArmy(
     army.push(s);
     owners.push(ally.id);
   }
-  return { capped: army.slice(0, COOP_ARMY_CAP), cappedOwners: owners.slice(0, COOP_ARMY_CAP), ally };
+  const capped = army.slice(0, COOP_ARMY_CAP);
+  const cappedOwners = owners.slice(0, COOP_ARMY_CAP);
+  return {
+    capped,
+    cappedOwners,
+    ally,
+    engagedAllyCount: cappedOwners.filter((o) => o !== undefined).length,
+  };
 }
 
 /**
@@ -345,13 +362,28 @@ function tagCoopOwners(stacks: CombatStack[], owners: (string | undefined)[]): v
 }
 
 /**
- * Engage l'armée d'un allié coop dans le combat : vidée sur la carte (reconstruite
- * depuis ses survivants à la victoire, `applyConsequences`, symétrique au lead) et
- * émission de `AllyJoinedCombat`. No-op sans allié.
+ * Engage l'armée d'un allié coop dans le combat : les piles embarquées quittent la
+ * carte (reconstruites depuis leurs survivants à la victoire, `applyConsequences`,
+ * symétrique au lead) et `AllyJoinedCombat` est émis. No-op sans allié.
+ *
+ * Revue 2026-08 : seules les piles **réellement embarquées** partent. Le cap de 7
+ * est PARTAGÉ et le lead prioritaire ⇒ un lead à 7 piles n'embarque rien de
+ * l'allié ; vider son armée entière était une perte sèche (ses piles n'entraient
+ * pas au combat, donc `coopAttackerOwners` ne le voyait pas et rien ne lui était
+ * rendu). Les piles écartées par le cap restent intactes sur la carte, et sans
+ * aucune pile embarquée l'allié ne « rejoint » pas (pas d'événement mensonger).
  */
-function engageCoopAlly(ally: HeroState | undefined, heroId: string, events: GameEvent[]): void {
-  if (!ally) return;
-  ally.army = [];
+function engageCoopAlly(
+  ally: HeroState | undefined,
+  engagedAllyCount: number,
+  heroId: string,
+  events: GameEvent[],
+): void {
+  if (!ally || engagedAllyCount === 0) return;
+  // Retrait par RANG parmi les piles vivantes (l'ordre est celui qu'a suivi
+  // `combineCoopArmy`) — jamais par identité de référence.
+  let seen = 0;
+  ally.army = ally.army.filter((s) => (s.count > 0 ? seen++ >= engagedAllyCount : true));
   events.push({ type: 'AllyJoinedCombat', heroId, allyHeroId: ally.id });
 }
 
@@ -374,7 +406,7 @@ export function beginGuardianCombat(
   // Coop (E4.2) : armée combinée lead + allié invité, cap 7 PARTAGÉ (lead
   // prioritaire). Chaque pile porte son héros propriétaire (`owners`) pour router
   // les survivants à la fin. Machines de guerre du lead HORS cap (piles extra).
-  const { capped, cappedOwners, ally } = combineCoopArmy(draft, hero, allyHeroId);
+  const { capped, cappedOwners, ally, engagedAllyCount } = combineCoopArmy(draft, hero, allyHeroId);
   const attacker: ArmyStack[] = [...capped, ...hero.warMachines.map((unitId) => ({ unitId, count: 1 }))];
   // B5 : armée vide ⇒ refus d'engager (garde-fou parallèle au validateur humain,
   // remédiation R1 E1) — un héros sans troupe ne déclenche pas de combat de gardien.
@@ -382,7 +414,7 @@ export function beginGuardianCombat(
   const defender: ArmyStack[] = [{ unitId: guardian.unitId, count: guardian.count }];
   const attackerStacks = placeSide('attacker', attacker, draft.unitCatalog, 0);
   tagCoopOwners(attackerStacks, cappedOwners);
-  engageCoopAlly(ally, heroId, events);
+  engageCoopAlly(ally, engagedAllyCount, heroId, events);
   const stacks = [...attackerStacks, ...placeSide('defender', defender, draft.unitCatalog, COMBAT_COLS - 1)];
   const obstacles = drawObstacles(draft, rules.obstaclesMin, rules.obstaclesMax);
   draft.combat = {
@@ -491,7 +523,7 @@ export function beginTownCombat(
   // Coop (E4.2b) : mêmes règles que le gardien — armée combinée lead + allié
   // invité, cap 7 PARTAGÉ, piles alliées taguées, armée de l'allié vidée à
   // l'engagement (survivants routés par owner à la victoire, `applyConsequences`).
-  const { capped, cappedOwners, ally } = combineCoopArmy(draft, hero, allyHeroId);
+  const { capped, cappedOwners, ally, engagedAllyCount } = combineCoopArmy(draft, hero, allyHeroId);
   const attacker: ArmyStack[] = [...capped, ...hero.warMachines.map((unitId) => ({ unitId, count: 1 }))];
   const defender: ArmyStack[] = town.garrison.map((s) => ({ ...s }));
   // C-SIEGE2.5 : une ville très fortifiée (Fort ≥ 3) ajoute une tour de tir au
@@ -499,7 +531,7 @@ export function beginTownCombat(
   const tower = buildTowerStack(fortLevel, draft.unitCatalog);
   const attackerStacks = placeSide('attacker', attacker, draft.unitCatalog, 0);
   tagCoopOwners(attackerStacks, cappedOwners);
-  engageCoopAlly(ally, heroId, events);
+  engageCoopAlly(ally, engagedAllyCount, heroId, events);
   const stacks = [
     ...attackerStacks,
     ...placeSide('defender', defender, draft.unitCatalog, COMBAT_COLS - 1),

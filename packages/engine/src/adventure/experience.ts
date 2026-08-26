@@ -3,7 +3,7 @@ import type { Draft } from '../combat/draft';
 import type { GameEvent } from '../core/events';
 import { rollRange } from '../core/rng';
 import type { HeroAttributes, HeroState } from '../core/state';
-import { rollSkillChoices } from '../hero/level-up';
+import { applySkillChoice, rollSkillChoices } from '../hero/level-up';
 
 /**
  * Profil de gain d'attribut effectif du héros (H-NAMED.3, doc 02 §1.2) : si son
@@ -125,6 +125,19 @@ export function grantXp(
     // de l'état, REMPLACENT les propositions en attente (un seul choix visible
     // à la fois — un niveau supplémentaire dans la même chaîne écrase le
     // précédent plutôt que d'accumuler plusieurs paires en attente).
-    hero.pendingSkillChoices = rollSkillChoices(draft, hero);
+    const choices = rollSkillChoices(draft, hero);
+    hero.pendingSkillChoices = choices;
+    // Revue 2026-08 : l'IA ne résolvait JAMAIS `ChooseSkill` (aucun chemin dans
+    // `engine/ai/`) ⇒ ses héros finissaient la partie sans AUCUNE compétence
+    // secondaire — ni Logistique, ni Sagesse, ni Nécromancie graduée — alors que
+    // la branche attributs juste au-dessus, elle, traite bien l'IA. On applique
+    // donc automatiquement la 1ʳᵉ proposition, par symétrie avec les attributs.
+    // Les propositions sont DÉJÀ tirées pour l'IA aujourd'hui ⇒ aucun tirage RNG
+    // supplémentaire, le flux reste bit-identique (golden épargné).
+    if (!isHuman && choices[0] !== undefined) {
+      const skillId = choices[0];
+      const rank = applySkillChoice(hero, skillId);
+      events.push({ type: 'SkillLearned', heroId: hero.id, skillId, rank });
+    }
   }
 }

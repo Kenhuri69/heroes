@@ -3,6 +3,7 @@ import { humanPlayerId, type GameState, type ResourceId } from '../core/state';
 import { heroArmyCap } from '../hero/skills';
 import { conditionMet } from '../scenario/outcome';
 import type { QuestCondition, QuestReward } from './types';
+import { grantArtifact } from '../hero/equip';
 
 /**
  * Interprétation d'une `QuestCondition` du point de vue de `playerId` — pure,
@@ -64,9 +65,7 @@ function applyRewards(draft: GameState, playerId: string, rewards: QuestReward[]
       // B2 : 1er slot équipé libre (invariant 10 slots, state.ts) ; inventaire
       // plein ⇒ le SAC (`backpack`, jamais perdu) plutôt que la perte — même
       // routage que le ramassage carte/gardien/visitable/dépouille.
-      const slot = hero.artifacts.indexOf(null);
-      if (slot >= 0) hero.artifacts[slot] = r.artifactId;
-      else (hero.backpack ??= []).push(r.artifactId);
+      grantArtifact(hero, draft.artifactCatalog, r.artifactId);
     } else {
       if (!hero) continue;
       const existing = hero.army.find((s) => s.unitId === r.unitId);

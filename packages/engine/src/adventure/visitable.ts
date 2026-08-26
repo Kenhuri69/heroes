@@ -6,6 +6,7 @@ import { heroArmyCap } from '../hero/skills';
 import { grantXp, xpForLevel } from './experience';
 import { revealAround } from './fog';
 import type { DwellingObjectDef, VisitableObjectDef } from './map';
+import { grantArtifact } from '../hero/equip';
 
 /** Cap d'armée du héros (doc 02 §5.1) — base 7, étendu par `heroArmyCap` (doc 18 C1). */
 export const MAX_ARMY_STACKS = 7;
@@ -88,9 +89,7 @@ export function visitBonus(
     // Chariot / dépouille (M-VISIT) : donne un artefact. Même routage que le
     // ramassage au sol (movement.ts) — 1er slot équipé libre, sinon le SAC (le
     // sac n'a pas de plafond ⇒ toujours placé, amount = 1).
-    const slot = hero.artifacts.indexOf(null);
-    if (slot !== -1) hero.artifacts[slot] = effect.artifactId;
-    else (hero.backpack ??= []).push(effect.artifactId);
+    grantArtifact(hero, draft.artifactCatalog, effect.artifactId);
     amount = 1;
   } else {
     player.resources[effect.resource as ResourceId] += effect.amount;

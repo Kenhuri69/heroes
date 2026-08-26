@@ -14,6 +14,7 @@ import type { Draft } from './draft';
 import { collectCasualties, collectSurvivors, combatRules, compareInitiative, hasAbility, moraleOf, otherSide, recordLoss, recordRevive, stackLostSoFar } from './state-helpers';
 import { COMBAT_ROWS } from './hex';
 import type { CombatSideId, CombatStack, CombatState } from './types';
+import { grantArtifact } from '../hero/equip';
 
 /**
  * Ordre de jeu par vagues (doc 02 §5.2) : vitesse décroissante, attente en fin
@@ -395,11 +396,7 @@ function applyHeroVsHeroConsequences(
   // Dépouille : artefacts du vaincu → slots libres du vainqueur, surplus au SAC
   // (jamais perdu — même routage que le ramassage carte/gardien/visitable).
   const spoils = loserHero.artifacts.filter((a): a is string => a !== null);
-  for (const artifactId of spoils) {
-    const slot = winnerHero.artifacts.indexOf(null);
-    if (slot !== -1) winnerHero.artifacts[slot] = artifactId;
-    else (winnerHero.backpack ??= []).push(artifactId);
-  }
+  for (const artifactId of spoils) grantArtifact(winnerHero, draft.artifactCatalog, artifactId);
   // Le vaincu meurt (retiré de la partie).
   const idx = draft.heroes.findIndex((h) => h.id === loserHero.id);
   if (idx !== -1) draft.heroes.splice(idx, 1);

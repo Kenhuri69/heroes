@@ -436,16 +436,22 @@ export function killsFromDamage(pool: number, hp: number, count: number, damage:
  * Applique des dégâts « de zone » à UNE pile secondaire (areaAttack/breathAttack,
  * A3c/A3d) : pertes/PV, bilan, event `StackAttacked`, mort éventuelle. Aucune
  * riposte ni chance (dégâts dérivés de la frappe primaire).
+ *
+ * Revue 2026-08 : le bouclier (`barrier`, doc 16 §7) est consommé ICI aussi. Il
+ * était absorbé par la frappe directe (`performStrike`) et par le sort d'unité
+ * (`damageOneStack`) mais PAS par le souffle/la zone — une même source de dégâts
+ * traversait donc la barrière selon la capacité qui la portait.
  */
 function applySplashDamage(
   combat: CombatState,
   striker: CombatStack,
   t: CombatStack,
   tDef: CombatUnitDef,
-  amount: number,
+  raw: number,
   ranged: boolean,
   events: GameEvent[],
 ): void {
+  const amount = raw - absorbShield(t, raw);
   const pool = (t.count - 1) * tDef.stats.hp + t.firstHp;
   const kills = killsFromDamage(pool, tDef.stats.hp, t.count, amount);
   const remaining = Math.max(0, pool - amount);

@@ -3,6 +3,7 @@ import type { Command, CommandError } from '../core/commands';
 import type { GameEvent } from '../core/events';
 import type { GameState } from '../core/state';
 import { heroArmyCap } from './skills';
+import { artifactSlotConflict } from './equip';
 
 type TransferCmd = Extract<Command, { type: 'TransferBetweenHeroes' }>;
 
@@ -44,6 +45,16 @@ export function validateTransferBetweenHeroes(
       return { code: 'invalidTransfer', message: `slot d'artefact invalide (${cmd.slot})` };
     if (!to.artifacts.includes(null))
       return { code: 'invalidTransfer', message: 'aucun emplacement d’artefact libre chez la cible' };
+    // Revue 2026-08 : la règle des slots exclusifs (H-ARTEQUIP) valait pour
+    // `EquipArtifact` mais pas ici — un transfert permettait de cumuler deux
+    // artefacts du même emplacement exclusif chez la cible. Même refus explicite
+    // que l'équipement manuel (`slotOccupied`), plutôt qu'un basculement au sac :
+    // le joueur a désigné une cible, il doit voir pourquoi ça n'entre pas.
+    if (artifactSlotConflict(to, state.artifactCatalog, artifactId))
+      return {
+        code: 'slotOccupied',
+        message: `emplacement ${state.artifactCatalog[artifactId]?.slot} déjà occupé chez la cible`,
+      };
   }
   return null;
 }

@@ -83,6 +83,22 @@ describe('A3c — areaAttack', () => {
     expect(hitIds).not.toContain('defender-1'); // mort-vivant épargné
   });
 
+  // Revue 2026-08 : le bouclier (`barrier`, doc 16 §7) était absorbé par la frappe
+  // directe et par le sort d'unité, mais PAS par l'éclaboussure — la même source
+  // de dégâts traversait la barrière selon la capacité qui la portait.
+  it('le bouclier de la pile éclaboussée absorbe avant ses PV', () => {
+    const shooter = stack({ id: 'attacker-0', side: 'attacker', slot: 0, unitId: 'liche', count: 1, ammo: 10, pos: { col: 0, row: 0 } });
+    const target = stack({ id: 'defender-0', side: 'defender', slot: 0, unitId: 'foe', count: 1, pos: { col: 8, row: 5 }, firstHp: 1000 });
+    // Éclaboussure attendue : 5. Bouclier de 3 ⇒ 2 seulement atteignent les PV.
+    const shielded = stack({ id: 'defender-1', side: 'defender', slot: 1, unitId: 'foe', count: 1, pos: { col: 8, row: 4 }, firstHp: 1000, shield: 3 });
+    const { events, next } = runShot(state(catalog, [shooter, target, shielded]));
+    const hit = strikes(events).find((s) => s.targetId === 'defender-1');
+    expect(hit?.damage).toBe(2);
+    const after = next.combat!.stacks.find((s) => s.id === 'defender-1')!;
+    expect(after.firstHp).toBe(998);
+    expect(after.shield).toBeUndefined(); // bouclier consommé entièrement
+  });
+
   it('n’éclabousse pas les alliés adjacents à la cible', () => {
     const shooter = stack({ id: 'attacker-0', side: 'attacker', slot: 0, unitId: 'liche', count: 1, ammo: 10, pos: { col: 0, row: 0 } });
     const target = stack({ id: 'defender-0', side: 'defender', slot: 0, unitId: 'foe', count: 1, pos: { col: 8, row: 5 }, firstHp: 1000 });

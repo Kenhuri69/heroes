@@ -1242,6 +1242,12 @@ export function newGameStartCommand(
     startingArtifacts: heroSetup.startingArtifacts,
     factionCatalog: buildFactionSetup(report),
     growthGroups: buildGrowthGroupSetup(report),
+    // Catalogue des Maisons (doc 16 §3.1) : sans lui, « Le Choixpeau » stampe
+    // `hero.houseId` mais résout ses effets à `[]` — la signature Vox Arcana
+    // était morte sur CE chemin (le seul des 3 builders à l'oublier), et
+    // irréversiblement (la garde `houseAlreadyChosen` refuse ensuite tout autre
+    // choix). Revue 2026-08.
+    houseCatalog: buildHouseSetup(report),
     // Roster de héros nommés (M-TAVERN) : sans lui, la Taverne n'offre personne.
     heroRoster: buildHeroRosterSetup(report),
     scenario: { objectives },

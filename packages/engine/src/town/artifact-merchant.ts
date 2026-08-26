@@ -7,6 +7,7 @@ import type { GameState } from '../core/state';
 import type { ArtifactDef } from '../hero/types';
 import type { TownState } from './types';
 import { townHasMarket } from './market';
+import { grantArtifact } from '../hero/equip';
 
 /**
  * Marchand d'artefacts (doc 18 D2) — VENTE d'un artefact contre or au bâtiment
@@ -175,9 +176,7 @@ export function handleBuyArtifact(draft: GameState, cmd: BuyCmd, events: GameEve
   const price = artifactBaseValue(def, market);
   player.resources.gold -= price;
   // Remise de l'artefact : 1er slot équipé libre, sinon le sac (comme grantArtifact).
-  const slot = hero.artifacts.indexOf(null);
-  if (slot !== -1) hero.artifacts[slot] = cmd.artifactId;
-  else (hero.backpack ??= []).push(cmd.artifactId);
+  grantArtifact(hero, draft.artifactCatalog, cmd.artifactId);
   // Marque l'artefact comme acheté (retiré du stock disponible de la ville).
   (town.artifactsBought ??= []).push(cmd.artifactId);
   events.push({ type: 'ArtifactBought', heroId: hero.id, playerId: player.id, artifactId: cmd.artifactId, gold: price });

@@ -112,6 +112,52 @@ describe('E4.2 — combats coopératifs', () => {
     expect(events.some((e) => e.type === 'AllyJoinedCombat')).toBe(true);
   });
 
+  // Revue 2026-08 : le cap de 7 piles est PARTAGÉ et le lead prioritaire. Un lead
+  // déjà à 7 piles n'embarque RIEN de l'allié — dont l'armée était pourtant vidée
+  // (perte sèche : ses piles n'entraient pas au combat, donc rien ne lui revenait).
+  it('lead à 7 piles : l’allié ne perd rien, il n’a pas rejoint', () => {
+    const events: GameEvent[] = [];
+    const base = coopState();
+    const full: GameState = {
+      ...base,
+      heroes: [
+        { ...base.heroes[0]!, army: Array.from({ length: 7 }, () => ({ unitId: 'grunt', count: 3 })) },
+        base.heroes[1]!,
+      ],
+    };
+    const s = produce(full, (draft) => {
+      beginGuardianCombat(draft, 'hero-lead', 'g1', events, 'hero-ally');
+    });
+    // Aucune pile de l'allié au combat…
+    expect(s.combat!.stacks.some((st) => st.ownerHeroId === 'hero-ally')).toBe(false);
+    // …donc son armée reste INTACTE sur la carte, et il n'a pas « rejoint ».
+    expect(s.heroes.find((h) => h.id === 'hero-ally')!.army).toEqual([{ unitId: 'knight', count: 15 }]);
+    expect(events.some((e) => e.type === 'AllyJoinedCombat')).toBe(false);
+  });
+
+  it('cap partagé : seules les piles embarquées quittent l’allié', () => {
+    const events: GameEvent[] = [];
+    const base = coopState();
+    // Lead à 5 piles + allié à 4 ⇒ 2 piles de l'allié embarquées (cap 7), 2 restent.
+    const mixed: GameState = {
+      ...base,
+      heroes: [
+        { ...base.heroes[0]!, army: Array.from({ length: 5 }, () => ({ unitId: 'grunt', count: 3 })) },
+        { ...base.heroes[1]!, army: Array.from({ length: 4 }, (_, i) => ({ unitId: 'knight', count: i + 1 })) },
+      ],
+    };
+    const s = produce(mixed, (draft) => {
+      beginGuardianCombat(draft, 'hero-lead', 'g1', events, 'hero-ally');
+    });
+    expect(s.combat!.stacks.filter((st) => st.ownerHeroId === 'hero-ally')).toHaveLength(2);
+    // Les 2 piles écartées par le cap (les DERNIÈRES de son ordre) sont conservées.
+    expect(s.heroes.find((h) => h.id === 'hero-ally')!.army).toEqual([
+      { unitId: 'knight', count: 3 },
+      { unitId: 'knight', count: 4 },
+    ]);
+    expect(events.some((e) => e.type === 'AllyJoinedCombat')).toBe(true);
+  });
+
   it('victoire : les survivants reviennent au bon héros, l’XP est partagée', () => {
     const events: GameEvent[] = [];
     const started = produce(coopState(), (draft) => {

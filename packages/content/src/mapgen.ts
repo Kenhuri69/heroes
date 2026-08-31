@@ -424,8 +424,9 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
     [-1, 1],
     [-1, -1],
   ] as const;
-  const placeSentinel = (ax: number, ay: number): void => {
-    if (byTier.length === 0 || guardianDensity <= 0) return;
+  /** Pose la sentinelle et rend son **id** (M-GUARDLINK : de quoi verrouiller le butin). */
+  const placeSentinel = (ax: number, ay: number): string | null => {
+    if (byTier.length === 0 || guardianDensity <= 0) return null;
     for (const [dx, dy] of neighborOffsets) {
       const nx = ax + dx;
       const ny = ay + dy;
@@ -436,15 +437,32 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
       grid[ny]![nx] = baseChar;
       const depth = depthAt(nx, ny);
       const count = Math.max(2, Math.round(6 + depth * 40) + randBetween(-3, 3));
+      const id = `sentinel-${objects.length}`;
       objects.push({
-        id: `sentinel-${objects.length}`,
+        id,
         type: 'guardian',
         x: nx,
         y: ny,
         unitId: pickUnitForDepth(depth, 0),
         count,
       });
-      return;
+      return id;
+    }
+    return null;
+  };
+
+  /**
+   * Verrouille le butin derrière la sentinelle qui vient d'être posée
+   * (M-GUARDLINK, doc 02 §2.2) : sans ce lien, la sentinelle n'était qu'un
+   * décor — on la contournait et on ramassait. `null` (aucune place libre,
+   * densité de gardiens à zéro) ⇒ butin libre, comme avant.
+   */
+  const lockBehindSentinel = (target: { x: number; y: number }): void => {
+    const guardId = placeSentinel(target.x, target.y);
+    if (!guardId) return;
+    const loot = objects.find((o) => o.x === target.x && o.y === target.y);
+    if (loot && (loot.type === 'artifact' || loot.type === 'treasure' || loot.type === 'resource')) {
+      loot.guardedBy = guardId;
     }
   };
 
@@ -479,7 +497,7 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
   // Compte tiré une fois (revue 2026-08, cf. `pickupCount`).
   const treasureCount = scaledCat(randBetween(1, 2), pickupDensity);
   for (let i = 0; i < treasureCount; i++) {
-    place((x, y, n) => {
+    const t = place((x, y, n) => {
       const depth = depthAt(x, y);
       const gold = Math.round(randBetween(500, 1500) * (1 + depth));
       return {
@@ -491,6 +509,8 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
         xp: Math.round(gold * 0.8),
       };
     });
+    // Un coffre profond vaut jusqu'à 3000 or : il se mérite, comme l'artefact.
+    if (t) lockBehindSentinel(t);
   }
 
   // Lieux de bonus variés (doc 02 §2.2) : fontaine (chance), écurie (mouvement),
@@ -579,7 +599,7 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
         }),
         true,
       );
-      if (t) placeSentinel(t.x, t.y);
+      if (t) lockBehindSentinel(t);
     }
   }
 

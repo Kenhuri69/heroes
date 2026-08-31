@@ -86,6 +86,37 @@ describe('generateMap', () => {
     expect(resolved.grailPos).toEqual(map.grailPos);
   });
 
+  it('M-GUARDLINK : le butin premium naît gardé, et le gardien lié existe', async () => {
+    let seedsWithLoot = 0;
+    for (let seed = 1; seed <= 20; seed++) {
+      const map = generateMap('random', seed, {
+        guardianUnits: ['t1-guard'],
+        artifactIds: ['trefle-chance'],
+      });
+      const guarded = map.objects.filter((o) => 'guardedBy' in o && o.guardedBy !== undefined);
+      for (const loot of guarded) {
+        // Le gardien lié doit exister ET être un gardien (contrainte croisée du loader).
+        const guardId = (loot as { guardedBy?: string }).guardedBy;
+        expect(map.objects.some((g) => g.type === 'guardian' && g.id === guardId)).toBe(true);
+      }
+      // Les coffres et artefacts sont les cibles du verrou (densité de gardiens
+      // par défaut ⇒ au moins un butin gardé sur la plupart des graines).
+      if (guarded.length > 0) seedsWithLoot++;
+      // La carte reste valide de bout en bout (loadMap revalide le lien).
+      await loadMap(readerFor(map), 'random', config(), KNOWN_UNITS);
+    }
+    expect(seedsWithLoot).toBeGreaterThan(0);
+  });
+
+  it('sans gardiens (densité 0), aucun butin n’est verrouillé', () => {
+    const map = generateMap('random', 5, {
+      guardianUnits: ['t1-guard'],
+      artifactIds: ['trefle-chance'],
+      guardianDensity: 0,
+    });
+    expect(map.objects.some((o) => 'guardedBy' in o && o.guardedBy !== undefined)).toBe(false);
+  });
+
   it('est déterministe : même graine ⇒ carte identique', () => {
     const a = generateMap('r', 123, { guardianUnits: ['t1-guard'] });
     const b = generateMap('r', 123, { guardianUnits: ['t1-guard'] });

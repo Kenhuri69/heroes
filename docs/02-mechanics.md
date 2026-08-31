@@ -369,6 +369,12 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 > **reste inerte** (impossible de la contourner pour rafler le butin) ; une fois
 > la sentinelle vaincue (retirée de la carte), l'objet se ramasse normalement.
 > Le contenu valide que `guardedBy` désigne bien un gardien présent.
+> *État livré (revue 2026-08, lot L7)* : les cartes **générées** posent enfin ce
+> lien. `generateMap` plantait déjà une sentinelle à côté des artefacts, mais
+> sans `guardedBy` : décor contournable. Désormais **artefacts et coffres**
+> naissent verrouillés derrière leur sentinelle (id rendu par `placeSentinel`).
+> Le verrou suit le curseur **Gardiens** de « Nouvelle partie » : à densité 0,
+> aucun butin n'est gardé (carte pacifique inchangée).
 
 > **Gradation des gardiens (cartes générées)** : sur une carte procédurale
 > (`generateMap`, doc 09 Live), la force d'un gardien suit la **profondeur** de

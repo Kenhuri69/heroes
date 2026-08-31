@@ -48,12 +48,13 @@ Helpers **purs et déterministes** de `@heroes/engine`, utilisés par le serveur
 
 ## 4. Modèle de données (D1 — `server/schema.sql`)
 
-9 tables : `profiles`, `auth_tokens`, `sessions` (comptes) ; `saves` (cloud
+10 tables : `profiles`, `auth_tokens`, `sessions` (comptes) ; `saves` (cloud
 saves : `serializeState` + `save_version`) ; `matches` (seed + `StartGame`
 sérialisé + statut) ; `match_players` (sièges = ordre de tour) ; `moves`
 (journal **append-only** : une ligne = un lot de commandes d'un joueur) ;
 `ratings` (classement Elo PvP — note par profil ET par saison, lot 4.2, cf. §6b) ;
-`rate_limits` (compteurs à fenêtre fixe de la limitation de débit, NET-SEC.3, cf. §5.1).
+`rate_limits` (compteurs à fenêtre fixe de la limitation de débit, NET-SEC.3, cf. §5.1) ;
+`save_backups` (copie N-1 d'un slot cloud, NET-SRVGUARD.2, cf. §5.2).
 La base `heroes` est **provisionnée** (région WEUR) et le schéma appliqué. **Un
 ajout de table (ex. `ratings`, `rate_limits`) exige de ré-appliquer
 `server/schema.sql`** (les
@@ -101,7 +102,11 @@ la partie en cours** ; le tout gaté par `isOnline()+isLoggedIn()`.
 celui déjà stocké pour ce slot est rejeté (**409**), un client obsolète ne peut
 donc pas écraser une sauvegarde plus récente (« le plus récent gagne », doc 07 §4).
 Le serveur reste version-agnostique (pas de constante moteur dupliquée). **Copie
-de sécurité N-1** (doc 07 §4) : différée (NET-SRVGUARD.2 — évolution de schéma D1).
+de sécurité N-1 (NET-SRVGUARD.2, lot L11 — livrée)** : avant **tout** écrasement
+d'un slot, la version en place est recopiée dans `save_backups` (une ligne par
+slot) ; **`POST /saves/:slot/restore`** la remet en jeu (404 si le slot n'a jamais
+été écrasé), bouton « Restaurer » par slot dans le panneau En ligne. Table
+**nouvelle** ⇒ `CREATE TABLE IF NOT EXISTS`, aucune migration de données.
 **Quota de slots (NET-SEC.2)** : un `PUT` vers un slot **nouveau** est rejeté
 (**409**) si le profil possède déjà `MAX_SAVE_SLOTS` (20) slots ; mettre à jour un
 slot existant reste permis. **Bornage de taille** : tout corps JSON est borné
@@ -140,7 +145,13 @@ rejet **413** (garde-fou anti-épuisement mémoire du Worker).
    ENTRE participants, cf. NET-FOG) —, rejoue les nouveaux
    lots (`replayCommands`) pour obtenir l'état courant, joue, poste. Fin de partie
    = `GameState.outcome` non nul (le serveur le détecte au rejeu → `status`).
-6. **Cycle de vie (NET-LIFECYCLE)** : `POST /matches/:id/forfeit` (un participant
+6. **Appariement automatique (NET-MATCHMAKING, lot L11)** : `POST /matchmaking`
+   prend le siège libre de la partie **ouverte la plus ancienne créée par
+   quelqu'un d'autre** (jamais la sienne, jamais une où l'on siège déjà) et la
+   passe `active` ; sans candidate il répond `matched: false` et le client crée
+   une partie — qui devient la candidate du joueur suivant. **Aucune file
+   d'attente** à maintenir côté serveur (pas d'état vivant, pas d'expiration).
+7. **Cycle de vie (NET-LIFECYCLE)** : `POST /matches/:id/forfeit` (un participant
    abandonne ⇒ `status = 'abandoned'`) ; **expiration paresseuse** — une partie
    `active` inactive depuis `TURN_TIMEOUT_MS` (14 j) devient `abandoned` à la
    consultation (`GET /matches/:id`) ou à la tentative d'un coup (`POST …/moves`

@@ -5,6 +5,8 @@ import {
   forfeitMatch,
   isLoggedIn,
   joinMatch,
+  quickMatch,
+  restoreSave,
   listMatches,
   listSaves,
   logout,
@@ -145,6 +147,30 @@ export function OnlinePanel({ onClose }: { onClose: () => void }) {
       })
       .catch(() => pushToast(t('toast.matchError'), 'error'));
   };
+  /** Appariement automatique (NET-MATCHMAKING) : rejoindre une partie en attente,
+   *  ou en créer une si personne n'attend (elle deviendra la candidate suivante). */
+  const doQuickMatch = (): void => {
+    void quickMatch()
+      .then((r) => {
+        if (r.matched) {
+          pushToast(t('toast.matchJoined'), 'success');
+          refreshMatches();
+        } else {
+          pushToast(t('toast.matchQueued'), 'info');
+          doCreateMatch();
+        }
+      })
+      .catch(() => pushToast(t('toast.matchError'), 'error'));
+  };
+  /** Restaure la copie N-1 d'un slot cloud (NET-SRVGUARD.2). */
+  const doRestoreSlot = (slot: string): void => {
+    void restoreSave(slot)
+      .then(() => {
+        pushToast(t('toast.cloudRestored'), 'success');
+        refreshSaves();
+      })
+      .catch(() => pushToast(t('toast.cloudNoBackup'), 'error'));
+  };
   const doForfeit = (id: string): void => {
     void forfeitMatch(id)
       .then(() => {
@@ -228,6 +254,14 @@ export function OnlinePanel({ onClose }: { onClose: () => void }) {
                       >
                         {t('online.saves.load')}
                       </button>
+                      <button
+                        class="menu-button"
+                        data-testid={`online-save-restore-${s.slot}`}
+                        title={t('online.saves.restoreHint')}
+                        onClick={() => doRestoreSlot(s.slot)}
+                      >
+                        {t('online.saves.restore')}
+                      </button>
                     </li>
                   ))}
                 </ul>
@@ -236,6 +270,9 @@ export function OnlinePanel({ onClose }: { onClose: () => void }) {
             <section class="options-section" data-testid="online-matches">
               <h3>{t('online.matches.title')}</h3>
               <div class="online-match-actions">
+                <button class="menu-button" data-testid="online-match-quick" onClick={doQuickMatch}>
+                  {t('online.matches.quick')}
+                </button>
                 <button class="menu-button" data-testid="online-match-create" onClick={doCreateMatch}>
                   {t('online.matches.create')}
                 </button>

@@ -95,3 +95,16 @@ CREATE TABLE IF NOT EXISTS rate_limits (
   count        INTEGER NOT NULL DEFAULT 0,
   PRIMARY KEY (key, window_start)
 );
+
+-- Copie de sécurité N-1 des sauvegardes cloud (NET-SRVGUARD.2, doc 15 §5.2) :
+-- avant chaque écrasement d'un slot, la version en place est recopiée ici (une
+-- par slot). `POST /saves/:slot/restore` la remet en jeu — filet contre un
+-- autosave malheureux ou un état corrompu côté client.
+CREATE TABLE IF NOT EXISTS save_backups (
+  profile_id   TEXT NOT NULL REFERENCES profiles(id),
+  slot         TEXT NOT NULL,
+  save_version INTEGER NOT NULL,
+  state        TEXT NOT NULL,
+  updated_at   INTEGER NOT NULL,
+  PRIMARY KEY (profile_id, slot)
+);

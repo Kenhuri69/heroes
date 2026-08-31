@@ -139,7 +139,7 @@ re-fixé) ; (4) zéro faction dans `packages/`.
 |---|-----|--------|--------|-------------|------|
 | **L1** ✅ | **Verrous du mode en ligne** — participation obligatoire sur `GET …/moves` ; rate limit `/auth/request` (par e-mail + par IP, fenêtre fixe en D1) | G2.a, G2.b | S | non (serveur seul) | non |
 | **L2** ✅ | **IA de ville qui bâtit juste** — ordre de construction **priorisé par effet**, **amélioration** des unités (`UpgradeUnits`), et **ramassage de la garnison** par le héros (trouvé en cours de lot : sans lui, l'armée de l'IA ne grossissait jamais) | G1.a, G1.b, G1.c | S | oui (IA seule) | non |
-| **L3** | **IA qui gère son économie** — marché (convertir un surplus en ressource manquante avant d'abandonner une construction), équipement automatique des artefacts ramassés, achat de machines de guerre | G1.c | M | oui (IA seule) | non |
+| **L3** ✅ | **IA qui gère son économie** — marché (vente du surplus contre de l'or), équipement automatique des artefacts ramassés, achat de machines de guerre | G1.c | M | oui (IA seule) | non |
 | **L4** | **IA qui défend & voyage** — rapatriement d'un héros vers une ville menacée, garnison minimale, refus d'un combat perdu d'avance, sorts d'aventure (Vision/Marche forcée), fouille du Graal quand la position est connue | G1.c, G1.e | M | oui (IA seule) | non |
 | **L5** | **Une difficulté qui pèse dans la durée** — remplacer le one-shot par des **leviers de données persistants** (bonus de revenu/croissance de l'IA, marges d'engagement, cadence de recrutement) pilotés par `config`, jamais par un enum dans le moteur | G1.d | S-M | non (données + client) | non |
 | **L6** | **Campagne Sylvan Court** (3 chapitres, patron N3a) puis **Vox ch2** | G4 | M×2 | non (données) | non |
@@ -252,3 +252,41 @@ forme change · bump `CURRENT_SAVE_VERSION` seulement si la sauvegarde change.
       ce timeout à 45 s précisément pour ce motif (`playwright.config.ts`).
 - [x] *non couvert* : les deux règles serveur de L1 (aucun harness Worker) —
       limite énoncée au journal, pas de non-régression automatisée revendiquée.
+
+- **2026-08-31 — Lot L3 livré** (le reste de G1.c, `engine/ai` seul) : trois
+  commandes que l'IA n'émettait **jamais** alors qu'elles existaient.
+  - **Marché** (`TradeResources`) : en tête du tour de ville, elle vend son plus
+    gros surplus de ressource non-or **au-delà d'une réserve de 30** contre de
+    l'or — une ressource par ville et par tour. Elle s'asseyait sur un tas de
+    gemmes ou de cristal inutile pendant que l'or, la ressource qui recrute,
+    manquait. Réserve calibrée sur les paliers de coût les plus lourds du contenu
+    livré (ordre de 20-40) : vendre ne bloque pas la construction du lendemain.
+  - **Machines de guerre** (`BuyWarMachine`) : une par ville et par tour, au
+    héros présent, parmi celles que **déclare** l'effet `warMachineVendor`
+    (jamais un id en dur). Baliste et tente de soins pèsent dans chaque combat.
+  - **Artefacts** (`EquipArtifact`) : le butin est routé vers le **sac**
+    (H-ARTEQUIP) et l'IA ne l'en sortait pas — elle collectionnait sans jamais
+    porter un bonus. Équipement au début du tour de chaque héros, **y compris
+    sans point de mouvement** (un héros immobile peut être attaqué) ; un
+    artefact refusé (emplacement typé pris, 10 slots pleins) n'empêche pas les
+    autres.
+  - Tests : 5 unitaires de plus dans `ai-town.test.ts` (**10 au total**) —
+    vente du plus gros surplus / réserve conservée / ni sous la réserve ni sans
+    marché, achat au héros présent / rien sans héros, sac vidé dans les slots.
+  - **Pas de bump `CURRENT_SAVE_VERSION`**, **golden inchangé**, doc 02 §6 alignée.
+  - *Limites assumées* : l'IA ne fait pas encore l'inverse du marché (**acheter**
+    la ressource qui manque pour une construction précise — demande de regarder
+    les candidats de construction, à faire avec L4) ; elle équipe dans l'ordre du
+    sac sans comparer les bonus.
+
+### Vérification du lot L3 (rejouée en entier le 2026-08-31)
+
+- [x] `pnpm typecheck` vert (5 projets) · `pnpm lint` vert
+- [x] tests **moteur 957/957** (+5), **contenu 165**, **client 82**
+- [x] `pnpm content:check` vert · garde-fous faction & couleurs verts
+- [x] `pnpm build` + budget bundle **366 799 o gzip** (cap 819 200)
+- [x] **golden inchangé** (aucun joueur IA dans le replay golden)
+- [x] smoke `@core` desktop + mobile **55/55** (aucun flake cette fois) et
+      **`@e2e` 3/3** — la boucle longue joue contre l'IA, c'est elle qui
+      encaisse le changement de comportement
+

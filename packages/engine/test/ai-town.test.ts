@@ -6,6 +6,7 @@ import type { GameEvent } from '../src/core/events';
 import { createEmptyState, emptyResources, type GameState } from '../src/core/state';
 import { runAiTurn } from '../src/ai/adventure';
 import type { BuildingDef } from '../src/town/types';
+import type { ArtifactDef } from '../src/hero/types';
 import type { CombatUnitDef } from '../src/combat/types';
 import { testConfig, testMap } from './fixtures';
 import { testTown, testUnitCatalogWithEconomy } from './town-fixtures';
@@ -19,6 +20,8 @@ import { testTown, testUnitCatalogWithEconomy } from './town-fixtures';
  */
 
 const config = testConfig();
+/** Config + taux de marché (absents de `testConfig`) : le troc l'exige. */
+const configWithMarket = { ...config, market: { sellRate: 25, buyRate: 50 } };
 
 /** Unités : `red-grunt` (base, 50 or) et son amélioré `blue-wolf` (100 or). */
 function unitCatalog(): Record<string, CombatUnitDef> {
@@ -62,6 +65,7 @@ function aiState(
   gold: number,
   buildingCatalog: Record<string, BuildingDef>,
   town: ReturnType<typeof testTown>,
+  gameConfig = config,
 ): GameState {
   const players: PlayerSetup[] = [{ id: 'p1', startingResources: { ...emptyResources(), gold }, controller: 'ai' }];
   const cmd: Command = {
@@ -69,7 +73,7 @@ function aiState(
     seed: 1,
     players,
     map: { ...testMap(), objects: [] },
-    config,
+    config: gameConfig,
     unitCatalog: unitCatalog(),
     buildingCatalog,
     towns: [town],
@@ -176,5 +180,112 @@ describe('IA de ville — l’armée du héros grossit enfin', () => {
     expect(next.heroes[0]?.pos).toEqual(town.pos);
     expect(next.heroes[0]?.army).toContainEqual({ unitId: 'blue-wolf', count: 30 });
     expect(next.towns[0]?.garrison).toEqual([]);
+  });
+});
+
+/** Catalogue portant un marché ET un vendeur de machines de guerre. */
+function catalogServices(): Record<string, BuildingDef> {
+  return {
+    comptoir: { id: 'comptoir', maxLevel: 1, levels: [{ cost: {}, requires: [], effect: { type: 'market' } }] },
+    fonderie: {
+      id: 'fonderie',
+      maxLevel: 1,
+      levels: [{ cost: {}, requires: [], effect: { type: 'warMachineVendor', units: ['engin-de-siege'] } }],
+    },
+  };
+}
+
+describe('IA de ville — le marché sert enfin à quelque chose', () => {
+  it('vend le plus gros surplus non-or contre de l’or (réserve conservée)', () => {
+    const town = testTown({ buildings: { comptoir: 1 }, builtToday: true, stock: {} });
+    let state = aiState(0, catalogServices(), town, configWithMarket);
+    state = produce(state, (draft) => {
+      const p = draft.players[0];
+      if (!p) throw new Error('joueur absent');
+      p.resources.gems = 50; // 20 au-dessus de la réserve
+      p.resources.wood = 35; // 5 au-dessus : surplus plus petit
+    });
+
+    const { next } = playAi(state);
+    const after = next.players[0];
+
+    expect(after?.resources.gems).toBe(30); // la réserve reste
+    expect(after?.resources.wood).toBe(35); // un seul échange par tour
+    expect(after?.resources.gold).toBeGreaterThan(0);
+  });
+
+  it('ne vend rien sous la réserve, ni sans marché construit', () => {
+    const underReserve = testTown({ buildings: { comptoir: 1 }, builtToday: true, stock: {} });
+    let state = aiState(0, catalogServices(), underReserve, configWithMarket);
+    state = produce(state, (draft) => {
+      const p = draft.players[0];
+      if (p) p.resources.gems = 30;
+    });
+    expect(playAi(state).next.players[0]?.resources.gold).toBe(0);
+
+    const noMarket = testTown({ buildings: {}, builtToday: true, stock: {} });
+    let bare = aiState(0, catalogServices(), noMarket, configWithMarket);
+    bare = produce(bare, (draft) => {
+      const p = draft.players[0];
+      if (p) p.resources.gems = 100;
+    });
+    const out = playAi(bare).next.players[0];
+    expect(out?.resources.gold).toBe(0);
+    expect(out?.resources.gems).toBe(100);
+  });
+});
+
+describe('IA de ville — machines de guerre', () => {
+  it('achète au héros présent une machine vendue par le bâtiment (une par tour)', () => {
+    const town = testTown({ buildings: { fonderie: 1 }, builtToday: true, stock: {} });
+    let state = aiState(1000, catalogServices(), town);
+    state = produce(state, (draft) => {
+      const hero = draft.heroes.find((h) => h.playerId === 'p1');
+      if (!hero) throw new Error('héros absent');
+      hero.pos = { ...town.pos };
+      hero.movementPoints = 0; // il tient la ville : sinon il part explorer avant le tour de ville
+    });
+
+    const { next, events } = playAi(state);
+
+    expect(next.heroes[0]?.warMachines).toContain('engin-de-siege');
+    expect(events).toContainEqual(expect.objectContaining({ type: 'WarMachineBought', unitId: 'engin-de-siege' }));
+  });
+
+  it('n’achète pas sans héros sur place', () => {
+    const town = testTown({ buildings: { fonderie: 1 }, builtToday: true, stock: {} });
+    const { next } = playAi(aiState(1000, catalogServices(), town));
+    expect(next.heroes[0]?.warMachines).toEqual([]);
+  });
+});
+
+describe('IA d’aventure — les artefacts sortent du sac', () => {
+  it('équipe le butin rangé dans le sac avant de jouer son tour', () => {
+    const artifactCatalog: Record<string, ArtifactDef> = {
+      'talisman-test': { id: 'talisman-test', bonus: { attack: 1 }, slot: 'misc' },
+    };
+    const town = testTown({ buildings: {}, builtToday: true, stock: {} });
+    const players: PlayerSetup[] = [{ id: 'p1', startingResources: emptyResources(), controller: 'ai' }];
+    let state = apply(createEmptyState(), {
+      type: 'StartGame',
+      seed: 1,
+      players,
+      map: { ...testMap(), objects: [] },
+      config,
+      unitCatalog: unitCatalog(),
+      buildingCatalog: catalogServices(),
+      towns: [town],
+      artifactCatalog,
+    }).state;
+    state = produce(state, (draft) => {
+      const hero = draft.heroes.find((h) => h.playerId === 'p1');
+      if (!hero) throw new Error('héros absent');
+      hero.backpack = ['talisman-test'];
+    });
+
+    const { next } = playAi(state);
+
+    expect(next.heroes[0]?.artifacts).toContain('talisman-test');
+    expect(next.heroes[0]?.backpack).toEqual([]);
   });
 });

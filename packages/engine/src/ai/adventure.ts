@@ -8,6 +8,7 @@ import { resolveTriggerChoice } from '../adventure/trigger-choice';
 import { DIRECTIONS, isAdjacent, samePos, tileIndex, type GridPos } from '../adventure/map';
 import { findPath, isPassable, minStepCost, octileLowerBound, stepCost } from '../adventure/path';
 import { heroArmyCap } from '../hero/skills';
+import { validateEquipArtifact, handleEquipArtifact } from '../hero/equip';
 import { validateCaptureTown, handleCaptureTown } from '../town';
 import { maxAffordableCount } from '../town/resources';
 import { unitWithEconomy } from '../town/unit-economy';
@@ -49,6 +50,9 @@ export function runAiTurn(draft: GameState, playerId: string, events: GameEvent[
     if (draft.outcome) return;
     const hero = draft.heroes.find((h) => h.id === heroId);
     if (!hero) continue; // mort en combat plus tôt dans ce même tour
+    // Avant même de bouger — et y compris sans point de mouvement : un héros
+    // immobile peut être attaqué, ses bonus doivent être portés.
+    if (!draft.combat) equipBackpack(draft, hero);
     playHeroTurn(draft, hero, player, events);
   }
 
@@ -366,6 +370,21 @@ function captureTown(draft: GameState, town: TownState, player: PlayerState, eve
   // déplacement (`advanceAi`). Sans ça, `AiTurn` sortait par la garde
   // `if (draft.combat)` SANS `EndTurn` et laissait son combat au joueur humain.
   if (draft.combat) runAutoCombat(draft, events);
+}
+
+/**
+ * Équipe ce que le héros traîne dans son sac (H-ARTEQUIP) : le butin y est
+ * routé au ramassage, et l'IA ne l'en sortait jamais — elle collectionnait des
+ * artefacts sans en tirer un seul bonus. Parcours des cases de la dernière à la
+ * première (les indices restants restent valides après retrait) ; un artefact
+ * refusé (emplacement typé déjà pris, 10 slots pleins) n'empêche pas les autres.
+ */
+function equipBackpack(draft: GameState, hero: HeroState): void {
+  for (let index = (hero.backpack?.length ?? 0) - 1; index >= 0; index--) {
+    const cmd = { type: 'EquipArtifact' as const, heroId: hero.id, index };
+    if (validateEquipArtifact(draft, cmd)) continue;
+    handleEquipArtifact(draft, cmd);
+  }
 }
 
 function playHeroTurn(draft: GameState, hero: HeroState, player: PlayerState, events: GameEvent[]): void {

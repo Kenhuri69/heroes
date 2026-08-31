@@ -1,5 +1,5 @@
 import type { GameEvent } from '../core/events';
-import type { GameState, PlayerState, Resources } from '../core/state';
+import type { GameState, PlayerState, ResourceId, Resources } from '../core/state';
 import { RESOURCE_IDS } from '../core/state';
 import {
   validateBuildStructure,
@@ -10,6 +10,10 @@ import {
   handleUpgradeUnits,
   validateGarrisonTransfer,
   handleGarrisonTransfer,
+  validateBuyWarMachine,
+  handleBuyWarMachine,
+  validateTradeResources,
+  handleTradeResources,
 } from '../town';
 import { validateRecruitHero, handleRecruitHero } from '../hero/recruit';
 import { samePos } from '../adventure/map';
@@ -183,10 +187,71 @@ export function tryGarrisonPickup(draft: GameState, town: TownState, events: Gam
   }
 }
 
+/**
+ * Réserve conservée de chaque ressource non-or avant de vendre : couvre les
+ * paliers de coût de bâtiment les plus lourds du contenu livré (ordre de 20-40)
+ * pour que la vente ne bloque jamais une construction du lendemain.
+ */
+const AI_RESOURCE_RESERVE = 30;
+
+/**
+ * Vend au marché le plus gros surplus de ressource non-or (au-delà de la
+ * réserve) contre de l'or. L'IA n'avait jamais émis `TradeResources` : elle
+ * s'asseyait sur un tas de gemmes ou de cristal inutile pendant que son or
+ * — la ressource qui recrute — manquait. Joué EN PREMIER dans le tour de ville :
+ * l'or gagné finance la construction et le recrutement du jour même. Une seule
+ * ressource par ville et par tour ; `validateTradeResources` porte le reste
+ * (marché construit, taux configuré, contrepartie non nulle).
+ */
+function tryTradeSurplus(draft: GameState, town: TownState, player: PlayerState, events: GameEvent[]): void {
+  let best: { id: ResourceId; surplus: number } | null = null;
+  for (const id of RESOURCE_IDS) {
+    if (id === 'gold') continue;
+    const surplus = player.resources[id] - AI_RESOURCE_RESERVE;
+    if (surplus <= 0) continue;
+    if (!best || surplus > best.surplus) best = { id, surplus };
+  }
+  if (!best) return;
+  const cmd = {
+    type: 'TradeResources' as const,
+    townId: town.id,
+    give: best.id,
+    receive: 'gold' as const,
+    giveAmount: best.surplus,
+  };
+  if (validateTradeResources(draft, cmd)) return;
+  handleTradeResources(draft, cmd, events);
+}
+
+/**
+ * Achète UNE machine de guerre au héros présent (Forge et consorts, doc 02 §5) :
+ * la baliste ou la tente de soins pesaient dans chaque combat de l'IA… qui ne
+ * les achetait jamais. Une par ville et par tour (l'or restant va à l'armée) ;
+ * les machines vendues sont déclarées par l'effet `warMachineVendor`, jamais un
+ * id en dur — `validateBuyWarMachine` couvre héros présent, vendeur, doublon
+ * et prix.
+ */
+function tryBuyWarMachine(draft: GameState, town: TownState, events: GameEvent[]): void {
+  const sold = new Set<string>();
+  for (const [buildingId, level] of Object.entries(town.buildings)) {
+    if (level < 1) continue;
+    const effect = draft.buildingCatalog[buildingId]?.levels[level - 1]?.effect;
+    if (effect?.type === 'warMachineVendor') for (const unitId of effect.units) sold.add(unitId);
+  }
+  for (const unitId of [...sold].sort()) {
+    const cmd = { type: 'BuyWarMachine' as const, townId: town.id, unitId };
+    if (validateBuyWarMachine(draft, cmd)) continue;
+    handleBuyWarMachine(draft, cmd, events);
+    return;
+  }
+}
+
 export function playTownTurn(draft: GameState, town: TownState, player: PlayerState, events: GameEvent[]): void {
+  tryTradeSurplus(draft, town, player, events);
   tryBuild(draft, town, events);
   tryRecruit(draft, town, player, events);
   tryUpgrade(draft, town, events);
   tryRecruitHero(draft, town, player, events);
+  tryBuyWarMachine(draft, town, events);
   tryGarrisonPickup(draft, town, events);
 }

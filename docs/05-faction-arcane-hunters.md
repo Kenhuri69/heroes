@@ -350,7 +350,17 @@ par-faction). Spécifiques :
 | **Bâtiment de Cercle** | variable | Grand Amphithéâtre | 1 des 4 exclusifs selon le Cercle choisi |
 | **Portail de l'Abîme Scellé** | 4000 or, 3 gemmes, 3 mercure (†) | Habitation T7 + Château | Habitation T8 (Pénitent Démonique) |
 
-> \* **Salle des Reliques** : jamais livrée (absente des reports) — **différée**.
+> \* **Salle des Reliques** : **livrée** (revue 2026-08, lot L8) via UN point
+> d'extension générique — l'aura de bâtiment `heroAura.learnCircleBonus` : le
+> héros **présent** dans la ville apprend à la Guilde des sorts d'**un cercle
+> plus haut**. Deux écarts assumés au texte d'origine : le bonus n'est **pas
+> scopé à l'école de Traque** (le cercle apprenable est une notion d'école-agnostique
+> dans le moteur ; le scoper demanderait un second point d'extension pour un gain
+> mince), et le **slot d'artefact « trophée » reste différé** (`hero.artifacts`
+> est un tableau de 10 slots sérialisé — un cap variable change la forme de
+> sauvegarde et la poupée d'équipement ; à traiter avec un lot H-ARTEQUIP).
+> Prérequis réel : **Guilde des mages 1** — comme les Cercles, le « Grand
+> Amphithéâtre » n'ayant jamais existé comme bâtiment.
 > † Le coût **en Essence** du Portail (60) est **différé** : le bâtiment livré
 > ne coûte pas d'Essence (`4000 or + 3 gemmes + 3 mercure`). L'Essence est en
 > revanche bien dépensée au **recrutement** du T8 Pénitent (40 Essence, base).

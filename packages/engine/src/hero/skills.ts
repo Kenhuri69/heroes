@@ -195,13 +195,21 @@ export const BASE_LEARNABLE_CIRCLE = 2;
  * courant). N'affecte PAS le lancement d'un sort déjà connu — seulement
  * l'apprentissage. Prend le max (pas la somme) : un seul palier de déblocage.
  */
-export function heroLearnableCircle(hero: HeroState, catalog: Record<string, HeroSkillDef>): number {
+export function heroLearnableCircle(
+  hero: HeroState,
+  catalog: Record<string, HeroSkillDef>,
+  /**
+   * Bonus d'aura de bâtiment (lot L8, `heroAura.learnCircleBonus`) — 0 par
+   * défaut : le calcul reste celui d'avant hors d'une ville qui en porte une.
+   */
+  auraBonus = 0,
+): number {
   let max = BASE_LEARNABLE_CIRCLE;
   for (const [skillId, rank] of Object.entries(hero.skills)) {
     const unlock = catalog[skillId]?.ranks[rank - 1]?.learnCircle;
     if (unlock !== undefined && unlock > max) max = unlock;
   }
-  return max;
+  return max + auraBonus;
 }
 
 /**

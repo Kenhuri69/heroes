@@ -413,13 +413,40 @@
       "levels": [
         {
           "cost": {},
-          "requires": [{ "building": "townHall", "level": 1 }],
+          "requires": [
+            {
+              "building": "townHall",
+              "level": 1
+            }
+          ],
           "effect": {
             "type": "factionResourceIncome",
             "resource": "essence",
             "amount": 12
           },
           "uniquePerPlayer": true
+        }
+      ]
+    },
+    {
+      "id": "arcane-hunters-relic-hall",
+      "maxLevel": 1,
+      "levels": [
+        {
+          "cost": {
+            "gold": 1600,
+            "mercury": 3
+          },
+          "requires": [
+            {
+              "building": "mageGuild",
+              "level": 1
+            }
+          ],
+          "effect": {
+            "type": "heroAura",
+            "learnCircleBonus": 1
+          }
         }
       ]
     }

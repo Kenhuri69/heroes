@@ -76,6 +76,15 @@ export type BuildingEffect =
        */
       eliteDamagePct?: number;
       eliteMinTier?: number;
+      /**
+       * Lot L8 (doc 05 §4 — Salle des Reliques) : +N **cercles apprenables** au
+       * héros du propriétaire **présent** sur la tuile de la ville (option B,
+       * comme `movementBonusFlat`). La Guilde des mages lui enseigne alors des
+       * sorts d'un cercle plus haut que sa Sagesse seule ne le permettrait.
+       * Générique : aucun nom d'école ni de faction (cf. divergence assumée du
+       * plan `l8-content-finitions`).
+       */
+      learnCircleBonus?: number;
     }
   /**
    * Bâtiment qui enseigne un sort (F-BUILDEFF.3, doc 03 §4 — Cloître) : à la

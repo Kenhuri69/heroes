@@ -94,7 +94,7 @@ import { runAiTurn } from '../ai/adventure';
 import { EngineError, type Command, type CommandError } from './commands';
 import type { GameEvent } from './events';
 import { seedRng } from './rng';
-import { rollMonthEvent, rollWeekEvent } from '../adventure/calendar';
+import { applyMonthSpawn, rollMonthEvent, rollWeekEvent } from '../adventure/calendar';
 import { grantXp } from '../adventure/experience';
 import { RESOURCE_IDS, weekOf, monthOf, areAllies, type GameState, type ResourceId } from './state';
 
@@ -1102,7 +1102,11 @@ function advanceSeat(draft: Draft, events: GameEvent[]): void {
         const month = monthOf(draft.calendar.day);
         if (month !== monthOf(draft.calendar.day - 1)) {
           const monthEvent = rollMonthEvent(draft);
-          if (monthEvent) events.push({ type: 'CalendarMonthStarted', eventId: monthEvent.id, month });
+          if (monthEvent) {
+            events.push({ type: 'CalendarMonthStarted', eventId: monthEvent.id, month });
+            // « Mois des créatures » (lot L8) : la carte se repeuple de piles neutres.
+            applyMonthSpawn(draft, monthEvent, events);
+          }
         }
         // Événement de calendrier (M-CALENDAR, doc 02 §2.3) : tiré AVANT la
         // croissance (il la module via `weekGrowthFactor`). No-op hors calendrier.

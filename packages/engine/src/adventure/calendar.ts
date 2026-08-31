@@ -6,8 +6,11 @@
  * `config.calendar.events`, le moteur ne connaît que des ids opaques.
  */
 import type { CalendarEventDef, CalendarMonthEventDef } from './config';
+import type { GameEvent } from '../core/events';
 import type { GameState } from '../core/state';
 import { rollRange } from '../core/rng';
+import { tileIndex } from './map';
+import { isPassable } from './path';
 
 /** Tirage pondéré partagé semaine/mois — consomme le RNG seedé de l'état. */
 function weightedPick<T extends { weight: number }>(draft: GameState, pool: readonly T[]): T | null {
@@ -41,13 +44,9 @@ export function rollWeekEvent(draft: GameState): CalendarEventDef | null {
   }
   draft.calendar.weekEventId = picked.id;
   if (picked.growthUnit) {
-    const candidates = Object.keys(draft.unitCatalog)
-      .filter((id) => (draft.unitCatalog[id]?.growthPerWeek ?? 0) > 0)
-      .sort();
-    if (candidates.length > 0) {
-      const roll = rollRange(draft.rng, 0, candidates.length - 1);
-      draft.rng = roll.state;
-      draft.calendar.weekEventUnitId = candidates[roll.value] ?? null;
+    const unitId = pickRecruitableUnit(draft);
+    if (unitId) {
+      draft.calendar.weekEventUnitId = unitId;
       return picked;
     }
   }
@@ -67,6 +66,65 @@ export function rollMonthEvent(draft: GameState): CalendarMonthEventDef | null {
   if (!picked) return null;
   draft.calendar.monthEventId = picked.id;
   return picked;
+}
+
+/** Unité recrutable tirée au RNG seedé (clés triées ⇒ déterministe), ou `null`. */
+function pickRecruitableUnit(draft: GameState): string | null {
+  const candidates = Object.keys(draft.unitCatalog)
+    .filter((id) => (draft.unitCatalog[id]?.growthPerWeek ?? 0) > 0)
+    .sort();
+  if (candidates.length === 0) return null;
+  const roll = rollRange(draft.rng, 0, candidates.length - 1);
+  draft.rng = roll.state;
+  return candidates[roll.value] ?? null;
+}
+
+/**
+ * « Mois des créatures » (doc 02 §2.3, lot L8) : pose `stacks` piles NEUTRES
+ * d'une unité tirée au sort sur des tuiles libres — la carte se repeuple, comme
+ * les mois à créatures de HoMM3. Déterministe (RNG de l'état) ; une carte
+ * saturée en accueille simplement moins (essais bornés). No-op sans
+ * `spawnCreatures` sur l'événement du mois, donc aucune partie existante ne
+ * change de séquence.
+ */
+export function applyMonthSpawn(
+  draft: GameState,
+  event: CalendarMonthEventDef,
+  events: GameEvent[],
+): void {
+  const spawn = event.spawnCreatures;
+  const map = draft.map;
+  const config = draft.config;
+  if (!spawn || !map || !config || spawn.stacks <= 0 || spawn.size <= 0) return;
+  const unitId = pickRecruitableUnit(draft);
+  if (!unitId) return;
+  const taken = new Set<number>();
+  for (const o of map.objects) taken.add(tileIndex(map, o.pos));
+  for (const h of draft.heroes) taken.add(tileIndex(map, h.pos));
+  for (const t of draft.towns) taken.add(tileIndex(map, t.pos));
+  let placed = 0;
+  // Essais bornés : `stacks × 8` tirages au plus — jamais de boucle non bornée
+  // sur une carte pleine (le RNG consommé reste donc borné et reproductible).
+  for (let attempt = 0; attempt < spawn.stacks * 8 && placed < spawn.stacks; attempt++) {
+    const rx = rollRange(draft.rng, 0, map.width - 1);
+    draft.rng = rx.state;
+    const ry = rollRange(draft.rng, 0, map.height - 1);
+    draft.rng = ry.state;
+    const pos = { x: rx.value, y: ry.value };
+    const idx = tileIndex(map, pos);
+    if (taken.has(idx) || !isPassable(config, map, pos)) continue;
+    taken.add(idx);
+    map.objects.push({
+      id: `spawn-${event.id}-${draft.calendar.day}-${placed}`,
+      type: 'guardian',
+      pos,
+      unitId,
+      count: spawn.size,
+    });
+    placed++;
+  }
+  if (placed > 0)
+    events.push({ type: 'CalendarCreaturesSpawned', unitId, stacks: placed, size: spawn.size });
 }
 
 /**

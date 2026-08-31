@@ -39,6 +39,13 @@ export interface PlayerSetup {
   /** Équipe / alliance (doc 02 §6) — entier opaque ; défaut `0` (sans alliance). */
   team?: number;
   /**
+   * Profil économique (lot L5) : `{ incomePercent, growthPercent }` en points de
+   * pourcentage appliqués au revenu quotidien et à la croissance hebdomadaire de
+   * ce joueur. Posé par les données (le client y projette son cran de difficulté
+   * pour les sièges IA) — le moteur ne voit que des nombres. Absent = neutre.
+   */
+  economyBonus?: { incomePercent?: number; growthPercent?: number };
+  /**
    * Report de héros entre chapitres de campagne (doc 13 §4.1, N3a) — le héros
    * nommé conserve niveau/XP/compétences/artefacts d'un chapitre à l'autre.
    * Optionnels : absents ⇒ héros neuf (niveau 1). `startingArtifacts` (par

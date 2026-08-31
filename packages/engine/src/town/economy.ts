@@ -1,5 +1,5 @@
 import type { GameEvent } from '../core/events';
-import type { GameState, ResourceId } from '../core/state';
+import type { GameState, PlayerState, ResourceId } from '../core/state';
 import { heroGoldPerDay, townHouseField } from '../hero/skills';
 import { monthGrowthFactor, weekGrowthFactor, weekGrowthTierFactor, weekGrowthUnitFactor } from '../adventure/calendar';
 import { builtLevelOf } from './helpers';
@@ -88,17 +88,23 @@ export function dailyIncome(state: GameState, playerId: string): Partial<Record<
     if (amount === 0) return;
     income[resource] = (income[resource] ?? 0) + amount;
   };
+  // Même facteur économique que `applyDailyIncome` (lot L5) : la projection du
+  // HUD doit annoncer ce qui tombera réellement demain.
+  const factor = economyFactor(
+    state.players.find((p) => p.id === playerId),
+    'incomePercent',
+  );
   for (const town of state.towns) {
     if (town.ownerPlayerId !== playerId) continue;
     for (const buildingId of Object.keys(town.buildings)) {
       const level = builtLevelOf(town, state.buildingCatalog, buildingId);
       if (!level || level.effect.type !== 'income') continue;
-      add(level.effect.resource, level.effect.amount);
+      add(level.effect.resource, Math.floor(level.effect.amount * factor));
     }
   }
   for (const obj of state.map?.objects ?? []) {
     if (obj.type !== 'mine' || obj.ownerId !== playerId) continue;
-    add(obj.resource as ResourceId, obj.amount);
+    add(obj.resource as ResourceId, Math.floor(obj.amount * factor));
   }
   for (const hero of state.heroes) {
     if (hero.playerId !== playerId) continue;
@@ -130,6 +136,17 @@ function factionResourceCapFor(
   return undefined;
 }
 
+/**
+ * Facteur économique d'un joueur (lot L5) — `1` sans profil. Générique : le
+ * moteur multiplie, il ne sait pas d'où vient le pourcentage (cran de
+ * difficulté côté données, handicap de scénario…). Plancher 0 : un profil ne
+ * retire jamais plus que la totalité.
+ */
+function economyFactor(player: PlayerState | undefined, field: 'incomePercent' | 'growthPercent'): number {
+  const pct = player?.economyBonus?.[field] ?? 0;
+  return Math.max(0, 1 + pct / 100);
+}
+
 export function applyDailyIncome(draft: GameState, events: GameEvent[]): void {
   for (const town of draft.towns) {
     if (!town.ownerPlayerId) continue;
@@ -139,7 +156,8 @@ export function applyDailyIncome(draft: GameState, events: GameEvent[]): void {
       const level = builtLevelOf(town, draft.buildingCatalog, buildingId);
       if (!level) continue;
       if (level.effect.type === 'income') {
-        const { resource, amount } = level.effect;
+        const { resource } = level.effect;
+        const amount = Math.floor(level.effect.amount * economyFactor(player, 'incomePercent'));
         player.resources[resource] += amount;
         events.push({ type: 'TownIncome', playerId: player.id, resource, amount });
       } else if (level.effect.type === 'factionResourceIncome') {
@@ -157,13 +175,14 @@ export function applyDailyIncome(draft: GameState, events: GameEvent[]): void {
     if (obj.type !== 'mine' || obj.ownerId === null) continue;
     const player = draft.players.find((p) => p.id === obj.ownerId);
     if (!player || player.eliminated) continue;
-    player.resources[obj.resource as ResourceId] += obj.amount;
+    const mined = Math.floor(obj.amount * economyFactor(player, 'incomePercent'));
+    player.resources[obj.resource as ResourceId] += mined;
     events.push({
       type: 'MineIncome',
       playerId: player.id,
       objectId: obj.id,
       resource: obj.resource,
-      amount: obj.amount,
+      amount: mined,
     });
   }
 }
@@ -198,8 +217,17 @@ export function weeklyGrowthOf(
   // facteur du MOIS courant (lot 2.5).
   const tierFactor = weekGrowthTierFactor(state, state.unitCatalog[unitId]?.tier);
   const unitFactor = weekGrowthUnitFactor(state, unitId);
+  // Profil économique du propriétaire (lot L5) : même facteur que le revenu,
+  // appliqué ici pour que l'UI de recrutement projette la croissance réelle.
+  const owner = town.ownerPlayerId ? state.players.find((p) => p.id === town.ownerPlayerId) : undefined;
   const added = Math.floor(
-    growth * (1 + bonusFort) * weekGrowthFactor(state) * tierFactor * unitFactor * monthGrowthFactor(state),
+    growth *
+      (1 + bonusFort) *
+      weekGrowthFactor(state) *
+      tierFactor *
+      unitFactor *
+      monthGrowthFactor(state) *
+      economyFactor(owner, 'growthPercent'),
   );
   return { added, cap: 2 * added };
 }
@@ -247,8 +275,14 @@ export function applyWeeklyGrowth(draft: GameState, events: GameEvent[]): void {
     // X » : facteurs ciblés supplémentaires (palier, unité précise) + facteur du
     // MOIS courant (doc 18 A4, lot 2.5).
     const tierFactor = weekGrowthTierFactor(draft, draft.unitCatalog[obj.unitId]?.tier);
+    const owner = draft.players.find((p) => p.id === obj.ownerId);
     const added = Math.floor(
-      growth * weekGrowthFactor(draft) * tierFactor * weekGrowthUnitFactor(draft, obj.unitId) * monthGrowthFactor(draft),
+      growth *
+        weekGrowthFactor(draft) *
+        tierFactor *
+        weekGrowthUnitFactor(draft, obj.unitId) *
+        monthGrowthFactor(draft) *
+        economyFactor(owner, 'growthPercent'),
     );
     obj.stock = Math.max(obj.stock, Math.min(obj.stock + added, 2 * growth));
   }

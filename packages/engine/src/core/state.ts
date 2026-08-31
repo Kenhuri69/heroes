@@ -82,6 +82,14 @@ export interface PlayerState {
    * `false`).
    */
   hasGrail?: boolean;
+  /**
+   * Profil économique du joueur (lot L5) — pourcentages **opaques** appliqués à
+   * son revenu quotidien et à sa croissance hebdomadaire. Point d'extension
+   * GÉNÉRIQUE : le moteur n'a aucune notion de « cran de difficulté », il
+   * applique un facteur posé par les données (`PlayerSetup.economyBonus`).
+   * Optionnel (absent ⇒ facteur 1, comportement d'avant le lot).
+   */
+  economyBonus?: { incomePercent?: number; growthPercent?: number };
 }
 
 /**

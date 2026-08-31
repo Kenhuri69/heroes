@@ -707,6 +707,7 @@ const handlers: Handlers = {
       huntContract: null,
       team: p.team ?? 0,
       unitsLost: 0,
+      ...(p.economyBonus ? { economyBonus: { ...p.economyBonus } } : {}),
     }));
     // Un héros par joueur à sa position de départ, armée de scénario (doc 02 §1.5, §5.1).
     draft.heroes = cmd.players.map((p, i) => {

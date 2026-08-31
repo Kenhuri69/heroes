@@ -1,0 +1,106 @@
+{
+  "id": "sylvan-ch3",
+  "schemaVersion": 1,
+  "name": "@loc:scenario.sylvan-ch3.name",
+  "map": "proto-02",
+  "players": [
+    {
+      "id": "player-1",
+      "controller": "human",
+      "factionId": "sylvan-court",
+      "startPositionIndex": 0,
+      "startingResources": { "gold": 9000, "wood": 25, "ore": 25, "crystal": 12, "mercury": 8 },
+      "startingArmy": [
+        { "unitId": "t2-archer-sylvestre", "count": 18 },
+        { "unitId": "t3-dryade", "count": 10 },
+        { "unitId": "t5-licorne", "count": 4 },
+        { "unitId": "t6-treant", "count": 2 }
+      ],
+      "startingTown": {
+        "id": "start-town",
+        "x": 2,
+        "y": 4,
+        "prebuilt": [
+          { "building": "townHall", "level": 1 },
+          { "building": "fort", "level": 1 },
+          { "building": "sylvan-court-dwelling-t1", "level": 1 },
+          { "building": "sylvan-court-dwelling-t2", "level": 1 },
+          { "building": "sylvan-court-dwelling-t3", "level": 1 }
+        ]
+      }
+    },
+    {
+      "id": "ai-1",
+      "controller": "ai",
+      "factionId": "necropolis",
+      "startPositionIndex": 1,
+      "startingResources": { "gold": 5000 },
+      "startingArmy": [
+        { "unitId": "t1-squelette", "count": 30 },
+        { "unitId": "t3-spectre", "count": 8 },
+        { "unitId": "t5-liche", "count": 3 }
+      ]
+    }
+  ],
+  "objectives": {
+    "player-1": {
+      "victory": { "type": "eliminateAllEnemies" },
+      "defeat": { "type": "defeatHero", "heroId": "hero-player-1" }
+    },
+    "ai-1": {
+      "victory": { "type": "eliminateAllEnemies" },
+      "defeat": { "type": "defeatHero", "heroId": "hero-ai-1" }
+    }
+  },
+  "openingDialog": "dlg-sylvan-ch3-open",
+  "combatBarks": [
+    "@loc:bark.sylvan.necropolis.1",
+    "@loc:bark.sylvan.necropolis.2",
+    "@loc:bark.sylvan.necropolis.3"
+  ],
+  "characters": [
+    { "id": "sylwen", "nameKey": "@loc:character.sylwen.name" },
+    { "id": "faelar", "nameKey": "@loc:character.faelar.name" }
+  ],
+  "dialogs": [
+    {
+      "id": "dlg-sylvan-ch3-open",
+      "lines": [
+        { "speaker": "faelar", "textKey": "@loc:dlg.sylvan.ch3.open.1" },
+        { "speaker": "sylwen", "textKey": "@loc:dlg.sylvan.ch3.open.2" },
+        { "speaker": "faelar", "portrait": "grave", "textKey": "@loc:dlg.sylvan.ch3.open.3" }
+      ]
+    },
+    {
+      "id": "dlg-sylvan-ch3-elder",
+      "lines": [
+        { "speaker": "faelar", "textKey": "@loc:dlg.sylvan.ch3.elder.1" },
+        { "speaker": "sylwen", "textKey": "@loc:dlg.sylvan.ch3.elder.2" }
+      ],
+      "choices": [
+        { "textKey": "@loc:dlg.sylvan.ch3.elder.wake", "setFlag": "faelar-wake" },
+        { "textKey": "@loc:dlg.sylvan.ch3.elder.let-sleep", "setFlag": "faelar-let-sleep" }
+      ]
+    }
+  ],
+  "quests": [
+    {
+      "id": "sylvan-ch3-aieul",
+      "kind": "primary",
+      "titleKey": "@loc:quest.sylvan-ch3-aieul.title",
+      "descriptionKey": "@loc:quest.sylvan-ch3-aieul.desc",
+      "steps": [
+        {
+          "id": "gather-treants",
+          "condition": { "type": "ownUnits", "unitId": "t6-treant", "count": 4 },
+          "dialogBefore": "dlg-sylvan-ch3-elder"
+        },
+        {
+          "id": "cleanse",
+          "condition": { "type": "eliminateAllEnemies" }
+        }
+      ],
+      "rewards": [{ "type": "resources", "resources": { "gold": 4000, "crystal": 8 } }]
+    }
+  ]
+}

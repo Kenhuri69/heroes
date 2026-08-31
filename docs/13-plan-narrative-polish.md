@@ -554,9 +554,18 @@ post-lancement ont reçu leur histoire avec elles).
 > dialogue d'ouverture Hermione/Rumi, quête primaire `vox-ch1-honmoon` « bâtir le
 > Fort », barks), `story/campaign.json` (via `manifest.story`), entrée d'index et
 > locales FR/EN. **4ᵉ test de modularité narratif** validé au smoke (la campagne
-> apparaît au menu et le chapitre 1 démarre). Chapitres suivants + campagne
-> Sylvan Court restent différés (conforme §8.1 : une maison peut recevoir son
-> histoire par tranches).
+> apparaît au menu et le chapitre 1 démarre).
+>
+> **État livré (N-CAMPAIGNS2 — complet, revue 2026-08 lot L6)** : la campagne
+> **Sylvan Court** (`sylvan-campaign`, 3 chapitres « La forêt se referme / La
+> lisière brûle / L'Aïeul s'éveille », `sylvan-ch1/2` sur `proto-01` et
+> `sylvan-ch3` sur `proto-02`) et le **chapitre 2 de Vox Arcana** (`vox-ch2`,
+> « La tournée des sceaux », Vox vs IA Arcane Hunters) sont livrés — **100 %
+> données**, zéro octet de moteur ou de client. Deux nœuds à choix par arc
+> (Sylwen : tenir ou brûler la lisière ; Faelar : réveiller l'Aïeul ou le
+> laisser rêver ; Hermione : ouvrir ou sceller les archives). **Les 6 maisons
+> jouables ont désormais leur campagne** — 5ᵉ et 6ᵉ tests de modularité
+> narratifs.
 
 ### 8.2 Garde-fous (mêmes règles que le gameplay)
 

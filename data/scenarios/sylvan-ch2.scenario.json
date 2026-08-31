@@ -1,0 +1,110 @@
+{
+  "id": "sylvan-ch2",
+  "schemaVersion": 1,
+  "name": "@loc:scenario.sylvan-ch2.name",
+  "map": "proto-01",
+  "players": [
+    {
+      "id": "player-1",
+      "controller": "human",
+      "factionId": "sylvan-court",
+      "startPositionIndex": 0,
+      "startingResources": { "gold": 7500, "wood": 18, "ore": 22, "crystal": 8, "mercury": 4 },
+      "startingArmy": [
+        { "unitId": "t1-lucine", "count": 28 },
+        { "unitId": "t2-archer-sylvestre", "count": 14 },
+        { "unitId": "t3-dryade", "count": 6 },
+        { "unitId": "t5-licorne", "count": 2 }
+      ],
+      "startingTown": {
+        "id": "start-town",
+        "x": 2,
+        "y": 4,
+        "prebuilt": [
+          { "building": "townHall", "level": 1 },
+          { "building": "fort", "level": 1 },
+          { "building": "sylvan-court-dwelling-t1", "level": 1 },
+          { "building": "sylvan-court-dwelling-t2", "level": 1 }
+        ]
+      }
+    },
+    {
+      "id": "ai-1",
+      "controller": "ai",
+      "factionId": "dungeon",
+      "startPositionIndex": 1,
+      "startingResources": { "gold": 3500 },
+      "startingArmy": [
+        { "unitId": "t1-eclaireur", "count": 26 },
+        { "unitId": "t2-furie-sanglante", "count": 10 },
+        { "unitId": "t3-minotaure", "count": 4 }
+      ]
+    }
+  ],
+  "objectives": {
+    "player-1": {
+      "victory": { "type": "eliminateAllEnemies" },
+      "defeat": { "type": "defeatHero", "heroId": "hero-player-1" }
+    },
+    "ai-1": {
+      "victory": { "type": "eliminateAllEnemies" },
+      "defeat": { "type": "defeatHero", "heroId": "hero-ai-1" }
+    }
+  },
+  "openingDialog": "dlg-sylvan-ch2-open",
+  "combatBarks": [
+    "@loc:bark.sylvan.dungeon.1",
+    "@loc:bark.sylvan.dungeon.2",
+    "@loc:bark.sylvan.dungeon.3"
+  ],
+  "characters": [
+    { "id": "sylwen", "nameKey": "@loc:character.sylwen.name" },
+    { "id": "faelar", "nameKey": "@loc:character.faelar.name" }
+  ],
+  "dialogs": [
+    {
+      "id": "dlg-sylvan-ch2-open",
+      "lines": [
+        { "speaker": "sylwen", "textKey": "@loc:dlg.sylvan.ch2.open.1" },
+        { "speaker": "faelar", "portrait": "grave", "textKey": "@loc:dlg.sylvan.ch2.open.2" },
+        { "speaker": "sylwen", "textKey": "@loc:dlg.sylvan.ch2.open.3" }
+      ]
+    },
+    {
+      "id": "dlg-sylvan-ch2-guild",
+      "lines": [{ "speaker": "faelar", "textKey": "@loc:dlg.sylvan.ch2.guild.1" }]
+    },
+    {
+      "id": "dlg-sylvan-ch2-choice",
+      "lines": [
+        { "speaker": "sylwen", "textKey": "@loc:dlg.sylvan.ch2.choice.1" },
+        { "speaker": "faelar", "textKey": "@loc:dlg.sylvan.ch2.choice.2" }
+      ],
+      "choices": [
+        { "textKey": "@loc:dlg.sylvan.ch2.choice.hold", "setFlag": "sylwen-hold" },
+        { "textKey": "@loc:dlg.sylvan.ch2.choice.burn", "setFlag": "sylwen-burn" }
+      ]
+    }
+  ],
+  "quests": [
+    {
+      "id": "sylvan-ch2-lisiere",
+      "kind": "primary",
+      "titleKey": "@loc:quest.sylvan-ch2-lisiere.title",
+      "descriptionKey": "@loc:quest.sylvan-ch2-lisiere.desc",
+      "steps": [
+        {
+          "id": "build-guild",
+          "condition": { "type": "buildStructure", "buildingId": "mageGuild" },
+          "dialogBefore": "dlg-sylvan-ch2-guild"
+        },
+        {
+          "id": "hold-the-line",
+          "condition": { "type": "eliminateAllEnemies" },
+          "dialogBefore": "dlg-sylvan-ch2-choice"
+        }
+      ],
+      "rewards": [{ "type": "resources", "resources": { "gold": 2500, "crystal": 5 } }]
+    }
+  ]
+}

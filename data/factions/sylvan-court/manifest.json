@@ -2,6 +2,7 @@
   "id": "sylvan-court",
   "schemaVersion": 1,
   "name": "@loc:faction.sylvan-court.name",
+  "story": "story/campaign.json",
   "nativeTerrain": "water",
   "keyResources": [
     "crystal",

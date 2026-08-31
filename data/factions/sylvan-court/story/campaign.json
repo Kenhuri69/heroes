@@ -1,0 +1,23 @@
+{
+  "id": "sylvan-campaign",
+  "factionId": "sylvan-court",
+  "nameKey": "@loc:campaign.sylvan.name",
+  "descriptionKey": "@loc:campaign.sylvan.desc",
+  "chapters": [
+    {
+      "id": "ch1",
+      "scenario": "sylvan-ch1",
+      "titleKey": "@loc:campaign.sylvan.ch1.title"
+    },
+    {
+      "id": "ch2",
+      "scenario": "sylvan-ch2",
+      "titleKey": "@loc:campaign.sylvan.ch2.title"
+    },
+    {
+      "id": "ch3",
+      "scenario": "sylvan-ch3",
+      "titleKey": "@loc:campaign.sylvan.ch3.title"
+    }
+  ]
+}

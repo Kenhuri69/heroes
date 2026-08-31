@@ -376,8 +376,6 @@
   "ability.firstStrike.desc": "Agit avant les unités de même vitesse.",
   "ability.spellcaster": "Incantateur",
   "ability.spellcaster.desc": "Lance un sort embarqué un nombre limité de fois par combat.",
-  "ability.resurrectAlly": "Résurrection",
-  "ability.resurrectAlly.desc": "Peut relever des alliés tombés (à venir).",
   "ability.healPerRound": "Premiers soins",
   "ability.healPerRound.desc": "Au début de chaque round, soigne la pile alliée la plus blessée (sans dépasser son effectif initial).",
   "ability.replenishAmmo": "Ravitaillement",

@@ -376,8 +376,6 @@
   "ability.firstStrike.desc": "Acts before units of equal speed.",
   "ability.spellcaster": "Spellcaster",
   "ability.spellcaster.desc": "Casts a built-in spell a limited number of times per battle.",
-  "ability.resurrectAlly": "Resurrection",
-  "ability.resurrectAlly.desc": "Can raise fallen allies (coming soon).",
   "ability.healPerRound": "First aid",
   "ability.healPerRound.desc": "At the start of each round, heals the most wounded allied stack (never beyond its initial numbers).",
   "ability.replenishAmmo": "Resupply",

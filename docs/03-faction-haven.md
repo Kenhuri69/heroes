@@ -12,8 +12,8 @@
 > moral négatif) en A3a ; `taunt` (Conscrit, attire les frappes de mêlée
 > adjacentes) en A2e ; `firstStrike` (Chevalier du Griffon, priorité d'initiative
 > à vitesse égale) en A2g ; `spellcaster` (Prêtresse, soin embarqué ×2 —
-> engine-first : lancé par l'IA/auto-combat, UI joueur différée) en A2h —
-> interprétées par le moteur (catalogue = **27 capacités** génériques, doc 02
+> lancé par l'IA/auto-combat comme à la main depuis le lot CAP-CAST UI) en A2h —
+> interprétées par le moteur (catalogue = **35 capacités** génériques, doc 02
 > §5.4) ; `resurrectAlly` de l'Ange (CAP-LIFE.1) **réalisé** via le `spellcaster`
 > générique embarquant le sort `resurrection` (1×/combat, comme la Prêtresse
 > soigne — données pures, aucun code moteur propre à l'Ange) ; côté Haven reste
@@ -58,7 +58,7 @@
 
 - **Ferveur** : +1 moral permanent pour les unités Haven.
 - **Formation** : +5 % défense pour l'armée Haven (livré en points plats, cf. note).
-- Compétence de faction ajoutée au pool des héros Haven : **Prière de bataille** (Novice/Expert/Maître : 1 résurrection de 30/60/100 PV par combat sur une pile alliée). *(livrée, F-SKILLS.2 — engine-first : point d'extension générique `SkillRankEffect.battleResurrectHp` + action de héros `HeroRally` gatée par la compétence, 1×/combat, cœur `resurrectStack` partagé avec le sort de soin ; pilotée par l'IA/auto-combat, UI joueur différée comme `spellcaster`. `CombatState.heroRallyUsed` optionnel ⇒ pas de bump save, golden inchangé. Compétence gatée Haven via `manifest.heroSkills`.)*
+- Compétence de faction ajoutée au pool des héros Haven : **Prière de bataille** (Novice/Expert/Maître : 1 résurrection de 30/60/100 PV par combat sur une pile alliée). *(livrée, F-SKILLS.2 — engine-first : point d'extension générique `SkillRankEffect.battleResurrectHp` + action de héros `HeroRally` gatée par la compétence, 1×/combat, cœur `resurrectStack` partagé avec le sort de soin ; pilotée par l'IA/auto-combat **et** jouable à la main (bouton « Prière » en combat, lot F-SKILLS battle-prayer UI), comme `spellcaster`. `CombatState.heroRallyUsed` optionnel ⇒ pas de bump save, golden inchangé. Compétence gatée Haven via `manifest.heroSkills`.)*
 
 ## 3. Lineup d'unités (T1–T7)
 

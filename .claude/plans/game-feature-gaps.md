@@ -250,7 +250,10 @@ Familles, par mécanique moteur commune :
   - **`swarm`** ✅ (plan `a3b-swarm.md`, PR #198) : bonus de meute
     (`packages/engine/src/combat/damage.ts` : `swarmBonus`), câblé **données** sur
     l'Élève AH (`t1-eleve`) et le Chœur Vox (`t1-choeur`).
-  - **Reste** ⬜ : autres porteurs éventuels (attacher `rebirth`/`swarm`/… à
+  - **Reste** ✅ (revue 2026-08-31) : les **35** capacités du catalogue sont
+    toutes portées par ≥ 1 unité de faction — plus aucun porteur à attacher
+    (mesuré par comptage sur `data/factions/**`). Historique : autres porteurs
+    éventuels (attacher `rebirth`/`swarm`/… à
     d'autres unités — données pures, à équilibrer). Effort : S.
 - **CAP-DATAFIX — Corrections de données pures** 🐞 S ✅ (finition 2026-07-16,
   plan `cap-datafix-doc-reconcile.md`) : **audit** données réelles ↔ doc — les
@@ -640,9 +643,9 @@ Source design : doc 02 §2 (carte), §1.5 (multi-héros).
   > un gardien de la carte). Données : proto-01 `gold-2` gardé par `guard-gold`
   > (adjacents). Champ optionnel ⇒ **pas de bump save, golden inchangé**. Couvert
   > en unitaire (`map-objects.test.ts` : gardé ⇒ non ramassé ; sentinelle absente
-  > ⇒ ramassé). **Différé** : liaison automatique sentinelle↔trésor dans
-  > `generateMap` (cartes procédurales) — actuellement data-driven sur cartes
-  > éditées.
+  > ⇒ ramassé). **Livré (lot L7, 2026-08-31)** : liaison automatique
+  > sentinelle↔butin dans `generateMap` — artefacts **et** coffres naissent
+  > verrouillés (le curseur « Gardiens » pilote le verrou ; densité 0 ⇒ aucun).
 
 - **M-NAV — Navigation & topologie : bateaux, téléporteurs, souterrain** 🕳️ L 🧩 (a livré)
   > **(a) monolithes appariés — LIVRÉ** : objet `monolith` + `pairId` (union
@@ -832,8 +835,10 @@ SDK `packages/client/src/app/net.ts` sans autre appelant).
   de body** (helper `body<T>` : 413 si > `MAX_BODY_BYTES` 256 Ko / `MAX_SAVE_BYTES`
   4 Mo pour les saves, `HttpError` typée) + **quota de slots** (409 si slot nouveau
   au-delà de `MAX_SAVE_SLOTS` 20) + **purge opportuniste** des sessions/jetons
-  expirés au login. Server-only, zéro moteur. **Reste (NET-SEC.3+)** : rate limit
-  par e-mail/IP (exige un state KV, lot à part).
+  expirés au login. Server-only, zéro moteur. **NET-SEC.3 ✅** (lot L1, 2026-08-31) : rate limit
+  `/auth/request` **5/h par e-mail et 20/h par IP** (429), compteurs à fenêtre fixe
+  dans une table D1 `rate_limits` — aucun state KV nécessaire, contrairement au
+  motif de report.
 
 - **NET-FOG — Information cachée : `stateView(playerId)`** 🕳️ L ⬜
   Doc : doc 07 §5 (« brouillard calculé serveur, seule la vue du joueur est
@@ -841,6 +846,10 @@ SDK `packages/client/src/app/net.ts` sans autre appelant).
   participant (`worker.ts:191-197`) ⇒ un joueur peut re-simuler et voir tout.
   Spec : décision design — accepter (async entre amis) ou implémenter une vue
   filtrée par re-simulation serveur. Coûteux ; à cadrer avant Beta compétitive.
+  *Tranché partiellement (lot L1, 2026-08-31)* : le journal est désormais
+  **réservé aux participants** (403 sinon) — l'espionnage **hors** partie est
+  fermé ; l'information reste ouverte **entre** participants (statu quo assumé,
+  à rouvrir seulement pour une beta compétitive).
 
 - **NET-LIFECYCLE — Forfait / timeout de tour** 🕳️ S ✅ (plan `net-lifecycle.md`)
   Doc : implicite au jalon « PvP stable » (doc 09 Phase 3). Livré : **abandon
@@ -851,13 +860,14 @@ SDK `packages/client/src/app/net.ts` sans autre appelant).
   `status` (zéro migration de schéma D1) ; vainqueur non stocké (info ouverte,
   NET-FOG). Détail expose `createdAt` ; SDK `forfeitMatch`. Server-only.
 
-- **NET-RANKED — Classements / saisons** 🕳️ L ⬜
+- **NET-RANKED — Classements / saisons** ✅ (livré : table `ratings`, Elo à la
+  résolution du match, `GET /leaderboard` saisonnier — doc 18 lot 4.2)
   Doc : doc 01 §2 (core loop « classements », macro-loop « saisons PvP »),
   doc 09 Phase 3 (« classement saisonnier expérimental »). Code : aucune table
   ni endpoint (`server/schema.sql`). Spec : rating simple (Elo/Glicko light),
   table `ratings`, saison = fenêtre datée, écran classement. Après NET-PVPUI.
 
-- **NET-EMAIL — Envoi réel des magic-links (Resend)** 🧩 S ⬜ (différé assumé doc 15 §10.6)
+- **NET-EMAIL — Envoi réel des magic-links (Resend)** ✅ (livré, opt-in `RESEND_API_KEY` — doc 15 §10 pt 6)
   Code : `verifyLink` renvoyé en clair (`worker.ts:89-92`).
 
 - **NET-MATCHMAKING — Appariement automatique** 🕳️ M ⬜ (promesse faible ;
@@ -1011,18 +1021,18 @@ Source design : **doc 12** (règles A-D, §10 intégration). Pipeline
 d'intégration livré (registre auto-découvert + repli procédural) — les manques
 sont du **contenu**.
 
-- **AS-SYLVAN — Jeu d'assets Sylvan Court complet** 🕳️ M ⬜ **le plus visible**
+- **AS-SYLVAN — Jeu d'assets Sylvan Court complet** ✅ (livré : 14 sprites d'unités, avatars, fond et vignettes de ville)
   Doc : doc 12 §2-§5, doc 14. Code/staging : seuls `assets/map/hero-sylvan-court.png`
   et `town-sylvan-court.png` existent ; 0 sprite d'unité (`assets/units/`),
   0 avatar, 0 fond de ville, 0 vignette de bâtiment ⇒ tout en repli procédural.
   Production via skills `asset-sheet` (planches unités/avatars/bâtiments).
 
-- **AS-COMBATBG — Toiles de combat par terrain (9 manquantes/11)** 🧩 S ⬜
+- **AS-COMBATBG — Toiles de combat par terrain** ✅ (revue 2026-08-31 : 9 toiles présentes ; les 2 « manquantes » — `mountain`, `rocks` — sont des terrains **infranchissables**, aucun combat n'y a lieu)
   Doc : doc 12 §5 règle D. Code : résolveur câblé, seuls `combat-grass.jpg` et
   `combat-swamp.jpg` existent (`assets/backgrounds/`). Manquent : dirt, sand,
   forest, rough, snow, river, water, mountain, rocks.
 
-- **AS-BUILDINGS — Vignettes core manquantes** 🧩 S ⬜
+- **AS-BUILDINGS — Vignettes core** ✅ (revue 2026-08-31 : les 7 bâtiments de `data/core/buildings.json` ont leur vignette)
   Doc : doc 12 règle C (+ suivi C22). Code : 6 vignettes core seulement ;
   manquent « Habitation : Recrue », « Tableau des Contrats », et tout
   sylvan-court (cf. AS-SYLVAN).

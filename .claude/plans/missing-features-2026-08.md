@@ -140,12 +140,12 @@ re-fixé) ; (4) zéro faction dans `packages/`.
 | **L1** ✅ | **Verrous du mode en ligne** — participation obligatoire sur `GET …/moves` ; rate limit `/auth/request` (par e-mail + par IP, fenêtre fixe en D1) | G2.a, G2.b | S | non (serveur seul) | non |
 | **L2** ✅ | **IA de ville qui bâtit juste** — ordre de construction **priorisé par effet**, **amélioration** des unités (`UpgradeUnits`), et **ramassage de la garnison** par le héros (trouvé en cours de lot : sans lui, l'armée de l'IA ne grossissait jamais) | G1.a, G1.b, G1.c | S | oui (IA seule) | non |
 | **L3** ✅ | **IA qui gère son économie** — marché (vente du surplus contre de l'or), équipement automatique des artefacts ramassés, achat de machines de guerre | G1.c | M | oui (IA seule) | non |
-| **L4** | **IA qui défend & voyage** — rapatriement d'un héros vers une ville menacée, garnison minimale, refus d'un combat perdu d'avance, sorts d'aventure (Vision/Marche forcée), fouille du Graal quand la position est connue | G1.c, G1.e | M | oui (IA seule) | non |
-| **L5** | **Une difficulté qui pèse dans la durée** — remplacer le one-shot par des **leviers de données persistants** (bonus de revenu/croissance de l'IA, marges d'engagement, cadence de recrutement) pilotés par `config`, jamais par un enum dans le moteur | G1.d | S-M | non (données + client) | non |
+| **L4** ✅ | **IA qui défend & voyage** — rapatriement d'un héros vers une ville menacée, garnison minimale, refus d'un combat perdu d'avance, sorts d'aventure (Vision/Marche forcée), fouille du Graal quand la position est connue | G1.c, G1.e | M | oui (IA seule) | non |
+| **L5** ✅ | **Une difficulté qui pèse dans la durée** — remplacer le one-shot par des **leviers de données persistants** (bonus de revenu/croissance de l'IA, marges d'engagement, cadence de recrutement) pilotés par `config`, jamais par un enum dans le moteur | G1.d | S-M | non (données + client) | non |
 | **L6** | **Campagne Sylvan Court** (3 chapitres, patron N3a) puis **Vox ch2** | G4 | M×2 | non (données) | non |
-| **L7** | **Gardiens ↔ trésors dans `generateMap`** — les trésors de valeur naissent gardés (densité déjà réglable à « Nouvelle partie ») | G5 | S | non (content) | non |
+| **L7** ✅ | **Gardiens ↔ trésors dans `generateMap`** — les trésors de valeur naissent gardés (densité déjà réglable à « Nouvelle partie ») | G5 | S | non (content) | non |
 | **L8** | **Finitions de contenu** — Salle des Reliques (AH), « mois des créatures » (peuplement neutre déclaratif) | G6 | S+M | 1 point générique pour le peuplement | non |
-| **L9** | **Hygiène doc & locales** — §G7, + remise à niveau de `game-feature-gaps.md` sur cette revue | G7 | S | non | non |
+| **L9** ✅ | **Hygiène doc & locales** — §G7, + remise à niveau de `game-feature-gaps.md` sur cette revue | G7 | S | non | non |
 | **L10** | **Souterrain** — *cadrage d'abord* (doc 02), puis chantier multi-lots | G3 | L | oui (transversal) | **bump** |
 | **L11** | **En ligne compétitif** — NET-FOG (après décision), matchmaking, sauvegarde N-1 | G2.c, G2.d | L | non | non |
 
@@ -290,3 +290,21 @@ forme change · bump `CURRENT_SAVE_VERSION` seulement si la sauvegarde change.
       **`@e2e` 3/3** — la boucle longue joue contre l'IA, c'est elle qui
       encaisse le changement de comportement
 
+- **2026-08-31 — Lots L4, L5, L7, L9 livrés** (une PR par lot, chacune avec son
+  plan vivant `.claude/plans/l<N>-*.md`, CI verte puis fusionnée) :
+  - **L4** (PR #533) — l'IA défend ses villes (priorité 0 + hystérésis de garde),
+    lance ses sorts d'aventure (Marche forcée, puis Vision faute d'objectif, avec
+    réserve de mana de combat) et poursuit le Graal (obélisques collectables,
+    `Dig` à l'arrivée). Helper partagé `adventure/grail` extrait pour ne pas
+    dupliquer la règle de fouille entre la commande du joueur et l'IA.
+  - **L5** (PR #534) — `PlayerState.economyBonus` : profil économique **opaque**
+    par joueur (revenu quotidien + croissance hebdo, projections d'UI comprises),
+    sur lequel le client projette le cran de difficulté des sièges IA. Le cran
+    ne s'évapore plus après les premières semaines.
+  - **L7** (PR #535) — le butin des cartes **générées** naît gardé
+    (`guardedBy` posé par `generateMap` sur artefacts et coffres).
+  - **L9** (cette PR) — hygiène : entrée de locale morte `ability.resurrectAlly`
+    retirée, comptes de capacités (27/32 → **35**) corrigés docs 02/03, deux
+    « UI joueur différée » démenties par le code (spellcaster, Prière de
+    bataille), profil d'attribut par archétype acté, et l'inventaire vivant
+    `game-feature-gaps.md` re-coché item par item.

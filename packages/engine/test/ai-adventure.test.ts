@@ -151,7 +151,7 @@ describe('runAiTurn — cas ciblés', () => {
     });
 
     const nextTown = next.towns[0];
-    expect(nextTown?.buildings.townHall).toBe(1); // premier bâtiment abordable/prérequis ok (ordre alphabétique)
+    expect(nextTown?.buildings.townHall).toBe(1); // seul abordable ici, et le mieux noté (revenu, cf. ai-town.test)
     expect(events).toContainEqual({ type: 'TownBuilt', townId: 'town-1', buildingId: 'townHall', level: 1 });
 
     expect(nextTown?.garrison).toContainEqual({ unitId: 'red-grunt', count: 10 });

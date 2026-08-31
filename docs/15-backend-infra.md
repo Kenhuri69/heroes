@@ -48,13 +48,15 @@ Helpers **purs et déterministes** de `@heroes/engine`, utilisés par le serveur
 
 ## 4. Modèle de données (D1 — `server/schema.sql`)
 
-8 tables : `profiles`, `auth_tokens`, `sessions` (comptes) ; `saves` (cloud
+9 tables : `profiles`, `auth_tokens`, `sessions` (comptes) ; `saves` (cloud
 saves : `serializeState` + `save_version`) ; `matches` (seed + `StartGame`
 sérialisé + statut) ; `match_players` (sièges = ordre de tour) ; `moves`
 (journal **append-only** : une ligne = un lot de commandes d'un joueur) ;
-`ratings` (classement Elo PvP — note par profil ET par saison, lot 4.2, cf. §6b).
+`ratings` (classement Elo PvP — note par profil ET par saison, lot 4.2, cf. §6b) ;
+`rate_limits` (compteurs à fenêtre fixe de la limitation de débit, NET-SEC.3, cf. §5.1).
 La base `heroes` est **provisionnée** (région WEUR) et le schéma appliqué. **Un
-ajout de table (ex. `ratings`) exige de ré-appliquer `server/schema.sql`** (les
+ajout de table (ex. `ratings`, `rate_limits`) exige de ré-appliquer
+`server/schema.sql`** (les
 `CREATE TABLE IF NOT EXISTS` sont idempotents) — voir §10.
 
 ## 5. Flux
@@ -75,8 +77,14 @@ ajout de table (ex. `ratings`) exige de ré-appliquer `server/schema.sql`** (les
    (déconnexion) ; le SDK `logout()` l'appelle en best-effort.
 5. **NET-SEC.2** : au `verify` (faible fréquence, après validation du jeton), le
    Worker **purge** les `sessions` et `auth_tokens` expirés (`expires_at < now`) —
-   les tables ne croissent plus sans fin. **Reste NET-SEC différé** : rate-limit
-   e-mail/IP (exige un state KV, lot à part).
+   les tables ne croissent plus sans fin.
+6. **NET-SEC.3 — limitation de débit** : `POST /auth/request` est plafonné à
+   **5 demandes/heure par adresse** et **20/heure par IP appelante**
+   (`CF-Connecting-IP`), au-delà **429**. Compteurs à **fenêtre fixe** dans la
+   table `rate_limits` (une ligne par clé et par fenêtre, purge opportuniste à
+   l'ouverture d'une nouvelle fenêtre) : aucun state KV ni Durable Object requis,
+   une seule écriture par appel. La réponse 429 est **identique** quel que soit le
+   quota atteint — elle ne dit jamais si un compte existe.
 
 ### 5.2 Cloud saves
 
@@ -126,7 +134,10 @@ rejet **413** (garde-fou anti-épuisement mémoire du Worker).
 4. Pour (re)construire l'état de zéro, le client lit d'abord
    **`GET /matches/:id`** → `{ id, seed, setup, players, status, seq }`
    (NET-MATCHDETAIL, livré ; SDK `getMatch`), puis rejoue `base(setup) + batch`.
-5. L'adversaire **poll** `GET /matches/:id/moves?since=seq`, rejoue les nouveaux
+5. L'adversaire **poll** `GET /matches/:id/moves?since=seq` — **réservé aux
+   participants** (403 sinon : le journal permet de re-simuler l'état complet, il
+   ne doit pas être lisible par un compte tiers ; l'information reste ouverte
+   ENTRE participants, cf. NET-FOG) —, rejoue les nouveaux
    lots (`replayCommands`) pour obtenir l'état courant, joue, poste. Fin de partie
    = `GameState.outcome` non nul (le serveur le détecte au rejeu → `status`).
 6. **Cycle de vie (NET-LIFECYCLE)** : `POST /matches/:id/forfeit` (un participant

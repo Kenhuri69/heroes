@@ -84,3 +84,14 @@ CREATE INDEX IF NOT EXISTS idx_ratings_season   ON ratings(season, rating DESC);
 CREATE INDEX IF NOT EXISTS idx_moves_match     ON moves(match_id, seq);
 CREATE INDEX IF NOT EXISTS idx_matches_status  ON matches(status);
 CREATE INDEX IF NOT EXISTS idx_match_players_p ON match_players(profile_id);
+
+-- Limitation de débit (NET-SEC.3, doc 15 §8) : compteurs à fenêtre FIXE, une
+-- ligne par (clé, début de fenêtre). Clés opaques posées par le worker
+-- (`auth:email:<adresse>`, `auth:ip:<ip>`). Les fenêtres périmées sont purgées
+-- opportunément à l'ouverture d'une nouvelle fenêtre — pas de tâche planifiée.
+CREATE TABLE IF NOT EXISTS rate_limits (
+  key          TEXT NOT NULL,
+  window_start INTEGER NOT NULL,        -- epoch ms, aligné sur la fenêtre
+  count        INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (key, window_start)
+);

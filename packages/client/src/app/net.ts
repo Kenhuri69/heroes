@@ -167,6 +167,10 @@ export function joinMatch(id: string): Promise<{ ok: true; seat: number }> {
 export function forfeitMatch(id: string): Promise<{ ok: true }> {
   return api(`/matches/${id}/forfeit`, { method: 'POST' });
 }
+/**
+ * Journal des tours d'une partie — **réservé aux participants** (403 sinon,
+ * NET-SEC.3 côté Worker) : il permet de re-simuler l'état complet.
+ */
 export function getMoves(id: string, since = -1): Promise<{ moves: { seq: number; commands: Command[] }[] }> {
   return api(`/matches/${id}/moves?since=${since}`, { method: 'GET' });
 }

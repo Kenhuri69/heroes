@@ -1,0 +1,109 @@
+{
+  "id": "vox-ch2",
+  "schemaVersion": 1,
+  "name": "@loc:scenario.vox-ch2.name",
+  "map": "proto-01",
+  "players": [
+    {
+      "id": "player-1",
+      "controller": "human",
+      "factionId": "vox-arcana",
+      "startPositionIndex": 0,
+      "startingResources": { "gold": 8000, "wood": 18, "ore": 22, "crystal": 10, "gems": 6 },
+      "startingArmy": [
+        { "unitId": "t1-choeur", "count": 30 },
+        { "unitId": "t2-duelliste", "count": 12 },
+        { "unitId": "t3-hippogriffe", "count": 5 }
+      ],
+      "startingTown": {
+        "id": "start-town",
+        "x": 2,
+        "y": 4,
+        "prebuilt": [
+          { "building": "townHall", "level": 1 },
+          { "building": "fort", "level": 1 },
+          { "building": "vox-arcana-dwelling-t1", "level": 1 },
+          { "building": "vox-arcana-dwelling-t2", "level": 1 }
+        ]
+      }
+    },
+    {
+      "id": "ai-1",
+      "controller": "ai",
+      "factionId": "arcane-hunters",
+      "startPositionIndex": 1,
+      "startingResources": { "gold": 4000 },
+      "startingArmy": [
+        { "unitId": "t1-eleve", "count": 28 },
+        { "unitId": "t2-familier", "count": 10 },
+        { "unitId": "t3-prefet", "count": 6 }
+      ]
+    }
+  ],
+  "objectives": {
+    "player-1": {
+      "victory": { "type": "eliminateAllEnemies" },
+      "defeat": { "type": "defeatHero", "heroId": "hero-player-1" }
+    },
+    "ai-1": {
+      "victory": { "type": "eliminateAllEnemies" },
+      "defeat": { "type": "defeatHero", "heroId": "hero-ai-1" }
+    }
+  },
+  "openingDialog": "dlg-vox-ch2-open",
+  "combatBarks": [
+    "@loc:bark.vox.arcane.1",
+    "@loc:bark.vox.arcane.2",
+    "@loc:bark.vox.arcane.3"
+  ],
+  "characters": [
+    { "id": "hermione", "nameKey": "@loc:character.hermione.name" },
+    { "id": "rumi", "nameKey": "@loc:character.rumi.name" }
+  ],
+  "dialogs": [
+    {
+      "id": "dlg-vox-ch2-open",
+      "lines": [
+        { "speaker": "rumi", "textKey": "@loc:dlg.vox.ch2.open.1" },
+        { "speaker": "hermione", "portrait": "grave", "textKey": "@loc:dlg.vox.ch2.open.2" },
+        { "speaker": "rumi", "textKey": "@loc:dlg.vox.ch2.open.3" }
+      ]
+    },
+    {
+      "id": "dlg-vox-ch2-guild",
+      "lines": [{ "speaker": "hermione", "textKey": "@loc:dlg.vox.ch2.guild.1" }]
+    },
+    {
+      "id": "dlg-vox-ch2-choice",
+      "lines": [
+        { "speaker": "hermione", "textKey": "@loc:dlg.vox.ch2.choice.1" },
+        { "speaker": "rumi", "textKey": "@loc:dlg.vox.ch2.choice.2" }
+      ],
+      "choices": [
+        { "textKey": "@loc:dlg.vox.ch2.choice.open", "setFlag": "hermione-open" },
+        { "textKey": "@loc:dlg.vox.ch2.choice.seal", "setFlag": "hermione-seal" }
+      ]
+    }
+  ],
+  "quests": [
+    {
+      "id": "vox-ch2-tournee",
+      "kind": "primary",
+      "titleKey": "@loc:quest.vox-ch2-tournee.title",
+      "descriptionKey": "@loc:quest.vox-ch2-tournee.desc",
+      "steps": [
+        {
+          "id": "build-guild",
+          "condition": { "type": "buildStructure", "buildingId": "mageGuild" },
+          "dialogBefore": "dlg-vox-ch2-guild"
+        },
+        {
+          "id": "break-the-hunt",
+          "condition": { "type": "eliminateAllEnemies" },
+          "dialogBefore": "dlg-vox-ch2-choice"
+        }
+      ],
+      "rewards": [{ "type": "resources", "resources": { "gold": 3000, "gems": 5 } }]
+    }
+  ]
+}

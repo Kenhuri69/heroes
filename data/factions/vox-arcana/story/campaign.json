@@ -8,6 +8,11 @@
       "id": "ch1",
       "scenario": "vox-ch1",
       "titleKey": "@loc:campaign.vox.ch1.title"
+    },
+    {
+      "id": "ch2",
+      "scenario": "vox-ch2",
+      "titleKey": "@loc:campaign.vox.ch2.title"
     }
   ]
 }

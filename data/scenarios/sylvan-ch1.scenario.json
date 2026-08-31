@@ -1,0 +1,89 @@
+{
+  "id": "sylvan-ch1",
+  "schemaVersion": 1,
+  "name": "@loc:scenario.sylvan-ch1.name",
+  "map": "proto-01",
+  "players": [
+    {
+      "id": "player-1",
+      "controller": "human",
+      "factionId": "sylvan-court",
+      "startPositionIndex": 0,
+      "startingResources": { "gold": 5000, "wood": 12, "ore": 18, "crystal": 4 },
+      "startingArmy": [
+        { "unitId": "t1-lucine", "count": 22 },
+        { "unitId": "t2-archer-sylvestre", "count": 8 }
+      ],
+      "startingTown": {
+        "id": "start-town",
+        "x": 2,
+        "y": 4,
+        "prebuilt": [
+          { "building": "townHall", "level": 1 },
+          { "building": "sylvan-court-dwelling-t1", "level": 1 }
+        ]
+      }
+    },
+    {
+      "id": "ai-1",
+      "controller": "ai",
+      "factionId": "necropolis",
+      "startPositionIndex": 1,
+      "startingResources": { "gold": 1500 },
+      "startingArmy": [
+        { "unitId": "t1-squelette", "count": 14 },
+        { "unitId": "t2-zombie", "count": 5 }
+      ]
+    }
+  ],
+  "objectives": {
+    "player-1": {
+      "victory": { "type": "surviveDays", "days": 2 },
+      "defeat": { "type": "defeatHero", "heroId": "hero-player-1" }
+    },
+    "ai-1": {
+      "victory": { "type": "eliminateAllEnemies" },
+      "defeat": { "type": "defeatHero", "heroId": "hero-ai-1" }
+    }
+  },
+  "openingDialog": "dlg-sylvan-ch1-open",
+  "combatBarks": [
+    "@loc:bark.sylvan.necropolis.1",
+    "@loc:bark.sylvan.necropolis.2",
+    "@loc:bark.sylvan.necropolis.3"
+  ],
+  "characters": [
+    { "id": "sylwen", "nameKey": "@loc:character.sylwen.name" },
+    { "id": "faelar", "nameKey": "@loc:character.faelar.name" }
+  ],
+  "dialogs": [
+    {
+      "id": "dlg-sylvan-ch1-open",
+      "lines": [
+        { "speaker": "faelar", "textKey": "@loc:dlg.sylvan.ch1.open.1" },
+        { "speaker": "sylwen", "portrait": "grave", "textKey": "@loc:dlg.sylvan.ch1.open.2" },
+        { "speaker": "faelar", "textKey": "@loc:dlg.sylvan.ch1.open.3" }
+      ]
+    },
+    {
+      "id": "dlg-sylvan-ch1-grove",
+      "lines": [{ "speaker": "faelar", "textKey": "@loc:dlg.sylvan.ch1.grove.1" }]
+    }
+  ],
+  "quests": [
+    {
+      "id": "sylvan-ch1-racines",
+      "kind": "primary",
+      "titleKey": "@loc:quest.sylvan-ch1-racines.title",
+      "descriptionKey": "@loc:quest.sylvan-ch1-racines.desc",
+      "steps": [
+        {
+          "id": "build-fort",
+          "condition": { "type": "buildStructure", "buildingId": "fort" },
+          "dialogBefore": "dlg-sylvan-ch1-grove"
+        }
+      ],
+      "rewards": [{ "type": "resources", "resources": { "gold": 1500, "wood": 5 } }]
+    }
+  ]
+}

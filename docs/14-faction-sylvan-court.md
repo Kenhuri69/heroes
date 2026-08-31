@@ -164,8 +164,13 @@ raffinement data ultérieur, sans diff moteur.
   trahir l'écoute ; Sylwen accepte de *défendre la lisière* plutôt que la forêt
   entière.
 - **Textes d'ambiance** : engagement à un `loreKey` FR/EN par unité/bâtiment.
-- **Campagne** : optionnelle (3 chapitres « La forêt se referme / La lisière brûle
-  / L'Aïeul s'éveille ») — hors 1ᵉʳ lot.
+- **Campagne** : **livrée** (revue 2026-08, lot L6) — 3 chapitres « La forêt se
+  referme / La lisière brûle / L'Aïeul s'éveille », en **données pures**
+  (`data/factions/sylvan-court/story/campaign.json`, scénarios `sylvan-ch1/2/3`,
+  locales FR/EN). Deux nœuds à choix portent les arcs promis : Sylwen entre
+  *tenir la lisière vivante* et *la brûler* (ch2), Faelar entre *réveiller
+  l'Aïeul* et *le laisser rêver* (ch3) — l'Écoutant apprend à agir, la
+  Gardefronde à défendre la lisière plutôt que la forêt entière.
 
 ## 9. Résumé des points d'extension utilisés (test de modularité)
 

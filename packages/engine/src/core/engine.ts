@@ -3,6 +3,7 @@ import { dailyMovementPoints } from '../adventure/config';
 import { createFog, revealAround } from '../adventure/fog';
 import { inBounds, isAdjacent, samePos, type GridPos } from '../adventure/map';
 import { advanceHeroAlongPath } from '../adventure/movement';
+import { digGrail } from '../adventure/grail';
 import { revealOwnedStructures } from '../adventure/vision';
 import { handleHeroAttack, validateHeroAttack } from '../combat/hero-attack';
 import { handleCallReinforcements, validateCallReinforcements } from '../combat/reinforce';
@@ -843,9 +844,8 @@ const handlers: Handlers = {
     const hero = draft.heroes.find((h) => h.id === cmd.heroId);
     const player = draft.players.find((p) => hero && p.id === hero.playerId);
     if (!hero || !player) return; // exclu par validate
-    player.hasGrail = true;
-    hero.movementPoints = 0; // la fouille consomme la journée (fidélité HoMM)
-    events.push({ type: 'GrailFound', playerId: player.id, heroId: hero.id, pos: { ...hero.pos } });
+    // Cœur partagé avec l'IA d'aventure (cf. `adventure/grail`).
+    digGrail(draft, hero, player, events);
   },
 
   BoardBoat(draft, cmd, events) {

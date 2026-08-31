@@ -9,6 +9,9 @@ import { DIRECTIONS, isAdjacent, samePos, tileIndex, type GridPos } from '../adv
 import { findPath, isPassable, minStepCost, octileLowerBound, stepCost } from '../adventure/path';
 import { heroArmyCap } from '../hero/skills';
 import { validateEquipArtifact, handleEquipArtifact } from '../hero/equip';
+import { validateCastAdventureSpell, handleCastAdventureSpell } from '../hero';
+import { grailRevealedTo } from '../adventure/map';
+import { canDigGrail, digGrail } from '../adventure/grail';
 import { validateCaptureTown, handleCaptureTown } from '../town';
 import { maxAffordableCount } from '../town/resources';
 import { unitWithEconomy } from '../town/unit-economy';
@@ -34,7 +37,12 @@ import { playTownTurn, tryGarrisonPickup } from './town-ai';
  * (marge de force ≥ 1,5×, H-VS-H), (3) ma ville dont la garnison en attente
  * vaut le détour, (4) gardien atteignable « battable » (même marge),
  * (5) ville ennemie/neutre capturable (garnison vide) déjà adjacente,
- * (6) sinon un pas vers la tuile inexplorée la plus proche. Par ville :
+ * (6) sinon un pas vers la tuile inexplorée la plus proche. **Avant** cette
+ * liste (lot L4) : la fouille du Graal sur place, la garde d'une ville encore
+ * menacée et la Marche forcée ; puis en **priorité 0** le retour vers une ville
+ * qui va tomber, et juste après le ramassage la tuile du **Graal révélée**.
+ * Faute d'objectif, un sort de **Vision** peut encore en découvrir un avant le
+ * repli exploration. Par ville :
  * construit le bâtiment abordable le plus utile, recrute le plus haut tier
  * abordable, améliore ce qui peut l'être et remet la garnison au héros
  * présent (voir `town-ai.ts`).
@@ -112,6 +120,10 @@ function isCollectible(
   if ('guardedBy' in obj && obj.guardedBy !== undefined && presentObjectIds.has(obj.guardedBy))
     return false;
   if (obj.type === 'resource' || obj.type === 'treasure') return true;
+  // Obélisque (T-GRAIL) : une visite par joueur, et seulement tant que le Graal
+  // n'est pas trouvé — sans ces visites l'IA ne se le voyait jamais révélé.
+  if (obj.type === 'obelisk')
+    return !player.hasGrail && !(player.obelisksVisited ?? []).includes(obj.id);
   if (obj.type === 'artifact') return hero.artifacts.includes(null);
   if (obj.type === 'mine') {
     if (obj.ownerId === player.id) return false;
@@ -244,6 +256,145 @@ function pickEnemyHeroTarget(
  * vaut le détour — en dessous, le renfort ne paie pas les PM du voyage.
  */
 const GARRISON_PICKUP_RATIO = 0.25;
+
+/** Distance de Tchebychev à laquelle un héros ennemi menace une de mes villes. */
+const TOWN_THREAT_RADIUS = 8;
+/**
+ * Hystérésis de la garde : on rentre quand la menace dépasse la défense, on
+ * **reste** tant qu'elle en atteint cette fraction. Sans ce palier, le héros
+ * rentrant renforçait la défense, la menace passait sous le seuil, il repartait
+ * — et la ville redevenait vulnérable le tour suivant (aller-retour perpétuel).
+ */
+const TOWN_HOLD_RATIO = 0.75;
+
+/** Force du plus menaçant héros ennemi VISIBLE à portée d'une de mes villes (0 si aucun). */
+function threatAt(draft: GameState, town: TownState, player: PlayerState): number {
+  const { map, unitCatalog } = draft;
+  if (!map) return 0;
+  let worst = 0;
+  for (const enemy of draft.heroes) {
+    if (enemy.playerId === player.id) continue;
+    const owner = draft.players.find((p) => p.id === enemy.playerId);
+    if (owner && areAllies(player, owner)) continue;
+    // B31 : jamais d'information sous brouillard — un ennemi non exploré n'existe pas.
+    if (player.explored[tileIndex(map, enemy.pos)] === 0) continue;
+    const dist = Math.max(Math.abs(enemy.pos.x - town.pos.x), Math.abs(enemy.pos.y - town.pos.y));
+    if (dist > TOWN_THREAT_RADIUS) continue;
+    worst = Math.max(worst, armyStrength(enemy.army, unitCatalog));
+  }
+  return worst;
+}
+
+/** Défense en place d'une ville : garnison + armées de mes héros postés dessus. */
+function defenseAt(draft: GameState, town: TownState, player: PlayerState): number {
+  const { unitCatalog } = draft;
+  let total = armyStrength(town.garrison, unitCatalog);
+  for (const h of draft.heroes) {
+    if (h.playerId === player.id && samePos(h.pos, town.pos)) total += armyStrength(h.army, unitCatalog);
+  }
+  return total;
+}
+
+/**
+ * Ma ville menacée la plus proche, atteignable ce tour (priorité 0). Un héros
+ * posté sur la tuile d'une ville **intercepte** l'assaillant (combat
+ * héros-vs-héros avant toute capture, `adventure/movement`) : c'est la seule
+ * défense mobile dont l'IA dispose, et elle ne s'en servait jamais.
+ */
+function pickTownDefenseTarget(
+  draft: GameState,
+  hero: HeroState,
+  player: PlayerState,
+  blocked: GridPos[],
+  minStep: number,
+): PathTarget | null {
+  const { map, config } = draft;
+  if (!map || !config) return null;
+  let best: (PathTarget & { id: string }) | null = null;
+  for (const town of draft.towns) {
+    if (town.ownerPlayerId !== player.id) continue;
+    if (samePos(hero.pos, town.pos)) continue; // déjà en garde : traité en amont
+    if (threatAt(draft, town, player) <= defenseAt(draft, town, player)) continue;
+    if (octileLowerBound(minStep, hero.pos, town.pos) > hero.movementPoints) continue;
+    const pathBlocked = blocked.filter((p) => !samePos(p, town.pos));
+    const path = findPath(config, map, hero.pos, town.pos, pathBlocked, false, hero.movementPoints);
+    if (!path) continue;
+    const cost = totalPathCost(config, map, hero.pos, path);
+    if (cost > hero.movementPoints) continue;
+    if (!best || cost < best.cost || (cost === best.cost && town.id < best.id)) {
+      best = { id: town.id, path, cost };
+    }
+  }
+  return best;
+}
+
+/** Le héros tient-il une ville à lui encore sous la menace (hystérésis) ? */
+function holdsThreatenedTown(draft: GameState, hero: HeroState, player: PlayerState): boolean {
+  const town = draft.towns.find((t) => t.ownerPlayerId === player.id && samePos(t.pos, hero.pos));
+  if (!town) return false;
+  return threatAt(draft, town, player) >= TOWN_HOLD_RATIO * defenseAt(draft, town, player);
+}
+
+/**
+ * Part de mana que le héros garde pour le combat : la mana d'aventure et celle
+ * des sorts de bataille sont la MÊME réserve — vider le réservoir sur la carte
+ * laisserait le héros muet au premier affrontement.
+ */
+const AI_MANA_COMBAT_RESERVE = 0.5;
+
+/**
+ * Lance le premier sort d'aventure connu dont l'effet est de l'un des types
+ * demandés (choisi par **type d'effet déclaratif**, jamais par id de sort), si
+ * la réserve de combat le permet. Rend `true` si un sort a été lancé.
+ */
+function tryCastAdventureSpell(
+  draft: GameState,
+  hero: HeroState,
+  player: PlayerState,
+  wanted: readonly string[],
+  events: GameEvent[],
+): boolean {
+  for (const spellId of [...(hero.spells ?? [])].sort()) {
+    const spell = draft.spellCatalog[spellId];
+    const type = spell?.adventure?.type;
+    if (!spell || !type || !wanted.includes(type)) continue;
+    if (hero.mana - spell.manaCost < hero.manaMax * AI_MANA_COMBAT_RESERVE) continue;
+    const cmd = { type: 'CastAdventureSpell' as const, heroId: hero.id, spellId, playerId: player.id };
+    if (validateCastAdventureSpell(draft, cmd)) continue;
+    handleCastAdventureSpell(draft, cmd, events);
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Tuile du Graal RÉVÉLÉE à ce joueur (obélisques complets) et pas encore
+ * fouillée — cible de déplacement, puis `Dig` à l'arrivée.
+ */
+function pickGrailTarget(
+  draft: GameState,
+  hero: HeroState,
+  player: PlayerState,
+  blocked: GridPos[],
+  minStep: number,
+): PathTarget | null {
+  const { map, config } = draft;
+  if (!map || !config || player.hasGrail) return null;
+  if (!grailRevealedTo(map, player.obelisksVisited)) return null;
+  const target = map.grailPos;
+  if (!target || samePos(hero.pos, target)) return null;
+  if (octileLowerBound(minStep, hero.pos, target) > hero.movementPoints) return null;
+  const path = findPath(config, map, hero.pos, target, blocked, false, hero.movementPoints);
+  if (!path) return null;
+  const cost = totalPathCost(config, map, hero.pos, path);
+  if (cost > hero.movementPoints) return null;
+  return { path, cost };
+}
+
+/** Fouille si le héros est sur la tuile du Graal révélée, avec des PM (T-GRAIL lot 2). */
+function tryDigGrail(draft: GameState, hero: HeroState, player: PlayerState, events: GameEvent[]): void {
+  if (canDigGrail(draft, hero, player)) digGrail(draft, hero, player, events);
+}
 
 /**
  * Ma ville la plus proche dont la garnison vaut le détour (priorité 3). Les
@@ -393,6 +544,15 @@ function playHeroTurn(draft: GameState, hero: HeroState, player: PlayerState, ev
   // en campagne avec les recrues de la veille plutôt que de les laisser dormir.
   const homeTown = draft.towns.find((t) => t.ownerPlayerId === player.id && samePos(t.pos, hero.pos));
   if (homeTown) tryGarrisonPickup(draft, homeTown, events);
+  // Fouille sur place avant tout déplacement (la journée y passe).
+  tryDigGrail(draft, hero, player, events);
+  if (hero.movementPoints <= 0) return;
+  // Garde : tant que la ville qu'il occupe reste menacée, le héros ne bouge pas —
+  // il en est le seul rempart mobile (l'assaillant doit le battre avant de capturer).
+  if (holdsThreatenedTown(draft, hero, player)) return;
+  // Marche forcée & co : plus de PM AVANT de choisir un objectif (les pickers
+  // écartent les cibles hors de portée du jour).
+  tryCastAdventureSpell(draft, hero, player, ['movementBonus'], events);
   const blocked = draft.heroes.filter((h) => h.id !== hero.id).map((h) => h.pos);
   // B5 : les gardiens NON ciblés sont des obstacles de pathfinding — l'IA ne route
   // pas au travers (sinon interceptions non planifiées à marge < 1,5×).
@@ -403,9 +563,26 @@ function playHeroTurn(draft: GameState, hero: HeroState, player: PlayerState, ev
   // sur grande carte (plan `.claude/plans/ai-turn-non-blocking.md`).
   const minStep = minStepCost(draft.config);
 
+  // Priorité 0 : une ville à moi va tomber — rien ne passe avant.
+  const defense = pickTownDefenseTarget(draft, hero, player, [...blocked, ...guardianPos], minStep);
+  if (defense) {
+    advanceAi(draft, hero, player, defense.path, events);
+    return;
+  }
+
   const resource = pickResourceTarget(draft, hero, player, [...blocked, ...guardianPos], minStep);
   if (resource) {
     advanceAi(draft, hero, player, resource.path, events);
+    return;
+  }
+
+  // Le Graal révélé vaut mieux qu'un gardien : le bâtiment qu'il ouvre pèse sur
+  // toute la partie. Le déplacement y mène, la fouille suit (au tour d'après si
+  // le voyage a mangé tous les PM).
+  const grail = pickGrailTarget(draft, hero, player, [...blocked, ...guardianPos], minStep);
+  if (grail) {
+    advanceAi(draft, hero, player, grail.path, events);
+    tryDigGrail(draft, hero, player, events);
     return;
   }
 
@@ -433,6 +610,17 @@ function playHeroTurn(draft: GameState, hero: HeroState, player: PlayerState, ev
   if (town) {
     captureTown(draft, town, player, events);
     return;
+  }
+
+  // Plus aucun objectif : ce n'est pas forcément qu'il n'y a rien — l'IA ne cible
+  // que ce qu'elle a exploré (B31). Vision/Cartographie ouvrent le brouillard, et
+  // on redonne UNE chance au ramassage avant de se rabattre sur l'exploration.
+  if (tryCastAdventureSpell(draft, hero, player, ['vision', 'revealMap'], events)) {
+    const revealed = pickResourceTarget(draft, hero, player, [...blocked, ...guardianPos], minStep);
+    if (revealed) {
+      advanceAi(draft, hero, player, revealed.path, events);
+      return;
+    }
   }
 
   const exploreStep = pickExplorationStep(draft, hero, player, [...blocked, ...guardianPos]);

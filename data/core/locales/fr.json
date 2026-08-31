@@ -1264,5 +1264,11 @@
   "quest.vox-ch2-tournee.desc": "Ouvrir une guilde des mages, puis briser la traque de l'Académie.",
   "bark.vox.arcane.1": "Une scène ? Nous scellons des dieux, chanteuses. Vous ferez moins de bruit.",
   "bark.vox.arcane.2": "Marquées, toutes. Il ne reste qu'à attendre la fin du refrain.",
-  "bark.vox.arcane.3": "Votre barrière tient par une chanson. Nous, par des verrous."
+  "bark.vox.arcane.3": "Votre barrière tient par une chanson. Nous, par des verrous.",
+  "online.matches.quick": "Partie rapide",
+  "online.saves.restore": "Restaurer",
+  "online.saves.restoreHint": "Revenir à la version précédant le dernier téléversement.",
+  "toast.matchQueued": "Aucune partie en attente : la vôtre attend un adversaire.",
+  "toast.cloudRestored": "Sauvegarde précédente restaurée.",
+  "toast.cloudNoBackup": "Aucune version précédente pour ce slot."
 }

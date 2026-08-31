@@ -142,7 +142,16 @@ UI/IA ──commande──► [validation] ──► engine.apply(state, cmd)
 - **PvP asynchrone d'abord** (tours en différé, **polling** « c'est ton tour » — le mode qui pardonne le mobile), temps réel à timer ensuite (post-Beta).
 - Persistance : ~~PostgreSQL + Redis~~ → **D1** (SQLite Cloudflare : comptes, parties, moves, blobs de sauvegarde) — cf. `server/schema.sql`.
 - Auth : magic link e-mail ~~+ OAuth~~ (pas de mot de passe à gérer).
-- Anti-triche : le client n'est jamais cru — vue filtrée par joueur (`stateView(playerId)`) **différée** : au PvP async actuel l'information est ouverte (les participants peuvent re-simuler le journal complet), limite assumée et documentée doc 15 (NET-FOG).
+- Anti-triche : le client n'est jamais cru (chaque tour posté est **rejoué**
+  côté serveur). Vue filtrée par joueur (`stateView(playerId)`) : **décision
+  tranchée au lot L11 — statu quo assumé**. Le journal n'est lisible que par les
+  **participants** (403 sinon, lot L1), mais entre adversaires d'une même partie
+  l'information reste **ouverte** : chacun peut rejouer le journal complet.
+  Fermer cet écart imposerait de re-simuler côté serveur **par joueur** et de
+  servir un état projeté au lieu du journal — c'est-à-dire renoncer au levier
+  déterministe qui rend ce backend tenable à coût nul (doc 15 §1). À rouvrir
+  **le jour où le classement devient un enjeu** (saisons officielles,
+  récompenses) ; l'Elo actuel est amical (NET-FOG, doc 15).
 
 ## 6. Assets & performance
 

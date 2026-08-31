@@ -356,6 +356,19 @@ export default {
               .first<{ n: number }>();
             if ((count?.n ?? 0) >= MAX_SAVE_SLOTS) return fail(409, 'quota de sauvegardes atteint', env);
           }
+          // NET-SRVGUARD.2 : copie de sécurité N-1. Avant tout écrasement, la
+          // version en place est recopiée dans `save_backups` (une par slot) —
+          // un autosave malheureux (partie perdue, état corrompu côté client)
+          // reste rattrapable par `POST /saves/:slot/restore`.
+          if (existing) {
+            await env.DB.prepare(
+              'INSERT INTO save_backups (profile_id, slot, save_version, state, updated_at) ' +
+                'SELECT profile_id, slot, save_version, state, updated_at FROM saves WHERE profile_id = ? AND slot = ? ' +
+                'ON CONFLICT(profile_id, slot) DO UPDATE SET save_version=excluded.save_version, state=excluded.state, updated_at=excluded.updated_at',
+            )
+              .bind(profileId, slot)
+              .run();
+          }
           await env.DB.prepare(
             'INSERT INTO saves (profile_id, slot, save_version, state, updated_at) VALUES (?, ?, ?, ?, ?) ' +
               'ON CONFLICT(profile_id, slot) DO UPDATE SET save_version=excluded.save_version, state=excluded.state, updated_at=excluded.updated_at',
@@ -372,7 +385,59 @@ export default {
         }
       }
 
+      // NET-SRVGUARD.2 : restaure la copie N-1 d'un slot (le contenu courant
+      // reprend la place de la sauvegarde précédente). Idempotent tant que la
+      // copie existe ; 404 si le slot n'a jamais été écrasé.
+      const restoreSave = path.match(/^\/saves\/([\w-]+)\/restore$/);
+      if (restoreSave && request.method === 'POST') {
+        const slot = restoreSave[1]!;
+        const backup = await env.DB.prepare(
+          'SELECT save_version, state, updated_at FROM save_backups WHERE profile_id = ? AND slot = ?',
+        )
+          .bind(profileId, slot)
+          .first<{ save_version: number; state: string; updated_at: number }>();
+        if (!backup) return fail(404, 'aucune copie de sécurité pour ce slot', env);
+        await env.DB.prepare(
+          'INSERT INTO saves (profile_id, slot, save_version, state, updated_at) VALUES (?, ?, ?, ?, ?) ' +
+            'ON CONFLICT(profile_id, slot) DO UPDATE SET save_version=excluded.save_version, state=excluded.state, updated_at=excluded.updated_at',
+        )
+          .bind(profileId, slot, backup.save_version, backup.state, now())
+          .run();
+        return json({ ok: true, save_version: backup.save_version }, 200, env);
+      }
+
       // — Parties asynchrones —
+      // NET-MATCHMAKING (doc 15 §5.3) : appariement automatique. Prend le siège
+      // libre de la partie OUVERTE la plus ancienne créée par QUELQU'UN D'AUTRE
+      // (jamais la sienne : on ne s'apparie pas à soi-même). Sans candidate,
+      // répond `matched: false` — au client de créer une partie, qui deviendra
+      // à son tour la candidate d'un autre joueur.
+      if (path === '/matchmaking' && request.method === 'POST') {
+        const candidate = await env.DB.prepare(
+          'SELECT m.id AS id FROM matches m ' +
+            'JOIN match_players p ON p.match_id = m.id AND p.profile_id IS NULL ' +
+            "WHERE m.status = 'open' AND m.created_by != ? " +
+            'AND NOT EXISTS (SELECT 1 FROM match_players q WHERE q.match_id = m.id AND q.profile_id = ?) ' +
+            'ORDER BY m.created_at LIMIT 1',
+        )
+          .bind(profileId, profileId)
+          .first<{ id: string }>();
+        if (!candidate) return json({ matched: false }, 200, env);
+        const free = await env.DB.prepare(
+          'SELECT seat FROM match_players WHERE match_id = ? AND profile_id IS NULL ORDER BY seat LIMIT 1',
+        )
+          .bind(candidate.id)
+          .first<{ seat: number }>();
+        if (!free) return json({ matched: false }, 200, env);
+        await env.DB.prepare('UPDATE match_players SET profile_id = ? WHERE match_id = ? AND seat = ?')
+          .bind(profileId, candidate.id, free.seat)
+          .run();
+        await env.DB.prepare("UPDATE matches SET status = 'active' WHERE id = ? AND status = 'open'")
+          .bind(candidate.id)
+          .run();
+        return json({ matched: true, id: candidate.id, seat: free.seat }, 200, env);
+      }
+
       if (path === '/matches' && request.method === 'GET') {
         // Parties ouvertes à rejoindre + celles où je suis inscrit.
         const rows = await env.DB.prepare(

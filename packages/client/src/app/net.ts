@@ -121,6 +121,14 @@ export function getSave(slot: string): Promise<{ save_version: number; state: st
 export function listSaves(): Promise<{ saves: { slot: string; save_version: number; updated_at: number }[] }> {
   return api('/saves', { method: 'GET' });
 }
+/**
+ * Restaure la copie de sécurité **N-1** d'un slot (NET-SRVGUARD.2) : le serveur
+ * garde la version écrasée au dernier téléversement. 404 si le slot n'a jamais
+ * été écrasé.
+ */
+export function restoreSave(slot: string): Promise<{ ok: true; save_version: number }> {
+  return api(`/saves/${slot}/restore`, { method: 'POST' });
+}
 
 // — Parties asynchrones —
 
@@ -134,6 +142,15 @@ export function listMatches(): Promise<{ matches: MatchSummary[] }> {
 }
 export function createMatch(seed: number, setup: Command): Promise<{ id: string }> {
   return api('/matches', { method: 'POST', body: JSON.stringify({ seed, setup }) });
+}
+/**
+ * Appariement automatique (NET-MATCHMAKING) : prend le siège libre de la partie
+ * ouverte la plus ancienne créée par quelqu'un d'autre. `matched: false` = aucune
+ * partie en attente — à l'appelant d'en créer une (elle deviendra la candidate
+ * du prochain joueur).
+ */
+export function quickMatch(): Promise<{ matched: false } | { matched: true; id: string; seat: number }> {
+  return api('/matchmaking', { method: 'POST' });
 }
 /** Siège d'une partie async : ordre de tour + occupation (NET-MATCHDETAIL). */
 export interface MatchSeat {

@@ -1264,5 +1264,11 @@
   "quest.vox-ch2-tournee.desc": "Open a mage guild, then break the Academy's hunt.",
   "bark.vox.arcane.1": "A stage? We seal gods, singers. You will make less noise.",
   "bark.vox.arcane.2": "All marked. Only the end of the refrain remains.",
-  "bark.vox.arcane.3": "Your barrier holds by a song. Ours holds by locks."
+  "bark.vox.arcane.3": "Your barrier holds by a song. Ours holds by locks.",
+  "online.matches.quick": "Quick match",
+  "online.saves.restore": "Restore",
+  "online.saves.restoreHint": "Roll back to the version before the last upload.",
+  "toast.matchQueued": "No one waiting: your game now waits for an opponent.",
+  "toast.cloudRestored": "Previous save restored.",
+  "toast.cloudNoBackup": "No previous version for this slot."
 }

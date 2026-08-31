@@ -893,6 +893,17 @@ threadé en `heroId` dans `CastSpell`/`HeroAttack` — sinon le lead par défaut
 > cible que ce que **son joueur a exploré** (revue 2026-07 B31 — plus de
 > triche d'information sous brouillard) et **ignore un butin encore gardé**
 > par sa sentinelle (B30). 3 scénarios solo en données (`data/scenarios/`).
+> **État livré (revue 2026-08, lot L2)** : l'IA de ville ne bâtit plus « le
+> premier bâtiment abordable par ordre alphabétique d'id » mais le plus utile,
+> par **priorité dérivée de l'effet déclaratif** du niveau visé (revenu >
+> habitation, du plus haut palier > croissance > guilde > marché > reste — jamais
+> un id de bâtiment ni de faction) ; elle **améliore** ses piles de garnison dès
+> que l'habitation de niveau 2 est bâtie et payable (`UpgradeUnits`, jusque-là
+> jamais émise) ; et surtout ses **recrues ne dorment plus en garnison** : un
+> héros posté sur la ville les embarque au début de son tour, et une garnison qui
+> l'attend devient un **objectif de déplacement** (priorité 3, seuil : ≥ 25 % de
+> la force de son armée) — sans quoi ses héros finissaient la partie avec leur
+> armée de départ.
 >
 > **Fin de tour & relais IA — jamais d'échec muet (lot R0, doc 08 §3)** : la fin
 > de tour humain enchaîne les tours IA jusqu'au prochain humain. Si `EndTurn` est

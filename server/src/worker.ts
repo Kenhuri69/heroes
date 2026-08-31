@@ -40,6 +40,14 @@ const MAX_BODY_BYTES = 256 * 1024; // petits corps (auth, matches, moves)
 const MAX_SAVE_BYTES = 4 * 1024 * 1024; // état de jeu sérialisé (grandes cartes 256²)
 const MAX_SAVE_SLOTS = 20; // slots de sauvegarde cloud par profil
 
+// NET-SEC.3 (doc 15 §8) — limitation de débit de la demande de magic-link.
+// Sans elle, `/auth/request` accepte un nombre illimité de demandes : n'importe
+// qui peut bombarder d'e-mails l'adresse d'un tiers (le lien part réellement
+// dès que `RESEND_API_KEY` est branché) et sonder l'API en boucle.
+const AUTH_RATE_WINDOW_MS = HOUR;
+const AUTH_MAX_PER_EMAIL = 5; // demandes de lien par adresse et par heure
+const AUTH_MAX_PER_IP = 20; // …et par IP appelante (foyer/NAT partagé toléré)
+
 /** Erreur HTTP typée : le `try` externe la traduit en réponse (sinon 500). */
 class HttpError extends Error {
   constructor(
@@ -109,6 +117,30 @@ async function authProfile(request: Request, env: Env): Promise<string | null> {
     .first<{ profile_id: string; expires_at: number }>();
   if (!row || row.expires_at < now()) return null;
   return row.profile_id;
+}
+
+/**
+ * Compteur à **fenêtre fixe** en D1 (table `rate_limits`) : incrémente le
+ * compteur de `key` pour la fenêtre courante et dit si le quota est dépassé.
+ * Fenêtre fixe plutôt que glissante — une ligne par (clé, début de fenêtre),
+ * une seule écriture par appel, aucune dépendance à KV/Durable Objects.
+ * Les lignes périmées sont purgées opportunément (comme sessions/jetons).
+ */
+async function overRateLimit(env: Env, key: string, limit: number, windowMs: number): Promise<boolean> {
+  const windowStart = Math.floor(now() / windowMs) * windowMs;
+  await env.DB.prepare(
+    'INSERT INTO rate_limits (key, window_start, count) VALUES (?, ?, 1) ' +
+      'ON CONFLICT(key, window_start) DO UPDATE SET count = count + 1',
+  )
+    .bind(key, windowStart)
+    .run();
+  const row = await env.DB.prepare('SELECT count FROM rate_limits WHERE key = ? AND window_start = ?')
+    .bind(key, windowStart)
+    .first<{ count: number }>();
+  if ((row?.count ?? 0) === 1) {
+    await env.DB.prepare('DELETE FROM rate_limits WHERE window_start < ?').bind(windowStart).run();
+  }
+  return (row?.count ?? 0) > limit;
 }
 
 // — Classement Elo (doc 18 lot 4.2) —
@@ -215,6 +247,14 @@ export default {
       if (path === '/auth/request' && request.method === 'POST') {
         const { email } = await body<{ email?: string }>(request);
         if (!email) return fail(400, 'email requis', env);
+        // NET-SEC.3 : quota par adresse ET par IP appelante. Réponse 429
+        // volontairement identique dans les deux cas (aucune information sur
+        // l'existence d'un compte).
+        const ip = request.headers.get('CF-Connecting-IP') ?? 'unknown';
+        const overQuota =
+          (await overRateLimit(env, `auth:email:${email.trim().toLowerCase()}`, AUTH_MAX_PER_EMAIL, AUTH_RATE_WINDOW_MS)) ||
+          (await overRateLimit(env, `auth:ip:${ip}`, AUTH_MAX_PER_IP, AUTH_RATE_WINDOW_MS));
+        if (overQuota) return fail(429, 'trop de demandes de connexion, réessayez plus tard', env);
         const t = token();
         await env.DB.prepare('INSERT INTO auth_tokens (token, email, expires_at, used) VALUES (?, ?, ?, 0)')
           .bind(t, email, now() + HOUR)
@@ -444,6 +484,14 @@ export default {
       if (movesMatch) {
         const matchId = movesMatch[1]!;
         if (request.method === 'GET') {
+          // Le journal d'une partie est réservé à ses PARTICIPANTS : il permet
+          // de re-simuler l'état complet (le POST voisin vérifiait déjà le
+          // siège, pas le GET — tout compte authentifié lisait n'importe quelle
+          // partie). Sur l'information ouverte ENTRE participants, cf. NET-FOG.
+          const seat = await env.DB.prepare('SELECT player_id FROM match_players WHERE match_id = ? AND profile_id = ?')
+            .bind(matchId, profileId)
+            .first<{ player_id: string }>();
+          if (!seat) return fail(403, 'vous ne participez pas à cette partie', env);
           const since = Number(url.searchParams.get('since') ?? '-1');
           const rows = await env.DB.prepare('SELECT seq, commands FROM moves WHERE match_id = ? AND seq > ? ORDER BY seq')
             .bind(matchId, since)

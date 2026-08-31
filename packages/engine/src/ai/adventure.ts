@@ -12,7 +12,7 @@ import { validateCaptureTown, handleCaptureTown } from '../town';
 import { maxAffordableCount } from '../town/resources';
 import { unitWithEconomy } from '../town/unit-economy';
 import type { TownState } from '../town/types';
-import { playTownTurn } from './town-ai';
+import { playTownTurn, tryGarrisonPickup } from './town-ai';
 
 /**
  * Joue le tour d'aventure d'un joueur IA (doc 11 §3.5, plan phase-3.5) :
@@ -30,12 +30,13 @@ import { playTownTurn } from './town-ai';
  * planification multi-tours) : par héros, dans l'ordre de priorité —
  * (1) objet collectable atteignable le plus proche (ressource, trésor résolu
  * en or, artefact, mine à capturer), (2) héros ennemi atteignable « battable »
- * (marge de force ≥ 1,5×, H-VS-H), (3) gardien atteignable « battable »
- * (même marge), (4) ville ennemie/neutre capturable (garnison vide) déjà
- * adjacente, (5) sinon un pas vers la tuile inexplorée
- * la plus proche. Par ville : construit le premier bâtiment abordable dont
- * les prérequis sont satisfaits, puis recrute le plus haut tier abordable
- * (voir `town-ai.ts`).
+ * (marge de force ≥ 1,5×, H-VS-H), (3) ma ville dont la garnison en attente
+ * vaut le détour, (4) gardien atteignable « battable » (même marge),
+ * (5) ville ennemie/neutre capturable (garnison vide) déjà adjacente,
+ * (6) sinon un pas vers la tuile inexplorée la plus proche. Par ville :
+ * construit le bâtiment abordable le plus utile, recrute le plus haut tier
+ * abordable, améliore ce qui peut l'être et remet la garnison au héros
+ * présent (voir `town-ai.ts`).
  */
 export function runAiTurn(draft: GameState, playerId: string, events: GameEvent[]): void {
   const player = draft.players.find((p) => p.id === playerId);
@@ -234,6 +235,50 @@ function pickEnemyHeroTarget(
   return best;
 }
 
+/**
+ * Fraction de l'armée du héros à partir de laquelle une garnison qui l'attend
+ * vaut le détour — en dessous, le renfort ne paie pas les PM du voyage.
+ */
+const GARRISON_PICKUP_RATIO = 0.25;
+
+/**
+ * Ma ville la plus proche dont la garnison vaut le détour (priorité 3). Les
+ * recrues de l'IA s'entassent en **garnison** (`RecruitUnits` les y dépose) :
+ * sans ce retour au bercail, son armée ne grossissait jamais. Le ramassage
+ * lui-même est joué par le tour de ville (`town-ai`), qui suit les héros dans
+ * `runAiTurn` — arriver sur la tuile suffit.
+ */
+function pickGarrisonPickupTarget(
+  draft: GameState,
+  hero: HeroState,
+  player: PlayerState,
+  blocked: GridPos[],
+  minStep: number,
+): PathTarget | null {
+  const { map, config, unitCatalog } = draft;
+  if (!map || !config) return null;
+  const heroStrength = armyStrength(hero.army, unitCatalog);
+  let best: (PathTarget & { id: string }) | null = null;
+  for (const town of draft.towns) {
+    if (town.ownerPlayerId !== player.id || town.garrison.length === 0) continue;
+    if (samePos(hero.pos, town.pos)) continue; // déjà sur place : le tour de ville ramasse
+    const waiting = armyStrength(town.garrison, unitCatalog);
+    if (waiting <= 0 || waiting < GARRISON_PICKUP_RATIO * heroStrength) continue;
+    // Pré-filtre O(1) puis A* borné par les PM du jour — même patron que les
+    // autres pickers (une ville hors de portée du jour n'est pas une cible).
+    if (octileLowerBound(minStep, hero.pos, town.pos) > hero.movementPoints) continue;
+    const pathBlocked = blocked.filter((p) => !samePos(p, town.pos));
+    const path = findPath(config, map, hero.pos, town.pos, pathBlocked, false, hero.movementPoints);
+    if (!path) continue;
+    const cost = totalPathCost(config, map, hero.pos, path);
+    if (cost > hero.movementPoints) continue;
+    if (!best || cost < best.cost || (cost === best.cost && town.id < best.id)) {
+      best = { id: town.id, path, cost };
+    }
+  }
+  return best;
+}
+
 /** Ville ennemie/neutre non défendue déjà adjacente au héros (priorité 4, pas de déplacement). */
 function pickAdjacentCapturableTown(draft: GameState, hero: HeroState, player: PlayerState): TownState | null {
   let best: TownState | null = null;
@@ -325,6 +370,10 @@ function captureTown(draft: GameState, town: TownState, player: PlayerState, eve
 
 function playHeroTurn(draft: GameState, hero: HeroState, player: PlayerState, events: GameEvent[]): void {
   if (!draft.map || !draft.config || hero.movementPoints <= 0 || draft.combat) return;
+  // Le héros embarque d'abord la garnison de la ville où il se trouve : il part
+  // en campagne avec les recrues de la veille plutôt que de les laisser dormir.
+  const homeTown = draft.towns.find((t) => t.ownerPlayerId === player.id && samePos(t.pos, hero.pos));
+  if (homeTown) tryGarrisonPickup(draft, homeTown, events);
   const blocked = draft.heroes.filter((h) => h.id !== hero.id).map((h) => h.pos);
   // B5 : les gardiens NON ciblés sont des obstacles de pathfinding — l'IA ne route
   // pas au travers (sinon interceptions non planifiées à marge < 1,5×).
@@ -345,6 +394,13 @@ function playHeroTurn(draft: GameState, hero: HeroState, player: PlayerState, ev
   const enemyHero = pickEnemyHeroTarget(draft, hero, player, [...blocked, ...guardianPos], minStep);
   if (enemyHero) {
     advanceAi(draft, hero, player, enemyHero.path, events);
+    return;
+  }
+
+  // Priorité 3 : rentrer chercher la garnison qui s'accumule dans ma ville.
+  const pickup = pickGarrisonPickupTarget(draft, hero, player, [...blocked, ...guardianPos], minStep);
+  if (pickup) {
+    advanceAi(draft, hero, player, pickup.path, events);
     return;
   }
 

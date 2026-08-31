@@ -18,6 +18,14 @@
 > C1, C3, C7, H2) ; ses items ⬜ restants sont repris ici sous de nouveaux ID,
 > re-vérifiés et re-spécifiés.
 
+> **⚠️ Revue du 2026-08-31** — cet inventaire (écrit le 2026-07-10) est **en
+> partie périmé** : 10 de ses items encore marqués ⬜/🧩 ont été **vérifiés livrés**
+> (capacités toutes portées, assets Sylvan, toiles de combat, vignettes core,
+> classement Elo, e-mails Resend, bateaux, pertes de fin de partie…). La photo à
+> jour, les manques réellement ouverts et le plan de comblement vivent dans
+> **`.claude/plans/missing-features-2026-08.md`** — s'y référer en premier ; ce
+> fichier reste la **fiche détaillée par item** (spécifications et pointeurs docs).
+
 ## Légende
 
 - **Type** : 🕳️ absent · 🧩 partiel · 🎨 façade (structure là, effet/UX manquant) · 🐞 bug de règle · 📄 divergence documentaire

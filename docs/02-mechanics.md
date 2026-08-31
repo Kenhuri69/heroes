@@ -913,6 +913,19 @@ threadé en `heroId` dans `CastSpell`/`HeroAttack` — sinon le lead par défaut
 > ville et par tour) ; et elle **équipe** enfin les artefacts que le butin range
 > dans le sac de ses héros, avant de jouer leur tour. Trois commandes qu'elle
 > n'émettait jamais (`TradeResources`, `BuyWarMachine`, `EquipArtifact`).
+> **État livré (revue 2026-08, lot L4 — elle défend et voyage)** : (1) **garde de
+> ville** — une ville à elle dont la menace visible (héros ennemi non allié à ≤ 8
+> cases, jamais sous brouillard) dépasse la défense en place devient la
+> **priorité 0** d'un héros à portée, et celui qui l'occupe **ne bouge plus** tant
+> que la menace tient (hystérésis à 75 % pour éviter l'aller-retour) — un héros
+> posté intercepte l'assaillant avant toute capture ; (2) **sorts d'aventure** —
+> Marche forcée en tête de tour, Vision/Cartographie seulement faute d'objectif
+> (puis une nouvelle passe de ramassage sur ce que le brouillard levé révèle),
+> avec une **réserve de mana** de moitié gardée pour le combat ; (3) **obélisques
+> & Graal** — les obélisques non visités deviennent des objets collectables et la
+> tuile du Graal **révélée** une cible, `Dig` étant émise à l'arrivée (cœur
+> partagé `adventure/grail` entre la commande du joueur et l'IA). Le « refus d'un
+> combat perdu d'avance » était **déjà** couvert par les marges de force 1,5×.
 >
 > **Fin de tour & relais IA — jamais d'échec muet (lot R0, doc 08 §3)** : la fin
 > de tour humain enchaîne les tours IA jusqu'au prochain humain. Si `EndTurn` est

@@ -697,12 +697,37 @@ export interface SkirmishConfig {
  */
 const DIFFICULTY_TUNING: Record<
   SkirmishDifficulty,
-  { aiArmyMult: number; aiResourceMult: number; aiFort: boolean }
+  {
+    aiArmyMult: number;
+    aiResourceMult: number;
+    aiFort: boolean;
+    /** Profil économique DURABLE du siège IA (lot L5) — en points de pourcentage. */
+    aiIncomePercent: number;
+    aiGrowthPercent: number;
+  }
 > = {
-  facile: { aiArmyMult: 0.6, aiResourceMult: 1, aiFort: false },
-  normal: { aiArmyMult: 1, aiResourceMult: 1, aiFort: false },
-  difficile: { aiArmyMult: 1.6, aiResourceMult: 1.5, aiFort: true },
+  facile: { aiArmyMult: 0.6, aiResourceMult: 1, aiFort: false, aiIncomePercent: -25, aiGrowthPercent: -25 },
+  normal: { aiArmyMult: 1, aiResourceMult: 1, aiFort: false, aiIncomePercent: 0, aiGrowthPercent: 0 },
+  difficile: { aiArmyMult: 1.6, aiResourceMult: 1.5, aiFort: true, aiIncomePercent: 50, aiGrowthPercent: 25 },
 };
+
+/**
+ * Profil économique à poser sur un siège (lot L5) : `undefined` quand il est
+ * neutre — un champ absent laisse le moteur au facteur 1 (et la sauvegarde
+ * inchangée). Seuls les sièges **IA** portent un profil : la difficulté ne
+ * s'applique jamais à un humain (hot-seat compris).
+ */
+export function seatEconomy(
+  tuning: (typeof DIFFICULTY_TUNING)[SkirmishDifficulty],
+  isAi: boolean,
+): Pick<PlayerSetup, 'economyBonus'> | Record<string, never> {
+  if (!isAi) return {};
+  if (tuning.aiIncomePercent === 0 && tuning.aiGrowthPercent === 0) return {};
+  return { economyBonus: { incomePercent: tuning.aiIncomePercent, growthPercent: tuning.aiGrowthPercent } };
+}
+
+/** Table de difficulté exportée pour les tests (lot L5) — sinon interne. */
+export const DIFFICULTY_TUNING_FOR_TESTS = DIFFICULTY_TUNING;
 
 /** Effectif de base de la pile T1 de départ (mis à l'échelle pour l'IA). */
 const SKIRMISH_BASE_ARMY = 30;
@@ -816,6 +841,8 @@ export function skirmishStartCommand(
       startingSpells: [...heroSetup.startingSpells],
       startingFactionId: s.factionId,
       controller: s.controller,
+      // Difficulté DURABLE (lot L5) : profil économique du siège IA.
+      ...seatEconomy(tuning, s.controller === 'ai'),
     };
   });
 
@@ -1178,6 +1205,8 @@ export function newGameStartCommand(
     startingFactionId: s.factionId,
     controller: s.controller,
     team: s.team,
+    // Difficulté DURABLE (lot L5) : profil économique du siège IA.
+    ...seatEconomy(tuning, s.controller === 'ai'),
   }));
 
   const towns: TownState[] = seats.map((s, i) => {

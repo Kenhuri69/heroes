@@ -45,6 +45,11 @@ Estimations pour une petite équipe (2–3 dev + 1 artiste temps partiel). Chaqu
 > choisies + difficulté), la difficulté étant un **levier de données**
 > (`skirmishStartCommand` met l'armée/les ressources de l'IA à l'échelle) ;
 > **zéro code de difficulté ni nom de faction dans le moteur** (doc 08 §2.5).
+> *Complété (revue 2026-08, lot L5)* : le cran ne s'évapore plus après les
+> premières semaines — il pose aussi un **profil économique durable** sur les
+> sièges IA (`PlayerSetup.economyBonus`, en points de pourcentage : facile −25 %
+> revenu et croissance, normal neutre, difficile +50 % / +25 %). Le moteur
+> applique un facteur **opaque** ; il ne connaît toujours aucun cran.
 > **4.15 livré** : **hot-seat** — l'escarmouche accepte un 2ᵉ joueur humain local ;
 > le HUD/brouillard/sélection se re-keyent au joueur **actif** (`humanId` suit
 > `currentPlayer`) et un overlay « passez l'appareil » sépare les tours ; **aucun

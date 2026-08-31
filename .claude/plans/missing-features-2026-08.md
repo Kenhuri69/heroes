@@ -142,12 +142,12 @@ re-fixé) ; (4) zéro faction dans `packages/`.
 | **L3** ✅ | **IA qui gère son économie** — marché (vente du surplus contre de l'or), équipement automatique des artefacts ramassés, achat de machines de guerre | G1.c | M | oui (IA seule) | non |
 | **L4** ✅ | **IA qui défend & voyage** — rapatriement d'un héros vers une ville menacée, garnison minimale, refus d'un combat perdu d'avance, sorts d'aventure (Vision/Marche forcée), fouille du Graal quand la position est connue | G1.c, G1.e | M | oui (IA seule) | non |
 | **L5** ✅ | **Une difficulté qui pèse dans la durée** — remplacer le one-shot par des **leviers de données persistants** (bonus de revenu/croissance de l'IA, marges d'engagement, cadence de recrutement) pilotés par `config`, jamais par un enum dans le moteur | G1.d | S-M | non (données + client) | non |
-| **L6** | **Campagne Sylvan Court** (3 chapitres, patron N3a) puis **Vox ch2** | G4 | M×2 | non (données) | non |
+| **L6** ✅ | **Campagne Sylvan Court** (3 chapitres, patron N3a) puis **Vox ch2** | G4 | M×2 | non (données) | non |
 | **L7** ✅ | **Gardiens ↔ trésors dans `generateMap`** — les trésors de valeur naissent gardés (densité déjà réglable à « Nouvelle partie ») | G5 | S | non (content) | non |
-| **L8** | **Finitions de contenu** — Salle des Reliques (AH), « mois des créatures » (peuplement neutre déclaratif) | G6 | S+M | 1 point générique pour le peuplement | non |
+| **L8** ✅ | **Finitions de contenu** — Salle des Reliques (AH), « mois des créatures » (peuplement neutre déclaratif) | G6 | S+M | 1 point générique pour le peuplement | non |
 | **L9** ✅ | **Hygiène doc & locales** — §G7, + remise à niveau de `game-feature-gaps.md` sur cette revue | G7 | S | non | non |
-| **L10** | **Souterrain** — *cadrage d'abord* (doc 02), puis chantier multi-lots | G3 | L | oui (transversal) | **bump** |
-| **L11** | **En ligne compétitif** — NET-FOG (après décision), matchmaking, sauvegarde N-1 | G2.c, G2.d | L | non | non |
+| **L10** 📋 | **Souterrain** — **cadrage livré** (`l10-underground.md`, 5 sous-lots) ; implémentation laissée à l'arbitrage | G3 | L | oui (transversal) | **bump** |
+| **L11** ✅ | **En ligne compétitif** — NET-FOG (après décision), matchmaking, sauvegarde N-1 | G2.c, G2.d | L | non | non |
 
 **Ordre recommandé** : L1 → L2 → L3 → L4 → L5 → L7 → L9 → L6 → L8 → (L10/L11
 après arbitrage). L1-L5 tiennent la promesse « une partie solo qui résiste »,
@@ -308,3 +308,35 @@ forme change · bump `CURRENT_SAVE_VERSION` seulement si la sauvegarde change.
     « UI joueur différée » démenties par le code (spellcaster, Prière de
     bataille), profil d'attribut par archétype acté, et l'inventaire vivant
     `game-feature-gaps.md` re-coché item par item.
+
+- **2026-08-31 — Lots L6, L8, L11 livrés ; L10 cadré** (suite de la passe
+  autonome, une PR par lot) :
+  - **L6** (PR #537) — campagne **Sylvan Court** (3 chapitres) et **Vox ch2** :
+    les 6 maisons jouables ont désormais leur histoire. 100 % données.
+  - **L8** (PR #538) — **Salle des Reliques** (aura générique
+    `heroAura.learnCircleBonus`) et **mois des créatures**
+    (`spawnCreatures` : peuplement neutre seedé et borné).
+  - **L11** (PR #539) — **appariement automatique** (`POST /matchmaking`, sans
+    file), **copie de sauvegarde N-1** (`save_backups` + `/restore`), et
+    **NET-FOG tranché** : statu quo assumé et documenté (docs 07 §5, 15), à
+    rouvrir seulement si le classement devient un enjeu.
+  - **L10** (PR de cadrage) — le souterrain reste **non implémenté**, à dessein :
+    c'est le seul lot qui touche à la fois la forme de sauvegarde, le pipeline
+    de contenu, le rendu et l'IA. Son cadrage (`l10-underground.md`) livre le
+    modèle de données (`GridPos.level`, escaliers = monolithes inter-couches —
+    la brique existe déjà), l'impact mesuré par surface et un découpage en
+    **5 sous-lots** prêts à exécuter. Décision d'implémentation au porteur.
+
+### État final du plan (2026-08-31)
+
+| Lot | État |
+|---|---|
+| L1 verrous en ligne · L2 IA de ville · L3 économie de l'IA | ✅ livrés (PR #532) |
+| L4 défense & voyage de l'IA | ✅ livré (PR #533) |
+| L5 difficulté durable | ✅ livré (PR #534) |
+| L7 butin gardé sur cartes générées | ✅ livré (PR #535) |
+| L9 hygiène doc & locales | ✅ livré (PR #536) |
+| L6 campagnes Sylvan & Vox ch2 | ✅ livré (PR #537) |
+| L8 Salle des Reliques & mois des créatures | ✅ livré (PR #538) |
+| L11 appariement, copie N-1, NET-FOG | ✅ livré (PR #539) |
+| **L10 souterrain** | 📋 **cadré, non implémenté** (arbitrage) |

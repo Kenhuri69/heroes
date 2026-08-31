@@ -18,6 +18,12 @@ export type GameEvent =
   | { type: 'CalendarMonthStarted'; eventId: string; month: number }
   /** Semaine de ruée (M-CALENDAR) : ressource créditée à un joueur au passage de semaine. */
   | { type: 'CalendarResourceGranted'; playerId: string; resource: string; amount: number }
+  /**
+   * « Mois des créatures » (lot L8) : des piles neutres ont pris pied sur la
+   * carte à la bascule de mois. `count` = nombre de piles réellement posées
+   * (une carte saturée peut en accueillir moins que demandé).
+   */
+  | { type: 'CalendarCreaturesSpawned'; unitId: string; stacks: number; size: number }
   | { type: 'CalendarXpGranted'; playerId: string; heroId: string; amount: number }
   /** Un pas de héros — le rendu anime tuile par tuile (doc 07 §3). */
   | { type: 'MoveStepped'; heroId: string; from: GridPos; to: GridPos; movementPointsLeft: number }

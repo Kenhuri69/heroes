@@ -61,5 +61,7 @@
   "building.arcane-hunters-contracts.lore": "A board, names nailed to it, a price on each. No hatred here: you fulfill the contract, then go home.",
   "hero.olivier-arcane-hunters.name": "Olivier",
   "hero.olivier-arcane-hunters.bio": "A graduate of Darkwatch's Circle of the Hunt, Olivier made the shadows his ally and poison his craft. An original creation, this assassin strikes once, surely, and vanishes before the riposte.",
-  "hero.olivier-arcane-hunters.specialty": "Poisoned Blades — increased melee damage, venom eats through the target's armor"
+  "hero.olivier-arcane-hunters.specialty": "Poisoned Blades — increased melee damage, venom eats through the target's armor",
+  "building.arcane-hunters-relic-hall": "Relic Hall",
+  "building.arcane-hunters-relic-hall.lore": "Three centuries of trophies under glass: a demon's quill, a melted lock, a traitor's gloved hand. Here one studies what one has defeated — and finally understands the spells one merely recited."
 }

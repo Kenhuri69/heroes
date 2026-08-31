@@ -146,6 +146,14 @@ export interface CalendarMonthEventDef {
   weight: number;
   /** Multiplicateur mensuel de la croissance (« peste » 0,5, « abondance » 1,5). */
   growthFactor: number;
+  /**
+   * « Mois des créatures » (doc 02 §2.3, lot L8, fidélité HoMM3) : à la bascule
+   * de mois, `stacks` piles NEUTRES de `size` créatures apparaissent sur des
+   * tuiles libres de la carte. L'unité est **tirée au RNG seedé** parmi les
+   * recrutables du catalogue (même patron que `growthUnit`) — jamais nommée
+   * dans la config core (zéro couplage core → paquet). Absent ⇒ aucun spawn.
+   */
+  spawnCreatures?: { stacks: number; size: number } | undefined;
 }
 
 export interface AdventureConfig {

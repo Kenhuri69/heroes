@@ -484,8 +484,16 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
   triées ; jamais nommée dans la config core — zéro couplage core → paquet),
   stockée dans `Calendar.weekEventUnitId` (optionnel paresseux), croissance
   × factor pour ELLE seule. Badge/toast interpolent le nom localisé de l'unité.
-  *Différé :* « mois des créatures » façon HoMM3 avec apparition de piles sur
-  la carte (spawn — mécanique distincte).
+  **Mois des créatures (livré, revue 2026-08 lot L8)** : un événement de mois
+  peut porter `spawnCreatures { stacks, size }` — à la bascule de mois, `stacks`
+  piles **neutres** de `size` créatures apparaissent sur des tuiles **libres et
+  franchissables**. L'unité est **tirée au RNG seedé** parmi les recrutables du
+  catalogue (même patron que `growthUnit` : jamais nommée dans la config core).
+  Essais de placement **bornés** (`stacks × 8`) ⇒ une carte saturée en accueille
+  simplement moins, sans jamais boucler ; événement `CalendarCreaturesSpawned`.
+  Champ optionnel ⇒ **pas de bump de sauvegarde**, et une config sans ce champ
+  ne consomme **aucun** RNG (séquences existantes intactes). Données : mois
+  `creature-month` (3 piles de 12).
 
 ---
 

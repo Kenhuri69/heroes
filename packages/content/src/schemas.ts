@@ -931,6 +931,18 @@ export const gameConfigSchema = z.object({
               id: idSchema,
               weight: z.number().int().positive(),
               growthFactor: z.number().positive(),
+              /**
+               * « Mois des créatures » (doc 02 §2.3, lot L8) : `stacks` piles
+               * neutres de `size` créatures posées sur la carte à la bascule de
+               * mois. L'unité est tirée par le MOTEUR parmi les recrutables —
+               * la config core ne nomme aucune unité de paquet.
+               */
+              spawnCreatures: z
+                .object({
+                  stacks: z.number().int().positive(),
+                  size: z.number().int().positive(),
+                })
+                .optional(),
             }),
           )
           .min(1)

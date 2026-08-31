@@ -2,6 +2,7 @@ import { rollRange } from '../core/rng';
 import type { GameEvent } from '../core/events';
 import type { GameState, HeroState } from '../core/state';
 import { heroLearnableCircle } from '../hero/skills';
+import { townBuildingAura } from './economy';
 import type { TownState } from './types';
 
 /**
@@ -62,7 +63,13 @@ export function learnGuildSpellsAtTown(
   events: GameEvent[],
 ): void {
   if (town.spellPool.length === 0) return;
-  const limit = heroLearnableCircle(hero, draft.skillCatalog);
+  // Aura de bâtiment (lot L8, Salle des Reliques) : la ville où il se tient peut
+  // relever d'un cran ce que le héros sait apprendre.
+  const limit = heroLearnableCircle(
+    hero,
+    draft.skillCatalog,
+    townBuildingAura(draft, hero.playerId, town.pos, 'learnCircleBonus'),
+  );
   const learned: string[] = [];
   for (const id of town.spellPool) {
     if (hero.spells.includes(id)) continue;

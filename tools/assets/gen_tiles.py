@@ -269,6 +269,52 @@ def rocks(img, rng):
                    _vary((66, 64, 60), rng))
 
 
+def cave(img, rng):
+    """Sol de caverne (couche 1) : roche polie humide, plus SOMBRE et plus chaude
+    que la paroi — c'est ce contraste, pas la couleur seule, qui dit où l'on peut
+    marcher. Flaques bleutées et rares éclats minéraux pour la profondeur."""
+    _base_noise(img, rng, (72, 67, 64), 6)
+    d = ImageDraw.Draw(img)
+    for _ in range(9):                                    # dalles usées
+        x, y = rng.randrange(S), rng.randrange(S)
+        _wrap_ellipse(d, x, y, rng.randint(5, 11), rng.randint(3, 6),
+                      _vary((60, 56, 55), rng))
+    for _ in range(3):                                    # flaques d'infiltration
+        x, y = rng.randrange(S), rng.randrange(S)
+        rx, ry = rng.randint(4, 7), rng.randint(2, 3)
+        _wrap_ellipse(d, x, y, rx, ry, _vary((52, 56, 62), rng))
+        _wrap_ellipse(d, x - rx // 3, y, max(1, rx // 3), 1,
+                      (72, 80, 88))                       # reflet, discret
+    for _ in range(16):                                   # gravier
+        x, y = rng.randrange(S), rng.randrange(S)
+        _wrap_ellipse(d, x, y, rng.randint(1, 2), 1, _vary((90, 85, 82), rng))
+    for _ in range(2):                                    # éclats de minerai
+        x, y = rng.randrange(S), rng.randrange(S)
+        _wrap_ellipse(d, x, y, 1, 1, (104, 124, 128))
+
+
+def cave_wall(img, rng):
+    """Paroi de caverne (infranchissable) : masse froide et nettement plus sombre
+    que le sol, taillée en facettes anguleuses avec arêtes éclairées en haut à
+    gauche — la lecture « mur » vient du relief, pas d'une teinte."""
+    _base_noise(img, rng, (46, 44, 50), 5)
+    d = ImageDraw.Draw(img)
+    for _ in range(9):                                    # facettes de roche
+        x, y = rng.randrange(S), rng.randrange(S)
+        rx, ry = rng.randint(5, 10), rng.randint(4, 8)
+        _wrap_ellipse(d, x, y, rx, ry, _vary((38, 37, 43), rng))
+        _wrap_ellipse(d, x - rx // 3, y - ry // 3, max(1, rx // 2),
+                      max(1, ry // 2), _vary((64, 62, 70), rng))   # arête éclairée
+    for _ in range(10):                                   # fissures profondes
+        x, y = rng.randrange(S), rng.randrange(S)
+        x2, y2 = x + rng.randint(-7, 7), y + rng.randint(3, 8)
+        _wrap_line(d, x, y, x2, y2, _vary((26, 25, 30), rng))
+    for _ in range(5):                                    # veines claires
+        x, y = rng.randrange(S), rng.randrange(S)
+        _wrap_line(d, x, y, x + rng.randint(3, 7), y - rng.randint(1, 3),
+                   _vary((82, 80, 88), rng))
+
+
 def road_dirt(img, rng):
     """Texture de terre battue (pleine tuile ; le client la masquera selon le
     tracé de la route au lot intégration)."""
@@ -296,6 +342,8 @@ TERRAIN_RECIPES = {
     "water": water,
     "mountain": mountain,
     "rocks": rocks,
+    "cave": cave,
+    "cave-wall": cave_wall,
 }
 
 
@@ -361,9 +409,46 @@ def mountain_prop(img, rng) -> None:
     d.line([(cx + apex_dx, peak), (cx - half // 3, base)], fill=shade, width=2)
 
 
+def cave_wall_prop(img, rng) -> None:
+    """Masse rocheuse d'une paroi de caverne. Volontairement BASSE et LARGE : des
+    aiguilles hautes lisaient comme une pelote d'épingles et masquaient la carte.
+    Un bloc trapu, plus sombre que le sol, dit « on ne passe pas » sans voler la
+    lisibilité ; deux stalagmites courtes rappellent qu'on est sous terre."""
+    d = ImageDraw.Draw(img)
+    cx = PROP_W // 2
+    base = PROP_GROUND
+    rock = _vary((52, 50, 54), rng)
+    shade = _vary((32, 31, 34), rng)
+    light = _vary((68, 66, 70), rng)
+    # Bloc principal : large (couvre la tuile), sommet bas et irrégulier.
+    h = rng.randint(26, 38)
+    half = rng.randint(24, 30)
+    apex = cx + rng.randint(-6, 6)
+    shoulder = base - int(h * 0.55)
+    d.polygon(
+        [(cx - half, base), (cx - half + 4, shoulder), (apex - 8, base - h),
+         (apex + 7, base - h + rng.randint(0, 4)), (cx + half - 4, shoulder), (cx + half, base)],
+        fill=rock,
+    )
+    d.polygon([(cx - half, base), (cx - half + 4, shoulder), (apex - 8, base - h), (apex - 8, base)],
+              fill=light)
+    d.polygon([(cx + half, base), (cx + half - 4, shoulder),
+               (apex + 7, base - h + 2), (apex + 7, base)], fill=shade)
+    d.line([(apex - 8, base - h), (cx - half // 2, base)], fill=shade, width=2)
+    # Stalagmites courtes au pied.
+    for side in (-1, 1):
+        if rng.random() < 0.75:
+            sx = cx + side * rng.randint(12, half)
+            sh = rng.randint(8, 15)
+            sw = rng.randint(3, 5)
+            d.polygon([(sx, base - sh), (sx - sw, base), (sx + sw, base)], fill=rock)
+            d.polygon([(sx, base - sh), (sx - sw, base), (sx, base)], fill=light)
+
+
 PROP_RECIPES = {
     "forest": forest_prop,
     "mountain": mountain_prop,
+    "cave-wall": cave_wall_prop,
 }
 
 

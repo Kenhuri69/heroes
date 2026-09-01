@@ -43,11 +43,18 @@
   est dessiné avec wrap ±64 px), 3 variantes par terrain pour casser la
   répétition. Palette sourde, lisible sous le brouillard de guerre et sous les
   objets de carte. Terrains couverts : `grass`, `dirt`, `sand`, `forest`,
-  `rough`, `snow`, `swamp`, `river`, `water`, `mountain`, `rocks` (doc 02 §1.5).
+  `rough`, `snow`, `swamp`, `river`, `water`, `mountain`, `rocks` (doc 02 §1.5),
+  plus les deux terrains de **couche 1** (L10) : `cave` (sol de caverne,
+  franchissable) et `cave-wall` (paroi). Le souterrain empruntait `dirt`/`rocks`
+  à la surface et se lisait comme une plaine de terre : le sol de caverne est
+  une roche polie grise, plus **claire** que la paroi — c'est ce contraste, pas
+  la teinte, qui dit où l'on peut marcher.
 - **Props de relief** (`assets/tiles/props/<terrain>-<v>.png`) : billboards
   **transparents** qui **dépassent** la tuile pour donner de la hauteur à la
-  carte, là où la profondeur compte — **forêt** (conifères) et **montagne**
-  (pic). Repli procédural déterministe (`gen_tiles.py`, 3 variantes), destiné à
+  carte, là où la profondeur compte — **forêt** (conifères), **montagne** (pic)
+  et **paroi de caverne** (masse rocheuse trapue + stalagmites : volontairement
+  BASSE et large, une première passe en aiguilles hautes lisait comme une pelote
+  d'épingles et masquait la carte). Repli procédural déterministe (`gen_tiles.py`, 3 variantes), destiné à
   être **remplacé par de l'art Gemini varié** (Rule C-like, §7.5) : déposer des
   PNG homonymes sous `assets/tiles/props/` suffit, le client les prend sans
   câblage. Le client (`tilemap.ts`) les pose debout (base au sol) au-dessus du
@@ -61,7 +68,11 @@
   tessellation (grille 4×4, aucun trou entre losanges adjacents).
 - **Icônes UI** : rendues à 256 px puis mipmaps LANCZOS 64/48/32/24/16
   (pratique Hogwarth). Silhouette pleine + ombrage simple 45° + liseré sombre ;
-  **lisible à 16 px** (taille bandeau ressources mobile).
+  **lisible à 16 px** (taille bandeau ressources mobile). Le couple
+  `ui-surface` / `ui-underground` (indicateur de couche, L10) illustre la
+  contrainte : la 1ʳᵉ version du souterrain, deux stalactites fines, se
+  dissolvait en tache à 16 px — trois formes épaisses (voûte, stalactite,
+  stalagmite) tiennent.
 - Chaque script écrit une planche `_preview.png` de contrôle — la regarder
   avant de committer.
 

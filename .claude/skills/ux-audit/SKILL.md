@@ -17,7 +17,7 @@ passe d'audit.
 
 | # | Exigence (doc 08) | Comment vérifier |
 |---|---|---|
-| A1 | **Cibles ≥ 44 px** (§1.1, §4) | Mesurer `getBoundingClientRect()` de tout élément interactif (boutons DOM + hexes/tuiles cliquables du canvas) au viewport mobile **360×640** ET aux 3 crans de police. Le hex de combat est le cas connu (CL7). |
+| A1 | **Cibles ≥ 44 px et DANS l'écran** (§1.1, §4) | Mesurer `getBoundingClientRect()` de tout élément interactif (boutons DOM + hexes/tuiles cliquables du canvas) au viewport mobile **360×640** ET aux 3 crans de police. Le hex de combat est le cas connu (CL7). Une cible **hors écran à l'horizontale** compte comme un échec au même titre qu'une cible trop petite (revue 2026-09 U-1 : rangée de crans débordant sans défilement ⇒ derniers choix inatteignables). |
 | A2 | **Parité hover / appui long** (§1.1, §4) | Aucune info exclusive au `:hover` : tout tooltip/prévisualisation doit avoir un équivalent tap/appui long. Chercher les `title=`/`:hover` sans pendant tactile. |
 | A3 | **Tap-tap avant action irréversible** (§1.3) | Déplacement, attaque, construction, recrutement, sort : 1er tap = sélection + **prévisualisation** (chemin/cible/coût/dégâts), 2ᵉ tap = confirmation. Vérifier qu'aucune action irréversible ne part au 1er tap. |
 | A4 | **Pile de modales ≤ 2** (§3) | Compter les couches DOM `modal`/overlay simultanées ; le geste retour ferme celle du dessus. |
@@ -66,8 +66,8 @@ qu'une fois ; seuls les crans re-photographient) :
 
 Fichiers : `ux-captures/<écran>-<viewport>-font<1|2|3>.png`. Les inspecter à
 l'œil pour A5/A6, et lire les mesures A1 imprimées par le script — cibles
-< 44 px en `WARN`, **éléments interactifs seulement** (`button`, `a`,
-`[role="button"]`, `input`, `select`). Une étape en échec marque `FAIL`, saute
+< 44 px **ou hors écran** en `WARN`, **éléments interactifs seulement**
+(`button`, `a`, `[role="button"]`, `input`, `select`). Une étape en échec marque `FAIL`, saute
 la suite de son flux (`SKIP`) et met le code de sortie à 1.
 
 ## 3. Sortie de l'audit

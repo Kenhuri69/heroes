@@ -34,6 +34,8 @@ const TERRAIN: Record<string, string> = {
   water: '#24406a',
   mountain: '#6a5f56',
   rocks: '#7a766f',
+  cave: '#544d46',
+  'cave-wall': '#2e2c33',
 };
 const C_DEFAULT = '#3a3d47';
 

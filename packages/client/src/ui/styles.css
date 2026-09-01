@@ -555,6 +555,10 @@
 /* Couche courante (L10.3) : surface / souterrain, visible seulement sur une
    carte à deux niveaux. Même habillage discret que le badge de semaine. */
 .map-level {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start; /* ne s'étire pas sur toute la barre (mobile, cran 3) */
+  gap: 4px;
   padding: 1px 8px;
   border: 1px solid var(--brass-bright);
   border-radius: var(--radius-s);

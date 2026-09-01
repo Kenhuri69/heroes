@@ -2,7 +2,7 @@
 
 ## 1. Principes
 
-1. **Touch-first** : cibles ≥ 44 px, aucune information exclusive au hover (tout tooltip a un équivalent « appui long » ou « 1er tap = inspecter »), gestes standards (pinch-zoom, drag-pan).
+1. **Touch-first** : cibles ≥ 44 px, aucune information exclusive au hover (tout tooltip a un équivalent « appui long » ou « 1er tap = inspecter »), gestes standards (pinch-zoom, drag-pan). Corollaire appris en revue d'ergonomie (U-1) : une cible **assez grande mais hors écran** est aussi inutilisable qu'une cible trop petite — une rangée de crans (`.segmented`) **passe à la ligne** plutôt que de déborder, sinon les derniers choix deviennent inatteignables au 3ᵉ cran de police sur mobile.
 2. **Deux couches** : le canvas (carte, combat) est plein écran ; l'UI de gestion est en DOM par-dessus (panneaux, modales) — cf. doc 07.
 3. **Modèle d'interaction « tap-tap »** partout où une action est irréversible : 1er tap = sélection + prévisualisation (chemin, cible, coût), 2ᵉ tap = confirmation. À la souris : hover = prévisualisation, clic = action (parité avec HoMM).
 4. **Lisibilité d'état** : tout ce qui influence une décision (portées, initiative, moral, coûts) est affichable sans quitter l'écran courant.
@@ -67,7 +67,14 @@
 > **fiche d'objet** (`MapObjectCard`) : ressource/quantité, mine (revenu +
 > propriétaire vous/adversaire/neutre), gardien (**fourchette** de force, jamais
 > l'effectif exact — doc 02 §2.2 — + nom d'unité), trésor (or/XP au choix),
-> artefact, habitation (stock), lieu de bonus (effet + fréquence). Le brouillard
+> artefact, habitation (stock), lieu de bonus (effet + fréquence). Un monolithe
+> dont le jumeau est sur une **autre couche** (L10) est un **escalier** : la
+> fiche le titre comme tel et dit le sens (« Descend au souterrain » / « Remonte
+> à la surface ») — sans quoi rien ne le distinguait d'un téléport local (revue
+> d'ergonomie U-3). La **barre de tour** affiche la couche courante
+> (« Surface » / « Souterrain ») avec son **icône** — le libellé encadré seul se
+> lisait comme un champ de saisie (U-2) — et seulement sur une carte à deux
+> couches. Le brouillard
 > reste opaque : pas de fiche sous une tuile non explorée. Fiche des **villes**
 > différée au lot M7 (en-tête de ville).
 

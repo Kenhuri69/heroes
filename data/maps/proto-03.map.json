@@ -6,8 +6,8 @@
   "legend": {
     "g": "grass",
     "m": "mountain",
-    "d": "dirt",
-    "r": "rocks"
+    "c": "cave",
+    "x": "cave-wall"
   },
   "tiles": [
     "gggggggggggggggg",
@@ -47,22 +47,22 @@
   ],
   "underground": {
     "tiles": [
-      "rrrrrrrrrrrrrrrr",
-      "rrrrrrrrrrrrrrrr",
-      "rrrrdddddddddrrr",
-      "rrrrrrrrrrrrdrrr",
-      "rrrrrrrrrrrrdrrr",
-      "rrrrrrrrrrrrdrrr",
-      "rrrrrrrrrrrrdrrr",
-      "rrrrrrrrrrrrdrrr",
-      "rrrrrrrrrrrrdrrr",
-      "rrrrrrrrrrrrdrrr",
-      "rrrrrrrrrrddddrr",
-      "rrrrrrrrrrddddrr",
-      "rrrrrrrrrrddddrr",
-      "rrrrrrrrrrddddrr",
-      "rrrrrrrrrrrrrrrr",
-      "rrrrrrrrrrrrrrrr"
+      "xxxxxxxxxxxxxxxx",
+      "xxxxxxxxxxxxxxxx",
+      "xxxxcccccccccxxx",
+      "xxxxxxxxxxxxcxxx",
+      "xxxxxxxxxxxxcxxx",
+      "xxxxxxxxxxxxcxxx",
+      "xxxxxxxxxxxxcxxx",
+      "xxxxxxxxxxxxcxxx",
+      "xxxxxxxxxxxxcxxx",
+      "xxxxxxxxxxxxcxxx",
+      "xxxxxxxxxxccccxx",
+      "xxxxxxxxxxccccxx",
+      "xxxxxxxxxxccccxx",
+      "xxxxxxxxxxccccxx",
+      "xxxxxxxxxxxxxxxx",
+      "xxxxxxxxxxxxxxxx"
     ],
     "roads": [
       "0000000000000000",

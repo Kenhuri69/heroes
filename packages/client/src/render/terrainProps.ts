@@ -5,7 +5,7 @@ import { isoDepth, isoTileCenter, ISO_TILE_H, ISO_TILE_W } from './projection';
 import { CHUNK, chunkBounds, type WorldRect } from './tilemap';
 
 /** Terrains dotés d'un prop de relief « billboard » (hauteur au-dessus du sol). */
-const PROP_TERRAINS = new Set(['forest', 'mountain']);
+const PROP_TERRAINS = new Set(['forest', 'mountain', 'cave-wall']);
 /** Débord vertical (px monde) d'un prop au-dessus de sa tuile — marge d'AABB de culling. */
 const PROP_OVERHANG = 96;
 /**
@@ -13,7 +13,7 @@ const PROP_OVERHANG = 96;
  * **éparse** (clairières + lisières → on voit à travers, la ville/le héros ne sont
  * plus enterrés) ; la montagne reste pleine (mur de relief voulu).
  */
-const PROP_DENSITY: Record<string, number> = { forest: 0.62, mountain: 1 };
+const PROP_DENSITY: Record<string, number> = { forest: 0.62, mountain: 1, 'cave-wall': 1 };
 /** Largeur du prop en fraction de la tuile (< 1 : l'arbre ne remplit plus toute la case). */
 const PROP_WIDTH = 0.72;
 /** Hauteur max du prop en fraction de la largeur de tuile — plafonne les variantes géantes. */

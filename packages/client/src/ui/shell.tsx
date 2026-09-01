@@ -1308,11 +1308,18 @@ function TurnBar({ onOpenOptions }: { onOpenOptions: () => void }) {
         <TurnIndicator />
         {/* Couche courante (L10.3, doc 02 §2.1) : n'apparaît que sur une carte à
             souterrain — sur une carte plate ce serait du bruit permanent. */}
-        {game.map && mapLevels(game.map) > 1 && (
-          <span class="map-level" data-testid="map-level">
-            {t(levelOf(hero?.pos ?? { x: 0, y: 0 }) === 0 ? 'turnBar.surface' : 'turnBar.underground')}
-          </span>
-        )}
+        {game.map && mapLevels(game.map) > 1 && (() => {
+          // Audit A5 : un libellé encadré tout seul se lisait comme un champ de
+          // saisie désactivé — l'icône donne le second canal ET la nature de
+          // l'information (où l'on se trouve, pas quelque chose à remplir).
+          const under = levelOf(hero?.pos ?? { x: 0, y: 0 }) > 0;
+          return (
+            <span class="map-level" data-testid="map-level">
+              <UiIcon id={under ? 'ui-underground' : 'ui-surface'} fallback={under ? '⛏' : '☀'} />
+              {t(under ? 'turnBar.underground' : 'turnBar.surface')}
+            </span>
+          );
+        })()}
         <span data-testid="calendar">
           {t('turnBar.calendar', { month: monthOf(day), week: weekOf(day), day })}
         </span>

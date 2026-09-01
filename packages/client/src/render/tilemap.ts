@@ -22,6 +22,10 @@ const TERRAIN_COLORS: Record<string, [number, number]> = {
   water: [0x1f3550, 0x1c304a],
   mountain: [0x4a4340, 0x433d3a],
   rocks: [0x6a6660, 0x5f5b56],
+  // Couche 1 (souterrain) : le sol reste nettement plus clair que la paroi —
+  // c'est ce contraste qui dit où l'on marche, même en repli procédural.
+  cave: [0x4a443e, 0x423c37],
+  'cave-wall': [0x2e2c33, 0x28262c],
 };
 const UNKNOWN_TERRAIN: [number, number] = [0x555555, 0x4c4c4c];
 const ROAD_COLOR = 0x8a7a55;

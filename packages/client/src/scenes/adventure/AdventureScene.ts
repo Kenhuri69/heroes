@@ -43,7 +43,7 @@ import { playerColor } from '../../render/playerColors';
 import { TownsLayer } from '../../render/townsLayer';
 import { FogOverlay } from '../../render/fog';
 import { buildHeroSprite } from '../../render/heroSprite';
-import { buildWorldBorder } from '../../render/worldBorder';
+import { applyWorldBackdrop, buildWorldBorder } from '../../render/worldBorder';
 import { buildWaterSheen, waterSheenAlpha, waterSheenStats } from '../../render/waterSheen';
 import { PathPreview, type PreviewStep } from '../../render/pathPreview';
 import { onLongPress, onTap } from '../../input/pointer';
@@ -190,7 +190,7 @@ export class AdventureScene {
     // Props de relief dans la couche d'entités triée (occlusion héros ↔ forêt/montagne).
     this.terrainProps = new TerrainProps(view, this.entities);
     this.fog = new FogOverlay(view);
-    this.worldBorder = buildWorldBorder(view);
+    this.worldBorder = buildWorldBorder(view, 0);
     this.selectionRing.visible = false;
     this.entities.sortableChildren = true; // tri de profondeur iso INTER-couches
     this.entities.eventMode = 'none'; // aucune entité ne capte le pointeur
@@ -341,7 +341,10 @@ export class AdventureScene {
     this.waterSheen = tilemap.flattened ? buildWaterSheen(view) : null;
     this.terrainProps = new TerrainProps(view, this.entities);
     this.fog = new FogOverlay(view);
-    this.worldBorder = buildWorldBorder(view);
+    this.worldBorder = buildWorldBorder(view, level);
+    // Le vide au-delà de la carte change de nature avec la couche : océan en
+    // surface, roche mère dessous.
+    applyWorldBackdrop(document.getElementById('canvas-root'), level);
     // Même ordre de pile qu'à la construction — `addChildAt` place les calques
     // de terrain SOUS les entités déjà présentes (jetons de héros, marqueurs).
     this.container.addChildAt(this.worldBorder, 0);
@@ -405,7 +408,14 @@ export class AdventureScene {
     // à la fin, et la bascule se fait là.
     const level =
       selectedPos && !this.animatingHeroId ? levelOf(selectedPos) : this.activeLevel;
-    if (level !== this.activeLevel) this.switchLevel(map, level);
+    if (level !== this.activeLevel) {
+      this.switchLevel(map, level);
+      // Changer de couche, c'est changer de monde : garder le cadrage d'avant
+      // laissait le héros collé à un bord, face à une couche entièrement sous le
+      // brouillard — un écran quasi noir. Recadrage IMMÉDIAT (un escalier est un
+      // téléport, pas un voyage : une caméra qui glisse serait un contresens).
+      if (selectedPos) void panCameraTo(selectedPos.x, selectedPos.y, 0);
+    }
     const onLevel = (pos: GridPos): boolean => levelOf(pos) === this.activeLevel;
     this.objects.sync(
       map.objects.filter((o) => onLevel(o.pos)),

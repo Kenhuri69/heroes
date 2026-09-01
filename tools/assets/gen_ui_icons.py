@@ -237,6 +237,32 @@ def day(d):
     d.polygon([(88, 208), (168, 208), (128, 156)], fill=(224, 178, 84, 255))
 
 
+def ui_surface(d):
+    """Couche de SURFACE (L10) : soleil au-dessus d'une ligne d'horizon pleine.
+    Le couple surface/souterrain se lit à la silhouette (position du disque par
+    rapport au trait), pas à la couleur — lisible à 16 px."""
+    d.rectangle([28, 150, 228, 176], fill=OUTLINE)                 # sol
+    d.rectangle([34, 156, 222, 170], fill=(120, 108, 88, 255))
+    d.ellipse([88, 44, 168, 124], fill=OUTLINE)                    # soleil
+    d.ellipse([96, 52, 160, 116], fill=(228, 186, 96, 255))
+    d.ellipse([110, 64, 140, 92], fill=(246, 224, 160, 255))
+    for x0, y0, x1, y1 in ((124, 12, 132, 38), (124, 130, 132, 146),
+                           (48, 74, 74, 82), (182, 74, 208, 82)):
+        d.rectangle([x0, y0, x1, y1], fill=OUTLINE)                # rayons
+
+
+def ui_underground(d):
+    """Couche SOUTERRAINE (L10) : voûte pleine en haut, UNE stalactite épaisse et
+    UNE stalagmite. Volontairement pauvre en détails — à 16 px, deux pointes
+    fines se dissolvaient en tache ; la silhouette doit tenir en trois formes."""
+    d.rectangle([24, 36, 232, 74], fill=OUTLINE)                   # voûte
+    d.rectangle([32, 44, 224, 66], fill=(120, 108, 88, 255))
+    d.polygon([(104, 178), (150, 74), (58, 74)], fill=OUTLINE)     # stalactite
+    d.polygon([(104, 158), (138, 82), (70, 82)], fill=(164, 158, 172, 255))
+    d.polygon([(176, 220), (212, 128), (140, 128)], fill=OUTLINE)  # stalagmite
+    d.polygon([(176, 206), (200, 138), (152, 138)], fill=(132, 126, 140, 255))
+
+
 # ── actions & onglets (UXD-2 : remplacent les emojis/glyphes de l'UI) ──────
 
 def act_options(d):
@@ -384,6 +410,8 @@ ICONS = {
     "stat-morale": morale,
     # divers
     "ui-day": day,
+    "ui-surface": ui_surface,
+    "ui-underground": ui_underground,
     # actions & onglets (UXD-2)
     "act-options": act_options,
     "act-journal": act_journal,

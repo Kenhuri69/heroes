@@ -19,7 +19,9 @@
       "river": { "moveCost": 200 },
       "water": { "moveCost": null, "navalCost": 100 },
       "mountain": { "moveCost": null },
-      "rocks": { "moveCost": null }
+      "rocks": { "moveCost": null },
+      "cave": { "moveCost": 100 },
+      "cave-wall": { "moveCost": null }
     },
     "hero": {
       "xpPerHpKilled": 1,

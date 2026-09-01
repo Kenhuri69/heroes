@@ -75,12 +75,33 @@ function measureTargets(page) {
       if (r.width === 0 && r.height === 0) continue; // caché
       const s = getComputedStyle(el);
       if (s.display === 'none' || s.visibility === 'hidden') continue;
-      if (r.width < min || r.height < min) {
+      // Une cible TRONQUÉE par le bord de l'écran est aussi inutilisable qu'une
+      // cible trop petite (revue 2026-09 U-1 : au 3ᵉ cran de police, une rangée
+      // de crans débordait du viewport sans défilement ⇒ derniers choix
+      // inatteignables). Deux précautions : seul le débordement HORIZONTAL
+      // compte (la page défile verticalement), et l'élément doit CHEVAUCHER le
+      // bord — un élément entièrement hors champ est un panneau volontairement
+      // escamoté (tiroir héros fermé, hors-canvas), pas un défaut.
+      const vw = window.innerWidth;
+      // …et pas si la RANGÉE qui le porte défile horizontalement : une barre
+      // d'actions en `overflow-x: auto` (`.actions-nav`) annonce son défilement,
+      // la cible reste atteignable d'un glissement. On ne regarde que le parent
+      // direct, à dessein : une modale scrollable plus haut ne rend pas
+      // découvrable un bouton sorti d'une rangée qui, elle, ne défile pas —
+      // c'était le cas d'U-1 (`.segmented` en `overflow: visible`).
+      const row = el.parentElement;
+      const rowOx = row ? getComputedStyle(row).overflowX : 'visible';
+      const rowScrolls =
+        !!row && (rowOx === 'auto' || rowOx === 'scroll') && row.scrollWidth > row.clientWidth + 1;
+      const clipped =
+        !rowScrolls && ((r.left < vw - 1 && r.right > vw + 1) || (r.left < -1 && r.right > 1));
+      if (r.width < min || r.height < min || clipped) {
         under.push({
           tag: el.tagName.toLowerCase(),
           testid: el.getAttribute('data-testid') ?? '',
           w: Math.round(r.width),
           h: Math.round(r.height),
+          clipped,
         });
       }
     }
@@ -375,8 +396,9 @@ async function run() {
             const under = await measureTargets(page);
             if (under.length > 0) {
               warnings.push({ tag, under });
-              console.log(`WARN ${tag} — ${under.length} cible(s) DOM < ${MIN_TARGET}px :`);
-              for (const u of under) console.log(`     ${u.tag}[${u.testid}] ${u.w}×${u.h}`);
+              console.log(`WARN ${tag} — ${under.length} cible(s) DOM < ${MIN_TARGET}px ou hors écran :`);
+              for (const u of under)
+                console.log(`     ${u.tag}[${u.testid}] ${u.w}×${u.h}${u.clipped ? ' HORS ÉCRAN' : ''}`);
             } else {
               console.log(`ok   ${tag}`);
             }

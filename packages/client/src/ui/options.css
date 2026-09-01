@@ -59,14 +59,20 @@
   opacity: 0.75;
 }
 
+/* Rangée de crans (réglages, difficulté, quantités de carte…).
+   `wrap` + une base explicite : à 360 px au 3ᵉ cran de police, une rangée de
+   5 crans débordait HORS du viewport avec `overflow-x: visible` — « Abondant »
+   et « Aléatoire » devenaient purement inatteignables (audit A6/A1). Les crans
+   passent maintenant à la ligne ; sur desktop, ils restent d'égale largeur. */
 .segmented {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
 }
 
 .segmented button {
   min-height: 44px;
-  flex: 1;
+  flex: 1 1 4.5rem;
   padding: 6px 10px;
   border: 1px solid var(--ink-600);
   border-radius: var(--radius-m);

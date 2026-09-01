@@ -922,6 +922,12 @@ threadé en `heroId` dans `CastSpell`/`HeroAttack` — sinon le lead par défaut
 > **une carte à souterrain sans escalier est rejetée** (un héros descendu y
 > resterait piégé).
 >
+> **Terrains de couche 1** : la caverne a ses propres terrains data-driven —
+> `cave` (sol, `moveCost` 100) et `cave-wall` (paroi, infranchissable) — avec
+> leurs tuiles PNG et un prop de relief pour la paroi (doc 12). Aucune règle
+> moteur : `isPassable` lit la config comme pour n'importe quel terrain. Le bord
+> de monde suit la couche affichée (roche mère au lieu de l'océan).
+>
 > **Jouable (L10.3)** : le client rend **une couche à la fois** — celle du héros
 > sélectionné. Descendre ou remonter un escalier reconstruit les calques de
 > terrain sur la **vue plate** de la nouvelle couche (`mapAtLevel` — le rendu

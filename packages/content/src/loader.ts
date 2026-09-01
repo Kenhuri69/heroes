@@ -961,18 +961,25 @@ export function resolveStartingTowns(config: GameConfig, report: LoadReport): Re
 }
 
 /** Carte résolue, prête pour `StartGame` — même forme que l'`AdventureMapDef` du moteur. */
+/** Position résolue d'un objet de carte — `level` absent = surface (L10.2). */
+export interface ResolvedMapPos {
+  x: number;
+  y: number;
+  level?: number;
+}
+
 export type ResolvedMapObject =
   | {
       id: string;
       type: 'resource';
-      pos: { x: number; y: number };
+      pos: ResolvedMapPos;
       resource: string;
       amount: number;
     }
   | {
       id: string;
       type: 'guardian';
-      pos: { x: number; y: number };
+      pos: ResolvedMapPos;
       unitId: string;
       count: number;
       /** Gardien errant (doc 02 §2.2) — absent = statique. */
@@ -983,7 +990,7 @@ export type ResolvedMapObject =
   | {
       id: string;
       type: 'visitable';
-      pos: { x: number; y: number };
+      pos: ResolvedMapPos;
       effect:
         | { kind: 'luck'; amount: number }
         | { kind: 'morale'; amount: number }
@@ -1005,7 +1012,7 @@ export type ResolvedMapObject =
   | {
       id: string;
       type: 'dwelling';
-      pos: { x: number; y: number };
+      pos: ResolvedMapPos;
       unitId: string;
       stock: number;
       /** Toujours neutre en sortie de données — capturée en jeu (M-DWELLOWN). */
@@ -1014,7 +1021,7 @@ export type ResolvedMapObject =
   | {
       id: string;
       type: 'mine';
-      pos: { x: number; y: number };
+      pos: ResolvedMapPos;
       resource: string;
       /** Revenu par jour (doc 02 §2.2). */
       amount: number;
@@ -1024,36 +1031,36 @@ export type ResolvedMapObject =
   | {
       id: string;
       type: 'treasure';
-      pos: { x: number; y: number };
+      pos: ResolvedMapPos;
       gold: number;
       xp: number;
     }
   | {
       id: string;
       type: 'artifact';
-      pos: { x: number; y: number };
+      pos: ResolvedMapPos;
       artifactId: string;
     }
   | {
       id: string;
       type: 'monolith';
-      pos: { x: number; y: number };
+      pos: ResolvedMapPos;
       pairId: string;
     }
   | {
       id: string;
       type: 'obelisk';
-      pos: { x: number; y: number };
+      pos: ResolvedMapPos;
     }
   | {
       id: string;
       type: 'boat';
-      pos: { x: number; y: number };
+      pos: ResolvedMapPos;
     }
   | {
       id: string;
       type: 'town';
-      pos: { x: number; y: number };
+      pos: ResolvedMapPos;
       /** Ville neutre (Alpha 4.13) : faction + garnison assiégeable. Absents = ville de départ. */
       factionId?: string;
       garrison?: { unitId: string; count: number }[];
@@ -1099,10 +1106,14 @@ export interface ResolvedMap {
   id: string;
   width: number;
   height: number;
+  /** Nombre de couches (L10.2) — absent/1 = carte plate, 2 = surface + souterrain. */
+  levels?: number;
+  /** Terrain par tuile, couches EMPILÉES (`width × height × levels`). */
   terrain: string[];
   road: boolean[];
   objects: ResolvedMapObject[];
   triggers: ResolvedMapTrigger[];
+  /** Départs — toujours en surface (couche 0) : on ne commence pas sous terre. */
   startPositions: { x: number; y: number }[];
   /** Tuile du Graal (T-GRAIL, doc 02 §2.2) — `null` si la carte n'a pas de puzzle. */
   grailPos: { x: number; y: number } | null;
@@ -1135,6 +1146,22 @@ export async function loadMap(
 
   checkRows(errors, path, 'tiles', file.tiles, file);
   checkRows(errors, path, 'roads', file.roads, file);
+  if (file.underground) {
+    checkRows(errors, path, 'underground.tiles', file.underground.tiles, file);
+    checkRows(errors, path, 'underground.roads', file.underground.roads, file);
+    for (const [y, row] of file.underground.tiles.entries()) {
+      for (const [x, char] of [...row].entries()) {
+        if (!(char in file.legend))
+          errors.push(`${path}: underground.tiles[${y}][${x}] — char inconnu '${char}'`);
+      }
+    }
+    for (const [y, row] of file.underground.roads.entries()) {
+      for (const [x, char] of [...row].entries()) {
+        if (char !== '0' && char !== '1')
+          errors.push(`${path}: underground.roads[${y}][${x}] — attendu '0' ou '1', reçu '${char}'`);
+      }
+    }
+  }
   for (const [y, row] of file.tiles.entries()) {
     for (const [x, char] of [...row].entries()) {
       if (!(char in file.legend)) errors.push(`${path}: tiles[${y}][${x}] — char inconnu '${char}'`);
@@ -1151,8 +1178,9 @@ export async function loadMap(
       errors.push(`${path}: legend — terrain inconnu de la config '${terrain}'`);
   }
 
-  const passable = (x: number, y: number): boolean => {
-    const char = file.tiles[y]?.[x];
+  const passable = (x: number, y: number, level = 0): boolean => {
+    const rows = level === 1 ? file.underground?.tiles : file.tiles;
+    const char = rows?.[y]?.[x];
     const terrain = char !== undefined ? file.legend[char] : undefined;
     const rule = terrain !== undefined ? config.adventure.terrains[terrain] : undefined;
     return rule !== undefined && rule.moveCost !== null;
@@ -1163,10 +1191,13 @@ export async function loadMap(
   for (const obj of file.objects) {
     if (seen.has(obj.id)) errors.push(`${path}: objects — id en double '${obj.id}'`);
     seen.add(obj.id);
-    if (!inBounds(obj.x, obj.y)) errors.push(`${path}: objet '${obj.id}' hors carte`);
+    // L10.2 : un objet du souterrain exige que la carte en ait un.
+    if (obj.level === 1 && !file.underground)
+      errors.push(`${path}: objet '${obj.id}' — couche 1 mais la carte n'a pas de souterrain`);
+    else if (!inBounds(obj.x, obj.y)) errors.push(`${path}: objet '${obj.id}' hors carte`);
     // Un bateau (A3.4) vit sur l'EAU (infranchissable à pied) par conception — on
     // l'embarque depuis le rivage ; exempté de la garde « tuile franchissable ».
-    else if (obj.type !== 'boat' && !passable(obj.x, obj.y))
+    else if (obj.type !== 'boat' && !passable(obj.x, obj.y, obj.level ?? 0))
       errors.push(`${path}: objet '${obj.id}' sur tuile infranchissable (${obj.x},${obj.y})`);
     if (obj.type === 'guardian' && knownUnitIds && !knownUnitIds.has(obj.unitId))
       errors.push(`${path}: gardien '${obj.id}' — unité inconnue des paquets '${obj.unitId}'`);
@@ -1211,6 +1242,18 @@ export async function loadMap(
   for (const [pairId, count] of monolithPairs)
     if (count !== 2)
       errors.push(`${path}: paire de monolithes '${pairId}' — ${count} monolithe(s), exactement 2 attendus`);
+  // L10.2 — ESCALIERS : une carte à souterrain doit être parcourable dans les
+  // deux sens, sinon un héros descendu y reste piégé. Un escalier est une paire
+  // de monolithes dont les extrémités sont sur des couches différentes (le
+  // téléport apparié, déjà livré, s'en charge — zéro règle nouvelle).
+  if (file.underground) {
+    const stairs = [...monolithPairs.keys()].filter((pairId) => {
+      const ends = file.objects.filter((o) => o.type === 'monolith' && o.pairId === pairId);
+      return ends.length === 2 && (ends[0]?.level ?? 0) !== (ends[1]?.level ?? 0);
+    });
+    if (stairs.length === 0)
+      errors.push(`${path}: carte à souterrain sans escalier — aucune paire de monolithes ne relie les deux couches`);
+  }
   for (const [i, pos] of file.startPositions.entries()) {
     if (!inBounds(pos.x, pos.y)) errors.push(`${path}: startPositions[${i}] hors carte`);
     else if (!passable(pos.x, pos.y))
@@ -1464,10 +1507,19 @@ function resolveMap(file: MapFile): ResolvedMap {
     id: file.id,
     width: file.width,
     height: file.height,
-    terrain: file.tiles.flatMap((row) => [...row].map((c) => file.legend[c] as string)),
-    road: file.roads.flatMap((row) => [...row].map((c) => c === '1')),
+    // L10.2 : couches EMPILÉES (surface puis souterrain) — l'indexation du
+    // moteur (`tileIndex`) attend exactement cette forme.
+    ...(file.underground ? { levels: 2 } : {}),
+    terrain: [
+      ...file.tiles.flatMap((row) => [...row].map((c) => file.legend[c] as string)),
+      ...(file.underground?.tiles ?? []).flatMap((row) => [...row].map((c) => file.legend[c] as string)),
+    ],
+    road: [
+      ...file.roads.flatMap((row) => [...row].map((c) => c === '1')),
+      ...(file.underground?.roads ?? []).flatMap((row) => [...row].map((c) => c === '1')),
+    ],
     objects: file.objects.map((obj): ResolvedMapObject => {
-      const pos = { x: obj.x, y: obj.y };
+      const pos = obj.level ? { x: obj.x, y: obj.y, level: obj.level } : { x: obj.x, y: obj.y };
       if (obj.type === 'resource')
         return {
           id: obj.id,

@@ -5,7 +5,7 @@ import { Camera } from './render/camera';
 import { combatFxStats, combatIdleStats, combatShakeStats } from './render/combatFx';
 import { waterSheenStats } from './render/waterSheen';
 import { isoTileCenter } from './render/projection';
-import { WORLD_OCEAN_CSS } from './render/worldBorder';
+import { applyWorldBackdrop } from './render/worldBorder';
 import { loadGameContent, loadDefaultMap, loadScenarioMap, resolveGeneratedMap } from './app/content';
 import {
   PLAYER_ID,
@@ -236,9 +236,10 @@ async function bootstrap(): Promise<void> {
       scene = new AdventureScene(app, camera);
       camera.world.addChild(scene.container);
       app.stage.addChild(camera.world);
-      // Mer profonde en fond DOM (UXD-3A) : couvre tout le vide au-delà de la
-      // carte sans coût de remplissage par-frame (le rivage est rendu en Pixi).
-      root.style.backgroundColor = WORLD_OCEAN_CSS;
+      // Fond de vide en DOM (UXD-3A) : couvre tout au-delà de la carte sans coût
+      // de remplissage par-frame (le rivage est rendu en Pixi). Océan en surface,
+      // roche mère au souterrain — la scène le remet à jour à chaque bascule.
+      applyWorldBackdrop(root, scene.activeMapLevel());
       scene.centerOnHero(app);
       registerCamera(camera, app); // cinématiques caméra (N3c.1)
     }

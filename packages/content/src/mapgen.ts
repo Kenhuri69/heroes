@@ -163,6 +163,8 @@ const TERRAIN_CHARS: Record<string, string> = {
   water: 'w',
   mountain: 'm',
   rocks: 'k',
+  cave: 'c',
+  'cave-wall': 'x',
 };
 
 const RESOURCE_IDS = ['gold', 'wood', 'ore', 'crystal', 'gems'] as const;
@@ -802,8 +804,10 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
   // à graine égale, une carte SANS souterrain est identique à l'octet près. ──
   let caveRows: string[] | null = null;
   if (underground) {
-    const floorChar = TERRAIN_CHARS.dirt!;
-    const rockChar = TERRAIN_CHARS.rocks!;
+    // Terrains PROPRES à la couche 1 (doc 12) : la caverne n'emprunte plus la
+    // terre labourée et l'éboulis de la surface — elle a ses tuiles.
+    const floorChar = TERRAIN_CHARS.cave!;
+    const rockChar = TERRAIN_CHARS['cave-wall']!;
     const caveNoise = makeValueNoise(seed ^ 0x5bf03635);
     // Fréquence plus élevée qu'en surface (galeries plus fines) et seuil calé sur
     // ~⅓ de sol : à 0,5 le « souterrain » n'était qu'une plaine tachetée de

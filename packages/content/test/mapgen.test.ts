@@ -21,6 +21,8 @@ function config(): GameConfig {
         water: { moveCost: null },
         mountain: { moveCost: null },
         rocks: { moveCost: null },
+        cave: { moveCost: 100 },
+        'cave-wall': { moveCost: null },
       },
       market: { sellRate: 25, buyRate: 50 },
       hero: {
@@ -143,6 +145,17 @@ describe('generateMap', () => {
       // La caverne est peuplée : le voyage doit valoir le détour.
       expect(resolved.objects.some((o) => (o.pos.level ?? 0) === 1 && o.type !== 'monolith')).toBe(true);
     }
+  });
+
+  it('la caverne est peinte avec les terrains de COUCHE 1, jamais ceux de surface', () => {
+    const map = generateMap('random', 12, { guardianUnits: ['t1-guard'], underground: true });
+    const used = new Set(map.underground!.tiles.join('').split(''));
+    const terrains = new Set([...used].map((ch) => map.legend[ch]));
+    expect(terrains).toEqual(new Set(['cave', 'cave-wall']));
+    // …et la surface ne les emprunte pas en retour.
+    const surface = new Set(map.tiles.join('').split('').map((ch) => map.legend[ch]));
+    expect(surface.has('cave')).toBe(false);
+    expect(surface.has('cave-wall')).toBe(false);
   });
 
   it('sans l’option, la surface est identique à l’octet près', () => {

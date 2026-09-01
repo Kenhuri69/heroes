@@ -1,5 +1,5 @@
 import { useEffect } from 'preact/hooks';
-import type { MapObjectDef, VisitableEffect } from '@heroes/engine';
+import { levelOf, type MapObjectDef, type VisitableEffect } from '@heroes/engine';
 import { useApp, appStore } from '../app/store';
 import { humanId } from '../app/game';
 import { t, resolveArtifactName, resolveUnitName, resolveSpellName, resolveSkillName } from '../app/i18n';
@@ -15,6 +15,11 @@ export function MapObjectCard() {
   const object = useApp((s) => s.mapCard);
   const bands = useApp((s) => s.strengthBands);
   const human = useApp((s) => humanId(s.game));
+  // Escalier (L10) : un monolithe dont le jumeau est sur une AUTRE couche. Sans
+  // ça, la fiche disait « Téléporte vers son jumeau » — impossible de distinguer
+  // un téléport local d'une descente au souterrain (audit ergonomie U-3).
+  const objects = useApp((s) => s.game.map?.objects);
+  const stair = object ? stairDirection(object, objects) : null;
   const close = (): void => appStore.setState({ mapCard: null });
   useEffect(() => {
     if (!object) return;
@@ -32,11 +37,11 @@ export function MapObjectCard() {
         class="map-card"
         data-testid="map-card"
         role="dialog"
-        aria-label={cardTitle(object)}
+        aria-label={cardTitle(object, stair)}
         onClick={(e) => e.stopPropagation()}
       >
         <header class="map-card-header">
-          <h3>{cardTitle(object)}</h3>
+          <h3>{cardTitle(object, stair)}</h3>
           <button
             type="button"
             class="map-card-close"
@@ -47,7 +52,7 @@ export function MapObjectCard() {
             ×
           </button>
         </header>
-        {cardLines(object, bands, human).map((line, i) => (
+        {cardLines(object, bands, human, stair).map((line, i) => (
           <p key={i} class="map-card-line">
             {line}
           </p>
@@ -57,7 +62,25 @@ export function MapObjectCard() {
   );
 }
 
-function cardTitle(object: MapObjectDef): string {
+/** Sens d'un escalier vu depuis `object` : `null` si ce n'en est pas un. Exporté
+ *  pour le test unitaire (logique pure, aucun DOM). */
+export function stairDirection(
+  object: MapObjectDef,
+  objects: readonly MapObjectDef[] | undefined,
+): 'down' | 'up' | null {
+  if (object.type !== 'monolith' || !objects) return null;
+  const twin = objects.find(
+    (o) => o.type === 'monolith' && o.pairId === object.pairId && o.id !== object.id,
+  );
+  if (!twin) return null;
+  const from = levelOf(object.pos);
+  const to = levelOf(twin.pos);
+  if (from === to) return null;
+  return to > from ? 'down' : 'up';
+}
+
+function cardTitle(object: MapObjectDef, stair: 'down' | 'up' | null = null): string {
+  if (stair) return t('mapCard.stairTitle');
   switch (object.type) {
     case 'resource':
       return t(`resource.${object.resource}`);
@@ -86,7 +109,9 @@ function cardLines(
   object: MapObjectDef,
   bands: { max: number | null; key: string }[],
   human: string,
+  stair: 'down' | 'up' | null = null,
 ): string[] {
+  if (stair) return [t(stair === 'down' ? 'mapCard.stairDown' : 'mapCard.stairUp')];
   switch (object.type) {
     case 'resource':
       return [t('mapCard.resourceLine', { amount: object.amount, name: t(`resource.${object.resource}`) })];

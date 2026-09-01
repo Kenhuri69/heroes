@@ -1,6 +1,6 @@
 import type { GameEvent } from '../core/events';
 import type { GameState } from '../core/state';
-import { DIRECTIONS, type GridPos } from './map';
+import { DIRECTIONS, atLevel, levelOf, tileIndex, type GridPos } from './map';
 import { isPassable } from './path';
 
 /** Distance Chebyshev — cohérente avec la grille 8 directions (doc 02 §2.1). */
@@ -26,7 +26,7 @@ export function roamGuardians(draft: GameState, events: GameEvent[]): void {
   // chaque bascule de jour). Compteur (pas Set) : deux objets peuvent partager
   // une tuile — le départ d'un gardien ne doit pas « libérer » la tuile d'un
   // objet qui y reste. Mis à jour au fil des déplacements (mêmes décisions).
-  const key = (p: GridPos): number => p.y * map.width + p.x;
+  const key = (p: GridPos): number => tileIndex(map, p);
   const occupied = new Map<number, number>();
   const occupy = (k: number): void => void occupied.set(k, (occupied.get(k) ?? 0) + 1);
   const vacate = (k: number): void => {
@@ -43,6 +43,8 @@ export function roamGuardians(draft: GameState, events: GameEvent[]): void {
     let target: GridPos | null = null;
     let best = Infinity;
     for (const hero of draft.heroes) {
+      // L10.1 : on ne traque pas un héros d'une autre couche (aucun chemin).
+      if (levelOf(hero.pos) !== levelOf(obj.pos)) continue;
       const d = chebyshev(hero.pos, obj.pos);
       if (d < best) {
         best = d;
@@ -54,7 +56,7 @@ export function roamGuardians(draft: GameState, events: GameEvent[]): void {
     let bestStep: GridPos | null = null;
     let bestDist = best;
     for (const dir of DIRECTIONS) {
-      const next = { x: obj.pos.x + dir.x, y: obj.pos.y + dir.y };
+      const next = atLevel({ x: obj.pos.x + dir.x, y: obj.pos.y + dir.y }, levelOf(obj.pos));
       if (!isPassable(config, map, next)) continue;
       // `next` ≠ obj.pos (dir non nul) ⇒ le compteur équivaut aux trois
       // balayages historiques (dont l'exemption `o !== obj`).

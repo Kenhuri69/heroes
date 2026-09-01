@@ -892,8 +892,23 @@ threadé en `heroId` dans `CastSpell`/`HeroAttack` — sinon le lead par défaut
 > **interrompt** le déplacement (le reste du chemin part de l'entrée). Le héros
 > arrive sur la sortie sans re-téléporter (pas de boucle) ; le brouillard est
 > révélé à l'arrivée ; événement `HeroTeleported`. **Zéro sens imposé** (deux
-> sens), zéro faction. Bateaux/chantier naval (b) et souterrain (c) restent
-> différés (cf. backlog M-NAV).
+> sens), zéro faction. Bateaux/chantier naval (b) **livrés** depuis (A3).
+>
+> ⛏️ **État (M-NAV c — souterrain, lot L10.1)** : la position gagne une
+> **couche** (`GridPos.level` — `0`/absent = surface, `1` = souterrain) et la
+> carte un nombre de couches (`AdventureMapDef.levels`, `1` par défaut) ; les
+> tableaux `terrain`/`road` sont **empilés** (`width × height × levels`) et
+> `tileIndex` — point de passage unique de tout ce qui indexe terrain, route et
+> brouillard — en découle. Conséquences de règle, toutes vérifiées en unitaire :
+> deux cases superposées ne sont **ni la même case** (`samePos`) **ni
+> adjacentes** (`isAdjacent`) ; le **brouillard** couvre chaque couche
+> séparément (voir le sol ne révèle pas la grotte) ; un **chemin vit sur une
+> seule couche** (l'A\* refuse une cible d'une autre couche, et sa borne
+> inférieure vaut alors l'infini) — les couches sont donc indépendantes, un mur
+> de surface n'existe pas dessous. On ne change de couche **que** par un
+> escalier (téléportation appariée, lot L10.2). Champs **optionnels** ⇒ une
+> carte plate se comporte exactement comme avant : **pas de bump
+> `CURRENT_SAVE_VERSION`**, golden inchangé.
 >
 > 🤝 **Alliances / équipes** (save v13) : `PlayerState.team` (entier opaque —
 > `0` = **sans alliance**, comportement chacun-pour-soi historique ; même n°

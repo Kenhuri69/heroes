@@ -1,7 +1,7 @@
 import type { Command, CommandError } from '../core/commands';
 import type { GameEvent } from '../core/events';
 import type { GameState, Resources } from '../core/state';
-import { DIRECTIONS, inBounds, samePos, terrainAt, type GridPos } from '../adventure/map';
+import { DIRECTIONS, atLevel, inBounds, levelOf, samePos, terrainAt, type GridPos } from '../adventure/map';
 import { builtLevelOf } from './helpers';
 import { canAfford, payCost } from './resources';
 import type { BuildingDef, TownState } from './types';
@@ -42,7 +42,7 @@ function tileTaken(state: GameState, pos: GridPos): boolean {
 /** Première tuile d'eau navigable libre adjacente à la ville (ordre `DIRECTIONS`), ou `undefined`. */
 function freeAdjacentWater(state: GameState, town: TownState): GridPos | undefined {
   for (const dir of DIRECTIONS) {
-    const pos = { x: town.pos.x + dir.x, y: town.pos.y + dir.y };
+    const pos = atLevel({ x: town.pos.x + dir.x, y: town.pos.y + dir.y }, levelOf(town.pos));
     if (isNavigableWater(state, pos) && !tileTaken(state, pos)) return pos;
   }
   return undefined;

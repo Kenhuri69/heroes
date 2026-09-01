@@ -1,8 +1,10 @@
 import type { AdventureConfig, TerrainRule } from './config';
 import {
   DIRECTIONS,
+  atLevel,
   inBounds,
   isDiagonal,
+  levelOf,
   samePos,
   terrainAt,
   tileIndex,
@@ -71,7 +73,14 @@ export function findPath(
   naval = false,
 ): GridPos[] | null {
   if (!inBounds(map, from) || !isPassable(config, map, to, naval) || samePos(from, to)) return null;
-  const blockedSet = new Set(blocked.map((p) => p.y * map.width + p.x));
+  // L10.1 : un chemin vit sur UNE couche — aucun pas ne relie la surface au
+  // souterrain (seuls les escaliers le font, et par téléportation). L'A* reste
+  // donc 2D : on indexe dans la couche de départ.
+  const level = levelOf(from);
+  if (levelOf(to) !== level) return null;
+  const blockedSet = new Set(
+    blocked.filter((p) => levelOf(p) === level).map((p) => p.y * map.width + p.x),
+  );
   if (!allowBlockedGoal && blockedSet.has(to.y * map.width + to.x)) return null;
 
   // Heuristique octile admissible : distance × coût de pas minimal possible
@@ -100,9 +109,9 @@ export function findPath(
   while (heap.size > 0) {
     const current = heap.pop();
     if (current === goal) break;
-    const cur: GridPos = { x: current % map.width, y: Math.floor(current / map.width) };
+    const cur: GridPos = atLevel({ x: current % map.width, y: Math.floor(current / map.width) }, level);
     for (const dir of DIRECTIONS) {
-      const next: GridPos = { x: cur.x + dir.x, y: cur.y + dir.y };
+      const next: GridPos = atLevel({ x: cur.x + dir.x, y: cur.y + dir.y }, level);
       if (!isPassable(config, map, next, naval)) continue;
       const nextIdx = next.y * map.width + next.x;
       if (nextIdx !== goal && blockedSet.has(nextIdx)) continue;
@@ -119,7 +128,7 @@ export function findPath(
   if (cameFrom[goal] === -1) return null;
   const path: GridPos[] = [];
   for (let idx = goal; idx !== start; idx = cameFrom[idx] ?? -1) {
-    path.push({ x: idx % map.width, y: Math.floor(idx / map.width) });
+    path.push(atLevel({ x: idx % map.width, y: Math.floor(idx / map.width) }, level));
   }
   return path.reverse();
 }
@@ -148,6 +157,9 @@ export function minStepCost(config: AdventureConfig, naval = false): number {
  * équivalent à obtenir `cost > budget` de l'A\* : zéro changement de décision.
  */
 export function octileLowerBound(minStep: number, from: GridPos, to: GridPos): number {
+  // Couches distinctes ⇒ aucun chemin (L10.1) : la borne est infinie, ce qui
+  // écarte la cible des pré-filtres des pickers sans lancer d'A*.
+  if (levelOf(from) !== levelOf(to)) return Infinity;
   return minStep * Math.max(Math.abs(from.x - to.x), Math.abs(from.y - to.y));
 }
 

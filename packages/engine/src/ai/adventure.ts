@@ -5,7 +5,7 @@ import { areAllies, type GameState, type HeroState, type PlayerState } from '../
 import { advanceHeroAlongPath } from '../adventure/movement';
 import { resolveTreasure } from '../adventure/treasure';
 import { resolveTriggerChoice } from '../adventure/trigger-choice';
-import { DIRECTIONS, isAdjacent, samePos, tileIndex, type GridPos } from '../adventure/map';
+import { DIRECTIONS, atLevel, isAdjacent, levelOf, samePos, tileIndex, type GridPos } from '../adventure/map';
 import { findPath, isPassable, minStepCost, octileLowerBound, stepCost } from '../adventure/path';
 import { heroArmyCap } from '../hero/skills';
 import { validateEquipArtifact, handleEquipArtifact } from '../hero/equip';
@@ -462,7 +462,7 @@ function nearestUnexploredTile(
   while (head < queue.length) {
     const cur = queue[head++] as GridPos;
     for (const dir of DIRECTIONS) {
-      const next = { x: cur.x + dir.x, y: cur.y + dir.y };
+      const next = atLevel({ x: cur.x + dir.x, y: cur.y + dir.y }, levelOf(from));
       if (!isPassable(config, map, next)) continue;
       const idx = tileIndex(map, next);
       if (visited.has(idx)) continue;

@@ -1,3 +1,4 @@
+import { tileIndex } from '../adventure/map';
 import type { GameEvent } from '../core/events';
 import { humanPlayerId, type GameState, type ResourceId } from '../core/state';
 import { heroArmyCap } from '../hero/skills';
@@ -42,7 +43,8 @@ export function questConditionMet(
     case 'visitTile': {
       const player = draft.players.find((p) => p.id === playerId);
       if (!player || !draft.map) return false;
-      return player.explored[cond.y * draft.map.width + cond.x] === 1;
+      // `visitTile` ne porte pas de couche (schéma de quête) : c'est la SURFACE.
+      return player.explored[tileIndex(draft.map, { x: cond.x, y: cond.y })] === 1;
     }
     default:
       // captureTown / defeatHero / surviveDays / eliminateAllEnemies.

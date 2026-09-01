@@ -8,6 +8,19 @@
 export interface GridPos {
   x: number;
   y: number;
+  /**
+   * Couche de la carte (L10.1, doc 02 §2.1) : `0`/absent = **surface**,
+   * `1` = **souterrain**. Deux couches ne se touchent jamais — on n'en change
+   * que par un escalier (objet de téléportation apparié, L10.2), jamais par un
+   * pas. Champ **optionnel** : toute position d'avant le lot vaut surface, et
+   * une carte à une seule couche se comporte exactement comme avant.
+   */
+  level?: number;
+}
+
+/** Couche d'une position (`0` par défaut) — jamais lire `pos.level` en direct. */
+export function levelOf(pos: GridPos): number {
+  return pos.level ?? 0;
 }
 
 /** Objets interactifs posés sur la carte (doc 02 §2.2) : ressources, gardiens, mines, trésors, artefacts. */
@@ -308,9 +321,15 @@ export interface AdventureMapDef {
   id: string;
   width: number;
   height: number;
-  /** ID de terrain par tuile, row-major (longueur width×height). */
+  /**
+   * Nombre de couches (L10.1, doc 02 §2.1) : `1`/absent = carte plate,
+   * `2` = surface + souterrain. Les tableaux `terrain`/`road` sont empilés
+   * couche par couche (longueur `width × height × levels`).
+   */
+  levels?: number;
+  /** ID de terrain par tuile, row-major, couches empilées (longueur width×height×levels). */
   terrain: string[];
-  /** Route par tuile (coût ×roadMultiplier — doc 02 §1.5). */
+  /** Route par tuile (coût ×roadMultiplier — doc 02 §1.5), même indexation. */
   road: boolean[];
   objects: MapObjectDef[];
   /** Triggers déclaratifs (doc 02 §2.1) — `[]` si la carte n'en définit aucun. */
@@ -351,12 +370,35 @@ export function grailRevealedTo(
   return total > 0 && map.grailPos != null && (obelisksVisited?.length ?? 0) >= total;
 }
 
-export function inBounds(map: AdventureMapDef, pos: GridPos): boolean {
-  return pos.x >= 0 && pos.y >= 0 && pos.x < map.width && pos.y < map.height;
+/** Nombre de couches de la carte (`1` par défaut : carte plate). */
+export function mapLevels(map: AdventureMapDef): number {
+  return map.levels ?? 1;
 }
 
+export function inBounds(map: AdventureMapDef, pos: GridPos): boolean {
+  const level = levelOf(pos);
+  return (
+    pos.x >= 0 &&
+    pos.y >= 0 &&
+    pos.x < map.width &&
+    pos.y < map.height &&
+    level >= 0 &&
+    level < mapLevels(map)
+  );
+}
+
+/**
+ * Index plat d'une tuile — **point de passage unique** de tout ce qui indexe le
+ * terrain, la route et le brouillard. Les couches sont empilées : la couche `n`
+ * occupe `[n × width × height, (n+1) × width × height[`.
+ */
 export function tileIndex(map: AdventureMapDef, pos: GridPos): number {
-  return pos.y * map.width + pos.x;
+  return (levelOf(pos) * map.height + pos.y) * map.width + pos.x;
+}
+
+/** Position à la couche `level` (utilitaire des parcours de voisinage). */
+export function atLevel(pos: GridPos, level: number): GridPos {
+  return level === 0 ? { x: pos.x, y: pos.y } : { x: pos.x, y: pos.y, level };
 }
 
 export function terrainAt(map: AdventureMapDef, pos: GridPos): string {
@@ -378,6 +420,9 @@ export const DIRECTIONS: readonly GridPos[] = [
 ];
 
 export function isAdjacent(a: GridPos, b: GridPos): boolean {
+  // Deux couches ne se touchent jamais (L10.1) : la verticale n'est pas une
+  // direction, seuls les escaliers relient la surface au souterrain.
+  if (levelOf(a) !== levelOf(b)) return false;
   const dx = Math.abs(a.x - b.x);
   const dy = Math.abs(a.y - b.y);
   return dx <= 1 && dy <= 1 && dx + dy > 0;
@@ -388,5 +433,7 @@ export function isDiagonal(a: GridPos, b: GridPos): boolean {
 }
 
 export function samePos(a: GridPos, b: GridPos): boolean {
-  return a.x === b.x && a.y === b.y;
+  // La couche fait partie de l'identité d'une tuile : deux cases superposées
+  // (même x, même y, couches différentes) ne sont PAS la même case.
+  return a.x === b.x && a.y === b.y && levelOf(a) === levelOf(b);
 }

@@ -4397,6 +4397,14 @@ test('souterrain : descendre l’escalier, remonter (L10.3)', { tag: '@core' }, 
       path: [{ x: 8, y: 2, level: 1 }],
     }),
   );
+  // U-5 : un prop de relief DÉPASSE sa tuile alors que le voile est plat — ceux
+  // des cases inexplorées doivent être masqués, sinon ils dessinent une frange de
+  // terrain juste au-delà de la limite du brouillard. La caverne en pose un par
+  // paroi : c'est le cas le plus dense du jeu.
+  const props = await page.evaluate(() => window.__HEROES_TEST__!.propStats());
+  expect(props.live).toBeGreaterThan(0);
+  expect(props.hiddenByFog).toBeGreaterThan(0);
+
   const up = await page.evaluate(() => window.__HEROES_TEST__!.getState().heroes[0]!.pos);
   expect(up.level ?? 0).toBe(0);
   await expect(page.getByTestId('map-level')).toHaveText('Surface');

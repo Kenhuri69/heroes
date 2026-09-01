@@ -83,18 +83,23 @@ function measureTargets(page) {
       // bord — un élément entièrement hors champ est un panneau volontairement
       // escamoté (tiroir héros fermé, hors-canvas), pas un défaut.
       const vw = window.innerWidth;
-      // …et pas si la RANGÉE qui le porte défile horizontalement : une barre
-      // d'actions en `overflow-x: auto` (`.actions-nav`) annonce son défilement,
-      // la cible reste atteignable d'un glissement. On ne regarde que le parent
-      // direct, à dessein : une modale scrollable plus haut ne rend pas
-      // découvrable un bouton sorti d'une rangée qui, elle, ne défile pas —
-      // c'était le cas d'U-1 (`.segmented` en `overflow: visible`).
-      const row = el.parentElement;
-      const rowOx = row ? getComputedStyle(row).overflowX : 'visible';
-      const rowScrolls =
-        !!row && (rowOx === 'auto' || rowOx === 'scroll') && row.scrollWidth > row.clientWidth + 1;
+      // …et pas si un ancêtre est un DÉFILEMENT HORIZONTAL DÉLIBÉRÉ : une rangée
+      // en `overflow-x: auto` qui déborde en largeur SANS déborder en hauteur
+      // (barre d'actions, file d'ordre de combat) annonce son défilement — la
+      // cible s'atteint d'un glissement. Le test sur la hauteur est ce qui la
+      // sépare du cas U-1 : là, le scroller était une modale VERTICALE
+      // (`scrollHeight` ≫ `clientHeight`) dont le débordement latéral n'était
+      // qu'un accident de mise en page, sans la moindre affordance.
+      let scroller = false;
+      for (let p = el.parentElement; p && !scroller; p = p.parentElement) {
+        const ps = getComputedStyle(p);
+        scroller =
+          (ps.overflowX === 'auto' || ps.overflowX === 'scroll') &&
+          p.scrollWidth > p.clientWidth + 1 &&
+          p.scrollHeight <= p.clientHeight + 2;
+      }
       const clipped =
-        !rowScrolls && ((r.left < vw - 1 && r.right > vw + 1) || (r.left < -1 && r.right > 1));
+        !scroller && ((r.left < vw - 1 && r.right > vw + 1) || (r.left < -1 && r.right > 1));
       if (r.width < min || r.height < min || clipped) {
         under.push({
           tag: el.tagName.toLowerCase(),

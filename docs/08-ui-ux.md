@@ -75,7 +75,10 @@
 > (« Surface » / « Souterrain ») avec son **icône** — le libellé encadré seul se
 > lisait comme un champ de saisie (U-2) — et seulement sur une carte à deux
 > couches. Le brouillard
-> reste opaque : pas de fiche sous une tuile non explorée. Fiche des **villes**
+> reste opaque : pas de fiche sous une tuile non explorée — et, puisque le voile
+> est **plat** alors qu'un relief de terrain **dépasse** sa tuile, un prop posé
+> sur une case inexplorée est **masqué** : sans quoi il dessinait une frange de
+> terrain juste au-delà de la limite du brouillard (revue d'ergonomie U-5). Fiche des **villes**
 > différée au lot M7 (en-tête de ville).
 
 > 🚧 **État X2 (parité tactile — pilier §1.1, plan `ux-enrichissement-2026-07`)** :

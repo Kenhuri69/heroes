@@ -318,6 +318,11 @@ export class AdventureScene {
     return this.tilemap.stats();
   }
 
+  /** Props de relief rendus / masqués par le brouillard (surface de test U-5). */
+  propStats(): { live: number; hiddenByFog: number } {
+    return this.terrainProps.stats();
+  }
+
   /**
    * Bascule de couche (L10.3) : le héros a pris un escalier. On reconstruit les
    * calques de TERRAIN sur la vue plate de la nouvelle couche — tilemap, props,
@@ -449,7 +454,11 @@ export class AdventureScene {
     // Sources de vision vivante (héros + villes/mines possédées) : helper
     // PARTAGÉ avec la mini-carte (B11 — une seule implémentation, leçon CL9).
     const sightings = visionSightings(game).filter((v) => onLevel(v.pos));
-    this.fog.update(this.exploredOnLevel(map, player.explored), sightings);
+    const exploredHere = this.exploredOnLevel(map, player.explored);
+    this.fog.update(exploredHere, sightings);
+    // U-5 : les props de relief dépassent leur tuile ; ceux des cases non
+    // explorées doivent disparaître, sinon ils pointent au-dessus du voile.
+    this.terrainProps.updateFog(exploredHere);
 
     // Héros À DESSINER : ceux du joueur humain (toujours) + les héros adverses
     // actuellement en vision (sinon on ne pourrait jamais voir un ennemi pour

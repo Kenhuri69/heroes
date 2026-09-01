@@ -4330,6 +4330,81 @@ test('scénario : gagner « survie » contre l’IA (surviveDays)', { tag: '@cor
   expect(errors).toEqual([]);
 });
 
+/**
+ * Souterrain (L10.3, doc 02 §2.1) : la carte `proto-03` a deux couches reliées
+ * par UNE paire d'escaliers (monolithes inter-couches). Le test prouve le
+ * voyage complet — descendre, voir le rendu basculer sur la caverne, remonter —
+ * et que l'indicateur de couche suit.
+ */
+test('souterrain : descendre l’escalier, remonter (L10.3)', { tag: '@core' }, async ({ page }) => {
+  const errors = await openMenu(page);
+
+  await page.evaluate(() => window.__HEROES_TEST__!.startScenario('underground'));
+  await expect(page.getByTestId('end-turn')).toBeVisible();
+
+  // Départ en surface : indicateur ET couche rendue.
+  await expect(page.getByTestId('map-level')).toHaveText('Surface');
+  expect(await page.evaluate(() => window.__HEROES_TEST__!.mapLevel())).toBe(0);
+
+  // Marche jusqu'à l'escalier (8,2) : fouler le monolithe téléporte vers son
+  // jumeau, qui est sur la couche 1 — le héros descend.
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({
+      type: 'MoveHero',
+      heroId: 'hero-player-1',
+      path: [
+        { x: 3, y: 2 },
+        { x: 4, y: 2 },
+        { x: 5, y: 2 },
+        { x: 6, y: 2 },
+        { x: 7, y: 2 },
+        { x: 8, y: 2 },
+      ],
+    }),
+  );
+  const down = await page.evaluate(() => window.__HEROES_TEST__!.getState().heroes[0]!.pos);
+  expect(down).toMatchObject({ x: 8, y: 2, level: 1 });
+  await expect(page.getByTestId('map-level')).toHaveText('Souterrain');
+  await expect.poll(() => page.evaluate(() => window.__HEROES_TEST__!.mapLevel())).toBe(1);
+
+  // Le souterrain est une caverne : la galerie est praticable, la roche non —
+  // le moteur refuse un pas dans le mur (couche 1, pas la prairie du dessus).
+  const intoRock = await page
+    .evaluate(() =>
+      window.__HEROES_TEST__!.dispatch({
+        type: 'MoveHero',
+        heroId: 'hero-player-1',
+        path: [{ x: 8, y: 3, level: 1 }],
+      }),
+    )
+    .then(() => 'ok')
+    .catch(() => 'rejected');
+  expect(intoRock).toBe('rejected');
+
+  // Remonter : quitter la tuile d'escalier puis y revenir (on n'y « entre » pas
+  // en y arrivant — sinon la paire bouclerait).
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({
+      type: 'MoveHero',
+      heroId: 'hero-player-1',
+      path: [{ x: 7, y: 2, level: 1 }],
+    }),
+  );
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({
+      type: 'MoveHero',
+      heroId: 'hero-player-1',
+      path: [{ x: 8, y: 2, level: 1 }],
+    }),
+  );
+  const up = await page.evaluate(() => window.__HEROES_TEST__!.getState().heroes[0]!.pos);
+  expect(up.level ?? 0).toBe(0);
+  await expect(page.getByTestId('map-level')).toHaveText('Surface');
+  await expect.poll(() => page.evaluate(() => window.__HEROES_TEST__!.mapLevel())).toBe(0);
+
+  expect(errors).toEqual([]);
+});
+
 test('contrat de chasse : bâtir le Tableau des Contrats → cible assignée au passage de semaine (doc 05 §3.3)', async ({
   page,
 }) => {

@@ -5,6 +5,8 @@ import {
   dailyMovementPoints,
   dailyIncome,
   grailRevealedTo,
+  levelOf,
+  mapLevels,
   xpForLevel,
   weekOf,
   monthOf,
@@ -1304,6 +1306,13 @@ function TurnBar({ onOpenOptions }: { onOpenOptions: () => void }) {
     <div class="turn-row">
       <div class="status-bar">
         <TurnIndicator />
+        {/* Couche courante (L10.3, doc 02 §2.1) : n'apparaît que sur une carte à
+            souterrain — sur une carte plate ce serait du bruit permanent. */}
+        {game.map && mapLevels(game.map) > 1 && (
+          <span class="map-level" data-testid="map-level">
+            {t(levelOf(hero?.pos ?? { x: 0, y: 0 }) === 0 ? 'turnBar.surface' : 'turnBar.underground')}
+          </span>
+        )}
         <span data-testid="calendar">
           {t('turnBar.calendar', { month: monthOf(day), week: weekOf(day), day })}
         </span>

@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
   atLevel,
+  exploredAtLevel,
+  mapAtLevel,
   inBounds,
   isAdjacent,
   levelOf,
@@ -12,6 +14,8 @@ import {
 } from '../src/adventure/map';
 import { createFog, revealAround } from '../src/adventure/fog';
 import { findPath, isPassable, minStepCost, octileLowerBound } from '../src/adventure/path';
+import { validate } from '../src/core/engine';
+import { createEmptyState, emptyResources } from '../src/core/state';
 import { testConfig, testMap } from './fixtures';
 
 /**
@@ -113,5 +117,68 @@ describe('couches de carte — déplacement', () => {
     expect(findPath(config, map, { x: 0, y: 0 }, { x: 3, y: 0 })).toBeNull();
     // Sous terre, le même trajet passe.
     expect(findPath(config, map, { x: 0, y: 0, level: 1 }, { x: 3, y: 0, level: 1 })).not.toBeNull();
+  });
+});
+
+describe('vue par couche (rendu)', () => {
+  it('tranche terrain, route et objets de la couche demandée', () => {
+    const map = twoLevelMap();
+    map.objects = [
+      { id: 'up', type: 'resource', pos: { x: 0, y: 0 }, resource: 'gold', amount: 1 },
+      { id: 'down', type: 'resource', pos: { x: 1, y: 1, level: 1 }, resource: 'gold', amount: 2 },
+    ];
+
+    const surface = mapAtLevel(map, 0);
+    expect(surface.levels).toBe(1);
+    expect(surface.terrain).toHaveLength(map.width * map.height);
+    expect(surface.terrain[0]).toBe('grass');
+    expect(surface.objects.map((o) => o.id)).toEqual(['up']);
+
+    const under = mapAtLevel(map, 1);
+    expect(under.terrain[0]).toBe('swamp');
+    expect(under.objects.map((o) => o.id)).toEqual(['down']);
+    // La vue est PLATE : l'objet perd sa couche (le rendu n'a rien à en savoir).
+    expect(under.objects[0]?.pos).toEqual({ x: 1, y: 1 });
+    // Source intacte (helper pur).
+    expect(map.objects[1]?.pos).toEqual({ x: 1, y: 1, level: 1 });
+  });
+
+  it('découpe le brouillard de la même façon ; une carte plate est rendue telle quelle', () => {
+    const map = twoLevelMap();
+    const fog = createFog(map);
+    fog[tileIndex(map, { x: 2, y: 1, level: 1 })] = 1;
+    expect(exploredAtLevel(map, fog, 1)[1 * map.width + 2]).toBe(1);
+    expect(exploredAtLevel(map, fog, 0)[1 * map.width + 2]).toBe(0);
+
+    const flat = testMap();
+    expect(mapAtLevel(flat, 0)).toBe(flat);
+  });
+});
+
+describe('démarrage sur une carte à deux couches', () => {
+  const startCmd = (map: AdventureMapDef) =>
+    ({
+      type: 'StartGame' as const,
+      seed: 1,
+      players: [{ id: 'p1', startingResources: emptyResources() }],
+      map,
+      config: testConfig(),
+      unitCatalog: {},
+      buildingCatalog: {},
+      towns: [],
+    });
+
+  it('accepte une carte dont terrain/route portent les DEUX couches', () => {
+    expect(validate(createEmptyState(), startCmd(twoLevelMap()))).toBeNull();
+  });
+
+  it('refuse une carte annonçant deux couches sans les données de la seconde', () => {
+    const map = twoLevelMap();
+    const truncated: AdventureMapDef = {
+      ...map,
+      terrain: map.terrain.slice(0, map.width * map.height),
+      road: map.road.slice(0, map.width * map.height),
+    };
+    expect(validate(createEmptyState(), startCmd(truncated))?.code).toBe('invalidMap');
   });
 });

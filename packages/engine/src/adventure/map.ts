@@ -407,6 +407,40 @@ export function terrainAt(map: AdventureMapDef, pos: GridPos): string {
   return id;
 }
 
+/**
+ * **Vue plate d'une couche** (L10.3) : la même carte réduite à `level` — terrain
+ * et route tranchés dans la pile, objets filtrés et dépouillés de leur couche.
+ * Le rendu client consomme cette vue et n'a donc **rien à savoir** des couches :
+ * il dessine une carte plate, celle où se tient le héros actif. Pure : ne mute
+ * jamais la carte source. Une carte déjà plate est rendue telle quelle.
+ */
+export function mapAtLevel(map: AdventureMapDef, level: number): AdventureMapDef {
+  if (mapLevels(map) <= 1) return map;
+  const size = map.width * map.height;
+  return {
+    ...map,
+    levels: 1,
+    terrain: map.terrain.slice(level * size, (level + 1) * size),
+    road: map.road.slice(level * size, (level + 1) * size),
+    objects: map.objects
+      .filter((o) => levelOf(o.pos) === level)
+      .map((o) => ({ ...o, pos: { x: o.pos.x, y: o.pos.y } })),
+    // Le Graal vit en surface (le schéma de carte ne lui donne pas de couche).
+    ...(level === 0 ? {} : { grailPos: null }),
+  };
+}
+
+/**
+ * Tranche du brouillard correspondant à une couche (L10.3) — même découpe que
+ * {@link mapAtLevel}, pour les surfaces qui lisent `explored` à plat (voile de
+ * brouillard, mini-carte).
+ */
+export function exploredAtLevel(map: AdventureMapDef, explored: readonly number[], level: number): number[] {
+  if (mapLevels(map) <= 1) return [...explored];
+  const size = map.width * map.height;
+  return explored.slice(level * size, (level + 1) * size);
+}
+
 /** Les 8 voisins en grille carrée (doc 02 §2.1), dans un ordre fixe — déterminisme. */
 export const DIRECTIONS: readonly GridPos[] = [
   { x: 0, y: -1 },

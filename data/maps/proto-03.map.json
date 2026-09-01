@@ -1,0 +1,139 @@
+{
+  "id": "proto-03",
+  "schemaVersion": 1,
+  "width": 16,
+  "height": 16,
+  "legend": {
+    "g": "grass",
+    "m": "mountain",
+    "d": "dirt",
+    "r": "rocks"
+  },
+  "tiles": [
+    "gggggggggggggggg",
+    "gggggggggggggggg",
+    "gggggggggggggggg",
+    "gggggggggggggggg",
+    "gggggggggggggggg",
+    "ggggggmggggggggg",
+    "ggggggmggggggggg",
+    "ggggggmggggggggg",
+    "ggggggmggggggggg",
+    "gggggggggggggggg",
+    "gggggggggggggggg",
+    "gggggggggggggggg",
+    "ggmmmggggggggggg",
+    "gggggggggggggggg",
+    "gggggggggggggggg",
+    "gggggggggggggggg"
+  ],
+  "roads": [
+    "0000000000000000",
+    "0000000000000000",
+    "0000000000000000",
+    "0000000000000000",
+    "0000000000000000",
+    "0000000000000000",
+    "0000000000000000",
+    "0000000000000000",
+    "0000000000000000",
+    "0000000000000000",
+    "0000000000000000",
+    "0000000000000000",
+    "0000000000000000",
+    "0000000000000000",
+    "0000000000000000",
+    "0000000000000000"
+  ],
+  "underground": {
+    "tiles": [
+      "rrrrrrrrrrrrrrrr",
+      "rrrrrrrrrrrrrrrr",
+      "rrrrdddddddddrrr",
+      "rrrrrrrrrrrrdrrr",
+      "rrrrrrrrrrrrdrrr",
+      "rrrrrrrrrrrrdrrr",
+      "rrrrrrrrrrrrdrrr",
+      "rrrrrrrrrrrrdrrr",
+      "rrrrrrrrrrrrdrrr",
+      "rrrrrrrrrrrrdrrr",
+      "rrrrrrrrrrddddrr",
+      "rrrrrrrrrrddddrr",
+      "rrrrrrrrrrddddrr",
+      "rrrrrrrrrrddddrr",
+      "rrrrrrrrrrrrrrrr",
+      "rrrrrrrrrrrrrrrr"
+    ],
+    "roads": [
+      "0000000000000000",
+      "0000000000000000",
+      "0000000000000000",
+      "0000000000000000",
+      "0000000000000000",
+      "0000000000000000",
+      "0000000000000000",
+      "0000000000000000",
+      "0000000000000000",
+      "0000000000000000",
+      "0000000000000000",
+      "0000000000000000",
+      "0000000000000000",
+      "0000000000000000",
+      "0000000000000000",
+      "0000000000000000"
+    ]
+  },
+  "objects": [
+    {
+      "id": "stair-down",
+      "type": "monolith",
+      "x": 8,
+      "y": 2,
+      "pairId": "stair-a"
+    },
+    {
+      "id": "stair-up",
+      "type": "monolith",
+      "x": 8,
+      "y": 2,
+      "level": 1,
+      "pairId": "stair-a"
+    },
+    {
+      "id": "cave-gold",
+      "type": "resource",
+      "x": 12,
+      "y": 12,
+      "level": 1,
+      "resource": "gold",
+      "amount": 1500
+    },
+    {
+      "id": "cave-guard",
+      "type": "guardian",
+      "x": 12,
+      "y": 9,
+      "level": 1,
+      "unitId": "t1-squelette",
+      "count": 6
+    },
+    {
+      "id": "surface-wood",
+      "type": "resource",
+      "x": 4,
+      "y": 6,
+      "resource": "wood",
+      "amount": 5
+    }
+  ],
+  "startPositions": [
+    {
+      "x": 2,
+      "y": 2
+    },
+    {
+      "x": 13,
+      "y": 13
+    }
+  ]
+}

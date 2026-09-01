@@ -552,6 +552,16 @@
 /* Badge de semaine spéciale (M-CALWIDGET, doc 02 §2.3) : indicateur persistant
    de la croissance modifiée. Filet laiton (idiome décoratif quêtes/dialogues),
    texte + icône ⇒ jamais la couleur seule (a11y). */
+/* Couche courante (L10.3) : surface / souterrain, visible seulement sur une
+   carte à deux niveaux. Même habillage discret que le badge de semaine. */
+.map-level {
+  padding: 1px 8px;
+  border: 1px solid var(--brass-bright);
+  border-radius: var(--radius-s);
+  color: var(--brass-text);
+  font-weight: 600;
+}
+
 .week-event-badge {
   display: inline-flex;
   align-items: center;

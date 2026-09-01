@@ -1,7 +1,7 @@
 import { produce } from 'immer';
 import { dailyMovementPoints } from '../adventure/config';
 import { createFog, revealAround } from '../adventure/fog';
-import { inBounds, isAdjacent, samePos, type GridPos } from '../adventure/map';
+import { inBounds, isAdjacent, mapLevels, samePos, type GridPos } from '../adventure/map';
 import { advanceHeroAlongPath } from '../adventure/movement';
 import { digGrail } from '../adventure/grail';
 import { revealOwnedStructures } from '../adventure/vision';
@@ -542,9 +542,11 @@ export function validate(state: GameState, cmd: Command): CommandError | null {
 function validateMap(cmd: Extract<Command, { type: 'StartGame' }>): CommandError | null {
   const { map, config, players } = cmd;
   const bad = (message: string): CommandError => ({ code: 'invalidMap', message });
-  const size = map.width * map.height;
+  // L10.3 : les couches sont EMPILÉES dans `terrain`/`road` (surface puis
+  // souterrain) — la taille attendue compte donc les niveaux.
+  const size = map.width * map.height * mapLevels(map);
   if (map.width <= 0 || map.height <= 0 || map.terrain.length !== size || map.road.length !== size)
-    return bad(`dimensions incohérentes (${map.width}×${map.height})`);
+    return bad(`dimensions incohérentes (${map.width}×${map.height}×${mapLevels(map)})`);
   for (const id of map.terrain) {
     if (!(id in config.terrains)) return bad(`terrain inconnu de la config '${id}'`);
   }

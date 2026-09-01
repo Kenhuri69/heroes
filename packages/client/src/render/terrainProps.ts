@@ -58,6 +58,13 @@ interface PropChunk {
  */
 export class TerrainProps {
   private readonly chunks: PropChunk[] = [];
+  private readonly width: number;
+  /**
+   * Brouillard courant (tranche de la couche affichée), mémoïsé par référence —
+   * l'état moteur est immuable. `null` = aucun brouillard connu ⇒ tout visible
+   * (carte sans joueur, éditeur).
+   */
+  private explored: readonly number[] | null = null;
   /**
    * Pool de sprites réutilisés (F10, revue 2026-07) : à chaque frontière de chunk
    * traversée en pan, détruire/recréer des dizaines de `Sprite` coûtait
@@ -67,6 +74,7 @@ export class TerrainProps {
   private readonly pool: Sprite[] = [];
 
   constructor(map: AdventureMapDef, private readonly layer: Container) {
+    this.width = map.width;
     for (let cy = 0; cy < map.height; cy += CHUNK) {
       for (let cx = 0; cx < map.width; cx += CHUNK) {
         const x1 = Math.min(cx + CHUNK - 1, map.width - 1);
@@ -106,6 +114,7 @@ export class TerrainProps {
         c.sprites = c.tiles.map((t) => {
           const s = this.pool.pop() ?? new Sprite();
           configureProp(s, t.texture, t.x, t.y);
+          s.visible = this.isExplored(t.x, t.y);
           // Un poil sous la profondeur entière de la tuile : un héros sur la MÊME
           // tuile (zIndex entier) reste devant son arbre, un prop une tuile DEVANT
           // (isoDepth + 1) occulte quand même le héros.
@@ -121,6 +130,47 @@ export class TerrainProps {
         c.sprites = null;
       }
     }
+  }
+
+  /**
+   * Brouillard (revue d'ergonomie U-5) : un prop DÉPASSE sa tuile, alors que le
+   * voile est plat — un relief posé sur une case non explorée pointait au-dessus
+   * du brouillard des cases explorées devant lui, révélant le terrain. On masque
+   * donc les props des tuiles inexplorées. Mémoïsé sur la RÉFÉRENCE du tableau
+   * (état moteur immuable) : aucun coût tant que le brouillard ne bouge pas.
+   */
+  updateFog(explored: readonly number[]): void {
+    if (explored === this.explored) return;
+    this.explored = explored;
+    for (const c of this.chunks) {
+      if (!c.sprites) continue;
+      c.tiles.forEach((t, i) => {
+        const s = c.sprites?.[i];
+        if (s) s.visible = this.isExplored(t.x, t.y);
+      });
+    }
+  }
+
+  /**
+   * Empreinte de rendu des props (surface de test U-5) : sprites vivants et,
+   * parmi eux, ceux masqués parce que leur tuile est sous le brouillard. Sert à
+   * prouver en smoke qu'aucun relief d'une case inexplorée n'est dessiné.
+   */
+  stats(): { live: number; hiddenByFog: number } {
+    let live = 0;
+    let hiddenByFog = 0;
+    for (const c of this.chunks) {
+      if (!c.sprites) continue;
+      for (const s of c.sprites) {
+        live++;
+        if (!s.visible) hiddenByFog++;
+      }
+    }
+    return { live, hiddenByFog };
+  }
+
+  private isExplored(x: number, y: number): boolean {
+    return this.explored === null || this.explored[y * this.width + x] !== 0;
   }
 
   /** Libère tous les sprites (vivants + pool) — retour menu / changement de carte. */

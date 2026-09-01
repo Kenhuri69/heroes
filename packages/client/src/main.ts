@@ -128,6 +128,8 @@ declare global {
       tilemapStats: () => { total: number; built: number; visible: number };
       /** Couche de carte affichée (L10.3 — smoke « descendre au souterrain et remonter »). */
       mapLevel: () => number;
+      /** Props de relief vivants / masqués par le brouillard (U-5). */
+      propStats: () => { live: number; hiddenByFog: number };
       /** Coordonnées écran des piles de combat vivantes (lot R1 — smoke « aucune pile sous les surcouches DOM »). */
       combatStackScreenPoints: () => { id: string; x: number; y: number }[];
       /** Marges d'écran RÉSERVÉES par la scène de combat (lot R1 — smoke « bas réel ≤ marge réservée »). */
@@ -572,6 +574,7 @@ async function bootstrap(): Promise<void> {
     }),
     tilemapStats: () => scene?.tilemapStats() ?? { total: 0, built: 0, visible: 0 },
     mapLevel: () => scene?.activeMapLevel() ?? 0,
+    propStats: () => scene?.propStats() ?? { live: 0, hiddenByFog: 0 },
     combatStackScreenPoints: () => combatScene?.stackScreenPoints() ?? [],
     combatReservedInsets: () => combatInsets.get(),
   };

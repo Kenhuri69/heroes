@@ -96,9 +96,9 @@ pastille de combat (U-6) — le reste est propre, cibles comme troncatures.
 | U-1 | **P1** | A6/A1 | « Nouvelle partie », mobile 360 px, **cran 3** | Les rangées de 5 crans (`.segmented`, `overflow-x: visible`) débordaient du viewport : `newgame-guardians-random` mesuré à **x=528 pour 360 px de large** — « Abondant » et « Aléatoire » invisibles, hors de tout affordance (idem difficulté). *Précision après vérification* : la modale, elle, défile (`overflow: auto`), donc un glissement horizontal les atteindrait — mais rien ne l'annonce, ni scrollbar ni troncature visible : en pratique, le réglage n'existe pas pour le joueur. L'audit A1 ne le voyait pas : il mesure la **taille** des cibles, pas leur **débordement**. | **Corrigé** : `.segmented` passe en `flex-wrap: wrap` + base `4.5rem` (crans à la ligne, largeurs égales conservées sur desktop). Re-mesuré : 0 débordement aux deux crans. |
 | U-2 | P2 | A5 | Barre de tour, toutes tailles | L'indicateur de couche était un libellé seul dans un cadre laiton pleine largeur : il se lisait comme un **champ de saisie désactivé**. | **Corrigé** : icône dédiée (`ui-surface` / `ui-underground`, générée) + `inline-flex` calé à gauche. |
 | U-3 | P2 | A3 | Fiche d'objet (appui long) sur un escalier | Un escalier affiche la fiche générique du monolithe — « Téléporte vers son jumeau. » — **sans dire qu'il change de couche**. Le joueur ne peut pas distinguer un téléport local d'une descente. | **Corrigé** : la fiche lit la couche du jumeau et titre « Escalier », ligne « Descend au souterrain » / « Remonte à la surface ». |
-| U-4 | P3 | A7 | Aventure, mobile, cran 3 | La carte ne garde qu'une bande d'environ 230 px de haut entre les toasts et le HUD. Pré-existant (densité du HUD au cran 3), hors périmètre de ce lot. | Noté, non traité. |
-| U-6 | P3 | A1 | Combat, mobile 360 px, **les 3 crans** | Une **pastille de pile** collée au bord droit déborde de l'écran (mesuré 299→407 pour 360 px) : le libellé « 20 × Recrue — Défenseur » est coupé. Elle reste tapable (≈61 px visibles) et la pile elle-même est sur le plateau, donc c'est de la lisibilité, pas de l'accès. Trouvé par le détecteur de troncature ajouté pendant cette revue — invisible à l'ancien contrôle. | Noté, **non traité** : borner une pastille dans le viewport touche la surcouche de combat, qui a son propre lot. |
-| U-5 | P3 | — | Props de relief sous brouillard | Un prop posé sur une tuile **non explorée** peut dépasser au-dessus du voile des tuiles explorées devant lui (le brouillard est plat, le prop a de la hauteur). Marginal en surface, plus visible au souterrain où chaque paroi porte un prop. Pré-existant. | Noté, non traité (demande un masque de brouillard par prop). |
+| U-4 | ~~P3~~ | A7 | Aventure, mobile, cran 3 | **Non reproduit — constat erroné.** Mesure au ruban (360×640) : barre de ressources 52 px, bandeau d'armée 48 px, HUD bas **129 px au cran 1 / 149 px au cran 3** ⇒ bande de carte libre **407 → 387 px**, soit 60 % de la hauteur. Les « 230 px » venaient d'une capture où **deux toasts empilés** (« Semaine 1 commencée » + « Téléporté par le monolithe ») couvraient le haut de la carte — transitoires, pas une occupation permanente du HUD. | **Aucun correctif** : il n'y a rien à corriger. Entrée conservée barrée plutôt que supprimée — un constat faux dans un audit envoie le suivant à la chasse au fantôme. |
+| U-6 | ~~P3~~ | A1 | Combat, mobile 360 px | **Faux positif de mon propre détecteur.** La pastille déborde bien (299→407 px), mais sa file `.combat-order` est en `overflow-x: auto` **avec fondu de bord et auto-scroll de la puce active** : un défilement horizontal délibéré, documenté (lot R6/E3). Le détecteur ne regardait que le **parent direct** — ici un `<li>` — et manquait le scroller d'un cran au-dessus. | **Détecteur corrigé** (voir Outillage) ; aucun défaut dans le jeu. |
+| U-5 | P3 | — | Props de relief sous brouillard | Un prop posé sur une tuile **non explorée** dépasse au-dessus du voile des tuiles explorées devant lui (le brouillard est plat, le prop a 90 px de haut pour un losange de 32). Mesuré au souterrain : **224 props vivants, 150 sur des cases inexplorées**. | **Corrigé** : `TerrainProps.updateFog` masque les props des tuiles inexplorées, mémoïsé sur la référence du tableau (coût nul tant que le brouillard ne bouge pas). *Gain réel mesuré au diff d'écran : **2 671 px*** — la plupart des 150 étaient déjà couverts par le brouillard de leurs voisins ; ce qui fuyait, c'est la **frange** juste au-delà de la limite. Verrouillé en smoke. |
 
 Le reste de la checklist ressort **conforme** : cibles ≥ 44 px partout (mesuré),
 tap-tap conservé pour la descente (le déplacement standard), pile de modales
@@ -129,3 +129,35 @@ Vérifié dans les deux sens à 360 px / cran 3 : **0** sur le build corrigé
 (aventure et « Nouvelle partie »), et **7 contrôles tronqués** dès qu'on
 réinjecte `flex-wrap: nowrap` — le détecteur voit la régression qu'il est censé
 voir, et rien d'autre.
+
+---
+
+## C — Traitement des constats P3 (2026-09-01)
+
+Demande : « traite les problèmes ». Les trois entrées laissées ouvertes ont été
+reprises une par une — et deux d'entre elles n'étaient pas ce que j'avais écrit.
+
+- **U-5 — corrigé.** Le seul vrai défaut des trois. Instrumenté avant de coder
+  (`TerrainProps.stats()` → surface de test `propStats`), parce que mon premier
+  diff avant/après ne montrait rien : il comparait deux builds mal séquencés.
+  Refait proprement (masquage neutralisé → capture → rétabli → capture) : 150
+  props sur cases inexplorées, **2 671 px** de terrain qui cessent de fuir.
+  Chiffre modeste et annoncé comme tel : la majorité de ces props était déjà
+  couverte par le brouillard de leurs voisins, seule la **frange** de la limite
+  était visible. Smoke étendu (`hiddenByFog > 0` au souterrain) : la régression
+  serait attrapée si quelqu'un débranchait l'appel.
+- **U-6 — faux positif, détecteur corrigé.** La file d'ordre de combat défile
+  horizontalement **par conception** (fondu de bord + auto-scroll). Mon
+  détecteur n'inspectait que le parent direct et manquait le scroller. Nouveau
+  discriminant, validé sur les deux cas : un ancêtre qui déborde **en largeur
+  sans déborder en hauteur** est un scroller horizontal délibéré ⇒ cible
+  atteignable ; U-1, lui, avait pour seul scroller une **modale verticale**
+  (`scrollHeight` 1 076 px de trop) dont le débordement latéral n'était qu'un
+  accident. Re-vérifié : muet sur combat / aventure / « Nouvelle partie »
+  corrigée, **7 contrôles** rattrapés dès qu'on réinjecte `flex-wrap: nowrap`.
+- **U-4 — non reproduit.** Mesure au ruban : la bande de carte fait **387 px sur
+  640** au cran 3 (60 %), pas 230. Mon chiffre venait d'une capture où deux
+  toasts empilés couvraient le haut de l'écran. Rien à corriger ; l'entrée reste
+  au tableau, barrée, avec la mesure.
+
+Bilan : **1 correctif de jeu, 1 correctif d'outil, 1 constat retiré**.

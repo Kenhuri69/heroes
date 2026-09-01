@@ -486,6 +486,46 @@ describe('loadMap — souterrain (L10.2)', () => {
     await expect(loadMap(reader(data), 'mini', makeConfig())).rejects.toThrow(/escalier/);
   });
 
+  /**
+   * L10.5 — la couche compte aussi pour l'occupation d'un départ : un objet posé
+   * dans la caverne, à la même case, ne « couvre » pas la position de départ de
+   * la surface. Sans ce discernement, une carte générée avec souterrain était
+   * refusée dès qu'un objet tombait sous un départ.
+   */
+  it('un objet SOUS un départ n’occupe pas ce départ', async () => {
+    const data = makeData();
+    const map = makeTwoLevelMap();
+    (map.objects as unknown[]).push({
+      id: 'gold-under-start',
+      type: 'resource',
+      x: 0,
+      y: 0, // = startPositions[0], mais en couche 1
+      level: 1,
+      resource: 'gold',
+      amount: 100,
+    });
+    data['maps/mini.map.json'] = map;
+    const loaded = await loadMap(reader(data), 'mini', makeConfig());
+    expect(loaded.objects.find((o) => o.id === 'gold-under-start')?.pos).toEqual({
+      x: 0,
+      y: 0,
+      level: 1,
+    });
+
+    // …alors qu'un objet de SURFACE au même endroit reste refusé.
+    const blocked = makeTwoLevelMap();
+    (blocked.objects as unknown[]).push({
+      id: 'gold-on-start',
+      type: 'resource',
+      x: 0,
+      y: 0,
+      resource: 'gold',
+      amount: 100,
+    });
+    data['maps/mini.map.json'] = blocked;
+    await expect(loadMap(reader(data), 'mini', makeConfig())).rejects.toThrow(/occupée par un objet/);
+  });
+
   it('refuse un objet en couche 1 sur une carte sans souterrain', async () => {
     const data = makeData();
     const map = makeMap();

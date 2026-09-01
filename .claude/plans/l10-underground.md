@@ -177,3 +177,12 @@ L10.3 suffit déjà à rendre le souterrain **jouable** sur carte éditée, L10.
     bundle 369 101 / 819 200 o gzip, smoke ciblé vert.
   - Reste (L10.5) : `generateMap` ne produit toujours **qu'une couche** — les
     parties générées n'ont pas de souterrain, seules les cartes éditées en ont.
+
+- **L10.5 livré (2026-09-01)** — le souterrain entre dans les parties générées
+  (détail : `.claude/plans/l10-5-underground-generation.md`). `generateMap`
+  creuse une caverne, pose les escaliers (paires de monolithes inter-couches) et
+  la peuple ; réglage « Souterrain » (Oui/Non/Aléatoire) à « Nouvelle partie »,
+  **défaut Non** pour ne pas changer les cartes existantes à graine égale ;
+  l'IA emprunte les escaliers via un ajout générique (bouche de téléporteur vers
+  une couche encore sous le brouillard). **Le chantier L10 est clos** — reste
+  différé : plus de deux niveaux (chantier moteur transversal + bump save).

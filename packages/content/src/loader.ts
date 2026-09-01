@@ -1258,7 +1258,9 @@ export async function loadMap(
     if (!inBounds(pos.x, pos.y)) errors.push(`${path}: startPositions[${i}] hors carte`);
     else if (!passable(pos.x, pos.y))
       errors.push(`${path}: startPositions[${i}] infranchissable (${pos.x},${pos.y})`);
-    if (file.objects.some((o) => o.x === pos.x && o.y === pos.y))
+    // L10.5 : la couche compte. Un départ est en SURFACE ; un objet de la
+    // caverne, à la même case mais en dessous, ne l'occupe pas.
+    if (file.objects.some((o) => o.x === pos.x && o.y === pos.y && (o.level ?? 0) === 0))
       errors.push(`${path}: startPositions[${i}] occupée par un objet`);
   }
 

@@ -1013,6 +1013,12 @@ export interface NewGameRawConfig {
   mines: ContentLevel | typeof RANDOM;
   eventBuildings: ContentLevel | typeof RANDOM;
   pickups: ContentLevel | typeof RANDOM;
+  /**
+   * Souterrain (L10.5) : `true` ⇒ la carte générée a une seconde couche reliée
+   * par des escaliers. `RANDOM` = tirage seedé. Défaut `false` : à graine égale,
+   * la carte reste celle d'avant le lot.
+   */
+  underground: boolean | typeof RANDOM;
   difficulty: SkirmishDifficulty | typeof RANDOM;
   seed: number;
   /**
@@ -1035,6 +1041,7 @@ export interface ResolvedNewGame {
     mineDensity: number;
     eventBuildingDensity: number;
     pickupDensity: number;
+    underground: boolean;
   };
   /**
    * Couleur par id de joueur (`player-{i+1}`, aligné sur `newGameStartCommand`).
@@ -1067,6 +1074,7 @@ export function quickStartConfig(seed: number, colors: readonly number[]): NewGa
     mines: 'standard',
     eventBuildings: 'standard',
     pickups: 'standard',
+    underground: false,
     difficulty: 'normal',
     seed,
   };
@@ -1126,6 +1134,10 @@ export function resolveNewGameConfig(
   const mineDensity = level(raw.mines);
   const eventBuildingDensity = level(raw.eventBuildings);
   const pickupDensity = level(raw.pickups);
+  // Souterrain (L10.5) résolu APRÈS les densités, même raison : un réglage
+  // explicite ne consomme aucun RNG, la séquence des tirages ci-dessus est donc
+  // inchangée pour toutes les parties existantes.
+  const underground = raw.underground === RANDOM ? pick([false, true]) : raw.underground;
   const dim = MAP_SIZE_DIMENSIONS[mapSize];
   const res = RESOURCE_LEVEL_TUNING[resourceLevel];
   return {
@@ -1139,6 +1151,7 @@ export function resolveNewGameConfig(
       mineDensity,
       eventBuildingDensity,
       pickupDensity,
+      underground,
     },
     colors,
   };

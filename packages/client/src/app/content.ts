@@ -98,6 +98,8 @@ export async function resolveGeneratedMap(
     mineDensity?: number;
     eventBuildingDensity?: number;
     pickupDensity?: number;
+    /** Souterrain (L10.5) : seconde couche + escaliers. Défaut : carte plate. */
+    underground?: boolean;
   } = {},
 ): Promise<ResolvedMap> {
   const config = report.content.config;

@@ -58,7 +58,7 @@ interface AdventureMapDef {
 
 ## 4. Découpage exécutable (5 sous-lots, chacun une PR)
 
-1. **L10.1 — couche dans le modèle (moteur seul)** : `GridPos.level`,
+1. ✅ **L10.1 — couche dans le modèle (moteur seul)** : `GridPos.level`,
    `tileIndex`, `createFog`, A\* qui refuse l'inter-couche. Cartes existantes =
    `levels: 1` ⇒ **comportement identique**. Bump save + golden re-fixé **une
    fois**. → verify: unitaires d'indexation/brouillard/chemin, golden re-fixé.
@@ -92,3 +92,32 @@ L10.3 suffit déjà à rendre le souterrain **jouable** sur carte éditée, L10.
 - **2026-08-31** — cadrage écrit (aucun code). Décision d'implémentation laissée
   au porteur du projet : le plan `missing-features-2026-08` §5.1 la listait déjà
   comme un arbitrage, et rien dans les lots L1-L9/L11 n'en dépend.
+
+## 7. Journal d'exécution
+
+> Décision utilisateur du 2026-08-31 : « go souterrain ». Le cadrage devient un
+> plan vivant, un sous-lot par PR.
+
+- **L10.1 livré (2026-08-31)** — la couche entre dans le modèle.
+  - `GridPos.level` + `AdventureMapDef.levels` (tous deux **optionnels**),
+    `tileIndex` empilé, `inBounds`, et deux règles qui font toute la différence :
+    `samePos` et `isAdjacent` comparent désormais la couche — sans quoi un héros
+    de surface « toucherait » l'objet du souterrain sous ses pieds.
+  - `createFog` dimensionne toutes les couches ; `revealAround` ne révèle que
+    celle de la position.
+  - A\* **confiné à la couche de départ** (cible d'une autre couche ⇒ `null`,
+    `octileLowerBound` ⇒ `Infinity` pour écarter la cible des pré-filtres sans
+    lancer de recherche). Idem pour les autres parcours de voisinage : BFS
+    d'exploration de l'IA, gardiens errants, atterrissage de Ville-portail,
+    tuile d'eau du chantier naval — tous estampillent la couche de leur origine.
+  - Deux indexations plates oubliées corrigées (clé de tuile du déplacement,
+    condition de quête `visitTile`) : elles auraient superposé les couches.
+  - **Écart au cadrage — aucun bump de sauvegarde.** Le cadrage en prévoyait un ;
+    les champs étant optionnels et par défaut « surface », une sauvegarde
+    d'avant le lot se recharge à l'identique. C'est la convention du dépôt
+    (`grailPos`, `moat`, `siegeWalls`…). **Golden inchangé** (973 tests verts
+    avant l'ajout des 7 nouveaux).
+  - Tests : `packages/engine/test/map-levels.test.ts` (**7**) — indexation,
+    carte plate inchangée, superposition non adjacente, brouillard par couche,
+    chemin confiné, et la preuve d'indépendance : un mur infranchissable en
+    surface n'empêche pas le trajet souterrain.

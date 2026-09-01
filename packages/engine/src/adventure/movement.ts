@@ -5,7 +5,7 @@ import { heroVisionRadius } from '../hero/skills';
 import { learnGuildSpellsAtTown } from '../town/mage-guild';
 import { revealAround } from './fog';
 import { revealStructure } from './vision';
-import { samePos, type GridPos } from './map';
+import { samePos, tileIndex, type GridPos } from './map';
 import { stepCost } from './path';
 import { fireFlagCaptureTrigger, fireVisitTrigger } from './triggers';
 import { recruitDwelling, visitBonus } from './visitable';
@@ -76,7 +76,9 @@ export function advanceHeroAlongPath(
   // buckets préservent l'ordre du tableau ⇒ mêmes départages que les `find`
   // historiques. Tenu à jour au ramassage (`removeObject`).
   type MapObj = NonNullable<GameState['map']>['objects'][number];
-  const tileKey = (p: GridPos): number => p.y * map.width + p.x;
+  // Clé de tuile = index PLAT level-aware (L10.1) : deux cases superposées ne
+  // partagent jamais une clé, sinon un objet du souterrain apparaîtrait en surface.
+  const tileKey = (p: GridPos): number => tileIndex(map, p);
   const objectsAt = new Map<number, MapObj[]>();
   for (const o of map.objects) {
     const k = tileKey(o.pos);

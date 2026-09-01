@@ -1,6 +1,6 @@
 import { revealAround } from '../adventure/fog';
 import { applySkillChoice } from './level-up';
-import { DIRECTIONS, samePos, type GridPos } from '../adventure/map';
+import { DIRECTIONS, atLevel, levelOf, samePos, type GridPos } from '../adventure/map';
 import { isPassable } from '../adventure/path';
 import { heroArmyMagicResistance, heroLuckValue, killsFromDamage, magicResistanceOf } from '../combat/damage';
 import { checkCombatEnd } from '../combat/turns';
@@ -187,7 +187,7 @@ function landingTileFor(draft: GameState, target: GridPos, heroId: string): Grid
     isPassable(config, map, p) && !draft.heroes.some((h) => h.id !== heroId && samePos(h.pos, p));
   if (free(target)) return target;
   for (const d of DIRECTIONS) {
-    const p = { x: target.x + d.x, y: target.y + d.y };
+    const p = atLevel({ x: target.x + d.x, y: target.y + d.y }, levelOf(target));
     if (free(p)) return p;
   }
   return null;

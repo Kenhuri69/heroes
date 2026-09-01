@@ -509,6 +509,30 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > sprite **généré, extrait (QC PASS) et intégré** en remplacement du « guerrier à
 > la lame », nom de fichier inchangé ⇒ zéro câblage client.*
 
+> ⛏️ **Souterrain** (plan `.claude/plans/l10-underground.md`, sous-lots L10.1→L10.5 ;
+> issu de la revue `missing-features-2026-08`). Le dernier grand absent de la carte
+> d'aventure, livré en cinq PR **sans jamais introduire de notion d'« escalier »
+> dans le moteur** : **L10.1** — la position gagne une **couche**
+> (`GridPos.level`, `AdventureMapDef.levels`, `tileIndex` empilé) ; `samePos` et
+> `isAdjacent` comparent la couche, le brouillard couvre chaque couche
+> séparément, l'A\* est confiné à une couche. **L10.2** — format de contenu :
+> bloc `underground { tiles, roads }` + `level` par objet ; **un escalier est une
+> paire de monolithes dont les extrémités changent de couche** (le téléport
+> apparié de M-NAV faisait déjà le travail) ; une carte à souterrain **sans**
+> escalier est rejetée au load. **L10.3** — jouable : le client rend **une couche
+> à la fois** (vue plate `mapAtLevel`, entités/brouillard/mini-carte filtrés par
+> couche, indicateur « Surface / Souterrain »), carte de démo `proto-03` +
+> scénario « Les Profondeurs », smoke `@core` descendre/remonter ; seul correctif
+> moteur : `validateMap` compte désormais les couches. **L10.5** — généré :
+> réglage **« Souterrain »** (Oui/Non/**Aléatoire** seedé) à « Nouvelle partie »,
+> `generateMap` creuse une caverne, pose les escaliers et la peuple ; **l'IA
+> emprunte les escaliers** via UN ajout générique (une bouche de téléporteur dont
+> la couche d'arrivée reste sous le brouillard devient une cible d'exploration).
+> Défaut **Non** ⇒ à graine égale, une carte sans souterrain est identique à
+> l'octet près. Champs optionnels partout ⇒ **pas de bump
+> `CURRENT_SAVE_VERSION`**, golden inchangé, garde-fou « zéro faction » vert.
+> Différé : plus de deux niveaux (chantier transversal + bump save).*
+
 ---
 
 ## Structure des fichiers

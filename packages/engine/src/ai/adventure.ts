@@ -474,6 +474,43 @@ function nearestUnexploredTile(
   return null;
 }
 
+/**
+ * Bouche de téléporteur menant à de l'INEXPLORÉ (L10.5) — ce qui fait descendre
+ * l'IA au souterrain sans que le moteur connaisse la notion d'escalier : un
+ * escalier n'est qu'une paire de monolithes dont les extrémités changent de
+ * couche. On ne considère qu'une bouche déjà EXPLORÉE (même règle que les
+ * autres cibles de l'IA : pas de connaissance sous le brouillard), et on ne
+ * l'emprunte que si la couche d'arrivée garde des tuiles à découvrir.
+ */
+function unexploredThroughTeleport(
+  map: NonNullable<GameState['map']>,
+  explored: number[],
+  from: GridPos,
+): GridPos | null {
+  const level = levelOf(from);
+  const size = map.width * map.height;
+  const hasUnexplored = (lvl: number): boolean => {
+    for (let i = lvl * size; i < (lvl + 1) * size; i++) if (explored[i] === 0) return true;
+    return false;
+  };
+  let best: GridPos | null = null;
+  for (const obj of map.objects) {
+    if (obj.type !== 'monolith') continue;
+    if (levelOf(obj.pos) !== level) continue;
+    if (explored[tileIndex(map, obj.pos)] === 0) continue;
+    const exit = map.objects.find(
+      (o) => o.type === 'monolith' && o.pairId === obj.pairId && o.id !== obj.id,
+    );
+    if (!exit || levelOf(exit.pos) === level) continue;
+    if (!hasUnexplored(levelOf(exit.pos))) continue;
+    // Départage déterministe : la bouche la plus proche, puis l'id le plus petit.
+    const d = Math.max(Math.abs(obj.pos.x - from.x), Math.abs(obj.pos.y - from.y));
+    const bestD = best ? Math.max(Math.abs(best.x - from.x), Math.abs(best.y - from.y)) : Infinity;
+    if (d < bestD) best = { ...obj.pos };
+  }
+  return best;
+}
+
 /** Un pas vers l'inexploré le plus proche, si abordable (priorité 5, exploration). */
 function pickExplorationStep(
   draft: GameState,
@@ -483,7 +520,11 @@ function pickExplorationStep(
 ): GridPos[] | null {
   const { map, config } = draft;
   if (!map || !config) return null;
-  const target = nearestUnexploredTile(map, config, player.explored, hero.pos);
+  // La couche du héros d'abord ; à défaut, une bouche de téléporteur qui mène
+  // à une couche encore sous le brouillard (L10.5).
+  const target =
+    nearestUnexploredTile(map, config, player.explored, hero.pos) ??
+    unexploredThroughTeleport(map, player.explored, hero.pos);
   if (!target) return null;
   const path = findPath(config, map, hero.pos, target, blocked);
   const first = path?.[0];

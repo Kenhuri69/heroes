@@ -2,7 +2,13 @@ import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { MAP_SIZE_DIMENSIONS, quickStartConfig, RANDOM, resolveNewGameConfig } from './game';
+import {
+  MAP_SIZE_DIMENSIONS,
+  quickStartConfig,
+  RANDOM,
+  resolveNewGameConfig,
+  type NewGameRawConfig,
+} from './game';
 import { PLAYER_COLORS, PLAYER_COLOR_NAMES } from '../render/playerColors';
 
 /**
@@ -32,7 +38,35 @@ describe('quickStartConfig', () => {
       'standard',
     ]);
     expect(cfg.difficulty).toBe('normal');
+    expect(cfg.underground).toBe(false); // L10.5 : carte plate par défaut
     expect(cfg.seed).toBe(1234);
+  });
+
+  /**
+   * L10.5 — le souterrain est un réglage seedé comme les autres. Réglé
+   * explicitement il ne consomme AUCUN tirage : la config résolue (factions,
+   * héros, densités) doit rester identique entre « Non » et « Oui ».
+   */
+  it('souterrain : réglage explicite propagé, sans perturber les autres tirages', () => {
+    const flat = resolveNewGameConfig(quickStartConfig(999, COLORS), FACTIONS, {}, 999);
+    const cave = resolveNewGameConfig(
+      { ...quickStartConfig(999, COLORS), underground: true },
+      FACTIONS,
+      {},
+      999,
+    );
+    expect(flat.map.underground).toBe(false);
+    expect(cave.map.underground).toBe(true);
+    expect(cave.setup).toEqual(flat.setup);
+    expect({ ...cave.map, underground: false }).toEqual(flat.map);
+  });
+
+  it('souterrain « aléatoire » : tiré depuis la graine, donc reproductible', () => {
+    const raw: NewGameRawConfig = { ...quickStartConfig(4242, COLORS), underground: RANDOM };
+    const a = resolveNewGameConfig(raw, FACTIONS, {}, 4242);
+    const b = resolveNewGameConfig(raw, FACTIONS, {}, 4242);
+    expect(a.map.underground).toBe(b.map.underground);
+    expect(typeof a.map.underground).toBe('boolean');
   });
 
   it('reste reproductible : à graine égale, la config résolue est identique', () => {

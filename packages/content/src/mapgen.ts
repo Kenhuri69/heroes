@@ -62,6 +62,14 @@ export interface MapGenOptions {
    */
   boatDensity?: number;
   /**
+   * Souterrain (L10.5, doc 02 §2.1) : `true` ⇒ la carte gagne une **seconde
+   * couche** (caverne creusée dans la roche), reliée à la surface par des
+   * paires de monolithes — des escaliers. Défaut `false` : à graine égale, la
+   * carte de surface est **identique** à celle d'avant le lot (tout le travail
+   * souterrain se fait après elle et ne consomme du RNG qu'ensuite).
+   */
+  underground?: boolean;
+  /**
    * Palette d'artefacts connus posables au sol (vide ⇒ aucun artefact, comme
    * `guardianUnits`). Les artefacts sont placés **en profondeur** et gardés par
    * une sentinelle — la récompense premium de la carte.
@@ -207,6 +215,7 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
   const eventBuildingDensity = opts.eventBuildingDensity ?? 1;
   const pickupDensity = opts.pickupDensity ?? 1;
   const boatDensity = opts.boatDensity ?? 1;
+  const underground = opts.underground === true;
   const artifactIds = opts.artifactIds ?? [];
   const townFactionIds = opts.townFactionIds ?? [];
   // Densité constante quelle que soit la taille : les compteurs d'objets calés
@@ -787,9 +796,195 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
     }
   }
 
+  // ── Souterrain (L10.5, doc 02 §2.1) : seconde couche « caverne » creusée dans
+  // la roche, reliée à la surface par des paires de monolithes — des escaliers.
+  // Tout ce bloc s'exécute APRÈS la surface et ne consomme du RNG qu'ensuite :
+  // à graine égale, une carte SANS souterrain est identique à l'octet près. ──
+  let caveRows: string[] | null = null;
+  if (underground) {
+    const floorChar = TERRAIN_CHARS.dirt!;
+    const rockChar = TERRAIN_CHARS.rocks!;
+    const caveNoise = makeValueNoise(seed ^ 0x5bf03635);
+    // Fréquence plus élevée qu'en surface (galeries plus fines) et seuil calé sur
+    // ~⅓ de sol : à 0,5 le « souterrain » n'était qu'une plaine tachetée de
+    // rochers, pas une caverne (mesuré : 54 % de sol contre 33 % ici).
+    const fC = 9 / maxDim;
+    const CAVE_FLOOR = 0.58;
+    const cave: string[][] = Array.from({ length: height }, (_, y) =>
+      Array.from({ length: width }, (_, x) =>
+        fbm(caveNoise, x, y, fC) > CAVE_FLOOR ? floorChar : rockChar,
+      ),
+    );
+    const caveOccupied = new Set<string>(); // couche 1 : occupation indépendante
+    const carveRoom = (x: number, y: number): void => {
+      for (let dy = -1; dy <= 1; dy++) {
+        for (let dx = -1; dx <= 1; dx++) {
+          const nx = x + dx;
+          const ny = y + dy;
+          if (nx >= 0 && ny >= 0 && nx < width && ny < height) cave[ny]![nx] = floorChar;
+        }
+      }
+    };
+
+    // Escaliers : autant que la carte est grande, au moins un. La bouche de
+    // surface est prise dans la composante ATTEIGNABLE (`inMain`) — un escalier
+    // derrière une montagne ne servirait personne ; la sortie est à la même
+    // case en dessous, avec une petite salle creusée pour garantir l'arrivée.
+    const stairPairs = Math.max(1, Math.min(6, Math.round(1.2 * Math.sqrt(areaFactor))));
+    const mouths: { x: number; y: number }[] = [];
+    for (let i = 0; i < stairPairs; i++) {
+      let picked: { x: number; y: number } | null = null;
+      for (let tries = 0; tries < 200 && !picked; tries++) {
+        const x = randInt(width);
+        const y = randInt(height);
+        if (inMain[tileIdx(x, y)] !== 1 || occupied.has(`${x},${y}`)) continue;
+        picked = { x, y };
+      }
+      // Repli déterministe : la 1re tuile libre de la composante (balayage).
+      if (!picked) {
+        for (let y = 0; y < height && !picked; y++) {
+          for (let x = 0; x < width && !picked; x++) {
+            if (inMain[tileIdx(x, y)] === 1 && !occupied.has(`${x},${y}`)) picked = { x, y };
+          }
+        }
+      }
+      if (!picked) break; // carte saturée : on s'arrête (au moins une paire posée)
+      occupied.add(`${picked.x},${picked.y}`);
+      caveOccupied.add(`${picked.x},${picked.y}`);
+      carveRoom(picked.x, picked.y);
+      mouths.push(picked);
+    }
+
+    // Composante souterraine atteignable, ancrée sur le 1er escalier ; les
+    // autres escaliers y sont reliés en creusant, comme en surface.
+    const inCave = new Uint8Array(width * height);
+    const growCave = (sx: number, sy: number): void => {
+      if (inCave[tileIdx(sx, sy)] === 1 || cave[sy]![sx] !== floorChar) return;
+      const qx: number[] = [sx];
+      const qy: number[] = [sy];
+      inCave[tileIdx(sx, sy)] = 1;
+      for (let head = 0; head < qx.length; head++) {
+        const x = qx[head]!;
+        const y = qy[head]!;
+        for (const [dx, dy] of neighborOffsets) {
+          const nx = x + dx;
+          const ny = y + dy;
+          if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
+          if (inCave[tileIdx(nx, ny)] === 1 || cave[ny]![nx] !== floorChar) continue;
+          inCave[tileIdx(nx, ny)] = 1;
+          qx.push(nx);
+          qy.push(ny);
+        }
+      }
+    };
+    const first = mouths[0];
+    if (first) {
+      growCave(first.x, first.y);
+      for (const m of mouths.slice(1)) {
+        if (inCave[tileIdx(m.x, m.y)] === 1) continue;
+        let x = m.x;
+        let y = m.y;
+        while (x !== first.x || y !== first.y) {
+          cave[y]![x] = floorChar;
+          x += Math.sign(first.x - x);
+          y += Math.sign(first.y - y);
+        }
+        growCave(m.x, m.y);
+      }
+      for (const m of mouths) {
+        const n = objects.length;
+        objects.push({ id: `stair-s-${n}`, type: 'monolith', x: m.x, y: m.y, pairId: `stair-${n}` });
+        objects.push({
+          id: `stair-u-${n}`,
+          type: 'monolith',
+          x: m.x,
+          y: m.y,
+          level: 1,
+          pairId: `stair-${n}`,
+        });
+      }
+    }
+
+    // Contenu de la caverne : une caverne vide ne vaut pas le voyage. Tuiles
+    // prises dans la composante atteignable seulement, aux densités des
+    // curseurs existants ; les gardiens y sont profonds par nature (`0.85`).
+    const caveTile = (): { x: number; y: number } | null => {
+      for (let tries = 0; tries < 80; tries++) {
+        const x = randInt(width);
+        const y = randInt(height);
+        if (inCave[tileIdx(x, y)] !== 1 || caveOccupied.has(`${x},${y}`)) continue;
+        caveOccupied.add(`${x},${y}`);
+        return { x, y };
+      }
+      return null;
+    };
+    const caveCounts: [number, (x: number, y: number, n: number) => PlacedObject][] = [
+      [
+        scaledCat(3, pickupDensity),
+        (x, y, n) => ({
+          id: `u-res-${n}`,
+          type: 'resource',
+          x,
+          y,
+          level: 1,
+          resource: RESOURCE_IDS[randInt(RESOURCE_IDS.length)]!,
+          amount: randBetween(3, 8),
+        }),
+      ],
+      [
+        scaledCat(2, pickupDensity),
+        (x, y, n) => ({
+          id: `u-chest-${n}`,
+          type: 'treasure',
+          x,
+          y,
+          level: 1,
+          gold: randBetween(500, 1500),
+          xp: randBetween(300, 900),
+        }),
+      ],
+      [
+        scaledCat(1, mineDensity),
+        (x, y, n) => ({
+          id: `u-mine-${n}`,
+          type: 'mine',
+          x,
+          y,
+          level: 1,
+          resource: RESOURCE_IDS[randInt(RESOURCE_IDS.length)]!,
+          amount: 2,
+        }),
+      ],
+    ];
+    for (const [count, make] of caveCounts) {
+      for (let i = 0; i < count; i++) {
+        const t = caveTile();
+        if (t) objects.push(make(t.x, t.y, objects.length));
+      }
+    }
+    if (byTier.length > 0 && guardianDensity > 0) {
+      const guards = scaledCat(3, guardianDensity);
+      for (let i = 0; i < guards; i++) {
+        const t = caveTile();
+        if (!t) continue;
+        objects.push({
+          id: `u-guard-${objects.length}`,
+          type: 'guardian',
+          x: t.x,
+          y: t.y,
+          level: 1,
+          unitId: pickUnitForDepth(0.85, randInt(2) - 1),
+          count: randBetween(4, 12),
+        });
+      }
+    }
+    caveRows = cave.map((row) => row.join(''));
+  }
+
   // Légende : uniquement les terrains réellement présents dans la grille.
   const usedChars = new Set<string>();
   for (const row of grid) for (const ch of row) usedChars.add(ch);
+  if (caveRows) for (const row of caveRows) for (const ch of row) usedChars.add(ch);
   const legend: Record<string, string> = {};
   for (const [tid, ch] of Object.entries(TERRAIN_CHARS)) {
     if (usedChars.has(ch)) legend[ch] = tid;
@@ -804,6 +999,9 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
     legend,
     tiles: grid.map((row) => row.join('')),
     roads: Array.from({ length: height }, () => zeros),
+    ...(caveRows
+      ? { underground: { tiles: caveRows, roads: Array.from({ length: height }, () => zeros) } }
+      : {}),
     objects,
     startPositions,
     ...(grailPos ? { grailPos } : {}),

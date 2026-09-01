@@ -339,4 +339,14 @@ forme change · bump `CURRENT_SAVE_VERSION` seulement si la sauvegarde change.
 | L6 campagnes Sylvan & Vox ch2 | ✅ livré (PR #537) |
 | L8 Salle des Reliques & mois des créatures | ✅ livré (PR #538) |
 | L11 appariement, copie N-1, NET-FOG | ✅ livré (PR #539) |
-| **L10 souterrain** | 📋 **cadré, non implémenté** (arbitrage) |
+| **L10 souterrain** | ✅ **livré** (PR #540 cadrage, #541 modèle, #542 contenu, #543 jouable, L10.5 génération + IA) |
+
+> **2026-09-01 — L10 clos.** Décision utilisateur (« go souterrain ») : le
+> cadrage est devenu un plan vivant, un sous-lot par PR. Le souterrain est dans
+> le modèle (couche `GridPos.level`), dans le format de contenu (bloc
+> `underground` + escaliers = paires de monolithes), dans le client (une couche
+> rendue à la fois) et dans les cartes générées (option « Souterrain », IA qui
+> emprunte les escaliers). **Écart au cadrage assumé : aucun bump de
+> `CURRENT_SAVE_VERSION`** — les champs étant optionnels et par défaut
+> « surface », une sauvegarde d'avant le chantier se recharge à l'identique
+> (convention du dépôt). Différé : plus de deux niveaux.

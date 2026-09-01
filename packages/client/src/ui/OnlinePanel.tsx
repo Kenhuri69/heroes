@@ -36,6 +36,7 @@ function onlineMatchPreset(seed: number): NewGameRawConfig {
     mines: RANDOM,
     eventBuildings: RANDOM,
     pickups: RANDOM,
+    underground: false, // PvP async : carte plate (couche unique) — cadrage NET-PVPUI
     difficulty: 'normal',
     seed,
     online: true,

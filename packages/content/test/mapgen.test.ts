@@ -117,6 +117,45 @@ describe('generateMap', () => {
     expect(map.objects.some((o) => 'guardedBy' in o && o.guardedBy !== undefined)).toBe(false);
   });
 
+  /**
+   * L10.5 — souterrain généré. Deux exigences : la carte reste valide de bout en
+   * bout (le loader REFUSE une carte à souterrain sans escalier, donc ce test
+   * prouve aussi la connexité surface↔caverne), et l'option ne doit RIEN changer
+   * à la surface (déterminisme du dépôt).
+   */
+  it('souterrain : carte valide, escaliers appariés inter-couches, sur de nombreuses graines', async () => {
+    for (let seed = 1; seed <= 20; seed++) {
+      const map = generateMap('random', seed, { guardianUnits: ['t1-guard'], underground: true });
+      expect(map.underground).toBeDefined();
+      expect(map.underground!.tiles).toHaveLength(map.height);
+      const resolved = await loadMap(readerFor(map), 'random', config(), KNOWN_UNITS);
+      expect(resolved.levels).toBe(2);
+      // Au moins un ESCALIER : une paire de monolithes dont les extrémités
+      // changent de couche (le loader rejetterait la carte sinon).
+      const monoliths = resolved.objects.filter((o) => o.type === 'monolith');
+      expect(monoliths.length).toBeGreaterThanOrEqual(2);
+      const pairs = new Map<string, number[]>();
+      for (const m of monoliths) {
+        if (m.type !== 'monolith') continue;
+        pairs.set(m.pairId, [...(pairs.get(m.pairId) ?? []), m.pos.level ?? 0]);
+      }
+      expect([...pairs.values()].some((levels) => new Set(levels).size === 2)).toBe(true);
+      // La caverne est peuplée : le voyage doit valoir le détour.
+      expect(resolved.objects.some((o) => (o.pos.level ?? 0) === 1 && o.type !== 'monolith')).toBe(true);
+    }
+  });
+
+  it('sans l’option, la surface est identique à l’octet près', () => {
+    const flat = generateMap('r', 77, { guardianUnits: ['t1-guard'] });
+    const withCave = generateMap('r', 77, { guardianUnits: ['t1-guard'], underground: true });
+    expect(withCave.tiles).toEqual(flat.tiles);
+    expect(withCave.startPositions).toEqual(flat.startPositions);
+    // Les objets de SURFACE sont les mêmes ; le souterrain n'ajoute que les siens.
+    const surfaceOnly = withCave.objects.filter((o) => !('level' in o) || o.level !== 1);
+    expect(surfaceOnly.slice(0, flat.objects.length)).toEqual(flat.objects);
+    expect(flat.underground).toBeUndefined();
+  });
+
   it('est déterministe : même graine ⇒ carte identique', () => {
     const a = generateMap('r', 123, { guardianUnits: ['t1-guard'] });
     const b = generateMap('r', 123, { guardianUnits: ['t1-guard'] });

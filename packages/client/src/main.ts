@@ -377,6 +377,7 @@ async function bootstrap(): Promise<void> {
         mineDensity: resolved.map.mineDensity,
         eventBuildingDensity: resolved.map.eventBuildingDensity,
         pickupDensity: resolved.map.pickupDensity,
+        underground: resolved.map.underground,
       });
 
       setLoading('newgame.loading.players', 0.75);

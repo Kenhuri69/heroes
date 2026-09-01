@@ -938,6 +938,21 @@ threadé en `heroId` dans `CastSpell`/`HeroAttack` — sinon le lead par défaut
 > « Les Profondeurs », couvert en smoke (descendre, mur de roche infranchissable,
 > remonter).
 >
+> **Généré (L10.5)** : `generateMap` sait produire la seconde couche, sous
+> l'option `underground` (réglage « Souterrain » Oui/Non/**Aléatoire** à
+> « Nouvelle partie », défaut **Non**). La caverne naît d'un champ de bruit
+> dédié (sol/roche), les **escaliers** sont des paires de monolithes posées sur
+> des tuiles atteignables des deux côtés — la bouche est prise dans la
+> composante atteignable de la surface, la sortie dans une petite salle creusée
+> puis reliée aux autres —, et la caverne est peuplée (ressources, coffres,
+> mines, gardiens « profonds ») aux densités des curseurs existants. Tout ce
+> travail s'exécute **après** la surface et ne consomme du RNG qu'ensuite : à
+> graine égale, une carte sans souterrain est identique à l'octet près. **L'IA
+> emprunte les escaliers** par un ajout générique — une bouche de téléporteur
+> dont la couche d'arrivée garde des tuiles sous le brouillard devient une cible
+> d'exploration (jamais une notion d'« escalier » dans le moteur), et seulement
+> quand sa propre couche n'a plus rien à découvrir.
+>
 > 🤝 **Alliances / équipes** (save v13) : `PlayerState.team` (entier opaque —
 > `0` = **sans alliance**, comportement chacun-pour-soi historique ; même n°
 > **non nul** = alliés, `areAllies`). Deux alliés **ne s'assiègent pas**

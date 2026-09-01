@@ -33,6 +33,7 @@ const CONTENT_CATEGORIES = [
   { key: 'eventBuildings', field: 'eventBuildings' },
   { key: 'pickups', field: 'pickups' },
 ] as const;
+const UNDERGROUND_OPTIONS: (boolean | typeof RANDOM)[] = [false, true, RANDOM];
 const DIFFICULTIES: (SkirmishDifficulty | typeof RANDOM)[] = ['facile', 'normal', 'difficile', RANDOM];
 const PLAYER_COUNTS = [2, 3, 4] as const;
 const MAX_PLAYERS = 4;
@@ -96,6 +97,9 @@ export function NewGameScreen({ onClose }: { onClose: () => void }) {
   });
   const setContentLevel = (field: string, value: ContentLevel | typeof RANDOM): void =>
     setContentLevels((prev) => ({ ...prev, [field]: value }));
+  // Souterrain (L10.5) : seconde couche reliée par des escaliers. Défaut « Non »
+  // — à graine égale, la carte reste celle d'avant le lot.
+  const [underground, setUnderground] = useState<boolean | typeof RANDOM>(false);
   const [difficulty, setDifficulty] = useState<SkirmishDifficulty | typeof RANDOM>('normal');
   const [seed, setSeed] = useState<number>(() => rollSeed(0));
   // Progressive disclosure (lot R4) : adversaires et réglages de carte sont
@@ -149,6 +153,7 @@ export function NewGameScreen({ onClose }: { onClose: () => void }) {
       mines: contentLevels.mines!,
       eventBuildings: contentLevels.eventBuildings!,
       pickups: contentLevels.pickups!,
+      underground,
       difficulty,
       seed,
     });
@@ -395,6 +400,22 @@ export function NewGameScreen({ onClose }: { onClose: () => void }) {
                   </div>
                 </section>
               ))}
+
+              <section class="options-section">
+                <h3>{t('newgame.underground')}</h3>
+                <div class="segmented" role="group">
+                  {UNDERGROUND_OPTIONS.map((opt) => (
+                    <button
+                      key={String(opt)}
+                      class={underground === opt ? 'active' : ''}
+                      data-testid={`newgame-underground-${String(opt)}`}
+                      onClick={() => setUnderground(opt)}
+                    >
+                      {opt === RANDOM ? t('newgame.random') : t(opt ? 'newgame.yes' : 'newgame.no')}
+                    </button>
+                  ))}
+                </div>
+              </section>
 
               <section class="options-section">
                 <h3>{t('newgame.seed')}</h3>

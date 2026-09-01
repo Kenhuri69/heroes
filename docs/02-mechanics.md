@@ -922,6 +922,22 @@ threadé en `heroId` dans `CastSpell`/`HeroAttack` — sinon le lead par défaut
 > **une carte à souterrain sans escalier est rejetée** (un héros descendu y
 > resterait piégé).
 >
+> **Jouable (L10.3)** : le client rend **une couche à la fois** — celle du héros
+> sélectionné. Descendre ou remonter un escalier reconstruit les calques de
+> terrain sur la **vue plate** de la nouvelle couche (`mapAtLevel` — le rendu
+> ignore tout des couches), et les entités (objets, villes, héros, sources de
+> vision) sont filtrées sur cette couche : rien du souterrain ne transparaît en
+> surface, ni l'inverse. Le brouillard et la **mini-carte** lisent la tranche
+> correspondante (`exploredAtLevel`) ; la barre de tour affiche la couche
+> courante (« Surface » / « Souterrain ») **seulement** sur une carte à deux
+> niveaux. Une tuile tapée hérite de la couche du héros : les x/y étant partagés
+> par les deux couches, c'est ce qui empêche un chemin de viser la case du
+> dessus. Le moteur ne gagne **aucune règle** au passage — seule la validation de
+> carte au `StartGame` compte désormais les couches. Carte de démonstration :
+> `data/maps/proto-03` (16×16, caverne creusée + un escalier), scénario
+> « Les Profondeurs », couvert en smoke (descendre, mur de roche infranchissable,
+> remonter).
+>
 > 🤝 **Alliances / équipes** (save v13) : `PlayerState.team` (entier opaque —
 > `0` = **sans alliance**, comportement chacun-pour-soi historique ; même n°
 > **non nul** = alliés, `areAllies`). Deux alliés **ne s'assiègent pas**

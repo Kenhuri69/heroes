@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'preact/hooks';
 import { useApp } from '../app/store';
-import { humanId, humanHeroes, isHeroVisibleOnMap, visionSightings } from '../app/game';
+import { levelOf, type GridPos } from '@heroes/engine';
+import { humanId, humanHeroes, isHeroVisibleOnMap, resolveSelectedHero, visionSightings } from '../app/game';
 import { t } from '../app/i18n';
 import { playerColor } from '../render/playerColors';
 import { panCameraTo } from '../app/camera-control';
@@ -46,6 +47,7 @@ export function MiniMap({ variant = 'fixed' }: { variant?: 'fixed' | 'drawer' } 
   // Réf `game` stable (cf. HeroStrip) puis dérivation dans l'effet — évite les
   // nouveaux tableaux à chaque sélecteur.
   const game = useApp((s) => s.game);
+  const selectedHeroId = useApp((s) => s.selectedHeroId);
   const map = game.map;
 
   useEffect(() => {
@@ -59,9 +61,17 @@ export function MiniMap({ variant = 'fixed' }: { variant?: 'fixed' | 'drawer' } 
 
     const human = humanId(game);
     const explored = game.players.find((p) => p.id === human)?.explored ?? [];
+    // L10.3 : la mini-carte montre la couche du héros sélectionné, comme la
+    // scène — terrain, villes et héros sont empilés par couche (`base`).
+    const selectedPos = resolveSelectedHero(game, selectedHeroId)?.pos;
+    const level = selectedPos ? levelOf(selectedPos) : 0;
+    const base = level * width * height;
+    const onLevel = (pos: GridPos): boolean => levelOf(pos) === level;
     const img = ctx.createImageData(width, height);
     for (let i = 0; i < width * height; i++) {
-      const color = explored[i] ? (TERRAIN[map.terrain[i] ?? ''] ?? C_DEFAULT) : C_UNEXPLORED;
+      const color = explored[base + i]
+        ? (TERRAIN[map.terrain[base + i] ?? ''] ?? C_DEFAULT)
+        : C_UNEXPLORED;
       const r = parseInt(color.slice(1, 3), 16);
       const g = parseInt(color.slice(3, 5), 16);
       const b = parseInt(color.slice(5, 7), 16);
@@ -79,16 +89,17 @@ export function MiniMap({ variant = 'fixed' }: { variant?: 'fixed' | 'drawer' } 
     // villes en zone EXPLORÉE seulement, héros à soi ou EN VISION (helper partagé
     // `isHeroVisibleOnMap`). Sans ces filtres, la mini-carte révélait la position
     // temps réel des héros/villes ennemis sous le brouillard (grave en hot-seat).
-    const sightings = visionSightings(game);
+    const sightings = visionSightings(game).filter((v) => onLevel(v.pos));
     for (const town of game.towns) {
-      if (!explored[town.pos.y * width + town.pos.x]) continue;
+      if (!onLevel(town.pos)) continue;
+      if (!explored[base + town.pos.y * width + town.pos.x]) continue;
       dot(town.pos.x, town.pos.y, hex(playerColor(game.players, town.ownerPlayerId)));
     }
     for (const hero of game.heroes) {
-      if (!isHeroVisibleOnMap(hero, human, sightings)) continue;
+      if (!onLevel(hero.pos) || !isHeroVisibleOnMap(hero, human, sightings)) continue;
       dot(hero.pos.x, hero.pos.y, hex(playerColor(game.players, hero.playerId)));
     }
-  }, [game, map]);
+  }, [game, map, selectedHeroId]);
 
   if (!map) return null;
 

@@ -138,3 +138,42 @@ L10.3 suffit déjà à rendre le souterrain **jouable** sur carte éditée, L10.
     rejetée** — sinon un héros descendu y resterait piégé.
   - Tests : 5 cas dans `loader.test.ts` (contenu **172**), dont la carte plate
     qui doit rester sans `levels`.
+
+- **L10.3 livré (2026-09-01)** — le souterrain devient **jouable** (client).
+  - Principe tenu : **le rendu ignore les couches**. La scène demande au moteur
+    une **vue plate** de la couche active (`mapAtLevel`) et redessine ses calques
+    de terrain (tilemap, props, miroitement, brouillard, bordure de monde) quand
+    le héros sélectionné change de couche — un escalier par voyage, donc
+    reconstruire coûte moins cher qu'apprendre les couches à cinq calques.
+  - Entités filtrées par couche à chaque `sync` : objets de carte, villes, héros
+    rendus, **sources de vision** et marqueur du Graal. Sans le filtre des
+    sightings, le héros resté en surface aurait dissipé le brouillard souterrain.
+  - Brouillard et **mini-carte** lisent la tranche (`exploredAtLevel`). Piège
+    évité : `FogOverlay.update` se mémoïse sur l'**identité** du tableau — une
+    tranche fraîche à chaque sync aurait retesselé le voile à chaque setState.
+    D'où `exploredOnLevel`, mémoïsé par (référence, couche), qui rend le tableau
+    moteur **tel quel** sur une carte plate (coût nul pour tout l'existant).
+  - Entrées : la tuile tapée hérite de la couche du héros (`atLevel`) — les x/y
+    étant partagés, c'est ce qui empêche un chemin de viser la case du dessus ;
+    l'appui long lit `tileIndex` au lieu d'un index plat.
+  - UI : indicateur « Surface / Souterrain » dans la barre de tour, affiché
+    **seulement** si la carte a deux couches (sinon bruit permanent) ; locales
+    FR/EN.
+  - **Un correctif moteur nécessaire** : `validateMap` (`StartGame`) exigeait
+    `terrain.length === width × height` — une carte à deux couches était rejetée
+    d'entrée. La taille attendue compte désormais les niveaux. Aucune règle
+    nouvelle, aucune faction, **pas de bump `CURRENT_SAVE_VERSION`**, golden
+    inchangé.
+  - Contenu : carte `data/maps/proto-03` (16×16 — prairie en surface, caverne
+    creusée dans la roche dessous, **un** escalier en (8,2), or et gardien au
+    fond) + scénario « Les Profondeurs » (`underground`).
+  - Tests : engine **984** (+2 : `StartGame` accepte une carte à deux couches,
+    refuse une carte qui en annonce deux sans les données) ; smoke `@core`
+    « souterrain : descendre l'escalier, remonter » — indicateur + couche rendue
+    en surface, descente par l'escalier (`pos.level === 1`), **pas dans la roche
+    refusé** (preuve que c'est bien le terrain du dessous qui juge), remontée.
+  - Vérifié : typecheck (5 projets), lint, tests 984/172/85, `content:check`
+    (3 cartes, 21 scénarios), garde-fous faction et couleurs, build + budget
+    bundle 369 101 / 819 200 o gzip, smoke ciblé vert.
+  - Reste (L10.5) : `generateMap` ne produit toujours **qu'une couche** — les
+    parties générées n'ont pas de souterrain, seules les cartes éditées en ont.

@@ -14,6 +14,12 @@ import {
   type GridPos,
   type GuardianObjectDef,
   type HeroState,
+  atLevel,
+  exploredAtLevel,
+  levelOf,
+  mapAtLevel,
+  mapLevels,
+  tileIndex,
 } from '@heroes/engine';
 import { appStore } from '../../app/store';
 import { dispatch } from '../../app/dispatch';
@@ -117,11 +123,12 @@ export class AdventureScene {
   /** Marqueur « fouiller ici » posé sur la tuile du Graal une fois révélée (T-GRAIL lot 2). */
   private grailMarker: Container | null = null;
   private readonly towns = new TownsLayer(this.entities);
-  private readonly fog: FogOverlay;
-  private readonly tilemap: Tilemap;
+  /** Reconstruits à la bascule de couche (L10.3) — d'où l'absence de `readonly`. */
+  private fog: FogOverlay;
+  private tilemap: Tilemap;
   /** Voile de miroitement d'eau (I12) — présent seulement sur une carte aplatie. */
-  private readonly waterSheen: Container | null;
-  private readonly terrainProps: TerrainProps;
+  private waterSheen: Container | null;
+  private terrainProps: TerrainProps;
   private readonly preview = new PathPreview();
   private readonly heroSprites = new Map<string, Container>();
   /** Dernier état d'embarquement rendu par héros (A3.5b) : reconstruit le jeton au changement. */
@@ -134,6 +141,22 @@ export class AdventureScene {
     .ellipse(TILE_SIZE / 2, TILE_SIZE / 2, TILE_SIZE * 0.55, TILE_SIZE * 0.28)
     .stroke({ width: 3, color: 0xf1c40f });
   private previewTarget: { target: GridPos; path: GridPos[] } | null = null;
+  /**
+   * Couche affichée (L10.3) — celle du héros sélectionné. Le rendu ne connaît
+   * pas les couches : il reçoit une **vue plate** (`mapAtLevel`) et la
+   * reconstruit quand le héros descend ou remonte.
+   */
+  private activeLevel = 0;
+  /**
+   * Tranche `explored` de la couche active, mémoïsée par (référence d'état,
+   * couche) : `FogOverlay.update` se mémoïse sur l'IDENTITÉ du tableau — sans
+   * ce cache, découper à chaque sync retesselerait le brouillard à chaque
+   * setState. Carte à une seule couche ⇒ on passe le tableau moteur tel quel.
+   */
+  private exploredView: { src: readonly number[]; level: number; out: readonly number[] } | null =
+    null;
+  /** Bordure de monde du calque courant (reconstruite au changement de couche). */
+  private worldBorder: Container;
   private animatingHeroId: string | null = null;
   /**
    * Dernier joueur humain sur lequel la caméra a été centrée (UX multi-joueurs) :
@@ -156,19 +179,23 @@ export class AdventureScene {
     const { map } = appStore.getState().game;
     if (!map) throw new Error('AdventureScene requiert une partie démarrée');
 
-    const tilemap = new Tilemap(map);
+    // L10.3 : la scène dessine UNE couche à la fois — la vue plate de la couche
+    // active (surface au démarrage). Tout le rendu en aval reste inchangé.
+    const view = mapAtLevel(map, 0);
+    const tilemap = new Tilemap(view);
     this.tilemap = tilemap;
     // I12 : miroitement d'eau — seulement sur une carte APLATIE (petite/moyenne).
     // Sur une grande carte culée, la mer périmétrique suffit (anti-gel ×4 protégé).
-    this.waterSheen = tilemap.flattened ? buildWaterSheen(map) : null;
+    this.waterSheen = tilemap.flattened ? buildWaterSheen(view) : null;
     // Props de relief dans la couche d'entités triée (occlusion héros ↔ forêt/montagne).
-    this.terrainProps = new TerrainProps(map, this.entities);
-    this.fog = new FogOverlay(map);
+    this.terrainProps = new TerrainProps(view, this.entities);
+    this.fog = new FogOverlay(view);
+    this.worldBorder = buildWorldBorder(view);
     this.selectionRing.visible = false;
     this.entities.sortableChildren = true; // tri de profondeur iso INTER-couches
     this.entities.eventMode = 'none'; // aucune entité ne capte le pointeur
     this.container.addChild(
-      buildWorldBorder(map), // UXD-3A : mer + rivage sous la tuile (plus de letterbox noir)
+      this.worldBorder, // UXD-3A : mer + rivage sous la tuile (plus de letterbox noir)
       tilemap.container,
       ...(this.waterSheen ? [this.waterSheen] : []), // miroitement au-dessus de la tuile d'eau
       this.preview.container,
@@ -291,6 +318,62 @@ export class AdventureScene {
     return this.tilemap.stats();
   }
 
+  /**
+   * Bascule de couche (L10.3) : le héros a pris un escalier. On reconstruit les
+   * calques de TERRAIN sur la vue plate de la nouvelle couche — tilemap, props,
+   * miroitement, brouillard, bordure de monde. Les entités (objets, villes,
+   * héros) sont, elles, refiltrées à chaque `sync`. Rare par nature (un escalier
+   * par voyage) : reconstruire coûte moins cher que d'apprendre les couches à
+   * chaque calque.
+   */
+  private switchLevel(map: NonNullable<GameState['map']>, level: number): void {
+    this.activeLevel = level;
+    const view = mapAtLevel(map, level);
+
+    this.tilemap.container.destroy({ children: true });
+    this.terrainProps.destroy();
+    this.fog.graphics.destroy({ children: true });
+    this.waterSheen?.destroy();
+    this.worldBorder.destroy({ children: true });
+
+    const tilemap = new Tilemap(view);
+    this.tilemap = tilemap;
+    this.waterSheen = tilemap.flattened ? buildWaterSheen(view) : null;
+    this.terrainProps = new TerrainProps(view, this.entities);
+    this.fog = new FogOverlay(view);
+    this.worldBorder = buildWorldBorder(view);
+    // Même ordre de pile qu'à la construction — `addChildAt` place les calques
+    // de terrain SOUS les entités déjà présentes (jetons de héros, marqueurs).
+    this.container.addChildAt(this.worldBorder, 0);
+    this.container.addChildAt(tilemap.container, 1);
+    if (this.waterSheen) this.container.addChildAt(this.waterSheen, 2);
+    this.container.addChild(this.fog.graphics);
+    this.lastCull = { x: NaN, y: NaN, s: NaN, w: 0, h: 0 }; // force un culling neuf
+  }
+
+  /** Couche affichée (surface 0 / souterrain 1) — surface de test smoke. */
+  activeMapLevel(): number {
+    return this.activeLevel;
+  }
+
+  /**
+   * Tranche `explored` de la couche active. Carte à une seule couche : le
+   * tableau moteur tel quel (identité préservée ⇒ mémo du brouillard intact,
+   * coût nul pour toutes les cartes existantes). Carte à souterrain : découpe
+   * mémoïsée par (référence, couche).
+   */
+  private exploredOnLevel(
+    map: NonNullable<GameState['map']>,
+    explored: readonly number[],
+  ): readonly number[] {
+    if (mapLevels(map) === 1) return explored;
+    const cached = this.exploredView;
+    if (cached && cached.src === explored && cached.level === this.activeLevel) return cached.out;
+    const out = exploredAtLevel(map, explored, this.activeLevel);
+    this.exploredView = { src: explored, level: this.activeLevel, out };
+    return out;
+  }
+
   /** Références du dernier sync — dirty-check F1 (revue 2026-07). */
   private lastSync: { game: unknown; selectedHeroId: unknown; turnAck: unknown } | null = null;
 
@@ -311,18 +394,36 @@ export class AdventureScene {
     const { map, config } = game;
     const player = game.players.find((p) => p.id === humanId(game));
     if (!map || !config || !player) return;
+    // L10.3 : la couche RENDUE est celle du héros sélectionné. Prendre un
+    // escalier change `pos.level` ⇒ on reconstruit les calques de terrain, puis
+    // tout ce qui suit ne dessine que les entités de cette couche (le souterrain
+    // n'apparaît jamais à la surface, ni l'inverse).
+    const selectedPos = resolveSelectedHero(game, s.selectedHeroId)?.pos;
+    // Pendant l'animation des pas, l'état a déjà « sauté » à l'arrivée (doc 07
+    // §3) : basculer tout de suite ferait marcher le héros sur le décor de la
+    // couche d'arrivée. On garde la couche courante — `animateMove` resynchronise
+    // à la fin, et la bascule se fait là.
+    const level =
+      selectedPos && !this.animatingHeroId ? levelOf(selectedPos) : this.activeLevel;
+    if (level !== this.activeLevel) this.switchLevel(map, level);
+    const onLevel = (pos: GridPos): boolean => levelOf(pos) === this.activeLevel;
     this.objects.sync(
-      map.objects,
+      map.objects.filter((o) => onLevel(o.pos)),
       game.unitCatalog,
       (ownerId) => playerColor(game.players, ownerId),
       appStore.getState().strengthBands,
     );
-    this.towns.sync(game.towns, humanId(game), (ownerId) => playerColor(game.players, ownerId));
+    this.towns.sync(
+      game.towns.filter((tw) => onLevel(tw.pos)),
+      humanId(game),
+      (ownerId) => playerColor(game.players, ownerId),
+    );
     // Marqueur du Graal (T-GRAIL lot 2) : posé sur `grailPos` une fois révélé au
     // joueur (tous obélisques visités) et tant que non obtenu — guide vers la
     // tuile à fouiller (`Dig`).
     const gp = map.grailPos;
-    const showGrail = !!gp && !player.hasGrail && grailRevealedTo(map, player.obelisksVisited);
+    const showGrail =
+      !!gp && onLevel(gp) && !player.hasGrail && grailRevealedTo(map, player.obelisksVisited);
     if (showGrail && gp) {
       if (!this.grailMarker) {
         this.grailMarker = buildGrailMarker();
@@ -337,15 +438,21 @@ export class AdventureScene {
     }
     // Sources de vision vivante (héros + villes/mines possédées) : helper
     // PARTAGÉ avec la mini-carte (B11 — une seule implémentation, leçon CL9).
-    const sightings = visionSightings(game);
-    this.fog.update(player.explored, sightings);
+    const sightings = visionSightings(game).filter((v) => onLevel(v.pos));
+    this.fog.update(this.exploredOnLevel(map, player.explored), sightings);
 
     // Héros À DESSINER : ceux du joueur humain (toujours) + les héros adverses
     // actuellement en vision (sinon on ne pourrait jamais voir un ennemi pour
     // lancer un combat héros-vs-héros). La liste `heroes` ci-dessus reste la
     // source de VISION (brouillard) ; ne pas confondre les deux.
     const myId = humanId(game);
-    const renderedHeroes = game.heroes.filter((h) => isHeroVisibleOnMap(h, myId, sightings));
+    // Le héros EN COURS d'animation reste rendu même si son état le place déjà
+    // sur l'autre couche : son jeton est piloté par le tween en cours.
+    const renderedHeroes = game.heroes.filter(
+      (h) =>
+        (onLevel(h.pos) || h.id === this.animatingHeroId) &&
+        isHeroVisibleOnMap(h, myId, sightings),
+    );
 
     // Réconciliation des sprites de héros : supprime ceux disparus, crée ceux
     // manquants, repositionne tous sauf celui en cours d'animation.
@@ -385,7 +492,7 @@ export class AdventureScene {
     }
 
     const selected = resolveSelectedHero(game, appStore.getState().selectedHeroId);
-    this.selectionRing.visible = selected !== undefined;
+    this.selectionRing.visible = selected !== undefined && onLevel(selected.pos);
     if (selected) {
       const a = isoAnchor(selected.pos.x, selected.pos.y);
       this.selectionRing.position.set(a.x, a.y);
@@ -514,7 +621,10 @@ export class AdventureScene {
     if (!map || !config || !hero) return;
 
     const local = this.container.toLocal(global);
-    const tile: GridPos = isoWorldToTile(local.x, local.y);
+    // L10.3 : la tuile tapée appartient à la couche du héros qui va s'y rendre —
+    // sans quoi `samePos`/`findPath` la compareraient à la surface alors que le
+    // héros arpente le souterrain (les deux couches partagent les mêmes x/y).
+    const tile: GridPos = atLevel(isoWorldToTile(local.x, local.y), levelOf(hero.pos));
     // Ces deux sorties restent volontairement SANS message (R0/B5) : taper hors
     // carte ou sur son propre héros n'est pas une action refusée mais une
     // annulation de préviz — un toast y serait du bruit.
@@ -663,9 +773,9 @@ export class AdventureScene {
     const player = game.players.find((p) => p.id === humanId(game));
     if (!map || !player) return;
     const local = this.container.toLocal(global);
-    const tile: GridPos = isoWorldToTile(local.x, local.y);
+    const tile: GridPos = atLevel(isoWorldToTile(local.x, local.y), this.activeLevel);
     if (tile.x < 0 || tile.y < 0 || tile.x >= map.width || tile.y >= map.height) return;
-    if (!player.explored[tile.y * map.width + tile.x]) return;
+    if (!player.explored[tileIndex(map, tile)]) return;
     const object = map.objects.find((o) => samePos(o.pos, tile));
     if (object) appStore.setState({ mapCard: object });
   }
@@ -716,6 +826,7 @@ export class AdventureScene {
       }
     } finally {
       this.animatingHeroId = null;
+      this.lastSync = null; // force le sync ci-dessous (mêmes références qu'au dispatch)
       this.sync();
     }
   }

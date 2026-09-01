@@ -1041,6 +1041,19 @@ export const mapFileSchema = z.object({
   legend: z.record(z.string().length(1), idSchema),
   tiles: z.array(z.string()).min(1),
   roads: z.array(z.string()).min(1),
+  /**
+   * Souterrain (L10.2, doc 02 §2.1) : seconde couche de la carte, même largeur
+   * et même hauteur, même légende. Absent ⇒ carte plate (`levels: 1`), forme
+   * historique inchangée. Les objets choisissent leur couche par `level`, et on
+   * ne passe de l'une à l'autre que par une paire de **monolithes** dont les
+   * deux extrémités sont sur des couches différentes : un escalier.
+   */
+  underground: z
+    .object({
+      tiles: z.array(z.string()).min(1),
+      roads: z.array(z.string()).min(1),
+    })
+    .optional(),
   objects: z.array(
     z.discriminatedUnion('type', [
       z.object({
@@ -1048,6 +1061,8 @@ export const mapFileSchema = z.object({
         type: z.literal('resource'),
         x: z.number().int().nonnegative(),
         y: z.number().int().nonnegative(),
+        /** Couche (L10.2) : 0/absent = surface, 1 = souterrain. */
+        level: z.number().int().min(0).max(1).optional(),
         resource: z.enum(COMMON_RESOURCE_IDS),
         amount: z.number().int().positive(),
         /** Gardien lié (M-GUARDLINK, doc 02 §2.2) — id d'un objet `guardian` ; ramassage bloqué tant qu'il vit. */
@@ -1064,6 +1079,8 @@ export const mapFileSchema = z.object({
         type: z.literal('guardian'),
         x: z.number().int().nonnegative(),
         y: z.number().int().nonnegative(),
+        /** Couche (L10.2) : 0/absent = surface, 1 = souterrain. */
+        level: z.number().int().min(0).max(1).optional(),
         unitId: idSchema,
         count: z.number().int().positive(),
         roamRadius: z.number().int().positive().optional(),
@@ -1078,6 +1095,8 @@ export const mapFileSchema = z.object({
         type: z.literal('visitable'),
         x: z.number().int().nonnegative(),
         y: z.number().int().nonnegative(),
+        /** Couche (L10.2) : 0/absent = surface, 1 = souterrain. */
+        level: z.number().int().min(0).max(1).optional(),
         effect: z.discriminatedUnion('kind', [
           z.object({ kind: z.literal('luck'), amount: z.number().int().positive() }),
           /** Temple / point d'eau (M-VISIT, doc 02 §2.2) : +moral jusqu'au prochain combat. */
@@ -1118,6 +1137,8 @@ export const mapFileSchema = z.object({
         type: z.literal('dwelling'),
         x: z.number().int().nonnegative(),
         y: z.number().int().nonnegative(),
+        /** Couche (L10.2) : 0/absent = surface, 1 = souterrain. */
+        level: z.number().int().min(0).max(1).optional(),
         unitId: idSchema,
         stock: z.number().int().nonnegative().optional(),
       }),
@@ -1127,6 +1148,8 @@ export const mapFileSchema = z.object({
         type: z.literal('mine'),
         x: z.number().int().nonnegative(),
         y: z.number().int().nonnegative(),
+        /** Couche (L10.2) : 0/absent = surface, 1 = souterrain. */
+        level: z.number().int().min(0).max(1).optional(),
         resource: z.enum(COMMON_RESOURCE_IDS),
         amount: z.number().int().positive(),
       }),
@@ -1140,6 +1163,8 @@ export const mapFileSchema = z.object({
         type: z.literal('treasure'),
         x: z.number().int().nonnegative(),
         y: z.number().int().nonnegative(),
+        /** Couche (L10.2) : 0/absent = surface, 1 = souterrain. */
+        level: z.number().int().min(0).max(1).optional(),
         gold: z.number().int().nonnegative(),
         xp: z.number().int().nonnegative(),
         /** Gardien lié (M-GUARDLINK, doc 02 §2.2) — cf. objet `resource`. */
@@ -1151,6 +1176,8 @@ export const mapFileSchema = z.object({
         type: z.literal('artifact'),
         x: z.number().int().nonnegative(),
         y: z.number().int().nonnegative(),
+        /** Couche (L10.2) : 0/absent = surface, 1 = souterrain. */
+        level: z.number().int().min(0).max(1).optional(),
         artifactId: idSchema,
         /** Gardien lié (M-GUARDLINK, doc 02 §2.2) — cf. objet `resource`. */
         guardedBy: idSchema.optional(),
@@ -1164,6 +1191,8 @@ export const mapFileSchema = z.object({
         type: z.literal('monolith'),
         x: z.number().int().nonnegative(),
         y: z.number().int().nonnegative(),
+        /** Couche (L10.2) : 0/absent = surface, 1 = souterrain. */
+        level: z.number().int().min(0).max(1).optional(),
         pairId: idSchema,
       }),
       /**
@@ -1175,6 +1204,8 @@ export const mapFileSchema = z.object({
         type: z.literal('obelisk'),
         x: z.number().int().nonnegative(),
         y: z.number().int().nonnegative(),
+        /** Couche (L10.2) : 0/absent = surface, 1 = souterrain. */
+        level: z.number().int().min(0).max(1).optional(),
       }),
       /**
        * Bateau (A3.2, doc 18 A3) : posé sur une tuile d'eau, un héros à pied
@@ -1185,6 +1216,8 @@ export const mapFileSchema = z.object({
         type: z.literal('boat'),
         x: z.number().int().nonnegative(),
         y: z.number().int().nonnegative(),
+        /** Couche (L10.2) : 0/absent = surface, 1 = souterrain. */
+        level: z.number().int().min(0).max(1).optional(),
       }),
       /**
        * Ville (doc 02 §4, plan phase-3.1) — la ville de départ y référence son id.
@@ -1197,6 +1230,8 @@ export const mapFileSchema = z.object({
         type: z.literal('town'),
         x: z.number().int().nonnegative(),
         y: z.number().int().nonnegative(),
+        /** Couche (L10.2) : 0/absent = surface, 1 = souterrain. */
+        level: z.number().int().min(0).max(1).optional(),
         factionId: idSchema.optional(),
         garrison: z
           .array(z.object({ unitId: idSchema, count: z.number().int().positive() }))
@@ -1222,6 +1257,8 @@ export const mapFileSchema = z.object({
             kind: z.literal('visit'),
             x: z.number().int().nonnegative(),
             y: z.number().int().nonnegative(),
+        /** Couche (L10.2) : 0/absent = surface, 1 = souterrain. */
+        level: z.number().int().min(0).max(1).optional(),
           }),
           z.object({ kind: z.literal('day'), day: z.number().int().positive() }),
           // Doc 18 A5 — capture de drapeau : déclenché quand l'objet/ville
@@ -1509,6 +1546,8 @@ export const scenarioSchema = z
               id: idSchema,
               x: z.number().int().nonnegative(),
               y: z.number().int().nonnegative(),
+        /** Couche (L10.2) : 0/absent = surface, 1 = souterrain. */
+        level: z.number().int().min(0).max(1).optional(),
               prebuilt: z
                 .array(z.object({ building: buildingIdSchema, level: z.number().int().positive() }))
                 .min(1),

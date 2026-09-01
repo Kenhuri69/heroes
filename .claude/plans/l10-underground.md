@@ -62,7 +62,7 @@ interface AdventureMapDef {
    `tileIndex`, `createFog`, A\* qui refuse l'inter-couche. Cartes existantes =
    `levels: 1` ⇒ **comportement identique**. Bump save + golden re-fixé **une
    fois**. → verify: unitaires d'indexation/brouillard/chemin, golden re-fixé.
-2. **L10.2 — escaliers en données** : objet `stairs` (monolithe inter-couches),
+2. ✅ **L10.2 — escaliers en données** : objet `stairs` (monolithe inter-couches),
    validation croisée « exactement 2 par `pairId`, sur des couches distinctes ».
    → verify: unitaires de téléportation + `content:check`.
 3. **L10.3 — carte éditée à deux couches** : `proto-03` avec un souterrain
@@ -121,3 +121,20 @@ L10.3 suffit déjà à rendre le souterrain **jouable** sur carte éditée, L10.
     carte plate inchangée, superposition non adjacente, brouillard par couche,
     chemin confiné, et la preuve d'indépendance : un mur infranchissable en
     surface n'empêche pas le trajet souterrain.
+
+- **L10.2 livré (2026-09-01)** — le pipeline de contenu sait décrire un souterrain.
+  - Format : bloc `underground { tiles, roads }` (mêmes dimensions, même
+    légende) plutôt qu'un doublement des tableaux existants — les cartes plates
+    ne bougent pas d'un octet. Le loader **empile** et pose `levels: 2`.
+  - `level` sur chaque variante d'objet (13 au total), résolu en `pos.level` ;
+    un objet de surface garde une position **sans** champ (forme historique).
+  - **L'escalier n'est pas un type d'objet** : c'est une paire de monolithes
+    dont les extrémités changent de couche. Le téléport apparié de M-NAV (a)
+    fait déjà le travail dans les deux sens — zéro règle moteur nouvelle,
+    exactement ce que le cadrage promettait.
+  - Validation croisée : rangées/légende du souterrain, franchissabilité **de la
+    couche de l'objet** (un mur sous terre ne juge pas la surface), objet en
+    couche 1 refusé sans souterrain, et **carte à souterrain sans escalier
+    rejetée** — sinon un héros descendu y resterait piégé.
+  - Tests : 5 cas dans `loader.test.ts` (contenu **172**), dont la carte plate
+    qui doit rester sans `levels`.

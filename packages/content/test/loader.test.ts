@@ -438,6 +438,73 @@ describe('loadContent', () => {
   });
 });
 
+/** Variante à deux couches : surface + souterrain reliés par un escalier. */
+function makeTwoLevelMap(): Record<string, unknown> {
+  return {
+    ...makeMap(),
+    underground: { tiles: ['gggg', 'gggg', 'gggg'], roads: ['0000', '0000', '0000'] },
+    objects: [
+      { id: 'stair-down', type: 'monolith', x: 0, y: 2, pairId: 'stair-a' },
+      { id: 'stair-up', type: 'monolith', x: 0, y: 2, pairId: 'stair-a', level: 1 },
+      { id: 'gold-deep', type: 'resource', x: 3, y: 1, resource: 'gold', amount: 500, level: 1 },
+    ],
+  };
+}
+
+describe('loadMap — souterrain (L10.2)', () => {
+  it('empile les couches et estampille les objets du dessous', async () => {
+    const data = makeData();
+    data['maps/mini.map.json'] = makeTwoLevelMap();
+    const map = await loadMap(reader(data), 'mini', makeConfig());
+
+    expect(map.levels).toBe(2);
+    expect(map.terrain).toHaveLength(4 * 3 * 2);
+    // La case (2,1) est de l'eau en surface, de l'herbe dessous.
+    expect(map.terrain[1 * 4 + 2]).toBe('water');
+    expect(map.terrain[4 * 3 + 1 * 4 + 2]).toBe('grass');
+    expect(map.road).toHaveLength(4 * 3 * 2);
+
+    const deep = map.objects.find((o) => o.id === 'gold-deep');
+    expect(deep?.pos).toEqual({ x: 3, y: 1, level: 1 });
+    // Un objet de surface n'a PAS de champ `level` (forme historique intacte).
+    expect(map.objects.find((o) => o.id === 'stair-down')?.pos).toEqual({ x: 0, y: 2 });
+  });
+
+  it('une carte plate reste plate (aucun champ `levels`)', async () => {
+    const map = await loadMap(reader(makeData()), 'mini', makeConfig());
+    expect(map.levels).toBeUndefined();
+    expect(map.terrain).toHaveLength(4 * 3);
+  });
+
+  it('refuse un souterrain sans escalier — un héros descendu y resterait piégé', async () => {
+    const data = makeData();
+    const map = makeTwoLevelMap();
+    // Les deux monolithes sur la MÊME couche : c'est un téléport, pas un escalier.
+    (map.objects as { level?: number }[])[1]!.level = 0;
+    (map.objects as { x: number }[])[1]!.x = 2;
+    data['maps/mini.map.json'] = map;
+    await expect(loadMap(reader(data), 'mini', makeConfig())).rejects.toThrow(/escalier/);
+  });
+
+  it('refuse un objet en couche 1 sur une carte sans souterrain', async () => {
+    const data = makeData();
+    const map = makeMap();
+    (map.objects as unknown[]).push({ id: 'orphan', type: 'resource', x: 1, y: 1, resource: 'gold', amount: 1, level: 1 });
+    data['maps/mini.map.json'] = map;
+    await expect(loadMap(reader(data), 'mini', makeConfig())).rejects.toThrow(/couche 1/);
+  });
+
+  it('valide la franchissabilité SOUS terre, pas celle de la surface', async () => {
+    const data = makeData();
+    const map = makeTwoLevelMap();
+    // Un mur d'eau sous terre en (1,1) : l'objet qu'on y pose doit être refusé…
+    (map.underground as { tiles: string[] }).tiles = ['gggg', 'gwgg', 'gggg'];
+    (map.objects as unknown[]).push({ id: 'sunk', type: 'resource', x: 1, y: 1, resource: 'gold', amount: 1, level: 1 });
+    data['maps/mini.map.json'] = map;
+    await expect(loadMap(reader(data), 'mini', makeConfig())).rejects.toThrow(/infranchissable/);
+  });
+});
+
 describe('loadMap', () => {
   it('résout légende, routes et objets vers la forme moteur', async () => {
     const map = await loadMap(reader(makeData()), 'mini', makeConfig());

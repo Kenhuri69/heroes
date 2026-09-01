@@ -910,6 +910,18 @@ threadé en `heroId` dans `CastSpell`/`HeroAttack` — sinon le lead par défaut
 > carte plate se comporte exactement comme avant : **pas de bump
 > `CURRENT_SAVE_VERSION`**, golden inchangé.
 >
+> **Format de carte (L10.2)** : un fichier `*.map.json` décrit son souterrain
+> par un bloc `underground { tiles, roads }` (mêmes dimensions, même légende) ;
+> le loader **empile** les deux couches et pose `levels: 2`. Chaque objet choisit
+> sa couche par `level` (`0`/absent = surface). **Un escalier n'est pas un
+> nouveau type d'objet** : c'est une paire de **monolithes** dont les deux
+> extrémités sont sur des couches différentes — le téléport apparié livré en
+> M-NAV (a) fait déjà le travail, dans les deux sens. Le contenu valide en
+> conséquence : rangées et légende du souterrain, franchissabilité **de la
+> couche de l'objet**, objet en couche 1 refusé sur une carte plate, et surtout
+> **une carte à souterrain sans escalier est rejetée** (un héros descendu y
+> resterait piégé).
+>
 > 🤝 **Alliances / équipes** (save v13) : `PlayerState.team` (entier opaque —
 > `0` = **sans alliance**, comportement chacun-pour-soi historique ; même n°
 > **non nul** = alliés, `areAllies`). Deux alliés **ne s'assiègent pas**

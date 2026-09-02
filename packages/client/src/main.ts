@@ -26,7 +26,7 @@ import {
 } from './app/game';
 import { dispatch, installAiResume } from './app/dispatch';
 import { appStore } from './app/store';
-import { createMatch } from './app/net';
+import { createMatch, verifyMagicLink } from './app/net';
 import { navigate } from './app/router';
 import { exportSave, importSave, saveGame, restoreSavedGame, encodeHeroesFile } from './app/save';
 import { installAutosave } from './app/autosave';
@@ -536,6 +536,21 @@ async function bootstrap(): Promise<void> {
   if (!uiRoot) throw new Error('missing #ui-root');
   mountUi(uiRoot);
 
+  // Revue 2026-09 (S3) : le lien du magic-link ramène à l'app avec `?auth=<jeton>`
+  // — vérifié ici (session ouverte), puis retiré de l'URL (un rechargement ne
+  // rejoue pas un jeton déjà consommé).
+  const authToken = new URLSearchParams(location.search).get('auth');
+  if (authToken) {
+    try {
+      await verifyMagicLink(authToken);
+      pushToast(t('toast.loginOk'), 'success');
+    } catch {
+      pushToast(t('toast.loginError'), 'error');
+    }
+    const clean = new URL(location.href);
+    clean.searchParams.delete('auth');
+    history.replaceState(null, '', clean.toString());
+  }
   // `?seed=N` : partie directe reproductible (smoke) ; `#arena` : + combat.
   const seedParam = Number(new URLSearchParams(location.search).get('seed'));
   if (Number.isInteger(seedParam) && seedParam > 0) {

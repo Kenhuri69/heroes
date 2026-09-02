@@ -642,6 +642,8 @@
   "toast.gameLoaded": "Partie chargée",
   "toast.saveFailed": "Échec de la sauvegarde — stockage indisponible",
   "toast.loadError": "Chargement impossible — sauvegarde absente ou illisible",
+  "toast.loginOk": "Connecté — session en ligne ouverte",
+  "toast.loginError": "Lien de connexion invalide ou expiré",
   "toast.aiTurnFailed": "Le tour de l'adversaire a échoué — votre tour vous est rendu.",
   "toast.aiTurnBlocked": "Le tour de l'adversaire a échoué — partie bloquée.",
   "toast.aiTurnInProgress": "Tour de l'adversaire en cours…",

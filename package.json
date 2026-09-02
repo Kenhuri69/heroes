@@ -7,12 +7,14 @@
   },
   "packageManager": "pnpm@10.33.0",
   "pnpm": {
-    "onlyBuiltDependencies": ["esbuild"]
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
   },
   "scripts": {
     "typecheck": "pnpm -r --if-present typecheck",
     "lint": "eslint .",
-    "test": "pnpm --filter @heroes/engine --filter @heroes/content --filter @heroes/client test",
+    "test": "pnpm --filter @heroes/engine --filter @heroes/content --filter @heroes/client --filter @heroes/server test",
     "build": "pnpm --filter @heroes/client build",
     "dev": "pnpm --filter @heroes/client dev",
     "smoke": "playwright test",

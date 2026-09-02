@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS matches (
   id         TEXT PRIMARY KEY,
   seed       INTEGER NOT NULL,
   setup      TEXT NOT NULL,             -- commande StartGame (JSON)
-  status     TEXT NOT NULL DEFAULT 'open',   -- open | active | finished
+  status     TEXT NOT NULL DEFAULT 'open',   -- open | active | finished | abandoned (expiration paresseuse / forfait)
   created_by TEXT NOT NULL REFERENCES profiles(id),
   created_at INTEGER NOT NULL
 );

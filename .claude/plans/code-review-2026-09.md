@@ -320,3 +320,24 @@ visiteur ; mise à jour des dépendances majeures.
   (2), mapgen (2) ; fixture scénario corrigée (sa balliste tirait sans `shooter`
   au catalogue — attrapé par D7). Vérif : typecheck, lint, contenu **184 tests
   (+8)**, moteur 1009, `content:check` vert (7 paquets, 3 cartes, 21 scénarios).
+  **Mesure `faction:sim` après D2** (terrain neutre) : **3 béances** au duel au
+  lieu d'1 — haven-vs-necropolis 14,6 %, haven-vs-dungeon 84,6 %, AH-vs-dungeon
+  84,2 % : la passe 2 d'équilibrage avait été calibrée sur la mesure biaisée
+  (+1 vit./+1 moral Haven & Vox sur `grass`). Re-tuning = décision de design,
+  hors périmètre de cette revue ; le sim n'est pas un gate CI.
+- [x] **R8 livré** — **harnais Worker** : `server/test/worker.test.ts` sous
+  `@cloudflare/vitest-pool-workers` (workerd + D1 Miniflare, schéma appliqué par
+  le test, mode dev via bindings de test) — **10 tests** qui exercent en HTTP
+  S1/S2/S3/S5/S7/S9/S10/S11/S12/S13 ; branché à `pnpm test` (CI). Ce paquet
+  passe à **vitest 4** (exigé par le pool ; les autres paquets restent en 3.2).
+  S3 : lien e-mail ⇒ `${APP_ORIGIN}/heroes/?auth=<jeton>`, le client vérifie au
+  boot (`toast.loginOk/Error`) et nettoie l'URL. S4(1) : `appendTurn` rend l'état
+  ⇒ plus de second rejeu ; S4(2) snapshot par partie **différé** (migration D1
+  prod). S7 `Content-Length` puis octets réels ; S8 `DB.batch()` (3 séquences) ;
+  S9 lobbies `open` périmés exclus (matchmaking, liste, `effectiveStatus`) ; S11
+  e-mail normalisé/validé ; S12 500 opaques + UNIQUE ⇒ 409 ; S13 setup validé
+  (rejeu, 2–4 humains, seed) + borne 2 Mo dédiée ; en-têtes `no-store`/`nosniff`/
+  `Vary`. Doc 15 §5.1/§6/§8/§9 alignée. **Incident de chantier** : une
+  substitution regex trop large a supprimé ~150 lignes de routes, restaurées à
+  l'identique dans la même session (inventaire de routes HEAD ↔ courant vérifié,
+  typecheck + 10 tests verts).

@@ -642,6 +642,8 @@
   "toast.gameLoaded": "Game loaded",
   "toast.saveFailed": "Save failed — storage unavailable",
   "toast.loadError": "Unable to load — save missing or unreadable",
+  "toast.loginOk": "Signed in — online session opened",
+  "toast.loginError": "Sign-in link invalid or expired",
   "toast.aiTurnFailed": "The opponent's turn failed — your turn has been restored.",
   "toast.aiTurnBlocked": "The opponent's turn failed — the game is stuck.",
   "toast.aiTurnInProgress": "Opponent's turn in progress…",

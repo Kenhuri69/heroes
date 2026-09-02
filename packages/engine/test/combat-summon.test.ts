@@ -1,5 +1,8 @@
+import { produce } from 'immer';
 import { describe, expect, it } from 'vitest';
 import { apply, validate } from '../src/core/engine';
+import { checkCombatEnd } from '../src/combat/turns';
+import type { GameEvent } from '../src/core/events';
 import { estimateSpell } from '../src/hero';
 import { seedRng } from '../src/core/rng';
 import { createEmptyState, type GameState, type HeroState } from '../src/core/state';
@@ -97,5 +100,28 @@ describe('H-SPELLS.4+ — Invocation (summon)', () => {
     expect(elems).toHaveLength(2); // l'existante + la nouvelle
     expect(new Set(elems.map((s) => s.id)).size).toBe(2); // ids distincts, pas d'écrasement
     expect(elems.some((s) => s.id === 'attacker-100')).toBe(true); // l'existante préservée
+  });
+});
+
+describe('Revue 2026-09 (M2) — une invocation ne survit pas à la bataille', () => {
+  it('victoire après summon ⇒ l’armée reconstruite du héros ne contient pas la créature invoquée', () => {
+    const base = summonState(3); // invoque 5 élémentaires
+    const cast = apply(base, { type: 'CastSpell', spellId: 'sum-spell', targetStackId: 'attacker-0' }).state;
+    expect(cast.combat?.stacks.some((s) => s.unitId === 'elem')).toBe(true);
+    // Le combat porte le héros joueur (conséquences appliquées) ; armée de départ = la pile alliée.
+    const withHero: GameState = {
+      ...cast,
+      combat: { ...(cast.combat as CombatState), heroId: 'hero-a' },
+      heroes: cast.heroes.map((h) => ({ ...h, army: [{ unitId: 'ally', count: 3 }] })),
+    };
+    const events: GameEvent[] = [];
+    const next = produce(withHero, (draft) => {
+      for (const s of draft.combat!.stacks) if (s.side === 'defender') s.count = 0; // anéanti
+      checkCombatEnd(draft, events);
+    });
+    expect(next.combat).toBeNull();
+    const army = next.heroes.find((h) => h.id === 'hero-a')?.army ?? [];
+    expect(army).toEqual([{ unitId: 'ally', count: 3 }]); // ni doublon, ni 'elem'
+    expect(army.some((s) => s.unitId === 'elem')).toBe(false);
   });
 });

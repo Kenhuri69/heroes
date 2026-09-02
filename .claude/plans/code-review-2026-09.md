@@ -219,3 +219,19 @@ visiteur ; mise à jour des dépendances majeures.
   `deploy-worker.yml` étendus à `packages/engine/**` + lockfile ; doc 15 §5.1/§10
   alignée. Vérif : typecheck 5/5, lint, `match.test` 6/6. Le Worker n'a toujours
   pas de harnais (R8) ⇒ S2/S5/S10 vérifiés par relecture SQL seulement.
+- [x] **R2 livré** — helper partagé `combat/army-rebuild.ts` (`rebuildArmyFromSurvivors`
+  : fusion par `unitId`, exclusion machines + **invocations**, routage par
+  propriétaire) consommé par victoire, H-vs-H, abandon et reddition (M2/M3/M4).
+  **Décision M2** : les invocations sont identifiées par **dérivation**
+  (`summonedUnitIds` = `spell.summon.unit.id` du catalogue) plutôt que par un
+  champ `CombatStack.summoned` ⇒ **aucun bump `CURRENT_SAVE_VERSION`** (la
+  convention v28/v35 bumpe même pour un champ optionnel — évité). M1 : ville
+  sans garnison/tour occupée par un héros non allié ⇒ `beginHeroCombat` (siège
+  garnison + héros visiteur toujours différé ; le héros présent continue de
+  renforcer le mur, F-HOUSES intact) + IA exclut ces villes. M7 `absorbShield`
+  sur la frappe du héros ; M8 poison ⇒ `handleStackDeath` (cimetière) ; M9
+  `hostileSpellSkip` partagé préviz/résolution (zone/chaîne épargnent
+  immunes/furtives) ; M10 `hero/landing.ts` (`landingTileFor` extrait, tuile de
+  ville = occupation seule, voisines franchissables) réutilisé par le portail et
+  le recrutement. 8 tests ajoutés (un par constat). Vérif : typecheck, lint,
+  **1000 tests moteur (+12), golden inchangé**, contenu 176, client 92.

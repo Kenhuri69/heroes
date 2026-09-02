@@ -1,7 +1,7 @@
 import { isAdjacent, samePos } from '../adventure/map';
 import { fireFlagCaptureTrigger } from '../adventure/triggers';
 import { revealStructure } from '../adventure/vision';
-import { beginTownCombat, wouldSpawnSiegeTower } from '../combat/setup';
+import { beginHeroCombat, beginTownCombat, wouldSpawnSiegeTower } from '../combat/setup';
 import type { Command, CommandError } from '../core/commands';
 import type { GameEvent } from '../core/events';
 import { areAllies, type GameState, type HeroState } from '../core/state';
@@ -20,6 +20,21 @@ function attackingHero(state: GameState, town: TownState, playerId: string): Her
   return state.heroes.find(
     (h) => h.playerId === playerId && (samePos(h.pos, town.pos) || isAdjacent(h.pos, town.pos)),
   );
+}
+
+/**
+ * Revue 2026-09 (M1) : héros NON allié posté SUR la ville — il la défend. Sans
+ * cette notion, une ville sans garnison mais occupée par le héros adverse (cas
+ * typique du 1ᵉʳ jour : héros de départ dans sa ville) était capturée SANS combat
+ * par un héros adjacent, le défenseur restant debout sur une ville ennemie.
+ */
+function defendingHero(state: GameState, town: TownState, playerId: string): HeroState | undefined {
+  const self = state.players.find((p) => p.id === playerId);
+  return state.heroes.find((h) => {
+    if (h.playerId === playerId || !samePos(h.pos, town.pos)) return false;
+    const owner = state.players.find((p) => p.id === h.playerId);
+    return !(owner && self && areAllies(owner, self));
+  });
 }
 
 /**
@@ -66,7 +81,10 @@ export function validateCaptureTown(state: GameState, cmd: CaptureCmd): CommandE
   // Ville défendue (garnison OU tour de tir d'un Château, C-SIEGE2.7a) : le héros
   // a besoin d'une armée pour l'assiéger — un héros sans troupe ne prend pas une
   // ville tour-défendue pour rien.
-  const defended = town.garrison.length > 0 || wouldSpawnSiegeTower(town.buildings['fort'] ?? 0, state.unitCatalog);
+  const defended =
+    town.garrison.length > 0 ||
+    wouldSpawnSiegeTower(town.buildings['fort'] ?? 0, state.unitCatalog) ||
+    defendingHero(state, town, cmd.playerId) !== undefined;
   if (defended && hero.army.length === 0)
     return { code: 'invalidArmy', message: `armée vide : impossible d'assiéger '${cmd.townId}'` };
   return null;
@@ -78,11 +96,22 @@ export function handleCaptureTown(draft: GameState, cmd: CaptureCmd, events: Gam
   // C-SIEGE2 : le niveau de Fort dresse un rempart sur la grille de siège.
   const fortLevel = town.buildings['fort'] ?? 0;
   // Ville défendue par une garnison OU par la seule tour de tir d'un Château
-  // (C-SIEGE2.7a) ⇒ siège. La capture suit la victoire (`applyConsequences`).
+  // (C-SIEGE2.7a) ⇒ siège. La capture suit la victoire (`applyConsequences`). Un
+  // héros du propriétaire présent renforce le mur (F-HOUSES) sans combattre —
+  // le siège « garnison + héros visiteur » reste différé (doc 02 §4.1).
   if (town.garrison.length > 0 || wouldSpawnSiegeTower(fortLevel, draft.unitCatalog)) {
     const hero = attackingHero(draft, town, cmd.playerId);
     if (hero)
       beginTownCombat(draft, hero.id, town.id, wallDefenseBonus(draft, town), fortLevel, events, cmd.allyHeroId);
+    return;
+  }
+  // M1 : ville SANS garnison ni tour mais occupée par un héros ennemi ⇒ il la
+  // défend : combat héros-vs-héros (H-VS-H) au lieu d'une capture gratuite. La
+  // ville reste à prendre ensuite (nouvelle commande, vide si le défenseur meurt).
+  const defender = defendingHero(draft, town, cmd.playerId);
+  if (defender) {
+    const hero = attackingHero(draft, town, cmd.playerId);
+    if (hero) beginHeroCombat(draft, hero.id, defender.id, events);
     return;
   }
   town.ownerPlayerId = cmd.playerId;

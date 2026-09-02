@@ -1,10 +1,9 @@
 import { revealAround } from '../adventure/fog';
 import { applySkillChoice } from './level-up';
-import { DIRECTIONS, atLevel, levelOf, samePos, type GridPos } from '../adventure/map';
-import { isPassable } from '../adventure/path';
+import { landingTileFor } from './landing';
 import { heroArmyMagicResistance, heroLuckValue, killsFromDamage, magicResistanceOf } from '../combat/damage';
 import { checkCombatEnd } from '../combat/turns';
-import { applySpellToTargets, bestGraveEntry, chainTargets, resurrectFullCount, spellTargets, spellcasterParams } from '../combat/spell-effect';
+import { applySpellToTargets, bestGraveEntry, chainTargets, hostileSpellSkip, resurrectFullCount, spellTargets, spellcasterParams } from '../combat/spell-effect';
 import { factionCurseDurationBonus, factionSpellDamageMods, heroActionLeftFor, heroesOnSide, isStackSpellImmune, staticBlockedKeys } from '../combat/state-helpers';
 import {
   COMBAT_COLS,
@@ -172,25 +171,6 @@ type CastAdventureSpellCmd = Extract<Command, { type: 'CastAdventureSpell' }>;
 /** Villes possédées par le joueur (`townPortal` ne cible qu'une ville à soi). */
 function ownedTowns(state: GameState, playerId: string): TownState[] {
   return state.towns.filter((t) => t.ownerPlayerId === playerId);
-}
-
-/**
- * B4 — tuile d'arrivée d'un `townPortal` sans superposer deux héros : la tuile de
- * la ville si elle est franchissable et libre, sinon la 1ʳᵉ voisine (8 dir)
- * franchissable et libre ; `null` si aucune (le portail avorte, cas extrême).
- */
-function landingTileFor(draft: GameState, target: GridPos, heroId: string): GridPos | null {
-  const map = draft.map;
-  const config = draft.config;
-  if (!map || !config) return null;
-  const free = (p: GridPos): boolean =>
-    isPassable(config, map, p) && !draft.heroes.some((h) => h.id !== heroId && samePos(h.pos, p));
-  if (free(target)) return target;
-  for (const d of DIRECTIONS) {
-    const p = atLevel({ x: target.x + d.x, y: target.y + d.y }, levelOf(target));
-    if (free(p)) return p;
-  }
-  return null;
 }
 
 /** Ville possédée la plus proche du héros (distance de Tchebychev ; ordre stable). */
@@ -494,8 +474,9 @@ export function spellAffectedStacks(
   const spell = state.spellCatalog[spellId];
   const center = combat.stacks.find((s) => s.id === centerStackId);
   if (!spell || !center) return [];
-  if (spell.kind === 'damage' && spell.chain) return chainTargets(combat, center, spell.chain.jumps);
-  return spellTargets(combat, spell.area, center);
+  const skip = hostileSpellSkip(state, combat, spell.kind);
+  if (spell.kind === 'damage' && spell.chain) return chainTargets(combat, center, spell.chain.jumps, skip);
+  return spellTargets(combat, spell.area, center, skip);
 }
 
 /**
@@ -534,15 +515,17 @@ function estimateSpellWithPower(
   const target = combat.stacks.find((s) => s.id === targetStackId);
   if (!target) throw new Error(`estimateSpell: cible introuvable '${targetStackId}'`);
 
-  // C7 : la préviz agrège la zone d'effet (cible + adjacentes en `splash`).
-  const affected = spellTargets(combat, spell.area, target);
+  // C7 : la préviz agrège la zone d'effet (cible + adjacentes en `splash`) —
+  // en épargnant, comme la résolution, les piles inciblables par un sort hostile (M9).
+  const skip = hostileSpellSkip(state, combat, spell.kind);
+  const affected = spellTargets(combat, spell.area, target, skip);
 
   if (spell.kind === 'damage') {
     let amount = 0;
     let kills = 0;
     // H-SPELLS.4 (chaîne) : la préviz agrège la cible + les rebonds décroissants.
     const hits = spell.chain
-      ? chainTargets(combat, target, spell.chain.jumps).map((t, i) => ({
+      ? chainTargets(combat, target, spell.chain.jumps, skip).map((t, i) => ({
           t,
           mult: Math.pow(1 - spell.chain!.falloffPct / 100, i),
         }))

@@ -127,3 +127,28 @@ describe('C7 — sort de zone (splash)', () => {
     expect(est.kills).toBe(4);
   });
 });
+
+describe('Revue 2026-09 (M9) — une pile immunisée aux sorts est épargnée par la zone', () => {
+  function withImmuneAdjacent(): GameState {
+    const s = stateWith();
+    s.unitCatalog = { ...s.unitCatalog, tower: { ...unit('tower'), abilities: [{ id: 'spellImmune' }] } };
+    s.combat = {
+      ...(s.combat as CombatState),
+      stacks: (s.combat as CombatState).stacks.map((st) => (st.id === 'adjacent' ? { ...st, unitId: 'tower' } : st)),
+    };
+    return s;
+  }
+
+  it('résolution : la Boule de feu touche le centre, pas la pile spellImmune adjacente', () => {
+    const { state: next } = apply(withImmuneAdjacent(), { type: 'CastSpell', spellId: 'fireball', targetStackId: 'center' });
+    const by = (id: string) => next.combat?.stacks.find((s) => s.id === id);
+    expect(by('center')?.count).toBe(3);
+    expect(by('adjacent')?.count).toBe(5); // intacte
+  });
+
+  it('prévisualisation = résolution (une seule pile agrégée)', () => {
+    const est = estimateSpell(withImmuneAdjacent(), 'fireball', 'center');
+    expect(est.amount).toBe(20);
+    expect(est.kills).toBe(2);
+  });
+});

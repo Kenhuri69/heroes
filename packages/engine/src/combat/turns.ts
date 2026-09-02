@@ -9,8 +9,9 @@ import type { GameEvent } from '../core/events';
 import { armyStrength } from '../core/power';
 import { rollRange } from '../core/rng';
 import { evaluateOutcome } from '../scenario/outcome';
-import { tryRebirth } from './death';
+import { handleStackDeath } from './death';
 import type { Draft } from './draft';
+import { rebuildArmyFromSurvivors, sideOwnerHeroIds } from './army-rebuild';
 import { collectCasualties, collectSurvivors, combatRules, compareInitiative, hasAbility, moraleOf, otherSide, recordLoss, recordRevive, stackLostSoFar } from './state-helpers';
 import { COMBAT_ROWS } from './hex';
 import type { CombatSideId, CombatStack, CombatState } from './types';
@@ -44,7 +45,9 @@ function applyPoisonTicks(draft: Draft, events: GameEvent[]): boolean {
   const combat = draft.combat;
   if (!combat) return false;
   let anyDeath = false;
-  for (const stack of combat.stacks) {
+  // Copie du tableau : `handleStackDeath` retire la pile morte du plateau pendant
+  // l'itération (revue 2026-09 M8 — mort CENTRALISÉE, cimetière alimenté).
+  for (const stack of [...combat.stacks]) {
     if (stack.count <= 0) continue;
     const poison = stack.statuses.reduce((sum, st) => sum + Math.max(0, st.damagePerRound), 0);
     if (poison <= 0) continue;
@@ -58,16 +61,14 @@ function applyPoisonTicks(draft: Draft, events: GameEvent[]): boolean {
     stack.firstHp = newCount > 0 ? remaining - (newCount - 1) * def.stats.hp : 0;
     recordLoss(combat, stack, kills);
     events.push({ type: 'StackPoisoned', stackId: stack.id, damage: Math.min(poison, pool), kills });
-    if (newCount <= 0 && !tryRebirth(combat, stack, def, events)) {
-      // Renaissance (CAP-LIFE.2) : si la pile ne renaît pas, elle meurt — le splice
-      // reste batché après la boucle (on itère `combat.stacks`).
-      events.push({ type: 'StackDied', stackId: stack.id });
-      anyDeath = true;
-    }
-  }
-  if (anyDeath) {
-    for (let i = combat.stacks.length - 1; i >= 0; i--) {
-      if ((combat.stacks[i] as CombatStack).count <= 0) combat.stacks.splice(i, 1);
+    if (newCount <= 0) {
+      // Mort centralisée (CAP-LIFE.2 / M8) : renaissance éventuelle, sinon
+      // `StackDied` + entrée de CIMETIÈRE + retrait — une pile tuée par le poison
+      // était jusqu'ici irrelevable (aucun `graveyard`), contrairement à la même
+      // mort par frappe.
+      const before = combat.stacks.length;
+      handleStackDeath(combat, stack, def, events);
+      if (combat.stacks.length < before) anyDeath = true;
     }
   }
   return anyDeath;
@@ -387,10 +388,9 @@ function applyHeroVsHeroConsequences(
   const winnerHero = draft.heroes.find((h) => h.id === winnerId);
   const loserHero = draft.heroes.find((h) => h.id === loserId);
   if (!winnerHero || !loserHero) return;
-  // Armée du vainqueur = survivants de SON camp (machines de guerre exclues).
-  winnerHero.army = combat.stacks
-    .filter((s) => s.side === winner && s.count > 0 && !winnerHero.warMachines.includes(s.unitId))
-    .map((s) => ({ unitId: s.unitId, count: s.count }));
+  // Armée du vainqueur = survivants de SON camp (machines de guerre et
+  // invocations exclues, doublons fusionnés — helper partagé, revue 2026-09).
+  winnerHero.army = rebuildArmyFromSurvivors(draft, combat, winner, winnerHero.id, winnerHero.id, winnerHero.warMachines);
   // B5 : le camp vaincu est l'AUTRE camp — le vainqueur peut être défenseur.
   applyFactionVictoryEffects(draft, combat, winnerHero, _casualties, otherSide(winner), events);
   // Dépouille : artefacts du vaincu → slots libres du vainqueur, surplus au SAC
@@ -453,15 +453,7 @@ function applyConsequences(
       for (const ownerId of coopAttackerOwners(combat)) {
         const owner = draft.heroes.find((h) => h.id === ownerId);
         if (!owner) continue;
-        owner.army = combat.stacks
-          .filter(
-            (s) =>
-              s.side === 'attacker' &&
-              s.count > 0 &&
-              (s.ownerHeroId ?? combat.heroId) === ownerId &&
-              !owner.warMachines.includes(s.unitId),
-          )
-          .map((s) => ({ unitId: s.unitId, count: s.count }));
+        owner.army = rebuildArmyFromSurvivors(draft, combat, 'attacker', ownerId, combat.heroId, owner.warMachines);
       }
       // Effets de faction déclaratifs post-victoire (doc 06 §4) — pour le lead ;
       // après la reconstruction de l'armée, jamais un nom de faction dans le moteur.
@@ -519,12 +511,7 @@ function applyConsequences(
  * termine avec une armée vide sans traitement dédié.
  */
 function coopAttackerOwners(combat: CombatState): Set<string> {
-  const owners = new Set<string>();
-  if (combat.heroId) owners.add(combat.heroId);
-  for (const s of combat.stacks) {
-    if (s.side === 'attacker' && s.count > 0 && s.ownerHeroId) owners.add(s.ownerHeroId);
-  }
-  return owners;
+  return sideOwnerHeroIds(combat, 'attacker', combat.heroId);
 }
 
 /**

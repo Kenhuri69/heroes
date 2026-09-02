@@ -4,7 +4,7 @@ import type { GameState, HeroState } from '../core/state';
 import { heroArtifactBonus } from '../hero/artifacts';
 import { effectivePower } from '../hero/spells';
 import { factionCombatBonus, heroActionLeftFor, heroesOnSide, recordLoss } from './state-helpers';
-import { killsFromDamage } from './damage';
+import { absorbShield, killsFromDamage } from './damage';
 import { handleStackDeath } from './death';
 import type { Draft } from './draft';
 import { checkCombatEnd } from './turns';
@@ -110,9 +110,13 @@ export function strikeWithHero(
   const hero = draft.heroes.find((h) => h.id === heroId);
   if (!target || !targetDef || !hero) return;
 
-  const amount = heroAttackDamageFor(draft, combat, side, hero);
+  const raw = heroAttackDamageFor(draft, combat, side, hero);
   combat.heroAttackUsed.push(heroId); // suivi PAR HÉROS (E4.4)
 
+  // Revue 2026-09 (M7) : la Barrière (`shield`) absorbe AVANT les PV, comme sur
+  // les trois autres chemins de dégâts (frappe, sort d'unité, zone) — la frappe
+  // du héros était le seul à l'ignorer (doc 16 §7).
+  const amount = raw - absorbShield(target, raw);
   const pool = (target.count - 1) * targetDef.stats.hp + target.firstHp;
   const kills = killsFromDamage(pool, targetDef.stats.hp, target.count, amount);
   const remaining = Math.max(0, pool - amount);

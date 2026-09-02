@@ -126,3 +126,15 @@ describe('Revue 2026-07 — B24b : héritage de la Maison du joueur au recruteme
     expect(hero?.houseEffects).toEqual([]);
   });
 });
+
+describe('Revue 2026-09 (M10) — jamais deux héros sur la tuile de la ville', () => {
+  it('un héros en visite sur la ville ⇒ le recruté apparaît sur une tuile voisine libre', () => {
+    const s = state();
+    const visitor = { ...({} as HeroState), id: 'hero-visitor', playerId: 'p1', pos: { x: 5, y: 5 }, rosterId: '', army: [], artifacts: [] } as HeroState;
+    s.heroes = [visitor];
+    const { state: next } = apply(s, recruit);
+    const hero = next.heroes.find((h) => h.id === 'hero-p1-knight');
+    expect(hero?.pos).not.toEqual({ x: 5, y: 5 });
+    expect(Math.max(Math.abs((hero?.pos.x ?? 0) - 5), Math.abs((hero?.pos.y ?? 0) - 5))).toBe(1);
+  });
+});

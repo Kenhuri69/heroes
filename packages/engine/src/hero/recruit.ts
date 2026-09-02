@@ -5,6 +5,7 @@ import type { GameEvent } from '../core/events';
 import type { GameState, HeroState } from '../core/state';
 import { builtLevelOf } from '../town/helpers';
 import { heroManaMax } from './artifacts';
+import { landingTileFor } from './landing';
 import { heroVisionRadius } from './skills';
 import { sanitizeEffect } from './types';
 
@@ -65,6 +66,10 @@ export function validateRecruitHero(state: GameState, cmd: RecruitCmd): CommandE
   const cost = state.config?.hero?.recruitCost ?? DEFAULT_RECRUIT_COST;
   if (player.resources.gold < cost)
     return { code: 'cannotAfford', message: `or insuffisant (${cost} requis)` };
+  // Revue 2026-09 (M10) : invariant « un héros par tuile » — la ville (souvent
+  // occupée par le héros en visite) ou une voisine franchissable doit être libre.
+  if (state.map && !landingTileFor(state, town.pos, recruitedHeroId(cmd.playerId, cmd.heroId)))
+    return { code: 'invalidAction', message: `aucune tuile libre autour de '${cmd.townId}' pour le héros recruté` };
   return null;
 }
 
@@ -79,7 +84,9 @@ export function handleRecruitHero(draft: GameState, cmd: RecruitCmd, events: Gam
     id,
     playerId: cmd.playerId,
     name: def.name,
-    pos: { ...town.pos },
+    // M10 : jamais superposé à un héros déjà sur la ville (visiteur) — tuile de
+    // la ville si libre, sinon 1ʳᵉ voisine libre (validé ci-dessus ; repli = ville).
+    pos: { ...(landingTileFor(draft, town.pos, id) ?? town.pos) },
     movementPoints: 0,
     naval: false,
     army: [],

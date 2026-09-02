@@ -5,6 +5,7 @@ import { evaluateOutcome } from '../scenario/outcome';
 import type { Draft } from './draft';
 import { collectCasualties, collectSurvivors } from './state-helpers';
 import { persistDefenderRemnants } from './turns';
+import { rebuildArmyFromSurvivors, sideOwnerHeroIds } from './army-rebuild';
 import type { CombatSideId, CombatState } from './types';
 
 /**
@@ -116,6 +117,20 @@ function endLeftCombat(
   draft.combat = null;
 }
 
+/**
+ * Revue 2026-09 (M4) : rend à CHAQUE héros propriétaire ses survivants du camp
+ * joueur — le lead ET tout allié coop (E4.2). Les deux sorties reconstruisaient
+ * l'armée du seul lead depuis TOUTES les piles du camp : le lead héritait des
+ * piles de l'allié, vidé à l'engagement et jamais reconstitué.
+ */
+function restoreSideArmies(draft: Draft, combat: CombatState, lead: HeroState): void {
+  for (const ownerId of sideOwnerHeroIds(combat, combat.playerSide, lead.id)) {
+    const owner = draft.heroes.find((h) => h.id === ownerId);
+    if (!owner) continue;
+    owner.army = rebuildArmyFromSurvivors(draft, combat, combat.playerSide, ownerId, lead.id, owner.warMachines);
+  }
+}
+
 export function handleRetreat(draft: Draft, _cmd: LeaveCmd, events: GameEvent[]): void {
   const combat = draft.combat;
   if (!combat) return; // exclu par validate
@@ -128,14 +143,10 @@ export function handleAbandon(draft: Draft, _cmd: LeaveCmd, events: GameEvent[])
   const combat = draft.combat;
   if (!combat) return; // exclu par validate
   const hero = playerHero(draft, combat);
-  if (hero) {
-    // Abandon : le héros conserve son armée SURVIVANTE (hors machines de guerre),
-    // sans coût — comme la reddition mais gratuit. Reconstruire depuis les piles
-    // évite de ressusciter d'éventuelles pertes du round 1 (tireur ennemi).
-    hero.army = combat.stacks
-      .filter((s) => s.side === combat.playerSide && s.count > 0 && !hero.warMachines.includes(s.unitId))
-      .map((s) => ({ unitId: s.unitId, count: s.count }));
-  }
+  // Abandon : le héros conserve son armée SURVIVANTE (hors machines de guerre),
+  // sans coût — comme la reddition mais gratuit. Reconstruire depuis les piles
+  // évite de ressusciter d'éventuelles pertes du round 1 (tireur ennemi).
+  if (hero) restoreSideArmies(draft, combat, hero);
   endLeftCombat(draft, combat, 'abandon', events);
 }
 
@@ -147,9 +158,7 @@ export function handleSurrender(draft: Draft, _cmd: LeaveCmd, events: GameEvent[
     const player = draft.players.find((p) => p.id === hero.playerId);
     if (player) player.resources.gold -= surrenderCost(draft, combat);
     // Reddition : le héros conserve son armée survivante (hors machines de guerre).
-    hero.army = combat.stacks
-      .filter((s) => s.side === combat.playerSide && s.count > 0 && !hero.warMachines.includes(s.unitId))
-      .map((s) => ({ unitId: s.unitId, count: s.count }));
+    restoreSideArmies(draft, combat, hero);
   }
   endLeftCombat(draft, combat, 'surrender', events);
 }

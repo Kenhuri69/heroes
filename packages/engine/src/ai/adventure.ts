@@ -443,6 +443,9 @@ function pickAdjacentCapturableTown(draft: GameState, hero: HeroState, player: P
     const owner = draft.players.find((p) => p.id === town.ownerPlayerId);
     if (owner && areAllies(owner, player)) continue;
     if (town.garrison.length > 0) continue;
+    // M1 : une ville occupée par un héros adverse ouvrirait un combat H-vs-H, pas
+    // une capture — hors de cette heuristique (la chasse aux héros a son picker).
+    if (draft.heroes.some((h) => h.playerId !== player.id && samePos(h.pos, town.pos))) continue;
     if (!isAdjacent(hero.pos, town.pos)) continue;
     if (!best || town.id < best.id) best = town;
   }

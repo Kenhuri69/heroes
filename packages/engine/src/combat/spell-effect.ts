@@ -2,11 +2,12 @@ import { absorbShield, heroArmyMagicResistance, heroGrantsStatusImmune, killsFro
 import { handleStackDeath } from './death';
 import type { Draft } from './draft';
 import { COMBAT_COLS, COMBAT_ROWS, hexDistance, inCombatBounds, sameHex, type OffsetPos } from './hex';
-import { combatRules, hasAbility, recordLoss, recordRevive, shooterAmmo, staticBlockedKeys, stackLostSoFar } from './state-helpers';
+import { combatRules, hasAbility, isStackSpellImmune, recordLoss, recordRevive, shooterAmmo, staticBlockedKeys, stackLostSoFar } from './state-helpers';
 import type { CombatState, CombatStack, CombatUnitDef } from './types';
 import type { GameEvent } from '../core/events';
+import type { GameState } from '../core/state';
 import { rollRange } from '../core/rng';
-import type { SpellDef } from '../hero/types';
+import type { SpellDef, SpellKind } from '../hero/types';
 import { isHostileStatus, spellDamageAmount, spellHealAmount, spellStatusDuration, spellTargetsEnemy } from '../hero/spells';
 
 /**
@@ -31,21 +32,43 @@ export function spellcasterParams(def: CombatUnitDef): { spellId: string; charge
 }
 
 /**
+ * Revue 2026-09 (M9) : prédicat « pile à ÉPARGNER par un sort HOSTILE de zone/
+ * chaîne » — furtive (F-SCHOOLS.7) ou immunisée aux sorts (unité `spellImmune` /
+ * artefact `grantsSpellImmune`, H-ARTEQUIP.2+). La validation refuse déjà ces
+ * piles comme CENTRE ; sans ce filtre, une Boule de feu adjacente ou une Chaîne
+ * d'éclairs les touchait quand même (doc 02 §5.4 : « inciblable par un sort
+ * hostile »). `undefined` pour un sort ami (soin/buff) : rien à épargner.
+ * Partagé par la résolution ET la prévisualisation (préviz = résolution).
+ */
+export function hostileSpellSkip(
+  state: GameState,
+  combat: CombatState,
+  kind: SpellKind,
+): ((s: CombatStack) => boolean) | undefined {
+  if (!spellTargetsEnemy(kind)) return undefined;
+  return (s) => s.stealthed === true || isStackSpellImmune(state, combat, s);
+}
+
+/**
  * Piles affectées : la cible seule ; ou la cible + ses alliées adjacentes en
  * `splash` (C7) ; ou **toutes** les piles vivantes du camp de la cible en `all`
  * (H-SPELLS.1 — sorts de masse : le camp visé est celui de la pile choisie).
+ * `skip` (M9) épargne les piles hors-centre qu'il désigne (immunes/furtives) ;
+ * le centre, déjà validé, est toujours conservé.
  */
 export function spellTargets(
   combat: CombatState,
   area: 'splash' | 'all' | undefined,
   center: CombatStack,
+  skip?: (s: CombatStack) => boolean,
 ): CombatStack[] {
+  const keep = (s: CombatStack): boolean => s.id === center.id || !skip || !skip(s);
   if (area === 'all') {
-    return combat.stacks.filter((s) => s.count > 0 && s.side === center.side);
+    return combat.stacks.filter((s) => s.count > 0 && s.side === center.side && keep(s));
   }
   if (area !== 'splash') return [center];
   return combat.stacks.filter(
-    (s) => s.count > 0 && s.side === center.side && (s.id === center.id || hexDistance(s.pos, center.pos) === 1),
+    (s) => s.count > 0 && s.side === center.side && (s.id === center.id || hexDistance(s.pos, center.pos) === 1) && keep(s),
   );
 }
 
@@ -55,9 +78,15 @@ export function spellTargets(
  * distance puis id), jusqu'à `jumps` sauts. Pure et déterministe — partagée par
  * la résolution et la prévisualisation. `center` est une pile ENNEMIE (validé).
  */
-export function chainTargets(combat: CombatState, center: CombatStack, jumps: number): CombatStack[] {
+export function chainTargets(
+  combat: CombatState,
+  center: CombatStack,
+  jumps: number,
+  skip?: (s: CombatStack) => boolean,
+): CombatStack[] {
   const chosen: CombatStack[] = [center];
-  const pool = combat.stacks.filter((s) => s.count > 0 && s.side === center.side && s.id !== center.id);
+  // M9 : une pile immune/furtive n'est ni touchée ni relais de la chaîne.
+  const pool = combat.stacks.filter((s) => s.count > 0 && s.side === center.side && s.id !== center.id && !(skip && skip(s)));
   let from = center;
   for (let i = 0; i < jumps; i++) {
     let best: CombatStack | undefined;
@@ -219,7 +248,8 @@ export function applySpellToTargets(
    */
   damageMods: { bonusPct: number; resistancePierce: number } = { bonusPct: 0, resistancePierce: 0 },
 ): { amount: number; kills: number } {
-  const targets = spellTargets(combat, spell.area, center);
+  const skip = hostileSpellSkip(draft, combat, spell.kind);
+  const targets = spellTargets(combat, spell.area, center, skip);
   let amount = 0;
   let kills = 0;
 
@@ -231,7 +261,7 @@ export function applySpellToTargets(
     // H-SPELLS.4 (chaîne) : la cible + les ennemis les plus proches, dégâts
     // décroissants par saut. Sinon, la/les pile(s) de zone (`spellTargets`) à plein.
     const hits = spell.chain
-      ? chainTargets(combat, center, spell.chain.jumps).map((t, i) => ({
+      ? chainTargets(combat, center, spell.chain.jumps, skip).map((t, i) => ({
           t,
           mult: Math.pow(1 - spell.chain!.falloffPct / 100, i),
         }))

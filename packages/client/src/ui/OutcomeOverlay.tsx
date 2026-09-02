@@ -4,6 +4,7 @@ import { navigate } from '../app/router';
 import { humanId } from '../app/game';
 import { t } from '../app/i18n';
 import { outcomeBackgroundUrl } from '../render/assets';
+import { SERIES_COLORS, SERIES_HUMAN_STROKE } from './palette';
 import './OutcomeOverlay.css';
 
 /**
@@ -110,7 +111,7 @@ function StatsSummary({ game }: { game: GameState }) {
 }
 
 /** Teintes catégorielles (thème sombre) validées dataviz — assignées par joueur (identité, pas rang). */
-const SERIES = ['#3987e5', '#199e70', '#c98500', '#9085e9'];
+const SERIES = SERIES_COLORS;
 
 const BAR_H = 26;
 const GAP = 12;
@@ -167,7 +168,7 @@ function PowerChart({ game }: { game: GameState }) {
                 height={BAR_H}
                 rx={4}
                 fill={b.color}
-                stroke={b.isHuman ? '#ffffff' : 'none'}
+                stroke={b.isHuman ? SERIES_HUMAN_STROKE : 'none'}
                 stroke-width={b.isHuman ? 2 : 0}
               />
               <text class="power-value" x={PAD_L + w + 8} y={y + BAR_H / 2} dominant-baseline="central">

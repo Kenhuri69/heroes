@@ -5,6 +5,7 @@ import { humanId, humanHeroes, isHeroVisibleOnMap, resolveSelectedHero, visionSi
 import { t } from '../app/i18n';
 import { playerColor } from '../render/playerColors';
 import { panCameraTo } from '../app/camera-control';
+import { MINIMAP_DEFAULT, MINIMAP_TERRAIN, MINIMAP_UNEXPLORED } from './palette';
 
 /**
  * Mini-carte (doc 08 §2.1, UXD-8) — le grand absent de l'audit §1.5. Rendue en
@@ -21,23 +22,9 @@ import { panCameraTo } from '../app/camera-control';
  * fuient pas sur la version tiroir (l'exclusivité par viewport est en CSS).
  */
 
-const C_UNEXPLORED = '#0b0e14';
-const TERRAIN: Record<string, string> = {
-  grass: '#3a5a34',
-  dirt: '#8a6a44',
-  sand: '#ccb680',
-  forest: '#274a24',
-  rough: '#8a7f58',
-  snow: '#dfe6ee',
-  swamp: '#4a5a2c',
-  river: '#3f7aa6',
-  water: '#24406a',
-  mountain: '#6a5f56',
-  rocks: '#7a766f',
-  cave: '#544d46',
-  'cave-wall': '#2e2c33',
-};
-const C_DEFAULT = '#3a3d47';
+const C_UNEXPLORED = MINIMAP_UNEXPLORED;
+const TERRAIN = MINIMAP_TERRAIN;
+const C_DEFAULT = MINIMAP_DEFAULT;
 
 function hex(n: number): string {
   return `#${n.toString(16).padStart(6, '0')}`;

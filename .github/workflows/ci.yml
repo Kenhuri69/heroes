@@ -65,22 +65,34 @@ jobs:
       # couleurs de l'UI DOM vivent dans ui/tokens.css UNIQUEMENT — aucun
       # littéral #hex / rgb()/rgba() dans les autres feuilles (toujours
       # var(--…)). Même triptyque de statuts grep que le garde-fou faction.
-      - name: Vérifier l'absence de couleurs en dur hors tokens.css
+      # Revue 2026-09 (suite) : les `*.tsx` sont balayés AUSSI — les palettes
+      # SVG/canvas (hors de portée de `var(--…)`) vivent dans `ui/palette.ts`,
+      # seul fichier autorisé à porter des littéraux. Motif restreint aux hex
+      # ENTRE GUILLEMETS côté TSX (sinon un `#416` de commentaire déclenche).
+      - name: Vérifier l'absence de couleurs en dur hors tokens.css / palette.ts
         run: |
           set +e
-          hits=$(grep -rInE '#[0-9a-fA-F]{3,8}\b|rgba?\(' packages/client/src/ui \
+          css=$(grep -rInE '#[0-9a-fA-F]{3,8}\b|rgba?\(' packages/client/src/ui \
             --include='*.css' --exclude='tokens.css')
+          css_status=$?
+          tsx=$(grep -rInE "['\"]#[0-9a-fA-F]{3,8}['\"]|rgba?\(" packages/client/src/ui \
+            --include='*.tsx')
+          tsx_status=$?
+          hits=$(printf '%s\n%s' "$css" "$tsx" | grep -v '^$')
           status=$?
           set -e
+          for st in "$css_status" "$tsx_status"; do
+            if [ "$st" -gt 1 ]; then
+              echo "::error::échec de l'exécution de grep (statut ${st})"
+              exit 1
+            fi
+          done
           if [ "$status" -eq 0 ]; then
-            echo "::error::couleur(s) en dur hors ui/tokens.css :"
+            echo "::error::couleur(s) en dur hors ui/tokens.css / ui/palette.ts :"
             echo "$hits"
             exit 1
-          elif [ "$status" -ne 1 ]; then
-            echo "::error::échec de l'exécution de grep (statut ${status})"
-            exit 1
           fi
-          echo "aucune couleur en dur hors tokens.css ✓"
+          echo "aucune couleur en dur hors tokens.css / palette.ts ✓"
 
       - run: pnpm build
 

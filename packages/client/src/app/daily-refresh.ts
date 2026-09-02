@@ -15,23 +15,41 @@ import { appendFreeModeQuests } from './narrative';
  * « Armé » au démarrage d'une escarmouche (contexte report/faction/seed) ;
  * **désarmé** hors mode libre (scénario/campagne, retour menu) ⇒ no-op. La
  * génération est **déterministe** (`seed + jour`) : même partie ⇒ mêmes contrats.
- * Comme la génération initiale, le contexte n'est pas repeuplé après un
- * chargement de sauvegarde (le refresh reprend au prochain démarrage).
+ * Revue 2026-09 (C3) : le contexte (faction, graine) voyage avec la sauvegarde
+ * locale (`SaveContext`) et est **restauré au chargement** — recharger une
+ * escarmouche garde ses contrats ; charger une campagne DÉSARME (plus de
+ * contrats journaliers injectés dans un scénario). Le `report` est fourni une
+ * fois au boot (`initDailyRefresh`), pas par partie.
  */
-interface RefreshContext {
-  report: LoadReport;
+export interface DailyRefreshContext {
   humanFactionId: string;
   baseSeed: number;
 }
 
-let ctx: RefreshContext | null = null;
+let report: LoadReport | null = null;
+let ctx: DailyRefreshContext | null = null;
 
-export function armDailyRefresh(report: LoadReport, humanFactionId: string, baseSeed: number): void {
-  ctx = { report, humanFactionId, baseSeed };
+/** Au boot : le contenu chargé, commun à toutes les parties de la session. */
+export function initDailyRefresh(loaded: LoadReport): void {
+  report = loaded;
+}
+
+export function armDailyRefresh(humanFactionId: string, baseSeed: number): void {
+  ctx = { humanFactionId, baseSeed };
 }
 
 export function disarmDailyRefresh(): void {
   ctx = null;
+}
+
+/** Contexte courant (à embarquer dans une sauvegarde), `null` hors mode libre. */
+export function dailyRefreshContext(): DailyRefreshContext | null {
+  return ctx ? { ...ctx } : null;
+}
+
+/** Au chargement d'une partie : ré-arme depuis le contexte sauvegardé, ou désarme. */
+export function restoreDailyRefresh(saved: DailyRefreshContext | null): void {
+  ctx = saved ? { ...saved } : null;
 }
 
 /** Graine déterministe et décorrélée par jour (PCG32 re-mélange en interne). */
@@ -45,7 +63,7 @@ function daySeed(baseSeed: number, day: number): number {
  * un même jour rappelé ne ré-ajoute rien. Appelé après chaque fin de tour humain.
  */
 export async function refreshDailiesForCurrentDay(): Promise<void> {
-  if (!ctx) return;
+  if (!ctx || !report) return;
   const game = appStore.getState().game;
   const day = game.calendar.day;
   if (day < 2) return;
@@ -53,7 +71,7 @@ export async function refreshDailiesForCurrentDay(): Promise<void> {
   // existe ici (jour ≥ 2), il est la source de vérité — plus de `'player-1'` en
   // dur. Repli sur la convention du client si la partie n'a aucun humain.
   const { questState, metas } = buildDailyQuests(
-    ctx.report,
+    report,
     ctx.humanFactionId,
     humanPlayerId(game) ?? PLAYER_ID,
     daySeed(ctx.baseSeed, day),

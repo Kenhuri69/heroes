@@ -16,8 +16,12 @@ import { saveGame } from './save';
 export function installAutosave(): void {
   eventBus.on((event) => {
     if (event.type !== 'TurnEnded') return;
-    const game = appStore.getState().game;
+    const { game, onlineMatch } = appStore.getState();
     if (game.players[game.currentPlayer]?.controller !== 'human') return;
+    // Revue 2026-09 (C4) : un match PvP en ligne vit sur le serveur — l'écrire en
+    // `auto` faisait de « Continuer » une partie LOCALE (siège adverse jouable
+    // hors ligne) et écrasait la vraie sauvegarde locale du joueur.
+    if (onlineMatch) return;
     saveGame(game, 'auto').catch((err: unknown) => {
       console.warn('autosave: échec de la sauvegarde automatique', err);
       eventBus.emit([{ type: 'SaveFailed' }]);

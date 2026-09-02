@@ -9,6 +9,23 @@ import { isoDiamond, isoTileCenter, ISO_TILE_H, ISO_TILE_W } from './projection'
 // ne fait que placer ce contenu en losange.
 export const TILE_SIZE = 64;
 
+/**
+ * Plafond de la texture d'aplatissement, en pixels PHYSIQUES (revue 2026-09, R4).
+ * Pixi alloue le cache à `renderer.resolution` puis l'arrondit à la puissance de 2 :
+ * un seuil en px CSS laissait une carte Moyenne 36² sur mobile DPR 2 (extent
+ * 2304 px CSS) devenir une texture 8192×4096 RGBA (≈ 128 Mo, ×2 avec le voile
+ * d'eau) — refusée par les GPU plafonnés à 4096, lourde partout ailleurs.
+ */
+export const MAX_FLAT_TEXTURE_PX = 4096;
+
+const nextPow2 = (n: number): number => 2 ** Math.ceil(Math.log2(Math.max(1, n)));
+
+/** La carte peut-elle être aplatie en UNE texture à cette résolution de rendu ? (pur, testable) */
+export function fitsFlatTexture(width: number, height: number, resolution = 1): boolean {
+  const extentCss = (width + height) * (ISO_TILE_W / 2);
+  return nextPow2(Math.ceil(extentCss * resolution)) <= MAX_FLAT_TEXTURE_PX;
+}
+
 /** Placeholders teintés (doc 08 §5) : deux nuances par terrain pour un damier discret. */
 const TERRAIN_COLORS: Record<string, [number, number]> = {
   grass: [0x2b3a2b, 0x24312a],
@@ -76,13 +93,17 @@ export class Tilemap {
     return !this.culled;
   }
 
-  constructor(private readonly map: AdventureMapDef) {
+  constructor(
+    private readonly map: AdventureMapDef,
+    /** Résolution de rendu (`renderer.resolution`, ≈ DPR) — la texture de cache est allouée à cette échelle. */
+    resolution = 1,
+  ) {
     // Carte statique assez petite → une seule texture (1 draw call/frame) : rend
     // les ~1000 losanges gratuits par frame (marge anti-gel ×4, doc 01 §5). Garde
     // sur les grandes cartes : l'extent iso ≈ (W+H)·32 px doit rester < taille max
     // de texture ; au-delà on reste en chunks culés (mémoire bornée) plutôt qu'une
     // texture tronquée ou géante.
-    this.culled = (map.width + map.height) * (ISO_TILE_W / 2) >= 3968;
+    this.culled = !fitsFlatTexture(map.width, map.height, resolution);
 
     for (let cy = 0; cy < map.height; cy += CHUNK) {
       for (let cx = 0; cx < map.width; cx += CHUNK) {

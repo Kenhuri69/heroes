@@ -5,10 +5,8 @@ import {
   serializeState,
   type GameState,
 } from '@heroes/engine';
-import { appStore } from './store';
-import { eventBus } from './events';
-import { resetNarrativeState } from './narrative';
 import { getSave, putSave } from './net';
+import { currentSaveContext, enterLoadedGame, type SaveContext } from './load-game';
 
 /**
  * Sauvegarde IndexedDB (doc 07 §4) : snapshot `serializeState(state)`
@@ -46,6 +44,21 @@ function requestDone<T>(req: IDBRequest<T>): Promise<T> {
   });
 }
 
+/**
+ * Revue 2026-09 (C1) : une écriture n'est ACQUISE qu'au `complete` de la
+ * TRANSACTION — le `onsuccess` de la requête `put` arrive avant le commit, et
+ * c'est au commit qu'IndexedDB signale un dépassement de quota (`abort`, Firefox
+ * notamment). Attendre la seule requête faisait résoudre `saveGame` (toast
+ * « Sauvegardé ») sur une sauvegarde jamais écrite : perte silencieuse.
+ */
+function transactionDone(tx: IDBTransaction): Promise<void> {
+  return new Promise((resolve, reject) => {
+    tx.oncomplete = () => resolve();
+    tx.onabort = () => reject(tx.error ?? new Error('transaction IndexedDB annulée'));
+    tx.onerror = () => reject(tx.error ?? new Error('transaction IndexedDB échouée'));
+  });
+}
+
 /** Nouveau format d'enregistrement (v3) — un slot IndexedDB. */
 interface SaveRecord {
   savedAt: number;
@@ -53,6 +66,8 @@ interface SaveRecord {
   /** IDs de paquets référencés par la partie (doc 07 §4), dédupliqués triés. */
   packs: string[];
   data: ArrayBuffer;
+  /** Contexte client de la partie (chapitre actif, contrats) — optionnel, hors `GameState` (revue 2026-09). */
+  context?: SaveContext;
 }
 
 /** Ancien format (transition 2.5) : snapshot JSON non compressé. */
@@ -65,6 +80,7 @@ interface LegacySaveRecord {
 interface DecodedSave {
   savedAt: number;
   snapshot: string;
+  context: SaveContext | null;
 }
 
 function packsOf(state: GameState): string[] {
@@ -83,17 +99,35 @@ async function gzipDecompress(data: ArrayBuffer | Blob): Promise<string> {
   return new Response(stream).text();
 }
 
-export async function saveGame(state: GameState, slot: SaveSlot): Promise<void> {
+/**
+ * File d'écriture PAR SLOT (revue 2026-09) : `saveGame` = gzip async puis `put` ;
+ * deux appels rapprochés (hot-seat, fin de tour juste après un relais IA court)
+ * pouvaient commiter dans le désordre et laisser le snapshot le plus ANCIEN
+ * gagner. Les écritures d'un slot sont sérialisées dans l'ordre d'appel.
+ */
+const writeChains: Partial<Record<SaveSlot, Promise<void>>> = {};
+
+export function saveGame(state: GameState, slot: SaveSlot, context: SaveContext = currentSaveContext()): Promise<void> {
+  const prev = writeChains[slot] ?? Promise.resolve();
+  const run = prev.catch(() => undefined).then(() => writeSave(state, slot, context));
+  writeChains[slot] = run;
+  return run;
+}
+
+async function writeSave(state: GameState, slot: SaveSlot, context: SaveContext): Promise<void> {
   const record: SaveRecord = {
     savedAt: Date.now(),
     saveVersion: state.saveVersion,
     packs: packsOf(state),
     data: await gzipCompress(serializeState(state)),
+    context,
   };
   const db = await openDb();
   try {
     const tx = db.transaction(STORE, 'readwrite');
-    await requestDone(tx.objectStore(STORE).put(record, slot));
+    const done = transactionDone(tx);
+    tx.objectStore(STORE).put(record, slot);
+    await done;
   } finally {
     db.close();
   }
@@ -107,15 +141,9 @@ export async function loadGame(slot: SaveSlot): Promise<GameState | null> {
 
 /** Recharge un slot dans le store — false si le slot est vide. */
 export async function restoreSavedGame(slot: SaveSlot): Promise<boolean> {
-  const state = await loadGame(slot);
-  if (!state) return false;
-  // La narration/les journaux de la partie en cours ne concernent pas la partie
-  // chargée (le catalogue narratif n'est pas persisté) — purge (B35).
-  resetNarrativeState();
-  // Chargement d'une partie : route aventure + pile de modales vidée (U2), et
-  // signalement d'échec de tour IA levé (R0/B1 : le rechargement EST la sortie).
-  appStore.setState({ game: state, screen: 'adventure', modals: [], aiFailure: false });
-  eventBus.emit([{ type: 'GameLoaded' }]);
+  const stored = await readSlot(slot);
+  if (!stored) return false;
+  enterLoadedGame(deserializeState(stored.snapshot), { context: stored.context });
   return true;
 }
 
@@ -162,22 +190,22 @@ export async function pullCloudSave(slot: SaveSlot = 'manual'): Promise<CloudPul
   if (!isCompatible(r.state)) return 'incompatible';
   const state = deserializeState(r.state);
   if (!state.started) return 'notStarted';
-  resetNarrativeState(); // purge la narration de la partie précédente (B35)
-  appStore.setState({ game: state, screen: 'adventure', modals: [] });
-  eventBus.emit([{ type: 'GameLoaded' }]);
+  // Le cloud ne porte que l'état moteur : aucun contexte client (chapitre,
+  // contrats) — la partie repart propre.
+  enterLoadedGame(state);
   return 'ok';
 }
 
 /** Emballe un snapshot en fichier `.heroes` gzip (format d'export, doc 07 §4). */
-export async function encodeHeroesFile(snapshot: string, packs: string[]): Promise<Blob> {
-  const payload = { saveVersion: 1, packs, snapshot };
+export async function encodeHeroesFile(snapshot: string, packs: string[], context?: SaveContext): Promise<Blob> {
+  const payload: ExportPayload = { saveVersion: 1, packs, snapshot, ...(context ? { context } : {}) };
   const data = await gzipCompress(JSON.stringify(payload));
   return new Blob([data], { type: 'application/gzip' });
 }
 
-/** Export `.heroes` (doc 07 §4) : JSON gzip `{ saveVersion, packs, snapshot }`. */
+/** Export `.heroes` (doc 07 §4) : JSON gzip `{ saveVersion, packs, snapshot, context? }`. */
 export async function exportSave(state: GameState): Promise<Blob> {
-  return encodeHeroesFile(serializeState(state), packsOf(state));
+  return encodeHeroesFile(serializeState(state), packsOf(state), currentSaveContext());
 }
 
 /** Import `.heroes` — validation + chargement dans le store ; false si invalide. */
@@ -190,10 +218,7 @@ export async function importSave(file: Blob): Promise<boolean> {
     if (!isCompatible(payload.snapshot)) return false;
     const state = deserializeState(payload.snapshot);
     if (!state.started) return false;
-    resetNarrativeState(); // purge la narration de la partie précédente (B35)
-    // Import d'une partie : route aventure + pile de modales vidée (U2).
-    appStore.setState({ game: state, screen: 'adventure', modals: [] });
-    eventBus.emit([{ type: 'GameLoaded' }]);
+    enterLoadedGame(state, { context: payload.context ?? null });
     return true;
   } catch {
     return false;
@@ -204,6 +229,7 @@ interface ExportPayload {
   saveVersion: 1;
   packs: string[];
   snapshot: string;
+  context?: SaveContext;
 }
 
 function isExportPayload(v: unknown): v is ExportPayload {
@@ -244,10 +270,11 @@ async function decodeStoredValue(raw: unknown): Promise<DecodedSave | null> {
 }
 
 async function decodeFormat(raw: unknown): Promise<DecodedSave | null> {
-  if (isSaveRecord(raw)) return { savedAt: raw.savedAt, snapshot: await gzipDecompress(raw.data) };
-  if (isLegacySaveRecord(raw)) return { savedAt: raw.savedAt, snapshot: raw.snapshot };
+  if (isSaveRecord(raw))
+    return { savedAt: raw.savedAt, snapshot: await gzipDecompress(raw.data), context: raw.context ?? null };
+  if (isLegacySaveRecord(raw)) return { savedAt: raw.savedAt, snapshot: raw.snapshot, context: null };
   // Très ancien format (compat) : string brute, pas d'horodatage connu.
-  if (typeof raw === 'string') return { savedAt: 0, snapshot: raw };
+  if (typeof raw === 'string') return { savedAt: 0, snapshot: raw, context: null };
   return null;
 }
 

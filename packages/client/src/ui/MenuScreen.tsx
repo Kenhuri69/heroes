@@ -6,6 +6,7 @@ import { useApp } from '../app/store';
 import { navigate, openModal } from '../app/router';
 import { eventStatus } from '../app/timed-events';
 import { isOnline } from '../app/net';
+import { pushToast } from './toasts';
 import { logoUrl, titleBackgroundUrl } from '../render/assets';
 import { AssetImg } from './AssetImg';
 import { OnlinePanel } from './OnlinePanel';
@@ -71,7 +72,14 @@ export function MenuScreen() {
             class="menu-button"
             data-testid="menu-continue"
             disabled={!canContinue}
-            onClick={() => void restoreLatestSave()}
+            onClick={() =>
+              // Revue 2026-09 (C7) : slot vide ou stockage illisible ⇒ toast, jamais un clic muet.
+              void restoreLatestSave()
+                .then((ok) => {
+                  if (!ok) pushToast(t('toast.loadError'), 'error');
+                })
+                .catch(() => pushToast(t('toast.loadError'), 'error'))
+            }
           >
             {t('menu.continue')}
           </button>

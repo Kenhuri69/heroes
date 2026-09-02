@@ -25,7 +25,13 @@ export class TownsLayer {
    */
   constructor(private readonly layer: Container) {}
 
-  sync(towns: readonly TownState[], humanId: string, ownerColor: OwnerColor): void {
+  sync(
+    towns: readonly TownState[],
+    humanId: string,
+    ownerColor: OwnerColor,
+    /** Revue 2026-09 (R5) : tuile explorée ? Le donjon dépasse de 2 rangées — sous le voile, il est CACHÉ. */
+    isExplored: (pos: { x: number; y: number }) => boolean = () => true,
+  ): void {
     const alive = new Set(towns.map((tw) => tw.id));
     for (const [id, entry] of this.byId) {
       if (!alive.has(id)) {
@@ -36,7 +42,10 @@ export class TownsLayer {
     for (const town of towns) {
       const existing = this.byId.get(town.id);
       // Recrée le donjon si le propriétaire a changé (capture) — couleur/liseré à jour.
-      if (existing && existing.owner === town.ownerPlayerId) continue;
+      if (existing && existing.owner === town.ownerPlayerId) {
+        existing.node.visible = isExplored(town.pos);
+        continue;
+      }
       if (existing) {
         existing.node.destroy({ children: true });
         this.byId.delete(town.id);
@@ -45,6 +54,7 @@ export class TownsLayer {
       const a = isoAnchor(town.pos.x, town.pos.y);
       node.position.set(a.x, a.y);
       node.zIndex = isoDepth(town.pos.x, town.pos.y);
+      node.visible = isExplored(town.pos);
       this.byId.set(town.id, { node, owner: town.ownerPlayerId });
       this.layer.addChild(node);
     }

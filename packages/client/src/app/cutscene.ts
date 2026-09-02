@@ -52,7 +52,11 @@ export async function playCutscene(cutscene: Cutscene): Promise<void> {
     else if (step.type === 'wait') await wait(step.ms, token);
     else await playDialogStep(step.dialog, token);
   }
-  if (activeToken === token) activeToken = null;
+  // Revue 2026-09 (C5) : ne referme QUE si cette cinématique détient encore le
+  // jeton — sinon une boucle « passée » (autre scénario démarré) coupait le
+  // dialogue d'ouverture de la NOUVELLE cinématique.
+  if (activeToken !== token) return;
+  activeToken = null;
   appStore.setState({ cutsceneActive: false, dialogue: null, dialogueQueue: [] });
 }
 

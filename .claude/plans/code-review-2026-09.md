@@ -259,3 +259,44 @@ visiteur ; mise à jour des dépendances majeures.
   plus de doublon `boat@x,y` (test). Tests écrits AVANT correctif (4/4 rouges
   puis verts). Vérif : typecheck, lint, **1009 tests moteur (+7)**, golden inchangé,
   contenu/client verts.
+- [x] **R5 livré** — C1 `saveGame` attend le `complete` de TRANSACTION
+  (`transactionDone`, rejet sur `abort`/`error`) ; file d'écriture par slot
+  (ordre garanti) ; **`enterLoadedGame`** (`app/load-game.ts`) = point d'entrée
+  unique de Continuer/Charger/import/cloud/match en ligne (purge narration,
+  cinématique, `turnAck`, `aiFailure`, `onlineMatch`) — **décision** : plutôt que
+  de tout remettre à zéro (ce qui aurait cassé « recharger SA campagne puis
+  gagner » et « recharger SON escarmouche puis ses contrats »), le **contexte
+  client** (`SaveContext` = chapitre actif + contexte de contrats journaliers)
+  voyage AVEC la sauvegarde locale (métadonnée IndexedDB / `.heroes`, hors
+  `GameState` ⇒ pas de bump) ; une sauvegarde sans contexte (cloud, ancien
+  format) repart propre. `playerColors` volontairement conservées (présentation
+  de session, sans effet de règle). C2 : `ensureScenes` reconstruit la scène si
+  `game.map.terrain` (référence stable sous Immer) change. C4 autosave inerte
+  pendant un match en ligne ; C5 `playCutscene` ne referme que si elle détient le
+  jeton ; C7 Continuer/Charger ⇒ toast `toast.loadError` sur `false`/rejet.
+  Nouveau devDep `fake-indexeddb` (tests IndexedDB en mémoire). Tests : `save.test`
+  (aller-retour, ordre, contexte) + `load-game.test` (purge/restauration). Vérif :
+  typecheck, lint, client **98 tests (+6)**, build + smoke `@core` desktop.
+  **Écart smoke** : les deux smokes T-GRAIL « fouille » forgeaient un héros sur la
+  tuile sans visiter les 3 obélisques (tolérance que M11 a fermée) ⇒ nouveau hook
+  de test `revealGrail()` (forge d'état, même patron que `startSiege`) appelé
+  avant `Dig`. Le smoke local tourne avec `PW_CHROMIUM_PATH=/opt/pw-browsers/chromium`
+  (révision Playwright absente du conteneur — support déjà prévu par la config).
+- [x] **R6 livré** — R1 : trois libellés canvas via `t('combat.fx.*')` (FR/EN).
+  R2 : présentation de combat **pilotée par la file** — `sync()` différé d'une
+  microtâche (les événements du `dispatch` sont alors en file), `syncStacks` ne
+  touche ni position ni effectif d'une pile référencée par un événement en file,
+  anneau actif suivi par `CombatTurnStarted` tant que la file n'est pas vide,
+  effectif posé à l'impact, `resyncPresentation` au vidage de la file. R3 : la
+  scène de combat devient « en partance » (`leavingCombat`, `whenIdle()`) et n'est
+  détruite qu'après ses animations (coup fatal, fondu) ; la branche `!combat` de
+  `sync()` (naguère quasi morte) est désormais le chemin nominal et préserve les
+  jetons encore attendus. *Limite assumée* : `CombatResultScreen` s'affiche au
+  `setState`, l'animation finale se joue derrière. R5 : objets/villes des cases
+  inexplorées masqués (`isExplored` passé à `MapObjectsLayer`/`TownsLayer`, même
+  règle que les props U-5). R4 : `fitsFlatTexture(w, h, resolution)` — seuil en
+  pixels **physiques** arrondi pow2 (cap 4096), `Tilemap` reçoit
+  `renderer.resolution` (36² à DPR 2 ⇒ culée, plus de texture 8192×4096). R6 :
+  `FogOverlay.update` incrémental (chunks touchés par un disque de vision ancien/
+  nouveau ou une tuile révélée ; `lastRedrawn` exposé). Tests : `tilemap.test`,
+  `fog.test`. Vérif : typecheck, lint, client **105 tests**, build + smoke `@core`.

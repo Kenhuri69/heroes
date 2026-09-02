@@ -182,7 +182,8 @@ export class AdventureScene {
     // L10.3 : la scène dessine UNE couche à la fois — la vue plate de la couche
     // active (surface au démarrage). Tout le rendu en aval reste inchangé.
     const view = mapAtLevel(map, 0);
-    const tilemap = new Tilemap(view);
+    // R4 : le seuil d'aplatissement tient compte de la RÉSOLUTION de rendu (DPR).
+    const tilemap = new Tilemap(view, app.renderer.resolution);
     this.tilemap = tilemap;
     // I12 : miroitement d'eau — seulement sur une carte APLATIE (petite/moyenne).
     // Sur une grande carte culée, la mer périmétrique suffit (anti-gel ×4 protégé).
@@ -341,7 +342,7 @@ export class AdventureScene {
     this.waterSheen?.destroy();
     this.worldBorder.destroy({ children: true });
 
-    const tilemap = new Tilemap(view);
+    const tilemap = new Tilemap(view, this.app.renderer.resolution);
     this.tilemap = tilemap;
     this.waterSheen = tilemap.flattened ? buildWaterSheen(view) : null;
     this.terrainProps = new TerrainProps(view, this.entities);
@@ -422,16 +423,22 @@ export class AdventureScene {
       if (selectedPos) void panCameraTo(selectedPos.x, selectedPos.y, 0);
     }
     const onLevel = (pos: GridPos): boolean => levelOf(pos) === this.activeLevel;
+    // R5 : objets et villes des cases INEXPLORÉES sont cachés (ils dépassent leur
+    // losange et pointaient au-dessus du voile — même règle que les props, U-5).
+    const exploredHere = this.exploredOnLevel(map, player.explored);
+    const isExplored = (pos: { x: number; y: number }): boolean => exploredHere[pos.y * map.width + pos.x] !== 0;
     this.objects.sync(
       map.objects.filter((o) => onLevel(o.pos)),
       game.unitCatalog,
       (ownerId) => playerColor(game.players, ownerId),
       appStore.getState().strengthBands,
+      isExplored,
     );
     this.towns.sync(
       game.towns.filter((tw) => onLevel(tw.pos)),
       humanId(game),
       (ownerId) => playerColor(game.players, ownerId),
+      isExplored,
     );
     // Marqueur du Graal (T-GRAIL lot 2) : posé sur `grailPos` une fois révélé au
     // joueur (tous obélisques visités) et tant que non obtenu — guide vers la
@@ -454,7 +461,6 @@ export class AdventureScene {
     // Sources de vision vivante (héros + villes/mines possédées) : helper
     // PARTAGÉ avec la mini-carte (B11 — une seule implémentation, leçon CL9).
     const sightings = visionSightings(game).filter((v) => onLevel(v.pos));
-    const exploredHere = this.exploredOnLevel(map, player.explored);
     this.fog.update(exploredHere, sightings);
     // U-5 : les props de relief dépassent leur tuile ; ceux des cases non
     // explorées doivent disparaître, sinon ils pointent au-dessus du voile.

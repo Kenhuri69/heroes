@@ -98,6 +98,8 @@ export class MapObjectsLayer {
     catalog: UnitCatalog,
     ownerColor: OwnerColor = () => NEUTRAL_COLOR,
     bands: { max: number | null; key: string }[] = [],
+    /** Revue 2026-09 (R5) : tuile explorée ? Un objet dépasse son losange — sous le voile, il est CACHÉ. */
+    isExplored: (pos: { x: number; y: number }) => boolean = () => true,
   ): void {
     const alive = new Set(objects.map((o) => o.id));
     for (const [id, node] of this.byId) {
@@ -129,6 +131,7 @@ export class MapObjectsLayer {
         const a = isoAnchor(obj.pos.x, obj.pos.y);
         existing.position.set(a.x, a.y);
         existing.zIndex = isoDepth(obj.pos.x, obj.pos.y);
+        existing.visible = isExplored(obj.pos);
         continue;
       }
       existing?.destroy({ children: true });
@@ -136,6 +139,7 @@ export class MapObjectsLayer {
       const a = isoAnchor(obj.pos.x, obj.pos.y);
       node.position.set(a.x, a.y);
       node.zIndex = isoDepth(obj.pos.x, obj.pos.y);
+      node.visible = isExplored(obj.pos);
       this.byId.set(obj.id, node);
       this.signatures.set(obj.id, signature);
       this.layer.addChild(node);

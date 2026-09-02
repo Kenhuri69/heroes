@@ -4,7 +4,7 @@
   "name": "@loc:unit.t2-furie-sanglante.name",
   "loreKey": "@loc:unit.t2-furie-sanglante.lore",
   "stats": {
-    "hp": 11,
+    "hp": 12,
     "attack": 7,
     "defense": 4,
     "damage": [

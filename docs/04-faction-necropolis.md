@@ -60,12 +60,23 @@
 | Tier | Unité | PV | Att | Déf | Dégâts | Vit. | Croiss./sem | Coût | Capacités |
 |------|-------|----|-----|-----|--------|------|-------------|------|-----------|
 | 1 | **Squelette** | 5 | 2 | 2 | 1–2 | 4 | 16 | 28 or | `undead` ; croissance ↑ via Nécromancie |
-| 2 | **Zombie putride** | 14 | 3 | 4 | 2–3 | 3 | 9 | 80 or | `undead`, `curseOnHit(Affaiblissement, 20 %)` |
-| 3 | **Spectre** | 16 | 5 | 5 | 3–5 | 7 | 7 | 160 or | `undead`, `flying`, `incorporeal` (20 % d'esquive) |
-| 4 | **Vampire** | 28 | 8 | 7 | 5–8 | 6 | 5 | 340 or | `undead`, `noRetaliation`, `lifeDrain(50 %)` (soigne/relève sa pile) |
+| 2 | **Zombie putride** | 13 | 3 | 4 | 2–3 | 3 | 9 | 80 or | `undead`, `curseOnHit(Affaiblissement, 20 %)` |
+| 3 | **Spectre** | 16 | 5 | 5 | 3–4 | 7 | 7 | 160 or | `undead`, `flying`, `incorporeal` (20 % d'esquive) |
+| 4 | **Vampire** | 28 | 8 | 7 | 5–7 | 6 | 5 | 340 or | `undead`, `noRetaliation`, `lifeDrain(50 %)` (soigne/relève sa pile) |
 | 5 | **Liche** | 30 | 9 | 10 | 7–11 | 5 | 4 | 550 or + 1 soufre | `undead`, `shooter(10)`, `areaAttack(nuage 1 hex, épargne les morts-vivants)` |
-| 6 | **Cavalier funeste** | 65 | 14 | 12 | 12–18 | 10 | 2 | 1150 or + 1 soufre | `undead`, `curseOnHit(Faux funeste : −20 % dégâts, 100 %)`, `charge(+4 %/hex)` |
-| 7 | **Dragon d'os** | 150 | 20 | 18 | 30–50 | 10 | 1 | 3000 or + 2 soufre + 2 gemmes | `undead`, `flying`, `aura(−1 moral ennemi, portée totale)`, `breathAttack` |
+| 6 | **Cavalier funeste** | 65 | 14 | 12 | 11–17 | 10 | 2 | 1150 or + 1 soufre | `undead`, `curseOnHit(Faux funeste : −20 % dégâts, 100 %)`, `charge(+4 %/hex)` |
+| 7 | **Dragon d'os** | 150 | 20 | 18 | 29–47 | 10 | 1 | 3000 or + 2 soufre + 2 gemmes | `undead`, `flying`, `aura(−1 moral ennemi, portée totale)`, `breathAttack` |
+
+> ⚖️ **Passe d'équilibrage 3 (revue 2026-09, suite)** — la passe 2 avait été
+> calibrée sur un `faction:sim` biaisé par le **terrain natif** ; remesurée sur
+> terrain neutre, la Nécropole écrasait Haven (85,4 %). Correction **données
+> pures** : le mur de zombies (14 PV pour 80 or, l'outlier de durabilité du
+> lineup) descend à 13 PV, et les **dégâts** de Spectre/Vampire/Cavalier/Dragon
+> d'os sont rabotés d'un cran. Choix de l'axe : les PV pèsent surtout contre les
+> factions **fragiles** (Sylvan, Vox), les dégâts contre les factions
+> **robustes** (Haven) — raboter les dégâts corrige le duel Haven **sans**
+> faire sortir necro-vs-sylvan par le bas. Résultat mesuré : haven-vs-necropolis
+> 14,6 % → **27,1 %**, necropolis-vs-sylvan 26,7 % → 25,0 % (dans la bande).
 
 ### 3bis. Unités élites (habitation niveau 2)
 

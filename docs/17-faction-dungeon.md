@@ -85,12 +85,23 @@ les capacités listées **existent déjà** au catalogue générique
 | Tier | Unité (FR / rôle HoMM) | PV | Att | Déf | Dégâts | Vit. | Croiss./sem | Coût (or +) | Capacités (catalogue) |
 |------|------------------------|----|-----|-----|--------|------|-------------|-------------|-----------------------|
 | 1 | **Éclaireur** (Assassin / tireur) | 6 | 4 | 3 | 2–3 | 6 | 14 | 65 | `shooter`, `poisonSting` |
-| 2 | **Furie Sanglante** (Blood Fury / assaut) | 11 | 7 | 4 | 2–4 | 8 | 9 | 130 | `noRetaliation`, `firstStrike` ² |
-| 3 | **Minotaure** (garde / tank moral) | 25 | 9 | 8 | 6–9 | 6 | 6 | 260, +1 `sulfur` | `moraleImmune`, `doubleAttack` |
-| 4 | **Chevaucheur des Ténèbres** (Dark Raider / cavalerie) | 36 | 12 | 9 | 7–10 | 9 | 4 | 480 | `charge` |
-| 5 | **Sorcière d'Ombre** (Shadow Matron / caster) | 34 | 11 | 10 | 7–11 | 7 | 3 | 620, +1 `gems` | `spellcaster`, `curseOnHit` |
-| 6 | **Hydre** (Hydra / mêlée de zone) | 68 | 16 | 14 | 10–15 | 5 | 2 | 1100, +1 `sulfur` | `areaAttack` (0.35), `noRetaliation` |
-| 7 | **Dragon d'Ombre** (Shadow Dragon / apex volant) | 160 | 27 | 25 | 32–42 | 11 | 1 | 3000, +2 `sulfur` +1 `gems` | `flying`, `fear`, `magicResistance` |
+| 2 | **Furie Sanglante** (Blood Fury / assaut) | 12 | 7 | 4 | 2–4 | 8 | 9 | 130 | `noRetaliation`, `firstStrike` ² |
+| 3 | **Minotaure** (garde / tank moral) | 26 | 9 | 8 | 6–9 | 6 | 6 | 260, +1 `sulfur` | `moraleImmune`, `doubleAttack` |
+| 4 | **Chevaucheur des Ténèbres** (Dark Raider / cavalerie) | 37 | 12 | 9 | 7–10 | 9 | 4 | 480 | `charge` |
+| 5 | **Sorcière d'Ombre** (Shadow Matron / caster) | 35 | 11 | 10 | 7–11 | 7 | 3 | 620, +1 `gems` | `spellcaster`, `curseOnHit` |
+| 6 | **Hydre** (Hydra / mêlée de zone) | 70 | 16 | 14 | 10–15 | 5 | 2 | 1100, +1 `sulfur` | `areaAttack` (0.35), `noRetaliation` |
+| 7 | **Dragon d'Ombre** (Shadow Dragon / apex volant) | 165 | 22 | 21 | 32–42 | 11 | 1 | 3000, +2 `sulfur` +1 `gems` | `flying`, `fear`, `magicResistance` |
+
+> ⚖️ **Passe d'équilibrage 3 (revue 2026-09, suite)** — remesuré sur **terrain
+> neutre**, le Donjon était le plancher du panel : plus faible réservoir de PV
+> par budget (1 927 contre 2 231–2 673) et deux duels perdus à plus de 84 %
+> (Haven, Arcane Hunters). Correction **données pures** : **+1 à +5 PV** sur les
+> tiers 2 à 7 (base et élites, parité tenue), soit ~+3,6 % de réservoir — un
+> buff plus large (+13 %) renversait le classement (le Donjon écrasait alors
+> Sylvan à 93,8 %). Les **att/déf du T7** de cette table sont par ailleurs
+> réalignées sur les données livrées (27/25 → 22/21, écart doc↔données hérité du
+> lot 17.4). Résultat mesuré : haven-vs-dungeon 84,6 % → **74,6 %**,
+> arcane-vs-dungeon 84,2 % → **74,6 %**, aucun nouveau déséquilibre.
 
 > **Valeurs calées au lot 17.4** (`faction:sim`, budget or égal) : la version de
 > cadrage sur-calibrait le Donjon (blowout 80.8 % vs Necropolis) ; les tiers

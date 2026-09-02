@@ -34,6 +34,8 @@ export interface JournalEntry {
   id: number;
   day: number;
   message: string;
+  /** Joueur humain destinataire (hot-seat, revue 2026-09 C6) — absent = visible de tous. */
+  playerId?: string;
 }
 
 /** Une ligne du journal de combat (UX-COMBATLOG, doc 08 §2.4). */

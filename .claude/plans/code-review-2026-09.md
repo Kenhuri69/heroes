@@ -341,3 +341,44 @@ visiteur ; mise à jour des dépendances majeures.
   substitution regex trop large a supprimé ~150 lignes de routes, restaurées à
   l'identique dans la même session (inventaire de routes HEAD ↔ courant vérifié,
   typecheck + 10 tests verts).
+- [x] **R9 livré** — **CI/lint** : actions GitHub épinglées par **SHA** (commentaire
+  `# vN`, SHA vérifiés contre les tags amont) dans les 3 workflows +
+  `.github/dependabot.yml` (actions, hebdo, groupées) ; `deploy-worker.yml` : secret Cloudflare passé par `env` (plus
+  d'interpolation dans le script) + `typecheck` avant déploiement ; garde-fou
+  « zéro faction » élargi à `server/src` et aux `*.css`/`*.html` (vérifié vert en
+  local) ; **`tests/` enfin typé** : `packages/client/tsconfig.smoke.json`
+  (smoke + `playwright.config.ts` avec la déclaration `Window` de `main.ts`,
+  `@types/node` racine) branché à `pnpm typecheck` — a attrapé au passage un
+  `workers: undefined` incompatible `exactOptionalPropertyTypes`. Un tsconfig
+  RACINE ne convenait pas (`vite/client` non résoluble hors du paquet client).
+  **PWA** : `sw.js` — navigation network-first avec **timeout** (4 s, minuterie)
+  avant repli cache (un réseau « mort mais connecté » gelait le démarrage) ;
+  `manifest.webmanifest` : `purpose: "any"` pour les PNG (les icônes ne sont pas
+  maskable — PIL absent pour en générer, différé). **C6 journal hot-seat** :
+  `JournalEntry.playerId?` posé par `appendJournal` (`humanId`), `Journal.tsx`
+  filtre sur le spectateur ⇒ un joueur ne lit plus les revenus/événements de
+  l'autre siège humain. **Moteur (dedup, zéro règle)** : `sideLeadHero` exporté de
+  `state-helpers` remplace 3 copies de `heroForSide` (`damage`/`hero-attack`/
+  `hero-rally`) ; `killsFromDamage` réutilisé dans `turns.ts` (poison) et
+  `applySplashDamage` ; `hasAdjacentEnemy` mort supprimé — golden **inchangé**
+  (1009 tests). *Incident de chantier* : la substitution `killsFromDamage` a
+  d'abord matché DANS la fonction elle-même (récursion + variable inconnue) —
+  attrapé au typecheck, restauré. **Client (P3)** : `useEscape` (hook) sur les 6
+  modales de combat + livre de sorts ; `telemetry` lit le store et non
+  `localStorage` à chaque `setState` ; `net.ts` URL normalisée (slash final) +
+  `AbortSignal.timeout(15 s)` ; `recordOnlineTurn` : la re-synchro ne fuit plus ;
+  `startNewGameSetup` ignore un 2ᵉ déclenchement pendant la génération ;
+  **pan borné en aventure** (`Camera.setClampBounds` recalculé au culling : le
+  bord de carte ne dépasse jamais le centre de l'écran — toute tuile reste
+  centrable ; relâché au `destroy`, la caméra survivant à la scène) ;
+  `destroy({ children: true })` sur les jetons composites (4 sites) ;
+  `placeCurtainIso`/`placeTowerIso` ignorent un sprite chargé pour une muraille
+  périmée (clé de génération = signature) ; **éditeur de carte** : les **13
+  terrains** de la légende partagée `TERRAIN_CHARS` (exportée de `@heroes/content`
+  — plus de liste locale de 4 qui réécrivait le reste en `grass`), légende
+  d'export = terrains peints, cellules **44 px** (`2.75rem`), teintes dans
+  `tokens.css`, locales FR/EN. **Non fait** (P3, documenté) : couleurs en dur
+  dans du TSX (`FactionBadge`/`OutcomeOverlay`/`MiniMap` — palette Pixi, hors
+  garde CSS), textes canvas à taille fixe, `new Audio` sans plafond, snapshot
+  `!combat` de `CombatScene.sync()`. Vérif : typecheck 5/5 + smoke-tsc, lint,
+  moteur 1009, contenu 184, client 105, build, smoke @core **44/44**.

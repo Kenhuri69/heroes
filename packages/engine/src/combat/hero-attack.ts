@@ -3,7 +3,7 @@ import type { GameEvent } from '../core/events';
 import type { GameState, HeroState } from '../core/state';
 import { heroArtifactBonus } from '../hero/artifacts';
 import { effectivePower } from '../hero/spells';
-import { factionCombatBonus, heroActionLeftFor, heroesOnSide, recordLoss } from './state-helpers';
+import { factionCombatBonus, heroActionLeftFor, heroesOnSide, recordLoss, sideLeadHero } from './state-helpers';
 import { absorbShield, killsFromDamage } from './damage';
 import { handleStackDeath } from './death';
 import type { Draft } from './draft';
@@ -12,15 +12,10 @@ import type { CombatSideId, CombatState } from './types';
 
 type HeroAttackCmd = { type: 'HeroAttack'; targetStackId: string; heroId?: string };
 
-function heroForSide(state: GameState, combat: CombatState, side: CombatSideId) {
-  const heroId = side === 'attacker' ? combat.attackerHeroId : combat.defenderHeroId;
-  return heroId ? state.heroes.find((h) => h.id === heroId) : undefined;
-}
-
 /** Héros AGISSANT résolu : `cmd.heroId` (E4.4, coop) sinon le lead du camp joueur. */
 function actingHero(state: GameState, combat: CombatState, heroId?: string): HeroState | undefined {
   if (heroId) return state.heroes.find((h) => h.id === heroId);
-  return heroForSide(state, combat, combat.playerSide);
+  return sideLeadHero(state, combat, combat.playerSide);
 }
 
 /**
@@ -46,7 +41,7 @@ export function heroAttackDamageFor(
 
 /** Préviz de l'attaque du héros **lead** d'un camp (rétro-compat client/UI). */
 export function heroAttackDamage(state: GameState, combat: CombatState, side: CombatSideId): number {
-  return heroAttackDamageFor(state, combat, side, heroForSide(state, combat, side));
+  return heroAttackDamageFor(state, combat, side, sideLeadHero(state, combat, side));
 }
 
 /** La pile active du camp joueur peut-elle déclencher l'attaque du héros ? */

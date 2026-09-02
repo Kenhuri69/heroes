@@ -85,10 +85,32 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+/**
+ * Revue 2026-09 : en « lie-fi » (réseau présent mais muet), `fetch` peut pendre
+ * 30–120 s alors que la coquille est en cache — l'app installée restait sur un
+ * écran noir. La NAVIGATION est bornée : au-delà, repli cache immédiat.
+ */
+const NAVIGATION_TIMEOUT_MS = 4000;
+function fetchWithTimeout(request, ms) {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error('timeout')), ms);
+    fetch(request).then(
+      (r) => {
+        clearTimeout(timer);
+        resolve(r);
+      },
+      (e) => {
+        clearTimeout(timer);
+        reject(e);
+      },
+    );
+  });
+}
+
 async function networkFirst(request, shellFallback) {
   const cache = await caches.open(CACHE);
   try {
-    const fresh = await fetch(request);
+    const fresh = shellFallback ? await fetchWithTimeout(request, NAVIGATION_TIMEOUT_MS) : await fetch(request);
     if (fresh && fresh.ok) {
       // Mise en cache best-effort : un put qui rejette (quota, course avec un
       // delete) ne doit pas produire d'unhandled rejection dans le SW.

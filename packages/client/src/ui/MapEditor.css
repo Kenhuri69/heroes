@@ -73,6 +73,33 @@
 .terrain-mountain {
   background: var(--terrain-mountain);
 }
+.terrain-dirt {
+  background: var(--terrain-dirt);
+}
+.terrain-sand {
+  background: var(--terrain-sand);
+}
+.terrain-forest {
+  background: var(--terrain-forest);
+}
+.terrain-rough {
+  background: var(--terrain-rough);
+}
+.terrain-snow {
+  background: var(--terrain-snow);
+}
+.terrain-river {
+  background: var(--terrain-river);
+}
+.terrain-rocks {
+  background: var(--terrain-rocks);
+}
+.terrain-cave {
+  background: var(--terrain-cave);
+}
+.terrain-cave-wall {
+  background: var(--terrain-cave-wall);
+}
 
 .map-editor-grid {
   display: grid;
@@ -85,8 +112,9 @@
 
 .map-editor-grid .cell {
   position: relative;
-  width: 28px;
-  height: 28px;
+  /* Revue 2026-09 : cible tactile ≥ 44 px (doc 08 §4), suit le cran de police. */
+  width: 2.75rem;
+  height: 2.75rem;
   border: none;
   cursor: pointer;
   padding: 0;

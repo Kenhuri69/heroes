@@ -7,7 +7,9 @@ import type { Command } from '@heroes/engine';
  * Le jeu reste 100 % hors-ligne par défaut ; le réseau n'entre jamais dans le smoke.
  */
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+// Revue 2026-09 : slash final toléré (`https://x.workers.dev/` ⇒ plus de `//auth`).
+const BACKEND_URL: string | undefined =
+  (import.meta.env.VITE_BACKEND_URL as string | undefined)?.replace(/\/+$/, '') || undefined;
 const SESSION_KEY = 'heroes.session';
 const PROFILE_KEY = 'heroes.profile';
 
@@ -62,6 +64,8 @@ async function api<T>(path: string, init?: RequestInit): Promise<T> {
   if (!BACKEND_URL) throw new Error('backend hors-ligne (VITE_BACKEND_URL absente)');
   const s = session();
   const res = await fetch(`${BACKEND_URL}${path}`, {
+    // Revue 2026-09 : un backend muet ne laisse plus l'UI en attente indéfinie.
+    signal: init?.signal ?? AbortSignal.timeout(15_000),
     ...init,
     headers: {
       'Content-Type': 'application/json',

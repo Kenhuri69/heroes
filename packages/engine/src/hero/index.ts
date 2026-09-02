@@ -4,7 +4,7 @@ import { landingTileFor } from './landing';
 import { heroArmyMagicResistance, heroLuckValue, killsFromDamage, magicResistanceOf } from '../combat/damage';
 import { checkCombatEnd } from '../combat/turns';
 import { applySpellToTargets, bestGraveEntry, chainTargets, hostileSpellSkip, resurrectFullCount, spellTargets, spellcasterParams } from '../combat/spell-effect';
-import { factionCurseDurationBonus, factionSpellDamageMods, heroActionLeftFor, heroesOnSide, isStackSpellImmune, staticBlockedKeys } from '../combat/state-helpers';
+import { factionCurseDurationBonus, factionSpellDamageMods, heroActionLeftFor, heroesOnSide, isStackSpellImmune, sideLeadHero, staticBlockedKeys } from '../combat/state-helpers';
 import {
   COMBAT_COLS,
   COMBAT_ROWS,
@@ -35,15 +35,9 @@ type CastSpellCmd = Extract<Command, { type: 'CastSpell' }>;
 type ChooseSkillCmd = Extract<Command, { type: 'ChooseSkill' }>;
 type ChooseAttributeCmd = Extract<Command, { type: 'ChooseAttribute' }>;
 
-/** Héros lié à un camp du combat — `undefined` si le camp n'a pas de héros. */
-function heroForSide(state: GameState, combat: CombatState, side: CombatState['playerSide']) {
-  const heroId = side === 'attacker' ? combat.attackerHeroId : combat.defenderHeroId;
-  return heroId ? state.heroes.find((h) => h.id === heroId) : undefined;
-}
-
 /** Héros lié au camp joueur — la COMMANDE `CastSpell` reste joueur-only ; l'IA passe par `castHeroSpell`. */
 function heroForPlayerSide(state: GameState, combat: CombatState) {
-  return heroForSide(state, combat, combat.playerSide);
+  return sideLeadHero(state, combat, combat.playerSide);
 }
 
 /** Héros AGISSANT résolu (E4.4) : `heroId` (coop) sinon le lead du camp joueur. */

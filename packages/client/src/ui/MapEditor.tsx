@@ -1,17 +1,16 @@
 import { useMemo, useState } from 'preact/hooks';
-import { mapFileSchema } from '@heroes/content';
+import { mapFileSchema, TERRAIN_CHARS } from '@heroes/content';
 import { navigate } from '../app/router';
 import { t } from '../app/i18n';
 import './MapEditor.css';
 
-/** Terrains éditables (doc 02 §2.1) → caractère de légende fixe. */
-const TERRAINS = [
-  { id: 'grass', char: 'g' },
-  { id: 'swamp', char: 's' },
-  { id: 'water', char: 'w' },
-  { id: 'mountain', char: 'm' },
-] as const;
-const CHAR_OF = Object.fromEntries(TERRAINS.map((tr) => [tr.id, tr.char]));
+/**
+ * Terrains éditables (doc 02 §2.1) : TOUS ceux de la légende partagée avec le
+ * générateur (`TERRAIN_CHARS`). Revue 2026-09 : l'éditeur n'en connaissait que 4
+ * et réécrivait les autres en `grass` à l'import — plus de liste locale.
+ */
+const TERRAINS: readonly string[] = Object.keys(TERRAIN_CHARS);
+const CHAR_OF = (id: string): string => TERRAIN_CHARS[id] ?? TERRAIN_CHARS.grass!;
 
 /**
  * Outils « objet » (doc 02 §2.2) : chacun pose son type avec des défauts
@@ -48,7 +47,8 @@ const OBJECT_GLYPHS: Record<ObjectKind, string> = {
   boat: '⛵',
 };
 
-type Tool = (typeof TERRAINS)[number]['id'] | 'start' | ObjectKind | 'erase';
+/** Id de terrain (chaîne ouverte, cf. `TERRAINS`) ou outil d'objet. */
+type Tool = string;
 type MapObj = { kind: ObjectKind; x: number; y: number };
 
 const clampSize = (n: number): number => Math.max(4, Math.min(32, Math.round(n) || 4));
@@ -116,7 +116,7 @@ export function MapEditor() {
       const roads: string[] = [];
       for (let y = 0; y < height; y++) {
         let row = '';
-        for (let x = 0; x < width; x++) row += CHAR_OF[terrain[y * width + x] ?? 'grass'];
+        for (let x = 0; x < width; x++) row += CHAR_OF(terrain[y * width + x] ?? 'grass');
         tiles.push(row);
         roads.push('0'.repeat(width));
       }
@@ -143,7 +143,10 @@ export function MapEditor() {
         schemaVersion: 1,
         width,
         height,
-        legend: { g: 'grass', s: 'swamp', w: 'water', m: 'mountain' },
+        // Légende = terrains effectivement peints (même convention que `generateMap`).
+        legend: Object.fromEntries(
+          [...new Set(terrain)].filter((tid) => tid in TERRAIN_CHARS).map((tid) => [CHAR_OF(tid), tid]),
+        ),
         tiles,
         roads,
         objects: objs,
@@ -242,14 +245,14 @@ export function MapEditor() {
       </header>
 
       <div class="map-editor-tools" role="group" aria-label={t('editor.tools')}>
-        {TERRAINS.map((tr) => (
+        {TERRAINS.map((tid) => (
           <button
-            key={tr.id}
-            class={`tool terrain-${tr.id}${tool === tr.id ? ' active' : ''}`}
-            data-testid={`editor-tool-${tr.id}`}
-            onClick={() => setTool(tr.id)}
+            key={tid}
+            class={`tool terrain-${tid}${tool === tid ? ' active' : ''}`}
+            data-testid={`editor-tool-${tid}`}
+            onClick={() => setTool(tid)}
           >
-            {t(`editor.terrain.${tr.id}`)}
+            {t(`editor.terrain.${tid}`)}
           </button>
         ))}
         {(['start', ...OBJECT_TOOLS, 'erase'] as const).map((tl) => (

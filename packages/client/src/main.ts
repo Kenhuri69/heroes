@@ -391,6 +391,7 @@ async function bootstrap(): Promise<void> {
    * barre se peindre. Toujours nettoyé (succès comme échec) via `finally`.
    */
   const startNewGameSetup = async (raw: NewGameRawConfig): Promise<void> => {
+    if (appStore.getState().loading) return; // revue 2026-09 : génération déjà en cours
     const raf = (): Promise<void> => new Promise((r) => requestAnimationFrame(() => r()));
     const setLoading = (label: string, progress: number): void =>
       appStore.setState({ loading: { label, progress } });

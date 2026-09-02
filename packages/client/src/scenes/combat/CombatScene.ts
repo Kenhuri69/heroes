@@ -456,7 +456,7 @@ export class CombatScene {
         // R3 : la scène survit à la fin du combat le temps de jouer le coup fatal
         // (main.ts attend `whenIdle`) — un jeton encore attendu par la file reste.
         if (this.animatingIds.has(id) || (this.queuedEventIds.get(id) ?? 0) > 0) continue;
-        token.destroy();
+        token.destroy({ children: true });
         this.stackTokens.delete(id);
       }
       // Fin de combat = filet de sécurité B38 : plus de mort différée en attente
@@ -648,11 +648,11 @@ export class CombatScene {
 
     // Courtines : sprite peint incliné le long de l'axe iso, sinon procédural droit.
     for (const run of layout.runs) {
-      if (curtainUrl) this.placeCurtainIso(curtainUrl, iso, layout.halfW, run.yTop, run.yBot);
+      if (curtainUrl) this.placeCurtainIso(sig, curtainUrl, iso, layout.halfW, run.yTop, run.yBot);
       else drawCurtain(this.wallBase, layout.wallX, run.yTop, run.yBot);
     }
     for (const ty of layout.towers) {
-      if (towerUrl) this.placeTowerIso(towerUrl, iso.xAt(ty), ty, iso.scaleAt(ty), layout.towerH);
+      if (towerUrl) this.placeTowerIso(sig, towerUrl, iso.xAt(ty), ty, iso.scaleAt(ty), layout.towerH);
       else drawTower(this.wallBase, layout.wallX, ty);
     }
     if (layout.gateY != null) drawGate(this.wallBase, iso.xAt(layout.gateY), layout.gateY);
@@ -664,6 +664,7 @@ export class CombatScene {
    * pivoté en tête + mis à l'échelle profondeur) ⇒ muraille qui file en perspective.
    */
   private placeCurtainIso(
+    gen: string,
     url: string,
     iso: { xAt: (y: number) => number; scaleAt: (y: number) => number },
     halfW: number,
@@ -676,7 +677,8 @@ export class CombatScene {
     const w = halfW * 2 * iso.scaleAt((yTop + yBot) / 2);
     const angle = Math.atan2(yBot - yTop, botX - topX) - Math.PI / 2; // local +y (bas) → direction d'axe
     void Assets.load(url).then((texture) => {
-      if (this.destroyed || this.wallSpriteLayer.destroyed) return;
+      // Revue 2026-09 : muraille redessinée entre-temps (signature changée) ⇒ sprite périmé ignoré.
+      if (this.destroyed || this.wallSpriteLayer.destroyed || gen !== this.wallKeys) return;
       const tile = new TilingSprite({ texture, width: w, height: len });
       tile.tileScale.set(w / texture.width);
       tile.pivot.set(w / 2, 0);
@@ -687,9 +689,9 @@ export class CombatScene {
   }
 
   /** Tour PEINTE posée en (x,y) sur l'axe, base au point, échelle profondeur. */
-  private placeTowerIso(url: string, x: number, y: number, depthScale: number, towerH: number): void {
+  private placeTowerIso(gen: string, url: string, x: number, y: number, depthScale: number, towerH: number): void {
     void Assets.load(url).then((texture) => {
-      if (this.destroyed || this.wallSpriteLayer.destroyed) return;
+      if (this.destroyed || this.wallSpriteLayer.destroyed || gen !== this.wallKeys) return;
       const sprite = new Sprite(texture);
       sprite.anchor.set(0.5, 0.82);
       sprite.scale.set(((towerH * 1.7) / texture.height) * depthScale);
@@ -955,7 +957,7 @@ export class CombatScene {
       // Filet de sécurité (fuite) : marquée à un sync précédent et plus aucun
       // événement en file ne la référence — le fondu n'arrivera jamais, on détruit.
       this.pendingDeathIds.delete(id);
-      token.destroy();
+      token.destroy({ children: true });
       this.stackTokens.delete(id);
     }
     for (const stack of combat.stacks) {
@@ -1801,7 +1803,7 @@ export class CombatScene {
     for (const id of this.pendingDeathIds) {
       if (this.animatingIds.has(id) || (this.queuedEventIds.get(id) ?? 0) > 0) continue;
       const token = this.stackTokens.get(id);
-      if (token && !token.destroyed) token.destroy();
+      if (token && !token.destroyed) token.destroy({ children: true });
       this.stackTokens.delete(id);
       this.pendingDeathIds.delete(id);
     }
@@ -2193,7 +2195,7 @@ export class CombatScene {
       if (bob && !reduced) bob.rotation = t * DEATH_TIP_RAD;
     });
     this.animatingIds.delete(stackId);
-    if (!token.destroyed) token.destroy();
+    if (!token.destroyed) token.destroy({ children: true });
     this.stackTokens.delete(stackId);
     this.pendingDeathIds.delete(stackId); // mort différée honorée (B38)
   }

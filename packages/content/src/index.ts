@@ -95,4 +95,4 @@ export {
   type Unit,
   type VictoryCondition,
 } from './schemas';
-export { generateMap, type MapGenOptions } from './mapgen';
+export { generateMap, TERRAIN_CHARS, type MapGenOptions } from './mapgen';

@@ -490,6 +490,16 @@ function sideLeadHeroId(combat: CombatState, side: CombatSideId): string | null 
 }
 
 /**
+ * Héros lead d'un camp, résolu dans l'état — `undefined` si le camp n'a pas de
+ * héros (gardien, arène). Source unique (revue 2026-09) : le même helper vivait
+ * en copie locale dans quatre modules (`damage`, `hero-attack`, `hero-rally`, `hero`).
+ */
+export function sideLeadHero(state: GameState, combat: CombatState, side: CombatSideId): HeroState | undefined {
+  const heroId = sideLeadHeroId(combat, side);
+  return heroId ? state.heroes.find((h) => h.id === heroId) : undefined;
+}
+
+/**
  * Héros pouvant agir pour un camp (E4.4) : le **lead** plus tout héros allié coop
  * dont une pile VIVANTE est sur ce camp (`ownerHeroId`). Hors coop ⇒ juste le lead.
  * Pur (lit `combat` seul). L'ordre place le lead d'abord (flux IA/golden préservé).

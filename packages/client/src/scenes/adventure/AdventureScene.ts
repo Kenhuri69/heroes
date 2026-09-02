@@ -28,7 +28,7 @@ import { reduceMotion } from '../../app/motion';
 import { humanId, isHeroVisibleOnMap, resolveSelectedHero, visionSightings } from '../../app/game';
 import type { Camera } from '../../render/camera';
 import { heroMapUrl } from '../../render/assets';
-import { Tilemap, TILE_SIZE } from '../../render/tilemap';
+import { Tilemap, TILE_SIZE, chunkBounds, type WorldRect } from '../../render/tilemap';
 import { TerrainProps } from '../../render/terrainProps';
 import {
   ISO_TILE_W,
@@ -126,6 +126,8 @@ export class AdventureScene {
   /** Reconstruits à la bascule de couche (L10.3) — d'où l'absence de `readonly`. */
   private fog: FogOverlay;
   private tilemap: Tilemap;
+  /** AABB monde de la couche affichée (bornes de pan, revue 2026-09). */
+  private mapBounds: WorldRect;
   /** Voile de miroitement d'eau (I12) — présent seulement sur une carte aplatie. */
   private waterSheen: Container | null;
   private terrainProps: TerrainProps;
@@ -182,6 +184,7 @@ export class AdventureScene {
     // L10.3 : la scène dessine UNE couche à la fois — la vue plate de la couche
     // active (surface au démarrage). Tout le rendu en aval reste inchangé.
     const view = mapAtLevel(map, 0);
+    this.mapBounds = chunkBounds(0, 0, view.width - 1, view.height - 1);
     // R4 : le seuil d'aplatissement tient compte de la RÉSOLUTION de rendu (DPR).
     const tilemap = new Tilemap(view, app.renderer.resolution);
     this.tilemap = tilemap;
@@ -263,6 +266,16 @@ export class AdventureScene {
     )
       return;
     this.lastCull = { x: wx, y: wy, s, w: sw, h: sh };
+    // Revue 2026-09 : pan borné — le bord de la carte ne dépasse jamais le CENTRE
+    // de l'écran (toute tuile reste centrable, la carte ne peut plus être perdue
+    // hors champ). Recalculé ici car la marge dépend du zoom et de l'écran.
+    const b = this.mapBounds;
+    const hx = sw / 2 / s;
+    const hy = sh / 2 / s;
+    this.camera.setClampBounds(
+      { minX: b.minX - hx, minY: b.minY - hy, width: b.maxX - b.minX + 2 * hx, height: b.maxY - b.minY + 2 * hy },
+      { x: 0, y: 0, width: sw, height: sh },
+    );
     const margin = 256; // px écran : anticipe le pan, évite le « pop » de chunks
     const view = {
       minX: (-margin - wx) / s,
@@ -284,6 +297,7 @@ export class AdventureScene {
   destroy(): void {
     this.destroyed = true;
     this.app.ticker.remove(this.onTick);
+    this.camera.setClampBounds(null, null); // la caméra survit à la scène (main.ts)
     waterSheenStats.alpha = 0; // I12 : le hook ne garde pas une valeur périmée hors aventure
     this.terrainProps.destroy();
     this.unsubscribeStore();
@@ -335,6 +349,7 @@ export class AdventureScene {
   private switchLevel(map: NonNullable<GameState['map']>, level: number): void {
     this.activeLevel = level;
     const view = mapAtLevel(map, level);
+    this.mapBounds = chunkBounds(0, 0, view.width - 1, view.height - 1);
 
     this.tilemap.container.destroy({ children: true });
     this.terrainProps.destroy();

@@ -150,8 +150,9 @@ function fbm(
   return sum / norm;
 }
 
-/** Char de légende stable par terrain (distinct de '0'/'1' réservés aux routes). */
-const TERRAIN_CHARS: Record<string, string> = {
+/** Char de légende stable par terrain (distinct de '0'/'1' réservés aux routes).
+ *  Exporté (revue 2026-09) : l'éditeur de carte partage la même légende. */
+export const TERRAIN_CHARS: Record<string, string> = {
   grass: 'g',
   dirt: 'd',
   sand: 'a',

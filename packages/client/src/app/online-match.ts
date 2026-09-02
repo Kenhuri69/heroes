@@ -83,6 +83,10 @@ export async function recordOnlineTurn(cmd: Command, gameBefore: GameState): Pro
     appStore.setState({ onlineMatch: { ...om, nextSeq: r.seq + 1 } });
   } catch {
     pushToast(t('toast.matchPostError'), 'error');
-    await refreshOnlineMatch();
+    try {
+      await refreshOnlineMatch();
+    } catch {
+      /* revue 2026-09 : hors-ligne — le toast ci-dessus suffit, pas de rejet non géré */
+    }
   }
 }

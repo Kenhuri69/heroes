@@ -14,11 +14,11 @@ jobs:
   quality:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
           cache: pnpm
@@ -41,9 +41,13 @@ jobs:
           pattern=$(jq -r '.factions | map("\\b" + . + "\\b") | join("|")' data/factions/index.json)
           echo "motif faction : ${pattern}"
           set +e
-          hits=$(grep -rInE "$pattern" packages/ \
+          # Revue 2026-09 : `server/` (membre du workspace hors packages/) et les
+          # feuilles/gabarits (`.css`/`.html`) sont balayés aussi — un sélecteur
+          # `.town-haven{}` ou un `if (faction === …)` dans le Worker passait.
+          hits=$(grep -rInE "$pattern" packages/ server/src \
             --include='*.ts' --include='*.tsx' --include='*.js' \
             --include='*.cjs' --include='*.mjs' --include='*.json' \
+            --include='*.css' --include='*.html' \
             --exclude-dir=dist --exclude-dir=node_modules)
           status=$?
           set -e
@@ -156,16 +160,16 @@ jobs:
       matrix:
         shard: [1, 2]
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
 
       - name: Cache des navigateurs Playwright
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
@@ -186,16 +190,16 @@ jobs:
   smoke-perf:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
 
       - name: Cache des navigateurs Playwright
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
@@ -215,16 +219,16 @@ jobs:
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
 
       - name: Cache des navigateurs Playwright
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}

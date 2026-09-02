@@ -6,7 +6,7 @@ import type { SpellStatus } from '../hero/types';
 import { canShootTarget } from './actions';
 import { handleStackDeath } from './death';
 import { hexBehind, hexDistance, inCombatBounds, sameHex } from './hex';
-import { clamp, conditionalUnitBonus, factionCombatBonus, hasAbility, isShooterMeleePenalized, recordLoss, recordRevive, siegeEliteDamage, stackLostSoFar } from './state-helpers';
+import { clamp, conditionalUnitBonus, factionCombatBonus, hasAbility, isShooterMeleePenalized, recordLoss, recordRevive, sideLeadHero, siegeEliteDamage, stackLostSoFar } from './state-helpers';
 import type { CombatSideId, CombatStack, CombatUnitDef, CombatState } from './types';
 import type { CombatRulesConfig } from '../adventure/config';
 import type { GameEvent } from '../core/events';
@@ -330,16 +330,10 @@ export function computeMultiplier(input: MultiplierInput): number {
   return mult;
 }
 
-/** Héros lié au camp `side` du combat (`attackerHeroId`/`defenderHeroId`), ou aucun. */
-function heroForSide(state: GameState, combat: CombatState, side: CombatSideId) {
-  const heroId = side === 'attacker' ? combat.attackerHeroId : combat.defenderHeroId;
-  return heroId ? state.heroes.find((h) => h.id === heroId) : undefined;
-}
-
 /** Attaque additionnelle du camp : héros (attribut + artefacts) + bonus de faction (F-BONUS). */
 export function heroAttackOf(state: GameState, combat: CombatState, side: CombatSideId): number {
   const factionAttack = factionCombatBonus(state, combat, side).attack;
-  const hero = heroForSide(state, combat, side);
+  const hero = sideLeadHero(state, combat, side);
   if (!hero) return factionAttack;
   return hero.attributes.attack + heroArtifactBonus(hero, state.artifactCatalog).attack + factionAttack;
 }
@@ -347,7 +341,7 @@ export function heroAttackOf(state: GameState, combat: CombatState, side: Combat
 /** Défense additionnelle du camp : héros (attribut + artefacts) + bonus de faction (F-BONUS). */
 export function heroDefenseOf(state: GameState, combat: CombatState, side: CombatSideId): number {
   const factionDefense = factionCombatBonus(state, combat, side).defense;
-  const hero = heroForSide(state, combat, side);
+  const hero = sideLeadHero(state, combat, side);
   if (!hero) return factionDefense;
   return hero.attributes.defense + heroArtifactBonus(hero, state.artifactCatalog).defense + factionDefense;
 }
@@ -359,7 +353,7 @@ export function heroDefenseOf(state: GameState, combat: CombatState, side: Comba
  * malchance (×0,5) dans `performStrike`.
  */
 export function heroLuckOf(state: GameState, combat: CombatState, side: CombatSideId): number {
-  const hero = heroForSide(state, combat, side);
+  const hero = sideLeadHero(state, combat, side);
   return hero ? heroLuckValue(state, hero) : 0;
 }
 
@@ -383,7 +377,7 @@ export function heroLuckValue(state: GameState, hero: HeroState): number {
  * résistance de chaque pile du camp face aux sorts de dégâts (résolution + préviz).
  */
 export function heroArmyMagicResistance(state: GameState, combat: CombatState, side: CombatSideId): number {
-  const hero = heroForSide(state, combat, side);
+  const hero = sideLeadHero(state, combat, side);
   if (!hero) return 0;
   let total = 0;
   for (const id of hero.artifacts) if (id) total += state.artifactCatalog[id]?.armyMagicResistance ?? 0;
@@ -397,26 +391,26 @@ export function heroArmyMagicResistance(state: GameState, combat: CombatState, s
  * (qui, lui, atténue les DÉGÂTS de sort). Pur, générique — aucune faction.
  */
 export function heroGrantsStatusImmune(state: GameState, combat: CombatState, side: CombatSideId): boolean {
-  const hero = heroForSide(state, combat, side);
+  const hero = sideLeadHero(state, combat, side);
   if (!hero) return false;
   return hero.artifacts.some((id) => id != null && (state.artifactCatalog[id]?.grantsStatusImmune ?? false));
 }
 
 /** Bonus % de dégâts mêlée du héros lié au camp (compétence Attaque au corps) — fraction (0,10 = +10 %). */
 function heroMeleePctOf(state: GameState, combat: CombatState, side: CombatSideId): number {
-  const hero = heroForSide(state, combat, side);
+  const hero = sideLeadHero(state, combat, side);
   return hero ? heroMeleePct(hero, state.skillCatalog) / 100 : 0;
 }
 
 /** Bonus % de dégâts à distance du héros lié au camp (compétence Tir) — fraction. */
 function heroRangedPctOf(state: GameState, combat: CombatState, side: CombatSideId): number {
-  const hero = heroForSide(state, combat, side);
+  const hero = sideLeadHero(state, combat, side);
   return hero ? heroRangedPct(hero, state.skillCatalog) / 100 : 0;
 }
 
 /** Réduction % d'armure du héros lié au camp défenseur (compétence Armure) — fraction. */
 function heroArmorPctOf(state: GameState, combat: CombatState, side: CombatSideId): number {
-  const hero = heroForSide(state, combat, side);
+  const hero = sideLeadHero(state, combat, side);
   return hero ? heroArmorPct(hero, state.skillCatalog) / 100 : 0;
 }
 
@@ -630,8 +624,8 @@ export function performStrike(
 
   const pool = (victim.count - 1) * victimDef.stats.hp + victim.firstHp;
   const remaining = Math.max(0, pool - damage);
-  const newCount = remaining <= 0 ? 0 : Math.min(victim.count, Math.ceil(remaining / victimDef.stats.hp));
-  const kills = victim.count - newCount;
+  const kills = killsFromDamage(pool, victimDef.stats.hp, victim.count, damage);
+  const newCount = victim.count - kills;
   victim.count = newCount;
   victim.firstHp = newCount > 0 ? remaining - (newCount - 1) * victimDef.stats.hp : 0;
 
@@ -1029,11 +1023,6 @@ export function estimateDamage(
   }
 
   return { damageMin, damageMax, killsMin, killsMax, retaliation, strikes };
-}
-
-/** Un ennemi est-il adjacent à la pile (utilisé par la pénalité de tir au contact) ? */
-export function hasAdjacentEnemy(stack: CombatStack, combat: CombatState): boolean {
-  return combat.stacks.some((s) => s.side !== stack.side && s.count > 0 && hexDistance(s.pos, stack.pos) === 1);
 }
 
 export type { CombatSideId };

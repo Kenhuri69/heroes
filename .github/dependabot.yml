@@ -1,0 +1,11 @@
+# Revue 2026-09 : les actions sont épinglées par SHA (ci.yml, deploy*.yml) —
+# Dependabot propose les montées de version (et met à jour le commentaire `# vN`).
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ['*']

@@ -17,7 +17,7 @@ export default defineConfig({
   // combine ces 2 workers avec 2 shards ⇒ concurrence effective 4 sans
   // sur-souscrire une même machine.
   fullyParallel: true,
-  workers: process.env.CI ? 2 : undefined,
+  ...(process.env.CI ? { workers: 2 } : {}),
   // En CI : interdit un `test.only` oublié (garde-fou anti-couverture partielle)
   // et rejoue 2 fois un échec pour absorber la flakiness résiduelle du rendu.
   forbidOnly: !!process.env.CI,

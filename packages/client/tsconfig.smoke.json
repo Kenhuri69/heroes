@@ -1,0 +1,13 @@
+{
+  // Revue 2026-09 (R9) : le smoke Playwright et sa config n'étaient typés par
+  // AUCUN projet (aucun tsconfig n'incluait `tests/`) — une surface de test
+  // périmée (`__HEROES_TEST__`) ne cassait qu'à l'exécution. Ce projet vérifie
+  // `tests/` avec les types du client (déclaration `Window` de `main.ts`).
+  // Lancé par `pnpm typecheck` à la racine.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "types": ["vite/client", "node"]
+  },
+  "include": ["src/main.ts", "../../tests", "../../playwright.config.ts"]
+}

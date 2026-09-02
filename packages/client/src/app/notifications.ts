@@ -341,7 +341,10 @@ export function aggregateDailyIncome(events: readonly AppEvent[], game: GameStat
 export function appendJournal(message: string): void {
   appStore.setState((s) => {
     const journalOpen = s.modals.some((m) => m.kind === 'journal');
-    const entry: JournalEntry = { id: nextJournalId++, day: s.game.calendar.day, message };
+    // C6 (revue 2026-09) : l'entrée appartient au joueur humain ACTIF — en
+    // hot-seat, le journal partagé laissait le joueur 2 lire revenus, recrutements
+    // et sorts du joueur 1 (les toasts étaient filtrés à l'émission, pas le journal).
+    const entry: JournalEntry = { id: nextJournalId++, day: s.game.calendar.day, message, playerId: humanId(s.game) };
     return {
       journal: [...s.journal, entry].slice(-MAX_JOURNAL),
       journalUnread: journalOpen ? s.journalUnread : s.journalUnread + 1,

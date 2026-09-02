@@ -9,6 +9,7 @@ import type { GameEvent } from '../core/events';
 import { armyStrength } from '../core/power';
 import { rollRange } from '../core/rng';
 import { evaluateOutcome } from '../scenario/outcome';
+import { killsFromDamage } from './damage';
 import { handleStackDeath } from './death';
 import type { Draft } from './draft';
 import { rebuildArmyFromSurvivors, sideOwnerHeroIds } from './army-rebuild';
@@ -55,8 +56,8 @@ function applyPoisonTicks(draft: Draft, events: GameEvent[]): boolean {
     if (!def) continue;
     const pool = (stack.count - 1) * def.stats.hp + stack.firstHp;
     const remaining = Math.max(0, pool - poison);
-    const newCount = remaining <= 0 ? 0 : Math.min(stack.count, Math.ceil(remaining / def.stats.hp));
-    const kills = stack.count - newCount;
+    const kills = killsFromDamage(pool, def.stats.hp, stack.count, poison);
+    const newCount = stack.count - kills;
     stack.count = newCount;
     stack.firstHp = newCount > 0 ? remaining - (newCount - 1) * def.stats.hp : 0;
     recordLoss(combat, stack, kills);

@@ -382,3 +382,19 @@ visiteur ; mise à jour des dépendances majeures.
   garde CSS), textes canvas à taille fixe, `new Audio` sans plafond, snapshot
   `!combat` de `CombatScene.sync()`. Vérif : typecheck 5/5 + smoke-tsc, lint,
   moteur 1009, contenu 184, client 105, build, smoke @core **44/44**.
+- [x] **R10 livré** — docs alignées sur le livré : doc 02 §4.1 (capture d'une
+  ville sans garnison mais avec héros ⇒ combat héros-vs-héros, garnison prime) ;
+  doc 14 §2 (Symbiose : seul **Défendre** enracine, *Attendre* conserve — le texte
+  disait « ou reste en place ») + §1 terrain natif (sim sur terrain neutre) ;
+  doc 15 §10 (SHA, `env:`, typecheck Worker) ; doc 08 (éditeur 13 terrains /
+  légende, journal filtré par siège) ; **CLAUDE.md** : mémo « Revue de code
+  complète 2026-09 ». Doc 02 §5 (préviz M6), doc 05 (M5 expose), doc 06 (D2) et
+  doc 15 §5.1/§6/§8/§9 avaient été alignées dans leurs lots (R3/R7/R8). Changement
+  documentaire pur — pas de test (guideline §7).
+- **Bilan R1→R10** : 10 commits atomiques sur PR #547 (écart « une PR par lot »
+  imposé par la branche unique). Vérifs finales par lot : typecheck 5/5 +
+  smoke-tsc, lint, moteur **1009** (golden inchangé), contenu **184**, client
+  **105**, serveur **10**, `content:check`, build (< 800 Ko gzip), smoke @core
+  **44/44**. Restes documentés : snapshot par match (migration D1), re-tuning
+  d'équilibrage (3 béances mesurées sur terrain neutre), couleurs TSX/Pixi,
+  icône PWA maskable, `startingTown.level` de scénario.

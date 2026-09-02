@@ -533,6 +533,26 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > `CURRENT_SAVE_VERSION`**, golden inchangé, garde-fou « zéro faction » vert.
 > Différé : plus de deux niveaux (chantier transversal + bump save).*
 
+> 🩺 **Revue de code complète 2026-09** (plan `.claude/plans/code-review-2026-09.md`,
+> lots R1→R10, une PR). Revue transversale moteur/contenu/client/serveur/CI :
+> 2 P0, 11 P1, ~30 P2, ~40 P3 corrigés ou tranchés. **Moteur** : garde PvP *par
+> commande* (un lot ne peut plus jouer après la fin de son tour), capture d'une
+> ville défendue par un **héros seul** ⇒ combat héros-vs-héros, unités invoquées
+> jamais reconstruites dans l'armée (`army-rebuild.ts`), `landingTileFor`, préviz
+> = résolution (`expose`, `doubleAttack`), `Dig` sans obélisque, IA : vision réelle
+> et exploration jamais figée, dédup (`sideLeadHero`, `killsFromDamage`). **Client** :
+> transactions IndexedDB attendues, `enterLoadedGame`/`SaveContext` (scénario,
+> campagne, hot-seat rechargés fidèlement), file de présentation de combat
+> resynchronisée, brouillard incrémental, journal filtré par siège, pan borné,
+> éditeur 13 terrains. **Serveur** : auth fail-closed, magic-link atomique,
+> harnais Worker (`@cloudflare/vitest-pool-workers`, 10 tests) branché à `pnpm test`.
+> **Contenu/outillage** : `content:check` élargi (spécialités, artefacts, dialogues,
+> machines), `faction:sim` sur terrain neutre (révèle **3 béances** au duel —
+> re-tuning = décision de design, différée). **CI** : actions épinglées par SHA +
+> Dependabot, `tests/` typé (`tsconfig.smoke.json`), garde-fou « zéro faction »
+> étendu à `server/` et aux CSS/HTML. Zéro faction moteur, **pas de bump
+> `CURRENT_SAVE_VERSION`**, golden inchangé ; docs 02/05/06/08/14/15 alignées.*
+
 ---
 
 ## Structure des fichiers

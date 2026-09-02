@@ -276,6 +276,10 @@ GitHub**, jamais en clair. Étapes de l'utilisateur (une fois) :
    **`subdomain`** (ex. `kenhuri`) : une étape enregistre le sous-domaine via
    l'API Cloudflare (le token secret sert d'auth, idempotent) avant de déployer.
    L'URL apparaît alors dans les logs (`https://heroes.<sous-domaine>.workers.dev`).
+   *Revue 2026-09 (R9)* : le workflow épingle ses actions par **SHA** (Dependabot
+   propose les montées), passe le token par `env:` (jamais interpolé dans un
+   script) et **typecheck le Worker** avant `wrangler deploy` (esbuild ne vérifie
+   pas les types).
 4. **Variable GitHub** (même écran, onglet *Variables*) : `VITE_BACKEND_URL` =
    cette URL. **Absente ⇒ client hors-ligne** (défaut sûr).
 5. **Publier le client** — Actions → **Deploy to GitHub Pages** → *Run workflow*

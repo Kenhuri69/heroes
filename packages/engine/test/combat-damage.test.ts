@@ -332,7 +332,9 @@ describe('performStrike / applyAction — intégration dégâts', () => {
     expect(strikes).toHaveLength(1);
     const defenderAfter = next.combat?.stacks.find((s) => s.id === 'defender-0');
     expect(defenderAfter?.marks).toBe(0); // charge consommée
-    expect(defenderAfter?.retaliationsLeft).toBe(0);
+    // Revue 2026-09 (M5) : la riposte est supprimée contre CETTE attaque seulement —
+    // la charge de riposte du round reste disponible contre un autre attaquant.
+    expect(defenderAfter?.retaliationsLeft).toBe(1);
     expect(events).toContainEqual({ type: 'MarksConsumed', strikerId: 'attacker-0', targetId: 'defender-0', consumed: 1 });
   });
 
@@ -745,5 +747,56 @@ describe('B1 — pénalité de portée de tir', () => {
     // atk 5 = def 5 ⇒ mult 1 ; dégât fixe 10.
     expect(estimateDamage(state, 'attacker-0', 'near-0').damageMax).toBe(10); // dist 5 ≤ 10 : plein
     expect(estimateDamage(state, 'attacker-0', 'far-0').damageMax).toBe(5);   // dist 12 > 10 : ½
+  });
+});
+
+describe('Revue 2026-09 — préviz = résolution (M5 expose, M6 doubleAttack)', () => {
+  it('M5 : expose prive aussi une pile `unlimitedRetaliation` de riposte, comme la préviz l’annonce', () => {
+    const catalog = {
+      atk: unit({
+        id: 'atk',
+        stats: { hp: 10, attack: 5, defense: 5, damage: [3, 3], speed: 8 },
+        abilities: [{ id: 'consumeMarks', params: { cost: 1, suppressRetaliation: true } }],
+      }),
+      def: unit({ id: 'def', stats: { hp: 1000, attack: 20, defense: 5, damage: [10, 10], speed: 4 }, abilities: [{ id: 'unlimitedRetaliation' }] }),
+    };
+    const attacker = stack({ id: 'attacker-0', side: 'attacker', slot: 0, unitId: 'atk', count: 1, pos: { col: 0, row: 0 }, firstHp: 10 });
+    const defender = stack({ id: 'defender-0', side: 'defender', slot: 0, unitId: 'def', count: 1, pos: { col: 1, row: 0 }, firstHp: 1000, marks: 1 });
+    const state = { ...baseState(catalog), combat: combatState([attacker, defender]) };
+    expect(estimateDamage(state, 'attacker-0', 'defender-0').retaliation).toBeNull();
+    const events: GameEvent[] = [];
+    produce(state, (draft) => {
+      applyAction(draft, events, 'attacker-0', { type: 'attack', targetStackId: 'defender-0' });
+    });
+    expect(events.filter((e) => e.type === 'StackAttacked')).toHaveLength(1); // aucune riposte
+  });
+
+  it('M6 : la préviz d’un `doubleAttack` cumule les deux frappes (dégâts et kills séquentiels)', () => {
+    const catalog = {
+      atk: unit({ id: 'atk', stats: { hp: 20, attack: 10, defense: 0, damage: [3, 3], speed: 5 }, abilities: [{ id: 'doubleAttack' }] }),
+      def: unit({ id: 'def', stats: { hp: 4, attack: 5, defense: 0, damage: [2, 2], speed: 1 } }),
+    };
+    const attacker = stack({ id: 'attacker-0', side: 'attacker', slot: 0, unitId: 'atk', count: 1, pos: { col: 0, row: 0 }, firstHp: 20 });
+    // 3 défenseurs de 4 PV (pool 12) : une frappe de 5 tue 1 (reste 7 PV ⇒ 2 unités, 3 PV en tête).
+    const defender = stack({ id: 'defender-0', side: 'defender', slot: 0, unitId: 'def', count: 3, pos: { col: 1, row: 0 }, firstHp: 4 });
+    const state = { ...baseState(catalog), combat: combatState([attacker, defender]) };
+    const est = estimateDamage(state, 'attacker-0', 'defender-0');
+    // diff 10 → mult 1,5 → 5 par frappe × 2 = 10 ; kills : 1 puis 1 (7 − 5 = 2 PV ⇒ 1 survivant).
+    expect(est.strikes).toBe(2);
+    expect(est.damageMin).toBe(10);
+    expect(est.damageMax).toBe(10);
+    expect(est.killsMin).toBe(2);
+    expect(est.killsMax).toBe(2);
+    // Riposte estimée sur les survivants de la PREMIÈRE frappe (2 unités × 2 dégâts × mult 1,25 = 5).
+    expect(est.retaliation).toEqual({ damageMin: 5, damageMax: 5 });
+    // Résolution : mêmes dégâts totaux, mêmes kills.
+    const events: GameEvent[] = [];
+    const next = produce(state, (draft) => {
+      applyAction(draft, events, 'attacker-0', { type: 'attack', targetStackId: 'defender-0' });
+    });
+    const strikes = events.filter((e) => e.type === 'StackAttacked' && !e.retaliation) as Extract<GameEvent, { type: 'StackAttacked' }>[];
+    expect(strikes.reduce((n, s) => n + s.damage, 0)).toBe(10);
+    expect(strikes.reduce((n, s) => n + s.kills, 0)).toBe(2);
+    expect(next.combat?.stacks.find((s) => s.id === 'defender-0')?.count).toBe(1);
   });
 });

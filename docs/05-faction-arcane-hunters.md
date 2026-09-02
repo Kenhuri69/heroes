@@ -79,7 +79,10 @@ Faction inédite, produite en **Alpha** — elle sert de validation grandeur nat
 > `consumeMarks` (4.3) avec un 2ᵉ effet déclaratif `suppressRetaliation` —
 > `expose` du **Familier lié** (T2, `consumeMarks(1, suppressRetaliation)`) :
 > consommer 1 charge de Marque prive la cible de sa **riposte** cette attaque
-> (`victim.retaliationsLeft = 0` ; la prévisualisation de dégâts masque la
+> (revue 2026-09 M5 : signalé par `performStrike` à l'appelant, jamais via
+> `retaliationsLeft = 0` — vaut aussi contre `unlimitedRetaliation`, et la
+> charge de riposte du round reste disponible contre un autre attaquant ; la
+> prévisualisation de dégâts masque la
 > riposte). Aucun nouveau système — un param de plus sur une capacité existante
 > (garde-fou vert, golden inchangé). `pinningShot` (immobilisation, T6) et
 > `devourMarks` (T8) restent différés (statut « ne peut pas agir » / T8 4.6).
@@ -301,7 +304,7 @@ Particularité : la faction a **8 tiers**, mais le T8 partage sa croissance avec
 | Tier | Unité | PV | Att | Déf | Dégâts | Vit. | Croiss./sem | Coût | Capacités |
 |------|-------|----|-----|-----|--------|------|-------------|------|-----------|
 | 1 | **Élève de Sombreveille** | 5 | 3 | 2 | 1–3 | 5 | 12 | 38 or | `mark` ; `swarm` (+1 dégât si ≥ 2 piles alliées adjacentes de la cible) |
-| 2 | **Familier lié** (chouette spectrale) | 9 | 4 | 3 | 2–3 | 8 | 9 | 95 or | `flying`, `mark`, `expose` (consomme 1 Marque : la cible perd sa riposte ce round) |
+| 2 | **Familier lié** (chouette spectrale) | 9 | 4 | 3 | 2–3 | 8 | 9 | 95 or | `flying`, `mark`, `expose` (consomme 1 Marque : la cible perd sa riposte contre cette attaque) |
 | 3 | **Préfet de Cercle** | 17 | 5 | 6 | 3–6 | 5 | 7 | 185 or + 1 mercure | `shooter(10)` (baguette-arbalète), `mark` |
 | 4 | **Bibliothécaire Errant** (golem de grimoires) | 30 | 7 | 8 | 5–8 | 4 | 5 | 340 or | `spellcaster(Entrave/Silence, ×2)`, `magicResistance(30 %)`, `mark` |
 | 5 | **Lame du Serment** (duelliste diplômé) | 34 | 12 | 8 | 8–12 | 8 | 3 | 650 or + 1 mercure | `strikeAndReturn`, `mark`, `executioner` (consomme 3 Marques : +40 % dégâts sur cette attaque) |

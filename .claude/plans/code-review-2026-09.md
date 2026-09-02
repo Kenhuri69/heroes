@@ -235,3 +235,14 @@ visiteur ; mise à jour des dépendances majeures.
   ville = occupation seule, voisines franchissables) réutilisé par le portail et
   le recrutement. 8 tests ajoutés (un par constat). Vérif : typecheck, lint,
   **1000 tests moteur (+12), golden inchangé**, contenu 176, client 92.
+- [x] **R3 livré** — M5 : `performStrike` renvoie `suppressedRetaliation` et ne
+  met plus `retaliationsLeft = 0` ; `applyAttack` le consomme ⇒ `expose` vaut
+  aussi contre `unlimitedRetaliation` (préviz = résolution) et ne prive plus la
+  cible de riposte contre les attaquants suivants (test existant ajusté 0→1,
+  2 tests ajoutés). M6 : `estimateDamage` modélise les 2 frappes de
+  `doubleAttack` (kills séquentiels, riposte sur les survivants de la 1ʳᵉ frappe,
+  tir borné par les munitions) et renvoie `strikes` ; le client affiche
+  « (2 frappes) » (`combat.damageStrikes`). R7 : `handleAttackTap` refuse la
+  préviz d'une cible absente d'`attackableTargets` (toast
+  `combat.reason.unreachable`). Docs 02 §5.4 / 05 §3.1 alignées. Vérif : typecheck,
+  lint, **1002 tests moteur**, golden inchangé, contenu/client verts, `content:check`.

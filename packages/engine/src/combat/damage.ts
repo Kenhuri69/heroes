@@ -511,7 +511,7 @@ export function performStrike(
   draft: Draft,
   events: GameEvent[],
   params: StrikeParams,
-): { targetDied: boolean } {
+): { targetDied: boolean; suppressedRetaliation: boolean } {
   const { striker, victim, strikerDef, victimDef, meleePenalized, retaliation, ranged, rules, chargeBonus } = params;
   const rolls = Math.min(striker.count, MAX_DAMAGE_ROLLS);
   let sum = 0;
@@ -643,9 +643,11 @@ export function performStrike(
   // frappe esquivée (A2b) ne consomme rien (aucun impact).
   if (consume && !dodged) {
     victim.marks = Math.max(0, victim.marks - consume.cost);
-    // `expose` (doc 05 §3.1) : la cible perd sa riposte cette attaque — la
-    // riposte est décidée sur `retaliationsLeft` dans `actions.ts`.
-    if (consume.suppressRetaliation) victim.retaliationsLeft = 0;
+    // `expose` (doc 05 §3.1) : la cible perd sa riposte contre CETTE attaque —
+    // signalé à l'appelant (`suppressedRetaliation`), jamais via
+    // `retaliationsLeft = 0` (revue 2026-09 M5 : ce raccourci laissait riposter
+    // une pile `unlimitedRetaliation` — préviz ≠ résolution — et privait aussi
+    // la cible de riposte contre les attaquants SUIVANTS du round).
     // `pinningShot` (doc 05 §3.1) : la cible saute son/ses prochain(s) tour(s).
     if (consume.immobilizeRounds > 0)
       victim.immobilizedRounds = Math.max(victim.immobilizedRounds, consume.immobilizeRounds);
@@ -836,7 +838,7 @@ export function performStrike(
 
   const targetDied = victim.count <= 0;
   if (targetDied && combat) handleStackDeath(combat, victim, victimDef, events);
-  return { targetDied };
+  return { targetDied, suppressedRetaliation: !!consume && !dodged && consume.suppressRetaliation };
 }
 
 /** Estimation min/max SANS RNG (doc 08 §2.4) — même formule, sans le tirage de chance. */
@@ -850,6 +852,8 @@ export function estimateDamage(
   killsMin: number;
   killsMax: number;
   retaliation: { damageMin: number; damageMax: number } | null;
+  /** Frappes modélisées (2 pour `doubleAttack` — tir borné par les munitions), sinon 1. */
+  strikes: number;
 } {
   const combat = state.combat;
   if (!combat) throw new Error('estimateDamage: aucun combat en cours');
@@ -920,12 +924,36 @@ export function estimateDamage(
   const swarm = swarmBonus(attackerDef, attacker, target, combat);
   const baseMin = attacker.count * dmgMin + swarm;
   const baseMax = attacker.count * dmgMax + swarm;
-  const damageMin = Math.round(baseMin * mult);
-  const damageMax = Math.round(baseMax * mult);
+  const strikeMin = Math.round(baseMin * mult);
+  const strikeMax = Math.round(baseMax * mult);
 
+  // Revue 2026-09 (M6) : `doubleAttack` = DEUX frappes (`applyAttack`, la 2ᵉ si
+  // la cible survit ; tir borné par les munitions) — la préviz n'en annonçait
+  // qu'une (dégâts/kills ≈ moitié du réel). Kills séquentiels sur le pool restant.
+  const strikes = hasAbility(attackerDef, 'doubleAttack') ? (ranged ? Math.min(2, attacker.ammo ?? 0) : 2) : 1;
   const pool = (target.count - 1) * targetDef.stats.hp + target.firstHp;
-  const killsMin = killsFromDamage(pool, targetDef.stats.hp, target.count, damageMin);
-  const killsMax = killsFromDamage(pool, targetDef.stats.hp, target.count, damageMax);
+  const sequential = (perStrike: number): { damage: number; kills: number; firstKills: number } => {
+    let remainingPool = pool;
+    let remainingCount = target.count;
+    let damage = 0;
+    let kills = 0;
+    let firstKills = 0;
+    for (let i = 0; i < strikes && remainingCount > 0; i++) {
+      const k = killsFromDamage(remainingPool, targetDef.stats.hp, remainingCount, perStrike);
+      if (i === 0) firstKills = k;
+      damage += perStrike;
+      kills += k;
+      remainingPool = Math.max(0, remainingPool - perStrike);
+      remainingCount -= k;
+    }
+    return { damage, kills, firstKills };
+  };
+  const seqMin = sequential(strikeMin);
+  const seqMax = sequential(strikeMax);
+  const damageMin = seqMin.damage;
+  const damageMax = seqMax.damage;
+  const killsMin = seqMin.kills;
+  const killsMax = seqMax.kills;
 
   let retaliation: { damageMin: number; damageMax: number } | null = null;
   // `expose` (doc 05 §3.1) : l'attaque va supprimer la riposte de la cible.
@@ -946,8 +974,10 @@ export function estimateDamage(
     // `strikeAndReturn` (A2b) : l'attaquant se replie, aucune riposte.
     !attackerDef.abilities.some((a) => a.id === 'strikeAndReturn');
   if (canRetaliate) {
-    const survivorsAfterMaxDamage = target.count - killsMax;
-    const survivorsAfterMinDamage = target.count - killsMin;
+    // La riposte s'intercale après la 1ʳᵉ frappe (doc 02 §5.4 `doubleAttack`) :
+    // survivants = effectif après la PREMIÈRE frappe seulement.
+    const survivorsAfterMaxDamage = target.count - seqMax.firstKills;
+    const survivorsAfterMinDamage = target.count - seqMin.firstKills;
     const retMeleePenalized = isShooterMeleePenalized(targetDef);
     // Riposte : toujours une frappe de mêlée (compétence Attaque au corps du défenseur).
     const retStrikerAttack =
@@ -998,7 +1028,7 @@ export function estimateDamage(
     };
   }
 
-  return { damageMin, damageMax, killsMin, killsMax, retaliation };
+  return { damageMin, damageMax, killsMin, killsMax, retaliation, strikes };
 }
 
 /** Un ennemi est-il adjacent à la pile (utilisé par la pénalité de tir au contact) ? */

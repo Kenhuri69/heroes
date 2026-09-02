@@ -508,11 +508,15 @@ function applyAttack(
       // riposte en frappant une pile MARQUÉE tant que l'effet est actif.
       const cureeSuppresses =
         combat.markedNoRetaliation?.side === attacker.side && target.marks > 0;
+      // `expose` (M5) : la frappe a consommé une Marque `suppressRetaliation` ⇒ pas
+      // de riposte contre CETTE attaque, même pour `unlimitedRetaliation`
+      // (préviz = résolution) ; `retaliationsLeft` reste intact pour les autres.
       const canRetaliate =
         (target.retaliationsLeft > 0 || hasAbility(targetDef, 'unlimitedRetaliation')) &&
         !hasAbility(attackerDef, 'noRetaliation') &&
         !cureeSuppresses &&
-        !strikeAndReturn;
+        !strikeAndReturn &&
+        !first.suppressedRetaliation;
       if (canRetaliate) {
         if (target.retaliationsLeft > 0) target.retaliationsLeft -= 1;
         const retMeleePenalized = isShooterMeleePenalized(targetDef);

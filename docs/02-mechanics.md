@@ -777,7 +777,7 @@ Sémantique des capacités du catalogue (valeurs de départ ; **35** au 2026-08)
 | `flying` | le déplacement ignore obstacles et unités (survol), portée = vitesse, atterrissage sur hex libre |
 | `shooter(ammo, noMeleePenalty?)` | tir sans riposte, **portée illimitée** ; le tir passe **par-dessus les obstacles** du champ (fidélité HoMM, retour de jeu 2026-07) — seuls les **remparts de siège** coupent la ligne de vue (C-LOS §5.2). 1 munition/tir ; à 0 munition, ennemi adjacent **ou** ligne coupée par un rempart : mêlée à ½ dégâts sauf `noMeleePenalty` |
 | `noRetaliation` | la cible ne riposte jamais aux attaques de cette unité |
-| `doubleAttack` | deux frappes ; la riposte éventuelle s'intercale après la 1ʳᵉ |
+| `doubleAttack` | deux frappes ; la riposte éventuelle s'intercale après la 1ʳᵉ — la prévisualisation cumule les deux (revue 2026-09 M6) |
 | `undead` | moral figé à 0 (ne subit ni ne donne), ne compte pas dans le malus multi-factions |
 | `mark` | chaque frappe applique 1 charge à la cible (max 3, persistantes) ; +5 %/charge de dégâts subis |
 | `consumeMarks(...)` | sur une frappe **volontaire** (jamais en riposte), consomme les charges de Marque pour un effet paramétré : bonus de dégâts, suppression de riposte (`suppressRetaliation`, « expose ») ou immobilisation (`immobilizeRounds`, « pinningShot ») |

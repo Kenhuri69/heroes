@@ -1123,7 +1123,10 @@ function StackSheet({
 
 function formatPreview(p: CombatPreview): string {
   if (p.kind === 'moat') return t('combat.moatMovePreview', { damage: p.damage });
-  const damage = t('combat.damage', { min: p.damageMin, max: p.damageMax });
+  const base = t('combat.damage', { min: p.damageMin, max: p.damageMax });
+  // M6 : un `doubleAttack` cumule deux frappes — le dire, sinon le total surprend.
+  const strikes = p.strikes ?? 1;
+  const damage = strikes > 1 ? t('combat.damageStrikes', { damage: base, n: strikes }) : base;
   const kills = p.killsMin === p.killsMax ? `${p.killsMin}` : `${p.killsMin}–${p.killsMax}`;
   const retal = p.retaliation
     ? t('combat.retaliationEstimate', { min: p.retaliation.damageMin, max: p.retaliation.damageMax })

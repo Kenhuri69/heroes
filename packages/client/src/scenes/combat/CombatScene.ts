@@ -23,7 +23,7 @@ import {
 import { appStore } from '../../app/store';
 import { dispatch } from '../../app/dispatch';
 import { eventBus, type AppEvent } from '../../app/events';
-import { commandErrorMessage } from '../../app/i18n';
+import { commandErrorMessage, t } from '../../app/i18n';
 import { pushToast } from '../../ui/toasts';
 import { onLongPress, onTap } from '../../input/pointer';
 import { Camera } from '../../render/camera';
@@ -1669,6 +1669,15 @@ export class CombatScene {
       return;
     }
 
+    // Revue 2026-09 (R7) : pas de préviz « mensongère » pour une cible que le
+    // moteur refusera (hors portée de mêlée, provocateur adjacent, furtive) —
+    // même source de vérité que la surbrillance (`attackableTargets`).
+    if (!attackableTargets(game, active.id).some((s) => s.id === target.id)) {
+      this.clearSelection();
+      pushToast(t('combat.reason.unreachable'));
+      this.redrawBoard();
+      return;
+    }
     // C-LOS : le tir dépend de la ligne de vue vers CETTE cible ; une cible
     // masquée par un obstacle bascule en mêlée (origine de mêlée résolue).
     let ranged = false;

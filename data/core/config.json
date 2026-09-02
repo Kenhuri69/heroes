@@ -9,34 +9,87 @@
     "visionRadius": 5,
     "buildingVisionRadius": 4,
     "terrains": {
-      "grass": { "moveCost": 100 },
-      "dirt": { "moveCost": 100 },
-      "sand": { "moveCost": 150 },
-      "forest": { "moveCost": 150 },
-      "rough": { "moveCost": 125 },
-      "snow": { "moveCost": 150 },
-      "swamp": { "moveCost": 150 },
-      "river": { "moveCost": 200 },
-      "water": { "moveCost": null, "navalCost": 100 },
-      "mountain": { "moveCost": null },
-      "rocks": { "moveCost": null },
-      "cave": { "moveCost": 100 },
-      "cave-wall": { "moveCost": null }
+      "grass": {
+        "moveCost": 100
+      },
+      "dirt": {
+        "moveCost": 100
+      },
+      "sand": {
+        "moveCost": 150
+      },
+      "forest": {
+        "moveCost": 150
+      },
+      "rough": {
+        "moveCost": 125
+      },
+      "snow": {
+        "moveCost": 150
+      },
+      "swamp": {
+        "moveCost": 150
+      },
+      "river": {
+        "moveCost": 200
+      },
+      "water": {
+        "moveCost": null,
+        "navalCost": 100
+      },
+      "mountain": {
+        "moveCost": null
+      },
+      "rocks": {
+        "moveCost": null
+      },
+      "cave": {
+        "moveCost": 100
+      },
+      "cave-wall": {
+        "moveCost": null
+      }
     },
     "hero": {
       "xpPerHpKilled": 1,
-      "levelCurve": { "base": 268, "exponent": 1.9 },
+      "levelCurve": {
+        "base": 268,
+        "exponent": 1.9
+      },
       "maxLevel": 30,
-      "attributeWeights": { "attack": 30, "defense": 30, "power": 20, "knowledge": 20 },
+      "attributeWeights": {
+        "attack": 30,
+        "defense": 30,
+        "power": 20,
+        "knowledge": 20
+      },
       "attributeWeightsByArchetype": {
-        "might": { "attack": 35, "defense": 30, "power": 15, "knowledge": 20 },
-        "magic": { "attack": 15, "defense": 15, "power": 35, "knowledge": 35 }
+        "might": {
+          "attack": 35,
+          "defense": 30,
+          "power": 15,
+          "knowledge": 20
+        },
+        "magic": {
+          "attack": 15,
+          "defense": 15,
+          "power": 35,
+          "knowledge": 35
+        }
       },
       "recruitCost": 2500,
       "maxPerPlayer": 8,
       "archetypeEffects": {
-        "might": [{ "armySlotsBonus": 1 }],
-        "magic": [{ "heroActionsPerRound": 1 }]
+        "might": [
+          {
+            "armySlotsBonus": 1
+          }
+        ],
+        "magic": [
+          {
+            "heroActionsPerRound": 1
+          }
+        ]
       }
     },
     "combat": {
@@ -52,10 +105,24 @@
       "marksMax": 3,
       "obstaclesMin": 2,
       "obstaclesMax": 5,
-      "heroAttack": { "base": 3, "perPower": 0, "perAttack": 3 },
-      "reinforcements": { "maxCallsPerCombat": 2, "maxUnitsPerCall": 20, "costMultiplier": 2 },
-      "rangePenalty": { "hexes": 10, "factor": 0.5 },
-      "suddenDeathOnline": { "round": 20, "resolution": "strongestArmy" }
+      "heroAttack": {
+        "base": 3,
+        "perPower": 0,
+        "perAttack": 3
+      },
+      "reinforcements": {
+        "maxCallsPerCombat": 2,
+        "maxUnitsPerCall": 20,
+        "costMultiplier": 2
+      },
+      "rangePenalty": {
+        "hexes": 10,
+        "factor": 0.5
+      },
+      "suddenDeathOnline": {
+        "round": 20,
+        "resolution": "strongestArmy"
+      }
     },
     "market": {
       "sellRate": 25,
@@ -68,69 +135,190 @@
     },
     "calendar": {
       "events": [
-        { "id": "normal", "weight": 55, "growthFactor": 1 },
-        { "id": "harvest", "weight": 18, "growthFactor": 1.5 },
-        { "id": "bounty", "weight": 15, "growthFactor": 2 },
-        { "id": "plague", "weight": 12, "growthFactor": 0.5 },
-        { "id": "recruits", "weight": 10, "growthFactor": 1, "growthTier": { "tier": 1, "factor": 2 } },
-        { "id": "gold-rush", "weight": 8, "growthFactor": 1, "resourceGrant": { "resource": "gold", "amount": 500 } },
-        { "id": "learning", "weight": 8, "growthFactor": 1, "heroXpGrant": { "amount": 500 } },
-        { "id": "unit-week", "weight": 10, "growthFactor": 1, "growthUnit": { "factor": 2 } }
+        {
+          "id": "normal",
+          "weight": 55,
+          "growthFactor": 1
+        },
+        {
+          "id": "harvest",
+          "weight": 18,
+          "growthFactor": 1.5
+        },
+        {
+          "id": "bounty",
+          "weight": 15,
+          "growthFactor": 2
+        },
+        {
+          "id": "plague",
+          "weight": 12,
+          "growthFactor": 0.5
+        },
+        {
+          "id": "recruits",
+          "weight": 10,
+          "growthFactor": 1,
+          "growthTier": {
+            "tier": 1,
+            "factor": 2
+          }
+        },
+        {
+          "id": "gold-rush",
+          "weight": 8,
+          "growthFactor": 1,
+          "resourceGrant": {
+            "resource": "gold",
+            "amount": 500
+          }
+        },
+        {
+          "id": "learning",
+          "weight": 8,
+          "growthFactor": 1,
+          "heroXpGrant": {
+            "amount": 500
+          }
+        },
+        {
+          "id": "unit-week",
+          "weight": 10,
+          "growthFactor": 1,
+          "growthUnit": {
+            "factor": 2
+          }
+        }
       ],
       "monthEvents": [
-        { "id": "ordinary-month", "weight": 12, "growthFactor": 1 },
-        { "id": "bounty-month", "weight": 2, "growthFactor": 1.5 },
-        { "id": "plague-month", "weight": 2, "growthFactor": 0.5 },
+        {
+          "id": "ordinary-month",
+          "weight": 12,
+          "growthFactor": 1
+        },
+        {
+          "id": "bounty-month",
+          "weight": 2,
+          "growthFactor": 1.5
+        },
+        {
+          "id": "plague-month",
+          "weight": 2,
+          "growthFactor": 0.5
+        },
         {
           "id": "creature-month",
           "weight": 3,
           "growthFactor": 1,
-          "spawnCreatures": { "stacks": 3, "size": 12 }
+          "spawnCreatures": {
+            "stacks": 3,
+            "size": 12
+          }
         }
       ]
     },
     "guardianReward": {
       "goldPerHp": 3,
       "variancePercent": 20,
-      "resources": ["wood", "ore", "crystal", "gems", "sulfur", "mercury"],
+      "resources": [
+        "wood",
+        "ore",
+        "crystal",
+        "gems",
+        "sulfur",
+        "mercury"
+      ],
       "resourceThresholdHp": 400,
-      "resourceAmount": { "min": 2, "max": 5 },
+      "resourceAmount": {
+        "min": 2,
+        "max": 5
+      },
       "artifactThresholdHp": 1200,
       "artifactChancePercent": 50
     },
-    "guardianGrowth": { "weeklyFactor": 1.1, "maxCount": 300 }
+    "guardianGrowth": {
+      "weeklyFactor": 1.1,
+      "maxCount": 300
+    }
   },
   "newGame": {
     "map": "proto-01",
-    "startingResources": { "gold": 2000, "wood": 10, "ore": 10 },
+    "startingResources": {
+      "gold": 2000,
+      "wood": 10,
+      "ore": 10
+    },
     "startingArmy": [
-      { "unitId": "t1-recruit", "count": 20 },
-      { "unitId": "t1-eleve", "count": 12 }
+      {
+        "unitId": "t1-recruit",
+        "count": 20
+      },
+      {
+        "unitId": "t1-recruit-elite",
+        "count": 12
+      }
     ],
-    "startingArtifacts": ["lame-aiguisee"],
-    "startingHero": { "attack": 1, "defense": 1, "power": 3, "knowledge": 4 },
+    "startingArtifacts": [
+      "lame-aiguisee"
+    ],
+    "startingHero": {
+      "attack": 1,
+      "defense": 1,
+      "power": 3,
+      "knowledge": 4
+    },
     "startingHeroName": "hero.name.default",
-    "startingHeroSpecialty": { "id": "arcanist", "manaCostReductionPct": 20 },
+    "startingHeroSpecialty": {
+      "id": "arcanist",
+      "manaCostReductionPct": 20
+    },
     "startingTown": {
       "id": "start-town",
       "factionId": "test-faction",
       "x": 2,
       "y": 4,
       "prebuilt": [
-        { "building": "townHall", "level": 1 },
-        { "building": "test-faction-dwelling-t1", "level": 1 }
+        {
+          "building": "townHall",
+          "level": 1
+        },
+        {
+          "building": "test-faction-dwelling-t1",
+          "level": 1
+        }
       ]
     }
   },
   "display": {
     "strengthBands": [
-      { "max": 4, "key": "few" },
-      { "max": 9, "key": "several" },
-      { "max": 19, "key": "pack" },
-      { "max": 49, "key": "lots" },
-      { "max": 99, "key": "horde" },
-      { "max": 249, "key": "throng" },
-      { "max": null, "key": "legion" }
+      {
+        "max": 4,
+        "key": "few"
+      },
+      {
+        "max": 9,
+        "key": "several"
+      },
+      {
+        "max": 19,
+        "key": "pack"
+      },
+      {
+        "max": 49,
+        "key": "lots"
+      },
+      {
+        "max": 99,
+        "key": "horde"
+      },
+      {
+        "max": 249,
+        "key": "throng"
+      },
+      {
+        "max": null,
+        "key": "legion"
+      }
     ]
   }
 }

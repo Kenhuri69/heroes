@@ -52,5 +52,15 @@
   "building.vox-arcana-house-badger": "The Sorting Hat: House of the Badger",
   "building.vox-arcana-house-venari": "The Sorting Hat: House Venari",
   "building.vox-arcana-grail": "Grail: Honmoon Chorus",
-  "building.vox-arcana-grail.lore": "The Grail keeps the Honmoon ringing; Resonance flows endlessly to the city."
+  "building.vox-arcana-grail.lore": "The Grail keeps the Honmoon ringing; Resonance flows endlessly to the city.",
+  "hero.specialty.lumiere-stellaire.name": "Starlight",
+  "hero.specialty.lumiere-stellaire.desc": "+10% melee damage.",
+  "hero.specialty.prodige-academique.name": "Academic Prodigy",
+  "hero.specialty.prodige-academique.desc": "-15% mana cost of spells.",
+  "hero.specialty.gardienne-de-la-ville.name": "City Warden",
+  "hero.specialty.gardienne-de-la-ville.desc": "+2 garrison defence to the town she stands in.",
+  "hero.specialty.voix-du-honmoon.name": "Voice of the Honmoon",
+  "hero.specialty.voix-du-honmoon.desc": "+10% ranged damage.",
+  "hero.specialty.furie-du-lion.name": "Lion's Fury",
+  "hero.specialty.furie-du-lion.desc": "+1 Luck to the army."
 }

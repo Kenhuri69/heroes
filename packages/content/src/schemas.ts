@@ -275,7 +275,9 @@ export const manifestSchema = z.object({
   nativeTerrain: idSchema,
   keyResources: z.array(z.enum(COMMON_RESOURCE_IDS)).length(2),
   factionResources: z
-    .array(z.object({ id: idSchema, icon: z.string(), cap: z.number().int().positive() }))
+    // `icon` : indication d'atelier (revue 2026-09) — le client dérive l'icône de l'id
+    // (`resources/pile-<id>`), aucun code ne lit ce champ ⇒ optionnel, jamais requis.
+    .array(z.object({ id: idSchema, icon: z.string().optional(), cap: z.number().int().positive() }))
     .default([]),
   factionBonuses: z.array(factionBonusSchema).default([]),
   /** Maisons de la faction (doc 16 §3.1, signature `houseAllegiance`) — défaut []. */
@@ -1295,7 +1297,12 @@ export const mapFileSchema = z.object({
           // Doc 18 A5 — téléport scripté du héros visiteur (no-op sur trigger `day`).
           z.object({
             kind: z.literal('teleport'),
-            to: z.object({ x: z.number().int().nonnegative(), y: z.number().int().nonnegative() }),
+            to: z.object({
+              x: z.number().int().nonnegative(),
+              y: z.number().int().nonnegative(),
+              /** Couche d'arrivée (L10, revue 2026-09 D5) : 0/absent = surface. */
+              level: z.number().int().min(0).max(1).optional(),
+            }),
           }),
           // Doc 18 A5 — message à choix : ≥ 2 options, chacune un effet-feuille.
           z.object({

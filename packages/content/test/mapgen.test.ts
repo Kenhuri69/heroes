@@ -558,3 +558,45 @@ describe('generateMap', () => {
     expect(explicit).toEqual(implicit);
   });
 });
+
+describe('Revue 2026-09 — abords de départ et coffres du souterrain', () => {
+  it('aucun objet (gardien inclus) n’est adjacent à une position de départ', () => {
+    const palette = ['u1', 'u2', 'u3', 'u4', 'u5', 'u6', 'u7'];
+    const tiers: Record<string, number> = Object.fromEntries(palette.map((id, i) => [id, i + 1]));
+    for (const seed of [1, 2, 3, 4, 5]) {
+      for (const [w, players] of [
+        [12, 4],
+        [24, 8],
+        [48, 3],
+      ] as const) {
+        const map = generateMap('near', seed, {
+          width: w,
+          height: w,
+          startPositionCount: players,
+          guardianUnits: palette,
+          unitTiers: tiers,
+          guardianDensity: 2,
+        });
+        for (const o of map.objects) {
+          const nearStart = map.startPositions.some(
+            (s) => Math.max(Math.abs(o.x - s.x), Math.abs(o.y - s.y)) <= 1,
+          );
+          expect(nearStart, `seed ${seed} ${w}² : ${o.id} collé à un départ`).toBe(false);
+        }
+      }
+    }
+  });
+
+  it('coffre du souterrain : xp = round(or × 0,8), comme en surface (doc 02 §2.2)', () => {
+    let seen = 0;
+    for (let seed = 1; seed <= 6; seed++) {
+      const map = generateMap('uchest', seed, { guardianUnits: ['t1-guard'], underground: true, pickupDensity: 2 });
+      for (const o of map.objects) {
+        if (o.type !== 'treasure' || !o.id.startsWith('u-chest-')) continue;
+        seen += 1;
+        expect(o.xp).toBe(Math.round(o.gold * 0.8));
+      }
+    }
+    expect(seen).toBeGreaterThan(0);
+  });
+});

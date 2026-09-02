@@ -47,5 +47,11 @@
   "unit.t6-treant-elite.lore": "We have watched whole forests fall. Some we felled ourselves. Still we walk.",
   "unit.t7-aieul.lore": "When the Elder rises, the forest moves. The world is one body, and it has just felt the pain.",
   "unit.t7-aieul-elite.lore": "We woke him knowing the price. To save the whole, we have amputated before, and we would again.",
-  "building.sylvan-court-heart-grove.lore": "We are this grove, and this grove is us. What falls here already rises; we do not count the seasons."
+  "building.sylvan-court-heart-grove.lore": "We are this grove, and this grove is us. What falls here already rises; we do not count the seasons.",
+  "hero.specialty.guerisseuse.name": "Healer",
+  "hero.specialty.guerisseuse.desc": "-15% mana cost of spells.",
+  "hero.specialty.ecoutant.name": "Listener",
+  "hero.specialty.ecoutant.desc": "Symbiosis units start combat with 1 rooted stack.",
+  "hero.specialty.gardefronde.name": "Slingward",
+  "hero.specialty.gardefronde.desc": "+1 Speed to Sylvan Archers."
 }

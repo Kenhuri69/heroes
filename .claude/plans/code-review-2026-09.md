@@ -300,3 +300,23 @@ visiteur ; mise à jour des dépendances majeures.
   `FogOverlay.update` incrémental (chunks touchés par un disque de vision ancien/
   nouveau ou une tuile révélée ; `lastRedrawn` exposé). Tests : `tilemap.test`,
   `fog.test`. Vérif : typecheck, lint, client **105 tests**, build + smoke `@core`.
+- [x] **R7 livré** — D1 : **32 clés** `hero.specialty.<id>.name/.desc` (16 héros,
+  5 paquets — Anastasia « Furie du Lion » avait échappé au premier comptage) +
+  `checkPackNameKeys` exige désormais les clés de spécialité (test) ; D2 :
+  `faction:sim` joue chaque duel sur un **terrain neutre par paire** (premier
+  terrain franchissable natif d'aucun camp) ; D3 : les 4 clés `building.arcane-
+  hunters-circle-*` retirées du **core** (le paquet fait foi) ; D4 : armée de la
+  partie rapide = 2 piles test-faction (`t1-recruit-elite` remplace `t1-eleve`,
+  plus de −1 moral) ; D5 : `level` propagé aux triggers `visit` et ajouté à
+  `teleport.to` (schéma + loader + moteur, `exactOptionalPropertyTypes` respecté) ;
+  D6 : `startingArtifacts` des joueurs de scénario cross-validés ; D7 :
+  `warMachine`/`siegeBreaker`/`immobile` au catalogue (+ locales) et capacités des
+  machines/créatures invoquées validées au load ; `heroSkills ⊆ core/skills.json` ;
+  `grailPos` borné/franchissable ; `speaker`/`choices.next` des dialogues
+  cross-validés ; mapgen : aucun objet adjacent à un départ (`freeTile`), coffre
+  souterrain `xp = round(or × 0,8)` ; `factionResources[].icon` optionnel (champ
+  mort). **Non fait** (P3, documenté) : `startingTown.level` de scénario,
+  `map:gen` CLI ≠ options client, assets manquants. Tests : loader (4), scenario
+  (2), mapgen (2) ; fixture scénario corrigée (sa balliste tirait sans `shooter`
+  au catalogue — attrapé par D7). Vérif : typecheck, lint, contenu **184 tests
+  (+8)**, moteur 1009, `content:check` vert (7 paquets, 3 cartes, 21 scénarios).

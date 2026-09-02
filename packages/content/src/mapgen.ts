@@ -390,13 +390,18 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
   // Sélectionne une tuile libre ; `preferDeep` échantillonne et retient la plus
   // PROFONDE des candidats vus (récompenses premium loin des départs), sans
   // jamais échouer en silence (repli sur la meilleure tuile échantillonnée).
+  // Revue 2026-09 : aucun objet ne naît COLLÉ à un départ (Tchebychev ≤ 1) — un
+  // gardien de champ à 13 zombies pouvait border la case de départ, contournant
+  // la gradation « faibles aux abords ».
+  const nextToStart = (x: number, y: number): boolean =>
+    startPositions.some((s) => Math.max(Math.abs(x - s.x), Math.abs(y - s.y)) <= 1);
   const freeTile = (preferDeep: boolean): { x: number; y: number } | null => {
     let best: { x: number; y: number; d: number } | null = null;
     for (let tries = 0; tries < 60; tries++) {
       const x = randInt(width);
       const y = randInt(height);
       const key = `${x},${y}`;
-      if (occupied.has(key)) continue;
+      if (occupied.has(key) || nextToStart(x, y)) continue;
       if (!preferDeep) {
         occupied.add(key);
         grid[y]![x] = baseChar;
@@ -943,8 +948,12 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
           x,
           y,
           level: 1,
-          gold: randBetween(500, 1500),
-          xp: randBetween(300, 900),
+          // Même règle que la surface (doc 02 §2.2) : l'XP DÉRIVE de l'or (1 : 0,8),
+          // le dilemme or/XP reste équilibré — revue 2026-09.
+          ...(() => {
+            const gold = randBetween(500, 1500);
+            return { gold, xp: Math.round(gold * 0.8) };
+          })(),
         }),
       ],
       [

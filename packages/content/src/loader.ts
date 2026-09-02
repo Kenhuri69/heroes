@@ -180,6 +180,17 @@ export async function loadContent(readJson: ReadJson): Promise<LoadReport> {
       if (a.grantsSpell !== undefined && !coreSpellIds.has(a.grantsSpell))
         errors.push(`core/artifacts.json: artefact '${a.id}' — grantsSpell vers sort inconnu '${a.grantsSpell}'`);
     checkUniqueIds(errors, 'core/war-machines.json', coreWarMachines.map((w) => w.id), 'machine de guerre');
+    // Revue 2026-09 (D7) : les capacités des MACHINES et des créatures INVOQUÉES
+    // passent par le même catalogue que les unités — un typo rendait la machine
+    // inerte sans jamais casser la CI.
+    for (const w of coreWarMachines)
+      for (const ref of w.abilities)
+        if (!catalog.abilities.includes(ref.id))
+          errors.push(`core/war-machines.json: machine '${w.id}' — capacité inconnue au catalogue '${ref.id}'`);
+    for (const s of coreSpells)
+      for (const ref of s.summon?.unit.abilities ?? [])
+        if (!catalog.abilities.includes(ref.id))
+          errors.push(`core/spells.json: sort '${s.id}' — créature invoquée : capacité inconnue au catalogue '${ref.id}'`);
     checkUniqueIds(errors, 'core/daily-templates.json', dailyTemplates.map((tpl) => tpl.id), 'gabarit journalier');
     if (errors.length > 0) throw new PackError(errors);
   }
@@ -341,6 +352,14 @@ export function checkPackNameKeys(report: LoadReport): string[] {
       const key = h.name.startsWith('@loc:') ? h.name.slice('@loc:'.length) : h.name;
       need(key);
     }
+    // Revue 2026-09 (D1) : la spécialité d'un héros nommé est affichée via
+    // `hero.specialty.<id>.name/.desc` (tiroir héros, Taverne) — 15 héros
+    // affichaient leur id brut faute de clé.
+    for (const h of pack.heroes) {
+      if (!h.specialtyEffect) continue;
+      need(`hero.specialty.${h.specialtyEffect.id}.name`);
+      need(`hero.specialty.${h.specialtyEffect.id}.desc`);
+    }
   }
   return errors;
 }
@@ -487,6 +506,11 @@ export async function loadFactionPack(
   // consommés par le moteur (`buildHeroRoster` → StartGame). Règles croisées ici.
   const heroes: HeroIdentity[] = [];
   const houseIds = new Set(manifest.houses.map((h) => h.id));
+  // Revue 2026-09 : une compétence de faction (`heroSkills`) doit EXISTER dans
+  // `core/skills.json` — sinon elle validait un `startingSkills` fantôme.
+  for (const skillId of manifest.heroSkills)
+    if (!coreSkills.some((s) => s.id === skillId))
+      errors.push(`manifest.json: heroSkills — compétence inconnue de core/skills.json '${skillId}'`);
   const knownSkillIds = new Set([...coreSkills.map((s) => s.id), ...manifest.heroSkills]);
   const rosterSpellIds = new Set(coreSpells.map((s) => s.id));
   for (const heroId of manifest.heroes) {
@@ -1066,6 +1090,18 @@ export type ResolvedMapObject =
       garrison?: { unitId: string; count: number }[];
     };
 
+/**
+ * D5 (revue 2026-09) : forme moteur d'un effet de trigger — la couche d'arrivée
+ * d'un `teleport` n'est posée que si déclarée (`exactOptionalPropertyTypes`).
+ */
+function resolveTriggerEffect(effect: NonNullable<MapFile['triggers']>[number]['effect']): ResolvedTriggerEffect {
+  if (effect.kind === 'teleport') {
+    const { x, y, level } = effect.to;
+    return { kind: 'teleport', to: { x, y, ...(level !== undefined ? { level } : {}) } };
+  }
+  return effect;
+}
+
 /** Effet de trigger résolu — identique à `TriggerEffect` du moteur (doc 02 §2.1, doc 18 A5). */
 export type ResolvedTriggerEffect =
   | { kind: 'grantResource'; resource: string; amount: number }
@@ -1075,7 +1111,7 @@ export type ResolvedTriggerEffect =
   | { kind: 'removeArtifact'; artifactId: string }
   | { kind: 'removeArmy'; unitId: string; count: number }
   | { kind: 'ambush'; army: { unitId: string; count: number }[] }
-  | { kind: 'teleport'; to: { x: number; y: number } }
+  | { kind: 'teleport'; to: { x: number; y: number; level?: number } }
   | {
       kind: 'choice';
       textKey: string;
@@ -1095,7 +1131,7 @@ export type ResolvedSimpleTriggerEffect =
 export interface ResolvedMapTrigger {
   id: string;
   on:
-    | { kind: 'visit'; pos: { x: number; y: number } }
+    | { kind: 'visit'; pos: { x: number; y: number; level?: number } }
     | { kind: 'day'; day: number }
     | { kind: 'flagCaptured'; objectId: string };
   effect: ResolvedTriggerEffect;
@@ -1254,6 +1290,13 @@ export async function loadMap(
     if (stairs.length === 0)
       errors.push(`${path}: carte à souterrain sans escalier — aucune paire de monolithes ne relie les deux couches`);
   }
+  // Revue 2026-09 : la tuile du Graal doit être dans la carte et franchissable —
+  // sinon le puzzle est infaisable (fouille impossible) sans que rien ne casse.
+  if (file.grailPos) {
+    if (!inBounds(file.grailPos.x, file.grailPos.y)) errors.push(`${path}: grailPos hors carte`);
+    else if (!passable(file.grailPos.x, file.grailPos.y))
+      errors.push(`${path}: grailPos infranchissable (${file.grailPos.x},${file.grailPos.y})`);
+  }
   for (const [i, pos] of file.startPositions.entries()) {
     if (!inBounds(pos.x, pos.y)) errors.push(`${path}: startPositions[${i}] hors carte`);
     else if (!passable(pos.x, pos.y))
@@ -1408,6 +1451,12 @@ async function loadScenario(
       if (!knownUnits.has(stack.unitId))
         errors.push(`${path}: joueur '${player.id}' — unité d'armée inconnue '${stack.unitId}'`);
     }
+    // Revue 2026-09 (D6) : artefacts de départ du joueur — le schéma promettait
+    // « validés contre artifacts.json », personne ne le faisait.
+    for (const artifactId of player.startingArtifacts ?? []) {
+      if (!knownArtifacts.has(artifactId))
+        errors.push(`${path}: joueur '${player.id}' — artefact de départ inconnu '${artifactId}'`);
+    }
     if (player.startingTown) {
       for (const pb of player.startingTown.prebuilt) {
         const def = buildingCatalog[pb.building];
@@ -1455,6 +1504,17 @@ async function loadScenario(
   // cutscenes) poussent ces ids tels quels ; un typo casse en jeu, pas au schéma.
   const dialogIds = new Set((scenario.dialogs ?? []).map((d) => d.id));
   const cutsceneIds = new Set((scenario.cutscenes ?? []).map((c) => c.id));
+  // Revue 2026-09 : locuteurs et branches de dialogue — un typo donnait un
+  // portrait sans nom ou une branche morte en jeu, pas en CI.
+  const characterIds = new Set((scenario.characters ?? []).map((c) => c.id));
+  for (const d of scenario.dialogs ?? []) {
+    for (const line of d.lines)
+      if (!characterIds.has(line.speaker))
+        errors.push(`${path}: dialogue '${d.id}' — locuteur inconnu '${line.speaker}'`);
+    for (const choice of d.choices ?? [])
+      if (choice.next !== undefined && !dialogIds.has(choice.next))
+        errors.push(`${path}: dialogue '${d.id}' — choix vers dialogue inconnu '${choice.next}'`);
+  }
   if (scenario.openingDialog !== undefined && !dialogIds.has(scenario.openingDialog))
     errors.push(`${path}: openingDialog vers dialogue inconnu '${scenario.openingDialog}'`);
   if (scenario.openingCutscene !== undefined && !cutsceneIds.has(scenario.openingCutscene))
@@ -1586,12 +1646,14 @@ function resolveMap(file: MapFile): ResolvedMap {
     triggers: (file.triggers ?? []).map((t): ResolvedMapTrigger => ({
       id: t.id,
       on:
+        // D5 (revue 2026-09) : la COUCHE du trigger est propagée — perdue ici, un
+        // trigger du souterrain se déclenchait sur la case de surface homonyme.
         t.on.kind === 'visit'
-          ? { kind: 'visit', pos: { x: t.on.x, y: t.on.y } }
+          ? { kind: 'visit', pos: { x: t.on.x, y: t.on.y, ...(t.on.level !== undefined ? { level: t.on.level } : {}) } }
           : t.on.kind === 'day'
             ? { kind: 'day', day: t.on.day }
             : { kind: 'flagCaptured', objectId: t.on.objectId },
-      effect: t.effect,
+      effect: resolveTriggerEffect(t.effect),
       fired: false,
     })),
     startPositions: file.startPositions.map(({ x, y }) => ({ x, y })),

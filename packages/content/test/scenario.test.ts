@@ -94,7 +94,7 @@ describe('scénarios réels (data/scenarios/)', () => {
 /** Fixture minimale en mémoire — clonable et corruptible par test (comme loader.test.ts). */
 function makeData(): Record<string, unknown> {
   return {
-    'core/abilities.json': { abilities: ['flying'] },
+    'core/abilities.json': { abilities: ['flying', 'shooter'] }, // la balliste de la fixture tire (D7 : capacités validées)
     'core/config.json': makeConfig(),
     'core/locales/fr.json': { 'menu.continue': 'Continuer' },
     'core/locales/en.json': { 'menu.continue': 'Continue' },
@@ -477,5 +477,36 @@ describe('scenarioSchema', () => {
         'chaque joueur doit avoir des objectifs',
       );
     }
+  });
+});
+
+describe('Revue 2026-09 — règles croisées supplémentaires (D6, dialogues)', () => {
+  it('D6 : rejette un artefact de départ de joueur inconnu', async () => {
+    const data = makeData();
+    (data['scenarios/duel.scenario.json'] as { players: { startingArtifacts?: string[] }[] }).players[0]!.startingArtifacts = [
+      'art',
+      'fantome',
+    ];
+    const report = await loadReport(data);
+    const scenarioReport = await loadScenarios(reader(data), report);
+    expect(scenarioReport.rejectedScenarios[0]?.errors.join()).toContain("artefact de départ inconnu 'fantome'");
+  });
+
+  it('dialogues : locuteur hors `characters` et branche `next` inconnue sont rejetés', async () => {
+    const data = makeData();
+    const sc = data['scenarios/duel.scenario.json'] as Record<string, unknown>;
+    sc.characters = [{ id: 'narrator', nameKey: '@loc:char.narrator' }];
+    sc.dialogs = [
+      {
+        id: 'd1',
+        lines: [{ speaker: 'ghost', textKey: '@loc:d1.l1' }],
+        choices: [{ textKey: '@loc:d1.c1', next: 'nulle-part' }],
+      },
+    ];
+    const report = await loadReport(data);
+    const scenarioReport = await loadScenarios(reader(data), report);
+    const errors = scenarioReport.rejectedScenarios[0]?.errors.join() ?? '';
+    expect(errors).toContain("locuteur inconnu 'ghost'");
+    expect(errors).toContain("choix vers dialogue inconnu 'nulle-part'");
   });
 });

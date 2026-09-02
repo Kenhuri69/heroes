@@ -1369,3 +1369,46 @@ describe('gameConfigSchema — garde-fou de marché (aller-retour non rentable)'
     expect(gameConfigSchema.safeParse(cfg).success).toBe(true);
   });
 });
+
+describe('Revue 2026-09 — garde-fous de contenu supplémentaires (D1/D7/heroSkills/grailPos)', () => {
+  it('D1 : checkPackNameKeys exige hero.specialty.<id>.name/.desc pour un héros à spécialité', async () => {
+    const data = makeData();
+    withRoster(data, GAMEPLAY_HERO); // specialtyEffect.id = 'meneur', sans clé de spécialité
+    const report = await loadContent(reader(data));
+    const errors = checkPackNameKeys(report).join();
+    expect(errors).toMatch(/hero\.specialty\.meneur\.name/);
+    expect(errors).toMatch(/hero\.specialty\.meneur\.desc/);
+    for (const lang of ['fr', 'en'] as const) {
+      const loc = data[`factions/proto/locales/${lang}.json`] as Record<string, string>;
+      loc['hero.specialty.meneur.name'] = 'x';
+      loc['hero.specialty.meneur.desc'] = 'x';
+    }
+    // (le manifeste de fixture porte une ressource de faction sans nom : hors sujet ici)
+    expect(checkPackNameKeys(await loadContent(reader(data))).join()).not.toMatch(/hero\.specialty/);
+  });
+
+  it('heroSkills : une compétence de faction absente de core/skills.json rejette le paquet', async () => {
+    const data = makeData();
+    (data['factions/proto/manifest.json'] as { heroSkills?: string[] }).heroSkills = ['fantome'];
+    const report = await loadContent(reader(data));
+    expect(report.rejected.map((r) => r.id)).toEqual(['proto']);
+    expect(report.rejected[0]?.errors.join()).toContain("heroSkills — compétence inconnue de core/skills.json 'fantome'");
+  });
+
+  it('D7 : une capacité inconnue sur une machine de guerre est une erreur bloquante', async () => {
+    const data = makeData();
+    (data['core/war-machines.json'] as { warMachines: { abilities: { id: string }[] }[] }).warMachines[0]!.abilities = [
+      { id: 'sheeter' },
+    ];
+    await expect(loadContent(reader(data))).rejects.toThrow(/machine 'ballista' — capacité inconnue au catalogue 'sheeter'/);
+  });
+
+  it('grailPos : hors carte ou infranchissable ⇒ carte rejetée', async () => {
+    const out = makeData();
+    (out['maps/mini.map.json'] as { grailPos?: { x: number; y: number } }).grailPos = { x: 9, y: 9 };
+    await expect(loadMap(reader(out), 'mini', makeConfig())).rejects.toThrow(/grailPos hors carte/);
+    const water = makeData();
+    (water['maps/mini.map.json'] as { grailPos?: { x: number; y: number } }).grailPos = { x: 2, y: 1 }; // tuile 'w'
+    await expect(loadMap(reader(water), 'mini', makeConfig())).rejects.toThrow(/grailPos infranchissable/);
+  });
+});

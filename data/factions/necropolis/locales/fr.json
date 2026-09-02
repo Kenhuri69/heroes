@@ -64,5 +64,9 @@
   "hero.olivier-necropolis.bio": "Ancien enlumineur de reliquaires, il a troqué l'or des saints pour le gel des tombes. Olivier Givrepeste fige ses morts dans la glace nécrotique puis les laisse pourrir à volonté : là où il passe, l'hiver ne fond jamais et la chair ne repose pas.",
   "hero.olivier-necropolis.specialty": "Givrepeste — −10 % de coût en mana des sorts.",
   "hero.specialty.givrepeste.name": "Givrepeste",
-  "hero.specialty.givrepeste.desc": "−10 % de coût en mana des sorts."
+  "hero.specialty.givrepeste.desc": "−10 % de coût en mana des sorts.",
+  "hero.specialty.necromancienne.name": "Nécromancienne",
+  "hero.specialty.necromancienne.desc": "+2 % de morts-vivants relevés par niveau.",
+  "hero.specialty.chevalier-vampirique.name": "Chevalier vampirique",
+  "hero.specialty.chevalier-vampirique.desc": "+1 Attaque et +1 Défense aux Vampires tous les 2 niveaux."
 }

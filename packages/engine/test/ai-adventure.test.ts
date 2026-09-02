@@ -349,3 +349,36 @@ describe('Revue 2026-07 — B30/B31 : l’IA respecte le butin gardé et le brou
     expect(next.map?.objects.some((o) => o.id === 'gold-hidden')).toBe(true);
   });
 });
+
+describe('Revue 2026-09 (M13) — un gardien ne fige pas l’exploration', () => {
+  it('cible inexplorée derrière un gardien ⇒ l’IA explore ailleurs au lieu de rester immobile', () => {
+    const size = 15;
+    const map: AdventureMapDef = {
+      id: 'open',
+      width: size,
+      height: size,
+      terrain: Array<string>(size * size).fill('grass'),
+      road: Array<boolean>(size * size).fill(false),
+      triggers: [],
+      // Gardien infranchissable (sous brouillard au départ) exactement sur la 1ʳᵉ
+      // tuile inexplorée que le BFS rendait (ordre `DIRECTIONS`, vers le nord).
+      objects: [{ id: 'g1', type: 'guardian', pos: { x: 7, y: 1 }, unitId: 'blue-wolf', count: 500 }],
+      startPositions: [
+        { x: 7, y: 7 },
+        { x: 14, y: 14 },
+      ],
+    };
+    let state = aiGame(3, map);
+    const start = state.heroes.find((h) => h.playerId === 'p1')!.pos;
+    for (let day = 0; day < 3; day++) {
+      const events: GameEvent[] = [];
+      state = produce(state, (draft) => {
+        runAiTurn(draft, 'p1', events);
+      });
+      state = apply(state, { type: 'EndTurn', playerId: 'p1' }).state;
+      state = apply(state, { type: 'EndTurn', playerId: 'p2' }).state;
+    }
+    const hero = state.heroes.find((h) => h.playerId === 'p1')!;
+    expect(hero.pos).not.toEqual(start);
+  });
+});

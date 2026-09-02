@@ -1,5 +1,5 @@
 import type { GameEvent } from '../core/events';
-import type { GameState, PlayerState, ResourceId, Resources } from '../core/state';
+import type { GameState, PlayerState, ResourceId } from '../core/state';
 import { RESOURCE_IDS } from '../core/state';
 import {
   validateBuildStructure,
@@ -19,6 +19,7 @@ import { validateRecruitHero, handleRecruitHero } from '../hero/recruit';
 import { samePos } from '../adventure/map';
 import type { BuildingDef, BuildingEffect, TownState } from '../town/types';
 import { unitWithEconomy } from '../town/unit-economy';
+import { maxAffordableCount } from '../town/resources';
 
 /**
  * IA de ville (doc 11 §3.5, plan phase-3.5 décision #6) : construction et
@@ -35,18 +36,6 @@ function unitTier(catalog: Record<string, BuildingDef>, unitId: string): number 
     }
   }
   return 0;
-}
-
-/** Effectif maximal de `unitId` que le joueur peut à la fois payer et prélever du stock. */
-function maxAffordableCount(resources: Resources, cost: Partial<Resources> | undefined, stock: number): number {
-  if (stock <= 0) return 0;
-  if (!cost) return stock;
-  let max = stock;
-  for (const id of RESOURCE_IDS) {
-    const amount = cost[id];
-    if (amount) max = Math.min(max, Math.floor(resources[id] / amount));
-  }
-  return Math.max(0, max);
 }
 
 /**
@@ -110,7 +99,10 @@ function tryRecruit(draft: GameState, town: TownState, player: PlayerState, even
     );
   for (const unitId of candidates) {
     const recruitCost = unitWithEconomy(draft.unitCatalog, unitId)?.recruitCost;
-    const count = maxAffordableCount(player.resources, recruitCost, town.stock[unitId] ?? 0);
+    // Revue 2026-09 : helper de `town/resources` (faction-aware) — la copie locale
+    // ignorait `factionResources` ⇒ `cannotAfford` puis `continue` : l'IA sautait
+    // ses unités à coût de faction (T8) au lieu d'en recruter le nombre abordable.
+    const count = maxAffordableCount(player, recruitCost ?? {}, town.stock[unitId] ?? 0);
     if (count <= 0) continue;
     const cmd = { type: 'RecruitUnits' as const, townId: town.id, unitId, count };
     if (validateRecruitUnits(draft, cmd)) continue;

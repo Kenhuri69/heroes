@@ -246,3 +246,16 @@ visiteur ; mise à jour des dépendances majeures.
   préviz d'une cible absente d'`attackableTargets` (toast
   `combat.reason.unreachable`). Docs 02 §5.4 / 05 §3.1 alignées. Vérif : typecheck,
   lint, **1002 tests moteur**, golden inchangé, contenu/client verts, `content:check`.
+- [x] **R4 livré** — M11 `Dig` exige la révélation (obélisques tous visités ;
+  carte sans obélisque = fouillable d'emblée, règle partagée avec `canDigGrail`) ;
+  M12 `StartGame` copie `quests`/`scenario` (`structuredClone`, test de pureté
+  « la commande n'est ni mutée ni gelée ») ; M13 BFS d'exploration IA exclut les
+  tuiles `blocked` (test : gardien sous brouillard ⇒ le héros bouge quand même) ;
+  M14 nouveau helper moteur `playerSightings`/`isInPlayerVision`
+  (`adventure/vision.ts`) — l'IA ne voit les héros ennemis qu'en vision COURANTE,
+  et le client `visionSightings` délègue au moteur (source unique) ; IA de ville :
+  `maxAffordableCount` faction-aware (test essence 10 ⇒ 5 recrues) ; IA ramasse les
+  artefacts au sol même slots pleins (sac) ; tiebreak monolithe par id ; bateau :
+  plus de doublon `boat@x,y` (test). Tests écrits AVANT correctif (4/4 rouges
+  puis verts). Vérif : typecheck, lint, **1009 tests moteur (+7)**, golden inchangé,
+  contenu/client verts.

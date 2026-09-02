@@ -1,6 +1,6 @@
 import type { GameEvent } from '../core/events';
 import type { GameState, HeroState, PlayerState } from '../core/state';
-import { grailRevealedTo, samePos } from './map';
+import { grailRevealedTo, obeliskCount, samePos } from './map';
 
 /**
  * Fouille du Graal (T-GRAIL lot 2, doc 02 §2.2) — **cœur partagé** entre la
@@ -16,7 +16,8 @@ export function canDigGrail(state: GameState, hero: HeroState, player: PlayerSta
   if (!map?.grailPos || player.hasGrail) return false;
   if (!samePos(hero.pos, map.grailPos)) return false;
   if (hero.movementPoints <= 0) return false;
-  return grailRevealedTo(map, player.obelisksVisited);
+  // Même règle que `validate('Dig')` : sans obélisque, rien à révéler.
+  return obeliskCount(map) === 0 || grailRevealedTo(map, player.obelisksVisited);
 }
 
 /** Applique la fouille : le joueur obtient le Graal, la journée du héros y passe. */

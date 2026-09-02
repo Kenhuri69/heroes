@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { apply } from '../src/core/engine';
+import { apply, validate } from '../src/core/engine';
 import { createEmptyState, emptyResources, type GameState } from '../src/core/state';
 import { grailRevealedTo, obeliskCount, type MapObjectDef } from '../src/adventure/map';
 import { testCatalog, testConfig, testMap } from './fixtures';
@@ -105,5 +105,21 @@ describe('T-GRAIL lot 2 — fouille (Dig) & obtention du Graal', () => {
     const onGrail = move(started([], { x: 1, y: 0 }), [{ x: 1, y: 0 }]).state;
     const after = apply(onGrail, { type: 'Dig', heroId: 'hero-p1' }).state;
     expect(() => apply(after, { type: 'Dig', heroId: 'hero-p1' })).toThrow();
+  });
+});
+
+describe('Revue 2026-09 (M11) — Dig exige la révélation du Graal (non confiance au client)', () => {
+  it('sur la tuile du Graal mais sans avoir visité tous les obélisques : refusé', () => {
+    const s0 = started([obelisk('ob-1', 1, 0)], { x: 0, y: 1 });
+    const onGrail = move(s0, [{ x: 0, y: 1 }]).state; // le héros marche sur la tuile enterrée
+    expect(grailRevealedTo(onGrail.map!, onGrail.players[0]!.obelisksVisited)).toBe(false);
+    expect(validate(onGrail, { type: 'Dig', heroId: 'hero-p1' })?.code).toBe('notOnGrail');
+  });
+
+  it('une fois révélé (tous les obélisques visités) : accepté', () => {
+    const s0 = started([obelisk('ob-1', 1, 0)], { x: 0, y: 1 });
+    const revealed = move(s0, [{ x: 1, y: 0 }]).state;
+    const onGrail = move(revealed, [{ x: 0, y: 0 }, { x: 0, y: 1 }]).state;
+    expect(validate(onGrail, { type: 'Dig', heroId: 'hero-p1' })).toBeNull();
   });
 });

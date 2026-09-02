@@ -47,5 +47,11 @@
   "unit.t6-treant-elite.lore": "Nous avons vu tomber des forêts entières. Certaines, nous les avons abattues nous-mêmes. Nous marchons toujours.",
   "unit.t7-aieul.lore": "Quand l'Aïeul se lève, la forêt se déplace. Le monde n'est qu'un seul corps, et il vient de sentir la douleur.",
   "unit.t7-aieul-elite.lore": "Nous l'avons réveillé en sachant le prix. Pour sauver le tout, nous avons déjà amputé — et nous recommencerons.",
-  "building.sylvan-court-heart-grove.lore": "Nous sommes ce bosquet, et ce bosquet est nous. Ce qui tombe ici lève déjà ; nous ne comptons pas les saisons."
+  "building.sylvan-court-heart-grove.lore": "Nous sommes ce bosquet, et ce bosquet est nous. Ce qui tombe ici lève déjà ; nous ne comptons pas les saisons.",
+  "hero.specialty.guerisseuse.name": "Guérisseuse",
+  "hero.specialty.guerisseuse.desc": "-15 % du coût en mana des sorts.",
+  "hero.specialty.ecoutant.name": "Écoutant",
+  "hero.specialty.ecoutant.desc": "Les unités en Symbiose commencent le combat avec 1 palier enraciné.",
+  "hero.specialty.gardefronde.name": "Garde-fronde",
+  "hero.specialty.gardefronde.desc": "+1 Vitesse aux Archers sylvestres."
 }

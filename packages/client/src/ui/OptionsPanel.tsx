@@ -92,7 +92,13 @@ export function OptionsPanel({ onClose }: { onClose: () => void }) {
       .then(() => pushToast(t('toast.saved'), 'success'))
       .catch(() => eventBus.emit([{ type: 'SaveFailed' }]));
   };
-  const doLoad = (): void => void restoreSavedGame('manual');
+  // Revue 2026-09 (C7) : slot vide ou stockage illisible ⇒ toast, jamais un clic muet.
+  const doLoad = (): void =>
+    void restoreSavedGame('manual')
+      .then((ok) => {
+        if (!ok) pushToast(t('toast.loadError'), 'error');
+      })
+      .catch(() => pushToast(t('toast.loadError'), 'error'));
 
   // Cloud saves (NET-CLOUDSAVES) : n'apparaît que connecté (isOnline+isLoggedIn).
   const doCloudPush = (): void => {

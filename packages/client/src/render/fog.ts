@@ -52,12 +52,41 @@ export class FogOverlay {
    * (config.visionRadius + bonus Recherche) — le « hors vision » doit matcher la
    * révélation moteur, qui est PAR héros (C4).
    */
+  /** Chunks redessinés au dernier `update` (surface de test/perf, revue 2026-09 R6). */
+  lastRedrawn = 0;
+
   update(explored: readonly number[], sightings: readonly { pos: GridPos; radius: number }[]): void {
     if (explored === this.lastExplored && sameSightings(this.lastSightings, sightings)) return;
+    const prevExplored = this.lastExplored;
+    const prevSightings = this.lastSightings;
     this.lastExplored = explored;
     this.lastSightings = sightings.map((s) => ({ pos: { ...s.pos }, radius: s.radius }));
     const { width } = this.map;
+    // R6 : ne retesseler que les chunks TOUCHÉS — par un disque de vision (ancien
+    // ou nouveau) ou par une tuile dont `explored` a changé. Un pas de héros ne
+    // touche que ~1 chunk ; l'ancien code rebâtissait O(W×H) losanges (262 144 sur
+    // une 512²) à CHAQUE pas.
+    const touched = (chunk: FogChunk): boolean => {
+      for (const s of [...prevSightings, ...sightings]) {
+        if (
+          s.pos.x + s.radius >= chunk.x0 &&
+          s.pos.x - s.radius <= chunk.x1 &&
+          s.pos.y + s.radius >= chunk.y0 &&
+          s.pos.y - s.radius <= chunk.y1
+        )
+          return true;
+      }
+      if (!prevExplored) return true;
+      for (let y = chunk.y0; y <= chunk.y1; y++) {
+        const row = y * width;
+        for (let x = chunk.x0; x <= chunk.x1; x++) if (explored[row + x] !== prevExplored[row + x]) return true;
+      }
+      return false;
+    };
+    this.lastRedrawn = 0;
     for (const chunk of this.chunks) {
+      if (!touched(chunk)) continue;
+      this.lastRedrawn += 1;
       chunk.gfx.clear();
       for (let y = chunk.y0; y <= chunk.y1; y++) {
         for (let x = chunk.x0; x <= chunk.x1; x++) {

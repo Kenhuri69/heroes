@@ -4,15 +4,10 @@ import type { GameState } from '../core/state';
 import { heroBattlePrayerHp } from '../hero/skills';
 import type { Draft } from './draft';
 import { resolveResurrect, resurrectStack } from './spell-effect';
-import { stackLostSoFar } from './state-helpers';
+import { stackLostSoFar, sideLeadHero } from './state-helpers';
 import type { CombatSideId, CombatState } from './types';
 
 type HeroRallyCmd = { type: 'HeroRally'; targetStackId: string };
-
-function heroForSide(state: GameState, combat: CombatState, side: CombatSideId) {
-  const heroId = side === 'attacker' ? combat.attackerHeroId : combat.defenderHeroId;
-  return heroId ? state.heroes.find((h) => h.id === heroId) : undefined;
-}
 
 /**
  * Prière de bataille (F-SKILLS.2, doc 03 §2/§5) : PV que le héros d'un camp peut
@@ -20,7 +15,7 @@ function heroForSide(state: GameState, combat: CombatState, side: CombatSideId) 
  * 0 ⇒ action indisponible (aucun héros / compétence absente).
  */
 export function heroRallyHp(state: GameState, combat: CombatState, side: CombatSideId): number {
-  const hero = heroForSide(state, combat, side);
+  const hero = sideLeadHero(state, combat, side);
   return hero ? heroBattlePrayerHp(hero, state.skillCatalog) : 0;
 }
 

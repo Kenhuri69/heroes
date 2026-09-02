@@ -87,6 +87,15 @@
   --terrain-swamp: #6b7a3a;
   --terrain-water: #2e6b9e;
   --terrain-mountain: #7a6f5f;
+  --terrain-dirt: #7a5a3a;
+  --terrain-sand: #c9b273;
+  --terrain-forest: #2f5a2a;
+  --terrain-rough: #8a7f5c;
+  --terrain-snow: #dfe4ec;
+  --terrain-river: #3f7fb0;
+  --terrain-rocks: #8c8780;
+  --terrain-cave: #6b625a;
+  --terrain-cave-wall: #3e3a45;
 
   /* — Vue de ville peinte (repli dégradé + drapeau, U5-A) — */
   --townsky-high: #3a4a63;

@@ -5,7 +5,8 @@ import { areAllies, type GameState, type HeroState, type PlayerState } from '../
 import { advanceHeroAlongPath } from '../adventure/movement';
 import { resolveTreasure } from '../adventure/treasure';
 import { resolveTriggerChoice } from '../adventure/trigger-choice';
-import { DIRECTIONS, atLevel, isAdjacent, levelOf, samePos, tileIndex, type GridPos } from '../adventure/map';
+import { DIRECTIONS, atLevel, inBounds, isAdjacent, levelOf, samePos, tileIndex, type GridPos } from '../adventure/map';
+import { isInPlayerVision } from '../adventure/vision';
 import { findPath, isPassable, minStepCost, octileLowerBound, stepCost } from '../adventure/path';
 import { heroArmyCap } from '../hero/skills';
 import { validateEquipArtifact, handleEquipArtifact } from '../hero/equip';
@@ -124,7 +125,10 @@ function isCollectible(
   // n'est pas trouvé — sans ces visites l'IA ne se le voyait jamais révélé.
   if (obj.type === 'obelisk')
     return !player.hasGrail && !(player.obelisksVisited ?? []).includes(obj.id);
-  if (obj.type === 'artifact') return hero.artifacts.includes(null);
+  // Revue 2026-09 : depuis `grantArtifact` (revue 2026-08, lot 4) un artefact
+  // ramassé sans slot libre va au SAC (revente/équipement ultérieurs) — l'IA
+  // n'a plus à bouder les artefacts au sol dès ses 10 slots pleins.
+  if (obj.type === 'artifact') return true;
   if (obj.type === 'mine') {
     if (obj.ownerId === player.id) return false;
     // B26 : la mine d'un ALLIÉ n'est pas une cible (sinon ping-pong de drapeaux
@@ -229,8 +233,11 @@ function pickEnemyHeroTarget(
   let best: (PathTarget & { id: string }) | null = null;
   for (const enemy of draft.heroes) {
     if (enemy.id === hero.id || enemy.playerId === player.id) continue;
-    // B31 : un héros ennemi sous brouillard n'est ni vu ni évalué.
-    if (map && player.explored[tileIndex(map, enemy.pos)] === 0) continue;
+    // B31 / revue 2026-09 (M14) : un héros ennemi n'est vu que dans la vision
+    // COURANTE du joueur (héros/villes/mines) — pas sur toute tuile jadis
+    // explorée (bit permanent), sinon l'IA « voyait » un héros mobile à 30 tuiles
+    // que l'humain, lui, ne voit pas (`isHeroVisibleOnMap` côté client).
+    if (!isInPlayerVision(draft, player.id, enemy.pos)) continue;
     const enemyPlayer = draft.players.find((p) => p.id === enemy.playerId);
     if (enemyPlayer && areAllies(player, enemyPlayer)) continue;
     const enemyStrength = armyStrength(enemy.army, unitCatalog);
@@ -276,8 +283,8 @@ function threatAt(draft: GameState, town: TownState, player: PlayerState): numbe
     if (enemy.playerId === player.id) continue;
     const owner = draft.players.find((p) => p.id === enemy.playerId);
     if (owner && areAllies(player, owner)) continue;
-    // B31 : jamais d'information sous brouillard — un ennemi non exploré n'existe pas.
-    if (player.explored[tileIndex(map, enemy.pos)] === 0) continue;
+    // B31 / M14 : jamais d'information hors vision COURANTE — un ennemi hors de vue n'existe pas.
+    if (!isInPlayerVision(draft, player.id, enemy.pos)) continue;
     const dist = Math.max(Math.abs(enemy.pos.x - town.pos.x), Math.abs(enemy.pos.y - town.pos.y));
     if (dist > TOWN_THREAT_RADIUS) continue;
     worst = Math.max(worst, armyStrength(enemy.army, unitCatalog));
@@ -443,18 +450,28 @@ function pickAdjacentCapturableTown(draft: GameState, hero: HeroState, player: P
     const owner = draft.players.find((p) => p.id === town.ownerPlayerId);
     if (owner && areAllies(owner, player)) continue;
     if (town.garrison.length > 0) continue;
+    // M1 : une ville occupée par un héros adverse ouvrirait un combat H-vs-H, pas
+    // une capture — hors de cette heuristique (la chasse aux héros a son picker).
+    if (draft.heroes.some((h) => h.playerId !== player.id && samePos(h.pos, town.pos))) continue;
     if (!isAdjacent(hero.pos, town.pos)) continue;
     if (!best || town.id < best.id) best = town;
   }
   return best;
 }
 
-/** Tuile inexplorée la plus proche (BFS sur le graphe franchissable, déterministe). */
+/**
+ * Tuile inexplorée la plus proche ATTEIGNABLE (BFS sur le graphe franchissable,
+ * déterministe). `blockedIdx` (revue 2026-09 M13) : tuiles interdites au chemin
+ * (gardiens, autres héros) — exclues du parcours ET comme cible. Sans ce filtre,
+ * le BFS rendait une tuile que `findPath(..., blocked)` refusait ensuite ⇒ aucun
+ * repli, héros IA figé pour toujours (reproduit : gardien sous brouillard).
+ */
 function nearestUnexploredTile(
   map: NonNullable<GameState['map']>,
   config: NonNullable<GameState['config']>,
   explored: number[],
   from: GridPos,
+  blockedIdx: ReadonlySet<number>,
 ): GridPos | null {
   const visited = new Set<number>([tileIndex(map, from)]);
   const queue: GridPos[] = [from];
@@ -467,6 +484,7 @@ function nearestUnexploredTile(
       const idx = tileIndex(map, next);
       if (visited.has(idx)) continue;
       visited.add(idx);
+      if (blockedIdx.has(idx)) continue;
       if (explored[idx] === 0) return next;
       queue.push(next);
     }
@@ -494,6 +512,7 @@ function unexploredThroughTeleport(
     return false;
   };
   let best: GridPos | null = null;
+  let bestId = '';
   for (const obj of map.objects) {
     if (obj.type !== 'monolith') continue;
     if (levelOf(obj.pos) !== level) continue;
@@ -503,10 +522,14 @@ function unexploredThroughTeleport(
     );
     if (!exit || levelOf(exit.pos) === level) continue;
     if (!hasUnexplored(levelOf(exit.pos))) continue;
-    // Départage déterministe : la bouche la plus proche, puis l'id le plus petit.
+    // Départage déterministe : la bouche la plus proche, puis l'id le plus petit
+    // (revue 2026-09 : le code ne départageait que par ordre du tableau).
     const d = Math.max(Math.abs(obj.pos.x - from.x), Math.abs(obj.pos.y - from.y));
     const bestD = best ? Math.max(Math.abs(best.x - from.x), Math.abs(best.y - from.y)) : Infinity;
-    if (d < bestD) best = { ...obj.pos };
+    if (d < bestD || (d === bestD && obj.id < bestId)) {
+      best = { ...obj.pos };
+      bestId = obj.id;
+    }
   }
   return best;
 }
@@ -522,8 +545,9 @@ function pickExplorationStep(
   if (!map || !config) return null;
   // La couche du héros d'abord ; à défaut, une bouche de téléporteur qui mène
   // à une couche encore sous le brouillard (L10.5).
+  const blockedIdx = new Set(blocked.filter((p) => inBounds(map, p)).map((p) => tileIndex(map, p)));
   const target =
-    nearestUnexploredTile(map, config, player.explored, hero.pos) ??
+    nearestUnexploredTile(map, config, player.explored, hero.pos, blockedIdx) ??
     unexploredThroughTeleport(map, player.explored, hero.pos);
   if (!target) return null;
   const path = findPath(config, map, hero.pos, target, blocked);

@@ -64,5 +64,9 @@
   "hero.olivier-necropolis.bio": "Once an illuminator of reliquaries, he traded the gold of saints for the frost of graves. Olivier Frostblight seals his dead in necrotic ice, then lets them rot at will: where he treads, winter never thaws and flesh never rests.",
   "hero.olivier-necropolis.specialty": "Frostblight — spells cost 10% less mana.",
   "hero.specialty.givrepeste.name": "Frostblight",
-  "hero.specialty.givrepeste.desc": "Spells cost 10% less mana."
+  "hero.specialty.givrepeste.desc": "Spells cost 10% less mana.",
+  "hero.specialty.necromancienne.name": "Necromancer",
+  "hero.specialty.necromancienne.desc": "+2% undead raised per level.",
+  "hero.specialty.chevalier-vampirique.name": "Vampiric Knight",
+  "hero.specialty.chevalier-vampirique.desc": "+1 Attack and +1 Defence to Vampires every 2 levels."
 }

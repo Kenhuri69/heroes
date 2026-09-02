@@ -23,7 +23,7 @@ import {
 import { appStore } from '../../app/store';
 import { dispatch } from '../../app/dispatch';
 import { eventBus, type AppEvent } from '../../app/events';
-import { commandErrorMessage } from '../../app/i18n';
+import { commandErrorMessage, t } from '../../app/i18n';
 import { pushToast } from '../../ui/toasts';
 import { onLongPress, onTap } from '../../input/pointer';
 import { Camera } from '../../render/camera';
@@ -267,7 +267,14 @@ export class CombatScene {
     // à chaque hauteur publiée par la couche DOM.
     this.unsubscribeInsets = combatInsets.subscribe(() => this.layout());
 
-    this.unsubscribeStore = appStore.subscribe(() => this.sync());
+    // Revue 2026-09 (R2) : le sync est différé d'une MICROTÂCHE. `dispatch` fait
+    // `setState` PUIS `emit` dans le même tick : synchroniser à l'instant du
+    // setState snappait les piles IA à leur case FINALE avant que `animateMove`
+    // ne les ramène à `from` pour rejouer la marche (téléportation aller-retour),
+    // et posait déjà le badge d'effectif/l'anneau actif de fin de séquence. À la
+    // microtâche, la file connaît les piles à animer (`queuedEventIds`) et
+    // `syncStacks` les laisse à la présentation.
+    this.unsubscribeStore = appStore.subscribe(() => queueMicrotask(() => this.sync()));
     this.unsubscribeEvents = eventBus.on((event) => this.onEvent(event));
     this.unsubscribeTap = onTap(app, (global) => void this.handleTap(global));
     // Inspection tactile/souris (doc 08 §2.1 « appui long = fiche ») : ouvre la
@@ -282,7 +289,13 @@ export class CombatScene {
     this.sync();
   }
 
+  /** Résout quand la file d'animations en cours est vidée (coup fatal, fondus). */
+  whenIdle(): Promise<void> {
+    return this.queue;
+  }
+
   destroy(): void {
+    if (this.destroyed) return; // idempotent : la scène « en partance » (main.ts) peut l'être deux fois
     this.destroyed = true;
     this.app.ticker.remove(this.idleTick, this);
     combatIdleStats.bob = 0;
@@ -440,8 +453,10 @@ export class CombatScene {
       this.initialWalledRows = null;
       this.fxLayer.removeChildren().forEach((c) => c.destroy()); // purge des chiffres flottants
       for (const [id, token] of this.stackTokens) {
-        if (this.animatingIds.has(id)) continue;
-        token.destroy();
+        // R3 : la scène survit à la fin du combat le temps de jouer le coup fatal
+        // (main.ts attend `whenIdle`) — un jeton encore attendu par la file reste.
+        if (this.animatingIds.has(id) || (this.queuedEventIds.get(id) ?? 0) > 0) continue;
+        token.destroy({ children: true });
         this.stackTokens.delete(id);
       }
       // Fin de combat = filet de sécurité B38 : plus de mort différée en attente
@@ -633,11 +648,11 @@ export class CombatScene {
 
     // Courtines : sprite peint incliné le long de l'axe iso, sinon procédural droit.
     for (const run of layout.runs) {
-      if (curtainUrl) this.placeCurtainIso(curtainUrl, iso, layout.halfW, run.yTop, run.yBot);
+      if (curtainUrl) this.placeCurtainIso(sig, curtainUrl, iso, layout.halfW, run.yTop, run.yBot);
       else drawCurtain(this.wallBase, layout.wallX, run.yTop, run.yBot);
     }
     for (const ty of layout.towers) {
-      if (towerUrl) this.placeTowerIso(towerUrl, iso.xAt(ty), ty, iso.scaleAt(ty), layout.towerH);
+      if (towerUrl) this.placeTowerIso(sig, towerUrl, iso.xAt(ty), ty, iso.scaleAt(ty), layout.towerH);
       else drawTower(this.wallBase, layout.wallX, ty);
     }
     if (layout.gateY != null) drawGate(this.wallBase, iso.xAt(layout.gateY), layout.gateY);
@@ -649,6 +664,7 @@ export class CombatScene {
    * pivoté en tête + mis à l'échelle profondeur) ⇒ muraille qui file en perspective.
    */
   private placeCurtainIso(
+    gen: string,
     url: string,
     iso: { xAt: (y: number) => number; scaleAt: (y: number) => number },
     halfW: number,
@@ -661,7 +677,8 @@ export class CombatScene {
     const w = halfW * 2 * iso.scaleAt((yTop + yBot) / 2);
     const angle = Math.atan2(yBot - yTop, botX - topX) - Math.PI / 2; // local +y (bas) → direction d'axe
     void Assets.load(url).then((texture) => {
-      if (this.destroyed || this.wallSpriteLayer.destroyed) return;
+      // Revue 2026-09 : muraille redessinée entre-temps (signature changée) ⇒ sprite périmé ignoré.
+      if (this.destroyed || this.wallSpriteLayer.destroyed || gen !== this.wallKeys) return;
       const tile = new TilingSprite({ texture, width: w, height: len });
       tile.tileScale.set(w / texture.width);
       tile.pivot.set(w / 2, 0);
@@ -672,9 +689,9 @@ export class CombatScene {
   }
 
   /** Tour PEINTE posée en (x,y) sur l'axe, base au point, échelle profondeur. */
-  private placeTowerIso(url: string, x: number, y: number, depthScale: number, towerH: number): void {
+  private placeTowerIso(gen: string, url: string, x: number, y: number, depthScale: number, towerH: number): void {
     void Assets.load(url).then((texture) => {
-      if (this.destroyed || this.wallSpriteLayer.destroyed) return;
+      if (this.destroyed || this.wallSpriteLayer.destroyed || gen !== this.wallKeys) return;
       const sprite = new Sprite(texture);
       sprite.anchor.set(0.5, 0.82);
       sprite.scale.set(((towerH * 1.7) / texture.height) * depthScale);
@@ -940,7 +957,7 @@ export class CombatScene {
       // Filet de sécurité (fuite) : marquée à un sync précédent et plus aucun
       // événement en file ne la référence — le fondu n'arrivera jamais, on détruit.
       this.pendingDeathIds.delete(id);
-      token.destroy();
+      token.destroy({ children: true });
       this.stackTokens.delete(id);
     }
     for (const stack of combat.stacks) {
@@ -951,13 +968,39 @@ export class CombatScene {
         this.stacksLayer.addChild(token);
         this.stackTokens.set(stack.id, token);
       }
-      if (!this.animatingIds.has(stack.id)) {
+      // R2 : une pile référencée par un événement EN FILE (déplacement, frappe à
+      // venir) appartient à la présentation — position et effectif seront posés
+      // par son animation, puis par `resyncPresentation` quand la file se vide.
+      const staged = this.animatingIds.has(stack.id) || (this.queuedEventIds.get(stack.id) ?? 0) > 0;
+      if (!staged) {
         const { x, y } = offsetToPixel(stack.pos);
         token.position.set(x, y);
         token.zIndex = y; // B2 iso : profondeur = position à l'écran
+        this.updateCountBadge(token, stack.count);
       }
-      this.updateCountBadge(token, stack.count);
       this.updateStatusBadges(token, stack);
+    }
+    // L'anneau actif suit `CombatTurnStarted` tant que des animations sont en
+    // file ; hors file, il reflète l'état directement.
+    if (this.queuedEventIds.size === 0 && this.animatingIds.size === 0) this.highlightActive(combat);
+  }
+
+  /**
+   * R2 : file vidée ⇒ la présentation rejoint l'état (positions, effectifs,
+   * anneau) — filet pour tout écart qu'une animation n'aurait pas résorbé
+   * (téléport sans `StackMoved`, événement ignoré).
+   */
+  private resyncPresentation(): void {
+    if (this.destroyed) return;
+    const combat = appStore.getState().game.combat;
+    if (!combat) return;
+    for (const stack of combat.stacks) {
+      const token = this.stackTokens.get(stack.id);
+      if (!token || token.destroyed || this.animatingIds.has(stack.id)) continue;
+      const { x, y } = offsetToPixel(stack.pos);
+      token.position.set(x, y);
+      token.zIndex = y;
+      this.updateCountBadge(token, stack.count);
     }
     this.highlightActive(combat);
   }
@@ -1669,6 +1712,15 @@ export class CombatScene {
       return;
     }
 
+    // Revue 2026-09 (R7) : pas de préviz « mensongère » pour une cible que le
+    // moteur refusera (hors portée de mêlée, provocateur adjacent, furtive) —
+    // même source de vérité que la surbrillance (`attackableTargets`).
+    if (!attackableTargets(game, active.id).some((s) => s.id === target.id)) {
+      this.clearSelection();
+      pushToast(t('combat.reason.unreachable'));
+      this.redrawBoard();
+      return;
+    }
     // C-LOS : le tir dépend de la ligne de vue vers CETTE cible ; une cible
     // masquée par un obstacle bascule en mêlée (origine de mêlée résolue).
     let ranged = false;
@@ -1735,6 +1787,7 @@ export class CombatScene {
           else this.queuedEventIds.delete(id);
         }
         this.flushPendingDeaths();
+        if (this.queuedEventIds.size === 0) this.resyncPresentation();
       }
     });
   }
@@ -1750,7 +1803,7 @@ export class CombatScene {
     for (const id of this.pendingDeathIds) {
       if (this.animatingIds.has(id) || (this.queuedEventIds.get(id) ?? 0) > 0) continue;
       const token = this.stackTokens.get(id);
-      if (token && !token.destroyed) token.destroy();
+      if (token && !token.destroyed) token.destroy({ children: true });
       this.stackTokens.delete(id);
       this.pendingDeathIds.delete(id);
     }
@@ -1816,13 +1869,13 @@ export class CombatScene {
       case 'StackCursed': {
         // curseOnHit (A2c) : label « maudit » violet sur la cible affligée.
         const token = this.stackTokens.get(event.targetId);
-        if (token) this.spawnFloatingLabel(new Point(token.position.x, token.position.y), 'maudit', 0xb07de0);
+        if (token) this.spawnFloatingLabel(new Point(token.position.x, token.position.y), t('combat.fx.cursed'), 0xb07de0);
         return;
       }
       case 'StackFeared': {
         // fear (Sombral, doc 16 §4) : label « peur » sombre sur la cible effrayée.
         const token = this.stackTokens.get(event.targetId);
-        if (token) this.spawnFloatingLabel(new Point(token.position.x, token.position.y), 'peur', 0x9b6bd0);
+        if (token) this.spawnFloatingLabel(new Point(token.position.x, token.position.y), t('combat.fx.feared'), 0x9b6bd0);
         return;
       }
       case 'SpellCast': {
@@ -1920,10 +1973,13 @@ export class CombatScene {
     const impact = (): void => {
       if (!target || target.destroyed) return;
       if (dodged) {
-        this.spawnFloatingLabel(dest, 'esquive', 0x8fb3d9, target);
+        this.spawnFloatingLabel(dest, t('combat.fx.dodged'), 0x8fb3d9, target);
       } else {
         target.tint = 0xff6666;
         this.spawnDamageNumber(dest, damage, kills, lucky, unlucky, target);
+        // R2 : l'effectif tombe À L'IMPACT (pas au setState qui précède la file).
+        const cur = appStore.getState().game.combat?.stacks.find((s) => s.id === targetId);
+        if (cur) this.updateCountBadge(target, cur.count);
         if (!reduced) void this.shakeToken(target, dest);
       }
     };
@@ -2139,7 +2195,7 @@ export class CombatScene {
       if (bob && !reduced) bob.rotation = t * DEATH_TIP_RAD;
     });
     this.animatingIds.delete(stackId);
-    if (!token.destroyed) token.destroy();
+    if (!token.destroyed) token.destroy({ children: true });
     this.stackTokens.delete(stackId);
     this.pendingDeathIds.delete(stackId); // mort différée honorée (B38)
   }

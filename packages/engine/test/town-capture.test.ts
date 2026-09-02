@@ -74,3 +74,35 @@ describe('CaptureTown', () => {
     ).toBe('invalidAction');
   });
 });
+
+describe('Revue 2026-09 (M1) — une ville occupée par un héros ennemi n’est pas capturée sans combat', () => {
+  function withEnemyHeroOnTown(attackerArmy: { unitId: string; count: number }[]): GameState {
+    const base = startedGame({ garrison: [], ownerPlayerId: 'p2' });
+    const p1 = base.players[0]!;
+    const h1 = base.heroes.find((h) => h.playerId === 'p1')!;
+    return {
+      ...base,
+      players: [p1, { ...p1, id: 'p2' }],
+      heroes: [
+        { ...h1, army: attackerArmy },
+        { ...h1, id: 'hero-p2', playerId: 'p2', pos: { x: 5, y: 5 }, army: [{ unitId: 'red-grunt', count: 3 }] },
+      ],
+    };
+  }
+
+  it('sans armée : refusé (invalidArmy) — la ville est DÉFENDUE par son héros', () => {
+    expect(validate(withEnemyHeroOnTown([]), { type: 'CaptureTown', townId: 'town-1', playerId: 'p1' })?.code).toBe('invalidArmy');
+  });
+
+  it('avec armée : ouvre un combat héros-vs-héros, la ville ne change pas de main', () => {
+    const { state: next } = apply(withEnemyHeroOnTown([{ unitId: 'red-grunt', count: 10 }]), {
+      type: 'CaptureTown',
+      townId: 'town-1',
+      playerId: 'p1',
+    });
+    expect(next.towns[0]?.ownerPlayerId).toBe('p2');
+    expect(next.combat).not.toBeNull();
+    expect(next.combat?.attackerHeroId).toBe(next.heroes.find((h) => h.playerId === 'p1')?.id);
+    expect(next.combat?.defenderHeroId).toBe('hero-p2');
+  });
+});

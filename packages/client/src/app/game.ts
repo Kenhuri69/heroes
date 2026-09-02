@@ -2,7 +2,6 @@ import {
   armyStrength,
   dailyIncome,
   emptyResources,
-  heroVisionRadius,
   humanPlayerId,
   isAdjacent,
   rollRange,
@@ -27,6 +26,7 @@ import {
   type SpellDef,
   type SpellSchool,
   type TownState,
+  playerSightings,
 } from '@heroes/engine';
 import {
   buildArtifactCatalog,
@@ -145,24 +145,8 @@ export function humanHeroes(game: GameState): HeroState[] {
  * d'information, grave en hot-seat). Une seule implémentation (leçon CL9).
  */
 export function visionSightings(game: GameState): { pos: GridPos; radius: number }[] {
-  const { map, config } = game;
-  if (!map || !config) return [];
-  const sightings = humanHeroes(game).map((h) => ({
-    pos: h.pos,
-    radius: heroVisionRadius(h, config.visionRadius, game.skillCatalog, game.artifactCatalog),
-  }));
-  const buildingRadius = config.buildingVisionRadius ?? 0;
-  if (buildingRadius > 0) {
-    const hid = humanId(game);
-    for (const town of game.towns) {
-      if (town.ownerPlayerId === hid) sightings.push({ pos: town.pos, radius: buildingRadius });
-    }
-    for (const obj of map.objects) {
-      if (obj.type === 'mine' && obj.ownerId === hid)
-        sightings.push({ pos: obj.pos, radius: buildingRadius });
-    }
-  }
-  return sightings;
+  // Source unique moteur (revue 2026-09 M14) : la même règle sert à l'IA.
+  return playerSightings(game, humanId(game));
 }
 
 /**

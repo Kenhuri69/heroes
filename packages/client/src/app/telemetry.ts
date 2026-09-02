@@ -77,7 +77,7 @@ export function resetTelemetry(): void {
 
 /** Appelé au clic « Auto » du combat — délégation = « abandon » de la conduite manuelle. */
 export function recordCombatAuto(): void {
-  if (!isTelemetryEnabled()) return;
+  if (!appStore.getState().telemetryEnabled) return;
   const d = read();
   d.combatsAuto += 1;
   write(d);
@@ -93,8 +93,10 @@ let wasCombat = false;
  */
 export function initTelemetry(): void {
   appStore.setState({ telemetryEnabled: isTelemetryEnabled() });
+  // Revue 2026-09 : l'état d'activation est lu dans le store (miroir posé par
+  // `setTelemetryEnabled`), plus un accès `localStorage` à CHAQUE `setState`.
   appStore.subscribe(() => {
-    if (!isTelemetryEnabled()) {
+    if (!appStore.getState().telemetryEnabled) {
       turnStart = null;
       turnKey = '';
       return;

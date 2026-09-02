@@ -63,5 +63,11 @@
   "hero.olivier-arcane-hunters.bio": "A graduate of Darkwatch's Circle of the Hunt, Olivier made the shadows his ally and poison his craft. An original creation, this assassin strikes once, surely, and vanishes before the riposte.",
   "hero.olivier-arcane-hunters.specialty": "Poisoned Blades — increased melee damage, venom eats through the target's armor",
   "building.arcane-hunters-relic-hall": "Relic Hall",
-  "building.arcane-hunters-relic-hall.lore": "Three centuries of trophies under glass: a demon's quill, a melted lock, a traitor's gloved hand. Here one studies what one has defeated — and finally understands the spells one merely recited."
+  "building.arcane-hunters-relic-hall.lore": "Three centuries of trophies under glass: a demon's quill, a melted lock, a traitor's gloved hand. Here one studies what one has defeated — and finally understands the spells one merely recited.",
+  "hero.specialty.doyen.name": "Dean",
+  "hero.specialty.doyen.desc": "Starts the game with one extra Bound Familiar.",
+  "hero.specialty.maitre-de-chasse.name": "Hunt Master",
+  "hero.specialty.maitre-de-chasse.desc": "+1 Attack to Huntresses every 2 levels.",
+  "hero.specialty.lames-empoisonnees.name": "Poisoned Blades",
+  "hero.specialty.lames-empoisonnees.desc": "+10% melee damage; enemy armour counts 10% less."
 }

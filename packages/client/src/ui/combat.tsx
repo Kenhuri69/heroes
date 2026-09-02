@@ -32,6 +32,7 @@ import { COMBAT_SPEEDS } from '../app/ui-constants';
 import { combatPreview, type CombatPreview } from '../scenes/combat/preview';
 import { combatInsets } from '../scenes/combat/insets';
 import { pushToast } from './toasts';
+import { useEscape } from './useEscape';
 import { useNarrowViewport } from './useNarrowViewport';
 import { SpellBook } from './SpellBook';
 import { CombatLog } from './CombatLog';
@@ -627,6 +628,7 @@ function LeaveConfirm({
   gold: number;
   onClose: () => void;
 }) {
+  useEscape(onClose);
   useApp((s) => s.locale); // réactivité i18n
   const confirm = (): void => {
     dispatch({ type: mode === 'retreat' ? 'Retreat' : 'Surrender' })
@@ -665,6 +667,7 @@ function LeaveConfirm({
  * cible confirme et dispatch `HeroAttack`. La feature est gatée par `combat-hero-attack`.
  */
 function HeroAttackModal({ combat, hero, onClose }: { combat: CombatState; hero: HeroState; onClose: () => void }) {
+  useEscape(onClose);
   useApp((s) => s.locale); // réactivité i18n
   const game = appStore.getState().game;
   // E4.4b : dégâts du HÉROS AGISSANT (coop : allié possible), pas seulement le lead.
@@ -724,6 +727,7 @@ function HeroAttackModal({ combat, hero, onClose }: { combat: CombatState; hero:
  * créatures relevées par cible (`estimateHeroRally`, pur, sans RNG) ⇒ `HeroRally`.
  */
 function PrayerModal({ combat, onClose }: { combat: CombatState; onClose: () => void }) {
+  useEscape(onClose);
   useApp((s) => s.locale); // réactivité i18n
   const game = appStore.getState().game;
   const targets = combat.stacks.filter((s) => s.side === combat.playerSide && s.count > 0);
@@ -787,6 +791,7 @@ function PrayerModal({ combat, onClose }: { combat: CombatState; onClose: () => 
  * costMultiplier`, miroir du moteur) ⇒ `CallReinforcements`.
  */
 function ReinforcementsModal({ hero, onClose }: { hero: HeroState; onClose: () => void }) {
+  useEscape(onClose);
   useApp((s) => s.locale); // réactivité i18n
   const game = appStore.getState().game;
   const cfg = game.config?.combat.reinforcements;
@@ -899,6 +904,7 @@ function UnitSpellModal({
   spellId: string;
   onClose: () => void;
 }) {
+  useEscape(onClose);
   useApp((s) => s.locale); // réactivité i18n
   const [targetId, setTargetId] = useState<string | null>(null);
   const [preview, setPreview] = useState<SpellEstimate | null>(null);
@@ -1043,13 +1049,7 @@ function StackSheet({
   catalog: Record<string, CombatUnitDef>;
   onClose: () => void;
 }) {
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent): void => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [onClose]);
+  useEscape(onClose);
   const def = catalog[stack.unitId];
   if (!def) return null;
   const speed = Math.max(0, initiativeSpeed(stack, combat, catalog));
@@ -1123,7 +1123,10 @@ function StackSheet({
 
 function formatPreview(p: CombatPreview): string {
   if (p.kind === 'moat') return t('combat.moatMovePreview', { damage: p.damage });
-  const damage = t('combat.damage', { min: p.damageMin, max: p.damageMax });
+  const base = t('combat.damage', { min: p.damageMin, max: p.damageMax });
+  // M6 : un `doubleAttack` cumule deux frappes — le dire, sinon le total surprend.
+  const strikes = p.strikes ?? 1;
+  const damage = strikes > 1 ? t('combat.damageStrikes', { damage: base, n: strikes }) : base;
   const kills = p.killsMin === p.killsMax ? `${p.killsMin}` : `${p.killsMin}–${p.killsMax}`;
   const retal = p.retaliation
     ? t('combat.retaliationEstimate', { min: p.retaliation.damageMin, max: p.retaliation.damageMax })

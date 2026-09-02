@@ -3418,6 +3418,9 @@ test('T-GRAIL lot 2 : fouiller la tuile du Graal donne le Graal (doc 02 §2.2)',
     }),
   );
   await expect.poll(() => heroPos(page)).toEqual({ x: 6, y: 6 });
+  // Revue 2026-09 (M11) : la fouille exige la révélation (3 obélisques visités,
+  // dispersés sur proto-01) — forgée dans l'état par le hook de test.
+  await page.evaluate(() => window.__HEROES_TEST__!.revealGrail());
   // Fouiller : le joueur obtient le Graal (débloque le bâtiment Graal, lot 3).
   await page.evaluate(() =>
     window.__HEROES_TEST__!.dispatch({ type: 'Dig', heroId: 'hero-player-1' }),
@@ -3446,6 +3449,7 @@ test('T-GRAIL lot 3 : le bâtiment Graal est verrouillé sans Graal, constructib
       path: [{ x: 4, y: 4 }, { x: 5, y: 5 }, { x: 6, y: 6 }],
     }),
   );
+  await page.evaluate(() => window.__HEROES_TEST__!.revealGrail()); // M11 : révélation requise avant la fouille
   await page.evaluate(() => window.__HEROES_TEST__!.dispatch({ type: 'Dig', heroId: 'hero-player-1' }));
   await page.getByTestId('town-open-start-town').click();
   await page.getByTestId('town-tab-build').click();

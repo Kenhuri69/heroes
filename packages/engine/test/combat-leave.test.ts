@@ -177,3 +177,34 @@ describe('Revue 2026-07 — B21 : le camp adverse garde ses pertes au départ du
     expect(next.towns[0]?.garrison).toEqual([{ unitId: 'foe', count: 4 }]);
   });
 });
+
+describe('Revue 2026-09 (M4) — abandon/reddition en coop : chaque propriétaire récupère SES survivants', () => {
+  function coopLeaveState(gold: number): GameState {
+    const base = stateWith(gold);
+    const ally = { ...(base.heroes[0] as HeroState), id: 'hero-b', playerId: 'p2', army: [] as { unitId: string; count: number }[] };
+    const combat = base.combat as CombatState;
+    return {
+      ...base,
+      heroes: [base.heroes[0] as HeroState, ally as HeroState],
+      combat: {
+        ...combat,
+        stacks: [
+          ...combat.stacks,
+          stack({ id: 'attacker-1', side: 'attacker', unitId: 'ally', count: 4, pos: { col: 0, row: 4 }, slot: 1, ownerHeroId: 'hero-b' }),
+        ],
+      },
+    };
+  }
+
+  it('AbandonCombat : le lead garde ses piles, l’allié récupère les siennes (plus de transfert vers le lead)', () => {
+    const { state: next } = apply(coopLeaveState(0), { type: 'AbandonCombat' });
+    expect(next.heroes.find((h) => h.id === 'hero-a')?.army).toEqual([{ unitId: 'ally', count: 5 }]);
+    expect(next.heroes.find((h) => h.id === 'hero-b')?.army).toEqual([{ unitId: 'ally', count: 4 }]);
+  });
+
+  it('Surrender : même routage par propriétaire', () => {
+    const { state: next } = apply(coopLeaveState(1000), { type: 'Surrender' });
+    expect(next.heroes.find((h) => h.id === 'hero-a')?.army).toEqual([{ unitId: 'ally', count: 5 }]);
+    expect(next.heroes.find((h) => h.id === 'hero-b')?.army).toEqual([{ unitId: 'ally', count: 4 }]);
+  });
+});

@@ -38,7 +38,20 @@ import { readJsonFromDisk } from './data-dir';
 const TIER_BUDGET_GOLD = 4000; // budget d'or par tier → effectif de chaque pile
 const MAX_TIER = 7; // T8 (formes spéciales) hors panel d'équilibrage
 const SEEDS = 120; // combats par sens (×2 sens = total par paire)
-const TERRAIN = 'grass';
+/**
+ * Terrain d'un duel (revue 2026-09, D2) : le premier terrain FRANCHISSABLE qui
+ * n'est natif d'AUCUNE des deux factions — `grass` fixe donnait +1 vitesse/+1
+ * moral à toute faction native de la plaine dans TOUS ses duels (mesure biaisée).
+ */
+function neutralTerrain(
+  config: LoadReport['content']['config']['adventure'],
+  natives: readonly string[],
+): string {
+  for (const [id, rule] of Object.entries(config.terrains)) {
+    if (rule.moveCost !== null && !natives.includes(id)) return id;
+  }
+  return 'grass';
+}
 
 // Attrition & gauntlet : report d'armée coûteux ⇒ moins de graines, vagues bornées.
 // Les vagues démarrent à une FRACTION du budget puis grossissent (`WAVE_BASE` +
@@ -60,7 +73,7 @@ const TARGET_HIGH = 55;
 const BLOWOUT_LOW = 20;
 const BLOWOUT_HIGH = 80;
 
-type FactionArmy = { id: string; army: ArmyStack[] };
+type FactionArmy = { id: string; native: string; army: ArmyStack[] };
 
 /** Catalogue `CombatUnitDef` depuis les paquets (miroir de `buildUnitCatalog` client). */
 function buildCatalog(report: LoadReport): Record<string, CombatUnitDef> {
@@ -108,14 +121,15 @@ function winrate(
   config: LoadReport['content']['config']['adventure'],
   armyA: ArmyStack[],
   armyB: ArmyStack[],
+  terrain: string,
 ): number {
   let winsA = 0;
   let total = 0;
   for (let seed = 1; seed <= SEEDS; seed++) {
-    if (simulateAutoCombat(catalog, config, armyA, armyB, TERRAIN, seed) === 'attacker') winsA++;
+    if (simulateAutoCombat(catalog, config, armyA, armyB, terrain, seed) === 'attacker') winsA++;
     total++;
     // Sens inverse : B attaque, A défend — A gagne si le défenseur tient.
-    if (simulateAutoCombat(catalog, config, armyB, armyA, TERRAIN, seed) === 'defender') winsA++;
+    if (simulateAutoCombat(catalog, config, armyB, armyA, terrain, seed) === 'defender') winsA++;
     total++;
   }
   return (winsA / total) * 100;
@@ -180,12 +194,12 @@ const config = report.content.config.adventure;
 const factionCatalog = buildFactionCatalog(report);
 
 const armies: FactionArmy[] = report.content.packs
-  .map((pack) => ({ id: pack.manifest.id, army: valueArmy(pack, catalog) }))
+  .map((pack) => ({ id: pack.manifest.id, native: pack.manifest.nativeTerrain, army: valueArmy(pack, catalog) }))
   .filter((f): f is FactionArmy => f.army !== null);
 
 // ── 1. Duel valeur-égale (canari de stats) ─────────────────────────────────
 console.log(
-  `faction:sim — budget ${TIER_BUDGET_GOLD} or/tier (T1–T${MAX_TIER}), terrain ${TERRAIN}\n`,
+  `faction:sim — budget ${TIER_BUDGET_GOLD} or/tier (T1–T${MAX_TIER}), terrain neutre par paire (non natif des deux camps)\n`,
 );
 console.log(`# Duel valeur-égale — ${SEEDS}×2 combats/paire (winrate)\n`);
 
@@ -195,7 +209,7 @@ for (let i = 0; i < armies.length; i++) {
   for (let j = i + 1; j < armies.length; j++) {
     const a = armies[i]!;
     const b = armies[j]!;
-    const rate = winrate(catalog, config, a.army, b.army);
+    const rate = winrate(catalog, config, a.army, b.army, neutralTerrain(config, [a.native, b.native]));
     const inBand = rate >= TARGET_LOW && rate <= TARGET_HIGH;
     const blowout = rate < BLOWOUT_LOW || rate > BLOWOUT_HIGH;
     const mark = blowout ? '✗' : inBand ? '✓' : '⚠';

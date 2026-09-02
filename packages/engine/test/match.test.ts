@@ -44,7 +44,26 @@ describe('netcode match (doc 15)', () => {
     // C'est le tour de p1 → accepté, et le tour passe à p2.
     const ok = appendTurn([START], 'p1', [{ type: 'EndTurn', playerId: 'p1' }]);
     expect(ok.ok).toBe(true);
-    if (ok.ok) expect(currentTurnPlayerId(replayCommands(ok.commands))).toBe('p2');
+    if (ok.ok) {
+      expect(currentTurnPlayerId(replayCommands(ok.commands))).toBe('p2');
+      // Revue 2026-09 (S4) : l'état final est rendu — le serveur n'a plus à rejouer.
+      expect(currentTurnPlayerId(ok.state)).toBe('p2');
+    }
+  });
+
+  it("appendTurn refuse un lot qui franchit EndTurn et joue le tour de l'adversaire (revue 2026-09 S1)", () => {
+    // p1 poste [EndTurn p1, EndTurn p2] : la 2ᵉ commande est légale au rejeu
+    // (c'est bien le tour de p2) mais ce n'est plus le tour du POSTEUR → refus.
+    const res = appendTurn([START], 'p1', [
+      { type: 'EndTurn', playerId: 'p1' },
+      { type: 'EndTurn', playerId: 'p2' },
+    ]);
+    expect(res.ok).toBe(false);
+    if (!res.ok) expect(res.reason).toMatch(/déborde/);
+
+    // Le même lot borné à SON tour reste accepté (non-régression).
+    const ok = appendTurn([START], 'p1', [{ type: 'EndTurn', playerId: 'p1' }]);
+    expect(ok.ok).toBe(true);
   });
 
   it('appendTurn refuse un lot illégal (commande qui lève au rejeu)', () => {

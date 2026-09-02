@@ -196,3 +196,22 @@ describe('C1 — attaque du héros', () => {
     ).toThrowError(/invalidTarget/);
   });
 });
+
+describe('Revue 2026-09 (M7) — la frappe du héros respecte la Barrière (shield)', () => {
+  it('le bouclier absorbe avant les PV, comme sur les autres chemins de dégâts', () => {
+    const base = stateWith({ base: 8, perPower: 6, perAttack: 2 }); // 38 dégâts
+    const state: GameState = {
+      ...base,
+      combat: {
+        ...(base.combat as CombatState),
+        stacks: (base.combat as CombatState).stacks.map((s) => (s.id === 'defender-0' ? { ...s, shield: 20 } : s)),
+      },
+    };
+    const { state: next, events } = apply(state, { type: 'HeroAttack', targetStackId: 'defender-0' });
+    const foe = next.combat?.stacks.find((s) => s.id === 'defender-0');
+    // 38 − 20 absorbés = 18 sur 10×10 PV ⇒ 1 tué, bouclier consommé.
+    expect(foe?.count).toBe(9);
+    expect(foe?.shield).toBeUndefined();
+    expect(events).toContainEqual({ type: 'HeroStruck', side: 'attacker', targetId: 'defender-0', amount: 18, kills: 1 });
+  });
+});

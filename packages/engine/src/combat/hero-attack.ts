@@ -3,8 +3,8 @@ import type { GameEvent } from '../core/events';
 import type { GameState, HeroState } from '../core/state';
 import { heroArtifactBonus } from '../hero/artifacts';
 import { effectivePower } from '../hero/spells';
-import { factionCombatBonus, heroActionLeftFor, heroesOnSide, recordLoss } from './state-helpers';
-import { killsFromDamage } from './damage';
+import { factionCombatBonus, heroActionLeftFor, heroesOnSide, recordLoss, sideLeadHero } from './state-helpers';
+import { absorbShield, killsFromDamage } from './damage';
 import { handleStackDeath } from './death';
 import type { Draft } from './draft';
 import { checkCombatEnd } from './turns';
@@ -12,15 +12,10 @@ import type { CombatSideId, CombatState } from './types';
 
 type HeroAttackCmd = { type: 'HeroAttack'; targetStackId: string; heroId?: string };
 
-function heroForSide(state: GameState, combat: CombatState, side: CombatSideId) {
-  const heroId = side === 'attacker' ? combat.attackerHeroId : combat.defenderHeroId;
-  return heroId ? state.heroes.find((h) => h.id === heroId) : undefined;
-}
-
 /** Héros AGISSANT résolu : `cmd.heroId` (E4.4, coop) sinon le lead du camp joueur. */
 function actingHero(state: GameState, combat: CombatState, heroId?: string): HeroState | undefined {
   if (heroId) return state.heroes.find((h) => h.id === heroId);
-  return heroForSide(state, combat, combat.playerSide);
+  return sideLeadHero(state, combat, combat.playerSide);
 }
 
 /**
@@ -46,7 +41,7 @@ export function heroAttackDamageFor(
 
 /** Préviz de l'attaque du héros **lead** d'un camp (rétro-compat client/UI). */
 export function heroAttackDamage(state: GameState, combat: CombatState, side: CombatSideId): number {
-  return heroAttackDamageFor(state, combat, side, heroForSide(state, combat, side));
+  return heroAttackDamageFor(state, combat, side, sideLeadHero(state, combat, side));
 }
 
 /** La pile active du camp joueur peut-elle déclencher l'attaque du héros ? */
@@ -110,9 +105,13 @@ export function strikeWithHero(
   const hero = draft.heroes.find((h) => h.id === heroId);
   if (!target || !targetDef || !hero) return;
 
-  const amount = heroAttackDamageFor(draft, combat, side, hero);
+  const raw = heroAttackDamageFor(draft, combat, side, hero);
   combat.heroAttackUsed.push(heroId); // suivi PAR HÉROS (E4.4)
 
+  // Revue 2026-09 (M7) : la Barrière (`shield`) absorbe AVANT les PV, comme sur
+  // les trois autres chemins de dégâts (frappe, sort d'unité, zone) — la frappe
+  // du héros était le seul à l'ignorer (doc 16 §7).
+  const amount = raw - absorbShield(target, raw);
   const pool = (target.count - 1) * targetDef.stats.hp + target.firstHp;
   const kills = killsFromDamage(pool, targetDef.stats.hp, target.count, amount);
   const remaining = Math.max(0, pool - amount);

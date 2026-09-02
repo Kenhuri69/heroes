@@ -64,12 +64,23 @@ ajout de table (ex. `ratings`, `rate_limits`) exige de ré-appliquer
 
 ### 5.1 Auth (magic-link)
 
-1. `POST /auth/request { email }` → le Worker crée un `auth_tokens` (aléatoire,
-   expirant) et **envoie** un lien `…/auth/verify?token=…` par e-mail dès que
-   `RESEND_API_KEY` est branché (lot 4.3, §10 pt 6) ; sinon il le renvoie dans la
-   réponse (`verifyLink`, dev/beta).
+1. `POST /auth/request { email }` → l'e-mail est **normalisé** (minuscules,
+   forme minimale, ≤ 254 caractères — revue 2026-09 S11 : `A@x` et `a@x` sont un
+   seul profil) ; le Worker crée un `auth_tokens` (aléatoire, expirant) et
+   **envoie** par e-mail un lien vers **l'application** —
+   `${APP_ORIGIN}/heroes/?auth=<jeton>` (revue 2026-09 S3 : l'ancien lien visait
+   `GET /auth/verify` du Worker, qui **consommait** le jeton en affichant du JSON
+   brut ; le jeton collé ensuite dans l'app répondait « invalide ») — dès que
+   `RESEND_API_KEY` est branché (lot 4.3, §10 pt 6). Le client lit `?auth=` au
+   démarrage, appelle `verify`, ouvre la session et retire le paramètre de l'URL. Sans provider e-mail, le
+   lien n'est renvoyé dans la réponse (`verifyLink`) **que** si la variable
+   `DEV_RETURN_VERIFY_LINK=1` est posée (dev local) ; sinon **503** « e-mail de
+   connexion non configuré » (revue 2026-09 S2 : **fail-closed** — le repli
+   automatique donnait une session pour n'importe quelle adresse tant que le
+   secret manquait en prod).
 2. `GET /auth/verify?token` → jeton valide & non utilisé ⇒ crée/retrouve le
-   `profiles`, ouvre une `sessions` (bearer), marque le jeton `used`. **NET-SEC.1** :
+   `profiles`, ouvre une `sessions` (bearer), marque le jeton `used` de façon
+   **atomique** (`UPDATE … WHERE used = 0`, une seule requête gagne — S10). **NET-SEC.1** :
    le `handle` (partie locale de l'e-mail, `UNIQUE`) est **désambiguïsé** sur
    collision (suffixe tiré de l'uuid) — deux e-mails de même partie locale ne font
    plus 500.
@@ -166,7 +177,12 @@ externe en CI). D'où :
 
 - **Logique pure** (`engine/net`, machine à états de tour, framing du journal) →
   **tests unitaires** (`match.test.ts`, déterministes). C'est là que vit le risque.
-- **Worker ↔ D1** → testé en local (wrangler dev / Miniflare), hors CI committée.
+- **Worker ↔ D1** → **harnais committé** (revue 2026-09, R8) : `server/test/`
+  sous `@cloudflare/vitest-pool-workers` (workerd + D1 locale Miniflare, schéma
+  appliqué depuis `server/schema.sql`), lancé par `pnpm test` en CI — auth
+  (fail-closed, usage unique, normalisation), saves (copie N-1, borne 413),
+  parties (setup validé, siège atomique, lot trans-tour 422, doublon 409, lobby
+  périmé). Mode dev (`DEV_RETURN_VERIFY_LINK`) posé par la config de test seulement.
 - **Client `@heroes/net`** → **derrière un flag de config** (URL backend absente
   par défaut) : le jeu hors-ligne et le smoke ne touchent **jamais** le réseau.
 
@@ -211,11 +227,25 @@ Tout sur les free tiers Cloudflare : Workers 100k req/j, D1 5 Go + 5 M lignes
 lues/j. Aucune mise en pause. Migration vers un plan payant seulement si le trafic
 d'une beta ouverte dépasse ces seuils — improbable avant une audience réelle.
 
+**Durcissements (revue 2026-09, lots R1/R8)** : garde « c'est son tour » **par
+commande** dans `appendTurn` (un lot ne franchit plus `EndTurn`) ; `appendTurn`
+rend l'état final ⇒ **un seul rejeu** par coup posté (le second, pour l'issue, est
+supprimé — la limite CPU du plan gratuit (10 ms) reste le mur des longues parties :
+le **snapshot d'état par partie** (`matches.snapshot`, rejeu du seul lot posté)
+est le prochain pas, différé car il exige une migration D1 en prod) ; bornes de
+corps vérifiées sur `Content-Length` **avant** lecture puis en octets réels ;
+écritures multi-statements en **`DB.batch()`** (création de partie + sièges, copie
+N-1 + upsert de sauvegarde, coup + fin de partie) ; lobbies `open` **expirent**
+au même délai que les parties inactives ; `setup` de partie **validé** (rejeu,
+2–4 sièges humains, seed cohérente) ; erreurs 500 **opaques** (internes en logs),
+violation d'unicité ⇒ 409 ; en-têtes `Cache-Control: no-store`,
+`X-Content-Type-Options: nosniff`, `Vary: Origin`.
+
 ## 9. Reste à faire
 
 - **7.2 ✅** — le Worker (`server/src/worker.ts` + `server/wrangler.toml`) :
-  endpoints §5, re-sim via `engine/net`, e-mail magic-link *pluggable* (le lien de
-  vérification est renvoyé tant qu'aucun provider n'est branché). `server/` est un
+  endpoints §5, re-sim via `engine/net`, e-mail magic-link *pluggable* (sans
+  provider : **503**, sauf `DEV_RETURN_VERIFY_LINK=1` en dev — revue 2026-09). `server/` est un
   membre du workspace typechecké en CI (hors build client / smoke). **Déploiement
   `wrangler deploy` = étape manuelle** de l'utilisateur (identifiants CF).
 - **7.3 ✅** — client `app/net.ts` (SDK typé : auth / saves / matches / moves),
@@ -246,15 +276,21 @@ GitHub**, jamais en clair. Étapes de l'utilisateur (une fois) :
    **`subdomain`** (ex. `kenhuri`) : une étape enregistre le sous-domaine via
    l'API Cloudflare (le token secret sert d'auth, idempotent) avant de déployer.
    L'URL apparaît alors dans les logs (`https://heroes.<sous-domaine>.workers.dev`).
+   *Revue 2026-09 (R9)* : le workflow épingle ses actions par **SHA** (Dependabot
+   propose les montées), passe le token par `env:` (jamais interpolé dans un
+   script) et **typecheck le Worker** avant `wrangler deploy` (esbuild ne vérifie
+   pas les types).
 4. **Variable GitHub** (même écran, onglet *Variables*) : `VITE_BACKEND_URL` =
    cette URL. **Absente ⇒ client hors-ligne** (défaut sûr).
 5. **Publier le client** — Actions → **Deploy to GitHub Pages** → *Run workflow*
    (ou tout push sur `main`). Le client déployé est rebuild AVEC `VITE_BACKEND_URL`
    (le smoke, lui, tourne sur un build hors-ligne) → le bouton **« En ligne »**
    apparaît. `wrangler.toml` référence déjà la base D1 `heroes` (schéma appliqué).
-6. **Option e-mail (Resend, lot 4.3)** — le worker envoie **réellement** le lien
-   dès que le secret `RESEND_API_KEY` est présent ; sinon il renvoie le lien dans
-   la réponse (dev/beta, défaut sûr). Runbook :
+6. **E-mail (Resend, lot 4.3) — REQUIS en prod** — le worker envoie **réellement**
+   le lien dès que le secret `RESEND_API_KEY` est présent ; sans lui, l'auth
+   répond **503** (revue 2026-09 S2). Le renvoi du lien dans la réponse n'existe
+   plus qu'en dev local, via `DEV_RETURN_VERIFY_LINK=1` (jamais dans `[vars]`).
+   Runbook :
    - Créer un compte Resend (free) et une clé API (*API Keys → Create*).
    - `wrangler secret put RESEND_API_KEY` (depuis `server/`, via pnpm) et coller la clé.
    - **Expéditeur** : par défaut `Heroes <onboarding@resend.dev>` (domaine de test

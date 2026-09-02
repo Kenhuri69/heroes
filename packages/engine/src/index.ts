@@ -195,5 +195,6 @@ export { evaluateQuests, questConditionMet } from './quest/evaluate';
 export { runAiTurn } from './ai/adventure';
 export { findPath, isPassable, stepCost } from './adventure/path';
 export { createFog, revealAround } from './adventure/fog';
+export { isInPlayerVision, playerSightings, type Sighting } from './adventure/vision';
 export { xpForLevel } from './adventure/experience';
 export { dailyIncome, townIncome, weeklyGrowthOf } from './town/economy';

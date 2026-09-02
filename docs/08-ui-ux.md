@@ -753,8 +753,10 @@ Menu principal (Continuer / Scénarios / Escarmouche / **Éditeur de carte** / O
 
 > 🚧 **État (éditeur de carte, Alpha 4.18)** : écran `editor` (route de base, bouton
 > menu ou `#editor`) — outil **interne minimal** pour accélérer la prod de contenu.
-> Grille **DOM** peinte au clic (4 terrains grass/swamp/water/mountain, cibles
-> ≥ 44 px, teinte + libellé/aria non chromatiques seuls), outils position de
+> Grille **DOM** peinte au clic (**tous les terrains** de la légende partagée avec
+> le générateur — `TERRAIN_CHARS` de `@heroes/content`, 13 au total ; légende
+> d'export = terrains peints — revue 2026-09 ; cellules et outils ≥ 44 px, teinte
+> + libellé/aria non chromatiques seuls), outils position de
 > départ / ressource (or) / ville / gomme, champs id/largeur/hauteur (4–32).
 > **Export** : construit un `MapFile`, le **valide par `mapFileSchema`**
 > (@heroes/content) — jamais d'export invalide — puis télécharge `<id>.map.json` ;
@@ -781,7 +783,7 @@ Menu principal (Continuer / Scénarios / Escarmouche / **Éditeur de carte** / O
 - Pile de modales max 2 niveaux ; bouton retour Android/geste (et Échap au
   clavier) = ferme la modale du dessus.
 - Toutes les actions du tour sont annulables **tant qu'aucune information n'a été révélée** (déplacement sans découverte ni combat) — bouton « Annuler le déplacement » ; construction/recrutement non annulables (simplicité économique).
-- Notifications de jeu : file de **toasts** éphémères (croissance hebdo, revenus, ramassage, construction/recrutement, niveau, fin de combat…) **filtrées au joueur humain** (les actions des IA ne notifient pas), doublées d'un **journal consultable** (bouton cloche du HUD avec badge de non-lus) — modale de la pile listant l'historique daté, la plus récente en tête. Le feedback positif inclut la **sauvegarde manuelle réussie**.
+- Notifications de jeu : file de **toasts** éphémères (croissance hebdo, revenus, ramassage, construction/recrutement, niveau, fin de combat…) **filtrées au joueur humain** (les actions des IA ne notifient pas), doublées d'un **journal consultable** (bouton cloche du HUD avec badge de non-lus) — modale de la pile listant l'historique daté, la plus récente en tête ; en **hot-seat**, chaque siège humain ne lit que **ses** entrées (`JournalEntry.playerId`, revue 2026-09 C6). Le feedback positif inclut la **sauvegarde manuelle réussie**.
 - **Aucune action ne peut échouer en silence** (lot R0). Trois règles :
   1. **Tout rejet de commande est affiché** en toast d'erreur — y compris « Fin de tour » (le bouton le plus utilisé) et « Réorganiser »/« Séparer ». Seule exception, **explicitement testée** : une réorganisation refusée parce que ce n'est pas le tour du joueur (sans conséquence) reste muette.
   2. **Une action ignorée est dite, sobrement** : destination inatteignable (« Destination inaccessible » — et la **prévisualisation en cours est conservée** : un tap raté ne fait pas perdre le chemin déjà posé), tap pendant un tour adverse, tap pendant l'animation d'un déplacement. Taper hors carte ou sur son propre héros reste sans message : c'est une annulation de préviz, pas un refus.

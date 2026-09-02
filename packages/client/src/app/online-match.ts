@@ -1,7 +1,7 @@
 import { replayCommands, currentTurnPlayerId, type Command, type GameState } from '@heroes/engine';
 import { getMatch, getMoves, postMove, profileId } from './net';
 import { appStore } from './store';
-import { eventBus } from './events';
+import { enterLoadedGame } from './load-game';
 import { t } from './i18n';
 import { pushToast } from '../ui/toasts';
 
@@ -27,14 +27,9 @@ export async function openOnlineMatch(id: string): Promise<void> {
   const mine = profileId();
   const myPlayerId = detail.players.find((p) => p.profile_id === mine)?.player_id ?? null;
   turnBuffer = [];
-  appStore.setState({
-    game,
-    onlineMatch: { id, nextSeq: moves.length, myPlayerId, status: detail.status },
-    screen: 'adventure',
-    modals: [],
-  });
-  // Réutilise le canal de chargement (recentrage caméra, reprise éventuelle).
-  eventBus.emit([{ type: 'GameLoaded' }]);
+  // Même point d'entrée que toute partie chargée (purge de l'état par partie,
+  // recentrage caméra, reprise éventuelle) — le match est posé DANS l'appel.
+  enterLoadedGame(game, { onlineMatch: { id, nextSeq: moves.length, myPlayerId, status: detail.status } });
 }
 
 /** Re-synchronise le match courant (re-rejoue le journal serveur à jour). */
@@ -88,6 +83,10 @@ export async function recordOnlineTurn(cmd: Command, gameBefore: GameState): Pro
     appStore.setState({ onlineMatch: { ...om, nextSeq: r.seq + 1 } });
   } catch {
     pushToast(t('toast.matchPostError'), 'error');
-    await refreshOnlineMatch();
+    try {
+      await refreshOnlineMatch();
+    } catch {
+      /* revue 2026-09 : hors-ligne — le toast ci-dessus suffit, pas de rejet non géré */
+    }
   }
 }

@@ -1,5 +1,8 @@
+import { produce } from 'immer';
 import { describe, expect, it } from 'vitest';
 import { apply, validate } from '../src/core/engine';
+import { checkCombatEnd } from '../src/combat/turns';
+import type { GameEvent } from '../src/core/events';
 import { seedRng } from '../src/core/rng';
 import { createEmptyState, emptyResources, type GameState, type HeroState } from '../src/core/state';
 import type { CombatState, CombatStack, CombatUnitDef } from '../src/combat/types';
@@ -162,5 +165,20 @@ describe('B3 — renforts en combat', () => {
     expect(validate(stateWith(CFG, { gold: 100 }), { type: 'CallReinforcements', unitId: 'ally', count: 3 })?.code).toBe(
       'cannotAfford',
     );
+  });
+});
+
+describe('Revue 2026-09 (M3) — renfort et armée reconstruite', () => {
+  it('victoire après renfort ⇒ une seule entrée par unitId (fusion), jamais 8 piles', () => {
+    const { state } = apply(stateWith(CFG), { type: 'CallReinforcements', unitId: 'ally', count: 3 });
+    expect(state.combat!.stacks.filter((s) => s.side === 'attacker' && s.unitId === 'ally')).toHaveLength(2);
+    const events: GameEvent[] = [];
+    const next = produce(state, (draft) => {
+      for (const s of draft.combat!.stacks) if (s.side === 'defender') s.count = 0;
+      checkCombatEnd(draft, events);
+    });
+    expect(next.combat).toBeNull();
+    // 5 (pile d'origine) + 3 (renfort) fusionnés en UNE entrée.
+    expect(next.heroes[0]?.army).toEqual([{ unitId: 'ally', count: 8 }]);
   });
 });

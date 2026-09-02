@@ -17,7 +17,7 @@
 | **Fantasme joueur** | *« Je ne me presse pas : plus je tiens le terrain, plus mes rangs deviennent inarrêtables. »* |
 | **Style de jeu** | Attrition / tempo lent — punit l'adversaire qui n'ouvre pas ; s'effondre si on la force à courir |
 | **Faiblesse assumée** | **Agression / tempo** : ses piles-clés sont fragiles au départ et doivent *rester* pour monter en puissance ; un rush qui l'oblige à bouger (ou la tue vite) annule la Symbiose |
-| **Terrain natif** | `water` — la Forêt-Monde s'abreuve au **fleuve primordial** ; dryades, naïades et licornes sont liées aux **sources sacrées**. (Choix aussi *structurel* : `grass` est déjà la signature de Haven pour l'identification par propriété des tests ; `water` garde chaque maison distinguable sans nom en dur.) |
+| **Terrain natif** | `water` — la Forêt-Monde s'abreuve au **fleuve primordial** ; dryades, naïades et licornes sont liées aux **sources sacrées**. (Choix aussi *structurel* : `grass` est déjà la signature de Haven pour l'identification par propriété des tests ; `water` garde chaque maison distinguable sans nom en dur.) *Outillage (revue 2026-09 D2) : `faction:sim` joue chaque duel sur un terrain **neutre** aux deux camps — le bonus natif ne biaise plus la mesure d'équilibrage.* |
 | **Ressources clés** | **Cristal + Mercure** (rares partagées — aucune ressource de faction propre, contrairement à Arcane Hunters/Necropolis : Sylvan reste économiquement « classique ») |
 | **École de magie** | **existante** (`earth` / `water`) — pas d'école propre au 1ᵉʳ lot (minimise les points d'extension) |
 | **Couleurs / DA** | Verts profonds & ambre, écorce et lucioles ; bannières à motif de fronde/feuille |
@@ -33,8 +33,9 @@ implacable, car la forêt ne charge pas — elle *encercle*.
 ## 2. Mécanique signature (UNE seule) — **Symbiose**
 
 - **Description** : certaines unités (Dryade T3, Tréant T6, Aïeul T7) portent la
-  capacité `symbiosis`. À chaque **round où la pile n'attaque pas et ne se déplace
-  pas** (elle **Défend** ou reste en place), elle **enracine** un lien qui lui
+  capacité `symbiosis`. À chaque round où la pile **Défend** (action explicite —
+  *Attendre* conserve les paliers acquis sans en gagner ; règle livrée, alignée
+  revue 2026-09), elle **enracine** un lien qui lui
   octroie un bonus **cumulatif** d'Attaque et de Défense (`+attackPerRound`,
   `+defensePerRound`), **plafonné** à `maxStacks` paliers. **Attaquer ou se
   déplacer réinitialise** la Symbiose à zéro.

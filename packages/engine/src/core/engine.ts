@@ -1,7 +1,7 @@
 import { produce } from 'immer';
 import { dailyMovementPoints } from '../adventure/config';
 import { createFog, revealAround } from '../adventure/fog';
-import { inBounds, isAdjacent, mapLevels, samePos, type GridPos } from '../adventure/map';
+import { grailRevealedTo, inBounds, isAdjacent, mapLevels, obeliskCount, samePos, type GridPos } from '../adventure/map';
 import { advanceHeroAlongPath } from '../adventure/movement';
 import { digGrail } from '../adventure/grail';
 import { revealOwnedStructures } from '../adventure/vision';
@@ -299,6 +299,13 @@ export function validate(state: GameState, cmd: Command): CommandError | null {
       if (current.hasGrail) return { code: 'alreadyHasGrail', message: 'le Graal est déjà possédé' };
       if (!state.map?.grailPos || !samePos(hero.pos, state.map.grailPos))
         return { code: 'notOnGrail', message: 'le héros n’est pas sur la tuile du Graal' };
+      // Revue 2026-09 (M11) : la tuile doit être RÉVÉLÉE (tous les obélisques
+      // visités, doc 02 §2.2) — le client masque le bouton, mais le moteur ne lui
+      // fait pas confiance (PvP async : un `Dig` forgé était accepté au rejeu).
+      // Même règle que l'IA (`canDigGrail`). Une carte SANS obélisque n'a rien à
+      // révéler : la tuile est fouillable d'emblée.
+      if (obeliskCount(state.map) > 0 && !grailRevealedTo(state.map, current.obelisksVisited))
+        return { code: 'notOnGrail', message: 'la tuile du Graal n’est pas encore révélée (obélisques)' };
       if (hero.movementPoints <= 0)
         return { code: 'noMovement', message: 'plus de mouvement pour fouiller aujourd’hui' };
       return null;
@@ -678,13 +685,16 @@ const handlers: Handlers = {
     draft.growthGroups = cmd.growthGroups
       ? Object.fromEntries(Object.entries(cmd.growthGroups).map(([g, m]) => [g, [...m]]))
       : {};
-    draft.scenario = cmd.scenario ?? null;
+    draft.scenario = cmd.scenario ? structuredClone(cmd.scenario) : null;
     draft.outcome = null;
     draft.pendingTreasure = null;
     draft.caravans = [];
     // Quêtes de campagne (doc 13 §6.2, N2a) — embarquées et actives d'emblée ;
-    // le chaînage/déclencheurs viennent au lot contenu N2b.
-    draft.quests = cmd.quests ?? null;
+    // le chaînage/déclencheurs viennent au lot contenu N2b. Copie profonde
+    // (revue 2026-09 M12, même raison que `map`) : `evaluateQuests` avance une
+    // quête satisfaite d'emblée dans CE `produce` — sans copie, la commande de
+    // l'appelant était mutée puis gelée par l'autoFreeze d'Immer.
+    draft.quests = cmd.quests ? structuredClone(cmd.quests) : null;
     if (draft.quests) {
       for (const q of draft.quests.quests) events.push({ type: 'QuestStarted', questId: q.def.id });
     }
@@ -880,7 +890,10 @@ const handlers: Handlers = {
     const config = draft.config;
     if (!hero || !player || !map || !config) return; // exclu par validate
     const boatPos = { ...hero.pos }; // la tuile d'eau quittée reçoit un bateau réutilisable
-    map.objects.push({ id: `boat@${boatPos.x},${boatPos.y}`, type: 'boat', pos: boatPos });
+    // Revue 2026-09 : un héros naval peut avoir navigué SUR une tuile portant déjà
+    // un bateau — ne pas en poser un second (même id `boat@x,y` ⇒ fantôme définitif).
+    if (!map.objects.some((o) => o.type === 'boat' && samePos(o.pos, boatPos)))
+      map.objects.push({ id: `boat@${boatPos.x},${boatPos.y}`, type: 'boat', pos: boatPos });
     hero.pos = { ...cmd.target };
     hero.naval = false;
     hero.movementPoints = 0; // débarquer consomme la journée (fidélité HoMM3)

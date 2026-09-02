@@ -117,3 +117,26 @@ describe('embarquement / navigation / débarquement (A3.2)', () => {
     ).toBe('notNaval');
   });
 });
+
+describe('Revue 2026-09 — débarquer sur une tuile qui porte déjà un bateau', () => {
+  it('ne pose pas un second bateau du même id (un seul objet `boat@x,y` par tuile)', () => {
+    const base = startedWithBoat();
+    const withSecond: GameState = {
+      ...base,
+      map: {
+        ...base.map!,
+        objects: [...base.map!.objects, { id: 'boat@2,7', type: 'boat', pos: { x: 2, y: 7 } }],
+      },
+    };
+    const boarded = apply(withSecond, { type: 'BoardBoat', heroId: 'hero-p1', boatId: 'boat-1' }).state;
+    const sailing = { ...boarded, heroes: [{ ...boarded.heroes[0]!, movementPoints: 2000 }] };
+    // Navigue sur la tuile du 2ᵉ bateau, puis débarque au nord (2,6) : terre ferme.
+    const onBoat = apply(sailing, { type: 'MoveHero', heroId: 'hero-p1', path: [{ x: 2, y: 7 }] }).state;
+    const ready = { ...onBoat, heroes: [{ ...onBoat.heroes[0]!, movementPoints: 2000 }] };
+    const after = apply(ready, { type: 'DisembarkBoat', heroId: 'hero-p1', target: { x: 2, y: 6 } }).state;
+    const boatsHere = after.map!.objects.filter((o) => o.type === 'boat' && o.pos.x === 2 && o.pos.y === 7);
+    expect(boatsHere).toHaveLength(1);
+    const ids = after.map!.objects.map((o) => o.id);
+    expect(new Set(ids).size).toBe(ids.length); // aucun id en double
+  });
+});

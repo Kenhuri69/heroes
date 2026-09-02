@@ -1,6 +1,7 @@
 import { useEffect } from 'preact/hooks';
 import { appStore, useApp } from '../app/store';
 import { t } from '../app/i18n';
+import { humanId } from '../app/game';
 import './Journal.css';
 
 /**
@@ -12,13 +13,15 @@ import './Journal.css';
 export function Journal({ onClose }: { onClose: () => void }) {
   useApp((s) => s.locale); // réactivité i18n
   const journal = useApp((s) => s.journal);
+  const viewer = useApp((s) => humanId(s.game));
 
   // Remise à 0 des non-lus dès l'ouverture (l'utilisateur consulte le journal).
   useEffect(() => {
     appStore.setState({ journalUnread: 0 });
   }, []);
 
-  const entries = [...journal].reverse();
+  // C6 : seules les entrées du joueur humain courant (ou sans destinataire).
+  const entries = journal.filter((e) => e.playerId === undefined || e.playerId === viewer).reverse();
 
   return (
     <div class="modal-backdrop" onClick={onClose}>

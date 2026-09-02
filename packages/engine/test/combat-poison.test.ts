@@ -106,3 +106,22 @@ describe('A2f — poisonSting', () => {
     expect(next.combat).toBeNull();
   });
 });
+
+describe('Revue 2026-09 (M8) — une mort par poison alimente le cimetière', () => {
+  it('la pile tuée au tick est relevable (entrée de graveyard), comme une mort par frappe', () => {
+    const attacker = stack({ id: 'attacker-0', side: 'attacker', slot: 0, unitId: 'manticore', count: 1, pos: { col: 2, row: 5 } });
+    const frail = stack({ id: 'defender-0', side: 'defender', slot: 0, unitId: 'foe', count: 1, pos: { col: 5, row: 5 }, firstHp: 4, retaliationsLeft: 0,
+      statuses: [{ spellId: 'poison:manticore', attackMod: 0, defenseMod: 0, speedMod: 0, damageDealtMod: 0, damagePerRound: 6, silenced: false, roundsLeft: 2 }] });
+    // Un 2ᵉ défenseur sain : le combat continue, le cimetière reste observable.
+    const healthy = stack({ id: 'defender-1', side: 'defender', slot: 1, unitId: 'foe', count: 1, pos: { col: 8, row: 8 }, firstHp: 1000, retaliationsLeft: 0 });
+    const events: GameEvent[] = [];
+    const next = produce(state(catalog, [attacker, frail, healthy]), (draft) => {
+      const combat = draft.combat as CombatState;
+      for (const s of combat.stacks) { s.acted = true; s.waited = false; }
+      advanceTurn(draft, events);
+    });
+    expect(events.some((e) => e.type === 'StackDied' && e.stackId === 'defender-0')).toBe(true);
+    expect(next.combat?.stacks.some((s) => s.id === 'defender-0')).toBe(false); // retirée du plateau
+    expect(next.combat?.graveyard).toContainEqual(expect.objectContaining({ id: 'defender-0', unitId: 'foe', side: 'defender', maxCount: 1 }));
+  });
+});

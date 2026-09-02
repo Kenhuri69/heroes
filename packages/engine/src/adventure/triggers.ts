@@ -91,7 +91,7 @@ export function applyTriggerEffect(
       case 'ambush':
         return { kind: 'ambush', army: effect.army.map((s) => ({ unitId: s.unitId, count: s.count })) };
       case 'teleport':
-        return { kind: 'teleport', to: { x: effect.to.x, y: effect.to.y } };
+        return { kind: 'teleport', to: { ...effect.to } };
       case 'choice':
         return {
           kind: 'choice',
@@ -142,7 +142,7 @@ export function fireVisitTrigger(
     trig.fired = true;
     applyTriggerEffect(trig.effect, player, hero, trig.id, events, draft.artifactCatalog);
     const from = { ...hero.pos };
-    hero.pos = { x: to.x, y: to.y };
+    hero.pos = { x: to.x, y: to.y, ...(to.level !== undefined ? { level: to.level } : {}) }; // D5 : couche d'arrivée
     const config = draft.config;
     if (config)
       revealAround(

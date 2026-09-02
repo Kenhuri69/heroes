@@ -1,6 +1,5 @@
 {
   "faction.dungeon.name": "Donjon",
-
   "unit.t1-eclaireur.name": "Éclaireur",
   "unit.t1-eclaireur-elite.name": "Assassin",
   "unit.t2-furie-sanglante.name": "Furie sanglante",
@@ -15,7 +14,6 @@
   "unit.t6-hydre-elite.name": "Hydre chthonienne",
   "unit.t7-dragon-ombre.name": "Dragon d'ombre",
   "unit.t7-dragon-ombre-elite.name": "Dragon noir",
-
   "building.dungeon-dwelling-t1": "Antre des éclaireurs",
   "building.dungeon-dwelling-t2": "Arène sanglante",
   "building.dungeon-dwelling-t3": "Labyrinthe",
@@ -26,7 +24,6 @@
   "building.dungeon-cursed-well": "Puits de Malédiction",
   "building.dungeon-grail": "Graal : Trésor des Abysses",
   "building.dungeon-grail.lore": "Le Graal du Donjon coule d'un or noir : les coffres de la cité ne désemplissent jamais.",
-
   "hero.raelag.name": "Raelag",
   "hero.raelag.bio": "Suzerain exilé de la surface, Raelag a forgé son pouvoir dans les profondeurs en unissant les clans d'elfes noirs par la crainte.",
   "hero.raelag.specialty": "Meneur d'Ombre — les Furies sanglantes sous son commandement gagnent en attaque et en défense.",
@@ -36,7 +33,6 @@
   "hero.olivier-dungeon.name": "Olivier",
   "hero.olivier-dungeon.bio": "Elfe noir surnommé la Coupe Silencieuse, Olivier enduit chaque lame et chaque trait d'un venin de sa composition. Là où d'autres tueurs s'en remettent au coup de chance, lui ne laisse rien au hasard : la cible est condamnée avant même d'entendre le sifflement.",
   "hero.olivier-dungeon.specialty": "Poison Certain — les Éclaireurs sous ses ordres gagnent en attaque et en célérité, un venin qui ne laisse aucune place à la chance et dont la morsure s'aggrave à mesure qu'il progresse.",
-
   "unit.t1-eclaireur.lore": "On ne nous voit jamais deux fois. La première suffit.",
   "unit.t1-eclaireur-elite.lore": "La lumière projette des ombres. Nous vivons dedans, et nous y tuons.",
   "unit.t2-furie-sanglante.lore": "La douleur est une prière. Nous la hurlons en frappant.",
@@ -51,6 +47,11 @@
   "unit.t6-hydre-elite.lore": "Ce qui rampe sous la pierre était là avant vos dieux.",
   "unit.t7-dragon-ombre.lore": "Je bois la lumière comme d'autres respirent. Bientôt, il n'en restera plus.",
   "unit.t7-dragon-ombre-elite.lore": "Aucun sort ne me touche, aucun mur ne me retient, aucun matin ne me suit.",
-
-  "building.dungeon-cursed-well.lore": "L'eau des profondeurs ne reflète pas le ciel — elle le nie."
+  "building.dungeon-cursed-well.lore": "L'eau des profondeurs ne reflète pas le ciel — elle le nie.",
+  "hero.specialty.poison-certain.name": "Poison certain",
+  "hero.specialty.poison-certain.desc": "+1 Attaque et +1 Vitesse aux Éclaireurs tous les 4 niveaux.",
+  "hero.specialty.meneur-ombre.name": "Meneur de l'ombre",
+  "hero.specialty.meneur-ombre.desc": "+1 Attaque et +1 Défense aux Furies sanglantes.",
+  "hero.specialty.voile-irresistible.name": "Voile irrésistible",
+  "hero.specialty.voile-irresistible.desc": "-10 % du coût en mana des sorts."
 }

@@ -32,7 +32,7 @@ export function currentTurnPlayerId(state: GameState): string | null {
 
 /** Résultat de `appendTurn` : le journal augmenté, ou un motif de rejet. */
 export type AppendResult =
-  | { ok: true; commands: Command[] }
+  | { ok: true; commands: Command[]; state: GameState }
   | { ok: false; reason: string };
 
 /**
@@ -55,10 +55,22 @@ export function appendTurn(
   if (currentTurnPlayerId(state) !== playerId) {
     return { ok: false, reason: `pas le tour de '${playerId}'` };
   }
+  // Revue 2026-09 (S1) : la garde « c'est son tour » est ré-évaluée AVANT
+  // CHAQUE commande, pas seulement en tête de lot — sinon un lot pouvait
+  // franchir son propre `EndTurn` et continuer à jouer… le tour de l'adversaire
+  // (déplacer ses héros, dépenser son or), le tout accepté par le serveur.
+  // Un lot s'arrête donc au plus tard au changement de main.
   try {
-    for (const cmd of batch) state = apply(state, cmd).state;
+    for (const cmd of batch) {
+      if (currentTurnPlayerId(state) !== playerId) {
+        return { ok: false, reason: `le lot déborde sur le tour suivant (plus le tour de '${playerId}')` };
+      }
+      state = apply(state, cmd).state;
+    }
   } catch (e) {
     return { ok: false, reason: `commande illégale : ${(e as Error).message}` };
   }
-  return { ok: true, commands: [...base, ...batch] };
+  // Revue 2026-09 (S4) : l'état final est rendu — le serveur en lisait l'issue
+  // par un SECOND rejeu complet du journal (O(n) doublé à chaque coup posté).
+  return { ok: true, commands: [...base, ...batch], state };
 }

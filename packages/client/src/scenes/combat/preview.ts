@@ -13,6 +13,8 @@ export interface DamagePreview {
   killsMax: number;
   /** Riposte estimée après la frappe — null si la cible ne ripostera pas. */
   retaliation: { damageMin: number; damageMax: number } | null;
+  /** Frappes cumulées dans l'estimation (2 pour `doubleAttack`), absent/1 sinon. */
+  strikes?: number;
 }
 
 /**

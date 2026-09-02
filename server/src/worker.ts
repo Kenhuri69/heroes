@@ -12,6 +12,8 @@ import { appendTurn, replayCommands, computeEloUpdate, DEFAULT_ELO, type Command
 interface D1Result<T = unknown> {
   results: T[];
   success: boolean;
+  /** Métadonnées d'écriture D1 — `changes` = lignes affectées par le dernier statement. */
+  meta?: { changes?: number };
 }
 interface D1PreparedStatement {
   bind(...values: unknown[]): D1PreparedStatement;
@@ -21,14 +23,20 @@ interface D1PreparedStatement {
 }
 interface D1Database {
   prepare(query: string): D1PreparedStatement;
+  /** Lot de statements exécuté en UNE transaction (tout ou rien) — revue 2026-09 S8. */
+  batch(statements: D1PreparedStatement[]): Promise<D1Result[]>;
 }
 interface Env {
   DB: D1Database;
   APP_ORIGIN?: string;
-  // E-mail magic-link réel (doc 15 §10 pt 6) : opt-in par secret. Absent ⇒ le
-  // worker renvoie le lien dans la réponse (dev/beta), aucun envoi.
+  // E-mail magic-link réel (doc 15 §10 pt 6) : opt-in par secret.
   RESEND_API_KEY?: string;
   AUTH_EMAIL_FROM?: string;
+  // Revue 2026-09 (S2) : SANS provider e-mail, le lien n'est renvoyé dans la
+  // réponse QUE si cette variable vaut '1' (dev local, jamais en `[vars]` de
+  // prod). Auparavant le repli était automatique ⇒ n'importe qui obtenait une
+  // session pour n'importe quelle adresse tant que le secret manquait (fail-open).
+  DEV_RETURN_VERIFY_LINK?: string;
 }
 
 const HOUR = 3_600_000;
@@ -36,7 +44,10 @@ const now = (): number => Date.now();
 const token = (): string => crypto.randomUUID().replace(/-/g, '') + crypto.randomUUID().replace(/-/g, '');
 
 // NET-SEC.2 (doc 15 §2/§8) — durcissement : bornage de body, quota de slots.
-const MAX_BODY_BYTES = 256 * 1024; // petits corps (auth, matches, moves)
+const MAX_BODY_BYTES = 256 * 1024; // petits corps (auth, moves)
+// Revue 2026-09 : un `StartGame` 64² pèse déjà ~150-180 Ko (carte + catalogues) —
+// borne dédiée à la création de partie pour ne pas tomber en 413 au preset moyen.
+const MAX_MATCH_SETUP_BYTES = 2 * 1024 * 1024;
 const MAX_SAVE_BYTES = 4 * 1024 * 1024; // état de jeu sérialisé (grandes cartes 256²)
 const MAX_SAVE_SLOTS = 20; // slots de sauvegarde cloud par profil
 
@@ -58,15 +69,31 @@ class HttpError extends Error {
   }
 }
 
-/** Lit et parse un corps JSON borné en taille (413 si trop gros, 400 si invalide). */
+/**
+ * Lit et parse un corps JSON borné en taille (413 si trop gros, 400 si invalide).
+ * Revue 2026-09 (S7) : la borne est vérifiée sur `Content-Length` AVANT lecture
+ * (un corps de 100 Mo n'est plus alloué avant d'être refusé), puis sur les OCTETS
+ * réels (`.length` comptait des unités UTF-16 : « 4 Mo » laissait passer ~8-12 Mo).
+ */
 async function body<T>(request: Request, max = MAX_BODY_BYTES): Promise<T> {
-  const text = await request.text();
-  if (text.length > max) throw new HttpError(413, 'corps de requête trop volumineux');
+  const declared = Number(request.headers.get('Content-Length') ?? '0');
+  if (declared > max) throw new HttpError(413, 'corps de requête trop volumineux');
+  const bytes = await request.arrayBuffer();
+  if (bytes.byteLength > max) throw new HttpError(413, 'corps de requête trop volumineux');
   try {
-    return JSON.parse(text) as T;
+    return JSON.parse(new TextDecoder().decode(bytes)) as T;
   } catch {
     throw new HttpError(400, 'JSON invalide');
   }
+}
+
+/** E-mail normalisé (S11) : `A@x.com`/`a@x.com` = un seul profil ; forme minimale exigée. */
+function normalizeEmail(raw: unknown): string | null {
+  if (typeof raw !== 'string') return null;
+  const email = raw.trim().toLowerCase();
+  if (email.length === 0 || email.length > 254) return null;
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return null;
+  return email;
 }
 
 function cors(origin: string | undefined): Record<string, string> {
@@ -79,7 +106,15 @@ function cors(origin: string | undefined): Record<string, string> {
 function json(body: unknown, status = 200, env?: Env): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { 'Content-Type': 'application/json', ...cors(env?.APP_ORIGIN) },
+    headers: {
+      'Content-Type': 'application/json',
+      // Revue 2026-09 : réponses porteuses de jeton/état jamais mises en cache ;
+      // pas de sniffing ; la variation CORS est déclarée aux caches intermédiaires.
+      'Cache-Control': 'no-store',
+      'X-Content-Type-Options': 'nosniff',
+      Vary: 'Origin',
+      ...cors(env?.APP_ORIGIN),
+    },
   });
 }
 const fail = (status: number, reason: string, env?: Env): Response => json({ error: reason }, status, env);
@@ -105,6 +140,21 @@ async function sendMagicLinkEmail(env: Env, to: string, link: string): Promise<v
     }),
   });
   if (!res.ok) throw new HttpError(502, "échec de l'envoi de l'e-mail");
+}
+
+/**
+ * Prend un siège libre de façon ATOMIQUE (revue 2026-09, S5) : l'`UPDATE` est
+ * conditionné à `profile_id IS NULL` et on exige exactement une ligne affectée —
+ * un `SELECT` puis `UPDATE` séparés laissaient deux joueurs simultanés « gagner »
+ * le même siège (le second écrasait le premier, tous deux recevaient 200).
+ */
+async function claimSeat(env: Env, matchId: string, seat: number, profileId: string): Promise<boolean> {
+  const res = await env.DB.prepare(
+    'UPDATE match_players SET profile_id = ? WHERE match_id = ? AND seat = ? AND profile_id IS NULL',
+  )
+    .bind(profileId, matchId, seat)
+    .run();
+  return (res.meta?.changes ?? 0) === 1;
 }
 
 /** Profil authentifié depuis le bearer de session (ou null). */
@@ -211,7 +261,9 @@ const TURN_TIMEOUT_MS = 14 * 24 * HOUR;
  * dernier coup posté, sinon la création de la partie. Idempotent.
  */
 async function effectiveStatus(env: Env, matchId: string, status: string, createdAt: number): Promise<string> {
-  if (status !== 'active') return status;
+  // S9 (revue 2026-09) : un lobby `open` jamais rejoint expire au même délai —
+  // sans cela il restait appariable des mois après le départ de son créateur.
+  if (status !== 'active' && status !== 'open') return status;
   const last = await env.DB.prepare('SELECT MAX(created_at) AS t FROM moves WHERE match_id = ?')
     .bind(matchId)
     .first<{ t: number | null }>();
@@ -245,24 +297,35 @@ export default {
     try {
       // — Auth magic-link —
       if (path === '/auth/request' && request.method === 'POST') {
-        const { email } = await body<{ email?: string }>(request);
-        if (!email) return fail(400, 'email requis', env);
+        const email = normalizeEmail((await body<{ email?: unknown }>(request)).email);
+        if (!email) return fail(400, 'email requis (adresse valide, ≤ 254 caractères)', env);
         // NET-SEC.3 : quota par adresse ET par IP appelante. Réponse 429
         // volontairement identique dans les deux cas (aucune information sur
         // l'existence d'un compte).
         const ip = request.headers.get('CF-Connecting-IP') ?? 'unknown';
         const overQuota =
-          (await overRateLimit(env, `auth:email:${email.trim().toLowerCase()}`, AUTH_MAX_PER_EMAIL, AUTH_RATE_WINDOW_MS)) ||
+          (await overRateLimit(env, `auth:email:${email}`, AUTH_MAX_PER_EMAIL, AUTH_RATE_WINDOW_MS)) ||
           (await overRateLimit(env, `auth:ip:${ip}`, AUTH_MAX_PER_IP, AUTH_RATE_WINDOW_MS));
         if (overQuota) return fail(429, 'trop de demandes de connexion, réessayez plus tard', env);
+        // Fail-CLOSED (S2) : ni provider e-mail, ni opt-in dev explicite ⇒ 503,
+        // AVANT d'insérer un jeton qui ne serait jamais délivré.
+        const devReturn = env.DEV_RETURN_VERIFY_LINK === '1';
+        if (!env.RESEND_API_KEY && !devReturn) return fail(503, 'e-mail de connexion non configuré', env);
         const t = token();
         await env.DB.prepare('INSERT INTO auth_tokens (token, email, expires_at, used) VALUES (?, ?, ?, 0)')
           .bind(t, email, now() + HOUR)
           .run();
         // E-mail PLUGGABLE (doc 15 §5.1/§10 pt 6) : si `RESEND_API_KEY` est
         // branché, on envoie réellement le lien et on ne le renvoie PAS (sinon
-        // fuite) ; sinon on le renvoie pour dev/beta.
-        const link = `${url.origin}/auth/verify?token=${t}`;
+        // fuite) ; sinon (dev explicite seulement, cf. garde ci-dessus) on le renvoie.
+        // Revue 2026-09 (S3) : le lien pointe vers l'APP (`?auth=<jeton>`), qui
+        // appelle `verify` au démarrage — l'ancien lien `GET /auth/verify` du
+        // Worker CONSOMMAIT le jeton en affichant du JSON brut, et le jeton collé
+        // ensuite dans l'app répondait « invalide ». Sans `APP_ORIGIN` (dev), repli
+        // sur l'endpoint brut.
+        const link = env.APP_ORIGIN
+          ? `${env.APP_ORIGIN}/heroes/?auth=${encodeURIComponent(t)}`
+          : `${url.origin}/auth/verify?token=${t}`;
         if (env.RESEND_API_KEY) {
           await sendMagicLinkEmail(env, email, link);
           return json({ ok: true, emailed: true }, 200, env);
@@ -276,7 +339,13 @@ export default {
           .bind(t)
           .first<{ email: string; expires_at: number; used: number }>();
         if (!row || row.used || row.expires_at < now()) return fail(401, 'jeton invalide ou expiré', env);
-        await env.DB.prepare('UPDATE auth_tokens SET used = 1 WHERE token = ?').bind(t).run();
+        // Revue 2026-09 (S10) : usage unique ATOMIQUE — le SELECT ci-dessus ne
+        // suffit pas (deux `verify` simultanés le passaient tous deux ⇒ deux
+        // sessions pour un jeton). Seule la requête qui bascule `used` 0→1 gagne.
+        const burn = await env.DB.prepare('UPDATE auth_tokens SET used = 1 WHERE token = ? AND used = 0 AND expires_at >= ?')
+          .bind(t, now())
+          .run();
+        if ((burn.meta?.changes ?? 0) !== 1) return fail(401, 'jeton invalide ou expiré', env);
         // NET-SEC.2 : purge opportuniste des sessions/jetons expirés (au login,
         // faible fréquence — empêche la croissance sans fin des tables).
         await env.DB.prepare('DELETE FROM sessions WHERE expires_at < ?').bind(now()).run();
@@ -360,21 +429,24 @@ export default {
           // version en place est recopiée dans `save_backups` (une par slot) —
           // un autosave malheureux (partie perdue, état corrompu côté client)
           // reste rattrapable par `POST /saves/:slot/restore`.
-          if (existing) {
-            await env.DB.prepare(
-              'INSERT INTO save_backups (profile_id, slot, save_version, state, updated_at) ' +
-                'SELECT profile_id, slot, save_version, state, updated_at FROM saves WHERE profile_id = ? AND slot = ? ' +
-                'ON CONFLICT(profile_id, slot) DO UPDATE SET save_version=excluded.save_version, state=excluded.state, updated_at=excluded.updated_at',
-            )
-              .bind(profileId, slot)
-              .run();
-          }
-          await env.DB.prepare(
+          // S8 : copie N-1 et écrasement en UNE transaction — si l'upsert échouait,
+          // la copie N-1 (déjà remplacée par l'état courant) était perdue.
+          const upsert = env.DB.prepare(
             'INSERT INTO saves (profile_id, slot, save_version, state, updated_at) VALUES (?, ?, ?, ?, ?) ' +
               'ON CONFLICT(profile_id, slot) DO UPDATE SET save_version=excluded.save_version, state=excluded.state, updated_at=excluded.updated_at',
-          )
-            .bind(profileId, slot, save_version, state, now())
-            .run();
+          ).bind(profileId, slot, save_version, state, now());
+          if (existing) {
+            await env.DB.batch([
+              env.DB.prepare(
+                'INSERT INTO save_backups (profile_id, slot, save_version, state, updated_at) ' +
+                  'SELECT profile_id, slot, save_version, state, updated_at FROM saves WHERE profile_id = ? AND slot = ? ' +
+                  'ON CONFLICT(profile_id, slot) DO UPDATE SET save_version=excluded.save_version, state=excluded.state, updated_at=excluded.updated_at',
+              ).bind(profileId, slot),
+              upsert,
+            ]);
+          } else {
+            await upsert.run();
+          }
           return json({ ok: true }, 200, env);
         }
         if (request.method === 'GET') {
@@ -416,11 +488,13 @@ export default {
         const candidate = await env.DB.prepare(
           'SELECT m.id AS id FROM matches m ' +
             'JOIN match_players p ON p.match_id = m.id AND p.profile_id IS NULL ' +
-            "WHERE m.status = 'open' AND m.created_by != ? " +
+            "WHERE m.status = 'open' AND m.created_by != ? AND m.created_at > ? " +
             'AND NOT EXISTS (SELECT 1 FROM match_players q WHERE q.match_id = m.id AND q.profile_id = ?) ' +
             'ORDER BY m.created_at LIMIT 1',
         )
-          .bind(profileId, profileId)
+          // S9 : un lobby `open` plus vieux que le délai d'inactivité n'est plus
+          // proposé (son créateur ne sonde plus) — il expire paresseusement.
+          .bind(profileId, now() - TURN_TIMEOUT_MS, profileId)
           .first<{ id: string }>();
         if (!candidate) return json({ matched: false }, 200, env);
         const free = await env.DB.prepare(
@@ -429,9 +503,10 @@ export default {
           .bind(candidate.id)
           .first<{ seat: number }>();
         if (!free) return json({ matched: false }, 200, env);
-        await env.DB.prepare('UPDATE match_players SET profile_id = ? WHERE match_id = ? AND seat = ?')
-          .bind(profileId, candidate.id, free.seat)
-          .run();
+        // Revue 2026-09 (S5) : prise de siège ATOMIQUE (`AND profile_id IS NULL`
+        // + contrôle des lignes affectées) — deux appariements simultanés sur le
+        // même siège ne peuvent plus se l'attribuer tous les deux.
+        if (!(await claimSeat(env, candidate.id, free.seat, profileId))) return json({ matched: false }, 200, env);
         await env.DB.prepare("UPDATE matches SET status = 'active' WHERE id = ? AND status = 'open'")
           .bind(candidate.id)
           .run();
@@ -443,25 +518,51 @@ export default {
         const rows = await env.DB.prepare(
           'SELECT DISTINCT m.id, m.status, m.created_at FROM matches m ' +
             'LEFT JOIN match_players p ON p.match_id = m.id ' +
-            "WHERE m.status = 'open' OR p.profile_id = ? ORDER BY m.created_at DESC LIMIT 50",
+            "WHERE (m.status = 'open' AND m.created_at > ?) OR p.profile_id = ? ORDER BY m.created_at DESC LIMIT 50",
         )
-          .bind(profileId)
+          .bind(now() - TURN_TIMEOUT_MS, profileId)
           .all<{ id: string; status: string; created_at: number }>();
         return json({ matches: rows.results }, 200, env);
       }
       if (path === '/matches' && request.method === 'POST') {
-        const { seed, setup } = await body<{ seed?: number; setup?: { players?: { id: string }[] } }>(request);
+        const { seed, setup } = await body<{
+          seed?: number;
+          setup?: { type?: string; seed?: number; players?: { id: string; controller?: string }[] };
+        }>(request, MAX_MATCH_SETUP_BYTES);
         if (typeof seed !== 'number' || !setup?.players?.length) return fail(400, 'seed/setup requis', env);
-        const id = crypto.randomUUID();
-        await env.DB.prepare('INSERT INTO matches (id, seed, setup, status, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?)')
-          .bind(id, seed, JSON.stringify(setup), 'open', profileId, now())
-          .run();
-        // Sièges = joueurs du setup (ordre de tour). Le créateur prend le siège 0.
-        for (const [seat, player] of setup.players.entries()) {
-          await env.DB.prepare('INSERT INTO match_players (match_id, seat, profile_id, player_id) VALUES (?, ?, ?, ?)')
-            .bind(id, seat, seat === 0 ? profileId : null, player.id)
-            .run();
+        // Revue 2026-09 (S13) : le `StartGame` posté est VALIDÉ ici — un setup
+        // invalide était stocké, listé `open`, appariable, puis chaque coup échouait
+        // 422 « journal de base invalide » pour les deux joueurs ; un siège `ai`
+        // n'est jamais joué en ligne (partie bloquée).
+        if (setup.type !== 'StartGame' || setup.seed !== seed) return fail(400, 'setup : StartGame attendu, seed cohérente', env);
+        if (setup.players.length < 2 || setup.players.length > 4) return fail(400, 'setup : 2 à 4 joueurs', env);
+        if (setup.players.some((p) => p.controller === 'ai')) return fail(400, 'setup : tous les sièges doivent être humains', env);
+        try {
+          replayCommands([setup as unknown as Command]);
+        } catch (e) {
+          return fail(400, `setup invalide : ${(e as Error).message}`, env);
         }
+        const id = crypto.randomUUID();
+        // S8 : partie + sièges en UNE transaction — plus de partie `open` sans siège
+        // si une insertion échoue à mi-chemin. Le créateur prend le siège 0.
+        await env.DB.batch([
+          env.DB.prepare('INSERT INTO matches (id, seed, setup, status, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?)').bind(
+            id,
+            seed,
+            JSON.stringify(setup),
+            'open',
+            profileId,
+            now(),
+          ),
+          ...setup.players.map((player, seat) =>
+            env.DB.prepare('INSERT INTO match_players (match_id, seat, profile_id, player_id) VALUES (?, ?, ?, ?)').bind(
+              id,
+              seat,
+              seat === 0 ? profileId : null,
+              player.id,
+            ),
+          ),
+        ]);
         return json({ id }, 200, env);
       }
 
@@ -516,9 +617,9 @@ export default {
           .bind(matchId)
           .first<{ seat: number }>();
         if (!free) return fail(409, 'aucun siège libre', env);
-        await env.DB.prepare('UPDATE match_players SET profile_id = ? WHERE match_id = ? AND seat = ?')
-          .bind(profileId, matchId, free.seat)
-          .run();
+        // Revue 2026-09 (S5) : idem `/matchmaking` — le perdant de la course
+        // reçoit 409 au lieu d'écraser silencieusement le siège du gagnant.
+        if (!(await claimSeat(env, matchId, free.seat, profileId))) return fail(409, 'siège déjà pris, réessayez', env);
         // Revue 2026-08 : borné à `open` — sans filtre de statut, rejoindre un
         // siège libéré RESSUSCITAIT une partie `abandoned`/`finished` en `active`
         // (le `/forfeit` juste en dessous, lui, était correctement borné).
@@ -588,14 +689,22 @@ export default {
           // VALIDATION par re-simulation : bon joueur + commandes légales.
           const result = appendTurn([base.setup, ...base.commands], seat.player_id, commands);
           if (!result.ok) return fail(422, result.reason, env);
-          await env.DB.prepare('INSERT INTO moves (match_id, seq, profile_id, commands, created_at) VALUES (?, ?, ?, ?, ?)')
-            .bind(matchId, seq, profileId, JSON.stringify(commands), now())
-            .run();
-          // Fin de partie détectée au rejeu → statut + classement Elo (lot 4.2).
-          const outcome = replayCommands(result.commands).outcome;
+          // S4 : l'issue est lue sur l'état rendu par `appendTurn` — plus de second
+          // rejeu intégral du journal à chaque coup (coût CPU divisé par deux).
+          const outcome = result.state.outcome;
+          const insert = env.DB.prepare('INSERT INTO moves (match_id, seq, profile_id, commands, created_at) VALUES (?, ?, ?, ?, ?)').bind(
+            matchId,
+            seq,
+            profileId,
+            JSON.stringify(commands),
+            now(),
+          );
+          // S8 : coup + fin de partie en UNE transaction (le classement Elo suit).
           if (outcome) {
-            await env.DB.prepare("UPDATE matches SET status = 'finished' WHERE id = ?").bind(matchId).run();
+            await env.DB.batch([insert, env.DB.prepare("UPDATE matches SET status = 'finished' WHERE id = ?").bind(matchId)]);
             await applyMatchElo(env, matchId, outcome.winnerPlayerId, now());
+          } else {
+            await insert.run();
           }
           return json({ ok: true, seq }, 200, env);
         }
@@ -617,7 +726,13 @@ export default {
       return fail(404, 'route inconnue', env);
     } catch (e) {
       if (e instanceof HttpError) return fail(e.status, e.message, env);
-      return fail(500, (e as Error).message, env);
+      // Revue 2026-09 (S12) : un double POST du même coup violait la PK `moves`
+      // et renvoyait un 500 avec le SQL ; les internes (D1, moteur, JSON.parse)
+      // restent dans les logs, jamais dans la réponse.
+      const message = (e as Error).message ?? String(e);
+      if (/UNIQUE constraint failed/.test(message)) return fail(409, 'conflit : requête déjà appliquée', env);
+      console.error('worker: erreur interne', e);
+      return fail(500, 'erreur interne', env);
     }
   },
 };

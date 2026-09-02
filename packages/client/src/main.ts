@@ -26,7 +26,7 @@ import {
 } from './app/game';
 import { dispatch, installAiResume } from './app/dispatch';
 import { appStore } from './app/store';
-import { createMatch } from './app/net';
+import { createMatch, verifyMagicLink } from './app/net';
 import { navigate } from './app/router';
 import { exportSave, importSave, saveGame, restoreSavedGame, encodeHeroesFile } from './app/save';
 import { installAutosave } from './app/autosave';
@@ -44,7 +44,7 @@ import {
 } from './app/narrative';
 import { initSettings } from './app/settings';
 import { buildDailyQuests } from './app/daily';
-import { armDailyRefresh, disarmDailyRefresh } from './app/daily-refresh';
+import { armDailyRefresh, disarmDailyRefresh, initDailyRefresh } from './app/daily-refresh';
 import { registerCamera, unregisterCamera } from './app/camera-control';
 import { playOpeningCutscene } from './app/cutscene';
 import { initCampaign, startCampaignChapter, campaignFlags } from './app/campaign';
@@ -88,6 +88,8 @@ declare global {
        *  `{ catapult: false }` : héros SANS catapulte ⇒ muraille complète et
        *  indestructible (capture « mur sain » / C-SIEGE2.2 non déclenché). */
       startSiege: (opts?: { catapult?: boolean; factionId?: string }) => Promise<void>;
+      /** Test : marque tous les obélisques visités par l'humain (le Graal devient fouillable, M11). */
+      revealGrail: () => void;
       /** Drapeaux de campagne posés par les choix de dialogue (couverture smoke N3c.2). */
       campaignFlags: () => Record<string, boolean>;
       /** Progression des tours IA (UX multi-joueurs) — non-null pendant qu'une IA joue. */
@@ -207,10 +209,35 @@ async function bootstrap(): Promise<void> {
   let camera: Camera | null = null;
   let scene: AdventureScene | null = null;
   let combatScene: CombatScene | null = null;
+  // Scène de combat en PARTANCE (revue 2026-09, R3) : à la fin d'un combat, le
+  // `setState` du dispatch précède l'émission des événements — la détruire ici
+  // même privait le joueur du coup fatal (projectile, fondu de mort, secousse).
+  // Elle survit jusqu'à vidage de sa file d'animations, puis est détruite.
+  let leavingCombat: CombatScene | null = null;
+  const restoreAdventureView = (): void => {
+    if (camera) {
+      camera.world.visible = true;
+      camera.setEnabled(true);
+    }
+    root.style.backgroundImage = ''; // retour carte : retire la toile (U5-E)
+    root.style.backgroundColor = ''; // retire l'aplat de scène de siège
+  };
+  const finishLeavingCombat = (): void => {
+    if (!leavingCombat) return;
+    leavingCombat.destroy();
+    leavingCombat = null;
+    restoreAdventureView();
+  };
+  // Carte que la scène d'aventure a construite (revue 2026-09, C2) : identifiée
+  // par la référence de son tableau de terrain — stable sous Immer tant que la
+  // partie ne change pas (le terrain n'est jamais muté en jeu), différente dès
+  // qu'une AUTRE partie est chargée (Continuer/Charger/import/cloud/en ligne).
+  let sceneTerrain: readonly string[] | null = null;
   // Détruit toutes les scènes (retour menu / changement de carte) — remédiation
   // CL1 : sans ça, la scène capturait la carte du premier lancement et rejouait
   // la partie suivante sur l'ancien terrain, en fuyant textures et listeners.
   const teardownScenes = (): void => {
+    finishLeavingCombat();
     if (combatScene) {
       combatScene.destroy();
       combatScene = null;
@@ -233,7 +260,11 @@ async function bootstrap(): Promise<void> {
       teardownScenes();
       return;
     }
+    // Une autre carte a été chargée en cours de partie : la scène (tilemap,
+    // brouillard, props, bordure) a été bâtie sur l'ancienne — on la reconstruit.
+    if (camera && game.map && game.map.terrain !== sceneTerrain) teardownScenes();
     if (!camera) {
+      sceneTerrain = game.map?.terrain ?? null;
       camera = new Camera(app);
       scene = new AdventureScene(app, camera);
       camera.world.addChild(scene.container);
@@ -248,6 +279,7 @@ async function bootstrap(): Promise<void> {
     // Bascule aventure ↔ combat sur l'état moteur (doc 07 §3).
     const inCombat = game.combat !== null;
     if (inCombat && !combatScene) {
+      finishLeavingCombat(); // un nouveau combat s'ouvre : l'ancienne scène cède la place sans attendre
       combatScene = new CombatScene(app);
       app.stage.addChild(combatScene.container);
       camera.world.visible = false;
@@ -273,12 +305,17 @@ async function bootstrap(): Promise<void> {
       root.style.backgroundSize = 'cover';
       root.style.backgroundPosition = 'center';
     } else if (!inCombat && combatScene) {
-      combatScene.destroy();
+      // R3 : laisser la file d'animations se jouer — les événements de ce
+      // dispatch sont émis juste APRÈS ce setState, d'où le tick d'attente.
+      finishLeavingCombat();
+      leavingCombat = combatScene;
       combatScene = null;
-      camera.world.visible = true;
-      camera.setEnabled(true);
-      root.style.backgroundImage = ''; // retour carte : retire la toile (U5-E)
-      root.style.backgroundColor = ''; // retire l'aplat de scène de siège
+      const leaving = leavingCombat;
+      setTimeout(() => {
+        void leaving.whenIdle().then(() => {
+          if (leavingCombat === leaving) finishLeavingCombat();
+        });
+      }, 0);
     }
   };
   appStore.subscribe(ensureScenes);
@@ -341,7 +378,7 @@ async function bootstrap(): Promise<void> {
     await dispatch(skirmishStartCommand(report, config, seed, skirmishMap, daily.questState));
     // Rafraîchissement quotidien (N-DAILYREFRESH) : armé avec le contexte de mode
     // libre ; les jours suivants génèrent de nouveaux contrats via `AddQuests`.
-    armDailyRefresh(report, config.humanFactionId, seed);
+    armDailyRefresh(config.humanFactionId, seed);
     navigate('adventure');
   };
 
@@ -354,6 +391,7 @@ async function bootstrap(): Promise<void> {
    * barre se peindre. Toujours nettoyé (succès comme échec) via `finally`.
    */
   const startNewGameSetup = async (raw: NewGameRawConfig): Promise<void> => {
+    if (appStore.getState().loading) return; // revue 2026-09 : génération déjà en cours
     const raf = (): Promise<void> => new Promise((r) => requestAnimationFrame(() => r()));
     const setLoading = (label: string, progress: number): void =>
       appStore.setState({ loading: { label, progress } });
@@ -423,6 +461,8 @@ async function bootstrap(): Promise<void> {
     disarmDailyRefresh(); // campagne = quêtes de scénario, pas de contrats journaliers
     await startCampaignChapter(report, campaign, chapterIndex, seed);
   };
+
+  initDailyRefresh(report); // contrats journaliers : contenu commun à la session (revue 2026-09 C3)
 
   installAutosave(); // autosave au retour de la main à un humain (doc 07 §4, revue 2026-07 B3/F4)
   installAiResume(); // un chargement dont la main est à une IA relance la boucle (revue 2026-07 B3)
@@ -497,6 +537,21 @@ async function bootstrap(): Promise<void> {
   if (!uiRoot) throw new Error('missing #ui-root');
   mountUi(uiRoot);
 
+  // Revue 2026-09 (S3) : le lien du magic-link ramène à l'app avec `?auth=<jeton>`
+  // — vérifié ici (session ouverte), puis retiré de l'URL (un rechargement ne
+  // rejoue pas un jeton déjà consommé).
+  const authToken = new URLSearchParams(location.search).get('auth');
+  if (authToken) {
+    try {
+      await verifyMagicLink(authToken);
+      pushToast(t('toast.loginOk'), 'success');
+    } catch {
+      pushToast(t('toast.loginError'), 'error');
+    }
+    const clean = new URL(location.href);
+    clean.searchParams.delete('auth');
+    history.replaceState(null, '', clean.toString());
+  }
   // `?seed=N` : partie directe reproductible (smoke) ; `#arena` : + combat.
   const seedParam = Number(new URLSearchParams(location.search).get('seed'));
   if (Number.isInteger(seedParam) && seedParam > 0) {
@@ -545,6 +600,7 @@ async function bootstrap(): Promise<void> {
     startScenario: (scenarioId) => startScenario(scenarioId, TEST_SCENARIO_SEED),
     startSkirmish: (config) => startSkirmish(config, TEST_SCENARIO_SEED),
     startSiege: (opts) => forgeSiege(opts),
+    revealGrail: () => forgeGrailRevealed(),
     startCampaignChapter: (campaignId, chapterIndex) =>
       startChapter(campaignId, chapterIndex, TEST_SCENARIO_SEED),
     campaignFlags,
@@ -580,6 +636,24 @@ async function bootstrap(): Promise<void> {
   };
   window.__HEROES_READY__ = true; // signal pour le smoke test headless
   hideBootLoader(); // jeu prêt (menu/partie affichés) : retire l'écran de chargement
+}
+
+/**
+ * Test (revue 2026-09, M11) : `Dig` exige désormais la révélation du Graal (tous
+ * les obélisques visités, doc 02 §2.2) — même règle que l'IA. Les smokes de
+ * fouille forgeaient un héros sur la tuile sans visiter les 3 obélisques de
+ * proto-01 (dispersés sur la carte) ; on marque la visite DANS l'état, comme
+ * `forgeSiege` forge le sien — hors moteur, test uniquement.
+ */
+function forgeGrailRevealed(): void {
+  const base = appStore.getState().game;
+  const humanId = humanPlayerId(base);
+  if (!humanId || !base.map) throw new Error('revealGrail : partie sans humain ou sans carte');
+  const g = structuredClone(base) as GameState;
+  const player = g.players.find((p) => p.id === humanId);
+  if (!player) throw new Error('revealGrail : joueur humain introuvable');
+  player.obelisksVisited = g.map!.objects.filter((o) => o.type === 'obelisk').map((o) => o.id);
+  appStore.setState({ game: g });
 }
 
 /**

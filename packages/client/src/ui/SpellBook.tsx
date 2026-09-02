@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'preact/hooks';
+import { useEscape } from './useEscape';
 import {
   effectiveManaCost,
   estimateSpell,
@@ -46,6 +47,7 @@ function orderedSchools(schools: SpellSchool[]): SpellSchool[] {
  * en try/catch, jamais de crash côté UI.
  */
 export function SpellBook({ hero, onClose }: { hero: HeroState; onClose: () => void }) {
+  useEscape(onClose);
   useApp((s) => s.locale); // réactivité i18n
   const combat = useApp((s) => s.game.combat);
   const spellCatalog = useApp((s) => s.game.spellCatalog);

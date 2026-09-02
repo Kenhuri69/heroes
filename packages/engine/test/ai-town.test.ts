@@ -289,3 +289,41 @@ describe('IA d’aventure — les artefacts sortent du sac', () => {
     expect(next.heroes[0]?.backpack).toEqual([]);
   });
 });
+
+describe('Revue 2026-09 — recrutement IA et ressource de FACTION (générique)', () => {
+  /** Unité dont le coût mêle or et une ressource de faction opaque (`essence`). */
+  function factionCostState(essence: number): GameState {
+    const town = testTown({ buildings: { caserne: 1 }, builtToday: true, stock: { 'red-grunt': 10 } });
+    const catalog = {
+      caserne: {
+        id: 'caserne',
+        maxLevel: 1,
+        levels: [{ cost: { gold: 500 }, requires: [], effect: { type: 'dwelling' as const, tier: 1, unitId: 'red-grunt' } }],
+      },
+    };
+    let state = aiState(10_000, catalog, town);
+    state = produce(state, (draft) => {
+      const unit = draft.unitCatalog['red-grunt'];
+      if (!unit) throw new Error('fixture red-grunt absente');
+      // Coût de faction opaque : le type large est celui de `unitWithEconomy` (Record<string, number>).
+      (unit as { recruitCost?: Record<string, number> }).recruitCost = { gold: 100, essence: 2 };
+      const p = draft.players[0];
+      if (p) p.factionResources = { essence };
+      // Isole le recrutement : le héros n'est pas sur la ville (pas d'embarquement de garnison).
+      const hero = draft.heroes[0];
+      if (hero) hero.pos = { x: 0, y: 0 };
+    });
+    return state;
+  }
+
+  it('recrute exactement ce que la ressource de faction permet (5 pour 10 essence à 2/unité)', () => {
+    const { next } = playAi(factionCostState(10));
+    expect(next.towns[0]?.garrison).toContainEqual({ unitId: 'red-grunt', count: 5 });
+    expect(next.players[0]?.factionResources['essence']).toBe(0);
+  });
+
+  it('sans la ressource de faction : ne recrute rien (et ne saute plus l’unité par erreur de calcul)', () => {
+    const { next } = playAi(factionCostState(0));
+    expect(next.towns[0]?.garrison ?? []).toEqual([]);
+  });
+});

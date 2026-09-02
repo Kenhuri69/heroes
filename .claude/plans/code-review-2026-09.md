@@ -208,3 +208,14 @@ visiteur ; mise à jour des dépendances majeures.
 
 - 2026-09-02 : revue livrée, aucun correctif appliqué ; en attente du choix des
   lots à lancer.
+- 2026-09-02 : **« lance dans l'ordre logique »** ⇒ exécution R1 → R10. **Écart au
+  plan** : la session est contrainte à la branche `claude/code-review-complete-uf9ilf`
+  ⇒ chaque lot = un **commit atomique vérifié** sur la PR #547 (pas une PR par lot).
+- [x] **R1 livré** — S1 garde par commande dans `appendTurn` (+ test « lot qui
+  franchit `EndTurn` refusé ») ; S2 auth **fail-closed** (`DEV_RETURN_VERIFY_LINK=1`
+  requis pour renvoyer le lien, sinon 503 ; garde placée AVANT l'insertion du
+  jeton) ; S5 `claimSeat` atomique (`AND profile_id IS NULL` + `meta.changes === 1`,
+  matchmaking + join) ; S10 usage unique atomique du magic-link ; S6 `paths` de
+  `deploy-worker.yml` étendus à `packages/engine/**` + lockfile ; doc 15 §5.1/§10
+  alignée. Vérif : typecheck 5/5, lint, `match.test` 6/6. Le Worker n'a toujours
+  pas de harnais (R8) ⇒ S2/S5/S10 vérifiés par relecture SQL seulement.

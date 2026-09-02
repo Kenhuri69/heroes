@@ -19,8 +19,14 @@ on:
         default: ''
   push:
     branches: [main]
+    # Revue 2026-09 (S6) : le bundle Worker EMBARQUE `@heroes/engine` (esbuild) —
+    # sans `packages/engine/**` ici, une règle moteur changée redéployait le client
+    # (deploy.yml, tout push sur main) mais PAS le serveur ⇒ règlements divergents
+    # (coups légaux rejetés 422, ou acceptés avec un autre état).
     paths:
       - 'server/**'
+      - 'packages/engine/**'
+      - 'pnpm-lock.yaml'
       - '.github/workflows/deploy-worker.yml'
 
 permissions:

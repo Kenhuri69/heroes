@@ -66,8 +66,12 @@ ajout de table (ex. `ratings`, `rate_limits`) exige de ré-appliquer
 
 1. `POST /auth/request { email }` → le Worker crée un `auth_tokens` (aléatoire,
    expirant) et **envoie** un lien `…/auth/verify?token=…` par e-mail dès que
-   `RESEND_API_KEY` est branché (lot 4.3, §10 pt 6) ; sinon il le renvoie dans la
-   réponse (`verifyLink`, dev/beta).
+   `RESEND_API_KEY` est branché (lot 4.3, §10 pt 6). Sans provider e-mail, le
+   lien n'est renvoyé dans la réponse (`verifyLink`) **que** si la variable
+   `DEV_RETURN_VERIFY_LINK=1` est posée (dev local) ; sinon **503** « e-mail de
+   connexion non configuré » (revue 2026-09 S2 : **fail-closed** — le repli
+   automatique donnait une session pour n'importe quelle adresse tant que le
+   secret manquait en prod).
 2. `GET /auth/verify?token` → jeton valide & non utilisé ⇒ crée/retrouve le
    `profiles`, ouvre une `sessions` (bearer), marque le jeton `used`. **NET-SEC.1** :
    le `handle` (partie locale de l'e-mail, `UNIQUE`) est **désambiguïsé** sur
@@ -252,9 +256,11 @@ GitHub**, jamais en clair. Étapes de l'utilisateur (une fois) :
    (ou tout push sur `main`). Le client déployé est rebuild AVEC `VITE_BACKEND_URL`
    (le smoke, lui, tourne sur un build hors-ligne) → le bouton **« En ligne »**
    apparaît. `wrangler.toml` référence déjà la base D1 `heroes` (schéma appliqué).
-6. **Option e-mail (Resend, lot 4.3)** — le worker envoie **réellement** le lien
-   dès que le secret `RESEND_API_KEY` est présent ; sinon il renvoie le lien dans
-   la réponse (dev/beta, défaut sûr). Runbook :
+6. **E-mail (Resend, lot 4.3) — REQUIS en prod** — le worker envoie **réellement**
+   le lien dès que le secret `RESEND_API_KEY` est présent ; sans lui, l'auth
+   répond **503** (revue 2026-09 S2). Le renvoi du lien dans la réponse n'existe
+   plus qu'en dev local, via `DEV_RETURN_VERIFY_LINK=1` (jamais dans `[vars]`).
+   Runbook :
    - Créer un compte Resend (free) et une clé API (*API Keys → Create*).
    - `wrangler secret put RESEND_API_KEY` (depuis `server/`, via pnpm) et coller la clé.
    - **Expéditeur** : par défaut `Heroes <onboarding@resend.dev>` (domaine de test

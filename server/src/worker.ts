@@ -12,6 +12,8 @@ import { appendTurn, replayCommands, computeEloUpdate, DEFAULT_ELO, type Command
 interface D1Result<T = unknown> {
   results: T[];
   success: boolean;
+  /** Métadonnées d'écriture D1 — `changes` = lignes affectées par le dernier statement. */
+  meta?: { changes?: number };
 }
 interface D1PreparedStatement {
   bind(...values: unknown[]): D1PreparedStatement;
@@ -25,10 +27,14 @@ interface D1Database {
 interface Env {
   DB: D1Database;
   APP_ORIGIN?: string;
-  // E-mail magic-link réel (doc 15 §10 pt 6) : opt-in par secret. Absent ⇒ le
-  // worker renvoie le lien dans la réponse (dev/beta), aucun envoi.
+  // E-mail magic-link réel (doc 15 §10 pt 6) : opt-in par secret.
   RESEND_API_KEY?: string;
   AUTH_EMAIL_FROM?: string;
+  // Revue 2026-09 (S2) : SANS provider e-mail, le lien n'est renvoyé dans la
+  // réponse QUE si cette variable vaut '1' (dev local, jamais en `[vars]` de
+  // prod). Auparavant le repli était automatique ⇒ n'importe qui obtenait une
+  // session pour n'importe quelle adresse tant que le secret manquait (fail-open).
+  DEV_RETURN_VERIFY_LINK?: string;
 }
 
 const HOUR = 3_600_000;
@@ -105,6 +111,21 @@ async function sendMagicLinkEmail(env: Env, to: string, link: string): Promise<v
     }),
   });
   if (!res.ok) throw new HttpError(502, "échec de l'envoi de l'e-mail");
+}
+
+/**
+ * Prend un siège libre de façon ATOMIQUE (revue 2026-09, S5) : l'`UPDATE` est
+ * conditionné à `profile_id IS NULL` et on exige exactement une ligne affectée —
+ * un `SELECT` puis `UPDATE` séparés laissaient deux joueurs simultanés « gagner »
+ * le même siège (le second écrasait le premier, tous deux recevaient 200).
+ */
+async function claimSeat(env: Env, matchId: string, seat: number, profileId: string): Promise<boolean> {
+  const res = await env.DB.prepare(
+    'UPDATE match_players SET profile_id = ? WHERE match_id = ? AND seat = ? AND profile_id IS NULL',
+  )
+    .bind(profileId, matchId, seat)
+    .run();
+  return (res.meta?.changes ?? 0) === 1;
 }
 
 /** Profil authentifié depuis le bearer de session (ou null). */
@@ -255,13 +276,17 @@ export default {
           (await overRateLimit(env, `auth:email:${email.trim().toLowerCase()}`, AUTH_MAX_PER_EMAIL, AUTH_RATE_WINDOW_MS)) ||
           (await overRateLimit(env, `auth:ip:${ip}`, AUTH_MAX_PER_IP, AUTH_RATE_WINDOW_MS));
         if (overQuota) return fail(429, 'trop de demandes de connexion, réessayez plus tard', env);
+        // Fail-CLOSED (S2) : ni provider e-mail, ni opt-in dev explicite ⇒ 503,
+        // AVANT d'insérer un jeton qui ne serait jamais délivré.
+        const devReturn = env.DEV_RETURN_VERIFY_LINK === '1';
+        if (!env.RESEND_API_KEY && !devReturn) return fail(503, 'e-mail de connexion non configuré', env);
         const t = token();
         await env.DB.prepare('INSERT INTO auth_tokens (token, email, expires_at, used) VALUES (?, ?, ?, 0)')
           .bind(t, email, now() + HOUR)
           .run();
         // E-mail PLUGGABLE (doc 15 §5.1/§10 pt 6) : si `RESEND_API_KEY` est
         // branché, on envoie réellement le lien et on ne le renvoie PAS (sinon
-        // fuite) ; sinon on le renvoie pour dev/beta.
+        // fuite) ; sinon (dev explicite seulement, cf. garde ci-dessus) on le renvoie.
         const link = `${url.origin}/auth/verify?token=${t}`;
         if (env.RESEND_API_KEY) {
           await sendMagicLinkEmail(env, email, link);
@@ -276,7 +301,13 @@ export default {
           .bind(t)
           .first<{ email: string; expires_at: number; used: number }>();
         if (!row || row.used || row.expires_at < now()) return fail(401, 'jeton invalide ou expiré', env);
-        await env.DB.prepare('UPDATE auth_tokens SET used = 1 WHERE token = ?').bind(t).run();
+        // Revue 2026-09 (S10) : usage unique ATOMIQUE — le SELECT ci-dessus ne
+        // suffit pas (deux `verify` simultanés le passaient tous deux ⇒ deux
+        // sessions pour un jeton). Seule la requête qui bascule `used` 0→1 gagne.
+        const burn = await env.DB.prepare('UPDATE auth_tokens SET used = 1 WHERE token = ? AND used = 0 AND expires_at >= ?')
+          .bind(t, now())
+          .run();
+        if ((burn.meta?.changes ?? 0) !== 1) return fail(401, 'jeton invalide ou expiré', env);
         // NET-SEC.2 : purge opportuniste des sessions/jetons expirés (au login,
         // faible fréquence — empêche la croissance sans fin des tables).
         await env.DB.prepare('DELETE FROM sessions WHERE expires_at < ?').bind(now()).run();
@@ -429,9 +460,10 @@ export default {
           .bind(candidate.id)
           .first<{ seat: number }>();
         if (!free) return json({ matched: false }, 200, env);
-        await env.DB.prepare('UPDATE match_players SET profile_id = ? WHERE match_id = ? AND seat = ?')
-          .bind(profileId, candidate.id, free.seat)
-          .run();
+        // Revue 2026-09 (S5) : prise de siège ATOMIQUE (`AND profile_id IS NULL`
+        // + contrôle des lignes affectées) — deux appariements simultanés sur le
+        // même siège ne peuvent plus se l'attribuer tous les deux.
+        if (!(await claimSeat(env, candidate.id, free.seat, profileId))) return json({ matched: false }, 200, env);
         await env.DB.prepare("UPDATE matches SET status = 'active' WHERE id = ? AND status = 'open'")
           .bind(candidate.id)
           .run();
@@ -516,9 +548,9 @@ export default {
           .bind(matchId)
           .first<{ seat: number }>();
         if (!free) return fail(409, 'aucun siège libre', env);
-        await env.DB.prepare('UPDATE match_players SET profile_id = ? WHERE match_id = ? AND seat = ?')
-          .bind(profileId, matchId, free.seat)
-          .run();
+        // Revue 2026-09 (S5) : idem `/matchmaking` — le perdant de la course
+        // reçoit 409 au lieu d'écraser silencieusement le siège du gagnant.
+        if (!(await claimSeat(env, matchId, free.seat, profileId))) return fail(409, 'siège déjà pris, réessayez', env);
         // Revue 2026-08 : borné à `open` — sans filtre de statut, rejoindre un
         // siège libéré RESSUSCITAIT une partie `abandoned`/`finished` en `active`
         // (le `/forfeit` juste en dessous, lui, était correctement borné).

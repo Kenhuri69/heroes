@@ -55,8 +55,18 @@ export function appendTurn(
   if (currentTurnPlayerId(state) !== playerId) {
     return { ok: false, reason: `pas le tour de '${playerId}'` };
   }
+  // Revue 2026-09 (S1) : la garde « c'est son tour » est ré-évaluée AVANT
+  // CHAQUE commande, pas seulement en tête de lot — sinon un lot pouvait
+  // franchir son propre `EndTurn` et continuer à jouer… le tour de l'adversaire
+  // (déplacer ses héros, dépenser son or), le tout accepté par le serveur.
+  // Un lot s'arrête donc au plus tard au changement de main.
   try {
-    for (const cmd of batch) state = apply(state, cmd).state;
+    for (const cmd of batch) {
+      if (currentTurnPlayerId(state) !== playerId) {
+        return { ok: false, reason: `le lot déborde sur le tour suivant (plus le tour de '${playerId}')` };
+      }
+      state = apply(state, cmd).state;
+    }
   } catch (e) {
     return { ok: false, reason: `commande illégale : ${(e as Error).message}` };
   }

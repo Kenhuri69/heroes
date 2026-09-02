@@ -4,7 +4,7 @@
   "name": "@loc:unit.t2-zombie.name",
   "loreKey": "@loc:unit.t2-zombie.lore",
   "stats": {
-    "hp": 14,
+    "hp": 13,
     "attack": 3,
     "defense": 4,
     "damage": [

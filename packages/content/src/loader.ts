@@ -1470,15 +1470,25 @@ async function loadScenario(
       // la carte et sur une tuile franchissable — sinon la ville est plantée
       // hors carte ou dans l'eau.
       const st = player.startingTown;
+      // Revue 2026-09 (suite) : la ville peut être déclarée au SOUTERRAIN
+      // (`level: 1`, L10.2) — le contrôle lisait la tuile de SURFACE, donc
+      // validait la mauvaise couche (ville acceptée dans la roche, ou refusée
+      // à tort). Index empilé, comme `tileIndex` côté moteur.
+      const level = st.level ?? 0;
       if (map) {
+        const levels = map.levels ?? 1;
         if (st.x >= map.width || st.y >= map.height) {
           errors.push(`${path}: joueur '${player.id}' — ville de départ hors carte (${st.x},${st.y})`);
+        } else if (level >= levels) {
+          errors.push(
+            `${path}: joueur '${player.id}' — ville de départ à la couche ${level}, la carte n'en a que ${levels}`,
+          );
         } else {
-          const terrain = map.terrain[st.y * map.width + st.x];
+          const terrain = map.terrain[(level * map.height + st.y) * map.width + st.x];
           const rule = terrain !== undefined ? config.adventure.terrains[terrain] : undefined;
           if (!rule || rule.moveCost === null)
             errors.push(
-              `${path}: joueur '${player.id}' — ville de départ sur tuile infranchissable (${st.x},${st.y})`,
+              `${path}: joueur '${player.id}' — ville de départ sur tuile infranchissable (${st.x},${st.y}, couche ${level})`,
             );
         }
       }

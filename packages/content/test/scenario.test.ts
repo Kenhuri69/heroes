@@ -330,6 +330,45 @@ describe('loadScenarios — règles croisées', () => {
     );
   });
 
+  it('rejette une ville de départ à une couche que la carte n’a pas', async () => {
+    const data = makeData();
+    (data['scenarios/duel.scenario.json'] as { players: Record<string, unknown>[] }).players[0]!.startingTown = {
+      id: 'town-1',
+      x: 1,
+      y: 0,
+      level: 1, // carte plate : aucune couche 1
+      prebuilt: [{ building: 'townHall', level: 1 }],
+    };
+    const report = await loadReport(data);
+    const scenarioReport = await loadScenarios(reader(data), report);
+    expect(scenarioReport.rejectedScenarios[0]?.errors.join()).toContain("la carte n'en a que 1");
+  });
+
+  it('valide la ville de départ SOUS terre contre la couche du dessous, pas la surface', async () => {
+    const data = makeData();
+    const cfg = data['core/config.json'] as { adventure: { terrains: Record<string, unknown> } };
+    cfg.adventure.terrains['water'] = { moveCost: null };
+    const map = data['maps/mini.map.json'] as Record<string, unknown>;
+    (map['legend'] as Record<string, string>)['w'] = 'water';
+    // (1,0) : HERBE en surface, EAU dessous — seule la lecture de la bonne
+    // couche peut refuser la ville. Escalier obligatoire dès qu'il y a un sous-sol.
+    map['underground'] = { tiles: ['gwgg', 'gggg', 'gggg'], roads: ['0000', '0000', '0000'] };
+    map['objects'] = [
+      { id: 'stair-down', type: 'monolith', x: 0, y: 1, pairId: 'stair-a' },
+      { id: 'stair-up', type: 'monolith', x: 0, y: 1, pairId: 'stair-a', level: 1 },
+    ];
+    (data['scenarios/duel.scenario.json'] as { players: Record<string, unknown>[] }).players[0]!.startingTown = {
+      id: 'town-1',
+      x: 1,
+      y: 0,
+      level: 1,
+      prebuilt: [{ building: 'townHall', level: 1 }],
+    };
+    const report = await loadReport(data);
+    const scenarioReport = await loadScenarios(reader(data), report);
+    expect(scenarioReport.rejectedScenarios[0]?.errors.join()).toContain('couche 1');
+  });
+
   it('R5 CO8 — rejette un objectif captureTown vers une ville inexistante', async () => {
     const data = makeData();
     (

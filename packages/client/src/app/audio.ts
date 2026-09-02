@@ -201,14 +201,33 @@ function applyMusic(): void {
   if (music.paused) void music.play().catch(() => undefined); // autoplay refusé : silencieux
 }
 
+/**
+ * Plafond d'instances audio jetables simultanées (revue 2026-09). Un round de
+ * combat peut demander des dizaines d'effets en quelques frames (volée de tirs,
+ * dégâts de zone) : sans plafond, chaque appel allouait un décodeur de plus.
+ * Au-delà, l'effet est simplement omis — un son manquant est invisible, une
+ * saturation du décodeur audio gèle la page.
+ */
+const MAX_CONCURRENT_SFX = 8;
+let liveSfx = 0;
+
 /** Joue un effet ponctuel (`sfx/<id>`) — no-op si absent, muet ou non débloqué. */
 export function playSfx(id: string): void {
   if (!unlocked || sfxVolume === 0 || muted) return;
+  if (liveSfx >= MAX_CONCURRENT_SFX) return;
   const url = registry.get(`sfx/${id}`);
   if (!url || typeof Audio === 'undefined') return;
   const a = new Audio(url); // instance jetable : autorise les recouvrements
   a.volume = sfxVolume;
-  void a.play().catch(() => undefined);
+  liveSfx++;
+  const release = (): void => {
+    liveSfx = Math.max(0, liveSfx - 1);
+  };
+  a.addEventListener('ended', release, { once: true });
+  a.addEventListener('error', release, { once: true });
+  void a.play().catch(() => {
+    release(); // lecture refusée : l'événement `ended` n'arrivera jamais
+  });
 }
 
 /**

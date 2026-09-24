@@ -7,6 +7,7 @@ import {
   grailRevealedTo,
   levelOf,
   mapLevels,
+  samePos,
   xpForLevel,
   weekOf,
   monthOf,
@@ -20,8 +21,9 @@ import { back, closeModalKind, openModal, useModals, useScreen } from '../app/ro
 import { requestEndTurn, confirmPendingEndTurn, cancelPendingEndTurn } from '../app/end-turn';
 import { confirmCoopInvite, declineCoopInvite, cancelCoopInvite } from '../app/coop-invite';
 import { dispatch } from '../app/dispatch';
-import { reportArmyCommandError } from '../app/command-error';
+import { reportArmyCommandError, reportCommandError } from '../app/command-error';
 import { restoreLatestSave } from '../app/save';
+import { forcedOverlayOpen } from '../app/overlays';
 import {
   adjacentFriendlyHeroes,
   collapseTownButtons,
@@ -47,6 +49,7 @@ import {
 import { AssetImg } from './AssetImg';
 import { UiIcon } from './UiIcon';
 import { useLongPress } from './useLongPress';
+import { useEscape } from './useEscape';
 import { useNarrowViewport } from './useNarrowViewport';
 import { MenuScreen } from './MenuScreen';
 import { MapEditor } from './MapEditor';
@@ -159,7 +162,7 @@ function Shell() {
         return;
       const s = appStore.getState();
       if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
-      if (s.screen !== 'adventure' || s.game.combat || s.modals.length > 0 || s.pendingEndTurn) return;
+      if (s.screen !== 'adventure' || forcedOverlayOpen(s)) return;
       // « ? » ouvre l'aide des raccourcis (X7) — `e.key` vaut '?' (Maj+/), avant
       // le switch minuscule qui ne le verrait pas.
       if (e.key === '?') {
@@ -404,14 +407,7 @@ function ResourceDetail() {
   const game = useApp((s) => s.game);
   const player = game.players.find((p) => p.id === humanId(game));
   const close = (): void => appStore.setState({ resourceDetail: null });
-  useEffect(() => {
-    if (!opened) return;
-    const onKey = (e: KeyboardEvent): void => {
-      if (e.key === 'Escape') close();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [opened]);
+  useEscape(close, !!opened);
   if (!opened || !player) return null;
   const income = dailyIncome(game, player.id);
   return (
@@ -471,14 +467,7 @@ function guardianBand(count: number, bands: { max: number | null; key: string }[
 function CoopInviteConfirm() {
   useApp((s) => s.locale);
   const pending = useApp((s) => s.pendingCoopInvite);
-  useEffect(() => {
-    if (!pending) return;
-    const onKey = (e: KeyboardEvent): void => {
-      if (e.key === 'Escape') cancelCoopInvite();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [pending]);
+  useEscape(cancelCoopInvite, !!pending);
   if (!pending) return null;
   return (
     <div class="map-card-backdrop" onClick={cancelCoopInvite}>
@@ -556,14 +545,7 @@ function AiFailureNotice() {
 function EndTurnConfirm() {
   useApp((s) => s.locale);
   const pending = useApp((s) => s.pendingEndTurn);
-  useEffect(() => {
-    if (!pending) return;
-    const onKey = (e: KeyboardEvent): void => {
-      if (e.key === 'Escape') cancelPendingEndTurn();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [pending]);
+  useEscape(cancelPendingEndTurn, !!pending);
   if (!pending) return null;
   return (
     <div class="map-card-backdrop" onClick={cancelPendingEndTurn}>
@@ -747,13 +729,7 @@ function SplitDialog({
   const [count, setCount] = useState(Math.floor(total / 2) || 1);
   const name = resolveUnitName(stack.unitId);
   const clamp = (n: number): number => Math.max(1, Math.min(total - 1, n));
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent): void => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [onClose]);
+  useEscape(onClose);
   return (
     <div class="split-backdrop" onClick={onClose}>
       <section
@@ -832,13 +808,7 @@ function UnitCard({
   onClose: () => void;
 }) {
   useApp((s) => s.locale); // réactivité i18n
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent): void => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [onClose]);
+  useEscape(onClose);
   return (
     <div class="unit-card-backdrop" onClick={onClose}>
       <section
@@ -929,7 +899,7 @@ function HeroStrip() {
             class={`hero-portrait${h.id === selectedId ? ' selected' : ''}`}
             data-testid={`hero-select-${h.id}`}
             aria-pressed={h.id === selectedId}
-            aria-label={t('hero.select', { level: h.level })}
+            aria-label={t('hero.select', { name: h.name ? resolveHeroName(h.name) : t('hero.genericName'), level: h.level })}
             onClick={() => {
               // E4 tap-tap : 1er tap = sélectionne + recentre la caméra sur le héros ;
               // re-tap (déjà sélectionné) = ouvre le tiroir héros (même geste que H).
@@ -1220,7 +1190,7 @@ function TurnIndicator() {
  * appui long = recentrer la caméra sur la ville (« aller à la ville » sans
  * l'ouvrir) — accès au pouce, parité tactile du survol (doc 08 §1.1/§2.1).
  */
-function TownButton({ town }: { town: TownState }) {
+function TownButton({ town, disabled }: { town: TownState; disabled: boolean }) {
   const longPress = useLongPress(() => {
     void panCameraTo(town.pos.x, town.pos.y, reduceMotion() ? 0 : DEFAULT_PAN_MS);
   });
@@ -1229,6 +1199,9 @@ function TownButton({ town }: { town: TownState }) {
       class="town-open"
       data-testid={`town-open-${town.id}`}
       title={`${t('town.open')} (T) · ${t('adventure.centerTownHint')}`}
+      // E14 : grisé pendant le tour IA, comme « Villes (N) »/Royaume — y agir
+      // n'y produisait que des refus.
+      disabled={disabled}
       onClick={() => {
         // Un appui long (recentrage) vient de se produire ⇒ ne pas AUSSI ouvrir.
         if (longPress.wasLongPress()) return;
@@ -1296,10 +1269,9 @@ function TurnBar({ onOpenOptions }: { onOpenOptions: () => void }) {
     if (!hero || !gp) return false;
     const human = game.players.find((p) => p.id === humanId(game));
     return (
-      !human?.hasGrail &&
+      !game.players.some((p) => p.hasGrail) && // un seul Graal par carte (revue 2026-09b M5)
       grailRevealedTo(game.map!, human?.obelisksVisited) &&
-      hero.pos.x === gp.x &&
-      hero.pos.y === gp.y
+      samePos(hero.pos, gp) // E9 : la couche compte (souterrain)
     );
   })();
   return (
@@ -1406,7 +1378,7 @@ function TurnBar({ onOpenOptions }: { onOpenOptions: () => void }) {
             <span class="action-label">{t('adventure.townsAll', { count: towns.length })}</span>
           </button>
         ) : (
-          towns.map((town) => <TownButton key={town.id} town={town} />)
+          towns.map((town) => <TownButton key={town.id} town={town} disabled={aiTurn !== null} />)
         )}
         {/* E4 : « héros suivant avec PM » au pouce (équivalent de la touche N) —
             cycle + recentrage caméra, badge = héros encore mobiles, grisé si 0. */}
@@ -1468,7 +1440,7 @@ function TurnBar({ onOpenOptions }: { onOpenOptions: () => void }) {
             data-testid="dig-grail"
             title={t('adventure.digTitle')}
             onClick={() => {
-              void dispatch({ type: 'Dig', heroId: hero.id });
+              dispatch({ type: 'Dig', heroId: hero.id }).catch(reportCommandError); // E9 : refus surfacé
             }}
           >
             {t('adventure.dig')}

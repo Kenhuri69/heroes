@@ -1,4 +1,4 @@
-import { useEffect } from 'preact/hooks';
+import { useEscape } from './useEscape';
 import { levelOf, type MapObjectDef, type VisitableEffect } from '@heroes/engine';
 import { useApp, appStore } from '../app/store';
 import { humanId } from '../app/game';
@@ -21,14 +21,7 @@ export function MapObjectCard() {
   const objects = useApp((s) => s.game.map?.objects);
   const stair = object ? stairDirection(object, objects) : null;
   const close = (): void => appStore.setState({ mapCard: null });
-  useEffect(() => {
-    if (!object) return;
-    const onKey = (e: KeyboardEvent): void => {
-      if (e.key === 'Escape') close();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [object]);
+  useEscape(close, !!object);
   if (!object) return null;
 
   return (

@@ -405,6 +405,19 @@
 > (Lot 2 — layouts data-driven par faction + décors composables AS-TOWNBG —
 > reste subordonné à la production d'art, jalon Beta.)
 
+> **État revue 2026-09b (ville)** : le coût d'un bâtiment ou d'un recrutement
+> **marque chaque ressource manquante** (✗ + teinte) ; « Construire » impayable et
+> « Recruter » disponible-mais-impayable sont grisés **avec leur raison** visible
+> (« Ressources insuffisantes ») et restent tapables (`aria-disabled`, §4 R6).
+> « Max » et le curseur de recrutement plafonnent à ce qui est **disponible ET
+> payable**. Le bandeau d'erreur reste collé en haut de l'écran défilant et
+> s'efface au changement d'onglet. Pré-combat : chaque colonne se nomme (« Vos
+> forces » du côté du joueur, nom du héros/de l'unité adverse en face), le héros
+> défenseur y a son portrait. Choix de compétence à la montée : l'**effet du rang
+> visé** est affiché (dérivé des données `skills.json`), comme dans le tiroir héros.
+> Nouvelle partie : deux sièges ne partagent jamais une couleur (prendre celle
+> d'un autre siège les **échange**).
+
 ### 2.3 Écran héros
 
 - Portrait, attributs, XP ; **poupée d'équipement** 10 slots + sac ; compétences (6 slots, rangs) ; grimoire **feuilletable par onglets d'école** (puis cercles), coût mana visible, sorts indisponibles grisés avec raison.
@@ -790,12 +803,36 @@ Menu principal (Continuer / Scénarios / Escarmouche / **Éditeur de carte** / O
   3. **Anti-spam** : ces retours étant déclenchables en rafale (taps répétés), un message identique déjà affiché n'est **pas empilé** — dix taps sur une montagne = un toast. Les toasts d'**événement** ne sont pas dédupliqués (deux gains identiques restent deux informations).
 - **Blocage de partie signalé, avec porte de sortie** : si un tour adverse (IA) échoue, la main revient au joueur (son tour est à rejouer, cf. doc 02 §6) ; quand c'est impossible, un overlay non ambigu annonce l'état bloqué et propose de **recharger la dernière sauvegarde** — jamais d'écran figé sans explication. La porte de sortie obéit elle-même à la règle 1 : si le rechargement échoue (aucune sauvegarde, stockage inaccessible), l'échec est **toasté** et l'overlay reste affiché. « Fermer » ne fait que dégager la vue (consulter la carte, exporter) : il ne réarme rien, la sortie reste le rechargement — ici ou par Menu → Continuer.
 
+> **État revue 2026-09b (ergonomie)** — règles de navigation précisées :
+> - **Échap = une couche** : une pile LIFO unique (`useEscape`) ferme la seule
+>   couche locale du dessus (fiche, confirmation, modale de combat, aide ouverte
+>   depuis Options…) et arrête l'événement ; le retour du routeur (`back()`) ne
+>   dépile une modale que si aucune couche locale n'est ouverte. Avant, un Échap
+>   pouvait fermer deux couches d'un coup.
+> - **Raccourcis clavier muets sous un overlay forcé** : E/T/H/N (carte) et
+>   Espace/D (combat) sont ignorés sous tout overlay forcé ou modale — passage
+>   d'appareil hot-seat, dialogue, cinématique, bilan, choix de compétence/
+>   trésor, tour IA, écran pré-combat, ciblage de sort — et en répétition de
+>   touche (`E` sur l'écran « passez l'appareil » terminait le tour du joueur suivant).
+> - **Une préviz appartient à son acteur** : changer de héros sélectionné (ou le
+>   voir bouger) efface le chemin prévisualisé ; en combat, tout changement
+>   d'état moteur efface la sélection/préviz de la pile précédente — le tap-tap
+>   ne peut jamais valider une action sans préviz.
+> - **Tap-tap étendu** aux actions qui remplacent ou détruisent : Options →
+>   Charger / Récupérer du cloud (« Confirmer : remplacer la partie en cours »),
+>   vente d'un artefact **porté** chez le marchand.
+> - **Bilan de combat** : Échap le ferme, « Continuer » prend le focus (Entrée).
+
 ## 4. Accessibilité
 
 - Daltonisme : **pas d'option** — l'accessibilité chromatique est **toujours active** (choix M8/C4, plus sûr qu'un réglage) : couleurs de joueur doublées de **motifs de bannière**, statuts de combat doublés d'icônes/formes, jamais la couleur seule.
 - **Choisir une couleur** n'échappe pas à la règle (lot R4) : les pastilles de la palette de joueur portent leur **nom localisé visible** *et* un **motif** non chromatique — une pastille n'est jamais identifiée par sa seule teinte, ni par le seul anneau de sélection. Une rangée trop large **passe à la ligne** plutôt que de couper une pastille (jamais de défilement horizontal, qui en rognerait toujours une).
 - **Réduire les animations** : option en jeu (M8/C3) qui s'unit au réglage système `prefers-reduced-motion` — coupe transitions DOM et mouvement Pixi (le contour de focus reste).
 - Texte UI en DOM → zoom navigateur et lecteurs d'écran fonctionnent sur toute la gestion ; taille de police réglable (3 crans). Le cran courant est publié sur `<html data-font-scale>` : une surcouche **serrée en hauteur** peut alors alléger son contenu au-delà du cran 1 **sans jamais perdre l'information** (voir §2.4 « État R1 » : la barre d'actions de combat replie les sous-libellés en `title`/nom accessible et déborde ses actions secondaires dans le tiroir « ⋯ », plutôt que de manger le plateau).
+- **État actif des boutons segmentés** (langue, police, vitesse ×1/×2/×4, options
+  Oui/Non, réglages de Nouvelle partie) : `aria-pressed` + un **filet sous le
+  libellé** (second canal non chromatique, revue 2026-09b E20) ; les onglets de ville
+  portent `role="tab"`/`aria-selected`.
 - Toutes les infos « hover » accessibles à l'appui long ; aucune action à double-clic ou clic droit obligatoire. **Corollaire (R6)** : une commande **grisée dont l'état porte une raison** n'est jamais `disabled` — un élément `disabled` n'est ni focusable ni « tapable », donc sa raison n'existerait qu'au survol souris. Elle est `aria-disabled` et **répond au tap en affichant sa raison** (voir §2.4 « État R6 »).
 
 ## 5. Direction artistique (cadrage)

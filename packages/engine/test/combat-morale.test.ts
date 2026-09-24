@@ -93,3 +93,30 @@ describe('A3a — moraleImmune', () => {
     expect(moraleOf(angel, s.combat as CombatState, s)).toBe(1);
   });
 });
+
+describe('Revue 2026-09b M9 — Défendre ne déclenche pas le moral (fidélité HoMM)', () => {
+  // Unité native du terrain (+1 moral) et chance de moral forcée à 100 %/point :
+  // toute action RÉELLE déclenche le tour bonus, Défendre jamais.
+  function moraleState(): GameState {
+    const catalog = { native: { ...unit('native'), nativeTerrain: 'grass' } };
+    const a = stack('a0', 'attacker', 'native');
+    const d = stack('d0', 'defender', 'native');
+    d.pos = { col: 14, row: 8 };
+    const s = state(catalog, [a, d]);
+    s.config = { ...s.config!, combat: { ...s.config!.combat, moraleChancePerPoint: 1 } };
+    return s;
+  }
+
+  it('Défendre : aucun MoraleTriggered pour la pile qui défend', async () => {
+    const { apply } = await import('../src/core/engine');
+    const { events } = apply(moraleState(), { type: 'CombatAction', action: { type: 'defend' } });
+    // (La pile adverse, jouée par l'IA ensuite, peut déclencher le SIEN.)
+    expect(events.some((e) => e.type === 'MoraleTriggered' && e.stackId === 'a0')).toBe(false);
+  });
+
+  it('témoin : un déplacement déclenche bien le tour bonus', async () => {
+    const { apply } = await import('../src/core/engine');
+    const { events } = apply(moraleState(), { type: 'CombatAction', action: { type: 'move', to: { col: 1, row: 0 } } });
+    expect(events.some((e) => e.type === 'MoraleTriggered' && e.stackId === 'a0')).toBe(true);
+  });
+});

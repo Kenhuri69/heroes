@@ -402,6 +402,7 @@
 .combat-speeds button.active {
   background: var(--blood);
   border-color: var(--blood-bright);
+  box-shadow: inset 0 -3px 0 var(--parchment); /* E20 : second canal non chromatique */
 }
 
 /* Viewport étroit : round en tête pleine largeur, puis la file d'ordre sur une

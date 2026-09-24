@@ -118,6 +118,7 @@ export function SkirmishScreen({ onClose }: { onClose: () => void }) {
           <div class="segmented" role="group">
             <button
               class={opponent === 'ai' ? 'active' : ''}
+              aria-pressed={opponent === 'ai'}
               data-testid="skirmish-opponent-ai"
               onClick={() => setOpponent('ai')}
             >
@@ -125,6 +126,7 @@ export function SkirmishScreen({ onClose }: { onClose: () => void }) {
             </button>
             <button
               class={opponent === 'human' ? 'active' : ''}
+              aria-pressed={opponent === 'human'}
               data-testid="skirmish-opponent-human"
               onClick={() => setOpponent('human')}
             >
@@ -157,6 +159,7 @@ export function SkirmishScreen({ onClose }: { onClose: () => void }) {
                 <button
                   key={level}
                   class={difficulty === level ? 'active' : ''}
+                  aria-pressed={difficulty === level}
                   data-testid={`skirmish-difficulty-${level}`}
                   onClick={() => setDifficulty(level)}
                 >
@@ -172,6 +175,7 @@ export function SkirmishScreen({ onClose }: { onClose: () => void }) {
           <div class="segmented" role="group">
             <button
               class={!randomMap ? 'active' : ''}
+              aria-pressed={!randomMap}
               data-testid="skirmish-map-standard"
               onClick={() => setRandomMap(false)}
             >
@@ -179,6 +183,7 @@ export function SkirmishScreen({ onClose }: { onClose: () => void }) {
             </button>
             <button
               class={randomMap ? 'active' : ''}
+              aria-pressed={randomMap}
               data-testid="skirmish-map-random"
               onClick={() => setRandomMap(true)}
             >

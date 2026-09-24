@@ -15,11 +15,17 @@ type CaptureCmd = Extract<Command, { type: 'CaptureTown' }>;
 /** Bonus de défense « murs » par niveau de Fort construit (doc 02 §4.1, Alpha 4.13). */
 const WALL_DEFENSE_PER_FORT_LEVEL = 3;
 
-/** Héros du joueur sur ou adjacent à la ville (attaquant), ou `undefined`. */
+/**
+ * Héros du joueur sur ou adjacent à la ville (attaquant), ou `undefined`.
+ * Revue 2026-09b M7 : parmi plusieurs candidats, celui qui a des TROUPES — avant,
+ * le premier du tableau était pris, et un héros sans armée voisin de la ville
+ * faisait échouer la capture (`invalidArmy`) alors qu'un héros armé était là.
+ */
 function attackingHero(state: GameState, town: TownState, playerId: string): HeroState | undefined {
-  return state.heroes.find(
+  const candidates = state.heroes.filter(
     (h) => h.playerId === playerId && (samePos(h.pos, town.pos) || isAdjacent(h.pos, town.pos)),
   );
+  return candidates.find((h) => h.army.length > 0) ?? candidates[0];
 }
 
 /**
@@ -60,6 +66,10 @@ function wallDefenseBonus(state: GameState, town: TownState): number {
  */
 export function validateCaptureTown(state: GameState, cmd: CaptureCmd): CommandError | null {
   if (state.combat) return { code: 'combatActive', message: 'un combat est en cours' };
+  // Revue 2026-09b M17 : un choix forcé en attente se résout d'abord (cf. `Dig`).
+  if (state.pendingTreasure) return { code: 'treasurePending', message: 'un trésor attend son choix or/XP' };
+  if (state.pendingTriggerChoice)
+    return { code: 'choicePending', message: 'un message à choix attend sa réponse' };
   const current = state.players[state.currentPlayer];
   if (!current || current.id !== cmd.playerId)
     return { code: 'notYourTurn', message: `ce n’est pas le tour de ${cmd.playerId}` };

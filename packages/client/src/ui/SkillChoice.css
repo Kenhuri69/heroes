@@ -39,3 +39,15 @@
   font-weight: 400;
   opacity: 0.8;
 }
+
+/* E15 (revue 2026-09b) : effet du rang visé, sur sa propre ligne. */
+.skill-choice-option {
+  flex-wrap: wrap;
+}
+
+.skill-choice-effect {
+  flex-basis: 100%;
+  font-weight: 400;
+  font-size: 0.8125rem;
+  color: var(--brass-text);
+}

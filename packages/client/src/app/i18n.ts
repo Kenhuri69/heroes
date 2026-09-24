@@ -199,6 +199,24 @@ function lookupCoreOrPack(key: string): string | null {
  * héros de départ générique (`hero.name.default`) ou référence `@loc:` de
  * paquet pour un héros nommé (H-NAMED). Repli : la clé brute.
  */
+/**
+ * Effet LISIBLE d'un rang de compétence (revue 2026-09b E15), dérivé des champs
+ * déclaratifs (`skills.json`) : « +10 % de points de mouvement · … ». Chaque
+ * champ numérique a son gabarit `skill.effect.<champ>` ; un champ sans gabarit
+ * (ou un rang vide, porté ailleurs — ex. Nécromancie par la faction) est omis.
+ */
+export function describeSkillEffect(effect: object | undefined): string {
+  if (!effect) return '';
+  const parts: string[] = [];
+  for (const [field, value] of Object.entries(effect)) {
+    if (typeof value !== 'number' || value === 0) continue;
+    const key = `skill.effect.${field}`;
+    const text = t(key, { value });
+    if (text !== key) parts.push(text);
+  }
+  return parts.join(' · ');
+}
+
 export function resolveHeroName(name: string): string {
   const key = name.startsWith('@loc:') ? name.slice('@loc:'.length) : name;
   return lookupCoreOrPack(key) ?? key;

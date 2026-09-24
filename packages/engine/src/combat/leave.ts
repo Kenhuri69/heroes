@@ -69,6 +69,15 @@ export function validateAbandon(state: GameState): CommandError | null {
     return { code: 'invalidAction', message: 'aucun héros ne peut quitter ce combat (arène)' };
   if (combat.round > 1)
     return { code: 'invalidAction', message: 'abandon possible seulement avant le premier engagement' };
+  // Revue 2026-09b M2 : « avant le premier engagement » s'entend du JOUEUR. Une
+  // pile du camp joueur qui a agi/attendu, ou une action de son héros, ferme la
+  // porte — sinon on tirait sur le gardien au round 1 puis on abandonnait sans
+  // perte (le gardien, lui, gardait ses pertes), en boucle tant que les PM tenaient.
+  const playerActed = combat.stacks.some((s) => s.side === combat.playerSide && (s.acted || s.waited));
+  const sideHeroes = sideOwnerHeroIds(combat, combat.playerSide, combat.heroId);
+  const heroActed = [...combat.heroCastThisRound, ...combat.heroAttackUsed].some((id) => sideHeroes.has(id));
+  if (playerActed || heroActed)
+    return { code: 'invalidAction', message: 'abandon impossible après une première action' };
   return null;
 }
 
@@ -101,6 +110,15 @@ function endLeftCombat(
   // camp adverse GARDE ses pertes — gardien et garnison réécrits à leurs
   // survivants, sinon partir « soignait » l'ennemi à son effectif initial.
   persistDefenderRemnants(draft, combat);
+  // Revue 2026-09b M3 : idem pour un HÉROS adverse (H-VS-H) — ses pertes restent
+  // acquises. Avant : fuir/se rendre/abandonner lui rendait toute son armée
+  // (30 réduits à 7 ⇒ de retour à 30). Hors siège : la garnison est déjà
+  // réécrite ci-dessus, on ne répartit pas ses piles sur un héros.
+  const enemyHeroId = combat.playerSide === 'attacker' ? combat.defenderHeroId : combat.attackerHeroId;
+  const enemyHero = enemyHeroId && !combat.townId ? draft.heroes.find((h) => h.id === enemyHeroId) : undefined;
+  if (enemyHero) {
+    enemyHero.army = rebuildArmyFromSurvivors(draft, combat, winner, enemyHero.id, enemyHero.id, enemyHero.warMachines);
+  }
   // Chance de fontaine consommée pour tout héros engagé encore vivant (comme la fin normale).
   for (const heroId of [combat.attackerHeroId, combat.defenderHeroId]) {
     const hero = heroId ? draft.heroes.find((h) => h.id === heroId) : undefined;

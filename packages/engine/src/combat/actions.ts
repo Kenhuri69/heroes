@@ -344,7 +344,9 @@ function afterAction(
       applyPerformerResonance(draft, combat, actor, events);
       const rules = combatRules(draft);
       const moral = moraleOf(actor, combat, draft);
-      if (moral > 0) {
+      // Revue 2026-09b M9 (fidélité HoMM) : Défendre ne déclenche jamais le moral —
+      // le tour bonus remettait `defending` à faux, annulant la défense choisie.
+      if (moral > 0 && actionType !== 'defend') {
         const roll = rollRange(draft.rng, 0, 99);
         draft.rng = roll.state;
         if (roll.value < moral * rules.moraleChancePerPoint * 100) {

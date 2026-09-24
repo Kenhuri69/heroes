@@ -18,9 +18,12 @@ export function landingTileFor(state: GameState, target: GridPos, heroId: string
   if (!map || !config) return null;
   const unoccupied = (p: GridPos): boolean => !state.heroes.some((h) => h.id !== heroId && samePos(h.pos, p));
   if (unoccupied(target)) return target;
+  // Revue 2026-09b M18 : une voisine tenue par un GARDIEN n'est pas une arrivée
+  // (le héros se retrouvait posé sur le gardien, hors de toute interception).
+  const guarded = (p: GridPos): boolean => map.objects.some((o) => o.type === 'guardian' && samePos(o.pos, p));
   for (const d of DIRECTIONS) {
     const p = atLevel({ x: target.x + d.x, y: target.y + d.y }, levelOf(target));
-    if (isPassable(config, map, p) && unoccupied(p)) return p;
+    if (isPassable(config, map, p) && unoccupied(p) && !guarded(p)) return p;
   }
   return null;
 }

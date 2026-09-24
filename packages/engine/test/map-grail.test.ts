@@ -101,6 +101,13 @@ describe('T-GRAIL lot 2 — fouille (Dig) & obtention du Graal', () => {
     expect(() => apply(s0, { type: 'Dig', heroId: 'hero-p1' })).toThrow(/Graal/);
   });
 
+  it('revue 2026-09b M5 : un Graal déterré par un AUTRE joueur n’est plus fouillable', () => {
+    const onGrail = move(started([], { x: 1, y: 0 }), [{ x: 1, y: 0 }]).state;
+    const rival = structuredClone(onGrail);
+    rival.players.push({ ...rival.players[0]!, id: 'p2', hasGrail: true });
+    expect(validate(rival, { type: 'Dig', heroId: 'hero-p1' })?.code).toBe('alreadyHasGrail');
+  });
+
   it('fouiller deux fois est refusé (Graal déjà possédé)', () => {
     const onGrail = move(started([], { x: 1, y: 0 }), [{ x: 1, y: 0 }]).state;
     const after = apply(onGrail, { type: 'Dig', heroId: 'hero-p1' }).state;

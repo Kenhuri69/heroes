@@ -1,5 +1,6 @@
 import type { HeroState } from '@heroes/engine';
-import { t, resolveSkillName } from '../app/i18n';
+import { useApp } from '../app/store';
+import { t, resolveSkillName, describeSkillEffect } from '../app/i18n';
 import { useCollapsed, SectionToggle } from './CollapsibleSection';
 import './HeroSkills.css';
 
@@ -10,6 +11,7 @@ import './HeroSkills.css';
  */
 export function HeroSkills({ hero }: { hero: HeroState }) {
   const entries = Object.entries(hero.skills);
+  const skillCatalog = useApp((s) => s.game.skillCatalog);
   const [collapsed, toggle] = useCollapsed('skills');
   return (
     <section class="hero-skills" data-testid="hero-skills">
@@ -28,6 +30,9 @@ export function HeroSkills({ hero }: { hero: HeroState }) {
               <li key={skillId} class="hero-skill">
                 <span class="hero-skill-name">{resolveSkillName(skillId)}</span>
                 <span class="hero-skill-rank">{t(`skill.rank.${rank}`)}</span>
+                {describeSkillEffect(skillCatalog[skillId]?.ranks[rank - 1]) && (
+                  <span class="hero-skill-effect">{describeSkillEffect(skillCatalog[skillId]?.ranks[rank - 1])}</span>
+                )}
               </li>
             ))}
           </ul>

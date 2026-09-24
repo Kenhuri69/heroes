@@ -140,6 +140,46 @@ describe('Abandon pré-combat (AbandonCombat)', () => {
     (state.combat as CombatState).round = 2;
     expect(() => apply(state, { type: 'AbandonCombat' })).toThrowError(/invalidAction/);
   });
+
+  it('revue 2026-09b M2 : refuse dès qu’une pile du joueur a agi ou attendu au round 1', () => {
+    for (const flag of ['acted', 'waited'] as const) {
+      const state = stateWith(0);
+      const combat = state.combat as CombatState;
+      combat.stacks.push(stack({ id: 'attacker-1', side: 'attacker', unitId: 'ally', count: 2, [flag]: true }));
+      expect(() => apply(state, { type: 'AbandonCombat' })).toThrowError(/invalidAction/);
+    }
+  });
+
+  it('revue 2026-09b M2 : refuse après une action du héros joueur (sort/frappe)', () => {
+    const state = stateWith(0);
+    (state.combat as CombatState).heroAttackUsed = ['hero-a'];
+    expect(() => apply(state, { type: 'AbandonCombat' })).toThrowError(/invalidAction/);
+  });
+
+  it('une action ENNEMIE au round 1 ne ferme pas la porte', () => {
+    const state = stateWith(0);
+    (state.combat as CombatState).stacks[1]!.acted = true;
+    expect(apply(state, { type: 'AbandonCombat' }).state.combat).toBeNull();
+  });
+});
+
+describe('Revue 2026-09b M3 — fuir un héros ennemi ne le soigne pas', () => {
+  it('Retreat/Surrender/Abandon : le héros adverse garde ses pertes', () => {
+    for (const cmd of ['Retreat', 'Surrender', 'AbandonCombat'] as const) {
+      const state = stateWith(1000);
+      const combat = state.combat as CombatState;
+      combat.defenderHeroId = 'hero-b';
+      combat.stacks[1]!.count = 4; // 10 au départ, 6 tués
+      state.heroes.push({
+        ...(state.heroes[0] as HeroState),
+        id: 'hero-b',
+        playerId: 'p2',
+        army: [{ unitId: 'foe', count: 10 }],
+      });
+      const { state: next } = apply(state, { type: cmd });
+      expect(next.heroes.find((h) => h.id === 'hero-b')?.army).toEqual([{ unitId: 'foe', count: 4 }]);
+    }
+  });
 });
 
 describe('Revue 2026-07 — B21 : le camp adverse garde ses pertes au départ du joueur', () => {

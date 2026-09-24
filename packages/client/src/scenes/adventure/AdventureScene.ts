@@ -142,7 +142,9 @@ export class AdventureScene {
   private readonly selectionRing = new Graphics()
     .ellipse(TILE_SIZE / 2, TILE_SIZE / 2, TILE_SIZE * 0.55, TILE_SIZE * 0.28)
     .stroke({ width: 3, color: 0xf1c40f });
-  private previewTarget: { target: GridPos; path: GridPos[] } | null = null;
+  /** Préviz en attente de confirmation — liée au héros ET à sa position de départ
+   *  (revue 2026-09b E2) : changer de héros ou bouger invalide le chemin. */
+  private previewTarget: { target: GridPos; path: GridPos[]; heroId: string; from: GridPos } | null = null;
   /**
    * Couche affichée (L10.3) — celle du héros sélectionné. Le rendu ne connaît
    * pas les couches : il reçoit une **vue plate** (`mapAtLevel`) et la
@@ -422,7 +424,14 @@ export class AdventureScene {
     // escalier change `pos.level` ⇒ on reconstruit les calques de terrain, puis
     // tout ce qui suit ne dessine que les entités de cette couche (le souterrain
     // n'apparaît jamais à la surface, ni l'inverse).
-    const selectedPos = resolveSelectedHero(game, s.selectedHeroId)?.pos;
+    const selectedHero = resolveSelectedHero(game, s.selectedHeroId);
+    const selectedPos = selectedHero?.pos;
+    // E2 : un chemin prévisualisé pour un AUTRE héros (bande de héros, touche N,
+    // Royaume, Taverne) ou depuis une autre position est périmé — l'effacer, sinon
+    // le 2ᵉ tap enverrait le chemin du héros A au héros B.
+    const pending = this.previewTarget;
+    if (pending && (pending.heroId !== selectedHero?.id || !samePos(pending.from, selectedHero.pos)))
+      this.clearPreview();
     // Pendant l'animation des pas, l'état a déjà « sauté » à l'arrivée (doc 07
     // §3) : basculer tout de suite ferait marcher le héros sur le décor de la
     // couche d'arrivée. On garde la couche courante — `animateMove` resynchronise
@@ -708,7 +717,12 @@ export class AdventureScene {
     }
 
     // 2ᵉ tap sur la même destination = confirmation (doc 08 §2.1).
-    if (this.previewTarget && samePos(this.previewTarget.target, tile)) {
+    if (
+      this.previewTarget &&
+      this.previewTarget.heroId === hero.id &&
+      samePos(this.previewTarget.from, hero.pos) &&
+      samePos(this.previewTarget.target, tile)
+    ) {
       const path = this.previewTarget.path;
       // Coop (E4.5) : si ce déplacement engage un GARDIEN et qu'un héros allié est
       // adjacent à la tuile d'engagement (avant-dernière du chemin), proposer de
@@ -795,7 +809,7 @@ export class AdventureScene {
       steps.push({ x: step.x, y: step.y, day });
       prev = step;
     }
-    this.previewTarget = { target: tile, path };
+    this.previewTarget = { target: tile, path, heroId: hero.id, from: hero.pos };
     this.preview.show(steps, (day) => t('adventure.pathDay', { day }));
     appStore.setState({ pathPreviewActive: true });
   }

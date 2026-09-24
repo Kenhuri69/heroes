@@ -124,8 +124,15 @@ export function NewGameScreen({ onClose }: { onClose: () => void }) {
   };
   const setSlotHero = (i: number, value: string): void =>
     setSlotHeroes((prev) => prev.map((h, j) => (j === i ? value : h)));
+  // E19 (revue 2026-09b) : deux sièges ne partagent jamais une couleur — prendre
+  // celle d'un autre siège ÉCHANGE les deux (sinon héros et bannières n'étaient
+  // plus distinguables que par leur position). Aucun bouton mort : l'échange est
+  // immédiat et visible sur les deux sièges.
   const setSlotColor = (i: number, value: number): void =>
-    setSlotColors((prev) => prev.map((c, j) => (j === i ? value : c)));
+    setSlotColors((prev) => {
+      const old = prev[i]!;
+      return prev.map((c, j) => (j === i ? value : c === value ? old : c));
+    });
   const setSlotTeam = (i: number, value: number): void =>
     setSlotTeams((prev) => prev.map((tm, j) => (j === i ? value : tm)));
 
@@ -174,6 +181,7 @@ export function NewGameScreen({ onClose }: { onClose: () => void }) {
         <div class="segmented newgame-seat-controller" role="group">
           <button
             class={controllers[i] === 'human' ? 'active' : ''}
+            aria-pressed={controllers[i] === 'human'}
             data-testid={`newgame-seat-${i}-human`}
             onClick={() => setController(i, 'human')}
           >
@@ -181,6 +189,7 @@ export function NewGameScreen({ onClose }: { onClose: () => void }) {
           </button>
           <button
             class={controllers[i] === 'ai' ? 'active' : ''}
+            aria-pressed={controllers[i] === 'ai'}
             data-testid={`newgame-seat-${i}-ai`}
             onClick={() => setController(i, 'ai')}
           >
@@ -191,6 +200,7 @@ export function NewGameScreen({ onClose }: { onClose: () => void }) {
       <select
         class="skirmish-select newgame-seat-faction"
         data-testid={`newgame-seat-${i}-faction`}
+        aria-label={t('newgame.factionOf', { n: i + 1 })}
         value={slotFactions[i]}
         onChange={(e) => setSlotFaction(i, (e.currentTarget as HTMLSelectElement).value)}
       >
@@ -204,6 +214,7 @@ export function NewGameScreen({ onClose }: { onClose: () => void }) {
         <select
           class="skirmish-select newgame-seat-hero"
           data-testid={`newgame-seat-${i}-hero`}
+          aria-label={t('newgame.heroOf', { n: i + 1 })}
           value={slotHeroes[i]}
           onChange={(e) => setSlotHero(i, (e.currentTarget as HTMLSelectElement).value)}
         >
@@ -256,6 +267,7 @@ export function NewGameScreen({ onClose }: { onClose: () => void }) {
           <button
             key={tm}
             class={slotTeams[i] === tm ? 'active' : ''}
+            aria-pressed={slotTeams[i] === tm}
             data-testid={`newgame-seat-${i}-team-${tm}`}
             onClick={() => setSlotTeam(i, tm)}
           >
@@ -308,6 +320,7 @@ export function NewGameScreen({ onClose }: { onClose: () => void }) {
               <button
                 key={n}
                 class={playerCount === n ? 'active' : ''}
+                aria-pressed={playerCount === n}
                 data-testid={`newgame-players-${n}`}
                 onClick={() => setPlayerCount(n)}
               >
@@ -358,6 +371,7 @@ export function NewGameScreen({ onClose }: { onClose: () => void }) {
                     <button
                       key={size}
                       class={mapSize === size ? 'active' : ''}
+                      aria-pressed={mapSize === size}
                       data-testid={`newgame-size-${size}`}
                       onClick={() => setMapSize(size)}
                     >
@@ -374,6 +388,7 @@ export function NewGameScreen({ onClose }: { onClose: () => void }) {
                     <button
                       key={level}
                       class={resourceLevel === level ? 'active' : ''}
+                      aria-pressed={resourceLevel === level}
                       data-testid={`newgame-resources-${level}`}
                       onClick={() => setResourceLevel(level)}
                     >
@@ -391,6 +406,7 @@ export function NewGameScreen({ onClose }: { onClose: () => void }) {
                       <button
                         key={level}
                         class={contentLevels[cat.field] === level ? 'active' : ''}
+                        aria-pressed={contentLevels[cat.field] === level}
                         data-testid={`newgame-${cat.field}-${level}`}
                         onClick={() => setContentLevel(cat.field, level)}
                       >
@@ -408,6 +424,7 @@ export function NewGameScreen({ onClose }: { onClose: () => void }) {
                     <button
                       key={String(opt)}
                       class={underground === opt ? 'active' : ''}
+                      aria-pressed={underground === opt}
                       data-testid={`newgame-underground-${String(opt)}`}
                       onClick={() => setUnderground(opt)}
                     >
@@ -453,6 +470,7 @@ export function NewGameScreen({ onClose }: { onClose: () => void }) {
               <button
                 key={level}
                 class={difficulty === level ? 'active' : ''}
+                aria-pressed={difficulty === level}
                 data-testid={`newgame-difficulty-${level}`}
                 onClick={() => setDifficulty(level)}
               >

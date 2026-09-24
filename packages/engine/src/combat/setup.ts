@@ -9,7 +9,7 @@ import { barrierParams, symbiosisParams } from './damage';
 import { runAiIfNeeded } from './ai';
 import type { Draft } from './draft';
 import { COMBAT_COLS, COMBAT_ROWS, hexDistance, inCombatBounds, sameHex, type OffsetPos } from './hex';
-import { advanceTurn } from './turns';
+import { advanceTurn, checkCombatEnd } from './turns';
 import { hasAbility, initLedger, shooterAmmo } from './state-helpers';
 import { spellcasterParams } from './spell-effect';
 import type { ArmyStack, CombatSideId, CombatState, CombatStack, CombatUnitDef } from './types';
@@ -735,6 +735,12 @@ export function applyStartingBarrier(draft: Draft, combat: CombatState, events: 
 function openPlacementOrBattle(draft: Draft, events: GameEvent[]): void {
   const combat = draft.combat;
   if (!combat) return;
+  // Revue 2026-09b M1 : un camp SANS aucune pile (héros sans troupes — recrue de
+  // Taverne, rescapé d'une fuite — attaqué, ou défendant une ville) ⇒ le combat
+  // est joué d'avance. Sans cette garde, aucune mort ne survenait jamais, donc
+  // `checkCombatEnd` jamais appelé : combat sans fin, `AutoCombat` levait
+  // « dépassement d'itérations » (et l'IA, qui chasse ces proies, plantait).
+  if (checkCombatEnd(draft, events)) return;
   applyStartingSymbiosis(draft, combat);
   applyStartingBarrier(draft, combat, events);
   if (combatTacticsColumns(draft, combat) > 0) {

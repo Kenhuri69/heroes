@@ -260,7 +260,7 @@ export function notify(event: AppEvent, game: GameState): string | null {
         : null;
     case 'TownBuilt':
       return ownTown(event.townId)
-        ? t('toast.townBuilt', { building: resolveBuildingName(event.buildingId) })
+        ? t('toast.townBuilt', { building: resolveBuildingName(event.buildingId), level: event.level })
         : null;
     case 'UnitsRecruited':
       return ownTown(event.townId)

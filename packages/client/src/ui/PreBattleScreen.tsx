@@ -4,7 +4,7 @@ import { appStore, useApp } from '../app/store';
 import { dispatch } from '../app/dispatch';
 import { recordCombatAuto } from '../app/telemetry';
 import { heroArchetype } from '../app/game';
-import { t, resolveUnitName, resolveLoc, commandErrorMessage } from '../app/i18n';
+import { t, resolveHeroName, resolveUnitName, resolveLoc, commandErrorMessage } from '../app/i18n';
 import { heroAvatarUrl, unitSpriteUrl } from '../render/assets';
 import { AssetImg } from './AssetImg';
 import { FactionBadge } from './FactionBadge';
@@ -44,8 +44,24 @@ export function PreBattleScreen() {
     ? game.heroes.find((h) => h.id === combat.attackerHeroId)
     : undefined;
   const attackerFaction = hero?.factionId ?? factionOf(attackers, game.unitCatalog);
+  const attTop = dominant(attackers);
   const defTop = dominant(defenders);
-  const defenderFaction = factionOf(defenders, game.unitCatalog);
+  // H-VS-H / siège défendu par un héros : le défenseur a un visage.
+  const defenderHero = combat.defenderHeroId
+    ? game.heroes.find((h) => h.id === combat.defenderHeroId)
+    : undefined;
+  const defenderFaction = defenderHero?.factionId ?? factionOf(defenders, game.unitCatalog);
+  // E16 (revue 2026-09b) : chaque colonne dit QUI elle est — « Vos forces » du
+  // côté du joueur (attaquant OU défenseur), le nom de l'adversaire en face.
+  // Avant : la gauche disait toujours « Vos forces », même quand le joueur
+  // défendait (héros ennemi, siège de sa ville).
+  const sideLabel = (side: 'attacker' | 'defender'): string => {
+    if (side === combat.playerSide) return t('preBattle.attacker');
+    const foeHero = side === 'attacker' ? hero : defenderHero;
+    if (foeHero?.name) return resolveHeroName(foeHero.name);
+    const top = side === 'attacker' ? attTop : defTop;
+    return top ? resolveUnitName(top.unitId) : t('preBattle.defender');
+  };
 
   // S7 — Siège de ville : titre et rangée de défenses (données déjà dans l'état).
   const town = combat.townId ? game.towns.find((tw) => tw.id === combat.townId) : undefined;
@@ -102,13 +118,20 @@ export function PreBattleScreen() {
                   class="pre-battle-avatar"
                   fallback={<FactionBadge factionId={hero.factionId} />}
                 />
-              ) : attackerFaction ? (
-                <FactionBadge factionId={attackerFaction} />
+              ) : attTop ? (
+                // Sans héros (arène) : la pile dominante, comme en face — plus un
+                // blason dupliqué au-dessus du blason du libellé.
+                <AssetImg
+                  src={unitSpriteUrl(attTop.unitId, attackerFaction)}
+                  alt=""
+                  class="pre-battle-avatar"
+                  fallback={attackerFaction ? <FactionBadge factionId={attackerFaction} /> : undefined}
+                />
               ) : null}
             </div>
-            <span class="pre-battle-name">
+            <span class="pre-battle-name" data-testid="pre-battle-name-attacker">
               {attackerFaction && <FactionBadge factionId={attackerFaction} />}
-              {t('preBattle.attacker')}
+              {sideLabel('attacker')}
             </span>
             <span class="pre-battle-power" data-testid="pre-battle-power-attacker">
               {attackerPower}
@@ -129,7 +152,14 @@ export function PreBattleScreen() {
 
           <div class="pre-battle-side">
             <div class="pre-battle-portrait">
-              {defTop ? (
+              {defenderHero ? (
+                <AssetImg
+                  src={heroAvatarUrl(defenderHero.factionId, heroArchetype(defenderHero.attributes), defenderHero.name)}
+                  alt=""
+                  class="pre-battle-avatar"
+                  fallback={<FactionBadge factionId={defenderHero.factionId} />}
+                />
+              ) : defTop ? (
                 <AssetImg
                   src={unitSpriteUrl(defTop.unitId, defenderFaction)}
                   alt=""
@@ -138,9 +168,9 @@ export function PreBattleScreen() {
                 />
               ) : null}
             </div>
-            <span class="pre-battle-name">
+            <span class="pre-battle-name" data-testid="pre-battle-name-defender">
               {defenderFaction && <FactionBadge factionId={defenderFaction} />}
-              {defTop ? resolveUnitName(defTop.unitId) : t('preBattle.defender')}
+              {sideLabel('defender')}
             </span>
             <span class="pre-battle-power" data-testid="pre-battle-power-defender">
               {defenderPower}

@@ -40,3 +40,33 @@ describe('sumDailyIncome', () => {
     expect(sumDailyIncome([mine('p1', 'gold', 250)], 'p1')).toEqual([{ resource: 'gold', amount: 250 }]);
   });
 });
+
+/**
+ * Revue 2026-09b V2 : le toast « {building} construit (niveau {level}) » affichait
+ * `{level}` brut — le paramètre n'était pas passé. Locales réelles du cœur.
+ */
+describe('notify — TownBuilt', () => {
+  it('interpole le niveau construit (aucun paramètre {…} laissé brut)', async () => {
+    const { initI18n, setLocale } = await import('./i18n');
+    const { notify } = await import('./notifications');
+    const { readFileSync } = await import('node:fs');
+    const load = (l: string): Record<string, string> =>
+      JSON.parse(readFileSync(new URL(`../../../../data/core/locales/${l}.json`, import.meta.url), 'utf8')) as Record<
+        string,
+        string
+      >;
+    initI18n({
+      content: { coreLocales: { fr: load('fr'), en: load('en') }, packs: [], coreWarMachines: [] },
+    } as unknown as Parameters<typeof initI18n>[0]);
+    setLocale('fr');
+    const game = {
+      players: [{ id: 'p1', controller: 'human' }],
+      currentPlayer: 0,
+      towns: [{ id: 'town-1', ownerPlayerId: 'p1' }],
+      heroes: [],
+    } as unknown as Parameters<typeof notify>[1];
+    const msg = notify({ type: 'TownBuilt', townId: 'town-1', buildingId: 'fort', level: 2 } as AppEvent, game);
+    expect(msg).toContain('2');
+    expect(msg).not.toMatch(/\{\w+\}/);
+  });
+});

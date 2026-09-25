@@ -8,6 +8,10 @@
    fond clair posent déjà leur couleur explicite (ex. MapEditor). */
 #ui-root {
   color: var(--parchment);
+  /* Police d'UI par défaut (revue 2026-09b V1) : sans elle, tout texte qui
+     n'impose pas sa police (pré-combat, passage d'appareil, bilans) retombait
+     sur la police navigateur (Times). Les titres gardent --font-display. */
+  font-family: var(--font-ui);
 }
 
 /* Chrome décoratif partagé (doc 12 Règle G, skill asset-chrome) : cadre &

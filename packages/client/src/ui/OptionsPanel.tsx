@@ -92,6 +92,14 @@ export function OptionsPanel({ onClose }: { onClose: () => void }) {
       .then(() => pushToast(t('toast.saved'), 'success'))
       .catch(() => eventBus.emit([{ type: 'SaveFailed' }]));
   };
+  // E18 (revue 2026-09b) : charger / récupérer du cloud REMPLACE la partie en
+  // cours — tap-tap (doc 08 §1.3) : le 1er tap arme, le 2ᵉ confirme.
+  const [armed, setArmed] = useState<'load' | 'cloud-pull' | null>(null);
+  const confirmThen = (which: 'load' | 'cloud-pull', run: () => void) => (): void => {
+    if (armed !== which) return setArmed(which);
+    setArmed(null);
+    run();
+  };
   // Revue 2026-09 (C7) : slot vide ou stockage illisible ⇒ toast, jamais un clic muet.
   const doLoad = (): void =>
     void restoreSavedGame('manual')
@@ -140,6 +148,7 @@ export function OptionsPanel({ onClose }: { onClose: () => void }) {
           <div class="segmented" role="group">
             <button
               class={locale === 'fr' ? 'active' : ''}
+              aria-pressed={locale === 'fr'}
               data-testid="options-locale-fr"
               onClick={() => setLocale('fr')}
             >
@@ -147,6 +156,7 @@ export function OptionsPanel({ onClose }: { onClose: () => void }) {
             </button>
             <button
               class={locale === 'en' ? 'active' : ''}
+              aria-pressed={locale === 'en'}
               data-testid="options-locale-en"
               onClick={() => setLocale('en')}
             >
@@ -162,6 +172,7 @@ export function OptionsPanel({ onClose }: { onClose: () => void }) {
               <button
                 key={scale}
                 class={fontScale === scale ? 'active' : ''}
+                aria-pressed={fontScale === scale}
                 data-testid={`options-fontscale-${scale}`}
                 onClick={() => applyFontScale(scale)}
               >
@@ -178,6 +189,7 @@ export function OptionsPanel({ onClose }: { onClose: () => void }) {
               <button
                 key={speed}
                 class={combatSpeed === speed ? 'active' : ''}
+                aria-pressed={combatSpeed === speed}
                 onClick={() => appStore.setState({ combatSpeed: speed })}
               >
                 ×{speed}
@@ -192,6 +204,7 @@ export function OptionsPanel({ onClose }: { onClose: () => void }) {
             <span class="options-toggle-label">{t('options.reduceMotion')}</span>
             <button
               class={reduceMotionOption ? 'active' : ''}
+              aria-pressed={reduceMotionOption}
               data-testid="options-reduce-motion-on"
               onClick={() => applyReduceMotion(true)}
             >
@@ -199,6 +212,7 @@ export function OptionsPanel({ onClose }: { onClose: () => void }) {
             </button>
             <button
               class={!reduceMotionOption ? 'active' : ''}
+              aria-pressed={!reduceMotionOption}
               data-testid="options-reduce-motion-off"
               onClick={() => applyReduceMotion(false)}
             >
@@ -209,6 +223,7 @@ export function OptionsPanel({ onClose }: { onClose: () => void }) {
             <span class="options-toggle-label">{t('options.confirmEndTurn')}</span>
             <button
               class={confirmEndTurn ? 'active' : ''}
+              aria-pressed={confirmEndTurn}
               data-testid="options-confirm-endturn-on"
               onClick={() => setConfirmEndTurn(true)}
             >
@@ -216,6 +231,7 @@ export function OptionsPanel({ onClose }: { onClose: () => void }) {
             </button>
             <button
               class={!confirmEndTurn ? 'active' : ''}
+              aria-pressed={!confirmEndTurn}
               data-testid="options-confirm-endturn-off"
               onClick={() => setConfirmEndTurn(false)}
             >
@@ -226,6 +242,7 @@ export function OptionsPanel({ onClose }: { onClose: () => void }) {
             <span class="options-toggle-label">{t('options.haptics')}</span>
             <button
               class={hapticsEnabled ? 'active' : ''}
+              aria-pressed={hapticsEnabled}
               data-testid="options-haptics-on"
               onClick={() => setHaptics(true)}
             >
@@ -233,6 +250,7 @@ export function OptionsPanel({ onClose }: { onClose: () => void }) {
             </button>
             <button
               class={!hapticsEnabled ? 'active' : ''}
+              aria-pressed={!hapticsEnabled}
               data-testid="options-haptics-off"
               onClick={() => setHaptics(false)}
             >
@@ -267,6 +285,7 @@ export function OptionsPanel({ onClose }: { onClose: () => void }) {
             <span class="options-toggle-label">{t('options.audioMute')}</span>
             <button
               class={audioMuted ? 'active' : ''}
+              aria-pressed={audioMuted}
               data-testid="options-mute-on"
               onClick={() => setMuted(true)}
             >
@@ -274,6 +293,7 @@ export function OptionsPanel({ onClose }: { onClose: () => void }) {
             </button>
             <button
               class={!audioMuted ? 'active' : ''}
+              aria-pressed={!audioMuted}
               data-testid="options-mute-off"
               onClick={() => setMuted(false)}
             >
@@ -309,6 +329,7 @@ export function OptionsPanel({ onClose }: { onClose: () => void }) {
           <div class="segmented" role="group">
             <button
               class={telemetryEnabled ? '' : 'active'}
+              aria-pressed={!(telemetryEnabled)}
               data-testid="options-telemetry-off"
               onClick={() => setTelemetryEnabled(false)}
             >
@@ -316,6 +337,7 @@ export function OptionsPanel({ onClose }: { onClose: () => void }) {
             </button>
             <button
               class={telemetryEnabled ? 'active' : ''}
+              aria-pressed={telemetryEnabled}
               data-testid="options-telemetry-on"
               onClick={() => setTelemetryEnabled(true)}
             >
@@ -356,8 +378,8 @@ export function OptionsPanel({ onClose }: { onClose: () => void }) {
               <button data-testid="save" onClick={doSave}>
                 {t('turnBar.save')}
               </button>
-              <button data-testid="load" onClick={doLoad}>
-                {t('turnBar.load')}
+              <button data-testid="load" class={armed === 'load' ? 'is-armed' : ''} onClick={confirmThen('load', doLoad)}>
+                {armed === 'load' ? t('options.confirmReplaceGame') : t('turnBar.load')}
               </button>
               <button data-testid="options-export" onClick={doExport}>
                 {t('options.export')}
@@ -384,8 +406,12 @@ export function OptionsPanel({ onClose }: { onClose: () => void }) {
               <button data-testid="cloud-push" onClick={doCloudPush}>
                 {t('options.cloudPush')}
               </button>
-              <button data-testid="cloud-pull" onClick={doCloudPull}>
-                {t('options.cloudPull')}
+              <button
+                data-testid="cloud-pull"
+                class={armed === 'cloud-pull' ? 'is-armed' : ''}
+                onClick={confirmThen('cloud-pull', doCloudPull)}
+              >
+                {armed === 'cloud-pull' ? t('options.confirmReplaceGame') : t('options.cloudPull')}
               </button>
             </div>
           </section>

@@ -1,7 +1,7 @@
 import type { MarketConfig } from '../adventure/config';
 import type { Command, CommandError } from '../core/commands';
 import type { GameEvent } from '../core/events';
-import type { GameState, ResourceId } from '../core/state';
+import { RESOURCE_IDS, type GameState, type ResourceId } from '../core/state';
 
 type TradeCmd = Extract<Command, { type: 'TradeResources' }>;
 
@@ -84,6 +84,12 @@ export function validateTradeResources(state: GameState, cmd: TradeCmd): Command
     return { code: 'invalidTrade', message: `aucun marché construit dans '${cmd.townId}'` };
   if (!Number.isInteger(cmd.giveAmount) || cmd.giveAmount <= 0)
     return { code: 'invalidTrade', message: `montant d'échange invalide (${cmd.giveAmount})` };
+  // Revue 2026-09b M4 : ids de ressource BORNÉS au registre. Un id inconnu lisait
+  // `undefined < n` (faux) ⇒ passait le contrôle de stock : un lot PvP forgé
+  // `give: 'bogus'` créditait des millions d'or (et un NaN sérialisé en null).
+  const known = RESOURCE_IDS as readonly string[];
+  if (!known.includes(cmd.give) || !known.includes(cmd.receive))
+    return { code: 'invalidTrade', message: `ressource inconnue (${cmd.give} → ${cmd.receive})` };
   // Troc autorisé (T-MARKETRATE) : on rejette l'échange d'une ressource contre
   // elle-même (or↔or inclus) — sans effet au mieux, duplication au pire.
   if (cmd.give === cmd.receive)

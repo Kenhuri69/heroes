@@ -17,8 +17,9 @@ import {
   upgradeCost,
   weekOf,
   weeklyGrowthOf,
+  samePos,
 } from '@heroes/engine';
-import type { BuildingDef, CombatUnitDef, GameEvent, GameState, ResourceId, TownState } from '@heroes/engine';
+import type { BuildingDef, CombatUnitDef, GameEvent, GameState, GridPos, ResourceId, TownState } from '@heroes/engine';
 import { useApp, appStore } from '../app/store';
 import { dispatch } from '../app/dispatch';
 import { useLongPress } from './useLongPress';
@@ -112,36 +113,50 @@ function shipyardBoatCost(
 }
 
 /** Y a-t-il une tuile d'eau navigable LIBRE adjacente à `pos` ? (miroir de `validateBuildBoat`) */
-function adjacentFreeWater(game: GameState, pos: { x: number; y: number }): boolean {
+function adjacentFreeWater(game: GameState, pos: GridPos): boolean {
   const map = game.map;
   const config = game.config;
   if (!map || !config) return false;
   for (let dy = -1; dy <= 1; dy++) {
     for (let dx = -1; dx <= 1; dx++) {
       if (dx === 0 && dy === 0) continue;
-      const p = { x: pos.x + dx, y: pos.y + dy };
+      const p: GridPos = { ...pos, x: pos.x + dx, y: pos.y + dy }; // même couche (E9)
       if (!isPassable(config, map, p, true)) continue; // eau navigable (domaine naval)
       const taken =
-        game.heroes.some((h) => h.pos.x === p.x && h.pos.y === p.y) ||
-        map.objects.some((o) => o.type === 'boat' && o.pos.x === p.x && o.pos.y === p.y);
+        game.heroes.some((h) => samePos(h.pos, p)) ||
+        map.objects.some((o) => o.type === 'boat' && samePos(o.pos, p));
       if (!taken) return true;
     }
   }
   return false;
 }
 
-function CostList({ cost }: { cost: Record<string, number> }) {
+/**
+ * Coût affiché. `have` (stock du joueur) : chaque ressource MANQUANTE est marquée
+ * (`is-missing` + glyphe, jamais la couleur seule — doc 08 §4) pour que le joueur
+ * voie ce qui bloque AVANT de taper (revue 2026-09b E10).
+ */
+function CostList({ cost, have }: { cost: Record<string, number>; have?: Record<string, number> | undefined }) {
   const entries = Object.entries(cost);
   if (entries.length === 0) return null;
   return (
     <span class="town-cost">
-      {entries.map(([id, amount]) => (
-        <span key={id} class="town-cost-entry">
-          {amount} {resourceLabel(id)}
-        </span>
-      ))}
+      {entries.map(([id, amount]) => {
+        const missing = have !== undefined && (have[id] ?? 0) < amount;
+        return (
+          <span key={id} class={`town-cost-entry${missing ? ' is-missing' : ''}`}>
+            {missing && <span aria-hidden="true">✗ </span>}
+            {amount} {resourceLabel(id)}
+          </span>
+        );
+      })}
     </span>
   );
+}
+
+/** Le stock couvre-t-il le coût ? (présentation — le moteur revalide). */
+function covers(cost: Record<string, number>, have: Record<string, number> | undefined): boolean {
+  return have !== undefined && Object.entries(cost).every(([id, amount]) => (have[id] ?? 0) >= amount);
 }
 
 /**
@@ -153,8 +168,14 @@ function CostList({ cost }: { cost: Record<string, number> }) {
 export function TownScreen({ townId, onClose }: { townId: string; onClose: () => void }) {
   useApp((s) => s.locale); // réactivité i18n
   const game = useApp((s) => s.game);
-  const [tab, setTab] = useState<'build' | 'recruit' | 'garrison' | 'market' | 'guild' | 'tavern'>('build');
+  const [tab, setTabState] = useState<'build' | 'recruit' | 'garrison' | 'market' | 'guild' | 'tavern'>('build');
   const [error, setError] = useState<string | null>(null);
+  // E4 : une erreur appartient à l'onglet où l'action a échoué — la changer
+  // d'onglet l'efface (avant : elle persistait sur l'onglet suivant).
+  const setTab = (next: typeof tab): void => {
+    setError(null);
+    setTabState(next);
+  };
   // Lot R2 (H1) : le panorama est un DÉCOR, la liste est l'outil — il devient une
   // section repliable dont l'état persiste (`heroes.section.town.view`), REPLIÉE
   // par défaut en portrait étroit pour que la rangée d'onglets — donc le premier
@@ -264,7 +285,7 @@ export function TownScreen({ townId, onClose }: { townId: string; onClose: () =>
               onClick={() => {
                 setError(null);
                 dispatch({ type: 'BuildBoat', townId: town.id }).catch((err: unknown) =>
-                  setError((err as Error).message),
+                  setError(commandErrorMessage(err)), // E13 : message localisé, plus le texte moteur brut
                 );
               }}
             >
@@ -292,6 +313,8 @@ export function TownScreen({ townId, onClose }: { townId: string; onClose: () =>
             )}
             <nav class="town-tabs" role="tablist">
               <button
+                role="tab"
+                aria-selected={activeTab === 'build'}
                 class={activeTab === 'build' ? 'active' : ''}
                 data-testid="town-tab-build"
                 onClick={() => setTab('build')}
@@ -299,6 +322,8 @@ export function TownScreen({ townId, onClose }: { townId: string; onClose: () =>
                 <UiIcon id="tab-build" fallback="" /> {t('town.build')}
               </button>
               <button
+                role="tab"
+                aria-selected={activeTab === 'recruit'}
                 class={activeTab === 'recruit' ? 'active' : ''}
                 data-testid="town-tab-recruit"
                 onClick={() => setTab('recruit')}
@@ -306,6 +331,8 @@ export function TownScreen({ townId, onClose }: { townId: string; onClose: () =>
                 <UiIcon id="tab-recruit" fallback="" /> {t('town.recruit')}
               </button>
               <button
+                role="tab"
+                aria-selected={activeTab === 'garrison'}
                 class={activeTab === 'garrison' ? 'active' : ''}
                 data-testid="town-tab-garrison"
                 onClick={() => setTab('garrison')}
@@ -314,6 +341,8 @@ export function TownScreen({ townId, onClose }: { townId: string; onClose: () =>
               </button>
               {hasMarket && (
                 <button
+                  role="tab"
+                  aria-selected={activeTab === 'market'}
                   class={activeTab === 'market' ? 'active' : ''}
                   data-testid="town-tab-market"
                   onClick={() => setTab('market')}
@@ -323,6 +352,8 @@ export function TownScreen({ townId, onClose }: { townId: string; onClose: () =>
               )}
               {hasGuild && (
                 <button
+                  role="tab"
+                  aria-selected={activeTab === 'guild'}
                   class={activeTab === 'guild' ? 'active' : ''}
                   data-testid="town-tab-guild"
                   onClick={() => setTab('guild')}
@@ -332,6 +363,8 @@ export function TownScreen({ townId, onClose }: { townId: string; onClose: () =>
               )}
               {hasTavern && (
                 <button
+                  role="tab"
+                  aria-selected={activeTab === 'tavern'}
                   class={activeTab === 'tavern' ? 'active' : ''}
                   data-testid="town-tab-tavern"
                   onClick={() => setTab('tavern')}
@@ -640,7 +673,7 @@ function TownView({
 function GuildTab({ town }: { town: TownState }) {
   const game = useApp((s) => s.game);
   const heroes = game.heroes.filter((h) => h.playerId === humanId(game));
-  const hero = heroes.find((h) => h.pos.x === town.pos.x && h.pos.y === town.pos.y) ?? heroes[0];
+  const hero = heroes.find((h) => samePos(h.pos, town.pos)) ?? heroes[0];
   const pool = town.spellPool ?? [];
 
   if (pool.length === 0) {
@@ -897,6 +930,8 @@ function BuildTab({
   const buildingIds = townBuildingIds(town, catalog).sort(
     (a, b) => buildStatusOrder[effStatus(a)] - buildStatusOrder[effStatus(b)] || a.localeCompare(b),
   );
+  const game = useApp((s) => s.game);
+  const have = game.players.find((p) => p.id === town.ownerPlayerId)?.resources;
 
   const build = (buildingId: string): void => {
     onError(null);
@@ -961,13 +996,25 @@ function BuildTab({
               )}
               {status === 'available' && nextLevel && (
                 <div class="town-building-action">
-                  <CostList cost={nextLevel.cost} />
+                  <CostList cost={nextLevel.cost} have={have} />
                   <button
                     data-testid={`town-build-${buildingId}`}
                     disabled={town.builtToday}
-                    onClick={() => build(buildingId)}
+                    // E10 : impayable ⇒ grisé AVEC sa raison visible, mais `aria-disabled`
+                    // (doc 08 §4, R6) : il reste tapable et livre sa raison au tap.
+                    aria-disabled={!covers(nextLevel.cost, have)}
+                    onClick={() =>
+                      covers(nextLevel.cost, have) ? build(buildingId) : onError(t('cmdError.cannotAfford'))
+                    }
                   >
                     {t('town.build')}
+                    {/* E10 : bouton grisé ⇒ sa RAISON sous le libellé (même patron
+                        que les boutons de combat, lot E2) — jamais un refus muet. */}
+                    {!town.builtToday && !covers(nextLevel.cost, have) && (
+                      <small class="btn-reason" data-testid={`town-build-reason-${buildingId}`}>
+                        {t('cmdError.cannotAfford')}
+                      </small>
+                    )}
                   </button>
                 </div>
               )}
@@ -1044,9 +1091,15 @@ function RecruitTab({
     });
   };
 
-  const qtyFor = (unitId: string, stock: number): number => {
+  // E11 : plafond de saisie = ce qui est DISPONIBLE ET payable (avant : le stock
+  // seul ⇒ « Max » proposait un effectif que l'or ne couvrait pas).
+  const capFor = (unitId: string, stock: number): number => {
+    const cost = (unitCatalog[unitId] as (CombatUnitDef & UnitEconomyFields) | undefined)?.recruitCost;
+    return player ? Math.min(stock, maxAffordable(cost, player.resources)) : 0;
+  };
+  const qtyFor = (unitId: string, cap: number): number => {
     const raw = quantities[unitId] ?? 1;
-    return Math.max(1, Math.min(raw, Math.max(stock, 1)));
+    return Math.max(1, Math.min(raw, Math.max(cap, 1)));
   };
 
   const setQty = (unitId: string, value: number): void => {
@@ -1127,7 +1180,8 @@ function RecruitTab({
       <ul class="town-dwelling-list">
         {unitIds.map((unitId) => {
           const stock = town.stock[unitId] ?? 0;
-          const qty = qtyFor(unitId, stock);
+          const cap = capFor(unitId, stock);
+          const qty = qtyFor(unitId, cap);
           const growth = weeklyGrowthOf(game, town, unitId);
           const economy = unitCatalog[unitId] as (CombatUnitDef & UnitEconomyFields) | undefined;
           const totalCost = economy?.recruitCost ? scaleCost(economy.recruitCost, qty) : null;
@@ -1156,31 +1210,35 @@ function RecruitTab({
                 />
               )}
               <div class="town-dwelling-controls">
-                <button disabled={stock === 0} onClick={() => setQty(unitId, 1)}>
+                <button disabled={cap === 0} onClick={() => setQty(unitId, 1)}>
                   {t('town.min')}
                 </button>
                 <input
                   type="range"
                   min={1}
-                  max={Math.max(stock, 1)}
+                  max={Math.max(cap, 1)}
                   value={qty}
-                  disabled={stock === 0}
+                  disabled={cap === 0}
+                  aria-label={t('town.recruitQty', { unit: resolveUnitName(unitId) })}
                   onInput={(e) => setQty(unitId, Number((e.currentTarget as HTMLInputElement).value))}
                 />
-                <button disabled={stock === 0} onClick={() => setQty(unitId, stock)}>
+                <button disabled={cap === 0} onClick={() => setQty(unitId, cap)}>
                   {t('town.max')}
                 </button>
                 <span class="town-dwelling-qty" data-testid={`town-qty-${unitId}`}>
-                  {stock === 0 ? 0 : qty}
+                  {cap === 0 ? 0 : qty}
                 </span>
               </div>
-              {totalCost && <CostList cost={totalCost} />}
+              {totalCost && <CostList cost={totalCost} have={player?.resources} />}
               <button
                 data-testid={`town-recruit-${unitId}`}
                 disabled={stock === 0}
-                onClick={() => recruit(unitId, qty)}
+                // E11 : disponible mais impayable ⇒ raison visible + tapable (R6).
+                aria-disabled={stock > 0 && cap === 0}
+                onClick={() => (cap === 0 ? onError(t('cmdError.cannotAfford')) : recruit(unitId, qty))}
               >
                 {t('town.recruit')}
+                {stock > 0 && cap === 0 && <small class="btn-reason">{t('cmdError.cannotAfford')}</small>}
               </button>
             </li>
           );
@@ -1196,7 +1254,7 @@ function GarrisonTab({ town, onError }: { town: TownState; onError: (msg: string
   const game = useApp((s) => s.game);
   const humanPlayerId = humanId(game);
   const hero = game.heroes.find(
-    (h) => h.playerId === humanPlayerId && h.pos.x === town.pos.x && h.pos.y === town.pos.y,
+    (h) => h.playerId === humanPlayerId && samePos(h.pos, town.pos),
   );
 
   // Caravanes inter-villes (T-CARAVAN, doc 02 §4.1) : destinations = autres villes
@@ -1569,10 +1627,13 @@ function MarketTab({ town, onError }: { town: TownState; onError: (msg: string |
  */
 function ArtifactMerchant({ town, onError }: { town: TownState; onError: (msg: string | null) => void }) {
   const game = useApp((s) => s.game);
+  // E12 : vendre un artefact PORTÉ est irréversible — tap-tap (1er tap arme la
+  // vente, 2ᵉ confirme ; doc 08 §1.3). Le sac à dos reste en 1 tap.
+  const [armedSale, setArmedSale] = useState<string | null>(null);
   const market = game.config?.market;
   if (!market || market.artifactValuePerPoint === undefined) return null;
   const hero = game.heroes.find(
-    (h) => h.playerId === town.ownerPlayerId && h.pos.x === town.pos.x && h.pos.y === town.pos.y,
+    (h) => h.playerId === town.ownerPlayerId && samePos(h.pos, town.pos),
   );
   if (!hero) return null;
 
@@ -1630,15 +1691,24 @@ function ArtifactMerchant({ town, onError }: { town: TownState; onError: (msg: s
           {entries.map((e) => {
             const def = game.artifactCatalog[e.id];
             const price = def ? artifactSellPrice(def, market) : 0;
+            const key = `${e.source}-${e.index}`;
+            const needsConfirm = e.source === 'equipped' && armedSale !== key;
             return (
-              <li key={`${e.source}-${e.index}`}>
+              <li key={key}>
                 <span class="town-artifact-name">{resolveArtifactName(e.id)}</span>
                 <button
                   data-testid={`artifact-sell-${e.source}-${e.index}`}
+                  class={armedSale === key ? 'is-armed' : ''}
                   disabled={price <= 0}
-                  onClick={() => sell(e.source, e.index)}
+                  onClick={() => {
+                    if (needsConfirm) return setArmedSale(key);
+                    setArmedSale(null);
+                    sell(e.source, e.index);
+                  }}
                 >
-                  {t('town.artifactSell', { gold: price })}
+                  {armedSale === key
+                    ? t('town.artifactSellConfirm', { gold: price })
+                    : t('town.artifactSell', { gold: price })}
                 </button>
               </li>
             );

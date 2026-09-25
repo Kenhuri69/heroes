@@ -85,6 +85,10 @@
 .segmented button.active {
   background: var(--blood);
   border-color: var(--blood-bright);
+  /* E20 (revue 2026-09b) : second canal NON chromatique de l'état actif — un
+     filet sous le libellé (doc 08 §4 « jamais la couleur seule ») ; l'état est
+     aussi exposé par `aria-pressed`. */
+  box-shadow: inset 0 -3px 0 var(--parchment);
 }
 
 /* Bascule Oui/Non avec libellé à gauche (lot M8 C3/C12). */

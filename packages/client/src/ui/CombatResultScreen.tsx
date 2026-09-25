@@ -3,6 +3,7 @@ import { appStore, useApp, type CombatResultUnit } from '../app/store';
 import { t, resolveUnitName, resolveArtifactName, resolveFactionResourceName } from '../app/i18n';
 import { unitSpriteUrl, resourceIconUrl } from '../render/assets';
 import { AssetImg } from './AssetImg';
+import { useEscape } from './useEscape';
 import './CombatResultScreen.css';
 
 /**
@@ -22,11 +23,13 @@ export function CombatResultScreen() {
   useApp((s) => s.locale); // réactivité i18n
   const result = useApp((s) => s.combatResult);
   const catalog = useApp((s) => s.game.unitCatalog);
-  if (!result) return null;
-
   const dismiss = (): void => {
     appStore.setState({ combatResult: null });
   };
+  // E23 (revue 2026-09b) : Échap ferme le bilan ; « Continuer » prend le focus ⇒
+  // Entrée/Espace le valident nativement (avant : souris ou doigt obligatoire).
+  useEscape(dismiss, result !== null);
+  if (!result) return null;
 
   const factionOf = (unitId: string): string | undefined => catalog[unitId]?.groupId;
 
@@ -103,7 +106,7 @@ export function CombatResultScreen() {
           </div>
         )}
 
-        <button class="menu-button" data-testid="combat-result-continue" onClick={dismiss}>
+        <button class="menu-button" data-testid="combat-result-continue" autoFocus onClick={dismiss}>
           {t('combatResult.continue')}
         </button>
       </div>

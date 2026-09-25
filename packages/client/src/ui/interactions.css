@@ -109,3 +109,11 @@ input:focus-visible {
   animation: none !important;
   transition: none !important;
 }
+
+/* Tap-tap « armé » (revue 2026-09b E12/E18) : le 1er tap d'une action
+   irréversible arme le bouton — contour épais + libellé « Confirmer : … »
+   (le texte porte l'information, la bordure la renforce). */
+button.is-armed {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}

@@ -70,6 +70,21 @@ function state(
 const stepOnto = { type: 'MoveHero' as const, heroId: 'a', path: [{ x: 3, y: 3 }] };
 
 describe('H-VS-H — combat héros-vs-héros', () => {
+  it('défenseur SANS troupes : victoire immédiate, jamais de combat sans fin (revue 2026-09b M1)', () => {
+    const s = state(
+      hero('a', 'p1', { x: 2, y: 2 }, { army: [{ unitId: 'blue-wolf', count: 5 }] }),
+      hero('b', 'p2', { x: 3, y: 3 }), // recrue de Taverne : armée vide
+    );
+    const { state: next, events } = apply(s, stepOnto);
+    // Combat ouvert puis clos dans la même commande : plus d'état de combat
+    // pendant, le vaincu disparaît, l'armée de l'attaquant est intacte.
+    expect(events.some((e) => e.type === 'CombatStarted')).toBe(true);
+    expect(events.find((e) => e.type === 'CombatEnded')).toMatchObject({ winner: 'attacker' });
+    expect(next.combat).toBeNull();
+    expect(next.heroes.map((h) => h.id)).toEqual(['a']);
+    expect(next.heroes[0]?.army).toEqual([{ unitId: 'blue-wolf', count: 5 }]);
+  });
+
   it('marcher sur un héros ennemi ouvre un combat avec les DEUX hero ids', () => {
     const s = state(
       hero('a', 'p1', { x: 2, y: 2 }, { army: [{ unitId: 'blue-wolf', count: 20 }] }),

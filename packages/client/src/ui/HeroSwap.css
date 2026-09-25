@@ -4,6 +4,10 @@
 .modal.heroswap {
   max-width: 720px;
   width: 92vw;
+  /* E5 (revue 2026-09b) : comme toute modale, défilable — 7+7 piles + artefacts
+     en paysage ou au cran 3 poussaient en-tête et « Tout donner » hors écran. */
+  max-height: 86vh;
+  overflow-y: auto;
 }
 
 .heroswap-hint {

@@ -1,5 +1,6 @@
 import { useApp } from '../app/store';
 import { t } from '../app/i18n';
+import { useEscape } from './useEscape';
 import './ShortcutsOverlay.css';
 
 /**
@@ -7,22 +8,24 @@ import './ShortcutsOverlay.css';
  * raccourcis desktop existent (M8) mais étaient indécouvrables. Overlay ouvert
  * par la touche `?` (ou depuis l'astuce d'Options). Confort **desktop
  * uniquement**, jamais requis : tout reste jouable à la souris/au doigt.
- * Fermeture par bouton, backdrop ou Échap (handler global de `shell.tsx`) —
- * modale simple dans la pile (doc 08 §3, pile ≤ 2).
+ * Fermeture par bouton, backdrop ou Échap (`useEscape` : ne ferme QUE cette
+ * couche, même ouverte depuis Options — revue 2026-09b E17).
  */
+/** `keys` : touche littérale, ou clé i18n (`key:` — « Espace »/« Échap » localisés, E21). */
 const ROWS: readonly { keys: string; label: string }[] = [
   { keys: 'E', label: 'shortcuts.endTurn' },
   { keys: 'H', label: 'shortcuts.hero' },
   { keys: 'N', label: 'shortcuts.nextHero' },
   { keys: 'T', label: 'shortcuts.town' },
   { keys: '?', label: 'shortcuts.help' },
-  { keys: 'Espace', label: 'shortcuts.combatWait' },
+  { keys: 'key:shortcuts.keySpace', label: 'shortcuts.combatWait' },
   { keys: 'D', label: 'shortcuts.combatDefend' },
-  { keys: 'Échap', label: 'shortcuts.escClose' },
+  { keys: 'key:shortcuts.keyEscape', label: 'shortcuts.escClose' },
 ];
 
 export function ShortcutsOverlay({ onClose }: { onClose: () => void }) {
   useApp((s) => s.locale); // réactivité i18n
+  useEscape(onClose);
   return (
     <div class="modal-backdrop" onClick={onClose}>
       <div
@@ -49,7 +52,7 @@ export function ShortcutsOverlay({ onClose }: { onClose: () => void }) {
           {ROWS.map((r) => (
             <div class="shortcuts-row" key={r.keys}>
               <dt>
-                <kbd class="shortcuts-key">{r.keys}</kbd>
+                <kbd class="shortcuts-key">{r.keys.startsWith('key:') ? t(r.keys.slice(4)) : r.keys}</kbd>
               </dt>
               <dd>{t(r.label)}</dd>
             </div>

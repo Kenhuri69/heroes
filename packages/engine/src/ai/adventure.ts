@@ -460,6 +460,43 @@ function pickAdjacentCapturableTown(draft: GameState, hero: HeroState, player: P
 }
 
 /**
+ * Revue 2026-09b M6 — marche sur une ville adverse PRENABLE, en plusieurs jours.
+ * Tous les autres pickers écartent une cible hors de portée du JOUR ; carte
+ * explorée, l'IA n'avait donc plus rien à faire et ses héros restaient plantés —
+ * aucune pression sur le joueur. Repli final : la ville non alliée CONNUE (tuile
+ * explorée, même couche) la moins chère à atteindre dont la garnison — et le
+ * héros qui la tiendrait — pèse moins que l'armée du héros / marge H-VS-H. Le
+ * chemin est COMPLET : `advanceHeroAlongPath` s'arrête de lui-même aux PM du
+ * jour, la marche reprend au tour suivant (état recalculé, rien de mémorisé).
+ */
+function pickTownMarchTarget(
+  draft: GameState,
+  hero: HeroState,
+  player: PlayerState,
+  blocked: GridPos[],
+): { town: TownState; path: GridPos[] } | null {
+  const { map, config, unitCatalog } = draft;
+  if (!map || !config) return null;
+  const heroStrength = armyStrength(hero.army, unitCatalog);
+  if (heroStrength <= 0) return null;
+  let best: { town: TownState; path: GridPos[]; cost: number } | null = null;
+  for (const town of draft.towns) {
+    if (town.ownerPlayerId === player.id || levelOf(town.pos) !== levelOf(hero.pos)) continue;
+    const owner = draft.players.find((p) => p.id === town.ownerPlayerId);
+    if (owner && areAllies(owner, player)) continue;
+    if (!inBounds(map, town.pos) || !player.explored[tileIndex(map, town.pos)]) continue;
+    if (heroStrength < ENEMY_HERO_STRENGTH_MARGIN * armyStrength(town.garrison, unitCatalog)) continue;
+    const holder = draft.heroes.find((h) => h.playerId !== player.id && samePos(h.pos, town.pos));
+    if (holder && heroStrength < ENEMY_HERO_STRENGTH_MARGIN * armyStrength(holder.army, unitCatalog)) continue;
+    const path = findPath(config, map, hero.pos, town.pos, blocked.filter((p) => !samePos(p, town.pos)), true);
+    if (!path || path.length === 0) continue;
+    const cost = totalPathCost(config, map, hero.pos, path);
+    if (!best || cost < best.cost || (cost === best.cost && town.id < best.town.id)) best = { town, path, cost };
+  }
+  return best;
+}
+
+/**
  * Tuile inexplorée la plus proche ATTEIGNABLE (BFS sur le graphe franchissable,
  * déterministe). `blockedIdx` (revue 2026-09 M13) : tuiles interdites au chemin
  * (gardiens, autres héros) — exclues du parcours ET comme cible. Sans ce filtre,
@@ -689,5 +726,15 @@ function playHeroTurn(draft: GameState, hero: HeroState, player: PlayerState, ev
   }
 
   const exploreStep = pickExplorationStep(draft, hero, player, [...blocked, ...guardianPos]);
-  if (exploreStep) advanceAi(draft, hero, player, exploreStep, events);
+  if (exploreStep) {
+    advanceAi(draft, hero, player, exploreStep, events);
+    return;
+  }
+
+  // M6 : plus rien à explorer ⇒ marcher (sur plusieurs jours) vers une ville
+  // adverse prenable, s'arrêter à côté, puis l'assiéger/la prendre une fois au contact.
+  const march = pickTownMarchTarget(draft, hero, player, [...blocked, ...guardianPos]);
+  if (!march) return;
+  if (march.path.length > 1) advanceAi(draft, hero, player, march.path.slice(0, -1), events);
+  if (!draft.combat && isAdjacent(hero.pos, march.town.pos)) captureTown(draft, march.town, player, events);
 }

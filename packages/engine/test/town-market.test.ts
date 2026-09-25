@@ -127,6 +127,14 @@ describe('TradeResources', () => {
     expect(err?.code).toBe('invalidTrade');
   });
 
+  it('revue 2026-09b M4 : refuse un id de ressource inconnu (plus de crédit d’or forgé)', () => {
+    const state = startedGame({ gold: 0 });
+    const forged = { type: 'TradeResources', townId: 'town-1', give: 'bogus', receive: 'gold', giveAmount: 1_000_000 };
+    expect(validate(state, forged as never)?.code).toBe('invalidTrade');
+    const forgedReceive = { ...forged, give: 'gold', receive: 'bogus', giveAmount: 1 };
+    expect(validate(startedGame({ gold: 10 }), forgedReceive as never)?.code).toBe('invalidTrade');
+  });
+
   it('refuse un montant supérieur au stock (cannotAfford)', () => {
     const state = startedGame({ wood: 3 });
     const err = validate(state, { type: 'TradeResources', townId: 'town-1', give: 'wood', receive: 'gold', giveAmount: 10 });

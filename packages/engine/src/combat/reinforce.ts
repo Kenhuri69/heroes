@@ -67,7 +67,8 @@ export function validateCallReinforcements(state: GameState, cmd: ReinforceCmd):
   const combat = state.combat as CombatState;
   const cfg = state.config!.combat.reinforcements!;
   const hero = playerHero(state, combat)!;
-  if (cmd.count < 1 || cmd.count > cfg.maxUnitsPerCall)
+  // Revue 2026-09b M15 : entier exigé (1,5 créature était acceptée).
+  if (!Number.isInteger(cmd.count) || cmd.count < 1 || cmd.count > cfg.maxUnitsPerCall)
     return { code: 'invalidAction', message: `effectif de renfort hors bornes (1..${cfg.maxUnitsPerCall})` };
   if (!hero.army.some((s) => s.unitId === cmd.unitId))
     return { code: 'reinforcementsUnavailable', message: `'${cmd.unitId}' n’est pas une unité du héros` };

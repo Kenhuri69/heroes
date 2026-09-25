@@ -149,6 +149,18 @@ export function CombatUi() {
     return () => clearTimeout(id);
   }, [autoActive, combat, combatSpeed]);
 
+  // E6 (revue 2026-09b) : une modale LOCALE de combat est-elle ouverte ? Lue par
+  // le handler clavier (monté une fois) via une ref mise à jour à chaque rendu.
+  const localOverlayRef = useRef(false);
+  localOverlayRef.current =
+    spellBookOpen ||
+    heroAttackOpen ||
+    prayerOpen ||
+    reinforceOpen ||
+    unitSpellOpen ||
+    leaveConfirm !== null ||
+    inspectId !== null; // (le journal, panneau latéral non modal, ne bloque pas)
+
   // Raccourcis combat desktop (lot M8 C2), jamais requis : Espace = Attendre,
   // D = Défendre, quand c'est au joueur et hors auto. Ignorés si une saisie a le
   // focus. Échap reste géré par le handler global (fermeture de pile).
@@ -157,7 +169,12 @@ export function CombatUi() {
       const target = e.target as HTMLElement | null;
       if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable))
         return;
+      // E6 : jamais en répétition (Espace maintenu faisait attendre plusieurs
+      // piles d'affilée), ni SOUS une modale (livre de sorts, confirmation de
+      // fuite, fiche…), l'écran pré-combat ou un ciblage de sort en cours.
+      if (e.repeat || e.metaKey || e.ctrlKey || e.altKey || localOverlayRef.current) return;
       const s = appStore.getState();
+      if (s.preBattlePending || s.combatSpellTarget || s.combatSpellZone || s.modals.length > 0) return;
       const c = s.game.combat;
       if (!c || c.finished || s.combatAutoActive) return;
       const act = c.stacks.find((st) => st.id === c.activeStackId);
@@ -573,6 +590,7 @@ export function CombatUi() {
             <button
               key={speed}
               class={combatSpeed === speed ? 'active' : ''}
+              aria-pressed={combatSpeed === speed}
               onClick={() => appStore.setState({ combatSpeed: speed })}
             >
               ×{speed}
@@ -672,7 +690,9 @@ function HeroAttackModal({ combat, hero, onClose }: { combat: CombatState; hero:
   const game = appStore.getState().game;
   // E4.4b : dégâts du HÉROS AGISSANT (coop : allié possible), pas seulement le lead.
   const damage = heroAttackDamageFor(game, combat, combat.playerSide, hero);
-  const targets = combat.stacks.filter((s) => s.side !== combat.playerSide && s.count > 0);
+  // E8 : une pile furtive n'est pas ciblable (le moteur la refuse) — la lister
+  // ne produisait qu'un toast d'erreur (les modales de sort la filtrent déjà).
+  const targets = combat.stacks.filter((s) => s.side !== combat.playerSide && s.count > 0 && !s.stealthed);
 
   const strike = (targetStackId: string): void => {
     dispatch({ type: 'HeroAttack', targetStackId, heroId: hero.id })
@@ -765,6 +785,9 @@ function PrayerModal({ combat, onClose }: { combat: CombatState; onClose: () => 
                   <button
                     class="spell-target"
                     data-testid={`prayer-target-${stack.id}`}
+                    // E7 : une pile intacte n'a rien à relever ni soigner — la
+                    // prière (1×/combat) y serait gaspillée en un tap.
+                    disabled={est.revived === 0 && est.healed === 0}
                     onClick={() => pray(stack.id)}
                   >
                     <span>
@@ -863,9 +886,16 @@ function ReinforcementsModal({ hero, onClose }: { hero: HeroState; onClose: () =
                     max={maxUnits}
                     value={qty}
                     data-testid="reinforce-qty"
-                    onInput={(e) =>
-                      setQty(Math.max(1, Math.min(maxUnits, Number((e.currentTarget as HTMLInputElement).value) || 1)))
-                    }
+                    // E24 : un champ vidé reste vide le temps de la saisie (avant :
+                    // il repassait à 1 ⇒ taper « 5 » donnait « 15 ») ; rétabli au blur.
+                    onInput={(e) => {
+                      const raw = (e.currentTarget as HTMLInputElement).value;
+                      if (raw === '') return;
+                      setQty(Math.max(1, Math.min(maxUnits, Math.floor(Number(raw)) || 1)));
+                    }}
+                    onBlur={(e) => {
+                      (e.currentTarget as HTMLInputElement).value = String(qty);
+                    }}
                   />
                 </label>
                 <button

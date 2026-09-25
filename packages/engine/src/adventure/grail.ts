@@ -10,10 +10,17 @@ import { grailRevealedTo, obeliskCount, samePos } from './map';
  * appelle `runAiTurn`), d'où ce helper dans `adventure/`.
  */
 
+/** Le Graal de la carte a-t-il déjà été déterré (par n'importe quel joueur) ? */
+export function grailTaken(state: Pick<GameState, 'players'>): boolean {
+  return state.players.some((p) => p.hasGrail);
+}
+
 /** Le héros peut-il fouiller ici ? (tuile du Graal révélée, pas déjà trouvé, PM restants) */
 export function canDigGrail(state: GameState, hero: HeroState, player: PlayerState): boolean {
   const map = state.map;
-  if (!map?.grailPos || player.hasGrail) return false;
+  // Revue 2026-09b M5 : UN Graal par carte — déterré par quiconque, il n'y est
+  // plus (avant : chaque joueur, IA comprise, pouvait fouiller le même).
+  if (!map?.grailPos || grailTaken(state)) return false;
   if (!samePos(hero.pos, map.grailPos)) return false;
   if (hero.movementPoints <= 0) return false;
   // Même règle que `validate('Dig')` : sans obélisque, rien à révéler.

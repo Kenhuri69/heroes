@@ -168,6 +168,31 @@ describe('CastAdventureSpell — Ville-portail', () => {
     expect(validate(s, { type: 'CastAdventureSpell', heroId: 'hero-player-1', spellId: 'ville-portail', playerId: 'player-1' })?.code).toBe('combatActive');
   });
 
+  it('revue 2026-09b M8 : refuse depuis un bateau (le héros restait en domaine naval à terre)', () => {
+    expect(
+      validate(state({ naval: true }), { type: 'CastAdventureSpell', heroId: 'hero-player-1', spellId: 'ville-portail', playerId: 'player-1' })?.code,
+    ).toBe('invalidAction');
+  });
+
+  it('revue 2026-09b M17 : refuse tant qu’un trésor attend son choix or/XP', () => {
+    const s = state();
+    s.pendingTreasure = { playerId: 'player-1' } as unknown as GameState['pendingTreasure'];
+    expect(
+      validate(s, { type: 'CastAdventureSpell', heroId: 'hero-player-1', spellId: 'ville-portail', playerId: 'player-1' })?.code,
+    ).toBe('treasurePending');
+  });
+
+  it('revue 2026-09b M18 : n’atterrit jamais sur un gardien voisin de la ville', () => {
+    const s = state();
+    s.heroes.push(hero({ id: 'hero-blocker', pos: { x: 8, y: 8 }, spells: [] }));
+    // Toutes les voisines de la ville SAUF (9,9) sont tenues par un gardien.
+    for (const [dx, dy] of [[-1, -1], [0, -1], [1, -1], [-1, 0], [1, 0], [-1, 1], [0, 1]] as const) {
+      s.map!.objects.push({ id: `g${dx}${dy}`, type: 'guardian', pos: { x: 8 + dx, y: 8 + dy }, unitId: 'red-grunt', count: 1 } as never);
+    }
+    const { state: next } = apply(s, { type: 'CastAdventureSpell', heroId: 'hero-player-1', spellId: 'ville-portail', playerId: 'player-1' });
+    expect(next.heroes.find((h) => h.id === 'hero-player-1')?.pos).toEqual({ x: 9, y: 9 });
+  });
+
   it('refuse sans mana suffisante', () => {
     expect(
       validate(state({ mana: 5 }), { type: 'CastAdventureSpell', heroId: 'hero-player-1', spellId: 'ville-portail', playerId: 'player-1' })?.code,

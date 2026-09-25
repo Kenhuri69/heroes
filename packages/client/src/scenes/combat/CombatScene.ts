@@ -429,8 +429,17 @@ export class CombatScene {
       last.spellZone === st.combatSpellZone
     )
       return;
+    const gameChanged = !last || last.game !== st.game;
     this.lastSync = { game: st.game, spellTarget: st.combatSpellTarget, spellZone: st.combatSpellZone };
     const combat = st.game.combat;
+    // E3 (revue 2026-09b) : une sélection (case de marche / cible + préviz) est
+    // posée pour LA pile active d'alors. Tout changement d'état moteur (Attendre,
+    // Défendre, tour IA, sort…) la périme : sans ce reset, la pile suivante
+    // héritait de la préviz et un seul tap VALIDAIT l'action sans préviz.
+    if (gameChanged && this.selection) {
+      this.selection = null;
+      combatPreview.set(null);
+    }
     if (!combat) {
       this.combatShown = false;
       this.laidOut = false; // E10 : le prochain combat repart d'un centrage propre.

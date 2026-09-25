@@ -90,7 +90,18 @@ export async function dispatch(cmd: Command): Promise<EngineResult> {
   // départ délibéré). La conduite manuelle / l'Auto-Battle le désarment aussi
   // côté UI (PreBattleScreen). UN SEUL setState par commande (F1, revue
   // 2026-07) : le second doublait chaque resync de scène abonnée au store.
-  if (!before && result.state.combat) {
+  // Revue 2026-09b M1 : un combat peut s'ouvrir ET se clore dans la même
+  // commande humaine (héros adverse sans troupes ⇒ victoire immédiate). Sans
+  // cette branche, le joueur ne voyait ni combat ni bilan — son héros « tuait »
+  // l'adversaire en silence. `AiTurn` exclu : l'IA résout ses combats en interne.
+  const instantCombat =
+    !before &&
+    !result.state.combat &&
+    cmd.type !== 'AiTurn' &&
+    result.events.some((e) => e.type === 'CombatStarted');
+  if (instantCombat) {
+    appStore.setState({ game: result.state, combatResult: buildCombatResult(result.events) });
+  } else if (!before && result.state.combat) {
     appStore.setState({ game: result.state, preBattlePending: true, combatAutoActive: false, combatSpellTarget: null, combatSpellZone: null, combatInspectId: null, combatResult: null, combatActingHeroId: null });
   } else if (before && !result.state.combat) {
     appStore.setState({
@@ -109,7 +120,7 @@ export async function dispatch(cmd: Command): Promise<EngineResult> {
   // E9 : un combat du JOUEUR vient de se terminer dans ce dispatch (l'écran de
   // combat était posé) ⇒ contexte pour ne toaster QUE ses combats (pas ceux de
   // l'IA, résolus dans `AiTurn` sans jamais poser `game.combat` côté client).
-  const humanCombat = Boolean(before) && !result.state.combat;
+  const humanCombat = (Boolean(before) && !result.state.combat) || instantCombat;
   eventBus.emit(result.events, { humanCombat });
   // NET-PVPUI (slice B) : capture/poste le tour en ligne (no-op hors match). Avant
   // `runAiLoop` (de toute façon no-op en PvP 2 humains).

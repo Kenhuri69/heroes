@@ -47,3 +47,14 @@
 .hero-skill-rank {
   opacity: 0.8;
 }
+
+/* E15 : effet du rang courant sous le nom (tiroir héros). */
+.hero-skill {
+  flex-wrap: wrap;
+}
+
+.hero-skill-effect {
+  flex-basis: 100%;
+  font-size: 0.75rem;
+  opacity: 0.8;
+}

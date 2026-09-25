@@ -282,7 +282,12 @@ const GOLDEN_JOURNAL: Command[] = [
 // génériques, `config.hero.archetypeEffects` absent des fixtures) ⇒ seul
 // `saveVersion` change : hash de FORME seule, simulation inchangée (toutes les
 // assertions de valeurs ci-dessous restent vertes).
-const GOLDEN_HASH = '5d4260d7';
+// Re-fixé à la revue 2026-09b M9 (hash → ae2fa0d7) : RÈGLE — Défendre ne
+// déclenche plus le moral positif (fidélité HoMM : ni Attendre ni Défendre ne
+// tirent le moral). Le replay contient un Défendre à moral > 0 ⇒ un tirage RNG
+// en moins, simulation décalée ensuite. Forme de sauvegarde inchangée (pas de
+// bump `saveVersion`) ; les assertions de valeurs ci-dessous restent vertes.
+const GOLDEN_HASH = 'ae2fa0d7';
 
 describe('golden replay', () => {
   it('le journal scripté produit toujours le même état final', () => {

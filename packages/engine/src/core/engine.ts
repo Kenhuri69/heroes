@@ -3,7 +3,7 @@ import { dailyMovementPoints } from '../adventure/config';
 import { createFog, revealAround } from '../adventure/fog';
 import { grailRevealedTo, inBounds, isAdjacent, mapLevels, obeliskCount, samePos, type GridPos } from '../adventure/map';
 import { advanceHeroAlongPath } from '../adventure/movement';
-import { digGrail } from '../adventure/grail';
+import { digGrail, grailTaken } from '../adventure/grail';
 import { revealOwnedStructures } from '../adventure/vision';
 import { handleHeroAttack, validateHeroAttack } from '../combat/hero-attack';
 import { handleCallReinforcements, validateCallReinforcements } from '../combat/reinforce';
@@ -296,7 +296,7 @@ export function validate(state: GameState, cmd: Command): CommandError | null {
       const current = state.players[state.currentPlayer];
       if (!current || hero.playerId !== current.id)
         return { code: 'notYourHero', message: `'${cmd.heroId}' n’appartient pas au joueur actif` };
-      if (current.hasGrail) return { code: 'alreadyHasGrail', message: 'le Graal est déjà possédé' };
+      if (grailTaken(state)) return { code: 'alreadyHasGrail', message: 'le Graal a déjà été déterré' };
       if (!state.map?.grailPos || !samePos(hero.pos, state.map.grailPos))
         return { code: 'notOnGrail', message: 'le héros n’est pas sur la tuile du Graal' };
       // Revue 2026-09 (M11) : la tuile doit être RÉVÉLÉE (tous les obélisques
@@ -526,7 +526,8 @@ export function validate(state: GameState, cmd: Command): CommandError | null {
       if (!pending) return { code: 'noPendingChoice', message: 'aucun message à choix en attente' };
       if (pending.heroId !== cmd.heroId)
         return { code: 'invalidTarget', message: `le choix en attente n’appartient pas à '${cmd.heroId}'` };
-      if (cmd.optionIndex < 0 || cmd.optionIndex >= pending.options.length)
+      // Revue 2026-09b M16 : entier exigé (NaN/1,5 passaient et ne faisaient rien).
+      if (!Number.isInteger(cmd.optionIndex) || cmd.optionIndex < 0 || cmd.optionIndex >= pending.options.length)
         return { code: 'invalidTarget', message: `option de choix invalide (${cmd.optionIndex})` };
       return null;
     }

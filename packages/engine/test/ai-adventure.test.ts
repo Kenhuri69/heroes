@@ -305,6 +305,36 @@ describe('Revue 2026-07 — B7 : siège ouvert par la capture IA auto-résolu', 
   });
 });
 
+describe('Revue 2026-09b M6 : carte explorée, l’IA marche sur une ville prenable', () => {
+  it('va prendre une ville neutre non adjacente au lieu de rester plantée', () => {
+    const players: PlayerSetup[] = [
+      { id: 'p1', startingResources: emptyResources(), controller: 'ai', startingArmy: [{ unitId: 'red-grunt', count: 20 }] },
+    ];
+    const town = testTown({ id: 'town-far', ownerPlayerId: null, pos: { x: 9, y: 9 }, buildings: {}, garrison: [] });
+    let state = apply(createEmptyState(), {
+      type: 'StartGame',
+      seed: 3,
+      players,
+      map: { ...testMap(), objects: [] },
+      config,
+      unitCatalog: CATALOG,
+      towns: [town],
+    }).state;
+    // Toute la carte est connue : plus d'exploration possible (le cas qui figeait l'IA).
+    state = produce(state, (draft) => {
+      draft.players[0]!.explored = draft.players[0]!.explored.map(() => 1);
+      draft.heroes[0]!.pos = { x: 0, y: 0 };
+    });
+    for (let day = 0; day < 6 && state.towns[0]?.ownerPlayerId !== 'p1'; day++) {
+      state = produce(state, (draft) => {
+        runAiTurn(draft, 'p1', []);
+      });
+      state = apply(state, { type: 'EndTurn', playerId: 'p1' }).state;
+    }
+    expect(state.towns[0]?.ownerPlayerId).toBe('p1');
+  });
+});
+
 describe('Revue 2026-07 — B30/B31 : l’IA respecte le butin gardé et le brouillard', () => {
   it('B30 : un tas gardé par une sentinelle vivante n’est pas ciblé (le tas libre voisin oui)', () => {
     const map: AdventureMapDef = {

@@ -1,6 +1,7 @@
 import type { HeroState } from '@heroes/engine';
 import { dispatch } from '../app/dispatch';
-import { t, resolveSkillName, commandErrorMessage } from '../app/i18n';
+import { useApp } from '../app/store';
+import { t, resolveSkillName, commandErrorMessage, describeSkillEffect } from '../app/i18n';
 import { pushToast } from './toasts';
 import './SkillChoice.css';
 
@@ -12,6 +13,7 @@ import './SkillChoice.css';
  * est surfacée (remédiation CL3) — plus d'échec avalé en silence.
  */
 export function SkillChoice({ hero }: { hero: HeroState }) {
+  const skillCatalog = useApp((s) => s.game.skillCatalog);
   const choose = (skillId: string): void => {
     dispatch({ type: 'ChooseSkill', heroId: hero.id, skillId }).catch((err: unknown) => {
       pushToast(commandErrorMessage(err), 'error');
@@ -43,6 +45,13 @@ export function SkillChoice({ hero }: { hero: HeroState }) {
                 >
                   <span class="skill-choice-name">{resolveSkillName(skillId)}</span>
                   <span class="skill-choice-rank">{t(`skill.rank.${targetRank}`)}</span>
+                  {/* E15 : un choix permanent se fait en connaissance de cause —
+                      l'effet du rang visé, dérivé des données. */}
+                  {describeSkillEffect(skillCatalog[skillId]?.ranks[targetRank - 1]) && (
+                    <span class="skill-choice-effect" data-testid={`skill-choice-effect-${skillId}`}>
+                      {describeSkillEffect(skillCatalog[skillId]?.ranks[targetRank - 1])}
+                    </span>
+                  )}
                 </button>
               </li>
             );

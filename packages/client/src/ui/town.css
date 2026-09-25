@@ -338,8 +338,10 @@
 }
 
 .town-building-action button:disabled,
+.town-building-action button[aria-disabled='true'],
 .town-dwelling-controls button:disabled,
-.town-dwelling > button:disabled {
+.town-dwelling > button:disabled,
+.town-dwelling > button[aria-disabled='true'] {
   background: var(--ink-700);
   border-color: var(--ink-600);
   opacity: 0.5;
@@ -893,4 +895,27 @@ button[data-testid='market-trade'] {
   margin-right: 0.35rem;
   border: 1px solid var(--ink-600);
   vertical-align: baseline;
+}
+
+/* Revue 2026-09b E10/E11 : ressource manquante marquée (glyphe ✗ + teinte —
+   jamais la couleur seule) et raison sous un bouton grisé. */
+.town-cost-entry.is-missing {
+  color: var(--danger-text);
+}
+
+.btn-reason {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--gold);
+}
+
+/* E4 : l'erreur de commande reste visible dans l'écran défilant (elle
+   s'affichait en haut, hors vue, quand l'action tapée était en bas de liste). */
+.town-error {
+  position: sticky;
+  top: 0;
+  z-index: 2;
 }

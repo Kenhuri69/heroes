@@ -134,6 +134,12 @@ async function endTurn(page: Page): Promise<void> {
 async function clickSaveAction(page: Page, action: 'save' | 'load'): Promise<void> {
   await page.getByTestId('options-open').click();
   await page.getByTestId(action).click();
+  // Revue 2026-09b E18 : charger REMPLACE la partie en cours ⇒ tap-tap — le
+  // 1er tap arme (« Confirmer : remplacer la partie en cours »), le 2ᵉ charge.
+  if (action === 'load') {
+    await expect(page.getByTestId('load')).toHaveText(/Confirmer/);
+    await page.getByTestId('load').click();
+  }
   // Referme Options par Échap (handler global) — robuste au re-render du toast
   // de sauvegarde. Le chargement referme déjà les modales (rechargement d'état).
   if (await page.getByTestId('options-panel').isVisible().catch(() => false)) {
@@ -3547,7 +3553,9 @@ test('guilde des mages : bâtir la guilde puis visiter → le héros apprend les
   expect(errors).toEqual([]);
 });
 
-test('ville : une construction refusée affiche une erreur localisée (remédiation CL6)', async ({ page }) => {
+test('ville : une construction impayable est grisée avec sa raison localisée (CL6, revue 2026-09b E10)', async ({
+  page,
+}) => {
   const errors = await openGame(page);
 
   await expect(page.getByTestId('town-open-start-town')).toBeVisible();
@@ -3557,15 +3565,17 @@ test('ville : une construction refusée affiche une erreur localisée (remédiat
   // Remédiation R4b (CO6) : les bâtiments portent leur NOM localisé, pas leur id.
   await expect(page.getByTestId('town-panel-build')).toContainText('Guilde des mages');
 
-  // Le fort coûte 5000 or + 20 minerai ; le joueur démarre avec 2000/10/10 :
-  // la construction est refusée (`cannotAfford`) — clic via l'UI (pas dispatch).
-  await page.getByTestId('town-build-fort').click();
-
-  const townError = page.getByTestId('town-error');
-  await expect(townError).toBeVisible();
-  // Message LOCALISÉ (CL6) : le libellé de `cmdError.cannotAfford`, plus le
-  // format brut « code: message » qui fuyait auparavant.
-  await expect(townError).toHaveText('Ressources insuffisantes');
+  // Le fort coûte 5000 or + 20 minerai ; le joueur démarre avec 2000/10/10.
+  // E10 : le refus est annoncé AVANT le tap — bouton grisé, raison LOCALISÉE
+  // (`cmdError.cannotAfford`, CL6) sous le libellé, ressources manquantes marquées.
+  await expect(page.getByTestId('town-build-fort')).toBeDisabled();
+  await expect(page.getByTestId('town-build-reason-fort')).toHaveText('Ressources insuffisantes');
+  await expect(page.locator('.town-building-action .town-cost-entry.is-missing').first()).toBeVisible();
+  // R6 (doc 08 §4) : grisé via `aria-disabled`, donc tapable — le tap livre la
+  // raison dans le bandeau d'erreur de la ville, jamais un refus muet.
+  // (`force` : Playwright tient un `aria-disabled` pour non actionnable ; un vrai tap passe.)
+  await page.getByTestId('town-build-fort').click({ force: true });
+  await expect(page.getByTestId('town-error')).toHaveText('Ressources insuffisantes');
 
   expect(errors).toEqual([]);
 });

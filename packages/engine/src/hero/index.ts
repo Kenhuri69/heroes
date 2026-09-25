@@ -192,6 +192,11 @@ export function validateCastAdventureSpell(
   cmd: CastAdventureSpellCmd,
 ): CommandError | null {
   if (state.combat) return { code: 'combatActive', message: 'un combat est en cours' };
+  // Revue 2026-09b M17 : même gate que `Dig`/`MoveHero` — un choix forcé en
+  // attente (trésor or/XP, message à choix) se résout avant toute autre action.
+  if (state.pendingTreasure) return { code: 'treasurePending', message: 'un trésor attend son choix or/XP' };
+  if (state.pendingTriggerChoice)
+    return { code: 'choicePending', message: 'un message à choix attend sa réponse' };
   const current = state.players[state.currentPlayer];
   if (!current || current.id !== cmd.playerId)
     return { code: 'notYourTurn', message: `ce n’est pas le tour de ${cmd.playerId}` };
@@ -208,6 +213,10 @@ export function validateCastAdventureSpell(
     return { code: 'invalidAction', message: `'${cmd.spellId}' n’est pas un sort d’aventure` };
   if (hero.mana < spell.manaCost) return { code: 'notEnoughMana', message: 'mana insuffisante' };
   if (spell.adventure.type === 'townPortal') {
+    // Revue 2026-09b M8 : depuis un bateau, le héros « atterrissait » en ville
+    // en restant en domaine NAVAL (bloqué à terre ; débarquer larguait un bateau
+    // sur la terre ferme). Il faut d'abord débarquer.
+    if (hero.naval) return { code: 'invalidAction', message: 'impossible d’ouvrir un portail depuis un bateau' };
     if (cmd.townId !== undefined) {
       const town = state.towns.find((t) => t.id === cmd.townId);
       if (!town || town.ownerPlayerId !== cmd.playerId)

@@ -1,5 +1,11 @@
 # Nettoyage des branches fusionnées sur `main`
 
+> 🗄️ **Clôturé le 2026-09-29** (passe `close-open-plans-2026-09.md`) et archivé.
+> L'analyse est close ; la **suppression** des branches (commande prête §5) attend toujours l'utilisateur.
+> Les reliquats encore ouverts sont repris dans
+> `.claude/plans/game-experience-enrichment.md` §1 (registre unique des reliquats) —
+> ce fichier ne se relit plus pour savoir ce qui reste à faire.
+
 **Demande** : fermer toutes les branches fusionnées sur `main`, lister celles qui
 ont encore des commits à remonter, puis **récupérer le code** qui risquait d'être
 perdu.

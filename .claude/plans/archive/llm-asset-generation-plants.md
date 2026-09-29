@@ -1,5 +1,11 @@
 # Plan — génération LLM des assets manquants (tas de ressources & vignettes orphelines)
 
+> 🗄️ **Clôturé le 2026-09-29** (passe `close-open-plans-2026-09.md`) et archivé.
+> Planches reçues, extraites (QC verte) et intégrées : plan terminé.
+> Les reliquats encore ouverts sont repris dans
+> `.claude/plans/game-experience-enrichment.md` §1 (registre unique des reliquats) —
+> ce fichier ne se relit plus pour savoir ce qui reste à faire.
+
 > Branche : `claude/llm-asset-generation-plants-c5asp7`
 > Déclencheur utilisateur : « identifie les assets nécessitant une génération LLM
 > comme les tas de ressources, prépare des prompts par planche de 4 ou 8 pour
@@ -47,7 +53,7 @@ par la planche B → à ignorer (on ne l'édite pas : fichier tool-owned).
 2. [x] Créer `assets/prompts/orphans-map-vignettes.md` (planche B, prompt Gemini
    prêt + extraction 7 ids sur 4×2 + copie par-id vers les dest). Vérifié :
    `sheet_extract --cols 4 --rows 2` accepte 7 ids (len ≤ 8, OK).
-3. [ ] Livrer les 2 prompts à l'utilisateur (chat). Vérifier : coller-prêt.
+3. [x] Livrer les 2 prompts à l'utilisateur (chat). Vérifier : coller-prêt — *coché à la clôture 2026-09-29 : preuve = l'étape 4, les planches générées depuis ces prompts ont été reçues.*
 4. [x] **Images reçues** (2 planches Gemini). Labels ajoutés par le modèle
    malgré le prompt → pré-traitement `clean_labels.py` (repeint le bandeau bas
    de chaque cellule au fond, band 0.20, déterministe) avant découpe. Extraction

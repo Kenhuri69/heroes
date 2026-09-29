@@ -1,5 +1,11 @@
 # Revue complète du jeu 2026-09 (b) — ergonomie d'abord
 
+> 🗄️ **Clôturé le 2026-09-29** (passe `close-open-plans-2026-09.md`) et archivé.
+> Lots V/E/M livrés (PR #550) ; M10–M14 et M19 restent des **décisions de design** et les idées §3 ne sont pas implémentées.
+> Les reliquats encore ouverts sont repris dans
+> `.claude/plans/game-experience-enrichment.md` §1 (registre unique des reliquats) —
+> ce fichier ne se relit plus pour savoir ce qui reste à faire.
+
 > **Demande utilisateur (2026-09-24)** : « Effectue une revue complète du jeu et
 > un plan pour corriger, améliorer et approfondir le jeu. Investigue tous les
 > aspects du jeu et propose des améliorations et approfondissements. Corrige tout

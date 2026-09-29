@@ -1,5 +1,11 @@
 # Reliquats différés (issus des plans clôturés)
 
+> 🗄️ **Clôturé le 2026-09-29** (passe `close-open-plans-2026-09.md`) et archivé.
+> Rôle de registre transféré au nouveau plan. §1 (planches d'assets) **épuisé** depuis : tas de ressources (`assets/resources/`, 9), vignettes/sprites Sylvan, 9 fonds de combat, rempart fissuré/rasé livrés.
+> Les reliquats encore ouverts sont repris dans
+> `.claude/plans/game-experience-enrichment.md` §1 (registre unique des reliquats) —
+> ce fichier ne se relit plus pour savoir ce qui reste à faire.
+
 > Créé le 2026-08-24 par la passe de clôture (`close-open-plans.md`). Les plans
 > archivés ce jour portaient des cases **volontairement** non cochées : des
 > chantiers différés par décision, pas des oublis. Ce fichier est le **seul**

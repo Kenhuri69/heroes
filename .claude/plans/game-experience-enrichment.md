@@ -33,7 +33,7 @@ tests, `content:check`, garde-fous, build + budget, smoke `@core`).
 
 Vérifiés dans le dépôt le 2026-09-29. Source = plan archivé dans `archive/`.
 
-### 1.1 Décisions de design en suspens 🗳️ (soumises au binôme, §3)
+### 1.1 Décisions de design en suspens 🗳️ (instruites par le binôme §3, à trancher §5)
 
 | ID | Reliquat | Source |
 |---|---|---|
@@ -183,13 +183,107 @@ seul bump de sauvegarde.
 
 ## 3. Relecture de l'expert RPG tactique HoMM
 
-*(à remplir)*
+> Rendue par l'agent `tactical-rpg-expert` le 2026-09-29. Il a revérifié les
+> affirmations du designer dans le code (toutes confirmées) et n'a **pas** lancé
+> `faction:sim` : tout effet d'équilibrage est « à mesurer ». Les chiffres canon
+> incertains sont marqués comme tels.
 
-## 4. Lots proposés
+**Constats nouveaux de l'expert**
+- La file de choix existe déjà pour les **attributs** (`pendingAttributeChoices`,
+  `adventure/experience.ts:117`) ⇒ C1 peut passer par un champ **optionnel**, sans bump.
+- **Divergence doc ↔ code sur la fuite** : doc 02 dit « re-recrutable en taverne »,
+  `combat/leave.ts:97` laisse le héros **sur la carte, armée vide** (exploit de
+  l'éclaireur à armée vide).
+- Un gardien = **une seule pile** (`combat/setup.ts:414`) ; **16** compétences
+  seulement (`data/core/skills.json`), aucune ne pilote les machines de guerre ; les
+  compétences d'école ne font que baisser le coût en mana.
 
-*(à remplir)*
+### 3.1 Verdicts
 
-## 5. Journal
+| # | Filiation | Verdict | Amendement retenu |
+|---|---|---|---|
+| A1 ZdC gardiens | Canon II/III | **Amender** | livrer **avec A2 et B1** (sinon l'IA reste bloquée derrière un goulot) ; plusieurs gardiens au bord ⇒ un seul combat (1ᵉʳ par id) ; `mapgen` interdit les chevauchements de zones ; préviz qui s'arrête sur la case d'engagement |
+| A2 Gardiens aux goulots | Adaptation (templates HoMM3) | **Amender** | repli par régions autour des départs (Voronoï, portes gardées) si trop peu d'articulations ; `generatorVersion` plutôt que casser les graines partagées ; carte différente documentée |
+| A3 Banques | Canon III/V | **Retenir** | usage unique, paliers verrouillés par profondeur, force en fourchette, sentinelle `neverFlee` |
+| A4 Neutres fuient/rallient | Canon III (seuils incertains) | **Amender** | la fuite est une **proposition** « Laisser partir / Poursuivre » ; `disposition` optionnelle en données ; `neverFlee` sur sentinelles/quêtes/banques ; ralliement payant et plafonné par les emplacements libres ; Diplomatie = compétence en données |
+| A5 Quêtes au héros (M14) | Canon III | **Retenir** | garder `by:'sight'` pour l'existant |
+| B1 IA multi-jours | Adaptation III/V | **Amender** | évaluation de **menace** (garder un défenseur), score pondéré par la probabilité de victoire, inclure villes à garnison (D-SIEGEAI) et gardiens de goulot |
+| B2 Économie IA | Canon | **Retenir** | réserve pour le bâtiment prioritaire ; villes avant héros **seulement** pour un héros qui démarre en ville |
+| B3 IA visite/fuit | Canon III | **Retenir** (après E1) | seuil à mesurer ; jamais fuir le siège de sa dernière ville |
+| C1 File de compétences (M12) | Canon III | **Amender** | patron `pendingAttributeChoices`, champ optionnel ⇒ **pas de bump** |
+| C2 Mana ressource (M11) | Canon III/V (régén. incertaine) | **Amender** | supprimer **aussi** la recharge de l'aube ; régénération portée par une compétence **Mysticisme** ; IA économe quand elle domine ; lecture « gauntlet à mana persistante » ajoutée au sim **avant** réglage |
+| C3 Artefacts | Canon III (combinaisons) / V (sets) | **Amender** | étape 1 = rareté + artefacts qui **changent une règle** (effets déjà au catalogue) ; sets en étape 2 ; reliques réservées aux grandes banques |
+| C4 Récompense sans perte (M19) | Canon III | **Retenir** | fusion si même unité, sinon garnison la plus proche **annoncée par un toast** |
+| D1 Défendre utile (M10) | Canon III (valeur exacte incertaine) | **Retenir** | plancher +1, préviz comprise, sim avant/après |
+| D2 Soin ≠ Résurrection (M13) | Canon III | **Retenir** | `revive:false` par défaut (`soin`, `grande-guerison`, `soin-de-lumiere`) ; Prière et drain de vie restent ressusciteurs explicites |
+| D3 Siège avec héros visiteur | Canon III/V | **Retenir** (lot L) | piles du héros d'abord (≤ 7), surplus en garnison qui tombe avec la ville |
+| E1 Fuite HoMM | Canon III | **Retenir** | **0 survivant** (canon ; la reddition couvre le reste) ; taverne de **son** joueur uniquement |
+| E2 Stock initial d'habitation | Canon III | **Retenir** | — |
+| E3 Upgrades exclusifs | Canon V/VII | **Reporter** | pilote 1 maison × 1 tier après C3, une fois le sim capable de lire les élites |
+
+### 3.2 Reliquats de décision sans proposition
+
+- **D-POISON** → le poison **traverse** le bouclier (statu quo, zéro code) : un
+  bouclier absorbe des coups, pas un statut ; contre-jeu = Purification/Dissipation
+  (`combat/spell-effect.ts:321-339`). À écrire dans docs 02 et 16.
+- **D-REINF** → `CallReinforcements` **consomme l'action de héros du round**
+  (exclusif de frappe et sort, doc 02 §1), via la même garde que `heroAttackUsed`.
+- **D-SIEGEAI** → lever la garde « pas de garnison » (`ai/adventure.ts:452`) et
+  engager si `armyStrength(héros) ≥ 1,5 × (garnison × bonus de mur + tour)`. Intégré
+  à B1 — sans lui B1 n'atteint pas son critère.
+
+### 3.3 Propositions ajoutées par l'expert
+
+| ID | Filiation | Mécanique | Pourquoi |
+|---|---|---|---|
+| F1 Division des piles neutres | Canon III | `beginGuardianCombat` scinde le gardien en k piles selon l'effectif (RNG seedé), zéro save | une pile unique se fait démonter par les tireurs ; la tactique s'appauvrit |
+| F2 Maîtrise d'école qui change l'effet | Canon III (versions « de masse » à Expert) | effet par rang en données (zone de ciblage, puissance) | vrai choix de build du héros mage |
+| F3 Pool de compétences élargi | Canon III | Mysticisme, Intelligence, Sorcellerie, Résistance, Orientation, Diplomatie, Artillerie, Premiers soins, Balistique — données + effets existants | pilote enfin les machines de guerre livrées ; sert C2 et A4 |
+| ~~F4 Créatures à 2 cases~~ | Canon III/V | — | **Ne se rouvre pas** : divergence déjà tranchée « non, fidèle MMHO » (doc 18 §4 B5, étape 5) |
+
+## 4. Lots proposés (synthèse du binôme)
+
+Chaque lot = un plan `.claude/plans/<lot>.md` + une PR atomique, **après** validation
+des décisions 🗳️ qui le concernent. Mesurer une **baseline headless commune**
+(carte Moyenne, 2 IA, 10 graines : jour de 1ʳᵉ attaque de ville, `armyStrength` au
+j28, taux de victoire humain en normal) avant LE1 et la rejouer à chaque lot IA.
+
+| Lot | Contenu | Pourquoi d'abord | Moteur | Save | Golden |
+|---|---|---|---|---|---|
+| **LE1 — Un adversaire qui presse** | B2 → B1 (menace + proba de victoire) + D-SIEGEAI | levier n°1, visible à chaque partie | IA seule | non | non |
+| **LE2 — Règles en suspens** | D1 (M10), D2 (M13), A5 + C4 (M14/M19), C1 (M12, champ optionnel), D-REINF ; D-POISON documenté | petits correctifs, golden re-fixé **une** fois | oui | non | oui (D1/D2) |
+| **LE3 — La carte qui résiste** | A2 (+ `generatorVersion`, repli régions) → A3 → A1 (opt-in, activé après LE1) | creux de mi-partie | 1 flag | non | non |
+| **LE4 — Magie & build du héros** | F3 (compétences) → F2 (maîtrises) → C2 (mana persistante, après la lecture sim dédiée) | Savoir/Puits/Mysticisme enfin utiles | oui | non | à vérifier |
+| **LE5 — Neutres vivants** | F1 (division des piles) → A4 (fuite proposée, ralliement, Diplomatie) | fin du ratissage | 1 point | non | non |
+| **LE6 — Revenir dans la partie** | E1 (fuite HoMM, corrige la divergence doc/code) → B3 → E2 | comeback, supprime l'éclaireur vide | 1 point | **probable** | non |
+| **LE7 — Butin & siège** | C3 étape 1 → sets ; D3 siège avec héros visiteur | profondeur de fin de partie | 1 point (sets) | ? | non |
+| **LE-UX** (en parallèle) | ergonomie §1.3 | client seul, indépendant | non | non | non |
+| *Reporté* | E3 (pilote après C3) | contenu ×2 | — | — | — |
+
+## 5. Décisions à trancher par l'utilisateur 🗳️
+
+Recommandation du binôme entre parenthèses.
+
+1. **A1** : la zone de contrôle n'est-elle livrée qu'avec A2 et B1 ? *(oui)*
+2. **A2** : une carte générée peut-elle différer à graine égale, avec `generatorVersion` ? *(oui)*
+3. **A4** : la fuite d'un neutre est-elle une proposition que le joueur peut refuser ? *(oui)*
+4. **A4/F3** : ajoute-t-on la compétence Diplomatie (ralliement contre or) ? *(oui, plafonnée)*
+5. **C2 (M11)** : la mana persistante supprime-t-elle aussi la recharge à l'aube ? *(oui, avec Mysticisme et lecture sim préalable)*
+6. **C1 (M12)** : file de compétences par champ optionnel, sans bump ? *(oui)*
+7. **E1** : le héros en fuite n'est-il recrutable que dans la taverne de son joueur, sans survivant ? *(oui)*
+8. **D1 (M10)** : Défendre donne-t-il un plancher de +1, quitte à re-fixer le golden ? *(oui)*
+9. **D2 (M13)** : Soin cesse-t-il de ressusciter (`revive`) ? *(oui)*
+10. **D-POISON** : le poison traverse-t-il le bouclier ? *(oui, statu quo documenté)*
+11. **D-REINF** : les renforts consomment-ils l'action de héros du round ? *(oui)*
+12. **D-SIEGEAI** : l'IA assiège-t-elle une ville à garnison au-delà de 1,5× sa force ? *(oui)*
+13. **F1/F2** : ouvre-t-on division des piles neutres et maîtrises d'école comme lots, avant les sets ? *(oui)*
+14. **Ordre** : LE1 → LE2 → LE3 → LE4 → LE5 → LE6 → LE7, LE-UX en parallèle ? *(oui)*
+
+## 6. Journal
 
 - **2026-09-29** — Plan ouvert par la passe de clôture ; registre §1 constitué et
   vérifié ; agents `game-designer` et `tactical-rpg-expert` créés.
+- **2026-09-29** — §2 rendu par `game-designer` (17 propositions, 5 axes) ; §3
+  relecture de `tactical-rpg-expert` (affirmations revérifiées dans le code,
+  3 propositions ajoutées, 2-hex non rouvert : divergence tranchée doc 18) ; §4
+  lots LE1→LE7 + LE-UX ; §5 14 décisions soumises à l'utilisateur. **Aucun code.**

@@ -33,7 +33,7 @@ tests, `content:check`, garde-fous, build + budget, smoke `@core`).
 
 Vérifiés dans le dépôt le 2026-09-29. Source = plan archivé dans `archive/`.
 
-### 1.1 Décisions de design en suspens 🗳️ (instruites par le binôme §3, à trancher §5)
+### 1.1 Décisions de design (instruites par le binôme §3, ✅ tranchées §5)
 
 | ID | Reliquat | Source |
 |---|---|---|
@@ -260,9 +260,11 @@ j28, taux de victoire humain en normal) avant LE1 et la rejouer à chaque lot IA
 | **LE-UX** (en parallèle) | ergonomie §1.3 | client seul, indépendant | non | non | non |
 | *Reporté* | E3 (pilote après C3) | contenu ×2 | — | — | — |
 
-## 5. Décisions à trancher par l'utilisateur 🗳️
+## 5. Décisions — ✅ tranchées par l'utilisateur le 2026-09-29
 
-Recommandation du binôme entre parenthèses.
+> « Soin ne ressuscite plus ok. Ok pour le mana. Ok pour tous les points » ⇒ les
+> **14 recommandations du binôme sont adoptées** telles qu'écrites ci-dessous
+> (réponse entre parenthèses = décision).
 
 1. **A1** : la zone de contrôle n'est-elle livrée qu'avec A2 et B1 ? *(oui)*
 2. **A2** : une carte générée peut-elle différer à graine égale, avec `generatorVersion` ? *(oui)*
@@ -287,3 +289,5 @@ Recommandation du binôme entre parenthèses.
   relecture de `tactical-rpg-expert` (affirmations revérifiées dans le code,
   3 propositions ajoutées, 2-hex non rouvert : divergence tranchée doc 18) ; §4
   lots LE1→LE7 + LE-UX ; §5 14 décisions soumises à l'utilisateur. **Aucun code.**
+- **2026-09-29** — 14 décisions du §5 **adoptées** par l'utilisateur (Soin ne
+  ressuscite plus, mana persistante, et tous les autres points). Ouverture de LE1.

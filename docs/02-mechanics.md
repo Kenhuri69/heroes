@@ -978,7 +978,7 @@ threadé en `heroId` dans `CastSpell`/`HeroAttack` — sinon le lead par défaut
 > **IA d'aventure** déterministe (`engine/ai`, commande `AiTurn`) : chaque
 > joueur `controller:'ai'` explore / ramasse / attaque un gardien battable /
 > capture / construit / recrute puis passe son tour ; heuristique gloutonne de
-> tutoriel (pas de magie ni de planif multi-tours — écart assumé). L'IA ne
+> tutoriel (au MVP : ni magie ni planif multi-tours — levés depuis, lots L4 et LE1). L'IA ne
 > cible que ce que **son joueur a exploré** (revue 2026-07 B31 — plus de
 > triche d'information sous brouillard) et **ignore un butin encore gardé**
 > par sa sentinelle (B30). 3 scénarios solo en données (`data/scenarios/`).
@@ -1015,6 +1015,25 @@ threadé en `heroId` dans `CastSpell`/`HeroAttack` — sinon le lead par défaut
 > tuile du Graal **révélée** une cible, `Dig` étant émise à l'arrivée (cœur
 > partagé `adventure/grail` entre la commande du joueur et l'IA). Le « refus d'un
 > combat perdu d'avance » était **déjà** couvert par les marges de force 1,5×.
+> **État livré (lot LE1 — un adversaire qui presse, plan
+> `.claude/plans/le1-ai-pressure.md`)** : (1) **recrutement complet** — l'IA
+> recrute chaque tier en stock (plus seulement une pile par jour) ; au-delà de la
+> 1ʳᵉ pile, elle ne puise pas dans la **réserve** du bâtiment prioritaire qu'elle
+> n'a pas pu payer ; (2) **achat au marché** — la ressource rare qui manque à ce
+> bâtiment, ou à une recrue, s'achète contre de l'or (tout ou rien pour un
+> bâtiment ; effectif maximal payable pour une recrue ; une ressource de faction
+> ne s'achète jamais) ; (3) **Taverne d'abord** quand le joueur n'a plus aucun
+> héros ; (4) la ville où **dort** un héros IA joue avant lui (il part avec les
+> recrues du jour) ; (5) **siège** d'une ville à garnison quand l'armée domine de
+> 1,5× la défense estimée (`townDefenseStrength` : garnison × (1 + 0,05 × bonus
+> de murs) + tour de tir) ; (6) **objectifs sur plusieurs jours**, joués avant
+> l'exploration : ville prenable (10), garnison à rapatrier (6), mine (4), à ≤ 3
+> jours de marche, score = valeur / (jours + 1), chemin recalculé chaque jour ;
+> une garnison au moins aussi forte que l'armée **rappelle** le héros avant même
+> le ramassage du jour. Toujours sans triche d'information (cibles explorées
+> seulement). Mesuré (2 IA, 64², 20 graines, 60 jours) : combats entre joueurs
+> 9/20 → **17/20** (médiane j55 → **j38**), villes de joueur capturées 0 → **4/20**,
+> parties conclues 5/20 → **12/20**.
 >
 > **Fin de tour & relais IA — jamais d'échec muet (lot R0, doc 08 §3)** : la fin
 > de tour humain enchaîne les tours IA jusqu'au prochain humain. Si `EndTurn` est

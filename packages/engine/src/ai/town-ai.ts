@@ -1,5 +1,5 @@
 import type { GameEvent } from '../core/events';
-import type { GameState, PlayerState, ResourceId } from '../core/state';
+import type { GameState, PlayerState, ResourceId, Resources } from '../core/state';
 import { RESOURCE_IDS } from '../core/state';
 import {
   validateBuildStructure,
@@ -15,11 +15,12 @@ import {
   validateTradeResources,
   handleTradeResources,
 } from '../town';
+import { effectiveMarketRates, ownedMarketCount, townHasMarket, tradeQuote } from '../town/market';
 import { validateRecruitHero, handleRecruitHero } from '../hero/recruit';
 import { samePos } from '../adventure/map';
 import type { BuildingDef, BuildingEffect, TownState } from '../town/types';
 import { unitWithEconomy } from '../town/unit-economy';
-import { maxAffordableCount } from '../town/resources';
+import { maxAffordableCount, scaleCost } from '../town/resources';
 
 /**
  * IA de ville (doc 11 §3.5, plan phase-3.5 décision #6) : construction et
@@ -46,8 +47,12 @@ function unitTier(catalog: Record<string, BuildingDef>, unitId: string): number 
  * les services. Un effet inconnu du moteur garde une valeur de repli basse : un
  * bâtiment de faction inédit reste constructible, simplement pas prioritaire.
  */
-function buildPriority(effect: BuildingEffect): number {
+function buildPriority(effect: BuildingEffect, heroless: boolean): number {
   switch (effect.type) {
+    // LE1/B2 : un joueur sans héros ne peut plus rien prendre ni défendre — la
+    // Taverne (seul moyen d'en recruter un) passe alors devant tout.
+    case 'tavern':
+      return heroless ? 200 : 20;
     case 'income':
     case 'factionResourceIncome':
       return 100;
@@ -70,24 +75,49 @@ function buildPriority(effect: BuildingEffect): number {
  * d'id — un ordre arbitraire qui lui faisait poser un marché avant ses
  * habitations. Le balayage reste trié par id : à score égal, le choix est
  * déterministe.
+ *
+ * Rend le coût du bâtiment le plus utile qui n'est refusé **que** faute de
+ * ressources (LE1/B2) — la réserve que le recrutement ne doit pas entamer au-delà
+ * de sa première pile — ou `null` si l'IA a bâti, ou n'a rien à économiser.
  */
-function tryBuild(draft: GameState, town: TownState, events: GameEvent[]): void {
-  if (town.builtToday) return;
+function tryBuild(draft: GameState, town: TownState, events: GameEvent[]): Partial<Resources> | null {
+  if (town.builtToday) return null;
+  const heroless = !draft.heroes.some((h) => h.playerId === town.ownerPlayerId);
   let best: { buildingId: string; score: number } | null = null;
+  let saving: { cost: Partial<Resources>; score: number } | null = null;
   for (const buildingId of Object.keys(draft.buildingCatalog).sort()) {
     const cmd = { type: 'BuildStructure' as const, townId: town.id, buildingId };
-    if (validateBuildStructure(draft, cmd)) continue;
+    const error = validateBuildStructure(draft, cmd);
     const level = draft.buildingCatalog[buildingId]?.levels[town.buildings[buildingId] ?? 0];
     if (!level) continue; // exclu par validate — garde-fou
-    const score = buildPriority(level.effect);
+    const score = buildPriority(level.effect, heroless);
+    if (error) {
+      // `cannotAfford` est la DERNIÈRE garde de `validateBuildStructure` : tout le
+      // reste (prérequis, exclusivité, unicité) est déjà satisfait.
+      if (error.code === 'cannotAfford' && (!saving || score > saving.score)) saving = { cost: level.cost, score };
+      continue;
+    }
     if (!best || score > best.score) best = { buildingId, score };
   }
-  if (!best) return;
+  if (!best) return saving?.cost ?? null;
   handleBuildStructure(draft, { type: 'BuildStructure', townId: town.id, buildingId: best.buildingId }, events);
+  return null;
 }
 
-/** Recrute le plus haut tier abordable, au plus grand effectif possible (une seule pile/tour). */
-function tryRecruit(draft: GameState, town: TownState, player: PlayerState, events: GameEvent[]): void {
+/**
+ * Recrute tout ce que la ville a en stock, du plus haut tier au plus bas (LE1/B2).
+ * L'IA ne recrutait qu'UNE pile par jour : ses stocks dormaient pendant que
+ * l'humain vidait les siens. La première pile (le plus haut tier abordable) se
+ * paie comme avant ; les suivantes ne puisent pas dans `reserve` — le bâtiment
+ * prioritaire que l'IA n'a pas pu payer aujourd'hui (`tryBuild`).
+ */
+function tryRecruit(
+  draft: GameState,
+  town: TownState,
+  player: PlayerState,
+  reserve: Partial<Resources> | null,
+  events: GameEvent[],
+): void {
   const candidates = Object.keys(town.stock)
     .filter((unitId) => (town.stock[unitId] ?? 0) > 0)
     // Départage par unités de code (remédiation R1) : déterministe et
@@ -97,18 +127,68 @@ function tryRecruit(draft: GameState, town: TownState, player: PlayerState, even
         unitTier(draft.buildingCatalog, b) - unitTier(draft.buildingCatalog, a) ||
         (a < b ? -1 : a > b ? 1 : 0),
     );
+  let recruited = false;
   for (const unitId of candidates) {
     const recruitCost = unitWithEconomy(draft.unitCatalog, unitId)?.recruitCost;
     // Revue 2026-09 : helper de `town/resources` (faction-aware) — la copie locale
     // ignorait `factionResources` ⇒ `cannotAfford` puis `continue` : l'IA sautait
     // ses unités à coût de faction (T8) au lieu d'en recruter le nombre abordable.
-    const count = maxAffordableCount(player, recruitCost ?? {}, town.stock[unitId] ?? 0);
+    const budget = recruited && reserve ? withoutReserve(player, reserve) : player;
+    const stock = town.stock[unitId] ?? 0;
+    let count = maxAffordableCount(budget, recruitCost ?? {}, stock);
+    // LE1/B2 : le reste du stock se paie en convertissant de l'or au marché (le
+    // mercure d'un T5 ne doit plus bloquer une ville riche en or).
+    let plan: MarketPlan | null = null;
+    if (count < stock && recruitCost) {
+      const withMarket = maxCountWithMarket(draft, town, budget, recruitCost, stock);
+      if (withMarket.count > count) ({ count, plan } = withMarket);
+    }
     if (count <= 0) continue;
     const cmd = { type: 'RecruitUnits' as const, townId: town.id, unitId, count };
+    if (plan) {
+      // N'acheter que si le coût est le SEUL obstacle (`cannotAfford` est la
+      // dernière garde) : une garnison pleine gaspillerait l'or du marché.
+      const blocker = validateRecruitUnits(draft, cmd);
+      if (blocker && blocker.code !== 'cannotAfford') continue;
+      executePlan(draft, town, plan, events);
+    }
     if (validateRecruitUnits(draft, cmd)) continue;
     handleRecruitUnits(draft, cmd, events);
-    return;
+    recruited = true;
   }
+}
+
+/**
+ * Plus grand effectif ≤ `stock` payable en complétant au marché (recherche
+ * dichotomique : le coût d'un plan croît avec l'effectif). `budget` est la vue
+ * du joueur (réserve déjà ôtée).
+ */
+function maxCountWithMarket(
+  draft: GameState,
+  town: TownState,
+  budget: PlayerState,
+  unitCost: Record<string, number>,
+  stock: number,
+): { count: number; plan: MarketPlan | null } {
+  let lo = 0;
+  let best: MarketPlan | null = null;
+  let hi = stock;
+  while (lo < hi) {
+    const mid = Math.ceil((lo + hi) / 2);
+    const plan = marketPlan(draft, town, budget, scaleCost(unitCost, mid));
+    if (plan && plan.gold <= budget.resources.gold) {
+      lo = mid;
+      best = plan;
+    } else hi = mid - 1;
+  }
+  return { count: lo, plan: best };
+}
+
+/** Vue du joueur amputée d'une réserve (ressources communes, plancher 0) — lecture seule. */
+function withoutReserve(player: PlayerState, reserve: Partial<Resources>): PlayerState {
+  const resources = { ...player.resources };
+  for (const id of RESOURCE_IDS) resources[id] = Math.max(0, resources[id] - (reserve[id] ?? 0));
+  return { ...player, resources };
 }
 
 /** Facteur de marge « riche » (M-TAVERN.4) : l'IA ne recrute un héros que si son or ≥ coût × ce facteur (garde de l'or pour l'armée). */
@@ -215,6 +295,69 @@ function tryTradeSurplus(draft: GameState, town: TownState, player: PlayerState,
   handleTradeResources(draft, cmd, events);
 }
 
+/** Achats d'or → ressource qui couvrent un coût, et l'or total qu'ils engagent (coût compris). */
+interface MarketPlan {
+  buys: { id: ResourceId; gold: number }[];
+  gold: number;
+}
+
+/**
+ * Plan d'achat au marché pour couvrir `cost` (ressources communes seulement : une
+ * ressource de faction ne s'achète pas) — `null` sans marché ou si une ressource
+ * de faction manque. LE1/B2, mesuré : l'IA finissait assise sur 30 000 à 70 000
+ * or, bloquée à vie par 3 mercure ou 5 bois — elle savait vendre son surplus
+ * (`tryTradeSurplus`), jamais acheter. PUR (aucune mutation).
+ */
+function marketPlan(draft: GameState, town: TownState, player: PlayerState, cost: Record<string, number>): MarketPlan | null {
+  const market = draft.config?.market;
+  if (!market || !townHasMarket(draft, town)) return null;
+  const markets = ownedMarketCount(draft, player.id);
+  const factor = effectiveMarketRates(market, markets).factor;
+  const plan: MarketPlan = { buys: [], gold: cost.gold ?? 0 };
+  for (const [id, amount] of Object.entries(cost)) {
+    if (id === 'gold' || !amount) continue;
+    if (!(RESOURCE_IDS as readonly string[]).includes(id)) {
+      if ((player.factionResources[id] ?? 0) < amount) return null;
+      continue;
+    }
+    const missing = amount - player.resources[id as ResourceId];
+    if (missing <= 0) continue;
+    // Plus petit montant d'or qui rapporte `missing` (le marché arrondit à la baisse).
+    let gold = Math.ceil((missing * market.buyRate) / factor);
+    while (tradeQuote(market, 'gold', id as ResourceId, gold, markets) < missing) gold++;
+    plan.buys.push({ id: id as ResourceId, gold });
+    plan.gold += gold;
+  }
+  return plan;
+}
+
+/** Exécute un plan d'achat (déjà jugé payable). */
+function executePlan(draft: GameState, town: TownState, plan: MarketPlan, events: GameEvent[]): void {
+  for (const { id, gold } of plan.buys) {
+    const cmd = { type: 'TradeResources' as const, townId: town.id, give: 'gold' as const, receive: id, giveAmount: gold };
+    if (validateTradeResources(draft, cmd)) return;
+    handleTradeResources(draft, cmd, events);
+  }
+}
+
+/**
+ * Achète ce qui manque au bâtiment prioritaire, tout ou rien : si l'or ne couvre
+ * pas à la fois les achats ET la part d'or du bâtiment, on n'achète rien. Rend
+ * `true` si des achats ont eu lieu (l'appelant retente la construction).
+ */
+function tryBuyShortfall(
+  draft: GameState,
+  town: TownState,
+  player: PlayerState,
+  cost: Partial<Resources>,
+  events: GameEvent[],
+): boolean {
+  const plan = marketPlan(draft, town, player, cost as Record<string, number>);
+  if (!plan || plan.buys.length === 0 || plan.gold > player.resources.gold) return false;
+  executePlan(draft, town, plan, events);
+  return true;
+}
+
 /**
  * Achète UNE machine de guerre au héros présent (Forge et consorts, doc 02 §5) :
  * la baliste ou la tente de soins pesaient dans chaque combat de l'IA… qui ne
@@ -240,8 +383,9 @@ function tryBuyWarMachine(draft: GameState, town: TownState, events: GameEvent[]
 
 export function playTownTurn(draft: GameState, town: TownState, player: PlayerState, events: GameEvent[]): void {
   tryTradeSurplus(draft, town, player, events);
-  tryBuild(draft, town, events);
-  tryRecruit(draft, town, player, events);
+  let reserve = tryBuild(draft, town, events);
+  if (reserve && tryBuyShortfall(draft, town, player, reserve, events)) reserve = tryBuild(draft, town, events);
+  tryRecruit(draft, town, player, reserve, events);
   tryUpgrade(draft, town, events);
   tryRecruitHero(draft, town, player, events);
   tryBuyWarMachine(draft, town, events);

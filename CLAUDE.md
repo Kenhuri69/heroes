@@ -553,6 +553,20 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > étendu à `server/` et aux CSS/HTML. Zéro faction moteur, **pas de bump
 > `CURRENT_SAVE_VERSION`**, golden inchangé ; docs 02/05/06/08/14/15 alignées.*
 
+
+> ⚔️ **Enrichissement de l'expérience — binôme de design & lot LE1** (plan
+> `.claude/plans/game-experience-enrichment.md`, registre unique des reliquats
+> depuis la clôture `close-open-plans-2026-09.md`). Deux agents
+> (`.claude/agents/game-designer.md`, `tactical-rpg-expert.md`) dessinent puis
+> passent au crible HoMM les propositions ; 14 décisions adoptées (Soin ne
+> ressuscite plus, mana persistante, Défendre plancher +1…), lots LE1→LE7.
+> **LE1 livré** (`le1-ai-pressure.md`, IA seule) : recrutement de tout le stock,
+> achat au marché des ressources rares manquantes, Taverne d'abord sans héros,
+> siège des villes à garnison dominées (`townDefenseStrength`), objectifs sur
+> ≤ 3 jours avant l'exploration + rappel vers une garnison forte. Mesuré (2 IA,
+> 64², 20 graines) : combats entre joueurs 9 → 17/20, captures 0 → 4/20. Zéro
+> faction, pas de bump save, golden inchangé.*
+
 ---
 
 ## Structure des fichiers

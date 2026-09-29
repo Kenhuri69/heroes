@@ -156,6 +156,14 @@ export function wouldSpawnSiegeTower(fortLevel: number, catalog: Record<string, 
 }
 
 /**
+ * La tour de tir d'une ville, en armée (1 pile) — vide si elle n'apparaîtrait pas.
+ * Sert aux estimations de force (IA, LE1) : même condition que `buildTowerStack`.
+ */
+export function siegeTowerArmy(fortLevel: number, catalog: Record<string, CombatUnitDef>): ArmyStack[] {
+  return wouldSpawnSiegeTower(fortLevel, catalog) ? [{ unitId: SIEGE_TOWER_UNIT, count: 1 }] : [];
+}
+
+/**
  * Pile « tour de tir » côté défenseur (C-SIEGE2.5), ou null si `fortLevel < 3`
  * ou si l'unité `arrow-tower` est absente du catalogue (données non chargées).
  * Slot dédié `tower` (jamais en collision avec les slots numérotés de garnison).

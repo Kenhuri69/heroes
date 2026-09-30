@@ -39,6 +39,7 @@ import {
   resolveSpecialtyName,
   resolveSpecialtyDesc,
   resolveArtifactName,
+  heroDisplayName,
 } from '../app/i18n';
 import { buildingUrl, heroAvatarUrl, townBackgroundUrl, townLayoutAnchors } from '../render/assets';
 import { townLayout, type TownSlot } from '../render/townLayout';
@@ -742,8 +743,13 @@ function TavernTab({ town, onError }: { town: TownState; onError: (msg: string |
   const affordable = (player?.resources.gold ?? 0) >= cost;
   // La Taverne d'une ville n'offre que les héros de SA faction (règle moteur,
   // ids opaques — zéro nom de faction en dur). Tri par id pour un ordre stable.
+  // Réserve (LE6 E1) : les héros de CE joueur qui ont fui reviennent dans
+  // n'importe laquelle de ses Tavernes, en tête de liste, tels qu'ils sont partis.
+  const reserve = player?.reserveHeroes ?? [];
+  const inReserve = (rosterId: string): boolean =>
+    game.players.some((p) => p.reserveHeroes?.some((h) => h.rosterId === rosterId) ?? false);
   const roster = Object.entries(game.heroRoster)
-    .filter(([, def]) => def.factionId === town.factionId)
+    .filter(([id, def]) => def.factionId === town.factionId && !reserve.some((h) => h.rosterId === id))
     .sort(([a], [b]) => a.localeCompare(b));
 
   const recruit = (heroId: string): void => {
@@ -766,7 +772,33 @@ function TavernTab({ town, onError }: { town: TownState; onError: (msg: string |
         <span>{t('town.tavernHeroes', { count: owned, max })}</span>
         {capReached && <span class="town-tavern-cap">{t('town.tavernCapReached')}</span>}
       </p>
-      {roster.length === 0 ? (
+      {reserve.length > 0 && (
+        <ul class="town-tavern-list" data-testid="town-tavern-reserve">
+          {reserve.map((hero) => {
+            const key = hero.rosterId !== '' ? hero.rosterId : hero.id;
+            return (
+              <li key={key} class="town-tavern-hero">
+                <div class="town-tavern-header">
+                  <span class="town-tavern-name">{heroDisplayName(hero.name)}</span>
+                  <span class="town-tavern-attrs">{t('town.tavernReserveLevel', { level: hero.level })}</span>
+                </div>
+                <p class="town-tavern-specialty">{t('town.tavernReserveHint')}</p>
+                <div class="town-tavern-action">
+                  <CostList cost={{ gold: cost }} />
+                  <button
+                    data-testid={`town-tavern-recruit-${key}`}
+                    disabled={capReached || !affordable}
+                    onClick={() => recruit(key)}
+                  >
+                    {t('town.recruit')}
+                  </button>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+      {roster.length === 0 && reserve.length === 0 ? (
         <p class="town-tavern-empty" data-testid="town-tavern-empty">
           {t('town.tavernEmpty')}
         </p>
@@ -777,7 +809,8 @@ function TavernTab({ town, onError }: { town: TownState; onError: (msg: string |
             // `owner` = son joueur (undefined si libre) ; `mine` = c'est le mien.
             const owner = game.heroes.find((h) => h.rosterId === heroId);
             const mine = owner?.playerId === playerId;
-            const taken = owner !== undefined;
+            // Un héros en réserve chez un autre joueur reste indisponible (LE6 E1).
+            const taken = owner !== undefined || inReserve(heroId);
             const bio = resolveHeroBio(heroId);
             const specDesc = def.specialtyId ? resolveSpecialtyDesc(def.specialtyId) : null;
             return (

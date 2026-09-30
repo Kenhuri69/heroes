@@ -100,8 +100,20 @@ async function tapTapTile(page: Page, x: number, y: number): Promise<void> {
  * TOUT combat. `'fight'` passe à la conduite manuelle (révèle `CombatUi`),
  * `'auto'` lance l'Auto-Battle (résolution déterministe immédiate).
  */
-async function passPreBattle(page: Page, mode: 'fight' | 'auto' = 'fight'): Promise<void> {
+/**
+ * Neutres vivants (LE5 A4) : un gardien dominé propose d'abord de fuir ou de
+ * rejoindre — ce helper répond « Combattre » quand la proposition s'affiche, puis
+ * attend l'écran pré-combat.
+ */
+async function reachPreBattle(page: Page): Promise<void> {
+  const offer = page.getByTestId('neutral-offer');
+  await expect(offer.or(page.getByTestId('pre-battle'))).toBeVisible();
+  if (await offer.isVisible()) await page.getByTestId('neutral-offer-fight').click();
   await expect(page.getByTestId('pre-battle')).toBeVisible();
+}
+
+async function passPreBattle(page: Page, mode: 'fight' | 'auto' = 'fight'): Promise<void> {
+  await reachPreBattle(page);
   await page.getByTestId(mode === 'auto' ? 'pre-battle-auto' : 'pre-battle-fight').click();
 }
 
@@ -986,7 +998,10 @@ test('combat : victoire contre le gardien, retour carte avec pertes appliquées'
   await expect(page.getByTestId('combat-log-lines')).toContainText(/Round/i);
   const combat = await page.evaluate(() => window.__HEROES_TEST__!.getState().combat);
   expect(combat?.playerSide).toBe('attacker');
-  expect(combat?.stacks.filter((s) => s.side === 'defender')).toHaveLength(1);
+  // Division des piles neutres (LE5 F1) : 1 à 3 piles face à un héros dominant, effectif conservé.
+  const defenders = combat?.stacks.filter((s) => s.side === 'defender') ?? [];
+  expect(defenders.length).toBeGreaterThanOrEqual(1);
+  expect(defenders.reduce((n, s) => n + s.count, 0)).toBe(4);
 
   // Amélioration UX champ de bataille : la fiche de stats d'une pile s'ouvre au
   // tap sur une vignette du bandeau (même fiche que l'appui long sur le plateau,
@@ -1125,6 +1140,32 @@ test('B6 : un tir produit un projectile visible (sprint 1)', { tag: '@core' }, a
   expect(errors).toEqual([]);
 });
 
+test('neutres vivants : un gardien dominé propose de fuir, « Laisser partir » le retire (LE5 A4)', { tag: '@core' }, async ({ page }) => {
+  const errors = await openGame(page);
+  // Même interception que le combat de gardien : 32 unités face à 4 (≥ 3×).
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({
+      type: 'MoveHero',
+      heroId: 'hero-player-1',
+      path: [
+        { x: 4, y: 2 },
+        { x: 5, y: 2 },
+        { x: 6, y: 2 },
+        { x: 7, y: 2 },
+        { x: 8, y: 2 },
+      ],
+    }),
+  );
+  await expect(page.getByTestId('neutral-offer')).toBeVisible();
+  await expect(page.getByTestId('neutral-offer-fight')).toBeVisible();
+  await page.getByTestId('neutral-offer-release').click();
+  await expect(page.getByTestId('neutral-offer')).toHaveCount(0);
+  const state = await page.evaluate(() => window.__HEROES_TEST__!.getState());
+  expect(state.combat).toBeNull();
+  expect(state.map?.objects.some((o) => o.id === 'guard-camp')).toBe(false);
+  expect(errors).toEqual([]);
+});
+
 test('A1 : un gardien de carte est rendu comme un cluster gradué (sprint 2)', { tag: '@core' }, async ({ page }) => {
   const errors = await openGame(page);
   // Le gardien de départ (guard-camp, effectif « few » ⇒ cran solitaire) compose
@@ -1172,7 +1213,7 @@ test('écran pré-combat : puissances comparées + Auto-Battle résout (Lot 1)',
 
   // L'écran pré-combat (fidélité HoMM Online) s'affiche AVANT le plateau hex :
   // deux puissances comparées, le plateau (CombatUi) encore masqué.
-  await expect(page.getByTestId('pre-battle')).toBeVisible();
+  await reachPreBattle(page);
   await expect(page.getByTestId('combat-round')).toHaveCount(0);
   const power = (id: string): Promise<number> =>
     page.getByTestId(id).evaluate((el) => Number(el.textContent));
@@ -1231,7 +1272,7 @@ test('abandon pré-combat : renoncer garde l’armée et ne montre pas de bilan 
   );
 
   // L'écran pré-combat offre « Abandonner » (uniquement pour un combat de héros).
-  await expect(page.getByTestId('pre-battle')).toBeVisible();
+  await reachPreBattle(page);
   await page.getByTestId('pre-battle-abandon').click();
 
   // Combat quitté sans bataille : le héros survit avec son armée intacte, aucun
@@ -3127,6 +3168,50 @@ test('taverne : construire ⇒ onglet Taverne ⇒ recruter un héros nommé (M-T
   expect(errors).toEqual([]);
 });
 
+test('fuite HoMM : le héros qui fuit revient à la Taverne avec son niveau (LE6 E1)', async ({ page }) => {
+  const errors = await openGame(page);
+  await page.getByTestId('town-open-start-town').click();
+  await page.getByTestId('town-build-tavern').click();
+  await page.getByTestId('town-close').click();
+
+  // Combat contre le gardien (9,3), puis fuite : le héros quitte la carte.
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({
+      type: 'MoveHero',
+      heroId: 'hero-player-1',
+      path: [
+        { x: 4, y: 2 },
+        { x: 5, y: 2 },
+        { x: 6, y: 2 },
+        { x: 7, y: 2 },
+        { x: 8, y: 2 },
+      ],
+    }),
+  );
+  await passPreBattle(page);
+  await expect(page.getByTestId('combat-round')).toBeVisible();
+  const level = await page.evaluate(() => window.__HEROES_TEST__!.getState().heroes[0]!.level);
+  await page.evaluate(() => window.__HEROES_TEST__!.dispatch({ type: 'Retreat' }));
+  await expect.poll(() => page.evaluate(() => window.__HEROES_TEST__!.getState().heroes.length)).toBe(0);
+  const reserve = await page.evaluate(() => window.__HEROES_TEST__!.getState().players[0]!.reserveHeroes ?? []);
+  expect(reserve.map((h) => h.id)).toEqual(['hero-player-1']);
+
+  // Deux jours de revenu (1500 → 2500 or), puis recrutement depuis la réserve.
+  for (let i = 0; i < 2; i++) {
+    await page.evaluate(() => window.__HEROES_TEST__!.dispatch({ type: 'EndTurn', playerId: 'player-1' }));
+  }
+  await page.getByTestId('town-open-start-town').click();
+  await page.getByTestId('town-tab-tavern').click();
+  await expect(page.getByTestId('town-tavern-reserve')).toBeVisible();
+  await page.getByTestId('town-tavern-recruit-hero-player-1').click();
+  await expect(page.getByTestId('town-tavern-reserve')).toHaveCount(0);
+  const back = await page.evaluate(() => window.__HEROES_TEST__!.getState().heroes[0]);
+  expect(back?.id).toBe('hero-player-1');
+  expect(back?.level).toBe(level);
+  expect(back?.army).toEqual([]);
+  expect(errors).toEqual([]);
+});
+
 test('M-TAVERN.4 : pool exclusif — un héros recruté chez p1 est indisponible pour p2', async ({
   page,
 }) => {
@@ -3648,7 +3733,7 @@ test('sort : le héros lance un sort en combat et réduit une pile ennemie', { t
   await expect(page.getByTestId('spell-preview')).toContainText(/\d/);
   // C-SPELLUI.2 : « éclair magique » est mono-cible ⇒ aucune liste de zone
   // (le cas multi-piles splash/all/chaîne est couvert par le unit test moteur
-  // combat-spell-affected — le scénario smoke n'a qu'une pile gardien).
+  // combat-spell-affected).
   await expect(page.getByTestId('spell-zone')).toHaveCount(0);
   await page.getByTestId('spell-cast').click();
 
@@ -3737,7 +3822,7 @@ test('attaque du héros : frappe directe sur une pile ennemie, 1×/combat (C1)',
   expect(errors).toEqual([]);
 });
 
-test('fuite : quitter le combat — le héros survit, armée abandonnée (C3)', async ({ page }) => {
+test('fuite : quitter le combat — le héros survit en réserve, armée abandonnée (C3, LE6 E1)', async ({ page }) => {
   const errors = await openGame(page);
 
   await page.evaluate(() =>
@@ -3757,17 +3842,20 @@ test('fuite : quitter le combat — le héros survit, armée abandonnée (C3)', 
   await passPreBattle(page);
   await expect(page.getByTestId('combat-round')).toBeVisible();
 
-  // [Fuir] → confirmation → le combat se résout, le héros survit sans armée.
+  // [Fuir] → confirmation → le combat se résout ; fuite HoMM (LE6 E1) : le héros
+  // survit, quitte la carte et attend dans la réserve du joueur, sans armée.
   await expect(page.getByTestId('combat-retreat')).toBeEnabled();
   await page.getByTestId('combat-retreat').click();
   await page.getByTestId('combat-leave-confirm').click();
 
   await expect.poll(() => page.evaluate(() => window.__HEROES_TEST__!.getState().combat)).toBeNull();
-  const hero = await page.evaluate(
-    () => window.__HEROES_TEST__!.getState().heroes.find((h) => h.id === 'hero-player-1') ?? null,
-  );
-  expect(hero).not.toBeNull(); // le héros a survécu à la fuite
-  expect(hero?.army.length).toBe(0); // armée abandonnée
+  const after = await page.evaluate(() => {
+    const g = window.__HEROES_TEST__!.getState();
+    return { onMap: g.heroes.some((h) => h.id === 'hero-player-1'), reserve: g.players[0]!.reserveHeroes ?? [] };
+  });
+  expect(after.onMap).toBe(false);
+  expect(after.reserve.map((h) => h.id)).toEqual(['hero-player-1']); // le héros a survécu à la fuite
+  expect(after.reserve[0]?.army.length).toBe(0); // armée abandonnée
 
   expect(errors).toEqual([]);
 });

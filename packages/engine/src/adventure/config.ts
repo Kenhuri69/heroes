@@ -43,6 +43,13 @@ export interface CombatRulesConfig {
    * illimitée sans falloff (comportement historique ⇒ golden inchangé).
    */
   rangePenalty?: { hexes: number; factor: number } | undefined;
+  /**
+   * Division des piles neutres (LE5 F1, canon HoMM III) : un gardien se scinde au
+   * combat en plusieurs piles, d'autant plus nombreuses que le héros est faible
+   * face à lui (`guardianStackCount`), bornées par `maxStacks`. Absent ⇒ une
+   * seule pile (comportement historique ⇒ golden inchangé).
+   */
+  neutralSplit?: { maxStacks: number } | undefined;
   /** Moral : 4 %/point de tour bonus (ou sauté, symétrique — décision n°8). */
   moraleChancePerPoint: number;
   /** Chance : 4 %/point de dégâts doublés (doc 02 §5.3). */
@@ -212,6 +219,27 @@ export interface AdventureConfig {
    * inchangés). Cf. `guardianZone`.
    */
   guardianZoneOfControl?: boolean | undefined;
+  /**
+   * Réactions des neutres (LE5 A4, canon HoMM III) : à l'interception, un gardien
+   * dominé propose de **fuir** (rapport de force ≥ `fleeRatio` ; entre
+   * `fleeChanceFrom` et `fleeRatio`, proposition tirée au RNG seedé) ou, face à un
+   * héros doté de Diplomatie, de **rejoindre** l'armée contre or (rapport ≥
+   * `joinRatio`). Absent ⇒ tout gardien combat (fixtures/golden inchangés).
+   * Cf. `neutralOfferFor`.
+   */
+  neutralReactions?: NeutralReactionsConfig | undefined;
+  /**
+   * Semaine offerte à la construction (LE6 E2, HoMM III) : une habitation qui
+   * vient d'être bâtie reçoit aussitôt sa croissance hebdomadaire
+   * (`weeklyGrowthOf`). Absent ⇒ stock 0 jusqu'à la semaine suivante.
+   */
+  dwellingInitialStock?: boolean | undefined;
+}
+
+export interface NeutralReactionsConfig {
+  fleeRatio: number;
+  fleeChanceFrom: number;
+  joinRatio: number;
 }
 
 /**
@@ -302,6 +330,12 @@ export interface HeroProgressionConfig {
   recruitCost?: number;
   /** Nombre maximum de héros par joueur (doc 02 §1.5). Défaut 8. */
   maxPerPlayer?: number;
+  /**
+   * Fuite HoMM (LE6 E1) : le héros qui fuit quitte la carte et rejoint la réserve
+   * de son joueur (`PlayerState.reserveHeroes`), recrutable tel quel dans ses
+   * Tavernes. Absent ⇒ il reste sur la carte, armée vide (comportement d'avant).
+   */
+  retreatToTavern?: boolean | undefined;
   /**
    * Mana persistante (LE4/C2, doc 02 §1.4) — cf. `hero/mana.ts`. **Opt-in** :
    * absent ⇒ mana pleine à chaque combat et à chaque aube.

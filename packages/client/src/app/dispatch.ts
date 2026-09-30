@@ -18,8 +18,9 @@ export function buildCombatResult(events: readonly GameEvent[]): CombatResult | 
   const ended = events.find((e) => e.type === 'CombatEnded');
   if (!ended || ended.type !== 'CombatEnded') return null;
   // Départ délibéré (fuite/reddition/abandon) : pas de bilan (l'action est déjà
-  // explicite côté joueur).
-  if (events.some((e) => e.type === 'CombatLeft')) return null;
+  // explicite côté joueur). Un adversaire IA qui fuit (LE6 B3) laisse, lui, une
+  // victoire au joueur : bilan affiché.
+  if (events.some((e) => e.type === 'CombatLeft') && ended.winner !== ended.playerSide) return null;
 
   const enemySide = ended.playerSide === 'attacker' ? 'defender' : 'attacker';
   const breakdown = (side: 'attacker' | 'defender'): CombatResultUnit[] => {

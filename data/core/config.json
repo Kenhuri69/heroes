@@ -79,6 +79,7 @@
       },
       "recruitCost": 2500,
       "maxPerPlayer": 8,
+      "retreatToTavern": true,
       "mana": {
         "persistent": true,
         "basePerDay": 1,
@@ -124,6 +125,9 @@
       "rangePenalty": {
         "hexes": 10,
         "factor": 0.5
+      },
+      "neutralSplit": {
+        "maxStacks": 5
       },
       "suddenDeathOnline": {
         "round": 20,
@@ -246,7 +250,13 @@
       "weeklyFactor": 1.1,
       "maxCount": 300
     },
-    "guardianZoneOfControl": true
+    "guardianZoneOfControl": true,
+    "neutralReactions": {
+      "fleeRatio": 3,
+      "fleeChanceFrom": 2,
+      "joinRatio": 1.5
+    },
+    "dwellingInitialStock": true
   },
   "newGame": {
     "map": "proto-01",

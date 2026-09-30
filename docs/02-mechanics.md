@@ -128,6 +128,7 @@ Les **probabilités de gain** par niveau sont data-driven. *État livré (H-NAME
 | Artillerie | +50/100/150 % dégâts des machines de guerre |
 | Premiers soins | +50/100/200 % soin de la tente de soins |
 | Balistique | +50/100/150 % dégâts de la catapulte aux remparts |
+| Diplomatie | les neutres dominés proposent de rejoindre l'armée à −25/50/75 % de leur coût (§2.2) |
 
 Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex. Nécromancie, cf. doc 04 ; Chasse rituelle, cf. doc 05).
 
@@ -146,7 +147,7 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 > Premiers soins (`firstAidHealPct`, soin `healPerRound`), Balistique
 > (`siegeDamagePct`, bombardement des remparts). **Reportées** : Orientation
 > (réduction de pénalité de terrain — l'API de coût de pas ne connaît pas le
-> héros) et Diplomatie (lot LE5, ralliement des neutres).
+> héros). **Diplomatie** livrée en LE5 (`neutralJoinDiscountPct`, §2.2).
 
 ### 1.4 Magie
 
@@ -433,6 +434,26 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 > libre. La prévisualisation annonce la force du gardien quand le chemin
 > s'achève dans sa zone. La règle ne vaut qu'à pied : les bateaux et les
 > caravanes l'ignorent. Un butin posé à côté d'un gardien est donc gardé de fait.
+> **Neutres vivants (lot LE5, HoMM III)** — deux règles opt-in, activées dans
+> `data/core/config.json` :
+> - **Division des piles** (`combat.neutralSplit { maxStacks: 5 }`) : au combat,
+>   le gardien se scinde en piles d'effectif égal. Leur nombre suit le rapport
+>   `r` = force du héros / force du gardien (`armyStrength`), table canon (seuils
+>   incertains) : `r` < 0,5 ⇒ 7, < 0,67 ⇒ 6, < 1 ⇒ 5, < 1,5 ⇒ 4, < 2 ⇒ 3, sinon 2 ;
+>   puis −1/0/+1 au RNG seedé, borné par `maxStacks` et l'effectif. Un héros
+>   faible affronte donc plus de piles. Sur la carte, le gardien reste une pile :
+>   ses survivants sont réadditionnés.
+> - **Fuite et ralliement** (`adventure.neutralReactions { fleeRatio: 3,
+>   fleeChanceFrom: 2, joinRatio: 1,5 }`) : à l'interception, un gardien dominé
+>   **propose** au lieu de combattre. À `r ≥ 3`, il offre de **fuir** ; entre 2 et
+>   3, l'offre est tirée au RNG seedé (probabilité linéaire). Avec **Diplomatie**
+>   et `r ≥ 1,5`, il offre de **rejoindre** l'armée contre son coût de
+>   recrutement réduit (s'il reste une pile de même unité ou un emplacement
+>   libre). Le joueur choisit : **Combattre** (toujours possible), **Laisser
+>   partir** (gardien retiré, ni XP ni butin) ou **Rallier** (or payé, pile
+>   ajoutée). Jamais d'offre d'un gardien `neverFlee` (champ de carte), dont
+>   dépend un butin (`guardedBy` : banques, trésors gardés) ou visé par une quête
+>   `defeatGuardian` active. L'IA rallie quand elle peut payer, sinon combat.
 > **M-GUARDLINK (« gardés selon rareté »)** : un objet ramassable
 > (`resource`/`treasure`/`artifact`) peut porter un champ optionnel `guardedBy`
 > = id d'un **gardien** de la carte. Tant que cette sentinelle existe, l'objet
@@ -641,7 +662,7 @@ Chaque faction consomme surtout **une paire de ressources rares** (Haven : crist
 | Aura de héros (ex. Écuries / Statue du Jugement Haven, Cercle Vigile AH) | 1 | effet générique `heroAura` (F-BUILDEFF) : bonus lié à la ville, sans nom de faction. Champs câblés : `movementBonusFlat` (.1) = +PM/jour au héros du **propriétaire présent sur la ville** (option B) ; `combatMoraleBonus` (.2) = +moral en **combat de siège** au camp **défenseur** (garnison) ; `garrisonDefense` (.4) = +défense « murs » plate au **siège** (même champ que la Maison Blaireau, porté par un bâtiment). Autres champs = sous-lots F-BUILDEFF.x |
 | Bâtiment enseignant (ex. Cloître Haven) | 1 | effet générique `grantSpell` (F-BUILDEFF.3) : à la construction, ajoute un `spellId` au pool de sorts de la ville ; le héros du propriétaire présent l'apprend via la mécanique d'apprentissage à la visite (comme la Guilde des mages). `spellId` cross-validé au chargement |
 
-- **Recrutement** : chaque habitation a une croissance hebdo (ex. T1 : 14/sem, T7 : 1/sem) ; le stock s'accumule s'il n'est pas recruté (plafond : 2 semaines). Valeurs de départ : coûts des bâtiments communs dans `data/core/buildings.json` — hôtel de ville **gratuit / 2500 or / 5000 or + 5 gemmes / 10000 or + 10 gemmes + 10 cristal** (le niveau 4 = Capitole, `uniquePerPlayer`) ; fort 5000 or + 20 minerai, ×2 par niveau ; guilde des mages 2000 or + 5 bois (×2 par niveau). Croissance/coût de recrutement dans les données d'unité ; le stock d'une habitation ne se remplit qu'au **passage de semaine** (état de départ vide).
+- **Recrutement** : chaque habitation a une croissance hebdo (ex. T1 : 14/sem, T7 : 1/sem) ; le stock s'accumule s'il n'est pas recruté (plafond : 2 semaines). Valeurs de départ : coûts des bâtiments communs dans `data/core/buildings.json` — hôtel de ville **gratuit / 2500 or / 5000 or + 5 gemmes / 10000 or + 10 gemmes + 10 cristal** (le niveau 4 = Capitole, `uniquePerPlayer`) ; fort 5000 or + 20 minerai, ×2 par niveau ; guilde des mages 2000 or + 5 bois (×2 par niveau). Croissance/coût de recrutement dans les données d'unité ; le stock d'une habitation ne se remplit qu'au **passage de semaine** (état de départ vide). **Semaine offerte (lot LE6 E2, HoMM III)** : avec `dwellingInitialStock` (activé dans `data/core/config.json`), une habitation **neuve** ouvre aussitôt avec sa croissance hebdomadaire (`weeklyGrowthOf`) ; une amélioration (niveau 2) n'en reçoit pas.
 - **Croissance partagée** (générique, doc 05 §3.1/§8) : un manifeste de faction peut déclarer un **groupe de croissance partagée** (`sharedGrowthGroups`, ex. « double sommet » T7/T8). Les membres d'un même groupe **se partagent une seule croissance hebdomadaire** dans une ville où au moins deux d'entre eux sont bâtis ; le joueur désigne le destinataire via la commande `ChooseSharedGrowth` (préférence permanente, défaut = 1er membre déclaré). Le moteur ne connaît que des ids opaques (`GameState.growthGroups`, `TownState.sharedGrowthChoice`) — aucun nom de faction.
 - **File de garnison** : une ville stocke une armée de défense ; attaquer une ville **défendue** ouvre un **combat de siège** contre sa garnison (Alpha 4.13) — combat normal sur le terrain de la ville, le Fort accordant un bonus de défense « murs » aux piles défenseure. Tour de garde + catapulte différés (v2).
 - **Capture** : ville **sans** garnison = capture immédiate — sauf si un **héros ennemi** y stationne : fouler la ville ouvre alors un **combat héros-vs-héros** (`beginHeroCombat`, comme sur la carte ; revue 2026-09 M1 — avant, la ville changeait de main sous les pieds du héros) ; une garnison présente **prime** (siège) ; ville **défendue** = capture à l'issue d'un siège **gagné** (garnison anéantie ⇒ la ville change de main, garnison vidée ; siège repoussé ⇒ héros retiré, garnison survivante conservée). Le joueur qui perd sa dernière ville a **7 jours** (`RETAKE_GRACE_DAYS`, constante moteur) pour en reprendre une, sinon défaite. *L'élimination et cette grâce ne sont actives **qu'en mode scénario** (`GameState.scenario`) — no-op en partie libre/proto.*
@@ -899,7 +920,9 @@ Sémantique des capacités du catalogue (valeurs de départ ; **35** au 2026-08)
 
 ### 5.5 Fin de combat & auto-résolution
 
-- Victoire = plus aucune pile adverse. Un camp **sans aucune pile** dès l'ouverture (héros sans troupes attaqué, ville défendue par un tel héros) perd **immédiatement** : le combat s'ouvre et se clôt dans la même commande (revue 2026-09b M1 — avant : combat sans fin). Fuite (perd l'armée, garde héros+artefacts, re-recrutable en taverne) et reddition (idem + coût en or, garde l'armée restante — post-MVP). **Décision (revue 2026-07 B21)** : un départ délibéré (fuite/reddition/abandon) **réécrit les survivants du camp adverse** exactement comme une défaite normale — le gardien/la garnison garde ses pertes au lieu de retrouver son effectif entier à la rencontre suivante (symétrie entre les deux façons de « perdre » le même combat). **Revue 2026-09b M3** : idem pour un **héros adverse** (H-VS-H) — son armée est reconstruite depuis ses survivants.
+- Victoire = plus aucune pile adverse. Un camp **sans aucune pile** dès l'ouverture (héros sans troupes attaqué, ville défendue par un tel héros) perd **immédiatement** : le combat s'ouvre et se clôt dans la même commande (revue 2026-09b M1 — avant : combat sans fin). Fuite (perd l'armée, garde héros+artefacts, re-recrutable en taverne — **livré en LE6 E1**, voir ci-dessous) et reddition (idem + coût en or, garde l'armée restante — post-MVP). **Décision (revue 2026-07 B21)** : un départ délibéré (fuite/reddition/abandon) **réécrit les survivants du camp adverse** exactement comme une défaite normale — le gardien/la garnison garde ses pertes au lieu de retrouver son effectif entier à la rencontre suivante (symétrie entre les deux façons de « perdre » le même combat). **Revue 2026-09b M3** : idem pour un **héros adverse** (H-VS-H) — son armée est reconstruite depuis ses survivants.
+  **Fuite HoMM (lot LE6 E1)** : avec `hero.retreatToTavern` (activé ; absent ⇒ le héros restait sur la carte, armée vide — l'« éclaireur vide »), le héros qui fuit **quitte la carte** sans aucun survivant et rejoint la **réserve** de son joueur (`PlayerState.reserveHeroes`) avec niveau, XP, compétences, sorts, artefacts et machines. Il se recrute au prix normal dans **n'importe quelle** Taverne de son joueur (toutes factions confondues), en tête de liste, et revient armée vide avec ses PM du jour ; personne d'autre ne peut le recruter (le pool exclusif compte la réserve). Un héros en réserve a quitté la carte : `defeatHero` est rempli, et un joueur sans ville ni héros sur la carte est éliminé.
+  **L'IA fuit (lot LE6 B3)** : dans un combat héros contre héros **hors siège**, un camp mené par un héros d'un joueur IA fuit au round 1 si sa force (`armyStrength`) est sous **0,25×** celle d'en face (seuil à mesurer) ; l'adversaire l'emporte. Jamais pour un joueur humain, même en auto-combat. L'IA recrute d'abord ses héros de réserve à la Taverne.
 - **Abandon pré-combat** (retour de jeu 2026-07, commande `AbandonCombat`) : la puissance ennemie n'étant visible qu'en lançant le combat (écran pré-combat), on peut y **renoncer avant d'échanger le moindre coup** en conservant l'armée survivante, **sans coût** (l'ennemi l'emporte, le gardien/la ville reste). Réservé au premier round **et avant toute action du camp joueur** (aucune pile n'a agi ni attendu, le héros n'a ni frappé ni lancé de sort — revue 2026-09b M2 : sinon « tirer puis abandonner » grignotait un gardien sans risque) ; l'UI n'expose le bouton **que** sur l'écran pré-combat, jamais en bataille (où seules fuite/reddition existent). Distinct de la fuite (qui, elle, abandonne l'armée).
 - **Bilan de fin de combat** (retour de jeu 2026-07) : à l'issue d'un combat *fouillé* (annihilation), un écran récapitule **morts/survivants par armée** et les **gains** (XP + niveaux, or, ressources, artefact, mort-vivants relevés). L'événement `CombatEnded` porte désormais `survivors` (en plus de `casualties`) ; un départ délibéré (fuite/reddition/abandon) n'ouvre pas de bilan.
 - **Renforts en combat** (doc 18 B3, signature MMHO — *✅ État B3 livré, moteur + client*) : **opt-in par config** (`config.combat.reinforcements { maxCallsPerCombat, maxUnitsPerCall, costMultiplier }` ; absent ⇒ commande refusée, comme `heroAttack`/`suddenDeath`) et **PvE only**. En combat PvE (gardien/siège, `defenderHeroId` null — **jamais** en héros-vs-héros ni en arène), une action de héros **`CallReinforcements { unitId, count }`** ajoute une **pile fraîche** d'une unité que le héros **commande déjà**, contre or (`recruitCost × count × costMultiplier`, débité au joueur). Plafonné à `maxCallsPerCombat` appels/combat (compteur lazy `CombatState.reinforcementsUsed`, pas de bump save) et `maxUnitsPerCall` unités/appel. Le renfort **se déploie et n'agit qu'au round suivant** (`acted: true` à l'insertion — anti-abus « renfort + charge immédiate »). Appeler des renforts **est l'action du héros pour le round** (lot LE2, décision D-REINF) : même budget que la frappe et le sort (doc 02 §1, une action de héros par round). Générique : aucun nom de faction. **Client** : bouton « Renforts » + modale de sélection unité/effectif avec coût prévisualisé (gate d'affichage `canCallReinforcements`, mêmes préconditions que le moteur). **Mécanique clivante** (assouplit « armée engagée = armée risquée ») ⇒ contenue par le **gate PvE** (le PvP n'est jamais affecté) ; **activée globalement** en données (`config.json` : 2 appels max, ×2 le coût de recrutement) comme feature PvE standard fidèle MMHO.
@@ -1131,6 +1154,9 @@ threadé en `heroId` dans `CastSpell`/`HeroAttack` — sinon le lead par défaut
 > et ne vise jamais un butin qui s'y trouve ; un **gardien dominé** (marge 1,5×)
 > devient un objectif sur plusieurs jours (valeur 3), sans quoi une porte gardée
 > lui fermait la carte.
+> **Lot LE5** (`.claude/plans/le5-living-neutrals.md`) : face à une proposition de
+> neutre (§2.2), l'IA rallie la pile si elle peut payer, sinon elle combat (elle
+> garde l'XP du ratissage).
 >
 > **Fin de tour & relais IA — jamais d'échec muet (lot R0, doc 08 §3)** : la fin
 > de tour humain enchaîne les tours IA jusqu'au prochain humain. Si `EndTurn` est

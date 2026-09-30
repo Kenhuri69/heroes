@@ -320,6 +320,20 @@
           "siegeDamagePct": 150
         }
       ]
+    },
+    {
+      "id": "diplomacy",
+      "ranks": [
+        {
+          "neutralJoinDiscountPct": 25
+        },
+        {
+          "neutralJoinDiscountPct": 50
+        },
+        {
+          "neutralJoinDiscountPct": 75
+        }
+      ]
     }
   ]
 }

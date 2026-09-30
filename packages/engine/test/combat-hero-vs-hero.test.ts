@@ -167,3 +167,38 @@ describe('H-VS-H — combat héros-vs-héros', () => {
     expect(validate(s, stepOnto)?.code).toBe('invalidArmy');
   });
 });
+
+describe('LE6 B3 — le héros IA dominé fuit au lieu de mourir', () => {
+  const setup = (rule: boolean, p2Controller: 'ai' | 'human' = 'ai'): GameState => {
+    const s = state(
+      hero('a', 'p1', { x: 2, y: 2 }, { army: [{ unitId: 'red-grunt', count: 100 }] }),
+      hero('b', 'p2', { x: 3, y: 3 }, {
+        army: [{ unitId: 'red-grunt', count: 3 }],
+        artifacts: ['relic', ...Array.from({ length: 9 }, () => null)],
+      }),
+    );
+    if (rule) s.config!.hero.retreatToTavern = true;
+    s.players[1]!.controller = p2Controller;
+    return s;
+  };
+  const fight = (s: GameState) => apply(apply(s, stepOnto).state, { type: 'AutoCombat' });
+
+  it('force < 0,25× : l’IA fuit, garde son héros et ses artefacts en réserve ; l’attaquant l’emporte', () => {
+    const { state: next, events } = fight(setup(true));
+    expect(next.combat).toBeNull();
+    expect(next.heroes.map((h) => h.id)).toEqual(['a']);
+    const reserve = next.players[1]!.reserveHeroes ?? [];
+    expect(reserve.map((h) => h.id)).toEqual(['b']);
+    expect(reserve[0]!.artifacts[0]).toBe('relic');
+    expect(events.some((e) => e.type === 'CombatEnded' && e.winner === 'attacker')).toBe(true);
+    expect(events).toContainEqual({ type: 'CombatLeft', mode: 'retreat', heroId: 'b' });
+  });
+
+  it('sans la règle, ou pour un joueur humain : le combat va à son terme', () => {
+    for (const s of [setup(false), setup(true, 'human')]) {
+      const { state: next } = fight(s);
+      expect(next.heroes.map((h) => h.id)).toEqual(['a']);
+      expect(next.players[1]!.reserveHeroes).toBeUndefined();
+    }
+  });
+});

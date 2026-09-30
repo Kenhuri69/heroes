@@ -10,6 +10,7 @@ import { heroRallyHp, rallyWithHero } from './hero-rally';
 import { spellcasterParams } from './spell-effect';
 import { estimateDamage, killsFromDamage, symbiosisParams } from './damage';
 import { advanceTurn } from './turns';
+import { aiRetreat } from './leave';
 import type { Draft } from './draft';
 import { hexDistance, type OffsetPos } from './hex';
 import { collectCasualties, effectiveSpeed, hasAbility, heroActionLeftFor, heroesOnSide, isSilenced, isStackSpellImmune } from './state-helpers';
@@ -435,6 +436,35 @@ function chooseHeroSpell(
  * (pas de régénération en combat), frappe bornée à une par round — la property
  * « un combat se termine toujours » est préservée.
  */
+/** Rapport de force sous lequel un héros IA fuit plutôt que de mourir (LE6 B3, à mesurer). */
+const AI_RETREAT_RATIO = 0.25;
+
+/**
+ * Fuite de l'IA dominée (LE6 B3, canon III) : au round 1, un camp mené par un
+ * héros d'un joueur **IA**, dans un combat héros contre héros hors siège, fuit
+ * quand sa force est sous `AI_RETREAT_RATIO` × celle d'en face — il perd son
+ * armée mais garde héros et artefacts (fuite HoMM, `aiRetreat`). Jamais pour un
+ * joueur humain (même en auto-combat), jamais en siège (on ne quitte pas la
+ * défense de sa ville), et seulement sous la règle `hero.retreatToTavern`.
+ */
+function maybeAiRetreat(draft: Draft, events: GameEvent[], side: CombatSideId): boolean {
+  const combat = draft.combat;
+  if (!combat || combat.finished || combat.round !== 1 || combat.townId) return false;
+  if (!draft.config?.hero.retreatToTavern || !combat.attackerHeroId || !combat.defenderHeroId) return false;
+  const heroId = side === 'attacker' ? combat.attackerHeroId : combat.defenderHeroId;
+  const hero = draft.heroes.find((h) => h.id === heroId);
+  const player = hero ? draft.players.find((p) => p.id === hero.playerId) : undefined;
+  if (!player || player.controller !== 'ai') return false;
+  const strengthOf = (s: CombatSideId): number =>
+    armyStrength(
+      combat.stacks.filter((st) => st.side === s && st.count > 0).map((st) => ({ unitId: st.unitId, count: st.count })),
+      draft.unitCatalog,
+    );
+  if (strengthOf(side) >= AI_RETREAT_RATIO * strengthOf(side === 'attacker' ? 'defender' : 'attacker')) return false;
+  aiRetreat(draft, side, events);
+  return true;
+}
+
 /** Rapport de force au-delà duquel l'IA garde sa mana persistante (LE4/C2). */
 const AI_MANA_DOMINANCE = 3;
 
@@ -580,6 +610,7 @@ export function runAiIfNeeded(draft: Draft, events: GameEvent[]): void {
     if (++iterations > MAX_AI_ITERATIONS) {
       throw new Error('runAiIfNeeded: dépassement d’itérations (boucle infinie suspectée)');
     }
+    if (maybeAiRetreat(draft, events, active.side)) continue;
     // C-AIPARITY : le héros IA joue d'abord (sort/frappe) — puis on réévalue
     // l'état (le combat a pu se terminer) avant l'action de pile.
     if (maybeHeroAction(draft, events, active.side)) continue;
@@ -608,6 +639,7 @@ export function runAutoCombat(draft: Draft, events: GameEvent[], rounds?: number
     // C-AIPARITY : en auto-combat, CHAQUE camp joue une action de son héros
     // (sort OU frappe, une par round) avant l'action de sa pile active.
     const activeAuto = combat.stacks.find((s) => s.id === combat.activeStackId);
+    if (activeAuto && maybeAiRetreat(draft, events, activeAuto.side)) continue;
     if (activeAuto && maybeHeroAction(draft, events, activeAuto.side)) continue;
     const action = chooseAction(draft, combat.activeStackId);
     applyAction(draft, events, combat.activeStackId, action);

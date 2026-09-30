@@ -131,6 +131,14 @@ export type GameEvent =
   | { type: 'TriggerFired'; triggerId: string; playerId: string | null; effect: TriggerEffect }
   /** Message à choix proposé (doc 18 A5) — `pendingTriggerChoice` posé, en attente. */
   | { type: 'TriggerChoiceOffered'; triggerId: string; playerId: string }
+  /** Gardien dominé qui propose de fuir ou de rejoindre (LE5 A4) — `pendingNeutralOffer` posé. */
+  | { type: 'NeutralOfferMade'; heroId: string; playerId: string; objectId: string }
+  /** Héros en fuite rangé dans la réserve de son joueur (LE6 E1). */
+  | { type: 'HeroRetreatedToTavern'; heroId: string; playerId: string }
+  /** Gardien laissé partir (LE5 A4) : retiré sans XP ni butin. */
+  | { type: 'GuardianReleased'; heroId: string; playerId: string; objectId: string; unitId: string; count: number }
+  /** Gardien rallié contre or (LE5 A4, Diplomatie) : pile ajoutée à l'armée. */
+  | { type: 'NeutralJoined'; heroId: string; playerId: string; objectId: string; unitId: string; count: number }
   /** Message à choix résolu (doc 18 A5) — l'effet de `optionIndex` a été appliqué. */
   | { type: 'TriggerChoiceResolved'; triggerId: string; playerId: string | null; optionIndex: number }
   // ——— Combat (doc 02 §5) — surface figée en cadrage phase 2.4 ———

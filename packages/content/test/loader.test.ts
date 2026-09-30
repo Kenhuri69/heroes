@@ -632,7 +632,7 @@ describe('loadMap', () => {
         frequency: 'oncePerHeroPerWeek',
       },
       { id: 'camp', type: 'dwelling', x: 2, y: 0, unitId: 't1-grunt', stock: 8 },
-      { id: 'errant', type: 'guardian', x: 1, y: 2, unitId: 't1-grunt', count: 3, roamRadius: 4, respawnDays: 7 },
+      { id: 'errant', type: 'guardian', x: 1, y: 2, unitId: 't1-grunt', count: 3, roamRadius: 4, respawnDays: 7, neverFlee: true },
     );
     const resolved = await loadMap(reader(data), 'mini', makeConfig(), new Set(['t1-grunt']));
     expect(resolved.objects).toContainEqual({
@@ -659,6 +659,7 @@ describe('loadMap', () => {
       count: 3,
       roamRadius: 4,
       respawnDays: 7,
+      neverFlee: true,
     });
     // Règle croisée : unité d'habitation inconnue rejetée (comme un gardien).
     const err = await loadMap(reader(data), 'mini', makeConfig(), new Set()).catch(

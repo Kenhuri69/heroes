@@ -587,6 +587,22 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > activée : jamais de recharge après combat ; aube = Savoir + Mysticisme ; ville
 > 50 %, 100 % avec Guilde ; fontaines de mana 100 %/jour ; IA économe qui va se
 > recharger). Pas de bump save, golden inchangé, zéro faction.*
+> **LE5 livré** (`le5-living-neutrals.md`) : **division des piles** neutres au
+> combat (`combat.neutralSplit`, table canon selon le rapport de force, RNG
+> seedé) ; **fuite proposée** d'un gardien dominé (≥ 3×, zone grise dès 2×) et
+> **ralliement** contre or avec **Diplomatie** (≥ 1,5×, −25/50/75 %), modale
+> « Combattre / Laisser partir / Rallier » (`pendingNeutralOffer?`,
+> `ResolveNeutralOffer`) ; jamais pour un gardien `neverFlee`, gardant un butin
+> ou visé par une quête ; IA qui rallie si elle peut payer. Pas de bump save,
+> golden inchangé, zéro faction.*
+> **LE6 livré** (`le6-back-in-the-game.md`) : **fuite HoMM** (`hero.retreatToTavern`,
+> activée — le héros qui fuit quitte la carte pour la réserve de son joueur,
+> `reserveHeroes?`, et se recrute tel quel dans n'importe laquelle de ses
+> Tavernes ; fin de l'éclaireur vide) ; **l'IA dominée fuit** (< 0,25×, héros
+> contre héros hors siège) et relance son héros de réserve ; **semaine offerte**
+> à la construction d'une habitation (`dwellingInitialStock`). Au passage, le BFS
+> d'exploration de l'IA lit la carte hors proxy Immer (tour d'IA ×4,9). Pas de
+> bump save, golden inchangé, zéro faction.*
 
 ---
 

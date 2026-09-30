@@ -195,6 +195,7 @@ export { evaluateQuests, questConditionMet } from './quest/evaluate';
 export { runAiTurn } from './ai/adventure';
 export { findPath, isPassable, stepCost } from './adventure/path';
 export { guardianZone } from './adventure/zone-of-control';
+export { neutralChoiceAllowed, type NeutralOffer, type NeutralOfferChoice } from './adventure/neutral-offer';
 export { createFog, revealAround } from './adventure/fog';
 export { isInPlayerVision, playerSightings, type Sighting } from './adventure/vision';
 export { xpForLevel } from './adventure/experience';

@@ -73,9 +73,9 @@ describe('runAiTurn — propriété « IA vs IA se termine »', () => {
         { numRuns: 20 },
       );
     },
-    // ~14 s en local : 20 s ne laissait aucune marge aux runners CI (timeouts
-    // intermittents observés) — 40 s couvre la variance sans masquer un vrai gel
-    // (la boucle a son propre garde-fou d'itérations).
+    // ~5 s en local depuis LE5 (~15 s avant : le BFS d'exploration de l'IA lisait
+    // la carte sous proxy Immer, timeout CI sur runner chargé). 40 s couvre la
+    // variance sans masquer un vrai gel (la boucle a son propre garde-fou).
     40_000,
   );
 

@@ -100,6 +100,7 @@ export {
   heroAttackDamageFor,
   surrenderCost,
   initiativeSpeed,
+  effectiveStackStats,
   meleeOriginsFor,
   reachableHexes,
   roundActionOrder,

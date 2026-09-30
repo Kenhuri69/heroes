@@ -111,7 +111,8 @@ villes tombent en revanche plus souvent.
 - [x] `pnpm build` + budget : **379 972 o gzip**
 - [x] smoke `@core` desktop + mobile **56/56** — le test « victoire contre le gardien »
   attendait le héros sur la case voisine du gardien : avec la zone, il s'arrête
-  une case avant. Attente mise à jour.
+  une case avant. Attente mise à jour, ainsi que dans le parcours `@e2e` (combat puis
+  rechargement), repéré par la CI ; suite complète hors `@core` rejouée : 86/86.
 
 ## 6. Journal
 

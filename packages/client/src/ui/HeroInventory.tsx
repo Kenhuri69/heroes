@@ -26,13 +26,32 @@ const SLOT_ORDER: ArtifactSlot[] = [
   'misc',
 ];
 
-/** Contenu d'un artefact : icône (repli nom) + nom + lore optionnel. */
-function ArtifactContent({ artifactId }: { artifactId: string }) {
+/**
+ * Ce que fait un artefact, en clair (LE-UX) : bonus d'attributs, effets de règle
+ * (libellés des compétences) et panoplie — visible au doigt, plus au seul survol.
+ */
+function artifactSummary(def: ArtifactDef | undefined): string {
+  if (!def) return '';
+  const parts: string[] = [];
+  for (const [field, value] of Object.entries(def.bonus)) {
+    if (value) parts.push(t(`artifact.bonus.${field}`, { value }));
+  }
+  for (const [field, value] of Object.entries(def.effects ?? {})) {
+    if (value) parts.push(t(`skill.effect.${field}`, { value }));
+  }
+  if (def.set) parts.push(t('artifact.setOf', { name: t(`artifactSet.${def.set.id}`), pieces: def.set.pieces }));
+  return parts.join(' · ');
+}
+
+/** Contenu d'un artefact : icône (repli nom) + nom + effets + lore optionnel. */
+function ArtifactContent({ artifactId, def }: { artifactId: string; def?: ArtifactDef | undefined }) {
   const lore = resolveArtifactLore(artifactId);
+  const summary = artifactSummary(def);
   return (
     <>
       <AssetImg src={artifactUrl(artifactId)} alt="" class="hero-inventory-icon" fallback={null} />
       <span class="hero-inventory-name">{resolveArtifactName(artifactId)}</span>
+      {summary && <span class="hero-inventory-effects">{summary}</span>}
       {lore && <span class="content-lore hero-inventory-lore">{lore}</span>}
     </>
   );
@@ -128,7 +147,7 @@ export function HeroInventory({
                   <span class="hero-slot-label" aria-hidden="true">
                     {slotLabel}
                   </span>
-                  <ArtifactContent artifactId={entry.id} />
+                  <ArtifactContent artifactId={entry.id} def={catalog[entry.id]} />
                 </button>
               ) : (
                 <div
@@ -139,7 +158,7 @@ export function HeroInventory({
                   <span class="hero-slot-label" aria-hidden="true">
                     {slotLabel}
                   </span>
-                  {entry ? <ArtifactContent artifactId={entry.id} /> : null}
+                  {entry ? <ArtifactContent artifactId={entry.id} def={catalog[entry.id]} /> : null}
                 </div>
               )}
             </li>
@@ -180,12 +199,12 @@ export function HeroInventory({
                     aria-label={t('hero.unequipArtifact', { content: resolveArtifactName(id) })}
                     onClick={() => unequip(index)}
                   >
-                    <ArtifactContent artifactId={id} />
+                    <ArtifactContent artifactId={id} def={catalog[id]} />
                   </button>
                 </li>
               ) : (
                 <li key={index} class="hero-inventory-slot filled">
-                  <ArtifactContent artifactId={id} />
+                  <ArtifactContent artifactId={id} def={catalog[id]} />
                 </li>
               ),
             )}
@@ -216,12 +235,13 @@ export function HeroInventory({
                   title={conflict ? t('cmdError.slotOccupied') : undefined}
                   onClick={() => equip(index)}
                 >
-                  <ArtifactContent artifactId={id} />
+                  <ArtifactContent artifactId={id} def={catalog[id]} />
+                  {conflict && <small class="btn-reason">{t('cmdError.slotOccupied')}</small>}
                 </button>
               </li>
             ) : (
               <li key={index} class="hero-inventory-slot filled">
-                <ArtifactContent artifactId={id} />
+                <ArtifactContent artifactId={id} def={catalog[id]} />
               </li>
             );
           })}

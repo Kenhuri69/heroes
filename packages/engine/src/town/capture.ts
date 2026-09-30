@@ -1,7 +1,8 @@
 import { isAdjacent, samePos } from '../adventure/map';
 import { fireFlagCaptureTrigger } from '../adventure/triggers';
 import { revealStructure } from '../adventure/vision';
-import { beginHeroCombat, beginTownCombat, wouldSpawnSiegeTower } from '../combat/setup';
+import { beginHeroCombat, beginTownCombat, siegeTowerArmy, wouldSpawnSiegeTower } from '../combat/setup';
+import { armyStrength } from '../core/power';
 import type { Command, CommandError } from '../core/commands';
 import type { GameEvent } from '../core/events';
 import { areAllies, type GameState, type HeroState } from '../core/state';
@@ -56,6 +57,24 @@ function wallDefenseBonus(state: GameState, town: TownState): number {
   const house = townHouseField(state.heroes, town.ownerPlayerId, town.pos, 'garrisonDefense');
   const building = townBuildingAura(state, town.ownerPlayerId, town.pos, 'garrisonDefense');
   return fort + house + building;
+}
+
+/**
+ * Pente de défense d'unité par point (doc 02 §5.3, `combat/damage.ts`) : +1 Déf
+ * réduit les dégâts reçus d'environ 5 %. Sert seulement à l'estimation ci-dessous.
+ */
+const DEFENSE_SLOPE_PER_POINT = 0.05;
+
+/**
+ * Force estimée d'une ville au siège (LE1, décision D-SIEGEAI) : garnison majorée
+ * du bonus de murs (`wallDefenseBonus`) + tour de tir d'un Château. Estimation
+ * PURE, même échelle qu'`armyStrength` — c'est ce que l'IA compare à son armée
+ * avant d'assiéger. Ne compte pas un héros posté sur la ville (combat H-vs-H à part).
+ */
+export function townDefenseStrength(state: GameState, town: TownState): number {
+  const walls = 1 + DEFENSE_SLOPE_PER_POINT * wallDefenseBonus(state, town);
+  const tower = siegeTowerArmy(town.buildings['fort'] ?? 0, state.unitCatalog);
+  return armyStrength(town.garrison, state.unitCatalog) * walls + armyStrength(tower, state.unitCatalog);
 }
 
 /**

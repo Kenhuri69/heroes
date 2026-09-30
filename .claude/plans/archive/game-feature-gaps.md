@@ -1,5 +1,11 @@
 # Spécification des manques — jeu livré vs concept d'origine
 
+> 🗄️ **Clôturé le 2026-09-29** (passe `close-open-plans-2026-09.md`) et archivé.
+> Inventaire vivant du 2026-07-10, re-vérifié par `missing-features-2026-08.md` (lots L1→L11 livrés) ; ses items 🚧/⬜ résiduels sont soit livrés depuis (C-SIEGE2.7b : `assets/combat/siege-piece-wall-cracked*.png` ; campagnes Sylvan/Vox : `data/factions/*/story/campaign.json` ; NET-SRVGUARD.2 : table `save_backups`), soit différés par décision.
+> Les reliquats encore ouverts sont repris dans
+> `.claude/plans/game-experience-enrichment.md` §1 (registre unique des reliquats) —
+> ce fichier ne se relit plus pour savoir ce qui reste à faire.
+
 > **Travail documentaire uniquement** (demande utilisateur du 2026-07-10) : rien
 > n'est implémenté dans ce lot. Ce document est l'inventaire **complet** des
 > fonctions absentes ou partielles par rapport aux docs de conception

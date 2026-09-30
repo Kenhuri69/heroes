@@ -2,6 +2,7 @@ import { runAutoCombat } from '../combat/ai';
 import type { GameEvent } from '../core/events';
 import { armyStrength } from '../core/power';
 import { areAllies, type GameState, type HeroState, type PlayerState } from '../core/state';
+import { dailyMovementPoints } from '../adventure/config';
 import { advanceHeroAlongPath } from '../adventure/movement';
 import { resolveTreasure } from '../adventure/treasure';
 import { resolveTriggerChoice } from '../adventure/trigger-choice';
@@ -13,7 +14,7 @@ import { validateEquipArtifact, handleEquipArtifact } from '../hero/equip';
 import { validateCastAdventureSpell, handleCastAdventureSpell } from '../hero';
 import { grailRevealedTo } from '../adventure/map';
 import { canDigGrail, digGrail } from '../adventure/grail';
-import { validateCaptureTown, handleCaptureTown } from '../town';
+import { validateCaptureTown, handleCaptureTown, townDefenseStrength } from '../town';
 import { maxAffordableCount } from '../town/resources';
 import { unitWithEconomy } from '../town/unit-economy';
 import type { TownState } from '../town/types';
@@ -55,6 +56,17 @@ export function runAiTurn(draft: GameState, playerId: string, events: GameEvent[
   // `players[currentPlayer]` — l'IA ne doit agir que pour le joueur actif.
   if (draft.players[draft.currentPlayer]?.id !== playerId) return;
 
+  // LE1/B2 : une ville où DORT un de mes héros joue son tour d'abord — il part en
+  // campagne avec les recrues du jour (et la machine de guerre achetée), au lieu
+  // de les laisser en garnison jusqu'au lendemain.
+  const playedTowns = new Set<string>();
+  for (const town of draft.towns) {
+    if (town.ownerPlayerId !== playerId) continue;
+    if (!draft.heroes.some((h) => h.playerId === playerId && samePos(h.pos, town.pos))) continue;
+    playTownTurn(draft, town, player, events);
+    playedTowns.add(town.id);
+  }
+
   for (const heroId of draft.heroes.filter((h) => h.playerId === playerId).map((h) => h.id)) {
     if (draft.outcome) return;
     const hero = draft.heroes.find((h) => h.id === heroId);
@@ -68,6 +80,13 @@ export function runAiTurn(draft: GameState, playerId: string, events: GameEvent[
   if (draft.outcome) return;
   for (const townId of draft.towns.filter((t) => t.ownerPlayerId === playerId).map((t) => t.id)) {
     if (draft.outcome) return;
+    if (playedTowns.has(townId)) {
+      // Déjà jouée en tête de tour : seul le ramassage reste utile (un autre héros
+      // vient peut-être d'y arriver).
+      const town = draft.towns.find((t) => t.id === townId);
+      if (town) tryGarrisonPickup(draft, town, events);
+      continue;
+    }
     const town = draft.towns.find((t) => t.id === townId);
     if (!town) continue;
     playTownTurn(draft, town, player, events);
@@ -441,15 +460,22 @@ function pickGarrisonPickupTarget(
   return best;
 }
 
-/** Ville ennemie/neutre non défendue déjà adjacente au héros (priorité 4, pas de déplacement). */
+/**
+ * Ville ennemie/neutre prenable déjà adjacente au héros (priorité 4, pas de
+ * déplacement). LE1 (décision D-SIEGEAI) : une ville à **garnison** n'est plus
+ * boudée — l'IA l'assiège si son armée domine la défense estimée (garnison,
+ * murs, tour : `townDefenseStrength`) de la même marge que pour un héros ennemi.
+ */
 function pickAdjacentCapturableTown(draft: GameState, hero: HeroState, player: PlayerState): TownState | null {
+  const heroStrength = armyStrength(hero.army, draft.unitCatalog);
   let best: TownState | null = null;
   for (const town of draft.towns) {
     if (town.ownerPlayerId === player.id) continue;
     // Ne pas assiéger la ville d'un allié (doc 02 §6) — cohérent avec `validateCaptureTown`.
     const owner = draft.players.find((p) => p.id === town.ownerPlayerId);
     if (owner && areAllies(owner, player)) continue;
-    if (town.garrison.length > 0) continue;
+    const defense = townDefenseStrength(draft, town);
+    if (defense > 0 && heroStrength < ENEMY_HERO_STRENGTH_MARGIN * defense) continue;
     // M1 : une ville occupée par un héros adverse ouvrirait un combat H-vs-H, pas
     // une capture — hors de cette heuristique (la chasse aux héros a son picker).
     if (draft.heroes.some((h) => h.playerId !== player.id && samePos(h.pos, town.pos))) continue;
@@ -485,7 +511,7 @@ function pickTownMarchTarget(
     const owner = draft.players.find((p) => p.id === town.ownerPlayerId);
     if (owner && areAllies(owner, player)) continue;
     if (!inBounds(map, town.pos) || !player.explored[tileIndex(map, town.pos)]) continue;
-    if (heroStrength < ENEMY_HERO_STRENGTH_MARGIN * armyStrength(town.garrison, unitCatalog)) continue;
+    if (heroStrength < ENEMY_HERO_STRENGTH_MARGIN * townDefenseStrength(draft, town)) continue;
     const holder = draft.heroes.find((h) => h.playerId !== player.id && samePos(h.pos, town.pos));
     if (holder && heroStrength < ENEMY_HERO_STRENGTH_MARGIN * armyStrength(holder.army, unitCatalog)) continue;
     const path = findPath(config, map, hero.pos, town.pos, blocked.filter((p) => !samePos(p, town.pos)), true);
@@ -494,6 +520,93 @@ function pickTownMarchTarget(
     if (!best || cost < best.cost || (cost === best.cost && town.id < best.town.id)) best = { town, path, cost };
   }
   return best;
+}
+
+/**
+ * Garnison qui RAPPELLE le héros avant même le ramassage (LE1/B1) : quand elle
+ * pèse au moins autant que son armée, la doubler vaut mieux que le tas d'or du
+ * jour. Mesuré : sans ce rappel, le héros ramassait indéfiniment à portée pendant
+ * qu'une garnison cinq fois plus forte dormait à la maison.
+ */
+const GARRISON_RECALL_RATIO = 1;
+/** Horizon des objectifs multi-jours (LE1/B1) : au-delà, l'exploration reprend la main. */
+const MULTI_DAY_HORIZON_DAYS = 3;
+/**
+ * Valeur d'un objectif multi-jours (LE1/B1) — score = valeur / (jours + 1) : une
+ * ville prenable pèse plus qu'une mine, mais une mine toute proche passe devant
+ * une ville lointaine. La probabilité de victoire est un FILTRE (marge 1,5×, même
+ * seuil que pour les héros ennemis), pas un facteur du score.
+ */
+const MULTI_DAY_VALUE = { town: 10, garrison: 6, mine: 4 } as const;
+
+/**
+ * LE1/B1 — le meilleur objectif à ≤ `MULTI_DAY_HORIZON_DAYS` jours de marche,
+ * joué **avant** l'exploration : une ville adverse prenable, une de mes villes
+ * dont la garnison vaut le retour (sinon les recrues dorment pendant que le héros
+ * explore à l'autre bout de la carte), ou une mine qui n'est pas à moi. Tous les autres pickers écartent ce qui sort des PM du JOUR ; faute
+ * de cible immédiate, l'IA explorait jusqu'à la dernière tuile avant de menacer
+ * quoi que ce soit (baseline : aucune pression en 60 jours sur 64²). Chemin
+ * COMPLET, tronqué aux PM par `advanceHeroAlongPath`, recalculé chaque jour (rien
+ * de mémorisé, patron M6). Pour une ville, l'appelant s'arrête à côté puis
+ * assiège au contact.
+ */
+function pickMultiDayObjective(
+  draft: GameState,
+  hero: HeroState,
+  player: PlayerState,
+  blocked: GridPos[],
+  minStep: number,
+  /** `'reinforce'` : seul le retour vers une garnison au moins aussi forte que l'armée. */
+  only?: 'reinforce',
+): { path: GridPos[]; town: TownState | null } | null {
+  const { map, config, unitCatalog } = draft;
+  if (!map || !config) return null;
+  const heroStrength = armyStrength(hero.army, unitCatalog);
+  if (heroStrength <= 0) return null;
+  const daily = dailyMovementPoints(config, hero.army, unitCatalog);
+  if (daily <= 0) return null;
+  const budget = daily * MULTI_DAY_HORIZON_DAYS;
+  const presentObjectIds = new Set(map.objects.map((o) => o.id));
+  let best: { path: GridPos[]; town: TownState | null; score: number; id: string } | null = null;
+  const consider = (goal: GridPos, value: number, id: string, town: TownState | null): void => {
+    if (levelOf(goal) !== levelOf(hero.pos) || samePos(goal, hero.pos)) return;
+    if (octileLowerBound(minStep, hero.pos, goal) > budget) return;
+    const path = findPath(config, map, hero.pos, goal, blocked.filter((p) => !samePos(p, goal)), true, budget);
+    if (!path || path.length === 0) return;
+    const cost = totalPathCost(config, map, hero.pos, path);
+    if (cost > budget) return;
+    const score = value / (Math.ceil(cost / daily) + 1);
+    if (!best || score > best.score || (score === best.score && id < best.id)) best = { path, town, score, id };
+  };
+  for (const town of only ? [] : draft.towns) {
+    if (town.ownerPlayerId === player.id) continue;
+    const owner = draft.players.find((p) => p.id === town.ownerPlayerId);
+    if (owner && areAllies(owner, player)) continue;
+    if (!inBounds(map, town.pos) || !player.explored[tileIndex(map, town.pos)]) continue;
+    if (heroStrength < ENEMY_HERO_STRENGTH_MARGIN * townDefenseStrength(draft, town)) continue;
+    const holder = draft.heroes.find((h) => h.playerId !== player.id && samePos(h.pos, town.pos));
+    if (holder && heroStrength < ENEMY_HERO_STRENGTH_MARGIN * armyStrength(holder.army, unitCatalog)) continue;
+    consider(town.pos, MULTI_DAY_VALUE.town, town.id, town);
+  }
+  for (const town of draft.towns) {
+    if (town.ownerPlayerId !== player.id) continue;
+    const waiting = armyStrength(town.garrison, unitCatalog);
+    const ratio = only ? GARRISON_RECALL_RATIO : GARRISON_PICKUP_RATIO;
+    if (waiting <= 0 || waiting < ratio * heroStrength) continue;
+    consider(town.pos, MULTI_DAY_VALUE.garrison, town.id, null);
+  }
+  for (const obj of only ? [] : map.objects) {
+    if (obj.type !== 'mine' || player.explored[tileIndex(map, obj.pos)] === 0) continue;
+    if (!isCollectible(draft, obj, hero, player, presentObjectIds)) continue;
+    consider(obj.pos, MULTI_DAY_VALUE.mine, obj.id, null);
+  }
+  return best;
+}
+
+/** Marche vers une ville : s'arrête à côté, puis l'assiège / la prend au contact. */
+function marchOnTown(draft: GameState, hero: HeroState, player: PlayerState, town: TownState, path: GridPos[], events: GameEvent[]): void {
+  if (path.length > 1) advanceAi(draft, hero, player, path.slice(0, -1), events);
+  if (!draft.combat && isAdjacent(hero.pos, town.pos)) captureTown(draft, town, player, events);
 }
 
 /**
@@ -672,6 +785,13 @@ function playHeroTurn(draft: GameState, hero: HeroState, player: PlayerState, ev
     return;
   }
 
+  // LE1/B1 : une garnison au moins aussi forte que l'armée rappelle le héros.
+  const recall = pickMultiDayObjective(draft, hero, player, [...blocked, ...guardianPos], minStep, 'reinforce');
+  if (recall) {
+    advanceAi(draft, hero, player, recall.path, events);
+    return;
+  }
+
   const resource = pickResourceTarget(draft, hero, player, [...blocked, ...guardianPos], minStep);
   if (resource) {
     advanceAi(draft, hero, player, resource.path, events);
@@ -725,6 +845,15 @@ function playHeroTurn(draft: GameState, hero: HeroState, player: PlayerState, ev
     }
   }
 
+  // LE1/B1 : un objectif à quelques jours (ville prenable, mine) passe AVANT
+  // l'exploration — c'est ce qui met la pression dès la mi-partie.
+  const objective = pickMultiDayObjective(draft, hero, player, [...blocked, ...guardianPos], minStep);
+  if (objective) {
+    if (objective.town) marchOnTown(draft, hero, player, objective.town, objective.path, events);
+    else advanceAi(draft, hero, player, objective.path, events);
+    return;
+  }
+
   const exploreStep = pickExplorationStep(draft, hero, player, [...blocked, ...guardianPos]);
   if (exploreStep) {
     advanceAi(draft, hero, player, exploreStep, events);
@@ -735,6 +864,5 @@ function playHeroTurn(draft: GameState, hero: HeroState, player: PlayerState, ev
   // adverse prenable, s'arrêter à côté, puis l'assiéger/la prendre une fois au contact.
   const march = pickTownMarchTarget(draft, hero, player, [...blocked, ...guardianPos]);
   if (!march) return;
-  if (march.path.length > 1) advanceAi(draft, hero, player, march.path.slice(0, -1), events);
-  if (!draft.combat && isAdjacent(hero.pos, march.town.pos)) captureTown(draft, march.town, player, events);
+  marchOnTown(draft, hero, player, march.town, march.path, events);
 }

@@ -146,7 +146,7 @@ re-fixé) ; (4) zéro faction dans `packages/`.
 | **L7** ✅ | **Gardiens ↔ trésors dans `generateMap`** — les trésors de valeur naissent gardés (densité déjà réglable à « Nouvelle partie ») | G5 | S | non (content) | non |
 | **L8** ✅ | **Finitions de contenu** — Salle des Reliques (AH), « mois des créatures » (peuplement neutre déclaratif) | G6 | S+M | 1 point générique pour le peuplement | non |
 | **L9** ✅ | **Hygiène doc & locales** — §G7, + remise à niveau de `game-feature-gaps.md` sur cette revue | G7 | S | non | non |
-| **L10** 📋 | **Souterrain** — **cadrage livré** (`l10-underground.md`, 5 sous-lots) ; implémentation laissée à l'arbitrage | G3 | L | oui (transversal) | **bump** |
+| **L10** ✅ | **Souterrain** — cadrage (`l10-underground.md`) puis sous-lots L10.1→L10.5 **livrés** (`l10-5-underground-generation.md`, `underground-tiles-and-ux.md`) | G3 | L | oui (transversal) | non (champs optionnels) |
 | **L11** ✅ | **En ligne compétitif** — NET-FOG (après décision), matchmaking, sauvegarde N-1 | G2.c, G2.d | L | non | non |
 
 **Ordre recommandé** : L1 → L2 → L3 → L4 → L5 → L7 → L9 → L6 → L8 → (L10/L11

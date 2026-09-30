@@ -1,5 +1,11 @@
 # Lot L8 — finitions de contenu : Salle des Reliques & mois des créatures
 
+> 🗄️ **Clôturé le 2026-09-29** (passe `close-open-plans-2026-09.md`) et archivé.
+> Salle des Reliques + mois des créatures livrés ; reste le slot d'artefact *trophée* (bump save).
+> Les reliquats encore ouverts sont repris dans
+> `.claude/plans/game-experience-enrichment.md` §1 (registre unique des reliquats) —
+> ce fichier ne se relit plus pour savoir ce qui reste à faire.
+
 > Lot 8 du plan `.claude/plans/missing-features-2026-08.md` (**G6**). Deux
 > promesses de doc écrites mais jamais livrées.
 
@@ -38,7 +44,7 @@ La Salle des Reliques promettait deux effets. Le lot en livre **un** :
   faire descendre l'école dans la boucle d'apprentissage de la Guilde, qui
   raisonne aujourd'hui en **cercles** — un deuxième point d'extension pour un
   gain de fidélité mince.
-- ⬜ « +1 slot d'artefact *trophée* » → **différé** : `hero.artifacts` est un
+- ⏸ « +1 slot d'artefact *trophée* » → **différé** (repris au registre `game-experience-enrichment.md` §1) : `hero.artifacts` est un
   tableau de 10 slots **sérialisé** ; un cap variable change la forme de
   sauvegarde et l'UI de la poupée d'équipement. À traiter avec un lot H-ARTEQUIP.
 

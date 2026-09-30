@@ -1,5 +1,11 @@
 # Suite de la revue 2026-09 — reliquats
 
+> 🗄️ **Clôturé le 2026-09-29** (passe `close-open-plans-2026-09.md`) et archivé.
+> Lots A/B/C livrés ; restent les 3 items « hors périmètre ».
+> Les reliquats encore ouverts sont repris dans
+> `.claude/plans/game-experience-enrichment.md` §1 (registre unique des reliquats) —
+> ce fichier ne se relit plus pour savoir ce qui reste à faire.
+
 > Contexte : la revue complète (`.claude/plans/code-review-2026-09.md`, lots
 > R1→R10) est **mergée** (PR #547). Ce plan traite les **restes documentés** de
 > son bilan, dans l'ordre valeur/risque. Branche repartie de `main`.

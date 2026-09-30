@@ -1,5 +1,11 @@
 # Revue de code complète (2026-09-02) — constats & propositions
 
+> 🗄️ **Clôturé le 2026-09-29** (passe `close-open-plans-2026-09.md`) et archivé.
+> Lots R1→R10 livrés (PR #547) ; seul reste la liste « hors périmètre » (décisions de design).
+> Les reliquats encore ouverts sont repris dans
+> `.claude/plans/game-experience-enrichment.md` §1 (registre unique des reliquats) —
+> ce fichier ne se relit plus pour savoir ce qui reste à faire.
+
 > **Demande utilisateur (2026-09-02)** : « lance une revue complète du code de
 > l'application et propose toute correction, amélioration que tu trouves
 > pertinente. »

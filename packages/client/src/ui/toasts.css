@@ -12,6 +12,14 @@
   z-index: 30;
 }
 
+/* LE-UX : une modale ouverte garde son en-tête lisible — les toasts passent en
+   bas d'écran, le plus récent contre le bord. */
+body:has([role='dialog'][aria-modal='true']) .toast-host {
+  top: auto;
+  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  flex-direction: column-reverse;
+}
+
 .toast {
   padding: 8px 14px;
   border: 1px solid var(--ink-600);

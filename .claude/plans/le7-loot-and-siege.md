@@ -104,7 +104,7 @@ ni siège).
 - [x] `pnpm typecheck` · `pnpm lint` · `pnpm build` ; budget **384 530 o gzip**
 - [x] `pnpm test` — moteur **1105** (+12), contenu 197 (+3), client 109, serveur 10 ; golden inchangé
 - [x] `pnpm content:check` ; garde-fous faction et couleurs
-- [ ] suite Playwright complète
+- [x] suite Playwright complète : 146 verts dont 2 instables repassés au 2ᵉ essai (confort M8, fluidité @perf — hors zone LE7) ; +1 test siège avec héros
 
 ## 6. Journal
 

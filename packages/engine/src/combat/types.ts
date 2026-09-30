@@ -103,6 +103,12 @@ export interface CombatStack {
    * historique bit-identique (champ omis du JSON ⇒ golden inchangé).
    */
   ownerHeroId?: string;
+  /**
+   * Pile venue de la GARNISON d'une ville défendue par un héros visiteur (LE7 D3) :
+   * ses survivants retournent à la garnison, jamais à l'armée du héros
+   * (`rebuildArmyFromSurvivors` l'ignore). **Optionnel** ⇒ golden inchangé.
+   */
+  fromGarrison?: boolean;
 }
 
 export interface CombatState {

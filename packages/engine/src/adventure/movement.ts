@@ -1,4 +1,5 @@
-import { beginGuardianCombat, beginHeroCombat } from '../combat/setup';
+import { beginGuardianCombat } from '../combat/setup';
+import { beginHeroEncounter } from '../town/capture';
 import { neutralOfferFor } from './neutral-offer';
 import type { GameEvent } from '../core/events';
 import { areAllies, type GameState, type HeroState, type PlayerState, type ResourceId } from '../core/state';
@@ -153,7 +154,7 @@ export function advanceHeroAlongPath(
     });
     if (enemyHero) {
       hero.movementPoints -= cost;
-      beginHeroCombat(draft, hero.id, enemyHero.id, events);
+      beginHeroEncounter(draft, hero.id, enemyHero.id, events);
       options.onCombatEngaged?.();
       return;
     }
@@ -194,7 +195,7 @@ export function advanceHeroAlongPath(
           const hostile =
             occupant.playerId !== player.id && !(occPlayer && areAllies(player, occPlayer));
           if (hostile) {
-            beginHeroCombat(draft, hero.id, occupant.id, events);
+            beginHeroEncounter(draft, hero.id, occupant.id, events);
             options.onCombatEngaged?.();
             return;
           }

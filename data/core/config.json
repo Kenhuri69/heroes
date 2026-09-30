@@ -256,7 +256,8 @@
       "fleeChanceFrom": 2,
       "joinRatio": 1.5
     },
-    "dwellingInitialStock": true
+    "dwellingInitialStock": true,
+    "siegeVisitingHero": true
   },
   "newGame": {
     "map": "proto-01",

@@ -14,7 +14,7 @@ export { validateBuyWarMachine, handleBuyWarMachine } from './war-machine';
 export { validateBuildBoat, handleBuildBoat } from './shipyard';
 export { validateGarrisonTransfer, handleGarrisonTransfer } from './transfer';
 export { validateSendCaravan, handleSendCaravan, tickCaravans } from './caravan';
-export { validateCaptureTown, handleCaptureTown, townDefenseStrength } from './capture';
+export { validateCaptureTown, handleCaptureTown, townDefenseStrength, visitedOwnTown } from './capture';
 export {
   validateSellArtifact,
   handleSellArtifact,

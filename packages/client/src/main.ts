@@ -1,5 +1,5 @@
 import { Application, Point } from 'pixi.js';
-import type { Command, GameState, GridPos } from '@heroes/engine';
+import type { Command, GameState, GridPos, HeroState } from '@heroes/engine';
 import { CURRENT_SAVE_VERSION, findPath, humanPlayerId, serializeState } from '@heroes/engine';
 import { Camera } from './render/camera';
 import { combatFxStats, combatIdleStats, combatShakeStats } from './render/combatFx';
@@ -86,8 +86,10 @@ declare global {
       /** Forge un siège reproductible (S-TEST, doc 19 annexe) : héros doté d'une
        *  catapulte vs Château neutre défendu, puis `CaptureTown`.
        *  `{ catapult: false }` : héros SANS catapulte ⇒ muraille complète et
-       *  indestructible (capture « mur sain » / C-SIEGE2.2 non déclenché). */
-      startSiege: (opts?: { catapult?: boolean; factionId?: string }) => Promise<void>;
+       *  indestructible (capture « mur sain » / C-SIEGE2.2 non déclenché).
+       *  `{ defender: true }` : la ville appartient à un adversaire dont le héros
+       *  la défend (LE7 D3, siège avec héros visiteur). */
+      startSiege: (opts?: { catapult?: boolean; factionId?: string; defender?: boolean }) => Promise<void>;
       /** Test : marque tous les obélisques visités par l'humain (le Graal devient fouillable, M11). */
       revealGrail: () => void;
       /** Drapeaux de campagne posés par les choix de dialogue (couverture smoke N3c.2). */
@@ -665,7 +667,7 @@ function forgeGrailRevealed(): void {
  * déclenche le siège. Test-scaffold client (patron des forges `importAiTurnSave`)
  * — aucune règle moteur, ids de faction opaques.
  */
-async function forgeSiege(opts?: { catapult?: boolean; factionId?: string }): Promise<void> {
+async function forgeSiege(opts?: { catapult?: boolean; factionId?: string; defender?: boolean }): Promise<void> {
   const base = appStore.getState().game;
   const humanId = humanPlayerId(base);
   if (!humanId) throw new Error('startSiege : aucun joueur humain');
@@ -698,12 +700,31 @@ async function forgeSiege(opts?: { catapult?: boolean; factionId?: string }): Pr
   }
   // Ville neutre défendue : Château (Fort 3 ⇒ rempart + douve + tour de tir).
   const townId = 'siege-town';
+  const townPos = { ...hero.pos };
+  // LE7 D3 : ville d'un adversaire, défendue par son héros posté dessus ; le
+  // héros humain l'assiège depuis la case voisine.
+  let owner = opts?.defender ? g.players.find((p) => p.id !== humanId) : undefined;
+  if (opts?.defender) {
+    if (!owner) {
+      // Partie solo : un adversaire IA forgé pour la circonstance.
+      const human = g.players.find((p) => p.id === humanId)!;
+      owner = { ...structuredClone(human), id: 'siege-rival', controller: 'ai', team: 0 };
+      g.players = [...g.players, owner];
+    }
+    const defender = { ...structuredClone(hero), id: 'siege-defender', playerId: owner.id, rosterId: '' };
+    defender.warMachines = [];
+    defender.army = [{ unitId: troopId, count: 20 }];
+    hero.pos = { x: townPos.x, y: townPos.y > 0 ? townPos.y - 1 : townPos.y + 1 };
+    const free = (h: HeroState): boolean =>
+      h.id === hero.id || (!(h.pos.x === townPos.x && h.pos.y === townPos.y) && !(h.pos.x === hero.pos.x && h.pos.y === hero.pos.y));
+    g.heroes = [...g.heroes.filter((h) => h.id !== defender.id && free(h)), defender];
+  }
   g.towns = [
     ...g.towns.filter((t) => t.id !== townId),
     {
       id: townId,
-      ownerPlayerId: null,
-      pos: { ...hero.pos },
+      ownerPlayerId: owner?.id ?? null,
+      pos: townPos,
       // Item 1 (coloration par faction) : `factionId` opaque optionnel ⇒ QC
       // d'une muraille teintée ; défaut `''` = muraille générique (smoke).
       factionId: opts?.factionId ?? '',

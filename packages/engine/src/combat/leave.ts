@@ -115,10 +115,11 @@ function endLeftCombat(
   persistDefenderRemnants(draft, combat);
   // Revue 2026-09b M3 : idem pour un HÉROS adverse (H-VS-H) — ses pertes restent
   // acquises. Avant : fuir/se rendre/abandonner lui rendait toute son armée
-  // (30 réduits à 7 ⇒ de retour à 30). Hors siège : la garnison est déjà
-  // réécrite ci-dessus, on ne répartit pas ses piles sur un héros.
+  // (30 réduits à 7 ⇒ de retour à 30). Au siège d'une ville défendue par son
+  // héros (LE7 D3), les piles de garnison (`fromGarrison`) sont déjà rendues à
+  // la ville ci-dessus et `rebuildArmyFromSurvivors` les ignore.
   const enemyHeroId = leaverSide === 'attacker' ? combat.defenderHeroId : combat.attackerHeroId;
-  const enemyHero = enemyHeroId && !combat.townId ? draft.heroes.find((h) => h.id === enemyHeroId) : undefined;
+  const enemyHero = enemyHeroId ? draft.heroes.find((h) => h.id === enemyHeroId) : undefined;
   if (enemyHero) {
     enemyHero.army = rebuildArmyFromSurvivors(draft, combat, winner, enemyHero.id, enemyHero.id, enemyHero.warMachines);
   }

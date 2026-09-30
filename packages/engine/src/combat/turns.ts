@@ -16,7 +16,9 @@ import { rebuildArmyFromSurvivors, sideOwnerHeroIds } from './army-rebuild';
 import { collectCasualties, collectSurvivors, combatRules, compareInitiative, hasAbility, moraleOf, otherSide, recordLoss, recordRevive, sideLeadHero, stackLostSoFar } from './state-helpers';
 import { heroEffectTotal } from '../hero/skills';
 import { COMBAT_ROWS } from './hex';
-import type { CombatSideId, CombatStack, CombatState } from './types';
+import type { ArmyStack, CombatSideId, CombatStack, CombatState } from './types';
+import type { HeroState } from '../core/state';
+import type { TownState } from '../town/types';
 import { grantArtifact } from '../hero/equip';
 
 /**
@@ -450,6 +452,13 @@ function applyConsequences(
   // dépouille d'artefacts transférée). Aucun gardien/ville en jeu.
   if (combat.attackerHeroId && combat.defenderHeroId) {
     applyHeroVsHeroConsequences(draft, combat, winner, casualties, events);
+    // LE7 D3 : siège d'une ville défendue par son héros visiteur — la ville
+    // tombe avec lui (surplus de garnison compris) ; repoussé, la garnison
+    // reprend ses survivants.
+    const town = combat.townId ? draft.towns.find((t) => t.id === combat.townId) : undefined;
+    const attacker = draft.heroes.find((h) => h.id === combat.attackerHeroId);
+    if (town && winner === 'attacker' && attacker) captureBySiege(draft, town, attacker, events);
+    else if (town) persistDefenderRemnants(draft, combat);
     return;
   }
   const hero = draft.heroes.find((h) => h.id === combat.heroId);
@@ -488,19 +497,7 @@ function applyConsequences(
     // change de main, garnison vidée.
     if (combat.townId && hero) {
       const town = draft.towns.find((t) => t.id === combat.townId);
-      if (town) {
-        town.ownerPlayerId = hero.playerId;
-        town.garrison = [];
-        // B25 : la préférence de croissance partagée du VAINCU ne doit pas
-        // guider la semaine du conquérant (même reset que la capture immédiate,
-        // `town/capture.ts` — le repli « 1er membre présent » couvre le vide).
-        town.sharedGrowthChoice = {};
-        events.push({ type: 'TownCaptured', townId: town.id, playerId: hero.playerId });
-        revealStructure(draft, hero.playerId, town.pos); // F1 : ville prise = vision de son voisinage
-        // Trigger de capture de drapeau (doc 18 A5) : effet scripté pour le vainqueur.
-        const capturer = draft.players.find((p) => p.id === hero.playerId);
-        if (capturer) fireFlagCaptureTrigger(draft, town.id, capturer, hero, events);
-      }
+      if (town) captureBySiege(draft, town, hero, events);
     }
   } else {
     if (hero) {
@@ -511,6 +508,21 @@ function applyConsequences(
     // l'armée engagée — déjà vidée à l'engagement (`beginGuardianCombat`).
     persistDefenderRemnants(draft, combat);
   }
+}
+
+/** Siège gagné : la ville change de main, garnison vidée (doc 02 §4.1, Alpha 4.13). */
+function captureBySiege(draft: Draft, town: TownState, hero: HeroState, events: GameEvent[]): void {
+  town.ownerPlayerId = hero.playerId;
+  town.garrison = [];
+  // B25 : la préférence de croissance partagée du VAINCU ne doit pas
+  // guider la semaine du conquérant (même reset que la capture immédiate,
+  // `town/capture.ts` — le repli « 1er membre présent » couvre le vide).
+  town.sharedGrowthChoice = {};
+  events.push({ type: 'TownCaptured', townId: town.id, playerId: hero.playerId });
+  revealStructure(draft, hero.playerId, town.pos); // F1 : ville prise = vision de son voisinage
+  // Trigger de capture de drapeau (doc 18 A5) : effet scripté pour le vainqueur.
+  const capturer = draft.players.find((p) => p.id === hero.playerId);
+  if (capturer) fireFlagCaptureTrigger(draft, town.id, capturer, hero, events);
 }
 
 /**
@@ -558,12 +570,20 @@ export function persistDefenderRemnants(draft: Draft, combat: CombatState): void
   if (combat.townId) {
     const town = draft.towns.find((t) => t.id === combat.townId);
     if (town) {
-      town.garrison = combat.stacks
-        .filter((s) => {
-          const def = draft.unitCatalog[s.unitId];
-          return s.side === 'defender' && s.count > 0 && !(def && hasAbility(def, 'warMachine'));
-        })
-        .map((s) => ({ unitId: s.unitId, count: s.count }));
+      // LE7 D3 : avec un héros visiteur, seules les piles venues de la garnison
+      // y retournent, fusionnées au surplus resté hors combat ; celles du héros
+      // lui reviennent (`rebuildArmyFromSurvivors`).
+      const visited = combat.defenderHeroId !== null;
+      const garrison: ArmyStack[] = visited ? town.garrison.map((s) => ({ ...s })) : [];
+      for (const s of combat.stacks) {
+        const def = draft.unitCatalog[s.unitId];
+        if (s.side !== 'defender' || s.count <= 0 || (def && hasAbility(def, 'warMachine'))) continue;
+        if (visited && !s.fromGarrison) continue;
+        const same = visited ? garrison.find((g) => g.unitId === s.unitId) : undefined;
+        if (same) same.count += s.count;
+        else garrison.push({ unitId: s.unitId, count: s.count });
+      }
+      town.garrison = garrison;
     }
   }
 }

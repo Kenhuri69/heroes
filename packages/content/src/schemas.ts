@@ -1059,6 +1059,8 @@ export const gameConfigSchema = z.object({
       .optional(),
     /** Semaine offerte à la construction d'une habitation (LE6 E2) — optionnel. */
     dwellingInitialStock: z.boolean().optional(),
+    /** Siège avec héros visiteur (LE7 D3) — optionnel. */
+    siegeVisitingHero: z.boolean().optional(),
   }),
   newGame: z.object({
     map: idSchema,

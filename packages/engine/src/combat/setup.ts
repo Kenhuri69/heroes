@@ -5,7 +5,7 @@ import { armyStrength } from '../core/power';
 import { rollRange } from '../core/rng';
 import { areAllies, type GameState, type HeroState } from '../core/state';
 import { heroManaMax } from '../hero/artifacts';
-import { heroTacticsColumns, sumHeroEffectField } from '../hero/skills';
+import { heroArmyCap, heroTacticsColumns, sumHeroEffectField } from '../hero/skills';
 import { barrierParams, symbiosisParams } from './damage';
 import { runAiIfNeeded } from './ai';
 import type { Draft } from './draft';
@@ -562,9 +562,16 @@ export function beginTownCombat(
   events: GameEvent[],
   /** Coop (E4.2b, doc 18 E4) : héros allié invité dont l'armée rejoint l'assaut. */
   allyHeroId?: string,
+  /**
+   * Héros visiteur qui défend SA ville (LE7 D3) : son armée et ses machines
+   * d'abord, puis la garnison dans les emplacements libres (piles `fromGarrison`) ;
+   * le surplus reste en garnison, hors combat.
+   */
+  defenderHeroId?: string,
 ): void {
   const hero = draft.heroes.find((h) => h.id === heroId);
   const town = draft.towns.find((t) => t.id === townId);
+  const defenderHero = defenderHeroId ? draft.heroes.find((h) => h.id === defenderHeroId) : undefined;
   const rules = draft.config?.combat;
   if (!hero || !town || !rules) throw new Error('beginTownCombat: héros, ville ou config absents');
   const terrain = draft.map ? terrainAt(draft.map, town.pos) : 'grass';
@@ -573,18 +580,32 @@ export function beginTownCombat(
   // l'engagement (survivants routés par owner à la victoire, `applyConsequences`).
   const { capped, cappedOwners, ally, engagedAllyCount } = combineCoopArmy(draft, hero, allyHeroId);
   const attacker: ArmyStack[] = [...capped, ...hero.warMachines.map((unitId) => ({ unitId, count: 1 }))];
-  const defender: ArmyStack[] = town.garrison.map((s) => ({ ...s }));
+  // LE7 D3 : avec un héros visiteur, ses piles d'abord ; la garnison comble les
+  // emplacements libres (jamais fusionnée, pour rendre ses survivants à la
+  // ville) et son surplus reste en garnison, hors combat.
+  const heroStacks = defenderHero ? defenderHero.army.map((s) => ({ ...s })) : [];
+  const freeSlots = defenderHero ? Math.max(0, heroArmyCap(defenderHero) - heroStacks.length) : Infinity;
+  const engagedGarrison = town.garrison.slice(0, freeSlots).map((s) => ({ ...s }));
+  const defender: ArmyStack[] = [
+    ...heroStacks,
+    ...engagedGarrison,
+    ...(defenderHero?.warMachines ?? []).map((unitId) => ({ unitId, count: 1 })),
+  ];
+  if (defenderHero) town.garrison = town.garrison.slice(engagedGarrison.length);
   // C-SIEGE2.5 : une ville très fortifiée (Fort ≥ 3) ajoute une tour de tir au
   // camp défenseur (pile immobile derrière la porte). Absente sinon.
   const tower = buildTowerStack(fortLevel, draft.unitCatalog);
   const attackerStacks = placeSide('attacker', attacker, draft.unitCatalog, 0);
   tagCoopOwners(attackerStacks, cappedOwners);
   engageCoopAlly(ally, engagedAllyCount, heroId, events);
-  const stacks = [
-    ...attackerStacks,
-    ...placeSide('defender', defender, draft.unitCatalog, COMBAT_COLS - 1),
-    ...(tower ? [tower] : []),
-  ];
+  const defenderStacks = placeSide('defender', defender, draft.unitCatalog, COMBAT_COLS - 1);
+  if (defenderHero) {
+    defenderStacks.forEach((s, i) => {
+      if (i >= heroStacks.length && i < heroStacks.length + engagedGarrison.length) s.fromGarrison = true;
+    });
+    if (tower) tower.fromGarrison = true; // la tour appartient à la ville, jamais au héros
+  }
+  const stacks = [...attackerStacks, ...defenderStacks, ...(tower ? [tower] : [])];
   // B6 : dès qu'un rempart existe (Fort ≥ 1), les obstacles restent strictement
   // à gauche de la douve/du rempart — jamais sur la porte ni la douve.
   const obstacleMaxCol = fortLevel >= 1 ? SIEGE_MOAT_COL - 1 : COMBAT_COLS - 4;
@@ -620,7 +641,7 @@ export function beginTownCombat(
     townId,
     wallDefenseBonus,
     attackerHeroId: heroId,
-    defenderHeroId: null,
+    defenderHeroId: defenderHero?.id ?? null,
     heroCastThisRound: [],
     heroAttackUsed: [],
     finished: false,

@@ -88,9 +88,9 @@ Lecture :
 
 - [x] `pnpm typecheck` · `pnpm lint`
 - [x] `pnpm test` — moteur **1093** (+9), contenu 194, client 109, serveur 10 ; golden inchangé
-- [ ] `pnpm content:check` ; garde-fous faction et couleurs
-- [ ] `pnpm build` + budget
-- [ ] suite Playwright
+- [x] `pnpm content:check` ; garde-fous faction et couleurs
+- [x] `pnpm build` + budget : **383 654 o gzip**
+- [x] suite Playwright complète : 146 verts + 1 échec réel (smoke C3 qui attendait le héros en fuite sur la carte — attente mise à jour, repassé) ; +1 test fuite → Taverne
 
 ## 6. Journal
 

@@ -161,7 +161,7 @@ export { spellcasterParams } from './combat/spell-effect';
 export { heroActionLeft, heroActionLeftFor, heroesOnSide, isSilenced, isSpellImmune, isStackSpellImmune } from './combat/state-helpers';
 // Coût de mana effectif (réduction Magie par école, A6) — le grimoire client
 // (C2) affiche/gate sur ce coût, pas sur `spell.manaCost` brut.
-export { effectiveManaCost, spellTargetsEnemy } from './hero/spells';
+export { effectiveManaCost, heroSpellDef, spellAtMastery, spellTargetsEnemy } from './hero/spells';
 // H-ARTEQUIP.2 : sorts castables = sorts appris ∪ sorts d'artefacts équipés.
 // Le grimoire client (combat + aventure) liste sur cette union, comme le moteur.
 export { heroKnownSpellIds } from './hero/artifacts';

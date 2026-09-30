@@ -5,6 +5,7 @@ import {
   estimateSpell,
   heroKnownSpellIds,
   heroSchoolMastery,
+  heroSpellDef,
   isStackSpellImmune,
   spellAffectedStacks,
   spellTargetsEnemy,
@@ -64,7 +65,8 @@ export function SpellBook({ hero, onClose }: { hero: HeroState; onClose: () => v
   useEffect(() => () => appStore.setState({ combatSpellZone: null }), []);
 
   if (!combat) return null;
-  const def = spellId ? spellCatalog[spellId] : undefined;
+  // LE4/F2 : le sort à la maîtrise d'école du héros (zone et puissance réelles).
+  const def = spellId ? heroSpellDef(spellCatalog, skillCatalog, hero, spellId) : undefined;
 
   const selectSpell = (id: string): void => {
     setSpellId(id);
@@ -221,7 +223,7 @@ function SpellList({
 
   // H-ARTEQUIP.2 : le grimoire liste aussi les sorts enseignés par les artefacts.
   const known = heroKnownSpellIds(hero, artifactCatalog)
-    .map((id) => spellCatalog[id])
+    .map((id) => heroSpellDef(spellCatalog, skillCatalog, hero, id))
     .filter((d): d is SpellDef => d !== undefined);
 
   if (known.length === 0) {
@@ -288,10 +290,10 @@ function SpellList({
                         />
                         <span class="spell-name">
                           {resolveSpellName(spellDef.id)}
-                          {spellDef.area === 'splash' && (
+                          {spellDef.area && (
                             <span class="spell-area" data-testid={`spell-area-${spellDef.id}`}>
                               {' '}
-                              {t('spellbook.area')}
+                              {t(spellDef.area === 'all' ? 'spellbook.areaAll' : 'spellbook.area')}
                             </span>
                           )}
                         </span>

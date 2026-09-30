@@ -213,15 +213,20 @@ function drawObstacles(draft: Draft, min: number, max: number, maxCol = COMBAT_C
   return obstacles;
 }
 
-/** Remplit la mana des héros liés au combat à leur `manaMax` effectif (décision plan phase-3.2 #1). */
+/**
+ * Mana des héros liés au combat (décision plan phase-3.2 #1) : remplie à leur
+ * `manaMax` effectif — sauf mana persistante (LE4/C2), où le héros entre au
+ * combat avec la mana qui lui reste (plafonnée au max, qui a pu baisser).
+ */
 function initHeroMana(draft: Draft, combat: CombatState): void {
+  const persistent = draft.config?.hero.mana?.persistent === true;
   for (const heroId of [combat.attackerHeroId, combat.defenderHeroId]) {
     if (!heroId) continue;
     const hero = draft.heroes.find((h) => h.id === heroId);
     if (!hero) continue;
-    const manaMax = heroManaMax(hero, draft.artifactCatalog);
+    const manaMax = heroManaMax(hero, draft.artifactCatalog, draft.skillCatalog);
     hero.manaMax = manaMax;
-    hero.mana = manaMax;
+    hero.mana = persistent ? Math.min(hero.mana, manaMax) : manaMax;
   }
 }
 

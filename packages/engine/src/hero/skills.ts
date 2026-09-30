@@ -68,6 +68,20 @@ export function sumHeroEffectField(hero: HeroState, field: NumericEffectField): 
   return total;
 }
 
+/**
+ * Total d'un champ d'effet pour un héros : compétences au rang courant + Maison,
+ * spécialité et archétype. Accesseur générique des compétences LE4/F3
+ * (`spellDamagePct`, `manaMaxPct`, `magicResistancePct`, `manaRegenPerDay`,
+ * `warMachineDamagePct`, `firstAidHealPct`, `siegeDamagePct`).
+ */
+export function heroEffectTotal(
+  hero: HeroState,
+  catalog: Record<string, HeroSkillDef>,
+  field: NumericEffectField,
+): number {
+  return sumRankField(hero, catalog, field) + sumHouseField(hero, field);
+}
+
 /** Cap de base des piles d'armée d'un héros (doc 02 §5.1). */
 export const BASE_ARMY_STACKS = 7;
 

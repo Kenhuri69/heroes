@@ -1,5 +1,6 @@
 import type { HeroState } from '../core/state';
-import type { ArtifactDef } from './types';
+import type { ArtifactDef, HeroSkillDef } from './types';
+import { heroEffectTotal } from './skills';
 
 /**
  * Artefacts (doc 02 §1.1, doc 08 §2.3, décision plan phase-3.2 #9) : bonus
@@ -87,7 +88,14 @@ export function heroKnownSpellIds(hero: HeroState, catalog: Record<string, Artif
  * d'artefacts) × 10 + manaMax d'artefacts. Le bonus `knowledge` d'un artefact
  * (Orbe de savoir) était sommé mais ignoré ici — désormais crédité ×10.
  */
-export function heroManaMax(hero: HeroState, catalog: Record<string, ArtifactDef>): number {
+export function heroManaMax(
+  hero: HeroState,
+  catalog: Record<string, ArtifactDef>,
+  /** Compétences (LE4/F3) : Intelligence `manaMaxPct` s'applique au total. Absent ⇒ ignorée. */
+  skillCatalog?: Record<string, HeroSkillDef>,
+): number {
   const bonus = heroArtifactBonus(hero, catalog);
-  return (hero.attributes.knowledge + bonus.knowledge) * 10 + bonus.manaMax;
+  const base = (hero.attributes.knowledge + bonus.knowledge) * 10 + bonus.manaMax;
+  const pct = skillCatalog ? heroEffectTotal(hero, skillCatalog, 'manaMaxPct') : 0;
+  return Math.floor(base * (1 + pct / 100));
 }

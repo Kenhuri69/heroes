@@ -1,6 +1,6 @@
 import type { HeroState } from '../core/state';
 import { heroArtifactBonus } from './artifacts';
-import { heroManaCostReduction } from './skills';
+import { heroManaCostReduction, heroSchoolMastery } from './skills';
 import type { ArtifactDef, HeroSkillDef, SpellDef, SpellKind, SpellStatus } from './types';
 
 /**
@@ -88,4 +88,40 @@ export function spellHealAmount(spell: SpellDef, power: number): number {
 /** Durée d'un buff/debuff en rounds — `Pouvoir`, minimum 1 (décision plan #3). */
 export function spellStatusDuration(power: number): number {
   return Math.max(1, power);
+}
+
+/**
+ * Sort tel que le lance un héros de maîtrise `rank` dans son école (LE4/F2) :
+ * les paliers `mastery` atteints (rang ≤ `rank`) sont appliqués dans l'ordre
+ * croissant — le plus haut gagne, champ par champ. Sans palier : le sort même.
+ */
+export function spellAtMastery(spell: SpellDef, rank: number): SpellDef {
+  if (!spell.mastery || rank <= 0) return spell;
+  let out: SpellDef = spell;
+  for (const tier of [...spell.mastery].sort((a, b) => a.rank - b.rank)) {
+    if (tier.rank > rank) break;
+    out = {
+      ...out,
+      ...(tier.base !== undefined && { base: tier.base }),
+      ...(tier.perPower !== undefined && { perPower: tier.perPower }),
+      ...(tier.area !== undefined && { area: tier.area }),
+    };
+  }
+  return out;
+}
+
+/**
+ * Définition EFFECTIVE d'un sort pour `hero` (LE4/F2) — source unique du lancer
+ * (`castHeroSpell`) et des prévisualisations (`estimateSpell`,
+ * `spellAffectedStacks`) : préviz = résolution. Sans héros : le sort du catalogue.
+ */
+export function heroSpellDef(
+  spellCatalog: Record<string, SpellDef>,
+  skillCatalog: Record<string, HeroSkillDef>,
+  hero: HeroState | undefined,
+  spellId: string,
+): SpellDef | undefined {
+  const spell = spellCatalog[spellId];
+  if (!spell || !hero) return spell;
+  return spellAtMastery(spell, heroSchoolMastery(hero, skillCatalog, spell.school));
 }

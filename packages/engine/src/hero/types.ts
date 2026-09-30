@@ -114,6 +114,14 @@ export interface SpellDef {
    * `unit.id`. Absent hors sort d'invocation. Générique — `id`/terrain/capacités
    * opaques (aucune faction).
    */
+  /**
+   * Maîtrise d'école (LE4/F2, doc 02 §1.4 — HoMM III) : paliers de surcharge
+   * appliqués quand le lanceur atteint le `rank` dans l'école du sort
+   * (`heroSchoolMastery`) — le plus haut palier atteint l'emporte, champ par
+   * champ. Ne réécrit que des champs existants (base, perPower, zone) : aucune
+   * nouvelle règle de calcul. Absent = sort identique à tout rang.
+   */
+  mastery?: SpellMasteryTier[];
   summon?: {
     unit: {
       id: string;
@@ -122,6 +130,14 @@ export interface SpellDef {
       abilities: { id: string; params?: Record<string, unknown> | undefined }[];
     };
   };
+}
+
+/** Palier de maîtrise d'un sort (LE4/F2) — cf. `SpellDef.mastery`. */
+export interface SpellMasteryTier {
+  rank: 1 | 2 | 3;
+  base?: number;
+  perPower?: number;
+  area?: 'splash' | 'all';
 }
 
 /** Rangs Novice/Expert/Maître d'une compétence (doc 02 §1.3) — effets par rang. */
@@ -139,6 +155,24 @@ export interface SkillRankEffect {
   learnCircle?: number;
   /** Compétence Tactique (C-TACTICS, doc 02 §5.1) : profondeur de la bande de placement pré-combat. */
   tacticsColumns?: number;
+  /**
+   * Compétences du lot LE4/F3 (doc 02 §1.3), toutes branchées :
+   * `spellDamagePct` (Sorcellerie) — % de dégâts des sorts du héros ;
+   * `manaMaxPct` (Intelligence) — % de mana max ; `magicResistancePct`
+   * (Résistance) — % de résistance de l'armée aux sorts de dégâts, ajouté à
+   * l'`armyMagicResistance` des artefacts ; `manaRegenPerDay` (Mysticisme) — mana regagnée à l'aube
+   * quand la mana est persistante ; `warMachineDamagePct` (Artillerie) — % de
+   * dégâts des machines de guerre du camp ; `firstAidHealPct` (Premiers soins) —
+   * % de soin des piles `healPerRound` du camp ; `siegeDamagePct` (Balistique) —
+   * % de dégâts de la catapulte aux remparts.
+   */
+  spellDamagePct?: number;
+  manaMaxPct?: number;
+  magicResistancePct?: number;
+  manaRegenPerDay?: number;
+  warMachineDamagePct?: number;
+  firstAidHealPct?: number;
+  siegeDamagePct?: number;
   /**
    * Perk structurel Might (doc 18 C1, lot 3.1 — signature MMHO) : slots d'armée
    * SUPPLÉMENTAIRES au-delà des 7 de base (`heroArmyCap`). Porté par

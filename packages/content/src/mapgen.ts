@@ -659,6 +659,18 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
       };
     },
   ];
+  // v2 (LE4/C2) : la mana persiste d'un combat à l'autre ⇒ le Puits de magie
+  // (plein de mana) rejoint la rotation — sans lui, seule une ville à Guilde recharge.
+  if (v2) {
+    visitableMakers.push((x, y, n) => ({
+      id: `well-${n}`,
+      type: 'visitable',
+      x,
+      y,
+      effect: { kind: 'restoreMana' },
+      frequency: 'oncePerHeroPerWeek',
+    }));
+  }
   const visitableCount = scaledCat(randBetween(3, 5), eventBuildingDensity);
   for (let i = 0; i < visitableCount; i++) {
     const maker = visitableMakers[i % visitableMakers.length]!;

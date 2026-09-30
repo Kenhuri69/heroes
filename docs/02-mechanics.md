@@ -121,6 +121,13 @@ Les **probabilités de gain** par niveau sont data-driven. *État livré (H-NAME
 | Armure | −5/10/15 % dégâts subis |
 | Magie (par école ×4) | −5/10/20 % coût mana |
 | Économie | +250/500/1000 or/jour |
+| Sorcellerie | +5/10/15 % dégâts des sorts du héros |
+| Intelligence | +25/50/100 % mana maximale |
+| Résistance | l'armée résiste à 5/10/20 % des dégâts de sort |
+| Mysticisme | +2/3/4 mana regagnée chaque jour (mana persistante) |
+| Artillerie | +50/100/150 % dégâts des machines de guerre |
+| Premiers soins | +50/100/200 % soin de la tente de soins |
+| Balistique | +50/100/150 % dégâts de la catapulte aux remparts |
 
 Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex. Nécromancie, cf. doc 04 ; Chasse rituelle, cf. doc 05).
 
@@ -130,6 +137,17 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 >
 > 🚧 **État F-SKILLS** : les factions **injectent des compétences dans le pool via leur manifeste** (`manifest.heroSkills` = ids de compétences). Le loader **estampille** ces compétences de l'id de leur faction (`HeroSkillDef.factionId`) ⇒ elles ne sont proposées au tirage de niveau (`eligibleSkills`) **qu'aux héros de cette faction**. Une compétence dont le payoff est **externe** (ex. **Nécromancie** = % gradué de `raiseUndeadOnVictory`, doc 04 §2) est marquée `external` en données (rangs sans `SkillRankEffect` direct autorisés). 1ʳᵉ compétence de faction livrée : **Nécromancie** (Necropolis, 10/15/20 % par rang). Effet UI des compétences marqueurs (description de rang) = raffinement ultérieur.
 
+> ✅ **État LE4/F3** (`.claude/plans/le4-magic-hero-build.md`) : sept compétences
+> rejoignent le pool commun, **toutes branchées** (même chemin résolution et
+> préviz) : Sorcellerie (`spellDamagePct`, canal des dégâts de sort du héros),
+> Intelligence (`manaMaxPct`, `heroManaMax`), Résistance (`magicResistancePct`,
+> ajoutée à la résistance d'armée des artefacts), Mysticisme (`manaRegenPerDay`,
+> §1.4), Artillerie (`warMachineDamagePct`, frappes des piles `warMachine`),
+> Premiers soins (`firstAidHealPct`, soin `healPerRound`), Balistique
+> (`siegeDamagePct`, bombardement des remparts). **Reportées** : Orientation
+> (réduction de pénalité de terrain — l'API de coût de pas ne connaît pas le
+> héros) et Diplomatie (lot LE5, ralliement des neutres).
+
 ### 1.4 Magie
 
 - **4 écoles neutres** : Feu (dégâts), Eau (contrôle/soin), Terre (protection/invocation), Air (mobilité/vitesse). Les factions peuvent définir une école propre.
@@ -138,6 +156,29 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 - ~20 sorts au MVP (liste dans `data/core/spells/`).
 
 > 🚧 **État 3.2** : 10 sorts livrés (`data/core/spells.json`, cercles 1–3) — Feu/Eau/Terre/Air/neutre, types `damage`/`heal`/`buff`/`debuff`. Mana = `Savoir × 10 + artefacts`, remplie à l'ouverture du combat. **1 sort/round** en combat (commande `CastSpell`, prévisualisation obligatoire sans RNG). Dégâts = `round((base + perPower × Pouvoir) × (1 − résistance) × (lucky ? 2 : 1))`. Gating MVP : le héros connaît d'emblée ses `startingSpells`. **G2 livré** : la Guilde des mages enseigne désormais des sorts à la visite (pool seedé par cercle, §4.1), et la compétence **Sagesse** (H2) débloque l'apprentissage des cercles 3–5 (base apprenable **2** sans Sagesse ; basic → 3, avancé → 4, expert → 5 — fidélité HoMM3). Les sorts de cercle 4–5 eux-mêmes (contenu) et les autres sorts d'aventure restent des raffinements ultérieurs (H1). L'IA ne lance pas de sort d'aventure en 3.2.
+
+> ✅ **État LE4/F2 — la maîtrise change l'effet** : un sort peut porter des
+> paliers `mastery` (`{ rank, base?, perPower?, area? }`). Au rang de maîtrise
+> du lanceur dans l'école du sort (compétence Magie de cette école), les paliers
+> atteints réécrivent ces champs, et le plus haut l'emporte (`spellAtMastery`,
+> `heroSpellDef`). Le lancer, la préviz, la zone surlignée et le grimoire lisent
+> la même définition. Données : les sorts de dégâts et de soin des 4 écoles
+> gagnent en puissance aux rangs 2 et 3 ; **Bouclier de pierre** et **Lenteur**
+> deviennent de masse au rang 3 (HoMM III) ; **Brasier** et **Brouillard
+> glacial** passent en zone. Les sorts qui ont déjà leur version de masse
+> (Bénédiction, Hâte, Affaiblissement) ne changent pas. Écoles sans compétence
+> (neutre, écoles de faction) et sorts d'unité : inchangés.
+>
+> ✅ **État LE4/C2 — mana persistante** (bloc `hero.mana { persistent,
+> basePerDay, pctPerDay }`, activé en données à `2 / 10 %` ; absent ⇒ ancien
+> comportement) : la mana n'est plus remplie à l'ouverture d'un combat, **ni à
+> l'aube**. Chaque aube rend `max(2, ⌊10 % × max⌋)` + Mysticisme, plafonné au
+> max. Un héros qui **commence sa journée** sur une de ses villes dotée d'une
+> Guilde des mages repart plein ; le **Puits de magie** remplit toujours (les
+> cartes générées v2 en posent). L'IA ne dépense pas de sort en combat quand son
+> camp est au moins 3 fois plus fort. Les deux paragraphes ci-dessous (« remplie
+> à l'ouverture du combat », « la mana se restaure chaque jour ») décrivent
+> l'ancien comportement, qui reste celui d'une config sans le bloc.
 
 > 🚧 **État (sorts d'aventure, Alpha 4.16)** : ouverture du sous-système **hors
 > combat**. Nouveau **kind `adventure`** portant un effet déclaratif

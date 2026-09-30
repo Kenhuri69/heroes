@@ -491,6 +491,21 @@ export const spellSchema = z
      */
     area: z.enum(['splash', 'all']).optional(),
     /**
+     * Maîtrise d'école (LE4/F2, doc 02 §1.4) : surcharges de `base`/`perPower`/
+     * `area` au rang de maîtrise du lanceur dans l'école — un palier par rang.
+     */
+    mastery: z
+      .array(
+        z.object({
+          rank: z.union([z.literal(1), z.literal(2), z.literal(3)]),
+          base: z.number().nonnegative().optional(),
+          perPower: z.number().nonnegative().optional(),
+          area: z.enum(['splash', 'all']).optional(),
+        }),
+      )
+      .refine((tiers) => new Set(tiers.map((t) => t.rank)).size === tiers.length, 'mastery : un palier par rang')
+      .optional(),
+    /**
      * Effet hors combat d'un sort `adventure` (doc 02 §1.4, Alpha 4.16) :
      * `townPortal` (téléportation vers une ville) ou `vision` (H-SPELLS.3 —
      * révèle le brouillard dans `radius` tuiles autour du héros).
@@ -595,6 +610,14 @@ const skillRankEffectSchema = z.object({
   /** Perks structurels (doc 18 C1, lot 3.1) : slots d'armée / actions de héros par round. */
   armySlotsBonus: z.number().int().positive().optional(),
   heroActionsPerRound: z.number().int().positive().optional(),
+  /** Compétences LE4/F3 (doc 02 §1.3) : magie et machines de guerre, en %. */
+  spellDamagePct: z.number().positive().optional(),
+  manaMaxPct: z.number().positive().optional(),
+  magicResistancePct: z.number().positive().max(100).optional(),
+  manaRegenPerDay: z.number().int().positive().optional(),
+  warMachineDamagePct: z.number().positive().optional(),
+  firstAidHealPct: z.number().positive().optional(),
+  siegeDamagePct: z.number().positive().optional(),
 });
 
 /** data/core/skills.json (doc 02 §1.3) — exactement 3 rangs (Novice/Expert/Maître). */
@@ -789,6 +812,14 @@ export const gameConfigSchema = z.object({
       /** Recrutement de héros à la Taverne (M-TAVERN.1, doc 02 §1.5/§4.1). `.default` (bridge exactOptional → engine `?:`). */
       recruitCost: z.number().int().nonnegative().default(2500),
       maxPerPlayer: z.number().int().positive().default(8),
+      /** Mana persistante (LE4/C2) — optionnel : absent ⇒ mana pleine à chaque combat/aube. */
+      mana: z
+        .object({
+          persistent: z.boolean(),
+          basePerDay: z.number().int().nonnegative(),
+          pctPerDay: z.number().min(0).max(100),
+        })
+        .optional(),
       /**
        * Perks structurels par archétype (doc 18 C1, lot 3.1 — signature MMHO) :
        * effets déclaratifs SCALAIRES posés sur les héros nommés de cet archétype

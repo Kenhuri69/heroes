@@ -1,7 +1,7 @@
 import type { CombatRulesConfig } from '../adventure/config';
 import type { GameState, HeroState } from '../core/state';
 import { heroArtifactBonus } from '../hero/artifacts';
-import { heroActionsAllowed, heroMorale } from '../hero/skills';
+import { heroActionsAllowed, heroEffectTotal, heroMorale } from '../hero/skills';
 import { townBuildingAura, townEliteDamageBonus } from '../town/economy';
 import type { CombatSideId, CombatStack, CombatState, CombatUnitDef } from './types';
 
@@ -336,6 +336,9 @@ export function factionSpellDamageMods(
       resistancePierce += b.resistancePierce;
     }
   }
+  // Sorcellerie (LE4/F3, doc 02 §1.3) : bonus de dégâts des sorts du héros, sur
+  // le même canal que la faction — résolution et préviz le lisent toutes deux ici.
+  if (hero) bonusPct += heroEffectTotal(hero, state.skillCatalog, 'spellDamagePct') / 100;
   return { bonusPct, resistancePierce: Math.min(1, resistancePierce) };
 }
 

@@ -1228,6 +1228,17 @@ describe('catalogues sorts/compétences/artefacts (plan phase-3.2 lot L)', () =>
     expect(spellSchema.safeParse({ ...(makeSpell() as Record<string, unknown>), revive: true }).success).toBe(false);
   });
 
+  it('LE4/F2 — buildSpellCatalog propage `mastery` ; un seul palier par rang', async () => {
+    const data = makeData();
+    const mastery = [{ rank: 2, base: 20 }, { rank: 3, area: 'all' }];
+    (data['core/spells.json'] as { spells: unknown[] }).spells[0] = { ...(makeSpell() as Record<string, unknown>), mastery };
+    const report = await loadContent(reader(data));
+    // Même piège que `area` : sans propagation, les paliers n'existeraient qu'en test.
+    expect(buildSpellCatalog(report)['boule-de-feu']?.mastery).toEqual(mastery);
+    const twice = [{ rank: 2, base: 20 }, { rank: 2, base: 30 }];
+    expect(spellSchema.safeParse({ ...(makeSpell() as Record<string, unknown>), mastery: twice }).success).toBe(false);
+  });
+
   it('buildSkillCatalog propage `school` (régression : réduction de mana par école)', async () => {
     const data = makeData();
     (data['core/skills.json'] as { skills: unknown[] }).skills[0] = {

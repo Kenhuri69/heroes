@@ -659,22 +659,27 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
       };
     },
   ];
-  // v2 (LE4/C2) : la mana persiste d'un combat à l'autre ⇒ le Puits de magie
-  // (plein de mana) rejoint la rotation — sans lui, seule une ville à Guilde recharge.
-  if (v2) {
-    visitableMakers.push((x, y, n) => ({
-      id: `well-${n}`,
-      type: 'visitable',
-      x,
-      y,
-      effect: { kind: 'restoreMana' },
-      frequency: 'oncePerHeroPerWeek',
-    }));
-  }
   const visitableCount = scaledCat(randBetween(3, 5), eventBuildingDensity);
   for (let i = 0; i < visitableCount; i++) {
     const maker = visitableMakers[i % visitableMakers.length]!;
     place((x, y, n) => maker(x, y, n));
+  }
+
+  // Fontaines de mana (v2, LE4/C2) : la mana persiste d'un combat à l'autre ;
+  // hors ville, seules ces fontaines la remplissent (100 %, une fois par héros et
+  // par jour). Comptées sur `eventBuildingDensity`, comme les autres lieux.
+  if (v2) {
+    const fountainCount = scaledCat(randBetween(1, 2), eventBuildingDensity);
+    for (let i = 0; i < fountainCount; i++) {
+      place((x, y, n) => ({
+        id: `mana-fountain-${n}`,
+        type: 'visitable',
+        x,
+        y,
+        effect: { kind: 'restoreMana' },
+        frequency: 'oncePerHeroPerDay',
+      }));
+    }
   }
 
   // Lieux d'entraînement (doc 02 §2.2) — boost DÉFINITIF d'un attribut primaire du

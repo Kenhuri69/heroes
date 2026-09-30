@@ -54,16 +54,30 @@ neutres, A4).
   qui ont déjà leur version de masse (Bénédiction, Hâte, Affaiblissement) ne
   changent pas.
 
-### C2 — mana persistante
+### C2 — mana persistante (redéfinie par l'utilisateur le 2026-09-30)
 
-- Bloc opt-in `hero.mana { persistent: true, basePerDay, pctPerDay }`, absent ⇒
-  comportement actuel (fixtures et golden inchangés).
-- Avec le bloc : plus de remplissage à l'ouverture du combat ni à l'aube (avis
-  expert). À l'aube, régénération `max(basePerDay, ⌊pctPerDay % × max⌋) +
-  Mysticisme`, plafonnée au max. Un héros qui commence sa journée sur une de ses
-  villes dotée d'une Guilde des mages repart **plein**. Le Puits de magie reste
-  plein à la visite.
-- Valeurs : `basePerDay: 2`, `pctPerDay: 10`.
+> « Le mana ne se recharge pas après un combat, mais il faut des situations de
+> recharge : chaque jour une quantité basée sur la stat du héros ; aller dans la
+> ville recharge à 50 %, à 100 % avec la tour de magie ; des fontaines de mana
+> sur la carte rechargent à 100 %. »
+
+- Bloc opt-in `hero.mana { persistent, basePerDay, perKnowledge, townRestorePct }`
+  (`hero/mana.ts`), absent ⇒ comportement actuel (fixtures et golden inchangés).
+- **Aube** : `max(basePerDay, ⌊Savoir effectif × perKnowledge⌋)` + Mysticisme. La
+  stat qui règle la mana max (Savoir × 10) règle aussi la recharge, qui vaut ~10 %
+  du max. Intelligence augmente le max, pas la recharge : un héros Intelligence a
+  plus à perdre, pas plus à regagner.
+- **Ville** (y entrer, ou y commencer sa journée) : palier `townRestorePct` = 50 %
+  du max, 100 % avec une Guilde des mages (la « tour de magie » ; détectée par le
+  pool de sorts de la ville, sans id de bâtiment). Jamais de baisse ni de cumul.
+  Événement `ManaRestored`, toast client.
+- **Fontaine de mana** : visitable `restoreMana` à 100 %, nouvelle fréquence
+  `oncePerHeroPerDay` (Puits de magie de HoMM III, une fois par jour).
+- **Dérivé** : les cartes générées v2 posent 1 à 2 fontaines par tranche de 24²,
+  hors rotation des lieux de bonus. Sous 50 % de mana (et avec des sorts),
+  l'IA vise une fontaine à portée ou, sur plusieurs jours, une fontaine ou une de
+  ses villes à Guilde. La carte d'objet s'appelle « Fontaine de mana ».
+- Valeurs : `basePerDay: 1`, `perKnowledge: 1`, `townRestorePct: 50`.
 - IA économe : en combat, l'IA ne lance plus de sort quand son camp domine
   largement (force ≥ 3× celle d'en face).
 
@@ -112,6 +126,23 @@ Lecture :
   d'enrichissement). Deux leviers si la mi-partie paraît trop lente : baisser la
   réserve de mana de l'IA pour la Marche forcée, ou relever `pctPerDay`.
 
+**Bench après la redéfinition utilisateur** (Savoir/jour, ville 50/100 %,
+fontaines quotidiennes, IA qui va se recharger ; mêmes 20 graines) :
+
+| | Mana pleine | Persistante v1 | **Persistante v2** |
+|---|---|---|---|
+| Sorts de combat par combat (médiane) | 3,22 | 1,75 | 1,57 |
+| Sorts d'aventure (20 graines) | ~1 950 | ~1 050 | **1 164** |
+| Recharges en ville / à une fontaine | — | — | 60 / 51 |
+| Combats de gardien perdus par l'IA | 52 / 287 | 34 / 289 | 32 / 256 |
+| Parties avec un combat entre joueurs | 7/20 | 2/20 | 1/20 |
+
+L'IA va bien se recharger (111 recharges), et elle relance un peu plus de Marche
+forcée qu'en v1. La mana reste rare, ce qui est voulu. Les rencontres entre
+joueurs restent basses, et le bruit est fort sur 20 graines : 13 parties
+s'arrêtent tôt, parce que le héros de départ du joueur 1 tombe contre un gardien
+(`defeatHero`). Ce cas était déjà relevé en LE3, pour LE5/LE6.
+
 ## 5. Vérifications
 
 - [x] `pnpm typecheck` · `pnpm lint` verts
@@ -132,3 +163,8 @@ Lecture :
     libellé.
   - Mesures §4 : le sim est aveugle à la magie ; le bench IA montre moins de
     déplacements.
+- 2026-09-30 : **C2 redéfini par l'utilisateur** (PR #553 ouverte) : recharge
+  quotidienne sur le Savoir, ville 50 % / 100 % avec Guilde, fontaines de mana
+  quotidiennes. Dérivés : fontaines posées par le générateur v2, IA qui va se
+  recharger, toast « la ville restaure la mana ». `pctPerDay` remplacé par
+  `perKnowledge` ; le Puits de la rotation est retiré au profit des fontaines.

@@ -817,7 +817,8 @@ export const gameConfigSchema = z.object({
         .object({
           persistent: z.boolean(),
           basePerDay: z.number().int().nonnegative(),
-          pctPerDay: z.number().min(0).max(100),
+          perKnowledge: z.number().nonnegative(),
+          townRestorePct: z.number().min(0).max(100),
         })
         .optional(),
       /**
@@ -1170,7 +1171,7 @@ export const mapFileSchema = z.object({
           /** Chariot / dépouille (M-VISIT, doc 02 §2.2) : donne `artifactId` au héros. */
           z.object({ kind: z.literal('grantArtifact'), artifactId: idSchema }),
         ]),
-        frequency: z.enum(['oncePerHero', 'oncePerHeroPerWeek']),
+        frequency: z.enum(['oncePerHero', 'oncePerHeroPerWeek', 'oncePerHeroPerDay']),
       }),
       /** Habitation hors ville (doc 02 §2.2) : stock initial optionnel (défaut 0). */
       z.object({

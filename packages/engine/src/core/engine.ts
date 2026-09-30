@@ -1,5 +1,6 @@
 import { produce } from 'immer';
-import { dailyManaRegen, dailyMovementPoints } from '../adventure/config';
+import { dailyMovementPoints } from '../adventure/config';
+import { heroDailyManaRegen, persistentMana, restoreManaInTown } from '../hero/mana';
 import { createFog, revealAround } from '../adventure/fog';
 import { grailRevealedTo, inBounds, isAdjacent, mapLevels, obeliskCount, samePos, type GridPos } from '../adventure/map';
 import { advanceHeroAlongPath } from '../adventure/movement';
@@ -80,7 +81,7 @@ import {
   applyEquipArtifact,
   applyUnequipArtifact,
 } from '../hero/equip';
-import { heroEffectTotal, heroGoldPerDay, heroMovementBonus, heroVisionRadius } from '../hero/skills';
+import { heroGoldPerDay, heroMovementBonus, heroVisionRadius } from '../hero/skills';
 import { sanitizeEffect } from '../hero/types';
 import { resolveTreasure } from '../adventure/treasure';
 import { resolveTriggerChoice } from '../adventure/trigger-choice';
@@ -1087,7 +1088,7 @@ function advanceSeat(draft: Draft, events: GameEvent[]): void {
         // Points de mouvement quotidiens restaurés (doc 02 §1.5), modulés Logistique.
         // Mana quotidienne restaurée aussi (doc 02 §1.4, Alpha 4.16) : les sorts
         // d'aventure puisent dans cette réserve, rechargée chaque jour.
-        const persistent = draft.config.hero.mana?.persistent === true ? draft.config.hero.mana : null;
+        const persistent = persistentMana(draft);
         for (const hero of draft.heroes) {
           hero.movementPoints = heroDailyMovement(draft, hero);
           hero.manaMax = heroManaMax(hero, draft.artifactCatalog, draft.skillCatalog);
@@ -1095,12 +1096,10 @@ function advanceSeat(draft: Draft, events: GameEvent[]): void {
             hero.mana = hero.manaMax;
             continue;
           }
-          // LE4/C2 : régénération partielle, ou plein sur une de ses villes à Guilde.
-          const atGuild = draft.towns.some(
-            (t) => t.ownerPlayerId === hero.playerId && samePos(t.pos, hero.pos) && t.spellPool.length > 0,
-          );
-          const regen = dailyManaRegen(persistent, hero.manaMax, heroEffectTotal(hero, draft.skillCatalog, 'manaRegenPerDay'));
-          hero.mana = atGuild ? hero.manaMax : Math.min(hero.manaMax, hero.mana + regen);
+          // LE4/C2 : régénération du Savoir, puis palier de la ville où il dort.
+          hero.mana = Math.min(hero.manaMax, hero.mana + heroDailyManaRegen(draft, hero, persistent));
+          const town = draft.towns.find((t) => t.ownerPlayerId === hero.playerId && samePos(t.pos, hero.pos));
+          if (town) restoreManaInTown(draft, hero, town, events);
         }
       }
       events.push({ type: 'DayStarted', day: draft.calendar.day });

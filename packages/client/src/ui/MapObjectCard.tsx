@@ -86,7 +86,7 @@ function cardTitle(object: MapObjectDef, stair: 'down' | 'up' | null = null): st
     case 'artifact':
       return resolveArtifactName(object.artifactId);
     case 'visitable':
-      return t('mapCard.visitableTitle');
+      return t(object.effect.kind === 'restoreMana' ? 'mapCard.manaFountainTitle' : 'mapCard.visitableTitle');
     case 'dwelling':
       return t('mapCard.dwellingTitle');
     case 'monolith':
@@ -133,7 +133,13 @@ function cardLines(
     case 'visitable':
       return [
         visitableEffectLine(object.effect),
-        t(object.frequency === 'oncePerHero' ? 'mapCard.oncePerHero' : 'mapCard.oncePerHeroPerWeek'),
+        t(
+          object.frequency === 'oncePerHero'
+            ? 'mapCard.oncePerHero'
+            : object.frequency === 'oncePerHeroPerDay'
+              ? 'mapCard.oncePerHeroPerDay'
+              : 'mapCard.oncePerHeroPerWeek',
+        ),
       ];
     case 'dwelling':
       return [t('mapCard.dwellingLine', { name: resolveUnitName(object.unitId), stock: object.stock })];

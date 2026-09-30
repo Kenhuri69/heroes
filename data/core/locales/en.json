@@ -543,6 +543,7 @@
   "combat.order.next": "next round",
   "combat.side.attacker": "Attacker",
   "combat.side.defender": "Defender",
+  "combat.overviewHint": "Battlefield overview: tap the board to zoom in.",
   "combat.sheet.hp": "HP (top creature)",
   "combat.sheet.damage": "Damage",
   "combat.sheet.speed": "Speed",

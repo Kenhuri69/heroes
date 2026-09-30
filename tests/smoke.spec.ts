@@ -1009,6 +1009,31 @@ test('lieu de bonus & habitation : écurie ⇒ +PM, camp ⇒ recrutement (doc 02
   expect(errors).toEqual([]);
 });
 
+test('LE-UX : combat mobile ouvert en vue d’ensemble, le 1er tap zoome', { tag: '@mobile' }, async ({ page }) => {
+  test.skip(test.info().project.name !== 'mobile', 'plateau entier visible sur desktop : pas de vue d’ensemble');
+  const errors = await openGame(page);
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({
+      type: 'MoveHero',
+      heroId: 'hero-player-1',
+      path: [
+        { x: 4, y: 2 },
+        { x: 5, y: 2 },
+        { x: 6, y: 2 },
+        { x: 7, y: 2 },
+        { x: 8, y: 2 },
+      ],
+    }),
+  );
+  await passPreBattle(page);
+  await expect(page.getByTestId('combat-round')).toBeVisible();
+  await expect.poll(() => page.evaluate(() => window.__HEROES_TEST__!.combatOverview())).toBe(true);
+  const box = page.viewportSize()!;
+  await page.mouse.click(box.width / 2, box.height / 2);
+  await expect.poll(() => page.evaluate(() => window.__HEROES_TEST__!.combatOverview())).toBe(false);
+  expect(errors).toEqual([]);
+});
+
 test('combat : victoire contre le gardien, retour carte avec pertes appliquées', { tag: ['@mobile', '@core'] }, async ({ page }) => {
   const errors = await openGame(page);
 

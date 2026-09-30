@@ -543,6 +543,7 @@
   "combat.order.next": "round suivant",
   "combat.side.attacker": "Attaquant",
   "combat.side.defender": "Défenseur",
+  "combat.overviewHint": "Vue d’ensemble du champ de bataille : touchez le plateau pour zoomer.",
   "combat.sheet.hp": "PV (tête de pile)",
   "combat.sheet.damage": "Dégâts",
   "combat.sheet.speed": "Vitesse",

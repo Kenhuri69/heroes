@@ -52,7 +52,7 @@ import { initCampaign, startCampaignChapter, campaignFlags } from './app/campaig
 import { initI18n, t } from './app/i18n';
 import { preloadPixiTextures, combatBackgroundUrl, siegeBackgroundUrl, siegeSceneUrl, chromeFrameUrl, chromeRibbonUrl, initHeroAvatars } from './render/assets';
 import { AdventureScene } from './scenes/adventure/AdventureScene';
-import { CombatScene } from './scenes/combat/CombatScene';
+import { CombatScene, combatViewStats } from './scenes/combat/CombatScene';
 import { combatInsets } from './scenes/combat/insets';
 import { mountUi } from './ui/shell';
 import { pushToast } from './ui/toasts';
@@ -112,6 +112,8 @@ declare global {
       renderedHeroIds: () => string[];
       /** Compteurs cumulés de FX de combat (B6 — smoke « projectile/impact visible »). */
       combatFx: () => { projectiles: number; impacts: number };
+      /** LE-UX : le plateau de combat est-il en vue d'ensemble (sous le plancher tactile) ? */
+      combatOverview: () => boolean;
       /** Amplitude idle courante des jetons (I2 — smoke « respiration, coupée en reduce-motion »). */
       combatIdle: () => { bob: number };
       /** Nb cumulé de micro-secousses du plateau (I5 — smoke « secousse sur kill de pile »). */
@@ -623,6 +625,7 @@ async function bootstrap(): Promise<void> {
     },
     renderedHeroIds: () => scene?.renderedHeroIds() ?? [],
     combatFx: () => ({ ...combatFxStats }),
+    combatOverview: () => combatViewStats.overview,
     combatIdle: () => ({ ...combatIdleStats }),
     combatShake: () => ({ ...combatShakeStats }),
     waterSheen: () => ({ ...waterSheenStats }),

@@ -24,7 +24,7 @@ import { appStore } from '../../app/store';
 import { dispatch } from '../../app/dispatch';
 import { eventBus, type AppEvent } from '../../app/events';
 import { commandErrorMessage, t } from '../../app/i18n';
-import { pushToast } from '../../ui/toasts';
+import { pushToast, pushToastOnce } from '../../ui/toasts';
 import { onLongPress, onTap } from '../../input/pointer';
 import { Camera } from '../../render/camera';
 import { playerColor } from '../../render/playerColors';
@@ -122,6 +122,9 @@ const MAX_SCALE = 1.5;
 // Plancher tactile doc 08 §1 : hexes ≥ 44 px (~0,706 pour HEX_SIZE=36).
 const MIN_TAP_PX = 44;
 const MIN_COMBAT_SCALE = MIN_TAP_PX / (HEX_SIZE * Math.sqrt(3));
+
+/** Lecture de test (smoke LE-UX) : le plateau s'ouvre-t-il en vue d'ensemble ? */
+export const combatViewStats = { overview: false };
 
 /** Sélection tap-tap en attente de confirmation. */
 type Selection =
@@ -371,6 +374,9 @@ export class CombatScene {
     // (le point de contenu au centre de l'aire y reste au changement d'échelle),
     // borner, puis ne recentrer sur la pile active QUE si le resize l'a rendue
     // invisible (avant : chaque resize réinitialisait le pan).
+    // LE-UX : la vue d'ensemble survit aux resizes (le HUD mesure ses marges
+    // après l'ouverture) tant que le joueur n'a pas zoomé.
+    if (combatViewStats.overview && this.showOverview(false)) return;
     const oldScale = this.camera.world.scale.x;
     const cx = view.x + view.width / 2;
     const cy = view.y + view.height / 2;
@@ -409,6 +415,41 @@ export class CombatScene {
     this.camera.setClampBounds(bounds, view); // (re)borne — centré ou recadré
   }
 
+  /**
+   * Vue d'ensemble (LE-UX) : si le plateau déborde au plancher de 44 px, le
+   * montrer ENTIER, sous le plancher — lecture des deux camps, pas d'action. Le
+   * 1ᵉʳ tap (`zoomFromOverview`) repasse au plancher. `false` si inutile.
+   */
+  private showOverview(announce = true): boolean {
+    const bounds = computeBoardBounds();
+    const view = this.viewRect();
+    const fit = Math.min(view.width / bounds.width, view.height / bounds.height, MAX_SCALE);
+    combatViewStats.overview = fit < MIN_COMBAT_SCALE;
+    if (!combatViewStats.overview) return false;
+    this.camera.world.scale.set(fit);
+    this.camera.world.position.set(
+      view.x + (view.width - bounds.width * fit) / 2 - bounds.minX * fit,
+      view.y + (view.height - bounds.height * fit) / 2 - bounds.minY * fit,
+    );
+    this.camera.setClampBounds(bounds, view);
+    if (announce) pushToastOnce(t('combat.overviewHint'));
+    return true;
+  }
+
+  /** Sortie de la vue d'ensemble : plancher tactile, centré sur le point touché. */
+  private zoomFromOverview(global: Point): void {
+    const view = this.viewRect();
+    const scale = this.camera.world.scale.x;
+    const content = { x: (global.x - this.camera.world.x) / scale, y: (global.y - this.camera.world.y) / scale };
+    this.camera.world.scale.set(MIN_COMBAT_SCALE);
+    this.camera.world.position.set(
+      view.x + view.width / 2 - content.x * MIN_COMBAT_SCALE,
+      view.y + view.height / 2 - content.y * MIN_COMBAT_SCALE,
+    );
+    this.camera.setClampBounds(computeBoardBounds(), view);
+    combatViewStats.overview = false;
+  }
+
   // ——— Resync depuis le store (réconciliation simple, doc 10 §2.2) ———
 
   /** Références du dernier sync — dirty-check F1 (revue 2026-07). */
@@ -443,6 +484,7 @@ export class CombatScene {
     if (!combat) {
       this.combatShown = false;
       this.laidOut = false; // E10 : le prochain combat repart d'un centrage propre.
+      combatViewStats.overview = false;
       this.selection = null;
       combatPreview.set(null);
       this.boardGfx.clear();
@@ -478,7 +520,9 @@ export class CombatScene {
     }
     if (!this.combatShown) {
       this.combatShown = true;
-      this.centerOnActive(combat);
+      // LE-UX : sur un écran trop étroit pour le plateau au plancher tactile, on
+      // ouvre sur la vue d'ensemble (les deux camps) ; le 1ᵉʳ tap zoome.
+      if (!this.showOverview()) this.centerOnActive(combat);
       this.laidOut = true; // E10 : combat visible ⇒ les resizes suivants préservent le pan.
       this.buildHeroTokens(combat);
     }
@@ -1582,6 +1626,11 @@ export class CombatScene {
     const game = appStore.getState().game;
     const combat = game.combat;
     if (!combat || combat.finished) return;
+    // LE-UX : en vue d'ensemble, le tap zoome (les hexes y sont sous 44 px).
+    if (this.camera.world.scale.x < MIN_COMBAT_SCALE - 1e-6) {
+      this.zoomFromOverview(global);
+      return;
+    }
     // C-TACTICS : pendant le placement, le tap sélectionne une pile du camp
     // joueur puis la déplace sur une case libre de sa bande (PlaceStack).
     if (combat.phase === 'placement') {

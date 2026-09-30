@@ -248,6 +248,9 @@ function chooseSpellcast(
   return best ? { type: 'castSpell', targetStackId: best.id } : null;
 }
 
+/** Dernier round où un tireur menacé préfère fuir plutôt que tirer (anti-impasse). */
+export const KITE_MAX_ROUND = 10;
+
 export function chooseAction(state: GameState, stackId: string): CombatActionInput {
   const combat = state.combat;
   if (!combat) throw new Error(`chooseAction: aucun combat en cours`);
@@ -268,7 +271,10 @@ export function chooseAction(state: GameState, stackId: string): CombatActionInp
   if (cast) return cast;
 
   // Règle imposée 1 — KITE : tireur menacé qui peut s'éloigner en sécurité.
-  if (canShoot(state, stackId) && isThreatenedAt(stack.pos, enemies, combat, catalog)) {
+  // Bornée à `KITE_MAX_ROUND` : sans cette borne, un tireur face à une pile plus
+  // lente sur un plateau dégagé fuyait à chaque round sans jamais tirer, et le
+  // combat ne se terminait pas (trouvé par la lecture « élites » de faction:sim).
+  if (combat.round <= KITE_MAX_ROUND && canShoot(state, stackId) && isThreatenedAt(stack.pos, enemies, combat, catalog)) {
     const reachable = reachableHexes(state, stackId);
     const safeHexes = reachable.filter((p) => !isThreatenedAt(p, enemies, combat, catalog));
     if (safeHexes.length > 0) {

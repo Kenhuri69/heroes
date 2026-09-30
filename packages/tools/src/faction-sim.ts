@@ -115,6 +115,36 @@ function valueArmy(pack: FactionPack, catalog: Record<string, CombatUnitDef>): A
   return army;
 }
 
+/**
+ * Unité ÉLITE d'un tier (lot E3, prérequis) : celle du DERNIER niveau de son
+ * habitation (`buildingId` du manifeste). `null` si l'habitation n'a pas d'amélioration.
+ */
+function eliteUnitOf(pack: FactionPack, buildingId: string): string | null {
+  const building = pack.buildings.find((b) => b.id === buildingId);
+  const top = building && building.levels.length > 1 ? building.levels[building.levels.length - 1] : undefined;
+  return top?.effect.type === 'dwelling' ? top.effect.unitId : null;
+}
+
+/**
+ * Armée d'ÉLITES de valeur d'or égale (même budget que `valueArmy`) : l'élite de
+ * chaque tier, sinon l'unité de base. Le duel valeur-égale n'oppose que les bases
+ * — il était aveugle aux élites (constat du lot Squelette archer).
+ */
+function eliteArmy(pack: FactionPack, catalog: Record<string, CombatUnitDef>): ArmyStack[] | null {
+  const dwellings = pack.manifest.town?.dwellings;
+  if (!dwellings) return null;
+  const army: ArmyStack[] = [];
+  for (let tier = 1; tier <= MAX_TIER; tier++) {
+    const d = dwellings.find((e) => e.tier === tier);
+    if (!d) return null;
+    const unitId = eliteUnitOf(pack, d.buildingId) ?? d.unitId;
+    const gold = catalog[unitId]?.recruitCost?.gold ?? 0;
+    const count = gold > 0 ? Math.max(1, Math.floor(TIER_BUDGET_GOLD / gold)) : 1;
+    army.push({ unitId, count });
+  }
+  return army;
+}
+
 /** Taux de victoire de A contre B (%) sur `SEEDS` graines × 2 sens (A attaque / B attaque). */
 function winrate(
   catalog: Record<string, CombatUnitDef>,
@@ -219,6 +249,33 @@ for (let i = 0; i < armies.length; i++) {
       `${mark} ${a.id.padEnd(16)} vs ${b.id.padEnd(16)} — ${rate.toFixed(1).padStart(5)} % / ${(100 - rate).toFixed(1).padStart(5)} %`,
     );
   }
+}
+
+// ── 1b. Élites (lot E3, lecture — pas de gate) ─────────────────────────────
+// Deux lectures : (a) élites contre élites, même grille que le duel ; (b) pour
+// chaque faction, son armée d'élites contre sa propre armée de base à valeur d'or
+// égale — ce que vaut l'amélioration par rapport à son surcoût.
+const elites = report.content.packs
+  .map((pack) => ({ id: pack.manifest.id, native: pack.manifest.nativeTerrain, army: eliteArmy(pack, catalog) }))
+  .filter((f): f is FactionArmy => f.army !== null);
+console.log(`\n# Duel des élites — valeur égale, ${SEEDS}×2 combats/paire (lecture)\n`);
+for (let i = 0; i < elites.length; i++) {
+  for (let j = i + 1; j < elites.length; j++) {
+    const a = elites[i]!;
+    const b = elites[j]!;
+    const rate = winrate(catalog, config, a.army, b.army, neutralTerrain(config, [a.native, b.native]));
+    const mark = rate < BLOWOUT_LOW || rate > BLOWOUT_HIGH ? '✗' : rate >= TARGET_LOW && rate <= TARGET_HIGH ? '✓' : '⚠';
+    console.log(
+      `${mark} ${a.id.padEnd(16)} vs ${b.id.padEnd(16)} — ${rate.toFixed(1).padStart(5)} % / ${(100 - rate).toFixed(1).padStart(5)} %`,
+    );
+  }
+}
+console.log(`\n# Élites contre base de la même faction — valeur égale (lecture)\n`);
+for (const e of elites) {
+  const base = armies.find((a) => a.id === e.id);
+  if (!base) continue;
+  const rate = winrate(catalog, config, e.army, base.army, neutralTerrain(config, [e.native]));
+  console.log(`  ${e.id.padEnd(16)} — élites ${rate.toFixed(1).padStart(5)} % contre la base`);
 }
 
 // ── 2. Matrice d'attrition (report d'armée + nécromancie) ───────────────────

@@ -79,6 +79,7 @@
       },
       "recruitCost": 2500,
       "maxPerPlayer": 8,
+      "retreatToTavern": true,
       "mana": {
         "persistent": true,
         "basePerDay": 1,
@@ -254,7 +255,8 @@
       "fleeRatio": 3,
       "fleeChanceFrom": 2,
       "joinRatio": 1.5
-    }
+    },
+    "dwellingInitialStock": true
   },
   "newGame": {
     "map": "proto-01",

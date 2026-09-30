@@ -595,6 +595,14 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > `ResolveNeutralOffer`) ; jamais pour un gardien `neverFlee`, gardant un butin
 > ou visé par une quête ; IA qui rallie si elle peut payer. Pas de bump save,
 > golden inchangé, zéro faction.*
+> **LE6 livré** (`le6-back-in-the-game.md`) : **fuite HoMM** (`hero.retreatToTavern`,
+> activée — le héros qui fuit quitte la carte pour la réserve de son joueur,
+> `reserveHeroes?`, et se recrute tel quel dans n'importe laquelle de ses
+> Tavernes ; fin de l'éclaireur vide) ; **l'IA dominée fuit** (< 0,25×, héros
+> contre héros hors siège) et relance son héros de réserve ; **semaine offerte**
+> à la construction d'une habitation (`dwellingInitialStock`). Au passage, le BFS
+> d'exploration de l'IA lit la carte hors proxy Immer (tour d'IA ×4,9). Pas de
+> bump save, golden inchangé, zéro faction.*
 
 ---
 

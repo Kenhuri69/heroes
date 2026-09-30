@@ -90,6 +90,13 @@ export interface PlayerState {
    * Optionnel (absent ⇒ facteur 1, comportement d'avant le lot).
    */
   economyBonus?: { incomePercent?: number; growthPercent?: number };
+  /**
+   * Héros en réserve (LE6 E1, fuite HoMM) : un héros qui a fui un combat quitte
+   * la carte avec niveau, compétences, sorts et artefacts, et attend ici d'être
+   * recruté à nouveau dans une Taverne du joueur. **Optionnel** (absent ⇒ aucune
+   * réserve) ⇒ forme de sauvegarde et golden inchangés.
+   */
+  reserveHeroes?: HeroState[];
 }
 
 /**

@@ -209,9 +209,11 @@ function tryRecruitHero(draft: GameState, town: TownState, player: PlayerState, 
   const cap = draft.config?.hero?.maxPerPlayer ?? DEFAULT_MAX_HEROES;
   if (player.resources.gold < cost * AI_HERO_GOLD_FACTOR) return;
   if (draft.heroes.filter((h) => h.playerId === player.id).length >= cap) return;
-  // Héros de roster de la faction de la ville, non déjà vivant (pool exclusif),
-  // en ordre d'id stable (déterministe).
-  for (const heroId of Object.keys(draft.heroRoster).sort()) {
+  // Héros de la réserve d'abord (LE6 B3 : le héros qui a fui revient avec son
+  // niveau et ses artefacts), puis roster de la faction de la ville, non déjà
+  // vivant (pool exclusif), en ordre d'id stable (déterministe).
+  const reserveIds = (player.reserveHeroes ?? []).map((h) => (h.rosterId !== '' ? h.rosterId : h.id));
+  for (const heroId of [...reserveIds, ...Object.keys(draft.heroRoster).sort()]) {
     const cmd = { type: 'RecruitHero' as const, townId: town.id, heroId, playerId: player.id };
     if (validateRecruitHero(draft, cmd)) continue;
     handleRecruitHero(draft, cmd, events);

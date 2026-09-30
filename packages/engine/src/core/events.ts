@@ -133,6 +133,8 @@ export type GameEvent =
   | { type: 'TriggerChoiceOffered'; triggerId: string; playerId: string }
   /** Gardien dominé qui propose de fuir ou de rejoindre (LE5 A4) — `pendingNeutralOffer` posé. */
   | { type: 'NeutralOfferMade'; heroId: string; playerId: string; objectId: string }
+  /** Héros en fuite rangé dans la réserve de son joueur (LE6 E1). */
+  | { type: 'HeroRetreatedToTavern'; heroId: string; playerId: string }
   /** Gardien laissé partir (LE5 A4) : retiré sans XP ni butin. */
   | { type: 'GuardianReleased'; heroId: string; playerId: string; objectId: string; unitId: string; count: number }
   /** Gardien rallié contre or (LE5 A4, Diplomatie) : pile ajoutée à l'armée. */

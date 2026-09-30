@@ -1,3 +1,4 @@
+import { weeklyGrowthOf } from './economy';
 import { samePos } from '../adventure/map';
 import type { Command, CommandError } from '../core/commands';
 import type { GameEvent } from '../core/events';
@@ -121,6 +122,12 @@ export function handleBuildStructure(draft: GameState, cmd: BuildCmd, events: Ga
   // Guilde des mages (G2) : tire le pool de sorts du cercle bâti, puis tout héros
   // du propriétaire présent sur la ville apprend aussitôt ce qu'il peut.
   const effect = nextLevel.effect;
+  // Semaine offerte (LE6 E2) : l'habitation neuve ouvre avec une semaine de
+  // croissance — jamais pour une amélioration (niveau 2+).
+  if (effect.type === 'dwelling' && currentLevel === 0 && draft.config?.dwellingInitialStock) {
+    const growth = weeklyGrowthOf(draft, town, effect.unitId);
+    if (growth) town.stock[effect.unitId] = Math.min(growth.cap, (town.stock[effect.unitId] ?? 0) + growth.added);
+  }
   if (effect.type === 'mageGuild') {
     rollGuildSpells(draft, town, effect.level, effect.spellCount ?? 0);
     for (const hero of draft.heroes) {

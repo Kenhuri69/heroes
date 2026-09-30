@@ -92,6 +92,9 @@ export function notify(event: AppEvent, game: GameState): string | null {
         parts.push(t('toast.guardianRewardArtifact', { artifact: resolveArtifactName(event.artifactId) }));
       return parts.join(' ');
     }
+    // Fuite HoMM (LE6 E1) : le héros attend dans la réserve, recrutable en Taverne.
+    case 'HeroRetreatedToTavern':
+      return event.playerId === human ? t('toast.heroRetreatedToTavern') : null;
     // Neutres vivants (LE5 A4) : gardien laissé partir ou rallié.
     case 'GuardianReleased':
       return event.playerId === human

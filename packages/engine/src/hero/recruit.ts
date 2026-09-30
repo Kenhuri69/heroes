@@ -23,6 +23,23 @@ export function recruitedHeroId(playerId: string, heroId: string): string {
   return `hero-${playerId}-${heroId}`;
 }
 
+/**
+ * Héros de la réserve de `playerId` désigné par `heroId` (LE6 E1) : id de roster,
+ * ou id du héros pour un héros de départ sans roster. `undefined` sinon.
+ */
+export function reserveHeroFor(state: GameState, playerId: string, heroId: string): HeroState | undefined {
+  const player = state.players.find((p) => p.id === playerId);
+  return player?.reserveHeroes?.find((h) => (h.rosterId !== '' ? h.rosterId : h.id) === heroId);
+}
+
+/** L'entrée de roster est-elle prise (héros vivant sur la carte ou en réserve) ? */
+function rosterTaken(state: GameState, rosterId: string): boolean {
+  return (
+    state.heroes.some((h) => h.rosterId === rosterId) ||
+    state.players.some((p) => p.reserveHeroes?.some((h) => h.rosterId === rosterId) ?? false)
+  );
+}
+
 /** La ville a-t-elle une Taverne construite (effet `tavern` au niveau bâti) ? */
 function hasTavern(state: GameState, town: GameState['towns'][number]): boolean {
   return Object.keys(town.buildings).some(
@@ -47,11 +64,16 @@ export function validateRecruitHero(state: GameState, cmd: RecruitCmd): CommandE
     return { code: 'invalidAction', message: `'${cmd.townId}' n’appartient pas à ${cmd.playerId}` };
   if (!hasTavern(state, town))
     return { code: 'invalidAction', message: `'${cmd.townId}' n’a pas de Taverne` };
-  const def = state.heroRoster[cmd.heroId];
-  if (!def) return { code: 'invalidAction', message: `héros inconnu '${cmd.heroId}'` };
-  // La Taverne d'une ville n'offre que les héros de SA faction (ids opaques).
-  if (def.factionId !== town.factionId)
-    return { code: 'invalidAction', message: `'${cmd.heroId}' n’est pas de la faction de '${cmd.townId}'` };
+  // Héros en réserve (LE6 E1) : il revient dans n'importe quelle Taverne de SON
+  // joueur, toutes factions confondues.
+  const reserve = reserveHeroFor(state, cmd.playerId, cmd.heroId);
+  const def = reserve ? undefined : state.heroRoster[cmd.heroId];
+  if (!reserve) {
+    if (!def) return { code: 'invalidAction', message: `héros inconnu '${cmd.heroId}'` };
+    // La Taverne d'une ville n'offre que les héros de SA faction (ids opaques).
+    if (def.factionId !== town.factionId)
+      return { code: 'invalidAction', message: `'${cmd.heroId}' n’est pas de la faction de '${cmd.townId}'` };
+  }
   const player = state.players.find((p) => p.id === cmd.playerId);
   if (!player) return { code: 'invalidAction', message: `joueur inconnu '${cmd.playerId}'` };
   const owned = state.heroes.filter((h) => h.playerId === cmd.playerId);
@@ -61,19 +83,24 @@ export function validateRecruitHero(state: GameState, cmd: RecruitCmd): CommandE
   // Pool exclusif inter-joueurs (M-TAVERN.4, doc 02 §1.5) : un héros du roster ne
   // peut être VIVANT que chez un seul joueur (subsume l'ancien « déjà recruté par
   // ce joueur »). Un héros mort (retiré de `heroes`) libère l'entrée.
-  if (state.heroes.some((h) => h.rosterId === cmd.heroId))
+  // La réserve compte (LE6 E1) : un héros en fuite n'est recrutable que par les siens.
+  if (!reserve && rosterTaken(state, cmd.heroId))
     return { code: 'invalidAction', message: `'${cmd.heroId}' déjà en jeu chez un joueur` };
   const cost = state.config?.hero?.recruitCost ?? DEFAULT_RECRUIT_COST;
   if (player.resources.gold < cost)
     return { code: 'cannotAfford', message: `or insuffisant (${cost} requis)` };
   // Revue 2026-09 (M10) : invariant « un héros par tuile » — la ville (souvent
   // occupée par le héros en visite) ou une voisine franchissable doit être libre.
-  if (state.map && !landingTileFor(state, town.pos, recruitedHeroId(cmd.playerId, cmd.heroId)))
+  if (state.map && !landingTileFor(state, town.pos, reserve?.id ?? recruitedHeroId(cmd.playerId, cmd.heroId)))
     return { code: 'invalidAction', message: `aucune tuile libre autour de '${cmd.townId}' pour le héros recruté` };
   return null;
 }
 
 export function handleRecruitHero(draft: GameState, cmd: RecruitCmd, events: GameEvent[]): void {
+  if (reserveHeroFor(draft, cmd.playerId, cmd.heroId)) {
+    recruitFromReserve(draft, cmd, events);
+    return;
+  }
   const town = draft.towns.find((t) => t.id === cmd.townId);
   const def = draft.heroRoster[cmd.heroId];
   const player = draft.players.find((p) => p.id === cmd.playerId);
@@ -135,4 +162,25 @@ export function handleRecruitHero(draft: GameState, cmd: RecruitCmd, events: Gam
   if (draft.map && draft.config)
     revealAround(player.explored, draft.map, hero.pos, heroVisionRadius(hero, draft.config.visionRadius, draft.skillCatalog, draft.artifactCatalog));
   events.push({ type: 'HeroRecruited', playerId: cmd.playerId, heroId: cmd.heroId, newHeroId: id });
+}
+
+/**
+ * Recrutement d'un héros de la réserve (LE6 E1) : il revient tel qu'il est parti
+ * (niveau, compétences, sorts, artefacts), armée vide, sur la ville ou une
+ * voisine libre, avec ses PM du jour. Même coût qu'un héros neuf.
+ */
+function recruitFromReserve(draft: GameState, cmd: RecruitCmd, events: GameEvent[]): void {
+  const town = draft.towns.find((t) => t.id === cmd.townId);
+  const player = draft.players.find((p) => p.id === cmd.playerId);
+  const hero = reserveHeroFor(draft, cmd.playerId, cmd.heroId);
+  if (!town || !player || !hero) return; // exclu par validate
+  player.resources.gold -= draft.config?.hero?.recruitCost ?? DEFAULT_RECRUIT_COST;
+  player.reserveHeroes = player.reserveHeroes!.filter((h) => h !== hero);
+  if (player.reserveHeroes.length === 0) delete player.reserveHeroes;
+  hero.pos = { ...(landingTileFor(draft, town.pos, hero.id) ?? town.pos) };
+  hero.movementPoints = heroDailyMovement(draft, hero);
+  draft.heroes.push(hero);
+  if (draft.map && draft.config)
+    revealAround(player.explored, draft.map, hero.pos, heroVisionRadius(hero, draft.config.visionRadius, draft.skillCatalog, draft.artifactCatalog));
+  events.push({ type: 'HeroRecruited', playerId: cmd.playerId, heroId: cmd.heroId, newHeroId: hero.id });
 }

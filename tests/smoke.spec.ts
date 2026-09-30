@@ -3168,6 +3168,50 @@ test('taverne : construire ⇒ onglet Taverne ⇒ recruter un héros nommé (M-T
   expect(errors).toEqual([]);
 });
 
+test('fuite HoMM : le héros qui fuit revient à la Taverne avec son niveau (LE6 E1)', async ({ page }) => {
+  const errors = await openGame(page);
+  await page.getByTestId('town-open-start-town').click();
+  await page.getByTestId('town-build-tavern').click();
+  await page.getByTestId('town-close').click();
+
+  // Combat contre le gardien (9,3), puis fuite : le héros quitte la carte.
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({
+      type: 'MoveHero',
+      heroId: 'hero-player-1',
+      path: [
+        { x: 4, y: 2 },
+        { x: 5, y: 2 },
+        { x: 6, y: 2 },
+        { x: 7, y: 2 },
+        { x: 8, y: 2 },
+      ],
+    }),
+  );
+  await passPreBattle(page);
+  await expect(page.getByTestId('combat-round')).toBeVisible();
+  const level = await page.evaluate(() => window.__HEROES_TEST__!.getState().heroes[0]!.level);
+  await page.evaluate(() => window.__HEROES_TEST__!.dispatch({ type: 'Retreat' }));
+  await expect.poll(() => page.evaluate(() => window.__HEROES_TEST__!.getState().heroes.length)).toBe(0);
+  const reserve = await page.evaluate(() => window.__HEROES_TEST__!.getState().players[0]!.reserveHeroes ?? []);
+  expect(reserve.map((h) => h.id)).toEqual(['hero-player-1']);
+
+  // Deux jours de revenu (1500 → 2500 or), puis recrutement depuis la réserve.
+  for (let i = 0; i < 2; i++) {
+    await page.evaluate(() => window.__HEROES_TEST__!.dispatch({ type: 'EndTurn', playerId: 'player-1' }));
+  }
+  await page.getByTestId('town-open-start-town').click();
+  await page.getByTestId('town-tab-tavern').click();
+  await expect(page.getByTestId('town-tavern-reserve')).toBeVisible();
+  await page.getByTestId('town-tavern-recruit-hero-player-1').click();
+  await expect(page.getByTestId('town-tavern-reserve')).toHaveCount(0);
+  const back = await page.evaluate(() => window.__HEROES_TEST__!.getState().heroes[0]);
+  expect(back?.id).toBe('hero-player-1');
+  expect(back?.level).toBe(level);
+  expect(back?.army).toEqual([]);
+  expect(errors).toEqual([]);
+});
+
 test('M-TAVERN.4 : pool exclusif — un héros recruté chez p1 est indisponible pour p2', async ({
   page,
 }) => {

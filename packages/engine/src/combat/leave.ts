@@ -99,8 +99,11 @@ function endLeftCombat(
   combat: CombatState,
   mode: 'retreat' | 'surrender' | 'abandon',
   events: GameEvent[],
+  /** Camp qui quitte (LE6 B3 : un héros IA peut fuir d'un camp non joueur). */
+  leaverSide: CombatSideId = combat.playerSide,
 ): void {
-  const winner = enemyOf(combat.playerSide);
+  const winner = enemyOf(leaverSide);
+  const leaverHeroId = leaverSide === 'attacker' ? combat.attackerHeroId : combat.defenderHeroId;
   combat.finished = true;
   combat.winner = winner;
   combat.activeStackId = null;
@@ -114,7 +117,7 @@ function endLeftCombat(
   // acquises. Avant : fuir/se rendre/abandonner lui rendait toute son armée
   // (30 réduits à 7 ⇒ de retour à 30). Hors siège : la garnison est déjà
   // réécrite ci-dessus, on ne répartit pas ses piles sur un héros.
-  const enemyHeroId = combat.playerSide === 'attacker' ? combat.defenderHeroId : combat.attackerHeroId;
+  const enemyHeroId = leaverSide === 'attacker' ? combat.defenderHeroId : combat.attackerHeroId;
   const enemyHero = enemyHeroId && !combat.townId ? draft.heroes.find((h) => h.id === enemyHeroId) : undefined;
   if (enemyHero) {
     enemyHero.army = rebuildArmyFromSurvivors(draft, combat, winner, enemyHero.id, enemyHero.id, enemyHero.warMachines);
@@ -127,7 +130,7 @@ function endLeftCombat(
       hero.visitMorale = 0; // moral de temple consommé avec la chance de fontaine
     }
   }
-  events.push({ type: 'CombatLeft', mode, heroId: combat.heroId ?? '' });
+  events.push({ type: 'CombatLeft', mode, heroId: (leaverSide === combat.playerSide ? combat.heroId : leaverHeroId) ?? '' });
   events.push({ type: 'CombatEnded', winner, playerSide: combat.playerSide, casualties, survivors });
   // Le héros survit (pas de `splice`) : aucune élimination, mais on réévalue les
   // conditions de scénario (no-op hors scénario / si rien ne change).
@@ -155,6 +158,27 @@ export function handleRetreat(draft: Draft, _cmd: LeaveCmd, events: GameEvent[])
   const hero = playerHero(draft, combat);
   if (hero) hero.army = []; // fuite : l'armée est abandonnée
   endLeftCombat(draft, combat, 'retreat', events);
+  // Fuite HoMM (LE6 E1) : le héros quitte la carte pour la réserve de son joueur.
+  if (hero && draft.config?.hero.retreatToTavern) sendToReserve(draft, hero.id, events);
+}
+
+/**
+ * Retire le héros de la carte et le range dans la réserve de son joueur (LE6
+ * E1) : il garde niveau, compétences, sorts, artefacts et machines ; son armée
+ * est vide et ses bonus de visite consommés. Réévalue le scénario (le héros a
+ * quitté la carte).
+ */
+export function sendToReserve(draft: GameState, heroId: string, events: GameEvent[]): void {
+  const idx = draft.heroes.findIndex((h) => h.id === heroId);
+  const hero = idx !== -1 ? draft.heroes[idx] : undefined;
+  const player = hero ? draft.players.find((p) => p.id === hero.playerId) : undefined;
+  if (!hero || !player) return;
+  draft.heroes.splice(idx, 1);
+  hero.army = [];
+  hero.naval = false;
+  (player.reserveHeroes ??= []).push(hero);
+  events.push({ type: 'HeroRetreatedToTavern', heroId: hero.id, playerId: player.id });
+  evaluateOutcome(draft, events);
 }
 
 export function handleAbandon(draft: Draft, _cmd: LeaveCmd, events: GameEvent[]): void {
@@ -179,4 +203,22 @@ export function handleSurrender(draft: Draft, _cmd: LeaveCmd, events: GameEvent[
     restoreSideArmies(draft, combat, hero);
   }
   endLeftCombat(draft, combat, 'surrender', events);
+}
+
+/**
+ * Fuite d'un héros IA dominé (LE6 B3) — camp `side` d'un combat **héros contre
+ * héros hors siège**, piloté par l'IA : son armée est abandonnée, l'adversaire
+ * l'emporte et garde ses pertes, et le héros part en réserve (fuite HoMM, E1).
+ * Réservé à la règle `hero.retreatToTavern` (sans elle, fuir laisserait un
+ * éclaireur vide sur la carte).
+ */
+export function aiRetreat(draft: Draft, side: CombatSideId, events: GameEvent[]): void {
+  const combat = draft.combat;
+  if (!combat || !draft.config?.hero.retreatToTavern) return;
+  const heroId = side === 'attacker' ? combat.attackerHeroId : combat.defenderHeroId;
+  const hero = heroId ? draft.heroes.find((h) => h.id === heroId) : undefined;
+  if (!hero) return;
+  hero.army = [];
+  endLeftCombat(draft, combat, 'retreat', events, side);
+  sendToReserve(draft, hero.id, events);
 }

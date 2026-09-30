@@ -813,6 +813,8 @@ export const gameConfigSchema = z.object({
       /** Recrutement de héros à la Taverne (M-TAVERN.1, doc 02 §1.5/§4.1). `.default` (bridge exactOptional → engine `?:`). */
       recruitCost: z.number().int().nonnegative().default(2500),
       maxPerPlayer: z.number().int().positive().default(8),
+      /** Fuite HoMM (LE6 E1) — optionnel : absent ⇒ le héros en fuite reste sur la carte. */
+      retreatToTavern: z.boolean().optional(),
       /** Mana persistante (LE4/C2) — optionnel : absent ⇒ mana pleine à chaque combat/aube. */
       mana: z
         .object({
@@ -1030,6 +1032,8 @@ export const gameConfigSchema = z.object({
       })
       .refine((r) => r.fleeChanceFrom <= r.fleeRatio, 'fleeChanceFrom ≤ fleeRatio')
       .optional(),
+    /** Semaine offerte à la construction d'une habitation (LE6 E2) — optionnel. */
+    dwellingInitialStock: z.boolean().optional(),
   }),
   newGame: z.object({
     map: idSchema,

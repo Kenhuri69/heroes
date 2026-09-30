@@ -228,6 +228,12 @@ export interface AdventureConfig {
    * Cf. `neutralOfferFor`.
    */
   neutralReactions?: NeutralReactionsConfig | undefined;
+  /**
+   * Semaine offerte à la construction (LE6 E2, HoMM III) : une habitation qui
+   * vient d'être bâtie reçoit aussitôt sa croissance hebdomadaire
+   * (`weeklyGrowthOf`). Absent ⇒ stock 0 jusqu'à la semaine suivante.
+   */
+  dwellingInitialStock?: boolean | undefined;
 }
 
 export interface NeutralReactionsConfig {
@@ -324,6 +330,12 @@ export interface HeroProgressionConfig {
   recruitCost?: number;
   /** Nombre maximum de héros par joueur (doc 02 §1.5). Défaut 8. */
   maxPerPlayer?: number;
+  /**
+   * Fuite HoMM (LE6 E1) : le héros qui fuit quitte la carte et rejoint la réserve
+   * de son joueur (`PlayerState.reserveHeroes`), recrutable tel quel dans ses
+   * Tavernes. Absent ⇒ il reste sur la carte, armée vide (comportement d'avant).
+   */
+  retreatToTavern?: boolean | undefined;
   /**
    * Mana persistante (LE4/C2, doc 02 §1.4) — cf. `hero/mana.ts`. **Opt-in** :
    * absent ⇒ mana pleine à chaque combat et à chaque aube.

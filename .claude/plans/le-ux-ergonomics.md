@@ -47,25 +47,42 @@
 
 ## 3. Étapes
 
-1. [ ] Nombres localisés
-2. [ ] Toasts sous les modales
-3. [ ] Piège de focus
-4. [ ] Fin de tour renseignée
-5. [ ] Aperçu « Tout recruter » + annuler le dernier transfert
-6. [ ] Clavier de carte
-7. [ ] Fiche d'artefact + garnison du Royaume
-8. [ ] Stats effectives de la fiche de pile
-9. [ ] Tiroir « ⋯ » de la carte mobile
-10. [ ] Vue d'ensemble du combat mobile
-11. [ ] Doc 08, CLAUDE.md ; vérifications
+1. [x] Nombres localisés
+2. [x] Toasts sous les modales
+3. [x] Piège de focus
+4. [x] Fin de tour renseignée
+5. [x] Aperçu « Tout recruter » + annuler le dernier transfert
+6. [x] Clavier de carte
+7. [x] Fiche d'artefact + garnison du Royaume
+8. [x] Stats effectives de la fiche de pile
+9. [x] Tiroir « ⋯ » de la carte mobile
+10. [x] Vue d'ensemble du combat mobile
+11. [x] Doc 08, CLAUDE.md ; vérifications
 
 ## 4. Vérifications
 
-- [ ] `pnpm typecheck` (sans `-s`) · `pnpm lint` · `pnpm build` + budget
-- [ ] `pnpm test` ; golden inchangé
-- [ ] garde-fous faction et couleurs
+- [x] `pnpm typecheck` (sans `-s`) · `pnpm lint` · `pnpm build` ; budget **387 544 o gzip**
+- [x] `pnpm test` — moteur 1106 (+1), contenu 197, client 113 (+4), serveur 10 ; golden inchangé
+- [x] garde-fous faction et couleurs
 - [ ] suite Playwright complète
 
 ## 5. Journal
 
 - 2026-09-30 : plan ouvert après la fusion de LE7 (#556).
+- 2026-09-30 : les dix points livrés, un commit chacun. Écarts et décisions :
+  - nombres : regroupement `min2` (séparateur dès 5 chiffres) — typographie
+    usuelle, et les compteurs courts (PM, or de départ) restent inchangés ;
+  - focus : un module global plutôt qu'un hook par modale (~25 modales) ;
+  - annuler le transfert : seulement si la commande inverse restitue l'état
+    exact ; une pile fusionnée ne se sépare pas (pas de commande de scission) ;
+    la pile revenue au héros reprend sa place par `ReorderArmy` ;
+  - point 7 : effets d'artefact écrits sous le nom (visibles au doigt sans
+    appui long) plutôt qu'une fiche de plus ; garnison du Royaume nommée dans le
+    nom accessible et l'infobulle (le tap ouvre toujours la ville) ; le marché,
+    déjà prévisualisé, est laissé tel quel ;
+  - point 8 : `performStrike` lit les deux briques extraites (attaque, défense
+    d'unité) — arithmétique inchangée, golden inchangé ;
+  - point 9 : au cran de police 3 en portrait, le sous-titre de « Fin de tour »
+    élargissait le bouton par-dessus « ⋯ » : forme compacte à icônes ;
+  - point 10 : la vue d'ensemble survit aux resizes (le HUD mesure ses marges
+    après l'ouverture) jusqu'au premier tap.

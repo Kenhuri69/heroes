@@ -612,6 +612,12 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > garnison dans ses emplacements libres, murs compris, et la ville tombe avec
 > lui ; piles `fromGarrison` rendues à la ville). Pas de bump save, golden
 > inchangé, zéro faction.*
+> **LE-UX livré** (`le-ux-ergonomics.md`, client) : nombres localisés
+> (`formatNumber`), piège de focus des modales, toasts sous les modales, fin de
+> tour renseignée, aperçu « Tout recruter » + annuler le dernier transfert,
+> clavier de carte (pan/zoom/Entrée/Ctrl+S), effets d'artefact visibles, stats
+> effectives de pile (`effectiveStackStats`), tiroir « ⋯ » de la carte mobile,
+> combat mobile en vue d'ensemble. Pas de bump save, golden inchangé.*
 
 ---
 

@@ -1,6 +1,6 @@
 import type { HeroState } from '../core/state';
-import { heroArtifactBonus } from './artifacts';
-import type { ArtifactDef, HeroSkillDef, SkillRankEffect, SpellSchool } from './types';
+import { heroArtifactBonus, heroArtifactEffect } from './artifacts';
+import type { ArtifactDef, ArtifactEffectField, HeroSkillDef, SkillRankEffect, SpellSchool } from './types';
 
 /**
  * Champs SCALAIRES du vocabulaire d'effets — agrégés à plat. On EXCLUT les champs
@@ -78,8 +78,28 @@ export function heroEffectTotal(
   hero: HeroState,
   catalog: Record<string, HeroSkillDef>,
   field: NumericEffectField,
+  /** Artefacts équipés (LE7 C3) : leurs `effects` s'ajoutent. Absent ⇒ ignorés. */
+  artifactCatalog?: Record<string, ArtifactDef>,
 ): number {
-  return sumRankField(hero, catalog, field) + sumHouseField(hero, field);
+  const fromArtifacts =
+    artifactCatalog && isArtifactEffectField(field) ? heroArtifactEffect(hero, artifactCatalog, field) : 0;
+  return sumRankField(hero, catalog, field) + sumHouseField(hero, field) + fromArtifacts;
+}
+
+const ARTIFACT_EFFECT_FIELDS: ReadonlySet<string> = new Set<ArtifactEffectField>([
+  'goldPerDay',
+  'spellDamagePct',
+  'manaMaxPct',
+  'magicResistancePct',
+  'manaRegenPerDay',
+  'warMachineDamagePct',
+  'firstAidHealPct',
+  'siegeDamagePct',
+  'neutralJoinDiscountPct',
+]);
+
+function isArtifactEffectField(field: string): field is ArtifactEffectField {
+  return ARTIFACT_EFFECT_FIELDS.has(field);
 }
 
 /** Cap de base des piles d'armée d'un héros (doc 02 §5.1). */
@@ -162,8 +182,13 @@ export function heroTacticsColumns(hero: HeroState, catalog: Record<string, Hero
 }
 
 /** Économie : or/jour supplémentaire — branché dans le revenu quotidien (`core/engine.ts`). */
-export function heroGoldPerDay(hero: HeroState, catalog: Record<string, HeroSkillDef>): number {
-  return sumRankField(hero, catalog, 'goldPerDay') + sumHouseField(hero, 'goldPerDay');
+export function heroGoldPerDay(
+  hero: HeroState,
+  catalog: Record<string, HeroSkillDef>,
+  /** Artefacts équipés (LE7 C3 — « Bourse sans fond »). Absent ⇒ ignorés. */
+  artifactCatalog?: Record<string, ArtifactDef>,
+): number {
+  return heroEffectTotal(hero, catalog, 'goldPerDay', artifactCatalog);
 }
 
 /** Chance (compétence) — combiné aux artefacts et borné [0,3] dans `combat/damage.ts`. */

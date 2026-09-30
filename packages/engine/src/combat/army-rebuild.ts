@@ -58,7 +58,7 @@ export function rebuildArmyFromSurvivors(
   const summoned = summonedUnitIds(state);
   const merged: ArmyStack[] = [];
   for (const s of combat.stacks) {
-    if (s.side !== side || s.count <= 0) continue;
+    if (s.side !== side || s.count <= 0 || s.fromGarrison) continue;
     if ((s.ownerHeroId ?? leadHeroId) !== ownerHeroId) continue;
     if (warMachines.includes(s.unitId) || summoned.has(s.unitId)) continue;
     const existing = merged.find((m) => m.unitId === s.unitId);

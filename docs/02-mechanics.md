@@ -57,11 +57,28 @@ Les **probabilités de gain** par niveau sont data-driven. *État livré (H-NAME
 > arcanes + Anneau de mana ⇒ `+2 pou / +2 sav`), **Attirail du Grand Voyageur**
 > (logistique, 2 pièces — Boussole + Éperons ⇒ `+150 PM / +1 chance`). 16
 > artefacts au catalogue. **Rareté graduée (lot 3.2)** : champ de contenu
-> optionnel `rarity` 1–3 (jamais sérialisé dans l'état) — le mapgen place les
+> optionnel `rarity` 1–3, puis 1–4 avec les reliques (LE7 C3) — le mapgen place les
 > artefacts par profondeur (`artifactIdForDepth` : commun près du départ, rare
-> au fond, jitter ±1 seedé). *Différé* : panoplie « économie » — exige un
-> `goldPerDay` d'artefact (nouveau point d'extension moteur, câblage du revenu
-> quotidien). Zéro faction moteur (`id` de panoplie opaque).
+> au fond, jitter ±1 seedé). Zéro faction moteur (`id` de panoplie opaque).
+
+> **État livré (lot LE7 C3 — artefacts qui font rêver)** : le catalogue passe à
+> **41 artefacts**. Trois ajouts de règle :
+> - **reliques** (`rarity: 4`, drapeau moteur `relic`) : elles ne sortent que de
+>   la **grande banque de créatures** — jamais du butin de gardien, du stock du
+>   marchand ni du placement ordinaire du générateur. Cinq reliques : Bourse sans
+>   fond (+1 000 or/jour), Lame du roi-dragon, Voile de l'arcaniste, Couronne du
+>   souverain, Cœur de la montagne ;
+> - **artefacts qui changent une règle** (`effects`) : ils portent le vocabulaire
+>   des compétences, sommé tant qu'ils sont équipés (le sac ne compte pas) — or
+>   par jour (Économie), dégâts des sorts (Sorcellerie), mana max (Intelligence),
+>   résistance de l'armée (Résistance), mana de l'aube (Mysticisme), machines de
+>   guerre (Artillerie), soin des tentes (Premiers soins), catapulte
+>   (Balistique), coût des ralliements (Diplomatie). Mêmes points de lecture que
+>   les compétences (`heroEffectTotal`, `heroGoldPerDay`) ;
+> - le **prix marchand** explicite (`value`) est enfin transmis au moteur.
+>
+> Nouvelle panoplie : **Garde du champion** (armure, heaume et bouclier ⇒ `+2 att /
+> +2 déf / +1 chance`). Pas de bump save, golden inchangé.
 
 > **État livré (H-ARTEQUIP — immunité de moral d'armée)** : champ déclaratif
 > optionnel `ArtifactDef.grantsMoraleImmune` — un artefact équipé plancher le moral
@@ -665,6 +682,7 @@ Chaque faction consomme surtout **une paire de ressources rares** (Haven : crist
 - **Recrutement** : chaque habitation a une croissance hebdo (ex. T1 : 14/sem, T7 : 1/sem) ; le stock s'accumule s'il n'est pas recruté (plafond : 2 semaines). Valeurs de départ : coûts des bâtiments communs dans `data/core/buildings.json` — hôtel de ville **gratuit / 2500 or / 5000 or + 5 gemmes / 10000 or + 10 gemmes + 10 cristal** (le niveau 4 = Capitole, `uniquePerPlayer`) ; fort 5000 or + 20 minerai, ×2 par niveau ; guilde des mages 2000 or + 5 bois (×2 par niveau). Croissance/coût de recrutement dans les données d'unité ; le stock d'une habitation ne se remplit qu'au **passage de semaine** (état de départ vide). **Semaine offerte (lot LE6 E2, HoMM III)** : avec `dwellingInitialStock` (activé dans `data/core/config.json`), une habitation **neuve** ouvre aussitôt avec sa croissance hebdomadaire (`weeklyGrowthOf`) ; une amélioration (niveau 2) n'en reçoit pas.
 - **Croissance partagée** (générique, doc 05 §3.1/§8) : un manifeste de faction peut déclarer un **groupe de croissance partagée** (`sharedGrowthGroups`, ex. « double sommet » T7/T8). Les membres d'un même groupe **se partagent une seule croissance hebdomadaire** dans une ville où au moins deux d'entre eux sont bâtis ; le joueur désigne le destinataire via la commande `ChooseSharedGrowth` (préférence permanente, défaut = 1er membre déclaré). Le moteur ne connaît que des ids opaques (`GameState.growthGroups`, `TownState.sharedGrowthChoice`) — aucun nom de faction.
 - **File de garnison** : une ville stocke une armée de défense ; attaquer une ville **défendue** ouvre un **combat de siège** contre sa garnison (Alpha 4.13) — combat normal sur le terrain de la ville, le Fort accordant un bonus de défense « murs » aux piles défenseure. Tour de garde + catapulte différés (v2).
+- **Siège avec héros visiteur** (lot LE7 D3, `adventure.siegeVisitingHero`, activé) : un héros posté dans **sa** ville la défend au siège. Camp défenseur = son armée et ses machines d'abord, puis les piles de garnison dans ses emplacements libres (jamais fusionnées), murs, douve et tour compris ; le surplus de garnison reste hors combat. Assaut réussi : le héros défenseur meurt (dépouille, comme en héros contre héros) et la ville tombe avec toute sa garnison. Assaut repoussé ou assaillant en fuite : le héros reprend ses survivants, la garnison les siens et son surplus. Marcher sur ce héros mène au même siège. Pas de renforts ni de coop : c'est un combat entre joueurs. L'IA compte ce héros dans la force de la ville.
 - **Capture** : ville **sans** garnison = capture immédiate — sauf si un **héros ennemi** y stationne : fouler la ville ouvre alors un **combat héros-vs-héros** (`beginHeroCombat`, comme sur la carte ; revue 2026-09 M1 — avant, la ville changeait de main sous les pieds du héros) ; une garnison présente **prime** (siège) ; ville **défendue** = capture à l'issue d'un siège **gagné** (garnison anéantie ⇒ la ville change de main, garnison vidée ; siège repoussé ⇒ héros retiré, garnison survivante conservée). Le joueur qui perd sa dernière ville a **7 jours** (`RETAKE_GRACE_DAYS`, constante moteur) pour en reprendre une, sinon défaite. *L'élimination et cette grâce ne sont actives **qu'en mode scénario** (`GameState.scenario`) — no-op en partie libre/proto.*
 
 > 🚧 **État (upgrades d'unités, Alpha 4.11)** : chaque habitation est un

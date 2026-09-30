@@ -26,7 +26,7 @@ export function heroDailyManaRegen(state: GameState, hero: HeroState, mana: Mana
   const knowledge = hero.attributes.knowledge + heroArtifactBonus(hero, state.artifactCatalog).knowledge;
   return (
     Math.max(mana.basePerDay, Math.floor(knowledge * mana.perKnowledge)) +
-    heroEffectTotal(hero, state.skillCatalog, 'manaRegenPerDay')
+    heroEffectTotal(hero, state.skillCatalog, 'manaRegenPerDay', state.artifactCatalog)
   );
 }
 

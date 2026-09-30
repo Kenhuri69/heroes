@@ -108,7 +108,7 @@ export function dailyIncome(state: GameState, playerId: string): Partial<Record<
   }
   for (const hero of state.heroes) {
     if (hero.playerId !== playerId) continue;
-    add('gold', heroGoldPerDay(hero, state.skillCatalog));
+    add('gold', heroGoldPerDay(hero, state.skillCatalog, state.artifactCatalog));
   }
   return income;
 }

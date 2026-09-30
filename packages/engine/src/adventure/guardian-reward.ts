@@ -116,12 +116,15 @@ export function rewardGuardianDefeat(
   }
 
   // Artefact : au-delà d'un seuil plus haut, une chance de tomber un artefact du
-  // catalogue (« sur niveau élevé »). Clés triées ⇒ tirage déterministe.
+  // catalogue (« sur niveau élevé »). Clés triées ⇒ tirage déterministe. Les
+  // reliques (LE7 C3) ne tombent jamais d'un gardien : grandes banques seules.
   let artifactId: string | null = null;
   if (strength >= reward.artifactThresholdHp) {
     const chance = rollRange(draft.rng, 0, 99);
     draft.rng = chance.state;
-    const catalogIds = Object.keys(draft.artifactCatalog).sort();
+    const catalogIds = Object.keys(draft.artifactCatalog)
+      .filter((id) => !draft.artifactCatalog[id]!.relic)
+      .sort();
     if (chance.value < reward.artifactChancePercent && catalogIds.length > 0) {
       const pick = rollRange(draft.rng, 0, catalogIds.length - 1);
       draft.rng = pick.state;

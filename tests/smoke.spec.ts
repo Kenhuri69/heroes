@@ -4754,6 +4754,30 @@ test('siège : forge un combat de ville → catapulte/tir visible, combat vivant
   expect(errors).toEqual([]);
 });
 
+test('siège avec héros visiteur : le héros posté défend sa ville avec la garnison (LE7 D3)', async ({ page }) => {
+  const errors = await openGame(page);
+  await page.evaluate(() => window.__HEROES_TEST__!.startSiege({ defender: true }));
+  await passPreBattle(page, 'fight');
+  await expect(page.getByTestId('combat-round')).toBeVisible();
+  const siege = await page.evaluate(() => {
+    const c = window.__HEROES_TEST__!.getState().combat;
+    if (!c) return null;
+    const defenders = c.stacks.filter((s) => s.side === 'defender');
+    return {
+      townId: c.townId,
+      defenderHeroId: c.defenderHeroId,
+      walls: (c.siegeWalls ?? []).length,
+      heroStacks: defenders.filter((s) => !s.fromGarrison).length,
+      garrisonStacks: defenders.filter((s) => s.fromGarrison).length,
+    };
+  });
+  expect(siege).toMatchObject({ townId: 'siege-town', defenderHeroId: 'siege-defender' });
+  expect(siege!.walls).toBeGreaterThan(0);
+  expect(siege!.heroStacks).toBeGreaterThan(0);
+  expect(siege!.garrisonStacks).toBeGreaterThan(0);
+  expect(errors).toEqual([]);
+});
+
 /**
  * Attend que l'autosave IndexedDB (clé `auto`) soit DURABLE avant de naviguer —
  * l'écriture est asynchrone (mirroir de la vérif du test « autosave … Continuer »).

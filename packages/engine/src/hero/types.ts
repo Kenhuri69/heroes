@@ -414,7 +414,34 @@ export interface ArtifactDef {
    * pas de bump save, golden inchangé. Générique — aucune faction.
    */
   value?: number;
+  /**
+   * Relique (LE7 C3, doc 02 §1.1) : rareté 4 du contenu. Ne sort que de la grande
+   * banque de créatures — jamais du butin de gardien ni du stock du marchand
+   * (`rewardGuardianDefeat`, `merchantBuyStock`). **Optionnel** ⇒ pas de bump save.
+   */
+  relic?: boolean;
+  /**
+   * Effets de RÈGLE (LE7 C3, doc 02 §1.1 — « Bourse sans fond », « Orbe des
+   * tempêtes » HoMM) : même vocabulaire que les compétences, restreint aux champs
+   * lus par `heroEffectTotal` et `heroGoldPerDay`, sommés tant que l'artefact est
+   * équipé. **Optionnel** ⇒ pas de bump save. Générique — aucune faction.
+   */
+  effects?: ArtifactEffects;
 }
+
+/** Champs d'effet de règle qu'un artefact peut porter (LE7 C3) — sous-ensemble de `SkillRankEffect`. */
+export type ArtifactEffectField =
+  | 'goldPerDay'
+  | 'spellDamagePct'
+  | 'manaMaxPct'
+  | 'magicResistancePct'
+  | 'manaRegenPerDay'
+  | 'warMachineDamagePct'
+  | 'firstAidHealPct'
+  | 'siegeDamagePct'
+  | 'neutralJoinDiscountPct';
+
+export type ArtifactEffects = Pick<SkillRankEffect, ArtifactEffectField>;
 
 /** Statut temporaire appliqué à une pile par un sort (buff/debuff) ou une capacité (curseOnHit). */
 export interface SpellStatus {

@@ -45,6 +45,33 @@ function defendingHero(state: GameState, town: TownState, playerId: string): Her
 }
 
 /**
+ * Ville que ce héros défend au siège (LE7 D3, `siegeVisitingHero`) : la ville de
+ * SON joueur sur laquelle il se tient. `undefined` si la règle est absente.
+ */
+export function visitedOwnTown(state: GameState, hero: HeroState): TownState | undefined {
+  if (!state.config?.siegeVisitingHero) return undefined;
+  return state.towns.find((t) => t.ownerPlayerId === hero.playerId && samePos(t.pos, hero.pos));
+}
+
+/**
+ * Rencontre d'un héros ennemi (H-VS-H) : posté dans sa ville, il la défend au
+ * siège avec la garnison (LE7 D3) ; ailleurs, combat en rase campagne.
+ */
+export function beginHeroEncounter(
+  draft: GameState,
+  attackerHeroId: string,
+  defenderHeroId: string,
+  events: GameEvent[],
+): void {
+  const defender = draft.heroes.find((h) => h.id === defenderHeroId);
+  const town = defender ? visitedOwnTown(draft, defender) : undefined;
+  if (town) {
+    const fortLevel = town.buildings['fort'] ?? 0;
+    beginTownCombat(draft, attackerHeroId, town.id, wallDefenseBonus(draft, town), fortLevel, events, undefined, defenderHeroId);
+  } else beginHeroCombat(draft, attackerHeroId, defenderHeroId, events);
+}
+
+/**
  * Bonus de défense « murs » d'une ville au siège : niveau de Fort (doc 02 §4.1)
  * + Maison town-scoped du défenseur (F-HOUSES, doc 16 §3.1 — Le Blaireau
  * `garrisonDefense`, apportée par un héros du propriétaire présent) + aura de
@@ -69,12 +96,17 @@ const DEFENSE_SLOPE_PER_POINT = 0.05;
  * Force estimée d'une ville au siège (LE1, décision D-SIEGEAI) : garnison majorée
  * du bonus de murs (`wallDefenseBonus`) + tour de tir d'un Château. Estimation
  * PURE, même échelle qu'`armyStrength` — c'est ce que l'IA compare à son armée
- * avant d'assiéger. Ne compte pas un héros posté sur la ville (combat H-vs-H à part).
+ * avant d'assiéger. Compte l'armée du héros qui défend la ville (LE7 D3) ; sans
+ * la règle, ce héros livre un combat à part (H-vs-H).
  */
 export function townDefenseStrength(state: GameState, town: TownState): number {
   const walls = 1 + DEFENSE_SLOPE_PER_POINT * wallDefenseBonus(state, town);
   const tower = siegeTowerArmy(town.buildings['fort'] ?? 0, state.unitCatalog);
-  return armyStrength(town.garrison, state.unitCatalog) * walls + armyStrength(tower, state.unitCatalog);
+  const visitor = state.config?.siegeVisitingHero
+    ? state.heroes.find((h) => h.playerId === town.ownerPlayerId && samePos(h.pos, town.pos))
+    : undefined;
+  const defenders = [...(visitor?.army ?? []), ...town.garrison];
+  return armyStrength(defenders, state.unitCatalog) * walls + armyStrength(tower, state.unitCatalog);
 }
 
 /**
@@ -126,10 +158,18 @@ export function handleCaptureTown(draft: GameState, cmd: CaptureCmd, events: Gam
   if (!town) return; // exclu par validate
   // C-SIEGE2 : le niveau de Fort dresse un rempart sur la grille de siège.
   const fortLevel = town.buildings['fort'] ?? 0;
+  // LE7 D3 : le héros du propriétaire posté dans la ville la défend au siège,
+  // garnison et murs compris ; la capture suit la victoire.
+  const visitor = defendingHero(draft, town, cmd.playerId);
+  if (visitor && visitedOwnTown(draft, visitor) === town) {
+    const hero = attackingHero(draft, town, cmd.playerId);
+    if (hero) beginHeroEncounter(draft, hero.id, visitor.id, events);
+    return;
+  }
   // Ville défendue par une garnison OU par la seule tour de tir d'un Château
-  // (C-SIEGE2.7a) ⇒ siège. La capture suit la victoire (`applyConsequences`). Un
-  // héros du propriétaire présent renforce le mur (F-HOUSES) sans combattre —
-  // le siège « garnison + héros visiteur » reste différé (doc 02 §4.1).
+  // (C-SIEGE2.7a) ⇒ siège. La capture suit la victoire (`applyConsequences`).
+  // Sans la règle LE7 D3, un héros du propriétaire présent renforce le mur
+  // (F-HOUSES) sans combattre.
   if (town.garrison.length > 0 || wouldSpawnSiegeTower(fortLevel, draft.unitCatalog)) {
     const hero = attackingHero(draft, town, cmd.playerId);
     if (hero)

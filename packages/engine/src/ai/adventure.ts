@@ -19,7 +19,7 @@ import { validateEquipArtifact, handleEquipArtifact } from '../hero/equip';
 import { validateCastAdventureSpell, handleCastAdventureSpell } from '../hero';
 import { grailRevealedTo } from '../adventure/map';
 import { canDigGrail, digGrail } from '../adventure/grail';
-import { validateCaptureTown, handleCaptureTown, townDefenseStrength } from '../town';
+import { validateCaptureTown, handleCaptureTown, townDefenseStrength, visitedOwnTown } from '../town';
 import { maxAffordableCount } from '../town/resources';
 import { unitWithEconomy } from '../town/unit-economy';
 import type { TownState } from '../town/types';
@@ -281,7 +281,11 @@ function pickEnemyHeroTarget(
     if (!isInPlayerVision(draft, player.id, enemy.pos)) continue;
     const enemyPlayer = draft.players.find((p) => p.id === enemy.playerId);
     if (enemyPlayer && areAllies(player, enemyPlayer)) continue;
-    const enemyStrength = armyStrength(enemy.army, unitCatalog);
+    // LE7 D3 : posté dans sa ville, il la défend avec garnison et murs.
+    const siegedTown = visitedOwnTown(draft, enemy);
+    const enemyStrength = siegedTown
+      ? townDefenseStrength(draft, siegedTown)
+      : armyStrength(enemy.army, unitCatalog);
     if (heroStrength < ENEMY_HERO_STRENGTH_MARGIN * enemyStrength) continue;
     // Pré-filtre O(1) : hors de portée du jour à vol d'oiseau ⇒ pas d'A* (perf).
     if (octileLowerBound(minStep, hero.pos, enemy.pos) > hero.movementPoints) continue;

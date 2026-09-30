@@ -1137,7 +1137,7 @@ function advanceSeat(draft: Draft, events: GameEvent[]): void {
       tickCaravans(draft, events);
       // Économie (compétence héros, décision plan phase-3.2 #5) : or/jour supplémentaire.
       for (const hero of draft.heroes) {
-        const gold = heroGoldPerDay(hero, draft.skillCatalog);
+        const gold = heroGoldPerDay(hero, draft.skillCatalog, draft.artifactCatalog);
         if (gold <= 0) continue;
         const player = draft.players.find((p) => p.id === hero.playerId);
         if (!player) continue;

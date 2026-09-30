@@ -80,7 +80,8 @@ type StackKey =
   | 'stealthed'
   | 'shield'
   | 'statuses'
-  | 'ownerHeroId';
+  | 'ownerHeroId'
+  | 'fromGarrison';
 
 // Gardes à la COMPILATION : `true` seulement si l'union des clés du type est
 // EXACTEMENT celle listée. Un champ ajouté à HeroState/CombatStack ⇒ `false` ⇒

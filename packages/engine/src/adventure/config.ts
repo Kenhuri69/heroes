@@ -234,6 +234,14 @@ export interface AdventureConfig {
    * (`weeklyGrowthOf`). Absent ⇒ stock 0 jusqu'à la semaine suivante.
    */
   dwellingInitialStock?: boolean | undefined;
+  /**
+   * Siège avec héros visiteur (LE7 D3, HoMM III) : un héros posté dans SA ville
+   * la défend au siège, avec la garnison dans ses emplacements libres, murs
+   * compris ; la ville tombe avec lui. Absent ⇒ le héros ne combat pas au siège
+   * d'une ville à garnison, et une ville sans garnison donne un combat en rase
+   * campagne. Cf. `beginTownCombat`, `town/capture.ts`.
+   */
+  siegeVisitingHero?: boolean | undefined;
 }
 
 export interface NeutralReactionsConfig {

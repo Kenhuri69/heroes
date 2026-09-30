@@ -980,6 +980,7 @@
   "daily.endure.title": "Contrat : tenir la ligne",
   "daily.endure.desc": "Survivre trois jours sans perdre votre héros.",
   "toast.questCompleted": "Quête accomplie : {title}",
+  "toast.questRewardRerouted": "Armée pleine : {count} {unit} de récompense rejoignent la garnison la plus proche",
   "menu.campaigns": "Campagnes",
   "campaign.haven.name": "Le Havre : la Frontière",
   "campaign.haven.desc": "Tenir Cendregarde quand les morts refusent le repos.",

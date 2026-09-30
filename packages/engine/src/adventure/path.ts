@@ -11,6 +11,7 @@ import {
   type AdventureMapDef,
   type GridPos,
 } from './map';
+import { guardianZone } from './zone-of-control';
 
 /**
  * Coût d'entrée d'une tuile selon le DOMAINE du héros (A3) : `moveCost` à pied,
@@ -71,6 +72,12 @@ export function findPath(
   maxCost = Infinity,
   /** Domaine du héros (A3) : `true` = embarqué (mer), `false` = à pied (terre). */
   naval = false,
+  /**
+   * Zone de contrôle des gardiens (LE3 A1) : une tuile de zone peut être le but
+   * ou la dernière case avant lui, jamais une case traversée. `false` pour ce qui
+   * ne marche pas sur la carte (caravanes). Sans effet si la règle est éteinte.
+   */
+  respectZones = true,
 ): GridPos[] | null {
   if (!inBounds(map, from) || !isPassable(config, map, to, naval) || samePos(from, to)) return null;
   // L10.1 : un chemin vit sur UNE couche — aucun pas ne relie la surface au
@@ -82,6 +89,8 @@ export function findPath(
     blocked.filter((p) => levelOf(p) === level).map((p) => p.y * map.width + p.x),
   );
   if (!allowBlockedGoal && blockedSet.has(to.y * map.width + to.x)) return null;
+  // A1 : les gardiens n'attaquent pas un bateau (mer) — la zone ne vaut qu'à pied.
+  const zone = respectZones && !naval ? guardianZone(config, map, level) : null;
 
   // Heuristique octile admissible : distance × coût de pas minimal possible
   // (dans le domaine du héros).
@@ -110,10 +119,13 @@ export function findPath(
     const current = heap.pop();
     if (current === goal) break;
     const cur: GridPos = atLevel({ x: current % map.width, y: Math.floor(current / map.width) }, level);
+    // A1 : entrée dans une zone de contrôle = arrêt — on n'en repart que vers le but.
+    const confined = zone !== null && current !== start && zone.has(current);
     for (const dir of DIRECTIONS) {
       const next: GridPos = atLevel({ x: cur.x + dir.x, y: cur.y + dir.y }, level);
       if (!isPassable(config, map, next, naval)) continue;
       const nextIdx = next.y * map.width + next.x;
+      if (confined && nextIdx !== goal) continue;
       if (nextIdx !== goal && blockedSet.has(nextIdx)) continue;
       const g = (gScore[current] ?? Infinity) + stepCost(config, map, cur, next, naval);
       if (g > maxCost) continue; // F7 : au-delà du budget de PM, inatteignable pour l'appelant

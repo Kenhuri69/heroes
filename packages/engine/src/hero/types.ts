@@ -64,6 +64,12 @@ export interface SpellDef {
   /** Dégâts/soin = base + perPower × Pouvoir (doc 02 §1.1). */
   base: number;
   perPower: number;
+  /**
+   * Sort `heal` qui **ressuscite** (LE2/M13, doc 02 §1.4) : les PV rendus peuvent
+   * relever des créatures tuées de la pile. Absent/`false` = simple soin (la 1ʳᵉ
+   * créature entamée remonte, aucun mort ne revient) — Soin ≠ Résurrection.
+   */
+  revive?: boolean;
   /** Modificateurs temporaires pour buff/debuff (durée = Pouvoir rounds, min 1). */
   attackMod?: number;
   defenseMod?: number;

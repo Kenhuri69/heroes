@@ -105,7 +105,7 @@ describe('A2h — spellcaster', () => {
  * Données pures, aucun code moteur propre à l'Ange.
  */
 describe('CAP-LIFE.1 — résurrection de l’Ange', () => {
-  const RESURRECTION: SpellDef = { id: 'resurrection', school: 'water', circle: 4, manaCost: 22, kind: 'heal', base: 40, perPower: 8 };
+  const RESURRECTION: SpellDef = { id: 'resurrection', school: 'water', circle: 4, manaCost: 22, kind: 'heal', base: 40, perPower: 8, revive: true };
   const angelCatalog: Record<string, CombatUnitDef> = {
     ange: unit({ id: 'ange', abilities: [{ id: 'spellcaster', params: { spellId: 'resurrection', charges: 1, power: 4 } }] }),
     grunt: unit({ id: 'grunt' }),

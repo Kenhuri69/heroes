@@ -121,10 +121,16 @@ export function grantXp(
       hero.attributes[attribute] += 1;
       events.push({ type: 'HeroLevelUp', heroId, level: hero.level, attribute });
     }
+    // LE2/M12 : un choix humain déjà en attente n'est plus ÉCRASÉ — la montée
+    // est mise en file (`pendingSkillLevels`) et sa paire sera tirée au
+    // `ChooseSkill` qui libère la place (propositions toujours valides pour le
+    // héros tel qu'il sera alors).
+    if (isHuman && hero.pendingSkillChoices.length > 0) {
+      hero.pendingSkillLevels = (hero.pendingSkillLevels ?? 0) + 1;
+      continue;
+    }
     // Choix de compétence (décision plan phase-3.2 #6) : 2 propositions au RNG
-    // de l'état, REMPLACENT les propositions en attente (un seul choix visible
-    // à la fois — un niveau supplémentaire dans la même chaîne écrase le
-    // précédent plutôt que d'accumuler plusieurs paires en attente).
+    // de l'état, un seul choix visible à la fois.
     const choices = rollSkillChoices(draft, hero);
     hero.pendingSkillChoices = choices;
     // Revue 2026-08 : l'IA ne résolvait JAMAIS `ChooseSkill` (aucun chemin dans

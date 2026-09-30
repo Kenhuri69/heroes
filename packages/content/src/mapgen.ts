@@ -88,7 +88,19 @@ export interface MapGenOptions {
    * instancie via l'objet de carte `town` non attribué (Alpha 4.13).
    */
   townFactionIds?: string[];
+  /**
+   * Version du générateur (LE3, doc 02 §2.2) — défaut {@link MAPGEN_VERSION}.
+   * `1` reproduit à l'octet près les cartes d'avant LE3 (graines partagées) ;
+   * `2` pose les gardiens de champ aux **goulots** (repli : portes entre régions
+   * de départ), ajoute les **banques de créatures** et ramène la garnison des
+   * villes neutres à une armée de mi-partie. Une sauvegarde embarque sa carte :
+   * la version n'a aucun effet sur une partie en cours.
+   */
+  generatorVersion?: 1 | 2;
 }
+
+/** Version courante du générateur (cf. `MapGenOptions.generatorVersion`). */
+export const MAPGEN_VERSION = 2;
 
 /** PRNG déterministe mulberry32 — retourne un flottant dans [0, 1). */
 function mulberry32(seed: number): () => number {
@@ -170,6 +182,11 @@ export const TERRAIN_CHARS: Record<string, string> = {
 
 const RESOURCE_IDS = ['gold', 'wood', 'ore', 'crystal', 'gems'] as const;
 
+/** v2 (LE3) : profondeur « vue » par la garnison d'une ville neutre (tier plafonné). */
+const TOWN_GARRISON_DEPTH = 0.6;
+/** v2 (LE3 A2) : part des gardiens de champ posés sur un goulot ou une porte. */
+const GATE_GUARDIAN_SHARE = 0.6;
+
 // Seuils de classification (sur des champs fBm centrés ~0,5). Réglés pour une
 // carte majoritairement jouable (plaines dominantes), de l'eau notable, des
 // reliefs formant des chaînes plutôt que du bruit.
@@ -205,6 +222,91 @@ export function artifactIdForDepth(
   return sortedIds[Math.min(last, Math.max(0, idx))]!;
 }
 
+/**
+ * Goulots de la carte (LE3 A2) : points d'articulation du graphe franchissable
+ * 8 directions (`inMain` = 1, tuiles `blockedKeys` retirées — les gardiens déjà
+ * posés bloquent déjà leur tuile), qui séparent une région d'au moins
+ * `max(8, 2 %)` des tuiles. Triés par taille de la plus petite région coupée
+ * (décroissante), départage par index : déterministe. Tarjan ITÉRATIF — pas de
+ * récursion (262 144 tuiles en 512²).
+ */
+export function chokepoints(
+  inMain: Uint8Array,
+  blockedKeys: ReadonlySet<string>,
+  width: number,
+  height: number,
+): { x: number; y: number; cut: number }[] {
+  const size = width * height;
+  const alive = (i: number): boolean =>
+    inMain[i] === 1 && !blockedKeys.has(`${i % width},${Math.floor(i / width)}`);
+  const disc = new Int32Array(size).fill(-1);
+  const low = new Int32Array(size);
+  const sub = new Int32Array(size);
+  const cut = new Int32Array(size); // plus grande « petite région » isolée par ce nœud
+  const nbr = (i: number, k: number): number => {
+    const x = (i % width) + [1, -1, 0, 0, 1, 1, -1, -1][k]!;
+    const y = Math.floor(i / width) + [0, 0, 1, -1, 1, -1, 1, -1][k]!;
+    return x < 0 || y < 0 || x >= width || y >= height ? -1 : y * width + x;
+  };
+  const results: { x: number; y: number; cut: number }[] = [];
+  let time = 0;
+  for (let root = 0; root < size; root++) {
+    if (!alive(root) || disc[root] !== -1) continue;
+    // Taille de la composante (pour la région « de l'autre côté »).
+    const comp: number[] = [root];
+    const seen = new Uint8Array(size);
+    seen[root] = 1;
+    for (let h = 0; h < comp.length; h++) {
+      for (let k = 0; k < 8; k++) {
+        const j = nbr(comp[h]!, k);
+        if (j >= 0 && seen[j] === 0 && alive(j)) {
+          seen[j] = 1;
+          comp.push(j);
+        }
+      }
+    }
+    const total = comp.length;
+    const minRegion = Math.max(8, Math.round(total * 0.02));
+    const parent = new Map<number, number>([[root, -1]]);
+    const stack: { v: number; k: number }[] = [{ v: root, k: 0 }];
+    disc[root] = low[root] = time++;
+    sub[root] = 1;
+    let rootChildren = 0;
+    while (stack.length > 0) {
+      const top = stack[stack.length - 1]!;
+      if (top.k < 8) {
+        const j = nbr(top.v, top.k++);
+        if (j < 0 || !alive(j)) continue;
+        if (disc[j] === -1) {
+          parent.set(j, top.v);
+          disc[j] = low[j] = time++;
+          sub[j] = 1;
+          if (top.v === root) rootChildren++;
+          stack.push({ v: j, k: 0 });
+        } else if (j !== parent.get(top.v)) {
+          low[top.v] = Math.min(low[top.v]!, disc[j]!);
+        }
+        continue;
+      }
+      stack.pop();
+      const p = parent.get(top.v)!;
+      if (p < 0) continue;
+      low[p] = Math.min(low[p]!, low[top.v]!);
+      sub[p]! += sub[top.v]!;
+      if (low[top.v]! >= disc[p]!) {
+        const region = Math.min(sub[top.v]!, total - 1 - sub[top.v]!);
+        cut[p] = Math.max(cut[p]!, region); // racine filtrée plus bas (≥ 2 enfants)
+      }
+    }
+    for (const i of comp) {
+      // Racine : articulation seulement avec ≥ 2 enfants DFS.
+      if (i === root && rootChildren < 2) continue;
+      if (cut[i]! >= minRegion) results.push({ x: i % width, y: Math.floor(i / width), cut: cut[i]! });
+    }
+  }
+  return results.sort((a, b) => b.cut - a.cut || a.y * width + a.x - (b.y * width + b.x));
+}
+
 export function generateMap(id: string, seed: number, opts: MapGenOptions = {}): MapFile {
   const width = Math.max(12, opts.width ?? 24);
   const height = Math.max(12, opts.height ?? 24);
@@ -221,6 +323,7 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
   const underground = opts.underground === true;
   const artifactIds = opts.artifactIds ?? [];
   const townFactionIds = opts.townFactionIds ?? [];
+  const v2 = (opts.generatorVersion ?? MAPGEN_VERSION) >= 2;
   // Densité constante quelle que soit la taille : les compteurs d'objets calés
   // sur une carte de base 24×24 sont mis à l'échelle par l'aire, puis par le
   // réglage bas/riche. Au moins 1 objet des catégories principales.
@@ -379,14 +482,16 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
     byTier.length > 0 ? Math.max(...byTier.map((u) => unitTiers[u] ?? 1)) : 1;
   const pickUnitForDepth = (depth: number, jitter: number): string => {
     const cap = Math.min(paletteMaxTier, 1 + Math.floor(depth * paletteMaxTier));
-    const target = Math.max(1, Math.min(cap, Math.round(depth * paletteMaxTier) + jitter));
+    return pickUnitOfTier(Math.max(1, Math.min(cap, Math.round(depth * paletteMaxTier) + jitter)));
+  };
+  function pickUnitOfTier(target: number): string {
     // Bucket du tier visé, sinon le tier existant le plus proche EN DESSOUS.
     for (let t = target; t >= 1; t--) {
       const bucket = byTier.filter((u) => (unitTiers[u] ?? 1) === t);
       if (bucket.length > 0) return bucket[randInt(bucket.length)]!;
     }
     return byTier[0]!; // aucun tier ≤ visé dans la palette : la plus faible connue
-  };
+  }
 
   // Sélectionne une tuile libre ; `preferDeep` échantillonne et retient la plus
   // PROFONDE des candidats vus (récompenses premium loin des départs), sans
@@ -620,6 +725,96 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
     }
   }
 
+  // Banques de créatures (LE3 A3, v2 ; doc 02 §2.2) : une sentinelle FORTE et
+  // deux butins verrouillés derrière elle (`guardedBy`), à usage unique. Le
+  // palier suit la profondeur (petite < 0,4 ≤ moyenne < 0,75 ≤ grande) : tier 3/4/5
+  // (plafonné par la palette), effectif ×1,5–2 d'un gardien de champ de même
+  // profondeur, coffre d'or croissant ; le 2ᵉ butin est une ressource rare
+  // (petite) ou un artefact — la plus haute rareté est réservée à la grande.
+  if (v2 && byTier.length > 0 && guardianDensity > 0) {
+    const rarityOf = (id: string): number => opts.artifactRarity?.[id] ?? 1;
+    const maxRarity = artifactIds.length > 0 ? Math.max(...artifactIds.map(rarityOf)) : 0;
+    const byRarity = (keep: (r: number) => boolean): string[] =>
+      artifactIds.filter((a) => keep(rarityOf(a))).sort();
+    const relics = byRarity((r) => r === maxRarity);
+    const lesser = byRarity((r) => r < maxRarity);
+    const bankCount = scaledCat(randBetween(1, 2), pickupDensity);
+    const freeNear = (x: number, y: number): { x: number; y: number } | undefined =>
+      neighborOffsets
+        .map(([dx, dy]) => ({ x: x + dx, y: y + dy }))
+        .find(
+          (p) =>
+            p.x >= 0 && p.y >= 0 && p.x < width && p.y < height &&
+            !occupied.has(`${p.x},${p.y}`) && !nextToStart(p.x, p.y),
+        );
+    for (let i = 0; i < bankCount; i++) {
+      // Sentinelle d'abord : hors des abords des départs (sa zone de contrôle ne
+      // les touche pas, A1) et jamais au seuil de la carte (profondeur ≥ 0,25).
+      let at: { x: number; y: number } | null = null;
+      for (let tries = 0; tries < 60 && !at; tries++) {
+        const x = randInt(width);
+        const y = randInt(height);
+        if (occupied.has(`${x},${y}`) || depthAt(x, y) < 0.25) continue;
+        if (startPositions.some((st) => Math.max(Math.abs(x - st.x), Math.abs(y - st.y)) < 3)) continue;
+        if (freeNear(x, y)) at = { x, y };
+      }
+      if (!at) continue;
+      occupied.add(`${at.x},${at.y}`);
+      grid[at.y]![at.x] = baseChar;
+      const depth = depthAt(at.x, at.y);
+      const tierIdx = depth < 0.4 ? 0 : depth < 0.75 ? 1 : 2;
+      const guardId = `bank-${objects.length}`;
+      const tierCap = Math.min(paletteMaxTier, 1 + Math.floor(depth * paletteMaxTier));
+      objects.push({
+        id: guardId,
+        type: 'guardian',
+        x: at.x,
+        y: at.y,
+        unitId: pickUnitOfTier(Math.min(tierCap, 3 + tierIdx)),
+        count: Math.max(6, Math.round((4 + depth * 36) * (1.5 + randInt(6) / 10))),
+      });
+      const chestAt = freeNear(at.x, at.y)!;
+      occupied.add(`${chestAt.x},${chestAt.y}`);
+      grid[chestAt.y]![chestAt.x] = baseChar;
+      const gold = [randBetween(1000, 1500), randBetween(2000, 2500), randBetween(3000, 4000)][tierIdx]!;
+      objects.push({
+        id: `bank-chest-${objects.length}`,
+        type: 'treasure',
+        x: chestAt.x,
+        y: chestAt.y,
+        gold,
+        xp: Math.round(gold * 0.8),
+        guardedBy: guardId,
+      });
+      const lootAt = freeNear(at.x, at.y);
+      if (!lootAt) continue;
+      occupied.add(`${lootAt.x},${lootAt.y}`);
+      grid[lootAt.y]![lootAt.x] = baseChar;
+      const pool = tierIdx === 2 ? relics : tierIdx === 1 ? lesser : [];
+      const n = objects.length;
+      if (pool.length > 0) {
+        objects.push({
+          id: `bank-loot-${n}`,
+          type: 'artifact',
+          x: lootAt.x,
+          y: lootAt.y,
+          artifactId: pool[randInt(pool.length)]!,
+          guardedBy: guardId,
+        });
+      } else {
+        objects.push({
+          id: `bank-loot-${n}`,
+          type: 'resource',
+          x: lootAt.x,
+          y: lootAt.y,
+          resource: randInt(2) === 0 ? 'crystal' : 'gems',
+          amount: randBetween(3, 5) * (tierIdx + 1),
+          guardedBy: guardId,
+        });
+      }
+    }
+  }
+
   // Villes neutres (plan map-design-issues Lot 5) : 1–2 châteaux assiégeables
   // en zone médiane/profonde, garnison à deux piles graduée par la profondeur.
   // Le client les instancie déjà (objet `town` non attribué, Alpha 4.13) et le
@@ -630,19 +825,32 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
       place((x, y, n) => {
         const depth = depthAt(x, y);
         const factionId = townFactionIds[randInt(townFactionIds.length)]!;
+        // v2 (LE3) : la garnison vise une armée de MI-PARTIE — en v1 elle suivait
+        // le gardien de fond de carte (jusqu'à ~38 T8), jamais prise (mesure LE1).
         const garrison =
-          byTier.length > 0
-            ? [
-                {
-                  unitId: pickUnitForDepth(depth, 0),
-                  count: Math.max(4, Math.round(8 + depth * 30) + randBetween(-2, 2)),
-                },
-                {
-                  unitId: pickUnitForDepth(Math.min(1, depth + 0.15), 0),
-                  count: Math.max(4, Math.round(6 + depth * 20) + randBetween(-2, 2)),
-                },
-              ]
-            : undefined;
+          byTier.length === 0
+            ? undefined
+            : v2
+              ? [
+                  {
+                    unitId: pickUnitForDepth(depth * TOWN_GARRISON_DEPTH, 0),
+                    count: Math.max(4, Math.round(6 + depth * 10) + randBetween(-2, 2)),
+                  },
+                  {
+                    unitId: pickUnitForDepth(Math.min(1, depth * TOWN_GARRISON_DEPTH + 0.15), 0),
+                    count: Math.max(3, Math.round(4 + depth * 6) + randBetween(-1, 1)),
+                  },
+                ]
+              : [
+                  {
+                    unitId: pickUnitForDepth(depth, 0),
+                    count: Math.max(4, Math.round(8 + depth * 30) + randBetween(-2, 2)),
+                  },
+                  {
+                    unitId: pickUnitForDepth(Math.min(1, depth + 0.15), 0),
+                    count: Math.max(4, Math.round(6 + depth * 20) + randBetween(-2, 2)),
+                  },
+                ];
         return {
           id: `neutral-town-${n}`,
           type: 'town',
@@ -668,7 +876,10 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
         const x = clampX(s.x + randBetween(-nearRadius, nearRadius));
         const y = clampY(s.y + randBetween(-nearRadius, nearRadius));
         const d = Math.hypot(x - s.x, y - s.y);
+        // v2 : zone de contrôle (A1) — la zone d'un gardien ne touche jamais les
+        // abords d'un départ (Tchebychev ≥ 3).
         if (d < 2 || d > nearRadius) continue;
+        if (v2 && Math.max(Math.abs(x - s.x), Math.abs(y - s.y)) < 3) continue;
         const key = `${x},${y}`;
         if (occupied.has(key)) continue;
         occupied.add(key);
@@ -684,6 +895,9 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
         placed++;
       }
     }
+  }
+  // v1 : gardiens de champ au hasard, avant la connexité. v2 : après (cf. plus bas).
+  if (!v2 && guardianUnits.length > 0 && guardianDensity > 0) {
     const guardianCount = Math.max(2, Math.round(randBetween(2, 4) * areaFactor * guardianDensity));
     for (let i = 0; i < guardianCount; i++) {
       place((x, y, n) => {
@@ -774,6 +988,92 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
   for (const s of startPositions.slice(1)) connect(s.x, s.y);
   for (const o of objects) connect(o.x, o.y);
   if (grailPos) connect(grailPos.x, grailPos.y); // la tuile du Graal doit être atteignable
+
+  // ── Gardiens de champ v2 (LE3 A2, doc 02 §2.2) : posés sur la carte FINALE
+  // (après la connexité), ~60 % sur les goulots — points d'articulation du
+  // graphe franchissable qui isolent une vraie région —, repli sur les PORTES
+  // entre régions de départ (tuiles à égale distance de deux départs), le reste
+  // au hasard sur la composante atteignable. Aucune zone de contrôle (A1) ne
+  // chevauche celle d'un autre gardien ni ne touche les abords d'un départ. ──
+  if (v2 && guardianUnits.length > 0 && guardianDensity > 0) {
+    const guardianCount = Math.max(2, Math.round(randBetween(2, 4) * areaFactor * guardianDensity));
+    const guardTiles = objects.filter((o) => o.type === 'guardian' && (o.level ?? 0) === 0);
+    const spaced = (x: number, y: number): boolean =>
+      !startPositions.some((s) => Math.max(Math.abs(x - s.x), Math.abs(y - s.y)) < 3) &&
+      !guardTiles.some((g) => Math.max(Math.abs(x - g.x), Math.abs(y - g.y)) < 3);
+    const canHost = (x: number, y: number): boolean =>
+      inMain[tileIdx(x, y)] === 1 && !occupied.has(`${x},${y}`) && spaced(x, y);
+    // Un goulot/une porte se franchit en MI-PARTIE (même échelle que la garnison
+    // d'une ville neutre) : au tarif d'un gardien de fond de carte, la porte
+    // entre deux départs (profondeur ≈ 1) enfermait chaque joueur chez lui.
+    const putGuard = (x: number, y: number, kind: string): void => {
+      occupied.add(`${x},${y}`);
+      const depth = depthAt(x, y);
+      const gate = kind !== '';
+      const guard: PlacedObject = {
+        id: `guard-${kind}${objects.length}`,
+        type: 'guardian',
+        x,
+        y,
+        unitId: pickUnitForDepth(gate ? depth * TOWN_GARRISON_DEPTH : depth, randBetween(-1, 1)),
+        count: gate
+          ? Math.max(2, Math.round(4 + depth * 16) + randBetween(-2, 2))
+          : Math.max(2, Math.round(4 + depth * 36) + randBetween(-3, 3)),
+      };
+      objects.push(guard);
+      guardTiles.push(guard);
+    };
+    const gateWanted = Math.round(guardianCount * GATE_GUARDIAN_SHARE);
+    let placed = 0;
+    const guardKeys = new Set(guardTiles.map((g) => `${g.x},${g.y}`));
+    for (const c of chokepoints(inMain, guardKeys, width, height)) {
+      if (placed >= gateWanted) break;
+      if (!canHost(c.x, c.y)) continue;
+      putGuard(c.x, c.y, 'choke-');
+      placed++;
+    }
+    if (placed < gateWanted) {
+      // Portes (repli « régions », avis expert) : la carte est découpée en
+      // régions de Voronoï — une par départ, plus des régions neutres (centre,
+      // puis un anneau intérieur, ~√aire) — et une porte est une tuile dont les
+      // deux centres les plus proches sont à ±1 : la frontière entre deux zones.
+      const zoneCenters = [...startPositions, { x: cx, y: cy }];
+      const extra = Math.max(0, Math.round(Math.sqrt(areaFactor)) - 1);
+      for (let k = 0; k < extra; k++) {
+        const a = (2 * Math.PI * k) / extra + Math.PI / startPositionCount;
+        zoneCenters.push({ x: cx + radius * 0.55 * Math.cos(a), y: cy + radius * 0.55 * Math.sin(a) });
+      }
+      const doors: { x: number; y: number }[] = [];
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          if (inMain[tileIdx(x, y)] !== 1) continue;
+          let d1 = Infinity;
+          let d2 = Infinity;
+          for (const s of zoneCenters) {
+            const d = Math.hypot(x - s.x, y - s.y);
+            if (d < d1) {
+              d2 = d1;
+              d1 = d;
+            } else if (d < d2) d2 = d;
+          }
+          if (d2 - d1 <= 1) doors.push({ x, y });
+        }
+      }
+      for (let tries = 0; tries < 40 * gateWanted && placed < gateWanted && doors.length > 0; tries++) {
+        const d = doors[randInt(doors.length)]!;
+        if (!canHost(d.x, d.y)) continue;
+        putGuard(d.x, d.y, 'gate-');
+        placed++;
+      }
+    }
+    for (let tries = 0; tries < 60 * guardianCount && placed < guardianCount; tries++) {
+      const x = randInt(width);
+      const y = randInt(height);
+      if (!canHost(x, y)) continue;
+      putGuard(x, y, '');
+      placed++;
+    }
+  }
 
   // ── Bateaux (A3.4, doc 18 A3) : posés sur des tuiles d'EAU CÔTIÈRES — de l'eau
   // navigable adjacente à la composante terrestre atteignable (`inMain`), qu'un

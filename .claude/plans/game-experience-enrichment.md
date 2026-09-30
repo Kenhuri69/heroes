@@ -251,8 +251,8 @@ j28, taux de victoire humain en normal) avant LE1 et la rejouer à chaque lot IA
 | Lot | Contenu | Pourquoi d'abord | Moteur | Save | Golden |
 |---|---|---|---|---|---|
 | **LE1 — Un adversaire qui presse** ✅ (`le1-ai-pressure.md`) | B2 → B1 (menace + proba de victoire) + D-SIEGEAI | levier n°1, visible à chaque partie | IA seule | non | non |
-| **LE2 — Règles en suspens** | D1 (M10), D2 (M13), A5 + C4 (M14/M19), C1 (M12, champ optionnel), D-REINF ; D-POISON documenté | petits correctifs, golden re-fixé **une** fois | oui | non | oui (D1/D2) |
-| **LE3 — La carte qui résiste** | A2 (+ `generatorVersion`, repli régions) → A3 → A1 (opt-in, activé après LE1) | creux de mi-partie | 1 flag | non | non |
+| **LE2 — Règles en suspens** ✅ (`le2-rules-pending.md`) | D1 (M10), D2 (M13), A5 + C4 (M14/M19), C1 (M12, champ optionnel), D-REINF ; D-POISON documenté | petits correctifs, golden re-fixé **une** fois | oui | non | oui (D1/D2) |
+| **LE3 — La carte qui résiste** ✅ (`le3-map-resists.md`) | A2 (+ `generatorVersion`, repli régions) → A3 → A1 (opt-in, activé après LE1) | creux de mi-partie | 1 flag | non | non |
 | **LE4 — Magie & build du héros** | F3 (compétences) → F2 (maîtrises) → C2 (mana persistante, après la lecture sim dédiée) | Savoir/Puits/Mysticisme enfin utiles | oui | non | à vérifier |
 | **LE5 — Neutres vivants** | F1 (division des piles) → A4 (fuite proposée, ralliement, Diplomatie) | fin du ratissage | 1 point | non | non |
 | **LE6 — Revenir dans la partie** | E1 (fuite HoMM, corrige la divergence doc/code) → B3 → E2 | comeback, supprime l'éclaireur vide | 1 point | **probable** | non |
@@ -294,3 +294,14 @@ j28, taux de victoire humain en normal) avant LE1 et la rejouer à chaque lot IA
 - **2026-09-29** — **LE1 livré** (`le1-ai-pressure.md`) : combats entre joueurs
   9/20 → 17/20, captures de ville 0 → 4/20, parties conclues 5/20 → 12/20. Relevé
   pour LE3 : garnisons démesurées des villes neutres générées.
+- **2026-09-30** — **LE2 livré** (`le2-rules-pending.md`) : Défendre ≥ +1, Soin ≠
+  Résurrection (`revive`), file de compétences, quêtes validées par un héros,
+  récompenses jamais perdues, renforts = action du héros. `faction:sim` : 1 béance
+  (AH vs Vox 19,2 %, due à D1) signalée, non re-tunée.
+- **2026-09-30** — **LE3 livré** (`le3-map-resists.md`) : générateur v2
+  (`generatorVersion`, la v1 reste reproductible), gardiens aux goulots et aux
+  portes entre régions (~60 %), banques de créatures, villes neutres de
+  mi-partie (garnison ÷ 9), zone de contrôle activée. Bench IA : captures 3 → 5/20,
+  rencontres 17 → 12/20 (voulu : la carte résiste). Relevé pour LE5/LE6 : l'IA
+  perd parfois son héros de départ contre un gardien de haut tier
+  (`armyStrength` sous-estime les hauts tiers).

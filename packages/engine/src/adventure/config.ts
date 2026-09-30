@@ -205,6 +205,13 @@ export interface AdventureConfig {
    * inchangé). Le `count` du gardien est déjà sérialisé ⇒ pas de bump save.
    */
   guardianGrowth?: { weeklyFactor: number; maxCount: number } | undefined;
+  /**
+   * Zone de contrôle des gardiens (LE3 A1, doc 02 §2.2, HoMM II/III) : un pas
+   * vers l'une des 8 voisines d'un gardien est une interception. **Opt-in par
+   * données** : absent ⇒ un gardien n'occupe que sa tuile (fixtures/golden
+   * inchangés). Cf. `guardianZone`.
+   */
+  guardianZoneOfControl?: boolean | undefined;
 }
 
 /**

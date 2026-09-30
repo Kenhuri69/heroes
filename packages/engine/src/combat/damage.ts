@@ -303,8 +303,10 @@ export function computeMultiplier(input: MultiplierInput): number {
     dealtDamageMod,
     eliteDamagePct,
   } = input;
+  // LE2/M10 : Défendre rapporte TOUJOURS au moins +1 Déf — `⌊def × 1,3⌋` ne
+  // donnait rien aux unités à Déf 1–3 (fidélité HoMM : se défendre paie toujours).
   const effectiveDefense = targetDefending
-    ? Math.floor(targetDefense * (defendMultiplier ?? rules.defendDefenseMultiplier))
+    ? Math.max(targetDefense + 1, Math.floor(targetDefense * (defendMultiplier ?? rules.defendDefenseMultiplier)))
     : targetDefense;
   const diff = strikerAttack - effectiveDefense;
   // Pente unités (±0,05/pt) MOINS la pente héros dédiée (−0,025/pt de Défense

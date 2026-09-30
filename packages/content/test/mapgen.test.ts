@@ -600,3 +600,153 @@ describe('Revue 2026-09 — abords de départ et coffres du souterrain', () => {
     expect(seen).toBeGreaterThan(0);
   });
 });
+
+describe('LE3 — la carte qui résiste (generatorVersion 2)', () => {
+  const palette = ['u1', 'u2', 'u3', 'u4', 'u5', 'u6', 'u7'];
+  const tiers: Record<string, number> = Object.fromEntries(palette.map((id, i) => [id, i + 1]));
+  const base = { guardianUnits: palette, unitTiers: tiers };
+  const cheb = (a: { x: number; y: number }, b: { x: number; y: number }): number =>
+    Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y));
+  const isGate = (id: string): boolean => /^guard-(choke|gate)-/.test(id);
+  const isField = (id: string): boolean => isGate(id) || /^guard-\d/.test(id);
+
+  it('generatorVersion 1 reproduit à l’octet près les cartes d’avant LE3 (graines partagées)', async () => {
+    const { createHash } = await import('node:crypto');
+    const opts = {
+      width: 36,
+      height: 36,
+      guardianUnits: ['a', 'b', 'c', 'd'],
+      unitTiers: { a: 1, b: 2, c: 3, d: 4 },
+      artifactIds: ['x', 'y'],
+      townFactionIds: ['f'],
+      underground: true,
+      generatorVersion: 1 as const,
+    };
+    // Empreintes relevées sur le générateur AVANT le lot LE3.
+    const hash = (seed: number): string =>
+      createHash('sha256').update(JSON.stringify(generateMap('r', seed, opts))).digest('hex').slice(0, 16);
+    expect(hash(42)).toBe('d2d9b5fce0dbe529');
+    expect(hash(7)).toBe('8c1db4d8ea4a45c6');
+  });
+
+  it('A2 : ≥ 50 % des gardiens de champ tiennent un goulot ou une porte (20 graines)', () => {
+    for (const size of [36, 64]) {
+      let gates = 0;
+      let field = 0;
+      for (let seed = 1; seed <= 20; seed++) {
+        const map = generateMap('gate', seed, { ...base, width: size, height: size });
+        for (const o of map.objects) {
+          if (o.type !== 'guardian' || !isField(o.id)) continue;
+          field++;
+          if (isGate(o.id)) gates++;
+        }
+      }
+      expect(field).toBeGreaterThan(0);
+      expect(gates / field, `${size}²`).toBeGreaterThanOrEqual(0.5);
+    }
+  });
+
+  it('A2 : un gardien de goulot coupe vraiment la carte (point d’articulation)', () => {
+    let checked = 0;
+    for (let seed = 1; seed <= 40 && checked < 3; seed++) {
+      const map = generateMap('choke', seed, { ...base, width: 36, height: 36 });
+      const passable = (x: number, y: number): boolean =>
+        x >= 0 && y >= 0 && x < map.width && y < map.height &&
+        !['water', 'mountain', 'rocks'].includes(map.legend[map.tiles[y]![x]!]!);
+      const guards = map.objects.filter((o) => o.type === 'guardian');
+      for (const c of guards.filter((o) => o.id.startsWith('guard-choke-'))) {
+        // Composantes des tuiles franchissables sans aucun gardien, avec puis
+        // sans la tuile du goulot : la retirer doit ajouter une composante.
+        const count = (removeChoke: boolean): number => {
+          const off = new Set(guards.filter((g) => removeChoke || g !== c).map((g) => `${g.x},${g.y}`));
+          const seen = new Set<string>();
+          let comps = 0;
+          for (let y = 0; y < map.height; y++) {
+            for (let x = 0; x < map.width; x++) {
+              const k = `${x},${y}`;
+              if (!passable(x, y) || off.has(k) || seen.has(k)) continue;
+              comps++;
+              const q = [[x, y]];
+              seen.add(k);
+              while (q.length) {
+                const [px, py] = q.pop()!;
+                for (let dy = -1; dy <= 1; dy++)
+                  for (let dx = -1; dx <= 1; dx++) {
+                    const nx = px! + dx;
+                    const ny = py! + dy;
+                    const nk = `${nx},${ny}`;
+                    if (!passable(nx, ny) || off.has(nk) || seen.has(nk)) continue;
+                    seen.add(nk);
+                    q.push([nx, ny]);
+                  }
+              }
+            }
+          }
+          return comps;
+        };
+        expect(count(true), `seed ${seed} ${c.id}`).toBeGreaterThan(count(false));
+        checked++;
+      }
+    }
+    expect(checked).toBeGreaterThan(0);
+  });
+
+  it('A2/A1 : les gardiens de champ sont espacés et loin des départs (zones sans chevauchement)', () => {
+    for (let seed = 1; seed <= 10; seed++) {
+      const map = generateMap('space', seed, { ...base, width: 48, height: 48, startPositionCount: 3 });
+      const guards = map.objects.filter((o) => o.type === 'guardian' && (o.level ?? 0) === 0);
+      for (const g of guards.filter((o) => isField(o.id))) {
+        for (const s of map.startPositions) expect(cheb(g, s)).toBeGreaterThanOrEqual(3);
+        for (const other of guards) {
+          if (other !== g) expect(cheb(g, other), `${g.id}/${other.id}`).toBeGreaterThanOrEqual(3);
+        }
+      }
+    }
+  });
+
+  it('A3 : une banque = sentinelle forte + coffre et 2ᵉ butin verrouillés, relique réservée à la grande', async () => {
+    const artifactIds = ['common', 'rare', 'relic'];
+    const artifactRarity = { common: 1, rare: 2, relic: 3 };
+    let banks = 0;
+    for (let seed = 1; seed <= 15; seed++) {
+      const map = generateMap('bank', seed, { ...base, width: 48, height: 48, artifactIds, artifactRarity });
+      const radius = 48 * 0.38;
+      for (const g of map.objects.filter((o) => o.type === 'guardian' && o.id.startsWith('bank-'))) {
+        banks++;
+        const depth = Math.min(1, Math.min(...map.startPositions.map((s) => Math.hypot(g.x - s.x, g.y - s.y))) / radius);
+        expect(depth).toBeGreaterThanOrEqual(0.25);
+        const loot = map.objects.filter((o) => 'guardedBy' in o && o.guardedBy === g.id);
+        expect(loot.some((o) => o.type === 'treasure')).toBe(true);
+        for (const o of loot) expect(cheb(o, g)).toBe(1);
+        const large = depth >= 0.75;
+        for (const o of loot) {
+          if (o.type !== 'artifact') continue;
+          expect(o.artifactId === 'relic', `${g.id} profondeur ${depth.toFixed(2)}`).toBe(large);
+        }
+      }
+      if (seed <= 3) {
+        const units = new Set(palette);
+        await expect(loadMap(readerFor(map), 'bank', config(), units, new Set(artifactIds))).resolves.toBeDefined();
+      }
+    }
+    expect(banks).toBeGreaterThan(0);
+  });
+
+  it('villes neutres : garnison de mi-partie (tier plafonné, bien sous la v1)', () => {
+    for (let seed = 1; seed <= 10; seed++) {
+      const opts = { ...base, width: 64, height: 64, townFactionIds: ['f'] };
+      const v1 = generateMap('town', seed, { ...opts, generatorVersion: 1 });
+      const v2 = generateMap('town', seed, opts);
+      const total = (m: MapFile): number =>
+        m.objects.reduce(
+          (n, o) => n + (o.type === 'town' ? (o.garrison ?? []).reduce((k, g) => k + g.count * tiers[g.unitId]!, 0) : 0),
+          0,
+        );
+      expect(total(v2)).toBeLessThan(total(v1) / 2);
+      for (const o of v2.objects) {
+        if (o.type !== 'town') continue;
+        for (const g of o.garrison ?? []) expect(tiers[g.unitId]!).toBeLessThanOrEqual(1 + Math.floor(0.75 * 7));
+      }
+    }
+  });
+});

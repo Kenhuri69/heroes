@@ -940,7 +940,8 @@ test('combat : victoire contre le gardien, retour carte avec pertes appliquées'
   const errors = await openGame(page);
 
   // Chemin scripté vers le gardien (9,3) par la rangée 2 (évite le tas d'or
-  // en (6,3) qui arrêterait le héros) — le dernier pas déclenche l'interception.
+  // en (6,3) qui arrêterait le héros). Zone de contrôle (LE3 A1) : le pas vers
+  // (8,2), voisine du gardien, déclenche déjà l'interception — le héros reste en (7,2).
   await page.evaluate(() =>
     window.__HEROES_TEST__!.dispatch({
       type: 'MoveHero',
@@ -959,7 +960,7 @@ test('combat : victoire contre le gardien, retour carte avec pertes appliquées'
   // Le combat est ouvert : écran pré-combat (Lot 1) d'abord, puis conduite manuelle.
   await passPreBattle(page);
   await expect(page.getByTestId('combat-round')).toBeVisible();
-  await expect.poll(() => heroPos(page)).toEqual({ x: 8, y: 2 });
+  await expect.poll(() => heroPos(page)).toEqual({ x: 7, y: 2 });
 
   // B4 (lot R6) : le bandeau de combat porte le NOM du héros — il affichait
   // TOUJOURS « Le héros » alors que le joueur mène des héros nommés. Attendu
@@ -4739,8 +4740,9 @@ test('E2E : boucle complète New Game → exploration → ville → combat → s
   });
 
   await test.step('Combat : marcher sur le gardien (9,3) ⇒ pré-combat ⇒ Auto-Battle ⇒ retour', async () => {
-    // Approche par la rangée 2 (le tas d'or de la rangée 3 est déjà ramassé) ;
-    // le dernier pas déclenche l'interception, le héros s'arrête en (8,2).
+    // Approche par la rangée 2 (le tas d'or de la rangée 3 est déjà ramassé).
+    // Zone de contrôle (LE3 A1) : le pas vers (8,2), voisine du gardien, déclenche
+    // l'interception — le héros s'arrête en (7,2).
     await page.evaluate(() =>
       window.__HEROES_TEST__!.dispatch({
         type: 'MoveHero',
@@ -4758,7 +4760,7 @@ test('E2E : boucle complète New Game → exploration → ville → combat → s
     await dismissCombatResult(page); // bilan de fin de combat (fouillé)
     const state = await page.evaluate(() => window.__HEROES_TEST__!.getState());
     expect(state.map?.objects.some((o) => o.id === 'guard-camp')).toBe(false); // gardien vaincu
-    expect(await heroPos(page)).toEqual({ x: 8, y: 2 });
+    expect(await heroPos(page)).toEqual({ x: 7, y: 2 });
     await expect(page.getByTestId('end-turn')).toBeVisible(); // de retour sur la carte
   });
 
@@ -4776,7 +4778,7 @@ test('E2E : boucle complète New Game → exploration → ville → combat → s
     await page.waitForFunction(() => window.__HEROES_READY__ === true);
     await expect(page.getByTestId('menu-continue')).toBeEnabled();
     await page.getByTestId('menu-continue').click();
-    await expect.poll(() => heroPos(page)).toEqual({ x: 8, y: 2 });
+    await expect.poll(() => heroPos(page)).toEqual({ x: 7, y: 2 });
     const state = await page.evaluate(() => window.__HEROES_TEST__!.getState());
     expect(state.calendar.day).toBe(2);
     expect(state.players[0]?.resources.gold).toBe(goldBefore);

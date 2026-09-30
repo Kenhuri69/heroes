@@ -2,7 +2,7 @@ import type { DialogNode, Scenario } from '@heroes/content';
 import { eventBus } from './events';
 import type { DailyQuestMeta } from './daily';
 import { setCampaignFlag } from './campaign';
-import { t } from './i18n';
+import { resolveUnitName, t } from './i18n';
 import { appStore, type NarrativeCatalog, type QuestJournalEntry } from './store';
 import { pushToast } from '../ui/toasts';
 
@@ -203,6 +203,12 @@ export function initNarrative(): void {
       if (!entry) return;
       upsertJournalEntry({ ...entry, status: 'completed' });
       pushQuestToast(entry.titleKey);
+      // LE2/M19 : l'armée du héros étant pleine, les unités de récompense sont
+      // parties en garnison — le dire, plutôt que de les laisser « disparaître ».
+      if (event.rerouted) {
+        const { count, unitId } = event.rerouted;
+        pushToast(t('toast.questRewardRerouted', { count: String(count), unit: resolveUnitName(unitId) }), 'info');
+      }
     }
   });
 }

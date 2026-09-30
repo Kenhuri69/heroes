@@ -329,3 +329,27 @@ describe('Revue 2026-07 — B10 : propriété/tour sur ChooseSkill & ChooseAttri
     ).toThrowError(/notYourHero/);
   });
 });
+
+describe('LE2/M12 — file de choix de compétence (plus d’écrasement)', () => {
+  it('deux montées d’affilée ⇒ deux choix successifs, le 2ᵉ tiré au ChooseSkill', () => {
+    const state = stateWithHero(baseHero({ xp: 15 }), sevenSkills());
+    state.started = true;
+    grantXp(state, [], 'hero-1', 20); // xp 15→35 : niveaux 2 ET 3
+    const hero = state.heroes[0]!;
+    expect(hero.level).toBe(3);
+    expect(hero.pendingSkillChoices).toHaveLength(2);
+    expect(hero.pendingSkillLevels).toBe(1); // la 2ᵉ montée attend
+
+    const first = hero.pendingSkillChoices[0]!;
+    const next = apply(state, { type: 'ChooseSkill', heroId: 'hero-1', skillId: first }).state;
+    const after = next.heroes[0]!;
+    expect(after.skills[first]).toBe(1);
+    expect(after.pendingSkillChoices).toHaveLength(2); // la paire suivante est là
+    expect(after.pendingSkillLevels).toBeUndefined(); // file vidée
+
+    const second = after.pendingSkillChoices[0]!;
+    const done = apply(next, { type: 'ChooseSkill', heroId: 'hero-1', skillId: second }).state.heroes[0]!;
+    expect(done.pendingSkillChoices).toEqual([]);
+    expect(Object.values(done.skills).reduce((a, b) => a + b, 0)).toBe(2); // deux rangs gagnés, aucun perdu
+  });
+});

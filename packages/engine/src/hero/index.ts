@@ -1,5 +1,5 @@
 import { revealAround } from '../adventure/fog';
-import { applySkillChoice } from './level-up';
+import { applySkillChoice, rollSkillChoices } from './level-up';
 import { landingTileFor } from './landing';
 import { heroArmyMagicResistance, heroLuckValue, killsFromDamage, magicResistanceOf } from '../combat/damage';
 import { checkCombatEnd } from '../combat/turns';
@@ -353,6 +353,13 @@ export function handleChooseSkill(draft: Draft, cmd: ChooseSkillCmd, events: Gam
   if (!hero) return; // exclu par validate
   const rank = applySkillChoice(hero, cmd.skillId);
   events.push({ type: 'SkillLearned', heroId: hero.id, skillId: cmd.skillId, rank });
+  // LE2/M12 : la montée suivante mise en file reçoit maintenant sa paire.
+  const queued = hero.pendingSkillLevels ?? 0;
+  if (queued === 0) return;
+  hero.pendingSkillChoices = rollSkillChoices(draft, hero);
+  // Héros maximisé (plus rien à proposer) : la file n'a plus d'objet.
+  if (queued > 1 && hero.pendingSkillChoices.length > 0) hero.pendingSkillLevels = queued - 1;
+  else delete hero.pendingSkillLevels;
 }
 
 export function handleChooseAttribute(draft: Draft, cmd: ChooseAttributeCmd, events: GameEvent[]): void {

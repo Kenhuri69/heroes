@@ -134,6 +134,16 @@ describe('B3 — renforts en combat', () => {
     expect(events.some((e) => e.type === 'ReinforcementsCalled')).toBe(true);
   });
 
+  it('LE2/D-REINF — appeler des renforts EST l’action du héros du round (budget partagé)', () => {
+    const { state } = apply(stateWith(CFG), { type: 'CallReinforcements', unitId: 'ally', count: 1 });
+    // Plafond de 2 appels/combat pas atteint : c'est bien le budget d'action qui refuse.
+    expect(validate(state, { type: 'CallReinforcements', unitId: 'ally', count: 1 })?.code).toBe('heroAttackUsed');
+    // Et un héros qui a déjà agi ce round ne peut plus appeler de renforts.
+    const acted = stateWith(CFG);
+    acted.combat!.heroAttackUsed = ['hero-a'];
+    expect(validate(acted, { type: 'CallReinforcements', unitId: 'ally', count: 1 })?.code).toBe('heroAttackUsed');
+  });
+
   it('refuse si la feature est désactivée (config absente)', () => {
     expect(validate(stateWith(undefined), { type: 'CallReinforcements', unitId: 'ally', count: 1 })?.code).toBe(
       'reinforcementsUnavailable',

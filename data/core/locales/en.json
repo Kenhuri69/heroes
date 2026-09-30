@@ -980,6 +980,7 @@
   "daily.endure.title": "Contract: Hold the Line",
   "daily.endure.desc": "Survive three days without losing your hero.",
   "toast.questCompleted": "Quest complete: {title}",
+  "toast.questRewardRerouted": "Army full: {count} reward {unit} joined the nearest garrison",
   "menu.campaigns": "Campaigns",
   "campaign.haven.name": "Haven: the Frontier",
   "campaign.haven.desc": "Hold Cendregarde when the dead refuse their rest.",

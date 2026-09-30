@@ -3,6 +3,7 @@ import {
   areAllies,
   dailyMovementPoints,
   findPath,
+  guardianZone,
   grailRevealedTo,
   isAdjacent,
   isPassable,
@@ -788,8 +789,20 @@ export class AdventureScene {
     }
     // Fourchette de force affichée (comme un gardien) : effectif total du héros ennemi.
     const enemyCount = enemyHero ? enemyHero.army.reduce((n, s) => n + s.count, 0) : 0;
+    // Zone de contrôle (LE3 A1) : un chemin qui s'achève à côté d'un gardien
+    // s'y arrête sur un combat — la préviz l'annonce comme une attaque.
+    const last = path.at(-1);
+    const zoneId =
+      !guardian && !enemyHero && last && !hero.naval
+        ? guardianZone(config, map, this.activeLevel)?.get(last.y * map.width + last.x)?.[0]
+        : undefined;
+    const zoneGuard = zoneId
+      ? map.objects.find((o): o is GuardianObjectDef => o.type === 'guardian' && o.id === zoneId)
+      : undefined;
     appStore.setState({
-      guardianHint: guardian || enemyHero ? { count: guardian ? guardian.count : enemyCount } : null,
+      guardianHint: guardian || zoneGuard || enemyHero
+        ? { count: guardian ? guardian.count : zoneGuard ? zoneGuard.count : enemyCount }
+        : null,
     });
     // Préviz du COMPTE DE JOURS (doc 02 §1.5/:76, C5) : on consomme les PM du jour,
     // et quand un pas ne rentre plus dans le budget on passe au jour suivant en

@@ -113,7 +113,9 @@ Faction #6, produite en **Beta** — elle sert de **test de modularité #4** (do
 > Event `BarrierProjected` (journal de combat) ; bouclier affiché sur la fiche de
 > pile. `shield?` optionnel omis ⇒ **golden inchangé**, **pas de bump save**
 > (save-shape guard mis à jour). **Limite MVP** : projection au SETUP (pas de
-> lancer ciblé mid-combat) ; splash/poison passent outre. Différé : lancer actif.
+> lancer ciblé mid-combat) ; splash/poison passent outre — pour le poison, c'est
+> une **décision** (D-POISON, 2026-09) et non une limite : un bouclier absorbe des
+> coups, pas un statut. Différé : lancer actif.
 
 > 🚧 **État 16.12 (livré — F-SCHOOLS : effets de moral de la Scène)** : le
 > « effet simplifié » noté ci-dessus (Chant de Courage / Dissonance = simple

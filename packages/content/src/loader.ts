@@ -749,6 +749,9 @@ export function buildSpellCatalog(report: LoadReport): Record<string, ResolvedSp
       kind: s.kind,
       base: s.base,
       perPower: s.perPower,
+      // Soin qui ressuscite (LE2/M13) — sans propagation, Résurrection deviendrait
+      // un simple soin en jeu réel (même piège que `area`/`chain` ci-dessous).
+      ...(s.revive !== undefined && { revive: s.revive }),
       ...(s.attackMod !== undefined && { attackMod: s.attackMod }),
       ...(s.defenseMod !== undefined && { defenseMod: s.defenseMod }),
       ...(s.speedMod !== undefined && { speedMod: s.speedMod }),

@@ -148,8 +148,8 @@ s'arrêtent tôt, parce que le héros de départ du joueur 1 tombe contre un gar
 - [x] `pnpm typecheck` · `pnpm lint` verts
 - [x] `pnpm test` — moteur **1065** (+15), contenu **194** (+1), client 109, serveur 10 ; **golden inchangé**
 - [x] `pnpm content:check` vert ; garde-fous faction et couleurs verts
-- [x] `pnpm build` + budget : **380 766 o gzip**
-- [x] suite Playwright complète : 144/145 en parallèle ; le seul échec (`@perf` carte throttlée ×4, sensible à la charge) repasse seul à 7,1 fps
+- [x] `pnpm build` + budget : **381 079 o gzip** (après la redéfinition C2)
+- [x] suite Playwright complète (après la redéfinition C2) : 143 verts + 1 instable (aide « ? ») + 1 échec `@perf` (carte throttlée ×4) en parallèle ; les deux repassent seuls (8,9 fps)
 
 ## 6. Journal
 
@@ -168,3 +168,5 @@ s'arrêtent tôt, parce que le héros de départ du joueur 1 tombe contre un gar
   quotidiennes. Dérivés : fontaines posées par le générateur v2, IA qui va se
   recharger, toast « la ville restaure la mana ». `pctPerDay` remplacé par
   `perKnowledge` ; le Puits de la rotation est retiré au profit des fontaines.
+- 2026-09-30 : #553 fusionnée avec F3, F2 et la C2 d'origine ; la redéfinition C2
+  part dans une nouvelle PR (même branche, `main` fusionnée).

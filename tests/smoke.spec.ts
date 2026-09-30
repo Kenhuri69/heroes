@@ -78,6 +78,16 @@ async function moveHeroToGold(page: Page): Promise<void> {
 }
 
 /** Tap-tap (doc 08 §2.1) : 1er tap = prévisualisation, 2ᵉ tap = exécution. */
+/**
+ * Action secondaire de la carte (Royaume, Options, Son) : en portrait étroit elle
+ * vit derrière le tiroir « ⋯ » (LE-UX) — on l'ouvre d'abord s'il est présent.
+ */
+async function mapAction(page: Page, testId: string): Promise<void> {
+  const more = page.getByTestId('map-more');
+  if (await more.isVisible()) await more.click();
+  await page.getByTestId(testId).click();
+}
+
 async function tapTapTile(page: Page, x: number, y: number): Promise<void> {
   const screen = await page.evaluate(
     ([tx, ty]) => window.__HEROES_TEST__!.tileToScreen(tx!, ty!),
@@ -1231,7 +1241,7 @@ test('A1 : un gardien de carte est rendu comme un cluster gradué (sprint 2)', {
 
 test('E1 : la vue de royaume liste villes/héros et navigue vers une ville (sprint 3)', { tag: ['@core', '@mobile'] }, async ({ page }) => {
   const errors = await openGame(page);
-  await page.getByTestId('kingdom-open').click();
+  await mapAction(page, 'kingdom-open');
   await expect(page.getByTestId('kingdom-panel')).toBeVisible();
   await expect(page.getByTestId('kingdom-towns')).toBeVisible();
   await expect(page.getByTestId('kingdom-heroes')).toBeVisible();
@@ -2839,7 +2849,7 @@ test('accessibilité : les 3 crans de police changent la taille du texte (doc 08
   await expect(page.getByTestId('calendar')).toBeVisible();
   const small = await calendarFontSizePx(); // cran 1 (100%) par défaut
 
-  await page.getByTestId('options-open').click();
+  await mapAction(page, 'options-open');
   await page.getByTestId('options-fontscale-3').click(); // cran 3 (125%)
   await page.getByTestId('options-close').click();
   const large = await calendarFontSizePx();
@@ -2851,7 +2861,7 @@ test('accessibilité : les 3 crans de police changent la taille du texte (doc 08
   expect(large / small).toBeCloseTo(1.25, 1);
 
   // Revenir au cran 1 pour ne pas affecter les tests suivants du même worker.
-  await page.getByTestId('options-open').click();
+  await mapAction(page, 'options-open');
   await page.getByTestId('options-fontscale-1').click();
   await page.getByTestId('options-close').click();
 

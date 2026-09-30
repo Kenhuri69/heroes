@@ -1314,6 +1314,8 @@ function TurnBar({ onOpenOptions }: { onOpenOptions: () => void }) {
   const aiTurn = useApp((s) => s.aiTurn);
   // E4 : nombre de héros encore mobiles (badge du bouton « héros suivant »).
   const heroesWithMoves = humanHeroes(game).filter((h) => h.movementPoints > 0).length;
+  const narrow = useNarrowViewport();
+  const [showMore, setShowMore] = useState(false);
   // LE-UX : fin de tour renseignée — ce qui reste à jouer ce tour-ci.
   const townsIdle = towns.filter((tn) => !tn.builtToday).length;
   const endTurnHint = [
@@ -1473,28 +1475,71 @@ function TurnBar({ onOpenOptions }: { onOpenOptions: () => void }) {
             </span>
           )}
         </button>
-        <button
-          class="kingdom-toggle"
-          data-testid="kingdom-open"
-          aria-label={t('kingdom.open')}
-          title={t('kingdom.open')}
-          disabled={aiTurn !== null}
-          onClick={() => openModal({ kind: 'kingdom' })}
-        >
-          <UiIcon id="act-kingdom" fallback="🏰" />
-          <span class="action-label">{t('kingdom.open')}</span>
-        </button>
-        <button
-          class="options-toggle"
-          data-testid="options-open"
-          aria-label={t('options.title')}
-          onClick={onOpenOptions}
-        >
-          <UiIcon id="act-options" fallback="⚙" />
-          <span class="action-label">{t('options.title')}</span>
-        </button>
-        <MuteToggle />
+        {narrow ? (
+          // LE-UX : en portrait étroit, Royaume/Options/Son passent derrière « ⋯ »
+          // (hors vue à 360 px dans la rangée défilante) — patron du combat.
+          <>
+            <button
+              class={`map-more-toggle${showMore ? ' active' : ''}`}
+              data-testid="map-more"
+              aria-expanded={showMore}
+              aria-label={t('adventure.moreActions')}
+              onClick={() => setShowMore(!showMore)}
+            >
+              ⋯
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              class="kingdom-toggle"
+              data-testid="kingdom-open"
+              aria-label={t('kingdom.open')}
+              title={t('kingdom.open')}
+              disabled={aiTurn !== null}
+              onClick={() => openModal({ kind: 'kingdom' })}
+            >
+              <UiIcon id="act-kingdom" fallback="🏰" />
+              <span class="action-label">{t('kingdom.open')}</span>
+            </button>
+            <button
+              class="options-toggle"
+              data-testid="options-open"
+              aria-label={t('options.title')}
+              onClick={onOpenOptions}
+            >
+              <UiIcon id="act-options" fallback="⚙" />
+              <span class="action-label">{t('options.title')}</span>
+            </button>
+            <MuteToggle />
+          </>
+        )}
         </div>
+        {narrow && showMore && (
+          <div class="map-more-actions" data-testid="map-more-actions" onClick={() => setShowMore(false)}>
+            <button
+              class="kingdom-toggle"
+              data-testid="kingdom-open"
+              aria-label={t('kingdom.open')}
+              title={t('kingdom.open')}
+              disabled={aiTurn !== null}
+              onClick={() => openModal({ kind: 'kingdom' })}
+            >
+              <UiIcon id="act-kingdom" fallback="🏰" />
+              <span class="action-label">{t('kingdom.open')}</span>
+            </button>
+            <button
+              class="options-toggle"
+              data-testid="options-open"
+              aria-label={t('options.title')}
+              onClick={onOpenOptions}
+            >
+              <UiIcon id="act-options" fallback="⚙" />
+              <span class="action-label">{t('options.title')}</span>
+            </button>
+            <MuteToggle />
+          </div>
+        )}
         {canDig && hero && (
           <button
             class="dig-grail"
@@ -1518,7 +1563,15 @@ function TurnBar({ onOpenOptions }: { onOpenOptions: () => void }) {
           {aiTurn !== null ? t('turnBar.aiPlaying') : t('turnBar.endTurn')}
           {aiTurn === null && endTurnHint && (
             <span class="end-turn-hint" data-testid="end-turn-hint">
-              {endTurnHint}
+              {narrow ? (
+                // Portrait étroit : forme compacte (le détail reste dans le nom accessible).
+                <>
+                  {heroesWithMoves > 0 && <><UiIcon id="act-hero" fallback="🚩" />{heroesWithMoves} </>}
+                  {townsIdle > 0 && <><UiIcon id="tab-build" fallback="⚒" />{townsIdle}</>}
+                </>
+              ) : (
+                endTurnHint
+              )}
             </span>
           )}
         </button>

@@ -83,6 +83,19 @@ describe('computeMultiplier — formule ±5 %/pt bornée [-70 %, +60 %]', () => 
     expect(mult).toBeCloseTo(0.9);
   });
 
+  it('LE2/M10 — défendre rapporte au moins +1 Déf (Déf 2 × 1,3 = 2,6 → 3, pas 2)', () => {
+    // Avant : floor(2 × 1,3) = 2 ⇒ Défendre ne rapportait RIEN aux unités Déf 1–3.
+    const mult = computeMultiplier({
+      strikerAttack: 3,
+      targetDefense: 2,
+      targetDefending: true,
+      targetMarks: 0,
+      meleePenalized: false,
+      rules: RULES,
+    });
+    expect(mult).toBeCloseTo(1); // diff 3 − 3 = 0 (et non 3 − 2 = +1 ⇒ 1,05)
+  });
+
   it('tireur forcé en mêlée : pénalité ×0,5', () => {
     const mult = computeMultiplier({
       strikerAttack: 5,

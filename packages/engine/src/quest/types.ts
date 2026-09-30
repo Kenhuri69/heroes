@@ -54,4 +54,11 @@ export interface QuestRuntime {
  */
 export interface QuestState {
   quests: QuestRuntime[];
+  /**
+   * Vainqueur de chaque gardien tombé (LE2/M14) — id d'objet → joueur + héros,
+   * alimenté par `GuardianVanquished`. `defeatGuardian` n'est validée que par SON
+   * joueur (avant : dès que le gardien disparaissait, quel qu'en soit l'auteur).
+   * **Optionnel** : absent = aucun gardien tombé depuis le début du suivi.
+   */
+  vanquishedBy?: Record<string, { playerId: string; heroId: string }>;
 }

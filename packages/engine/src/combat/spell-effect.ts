@@ -168,7 +168,8 @@ export function damageOneStack(
 }
 
 /**
- * Soigne/ressuscite UNE pile alliée de `hp` PV (doc 02 §1.4). La résurrection est
+ * Soigne/ressuscite UNE pile alliée de `hp` PV (doc 02 §1.4). Un sort de soin ne
+ * relève des morts que s'il porte `revive` (LE2/M13). La résurrection est
  * intra-pile : le plafond remonte à `count + pertes déjà subies` (`lostSoFar` du
  * ledger) ⇒ des créatures tuées reviennent. Cœur PARTAGÉ par le sort de soin et
  * la Prière de bataille (F-SKILLS.2). Retourne PV réellement rendus + créatures
@@ -179,13 +180,19 @@ export function resurrectStack(
   combat: CombatState,
   target: CombatStack,
   hp: number,
+  /**
+   * LE2/M13 : `false` = simple SOIN (plafond 0 mort relevé ⇒ seule la 1ʳᵉ
+   * créature entamée remonte). Défaut `true` : la Prière de bataille et les sorts
+   * `revive` restent des ressusciteurs explicites.
+   */
+  revive = true,
 ): { healed: number; revived: number } {
   const def = draft.unitCatalog[target.unitId];
   if (!def || target.count <= 0) return { healed: 0, revived: 0 };
   // Plafond INTRA-pile (B4) : les pertes de CETTE pile, pas celles d'une autre
   // pile du même unitId — et décrément du ledger pour que les créatures relevées
   // puis retuées ne comptent qu'une fois (XP/Nécromancie/bilan/plafond).
-  const r = resolveResurrect(def, target, stackLostSoFar(combat, target), hp);
+  const r = resolveResurrect(def, target, revive ? stackLostSoFar(combat, target) : 0, hp);
   target.count = r.newCount;
   target.firstHp = r.newFirstHp;
   recordRevive(combat, target, r.revived);
@@ -293,7 +300,7 @@ export function applySpellToTargets(
   } else if (spell.kind === 'heal') {
     const heal = spellHealAmount(spell, power);
     for (const t of targets) {
-      resurrectStack(draft, combat, t, heal);
+      resurrectStack(draft, combat, t, heal, spell.revive === true);
       amount += heal;
     }
   } else if (spell.kind === 'applyMarks') {

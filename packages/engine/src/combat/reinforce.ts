@@ -2,7 +2,7 @@ import type { CommandError } from '../core/commands';
 import type { GameEvent } from '../core/events';
 import type { GameState } from '../core/state';
 import { COMBAT_COLS, COMBAT_ROWS } from './hex';
-import { shooterAmmo } from './state-helpers';
+import { heroActionLeftFor, shooterAmmo } from './state-helpers';
 import { firstFreeCombatHex, spellcasterParams } from './spell-effect';
 import { canAffordCost, scaleCost, spendCost } from '../town/resources';
 import { unitWithEconomy } from '../town/unit-economy';
@@ -49,6 +49,10 @@ function reinforcementsGate(state: GameState): CommandError | null {
   const active = combat.stacks.find((s) => s.id === combat.activeStackId);
   if (!active || active.side !== combat.playerSide)
     return { code: 'invalidAction', message: 'ce n’est pas au joueur de jouer' };
+  // LE2/D-REINF : appeler des renforts EST l'action du héros pour ce round (doc 02
+  // §1 : une action de héros par round) — même budget que la frappe et le sort.
+  if (!heroActionLeftFor(state, combat, playerHero(state, combat)!.id))
+    return { code: 'heroAttackUsed', message: 'le héros a déjà agi ce round' };
   if ((combat.reinforcementsUsed ?? 0) >= cfg.maxCallsPerCombat)
     return { code: 'reinforcementsUnavailable', message: 'plafond de renforts atteint pour ce combat' };
   if (!reinforcementHex(combat, combat.playerSide))
@@ -93,6 +97,7 @@ export function handleCallReinforcements(draft: GameState, cmd: ReinforceCmd, ev
   const pos = reinforcementHex(combat, side);
   if (!player || !def || !recruitCost || !pos) return;
   spendCost(player, scaleCost(recruitCost, cmd.count * cfg.costMultiplier));
+  if (hero) combat.heroAttackUsed.push(hero.id); // consomme l'action du round (LE2/D-REINF)
   // Slot unique jamais réutilisé (patron summon) : > 99 (tour de siège) et au-dessus
   // de toute pile vivante OU du cimetière du camp.
   const slot =

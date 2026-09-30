@@ -23,6 +23,8 @@ import { testConfig } from './fixtures';
 const SPELLS: Record<string, SpellDef> = {
   bolt: { id: 'bolt', school: 'fire', circle: 1, manaCost: 5, kind: 'damage', base: 10, perPower: 2 },
   heal: { id: 'heal', school: 'water', circle: 1, manaCost: 5, kind: 'heal', base: 10, perPower: 3 },
+  // LE2/M13 : seul un sort `revive` relève des morts (Soin ≠ Résurrection).
+  raise: { id: 'raise', school: 'water', circle: 4, manaCost: 5, kind: 'heal', base: 10, perPower: 3, revive: true },
   haste: { id: 'haste', school: 'air', circle: 1, manaCost: 4, kind: 'buff', base: 0, perPower: 0, speedMod: 3 },
   markspell: { id: 'markspell', school: 'traque', circle: 1, manaCost: 4, kind: 'applyMarks', base: 0, perPower: 0, marks: 2 },
   weaken: { id: 'weaken', school: 'air', circle: 1, manaCost: 4, kind: 'debuff', base: 0, perPower: 0, attackMod: -2 },
@@ -207,8 +209,22 @@ describe('CastSpell — sort de dégâts', () => {
 describe('CastSpell — soin', () => {
   const catalog = { def: unit({ id: 'def', stats: { hp: 6, attack: 0, defense: 0, damage: [1, 1], speed: 5 } }) };
 
-  it('restaure PV/créatures, plafonné à l’effectif courant + pertes déjà enregistrées', () => {
+  it('LE2/M13 — un soin SANS `revive` ne relève aucun mort : seule la 1ʳᵉ créature entamée remonte', () => {
     const h = hero({ spells: ['heal'] });
+    const attacker = stack({ id: 'attacker-0', side: 'attacker', slot: 0, unitId: 'def', count: 1, pos: { col: 0, row: 0 } });
+    const ally = stack({ id: 'attacker-1', side: 'attacker', slot: 1, unitId: 'def', count: 3, pos: { col: 0, row: 1 }, firstHp: 2 });
+    const enemy = stack({ id: 'defender-0', side: 'defender', slot: 0, unitId: 'def', count: 1, pos: { col: 5, row: 5 } });
+    const combat = combatState([attacker, ally, enemy], { attackerHeroId: h.id, activeStackId: 'attacker-0' });
+    recordLoss(combat, { id: 'attacker-1', side: 'attacker', unitId: 'def' }, 2); // 2 morts : un soin ne les relève pas
+    const state: GameState = { ...baseState(catalog), spellCatalog: SPELLS, heroes: [h], combat };
+    const result = apply(state, { type: 'CastSpell', spellId: 'heal', targetStackId: 'attacker-1' });
+    const target = result.state.combat?.stacks.find((s) => s.id === 'attacker-1');
+    expect(target?.count).toBe(3); // aucun mort relevé
+    expect(target?.firstHp).toBe(6); // 2 + 10, plafonné aux PV d'une créature
+  });
+
+  it('un sort `revive` restaure PV/créatures, plafonné à l’effectif courant + pertes déjà enregistrées', () => {
+    const h = hero({ spells: ['raise'] });
     const attacker = stack({ id: 'attacker-0', side: 'attacker', slot: 0, unitId: 'def', count: 1, pos: { col: 0, row: 0 } });
     const ally = stack({ id: 'attacker-1', side: 'attacker', slot: 1, unitId: 'def', count: 3, pos: { col: 0, row: 1 }, firstHp: 6 });
     // Une pile adverse vivante est nécessaire : sans elle, `checkCombatEnd`
@@ -217,10 +233,10 @@ describe('CastSpell — soin', () => {
     const combat = combatState([attacker, ally, enemy], { attackerHeroId: h.id, activeStackId: 'attacker-0' });
     recordLoss(combat, { id: 'attacker-1', side: 'attacker', unitId: 'def' }, 2); // 2 pertes déjà enregistrées pour cette unité/ce camp (plafond documenté, hero/index.ts)
     const state: GameState = { ...baseState(catalog), spellCatalog: SPELLS, heroes: [h], combat };
-    const result = apply(state, { type: 'CastSpell', spellId: 'heal', targetStackId: 'attacker-1' });
+    const result = apply(state, { type: 'CastSpell', spellId: 'raise', targetStackId: 'attacker-1' });
     // amount = round(10+0) = 10 ; pool courant 18, plafond (3+2)×6=30 ⇒ 28 ⇒ 5 créatures, firstHp 4.
     const spellCast = result.events.find((e) => e.type === 'SpellCast');
-    expect(spellCast).toEqual({ type: 'SpellCast', heroId: 'hero-1', spellId: 'heal', targetId: 'attacker-1', amount: 10, kills: 0 });
+    expect(spellCast).toEqual({ type: 'SpellCast', heroId: 'hero-1', spellId: 'raise', targetId: 'attacker-1', amount: 10, kills: 0 });
     const target = result.state.combat?.stacks.find((s) => s.id === 'attacker-1');
     expect(target?.count).toBe(5);
     expect(target?.firstHp).toBe(4);

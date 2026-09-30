@@ -1214,6 +1214,20 @@ describe('catalogues sorts/compétences/artefacts (plan phase-3.2 lot L)', () =>
     expect(spell?.chain).toEqual({ jumps: 2, falloffPct: 40 });
   });
 
+  it('LE2/M13 — buildSpellCatalog propage `revive` ; le schéma le réserve aux sorts `heal`', async () => {
+    const data = makeData();
+    (data['core/spells.json'] as { spells: unknown[] }).spells[0] = {
+      ...(makeSpell() as Record<string, unknown>),
+      kind: 'heal',
+      revive: true,
+    };
+    const report = await loadContent(reader(data));
+    // Sans propagation, Résurrection deviendrait un simple soin en jeu réel.
+    expect(buildSpellCatalog(report)['boule-de-feu']?.revive).toBe(true);
+    // Un sort de dégâts qui « ressuscite » n'a pas de sens : rejeté au load.
+    expect(spellSchema.safeParse({ ...(makeSpell() as Record<string, unknown>), revive: true }).success).toBe(false);
+  });
+
   it('buildSkillCatalog propage `school` (régression : réduction de mana par école)', async () => {
     const data = makeData();
     (data['core/skills.json'] as { skills: unknown[] }).skills[0] = {

@@ -167,6 +167,13 @@ export interface HeroState {
   /** Propositions de compétence en attente d'un `ChooseSkill` (doc 02 §1.2). */
   pendingSkillChoices: string[];
   /**
+   * Montées de niveau dont le choix de compétence ATTEND derrière celui qui est
+   * affiché (LE2/M12, doc 02 §1.2) : chaque `ChooseSkill` en tire la paire
+   * suivante — deux niveaux d'affilée ne s'écrasent plus. **Optionnel** (patron
+   * `backpack`) : absent = 0, forme de sauvegarde inchangée.
+   */
+  pendingSkillLevels?: number;
+  /**
    * File de propositions d'attribut en attente d'un `ChooseAttribute` (doc 02
    * §1.2, H-LEVELCHOICE) — une paire `[a, b]` par montée de niveau d'un héros
    * HUMAIN, résolue dans l'ordre (pas d'écrasement). Les héros IA appliquent
@@ -370,6 +377,8 @@ export interface CaravanState {
  * (sans bump, UX-ENDSTATS doc 08 §2.5) : `PlayerState.unitsLost?` — cumul d'unités
  * perdues en combat, OPTIONNEL (absent ⇒ 0) ⇒ une sauvegarde antérieure reste
  * valide (compteur repart à 0), pas de bump.
+ * (v35, sans bump) : `HeroState.pendingSkillLevels?` (LE2/M12) — file de choix de
+ * compétence ; optionnel, absent = 0 ⇒ une v35 antérieure reste un état valide.
  */
 export const CURRENT_SAVE_VERSION = 35;
 

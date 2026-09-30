@@ -325,6 +325,7 @@
       "circle": 3,
       "manaCost": 15,
       "kind": "heal",
+      "revive": true,
       "base": 20,
       "perPower": 5
     },
@@ -457,6 +458,7 @@
       "circle": 4,
       "manaCost": 22,
       "kind": "heal",
+      "revive": true,
       "base": 40,
       "perPower": 8
     },
@@ -512,6 +514,7 @@
       "circle": 5,
       "manaCost": 32,
       "kind": "heal",
+      "revive": true,
       "base": 30,
       "perPower": 6,
       "area": "all"

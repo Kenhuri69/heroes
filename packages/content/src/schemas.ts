@@ -469,6 +469,8 @@ export const spellSchema = z
     kind: z.enum(['damage', 'heal', 'buff', 'debuff', 'applyMarks', 'silence', 'banish', 'rally', 'stealth', 'teleport', 'dispel', 'cure', 'resurrectFull', 'summon', 'adventure']),
     base: z.number().nonnegative(),
     perPower: z.number().nonnegative(),
+    /** Sort `heal` qui ressuscite (LE2/M13) — absent = simple soin, aucun mort relevé. */
+    revive: z.boolean().optional(),
     attackMod: z.number().optional(),
     defenseMod: z.number().optional(),
     speedMod: z.number().optional(),
@@ -523,6 +525,10 @@ export const spellSchema = z
     // teleport (F-SCHOOLS.8) : `base` = portée en hexes (≥ 1).
     message: 'damage/heal/teleport: base doit être > 0',
     path: ['base'],
+  })
+  .refine((s) => s.revive === undefined || s.kind === 'heal', {
+    message: 'revive: réservé aux sorts `heal`',
+    path: ['revive'],
   })
   .refine((s) => (s.kind === 'adventure') === (s.adventure !== undefined), {
     message: 'adventure: le champ `adventure` est requis (et réservé) pour ce kind',

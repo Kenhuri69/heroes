@@ -303,4 +303,9 @@ export type GameEvent =
   /** Une étape franchie (le client peut y attacher un `dialogBefore`). */
   | { type: 'QuestAdvanced'; questId: string; stepId: string }
   /** Toutes les étapes franchies : récompenses appliquées. */
-  | { type: 'QuestCompleted'; questId: string };
+  | {
+      type: 'QuestCompleted';
+      questId: string;
+      /** LE2/M19 : unités de récompense envoyées en garnison (armée du héros pleine). */
+      rerouted?: { townId: string; unitId: string; count: number };
+    };

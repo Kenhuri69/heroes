@@ -327,6 +327,11 @@ chantier) :
 
 - Exploration → quêtes `reachTile`/`visitTile` guident vers le brouillard,
   les mines, les objets de carte.
+  *(Lot LE2, décision M14)* : `visitTile` exige qu'un **héros** du joueur
+  atteigne la tuile (s'y arrête ou la traverse) — la voir ne suffit plus ;
+  `defeatGuardian` exige que ce soit **le joueur** qui ait vaincu le gardien.
+  Les récompenses vont au **héros qui a validé** ; des unités qui ne tiennent
+  plus dans son armée rejoignent la **garnison** la plus proche (toast).
 - Ville → quêtes `buildStructure`/`recruitUnits` scandent l'arbre de
   construction (le chapitre 1 Haven *est* un tutoriel de ville déguisé).
 - Combat → quêtes `defeatGuardian`/`defeatHero` + conditions fines déjà

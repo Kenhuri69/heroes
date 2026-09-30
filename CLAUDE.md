@@ -566,6 +566,13 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > ≤ 3 jours avant l'exploration + rappel vers une garnison forte. Mesuré (2 IA,
 > 64², 20 graines) : combats entre joueurs 9 → 17/20, captures 0 → 4/20. Zéro
 > faction, pas de bump save, golden inchangé.*
+> **LE2 livré** (`le2-rules-pending.md`) : Défendre ≥ +1 Déf, Soin ≠ Résurrection
+> (`revive` sur les sorts `heal`), file de choix de compétence
+> (`pendingSkillLevels?`), quêtes `visitTile`/`defeatGuardian` validées par un
+> héros du joueur, récompense au héros validant (garnison si armée pleine),
+> renforts = action du héros du round, poison qui traverse le bouclier (documenté).
+> Pas de bump save (champs optionnels), golden inchangé ; `faction:sim` : 1 béance
+> marginale (AH vs Vox 19,2 %) due à Défendre, non re-tunée.*
 
 ---
 

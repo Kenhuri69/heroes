@@ -62,6 +62,22 @@ export class Camera {
     this.applyClamp();
   }
 
+  /** Pan clavier (LE-UX) : décale la vue de (dx, dy) pixels écran. */
+  panBy(dx: number, dy: number): void {
+    if (!this.enabled) return;
+    this.world.x += dx;
+    this.world.y += dy;
+    this.applyClamp();
+  }
+
+  /** Zoom clavier (LE-UX) : centré sur le milieu de l'écran. */
+  zoomBy(factor: number): void {
+    if (!this.enabled) return;
+    const { width, height } = this.app.screen;
+    this.zoomAt(new Point(width / 2, height / 2), factor);
+    this.applyClamp();
+  }
+
   private applyClamp(): void {
     if (!this.clampContent || !this.clampView) return;
     const p = clampWorldPosition(

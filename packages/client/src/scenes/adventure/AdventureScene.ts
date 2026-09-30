@@ -176,6 +176,13 @@ export class AdventureScene {
   private readonly unsubscribeLongPress: () => void;
   /** Bouton DOM « Annuler le déplacement » (doc 08 §3, lot M2) → efface la préviz. */
   private readonly onCancelPath = (): void => this.clearPreview();
+  /** LE-UX : Entrée confirme le chemin prévisualisé — même effet qu'un 2ᵉ tap sur sa destination. */
+  private readonly onConfirmPath = (): void => {
+    const preview = this.previewTarget;
+    if (!preview) return;
+    const c = isoTileCenter(preview.target.x, preview.target.y);
+    void this.handleTap(this.container.toGlobal(new Point(c.x, c.y)));
+  };
 
   constructor(
     private readonly app: Application,
@@ -215,6 +222,7 @@ export class AdventureScene {
     this.unsubscribeTap = onTap(app, (global) => void this.handleTap(global));
     this.unsubscribeLongPress = onLongPress(app, (global) => this.handleLongPress(global));
     window.addEventListener('heroes:cancel-path', this.onCancelPath);
+    window.addEventListener('heroes:confirm-path', this.onConfirmPath);
     // Culling des chunks de tuiles au viewport (grandes cartes 64²→256²) : suit la
     // caméra à chaque frame (no-op sur les petites cartes aplaties en une texture).
     app.ticker.add(this.onTick);
@@ -307,6 +315,7 @@ export class AdventureScene {
     this.unsubscribeTap();
     this.unsubscribeLongPress();
     window.removeEventListener('heroes:cancel-path', this.onCancelPath);
+    window.removeEventListener('heroes:confirm-path', this.onConfirmPath);
     // B45 (revue 2026-07) : PAS de `texture: true` — les Sprites de la scène
     // (tuiles iso, objets de carte, jetons de héros, villes…) partagent les
     // textures du cache `Assets` : les détruire ici servait des textures

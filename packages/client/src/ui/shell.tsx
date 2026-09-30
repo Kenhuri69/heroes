@@ -22,7 +22,8 @@ import { requestEndTurn, confirmPendingEndTurn, cancelPendingEndTurn } from '../
 import { confirmCoopInvite, declineCoopInvite, cancelCoopInvite } from '../app/coop-invite';
 import { dispatch } from '../app/dispatch';
 import { reportArmyCommandError, reportCommandError } from '../app/command-error';
-import { restoreLatestSave } from '../app/save';
+import { restoreLatestSave, saveGame } from '../app/save';
+import { eventBus } from '../app/events';
 import { forcedOverlayOpen } from '../app/overlays';
 import {
   adjacentFriendlyHeroes,
@@ -86,7 +87,27 @@ import { MiniMap } from './MiniMap';
 import { QuestJournal } from './QuestJournal';
 import { MapObjectCard } from './MapObjectCard';
 import { ShortcutsOverlay } from './ShortcutsOverlay';
-import { panCameraTo, DEFAULT_PAN_MS } from '../app/camera-control';
+import { panCameraTo, DEFAULT_PAN_MS, nudgeCamera, zoomCamera } from '../app/camera-control';
+
+/** LE-UX : pas du pan clavier (px écran) et touches physiques (flèches, WASD/ZQSD). */
+const KEY_PAN_PX = 96;
+const PAN_KEYS: Record<string, readonly [number, number]> = {
+  ArrowUp: [0, 1],
+  KeyW: [0, 1],
+  ArrowDown: [0, -1],
+  KeyS: [0, -1],
+  ArrowLeft: [1, 0],
+  KeyA: [1, 0],
+  ArrowRight: [-1, 0],
+  KeyD: [-1, 0],
+};
+
+/** LE-UX : Ctrl/⌘+S — même sauvegarde manuelle que le bouton d'Options. */
+function quickSave(): void {
+  void saveGame(appStore.getState().game, 'manual')
+    .then(() => pushToast(t('toast.saved'), 'success'))
+    .catch(() => eventBus.emit([{ type: 'SaveFailed' }]));
+}
 import { reduceMotion } from '../app/motion';
 import { toggleMute } from '../app/audio';
 import './tokens.css'; // design tokens UXD-1 — à charger avant toute feuille
@@ -168,7 +189,31 @@ function Shell() {
       if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable))
         return;
       const s = appStore.getState();
-      if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
+      const onMap = s.screen === 'adventure' && !forcedOverlayOpen(s) && s.modals.length === 0 && !s.game.combat;
+      // LE-UX : Ctrl/⌘+S = sauvegarde rapide (jamais la sauvegarde du navigateur).
+      if ((e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        if (onMap && s.aiTurn === null) quickSave();
+        return;
+      }
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      // LE-UX : flèches / WASD (ZQSD en AZERTY — touches physiques) = pan, maintenu
+      // possible ; +/− = zoom ; Entrée = confirme le chemin prévisualisé.
+      if (onMap) {
+        const pan = PAN_KEYS[e.code];
+        if (pan) {
+          e.preventDefault();
+          nudgeCamera(pan[0] * KEY_PAN_PX, pan[1] * KEY_PAN_PX);
+          return;
+        }
+        if (!e.repeat && (e.key === '+' || e.key === '=')) return zoomCamera(1.2);
+        if (!e.repeat && (e.key === '-' || e.key === '_')) return zoomCamera(1 / 1.2);
+        if (!e.repeat && e.key === 'Enter' && target?.tagName !== 'BUTTON') {
+          window.dispatchEvent(new CustomEvent('heroes:confirm-path'));
+          return;
+        }
+      }
+      if (e.repeat) return;
       if (s.screen !== 'adventure' || forcedOverlayOpen(s)) return;
       // « ? » ouvre l'aide des raccourcis (X7) — `e.key` vaut '?' (Maj+/), avant
       // le switch minuscule qui ne le verrait pas.

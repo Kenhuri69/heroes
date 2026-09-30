@@ -233,6 +233,57 @@ test('boot loader : présent dans le HTML statique, retiré une fois le jeu prê
   await expect(page.getByTestId('menu-new-game')).toBeVisible();
 });
 
+test('LE-UX : fin de tour renseignée, clavier de carte, piège de focus', { tag: '@core' }, async ({ page }) => {
+  const errors = await openGame(page);
+  const tile = (x: number, y: number) =>
+    page.evaluate(([tx, ty]) => window.__HEROES_TEST__!.tileToScreen(tx!, ty!), [x, y]);
+
+  // Fin de tour renseignée : le héros a encore ses PM.
+  await expect(page.getByTestId('end-turn-hint')).toBeVisible();
+
+  // Entrée confirme le chemin prévisualisé (tas d'or en (6,3), 3 pas).
+  const gold = await tile(6, 3);
+  const cancel = page.getByTestId('cancel-path');
+  await expect(async () => {
+    await page.mouse.click(gold.x, gold.y);
+    await expect(cancel).toBeVisible({ timeout: 1000 });
+  }).toPass({ timeout: 10000 });
+  await page.keyboard.press('Enter');
+  await expect.poll(() => heroPos(page)).toEqual({ x: 6, y: 3 });
+
+  // Flèche droite : la vue glisse (la tuile se décale vers la gauche) ; « + » zoome.
+  const before = await tile(3, 3);
+  await page.keyboard.press('ArrowRight');
+  await expect.poll(async () => (await tile(3, 3)).x).toBeLessThan(before.x);
+  const span = async () => {
+    const [a, b] = [await tile(3, 3), await tile(6, 3)];
+    return Math.hypot(b.x - a.x, b.y - a.y);
+  };
+  const spanBefore = await span();
+  await page.keyboard.press('+');
+  await expect.poll(span).toBeGreaterThan(spanBefore);
+
+  // Ctrl+S : sauvegarde rapide (toast de succès, pas la boîte du navigateur).
+  await page.keyboard.press('Control+s');
+  await expect(page.locator('.toast-success').first()).toBeVisible();
+
+  // Piège de focus : Tab ne sort pas des Options ; à la fermeture, le focus revient.
+  await page.getByTestId('options-open').click();
+  const panel = page.getByTestId('options-panel');
+  await expect(panel).toBeVisible();
+  for (let i = 0; i < 25; i++) await page.keyboard.press('Tab');
+  expect(
+    await page.evaluate(() => !!document.activeElement?.closest('[data-testid="options-panel"]')),
+  ).toBe(true);
+  await page.keyboard.press('Escape');
+  await expect(panel).toHaveCount(0);
+  await expect
+    .poll(() => page.evaluate(() => document.activeElement?.getAttribute('data-testid')))
+    .toBe('options-open');
+
+  expect(errors).toEqual([]);
+});
+
 test('tap-tap : déplacement scripté, ramassage, points décomptés', { tag: ['@mobile', '@core'] }, async ({ page }) => {
   const errors = await openGame(page);
 

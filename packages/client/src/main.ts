@@ -1,5 +1,6 @@
 import { Application, Point } from 'pixi.js';
 import type { Command, GameState, GridPos, HeroState } from '@heroes/engine';
+import { installFocusTrap } from './app/focus-trap';
 import { CURRENT_SAVE_VERSION, findPath, humanPlayerId, serializeState } from '@heroes/engine';
 import { Camera } from './render/camera';
 import { combatFxStats, combatIdleStats, combatShakeStats } from './render/combatFx';
@@ -176,6 +177,7 @@ async function bootstrap(): Promise<void> {
     rejected: report.rejected.map((r) => r.id),
   };
   initI18n(report);
+  installFocusTrap();
   // Avatars dédiés des héros nommés (M-TAVERN.3) : réf de nom → clé de fiche.
   initHeroAvatars(report.content.packs.flatMap((p) => p.heroes));
   const map = await loadDefaultMap(report);

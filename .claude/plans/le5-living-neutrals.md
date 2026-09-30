@@ -71,21 +71,45 @@
    refus ⇒ combat ; IA rallie ou combat.
 3. [x] A4 données + client — Diplomatie, modale, toasts, locales FR/EN ;
    smoke du choix.
-4. [ ] Mesures : bench IA (combats de gardien, pertes) ; `faction:sim`
+4. [x] Mesures : bench IA (combats de gardien, pertes) ; `faction:sim`
    (inchangé attendu : duels sans gardien).
-5. [ ] Docs 02 (§1.3, §2.2, §5), CLAUDE.md ; vérifications (§5).
+5. [x] Docs 02 (§1.3, §2.2, §5), CLAUDE.md ; vérifications (§5).
 
 ## 4. Mesures
 
-_(à remplir)_
+**`faction:sim`** : inchangé (1 béance, la même qu'en LE2) — ses duels
+n'opposent pas de gardien.
+
+**Bench IA** (jetable, non commité ; 2 IA, 64², 20 graines, 60 jours, normal) :
+
+| | Sans LE5 | Division seule | **Division + propositions** |
+|---|---|---|---|
+| Combats de gardien | 257 | 284 | 313 |
+| Combats de gardien perdus par l'IA | 32 | 32 | 35 |
+| Propositions de neutres (toutes combattues) | — | — | 126 |
+| Ralliements | — | — | 0 |
+| Parties avec un combat entre joueurs | 3/20 | 2/20 | 3/20 |
+| Parties conclues en 60 jours | 15/20 | 14/20 | 10/20 |
+
+Lecture :
+- La division ne rend pas l'IA plus fragile face aux neutres : ses pertes restent
+  stables (32 → 32 → 35 pour un peu plus de combats).
+- 40 % des combats de gardien de l'IA sont des ratissages de neutres dominés
+  (126 propositions). Elle les combat tous, comme décidé (XP de ratissage).
+- **Aucun ralliement** : l'IA ne prend Diplomatie qu'au hasard des tirages de
+  niveau, et n'en a jamais eu sur ces 20 parties. Le ralliement reste un outil du
+  joueur ; faire viser Diplomatie à l'IA serait un chantier de choix de
+  compétences (LE6/LE7).
+- Moins de parties conclues (15 → 10) : l'arrêt prématuré sur `defeatHero` (héros
+  de départ tué, relevé en LE3) recule. Le bruit est fort sur n = 20.
 
 ## 5. Vérifications
 
-- [ ] `pnpm typecheck` · `pnpm lint`
-- [ ] `pnpm test` ; golden inchangé
-- [ ] `pnpm content:check` ; garde-fous faction et couleurs
-- [ ] `pnpm build` + budget
-- [ ] suite Playwright
+- [x] `pnpm typecheck` · `pnpm lint`
+- [x] `pnpm test` — moteur **1084** (+17), contenu 194, client 109, serveur 10 ; golden inchangé
+- [x] `pnpm content:check` ; garde-fous faction et couleurs
+- [x] `pnpm build` + budget : **382 927 o gzip**
+- [x] suite Playwright complète : **146/146** (+1 test « Laisser partir »)
 
 ## 6. Journal
 

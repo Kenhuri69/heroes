@@ -272,8 +272,31 @@ function interpolate(raw: string, params?: Record<string, string | number>): str
   if (!params) return raw;
   return raw.replace(/\{(\w+)\}/g, (match, name: string) => {
     const value = params[name];
-    return value === undefined ? match : String(value);
+    if (value === undefined) return match;
+    return typeof value === 'number' ? formatNumber(value) : value;
   });
+}
+
+const numberFormats = new Map<Lang, Intl.NumberFormat>();
+
+/**
+ * Nombre localisé selon la langue du jeu (LE-UX) : « 12 500 » en français,
+ * « 12,500 » en anglais (à partir de 5 chiffres). Appliqué aussi aux paramètres
+ * numériques de `t()`.
+ */
+export function formatNumber(n: number): string {
+  const locale = appStore.getState().locale;
+  let fmt = numberFormats.get(locale);
+  if (!fmt) {
+    // `min2` : pas de séparateur sous 10 000 (« 2500 », « 12 500 ») — typographie
+    // usuelle, et les petits compteurs (PM, jours) restent compacts.
+    fmt = new Intl.NumberFormat(locale === 'fr' ? 'fr-FR' : 'en-US', {
+      maximumFractionDigits: 2,
+      useGrouping: 'min2', // ES2023 (Chrome 106+) — absent des typings de lib visés
+    } as unknown as Intl.NumberFormatOptions);
+    numberFormats.set(locale, fmt);
+  }
+  return fmt.format(n);
 }
 
 function safeLocalStorageGet(key: string): string | null {

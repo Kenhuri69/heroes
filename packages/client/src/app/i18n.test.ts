@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import type { LoadReport } from '@heroes/content';
-import { heroDisplayName, initI18n, setLocale } from './i18n';
+import { formatNumber, heroDisplayName, initI18n, setLocale } from './i18n';
 
 /**
  * Lot R6 (B4) : libellé affichable d'un héros. Le bandeau de combat et le toast de
@@ -48,5 +48,19 @@ describe('heroDisplayName (B4)', () => {
 
   it('clé inconnue ⇒ la clé brute (le repli générique ne masque pas un contenu manquant)', () => {
     expect(heroDisplayName('@loc:hero.inconnu.name')).toBe('hero.inconnu.name');
+  });
+});
+
+describe('LE-UX — nombres localisés', () => {
+  beforeAll(() => initI18n(report));
+
+  it('regroupe à partir de 5 chiffres selon la langue', () => {
+    setLocale('fr');
+    expect(formatNumber(2500)).toBe('2500');
+    expect(formatNumber(12500).replace(/\s/g, ' ')).toBe('12 500');
+    setLocale('en');
+    expect(formatNumber(12500)).toBe('12,500');
+    expect(formatNumber(2500)).toBe('2500');
+    setLocale('fr');
   });
 });

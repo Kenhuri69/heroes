@@ -45,6 +45,7 @@ import {
   resolveHeroName,
   resolveSpecialtyName,
   resolveSpecialtyDesc,
+  formatNumber,
 } from '../app/i18n';
 import { AssetImg } from './AssetImg';
 import { UiIcon } from './UiIcon';
@@ -367,7 +368,7 @@ function ResourceBar() {
           key={id}
           data-resource={id}
           data-testid={`resource-open-${id}`}
-          aria-label={`${t(`resource.${id}`)} : ${player.resources[id]}${
+          aria-label={`${t(`resource.${id}`)} : ${formatNumber(player.resources[id])}${
             income[id] ? ` (${t('resourceDetail.perDay', { amount: income[id] ?? 0 })})` : ''
           }`}
           onClick={() => appStore.setState({ resourceDetail: id })}
@@ -380,7 +381,7 @@ function ResourceBar() {
               <i style={{ background: `#${(RESOURCE_COLORS[id] ?? 0xffffff).toString(16).padStart(6, '0')}` }} />
             }
           />
-          <span data-testid={`resource-${id}`} title={String(player.resources[id])}>
+          <span data-testid={`resource-${id}`} title={formatNumber(player.resources[id])}>
             {formatResourceShort(player.resources[id])}
           </span>
           {income[id] ? (
@@ -393,7 +394,7 @@ function ResourceBar() {
       {factionResources.map(([id, amount]) => (
         <span class="resource resource--faction" key={id} data-resource={id}>
           <AssetImg src={resourceIconUrl(id, 24)} alt="" class="resource-icon" fallback={<i />} />
-          <span data-testid={`faction-resource-${id}`} title={String(amount)}>
+          <span data-testid={`faction-resource-${id}`} title={formatNumber(amount)}>
             {formatResourceShort(amount)}
           </span>
         </span>

@@ -27,6 +27,7 @@ import { heroArchetype, humanId, thievesGuildRank, thievesGuildRows } from '../a
 import { playerColor } from '../render/playerColors';
 import {
   t,
+  formatNumber,
   resolveLoc,
   resolveUnitName,
   resolveUnitLore,
@@ -71,7 +72,7 @@ function resourceLabel(id: string): string {
 /** Format compact d'un coût (`{gold:120}` → « 120 Or ») — vide si gratuit. */
 function formatCost(cost: Record<string, number>): string {
   return Object.entries(cost)
-    .map(([id, amount]) => `${amount} ${resourceLabel(id)}`)
+    .map(([id, amount]) => `${formatNumber(amount)} ${resourceLabel(id)}`)
     .join(', ');
 }
 
@@ -147,7 +148,7 @@ function CostList({ cost, have }: { cost: Record<string, number>; have?: Record<
         return (
           <span key={id} class={`town-cost-entry${missing ? ' is-missing' : ''}`}>
             {missing && <span aria-hidden="true">✗ </span>}
-            {amount} {resourceLabel(id)}
+            {formatNumber(amount)} {resourceLabel(id)}
           </span>
         );
       })}

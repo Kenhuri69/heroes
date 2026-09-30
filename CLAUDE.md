@@ -603,6 +603,15 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > à la construction d'une habitation (`dwellingInitialStock`). Au passage, le BFS
 > d'exploration de l'IA lit la carte hors proxy Immer (tour d'IA ×4,9). Pas de
 > bump save, golden inchangé, zéro faction.*
+> **LE7 livré** (`le7-loot-and-siege.md`, dernier lot du plan) : **41 artefacts**
+> dont 5 **reliques** (`rarity: 4`, grande banque seule — jamais au butin de
+> gardien ni au marchand) et des artefacts **qui changent une règle** (`effects`,
+> vocabulaire des compétences : or/jour, Sorcellerie, Mysticisme, Diplomatie…),
+> panoplie Garde du champion ; **siège avec héros visiteur**
+> (`siegeVisitingHero`, activé — le héros posté dans sa ville la défend avec la
+> garnison dans ses emplacements libres, murs compris, et la ville tombe avec
+> lui ; piles `fromGarrison` rendues à la ville). Pas de bump save, golden
+> inchangé, zéro faction.*
 
 ---
 

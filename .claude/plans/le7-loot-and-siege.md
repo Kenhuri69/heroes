@@ -64,27 +64,63 @@
 
 ## 3. Étapes
 
-1. [ ] C3 moteur/contenu — `rarity` 4 + `relic`, `effects`, `value` ; exclusions
+1. [x] C3 moteur/contenu — `rarity` 4 + `relic`, `effects`, `value` ; exclusions
    (gardien, marchand, mapgen) ; tests (effet d'artefact agrégé, relique jamais
    au butin ni au marchand, mapgen : relique seulement en grande banque).
-2. [ ] C3 données — catalogue ~40, locales FR/EN, `content:check`.
-3. [ ] D3 moteur — config, siège avec héros, conséquences, fuite, déplacement,
+2. [x] C3 données — catalogue ~40, locales FR/EN, `content:check`.
+3. [x] D3 moteur — config, siège avec héros, conséquences, fuite, déplacement,
    IA ; tests.
-4. [ ] Client : rien de spécifique attendu (vérifier siège avec héros en smoke).
-5. [ ] Docs 02 + CLAUDE.md ; mesures (bench IA, `faction:sim`) ; vérifications.
+4. [x] Client : rien de spécifique (le rendu de combat lit déjà `defenderHeroId`) ;
+   forge de test `startSiege({ defender: true })` + smoke.
+5. [x] Docs 02 + CLAUDE.md ; mesures (bench IA, `faction:sim`) ; vérifications.
 
 ## 4. Mesures
 
-_À remplir._
+**Bench IA** (jetable, non commité ; 2 IA, 64², 20 graines, 60 jours, normal ;
+LE5 et LE6 actifs dans les deux colonnes ; « sans LE7 » = 16 artefacts d'origine
+et règle de siège absente) :
+
+| | Sans LE7 | **Avec LE7** |
+|---|---|---|
+| Artefacts détenus en fin de partie (20 parties) | 35 | 37 |
+| … dont artefacts à effet de règle | — | 4 |
+| … dont reliques | — | 0 |
+| Villes de joueur prises | 0 | 0 |
+| Combats de gardien (perdus) | 313 (21) | 313 (21) |
+| Parties avec un combat entre joueurs | 7/20 | 7/20 |
+
+Lecture :
+- Effet quasi nul sur la partie IA contre IA : l'IA ne prend jamais de ville de
+  joueur en 60 jours, donc le siège avec héros n'est pas exercé par l'IA (il
+  l'est par les tests et le smoke) ; elle ne vide aucune grande banque, donc
+  aucune relique. C3 et D3 servent surtout le joueur humain et la fin de partie.
+- Les artefacts neufs remplacent des anciens au même rythme de ramassage.
+
+**`faction:sim`** : 1 béance au duel, inchangé (les duels n'emploient ni artefact
+ni siège).
 
 ## 5. Vérifications
 
-- [ ] `pnpm typecheck` · `pnpm lint` · `pnpm build` (client, `exactOptionalPropertyTypes`)
-- [ ] `pnpm test` ; golden inchangé
-- [ ] `pnpm content:check` ; garde-fous faction et couleurs
+- [x] `pnpm typecheck` · `pnpm lint` · `pnpm build` ; budget **384 530 o gzip**
+- [x] `pnpm test` — moteur **1105** (+12), contenu 197 (+3), client 109, serveur 10 ; golden inchangé
+- [x] `pnpm content:check` ; garde-fous faction et couleurs
 - [ ] suite Playwright complète
 
 ## 6. Journal
 
 - 2026-09-30 : plan ouvert. Panoplies déjà livrées ⇒ C3 se concentre sur la
   rareté, les effets de règle et le catalogue.
+- 2026-09-30 : C3 et D3 livrés. Écarts et décisions :
+  - les effets d'artefact sont restreints aux champs que le moteur lit déjà par
+    `heroEffectTotal` / `heroGoldPerDay` (schéma strict) : pas de nouveau point de
+    lecture en combat ;
+  - un artefact doit garder un `bonus` non vide (règle de schéma existante) :
+    chaque artefact à effet porte aussi un petit bonus de stat ;
+  - D3 : les piles de garnison ne fusionnent pas avec celles du héros (pour rendre
+    les survivants au bon propriétaire) ; la tour de tir est marquée comme
+    garnison ;
+  - D3 : pas de renforts ni de coop au siège avec héros (combat entre joueurs,
+    `defenderHeroId` non nul) ;
+  - ajouter du contenu d'artefact change les cartes générées à graine égale (la
+    palette grandit) — comme tout ajout de contenu ; le code v1/v2 reste
+    reproductible à contenu égal.

@@ -81,8 +81,9 @@
       "maxPerPlayer": 8,
       "mana": {
         "persistent": true,
-        "basePerDay": 2,
-        "pctPerDay": 10
+        "basePerDay": 1,
+        "perKnowledge": 1,
+        "townRestorePct": 50
       },
       "archetypeEffects": {
         "might": [

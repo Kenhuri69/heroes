@@ -3,6 +3,7 @@ import type { GameEvent } from '../core/events';
 import { areAllies, type GameState, type HeroState, type PlayerState, type ResourceId } from '../core/state';
 import { heroVisionRadius } from '../hero/skills';
 import { learnGuildSpellsAtTown } from '../town/mage-guild';
+import { restoreManaInTown } from '../hero/mana';
 import { revealAround } from './fog';
 import { revealStructure } from './vision';
 import { levelOf, samePos, tileIndex, type GridPos } from './map';
@@ -211,8 +212,11 @@ export function advanceHeroAlongPath(
     // Guilde des mages (G2) : fouler une de ses villes fait apprendre les sorts
     // du pool que le héros peut apprendre (cercle ≤ Sagesse).
     const townHere = townsAt.get(tileKey(hero.pos));
-    if (townHere && townHere.ownerPlayerId === player.id)
+    if (townHere && townHere.ownerPlayerId === player.id) {
       learnGuildSpellsAtTown(draft, hero, townHere, events);
+      // LE4/C2 : entrer dans sa ville recharge la mana (50 %, 100 % avec Guilde).
+      restoreManaInTown(draft, hero, townHere, events);
+    }
     // Lieu de bonus / habitation (doc 02 §2.2) : visite en passant, comme la mine.
     for (const obj of objectsAt.get(tileKey(hero.pos)) ?? []) {
       if (obj.type === 'visitable') visitBonus(draft, hero, player, obj, events);

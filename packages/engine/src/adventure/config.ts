@@ -303,23 +303,24 @@ export interface HeroProgressionConfig {
   /** Nombre maximum de héros par joueur (doc 02 §1.5). Défaut 8. */
   maxPerPlayer?: number;
   /**
-   * Mana persistante (LE4/C2, doc 02 §1.4 — HoMM III) : la mana n'est plus
-   * remplie à l'ouverture d'un combat ni à l'aube. Chaque aube rend
-   * `max(basePerDay, ⌊pctPerDay % × max⌋)` + Mysticisme (`manaRegenPerDay`),
-   * plafonné au max ; un héros qui commence sa journée sur une de ses villes
-   * dotée d'une Guilde des mages (pool de sorts non vide) repart plein.
-   * **Opt-in** : absent ⇒ mana pleine à chaque combat et à chaque aube.
+   * Mana persistante (LE4/C2, doc 02 §1.4) — cf. `hero/mana.ts`. **Opt-in** :
+   * absent ⇒ mana pleine à chaque combat et à chaque aube.
    */
-  mana?: { persistent: boolean; basePerDay: number; pctPerDay: number } | undefined;
+  mana?: ManaConfig | undefined;
 }
 
-/** Mana regagnée à l'aube par un héros (LE4/C2) — hors séjour en ville à Guilde. */
-export function dailyManaRegen(
-  mana: { basePerDay: number; pctPerDay: number },
-  manaMax: number,
-  mysticism: number,
-): number {
-  return Math.max(mana.basePerDay, Math.floor((mana.pctPerDay / 100) * manaMax)) + mysticism;
+/**
+ * Mana persistante (LE4/C2, décision utilisateur 2026-09-30) : jamais de
+ * recharge après un combat. Chaque aube rend `max(basePerDay, ⌊Savoir effectif ×
+ * perKnowledge⌋)` + Mysticisme. Entrer dans une de ses villes (ou y commencer sa
+ * journée) remonte la mana à `townRestorePct` % du max, à 100 % si la ville a une
+ * Guilde des mages. Les fontaines de mana (`restoreMana`) remplissent à 100 %.
+ */
+export interface ManaConfig {
+  persistent: boolean;
+  basePerDay: number;
+  perKnowledge: number;
+  townRestorePct: number;
 }
 
 /**

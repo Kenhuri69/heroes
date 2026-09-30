@@ -104,6 +104,8 @@ export type GameEvent =
       effect: VisitableEffect;
       amount: number;
     }
+  /** Mana remontée par le séjour dans une de ses villes (LE4/C2, mana persistante). */
+  | { type: 'ManaRestored'; heroId: string; playerId: string; amount: number; source: 'town' }
   /** Recrutement à une habitation hors ville (doc 02 §2.2). */
   | {
       type: 'DwellingRecruited';

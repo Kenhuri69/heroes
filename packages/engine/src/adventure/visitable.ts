@@ -11,10 +11,20 @@ import { grantArtifact } from '../hero/equip';
 /** Cap d'armée du héros (doc 02 §5.1) — base 7, étendu par `heroArmyCap` (doc 18 C1). */
 export const MAX_ARMY_STACKS = 7;
 
+/** Le héros peut-il encore profiter de ce lieu aujourd'hui (fréquence de visite) ? */
+export function visitAvailable(obj: VisitableObjectDef, heroId: string, day: number): boolean {
+  const last = obj.visits[heroId];
+  if (last === undefined) return true;
+  if (obj.frequency === 'oncePerHero') return false;
+  if (obj.frequency === 'oncePerHeroPerDay') return last !== day;
+  return last !== weekOf(day);
+}
+
 /**
  * Visite d'un lieu de bonus (doc 02 §2.2) — appelée en passant par le
  * mouvement, le héros ne s'arrête pas. No-op si le héros a déjà consommé sa
- * visite (`oncePerHero` : à vie ; `oncePerHeroPerWeek` : cette semaine).
+ * visite (`oncePerHero` : à vie ; `oncePerHeroPerWeek` : cette semaine ;
+ * `oncePerHeroPerDay` : aujourd'hui — la marque stocke alors le jour).
  * L'effet est déclaratif et générique (cf. `VisitableEffect`).
  */
 export function visitBonus(
@@ -24,9 +34,8 @@ export function visitBonus(
   obj: VisitableObjectDef,
   events: GameEvent[],
 ): void {
+  if (!visitAvailable(obj, hero.id, draft.calendar.day)) return;
   const week = weekOf(draft.calendar.day);
-  const last = obj.visits[hero.id];
-  if (last === -1 || (obj.frequency === 'oncePerHeroPerWeek' && last === week)) return;
 
   const effect = obj.effect;
   let amount = 0;
@@ -96,7 +105,8 @@ export function visitBonus(
     amount = effect.amount;
   }
 
-  obj.visits[hero.id] = obj.frequency === 'oncePerHero' ? -1 : week;
+  obj.visits[hero.id] =
+    obj.frequency === 'oncePerHero' ? -1 : obj.frequency === 'oncePerHeroPerDay' ? draft.calendar.day : week;
   events.push({
     type: 'BonusVisited',
     heroId: hero.id,

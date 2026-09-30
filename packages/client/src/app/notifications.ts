@@ -92,6 +92,9 @@ export function notify(event: AppEvent, game: GameState): string | null {
         parts.push(t('toast.guardianRewardArtifact', { artifact: resolveArtifactName(event.artifactId) }));
       return parts.join(' ');
     }
+    // Mana persistante (LE4/C2) : la ville recharge la mana de son héros.
+    case 'ManaRestored':
+      return event.playerId === human ? t('toast.manaRestoredTown', { amount: event.amount }) : null;
     // Lieux de bonus & habitations (doc 02 §2.2, lot 2 du comblement).
     case 'BonusVisited': {
       if (event.playerId !== human) return null;

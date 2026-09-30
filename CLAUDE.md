@@ -584,8 +584,9 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > (Sorcellerie, Intelligence, Résistance, Mysticisme, Artillerie, Premiers soins,
 > Balistique), **maîtrise d'école** qui change l'effet du sort (`mastery` :
 > puissance, zone de masse au rang 3), **mana persistante** (`hero.mana`,
-> activée : plus de plein au combat ni à l'aube, régénération + Guilde + Puits,
-> IA économe quand elle domine). Pas de bump save, golden inchangé, zéro faction.*
+> activée : jamais de recharge après combat ; aube = Savoir + Mysticisme ; ville
+> 50 %, 100 % avec Guilde ; fontaines de mana 100 %/jour ; IA économe qui va se
+> recharger). Pas de bump save, golden inchangé, zéro faction.*
 
 ---
 

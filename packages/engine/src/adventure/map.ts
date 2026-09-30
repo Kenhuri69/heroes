@@ -135,7 +135,8 @@ export interface VisitableObjectDef {
   pos: GridPos;
   effect: VisitableEffect;
   /** Une seule visite par héros à vie, ou une par héros et par semaine. */
-  frequency: 'oncePerHero' | 'oncePerHeroPerWeek';
+  /** `oncePerHeroPerDay` (LE4) : fontaine de mana — une visite par héros et par jour. */
+  frequency: 'oncePerHero' | 'oncePerHeroPerWeek' | 'oncePerHeroPerDay';
   /** État : semaine de dernière visite par héros (`-1` = consommé à vie). */
   visits: Record<string, number>;
 }

@@ -1042,7 +1042,7 @@ export type ResolvedMapObject =
         | { kind: 'grantWarMachine'; machineId: string }
         | { kind: 'restoreMana' }
         | { kind: 'grantArtifact'; artifactId: string };
-      frequency: 'oncePerHero' | 'oncePerHeroPerWeek';
+      frequency: 'oncePerHero' | 'oncePerHeroPerWeek' | 'oncePerHeroPerDay';
       /** État initial : personne n'a visité. */
       visits: Record<string, number>;
     }

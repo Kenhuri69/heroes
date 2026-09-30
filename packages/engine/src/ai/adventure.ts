@@ -10,6 +10,8 @@ import { DIRECTIONS, atLevel, inBounds, isAdjacent, levelOf, samePos, tileIndex,
 import { isInPlayerVision } from '../adventure/vision';
 import { findPath, isPassable, minStepCost, octileLowerBound, stepCost } from '../adventure/path';
 import { guardianZone } from '../adventure/zone-of-control';
+import { visitAvailable } from '../adventure/visitable';
+import { persistentMana } from '../hero/mana';
 import { heroArmyCap } from '../hero/skills';
 import { validateEquipArtifact, handleEquipArtifact } from '../hero/equip';
 import { validateCastAdventureSpell, handleCastAdventureSpell } from '../hero';
@@ -141,6 +143,9 @@ function isCollectible(
   if ('guardedBy' in obj && obj.guardedBy !== undefined && presentObjectIds.has(obj.guardedBy))
     return false;
   if (obj.type === 'resource' || obj.type === 'treasure') return true;
+  // LE4/C2 : une fontaine de mana vaut le détour quand la réserve est à moitié vide.
+  if (obj.type === 'visitable' && obj.effect.kind === 'restoreMana')
+    return needsMana(draft, hero) && visitAvailable(obj, hero.id, draft.calendar.day);
   // Obélisque (T-GRAIL) : une visite par joueur, et seulement tant que le Graal
   // n'est pas trouvé — sans ces visites l'IA ne se le voyait jamais révélé.
   if (obj.type === 'obelisk')
@@ -163,6 +168,14 @@ function isCollectible(
     return maxAffordableCount(player, cost, obj.stock) > 0;
   }
   return false;
+}
+
+/**
+ * Le héros doit-il refaire le plein (LE4/C2) ? Seulement avec la mana
+ * persistante, s'il connaît des sorts et qu'il lui en reste moins de la moitié.
+ */
+function needsMana(draft: GameState, hero: HeroState): boolean {
+  return persistentMana(draft) !== null && hero.spells.length > 0 && hero.mana * 2 < hero.manaMax;
 }
 
 /** Objet collectable le plus proche atteignable dans les PM du jour (priorité 1). */
@@ -544,7 +557,7 @@ const MULTI_DAY_HORIZON_DAYS = 3;
  * une ville lointaine. La probabilité de victoire est un FILTRE (marge 1,5×, même
  * seuil que pour les héros ennemis), pas un facteur du score.
  */
-const MULTI_DAY_VALUE = { town: 10, garrison: 6, mine: 4, guardian: 3 } as const;
+const MULTI_DAY_VALUE = { town: 10, garrison: 6, mine: 4, guardian: 3, mana: 3 } as const;
 
 /**
  * LE1/B1 — le meilleur objectif à ≤ `MULTI_DAY_HORIZON_DAYS` jours de marche,
@@ -615,6 +628,18 @@ function pickMultiDayObjective(
     if (obj.type !== 'mine' || player.explored[tileIndex(map, obj.pos)] === 0) continue;
     if (!isCollectible(draft, obj, hero, player, presentObjectIds)) continue;
     consider(obj.pos, MULTI_DAY_VALUE.mine, obj.id, null);
+  }
+  // LE4/C2 : refaire le plein — fontaine de mana ou une de mes villes à Guilde.
+  if (!only && needsMana(draft, hero)) {
+    for (const obj of map.objects) {
+      if (obj.type !== 'visitable' || player.explored[tileIndex(map, obj.pos)] === 0) continue;
+      if (!isCollectible(draft, obj, hero, player, presentObjectIds)) continue;
+      consider(obj.pos, MULTI_DAY_VALUE.mana, obj.id, null);
+    }
+    for (const town of draft.towns) {
+      if (town.ownerPlayerId === player.id && town.spellPool.length > 0)
+        consider(town.pos, MULTI_DAY_VALUE.mana, town.id, null);
+    }
   }
   // LE3 (avis expert sur B1) : un gardien dominé — souvent celui d'un goulot —
   // est un objectif en soi ; sans lui, une porte gardée fermait la carte à l'IA.

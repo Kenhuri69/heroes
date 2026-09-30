@@ -169,16 +169,25 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 > (Bénédiction, Hâte, Affaiblissement) ne changent pas. Écoles sans compétence
 > (neutre, écoles de faction) et sorts d'unité : inchangés.
 >
-> ✅ **État LE4/C2 — mana persistante** (bloc `hero.mana { persistent,
-> basePerDay, pctPerDay }`, activé en données à `2 / 10 %` ; absent ⇒ ancien
-> comportement) : la mana n'est plus remplie à l'ouverture d'un combat, **ni à
-> l'aube**. Chaque aube rend `max(2, ⌊10 % × max⌋)` + Mysticisme, plafonné au
-> max. Un héros qui **commence sa journée** sur une de ses villes dotée d'une
-> Guilde des mages repart plein ; le **Puits de magie** remplit toujours (les
-> cartes générées v2 en posent). L'IA ne dépense pas de sort en combat quand son
-> camp est au moins 3 fois plus fort. Les deux paragraphes ci-dessous (« remplie
-> à l'ouverture du combat », « la mana se restaure chaque jour ») décrivent
-> l'ancien comportement, qui reste celui d'une config sans le bloc.
+> ✅ **État LE4/C2 — mana persistante** (décision utilisateur 2026-09-30 ; bloc
+> `hero.mana { persistent, basePerDay, perKnowledge, townRestorePct }`, activé en
+> données à `1 / 1 / 50` ; absent ⇒ ancien comportement). La mana **ne se
+> recharge jamais après un combat**. Trois sources, toutes plafonnées au max :
+> - **l'aube** rend `max(1, Savoir effectif × 1)` (artefacts compris) +
+>   Mysticisme ; Intelligence relève le max, pas la recharge ;
+> - **une de ses villes** (y entrer ou y commencer sa journée) remonte la mana à
+>   **50 %** du max, à **100 %** si la ville a une Guilde des mages. Jamais de
+>   baisse, jamais de cumul : entrer et ressortir ne dépasse pas le palier
+>   (événement `ManaRestored`, toast client) ;
+> - une **fontaine de mana** (`restoreMana`, fréquence `oncePerHeroPerDay`)
+>   remplit à 100 %, une fois par héros et par jour. Les cartes générées v2 en
+>   posent 1 à 2 par tranche de 24².
+>
+> L'IA garde sa mana en combat quand son camp est au moins 3× plus fort. Sous
+> 50 % de mana, elle vise une fontaine ou une de ses villes à Guilde (objectif
+> sur plusieurs jours). Les deux paragraphes ci-dessous (« remplie à l'ouverture
+> du combat », « la mana se restaure chaque jour ») décrivent l'ancien
+> comportement, qui reste celui d'une config sans le bloc.
 
 > 🚧 **État (sorts d'aventure, Alpha 4.16)** : ouverture du sous-système **hors
 > combat**. Nouveau **kind `adventure`** portant un effet déclaratif

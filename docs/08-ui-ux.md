@@ -835,6 +835,33 @@ Menu principal (Continuer / Scénarios / Escarmouche / **Éditeur de carte** / O
   portent `role="tab"`/`aria-selected`.
 - Toutes les infos « hover » accessibles à l'appui long ; aucune action à double-clic ou clic droit obligatoire. **Corollaire (R6)** : une commande **grisée dont l'état porte une raison** n'est jamais `disabled` — un élément `disabled` n'est ni focusable ni « tapable », donc sa raison n'existerait qu'au survol souris. Elle est `aria-disabled` et **répond au tap en affichant sa raison** (voir §2.4 « État R6 »).
 
+> **État livré (lot LE-UX, plan `.claude/plans/le-ux-ergonomics.md`)** — ergonomie
+> du client, sans règle moteur nouvelle :
+> - **nombres localisés** (`formatNumber`, `Intl.NumberFormat` : « 12 500 » /
+>   « 12,500 », groupés dès 5 chiffres) — coûts, revenus, paramètres de `t()` ;
+> - **piège de focus** global des modales (Tab boucle dans la modale du dessus,
+>   focus rendu à la fermeture) ; **toasts en bas d'écran** quand une modale est
+>   ouverte (l'en-tête reste lisible) ;
+> - **fin de tour renseignée** (« N héros avec PM · N villes sans construction »,
+>   forme compacte à icônes en portrait étroit) ; « IA en cours » sur le bouton
+>   pendant les tours adverses ;
+> - **« Tout recruter »** montre effectifs et coût total avant confirmation ;
+>   **annuler le dernier transfert** en rencontre de héros et en garnison (commande
+>   inverse rejouée, seulement quand elle restitue l'état exact — pas après une
+>   fusion de piles) ;
+> - **clavier de carte** : flèches / ZQSD (touches physiques) = pan, `+`/`−` =
+>   zoom, Entrée = confirme le chemin prévisualisé, Ctrl/⌘+S = sauvegarde rapide ;
+> - **artefacts** : bonus, effets de règle et panoplie écrits sous le nom, raison
+>   de conflit d'emplacement visible (plus seulement en `title`) ; garnison du
+>   Royaume nommée ;
+> - **fiche de pile** : attaque/défense **effectives** (base → effectif, Défense du
+>   héros à part), moral et chance (helper moteur pur `effectiveStackStats`) ;
+> - **carte mobile** : Royaume/Options/Son derrière un tiroir « ⋯ » en portrait
+>   étroit ;
+> - **combat mobile** : ouverture en **vue d'ensemble** (plateau entier, sous le
+>   plancher de 44 px, les deux camps visibles) ; le 1ᵉʳ tap zoome au plancher
+>   autour du point touché, sans agir.
+
 ## 5. Direction artistique (cadrage)
 
 - « **Gouache stylisée** » : décors peints aux contours doux, unités en spritesheets 2D (idle/move/attack/hit/death, 8–12 frames), lisibles à 64 px de haut.

@@ -78,6 +78,16 @@ async function moveHeroToGold(page: Page): Promise<void> {
 }
 
 /** Tap-tap (doc 08 §2.1) : 1er tap = prévisualisation, 2ᵉ tap = exécution. */
+/**
+ * Action secondaire de la carte (Royaume, Options, Son) : en portrait étroit elle
+ * vit derrière le tiroir « ⋯ » (LE-UX) — on l'ouvre d'abord s'il est présent.
+ */
+async function mapAction(page: Page, testId: string): Promise<void> {
+  const more = page.getByTestId('map-more');
+  if (await more.isVisible()) await more.click();
+  await page.getByTestId(testId).click();
+}
+
 async function tapTapTile(page: Page, x: number, y: number): Promise<void> {
   const screen = await page.evaluate(
     ([tx, ty]) => window.__HEROES_TEST__!.tileToScreen(tx!, ty!),
@@ -144,7 +154,7 @@ async function endTurn(page: Page): Promise<void> {
 }
 
 async function clickSaveAction(page: Page, action: 'save' | 'load'): Promise<void> {
-  await page.getByTestId('options-open').click();
+  await mapAction(page, 'options-open');
   await page.getByTestId(action).click();
   // Revue 2026-09b E18 : charger REMPLACE la partie en cours ⇒ tap-tap — le
   // 1er tap arme (« Confirmer : remplacer la partie en cours »), le 2ᵉ charge.
@@ -231,6 +241,57 @@ test('boot loader : présent dans le HTML statique, retiré une fois le jeu prê
   // et l'UI est interactive.
   await expect(page.locator('#boot-loader')).toHaveCount(0);
   await expect(page.getByTestId('menu-new-game')).toBeVisible();
+});
+
+test('LE-UX : fin de tour renseignée, clavier de carte, piège de focus', { tag: '@core' }, async ({ page }) => {
+  const errors = await openGame(page);
+  const tile = (x: number, y: number) =>
+    page.evaluate(([tx, ty]) => window.__HEROES_TEST__!.tileToScreen(tx!, ty!), [x, y]);
+
+  // Fin de tour renseignée : le héros a encore ses PM.
+  await expect(page.getByTestId('end-turn-hint')).toBeVisible();
+
+  // Entrée confirme le chemin prévisualisé (tas d'or en (6,3), 3 pas).
+  const gold = await tile(6, 3);
+  const cancel = page.getByTestId('cancel-path');
+  await expect(async () => {
+    await page.mouse.click(gold.x, gold.y);
+    await expect(cancel).toBeVisible({ timeout: 1000 });
+  }).toPass({ timeout: 10000 });
+  await page.keyboard.press('Enter');
+  await expect.poll(() => heroPos(page)).toEqual({ x: 6, y: 3 });
+
+  // Flèche droite : la vue glisse (la tuile se décale vers la gauche) ; « + » zoome.
+  const before = await tile(3, 3);
+  await page.keyboard.press('ArrowRight');
+  await expect.poll(async () => (await tile(3, 3)).x).toBeLessThan(before.x);
+  const span = async () => {
+    const [a, b] = [await tile(3, 3), await tile(6, 3)];
+    return Math.hypot(b.x - a.x, b.y - a.y);
+  };
+  const spanBefore = await span();
+  await page.keyboard.press('+');
+  await expect.poll(span).toBeGreaterThan(spanBefore);
+
+  // Ctrl+S : sauvegarde rapide (toast de succès, pas la boîte du navigateur).
+  await page.keyboard.press('Control+s');
+  await expect(page.locator('.toast-success').first()).toBeVisible();
+
+  // Piège de focus : Tab ne sort pas des Options ; à la fermeture, le focus revient.
+  await page.getByTestId('options-open').click();
+  const panel = page.getByTestId('options-panel');
+  await expect(panel).toBeVisible();
+  for (let i = 0; i < 25; i++) await page.keyboard.press('Tab');
+  expect(
+    await page.evaluate(() => !!document.activeElement?.closest('[data-testid="options-panel"]')),
+  ).toBe(true);
+  await page.keyboard.press('Escape');
+  await expect(panel).toHaveCount(0);
+  await expect
+    .poll(() => page.evaluate(() => document.activeElement?.getAttribute('data-testid')))
+    .toBe('options-open');
+
+  expect(errors).toEqual([]);
 });
 
 test('tap-tap : déplacement scripté, ramassage, points décomptés', { tag: ['@mobile', '@core'] }, async ({ page }) => {
@@ -948,6 +1009,31 @@ test('lieu de bonus & habitation : écurie ⇒ +PM, camp ⇒ recrutement (doc 02
   expect(errors).toEqual([]);
 });
 
+test('LE-UX : combat mobile ouvert en vue d’ensemble, le 1er tap zoome', { tag: '@mobile' }, async ({ page }) => {
+  test.skip(test.info().project.name !== 'mobile', 'plateau entier visible sur desktop : pas de vue d’ensemble');
+  const errors = await openGame(page);
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({
+      type: 'MoveHero',
+      heroId: 'hero-player-1',
+      path: [
+        { x: 4, y: 2 },
+        { x: 5, y: 2 },
+        { x: 6, y: 2 },
+        { x: 7, y: 2 },
+        { x: 8, y: 2 },
+      ],
+    }),
+  );
+  await passPreBattle(page);
+  await expect(page.getByTestId('combat-round')).toBeVisible();
+  await expect.poll(() => page.evaluate(() => window.__HEROES_TEST__!.combatOverview())).toBe(true);
+  const box = page.viewportSize()!;
+  await page.mouse.click(box.width / 2, box.height / 2);
+  await expect.poll(() => page.evaluate(() => window.__HEROES_TEST__!.combatOverview())).toBe(false);
+  expect(errors).toEqual([]);
+});
+
 test('combat : victoire contre le gardien, retour carte avec pertes appliquées', { tag: ['@mobile', '@core'] }, async ({ page }) => {
   const errors = await openGame(page);
 
@@ -1180,7 +1266,7 @@ test('A1 : un gardien de carte est rendu comme un cluster gradué (sprint 2)', {
 
 test('E1 : la vue de royaume liste villes/héros et navigue vers une ville (sprint 3)', { tag: ['@core', '@mobile'] }, async ({ page }) => {
   const errors = await openGame(page);
-  await page.getByTestId('kingdom-open').click();
+  await mapAction(page, 'kingdom-open');
   await expect(page.getByTestId('kingdom-panel')).toBeVisible();
   await expect(page.getByTestId('kingdom-towns')).toBeVisible();
   await expect(page.getByTestId('kingdom-heroes')).toBeVisible();
@@ -2788,7 +2874,7 @@ test('accessibilité : les 3 crans de police changent la taille du texte (doc 08
   await expect(page.getByTestId('calendar')).toBeVisible();
   const small = await calendarFontSizePx(); // cran 1 (100%) par défaut
 
-  await page.getByTestId('options-open').click();
+  await mapAction(page, 'options-open');
   await page.getByTestId('options-fontscale-3').click(); // cran 3 (125%)
   await page.getByTestId('options-close').click();
   const large = await calendarFontSizePx();
@@ -2800,7 +2886,7 @@ test('accessibilité : les 3 crans de police changent la taille du texte (doc 08
   expect(large / small).toBeCloseTo(1.25, 1);
 
   // Revenir au cran 1 pour ne pas affecter les tests suivants du même worker.
-  await page.getByTestId('options-open').click();
+  await mapAction(page, 'options-open');
   await page.getByTestId('options-fontscale-1').click();
   await page.getByTestId('options-close').click();
 
@@ -3444,6 +3530,9 @@ test('ville : en-tête revenu/croissance (C21) + « Tout recruter » (C19) (lot 
   await expect(page.getByTestId('town-growth-t1-recruit')).toContainText('/sem');
   await expect(page.getByTestId('town-growth-t1-recruit')).toContainText('max');
   await page.getByTestId('town-recruit-all').click();
+  // LE-UX : aperçu (effectifs + coût total) à confirmer.
+  await expect(page.getByTestId('town-recruit-all-preview')).toBeVisible();
+  await page.getByTestId('town-recruit-all-confirm').click();
   await expect
     .poll(() => page.evaluate(() => window.__HEROES_TEST__!.getState().players[0]!.resources.gold))
     .toBeLessThan(goldBefore); // de l'or a été dépensé

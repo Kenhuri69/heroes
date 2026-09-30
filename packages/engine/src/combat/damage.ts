@@ -6,7 +6,7 @@ import type { SpellStatus } from '../hero/types';
 import { canShootTarget } from './actions';
 import { handleStackDeath } from './death';
 import { hexBehind, hexDistance, inCombatBounds, sameHex } from './hex';
-import { clamp, conditionalUnitBonus, factionCombatBonus, hasAbility, isShooterMeleePenalized, recordLoss, recordRevive, sideLeadHero, siegeEliteDamage, stackLostSoFar } from './state-helpers';
+import { clamp, conditionalUnitBonus, factionCombatBonus, hasAbility, isShooterMeleePenalized, moraleOf, recordLoss, recordRevive, sideLeadHero, siegeEliteDamage, stackLostSoFar } from './state-helpers';
 import type { CombatSideId, CombatStack, CombatUnitDef, CombatState } from './types';
 import type { CombatRulesConfig } from '../adventure/config';
 import type { GameEvent } from '../core/events';
@@ -433,6 +433,55 @@ function heroArmorPctOf(state: GameState, combat: CombatState, side: CombatSideI
 }
 
 /** Somme d'un modificateur de statut temporaire (buff/debuff de sort, malédiction) sur une pile. */
+/** Attaque effective d'une pile en combat : unité + héros + spécialité + statuts + Symbiose. */
+function stackAttack(state: GameState, combat: CombatState | null, def: CombatUnitDef, stack: CombatStack): number {
+  return (
+    def.stats.attack +
+    (combat ? heroAttackOf(state, combat, stack.side) : 0) +
+    // Spécialité conditionnelle (H-COND) : bonus d'attaque ciblé sur cette unité.
+    (combat ? conditionalUnitBonus(state, combat, stack.side, def.id, 'attack') : 0) +
+    statusModSum(stack.statuses, 'attackMod') +
+    // Symbiose (doc 14 §2, Beta 5.3) : bonus d'Attaque = paliers accumulés × params.
+    symbiosisAttackBonus(def, stack.symbiosisStacks)
+  );
+}
+
+/** Défense d'UNITÉ d'une pile (hors Défense du héros) : stats + statuts + spécialité + murs + Symbiose. */
+function stackUnitDefense(state: GameState, combat: CombatState | null, def: CombatUnitDef, stack: CombatStack): number {
+  return (
+    def.stats.defense +
+    statusModSum(stack.statuses, 'defenseMod') +
+    // Spécialité conditionnelle (H-COND) : bonus de défense ciblé sur cette unité.
+    (combat ? conditionalUnitBonus(state, combat, stack.side, def.id, 'defense') : 0) +
+    // Murs du Fort (doc 02 §4.1, Alpha 4.13) : bonus de défense aux piles en
+    // garnison (camp défenseur) pendant un siège ; 0 hors combat de ville.
+    (combat && stack.side === 'defender' ? combat.wallDefenseBonus : 0) +
+    // Symbiose (doc 14 §2) : bonus de Défense = paliers accumulés × params.
+    symbiosisDefenseBonus(def, stack.symbiosisStacks)
+  );
+}
+
+/**
+ * Stats EFFECTIVES d'une pile pour la fiche de combat (LE-UX) — mêmes briques que
+ * la résolution des frappes. `heroDefense` est à part : le moteur l'applique avec
+ * une pente plus faible que la Défense d'unité (A3).
+ */
+export function effectiveStackStats(
+  state: GameState,
+  combat: CombatState,
+  stack: CombatStack,
+): { attack: number; defense: number; heroDefense: number; morale: number; luck: number } | null {
+  const def = state.unitCatalog[stack.unitId];
+  if (!def) return null;
+  return {
+    attack: stackAttack(state, combat, def, stack),
+    defense: stackUnitDefense(state, combat, def, stack),
+    heroDefense: heroDefenseOf(state, combat, stack.side),
+    morale: moraleOf(stack, combat, state),
+    luck: heroLuckOf(state, combat, stack.side),
+  };
+}
+
 function statusModSum(statuses: SpellStatus[], key: 'attackMod' | 'defenseMod' | 'damageDealtMod'): number {
   return statuses.reduce((sum, s) => sum + s[key], 0);
 }
@@ -548,26 +597,10 @@ export function performStrike(
   const combat = draft.combat;
   // `swarm` (A3b) : bonus plat de meute quand la cible est cernée par les alliés.
   if (combat) base += swarmBonus(strikerDef, striker, victim, combat);
-  const strikerAttack =
-    strikerDef.stats.attack +
-    (combat ? heroAttackOf(draft, combat, striker.side) : 0) +
-    // Spécialité conditionnelle (H-COND) : bonus d'attaque ciblé sur cette unité.
-    (combat ? conditionalUnitBonus(draft, combat, striker.side, strikerDef.id, 'attack') : 0) +
-    statusModSum(striker.statuses, 'attackMod') +
-    // Symbiose (doc 14 §2, Beta 5.3) : bonus d'Attaque = paliers accumulés × params.
-    symbiosisAttackBonus(strikerDef, striker.symbiosisStacks);
+  const strikerAttack = stackAttack(draft, combat, strikerDef, striker);
   // Défense d'UNITÉ (pente ±0,05) : stats + statuts + murs de siège + Symbiose.
   // La Défense du HÉROS est appliquée à part (pente −0,025, A3) via computeMultiplier.
-  const targetDefense =
-    victimDef.stats.defense +
-    statusModSum(victim.statuses, 'defenseMod') +
-    // Spécialité conditionnelle (H-COND) : bonus de défense ciblé sur cette unité.
-    (combat ? conditionalUnitBonus(draft, combat, victim.side, victimDef.id, 'defense') : 0) +
-    // Murs du Fort (doc 02 §4.1, Alpha 4.13) : bonus de défense aux piles en
-    // garnison (camp défenseur) pendant un siège ; 0 hors combat de ville.
-    (combat && victim.side === 'defender' ? combat.wallDefenseBonus : 0) +
-    // Symbiose (doc 14 §2) : bonus de Défense = paliers accumulés × params.
-    symbiosisDefenseBonus(victimDef, victim.symbiosisStacks);
+  const targetDefense = stackUnitDefense(draft, combat, victimDef, victim);
   const heroDefense = combat ? heroDefenseOf(draft, combat, victim.side) : 0;
   const heroDamagePct = combat
     ? (ranged

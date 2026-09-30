@@ -9,6 +9,7 @@ import {
   scaleCost,
   estimateHeroRally,
   initiativeSpeed,
+  effectiveStackStats,
   roundActionOrder,
   surrenderCost,
   spellcasterParams,
@@ -1080,9 +1081,15 @@ function StackSheet({
   onClose: () => void;
 }) {
   useEscape(onClose);
+  const game = useApp((s) => s.game);
   const def = catalog[stack.unitId];
   if (!def) return null;
   const speed = Math.max(0, initiativeSpeed(stack, combat, catalog));
+  // LE-UX : stats EFFECTIVES (héros, murs, statuts, spécialité) à côté de la base.
+  const eff = effectiveStackStats(game, combat, stack);
+  const withBase = (base: number, value: number | undefined): string =>
+    value === undefined || value === base ? String(base) : `${base} → ${value}`;
+  const signed = (n: number): string => (n > 0 ? `+${n}` : String(n));
   const sideName = t(stack.side === 'attacker' ? 'combat.side.attacker' : 'combat.side.defender');
   const flags = [
     stack.defending ? t('combat.sheet.defending') : null,
@@ -1121,9 +1128,20 @@ function StackSheet({
             {stack.firstHp}/{def.stats.hp}
           </dd>
           <dt>{t('attribute.attack')}</dt>
-          <dd>{def.stats.attack}</dd>
+          <dd data-testid="stack-sheet-attack">{withBase(def.stats.attack, eff?.attack)}</dd>
           <dt>{t('attribute.defense')}</dt>
-          <dd>{def.stats.defense}</dd>
+          <dd data-testid="stack-sheet-defense">
+            {withBase(def.stats.defense, eff?.defense)}
+            {eff && eff.heroDefense !== 0 && ` ${t('combat.sheet.heroDefense', { value: signed(eff.heroDefense) })}`}
+          </dd>
+          {eff && (
+            <>
+              <dt>{t('combat.sheet.morale')}</dt>
+              <dd data-testid="stack-sheet-morale">{signed(eff.morale)}</dd>
+              <dt>{t('combat.sheet.luck')}</dt>
+              <dd data-testid="stack-sheet-luck">{signed(eff.luck)}</dd>
+            </>
+          )}
           <dt>{t('combat.sheet.damage')}</dt>
           <dd>
             {def.stats.damage[0]}–{def.stats.damage[1]}

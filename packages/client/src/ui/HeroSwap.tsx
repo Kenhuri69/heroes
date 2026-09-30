@@ -5,6 +5,7 @@ import { dispatch } from '../app/dispatch';
 import { t, resolveUnitName, resolveArtifactName, resolveHeroName, commandErrorMessage } from '../app/i18n';
 import { unitSpriteUrl, artifactUrl } from '../render/assets';
 import { AssetImg } from './AssetImg';
+import { reverseArmySlot, reverseArtifactSlot } from '../app/transfer-undo';
 import './HeroSwap.css';
 
 /**
@@ -30,20 +31,62 @@ export function HeroSwap({
   const game = useApp((s) => s.game);
   const catalog = useApp((s) => s.game.unitCatalog);
   const [error, setError] = useState<string | null>(null);
+  const [undo, setUndo] = useState<{
+    from: string;
+    to: string;
+    kind: 'army' | 'artifact';
+    slot: number;
+    index: number;
+  } | null>(null);
   const left = game.heroes.find((h) => h.id === fromHeroId);
   const right = game.heroes.find((h) => h.id === toHeroId);
   if (!left || !right) return null;
 
+  const heroById = (id: string): HeroState | undefined => appStore.getState().game.heroes.find((h) => h.id === id);
+
   const send = (from: string, to: string, kind: 'army' | 'artifact', slot: number): void => {
     setError(null);
-    dispatch({ type: 'TransferBetweenHeroes', fromHeroId: from, toHeroId: to, kind, slot }).catch(
-      (err: unknown) => setError(commandErrorMessage(err)),
-    );
+    setUndo(null);
+    const src = heroById(from);
+    const dst = heroById(to);
+    dispatch({ type: 'TransferBetweenHeroes', fromHeroId: from, toHeroId: to, kind, slot })
+      .then(() => {
+        // LE-UX : prépare le retour arrière exact de ce transfert, s'il existe.
+        const srcAfter = heroById(from);
+        const dstAfter = heroById(to);
+        if (!src || !dst || !srcAfter || !dstAfter) return;
+        if (kind === 'artifact') {
+          const back = reverseArtifactSlot(dst.artifacts, dstAfter.artifacts);
+          if (back !== null) setUndo({ from: to, to: from, kind, slot: back, index: slot });
+        } else {
+          const back = reverseArmySlot(src.army, srcAfter.army, dst.army, dstAfter.army);
+          if (back) setUndo({ from: to, to: from, kind, slot: back.slot, index: back.index });
+        }
+      })
+      .catch((err: unknown) => setError(commandErrorMessage(err)));
+  };
+
+  const undoLast = async (): Promise<void> => {
+    if (!undo) return;
+    setUndo(null);
+    setError(null);
+    try {
+      await dispatch({ type: 'TransferBetweenHeroes', fromHeroId: undo.from, toHeroId: undo.to, kind: undo.kind, slot: undo.slot });
+      // La pile revient en fin d'armée : on la remet à sa place d'origine.
+      const back = heroById(undo.to);
+      const last = (back?.army.length ?? 0) - 1;
+      if (undo.kind === 'army' && back && last !== undo.index) {
+        await dispatch({ type: 'ReorderArmy', heroId: undo.to, from: last, to: undo.index });
+      }
+    } catch (err) {
+      setError(commandErrorMessage(err));
+    }
   };
 
   /** « Tout donner » : transfère toutes les piles (slot 0 se décale) puis tous les artefacts. */
   const giveAll = async (from: HeroState, to: string): Promise<void> => {
     setError(null);
+    setUndo(null);
     // B14 (revue 2026-07) : relire l'état APRÈS chaque dispatch — l'état moteur
     // est immuable (immer), le `game` capturé au rendu ne change jamais : la
     // boucle ne se terminait que par l'exception `invalidTransfer` (erreur
@@ -142,6 +185,11 @@ export function HeroSwap({
             ×
           </button>
         </header>
+        {undo && (
+          <button class="heroswap-undo" data-testid="heroswap-undo" onClick={() => void undoLast()}>
+            {t('transfer.undo')}
+          </button>
+        )}
         {error && (
           <p class="heroswap-error" role="alert" data-testid="heroswap-error">
             {error}

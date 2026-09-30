@@ -22,7 +22,8 @@ import { requestEndTurn, confirmPendingEndTurn, cancelPendingEndTurn } from '../
 import { confirmCoopInvite, declineCoopInvite, cancelCoopInvite } from '../app/coop-invite';
 import { dispatch } from '../app/dispatch';
 import { reportArmyCommandError, reportCommandError } from '../app/command-error';
-import { restoreLatestSave } from '../app/save';
+import { restoreLatestSave, saveGame } from '../app/save';
+import { eventBus } from '../app/events';
 import { forcedOverlayOpen } from '../app/overlays';
 import {
   adjacentFriendlyHeroes,
@@ -45,6 +46,7 @@ import {
   resolveHeroName,
   resolveSpecialtyName,
   resolveSpecialtyDesc,
+  formatNumber,
 } from '../app/i18n';
 import { AssetImg } from './AssetImg';
 import { UiIcon } from './UiIcon';
@@ -85,7 +87,27 @@ import { MiniMap } from './MiniMap';
 import { QuestJournal } from './QuestJournal';
 import { MapObjectCard } from './MapObjectCard';
 import { ShortcutsOverlay } from './ShortcutsOverlay';
-import { panCameraTo, DEFAULT_PAN_MS } from '../app/camera-control';
+import { panCameraTo, DEFAULT_PAN_MS, nudgeCamera, zoomCamera } from '../app/camera-control';
+
+/** LE-UX : pas du pan clavier (px écran) et touches physiques (flèches, WASD/ZQSD). */
+const KEY_PAN_PX = 96;
+const PAN_KEYS: Record<string, readonly [number, number]> = {
+  ArrowUp: [0, 1],
+  KeyW: [0, 1],
+  ArrowDown: [0, -1],
+  KeyS: [0, -1],
+  ArrowLeft: [1, 0],
+  KeyA: [1, 0],
+  ArrowRight: [-1, 0],
+  KeyD: [-1, 0],
+};
+
+/** LE-UX : Ctrl/⌘+S — même sauvegarde manuelle que le bouton d'Options. */
+function quickSave(): void {
+  void saveGame(appStore.getState().game, 'manual')
+    .then(() => pushToast(t('toast.saved'), 'success'))
+    .catch(() => eventBus.emit([{ type: 'SaveFailed' }]));
+}
 import { reduceMotion } from '../app/motion';
 import { toggleMute } from '../app/audio';
 import './tokens.css'; // design tokens UXD-1 — à charger avant toute feuille
@@ -167,7 +189,31 @@ function Shell() {
       if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable))
         return;
       const s = appStore.getState();
-      if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
+      const onMap = s.screen === 'adventure' && !forcedOverlayOpen(s) && s.modals.length === 0 && !s.game.combat;
+      // LE-UX : Ctrl/⌘+S = sauvegarde rapide (jamais la sauvegarde du navigateur).
+      if ((e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        if (onMap && s.aiTurn === null) quickSave();
+        return;
+      }
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      // LE-UX : flèches / WASD (ZQSD en AZERTY — touches physiques) = pan, maintenu
+      // possible ; +/− = zoom ; Entrée = confirme le chemin prévisualisé.
+      if (onMap) {
+        const pan = PAN_KEYS[e.code];
+        if (pan) {
+          e.preventDefault();
+          nudgeCamera(pan[0] * KEY_PAN_PX, pan[1] * KEY_PAN_PX);
+          return;
+        }
+        if (!e.repeat && (e.key === '+' || e.key === '=')) return zoomCamera(1.2);
+        if (!e.repeat && (e.key === '-' || e.key === '_')) return zoomCamera(1 / 1.2);
+        if (!e.repeat && e.key === 'Enter' && target?.tagName !== 'BUTTON') {
+          window.dispatchEvent(new CustomEvent('heroes:confirm-path'));
+          return;
+        }
+      }
+      if (e.repeat) return;
       if (s.screen !== 'adventure' || forcedOverlayOpen(s)) return;
       // « ? » ouvre l'aide des raccourcis (X7) — `e.key` vaut '?' (Maj+/), avant
       // le switch minuscule qui ne le verrait pas.
@@ -367,7 +413,7 @@ function ResourceBar() {
           key={id}
           data-resource={id}
           data-testid={`resource-open-${id}`}
-          aria-label={`${t(`resource.${id}`)} : ${player.resources[id]}${
+          aria-label={`${t(`resource.${id}`)} : ${formatNumber(player.resources[id])}${
             income[id] ? ` (${t('resourceDetail.perDay', { amount: income[id] ?? 0 })})` : ''
           }`}
           onClick={() => appStore.setState({ resourceDetail: id })}
@@ -380,7 +426,7 @@ function ResourceBar() {
               <i style={{ background: `#${(RESOURCE_COLORS[id] ?? 0xffffff).toString(16).padStart(6, '0')}` }} />
             }
           />
-          <span data-testid={`resource-${id}`} title={String(player.resources[id])}>
+          <span data-testid={`resource-${id}`} title={formatNumber(player.resources[id])}>
             {formatResourceShort(player.resources[id])}
           </span>
           {income[id] ? (
@@ -393,7 +439,7 @@ function ResourceBar() {
       {factionResources.map(([id, amount]) => (
         <span class="resource resource--faction" key={id} data-resource={id}>
           <AssetImg src={resourceIconUrl(id, 24)} alt="" class="resource-icon" fallback={<i />} />
-          <span data-testid={`faction-resource-${id}`} title={String(amount)}>
+          <span data-testid={`faction-resource-${id}`} title={formatNumber(amount)}>
             {formatResourceShort(amount)}
           </span>
         </span>
@@ -1268,6 +1314,16 @@ function TurnBar({ onOpenOptions }: { onOpenOptions: () => void }) {
   const aiTurn = useApp((s) => s.aiTurn);
   // E4 : nombre de héros encore mobiles (badge du bouton « héros suivant »).
   const heroesWithMoves = humanHeroes(game).filter((h) => h.movementPoints > 0).length;
+  const narrow = useNarrowViewport();
+  const [showMore, setShowMore] = useState(false);
+  // LE-UX : fin de tour renseignée — ce qui reste à jouer ce tour-ci.
+  const townsIdle = towns.filter((tn) => !tn.builtToday).length;
+  const endTurnHint = [
+    heroesWithMoves > 0 ? t('turnBar.heroesLeft', { n: heroesWithMoves }) : '',
+    townsIdle > 0 ? t('turnBar.townsIdle', { n: townsIdle }) : '',
+  ]
+    .filter(Boolean)
+    .join(' · ');
   // Fouille du Graal (T-GRAIL lot 2) : bouton visible seulement quand le héros
   // sélectionné du joueur humain est sur la tuile du Graal RÉVÉLÉE (tous les
   // obélisques visités) et que le joueur ne possède pas encore le Graal.
@@ -1419,28 +1475,71 @@ function TurnBar({ onOpenOptions }: { onOpenOptions: () => void }) {
             </span>
           )}
         </button>
-        <button
-          class="kingdom-toggle"
-          data-testid="kingdom-open"
-          aria-label={t('kingdom.open')}
-          title={t('kingdom.open')}
-          disabled={aiTurn !== null}
-          onClick={() => openModal({ kind: 'kingdom' })}
-        >
-          <UiIcon id="act-kingdom" fallback="🏰" />
-          <span class="action-label">{t('kingdom.open')}</span>
-        </button>
-        <button
-          class="options-toggle"
-          data-testid="options-open"
-          aria-label={t('options.title')}
-          onClick={onOpenOptions}
-        >
-          <UiIcon id="act-options" fallback="⚙" />
-          <span class="action-label">{t('options.title')}</span>
-        </button>
-        <MuteToggle />
+        {narrow ? (
+          // LE-UX : en portrait étroit, Royaume/Options/Son passent derrière « ⋯ »
+          // (hors vue à 360 px dans la rangée défilante) — patron du combat.
+          <>
+            <button
+              class={`map-more-toggle${showMore ? ' active' : ''}`}
+              data-testid="map-more"
+              aria-expanded={showMore}
+              aria-label={t('adventure.moreActions')}
+              onClick={() => setShowMore(!showMore)}
+            >
+              ⋯
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              class="kingdom-toggle"
+              data-testid="kingdom-open"
+              aria-label={t('kingdom.open')}
+              title={t('kingdom.open')}
+              disabled={aiTurn !== null}
+              onClick={() => openModal({ kind: 'kingdom' })}
+            >
+              <UiIcon id="act-kingdom" fallback="🏰" />
+              <span class="action-label">{t('kingdom.open')}</span>
+            </button>
+            <button
+              class="options-toggle"
+              data-testid="options-open"
+              aria-label={t('options.title')}
+              onClick={onOpenOptions}
+            >
+              <UiIcon id="act-options" fallback="⚙" />
+              <span class="action-label">{t('options.title')}</span>
+            </button>
+            <MuteToggle />
+          </>
+        )}
         </div>
+        {narrow && showMore && (
+          <div class="map-more-actions" data-testid="map-more-actions" onClick={() => setShowMore(false)}>
+            <button
+              class="kingdom-toggle"
+              data-testid="kingdom-open"
+              aria-label={t('kingdom.open')}
+              title={t('kingdom.open')}
+              disabled={aiTurn !== null}
+              onClick={() => openModal({ kind: 'kingdom' })}
+            >
+              <UiIcon id="act-kingdom" fallback="🏰" />
+              <span class="action-label">{t('kingdom.open')}</span>
+            </button>
+            <button
+              class="options-toggle"
+              data-testid="options-open"
+              aria-label={t('options.title')}
+              onClick={onOpenOptions}
+            >
+              <UiIcon id="act-options" fallback="⚙" />
+              <span class="action-label">{t('options.title')}</span>
+            </button>
+            <MuteToggle />
+          </div>
+        )}
         {canDig && hero && (
           <button
             class="dig-grail"
@@ -1457,9 +1556,24 @@ function TurnBar({ onOpenOptions }: { onOpenOptions: () => void }) {
           class="end-turn"
           data-testid="end-turn"
           title={`${t('turnBar.endTurn')} (E)`}
+          aria-label={endTurnHint ? `${t('turnBar.endTurn')} — ${endTurnHint}` : t('turnBar.endTurn')}
+          disabled={aiTurn !== null}
           onClick={requestEndTurn}
         >
-          {t('turnBar.endTurn')}
+          {aiTurn !== null ? t('turnBar.aiPlaying') : t('turnBar.endTurn')}
+          {aiTurn === null && endTurnHint && (
+            <span class="end-turn-hint" data-testid="end-turn-hint">
+              {narrow ? (
+                // Portrait étroit : forme compacte (le détail reste dans le nom accessible).
+                <>
+                  {heroesWithMoves > 0 && <><UiIcon id="act-hero" fallback="🚩" />{heroesWithMoves} </>}
+                  {townsIdle > 0 && <><UiIcon id="tab-build" fallback="⚒" />{townsIdle}</>}
+                </>
+              ) : (
+                endTurnHint
+              )}
+            </span>
+          )}
         </button>
       </div>
     </div>

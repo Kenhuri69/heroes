@@ -127,3 +127,10 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* LE-UX : annuler le dernier transfert. */
+.heroswap-undo {
+  display: block;
+  min-height: 44px;
+  margin: 8px auto 0;
+}

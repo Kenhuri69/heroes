@@ -96,6 +96,8 @@ export { attackableTargets, meleeOriginsFor };
 
 /** Ordre de passage projeté du round (lot UX M1) — bandeau d'initiative UI. */
 export { initiativeSpeed, roundActionOrder, type RoundActionOrder } from './state-helpers';
+/** Stats effectives d'une pile pour la fiche de combat (LE-UX). */
+export { effectiveStackStats } from './damage';
 
 /** Auto-combat déterministe → camp vainqueur (brique de `faction:sim`, Alpha 4.17). */
 export { simulateAutoCombat } from './simulate';

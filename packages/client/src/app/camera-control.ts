@@ -22,6 +22,16 @@ export function unregisterCamera(): void {
   registered = null;
 }
 
+/** Pan clavier (LE-UX) — no-op sans caméra enregistrée. */
+export function nudgeCamera(dx: number, dy: number): void {
+  registered?.camera.panBy(dx, dy);
+}
+
+/** Zoom clavier (LE-UX) — no-op sans caméra enregistrée. */
+export function zoomCamera(factor: number): void {
+  registered?.camera.zoomBy(factor);
+}
+
 /** Position monde qui centre la tuile (x,y) à l'écran (même formule que `centerOnHero`). */
 function targetFor(x: number, y: number, app: Application, scale: number): { x: number; y: number } {
   const c = isoTileCenter(x, y);

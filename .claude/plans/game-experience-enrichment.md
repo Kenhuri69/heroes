@@ -257,7 +257,7 @@ j28, taux de victoire humain en normal) avant LE1 et la rejouer à chaque lot IA
 | **LE5 — Neutres vivants** | F1 (division des piles) → A4 (fuite proposée, ralliement, Diplomatie) | fin du ratissage | 1 point | non | non |
 | **LE6 — Revenir dans la partie** | E1 (fuite HoMM, corrige la divergence doc/code) → B3 → E2 | comeback, supprime l'éclaireur vide | 1 point | **probable** | non |
 | **LE7 — Butin & siège** ✅ (`le7-loot-and-siege.md`) | C3 étape 1 → sets ; D3 siège avec héros visiteur | profondeur de fin de partie | 1 point (sets) | ? | non |
-| **LE-UX** (en parallèle) | ergonomie §1.3 | client seul, indépendant | non | non | non |
+| **LE-UX** ✅ (`le-ux-ergonomics.md`) | ergonomie §1.3 | client seul, indépendant | non | non | non |
 | *Reporté* | E3 (pilote après C3) | contenu ×2 | — | — | — |
 
 ## 5. Décisions — ✅ tranchées par l'utilisateur le 2026-09-29
@@ -309,3 +309,5 @@ j28, taux de victoire humain en normal) avant LE1 et la rejouer à chaque lot IA
   banque seule), artefacts qui changent une règle (`effects`), catalogue à 41 ;
   siège avec héros visiteur. Les lots LE1→LE7 sont tous livrés ; reste LE-UX et
   le report E3.
+- **2026-09-30** — **LE-UX livré** (`le-ux-ergonomics.md`) : les dix points
+  d'ergonomie du §1.3. Reste le report E3.

@@ -7,7 +7,7 @@ import {
   type HeroState,
 } from '@heroes/engine';
 import { appStore, useApp } from '../app/store';
-import { t, resolveHeroName, resolveLoc } from '../app/i18n';
+import { t, resolveHeroName, resolveLoc, resolveUnitName } from '../app/i18n';
 import { closeModalKind, openModal } from '../app/router';
 import { humanId, heroArchetype } from '../app/game';
 import { panCameraTo, DEFAULT_PAN_MS } from '../app/camera-control';
@@ -120,7 +120,12 @@ export function KingdomOverview({ onClose }: { onClose: () => void }) {
                           tn.garrison.slice(0, 7).map((s, i) => {
                             const url = unitSpriteUrl(s.unitId, game.unitCatalog[s.unitId]?.groupId);
                             return (
-                              <span key={i} class="kingdom-unit" title={`×${s.count}`}>
+                              <span
+                                key={i}
+                                class="kingdom-unit"
+                                title={`${resolveUnitName(s.unitId)} ×${s.count}`}
+                                aria-label={`${resolveUnitName(s.unitId)} ×${s.count}`}
+                              >
                                 {url ? <img src={url} alt="" width={22} height={22} /> : <span class="kingdom-unit-dot" />}
                                 <span class="kingdom-unit-count">{s.count}</span>
                               </span>

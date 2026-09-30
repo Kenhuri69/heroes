@@ -39,7 +39,10 @@ export function merchantBuyStock(game: GameState, town: TownState): string[] {
   const market = game.config?.market;
   const size = market?.artifactStockSize ?? 0;
   if (!market || market.artifactValuePerPoint === undefined || size <= 0) return [];
-  const pool = Object.keys(game.artifactCatalog).sort();
+  // Reliques (LE7 C3) jamais en vente : grandes banques seules.
+  const pool = Object.keys(game.artifactCatalog)
+    .filter((id) => !game.artifactCatalog[id]!.relic)
+    .sort();
   let rng = seedRng(hashString(town.id));
   const stock: string[] = [];
   const n = Math.min(size, pool.length);

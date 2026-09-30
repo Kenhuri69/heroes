@@ -33,6 +33,7 @@ import {
   type Campaign,
   type Scenario,
   type ScenarioObjectives,
+  RELIC_RARITY,
   type ResolvedArtifact,
   type ResolvedBuilding,
   type ResolvedSkill,
@@ -837,6 +838,10 @@ export function buildArtifactCatalog(report: LoadReport): Record<string, Resolve
       ...(a.armyMagicResistance !== undefined ? { armyMagicResistance: a.armyMagicResistance } : {}),
       ...(a.grantsStatusImmune !== undefined ? { grantsStatusImmune: a.grantsStatusImmune } : {}),
       ...(a.grantsSpellImmune !== undefined ? { grantsSpellImmune: a.grantsSpellImmune } : {}),
+      // LE7 C3 : prix marchand (jusqu'ici jamais recopié), relique, effets de règle.
+      ...(a.value !== undefined ? { value: a.value } : {}),
+      ...(a.rarity === RELIC_RARITY ? { relic: true } : {}),
+      ...(a.effects !== undefined ? { effects: a.effects } : {}),
     };
   }
   return catalog;

@@ -49,12 +49,12 @@ describe('panoplies — invariants de catalogue', () => {
     }
   });
 
-  it('la rareté (si présente) est dans les bornes 1–3', async () => {
+  it('la rareté (si présente) est dans les bornes 1–4 (4 = relique, LE7)', async () => {
     const { content } = await loadContent(readJsonFromDisk);
     for (const a of content.coreArtifacts) {
       if (a.rarity !== undefined) {
         expect(a.rarity).toBeGreaterThanOrEqual(1);
-        expect(a.rarity).toBeLessThanOrEqual(3);
+        expect(a.rarity).toBeLessThanOrEqual(4);
       }
     }
   });

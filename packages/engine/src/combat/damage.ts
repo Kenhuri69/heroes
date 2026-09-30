@@ -382,7 +382,7 @@ export function heroArmyMagicResistance(state: GameState, combat: CombatState, s
   const hero = sideLeadHero(state, combat, side);
   if (!hero) return 0;
   // Compétence Résistance (LE4/F3) : même canal que l'artefact (en % ⇒ fraction).
-  let total = heroEffectTotal(hero, state.skillCatalog, 'magicResistancePct') / 100;
+  let total = heroEffectTotal(hero, state.skillCatalog, 'magicResistancePct', state.artifactCatalog) / 100;
   for (const id of hero.artifacts) if (id) total += state.artifactCatalog[id]?.armyMagicResistance ?? 0;
   return total;
 }
@@ -423,7 +423,7 @@ function heroWarMachinePctOf(
 ): number {
   if (!hasAbility(strikerDef, 'warMachine')) return 0;
   const hero = sideLeadHero(state, combat, side);
-  return hero ? heroEffectTotal(hero, state.skillCatalog, 'warMachineDamagePct') / 100 : 0;
+  return hero ? heroEffectTotal(hero, state.skillCatalog, 'warMachineDamagePct', state.artifactCatalog) / 100 : 0;
 }
 
 /** Réduction % d'armure du héros lié au camp défenseur (compétence Armure) — fraction. */

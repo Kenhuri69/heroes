@@ -732,6 +732,21 @@ describe('LE3 — la carte qui résiste (generatorVersion 2)', () => {
     expect(banks).toBeGreaterThan(0);
   });
 
+  it('LE7 C3 : une relique (rareté 4) ne se pose jamais hors d’une grande banque', () => {
+    const artifactIds = ['common', 'rare', 'relic'];
+    const artifactRarity = { common: 1, rare: 2, relic: 4 };
+    let relics = 0;
+    for (let seed = 1; seed <= 15; seed++) {
+      const map = generateMap('relic', seed, { ...base, width: 48, height: 48, artifactIds, artifactRarity });
+      for (const o of map.objects) {
+        if (o.type !== 'artifact' || o.artifactId !== 'relic') continue;
+        relics++;
+        expect(o.guardedBy ?? '', o.id).toMatch(/^bank-/);
+      }
+    }
+    expect(relics).toBeGreaterThan(0);
+  });
+
   it('villes neutres : garnison de mi-partie (tier plafonné, bien sous la v1)', () => {
     for (let seed = 1; seed <= 10; seed++) {
       const opts = { ...base, width: 64, height: 64, townFactionIds: ['f'] };

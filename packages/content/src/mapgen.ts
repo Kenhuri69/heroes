@@ -1,4 +1,4 @@
-import type { MapFile } from './schemas';
+import { RELIC_RARITY, type MapFile } from './schemas';
 
 /**
  * Générateur de cartes aléatoires (doc 09, Phase 4 Live) — fonction PURE et
@@ -720,9 +720,11 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
   // Artefacts : récompense premium, posée en profondeur et gardée par une
   // sentinelle. Tirage GRADUÉ par la rareté (doc 18 C2, lot 3.2) : l'index dans
   // la palette triée par rareté suit la profondeur de la case, jitter ±1 seedé.
-  if (artifactIds.length > 0) {
-    const rarityOf = (id: string): number => opts.artifactRarity?.[id] ?? 1;
-    const sortedArtifacts = [...artifactIds].sort(
+  // Les reliques (LE7 C3) en sont exclues : grande banque seule (plus bas).
+  const rarityOf = (id: string): number => opts.artifactRarity?.[id] ?? 1;
+  const fieldArtifacts = artifactIds.filter((a) => rarityOf(a) < RELIC_RARITY);
+  if (fieldArtifacts.length > 0) {
+    const sortedArtifacts = [...fieldArtifacts].sort(
       (a, b) => rarityOf(a) - rarityOf(b) || (a < b ? -1 : a > b ? 1 : 0),
     );
     // Compte tiré une fois (revue 2026-08, cf. `pickupCount`).
@@ -749,7 +751,6 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
   // profondeur, coffre d'or croissant ; le 2ᵉ butin est une ressource rare
   // (petite) ou un artefact — la plus haute rareté est réservée à la grande.
   if (v2 && byTier.length > 0 && guardianDensity > 0) {
-    const rarityOf = (id: string): number => opts.artifactRarity?.[id] ?? 1;
     const maxRarity = artifactIds.length > 0 ? Math.max(...artifactIds.map(rarityOf)) : 0;
     const byRarity = (keep: (r: number) => boolean): string[] =>
       artifactIds.filter((a) => keep(rarityOf(a))).sort();

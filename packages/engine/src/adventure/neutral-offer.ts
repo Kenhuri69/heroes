@@ -34,7 +34,7 @@ function neverFlees(state: GameState, guardian: GuardianObjectDef): boolean {
  * coût de recrutement (non recrutable).
  */
 function joinCost(state: GameState, hero: HeroState, guardian: GuardianObjectDef): Record<string, number> | null {
-  const discount = Math.min(100, heroEffectTotal(hero, state.skillCatalog, 'neutralJoinDiscountPct'));
+  const discount = Math.min(100, heroEffectTotal(hero, state.skillCatalog, 'neutralJoinDiscountPct', state.artifactCatalog));
   if (discount <= 0) return null;
   const hasRoom =
     hero.army.some((s) => s.unitId === guardian.unitId) || hero.army.filter((s) => s.count > 0).length < heroArmyCap(hero);

@@ -107,7 +107,7 @@ function bombardWalls(draft: Draft, events: GameEvent[]): void {
   draft.rng = roll.state;
   // Balistique (LE4/F3) : le héros assaillant renforce la catapulte contre les remparts.
   const siegeHero = sideLeadHero(draft, combat, 'attacker');
-  const siegePct = siegeHero ? heroEffectTotal(siegeHero, draft.skillCatalog, 'siegeDamagePct') : 0;
+  const siegePct = siegeHero ? heroEffectTotal(siegeHero, draft.skillCatalog, 'siegeDamagePct', draft.artifactCatalog) : 0;
   const key = `${target.col},${target.row}`;
   const left = (hp[key] ?? 0) - Math.floor(roll.value * (1 + siegePct / 100));
   if (left <= 0) {
@@ -140,7 +140,7 @@ function applySupportTicks(draft: Draft, events: GameEvent[]): void {
     if (!supportDef) continue;
     // Premiers soins (LE4/F3) : le héros du camp renforce le soin de ses piles de soutien.
     const supportHero = sideLeadHero(draft, combat, support.side);
-    const firstAidPct = supportHero ? heroEffectTotal(supportHero, draft.skillCatalog, 'firstAidHealPct') : 0;
+    const firstAidPct = supportHero ? heroEffectTotal(supportHero, draft.skillCatalog, 'firstAidHealPct', draft.artifactCatalog) : 0;
     const healAmount = Math.floor(
       Number(supportDef.abilities.find((a) => a.id === 'healPerRound')?.params?.['amount'] ?? 0) * (1 + firstAidPct / 100),
     );

@@ -1292,6 +1292,29 @@ describe('catalogues sorts/compétences/artefacts (plan phase-3.2 lot L)', () =>
     expect(buildArtifactCatalog(report)['lame-aiguisee']?.grantsSpellImmune).toBe(true);
   });
 
+  it('LE7 C3 — buildArtifactCatalog : relique (rareté 4), effets de règle et prix', async () => {
+    const data = makeData();
+    (data['core/artifacts.json'] as { artifacts: unknown[] }).artifacts[0] = {
+      ...(makeArtifact() as Record<string, unknown>),
+      rarity: 4,
+      effects: { goldPerDay: 1000 },
+      value: 6000,
+    };
+    const report = await loadContent(reader(data));
+    expect(buildArtifactCatalog(report)['lame-aiguisee']).toMatchObject({
+      relic: true,
+      effects: { goldPerDay: 1000 },
+      value: 6000,
+    });
+  });
+
+  it('LE7 C3 — artifactSchema refuse un effet hors vocabulaire d’artefact', () => {
+    const bad = { ...(makeArtifact() as Record<string, unknown>), effects: { armySlotsBonus: 1 } };
+    expect(artifactSchema.safeParse(bad).success).toBe(false);
+    const empty = { ...(makeArtifact() as Record<string, unknown>), effects: {} };
+    expect(artifactSchema.safeParse(empty).success).toBe(false);
+  });
+
   it("R5 CO9 — rapporte (sans throw) des artefacts de départ inconnus", async () => {
     const data = makeData();
     (data['core/config.json'] as GameConfig).newGame.startingArtifacts = ['fantome'];

@@ -338,7 +338,7 @@ export function factionSpellDamageMods(
   }
   // Sorcellerie (LE4/F3, doc 02 §1.3) : bonus de dégâts des sorts du héros, sur
   // le même canal que la faction — résolution et préviz le lisent toutes deux ici.
-  if (hero) bonusPct += heroEffectTotal(hero, state.skillCatalog, 'spellDamagePct') / 100;
+  if (hero) bonusPct += heroEffectTotal(hero, state.skillCatalog, 'spellDamagePct', state.artifactCatalog) / 100;
   return { bonusPct, resistancePierce: Math.min(1, resistancePierce) };
 }
 

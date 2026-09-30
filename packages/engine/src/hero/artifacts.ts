@@ -1,5 +1,5 @@
 import type { HeroState } from '../core/state';
-import type { ArtifactDef, HeroSkillDef } from './types';
+import type { ArtifactDef, ArtifactEffectField, HeroSkillDef } from './types';
 import { heroEffectTotal } from './skills';
 
 /**
@@ -67,6 +67,22 @@ export function heroArtifactBonus(
 }
 
 /**
+ * Somme d'un effet de RÈGLE (LE7 C3) sur les artefacts équipés — le sac ne compte
+ * pas. Lue par `heroEffectTotal` et `heroGoldPerDay` (hero/skills.ts). 0 si aucun.
+ */
+export function heroArtifactEffect(
+  hero: HeroState,
+  catalog: Record<string, ArtifactDef>,
+  field: ArtifactEffectField,
+): number {
+  let total = 0;
+  for (const artifactId of hero.artifacts) {
+    if (artifactId) total += catalog[artifactId]?.effects?.[field] ?? 0;
+  }
+  return total;
+}
+
+/**
  * Sorts CASTABLES du héros (H-ARTEQUIP.2) : l'union de ses sorts appris
  * (`hero.spells`) et des sorts enseignés par les artefacts ÉQUIPÉS
  * (`grantsSpell`). Pure et sans doublon ; source unique consommée par la
@@ -96,6 +112,6 @@ export function heroManaMax(
 ): number {
   const bonus = heroArtifactBonus(hero, catalog);
   const base = (hero.attributes.knowledge + bonus.knowledge) * 10 + bonus.manaMax;
-  const pct = skillCatalog ? heroEffectTotal(hero, skillCatalog, 'manaMaxPct') : 0;
+  const pct = skillCatalog ? heroEffectTotal(hero, skillCatalog, 'manaMaxPct', catalog) : 0;
   return Math.floor(base * (1 + pct / 100));
 }

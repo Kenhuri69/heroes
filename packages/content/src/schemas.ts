@@ -684,6 +684,25 @@ export const artifactSlotSchema = z.enum([
   'misc',
 ]);
 
+/** Rareté « relique » (LE7 C3) : grande banque de créatures seule. */
+export const RELIC_RARITY = 4;
+
+/** Effets de règle d'un artefact (LE7 C3) — au moins un champ. */
+const artifactEffectsSchema = skillRankEffectSchema
+  .pick({
+    goldPerDay: true,
+    spellDamagePct: true,
+    manaMaxPct: true,
+    magicResistancePct: true,
+    manaRegenPerDay: true,
+    warMachineDamagePct: true,
+    firstAidHealPct: true,
+    siegeDamagePct: true,
+    neutralJoinDiscountPct: true,
+  })
+  .strict()
+  .refine((e) => Object.keys(e).length > 0, { message: 'effects : au moins un effet' });
+
 /** data/core/artifacts.json — forme résolue = `ArtifactDef` (engine/src/hero/types.ts). */
 export const artifactSchema = z.object({
   id: idSchema,
@@ -694,11 +713,17 @@ export const artifactSchema = z.object({
   /** Emplacement typé de la poupée (présentation client, UXD-5b) — absent ⇒ sac. */
   slot: artifactSlotSchema.optional(),
   /**
-   * Rareté 1–3 (doc 18 C2, lot 3.2) — consommée par le SEUL mapgen (placement
-   * gradué en profondeur : commun près du départ, rare au fond). Jamais
-   * sérialisée dans l'état moteur. Absent ⇒ 1 (commun).
+   * Rareté 1–4 (doc 18 C2, lot 3.2 ; LE7 C3) — le mapgen gradue le placement en
+   * profondeur (commun près du départ, rare au fond). 4 = **relique** : grande
+   * banque de créatures seule (le loader pose `relic` sur l'`ArtifactDef`
+   * moteur). Absent ⇒ 1 (commun).
    */
-  rarity: z.number().int().min(1).max(3).optional(),
+  rarity: z.number().int().min(1).max(4).optional(),
+  /**
+   * Effets de RÈGLE (LE7 C3) : vocabulaire des compétences restreint aux champs
+   * que le moteur lit sur un artefact équipé (`heroEffectTotal`, `heroGoldPerDay`).
+   */
+  effects: artifactEffectsSchema.optional(),
   /** Sort enseigné tant qu'équipé (H-ARTEQUIP.2) — id cross-validé au chargement. */
   grantsSpell: idSchema.optional(),
   /**
@@ -1690,7 +1715,7 @@ export type ArtifactSlot = z.infer<typeof artifactSlotSchema>;
 export type ArtifactCatalogFile = z.infer<typeof artifactCatalogSchema>;
 export type WarMachine = z.infer<typeof warMachineSchema>;
 /** Forme moteur — `Artifact` sans `name`/`loreKey` (affichage, hors `ArtifactDef` figé). */
-export type ResolvedArtifact = Omit<Artifact, 'name' | 'loreKey'>;
+export type ResolvedArtifact = Omit<Artifact, 'name' | 'loreKey'> & { relic?: boolean };
 export type ScenarioIndex = z.infer<typeof scenarioIndexSchema>;
 /** Forme moteur — identique à `VictoryCondition` de `engine/src/scenario/types.ts`. */
 export type VictoryCondition = z.infer<typeof victoryConditionSchema>;

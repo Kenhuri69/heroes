@@ -125,6 +125,9 @@
         "hexes": 10,
         "factor": 0.5
       },
+      "neutralSplit": {
+        "maxStacks": 5
+      },
       "suddenDeathOnline": {
         "round": 20,
         "resolution": "strongestArmy"
@@ -246,7 +249,12 @@
       "weeklyFactor": 1.1,
       "maxCount": 300
     },
-    "guardianZoneOfControl": true
+    "guardianZoneOfControl": true,
+    "neutralReactions": {
+      "fleeRatio": 3,
+      "fleeChanceFrom": 2,
+      "joinRatio": 1.5
+    }
   },
   "newGame": {
     "map": "proto-01",

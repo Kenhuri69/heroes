@@ -43,6 +43,13 @@ export interface CombatRulesConfig {
    * illimitée sans falloff (comportement historique ⇒ golden inchangé).
    */
   rangePenalty?: { hexes: number; factor: number } | undefined;
+  /**
+   * Division des piles neutres (LE5 F1, canon HoMM III) : un gardien se scinde au
+   * combat en plusieurs piles, d'autant plus nombreuses que le héros est faible
+   * face à lui (`guardianStackCount`), bornées par `maxStacks`. Absent ⇒ une
+   * seule pile (comportement historique ⇒ golden inchangé).
+   */
+  neutralSplit?: { maxStacks: number } | undefined;
   /** Moral : 4 %/point de tour bonus (ou sauté, symétrique — décision n°8). */
   moraleChancePerPoint: number;
   /** Chance : 4 %/point de dégâts doublés (doc 02 §5.3). */
@@ -212,6 +219,21 @@ export interface AdventureConfig {
    * inchangés). Cf. `guardianZone`.
    */
   guardianZoneOfControl?: boolean | undefined;
+  /**
+   * Réactions des neutres (LE5 A4, canon HoMM III) : à l'interception, un gardien
+   * dominé propose de **fuir** (rapport de force ≥ `fleeRatio` ; entre
+   * `fleeChanceFrom` et `fleeRatio`, proposition tirée au RNG seedé) ou, face à un
+   * héros doté de Diplomatie, de **rejoindre** l'armée contre or (rapport ≥
+   * `joinRatio`). Absent ⇒ tout gardien combat (fixtures/golden inchangés).
+   * Cf. `neutralOfferFor`.
+   */
+  neutralReactions?: NeutralReactionsConfig | undefined;
+}
+
+export interface NeutralReactionsConfig {
+  fleeRatio: number;
+  fleeChanceFrom: number;
+  joinRatio: number;
 }
 
 /**

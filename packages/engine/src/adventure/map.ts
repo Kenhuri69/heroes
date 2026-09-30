@@ -60,6 +60,12 @@ export interface GuardianObjectDef {
    * (comportement historique) — utile aux scénarios survival / quotidiennes.
    */
   respawnDays?: number;
+  /**
+   * Ne fuit ni ne se rallie jamais (LE5 A4) : sentinelle scénarisée. Implicite
+   * pour un gardien dont dépend un butin (`guardedBy`) ou visé par une quête
+   * `defeatGuardian` (cf. `neutralOfferFor`). Absent = réactions possibles.
+   */
+  neverFlee?: boolean;
 }
 
 /**

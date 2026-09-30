@@ -618,6 +618,7 @@ const skillRankEffectSchema = z.object({
   warMachineDamagePct: z.number().positive().optional(),
   firstAidHealPct: z.number().positive().optional(),
   siegeDamagePct: z.number().positive().optional(),
+  neutralJoinDiscountPct: z.number().positive().max(100).optional(),
 });
 
 /** data/core/skills.json (doc 02 §1.3) — exactement 3 rangs (Novice/Expert/Maître). */
@@ -885,6 +886,8 @@ export const gameConfigSchema = z.object({
           factor: z.number().positive().max(1),
         })
         .optional(),
+      /** Division des piles neutres (LE5 F1) — optionnel : absent ⇒ une pile. */
+      neutralSplit: z.object({ maxStacks: z.number().int().min(1).max(7) }).optional(),
       /**
        * Mort subite (doc 18 B4) : résolution forcée au round donné — optionnel,
        * absent ⇒ aucune borne. `suddenDeath` = règle active (auteur de scénario) ;
@@ -1018,6 +1021,15 @@ export const gameConfigSchema = z.object({
       .optional(),
     /** Zone de contrôle des gardiens (LE3 A1) — optionnel : absent ⇒ tuile seule. */
     guardianZoneOfControl: z.boolean().optional(),
+    /** Réactions des neutres (LE5 A4) — optionnel : absent ⇒ tout gardien combat. */
+    neutralReactions: z
+      .object({
+        fleeRatio: z.number().positive(),
+        fleeChanceFrom: z.number().positive(),
+        joinRatio: z.number().positive(),
+      })
+      .refine((r) => r.fleeChanceFrom <= r.fleeRatio, 'fleeChanceFrom ≤ fleeRatio')
+      .optional(),
   }),
   newGame: z.object({
     map: idSchema,
@@ -1127,6 +1139,8 @@ export const mapFileSchema = z.object({
         count: z.number().int().positive(),
         roamRadius: z.number().int().positive().optional(),
         respawnDays: z.number().int().positive().optional(),
+        /** LE5 A4 : ne fuit ni ne se rallie jamais (sentinelle scénarisée). */
+        neverFlee: z.boolean().optional(),
       }),
       /**
        * Lieu de bonus visitable (doc 02 §2.2) — effet déclaratif générique

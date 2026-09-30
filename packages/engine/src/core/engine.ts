@@ -85,6 +85,7 @@ import { heroGoldPerDay, heroMovementBonus, heroVisionRadius } from '../hero/ski
 import { sanitizeEffect } from '../hero/types';
 import { resolveTreasure } from '../adventure/treasure';
 import { resolveTriggerChoice } from '../adventure/trigger-choice';
+import { neutralChoiceAllowed, resolveNeutralOffer } from '../adventure/neutral-offer';
 import { respawnDueGuardians } from '../adventure/respawn';
 import { roamGuardians } from '../adventure/roam';
 import { evaluateOutcome, tickTownGrace } from '../scenario/outcome';
@@ -205,6 +206,7 @@ const GAME_OVER_BLOCKED = new Set<Command['type']>([
   'ChooseAttribute',
   'ResolveTreasure',
   'ResolveTriggerChoice',
+  'ResolveNeutralOffer',
   'AiTurn',
   'AddQuests',
 ]);
@@ -246,6 +248,8 @@ export function validate(state: GameState, cmd: Command): CommandError | null {
         return { code: 'treasurePending', message: 'un trésor attend son choix or/XP' };
       if (state.pendingTriggerChoice)
         return { code: 'choicePending', message: 'un message à choix attend sa réponse' };
+      if (state.pendingNeutralOffer)
+        return { code: 'choicePending', message: 'un gardien attend votre décision' };
       const hero = state.heroes.find((h) => h.id === cmd.heroId);
       if (!hero) return { code: 'unknownHero', message: `héros inconnu '${cmd.heroId}'` };
       const current = state.players[state.currentPlayer];
@@ -277,6 +281,8 @@ export function validate(state: GameState, cmd: Command): CommandError | null {
         return { code: 'treasurePending', message: 'un trésor attend son choix or/XP' };
       if (state.pendingTriggerChoice)
         return { code: 'choicePending', message: 'un message à choix attend sa réponse' };
+      if (state.pendingNeutralOffer)
+        return { code: 'choicePending', message: 'un gardien attend votre décision' };
       const current = state.players[state.currentPlayer];
       if (!current || current.id !== cmd.playerId)
         return { code: 'notYourTurn', message: `ce n’est pas le tour de ${cmd.playerId}` };
@@ -292,6 +298,8 @@ export function validate(state: GameState, cmd: Command): CommandError | null {
         return { code: 'treasurePending', message: 'un trésor attend son choix or/XP' };
       if (state.pendingTriggerChoice)
         return { code: 'choicePending', message: 'un message à choix attend sa réponse' };
+      if (state.pendingNeutralOffer)
+        return { code: 'choicePending', message: 'un gardien attend votre décision' };
       const hero = state.heroes.find((h) => h.id === cmd.heroId);
       if (!hero) return { code: 'unknownHero', message: `héros inconnu '${cmd.heroId}'` };
       const current = state.players[state.currentPlayer];
@@ -318,6 +326,8 @@ export function validate(state: GameState, cmd: Command): CommandError | null {
         return { code: 'treasurePending', message: 'un trésor attend son choix or/XP' };
       if (state.pendingTriggerChoice)
         return { code: 'choicePending', message: 'un message à choix attend sa réponse' };
+      if (state.pendingNeutralOffer)
+        return { code: 'choicePending', message: 'un gardien attend votre décision' };
       const hero = state.heroes.find((h) => h.id === cmd.heroId);
       if (!hero) return { code: 'unknownHero', message: `héros inconnu '${cmd.heroId}'` };
       const current = state.players[state.currentPlayer];
@@ -341,6 +351,8 @@ export function validate(state: GameState, cmd: Command): CommandError | null {
         return { code: 'treasurePending', message: 'un trésor attend son choix or/XP' };
       if (state.pendingTriggerChoice)
         return { code: 'choicePending', message: 'un message à choix attend sa réponse' };
+      if (state.pendingNeutralOffer)
+        return { code: 'choicePending', message: 'un gardien attend votre décision' };
       const hero = state.heroes.find((h) => h.id === cmd.heroId);
       if (!hero) return { code: 'unknownHero', message: `héros inconnu '${cmd.heroId}'` };
       const current = state.players[state.currentPlayer];
@@ -519,6 +531,16 @@ export function validate(state: GameState, cmd: Command): CommandError | null {
           code: 'invalidTarget',
           message: `le trésor en attente n’appartient pas à '${cmd.heroId}'`,
         };
+      return null;
+    }
+    case 'ResolveNeutralOffer': {
+      if (!state.started) return { code: 'gameNotStarted', message: 'la partie n’est pas démarrée' };
+      const offer = state.pendingNeutralOffer;
+      if (!offer) return { code: 'noPendingChoice', message: 'aucun gardien n’attend de décision' };
+      if (offer.heroId !== cmd.heroId)
+        return { code: 'invalidTarget', message: `la proposition en attente n’appartient pas à '${cmd.heroId}'` };
+      if (!neutralChoiceAllowed(state, offer, cmd.choice))
+        return { code: 'invalidTarget', message: `choix « ${cmd.choice} » indisponible` };
       return null;
     }
     case 'ResolveTriggerChoice': {
@@ -1046,6 +1068,10 @@ const handlers: Handlers = {
 
   ResolveTriggerChoice(draft, cmd, events) {
     resolveTriggerChoice(draft, cmd.optionIndex, events);
+  },
+
+  ResolveNeutralOffer(draft, cmd, events) {
+    resolveNeutralOffer(draft, cmd.choice, events);
   },
 
   EndTurn(draft, cmd, events) {

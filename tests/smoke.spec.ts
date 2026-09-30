@@ -100,8 +100,20 @@ async function tapTapTile(page: Page, x: number, y: number): Promise<void> {
  * TOUT combat. `'fight'` passe à la conduite manuelle (révèle `CombatUi`),
  * `'auto'` lance l'Auto-Battle (résolution déterministe immédiate).
  */
-async function passPreBattle(page: Page, mode: 'fight' | 'auto' = 'fight'): Promise<void> {
+/**
+ * Neutres vivants (LE5 A4) : un gardien dominé propose d'abord de fuir ou de
+ * rejoindre — ce helper répond « Combattre » quand la proposition s'affiche, puis
+ * attend l'écran pré-combat.
+ */
+async function reachPreBattle(page: Page): Promise<void> {
+  const offer = page.getByTestId('neutral-offer');
+  await expect(offer.or(page.getByTestId('pre-battle'))).toBeVisible();
+  if (await offer.isVisible()) await page.getByTestId('neutral-offer-fight').click();
   await expect(page.getByTestId('pre-battle')).toBeVisible();
+}
+
+async function passPreBattle(page: Page, mode: 'fight' | 'auto' = 'fight'): Promise<void> {
+  await reachPreBattle(page);
   await page.getByTestId(mode === 'auto' ? 'pre-battle-auto' : 'pre-battle-fight').click();
 }
 
@@ -986,7 +998,10 @@ test('combat : victoire contre le gardien, retour carte avec pertes appliquées'
   await expect(page.getByTestId('combat-log-lines')).toContainText(/Round/i);
   const combat = await page.evaluate(() => window.__HEROES_TEST__!.getState().combat);
   expect(combat?.playerSide).toBe('attacker');
-  expect(combat?.stacks.filter((s) => s.side === 'defender')).toHaveLength(1);
+  // Division des piles neutres (LE5 F1) : 1 à 3 piles face à un héros dominant, effectif conservé.
+  const defenders = combat?.stacks.filter((s) => s.side === 'defender') ?? [];
+  expect(defenders.length).toBeGreaterThanOrEqual(1);
+  expect(defenders.reduce((n, s) => n + s.count, 0)).toBe(4);
 
   // Amélioration UX champ de bataille : la fiche de stats d'une pile s'ouvre au
   // tap sur une vignette du bandeau (même fiche que l'appui long sur le plateau,
@@ -1125,6 +1140,32 @@ test('B6 : un tir produit un projectile visible (sprint 1)', { tag: '@core' }, a
   expect(errors).toEqual([]);
 });
 
+test('neutres vivants : un gardien dominé propose de fuir, « Laisser partir » le retire (LE5 A4)', { tag: '@core' }, async ({ page }) => {
+  const errors = await openGame(page);
+  // Même interception que le combat de gardien : 32 unités face à 4 (≥ 3×).
+  await page.evaluate(() =>
+    window.__HEROES_TEST__!.dispatch({
+      type: 'MoveHero',
+      heroId: 'hero-player-1',
+      path: [
+        { x: 4, y: 2 },
+        { x: 5, y: 2 },
+        { x: 6, y: 2 },
+        { x: 7, y: 2 },
+        { x: 8, y: 2 },
+      ],
+    }),
+  );
+  await expect(page.getByTestId('neutral-offer')).toBeVisible();
+  await expect(page.getByTestId('neutral-offer-fight')).toBeVisible();
+  await page.getByTestId('neutral-offer-release').click();
+  await expect(page.getByTestId('neutral-offer')).toHaveCount(0);
+  const state = await page.evaluate(() => window.__HEROES_TEST__!.getState());
+  expect(state.combat).toBeNull();
+  expect(state.map?.objects.some((o) => o.id === 'guard-camp')).toBe(false);
+  expect(errors).toEqual([]);
+});
+
 test('A1 : un gardien de carte est rendu comme un cluster gradué (sprint 2)', { tag: '@core' }, async ({ page }) => {
   const errors = await openGame(page);
   // Le gardien de départ (guard-camp, effectif « few » ⇒ cran solitaire) compose
@@ -1172,7 +1213,7 @@ test('écran pré-combat : puissances comparées + Auto-Battle résout (Lot 1)',
 
   // L'écran pré-combat (fidélité HoMM Online) s'affiche AVANT le plateau hex :
   // deux puissances comparées, le plateau (CombatUi) encore masqué.
-  await expect(page.getByTestId('pre-battle')).toBeVisible();
+  await reachPreBattle(page);
   await expect(page.getByTestId('combat-round')).toHaveCount(0);
   const power = (id: string): Promise<number> =>
     page.getByTestId(id).evaluate((el) => Number(el.textContent));
@@ -1231,7 +1272,7 @@ test('abandon pré-combat : renoncer garde l’armée et ne montre pas de bilan 
   );
 
   // L'écran pré-combat offre « Abandonner » (uniquement pour un combat de héros).
-  await expect(page.getByTestId('pre-battle')).toBeVisible();
+  await reachPreBattle(page);
   await page.getByTestId('pre-battle-abandon').click();
 
   // Combat quitté sans bataille : le héros survit avec son armée intacte, aucun
@@ -3648,7 +3689,7 @@ test('sort : le héros lance un sort en combat et réduit une pile ennemie', { t
   await expect(page.getByTestId('spell-preview')).toContainText(/\d/);
   // C-SPELLUI.2 : « éclair magique » est mono-cible ⇒ aucune liste de zone
   // (le cas multi-piles splash/all/chaîne est couvert par le unit test moteur
-  // combat-spell-affected — le scénario smoke n'a qu'une pile gardien).
+  // combat-spell-affected).
   await expect(page.getByTestId('spell-zone')).toHaveCount(0);
   await page.getByTestId('spell-cast').click();
 

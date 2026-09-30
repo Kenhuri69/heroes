@@ -473,6 +473,22 @@ export interface GameState {
     options: { labelKey: string; effect: SimpleTriggerEffect }[];
   };
   /**
+   * Proposition d'un gardien neutre dominé (LE5 A4) — posée à l'interception
+   * (`neutralOfferFor`), résolue par `ResolveNeutralOffer` : combattre, laisser
+   * fuir (`release`) ou rallier contre `joinCost` (Diplomatie). `MoveHero`/
+   * `EndTurn` sont refusés tant qu'elle est posée. **Optionnel non initialisé**
+   * ⇒ forme de sauvegarde et golden inchangés.
+   */
+  pendingNeutralOffer?: {
+    heroId: string;
+    playerId: string;
+    guardianObjectId: string;
+    release: boolean;
+    joinCost: Record<string, number> | null;
+    /** Coop (E4) : allié invité, repris si le joueur choisit le combat. */
+    allyHeroId?: string;
+  };
+  /**
    * Quêtes de campagne (doc 13 §6.2, N2a) — embarquées par `StartGame`, `null`
    * hors campagne (partie libre / scénario nu). Le moteur évalue des conditions
    * génériques ; il ne connaît ni texte ni dialogue.

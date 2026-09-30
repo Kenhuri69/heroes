@@ -347,6 +347,8 @@ export type Command =
   | { type: 'ResolveTreasure'; heroId: string; choice: 'gold' | 'xp' }
   // ——— Message à choix d'un trigger de carte (doc 18 A5) : option choisie ———
   | { type: 'ResolveTriggerChoice'; heroId: string; optionIndex: number }
+  // ——— Proposition d'un gardien neutre dominé (LE5 A4) : combattre, laisser fuir, rallier ———
+  | { type: 'ResolveNeutralOffer'; heroId: string; choice: 'fight' | 'release' | 'join' }
   // ——— Quêtes ajoutées en cours de partie (N-DAILYREFRESH, doc 13 §4.2) ———
   | {
       /**

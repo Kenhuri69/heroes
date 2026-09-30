@@ -1023,6 +1023,8 @@ export type ResolvedMapObject =
       roamRadius?: number;
       /** Respawn opt-in (doc 18 A2b) — absent = disparition définitive. */
       respawnDays?: number;
+      /** LE5 A4 : ne fuit ni ne se rallie jamais. */
+      neverFlee?: boolean;
     }
   | {
       id: string;
@@ -1623,6 +1625,7 @@ function resolveMap(file: MapFile): ResolvedMap {
           count: obj.count,
           ...(obj.roamRadius !== undefined ? { roamRadius: obj.roamRadius } : {}),
           ...(obj.respawnDays !== undefined ? { respawnDays: obj.respawnDays } : {}),
+          ...(obj.neverFlee !== undefined ? { neverFlee: obj.neverFlee } : {}),
         };
       if (obj.type === 'visitable')
         return { id: obj.id, type: obj.type, pos, effect: obj.effect, frequency: obj.frequency, visits: {} };

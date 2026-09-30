@@ -1,3 +1,4 @@
+import { neutralChoiceAllowed, resolveNeutralOffer } from '../adventure/neutral-offer';
 import { runAutoCombat } from '../combat/ai';
 import type { GameEvent } from '../core/events';
 import { armyStrength } from '../core/power';
@@ -774,6 +775,14 @@ function advanceAi(
     onTreasureFound: () => resolveTreasure(draft, 'gold', events),
     // L'IA résout un message à choix sur-le-champ : option 0 (déterministe, MVP).
     onTriggerChoice: () => resolveTriggerChoice(draft, 0, events),
+    // LE5 A4 : l'IA rallie un gardien quand elle peut payer, sinon elle combat
+    // (elle garde son XP de ratissage) — déterministe.
+    onNeutralOffer: () => {
+      const offer = draft.pendingNeutralOffer;
+      const join = !!offer && neutralChoiceAllowed(draft, offer, 'join');
+      resolveNeutralOffer(draft, join ? 'join' : 'fight', events);
+      if (draft.combat) runAutoCombat(draft, events);
+    },
   });
 }
 

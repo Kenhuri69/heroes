@@ -128,6 +128,7 @@ Les **probabilités de gain** par niveau sont data-driven. *État livré (H-NAME
 | Artillerie | +50/100/150 % dégâts des machines de guerre |
 | Premiers soins | +50/100/200 % soin de la tente de soins |
 | Balistique | +50/100/150 % dégâts de la catapulte aux remparts |
+| Diplomatie | les neutres dominés proposent de rejoindre l'armée à −25/50/75 % de leur coût (§2.2) |
 
 Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex. Nécromancie, cf. doc 04 ; Chasse rituelle, cf. doc 05).
 
@@ -146,7 +147,7 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 > Premiers soins (`firstAidHealPct`, soin `healPerRound`), Balistique
 > (`siegeDamagePct`, bombardement des remparts). **Reportées** : Orientation
 > (réduction de pénalité de terrain — l'API de coût de pas ne connaît pas le
-> héros) et Diplomatie (lot LE5, ralliement des neutres).
+> héros). **Diplomatie** livrée en LE5 (`neutralJoinDiscountPct`, §2.2).
 
 ### 1.4 Magie
 
@@ -433,6 +434,26 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 > libre. La prévisualisation annonce la force du gardien quand le chemin
 > s'achève dans sa zone. La règle ne vaut qu'à pied : les bateaux et les
 > caravanes l'ignorent. Un butin posé à côté d'un gardien est donc gardé de fait.
+> **Neutres vivants (lot LE5, HoMM III)** — deux règles opt-in, activées dans
+> `data/core/config.json` :
+> - **Division des piles** (`combat.neutralSplit { maxStacks: 5 }`) : au combat,
+>   le gardien se scinde en piles d'effectif égal. Leur nombre suit le rapport
+>   `r` = force du héros / force du gardien (`armyStrength`), table canon (seuils
+>   incertains) : `r` < 0,5 ⇒ 7, < 0,67 ⇒ 6, < 1 ⇒ 5, < 1,5 ⇒ 4, < 2 ⇒ 3, sinon 2 ;
+>   puis −1/0/+1 au RNG seedé, borné par `maxStacks` et l'effectif. Un héros
+>   faible affronte donc plus de piles. Sur la carte, le gardien reste une pile :
+>   ses survivants sont réadditionnés.
+> - **Fuite et ralliement** (`adventure.neutralReactions { fleeRatio: 3,
+>   fleeChanceFrom: 2, joinRatio: 1,5 }`) : à l'interception, un gardien dominé
+>   **propose** au lieu de combattre. À `r ≥ 3`, il offre de **fuir** ; entre 2 et
+>   3, l'offre est tirée au RNG seedé (probabilité linéaire). Avec **Diplomatie**
+>   et `r ≥ 1,5`, il offre de **rejoindre** l'armée contre son coût de
+>   recrutement réduit (s'il reste une pile de même unité ou un emplacement
+>   libre). Le joueur choisit : **Combattre** (toujours possible), **Laisser
+>   partir** (gardien retiré, ni XP ni butin) ou **Rallier** (or payé, pile
+>   ajoutée). Jamais d'offre d'un gardien `neverFlee` (champ de carte), dont
+>   dépend un butin (`guardedBy` : banques, trésors gardés) ou visé par une quête
+>   `defeatGuardian` active. L'IA rallie quand elle peut payer, sinon combat.
 > **M-GUARDLINK (« gardés selon rareté »)** : un objet ramassable
 > (`resource`/`treasure`/`artifact`) peut porter un champ optionnel `guardedBy`
 > = id d'un **gardien** de la carte. Tant que cette sentinelle existe, l'objet
@@ -1131,6 +1152,9 @@ threadé en `heroId` dans `CastSpell`/`HeroAttack` — sinon le lead par défaut
 > et ne vise jamais un butin qui s'y trouve ; un **gardien dominé** (marge 1,5×)
 > devient un objectif sur plusieurs jours (valeur 3), sans quoi une porte gardée
 > lui fermait la carte.
+> **Lot LE5** (`.claude/plans/le5-living-neutrals.md`) : face à une proposition de
+> neutre (§2.2), l'IA rallie la pile si elle peut payer, sinon elle combat (elle
+> garde l'XP du ratissage).
 >
 > **Fin de tour & relais IA — jamais d'échec muet (lot R0, doc 08 §3)** : la fin
 > de tour humain enchaîne les tours IA jusqu'au prochain humain. Si `EndTurn` est

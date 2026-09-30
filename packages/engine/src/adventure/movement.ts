@@ -1,4 +1,5 @@
 import { beginGuardianCombat, beginHeroCombat } from '../combat/setup';
+import { neutralOfferFor } from './neutral-offer';
 import type { GameEvent } from '../core/events';
 import { areAllies, type GameState, type HeroState, type PlayerState, type ResourceId } from '../core/state';
 import { heroVisionRadius } from '../hero/skills';
@@ -40,6 +41,12 @@ export interface AdvanceOptions {
    * interactif. L'IA d'aventure y résout le choix immédiatement (option 0).
    */
   onTriggerChoice?: () => void;
+  /**
+   * Appelé quand un gardien dominé vient de proposer de fuir ou de rejoindre
+   * (`pendingNeutralOffer` posé, LE5 A4). Le handler humain le laisse indéfini :
+   * le choix reste interactif. L'IA d'aventure y résout le choix immédiatement.
+   */
+  onNeutralOffer?: () => void;
   /**
    * Coop PvE (doc 18 E4) : héros allié invité à rejoindre un combat de GARDIEN
    * déclenché par ce déplacement. Passé tel quel à `beginGuardianCombat`, qui
@@ -123,6 +130,15 @@ export function advanceHeroAlongPath(
       const aimed = next ? objectsAt.get(tileKey(next))?.find((o) => o.type === 'guardian') : undefined;
       const targetId = guardian?.id ?? (aimed && zoneIds!.includes(aimed.id) ? aimed.id : zoneIds![0]!);
       hero.movementPoints -= cost;
+      // LE5 A4 : un gardien dominé propose d'abord de fuir ou de rejoindre.
+      const target = map.objects.find((o) => o.id === targetId);
+      const offer = target?.type === 'guardian' ? neutralOfferFor(draft, hero, target, options.allyHeroId) : null;
+      if (offer) {
+        draft.pendingNeutralOffer = offer;
+        events.push({ type: 'NeutralOfferMade', heroId: hero.id, playerId: player.id, objectId: targetId });
+        options.onNeutralOffer?.();
+        return;
+      }
       beginGuardianCombat(draft, hero.id, targetId, events, options.allyHeroId);
       options.onCombatEngaged?.();
       return;

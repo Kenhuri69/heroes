@@ -22,7 +22,12 @@ export function forcedOverlayOpen(s: AppState): boolean {
     return true;
   }
   // Choix forcés du joueur actif (compétence/attribut, trésor, trigger).
-  if (game.pendingTreasure?.playerId === active.id || game.pendingTriggerChoice?.playerId === active.id) return true;
+  if (
+    game.pendingTreasure?.playerId === active.id ||
+    game.pendingTriggerChoice?.playerId === active.id ||
+    game.pendingNeutralOffer?.playerId === active.id
+  )
+    return true;
   if (
     game.heroes.some(
       (h) => h.playerId === active.id && (h.pendingSkillChoices.length > 0 || h.pendingAttributeChoices.length > 0),

@@ -164,7 +164,9 @@ export interface SkillRankEffect {
    * quand la mana est persistante ; `warMachineDamagePct` (Artillerie) — % de
    * dégâts des machines de guerre du camp ; `firstAidHealPct` (Premiers soins) —
    * % de soin des piles `healPerRound` du camp ; `siegeDamagePct` (Balistique) —
-   * % de dégâts de la catapulte aux remparts.
+   * % de dégâts de la catapulte aux remparts ; `neutralJoinDiscountPct`
+   * (Diplomatie, LE5 A4) — les neutres dominés proposent de rejoindre l'armée,
+   * à leur coût de recrutement réduit de ce %.
    */
   spellDamagePct?: number;
   manaMaxPct?: number;
@@ -173,6 +175,7 @@ export interface SkillRankEffect {
   warMachineDamagePct?: number;
   firstAidHealPct?: number;
   siegeDamagePct?: number;
+  neutralJoinDiscountPct?: number;
   /**
    * Perk structurel Might (doc 18 C1, lot 3.1 — signature MMHO) : slots d'armée
    * SUPPLÉMENTAIRES au-delà des 7 de base (`heroArmyCap`). Porté par

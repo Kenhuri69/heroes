@@ -1,6 +1,7 @@
 import { isAdjacent, terrainAt } from '../adventure/map';
 import type { CommandError } from '../core/commands';
 import type { GameEvent } from '../core/events';
+import { armyStrength } from '../core/power';
 import { rollRange } from '../core/rng';
 import { areAllies, type GameState, type HeroState } from '../core/state';
 import { heroManaMax } from '../hero/artifacts';
@@ -400,6 +401,40 @@ function engageCoopAlly(
   events.push({ type: 'AllyJoinedCombat', heroId, allyHeroId: ally.id });
 }
 
+/**
+ * Nombre de piles d'un gardien neutre (LE5 F1, table canon HoMM III — seuils de
+ * wiki, incertains) selon `ratio` = force du héros / force du gardien : plus le
+ * héros est faible, plus le gardien se divise. `jitter` (−1, 0 ou +1) vient du
+ * RNG seedé. Borné à `[1, min(maxStacks, count)]`. Pur, exporté pour les tests.
+ */
+export function guardianStackCount(ratio: number, maxStacks: number, count: number, jitter: number): number {
+  const base = ratio < 0.5 ? 7 : ratio < 0.67 ? 6 : ratio < 1 ? 5 : ratio < 1.5 ? 4 : ratio < 2 ? 3 : 2;
+  return Math.max(1, Math.min(base + jitter, maxStacks, count));
+}
+
+/**
+ * Piles défenseures d'un gardien : une seule sans `neutralSplit`, sinon
+ * `guardianStackCount` piles d'effectif égal (le reste sur les premières).
+ * Consomme le RNG seedé uniquement quand la règle est active.
+ */
+function splitGuardian(
+  draft: Draft,
+  split: { maxStacks: number } | undefined,
+  heroArmy: ArmyStack[],
+  unitId: string,
+  count: number,
+): ArmyStack[] {
+  if (!split) return [{ unitId, count }];
+  const guardianPower = armyStrength([{ unitId, count }], draft.unitCatalog);
+  const ratio = guardianPower > 0 ? armyStrength(heroArmy, draft.unitCatalog) / guardianPower : 1;
+  const roll = rollRange(draft.rng, -1, 1);
+  draft.rng = roll.state;
+  const k = guardianStackCount(ratio, split.maxStacks, count, roll.value);
+  const each = Math.floor(count / k);
+  const extra = count % k;
+  return Array.from({ length: k }, (_, i) => ({ unitId, count: each + (i < extra ? 1 : 0) }));
+}
+
 export function beginGuardianCombat(
   draft: Draft,
   heroId: string,
@@ -424,7 +459,7 @@ export function beginGuardianCombat(
   // B5 : armée vide ⇒ refus d'engager (garde-fou parallèle au validateur humain,
   // remédiation R1 E1) — un héros sans troupe ne déclenche pas de combat de gardien.
   if (attacker.length === 0) return;
-  const defender: ArmyStack[] = [{ unitId: guardian.unitId, count: guardian.count }];
+  const defender = splitGuardian(draft, rules.neutralSplit, capped, guardian.unitId, guardian.count);
   const attackerStacks = placeSide('attacker', attacker, draft.unitCatalog, 0);
   tagCoopOwners(attackerStacks, cappedOwners);
   engageCoopAlly(ally, engagedAllyCount, heroId, events);

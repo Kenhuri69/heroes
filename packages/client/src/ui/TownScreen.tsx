@@ -19,8 +19,9 @@ import {
   weeklyGrowthOf,
   samePos,
 } from '@heroes/engine';
-import type { BuildingDef, CombatUnitDef, GameEvent, GameState, GridPos, ResourceId, TownState } from '@heroes/engine';
+import type { ArmyStack, BuildingDef, CombatUnitDef, GameEvent, GameState, GridPos, ResourceId, TownState } from '@heroes/engine';
 import { useApp, appStore } from '../app/store';
+import { reverseArmySlot } from '../app/transfer-undo';
 import { dispatch } from '../app/dispatch';
 import { useLongPress } from './useLongPress';
 import { heroArchetype, humanId, thievesGuildRank, thievesGuildRows } from '../app/game';
@@ -1173,8 +1174,16 @@ function RecruitTab({
   };
 
   const plan = recruitAllPlan();
+  // LE-UX : « Tout recruter » montre d'abord ce qu'il achète et pour combien.
+  const [confirmAll, setConfirmAll] = useState(false);
+  const planCost: Record<string, number> = {};
+  for (const { unitId, count } of plan) {
+    const cost = (unitCatalog[unitId] as (CombatUnitDef & UnitEconomyFields) | undefined)?.recruitCost ?? {};
+    for (const [res, amount] of Object.entries(scaleCost(cost, count))) planCost[res] = (planCost[res] ?? 0) + amount;
+  }
   const recruitAll = (): void => {
     onError(null);
+    setConfirmAll(false);
     for (const { unitId, count } of plan) recruit(unitId, count);
   };
 
@@ -1206,10 +1215,33 @@ function RecruitTab({
           class="town-recruit-all"
           data-testid="town-recruit-all"
           disabled={plan.length === 0}
-          onClick={recruitAll}
+          aria-expanded={confirmAll}
+          onClick={() => setConfirmAll(!confirmAll)}
         >
           {t('town.recruitAll')}
         </button>
+      )}
+      {confirmAll && plan.length > 0 && (
+        <div class="town-recruit-all-preview" data-testid="town-recruit-all-preview">
+          <ul>
+            {plan.map(({ unitId, count }) => (
+              <li key={unitId}>
+                {formatNumber(count)} × {resolveUnitName(unitId)}
+              </li>
+            ))}
+          </ul>
+          <div class="town-recruit-all-total">
+            {t('town.recruitAllTotal')} <CostList cost={planCost} />
+          </div>
+          <div class="town-recruit-all-actions">
+            <button data-testid="town-recruit-all-confirm" onClick={recruitAll}>
+              {t('town.recruitAllConfirm')}
+            </button>
+            <button data-testid="town-recruit-all-cancel" onClick={() => setConfirmAll(false)}>
+              {t('town.recruitAllCancel')}
+            </button>
+          </div>
+        </div>
       )}
       <ul class="town-dwelling-list">
         {unitIds.map((unitId) => {
@@ -1300,18 +1332,54 @@ function GarrisonTab({ town, onError }: { town: TownState; onError: (msg: string
   const destId = caravanDest || otherTowns[0]?.id || '';
   const myCaravans = game.caravans.filter((c) => c.playerId === humanPlayerId);
 
+  // LE-UX : retour arrière exact du dernier transfert (cf. `reverseArmySlot`).
+  const [undo, setUndo] = useState<{ from: 'town' | 'hero'; slot: number; index: number } | null>(null);
+  const sides = (): { town: ArmyStack[]; hero: ArmyStack[] } | null => {
+    const g = appStore.getState().game;
+    const tw = g.towns.find((x) => x.id === town.id);
+    const h = hero ? g.heroes.find((x) => x.id === hero.id) : undefined;
+    return tw && h ? { town: tw.garrison, hero: h.army } : null;
+  };
+
   const transfer = (from: 'town' | 'hero', slot: number): void => {
     if (!hero) return;
     onError(null);
-    dispatch({ type: 'GarrisonTransfer', townId: town.id, heroId: hero.id, from, slot }).catch((err: unknown) => {
-      onError(commandErrorMessage(err)); // remédiation CL6 : message localisé, plus « code: message » brut
-    });
+    setUndo(null);
+    const before = sides();
+    dispatch({ type: 'GarrisonTransfer', townId: town.id, heroId: hero.id, from, slot })
+      .then(() => {
+        const after = sides();
+        if (!before || !after) return;
+        const to = from === 'town' ? 'hero' : 'town';
+        const back = reverseArmySlot(before[from], after[from], before[to], after[to]);
+        if (back) setUndo({ from: to, slot: back.slot, index: back.index });
+      })
+      .catch((err: unknown) => {
+        onError(commandErrorMessage(err)); // remédiation CL6 : message localisé, plus « code: message » brut
+      });
+  };
+
+  const undoLast = async (): Promise<void> => {
+    if (!undo || !hero) return;
+    setUndo(null);
+    onError(null);
+    try {
+      await dispatch({ type: 'GarrisonTransfer', townId: town.id, heroId: hero.id, from: undo.from, slot: undo.slot });
+      // Revenue au héros, la pile est en fin d'armée : on la remet à sa place.
+      const last = (sides()?.hero.length ?? 0) - 1;
+      if (undo.from === 'town' && last !== undo.index) {
+        await dispatch({ type: 'ReorderArmy', heroId: hero.id, from: last, to: undo.index });
+      }
+    } catch (err) {
+      onError(commandErrorMessage(err));
+    }
   };
 
   // E5 : « tout transférer » d'un côté à l'autre en UN geste. Boucle sur l'état
   // FRAIS (transfère la 1ʳᵉ pile restante à chaque tour — évite le bug « lecture
   // d'état périmé » de HeroSwap B14) ; s'arrête sur erreur (ex. destination pleine).
   const transferAll = async (from: 'town' | 'hero'): Promise<void> => {
+    setUndo(null);
     if (!hero) return;
     onError(null);
     for (let guard = 0; guard < GARRISON_SLOTS * 2; guard++) {
@@ -1384,6 +1452,11 @@ function GarrisonTab({ town, onError }: { town: TownState; onError: (msg: string
           >
             {t('town.allToTown')}
           </button>
+          {undo && (
+            <button data-testid="garrison-undo" onClick={() => void undoLast()}>
+              {t('transfer.undo')}
+            </button>
+          )}
         </div>
       )}
       <div class="town-garrison-columns">

@@ -919,3 +919,27 @@ button[data-testid='market-trade'] {
   top: 0;
   z-index: 2;
 }
+
+/* LE-UX : aperçu de « Tout recruter » avant confirmation. */
+.town-recruit-all-preview {
+  margin: 6px 0 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--ink-600);
+  border-radius: var(--radius-m);
+}
+
+.town-recruit-all-preview ul {
+  margin: 0 0 6px;
+  padding-left: 18px;
+}
+
+.town-recruit-all-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.town-recruit-all-actions button {
+  min-height: 44px;
+  flex: 1;
+}

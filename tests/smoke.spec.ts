@@ -3444,6 +3444,9 @@ test('ville : en-tête revenu/croissance (C21) + « Tout recruter » (C19) (lot 
   await expect(page.getByTestId('town-growth-t1-recruit')).toContainText('/sem');
   await expect(page.getByTestId('town-growth-t1-recruit')).toContainText('max');
   await page.getByTestId('town-recruit-all').click();
+  // LE-UX : aperçu (effectifs + coût total) à confirmer.
+  await expect(page.getByTestId('town-recruit-all-preview')).toBeVisible();
+  await page.getByTestId('town-recruit-all-confirm').click();
   await expect
     .poll(() => page.evaluate(() => window.__HEROES_TEST__!.getState().players[0]!.resources.gold))
     .toBeLessThan(goldBefore); // de l'or a été dépensé

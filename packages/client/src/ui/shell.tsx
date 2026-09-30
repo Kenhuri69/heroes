@@ -1269,6 +1269,14 @@ function TurnBar({ onOpenOptions }: { onOpenOptions: () => void }) {
   const aiTurn = useApp((s) => s.aiTurn);
   // E4 : nombre de héros encore mobiles (badge du bouton « héros suivant »).
   const heroesWithMoves = humanHeroes(game).filter((h) => h.movementPoints > 0).length;
+  // LE-UX : fin de tour renseignée — ce qui reste à jouer ce tour-ci.
+  const townsIdle = towns.filter((tn) => !tn.builtToday).length;
+  const endTurnHint = [
+    heroesWithMoves > 0 ? t('turnBar.heroesLeft', { n: heroesWithMoves }) : '',
+    townsIdle > 0 ? t('turnBar.townsIdle', { n: townsIdle }) : '',
+  ]
+    .filter(Boolean)
+    .join(' · ');
   // Fouille du Graal (T-GRAIL lot 2) : bouton visible seulement quand le héros
   // sélectionné du joueur humain est sur la tuile du Graal RÉVÉLÉE (tous les
   // obélisques visités) et que le joueur ne possède pas encore le Graal.
@@ -1458,9 +1466,16 @@ function TurnBar({ onOpenOptions }: { onOpenOptions: () => void }) {
           class="end-turn"
           data-testid="end-turn"
           title={`${t('turnBar.endTurn')} (E)`}
+          aria-label={endTurnHint ? `${t('turnBar.endTurn')} — ${endTurnHint}` : t('turnBar.endTurn')}
+          disabled={aiTurn !== null}
           onClick={requestEndTurn}
         >
-          {t('turnBar.endTurn')}
+          {aiTurn !== null ? t('turnBar.aiPlaying') : t('turnBar.endTurn')}
+          {aiTurn === null && endTurnHint && (
+            <span class="end-turn-hint" data-testid="end-turn-hint">
+              {endTurnHint}
+            </span>
+          )}
         </button>
       </div>
     </div>

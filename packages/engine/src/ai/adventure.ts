@@ -9,6 +9,7 @@ import { resolveTriggerChoice } from '../adventure/trigger-choice';
 import { DIRECTIONS, atLevel, inBounds, isAdjacent, levelOf, samePos, tileIndex, type GridPos } from '../adventure/map';
 import { isInPlayerVision } from '../adventure/vision';
 import { findPath, isPassable, minStepCost, octileLowerBound, stepCost } from '../adventure/path';
+import { guardianZone } from '../adventure/zone-of-control';
 import { heroArmyCap } from '../hero/skills';
 import { validateEquipArtifact, handleEquipArtifact } from '../hero/equip';
 import { validateCastAdventureSpell, handleCastAdventureSpell } from '../hero';
@@ -203,6 +204,8 @@ function pickGuardianTarget(
   player: PlayerState,
   blocked: GridPos[],
   guardianPos: GridPos[],
+  /** Tuiles de zone de contrôle (LE3 A1) et gardiens qui les tiennent. */
+  zoneTiles: { pos: GridPos; ids: string[] }[],
   minStep: number,
 ): PathTarget | null {
   const { map, config, unitCatalog } = draft;
@@ -220,7 +223,11 @@ function pickGuardianTarget(
     if (octileLowerBound(minStep, hero.pos, obj.pos) > hero.movementPoints) continue;
     // Bloque les AUTRES gardiens (pas la cible) : on ne traverse pas un gardien
     // non ciblé pour en atteindre un autre.
-    const pathBlocked = [...blocked, ...guardianPos.filter((p) => !samePos(p, obj.pos))];
+    const pathBlocked = [
+      ...blocked,
+      ...guardianPos.filter((p) => !samePos(p, obj.pos)),
+      ...zoneTiles.filter((z) => !z.ids.includes(obj.id)).map((z) => z.pos),
+    ];
     const path = findPath(config, map, hero.pos, obj.pos, pathBlocked, false, hero.movementPoints); // F7
     if (!path) continue;
     const cost = totalPathCost(config, map, hero.pos, path);
@@ -537,7 +544,7 @@ const MULTI_DAY_HORIZON_DAYS = 3;
  * une ville lointaine. La probabilité de victoire est un FILTRE (marge 1,5×, même
  * seuil que pour les héros ennemis), pas un facteur du score.
  */
-const MULTI_DAY_VALUE = { town: 10, garrison: 6, mine: 4 } as const;
+const MULTI_DAY_VALUE = { town: 10, garrison: 6, mine: 4, guardian: 3 } as const;
 
 /**
  * LE1/B1 — le meilleur objectif à ≤ `MULTI_DAY_HORIZON_DAYS` jours de marche,
@@ -558,6 +565,8 @@ function pickMultiDayObjective(
   minStep: number,
   /** `'reinforce'` : seul le retour vers une garnison au moins aussi forte que l'armée. */
   only?: 'reinforce',
+  /** Tuiles de zone de contrôle (LE3 A1) : celles du gardien visé redeviennent libres. */
+  zoneTiles: { pos: GridPos; ids: string[] }[] = [],
 ): { path: GridPos[]; town: TownState | null } | null {
   const { map, config, unitCatalog } = draft;
   if (!map || !config) return null;
@@ -568,10 +577,17 @@ function pickMultiDayObjective(
   const budget = daily * MULTI_DAY_HORIZON_DAYS;
   const presentObjectIds = new Set(map.objects.map((o) => o.id));
   let best: { path: GridPos[]; town: TownState | null; score: number; id: string } | null = null;
-  const consider = (goal: GridPos, value: number, id: string, town: TownState | null): void => {
+  const consider = (
+    goal: GridPos,
+    value: number,
+    id: string,
+    town: TownState | null,
+    freed: readonly GridPos[] = [],
+  ): void => {
     if (levelOf(goal) !== levelOf(hero.pos) || samePos(goal, hero.pos)) return;
     if (octileLowerBound(minStep, hero.pos, goal) > budget) return;
-    const path = findPath(config, map, hero.pos, goal, blocked.filter((p) => !samePos(p, goal)), true, budget);
+    const pathBlocked = blocked.filter((p) => !samePos(p, goal) && !freed.some((f) => samePos(f, p)));
+    const path = findPath(config, map, hero.pos, goal, pathBlocked, true, budget);
     if (!path || path.length === 0) return;
     const cost = totalPathCost(config, map, hero.pos, path);
     if (cost > budget) return;
@@ -599,6 +615,15 @@ function pickMultiDayObjective(
     if (obj.type !== 'mine' || player.explored[tileIndex(map, obj.pos)] === 0) continue;
     if (!isCollectible(draft, obj, hero, player, presentObjectIds)) continue;
     consider(obj.pos, MULTI_DAY_VALUE.mine, obj.id, null);
+  }
+  // LE3 (avis expert sur B1) : un gardien dominé — souvent celui d'un goulot —
+  // est un objectif en soi ; sans lui, une porte gardée fermait la carte à l'IA.
+  for (const obj of only ? [] : map.objects) {
+    if (obj.type !== 'guardian' || player.explored[tileIndex(map, obj.pos)] === 0) continue;
+    const guardStrength = armyStrength([{ unitId: obj.unitId, count: obj.count }], unitCatalog);
+    if (guardStrength <= 0 || heroStrength < GUARDIAN_STRENGTH_MARGIN * guardStrength) continue;
+    const freed = zoneTiles.filter((z) => z.ids.includes(obj.id)).map((z) => z.pos);
+    consider(obj.pos, MULTI_DAY_VALUE.guardian, obj.id, null, freed);
   }
   return best;
 }
@@ -772,6 +797,13 @@ function playHeroTurn(draft: GameState, hero: HeroState, player: PlayerState, ev
   // B5 : les gardiens NON ciblés sont des obstacles de pathfinding — l'IA ne route
   // pas au travers (sinon interceptions non planifiées à marge < 1,5×).
   const guardianPos = draft.map.objects.filter((o) => o.type === 'guardian').map((o) => o.pos);
+  // LE3 A1 : la zone de contrôle d'un gardien non ciblé est un obstacle au même
+  // titre que lui — y finir un chemin l'engagerait quand même.
+  const zoneTiles = [...(guardianZone(draft.config, draft.map, levelOf(hero.pos)) ?? [])].map(([k, ids]) => ({
+    pos: atLevel({ x: k % draft.map!.width, y: Math.floor(k / draft.map!.width) }, levelOf(hero.pos)),
+    ids,
+  }));
+  const obstacles = [...guardianPos, ...zoneTiles.map((z) => z.pos)];
   // Coût de pas minimal de la carte, calculé UNE fois : sert de borne inférieure
   // O(1) aux pré-filtres des pickers pour écarter les cibles hors de portée du
   // jour AVANT tout A* — évite le fan-out `O(cibles × A*)` qui gelait l'onglet
@@ -779,20 +811,20 @@ function playHeroTurn(draft: GameState, hero: HeroState, player: PlayerState, ev
   const minStep = minStepCost(draft.config);
 
   // Priorité 0 : une ville à moi va tomber — rien ne passe avant.
-  const defense = pickTownDefenseTarget(draft, hero, player, [...blocked, ...guardianPos], minStep);
+  const defense = pickTownDefenseTarget(draft, hero, player, [...blocked, ...obstacles], minStep);
   if (defense) {
     advanceAi(draft, hero, player, defense.path, events);
     return;
   }
 
   // LE1/B1 : une garnison au moins aussi forte que l'armée rappelle le héros.
-  const recall = pickMultiDayObjective(draft, hero, player, [...blocked, ...guardianPos], minStep, 'reinforce');
+  const recall = pickMultiDayObjective(draft, hero, player, [...blocked, ...obstacles], minStep, 'reinforce');
   if (recall) {
     advanceAi(draft, hero, player, recall.path, events);
     return;
   }
 
-  const resource = pickResourceTarget(draft, hero, player, [...blocked, ...guardianPos], minStep);
+  const resource = pickResourceTarget(draft, hero, player, [...blocked, ...obstacles], minStep);
   if (resource) {
     advanceAi(draft, hero, player, resource.path, events);
     return;
@@ -801,7 +833,7 @@ function playHeroTurn(draft: GameState, hero: HeroState, player: PlayerState, ev
   // Le Graal révélé vaut mieux qu'un gardien : le bâtiment qu'il ouvre pèse sur
   // toute la partie. Le déplacement y mène, la fouille suit (au tour d'après si
   // le voyage a mangé tous les PM).
-  const grail = pickGrailTarget(draft, hero, player, [...blocked, ...guardianPos], minStep);
+  const grail = pickGrailTarget(draft, hero, player, [...blocked, ...obstacles], minStep);
   if (grail) {
     advanceAi(draft, hero, player, grail.path, events);
     tryDigGrail(draft, hero, player, events);
@@ -809,20 +841,20 @@ function playHeroTurn(draft: GameState, hero: HeroState, player: PlayerState, ev
   }
 
   // Priorité 2 (H-VS-H) : marcher sur un héros ennemi battable ⇒ combat auto.
-  const enemyHero = pickEnemyHeroTarget(draft, hero, player, [...blocked, ...guardianPos], minStep);
+  const enemyHero = pickEnemyHeroTarget(draft, hero, player, [...blocked, ...obstacles], minStep);
   if (enemyHero) {
     advanceAi(draft, hero, player, enemyHero.path, events);
     return;
   }
 
   // Priorité 3 : rentrer chercher la garnison qui s'accumule dans ma ville.
-  const pickup = pickGarrisonPickupTarget(draft, hero, player, [...blocked, ...guardianPos], minStep);
+  const pickup = pickGarrisonPickupTarget(draft, hero, player, [...blocked, ...obstacles], minStep);
   if (pickup) {
     advanceAi(draft, hero, player, pickup.path, events);
     return;
   }
 
-  const guardian = pickGuardianTarget(draft, hero, player, blocked, guardianPos, minStep);
+  const guardian = pickGuardianTarget(draft, hero, player, blocked, guardianPos, zoneTiles, minStep);
   if (guardian) {
     advanceAi(draft, hero, player, guardian.path, events);
     return;
@@ -838,7 +870,7 @@ function playHeroTurn(draft: GameState, hero: HeroState, player: PlayerState, ev
   // que ce qu'elle a exploré (B31). Vision/Cartographie ouvrent le brouillard, et
   // on redonne UNE chance au ramassage avant de se rabattre sur l'exploration.
   if (tryCastAdventureSpell(draft, hero, player, ['vision', 'revealMap'], events)) {
-    const revealed = pickResourceTarget(draft, hero, player, [...blocked, ...guardianPos], minStep);
+    const revealed = pickResourceTarget(draft, hero, player, [...blocked, ...obstacles], minStep);
     if (revealed) {
       advanceAi(draft, hero, player, revealed.path, events);
       return;
@@ -847,14 +879,14 @@ function playHeroTurn(draft: GameState, hero: HeroState, player: PlayerState, ev
 
   // LE1/B1 : un objectif à quelques jours (ville prenable, mine) passe AVANT
   // l'exploration — c'est ce qui met la pression dès la mi-partie.
-  const objective = pickMultiDayObjective(draft, hero, player, [...blocked, ...guardianPos], minStep);
+  const objective = pickMultiDayObjective(draft, hero, player, [...blocked, ...obstacles], minStep, undefined, zoneTiles);
   if (objective) {
     if (objective.town) marchOnTown(draft, hero, player, objective.town, objective.path, events);
     else advanceAi(draft, hero, player, objective.path, events);
     return;
   }
 
-  const exploreStep = pickExplorationStep(draft, hero, player, [...blocked, ...guardianPos]);
+  const exploreStep = pickExplorationStep(draft, hero, player, [...blocked, ...obstacles]);
   if (exploreStep) {
     advanceAi(draft, hero, player, exploreStep, events);
     return;
@@ -862,7 +894,7 @@ function playHeroTurn(draft: GameState, hero: HeroState, player: PlayerState, ev
 
   // M6 : plus rien à explorer ⇒ marcher (sur plusieurs jours) vers une ville
   // adverse prenable, s'arrêter à côté, puis l'assiéger/la prendre une fois au contact.
-  const march = pickTownMarchTarget(draft, hero, player, [...blocked, ...guardianPos]);
+  const march = pickTownMarchTarget(draft, hero, player, [...blocked, ...obstacles]);
   if (!march) return;
   marchOnTown(draft, hero, player, march.town, march.path, events);
 }

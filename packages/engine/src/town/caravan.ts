@@ -16,7 +16,7 @@ const MAX_STACKS = 7;
 /** Durée de trajet en jours entre deux tuiles, ou `null` si aucun chemin terrestre. */
 function travelDays(state: GameState, from: GameState['towns'][number], to: GameState['towns'][number]): number | null {
   if (!state.config || !state.map) return null;
-  const path = findPath(state.config, state.map, from.pos, to.pos);
+  const path = findPath(state.config, state.map, from.pos, to.pos, [], false, Infinity, false, false);
   if (!path) return null;
   let cost = 0;
   let prev = from.pos;

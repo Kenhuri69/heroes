@@ -5,10 +5,11 @@ import { heroVisionRadius } from '../hero/skills';
 import { learnGuildSpellsAtTown } from '../town/mage-guild';
 import { revealAround } from './fog';
 import { revealStructure } from './vision';
-import { samePos, tileIndex, type GridPos } from './map';
+import { levelOf, samePos, tileIndex, type GridPos } from './map';
 import { stepCost } from './path';
 import { fireFlagCaptureTrigger, fireVisitTrigger } from './triggers';
 import { recruitDwelling, visitBonus } from './visitable';
+import { guardianZone } from './zone-of-control';
 import { grantArtifact } from '../hero/equip';
 
 /** Le propriétaire (id ou null) d'une structure de carte est-il un ALLIÉ du joueur ? (B26) */
@@ -104,14 +105,24 @@ export function advanceHeroAlongPath(
     if (bucket && bi !== -1) bucket.splice(bi, 1);
     objectIds.delete(o.id);
   };
-  for (const step of path) {
+  // Zone de contrôle (LE3 A1) : calculée une fois — un gardien ne disparaît
+  // qu'au combat, qui clôt le déplacement ; un téléport l'interrompt aussi.
+  const zone = hero.naval ? null : guardianZone(config, map, levelOf(hero.pos));
+  for (const [i, step] of path.entries()) {
     // Domaine du héros (A3) : coût terrestre ou naval selon `hero.naval`.
     const cost = stepCost(config, map, hero.pos, step, hero.naval);
     if (cost > hero.movementPoints) break;
     const guardian = objectsAt.get(tileKey(step))?.find((o) => o.type === 'guardian');
-    if (guardian) {
+    // A1 : un pas dans la zone d'un gardien est une interception, comme un pas
+    // sur lui — le héros paie le pas et n'entre pas. Il combat le gardien que
+    // son chemin visait (pas suivant), sinon le premier par id.
+    const zoneIds = guardian ? undefined : zone?.get(step.y * map.width + step.x);
+    if (guardian || zoneIds) {
+      const next = path[i + 1];
+      const aimed = next ? objectsAt.get(tileKey(next))?.find((o) => o.type === 'guardian') : undefined;
+      const targetId = guardian?.id ?? (aimed && zoneIds!.includes(aimed.id) ? aimed.id : zoneIds![0]!);
       hero.movementPoints -= cost;
-      beginGuardianCombat(draft, hero.id, guardian.id, events, options.allyHeroId);
+      beginGuardianCombat(draft, hero.id, targetId, events, options.allyHeroId);
       options.onCombatEngaged?.();
       return;
     }

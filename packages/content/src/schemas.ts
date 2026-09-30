@@ -984,6 +984,8 @@ export const gameConfigSchema = z.object({
         maxCount: z.number().int().positive(),
       })
       .optional(),
+    /** Zone de contrôle des gardiens (LE3 A1) — optionnel : absent ⇒ tuile seule. */
+    guardianZoneOfControl: z.boolean().optional(),
   }),
   newGame: z.object({
     map: idSchema,

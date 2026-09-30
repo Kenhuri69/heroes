@@ -372,6 +372,17 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 > attente). Un **gardien** intercepte : le héros paie le pas d'engagement mais
 > **n'entre pas** sur la tuile du gardien ; le combat s'ouvre, et le gardien
 > doit être le dernier pas atteint (le parcours s'arrête à l'interception).
+> **Zone de contrôle (lot LE3 A1, HoMM II/III)** : avec
+> `adventure.guardianZoneOfControl` (activée dans `data/core/config.json` ;
+> absente ⇒ un gardien n'occupe que sa tuile), les **8 voisines** d'un gardien
+> (même couche) interceptent aussi. Un pas vers l'une d'elles ouvre le combat :
+> le héros paie le pas mais n'entre pas. Il combat le gardien que son chemin
+> visait (pas suivant), sinon le premier par id : plusieurs gardiens au bord
+> donnent **un seul** combat. L'A\* peut **s'arrêter** dans une zone, mais il ne
+> la traverse pas : seul un pas vers le but en repart, et la case de départ reste
+> libre. La prévisualisation annonce la force du gardien quand le chemin
+> s'achève dans sa zone. La règle ne vaut qu'à pied : les bateaux et les
+> caravanes l'ignorent. Un butin posé à côté d'un gardien est donc gardé de fait.
 > **M-GUARDLINK (« gardés selon rareté »)** : un objet ramassable
 > (`resource`/`treasure`/`artifact`) peut porter un champ optionnel `guardedBy`
 > = id d'un **gardien** de la carte. Tant que cette sentinelle existe, l'objet
@@ -393,6 +404,30 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 > (~4 → ~40) croissent avec cette profondeur : faibles autour des départs,
 > forts vers le centre. Générique et faction-agnostique (aucun cas particulier
 > de faction).
+> **Générateur v2 (lot LE3 A2/A3)** : `generateMap` prend l'option
+> `generatorVersion` (défaut **2**). La **v1** reproduit à l'octet près les
+> cartes d'avant le lot (graines partagées) ; une sauvegarde embarque sa carte,
+> la version ne touche donc pas une partie en cours. À graine égale, une carte v2
+> **diffère** d'une carte v1. En v2 :
+> - **Gardiens aux goulots** : les gardiens de champ sont posés après la
+>   connexité, sur la carte finale. ~60 % tiennent un **goulot** (point
+>   d'articulation du graphe franchissable qui isole au moins `max(8, 2 %)` des
+>   tuiles) ou, à défaut, une **porte** entre deux régions de Voronoï (une par
+>   départ, plus des régions neutres au centre). Le reste est posé au hasard. Un
+>   gardien de goulot/porte se franchit en **mi-partie** : il a la même échelle
+>   que la garnison d'une ville neutre, et non celle d'un gardien de fond de
+>   carte. Les zones de contrôle ne se chevauchent pas et ne touchent jamais les
+>   abords d'un départ (Tchebychev ≥ 3). Les cartes biomes ont peu de vrais
+>   goulots : les portes font l'essentiel.
+> - **Banques de créatures** : une sentinelle forte (tier 3/4/5 selon le palier
+>   petite/moyenne/grande, lui-même fixé par la profondeur ≥ 0,25 ; effectif
+>   ×1,5–2 d'un gardien de champ) garde un **coffre** (1 000–4 000 or) et un
+>   2ᵉ butin (ressource rare pour la petite, artefact pour les autres ; la plus
+>   haute rareté est **réservée** à la grande), tous deux `guardedBy`. Usage
+>   unique.
+> - **Villes neutres** : garnison de mi-partie (tier vu à 60 % de la profondeur,
+>   effectifs réduits) ; en v1 elle valait ~9× une armée IA au j40, et aucune
+>   ville neutre n'était jamais prise.
 
 > **Croissance hebdo des gardiens (A2, sprint 2)** : au passage de semaine, chaque
 > pile neutre grossit de `×weeklyFactor` (plancher **+1** pour que les petites
@@ -1041,6 +1076,11 @@ threadé en `heroId` dans `CastSpell`/`HeroAttack` — sinon le lead par défaut
 > seulement). Mesuré (2 IA, 64², 20 graines, 60 jours) : combats entre joueurs
 > 9/20 → **17/20** (médiane j55 → **j38**), villes de joueur capturées 0 → **4/20**,
 > parties conclues 5/20 → **12/20**.
+> **Lot LE3** (`.claude/plans/le3-map-resists.md`) : avec la **zone de contrôle**
+> (§2.2), l'IA traite la zone d'un gardien qu'elle ne vise pas comme un obstacle
+> et ne vise jamais un butin qui s'y trouve ; un **gardien dominé** (marge 1,5×)
+> devient un objectif sur plusieurs jours (valeur 3), sans quoi une porte gardée
+> lui fermait la carte.
 >
 > **Fin de tour & relais IA — jamais d'échec muet (lot R0, doc 08 §3)** : la fin
 > de tour humain enchaîne les tours IA jusqu'au prochain humain. Si `EndTurn` est

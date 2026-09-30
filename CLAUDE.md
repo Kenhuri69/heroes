@@ -573,6 +573,13 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > renforts = action du héros du round, poison qui traverse le bouclier (documenté).
 > Pas de bump save (champs optionnels), golden inchangé ; `faction:sim` : 1 béance
 > marginale (AH vs Vox 19,2 %) due à Défendre, non re-tunée.*
+> **LE3 livré** (`le3-map-resists.md`) : générateur **v2** (`generatorVersion`,
+> v1 reproductible à l'octet) — gardiens de champ aux **goulots** / portes entre
+> régions (~60 %, force de mi-partie), **banques de créatures** (sentinelle +
+> 2 butins `guardedBy`), villes neutres de mi-partie ; **zone de contrôle** des
+> gardiens (`adventure.guardianZoneOfControl`, activée : les 8 voisines
+> interceptent, l'A\* s'y arrête sans traverser, IA qui l'évite et vise un gardien
+> dominé sur plusieurs jours). Pas de bump save, golden inchangé, zéro faction.*
 
 ---
 

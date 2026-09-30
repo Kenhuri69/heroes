@@ -940,7 +940,8 @@ test('combat : victoire contre le gardien, retour carte avec pertes appliquées'
   const errors = await openGame(page);
 
   // Chemin scripté vers le gardien (9,3) par la rangée 2 (évite le tas d'or
-  // en (6,3) qui arrêterait le héros) — le dernier pas déclenche l'interception.
+  // en (6,3) qui arrêterait le héros). Zone de contrôle (LE3 A1) : le pas vers
+  // (8,2), voisine du gardien, déclenche déjà l'interception — le héros reste en (7,2).
   await page.evaluate(() =>
     window.__HEROES_TEST__!.dispatch({
       type: 'MoveHero',
@@ -959,7 +960,7 @@ test('combat : victoire contre le gardien, retour carte avec pertes appliquées'
   // Le combat est ouvert : écran pré-combat (Lot 1) d'abord, puis conduite manuelle.
   await passPreBattle(page);
   await expect(page.getByTestId('combat-round')).toBeVisible();
-  await expect.poll(() => heroPos(page)).toEqual({ x: 8, y: 2 });
+  await expect.poll(() => heroPos(page)).toEqual({ x: 7, y: 2 });
 
   // B4 (lot R6) : le bandeau de combat porte le NOM du héros — il affichait
   // TOUJOURS « Le héros » alors que le joueur mène des héros nommés. Attendu

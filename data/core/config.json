@@ -239,7 +239,8 @@
     "guardianGrowth": {
       "weeklyFactor": 1.1,
       "maxCount": 300
-    }
+    },
+    "guardianZoneOfControl": true
   },
   "newGame": {
     "map": "proto-01",

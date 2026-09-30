@@ -64,7 +64,7 @@
 - [x] `pnpm typecheck` (sans `-s`) · `pnpm lint` · `pnpm build` ; budget **387 544 o gzip**
 - [x] `pnpm test` — moteur 1106 (+1), contenu 197, client 113 (+4), serveur 10 ; golden inchangé
 - [x] garde-fous faction et couleurs
-- [ ] suite Playwright complète
+- [x] suite Playwright complète : 146 verts, 1 instable repassé (fluidité @perf, hors zone), 3 échecs réels corrigés (R3 : barre > 25 % à 360 px ⇒ pastille de fin de tour ; sauvegarde mobile ⇒ helper par le tiroir « ⋯ ») puis projet mobile rejoué 21/21
 
 ## 5. Journal
 

@@ -1390,3 +1390,22 @@
   height: 14px;
   vertical-align: middle;
 }
+
+/* LE-UX : en portrait étroit, le reste-à-jouer devient une pastille sur le coin
+   du bouton — la barre d'actions ne gagne aucune hauteur (garde R3 : < 25 %). */
+@media (max-width: 640px) {
+  .actions .end-turn {
+    position: relative;
+  }
+
+  .end-turn-hint {
+    position: absolute;
+    top: -8px;
+    right: -4px;
+    padding: 1px 5px;
+    border: 1px solid var(--ink-600);
+    border-radius: var(--radius-m);
+    background: var(--veil-92);
+    pointer-events: none;
+  }
+}

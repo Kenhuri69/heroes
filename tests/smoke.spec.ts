@@ -154,7 +154,7 @@ async function endTurn(page: Page): Promise<void> {
 }
 
 async function clickSaveAction(page: Page, action: 'save' | 'load'): Promise<void> {
-  await page.getByTestId('options-open').click();
+  await mapAction(page, 'options-open');
   await page.getByTestId(action).click();
   // Revue 2026-09b E18 : charger REMPLACE la partie en cours ⇒ tap-tap — le
   // 1er tap arme (« Confirmer : remplacer la partie en cours »), le 2ᵉ charge.

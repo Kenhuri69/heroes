@@ -1,3 +1,4 @@
+import { current, isDraft, original } from 'immer';
 import { neutralChoiceAllowed, resolveNeutralOffer } from '../adventure/neutral-offer';
 import { runAutoCombat } from '../combat/ai';
 import type { GameEvent } from '../core/events';
@@ -747,8 +748,15 @@ function pickExplorationStep(
   // La couche du héros d'abord ; à défaut, une bouche de téléporteur qui mène
   // à une couche encore sous le brouillard (L10.5).
   const blockedIdx = new Set(blocked.filter((p) => inBounds(map, p)).map((p) => tileIndex(map, p)));
+  // Perf : le BFS lit chaque tuile et chaque case de brouillard — sous proxy
+  // Immer, ces lectures coûtaient ~70 % d'un tour d'IA. Mêmes valeurs lues hors
+  // proxy : tuiles et config ne changent jamais pendant un tour (`original`), le
+  // brouillard si (copie à jour, `current`).
+  const plainMap = isDraft(map) ? (original(map) as typeof map) : map;
+  const plainConfig = isDraft(config) ? (original(config) as typeof config) : config;
+  const explored = isDraft(player.explored) ? current(player.explored) : player.explored;
   const target =
-    nearestUnexploredTile(map, config, player.explored, hero.pos, blockedIdx) ??
+    nearestUnexploredTile(plainMap, plainConfig, explored, hero.pos, blockedIdx) ??
     unexploredThroughTeleport(map, player.explored, hero.pos);
   if (!target) return null;
   const path = findPath(config, map, hero.pos, target, blocked);

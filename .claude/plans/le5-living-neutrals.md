@@ -121,3 +121,11 @@ Lecture :
   - smoke : les combats de gardien de la carte de test passent désormais par la
     proposition (32 contre 4 ⇒ fuite proposée) ; le helper `reachPreBattle`
     répond « Combattre », et un test dédié couvre « Laisser partir ».
+- 2026-09-30 : CI `quality` rouge sur la PR #555 — timeout (40 s) du property
+  test « IA vs IA se termine », même durée sur `main` (15 s en local, runner
+  chargé). Revu à la demande de l'utilisateur : profil CPU ⇒ 70 % d'un tour d'IA
+  dans `nearestUnexploredTile`, qui lit tuiles, config et brouillard **sous proxy
+  Immer** à chaque case du BFS, à chaque pas. Lecture hors proxy (`original` pour
+  tuiles/config, immuables pendant un tour ; `current` pour le brouillard) :
+  tour d'IA ×4,9 plus rapide sur la carte de test, property test 15 s → 5 s,
+  mêmes valeurs lues ⇒ golden et déterminisme inchangés.

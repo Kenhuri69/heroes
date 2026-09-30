@@ -222,6 +222,104 @@
           "battleResurrectHp": 100
         }
       ]
+    },
+    {
+      "id": "sorcery",
+      "ranks": [
+        {
+          "spellDamagePct": 5
+        },
+        {
+          "spellDamagePct": 10
+        },
+        {
+          "spellDamagePct": 15
+        }
+      ]
+    },
+    {
+      "id": "intelligence",
+      "ranks": [
+        {
+          "manaMaxPct": 25
+        },
+        {
+          "manaMaxPct": 50
+        },
+        {
+          "manaMaxPct": 100
+        }
+      ]
+    },
+    {
+      "id": "resistance",
+      "ranks": [
+        {
+          "magicResistancePct": 5
+        },
+        {
+          "magicResistancePct": 10
+        },
+        {
+          "magicResistancePct": 20
+        }
+      ]
+    },
+    {
+      "id": "mysticism",
+      "ranks": [
+        {
+          "manaRegenPerDay": 2
+        },
+        {
+          "manaRegenPerDay": 3
+        },
+        {
+          "manaRegenPerDay": 4
+        }
+      ]
+    },
+    {
+      "id": "artillery",
+      "ranks": [
+        {
+          "warMachineDamagePct": 50
+        },
+        {
+          "warMachineDamagePct": 100
+        },
+        {
+          "warMachineDamagePct": 150
+        }
+      ]
+    },
+    {
+      "id": "first-aid",
+      "ranks": [
+        {
+          "firstAidHealPct": 50
+        },
+        {
+          "firstAidHealPct": 100
+        },
+        {
+          "firstAidHealPct": 200
+        }
+      ]
+    },
+    {
+      "id": "ballistics",
+      "ranks": [
+        {
+          "siegeDamagePct": 50
+        },
+        {
+          "siegeDamagePct": 100
+        },
+        {
+          "siegeDamagePct": 150
+        }
+      ]
     }
   ]
 }

@@ -79,6 +79,11 @@
       },
       "recruitCost": 2500,
       "maxPerPlayer": 8,
+      "mana": {
+        "persistent": true,
+        "basePerDay": 2,
+        "pctPerDay": 10
+      },
       "archetypeEffects": {
         "might": [
           {

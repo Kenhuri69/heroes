@@ -1,7 +1,7 @@
 import { rollRange } from '../core/rng';
 import type { GameState, HeroState } from '../core/state';
 import { heroArtifactBonus } from '../hero/artifacts';
-import { heroArmorPct, heroLuck, heroMeleePct, heroRangedPct } from '../hero/skills';
+import { heroArmorPct, heroEffectTotal, heroLuck, heroMeleePct, heroRangedPct } from '../hero/skills';
 import type { SpellStatus } from '../hero/types';
 import { canShootTarget } from './actions';
 import { handleStackDeath } from './death';
@@ -381,7 +381,8 @@ export function heroLuckValue(state: GameState, hero: HeroState): number {
 export function heroArmyMagicResistance(state: GameState, combat: CombatState, side: CombatSideId): number {
   const hero = sideLeadHero(state, combat, side);
   if (!hero) return 0;
-  let total = 0;
+  // Compétence Résistance (LE4/F3) : même canal que l'artefact (en % ⇒ fraction).
+  let total = heroEffectTotal(hero, state.skillCatalog, 'magicResistancePct') / 100;
   for (const id of hero.artifacts) if (id) total += state.artifactCatalog[id]?.armyMagicResistance ?? 0;
   return total;
 }
@@ -408,6 +409,21 @@ function heroMeleePctOf(state: GameState, combat: CombatState, side: CombatSideI
 function heroRangedPctOf(state: GameState, combat: CombatState, side: CombatSideId): number {
   const hero = sideLeadHero(state, combat, side);
   return hero ? heroRangedPct(hero, state.skillCatalog) / 100 : 0;
+}
+
+/**
+ * Artillerie (LE4/F3) : bonus % de dégâts des machines de guerre (`warMachine`)
+ * du camp — fraction, 0 pour toute autre pile. Résolution et préviz.
+ */
+function heroWarMachinePctOf(
+  state: GameState,
+  combat: CombatState,
+  side: CombatSideId,
+  strikerDef: CombatUnitDef,
+): number {
+  if (!hasAbility(strikerDef, 'warMachine')) return 0;
+  const hero = sideLeadHero(state, combat, side);
+  return hero ? heroEffectTotal(hero, state.skillCatalog, 'warMachineDamagePct') / 100 : 0;
 }
 
 /** Réduction % d'armure du héros lié au camp défenseur (compétence Armure) — fraction. */
@@ -554,9 +570,9 @@ export function performStrike(
     symbiosisDefenseBonus(victimDef, victim.symbiosisStacks);
   const heroDefense = combat ? heroDefenseOf(draft, combat, victim.side) : 0;
   const heroDamagePct = combat
-    ? ranged
-      ? heroRangedPctOf(draft, combat, striker.side)
-      : heroMeleePctOf(draft, combat, striker.side)
+    ? (ranged
+        ? heroRangedPctOf(draft, combat, striker.side)
+        : heroMeleePctOf(draft, combat, striker.side)) + heroWarMachinePctOf(draft, combat, striker.side, strikerDef)
     : 0;
   const heroArmor = combat ? heroArmorPctOf(draft, combat, victim.side) : 0;
   // D5 : `consumeMarks` (doc 05 §3.1 « à l'attaque ») ne se déclenche QUE sur une
@@ -881,9 +897,9 @@ export function estimateDamage(
     conditionalUnitBonus(state, combat, target.side, targetDef.id, 'defense') +
     (target.side === 'defender' ? combat.wallDefenseBonus : 0) +
     symbiosisDefenseBonus(targetDef, target.symbiosisStacks);
-  const heroDamagePct = ranged
-    ? heroRangedPctOf(state, combat, attacker.side)
-    : heroMeleePctOf(state, combat, attacker.side);
+  const heroDamagePct =
+    (ranged ? heroRangedPctOf(state, combat, attacker.side) : heroMeleePctOf(state, combat, attacker.side)) +
+    heroWarMachinePctOf(state, combat, attacker.side, attackerDef);
   const heroArmor = heroArmorPctOf(state, combat, target.side);
   const mult = computeMultiplier({
     strikerAttack,

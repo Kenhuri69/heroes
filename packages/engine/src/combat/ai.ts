@@ -1,4 +1,5 @@
 import type { GameEvent } from '../core/events';
+import { armyStrength } from '../core/power';
 import type { GameState, HeroState } from '../core/state';
 import { castHeroSpell } from '../hero';
 import { heroKnownSpellIds } from '../hero/artifacts';
@@ -434,6 +435,9 @@ function chooseHeroSpell(
  * (pas de régénération en combat), frappe bornée à une par round — la property
  * « un combat se termine toujours » est préservée.
  */
+/** Rapport de force au-delà duquel l'IA garde sa mana persistante (LE4/C2). */
+const AI_MANA_DOMINANCE = 3;
+
 export function maybeHeroAction(draft: Draft, events: GameEvent[], side: CombatSideId): boolean {
   const combat = draft.combat;
   if (!combat || combat.finished) return false;
@@ -446,7 +450,16 @@ export function maybeHeroAction(draft: Draft, events: GameEvent[], side: CombatS
 
   // Actions de héros par round (doc 02 §1, généralisé doc 18 C1) : l'IA lance un
   // sort tant que le budget d'actions du round du LEAD n'est pas épuisé (1 + perk).
-  if (heroActionLeftFor(draft, combat, hero.id)) {
+  // LE4/C2 (avis expert) : quand la mana persiste d'un combat à l'autre, l'IA ne
+  // la dépense pas pour un combat déjà gagné (camp ≥ 3× plus fort que l'adverse).
+  const persistentMana = draft.config?.hero.mana?.persistent === true;
+  const strengthOf = (stacks: CombatStack[]): number =>
+    armyStrength(stacks.map((s) => ({ unitId: s.unitId, count: s.count })), catalog);
+  const dominant =
+    persistentMana &&
+    strengthOf(combat.stacks.filter((s) => s.side === side && s.count > 0)) >=
+      AI_MANA_DOMINANCE * strengthOf(enemies);
+  if (!dominant && heroActionLeftFor(draft, combat, hero.id)) {
     const cast = chooseHeroSpell(draft, combat, hero, side, enemies, catalog);
     if (cast) {
       castHeroSpell(draft, side, hero.id, cast.spellId, cast.targetStackId, events);

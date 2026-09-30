@@ -769,6 +769,16 @@ export function buildSpellCatalog(report: LoadReport): Record<string, ResolvedSp
       ...(s.area !== undefined && { area: s.area }),
       // Chaîne (H-SPELLS.4 `chain`) : lue par `chainTargets` — même oubli que `area`.
       ...(s.chain !== undefined && { chain: s.chain }),
+      // Maîtrise d'école (LE4/F2) — même piège que `area` : sans propagation, le
+      // moteur ne verrait jamais les paliers en jeu réel.
+      ...(s.mastery !== undefined && {
+        mastery: s.mastery.map((t) => ({
+          rank: t.rank,
+          ...(t.base !== undefined && { base: t.base }),
+          ...(t.perPower !== undefined && { perPower: t.perPower }),
+          ...(t.area !== undefined && { area: t.area }),
+        })),
+      }),
       // Effet hors combat d'un sort `adventure` (doc 02 §1.4, Alpha 4.16).
       ...(s.adventure !== undefined && { adventure: s.adventure }),
       // Invocation (H-SPELLS.4+) : créature invocable inline.

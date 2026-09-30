@@ -580,6 +580,12 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > gardiens (`adventure.guardianZoneOfControl`, activée : les 8 voisines
 > interceptent, l'A\* s'y arrête sans traverser, IA qui l'évite et vise un gardien
 > dominé sur plusieurs jours). Pas de bump save, golden inchangé, zéro faction.*
+> **LE4 livré** (`le4-magic-hero-build.md`) : 7 compétences branchées
+> (Sorcellerie, Intelligence, Résistance, Mysticisme, Artillerie, Premiers soins,
+> Balistique), **maîtrise d'école** qui change l'effet du sort (`mastery` :
+> puissance, zone de masse au rang 3), **mana persistante** (`hero.mana`,
+> activée : plus de plein au combat ni à l'aube, régénération + Guilde + Puits,
+> IA économe quand elle domine). Pas de bump save, golden inchangé, zéro faction.*
 
 ---
 

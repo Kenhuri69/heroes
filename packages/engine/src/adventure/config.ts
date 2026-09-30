@@ -302,6 +302,24 @@ export interface HeroProgressionConfig {
   recruitCost?: number;
   /** Nombre maximum de héros par joueur (doc 02 §1.5). Défaut 8. */
   maxPerPlayer?: number;
+  /**
+   * Mana persistante (LE4/C2, doc 02 §1.4 — HoMM III) : la mana n'est plus
+   * remplie à l'ouverture d'un combat ni à l'aube. Chaque aube rend
+   * `max(basePerDay, ⌊pctPerDay % × max⌋)` + Mysticisme (`manaRegenPerDay`),
+   * plafonné au max ; un héros qui commence sa journée sur une de ses villes
+   * dotée d'une Guilde des mages (pool de sorts non vide) repart plein.
+   * **Opt-in** : absent ⇒ mana pleine à chaque combat et à chaque aube.
+   */
+  mana?: { persistent: boolean; basePerDay: number; pctPerDay: number } | undefined;
+}
+
+/** Mana regagnée à l'aube par un héros (LE4/C2) — hors séjour en ville à Guilde. */
+export function dailyManaRegen(
+  mana: { basePerDay: number; pctPerDay: number },
+  manaMax: number,
+  mysticism: number,
+): number {
+  return Math.max(mana.basePerDay, Math.floor((mana.pctPerDay / 100) * manaMax)) + mysticism;
 }
 
 /**

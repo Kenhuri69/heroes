@@ -7,7 +7,8 @@
       "manaCost": 5,
       "kind": "damage",
       "base": 6,
-      "perPower": 2
+      "perPower": 2,
+      "mastery": [{ "rank": 2, "base": 8 }, { "rank": 3, "base": 10 }]
     },
     {
       "id": "boule-de-feu",
@@ -17,7 +18,8 @@
       "kind": "damage",
       "base": 15,
       "perPower": 4,
-      "area": "splash"
+      "area": "splash",
+      "mastery": [{ "rank": 2, "base": 18 }, { "rank": 3, "base": 21 }]
     },
     {
       "id": "soin",
@@ -26,7 +28,8 @@
       "manaCost": 5,
       "kind": "heal",
       "base": 10,
-      "perPower": 3
+      "perPower": 3,
+      "mastery": [{ "rank": 2, "base": 14 }, { "rank": 3, "base": 18 }]
     },
     {
       "id": "benediction",
@@ -46,7 +49,8 @@
       "kind": "buff",
       "base": 0,
       "perPower": 0,
-      "defenseMod": 3
+      "defenseMod": 3,
+      "mastery": [{ "rank": 3, "area": "all" }]
     },
     {
       "id": "affaiblissement",
@@ -76,7 +80,8 @@
       "kind": "debuff",
       "base": 0,
       "perPower": 0,
-      "speedMod": -3
+      "speedMod": -3,
+      "mastery": [{ "rank": 3, "area": "all" }]
     },
     {
       "id": "eclair-magique",
@@ -122,7 +127,8 @@
       "manaCost": 10,
       "kind": "damage",
       "base": 10,
-      "perPower": 3
+      "perPower": 3,
+      "mastery": [{ "rank": 2, "base": 12 }, { "rank": 3, "area": "splash" }]
     },
     {
       "id": "jet-de-glace",
@@ -131,7 +137,8 @@
       "manaCost": 5,
       "kind": "damage",
       "base": 6,
-      "perPower": 2
+      "perPower": 2,
+      "mastery": [{ "rank": 2, "base": 8 }, { "rank": 3, "base": 10 }]
     },
     {
       "id": "brouillard-glacial",
@@ -141,7 +148,8 @@
       "kind": "debuff",
       "base": 0,
       "perPower": 0,
-      "speedMod": -3
+      "speedMod": -3,
+      "mastery": [{ "rank": 3, "area": "splash" }]
     },
     {
       "id": "grande-guerison",
@@ -150,7 +158,8 @@
       "manaCost": 15,
       "kind": "heal",
       "base": 22,
-      "perPower": 5
+      "perPower": 5,
+      "mastery": [{ "rank": 2, "base": 28 }, { "rank": 3, "base": 34 }]
     },
     {
       "id": "seisme",
@@ -159,7 +168,8 @@
       "manaCost": 10,
       "kind": "damage",
       "base": 10,
-      "perPower": 3
+      "perPower": 3,
+      "mastery": [{ "rank": 2, "base": 13 }, { "rank": 3, "base": 16 }]
     },
     {
       "id": "muraille-de-pierre",
@@ -178,7 +188,8 @@
       "manaCost": 5,
       "kind": "damage",
       "base": 6,
-      "perPower": 2
+      "perPower": 2,
+      "mastery": [{ "rank": 2, "base": 8 }, { "rank": 3, "base": 10 }]
     },
     {
       "id": "tornade",
@@ -187,7 +198,8 @@
       "manaCost": 15,
       "kind": "damage",
       "base": 15,
-      "perPower": 4
+      "perPower": 4,
+      "mastery": [{ "rank": 2, "base": 18 }, { "rank": 3, "base": 21 }]
     },
     {
       "id": "aura-protectrice",
@@ -450,7 +462,8 @@
       "chain": {
         "jumps": 2,
         "falloffPct": 40
-      }
+      },
+      "mastery": [{ "rank": 2, "base": 19 }, { "rank": 3, "base": 22 }]
     },
     {
       "id": "resurrection",
@@ -496,7 +509,8 @@
       "kind": "damage",
       "base": 26,
       "perPower": 6,
-      "area": "splash"
+      "area": "splash",
+      "mastery": [{ "rank": 2, "base": 30 }, { "rank": 3, "base": 34 }]
     },
     {
       "id": "armageddon",

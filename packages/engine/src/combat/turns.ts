@@ -13,7 +13,8 @@ import { killsFromDamage } from './damage';
 import { handleStackDeath } from './death';
 import type { Draft } from './draft';
 import { rebuildArmyFromSurvivors, sideOwnerHeroIds } from './army-rebuild';
-import { collectCasualties, collectSurvivors, combatRules, compareInitiative, hasAbility, moraleOf, otherSide, recordLoss, recordRevive, stackLostSoFar } from './state-helpers';
+import { collectCasualties, collectSurvivors, combatRules, compareInitiative, hasAbility, moraleOf, otherSide, recordLoss, recordRevive, sideLeadHero, stackLostSoFar } from './state-helpers';
+import { heroEffectTotal } from '../hero/skills';
 import { COMBAT_ROWS } from './hex';
 import type { CombatSideId, CombatStack, CombatState } from './types';
 import { grantArtifact } from '../hero/equip';
@@ -104,8 +105,11 @@ function bombardWalls(draft: Draft, events: GameEvent[]): void {
   const [dmin, dmax] = def.stats.damage;
   const roll = rollRange(draft.rng, dmin, dmax);
   draft.rng = roll.state;
+  // Balistique (LE4/F3) : le héros assaillant renforce la catapulte contre les remparts.
+  const siegeHero = sideLeadHero(draft, combat, 'attacker');
+  const siegePct = siegeHero ? heroEffectTotal(siegeHero, draft.skillCatalog, 'siegeDamagePct') : 0;
   const key = `${target.col},${target.row}`;
-  const left = (hp[key] ?? 0) - roll.value;
+  const left = (hp[key] ?? 0) - Math.floor(roll.value * (1 + siegePct / 100));
   if (left <= 0) {
     delete hp[key];
     combat.siegeWalls = combat.siegeWalls.filter((w) => !(w.col === target.col && w.row === target.row));
@@ -134,7 +138,12 @@ function applySupportTicks(draft: Draft, events: GameEvent[]): void {
     if (support.count <= 0) continue;
     const supportDef = draft.unitCatalog[support.unitId];
     if (!supportDef) continue;
-    const healAmount = Number(supportDef.abilities.find((a) => a.id === 'healPerRound')?.params?.['amount'] ?? 0);
+    // Premiers soins (LE4/F3) : le héros du camp renforce le soin de ses piles de soutien.
+    const supportHero = sideLeadHero(draft, combat, support.side);
+    const firstAidPct = supportHero ? heroEffectTotal(supportHero, draft.skillCatalog, 'firstAidHealPct') : 0;
+    const healAmount = Math.floor(
+      Number(supportDef.abilities.find((a) => a.id === 'healPerRound')?.params?.['amount'] ?? 0) * (1 + firstAidPct / 100),
+    );
     if (healAmount > 0) {
       let target: CombatStack | undefined;
       let worstMissing = 0;

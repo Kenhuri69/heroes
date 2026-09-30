@@ -18,10 +18,10 @@ import type { Command, CommandError } from '../core/commands';
 import type { GameEvent } from '../core/events';
 import type { GameState, HeroState } from '../core/state';
 import type { TownState } from '../town/types';
-import type { SpellKind } from './types';
+import type { SpellDef, SpellKind } from './types';
 import { heroKnownSpellIds } from './artifacts';
 import { heroArmyCap, heroVisionRadius } from './skills';
-import { effectiveManaCost, effectivePower, isHostileStatus, spellDamageAmount, spellHealAmount, spellTargetsEnemy } from './spells';
+import { effectiveManaCost, effectivePower, heroSpellDef, isHostileStatus, spellDamageAmount, spellHealAmount, spellTargetsEnemy } from './spells';
 
 /**
  * Points d'entrée héros (sorts en combat + choix de compétence) appelés par
@@ -291,7 +291,8 @@ export function castHeroSpell(
   const combat = draft.combat;
   if (!combat) return;
   const hero = draft.heroes.find((h) => h.id === heroId);
-  const spell = draft.spellCatalog[spellId];
+  // LE4/F2 : le sort à la maîtrise d'école du lanceur (préviz = résolution).
+  const spell = heroSpellDef(draft.spellCatalog, draft.skillCatalog, hero, spellId);
   const target = combat.stacks.find((s) => s.id === targetStackId);
   if (!hero || !spell || !target) return;
 
@@ -462,7 +463,14 @@ export function estimateSpell(
   const power = hero ? effectivePower(hero, state.artifactCatalog) : 0;
   // Magie Irrésistible (doc 17 §2) : la préviz héros reflète les mods de dégâts
   // de la faction (le sort d'unité `spellcaster` passe par le défaut {0,0}).
-  return estimateSpellWithPower(state, spellId, targetStackId, power, factionSpellDamageMods(state, hero));
+  return estimateSpellWithPower(
+    state,
+    spellId,
+    targetStackId,
+    power,
+    factionSpellDamageMods(state, hero),
+    heroSpellDef(state.spellCatalog, state.skillCatalog, hero, spellId),
+  );
 }
 
 /**
@@ -481,7 +489,8 @@ export function spellAffectedStacks(
 ): CombatStack[] {
   const combat = state.combat;
   if (!combat) return [];
-  const spell = state.spellCatalog[spellId];
+  // LE4/F2 : la zone suit la maîtrise d'école du héros du camp joueur.
+  const spell = heroSpellDef(state.spellCatalog, state.skillCatalog, heroForPlayerSide(state, combat), spellId);
   const center = combat.stacks.find((s) => s.id === centerStackId);
   if (!spell || !center) return [];
   const skip = hostileSpellSkip(state, combat, spell.kind);
@@ -517,10 +526,12 @@ function estimateSpellWithPower(
   power: number,
   /** Magie Irrésistible (doc 17 §2) — mods de dégâts du héros ; {0,0} pour une unité. */
   damageMods: { bonusPct: number; resistancePierce: number } = { bonusPct: 0, resistancePierce: 0 },
+  /** Sort à la maîtrise du héros (LE4/F2) ; absent ⇒ le sort du catalogue (unité). */
+  spellDef?: SpellDef,
 ): SpellEstimate {
   const combat = state.combat;
   if (!combat) throw new Error('estimateSpell: aucun combat en cours');
-  const spell = state.spellCatalog[spellId];
+  const spell = spellDef ?? state.spellCatalog[spellId];
   if (!spell) throw new Error(`estimateSpell: sort inconnu '${spellId}'`);
   const target = combat.stacks.find((s) => s.id === targetStackId);
   if (!target) throw new Error(`estimateSpell: cible introuvable '${targetStackId}'`);

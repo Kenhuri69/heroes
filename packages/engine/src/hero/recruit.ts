@@ -115,7 +115,7 @@ export function handleRecruitHero(draft: GameState, cmd: RecruitCmd, events: Gam
       ? { archetypeEffects: draft.config!.hero.archetypeEffects![def.archetype]!.map(sanitizeEffect) }
       : {}),
   };
-  hero.manaMax = heroManaMax(hero, draft.artifactCatalog);
+  hero.manaMax = heroManaMax(hero, draft.artifactCatalog, draft.skillCatalog);
   hero.mana = hero.manaMax;
   // Revue 2026-07 (B29) : le héros recruté dispose de ses PM du jour même —
   // même calcul que StartGame/EndTurn (il restait à 0 jusqu'au lendemain).

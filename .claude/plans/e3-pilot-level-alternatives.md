@@ -45,12 +45,13 @@
 4. [x] Outil : `faction:sim` par variante
 5. [x] Client : choix à la construction, locales, smoke
 6. [x] Docs 02/03/06/08, CLAUDE.md
-7. [ ] Vérifications
+7. [x] Vérifications
 
 ## 4. Vérifications
 
-- [ ] typecheck (sans `-s`), lint, build, tests, garde-fous, golden inchangé
-- [ ] Playwright complet
+- [x] typecheck (sans `-s`), lint, build ; budget 388 036 o gzip ; garde-fous faction et couleurs
+- [x] tests : moteur 1112 (+5), contenu 197, client 113, serveur 10 ; golden inchangé
+- [x] Playwright complet : 150 verts. La fluidité @perf de la carte échoue en suite complète locale (charge parallèle) mais passe isolée, mono-worker comme en CI (`smoke-perf`) : 9,4 fps pour un seuil de 5 — hors zone
 
 ## 5. Journal
 

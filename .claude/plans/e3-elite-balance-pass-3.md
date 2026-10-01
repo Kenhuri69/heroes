@@ -32,7 +32,7 @@
 3. [x] Haven T7 hors bande : prix plafonné + stats retouchées
 4. [x] Re-mesure : prix d'équilibre ≈ prix, lecture d'armée `faction:sim`
 5. [x] Tests (recrutement, contenu), docs de faction (tables de coûts), CLAUDE.md
-6. [ ] Vérifications
+6. [x] Vérifications
 
 ## 4. Mesures
 
@@ -70,7 +70,7 @@ Duel de base inchangé : 1 béance (AH contre Vox).
 
 - [x] typecheck (sans `-s`), lint, build ; budget 387 594 o gzip ; garde-fous faction et couleurs
 - [x] tests : moteur 1107, contenu 197, client 113, serveur 10 ; golden inchangé
-- [ ] Playwright
+- [x] Playwright complet : 149 verts ; fluidité @perf de la carte instable (repassée à la relance, hors zone)
 
 ## 6. Journal
 

@@ -49,7 +49,8 @@ de base (seul gate) est **inchangé** : 1 béance (AH vs Vox 19,2 %).
 ## 5. Vérifications
 
 - [x] moteur 1107 (+1), golden inchangé ; `faction:sim` va au bout (plus de throw)
-- [ ] typecheck, lint, build, suite complète, Playwright
+- [x] typecheck (sans `-s`), lint, build ; budget 387 594 o gzip ; garde-fous faction et couleurs
+- [x] suite Playwright complète : 148 verts ; fluidité @perf de la carte instable (2,6 puis 9,1 fps, hors zone — déjà vue en LE-UX) repassée seule
 
 ## 6. Journal
 

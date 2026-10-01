@@ -46,6 +46,10 @@ de base (seul gate) est **inchangé** : 1 béance (AH vs Vox 19,2 %).
   prime, mais la vraie limite du joueur est la croissance hebdomadaire).
 - Pilote E3 : quelle maison × quel tier.
 
+**Arbitrage (2026-10-01)** : recaler d'abord les élites (passe 3, données pures,
+cible 35–60 % contre la base à or égal, toutes factions), puis pilote E3 sur
+**Haven T3**. Chaque étape a son plan et sa PR.
+
 ## 5. Vérifications
 
 - [x] moteur 1107 (+1), golden inchangé ; `faction:sim` va au bout (plus de throw)
@@ -55,3 +59,4 @@ de base (seul gate) est **inchangé** : 1 béance (AH vs Vox 19,2 %).
 ## 6. Journal
 
 - 2026-09-30 : plan ouvert ; lecture élites ajoutée ; bug de repli trouvé et corrigé.
+- 2026-10-01 : arbitrage utilisateur noté (§4).

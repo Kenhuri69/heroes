@@ -4,18 +4,18 @@
   "name": "@loc:unit.t7-ange-elite.name",
   "loreKey": "@loc:unit.t7-ange-elite.lore",
   "stats": {
-    "hp": 234,
+    "hp": 216,
     "attack": 29,
-    "defense": 29,
+    "defense": 24,
     "damage": [
-      46,
-      72
+      42,
+      64
     ],
     "speed": 12
   },
   "growthPerWeek": 1,
   "cost": {
-    "gold": 5400,
+    "gold": 5350,
     "crystal": 3,
     "gems": 3
   },

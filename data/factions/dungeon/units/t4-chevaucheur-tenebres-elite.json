@@ -5,7 +5,7 @@
   "loreKey": "@loc:unit.t4-chevaucheur-tenebres-elite.lore",
   "stats": { "hp": 42, "attack": 14, "defense": 10, "damage": [8, 11], "speed": 10 },
   "growthPerWeek": 4,
-  "cost": { "gold": 580 },
+  "cost": { "gold": 530 },
   "abilities": [
     { "id": "charge", "params": { "perHex": 0.06 } },
     { "id": "doubleAttack" }

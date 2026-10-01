@@ -85,15 +85,15 @@ Chaque habitation se **gradue au niveau 2** (Alpha 4.11) : le dwelling amélior�
 
 | Tier | Élite | PV | Att | Déf | Dégâts | Vit. | Cr./sem | Coût | Capacités |
 |------|-------|----|-----|-----|--------|------|---------|------|-----------|
-| 1 | **Hallebardier** | 8 | 3 | 4 | 2–3 | 5 | 14 | 50 or | — |
+| 1 | **Hallebardier** | 8 | 3 | 4 | 2–3 | 5 | 14 | 65 or | — |
 | 2 | **Archer d'Élite** | 13 | 5 | 4 | 3–5 | 5 | 9 | 140 or | `shooter` |
-| 3 | **Templier** | 23 | 8 | 10 | 4–7 | 6 | 7 | 260 or | — |
+| 3 | **Templier** | 23 | 8 | 10 | 4–7 | 6 | 7 | 295 or | — |
 | 4 | **Griffon Royal** | 39 | 10 | 9 | 7–12 | 8 | 5 | 520 or | `flying` |
-| 5 | **Grande Prêtresse** | 47 | 12 | 13 | 9–14 | 6 | 4 | 850 or, 2 gemmes | `shooter` |
-| 6 | **Champion du Griffon** | 91 | 18 | 18 | 16–26 | 9 | 2 | 1900 or, 2 cristal | — |
-| 7 | **Archange** | 234 | 29 | 29 | 46–72 | 12 | 1 | 5400 or, 3 cristal, 3 gemmes | `flying` |
+| 5 | **Grande Prêtresse** | 47 | 12 | 13 | 9–14 | 6 | 4 | 1070 or, 2 gemmes | `shooter` |
+| 6 | **Champion du Griffon** | 91 | 18 | 18 | 16–26 | 9 | 2 | 2050 or, 2 cristal | — |
+| 7 | **Archange** | 216 | 29 | 24 | 42–64 | 12 | 1 | 5350 or, 3 cristal, 3 gemmes | `flying` |
 
-> ⚖️ **Coûts élites (D12, à arbitrer)** : premium en or élite/base = 1,25–1,69× (moyenne ~1,44×), variable selon le tier. À comparer avec Necropolis (~1,6–1,7×, régulier) et Arcane Hunters (**1,80× uniforme**) — asymétrie relevée par l'audit factions. À revoir aussi : certaines élites **perdent la capacité signature** de leur base (Hallebardier sans `taunt`, Templier sans `shieldWall`, Champion sans `charge`/`firstStrike`). Arbitrage coûts + parité de capacités **renvoyé à une passe `faction:sim`** (non tranché ici).
+> ⚖️ **Coûts élites (D12, tranché — passe 3, plan `e3-elite-balance-pass-3`)** : le prix en or de chaque élite est calé sur son **prix d'équilibre** mesuré (`faction:sim`, lecture « facteur d'effectif pour l'égalité », budget 40 000 or/tier) : à or égal, l'armée d'élites fait jeu égal avec l'armée de base (×1,00 ± 5 %). Le surcoût varie donc d'un tier à l'autre selon ce que l'amélioration apporte réellement (bande ×1,10–×1,80) ; l'élite reste l'achat qui densifie la croissance hebdomadaire, pas un gain d'efficacité à l'or. Les coûts en ressources rares sont inchangés. L'Archange, seul hors bande (valait ×2,27 la base pour ×1,69 payé), a vu ses stats rabotées (PV 234→216, Déf 29→24, dégâts 46–72→42–64) avant d'être tarifé.
 
 ## 4. Arbre de bâtiments
 

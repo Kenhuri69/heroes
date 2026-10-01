@@ -84,13 +84,13 @@ Chaque habitation se **gradue au niveau 2** (Alpha 4.11) : le dwelling amélior�
 
 | Tier | Élite | PV | Att | Déf | Dégâts | Vit. | Cr./sem | Coût | Capacités |
 |------|-------|----|-----|-----|--------|------|---------|------|-----------|
-| 1 | **Squelette archer** | 6 | 3 | 2 | 1–2 | 4 | 16 | 45 or | `undead`, `banishable`, `shooter(4)` |
-| 2 | **Zombie infect** | 18 | 4 | 5 | 3–4 | 4 | 9 | 115 or | `undead` |
-| 3 | **Spectre supérieur** | 21 | 7 | 7 | 4–7 | 8 | 7 | 260 or | `undead`, `flying` |
-| 4 | **Vampire seigneur** | 33 | 10 | 9 | 7–11 | 7 | 5 | 550 or | `undead`, `noRetaliation` |
-| 5 | **Liche-mage** | 40 | 12 | 13 | 9–14 | 6 | 4 | 900 or, 2 soufre | `undead`, `shooter` |
-| 6 | **Chevalier de la mort** | 86 | 18 | 16 | 16–24 | 10 | 2 | 1900 or, 2 soufre | `undead` |
-| 7 | **Dragon fantôme** | 198 | 26 | 24 | 39–65 | 11 | 1 | 5000 or, 3 soufre, 3 gemmes | `undead`, `flying` |
+| 1 | **Squelette archer** | 6 | 3 | 2 | 1–2 | 4 | 16 | 50 or | `undead`, `banishable`, `shooter(4)` |
+| 2 | **Zombie infect** | 18 | 4 | 5 | 3–4 | 4 | 9 | 110 or | `undead` |
+| 3 | **Spectre supérieur** | 21 | 7 | 7 | 4–7 | 8 | 7 | 240 or | `undead`, `flying` |
+| 4 | **Vampire seigneur** | 33 | 10 | 9 | 7–11 | 7 | 5 | 480 or | `undead`, `noRetaliation` |
+| 5 | **Liche-mage** | 40 | 12 | 13 | 9–14 | 6 | 4 | 860 or, 2 soufre | `undead`, `shooter` |
+| 6 | **Chevalier de la mort** | 86 | 18 | 16 | 16–24 | 10 | 2 | 1950 or, 2 soufre | `undead` |
+| 7 | **Dragon fantôme** | 198 | 26 | 24 | 39–65 | 11 | 1 | 5100 or, 3 soufre, 3 gemmes | `undead`, `flying` |
 
 > 🏹 **Squelette archer (T1 élite)** — fidélité série : l'amélioration du
 > Squelette est un **tireur** (HoMM V : *Skeleton* → *Skeleton Archer*), pas un
@@ -111,7 +111,7 @@ Chaque habitation se **gradue au niveau 2** (Alpha 4.11) : le dwelling amélior�
 > ⇒ il est **aveugle** aux changements d'élite ; ce calage a été mesuré par une
 > lecture ad hoc substituant le T1 (armée complète, mêmes graines).
 
-> ⚖️ **Coûts élites (D12, à arbitrer)** : premium en or élite/base = 1,60–1,72× (régulier). À comparer avec Haven (~1,25–1,69×) et Arcane Hunters (**1,80× uniforme**) — asymétrie relevée par l'audit factions. Les élites conservent `undead` mais **perdent** les capacités actives de leur base (ex. Vampire seigneur sans `lifeDrain`, Liche-mage sans `areaAttack`, Chevalier de la mort sans `curseOnHit`/`charge`) : à revoir. Arbitrage coûts + parité de capacités **renvoyé à une passe `faction:sim`** (non tranché ici).
+> ⚖️ **Coûts élites (D12, tranché — passe 3, plan `e3-elite-balance-pass-3`)** : le prix en or de chaque élite est calé sur son **prix d'équilibre** mesuré (`faction:sim`, lecture « facteur d'effectif pour l'égalité », budget 40 000 or/tier) : à or égal, l'armée d'élites fait jeu égal avec l'armée de base (×1,00 ± 5 %). Le surcoût varie donc d'un tier à l'autre selon ce que l'amélioration apporte réellement (bande ×1,10–×1,80) ; l'élite reste l'achat qui densifie la croissance hebdomadaire, pas un gain d'efficacité à l'or. Les coûts en ressources rares sont inchangés.
 
 ## 4. Arbre de bâtiments
 

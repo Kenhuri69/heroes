@@ -5,6 +5,6 @@
   "loreKey": "@loc:unit.t4-loup-argent-elite.lore",
   "stats": { "hp": 36, "attack": 10, "defense": 8, "damage": [6, 10], "speed": 9 },
   "growthPerWeek": 5,
-  "cost": { "gold": 440 },
+  "cost": { "gold": 410 },
   "abilities": [{ "id": "doubleAttack" }]
 }

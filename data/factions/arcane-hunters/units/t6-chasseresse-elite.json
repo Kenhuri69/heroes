@@ -5,7 +5,7 @@
   "loreKey": "@loc:unit.t6-chasseresse-elite.lore",
   "stats": { "hp": 72, "attack": 20, "defense": 14, "damage": [14, 22], "speed": 10 },
   "growthPerWeek": 2,
-  "cost": { "gold": 2160, "mercury": 4 },
+  "cost": { "gold": 2100, "mercury": 4 },
   "abilities": [
     { "id": "shooter", "params": { "ammo": 8 } },
     { "id": "mark" },

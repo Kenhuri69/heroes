@@ -327,16 +327,16 @@ Chaque habitation se **gradue au niveau 2** (Alpha 4.11) : le dwelling amélior�
 
 | Tier | Élite | PV | Att | Déf | Dégâts | Vit. | Cr./sem | Coût | Capacités |
 |------|-------|----|-----|-----|--------|------|---------|------|-----------|
-| 1 | **Diplômé de Sombreveille** | 6 | 4 | 3 | 2–4 | 6 | 12 | 63 or | `mark` |
-| 2 | **Familier Aîné** | 12 | 5 | 4 | 3–4 | 9 | 9 | 162 or | `flying`, `mark`, `consumeMarks` |
-| 3 | **Grand Préfet** | 22 | 7 | 8 | 4–8 | 6 | 7 | 306 or, 2 mercure | `shooter`, `mark` |
-| 4 | **Archiviste Vivant** | 39 | 9 | 11 | 6–10 | 5 | 5 | 612 or | `mark` |
-| 5 | **Lame Consacrée** | 45 | 16 | 10 | 10–16 | 9 | 3 | 1116 or, 2 mercure | `mark`, `consumeMarks` |
-| 6 | **Traqueuse de l'Abîme** | 72 | 20 | 14 | 14–22 | 10 | 2 | 2160 or, 4 mercure | `shooter`, `mark`, `consumeMarks` |
-| 7 | **Manticore Royale** | 158 | 23 | 21 | 31–47 | 12 | 1 | 4680 or, 4 mercure, 2 gemmes | `flying`, `noRetaliation`, `mark` |
+| 1 | **Diplômé de Sombreveille** | 6 | 4 | 3 | 2–4 | 6 | 12 | 60 or | `mark` |
+| 2 | **Familier Aîné** | 12 | 5 | 4 | 3–4 | 9 | 9 | 135 or | `flying`, `mark`, `consumeMarks` |
+| 3 | **Grand Préfet** | 22 | 7 | 8 | 4–8 | 6 | 7 | 280 or, 2 mercure | `shooter`, `mark` |
+| 4 | **Archiviste Vivant** | 39 | 9 | 11 | 6–10 | 5 | 5 | 480 or | `mark` |
+| 5 | **Lame Consacrée** | 45 | 16 | 10 | 10–16 | 9 | 3 | 780 or, 2 mercure | `mark`, `consumeMarks` |
+| 6 | **Traqueuse de l'Abîme** | 72 | 20 | 14 | 14–22 | 10 | 2 | 2100 or, 4 mercure | `shooter`, `mark`, `consumeMarks` |
+| 7 | **Manticore Royale** | 158 | 23 | 21 | 31–47 | 12 | 1 | 3400 or, 4 mercure, 2 gemmes | `flying`, `noRetaliation`, `mark` |
 | 8 | **Pénitent Damné** | 273 | 31 | 23 | 52–78 | 8 | 1 | 6840 or, 5 gemmes, 72 Essence | `mark`, `demonform` |
 
-> ⚖️ **Coûts élites (D12, à arbitrer)** : premium en or élite/base = **1,80× uniforme** sur les 8 tiers — nettement au-dessus de Haven (~1,44× moyen) et Necropolis (~1,65×). Asymétrie relevée par l'audit factions : l'élite AH est proportionnellement la plus chère du jeu. Contrairement aux deux autres maisons, les élites AH **ne perdent pas** leur capacité de base. Arbitrage des coûts **renvoyé à une passe `faction:sim`** (non tranché ici).
+> ⚖️ **Coûts élites (D12, tranché — passe 3, plan `e3-elite-balance-pass-3`)** : le prix en or de chaque élite est calé sur son **prix d'équilibre** mesuré (`faction:sim`, lecture « facteur d'effectif pour l'égalité », budget 40 000 or/tier) : à or égal, l'armée d'élites fait jeu égal avec l'armée de base (×1,00 ± 5 %). Le surcoût varie donc d'un tier à l'autre selon ce que l'amélioration apporte réellement (bande ×1,10–×1,80) ; l'élite reste l'achat qui densifie la croissance hebdomadaire, pas un gain d'efficacité à l'or. Les coûts en ressources rares sont inchangés.
 
 ## 5. Arbre de bâtiments
 

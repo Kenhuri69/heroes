@@ -5,6 +5,6 @@
   "loreKey": "@loc:unit.t3-dryade-elite.lore",
   "stats": { "hp": 18, "attack": 7, "defense": 5, "damage": [4, 6], "speed": 6 },
   "growthPerWeek": 7,
-  "cost": { "gold": 220 },
+  "cost": { "gold": 210 },
   "abilities": [{ "id": "symbiosis", "params": { "attackPerRound": 1, "defensePerRound": 1, "maxStacks": 4 } }]
 }

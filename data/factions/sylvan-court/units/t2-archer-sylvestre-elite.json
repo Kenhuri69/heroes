@@ -5,6 +5,6 @@
   "loreKey": "@loc:unit.t2-archer-sylvestre-elite.lore",
   "stats": { "hp": 12, "attack": 6, "defense": 4, "damage": [3, 5], "speed": 6 },
   "growthPerWeek": 9,
-  "cost": { "gold": 110 },
+  "cost": { "gold": 130 },
   "abilities": [{ "id": "shooter", "params": { "ammo": 12 } }]
 }

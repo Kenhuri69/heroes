@@ -44,6 +44,9 @@ export {
 export {
   builtDwellings,
   builtLevelOf,
+  levelChoiceKey,
+  levelEffectOf,
+  levelOptions,
   buildStatus,
   exclusiveRivalId,
   missingRequirements,

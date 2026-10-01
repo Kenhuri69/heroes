@@ -1,0 +1,9 @@
+{
+  "id": "t1-recruit-guard",
+  "tier": 1,
+  "name": "@loc:unit.t1-recruit-guard.name",
+  "stats": { "hp": 9, "attack": 3, "defense": 4, "damage": [1, 2], "speed": 4 },
+  "growthPerWeek": 14,
+  "cost": { "gold": 50 },
+  "abilities": []
+}

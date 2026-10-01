@@ -1,4 +1,4 @@
-import type { BuildingDef, BuildingLevel, TownState } from './types';
+import type { BuildingDef, BuildingEffect, BuildingLevel, TownState } from './types';
 
 export type BuildRequirement = { building: string; level: number };
 
@@ -17,7 +17,36 @@ export function builtLevelOf(
 ): BuildingLevel | undefined {
   const level = town.buildings[buildingId];
   if (!level) return undefined;
-  return catalog[buildingId]?.levels[level - 1];
+  const def = catalog[buildingId]?.levels[level - 1];
+  if (!def?.alternatives) return def;
+  return { ...def, effect: levelEffectOf(town, catalog, buildingId, level) ?? def.effect };
+}
+
+/** Clé de `TownState.levelChoices` (lot E3) : un choix par bâtiment et par niveau. */
+export function levelChoiceKey(buildingId: string, level: number): string {
+  return `${buildingId}@${level}`;
+}
+
+/** Options d'un niveau (lot E3) : `[effect, ...alternatives]` — une seule entrée sans choix. */
+export function levelOptions(level: BuildingLevel): BuildingEffect[] {
+  return [level.effect, ...(level.alternatives ?? [])];
+}
+
+/**
+ * Effet du niveau `level` (1-based) d'un bâtiment dans CETTE ville : l'option
+ * choisie à la construction quand le niveau propose des `alternatives` (lot E3),
+ * sinon `effect`. Source unique pour toute lecture d'effet de niveau.
+ */
+export function levelEffectOf(
+  town: TownState,
+  catalog: Record<string, BuildingDef>,
+  buildingId: string,
+  level: number,
+): BuildingEffect | undefined {
+  const def = catalog[buildingId]?.levels[level - 1];
+  if (!def) return undefined;
+  const choice = town.levelChoices?.[levelChoiceKey(buildingId, level)] ?? 0;
+  return levelOptions(def)[choice] ?? def.effect;
 }
 
 /** Le tier `unitId` est-il débloqué par un dwelling construit dans cette ville ? */
@@ -32,9 +61,8 @@ export function unitIsRecruitable(
   // avant l'amélioration devient irrécupérable.
   for (const buildingId of Object.keys(town.buildings)) {
     const built = town.buildings[buildingId] ?? 0;
-    const def = catalog[buildingId];
     for (let i = 0; i < built; i++) {
-      const effect = def?.levels[i]?.effect;
+      const effect = levelEffectOf(town, catalog, buildingId, i + 1);
       if (effect?.type === 'dwelling' && effect.unitId === unitId) return true;
     }
   }
@@ -54,9 +82,8 @@ export function builtDwellings(
   const unitIds: string[] = [];
   for (const buildingId of Object.keys(town.buildings)) {
     const built = town.buildings[buildingId] ?? 0;
-    const def = catalog[buildingId];
     for (let i = 0; i < built; i++) {
-      const effect = def?.levels[i]?.effect;
+      const effect = levelEffectOf(town, catalog, buildingId, i + 1);
       if (effect?.type === 'dwelling' && !unitIds.includes(effect.unitId)) unitIds.push(effect.unitId);
     }
   }

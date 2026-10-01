@@ -3,6 +3,8 @@ import {
   RESOURCE_IDS,
   buildStatus,
   builtDwellings,
+  builtLevelOf,
+  levelOptions,
   isPassable,
   heroLearnableCircle,
   missingRequirements,
@@ -97,7 +99,7 @@ function hasBuiltEffect(
 ): boolean {
   for (const [id, level] of Object.entries(town.buildings)) {
     if (level < 1) continue;
-    if (catalog[id]?.levels[level - 1]?.effect?.type === effectType) return true;
+    if (builtLevelOf(town, catalog, id)?.effect.type === effectType) return true;
   }
   return false;
 }
@@ -109,7 +111,7 @@ function shipyardBoatCost(
 ): Record<string, number> | null {
   for (const [id, level] of Object.entries(town.buildings)) {
     if (level < 1) continue;
-    const effect = catalog[id]?.levels[level - 1]?.effect;
+    const effect = builtLevelOf(town, catalog, id)?.effect;
     if (effect?.type === 'shipyard') return effect.boatCost as Record<string, number>;
   }
   return null;
@@ -222,7 +224,7 @@ export function TownScreen({ townId, onClose }: { townId: string; onClose: () =>
   // Construire.
   const selectBuilding = (id: string): void => {
     if (!town) return;
-    const effect = game.buildingCatalog[id]?.levels[(town.buildings[id] ?? 0) - 1]?.effect;
+    const effect = builtLevelOf(town, game.buildingCatalog, id)?.effect;
     if ((town.buildings[id] ?? 0) >= 1) {
       if (effect?.type === 'market') return setTab('market');
       if (effect?.type === 'mageGuild') return setTab('guild');
@@ -968,9 +970,10 @@ function BuildTab({
   const game = useApp((s) => s.game);
   const have = game.players.find((p) => p.id === town.ownerPlayerId)?.resources;
 
-  const build = (buildingId: string): void => {
+  const build = (buildingId: string, choice = 0): void => {
     onError(null);
-    dispatch({ type: 'BuildStructure', townId: town.id, buildingId }).catch((err: unknown) => {
+    const cmd = { type: 'BuildStructure' as const, townId: town.id, buildingId, ...(choice > 0 ? { choice } : {}) };
+    dispatch(cmd).catch((err: unknown) => {
       onError(commandErrorMessage(err)); // remédiation CL6 : message localisé, plus « code: message » brut
     });
   };
@@ -1032,25 +1035,41 @@ function BuildTab({
               {status === 'available' && nextLevel && (
                 <div class="town-building-action">
                   <CostList cost={nextLevel.cost} have={have} />
-                  <button
-                    data-testid={`town-build-${buildingId}`}
-                    disabled={town.builtToday}
-                    // E10 : impayable ⇒ grisé AVEC sa raison visible, mais `aria-disabled`
-                    // (doc 08 §4, R6) : il reste tapable et livre sa raison au tap.
-                    aria-disabled={!covers(nextLevel.cost, have)}
-                    onClick={() =>
-                      covers(nextLevel.cost, have) ? build(buildingId) : onError(t('cmdError.cannotAfford'))
-                    }
-                  >
-                    {t('town.build')}
-                    {/* E10 : bouton grisé ⇒ sa RAISON sous le libellé (même patron
-                        que les boutons de combat, lot E2) — jamais un refus muet. */}
-                    {!town.builtToday && !covers(nextLevel.cost, have) && (
-                      <small class="btn-reason" data-testid={`town-build-reason-${buildingId}`}>
-                        {t('cmdError.cannotAfford')}
-                      </small>
-                    )}
-                  </button>
+                  {/* Choix exclusif au niveau (lot E3) : une option par bouton, nommée
+                      par l'unité qu'elle débloque ; le choix est définitif (doc 08 :
+                      prévenir avant une action irréversible). */}
+                  {nextLevel.alternatives && (
+                    <small class="town-level-choice-hint" data-testid={`town-build-choice-hint-${buildingId}`}>
+                      {t('town.levelChoiceHint')}
+                    </small>
+                  )}
+                  {levelOptions(nextLevel).map((option, choice) => (
+                    <button
+                      key={choice}
+                      data-testid={choice === 0 ? `town-build-${buildingId}` : `town-build-${buildingId}-opt${choice}`}
+                      disabled={town.builtToday}
+                      // E10 : impayable ⇒ grisé AVEC sa raison visible, mais `aria-disabled`
+                      // (doc 08 §4, R6) : il reste tapable et livre sa raison au tap.
+                      aria-disabled={!covers(nextLevel.cost, have)}
+                      onClick={() =>
+                        covers(nextLevel.cost, have) ? build(buildingId, choice) : onError(t('cmdError.cannotAfford'))
+                      }
+                    >
+                      {nextLevel.alternatives && option.type === 'dwelling'
+                        ? t('town.buildOption', { unit: resolveUnitName(option.unitId) })
+                        : t('town.build')}
+                      {/* E10 : bouton grisé ⇒ sa RAISON sous le libellé (même patron
+                          que les boutons de combat, lot E2) — jamais un refus muet. */}
+                      {!town.builtToday && !covers(nextLevel.cost, have) && (
+                        <small
+                          class="btn-reason"
+                          data-testid={`town-build-reason-${buildingId}${choice === 0 ? '' : `-opt${choice}`}`}
+                        >
+                          {t('cmdError.cannotAfford')}
+                        </small>
+                      )}
+                    </button>
+                  ))}
                 </div>
               )}
             </li>
@@ -1424,8 +1443,8 @@ function GarrisonTab({ town, onError }: { town: TownState; onError: (msg: string
   // Machines de guerre vendues par un bâtiment `warMachineVendor` construit
   // (la Forge, doc 02 §5) — achetables par le héros présent.
   const vendorUnits: string[] = [];
-  for (const [bId, lvl] of Object.entries(town.buildings)) {
-    const eff = game.buildingCatalog[bId]?.levels[lvl - 1]?.effect;
+  for (const bId of Object.keys(town.buildings)) {
+    const eff = builtLevelOf(town, game.buildingCatalog, bId)?.effect;
     if (eff?.type === 'warMachineVendor') for (const u of eff.units) if (!vendorUnits.includes(u)) vendorUnits.push(u);
   }
 

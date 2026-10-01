@@ -1,0 +1,13 @@
+{
+  "id": "t3-vindicateur",
+  "tier": 3,
+  "name": "@loc:unit.t3-vindicateur.name",
+  "loreKey": "@loc:unit.t3-vindicateur.lore",
+  "stats": { "hp": 21, "attack": 11, "defense": 6, "damage": [5, 8], "speed": 6 },
+  "growthPerWeek": 7,
+  "cost": { "gold": 295 },
+  "abilities": [
+    { "id": "shieldWall", "params": { "defendMultiplier": 1.5 } },
+    { "id": "firstStrike" }
+  ]
+}

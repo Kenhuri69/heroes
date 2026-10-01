@@ -142,7 +142,9 @@ Le déclaratif couvre **tous** les besoins livrés à ce jour (stats, coûts, ar
 > `factionBonuses` déclaratifs (`raiseUndeadOnVictory` Nécropolis 3.4, gain de
 > ressource de faction post-victoire 4.4) ; capacité générique `consumeMarks`
 > et ses effets (`executioner`/`expose`/`pinningShot`, 4.3/4.5/4.8) ; choix de
-> bâtiment exclusif `exclusiveGroup` (Cercles, 4.7) ; sort `applyMarks` (4.9) ;
+> bâtiment exclusif `exclusiveGroup` (Cercles, 4.7) — puis, au **niveau** d'un
+> bâtiment, `alternatives` (lot E3 : deux améliorations au choix pour une même
+> habitation) ; sort `applyMarks` (4.9) ;
 > module de capacité stateful `demonform` (4.10). Le garde-fou CI « zéro faction
 > dans le moteur » **dérive désormais les IDs interdits de
 > `data/factions/index.json`** (remédiation R6) : le seul diff moteur admis par

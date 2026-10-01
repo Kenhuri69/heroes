@@ -2,6 +2,7 @@ import type { MarketConfig } from '../adventure/config';
 import type { Command, CommandError } from '../core/commands';
 import type { GameEvent } from '../core/events';
 import { RESOURCE_IDS, type GameState, type ResourceId } from '../core/state';
+import { builtLevelOf } from './helpers';
 
 type TradeCmd = Extract<Command, { type: 'TradeResources' }>;
 
@@ -63,7 +64,7 @@ export function tradeQuote(
 export function townHasMarket(state: GameState, town: GameState['towns'][number]): boolean {
   for (const [id, level] of Object.entries(town.buildings)) {
     if (level < 1) continue;
-    const effect = state.buildingCatalog[id]?.levels[level - 1]?.effect;
+    const effect = builtLevelOf(town, state.buildingCatalog, id)?.effect;
     if (effect?.type === 'market') return true;
   }
   return false;

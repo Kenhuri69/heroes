@@ -110,6 +110,15 @@ export interface BuildingLevel {
   requires: { building: string; level: number }[];
   effect: BuildingEffect;
   /**
+   * Choix exclusif AU NIVEAU (lot E3, doc 02 §4.1) : effets de remplacement
+   * proposés en plus de `effect` (option 0 = `effect`, option k =
+   * `alternatives[k-1]`). Le joueur en choisit UN à la construction
+   * (`BuildStructure.choice`), irréversible, mémorisé dans
+   * `TownState.levelChoices`. Générique : une habitation peut ainsi offrir deux
+   * améliorations — le moteur ne connaît que des effets.
+   */
+  alternatives?: BuildingEffect[] | undefined;
+  /**
    * Ce niveau ne peut être bâti que dans UNE ville par joueur (doc 02 §4.1 :
    * « un seul Capitole »). Générique et data-driven (D4) : le moteur ignore le
    * nom du bâtiment, seul ce drapeau compte.
@@ -179,4 +188,11 @@ export interface TownState {
    * de sauvegarde et golden inchangés ; hors garde `save-shape` (TownState).
    */
   artifactsBought?: string[];
+  /**
+   * Options choisies aux niveaux à `alternatives` (lot E3) : clé
+   * `levelChoiceKey(buildingId, niveau)` → index d'option (0 = `effect`).
+   * **Optionnel** (créé au 1er choix non nul) ⇒ absent = option 0 partout :
+   * sauvegardes antérieures et golden inchangés ; hors garde `save-shape`.
+   */
+  levelChoices?: Record<string, number>;
 }

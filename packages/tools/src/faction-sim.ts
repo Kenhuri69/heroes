@@ -137,6 +137,16 @@ function eliteUnitOf(pack: FactionPack, buildingId: string): string | null {
  * — il était aveugle aux élites (constat du lot Squelette archer).
  */
 /** Paires [base, élite] des tiers 1…MAX_TIER (élite = base si pas d'amélioration) ; `null` si lineup incomplet. */
+/**
+ * Améliorations ALTERNATIVES d'un tier (lot E3) : les `alternatives` du dernier
+ * niveau de son habitation (le choix exclusif proposé au joueur).
+ */
+function alternativeUnitsOf(pack: FactionPack, buildingId: string): string[] {
+  const building = pack.buildings.find((b) => b.id === buildingId);
+  const top = building && building.levels.length > 1 ? building.levels[building.levels.length - 1] : undefined;
+  return (top?.alternatives ?? []).flatMap((a) => (a.type === 'dwelling' ? [a.unitId] : []));
+}
+
 function elitePairs(pack: FactionPack): [string, string][] | null {
   const dwellings = pack.manifest.town?.dwellings;
   if (!dwellings) return null;
@@ -304,10 +314,8 @@ for (const e of elites) {
 // fait jeu égal avec la base, à budget large. ×1,00 = élites à leur juste prix ;
 // > 1 ⇒ trop chères, < 1 ⇒ pas assez.
 console.log(`\n# Élites — facteur d'effectif pour l'égalité avec la base (budget ${PARITY_BUDGET_GOLD} or/tier, lecture)\n`);
-for (const pack of report.content.packs) {
-  const pairs = elitePairs(pack);
-  if (!pairs) continue;
-  const terrain = neutralTerrain(config, [pack.manifest.nativeTerrain]);
+/** Facteur d'effectif d'élites (dichotomie) qui fait jeu égal avec l'armée de base. */
+function parityFactor(pairs: [string, string][], terrain: string): number {
   const gold = (id: string): number => catalog[id]?.recruitCost?.gold ?? 1;
   const base = pairs.map(([b]) => ({ unitId: b, count: Math.floor(PARITY_BUDGET_GOLD / gold(b)) }));
   const eliteAt = (m: number): ArmyStack[] =>
@@ -319,8 +327,27 @@ for (const pack of report.content.packs) {
     if (winrate(catalog, config, eliteAt(m), base, terrain, PARITY_SEEDS) >= 50) hi = m;
     else lo = m;
   }
-  const mark = Math.abs(hi - 1) <= PARITY_TOLERANCE ? '✓' : '⚠';
-  console.log(`${mark} ${pack.manifest.id.padEnd(16)} — ×${hi.toFixed(3)}`);
+  return hi;
+}
+
+for (const pack of report.content.packs) {
+  const pairs = elitePairs(pack);
+  if (!pairs) continue;
+  const terrain = neutralTerrain(config, [pack.manifest.nativeTerrain]);
+  // Lot E3 : une ligne par amélioration alternative (le tier substitué), en plus
+  // de l'armée d'élites par défaut — chaque option du choix doit tenir son prix.
+  const variants: { label: string; pairs: [string, string][] }[] = [{ label: '', pairs }];
+  const dwellings = pack.manifest.town?.dwellings ?? [];
+  pairs.forEach(([baseId], i) => {
+    const d = dwellings.find((e) => e.unitId === baseId);
+    for (const alt of d ? alternativeUnitsOf(pack, d.buildingId) : [])
+      variants.push({ label: ` (T${i + 1} → ${alt})`, pairs: pairs.map((p, j) => (j === i ? [p[0], alt] : p)) });
+  });
+  for (const v of variants) {
+    const factor = parityFactor(v.pairs, terrain);
+    const mark = Math.abs(factor - 1) <= PARITY_TOLERANCE ? '✓' : '⚠';
+    console.log(`${mark} ${pack.manifest.id.padEnd(16)} — ×${factor.toFixed(3)}${v.label}`);
+  }
 }
 
 // ── 2. Matrice d'attrition (report d'armée + nécromancie) ───────────────────

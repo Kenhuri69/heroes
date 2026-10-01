@@ -256,6 +256,10 @@
 > construit → verrouillé) puis id (C20) — cohérent avec la bande peinte ; l'ancien
 > tri alphabétique plaçait les verrouillés en tête. Vignettes de bâtiments
 > manquantes (Habitation : Recrue, Tableau des Contrats) = suivi asset (C22).
+> **Lot E3** : un niveau à alternatives montre **un bouton par option**, nommé
+> par l'unité qu'il débloque (« Construire : Templier » / « Construire :
+> Vindicateur »), précédé de la mention « Choix définitif » (prévenir avant une
+> action irréversible) ; une fois bâti, l'option écartée disparaît.
 
 > 🚧 **État M-TAVERN.2** : l'onglet **Taverne** est fonctionnel — visible
 > seulement si la Taverne est **construite** (même règle que Marché/Guilde ; tap

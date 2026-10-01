@@ -4,6 +4,7 @@ import type { GameState } from '../core/state';
 import { canAffordCost, spendCost } from './resources';
 import { unitWithEconomy } from './unit-economy';
 import type { BuildingDef, TownState } from './types';
+import { levelEffectOf } from './helpers';
 
 type UpgradeCmd = Extract<Command, { type: 'UpgradeUnits' }>;
 
@@ -25,9 +26,9 @@ export function upgradedUnitFor(
 ): string | undefined {
   for (const [buildingId, builtLevel] of Object.entries(town.buildings)) {
     if (builtLevel < 2) continue;
-    const def = catalog[buildingId];
-    const base = def?.levels[0]?.effect;
-    const up = def?.levels[1]?.effect;
+    // Option choisie au niveau 2 (lot E3) : l'amélioration est celle qu'a retenue la ville.
+    const base = levelEffectOf(town, catalog, buildingId, 1);
+    const up = levelEffectOf(town, catalog, buildingId, 2);
     if (base?.type === 'dwelling' && base.unitId === baseUnitId && up?.type === 'dwelling') {
       return up.unitId;
     }

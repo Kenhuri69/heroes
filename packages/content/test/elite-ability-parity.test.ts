@@ -22,16 +22,41 @@ const readJsonFromDisk: ReadJson = async (path) => {
   return JSON.parse(text) as unknown;
 };
 
+type Pack = Awaited<ReturnType<typeof loadContent>>['content']['packs'][number];
+type Unit = Pack['units'][number];
+
+/**
+ * Paires [base, amélioration] d'un paquet : chaque `*-elite` face à sa base, plus
+ * — lot E3 — chaque option du dernier niveau d'une habitation graduée face à
+ * l'unité de son niveau 1 (couvre les améliorations alternatives, qui ne portent
+ * pas le suffixe `-elite`).
+ */
+function upgradePairs(pack: Pack): [Unit, Unit][] {
+  const byId = new Map(pack.units.map((u) => [u.id, u]));
+  const pairs = new Map<string, [Unit, Unit]>();
+  for (const elite of pack.units) {
+    const base = elite.id.endsWith('-elite') ? byId.get(elite.id.slice(0, -'-elite'.length)) : undefined;
+    if (base) pairs.set(elite.id, [base, elite]);
+  }
+  for (const b of pack.buildings) {
+    const first = b.levels[0]?.effect;
+    const last = b.levels.length > 1 ? b.levels[b.levels.length - 1] : undefined;
+    if (first?.type !== 'dwelling' || !last) continue;
+    const base = byId.get(first.unitId);
+    for (const eff of [last.effect, ...(last.alternatives ?? [])]) {
+      const up = eff.type === 'dwelling' ? byId.get(eff.unitId) : undefined;
+      if (base && up && up.id !== base.id) pairs.set(up.id, [base, up]);
+    }
+  }
+  return [...pairs.values()];
+}
+
 describe('parité des capacités base → elite (CAP-DATAFIX.2)', () => {
   it('chaque unité améliorée possède au moins les capacités de sa base', async () => {
     const { content } = await loadContent(readJsonFromDisk);
     let pairs = 0;
     for (const pack of content.packs) {
-      const byId = new Map(pack.units.map((u) => [u.id, u]));
-      for (const elite of pack.units) {
-        if (!elite.id.endsWith('-elite')) continue;
-        const base = byId.get(elite.id.slice(0, -'-elite'.length));
-        if (!base) continue;
+      for (const [base, elite] of upgradePairs(pack)) {
         pairs++;
         const eliteIds = new Set(elite.abilities.map((a) => a.id));
         const missing = base.abilities.map((a) => a.id).filter((id) => !eliteIds.has(id));
@@ -53,7 +78,6 @@ describe('parité des capacités base → elite (CAP-DATAFIX.2)', () => {
     const { content } = await loadContent(readJsonFromDisk);
     let shooters = 0;
     for (const pack of content.packs) {
-      const byId = new Map(pack.units.map((u) => [u.id, u]));
       for (const unit of pack.units) {
         for (const shooter of unit.abilities.filter((a) => a.id === 'shooter')) {
           shooters++;
@@ -61,9 +85,8 @@ describe('parité des capacités base → elite (CAP-DATAFIX.2)', () => {
           expect(typeof ammo, `${unit.id} : shooter sans munitions déclarées`).toBe('number');
           expect(ammo as number, `${unit.id} : munitions non utilisables`).toBeGreaterThan(0);
         }
-        if (!unit.id.endsWith('-elite')) continue;
-        const base = byId.get(unit.id.slice(0, -'-elite'.length));
-        if (!base) continue;
+      }
+      for (const [base, unit] of upgradePairs(pack)) {
         for (const key of ['hp', 'attack', 'defense', 'speed'] as const) {
           expect(unit.stats[key], `${unit.id}.${key} sous ${base.id}`).toBeGreaterThanOrEqual(
             base.stats[key],

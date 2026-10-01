@@ -3612,6 +3612,24 @@ test('T-GRAIL lot 2 : fouiller la tuile du Graal donne le Graal (doc 02 §2.2)',
   expect(errors).toEqual([]);
 });
 
+test('lot E3 : le niveau 2 d’une habitation propose deux améliorations, le choix est définitif (doc 02 §4.1)', async ({
+  page,
+}) => {
+  const errors = await openGame(page);
+  await page.getByTestId('town-open-start-town').click();
+  await page.getByTestId('town-tab-build').click();
+  // Deux options nommées par leur unité + la mention « choix définitif ».
+  await expect(page.getByTestId('town-build-choice-hint-test-faction-dwelling-t1')).toBeVisible();
+  await expect(page.getByTestId('town-build-test-faction-dwelling-t1')).toBeVisible();
+  await page.getByTestId('town-build-test-faction-dwelling-t1-opt1').click();
+  await expect
+    .poll(() => page.evaluate(() => window.__HEROES_TEST__!.getState().towns[0]?.levelChoices))
+    .toEqual({ 'test-faction-dwelling-t1@2': 1 });
+  // Le niveau est bâti : plus aucune option proposée.
+  await expect(page.getByTestId('town-build-test-faction-dwelling-t1-opt1')).toHaveCount(0);
+  expect(errors).toEqual([]);
+});
+
 test('T-GRAIL lot 3 : le bâtiment Graal est verrouillé sans Graal, constructible ensuite (doc 02 §2.2)', { tag: ['@core'] }, async ({
   page,
 }) => {

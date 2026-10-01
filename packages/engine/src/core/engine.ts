@@ -99,6 +99,7 @@ import { seedRng } from './rng';
 import { applyMonthSpawn, rollMonthEvent, rollWeekEvent } from '../adventure/calendar';
 import { grantXp } from '../adventure/experience';
 import { RESOURCE_IDS, weekOf, monthOf, areAllies, type GameState, type ResourceId } from './state';
+import { levelEffectOf } from '../town/helpers';
 
 export interface EngineResult {
   state: GameState;
@@ -843,7 +844,7 @@ const handlers: Handlers = {
         const def = draft.buildingCatalog[buildingId];
         if (!def) continue;
         for (let lvl = 1; lvl <= builtLevel; lvl++) {
-          const effect = def.levels[lvl - 1]?.effect;
+          const effect = levelEffectOf(town, draft.buildingCatalog, buildingId, lvl);
           if (effect?.type === 'mageGuild') rollGuildSpells(draft, town, effect.level, effect.spellCount ?? 0);
         }
       }

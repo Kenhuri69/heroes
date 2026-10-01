@@ -16,7 +16,8 @@
   "sharedGrowthGroups": {},
   "units": [
     "t1-recruit",
-    "t1-recruit-elite"
+    "t1-recruit-elite",
+    "t1-recruit-guard"
   ],
   "abilityModules": [],
   "hooks": [],

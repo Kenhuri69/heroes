@@ -5,7 +5,7 @@
   "loreKey": "@loc:unit.t7-dragon-ombre-elite.lore",
   "stats": { "hp": 190, "attack": 24, "defense": 23, "damage": [37, 48], "speed": 12 },
   "growthPerWeek": 1,
-  "cost": { "gold": 3600, "sulfur": 2, "gems": 1 },
+  "cost": { "gold": 3350, "sulfur": 2, "gems": 1 },
   "abilities": [
     { "id": "flying" },
     { "id": "fear", "params": { "chance": 0.3, "rounds": 1 } },

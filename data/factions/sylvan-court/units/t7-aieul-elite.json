@@ -5,6 +5,6 @@
   "loreKey": "@loc:unit.t7-aieul-elite.lore",
   "stats": { "hp": 160, "attack": 25, "defense": 17, "damage": [34, 56], "speed": 11 },
   "growthPerWeek": 1,
-  "cost": { "gold": 4100, "crystal": 2, "mercury": 2 },
+  "cost": { "gold": 3900, "crystal": 2, "mercury": 2 },
   "abilities": [{ "id": "symbiosis", "params": { "attackPerRound": 2, "defensePerRound": 3, "maxStacks": 4 } }]
 }

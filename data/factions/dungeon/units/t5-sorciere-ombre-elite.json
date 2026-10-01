@@ -5,7 +5,7 @@
   "loreKey": "@loc:unit.t5-sorciere-ombre-elite.lore",
   "stats": { "hp": 39, "attack": 12, "defense": 11, "damage": [8, 12], "speed": 7 },
   "growthPerWeek": 3,
-  "cost": { "gold": 740, "gems": 1 },
+  "cost": { "gold": 690, "gems": 1 },
   "abilities": [
     { "id": "spellcaster", "params": { "spellId": "affaiblissement", "charges": 3, "power": 4 } },
     { "id": "curseOnHit", "params": { "chance": 0.35, "defenseMod": -1, "rounds": 2 } },

@@ -618,6 +618,12 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > clavier de carte (pan/zoom/Entrée/Ctrl+S), effets d'artefact visibles, stats
 > effectives de pile (`effectiveStackStats`), tiroir « ⋯ » de la carte mobile,
 > combat mobile en vue d'ensemble. Pas de bump save, golden inchangé.*
+> **E3 — élites au juste prix** (`e3-prereq-elite-sim.md`, `e3-elite-balance-pass-3.md`) :
+> `faction:sim` lit les élites ; le repli des tireurs IA est borné (`KITE_MAX_ROUND`,
+> fin d'un auto-combat sans fin) ; **passe 3** — prix en or de chaque élite calé sur
+> son prix d'équilibre (facteur d'effectif pour l'égalité avec la base ×1,00 ± 5 %
+> dans les 6 factions ; Archange rabotée). Données pures, golden inchangé, duel de
+> base inchangé (1 béance). Suite : pilote E3 sur Haven T3.*
 
 ---
 

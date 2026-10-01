@@ -38,6 +38,12 @@ import { readJsonFromDisk } from './data-dir';
 const TIER_BUDGET_GOLD = 4000; // budget d'or par tier → effectif de chaque pile
 const MAX_TIER = 7; // T8 (formes spéciales) hors panel d'équilibrage
 const SEEDS = 120; // combats par sens (×2 sens = total par paire)
+// Facteur d'égalité des élites (passe 3) : budget large (pas d'arrondi des hauts
+// tiers), dichotomie sur l'effectif d'élites, ±5 % = au juste prix.
+const PARITY_BUDGET_GOLD = 40000;
+const PARITY_SEEDS = 20;
+const PARITY_STEPS = 12;
+const PARITY_TOLERANCE = 0.05;
 /**
  * Terrain d'un duel (revue 2026-09, D2) : le premier terrain FRANCHISSABLE qui
  * n'est natif d'AUCUNE des deux factions — `grass` fixe donnait +1 vitesse/+1
@@ -130,6 +136,19 @@ function eliteUnitOf(pack: FactionPack, buildingId: string): string | null {
  * chaque tier, sinon l'unité de base. Le duel valeur-égale n'oppose que les bases
  * — il était aveugle aux élites (constat du lot Squelette archer).
  */
+/** Paires [base, élite] des tiers 1…MAX_TIER (élite = base si pas d'amélioration) ; `null` si lineup incomplet. */
+function elitePairs(pack: FactionPack): [string, string][] | null {
+  const dwellings = pack.manifest.town?.dwellings;
+  if (!dwellings) return null;
+  const pairs: [string, string][] = [];
+  for (let tier = 1; tier <= MAX_TIER; tier++) {
+    const d = dwellings.find((e) => e.tier === tier);
+    if (!d) return null;
+    pairs.push([d.unitId, eliteUnitOf(pack, d.buildingId) ?? d.unitId]);
+  }
+  return pairs;
+}
+
 function eliteArmy(pack: FactionPack, catalog: Record<string, CombatUnitDef>): ArmyStack[] | null {
   const dwellings = pack.manifest.town?.dwellings;
   if (!dwellings) return null;
@@ -152,10 +171,11 @@ function winrate(
   armyA: ArmyStack[],
   armyB: ArmyStack[],
   terrain: string,
+  seeds: number = SEEDS,
 ): number {
   let winsA = 0;
   let total = 0;
-  for (let seed = 1; seed <= SEEDS; seed++) {
+  for (let seed = 1; seed <= seeds; seed++) {
     if (simulateAutoCombat(catalog, config, armyA, armyB, terrain, seed) === 'attacker') winsA++;
     total++;
     // Sens inverse : B attaque, A défend — A gagne si le défenseur tient.
@@ -276,6 +296,31 @@ for (const e of elites) {
   if (!base) continue;
   const rate = winrate(catalog, config, e.army, base.army, neutralTerrain(config, [e.native]));
   console.log(`  ${e.id.padEnd(16)} — élites ${rate.toFixed(1).padStart(5)} % contre la base`);
+}
+
+// Le taux ci-dessus est un fil du rasoir (deux armées miroirs de valeur égale
+// basculent en bloc au moindre avantage, et 4 000 or/tier arrondit les T6/T7 à
+// 1 contre 1). Lecture robuste (passe 3) : le FACTEUR d'effectif d'élites qui
+// fait jeu égal avec la base, à budget large. ×1,00 = élites à leur juste prix ;
+// > 1 ⇒ trop chères, < 1 ⇒ pas assez.
+console.log(`\n# Élites — facteur d'effectif pour l'égalité avec la base (budget ${PARITY_BUDGET_GOLD} or/tier, lecture)\n`);
+for (const pack of report.content.packs) {
+  const pairs = elitePairs(pack);
+  if (!pairs) continue;
+  const terrain = neutralTerrain(config, [pack.manifest.nativeTerrain]);
+  const gold = (id: string): number => catalog[id]?.recruitCost?.gold ?? 1;
+  const base = pairs.map(([b]) => ({ unitId: b, count: Math.floor(PARITY_BUDGET_GOLD / gold(b)) }));
+  const eliteAt = (m: number): ArmyStack[] =>
+    pairs.map(([, e]) => ({ unitId: e, count: Math.max(1, Math.round((PARITY_BUDGET_GOLD * m) / gold(e))) }));
+  let lo = 0.4;
+  let hi = 2.5;
+  for (let i = 0; i < PARITY_STEPS; i++) {
+    const m = (lo + hi) / 2;
+    if (winrate(catalog, config, eliteAt(m), base, terrain, PARITY_SEEDS) >= 50) hi = m;
+    else lo = m;
+  }
+  const mark = Math.abs(hi - 1) <= PARITY_TOLERANCE ? '✓' : '⚠';
+  console.log(`${mark} ${pack.manifest.id.padEnd(16)} — ×${hi.toFixed(3)}`);
 }
 
 // ── 2. Matrice d'attrition (report d'armée + nécromancie) ───────────────────

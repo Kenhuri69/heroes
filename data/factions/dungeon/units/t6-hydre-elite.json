@@ -5,7 +5,7 @@
   "loreKey": "@loc:unit.t6-hydre-elite.lore",
   "stats": { "hp": 80, "attack": 18, "defense": 15, "damage": [12, 17], "speed": 6 },
   "growthPerWeek": 2,
-  "cost": { "gold": 1300, "sulfur": 1 },
+  "cost": { "gold": 1350, "sulfur": 1 },
   "abilities": [
     { "id": "areaAttack", "params": { "pct": 0.4 } },
     { "id": "noRetaliation" },

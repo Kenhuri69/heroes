@@ -11,7 +11,7 @@
   },
   "growthPerWeek": 3,
   "cost": {
-    "gold": 900
+    "gold": 960
   },
   "abilities": [
     { "id": "flying" },

@@ -5,7 +5,7 @@
   "loreKey": "@loc:unit.t3-minotaure-elite.lore",
   "stats": { "hp": 30, "attack": 10, "defense": 9, "damage": [7, 10], "speed": 6 },
   "growthPerWeek": 6,
-  "cost": { "gold": 320, "sulfur": 1 },
+  "cost": { "gold": 315, "sulfur": 1 },
   "abilities": [
     { "id": "moraleImmune" },
     { "id": "doubleAttack" },

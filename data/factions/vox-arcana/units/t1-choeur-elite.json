@@ -11,7 +11,7 @@
   },
   "growthPerWeek": 14,
   "cost": {
-    "gold": 44
+    "gold": 60
   },
   "abilities": [
     { "id": "swarm", "params": { "bonus": 1, "minAllies": 2 } },

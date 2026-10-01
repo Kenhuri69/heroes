@@ -574,30 +574,32 @@ export async function loadFactionPack(
     checkBuildingRequires(errors, path, buildings, visibleMaxLevel);
     for (const b of buildings) {
       b.levels.forEach((level, i) => {
-        const eff = level.effect;
-        if (eff.type === 'dwelling' && !unitIds.has(eff.unitId))
-          errors.push(
-            `${path}: ${b.id} niveau ${i + 1} — dwelling vers unité inconnue '${eff.unitId}'`,
-          );
-        // Choix de Maison (doc 16) : la Maison ciblée doit être déclarée au manifeste.
-        if (eff.type === 'houseChoice' && !manifest.houses.some((h) => h.id === eff.houseId))
-          errors.push(
-            `${path}: ${b.id} niveau ${i + 1} — houseChoice vers Maison inconnue '${eff.houseId}'`,
-          );
-        // Bâtiment enseignant (F-BUILDEFF.3) : le sort enseigné doit exister.
-        if (eff.type === 'grantSpell' && !coreSpellIds.has(eff.spellId))
-          errors.push(
-            `${path}: ${b.id} niveau ${i + 1} — grantSpell vers sort inconnu '${eff.spellId}'`,
-          );
-        // Revenu de ressource de faction (F-BUILDEFF.6) : la ressource doit être
-        // déclarée dans le manifeste de la faction.
-        if (
-          eff.type === 'factionResourceIncome' &&
-          !manifest.factionResources.some((r) => r.id === eff.resource)
-        )
-          errors.push(
-            `${path}: ${b.id} niveau ${i + 1} — factionResourceIncome vers ressource inconnue '${eff.resource}'`,
-          );
+        // Chaque option du niveau (lot E3 : `effect` + `alternatives`) est contrôlée.
+        for (const eff of [level.effect, ...(level.alternatives ?? [])]) {
+          if (eff.type === 'dwelling' && !unitIds.has(eff.unitId))
+            errors.push(
+              `${path}: ${b.id} niveau ${i + 1} — dwelling vers unité inconnue '${eff.unitId}'`,
+            );
+          // Choix de Maison (doc 16) : la Maison ciblée doit être déclarée au manifeste.
+          if (eff.type === 'houseChoice' && !manifest.houses.some((h) => h.id === eff.houseId))
+            errors.push(
+              `${path}: ${b.id} niveau ${i + 1} — houseChoice vers Maison inconnue '${eff.houseId}'`,
+            );
+          // Bâtiment enseignant (F-BUILDEFF.3) : le sort enseigné doit exister.
+          if (eff.type === 'grantSpell' && !coreSpellIds.has(eff.spellId))
+            errors.push(
+              `${path}: ${b.id} niveau ${i + 1} — grantSpell vers sort inconnu '${eff.spellId}'`,
+            );
+          // Revenu de ressource de faction (F-BUILDEFF.6) : la ressource doit être
+          // déclarée dans le manifeste de la faction.
+          if (
+            eff.type === 'factionResourceIncome' &&
+            !manifest.factionResources.some((r) => r.id === eff.resource)
+          )
+            errors.push(
+              `${path}: ${b.id} niveau ${i + 1} — factionResourceIncome vers ressource inconnue '${eff.resource}'`,
+            );
+        }
       });
     }
 

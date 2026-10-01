@@ -624,6 +624,12 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > son prix d'équilibre (facteur d'effectif pour l'égalité avec la base ×1,00 ± 5 %
 > dans les 6 factions ; Archange rabotée). Données pures, golden inchangé, duel de
 > base inchangé (1 béance). Suite : pilote E3 sur Haven T3.*
+> **E3 — pilote livré** (`e3-pilot-level-alternatives.md`) : UN point moteur
+> générique — un niveau de bâtiment peut proposer des `alternatives`, choisies à la
+> construction (`BuildStructure.choice`, définitif, `TownState.levelChoices?`) ;
+> recrutement, croissance et `UpgradeUnits` suivent l'option. Haven T3 : Templier
+> ou **Vindicateur** (`firstStrike`), même prix (juste prix mesuré). Pas de bump
+> save, golden inchangé, zéro faction ; IA = option 0 (différé).*
 
 ---
 

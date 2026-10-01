@@ -88,10 +88,20 @@ Chaque habitation se **gradue au niveau 2** (Alpha 4.11) : le dwelling amélior�
 | 1 | **Hallebardier** | 8 | 3 | 4 | 2–3 | 5 | 14 | 65 or | — |
 | 2 | **Archer d'Élite** | 13 | 5 | 4 | 3–5 | 5 | 9 | 140 or | `shooter` |
 | 3 | **Templier** | 23 | 8 | 10 | 4–7 | 6 | 7 | 295 or | — |
+| 3 *(ou)* | **Vindicateur** | 21 | 11 | 6 | 5–8 | 6 | 7 | 295 or | `shieldWall`, `firstStrike` |
 | 4 | **Griffon Royal** | 39 | 10 | 9 | 7–12 | 8 | 5 | 520 or | `flying` |
 | 5 | **Grande Prêtresse** | 47 | 12 | 13 | 9–14 | 6 | 4 | 1070 or, 2 gemmes | `shooter` |
 | 6 | **Champion du Griffon** | 91 | 18 | 18 | 16–26 | 9 | 2 | 2050 or, 2 cristal | — |
 | 7 | **Archange** | 216 | 29 | 24 | 42–64 | 12 | 1 | 5350 or, 3 cristal, 3 gemmes | `flying` |
+
+> ⚔️ **Choix au niveau 2 de l'habitation T3 (lot E3, pilote)** : le Frère-Lame
+> s'améliore **soit** en **Templier** (défense, tenir la ligne), **soit** en
+> **Vindicateur** (attaque, `firstStrike` : frappe avant la riposte ; garde le
+> `shieldWall` de sa base). Choix définitif par ville (`alternatives` de
+> l'habitation, doc 02 §4.1). Même prix (295 or) : le prix d'équilibre mesuré du
+> Vindicateur est de 297 or, et l'armée qui le prend fait jeu égal avec la base
+> (facteur ×0,992) — le dilemme est de rôle, pas de rentabilité. Sprite :
+> repli procédural tant que l'illustration n'est pas produite.
 
 > ⚖️ **Coûts élites (D12, tranché — passe 3, plan `e3-elite-balance-pass-3`)** : le prix en or de chaque élite est calé sur son **prix d'équilibre** mesuré (`faction:sim`, lecture « facteur d'effectif pour l'égalité », budget 40 000 or/tier) : à or égal, l'armée d'élites fait jeu égal avec l'armée de base (×1,00 ± 5 %). Le surcoût varie donc d'un tier à l'autre selon ce que l'amélioration apporte réellement (bande ×1,10–×1,80) ; l'élite reste l'achat qui densifie la croissance hebdomadaire, pas un gain d'efficacité à l'or. Les coûts en ressources rares sont inchangés. L'Archange, seul hors bande (valait ×2,27 la base pour ×1,69 payé), a vu ses stats rabotées (PV 234→216, Déf 29→24, dégâts 46–72→42–64) avant d'être tarifé.
 

@@ -3,7 +3,7 @@ import { samePos } from '../adventure/map';
 import type { Command, CommandError } from '../core/commands';
 import type { GameEvent } from '../core/events';
 import type { GameState } from '../core/state';
-import { exclusiveRivalId, missingRequirements } from './helpers';
+import { exclusiveRivalId, levelChoiceKey, levelOptions, missingRequirements } from './helpers';
 import { learnGuildSpellsAtTown, rollGuildSpells } from './mage-guild';
 import { canAfford, payCost } from './resources';
 
@@ -49,6 +49,13 @@ export function validateBuildStructure(state: GameState, cmd: BuildCmd): Command
       code: 'buildingMaxLevel',
       message: `aucun niveau suivant défini pour '${cmd.buildingId}'`,
     };
+  // Choix au niveau (lot E3) : l'option doit exister ; sans `alternatives`, seule 0.
+  const choice = cmd.choice ?? 0;
+  if (!Number.isInteger(choice) || choice < 0 || choice >= levelOptions(nextLevel).length)
+    return {
+      code: 'invalidLevelChoice',
+      message: `option ${choice} inexistante pour '${cmd.buildingId}'@${currentLevel + 1}`,
+    };
   // Prérequis de bâtiment (helper partagé avec l'UI, remédiation CL9).
   const missing = missingRequirements(town, state.buildingCatalog, cmd.buildingId);
   const firstMissing = missing[0];
@@ -77,7 +84,7 @@ export function validateBuildStructure(state: GameState, cmd: BuildCmd): Command
   // JOUEUR (doc 16 §3.1) — l'exclusivité par ville (`exclusiveGroup`) ne suffit
   // pas, une 2ᵉ ville permettait de l'écraser. Refus dès qu'un héros du joueur
   // est déjà stampé d'une Maison.
-  if (nextLevel.effect.type === 'houseChoice') {
+  if (levelOptions(nextLevel)[choice]?.type === 'houseChoice') {
     const chosen = state.heroes.some((h) => h.playerId === player.id && h.houseId !== '');
     if (chosen)
       return {
@@ -117,11 +124,15 @@ export function handleBuildStructure(draft: GameState, cmd: BuildCmd, events: Ga
   payCost(player.resources, nextLevel.cost);
   const builtLevel = currentLevel + 1;
   town.buildings[cmd.buildingId] = builtLevel;
+  // Choix au niveau (lot E3) : mémorisé seulement s'il n'est pas l'option 0
+  // (absent = 0) ⇒ forme de sauvegarde inchangée sans choix.
+  const choice = cmd.choice ?? 0;
+  if (choice > 0) (town.levelChoices ??= {})[levelChoiceKey(cmd.buildingId, builtLevel)] = choice;
   town.builtToday = true;
   events.push({ type: 'TownBuilt', townId: town.id, buildingId: cmd.buildingId, level: builtLevel });
   // Guilde des mages (G2) : tire le pool de sorts du cercle bâti, puis tout héros
   // du propriétaire présent sur la ville apprend aussitôt ce qu'il peut.
-  const effect = nextLevel.effect;
+  const effect = levelOptions(nextLevel)[choice] ?? nextLevel.effect;
   // Semaine offerte (LE6 E2) : l'habitation neuve ouvre avec une semaine de
   // croissance — jamais pour une amélioration (niveau 2+).
   if (effect.type === 'dwelling' && currentLevel === 0 && draft.config?.dwellingInitialStock) {

@@ -12,7 +12,8 @@
         {
           "cost": { "gold": 300 },
           "requires": [],
-          "effect": { "type": "dwelling", "tier": 1, "unitId": "t1-recruit-elite" }
+          "effect": { "type": "dwelling", "tier": 1, "unitId": "t1-recruit-elite" },
+          "alternatives": [{ "type": "dwelling", "tier": 1, "unitId": "t1-recruit-guard" }]
         }
       ]
     },

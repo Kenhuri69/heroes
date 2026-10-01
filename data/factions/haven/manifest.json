@@ -32,7 +32,8 @@
     "t4-griffon-elite",
     "t5-pretresse-elite",
     "t6-chevalier-griffon-elite",
-    "t7-ange-elite"
+    "t7-ange-elite",
+    "t3-vindicateur"
   ],
   "story": "story/campaign.json",
   "abilityModules": [],

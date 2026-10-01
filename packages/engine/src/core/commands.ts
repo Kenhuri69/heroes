@@ -153,7 +153,13 @@ export type Command =
       rounds?: number;
     }
   // ——— Villes (doc 02 §4) — surface figée en cadrage 3.1 ———
-  | { type: 'BuildStructure'; townId: string; buildingId: string }
+  | {
+      type: 'BuildStructure';
+      townId: string;
+      buildingId: string;
+      /** Option du niveau à bâtir quand il propose des `alternatives` (lot E3) ; absent = 0. */
+      choice?: number | undefined;
+    }
   | { type: 'RecruitUnits'; townId: string; unitId: string; count: number }
   | {
       /**
@@ -387,6 +393,7 @@ export interface CommandError {
     | 'buildingMaxLevel'
     | 'requirementsNotMet'
     | 'exclusiveChoiceLocked'
+    | 'invalidLevelChoice'
     | 'houseAlreadyChosen'
     | 'wrongFactionBuilding'
     | 'uniquePerPlayer'

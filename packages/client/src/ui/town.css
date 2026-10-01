@@ -317,9 +317,17 @@
 
 .town-building-action {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 10px;
   margin-top: 8px;
+}
+
+/* Choix exclusif au niveau (lot E3) : la mention « définitif » occupe sa ligne. */
+.town-level-choice-hint {
+  flex-basis: 100%;
+  color: var(--parchment-dim);
+  font-style: italic;
 }
 
 .town-building-action button,

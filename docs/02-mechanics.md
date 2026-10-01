@@ -696,6 +696,17 @@ Chaque faction consomme surtout **une paire de ressources rares** (Haven : crist
 > en données (`<baseId>-elite`). Améliorer les unités de l'armée du héros (hors
 > garnison) restent différés.
 
+> ⚖️ **Choix exclusif au niveau (lot E3, plan `e3-pilot-level-alternatives`)** :
+> un niveau de bâtiment peut proposer des **alternatives** (`alternatives`, même
+> type d'effet que `effect` — même tier pour une habitation). Le joueur en
+> choisit **une** à la construction (`BuildStructure.choice`, option 0 =
+> `effect`) ; le choix est **définitif** et mémorisé par ville
+> (`TownState.levelChoices`, optionnel : absent = option 0). Recrutement,
+> croissance hebdomadaire et `UpgradeUnits` suivent l'option choisie ; l'autre
+> amélioration n'est jamais recrutable dans cette ville. Pilote : **Haven T3**,
+> Templier (tenir la ligne) ou Vindicateur (frapper en premier), même prix. L'IA
+> prend l'option 0 (choix d'IA différé).
+
 > 🚧 **État (machines de guerre, Alpha 4.12)** : la **Baliste** (doc §5) est
 > livrée comme machine de base — catalogue **core générique** (`data/core/
 > war-machines.json`, fusionné dans le catalogue d'unités), achetée à la **Forge**

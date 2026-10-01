@@ -44,7 +44,8 @@
         {
           "cost": { "gold": 1400, "ore": 3 },
           "requires": [],
-          "effect": { "type": "dwelling", "tier": 3, "unitId": "t3-frere-lame-elite" }
+          "effect": { "type": "dwelling", "tier": 3, "unitId": "t3-frere-lame-elite" },
+          "alternatives": [{ "type": "dwelling", "tier": 3, "unitId": "t3-vindicateur" }]
         }
       ]
     },

@@ -412,13 +412,29 @@ const buildingEffectSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('none') }),
 ]);
 
-const buildingLevelSchema = z.object({
-  cost: z.record(z.enum(COMMON_RESOURCE_IDS), z.number().int().positive()),
-  requires: z.array(buildingRequirementSchema).default([]),
-  effect: buildingEffectSchema,
-  /** D4 : ce niveau ne peut être bâti que dans une ville par joueur (« 1 Capitole »). */
-  uniquePerPlayer: z.boolean().optional(),
-});
+const buildingLevelSchema = z
+  .object({
+    cost: z.record(z.enum(COMMON_RESOURCE_IDS), z.number().int().positive()),
+    requires: z.array(buildingRequirementSchema).default([]),
+    effect: buildingEffectSchema,
+    /**
+     * Lot E3 : options exclusives en plus de `effect` (le joueur en choisit une à
+     * la construction). Même type d'effet que `effect` — et même tier pour une
+     * habitation : on choisit QUELLE amélioration, jamais un autre bâtiment.
+     */
+    alternatives: z.array(buildingEffectSchema).min(1).optional(),
+    /** D4 : ce niveau ne peut être bâti que dans une ville par joueur (« 1 Capitole »). */
+    uniquePerPlayer: z.boolean().optional(),
+  })
+  .refine(
+    (l) =>
+      (l.alternatives ?? []).every(
+        (a) =>
+          a.type === l.effect.type &&
+          (a.type !== 'dwelling' || l.effect.type !== 'dwelling' || a.tier === l.effect.tier),
+      ),
+    { message: 'une alternative doit avoir le type (et le tier) de `effect`', path: ['alternatives'] },
+  );
 
 export const buildingSchema = z
   .object({

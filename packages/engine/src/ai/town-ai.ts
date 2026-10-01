@@ -14,6 +14,8 @@ import {
   handleBuyWarMachine,
   validateTradeResources,
   handleTradeResources,
+  builtLevelOf,
+  levelOptions,
 } from '../town';
 import { effectiveMarketRates, ownedMarketCount, townHasMarket, tradeQuote } from '../town/market';
 import { validateRecruitHero, handleRecruitHero } from '../hero/recruit';
@@ -33,7 +35,8 @@ import { maxAffordableCount, scaleCost } from '../town/resources';
 function unitTier(catalog: Record<string, BuildingDef>, unitId: string): number {
   for (const def of Object.values(catalog)) {
     for (const level of def.levels) {
-      if (level.effect.type === 'dwelling' && level.effect.unitId === unitId) return level.effect.tier;
+      for (const effect of levelOptions(level))
+        if (effect.type === 'dwelling' && effect.unitId === unitId) return effect.tier;
     }
   }
   return 0;
@@ -372,7 +375,7 @@ function tryBuyWarMachine(draft: GameState, town: TownState, events: GameEvent[]
   const sold = new Set<string>();
   for (const [buildingId, level] of Object.entries(town.buildings)) {
     if (level < 1) continue;
-    const effect = draft.buildingCatalog[buildingId]?.levels[level - 1]?.effect;
+    const effect = builtLevelOf(town, draft.buildingCatalog, buildingId)?.effect;
     if (effect?.type === 'warMachineVendor') for (const unitId of effect.units) sold.add(unitId);
   }
   for (const unitId of [...sold].sort()) {

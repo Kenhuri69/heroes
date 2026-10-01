@@ -130,6 +130,8 @@ export type {
 export {
   buildStatus,
   builtDwellings,
+  builtLevelOf,
+  levelOptions,
   missingRequirements,
   scaleCost,
   tradeQuote,

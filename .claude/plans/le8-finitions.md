@@ -33,12 +33,13 @@
 2. [x] `standardMapOptions` (contenu) ; client et CLI branchés ; test de parité
 3. [x] Icône maskable + manifeste + test de contenu
 4. [x] Docs (02, 07/09 selon le cas), plan d'enrichissement, CLAUDE.md
-5. [ ] Vérifications
+5. [x] Vérifications
 
 ## 4. Vérifications
 
-- [ ] typecheck (sans `-s`), lint, build, tests, garde-fous, golden inchangé
-- [ ] Playwright complet
+- [x] typecheck (sans `-s`), lint, build (`dist/icons/icon-maskable-512.png` émis) ; budget 388 230 o gzip ; garde-fous faction et couleurs
+- [x] tests : moteur 1113 (+1), contenu 201 (+4), client 113, serveur 10 ; golden inchangé
+- [x] Playwright complet comme en CI : 149 verts hors @perf, puis @perf isolé mono-worker 2/2
 
 ## 5. Journal
 

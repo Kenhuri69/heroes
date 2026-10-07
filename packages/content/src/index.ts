@@ -14,6 +14,7 @@ export {
   knownArtifactIds,
   knownUnitIds,
   knownUnitTiers,
+  standardMapOptions,
   loadContent,
   loadFactionPack,
   loadMap,

@@ -629,7 +629,11 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > construction (`BuildStructure.choice`, définitif, `TownState.levelChoices?`) ;
 > recrutement, croissance et `UpgradeUnits` suivent l'option. Haven T3 : Templier
 > ou **Vindicateur** (`firstStrike`), même prix (juste prix mesuré). Pas de bump
-> save, golden inchangé, zéro faction ; IA = option 0 (différé).*
+> save, golden inchangé, zéro faction.*
+> **LE8 — finitions** (`le8-finitions.md`) : l'IA choisit l'option d'un niveau à
+> alternatives (force brute × croissance ÷ or) ; `map:gen` partage les options du
+> client (`standardMapOptions`, réglages en `--clé=valeur`) ⇒ même carte à graine
+> égale ; icône PWA *maskable* dédiée. Pas de bump save, golden inchangé.*
 
 ---
 

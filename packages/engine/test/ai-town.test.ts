@@ -99,6 +99,44 @@ describe('IA de ville — construire utile', () => {
   });
 });
 
+describe('IA de ville — choix au niveau (lot E3/LE8)', () => {
+  /** Niveau 2 à deux options : `first` = option 0 (`effect`), `second` = alternative. */
+  function catalogChoice(first: string, second: string): Record<string, BuildingDef> {
+    return {
+      caserne: {
+        id: 'caserne',
+        maxLevel: 2,
+        levels: [
+          { cost: { gold: 500 }, requires: [], effect: { type: 'dwelling', tier: 1, unitId: 'red-grunt' } },
+          {
+            cost: { gold: 500 },
+            requires: [],
+            effect: { type: 'dwelling', tier: 1, unitId: first },
+            alternatives: [{ type: 'dwelling', tier: 1, unitId: second }],
+          },
+        ],
+      },
+    };
+  }
+  const upgradedUnit = (state: GameState): string | undefined => {
+    const choice = state.towns[0]?.levelChoices?.['caserne@2'] ?? 0;
+    const level = state.buildingCatalog['caserne']?.levels[1];
+    const effect = choice === 0 ? level?.effect : level?.alternatives?.[choice - 1];
+    return effect?.type === 'dwelling' ? effect.unitId : undefined;
+  };
+
+  it('prend l’option la plus rentable (force × croissance ÷ or), quel que soit son rang', () => {
+    const town = testTown({ buildings: { caserne: 1 }, stock: {} });
+    const a = playAi(aiState(500, catalogChoice('blue-wolf', 'red-grunt'), town)).next;
+    const b = playAi(aiState(500, catalogChoice('red-grunt', 'blue-wolf'), town)).next;
+    expect(a.towns[0]?.buildings.caserne).toBe(2);
+    expect(b.towns[0]?.buildings.caserne).toBe(2);
+    // Même unité retenue dans les deux ordres : le choix suit la valeur, pas l'index.
+    expect(upgradedUnit(a)).toBeDefined();
+    expect(upgradedUnit(a)).toBe(upgradedUnit(b));
+  });
+});
+
 describe('IA de ville — améliorer ses unités', () => {
   it('convertit la pile de garnison quand l’habitation améliorée est bâtie et payable', () => {
     // `builtToday` + stock vide isolent l'amélioration (ni construction ni recrutement).

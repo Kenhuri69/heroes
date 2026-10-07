@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { MapGenOptions } from './mapgen';
 import {
   abilityCatalogSchema,
   artifactCatalogSchema,
@@ -409,6 +410,32 @@ export function knownUnitTiers(report: LoadReport): Record<string, number> {
 /** IDs d'artefacts communs — pour la règle croisée des artefacts posés sur une carte. */
 export function knownArtifactIds(report: LoadReport): Set<string> {
   return new Set(report.content.coreArtifacts.map((a) => a.id));
+}
+
+/**
+ * Options de génération de carte communes au client et à la CLI `map:gen` (lot
+ * LE8) — à graine égale, les deux produisent la MÊME carte. Seules les
+ * illustrations diffèrent d'un environnement à l'autre, d'où deux prédicats :
+ *  - gardiens tirés des seules unités **peintes** (un gardien sans art resterait
+ *    un fanion gris), repli sur toutes les unités si aucune ne l'est ;
+ *  - villes neutres des seules factions dont le **château de carte** est peint.
+ * Les options de « Nouvelle partie » (taille, joueurs, densités) s'ajoutent par-dessus.
+ */
+export function standardMapOptions(
+  report: LoadReport,
+  art: { hasUnitArt(unitId: string, factionId: string): boolean; hasTownArt(factionId: string): boolean },
+): MapGenOptions {
+  const painted = report.content.packs.flatMap((p) =>
+    p.units.filter((u) => art.hasUnitArt(u.id, p.manifest.id)).map((u) => u.id),
+  );
+  return {
+    guardianUnits: painted.length > 0 ? painted : [...knownUnitIds(report)],
+    unitTiers: knownUnitTiers(report),
+    artifactIds: [...knownArtifactIds(report)],
+    // Rareté graduée en profondeur (doc 18 C2) : commun près du départ, rare au fond.
+    artifactRarity: Object.fromEntries(report.content.coreArtifacts.map((a) => [a.id, a.rarity ?? 1])),
+    townFactionIds: report.content.packs.map((p) => p.manifest.id).filter((id) => art.hasTownArt(id)),
+  };
 }
 
 /** Charge un paquet et applique les règles croisées (doc 06 §5.3). */

@@ -394,7 +394,10 @@ données seules, après R1 — sinon chaque futur câblage se mesure contre un
    jetable du LE1 (2 IA, 64², 20 graines, 60 jours) avant/après : jour médian du
    Capitole et de la 1ʳᵉ habitation T7 de l'IA **sans recul de plus de 7 jours**,
    captures de ville ≥ baseline ; doc 02 §3 amendé.
-8. **Verdict** — en attente.
+8. **Verdict** — **livré en repli (a) poids seuls** (`r2-rare-resources-market.md`) :
+   la courbe faisait reculer la T7 de l'IA de plus de 7 jours (AH +11 j de médiane,
+   36 sièges sur 120 à la T7 contre 41) ; poids seuls + IA qui garde la réserve du
+   bâtiment prioritaire : 48 sièges, Capitole plus tôt, captures 29 → 41.
 
 🗳️ **D-R2** : ampleur — (a) **poids seuls** (rare ×2, taux linéaire actuel :
 gemme à 100 or) ou (b) **poids + courbe** ci-dessus (gemme à 250 or à un
@@ -571,3 +574,4 @@ avant d'être figées.
 - **2026-10-08** — R1 livré (`r1-sim-unit-spells.md`) : le sim voit les sorts d'unité, IA sort contre frappe, Maître = Dissonance. Haven 53,4 → 61,4 %, Vox 43,9 → 38,8 % ⇒ passe 4 justifiée.
 - **2026-10-08** — Passe 4 (`faction-balance-pass-4.md`, choix utilisateur : juste après R1) : Ange Pouvoir 4 → 2, Maître 62 → 76 PV ⇒ 0 béance, écart 22,6 → 8,1 pts. Suite : R3.
 - **2026-10-08** — R3 livré (`r3-learning-sites.md`) : sanctuaire gaté par la Sagesse, cabane Apprendre/Refuser (plafond 6), générateur v3 (sanctuaires c1–3, cabanes, fabriques), IA qui s'en sert. Suite : R2.
+- **2026-10-08** — R2 livré en repli poids seuls (`r2-rare-resources-market.md`) : rares ×2 au marché, l'IA garde la réserve du bâtiment prioritaire en achetant pour ses recrues ; courbe écartée (recul > 7 jours). Suite : R4.

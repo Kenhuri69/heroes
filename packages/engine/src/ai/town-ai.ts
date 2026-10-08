@@ -17,7 +17,7 @@ import {
   builtLevelOf,
   levelOptions,
 } from '../town';
-import { effectiveMarketRates, ownedMarketCount, townHasMarket, tradeQuote } from '../town/market';
+import { marketRates, ownedMarketCount, townHasMarket, tradeQuote } from '../town/market';
 import { validateRecruitHero, handleRecruitHero } from '../hero/recruit';
 import { samePos } from '../adventure/map';
 import type { BuildingDef, BuildingEffect, BuildingLevel, TownState } from '../town/types';
@@ -173,7 +173,11 @@ function tryRecruit(
     // mercure d'un T5 ne doit plus bloquer une ville riche en or).
     let plan: MarketPlan | null = null;
     if (count < stock && recruitCost) {
-      const withMarket = maxCountWithMarket(draft, town, budget, recruitCost, stock);
+      // Lot R2 : l'or du marché ne puise jamais dans la réserve du bâtiment
+      // prioritaire, première pile comprise — avec des ressources rares chères,
+      // acheter le mercure des recrues retardait l'habitation T7 de plusieurs jours.
+      const marketBudget = reserve ? withoutReserve(player, reserve) : budget;
+      const withMarket = maxCountWithMarket(draft, town, marketBudget, recruitCost, stock);
       if (withMarket.count > count) ({ count, plan } = withMarket);
     }
     if (count <= 0) continue;
@@ -347,7 +351,6 @@ function marketPlan(draft: GameState, town: TownState, player: PlayerState, cost
   const market = draft.config?.market;
   if (!market || !townHasMarket(draft, town)) return null;
   const markets = ownedMarketCount(draft, player.id);
-  const factor = effectiveMarketRates(market, markets).factor;
   const plan: MarketPlan = { buys: [], gold: cost.gold ?? 0 };
   for (const [id, amount] of Object.entries(cost)) {
     if (id === 'gold' || !amount) continue;
@@ -357,8 +360,9 @@ function marketPlan(draft: GameState, town: TownState, player: PlayerState, cost
     }
     const missing = amount - player.resources[id as ResourceId];
     if (missing <= 0) continue;
-    // Plus petit montant d'or qui rapporte `missing` (le marché arrondit à la baisse).
-    let gold = Math.ceil((missing * market.buyRate) / factor);
+    // Plus petit montant d'or qui rapporte `missing` (le marché arrondit à la baisse) :
+    // forme fermée, la boucle ne rattrape qu'un écart d'arrondi flottant.
+    let gold = Math.ceil(missing * marketRates(market, id as ResourceId, markets).buyRate);
     while (tradeQuote(market, 'gold', id as ResourceId, gold, markets) < missing) gold++;
     plan.buys.push({ id: id as ResourceId, gold });
     plan.gold += gold;

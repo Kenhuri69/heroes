@@ -137,6 +137,7 @@
     "market": {
       "sellRate": 25,
       "buyRate": 50,
+      "resourceValue": { "crystal": 2, "gems": 2, "sulfur": 2, "mercury": 2 },
       "perMarketBonus": 0.1,
       "maxMarketFactor": 1.4,
       "artifactValuePerPoint": 500,

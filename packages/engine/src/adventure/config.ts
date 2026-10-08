@@ -286,6 +286,11 @@ export interface MarketConfig {
   /** Plafond du facteur de taux dégressif (≥ 1). Optionnel : absent ⇒ 1 (plat). */
   maxMarketFactor?: number | undefined;
   /**
+   * Valeur relative de chaque ressource (lot R2, doc 02 §3) : multiplie la vente
+   * et l'achat de cette ressource (rare ×2). Optionnel : absent ⇒ ×1 partout.
+   */
+  resourceValue?: Partial<Record<string, number>> | undefined;
+  /**
    * Marchand d'artefacts (doc 18 D2) : or de base par POINT de bonus d'un
    * artefact sans `value` explicite (`Σ|bonus| × artifactValuePerPoint`).
    * Optionnel : absent ⇒ vente d'artefacts désactivée (marché ressources seul).

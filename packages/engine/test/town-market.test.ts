@@ -3,7 +3,7 @@ import { apply, validate } from '../src/core/engine';
 import type { Command } from '../src/core/commands';
 import { createEmptyState, emptyResources, type GameState, type Resources } from '../src/core/state';
 import type { BuildingDef } from '../src/town/types';
-import { tradeQuote } from '../src/town/market';
+import { marketRates, tradeQuote } from '../src/town/market';
 import { testConfig, testMap } from './fixtures';
 import { testTown, testUnitCatalogWithEconomy } from './town-fixtures';
 
@@ -77,6 +77,43 @@ describe('tradeQuote (helper pur)', () => {
     expect(tradeQuote(M, 'gold', 'ore', 500, 3)).toBe(12); // buyRate 50/1.2≈41.7 : floor(500/41.7)
     // Plafond : 20 marchés ⇒ factor plafonné à 2 (pas 1 + 0.1×19 = 2.9).
     expect(tradeQuote(M, 'wood', 'gold', 10, 20)).toBe(500); // floor(10 × 25 × 2)
+  });
+});
+
+describe('R2 — valeur des ressources rares (resourceValue)', () => {
+  // Mêmes valeurs que data/core/config.json : rares ×2, communes ×1.
+  const M = {
+    sellRate: 25,
+    buyRate: 50,
+    perMarketBonus: 0.1,
+    maxMarketFactor: 1.4,
+    resourceValue: { crystal: 2, gems: 2, sulfur: 2, mercury: 2 },
+  };
+  it('une rare se vend et s’achète deux fois plus cher, une commune inchangée', () => {
+    expect(tradeQuote(M, 'gems', 'gold', 10)).toBe(500);
+    expect(tradeQuote(M, 'gold', 'gems', 1000)).toBe(10);
+    expect(tradeQuote(M, 'wood', 'gold', 10)).toBe(250);
+    expect(tradeQuote(M, 'gold', 'wood', 1000)).toBe(20);
+    expect(marketRates(M, 'mercury')).toEqual({ sellRate: 50, buyRate: 100 });
+    expect(marketRates(M, 'ore', 3)).toEqual({ sellRate: 30, buyRate: 50 / 1.2 });
+  });
+  it('troc entre poids différents : 10 gemmes ⇒ 10 bois, 10 bois ⇒ 2 gemmes', () => {
+    expect(tradeQuote(M, 'gems', 'wood', 10)).toBe(10); // floor(10 × 50 / 50)
+    expect(tradeQuote(M, 'wood', 'gems', 10)).toBe(2); // floor(10 × 25 / 100)
+  });
+  it('aller-retour jamais rentable, quelle que soit la paire', () => {
+    const ids = ['wood', 'ore', 'crystal', 'gems', 'sulfur', 'mercury'] as const;
+    for (const markets of [1, 5, 20]) {
+      for (const a of ids) {
+        const gold = tradeQuote(M, a, 'gold', 100, markets);
+        expect(tradeQuote(M, 'gold', a, gold, markets)).toBeLessThanOrEqual(100);
+        for (const b of ids) {
+          if (a === b) continue;
+          const got = tradeQuote(M, a, b, 100, markets);
+          expect(tradeQuote(M, b, a, got, markets)).toBeLessThanOrEqual(100);
+        }
+      }
+    }
   });
 });
 

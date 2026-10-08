@@ -55,13 +55,13 @@
 3. [x] Générateur v3 + `standardMapOptions` ; tests (v1/v2 à l'octet, présence sur 20 graines)
 4. [x] Client : modale, toasts, infobulle, locales FR/EN
 5. [x] Docs 02 §2.2 (et 08), CLAUDE.md, plan d'enrichissement
-6. [ ] Vérifications
+6. [x] Vérifications
 
 ## 4. Vérifications
 
-- [ ] typecheck (sans `-s`), lint, build ; budget ; garde-fous faction et couleurs
-- [ ] tests moteur / contenu / client / serveur ; golden inchangé
-- [ ] Playwright comme en CI
+- [x] typecheck (sans `-s`), lint, build ; garde-fous faction et couleurs
+- [x] tests : moteur 1122 (+5), contenu 205 (+4), client 113, serveur 10 ; golden inchangé
+- [x] Playwright comme en CI : 149 verts hors @perf (dont le nouveau smoke cabane ; 1 flaky vert au 2ᵉ essai, « confort : aide « ? » », déjà vu au lot R1, hors zone), @perf mono-worker 2/2
 
 ## 5. Journal
 
@@ -83,6 +83,16 @@
     requise » pour le héros sélectionné ;
   - doc 08 non touchée : elle ne décrit pas les modales forcées (offre neutre comprise) ;
   - smoke `@core` : la cabane de proto-01 (8,7), « Apprendre » ⇒ Repérage appris.
-  - Bench IA « niveau moyen au j28 » du critère : non fait (pas de harnais de
-    partie IA contre IA sur carte générée) ; couvert par les tests unitaires de
-    ciblage et d'acceptation.
+- 2026-10-08 : bench IA jetable (2 IA, 64², 20 graines, jour 28, options
+  `standardMapOptions`) — critère « niveau ≥ référence » tenu :
+
+  | Relevé | Niveau moyen | Meilleur héros (niveau) | Compétences du meilleur | Lieux visités |
+  |---|---|---|---|---|
+  | Avant R3 (IA d'origine, carte v2) | 1,42 | 1,78 | 0,78 | 25 |
+  | R3, carte v2 (IA nouvelle) | 2,15 | 2,35 | 1,35 | 137 |
+  | **R3, carte v3** | 1,94 | **2,26** | **1,46** | 186 |
+
+  - L'IA qui vise les lieux de niveau et d'attribut fait l'essentiel du gain ;
+    la v3 ajoute les compétences (14 offres de cabane, toutes acceptées).
+  - Le niveau moyen v3 est un peu sous la v2 : plus de héros recrutés (66 contre
+    61) dilue la moyenne ; le meilleur héros reste au-dessus de la référence.

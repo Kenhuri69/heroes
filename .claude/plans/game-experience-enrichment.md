@@ -569,3 +569,4 @@ avant d'être figées.
   d'unité (catalogue de sorts vide). Verdict de l'expert en attente. **Aucun code.**
 - **2026-10-08** — §5bis : proposition du designer, relecture de l'expert (§5bis.4), décisions de l'utilisateur (§5bis.5). Ouverture de R1.
 - **2026-10-08** — R1 livré (`r1-sim-unit-spells.md`) : le sim voit les sorts d'unité, IA sort contre frappe, Maître = Dissonance. Haven 53,4 → 61,4 %, Vox 43,9 → 38,8 % ⇒ passe 4 justifiée.
+- **2026-10-08** — Passe 4 (`faction-balance-pass-4.md`, choix utilisateur : juste après R1) : Ange Pouvoir 4 → 2, Maître 62 → 76 PV ⇒ 0 béance, écart 22,6 → 8,1 pts. Suite : R3.

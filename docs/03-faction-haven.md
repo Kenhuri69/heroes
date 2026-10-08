@@ -70,7 +70,7 @@
 | 4 | **Griffon** | 30 | 8 | 7 | 5–9 | 7 | 5 | 360 or | `flying`, `unlimitedRetaliation` |
 | 5 | **Prêtresse** | 36 | 9 | 8 | 7–11 | 5 | 4 | 640 or + 1 gemme | `shooter(8)`, `spellcaster(soin, ×2)` |
 | 6 | **Chevalier du Griffon** | 70 | 14 | 11 | 12–20 | 8 | 2 | 1300 or + 1 cristal | `charge(+5 %/hex)`, `firstStrike` |
-| 7 | **Ange** | 180 | 22 | 18 | 35–55 | 11 | 1 | 3200 or + 2 cristal + 2 gemmes | `flying`, `resurrectAlly(1×/combat)` (réalisé `spellcaster(resurrection, ×1)`), immunité au moral négatif |
+| 7 | **Ange** | 180 | 22 | 18 | 35–55 | 11 | 1 | 3200 or + 2 cristal + 2 gemmes | `flying`, `resurrectAlly(1×/combat)` (réalisé `spellcaster(resurrection, ×1, Pouvoir 2)` — 56 PV relevés ; élite Pouvoir 3), immunité au moral négatif |
 
 > ⚖️ **Équilibrage (Alpha 4.17)** : première passe via `faction:sim` (auto-combats
 > à valeur d'or égale). Havre était strictement dominant (100 % vs Necropolis et
@@ -104,6 +104,8 @@ Chaque habitation se **gradue au niveau 2** (Alpha 4.11) : le dwelling amélior�
 > repli procédural tant que l'illustration n'est pas produite.
 
 > ⚖️ **Coûts élites (D12, tranché — passe 3, plan `e3-elite-balance-pass-3`)** : le prix en or de chaque élite est calé sur son **prix d'équilibre** mesuré (`faction:sim`, lecture « facteur d'effectif pour l'égalité », budget 40 000 or/tier) : à or égal, l'armée d'élites fait jeu égal avec l'armée de base (×1,00 ± 5 %). Le surcoût varie donc d'un tier à l'autre selon ce que l'amélioration apporte réellement (bande ×1,10–×1,80) ; l'élite reste l'achat qui densifie la croissance hebdomadaire, pas un gain d'efficacité à l'or. Les coûts en ressources rares sont inchangés. L'Archange, seul hors bande (valait ×2,27 la base pour ×1,69 payé), a vu ses stats rabotées (PV 234→216, Déf 29→24, dégâts 46–72→42–64) avant d'être tarifé.
+
+> ⚖️ **Passe 4 (plan `faction-balance-pass-4`)** : une fois que `faction:sim` a vu les lanceurs d'unité (lot R1), Haven, qui soigne et ressuscite à bon escient, montait à 61 % de winrate moyen. La Résurrection de l'Ange passe de Pouvoir 4 à **2** (72 → 56 PV relevés ; Archange 5 → **3**) ; le Soin de la Prêtresse est inchangé (2 charges, identité de la faction).
 
 ## 4. Arbre de bâtiments
 

@@ -640,6 +640,9 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > résurrection) et ne relance jamais un débuff posé ; Maître de Sortilèges (Vox T6)
 > = **Dissonance**. Mesure : Haven 61 %, Vox 39 % ⇒ passe 4 justifiée. Pas de bump
 > save, golden inchangé.*
+> **Passe 4** (`faction-balance-pass-4.md`) : Résurrection de l'Ange Pouvoir 4 → 2
+> (Archange 5 → 3), Maître de Sortilèges 62 → 76 PV (élite 78 → 92) ⇒ duel de base
+> 0 béance, écart entre factions 22,6 → 8,1 pts (46,5 → 54,6 %). Données seules.*
 
 ---
 

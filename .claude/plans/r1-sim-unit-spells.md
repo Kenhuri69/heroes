@@ -40,13 +40,13 @@
 4. [x] Maître de Sortilèges (base + élite)
 5. [x] Mesures avant / intermédiaire / après ; décision passe 4
 6. [x] Docs 16 (et 02 §5.6 / 06 §5.6), CLAUDE.md, plan d'enrichissement
-7. [ ] Vérifications
+7. [x] Vérifications
 
 ## 4. Vérifications
 
-- [ ] typecheck (sans `-s`), lint, build ; budget ; garde-fous faction et couleurs
-- [ ] tests moteur / contenu / client / serveur ; golden inchangé
-- [ ] Playwright complet comme en CI (hors @perf, puis @perf mono-worker)
+- [x] typecheck (sans `-s`), lint, build ; budget 388 468 o gzip ; garde-fous faction et couleurs
+- [x] tests : moteur 1117 (+4), contenu 201, client 113, serveur 10 ; golden inchangé
+- [x] Playwright comme en CI : 148 verts hors @perf (1 flaky vert au 2ᵉ essai : « confort : aide « ? » », hors zone R1), puis @perf mono-worker 2/2 (9,5 fps)
 
 ## 5. Journal
 

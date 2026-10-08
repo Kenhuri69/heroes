@@ -6,10 +6,7 @@
     "hp": 62,
     "attack": 14,
     "defense": 12,
-    "damage": [
-      10,
-      16
-    ],
+    "damage": [10, 16],
     "speed": 5
   },
   "growthPerWeek": 2,
@@ -17,5 +14,14 @@
     "gold": 1150,
     "gems": 1
   },
-  "abilities": []
+  "abilities": [
+    {
+      "id": "spellcaster",
+      "params": {
+        "spellId": "dissonance",
+        "charges": 2,
+        "power": 3
+      }
+    }
+  ]
 }

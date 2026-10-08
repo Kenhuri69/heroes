@@ -327,7 +327,7 @@ existants** (bouclier / buff / debuff / soin) — zéro nouveau moteur :
 | 3 | **Hippogriffe** | créature Poudlard | 18 | 7 | 5 | 4–7 | 7 | 6 | 200 or | `flying` |
 | 4 | **Chasseuse-Idole** | HUNTR/X | 33 | 10 | 8 | 7–11 | 6 | 4 | 450 or + 1 cristal | `shooter(7, noMeleePenalty)`, `performer(+2 Résonance/round)` |
 | 5 | **Sombral** | créature Poudlard | 38 | 11 | 9 | 7–11 | 9 | 3 | 720 or | `flying`, `fear(20 %, 1 round)` |
-| 6 | **Maître de Sortilèges** | professeur | 62 | 14 | 12 | 10–16 | 5 | 2 | 1150 or + 1 gemme | *(spellcaster Dissonance/Chant ×2 — différé, équilibrage CAP-CAST)* |
+| 6 | **Maître de Sortilèges** | professeur | 62 | 14 | 12 | 10–16 | 5 | 2 | 1150 or + 1 gemme | `spellcaster(Dissonance ×2, Pouvoir 3)` (élite ×3) |
 | 7 | **Phénix** | créature Poudlard | 130 | 19 | 17 | 18–28 | 11 | 1 | 2750 or + 2 gemmes | `flying`, `noRetaliation`, `rebirth(30 %)` (élite 35 %) |
 | 8 | **Avatar du Honmoon** | fusion scène+magie | 210 | 24 | 20 | 38–56 | 8 | 1 | 3600 or + 3 gemmes + **40 Résonance** | `flying`, `noRetaliation`, `barrier(30 PV, rayon 2, gate 40 Résonance)` (élite 40 PV/50) — projette un bouclier absorbant sur les alliés à l'entrée en lice (cf. CAP-BARRIER) |
 
@@ -346,9 +346,12 @@ existants** (bouclier / buff / debuff / soin) — zéro nouveau moteur :
 > mid-combat** reste différé (doc 16 §7).
 > **Capacités désormais LIVRÉES** (table mise à jour, marqueurs « différé »
 > retirés) : `performer` (Chœur T1 +1 / Idole T4 +2 Résonance/round, F-RESON.2)
-> et `rebirth` (Phénix, CAP-LIFE.2). **Encore différé** (câblage données gaté par
-> l'équilibrage `faction:sim`, CAP-CAST) : le `spellcaster` du **Maître de
-> Sortilèges** (T6) — l'unité combat normalement en attendant.
+> et `rebirth` (Phénix, CAP-LIFE.2). **Livré au lot R1** (plan `r1-sim-unit-spells`) : le
+> `spellcaster` du **Maître de Sortilèges** (T6) — **Dissonance** (−3 Att, −1 moral
+> sur une pile ennemie), 2 lancers par combat, 3 pour l'élite, Pouvoir 3. Câblé
+> une fois `faction:sim` capable de voir les lanceurs d'unité ; Chant de courage
+> écarté (la pile qui lance ne frappe pas, et soutenir la plus forte pile alliée
+> coûtait ~7 pts de winrate à Vox contre ~2 pour Dissonance).
 
 **Faiblesses assumées** (équilibre) : peu de dégâts bruts « canon » avant le T6 ;
 la faction paie sa polyvalence par l'absence d'un tueur de pile précoce — elle

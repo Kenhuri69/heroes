@@ -14,5 +14,14 @@
     "gold": 1700,
     "gems": 1
   },
-  "abilities": []
+  "abilities": [
+    {
+      "id": "spellcaster",
+      "params": {
+        "spellId": "dissonance",
+        "charges": 3,
+        "power": 3
+      }
+    }
+  ]
 }

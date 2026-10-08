@@ -1417,6 +1417,16 @@ describe('gameConfigSchema — garde-fou de marché (aller-retour non rentable)'
     cfg.adventure.market = { sellRate: 25, buyRate: 50, perMarketBonus: 0.1, maxMarketFactor: 1.4 };
     expect(gameConfigSchema.safeParse(cfg).success).toBe(true);
   });
+
+  it('R2 : valeur par ressource positive et sur une ressource connue', () => {
+    const cfg = makeConfig();
+    cfg.adventure.market = { sellRate: 25, buyRate: 50, resourceValue: { gems: 2, mercury: 2 } };
+    expect(gameConfigSchema.safeParse(cfg).success).toBe(true);
+    cfg.adventure.market = { sellRate: 25, buyRate: 50, resourceValue: { gems: 0 } };
+    expect(gameConfigSchema.safeParse(cfg).success).toBe(false);
+    cfg.adventure.market = { sellRate: 25, buyRate: 50, resourceValue: { mithril: 2 } as never };
+    expect(gameConfigSchema.safeParse(cfg).success).toBe(false);
+  });
 });
 
 describe('Revue 2026-09 — garde-fous de contenu supplémentaires (D1/D7/heroSkills/grailPos)', () => {

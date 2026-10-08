@@ -957,6 +957,9 @@ export const gameConfigSchema = z.object({
         artifactSellFactor: z.number().min(0).max(1).optional(),
         /** Nombre d'artefacts offerts à l'achat par ville (doc 18 D2) — optionnel. */
         artifactStockSize: z.number().int().nonnegative().optional(),
+        /** Valeur relative par ressource (lot R2 : rare ×2), sur la vente et l'achat — optionnel.
+         *  Un poids se simplifie sur tout cycle de troc : l'invariant d'aller-retour reste celui du taux de base. */
+        resourceValue: z.record(z.enum(COMMON_RESOURCE_IDS), z.number().positive()).optional(),
       })
       .refine((m) => m.buyRate >= m.sellRate, 'market.buyRate ≥ market.sellRate')
       // Aller-retour non rentable À TOUT NOMBRE DE MARCHÉS : le troc (et

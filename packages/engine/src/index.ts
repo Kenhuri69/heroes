@@ -135,6 +135,7 @@ export {
   missingRequirements,
   scaleCost,
   tradeQuote,
+  marketRates,
   ownedMarketCount,
   artifactSellPrice,
   artifactBaseValue,

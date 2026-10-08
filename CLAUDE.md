@@ -649,6 +649,11 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > **v3** (défaut ; v1/v2 identiques à l'octet) : sanctuaires de cercle 1–3, cabanes
 > et fabriques sur toute carte, jamais l'école ni la compétence d'une faction ; l'IA
 > vise niveau, attribut, sort et compétence. Pas de bump save, golden inchangé.*
+> **R2 — les ressources rares ont un prix** (`r2-rare-resources-market.md`) :
+> `market.resourceValue`, cristal/gemmes/soufre/mercure ×2 au marché (gemme à 100
+> or) ; l'IA n'achète plus les rares de ses recrues avec l'or réservé au bâtiment
+> prioritaire. Courbe par nombre de marchés écartée : l'IA reculait de plus de
+> 7 jours. Pas de bump save, golden inchangé.*
 
 ---
 

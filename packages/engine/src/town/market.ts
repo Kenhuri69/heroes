@@ -33,6 +33,31 @@ export function effectiveMarketRates(
 }
 
 /**
+ * Taux d'UNE ressource (lot R2, doc 02 §3) : taux de base × `resourceValue` de la
+ * ressource (absent ⇒ ×1), puis le facteur du nombre de marchés. Vente = or reçu
+ * par unité, achat = or payé par unité. Helper pur partagé par `tradeQuote` et l'IA.
+ */
+export function marketRates(
+  market: MarketConfig,
+  resource: ResourceId,
+  marketCount = 1,
+): { sellRate: number; buyRate: number } {
+  const { sellRate, buyRate, factor } = baseRates(market, resource, marketCount);
+  return { sellRate: sellRate * factor, buyRate: buyRate / factor };
+}
+
+/** Taux d'une ressource AVANT le facteur du nombre de marchés, et ce facteur. */
+function baseRates(
+  market: MarketConfig,
+  resource: ResourceId,
+  marketCount: number,
+): { sellRate: number; buyRate: number; factor: number } {
+  const value = market.resourceValue?.[resource] ?? 1;
+  const { factor } = effectiveMarketRates(market, marketCount);
+  return { sellRate: market.sellRate * value, buyRate: market.buyRate * value, factor };
+}
+
+/**
  * Contrepartie reçue pour un échange (helper PUR, réutilisé par le client pour
  * l'aperçu — pas de réimplémentation du taux côté client, leçon CL9). Vente
  * (→ or), achat (or →), ou **troc** ressource↔ressource (via équivalence or).
@@ -51,13 +76,17 @@ export function tradeQuote(
   if (giveAmount <= 0 || give === receive) return 0;
   // Calcul depuis `factor` (multiplier avant diviser) : évite un double arrondi
   // flottant qui pouvait retirer 1 unité à l'achat/troc.
-  const { factor } = effectiveMarketRates(market, marketCount);
   // Vente : ressource non-or → or.
-  if (receive === 'gold') return Math.floor(giveAmount * market.sellRate * factor);
+  if (receive === 'gold') {
+    const { sellRate, factor } = baseRates(market, give, marketCount);
+    return Math.floor(giveAmount * sellRate * factor);
+  }
+  const { buyRate, factor } = baseRates(market, receive, marketCount);
   // Achat : or → ressource non-or (arrondi bas ; sous `buyRate` on ne reçoit rien).
-  if (give === 'gold') return Math.floor((giveAmount * factor) / market.buyRate);
+  if (give === 'gold') return Math.floor((giveAmount * factor) / buyRate);
   // Troc : ressource → ressource = vendre (× facteur) puis acheter (× facteur).
-  return Math.floor((giveAmount * market.sellRate * factor * factor) / market.buyRate);
+  const { sellRate } = baseRates(market, give, marketCount);
+  return Math.floor((giveAmount * sellRate * factor * factor) / buyRate);
 }
 
 /** La ville a-t-elle un bâtiment construit portant l'effet `market` ? */

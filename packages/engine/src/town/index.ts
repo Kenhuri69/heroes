@@ -30,6 +30,7 @@ export {
   handleTradeResources,
   tradeQuote,
   effectiveMarketRates,
+  marketRates,
   ownedMarketCount,
 } from './market';
 export { applyDailyIncome, applyWeeklyGrowth, townBuildingAura } from './economy';

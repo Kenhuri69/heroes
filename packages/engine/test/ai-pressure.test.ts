@@ -144,6 +144,26 @@ describe('LE1/B2 — l’IA achète au marché ce qui lui manque', () => {
     expect(next.players[0]?.resources.mercury).toBe(0);
   });
 
+  it('R2 : n’achète pas le mercure d’une recrue avec l’or réservé au bâtiment prioritaire, 1ʳᵉ pile comprise', () => {
+    const catalog: Record<string, BuildingDef> = {
+      ...MARKET,
+      ...DWELLINGS,
+      // 1000 or + 5 bois (250 or au marché) > 1100 : non achetable, son coût devient la réserve.
+      beffroi: { id: 'beffroi', maxLevel: 1, levels: [{ cost: { gold: 1000, wood: 5 }, requires: [], effect: { type: 'income', resource: 'gold', amount: 500 } }] },
+    };
+    const town = testTown({ buildings: { comptoir: 1, caserne: 1, chenil: 1 }, stock: { 'blue-wolf': 4 } });
+    let state = parkHero(start({ gold: 1100, catalog, towns: [town], gameConfig: configWithMarket }));
+    state = produce(state, (draft) => {
+      const wolf = draft.unitCatalog['blue-wolf'];
+      if (wolf) (wolf as { recruitCost?: Record<string, number> }).recruitCost = { gold: 100, mercury: 1 };
+    });
+    const { next } = playAi(state);
+
+    // Hors réserve, il reste 100 or : moins qu'un loup et son mercure (150).
+    expect(next.towns[0]?.garrison).toEqual([]);
+    expect(next.players[0]?.resources.gold).toBe(1100);
+  });
+
   it('n’achète rien quand l’or ne couvre pas achats ET bâtiment (tout ou rien)', () => {
     const catalog: Record<string, BuildingDef> = {
       ...MARKET,

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { apply } from '../src/core/engine';
+import { apply, validate } from '../src/core/engine';
 import { createEmptyState, emptyResources, type GameState } from '../src/core/state';
 import { xpForLevel } from '../src/adventure/experience';
 import type { MapObjectDef } from '../src/adventure/map';
@@ -206,10 +206,17 @@ describe('lieux de bonus visitables (doc 02 §2.2)', () => {
     });
     const s0 = startedWith([hut('cabane-a', 2), hut('cabane-b', 3)]);
     expect(s0.heroes[0]?.skills['test-skill']).toBeUndefined();
-    const { state, events } = move(s0, [
+    // Lot R3 : la cabane arrête le héros et propose ; il apprend en acceptant.
+    const offered = move(s0, [
       { x: 1, y: 0 },
       { x: 2, y: 0 },
+      { x: 3, y: 0 },
     ]);
+    expect(offered.state.heroes[0]?.pos).toEqual({ x: 2, y: 0 });
+    expect(offered.state.pendingSkillOffer).toEqual({ heroId: 'hero-p1', playerId: 'p1', objectId: 'cabane-a', skillId: 'test-skill' });
+    expect(offered.state.heroes[0]?.skills['test-skill']).toBeUndefined();
+    const { state, events } = apply(offered.state, { type: 'ResolveSkillOffer', heroId: 'hero-p1', accept: true });
+    expect(state.pendingSkillOffer).toBeUndefined();
     expect(state.heroes[0]?.skills['test-skill']).toBe(1);
     expect(events).toContainEqual({
       type: 'BonusVisited',
@@ -231,6 +238,66 @@ describe('lieux de bonus visitables (doc 02 §2.2)', () => {
       objectId: 'cabane-b',
       effect: { kind: 'grantSkill', skillId: 'test-skill' },
       amount: 0,
+    });
+  });
+
+  describe('lot R3 — refus, plafond et Sagesse', () => {
+    const hut: MapObjectDef = {
+      id: 'cabane',
+      type: 'visitable',
+      pos: { x: 2, y: 0 },
+      effect: { kind: 'grantSkill', skillId: 'test-skill' },
+      frequency: 'oncePerHero',
+      visits: {},
+    };
+    const path = [
+      { x: 1, y: 0 },
+      { x: 2, y: 0 },
+    ];
+
+    it('refuser la cabane ne consomme pas la visite ; se déplacer est refusé tant qu’elle attend', () => {
+      const offered = move(startedWith([hut]), path).state;
+      expect(validate(offered, { type: 'MoveHero', heroId: 'hero-p1', path: [{ x: 3, y: 0 }] })?.code).toBe('choicePending');
+      expect(validate(offered, { type: 'EndTurn', playerId: 'p1' })?.code).toBe('choicePending');
+      const refused = apply(offered, { type: 'ResolveSkillOffer', heroId: 'hero-p1', accept: false }).state;
+      expect(refused.pendingSkillOffer).toBeUndefined();
+      expect(refused.heroes[0]?.skills['test-skill']).toBeUndefined();
+      const cabin = refused.map?.objects.find((o) => o.id === 'cabane');
+      expect(cabin?.type === 'visitable' && cabin.visits['hero-p1']).toBeUndefined();
+    });
+
+    it('à 6 compétences, la cabane est refusée sans proposition ni visite consommée', () => {
+      const s0 = startedWith([hut]);
+      const full = { ...s0, heroes: s0.heroes.map((h) => ({ ...h, skills: { a: 1, b: 1, c: 1, d: 1, e: 1, f: 1 } })) };
+      const { state, events } = move(full, path);
+      expect(state.pendingSkillOffer).toBeUndefined();
+      expect(events).toContainEqual({ type: 'BonusRefused', heroId: 'hero-p1', playerId: 'p1', objectId: 'cabane', reason: 'skillsFull' });
+      const cabin = state.map?.objects.find((o) => o.id === 'cabane');
+      expect(cabin?.type === 'visitable' && cabin.visits['hero-p1']).toBeUndefined();
+    });
+
+    it('un sanctuaire de cercle 3 est refusé sans Sagesse (visite disponible), appris avec', () => {
+      const shrine: MapObjectDef = {
+        id: 'sanctuaire',
+        type: 'visitable',
+        pos: { x: 2, y: 0 },
+        effect: { kind: 'learnSpell', spellId: 'deep-bolt' },
+        frequency: 'oncePerHero',
+        visits: {},
+      };
+      const s0 = startedWith([shrine]);
+      const withCatalogs: GameState = {
+        ...s0,
+        spellCatalog: { 'deep-bolt': { id: 'deep-bolt', school: 'fire', circle: 3, manaCost: 10, kind: 'damage', base: 10, perPower: 1 } },
+        skillCatalog: { wisdom: { id: 'wisdom', ranks: [{ learnCircle: 3 }, { learnCircle: 4 }, { learnCircle: 5 }] } } as unknown as GameState['skillCatalog'],
+      };
+      const refused = move(withCatalogs, path);
+      expect(refused.state.heroes[0]?.spells).not.toContain('deep-bolt');
+      expect(refused.events).toContainEqual({ type: 'BonusRefused', heroId: 'hero-p1', playerId: 'p1', objectId: 'sanctuaire', reason: 'wisdomRequired' });
+      const sanct = refused.state.map?.objects.find((o) => o.id === 'sanctuaire');
+      expect(sanct?.type === 'visitable' && sanct.visits['hero-p1']).toBeUndefined();
+      const wise = { ...withCatalogs, heroes: withCatalogs.heroes.map((h) => ({ ...h, skills: { wisdom: 1 } })) };
+      expect(move(wise, path).state.heroes[0]?.spells).toContain('deep-bolt');
     });
   });
 

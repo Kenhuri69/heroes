@@ -94,13 +94,29 @@ export interface MapGenOptions {
    * `2` pose les gardiens de champ aux **goulots** (repli : portes entre régions
    * de départ), ajoute les **banques de créatures** et ramène la garnison des
    * villes neutres à une armée de mi-partie. Une sauvegarde embarque sa carte :
-   * la version n'a aucun effet sur une partie en cours.
+   * la version n'a aucun effet sur une partie en cours. `3` (lot R3) ajoute les
+   * lieux d'apprentissage : sanctuaires de sort, cabanes de la sorcière, fabriques.
    */
-  generatorVersion?: 1 | 2;
+  generatorVersion?: 1 | 2 | 3;
+  /**
+   * Sorts enseignables par un sanctuaire (v3) : sorts des écoles **communes**
+   * (jamais l'école d'une faction), cercles 1 à 3. Vide ⇒ aucun sanctuaire.
+   */
+  shrineSpells?: { id: string; circle: number }[];
+  /** Compétences enseignables par une cabane de la sorcière (v3) : communes seulement. Vide ⇒ aucune cabane. */
+  hutSkills?: string[];
+  /** Machines de guerre données par une fabrique (v3). Vide ⇒ aucune fabrique. */
+  warMachineIds?: string[];
 }
 
+/**
+ * Nombre de base de chaque lieu d'apprentissage (v3) sur une carte 24×24, mis à
+ * l'échelle de l'aire : 1 par sorte sur 24², ~2 sur 64², ~4 sur 96².
+ */
+const LEARNING_SITE_BASE = 0.25;
+
 /** Version courante du générateur (cf. `MapGenOptions.generatorVersion`). */
-export const MAPGEN_VERSION = 2;
+export const MAPGEN_VERSION = 3;
 
 /** PRNG déterministe mulberry32 — retourne un flottant dans [0, 1). */
 function mulberry32(seed: number): () => number {
@@ -324,6 +340,7 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
   const artifactIds = opts.artifactIds ?? [];
   const townFactionIds = opts.townFactionIds ?? [];
   const v2 = (opts.generatorVersion ?? MAPGEN_VERSION) >= 2;
+  const v3 = (opts.generatorVersion ?? MAPGEN_VERSION) >= 3;
   // Densité constante quelle que soit la taille : les compteurs d'objets calés
   // sur une carte de base 24×24 sont mis à l'échelle par l'aire, puis par le
   // réglage bas/riche. Au moins 1 objet des catégories principales.
@@ -679,6 +696,64 @@ export function generateMap(id: string, seed: number, opts: MapGenOptions = {}):
         effect: { kind: 'restoreMana' },
         frequency: 'oncePerHeroPerDay',
       }));
+    }
+  }
+
+  // Lieux d'apprentissage (v3, lot R3 ; doc 02 §2.2) : un sanctuaire par cercle 1
+  // à 3 (sort tiré parmi les écoles communes, le cercle 3 posé en profondeur),
+  // des cabanes de la sorcière (compétence commune) et des fabriques de machines
+  // de guerre. Une fois par héros ; comptés sur `eventBuildingDensity`.
+  if (v3) {
+    const sitesFor = (): number => scaledCat(LEARNING_SITE_BASE, eventBuildingDensity);
+    const pick = <T>(list: readonly T[]): T => list[randInt(list.length)]!;
+    for (const circle of [1, 2, 3]) {
+      const spells = (opts.shrineSpells ?? [])
+        .filter((sp) => sp.circle === circle)
+        .map((sp) => sp.id)
+        .sort();
+      if (spells.length === 0) continue;
+      const count = sitesFor();
+      for (let i = 0; i < count; i++) {
+        place(
+          (x, y, n) => ({
+            id: `spell-shrine-${n}`,
+            type: 'visitable',
+            x,
+            y,
+            effect: { kind: 'learnSpell', spellId: pick(spells) },
+            frequency: 'oncePerHero',
+          }),
+          circle === 3,
+        );
+      }
+    }
+    const skills = [...(opts.hutSkills ?? [])].sort();
+    if (skills.length > 0) {
+      const count = sitesFor();
+      for (let i = 0; i < count; i++) {
+        place((x, y, n) => ({
+          id: `witch-hut-${n}`,
+          type: 'visitable',
+          x,
+          y,
+          effect: { kind: 'grantSkill', skillId: pick(skills) },
+          frequency: 'oncePerHero',
+        }));
+      }
+    }
+    const machines = [...(opts.warMachineIds ?? [])].sort();
+    if (machines.length > 0) {
+      const count = sitesFor();
+      for (let i = 0; i < count; i++) {
+        place((x, y, n) => ({
+          id: `war-factory-${n}`,
+          type: 'visitable',
+          x,
+          y,
+          effect: { kind: 'grantWarMachine', machineId: pick(machines) },
+          frequency: 'oncePerHero',
+        }));
+      }
     }
   }
 

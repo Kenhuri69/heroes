@@ -76,6 +76,7 @@ import { AttributeChoice } from './AttributeChoice';
 import { TreasureChoice } from './TreasureChoice';
 import { TriggerChoice } from './TriggerChoice';
 import { NeutralOffer } from './NeutralOffer';
+import { SkillOffer } from './SkillOffer';
 import { HandoffOverlay } from './HandoffOverlay';
 import { OnlineWaitOverlay } from './OnlineWaitOverlay';
 import { OutcomeOverlay } from './OutcomeOverlay';
@@ -169,6 +170,11 @@ function Shell() {
   // Proposition d'un gardien dominé (LE5 A4) : modale forcée, joueur humain seul.
   const pendingNeutralOffer = useApp((s) => {
     const pending = s.game.pendingNeutralOffer;
+    return pending && pending.playerId === humanId(s.game) ? pending : null;
+  });
+  // Cabane de la sorcière (lot R3) : modale forcée, joueur humain seul.
+  const pendingSkillOffer = useApp((s) => {
+    const pending = s.game.pendingSkillOffer;
     return pending && pending.playerId === humanId(s.game) ? pending : null;
   });
 
@@ -355,6 +361,7 @@ function Shell() {
       {pendingTreasure && <TreasureChoice pending={pendingTreasure} />}
       {pendingTriggerChoice && <TriggerChoice pending={pendingTriggerChoice} />}
       {pendingNeutralOffer && <NeutralOffer pending={pendingNeutralOffer} />}
+      {pendingSkillOffer && <SkillOffer pending={pendingSkillOffer} />}
       <EndTurnConfirm />
       {/* Partie bloquée par un tour IA en échec (R0/B1) — signalement + récupération. */}
       {screen === 'adventure' && <AiFailureNotice />}

@@ -1433,5 +1433,12 @@
   "online.saves.restoreHint": "Roll back to the version before the last upload.",
   "toast.matchQueued": "No one waiting: your game now waits for an opponent.",
   "toast.cloudRestored": "Previous save restored.",
-  "toast.cloudNoBackup": "No previous version for this slot."
+  "toast.cloudNoBackup": "No previous version for this slot.",
+  "mapCard.wisdomRequired": "Wisdom required: this hero cannot learn this circle yet.",
+  "skillOffer.title": "Witch Hut",
+  "skillOffer.subtitle": "The witch offers to teach: {skill}.",
+  "skillOffer.learn": "Learn",
+  "skillOffer.refuse": "Decline (come back later)",
+  "toast.bonusRefusedWisdom": "Spell too advanced: more Wisdom is needed. Come back later.",
+  "toast.bonusRefusedSkillsFull": "This hero already knows 6 skills."
 }

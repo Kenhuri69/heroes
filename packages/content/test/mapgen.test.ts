@@ -629,6 +629,29 @@ describe('LE3 — la carte qui résiste (generatorVersion 2)', () => {
     expect(hash(7)).toBe('8c1db4d8ea4a45c6');
   });
 
+  it('generatorVersion 2 reproduit à l’octet près les cartes d’avant R3 (graines partagées)', async () => {
+    const { createHash } = await import('node:crypto');
+    const opts = {
+      width: 36,
+      height: 36,
+      guardianUnits: ['a', 'b', 'c', 'd'],
+      unitTiers: { a: 1, b: 2, c: 3, d: 4 },
+      artifactIds: ['x', 'y'],
+      townFactionIds: ['f'],
+      underground: true,
+      generatorVersion: 2 as const,
+      // Ignorés en v2 : la version, pas les options, décide des lieux d'apprentissage.
+      shrineSpells: [{ id: 's1', circle: 1 }],
+      hutSkills: ['k'],
+      warMachineIds: ['m'],
+    };
+    // Empreintes relevées sur le générateur AVANT le lot R3.
+    const hash = (seed: number): string =>
+      createHash('sha256').update(JSON.stringify(generateMap('r', seed, opts))).digest('hex').slice(0, 16);
+    expect(hash(42)).toBe('cf75fbf94e66bf90');
+    expect(hash(7)).toBe('54d805d5b87c06e1');
+  });
+
   it('A2 : ≥ 50 % des gardiens de champ tiennent un goulot ou une porte (20 graines)', () => {
     for (const size of [36, 64]) {
       let gates = 0;
@@ -763,5 +786,39 @@ describe('LE3 — la carte qui résiste (generatorVersion 2)', () => {
         for (const g of o.garrison ?? []) expect(tiers[g.unitId]!).toBeLessThanOrEqual(1 + Math.floor(0.75 * 7));
       }
     }
+  });
+});
+
+describe('R3 — lieux d’apprentissage (generatorVersion 3)', () => {
+  const learning = {
+    shrineSpells: [
+      { id: 'c1', circle: 1 },
+      { id: 'c2', circle: 2 },
+      { id: 'c3', circle: 3 },
+    ],
+    hutSkills: ['k1', 'k2'],
+    warMachineIds: ['m1'],
+  };
+  const sites = (seed: number, extra: Record<string, unknown> = {}) =>
+    generateMap('learn', seed, { width: 64, height: 64, ...learning, ...extra }).objects.flatMap((o) =>
+      o.type === 'visitable' ? [o.effect] : [],
+    );
+
+  it('chaque graine pose des sanctuaires des trois cercles, des cabanes et une fabrique (20 graines)', () => {
+    for (let seed = 1; seed <= 20; seed++) {
+      const effects = sites(seed);
+      for (const id of ['c1', 'c2', 'c3'])
+        expect(effects.some((e) => e.kind === 'learnSpell' && e.spellId === id), `graine ${seed}, ${id}`).toBe(true);
+      expect(effects.some((e) => e.kind === 'grantSkill')).toBe(true);
+      expect(effects.some((e) => e.kind === 'grantWarMachine' && e.machineId === 'm1')).toBe(true);
+    }
+  });
+
+  it('densité des bâtiments événement à 0 ⇒ aucun lieu d’apprentissage ; listes vides ⇒ aucun', () => {
+    const learn = (e: { kind: string }): boolean => ['learnSpell', 'grantSkill', 'grantWarMachine'].includes(e.kind);
+    expect(sites(3, { eventBuildingDensity: 0 }).some(learn)).toBe(false);
+    expect(
+      generateMap('learn', 3, { width: 64, height: 64 }).objects.some((o) => o.type === 'visitable' && learn(o.effect)),
+    ).toBe(false);
   });
 });

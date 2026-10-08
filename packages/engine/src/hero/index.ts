@@ -199,6 +199,8 @@ export function validateCastAdventureSpell(
     return { code: 'choicePending', message: 'un message à choix attend sa réponse' };
   if (state.pendingNeutralOffer)
     return { code: 'choicePending', message: 'un gardien attend votre décision' };
+  if (state.pendingSkillOffer)
+    return { code: 'choicePending', message: 'une compétence attend votre décision' };
   const current = state.players[state.currentPlayer];
   if (!current || current.id !== cmd.playerId)
     return { code: 'notYourTurn', message: `ce n’est pas le tour de ${cmd.playerId}` };

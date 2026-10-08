@@ -12,9 +12,9 @@ import { DIRECTIONS, atLevel, inBounds, isAdjacent, levelOf, samePos, tileIndex,
 import { isInPlayerVision } from '../adventure/vision';
 import { findPath, isPassable, minStepCost, octileLowerBound, stepCost } from '../adventure/path';
 import { guardianZone } from '../adventure/zone-of-control';
-import { visitAvailable } from '../adventure/visitable';
+import { resolveSkillOffer, visitAvailable } from '../adventure/visitable';
 import { persistentMana } from '../hero/mana';
-import { heroArmyCap } from '../hero/skills';
+import { heroArmyCap, heroLearnableCircle } from '../hero/skills';
 import { validateEquipArtifact, handleEquipArtifact } from '../hero/equip';
 import { validateCastAdventureSpell, handleCastAdventureSpell } from '../hero';
 import { grailRevealedTo } from '../adventure/map';
@@ -129,8 +129,9 @@ function totalPathCost(config: GameState['config'], map: GameState['map'], from:
  * Objet « collectable » par un simple déplacement (doc 02 §2.2) : tas de
  * ressource, trésor (résolu en or, cf. `advanceAi`), artefact au sol (si un
  * slot est libre), mine pas encore possédée par ce joueur, ou habitation dont
- * au moins 1 créature est abordable (renforce l'armée). Les lieux de bonus
- * sont ignorés par l'IA (heuristique MVP — écart documenté au plan).
+ * au moins 1 créature est abordable (renforce l'armée). Lieux de bonus (lot
+ * R3) : fontaine de mana au besoin, et les lieux qui forgent le héros — niveau,
+ * attribut, sort apprenable et inconnu, compétence inconnue qu'elle accepterait.
  */
 function isCollectible(
   draft: GameState,
@@ -148,6 +149,18 @@ function isCollectible(
   // LE4/C2 : une fontaine de mana vaut le détour quand la réserve est à moitié vide.
   if (obj.type === 'visitable' && obj.effect.kind === 'restoreMana')
     return needsMana(draft, hero) && visitAvailable(obj, hero.id, draft.calendar.day);
+  if (obj.type === 'visitable') {
+    if (!visitAvailable(obj, hero.id, draft.calendar.day)) return false;
+    const effect = obj.effect;
+    if (effect.kind === 'levelXp' || effect.kind === 'permanentStat') return true;
+    if (effect.kind === 'learnSpell')
+      return (
+        !hero.spells.includes(effect.spellId) &&
+        (draft.spellCatalog[effect.spellId]?.circle ?? 0) <= heroLearnableCircle(hero, draft.skillCatalog)
+      );
+    if (effect.kind === 'grantSkill') return hero.skills[effect.skillId] === undefined && acceptsSkillOffer(hero);
+    return false;
+  }
   // Obélisque (T-GRAIL) : une visite par joueur, et seulement tant que le Graal
   // n'est pas trouvé — sans ces visites l'IA ne se le voyait jamais révélé.
   if (obj.type === 'obelisk')
@@ -170,6 +183,14 @@ function isCollectible(
     return maxAffordableCount(player, cost, obj.stock) > 0;
   }
   return false;
+}
+
+/** Emplacements de compétence que l'IA garde libres pour ses montées de niveau (lot R3). */
+const AI_FREE_SKILL_SLOTS = 2;
+
+/** L'IA apprend la compétence d'une cabane s'il lui reste au moins 2 emplacements libres (sur 6). */
+function acceptsSkillOffer(hero: HeroState): boolean {
+  return Object.keys(hero.skills).length <= 6 - AI_FREE_SKILL_SLOTS;
 }
 
 /**
@@ -795,6 +816,8 @@ function advanceAi(
       resolveNeutralOffer(draft, join ? 'join' : 'fight', events);
       if (draft.combat) runAutoCombat(draft, events);
     },
+    // Lot R3 : cabane de la sorcière — l'IA garde 2 emplacements pour ses niveaux.
+    onSkillOffer: () => resolveSkillOffer(draft, acceptsSkillOffer(hero), events),
   });
 }
 

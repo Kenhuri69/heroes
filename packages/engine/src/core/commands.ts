@@ -355,6 +355,8 @@ export type Command =
   | { type: 'ResolveTriggerChoice'; heroId: string; optionIndex: number }
   // ——— Proposition d'un gardien neutre dominé (LE5 A4) : combattre, laisser fuir, rallier ———
   | { type: 'ResolveNeutralOffer'; heroId: string; choice: 'fight' | 'release' | 'join' }
+  /** Cabane de la sorcière (lot R3) : apprendre (`accept`) ou refuser la compétence proposée. */
+  | { type: 'ResolveSkillOffer'; heroId: string; accept: boolean }
   // ——— Quêtes ajoutées en cours de partie (N-DAILYREFRESH, doc 13 §4.2) ———
   | {
       /**

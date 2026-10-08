@@ -1433,5 +1433,12 @@
   "online.saves.restoreHint": "Revenir à la version précédant le dernier téléversement.",
   "toast.matchQueued": "Aucune partie en attente : la vôtre attend un adversaire.",
   "toast.cloudRestored": "Sauvegarde précédente restaurée.",
-  "toast.cloudNoBackup": "Aucune version précédente pour ce slot."
+  "toast.cloudNoBackup": "Aucune version précédente pour ce slot.",
+  "mapCard.wisdomRequired": "Sagesse requise : ce héros ne peut pas encore apprendre ce cercle.",
+  "skillOffer.title": "Cabane de la sorcière",
+  "skillOffer.subtitle": "La sorcière propose d'enseigner : {skill}.",
+  "skillOffer.learn": "Apprendre",
+  "skillOffer.refuse": "Refuser (revenir plus tard)",
+  "toast.bonusRefusedWisdom": "Sort trop avancé : il faut plus de Sagesse. Revenez plus tard.",
+  "toast.bonusRefusedSkillsFull": "Ce héros connaît déjà 6 compétences."
 }

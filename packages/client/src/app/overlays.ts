@@ -25,7 +25,8 @@ export function forcedOverlayOpen(s: AppState): boolean {
   if (
     game.pendingTreasure?.playerId === active.id ||
     game.pendingTriggerChoice?.playerId === active.id ||
-    game.pendingNeutralOffer?.playerId === active.id
+    game.pendingNeutralOffer?.playerId === active.id ||
+    game.pendingSkillOffer?.playerId === active.id
   )
     return true;
   if (

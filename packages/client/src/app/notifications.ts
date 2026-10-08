@@ -107,6 +107,11 @@ export function notify(event: AppEvent, game: GameState): string | null {
     // Mana persistante (LE4/C2) : la ville recharge la mana de son héros.
     case 'ManaRestored':
       return event.playerId === human ? t('toast.manaRestoredTown', { amount: event.amount }) : null;
+    // Lieu refusé, visite gardée pour plus tard (lot R3).
+    case 'BonusRefused':
+      return event.playerId === human
+        ? t(event.reason === 'wisdomRequired' ? 'toast.bonusRefusedWisdom' : 'toast.bonusRefusedSkillsFull')
+        : null;
     // Lieux de bonus & habitations (doc 02 §2.2, lot 2 du comblement).
     case 'BonusVisited': {
       if (event.playerId !== human) return null;

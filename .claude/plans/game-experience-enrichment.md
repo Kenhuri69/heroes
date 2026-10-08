@@ -427,7 +427,7 @@ marché) ? *(designer : (b), repli sur (a) si le bench montre une IA qui cale)*
    disponible ; avec Sagesse ⇒ appris » ; test contenu v3 (≥ 1 sanctuaire et
    1 cabane sur 20 graines, v2 identique à l'octet) ; bench IA : niveau moyen du
    héros IA au j28 ≥ baseline ; doc 02 §2.2 amendé.
-8. **Verdict** — en attente.
+8. **Verdict** — amendé (§5bis.4), D-R3 oui ; **livré** (`r3-learning-sites.md`).
 
 🗳️ **D-R3** : une cabane de la sorcière peut-elle enseigner **Sagesse** et les
 écoles de magie (HoMM3 oui), ou les réserve-t-on à la montée de niveau ?
@@ -570,3 +570,4 @@ avant d'être figées.
 - **2026-10-08** — §5bis : proposition du designer, relecture de l'expert (§5bis.4), décisions de l'utilisateur (§5bis.5). Ouverture de R1.
 - **2026-10-08** — R1 livré (`r1-sim-unit-spells.md`) : le sim voit les sorts d'unité, IA sort contre frappe, Maître = Dissonance. Haven 53,4 → 61,4 %, Vox 43,9 → 38,8 % ⇒ passe 4 justifiée.
 - **2026-10-08** — Passe 4 (`faction-balance-pass-4.md`, choix utilisateur : juste après R1) : Ange Pouvoir 4 → 2, Maître 62 → 76 PV ⇒ 0 béance, écart 22,6 → 8,1 pts. Suite : R3.
+- **2026-10-08** — R3 livré (`r3-learning-sites.md`) : sanctuaire gaté par la Sagesse, cabane Apprendre/Refuser (plafond 6), générateur v3 (sanctuaires c1–3, cabanes, fabriques), IA qui s'en sert. Suite : R2.

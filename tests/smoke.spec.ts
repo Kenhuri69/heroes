@@ -1252,6 +1252,23 @@ test('neutres vivants : un gardien dominé propose de fuir, « Laisser partir »
   expect(errors).toEqual([]);
 });
 
+test('cabane de la sorcière : le héros s’arrête, « Apprendre » enseigne la compétence (lot R3)', { tag: '@core' }, async ({ page }) => {
+  const errors = await openGame(page);
+  // Cabane de proto-01 (8,7) : la fouler pose la proposition, le héros s'y arrête.
+  await page.evaluate(() => {
+    const T = window.__HEROES_TEST__!;
+    const path = T.findPath('hero-player-1', 8, 7);
+    return T.dispatch({ type: 'MoveHero', heroId: 'hero-player-1', path: path! });
+  });
+  await expect(page.getByTestId('skill-offer')).toBeVisible();
+  await page.getByTestId('skill-offer-learn').click();
+  await expect(page.getByTestId('skill-offer')).toHaveCount(0);
+  const state = await page.evaluate(() => window.__HEROES_TEST__!.getState());
+  expect(state.pendingSkillOffer).toBeUndefined();
+  expect(state.heroes.find((h) => h.id === 'hero-player-1')?.skills['scouting']).toBe(1);
+  expect(errors).toEqual([]);
+});
+
 test('A1 : un gardien de carte est rendu comme un cluster gradué (sprint 2)', { tag: '@core' }, async ({ page }) => {
   const errors = await openGame(page);
   // Le gardien de départ (guard-camp, effectif « few » ⇒ cran solitaire) compose

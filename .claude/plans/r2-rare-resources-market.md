@@ -36,13 +36,13 @@
 4. [x] Client : rien à coder (l'aperçu passe par `tradeQuote`)
 5. [x] Mesure après ; repli sur les poids seuls
 6. [x] Docs 02 §3 et §IA, CLAUDE.md, plan d'enrichissement
-7. [ ] Vérifications
+7. [x] Vérifications
 
 ## 4. Vérifications
 
-- [ ] typecheck (sans `-s`), lint, build ; garde-fous faction et couleurs
-- [ ] tests moteur, contenu, client, serveur ; golden inchangé
-- [ ] Playwright comme en CI
+- [x] typecheck (sans `-s`), lint, build ; garde-fous faction et couleurs ; budget 389 570 o gzip ; `content:check`
+- [x] tests : moteur 1126 (+4), contenu 206 (+1), client 113, serveur 10 ; golden inchangé
+- [x] Playwright comme en CI : 150 verts hors @perf (1 skip), @perf mono-worker 2/2 (7,1 fps carte)
 
 ## 5. Journal
 

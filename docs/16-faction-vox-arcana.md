@@ -350,8 +350,9 @@ existants** (bouclier / buff / debuff / soin) — zéro nouveau moteur :
 > `spellcaster` du **Maître de Sortilèges** (T6) — **Dissonance** (−3 Att, −1 moral
 > sur une pile ennemie), 2 lancers par combat, 3 pour l'élite, Pouvoir 3. Câblé
 > une fois `faction:sim` capable de voir les lanceurs d'unité ; Chant de courage
-> écarté (la pile qui lance ne frappe pas, et soutenir la plus forte pile alliée
-> coûtait ~7 pts de winrate à Vox contre ~2 pour Dissonance).
+> écarté (la pile qui lance ne frappe pas : au premier relevé, le buff coûtait
+> ~7 pts de winrate moyen à Vox, Dissonance ~2). Mesure finale : Vox 41,4 → 38,8 %
+> au duel de base — rééquilibrage renvoyé à la passe 4.
 
 **Faiblesses assumées** (équilibre) : peu de dégâts bruts « canon » avant le T6 ;
 la faction paie sa polyvalence par l'absence d'un tueur de pile précoce — elle

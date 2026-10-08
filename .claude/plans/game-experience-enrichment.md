@@ -350,7 +350,9 @@ base (AH vs Vox 19,2 %, connue depuis LE2) ; moyennes au duel de base : Haven
 7. **Critère** — test unitaire : une pile `spellcaster` lance son sort dans
    `simulateAutoCombat` (événement de lancer) ; `faction:sim` avant/après
    consigné ; `elite-ability-parity` vert.
-8. **Verdict** — en attente.
+8. **Verdict** — amendé (§5bis.4) ; **livré** (`r1-sim-unit-spells.md`). Mesure
+   finale : 1 béance (Haven-Vox 81,7 %), écart max entre factions 22,6 pts ⇒ passe 4
+   justifiée.
 
 🗳️ **D-R1a** : après correction du sim, ouvre-t-on une **passe 4 d'équilibrage**
 (cible : béance Haven vs Sylvan 13 %, Haven retombé à 42 %, élites Dungeon
@@ -566,3 +568,4 @@ avant d'être figées.
   7 décisions 🗳️. Constat principal : `faction:sim` ignore les lanceurs de sorts
   d'unité (catalogue de sorts vide). Verdict de l'expert en attente. **Aucun code.**
 - **2026-10-08** — §5bis : proposition du designer, relecture de l'expert (§5bis.4), décisions de l'utilisateur (§5bis.5). Ouverture de R1.
+- **2026-10-08** — R1 livré (`r1-sim-unit-spells.md`) : le sim voit les sorts d'unité, IA sort contre frappe, Maître = Dissonance. Haven 53,4 → 61,4 %, Vox 43,9 → 38,8 % ⇒ passe 4 justifiée.

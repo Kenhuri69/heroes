@@ -428,6 +428,8 @@ export function standardMapOptions(
   const painted = report.content.packs.flatMap((p) =>
     p.units.filter((u) => art.hasUnitArt(u.id, p.manifest.id)).map((u) => u.id),
   );
+  const factionSchools = new Set(report.content.packs.flatMap((p) => (p.manifest.spellSchool ? [p.manifest.spellSchool] : [])));
+  const factionSkills = new Set(report.content.packs.flatMap((p) => p.manifest.heroSkills));
   return {
     guardianUnits: painted.length > 0 ? painted : [...knownUnitIds(report)],
     unitTiers: knownUnitTiers(report),
@@ -435,6 +437,12 @@ export function standardMapOptions(
     // Rareté graduée en profondeur (doc 18 C2) : commun près du départ, rare au fond.
     artifactRarity: Object.fromEntries(report.content.coreArtifacts.map((a) => [a.id, a.rarity ?? 1])),
     townFactionIds: report.content.packs.map((p) => p.manifest.id).filter((id) => art.hasTownArt(id)),
+    // Lieux d'apprentissage (v3, lot R3) : jamais l'école ni la compétence d'une faction.
+    shrineSpells: report.content.coreSpells
+      .filter((sp) => sp.circle <= 3 && !factionSchools.has(sp.school))
+      .map((sp) => ({ id: sp.id, circle: sp.circle })),
+    hutSkills: report.content.coreSkills.map((sk) => sk.id).filter((id) => !factionSkills.has(id)),
+    warMachineIds: report.content.coreWarMachines.map((w) => w.id),
   };
 }
 

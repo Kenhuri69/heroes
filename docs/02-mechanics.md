@@ -383,9 +383,14 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 > aléatoires, plus seulement les cartes écrites — attribut tiré à la graine,
 > `oncePerHero`), **sanctuaire de sort `learnSpell`**
 > (M-VISIT : enseigne un sort précis au héros — ajout idempotent à `hero.spells`,
-> classique « Sanctuaire de Magie » HoMM), **cabane de la sorcière `grantSkill`**
+> classique « Sanctuaire de Magie » HoMM ; **lot R3** : un sort d'un cercle au-delà
+> de ce que permet la Sagesse est refusé et la visite **reste disponible** — le
+> héros reviendra, canon III), **cabane de la sorcière `grantSkill`**
 > (M-VISIT : enseigne une **compétence** au héros — rang 1, HORS montée de niveau,
-> ajout idempotent à `hero.skills`, classique « Witch Hut » HoMM),
+> classique « Witch Hut » HoMM ; **lot R3** : la fouler **arrête** le héros sur une
+> proposition « Apprendre / Refuser » (`pendingSkillOffer`, `ResolveSkillOffer`) —
+> refuser ne consomme pas la visite ; à **6 compétences**, la cabane est refusée et
+> reste disponible ; compétence déjà connue : visite consommée sans gain),
 > **fabrique de machines de guerre `grantWarMachine`** (M-VISIT : donne une
 > machine de guerre — baliste/catapulte, catalogue `core/war-machines.json` — au
 > héros visiteur ; ajout idempotent à `hero.warMachines`),
@@ -493,7 +498,7 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 > forts vers le centre. Générique et faction-agnostique (aucun cas particulier
 > de faction).
 > **Générateur v2 (lot LE3 A2/A3)** : `generateMap` prend l'option
-> `generatorVersion` (défaut **2**). La **v1** reproduit à l'octet près les
+> `generatorVersion` (défaut **2**, **3** depuis le lot R3). La **v1** reproduit à l'octet près les
 > cartes d'avant le lot (graines partagées) ; une sauvegarde embarque sa carte,
 > la version ne touche donc pas une partie en cours. À graine égale, une carte v2
 > **diffère** d'une carte v1. En v2 :
@@ -516,6 +521,20 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 > - **Villes neutres** : garnison de mi-partie (tier vu à 60 % de la profondeur,
 >   effectifs réduits) ; en v1 elle valait ~9× une armée IA au j40, et aucune
 >   ville neutre n'était jamais prise.
+>
+> **Générateur v3 (lot R3)** : défaut désormais **3** ; v1 et v2 restent
+> reproductibles à l'octet. La v3 pose des **lieux d'apprentissage** sur toute
+> carte générée, une fois par héros, comptés sur la densité des bâtiments
+> événement (~2 de chaque sorte sur 64², ~4 sur 96²) :
+> - **sanctuaires de sort** de cercle 1, 2 et 3 (le cercle 3 en profondeur) ; le
+>   sort est tiré parmi les écoles **communes**, jamais l'école d'une faction ;
+> - **cabanes de la sorcière** : compétence commune tirée au hasard (Sagesse et
+>   écoles de magie comprises), jamais une compétence de faction ;
+> - **fabriques** de machines de guerre.
+> Les listes viennent des données (`standardMapOptions`, client et `map:gen`
+> identiques). **IA** : elle vise ces lieux comme les autres cibles collectables
+> (lieu de niveau, attribut, sort apprenable et inconnu, compétence inconnue) et
+> n'accepte une cabane que s'il lui reste au moins 2 emplacements de compétence.
 
 > **Croissance hebdo des gardiens (A2, sprint 2)** : au passage de semaine, chaque
 > pile neutre grossit de `×weeklyFactor` (plancher **+1** pour que les petites

@@ -1,5 +1,5 @@
 import { useEscape } from './useEscape';
-import { levelOf, type MapObjectDef, type VisitableEffect } from '@heroes/engine';
+import { heroLearnableCircle, levelOf, type MapObjectDef, type VisitableEffect } from '@heroes/engine';
 import { useApp, appStore } from '../app/store';
 import { humanId } from '../app/game';
 import { t, resolveArtifactName, resolveUnitName, resolveSpellName, resolveSkillName } from '../app/i18n';
@@ -20,6 +20,14 @@ export function MapObjectCard() {
   // un téléport local d'une descente au souterrain (audit ergonomie U-3).
   const objects = useApp((s) => s.game.map?.objects);
   const stair = object ? stairDirection(object, objects) : null;
+  // Lot R3 : un sanctuaire au-delà du cercle apprenable du héros sélectionné le dit d'avance.
+  const wisdomRequired = useApp((s) => {
+    const o = s.mapCard;
+    if (o?.type !== 'visitable' || o.effect.kind !== 'learnSpell') return false;
+    const hero = s.game.heroes.find((h) => h.id === s.selectedHeroId);
+    const circle = s.game.spellCatalog[o.effect.spellId]?.circle ?? 0;
+    return !!hero && !hero.spells.includes(o.effect.spellId) && circle > heroLearnableCircle(hero, s.game.skillCatalog);
+  });
   const close = (): void => appStore.setState({ mapCard: null });
   useEscape(close, !!object);
   if (!object) return null;
@@ -45,7 +53,7 @@ export function MapObjectCard() {
             ×
           </button>
         </header>
-        {cardLines(object, bands, human, stair).map((line, i) => (
+        {cardLines(object, bands, human, stair, wisdomRequired).map((line, i) => (
           <p key={i} class="map-card-line">
             {line}
           </p>
@@ -103,6 +111,7 @@ function cardLines(
   bands: { max: number | null; key: string }[],
   human: string,
   stair: 'down' | 'up' | null = null,
+  wisdomRequired = false,
 ): string[] {
   if (stair) return [t(stair === 'down' ? 'mapCard.stairDown' : 'mapCard.stairUp')];
   switch (object.type) {
@@ -140,6 +149,7 @@ function cardLines(
               ? 'mapCard.oncePerHeroPerDay'
               : 'mapCard.oncePerHeroPerWeek',
         ),
+        ...(wisdomRequired ? [t('mapCard.wisdomRequired')] : []),
       ];
     case 'dwelling':
       return [t('mapCard.dwellingLine', { name: resolveUnitName(object.unitId), stock: object.stock })];

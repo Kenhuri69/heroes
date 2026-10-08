@@ -133,6 +133,14 @@ export type GameEvent =
   | { type: 'TriggerChoiceOffered'; triggerId: string; playerId: string }
   /** Gardien dominé qui propose de fuir ou de rejoindre (LE5 A4) — `pendingNeutralOffer` posé. */
   | { type: 'NeutralOfferMade'; heroId: string; playerId: string; objectId: string }
+  /** Cabane de la sorcière (lot R3) — `pendingSkillOffer` posé, en attente. */
+  | { type: 'SkillOffered'; heroId: string; playerId: string; objectId: string; skillId: string }
+  /**
+   * Lieu de bonus refusé, visite NON consommée (lot R3) : sort d'un cercle que le
+   * héros ne peut pas encore apprendre (`wisdomRequired`), ou cabane d'un héros qui
+   * connaît déjà 6 compétences (`skillsFull`).
+   */
+  | { type: 'BonusRefused'; heroId: string; playerId: string; objectId: string; reason: 'wisdomRequired' | 'skillsFull' }
   /** Héros en fuite rangé dans la réserve de son joueur (LE6 E1). */
   | { type: 'HeroRetreatedToTavern'; heroId: string; playerId: string }
   /** Gardien laissé partir (LE5 A4) : retiré sans XP ni butin. */

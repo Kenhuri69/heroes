@@ -49,6 +49,12 @@ export interface AdvanceOptions {
    */
   onNeutralOffer?: () => void;
   /**
+   * Appelé quand une cabane de la sorcière vient de proposer sa compétence
+   * (`pendingSkillOffer` posé, lot R3). Le handler humain le laisse indéfini :
+   * le choix reste interactif. L'IA d'aventure y résout le choix immédiatement.
+   */
+  onSkillOffer?: () => void;
+  /**
    * Coop PvE (doc 18 E4) : héros allié invité à rejoindre un combat de GARDIEN
    * déclenché par ce déplacement. Passé tel quel à `beginGuardianCombat`, qui
    * revalide (allié/adjacent/armée) et ignore une invite caduque.
@@ -268,6 +274,11 @@ export function advanceHeroAlongPath(
         }
         recruitDwelling(draft, hero, player, obj, events);
       }
+    }
+    // Cabane de la sorcière (lot R3) : le héros s'arrête pour choisir.
+    if (draft.pendingSkillOffer) {
+      options.onSkillOffer?.();
+      return;
     }
     // Mine (doc 02 §2.2) : capture en passant — le héros ne s'arrête pas, et
     // une mine adverse est recapturée par le même geste.

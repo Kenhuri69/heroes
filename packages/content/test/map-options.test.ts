@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { knownUnitIds, loadContent, standardMapOptions, type ReadJson } from '../src/loader';
+import { knownArtifactIds, knownUnitIds, loadContent, loadMap, standardMapOptions, type ReadJson } from '../src/loader';
 import { generateMap } from '../src/mapgen';
 
 /**
@@ -30,6 +30,28 @@ describe('standardMapOptions (lot LE8)', () => {
     expect(none.townFactionIds).toEqual([]);
     // Rareté de chaque artefact du catalogue (défaut 1).
     expect(Object.keys(none.artifactRarity ?? {})).toEqual(report.content.coreArtifacts.map((a) => a.id));
+  });
+
+  it('lot R3 : sanctuaires et cabanes n’enseignent jamais l’école ni la compétence d’une faction', async () => {
+    const report = await loadContent(readJsonFromDisk);
+    const opts = standardMapOptions(report, { hasUnitArt: () => true, hasTownArt: () => true });
+    const schools = new Set(report.content.packs.flatMap((p) => (p.manifest.spellSchool ? [p.manifest.spellSchool] : [])));
+    const factionSkills = new Set(report.content.packs.flatMap((p) => p.manifest.heroSkills));
+    const schoolOf = new Map(report.content.coreSpells.map((sp) => [sp.id, sp.school]));
+    expect(opts.shrineSpells?.length).toBeGreaterThan(0);
+    for (const sp of opts.shrineSpells ?? []) {
+      expect(schools.has(schoolOf.get(sp.id)!), sp.id).toBe(false);
+      expect(sp.circle).toBeLessThanOrEqual(3);
+    }
+    expect(opts.hutSkills).toContain('wisdom'); // D-R3 : Sagesse et écoles de magie comprises
+    for (const id of opts.hutSkills ?? []) expect(factionSkills.has(id), id).toBe(false);
+    // Une carte générée avec ces options est valide pour le vrai `loadMap` (sorts, compétences, machines connus).
+    const map = generateMap('random', 11, { ...opts, width: 64, height: 64 });
+    expect(map.objects.some((o) => o.type === 'visitable' && o.effect.kind === 'grantSkill')).toBe(true);
+    const readJson: ReadJson = (path) => (path === 'maps/random.map.json' ? Promise.resolve(map) : readJsonFromDisk(path));
+    await expect(
+      loadMap(readJson, 'random', report.content.config, knownUnitIds(report), knownArtifactIds(report)),
+    ).resolves.toBeDefined();
   });
 
   it('à prédicats et graine égaux, deux appelants génèrent la même carte', async () => {

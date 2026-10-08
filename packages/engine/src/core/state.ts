@@ -496,6 +496,19 @@ export interface GameState {
     allyHeroId?: string;
   };
   /**
+   * Proposition d'une cabane de la sorcière (lot R3) — posée quand un héros foule
+   * un lieu `grantSkill` qu'il peut apprendre, résolue par `ResolveSkillOffer` :
+   * accepter apprend la compétence et consomme la visite, refuser ne consomme
+   * rien. `MoveHero`/`EndTurn` sont refusés tant qu'elle est posée. **Optionnel
+   * non initialisé** ⇒ forme de sauvegarde et golden inchangés.
+   */
+  pendingSkillOffer?: {
+    heroId: string;
+    playerId: string;
+    objectId: string;
+    skillId: string;
+  };
+  /**
    * Quêtes de campagne (doc 13 §6.2, N2a) — embarquées par `StartGame`, `null`
    * hors campagne (partie libre / scénario nu). Le moteur évalue des conditions
    * génériques ; il ne connaît ni texte ni dialogue.

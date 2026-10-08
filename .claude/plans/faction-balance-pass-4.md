@@ -35,13 +35,13 @@ puis `faction:sim` complet pour valider. Pas positifs gardés, les autres annul�
 1. [x] Essais de leviers (banc), choix
 2. [x] Données, `faction:sim` complet, facteur des élites
 3. [x] Docs de faction (tables de stats), doc 06, CLAUDE.md, plan d'enrichissement
-4. [ ] Vérifications
+4. [x] Vérifications
 
 ## 5. Vérifications
 
-- [ ] typecheck, lint, build ; garde-fous
-- [ ] tests (dont `balance.test`, parité des élites) ; golden inchangé
-- [ ] Playwright comme en CI
+- [x] typecheck, lint, build ; garde-fous ; budget 388 468 o gzip
+- [x] tests : moteur 1117, contenu 201, client 113, serveur 10 (dont `balance.test`, parité des élites) ; golden inchangé
+- [x] Playwright comme en CI : 149 verts hors @perf, @perf mono-worker 2/2 (9,0 fps)
 
 ## 6. Journal
 

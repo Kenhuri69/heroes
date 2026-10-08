@@ -340,6 +340,37 @@ describe('applyFactionVictoryEffects — gainFactionResourceOnVictory', () => {
   });
 });
 
+// Lot R4 : Chasse rituelle (rangs) et spécialité de Rumi — +N % arrondi vers le haut.
+const RITUAL_SKILLS = {
+  'ritual-hunt': { id: 'ritual-hunt', ranks: [{ factionResourceGainPct: 20 }, { factionResourceGainPct: 40 }, { factionResourceGainPct: 60 }] },
+};
+
+describe('R4 — factionResourceGainPct (Chasse rituelle, Rumi)', () => {
+  function essenceAfterVictory(over: Partial<HeroState>, bonus: FactionBonus = HUNTER_BONUS): number | undefined {
+    const h = hero({ factionId: 'hunter', ...over });
+    const combat = combatState([attackerAlive('grunt', 5), defenderDead('wolf')]);
+    recordLoss(combat, { id: 'defender-0', side: 'defender', unitId: 'wolf' }, 3);
+    const state = baseState({
+      factionCatalog: { hunter: { bonuses: [bonus] } },
+      skillCatalog: RITUAL_SKILLS,
+      heroes: [h],
+      players: [player()],
+      combat,
+    } as Partial<GameState>);
+    return runCheckCombatEnd(state).state.players[0]?.factionResources['essence'];
+  }
+
+  it('rang Maître : 10 → 16', () => {
+    expect(essenceAfterVictory({ skills: { 'ritual-hunt': 3 } })).toBe(16);
+  });
+  it('arrondi vers le haut : 7 × 1,2 = 8,4 → 9', () => {
+    expect(essenceAfterVictory({ skills: { 'ritual-hunt': 1 } }, { ...HUNTER_BONUS, amount: 7 })).toBe(9);
+  });
+  it('spécialité +25 % : 10 → 13 (arrondi haut de 12,5)', () => {
+    expect(essenceAfterVictory({ specialtyEffects: [{ factionResourceGainPct: 25 }] })).toBe(13);
+  });
+});
+
 // F-RESON.1 : même bonus, mais plafonné (cap estampillé par le loader).
 const CAPPED_CATALOG: Record<string, { bonuses: FactionBonus[] }> = {
   hunter: { bonuses: [{ type: 'gainFactionResourceOnVictory', resource: 'essence', amount: 10, cap: 12 }] },

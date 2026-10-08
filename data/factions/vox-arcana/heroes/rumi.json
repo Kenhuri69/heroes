@@ -9,7 +9,7 @@
   "avatarStyle": "painterly",
   "specialty": "@loc:hero.rumi.specialty",
   "attributes": { "attack": 3, "defense": 2, "power": 1, "knowledge": 1 },
-  "specialtyEffect": { "id": "voix-du-honmoon", "rangedDamagePct": 10 },
+  "specialtyEffect": { "id": "voix-du-honmoon", "factionResourceGainPct": 25 },
   "startingSkills": { "leadership": 1, "archery": 1 },
   "startingSpells": []
 }

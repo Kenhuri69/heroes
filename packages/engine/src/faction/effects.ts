@@ -3,7 +3,7 @@ import { hasAbility, performerParams } from '../combat/state-helpers';
 import type { CombatSideId, CombatStack, CombatState } from '../combat/types';
 import type { GameEvent } from '../core/events';
 import type { GameState, HeroState, PlayerState } from '../core/state';
-import { heroArmyCap, sumHeroEffectField } from '../hero/skills';
+import { heroArmyCap, heroEffectTotal, sumHeroEffectField } from '../hero/skills';
 import type { FactionBonus } from './types';
 
 /**
@@ -87,8 +87,11 @@ function applyGainFactionResourceOnVictory(
   if (bonus.amount <= 0) return;
   const player = draft.players.find((p) => p.id === hero.playerId);
   if (!player) return;
+  // Lot R4 : Chasse rituelle (rangs) et spécialité de Rumi, arrondi vers le haut.
+  const pct = heroEffectTotal(hero, draft.skillCatalog, 'factionResourceGainPct');
+  const amount = Math.ceil((bonus.amount * (100 + pct)) / 100);
   // F-RESON.1 : plafonne le gain au cap de la ressource (doc 16 §3.2 / doc 05 §3.3).
-  const gained = creditFactionResource(player, bonus.resource, bonus.amount, bonus.cap);
+  const gained = creditFactionResource(player, bonus.resource, amount, bonus.cap);
   events.push({
     type: 'FactionResourceGained',
     playerId: player.id,

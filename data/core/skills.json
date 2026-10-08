@@ -224,6 +224,34 @@
       ]
     },
     {
+      "id": "woodland-bond",
+      "ranks": [
+        {
+          "startingSymbiosisStacks": 1
+        },
+        {
+          "startingSymbiosisStacks": 2
+        },
+        {
+          "startingSymbiosisStacks": 3
+        }
+      ]
+    },
+    {
+      "id": "ritual-hunt",
+      "ranks": [
+        {
+          "factionResourceGainPct": 20
+        },
+        {
+          "factionResourceGainPct": 40
+        },
+        {
+          "factionResourceGainPct": 60
+        }
+      ]
+    },
+    {
       "id": "sorcery",
       "ranks": [
         {

@@ -463,7 +463,7 @@ marché) ? *(designer : (b), repli sur (a) si le bench montre une IA qui cale)*
    `content:check` (compétence gatée par `manifest.heroSkills`) ; docs 05 §7,
    14 §6, 16 §6 amendés. Effet inter-combat ou de héros ⇒ invisible au duel ; la
    lecture d'attrition reste qualitative.
-8. **Verdict** — en attente.
+8. **Verdict** — **livré** (`r4-faction-skills.md`) : Sylve 1/2/3 paliers de départ ; Chasse rituelle **20/40/60 %** (estimation en équivalent or : à 10/20/30 % la compétence ne valait jamais Économie), arrondi haut, toute victoire ; Rumi +25 %.
 
 🗳️ **D-R4a** : Sylve = **paliers de départ** (moteur prêt, recommandé) ou
 « +1 palier maximum » comme l'ébauche du doc 14 §6 (nouveau champ, effet quasi
@@ -575,3 +575,4 @@ avant d'être figées.
 - **2026-10-08** — Passe 4 (`faction-balance-pass-4.md`, choix utilisateur : juste après R1) : Ange Pouvoir 4 → 2, Maître 62 → 76 PV ⇒ 0 béance, écart 22,6 → 8,1 pts. Suite : R3.
 - **2026-10-08** — R3 livré (`r3-learning-sites.md`) : sanctuaire gaté par la Sagesse, cabane Apprendre/Refuser (plafond 6), générateur v3 (sanctuaires c1–3, cabanes, fabriques), IA qui s'en sert. Suite : R2.
 - **2026-10-08** — R2 livré en repli poids seuls (`r2-rare-resources-market.md`) : rares ×2 au marché, l'IA garde la réserve du bâtiment prioritaire en achetant pour ses recrues ; courbe écartée (recul > 7 jours). Suite : R4.
+- **2026-10-08** — R4 livré (`r4-faction-skills.md`) : Sylve (Sylvan) et Chasse rituelle (AH) en compétences de faction, Rumi +25 % de Résonance. Dernier lot du §5bis.

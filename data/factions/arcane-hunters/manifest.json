@@ -23,7 +23,7 @@
     }
   ],
   "spellSchool": "traque",
-  "heroSkills": [],
+  "heroSkills": ["ritual-hunt"],
   "tiers": 8,
   "sharedGrowthGroups": {
     "apex": [

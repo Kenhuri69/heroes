@@ -397,7 +397,7 @@ Fort ─► T1 Dortoirs ─► T2 Salle de Duel ─► T3 Volière ─► T4 Sc�
 | Héros | Base | Classe | Maison | Attributs (A/D/P/S) | Compétences de départ | Spécialité (placeholder) |
 |-------|------|--------|--------|---------------------|------------------------|--------------------------|
 | **Hermione** | Poudlard | **Magic** | L'Aigle | 10/10/25/25 | Sagesse N, École de la Scène N | Sorts de la Scène −1 coût de mana |
-| **Rumi** | HUNTR/X | **Might / Hunter** | Venari | 30/15/10/15 | Attaque N, Commandement N | +25 % de gain de Résonance |
+| **Rumi** | HUNTR/X | **Might / Hunter** | Venari | 30/15/10/15 | Attaque N, Commandement N | +25 % de gain de Résonance *(livré au lot R4 : `factionResourceGainPct 25`, arrondi vers le haut, 10 → 13 ; remplace le `rangedDamagePct 10` provisoire)* |
 
 > Les spécialités raffinées (barrière renforcée, performance de groupe) suivront
 > avec le câblage de la génération de Résonance intra-combat.

@@ -134,6 +134,15 @@ Aucune au 1ᵉʳ lot (comme Haven/Necropolis en MVP). La Symbiose porte l'identi
 une compétence de faction (ex. *Sylve* : +1 palier max de Symbiose) reste un
 raffinement data ultérieur, sans diff moteur.
 
+> **État livré (lot R4, plan `.claude/plans/r4-faction-skills.md`)** : **Sylve**
+> (`woodland-bond`, N/E/M) — les piles à Symbiose **commencent** le combat à
+> 1/2/3 paliers (`startingSymbiosisStacks`, le champ de Faelar, désormais lu sur
+> les rangs de compétence aussi ; cumul avec Faelar borné par `maxStacks` 4).
+> L'ébauche « +1 palier maximum » est écartée : la Symbiose retombe à 0 à la
+> première action, un plafond plus haut ne servait presque jamais. Les paliers
+> de départ ne profitent qu'aux piles qui tiennent leur poste : l'identité
+> « immobilité » est gardée.
+
 ## 7. Matchups attendus (pourquoi viser ~50 %)
 
 - **vs Haven** (attrition/défense) : miroir de tempo lent ; la Symbiose donne

@@ -180,6 +180,8 @@ const heroEffectFields = {
   raiseUndeadPctPerLevel: z.number().optional(),
   // Faelar (doc 14 §5) : paliers de Symbiose au début du combat.
   startingSymbiosisStacks: z.number().int().positive().optional(),
+  // Chasse rituelle / Rumi (lot R4) : +N % de gain de ressource de faction après victoire.
+  factionResourceGainPct: z.number().positive().optional(),
   // Alwin (doc 05 §7) : familier gratuit dans l'armée de départ (unitId opaque).
   startingArmyBonus: z
     .object({ unitId: idSchema, count: z.number().int().positive() })
@@ -635,6 +637,9 @@ const skillRankEffectSchema = z.object({
   firstAidHealPct: z.number().positive().optional(),
   siegeDamagePct: z.number().positive().optional(),
   neutralJoinDiscountPct: z.number().positive().max(100).optional(),
+  /** Compétences de faction (lot R4) : Sylve (paliers de Symbiose au départ), Chasse rituelle (% de ressource de faction). */
+  startingSymbiosisStacks: z.number().int().positive().optional(),
+  factionResourceGainPct: z.number().positive().optional(),
 });
 
 /** data/core/skills.json (doc 02 §1.3) — exactement 3 rangs (Novice/Expert/Maître). */

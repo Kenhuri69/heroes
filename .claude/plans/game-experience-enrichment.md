@@ -483,6 +483,49 @@ l'**abandon** des items écartés (Avatar actif, combatBonus généralisé,
 caravane, troc pénalisé à part, slot trophée), Traque et Sceau restant
 **différés** avec leur blocage écrit ?
 
+### 5bis.4 Relecture de l'expert RPG tactique HoMM (2026-10-08)
+
+> Verdict seul ; affirmations du designer revérifiées dans le code ; `faction:sim`
+> non relancé (chiffres du designer).
+
+**Faits nouveaux** :
+1. La chute de Haven en « sim + sorts » vient d'un **défaut de l'IA de combat**, pas
+   des stats : un lanceur lance toujours avant d'envisager la frappe
+   (`combat/ai.ts:270`), un soin part dès 1 PV perdu, et pour un sort `revive` les
+   créatures **mortes** ne comptent pas — l'Ange gâche son tour sur une égratignure.
+   Défaut présent **en vraie partie** (le catalogue y est chargé).
+2. `grantSkill` (cabane) ignore le plafond de 6 compétences (`hero/level-up.ts:14-27`).
+3. Les lieux de bonus se déclenchent **en passant** (`adventure/movement.ts:238-239`) :
+   une cabane généralisée imposerait une compétence non voulue.
+4. `marketPlan` (`ai/town-ai.ts:346-366`) avance de 1 or par itération : avec une
+   courbe, il faut un helper de taux par ressource partagé moteur/IA/client.
+
+| Lot | Verdict | Amendement |
+|---|---|---|
+| R1 | **Amender** | + comparaison **sort contre frappe** dans `chooseSpellcast` (valeur soignée/ressuscitée, morts comprises pour `revive`, face aux dégâts attendus ; débuff jamais relancé sur une cible déjà affectée) ; mesurer le sim **après** |
+| R2 | **Amender** | helper `marketRates(market, resource, count)` consommé par `tradeQuote`, `marketPlan` (forme fermée) et le client ; invariant de schéma par ligne et par paire ; courbe 5 crans ; bench du jour de la 1ʳᵉ habitation T7 de l'IA **par faction** |
+| R3 | **Amender** | `grantSkill` refusé (visite non consommée) à 6 compétences ; cabane = **proposition Apprendre/Refuser** (déclencheur `choice` existant), refus non consommé, compétence affichée avant le pas ; IA : accepte avec ≥ 2 emplacements libres ou compétence prioritaire ; « Sagesse requise » à l'infobulle ; v1/v2 identiques à l'octet |
+| R4a Sylve | **Retenir** | mesurer avec `simulateHeroCombat` (héros doté) |
+| R4b Chasse rituelle | **Amender** | arrondi vers le haut ; valeur à estimer en équivalent or avant de figer (piste 20/40/60 %) |
+
+Clôtures / abandons / différés du §5bis.1 : **d'accord sur tout**. Ordre conseillé
+(par risque) : **R1 (+ IA sort/frappe) → R3 → R2 → R4**, passe 4 seulement après
+R1 corrigé et mesuré. Recommandations 🗳️ : D-R0 oui · D-R1a passe 4 conditionnée
+à la nouvelle mesure · D-R1b Dissonance · D-R2 (b) avec repli (a) si recul > 7 jours ·
+D-R3 oui avec Apprendre/Refuser et plafond 6, hors compétences de faction ·
+D-R4a paliers · D-R4b toute victoire · D-R4c oui (+25 % Résonance).
+
+### 5bis.5 Décisions — ✅ tranchées par l'utilisateur le 2026-10-08
+
+Ordre et amendements de l'expert **adoptés** : **R1 (+ IA sort/frappe,
+Maître = Dissonance) → R3 → R2 → R4**, passe 4 seulement si la mesure après R1
+la justifie. D-R0 oui (clôtures, abandons, différés du §5bis.1) · D-R2 **poids +
+courbe** (repli poids seuls si l'IA recule de plus de 7 jours) · D-R3 **oui**
+(Sagesse et écoles de magie, proposition Apprendre/Refuser, plafond 6, hors
+compétences de faction) · D-R4a paliers · D-R4b toute victoire · D-R4c **oui**
+(Rumi +25 % Résonance) ; valeurs de Chasse rituelle estimées en équivalent or
+avant d'être figées.
+
 ## 6. Journal
 
 - **2026-09-29** — Plan ouvert par la passe de clôture ; registre §1 constitué et
@@ -522,3 +565,4 @@ caravane, troc pénalisé à part, slot trophée), Traque et Sceau restant
   par item (5 items déjà livrés, 9 écartés ou différés), 4 lots R1→R4 proposés,
   7 décisions 🗳️. Constat principal : `faction:sim` ignore les lanceurs de sorts
   d'unité (catalogue de sorts vide). Verdict de l'expert en attente. **Aucun code.**
+- **2026-10-08** — §5bis : proposition du designer, relecture de l'expert (§5bis.4), décisions de l'utilisateur (§5bis.5). Ouverture de R1.

@@ -4,6 +4,7 @@ import { createEmptyState } from '../core/state';
 import type { GameEvent } from '../core/events';
 import type { HeroState, PlayerState } from '../core/state';
 import type { FactionBonus } from '../faction/types';
+import type { SpellDef } from '../hero/types';
 import type { AdventureConfig } from '../adventure/config';
 import { runAutoCombat } from './ai';
 import { beginHeroCombat } from './setup';
@@ -18,6 +19,10 @@ import type { ArmyStack, CombatSideId, CombatUnitDef } from './types';
  * `catalog` doit contenir toutes les unités des deux armées ; `terrain` doit
  * exister dans `config.terrains`. Un camp vidé perd ; à effectifs nuls des deux
  * côtés (impossible en pratique), le défenseur est réputé tenir la place.
+ *
+ * `spellCatalog` (lot R1) : les sorts lancés par les unités `spellcaster`. Sans
+ * lui, une pile lanceuse ne trouve pas son sort et frappe — le sim ignorait ainsi
+ * tous les lanceurs alors qu'ils lancent en vraie partie (catalogue chargé).
  */
 export function simulateAutoCombat(
   catalog: Record<string, CombatUnitDef>,
@@ -26,11 +31,13 @@ export function simulateAutoCombat(
   defender: ArmyStack[],
   terrain: string,
   seed: number,
+  spellCatalog: Record<string, SpellDef> = {},
 ): CombatSideId {
   let state = createEmptyState();
   state.started = true;
   state.config = config;
   state.unitCatalog = catalog;
+  state.spellCatalog = spellCatalog;
   state.rng = seedRng(seed);
   state = apply(state, { type: 'StartCombat', attacker, defender, terrain }).state;
   const result = apply(state, { type: 'AutoCombat' });
@@ -126,6 +133,7 @@ export function simulateHeroCombat(
   challenger: HeroCombatSide,
   opponent: HeroCombatSide,
   seed: number,
+  spellCatalog: Record<string, SpellDef> = {},
 ): HeroCombatResult {
   // État ad hoc PLAT (fraîchement créé, jamais partagé) : on mute directement,
   // sans proxy Immer (perf F3 — c'est la brique chaude de `faction:sim`).
@@ -133,6 +141,7 @@ export function simulateHeroCombat(
   draft.started = true;
   draft.config = config;
   draft.unitCatalog = catalog;
+  draft.spellCatalog = spellCatalog; // lanceurs d'unité (lot R1), cf. `simulateAutoCombat`
   draft.factionCatalog = factionCatalog;
   draft.rng = seedRng(seed);
   draft.players = [simPlayer('p-att'), simPlayer('p-def')];

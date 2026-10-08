@@ -5,8 +5,9 @@ import {
   type CombatUnitDef,
   type FactionBonus,
   type Resources,
+  type SpellDef,
 } from '@heroes/engine';
-import { buildFactionCatalog, loadContent, type FactionPack, type LoadReport } from '@heroes/content';
+import { buildFactionCatalog, buildSpellCatalog, loadContent, type FactionPack, type LoadReport } from '@heroes/content';
 import { readJsonFromDisk } from './data-dir';
 
 /**
@@ -186,10 +187,10 @@ function winrate(
   let winsA = 0;
   let total = 0;
   for (let seed = 1; seed <= seeds; seed++) {
-    if (simulateAutoCombat(catalog, config, armyA, armyB, terrain, seed) === 'attacker') winsA++;
+    if (simulateAutoCombat(catalog, config, armyA, armyB, terrain, seed, spells) === 'attacker') winsA++;
     total++;
     // Sens inverse : B attaque, A défend — A gagne si le défenseur tient.
-    if (simulateAutoCombat(catalog, config, armyB, armyA, terrain, seed) === 'defender') winsA++;
+    if (simulateAutoCombat(catalog, config, armyB, armyA, terrain, seed, spells) === 'defender') winsA++;
     total++;
   }
   return (winsA / total) * 100;
@@ -233,6 +234,7 @@ function attritionDepth(
       { army, factionId: challengerId },
       { army: opp.army, factionId: opp.factionId },
       seed + wave * WAVE_SEED_STRIDE,
+      spells,
     );
     if (res.winner !== 'attacker' || res.challengerArmy.length === 0) break;
     depth += 1;
@@ -250,6 +252,8 @@ function avgDepth(samples: number, run: (seed: number) => number): number {
 
 const report = await loadContent(readJsonFromDisk);
 const catalog = buildCatalog(report);
+// Lot R1 : les lanceurs d'unité (Prêtresse, Ange…) lancent leur sort comme en partie.
+const spells = buildSpellCatalog(report) as Record<string, SpellDef>;
 const config = report.content.config.adventure;
 const factionCatalog = buildFactionCatalog(report);
 

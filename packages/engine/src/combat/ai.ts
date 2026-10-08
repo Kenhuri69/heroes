@@ -3,17 +3,17 @@ import { armyStrength } from '../core/power';
 import type { GameState, HeroState } from '../core/state';
 import { castHeroSpell } from '../hero';
 import { heroKnownSpellIds } from '../hero/artifacts';
-import { effectiveManaCost, spellTargetsEnemy } from '../hero/spells';
+import { effectiveManaCost, spellDamageAmount, spellHealAmount, spellTargetsEnemy } from '../hero/spells';
 import { applyAction, canShoot, canShootTarget, reachableHexes, tauntersAdjacentTo } from './actions';
 import { heroAttackDamageFor, strikeWithHero } from './hero-attack';
 import { heroRallyHp, rallyWithHero } from './hero-rally';
-import { spellcasterParams } from './spell-effect';
-import { estimateDamage, killsFromDamage, symbiosisParams } from './damage';
+import { resolveResurrect, spellcasterParams } from './spell-effect';
+import { estimateDamage, killsFromDamage, magicResistanceOf, symbiosisParams } from './damage';
 import { advanceTurn } from './turns';
 import { aiRetreat } from './leave';
 import type { Draft } from './draft';
 import { hexDistance, type OffsetPos } from './hex';
-import { collectCasualties, effectiveSpeed, hasAbility, heroActionLeftFor, heroesOnSide, isSilenced, isStackSpellImmune } from './state-helpers';
+import { collectCasualties, effectiveSpeed, hasAbility, heroActionLeftFor, heroesOnSide, isSilenced, isStackSpellImmune, stackLostSoFar } from './state-helpers';
 import type { CombatActionInput, CombatSideId, CombatStack, CombatState, CombatUnitDef } from './types';
 
 /**
@@ -196,11 +196,20 @@ function scoreCandidate(
  * Heuristique de combat (doc 02 §5.6, raffinée au lot B) — formule et règles
  * imposées (kite/défense/progression) documentées en tête de fichier.
  */
+/** Sort d'unité retenu : l'action et sa valeur en PV (soin/dégâts), `null` pour un effet de statut. */
+interface SpellcastChoice {
+  action: CombatActionInput;
+  hpValue: number | null;
+}
+
 /**
  * Choix de lancer de sort pour une unité `spellcaster` (A2h), ou `null` si rien
  * d'utile / pas lanceuse / plus de charges. Heuristique simple et déterministe :
- * heal ⇒ allié au top d'unité le plus endommagé (aucun blessé ⇒ garde la charge) ;
- * damage/debuff/applyMarks ⇒ ennemi de plus haute valeur ; buff ⇒ meilleur allié.
+ * heal ⇒ allié qui récupère le plus de PV (morts comprises pour un sort
+ * `revive`) ; damage/debuff/applyMarks ⇒ ennemi de plus haute valeur, jamais un
+ * débuff relancé sur une cible qui le porte déjà ; buff ⇒ meilleur allié.
+ * Soin et dégâts rendent leur valeur en PV : `chooseAction` la met en balance
+ * avec la frappe (lot R1).
  */
 function chooseSpellcast(
   state: GameState,
@@ -208,7 +217,7 @@ function chooseSpellcast(
   combat: CombatState,
   catalog: Record<string, CombatUnitDef>,
   enemies: CombatStack[],
-): CombatActionInput | null {
+): SpellcastChoice | null {
   const def = catalog[stack.unitId];
   const params = def ? spellcasterParams(def) : null;
   if (!params || stack.spellCharges <= 0) return null;
@@ -219,24 +228,38 @@ function chooseSpellcast(
 
   if (targetsEnemy) {
     // CAP-SPELLIMMUNE : une pile lanceuse ne gaspille pas son sort sur un immunisé.
+    // Lot R1 : un débuff ne se relance pas sur une cible qui le porte déjà.
+    const status = spell.kind === 'debuff' || spell.kind === 'silence';
     const best = pickBestBy(
-      enemies.filter((e) => !isStackSpellImmune(state, combat, e)),
+      enemies.filter(
+        (e) => !isStackSpellImmune(state, combat, e) && !(status && e.statuses.some((st) => st.spellId === spell.id)),
+      ),
       (e) => { const d = catalog[e.unitId]; return d ? targetValue(d) : 0; },
       (a, b) => compareCodeUnits(a.id, b.id),
     );
-    return best ? { type: 'castSpell', targetStackId: best.id } : null;
+    if (!best) return null;
+    const action: CombatActionInput = { type: 'castSpell', targetStackId: best.id };
+    const bestDef = catalog[best.unitId];
+    if (spell.kind !== 'damage' || !bestDef) return { action, hpValue: null };
+    const pool = (best.count - 1) * bestDef.stats.hp + best.firstHp;
+    const dmg = spellDamageAmount(spell, params.power, false, magicResistanceOf(bestDef, best.transformed));
+    return { action, hpValue: Math.min(pool, dmg) };
   }
 
   const allies = combat.stacks.filter((s) => s.side === stack.side && s.count > 0);
   if (spell.kind === 'heal') {
-    const wounded = allies.filter((a) => { const d = catalog[a.unitId]; return d ? a.firstHp < d.stats.hp : false; });
-    if (wounded.length === 0) return null; // rien à soigner ⇒ conserve la charge
+    // PV réellement rendus (résurrection intra-pile comprise pour un sort `revive`).
+    const heal = spellHealAmount(spell, params.power);
+    const healed = (a: CombatStack): number => {
+      const d = catalog[a.unitId];
+      return d ? resolveResurrect(d, a, spell.revive === true ? stackLostSoFar(combat, a) : 0, heal).healed : 0;
+    };
     const best = pickBestBy(
-      wounded,
-      (a) => { const d = catalog[a.unitId]; return d ? d.stats.hp - a.firstHp : 0; },
+      allies.filter((a) => healed(a) > 0), // rien à soigner ⇒ conserve la charge
+      healed,
       (a, b) => compareCodeUnits(a.id, b.id),
     );
-    return best ? { type: 'castSpell', targetStackId: best.id } : null;
+    return best ? { action: { type: 'castSpell', targetStackId: best.id }, hpValue: healed(best) } : null;
   }
 
   // buff : renforce l'allié le plus fort (soi inclus) — départage stable.
@@ -245,7 +268,45 @@ function chooseSpellcast(
     (a) => { const d = catalog[a.unitId]; return d ? targetValue(d) * a.count : 0; },
     (a, b) => compareCodeUnits(a.id, b.id),
   );
-  return best ? { type: 'castSpell', targetStackId: best.id } : null;
+  return best ? { action: { type: 'castSpell', targetStackId: best.id }, hpValue: null } : null;
+}
+
+/**
+ * Frappes légales de la pile ce tour-ci : tir (sur place, ligne de vue dégagée —
+ * C-LOS) ou mêlée (sur place ou après déplacement). La décision se fait PAR
+ * CIBLE : un tireur dont la ligne de vue vers une cible est bloquée par un
+ * rempart génère des candidats de mêlée (les obstacles de champ, eux, laissent
+ * passer le tir). `taunt` (doc 03 §3) écarte les frappes de mêlée illégales —
+ * depuis une case adjacente à un provocateur ennemi, seul ce provocateur est
+ * visable ; le tir n'est jamais concerné.
+ */
+function legalAttackCandidates(
+  state: GameState,
+  stackId: string,
+  stack: CombatStack,
+  combat: CombatState,
+  catalog: Record<string, CombatUnitDef>,
+  targetable: CombatStack[],
+): AttackCandidate[] {
+  const candidates: AttackCandidate[] = [];
+  const reachable = reachableHexes(state, stackId);
+  for (const e of targetable) {
+    if (canShootTarget(state, stackId, e.id)) {
+      candidates.push({ target: e, from: null });
+    } else if (hexDistance(stack.pos, e.pos) === 1) {
+      candidates.push({ target: e, from: null });
+    } else {
+      for (const p of reachable) {
+        if (hexDistance(p, e.pos) === 1) candidates.push({ target: e, from: p });
+      }
+    }
+  }
+  return candidates.filter((c) => {
+    if (canShootTarget(state, stackId, c.target.id)) return true;
+    const pos = c.from ?? stack.pos;
+    const taunters = tauntersAdjacentTo(combat, catalog, stack.side, pos);
+    return taunters.length === 0 || taunters.some((t) => t.id === c.target.id);
+  });
 }
 
 /** Dernier round où un tireur menacé préfère fuir plutôt que tirer (anti-impasse). */
@@ -264,11 +325,37 @@ export function chooseAction(state: GameState, stackId: string): CombatActionInp
   // une pile furtive agit et frappe encore).
   const targetable = enemies.filter((s) => !s.stealthed);
 
+  // Frappes légales et estimation par cible, calculées une fois à la demande.
+  // F8 : jusqu'à 6 origines de mêlée par cible partageaient le même appel
+  // `estimateDamage` (LoS + scans héros + bonus conditionnels) — mémo par cible.
+  let legal: AttackCandidate[] | undefined;
+  const legalCandidates = (): AttackCandidate[] =>
+    (legal ??= legalAttackCandidates(state, stackId, stack, combat, catalog, targetable));
+  const estCache = new Map<string, ReturnType<typeof estimateDamage>>();
+  const estimate = (targetId: string): ReturnType<typeof estimateDamage> => {
+    let e = estCache.get(targetId);
+    if (!e) {
+      e = estimateDamage(state, stackId, targetId);
+      estCache.set(targetId, e);
+    }
+    return e;
+  };
+
   // `spellcaster` (A2h) : une pile lanceuse avec des charges lance un sort UTILE
-  // en priorité (heal ⇒ allié le plus blessé ; damage/debuff ⇒ meilleur ennemi ;
-  // buff ⇒ meilleur allié). Sinon (rien à soigner…) elle enchaîne normalement.
+  // (heal ⇒ allié qui récupère le plus ; damage/debuff ⇒ meilleur ennemi ; buff ⇒
+  // meilleur allié). Lot R1 : un soin ou des dégâts ne passent devant la frappe
+  // que s'ils valent au moins les dégâts moyens de la meilleure frappe — un Ange
+  // ne ressuscite pas une égratignure. Sinon la pile enchaîne normalement.
   const cast = chooseSpellcast(state, stack, combat, catalog, targetable);
-  if (cast) return cast;
+  if (cast) {
+    if (cast.hpValue === null) return cast.action;
+    let strike = 0;
+    for (const c of legalCandidates()) {
+      const est = estimate(c.target.id);
+      strike = Math.max(strike, (est.damageMin + est.damageMax) / 2);
+    }
+    if (cast.hpValue >= strike) return cast.action;
+  }
 
   // Règle imposée 1 — KITE : tireur menacé qui peut s'éloigner en sécurité.
   // Bornée à `KITE_MAX_ROUND` : sans cette borne, un tireur face à une pile plus
@@ -300,48 +387,11 @@ export function chooseAction(state: GameState, stackId: string): CombatActionInp
     stack.symbiosisStacks < symb.maxStacks &&
     isThreatenedAt(stack.pos, enemies, combat, catalog);
 
-  // Score normal : tir (sur place, ligne de vue dégagée — C-LOS) ou mêlée (sur
-  // place ou après déplacement). La décision se fait PAR CIBLE : un tireur dont
-  // la ligne de vue vers une cible est bloquée par un rempart génère des
-  // candidats de mêlée (les obstacles de champ, eux, laissent passer le tir).
-  const candidates: AttackCandidate[] = [];
-  const reachable = reachableHexes(state, stackId);
-  for (const e of targetable) {
-    if (canShootTarget(state, stackId, e.id)) {
-      candidates.push({ target: e, from: null });
-    } else if (hexDistance(stack.pos, e.pos) === 1) {
-      candidates.push({ target: e, from: null });
-    } else {
-      for (const p of reachable) {
-        if (hexDistance(p, e.pos) === 1) candidates.push({ target: e, from: p });
-      }
-    }
-  }
-
-  // `taunt` (doc 03 §3) : écarte les frappes de mêlée illégales — depuis une
-  // case adjacente à un provocateur ennemi, seul ce provocateur est visable.
-  // Le tir (from===null ET ligne de vue) n'est jamais concerné.
-  const legalCandidates = candidates.filter((c) => {
-    if (canShootTarget(state, stackId, c.target.id)) return true;
-    const pos = c.from ?? stack.pos;
-    const taunters = tauntersAdjacentTo(combat, catalog, stack.side, pos);
-    return taunters.length === 0 || taunters.some((t) => t.id === c.target.id);
-  });
-
-  if (legalCandidates.length > 0) {
-    // F8 : jusqu'à 6 origines de mêlée par cible partageaient le même appel
-    // `estimateDamage` (LoS + scans héros + bonus conditionnels) — mémo par cible.
-    const estCache = new Map<string, ReturnType<typeof estimateDamage>>();
-    const estimate = (targetId: string): ReturnType<typeof estimateDamage> => {
-      let e = estCache.get(targetId);
-      if (!e) {
-        e = estimateDamage(state, stackId, targetId);
-        estCache.set(targetId, e);
-      }
-      return e;
-    };
+  // Score normal sur les frappes légales (tir ou mêlée, cf. `legalAttackCandidates`).
+  const candidates = legalCandidates();
+  if (candidates.length > 0) {
     const best = pickBestBy(
-      legalCandidates,
+      candidates,
       (c) => scoreCandidate(state, stackId, c, enemies, combat, catalog, stack.pos, estimate),
       (a, b) => compareCodeUnits(a.target.id, b.target.id) || compareHex(a.from ?? stack.pos, b.from ?? stack.pos),
     ) as AttackCandidate;

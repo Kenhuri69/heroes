@@ -9,6 +9,7 @@ import { initLedger, recordLoss } from '../src/combat/state-helpers';
 import type { CombatStack, CombatState, CombatUnitDef } from '../src/combat/types';
 import type { SpellDef } from '../src/hero/types';
 import type { GameEvent } from '../src/core/events';
+import { simulateAutoCombat } from '../src/combat/simulate';
 import { testConfig } from './fixtures';
 
 /**
@@ -140,5 +141,75 @@ describe('CAP-LIFE.1 — résurrection de l’Ange', () => {
     const angel = next.combat?.stacks.find((s) => s.id === 'attacker-0');
     expect(angel?.spellCharges).toBe(0); // 1×/combat consommée
     expect(events.some((e) => e.type === 'UnitSpellCast' && e.casterId === 'attacker-0')).toBe(true);
+  });
+});
+
+/**
+ * Lot R1 — sort contre frappe : un soin ou des dégâts d'unité ne passent devant la
+ * frappe que s'ils valent au moins ses dégâts moyens (morts comprises pour un sort
+ * `revive`) ; un débuff ne se relance pas sur une cible qui le porte déjà ; et le
+ * simulateur d'équilibrage voit enfin les lanceurs. Ids génériques.
+ */
+describe('R1 — sort contre frappe', () => {
+  const RESURRECTION: SpellDef = { id: 'resurrection', school: 'water', circle: 4, manaCost: 22, kind: 'heal', base: 40, perPower: 8, revive: true };
+  const WEAKEN: SpellDef = { id: 'weaken', school: 'earth', circle: 2, manaCost: 8, kind: 'debuff', base: 0, perPower: 0, defenseMod: -3 };
+  const cat: Record<string, CombatUnitDef> = {
+    ange: unit({ id: 'ange', abilities: [{ id: 'spellcaster', params: { spellId: 'resurrection', charges: 1, power: 4 } }] }),
+    hexer: unit({ id: 'hexer', abilities: [{ id: 'spellcaster', params: { spellId: 'weaken', charges: 2, power: 3 } }] }),
+    grunt: unit({ id: 'grunt' }),
+  };
+  function r1State(stacks: CombatStack[]): GameState {
+    const combat: CombatState = {
+      terrain: 'grass', phase: 'battle', round: 1, obstacles: [], stacks, activeStackId: 'attacker-0',
+      playerSide: 'defender', heroId: null, guardianObjectId: null, townId: null, wallDefenseBonus: 0,
+      finished: false, attackerHeroId: null, defenderHeroId: null, heroCastThisRound: [],
+      heroAttackUsed: [], winner: null,
+    };
+    initLedger(combat);
+    return {
+      ...createEmptyState(), started: true, rng: seedRng(1), config: testConfig(), unitCatalog: cat, combat,
+      spellCatalog: { resurrection: RESURRECTION, weaken: WEAKEN },
+    };
+  }
+  // 3 Anges au contact d'un ennemi (frappe moyenne ≈ 12 PV) ; allié `attacker-1` entamé de `scratch` PV.
+  function angelScene(scratch: number): CombatStack[] {
+    return [
+      stack({ id: 'attacker-0', side: 'attacker', slot: 0, unitId: 'ange', count: 3, pos: { col: 2, row: 4 }, spellCharges: 1 }),
+      stack({ id: 'attacker-1', side: 'attacker', slot: 1, unitId: 'grunt', count: 2, pos: { col: 1, row: 6 }, firstHp: 20 - scratch }),
+      stack({ id: 'defender-0', side: 'defender', slot: 0, unitId: 'grunt', count: 5, pos: { col: 3, row: 4 } }),
+    ];
+  }
+
+  it('l’Ange ne ressuscite pas une égratignure : il frappe', () => {
+    expect(aiChooseAction(r1State(angelScene(2)), 'attacker-0').type).toBe('attack');
+  });
+
+  it('les créatures mortes comptent : l’Ange relève la pile décimée plutôt que de frapper', () => {
+    const base = r1State(angelScene(2));
+    recordLoss(base.combat!, { id: 'attacker-1', side: 'attacker', unitId: 'grunt' }, 3); // 60 PV à relever
+    expect(aiChooseAction(base, 'attacker-0')).toEqual({ type: 'castSpell', targetStackId: 'attacker-1' });
+  });
+
+  it('un débuff ne se relance pas sur une cible qui le porte déjà', () => {
+    const weakened = { spellId: 'weaken', attackMod: 0, defenseMod: -3, speedMod: 0, damageDealtMod: 0, damagePerRound: 0, silenced: false, roundsLeft: 2 };
+    const scene = (statuses: CombatStack['statuses']): CombatStack[] => [
+      stack({ id: 'attacker-0', side: 'attacker', slot: 0, unitId: 'hexer', count: 1, pos: { col: 2, row: 4 }, spellCharges: 2 }),
+      stack({ id: 'defender-0', side: 'defender', slot: 0, unitId: 'grunt', count: 1, pos: { col: 12, row: 4 }, statuses }),
+    ];
+    expect(aiChooseAction(r1State(scene([])), 'attacker-0')).toEqual({ type: 'castSpell', targetStackId: 'defender-0' });
+    expect(aiChooseAction(r1State(scene([weakened])), 'attacker-0').type).not.toBe('castSpell');
+  });
+
+  it('simulateAutoCombat voit le sort d’un lanceur quand on lui passe le catalogue', () => {
+    // Un mage fragile mais rapide, dont le sort tue d'un coup ; sans catalogue, il frappe pour 1 et perd.
+    const ZAP: SpellDef = { id: 'zap', school: 'fire', circle: 1, manaCost: 0, kind: 'damage', base: 500, perPower: 0 };
+    const simCat: Record<string, CombatUnitDef> = {
+      mage: unit({ id: 'mage', stats: { hp: 10, attack: 1, defense: 1, damage: [1, 1], speed: 12 }, abilities: [{ id: 'spellcaster', params: { spellId: 'zap', charges: 1, power: 0 } }] }),
+      brute: unit({ id: 'brute', stats: { hp: 100, attack: 10, defense: 10, damage: [50, 50], speed: 3 } }),
+    };
+    const att = [{ unitId: 'mage', count: 1 }];
+    const def = [{ unitId: 'brute', count: 1 }];
+    expect(simulateAutoCombat(simCat, testConfig(), att, def, 'grass', 1)).toBe('defender');
+    expect(simulateAutoCombat(simCat, testConfig(), att, def, 'grass', 1, { zap: ZAP })).toBe('attacker');
   });
 });

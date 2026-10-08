@@ -37,7 +37,8 @@ const silenceStatus = (roundsLeft = 2): SpellStatus => ({
 });
 
 const CASTER = unit({ id: 'caster', abilities: [{ id: 'spellcaster', params: { spellId: 'zap', charges: 2, power: 0 } }] });
-const ZAP: SpellDef = { id: 'zap', school: 'neutral', circle: 1, manaCost: 0, kind: 'damage', base: 10, perPower: 0 };
+// 30 PV > frappe moyenne du lanceur (5 × 4) : l'IA préfère le sort (lot R1, sort contre frappe).
+const ZAP: SpellDef = { id: 'zap', school: 'neutral', circle: 1, manaCost: 0, kind: 'damage', base: 30, perPower: 0 };
 const SILENCE: SpellDef = { id: 'sil', school: 'traque', circle: 2, manaCost: 5, kind: 'silence', base: 0, perPower: 0 };
 const CATALOG: Record<string, CombatUnitDef> = { caster: CASTER, foe: unit({ id: 'foe' }) };
 

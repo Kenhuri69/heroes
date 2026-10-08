@@ -9,6 +9,6 @@
   "abilities": [
     { "id": "flying" },
     { "id": "moraleImmune" },
-    { "id": "spellcaster", "params": { "spellId": "resurrection", "charges": 1, "power": 4 } }
+    { "id": "spellcaster", "params": { "spellId": "resurrection", "charges": 1, "power": 2 } }
   ]
 }

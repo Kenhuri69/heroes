@@ -654,6 +654,11 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > or) ; l'IA n'achète plus les rares de ses recrues avec l'or réservé au bâtiment
 > prioritaire. Courbe par nombre de marchés écartée : l'IA reculait de plus de
 > 7 jours. Pas de bump save, golden inchangé.*
+> **R4 — deux compétences de faction** (`r4-faction-skills.md`) : **Sylve**
+> (Sylvan, piles à Symbiose à 1/2/3 paliers au départ) et **Chasse rituelle**
+> (AH, +20/40/60 % d'Essence après toute victoire, champ générique
+> `factionResourceGainPct`) ; Rumi +25 % de Résonance. Pas de bump save, golden
+> inchangé, zéro faction.*
 
 ---
 

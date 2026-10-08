@@ -184,7 +184,11 @@ describe('H-COND-EXACT — startingSymbiosisStacks (Symbiose de départ)', () =>
     plain: unit({ id: 'plain', stats: { hp: 10, attack: 5, defense: 5, damage: [3, 4], speed: 2 } }),
   };
 
-  function guardianState(specialtyEffects: HeroState['specialtyEffects'], armyUnit = 'treant'): GameState {
+  function guardianState(
+    specialtyEffects: HeroState['specialtyEffects'],
+    armyUnit = 'treant',
+    skills: Record<string, number> = {},
+  ): GameState {
     return {
       ...createEmptyState(),
       started: true,
@@ -220,7 +224,13 @@ describe('H-COND-EXACT — startingSymbiosisStacks (Symbiose de départ)', () =>
         startPositions: [{ x: 0, y: 0 }],
       },
       unitCatalog: CATALOG,
-      heroes: [hero({ id: 'h1', pos: { x: 0, y: 0 }, army: [{ unitId: armyUnit, count: 3 }], specialtyEffects })],
+      skillCatalog: {
+        'woodland-bond': {
+          id: 'woodland-bond',
+          ranks: [{ startingSymbiosisStacks: 1 }, { startingSymbiosisStacks: 2 }, { startingSymbiosisStacks: 3 }],
+        },
+      },
+      heroes: [hero({ id: 'h1', pos: { x: 0, y: 0 }, army: [{ unitId: armyUnit, count: 3 }], specialtyEffects, skills })],
       players: [
         { id: 'p1', resources: emptyResources(), factionResources: {}, explored: [], controller: 'human', eliminated: false, townlessDays: 0, huntContract: null, team: 0 },
       ],
@@ -252,6 +262,22 @@ describe('H-COND-EXACT — startingSymbiosisStacks (Symbiose de départ)', () =>
     });
     const plainStack = next.combat?.stacks.find((s) => s.side === 'attacker' && s.unitId === 'plain');
     expect(plainStack?.symbiosisStacks).toBe(0); // 'plain' n'a pas la capacité symbiosis
+  });
+
+  const treantStart = (state: GameState): number | undefined => {
+    const next = produce(state, (draft) => {
+      beginGuardianCombat(draft, 'h1', 'g1', []);
+    });
+    return next.combat?.stacks.find((s) => s.side === 'attacker' && s.unitId === 'treant')?.symbiosisStacks;
+  };
+
+  it('R4 — Sylve rang 2 : les piles symbiotiques démarrent à 2 paliers', () => {
+    expect(treantStart(guardianState([], 'treant', { 'woodland-bond': 2 }))).toBe(2);
+  });
+
+  it('R4 — Sylve Maître + Faelar (1 + 3 = 4) ; au-delà, borné à maxStacks 4', () => {
+    expect(treantStart(guardianState([{ startingSymbiosisStacks: 1 }], 'treant', { 'woodland-bond': 3 }))).toBe(4);
+    expect(treantStart(guardianState([{ startingSymbiosisStacks: 2 }], 'treant', { 'woodland-bond': 3 }))).toBe(4);
   });
 });
 

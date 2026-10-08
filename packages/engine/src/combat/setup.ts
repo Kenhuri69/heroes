@@ -5,7 +5,7 @@ import { armyStrength } from '../core/power';
 import { rollRange } from '../core/rng';
 import { areAllies, type GameState, type HeroState } from '../core/state';
 import { heroManaMax } from '../hero/artifacts';
-import { heroArmyCap, heroTacticsColumns, sumHeroEffectField } from '../hero/skills';
+import { heroArmyCap, heroEffectTotal, heroTacticsColumns } from '../hero/skills';
 import { barrierParams, symbiosisParams } from './damage';
 import { runAiIfNeeded } from './ai';
 import type { Draft } from './draft';
@@ -749,7 +749,8 @@ function applyStartingSymbiosis(draft: Draft, combat: CombatState): void {
   for (const [side, heroId] of sides) {
     const hero = heroId ? draft.heroes.find((h) => h.id === heroId) : undefined;
     if (!hero) continue;
-    const start = sumHeroEffectField(hero, 'startingSymbiosisStacks');
+    // Lot R4 : les rangs de Sylve s'ajoutent à la spécialité (Faelar) et à la Maison.
+    const start = heroEffectTotal(hero, draft.skillCatalog, 'startingSymbiosisStacks');
     if (start <= 0) continue;
     for (const stack of combat.stacks) {
       if (stack.side !== side) continue;

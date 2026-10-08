@@ -411,6 +411,8 @@ Fort ──► T1 Dortoirs ──► T2 Volière ──► T3 Salle des Préfets
 
 **Compétence de faction — Chasse rituelle** (N/E/M) : les combats contre des neutres rapportent +10/20/30 % d'Essence ; à Maître, le premier `executioner`/`devourMarks` de chaque combat ne consomme pas les Marques.
 
+> **État livré (lot R4, plan `.claude/plans/r4-faction-skills.md`)** : `ritual-hunt` (`manifest.heroSkills`) donne **+20/40/60 %** d'Essence après **toute** victoire (champ générique `factionResourceGainPct`, arrondi vers le haut ; 10 → 12/14/16). Valeurs doublées par rapport à l'ébauche : l'Essence ne sert qu'au Pénitent, dont la croissance est partagée avec la Manticore ; à +10/20/30 % la compétence valait ~40-120 or/jour, jamais préférable à Économie. **Écartés** : la restriction aux neutres (il faudrait transmettre la nature de l'adversaire au gain) et la Marque gratuite à Maître (second point d'extension).
+
 Héros nommés : *Evadne Corvel* (Maître de Chasse, ex-Cercle de l'Abîme, moitié de visage runique), *Professeur Alwin Marchmont* (Doyen, sa chouette est un familier de combat T2 gratuit au jour 1).
 
 > **État livré (H-COND)** : *Evadne* et *Alwin* sont **jouables** (roster arcane-hunters). **Evadne** « Maître de Chasse » = spécialité conditionnelle **+1 att aux Chasseresses (`t6-chasseresse`) par 2 niveaux** (le doc ne chiffrait pas — choix cohérent via le point d'extension `conditional`). **Alwin** « Doyen » portait au lot H-COND une spécialité plate −15 % coût mana.

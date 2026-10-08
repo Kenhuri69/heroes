@@ -55,8 +55,8 @@ function sumHouseField(hero: HeroState, field: NumericEffectField): number {
 /**
  * Somme générique d'un champ scalaire d'effet de héros sur sa Maison + sa
  * spécialité — version EXPORTÉE de `sumHouseField`, consommée hors de ce module
- * par les points d'extension H-COND-EXACT : `raiseUndeadPctPerLevel`
- * (`faction/effects.ts`) et `startingSymbiosisStacks` (`combat/setup.ts`).
+ * par le point d'extension H-COND-EXACT `raiseUndeadPctPerLevel`
+ * (`faction/effects.ts`).
  * Aucun nom de faction/Maison/héros — que des ids opaques.
  */
 export function sumHeroEffectField(hero: HeroState, field: NumericEffectField): number {

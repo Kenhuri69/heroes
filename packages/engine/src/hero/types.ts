@@ -234,9 +234,16 @@ export interface SkillRankEffect {
    * Spécialité EXACTE Faelar (H-COND-EXACT, doc 14 §5) — au DÉBUT du combat, les
    * piles du camp du héros dotées de la capacité `symbiosis` démarrent à ce
    * nombre de paliers (borné par `maxStacks`) au lieu de 0. Lu dans
-   * `openPlacementOrBattle`. Générique : `symbiosis` est un module de capacité.
+   * `openPlacementOrBattle`, sur les rangs de compétence aussi (Sylve, lot R4). Générique : `symbiosis` est un module de capacité.
    */
   startingSymbiosisStacks?: number;
+  /**
+   * Chasse rituelle (lot R4, doc 05 §7) et spécialité de Rumi (doc 16 §6) : +N %
+   * sur chaque gain de ressource de faction après victoire
+   * (`gainFactionResourceOnVictory`), arrondi vers le haut. Lu dans
+   * `applyGainFactionResourceOnVictory`. Générique : aucune ressource nommée.
+   */
+  factionResourceGainPct?: number;
   /**
    * Spécialité EXACTE Alwin (H-COND-EXACT, doc 05 §7) — armée de départ bonus :
    * à la création du héros (`StartGame`), `count` créatures `unitId` rejoignent

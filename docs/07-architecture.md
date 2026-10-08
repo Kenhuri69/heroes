@@ -161,7 +161,7 @@ UI/IA ──commande──► [validation] ──► engine.apply(state, cmd)
 - Spritesheets atlassées (TexturePacker ou packer maison dans `tools/`), 2 résolutions (@1x/@2x) servies selon `devicePixelRatio`.
 - Carte d'aventure : rendu par chunks avec culling ; brouillard en texture dédiée mise à jour incrémentalement.
 - Cible : 60 fps en combat sur mobile milieu de gamme (test CI Playwright avec throttling CPU ×4).
-- **PWA** (lot 8.1 livré) : service worker **hand-rolled** `data/sw.js` (offline-first, sans dépendance Workbox — hors budget bundle) + manifeste installable `data/manifest.webmanifest` → jeu solo jouable hors-ligne, icône sur l'écran d'accueil.
+- **PWA** (lot 8.1 livré) : service worker **hand-rolled** `data/sw.js` (offline-first, sans dépendance Workbox — hors budget bundle) + manifeste installable `data/manifest.webmanifest` → jeu solo jouable hors-ligne, icône sur l'écran d'accueil (icône *maskable* dédiée `icons/icon-maskable-512.png`, motif dans la zone sûre — lot LE8).
   - **Cache d'assets borné en entrées ET en octets** (lot R7) : au-delà de **300 entrées** `/assets/` **ou** de **50 Mio** cumulés, éviction **par ordre d'insertion** (les plus anciennes d'abord). Le plafond d'entrées seul autorisait plusieurs dizaines de Mo (fonds de siège ~620 Ko, toiles de combat ~400 Ko), au-delà des quotas d'origine usuels sur mobile où l'éviction navigateur devient imprévisible. Le poids d'une entrée est lu dans `content-length` (pas de relecture des corps) : borne **best-effort**, le plafond d'entrées reste le filet de sécurité. La décision d'éviction est une fonction **pure** isolée dans `data/sw-prune.js` (chargée par `importScripts`, le SW reste un script classique) et **testée en unitaire**.
 
 ## 7. Qualité & CI

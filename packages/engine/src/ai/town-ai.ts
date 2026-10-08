@@ -20,7 +20,7 @@ import {
 import { effectiveMarketRates, ownedMarketCount, townHasMarket, tradeQuote } from '../town/market';
 import { validateRecruitHero, handleRecruitHero } from '../hero/recruit';
 import { samePos } from '../adventure/map';
-import type { BuildingDef, BuildingEffect, TownState } from '../town/types';
+import type { BuildingDef, BuildingEffect, BuildingLevel, TownState } from '../town/types';
 import { unitWithEconomy } from '../town/unit-economy';
 import { maxAffordableCount, scaleCost } from '../town/resources';
 
@@ -73,6 +73,30 @@ function buildPriority(effect: BuildingEffect, heroless: boolean): number {
 }
 
 /**
+ * Option retenue par l'IA à un niveau à `alternatives` (lot E3/LE8) : parmi des
+ * habitations, celle qui rapporte le plus de force brute par pièce d'or —
+ * (PV + Att + Déf, la mesure d'`armyStrength`) × croissance hebdo ÷ coût en or.
+ * Égalité, ou options d'un autre type ⇒ option 0. Générique, sans RNG.
+ */
+function preferredLevelChoice(draft: GameState, level: BuildingLevel): number {
+  const options = levelOptions(level);
+  let best = 0;
+  let bestValue = -1;
+  options.forEach((effect, choice) => {
+    if (effect.type !== 'dwelling') return;
+    const unit = unitWithEconomy(draft.unitCatalog, effect.unitId);
+    const gold = unit?.recruitCost?.gold ?? 0;
+    if (!unit || gold <= 0) return;
+    const value = ((unit.stats.hp + unit.stats.attack + unit.stats.defense) * (unit.growthPerWeek ?? 1)) / gold;
+    if (value > bestValue) {
+      best = choice;
+      bestValue = value;
+    }
+  });
+  return best;
+}
+
+/**
  * Construit le bâtiment abordable le PLUS UTILE (1/jour, doc 02 §4.1). L'IA
  * bâtissait jusqu'ici le premier bâtiment abordable par ordre **alphabétique**
  * d'id — un ordre arbitraire qui lui faisait poser un marché avant ses
@@ -103,7 +127,13 @@ function tryBuild(draft: GameState, town: TownState, events: GameEvent[]): Parti
     if (!best || score > best.score) best = { buildingId, score };
   }
   if (!best) return saving?.cost ?? null;
-  handleBuildStructure(draft, { type: 'BuildStructure', townId: town.id, buildingId: best.buildingId }, events);
+  const level = draft.buildingCatalog[best.buildingId]?.levels[town.buildings[best.buildingId] ?? 0];
+  const choice = level?.alternatives ? preferredLevelChoice(draft, level) : 0;
+  handleBuildStructure(
+    draft,
+    { type: 'BuildStructure', townId: town.id, buildingId: best.buildingId, ...(choice > 0 ? { choice } : {}) },
+    events,
+  );
   return null;
 }
 

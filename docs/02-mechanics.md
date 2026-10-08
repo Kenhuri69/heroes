@@ -705,7 +705,9 @@ Chaque faction consomme surtout **une paire de ressources rares** (Haven : crist
 > croissance hebdomadaire et `UpgradeUnits` suivent l'option choisie ; l'autre
 > amélioration n'est jamais recrutable dans cette ville. Pilote : **Haven T3**,
 > Templier (tenir la ligne) ou Vindicateur (frapper en premier), même prix. L'IA
-> prend l'option 0 (choix d'IA différé).
+> retient l'option d'habitation qui rapporte le plus de force brute par pièce
+> d'or — (PV + Att + Déf) × croissance hebdo ÷ coût (lot LE8) ; égalité ou
+> options d'un autre type ⇒ option 0.
 
 > 🚧 **État (machines de guerre, Alpha 4.12)** : la **Baliste** (doc §5) est
 > livrée comme machine de base — catalogue **core générique** (`data/core/

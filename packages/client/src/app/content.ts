@@ -2,7 +2,7 @@ import {
   generateMap,
   knownArtifactIds,
   knownUnitIds,
-  knownUnitTiers,
+  standardMapOptions,
   loadContent,
   loadMap,
   loadScenarios,
@@ -103,31 +103,13 @@ export async function resolveGeneratedMap(
   } = {},
 ): Promise<ResolvedMap> {
   const config = report.content.config;
-  const units = knownUnitIds(report);
-  // Palette de gardiens : uniquement les unités qui ONT un sprite peint — un
-  // gardien tiré d'une unité sans art resterait le fanion gris de repli pour
-  // toujours (plan map-design-issues P1 : factions de test/beta sans art). Repli
-  // sur toutes les unités si AUCUN art n'est présent (build sans assets :
-  // mieux vaut des gardiens procéduraux que pas de gardiens du tout).
-  const painted = report.content.packs.flatMap((p) =>
-    p.units.filter((u) => unitSpriteUrl(u.id, p.manifest.id) !== undefined).map((u) => u.id),
-  );
-  // Villes neutres : factions dont le château de carte est peint (même logique
-  // que la palette de gardiens — pas de donjon gris anonyme sur une carte
-  // aléatoire). Les factions de test sans château peint en sont écartées.
-  const townFactions = report.content.packs
-    .map((p) => p.manifest.id)
-    .filter((id) => townMapUrl(id) !== undefined);
+  // Options communes au client et à la CLI `map:gen` (lot LE8) : à graine égale,
+  // même carte. Le client juge « peint » d'après son registre d'assets.
   const generated = generateMap('random', seed, {
-    guardianUnits: painted.length > 0 ? painted : [...units],
-    unitTiers: knownUnitTiers(report),
-    artifactIds: [...knownArtifactIds(report)],
-    // Rareté graduée en profondeur (doc 18 C2, lot 3.2) : commun près du départ,
-    // rare au fond — lue depuis le catalogue core (défaut 1 si absente).
-    artifactRarity: Object.fromEntries(
-      report.content.coreArtifacts.map((a) => [a.id, a.rarity ?? 1]),
-    ),
-    townFactionIds: townFactions,
+    ...standardMapOptions(report, {
+      hasUnitArt: (unitId, factionId) => unitSpriteUrl(unitId, factionId) !== undefined,
+      hasTownArt: (factionId) => townMapUrl(factionId) !== undefined,
+    }),
     ...opts,
   });
   const readJson: ReadJson = (path) =>

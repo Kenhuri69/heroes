@@ -258,7 +258,8 @@ j28, taux de victoire humain en normal) avant LE1 et la rejouer à chaque lot IA
 | **LE6 — Revenir dans la partie** | E1 (fuite HoMM, corrige la divergence doc/code) → B3 → E2 | comeback, supprime l'éclaireur vide | 1 point | **probable** | non |
 | **LE7 — Butin & siège** ✅ (`le7-loot-and-siege.md`) | C3 étape 1 → sets ; D3 siège avec héros visiteur | profondeur de fin de partie | 1 point (sets) | ? | non |
 | **LE-UX** ✅ (`le-ux-ergonomics.md`) | ergonomie §1.3 | client seul, indépendant | non | non | non |
-| *Reporté* | E3 (pilote après C3) | contenu ×2 | — | — | — |
+| **E3** ✅ (`e3-prereq-elite-sim.md`, `e3-elite-balance-pass-3.md`, `e3-pilot-level-alternatives.md`) | prérequis sim élites → passe 3 (élites au juste prix) → pilote Haven T3 (`alternatives`) | contenu ×2 | 1 point | non | non |
+| **LE8 — finitions** ✅ (`le8-finitions.md`) | IA qui choisit l'option d'un niveau à alternatives ; `map:gen` = client ; icône PWA maskable (§1.4) | reliquats sans décision | IA seule | non | non |
 
 ## 5. Décisions — ✅ tranchées par l'utilisateur le 2026-09-29
 
@@ -311,3 +312,8 @@ j28, taux de victoire humain en normal) avant LE1 et la rejouer à chaque lot IA
   le report E3.
 - **2026-09-30** — **LE-UX livré** (`le-ux-ergonomics.md`) : les dix points
   d'ergonomie du §1.3. Reste le report E3.
+- **2026-10-01** — **E3 livré** : `faction:sim` lit les élites (et un auto-combat
+  sans fin corrigé), passe 3 (élites au juste prix, facteur d'égalité ×1,00 ± 5 %),
+  pilote Haven T3 Templier/Vindicateur via `alternatives` de niveau.
+- **2026-10-07** — **LE8 — finitions** (`le8-finitions.md`) : choix d'option de
+  l'IA, `map:gen` aligné sur le client, icône PWA maskable.

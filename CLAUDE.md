@@ -634,6 +634,12 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > alternatives (force brute × croissance ÷ or) ; `map:gen` partage les options du
 > client (`standardMapOptions`, réglages en `--clé=valeur`) ⇒ même carte à graine
 > égale ; icône PWA *maskable* dédiée. Pas de bump save, golden inchangé.*
+> **R1 — magie des unités** (`r1-sim-unit-spells.md`) : `faction:sim` voit enfin les
+> lanceurs d'unité (catalogue de sorts passé au simulateur) ; l'IA ne lance un soin
+> ou des dégâts que s'ils valent sa meilleure frappe (morts comprises pour une
+> résurrection) et ne relance jamais un débuff posé ; Maître de Sortilèges (Vox T6)
+> = **Dissonance**. Mesure : Haven 61 %, Vox 39 % ⇒ passe 4 justifiée. Pas de bump
+> save, golden inchangé.*
 
 ---
 

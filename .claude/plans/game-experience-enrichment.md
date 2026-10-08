@@ -282,6 +282,252 @@ j28, taux de victoire humain en normal) avant LE1 et la rejouer à chaque lot IA
 13. **F1/F2** : ouvre-t-on division des piles neutres et maîtrises d'école comme lots, avant les sets ? *(oui)*
 14. **Ordre** : LE1 → LE2 → LE3 → LE4 → LE5 → LE6 → LE7, LE-UX en parallèle ? *(oui)*
 
+## 5bis. Reliquats §1.2 — proposition du game designer
+
+> Rendu par l'agent `game-designer` le 2026-10-08 sur `main` à `e3cee15e`.
+> Chaque item du §1.2 vérifié dans le code et les données ; `faction:sim` lancé
+> (référence + 4 variantes **jetables** dans une copie hors dépôt — aucune
+> modification du dépôt). **Verdict du binôme : en attente** — à soumettre au
+> `tactical-rpg-expert` par la session principale. Les décisions 🗳️ reviennent
+> à l'utilisateur.
+
+### 5bis.1 Instruction item par item
+
+| Item §1.2 | État réel (preuve) | Suite proposée |
+|---|---|---|
+| **CAP Maître de Sortilèges** (Vox T6) | `abilities: []` (`data/factions/vox-arcana/units/t6-maitre*.json`) ; moteur prêt (`spellcaster`, `combat/spell-effect.ts:25`) ; **mais `faction:sim` ne voit aucun lanceur d'unité** : `simulateAutoCombat` ne pose jamais `spellCatalog` (`combat/simulate.ts:22-39`, vide par défaut `core/state.ts:519`) ⇒ `chooseSpellcast` sort sur `if (!spell) return null` (`combat/ai.ts:217`). Mesuré : câbler le Maître ne change **aucun** chiffre du sim actuel. | **Lot R1** |
+| **CAP Avatar Vox** | barrière livrée (projection au setup, doc 16 CAP-BARRIER) ; ne reste que le **lancer actif** mi-combat | **écarter** : nouveau point (action d'unité ciblée) pour un T8 déjà au budget ; la projection suffit au ressenti |
+| **« factions fortes au sim »** | **périmé** : au duel de base, Vox est désormais **la plus faible** (moy. 43,9 %) | — |
+| **combatBonus des autres factions** | chaque maison a déjà sa signature (`factionBonuses` : Nécromancie, Essence, Résonance, Magie irrésistible ; Sylvan = capacité `symbiosis`) | **écarter** : Ferveur/Formation est l'identité de Haven (doc 03 §2) ; la répandre aplatit l'asymétrie |
+| **F-SKILLS Sylve** | Sylvan n'a ni `factionBonuses` ni `heroSkills` (`sylvan-court/manifest.json`) ; `startingSymbiosisStacks` existe mais n'est lu que sur Maison/spécialité/archétype (`combat/setup.ts:752` → `hero/skills.ts:61-68`), pas sur les rangs de compétence | **Lot R4** |
+| **F-SKILLS Chasse rituelle** (AH) | spec doc 05 §7 ; aucun champ « % de gain de ressource de faction » (`faction/effects.ts:81-98` crédite `amount` plat) ; même manque pour **Rumi** (doc 16 §6 : « +25 % de gain de Résonance », données : `rangedDamagePct 10`, `heroes/rumi.json`) | **Lot R4** |
+| **École de la Scène peur / +moral** | **livré** (16.12) : `moraleMod` sur Chant (+1) et Dissonance (−1) ; un moral négatif fait sauter le tour (`combat/turns.ts:271-279`) = la « peur » | **clore**. Reste « Dissonance renforcée vs `demon` » : écarter (le moteur n'a pas de type « démon » ; seule la forme `demonform` de l'AH T8 s'en approche) |
+| **F-BUILDEFF.7+ Traque** (+1 vitesse recrue) | piles = `{unitId, count}`, pas de stats par instance ; placeholder `growthBonus 20` (`arcane-hunters/buildings.json`) | **garder différé** : stats par instance = bump save + refonte de l'armée pour +1 vitesse dans une ville d'une faction |
+| **F-BUILDEFF.7+ Sceau** (−15 % mana d'école) | une aura de ville ne suit pas le héros en combat (`heroAura` town-scoped, `town/types.ts:68-88`) | **garder différé** : valeur faible ; à rouvrir seulement si un « bienfait jusqu'au prochain combat » de bâtiment apparaît |
+| **Cloître Haven +2 mana/j** (réconcilié no-op) | depuis LE4 la mana persiste, **mais** une ville à Guilde recharge à 100 % et le Cloître exige `mageGuild@1` ⇒ toujours un no-op | **clore** (le noter doc 03 §4) |
+| **+XP / +rang**, **Sanctuaire du Honmoon (bonus additionnels)** | aucune spec chiffrée dans aucun doc ; le Sanctuaire est l'habitation T8 livrée | **écarter** faute de spec (pas de système spéculatif) |
+| **H-NAMED** (Nécromancie/niveau, Symbiose de départ, familier gratuit) | **livré** (H-COND-EXACT) : `raiseUndeadPctPerLevel` (`mere-corbeau.json`), `startingSymbiosisStacks` (`faelar.json`), `startingArmyBonus` (`alwin.json`) | **clore** (registre périmé) |
+| **M-VISIT gating des sanctuaires** | `learnSpell` enseigne sans regarder le cercle apprenable (`adventure/visitable.ts:71-77`) ; et **`generateMap` ne pose ni sanctuaire de sort, ni cabane de la sorcière, ni fabrique** (`content/src/mapgen.ts:642-700` : fontaine, écurie, tour, `levelXp`, moulin, mana, entraînement) — ils n'existent que sur `proto-01` ; l'IA **ignore** tous les lieux de bonus sauf la fontaine de mana (`ai/adventure.ts:132-150`) | **Lot R3** |
+| **M-VISIT mois persistants** | **livré** (`calendar.monthEvents`, `Calendar.monthEventId`, doc 02 §2.3) | **clore** |
+| **M-VISIT ciblage par `unitId` exact** | `growthUnit` tire l'unité au RNG, exprès : la config core ne nomme jamais une unité de paquet | **écarter** (violerait la modularité core → paquet) |
+| **Graal par faction** | **livré** (`requiresGrail` dans les 7 `buildings.json`, table doc 02 §2.2) | **clore** |
+| **Marché : courbe HoMM3, troc pénalisé** | taux uniques pour **toutes** les ressources : vente 25 / achat 50 (`data/core/config.json:137-144`, `town/market.ts:44-62`) ⇒ **une gemme coûte 50 or**. L'arbre complet core + Haven demande 157 500 or et 341 ressources non-or, soit 17 050 or au marché (**11 %**) : une mine de gemmes (1/j) vaut 50 or/j face à 1000 pour une mine d'or. La « compétition territoriale » des rares (doc 02 §3) n'existe pas | **Lot R2**. Le troc passe déjà par l'écart vente/achat : un « troc pénalisé » à part serait redondant (écarter) |
+| **Caravanes : interception, annulation** | non interceptables par choix (`town/caravan.ts:10-14`) ; l'IA n'en envoie jamais (aucun `SendCaravan` dans `engine/src/ai`) | **écarter** : seul l'humain en profiterait, contre une IA qui n'intercepte pas ; l'annulation est un confort mineur |
+| **Slot d'artefact trophée** | `hero.artifacts` = 10 slots sérialisés ⇒ bump save + poupée | **écarter** : un effet de ville (Salle des Reliques AH) qui modifie durablement le héros pour un gain mince ; LE7 a déjà enrichi le butin et le sac |
+
+**Mesure de référence `faction:sim` (main, 2026-10-08)** : 1 béance au duel de
+base (AH vs Vox 19,2 %, connue depuis LE2) ; moyennes au duel de base : Haven
+53,4 · AH 51,5 · Necro 50,4 · Sylvan 53,9 · **Vox 43,9** · Dungeon 46,9.
+
+### 5bis.2 Lots proposés (ordre valeur / effort)
+
+#### R1 — Le sim voit la magie des unités, puis le Maître de Sortilèges (S)
+
+1. **Intention joueur** — les lanceurs de sorts (Prêtresse, Ange, Bibliothécaire,
+   Sorcière, bientôt Maître) pèsent dans l'équilibrage en proportion de ce qu'ils
+   font en partie.
+2. **Constat** — voir 5bis.1 (`simulate.ts:22-39`, `ai.ts:217`). Mesure jetable
+   « sim + sorts » (seul changement : `spellCatalog` posé) : le duel de base
+   **bascule** — Haven 53,4 → **42,0**, AH 51,5 → **60,8**, Necro 44,7, Sylvan
+   57,7, Vox 46,2, Dungeon 48,8 ; la béance AH-Vox disparaît (33,8 %), une autre
+   apparaît (**Haven vs Sylvan 13,3 %**) ; le facteur d'égalité des élites sort de
+   ±5 % pour Dungeon (×0,937). **Toute la passe 2 et la passe 3 ont été calées
+   sans les lanceurs.**
+3. **Mécanique** — (a) outillage : `simulateAutoCombat`/`simulateHeroCombat`
+   reçoivent le catalogue de sorts (paramètre optionnel ; aucune règle neuve) ;
+   (b) données : Maître de Sortilèges `spellcaster { dissonance, charges 2,
+   power 3 }` (élite : charges 3), conforme au doc 16 §4 (« Dissonance :
+   −Attaque / peur »). Mesuré avec le sim corrigé : **Dissonance** coûte 1,8 pt
+   à Vox (46,2 → 44,4) ; **Chant de courage** en coûte 7 (→ 39,1) — la pile qui
+   lance ne frappe pas ce tour-là. Variante testée et non retenue : ne soigner
+   que si une demi-créature manque (heuristique IA) — effet mitigé (Haven vs AH
+   +11 pts, Haven vs Dungeon −5, béance Haven-Sylvan inchangée).
+4. **Pilier** — rejouabilité / asymétrie des factions.
+5. **Point d'extension** — aucun nouveau : un paramètre optionnel d'outil + une
+   capacité déjà au catalogue.
+6. **Coût** — S · moteur : signature de `simulate.ts` seulement · save non ·
+   golden non.
+7. **Critère** — test unitaire : une pile `spellcaster` lance son sort dans
+   `simulateAutoCombat` (événement de lancer) ; `faction:sim` avant/après
+   consigné ; `elite-ability-parity` vert.
+8. **Verdict** — amendé (§5bis.4) ; **livré** (`r1-sim-unit-spells.md`). Mesure
+   finale : 1 béance (Haven-Vox 81,7 %), écart max entre factions 22,6 pts ⇒ passe 4
+   justifiée.
+
+🗳️ **D-R1a** : après correction du sim, ouvre-t-on une **passe 4 d'équilibrage**
+(cible : béance Haven vs Sylvan 13 %, Haven retombé à 42 %, élites Dungeon
+×0,94), ou garde-t-on les nouveaux chiffres en lecture ? *(designer : passe 4,
+données seules, après R1 — sinon chaque futur câblage se mesure contre un
+étalon faux)*
+🗳️ **D-R1b** : le Maître lance **Dissonance** (recommandé, −1,8 pt à Vox) ou
+**Chant de courage** (−7 pts, demanderait une compensation de stats) ?
+
+#### R2 — Les ressources rares ont un prix (M)
+
+1. **Intention joueur** — une mine de gemmes se dispute ; le marché dépanne
+   sans dispenser de tenir le terrain.
+2. **Constat** — voir 5bis.1 (une gemme = 50 or, 11 % du coût d'un arbre complet).
+3. **Mécanique** — `config.market` gagne deux champs optionnels :
+   `resourceValue` (multiplicateur par ressource sur `sellRate`/`buyRate` :
+   commune ×1, rare ×2) et `curve` (table `{ sellRate, buyRate }` indexée par le
+   nombre de marchés, dernière ligne répétée ; remplace le facteur linéaire
+   quand présente). Proposition (ressource commune ; rare ×2) :
+
+   | Marchés | 1 | 2 | 3 | 4 | 5+ |
+   |---|---|---|---|---|---|
+   | Vente | 25 | 35 | 45 | 55 | 60 |
+   | Achat | 125 | 100 | 85 | 75 | 70 |
+
+   Une gemme passe de 50 à **250 or** à un marché (140 à 5+). Invariant gardé et
+   étendu au schéma : à chaque ligne, vente ≤ achat ⇒ aucun aller-retour rentable ;
+   le troc reste « vendre puis acheter ». *Chiffres HoMM3 exacts incertains — à
+   confirmer par l'expert ; l'esprit canon est un marché unique ruineux et des
+   marchés multiples qui le rendent viable.*
+4. **Pilier** — gestion de ville (et exploration : les mines rares deviennent des
+   objectifs).
+5. **Point d'extension** — un seul : le modèle de taux du marché (`effectiveMarketRates`/
+   `tradeQuote`, déjà partagés client + IA ⇒ l'aperçu et l'IA suivent sans code
+   à part).
+6. **Coût** — M · moteur oui (market + schéma) · save non · golden non (aucun
+   échange dans le replay).
+7. **Critère** — tests `tradeQuote` (rare ×2, courbe, invariant) ; bench headless
+   jetable du LE1 (2 IA, 64², 20 graines, 60 jours) avant/après : jour médian du
+   Capitole et de la 1ʳᵉ habitation T7 de l'IA **sans recul de plus de 7 jours**,
+   captures de ville ≥ baseline ; doc 02 §3 amendé.
+8. **Verdict** — en attente.
+
+🗳️ **D-R2** : ampleur — (a) **poids seuls** (rare ×2, taux linéaire actuel :
+gemme à 100 or) ou (b) **poids + courbe** ci-dessus (gemme à 250 or à un
+marché) ? *(designer : (b), repli sur (a) si le bench montre une IA qui cale)*
+
+#### R3 — Des lieux d'apprentissage sur toutes les cartes (M)
+
+1. **Intention joueur** — chaque carte générée offre des détours qui forgent le
+   héros (un sort, une compétence), et l'IA s'en sert aussi.
+2. **Constat** — voir 5bis.1 (`mapgen.ts:642-700`, `visitable.ts:71-77`,
+   `ai/adventure.ts:132-150`).
+3. **Mécanique** —
+   - **Gate** (canon III, Sanctuaire de la Pensée) : `learnSpell` n'enseigne un
+     sort que si son cercle ≤ `heroLearnableCircle` ; sinon la visite **n'est
+     pas consommée** (le héros reviendra avec Sagesse) et un toast l'explique.
+   - **Génération v3** (`generatorVersion: 3`, v1/v2 reproductibles à l'octet) :
+     sanctuaires de sort cercle 1 / 2 / 3 (sort tiré au RNG seedé parmi les écoles
+     **communes** — jamais une école de faction), cabanes de la sorcière (compétence
+     commune tirée au RNG, jamais une `heroSkills` de faction), fabrique de
+     machines ; comptés sur `eventBuildingDensity` (2-4 par carte Moyenne), les
+     cercles 3 placés en profondeur comme les reliques.
+   - **IA** : `levelXp`, `permanentStat`, `learnSpell` (si apprenable et inconnu),
+     `grantSkill` (si non connue) deviennent collectables, avec le même filtre
+     de distance que les autres cibles.
+4. **Pilier** — exploration (+ armée & héros).
+5. **Point d'extension** — `generatorVersion` (existant) ; la gate est une règle
+   de fidélité sur un effet existant.
+6. **Coût** — M · moteur oui (visitable + IA) · save non · golden non.
+7. **Critère** — test moteur « cercle 3 sans Sagesse ⇒ refusé, visite
+   disponible ; avec Sagesse ⇒ appris » ; test contenu v3 (≥ 1 sanctuaire et
+   1 cabane sur 20 graines, v2 identique à l'octet) ; bench IA : niveau moyen du
+   héros IA au j28 ≥ baseline ; doc 02 §2.2 amendé.
+8. **Verdict** — en attente.
+
+🗳️ **D-R3** : une cabane de la sorcière peut-elle enseigner **Sagesse** et les
+écoles de magie (HoMM3 oui), ou les réserve-t-on à la montée de niveau ?
+
+#### R4 — Deux compétences de faction (S-M)
+
+1. **Intention joueur** — un héros Sylvan ou Arcane Hunters a, lui aussi, une
+   compétence qui n'appartient qu'à sa maison (comme Nécromancie et Prière).
+2. **Constat** — voir 5bis.1 (Sylvan sans `heroSkills` ; AH sans Chasse
+   rituelle ; Rumi en écart doc ↔ données).
+3. **Mécanique** —
+   - **Sylve** (Sylvan, N/E/M) : `startingSymbiosisStacks` 1 / 2 / 3 (borné au
+     `maxStacks` 4 des unités) ; le champ, aujourd'hui lu sur Maison/spécialité,
+     est aussi sommé sur les **rangs de compétence**. La Symbiose retombant à 0
+     à la première action, l'avance ne profite qu'aux piles qui tiennent leur
+     poste : l'identité « immobilité » est préservée. Cumul avec Faelar plafonné
+     par `maxStacks`.
+   - **Chasse rituelle** (AH, N/E/M) : nouveau champ d'effet
+     `factionResourceGainPct` 10 / 20 / 30, appliqué au gain post-victoire
+     (`applyGainFactionResourceOnVictory`). La clause « à Maître, la 1ʳᵉ
+     consommation de Marques est gratuite » est **écartée** (second point
+     d'extension). Le même champ rend la spécialité de **Rumi** conforme au doc
+     16 §6 (+25 % de Résonance).
+4. **Pilier** — rejouabilité / asymétrie des factions.
+5. **Point d'extension** — un seul neuf : `factionResourceGainPct` (Sylve ne fait
+   qu'élargir la lecture d'un champ existant aux compétences).
+6. **Coût** — S-M · moteur oui · save non · golden non.
+7. **Critère** — tests moteur : Sylve rang 2 ⇒ piles `symbiosis` à 2 paliers à
+   l'ouverture, borné à 4 avec Faelar ; Chasse rituelle rang 3 ⇒ Essence 10 → 13 ;
+   `content:check` (compétence gatée par `manifest.heroSkills`) ; docs 05 §7,
+   14 §6, 16 §6 amendés. Effet inter-combat ou de héros ⇒ invisible au duel ; la
+   lecture d'attrition reste qualitative.
+8. **Verdict** — en attente.
+
+🗳️ **D-R4a** : Sylve = **paliers de départ** (moteur prêt, recommandé) ou
+« +1 palier maximum » comme l'ébauche du doc 14 §6 (nouveau champ, effet quasi
+nul en auto-combat puisque la Symbiose monte rarement) ?
+🗳️ **D-R4b** : Chasse rituelle sur **toute victoire** (recommandé, sans
+nouveau contexte) ou **contre les neutres seulement** (doc 05 ; demande de
+transmettre la nature de l'adversaire au gain) ?
+🗳️ **D-R4c** : Rumi passe-t-il à « +25 % de Résonance » (doc) au lieu de +10 %
+de dégâts à distance (données actuelles) ?
+
+### 5bis.3 Ordre recommandé et clôtures
+
+**R1 → R2 → R3 → R4.** R1 d'abord : sans lui toute mesure d'équilibrage (dont
+la passe 4 éventuelle et R4) se fait contre un étalon aveugle aux lanceurs.
+R2 ensuite : c'est le seul lot qui change **chaque partie** (économie). R3 et R4
+sont indépendants entre eux.
+
+🗳️ **D-R0** : valide-t-on la **clôture** au registre §1.2 des items livrés
+(H-NAMED, Scène peur/+moral, mois persistants, Graal par faction, Cloître) et
+l'**abandon** des items écartés (Avatar actif, combatBonus généralisé,
++XP/+rang, Sanctuaire du Honmoon, `unitId` exact, interception et annulation de
+caravane, troc pénalisé à part, slot trophée), Traque et Sceau restant
+**différés** avec leur blocage écrit ?
+
+### 5bis.4 Relecture de l'expert RPG tactique HoMM (2026-10-08)
+
+> Verdict seul ; affirmations du designer revérifiées dans le code ; `faction:sim`
+> non relancé (chiffres du designer).
+
+**Faits nouveaux** :
+1. La chute de Haven en « sim + sorts » vient d'un **défaut de l'IA de combat**, pas
+   des stats : un lanceur lance toujours avant d'envisager la frappe
+   (`combat/ai.ts:270`), un soin part dès 1 PV perdu, et pour un sort `revive` les
+   créatures **mortes** ne comptent pas — l'Ange gâche son tour sur une égratignure.
+   Défaut présent **en vraie partie** (le catalogue y est chargé).
+2. `grantSkill` (cabane) ignore le plafond de 6 compétences (`hero/level-up.ts:14-27`).
+3. Les lieux de bonus se déclenchent **en passant** (`adventure/movement.ts:238-239`) :
+   une cabane généralisée imposerait une compétence non voulue.
+4. `marketPlan` (`ai/town-ai.ts:346-366`) avance de 1 or par itération : avec une
+   courbe, il faut un helper de taux par ressource partagé moteur/IA/client.
+
+| Lot | Verdict | Amendement |
+|---|---|---|
+| R1 | **Amender** | + comparaison **sort contre frappe** dans `chooseSpellcast` (valeur soignée/ressuscitée, morts comprises pour `revive`, face aux dégâts attendus ; débuff jamais relancé sur une cible déjà affectée) ; mesurer le sim **après** |
+| R2 | **Amender** | helper `marketRates(market, resource, count)` consommé par `tradeQuote`, `marketPlan` (forme fermée) et le client ; invariant de schéma par ligne et par paire ; courbe 5 crans ; bench du jour de la 1ʳᵉ habitation T7 de l'IA **par faction** |
+| R3 | **Amender** | `grantSkill` refusé (visite non consommée) à 6 compétences ; cabane = **proposition Apprendre/Refuser** (déclencheur `choice` existant), refus non consommé, compétence affichée avant le pas ; IA : accepte avec ≥ 2 emplacements libres ou compétence prioritaire ; « Sagesse requise » à l'infobulle ; v1/v2 identiques à l'octet |
+| R4a Sylve | **Retenir** | mesurer avec `simulateHeroCombat` (héros doté) |
+| R4b Chasse rituelle | **Amender** | arrondi vers le haut ; valeur à estimer en équivalent or avant de figer (piste 20/40/60 %) |
+
+Clôtures / abandons / différés du §5bis.1 : **d'accord sur tout**. Ordre conseillé
+(par risque) : **R1 (+ IA sort/frappe) → R3 → R2 → R4**, passe 4 seulement après
+R1 corrigé et mesuré. Recommandations 🗳️ : D-R0 oui · D-R1a passe 4 conditionnée
+à la nouvelle mesure · D-R1b Dissonance · D-R2 (b) avec repli (a) si recul > 7 jours ·
+D-R3 oui avec Apprendre/Refuser et plafond 6, hors compétences de faction ·
+D-R4a paliers · D-R4b toute victoire · D-R4c oui (+25 % Résonance).
+
+### 5bis.5 Décisions — ✅ tranchées par l'utilisateur le 2026-10-08
+
+Ordre et amendements de l'expert **adoptés** : **R1 (+ IA sort/frappe,
+Maître = Dissonance) → R3 → R2 → R4**, passe 4 seulement si la mesure après R1
+la justifie. D-R0 oui (clôtures, abandons, différés du §5bis.1) · D-R2 **poids +
+courbe** (repli poids seuls si l'IA recule de plus de 7 jours) · D-R3 **oui**
+(Sagesse et écoles de magie, proposition Apprendre/Refuser, plafond 6, hors
+compétences de faction) · D-R4a paliers · D-R4b toute victoire · D-R4c **oui**
+(Rumi +25 % Résonance) ; valeurs de Chasse rituelle estimées en équivalent or
+avant d'être figées.
+
 ## 6. Journal
 
 - **2026-09-29** — Plan ouvert par la passe de clôture ; registre §1 constitué et
@@ -317,3 +563,9 @@ j28, taux de victoire humain en normal) avant LE1 et la rejouer à chaque lot IA
   pilote Haven T3 Templier/Vindicateur via `alternatives` de niveau.
 - **2026-10-07** — **LE8 — finitions** (`le8-finitions.md`) : choix d'option de
   l'IA, `map:gen` aligné sur le client, icône PWA maskable.
+- **2026-10-08** — §5bis rendu par `game-designer` : registre §1.2 instruit item
+  par item (5 items déjà livrés, 9 écartés ou différés), 4 lots R1→R4 proposés,
+  7 décisions 🗳️. Constat principal : `faction:sim` ignore les lanceurs de sorts
+  d'unité (catalogue de sorts vide). Verdict de l'expert en attente. **Aucun code.**
+- **2026-10-08** — §5bis : proposition du designer, relecture de l'expert (§5bis.4), décisions de l'utilisateur (§5bis.5). Ouverture de R1.
+- **2026-10-08** — R1 livré (`r1-sim-unit-spells.md`) : le sim voit les sorts d'unité, IA sort contre frappe, Maître = Dissonance. Haven 53,4 → 61,4 %, Vox 43,9 → 38,8 % ⇒ passe 4 justifiée.

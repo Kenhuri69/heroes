@@ -967,6 +967,14 @@ Sémantique des capacités du catalogue (valeurs de départ ; **35** au 2026-08)
 
 Heuristique par pile : score = dégâts espérés × valeur de la cible − risque de riposte − exposition ; les tireurs kitent, les lents défendent. Pas de recherche arborescente au MVP.
 
+**Lanceurs d'unité (`spellcaster`, lot R1)** : une pile lanceuse avec des charges
+lance avant de frapper, mais un **soin** ou des **dégâts** ne passent devant la
+frappe que s'ils valent, en PV, au moins les dégâts moyens de sa meilleure frappe
+du tour (PV réellement rendus, **créatures mortes comprises** pour un sort qui
+ressuscite) — un Ange ne gâche pas sa Résurrection sur une égratignure. Un
+**débuff** ne se relance jamais sur une cible qui le porte déjà. Buffs et marques :
+lancés d'office sur la meilleure cible.
+
 **Parité héros (C-AIPARITY)** : l'IA joue aussi les actions du héros de son
 camp — **une action de héros par round** : soit un sort (priorité dégâts > soin
 si un allié est blessé > debuff/marques > buff, à mana suffisante), soit

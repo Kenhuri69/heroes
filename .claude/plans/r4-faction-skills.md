@@ -32,16 +32,16 @@
 
 ## 3. Étapes
 
-1. [ ] Moteur : champ `factionResourceGainPct` (types, schéma), gain arrondi haut, Sylve sur les rangs ; tests
-2. [ ] Données : 2 compétences (`skills.json`), `heroSkills` des 2 manifestes, Rumi, locales FR/EN
-3. [ ] Docs 05 §7, 14 §6, 16 §6, 02 (compétences), CLAUDE.md, plan d'enrichissement
-4. [ ] Vérifications
+1. [x] Moteur : champ `factionResourceGainPct` (types, schéma), gain arrondi haut, Sylve sur les rangs ; tests
+2. [x] Données : 2 compétences (`skills.json`), `heroSkills` des 2 manifestes, Rumi, locales FR/EN
+3. [x] Docs 05 §7, 14 §6, 16 §6, 02 (compétences), CLAUDE.md, plan d'enrichissement
+4. [x] Vérifications
 
 ## 4. Vérifications
 
-- [ ] typecheck (sans `-s`), lint, build ; garde-fous faction et couleurs ; `content:check`
-- [ ] tests moteur, contenu, client, serveur ; golden inchangé
-- [ ] Playwright comme en CI
+- [x] typecheck (sans `-s`), lint, build ; garde-fous faction et couleurs ; `content:check` ; budget 389 716 o gzip
+- [x] tests : moteur 1131 (+5), contenu 206, client 113, serveur 10 ; golden inchangé
+- [x] Playwright comme en CI : 150 verts hors @perf (1 skip), @perf mono-worker 2/2 (7,4 fps carte)
 
 ## 5. Journal
 
@@ -57,3 +57,11 @@
     par jour, loin d'Économie (250/500/1000) ⇒ la compétence ne serait jamais
     prise. À 20/40/60 % (+2/4/6) : ~80/160/240 or par jour, encore sous
     Économie mais utile à une armée qui vise le Pénitent élite. Retenu.
+- 2026-10-08 : moteur, données, docs livrés. Écarts :
+  - le schéma des rangs de compétence (`skillRankEffectSchema`) est distinct de
+    celui des Maisons/spécialités : les deux champs y sont ajoutés ;
+  - aucun test de contenu sur données réelles (il nommerait une faction dans
+    `packages/`) : le test générique R3 vérifie déjà qu'aucune compétence de
+    faction n'est enseignée par une cabane ;
+  - un vitest orphelin saturait la machine (timeouts de 5 s sous `pnpm test`) :
+    arrêté, suite repassée entièrement.

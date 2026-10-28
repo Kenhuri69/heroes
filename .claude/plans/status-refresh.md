@@ -26,13 +26,13 @@
 
 1. [x] Moteur : remplacement par `spellId` dans `castSpellEffect` ; test
 2. [x] Docs 02 (sorts/statuts), CLAUDE.md
-3. [ ] Vérifications (golden, `faction:sim`, Playwright)
+3. [x] Vérifications (golden, `faction:sim`, Playwright)
 
 ## 4. Vérifications
 
 - [x] typecheck (sans `-s`), lint, build ; garde-fous ; `content:check` ; budget 389 726 o gzip
 - [x] tests : moteur 1133 (+2), contenu 206, client 113, serveur 10 ; golden inchangé
-- [ ] Playwright comme en CI
+- [x] Playwright comme en CI : 150 verts hors @perf (1 skip), @perf mono-worker 2/2 (12,7 fps carte)
 
 ## 5. Journal
 

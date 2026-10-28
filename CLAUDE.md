@@ -667,6 +667,11 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > `codeSplitting`), immer 11, zod 4 (records de ressources en `partialRecord`),
 > preact 11, TypeScript 6.0 (`types: ["node"]` explicite) ; TS 7 reporté
 > (typescript-eslint `<6.1`). Golden et `faction:sim` identiques.*
+> **LD3 — escorte de Taverne** (`ld3-tavern-escort.md`, tour de design n° 3
+> `design-round-3.md`) : un héros recruté arrive avec une pile de base par palier
+> T1–T3 de sa faction, achetée sur un budget d'or tiré au RNG (`hero.tavernEscort`,
+> ≈ 35 % du prix du héros) ; un retour de réserve reçoit 1 pile T1
+> (`hero.reserveEscort`), jamais une armée vide. Pas de bump save, golden inchangé.*
 
 ---
 

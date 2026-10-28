@@ -80,6 +80,12 @@
       "recruitCost": 2500,
       "maxPerPlayer": 8,
       "retreatToTavern": true,
+      "tavernEscort": [
+        { "tier": 1, "goldMin": 300, "goldMax": 500 },
+        { "tier": 2, "goldMin": 200, "goldMax": 350 },
+        { "tier": 3, "goldMin": 150, "goldMax": 250 }
+      ],
+      "reserveEscort": [{ "tier": 1, "goldMin": 100, "goldMax": 150 }],
       "mana": {
         "persistent": true,
         "basePerDay": 1,

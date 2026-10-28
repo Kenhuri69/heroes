@@ -339,6 +339,15 @@ export const localeSchema = z.record(z.string(), z.string());
  * à `unit.cost` qui admet aussi les ressources de faction) — pas de ressource de
  * faction pour bâtir/produire en 3.1.
  */
+/** Emplacement d'escorte de Taverne (LD3, doc 02 §1.5) : palier + budget d'or. */
+const escortSlotSchema = z
+  .object({
+    tier: z.number().int().positive(),
+    goldMin: z.number().int().nonnegative(),
+    goldMax: z.number().int().nonnegative(),
+  })
+  .refine((e) => e.goldMin <= e.goldMax, 'goldMin ≤ goldMax');
+
 const buildingRequirementSchema = z.object({
   building: buildingIdSchema,
   level: z.number().int().positive(),
@@ -861,6 +870,9 @@ export const gameConfigSchema = z.object({
       maxPerPlayer: z.number().int().positive().default(8),
       /** Fuite HoMM (LE6 E1) — optionnel : absent ⇒ le héros en fuite reste sur la carte. */
       retreatToTavern: z.boolean().optional(),
+      /** Escorte de Taverne (LD3) — optionnelle : absente ⇒ héros recruté sans armée. */
+      tavernEscort: z.array(escortSlotSchema).optional(),
+      reserveEscort: z.array(escortSlotSchema).optional(),
       /** Mana persistante (LE4/C2) — optionnel : absent ⇒ mana pleine à chaque combat/aube. */
       mana: z
         .object({

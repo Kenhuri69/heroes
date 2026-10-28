@@ -1,7 +1,10 @@
 import { revealAround } from '../adventure/fog';
+import type { EscortSlotConfig } from '../adventure/config';
+import type { ArmyStack } from '../combat/types';
 import type { Command, CommandError } from '../core/commands';
 import { heroDailyMovement } from '../core/engine';
 import type { GameEvent } from '../core/events';
+import { rollRange } from '../core/rng';
 import type { GameState, HeroState } from '../core/state';
 import { builtLevelOf } from '../town/helpers';
 import { heroManaMax } from './artifacts';
@@ -40,6 +43,38 @@ function rosterTaken(state: GameState, rosterId: string): boolean {
   );
 }
 
+/**
+ * Unité de base du palier `tier` dans la chaîne de `factionId` (LD3) : unité du
+ * niveau 1 d'une habitation de la faction. Bâtiments parcourus par id trié ⇒
+ * déterministe ; `undefined` si la faction n'a pas ce palier.
+ */
+function baseUnitOfTier(state: GameState, factionId: string, tier: number): string | undefined {
+  for (const id of Object.keys(state.buildingCatalog).sort()) {
+    const def = state.buildingCatalog[id]!;
+    const effect = def.levels[0]?.effect;
+    if (def.factionId === factionId && effect?.type === 'dwelling' && effect.tier === tier) return effect.unitId;
+  }
+  return undefined;
+}
+
+/**
+ * Escorte de Taverne (LD3, doc 02 §1.5) : une pile par emplacement, achetée avec
+ * un budget d'or tiré au RNG seedé (`max(1, ⌊or ÷ coût⌋)` créatures). Ne prélève
+ * pas le stock de la ville. Palier absent ou unité sans prix en or ⇒ sauté.
+ */
+function rollEscort(draft: GameState, factionId: string, slots: EscortSlotConfig[] | undefined): ArmyStack[] {
+  const army: ArmyStack[] = [];
+  for (const slot of slots ?? []) {
+    const unitId = baseUnitOfTier(draft, factionId, slot.tier);
+    const unitGold = unitId ? (draft.unitCatalog[unitId]?.recruitCost?.gold ?? 0) : 0;
+    if (!unitId || unitGold <= 0) continue;
+    const roll = rollRange(draft.rng, slot.goldMin, slot.goldMax);
+    draft.rng = roll.state;
+    army.push({ unitId, count: Math.max(1, Math.floor(roll.value / unitGold)) });
+  }
+  return army;
+}
+
 /** La ville a-t-elle une Taverne construite (effet `tavern` au niveau bâti) ? */
 function hasTavern(state: GameState, town: GameState['towns'][number]): boolean {
   return Object.keys(town.buildings).some(
@@ -51,7 +86,7 @@ function hasTavern(state: GameState, town: GameState['towns'][number]): boolean 
  * Recrutement de héros à la Taverne (M-TAVERN.1, doc 02 §1.5/§4.1) : le joueur
  * actif recrute un héros nommé de SA faction (roster embarqué) contre or, à une
  * ville qu'il possède avec une Taverne. Cap `hero.maxPerPlayer` (8). Le héros
- * apparaît sur la tuile de la ville, armée vide.
+ * apparaît sur la tuile de la ville, avec son escorte (LD3, `hero.tavernEscort`).
  */
 export function validateRecruitHero(state: GameState, cmd: RecruitCmd): CommandError | null {
   if (state.combat) return { code: 'combatActive', message: 'un combat est en cours' };
@@ -116,7 +151,7 @@ export function handleRecruitHero(draft: GameState, cmd: RecruitCmd, events: Gam
     pos: { ...(landingTileFor(draft, town.pos, id) ?? town.pos) },
     movementPoints: 0,
     naval: false,
-    army: [],
+    army: rollEscort(draft, def.factionId, draft.config?.hero?.tavernEscort),
     xp: 0,
     level: 1,
     attributes: { ...def.attributes },
@@ -166,7 +201,7 @@ export function handleRecruitHero(draft: GameState, cmd: RecruitCmd, events: Gam
 
 /**
  * Recrutement d'un héros de la réserve (LE6 E1) : il revient tel qu'il est parti
- * (niveau, compétences, sorts, artefacts), armée vide, sur la ville ou une
+ * (niveau, compétences, sorts, artefacts), avec l'escorte de réserve (LD3), sur la ville ou une
  * voisine libre, avec ses PM du jour. Même coût qu'un héros neuf.
  */
 function recruitFromReserve(draft: GameState, cmd: RecruitCmd, events: GameEvent[]): void {
@@ -179,6 +214,8 @@ function recruitFromReserve(draft: GameState, cmd: RecruitCmd, events: GameEvent
   if (player.reserveHeroes.length === 0) delete player.reserveHeroes;
   hero.pos = { ...(landingTileFor(draft, town.pos, hero.id) ?? town.pos) };
   hero.movementPoints = heroDailyMovement(draft, hero);
+  // LD3 : jamais une armée vide au retour — sinon un kill gratuit au 1ᵉʳ contact.
+  if (hero.army.length === 0) hero.army = rollEscort(draft, hero.factionId, draft.config?.hero?.reserveEscort);
   draft.heroes.push(hero);
   if (draft.map && draft.config)
     revealAround(player.explored, draft.map, hero.pos, heroVisionRadius(hero, draft.config.visionRadius, draft.skillCatalog, draft.artifactCatalog));

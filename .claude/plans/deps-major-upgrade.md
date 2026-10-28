@@ -37,7 +37,7 @@
 6. [x] zod 4
 7. [x] preact 11
 8. [x] TypeScript 6.0 (TS 7 reporté)
-9. [x] Docs (aucune version périmée dans 07/10/README), CLAUDE.md, plan d'enrichissement ; [ ] Playwright
+9. [x] Docs (aucune version périmée dans 07/10/README), CLAUDE.md, plan d'enrichissement ; [x] Playwright
 
 ## 4. Journal
 
@@ -94,3 +94,8 @@
   `ui/backdrop.ts` `closeOnBackdrop` — un fond ne ferme que sur un clic qui le
   vise lui-même (`target === currentTarget`) ; appliqué aux 23 fonds cliquables
   (modales, fiches, cartes). Vérifié isolément puis par le test du smoke.
+- 2026-10-28 : Playwright après correctif : 149 verts hors @perf (1 skip), @perf
+  mono-worker 2/2. Un instable : « confort : aide « ? »… » (desktop, hors
+  `@core`, donc hors CI de PR) — isolé, 3 échecs sur 6 sur la branche et **4 sur 6
+  sur `main`** : préexistant (déjà vu au lot R1), non lié au lot ; la frappe `?`
+  n'ouvre pas l'aide. À traiter à part.

@@ -24,6 +24,7 @@ import { t, resolveUnitName, resolveSpellName, resolveSpellLore, commandErrorMes
 import { spellIconUrl } from '../render/assets';
 import { AssetImg } from './AssetImg';
 import { pushToast } from './toasts';
+import { closeOnBackdrop } from './backdrop';
 import './SpellBook.css';
 
 /**
@@ -128,7 +129,7 @@ export function SpellBook({ hero, onClose }: { hero: HeroState; onClose: () => v
   const targeting = def && def.kind !== 'teleport';
 
   return (
-    <div class={`modal-backdrop${targeting ? ' spellbook-targeting' : ''}`} onClick={onClose}>
+    <div class={`modal-backdrop${targeting ? ' spellbook-targeting' : ''}`} onClick={closeOnBackdrop(onClose)}>
       <div
         class={`modal spellbook${targeting ? ' targeting' : ''}`}
         data-testid="spellbook-modal"

@@ -52,6 +52,7 @@ import { SectionToggle, useCollapsed } from './CollapsibleSection';
 import { useNarrowViewport } from './useNarrowViewport';
 import { FactionBadge } from './FactionBadge';
 import { UiIcon } from './UiIcon';
+import { closeOnBackdrop } from './backdrop';
 import './town.css';
 
 /**
@@ -235,7 +236,7 @@ export function TownScreen({ townId, onClose }: { townId: string; onClose: () =>
   };
 
   return (
-    <div class="modal-backdrop" onClick={close}>
+    <div class="modal-backdrop" onClick={closeOnBackdrop(close)}>
       <div
         class="modal town-screen chrome-framed"
         role="dialog"

@@ -1,6 +1,7 @@
 import type { Scenario, VictoryCondition } from '@heroes/content';
 import { useApp } from '../app/store';
 import { t, resolveLoc, resolveScenarioName } from '../app/i18n';
+import { closeOnBackdrop } from './backdrop';
 import './briefing.css';
 
 /**
@@ -54,7 +55,7 @@ export function BriefingScreen({
   }
 
   return (
-    <div class="modal-backdrop" onClick={onClose}>
+    <div class="modal-backdrop" onClick={closeOnBackdrop(onClose)}>
       <div
         class="modal briefing-panel chrome-framed"
         role="dialog"

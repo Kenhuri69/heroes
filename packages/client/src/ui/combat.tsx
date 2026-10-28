@@ -37,6 +37,7 @@ import { useEscape } from './useEscape';
 import { useNarrowViewport } from './useNarrowViewport';
 import { SpellBook } from './SpellBook';
 import { CombatLog } from './CombatLog';
+import { closeOnBackdrop } from './backdrop';
 import './combat.css';
 
 /**
@@ -655,7 +656,7 @@ function LeaveConfirm({
       .catch((err: unknown) => pushToast(commandErrorMessage(err), 'error'));
   };
   return (
-    <div class="modal-backdrop" onClick={onClose}>
+    <div class="modal-backdrop" onClick={closeOnBackdrop(onClose)}>
       <div
         class="modal combat-leave"
         role="dialog"
@@ -702,7 +703,7 @@ function HeroAttackModal({ combat, hero, onClose }: { combat: CombatState; hero:
   };
 
   return (
-    <div class="modal-backdrop" onClick={onClose}>
+    <div class="modal-backdrop" onClick={closeOnBackdrop(onClose)}>
       <div
         class="modal spellbook"
         role="dialog"
@@ -760,7 +761,7 @@ function PrayerModal({ combat, onClose }: { combat: CombatState; onClose: () => 
   };
 
   return (
-    <div class="modal-backdrop" onClick={onClose}>
+    <div class="modal-backdrop" onClick={closeOnBackdrop(onClose)}>
       <div
         class="modal spellbook"
         role="dialog"
@@ -841,7 +842,7 @@ function ReinforcementsModal({ hero, onClose }: { hero: HeroState; onClose: () =
   };
 
   return (
-    <div class="modal-backdrop" onClick={onClose}>
+    <div class="modal-backdrop" onClick={closeOnBackdrop(onClose)}>
       <div
         class="modal spellbook"
         role="dialog"
@@ -973,7 +974,7 @@ function UnitSpellModal({
   };
 
   return (
-    <div class="modal-backdrop" onClick={onClose}>
+    <div class="modal-backdrop" onClick={closeOnBackdrop(onClose)}>
       <div
         class="modal spellbook"
         role="dialog"
@@ -1099,7 +1100,7 @@ function StackSheet({
     stack.shield ? t('combat.sheet.shield', { shield: stack.shield }) : null,
   ].filter((f): f is string => f !== null);
   return (
-    <div class="stack-sheet-backdrop" onClick={onClose}>
+    <div class="stack-sheet-backdrop" onClick={closeOnBackdrop(onClose)}>
       <section
         class="stack-sheet"
         data-testid="stack-sheet"

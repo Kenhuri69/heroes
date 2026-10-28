@@ -85,3 +85,12 @@
   par défaut ⇒ `"types": ["node"]` explicite dans engine et content, ce qui
   reproduit l'inclusion automatique d'avant (`structuredClone`, `node:*` des
   tests). À rouvrir quand typescript-eslint acceptera TS 7.
+- 2026-10-28 : smoke complet — **régression preact 11** attrapée par « options :
+  bascule de langue » (3 échecs sur 3) : fermer l'aide des raccourcis ouverte
+  depuis Options fermait aussi Options. Cause : la couche démontée pendant le clic
+  perd ses écouteurs (Preact 11 vide `_listeners` au démontage, le rendu passe en
+  microtâche entre deux écouteurs) ; le `stopPropagation` de son panneau ne joue
+  plus et le clic remonte au fond d'Options. Correctif générique : helper
+  `ui/backdrop.ts` `closeOnBackdrop` — un fond ne ferme que sur un clic qui le
+  vise lui-même (`target === currentTarget`) ; appliqué aux 23 fonds cliquables
+  (modales, fiches, cartes). Vérifié isolément puis par le test du smoke.

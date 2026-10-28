@@ -1,6 +1,7 @@
 import { useApp } from '../app/store';
 import { t } from '../app/i18n';
 import { useEscape } from './useEscape';
+import { closeOnBackdrop } from './backdrop';
 import './ShortcutsOverlay.css';
 
 /**
@@ -31,7 +32,7 @@ export function ShortcutsOverlay({ onClose }: { onClose: () => void }) {
   useApp((s) => s.locale); // réactivité i18n
   useEscape(onClose);
   return (
-    <div class="modal-backdrop" onClick={onClose}>
+    <div class="modal-backdrop" onClick={closeOnBackdrop(onClose)}>
       <div
         class="modal shortcuts-panel chrome-framed"
         role="dialog"

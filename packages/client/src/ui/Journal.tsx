@@ -2,6 +2,7 @@ import { useEffect } from 'preact/hooks';
 import { appStore, useApp } from '../app/store';
 import { t } from '../app/i18n';
 import { humanId } from '../app/game';
+import { closeOnBackdrop } from './backdrop';
 import './Journal.css';
 
 /**
@@ -24,7 +25,7 @@ export function Journal({ onClose }: { onClose: () => void }) {
   const entries = journal.filter((e) => e.playerId === undefined || e.playerId === viewer).reverse();
 
   return (
-    <div class="modal-backdrop" onClick={onClose}>
+    <div class="modal-backdrop" onClick={closeOnBackdrop(onClose)}>
       <div
         class="modal journal-panel chrome-framed"
         role="dialog"

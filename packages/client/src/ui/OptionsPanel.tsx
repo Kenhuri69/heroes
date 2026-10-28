@@ -13,6 +13,7 @@ import { COMBAT_SPEEDS } from '../app/ui-constants';
 import { pushToast } from './toasts';
 import { ShortcutsOverlay } from './ShortcutsOverlay';
 import { fullscreenSupported, isFullscreen, toggleFullscreen } from '../app/fullscreen';
+import { closeOnBackdrop } from './backdrop';
 import './options.css';
 
 const FONT_SCALES = [1, 2, 3] as const;
@@ -127,7 +128,7 @@ export function OptionsPanel({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <div class="modal-backdrop" onClick={onClose}>
+    <div class="modal-backdrop" onClick={closeOnBackdrop(onClose)}>
       <div
         class="modal options-panel chrome-framed"
         data-testid="options-panel"

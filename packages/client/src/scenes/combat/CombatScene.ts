@@ -1497,7 +1497,7 @@ export class CombatScene {
     // destinations valides (helper moteur partagé) + la pile alliée à déplacer.
     const spellTarget = appStore.getState().combatSpellTarget;
     if (spellTarget) {
-      let dests: OffsetPos[] = [];
+      let dests: OffsetPos[];
       try {
         dests = teleportDestinations(game, spellTarget.spellId, spellTarget.targetStackId);
       } catch {
@@ -1521,7 +1521,7 @@ export class CombatScene {
     // géométrie hex ici. Vue seule : la cible se choisit via les puces texte.
     const spellZone = appStore.getState().combatSpellZone;
     if (spellZone) {
-      let zoneHexes: OffsetPos[] = [];
+      let zoneHexes: OffsetPos[];
       try {
         zoneHexes = spellAffectedStacks(game, spellZone.spellId, spellZone.targetStackId).map((s) => s.pos);
       } catch {
@@ -1571,7 +1571,7 @@ export class CombatScene {
 
   /** C-TACTICS : cases de la bande de placement du camp joueur (libres, hors obstacle). */
   private placementBandHexes(game: GameState, combat: CombatState): OffsetPos[] {
-    let cols = 0;
+    let cols: number;
     try {
       cols = combatTacticsColumns(game, combat);
     } catch {
@@ -1659,7 +1659,7 @@ export class CombatScene {
       return;
     }
 
-    let reachable: OffsetPos[] = [];
+    let reachable: OffsetPos[];
     try {
       reachable = reachableHexes(game, active.id);
     } catch {
@@ -1731,7 +1731,7 @@ export class CombatScene {
     if (!target) return;
     const local = this.boardLayer.toLocal(global);
     const hex = pixelToOffset(local.x, local.y);
-    let dests: OffsetPos[] = [];
+    let dests: OffsetPos[];
     try {
       dests = teleportDestinations(game, target.spellId, target.targetStackId);
     } catch {
@@ -1781,7 +1781,7 @@ export class CombatScene {
     }
     // C-LOS : le tir dépend de la ligne de vue vers CETTE cible ; une cible
     // masquée par un obstacle bascule en mêlée (origine de mêlée résolue).
-    let ranged = false;
+    let ranged: boolean;
     try {
       ranged = canShootTarget(game, active.id, target.id);
     } catch {
@@ -1809,7 +1809,7 @@ export class CombatScene {
   ): OffsetPos | undefined {
     // Énumération des origines candidates : helper moteur partagé (CL9). La
     // *politique* de choix (le plus proche) reste ici, propre au client.
-    let candidates: OffsetPos[] = [];
+    let candidates: OffsetPos[];
     try {
       candidates = meleeOriginsFor(game, active.id, target.id);
     } catch {
@@ -2376,9 +2376,9 @@ function hslToHex(hDeg: number, s: number, l: number): number {
   const c = (1 - Math.abs(2 * l - 1)) * s;
   const hp = hDeg / 60;
   const x = c * (1 - Math.abs((hp % 2) - 1));
-  let r = 0;
-  let g = 0;
-  let b = 0;
+  let r: number;
+  let g: number;
+  let b: number;
   if (hp < 1) [r, g, b] = [c, x, 0];
   else if (hp < 2) [r, g, b] = [x, c, 0];
   else if (hp < 3) [r, g, b] = [0, c, x];

@@ -31,7 +31,7 @@
 
 1. [x] Mineures et correctifs
 2. [x] vitest 5 (+ pool Workers du serveur)
-3. [ ] eslint 10
+3. [x] eslint 10
 4. [ ] vite 8 (+ preset Preact)
 5. [ ] immer 11
 6. [ ] zod 4
@@ -51,3 +51,7 @@
   `@cloudflare/vitest-plugin` 1.4.9 (même API `cloudflareTest`, types
   `@cloudflare/vitest-plugin/types`). Aucun test modifié ; docs 15 et CLAUDE.md
   suivent le renommage.
+- 2026-10-28 : étape 3 — eslint et @eslint/js 10 ; config plate inchangée. La
+  nouvelle règle recommandée `no-useless-assignment` relève 10 initialisations
+  écrasées dans `CombatScene.ts` (try/catch qui assignent des deux côtés, HSL
+  dont chaque branche assigne) : initialiseurs retirés, comportement inchangé.

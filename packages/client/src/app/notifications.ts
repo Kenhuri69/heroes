@@ -1,4 +1,4 @@
-import type { GameState } from '@heroes/engine';
+import { townlessDaysLeft, type GameState } from '@heroes/engine';
 import { appStore, type JournalEntry } from './store';
 import { humanId } from './game';
 import { type AppEvent } from './events';
@@ -316,6 +316,16 @@ export function notify(event: AppEvent, game: GameState): string | null {
             resource: resolveFactionResourceName(event.resource),
           })
         : null;
+    // Lot LD1 : élimination d'un siège (hot-seat : la partie continue) et compte à
+    // rebours sans ville rappelé à chaque aube.
+    case 'PlayerEliminated': {
+      const seat = game.players.findIndex((p) => p.id === event.playerId) + 1;
+      return t('toast.playerEliminated', { n: seat });
+    }
+    case 'DayStarted': {
+      const left = townlessDaysLeft(game, human);
+      return left === null ? null : t('turn.townlessDaysLeft', { days: left });
+    }
     // Fin de partie (doc 02 §6) — l'overlay porte le message principal, ce toast
     // n'est qu'un signal immédiat.
     case 'GameEnded':

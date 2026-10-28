@@ -89,10 +89,12 @@ export function BriefingScreen({
                 <dt>{t('briefing.victory')}</dt>
                 <dd data-testid="briefing-victory">{conditionLabel(objectives.victory)}</dd>
               </div>
-              <div class="briefing-row">
-                <dt>{t('briefing.defeat')}</dt>
-                <dd data-testid="briefing-defeat">{conditionLabel(objectives.defeat)}</dd>
-              </div>
+              {objectives.defeat && (
+                <div class="briefing-row">
+                  <dt>{t('briefing.defeat')}</dt>
+                  <dd data-testid="briefing-defeat">{conditionLabel(objectives.defeat)}</dd>
+                </div>
+              )}
             </>
           )}
           <div class="briefing-row">

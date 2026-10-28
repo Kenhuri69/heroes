@@ -974,7 +974,7 @@ Sémantique des capacités du catalogue (valeurs de départ ; **35** au 2026-08)
 ### 5.5 Fin de combat & auto-résolution
 
 - Victoire = plus aucune pile adverse. Un camp **sans aucune pile** dès l'ouverture (héros sans troupes attaqué, ville défendue par un tel héros) perd **immédiatement** : le combat s'ouvre et se clôt dans la même commande (revue 2026-09b M1 — avant : combat sans fin). Fuite (perd l'armée, garde héros+artefacts, re-recrutable en taverne — **livré en LE6 E1**, voir ci-dessous) et reddition (idem + coût en or, garde l'armée restante — post-MVP). **Décision (revue 2026-07 B21)** : un départ délibéré (fuite/reddition/abandon) **réécrit les survivants du camp adverse** exactement comme une défaite normale — le gardien/la garnison garde ses pertes au lieu de retrouver son effectif entier à la rencontre suivante (symétrie entre les deux façons de « perdre » le même combat). **Revue 2026-09b M3** : idem pour un **héros adverse** (H-VS-H) — son armée est reconstruite depuis ses survivants.
-  **Fuite HoMM (lot LE6 E1)** : avec `hero.retreatToTavern` (activé ; absent ⇒ le héros restait sur la carte, armée vide — l'« éclaireur vide »), le héros qui fuit **quitte la carte** sans aucun survivant et rejoint la **réserve** de son joueur (`PlayerState.reserveHeroes`) avec niveau, XP, compétences, sorts, artefacts et machines. Il se recrute au prix normal dans **n'importe quelle** Taverne de son joueur (toutes factions confondues), en tête de liste, et revient avec ses PM du jour et l'**escorte de réserve** (lot LD3 : 1 pile T1, jamais une armée vide) ; personne d'autre ne peut le recruter (le pool exclusif compte la réserve). Un héros en réserve a quitté la carte : `defeatHero` est rempli, et un joueur sans ville ni héros sur la carte est éliminé.
+  **Fuite HoMM (lot LE6 E1)** : avec `hero.retreatToTavern` (activé ; absent ⇒ le héros restait sur la carte, armée vide — l'« éclaireur vide »), le héros qui fuit **quitte la carte** sans aucun survivant et rejoint la **réserve** de son joueur (`PlayerState.reserveHeroes`) avec niveau, XP, compétences, sorts, artefacts et machines. Il se recrute au prix normal dans **n'importe quelle** Taverne de son joueur (toutes factions confondues), en tête de liste, et revient avec ses PM du jour et l'**escorte de réserve** (lot LD3 : 1 pile T1, jamais une armée vide) ; personne d'autre ne peut le recruter (le pool exclusif compte la réserve). Un héros en réserve a quitté la carte : `defeatHero` est rempli pour la victoire d'un adversaire, mais pas pour la défaite de son propre joueur (lot LD1), et un joueur sans ville ni héros sur la carte est éliminé.
   **Repli des tireurs borné** : un tireur IA menacé s'éloigne au lieu de tirer, mais seulement pendant les 10 premiers rounds (`KITE_MAX_ROUND`) — au-delà il tire. Sans cette borne, un tireur plus rapide qu'une pile de mêlée fuyait indéfiniment et l'auto-combat ne se terminait pas.
   **L'IA fuit (lot LE6 B3)** : dans un combat héros contre héros **hors siège**, un camp mené par un héros d'un joueur IA fuit au round 1 si sa force (`armyStrength`) est sous **0,25×** celle d'en face (seuil à mesurer) ; l'adversaire l'emporte. Jamais pour un joueur humain, même en auto-combat. L'IA recrute d'abord ses héros de réserve à la Taverne.
 - **Abandon pré-combat** (retour de jeu 2026-07, commande `AbandonCombat`) : la puissance ennemie n'étant visible qu'en lançant le combat (écran pré-combat), on peut y **renoncer avant d'échanger le moindre coup** en conservant l'armée survivante, **sans coût** (l'ennemi l'emporte, le gardien/la ville reste). Réservé au premier round **et avant toute action du camp joueur** (aucune pile n'a agi ni attendu, le héros n'a ni frappé ni lancé de sort — revue 2026-09b M2 : sinon « tirer puis abandonner » grignotait un gardien sans risque) ; l'UI n'expose le bouton **que** sur l'écran pré-combat, jamais en bataille (où seules fuite/reddition existent). Distinct de la fuite (qui, elle, abandonne l'armée).
@@ -1027,6 +1027,19 @@ threadé en `heroId` dans `CastSpell`/`HeroAttack` — sinon le lead par défaut
 ## 6. Conditions de victoire/défaite (par scénario)
 
 `eliminateAllEnemies` (défaut), `captureTown(id)`, `defeatHero(id)`, `surviveDays(n)`, `collectArtifact(id)`, `accumulateResource(type, n)`. Défaite : perte de tous héros **et** villes (ou objectif du scénario).
+
+> **État livré (lot LD1 — une défaite HoMM, canon III)** : la condition de
+> défaite d'un scénario est **optionnelle** (`ScenarioObjectives.defeat?`).
+> Absente, seule l'**élimination** fait perdre : plus de ville ni de héros sur la
+> carte, ou plus de 7 jours sans ville. Les parties générées (« Nouvelle partie »,
+> escarmouche) n'en posent plus — perdre ou voir fuir son héros de départ ne
+> termine plus la partie. Les scénarios et campagnes gardent leurs objectifs
+> explicites. **Fuite et `defeatHero`** (adaptation assumée) : un héros parti en
+> réserve ne remplit **pas** la défaite de son propre joueur (il est sauf), mais
+> remplit la victoire d'un adversaire qui devait le battre. Le client affiche le
+> **compte à rebours** « Plus de ville : N jour(s) pour en prendre une » dans la
+> barre d'état et le rappelle à chaque aube (`townlessDaysLeft`). Pas de bump
+> save, golden inchangé.
 
 > 🚧 **État 3.5** : 4 conditions déclaratives implémentées (`eliminateAllEnemies`,
 > `captureTown`, `defeatHero`, `surviveDays` — `collectArtifact`/
@@ -1148,10 +1161,11 @@ threadé en `heroId` dans `CastSpell`/`HeroAttack` — sinon le lead par défaut
 > cible pas (revue 2026-07 B26 — même règle que les villes). Choisi par siège
 > à « Nouvelle partie » ; générique (aucune faction). Un joueur éliminé reste
 > hors-jeu même si son allié continue (MVP) — et la **rotation des tours le
-> saute** (revue 2026-07 B27). Limite connue (différée) : le point de vue
-> « local » des objectifs reste le 1er humain — son élimination termine la
-> partie même en hot-seat (basculer le local exige de trancher les objectifs
-> par siège).
+> saute** (revue 2026-07 B27). **Hot-seat (lot LD1)** : la partie continue tant
+> qu'un humain reste en jeu — un humain éliminé (ou dont la défaite explicite est
+> remplie) sort du jeu avec un avis « Joueur N éliminé », la défaite tombe quand
+> le dernier humain sort, la victoire au nom du premier humain qui remplit la
+> sienne.
 > **IA d'aventure** déterministe (`engine/ai`, commande `AiTurn`) : chaque
 > joueur `controller:'ai'` explore / ramasse / attaque un gardien battable /
 > capture / construit / recrute puis passe son tour ; heuristique gloutonne de

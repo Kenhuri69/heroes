@@ -10,10 +10,14 @@ export type VictoryCondition =
   | { type: 'defeatHero'; heroId: string }
   | { type: 'surviveDays'; days: number };
 
-/** Objectifs d'un joueur dans un scénario : sa victoire et sa défaite. */
+/**
+ * Objectifs d'un joueur dans un scénario : sa victoire et sa défaite. `defeat`
+ * absente (lot LD1) ⇒ seule l'élimination HoMM fait perdre (plus de ville ni de
+ * héros, ou plus de `RETAKE_GRACE_DAYS` jours sans ville).
+ */
 export interface ScenarioObjectives {
   victory: VictoryCondition;
-  defeat: VictoryCondition;
+  defeat?: VictoryCondition | undefined;
 }
 
 /**

@@ -8,6 +8,7 @@ import {
   levelOf,
   mapLevels,
   samePos,
+  townlessDaysLeft,
   xpForLevel,
   weekOf,
   monthOf,
@@ -1245,6 +1246,23 @@ function TurnIndicator() {
   );
 }
 
+/**
+ * Compte à rebours sans ville (lot LD1, canon III) : la seule défaite des parties
+ * générées est l'élimination — elle ne doit jamais tomber sans prévenir. Texte +
+ * icône, jamais la couleur seule.
+ */
+function TownlessWarning() {
+  useApp((s) => s.locale);
+  const game = useApp((s) => s.game);
+  const left = townlessDaysLeft(game, humanId(game));
+  if (left === null) return null;
+  return (
+    <span class="townless-warning" data-testid="townless-warning" role="status">
+      <span aria-hidden="true">⚠</span> {t('turn.townlessDaysLeft', { days: left })}
+    </span>
+  );
+}
+
 /** Jour/semaine, points de mouvement, sauvegarde et gros bouton fin de tour (doc 08 §2.1). */
 /**
  * Bouton de ville de la barre de tour (E4) : tap = ouvrir la modale (inchangé) ;
@@ -1349,6 +1367,7 @@ function TurnBar({ onOpenOptions }: { onOpenOptions: () => void }) {
     <div class="turn-row">
       <div class="status-bar">
         <TurnIndicator />
+        <TownlessWarning />
         {/* Couche courante (L10.3, doc 02 §2.1) : n'apparaît que sur une carte à
             souterrain — sur une carte plate ce serait du bruit permanent. */}
         {game.map && mapLevels(game.map) > 1 && (() => {

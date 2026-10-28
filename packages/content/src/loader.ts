@@ -1559,7 +1559,7 @@ async function loadScenario(
   const townIds = new Set(scenario.players.flatMap((p) => (p.startingTown ? [p.startingTown.id] : [])));
   const heroIds = new Set(scenario.players.map((p) => `hero-${p.id}`));
   for (const [playerId, obj] of Object.entries(scenario.objectives)) {
-    for (const cond of [obj.victory, obj.defeat]) {
+    for (const cond of obj.defeat ? [obj.victory, obj.defeat] : [obj.victory]) {
       if (cond.type === 'captureTown' && !townIds.has(cond.townId))
         errors.push(`${path}: objectifs['${playerId}'] — captureTown vers ville inconnue '${cond.townId}'`);
       if (cond.type === 'defeatHero' && !heroIds.has(cond.heroId))

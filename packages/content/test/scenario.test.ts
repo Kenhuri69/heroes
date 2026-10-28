@@ -59,7 +59,7 @@ describe('scénarios réels (data/scenarios/)', () => {
       for (const player of scenario.players) {
         expect(objectives[player.id]).toBeDefined();
         expect(objectives[player.id]?.victory.type).toBeTruthy();
-        expect(objectives[player.id]?.defeat.type).toBeTruthy();
+        expect(objectives[player.id]?.defeat?.type).toBeTruthy();
       }
     }
   });
@@ -82,7 +82,7 @@ describe('scénarios réels (data/scenarios/)', () => {
     const scenarioReport = await loadScenarios(readJsonFromDisk, report);
     const types = new Set(
       scenarioReport.content.scenarios.flatMap((s) =>
-        Object.values(s.objectives).flatMap((o) => [o.victory.type, o.defeat.type]),
+        Object.values(s.objectives).flatMap((o) => [o.victory.type, ...(o.defeat ? [o.defeat.type] : [])]),
       ),
     );
     expect(types).toEqual(

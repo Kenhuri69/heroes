@@ -39,8 +39,9 @@ function objectives(victory: VictoryCondition, defeat: VictoryCondition): Scenar
   return { objectives: { 'player-1': { victory, defeat }, 'player-2': { victory, defeat } } };
 }
 
+/** player-1 humain (local), player-2 IA — depuis LD1, deux humains = hot-seat. */
 function startedGame(scenario?: ScenarioState): GameState {
-  return apply(createEmptyState(), startCmd(scenario)).state;
+  return apply(createEmptyState(), startCmd(scenario, { 'player-2': 'ai' })).state;
 }
 
 describe('evaluateOutcome — partie libre (scenario null)', () => {

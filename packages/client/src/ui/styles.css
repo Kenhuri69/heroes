@@ -585,6 +585,19 @@
   font-weight: 600;
 }
 
+/* Compte à rebours sans ville (lot LD1) : alerte, texte + icône. */
+.townless-warning {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 4px;
+  padding: 1px 8px;
+  border: 1px solid var(--danger-text);
+  border-radius: var(--radius-s);
+  color: var(--danger-text);
+  font-weight: 600;
+}
+
 .week-event-badge {
   display: inline-flex;
   align-items: center;

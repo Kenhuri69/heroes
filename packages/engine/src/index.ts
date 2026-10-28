@@ -186,7 +186,7 @@ export type {
   ScenarioState,
   GameOutcome,
 } from './scenario/types';
-export { evaluateOutcome } from './scenario/outcome';
+export { evaluateOutcome, townlessDaysLeft } from './scenario/outcome';
 export type {
   QuestCondition,
   QuestStep,

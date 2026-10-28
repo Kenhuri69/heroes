@@ -55,6 +55,7 @@
     (`statuses.push`, somme des modificateurs) au lieu de rafraîchir la durée
     comme dans HoMM. Question de règle, hors R1 : l'IA ne relance plus un débuff
     déjà posé, mais un joueur (ou un héros) le peut encore. À trancher plus tard.
+    → Tranché le 2026-10-28 : la relance rafraîchit (`status-refresh.md`).
   - Test `combat-silence` : le sort de dégâts du lanceur passe de 10 à 30 PV pour
     rester préférable à sa frappe (5 × 4), l'intention du test est inchangée.
 - 2026-10-08 : mesures `faction:sim` (winrate moyen au duel de base, %) :

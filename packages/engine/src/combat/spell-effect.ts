@@ -443,9 +443,13 @@ export function applySpellToTargets(
     // H-ARTEQUIP.2+ : un statut HOSTILE (debuff/silence, `spellTargetsEnemy`) ne
     // se pose pas sur une pile dont le camp est doté d'immunité aux statuts
     // (miroir de `armyMagicResistance` pour les dégâts). Buffs alliés inchangés.
+    // Relancer un sort déjà actif sur la pile REMPLACE son statut (mods du
+    // nouveau lancer, durée pleine) au lieu de l'empiler — fidélité HoMM, comme
+    // les malédictions/poisons d'unité (`damage.ts`). Sorts différents : coexistent.
     const hostile = spellTargetsEnemy(spell.kind);
     for (const t of targets) {
       if (hostile && heroGrantsStatusImmune(draft, combat, t.side)) continue;
+      t.statuses = t.statuses.filter((s) => s.spellId !== spell.id);
       t.statuses.push({
         spellId: spell.id,
         attackMod: spell.attackMod ?? 0,

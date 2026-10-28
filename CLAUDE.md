@@ -659,6 +659,9 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > (AH, +20/40/60 % d'Essence après toute victoire, champ générique
 > `factionResourceGainPct`) ; Rumi +25 % de Résonance. Pas de bump save, golden
 > inchangé, zéro faction.*
+> **Statuts sans cumul** (`status-refresh.md`) : relancer un sort de statut déjà
+> actif sur une pile remplace son statut (durée pleine) au lieu de sommer les
+> modificateurs ; deux sorts différents coexistent. Pas de bump save, golden inchangé.*
 
 ---
 

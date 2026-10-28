@@ -32,7 +32,7 @@
 1. [x] Mineures et correctifs
 2. [x] vitest 5 (+ pool Workers du serveur)
 3. [x] eslint 10
-4. [ ] vite 8 (+ preset Preact)
+4. [x] vite 8 (+ preset Preact)
 5. [ ] immer 11
 6. [ ] zod 4
 7. [ ] preact 11
@@ -55,3 +55,10 @@
   nouvelle règle recommandée `no-useless-assignment` relève 10 initialisations
   écrasées dans `CombatScene.ts` (try/catch qui assignent des deux côtés, HSL
   dont chaque branche assigne) : initialiseurs retirés, comportement inchangé.
+- 2026-10-28 : étape 4 — vite 8.3 (Rolldown) ; @preact/preset-vite accepte 8.x.
+  `manualChunks` objet n'existe plus : chunk `pixi` reconstitué par un groupe
+  `rolldownOptions.output.codeSplitting` ; `__dirname` → `import.meta.dirname`
+  (avertissement du chargeur de config natif). Les deux mini-chunks dynamiques de
+  pixi (`browserAll`, `webworkerAll`, < 0,3 Ko) rejoignent le chunk `pixi`.
+  Bundle 401 789 → 388 183 o gzip. Smoke ciblé (démarrage, tap-tap ×4) vert ;
+  un échec isolé de tap-tap sous charge parallèle, non reproduit en 8 passages.

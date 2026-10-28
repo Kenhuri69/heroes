@@ -35,7 +35,7 @@
 4. [x] vite 8 (+ preset Preact)
 5. [x] immer 11
 6. [x] zod 4
-7. [ ] preact 11
+7. [x] preact 11
 8. [ ] TypeScript 7 (compatibilité typescript-eslint à vérifier)
 9. [ ] Docs (07 si versions citées), CLAUDE.md, plan d'enrichissement ; Playwright
 
@@ -73,3 +73,8 @@
   aucun `.default({})` sur un objet à défauts internes (seulement des records),
   pas d'usage de `.errors`. Bundle 388 667 → 402 488 o gzip (le loader embarque
   zod côté client) — 49 % du budget.
+- 2026-10-28 : étape 7 — preact 11.1 (preset-vite 2.10 compatible) : aucune
+  modification. Ruptures vérifiées dans le code : plus de suffixe `px` automatique
+  sur un `style` numérique (les 15 `style=` du client sont des chaînes ou des
+  variables CSS), aucun `defaultProps`/`forwardRef` ; `useSyncExternalStore`
+  toujours exporté par `preact/compat`. Couverture réelle = smoke Playwright.

@@ -354,6 +354,21 @@ export interface HeroProgressionConfig {
    * absent ⇒ mana pleine à chaque combat et à chaque aube.
    */
   mana?: ManaConfig | undefined;
+  /**
+   * Escorte de Taverne (LD3, doc 02 §1.5) : un héros neuf arrive avec une pile
+   * par entrée — unité de base du palier dans la chaîne de sa faction, effectif
+   * acheté avec un budget d'or tiré au RNG. Absent ⇒ armée vide.
+   */
+  tavernEscort?: EscortSlotConfig[] | undefined;
+  /** Escorte d'un héros qui revient de la réserve (LD3) — même forme. Absent ⇒ armée vide. */
+  reserveEscort?: EscortSlotConfig[] | undefined;
+}
+
+/** Un emplacement d'escorte (LD3) : palier visé et budget d'or `[goldMin, goldMax]`. */
+export interface EscortSlotConfig {
+  tier: number;
+  goldMin: number;
+  goldMax: number;
 }
 
 /**

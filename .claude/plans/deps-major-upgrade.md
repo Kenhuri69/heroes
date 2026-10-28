@@ -34,7 +34,7 @@
 3. [x] eslint 10
 4. [x] vite 8 (+ preset Preact)
 5. [x] immer 11
-6. [ ] zod 4
+6. [x] zod 4
 7. [ ] preact 11
 8. [ ] TypeScript 7 (compatibilité typescript-eslint à vérifier)
 9. [ ] Docs (07 si versions citées), CLAUDE.md, plan d'enrichissement ; Playwright
@@ -66,3 +66,10 @@
   `current`, `isDraft`, `original` inchangés). Golden inchangé ; `faction:sim`
   identique à l'octet ; durée 155 s (immer 10) contre 162 s (immer 11) sur le
   conteneur, dans le bruit.
+- 2026-10-28 : étape 6 — zod 4.6. Seul changement de sens relevé :
+  `z.record(z.enum(...), …)` devient **exhaustif** (toutes les clés requises) ;
+  les 7 enregistrements par ressource (coûts, stock de départ, `resourceValue`,
+  butins…) sont partiels par nature ⇒ `z.partialRecord`. Autres pièges vérifiés :
+  aucun `.default({})` sur un objet à défauts internes (seulement des records),
+  pas d'usage de `.errors`. Bundle 388 667 → 402 488 o gzip (le loader embarque
+  zod côté client) — 49 % du budget.

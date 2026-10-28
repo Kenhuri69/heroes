@@ -2,6 +2,7 @@ import { useMemo, useState } from 'preact/hooks';
 import { useApp } from '../app/store';
 import { t, resolveLoc, resolveHeroName } from '../app/i18n';
 import { RANDOM, type SkirmishDifficulty } from '../app/game';
+import { closeOnBackdrop } from './backdrop';
 import './options.css';
 
 const DIFFICULTIES: SkirmishDifficulty[] = ['facile', 'normal', 'difficile'];
@@ -60,7 +61,7 @@ export function SkirmishScreen({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <div class="modal-backdrop" onClick={onClose}>
+    <div class="modal-backdrop" onClick={closeOnBackdrop(onClose)}>
       <div
         class="modal options-panel"
         role="dialog"

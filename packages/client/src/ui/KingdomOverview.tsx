@@ -15,6 +15,7 @@ import { reduceMotion } from '../app/motion';
 import { heroAvatarUrl, resourceIconUrl, unitSpriteUrl } from '../render/assets';
 import { FactionBadge } from './FactionBadge';
 import { UiIcon } from './UiIcon';
+import { closeOnBackdrop } from './backdrop';
 import './KingdomOverview.css';
 
 /**
@@ -50,7 +51,7 @@ export function KingdomOverview({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <div class="modal-backdrop" onClick={onClose}>
+    <div class="modal-backdrop" onClick={closeOnBackdrop(onClose)}>
       <div
         class="modal kingdom-panel chrome-framed"
         role="dialog"

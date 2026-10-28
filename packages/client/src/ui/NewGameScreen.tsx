@@ -15,6 +15,7 @@ import { resolveHeroName } from '../app/i18n';
 import { PLAYER_COLORS, PLAYER_COLOR_NAMES } from '../render/playerColors';
 import { PATTERNS, PatternMark } from './FactionBadge';
 import { SectionToggle, useCollapsed } from './CollapsibleSection';
+import { closeOnBackdrop } from './backdrop';
 import './options.css';
 import './newgame.css';
 
@@ -279,7 +280,7 @@ export function NewGameScreen({ onClose }: { onClose: () => void }) {
   );
 
   return (
-    <div class="modal-backdrop" onClick={onClose}>
+    <div class="modal-backdrop" onClick={closeOnBackdrop(onClose)}>
       <div
         class="modal options-panel newgame-panel"
         role="dialog"

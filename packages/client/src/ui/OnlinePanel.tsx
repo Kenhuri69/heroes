@@ -21,6 +21,7 @@ import { openOnlineMatch } from '../app/online-match';
 import { RANDOM, type NewGameRawConfig } from '../app/game';
 import { PLAYER_COLORS } from '../render/playerColors';
 import { pushToast } from './toasts';
+import { closeOnBackdrop } from './backdrop';
 import './options.css';
 
 /** Preset async 2 sièges humains (NET-PVPUI slice A) — tirages seedés. */
@@ -209,7 +210,7 @@ export function OnlinePanel({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <div class="modal-backdrop" onClick={onClose}>
+    <div class="modal-backdrop" onClick={closeOnBackdrop(onClose)}>
       <div
         class="modal options-panel"
         role="dialog"

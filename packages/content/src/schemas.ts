@@ -69,7 +69,7 @@ export const warMachineSchema = z.object({
   name: locRef,
   stats: unitSchema.shape.stats,
   abilities: unitSchema.shape.abilities,
-  cost: z.record(z.enum(COMMON_RESOURCE_IDS), z.number().int().positive()),
+  cost: z.partialRecord(z.enum(COMMON_RESOURCE_IDS), z.number().int().positive()),
 });
 
 export const warMachineCatalogSchema = z.object({
@@ -368,7 +368,7 @@ const buildingEffectSchema = z.discriminatedUnion('type', [
   /** Chantier naval (A3.3, doc 18 A3) : construit un bateau sur l'eau adjacente contre `boatCost`. */
   z.object({
     type: z.literal('shipyard'),
-    boatCost: z.record(z.enum(COMMON_RESOURCE_IDS), z.number().int().positive()),
+    boatCost: z.partialRecord(z.enum(COMMON_RESOURCE_IDS), z.number().int().positive()),
   }),
   /**
    * Contrat de chasse (doc 05 §3.3) : au passage de semaine, le propriétaire se
@@ -416,7 +416,7 @@ const buildingEffectSchema = z.discriminatedUnion('type', [
 
 const buildingLevelSchema = z
   .object({
-    cost: z.record(z.enum(COMMON_RESOURCE_IDS), z.number().int().positive()),
+    cost: z.partialRecord(z.enum(COMMON_RESOURCE_IDS), z.number().int().positive()),
     requires: z.array(buildingRequirementSchema).default([]),
     effect: buildingEffectSchema,
     /**
@@ -964,7 +964,7 @@ export const gameConfigSchema = z.object({
         artifactStockSize: z.number().int().nonnegative().optional(),
         /** Valeur relative par ressource (lot R2 : rare ×2), sur la vente et l'achat — optionnel.
          *  Un poids se simplifie sur tout cycle de troc : l'invariant d'aller-retour reste celui du taux de base. */
-        resourceValue: z.record(z.enum(COMMON_RESOURCE_IDS), z.number().positive()).optional(),
+        resourceValue: z.partialRecord(z.enum(COMMON_RESOURCE_IDS), z.number().positive()).optional(),
       })
       .refine((m) => m.buyRate >= m.sellRate, 'market.buyRate ≥ market.sellRate')
       // Aller-retour non rentable À TOUT NOMBRE DE MARCHÉS : le troc (et
@@ -1088,7 +1088,7 @@ export const gameConfigSchema = z.object({
   }),
   newGame: z.object({
     map: idSchema,
-    startingResources: z.record(z.enum(COMMON_RESOURCE_IDS), z.number().int().nonnegative()),
+    startingResources: z.partialRecord(z.enum(COMMON_RESOURCE_IDS), z.number().int().nonnegative()),
     /** Armée de départ du héros (≤ 7 piles) — IDs vérifiés contre les paquets chargés. */
     startingArmy: z
       .array(z.object({ unitId: idSchema, count: z.number().int().positive() }))
@@ -1519,7 +1519,7 @@ export const questConditionSchema = z.discriminatedUnion('type', [
 export const questRewardSchema = z.discriminatedUnion('type', [
   z.object({
     type: z.literal('resources'),
-    resources: z.record(z.enum(COMMON_RESOURCE_IDS), z.number().int().positive()),
+    resources: z.partialRecord(z.enum(COMMON_RESOURCE_IDS), z.number().int().positive()),
   }),
   z.object({ type: z.literal('artifact'), artifactId: idSchema }),
   z.object({ type: z.literal('units'), unitId: idSchema, count: z.number().int().positive() }),
@@ -1647,7 +1647,7 @@ export const scenarioSchema = z
           /** Index dans `map.startPositions`. */
           startPositionIndex: z.number().int().nonnegative(),
           startingResources: z
-            .record(z.enum(COMMON_RESOURCE_IDS), z.number().int().nonnegative())
+            .partialRecord(z.enum(COMMON_RESOURCE_IDS), z.number().int().nonnegative())
             .default({}),
           /** Armée de départ du héros (≤ 7 piles). */
           startingArmy: z

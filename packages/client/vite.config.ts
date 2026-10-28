@@ -10,13 +10,13 @@ export default defineConfig({
   plugins: [preact()],
   resolve: {
     alias: {
-      '@heroes/engine': path.resolve(__dirname, '../engine/src'),
-      '@heroes/content': path.resolve(__dirname, '../content/src'),
+      '@heroes/engine': path.resolve(import.meta.dirname, '../engine/src'),
+      '@heroes/content': path.resolve(import.meta.dirname, '../content/src'),
     },
   },
   // data/ est servi tel quel : le chargement data-driven passe par fetch()
   // en dev comme en prod (même code, même pipeline).
-  publicDir: path.resolve(__dirname, '../../data'),
+  publicDir: path.resolve(import.meta.dirname, '../../data'),
   build: {
     target: 'es2022',
     sourcemap: true,
@@ -25,10 +25,12 @@ export default defineConfig({
     // hors du budget CI (< 800 Ko gzip). Sinon les petites icônes UI (< 4 Ko)
     // seraient embarquées en base64 dans le JS (lot intégration, doc 12 §10).
     assetsInlineLimit: 0,
-    rollupOptions: {
+    // Vite 8 (Rolldown) : `manualChunks` objet n'existe plus — même chunk
+    // `pixi` via un groupe de `codeSplitting`.
+    rolldownOptions: {
       output: {
-        manualChunks: {
-          pixi: ['pixi.js'],
+        codeSplitting: {
+          groups: [{ name: 'pixi', test: /[\\/]node_modules[\\/]pixi\.js[\\/]/ }],
         },
       },
     },

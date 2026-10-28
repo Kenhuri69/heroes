@@ -111,6 +111,7 @@ function quickSave(): void {
 }
 import { reduceMotion } from '../app/motion';
 import { toggleMute } from '../app/audio';
+import { closeOnBackdrop } from './backdrop';
 import './tokens.css'; // design tokens UXD-1 — à charger avant toute feuille
 import './interactions.css'; // micro-interactions & transitions UXD-7
 import './styles.css';
@@ -471,7 +472,7 @@ function ResourceDetail() {
   if (!opened || !player) return null;
   const income = dailyIncome(game, player.id);
   return (
-    <div class="map-card-backdrop" onClick={close}>
+    <div class="map-card-backdrop" onClick={closeOnBackdrop(close)}>
       <section
         class="map-card resource-detail"
         data-testid="resource-detail"
@@ -530,7 +531,7 @@ function CoopInviteConfirm() {
   useEscape(cancelCoopInvite, !!pending);
   if (!pending) return null;
   return (
-    <div class="map-card-backdrop" onClick={cancelCoopInvite}>
+    <div class="map-card-backdrop" onClick={closeOnBackdrop(cancelCoopInvite)}>
       <section
         class="map-card end-turn-confirm"
         data-testid="coop-invite"
@@ -608,7 +609,7 @@ function EndTurnConfirm() {
   useEscape(cancelPendingEndTurn, !!pending);
   if (!pending) return null;
   return (
-    <div class="map-card-backdrop" onClick={cancelPendingEndTurn}>
+    <div class="map-card-backdrop" onClick={closeOnBackdrop(cancelPendingEndTurn)}>
       <section
         class="map-card end-turn-confirm"
         data-testid="end-turn-confirm"
@@ -791,7 +792,7 @@ function SplitDialog({
   const clamp = (n: number): number => Math.max(1, Math.min(total - 1, n));
   useEscape(onClose);
   return (
-    <div class="split-backdrop" onClick={onClose}>
+    <div class="split-backdrop" onClick={closeOnBackdrop(onClose)}>
       <section
         class="split-dialog"
         data-testid="split-dialog"
@@ -870,7 +871,7 @@ function UnitCard({
   useApp((s) => s.locale); // réactivité i18n
   useEscape(onClose);
   return (
-    <div class="unit-card-backdrop" onClick={onClose}>
+    <div class="unit-card-backdrop" onClick={closeOnBackdrop(onClose)}>
       <section
         class="unit-card"
         data-testid="unit-card"

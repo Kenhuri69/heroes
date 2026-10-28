@@ -1,5 +1,5 @@
 import { defineConfig } from 'vitest/config';
-import { cloudflareTest } from '@cloudflare/vitest-pool-workers';
+import { cloudflareTest } from '@cloudflare/vitest-plugin';
 
 // Harnais de test du Worker (revue 2026-09, R8) : workerd + D1 locale via
 // Miniflare ; le schéma (`server/schema.sql`) est appliqué par les tests.

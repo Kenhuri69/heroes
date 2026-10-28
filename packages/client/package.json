@@ -11,14 +11,14 @@
   },
   "dependencies": {
     "pixi.js": "^8.6.0",
-    "preact": "^10.29.4",
+    "preact": "^11.1.0",
     "zustand": "^5.0.14"
   },
   "devDependencies": {
     "@preact/preset-vite": "^2.10.5",
     "fake-indexeddb": "^6.2.5",
-    "typescript": "^5.8.0",
-    "vite": "^7.0.0",
-    "vitest": "^3.2.0"
+    "typescript": "^6.0.3",
+    "vite": "^8.3.5",
+    "vitest": "^5.0.5"
   }
 }

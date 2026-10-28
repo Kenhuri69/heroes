@@ -10,8 +10,8 @@
     "@heroes/engine": "workspace:*"
   },
   "devDependencies": {
-    "@cloudflare/vitest-pool-workers": "^0.22.0",
-    "vitest": "^4.1.11",
+    "@cloudflare/vitest-plugin": "^1.4.9",
+    "vitest": "^5.0.5",
     "wrangler": "^4.107.0"
   }
 }

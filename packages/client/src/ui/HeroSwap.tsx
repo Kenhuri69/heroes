@@ -6,6 +6,7 @@ import { t, resolveUnitName, resolveArtifactName, resolveHeroName, commandErrorM
 import { unitSpriteUrl, artifactUrl } from '../render/assets';
 import { AssetImg } from './AssetImg';
 import { reverseArmySlot, reverseArtifactSlot } from '../app/transfer-undo';
+import { closeOnBackdrop } from './backdrop';
 import './HeroSwap.css';
 
 /**
@@ -170,7 +171,7 @@ export function HeroSwap({
   );
 
   return (
-    <div class="modal-backdrop" onClick={onClose}>
+    <div class="modal-backdrop" onClick={closeOnBackdrop(onClose)}>
       <div
         class="modal heroswap chrome-framed"
         role="dialog"

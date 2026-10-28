@@ -81,7 +81,7 @@ l'ouverture du combat mobile.
 - **`map:gen` CLI** n'envoie pas les mêmes options que le client (carte différente à graine égale) — idem.
 - **Suppression des 209 branches fusionnées** : commande prête dans
   `archive/merged-branches-cleanup.md` §5, refusée à la session ⇒ à lancer par l'utilisateur.
-- **Dépendances majeures** à mettre à jour (lot dédié) — `code-review-2026-09`.
+- ~~**Dépendances majeures** à mettre à jour (lot dédié) — `code-review-2026-09`.~~ ✅ livré (`deps-major-upgrade.md`) ; reste **TypeScript 7**, bloqué tant que typescript-eslint exige `<6.1`.
 - **Souterrain > 2 niveaux** (transversal + bump save) — `l10-underground`.
 - **NET-FOG** : information ouverte entre participants, statu quo assumé — à
   rouvrir seulement pour une beta compétitive — `l11-online-competitive`.
@@ -576,3 +576,5 @@ avant d'être figées.
 - **2026-10-08** — R3 livré (`r3-learning-sites.md`) : sanctuaire gaté par la Sagesse, cabane Apprendre/Refuser (plafond 6), générateur v3 (sanctuaires c1–3, cabanes, fabriques), IA qui s'en sert. Suite : R2.
 - **2026-10-08** — R2 livré en repli poids seuls (`r2-rare-resources-market.md`) : rares ×2 au marché, l'IA garde la réserve du bâtiment prioritaire en achetant pour ses recrues ; courbe écartée (recul > 7 jours). Suite : R4.
 - **2026-10-08** — R4 livré (`r4-faction-skills.md`) : Sylve (Sylvan) et Chasse rituelle (AH) en compétences de faction, Rumi +25 % de Résonance. Dernier lot du §5bis.
+- **2026-10-28** — Statuts sans cumul (`status-refresh.md`) : relancer un sort de statut actif le rafraîchit au lieu de l'empiler (reliquat du journal R1).
+- **2026-10-28** — Dépendances majeures (`deps-major-upgrade.md`) : vitest 5, eslint 10, vite 8, immer 11, zod 4, preact 11, TypeScript 6.0 ; TS 7 reporté.

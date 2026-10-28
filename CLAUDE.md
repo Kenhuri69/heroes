@@ -545,7 +545,7 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > campagne, hot-seat rechargés fidèlement), file de présentation de combat
 > resynchronisée, brouillard incrémental, journal filtré par siège, pan borné,
 > éditeur 13 terrains. **Serveur** : auth fail-closed, magic-link atomique,
-> harnais Worker (`@cloudflare/vitest-pool-workers`, 10 tests) branché à `pnpm test`.
+> harnais Worker (`@cloudflare/vitest-plugin`, 10 tests) branché à `pnpm test`.
 > **Contenu/outillage** : `content:check` élargi (spécialités, artefacts, dialogues,
 > machines), `faction:sim` sur terrain neutre (révèle **3 béances** au duel —
 > re-tuning = décision de design, différée). **CI** : actions épinglées par SHA +
@@ -662,6 +662,11 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > **Statuts sans cumul** (`status-refresh.md`) : relancer un sort de statut déjà
 > actif sur une pile remplace son statut (durée pleine) au lieu de sommer les
 > modificateurs ; deux sorts différents coexistent. Pas de bump save, golden inchangé.*
+> **Dépendances majeures** (`deps-major-upgrade.md`) : vitest 5 (harnais Worker sur
+> `@cloudflare/vitest-plugin`), eslint 10, vite 8 (Rolldown, chunk `pixi` via
+> `codeSplitting`), immer 11, zod 4 (records de ressources en `partialRecord`),
+> preact 11, TypeScript 6.0 (`types: ["node"]` explicite) ; TS 7 reporté
+> (typescript-eslint `<6.1`). Golden et `faction:sim` identiques.*
 
 ---
 

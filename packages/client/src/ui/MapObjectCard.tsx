@@ -3,6 +3,7 @@ import { heroLearnableCircle, levelOf, type MapObjectDef, type VisitableEffect }
 import { useApp, appStore } from '../app/store';
 import { humanId } from '../app/game';
 import { t, resolveArtifactName, resolveUnitName, resolveSpellName, resolveSkillName } from '../app/i18n';
+import { closeOnBackdrop } from './backdrop';
 
 /**
  * Fiche d'objet de carte (doc 08 §2.1 « appui long = fiche », lot M2 C6) :
@@ -33,7 +34,7 @@ export function MapObjectCard() {
   if (!object) return null;
 
   return (
-    <div class="map-card-backdrop" onClick={close}>
+    <div class="map-card-backdrop" onClick={closeOnBackdrop(close)}>
       <section
         class="map-card"
         data-testid="map-card"

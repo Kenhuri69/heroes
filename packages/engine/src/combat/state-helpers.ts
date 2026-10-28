@@ -40,6 +40,9 @@ export function sightBlockedKeys(combat: CombatState): Set<string> {
   return set;
 }
 
+/** Id de la pile « tour de tir » d'un siège (C-SIEGE2.5, posée par `setup.ts`). */
+export const SIEGE_TOWER_STACK_ID = 'defender-tower';
+
 export function hasAbility(def: CombatUnitDef, id: string): boolean {
   return def.abilities.some((a) => a.id === id);
 }

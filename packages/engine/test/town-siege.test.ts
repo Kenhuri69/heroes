@@ -376,8 +376,9 @@ describe('C-SIEGE2 — murs de siège', () => {
 
   it('C-SIEGE2.6 : la catapulte érode le rempart round après round (segment détruit)', () => {
     // Combat qui dure : l'assaillant tient assez longtemps pour que la catapulte
-    // ouvre au moins un segment (30 PV ÷ dégâts 8-15 ⇒ ~2-3 tirs).
-    const s = withCatapult(siegeState([{ unitId: 'red-grunt', count: 60 }], [{ unitId: 'blue-wolf', count: 40 }], { fort: 2 }));
+    // ouvre au moins un segment (30 PV ÷ dégâts 8-15 ⇒ ~2-3 tirs). Depuis LD2, un
+    // camp réduit à ses machines a perdu : ce sont ses créatures qui doivent tenir.
+    const s = withCatapult(siegeState([{ unitId: 'red-grunt', count: 200 }], [{ unitId: 'blue-wolf', count: 120 }], { fort: 2 }));
     const events: GameEvent[] = [];
     const started = apply(s, { type: 'CaptureTown', townId: 't1', playerId: 'p1' }).state;
     const wallsAtStart = started.combat!.siegeWalls!.length;

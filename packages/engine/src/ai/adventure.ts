@@ -17,6 +17,7 @@ import { persistentMana } from '../hero/mana';
 import { heroArmyCap, heroLearnableCircle } from '../hero/skills';
 import { validateEquipArtifact, handleEquipArtifact } from '../hero/equip';
 import { validateCastAdventureSpell, handleCastAdventureSpell } from '../hero';
+import { validateTransferBetweenHeroes, handleTransferBetweenHeroes } from '../hero/transfer';
 import { grailRevealedTo } from '../adventure/map';
 import { canDigGrail, digGrail } from '../adventure/grail';
 import { validateCaptureTown, handleCaptureTown, townDefenseStrength, visitedOwnTown } from '../town';
@@ -680,6 +681,194 @@ function pickMultiDayObjective(
   return best;
 }
 
+// ——— LD2 : une IA qui conclut (héros principal, relais, offensive) ———
+
+/**
+ * Héros principal d'un joueur (LD2) : la plus forte armée, l'id le plus petit à
+ * égalité. Recalculé à la demande (rien de mémorisé) — c'est lui qui part à
+ * l'offensive, et vers lui que convergent les relais.
+ */
+function principalHero(draft: GameState, playerId: string): HeroState | null {
+  let best: { hero: HeroState; strength: number } | null = null;
+  for (const hero of draft.heroes) {
+    if (hero.playerId !== playerId) continue;
+    const strength = armyStrength(hero.army, draft.unitCatalog);
+    if (!best || strength > best.strength || (strength === best.strength && hero.id < best.hero.id))
+      best = { hero, strength };
+  }
+  return best?.hero ?? null;
+}
+
+/** Part minimale de la force du principal qu'un relais doit porter pour le rejoindre. */
+const RELAY_MIN_SHARE = 0.1;
+/** Un relais ne rejoint le principal qu'à cette distance au plus (jours de marche). */
+const RELAY_MAX_DAYS = 3;
+
+/**
+ * Relais (LD2) : un héros secondaire qui porte assez de troupes rejoint le
+ * principal et lui donne toutes ses piles sauf la plus faible — jamais vidé,
+ * sinon il perdrait à l'ouverture de son prochain combat (chaîne canon III).
+ * Rend `true` s'il a agi (déplacement et/ou transfert).
+ */
+function tryRelayToPrincipal(
+  draft: GameState,
+  hero: HeroState,
+  player: PlayerState,
+  blocked: GridPos[],
+  minStep: number,
+  events: GameEvent[],
+): boolean {
+  const { map, config, unitCatalog } = draft;
+  const principal = principalHero(draft, player.id);
+  if (!map || !config || !principal || principal.id === hero.id || hero.army.length < 2) return false;
+  if (levelOf(principal.pos) !== levelOf(hero.pos)) return false;
+  const strength = armyStrength(hero.army, unitCatalog);
+  if (strength < RELAY_MIN_SHARE * armyStrength(principal.army, unitCatalog)) return false;
+  let moved = false;
+  if (!isAdjacent(hero.pos, principal.pos)) {
+    moved = true;
+    const daily = dailyMovementPoints(config, hero.army, unitCatalog);
+    const budget = daily * RELAY_MAX_DAYS;
+    if (daily <= 0 || octileLowerBound(minStep, hero.pos, principal.pos) > budget) return false;
+    const path = findPath(config, map, hero.pos, principal.pos, blocked.filter((p) => !samePos(p, principal.pos)), true, budget);
+    if (!path || path.length < 2 || totalPathCost(config, map, hero.pos, path) > budget) return false;
+    advanceAi(draft, hero, player, path.slice(0, -1), events);
+    if (draft.combat || !isAdjacent(hero.pos, principal.pos)) return true;
+  }
+  // Toutes les piles sauf la plus faible, de la dernière à la première (indices stables).
+  const weakest = hero.army.reduce(
+    (w, st, i) => (armyStrength([st], unitCatalog) < armyStrength([hero.army[w]!], unitCatalog) ? i : w),
+    0,
+  );
+  let given = 0;
+  for (let slot = hero.army.length - 1; slot >= 0; slot--) {
+    if (slot === weakest) continue;
+    const cmd = { type: 'TransferBetweenHeroes' as const, fromHeroId: hero.id, toHeroId: principal.id, kind: 'army' as const, slot };
+    if (validateTransferBetweenHeroes(draft, cmd)) continue;
+    handleTransferBetweenHeroes(draft, cmd, events);
+    given++;
+  }
+  // Rien n'a pu passer (armée du principal pleine) : le héros reprend sa journée
+  // au lieu de rester planté à côté de lui.
+  return moved || given > 0;
+}
+
+/**
+ * Marge d'offensive réduite pour une ville à moins d'un jour (LD2) : hystérésis
+ * sans état — le principal qui arrive au contact ne renonce pas pour un écart de
+ * force minime (la garnison a grossi d'une semaine, par exemple).
+ */
+const OFFENSIVE_HOLD_MARGIN = 1.2;
+
+/**
+ * Offensive du principal (LD2, D-LD2 : 1,5× à toutes les difficultés) : la
+ * ville d'un joueur ADVERSE connue (tuile explorée, même couche) la moins chère
+ * à atteindre qu'il domine, SANS horizon de jours. Jouée avant le ramassage et
+ * l'exploration : en fin de partie, l'IA vient chercher son adversaire. Renonce
+ * si un héros ennemi visible plus fort que lui rôde à portée.
+ */
+function pickOffensiveTarget(
+  draft: GameState,
+  hero: HeroState,
+  player: PlayerState,
+  blocked: GridPos[],
+  minStep: number,
+): { town: TownState; path: GridPos[] } | null {
+  const { map, config, unitCatalog } = draft;
+  if (!map || !config) return null;
+  const heroStrength = armyStrength(hero.army, unitCatalog);
+  const daily = dailyMovementPoints(config, hero.army, unitCatalog);
+  if (heroStrength <= 0 || daily <= 0) return null;
+  for (const enemy of draft.heroes) {
+    if (enemy.playerId === player.id || !isInPlayerVision(draft, player.id, enemy.pos)) continue;
+    const owner = draft.players.find((p) => p.id === enemy.playerId);
+    if (owner && areAllies(player, owner)) continue;
+    const dist = Math.max(Math.abs(enemy.pos.x - hero.pos.x), Math.abs(enemy.pos.y - hero.pos.y));
+    if (dist <= TOWN_THREAT_RADIUS && armyStrength(enemy.army, unitCatalog) > heroStrength) return null;
+  }
+  let best: { town: TownState; path: GridPos[]; cost: number } | null = null;
+  for (const town of draft.towns) {
+    if (town.ownerPlayerId === null || town.ownerPlayerId === player.id) continue;
+    if (levelOf(town.pos) !== levelOf(hero.pos)) continue;
+    const owner = draft.players.find((p) => p.id === town.ownerPlayerId);
+    if (!owner || areAllies(owner, player)) continue;
+    if (!inBounds(map, town.pos) || !player.explored[tileIndex(map, town.pos)]) continue;
+    const near = octileLowerBound(minStep, hero.pos, town.pos) <= daily;
+    const margin = near ? OFFENSIVE_HOLD_MARGIN : ENEMY_HERO_STRENGTH_MARGIN;
+    if (heroStrength < margin * townDefenseStrength(draft, town)) continue;
+    const holder = draft.heroes.find((h) => h.playerId !== player.id && samePos(h.pos, town.pos));
+    if (holder && heroStrength < margin * armyStrength(holder.army, unitCatalog)) continue;
+    const path = findPath(config, map, hero.pos, town.pos, blocked.filter((p) => !samePos(p, town.pos)), true);
+    if (!path || path.length === 0) continue;
+    const cost = totalPathCost(config, map, hero.pos, path);
+    if (!best || cost < best.cost || (cost === best.cost && town.id < best.town.id)) best = { town, path, cost };
+  }
+  return best;
+}
+
+/**
+ * LD6a — Ville-portail défensive : le principal qui ne peut pas rentrer à pied
+ * défendre une ville qui va tomber s'y téléporte (sort d'effet `townPortal`,
+ * choisi par type d'effet, jamais par id). C'est ce qui rend l'offensive sûre.
+ */
+function tryPortalHome(draft: GameState, hero: HeroState, player: PlayerState, events: GameEvent[]): boolean {
+  if (principalHero(draft, player.id)?.id !== hero.id) return false;
+  const threatened = draft.towns
+    .filter((t) => t.ownerPlayerId === player.id && !samePos(t.pos, hero.pos))
+    .filter((t) => threatAt(draft, t, player) > defenseAt(draft, t, player))
+    .sort((a, b) => (a.id < b.id ? -1 : 1))[0];
+  if (!threatened) return false;
+  for (const spellId of [...(hero.spells ?? [])].sort()) {
+    if (draft.spellCatalog[spellId]?.adventure?.type !== 'townPortal') continue;
+    const cmd = { type: 'CastAdventureSpell' as const, heroId: hero.id, spellId, playerId: player.id, townId: threatened.id };
+    if (validateCastAdventureSpell(draft, cmd)) continue;
+    handleCastAdventureSpell(draft, cmd, events);
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Marge de percée (LD2) : un principal enfermé (plus rien d'atteignable à
+ * explorer, aucune ville à prendre) attaque un gardien qu'il ne domine que de
+ * peu — les gardiens grossissent de semaine en semaine, attendre la marge
+ * habituelle de 1,5× l'enfermait pour la partie (mesuré : exploration figée
+ * sous 30 % au jour 85).
+ */
+const BREAKOUT_GUARDIAN_MARGIN = 1.2;
+/** Gardiens essayés au plus par la percée (A* sans borne : coût maîtrisé). */
+const BREAKOUT_MAX_CANDIDATES = 4;
+
+/** Le gardien connu le plus faible que le principal enfermé peut attaquer (LD2), sans horizon. */
+function pickBreakoutGuardian(
+  draft: GameState,
+  hero: HeroState,
+  player: PlayerState,
+  blocked: GridPos[],
+  guardianPos: GridPos[],
+  zoneTiles: { pos: GridPos; ids: string[] }[],
+): GridPos[] | null {
+  const { map, config, unitCatalog } = draft;
+  if (!map || !config) return null;
+  const heroStrength = armyStrength(hero.army, unitCatalog);
+  const candidates = map.objects
+    .filter((o) => o.type === 'guardian' && levelOf(o.pos) === levelOf(hero.pos) && player.explored[tileIndex(map, o.pos)] !== 0)
+    .map((o) => ({ o, strength: o.type === 'guardian' ? armyStrength([{ unitId: o.unitId, count: o.count }], unitCatalog) : 0 }))
+    .filter((c) => c.strength > 0 && heroStrength >= BREAKOUT_GUARDIAN_MARGIN * c.strength)
+    .sort((a, b) => a.strength - b.strength || (a.o.id < b.o.id ? -1 : 1))
+    .slice(0, BREAKOUT_MAX_CANDIDATES);
+  for (const { o } of candidates) {
+    const pathBlocked = [
+      ...blocked,
+      ...guardianPos.filter((p) => !samePos(p, o.pos)),
+      ...zoneTiles.filter((z) => !z.ids.includes(o.id)).map((z) => z.pos),
+    ];
+    const path = findPath(config, map, hero.pos, o.pos, pathBlocked, true);
+    if (path && path.length > 0) return path;
+  }
+  return null;
+}
+
 /** Marche vers une ville : s'arrête à côté, puis l'assiège / la prend au contact. */
 function marchOnTown(draft: GameState, hero: HeroState, player: PlayerState, town: TownState, path: GridPos[], events: GameEvent[]): void {
   if (path.length > 1) advanceAi(draft, hero, player, path.slice(0, -1), events);
@@ -767,12 +956,18 @@ function pickExplorationStep(
   hero: HeroState,
   player: PlayerState,
   blocked: GridPos[],
+  /** Enchaînement du jour (LD2) : la couche du héros seulement, pas d'escalier. */
+  sameLevelOnly = false,
 ): GridPos[] | null {
   const { map, config } = draft;
   if (!map || !config) return null;
   // La couche du héros d'abord ; à défaut, une bouche de téléporteur qui mène
   // à une couche encore sous le brouillard (L10.5).
-  const blockedIdx = new Set(blocked.filter((p) => inBounds(map, p)).map((p) => tileIndex(map, p)));
+  // LD2 : le chemin d'exploration est suivi en entier — il ne doit pas traverser
+  // une bouche de téléporteur (l'emprunter n'est voulu que comme cible, L10.5).
+  const portals = map.objects.filter((o) => o.type === 'monolith').map((o) => o.pos);
+  const walkBlocked = [...blocked, ...portals];
+  const blockedIdx = new Set(walkBlocked.filter((p) => inBounds(map, p)).map((p) => tileIndex(map, p)));
   // Perf : le BFS lit chaque tuile et chaque case de brouillard — sous proxy
   // Immer, ces lectures coûtaient ~70 % d'un tour d'IA. Mêmes valeurs lues hors
   // proxy : tuiles et config ne changent jamais pendant un tour (`original`), le
@@ -782,13 +977,18 @@ function pickExplorationStep(
   const explored = isDraft(player.explored) ? current(player.explored) : player.explored;
   const target =
     nearestUnexploredTile(plainMap, plainConfig, explored, hero.pos, blockedIdx) ??
-    unexploredThroughTeleport(map, player.explored, hero.pos);
+    (sameLevelOnly ? null : unexploredThroughTeleport(map, player.explored, hero.pos));
   if (!target) return null;
-  const path = findPath(config, map, hero.pos, target, blocked);
+  const path = findPath(config, map, hero.pos, target, walkBlocked.filter((p) => !samePos(p, target)));
   const first = path?.[0];
-  if (!first || stepCost(config, map, hero.pos, first) > hero.movementPoints) return null;
-  return [first];
+  if (!path || !first || stepCost(config, map, hero.pos, first) > hero.movementPoints) return null;
+  // LD2 : le chemin entier (tronqué aux PM par `advanceHeroAlongPath`) — un seul
+  // pas par jour laissait l'IA à 20–30 % de carte explorée au jour 85.
+  return path;
 }
+
+/** Cibles d'exploration enchaînées au plus dans une journée (LD2 ; borne le coût BFS + A*). */
+const EXPLORE_MAX_TARGETS = 6;
 
 /**
  * L'IA d'aventure résout le combat de gardien immédiatement (IA vs IA,
@@ -885,12 +1085,30 @@ function playHeroTurn(draft: GameState, hero: HeroState, player: PlayerState, ev
     advanceAi(draft, hero, player, defense.path, events);
     return;
   }
+  // LD6a : hors de portée à pied, le principal rentre par Ville-portail.
+  if (tryPortalHome(draft, hero, player, events)) return;
 
   // LE1/B1 : une garnison au moins aussi forte que l'armée rappelle le héros.
   const recall = pickMultiDayObjective(draft, hero, player, [...blocked, ...obstacles], minStep, 'reinforce');
   if (recall) {
     advanceAi(draft, hero, player, recall.path, events);
     return;
+  }
+
+  // LD2 : les secondaires bien dotés nourrissent le principal…
+  if (tryRelayToPrincipal(draft, hero, player, [...blocked, ...obstacles], minStep, events)) return;
+  // … et le principal marche sur une ville adverse qu'il domine, sans horizon.
+  if (principalHero(draft, player.id)?.id === hero.id) {
+    const adjacent = pickAdjacentCapturableTown(draft, hero, player);
+    if (adjacent) {
+      captureTown(draft, adjacent, player, events);
+      return;
+    }
+    const offensive = pickOffensiveTarget(draft, hero, player, [...blocked, ...obstacles], minStep);
+    if (offensive) {
+      marchOnTown(draft, hero, player, offensive.town, offensive.path, events);
+      return;
+    }
   }
 
   const resource = pickResourceTarget(draft, hero, player, [...blocked, ...obstacles], minStep);
@@ -958,12 +1176,28 @@ function playHeroTurn(draft: GameState, hero: HeroState, player: PlayerState, ev
   const exploreStep = pickExplorationStep(draft, hero, player, [...blocked, ...obstacles]);
   if (exploreStep) {
     advanceAi(draft, hero, player, exploreStep, events);
+    // LD2 : tant qu'il reste des PM, la tuile inexplorée suivante.
+    for (let i = 1; i < EXPLORE_MAX_TARGETS; i++) {
+      if (draft.combat || hero.movementPoints <= 0 || !draft.heroes.includes(hero)) break;
+      const before = hero.pos;
+      const next = pickExplorationStep(draft, hero, player, [...blocked, ...obstacles], true);
+      if (!next) break;
+      advanceAi(draft, hero, player, next, events);
+      if (samePos(before, hero.pos)) break;
+    }
     return;
   }
 
   // M6 : plus rien à explorer ⇒ marcher (sur plusieurs jours) vers une ville
   // adverse prenable, s'arrêter à côté, puis l'assiéger/la prendre une fois au contact.
   const march = pickTownMarchTarget(draft, hero, player, [...blocked, ...obstacles]);
-  if (!march) return;
-  marchOnTown(draft, hero, player, march.town, march.path, events);
+  if (march) {
+    marchOnTown(draft, hero, player, march.town, march.path, events);
+    return;
+  }
+
+  // LD2 : enfermé, le principal force le passage par le gardien le plus faible.
+  if (principalHero(draft, player.id)?.id !== hero.id) return;
+  const breakout = pickBreakoutGuardian(draft, hero, player, blocked, guardianPos, zoneTiles);
+  if (breakout) advanceAi(draft, hero, player, breakout, events);
 }

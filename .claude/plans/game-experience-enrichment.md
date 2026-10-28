@@ -580,3 +580,4 @@ avant d'être figées.
 - **2026-10-28** — Dépendances majeures (`deps-major-upgrade.md`) : vitest 5, eslint 10, vite 8, immer 11, zod 4, preact 11, TypeScript 6.0 ; TS 7 reporté.
 - **2026-10-28** — Tour de design n° 3 (`design-round-3.md`) : proposition du designer (LD1→LD6), verdict de l'expert, décisions de l'utilisateur. Ordre : LD3 → LD1+LD2 → LD4 → LD5 ; LD6b différé.
 - **2026-10-28** — LD3 livré (`ld3-tavern-escort.md`) : escorte de Taverne en budget d'or par palier, 1 pile T1 au retour de réserve.
+- **2026-10-28** — LD1 + LD2 livrés ensemble (`ld1-ld2-homm-defeat-ai-closes.md`) : défaite par élimination, IA qui conclut (exploration à pleine vitesse, principal + relais, offensive, percée, Ville-portail défensive) ; bug des machines de guerre seules corrigé. Parties conclues 11 → 29/60.

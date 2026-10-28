@@ -672,6 +672,15 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > T1–T3 de sa faction, achetée sur un budget d'or tiré au RNG (`hero.tavernEscort`,
 > ≈ 35 % du prix du héros) ; un retour de réserve reçoit 1 pile T1
 > (`hero.reserveEscort`), jamais une armée vide. Pas de bump save, golden inchangé.*
+> **LD1 + LD2 — une défaite HoMM, une IA qui conclut** (`ld1-ld2-homm-defeat-ai-closes.md`) :
+> défaite par élimination seule dans les parties générées (`defeat?` optionnel ;
+> la fuite ne fait pas perdre son joueur ; hot-seat jusqu'au dernier humain ;
+> compte à rebours sans ville affiché) ; IA : héros principal nourri par des
+> relais, offensive sans horizon (1,5×), percée d'un gardien quand elle est
+> enfermée, Ville-portail défensive, exploration enfin à pleine vitesse (un pas
+> par jour auparavant), rachat d'un héros perdu. Bug corrigé : un camp réduit à
+> ses machines de guerre perd (combat sans fin). Mesuré : parties conclues
+> 11 → 29/60. Pas de bump save, golden et `faction:sim` inchangés.*
 
 ---
 

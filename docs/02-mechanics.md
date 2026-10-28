@@ -738,6 +738,12 @@ Chaque faction consomme surtout **une paire de ressources rares** (Haven : crist
 > par le héros présent (`BuyWarMachine`, `HeroState.warMachines`). En combat, les
 > machines rejoignent le camp du héros comme piles supplémentaires (hors cap 7) et
 > ne sont jamais absorbées dans l'armée. `CURRENT_SAVE_VERSION` → 6.
+> **Fin de combat (lot LD2, canon III)** : un camp réduit aux machines de guerre
+> de son héros (baliste, tente, chariot, catapulte) a **perdu** — une tente qui
+> soignait une machine hors d'atteinte faisait tourner l'auto-combat sans fin
+> (siège mesuré au round 1 536, qui faisait échouer le tour de l'IA). La tour de
+> tir d'une ville garde sa règle : elle défend seule un Château à garnison vide
+> (C-SIEGE2.7a).
 > **Machines de soutien (doc 18 B2)** : la **Tente de premiers soins** et le
 > **Chariot de munitions** sont vendus à la Forge comme les autres. Deux capacités
 > **génériques** interprétées au début de chaque round (dès le 2ᵉ — transitions de
@@ -1226,6 +1232,29 @@ threadé en `heroId` dans `CastSpell`/`HeroAttack` — sinon le lead par défaut
 > seulement). Mesuré (2 IA, 64², 20 graines, 60 jours) : combats entre joueurs
 > 9/20 → **17/20** (médiane j55 → **j38**), villes de joueur capturées 0 → **4/20**,
 > parties conclues 5/20 → **12/20**.
+> **Lot LD2 — une IA qui conclut** (`.claude/plans/ld1-ld2-homm-defeat-ai-closes.md`,
+> livré avec la défaite par élimination LD1) : (1) **héros principal** — la plus
+> forte armée du joueur (id le plus petit à égalité), recalculé à la demande ;
+> (2) **relais** — un secondaire qui porte ≥ 10 % de sa force et se trouve à
+> ≤ 3 jours le rejoint et lui donne toutes ses piles sauf la plus faible (jamais
+> vidé : la chaîne de III) ; (3) **offensive sans horizon** — le principal marche,
+> avant le ramassage et l'exploration, sur la ville d'un joueur adverse connue
+> qu'il domine de 1,5× (`townDefenseStrength`, et le héros qui la tient), 1,2× à
+> moins d'un jour (hystérésis sans état) ; il y renonce si un héros ennemi visible
+> plus fort que lui rôde à ≤ 8 cases ; (4) **percée** — enfermé (plus rien à
+> explorer, aucune ville à prendre), il attaque le gardien connu le plus faible
+> qu'il domine de 1,2× (les gardiens grossissent chaque semaine) ; (5) **Ville-
+> portail défensive** (LD6a) — hors de portée à pied d'une ville qui va tomber,
+> le principal s'y téléporte (effet `townPortal`) ; (6) **exploration** — le héros
+> suit le chemin entier vers la tuile inexplorée la plus proche et enchaîne
+> jusqu'à 6 cibles par jour sur sa couche (un seul pas par jour auparavant),
+> sans traverser une bouche de téléporteur ; (7) **sans héros**, l'IA en rachète
+> un dès qu'elle peut le payer, avant ses recrues. Mesuré (2 IA, 64², 60 graines,
+> 90 jours, défaite par élimination) : parties conclues 11 → **29/60**, parties
+> sans combat entre joueurs 27 → **11/60**, part du héros principal 0,52 →
+> **0,79**, durée d'un tour IA inchangée (≈ 12 ms). Non atteint : premier combat
+> entre joueurs (médiane j52 → j49 ; la carte reste à découvrir sans triche
+> d'information).
 > **Lot LE3** (`.claude/plans/le3-map-resists.md`) : avec la **zone de contrôle**
 > (§2.2), l'IA traite la zone d'un gardien qu'elle ne vise pas comme un obstacle
 > et ne vise jamais un butin qui s'y trouve ; un **gardien dominé** (marge 1,5×)

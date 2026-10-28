@@ -13,7 +13,7 @@ import { killsFromDamage } from './damage';
 import { handleStackDeath } from './death';
 import type { Draft } from './draft';
 import { rebuildArmyFromSurvivors, sideOwnerHeroIds } from './army-rebuild';
-import { collectCasualties, collectSurvivors, combatRules, compareInitiative, hasAbility, moraleOf, otherSide, recordLoss, recordRevive, sideLeadHero, stackLostSoFar } from './state-helpers';
+import { collectCasualties, collectSurvivors, combatRules, compareInitiative, hasAbility, moraleOf, otherSide, recordLoss, recordRevive, SIEGE_TOWER_STACK_ID, sideLeadHero, stackLostSoFar } from './state-helpers';
 import { heroEffectTotal } from '../hero/skills';
 import { COMBAT_ROWS } from './hex';
 import type { ArmyStack, CombatSideId, CombatStack, CombatState } from './types';
@@ -297,8 +297,17 @@ export function advanceTurn(draft: Draft, events: GameEvent[]): void {
 export function checkCombatEnd(draft: Draft, events: GameEvent[]): boolean {
   const combat = draft.combat;
   if (!combat) return true;
-  const attackerAlive = combat.stacks.some((s) => s.side === 'attacker' && s.count > 0);
-  const defenderAlive = combat.stacks.some((s) => s.side === 'defender' && s.count > 0);
+  // Canon III : un camp réduit aux machines de guerre de son héros (baliste,
+  // tente, chariot, catapulte) a perdu — sinon une tente qui soigne une machine
+  // hors d'atteinte faisait tourner l'auto-combat sans fin (mesuré : round 1 536
+  // en siège). La tour de tir d'une ville garde sa règle (C-SIEGE2.7a : elle
+  // défend seule un Château à garnison vide).
+  const fights = (s: CombatStack): boolean => {
+    const def = draft.unitCatalog[s.unitId];
+    return s.count > 0 && (s.id === SIEGE_TOWER_STACK_ID || !(def && hasAbility(def, 'warMachine')));
+  };
+  const attackerAlive = combat.stacks.some((s) => s.side === 'attacker' && fights(s));
+  const defenderAlive = combat.stacks.some((s) => s.side === 'defender' && fights(s));
   if (attackerAlive && defenderAlive) return false;
   finishCombat(draft, combat, attackerAlive ? 'attacker' : 'defender', events);
   return true;

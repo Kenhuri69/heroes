@@ -662,6 +662,11 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > **Statuts sans cumul** (`status-refresh.md`) : relancer un sort de statut déjà
 > actif sur une pile remplace son statut (durée pleine) au lieu de sommer les
 > modificateurs ; deux sorts différents coexistent. Pas de bump save, golden inchangé.*
+> **Dépendances majeures** (`deps-major-upgrade.md`) : vitest 5 (harnais Worker sur
+> `@cloudflare/vitest-plugin`), eslint 10, vite 8 (Rolldown, chunk `pixi` via
+> `codeSplitting`), immer 11, zod 4 (records de ressources en `partialRecord`),
+> preact 11, TypeScript 6.0 (`types: ["node"]` explicite) ; TS 7 reporté
+> (typescript-eslint `<6.1`). Golden et `faction:sim` identiques.*
 
 ---
 

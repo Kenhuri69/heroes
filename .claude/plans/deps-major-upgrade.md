@@ -37,7 +37,7 @@
 6. [x] zod 4
 7. [x] preact 11
 8. [x] TypeScript 6.0 (TS 7 reporté)
-9. [ ] Docs (07 si versions citées), CLAUDE.md, plan d'enrichissement ; Playwright
+9. [x] Docs (aucune version périmée dans 07/10/README), CLAUDE.md, plan d'enrichissement ; [ ] Playwright
 
 ## 4. Journal
 

@@ -174,6 +174,8 @@ Les factions peuvent **ajouter des compétences** au pool via leur manifeste (ex
 - ~20 sorts au MVP (liste dans `data/core/spells/`).
 
 > 🚧 **État 3.2** : 10 sorts livrés (`data/core/spells.json`, cercles 1–3) — Feu/Eau/Terre/Air/neutre, types `damage`/`heal`/`buff`/`debuff`. Mana = `Savoir × 10 + artefacts`, remplie à l'ouverture du combat. **1 sort/round** en combat (commande `CastSpell`, prévisualisation obligatoire sans RNG). Dégâts = `round((base + perPower × Pouvoir) × (1 − résistance) × (lucky ? 2 : 1))`. Gating MVP : le héros connaît d'emblée ses `startingSpells`. **G2 livré** : la Guilde des mages enseigne désormais des sorts à la visite (pool seedé par cercle, §4.1), et la compétence **Sagesse** (H2) débloque l'apprentissage des cercles 3–5 (base apprenable **2** sans Sagesse ; basic → 3, avancé → 4, expert → 5 — fidélité HoMM3). Les sorts de cercle 4–5 eux-mêmes (contenu) et les autres sorts d'aventure restent des raffinements ultérieurs (H1). L'IA ne lance pas de sort d'aventure en 3.2.
+>
+> **Relance d'un statut** (lot `status-refresh`) : relancer un buff, débuff ou silence déjà actif sur une pile **remplace** son statut (effet du nouveau lancer, durée pleine) au lieu de l'empiler ; deux sorts différents coexistent. Même règle que les malédictions et poisons d'unité — fidélité HoMM.
 
 > ✅ **État LE4/F2 — la maîtrise change l'effet** : un sort peut porter des
 > paliers `mastery` (`{ rank, base?, perPower?, area? }`). Au rang de maîtrise

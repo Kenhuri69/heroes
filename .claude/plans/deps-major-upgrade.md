@@ -33,7 +33,7 @@
 2. [x] vitest 5 (+ pool Workers du serveur)
 3. [x] eslint 10
 4. [x] vite 8 (+ preset Preact)
-5. [ ] immer 11
+5. [x] immer 11
 6. [ ] zod 4
 7. [ ] preact 11
 8. [ ] TypeScript 7 (compatibilité typescript-eslint à vérifier)
@@ -62,3 +62,7 @@
   pixi (`browserAll`, `webworkerAll`, < 0,3 Ko) rejoignent le chunk `pixi`.
   Bundle 401 789 → 388 183 o gzip. Smoke ciblé (démarrage, tap-tap ×4) vert ;
   un échec isolé de tap-tap sous charge parallèle, non reproduit en 8 passages.
+- 2026-10-28 : étape 5 — immer 11.2 : aucune modification de code (`produce`,
+  `current`, `isDraft`, `original` inchangés). Golden inchangé ; `faction:sim`
+  identique à l'octet ; durée 155 s (immer 10) contre 162 s (immer 11) sur le
+  conteneur, dans le bruit.

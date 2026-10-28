@@ -783,7 +783,18 @@ test('confort : aide « ? », réduction des animations et raccourci E (doc 08, 
 
   // Établit le focus clavier du document (le contexte de test n'en a pas au
   // chargement) : tap sur la tuile du héros (3,3) = no-op sans dépenser de PM.
+  // Tant que la caméra n'est pas centrée sur le héros, ce point peut tomber sous
+  // la barre du haut (le clic ouvrait alors Options et « ? » restait sans effet) :
+  // on attend que la tuile soit sur le canevas avant de cliquer.
   const focusMap = async () => {
+    await expect
+      .poll(() =>
+        page.evaluate(() => {
+          const p = window.__HEROES_TEST__!.tileToScreen(3, 3);
+          return document.elementFromPoint(p.x, p.y)?.tagName;
+        }),
+      )
+      .toBe('CANVAS');
     const heroTile = await page.evaluate(() => window.__HEROES_TEST__!.tileToScreen(3, 3));
     await page.mouse.click(heroTile.x, heroTile.y);
   };

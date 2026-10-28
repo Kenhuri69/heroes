@@ -21,9 +21,12 @@
 ## 3. Étapes
 
 1. [x] Diagnostic (spec de débogage jetable, non commitée)
-2. [ ] Correctif du test ; passages répétés en parallèle
-3. [ ] Playwright complet
+2. [x] Correctif du test ; passages répétés en parallèle
+3. [x] Playwright complet
 
 ## 4. Journal
 
 - 2026-10-28 : plan ouvert, cause trouvée.
+- 2026-10-28 : correctif — 12/12 passages à 4 workers (3 échecs sur 6 avant) ;
+  Playwright complet hors @perf : 150 verts, 1 skip, **0 instable** ; typecheck
+  (dont `tsconfig.smoke`) et lint verts. @perf non relancé : seul le smoke change.

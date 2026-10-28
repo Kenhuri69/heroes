@@ -19,6 +19,6 @@
     "fake-indexeddb": "^6.2.5",
     "typescript": "^5.8.0",
     "vite": "^7.0.0",
-    "vitest": "^3.2.0"
+    "vitest": "^5.0.5"
   }
 }

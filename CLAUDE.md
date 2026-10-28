@@ -545,7 +545,7 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > campagne, hot-seat rechargés fidèlement), file de présentation de combat
 > resynchronisée, brouillard incrémental, journal filtré par siège, pan borné,
 > éditeur 13 terrains. **Serveur** : auth fail-closed, magic-link atomique,
-> harnais Worker (`@cloudflare/vitest-pool-workers`, 10 tests) branché à `pnpm test`.
+> harnais Worker (`@cloudflare/vitest-plugin`, 10 tests) branché à `pnpm test`.
 > **Contenu/outillage** : `content:check` élargi (spécialités, artefacts, dialogues,
 > machines), `faction:sim` sur terrain neutre (révèle **3 béances** au duel —
 > re-tuning = décision de design, différée). **CI** : actions épinglées par SHA +

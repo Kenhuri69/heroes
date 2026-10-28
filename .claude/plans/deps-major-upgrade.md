@@ -30,7 +30,7 @@
 ## 3. Étapes
 
 1. [x] Mineures et correctifs
-2. [ ] vitest 5 (+ pool Workers du serveur)
+2. [x] vitest 5 (+ pool Workers du serveur)
 3. [ ] eslint 10
 4. [ ] vite 8 (+ preset Preact)
 5. [ ] immer 11
@@ -46,3 +46,8 @@
   seul) : pixi.js 8.22, @playwright/test 1.64, wrangler 4.154, typescript-eslint
   8.72, fast-check 4.10, zustand 5.0.16, preact 10.29.8… Tout vert ; bundle
   389 726 → 401 800 o gzip (pixi.js), budget 819 200.
+- 2026-10-28 : étape 2 — vitest 5.0.5 partout. `@cloudflare/vitest-pool-workers`
+  est déprécié (renommé) et plafonné à vitest 4 ⇒ remplacé par
+  `@cloudflare/vitest-plugin` 1.4.9 (même API `cloudflareTest`, types
+  `@cloudflare/vitest-plugin/types`). Aucun test modifié ; docs 15 et CLAUDE.md
+  suivent le renommage.

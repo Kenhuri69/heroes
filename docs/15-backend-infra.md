@@ -178,7 +178,7 @@ externe en CI). D'où :
 - **Logique pure** (`engine/net`, machine à états de tour, framing du journal) →
   **tests unitaires** (`match.test.ts`, déterministes). C'est là que vit le risque.
 - **Worker ↔ D1** → **harnais committé** (revue 2026-09, R8) : `server/test/`
-  sous `@cloudflare/vitest-pool-workers` (workerd + D1 locale Miniflare, schéma
+  sous `@cloudflare/vitest-plugin` (workerd + D1 locale Miniflare, schéma
   appliqué depuis `server/schema.sql`), lancé par `pnpm test` en CI — auth
   (fail-closed, usage unique, normalisation), saves (copie N-1, borne 413),
   parties (setup validé, siège atomique, lot trans-tour 422, doublon 409, lobby

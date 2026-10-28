@@ -5,7 +5,6 @@
     "types": ["vite/client"],
     "jsx": "react-jsx",
     "jsxImportSource": "preact",
-    "baseUrl": ".",
     "paths": {
       "@heroes/engine": ["../engine/src"],
       "@heroes/content": ["../content/src"]

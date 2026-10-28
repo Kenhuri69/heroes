@@ -36,7 +36,7 @@
 5. [x] immer 11
 6. [x] zod 4
 7. [x] preact 11
-8. [ ] TypeScript 7 (compatibilité typescript-eslint à vérifier)
+8. [x] TypeScript 6.0 (TS 7 reporté)
 9. [ ] Docs (07 si versions citées), CLAUDE.md, plan d'enrichissement ; Playwright
 
 ## 4. Journal
@@ -78,3 +78,10 @@
   sur un `style` numérique (les 15 `style=` du client sont des chaînes ou des
   variables CSS), aucun `defaultProps`/`forwardRef` ; `useSyncExternalStore`
   toujours exporté par `preact/compat`. Couverture réelle = smoke Playwright.
+- 2026-10-28 : étape 8 — **TypeScript 7 reporté** : typescript-eslint 8.72 (le
+  dernier) exige `typescript <6.1.0` ; lint typé impossible sous TS 7. Montée à
+  **TS 6.0.3**, la dernière compatible. Ruptures de TS 6 corrigées : `baseUrl`
+  déprécié (retiré du tsconfig client, `paths` déjà relatifs) ; `types` vaut `[]`
+  par défaut ⇒ `"types": ["node"]` explicite dans engine et content, ce qui
+  reproduit l'inclusion automatique d'avant (`structuredClone`, `node:*` des
+  tests). À rouvrir quand typescript-eslint acceptera TS 7.

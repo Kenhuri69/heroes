@@ -11,7 +11,7 @@ import { runAiIfNeeded } from './ai';
 import type { Draft } from './draft';
 import { COMBAT_COLS, COMBAT_ROWS, hexDistance, inCombatBounds, sameHex, type OffsetPos } from './hex';
 import { advanceTurn, checkCombatEnd } from './turns';
-import { hasAbility, initLedger, shooterAmmo } from './state-helpers';
+import { hasAbility, initLedger, shooterAmmo, SIEGE_TOWER_STACK_ID } from './state-helpers';
 import { spellcasterParams } from './spell-effect';
 import type { ArmyStack, CombatSideId, CombatState, CombatStack, CombatUnitDef } from './types';
 
@@ -173,7 +173,7 @@ function buildTowerStack(fortLevel: number, catalog: Record<string, CombatUnitDe
   if (!wouldSpawnSiegeTower(fortLevel, catalog)) return null;
   const def = catalog[SIEGE_TOWER_UNIT]!;
   return {
-    id: 'defender-tower',
+    id: SIEGE_TOWER_STACK_ID,
     side: 'defender',
     slot: 99,
     unitId: SIEGE_TOWER_UNIT,

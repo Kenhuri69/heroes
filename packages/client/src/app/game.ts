@@ -743,7 +743,7 @@ function skirmishResources(config: GameConfig, mult: number): Resources {
  * mais joueurs/villes/objectifs synthétisés depuis `config` plutôt que lus dans
  * un fichier. Chaque joueur démarre aux `map.startPositions[0/1]` avec sa ville
  * (townHall + habitation T1) et une pile de sa T1 ; la difficulté met l'IA à
- * l'échelle (données). Objectifs : `eliminateAllEnemies` / `defeatHero`.
+ * l’échelle (données). Objectif : `eliminateAllEnemies` (défaite = élimination, LD1).
  */
 export function skirmishStartCommand(
   report: LoadReport,
@@ -869,10 +869,8 @@ export function skirmishStartCommand(
 
   const objectives: ScenarioState['objectives'] = {};
   for (const s of seats) {
-    objectives[s.id] = {
-      victory: { type: 'eliminateAllEnemies' },
-      defeat: { type: 'defeatHero', heroId: `hero-${s.id}` },
-    };
+    // Lot LD1 : pas de `defeat` — seule l'élimination HoMM fait perdre (doc 02 §6).
+    objectives[s.id] = { victory: { type: 'eliminateAllEnemies' } };
   }
 
   const adventureMap = { ...map, objects: map.objects.filter((o) => o.type !== 'town') };
@@ -1144,7 +1142,7 @@ export function resolveNewGameConfig(
 /**
  * Construit le `StartGame` d'une nouvelle partie à N joueurs — généralisation de
  * `skirmishStartCommand` : mêmes rouages (villes T1 synthétisées, objectifs
- * eliminate/defeatHero, villes neutres de la carte), mais un nombre quelconque
+ * eliminateAllEnemies, villes neutres de la carte), mais un nombre quelconque
  * de sièges humains (hot-seat) et/ou IA. La difficulté ne met à l'échelle QUE
  * les sièges IA (armée + ressources + Fort) ; les humains restent à la base. Le
  * réglage bas/riche multiplie le stock de départ de TOUS les joueurs.
@@ -1245,10 +1243,8 @@ export function newGameStartCommand(
 
   const objectives: ScenarioState['objectives'] = {};
   for (const s of seats) {
-    objectives[s.id] = {
-      victory: { type: 'eliminateAllEnemies' },
-      defeat: { type: 'defeatHero', heroId: `hero-${s.id}` },
-    };
+    // Lot LD1 : pas de `defeat` — seule l'élimination HoMM fait perdre (doc 02 §6).
+    objectives[s.id] = { victory: { type: 'eliminateAllEnemies' } };
   }
 
   const adventureMap = { ...map, objects: map.objects.filter((o) => o.type !== 'town') };

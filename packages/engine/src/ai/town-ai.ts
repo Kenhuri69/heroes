@@ -241,11 +241,15 @@ const DEFAULT_MAX_HEROES = 8;
  * `validate/handleRecruitHero` — aucune commande illégale (le pool exclusif et
  * la Taverne y sont vérifiés). Un seul recrutement par ville et par tour.
  */
-function tryRecruitHero(draft: GameState, town: TownState, player: PlayerState, events: GameEvent[]): void {
+function tryRecruitHero(draft: GameState, town: TownState, player: PlayerState, events: GameEvent[]): boolean {
   const cost = draft.config?.hero?.recruitCost ?? DEFAULT_RECRUIT_COST;
   const cap = draft.config?.hero?.maxPerPlayer ?? DEFAULT_MAX_HEROES;
-  if (player.resources.gold < cost * AI_HERO_GOLD_FACTOR) return;
-  if (draft.heroes.filter((h) => h.playerId === player.id).length >= cap) return;
+  // LD2 : sans aucun héros sur la carte, l'IA ne peut plus rien faire — elle en
+  // rachète un dès qu'elle peut le payer (mesuré : des IA restaient sans héros
+  // toute la partie, leur or filant en recrues avant d'atteindre la marge).
+  const heroless = !draft.heroes.some((h) => h.playerId === player.id);
+  if (player.resources.gold < cost * (heroless ? 1 : AI_HERO_GOLD_FACTOR)) return false;
+  if (draft.heroes.filter((h) => h.playerId === player.id).length >= cap) return false;
   // Héros de la réserve d'abord (LE6 B3 : le héros qui a fui revient avec son
   // niveau et ses artefacts), puis roster de la faction de la ville, non déjà
   // vivant (pool exclusif), en ordre d'id stable (déterministe).
@@ -254,8 +258,9 @@ function tryRecruitHero(draft: GameState, town: TownState, player: PlayerState, 
     const cmd = { type: 'RecruitHero' as const, townId: town.id, heroId, playerId: player.id };
     if (validateRecruitHero(draft, cmd)) continue;
     handleRecruitHero(draft, cmd, events);
-    return;
+    return true;
   }
+  return false;
 }
 
 /**
@@ -421,12 +426,15 @@ function tryBuyWarMachine(draft: GameState, town: TownState, events: GameEvent[]
 }
 
 export function playTownTurn(draft: GameState, town: TownState, player: PlayerState, events: GameEvent[]): void {
+  // LD2 : sans héros, le rachat d'un héros passe avant les recrues (un seul
+  // recrutement de héros par ville et par tour).
+  const heroBought = !draft.heroes.some((h) => h.playerId === player.id) && tryRecruitHero(draft, town, player, events);
   tryTradeSurplus(draft, town, player, events);
   let reserve = tryBuild(draft, town, events);
   if (reserve && tryBuyShortfall(draft, town, player, reserve, events)) reserve = tryBuild(draft, town, events);
   tryRecruit(draft, town, player, reserve, events);
   tryUpgrade(draft, town, events);
-  tryRecruitHero(draft, town, player, events);
+  if (!heroBought) tryRecruitHero(draft, town, player, events);
   tryBuyWarMachine(draft, town, events);
   tryGarrisonPickup(draft, town, events);
 }

@@ -84,13 +84,28 @@ describe('M-TAVERN.4 — IA recruteuse', () => {
     expect(next.heroes.some((h) => h.playerId === 'p2' && h.rosterId === 'knight')).toBe(true);
   });
 
-  it('l’IA pauvre (or < coût × marge) ne recrute pas', () => {
-    const s = state({ current: 1, p2Gold: 3000 }); // ≥ coût (2500) mais < 2× marge
+  it('l’IA pauvre (or < coût × marge) ne recrute pas un héros de plus', () => {
+    // p2 a déjà un héros ; il lui reste ≥ coût (2500) mais < 2× marge.
+    const withHero = apply(state({ current: 1, p2Gold: 5500 }), recruitBy('p2', 't2')).state;
+    const s = produce(withHero, (d) => {
+      d.heroRoster['squire'] = { ...KNIGHT, name: '@loc:hero.squire.name' };
+      d.players[1]!.resources.gold = 3000;
+    });
     const next = produce(s, (draft) => {
       const t = draft.towns.find((tw) => tw.id === 't2')!;
       const p = draft.players.find((pl) => pl.id === 'p2')!;
       playTownTurn(draft, t, p, []);
     });
-    expect(next.heroes.some((h) => h.playerId === 'p2')).toBe(false);
+    expect(next.heroes.filter((h) => h.playerId === 'p2')).toHaveLength(1);
+  });
+
+  it('LD2 : sans aucun héros, l’IA en rachète un dès qu’elle peut le payer', () => {
+    const s = state({ current: 1, p2Gold: 3000 }); // ≥ coût, < 2× marge
+    const next = produce(s, (draft) => {
+      const t = draft.towns.find((tw) => tw.id === 't2')!;
+      const p = draft.players.find((pl) => pl.id === 'p2')!;
+      playTownTurn(draft, t, p, []);
+    });
+    expect(next.heroes.filter((h) => h.playerId === 'p2')).toHaveLength(1);
   });
 });

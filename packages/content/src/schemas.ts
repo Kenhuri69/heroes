@@ -1504,7 +1504,8 @@ export const victoryConditionSchema = z.discriminatedUnion('type', [
 /** Objectifs d'un joueur — identique à `ScenarioObjectives` du moteur. */
 export const scenarioObjectivesSchema = z.object({
   victory: victoryConditionSchema,
-  defeat: victoryConditionSchema,
+  /** Optionnelle (lot LD1) : absente ⇒ seule l'élimination HoMM fait perdre. */
+  defeat: victoryConditionSchema.optional(),
 });
 
 /**

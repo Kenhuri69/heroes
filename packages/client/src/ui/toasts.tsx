@@ -47,6 +47,8 @@ export function pushToastOnce(message: string, kind: ToastKind = 'info'): void {
 function toastKind(event: AppEvent): ToastKind {
   switch (event.type) {
     case 'SaveFailed':
+    case 'PlayerEliminated':
+    case 'DayStarted': // seul toast d'aube : le compte à rebours sans ville (LD1)
       return 'error';
     case 'GameLoaded':
     case 'TownBuilt':

@@ -738,6 +738,12 @@ Chaque faction consomme surtout **une paire de ressources rares** (Haven : crist
 > par le héros présent (`BuyWarMachine`, `HeroState.warMachines`). En combat, les
 > machines rejoignent le camp du héros comme piles supplémentaires (hors cap 7) et
 > ne sont jamais absorbées dans l'armée. `CURRENT_SAVE_VERSION` → 6.
+> **Fin de combat (lot LD2, canon III)** : un camp réduit aux machines de guerre
+> de son héros (baliste, tente, chariot, catapulte) a **perdu** — une tente qui
+> soignait une machine hors d'atteinte faisait tourner l'auto-combat sans fin
+> (siège mesuré au round 1 536, qui faisait échouer le tour de l'IA). La tour de
+> tir d'une ville garde sa règle : elle défend seule un Château à garnison vide
+> (C-SIEGE2.7a).
 > **Machines de soutien (doc 18 B2)** : la **Tente de premiers soins** et le
 > **Chariot de munitions** sont vendus à la Forge comme les autres. Deux capacités
 > **génériques** interprétées au début de chaque round (dès le 2ᵉ — transitions de
@@ -974,7 +980,7 @@ Sémantique des capacités du catalogue (valeurs de départ ; **35** au 2026-08)
 ### 5.5 Fin de combat & auto-résolution
 
 - Victoire = plus aucune pile adverse. Un camp **sans aucune pile** dès l'ouverture (héros sans troupes attaqué, ville défendue par un tel héros) perd **immédiatement** : le combat s'ouvre et se clôt dans la même commande (revue 2026-09b M1 — avant : combat sans fin). Fuite (perd l'armée, garde héros+artefacts, re-recrutable en taverne — **livré en LE6 E1**, voir ci-dessous) et reddition (idem + coût en or, garde l'armée restante — post-MVP). **Décision (revue 2026-07 B21)** : un départ délibéré (fuite/reddition/abandon) **réécrit les survivants du camp adverse** exactement comme une défaite normale — le gardien/la garnison garde ses pertes au lieu de retrouver son effectif entier à la rencontre suivante (symétrie entre les deux façons de « perdre » le même combat). **Revue 2026-09b M3** : idem pour un **héros adverse** (H-VS-H) — son armée est reconstruite depuis ses survivants.
-  **Fuite HoMM (lot LE6 E1)** : avec `hero.retreatToTavern` (activé ; absent ⇒ le héros restait sur la carte, armée vide — l'« éclaireur vide »), le héros qui fuit **quitte la carte** sans aucun survivant et rejoint la **réserve** de son joueur (`PlayerState.reserveHeroes`) avec niveau, XP, compétences, sorts, artefacts et machines. Il se recrute au prix normal dans **n'importe quelle** Taverne de son joueur (toutes factions confondues), en tête de liste, et revient avec ses PM du jour et l'**escorte de réserve** (lot LD3 : 1 pile T1, jamais une armée vide) ; personne d'autre ne peut le recruter (le pool exclusif compte la réserve). Un héros en réserve a quitté la carte : `defeatHero` est rempli, et un joueur sans ville ni héros sur la carte est éliminé.
+  **Fuite HoMM (lot LE6 E1)** : avec `hero.retreatToTavern` (activé ; absent ⇒ le héros restait sur la carte, armée vide — l'« éclaireur vide »), le héros qui fuit **quitte la carte** sans aucun survivant et rejoint la **réserve** de son joueur (`PlayerState.reserveHeroes`) avec niveau, XP, compétences, sorts, artefacts et machines. Il se recrute au prix normal dans **n'importe quelle** Taverne de son joueur (toutes factions confondues), en tête de liste, et revient avec ses PM du jour et l'**escorte de réserve** (lot LD3 : 1 pile T1, jamais une armée vide) ; personne d'autre ne peut le recruter (le pool exclusif compte la réserve). Un héros en réserve a quitté la carte : `defeatHero` est rempli pour la victoire d'un adversaire, mais pas pour la défaite de son propre joueur (lot LD1), et un joueur sans ville ni héros sur la carte est éliminé.
   **Repli des tireurs borné** : un tireur IA menacé s'éloigne au lieu de tirer, mais seulement pendant les 10 premiers rounds (`KITE_MAX_ROUND`) — au-delà il tire. Sans cette borne, un tireur plus rapide qu'une pile de mêlée fuyait indéfiniment et l'auto-combat ne se terminait pas.
   **L'IA fuit (lot LE6 B3)** : dans un combat héros contre héros **hors siège**, un camp mené par un héros d'un joueur IA fuit au round 1 si sa force (`armyStrength`) est sous **0,25×** celle d'en face (seuil à mesurer) ; l'adversaire l'emporte. Jamais pour un joueur humain, même en auto-combat. L'IA recrute d'abord ses héros de réserve à la Taverne.
 - **Abandon pré-combat** (retour de jeu 2026-07, commande `AbandonCombat`) : la puissance ennemie n'étant visible qu'en lançant le combat (écran pré-combat), on peut y **renoncer avant d'échanger le moindre coup** en conservant l'armée survivante, **sans coût** (l'ennemi l'emporte, le gardien/la ville reste). Réservé au premier round **et avant toute action du camp joueur** (aucune pile n'a agi ni attendu, le héros n'a ni frappé ni lancé de sort — revue 2026-09b M2 : sinon « tirer puis abandonner » grignotait un gardien sans risque) ; l'UI n'expose le bouton **que** sur l'écran pré-combat, jamais en bataille (où seules fuite/reddition existent). Distinct de la fuite (qui, elle, abandonne l'armée).
@@ -1027,6 +1033,19 @@ threadé en `heroId` dans `CastSpell`/`HeroAttack` — sinon le lead par défaut
 ## 6. Conditions de victoire/défaite (par scénario)
 
 `eliminateAllEnemies` (défaut), `captureTown(id)`, `defeatHero(id)`, `surviveDays(n)`, `collectArtifact(id)`, `accumulateResource(type, n)`. Défaite : perte de tous héros **et** villes (ou objectif du scénario).
+
+> **État livré (lot LD1 — une défaite HoMM, canon III)** : la condition de
+> défaite d'un scénario est **optionnelle** (`ScenarioObjectives.defeat?`).
+> Absente, seule l'**élimination** fait perdre : plus de ville ni de héros sur la
+> carte, ou plus de 7 jours sans ville. Les parties générées (« Nouvelle partie »,
+> escarmouche) n'en posent plus — perdre ou voir fuir son héros de départ ne
+> termine plus la partie. Les scénarios et campagnes gardent leurs objectifs
+> explicites. **Fuite et `defeatHero`** (adaptation assumée) : un héros parti en
+> réserve ne remplit **pas** la défaite de son propre joueur (il est sauf), mais
+> remplit la victoire d'un adversaire qui devait le battre. Le client affiche le
+> **compte à rebours** « Plus de ville : N jour(s) pour en prendre une » dans la
+> barre d'état et le rappelle à chaque aube (`townlessDaysLeft`). Pas de bump
+> save, golden inchangé.
 
 > 🚧 **État 3.5** : 4 conditions déclaratives implémentées (`eliminateAllEnemies`,
 > `captureTown`, `defeatHero`, `surviveDays` — `collectArtifact`/
@@ -1148,10 +1167,11 @@ threadé en `heroId` dans `CastSpell`/`HeroAttack` — sinon le lead par défaut
 > cible pas (revue 2026-07 B26 — même règle que les villes). Choisi par siège
 > à « Nouvelle partie » ; générique (aucune faction). Un joueur éliminé reste
 > hors-jeu même si son allié continue (MVP) — et la **rotation des tours le
-> saute** (revue 2026-07 B27). Limite connue (différée) : le point de vue
-> « local » des objectifs reste le 1er humain — son élimination termine la
-> partie même en hot-seat (basculer le local exige de trancher les objectifs
-> par siège).
+> saute** (revue 2026-07 B27). **Hot-seat (lot LD1)** : la partie continue tant
+> qu'un humain reste en jeu — un humain éliminé (ou dont la défaite explicite est
+> remplie) sort du jeu avec un avis « Joueur N éliminé », la défaite tombe quand
+> le dernier humain sort, la victoire au nom du premier humain qui remplit la
+> sienne.
 > **IA d'aventure** déterministe (`engine/ai`, commande `AiTurn`) : chaque
 > joueur `controller:'ai'` explore / ramasse / attaque un gardien battable /
 > capture / construit / recrute puis passe son tour ; heuristique gloutonne de
@@ -1212,6 +1232,29 @@ threadé en `heroId` dans `CastSpell`/`HeroAttack` — sinon le lead par défaut
 > seulement). Mesuré (2 IA, 64², 20 graines, 60 jours) : combats entre joueurs
 > 9/20 → **17/20** (médiane j55 → **j38**), villes de joueur capturées 0 → **4/20**,
 > parties conclues 5/20 → **12/20**.
+> **Lot LD2 — une IA qui conclut** (`.claude/plans/ld1-ld2-homm-defeat-ai-closes.md`,
+> livré avec la défaite par élimination LD1) : (1) **héros principal** — la plus
+> forte armée du joueur (id le plus petit à égalité), recalculé à la demande ;
+> (2) **relais** — un secondaire qui porte ≥ 10 % de sa force et se trouve à
+> ≤ 3 jours le rejoint et lui donne toutes ses piles sauf la plus faible (jamais
+> vidé : la chaîne de III) ; (3) **offensive sans horizon** — le principal marche,
+> avant le ramassage et l'exploration, sur la ville d'un joueur adverse connue
+> qu'il domine de 1,5× (`townDefenseStrength`, et le héros qui la tient), 1,2× à
+> moins d'un jour (hystérésis sans état) ; il y renonce si un héros ennemi visible
+> plus fort que lui rôde à ≤ 8 cases ; (4) **percée** — enfermé (plus rien à
+> explorer, aucune ville à prendre), il attaque le gardien connu le plus faible
+> qu'il domine de 1,2× (les gardiens grossissent chaque semaine) ; (5) **Ville-
+> portail défensive** (LD6a) — hors de portée à pied d'une ville qui va tomber,
+> le principal s'y téléporte (effet `townPortal`) ; (6) **exploration** — le héros
+> suit le chemin entier vers la tuile inexplorée la plus proche et enchaîne
+> jusqu'à 6 cibles par jour sur sa couche (un seul pas par jour auparavant),
+> sans traverser une bouche de téléporteur ; (7) **sans héros**, l'IA en rachète
+> un dès qu'elle peut le payer, avant ses recrues. Mesuré (2 IA, 64², 60 graines,
+> 90 jours, défaite par élimination) : parties conclues 11 → **29/60**, parties
+> sans combat entre joueurs 27 → **11/60**, part du héros principal 0,52 →
+> **0,79**, durée d'un tour IA inchangée (≈ 12 ms). Non atteint : premier combat
+> entre joueurs (médiane j52 → j49 ; la carte reste à découvrir sans triche
+> d'information).
 > **Lot LE3** (`.claude/plans/le3-map-resists.md`) : avec la **zone de contrôle**
 > (§2.2), l'IA traite la zone d'un gardien qu'elle ne vise pas comme un obstacle
 > et ne vise jamais un butin qui s'y trouve ; un **gardien dominé** (marge 1,5×)

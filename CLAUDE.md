@@ -681,6 +681,12 @@ Cible desktop + mobile (touch-first), architecture data-driven modulaire.
 > par jour auparavant), rachat d'un héros perdu. Bug corrigé : un camp réduit à
 > ses machines de guerre perd (combat sans fin). Mesuré : parties conclues
 > 11 → 29/60. Pas de bump save, golden et `faction:sim` inchangés.*
+> **LD4 — montée de niveau HoMM III** (`ld4-homm3-level-up.md`) : une montée + une
+> nouvelle compétence à chaque niveau, tirage pondéré par archétype
+> (`skillWeightsByArchetype`), garanties Sagesse /6 et école de magie /4
+> (`skillGuarantees`, compteur optionnel `skillOfferCounters?`) ; l'IA choisit
+> (compétence de faction, puis poids) ; étiquette « Montée/Nouvelle ». Pas de bump
+> save, golden inchangé.*
 
 ---
 

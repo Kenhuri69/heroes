@@ -872,6 +872,11 @@ export const gameConfigSchema = z.object({
       retreatToTavern: z.boolean().optional(),
       /** Escorte de Taverne (LD3) — optionnelle : absente ⇒ héros recruté sans armée. */
       tavernEscort: z.array(escortSlotSchema).optional(),
+      /** Montée de niveau HoMM III (LD4) — poids par archétype et garanties, optionnels. */
+      skillWeightsByArchetype: z.record(z.string(), z.record(idSchema, z.number().nonnegative())).optional(),
+      skillGuarantees: z
+        .array(z.object({ skillIds: z.array(idSchema).min(1), everyLevels: z.number().int().min(2) }))
+        .optional(),
       reserveEscort: z.array(escortSlotSchema).optional(),
       /** Mana persistante (LE4/C2) — optionnel : absent ⇒ mana pleine à chaque combat/aube. */
       mana: z

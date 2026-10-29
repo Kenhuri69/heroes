@@ -47,6 +47,7 @@ type HeroKey =
   // LE2/M12 : optionnel, absent = 0 — une v35 sans ce champ reste valide ⇒ pas
   // de bump (précédents : `Calendar.monthEventId?`, `GridPos.level?`).
   | 'pendingSkillLevels'
+  | 'skillOfferCounters'
   | 'pendingAttributeChoices'
   | 'name'
   | 'factionId'

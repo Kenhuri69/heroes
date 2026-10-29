@@ -581,3 +581,4 @@ avant d'être figées.
 - **2026-10-28** — Tour de design n° 3 (`design-round-3.md`) : proposition du designer (LD1→LD6), verdict de l'expert, décisions de l'utilisateur. Ordre : LD3 → LD1+LD2 → LD4 → LD5 ; LD6b différé.
 - **2026-10-28** — LD3 livré (`ld3-tavern-escort.md`) : escorte de Taverne en budget d'or par palier, 1 pile T1 au retour de réserve.
 - **2026-10-28** — LD1 + LD2 livrés ensemble (`ld1-ld2-homm-defeat-ai-closes.md`) : défaite par élimination, IA qui conclut (exploration à pleine vitesse, principal + relais, offensive, percée, Ville-portail défensive) ; bug des machines de guerre seules corrigé. Parties conclues 11 → 29/60.
+- **2026-10-29** — LD4 livré (`ld4-homm3-level-up.md`) : montée de niveau HoMM III (montée + nouvelle, poids par archétype, garanties Sagesse/école, choix IA). Compétence de faction des héros IA au j56 : rang 0,40 → 0,58.

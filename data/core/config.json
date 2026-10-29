@@ -80,6 +80,14 @@
       "recruitCost": 2500,
       "maxPerPlayer": 8,
       "retreatToTavern": true,
+      "skillWeightsByArchetype": {
+        "might": { "logistics": 4, "tactics": 3, "scouting": 2, "luck": 2, "leadership": 4, "melee": 4, "archery": 4, "armor": 4, "economy": 2, "magic-fire": 1, "magic-water": 1, "magic-earth": 1, "magic-air": 1, "wisdom": 1, "sorcery": 1, "intelligence": 1, "resistance": 2, "mysticism": 1, "artillery": 3, "first-aid": 2, "ballistics": 2, "diplomacy": 2, "necromancy": 4, "battle-prayer": 4, "woodland-bond": 4, "ritual-hunt": 4 },
+        "magic": { "logistics": 2, "tactics": 1, "scouting": 2, "luck": 2, "leadership": 1, "melee": 1, "archery": 1, "armor": 1, "economy": 2, "magic-fire": 4, "magic-water": 4, "magic-earth": 4, "magic-air": 4, "wisdom": 5, "sorcery": 4, "intelligence": 4, "resistance": 2, "mysticism": 4, "artillery": 1, "first-aid": 1, "ballistics": 1, "diplomacy": 2, "necromancy": 4, "battle-prayer": 4, "woodland-bond": 4, "ritual-hunt": 4 }
+      },
+      "skillGuarantees": [
+        { "skillIds": ["wisdom"], "everyLevels": 6 },
+        { "skillIds": ["magic-fire", "magic-water", "magic-earth", "magic-air"], "everyLevels": 4 }
+      ],
       "tavernEscort": [
         { "tier": 1, "goldMin": 300, "goldMax": 500 },
         { "tier": 2, "goldMin": 200, "goldMax": 350 },

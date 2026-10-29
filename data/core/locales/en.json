@@ -639,6 +639,8 @@
   "spellbook.previewSummon": "~{count} creature(s) summoned",
   "spellbook.previewUnavailable": "—",
   "skillChoice.title": "Skill choice",
+  "skillChoice.upgrade": "Upgrade",
+  "skillChoice.new": "New",
   "skillChoice.subtitle": "Level up reached: choose a skill.",
   "attributeChoice.title": "Attribute choice",
   "attributeChoice.subtitle": "Level up reached: choose an attribute to raise.",

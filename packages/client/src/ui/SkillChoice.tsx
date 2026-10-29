@@ -43,6 +43,10 @@ export function SkillChoice({ hero }: { hero: HeroState }) {
                   data-testid={`skill-choice-${skillId}`}
                   onClick={() => choose(skillId)}
                 >
+                  {/* LD4 (canon III) : approfondir ou s'élargir — le genre de la proposition. */}
+                  <span class="skill-choice-kind" data-testid={`skill-choice-kind-${skillId}`}>
+                    {t(hero.skills[skillId] !== undefined ? 'skillChoice.upgrade' : 'skillChoice.new')}
+                  </span>
                   <span class="skill-choice-name">{resolveSkillName(skillId)}</span>
                   <span class="skill-choice-rank">{t(`skill.rank.${targetRank}`)}</span>
                   {/* E15 : un choix permanent se fait en connaissance de cause —

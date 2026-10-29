@@ -639,6 +639,8 @@
   "spellbook.previewSummon": "~{count} créature(s) invoquée(s)",
   "spellbook.previewUnavailable": "—",
   "skillChoice.title": "Choix de compétence",
+  "skillChoice.upgrade": "Montée",
+  "skillChoice.new": "Nouvelle",
   "skillChoice.subtitle": "Niveau supérieur atteint : choisissez une compétence.",
   "attributeChoice.title": "Choix d'attribut",
   "attributeChoice.subtitle": "Niveau supérieur atteint : choisissez un attribut à augmenter.",

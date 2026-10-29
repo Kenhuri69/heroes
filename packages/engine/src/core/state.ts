@@ -181,6 +181,12 @@ export interface HeroState {
    */
   pendingSkillLevels?: number;
   /**
+   * Niveaux écoulés sans proposer chaque garantie de compétence (LD4, canon III —
+   * index de `config.hero.skillGuarantees` → compteur). **Optionnel** : absent =
+   * tous à 0, forme de sauvegarde inchangée.
+   */
+  skillOfferCounters?: Record<string, number>;
+  /**
    * File de propositions d'attribut en attente d'un `ChooseAttribute` (doc 02
    * §1.2, H-LEVELCHOICE) — une paire `[a, b]` par montée de niveau d'un héros
    * HUMAIN, résolue dans l'ordre (pas d'écrasement). Les héros IA appliquent
@@ -386,6 +392,8 @@ export interface CaravanState {
  * valide (compteur repart à 0), pas de bump.
  * (v35, sans bump) : `HeroState.pendingSkillLevels?` (LE2/M12) — file de choix de
  * compétence ; optionnel, absent = 0 ⇒ une v35 antérieure reste un état valide.
+ * (v35, sans bump) : `HeroState.skillOfferCounters?` (LD4) — compteurs des
+ * garanties de compétence ; optionnel, absent = 0.
  */
 export const CURRENT_SAVE_VERSION = 35;
 

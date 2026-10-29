@@ -3,7 +3,7 @@ import type { Draft } from '../combat/draft';
 import type { GameEvent } from '../core/events';
 import { rollRange } from '../core/rng';
 import type { HeroAttributes, HeroState } from '../core/state';
-import { applySkillChoice, rollSkillChoices } from '../hero/level-up';
+import { aiSkillPick, applySkillChoice, rollSkillChoices } from '../hero/level-up';
 
 /**
  * Profil de gain d'attribut effectif du héros (H-NAMED.3, doc 02 §1.2) : si son
@@ -140,8 +140,10 @@ export function grantXp(
     // donc automatiquement la 1ʳᵉ proposition, par symétrie avec les attributs.
     // Les propositions sont DÉJÀ tirées pour l'IA aujourd'hui ⇒ aucun tirage RNG
     // supplémentaire, le flux reste bit-identique (golden épargné).
-    if (!isHuman && choices[0] !== undefined) {
-      const skillId = choices[0];
+    // LD4 : l'IA choisit (compétence de faction, puis poids d'archétype), sans tirage.
+    const aiPick = isHuman ? undefined : aiSkillPick(draft, hero, choices);
+    if (aiPick !== undefined) {
+      const skillId = aiPick;
       const rank = applySkillChoice(hero, skillId);
       events.push({ type: 'SkillLearned', heroId: hero.id, skillId, rank });
     }

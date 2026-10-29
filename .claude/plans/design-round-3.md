@@ -460,3 +460,4 @@ Ordre de livraison : LD3 → LD1+LD2 → LD4 → LD5 (×3). LD6b différé.
   héros de départ, IA qui ne conclut pas). **Aucun code.** Verdict de l'expert en
   attente.
 - **2026-10-28** — Verdict `tactical-rpg-expert` reporté au §5 : LD1/LD2/LD3/LD5 amendés, LD4 retenu (b), LD6 découpé (LD6a dans LD2, LD6b différé).
+- **2026-10-28/29** — Livrés : LD3 (#570), LD1+LD2 (#571), LD4 (PR suivante). Reste : LD5 (3 PR), LD6b différé.

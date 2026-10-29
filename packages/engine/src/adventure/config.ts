@@ -339,6 +339,18 @@ export interface HeroProgressionConfig {
    * en dur) ; optionnel ⇒ aucun perk (fixtures/golden inchangés).
    */
   archetypeEffects?: Record<string, SkillRankEffectInput[]> | undefined;
+  /**
+   * Poids de tirage des compétences par archétype (LD4, canon III) : archétype →
+   * id de compétence → poids (absent = 1 ; 0 = jamais proposée comme nouvelle).
+   * Clés opaques. Absent ⇒ tirage uniforme.
+   */
+  skillWeightsByArchetype?: Record<string, Record<string, number>> | undefined;
+  /**
+   * Garanties de proposition (LD4, canon III) : une des compétences `skillIds` est
+   * proposée au moins tous les `everyLevels` niveaux à un héros qui peut l'apprendre
+   * (Sagesse tous les 6, une école de magie tous les 4 en données).
+   */
+  skillGuarantees?: SkillGuaranteeConfig[] | undefined;
   /** Coût en or d'un recrutement de héros à la Taverne (M-TAVERN.1). Défaut 2500. */
   recruitCost?: number;
   /** Nombre maximum de héros par joueur (doc 02 §1.5). Défaut 8. */
@@ -362,6 +374,12 @@ export interface HeroProgressionConfig {
   tavernEscort?: EscortSlotConfig[] | undefined;
   /** Escorte d'un héros qui revient de la réserve (LD3) — même forme. Absent ⇒ armée vide. */
   reserveEscort?: EscortSlotConfig[] | undefined;
+}
+
+/** Garantie de proposition de compétence (LD4) : l'une de `skillIds` tous les `everyLevels` niveaux. */
+export interface SkillGuaranteeConfig {
+  skillIds: string[];
+  everyLevels: number;
 }
 
 /** Un emplacement d'escorte (LD3) : palier visé et budget d'or `[goldMin, goldMax]`. */

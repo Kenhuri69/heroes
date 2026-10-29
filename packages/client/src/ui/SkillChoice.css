@@ -35,6 +35,16 @@
   cursor: pointer;
 }
 
+/* LD4 : genre de la proposition (montée / nouvelle), petite étiquette laiton. */
+.skill-choice-kind {
+  padding: 0 6px;
+  border: 1px solid var(--brass-bright);
+  border-radius: var(--radius-s);
+  color: var(--brass-text);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
 .skill-choice-rank {
   font-weight: 400;
   opacity: 0.8;
